@@ -16,7 +16,6 @@
     - MonolithRuleRoleplayTwoTextChat
     - MonolithRuleRoleplayThreeProperGrammar
     - MonolithRuleRoleplayFourCharacterActions
-    - MonolithRuleRoleplayFiveEroticRoleplay
     - MonolithRuleRoleplaySixMetagame
     - MonolithRuleRoleplaySevenSafeZones
     - MonolithRuleRoleplayEightFactionRoles
@@ -102,12 +101,6 @@
   id: MonolithRuleRoleplayFourCharacterActions
   name: guide-entry-monolith-rule-roleplay-four-character-actions
   text: "/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Four_CharacterActions.xml"
-  ruleEntry: true
-
-- type: guideEntry
-  id: MonolithRuleRoleplayFiveEroticRoleplay
-  name: guide-entry-monolith-rule-roleplay-five-erotic-roleplay
-  text: "/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Five_EroticRoleplay.xml"
   ruleEntry: true
 
 - type: guideEntry
