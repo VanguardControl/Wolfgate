@@ -1,10 +1,10 @@
 # Wolfmed status
 
-Phases 1, 2, 3 and 4 of the Space Onyx wound port are implemented, build, and pass their tests. Nothing is committed.
+Phases 1, 2, 3, 4 and 5 of the Space Onyx wound port are implemented, build, and pass their tests. Nothing is committed.
 
 - **Branch / worktree:** `clanker/wolfmed-port-orchestration-454c3d` in `.claude/worktrees/rules-motd-updates-11c89c`.
 - **Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`. Reference sparse checkout at `C:\tmp\onyx` (recreate with the clone command in `WOLFMED_HANDOFF.md`, using `core.longpaths=true` and a short path).
-- **Documents:** `DECISIONS.md` (D1–D35 plus the phase-2, phase-3 and phase-4 sections), `WOLFMED_PLAN.md` (phase 1's file-level plan), `WOLFMED_PLAN2.md` (phase 2's), `WOLFMED_PLAN3.md` (phase 3's), `WOLFMED_PLAN4.md` (phase 4's), `WOLFMED_MANIFEST.md` (every file: Onyx path, Wolfgate path, status, deviations, including the phase-2 §8.2, phase-3 §8.6 and phase-4 §8.4 user-decision summaries), `reports/analysis` (phase 1), `reports/analysis/phase2` (phase 2's five analyst reports plus `CRITIQUE2.md`), `reports/analysis/phase3` (phase 3's five analyst reports plus `CRITIQUE3.md`) and `reports/analysis/phase4` (phase 4's five analyst reports plus `CRITIQUE4.md`), `reports/work-packages` (phase 1), `reports/work-packages/phase2` (one report and one verification per WP10-N package), `reports/work-packages/phase3` (one report and one verification per WP11-N package) and `reports/work-packages/phase4` (one report and one verification per WP12-N package).
+- **Documents:** `DECISIONS.md` (D1–D35 plus the phase-2, phase-3, phase-4 and phase-5 sections), `WOLFMED_PLAN.md` (phase 1's file-level plan), `WOLFMED_PLAN2.md` (phase 2's), `WOLFMED_PLAN3.md` (phase 3's), `WOLFMED_PLAN4.md` (phase 4's), `WOLFMED_PLAN5.md` (phase 5's), `WOLFMED_MANIFEST.md` (every file: Onyx path, Wolfgate path, status, deviations, including the phase-2 §8.2, phase-3 §8.6, phase-4 §8.4 and phase-5 §8.4 user-decision summaries), `reports/analysis` (phase 1), `reports/analysis/phase2` (phase 2's five analyst reports plus `CRITIQUE2.md`), `reports/analysis/phase3` (phase 3's five analyst reports plus `CRITIQUE3.md`), `reports/analysis/phase4` (phase 4's five analyst reports plus `CRITIQUE4.md`) and `reports/analysis/phase5` (phase 5's five analyst reports plus `CRITIQUE5.md`), `reports/work-packages` (phase 1), `reports/work-packages/phase2` (one report and one verification per WP10-N package), `reports/work-packages/phase3` (one report and one verification per WP11-N package), `reports/work-packages/phase4` (one report and one verification per WP12-N package) and `reports/work-packages/phase5` (one report and one verification per WP13-N package).
 
 ## What phase 1 delivers
 
@@ -173,10 +173,70 @@ server (120 s) reached `Server Version 277.0.0.0 -> Ready` with zero `[ERRO]`/`[
 every phase-4 package that touched a prototype or locale file, including this reconcile package's guidebook
 addition (`WP12-10-report-server.log`).
 
+## What phase 5 delivers
+
+Phase 5 (WP13-0 through WP13-6, `PLAN5.md`) is species coverage: it adds **zero new C# types, zero new
+components, and zero new `SubscribeLocalEvent` pairs** — everything is 16 appended wound prototypes, 4 new
+`_WF` part abstracts, 2 new damage containers, and 8 marked one- or two-line upstream edits. It also lifts
+the protogen exclusion and closes the one balance leak DECISIONS.md flagged for it, the cable coil.
+
+Per-species player experience, as shipped (PLAN5 §8.1, corrected against what WP13-0..WP13-6 measured on
+real spawned mobs — WP13-6-1's correction on `Cold`/`Caustic` folded in):
+
+| | changes? | bleeds | pain | scars | bone / frame fracture | limb loss | passive + bed heal | treated by | organ damage |
+|---|---|---|---|---|---|---|---|---|---|
+| **Human & the other 23 organic species** | only the cable coil | Blood ×1.0 | yes | yes | bone | severed by Slash 130 / Piercing 250 / Heat 250 on an arm; destroyed outright at Blunt 190 / Slash 210, burned to Ash at Heat 250 (pure-Blunt severing stays unreachable, a pre-existing phase-3 defect, not phase 5's) | yes | Biological — every medicine, topical, gauze, tourniquet, surgery — **minus the cable coil** | yes, human lineage only |
+| **Diona** | yes, big | Sap ×1.0, from the first scratch | yes | yes — the only non-organic profile that scars | none — no `BrokenBones` alert, no `SurgeryMendFracture`, no fracture penalty ever | never cleanly severed (`amputationThresholds: {}`), but still destroyed outright at Blunt 190 / Slash 210 / Ash at Heat 250 — no thrown limb, no stump, no reattachment | yes | Biological (unchanged) | none — diona organs carry no `OrganDamage` (pre-existing) |
+| **Slime** | yes, big | Slime ×1.15, from the first scratch | slightly less from blunt (0.7 vs 0.87); burns identical | never | none | same as diona: unseverable, still destroyed at 190/210/250 | yes, organic schedule | Biological (unchanged) | none |
+| **IPC** | yes — joins the whole medical system at once | Oil ×1.0, every chassis wound leaks (chance 1, no minimum), `flammability: 2` — the trail can be set on fire; and it really does move `MobIPC`'s body total (`Bloodloss`) and `SlowOnDamage`'s bands, not just the part | yes, plus pain shock (2 s paralyze + forced scream + jitter + 30 s adrenaline) — and **no chemical relief exists at all** (no metabolizer); also drunk + stuttering below 90 % fluid, same as any bleeding organic | never | none | severable on the organic arm numbers (Slash 130 / Piercing 250 / Heat 250); gib ceiling raised 110/150 → 190/210, no Heat/Ash rung — an IPC limb never burns to ash. IPC hands/feet end up tougher than flesh, the IPC head destructible where a human head is not | never (`passiveRecoveryMultiplier: 0`, `bedRecoveryMultiplier: 0`) | welder, nanite applicator, cable coil, tourniquet, every wound surgery. **No medicine, no brute pack, no ointment, no gauze**. `Cold`/`Caustic` restored as live anti-robot damage (`InorganicWolfmed` container) | none |
+| **Cybernetic limb on an organic body** | yes | the wearer's own blood, ×0.5, only from `Dismemberment`/`SurgicalIncision` — mechanical wounds carry no bleed behaviour | none — the limb is numb, `PainComponent` actively removed | never | frame fracture (microcrack → cracked → deformed → shattered), same thresholds, same `BrokenBones` alert, mendable by `SurgeryMendFracture` | severable on the organic arm numbers; own `Destructible` at Blunt 190 / Slash 210, **no Heat/Ash rung** (removes the old steel-prosthetic-burns-to-Ash bug) | never | cable coil (and the welder, only if the body is an IPC); `Cold`/`Caustic` restored. No medicine | n/a |
+| **Protogen** | yes — exclusion lifted | Blood ×1.0 | yes, including pain shock and `EmoteOnDamage` screams | yes | bone | organic | yes | everything an organic gets — gains the tourniquet, the analyzer panel, the pain overlay and every wound surgery it silently lacked before | none — `BaseProtogenOrgan`-derived organs carry no `OrganDamage`, so no internal bleeding and none of the seven organ surgeries (recorded gap, U12′) |
+| **Skeleton, borgs, monkeys, chimera, diona nymphs, every NPC** | no change | — | — | — | — | — | — | — | — |
+
+**The one nerf, stated plainly:** the cable coil has been healing organic Heat/Shock damage since phase 4's
+HOOK 8 landed — `-3.0` Heat and `-3.0` Shock per 0.6 s, faster than any other healing item in the tree
+(Ointment/Brutepack are 2 s), on an item every engineer already carries. It was never intended — the item's
+own comment says it is for "Estacao Pirata IPCs" and relied on `damageContainers: [Silicon]`, which HOOK 8
+bypasses for wound hosts. Phase 5 gives `CableStack`'s `Healing` component `treatmentCapabilities:
+[Electrical]` (PROTO U, one line): humans lose the cable-coil burn heal, IPC and cybernetic parts keep it.
+**Changelog-worthy — a deliberate balance fix (DECISIONS.md U5), not a bugfix-only note.**
+
+Test counts: **116 of 116 passed, 0 skipped** (`Content.IntegrationTests/Tests/_Onyx/Wounds` +
+`Tests/_Onyx/Medical` + `Tests/_WF/Wolfmed`, `--filter
+"FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~_Onyx.Medical|FullyQualifiedName~Wolfmed"`), per
+`C:\tmp\wolfmed-plan\p5\wp\WP13-6-tests.log` — 20 new tests across 4 files (3 new, 1 extended), all
+Wolfgate-authored (no Onyx phase-5 test source): `WolfmedSpeciesProfileTest.cs` (8, per-profile behaviour),
+`WolfmedSpeciesSpawnTest.cs` (8, whole-mob spawn/delete/damage), `WolfmedTreatmentMatrixTest.cs` (3, the
+treatment-capability matrix and the cable-coil nerf), and one test added to `WolfmedAnalyzerTest.cs`
+(mechanical wound diagnostic text resolves through locale, not a raw key). No new prototype ids, no new
+C# types, components or subscriptions were needed to reach 116/116; D2 exposure from the test suite itself
+is nil. Smoke filter `EntityTest|PrototypeSaveTest|DockTest`: **9 passed, 2 skipped** out of 11, both skips
+the same permanently `[Ignore]`d upstream tests carried since phase 1 (`WP13-6-smoke.log`); `DockTest` run
+first and alone, 3/3, so no environmental `db.ef` masking. Headless server (120 s, port 1299) reached
+`Server Version 277.0.0.0 -> Ready` with zero `[ERRO]`/`[FATL]`/exception lines on every phase-5 package
+that touched a prototype or locale file (`WP13-6-report-server.log`).
+
 ## Upstream footprint
 
-**47 tracked upstream files** carry `// WOLFGATE` hooks (see the manifest) — 16 shipped in phase 1, 6 more
-in phase 2, 5 more in phase 3, and **20 more in phase 4** (measured via
+**55 tracked upstream files** carry `// WOLFGATE` hooks (see the manifest) — 16 shipped in phase 1, 6 more
+in phase 2, 5 more in phase 3, 20 more in phase 4, and **8 more in phase 5**: `Resources/Prototypes/Body/Parts/{slime,diona}.yml`
+(one `parent:` line each), `Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml` (parent line + the two
+gib numbers + U13′(b) container), `Resources/Prototypes/_Shitmed/Body/Parts/cybernetic.yml` (parent line +
+U13′(b) container + U15(a) `Destructible`), `Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml`
+(PROTO Q — `WoundHost`, `PainShockTarget`, `Bloodstream`, `Damageable`, `Destructible` raise),
+`Resources/Prototypes/Entities/Objects/Tools/welders.yml` and
+`Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml` (PROTO S/T, mandatory companions
+to the IPC damage-container change), and `Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml` (PROTO
+U, the one-line cable-coil nerf). `_Mono/Entities/Mobs/Species/protogen.yml` was already tracked since phase
+1 (a documentation-only comment) and gains no new row; `_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml`
+is confirmed **not** touched (U18, PROTO R dropped as a provable no-op). Re-measured via `git diff
+2b4a4675d0 --name-only -- Content.Shared Content.Server Content.Client Resources Content.IntegrationTests`,
+filtered to files outside `_Onyx`/`_WF`/`Content.IntegrationTests`: exactly these 8, matching PLAN5 §3.5's
+prediction precisely. Phase 5 also registers **zero** new `SubscribeLocalEvent` pairs — the first Wolfmed
+phase with an empty subscription-audit row.
+
+**Phase 1–4 hooks (unchanged; see prior sections above):** 47 tracked upstream files — 16 shipped in phase 1,
+6 more in phase 2, 5 more in phase 3, and **20 more in phase 4** (measured via
 `git diff 6329d204e3 --name-only`, filtered to files outside `_Onyx`/`_WF`/`Content.IntegrationTests`):
 `Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml(.cs)` (HOOK 26),
 `Content.Server/EntityEffects/Effects/{HealthChange,EvenHealthChange}.cs` (HOOK 9),
@@ -251,9 +311,9 @@ both owned by vendored/hook-body files, not by editing an upstream `Initialize()
 
 ## Known deviations and balance flags
 
-See `WOLFMED_PLAN.md` §8.2, `WOLFMED_PLAN2.md` §8.2, `WOLFMED_PLAN3.md` §8, `WOLFMED_PLAN4.md` §8, and the
-manifest's Deviations section (including the consolidated phase-2 §8.2, phase-3 §8.6 and phase-4 §8.4
-user-decisions summaries). Notable for playtest: limb damage versus armour changes (armour now applies
+See `WOLFMED_PLAN.md` §8.2, `WOLFMED_PLAN2.md` §8.2, `WOLFMED_PLAN3.md` §8, `WOLFMED_PLAN4.md` §8,
+`WOLFMED_PLAN5.md` §7.3/§8, and the manifest's Deviations section (including the consolidated phase-2 §8.2,
+phase-3 §8.6, phase-4 §8.4 and phase-5 §8.4 user-decisions summaries). Notable for playtest: limb damage versus armour changes (armour now applies
 once), environmental damage creates limb wounds, do-afters no longer interrupt on wound hosts, wound-host
 damage is unpredicted (transient client mispredict), pain stun re-triggers stun VFX per call, a fractured
 arm's do-after penalty is lost if the do-after itself opts out of `MultiplyDelay`, the client never mirrors a
@@ -290,19 +350,47 @@ licence (Wega, GPL-3.0) under Onyx's AGPL and is relevant only if Vampire is eve
 (two Mono traits, the Goob autosurgeon, Shitmed's child-part generation), which is deliberate: those callers
 are not surgery and should not be blocked by a surgery-shaped gate.
 
+**Phase-5-specific:** **the cable coil no longer heals organic Heat/Shock damage** — closed as a deliberate
+balance fix, not a bugfix (U5, §8.2 above). **IPC limb gib triggers raised 110/150 → 190/210** to match
+every organic arm/leg's own `MajorLimb` trigger (U3′(b)) — accepted asymmetries: IPC hands/feet end up
+tougher than organic ones, the IPC head is destructible where an organic head has no gib trigger at all.
+**Cybernetic limbs gain their own `Destructible` at Blunt 190 / Slash 210 with no Heat rung** (U15(a)) —
+removes the pre-existing bug where a steel prosthetic burned to `Ash` at Heat 250 with a flesh sound. **IPC
+oil loss now really damages the IPC** (`SiliconWolfmed` container, `Bloodloss` as a type, not the `Airloss`
+group — U2(a)); PROTO S/T keep the welder and nanite applicator working on it. **`Cold`/`Caustic` restored
+as live damage on IPC and cybernetic parts** (`InorganicWolfmed` container, U13′(b)) — acid and cryogenics
+become working anti-robot tools again, and WP13-6 measured that this is a bigger deal than WP13-2 first
+recorded: the projection path (`WolfmedDamageableSystem.SetDamage`) always wrote `Cold`/`Caustic` to the
+mob's own damage total regardless of container support, so the "asymmetry" WP13-2 flagged for the balance
+pass does not exist and is struck (WP13-6-1). **Protogen is now a wound host** (D32 exclusion lifted, U4) —
+it gains the tourniquet, the analyzer panel, the pain overlay and every wound surgery it silently lacked;
+its organs carry no `OrganDamage` (recorded gap, U12′). **Diona and slime limbs are destroyed, not severed**
+past 190/210 Blunt/Slash — `amputationThresholds: {}` disables only `AmputationSystem`, the inherited gib
+trigger still deletes the limb, so no thrown limb, stump wound or reattachment exists for them (U17,
+pre-existing pattern, phase 5 is the first document to state it). **Pain numbness / narcotics is closed
+permanently, not deferred** (U8, P5-D14) — `PainNumbnessStatusEffectComponent` stays dead code. **Skeleton
+(`MobSkeletonPerson`) is recorded as a known exclusion** (U10, P5-D18) — mechanically ready but "bone
+fracture"/"bleeding" on an undead skeleton needs its own design, never previously documented.
+
 ## Next phases (not started)
 
-1. **Phase 5:** IPC, cybernetic, slime and plant profiles (including their organ-damage and dismemberment
-   coverage, currently silent no-ops per §8.6-7). Blocked on a shared stage-based metabolizer for
-   non-organic circulatory streams. Also carries two phase-4 handoffs: annotate the cable coil (and any
-   future non-organic healing item) with `treatmentCapabilities` once a non-Biological `bodyPartProfile`
-   exists to make HOOK 9 non-inert (P4-D1/D7); and, if narcotics ever need it, land pain numbness /
-   `ModifyStatusEffect` (P4-D8, ~45 LOC, 2 prototypes, 2 locale keys, 1 test).
-2. **Phase 6:** predicted routing (wound-host damage is still unpredicted, D35); the full 272-entry
-   locational-armour content pass (P3-D6); `HurtCommand` part argument (patch kept at
+1. **Phase 6: predicted routing** (wound-host damage is still unpredicted, D35); **the full 272-entry
+   locational-armour content pass** (P3-D6); **`HurtCommand` part argument** (patch kept at
    `reports/work-packages` as `WP8-hurtcommand-deferred.patch` in `C:\tmp\wolfmed-plan\wp`). Explosion
    amputation and the `GibbingSystem.cs` container-mutation fix, both previously slated for phase 6, shipped
-   in phase 4 instead and are struck from this list.
+   in phase 4 instead and are struck from this list. **The phase-1 "blocked on a shared stage-based
+   metabolizer" line above this one is struck outright, not carried to phase 6**: PLAN5 §8.7 found it
+   factually void at the pin — none of Onyx's five `bodyPartProfile`s selects a non-primary circulatory
+   stream, and Onyx's own `MetabolismStagePrototype`/`SolutionManagerComponent`/stage-based
+   `MetabolizerComponent` chain has zero live consumers even in Onyx itself. If a second fluid on one body
+   is ever wanted, it is unused upstream capability to port fresh, not phase-5/6 debt.
+2. **Explicitly deferred, not phase 6 — carried to the balance pass instead** (PLAN5 §8.7): re-tuning
+   `MajorLimb`/`MinorLimb` and the pure-Blunt severing contradiction (R11, pre-existing since phase 3);
+   organ-damage instrumentation for non-human species (U12′) and skeleton (U10); the mechanical examine
+   adjective set (U9, only the analyzer/examine strings shipped); `allowedWoundStages` balance mirroring
+   (U6); a welder `Healing` block for cybernetic limbs (U7); diona/slime limb triggers of their own (U17).
+   **Pain numbness / narcotics (P5-D14) is closed, not deferred** — it is not on this list for a future
+   phase to pick up; re-entry would need a fresh decision, not a resumption.
 
 ## How to verify
 

@@ -17,6 +17,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization; // WOLFGATE (T-P5-18): resolves the mechanical wound LocIds for real.
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -423,6 +424,63 @@ public sealed class WolfmedAnalyzerTest : GameTest
                 Assert.That(entities.System<WolfmedDamageableSystem>().GetTotalDamage((body, damageable)),
                     Is.GreaterThan(FixedPoint2.Zero),
                     "while the body's projected total does move - which is exactly the divergence this row exists to show.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// PLAN5 §6.2 T-P5-18 (WP13-6). A mechanical wound must reach the analyzer panel as real, resolvable
+    /// English, not as a raw LocId placeholder. This is the whole of P5-5 that is assertable headlessly: the
+    /// per-wound name and stage-name path, which WP13-0 shipped complete.
+    /// </summary>
+    /// <remarks>
+    /// WOLFGATE (WP13-6): PLAN5's own wording for this test ends with "<c>Mechanical == true</c> on the
+    /// payload". That member does not exist. WP13-5 shipped only the locale half of §2.6 — the four new
+    /// <c>-mechanical</c>/<c>-frame</c> keys — and explicitly deferred the C# half (the appended
+    /// <c>bool Mechanical</c> on <see cref="HealthAnalyzerWoundDiagnostic"/> and the three consumer branches),
+    /// so there is nothing to assert it against yet. When that lands, add the flag assertion here; the rest of
+    /// this test is unaffected, exactly as WP13-5's handoff predicted.
+    /// </remarks>
+    [Test]
+    public async Task MechanicalWoundDiagnosticTextResolvesTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var locale = server.ResolveDependency<ILocalizationManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var analyzer = entities.System<HealthAnalyzerSystem>();
+            var arm = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .Single(part => part.Component.PartType == BodyPartType.Arm &&
+                                part.Component.Symmetry == BodyPartSymmetry.Left).Id;
+
+            // Severity 30 sits in the Moderate band: IpcMechanicalDamageWound's stages are
+            // Minor 0 / Moderate 25 / Severe 50 / Critical 80 (_Onyx/Wounds/wounds.yml), so
+            // WoundPrototype.GetStageDefinition returns the Moderate one and no other.
+            Assert.That(entities.System<WoundSystem>()
+                .CreateOrMergeWound(arm, "IpcMechanicalDamageWound", 30), Is.Not.Null);
+
+            var diagnostics = analyzer.BuildWoundDiagnostics(body);
+            Assert.That(diagnostics, Is.Not.Null);
+            var visible = diagnostics!.Parts[TargetBodyPart.LeftArm].VisibleWounds;
+            Assert.That(visible, Has.Count.EqualTo(1),
+                "one chassis wound, one row - the builder groups by (name, stage) and counts.");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(visible[0].Name.ToString(), Is.EqualTo("wound-name-ipc-mechanical-damage"));
+                Assert.That(visible[0].StageName?.ToString(), Is.EqualTo("wound-stage-mechanical-moderate"));
+                Assert.That(visible[0].Count, Is.EqualTo(1));
+
+                // The point of the test: both keys must actually exist in
+                // Resources/Locale/en-US/_Onyx/prototypes/wounds/wounds.ftl, or a medic scanning an IPC reads
+                // the raw key. Fluent returns the key itself when it cannot resolve one.
+                Assert.That(locale.GetString(visible[0].Name), Is.EqualTo("chassis damage"));
+                Assert.That(locale.GetString(visible[0].StageName!.Value), Is.EqualTo("moderate"));
             });
         });
     }

@@ -1,22 +1,18 @@
 <BoxContainer xmlns="https://spacestation14.io"
               xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
               Orientation="Vertical"
-              HorizontalExpand="True">
-    <!-- VerticalExpand is set from ApplyTab: on the Damage tab the window's own damage section is the
-         expanding child, and a second expanding sibling would halve it. -->
+              HorizontalExpand="True"
+              VerticalExpand="True">
+    <!-- The right pane of the two-pane analyzer window. The Damage tab is gone: the window's own damage-group
+         breakdown is permanently on the left now, so a tab repeating it would be dead weight. -->
     <!-- Root is a BoxContainer, not a window: none of these names share the window's
          [GenerateTypedNameReferences] scope and none may be CloseButton/ContentsContainer/TitleLabel/WindowHeader. -->
     <BoxContainer Orientation="Horizontal" Margin="4 0 4 2">
-        <Button Name="DamageButton"
-                Text="{Loc 'health-analyzer-window-damage-tab'}"
-                MinHeight="24"
-                HorizontalExpand="True"
-                StyleClasses="OpenRight" />
         <Button Name="WoundsButton"
                 Text="{Loc 'health-analyzer-window-wounds-tab'}"
                 MinHeight="24"
                 HorizontalExpand="True"
-                StyleClasses="OpenBoth" />
+                StyleClasses="OpenRight" />
         <Button Name="OrgansButton"
                 Text="{Loc 'health-analyzer-window-organs-tab'}"
                 MinHeight="24"
@@ -39,22 +35,22 @@
             </PanelContainer.PanelOverride>
             <BoxContainer Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True" Margin="5 5 5 5">
 
-                <BoxContainer Name="WoundsTab" Orientation="Vertical" VerticalExpand="True" Visible="False">
-                    <GridContainer Name="VitalDamageRow" Columns="2" Margin="0 0 0 2">
-                        <Label Text="{Loc 'health-analyzer-window-entity-vital-damage-text'}" />
-                        <Label Name="VitalDamageLabel" FontColorOverride="#ff9100" />
-                    </GridContainer>
-                    <Label Text="{Loc 'health-analyzer-wound-diagnostics-title'}"
-                           StyleClasses="LabelHeading" />
-                    <PanelContainer Margin="0 2 0 4" StyleClasses="LowDivider" />
-                    <RichTextLabel Name="WoundStateLabel" HorizontalAlignment="Left" HorizontalExpand="True" />
-                    <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                <ScrollContainer Name="WoundsTab" VerticalExpand="True" HorizontalExpand="True" Visible="False" HScrollEnabled="False">
+                    <BoxContainer Orientation="Vertical" HorizontalExpand="True">
+                        <GridContainer Name="VitalDamageRow" Columns="2" Margin="0 0 0 2">
+                            <Label Text="{Loc 'health-analyzer-window-entity-vital-damage-text'}" />
+                            <Label Name="VitalDamageLabel" FontColorOverride="#ff9100" />
+                        </GridContainer>
+                        <Label Text="{Loc 'health-analyzer-wound-diagnostics-title'}"
+                               StyleClasses="LabelHeading" />
+                        <PanelContainer Margin="0 2 0 4" StyleClasses="LowDivider" />
+                        <RichTextLabel Name="WoundStateLabel" HorizontalAlignment="Left" HorizontalExpand="True" />
                         <BoxContainer Name="WoundFindingsContainer"
                                       Orientation="Vertical"
                                       HorizontalExpand="True"
                                       HorizontalAlignment="Left" />
-                    </ScrollContainer>
-                </BoxContainer>
+                    </BoxContainer>
+                </ScrollContainer>
 
                 <ScrollContainer Name="OrgansTab" VerticalExpand="True" HorizontalExpand="True" Visible="False" HScrollEnabled="False">
                     <BoxContainer Name="OrgansContainer" Orientation="Vertical" HorizontalExpand="True" />

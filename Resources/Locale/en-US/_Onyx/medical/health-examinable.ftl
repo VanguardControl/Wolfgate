@@ -35,6 +35,9 @@ health-examinable-part-incision-open = { $count } open { $count ->
    *[other] incisions
 }
 health-examinable-part-bleeding = active bleeding
+# WOLFGATE (P5-5): mechanical-species variant of the label above; unconsumed until a later package
+# branches on it (PLAN5 P5-D17/§2.6 - deferred out of this package per its "No new C#" scope).
+health-examinable-part-bleeding-mechanical = leaking fluid
 wound-examine-fracture-hairline = slight swelling
 wound-examine-fracture-simple = severe swelling
 wound-examine-fracture-displaced = unnatural deformation

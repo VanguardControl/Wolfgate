@@ -1,4 +1,7 @@
-# WOLFGATE (WP7): Ipc/Slime/Plant/Cybernetic profiles and their wounds are dropped for phase 1 (D3).
+# WOLFGATE (WP7 -> P5-1): Onyx's Ipc/Slime/Plant/Cybernetic profiles and their wound sets were dropped
+# for phase 1 (D3) and restored verbatim in phase 5 (14 of 30 -> 30 of 30). Only two classes of marked
+# fold exist below: D9 (Chest+Groin -> Torso) and DECISIONS Sec 8.2-1 (manipulationModifier inversion,
+# CyberneticFractureProfile).
 - type: bodyPartProfile
   id: OrganicBodyPartProfile
   treatmentCapabilities: [Biological]
@@ -35,6 +38,129 @@
       Foot: 0.01
     maxAffected: 2
 
+- type: bodyPartProfile
+  id: IpcBodyPartProfile
+  treatmentCapabilities: [Mechanical, Electrical]
+  passiveRecoveryMultiplier: 0
+  bedRecoveryMultiplier: 0
+  bleedingMultiplier: 1
+  scarrable: false
+  acceptedDamageTypes:
+    - Blunt
+    - Slash
+    - Piercing
+    - Heat
+    - Cold    # WOLFGATE (P5-1/P5-D20): inert unless U13'(b) ships - PartIPCBase's Inorganic container
+    - Shock   #   (Brute + Heat/Shock) supports neither Cold nor Caustic. Onyx's SiliconIpc does.
+    - Caustic # WOLFGATE (P5-1/P5-D20): as above. Kept so the profile stays a verbatim Onyx copy.
+  supportedWounds:
+    - IpcMechanicalDamageWound
+    - ElectricalWound
+    - SurgicalIncisionWound
+    - DismembermentWound
+    - AmputationConsequenceWound
+    - SystemicBleedingWound
+  organDamage:
+    # WOLFGATE (P5-1/P5-D13): inert until IPC organs carry OrganDamage (Sec 8.6-7 keeps organ damage
+    # human-lineage only). Do NOT add maxAffected - Onyx sets it only on OrganicBodyPartProfile.
+    chances:
+      Head: 0.05
+      # WOLFGATE (D9): Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent
+      # per-part rolls, and Wolfgate has one torso).
+      Torso: 0.04
+      Arm: 0.02
+      Hand: 0.01
+      Leg: 0.02
+      Foot: 0.01
+
+- type: bodyPartProfile
+  id: SlimeBodyPartProfile
+  treatmentCapabilities: [Biological]
+  bleedingMultiplier: 1.15
+  scarrable: false
+  acceptedDamageTypes:
+    - Blunt
+    - Slash
+    - Piercing
+    - Heat
+    - Cold
+    - Shock
+    - Caustic
+  supportedWounds:
+    - SlimeBluntWound
+    - SlimeSlashWound
+    - SlimePiercingWound
+    - SlimeBurnWound
+    - ElectricalWound
+    - SurgicalIncisionWound
+    - DismembermentWound
+    - AmputationConsequenceWound
+    - InternalBleedingWound
+    - SystemicBleedingWound
+  organDamage:
+    # WOLFGATE (P5-1/P5-D13): inert - see IpcBodyPartProfile above. Do NOT add maxAffected or limb rows -
+    # Onyx lists only Head/Chest/Groin here.
+    chances:
+      Head: 0.05
+      # WOLFGATE (D9): Chest 0.04 + Groin 0.04 -> Torso 0.04 (see IpcBodyPartProfile above).
+      Torso: 0.04
+
+- type: bodyPartProfile
+  id: CyberneticBodyPartProfile
+  treatmentCapabilities: [Mechanical, Electrical]
+  canFeelPain: false
+  passiveRecoveryMultiplier: 0
+  bedRecoveryMultiplier: 0
+  bleedingMultiplier: 0.5
+  scarrable: false
+  acceptedDamageTypes:
+    - Blunt
+    - Slash
+    - Piercing
+    - Heat
+    - Cold    # WOLFGATE (P5-1/P5-D20): inert unless U13'(b) ships - see IpcBodyPartProfile above.
+    - Shock
+    - Caustic # WOLFGATE (P5-1/P5-D20): as above.
+  supportedWounds:
+    - CyberneticMechanicalDamageWound
+    - ElectricalWound
+    - CyberneticFrameFractureWound
+    - SurgicalIncisionWound
+    - DismembermentWound
+    - AmputationConsequenceWound
+  # WOLFGATE: no organDamage block on Onyx's original either - nothing to fold.
+
+- type: bodyPartProfile
+  id: PlantBodyPartProfile
+  treatmentCapabilities: [Biological]
+  bleedingMultiplier: 1
+  acceptedDamageTypes:
+    - Blunt
+    - Slash
+    - Piercing
+    - Heat
+    - Cold
+    - Shock
+    - Caustic
+  supportedWounds:
+    - PlantBluntWound
+    - PlantSlashWound
+    - PlantPiercingWound
+    - PlantBurnWound
+    - ElectricalWound
+    - SurgicalIncisionWound
+    - DismembermentWound
+    - AmputationConsequenceWound
+    - InternalBleedingWound
+    - MedicalScarWound
+    - SystemicBleedingWound
+  organDamage:
+    # WOLFGATE (P5-1/P5-D13): inert - see IpcBodyPartProfile above. Do NOT add maxAffected or limb rows.
+    chances:
+      Head: 0.05
+      # WOLFGATE (D9): Chest 0.04 + Groin 0.04 -> Torso 0.04 (see IpcBodyPartProfile above).
+      Torso: 0.04
+
 - type: fractureProfile
   id: OrganicFractureProfile
   damageType: Blunt
@@ -57,6 +183,49 @@
   # `multiplier *= 1 + (modifier - 1) * partScale * treatmentScale`, so below 1 means FASTER — a shattered arm
   # made every do-after 25% quicker. Restored to the C# defaults in WoundPrototype.cs (1.1/1.25/1.5/2.0) so a
   # fractured arm slows hand work. movementModifier is untouched (correctly below 1, and read that way).
+  grades:
+    Hairline:
+      threshold: 20
+      creationChance: 0.05
+      movementModifier: 0.625
+      manipulationModifier: 1.1
+    Simple:
+      threshold: 35
+      creationChance: 0.25
+      movementModifier: 0.5
+      manipulationModifier: 1.25
+    Displaced:
+      threshold: 50
+      creationChance: 0.65
+      movementModifier: 0
+      manipulationModifier: 1.5
+    Comminuted:
+      threshold: 60
+      creationChance: 1
+      movementModifier: 0
+      manipulationModifier: 2.0
+
+- type: fractureProfile
+  id: CyberneticFractureProfile
+  damageType: Blunt
+  wound: CyberneticFrameFractureWound
+  severityMultiplier: 1
+  resetTreatmentOnDamage: true
+  worsenMinimumDamage: 5
+  minimumHitDamage: 3
+  accumulationMultiplier: 0.4
+  reductionMinimumGrade: Simple
+  removeWoundWhenMended: true
+  alert: BrokenBones
+  alertMinimumGrade: Simple
+  alertHiddenTreatments: [Mended]
+  treatmentEffectScales:
+    None: 1
+    Reduced: 0.25
+    Mended: 0
+  # WOLFGATE (DECISIONS Sec 8.2-1): same inversion fix as OrganicFractureProfile above (wounds.yml) -
+  # Onyx's 0.92/0.84/0.75/0.75 would make a shattered cybernetic arm do-afters 25% FASTER. Restored to the
+  # C# defaults in WoundPrototype.cs. movementModifier is untouched (correctly below 1).
   grades:
     Hairline:
       threshold: 20
@@ -182,6 +351,41 @@
         painPerSeverity: 0.8
         minSeverity: 15
         oneTime: true
+
+- type: wound
+  id: CyberneticFrameFractureWound
+  name: wound-name-cybernetic-frame-fracture
+  damageTypes: {}
+  maximumSeverity: 200
+  stages:
+    Hairline:
+      name: wound-stage-frame-hairline
+      examineDescription: wound-examine-frame-hairline
+      severity: 20
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+    Simple:
+      name: wound-stage-frame-simple
+      examineDescription: wound-examine-frame-simple
+      severity: 35
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+    Displaced:
+      name: wound-stage-frame-displaced
+      examineDescription: wound-examine-frame-displaced
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+    Comminuted:
+      name: wound-stage-frame-comminuted
+      examineDescription: wound-examine-frame-comminuted
+      severity: 60
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
 
 - type: wound
   id: SlashWound
@@ -393,6 +597,464 @@
     chance: 1
     awakeMultiplier: 1.5
     clottingMultiplier: 4
+
+- type: wound
+  id: IpcMechanicalDamageWound
+  name: wound-name-ipc-mechanical-damage
+  damageTypes:
+    Blunt:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Slash:
+      reopenMinimumDamage: 15
+    Piercing:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Heat:
+      reopenMinimumDamage: 15
+    Cold:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Caustic:
+      reopenMinimumDamage: 12
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundBleedingBehavior
+    rate: 0.08
+    chance: 1
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.87
+    minSeverity: 10
+  stages:
+    Minor:
+      name: wound-stage-mechanical-minor
+      severity: 0
+    Moderate:
+      name: wound-stage-mechanical-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+    Severe:
+      name: wound-stage-mechanical-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+    Critical:
+      name: wound-stage-mechanical-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+
+- type: wound
+  id: CyberneticMechanicalDamageWound
+  name: wound-name-cybernetic-mechanical-damage
+  damageTypes:
+    Blunt:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Slash:
+      reopenMinimumDamage: 15
+    Piercing:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Heat:
+      reopenMinimumDamage: 15
+    Cold:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Caustic:
+      reopenMinimumDamage: 12
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundBleedingBehavior
+    rate: 0.08
+    chance: 1
+  stages:
+    Minor:
+      name: wound-stage-mechanical-minor
+      severity: 0
+    Moderate:
+      name: wound-stage-mechanical-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+    Severe:
+      name: wound-stage-mechanical-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+    Critical:
+      name: wound-stage-mechanical-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+
+- type: wound
+  id: SlimeBluntWound
+  name: wound-name-slime-blunt
+  damageTypes:
+    Blunt:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.7
+    minSeverity: 10
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.05
+        chance: 0.25
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.08
+        chance: 0.35
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+      - !type:WoundBleedingBehavior
+        rate: 0.12
+        chance: 0.5
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+      - !type:WoundBleedingBehavior
+        rate: 0.18
+        chance: 0.7
+
+- type: wound
+  id: SlimeSlashWound
+  name: wound-name-slime-slash
+  damageTypes:
+    Slash:
+      reopenMinimumDamage: 15
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.67
+    minSeverity: 10
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.1
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.15
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+      - !type:WoundBleedingBehavior
+        rate: 0.2
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+      - !type:WoundBleedingBehavior
+        rate: 0.3
+
+- type: wound
+  id: SlimePiercingWound
+  name: wound-name-slime-piercing
+  damageTypes:
+    Piercing:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.67
+    minSeverity: 10
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.15
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.2
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+      - !type:WoundBleedingBehavior
+        rate: 0.25
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+      - !type:WoundBleedingBehavior
+        rate: 0.35
+
+- type: wound
+  id: SlimeBurnWound
+  name: wound-name-slime-burn
+  damageTypes:
+    Heat:
+      reopenMinimumDamage: 15
+    Cold:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Caustic:
+      reopenMinimumDamage: 12
+      severityMultiplier: 1
+  maximumSeverity: 200
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+
+- type: wound
+  id: PlantBluntWound
+  name: wound-name-plant-blunt
+  damageTypes:
+    Blunt:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.87
+    minSeverity: 10
+  - !type:WoundScarBehavior
+    threshold: 20
+    chance: 1
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.05
+        chance: 0.25
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.08
+        chance: 0.35
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+      - !type:WoundBleedingBehavior
+        rate: 0.12
+        chance: 0.5
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+      - !type:WoundBleedingBehavior
+        rate: 0.18
+        chance: 0.7
+
+- type: wound
+  id: PlantSlashWound
+  name: wound-name-plant-slash
+  damageTypes:
+    Slash:
+      reopenMinimumDamage: 15
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.67
+    minSeverity: 10
+  - !type:WoundScarBehavior
+    threshold: 15
+    chance: 1
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.1
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.15
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+      - !type:WoundBleedingBehavior
+        rate: 0.2
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+      - !type:WoundBleedingBehavior
+        rate: 0.3
+
+- type: wound
+  id: PlantPiercingWound
+  name: wound-name-plant-piercing
+  damageTypes:
+    Piercing:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.67
+    minSeverity: 10
+  - !type:WoundScarBehavior
+    threshold: 15
+    chance: 1
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.15
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundBleedingBehavior
+        rate: 0.2
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Impaired
+      - !type:WoundBleedingBehavior
+        rate: 0.25
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundFunctionalityBehavior
+        state: Disabled
+      - !type:WoundBleedingBehavior
+        rate: 0.35
+
+- type: wound
+  id: PlantBurnWound
+  name: wound-name-plant-burn
+  damageTypes:
+    Heat:
+      reopenMinimumDamage: 15
+    Cold:
+      reopenMinimumDamage: 18
+      severityMultiplier: 1
+    Caustic:
+      reopenMinimumDamage: 12
+      severityMultiplier: 1
+  maximumSeverity: 200
+  behaviors:
+  - !type:WoundScarBehavior
+    threshold: 20
+    chance: 1
+  stages:
+    Minor:
+      name: wound-stage-minor
+      severity: 0
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+    Moderate:
+      name: wound-stage-moderate
+      severity: 25
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+    Severe:
+      name: wound-stage-severe
+      severity: 50
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
+    Critical:
+      name: wound-stage-critical
+      severity: 80
+      behaviors:
+      - !type:WoundPainBehavior
+        painPerSeverity: 0.8
+        minSeverity: 10
 
 - type: wound
   id: AmputationConsequenceWound

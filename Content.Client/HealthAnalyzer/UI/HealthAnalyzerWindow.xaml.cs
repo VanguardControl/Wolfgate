@@ -126,6 +126,7 @@ namespace Content.Client.HealthAnalyzer.UI
             SetActiveButtons(_entityManager.HasComponent<TargetingComponent>(_target.Value));
 
             ReturnButton.Visible = isPart;
+            WolfmedReturnPanel.Visible = isPart; // WOLFGATE: HOOK 26 - the frame around the button, so a whole-body scan shows no empty box.
             PartNameLabel.Visible = isPart;
 
             if (part != null)
@@ -190,6 +191,7 @@ namespace Content.Client.HealthAnalyzer.UI
 
             AlertsDivider.Visible = showAlerts;
             AlertsContainer.Visible = showAlerts;
+            WolfmedAlertsPanel.Visible = showAlerts; // WOLFGATE: HOOK 26 - the framed box around the alerts, so an empty one costs the overview pane no height.
 
             if (showAlerts)
                 AlertsContainer.DisposeAllChildren();

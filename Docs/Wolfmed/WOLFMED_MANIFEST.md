@@ -84,7 +84,7 @@ Status values: `verbatim` (byte-identical), `modified` (vendored `_Onyx` file wi
 | `Content.Shared/_Onyx/Wounds/WoundInternalBleedingSystem.cs` | `Content.Server/_Onyx/Wounds/WoundInternalBleedingSystem.cs` | adapted | WP6 | D13 + M1 — same two `using` swaps, plus the mandatory `:67` fix `TryModifyBloodLevel((body, bloodstream), -amount)` to `TryModifyBloodLevel(body, -amount, bloodstream)` (two chained user-defined conversions, `CS1503`) |
 | `Content.Shared/_Onyx/Wounds/OrganDamageSystem.cs` | `Content.Server/_Onyx/Wounds/OrganDamageSystem.cs` | adapted | WP6 / **WP11-1** | D13 + D26 + D8 — `using Content.Shared.Body;` to `Content.Shared.Body.Organ` + `Content.Shared._WF.Wolfmed.Body`; the organ list and `PickOrgan` retargeted from `OrganComponent` to `WolfmedOrganComponent`. **WP11-6 correction:** the WP6 disabled sites were actually `:25-26` and `:38-39`, not `:24`/`:36` as originally recorded. **D26 lifted in WP11-1:** both restored to `[Dependency] private AmputationSystem _amputation` and `_amputation.HandlePartDamageApplied(part, ref args)`; fan-out order `_wounds` -> `_fractures` -> `_amputation` -> `_bleeding` is load-bearing. **Owned exclusively by WP11-1** (P3-D24) |
 | `Content.Shared/_Onyx/Wounds/WoundHealingSystem.cs` | `Content.Server/_Onyx/Wounds/WoundHealingSystem.cs` | adapted | WP6 | D13 + D14 + D31 — `using Content.Shared.Medical.Healing;` to `Content.Server.Medical.Components`; D12 facade swap; D31 conversion at `:110` (`DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList()`). `ResolveHealingPart`/`IsCompatiblePart` signatures untouched |
-| `Content.Shared/_Onyx/Chemistry/Circulation/CirculatoryStreamSystem.cs` | `Content.Server/_Onyx/Chemistry/Circulation/CirculatoryStreamSystem.cs` | adapted | WP6 | D15 — trimmed to `GetPartStream`, `TryGetPartSolution`, `TryGetStreamSolution`, `SetBleedRates`, primary-stream branches only. All five subscriptions, `Update`, `SynchronizeStreams`, `GetAttachedStreams`, `ConfigureMetabolizer`, `InitializeStream`, `HasStageConflict`, `RemoveStream`, `DeleteSolution` and both metabolism handlers dropped. Namespace unchanged |
+| `Content.Shared/_Onyx/Chemistry/Circulation/CirculatoryStreamSystem.cs` | `Content.Server/_Onyx/Chemistry/Circulation/CirculatoryStreamSystem.cs` | adapted | WP6 / **WP13-2** | D15 — trimmed to `GetPartStream`, `TryGetPartSolution`, `TryGetStreamSolution`, `SetBleedRates`, primary-stream branches only. All five subscriptions, `Update`, `SynchronizeStreams`, `GetAttachedStreams`, `ConfigureMetabolizer`, `InitializeStream`, `HasStageConflict`, `RemoveStream`, `DeleteSolution` and both metabolism handlers dropped. Namespace unchanged. **WP13-7 path correction:** this row previously listed the path under `Content.Shared/…`; the file actually lives at `Content.Server/…` (its namespace, `Content.Shared._Onyx.Chemistry.Circulation`, is what caused the earlier mistake). **WP13-2 (§2.4, P5-D3)** adds a second one-line `// WOLFGATE` hardening site alongside WP6's trim — both sites confirm every `bodyPartProfile` in the game selects only the primary circulatory stream, closing the phase-1 "shared stage-based metabolizer" question as a non-issue (§8.7) |
 | `Content.Shared/_Onyx/Body/OrganDamageComponent.cs` | same | verbatim | WP6 | registers as `OrganDamage`; no Wolfgate collision |
 | `Content.Shared/_Onyx/Body/Systems/OrganHealthSystem.cs` | `Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs` | adapted | WP6 | D13 + D8 — health reads move to `WolfmedOrganComponent`; `TryGetOrganInSlot`/`TryRemoveOrgan` replaced by Wolfgate's `SharedBodySystem.RemoveOrgan`; `BrainComponent` resolves from `Content.Server.Body.Components`. `OrganFunctionChangedEvent` relocated into this file (see Deviations) |
 | `Content.Shared/_Onyx/Body/FunctionalOrganComponent.cs` | — | **skipped permanently** | WP11 | **WP11-6 reconciliation:** P3-D8 — maps 1:1 onto Shitmed's `OrganComponent.OnAdd` + `_Shitmed/BodyEffects/OrganEffectSystem.cs:53-59`. Onyx's only prototype users are exotic implants Wolfgate does not have. Only its `OrganFunctionChangedEvent` was needed and now lives in `OrganHealthSystem.cs` |
@@ -106,7 +106,7 @@ Status values: `verbatim` (byte-identical), `modified` (vendored `_Onyx` file wi
 | `Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.Targeting.cs` | same | new (hook) | WP5 | **GUARDs A/B/C** — component-gated on `WoundHostComponent`, never `_net.IsServer` (PLAN 8.3 trap 3). A skips Shitmed's part spread, B its sever, C its part regen (both the tick condition and the job enqueue). `CheckBodyPart` is left running |
 | `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs` | same | modified | WP5 | WP5 half: D23 `_routedModifiers` side table written in `OnBeforeDamageChanged` and read at the routed `ChangeDamage` call; D27 `_appliedDelta` accumulator with three write points (`RouteAppliedDamage`, `ApplyPartChange`, `ApplySystemicDamage`) folded in by `AccumulateApplied`, written to `args.Applied` |
 | — | `Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs` | new | WP5 | D28 / PLAN 2.11 — subscribes `<WoundHostComponent, BodyPartAddedEvent/BodyPartRemovedEvent>` (never `<BodyComponent, …>`, which Shitmed owns), calls `WoundDamageProjectionSystem.OnPartInserted`/`OnPartRemoved` (PLAN 8.3 trap 2 — they had no caller) and fans `OrganGotInsertedEvent`/`OrganGotRemovedEvent` over the attached subtree |
-| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | same | modified | WP7 | organic subset only (`OrganicBodyPartProfile`, `OrganicFractureProfile`, 12 wounds); Ipc/Slime/Plant/Cybernetic profiles and their 11 wounds dropped (D3). D9: `organDamage.chances` `Chest: 0.04`+`Groin: 0.04` fold to one `Torso: 0.04` (not summed). **D20 reversed: `Caustic` stays** in `acceptedDamageTypes` and `BurnWound.damageTypes` |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | same | **complete (30 of 30), 2 marked fold classes** | WP7 / **WP13-0** | organic subset (`OrganicBodyPartProfile`, `OrganicFractureProfile`, 12 wounds) from WP7; **WP13-0 appends the remaining 16 prototypes (P5-1a)** — `Ipc`/`Slime`/`Plant`/`Cybernetic` `bodyPartProfile`s, `CyberneticFractureProfile`, and their wound sets. D9: `organDamage.chances` `Chest: 0.04`+`Groin: 0.04` fold to one `Torso: 0.04` (not summed) on `OrganicBodyPartProfile`; **WP13-0 folds the same D9 pattern onto `Ipc`/`Slime`/`Plant`'s `organDamage`**, the phase-5 fold class. **D20 reversed: `Caustic` stays** in `acceptedDamageTypes` and `BurnWound.damageTypes`. **WP13-7 correction:** this row previously read "trimmed (14 of 30 prototypes)" against a WG count of 14 `id:` lines and an Onyx count of 30 — the wording "13 of 29" seen in some earlier notes was off by one in both directions; the file is now complete against Onyx at the pin |
 | `Resources/Locale/en-US/_Onyx/prototypes/wounds/wounds.ftl` | same | modified | WP7 / **WP10-2** | 43 keys copied verbatim, **plus 4 added**: `wound-examine-fracture-{hairline,simple,displaced,comminuted}`, sourced from Onyx's `_Onyx/medical/health-examinable.ftl` (deferred to WP10) because `BoneFractureWound`'s `examineDescription` fields reference them and the YAML linter fails without them — see Deviations. **WP10-2 DELETED those 4 keys** (`:45-52`, the whole `# WOLFGATE (WP7)` stopgap block) when `_Onyx/medical/health-examinable.ftl` landed — Fluent throws on a duplicate id, so the two files cannot both declare them (P2-D12). Verified by a clean headless server start |
 | `Resources/Locale/en-US/_Onyx/medical/fractures.ftl` | same | verbatim | WP7 | `alerts-broken-bones-{name,desc}` |
 | `Resources/Prototypes/_Onyx/Alerts/alerts.yml` | same | modified | WP7 | `BrokenBones` only; header preserved verbatim; `ModsuitPower`/`Centered`/`HierophantBeat`/`DragonPower`/`SneakAttack`/`LossOfSurprise` dropped (unrelated features, would need un-ported textures/tags) |
@@ -115,8 +115,8 @@ Status values: `verbatim` (byte-identical), `modified` (vendored `_Onyx` file wi
 | — | `Resources/Prototypes/Body/Parts/base.yml` | same | modified | WP7 | upstream, 9 one-line `# WOLFGATE` `parent:` edits — `BaseHead`, `BaseLeftArm`, `BaseRightArm`, `BaseLeftHand`, `BaseRightHand`, `BaseLeftLeg`, `BaseRightLeg`, `BaseLeftFoot`, `BaseRightFoot` each add the matching `WolfmedBase<Part>` to their `parent:` list |
 | — | `Resources/Prototypes/_Shitmed/Body/Parts/base.yml` | same | modified | WP7 | upstream, 1 one-line `# WOLFGATE` `parent:` edit — `BaseTorso` adds `WolfmedBaseTorso` |
 | — | `Resources/Prototypes/Entities/Mobs/Species/base.yml` | same | modified | WP7 | upstream, `# WOLFGATE` block on `BaseMobSpeciesOrganic` (D21 `WoundHost`; D22 `Destructible` Blunt threshold 400→1500; D29 existing `PassiveDamage`'s `damage:` zeroed to `{}` in place, not duplicated — see Deviations) |
-| — | `Resources/Prototypes/_Mono/Entities/Mobs/Species/protogen.yml` | same | modified | WP7 | documentation-only `# WOLFGATE` comment on `BaseMobProtogen` pointing at `WolfmedWoundHostExclusionSystem`; no functional YAML change (RT cannot remove an inherited component via YAML) |
-| — | `Content.Shared/_WF/Wolfmed/Body/WolfmedWoundHostExclusionSystem.cs` | new | WP7 | D21/D32 — strips `WoundHostComponent` from entities descended from `BaseMobProtogen` (the only synthetic among the 18 `BaseMobSpeciesOrganic` descendants) at `ComponentInit`, shared so client and server agree. Deviation from the plan's literal "remove in its own prototype" — see Deviations. Subscribes `<WoundHostComponent, ComponentInit>`, free per grep |
+| — | `Resources/Prototypes/_Mono/Entities/Mobs/Species/protogen.yml` | same | modified | WP7 | documentation-only `# WOLFGATE` comment on `BaseMobProtogen` pointing at `WolfmedWoundHostExclusionSystem`; no functional YAML change (RT cannot remove an inherited component via YAML). **WP13-7 deviation-note update (U4):** the exclusion this comment refers to is lifted as of **WP13-3** — the comment is now stale in intent (it still points at the exclusion system, which now excludes nothing) but is left in place as a pointer to where the host decision lives; protogen's organ gap (P5-D19, U12′) is recorded against `_Mono/Body/Organs/protogen.yml`, itself untouched (§3.4) |
+| — | `Content.Shared/_WF/Wolfmed/Body/WolfmedWoundHostExclusionSystem.cs` | new | WP7 / **WP13-3** | D21/D32 — strips `WoundHostComponent` from entities descended from any name in `ExcludedAncestors` at `ComponentInit`, shared so client and server agree. Deviation from the plan's literal "remove in its own prototype" — see Deviations. Subscribes `<WoundHostComponent, ComponentInit>`, free per grep. **WP13-3 (U4, P5-1d):** `ExcludedAncestors` is now an **empty `HashSet<string>`** — the protogen exclusion is lifted; the mechanism is kept, unpopulated, as the documented hook for any future synthetic species |
 | `Content.Shared/Armor/SharedArmorSystem.cs` | same | new (hook) | WP8 | **HOOK 10**, call-site only after the tidy pass: `OnDamageModify` now reads `if (TryApplyWoundHostArmor(uid, component, args)) return;`. The systemic-damage branch and the `ApplyWoundSystemicArmor` helper ported from Onyx moved to `Content.Shared/_WF/Wolfmed/Armor/SharedArmorSystem.Wolfmed.cs`. The localized half was already out of this upstream file, in `_WF/Wolfmed/Armor/WolfmedPartArmorSystem.cs`, since fix round 1 |
 | — | `Content.Shared/_WF/Wolfmed/Armor/SharedArmorSystem.Wolfmed.cs` | new | WP8 (split out in the HOOK 8/10 tidy pass) | HOOK 10's systemic-damage half, `partial class SharedArmorSystem` holding `TryApplyWoundHostArmor` and the ported `ApplyWoundSystemicArmor` helper. Logic is byte-identical to the original hook, just relocated |
 | `Content.Shared/Armor/SharedArmorSystem.cs:108-129` (handler body, phase 1) | `Content.Shared/_WF/Wolfmed/Armor/WolfmedPartArmorSystem.cs` | modified | WP8 / **WP11-3** | HOOK 10's other half, kept out of upstream. Sole subscriber of `<ArmorComponent, InventoryRelayedEvent<PartDamageModifyEvent>>`; phase 1 applied `ApplyModifierSet(damage, PenetrateArmor(Modifiers, ap))` unconditionally. **WP11-6 reconciliation: WP11-3 rewrote the handler** to Onyx's first-match-wins `PartModifiers` loop plus a `Coverage`/`CoverageSymmetry` gate on the fallback only (P3-D5, Option B). Both branches still wrap `PenetrateArmor` (D23) — without it every AP weapon would silently stop working against any armour that declares a part profile. No new subscription: adding Onyx's own registration at `SharedArmorSystem.cs:30` would be a duplicate directed subscription and a server-start crash. Onyx's `MaskComponent.IsToggled` gate deliberately not ported |
@@ -1654,7 +1654,7 @@ a single unknown-component or missing-parent error.
 | `Content.Shared/_Onyx/Medical/HealthAnalyzerOrganInfo.cs` | same path | new (vendored), verbatim | **WP12-6** | 4-field `readonly record struct`; `Order` is the medical reading order the client sorts by |
 | `Content.Shared/_Onyx/Medical/HealthAnalyzerChemicalInfo.cs` | same path | new (vendored), verbatim | **WP12-6** | `HealthAnalyzerSolutionType` / `HealthAnalyzerReagentInfo` / `HealthAnalyzerChemicalInfo` |
 | — | `Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs` | modified — **EXT 2** | **WP12-6** | 4 nullable fields + 4 appended optional ctor parameters + 2 marked `using`s. Purely additive; `CryoPodSystem.cs:206-221`'s nine positional arguments keep compiling untouched |
-| `Content.Server/Medical/HealthAnalyzerSystem.cs:316-515` (Onyx) | `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | new (`_WF` partial of the upstream `sealed partial` class) | **WP12-6** | 5 `[Dependency]` fields + 4 **public** builders (P4-D26) + 2 private helpers, ~215 lines. `namespace Content.Server.Medical` so `HealthAnalyzerComponent`'s `[Access(typeof(HealthAnalyzerSystem), …)]` is satisfied and `_bodySystem`/`_solutionContainerSystem` are reachable |
+| `Content.Server/Medical/HealthAnalyzerSystem.cs:316-515` (Onyx) | `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | new (`_WF` partial of the upstream `sealed partial` class) | WP12-6 / **WP13-5** | 5 `[Dependency]` fields + 4 **public** builders (P4-D26) + 2 private helpers, ~215 lines. `namespace Content.Server.Medical` so `HealthAnalyzerComponent`'s `[Access(typeof(HealthAnalyzerSystem), …)]` is satisfied and `_bodySystem`/`_solutionContainerSystem` are reachable. **WP13-5 (P5-5, U9(a)) adds a second marked site (the EXT 4 comment)**, resolving the per-wound `Name`/`StageName` locale keys through `ILocalizationManager` instead of raw prototype ids; the payload's `bool Mechanical` flag and its three consumer branches (§2.6) were **not** shipped this phase — WP13-5 ships the locale half only, WP13-6-3 records the gap and the follow-up note |
 | — | `Content.Server/Medical/HealthAnalyzerSystem.cs` | modified — **HOOK 23**, 1 line | **WP12-6** | Four builder calls appended to the `ServerSendUiMessage` argument list. No `using` and no `[Dependency]` land upstream |
 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-6** | |
 
@@ -2098,3 +2098,648 @@ against what shipped, per the manifest's role as the reconciled record:
 * **Gibbing fix:** `Content.Shared/Gibbing/Systems/GibbingSystem.cs` two `.ToArray()` snapshots +
   `using System.Linq`, all marked `// WOLFGATE` — landed before WP12-0 started, manifest row added by
   **WP12-10** (table above). Fixes the container-mutation crash phase 3's manifest flagged and left unfixed.
+
+## Phase 5 (2026-09-14)
+
+Phase 4 is committed (`2b4a4675d0 phase 4`). Phase 5 = species coverage and the deferred treatment/pain items
+(`PLAN5.md`). Packages run sequentially in the one worktree; each appends its own rows/deviations directly.
+
+### WP13-0 (phase 5 — profile, wound and container prototypes, P5-1a/P5-2a)
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| `ONYX Resources/Prototypes/_Onyx/Wounds/wounds.yml:37-151` (`IpcBodyPartProfile`, `SlimeBodyPartProfile`, `CyberneticBodyPartProfile`, `PlantBodyPartProfile`) | `Resources/Prototypes/_Onyx/Wounds/wounds.yml` (appended in Onyx's file order, after `OrganicBodyPartProfile`) | vendored, 1 fold class | **WP13-0** | D9 fold on the three profiles that carry `organDamage` (Ipc/Slime/Plant): `Chest: 0.04` + `Groin: 0.04` → `Torso: 0.04` (not summed — independent per-part rolls, one Wolfgate torso). No `maxAffected` added (Onyx sets it only on `OrganicBodyPartProfile`); no extra limb rows added to Slime/Plant (Onyx lists `Head`/`Chest`/`Groin` only). `CyberneticBodyPartProfile` carries no `organDamage` block — nothing to fold. `acceptedDamageTypes` kept verbatim (`Cold`/`Shock`/`Caustic` included) with `# WOLFGATE (P5-1/P5-D20)` inert-marker comments — dead until U13′(b)'s `InorganicWolfmed` container lands in WP13-1 |
+| `ONYX …wounds.yml:193-231` (`CyberneticFractureProfile`) | same path, after `OrganicFractureProfile` | vendored, 1 fold | **WP13-0** | DECISIONS §8.2-1 fold applied a second time: Onyx's `manipulationModifier` values (0.92/0.84/0.75/0.75, all below 1 = *faster* under the `1 + (modifier-1)*scale` formula) replaced with the C# defaults 1.1/1.25/1.5/2.0, matching the phase-2 fix already on `OrganicFractureProfile`. Field-for-field identical to `OrganicFractureProfile` otherwise (only `id:`/`wound:` differ). `movementModifier` untouched |
+| `ONYX …wounds.yml:337-371` (`CyberneticFrameFractureWound`), `:583-681` (`IpcMechanicalDamageWound`, `CyberneticMechanicalDamageWound`), `:683-1039` (`SlimeBluntWound`, `SlimeSlashWound`, `SlimePiercingWound`, `SlimeBurnWound`, `PlantBluntWound`, `PlantSlashWound`, `PlantPiercingWound`, `PlantBurnWound`) | same path, inserted among the existing wound list at Onyx's relative positions (`CyberneticFrameFractureWound` after `BoneFractureWound`; the other 10 after `DismembermentWound`, before `AmputationConsequenceWound`) | vendored verbatim, no folds | **WP13-0** | 11 wound prototypes, byte-for-byte from Onyx. `IpcMechanicalDamageWound`/`CyberneticMechanicalDamageWound` carry 6 damage types (no `Shock` — that routes to `ElectricalWound`) and leak from severity 0 (no `minimumSeverity` on the wound-level `WoundBleedingBehavior`). Slime wounds drop `WoundScarBehavior` and per-stage `minimumSeverity`; Plant wounds keep `WoundScarBehavior` but also drop `minimumSeverity` — the single mechanical difference that makes slimes and diona leak from the first scratch. Stage LocIds for Slime/Plant reuse the **generic** `wound-stage-{minor,moderate,severe,critical}` keys, not species-specific ones. Every LocId all 16 new prototypes need was already 100% present in `Resources/Locale/en-US/_Onyx/prototypes/wounds/wounds.ftl` and `.../medical/health-examinable.ftl` — zero locale additions this package |
+| — (line-1 comment rewrite) | `Resources/Prototypes/_Onyx/Wounds/wounds.yml:1` | in-file edit | **WP13-0** | `# WOLFGATE (WP7)` trim note rewritten to `# WOLFGATE (WP7 → P5-1)`, recording the file going from 14/30 to 30/30 prototypes and stating the two fold classes |
+| — (no Onyx source) | `Resources/Prototypes/_WF/Wolfmed/Damage/containers.yml` | **new**, Wolfgate-authored | **WP13-0** | `SiliconWolfmed` = stock `Silicon` (Brute + Heat/Shock/Radiation) + `Bloodloss` as a **type** (not the `Airloss` group — P5-D5b: the tourniquet's `Asphyxiation: 5` cost lands on the *part*, whose container this does not touch, so the group would buy nothing and would open an unaudited `Asphyxiation` surface for free). `InorganicWolfmed` (U13′(b)) = `supportedGroups: [Brute, Burn]` + `supportedTypes: [Radiation]` — a superset of both stock containers it will replace (`Inorganic` on `PartIPCBase`, `Silicon` on `CyberneticPartBase`), restoring `Cold`/`Caustic` that Onyx's own `SiliconIpc` has and Wolfgate's `Inorganic`/`Silicon` lack. Neither container is referenced by anything yet — wiring lands in a later package |
+| `ONYX Corvax/Body/Species/ipc.yml:322-330` (`OrganIpcExternal`), `Body/Species/slime.yml:232-239` (`OrganSlimePersonExternal`), `Body/Species/diona.yml:226-235` (`OrganDionaExternal`), `_Onyx/Entities/Mobs/Customization/Parts/cybernetic.yml:1-21` | `Resources/Prototypes/_WF/Wolfmed/Body/species_parts.yml` | **new** (re-expressed, D8) | **WP13-0** (deviation — PLAN5 §4 assigns this file to WP13-1; see below) | 4 abstract entity ids: `WolfmedPartSlime`, `WolfmedPartDiona`, `WolfmedPartIpc`, `WolfmedPartCybernetic`. Onyx's `- type: BodyPart / fractureProfile:` re-expressed as `- type: WolfmedBodyPart / fractureProfile:` per D8. `amputationThresholds` deliberately **not** set for Ipc/Cybernetic (P5-D7 — Base<Slot>'s organic P3 gun/laser-severing set is inherited instead of Onyx's own IPC numbers, which sit on a different, tougher part chain); Diona's `amputationThresholds: {}` **is** set (an empty flow mapping is a present key and disables `AmputationSystem` for that part without making it indestructible — the inherited `MajorLimb`/`MinorLimb` gib trigger still deletes it, U17). Slime has no bones (`fractureProfile: null`); Cybernetic uses `CyberneticFractureProfile`. **Not yet wired to any species part base** — no `parent:` list references these ids in this package, so D2 exposure is nil (unreachable prototypes) |
+
+**Deviation from PLAN5 §4's WP13-0/WP13-1 split.** PLAN5 assigns `species_parts.yml` (the 4 abstracts) to
+**WP13-1** ("Species part wiring", together with the `parent:`-list edits to
+`Body/Parts/{slime,diona}.yml`, `_EinsteinEngines/Body/Parts/ipc.yml` and `_Shitmed/Body/Parts/cybernetic.yml`
+— PROTO M/N/O/P). This package's own task brief explicitly scoped the file's *creation* into WP13-0 alongside
+`wounds.yml` and `containers.yml`. Creating the abstracts without wiring them is D2-safe by construction — RT
+never loads an `abstract: true` entity on its own, and nothing in the tree parents these four ids yet, so this
+package changes no runtime behaviour (confirmed by the clean headless run below, identical in shape to every
+prior WP13-0 checkpoint). The upstream `parent:`-list edits (PROTO M/N/O/P) and the `InorganicWolfmed` wiring
+into `_EE ipc.yml`/`cybernetic.yml` remain **owned by whichever package implements WP13-1** — do not
+re-create `species_parts.yml`; add to it only if a later package needs a fifth abstract, and wire the existing
+four via one-line `# WOLFGATE` edits to the four upstream part files, in that order (`WolfmedPart*` **first**
+in each `parent:` list — see the file's own header comment for why).
+
+- **New prototype ids (18):** `IpcBodyPartProfile`, `SlimeBodyPartProfile`, `CyberneticBodyPartProfile`,
+  `PlantBodyPartProfile`, `CyberneticFractureProfile`, `CyberneticFrameFractureWound`,
+  `IpcMechanicalDamageWound`, `CyberneticMechanicalDamageWound`, `SlimeBluntWound`, `SlimeSlashWound`,
+  `SlimePiercingWound`, `SlimeBurnWound`, `PlantBluntWound`, `PlantSlashWound`, `PlantPiercingWound`,
+  `PlantBurnWound`, `SiliconWolfmed`, `InorganicWolfmed` — plus the 4 unwired entity abstracts above (22
+  new ids total this package). Every id grepped 0 hits repo-wide before creation.
+- **Subscription pairs:** none. **New C# types/components:** none.
+- **Locale:** none — all LocIds the 16 wound/profile prototypes need already shipped in phase 1.
+- **Traps avoided (PLAN5 §2.1/§8.3):** no `maxAffected` on the three new `organDamage` blocks; no extra
+  limb rows on Slime/Plant `chances`; every `Chest`/`Groin` key folded to `Torso` (D9 — `BodyPartType` has
+  no `Chest`/`Groin`, so an unfolded copy fails deserialization); `CyberneticFractureProfile`'s
+  `manipulationModifier` inversion fixed to match `OrganicFractureProfile`'s existing phase-2 correction.
+- **Line endings:** both new files written CRLF to match the working-tree convention (git's `* text=auto`
+  normalizes to LF on commit); `wounds.yml`'s edit preserves its existing CRLF throughout — verified with
+  `file` before and after every edit.
+- **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, both green).
+  Headless server (120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero**
+  `[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p5/wp/WP13-0-server.log`). Release YAML linter:
+  **"No errors found in 103947 ms."** (`C:/tmp/wolfmed-plan/p5/wp/WP13-0-yamllint-full.log`). A standalone
+  Python (PyYAML, with a permissive `!type:` tag handler) parse of the edited `wounds.yml` confirms exactly
+  30 top-level documents in the expected order, matching PLAN5 §2.1's "14 of 30 → 30 of 30" count.
+  **This package changes no runtime behaviour** — nothing references the new wound/profile ids until a
+  species part base is wired to them, and nothing references the new container ids until a part abstract is
+  switched onto them; both are later-package work.
+
+### WP13-1 (phase 5 — species part wiring and gib blocks, P5-1b; U3′(b), U15(a), U13′(b), PROTO S/T)
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| `ONYX Body/Species/slime.yml:232-239` (`OrganSlimePersonExternal`) | `Resources/Prototypes/Body/Parts/slime.yml:4` — `PartSlime`'s `parent:` | upstream, 1 marked line (PROTO M) | **WP13-1** | `parent: [BaseItem, BasePart]` → `parent: [WolfmedPartSlime, BaseItem, BasePart]`. `WolfmedPartSlime` **first** (P5-D1/R1): `containers`, `thresholds` and every `[DataField]` inside a component are non-`Always`, so the first parent in the list wins (`SerializationManager.Composition.cs:40-58, 178-206`). Measured result: every `*Slime` part resolves `Woundable.profile = SlimeBodyPartProfile`, `WolfmedBodyPart.fractureProfile = null` (slimes have no bones) |
+| `ONYX Body/Species/diona.yml:226-235` (`OrganDionaExternal`) | `Resources/Prototypes/Body/Parts/diona.yml:3` — `PartDiona`'s `parent:` | upstream, 1 marked line (PROTO N) | **WP13-1** | Same shape. Measured: every `*Diona` part resolves `profile = PlantBodyPartProfile`, `fractureProfile = null`, **`amputationThresholds` empty (`Count == 0`)** — R2 satisfied, the empty flow mapping survives inheritance and suppresses `Base<Slot>`'s dict, so `AmputationSystem.HandlePartDamageApplied` early-returns (`:80`). Diona limbs are never cleanly severed but are still **destroyed** by the inherited `MajorLimb`/`MinorLimb` gib rung (U17) |
+| `ONYX Corvax/Body/Species/ipc.yml:322-330` (`OrganIpcExternal`) | `Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml` — `PartIPCBase`'s `parent:` (`:3`), a new `Damageable` block, and the two `Destructible` numbers | upstream, 3 marked edits (PROTO O a/b/c) | **WP13-1** | (a) `parent: BasePartInorganic` → `parent: [ WolfmedPartIpc, BasePartInorganic ]`. (b) **U13′(b)** — a new `- type: Damageable / damageContainer: InorganicWolfmed` (the file previously inherited stock `Inorganic` from `BasePartInorganic`), restoring `Cold` and `Caustic`; measured `DamageDict` keys on a spawned `LeftArmIPC` are now `Blunt, Caustic, Cold, Heat, Piercing, Radiation, Shock, Slash`. (c) **U3′(b)/P5-D8** — `Blunt 110 → 190`, `Slash 150 → 210`, **no Heat rung added** (EE's own `# no ashing trigger` stands, so an IPC limb never burns to `Ash`). `TorsoIPC`'s own `Destructible` (`:37-51`, 400/400) is deliberately untouched |
+| `ONYX _Onyx/Entities/Mobs/Customization/Parts/cybernetic.yml:1-21` | `Resources/Prototypes/_Shitmed/Body/Parts/cybernetic.yml` — `CyberneticPartBase`'s `parent:` (`:3`), its `Damageable` (`:10-11`) and a new `Destructible` block | upstream, 3 marked edits (PROTO P a/b/c) | **WP13-1** | (a) `parent: BasePartInorganic` → `parent: [ WolfmedPartCybernetic, BasePartInorganic ]`; all 14 entities in the file descend from it. (b) **U13′(b)** — `damageContainer: Silicon` → `InorganicWolfmed` (superset of `Silicon`; nothing lost, `Cold`/`Caustic` gained). (c) **U15(a)/P5-D8b** — a new marked `- type: Destructible # no ashing trigger` with `Blunt 190` / `Slash 210` → `GibPartBehavior` and **no Heat rung**. Before this, `CyberneticPartBase` declared none and every concrete limb took its *other* parent's — Mono's `MajorLimb`/`MinorLimb` — so a steel prosthetic spawned `Ash`, ran `BurnBodyBehavior` and played the `MeatLaserImpact` flesh sound at Heat 250 (R12). Side effect: cybernetic hands/feet gib at 190/210 instead of `MinorLimb`'s 150/180 |
+| — (no Onyx source) | `Resources/Prototypes/Entities/Objects/Tools/welders.yml:118-119` — `WeldingHealing.damageContainers` | upstream, 1 marked entry (PROTO S) | **WP13-1** (deviation — PLAN5 §4 assigns PROTO S/T to WP13-2) | `- SiliconWolfmed` appended. `WeldingHealableSystem.OnRepairFinished` gates on `damageable.DamageContainerID ∈ damageContainers` (`WeldingHealableSystem.cs:29-41`); when WP13-2 moves `MobIPC` onto `SiliconWolfmed`, omitting this removes the only way to repair an IPC (P5-D5 / R3). Landing it a package early is inert (no entity uses `SiliconWolfmed` yet) and removes the dead-window risk |
+| — (no Onyx source) | `Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml:49-50` — `WeldingHealing.damageContainers` | upstream, 1 marked entry (PROTO T) | **WP13-1** (same deviation) | Identical to PROTO S |
+| — (no Onyx source) | `Resources/Prototypes/_WF/Wolfmed/Body/species_parts.yml` | `_WF`, extended (created by WP13-0) | **WP13-1** | Two changes: (1) the stale WP13-0 "wiring is a later package's job" note replaced with the wiring status; (2) **a `- type: ContainerContainer` declaring `bodypart` + `wounds` added to all four abstracts** — see the WP13-1-1 deviation below |
+
+#### WP13-1-1 — `wounds` container declared statically on the four `_WF` abstracts (addition to PLAN5 §2.2)
+
+Not in PLAN5. Required, and caught by `PrototypeSaveTest.UninitializedSaveTest`, which failed on **40**
+prototypes (every `*IPC`, `*Slime`, `*Diona` and `*Cybernetic` part) with
+`modifies component on spawn: ContainerContainer` the moment PROTO M/N/O/P landed. Cause:
+`WoundSystem.OnWoundableInit` does `EnsureContainer<Container>(part, "wounds")` on **`ComponentInit`**
+(`Content.Shared/_Onyx/Wounds/WoundSystem.cs:60-63`), i.e. at spawn. Phase 1-4 never hit this because organic
+parts do not declare `- type: Woundable` in YAML — `WoundDamageProjectionSystem.SetupPart` `EnsureComp`s it
+after body setup — whereas P5-D1's whole design is a *static* `Woundable` declaration.
+
+Fix, applied in the `_WF` file rather than upstream:
+
+```yaml
+  - type: ContainerContainer
+    containers:
+      bodypart: !type:Container
+        ents: []
+      wounds: !type:Container
+        ents: []
+```
+
+`ContainerManagerComponent.Containers` is a plain `[DataField]` dictionary
+(`RobustToolbox/Robust.Shared/Containers/ContainerManagerComponent.cs:23-24`), so this mapping **replaces**
+`BasePartInorganic`'s `{bodypart}` (`Body/Parts/base.yml:23-26`) rather than merging with it — `bodypart` is
+restated for exactly that reason. `BaseTorsoInorganic`'s `torso_slot` (`:74-77`) was **already** suppressed by
+the same first-parent rule before this package (`TorsoIPC: parent: [PartIPCBase, BaseTorsoInorganic]`, and
+`PartIPCBase` already carried `{bodypart}`), and is still created at runtime by `SharedBodySystem`; nothing
+changes there. `EnsureContainer` finds the declared container instead of creating one, and the declared
+`!type:Container` defaults (`showEnts: False`, `occludes: True`) match what it would have created — verified by
+the test passing after the change.
+
+#### Effective `Destructible` thresholds after inheritance (measured, not derived)
+
+Measured by spawning each prototype in a throwaway `GameTest` harness and reading
+`DestructibleComponent.Thresholds` (since deleted). Reasoning over *every* parent was required: a child's
+`thresholds` list **replaces** the parent's, and the first parent in the list wins.
+
+| prototype | before WP13-1 | after WP13-1 | source of the winning block |
+|---|---|---|---|
+| `LeftArmIPC` / `RightArmIPC` / `LeftLegIPC` / `RightLegIPC` | Blunt 110 / Slash 150 | **Blunt 190 / Slash 210, no Heat** | `PartIPCBase` (first parent) beats `BaseLeftArm → MajorLimb` (190/210/250+Ash) |
+| `LeftHandIPC` / `RightHandIPC` / `LeftFootIPC` / `RightFootIPC` | Blunt 110 / Slash 150 | **Blunt 190 / Slash 210, no Heat** | `PartIPCBase` beats `MinorLimb` (150/180/230+Ash) — IPC extremities are **tougher** than flesh (accepted asymmetry, P5-D8) |
+| `HeadIPC` | Blunt 110 / Slash 150 | **Blunt 190 / Slash 210, no Heat** | `PartIPCBase` beats `BaseHead`'s own Mono block — see the correction note below |
+| `TorsoIPC` | Blunt 400 / Slash 400 | **unchanged, Blunt 400 / Slash 400** | `TorsoIPC`'s own block (`_EE ipc.yml:37-51`) |
+| `LeftArmCyberneticBase`, `RightArmCyberneticBase`, `LeftLegCyberneticBase`, `RightLegCyberneticBase`, `JawsOfLife{Left,Right}Arm`, `Speed{Left,Right}Leg` | Blunt 190 / Slash 210 / **Heat 250 → Ash + BurnBody + MeatLaserImpact** | **Blunt 190 / Slash 210, no Heat** | new `CyberneticPartBase` block beats `BaseLeftArm → MajorLimb` |
+| `Left/RightHandCybernetic`, `Left/RightFootCybernetic`, `Dex{Left,Right}Hand` | Blunt 150 / Slash 180 / **Heat 230 → Ash** | **Blunt 190 / Slash 210, no Heat** | new `CyberneticPartBase` block beats `MinorLimb`; a steel hand is now as tough as a steel arm |
+| `LeftArmSlime` … `RightLegDiona` (all slime/diona **arms and legs**) | Blunt 190 / Slash 210 / Heat 250 + Ash | **unchanged** | `MajorLimb` — `WolfmedPartSlime`/`WolfmedPartDiona` declare no `Destructible` |
+| slime/diona **hands and feet** | Blunt 150 / Slash 180 / Heat 230 + Ash | **unchanged** | `MinorLimb` |
+| `TorsoSlime` / `TorsoDiona` | 400 / 400 / 400 + Ash | **unchanged** | `BaseTorso` |
+| `HeadSlime` / `HeadDiona` | Blunt 500 / Slash 600 / Heat 700 + Ash | **unchanged** | `BaseHead`'s own Mono block |
+| every organic (human-lineage) part | — | **unchanged** (D2) | `MajorLimb` / `MinorLimb` / `BaseHead` / `BaseTorso` |
+
+**Correction to PLAN5 (N5, P5-D8, §8.1a): organic heads DO carry a gib trigger.** PLAN5 states repeatedly
+that `BaseHead` is `parent: WolfmedBaseHead` only and therefore has *no* rung. `BaseHead` declares its own
+`- type: Destructible # Mono` at `Resources/Prototypes/Body/Parts/base.yml:105-133` with
+**Blunt 500 / Slash 600 / Heat 700 → Ash + BurnBody + MeatLaserImpact** (measured on a spawned `HeadHuman`).
+The stated asymmetry ("the IPC head is destructible where a human head is not") is therefore wrong in *kind*
+but understated in *degree*: an IPC head gibs at Blunt 190 where an organic head needs 500. This is **not a
+regression** — `PartIPCBase` was 110/150 before this package, so U3′(b) makes the IPC head 1.7× tougher than
+it is today. `HeadIPC`'s amputation thresholds are Slash 200 / Piercing 200 / Blunt 350 / Heat 200, so an IPC
+can still be decapitated by Slash (200 < the 210 gib rung) but never by pure Blunt (350 > 190). Handed to the
+balance pass with U3′(d) (per-slot parity) as the fix if the asymmetry is unwanted.
+
+**Correction to PLAN5 §8.1/§8.1a: slime limbs ARE severable.** Both sections say slime limbs are
+"unseverable by threshold, same as diona". Onyx gives `amputationThresholds: {}` to `OrganDionaExternal`
+only, **not** to `OrganSlimePersonExternal` (`ONYX Body/Species/slime.yml:235-239`, read this pass), and
+`species_parts.yml` correctly reproduces that. Measured: `LeftArmSlime` resolves
+`amputationThresholds = Slash 130 / Piercing 250 / Blunt 250 / Heat 250` — the ordinary organic set. Slimes
+are severable exactly like humans; only diona are not. The guidebook/changelog copy must say so.
+
+- **New prototype ids:** none (all 22 landed in WP13-0). **New C# types/components:** none.
+  **Subscription pairs:** none. **Locale:** none.
+- **Measured profile wiring (R1/R9):** `*IPC` → `IpcBodyPartProfile` + `fractureProfile: null`;
+  `*Cybernetic` → `CyberneticBodyPartProfile` + `CyberneticFractureProfile` (the two agree, R9);
+  `*Slime` → `SlimeBodyPartProfile` + `null`; `*Diona` → `PlantBodyPartProfile` + `null` + `{}` amputation.
+  Human-lineage parts still resolve **no** static `Woundable` at all (D2 intact — they keep getting the
+  runtime `EnsureComp` default `OrganicBodyPartProfile`).
+- **R8 confirmed:** `TorsoIPC` now carries a `WolfmedBodyPart` with `maxDamage: 0` (component default) and an
+  empty `amputationThresholds` — overflow disabled, which is correct for a torso. Do not "fix" it.
+- **D2 deviations recorded:** detached IPC limbs 110/150 → 190/210 (§8.3 R5); detached cybernetic limbs lose
+  the Heat/Ash rung and hands/feet go 150/180 → 190/210 (§8.3 R12); detached IPC and cybernetic limbs can now
+  take `Cold`/`Caustic` on their own `Damageable` (cosmetic — no host, so no wound forms).
+- **Line endings:** every edit written CRLF, matching the working tree.
+- **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential).
+  Release YAML linter **"No errors found in 78202 ms."** Headless server (120 s, port 1299) reached
+  `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-1-report-server.log`). `DockTest` 3/3.
+  `EntityTest|PrototypeSaveTest` 6 passed / 2 skipped / **0 failed** (after the WP13-1-1 fix; 40 failures
+  before it). Wolfmed suite
+  (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`) **98/98 passed**, zero regressions.
+
+### WP13-2 (phase 5 — IPC as a wound host and circulation, P5-1c/P5-2; PROTO Q, §2.4, U1/U2(a)/U16/U18)
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| `ONYX Resources/Prototypes/Corvax/Body/Species/ipc.yml:92-113` (`MobIpc`: `- type: WoundHost`, `bloodReferenceSolution: Oil 250`) + `ONYX Resources/Prototypes/Body/species_base.yml:54` (`- type: PainShockTarget` on `BaseSpeciesMob`, which Onyx's `MobIpc` parents) | `Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml` — `MobIPC`'s `components:` block and its `Destructible` | upstream, 1 marked block + 1 marked number (PROTO Q) | **WP13-2** | Four components added immediately after `components:` so the Wolfmed section reads in one place, mirroring Onyx's `# <Onyx-IPCWounds>` fence: `- type: WoundHost`; `- type: PainShockTarget` (P5-D10/U1 — Onyx IPCs *do* get pain shock, Wolfgate simply put the component on `BaseMobSpeciesOrganic`, which `MobIPC` does not inherit); `- type: Bloodstream` with `bloodReagent: Oil`, `bloodMaxVolume: 250`, `chemicalMaxVolume: 0`, `bloodlossDamage {Bloodloss: 0.5}`, `bloodlossHealDamage {Bloodloss: -1}`; `- type: Damageable` with `damageContainer: SiliconWolfmed` + `damageModifierSet: IPC`. Plus `Destructible` Blunt **400 → 1500** (D22/P5-D11). `MobThresholds` **not** touched — death stays at a projected total of 100. `bloodlossDamage` uses `Bloodloss`, never `Heat` (P5-D6): `Heat` is in `LocalizedDamageTypes`, so it would route to a part, create chassis-wound severity and bleed at `chance: 1` — a self-reinforcing leak loop |
+| — (no Onyx source) | `Content.Server/_Onyx/Chemistry/Circulation/CirculatoryStreamSystem.cs` — `SetBleedRates` | in-vendored `_Onyx`, 2nd marked site (PLAN5 §2.4) | **WP13-2** | `rates.GetValueOrDefault(PrimaryStream)` replaced with a sum over `rates.Values` (P5-D3 hardening). Bit-identical today — `Organic` is the only `circulatoryStream` prototype and none of the five profiles selects another — but it makes a future profile that *does* set `circulatoryStream:` degrade to "bleeds normally" instead of **silently stopping that species' bleeding with no log**. Complete, not partial: `GetPartStream` → `SetBleedRates` is the only stream-aware path with callers (`WoundBleedingSystem.cs:306,319,324`); `TryGetPartSolution`/`TryGetStreamSolution` have zero callers anywhere in WG (N4). No new `using` |
+
+**PROTO S and PROTO T were NOT re-applied.** PLAN5 §4 assigns `Entities/Objects/Tools/welders.yml` and
+`_Mono/Entities/Objects/Tools/nanite_applicator.yml` to WP13-2, but WP13-1 landed both `- SiliconWolfmed`
+entries early (its deviation D1). Verified present before PROTO Q's container change landed, so the R3 dead
+window — in which an IPC on `SiliconWolfmed` would have had **no** repair path at all — never existed.
+`_EinsteinEngines/Body/Parts/ipc.yml` was likewise left alone: WP13-1 fully consumed it.
+
+**PROTO R stays dropped (U18).** `_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml` is untouched.
+`DestructibleComponent.Thresholds` is a plain non-`Always` `[DataField]`, so `MobIPC`'s own list replaces the
+parent's `!type:DamageTrigger damage: 500` wholesale, and `MobIPC` is the only entity parenting
+`PlayerSiliconHumanoidBase`. Measured on a spawned `MobIPC`: exactly **one** threshold, a `DamageTypeTrigger`.
+The upstream file count therefore stays at PLAN5's 55, not 56.
+
+#### Measured state of a spawned `MobIPC` (probe harness, deleted before the final builds)
+
+A throwaway `GameTest` spawned `MobIPC` and dumped its live components and every body part
+(`C:/tmp/wolfmed-plan/p5/wp/WP13-2-probe.log`). Nothing below is derived:
+
+| | measured |
+|---|---|
+| `WoundHostComponent` | present |
+| `PainShockTargetComponent` / `PainComponent` | both present (U1: IPCs feel pain and can shock) |
+| `BloodstreamComponent` | `bloodReagent = Oil`, `bloodMaxVolume = 250`, `chemicalMaxVolume = 0`, `bloodlossDamage = {Bloodloss: 0.5}`, `bloodlossHealDamage = {Bloodloss: -1}`, `BloodRefreshAmount = 1` (U11(a), Onyx default), `BloodlossThreshold = 0.9`, `BleedReductionAmount = 0.33`, `MaxBleedAmount = 10` |
+| `InjectableSolutionComponent` | **absent** (U16 — deliberate divergence from Onyx, which gets one by parenting `MobBloodstream`) |
+| `DamageableComponent` | container `SiliconWolfmed`, modifier `IPC`, live types `Bloodloss, Blunt, Heat, Piercing, Radiation, Shock, Slash` |
+| `DestructibleComponent` | one `DamageTypeTrigger` (Blunt 1500) |
+| `WeldingHealableComponent` | present (repair path intact; `Repairable` deliberately not added, P5-D15/U14) |
+| all 10 body parts (`TorsoIPC`, `HeadIPC`, 2 arms, 2 hands, 2 legs, 2 feet) | `Woundable.profile = IpcBodyPartProfile`, `WolfmedBodyPart.fractureProfile = null`, `maxDamage = 0`, `damageContainer = InorganicWolfmed`; `amputationThresholds` 4 entries on every limb and the head, **0 on `TorsoIPC`** (R8 — correct, `AmputationSystem` skips torsos) |
+| `IpcBodyPartProfile` as loaded | `canFeelPain = True`, `bleedingMultiplier = 1`, `circulatoryStream = Organic` (P5-D3 — no profile sets it), `treatmentCapabilities = [Mechanical, Electrical]`, `acceptedDamageTypes = [Blunt, Slash, Piercing, Heat, Cold, Shock, Caustic]`, `passiveRecoveryMultiplier = 0`, `bedRecoveryMultiplier = 0`, `scarrable = False` |
+
+#### WP13-2-1 — finding: `Cold`/`Caustic` reach IPC *parts* but are dropped from the IPC *body* total
+
+Not in PLAN5, no code change made, flagged for the balance pass and for WP13-6's test wording.
+P5-D20/U13′(b) restored `Cold` and `Caustic` on IPC and cybernetic **parts** (`InorganicWolfmed`), and both
+types are in `WoundHostComponent.LocalizedDamageTypes` (`WoundDamageComponents.cs:36-43`), so a Cold or
+Caustic hit really does route to a limb and create `IpcMechanicalDamageWound` severity, pain and a leak.
+But `SiliconWolfmed` (the **mob** container, PLAN5 §2.3, owned by WP13-0) is stock `Silicon` + `Bloodloss`,
+i.e. Brute + Heat/Shock/Radiation/Bloodloss — **no `Cold`, no `Caustic`**.
+`WoundDamageProjectionSystem.RefreshBodyDamage` projects the sum of part damage back with
+`_damage.SetDamage(body, total)`, and `DamageableSystem` silently drops unsupported types, so the
+Cold/Caustic component of an IPC's part damage never reaches the body total that `MobThresholds` (death at
+100) and `SlowOnDamage` read. Onyx does not have this asymmetry: its `SiliconIpc` takes the whole `Burn`
+group on the mob as well as on the part.
+
+Consequence: acid and cryogenics on an IPC produce wounds, pain, functionality loss and oil leakage — and
+kill only indirectly, through the `Bloodloss` the leak generates. They cannot themselves push an IPC to its
+100-point death threshold. **Not fixed here:** `_WF/Wolfmed/Damage/containers.yml` is WP13-0's file, adding
+`Cold`/`Caustic` to `SiliconWolfmed` would also change how the mob's `damageModifierSet: IPC` (`Cold 0.2`)
+applies at the body level, and PLAN5 §2.3 specifies the container's shape exactly. The one-line fix, if the
+balance pass wants Onyx parity, is `supportedGroups: [Brute, Burn]` on `SiliconWolfmed`.
+
+- **New prototype ids:** none. **New C# types/components:** none. **Subscription pairs:** none (PLAN5 §5.1
+  — phase 5 registers zero). **Locale:** none.
+- **`PrototypeSaveTest` exposure: none.** `MobIPC` inherits `save: false` from `PlayerSiliconHumanoidBase:2`,
+  so it is outside `UninitializedSaveTest`'s prototype set — the WP13-1-1 class of failure (a declared
+  component whose `ComponentInit` mutates the entity; here `BloodstreamSystem.OnComponentInit`
+  `EnsureComp`s `SolutionContainerManagerComponent`) cannot fire. **`SolutionContainerManager` is therefore
+  deliberately not declared**, per PLAN5 §2.0. Any future package that puts `- type: Bloodstream` on a
+  **map-savable** prototype must declare it.
+- **D2:** `MobIPC` is the only entity changed. `MobIPCDummy` parents `MobHumanDummy` and is unaffected; no
+  other entity parents `MobIPC`. Borgs and every other `damageContainer: Silicon` entity keep the stock
+  container.
+- **Line endings:** every edit written CRLF, matching the working tree (verified byte-wise before and after).
+- **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential). Release YAML
+  linter **"No errors found in 75236 ms."** Headless server (120 s, port 1299) reached
+  `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-2-report-server.log`). `DockTest` 3/3.
+  `EntityTest.SpawnAndDeleteAllEntitiesOnDifferentMaps` **1/1 passed** — `MobIPC` is non-abstract, carries no
+  `MapGrid`/`RoomFill` and is not in the spawner category, so it is spawned, ticked 450 ticks (15 s, enough
+  for `BloodstreamSystem.Update` and `PainSystem.Update` to run) and deleted with no error. Wolfmed suite
+  (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`) **98/98 passed**, zero regressions. No environmental
+  `db.ef` failures, so no re-run was needed.
+
+#### What an IPC experiences after WP13-2
+
+- **Leaks oil, not blood.** Every chassis wound (`IpcMechanicalDamageWound`) carries a wound-level
+  `WoundBleedingBehavior rate: 0.08 chance: 1` with **no `minimumSeverity`**, so an IPC leaks from the first
+  point of damage. `bleedingMultiplier: 1`. The spilled reagent is `Oil`, which is `flammability: 2` with a
+  `FlammableTileReaction` — **an IPC's trail can be set on fire.**
+- **Oil loss hurts.** `Bloodloss: 0.5` per bloodstream update below 90 % fluid, healing back at
+  `Bloodloss: -1` once topped up; `SiliconWolfmed` is what lets those land at all. Phase 3's P3-D1
+  vital-part `Bloodloss` charge (decapitation etc.) now lands too, instead of being silently discarded.
+- **Feels pain and can go into pain shock** (U1/P5-D10). `IpcBodyPartProfile` leaves `canFeelPain` at its
+  default and `IpcMechanicalDamageWound` carries `painPerSeverity: 0.87 minSeverity: 10`. Pain shock at 130
+  is a 2 s paralyze + jitter + a 30 s adrenaline window, and `PainSystem.UpdatePainShock` calls
+  `TryEmoteWithChat(..., "Scream", forceEmote: true)`, **bypassing `allowedEmotes: [Boop, Whirr]` — an IPC
+  screams on shock.** There is **no chemical relief of any kind**: no metabolizer (`OrganIPCPump`'s
+  `Metabolizer` block is commented out), `chemicalMaxVolume: 0` and no `InjectableSolution`, so no
+  `SuppressPain`, no painkiller, no adrenaline chem. **Pain falls only as the chassis is repaired.**
+- **Drunk and stuttering below 90 % fluid.** `BloodstreamSystem.Update`'s bloodloss branch
+  (`BloodstreamSystem.cs:141-162`) carries no wound-host or species guard, unlike `OnDamageChanged` (GUARD E).
+  This is exactly what every bleeding organic already gets — Wolfgate-consistent, but a drunk robot is a
+  flavour oddity. Flagged for playtest (R4).
+- **Repair only by welder, nanite applicator and cable coil.** `IpcBodyPartProfile.treatmentCapabilities`
+  is `[Mechanical, Electrical]`, which no medicine, brute pack, ointment or gauze overlaps. The welder and
+  the nanite applicator work through `WeldingHealable` (whose `TryChangeDamage` on the mob routes to parts
+  with no capability scope open, so it heals chassis wounds for free); the cable coil becomes `[Electrical]`
+  in WP13-4 and overlaps. The tourniquet and every wound surgery also work (`SurgeryTarget` is on
+  `PlayerSiliconHumanoidBase:319`).
+- **Never passively or bed-heals** (`passiveRecoveryMultiplier: 0`, `bedRecoveryMultiplier: 0`), **never
+  scars** (`scarrable: false`), **never fractures** (`fractureProfile: null` on every part).
+- **Limb loss:** gib ceiling **Blunt 190 / Slash 210, no Heat rung** (WP13-1, U3′(b)) against the inherited
+  organic amputation set per slot — so Slash and Piercing sever, pure Blunt destroys first, and an IPC limb
+  never burns to `Ash`. `TorsoIPC` keeps its own 400/400 and is never severable.
+- **Dies at the same point as before.** `MobThresholds` is untouched (100 projected), but body damage is now
+  the **sum of every part's positive damage** (D22), which decays much more slowly than before (passive
+  regen is neutralised on wound hosts and the Ipc profile's own recovery is 0) — so IPCs will sit in
+  `SlowOnDamage`'s 60/90/120 bands longer than they do today (R7). The `Destructible` gib is 1500, raised
+  from 400 for exactly that reason.
+- **Not affected by `Cold`/`Caustic` at the body level** — see WP13-2-1 above.
+
+### WP13-3 (phase 5 — protogen exclusion lift, P5-1d; EXT 3/4, PROTO V, U4)
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| — (no Onyx source — reverses a phase-1 Wolfgate decision, D21/D32) | `Content.Shared/_WF/Wolfmed/Body/WolfmedWoundHostExclusionSystem.cs` — `ExcludedAncestors` | `_WF`, 1 marked edit (EXT 3) | **WP13-3** | `ExcludedAncestors = new() { "BaseMobProtogen" }` → `ExcludedAncestors = new()`, with a `// WOLFGATE (P5-D9)` comment replacing the field's doc line: protogen is biologically organic (`Biological` container, `OrganicPart` limbs, `Blood` bloodstream, `Hunger`/`Thirst`, `Respirator`, `Butcherable → FoodMeatHuman`) and the exclusion no longer applies to it. The `<WoundHostComponent, ComponentInit>` subscription at `:17` (now `:18`) is unchanged, and so is the `RemComp` (not `RemCompDeferred`) fix from WP9 — it simply never matches now. **The file is kept, not deleted**, per PLAN5 §7.1's explicit instruction ("kept as the mechanism for any future synthetic species") — see Deviations |
+| — (no Onyx source) | `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` — `BuildWoundDiagnostics`'s D2 comment | `_WF`, comment-only (EXT 4) | **WP13-3** | The marked comment at (now) `:32-34` named "a borg, a Protogen" as a `SurgeryTargetComponent`-without-`WoundHost` example; a protogen now has `WoundHost`, so that example is stale. Reworded to "a borg, a synthetic species". No code change — `HasComp<WoundHostComponent>(body)` gate is untouched. **R13 honoured**: this is the only WP13-3 site in the file; WP13-5 lands after and re-reads it before adding the `Mechanical` flag producer |
+| — (already a tracked upstream file since WP7, `# WOLFGATE (D21/D32)`) | `Resources/Prototypes/_Mono/Entities/Mobs/Species/protogen.yml` — `BaseMobProtogen`'s marked comment at `:3-4` | upstream, comment-only (PROTO V) | **WP13-3** | Comment rewritten from "synthetic … WoundHost is stripped at runtime" to "the exclusion was lifted in phase 5 … now an ordinary organic wound host … organs carry no OrganDamage — see P5-D19", per PLAN5 §3.2's exact wording. No functional YAML change; the entity's `components:` list is untouched |
+
+- **New prototype ids:** none. **New C# types/components:** none. **Subscription pairs:** none (PLAN5 §5.1
+  — phase 5 registers zero; EXT 3's existing `<WoundHostComponent, ComponentInit>` subscription is
+  unchanged, just now matches nothing).
+- **Census verified against the plan (P5-D9/E7):** the two hosts created are `MobProtogen`
+  (`_Mono/Entities/Mobs/Player/protogen.yml:4-5`, `roundStart: false`) and `MobProtogenRandom`
+  (`_Goobstation/Entities/Mobs/Player/humanoid.yml:225-227`, `parent: MobProtogen`). `MobProtogenDummy`
+  parents `BaseSpeciesDummy` (`_Mono/.../protogen.yml:86-89`), not `BaseMobProtogen`, and is unaffected —
+  confirmed by grep, not just plan citation.
+- **Organ gap recorded, not fixed (P5-D19/U12′):** protogen's organs (`OrganProtogenBrain/Eyes/Lungs/Heart/
+  Stomach/Liver/Kidneys`) parent `BaseProtogenOrgan`/`BaseProtogenOrganUnGibbable`
+  (`_Mono/Body/Organs/protogen.yml:39,89,136,175,201,235,256`), none of which carries `OrganDamageComponent`
+  or any `WolfmedOrgan*` component — only the seven `OrganHuman*` ids do (`Body/Organs/human.yml:53,103,150,
+  189,215,249,270`, P3-D7). `OrganicBodyPartProfile.organDamage.chances` therefore rolls on every protogen
+  hit for nothing: no organ damage, no organ destruction, no `InternalBleedingWound`, no `SurgeryHeal<Organ>`
+  chain. `OrganProtogenEars` parents `BaseHumanOrgan` (`:126-127`) but ears are not one of the seven
+  instrumented organs, so this changes nothing. Pre-existing for every non-human organic host already
+  shipped (moth, vox, arachnid, diona, slime…); phase 5 is simply the first phase to newly enrol a species
+  into the gap. `Resources/Prototypes/_Mono/Body/Organs/protogen.yml` is **not** touched (§3.4).
+- **D2:** the only entities affected are the two protogen hosts above; nothing else parents
+  `BaseMobProtogen`, and the exclusion mechanism itself (the subscription, the `RemComp` fix) is untouched
+  for any future synthetic species someone adds to `ExcludedAncestors`.
+- **Line endings:** all three edits written CRLF, matching the working tree.
+- **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, ran
+  separately — no concurrent build). Headless server (120 s, port 1299) reached
+  `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-3-report-server.log`). `DockTest` **3/3 passed**
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-3-docktest.log`), no environmental `db.ef` failure, no re-run needed.
+  `EntityTest.SpawnAndDeleteAllEntitiesOnDifferentMaps` **1/1 passed** in 1 m 46 s
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-3-tests.log`) — this test spawns and deletes **every** non-abstract entity
+  prototype in the game, `MobProtogen` and `MobProtogenRandom` included, and is exactly the regression guard
+  the exclusion system's own WP9 comment warns about (a `RemCompDeferred`/`_deleteSet` assert would have
+  thrown here). Zero `[ERRO]`/`[FATL]`/`Exception`/`Assert` lines in the test log.
+
+#### What protogen gains after WP13-3
+
+A protogen is now an ordinary organic wound host: `WoundHostComponent` present, every part's
+`WoundableComponent.Profile == OrganicBodyPartProfile` (inherited from `BaseTorso`/`BaseLeftArm`/… via
+`PartProtogen`'s `parent: [BaseItem, BasePart]` → concrete parts `parent: [PartProtogen, BaseTorso]` etc.,
+which were never touched by the exclusion), `PainShockTargetComponent` and `EmoteOnDamage` (both inherited
+from `BaseMobSpeciesOrganic`, previously present on the entity but functionally inert without `WoundHost`),
+localized bleeding through the existing `Blood`-reagent `Bloodstream`, the tourniquet, the phase-4 analyzer
+panel, the pain overlay and every wound surgery — all of which it silently lacked while excluded. **It gets
+no organ damage, no organ destruction, no internal bleeding and no organ surgery** (P5-D19, above) — a
+stated deviation from full organic parity, not an omission.
+
+### WP13-4 (phase 5 — cable coil `treatmentCapabilities`, P5-3; PROTO U, U5)
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| `_Onyx` `cable_coils.yml:179` (`treatmentCapabilities: [Electrical]` reference, not itself copied) | `Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml` — `CableStack`'s `- type: Healing` block | upstream, 1 marked line (PROTO U) | **WP13-4** | Added `treatmentCapabilities: [Electrical] # WOLFGATE (P5-3): …` directly under the existing `damageContainers: [Silicon]`. Onyx's own delay (3.5) and damage set are **not** adopted — Wolfgate's `delay: 0.6` / `Heat -3 / Shock -3 / Radiation -3` stand untouched, per PLAN5 §4 ("Only this one line"). |
+
+- **New prototype ids:** none. **New C# types/components:** none. **Subscription pairs:** none.
+- **The bug this closes:** `HealingComponent`'s `treatmentCapabilities` defaults to `[Biological]`
+  (`HealingComponent.cs:72-73`). HOOK 8 skips the `damageContainers` check for wound hosts
+  (`HealingSystem.cs:201-210`) and `WoundHealingSystem.IsCompatiblePart` never reads `damageContainers`
+  either (`:154-166`) — only `treatmentCapabilities` gates a `Healing` item against
+  `OrganicBodyPartProfile.acceptedTreatmentTypes`. Without the annotation, the cable coil's default
+  `[Biological]` overlapped `OrganicBodyPartProfile` and healed a human's Heat/Shock wounds at −3/−3 per
+  0.6 s despite `damageContainers: [Silicon]` suggesting it shouldn't. This package closes that leak.
+- **Sequencing (per PLAN5 §4):** landed after WP13-0/WP13-1/WP13-2, so IPC and cybernetic parts — whose
+  profiles carry `[Mechanical, Electrical]`, which `[Electrical]` overlaps — gain the coil as a valid
+  treatment in the same package that closes the organic leak, rather than a dead window with no valid
+  target for the tool.
+- **D2:** entities without `WoundHostComponent` are unaffected — HOOK 8's `treatmentCapabilities` gate only
+  applies inside the wound-host healing path; a non-wound-host `Healing`-item interaction is untouched.
+- **Line endings:** edit written CRLF, matching the working tree (confirmed via `git diff`, which shows a
+  clean one-line addition with no whitespace/EOL noise).
+- **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, ran
+  separately — no concurrent build). Headless server (120 s, port 1299) reached
+  `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-4-report-server.log`). YAMLLinter/DockTest not re-run this package (no
+  new prototype ids, no new file); orchestrator may run WP13-4's own Checkpoint line (YAMLLinter; DockTest)
+  as part of WP13-7 reconciliation if a fresh signal is wanted.
+
+### WP13-5 (phase 5 — mechanical analyzer and examine wording, P5-5, P5-D17, U9(a))
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| none — Onyx has no per-species short-label variants (its IPCs read as "bruises"/"fracture"); this is a Wolfgate-only improvement (P5-D17) | `Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl` | new, marked `# WOLFGATE (P5-5)` | **WP13-5** | Appended `health-analyzer-wound-bleeding-short-mechanical = fluid leak`, `health-analyzer-wound-fracture-short-frame = frame damage: { $grade }`, `health-analyzer-wound-fracture-treated-short-frame = frame damage: { $grade } ({ $treatment })` (PLAN5 §2.5, verbatim). No existing key collided (checked by grep). |
+| none | `Resources/Locale/en-US/_Onyx/medical/health-examinable.ftl` | new, marked `# WOLFGATE (P5-5)` | **WP13-5** | Appended `health-examinable-part-bleeding-mechanical = leaking fluid` (PLAN5 §2.5, verbatim), next to the existing `health-examinable-part-bleeding` key it substitutes for. |
+
+- **Wound prototype display names (the "data-only wiring" half of P5-5): already complete, verified, not touched.**
+  All 30 `- type: wound` prototypes in `Resources/Prototypes/_Onyx/Wounds/wounds.yml` (including the six
+  species/mechanical ones landed in WP13-0/1 — `IpcMechanicalDamageWound`, `CyberneticMechanicalDamageWound`,
+  `CyberneticFrameFractureWound`, the four `Slime*`/`Plant*` sets) carry correct `name:` fields, and every
+  `wound-name-*` LocId they reference (`wound-name-ipc-mechanical-damage = chassis damage`,
+  `wound-name-cybernetic-mechanical-damage = cybernetic damage`,
+  `wound-name-cybernetic-frame-fracture = frame fracture`, the four `wound-name-slime-*` and four
+  `wound-name-plant-*` keys) already resolves in
+  `Resources/Locale/en-US/_Onyx/prototypes/wounds/wounds.ftl`. Likewise every `wound-stage-*` (incl.
+  `wound-stage-frame-*` and `wound-stage-mechanical-*`) and every per-stage `examineDescription:`
+  (`wound-examine-frame-*`) resolves cleanly — `HealthAnalyzerSystem.Wolfmed.cs:102` already keys the
+  analyzer's per-wound rows off `prototype.Name`/`GetStageDefinition(...).Name`, which is generic across
+  species with zero per-species branching needed. Confirmed by grep against both `.ftl` files; nothing
+  appended here.
+- **Deviation from PLAN5 §4 WP13-5 (justified — task-scoped, not a judgement call): the C# half of P5-5/§2.6
+  is explicitly OUT OF SCOPE for this package** ("No new C#" in this package's own brief). PLAN5's WP13-5
+  file list calls for four more edits this package does **not** make:
+  `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` (append `bool Mechanical` to the payload
+  record), `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` (set the flag in
+  `BuildWoundDiagnostics`), `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` (branch the
+  three LocIds on it) and `Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.PartStatus.cs`
+  (branch the examine LocId). Verified by grep that no existing code references any of the four new keys —
+  the generic (non-per-wound) "external bleeding" / "fracture: { $grade }" / "active bleeding" labels are
+  hard-coded in those four files today and will keep rendering for IPC and cybernetic parts until the flag
+  and its three consumer branches land. **What later packages must know:** the four keys added in this
+  package are the complete, plan-exact text for P5-D17/§2.6 and need no further locale work — a follow-up
+  package only has to add the one-member struct append and the three `if (diagnostic.Mechanical)` /
+  equivalent branches described in PLAN5 §2.6 and the WP13-5 file table, in that order, re-reading
+  `HealthAnalyzerSystem.Wolfmed.cs` first (WP13-3 and this package both left it otherwise untouched, so no
+  merge conflict is expected). Until then this package's new keys are inert (unreferenced by any `.cs`
+  file) but harmless — they add no runtime behaviour and are not orphaned data in the sense of dangling
+  prototype references (the YAML linter and headless server both confirm no error from the addition).
+- **New prototype ids:** none. **New C# types/components/subscriptions:** none — no `.cs` file touched.
+- **D2:** not applicable — no code path changed; the new keys are dead text until a later package wires them.
+- **Line endings:** both edits written CRLF, matching the working tree (confirmed via `git diff`, clean
+  insertion-only hunks, no whitespace/EOL noise).
+- **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, ran
+  separately — no concurrent build; expected, since no `.cs` file was touched). Headless server (120 s, port
+  1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
+  (`C:/tmp/wolfmed-plan/p5/wp/WP13-5-report-server.log`). YAMLLinter: **"No errors found"** — no duplicate
+  `.ftl` key, confirming the four new keys are genuinely new.
+
+### WP13-6 (phase 5 — tests, P5-6)
+
+| Onyx source | Wolfgate destination | Status | WP | Notes |
+|---|---|---|---|---|
+| none (Wolfgate-authored; PLAN5 §6.2 T-P5-1/4/5/6/7/8/19/21) | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs` | **new**, 8 tests | **WP13-6** | Per-profile behaviour on real mobs: IPC routing/bleeding/pain/no-scar/no-fracture; `Cold`+`Caustic` restored by `InorganicWolfmed`; cybernetic limb on an organic body (numb, half bleed, frame fracture); frame fracture mended by the P4 surgery ladder; the U15(a) gib ceiling; slime bleeds sooner and never fractures; slime bleeds ×1.15; diona scars and is never severable. |
+| none (PLAN5 §6.2 T-P5-2/3/9/10/11/12/14/20) | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs` | **new**, 8 tests | **WP13-6** | Whole-mob behaviour: IPC is a host with the IPC profile + oil bloodstream + `chemicalMaxVolume: 0`, spawns and deletes; IPC leaks oil and takes `Bloodloss` (the `SiliconWolfmed` guard); PROTO S/T keep the welder and nanite applicator repairing an IPC; the 190/210 gib ceiling versus the organic amputation set; `MobIPC` survives 600 projected Blunt (400→1500); protogen (`MobProtogen` **and** `MobProtogenRandom`) is an organic host with the P5-D19 organ gap pinned; a diona limb is destroyed, not severed; every `bodyPartProfile` in the game uses the primary circulatory stream (P5-D3). |
+| none (PLAN5 §6.2 T-P5-15/16/17) | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentMatrixTest.cs` | **new**, 3 tests | **WP13-6** | The 6-cell `{Biological, Mechanical, Electrical}` × `{organic wound, IPC chassis wound}` matrix through `WoundDamageRoutingSystem.WithTreatmentCapabilities`; the cable-coil nerf and its compensating gain through `WoundHealingSystem.TryApplyHealing`; the ungated systemic branch (T-P5-17, re-derived — see below). |
+| none (PLAN5 §6.2 T-P5-18) | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | **extended**, +1 test | **WP13-6** | `MechanicalWoundDiagnosticTextResolvesTest`: an `IpcMechanicalDamageWound` at severity 30 produces exactly one `HealthAnalyzerVisibleWound` whose `Name`/`StageName` resolve through `ILocalizationManager` to `"chassis damage"` / `"moderate"`, not to a raw key. |
+
+- **20 tests, 4 files, all green.** No new prototype ids, no new `[TestPrototypes]` ids (the two surgery-step
+  fixtures `WolfmedStepSetBone`/`WolfmedStepMendBone` are reused from `WolfmedWoundSurgeryTest` — that pool
+  is global across the suite, PLAN2 §4 rule 3), no new C# types, components or subscriptions, and **no
+  production file touched**. D2 exposure: nil.
+- **T-P5-13 is not written** — U13′(b) shipped, so PLAN5's own alternative **T-P5-21** ships in its place.
+- **WP13-6-1 — correction to WP13-2's finding "WP13-2-1" (`Cold`/`Caustic` dropped from an IPC's body
+  total).** WP13-2 recorded that acid and cryo wound an IPC's limb but never move the number `MobThresholds`
+  and `SlowOnDamage` read, because the mob container `SiliconWolfmed` supports neither type. **Measured, that
+  is not what happens.** `WoundDamageProjectionSystem.RefreshBodyDamage` projects the part total with
+  `WolfmedDamageableSystem.SetDamage`, which writes `dict[type] = amount` for every type in the incoming spec
+  (`Content.Shared/_WF/Wolfmed/Compat/WolfmedDamageableSystem.cs:143-171`) — it is a **set**, not a
+  `TryChangeDamage`, so `DamageableSystem`'s container filter (`if (!dict.TryGetValue(type, …)) continue;`,
+  `DamageableSystem.cs:270-277`) is never on that path. `DamageChanged` then recomputes `TotalDamage` from the
+  whole dict. A `Caustic 15` + `Cold 20` pair on `LeftArmIPC` therefore lands on `MobIPC` as
+  `Caustic 15 / Cold 20 / TotalDamage 35`, asserted in `IpcTakesColdAndCausticTest`. The mob container gates
+  what can be **dealt to the mob directly**, not what the projection writes. **Consequence: U13′(b) is more
+  complete than WP13-2 believed — an IPC really can be killed with acid and cryogenics, exactly as in Onyx,
+  and the "Cold/Caustic asymmetry" WP13-2 handed to the balance pass does not exist.** WP13-7 should strike
+  it from the deviations block rather than carry it forward.
+- **WP13-6-2 — deviation from PLAN5's wording of T-P5-17.** PLAN5 words the test as "the coil's
+  `Radiation: -3.0` component still lands" on an organic host. Measured, it does not, for a reason PLAN5 did
+  not name: `WoundHealingSystem.OnResolveHealingPart` sets `Accepted = Part != null || !hasLocalized`, where
+  `hasLocalized` is true if **any** type in the item's spec is in `WoundHostComponent.LocalizedDamageTypes`.
+  The coil's spec carries `Heat` and `Shock`, both localized, so on a body with no capability-compatible part
+  the whole application is refused before `Radiation` is looked at. The invariant PLAN5 actually wanted lives
+  one layer down and is asserted directly instead: systemic damage healed inside a
+  `WithTreatmentCapabilities([Electrical])` scope on an organic host still falls (10 → 7), because
+  `Radiation` never reaches `CanTreatPart`. Both halves are asserted in
+  `CableCoilRadiationStillHealsSystemicallyTest`, with the correction stated at the assertion.
+- **WP13-6-3 — deviation from PLAN5's wording of T-P5-18.** PLAN5 ends that test with "`Mechanical == true`
+  on the payload". That member does not exist: WP13-5 shipped only the locale half of §2.6 and explicitly
+  deferred the `bool Mechanical` append and its three consumer branches. The test asserts everything that is
+  assertable today (the per-wound `Name`/`StageName` path, which WP13-0 shipped complete) and carries a
+  marked note telling the follow-up package where to add the flag assertion.
+- **WP13-6-4 — bleed-rate assertions use `WoundSystem.CreateOrMergeWound`, not routed damage.** A
+  damage-created bleed is immediately reduced by the body's `DamageBleedModifiers`
+  (`WoundBleedingSystem.HandlePartDamageApplied`), which differs per species, so a routed wound's
+  `CurrentRate` cannot be compared across species. Severity, component presence and absence are asserted
+  from routed damage as PLAN5 intends; only the two multiplier tests (T-P5-4's `bleedingMultiplier: 0.5` and
+  T-P5-7's `1.15`) create the wound directly.
+- **WP13-6-5 — every routed hit passes `ignoreResistances: true`.** `DamageableSystem.TryChangeDamage`
+  applies the body's `damageModifierSet` **before** the Wolfmed routing seam, and the phase-5 species all
+  carry one (IPC `Cold 0.2 / Heat 1.5 / Shock 2.5`; Slime `Slash 1.2 / Blunt 0.6`; Diona `Slash 0.8 /
+  Blunt 0.7`). Without the flag, "Slash 20" would be a different severity on each species and every literal
+  in these files would be a per-species number rather than a profile-derived one.
+- **Traps honoured, each cited at its assertion:** trap 3 (no Blunt-family bleeding assertion), trap 5
+  (`canFeelPain: false` is asserted as `HasComponent<PainComponent>` **false**, never as zero pain), trap 6
+  (the frame-fracture test asserts the fracture **wound id**, not just that damage accumulated), trap 7 (no
+  pure-Blunt severing assertion anywhere; the 190-versus-250 contradiction is documented, not asserted as
+  working), trap 8 (every destruction check runs after `Pair.RunTicksSync`, because `GibPartBehavior` ends
+  in `QueueDel`), trap 9 (no positive organ-damage test for IPC/slime/diona/protogen —
+  `ProtogenIsAWoundHostTest` asserts the **absence** of `OrganDamageComponent` as the recorded P5-D19 gap).
+- **Checkpoint:** `Content.Server` **0 errors**, `Content.Client` **0 errors**, `Content.IntegrationTests`
+  **0 errors** (`-c DebugOpt`, run sequentially). Headless server 120 s on port 1299: zero
+  `[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p5/wp/WP13-6-report-server.log`). Wound suite
+  (`FullyQualifiedName~_Onyx.Wounds|_Onyx.Medical|Wolfmed`) **116/116 passed** (`WP13-6-tests.log`). Smoke
+  (`EntityTest|PrototypeSaveTest|DockTest`) **9 passed, 2 skipped**, both skips pre-existing `[Ignore]`
+  attributes on `EntityTest.SpawnAndDirtyAllEntities` and `SpawnAndDeleteEntityCountTest`
+  (`WP13-6-smoke.log`). `DockTest` was run first and alone, 3/3, so no environmental `db.ef` masking.
+  YAMLLinter not run: this package touches no YAML or FTL, and PLAN5's WP13-6 checkpoint does not list it.
+
+## Phase 5 — user decisions (DECISIONS.md, "Phase 5 — answers to PLAN5.md §8.4")
+
+Recorded here as they land. **WP13-7 reconciliation: every group-A decision (U5, U4, U1, U3′, U15, U2, U13′)
+landed across WP13-0..WP13-6 and is ticked off below; all group-B defaults DECISIONS.md binds phase 5 to
+(U16/U17/U18, plus U11 which the implementing packages also measured) are honoured and recorded.** The
+remaining PLAN5 §8.4 rows (U6/U7/U8/U9/U10/U12′/U14) are PLAN5's own internal recommendations, not part of
+DECISIONS.md's binding "Phase 5 — answers to PLAN5.md §8.4" list; each is closed as follows: **U9** (mechanical
+analyzer/examine wording, (a)) **landed in WP13-5**, see that section; **U10** (skeleton) **recorded as a
+known exclusion, not implemented** — `MobSkeletonPerson` parents the non-`Organic` `BaseMobSkeletonPerson`
+base and never had `WoundHost`; mechanically ready (`damageContainer: Biological`, real `BasePart` limbs) but
+"bone fracture"/"bleeding" on an undead skeleton needs its own design (P5-D18, §7.3 deviation 17); **U6**
+(`allowedWoundStages` mirroring), **U7** (welder `Healing` block), **U8** (pain numbness — closed permanently,
+not deferred, P5-D14), **U12′** (protogen organ damage gap, accepted as (a), P5-D19) and **U14**
+(`Repairable` on `MobIPC`, declined as (a), P5-D15) are all recorded above in the individual WP sections and
+carried to the balance pass per §8.7 — none require further phase-5 action:
+
+* **U5 Cable coil: YES, nerf now.** **LANDED in WP13-4** — `CableStack`'s `Healing` component now carries
+  `treatmentCapabilities: [Electrical]`; humans lose the cable-coil burn heal (default `[Biological]`
+  removed by the explicit override), IPC and cybernetic parts keep it. Recorded as changelog-worthy per
+  DECISIONS.md §111 (a deliberate balance fix, not a bugfix-only note).
+* **U4 Protogen: LIFT the exclusion.** **LANDED in WP13-3** — `WolfmedWoundHostExclusionSystem.ExcludedAncestors`
+  is now an empty `HashSet<string>`; `MobProtogen` and `MobProtogenRandom` spawn and delete cleanly as wound
+  hosts (`EntityTest.SpawnAndDeleteAllEntitiesOnDifferentMaps` 1/1). Organ gap recorded (U12′/P5-D19).
+* **U1 IPC pain: KEEP.** **LANDED in WP13-2** — `MobIPC` carries `- type: WoundHost` and
+  `- type: PainShockTarget`; `IpcBodyPartProfile.canFeelPain` measured `True` on the loaded prototype.
+  Caveat recorded: an IPC has **no** chemical pain relief at all (R4).
+* **U3′(b) 190/210 `MajorLimb` parity for IPC limb gib triggers; U15(a) marked `Destructible` on
+  `CyberneticPartBase`; U2(a) `SiliconWolfmed` container.** **U3′(b) and U15(a) LANDED in WP13-1** (PROTO
+  O(c) and PROTO P(c); measured thresholds in the WP13-1 table). U2(a): the `SiliconWolfmed` prototype was
+  created in WP13-0 and its two companion tool lines (PROTO S/T) landed early in **WP13-1**; it is now
+  applied to `MobIPC`'s `Damageable` — **LANDED in WP13-2** (measured `DamageContainerID = SiliconWolfmed`
+  on a spawned `MobIPC`). WP13-2 did **not** re-add the welder/nanite entries. **U2(a) is COMPLETE.**
+* **U13′(b) `_WF` `InorganicWolfmed` part container restoring Cold/Caustic.** `InorganicWolfmed` prototype
+  **created** this package, per the revision N-ordering fix (N8: WP13-1's part edits will reference it, so a
+  dangling `ProtoId<DamageContainerPrototype>` at lint time is avoided by landing the container first), and
+  **applied to `PartIPCBase` and `CyberneticPartBase` in WP13-1** (PROTO O(b)/P(b)); `Cold` and `Caustic`
+  are now live damage types on IPC and cybernetic parts. U13′(b) is COMPLETE.
+* **Group B defaults (U16/U17/U18):** **U16 (`chemicalMaxVolume: 0`, no `InjectableSolution`) LANDED in
+  WP13-2** — measured `ChemicalMaxVolume = 0` and no `InjectableSolutionComponent` on a spawned `MobIPC`.
+  **U18 (drop PROTO R) HONOURED in WP13-2** — `silicon_base.yml` untouched; `MobIPC` resolves exactly one
+  `Destructible` threshold, confirming the parent's `damage: 500` is unreachable. **U11(a) (IPC oil
+  regeneration keeps `BloodRefreshAmount`'s default) HONOURED** — measured `1`. U17 is WP13-1's recorded
+  behaviour and needs no further action.
+
+### WP13-7 (phase 5 — docs, manifest reconcile, status, P5-7)
+
+**Reconciliation method:** `git diff 2b4a4675d0 --stat -- Content.Shared Content.Server Content.Client
+Resources Content.IntegrationTests` plus `git status --porcelain` for the same paths, cross-checked file by
+file against every row WP13-0..WP13-6 already wrote. All 16 changed/new tracked-by-diff files and all 5
+untracked files (`species_parts.yml`, `containers.yml`, `WolfmedSpeciesProfileTest.cs`,
+`WolfmedSpeciesSpawnTest.cs`, `WolfmedTreatmentMatrixTest.cs`) already carry a manifest row from their
+originating WP — no orphaned file found. Five existing rows needed correction, applied above: the
+`_Onyx/Wounds/wounds.yml` status text ("trimmed 14 of 30" → "complete 30 of 30, 2 marked fold classes"),
+the `WolfmedWoundHostExclusionSystem.cs` note (exclusion set now empty), `HealthAnalyzerSystem.Wolfmed.cs`
+(second marked site, `Mechanical` flag correction), `protogen.yml`'s deviation note (exclusion lifted, organ
+gap recorded), and `CirculatoryStreamSystem.cs`'s path (`Content.Server/…`, not `Content.Shared/…`, plus its
+second WP13-2 marked site).
+
+**WP13-7's own footprint** (fix round 1: the reconciliation sweep above is scoped to code/prototype roots
+and does not cover `Docs`; this package's own 21 new Docs files and its two modified Docs files get their
+own rows here, mirroring WP12-10's phase-4 precedent):
+
+| Onyx source | WG path | Status | WP | Notes |
+|---|---|---|---|---|
+| — | `Docs/Wolfmed/WOLFMED_PLAN5.md` | new (copy of `C:/tmp/wolfmed-plan/p5/PLAN5.md`) | **WP13-7** | |
+| — | `Docs/Wolfmed/reports/analysis/phase5/CRITIQUE5.md`, `.../phase5/{capabilities,circulation,numbness,species,tests}.md` | new (copies, 6 files) | **WP13-7** | the six phase-5 analyst/critique reports |
+| — | `Docs/Wolfmed/reports/work-packages/phase5/WP13-{0..6}-{report,verify}.md` | new (copies, 14 files) | **WP13-7** | |
+| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP13-7** | this section plus the §7.1 row corrections above and the "Phase 5 — user decisions" subsection below |
+
+- **P5-D18 recorded (new, never previously in any manifest):** `MobSkeletonPerson` (`Resources/Prototypes/
+  _Mono/Entities/Mobs/Species/skeleton.yml` at the pin) parents `BaseMobSkeletonPerson → [MobFlammable,
+  BaseMobSpecies]` — the non-`Organic`, non-`WoundHost` base — so it was never a wound host and phase 5
+  leaves it untouched. It is mechanically ready (`damageContainer: Biological`, `BasePart`-derived limbs, a
+  real `Skeleton` body prototype) but "bone fracture" and "bleeding" on an undead skeleton need their own
+  design (U10(a)). No file changed; this is a documentation-only exclusion record.
+- **WP13-6-1 struck from the deviations carried forward:** WP13-6 measured that `Cold`/`Caustic` damage
+  dealt to an IPC limb *does* reach `MobIPC`'s body total and `SlowOnDamage` (via
+  `WoundDamageProjectionSystem.RefreshBodyDamage` → `WolfmedDamageableSystem.SetDamage`, which writes the
+  whole incoming spec rather than filtering through the mob's own `DamageContainerID`). The "Cold/Caustic
+  asymmetry" WP13-2 originally handed to the balance pass does not exist and is **not** carried into
+  §7.3 below.
+- **Upstream footprint re-measured:** `git diff 2b4a4675d0 --name-only -- Content.Shared Content.Server
+  Content.Client Resources Content.IntegrationTests`, filtered to paths outside `_Onyx`/`_WF`/
+  `Content.IntegrationTests`, returns exactly the 8 files PLAN5 §3.5 predicted: `Body/Parts/slime.yml`,
+  `Body/Parts/diona.yml`, `_EinsteinEngines/Body/Parts/ipc.yml`, `_Shitmed/Body/Parts/cybernetic.yml`,
+  `_EinsteinEngines/Entities/Mobs/Player/ipc.yml`, `Entities/Objects/Tools/welders.yml`,
+  `_Mono/Entities/Objects/Tools/nanite_applicator.yml`, `Entities/Objects/Tools/cable_coils.yml`.
+  `_Mono/Entities/Mobs/Species/protogen.yml` is already tracked since phase 1 and gains no new row.
+  `_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml` is confirmed **not** touched (U18, PROTO R
+  dropped). **47 (phase 4) + 8 = 55 tracked upstream files after phase 5**, matching PLAN5 §3.5 exactly.
+
+### Phase 5 — deviations block (§7.3, consolidated)
+
+1. `CyberneticFractureProfile` manipulation modifiers corrected to 1.1/1.25/1.5/2.0 (§8.2-1 applied to the
+   second profile).
+2. IPC and cybernetic amputation thresholds are Wolfgate's organic set, not Onyx's (P5-D7) — Onyx's arm
+   numbers (270/400/600) are unreachable under Wolfgate's gib rungs.
+3. IPC limb gib triggers changed 110/150 → 190/210 (P5-D8/U3′(b)), matching `MajorLimb`. Two asymmetries
+   accepted: IPC hands/feet now tougher than organic (190/210 vs `MinorLimb`'s 150/180); IPC head
+   destructible at 190 where an organic head has no gib trigger. Also affects detached IPC limbs (D2).
+4. `CyberneticPartBase` gains its own `Destructible` (Blunt 190 / Slash 210, no Heat rung; U15(a)) —
+   removes the pre-existing Heat-250-burns-to-`Ash` behaviour on a steel prosthetic.
+5. `SiliconWolfmed` container — IPC oil loss deals `Bloodloss` (U2(a)); Onyx's own IPC takes none.
+   `Bloodloss` added as a type, not the `Airloss` group (its only benefit, the tourniquet cost, lands on
+   the part, which this container does not touch).
+6. `MobIPC` gains `PainShockTarget` explicitly (Wolfgate moved it to `BaseMobSpeciesOrganic` in P2-D7;
+   Onyx has it on `BaseSpeciesMob`) — net Onyx parity.
+7. `MobIPC`'s gib threshold raised to 1500 (D22, U18 confirms `silicon_base.yml` untouched and safe to
+   skip: `MobIPC`'s own `thresholds` list replaces the parent's and is the parent's only descendant).
+8. Protogen is an organic wound host — D32 exclusion lifted (U4). `MobProtogen` + `MobProtogenRandom` are
+   hosts; `MobProtogenDummy` (parents `BaseSpeciesDummy`) is unaffected.
+9. Protogen has no organ damage, destruction, internal bleeding or organ surgery (P5-D19/U12′) —
+   `BaseProtogenOrgan`-derived organs carry no `OrganDamage`. Pre-existing pattern for every non-human
+   organic host, newly relevant now that a species is enrolled into it.
+10. `organDamage` on the Ipc/Slime/Plant profiles is inert — no organ in those species carries
+    `OrganDamageComponent` (P5-D13, §8.6-7 unchanged).
+11. `Cold`/`Caustic` on IPC and cybernetic parts restored by the `_WF` `InorganicWolfmed` container
+    (U13′(b)) — closes a Wolfgate-only loss versus Onyx (Onyx's `SiliconIpc` took the whole `Burn` group).
+    **Superseded finding (WP13-6-1, see above): this was never a body-total asymmetry** — the projection
+    path always wrote `Cold`/`Caustic` to `MobIPC`'s total regardless of container support; the container
+    only gates whether the *part* itself takes the damage and creates a wound.
+12. Cable coil no longer heals organic Heat/Shock wounds — a live pre-existing leak, closed (U5/P5-D12).
+    The coil's other numbers stay Wolfgate's, not Onyx's.
+13. Regenerative Mesh and Medicated Suture keep Onyx's `allowedWoundStages` off (U6).
+14. No `Repairable` on `MobIPC`, no `Healing` on the welder (U14, U7; P5-D15/D16).
+15. No `InjectableSolution` and `chemicalMaxVolume: 0` on `MobIPC` (U16) — an IPC has no metabolizer
+    (`OrganIPCPump`'s `Metabolizer` block is commented out), so an injectable solution would be a trap.
+16. P5-4 pain numbness closed permanently, not deferred (U8/P5-D14). `PainNumbnessStatusEffectComponent`
+    remains dead code: two readers, no writer.
+17. **Skeleton (`MobSkeletonPerson`) is outside the wound system** — never was, now recorded (U10/P5-D18,
+    see the WP13-7 entry above).
+18. Slime and diona internal bleeding is listed in their profiles but unreachable — `InternalBleedingWound`
+    is only ever produced by `WolfmedOrganComponent.destructionWound`, human-lineage only. Surgery can
+    still create one manually.
+19. A tourniquet costs half as much on a robot or plant limb — its `Asphyxiation: 5` share is dropped by
+    the part's container (`Inorganic`/`Silicon`/`InorganicWolfmed` support no `Airloss`). Accepted; the
+    reason deviation 5 does not take the `Airloss` group either.
+20. Diona and slime limbs are destroyed, not severed, past 190/210 Blunt/Slash (U17) —
+    `amputationThresholds: {}` disables `AmputationSystem` only; the inherited `MajorLimb`/`MinorLimb`
+    `GibPartBehavior` still deletes the limb, so thrown limb, stump wound, mend surgery and reattachment
+    are all unreachable for them. Pre-existing; phase 5 is the first document to state it plainly.
+
+### Post-phase-5 fixes (orchestrator, 2026-09-14)
+
+- `Content.Client/Overlays/EntityHealthBarOverlay.cs` — hook, 2 marked lines: `CalcProgress` ratios clamped to [0,1]; wound-host projected damage can exceed the dead threshold and drew a negative bar for ghosts.
+- `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/{Wounds,WoundTreatment}.xml` — modified: Onyx's `FTLTextpart` guidebook tag does not exist in Wolfgate (Pidgin parse error at open); the locale text is now inlined as markdown and `Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl` is deleted (its 21 keys had no other consumer).
+
+### Analyzer redesign (2026-09-14)
+
+The phase-4 analyzer was one 350x650 column: overview, damage groups and the Wolfmed tab strip stacked
+vertically. Reshaped into a fixed-width overview pane on the left and the Wolfmed tabs on the right, in a
+900x600 resizable window. Layout option (b) of the brief: option (a) (a `_WF` window class composing the
+Shitmed controls) would have had to copy ~200 lines of body-doll XAML plus `Populate`, `DrawDiagnosticGroups`
+and `SetupIcon`, none of which is reachable from another class because they read the window's own
+`[GenerateTypedNameReferences]` fields.
+
+| Onyx path | Wolfgate path | Status | WP | Notes |
+|---|---|---|---|---|
+| — | `Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml` | new | analyzer redesign | hook, 4 marked blocks: window is 900x600 / `MinSize 660 470` / `Resizable`; a `WolfmedPaneSplit` horizontal box holds `WolfmedOverviewPane` (return button, doll, patient grid, alerts, damage groups) and `WolfmedPanel`; the alerts box and the return-button box gained the names `WolfmedAlertsPanel` / `WolfmedReturnPanel` so their frames hide with their contents; the patient grid stopped vertically expanding so the damage list takes the slack. No control renamed, no binding moved. |
+| — | `Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml.cs` | new | analyzer redesign | hook, 2 marked lines: `WolfmedAlertsPanel.Visible = showAlerts;` beside the existing two alert toggles and `WolfmedReturnPanel.Visible = isPart;` beside `ReturnButton.Visible`, so an empty alert frame (62px) and an empty return-button frame (40px) stop eating the narrower overview pane. |
+| — | `Content.Client/_WF/Wolfmed/Medical/HealthAnalyzerWindow.Wolfmed.cs` | modified | analyzer redesign | `DamageSection` handoff dropped (the damage groups are permanently on the left now); `PopulateWolfmed`/`HideWolfmed` instead toggle `WolfmedOverviewPane.HorizontalExpand` so a non-wound-host scan gets the full width. Still the first statement of `Populate`, so every early return repaints. |
+| — | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml` | modified | analyzer redesign | Damage tab removed (redundant with the left pane); three tabs left, `OpenRight`/`OpenBoth`/`OpenLeft`; the Wounds tab is now itself a `ScrollContainer` like Organs and Chemicals instead of scrolling only its findings list; root expands vertically. |
+| — | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | analyzer redesign | `DamageSection`/`ReleaseDamageSection` and the `DamageButton` wiring deleted; `WolfmedDiagnosticTab` loses its `Damage` member and defaults to `Wounds`; `ApplyTab` no longer toggles `TabBody`/`VerticalExpand`. |
+
+Deviations / notes:
+
+1. `health-analyzer-window-damage-tab` in `Resources/Locale/en-US/medical/components/health-analyzer-component.ftl`
+   is now unreferenced. Left in place; no consumer, no cost.
+2. The window is resizable for the first time (`BaseWindow` writes `SetSize` on a resize drag, so the
+   900x600 default and user resizing coexist).

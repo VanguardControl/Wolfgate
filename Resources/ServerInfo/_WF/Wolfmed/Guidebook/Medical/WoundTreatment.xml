@@ -1,9 +1,33 @@
 <Document>
-  <FTLTextpart Key="guidebook-wolfmed-wound-treatment-content"/>
+
+# Wound treatment
+
+1. Restore breathing and stabilize critical condition.
+
+2. Stop major external bleeding - a tourniquet buys time on a limb that will not stop bleeding on its own.
+
+3. Scan the patient and select the damaged part.
+
+4. Remove damage with treatment matching its type.
+
+5. Scan again: remaining wounds, fractures, and organ damage need separate treatment.
   <Box>
     <GuideEntityEmbed Entity="HandheldHealthAnalyzer"/>
   </Box>
-  <FTLTextpart Key="guidebook-wolfmed-wound-treatment-biological"/>
+
+## Biological tissue
+
+[bold]Bruise packs and ointment:[/bold] remove damage, not wounds.
+
+[bold]Gauze:[/bold] reduces external bleeding.
+
+[bold]Tourniquet:[/bold] stops bleeding on one limb entirely while applied, at the cost of that limb's use.
+
+[bold]Medicated sutures and regenerative mesh:[/bold] treat damage and minor wounds.
+
+[bold]Moderate wound:[/bold] external surgical treatment.
+
+[bold]Severe wound:[/bold] treatment through an open incision.
   <Box>
     <GuideEntityEmbed Entity="Brutepack"/>
     <GuideEntityEmbed Entity="Ointment"/>
@@ -12,12 +36,20 @@
     <GuideEntityEmbed Entity="RegenerativeMesh"/>
     <GuideEntityEmbed Entity="Tourniquet"/>
   </Box>
-  <FTLTextpart Key="guidebook-wolfmed-wound-treatment-chemistry"/>
+
+## Medicine
+
+Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound.
+
+A ladder of painkillers suppresses pain by increasing amounts: ibuprofen, ketorolac, tramadol, and oxycodone, from mildest to strongest. Cognac, bicaridine, and desoxyephedrine also carry a lesser pain-suppressing effect alongside their other uses.
   <Box>
     <GuideEntityEmbed Entity="ChemDispenser"/>
     <GuideEntityEmbed Entity="Syringe"/>
   </Box>
-  <FTLTextpart Key="guidebook-wolfmed-wound-treatment-fractures"/>
+
+## Fractures
+
+A fracture is mended in two steps: a bonesetter reduces it, then bone gel mends it, both through an open incision.
   <Box>
     <GuideEntityEmbed Entity="Bonesetter"/>
     <GuideEntityEmbed Entity="BoneGel"/>

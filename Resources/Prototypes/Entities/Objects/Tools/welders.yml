@@ -117,6 +117,10 @@
   - type: WeldingHealing # EE IPCs
     damageContainers:
       - Silicon
+      # WOLFGATE (P5-D5, PROTO S): MobIPC moves to the SiliconWolfmed container in WP13-2;
+      # WeldingHealableSystem gates on this list (WeldingHealableSystem.cs:33-35) and would otherwise
+      # stop repairing IPCs entirely. Landed here with the other container wiring (WP13-1).
+      - SiliconWolfmed
     fuelCost: 5
     damage:
       types:

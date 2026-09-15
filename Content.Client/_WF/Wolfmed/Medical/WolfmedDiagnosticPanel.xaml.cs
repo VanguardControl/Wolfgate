@@ -34,10 +34,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
 
     private readonly Dictionary<NetEntity, (BoxContainer Row, EllipsisLabel Name, Label Health)> _organRows = new();
     private bool _organsUnavailable;
-    private WolfmedDiagnosticTab _tab = WolfmedDiagnosticTab.Damage;
-
-    /// <summary>The window's own damage-groups section, shown by the Damage tab and hidden by the other three.</summary>
-    public Control? DamageSection { get; set; }
+    private WolfmedDiagnosticTab _tab = WolfmedDiagnosticTab.Wounds;
 
     public WolfmedDiagnosticPanel()
     {
@@ -49,7 +46,6 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         _prototypes = dependencies.Resolve<IPrototypeManager>();
         _cache = dependencies.Resolve<IResourceCache>();
 
-        DamageButton.OnPressed += _ => SelectTab(WolfmedDiagnosticTab.Damage);
         WoundsButton.OnPressed += _ => SelectTab(WolfmedDiagnosticTab.Wounds);
         OrgansButton.OnPressed += _ => SelectTab(WolfmedDiagnosticTab.Organs);
         ChemicalsButton.OnPressed += _ => SelectTab(WolfmedDiagnosticTab.Chemicals);
@@ -76,13 +72,6 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         ChemicalsContainer.RemoveAllChildren();
     }
 
-    /// <summary>Restores the window's damage section, for when the panel itself is hidden.</summary>
-    public void ReleaseDamageSection()
-    {
-        if (DamageSection != null)
-            DamageSection.Visible = true;
-    }
-
     private void SelectTab(WolfmedDiagnosticTab tab)
     {
         _tab = tab;
@@ -95,15 +84,6 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         OrgansTab.Visible = _tab == WolfmedDiagnosticTab.Organs;
         ChemicalsTab.Visible = _tab == WolfmedDiagnosticTab.Chemicals;
 
-        // The Damage tab hands the whole section back to the window rather than duplicating it; hiding only the
-        // inner containers would leave an empty expanded black panel behind.
-        TabBody.Visible = _tab != WolfmedDiagnosticTab.Damage;
-        VerticalExpand = TabBody.Visible;
-
-        if (DamageSection != null)
-            DamageSection.Visible = _tab == WolfmedDiagnosticTab.Damage;
-
-        DamageButton.Disabled = _tab == WolfmedDiagnosticTab.Damage;
         WoundsButton.Disabled = _tab == WolfmedDiagnosticTab.Wounds;
         OrgansButton.Disabled = _tab == WolfmedDiagnosticTab.Organs;
         ChemicalsButton.Disabled = _tab == WolfmedDiagnosticTab.Chemicals;
@@ -412,10 +392,9 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
     }
 }
 
-/// <summary>Which of the panel's four tabs is showing.</summary>
+/// <summary>Which of the panel's three tabs is showing.</summary>
 public enum WolfmedDiagnosticTab : byte
 {
-    Damage,
     Wounds,
     Organs,
     Chemicals,

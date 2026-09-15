@@ -18,3 +18,11 @@ health-analyzer-wound-fracture-short = fracture: { $grade }
 health-analyzer-wound-fracture-treated-short = fracture: { $grade } ({ $treatment })
 health-analyzer-wound-fracture-treatment-reduced = reduced
 health-analyzer-wound-fracture-treatment-mended = mended
+
+# WOLFGATE (P5-5): mechanical-species variants of the three generic short labels above. Onyx has no
+# equivalent (its IPCs read as "bruises"/"fracture") - these are a Wolfgate improvement, unconsumed
+# until a later package adds the HealthAnalyzerWoundDiagnostic.Mechanical flag and branches on it
+# (PLAN5 P5-D17/§2.6; deferred out of this package per its "No new C#" scope).
+health-analyzer-wound-bleeding-short-mechanical = fluid leak
+health-analyzer-wound-fracture-short-frame = frame damage: { $grade }
+health-analyzer-wound-fracture-treated-short-frame = frame damage: { $grade } ({ $treatment })

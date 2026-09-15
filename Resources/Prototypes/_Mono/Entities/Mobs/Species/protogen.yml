@@ -1,7 +1,9 @@
 - type: entity
   parent: BaseMobSpeciesOrganic
-  # WOLFGATE (D21/D32): synthetic (prototype: SiliconDeathgasp below) - WoundHost is stripped at runtime by
-  # WolfmedWoundHostExclusionSystem (RT has no YAML component removal), not by an override here.
+  # WOLFGATE (D21/D32 -> P5-D9): the exclusion was lifted in phase 5. BaseMobProtogen is biologically organic
+  # (Biological container, OrganicPart limbs, Blood bloodstream, Hunger/Thirst, Respirator, Butcherable ->
+  # FoodMeatHuman) and is now an ordinary organic wound host. Its organs are BaseProtogenOrgan-derived and
+  # carry no OrganDamage - see P5-D19.
   id: BaseMobProtogen
   name: Urist McHardDrive
   abstract: true

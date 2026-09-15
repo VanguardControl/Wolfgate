@@ -30,8 +30,8 @@ public sealed partial class HealthAnalyzerSystem
     public HealthAnalyzerWoundDiagnostics? BuildWoundDiagnostics(EntityUid body)
     {
         // WOLFGATE (D2): Onyx gates on SurgeryTargetComponent; a Shitmed surgery target without WoundHost
-        // (a borg, a Protogen) has no WoundableComponent anywhere and would report "no findings" instead of
-        // "unavailable".
+        // (a borg, a synthetic species) has no WoundableComponent anywhere and would report "no findings"
+        // instead of "unavailable".
         if (!HasComp<WoundHostComponent>(body))
             return null;
 

@@ -9,7 +9,9 @@ public sealed class WolfmedWoundHostExclusionSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
 
     /// <summary>Abstract ancestor ids whose descendants must not be wound hosts. Add new synthetic species here.</summary>
-    private static readonly HashSet<string> ExcludedAncestors = new() { "BaseMobProtogen" };
+    // WOLFGATE (P5-D9): protogen is biologically organic (Biological container, OrganicPart limbs, Blood
+    // bloodstream, Hunger/Thirst, Respirator, FoodMeatHuman) - exclusion lifted. Add new synthetic species here.
+    private static readonly HashSet<string> ExcludedAncestors = new();
 
     public override void Initialize()
     {

@@ -74,8 +74,14 @@ public sealed partial class CirculatoryStreamSystem : EntitySystem
 
         // WOLFGATE: D15, only the primary stream exists, so the CirculatoryStreamComponent bookkeeping
         // and the SynchronizeStreams fallback below it are both dead code in phase 1.
-        _bloodstream.TryModifyWoundBleedProjection(body,
-            rates.GetValueOrDefault(CirculatoryStreamPrototype.PrimaryStream) - bloodstream.BleedAmount,
-            bloodstream);
+        // WOLFGATE: P5-2/P5-D3. Wolfgate has exactly one blood solution per body (server-only
+        // BloodstreamComponent), so every stream's bleed rate lands in the same place. Summing instead of
+        // reading only the primary key makes a profile that sets `circulatoryStream:` degrade to "bleeds
+        // normally" rather than "silently stops bleeding". Identical while Organic is the only stream.
+        var total = 0f;
+        foreach (var rate in rates.Values)
+            total += rate;
+
+        _bloodstream.TryModifyWoundBleedProjection(body, total - bloodstream.BleedAmount, bloodstream);
     }
 }
