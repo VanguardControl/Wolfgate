@@ -117,7 +117,7 @@ Phase 4 is committed (`2b4a4675d0 phase 4`). Phase 5 = species coverage and the 
 
 ## Phase 6 (2026-09-14) — DEFERRED by the user (token budget)
 
-Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `C:\tmp\wolfmed-plan\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `Docs/Wolfmed/reports/analysis/damage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
+Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `C:\tmp\wolfmed-plan\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `C:	mpwolfmed-planeportsnalysisdamage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
 
 ## Phase 7 backlog — "Viscera" (user wants, 2026-09-14; not started, token budget)
 
