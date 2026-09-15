@@ -119,6 +119,7 @@ public sealed partial class GibbingSystem : EntitySystem
         var gibContentsAttempt =
             new AttemptEntityContentsGibEvent(gibbable, gibContentsOption, allowedContainers, excludedContainers);
         RaiseLocalEvent(gibbable, ref gibContentsAttempt);
+        excludedContainers = gibContentsAttempt.ExcludedContainers; // WOLFGATE: let subscribers veto containers (Wolfmed keeps wounds with the part)
 
         foreach (var container in _containerSystem.GetAllContainers(gibbable))
         {

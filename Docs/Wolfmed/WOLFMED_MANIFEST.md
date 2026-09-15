@@ -2717,6 +2717,19 @@ own rows here, mirroring WP12-10's phase-4 precedent):
 
 ### Post-phase-5 fixes (orchestrator, 2026-09-14)
 
+### CI GibTest fix (2026-09-14)
+
+`Tests.Body.GibTest` failed on CI: gibbing a body part dumps every container on it, including the Onyx `wounds`
+container. Wound entities live in nullspace with no physics (`ApplyLinearImpulse` resolve error) and, once dumped,
+outlive the deleted part and serialise a dangling `HoldingPart` (`GetNetEntity` resolve error in PVS).
+
+| Onyx path | Wolfgate path | Status | Notes |
+|---|---|---|---|
+| — | `Content.Shared/Gibbing/Systems/GibbingSystem.cs` | modified | one marked line after `RaiseLocalEvent(gibbable, ref gibContentsAttempt)`: `excludedContainers = gibContentsAttempt.ExcludedContainers;` so subscribers of `AttemptEntityContentsGibEvent` can veto containers (upstream raised the event but never read it back) |
+| — | `Content.Shared/_WF/Wolfmed/Compat/WolfmedBodySystem.cs` | modified | `<WoundableComponent, AttemptEntityContentsGibEvent>` adds `WoundableComponent.ContainerId` to `ExcludedContainers`; wounds stay contained and are deleted with the part |
+
+Verified: `GibTest`, all `Tests.Body`, and the 116-test wound suite pass locally.
+
 - `Content.Client/Overlays/EntityHealthBarOverlay.cs` — hook, 2 marked lines: `CalcProgress` ratios clamped to [0,1]; wound-host projected damage can exceed the dead threshold and drew a negative bar for ghosts.
 - `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/{Wounds,WoundTreatment}.xml` — modified: Onyx's `FTLTextpart` guidebook tag does not exist in Wolfgate (Pidgin parse error at open); the locale text is now inlined as markdown and `Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl` is deleted (its 21 keys had no other consumer).
 
