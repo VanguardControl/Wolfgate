@@ -3,7 +3,7 @@
 Phases 1, 2, 3, 4 and 5 of the Space Onyx wound port are implemented, build, and pass their tests. Nothing is committed.
 
 - **Branch / worktree:** `clanker/wolfmed-port-orchestration-454c3d` in `.claude/worktrees/rules-motd-updates-11c89c`.
-- **Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`. Reference sparse checkout at `C:\tmp\onyx` (recreate with the clone command in `WOLFMED_HANDOFF.md`, using `core.longpaths=true` and a short path).
+- **Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`. Reference sparse checkout at `C:\Users\jzo12\Documents\Wolfmed\onyx` (recreate with the clone command in `WOLFMED_HANDOFF.md`, using `core.longpaths=true` and a short path).
 - **Documents:** `DECISIONS.md` (D1–D35 plus the phase-2, phase-3, phase-4 and phase-5 sections), `WOLFMED_PLAN.md` (phase 1's file-level plan), `WOLFMED_PLAN2.md` (phase 2's), `WOLFMED_PLAN3.md` (phase 3's), `WOLFMED_PLAN4.md` (phase 4's), `WOLFMED_PLAN5.md` (phase 5's), `WOLFMED_MANIFEST.md` (every file: Onyx path, Wolfgate path, status, deviations, including the phase-2 §8.2, phase-3 §8.6, phase-4 §8.4 and phase-5 §8.4 user-decision summaries), `reports/analysis` (phase 1), `reports/analysis/phase2` (phase 2's five analyst reports plus `CRITIQUE2.md`), `reports/analysis/phase3` (phase 3's five analyst reports plus `CRITIQUE3.md`), `reports/analysis/phase4` (phase 4's five analyst reports plus `CRITIQUE4.md`) and `reports/analysis/phase5` (phase 5's five analyst reports plus `CRITIQUE5.md`), `reports/work-packages` (phase 1), `reports/work-packages/phase2` (one report and one verification per WP10-N package), `reports/work-packages/phase3` (one report and one verification per WP11-N package), `reports/work-packages/phase4` (one report and one verification per WP12-N package) and `reports/work-packages/phase5` (one report and one verification per WP13-N package).
 - **Reports:** the per-phase analyst, critique, work-package and verification reports were removed from the repo on 2026-09-14 to slim the PR; they live locally at `C:SERSJZO12DOCUMENTSWOLFMEDPLANeports` (same layout: `analysis/`, `analysis/phaseN/`, `work-packages/`, `work-packages/phaseN/`). Manifest rows that cite `Docs/Wolfmed/reports/...` refer to that local copy.
 
@@ -39,7 +39,7 @@ part-status examine live on real mobs for the first time. What a player now sees
 - **A `HighPainThreshold` trait** (25% less pain gain from wounds), mutually exclusive with `PainNumbness`.
 
 Test counts: **39 of 39 passed** (`Content.IntegrationTests/Tests/_Onyx/Wounds` + `Tests/_WF/Wolfmed`,
-`--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~Wolfmed"`), per `C:\tmp\wolfmed-plan\p2\wp\WP10-6b-tests.log`
+`--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~Wolfmed"`), per `C:\Users\jzo12\Documents\Wolfmed\plan\p2\wp\WP10-6b-tests.log`
 — up from phase 1's 30. New in phase 2: `FractureAlertTracksGradeAndTreatmentTest`,
 `FractureAlertRespectsMinimumGradeTest`, `FractureManipulationUsesHeldHandSymmetryTest`, the ported
 `EffectsRefreshOnTreatmentHealingAndDetachTest`, `PainOverlayLevelTracksPainTest`,
@@ -95,7 +95,7 @@ player now sees:
 
 Test counts: **65 of 65 passed** (`Content.IntegrationTests/Tests/_Onyx/Wounds` + `Tests/_Onyx/Body` +
 `Tests/_WF/Wolfmed`, `--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~_Onyx.Body|FullyQualifiedName~Wolfmed"`),
-per `C:\tmp\wolfmed-plan\p3\wp\WP11-5-report-tests.log` — up from phase 2's 39. New in phase 3: T-REATTACH,
+per `C:\Users\jzo12\Documents\Wolfmed\plan\p3\wp\WP11-5-report-tests.log` — up from phase 2's 39. New in phase 3: T-REATTACH,
 T-VISUALS (WP11-0); the vendored `AmputationSystem` subscription plus T-AMP-VITAL/T-AMP-GUN/T-AMP-OVERFLOW/
 T-AMP-EXPLOSION/T-AMP-CONSEQUENCE-SEPARATE and 3 of Onyx's `AmputationConsequenceTest`s (WP11-1/WP11-5);
 7 organ tests T-ORG-DATA/CAP/DESTROY/HEART/BRAIN/EYES/FUNC/INERT (WP11-2/WP11-5); 5 locational-armour tests
@@ -165,7 +165,7 @@ can now undo. What a medic can do that they could not before, per treatment:
 Test counts: **98 of 98 passed, 0 skipped** (`Content.IntegrationTests/Tests/_Onyx/Wounds` +
 `Tests/_Onyx/Body` + `Tests/_Onyx/Medical` + `Tests/_WF/Wolfmed`,
 `--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~_Onyx.Body|FullyQualifiedName~_Onyx.Medical|FullyQualifiedName~Wolfmed"`),
-per `C:\tmp\wolfmed-plan\p4\wp\WP12-9-report-tests.log` — up from phase 3's 65 (33 new: 31 new test methods
+per `C:\Users\jzo12\Documents\Wolfmed\plan\p4\wp\WP12-9-report-tests.log` — up from phase 3's 65 (33 new: 31 new test methods
 plus 2 phase-1/3 skips restored, `TourniquetStopsOnlySelectedPartTest` and
 `SurgicalHealRemovesConsequenceAndUnblocksTest`). Smoke filter `EntityTest|PrototypeSaveTest|DockTest`:
 **9 passed, 0 failed**, the 2 skips being the two permanently `[Ignore]`d upstream tests
@@ -205,7 +205,7 @@ bypasses for wound hosts. Phase 5 gives `CableStack`'s `Healing` component `trea
 Test counts: **116 of 116 passed, 0 skipped** (`Content.IntegrationTests/Tests/_Onyx/Wounds` +
 `Tests/_Onyx/Medical` + `Tests/_WF/Wolfmed`, `--filter
 "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~_Onyx.Medical|FullyQualifiedName~Wolfmed"`), per
-`C:\tmp\wolfmed-plan\p5\wp\WP13-6-tests.log` — 20 new tests across 4 files (3 new, 1 extended), all
+`C:\Users\jzo12\Documents\Wolfmed\plan\p5\wp\WP13-6-tests.log` — 20 new tests across 4 files (3 new, 1 extended), all
 Wolfgate-authored (no Onyx phase-5 test source): `WolfmedSpeciesProfileTest.cs` (8, per-profile behaviour),
 `WolfmedSpeciesSpawnTest.cs` (8, whole-mob spawn/delete/damage), `WolfmedTreatmentMatrixTest.cs` (3, the
 treatment-capability matrix and the cable-coil nerf), and one test added to `WolfmedAnalyzerTest.cs`
@@ -377,7 +377,7 @@ fracture"/"bleeding" on an undead skeleton needs its own design, never previousl
 
 1. **Phase 6: predicted routing** (wound-host damage is still unpredicted, D35); **the full 272-entry
    locational-armour content pass** (P3-D6); **`HurtCommand` part argument** (patch kept at
-   `reports/work-packages` as `WP8-hurtcommand-deferred.patch` in `C:\tmp\wolfmed-plan\wp`). Explosion
+   `reports/work-packages` as `WP8-hurtcommand-deferred.patch` in `C:\Users\jzo12\Documents\Wolfmed\plan\wp`). Explosion
    amputation and the `GibbingSystem.cs` container-mutation fix, both previously slated for phase 6, shipped
    in phase 4 instead and are struck from this list. **The phase-1 "blocked on a shared stage-based
    metabolizer" line above this one is struck outright, not carried to phase 6**: PLAN5 §8.7 found it
