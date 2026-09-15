@@ -131,4 +131,4 @@ public sealed class EllipsisLabel : Control
         _drawnCacheWidth = -1;
         base.StylePropertiesChanged();
     }
-}
+}
