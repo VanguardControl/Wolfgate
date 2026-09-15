@@ -21,7 +21,7 @@ These are constraints for every agent. Do not re-litigate them; flag concrete pr
 - **D33 PassiveDamage (§8.1 item 2):** accept D29 — body-level `PassiveDamage` neutralised on wound hosts; Onyx per-profile recovery is the only passive heal. Recorded as a balance deviation.
 - **D34 Do-afters (§8.1 item 5):** accept the loss of damage-interrupts-do-after on wound hosts for phase 1.
 - **D35 Prediction (§8.1 item 6):** accept unpredicted wound-host damage for phase 1 (transient mispredict). Predicting routing is a later phase.
-- **No commits.** Work packages leave the tree uncommitted; the verify stage snapshots a patch per WP under `C:/tmp/wolfmed-plan/snapshots/`. The user commits.
+- **No commits.** Work packages leave the tree uncommitted; the verify stage snapshots a patch per WP under `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
 
 ## Phase 2 (2026-09-13) — scope and constraints
 
@@ -117,7 +117,7 @@ Phase 4 is committed (`2b4a4675d0 phase 4`). Phase 5 = species coverage and the 
 
 ## Phase 6 (2026-09-14) — DEFERRED by the user (token budget)
 
-Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `C:\tmp\wolfmed-plan\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `C:	mpwolfmed-planeportsnalysisdamage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
+Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `C:\tmp\wolfmed-plan\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `C:SERSJZO12DOCUMENTSWOLFMEDPLANeportsnalysisdamage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
 
 ## Phase 7 backlog — "Viscera" (user wants, 2026-09-14; not started, token budget)
 

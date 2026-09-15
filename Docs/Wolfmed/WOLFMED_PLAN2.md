@@ -1,6 +1,6 @@
 # WOLFMED PHASE 2 — implementation plan (lead architect)
 
-**Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`, sparse reference at `C:/tmp/onyx` (**ONYX**).
+**Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`, sparse reference at `C:/Users/jzo12/Documents/Wolfmed/onyx` (**ONYX**).
 **Wolfgate worktree:** `C:/Users/jzo12/Documents/GitHub/Wolfgate/.claude/worktrees/rules-motd-updates-11c89c` (**WG**), branch `clanker/wolfmed-port-orchestration-454c3d`, phase 1 committed (`23c0a74cb9`), RobustToolbox 277 junctioned at `WG/RobustToolbox` — **never touched**.
 
 This document is to phase 2 what `PLAN.md` is to phase 1. It supersedes the five phase-2 analyst reports
@@ -26,7 +26,7 @@ reports are evidence, not instructions.
    (`ErrorNode` crashes the linter elsewhere).
 6. Record every file you touch in `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7) in the same work package.
 7. **No commits.** Work packages leave the tree uncommitted; snapshot a patch per WP under
-   `C:/tmp/wolfmed-plan/snapshots/`. The user commits.
+   `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
 8. Before blaming Wolfmed for a test failure, run `DockTest` first (the `db.ef` sqlite warnings fail every
    pair test in this repo — project memory).
 
@@ -270,7 +270,7 @@ same existing `# WOLFGATE — Wolfmed phase 1 (D21/D32)` block at `:250-252`. No
 appends to one file, with one silently losing, exactly the hazard §8.3 item 2 already identifies for `base.yml`.
 **WP10-7 is the sole editor of `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `Docs/Wolfmed/WOLFMED_PLAN.md` and
 `Docs/Wolfmed/WOLFMED_STATUS.md`.** Every other WP writes its manifest rows and deviations to
-`C:/tmp/wolfmed-plan/p2/manifest-rows-WP10-N.md` instead — same content, same format as §7's tables — and
+`C:/Users/jzo12/Documents/Wolfmed/plan/p2/manifest-rows-WP10-N.md` instead — same content, same format as §7's tables — and
 WP10-7 merges them. Ground rule 6 is amended accordingly for phase 2: *record every file you touch in your own
 `manifest-rows-WP10-N.md`*. A WP that produces no such file has not finished.
 
@@ -1110,7 +1110,7 @@ WP10-7 is a merge.
 
 ## Revision notes (CRITIQUE2 pass)
 
-This revision applies `C:/tmp/wolfmed-plan/p2/CRITIQUE2.md`. Every finding was re-derived from the real trees
+This revision applies `C:/Users/jzo12/Documents/Wolfmed/plan/p2/CRITIQUE2.md`. Every finding was re-derived from the real trees
 before being accepted; nothing was taken on CRITIQUE2's word, and one of its numbers turned out to be wrong.
 
 ### Blockers — all three accepted, all three independently verified
@@ -1128,7 +1128,7 @@ before being accepted; nothing was taken on CRITIQUE2's word, and one of its num
 | **M1** | **Accepted → P2-D22.** Verified `WolfmedWoundHostExclusionSystem.cs:12,17,33` removes only `WoundHostComponent`, and that ONYX `EmoteOnDamageSystem.PainSounds.cs:19-62` never tests it. Took CRITIQUE2's fix (b), the one-line guard at the top of `HandlePainDamageEmote`: `using Content.Shared._Onyx.Wounds;` is already line 1 of that file, so it costs nothing, and it is the honest gate for a feature shipping as "Wolfmed pain sounds". P2-D7's rationale is rewritten in §4/WP10-5 and in the `base.yml` comment; `PainShockTarget` on Protogen is separately shown to be inert. |
 | **M2** | **Accepted → P2-D23.** Verified the roll at `WoundFractureSystem.cs:51-55` and the profile's `0.05 / 0.25 / 0.65 / 1` (`wounds.yml:56-76`), and verified the deterministic alternative: `OnWoundChanged:73-86` re-grades with no roll, and `severityMultiplier: 1` (`wounds.yml:39`) makes `WoundSystem.ChangeSeverity` (`:284`) an exact grade dial. Both alert tests respecified: create at 60 (Comminuted, chance 1), then walk the grade down. The new negative actually tests `alertMinimumGrade: Simple` instead of "a fracture exists". |
 | **M3** | **Accepted and extended → P2-D24.** Verified `status_effects.yml:4-10` (no `alwaysAllowed` on `Stun`/`KnockedDown`), `base.yml:125-127` (BaseMobSpecies lists them explicitly) and `SharedStunSystem.cs:244-251`. **Added a second requirement CRITIQUE2 missed:** `PainSystem.Update`'s shock loop is `EntityQueryEnumerator<PainComponent, MobStateComponent, PainShockTargetComponent>` (`PainSystem.cs:143`), so the fixture also needs `- type: MobState` or it is never visited at all. |
-| **M4** | **Accepted.** Serialisation rule 2 added to §4: WP10-7 is the sole editor of `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_PLAN.md` and `WOLFMED_STATUS.md`; every other WP emits `C:/tmp/wolfmed-plan/p2/manifest-rows-WP10-N.md` for WP10-7 to merge. Ground rule 6 is amended for phase 2, and §8.3 carries the risk. |
+| **M4** | **Accepted.** Serialisation rule 2 added to §4: WP10-7 is the sole editor of `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_PLAN.md` and `WOLFMED_STATUS.md`; every other WP emits `C:/Users/jzo12/Documents/Wolfmed/plan/p2/manifest-rows-WP10-N.md` for WP10-7 to merge. Ground rule 6 is amended for phase 2, and §8.3 carries the risk. |
 | **M5** | **Accepted.** Verified `[Dependency] private WoundStatusEffectSystem _statusEffects` at ONYX `FractureEffectsSystem.cs:23` with calls at `:64` and `:71`, and that both methods exist in WG (`WoundStatusEffectSystem.cs:109,119`) with no caller outside the system's own `RefreshPartWounds:133`. Added to §2's "already exists" list, to WP10-1's exact-edit section, to §7's manifest row, and as §7 deviation 14 with the P2-D1 dependency stated. |
 
 ### Minors

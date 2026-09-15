@@ -1,6 +1,6 @@
 # WOLFMED PHASE 3 — implementation plan (lead architect)
 
-**Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`, sparse reference at `C:/tmp/onyx` (**ONYX**).
+**Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`, sparse reference at `C:/Users/jzo12/Documents/Wolfmed/onyx` (**ONYX**).
 **Wolfgate worktree:** `C:/Users/jzo12/Documents/GitHub/Wolfgate/.claude/worktrees/rules-motd-updates-11c89c`
 (**WG**), branch `clanker/wolfmed-port-orchestration-454c3d`, phases 1 and 2 committed (`1171e02fb6`),
 RobustToolbox 277 junctioned at `WG/RobustToolbox` — **never touched**.
@@ -29,7 +29,7 @@ evidence, not instructions.
    `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7). WP11-6 *reconciles*, it does not merge. One owner per shared file
    (§4, serialisation rules).
 7. **No commits.** Work packages leave the tree uncommitted; snapshot a patch per WP under
-   `C:/tmp/wolfmed-plan/snapshots/`. The user commits.
+   `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
 8. Before blaming Wolfmed for a test failure, run `DockTest` first (the `db.ef` sqlite warnings fail every pair
    test in this repo — project memory).
 
@@ -467,7 +467,7 @@ without it).
 
 #### File 1 — the exact edit table for `AmputationSystem.cs`
 
-Onyx line numbers verified by `git -C C:/tmp/onyx show HEAD:Content.Shared/_Onyx/Wounds/AmputationSystem.cs`
+Onyx line numbers verified by `git -C C:/Users/jzo12/Documents/Wolfmed/onyx show HEAD:Content.Shared/_Onyx/Wounds/AmputationSystem.cs`
 (read in full). Keep Onyx's namespace `Content.Shared._Onyx.Wounds` and every line not listed here **verbatim**.
 
 | # | Onyx line | Before | After |
@@ -1372,7 +1372,7 @@ B is in scope, because the rote port has two compile traps and a 156-file copy) 
 
 ## Revision notes (CRITIQUE3 pass)
 
-This revision applies `C:/tmp/wolfmed-plan/p3/CRITIQUE3.md`. Every finding was re-derived from the real trees
+This revision applies `C:/Users/jzo12/Documents/Wolfmed/plan/p3/CRITIQUE3.md`. Every finding was re-derived from the real trees
 before being accepted; nothing was taken on CRITIQUE3's word. One of its proposed fixes was rejected in favour
 of a better one, and one of its "verified" numbers turned out to be wrong.
 

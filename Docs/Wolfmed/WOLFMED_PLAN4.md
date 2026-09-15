@@ -1,6 +1,6 @@
 # WOLFMED PHASE 4 — implementation plan (lead architect)
 
-**Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`, sparse reference at `C:/tmp/onyx` (**ONYX**).
+**Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`, sparse reference at `C:/Users/jzo12/Documents/Wolfmed/onyx` (**ONYX**).
 **Wolfgate worktree:** `C:/Users/jzo12/Documents/GitHub/Wolfgate/.claude/worktrees/rules-motd-updates-11c89c`
 (**WG**), branch `clanker/wolfmed-port-orchestration-454c3d`, phases 1–3 committed (`6329d204e3 Phase 3
 completion`), RobustToolbox 277 junctioned at `WG/RobustToolbox` — **never touched**.
@@ -35,7 +35,7 @@ a diagnostics readout, and (newly in scope) explosion amputation.
    `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7). WP12-10 *reconciles*, it does not merge. One owner per shared file
    (§4, serialisation rules).
 7. **No commits.** Work packages leave the tree uncommitted; snapshot a patch per WP under
-   `C:/tmp/wolfmed-plan/p4/snapshots/`. The user commits.
+   `C:/Users/jzo12/Documents/Wolfmed/plan/p4/snapshots/`. The user commits.
 8. Before blaming Wolfmed for a test failure, run `DockTest` first (the `db.ef` sqlite warnings fail every pair
    test in this repo — project memory).
 

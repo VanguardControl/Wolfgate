@@ -11,7 +11,7 @@ Status values: `verbatim` (byte-identical), `modified` (vendored `_Onyx` file wi
 `// WOLFGATE` hook), `skipped` (deliberately not ported).
 
 > **Note (WP4):** this file was accidentally truncated during the WP4 run and rebuilt from PLAN.md §7.2
-> plus the WP1/WP2/WP3 reports in `C:/tmp/wolfmed-plan/wp/`. The row set and every recorded deviation are
+> plus the WP1/WP2/WP3 reports in `C:/Users/jzo12/Documents/Wolfmed/plan/wp/`. The row set and every recorded deviation are
 > believed complete; wording in the WP1–WP3 sections may differ from the original.
 
 | Onyx path | Wolfgate path | Status | WP | Notes |
@@ -125,7 +125,7 @@ Status values: `verbatim` (byte-identical), `modified` (vendored `_Onyx` file wi
 | `Content.Shared/Execution/SharedExecutionSystem.cs` | same | new (hook) | WP8 | **HOOK 13.** One `[Dependency] WoundDamageRoutingSystem _woundRouting` + one `TryApplyLethalDamage(victim, meleeWeaponComp.Damage, attacker)` after `AttemptLightAttack`. Self-guards on `_net.IsServer` and `HasComp<WoundHostComponent>` |
 | `Content.Shared/_Onyx/Wounds/WoundEvents.cs` | same | modified | WP8 | D23 — `PartDamageModifyEvent` gains an optional trailing `float armorPenetration = 0f` primary-constructor parameter and a readonly `ArmorPenetration` field, so HOOK 10's part pass can penetrate armour |
 | `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs` | same | modified | WP8 | WP8 half: the single `PartDamageModifyEvent` construction site now passes `_routedModifiers.GetValueOrDefault(body).ArmorPenetration` (D23). The side table itself landed in WP5 |
-| `Content.Server/Damage/Commands/HurtCommand.cs` | same | skipped | WP8 | Shipped in WP8 round 1 (optional 5th `<bodyPart>` argument), **reverted in fix round 1** — not in PLAN 3's authorised list and the instruction claimed for it is not recorded in PLAN.md/DECISIONS.md. File is byte-identical to HEAD again. The change is preserved at `C:/tmp/wolfmed-plan/wp/WP8-hurtcommand-deferred.patch` and can be re-applied if the user authorises it |
+| `Content.Server/Damage/Commands/HurtCommand.cs` | same | skipped | WP8 | Shipped in WP8 round 1 (optional 5th `<bodyPart>` argument), **reverted in fix round 1** — not in PLAN 3's authorised list and the instruction claimed for it is not recorded in PLAN.md/DECISIONS.md. File is byte-identical to HEAD again. The change is preserved at `C:/Users/jzo12/Documents/Wolfmed/plan/wp/WP8-hurtcommand-deferred.patch` and can be re-applied if the user authorises it |
 | — | `Resources/Locale/en-US/_Onyx/commands/damage-command.ftl` | skipped | WP8 | Created in WP8 round 1, **deleted in fix round 1** with the command that used it. The path does not exist in the pinned Onyx sparse checkout, so its "verbatim" claim was never diffable — see Deviations |
 | `Resources/Locale/en-US/damage/damage-command.ftl` | same | skipped | WP8 | Usage-string edit reverted in fix round 1 with `HurtCommand.cs`; byte-identical to HEAD again |
 | `Content.IntegrationTests/Tests/_Onyx/Wounds/WoundDamageFoundationTest.cs` | same | adapted | WP9 | 9 of Onyx's 12 tests. Shitmed `body` prototype instead of Nubody `InitialBody`; Chest -> Torso (D9); `WolfmedDamageableSystem`/`WolfmedBodySystem`/`WoundTargetResolver` in place of Onyx's; Onyx's `TargetingComponent.DefaultOdds()`/`TryConvert` assertions dropped (D10); the two armour tests that need `coverage`/`partModifiers` dropped and folded into one applies-exactly-once test; `SuppressPain` entity effect replaced by the identical `PainSystem.SuppressPain` path (D16, phase 4) |
@@ -245,7 +245,7 @@ Deliberate departures from Onyx behaviour, with the reason. A re-sync should not
   PLAN 2.1's implementation note specifies exactly this; recorded because it makes every routed write
   `DamageChangedEvent.CanSever == false`, belt-and-braces on top of GUARD B (WP5).
 - **The WP2 compile-exercise helper was not shipped.** It is preserved at
-  `C:/tmp/wolfmed-plan/wp/WP2-compat-smoke.cs.txt`; WP9 should fold it into the integration tests as a
+  `C:/Users/jzo12/Documents/Wolfmed/plan/wp/WP2-compat-smoke.cs.txt`; WP9 should fold it into the integration tests as a
   compile gate rather than leaving a permanently-registered no-op `EntitySystem` in the tree.
 
 ### WP3
@@ -467,7 +467,7 @@ Deliberate departures from Onyx behaviour, with the reason. A re-sync should not
   it: `WoundDamageRoutingSystem.TryApplyPartDamage` (the API it drove) is vendored Onyx code with other callers,
   and `WoundTargetResolver.TryResolveExact` is still used by `WoundDamageRoutingSystem` and `HealingSystem`. WP9
   should drive part damage by calling `TryApplyPartDamage` from the integration fixture instead of through a
-  console command. The withdrawn diff is kept at `C:/tmp/wolfmed-plan/wp/WP8-hurtcommand-deferred.patch`.
+  console command. The withdrawn diff is kept at `C:/Users/jzo12/Documents/Wolfmed/plan/wp/WP8-hurtcommand-deferred.patch`.
 - **Sourcing gap disclosed (fix round 1):** the locale file WP8 round 1 added at
   `Resources/Locale/en-US/_Onyx/commands/damage-command.ftl` was reported as "copied byte-for-byte from Onyx",
   but that path is **not in the pinned Onyx sparse checkout** — its wording was reconstructed from the four
@@ -1262,7 +1262,7 @@ Phase 3 is committed (`6329d204e3 Phase 3 completion`). Phase 4 = treatment and 
   `ReactiveSystem`, `StickySystem`, `SharedHandsSystem`, `ISharedAdminLogManager`, `UnremoveableComponent`)
   is vanilla and already present in WG. Both files vendored byte-identical (verified via `file`: ASCII,
   CRLF, matching the working tree's line-ending convention; content diffed equal to
-  `git -C C:/tmp/onyx show HEAD:<path>`).
+  `git -C C:/Users/jzo12/Documents/Wolfmed/onyx show HEAD:<path>`).
   `MedicalPatchMakeshift` is placed nowhere per Onyx (`git grep -i medicalpatch` over Onyx's
   `Resources/Prototypes` returns only the definition and tag files); WG mirrors that exactly.
 - **`GroupHealSpecifier` NOT ported (P4-D12).** `MedicalPatchComponent.cs`/`MedicalPatchSystem.cs` were read
@@ -1278,14 +1278,14 @@ Phase 3 is committed (`6329d204e3 Phase 3 completion`). Phase 4 = treatment and 
   — `"license": "CC-BY-SA-3.0"`, `"copyright": "@jorgun  inspired by Studenterhue of Goonstation"` (double
   space after "jorgun" preserved verbatim from Onyx's `meta.json`). This is a new artist/licence pair for
   Wolfmed, distinct from the Ubaser wound-visuals attribution in phase 3. File count independently confirmed
-  at 22 (21 PNG + `meta.json`) via `git -C C:/tmp/onyx ls-tree -r --name-only HEAD` on the rsi path, matching
+  at 22 (21 PNG + `meta.json`) via `git -C C:/Users/jzo12/Documents/Wolfmed/onyx ls-tree -r --name-only HEAD` on the rsi path, matching
   PLAN4's corrected count.
 - **No deviations from PLAN4.** This package matches WP12-0's table exactly: 6 files, 0 upstream edits.
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`). Headless server run
   (~120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with no `[ERRO]`/`[FATL]`/exception lines
   and no `Duplicate Subscriptions` throw; the only `[WARN]` lines are pre-existing and unrelated
   (`PullingSystem` command-bind notice, emote-word duplicates, `MainLoop: Cannot keep up!`). See
-  `C:/tmp/wolfmed-plan/p4/wp/WP12-0-report-server.log`.
+  `C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-0-report-server.log`.
 
 ### WP12-1 (phase 4 — reagent effect classes and HOOK 9, P4-1a)
 
@@ -1333,9 +1333,9 @@ Phase 3 is committed (`6329d204e3 Phase 3 completion`). Phase 4 = treatment and 
 - **Checkpoint:** `Content.Server`, `Content.Client` and `Content.IntegrationTests` all **0 errors**
   (`-c DebugOpt`). Headless server (~120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with
   **zero** `[ERRO]`/`[FATL]`/exception lines — including no Fluent duplicate-id error for the new ftl — see
-  `C:/tmp/wolfmed-plan/p4/wp/WP12-1-report-server.log`. The phase-4 gate filter
+  `C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-1-report-server.log`. The phase-4 gate filter
   (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`) is **65 passed / 65 total**, unchanged by HOOK 9 — see
-  `C:/tmp/wolfmed-plan/p4/wp/WP12-1-report-tests.log`. Release YAML lint **not run**: this package touches no
+  `C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-1-report-tests.log`. Release YAML lint **not run**: this package touches no
   YAML or prototype file, and the new FTL is covered by the clean headless start.
 
 ### WP12-2 (phase 4 — reagent content, Tier A, P4-1b)
@@ -1377,11 +1377,11 @@ Phase 3 is committed (`6329d204e3 Phase 3 completion`). Phase 4 = treatment and 
 - **Checkpoint:** `Content.Server`, `Content.Client` and `Content.IntegrationTests` all **0 errors**
   (`-c DebugOpt`). Headless server (~120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with
   **zero** `[ERRO]`/`[FATL]`/exception lines — no unknown `!type:`, no duplicate reagent/reaction id, no
-  missing metabolism group, no Fluent duplicate id (`C:/tmp/wolfmed-plan/p4/wp/WP12-2-report-server.log`).
+  missing metabolism group, no Fluent duplicate id (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-2-report-server.log`).
   Release YAML lint (`dotnet run --project Content.YAMLLinter -c Release`): **1 error, none of it this
   package's** — see the hazard below. Phase-4 gate filter
   (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`) **65 passed / 65 total**
-  (`C:/tmp/wolfmed-plan/p4/wp/WP12-2-report-tests.log`).
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-2-report-tests.log`).
 - **HAZARD handed forward — pre-existing Release-lint failure in WP12-0's file, not fixed here (ownership).**
   `Content.YAMLLinter -c Release` reports
   `::error file=/Prototypes/_Onyx/Entities/Objects/Specific/Medical/medical_patch.yml … File not found. (/Textures)`.
@@ -1419,9 +1419,9 @@ Phase 3 is committed (`6329d204e3 Phase 3 completion`). Phase 4 = treatment and 
 **D2 spot check:** `CanApply` requires `HasComp<WoundableComponent>(part)`, which only wound-host parts carry (per D32, Protogen alone lacks it). A non-wound-host simply fails `CanApply` and gets the existing "not bleeding" popup rather than throwing — accepted loss, P4-D11, not exercised at runtime in this package (no test harness run; `TourniquetStopsOnlySelectedPartTest` is WP12-9's).
 
 **Checkpoint:** `Content.Server`, `Content.Client` and `Content.IntegrationTests` all **0 errors** (`-c DebugOpt`),
-see `C:/tmp/wolfmed-plan/p4/wp/WP12-3-report-*.log`. Headless server (~120 s, port 1299) reached
+see `C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-3-report-*.log`. Headless server (~120 s, port 1299) reached
 `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-(`C:/tmp/wolfmed-plan/p4/wp/WP12-3-report-server.log`). Release YAML lint
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-3-report-server.log`). Release YAML lint
 (`dotnet run --project Content.YAMLLinter -c Release`): **1 error, not this package's** — the same
 pre-existing WP12-0 `medical_patch.yml` icon hazard already on record above; nothing from `healing.yml`,
 `firstaidkits.yml` or the new locale file. No integration tests run for this WP (none specified for WP12-3;
@@ -1529,9 +1529,9 @@ exactly one caller, `AmputationSystem.TryAmputate:130`, and Shitmed's `SurgeryDe
 (`-c DebugOpt`). Headless server (~130 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with
 **zero** `[ERRO]`/`[FATL]`/exception lines and **no `Duplicate Subscriptions` throw** — the gate for this
 package, which adds more directed subscriptions than the rest of phase 4 combined
-(`C:/tmp/wolfmed-plan/p4/wp/WP12-4-report-server.log`). Phase-4 gate filter
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-4-report-server.log`). Phase-4 gate filter
 (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`): **65 passed / 65 total**
-(`C:/tmp/wolfmed-plan/p4/wp/WP12-4-report-tests.log`). No YAML/FTL/RSI/XAML touched, so the Release lint was
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-4-report-tests.log`). No YAML/FTL/RSI/XAML touched, so the Release lint was
 not re-run; WP12-3's standing `medical_patch.yml` icon hazard is unchanged.
 
 ---
@@ -1640,7 +1640,7 @@ WP12-10.
 
 **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`). Headless server (~130 s,
 port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-(`C:/tmp/wolfmed-plan/p4/wp/WP12-5-report-server.log`). Release YAML lint: **1 error, pre-existing and not
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-5-report-server.log`). Release YAML lint: **1 error, pre-existing and not
 this package's** — WP12-0's `_Onyx/…/medical_patch.yml` missing-texture hazard, unchanged since WP12-3 and
 still owned by WP12-10. Prototype-resolution smoke check: all 17 distinct `Surgery.steps` entries and both
 `requirement:` ids resolve to exactly one prototype each, and the server loaded all 26 new prototypes without
@@ -1745,7 +1745,7 @@ behaviour change (a null slot falls to the `_ => 10` arm exactly as an unknown i
 **Checkpoint:** `Content.Server`, `Content.Client` and `Content.IntegrationTests` all **0 errors**
 (`-c DebugOpt`). `Content.Client` is the build that would catch a non-NetSerializable field and it is green.
 Headless server (~130 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero**
-`[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p4/wp/WP12-6-report-server.log`) — which also exercises
+`[ERRO]`/`[FATL]`/exception lines (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-6-report-server.log`) — which also exercises
 the serializer's startup scan over the four new `[NetSerializable]` types and the five new `[Dependency]`
 fields. No YAML/FTL/XAML/RSI touched, so no Release lint run for this package. No integration tests run (none
 specified for WP12-6; `T-AN-*` belongs to WP12-9).
@@ -1799,7 +1799,7 @@ specified for WP12-6; `T-AN-*` belongs to WP12-9).
 
 **Known limitation, carried from WP12-6, restated here because it is what a medic sees:** the Organs tab shows **7 rows for a human and "Organ data unavailable." for every other species**, because only the seven organs PROTO A annotated in phase 3 carry `WolfmedOrganComponent`. Phase 5 widens it.
 
-**Checkpoint:** `Content.Client` **0 errors**, `Content.Server` **0 errors**, `Content.IntegrationTests` **0 errors** (all `-c DebugOpt`, sequential). Headless server (120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p4/wp/WP12-7-report-server.log`), which is the gate for the three FTL files (a duplicate or malformed Fluent id is logged there). **Headless BUI exercise:** the existing `Content.IntegrationTests/Tests/UserInterface/UiControlTest.TestWindows` instantiates every content `BaseWindow` with an empty constructor inside a connected client pair — that now loads `HealthAnalyzerWindow.xaml`, resolves the `wolfmed:` xmlns, constructs `WolfmedDiagnosticPanel` from its own XAML and runs both constructors including `ApplyTab()`. **Passed** in 26 s (`C:/tmp/wolfmed-plan/p4/wp/WP12-7-report-tests.log`). What it does **not** cover — and what still needs a live scan or WP12-9 — is `Populate` with a real payload: the tab switching, the per-part findings text and the organ row diffing. No sprite-pixel or screenshot test was run (project memory: prefer logic tests, and the user may be working).
+**Checkpoint:** `Content.Client` **0 errors**, `Content.Server` **0 errors**, `Content.IntegrationTests` **0 errors** (all `-c DebugOpt`, sequential). Headless server (120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-7-report-server.log`), which is the gate for the three FTL files (a duplicate or malformed Fluent id is logged there). **Headless BUI exercise:** the existing `Content.IntegrationTests/Tests/UserInterface/UiControlTest.TestWindows` instantiates every content `BaseWindow` with an empty constructor inside a connected client pair — that now loads `HealthAnalyzerWindow.xaml`, resolves the `wolfmed:` xmlns, constructs `WolfmedDiagnosticPanel` from its own XAML and runs both constructors including `ApplyTab()`. **Passed** in 26 s (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-7-report-tests.log`). What it does **not** cover — and what still needs a live scan or WP12-9 — is `Populate` with a real payload: the tab switching, the per-part findings text and the organ row diffing. No sprite-pixel or screenshot test was run (project memory: prefer logic tests, and the user may be working).
 
 ---
 
@@ -1837,7 +1837,7 @@ specified for WP12-6; `T-AN-*` belongs to WP12-9).
 
 **What changes in play:** a grenade or bomb that catches a wound host now splits its localised damage across every attached limb with a per-limb weight roll of up to `1 + variation` (default up to 3x), applies wounds at `woundSeverityMultiplier` 4x, and nominates exactly one non-torso limb with amputation thresholds as the explosion amputation candidate — `AmputationSystem.TryExplosionAmputate` (`AmputationSystem.cs:43`, `:85`) then rolls that limb off if the blast pushed it past its threshold. Systemic damage types still go to the body as one lump. **Armour plates now protect against explosions on wound hosts, which they did not before this package** — the fix and the feature ship together on purpose, because the distributed path is what made the hole reachable.
 
-**Checkpoint:** `Content.Server` **0 errors**, `Content.Client` **0 errors**, `Content.IntegrationTests` **0 errors** (all `-c DebugOpt`, sequential). Headless server (120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p4/wp/WP12-8-report-server.log`) — the gate for the new `[Dependency]` edge `ExplosionSystem -> WolfmedExplosionSystem`, which would throw at system-manager init if it could not resolve. **Tests:** `DockTest` + the whole `WolfmedAmputationTest` class, **8/8 passed** (`C:/tmp/wolfmed-plan/p4/wp/WP12-8-report-tests.log`), including phase 3's `ExplosionAmputatesDeterministicallyTest`, which is the regression gate for the new optional parameter defaulting to `null`. No YAML/FTL/XAML/RSI touched, so no Release lint run. **T-EXPLOSION-PLATE and T-EXPLOSION-WRAPPER do not exist yet and belong to WP12-9** — there is no armour-plate test anywhere in `Content.IntegrationTests` today (grepped), so the plate half of P4-D14 is currently covered by code reading only.
+**Checkpoint:** `Content.Server` **0 errors**, `Content.Client` **0 errors**, `Content.IntegrationTests` **0 errors** (all `-c DebugOpt`, sequential). Headless server (120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-8-report-server.log`) — the gate for the new `[Dependency]` edge `ExplosionSystem -> WolfmedExplosionSystem`, which would throw at system-manager init if it could not resolve. **Tests:** `DockTest` + the whole `WolfmedAmputationTest` class, **8/8 passed** (`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-8-report-tests.log`), including phase 3's `ExplosionAmputatesDeterministicallyTest`, which is the regression gate for the new optional parameter defaulting to `null`. No YAML/FTL/XAML/RSI touched, so no Release lint run. **T-EXPLOSION-PLATE and T-EXPLOSION-WRAPPER do not exist yet and belong to WP12-9** — there is no armour-plate test anywhere in `Content.IntegrationTests` today (grepped), so the plate half of P4-D14 is currently covered by code reading only.
 
 ---
 
@@ -1984,7 +1984,7 @@ dropped.
 **Checkpoint:** `Content.Server` **0 errors**, `Content.Client` **0 errors**, `Content.IntegrationTests`
 **0 errors** (all `-c DebugOpt`, sequential). `DockTest` first: **3/3 passed**. Wound suite
 (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`): **98/98 passed, 0 skipped**
-(`C:/tmp/wolfmed-plan/p4/wp/WP12-9-report-tests.log`). Smoke filter
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-9-report-tests.log`). Smoke filter
 (`EntityTest|PrototypeSaveTest|DockTest`): **9 passed, 0 failed** (`WP12-9-report-smoke.log`), the 2 skips being
 the permanently `[Ignore]`d upstream pair. Headless server (120 s, port 1299) reached
 `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
@@ -2001,7 +2001,7 @@ unowned (`WP12-9-report-lint.log`).
 | `Resources/Prototypes/_Onyx/Guidebook/medical.yml` (2 of its 5 entries) | `Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml` | new | **WP12-10** | `Wounds` and `WoundTreatment` `guideEntry` rows only - the other three (`Virology`, `BodyPartDamage`, `Surgery`) are not ported (D3, P4-D15) |
 | — | `Resources/Prototypes/Guidebook/medical.yml` | **modified — PROTO L**, 2 lines | **WP12-10** | `- Wounds` and `- WoundTreatment` inserted into `Medical`'s `children:` list after `MedicalDoctor` and before `Chemist` (`:5-12`, corrected citation per CRITIQUE4 m4) |
 | `Resources/Locale/en-US/_Onyx/guidebook/wounds.ftl` | `Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl` | new, adapted subset | **WP12-10** | 21 of Onyx's 30 keys carried forward and reworded (all under a fresh `guidebook-wolfmed-*` prefix to avoid any accidental key aliasing with Onyx's un-ported original); the 9 IPC/slime/cybernetic/material keys dropped entirely. Adds one sentence naming the Tier-A painkiller ladder (ibuprofen 0.5 -> ketorolac 0.9 -> tramadol 1.25 -> oxycodone 2.0, verified directly against `Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml`) and the tourniquet to the treatment checklist |
-| — | `Docs/Wolfmed/WOLFMED_PLAN4.md` | new (copy of `C:/tmp/wolfmed-plan/p4/PLAN4.md`) | **WP12-10** | |
+| — | `Docs/Wolfmed/WOLFMED_PLAN4.md` | new (copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p4/PLAN4.md`) | **WP12-10** | |
 | — | `Docs/Wolfmed/CRITIQUE4.md`, `Docs/Wolfmed/reports/analysis/phase4/{reagents,tools,surgery,analyzer,tests}.md` | new (copies) | **WP12-10** | the five phase-4 analyst reports |
 | — | `Docs/Wolfmed/reports/work-packages/phase4/*-report.md`, `*-verify.md` | new (copies, 20 files: WP12-0..WP12-9, report+verify each) | **WP12-10** | |
 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP12-10** | this section plus the §7.1 row edits above and the "Phase 4 - user decisions" subsection below |
@@ -2046,7 +2046,7 @@ upstream YAML list (§5.1 of PLAN4 — WP12-10 registers nothing).
    boxes already group the relevant treatment tools (bleeding-control items in `Wounds`, the full biological kit
    in `WoundTreatment`) and the entity resolves cleanly in either.
 
-**Docs copied, not adapted:** `WOLFMED_PLAN4.md` is a byte-identical copy of `C:/tmp/wolfmed-plan/p4/PLAN4.md`
+**Docs copied, not adapted:** `WOLFMED_PLAN4.md` is a byte-identical copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p4/PLAN4.md`
 (PLAN4 does not get Wolfgate-side edits — it documents what was planned, not what shipped; deviations are
 recorded in this manifest instead). Likewise `CRITIQUE4.md` and the five analyst reports are copied verbatim
 as evidence, and the ten `WP12-*-report.md` / `WP12-*-verify.md` pairs are copied verbatim as the phase-4
@@ -2056,7 +2056,7 @@ work-package record.
 `Content.Server` was also rebuilt to confirm the upstream PROTO L YAML edit does not disturb prototype loading
 (**0 errors**, both builds sequential). Headless server (120 s, port 1299) reached
 `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-(`C:/tmp/wolfmed-plan/p4/wp/WP12-10-report-server.log`) — the guidebook prototype, its two `Box`/`FTLTextpart`
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p4/wp/WP12-10-report-server.log`) — the guidebook prototype, its two `Box`/`FTLTextpart`
 XML documents and every embedded entity id resolved with no missing-file or missing-key error. Release YAML
 lint (`WP12-10-report-lint.log`): **1 error, unchanged from WP12-9** — the pre-existing, unowned
 `medical_patch.yml` missing-`icon:` hazard; zero new lint errors from this package's PROTO L edit or new
@@ -2145,8 +2145,8 @@ in each `parent:` list — see the file's own header comment for why).
   `file` before and after every edit.
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, both green).
   Headless server (120 s, port 1299) reached `Server Version 277.0.0.0 -> Ready` with **zero**
-  `[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p5/wp/WP13-0-server.log`). Release YAML linter:
-  **"No errors found in 103947 ms."** (`C:/tmp/wolfmed-plan/p5/wp/WP13-0-yamllint-full.log`). A standalone
+  `[ERRO]`/`[FATL]`/exception lines (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-0-server.log`). Release YAML linter:
+  **"No errors found in 103947 ms."** (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-0-yamllint-full.log`). A standalone
   Python (PyYAML, with a permissive `!type:` tag handler) parse of the edited `wounds.yml` confirms exactly
   30 top-level documents in the expected order, matching PLAN5 §2.1's "14 of 30 → 30 of 30" count.
   **This package changes no runtime behaviour** — nothing references the new wound/profile ids until a
@@ -2250,7 +2250,7 @@ are severable exactly like humans; only diona are not. The guidebook/changelog c
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential).
   Release YAML linter **"No errors found in 78202 ms."** Headless server (120 s, port 1299) reached
   `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-1-report-server.log`). `DockTest` 3/3.
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-1-report-server.log`). `DockTest` 3/3.
   `EntityTest|PrototypeSaveTest` 6 passed / 2 skipped / **0 failed** (after the WP13-1-1 fix; 40 failures
   before it). Wolfmed suite
   (`_Onyx.Wounds|_Onyx.Body|_Onyx.Medical|Wolfmed`) **98/98 passed**, zero regressions.
@@ -2277,7 +2277,7 @@ The upstream file count therefore stays at PLAN5's 55, not 56.
 #### Measured state of a spawned `MobIPC` (probe harness, deleted before the final builds)
 
 A throwaway `GameTest` spawned `MobIPC` and dumped its live components and every body part
-(`C:/tmp/wolfmed-plan/p5/wp/WP13-2-probe.log`). Nothing below is derived:
+(`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-2-probe.log`). Nothing below is derived:
 
 | | measured |
 |---|---|
@@ -2327,7 +2327,7 @@ balance pass wants Onyx parity, is `supportedGroups: [Brute, Burn]` on `SiliconW
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential). Release YAML
   linter **"No errors found in 75236 ms."** Headless server (120 s, port 1299) reached
   `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-2-report-server.log`). `DockTest` 3/3.
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-2-report-server.log`). `DockTest` 3/3.
   `EntityTest.SpawnAndDeleteAllEntitiesOnDifferentMaps` **1/1 passed** — `MobIPC` is non-abstract, carries no
   `MapGrid`/`RoomFill` and is not in the spawner category, so it is spawned, ticked 450 ticks (15 s, enough
   for `BloodstreamSystem.Update` and `PainSystem.Update` to run) and deleted with no error. Wolfmed suite
@@ -2405,10 +2405,10 @@ balance pass wants Onyx parity, is `supportedGroups: [Brute, Burn]` on `SiliconW
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, ran
   separately — no concurrent build). Headless server (120 s, port 1299) reached
   `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-3-report-server.log`). `DockTest` **3/3 passed**
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-3-docktest.log`), no environmental `db.ef` failure, no re-run needed.
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-3-report-server.log`). `DockTest` **3/3 passed**
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-3-docktest.log`), no environmental `db.ef` failure, no re-run needed.
   `EntityTest.SpawnAndDeleteAllEntitiesOnDifferentMaps` **1/1 passed** in 1 m 46 s
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-3-tests.log`) — this test spawns and deletes **every** non-abstract entity
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-3-tests.log`) — this test spawns and deletes **every** non-abstract entity
   prototype in the game, `MobProtogen` and `MobProtogenRandom` included, and is exactly the regression guard
   the exclusion system's own WP9 comment warns about (a `RemCompDeferred`/`_deleteSet` assert would have
   thrown here). Zero `[ERRO]`/`[FATL]`/`Exception`/`Assert` lines in the test log.
@@ -2450,7 +2450,7 @@ stated deviation from full organic parity, not an omission.
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, ran
   separately — no concurrent build). Headless server (120 s, port 1299) reached
   `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-4-report-server.log`). YAMLLinter/DockTest not re-run this package (no
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-4-report-server.log`). YAMLLinter/DockTest not re-run this package (no
   new prototype ids, no new file); orchestrator may run WP13-4's own Checkpoint line (YAMLLinter; DockTest)
   as part of WP13-7 reconciliation if a fresh signal is wanted.
 
@@ -2500,7 +2500,7 @@ stated deviation from full organic parity, not an omission.
 - **Checkpoint:** `Content.Server` and `Content.Client` **0 errors** (`-c DebugOpt`, sequential, ran
   separately — no concurrent build; expected, since no `.cs` file was touched). Headless server (120 s, port
   1299) reached `Server Version 277.0.0.0 -> Ready` with **zero** `[ERRO]`/`[FATL]`/exception lines
-  (`C:/tmp/wolfmed-plan/p5/wp/WP13-5-report-server.log`). YAMLLinter: **"No errors found"** — no duplicate
+  (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-5-report-server.log`). YAMLLinter: **"No errors found"** — no duplicate
   `.ftl` key, confirming the four new keys are genuinely new.
 
 ### WP13-6 (phase 5 — tests, P5-6)
@@ -2566,7 +2566,7 @@ stated deviation from full organic parity, not an omission.
   `ProtogenIsAWoundHostTest` asserts the **absence** of `OrganDamageComponent` as the recorded P5-D19 gap).
 - **Checkpoint:** `Content.Server` **0 errors**, `Content.Client` **0 errors**, `Content.IntegrationTests`
   **0 errors** (`-c DebugOpt`, run sequentially). Headless server 120 s on port 1299: zero
-  `[ERRO]`/`[FATL]`/exception lines (`C:/tmp/wolfmed-plan/p5/wp/WP13-6-report-server.log`). Wound suite
+  `[ERRO]`/`[FATL]`/exception lines (`C:/Users/jzo12/Documents/Wolfmed/plan/p5/wp/WP13-6-report-server.log`). Wound suite
   (`FullyQualifiedName~_Onyx.Wounds|_Onyx.Medical|Wolfmed`) **116/116 passed** (`WP13-6-tests.log`). Smoke
   (`EntityTest|PrototypeSaveTest|DockTest`) **9 passed, 2 skipped**, both skips pre-existing `[Ignore]`
   attributes on `EntityTest.SpawnAndDirtyAllEntities` and `SpawnAndDeleteEntityCountTest`
@@ -2637,7 +2637,7 @@ own rows here, mirroring WP12-10's phase-4 precedent):
 
 | Onyx source | WG path | Status | WP | Notes |
 |---|---|---|---|---|
-| — | `Docs/Wolfmed/WOLFMED_PLAN5.md` | new (copy of `C:/tmp/wolfmed-plan/p5/PLAN5.md`) | **WP13-7** | |
+| — | `Docs/Wolfmed/WOLFMED_PLAN5.md` | new (copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p5/PLAN5.md`) | **WP13-7** | |
 | — | `Docs/Wolfmed/reports/analysis/phase5/CRITIQUE5.md`, `.../phase5/{capabilities,circulation,numbness,species,tests}.md` | new (copies, 6 files) | **WP13-7** | the six phase-5 analyst/critique reports |
 | — | `Docs/Wolfmed/reports/work-packages/phase5/WP13-{0..6}-{report,verify}.md` | new (copies, 14 files) | **WP13-7** | |
 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP13-7** | this section plus the §7.1 row corrections above and the "Phase 5 — user decisions" subsection below |
