@@ -28,6 +28,8 @@ using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Components;
 using System.Linq;
 
+using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 8, wound-host call sites below
+
 namespace Content.Server.Medical;
 
 public sealed partial class HealingSystem : EntitySystem
@@ -62,6 +64,13 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (args.Handled || args.Cancelled)
             return;
+
+        // WOLFGATE: HOOK 8, wound hosts heal through WoundHealingSystem, never the flat DamageableComponent path.
+        if (HasComp<WoundHostComponent>(entity))
+        {
+            OnWoundHostDoAfter(entity, ref args, healing);
+            return;
+        }
 
         if (healing.DamageContainers is not null &&
             entity.Comp.DamageContainerID is not null &&
@@ -131,6 +140,9 @@ public sealed partial class HealingSystem : EntitySystem
         args.Handled = true;
     }
 
+    // WOLFGATE: HOOK 8, wound-host healing body moved to HealingSystem.Wolfmed.cs (OnWoundHostDoAfter,
+    // ResolveWoundTargetPart, GetHealingContainers, IsWoundDamaged) - this partial shares its private fields.
+
     private bool HasDamage(DamageableComponent component, HealingComponent healing)
     {
         var damageableDict = component.Damage.DamageDict;
@@ -186,7 +198,11 @@ public sealed partial class HealingSystem : EntitySystem
         if (!TryComp<DamageableComponent>(target, out var targetDamage))
             return false;
 
-        if (component.DamageContainers is not null &&
+        // WOLFGATE: HOOK 8, a wound host resolves a body part, so the body's own damage container does not gate it.
+        var woundHost = HasComp<WoundHostComponent>(target);
+
+        if (!woundHost && // WOLFGATE: HOOK 8
+            component.DamageContainers is not null &&
             targetDamage.DamageContainerID is not null &&
             !component.DamageContainers.Contains(targetDamage.DamageContainerID))
         {
@@ -199,8 +215,9 @@ public sealed partial class HealingSystem : EntitySystem
         if (TryComp<StackComponent>(uid, out var stack) && stack.Count < 1)
             return false;
 
-        var anythingToDo =
-            HasDamage(targetDamage, component) ||
+        var anythingToDo = woundHost // WOLFGATE: HOOK 8
+            ? IsWoundDamaged((target, targetDamage), component, ResolveWoundTargetPart(user, target))
+            : HasDamage(targetDamage, component) ||
             IsPartDamaged(user, target) || // Shitmed Change
             component.ModifyBloodLevel > 0 // Special case if healing item can restore lost blood...
                 && TryComp<BloodstreamComponent>(target, out var bloodstream)

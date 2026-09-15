@@ -1,0 +1,149 @@
+// WOLFGATE: HOOK 8 body. HealingSystem.cs calls into OnWoundHostDoAfter for wound hosts instead of the flat
+// DamageableComponent path; this file is that entire branch, mirroring Onyx's HealingSystem wound branches
+// (hooks-a.md 5a/5b/5d). Kept out of the upstream file so it carries only the call site.
+
+using System.Linq;
+using Content.Server.Body.Components;
+using Content.Server.Medical.Components;
+using Content.Shared._Onyx.Wounds;
+using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Targeting;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
+using Content.Shared.Database;
+using Content.Shared.IdentityManagement;
+using Content.Shared.Medical;
+using Content.Shared.Stacks;
+using Robust.Shared.Prototypes;
+
+namespace Content.Server.Medical;
+
+public sealed partial class HealingSystem
+{
+    [Dependency] private WoundHealingSystem _woundHealing = default!; // WOLFGATE: HOOK 8
+    [Dependency] private WoundTargetResolver _woundTargets = default!; // WOLFGATE: HOOK 8
+
+    // The requested part comes from the healer's Shitmed targeting rather than Onyx's HealingDoAfterEvent.RequestedPart,
+    // which is not in this port's authorised hook set; Wolfgate already picks the healed limb that way today.
+    private EntityUid? ResolveWoundTargetPart(EntityUid user, EntityUid target)
+    {
+        if (!TryComp(user, out TargetingComponent? targeting) ||
+            !SharedTargetingSystem.IsSelectable(targeting.Target) ||
+            !_woundTargets.TryResolveExact(target, targeting.Target, out var part))
+            return null;
+
+        return part;
+    }
+
+    private List<ProtoId<DamageContainerPrototype>>? GetHealingContainers(HealingComponent healing) =>
+        healing.DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList();
+
+    private void OnWoundHostDoAfter(Entity<DamageableComponent> entity, ref HealingDoAfterEvent args,
+        HealingComponent healing)
+    {
+        if (args.Used is not { } used)
+            return;
+
+        var requestedPart = ResolveWoundTargetPart(args.User, entity);
+        if (requestedPart is { } concretePart &&
+            _woundHealing.ResolveHealingPart(entity, concretePart, healing.Damage, GetHealingContainers(healing),
+                healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier,
+                healing.HealWounds) != concretePart)
+        {
+            var message = _bodySystem.BodyHasChild(entity, concretePart)
+                ? "targeting-selected-part-incompatible"
+                : "targeting-selected-part-missing";
+            _popupSystem.PopupEntity(Loc.GetString(message), entity, args.User);
+            return;
+        }
+
+        if (!_woundHealing.TryApplyHealing(entity, requestedPart, (used, healing), args.User,
+                out var healed, out var stoppedBleeding))
+            return;
+
+        if (healing.ModifyBloodLevel != 0)
+            _bloodstreamSystem.TryModifyBloodLevel(entity.Owner, healing.ModifyBloodLevel);
+
+        if (stoppedBleeding)
+        {
+            if (entity.Owner == args.User)
+                _popupSystem.PopupEntity(Loc.GetString("medical-item-stop-bleeding-self"), entity, args.User);
+            else
+                _popupSystem.PopupEntity(Loc.GetString("medical-item-stop-bleeding", ("target", Identity.Entity(entity.Owner, EntityManager))), entity, args.User);
+        }
+
+        var dontRepeat = false;
+        if (TryComp<StackComponent>(used, out var stackComp))
+        {
+            _stacks.Use(used, 1, stackComp);
+
+            if (_stacks.GetCount(used, stackComp) <= 0)
+                dontRepeat = true;
+        }
+        else
+        {
+            QueueDel(used);
+        }
+
+        var total = healed.GetTotal();
+        if (entity.Owner != args.User)
+        {
+            _adminLogger.Add(LogType.Healed,
+                $"{EntityManager.ToPrettyString(args.User):user} healed {EntityManager.ToPrettyString(entity.Owner):target} for {total:damage} damage");
+        }
+        else
+        {
+            _adminLogger.Add(LogType.Healed,
+                $"{EntityManager.ToPrettyString(args.User):user} healed themselves for {total:damage} damage");
+        }
+
+        _audio.PlayPvs(healing.HealingEndSound, entity.Owner);
+
+        args.Repeat = !dontRepeat && IsWoundDamaged(entity, healing, requestedPart);
+        if (!args.Repeat && !dontRepeat)
+            _popupSystem.PopupEntity(Loc.GetString("medical-item-finished-using", ("item", used)), entity.Owner, args.User);
+        args.Handled = true;
+    }
+
+    /// <summary>Onyx's wound-host half of HasDamage, kept beside Wolfgate's own checks instead of folded into them.</summary>
+    private bool IsWoundDamaged(Entity<DamageableComponent> entity, HealingComponent healing, EntityUid? requestedPart)
+    {
+        if (!TryComp(entity, out WoundHostComponent? host))
+            return false;
+
+        var resolve = new ResolveHealingPartEvent(entity, healing.Damage, GetHealingContainers(healing),
+            healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier, requestedPart,
+            healing.HealWounds);
+        RaiseLocalEvent(entity.Owner, ref resolve);
+        if (!resolve.Accepted)
+            return false;
+
+        if (healing.HealDamage)
+        {
+            foreach (var (type, amount) in healing.Damage.DamageDict)
+            {
+                var source = host.LocalizedDamageTypes.Contains(type) ? resolve.Part : entity.Owner;
+                if (amount < 0 && source is { } sourceEntity &&
+                    TryComp(sourceEntity, out DamageableComponent? sourceDamage) &&
+                    sourceDamage.Damage.DamageDict.GetValueOrDefault(type) > 0)
+                    return true;
+            }
+        }
+
+        if (healing.HealWounds && resolve.Part is { } woundPart &&
+            _woundHealing.HasTreatableWounds(woundPart, healing.Damage, healing.AllowedWoundStages))
+            return true;
+
+        if (resolve.Part is { } bleedingPart && healing.BloodlossModifier < 0 &&
+            _woundHealing.CanTreatBleeding(bleedingPart))
+            return true;
+
+        if (healing.ModifyBloodLevel > 0 && TryComp<BloodstreamComponent>(entity, out var hostBloodstream) &&
+            _solutionContainerSystem.ResolveSolution(entity.Owner, hostBloodstream.BloodSolutionName,
+                ref hostBloodstream.BloodSolution, out var hostBlood) &&
+            hostBlood.Volume < hostBlood.MaxVolume)
+            return true;
+
+        return false;
+    }
+}

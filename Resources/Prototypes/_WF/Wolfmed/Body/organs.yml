@@ -1,0 +1,135 @@
+# Wolfmed organ data. Values are Onyx's (Resources/Prototypes/Body/base_organs.yml @ 2f5bab9).
+# health/maxHealth are omitted - WolfmedOrganComponent already defaults to 15/15, which is Onyx's
+# OrganComponent C# default, and no Onyx organ prototype overrides it.
+#
+# Same shape as _WF/Wolfmed/Body/parts.yml: separate abstract ids, not re-declarations of the upstream
+# OrganHuman* ids, because RT's ComponentRegistrySerializer throws "Duplicate ID" if a second file
+# redeclares an existing id. Each is added to the upstream organ's `parent:` list with a one-line
+# `# WOLFGATE` edit in Resources/Prototypes/Body/Organs/human.yml.
+#
+# Onyx keeps destructionWound/destructionWoundSeverity on its own OrganComponent; Wolfgate stays on
+# Shitmed's (D8), so they live on WolfmedOrgan here. Organ damage is irreversible (DECISIONS.md §8.6-4):
+# nothing in Wolfgate raises organ health, and Onyx's only healer is its own surgery (D7).
+# Human lineage only (DECISIONS.md §8.6-7, P3-D7); the other ~20 organ roots stay silent no-ops.
+
+# Brain: no destruction wound - OrganHealthSystem kills the mob instead of destroying the organ.
+- type: entity
+  id: WolfmedOrganBrain
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+  - type: OrganDamage
+    hitChance: 0.8
+    selectionWeight: 0.75
+    damageMultipliers:
+      Blunt: 0.115
+      Slash: 0.25
+      Piercing: 0.42
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.3125
+
+# Eyes: paired organ, no internal bleeding on destruction (Onyx base_organs.yml:547).
+- type: entity
+  id: WolfmedOrganEyes
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+  - type: OrganDamage
+    hitChance: 0.7
+    selectionWeight: 0.2275
+    damageMultipliers:
+      Blunt: 0.115
+      Slash: 0.3
+      Piercing: 0.4375
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.25
+
+- type: entity
+  id: WolfmedOrganHeart
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+    destructionWound: InternalBleedingWound
+    destructionWoundSeverity: 45
+  - type: OrganDamage
+    hitChance: 0.8
+    selectionWeight: 0.64
+    damageMultipliers:
+      Blunt: 0.1
+      Slash: 0.25
+      Piercing: 0.455
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.3375
+
+- type: entity
+  id: WolfmedOrganLungs
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+    destructionWound: InternalBleedingWound
+    destructionWoundSeverity: 35
+  - type: OrganDamage
+    selectionWeight: 1.38 # highest weight in the torso; hitChance left at the 1.0 default
+    damageMultipliers:
+      Blunt: 0.1
+      Slash: 0.25
+      Piercing: 0.42
+      Heat: 0.165
+      Cold: 0.05
+      Shock: 0.25
+
+- type: entity
+  id: WolfmedOrganLiver
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+    destructionWound: InternalBleedingWound
+    destructionWoundSeverity: 40
+  - type: OrganDamage
+    selectionWeight: 1.1 # hitChance left at the 1.0 default
+    damageMultipliers:
+      Blunt: 0.1
+      Slash: 0.3
+      Piercing: 0.4375
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.25
+
+- type: entity
+  id: WolfmedOrganStomach
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+    destructionWound: InternalBleedingWound
+    destructionWoundSeverity: 25
+  - type: OrganDamage
+    hitChance: 0.85
+    selectionWeight: 0.56
+    damageMultipliers:
+      Blunt: 0.1
+      Slash: 0.275
+      Piercing: 0.4025
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.25
+
+- type: entity
+  id: WolfmedOrganKidneys
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+    destructionWound: InternalBleedingWound
+    destructionWoundSeverity: 30
+  - type: OrganDamage
+    hitChance: 0.9
+    selectionWeight: 0.51
+    damageMultipliers:
+      Blunt: 0.1
+      Slash: 0.25
+      Piercing: 0.4025
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.25

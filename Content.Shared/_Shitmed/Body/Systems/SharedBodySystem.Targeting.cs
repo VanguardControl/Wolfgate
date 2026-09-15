@@ -6,6 +6,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared._Shitmed.Medical.Surgery.Steps.Parts;
+using Content.Shared._Onyx.Wounds; // WOLFGATE: Wolfmed owns part damage for wound hosts (D2/D18).
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
@@ -61,9 +62,11 @@ public partial class SharedBodySystem
     }
 
     private EntityQuery<TargetingComponent> _queryTargeting;
+    private EntityQuery<WoundHostComponent> _queryWoundHost; // WOLFGATE
     private void InitializeIntegrityQueue()
     {
         _queryTargeting = GetEntityQuery<TargetingComponent>();
+        _queryWoundHost = GetEntityQuery<WoundHostComponent>(); // WOLFGATE
         SubscribeLocalEvent<BodyComponent, TryChangePartDamageEvent>(OnTryChangePartDamage);
         SubscribeLocalEvent<BodyComponent, DamageModifyEvent>(OnBodyDamageModify);
         SubscribeLocalEvent<BodyPartComponent, DamageModifyEvent>(OnPartDamageModify);
@@ -78,6 +81,7 @@ public partial class SharedBodySystem
         var damage = damageable.TotalDamage;
 
         if (entity.Comp is { Body: { } body }
+            && !_queryWoundHost.HasComp(body) // WOLFGATE: GUARD C, Wolfmed's WoundHealingSystem owns part recovery.
             && damage > entity.Comp.MinIntegrity
             && damage <= entity.Comp.IntegrityThresholds[TargetIntegrity.HeavilyWounded]
             && _queryTargeting.HasComp(body)
@@ -101,13 +105,18 @@ public partial class SharedBodySystem
             if (part.HealingTimer >= part.HealingTime)
             {
                 part.HealingTimer = 0;
-                _integrityJobQueue.EnqueueJob(new IntegrityJob(this, (ent, part), IntegrityJobTime));
+                if (!_queryWoundHost.HasComp(part.Body)) // WOLFGATE: GUARD C, do not burn the job queue on wound hosts.
+                    _integrityJobQueue.EnqueueJob(new IntegrityJob(this, (ent, part), IntegrityJobTime));
             }
         }
     }
 
     private void OnTryChangePartDamage(Entity<BodyComponent> ent, ref TryChangePartDamageEvent args)
     {
+        // WOLFGATE: GUARD A, Wolfmed routes part damage itself for wound hosts. Component-gated, never IsServer-gated.
+        if (_queryWoundHost.HasComp(ent.Owner))
+            return;
+
         // If our target has a TargetingComponent, that means they will take limb damage
         // And if their attacker also has one, then we use that part.
         if (_queryTargeting.TryComp(ent, out var targetEnt))
@@ -222,6 +231,7 @@ public partial class SharedBodySystem
 
         if (args.CanSever
             && partEnt.Comp.CanSever
+            && !_queryWoundHost.HasComp(partEnt.Comp.Body) // WOLFGATE: GUARD B, Wolfmed owns dismemberment for wound hosts.
             && partIdSlot is not null
             && delta != null
             && !HasComp<BodyPartReattachedComponent>(partEnt)

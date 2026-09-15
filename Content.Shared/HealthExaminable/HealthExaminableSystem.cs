@@ -1,3 +1,4 @@
+using Content.Shared._Onyx.Wounds; // WOLFGATE: GUARD F
 using Content.Shared.Damage;
 using Content.Shared.Examine;
 using Content.Shared.FixedPoint;
@@ -29,7 +30,7 @@ public sealed partial class HealthExaminableSystem : EntitySystem
         {
             Act = () =>
             {
-                var markup = CreateMarkup(uid, component, damage);
+                var markup = CreateMarkup(uid, args.User, component, damage); // WOLFGATE: GUARD F, examiner param for self-vs-other pain visibility
                 _examineSystem.SendExamineTooltip(args.User, uid, markup, false, false);
             },
             Text = Loc.GetString("health-examinable-verb-text"),
@@ -42,11 +43,13 @@ public sealed partial class HealthExaminableSystem : EntitySystem
         args.Verbs.Add(verb);
     }
 
-    public FormattedMessage CreateMarkup(EntityUid uid, HealthExaminableComponent component, DamageableComponent damage)
+    public FormattedMessage CreateMarkup(EntityUid uid, EntityUid examiner, HealthExaminableComponent component, DamageableComponent damage) // WOLFGATE: GUARD F
     {
         var msg = new FormattedMessage();
 
         var first = true;
+        if (!HasComp<WoundHostComponent>(uid)) // WOLFGATE: GUARD F — legacy threshold text is for non-wound-hosts only; body left un-reindented to keep the upstream diff minimal.
+        {
         foreach (var type in component.ExaminableTypes)
         {
             if (!damage.Damage.DamageDict.TryGetValue(type, out var dmg))
@@ -92,6 +95,9 @@ public sealed partial class HealthExaminableSystem : EntitySystem
         {
             msg.AddMarkupOrThrow(Loc.GetString($"health-examinable-{component.LocPrefix}-none"));
         }
+        }
+        else
+            AddPartStatusMarkup(uid, examiner, msg); // WOLFGATE: GUARD F — wound hosts only (P2-D20/D2); Onyx calls this unconditionally because every bodied entity there is a wound host.
 
         // Anything else want to add on to this?
         RaiseLocalEvent(uid, new HealthBeingExaminedEvent(msg), true);

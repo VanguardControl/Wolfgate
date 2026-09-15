@@ -1,6 +1,6 @@
 - type: entity
   id: PartDiona
-  parent: [BaseItem, BasePart]
+  parent: [WolfmedPartDiona, BaseItem, BasePart] # WOLFGATE (P5-1): plant wound profile, limbs cannot be severed (still destructible - see PLAN5 8.1); WolfmedPartDiona must stay FIRST
   name: "diona body part"
   abstract: true
   components:

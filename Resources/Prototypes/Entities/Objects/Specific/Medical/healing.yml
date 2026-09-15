@@ -276,22 +276,19 @@
       state: tourniquet
     - type: Item
       heldPrefix: tourniquet
-    - type: Healing
-      damageContainers:
-        - Biological
+    # WOLFGATE (PROTO D, P4-D9): Healing block replaced in place with the real Tourniquet system — same id, Onyx patches this same upstream entity. Tourniquet tag deliberately not added (no such tag prototype in WG).
+    - type: Tourniquet
       damage:
-        groups:
-          Brute: 5 # Tourniquets HURT!
         types:
+          Blunt: 5 # Tourniquets HURT
           Asphyxiation: 5 # Essentially Stopping all blood reaching a part of your body
-      bloodlossModifier: -10 # Tourniquets stop bleeding
       delay: 0.5
-      healingBeginSound:
+      beginSound:
         path: "/Audio/Items/Medical/brutepack_begin.ogg"
         params:
           volume: 1.0
           variation: 0.125
-      healingEndSound:
+      endSound:
         path: "/Audio/Items/Medical/brutepack_end.ogg"
         params:
           volume: 1.0

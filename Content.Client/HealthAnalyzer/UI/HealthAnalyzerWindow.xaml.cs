@@ -109,6 +109,7 @@ namespace Content.Client.HealthAnalyzer.UI
         // Not all of this function got messed with, but it was spread enough to warrant being covered entirely by a Shitmed Change
         public void Populate(HealthAnalyzerScannedUserMessage msg)
         {
+            PopulateWolfmed(msg); // WOLFGATE: HOOK 26 - first statement; Populate early-returns below and a trailing call would leave the previous patient's rows on screen.
             // Start-Shitmed
             _target = _entityManager.GetEntity(msg.TargetEntity);
             EntityUid? part = msg.Part != null ? _entityManager.GetEntity(msg.Part.Value) : null;
@@ -118,12 +119,14 @@ namespace Content.Client.HealthAnalyzer.UI
                 || !_entityManager.TryGetComponent<DamageableComponent>(isPart ? part : _target, out var damageable))
             {
                 NoPatientDataText.Visible = true;
+                HideWolfmed(); // WOLFGATE: HOOK 26 - a target outside client PVS can still carry non-null diagnostics.
                 return;
             }
 
             SetActiveButtons(_entityManager.HasComponent<TargetingComponent>(_target.Value));
 
             ReturnButton.Visible = isPart;
+            WolfmedReturnPanel.Visible = isPart; // WOLFGATE: HOOK 26 - the frame around the button, so a whole-body scan shows no empty box.
             PartNameLabel.Visible = isPart;
 
             if (part != null)
@@ -188,6 +191,7 @@ namespace Content.Client.HealthAnalyzer.UI
 
             AlertsDivider.Visible = showAlerts;
             AlertsContainer.Visible = showAlerts;
+            WolfmedAlertsPanel.Visible = showAlerts; // WOLFGATE: HOOK 26 - the framed box around the alerts, so an empty one costs the overview pane no height.
 
             if (showAlerts)
                 AlertsContainer.DisposeAllChildren();

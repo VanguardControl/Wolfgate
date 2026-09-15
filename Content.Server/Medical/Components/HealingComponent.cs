@@ -1,5 +1,6 @@
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 7, TreatmentCapability.
 using Robust.Shared.Audio;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 
@@ -50,6 +51,33 @@ namespace Content.Server.Medical.Components
         /// </summary>
         [DataField("selfHealPenaltyMultiplier")]
         public float SelfHealPenaltyMultiplier = 2f; //Was 3f, changed due to Surgery Changes (Goobstation)
+
+        // WOLFGATE: HOOK 7 / D14 start - Wolfmed wound treatment data. The two collection types are load-bearing:
+        // ResolveHealingPartEvent takes IReadOnlySet<>, which List<> does not implement (D31).
+        /// <summary>
+        ///     Whether this item heals flat damage on the resolved body part.
+        /// </summary>
+        [DataField]
+        public bool HealDamage = true;
+
+        /// <summary>
+        ///     Whether this item treats wounds on the resolved body part.
+        /// </summary>
+        [DataField]
+        public bool HealWounds = true;
+
+        /// <summary>
+        ///     Which body-part treatment profiles this item can work on.
+        /// </summary>
+        [DataField]
+        public HashSet<TreatmentCapability> TreatmentCapabilities = [TreatmentCapability.Biological];
+
+        /// <summary>
+        ///     Wound stages this item may treat. Null allows every stage.
+        /// </summary>
+        [DataField]
+        public HashSet<string>? AllowedWoundStages;
+        // WOLFGATE: HOOK 7 / D14 end
 
         /// <summary>
         ///     Sound played on healing begin

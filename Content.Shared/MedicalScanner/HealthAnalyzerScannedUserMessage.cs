@@ -1,4 +1,6 @@
 using Content.Shared._Shitmed.Targeting; // Shitmed Change
+using Content.Shared._Onyx.Medical; // WOLFGATE: EXT 2 — Wolfmed diagnostic payload types.
+using Content.Shared.FixedPoint; // WOLFGATE: EXT 2 — vital damage is FixedPoint2.
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.MedicalScanner;
@@ -18,8 +20,12 @@ public sealed class HealthAnalyzerScannedUserMessage : BoundUserInterfaceMessage
     public NetEntity? Part; // Shitmed Change
     public bool? Unrevivable;
     public bool? Uncloneable; // Frontier
+    public HealthAnalyzerWoundDiagnostics? WoundDiagnostics; // WOLFGATE: EXT 2 — per-part wound findings, null for non-wound-hosts.
+    public List<HealthAnalyzerOrganInfo>? Organs; // WOLFGATE: EXT 2 — organ health rows, null for non-wound-hosts.
+    public List<HealthAnalyzerChemicalInfo>? Chemicals; // WOLFGATE: EXT 2 — bloodstream/chemical/stomach/lung contents.
+    public FixedPoint2? VitalDamage; // WOLFGATE: EXT 2 — the damage figure that decides crit on a wound host.
 
-    public HealthAnalyzerScannedUserMessage(NetEntity? targetEntity, float temperature, float bloodLevel, bool? scanMode, bool? bleeding, bool? unrevivable, bool? uncloneable, Dictionary<TargetBodyPart, TargetIntegrity>? body, NetEntity? part = null) // Shitmed Change
+    public HealthAnalyzerScannedUserMessage(NetEntity? targetEntity, float temperature, float bloodLevel, bool? scanMode, bool? bleeding, bool? unrevivable, bool? uncloneable, Dictionary<TargetBodyPart, TargetIntegrity>? body, NetEntity? part = null, HealthAnalyzerWoundDiagnostics? woundDiagnostics = null, List<HealthAnalyzerOrganInfo>? organs = null, List<HealthAnalyzerChemicalInfo>? chemicals = null, FixedPoint2? vitalDamage = null) // Shitmed Change // WOLFGATE: EXT 2 — four appended optional parameters.
     {
         TargetEntity = targetEntity;
         Temperature = temperature;
@@ -30,6 +36,12 @@ public sealed class HealthAnalyzerScannedUserMessage : BoundUserInterfaceMessage
         Part = part; // Shitmed Change
         Unrevivable = unrevivable;
         Uncloneable = uncloneable; // Frontier
+        // WOLFGATE: EXT 2 start
+        WoundDiagnostics = woundDiagnostics;
+        Organs = organs;
+        Chemicals = chemicals;
+        VitalDamage = vitalDamage;
+        // WOLFGATE: EXT 2 end
     }
 }
 

@@ -85,6 +85,13 @@
       - id: RegenerativeMesh
       - id: Bloodpack
         amount: 2
+      # WOLFGATE (PROTO E, P4-2, WITHDRAWN in WP12-9): `- id: Tourniquet` here overflows the kit.
+      # MedkitAdvanced inherits Medkit's `grid: [0,0,3,1]` (8 cells, maxItemSize Small) and the four
+      # entries above already fill it, so StorageFill logged `[ERRO] system.storage: ... but can't.
+      # reason: No room!` on every spawn and failed EntityTest. The `Tourniquet` id is unchanged and
+      # still reaches players through its eight existing spawn references (sec/gib vending, security
+      # spawners, job belts, cmo_webbing, two _NF loot fills, nfsdtec). Re-add only together with a
+      # bigger grid on MedkitAdvanced - see WP12-9's report.
 
 - type: entity
   id: MedkitCombatFilled

@@ -126,6 +126,9 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             && partDamageable.TotalDamage <= 0
             && !HasComp<IncisionOpenComponent>(args.Part))
             args.Cancelled = true;
+
+        if (WolfmedWoundWindowFails(ent, args.Body, args.Part)) // WOLFGATE: HOOK 24 - P4-D19 wound-severity window
+            args.Cancelled = true;
     }
 
     /*private void OnLarvaValid(Entity<SurgeryLarvaConditionComponent> ent, ref SurgeryValidEvent args)
@@ -261,6 +264,9 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             args.Cancelled = true;
             return;
         }
+
+        if (WolfmedStumpBlocksAttachment(args.Part)) // WOLFGATE: HOOK 25 - P4-D18 untreated amputation consequence
+            { args.Cancelled = true; return; }
 
         // Get any existing body parts of the specified type/symmetry
         var results = _body.GetBodyChildrenOfType(args.Body, ent.Comp.Part, symmetry: ent.Comp.Symmetry);

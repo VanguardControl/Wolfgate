@@ -208,7 +208,8 @@ public sealed partial class DefibrillatorSystem : EntitySystem
 
             if (_mobThreshold.TryGetThresholdForState(target, MobState.Dead, out var threshold) &&
                 TryComp<DamageableComponent>(target, out var damageableComponent) &&
-                damageableComponent.TotalDamage < threshold)
+                // WOLFGATE: HOOK 12 - revival has to agree with whatever decides death (HOOK 11).
+                _mobThreshold.CheckVitalDamage(target, damageableComponent) < threshold)
             {
                 _mobState.ChangeMobState(target, MobState.Critical, mob, uid);
                 dead = false;

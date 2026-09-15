@@ -75,6 +75,13 @@
         key: Adrenaline
         component: IgnoreSlowOnDamage
         time: 5
+      # WOLFGATE (PROTO J): Onyx's <Onyx-PartPain> block on Desoxyephedrine. Group is Narcotic, not Onyx's
+      # Bloodstream - Wolfgate splits this reagent across Poison/Narcotic/Medicine and the drug effects live here.
+      - !type:SuppressPain
+        amount: 0.75
+        decayDuration: 9
+        identifier: Desoxyephedrine
+        recoveryMultiplier: 1.75
     Medicine:
       effects:
       - !type:ResetNarcolepsy
@@ -573,6 +580,13 @@
   metabolisms:
     Narcotic:
       effects:
+      # WOLFGATE (PROTO J): Onyx's <Onyx-PartPain> block on Happiness. Group is Narcotic, not Onyx's
+      # Bloodstream - Narcotic is Happiness's only metabolism group in Wolfgate.
+      - !type:SuppressPain
+        amount: 0.4
+        decayDuration: 9
+        identifier: Happiness
+        recoveryMultiplier: 1.5
       - !type:HealthChange
         conditions:
         - !type:OrganType # Goobstation - Yowie

@@ -1,0 +1,190 @@
+# Wolfmed surgery steps. Re-expresses Space Onyx's wound surgeries on Shitmed's step system (D7, P4-3).
+# Tools and sprites reuse Wolfgate's existing Shitmed set - no new tool prototype and no new sprite is needed.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepSutureBleeding
+  name: Suture the bleeding wound
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Hemostat
+    duration: 2
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryClampBleedingEffect
+    amount: 10
+  - type: WolfmedSurgeryPainEffect
+  - type: SurgeryRepeatableStep
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepStopInternalBleeding
+  name: Stop the internal bleeding
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Hemostat
+    duration: 4
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryTreatWoundEffect
+    internalBleeding: true
+  - type: WolfmedSurgeryPainEffect
+  - type: SurgeryStepEmoteEffect
+
+# Fracture ladder: BoneSetter reduces, BoneGel mends (P4-D20).
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepSetBone
+  name: Set the bone
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: BoneSetter
+    duration: 3
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
+    state: bonesetter
+  - type: WolfmedSurgeryMendFractureEffect
+    treatment: Reduced
+  - type: WolfmedSurgeryPainEffect
+    amount: 12
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepMendFracture
+  name: Mend the fracture
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: BoneGel
+    duration: 3
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bone-gel.rsi
+    state: bone-gel
+  - type: WolfmedSurgeryMendFractureEffect
+    treatment: Mended
+  - type: WolfmedSurgeryPainEffect
+    amount: 12
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepHealAmputationConsequence
+  name: Repair the amputation damage
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Tending
+    duration: 4
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryTreatWoundEffect
+    woundPrototype: AmputationConsequenceWound
+  - type: WolfmedSurgeryPainEffect
+  - type: SurgeryStepEmoteEffect
+
+# Organ healing ---------------------------------------------------------------
+# Reversible only while the organ lives: OrganHealthSystem destroys any organ at Health <= 0 on the next
+# tick, so a destroyed organ still needs SurgeryInsert<Organ> (P4-D24).
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepHealOrganBase
+  name: Heal the organ
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Tending
+    duration: 2
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryPainEffect
+    amount: 24
+    sleepModifier: 0
+  - type: SurgeryRepeatableStep
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealBrain
+  name: Heal the brain
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: brain
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealEyes
+  name: Heal the eyes
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: eyes
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealHeart
+  name: Heal the heart
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: heart
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealLungs
+  name: Heal the lungs
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: lungs
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealLiver
+  name: Heal the liver
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: liver
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealStomach
+  name: Heal the stomach
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: stomach
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+- type: entity
+  parent: SurgeryStepHealOrganBase
+  id: SurgeryStepHealKidneys
+  name: Heal the kidneys
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedSurgeryOrganHealEffect
+    slot: kidneys
+    amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.

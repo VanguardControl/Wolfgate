@@ -1,0 +1,9 @@
+- type: guideEntry
+  id: Wounds
+  name: guide-entry-wounds
+  text: "/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml"
+
+- type: guideEntry
+  id: WoundTreatment
+  name: guide-entry-wound-treatment
+  text: "/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml"
