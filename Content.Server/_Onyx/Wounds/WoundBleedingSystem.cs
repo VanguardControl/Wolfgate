@@ -47,6 +47,9 @@ public sealed partial class WoundBleedingSystem : EntitySystem
 
     private void OnBleedingShutdown(Entity<WoundBleedingComponent> wound, ref ComponentShutdown args)
     {
+        // Shutdown runs before the component is removed from entity queries. Clear its contribution
+        // first, or healing below the bleeding threshold leaves a cached bleed with no wound source.
+        wound.Comp.CurrentRate = 0f;
         if (TryComp(wound, out WoundComponent? core))
             RefreshBodyForPart(core.HoldingPart);
     }
