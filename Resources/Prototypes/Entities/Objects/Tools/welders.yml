@@ -121,6 +121,7 @@
       # WeldingHealableSystem gates on this list (WeldingHealableSystem.cs:33-35) and would otherwise
       # stop repairing IPCs entirely. Landed here with the other container wiring (WP13-1).
       - SiliconWolfmed
+      - InorganicWolfmed # Attached cybernetic limbs and IPC parts.
     fuelCost: 5
     damage:
       types:

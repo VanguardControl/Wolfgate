@@ -176,7 +176,8 @@ namespace Content.Shared.Damage
         public enum DamageOriginFlag
         {
             Explosion, // flag set by ExplosionSystem.Processing
-            Barotrauma // flag set by BarotraumaSystem
+            Barotrauma, // flag set by BarotraumaSystem
+            PassiveRecovery // Explicitly distinguishes regeneration from treatment by a living healer.
         }
 
         /// <summary>

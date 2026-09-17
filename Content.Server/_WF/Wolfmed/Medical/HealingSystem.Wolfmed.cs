@@ -6,8 +6,6 @@ using System.Linq;
 using Content.Server.Body.Components;
 using Content.Server.Medical.Components;
 using Content.Shared._Onyx.Wounds;
-using Content.Shared._Shitmed.Targeting;
-using Content.Shared._WF.Wolfmed.Targeting;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Database;
@@ -21,19 +19,6 @@ namespace Content.Server.Medical;
 public sealed partial class HealingSystem
 {
     [Dependency] private WoundHealingSystem _woundHealing = default!; // WOLFGATE: HOOK 8
-    [Dependency] private WoundTargetResolver _woundTargets = default!; // WOLFGATE: HOOK 8
-
-    // The requested part comes from the healer's Shitmed targeting rather than Onyx's HealingDoAfterEvent.RequestedPart,
-    // which is not in this port's authorised hook set; Wolfgate already picks the healed limb that way today.
-    private EntityUid? ResolveWoundTargetPart(EntityUid user, EntityUid target)
-    {
-        if (!TryComp(user, out TargetingComponent? targeting) ||
-            !SharedTargetingSystem.IsSelectable(targeting.Target) ||
-            !_woundTargets.TryResolveExact(target, targeting.Target, out var part))
-            return null;
-
-        return part;
-    }
 
     private List<ProtoId<DamageContainerPrototype>>? GetHealingContainers(HealingComponent healing) =>
         healing.DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList();
@@ -44,7 +29,9 @@ public sealed partial class HealingSystem
         if (args.Used is not { } used)
             return;
 
-        var requestedPart = ResolveWoundTargetPart(args.User, entity);
+        EntityUid? requestedPart = null;
+        if (args.RequestedPart is { } selected && !TryGetEntity(selected, out requestedPart))
+            return;
         if (requestedPart is { } concretePart &&
             _woundHealing.ResolveHealingPart(entity, concretePart, healing.Damage, GetHealingContainers(healing),
                 healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier,

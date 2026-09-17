@@ -1,6 +1,8 @@
 using System.Linq;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
+using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Targeting;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
@@ -20,6 +22,7 @@ public sealed partial class WoundHealingSystem : EntitySystem
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WoundDamageRoutingSystem _routing = default!;
     [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private WoundTargetResolver _targets = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
@@ -36,6 +39,20 @@ public sealed partial class WoundHealingSystem : EntitySystem
 
         var hasLocalized = args.Healing.DamageDict.Any(entry => body.Comp.LocalizedDamageTypes.Contains(entry.Key));
         args.Accepted = args.Part != null || !hasLocalized;
+    }
+
+    /// <summary>Resolve an explicitly selected treatment site without falling back to another limb.</summary>
+    public bool TryGetTargetedPart(EntityUid body, EntityUid user, out EntityUid? part)
+    {
+        part = null;
+        if (!TryComp(user, out TargetingComponent? targeting))
+            return true;
+
+        if (!_targets.TryResolveExact(body, targeting.Target, out var selected))
+            return false;
+
+        part = selected;
+        return true;
     }
 
     public EntityUid? ResolveHealingPart(

@@ -148,7 +148,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
 
     private void OnBeforePartDamageChanged(Entity<WoundableComponent> part, ref BeforeDamageChangedEvent args)
     {
-        var filtered = FilterPartDamage(part, args.Damage, args.Origin);
+        var filtered = FilterPartDamage(part, args.Damage, args.Origin, args.OriginFlag);
         if (ReferenceEquals(filtered, args.Damage))
             return;
 
@@ -1031,7 +1031,8 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 ignoreResistances: true,
                 interruptsDoAfters: interruptsDoAfters,
                 origin: origin,
-                ignoreGlobalModifiers: true))
+                ignoreGlobalModifiers: true,
+                originFlag: _routedModifiers.GetValueOrDefault(body.Owner).OriginFlag))
             return false;
 
         AccumulateApplied(body, appliedDamage); // WOLFGATE: D27
@@ -1041,7 +1042,8 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         return true;
     }
 
-    private DamageSpecifier FilterPartDamage(EntityUid part, DamageSpecifier damage, EntityUid? origin = null)
+    private DamageSpecifier FilterPartDamage(EntityUid part, DamageSpecifier damage, EntityUid? origin = null,
+        DamageableSystem.DamageOriginFlag? originFlag = null)
     {
         if (!TryComp(part, out WoundableComponent? woundable) ||
             !_prototypes.TryIndex(woundable.Profile, out var profile))
@@ -1055,7 +1057,9 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         }
 
         var recoveryMultiplier = 1f;
-        if (origin is { } source && HasComp<PassiveDamageComponent>(source))
+        // A medic also has PassiveDamageComponent. Its presence on the healer does not make a tool
+        // treatment passive regeneration (which mechanical profiles deliberately disable).
+        if (originFlag == DamageableSystem.DamageOriginFlag.PassiveRecovery)
             recoveryMultiplier = profile.PassiveRecoveryMultiplier;
         else if (origin is { } bed && HasComp<WolfmedBedHealMarkerComponent>(bed)) // WOLFGATE: HealOnBuckleComponent is server-only here.
             recoveryMultiplier = profile.BedRecoveryMultiplier;
