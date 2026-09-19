@@ -227,7 +227,8 @@ public sealed partial class HealingSystem : EntitySystem
             }
 
             // Also retain the resolved site for healers without a targeting selector.
-            var resolved = _woundHealing.ResolveHealingPart(target, requestedPart, component.Damage,
+            var resolved = _woundHealing.ResolveHealingPart(target, requestedPart,
+                _woundHealing.GetTreatableDamage(component), // WOLFGATE: W0, TreatedDamageTypes narrows the spec.
                 GetHealingContainers(component), component.TreatmentCapabilities, component.AllowedWoundStages,
                 component.BloodlossModifier, component.HealWounds);
             if (requestedPart != null && resolved == null)
@@ -249,7 +250,9 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (!anythingToDo)
         {
-            _popupSystem.PopupEntity(Loc.GetString("medical-item-cant-use", ("item", uid)), uid, user);
+            // WOLFGATE: W0, on a wound host the refusal is about the selected part, not the whole patient.
+            _popupSystem.PopupEntity(Loc.GetString(woundHost ? "wolfmed-item-cant-treat-part" : "medical-item-cant-use",
+                ("item", uid)), uid, user);
             return false;
         }
 

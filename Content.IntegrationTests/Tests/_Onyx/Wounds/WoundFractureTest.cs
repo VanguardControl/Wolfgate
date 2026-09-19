@@ -127,21 +127,31 @@ public sealed class WoundFractureTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            ProtoId<FractureProfilePrototype> profileId = "OrganicFractureProfile";
+            // WOLFGATE (W0 balance): every organic part points at WolfmedFractureProfile
+            // (_WF/Wolfmed/Body/fractures.yml), so that is the profile whose boundaries decide play. Onyx's
+            // OrganicFractureProfile is still shipped, unreferenced, as the vendored reference; its own
+            // 20/35/50/60 is asserted below so an Onyx re-sync that moves it is still visible here.
+            ProtoId<FractureProfilePrototype> profileId = "WolfmedFractureProfile";
             var profile = prototypes.Index(profileId);
-            // WOLFGATE: Onyx's literals (15/30/50/75) are stale against its own pinned prototype. The vendored
-            // OrganicFractureProfile is byte-identical to Onyx's and declares 20/35/50/60, so the boundaries
-            // below are the profile's, not a Wolfgate behaviour change. Re-check on any Onyx re-sync.
+            var onyx = prototypes.Index<FractureProfilePrototype>("OrganicFractureProfile");
             Assert.Multiple(() =>
             {
-                Assert.That(WoundFractureSystem.GetGrade(profile, 19), Is.EqualTo(FractureGrade.None));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 20), Is.EqualTo(FractureGrade.Hairline));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 34), Is.EqualTo(FractureGrade.Hairline));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 35), Is.EqualTo(FractureGrade.Simple));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 49), Is.EqualTo(FractureGrade.Simple));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 50), Is.EqualTo(FractureGrade.Displaced));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 59), Is.EqualTo(FractureGrade.Displaced));
-                Assert.That(WoundFractureSystem.GetGrade(profile, 60), Is.EqualTo(FractureGrade.Comminuted));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 11), Is.EqualTo(FractureGrade.None));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 12), Is.EqualTo(FractureGrade.Hairline));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 19), Is.EqualTo(FractureGrade.Hairline));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 20), Is.EqualTo(FractureGrade.Simple));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 31), Is.EqualTo(FractureGrade.Simple));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 32), Is.EqualTo(FractureGrade.Displaced));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 44), Is.EqualTo(FractureGrade.Displaced));
+                Assert.That(WoundFractureSystem.GetGrade(profile, 45), Is.EqualTo(FractureGrade.Comminuted));
+
+                // The knobs the balance note turned, pinned so a revert is a test failure and not a surprise.
+                Assert.That(profile.AccumulationMultiplier, Is.EqualTo(0.8f).Within(0.0001f));
+                Assert.That(profile.Grades[FractureGrade.Hairline].CreationChance, Is.EqualTo(0.25f).Within(0.0001f));
+                Assert.That(profile.Grades[FractureGrade.Comminuted].CreationChance, Is.EqualTo(1f).Within(0.0001f));
+
+                Assert.That(WoundFractureSystem.GetGrade(onyx, 19), Is.EqualTo(FractureGrade.None));
+                Assert.That(WoundFractureSystem.GetGrade(onyx, 60), Is.EqualTo(FractureGrade.Comminuted));
             });
         });
     }
@@ -208,8 +218,9 @@ public sealed class WoundFractureTest : GameTest
             Assert.That(manipulation.GetDurationMultiplier(body), Is.EqualTo(1f).Within(0.001f),
                 "an undamaged body must not modify do-after duration.");
 
-            // WOLFGATE (P2-D23): 75 >= the Comminuted threshold (60), whose creationChance is 1, so the
-            // fracture is created deterministically. A 35 hit would roll Simple's 0.25 and fail 3 runs in 4.
+            // WOLFGATE (P2-D23, W0): 75 >= WolfmedFractureProfile's Comminuted threshold (45), whose
+            // creationChance is 1, so the fracture is created deterministically. A 20 hit would roll Simple's
+            // 0.5 and fail every other run.
             Assert.That(routing.TryApplyPartDamage(body, leg, Spec(75)));
             Assert.That(fractures.GetFracture(leg)!.Value.Comp2.Grade, Is.EqualTo(FractureGrade.Comminuted));
 
@@ -324,9 +335,9 @@ public sealed class WoundFractureTest : GameTest
 
             Assert.That(alerts.IsShowingAlert(body, BrokenBones), Is.False);
 
-            // WOLFGATE (P2-D23): 60 is exactly the Comminuted threshold and its creationChance is 1, so this
-            // is the only fully deterministic way to put a fracture on the leg. severityMultiplier: 1 makes
-            // severity == damage == 60.
+            // WOLFGATE (P2-D23, W0): 60 clears WolfmedFractureProfile's Comminuted threshold (45), whose
+            // creationChance is 1, so this is the only fully deterministic way to put a fracture on the leg.
+            // severityMultiplier: 1 makes severity == damage == 60.
             Assert.That(routing.TryApplyPartDamage(body, leg, Spec(60)));
             var fracture = fractures.GetFracture(leg)!.Value;
             Assert.That(fracture.Comp2.Grade, Is.EqualTo(FractureGrade.Comminuted));
@@ -367,16 +378,16 @@ public sealed class WoundFractureTest : GameTest
             var fracture = fractures.GetFracture(leg)!.Value;
             Assert.That(alerts.IsShowingAlert(body, BrokenBones), Is.True);
 
-            // WOLFGATE (P2-D23): WoundFractureSystem.OnWoundChanged re-grades with no random roll, so
-            // ChangeSeverity is a deterministic grade dial. 60 - 25 = 35 = Simple's threshold, still >=
-            // alertMinimumGrade.
-            Assert.That(wounds.ChangeSeverity(fracture.Owner, FixedPoint2.New(-25)));
+            // WOLFGATE (P2-D23, W0): WoundFractureSystem.OnWoundChanged re-grades with no random roll, so
+            // ChangeSeverity is a deterministic grade dial. 60 - 40 = 20 = Simple's threshold on
+            // WolfmedFractureProfile, still >= alertMinimumGrade.
+            Assert.That(wounds.ChangeSeverity(fracture.Owner, FixedPoint2.New(-40)));
             Assert.That(fracture.Comp2.Grade, Is.EqualTo(FractureGrade.Simple));
             Assert.That(alerts.IsShowingAlert(body, BrokenBones), Is.True);
 
-            // 35 - 10 = 25 -> Hairline (threshold 20), below alertMinimumGrade: Simple. The wound is still
+            // 20 - 5 = 15 -> Hairline (threshold 12), below alertMinimumGrade: Simple. The wound is still
             // there; it is the grade gate, not the wound's existence, that this asserts.
-            Assert.That(wounds.ChangeSeverity(fracture.Owner, FixedPoint2.New(-10)));
+            Assert.That(wounds.ChangeSeverity(fracture.Owner, FixedPoint2.New(-5)));
             Assert.That(fracture.Comp2.Grade, Is.EqualTo(FractureGrade.Hairline));
             Assert.That(fractures.GetFracture(leg), Is.Not.Null);
             Assert.That(alerts.IsShowingAlert(body, BrokenBones), Is.False);

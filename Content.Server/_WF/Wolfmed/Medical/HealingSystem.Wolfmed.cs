@@ -33,7 +33,8 @@ public sealed partial class HealingSystem
         if (args.RequestedPart is { } selected && !TryGetEntity(selected, out requestedPart))
             return;
         if (requestedPart is { } concretePart &&
-            _woundHealing.ResolveHealingPart(entity, concretePart, healing.Damage, GetHealingContainers(healing),
+            _woundHealing.ResolveHealingPart(entity, concretePart,
+                _woundHealing.GetTreatableDamage(healing), GetHealingContainers(healing), // W0: TreatedDamageTypes
                 healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier,
                 healing.HealWounds) != concretePart)
         {
@@ -98,7 +99,9 @@ public sealed partial class HealingSystem
         if (!TryComp(entity, out WoundHostComponent? host))
             return false;
 
-        var resolve = new ResolveHealingPartEvent(entity, healing.Damage, GetHealingContainers(healing),
+        // W0: everything below asks about the treatable half of the spec, not the whole item.
+        var treatable = _woundHealing.GetTreatableDamage(healing);
+        var resolve = new ResolveHealingPartEvent(entity, treatable, GetHealingContainers(healing),
             healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier, requestedPart,
             healing.HealWounds);
         RaiseLocalEvent(entity.Owner, ref resolve);
@@ -107,7 +110,7 @@ public sealed partial class HealingSystem
 
         if (healing.HealDamage)
         {
-            foreach (var (type, amount) in healing.Damage.DamageDict)
+            foreach (var (type, amount) in treatable.DamageDict)
             {
                 var source = host.LocalizedDamageTypes.Contains(type) ? resolve.Part : entity.Owner;
                 if (amount < 0 && source is { } sourceEntity &&
@@ -117,8 +120,12 @@ public sealed partial class HealingSystem
             }
         }
 
-        if (healing.HealWounds && resolve.Part is { } woundPart &&
-            _woundHealing.HasTreatableWounds(woundPart, healing.Damage, healing.AllowedWoundStages))
+        // W0: `!HealDamage` mirrors TryApplyHealing, which only calls TryHealWounds on that branch - an item
+        // that removes damage reaches wounds through the damage it removes. Without the guard a topical with
+        // healingMultiplier 0.15 reports work left after the part damage is gone and repeats over the whole
+        // stack for nothing.
+        if (healing.HealWounds && !healing.HealDamage && resolve.Part is { } woundPart &&
+            _woundHealing.HasTreatableWounds(woundPart, treatable, healing.AllowedWoundStages))
             return true;
 
         if (resolve.Part is { } bleedingPart && healing.BloodlossModifier < 0 &&

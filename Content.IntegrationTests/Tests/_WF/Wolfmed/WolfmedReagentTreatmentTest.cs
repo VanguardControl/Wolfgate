@@ -126,9 +126,9 @@ public sealed class WolfmedReagentTreatmentTest : GameTest
 
             Assert.Multiple(() =>
             {
-                // WoundSystem.HealWounds heals 1:1 with the damage (HealingMultiplier defaults to 1 and
-                // BluntWound does not override it), so -5 Blunt is severity 20 -> 15.
-                Assert.That(wound.Comp.Severity, Is.EqualTo(FixedPoint2.New(15)));
+                // WOLFGATE (W0): BluntWound now sets `healingMultiplier: 0.15`, so WoundSystem.HealWounds
+                // takes 0.75 of severity off for -5 Blunt while the part's own damage drops the full 5.
+                Assert.That(wound.Comp.Severity, Is.EqualTo(FixedPoint2.New(19.25)));
                 Assert.That(damage.GetAllDamage(head).GetTotal(), Is.EqualTo(FixedPoint2.New(15)));
             });
         });
@@ -228,8 +228,11 @@ public sealed class WolfmedReagentTreatmentTest : GameTest
             var pain = entities.System<PainSystem>();
             var painComp = entities.GetComponent<PainComponent>(body);
 
+            // WOLFGATE (W0): 10 rather than 15 - WolfmedFractureProfile's Hairline threshold is 12 at a 25 %
+            // roll, and a stray bone fracture's own pain behaviour would push `before` past the 20 this test
+            // needs it to stay under.
             Assert.That(entities.System<WoundDamageRoutingSystem>()
-                .TryApplyPartDamage(body, head, Spec("Blunt", 15)));
+                .TryApplyPartDamage(body, head, Spec("Blunt", 10)));
 
             // Measured, not predicted (P2-D16): the exact figure is the sum of PainComponent.DamageMultipliers
             // ["Blunt"] = 0.87 on the hit and BluntWound's WoundPainBehavior floor, which phase 2 already pins
@@ -302,8 +305,8 @@ public sealed class WolfmedReagentTreatmentTest : GameTest
             var routing = entities.System<WoundDamageRoutingSystem>();
             var fractures = entities.System<WoundFractureSystem>();
 
-            // P2-D23: 75 Blunt clears the Comminuted threshold (60), whose creationChance is 1 - the only
-            // deterministic fracture grade.
+            // P2-D23 / W0: 75 Blunt clears WolfmedFractureProfile's Comminuted threshold (45), whose
+            // creationChance is 1 - the only deterministic fracture grade.
             Assert.That(routing.TryApplyPartDamage(body, arm, Spec("Blunt", 75)));
             var fracture = fractures.GetFracture(arm)!.Value;
             Assert.Multiple(() =>

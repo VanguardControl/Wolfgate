@@ -17,13 +17,19 @@
 
 ## Biological tissue
 
-[bold]Bruise packs and ointment:[/bold] remove damage, not wounds.
+Every topical treats one kind of injury. Used on a part it cannot help, it refuses and says so - check the analyzer first.
 
-[bold]Gauze:[/bold] reduces external bleeding.
+[bold]Bruise packs:[/bold] blunt trauma only. They do not close cuts or punctures and do not stop bleeding.
+
+[bold]Ointment and regenerative mesh:[/bold] burns only - heat, cold, shock and caustic.
+
+[bold]Gauze:[/bold] cuts and punctures, and reduces external bleeding.
+
+[bold]Medicated sutures:[/bold] cuts and punctures, and stop their bleeding.
 
 [bold]Tourniquet:[/bold] stops bleeding on one limb entirely while applied, at the cost of that limb's use.
 
-[bold]Medicated sutures and regenerative mesh:[/bold] treat damage and minor wounds.
+Removing damage barely closes the wound underneath it, and a bleeding wound never closes that way at all. Expect to finish the job with gauze, sutures or surgery.
 
 [bold]Moderate wound:[/bold] external surgical treatment.
 
@@ -48,6 +54,8 @@ A ladder of painkillers suppresses pain by increasing amounts: ibuprofen, ketoro
   </Box>
 
 ## Fractures
+
+Bones break from blunt force. A single solid hit can crack one, and repeated blows to the same limb break it far sooner than the first hit alone would have.
 
 A fracture is mended in two steps: a bonesetter reduces it, then bone gel mends it, both through an open incision.
   <Box>

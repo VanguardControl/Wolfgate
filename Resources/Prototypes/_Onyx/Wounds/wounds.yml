@@ -256,6 +256,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.87
@@ -306,22 +307,27 @@
   name: wound-name-bone-fracture
   damageTypes: {}
   maximumSeverity: 200
+  # WOLFGATE (W0 balance): stage thresholds track WolfmedFractureProfile's grades
+  # (_WF/Wolfmed/Body/fractures.yml), 20/35/50/60 -> 12/20/32/45. A fresh Hairline fracture would otherwise
+  # sit below its own lowest stage and carry no pain or functionality effect at all. Hairline's pain
+  # minSeverity follows its threshold down for the same reason. CyberneticFrameFractureWound is untouched:
+  # CyberneticFractureProfile keeps Onyx's grades.
   stages:
     Hairline:
       name: wound-stage-fracture-hairline
       examineDescription: wound-examine-fracture-hairline
-      severity: 20
+      severity: 12
       behaviors:
       - !type:WoundFunctionalityBehavior
         state: Impaired
       - !type:WoundPainBehavior
         painPerSeverity: 0.35
-        minSeverity: 15
+        minSeverity: 12
         oneTime: true
     Simple:
       name: wound-stage-fracture-simple
       examineDescription: wound-examine-fracture-simple
-      severity: 35
+      severity: 20
       behaviors:
       - !type:WoundFunctionalityBehavior
         state: Disabled
@@ -332,7 +338,7 @@
     Displaced:
       name: wound-stage-fracture-displaced
       examineDescription: wound-examine-fracture-displaced
-      severity: 50
+      severity: 32
       behaviors:
       - !type:WoundFunctionalityBehavior
         state: Disabled
@@ -343,7 +349,7 @@
     Comminuted:
       name: wound-stage-fracture-comminuted
       examineDescription: wound-examine-fracture-comminuted
-      severity: 60
+      severity: 45
       behaviors:
       - !type:WoundFunctionalityBehavior
         state: Disabled
@@ -395,6 +401,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -441,6 +448,7 @@
   name: wound-name-systemic-bleeding
   damageTypes: {}
   maximumSeverity: 200
+  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 1
@@ -453,6 +461,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -507,6 +516,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundScarBehavior
     threshold: 20
@@ -549,6 +559,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.7
@@ -580,6 +591,7 @@
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
+  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 0.1
@@ -591,6 +603,7 @@
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
+  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 0.2
@@ -619,6 +632,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 1 # WOLFGATE (W0): exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 0.08
@@ -670,6 +684,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 1 # WOLFGATE (W0): exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 0.08
@@ -705,6 +720,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.7
@@ -751,6 +767,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -793,6 +810,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -840,6 +858,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   stages:
     Minor:
       name: wound-stage-minor
@@ -878,6 +897,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.87
@@ -927,6 +947,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -972,6 +993,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -1022,6 +1044,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
+  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundScarBehavior
     threshold: 20
@@ -1069,6 +1092,7 @@
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
+  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundInternalBleedingBehavior
     rate: 0.02

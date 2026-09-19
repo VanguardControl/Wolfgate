@@ -125,7 +125,8 @@ public sealed partial class WoundHealingSystem : EntitySystem
             !TryComp(body, out DamageableComponent? bodyDamageable))
             return false;
 
-        var resolve = new ResolveHealingPartEvent(body, healing.Comp.Damage,
+        var treatable = GetTreatableDamage(healing.Comp); // WOLFGATE: W0, TreatedDamageTypes narrows the spec.
+        var resolve = new ResolveHealingPartEvent(body, treatable, // WOLFGATE: W0
             // WOLFGATE: D31, Wolfgate's HealingComponent.DamageContainers is List<string>.
             healing.Comp.DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList(),
             healing.Comp.TreatmentCapabilities, healing.Comp.AllowedWoundStages,
@@ -134,7 +135,7 @@ public sealed partial class WoundHealingSystem : EntitySystem
         if (!resolve.Accepted)
             return false;
 
-        var change = healing.Comp.Damage * _damage.UniversalTopicalsHealModifier;
+        var change = treatable * _damage.UniversalTopicalsHealModifier; // WOLFGATE: W0
         var before = _damage.GetPositiveDamage((body, bodyDamageable));
         var applied = false;
         if (resolve.Part is { } part)

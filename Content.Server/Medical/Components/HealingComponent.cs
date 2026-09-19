@@ -2,6 +2,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 7, TreatmentCapability.
 using Robust.Shared.Audio;
+using Robust.Shared.Prototypes; // WOLFGATE: W0, ProtoId for TreatedDamageTypes.
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 
 namespace Content.Server.Medical.Components
@@ -77,6 +78,13 @@ namespace Content.Server.Medical.Components
         /// </summary>
         [DataField]
         public HashSet<string>? AllowedWoundStages;
+
+        /// <summary>
+        ///     Damage types this item may treat on a wound host. Null or empty means everything
+        ///     <see cref="Damage"/> carries. A bruise pack lists Blunt, so it cannot close a cut or its bleed.
+        /// </summary>
+        [DataField]
+        public HashSet<ProtoId<DamageTypePrototype>>? TreatedDamageTypes;
         // WOLFGATE: HOOK 7 / D14 end
 
         /// <summary>

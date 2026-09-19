@@ -81,7 +81,9 @@ public sealed class WolfmedTreatmentMatrixTest : GameTest
             Heal(routing, mechanical, mechanicalArm, TreatmentCapability.Biological);
             Assert.Multiple(() =>
             {
-                Assert.That(organicWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(25)),
+                // WOLFGATE (W0): SlashWound's `healingMultiplier: 0.15` makes a -5 heal 0.75 of wound
+                // severity. The part damage below still moves by the full 5 - that separation is the point.
+                Assert.That(organicWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(29.25)),
                     "OrganicBodyPartProfile is [Biological]: gauze, ointment and every medicine still work.");
                 Assert.That(mechanicalWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(30)),
                     "IpcBodyPartProfile is [Mechanical, Electrical]: no medicine, brute pack, ointment or " +
@@ -93,8 +95,10 @@ public sealed class WolfmedTreatmentMatrixTest : GameTest
             Heal(routing, mechanical, mechanicalArm, TreatmentCapability.Mechanical);
             Assert.Multiple(() =>
             {
-                Assert.That(organicWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(25)),
+                Assert.That(organicWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(29.25)),
                     "a welder must not close a flesh wound.");
+                // W0 exempts IpcMechanicalDamageWound from the 0.15 nerf: repair is repair, and the welder is
+                // the only thing that closes a chassis wound at all.
                 Assert.That(mechanicalWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(25)));
             });
 
@@ -104,7 +108,7 @@ public sealed class WolfmedTreatmentMatrixTest : GameTest
             Heal(routing, mechanical, mechanicalArm, TreatmentCapability.Electrical);
             Assert.Multiple(() =>
             {
-                Assert.That(organicWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(25)));
+                Assert.That(organicWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(29.25)));
                 Assert.That(mechanicalWound.Comp.Severity, Is.EqualTo(FixedPoint2.New(20)));
 
                 // A refused cell must leave the flat part damage alone too, not merely the wound: CanTreatPart
@@ -174,7 +178,7 @@ public sealed class WolfmedTreatmentMatrixTest : GameTest
 
             // The mechanical half. {Electrical} ∩ {Mechanical, Electrical} ≠ ∅. The coil's block is
             // Heat/Shock/Radiation -3 each and UniversalTopicalsHealModifier is 1, so the Heat component is a
-            // flat -3 on the chassis wound.
+            // flat -3 on the chassis wound (W0 exempts IpcMechanicalDamageWound from the 0.15 nerf).
             Assert.That(healing.TryApplyHealing(mechanical, mechanicalArm, (coil, coilHealing), null,
                 out var healed, out _), Is.True);
             Assert.Multiple(() =>

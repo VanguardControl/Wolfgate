@@ -97,21 +97,23 @@ public sealed class WoundHealingTest : GameTest
             var pain = entityManager.System<PainSystem>();
             var head = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
-            Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 15)));
-            Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(13.05)));
+            // WOLFGATE (W0): 11 rather than Onyx's 15. WolfmedFractureProfile's Hairline threshold is 12 at
+            // a 25 % roll, so a 15 Blunt hit would silently grow a bone fracture in one run out of four and
+            // take the pain figures with it. 11 keeps the whole test deterministic.
+            Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 11)));
+            Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(9.57)));
             var wound = wounds.GetWounds((head, entityManager.GetComponent<WoundableComponent>(head)))
                 .Single(candidate => candidate.Comp.Prototype == new ProtoId<WoundPrototype>("BluntWound"));
             Assert.That(healing.TryApplyHealing(body, head, (item, entityManager.GetComponent<HealingComponent>(item)),
                 body, out _, out _));
-            Assert.That(damage.GetAllDamage(head).GetTotal(), Is.EqualTo(FixedPoint2.New(5)));
-            // WOLFGATE: Onyx's literal 13.5 needs a wound `healingMultiplier` of 0.15, but `BluntWound` sets
-            // none and `WoundPrototype.HealingMultiplier` defaults to 1 in both trees (both files are
-            // byte-identical to Onyx's), so 10 points of Blunt healing takes the whole 10 off the wound.
-            // Stale-literal class; re-check on an Onyx re-sync.
-            Assert.That(wound.Comp.Severity, Is.EqualTo(FixedPoint2.New(5)));
-            Assert.That(damage.GetAllDamage(body).GetTotal(), Is.EqualTo(FixedPoint2.New(5)));
-            Assert.That(pain.GetRawPain(head), Is.EqualTo(FixedPoint2.New(13.05)));
-            Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(13.05)));
+            Assert.That(damage.GetAllDamage(head).GetTotal(), Is.EqualTo(FixedPoint2.New(1)));
+            // WOLFGATE (W0): BluntWound now carries Onyx's intended `healingMultiplier: 0.15`, so removing the
+            // 10 points of Blunt the part still had takes only 1.5 off the wound. This is the whole point of
+            // the setting: damage removal is not wound closure.
+            Assert.That(wound.Comp.Severity, Is.EqualTo(FixedPoint2.New(9.5)));
+            Assert.That(damage.GetAllDamage(body).GetTotal(), Is.EqualTo(FixedPoint2.New(1)));
+            Assert.That(pain.GetRawPain(head), Is.EqualTo(FixedPoint2.New(9.57)));
+            Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(9.57)));
         });
     }
 

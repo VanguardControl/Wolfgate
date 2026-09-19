@@ -2777,3 +2777,46 @@ subscription above was added. That in turn needed the one-line upstream `MobStat
 not raise `AfterAutoHandleStateEvent` for an `AutoGenerateComponentState` component unless it opts in), which
 is now the reliable trigger for a purely server-side crit. No locale or guide changes — the loop is a
 physical/audio cue with no player-facing text, matching how the existing crit vignette/overlay needs none.
+
+## Final stages: W0 (Healing multiplier fix, treatment restrictions, fracture rebalance) (2026-09-19)
+
+Three balance changes that share one theme: damage and wounds are separate records, and the tool has to match
+the injury. Onyx's `healingMultiplier` is finally set, topicals are restricted by damage type, and fractures
+are retuned for Wolfgate melee.
+
+| Onyx path | Wolfgate path | Status | Notes |
+|---|---|---|---|
+| `_Onyx/Wounds/wounds.yml` | `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | 19 marked `healingMultiplier` lines. `0.15` (Onyx's intended value) on the 15 wounds damage removal can reach; `0` on the four pure-bleeding wounds (`SystemicBleedingWound`, `InternalBleedingWound`, `SurgicalIncisionWound`, `DismembermentWound`) as documentation - their `damageTypes` are empty, so damage never healed them anyway. `IpcMechanicalDamageWound` and `CyberneticMechanicalDamageWound` are exempt at `1` (see Deviations). Also `BoneFractureWound`'s stage thresholds 20/35/50/60 -> 12/20/32/45 and Hairline's pain `minSeverity` 15 -> 12, tracking the new fracture grades; `CyberneticFrameFractureWound` untouched. |
+| — | `Resources/Prototypes/_WF/Wolfmed/Body/fractures.yml` | new | `WolfmedFractureProfile`: Blunt thresholds 12/20/32/45 at 25/50/80/100 %, `accumulationMultiplier` 0.4 -> 0.8. Everything else copied from `OrganicFractureProfile`, which stays shipped and unreferenced as the vendored Onyx reference. |
+| — | `Resources/Prototypes/_WF/Wolfmed/Body/parts.yml` | modified | the 10 organic part abstracts point at `WolfmedFractureProfile`; one marked comment per line. `species_parts.yml` untouched (slime `null`, cybernetic keeps `CyberneticFractureProfile`). |
+| — | `Content.Server/Medical/Components/HealingComponent.cs` | modified | one new `[DataField] TreatedDamageTypes` (`HashSet<ProtoId<DamageTypePrototype>>?`) inside the existing marked HOOK 7 / D14 block, plus the `Robust.Shared.Prototypes` using. Null or empty keeps today's behaviour. |
+| — | `Content.Server/_WF/Wolfmed/Medical/WoundHealingSystem.Wolfmed.cs` | new | `_WF` partial of `WoundHealingSystem` holding `GetTreatableDamage(HealingComponent)`, the single place an item's spec is narrowed. An item left with nothing resolves no part, heals nothing and is refused. |
+| `_Onyx/Wounds/WoundHealingSystem.cs` | `Content.Server/_Onyx/Wounds/WoundHealingSystem.cs` | modified | 2 marked lines in `TryApplyHealing`: resolve and apply the narrowed spec. |
+| — | `Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs` | modified | `OnWoundHostDoAfter` and `IsWoundDamaged` read the narrowed spec. `IsWoundDamaged`'s wound branch gained `&& !healing.HealDamage`, mirroring `TryApplyHealing`'s own condition - without it a 0.15 topical reports work left after the part damage is gone and repeats over the whole stack for nothing. |
+| — | `Content.Server/Medical/HealingSystem.cs` | modified | 2 marked hooks: `TryHeal` resolves the narrowed spec, and the "nothing to do" popup uses `wolfmed-item-cant-treat-part` on a wound host. |
+| — | `Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml` | modified | marked `treatedDamageTypes: [Blunt]` on `Brutepack` and `[Slash, Piercing]` on `MedicatedSuture` (children inherit), plus a corrected suture description. `Ointment`, `RegenerativeMesh` and `Gauze` already carry only their own types and need nothing. `HealingToolbox` stays unrestricted. |
+| — | `Resources/Locale/en-US/_WF/wolfmed/healing-popup.ftl` | new | `wolfmed-item-cant-treat-part`. |
+| — | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | per-item treatment list, the "damage removal is not wound closure" rule, and a line on repeated blows breaking bones. |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentRestrictionTest.cs` | new | 3 tests: bruise pack treats Blunt and neither closes a cut nor touches its bleed; sutures treat cuts and their bleeding but not bruises; every `healingMultiplier` matches the model and the refusal locale key resolves. |
+| — | `Content.IntegrationTests/Tests/_Onyx/Wounds/WoundFractureTest.cs` | modified | grade boundaries now read `WolfmedFractureProfile` (12/20/32/45) and pin the retuned chances and accumulation; Onyx's profile is still asserted at 20/35/50/60 so a re-sync that moves it is visible. Alert-gate test re-derived for the new bands. |
+| — | `Content.IntegrationTests/Tests/_Onyx/Wounds/WoundHealingTest.cs` | modified | 15 -> 11 Blunt (12 is the new Hairline threshold at a 25 % roll, which would have made the pain figures flaky) and the wound now heals to 9.5 rather than 5 - Onyx's own stale literal was written for exactly this multiplier. |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentMatrixTest.cs` | modified | organic wound severities re-derived at 0.15; the mechanical half is unchanged by the exemption. |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentTreatmentTest.cs` | modified | one severity literal re-derived; one 15 Blunt hit lowered to 10 for fracture determinism. |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedHealingTargetTest.cs` | modified | the bruise-pack cases use Blunt (a bruise pack can no longer treat a cut at all, so the do-after would never start) and assert the flesh wound is treated but not closed. The cable-coil case still closes outright. |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSurgeryTest.cs` | modified | the "drive a fracture into the Hairline band" step re-derived for 12/20. |
+
+Deviations from the spec:
+1. `IpcMechanicalDamageWound` and `CyberneticMechanicalDamageWound` keep `healingMultiplier: 1` rather than
+   0.15. A welder is the only thing that closes a chassis wound, and it closes it by removing damage
+   (`WeldingHealableSystem.Wolfmed.cs` routes a heal through `TryApplyPartDamage`); at 0.15 its repeat loop
+   would burn fuel forever on a wound it can no longer reduce, leaving mechanical wounds permanently open.
+   Flesh has surgery and sutures for that job, chassis do not. Reversible: drop the two exemptions and give
+   the welder its own `TryHealWounds` call.
+2. No Piercing fracture profile. `WolfmedBodyPartComponent.FractureProfile` is a single id and
+   `WoundFractureSystem` assumes one fracture per part (`GetFracture` returns the first, `TryGetProfile`
+   re-derives the profile from the holding part when re-grading), so a second damage type needs a list on the
+   component and a rewrite of creation, grading and treatment - well past the "small marked change" the task
+   allowed. Declared as a gap.
+3. `BoneFractureWound`'s stage thresholds were lowered alongside the profile grades, which the spec did not
+   ask for. Without it a fresh Hairline fracture (severity 12-19) falls below the wound's own lowest stage and
+   carries no pain, no functionality penalty and no stage name at all.

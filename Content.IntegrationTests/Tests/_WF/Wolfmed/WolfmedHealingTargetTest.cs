@@ -22,8 +22,11 @@ public sealed class WolfmedHealingTargetTest : GameTest
 {
     public override PoolSettings PoolSettings => PsDisconnected;
 
-    [TestCase("Brutepack", "Slash", false)]
-    [TestCase("Brutepack", "Slash", true)]
+    // WOLFGATE (W0): Blunt rather than Slash - a bruise pack's `treatedDamageTypes: [Blunt]` means a Slash
+    // wound is no longer something it can treat at all, and the do-after this test needs would never start.
+    // 6 also stays under WolfmedFractureProfile's Hairline threshold (12), so no stray bone fracture.
+    [TestCase("Brutepack", "Blunt", false)]
+    [TestCase("Brutepack", "Blunt", true)]
     [TestCase("CableApcStack", "Heat", false)]
     [TestCase("CableApcStack", "Heat", true)]
     public async Task TargetedItemsNeverHealAnotherLimbTest(string item, string damageType, bool missingPart)
@@ -82,7 +85,17 @@ public sealed class WolfmedHealingTargetTest : GameTest
             Assert.That(wounds.GetWounds(right).Sum(wound => wound.Comp.Severity.Float()), Is.EqualTo(6f),
                 "Neither a missing target nor changing aim during treatment may heal the other leg.");
             if (!missingPart)
-                Assert.That(wounds.GetWounds(left), Is.Empty, "The originally selected leg should be treated.");
+            {
+                var treated = wounds.GetWounds(left).Sum(wound => wound.Comp.Severity.Float());
+                Assert.That(treated, Is.LessThan(6f), "The originally selected leg should be treated.");
+                // WOLFGATE (W0): on flesh the wound survives the item - BluntWound's `healingMultiplier: 0.15`
+                // means a topical takes 15 % of the damage it removes off the wound. The cable coil's chassis
+                // wound is exempt and still closes outright.
+                if (item == "Brutepack")
+                    Assert.That(treated, Is.GreaterThan(0f), "removing damage must not close a flesh wound.");
+                else
+                    Assert.That(treated, Is.Zero);
+            }
         });
     }
 }
