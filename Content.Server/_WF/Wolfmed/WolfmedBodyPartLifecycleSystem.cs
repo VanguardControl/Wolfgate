@@ -18,6 +18,7 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private WolfmedDamageableSystem _damageable = default!;
+    [Dependency] private Wounds.WolfmedNecrosisSystem _necrosis = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
     /// <inheritdoc/>
@@ -47,6 +48,9 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
             // so without this line a re-attached limb's wounds never rejoin the body's bleed total.
             _bleeding.OnPartInserted(part, body);
 
+            // W5: a limb left on the floor past the grace period comes back as dead tissue.
+            _necrosis.OnAttached(part);
+
             var inserted = new OrganGotInsertedEvent(body);
             RaiseLocalEvent(part, ref inserted);
         }
@@ -68,6 +72,9 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
 
         foreach (var (part, _) in _body.GetBodyPartChildren(args.Part.Owner, args.Part.Comp))
         {
+            // W5: starts the viability clock the reattachment path checks.
+            _necrosis.OnDetached(part);
+
             var removed = new OrganGotRemovedEvent(body);
             RaiseLocalEvent(part, ref removed);
         }

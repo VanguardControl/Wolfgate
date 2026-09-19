@@ -46,6 +46,8 @@
     - WolfmedFrostbiteWound
     - WolfmedChemicalBurnWound
     - WolfmedInternalBurnWound
+    # WOLFGATE (W5): dead tissue, left by WolfmedNecrosisSystem rather than by a hit.
+    - WolfmedNecrosisWound
   organDamage:
     chances:
       Head: 0.05
@@ -422,6 +424,9 @@
   maximumSeverity: 200
   healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
+  # WOLFGATE (W5): an open cut is the baseline infection risk the whole model is scaled against.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 1
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
     minSeverity: 10
@@ -482,6 +487,9 @@
   maximumSeverity: 200
   healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
+  # WOLFGATE (W5): a puncture closes over whatever went in with it.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 1.4
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
     minSeverity: 10
@@ -537,6 +545,9 @@
   maximumSeverity: 200
   healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
+  # WOLFGATE (W5): burned skin is no longer a barrier.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 1.2
   - !type:WoundScarBehavior
     threshold: 20
     chance: 1
@@ -617,6 +628,9 @@
   maximumSeverity: 200
   healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
+  # WOLFGATE (W5): a patient left open on the table is the classic surgical site infection.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 1.5
   - !type:WoundBleedingBehavior
     rate: 0.1
     awakeMultiplier: 3
@@ -629,6 +643,9 @@
   maximumSeverity: 200
   healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
+  # WOLFGATE (W5): an open stump is the worst thing in the model short of dead tissue.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 2.5
   - !type:WoundBleedingBehavior
     rate: 0.2
     chance: 1

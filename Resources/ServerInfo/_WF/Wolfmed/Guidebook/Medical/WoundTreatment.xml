@@ -107,4 +107,34 @@ A fracture is mended in two steps: a bonesetter reduces it, then bone gel mends 
     <GuideEntityEmbed Entity="Bonesetter"/>
     <GuideEntityEmbed Entity="BoneGel"/>
   </Box>
+
+## Infection
+
+An open wound that nobody treats becomes infected. How fast depends on the wound: a clean cut is the baseline, a bullet hole, a bite or an open stump are far worse, and anything a knife has been dug around in is worse again. The analyzer reports the stage per part.
+
+[bold]Local[/bold] is the wound itself going bad: it hurts, and it keeps reopening faster than a dressing closes it. [bold]Spreading[/bold] has left the wound: the patient runs a fever and takes toxin damage. [bold]Sepsis[/bold] is systemic, shows on the patient's own alerts, and kills if it is left alone.
+
+Prevention is most of the work, and it is cheap. Dressing a wound early cuts its infection rate to a seventh; suturing or cauterising it stops the clock outright. Antiseptic - ethanol, bleach or spaceacillin applied to the skin - cleans an open wound and lets a local infection drain away over the next minute. None of that reaches an infection that has already spread.
+
+Once it has, the answer is [bold]spaceacillin[/bold] in the bloodstream. It clears contamination in every wound at once and pulls sepsis back; a large dose is poisonous, so treat and stop.
+  <Box>
+    <GuideEntityEmbed Entity="Gauze"/>
+    <GuideEntityEmbed Entity="Syringe"/>
+  </Box>
+
+## Necrosis
+
+Tissue dies when the blood stops reaching it. Three ways that happens:
+
+A [bold]tourniquet[/bold] is a ten-minute solution. Get the patient to a table and suture what is under it, or use the [bold]Loosen tourniquet[/bold] verb and accept the bleeding, because the limb will not survive being forgotten. The analyzer flags the part as soon as the clock starts, and the patient feels the limb go cold before the end.
+
+A limb frozen through or burned to charring is already dying, and the clock runs whether or not anyone notices.
+
+A [bold]severed limb[/bold] keeps for five minutes. Put it back after that and it goes back on dead.
+
+Dead tissue is permanent. It does not heal, no reagent or topical reaches it, the limb works badly, and it keeps the patient septic for as long as it is attached. The only treatment is amputation and a replacement part.
+  <Box>
+    <GuideEntityEmbed Entity="Tourniquet"/>
+    <GuideEntityEmbed Entity="Saw"/>
+  </Box>
 </Document>

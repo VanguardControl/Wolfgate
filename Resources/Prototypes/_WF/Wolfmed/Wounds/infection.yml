@@ -1,0 +1,60 @@
+# Infection, sepsis and necrosis (W5). Every timer in the model is in the profile below; the CVars
+# (wolfmed.infection_*, wolfmed.necrosis_*) scale it rather than replacing it.
+
+- type: wolfmedInfectionProfile
+  id: WolfmedDefaultInfection
+  # Six a minute against a hundred: an untreated ordinary cut has about four minutes before it starts to
+  # hurt, ten before it spreads and seventeen before the patient is septic. A bad wound (risk 2 or 2.5)
+  # halves that, a dressing all but stops it.
+  progressPerMinute: 6
+  localAt: 25
+  spreadingAt: 60
+  sepsisAt: 100
+  cleanDecayPerMinute: 20
+  antibioticPerUnit: 12
+  treatmentMultipliers:
+    Bandaged: 0.15
+    Clamped: 0.5
+    Sutured: 0
+    Cauterized: 0
+  contaminationMultiplier: 2.5
+  localPainPerMinute: 4
+  severityPerMinute: 1
+  maxSeverityAdded: 15
+  feverTemperature: 313
+  feverRise: 0.05
+  spreadingPoisonPerMinute: 1
+  sepsisPerMinute: 12
+  sepsisRecoveryPerMinute: 8
+  sepsisAntibioticPerUnit: 6
+  sepsisPoisonPerMinute: 6
+  tourniquetOnset: 600
+  warnFraction: 0.6
+  reattachGrace: 300
+  necrosisWound: WolfmedNecrosisWound
+  necrosisSeverity: 60
+
+# Dead tissue. Like charring it carries no damage types, so nothing in a medkit and no amount of damage
+# removal reaches it - but unlike charring nothing takes it off either. The limb is finished: it works
+# badly, it keeps the patient septic, and the only exit is amputation and a replacement part.
+- type: wound
+  id: WolfmedNecrosisWound
+  name: wolfmed-wound-name-necrosis
+  ruleOnly: true
+  damageTypes: {}
+  maximumSeverity: 100
+  healingMultiplier: 0
+  behaviors:
+  - !type:WoundPainBehavior
+    painPerSeverity: 0.6
+    minSeverity: 5
+  # Far above anything else in the system: a dead limb is a standing source of sepsis, not a risk of one.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 6
+  - !type:WolfmedLimbPenaltyBehavior
+    movementModifier: 0.55
+    manipulationModifier: 2
+  stages:
+    Necrotic:
+      name: wolfmed-wound-stage-necrotic
+      severity: 0

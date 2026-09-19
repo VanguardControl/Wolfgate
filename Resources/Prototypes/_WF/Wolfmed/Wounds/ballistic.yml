@@ -44,6 +44,9 @@
   maximumSeverity: 200
   healingMultiplier: 0.15
   behaviors:
+  # W5: infection risk. A bullet takes cloth and dirt in with it.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 1.6
   - !type:WoundPainBehavior
     painPerSeverity: 0.8
     minSeverity: 6
@@ -95,6 +98,9 @@
   maximumSeverity: 200
   healingMultiplier: 0
   behaviors:
+  # W5: infection risk. A round still in the wound is a source of contamination, not just an object.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 2.2
   - !type:WoundPainBehavior
     painPerSeverity: 1.1
     minSeverity: 4
@@ -140,6 +146,9 @@
   maximumSeverity: 150
   healingMultiplier: 0
   behaviors:
+  # W5: infection risk. Fragments carry whatever they came off.
+  - !type:WolfmedInfectionRiskBehavior
+    riskMultiplier: 2.0
   - !type:WoundPainBehavior
     painPerSeverity: 0.9
     minSeverity: 3

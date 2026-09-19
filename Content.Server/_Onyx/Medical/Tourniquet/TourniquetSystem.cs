@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 — Onyx's TargetingComponent registers as "Targeting", colliding with Shitmed's; use Shitmed's identical field instead
 using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE: D10 — WoundTargetResolver replaces the absent TargetResolverSystem
+using Content.Server._WF.Wolfmed.Wounds; // WOLFGATE: W5 — the necrosis clock a tourniquet starts
 using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE: W2 — arterial bleeds decide where a tourniquet helps
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Systems;
@@ -21,6 +22,7 @@ public sealed partial class TourniquetSystem : EntitySystem
     [Dependency] private WoundTargetResolver _targeting = default!; // WOLFGATE: D10 — TargetResolverSystem is absent; signature-exact TryResolveExact replacement
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W2): which bleeds can be tied off
+    [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE (W5): a tourniquet left on kills the limb
     [Dependency] private WoundDamageRoutingSystem _damage = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
@@ -111,6 +113,9 @@ public sealed partial class TourniquetSystem : EntitySystem
 
             applied |= _bleeding.SetTreatment(wound.Owner, BleedingTreatment.Clamped);
         }
+
+        if (applied)
+            _necrosis.OnTourniquetApplied(part); // WOLFGATE (W5): the item is consumed, so the part carries the clock.
 
         return applied;
     }

@@ -66,6 +66,22 @@ public readonly record struct WolfmedWoundLifecycleEvent(
     FixedPoint2 OldSeverity,
     FixedPoint2 Severity);
 
+/// <summary>
+/// Antiseptic has reached this body's skin. Raised directed on the body by the
+/// <c>WolfmedCleanWounds</c> entity effect, which sits in Shared while
+/// <see cref="Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem"/> does not; handlers report how
+/// many wounds they cleaned so the effect knows whether to say anything.
+/// </summary>
+[ByRefEvent]
+public record struct WolfmedCleanWoundsEvent(int Cleaned = 0);
+
+/// <summary>
+/// An antibiotic is being metabolised. <paramref name="Units"/> is the dose this tick, already scaled by
+/// the reagent's own quantity. Raised directed on the body for the same reason as the wash event.
+/// </summary>
+[ByRefEvent]
+public record struct WolfmedAntibioticEvent(float Units, bool Treated = false);
+
 /// <summary>Prying one embedded object out of a wound.</summary>
 [Serializable, NetSerializable]
 public sealed partial class WolfmedEmbeddedRemovalDoAfterEvent : SimpleDoAfterEvent

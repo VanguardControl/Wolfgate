@@ -30,6 +30,7 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
+    [Dependency] private WolfmedInfectionSystem _infection = default!;
     [Dependency] private WoundDamageRoutingSystem _routing = default!;
     [Dependency] private WoundTargetResolver _targeting = default!;
 
@@ -106,6 +107,9 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
                 _routing.TryApplyPartDamage(body, part, embedded.SharpDamage, user);
             if (embedded.SharpPain > FixedPoint2.Zero)
                 _pain.ChangePain(part, embedded.SharpPain);
+
+            // W5: a knife in an open wound is the model's one source of dirty treatment.
+            _infection.Contaminate(wound);
         }
 
         var remaining = CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0;

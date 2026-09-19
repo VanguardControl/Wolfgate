@@ -52,3 +52,39 @@ reagent-effect-guidebook-wash-chemical-burns =
         [1] Washes
        *[other] chance to wash
     } corrosive residue off burned tissue
+
+# Infection, sepsis and necrosis (W5).
+
+wolfmed-wound-name-necrosis = necrotic tissue
+wolfmed-wound-stage-necrotic = dead
+
+wolfmed-wound-cleaned = The antiseptic stings.
+wolfmed-necrosis-warning = Something in your limb has gone cold and numb.
+wolfmed-necrosis-dead = The flesh there has died.
+wolfmed-tourniquet-loosen-verb = Loosen tourniquet
+wolfmed-tourniquet-loosened = The tourniquet comes off and the bleeding starts again.
+
+health-analyzer-wound-infection-local = infection: local
+health-analyzer-wound-infection-spreading = infection: spreading
+health-analyzer-wound-infection-septic = infection: septic
+health-analyzer-wound-necrotic-short = NECROTIC
+health-analyzer-wound-necrosis-risk-short = circulation failing
+health-analyzer-wound-sepsis = [color=#d63c2c]SEPSIS[/color] - systemic infection at { $percent }%
+
+alerts-wolfmed-sepsis-name = Sepsis
+alerts-wolfmed-sepsis-desc = The infection is in your blood. You need antibiotics, and you needed them a while ago.
+
+reagent-name-spaceacillin = spaceacillin
+reagent-desc-spaceacillin = A broad-spectrum antibiotic. Clears an infected wound and pulls a septic patient back; a heavy dose is poisonous in its own right.
+
+reagent-effect-guidebook-clean-wounds =
+    { $chance ->
+        [1] Cleans
+       *[other] chance to clean
+    } open wounds, preventing infection
+
+reagent-effect-guidebook-treat-infection =
+    { $chance ->
+        [1] Clears
+       *[other] chance to clear
+    } infection from wounds and from the bloodstream

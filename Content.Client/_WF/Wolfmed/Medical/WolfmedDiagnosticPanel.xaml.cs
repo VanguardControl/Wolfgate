@@ -4,6 +4,7 @@ using Content.Client._Onyx.Medical.HealthAnalyzer;
 using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
@@ -114,6 +115,12 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         }
 
         WoundStateLabel.Visible = false;
+
+        // W5: systemic, so it is printed above the parts rather than against any one of them.
+        if (msg.WoundDiagnostics.Sepsis > 0f)
+            AddWoundFinding(Loc.GetString("health-analyzer-wound-sepsis",
+                ("percent", (int) MathF.Round(msg.WoundDiagnostics.Sepsis))));
+
         foreach (var part in SharedTargetingSystem.GetValidParts())
         {
             if (!msg.WoundDiagnostics.Parts.TryGetValue(part, out var diagnostic))
@@ -164,6 +171,16 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
             if (diagnostic.EmbeddedObjects > 0)
                 details.Add(Loc.GetString("health-analyzer-wound-embedded-short",
                     ("count", diagnostic.EmbeddedObjects)));
+
+            // W5: dead tissue outranks everything else on the part; nothing but amputation clears it.
+            if (diagnostic.Necrotic)
+                details.Add(Loc.GetString("health-analyzer-wound-necrotic-short"));
+            else if (diagnostic.NecrosisRisk)
+                details.Add(Loc.GetString("health-analyzer-wound-necrosis-risk-short"));
+
+            if (diagnostic.Infection != WolfmedInfectionStage.None)
+                details.Add(Loc.GetString(
+                    $"health-analyzer-wound-infection-{diagnostic.Infection.ToString().ToLowerInvariant()}"));
 
             if (diagnostic.ScarCount > 0)
                 details.Add(Loc.GetString("health-analyzer-wound-scars-short", ("count", diagnostic.ScarCount)));

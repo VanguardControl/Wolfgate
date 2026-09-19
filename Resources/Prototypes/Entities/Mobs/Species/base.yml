@@ -133,6 +133,12 @@
       effects:
       - !type:WashCreamPieReaction
       - !type:WashChemicalBurns # WOLFGATE (W4): rinses caustic residue off a wound host.
+    # WOLFGATE (W5): antiseptics. Swabbing an open wound before it festers is most of the prevention in
+    # the infection model; water alone does not sterilise anything, so it is a separate reaction.
+    - reagents: [Ethanol, Bleach, Spaceacillin]
+      methods: [Touch]
+      effects:
+      - !type:WolfmedCleanWounds
   - type: StatusEffects
     allowed:
     - Stun

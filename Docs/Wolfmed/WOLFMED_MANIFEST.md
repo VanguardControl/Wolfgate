@@ -3007,3 +3007,52 @@ Deviations from the spec:
    failing since W3 and was masked as "skipped" in grouped runs: its 75-Blunt arm now also carries a crush
    injury and a dislocation, whose 1.6 manipulation modifier the fracture was shadowing until it was mended.
    The expectation is re-derived rather than the data changed.
+
+## Final stages: W5 (Infection, necrosis, sepsis) (2026-09-19)
+
+| Path | Status | Notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionProfilePrototype.cs` | new | `wolfmedInfectionProfile`: every timer, threshold, treatment multiplier and dose in the model. One instance, `WolfmedDefaultInfection`. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionComponents.cs` | new | `WolfmedInfectionStage`, `WolfmedInfectionComponent` (wound), `WolfmedSepsisComponent` (body), `WolfmedNecrosisSource`, `WolfmedNecrosisComponent` (part), `WolfmedTourniquetComponent` (part). All networked. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | modified | `WolfmedCleanWoundsEvent` and `WolfmedAntibioticEvent`: the seam the two Shared entity effects use to reach the server-side model. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.infection_enabled`, `wolfmed.infection_rate`, `wolfmed.sepsis_enabled`, `wolfmed.necrosis_enabled`, `wolfmed.necrosis_rate`, all SERVERONLY. |
+| `Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCleanWounds.cs` | new | Antiseptic touch effect; raises the clean event. |
+| `Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedTreatInfection.cs` | new | Antibiotic metabolism effect; raises the antibiotic event with the scaled dose. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedInfectionSystem.cs` | new | The model. Five-second batch over contaminated wounds and septic bodies; `Update` advances by the time accumulated. Public: `Profile`, `Contaminate`, `Clean`, `Treat`, `GetStage`, `GetPartStage`, `GetSepsis`. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs` | new | Tourniquet clock, wound-risk clock and the reattachment grace period, plus the "Loosen tourniquet" verb. Public: `Start`, `MakeNecrotic`, `Loosen`, `OnDetached`, `OnAttached`, `IsNecrotic`, `IsAtRisk`, `OnTourniquetApplied`. |
+| `Content.Server/_Onyx/Medical/Tourniquet/TourniquetSystem.cs` | modified | Marked W5: one call in `Apply` starts the clock on the part, because the tourniquet item is consumed. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedEmbeddedRemovalSystem.cs` | modified | A dirty removal now calls `Contaminate`, which is the model's one source of dirty treatment. |
+| `Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs` | modified | Stamps the detach time and checks it on reattach. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Fills the three new per-part fields and the body-level sepsis figure. |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified | Marked W5: `Infection`, `Necrotic`, `NecrosisRisk` (optional trailing params) and `HealthAnalyzerWoundDiagnostics.Sepsis`. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | Prints the sepsis line above the parts, and the necrosis and infection findings per part. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml` | new | `WolfmedDefaultInfection` and the `WolfmedNecrosisWound`. |
+| `Resources/Prototypes/_WF/Wolfmed/Alerts/alerts.yml` | new | `WolfmedSepsis` alert. |
+| `Resources/Textures/_WF/Wolfmed/Interface/Alerts/sepsis.rsi` | new | Original 32x32 icon, CC-BY-SA-3.0, drawn for Wolfgate. |
+| `Resources/Prototypes/_WF/Wolfmed/Reagents/medicine.yml` | new | `Spaceacillin`: `WolfmedTreatInfection` plus a poison penalty past 25u. |
+| `Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml` | new | Spaceacillin = cryptobiolin + inaprovaline. |
+| `Resources/Prototypes/Entities/Mobs/Species/base.yml` | modified | Marked W5: one antiseptic touch reaction (`Ethanol`, `Bleach`, `Spaceacillin`) carrying `WolfmedCleanWounds`. |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | Marked W5: `WolfmedNecrosisWound` in `OrganicBodyPartProfile.supportedWounds`, and `WolfmedInfectionRiskBehavior` on `SlashWound` (1), `PiercingWound` (1.4), `BurnWound` (1.2), `SurgicalIncisionWound` (1.5) and `DismembermentWound` (2.5). |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/ballistic.yml` | modified | Infection risk on the gunshot (1.6), lodged round (2.2) and shrapnel (2.0) wounds. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/slash_bite.yml` | modified | Infection risk on the tendon cut (1.3). |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Wound and stage names, four popups, the loosen verb, six analyzer lines, the alert, the reagent and the two effect guidebook lines. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | Infection and necrosis sections for medics. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs` | new | Ten tests: stage progression, dressing and cleaning, the reagent seams, dirty treatment, sepsis and the antibiotic, tourniquet necrosis, loosening, late reattachment, the CVars, and the analyzer plus names. |
+
+Deviations from the spec:
+1. **Onyx's `SurgeryInfectionSystem` was not vendored.** It is a thin wrapper over Onyx's whole disease
+   framework (`SharedDiseaseSystem`, `DiseaseCarrierComponent`, `DiseaseSurgicalSiteInfection`), none of
+   which this fork has. Its one reusable idea, a surgery site being an infection risk, is data here:
+   `SurgicalIncisionWound` carries `WolfmedInfectionRiskBehavior` at 1.5.
+2. **"Slower healing" is expressed as the wound reopening.** Onyx's healing path applies
+   `WoundPrototype.HealingMultiplier` to a local, so there is no seam to scale without editing
+   `WoundSystem.HealWounds`. A locally infected wound instead regains severity on the infection tick,
+   capped by `maxSeverityAdded`, which makes treatment outrun the infection rather than be cancelled by it.
+3. **A necrotic limb is non-functional through `WolfmedLimbPenaltyBehavior`, not the functionality state.**
+   Same reason W2 and W3 gave: `wounds.body_part_functionality_enabled` ships false (P2-3). The necrosis
+   wound carries a 0.55 movement and 2.0 manipulation penalty.
+4. **Non-sterile conditions are not modelled beyond dirty tools.** The spec allowed "if such a concept
+   exists"; it does not. `Contaminate` is called from W1's improvised embedded-object removal only, and is
+   public for any later caller.
+5. **Cleaning and antibiotics reset a wound rather than immunising it.** Progress falling to zero clears
+   the `Cleaned` flag, so an open wound that has been cleared starts accumulating again from nothing.
