@@ -1,0 +1,182 @@
+# Gravity anchors and their crates. F3.
+
+- type: entity
+  id: WFGravityAnchor
+  parent: BaseStructureDynamic
+  name: gravity anchor
+  description: A squat drilling rig on hydraulic legs, far too heavy to carry and just about draggable.
+  components:
+  - type: Sprite
+    sprite: _WF/PlanetCracker/Structures/gravity_anchor.rsi
+    noRot: true
+    layers:
+    - map: [ "enum.WFAnchorVisualLayers.Base" ]
+      state: off
+    - map: [ "enum.WFAnchorVisualLayers.Glow" ]
+      state: drilling-unshaded
+      shader: unshaded
+      visible: false
+    - map: [ "enum.WFAnchorVisualLayers.Damage" ]
+      state: damaged
+      visible: false
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.WFAnchorVisuals.State:
+        enum.WFAnchorVisualLayers.Base:
+          Loose:    { state: off }
+          Deployed: { state: deployed }
+          Paired:   { state: deployed }
+          Drilling: { state: drilling }
+          Locked:   { state: locked }
+          Off:      { state: off }
+          Broken:   { state: broken }
+        enum.WFAnchorVisualLayers.Glow:
+          Loose:    { visible: false }
+          Deployed: { visible: false }
+          Paired:   { visible: false }
+          Drilling: { visible: true, state: drilling-unshaded }
+          Locked:   { visible: true, state: locked-unshaded }
+          Off:      { visible: false }
+          Broken:   { visible: false }
+      enum.WFAnchorVisuals.Damaged:
+        enum.WFAnchorVisualLayers.Damage:
+          True:  { visible: true }
+          False: { visible: false }
+  - type: InteractionOutline
+  - type: Transform
+    anchored: false
+    noRot: true
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-1.5,-1.5,1.5,1.5"
+        density: 50          # 9 m2 x 50 = 450 mass, matching the stock 3x3 gravity generator
+        mask:
+        - MachineMask
+        layer:               # deliberately NOT Impassable: CE IsWall only counts Impassable,
+        - MidImpassable      # so a deployed anchor does not bounce a passing hull.
+        - LowImpassable
+  - type: Anchorable
+    delay: 8
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: StructuralMetallic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300          # keep in sync with WFGravityAnchorComponent.BreakDamage
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Breakage" ]
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+    - trigger:
+        !type:DamageTrigger
+        damage: 600
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+  - type: Repairable
+    # BaseStructure narrows this to Applicating only (base_structure.yml:32-34, the Mono nanite
+    # change), so the welder D9 asks for has to be spelled out again here.
+    qualities:
+    - Welding
+    - Applicating
+    fuelCost: 15
+    doAfterDelay: 8
+  - type: AmbientSound
+    enabled: false
+    sound:
+      path: /Audio/_WF/PlanetCracker/Crack/planet_side_anchor_loop.ogg
+    range: 12
+    volume: -4
+  - type: WFGravityAnchor
+  - type: WFFissureSpawner
+  - type: StaticPrice
+    price: 0
+
+- type: entity
+  id: WFAnchorCrate
+  parent: BaseStructureDynamic
+  name: gravity anchor crate
+  description: A reinforced shipping crate with lift points. Pry it open on a planet surface.
+  components:
+  # Existing art: the engineering secure crate, which already reads as a heavy shipping container with lift points.
+  # It is a 32x32 crate on a 2x2 fixture, so the whole sprite is scaled by exactly 2 to fill the footprint.
+  # Crate RSIs split the body (`base`) from the lid (`closed`/`open`), so the mapped layer is the LID: that is the one
+  # WFCrateVisuals.Open swaps, and the body has to sit under it unmapped.
+  - type: Sprite
+    sprite: Structures/Storage/Crates/engicrate_secure.rsi
+    noRot: true
+    scale: 2, 2
+    layers:
+    - state: base
+    - map: [ "enum.WFCrateVisualLayers.Base" ]
+      state: closed
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      # Reserved scaffolding: nothing writes WFCrateVisuals.Open in F1/F3, because uncrating deletes the crate in
+      # the same call. A later feature that opens a crate without consuming it is what turns this block on.
+      enum.WFCrateVisuals.Open:
+        enum.WFCrateVisualLayers.Base:
+          True:  { state: open }
+          False: { state: closed }
+  - type: InteractionOutline
+  - type: Transform
+    anchored: false
+    noRot: true
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-1.0,-1.0,1.0,1.0"
+        density: 60
+        mask:
+        - MachineMask
+        layer:
+        - MidImpassable
+        - LowImpassable
+  - type: Anchorable
+    flags: None              # crates are dragged, never wrenched down
+  - type: WFAnchorCrate
+    contents: WFGravityAnchor
+    tool: Prying
+    delay: 6
+  - type: StaticPrice
+    price: 0                 # the crates that ship with the hull must not inflate its appraisal;
+                             # the 400,000 of design section 5 lives on the Replacement variant.
+
+- type: entity
+  id: WFAnchorCrateReplacement
+  parent: WFAnchorCrate
+  name: replacement gravity anchor crate
+  suffix: Replacement
+  components:
+  # Same crate, plus the secure crate's own lock light as the variant marking: no stencil art exists and none is
+  # wanted, so the bought replacement is the one that reads as sealed and the two that ship with the hull do not.
+  - type: Sprite
+    sprite: Structures/Storage/Crates/engicrate_secure.rsi
+    noRot: true
+    scale: 2, 2
+    layers:
+    - state: base
+    - map: [ "enum.WFCrateVisualLayers.Base" ]
+      state: closed
+    - map: [ "enum.WFCrateVisualLayers.Stencil" ]
+      state: locked
+  - type: StaticPrice
+    price: 400000            # design section 5 / D17: the cargo-purchasable replacement

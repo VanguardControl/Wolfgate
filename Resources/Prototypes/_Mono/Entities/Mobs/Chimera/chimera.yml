@@ -58,6 +58,7 @@
     actions:
     - ActionSpawnBiomassTile
     - ActionSpawnBiomassWall
+    - ActionPlantFleshPustule # WOLFGATE: one-shot flesh tick nest, validated server-side against ChimeraFleshKudzu.
    #- ActionSpawnLetoferolBeast
   #- type: ActionGun
   #  action: ActionLetoferolSpike

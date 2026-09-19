@@ -5,6 +5,7 @@ using Content.Shared.Gibbing.Events;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components; // WOLFGATE
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -319,6 +320,10 @@ public sealed partial class GibbingSystem : EntitySystem
         var scatterAngle = direction?.ToAngle() ?? _random.NextAngle();
         var scatterVector = _random.NextAngle(scatterAngle - scatterConeAngle / 2, scatterAngle + scatterConeAngle / 2)
             .ToVec() * (impulse + _random.NextFloat(impulseVariance));
+        // WOLFGATE: dropped container contents can be bodiless (an organ's solution entity); flinging one only logs a
+        // resolve error per giblet, which floods the log every time a landing grid crushes a mob.
+        if (!HasComp<PhysicsComponent>(target))
+            return;
         _physicsSystem.ApplyLinearImpulse(target, scatterVector);
     }
 

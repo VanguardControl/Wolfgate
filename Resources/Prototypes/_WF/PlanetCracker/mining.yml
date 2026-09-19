@@ -1,0 +1,168 @@
+# The crack miner: the machine that turns a chunk's deep veins into ore. F6.
+
+- type: entity
+  id: WFCrackMiner
+  parent: [ BaseMachine, ConstructibleMachine ]
+  name: crack miner
+  description: A drill head on a squat frame with a battery bay, heavy but draggable. It only bites on cut crust.
+  # (a) BaseMachine and NOT BaseMachinePowered - the chunk has no APC, no HV and no cable (ParkChunk
+  # at Content.Server/_WF/PlanetCracker/Chunk/WFPlanetChunkSystem.Extraction.cs:423-452 creates gravity
+  # and cleanup immunity and nothing else), so the miner runs on an internal cell per design D15.
+  # (b) The Transform and Physics overrides below are load-bearing, not tidiness: BaseStructure sets
+  # anchored: true (Resources/Prototypes/Entities/Structures/base_structure.yml:9-10) and bodyType: Static
+  # (:14-15), and BaseMachineIndestructible overrides only noRot (base_structuremachines.yml:7-9).
+  # `anchored: false` is the half that changes gate behaviour: left inherited, every mapped, admin-spawned
+  # and `wfcracker mine`-spawned miner would arrive already anchored and skip the AnchorAttemptEvent gate
+  # entirely. `bodyType: Dynamic` is narrower than plan decision E-N records. The engine DOES drive
+  # BodyType off the anchor state - AnchorEntity forces Static
+  # (RobustToolbox/Robust.Shared/GameObjects/Systems/SharedTransformSystem.Component.cs:88) and Unanchor
+  # forces Dynamic (:152, the setPhysics branch AnchorableSystem's unwrench path takes) - so an unwrenched
+  # miner is pullable whatever this line says, and PullingSystem's static refusal
+  # (Content.Shared/Movement/Pulling/Systems/PullingSystem.cs:384-387) never bites it. What the override
+  # actually buys is the miner that has NEVER been anchored: spawned or mapped with `anchored: false`, it
+  # would otherwise sit at the inherited Static with no anchor transition to fix it, and would be
+  # undraggable until someone wrenched it down and back up. Design PLANET_CRACKER_DESIGN.md:222 requires
+  # that the miner be unwrenched and moved to the next vein, so it takes the same stance WFGravityAnchor
+  # does (anchors.yml:47-51). The hard MachineMask/MachineLayer fixture inherited from
+  # BaseMachineIndestructible is untouched, so AnchorableSystem.TileFree still keeps two miners off one
+  # tile (it tests CanCollide and Hard, never BodyType).
+  # (c) The cell slot is declared inline rather than by multi-parenting PowerCellSlotHighItem, because
+  # ItemSlots ensures its own ContainerSlot at ComponentInit (ItemSlotsSystem.Oninitialize calls
+  # EnsureContainer per slot, Content.Shared/Containers/ItemSlot/ItemSlotsSystem.cs:84-91) so no
+  # ContainerContainer entry is needed at all.
+  # (d) The placeholder art is 64x64 (2x2) but the fixture is left at the inherited 1x1, for the reason
+  # spelled out at machines.yml:103-106 - an even-sided AABB centred on a tile centre straddles four
+  # tiles by half-tiles and cannot align to the snap grid, and AnchorEntity claims one tile either way.
+  # Keep mapped miners at least two tiles apart.
+  components:
+  - type: Sprite
+    sprite: _WF/PlanetCracker/Structures/crack_miner.rsi
+    noRot: true
+    layers:
+    - map: [ "enum.WFCrackMinerVisualLayers.Base" ]
+      state: idle
+    - map: [ "enum.WFCrackMinerVisualLayers.Glow" ]
+      state: mining-unshaded
+      shader: unshaded
+      visible: false
+  - type: Transform
+    anchored: false
+    noRot: true
+  - type: Physics
+    bodyType: Dynamic
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.WFCrackMinerVisuals.State:
+        # No `off` state in crack_miner.rsi, so Idle doubles as off.
+        enum.WFCrackMinerVisualLayers.Base:
+          Idle:      { state: idle }
+          Mining:    { state: mining }
+          Exhausted: { state: exhausted }
+          Broken:    { state: broken }
+        enum.WFCrackMinerVisualLayers.Glow:
+          Idle:      { visible: false }
+          Mining:    { visible: true }
+          Exhausted: { visible: false }
+          Broken:    { visible: false }
+  - type: PowerCellSlot
+    cellSlotId: cell_slot
+    fitsInCharger: false     # it defaults to true (PowerCellSlotComponent.cs:23); an anchored machine must not be shoved into a recharger
+  - type: ItemSlots
+    slots:
+      cell_slot:
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
+        ejectOnInteract: true
+        whitelist:
+          tags:
+          # BOTH tags are required. PowerCellSmall redeclares the Tag list with only its own tag
+          # (powercells.yml:82-84) while Medium/High/Hyper inherit BasePowerCell's PowerCell (:30-32),
+          # so a whitelist of PowerCell alone silently refuses small cells.
+          - PowerCell
+          - PowerCellSmall
+        blacklist:
+          components:
+          # Self-recharging cells would be an infinite power source and would kill D15's swap entirely.
+          # The miner draws 1 J/s; PowerCellMicroreactor self-recharges at 12 J/s (powercells.yml:236-238)
+          # and PowerCellAntique at 40 J/s (:274-277), so either one can never empty. Raising the draw
+          # above 12 is not an option - it would put a PowerCellHigh under ninety seconds - so the refusal
+          # lives on the slot. ItemSlotsSystem.CanInsertWhitelist honours Blacklist (ItemSlotsSystem.cs:345-351).
+          # SERVER-ONLY IN EFFECT, deliberately. BatterySelfRechargerComponent is declared only in
+          # Content.Server (Content.Server/Power/Components/BatterySelfRechargerComponent.cs:9), and the
+          # client calls IgnoreMissingComponents (Content.Client/Entry/EntryPoint.cs:100), so
+          # EntityWhitelistSystem.StringsToRegs drops the name silently there
+          # (Content.Shared/Whitelist/EntityWhitelistSystem.cs:197-209 - only the Unknown branch logs) and
+          # the client's copy of this blacklist is empty. The shared, predicted ItemSlots insert therefore
+          # PREDICTS a successful insert of a self-recharging cell and is corrected by server state a tick
+          # later; the server refusal and the wf-crack-miner-cell-rejected popup are what the player ends
+          # up with. Making it predict correctly would mean tagging PowerCellMicroreactor and
+          # PowerCellAntique, i.e. editing upstream powercells.yml, which E-A forbids. Accepted as a
+          # cosmetic mispredict.
+          - BatterySelfRecharger
+        whitelistFailPopup: wf-crack-miner-cell-rejected
+  # The wrench is safe regardless of the slot: AnchorableSystem subscribes InteractUsingEvent before
+  # ItemSlotsSystem (AnchorableSystem.cs:46-47).
+  - type: AmbientSound
+    enabled: false
+    sound:
+      path: /Audio/Ambience/Objects/circular_saw.ogg
+    range: 8
+    volume: -5
+  # Flipped by WFCrackMinerSystem.SetState. ASSET_REQUIREMENTS.md lists no crack-miner loop, so this
+  # borrows the gravity anchor's (anchors.yml:97-102).
+  - type: Repairable
+    qualities: [ Welding, Applicating ]
+    fuelCost: 15
+    doAfterDelay: 8
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Breakage" ]
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+    - trigger:
+        !type:DamageTrigger
+        damage: 400
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+  # BaseMachine's own Destructible has Destruction acts only, so the Breakage threshold that makes the
+  # `broken` sprite state reachable has to be spelled out here, exactly as WFGravityProjector does at
+  # machines.yml:147-154.
+  - type: Machine
+    board: WFCrackMinerCircuitboard
+  - type: WFCrackMiner
+
+- type: entity
+  id: WFCrackMinerEmpty
+  parent: WFCrackMiner
+  suffix: Empty
+  # ItemSlots' startingItem is applied on MapInitEvent and a machine spawned onto a live map always
+  # map-inits, so every factory- or admin-spawned miner otherwise arrives with a free full PowerCellHigh
+  # and its cell slot already occupied - which both hides "needs a cell" regressions and makes
+  # ItemSlotsSystem.TryInsert fail (the slot is full, ItemSlotsSystem.cs:325-326). Every cell-behaviour
+  # test uses THIS prototype. Precedent MineralScannerEmpty, scanner.yml:46-54.
+  components:
+  - type: ItemSlots
+    slots:
+      cell_slot:
+        name: power-cell-slot-component-slot-name-default
+        ejectOnInteract: true
+        whitelist:
+          tags:
+          - PowerCell
+          - PowerCellSmall
+        blacklist:
+          components:
+          # Server-only in effect, same as the parent's copy - see the note there.
+          - BatterySelfRecharger
+        whitelistFailPopup: wf-crack-miner-cell-rejected

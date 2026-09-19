@@ -35,3 +35,77 @@
   color: "#d0d0d0"
   order: 3
   sound: /Audio/Announcements/war.ogg
+
+# Atmospheric flight callouts (F10). Not selectable: WFFlightAlarmSystem drives them off a hull's lift-lost state and
+# hands the ship its own code back when the descent is over.
+- type: shipAlertCode
+  id: WFAlertLiftLost
+  name: wf-alert-lift-lost
+  description: wf-alert-lift-lost-desc
+  announcement: wf-alert-lift-lost-announcement
+  color: "#ffd23f"
+  order: 10
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/lift_lost.ogg
+
+- type: shipAlertCode
+  id: WFAlertDontSink
+  name: wf-alert-dont-sink
+  description: wf-alert-dont-sink-desc
+  announcement: wf-alert-dont-sink-announcement
+  color: "#ffd23f"
+  order: 11
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/dont_sink.ogg
+
+- type: shipAlertCode
+  id: WFAlertSinkRate
+  name: wf-alert-sink-rate
+  description: wf-alert-sink-rate-desc
+  announcement: wf-alert-sink-rate-announcement
+  color: "#ff9a30"
+  order: 12
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/sink_rate.ogg
+
+- type: shipAlertCode
+  id: WFAlertTerrain
+  name: wf-alert-terrain
+  description: wf-alert-terrain-desc
+  announcement: wf-alert-terrain-announcement
+  color: "#ff9a30"
+  order: 13
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/terrain.ogg
+
+- type: shipAlertCode
+  id: WFAlertTooLowTerrain
+  name: wf-alert-too-low-terrain
+  description: wf-alert-too-low-terrain-desc
+  announcement: wf-alert-too-low-terrain-announcement
+  color: "#ff3030"
+  order: 14
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/too_low_terrain.ogg
+
+- type: shipAlertCode
+  id: WFAlertPullUp
+  name: wf-alert-pull-up
+  description: wf-alert-pull-up-desc
+  announcement: wf-alert-pull-up-announcement
+  color: "#ff3030"
+  order: 15
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/pull_up.ogg
+
+# Orbit decay (F11). Not selectable either: WFOrbitDecaySystem sets it when a grid on an orbit layer loses
+# station-keeping, and hands the ship its own code back if the thrusters come up again.
+- type: shipAlertCode
+  id: WFAlertOrbitDecay
+  name: wf-alert-orbit-decay
+  description: wf-alert-orbit-decay-desc
+  announcement: wf-alert-orbit-decay-announcement
+  color: "#ff9a30"
+  order: 16
+  selectable: false
+  sound: /Audio/_WF/PlanetCracker/Flight/lift_lost.ogg

@@ -1,0 +1,49 @@
+# Machine boards for the cracker hull machines. F1.
+
+- type: entity
+  id: WFCentrifugeCircuitboard
+  parent: BaseMachineCircuitboard
+  name: gravitic centrifuge machine board
+  description: A machine printed circuit board for a gravitic centrifuge.
+  components:
+  - type: Sprite
+    state: engineering
+  - type: MachineBoard
+    prototype: WFCentrifuge
+    requirements:
+      Capacitor: 4
+      Manipulator: 4
+    stackRequirements:
+      Plasteel: 10
+
+- type: entity
+  id: WFGravityProjectorCircuitboard
+  parent: BaseMachineCircuitboard
+  name: gravity projector machine board
+  description: A machine printed circuit board for a gravity projector.
+  components:
+  - type: Sprite
+    state: engineering
+  - type: MachineBoard
+    prototype: WFGravityProjector
+    requirements:
+      Capacitor: 2           # the rated part: its tier sets WFGravityProjectorComponent.CrackTimeMultiplier
+      Manipulator: 2
+    stackRequirements:
+      Plasteel: 5
+
+- type: entity
+  id: WFCrackMinerCircuitboard
+  parent: BaseMachineCircuitboard
+  name: crack miner machine board
+  description: A machine printed circuit board for a crack miner.
+  components:
+  - type: Sprite
+    state: engineering
+  - type: MachineBoard
+    prototype: WFCrackMiner
+    requirements:
+      Manipulator: 2
+      Capacitor: 1
+    stackRequirements:
+      Plasteel: 5

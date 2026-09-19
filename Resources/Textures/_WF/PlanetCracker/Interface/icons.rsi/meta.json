@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Wolfgate placeholder, generated",
+  "size": {
+    "x": 16,
+    "y": 16
+  },
+  "states": [
+    {
+      "name": "anchor",
+      "directions": 1
+    },
+    {
+      "name": "projector",
+      "directions": 1
+    },
+    {
+      "name": "centrifuge",
+      "directions": 1
+    },
+    {
+      "name": "chunk",
+      "directions": 1
+    },
+    {
+      "name": "warning",
+      "directions": 1
+    },
+    {
+      "name": "beam",
+      "directions": 1
+    }
+  ]
+}

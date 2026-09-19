@@ -85,12 +85,19 @@
     - HostileUniversally # Mono
 
 - type: entity
-  parent: BaseWeaponBallisticTurret
+  # WOLFGATE: parented to BaseWeaponTurret instead of BaseWeaponBallisticTurret. That base carries a
+  # ProjectileBatteryAmmoProvider, which stacked with the BallisticAmmoProvider below and fed two rounds per
+  # shot (SharedGunSystem.AttemptShoot asserts Ammo.Count <= shots and fails every debug test the turret fires in).
+  # The container and the gun tuning it used to inherit are copied in below.
+  parent: BaseWeaponTurret
   id: WeaponTurretXeno
   name: xeno turret
   suffix: Xeno
   description: Shoots 9mm acid projectiles.
   components:
+  - type: ContainerContainer # WOLFGATE
+    containers:
+      ballistic-ammo: !type:Container
   - type: NpcFactionMember
     factions:
     - Xeno
@@ -104,7 +111,14 @@
     capacity: 500
   - type: Gun
     fireRate: 1
+    projectileSpeed: 55 # WOLFGATE: from BaseWeaponBallisticTurret
+    maxAngle: 15 # WOLFGATE: from BaseWeaponBallisticTurret (Mono)
+    minAngle: 4 # WOLFGATE
+    angleIncrease: -1.2 # WOLFGATE
+    angleDecay: -4 # WOLFGATE
     selectedMode: FullAuto
+    availableModes:
+    - FullAuto
     soundGunshot: /Audio/Weapons/Xeno/alien_spitacid.ogg
   - type: HTN
     rootTask:

@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Server._NF.Shipyard.Systems;
+using Content.Server._WF.PlanetCracker.Cracker;
 using Content.Server.Access.Systems;
 using Content.Server.Administration.Logs;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
+using Content.Shared._WF.PlanetCracker.Cracker;
 using Content.Shared.Database;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
@@ -22,6 +24,7 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IdCardSystem _idCard = default!;
     [Dependency] private ShipyardSystem _shipyard = default!;
+    [Dependency] private WFCrackerOwnershipSystem _ownership = default!;
 
     /// <summary>
     /// Loads the vessel's grid at a world position and applies the prototype's extra components.
@@ -46,6 +49,10 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
         // Same post-load steps the shipyard applies, minus deeds and ownership.
         EntityManager.AddComponents(gridUid.Value, vessel.AddComponents);
         _metaData.SetEntityName(gridUid.Value, vessel.Name);
+
+        // This path raises no purchase event, so an admin- or ERT-spawned cracker would otherwise carry unbound anchors.
+        if (HasComp<WFPlanetCrackerComponent>(gridUid.Value))
+            _ownership.BindAboard(gridUid.Value);
 
         _adminLogger.Add(LogType.EntitySpawn, LogImpact.Medium,
             $"{ToPrettyString(spawner):player} spawned vessel {vessel.ID} as {ToPrettyString(gridUid.Value):grid} on map {mapId}");

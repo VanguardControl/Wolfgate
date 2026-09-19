@@ -369,7 +369,8 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         float tileBreakScale = 1f,
         int maxTileBreak = int.MaxValue,
         bool canCreateVacuum = true,
-        bool addLog = true)
+        bool addLog = true,
+        bool silent = false) // WOLFGATE: see QueuedExplosion.Silent.
     {
         if (totalIntensity <= 0 || slope <= 0)
             return;
@@ -396,6 +397,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
             // they are close enough to combine so just add total intensity and prevent queuing another one
             queued.TotalIntensity += totalIntensity;
+            queued.Silent &= silent; // WOLFGATE: one audible contributor is enough to make the merged blast audible.
             return;
         }
 
@@ -409,7 +411,8 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
             TileBreakScale = tileBreakScale,
             MaxTileBreak = maxTileBreak,
             CanCreateVacuum = canCreateVacuum,
-            Cause = cause
+            Cause = cause,
+            Silent = silent // WOLFGATE
         };
         _explosionQueue.Enqueue(boom);
         _queuedExplosions.Add(boom);
@@ -445,36 +448,40 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
         var visualEnt = CreateExplosionVisualEntity(pos, queued.Proto.ID, spaceMatrix, spaceData, gridData.Values, iterationIntensity);
 
-        // camera shake
-        CameraShake(iterationIntensity.Count * 4f, pos, queued.TotalIntensity);
+        // WOLFGATE: a silent blast still carves its crater, it just does not shake or sound. See QueuedExplosion.Silent.
+        if (!queued.Silent)
+        {
+            // camera shake
+            CameraShake(iterationIntensity.Count * 4f, pos, queued.TotalIntensity);
 
-        // play sound.
-        // for the normal audio, we want everyone in pvs range
-        // + if the bomb is big enough, people outside of it too
-        // this is capped to 30 because otherwise really huge bombs
-        // will attempt to play regular audio for people who can't hear it anyway because the epicenter is so far away
-        //
-        // TODO EXPLOSION redo this.
-        // Use the Filter.Pvs range-multiplier option instead of AddInRange.
-        // Also the default PVS range is 25*2 = 50. So capping it at 30 makes no sense here.
-        // So actually maybe don't use Filter.Pvs at all and only use AddInRange?
-        var audioRange = Math.Min(iterationIntensity.Count * 2, MaxExplosionAudioRange);
-        var filter = Filter.Pvs(pos).AddInRange(pos, audioRange);
-        var sound = iterationIntensity.Count < queued.Proto.SmallSoundIterationThreshold
-            ? queued.Proto.SmallSound
-            : queued.Proto.Sound;
+            // play sound.
+            // for the normal audio, we want everyone in pvs range
+            // + if the bomb is big enough, people outside of it too
+            // this is capped to 30 because otherwise really huge bombs
+            // will attempt to play regular audio for people who can't hear it anyway because the epicenter is so far away
+            //
+            // TODO EXPLOSION redo this.
+            // Use the Filter.Pvs range-multiplier option instead of AddInRange.
+            // Also the default PVS range is 25*2 = 50. So capping it at 30 makes no sense here.
+            // So actually maybe don't use Filter.Pvs at all and only use AddInRange?
+            var audioRange = Math.Min(iterationIntensity.Count * 2, MaxExplosionAudioRange);
+            var filter = Filter.Pvs(pos).AddInRange(pos, audioRange);
+            var sound = iterationIntensity.Count < queued.Proto.SmallSoundIterationThreshold
+                ? queued.Proto.SmallSound
+                : queued.Proto.Sound;
 
-        _audio.PlayStatic(sound, filter, entPos, true, sound.Params);
+            _audio.PlayStatic(sound, filter, entPos, true, sound.Params);
 
-        // play far sound
-        // far sound should play for anyone who wasn't in range of any of the effects of the bomb
-        var farAudioRange = iterationIntensity.Count * 5;
-        var farFilter = Filter.Empty().AddInRange(pos, farAudioRange).RemoveInRange(pos, audioRange);
-        var farSound = iterationIntensity.Count < queued.Proto.SmallSoundIterationThreshold
-            ? queued.Proto.SmallSoundFar
-            : queued.Proto.SoundFar;
+            // play far sound
+            // far sound should play for anyone who wasn't in range of any of the effects of the bomb
+            var farAudioRange = iterationIntensity.Count * 5;
+            var farFilter = Filter.Empty().AddInRange(pos, farAudioRange).RemoveInRange(pos, audioRange);
+            var farSound = iterationIntensity.Count < queued.Proto.SmallSoundIterationThreshold
+                ? queued.Proto.SmallSoundFar
+                : queued.Proto.SoundFar;
 
-        _audio.PlayGlobal(farSound, farFilter, true, farSound.Params);
+            _audio.PlayGlobal(farSound, farFilter, true, farSound.Params);
+        } // WOLFGATE
 
         return new Explosion(this,
             queued.Proto,

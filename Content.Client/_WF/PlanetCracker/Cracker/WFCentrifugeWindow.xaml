@@ -1,0 +1,61 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:cracker="clr-namespace:Content.Client._WF.PlanetCracker.Cracker"
+                      Title="{Loc 'wf-centrifuge-window-title'}"
+                      MinSize="420 330"
+                      SetSize="440 380">
+    <BoxContainer Orientation="Vertical" Margin="6">
+        <!-- The one line that says what the machine is doing, in words rather than in a dial the eye has to read. -->
+        <PanelContainer StyleClasses="AngleRect" Margin="0 0 0 6">
+            <BoxContainer Orientation="Vertical" Margin="8 6">
+                <Label Name="RotorStatusLabel" StyleClasses="LabelHeading" ClipText="True" />
+                <Label Name="RotorHintLabel" StyleClasses="LabelSubText" ClipText="True" />
+            </BoxContainer>
+        </PanelContainer>
+
+        <!-- Power switch: the same two buttons and the same message the stock charge window sends. -->
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
+            <Label Text="{Loc 'power-charge-window-power'}" StyleClasses="StatusFieldTitle"
+                   HorizontalExpand="True" VerticalAlignment="Center" />
+            <Button Name="PowerOnButton" Text="{Loc 'power-charge-window-power-on'}" StyleClasses="OpenRight" />
+            <Button Name="PowerOffButton" Text="{Loc 'power-charge-window-power-off'}" StyleClasses="OpenLeft" />
+        </BoxContainer>
+
+        <!-- Stock PowerChargeState readouts. Every value column is flush right so the whole stack lines up. -->
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+            <Label Text="{Loc 'power-charge-window-status'}" StyleClasses="StatusFieldTitle" HorizontalExpand="True" />
+            <Label Name="ChargeStatusLabel" Align="Right" ClipText="True" MinWidth="120" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+            <Label Text="{Loc 'power-charge-window-eta'}" StyleClasses="StatusFieldTitle" HorizontalExpand="True" />
+            <Label Name="ChargeEtaLabel" Align="Right" ClipText="True" MinWidth="120" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
+            <Label Text="{Loc 'power-charge-window-charge'}" StyleClasses="StatusFieldTitle" HorizontalExpand="True" />
+            <Label Name="ChargeDrawLabel" Align="Right" ClipText="True" MinWidth="120" />
+        </BoxContainer>
+
+        <!-- Spin and load, off the networked WFCentrifugeComponent rather than the byte-quantised PowerChargeState
+             charge, so this window and the crack console never disagree. Fixed title and value columns, so the two
+             bars start and end on the same x. -->
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
+            <Label Text="{Loc 'wf-centrifuge-window-spin'}" StyleClasses="StatusFieldTitle"
+                   SetWidth="96" VerticalAlignment="Center" />
+            <ProgressBar Name="SpinBar" HorizontalExpand="True" MinSize="60 12" VerticalAlignment="Center" />
+            <Label Name="SpinValueLabel" Align="Right" ClipText="True" SetWidth="124" Margin="6 0 0 0" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
+            <Label Text="{Loc 'wf-centrifuge-window-load'}" StyleClasses="StatusFieldTitle"
+                   SetWidth="96" VerticalAlignment="Center" />
+            <ProgressBar Name="LoadBar" HorizontalExpand="True" MinSize="60 12" VerticalAlignment="Center" />
+            <Label Name="LoadValueLabel" Align="Right" ClipText="True" SetWidth="124" Margin="6 0 0 0" />
+        </BoxContainer>
+
+        <!-- The rotor face only: ShowReadouts is off because every number it used to draw is a Label above. -->
+        <cracker:WFCentrifugeDial Name="RotorDial" ShowReadouts="False"
+                                  HorizontalExpand="True" VerticalExpand="True" MinSize="0 90" />
+    </BoxContainer>
+</controls:FancyWindow>

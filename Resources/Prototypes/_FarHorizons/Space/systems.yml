@@ -17,3 +17,8 @@
     - planet: PlanetThrascias
       distance: 27500
       angle: 4.6
+
+    # WOLFGATE: quarantined biothreat world; cracking is unsanctioned.
+    - planet: PlanetCarcinoma
+      distance: 22000
+      angle: 5.7

@@ -9,6 +9,7 @@
     ClothingMaskGas: 10
     JetpackMiniFilled: 10
     HandHeldMassScanner: 10
+    WFPlanetTimepiece: 5 # WOLFGATE
     AppraisalCartridge: 3
 # Keys
     EncryptionKeyCommon: 3
@@ -46,6 +47,7 @@
     ClothingMaskGas: 4294967295 # Infinite
     JetpackMiniFilled: 4294967295 # Infinite
     HandHeldMassScanner: 4294967295 # Infinite
+    WFPlanetTimepiece: 4294967295 # WOLFGATE: Infinite
     AppraisalCartridge: 4294967295 # Infinite
 # Keys
     EncryptionKeyCommon: 4294967295 # Infinite

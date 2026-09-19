@@ -941,4 +941,11 @@ public sealed class QueuedExplosion
     public int MaxTileBreak;
     public bool CanCreateVacuum;
     public EntityUid? Cause; // The entity that exploded, for logging purposes.
+
+    /// <summary>
+    /// WOLFGATE: no sound and no camera shake for this one. For storms of explosions queued as a single event, where
+    /// one bang is wanted and a hundred would exhaust the client's audio sources. Combining clears it: an explosion
+    /// merged with an audible one is audible.
+    /// </summary>
+    public bool Silent;
 }

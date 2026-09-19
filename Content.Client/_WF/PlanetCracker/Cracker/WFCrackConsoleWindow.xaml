@@ -1,0 +1,37 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:cracker="clr-namespace:Content.Client._WF.PlanetCracker.Cracker"
+                      Title="{Loc 'wf-crack-console-title'}"
+                      MinSize="640 480"
+                      SetSize="700 580">
+    <BoxContainer Orientation="Vertical" Margin="6">
+        <!-- Stage and cut readouts. -->
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+            <Label Name="HeaderState" StyleClasses="LabelKeyText" HorizontalExpand="True" />
+            <Label Name="HeaderCrack" />
+        </BoxContainer>
+
+        <Label Name="GraceLabel" StyleClasses="LabelSubText" Margin="0 0 0 2" />
+        <Label Name="FailureLabel" StyleClasses="LabelSubText" Margin="0 0 0 4" />
+
+        <!-- Site plan on the left, centrifuge dial and projector rows on the right. -->
+        <BoxContainer Orientation="Horizontal" VerticalExpand="True">
+            <cracker:WFSiteDiagram Name="SiteView" HorizontalExpand="True" VerticalExpand="True" MinSize="280 280" RectClipContent="True" />
+            <BoxContainer Orientation="Vertical" Margin="6 0 0 0" MinWidth="190">
+                <cracker:WFCentrifugeDial Name="CentrifugeView" MinSize="190 170" RectClipContent="True" />
+                <cracker:WFProjectorPanel Name="ProjectorView" Margin="0 6 0 0" VerticalExpand="True" MinSize="190 80" RectClipContent="True" />
+            </BoxContainer>
+        </BoxContainer>
+
+        <cracker:WFCrackTimeline Name="TimelineView" Margin="0 6 0 0" HorizontalExpand="True" />
+
+        <BoxContainer Orientation="Horizontal" Margin="0 6 0 0">
+            <Button Name="TargetButton" Text="{Loc 'wf-crack-console-btn-target'}"
+                    StyleClasses="ButtonSquare" HorizontalExpand="True" Margin="0 0 4 0" />
+            <Button Name="UntargetButton" Text="{Loc 'wf-crack-console-btn-untarget'}"
+                    StyleClasses="ButtonSquare" HorizontalExpand="True" Margin="0 0 4 0" />
+            <Button Name="BeginButton" Text="{Loc 'wf-crack-console-btn-begin'}"
+                    StyleClasses="Caution" HorizontalExpand="True" />
+        </BoxContainer>
+    </BoxContainer>
+</controls:FancyWindow>

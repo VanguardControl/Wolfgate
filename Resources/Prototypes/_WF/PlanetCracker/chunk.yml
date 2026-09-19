@@ -1,0 +1,32 @@
+# Rim decals and extraction-moment effect entities for the cut disc (F5). No tile prototype:
+# the hole is Tile.Empty and the rim decals sit on ordinary pinned biome ground.
+
+- type: decal
+  id: WFCrackRimStraight
+  tags: [ "wfcrack" ]
+  snapCardinals: false # the ring is rotated per decal via the Angle argument
+  defaultSnap: false
+  sprite: { sprite: _WF/PlanetCracker/Decals/crack_rim.rsi, state: rim-straight }
+
+- type: decal
+  id: WFCrackRimCurve
+  tags: [ "wfcrack" ]
+  snapCardinals: false
+  defaultSnap: false
+  sprite: { sprite: _WF/PlanetCracker/Decals/crack_rim.rsi, state: rim-curve }
+
+- type: entity
+  id: WFEffectChunkBurst
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.56 # 8 frames x 0.07 s, from chunk_burst.rsi/meta.json
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - shader: unshaded
+      sprite: _WF/PlanetCracker/Effects/chunk_burst.rsi
+      state: burst
+  - type: Tag
+    tags: [ HideContextMenu ]

@@ -1,0 +1,30 @@
+# The ground layer of the Asclepiu planet network.
+# No addedComponents: an FTLDestination on a mapgrid map makes arriving hulls disable themselves.
+
+- type: planet
+  id: WFAsclepiuSurface
+  biome: WFBiomeAsclepiu
+  mapName: wf-planet-asclepiu-surface
+  mapLight: "#c8fdff"
+  atmosphere:
+    volume: 2500
+    immutable: True
+    temperature: 288.15 # 15 celsius. Deliberately unlike the network registry's 293.15.
+    moles:
+    - 21.824879
+    - 82.10312
+  # Ore only. Marker-spawned entities are never unloaded and z-eyes seed markers under orbiting ships,
+  # so no mob marker layers ship here.
+  biomeMarkerLayers:
+  - OreIron
+  - OreQuartz
+  - OreCoal
+  - OreSalt
+  - OreGold
+  - OreSilver
+  - OrePlasma
+  - OreUranium
+  # Adding or removing ANY marker layer re-rolls every other layer's placement: the marker seed mixes in a per-layer
+  # index taken from dictionary enumeration order (BiomeSystem.MarkerProcessor.cs:30-34,:49), and the backing set is a
+  # HashSet (BiomeComponent.cs:77-78), so this list's written order is not preserved as data and cannot be relied on.
+  - WFDeepVeins

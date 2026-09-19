@@ -1,0 +1,63 @@
+# Weather is visual/audio only. Each world alternates with 3-7 minutes of clear skies.
+- type: wfPlanetWeather
+  id: WFPlanetWeatherAsclepiu
+  planetType: PlanetAsclepiu
+  weather: [MonoLightRain, MonoRain, MonoStorm]
+  initialHour: 8
+
+- type: wfPlanetWeather
+  id: WFPlanetWeatherFervidus
+  planetType: PlanetFervidus
+  weather: [AshfallLight, Ashfall, AshfallHeavy]
+  initialHour: 12
+
+- type: wfPlanetWeather
+  id: WFPlanetWeatherMerak
+  planetType: PlanetMerak
+  weather: [Sandstorm, SandstormHeavy]
+  initialHour: 15
+  clearMinSeconds: 300
+  clearMaxSeconds: 600
+
+- type: wfPlanetWeather
+  id: WFPlanetWeatherAerumna
+  planetType: PlanetAerumna
+  weather: [MonoLightRain, MonoRain]
+  initialHour: 18
+
+- type: wfPlanetWeather
+  id: WFPlanetWeatherThrascias
+  planetType: PlanetThrascias
+  weather: [MonoSnowLight, MonoSnow, MonoBlizzard]
+  initialHour: 6
+
+- type: wfPlanetWeather
+  id: WFPlanetWeatherCarcinoma
+  planetType: PlanetCarcinoma
+  weather: [WFBloodRain, WFBloodStorm]
+  initialHour: 21
+
+# Reuse rain art, tinted red; these effects create no reagent puddles or biomass.
+- type: weather
+  id: WFBloodRain
+  sprite:
+    sprite: /Textures/_RMC14/Effects/weather.rsi
+    state: strata_storm_light
+  color: "#b83c46"
+  sound:
+    collection: Rain
+    params:
+      loop: true
+      volume: -10
+
+- type: weather
+  id: WFBloodStorm
+  sprite:
+    sprite: /Textures/_RMC14/Effects/weather.rsi
+    state: strata_storm
+  color: "#b83c46"
+  sound:
+    path: /Audio/Effects/Weather/rain_heavy.ogg
+    params:
+      loop: true
+      volume: -10

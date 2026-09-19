@@ -202,7 +202,9 @@ public sealed class ExplosionGridTileFlood : ExplosionTileFlood
             if (required > _maxIntensity)
                 return; // blocker is never destroyed.
 
-            var clearIteration = iteration + (int) MathF.Ceiling((float)required / _intensityStepSize);
+            // WOLFGATE: an airtight entity already damaged past its destroy threshold reports a NEGATIVE tolerance, which
+            // scheduled its freed tile into an earlier iteration's set while that set was still being enumerated.
+            var clearIteration = Math.Max(iteration, iteration + (int) MathF.Ceiling((float)required / _intensityStepSize));
             if (FreedTileLists.TryGetValue(clearIteration, out var list))
                 list.Add(tile);
             else
@@ -295,7 +297,7 @@ public sealed class ExplosionGridTileFlood : ExplosionTileFlood
                 continue;
 
             // At what explosion iteration would this blocker be destroyed?
-            var clearIteration = iteration + (int) MathF.Ceiling((float) sealIntegrity / _intensityStepSize);
+            var clearIteration = Math.Max(iteration, iteration + (int) MathF.Ceiling((float) sealIntegrity / _intensityStepSize)); // WOLFGATE: never earlier than now
 
             // Get the delayed neighbours list
             if (!_delayedNeighbors.TryGetValue(clearIteration, out var list))

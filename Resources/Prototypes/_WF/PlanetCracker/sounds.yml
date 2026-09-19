@@ -1,0 +1,8 @@
+# Planet cracker sound collections.
+
+- type: soundCollection
+  id: WFRandomCrackEffect
+  files:
+    - /Audio/_WF/PlanetCracker/Crack/random_crack_effect_1.ogg
+    - /Audio/_WF/PlanetCracker/Crack/random_crack_effect_2.ogg
+    - /Audio/_WF/PlanetCracker/Crack/random_crack_effect_3.ogg

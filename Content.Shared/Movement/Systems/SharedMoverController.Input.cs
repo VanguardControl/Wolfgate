@@ -216,7 +216,10 @@ namespace Content.Shared.Movement.Systems
             var diff = relativeRot - oldRelativeRot;
 
             // If we're going from a grid -> map then preserve the relative rotation so it's seamless if they go into space and back.
-            if (MapQuery.HasComp(relative) && MapGridQuery.HasComp(mover.RelativeEntity))
+            // WOLFGATE: a planet surface is a map that is ALSO a grid, so stepping (or drifting, as a ghost) off a
+            // rotated hull onto its tiles read as a trip into space and kept the hull's tilt for good. Tiles under you
+            // are ground, not space: a map that is a grid falls through to the cardinal snap below.
+            if (MapQuery.HasComp(relative) && !MapGridQuery.HasComp(relative) && MapGridQuery.HasComp(mover.RelativeEntity))
             {
                 mover.TargetRelativeRotation -= diff;
             }

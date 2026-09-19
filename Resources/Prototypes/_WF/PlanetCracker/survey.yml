@@ -1,0 +1,45 @@
+# The handheld surveyor and its pulse effect. There is NO mark beacon prototype in F2: every sector body
+# already ships `- type: FTLBeacon` (Resources/Prototypes/_FarHorizons/Entities/Objects/StarSystem/star_system.yml:20)
+# and is renamed to the planet's name at spawn, so the destination the console points at already exists.
+
+- type: entity
+  id: WFSurveyor
+  parent: BaseItem
+  name: handheld surveyor
+  description: Pulses the ground and paints back whatever is dense enough to be worth cracking for.
+  components:
+  # Existing art: the handheld anomaly locator, a density scanner with its own icon and both in-hands.
+  - type: Sprite
+    sprite: Objects/Specific/Research/anomalylocator.rsi
+    state: icon
+  - type: Item
+  - type: UseDelay
+    delay: 8
+  - type: WFSurveyor
+  # Do NOT add ItemToggle: ItemToggleSystem.OnUseInHand sets args.Handled unconditionally when onUse is true
+  # (Content.Shared/Item/ItemToggle/ItemToggleSystem.cs:63) and would silently eat the scan.
+  # Do NOT add `sprite:` under `- type: Item`: with no RsiPath the client falls back to the entity's own
+  # BaseRSI and picks up anomalylocator.rsi's inhand-left/inhand-right automatically (Content.Client/Items/Systems/ItemSystem.cs:53-103).
+  # Do NOT add `- type: Appearance` or a GenericVisualizer: there is no scanning face and no WFSurveyorVisuals
+  # enum exists to key one on (plan D-N). The locator's own `screen` state is deliberately unused.
+
+# The one-shot ground pulse, drawn by the singularity lensing shader rather than by a sprite: SingularityDistortion
+# is shared and networked and Content.Client/Singularity/SingularityOverlay.cs walks every one of them on the viewer's
+# map, so the effect needs no art of its own. Its ComponentStartup also takes a global PVS override, which is what
+# gets the ripple to a surveyor's own client without a sprite to replicate.
+- type: entity
+  id: WFEffectSurveyPulse
+  name: survey pulse
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.48
+  # The shader is intensity / distance^falloffPower in screen pixels (Resources/Textures/Shaders/singularity.swsl),
+  # so 400 at power 2 is a visible ripple about a tile out and nothing at all past four; the singularity itself runs
+  # 3645 at 2.53. Deliberately far short of the surveyor's twelve-tile reveal: this marks the pulse, not its range.
+  - type: SingularityDistortion
+    intensity: 400
+    falloffPower: 2
+  - type: Tag
+    tags:
+    - HideContextMenu

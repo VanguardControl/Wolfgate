@@ -1,0 +1,118 @@
+# Cracker consoles and the mapper-placed chunk berth marker. F1 shells; no BUI until F2/F4.
+
+- type: entity
+  id: WFCrackConsole
+  parent: BaseComputer
+  name: crack control console
+  description: Targets an anchor pair and runs the cut. The screen is mostly warnings.
+  components:
+  - type: Sprite
+    layers:
+    - map: [ "computerLayerBody" ]
+      state: computer
+    - map: [ "computerLayerKeyboard" ]
+      state: generic_keyboard
+    # Existing art: four stock computer faces off the shared computers.rsi, so the layer simply drops its own
+    # `sprite:` and inherits BaseComputer's. A nav grid while idle, the telescience targeting grid once a pair is
+    # named, the same grid gone red while the cut runs, and the ordnance warning face for the grace timer.
+    - map: [ "computerLayerScreen" ]
+      state: shuttle
+    - map: [ "computerLayerKeys" ]
+      state: generic_keys
+  - type: WFCrackConsole
+  - type: ActivatableUI
+    key: enum.WFCrackConsoleUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WFCrackConsoleUiKey.Key:
+        type: WFCrackConsoleBoundUserInterface
+  # Appearance and ActivatableUIRequiresPower are deliberately absent: BaseComputer supplies both.
+  # This block RE-DECLARES BaseComputer's two visualiser keys verbatim beside the new screen key,
+  # because a child `visuals` mapping replaces the parent's wholesale rather than merging into it:
+  # GenericVisualizerComponent's field is a plain [DataField] with InheritanceBehavior.Default, and
+  # inheritance composition merges only fields marked Always. Trim either re-declared block and the
+  # powered screen and the maintenance panel silently stop reacting. ComputerAlert does the same.
+  - type: GenericVisualizer
+    visuals:
+      enum.ComputerVisuals.Powered:
+        computerLayerScreen:
+          True: { visible: true, shader: unshaded }
+          False: { visible: false }
+        computerLayerKeys:
+          True: { visible: true, shader: unshaded }
+          False: { visible: true, shader: shaded }
+      enum.WFCrackConsoleVisuals.Screen:
+        computerLayerScreen:
+          Idle:      { state: shuttle }
+          Targeting: { state: telesci }
+          Cracking:  { state: telesci_red }
+          Alert:     { state: explosive }
+      enum.WiresVisuals.MaintenancePanelState:
+        enum.WiresVisualLayers.MaintenancePanel:
+          True: { visible: false }
+          False: { visible: true }
+
+- type: entity
+  id: WFSectorSurveyConsole
+  parent: BaseComputer
+  name: sector survey console
+  description: Reads long-range density returns and lists which worlds are worth cracking.
+  components:
+  - type: Sprite
+    layers:
+    - map: [ "computerLayerBody" ]
+      state: computer
+    - map: [ "computerLayerKeyboard" ]
+      state: generic_keyboard
+    # Existing art: two stock computer faces off the shared computers.rsi, inherited the same way as the crack
+    # console's. The sensor face while it sits there and the mineral face while a density scan runs.
+    - map: [ "computerLayerScreen" ]
+      state: sensors
+    - map: [ "computerLayerKeys" ]
+      state: generic_keys
+  - type: WFSectorSurveyConsole
+  - type: ActivatableUI
+    key: enum.WFSurveyConsoleUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WFSurveyConsoleUiKey.Key:
+        type: WFSurveyConsoleBoundUserInterface
+  # Appearance and ActivatableUIRequiresPower are deliberately absent: BaseComputer supplies both.
+  # This block RE-DECLARES BaseComputer's two visualiser keys verbatim beside the new screen key,
+  # because a child `visuals` mapping replaces the parent's wholesale rather than merging into it:
+  # GenericVisualizerComponent's field is a plain [DataField] with InheritanceBehavior.Default, and
+  # inheritance composition merges only fields marked Always. Trim either re-declared block and the
+  # powered screen and the maintenance panel silently stop reacting. ComputerAlert does the same.
+  - type: GenericVisualizer
+    visuals:
+      enum.ComputerVisuals.Powered:
+        computerLayerScreen:
+          True: { visible: true, shader: unshaded }
+          False: { visible: false }
+        computerLayerKeys:
+          True: { visible: true, shader: unshaded }
+          False: { visible: true, shader: shaded }
+      enum.WFSurveyConsoleVisuals.Screen:
+        computerLayerScreen:
+          Idle:     { state: sensors }
+          Scanning: { state: mining }
+      enum.WiresVisuals.MaintenancePanelState:
+        enum.WiresVisualLayers.MaintenancePanel:
+          True: { visible: false }
+          False: { visible: true }
+
+- type: entity
+  id: WFChunkBerthMarker
+  parent: MarkerBase
+  name: chunk berth marker
+  description: Marks where the extracted chunk hangs. Face it away from the hull.
+  categories: [ Mapping ]
+  components:
+  - type: Sprite
+    sprite: _WF/PlanetCracker/Interface/icons.rsi
+    state: chunk
+    scale: 2, 2
+    noRot: false
+  - type: Rotatable
+    rotateWhileAnchored: true
+  - type: WFChunkBerth

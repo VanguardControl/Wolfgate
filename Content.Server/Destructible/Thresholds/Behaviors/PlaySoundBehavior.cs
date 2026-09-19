@@ -16,6 +16,11 @@ namespace Content.Server.Destructible.Thresholds.Behaviors
 
         public void Execute(EntityUid owner, DestructibleSystem system, EntityUid? cause = null)
         {
+            // WOLFGATE: a hull grinding out a landing destroys every alarm, light and window aboard in the same tick,
+            // and one PlayPvs each is one OpenAL source each on every client that can hear them.
+            if (!system.WfDestructionSoundAllowed())
+                return;
+
             var pos = system.EntityManager.GetComponent<TransformComponent>(owner).Coordinates;
             system.EntityManager.System<SharedAudioSystem>().PlayPvs(Sound, pos);
         }
