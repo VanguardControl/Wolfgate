@@ -2756,3 +2756,24 @@ Deviations / notes:
    is now unreferenced. Left in place; no consumer, no cost.
 2. The window is resizable for the first time (`BaseWindow` writes `SetSize` on a resize drag, so the
    900x600 default and user resizing coexist).
+
+## Final stages: H (Crit heartbeat) (2026-09-19)
+
+A client-only looping heartbeat while the local player's own body is in `MobState.Critical`. Never plays for
+anyone else's mob and works for any entity with `MobStateComponent`, not only wound hosts.
+
+| Onyx path | Wolfgate path | Status | Notes |
+|---|---|---|---|
+| — | `Content.Client/_WF/Wolfmed/Audio/WolfmedCritHeartbeatSystem.cs` | new | client `EntitySystem`. Broadcast-subscribes `LocalPlayerAttachedEvent`/`LocalPlayerDetachedEvent` (pattern copied from `DamageOverlayUiController`), `MobStateChangedEvent` (filtered to `args.Target == _player.LocalEntity`, matching the overlay controller's own broadcast subscription — no duplicate directed pair) and `EntityTerminatingEvent` (already broadcast-subscribed elsewhere, e.g. `JukeboxSystem`/`ClientDirtySystem`, so a second broadcast subscriber is safe) to cover deletion without a detach. Also subscribes `<MobStateComponent, AfterAutoHandleStateEvent>` (no existing subscriber of that pair): `MobStateComponent` has no custom `ComponentHandleState`, so a state change made purely on the server — the common case, since wound/threshold crit is server-only — never raises `MobStateChangedEvent` on the client; `AfterAutoHandleStateEvent` is Robust's standard signal that an `AutoGenerateComponentState` component's networked fields were just applied, and is the reliable trigger here (found via a failing integration test — see Deviations). `Refresh()` re-derives play/stop state from the CVar and the current `MobStateComponent.CurrentState` on every relevant event, so attach-while-already-critical, recovery, death and re-crit all resolve correctly. Plays via `SharedAudioSystem.PlayGlobal(..., Filter.Local(), false, AudioParams.Default.WithLoop(true).WithVolume(-4f))`; a public `Active` bool is true whenever the loop should be playing even when the headless test backend returns no stream. |
+| — | `Content.Shared/Mobs/Components/MobStateComponent.cs` | modified | upstream hook, 1 marked line: `[AutoGenerateComponentState(raiseAfterAutoHandleState: true)]`. Without this the auto-generated component state applies silently and no client-side event exists to react to a server-driven `MobState` change at all. |
+| — | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | new | `wolfmed.crit_heartbeat` bool, default true, `CLIENTONLY \| ARCHIVE`. Wired with `Subs.CVar(_cfg, WolfmedCVars.CritHeartbeat, OnCVarChanged, true)` so it reacts live; no options-menu UI per the task. First Wolfmed-specific CCVar class (existing `_WF/CCVar` classes are Wolfgate-wide, e.g. `WolfgateCVars`, `InternetSoundCVars`). |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs` | new | client+server pair test (`PoolManager.GetServerClient(Connected = true)`), attaches the session's mind to a fresh `MobHuman` (pattern from `GenitalConsentTestHelpers.AttachToNewBody`), drives `MobStateSystem.ChangeMobState` through Critical → Alive → Critical → Dead and asserts `WolfmedCritHeartbeatSystem.Active` toggles true/false at each step. |
+| — | `Resources/Audio/_WF/Wolfmed/heartbeat_loop.ogg` + `attributions.yml` | pre-existing | asset and attribution already landed on the branch before this package; reused as-is at `/Audio/_WF/Wolfmed/heartbeat_loop.ogg`. |
+
+Deviations: the first pass subscribed only to `MobStateChangedEvent`, matching `DamageOverlayUiController`'s
+pattern; the new integration test caught that a server-only `MobStateSystem.ChangeMobState` never reaches the
+client through that event (it is not re-raised from networked component state), so the `AfterAutoHandleStateEvent`
+subscription above was added. That in turn needed the one-line upstream `MobStateComponent` hook (Robust does
+not raise `AfterAutoHandleStateEvent` for an `AutoGenerateComponentState` component unless it opts in), which
+is now the reliable trigger for a purely server-side crit. No locale or guide changes — the loop is a
+physical/audio cue with no player-facing text, matching how the existing crit vignette/overlay needs none.
