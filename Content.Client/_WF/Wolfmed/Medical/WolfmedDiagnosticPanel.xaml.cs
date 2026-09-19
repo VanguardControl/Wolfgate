@@ -160,6 +160,11 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
                 details.Add(Loc.GetString(
                     $"health-analyzer-wound-clotting-{diagnostic.ClottingPhase.ToString().ToLowerInvariant()}"));
 
+            // W1: printed before the scars, because it is the finding that decides what the medic does next.
+            if (diagnostic.EmbeddedObjects > 0)
+                details.Add(Loc.GetString("health-analyzer-wound-embedded-short",
+                    ("count", diagnostic.EmbeddedObjects)));
+
             if (diagnostic.ScarCount > 0)
                 details.Add(Loc.GetString("health-analyzer-wound-scars-short", ("count", diagnostic.ScarCount)));
 

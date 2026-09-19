@@ -16,11 +16,13 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     List<HealthAnalyzerVisibleWound> VisibleWounds,
     BodyPartFunctionalityState Functionality,
     float InternalBleedingRate,
-    HealthAnalyzerClottingPhase ClottingPhase)
+    HealthAnalyzerClottingPhase ClottingPhase,
+    ushort EmbeddedObjects = 0) // WOLFGATE (W1): rounds and shrapnel still in the part.
 {
     public bool HasFindings =>
         Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||
-        VisibleWounds.Count > 0 || Functionality != BodyPartFunctionalityState.Functional || InternalBleedingRate > 0f;
+        VisibleWounds.Count > 0 || Functionality != BodyPartFunctionalityState.Functional ||
+        InternalBleedingRate > 0f || EmbeddedObjects > 0; // WOLFGATE (W1)
 }
 
 [Serializable, NetSerializable]

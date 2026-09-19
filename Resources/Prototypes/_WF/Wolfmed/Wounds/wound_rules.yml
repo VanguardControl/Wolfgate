@@ -1,0 +1,69 @@
+# Which wound a hit makes, by cause and size (W1). Rules are tried highest priority first; the first one
+# whose filters and chance roll pass wins and, with replacesDefault, takes the place of the damage type's
+# default Onyx wound. Every filter left out matches everything.
+#
+# Adding one: write the wound with `ruleOnly: true`, add it to the part profile's supportedWounds, then a
+# rule here. No C#.
+
+# Explosions and buckshot leave fragments in the flesh. Explosion damage is split across parts, so the
+# per-part share is small; the floor is deliberately low.
+- type: wolfmedWoundRule
+  id: WolfmedRuleShrapnel
+  priority: 50
+  wound: WolfmedShrapnelWound
+  damageTypes: [ Piercing ]
+  causes: [ Explosion, Fragment ]
+  minDamage: 2
+  capabilities: [ Biological ]
+  embedded:
+    item: WolfmedShrapnelFragment
+    minCount: 1
+    maxCount: 2
+    maxTotal: 6
+
+# A rifle-weight round stays in. Always, so a medic can rely on what a heavy hit means.
+- type: wolfmedWoundRule
+  id: WolfmedRuleLodgedRoundHeavy
+  priority: 40
+  wound: WolfmedLodgedRoundWound
+  damageTypes: [ Piercing ]
+  causes: [ Projectile ]
+  minDamage: 18
+  capabilities: [ Biological ]
+  embedded:
+    item: WolfmedSpentRound
+
+# A lighter one sometimes does.
+- type: wolfmedWoundRule
+  id: WolfmedRuleLodgedRound
+  priority: 30
+  wound: WolfmedLodgedRoundWound
+  damageTypes: [ Piercing ]
+  causes: [ Projectile ]
+  minDamage: 7
+  maxDamage: 18
+  chance: 0.2
+  capabilities: [ Biological ]
+  embedded:
+    item: WolfmedSpentRound
+
+# Otherwise it went through.
+- type: wolfmedWoundRule
+  id: WolfmedRuleGunshot
+  priority: 20
+  wound: WolfmedGunshotWound
+  damageTypes: [ Piercing ]
+  causes: [ Projectile ]
+  minDamage: 7
+  capabilities: [ Biological ]
+
+# A round that barely caught the limb.
+- type: wolfmedWoundRule
+  id: WolfmedRuleGraze
+  priority: 10
+  wound: WolfmedGrazeWound
+  damageTypes: [ Piercing ]
+  causes: [ Projectile ]
+  maxDamage: 7
+  minSeverity: 3
+  capabilities: [ Biological ]

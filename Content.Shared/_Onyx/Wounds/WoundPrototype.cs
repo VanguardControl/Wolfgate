@@ -34,6 +34,13 @@ public sealed partial class WoundPrototype : IPrototype
     [DataField]
     public float HealingMultiplier = 1f;
 
+    /// <summary>
+    /// WOLFGATE (W1): the wound is created only by a Wolfmed wound rule, never by the default per-damage-type
+    /// pass. <see cref="DamageTypes"/> still governs how treatment and damage removal heal it.
+    /// </summary>
+    [DataField]
+    public bool RuleOnly;
+
     [DataField]
     public WoundVisibility Visibility = WoundVisibility.Visible;
 

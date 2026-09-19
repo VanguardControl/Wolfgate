@@ -34,6 +34,27 @@ An open wound caused by slash damage. It bleeds more reliably than a blunt wound
 
 A deep puncture. It is usually more painful and bleeds more heavily than a slash wound; severe punctures impair or disable the part.
 
+## Graze
+
+A round that only caught the limb. It stings, bleeds briefly, and stops on its own.
+
+## Gunshot wound
+
+A round that went through. It bleeds well and is treated like any other open wound.
+
+## Lodged round
+
+A heavy round that stayed in. Rifle-weight hits always lodge, lighter ones sometimes do. It keeps bleeding, never clots on its own, and refuses every treatment - sutures, gauze, and surgery alike - until the round is out.
+
+## Shrapnel wound
+
+Fragments from a blast or from buckshot, several at a time. It behaves like a lodged round: each fragment has to come out before the wound can be closed.
+  <Box>
+    <GuideEntityEmbed Entity="Hemostat"/>
+    <GuideEntityEmbed Entity="WolfmedSpentRound"/>
+    <GuideEntityEmbed Entity="WolfmedShrapnelFragment"/>
+  </Box>
+
 ## Burn wound
 
 The result of heat or caustic exposure, including a laser or plasma weapon. Its main danger is increasing pain, and it may scar suitable tissue.

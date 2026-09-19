@@ -43,6 +43,16 @@ Removing damage barely closes the wound underneath it, and a bleeding wound neve
     <GuideEntityEmbed Entity="Tourniquet"/>
   </Box>
 
+## Embedded objects
+
+A lodged round or a fragment blocks everything else: while one is in the part, the wound will not close and the bleeding will not stop. Select the part on the targeting doll and use a hemostat on the patient to pull one object out; repeat until the analyzer stops listing them.
+
+Any sharp item - a knife, a scalpel, a glass shard - works as well, but takes longer, hurts, and leaves a fresh cut. Digging one out of your own limb is slower again.
+  <Box>
+    <GuideEntityEmbed Entity="Hemostat"/>
+    <GuideEntityEmbed Entity="KitchenKnife"/>
+  </Box>
+
 ## Medicine
 
 Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound.

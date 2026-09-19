@@ -818,7 +818,8 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 var applied = new PartDamageAppliedEvent(body, target, appliedDamage,
                     !_skipWoundHealing.Contains(body), origin, _explosionDamage.Contains(body),
                     overflow.Empty && _explosionAmputationCandidates.GetValueOrDefault(body) == target,
-                    _woundSeverityMultipliers.GetValueOrDefault(body, 1f));
+                    _woundSeverityMultipliers.GetValueOrDefault(body, 1f),
+                    _routedModifiers.GetValueOrDefault(body).Tool); // WOLFGATE (W1): carry the weapon to the wound rules.
                 RaiseLocalEvent(target, ref applied);
                 return;
             }

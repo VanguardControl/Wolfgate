@@ -9,6 +9,7 @@ using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W1)
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Damage;
@@ -25,6 +26,7 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private BodyPartFunctionalitySystem _functionality = default!; // WOLFGATE: HOOK 23
     [Dependency] private MobThresholdSystem _mobThreshold = default!; // WOLFGATE: HOOK 23
     [Dependency] private IPrototypeManager _prototypes = default!; // WOLFGATE: HOOK 23
+    [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!; // WOLFGATE (W1)
 
     /// <summary>Per-part wound findings for a wound host, or null for anything else.</summary>
     public HealthAnalyzerWoundDiagnostics? BuildWoundDiagnostics(EntityUid body)
@@ -125,7 +127,8 @@ public sealed partial class HealthAnalyzerSystem
                 wounds,
                 _functionality.GetState((part, woundable)),
                 internalBleedingRate,
-                clottingPhase);
+                clottingPhase,
+                (ushort) Math.Clamp(_embedded.GetPartCount((part, woundable)), 0, ushort.MaxValue)); // WOLFGATE (W1)
 
             if (diagnostic.HasFindings)
                 result[target] = diagnostic;

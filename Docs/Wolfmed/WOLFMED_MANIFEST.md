@@ -2820,3 +2820,54 @@ Deviations from the spec:
 3. `BoneFractureWound`'s stage thresholds were lowered alongside the profile grades, which the spec did not
    ask for. Without it a fresh Hairline fracture (severity 12-19) falls below the wound's own lowest stage and
    carries no pain, no functionality penalty and no stage name at all.
+
+## Final stages: W1 (Ballistic wounds, embedded objects, wound rules framework) (2026-09-19)
+
+Four ballistic wounds, objects that stay in the flesh until someone digs them out, and the small data-driven
+framework W2-W6 will reuse: a cause enum derived from the hit's tool, a `wolfmedWoundRule` prototype that maps
+{damage type, cause, per-hit size, part type, profile capability, chance} to a wound, and one marked extension
+point in the vendored `WoundSystem`.
+
+| Onyx path | Wolfgate path | Status | Notes |
+|---|---|---|---|
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundCause.cs` | new | `[Flags]` enum: `Projectile, Fragment, Hitscan, Explosion, Melee, Unarmed, Bite, Thrown, Environmental, Surgery`. Several flags in one YAML scalar: `cause: "Unarmed, Bite"`. |
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedDamageCauseComponent.cs` | new | per-entity cause override, merged with the derived flags. Put on a projectile, a weapon or an attacking mob. |
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRulePrototype.cs` | new | `wolfmedWoundRule`: `wound`, `damageTypes`, `causes`, `minDamage`/`maxDamage`, `partTypes`, `capabilities`, `chance`, `priority`, `severityMultiplier`, `minSeverity`, `replacesDefault`, `continue`, `embedded` (`WolfmedEmbeddedSpec`: `item`, `minCount`, `maxCount`, `maxTotal`). Every filter left empty matches everything. |
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | new | `WolfmedWoundSelectionEvent` (the extension point, raised per damage type per hit on the part) and `WolfmedEmbeddedRemovalDoAfterEvent`. |
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs` | new | rule cache by damage type (rebuilt on prototype reload), `GetCause(origin, tool, isExplosion)`, and the selection handler: rules in descending priority, first match wins unless it sets `continue`, explosion severity scaling mirrored from `WoundSystem.HandlePartDamageApplied`. |
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedEmbeddedObjectComponent.cs` | new | on the wound: `count`, `item`, `maxCount`, `blocksTreatment`, `cleanDelay`/`sharpDelay`/`selfMultiplier`, `sharpDamage`, `sharpPain`. |
+| — | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedEmbeddedObjectSystem.cs` | new | cancels `WoundTreatmentAttemptEvent` while anything is embedded; `Add`, `GetEmbeddedWound`, `GetPartCount`, `TryTakeOne` (drops the component at zero). |
+| — | `Content.Server/_WF/Wolfmed/Wounds/WolfmedEmbeddedRemovalSystem.cs` | new | `<WoundHostComponent, AfterInteractUsingEvent>` (last in the interaction chain, so it never steals a surgery or a topical) plus the do-after. `TryGetTool` calls a hemostat or tweezers clean, any `Sharp` item or Slash melee weapon dirty. `TryRemoveOne` is public so tests drive it without a do-after. |
+| `_Onyx/Wounds/WoundSystem.cs` | `Content.Shared/_Onyx/Wounds/WoundSystem.cs` | modified | two marked blocks: raise `WolfmedWoundSelectionEvent` before the default per-type loop and `continue` when it suppresses the default; skip `prototype.RuleOnly` wounds in the creation branch. |
+| `_Onyx/Wounds/WoundPrototype.cs` | `Content.Shared/_Onyx/Wounds/WoundPrototype.cs` | modified | one marked field, `ruleOnly`. Keeps rule wounds out of the damage-type creation pass while `damageTypes` still governs how they heal. |
+| `_Onyx/Wounds/WoundEvents.cs` | `Content.Shared/_Onyx/Wounds/WoundEvents.cs` | modified | one marked field on `PartDamageAppliedEvent`: `Tool`. |
+| `_Onyx/Wounds/WoundDamageRoutingSystem.cs` | `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs` | modified | one marked line: pass `_routedModifiers[body].Tool` into `PartDamageAppliedEvent`. The side table already carried it for armour penetration (D23). |
+| `_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified | marked `ushort EmbeddedObjects = 0` and its `HasFindings` clause. |
+| — | `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | fills `EmbeddedObjects` from `WolfmedEmbeddedObjectSystem.GetPartCount`. |
+| — | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | prints `health-analyzer-wound-embedded-short` before the scar row. |
+| — | `Content.Shared/Weapons/Melee/SharedMeleeWeaponSystem.cs` | modified | upstream hook, two marked one-line `tool: meleeUid` additions (light and heavy attack). Nothing reads `DamageModifyEvent.Tool`, so this only reaches the wound rules. |
+| — | `Content.Server/Damage/Systems/DamageOtherOnHitSystem.cs` | modified | upstream hook, one marked line: `tool: uid` for a thrown item, so `Thrown` is a real cause for W2/W3. |
+| — | `Resources/Prototypes/_WF/Wolfmed/Wounds/ballistic.yml` | new | `WolfmedGrazeWound`, `WolfmedGunshotWound`, `WolfmedLodgedRoundWound`, `WolfmedShrapnelWound`, all `ruleOnly: true`. The two that hold objects use `healingMultiplier: 0` and `clottingMultiplier: 0`, so nothing closes them and they never clot while something is in there. |
+| — | `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | new | five rules: shrapnel (Explosion or Fragment, >= 2), lodged heavy (Projectile, >= 18), lodged light (Projectile, 7-18, 20 %), gunshot (Projectile, >= 7), graze (Projectile, <= 7). All `capabilities: [Biological]`. |
+| — | `Resources/Prototypes/_WF/Wolfmed/Entities/removed_objects.yml` | new | `WolfmedSpentRound` (existing `ammo_casing.rsi` `base-spent`) and `WolfmedShrapnelFragment` (existing, until now unused, `Shards/shrapnel.rsi` `shrapnelsmall`). No new art, no new attribution. |
+| `_Onyx/Wounds/wounds.yml` | `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | four marked ids added to `OrganicBodyPartProfile.supportedWounds`; `CanCreateWound` gates on that list. |
+| — | `Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml` | modified | marked `WolfmedDamageCause: Fragment` on `Pellet12_gauge`; the spread variants inherit it. |
+| — | `Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml` | modified | marked `WolfmedDamageCause: Fragment` on `PelletClusterLethal`. |
+| — | `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | new | four wound names, three removal popups, `health-analyzer-wound-embedded-short`. |
+| — | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | four new wound entries after the puncture. |
+| — | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Embedded objects" section: a hemostat is clean, any sharp item works but cuts and hurts, self-removal is slower. |
+| — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBallisticWoundTest.cs` | new | seven tests: damage bands, mid-band through-or-lodge, melee Piercing stays a puncture, explosion and buckshot both make shrapnel, lodged round bleeds and refuses treatment until removed, knife removal costs a cut and pain, analyzer reports the count. Drives the real damage pipeline with a real projectile entity as the tool. |
+
+Deviations from the spec:
+1. A rifle-weight round (>= 18 Piercing per hit) lodges **always**, not by chance. The spec allows "at high or
+   by chance"; a deterministic heavy band gives a medic something they can rely on and keeps the tests free of
+   RNG. One `chance:` line reverses it.
+2. No new forceps item. `HemostatComponent` (hemostat, advanced retractor, omnitool) and `TweezersComponent`
+   already exist and are treated as the clean tool, as the task preferred. W7 can add a dedicated forceps item
+   by giving it either component.
+3. Bleeding and pain upkeep while embedded are the wound prototype's own behaviors (`clottingMultiplier: 0`
+   plus `WoundPainBehavior`) rather than a tick loop on the component. Same result, no new update loop, and a
+   new embedded wound only has to set its data.
+4. `Hitscan`, `Bite` and `Surgery` exist in the cause enum but nothing derives them yet: hitscan weapons pass
+   no tool, and bites arrive through melee as `Unarmed`. Both are one `WolfmedDamageCause` component in YAML
+   (or one marked `tool:` argument) away, which is why the flags are already there for W2.

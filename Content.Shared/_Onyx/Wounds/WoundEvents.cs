@@ -52,7 +52,10 @@ public readonly record struct PartDamageAppliedEvent(
     EntityUid? Origin = null,
     bool IsExplosion = false,
     bool ExplosionAmputationCandidate = false,
-    float WoundSeverityMultiplier = 1f);
+    float WoundSeverityMultiplier = 1f,
+    // WOLFGATE (W1): the projectile or weapon that dealt the hit. Wolfmed's wound rules read it to tell a
+    // gunshot from a knife; routing already carries it for armour penetration.
+    EntityUid? Tool = null);
 
 /// <summary>
 /// Raised when damage is dealt to a part that is already at (or pushed past) its

@@ -27,6 +27,11 @@
     - InternalBleedingWound
     - MedicalScarWound
     - SystemicBleedingWound
+    # WOLFGATE (W1): ballistic wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds).
+    - WolfmedGrazeWound
+    - WolfmedGunshotWound
+    - WolfmedLodgedRoundWound
+    - WolfmedShrapnelWound
   organDamage:
     chances:
       Head: 0.05

@@ -4,6 +4,7 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W1): the wound rule extension point.
 using Content.Shared.FixedPoint;
 using Content.Shared.Rejuvenate;
 using Robust.Shared.Containers;
@@ -73,6 +74,17 @@ public sealed partial class WoundSystem : EntitySystem
             if (amount == FixedPoint2.Zero || !_woundsByDamageType.TryGetValue(type, out var wounds))
                 continue;
 
+            // WOLFGATE (W1): Wolfmed's wound rules answer here and may create a cause-specific wound
+            // (gunshot, lodged round, shrapnel) in place of the default one for this damage type.
+            if (amount > FixedPoint2.Zero)
+            {
+                var selection = new WolfmedWoundSelectionEvent(args.Body, part.Owner, type, amount,
+                    args.Origin, args.Tool, args.IsExplosion, args.WoundSeverityMultiplier);
+                RaiseLocalEvent(part.Owner, ref selection);
+                if (selection.SuppressDefault)
+                    continue;
+            }
+
             foreach (var (prototype, settings) in wounds)
             {
                 if (settings.SeverityMultiplier <= 0f)
@@ -86,7 +98,8 @@ public sealed partial class WoundSystem : EntitySystem
 
                 if (amount > FixedPoint2.Zero)
                 {
-                    if (!CanCreateWound(part.AsNullable(), prototype.ID, type))
+                    // WOLFGATE (W1): rule-only wounds are created by WolfmedWoundRuleSystem, not by damage type.
+                    if (prototype.RuleOnly || !CanCreateWound(part.AsNullable(), prototype.ID, type))
                         continue;
 
                     CreateOrMergeWoundInternal(part.Owner, prototype, severity,
