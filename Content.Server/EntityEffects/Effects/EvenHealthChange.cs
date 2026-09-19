@@ -3,9 +3,11 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
 using Content.Shared.Localizations;
+using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 9 - treatment-capability scope
 using JetBrains.Annotations;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
+using System.Linq; // WOLFGATE: HOOK 9 - Any() on the healing test
 
 namespace Content.Server.EntityEffects.Effects;
 
@@ -34,6 +36,10 @@ public sealed partial class EvenHealthChange : EntityEffect
     /// </summary>
     [DataField]
     public bool IgnoreResistances = true;
+
+    // WOLFGATE: HOOK 9 - which body-part materials this healing can treat on a wound host.
+    [DataField]
+    public HashSet<TreatmentCapability> TreatmentCapabilities = [TreatmentCapability.Biological];
 
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
@@ -132,10 +138,20 @@ public sealed partial class EvenHealthChange : EntityEffect
             }
         }
 
-        damagableSystem.TryChangeDamage(
+        // WOLFGATE: HOOK 9 - the call becomes a delegate so healing can run inside a treatment-capability scope.
+        var final = dspec * scale;
+        void Apply() => damagableSystem.TryChangeDamage(
             args.TargetEntity,
-            dspec * scale,
+            final,
             IgnoreResistances,
             interruptsDoAfters: false);
+
+        // WOLFGATE: HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
+        if (Damage.Values.Any(amount => amount < 0) &&
+            args.EntityManager.HasComponent<WoundHostComponent>(args.TargetEntity))
+            args.EntityManager.System<WoundDamageRoutingSystem>()
+                .WithTreatmentCapabilities(args.TargetEntity, TreatmentCapabilities, Apply);
+        else
+            Apply();
     }
 }

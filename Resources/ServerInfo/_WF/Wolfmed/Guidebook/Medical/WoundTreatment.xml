@@ -1,0 +1,189 @@
+<Document>
+
+# Wound treatment
+
+1. Restore breathing and stabilize critical condition.
+
+2. Stop major external bleeding - a tourniquet buys time on a limb that will not stop bleeding on its own.
+
+3. Scan the patient and select the damaged part.
+
+4. Remove damage with treatment matching its type.
+
+5. Scan again: remaining wounds, fractures, and organ damage need separate treatment.
+  <Box>
+    <GuideEntityEmbed Entity="HandheldHealthAnalyzer"/>
+  </Box>
+
+## Biological tissue
+
+Every topical treats one kind of injury. Used on a part it cannot help, it refuses and says so - check the analyzer first.
+
+[bold]Bruise packs:[/bold] blunt trauma only. They do not close cuts or punctures and do not stop bleeding.
+
+[bold]Ointment and regenerative mesh:[/bold] burns only - heat, cold, shock and caustic.
+
+[bold]Gauze:[/bold] cuts and punctures, and reduces external bleeding.
+
+[bold]Medicated sutures:[/bold] cuts and punctures, and stop their bleeding.
+
+[bold]Tourniquet:[/bold] stops bleeding on one limb entirely while applied, at the cost of that limb's use.
+
+Removing damage barely closes the wound underneath it, and a bleeding wound never closes that way at all. Expect to finish the job with gauze, sutures or surgery.
+
+[bold]Moderate wound:[/bold] external surgical treatment.
+
+[bold]Severe wound:[/bold] treatment through an open incision.
+  <Box>
+    <GuideEntityEmbed Entity="Brutepack"/>
+    <GuideEntityEmbed Entity="Ointment"/>
+    <GuideEntityEmbed Entity="Gauze"/>
+    <GuideEntityEmbed Entity="MedicatedSuture"/>
+    <GuideEntityEmbed Entity="RegenerativeMesh"/>
+    <GuideEntityEmbed Entity="Tourniquet"/>
+  </Box>
+
+## Embedded objects
+
+A lodged round or a fragment blocks everything else: while one is in the part, the wound will not close and the bleeding will not stop. Select the part on the targeting doll and use a hemostat on the patient to pull one object out; repeat until the analyzer stops listing them.
+
+Any sharp item - a knife, a scalpel, a glass shard - works as well, but takes longer, hurts, and leaves a fresh cut. Digging one out of your own limb is slower again.
+  <Box>
+    <GuideEntityEmbed Entity="Hemostat"/>
+    <GuideEntityEmbed Entity="KitchenKnife"/>
+  </Box>
+
+## Arterial bleeding
+
+An arterial bleed is the one bleed a dressing will not fix. Gauze slows it, buying minutes rather than solving anything, and it will not take the wound's severity no matter how much you use.
+
+On an arm, hand, leg or foot, put a tourniquet on first: that stops the flow outright while it is applied, and only then will sutures close the wound underneath. In the torso or the head there is nothing to tie around, so the patient goes straight to the table: the artery repair surgery clamps the vessel and then sutures it.
+
+## Severed tendons
+
+A severed tendon is mechanical damage, not an open wound, and no topical reaches it. Open the limb and run the tendon repair surgery.
+  <Box>
+    <GuideEntityEmbed Entity="Tourniquet"/>
+    <GuideEntityEmbed Entity="Hemostat"/>
+  </Box>
+
+## Blunt trauma
+
+A bruise pack is the whole answer for an ordinary bruise and for a crush injury. The three complications a heavy hit leaves behind are not items at all.
+
+A [bold]dislocated joint[/bold] is set by hand. Select the limb on the targeting doll, alt-click the patient and choose [bold]Relocate joint[/bold]. On yourself it takes far longer and hurts twice as much.
+
+A [bold]concussion[/bold] has no treatment. It fades on its own and four times faster while the patient sleeps or lies buckled in a medical bed; painkillers only hide what it hurts.
+
+A [bold]bruised organ[/bold] is separate from the bruising over it. Treat the wound with a bruise pack and read the organ's own condition off the analyzer - the organ surgeries are what restore it.
+
+A crushing blow can also start [bold]internal bleeding[/bold], which no dressing reaches. It shows on the analyzer and comes out on the table.
+  <Box>
+    <GuideEntityEmbed Entity="Brutepack"/>
+    <GuideEntityEmbed Entity="Bonesetter"/>
+  </Box>
+
+## Burns
+
+Ointment and regenerative mesh handle ordinary burns, frostbite and the damage a chemical burn has already done. Three things they do not handle:
+
+A [bold]chemical burn[/bold] keeps working while the acid is still on the skin. Rinse the patient - water from any source will do, including a spray bottle or an extinguisher - before you bother treating the damage, or it will come straight back.
+
+[bold]Charred tissue[/bold], left when a burn reaches its critical stage, carries no damage type, so nothing in a medkit reaches it. Open the part, graft it with a skin graft, seal it.
+
+[bold]Frostbite[/bold] numbs what it freezes. The patient will under-report a frozen limb; trust the analyzer.
+
+Skin grafts are in the burn kit and the surgical crate, come out of the medical vendor, and print on a medical lathe.
+  <Box>
+    <GuideEntityEmbed Entity="RegenerativeMesh"/>
+    <GuideEntityEmbed Entity="WolfmedSkinGraft"/>
+  </Box>
+
+## Cauterisation
+
+Heat seals bleeding. In a fight that means a laser closes wounds a knife would have left open; deliberately, it means holding something hot against a wound with the [bold]Cauterise wound[/bold] verb. That works on a severed artery when nothing else is to hand, and costs a deep burn and a great deal of pain. Use it when the patient is losing blood faster than they can reach a table.
+  <Box>
+    <GuideEntityEmbed Entity="Welder"/>
+  </Box>
+
+## Medicine
+
+Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound.
+
+A ladder of painkillers suppresses pain by increasing amounts: ibuprofen, ketorolac, tramadol, and oxycodone, from mildest to strongest. Cognac, bicaridine, and desoxyephedrine also carry a lesser pain-suppressing effect alongside their other uses.
+  <Box>
+    <GuideEntityEmbed Entity="ChemDispenser"/>
+    <GuideEntityEmbed Entity="Syringe"/>
+  </Box>
+
+## Fractures
+
+Bones break from blunt force. A single solid hit can crack one, and repeated blows to the same limb break it far sooner than the first hit alone would have.
+
+A fracture is mended in two steps: a bonesetter reduces it, then bone gel mends it, both through an open incision. Osteogen knits a simple break without surgery, and stasizium knits any of them.
+
+Away from a table, a [bold]splint[/bold] does the first step on its own. Select the broken limb on the targeting doll and use the splint on the patient; on yourself it takes two and a half times as long. The break goes to [bold]set[/bold], which is a quarter of the movement and manipulation penalty, and the analyzer says so. It is not a cure: the bone is still broken, it still needs gel or a bone-knitting reagent, and a fresh hard blow to the same limb undoes the splint. Splints only go around arms, hands, legs and feet; a broken rib or skull is surgical.
+
+Splints are in the brute kit and the medical vendor. An [bold]improvised splint[/bold] - two metal rods and two cloth, crafted anywhere - does the same job more slowly.
+  <Box>
+    <GuideEntityEmbed Entity="WolfmedSplint"/>
+    <GuideEntityEmbed Entity="WolfmedSplintImprovised"/>
+    <GuideEntityEmbed Entity="Bonesetter"/>
+    <GuideEntityEmbed Entity="BoneGel"/>
+  </Box>
+
+## Infection
+
+An open wound that nobody treats becomes infected. How fast depends on the wound: a clean cut is the baseline, a bullet hole, a bite or an open stump are far worse, and anything a knife has been dug around in is worse again. The analyzer reports the stage per part.
+
+[bold]Local[/bold] is the wound itself going bad: it hurts, and it keeps reopening faster than a dressing closes it. [bold]Spreading[/bold] has left the wound: the patient runs a fever and takes toxin damage. [bold]Sepsis[/bold] is systemic, shows on the patient's own alerts, and kills if it is left alone.
+
+Prevention is most of the work, and it is cheap. Dressing a wound early cuts its infection rate to a seventh; suturing or cauterising it stops the clock outright. Antiseptic - ethanol, bleach or spaceacillin applied to the skin - cleans an open wound and lets a local infection drain away over the next minute. None of that reaches an infection that has already spread.
+
+Once it has, the answer is [bold]spaceacillin[/bold] in the bloodstream. It clears contamination in every wound at once and pulls sepsis back; a large dose is poisonous, so treat and stop.
+
+Bottles come out of the medical vendor and the medical supplies crate. Chemistry can also make it from cryptobiolin and inaprovaline in equal parts.
+  <Box>
+    <GuideEntityEmbed Entity="Gauze"/>
+    <GuideEntityEmbed Entity="SpaceacillinChemistryBottle"/>
+    <GuideEntityEmbed Entity="Syringe"/>
+  </Box>
+
+## Necrosis
+
+Tissue dies when the blood stops reaching it. Three ways that happens:
+
+A [bold]tourniquet[/bold] is a ten-minute solution. Get the patient to a table and suture what is under it, or use the [bold]Loosen tourniquet[/bold] verb and accept the bleeding, because the limb will not survive being forgotten. The analyzer flags the part as soon as the clock starts, and the patient feels the limb go cold before the end.
+
+A limb frozen through or burned to charring is already dying, and the clock runs whether or not anyone notices.
+
+A [bold]severed limb[/bold] keeps for five minutes. Put it back after that and it goes back on dead.
+
+Dead tissue is permanent. It does not heal, no reagent or topical reaches it, the limb works badly, and it keeps the patient septic for as long as it is attached. The only treatment is amputation and a replacement part.
+  <Box>
+    <GuideEntityEmbed Entity="Tourniquet"/>
+    <GuideEntityEmbed Entity="Saw"/>
+  </Box>
+
+## Mechanical repair
+
+An IPC and a cybernetic limb are not treated, they are repaired. No medicine, topical or reagent reaches them at all; what does is a tool, and which tool depends on the finding.
+
+A [bold]dent[/bold] is blunt force on something that does not bruise. A welder takes it out, and so does a plain [bold]wrench[/bold], which needs no fuel and does nothing else.
+
+A [bold]chassis breach[/bold] is the mechanical bleed: coolant and hydraulic fluid running out of a hole. It never clots, so it runs until a welder seals it. A breach opened by a round or by shrapnel keeps the object, and nothing - welder included - closes it until that has been pulled out with a hemostat or tweezers.
+
+A [bold]short circuit[/bold] locks the frame up for a moment and throws sparks each time it lands. A [bold]cable coil[/bold] repairs it.
+
+[bold]Servo damage[/bold] is the mechanical severed tendon: a cut actuator that leaves the limb slow or lame. Welding the panel shut does nothing for it - it takes a cable coil, because the wiring behind the panel is what has to be replaced.
+
+[bold]Overheating[/bold] is the one injury whose treatment is time. No tool reaches it. The part sheds heat on its own, faster in a cold room or under anything cold, and fastest of all if the patient is hosed down with water or an extinguisher.
+
+A chassis cannot become infected, cannot go septic and cannot become necrotic. A tourniquet on a cybernetic limb is a bleeding control measure and nothing more.
+  <Box>
+    <GuideEntityEmbed Entity="Welder"/>
+    <GuideEntityEmbed Entity="Wrench"/>
+    <GuideEntityEmbed Entity="CableApcStack"/>
+    <GuideEntityEmbed Entity="FireExtinguisher"/>
+  </Box>
+</Document>

@@ -7,6 +7,7 @@ using Content.Shared.DoAfter;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 13, executions must finish wound-host victims outright.
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
 using Content.Shared.Weapons.Melee;
@@ -32,6 +33,7 @@ public sealed partial class SharedExecutionSystem : EntitySystem
     [Dependency] private SharedCombatModeSystem _combat = default!;
     [Dependency] private SharedExecutionSystem _execution = default!;
     [Dependency] private SharedMeleeWeaponSystem _melee = default!;
+    [Dependency] private WoundDamageRoutingSystem _woundRouting = default!; // WOLFGATE: HOOK 13
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -219,6 +221,9 @@ public sealed partial class SharedExecutionSystem : EntitySystem
         else
         {
             _melee.AttemptLightAttack(attacker, weapon, meleeWeaponComp, victim);
+            // WOLFGATE: HOOK 13 - one routed limb hit will not kill, so top the victim up to lethal.
+            // TryApplyLethalDamage self-guards on WoundHostComponent and the server, so this is safe unconditionally.
+            _woundRouting.TryApplyLethalDamage(victim, meleeWeaponComp.Damage, attacker);
         }
 
         _combat.SetInCombatMode(attacker, prev);

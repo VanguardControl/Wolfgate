@@ -3,6 +3,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
 using Content.Shared.Localizations;
+using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 9 - treatment-capability scope
 using Content.Shared._Shitmed.Targeting; // Shitmed Change
 using JetBrains.Annotations;
 using Robust.Shared.Prototypes;
@@ -36,6 +37,10 @@ namespace Content.Server.EntityEffects.Effects
         [DataField]
         [JsonPropertyName("ignoreResistances")]
         public bool IgnoreResistances = true;
+
+        // WOLFGATE: HOOK 9 - which body-part materials this healing can treat on a wound host.
+        [DataField]
+        public HashSet<TreatmentCapability> TreatmentCapabilities = [TreatmentCapability.Biological];
 
         protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
         {
@@ -164,9 +169,11 @@ namespace Content.Server.EntityEffects.Effects
                 }
             }
 
-            args.EntityManager.System<DamageableSystem>().TryChangeDamage(
+            // WOLFGATE: HOOK 9 - the call becomes a delegate so healing can run inside a treatment-capability scope.
+            var change = Damage * scale;
+            void Apply() => args.EntityManager.System<DamageableSystem>().TryChangeDamage(
                 args.TargetEntity,
-                Damage * scale,
+                change,
                 IgnoreResistances,
                 interruptsDoAfters: false,
                 // Shitmed Change Start
@@ -174,6 +181,14 @@ namespace Content.Server.EntityEffects.Effects
                 partMultiplier: 1.00f, // Mono, 0.5f->1.00f
                 canSever: false);
             // Shitmed Change End
+
+            // WOLFGATE: HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
+            if (change.DamageDict.Values.Any(amount => amount < 0) &&
+                args.EntityManager.HasComponent<WoundHostComponent>(args.TargetEntity))
+                args.EntityManager.System<WoundDamageRoutingSystem>()
+                    .WithTreatmentCapabilities(args.TargetEntity, TreatmentCapabilities, Apply);
+            else
+                Apply();
         }
     }
 }

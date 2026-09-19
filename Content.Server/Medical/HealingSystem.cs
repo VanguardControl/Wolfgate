@@ -3,6 +3,7 @@ using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server.Medical.Components;
 using Content.Server.Popups;
+using Content.Server.Power.EntitySystems;
 using Content.Server.Stack;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
@@ -28,6 +29,8 @@ using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Components;
 using System.Linq;
 
+using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 8, wound-host call sites below
+
 namespace Content.Server.Medical;
 
 public sealed partial class HealingSystem : EntitySystem
@@ -49,7 +52,8 @@ public sealed partial class HealingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<HealingComponent, UseInHandEvent>(OnHealingUse);
-        SubscribeLocalEvent<HealingComponent, AfterInteractEvent>(OnHealingAfterInteract);
+        SubscribeLocalEvent<HealingComponent, AfterInteractEvent>(OnHealingAfterInteract,
+            before: [typeof(CableSystem)]);
         SubscribeLocalEvent<DamageableComponent, HealingDoAfterEvent>(OnDoAfter);
     }
 
@@ -62,6 +66,13 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (args.Handled || args.Cancelled)
             return;
+
+        // WOLFGATE: HOOK 8, wound hosts heal through WoundHealingSystem, never the flat DamageableComponent path.
+        if (HasComp<WoundHostComponent>(entity))
+        {
+            OnWoundHostDoAfter(entity, ref args, healing);
+            return;
+        }
 
         if (healing.DamageContainers is not null &&
             entity.Comp.DamageContainerID is not null &&
@@ -131,6 +142,9 @@ public sealed partial class HealingSystem : EntitySystem
         args.Handled = true;
     }
 
+    // WOLFGATE: HOOK 8, wound-host healing body moved to HealingSystem.Wolfmed.cs (OnWoundHostDoAfter,
+    // GetHealingContainers, IsWoundDamaged) - this partial shares its private fields.
+
     private bool HasDamage(DamageableComponent component, HealingComponent healing)
     {
         var damageableDict = component.Damage.DamageDict;
@@ -186,7 +200,11 @@ public sealed partial class HealingSystem : EntitySystem
         if (!TryComp<DamageableComponent>(target, out var targetDamage))
             return false;
 
-        if (component.DamageContainers is not null &&
+        // WOLFGATE: HOOK 8, a wound host resolves a body part, so the body's own damage container does not gate it.
+        var woundHost = HasComp<WoundHostComponent>(target);
+
+        if (!woundHost && // WOLFGATE: HOOK 8
+            component.DamageContainers is not null &&
             targetDamage.DamageContainerID is not null &&
             !component.DamageContainers.Contains(targetDamage.DamageContainerID))
         {
@@ -199,8 +217,31 @@ public sealed partial class HealingSystem : EntitySystem
         if (TryComp<StackComponent>(uid, out var stack) && stack.Count < 1)
             return false;
 
-        var anythingToDo =
-            HasDamage(targetDamage, component) ||
+        EntityUid? requestedPart = null;
+        if (woundHost)
+        {
+            if (!_woundHealing.TryGetTargetedPart(target, user, out requestedPart))
+            {
+                _popupSystem.PopupEntity(Loc.GetString("targeting-selected-part-missing"), target, user);
+                return false;
+            }
+
+            // Also retain the resolved site for healers without a targeting selector.
+            var resolved = _woundHealing.ResolveHealingPart(target, requestedPart,
+                _woundHealing.GetTreatableDamage(component), // WOLFGATE: W0, TreatedDamageTypes narrows the spec.
+                GetHealingContainers(component), component.TreatmentCapabilities, component.AllowedWoundStages,
+                component.BloodlossModifier, component.HealWounds);
+            if (requestedPart != null && resolved == null)
+            {
+                _popupSystem.PopupEntity(Loc.GetString("targeting-selected-part-incompatible"), target, user);
+                return false;
+            }
+            requestedPart = resolved;
+        }
+
+        var anythingToDo = woundHost // WOLFGATE: HOOK 8
+            ? IsWoundDamaged((target, targetDamage), component, requestedPart)
+            : HasDamage(targetDamage, component) ||
             IsPartDamaged(user, target) || // Shitmed Change
             component.ModifyBloodLevel > 0 // Special case if healing item can restore lost blood...
                 && TryComp<BloodstreamComponent>(target, out var bloodstream)
@@ -209,7 +250,9 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (!anythingToDo)
         {
-            _popupSystem.PopupEntity(Loc.GetString("medical-item-cant-use", ("item", uid)), uid, user);
+            // WOLFGATE: W0, on a wound host the refusal is about the selected part, not the whole patient.
+            _popupSystem.PopupEntity(Loc.GetString(woundHost ? "wolfmed-item-cant-treat-part" : "medical-item-cant-use",
+                ("item", uid)), uid, user);
             return false;
         }
 
@@ -228,7 +271,8 @@ public sealed partial class HealingSystem : EntitySystem
             : component.Delay * GetScaledHealingPenalty(user, component);
 
         var doAfterEventArgs =
-            new DoAfterArgs(EntityManager, user, delay, new HealingDoAfterEvent(), target, target: target, used: uid)
+            new DoAfterArgs(EntityManager, user, delay,
+                new HealingDoAfterEvent { RequestedPart = GetNetEntity(requestedPart) }, target, target: target, used: uid)
             {
                 // Didn't break on damage as they may be trying to prevent it and
                 // not being able to heal your own ticking damage would be frustrating.

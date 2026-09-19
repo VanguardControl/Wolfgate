@@ -1,0 +1,134 @@
+# Wolfmed part data. Values are Onyx's (_Onyx/Body/chest_groin.yml @ 2f5bab9).
+# Onyx's Chest maps to Wolfgate's Torso; Onyx's Groin has no Wolfgate equivalent and is dropped (D9).
+#
+# These are separate abstracts, not additions to the existing BaseTorso/BaseHead/Base*Arm/etc ids: RT's
+# ComponentRegistrySerializer throws "Duplicate ID" if this file redeclared those ids directly. Each one
+# is instead added to the corresponding upstream abstract's `parent:` list with a one-line `# WOLFGATE`
+# edit in Resources/Prototypes/Body/Parts/base.yml and Resources/Prototypes/_Shitmed/Body/Parts/base.yml.
+#
+# WOLFGATE (P3 balance, DECISIONS.md §8.6-1): guns and lasers CAN sever. Expressed only here, never in
+# Onyx's C# defaults. Two knobs, both read by AmputationSystem:
+#   * `amputationThresholds` gains a `Heat` row per part equal to that part's `Piercing` row. Threshold
+#     progress is `sum over the types IN THIS DICT of accumulatedPartDamage[type] / threshold[type]`
+#     (AmputationSystem.GetThresholdProgress), so a type absent from the dict contributes nothing and can
+#     never be a finishing hit (IsFinishingHit skips types the dict does not contain). Heat is a localized
+#     damage type (WoundHostComponent.LocalizedDamageTypes) accepted by OrganicBodyPartProfile and
+#     supported by the OrganicPart damage container, so laser damage already lands on the part's own
+#     Damageable as `Heat`; no wound-type mapping is needed - Burn wounds are a separate, parallel record.
+#   * `dismembermentFinishingDamage` lowers the per-hit Piercing minimum from Onyx's 40 to 12 (a standard
+#     14-Piercing round finishes) and sets Heat to 15 (a 16-Heat laser finishes). Slash and Blunt are left
+#     out of the dict on purpose so they keep falling back to Onyx's host defaults (15 / 50).
+# Slash/Piercing/Blunt thresholds themselves are untouched Onyx values, so gunfire still needs many hits
+# before a finishing shot lands.
+
+- type: entity
+  id: WolfmedBaseTorso
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    maxDamage: 250
+
+- type: entity
+  id: WolfmedBaseHead
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds:
+      Slash: 200
+      Piercing: 200
+      Blunt: 350
+      Heat: 200 # WOLFGATE (P3 balance)
+    # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: &wolfmedFinishingDamage
+      Piercing: 12
+      Heat: 15
+
+- type: entity
+  id: WolfmedBaseLeftArm
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: &wolfmedArmThresholds
+      Slash: 130
+      Piercing: 250
+      Blunt: 250
+      Heat: 250 # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseRightArm
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: *wolfmedArmThresholds
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseLeftHand
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: &wolfmedHandThresholds
+      Slash: 70
+      Piercing: 200
+      Blunt: 150
+      Heat: 200 # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseRightHand
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: *wolfmedHandThresholds
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseLeftLeg
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: &wolfmedLegThresholds
+      Slash: 150
+      Piercing: 250
+      Blunt: 300
+      Heat: 250 # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseRightLeg
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: *wolfmedLegThresholds
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseLeftFoot
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: &wolfmedFootThresholds
+      Slash: 80
+      Piercing: 220
+      Blunt: 170
+      Heat: 220 # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+
+- type: entity
+  id: WolfmedBaseRightFoot
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    amputationThresholds: *wolfmedFootThresholds
+    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)

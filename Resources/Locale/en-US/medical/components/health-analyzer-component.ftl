@@ -25,3 +25,25 @@ health-analyzer-window-scan-mode-inactive = Inactive
 health-analyzer-popup-scan-target = {CAPITALIZE(THE($user))} is trying to scan you!
 ## Shitmed Change
 health-analyzer-window-return-button-text = < Return
+
+# WOLFGATE (P4-4): keys for the Wolfmed diagnostic panel (LOC A). The panel itself lives in
+# Content.Client/_WF/Wolfmed/Medical; these keys are shared with Shitmed's window only through it.
+health-analyzer-window-entity-vital-damage-text = Vital Damage:
+health-analyzer-window-damage-tab = Damage
+health-analyzer-window-wounds-tab = Wounds
+health-analyzer-window-organs-tab = Organs
+health-analyzer-window-chemicals-tab = Chemicals
+health-analyzer-window-organs-unavailable = Organ data unavailable.
+health-analyzer-window-organ-health = { $percent } %
+health-analyzer-window-chemicals-unavailable = Chemical data unavailable.
+health-analyzer-window-chemicals-no-vessels = No metabolic vessels detected.
+health-analyzer-window-solution-bloodstream = Bloodstream
+health-analyzer-window-solution-metabolites = Chemicals
+health-analyzer-window-solution-stomach = Stomach
+health-analyzer-window-solution-lung = Lungs
+health-analyzer-window-solution-empty = No reagents detected
+health-analyzer-window-solution-reagent = { $reagent }: { $quantity } u
+health-analyzer-wound-diagnostics-title = Status
+health-analyzer-wound-diagnostics-inactive = No contact with patient.
+health-analyzer-wound-diagnostics-unavailable = Diagnostics unavailable for this patient.
+health-analyzer-wound-blood-level-dangerous = The patient has a [color=red]dangerously low[/color] blood level.

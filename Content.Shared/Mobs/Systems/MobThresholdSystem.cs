@@ -335,9 +335,13 @@ public sealed partial class MobThresholdSystem : EntitySystem
     private void CheckThresholds(EntityUid target, MobStateComponent mobStateComponent,
         MobThresholdsComponent thresholdsComponent, DamageableComponent damageableComponent, EntityUid? origin = null)
     {
+        // WOLFGATE: HOOK 11 - wound hosts cross mob-state thresholds on vital-part plus systemic damage;
+        // CheckVitalDamage falls back to TotalDamage for everything else. Hoisted out of the loop because it
+        // walks the body; Onyx calls it per threshold, which is the same answer for more work.
+        var vitalDamage = CheckVitalDamage(target, damageableComponent);
         foreach (var (threshold, mobState) in thresholdsComponent.Thresholds.Reverse())
         {
-            if (damageableComponent.TotalDamage < threshold)
+            if (vitalDamage < threshold)
                 continue;
 
             TriggerThreshold(target, mobState, mobStateComponent, thresholdsComponent, origin);
@@ -403,7 +407,8 @@ public sealed partial class MobThresholdSystem : EntitySystem
             }
 
             if (TryGetNextState(target, currentMobState, out var nextState, threshold) &&
-                TryGetPercentageForState(target, nextState.Value, damageable.TotalDamage, out var percentage))
+                // WOLFGATE: HOOK 11 - the health alert's severity must lerp off the same number the thresholds use.
+                TryGetPercentageForState(target, nextState.Value, CheckVitalDamage(target, damageable), out var percentage))
             {
                 percentage = FixedPoint2.Clamp(percentage.Value, 0, 1);
 

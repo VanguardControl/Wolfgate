@@ -1,0 +1,12 @@
+# Spaceacillin (W5). Two medical reagents chemistry already stocks, so an infected crew is a problem
+# medbay can solve from its own dispenser.
+
+- type: reaction
+  id: Spaceacillin
+  reactants:
+    Cryptobiolin:
+      amount: 1
+    Inaprovaline:
+      amount: 1
+  products:
+    Spaceacillin: 2

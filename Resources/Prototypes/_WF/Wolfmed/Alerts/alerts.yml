@@ -1,0 +1,9 @@
+# Sepsis (W5). Shown while WolfmedSepsisComponent is on the body, cleared when it leaves.
+
+- type: alert
+  id: WolfmedSepsis
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/sepsis.rsi
+    state: sepsis
+  name: alerts-wolfmed-sepsis-name
+  description: alerts-wolfmed-sepsis-desc

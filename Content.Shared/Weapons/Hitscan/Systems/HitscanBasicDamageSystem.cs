@@ -28,6 +28,7 @@ public sealed partial class HitscanBasicDamageSystem : EntitySystem
                 dmg,
                 origin: args.Gun,
                 armorPenetration: ent.Comp.ArmorPenetration,
+                tool: ent, // WOLFGATE (P6): the beam entity, so Wolfmed's wound rules can tell hitscan from anything else.
                 ignoreResistances: ent.Comp.IgnoreResistances); // Mono - AP
 
             if (damageDealt == null)

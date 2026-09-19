@@ -1,0 +1,10 @@
+# Skin graft lathe recipe (W7). The graft is the only thing that clears charring, so medbay has to be able
+# to make more than the two the surgical crate ships. Costed beside Ointment and Gauze in the same pack.
+
+- type: latheRecipe
+  id: WolfmedSkinGraft
+  result: WolfmedSkinGraft
+  completetime: 2
+  materials:
+    Plastic: 50
+    Cloth: 50

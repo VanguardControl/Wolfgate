@@ -78,6 +78,7 @@
 
 - type: entity
   abstract: true
+  parent: WolfmedBaseHead # WOLFGATE (WP7, D8): adds Wolfmed fracture/amputation data
   id: BaseHead
   name: "head"
   description: "Doesn't make sense not to live for fun, your brain gets smart but your head gets dumb."
@@ -133,7 +134,7 @@
 
 - type: entity
   abstract: true
-  parent: MajorLimb # Mono
+  parent: [MajorLimb, WolfmedBaseLeftArm] # Mono, WOLFGATE (WP7, D8)
   id: BaseLeftArm
   name: "left arm"
   components:
@@ -152,7 +153,7 @@
 
 - type: entity
   abstract: true
-  parent: MajorLimb # Mono
+  parent: [MajorLimb, WolfmedBaseRightArm] # Mono, WOLFGATE (WP7, D8)
   id: BaseRightArm
   name: "right arm"
   components:
@@ -172,7 +173,7 @@
 
 - type: entity
   abstract: true
-  parent: MinorLimb # Mono
+  parent: [MinorLimb, WolfmedBaseLeftHand] # Mono, WOLFGATE (WP7, D8)
   id: BaseLeftHand
   name: "left hand"
   components:
@@ -187,7 +188,7 @@
 
 - type: entity
   abstract: true
-  parent: MinorLimb # Mono
+  parent: [MinorLimb, WolfmedBaseRightHand] # Mono, WOLFGATE (WP7, D8)
   id: BaseRightHand
   name: "right hand"
   components:
@@ -202,7 +203,7 @@
 
 - type: entity
   abstract: true
-  parent: MajorLimb # Mono
+  parent: [MajorLimb, WolfmedBaseLeftLeg] # Mono, WOLFGATE (WP7, D8)
   id: BaseLeftLeg
   name: "left leg"
   components:
@@ -222,7 +223,7 @@
 
 - type: entity
   abstract: true
-  parent: MajorLimb # Mono
+  parent: [MajorLimb, WolfmedBaseRightLeg] # Mono, WOLFGATE (WP7, D8)
   id: BaseRightLeg
   name: "right leg"
   components:
@@ -242,7 +243,7 @@
 
 - type: entity
   abstract: true
-  parent: MinorLimb # Mono
+  parent: [MinorLimb, WolfmedBaseLeftFoot] # Mono, WOLFGATE (WP7, D8)
   id: BaseLeftFoot
   name: "left foot"
   components:
@@ -257,7 +258,7 @@
 
 - type: entity
   abstract: true
-  parent: MinorLimb # Mono
+  parent: [MinorLimb, WolfmedBaseRightFoot] # Mono, WOLFGATE (WP7, D8)
   id: BaseRightFoot
   name: "right foot"
   components:

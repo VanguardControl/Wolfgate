@@ -9,6 +9,8 @@ using Content.Shared.Popups;
 using Content.Shared.Tools;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Systems;
+using Content.Shared._Onyx.Wounds;
+using Content.Server.Atmos.EntitySystems;
 using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
 
 namespace Content.Server._EinsteinEngines.Silicon.WeldingHealable;
@@ -22,13 +24,15 @@ public sealed partial class WeldingHealableSystem : SharedWeldingHealableSystem
     [Dependency] private SharedBodySystem _bodySystem = default!;
     public override void Initialize()
     {
-        SubscribeLocalEvent<WeldingHealableComponent, InteractUsingEvent>(Repair);
+        InitializeWoundRepair();
+        SubscribeLocalEvent<WeldingHealableComponent, InteractUsingEvent>(Repair,
+            before: [typeof(FlammableSystem)]);
         SubscribeLocalEvent<WeldingHealableComponent, SiliconRepairFinishedEvent>(OnRepairFinished);
     }
 
     private void OnRepairFinished(EntityUid uid, WeldingHealableComponent healableComponent, SiliconRepairFinishedEvent args)
     {
-        if (args.Cancelled || args.Used == null
+        if (HasComp<WoundHostComponent>(uid) || args.Cancelled || args.Used == null
             || !TryComp<DamageableComponent>(args.Target, out var damageable)
             || !TryComp<WeldingHealingComponent>(args.Used, out var component)
             || damageable.DamageContainerID is null
@@ -65,7 +69,7 @@ public sealed partial class WeldingHealableSystem : SharedWeldingHealableSystem
     }
     private async void Repair(EntityUid uid, WeldingHealableComponent healableComponent, InteractUsingEvent args)
     {
-        if (args.Handled
+        if (HasComp<WoundHostComponent>(uid) || args.Handled
             || !EntityManager.TryGetComponent(args.Used, out WeldingHealingComponent? component)
             || !EntityManager.TryGetComponent(args.Target, out DamageableComponent? damageable)
             || damageable.DamageContainerID is null

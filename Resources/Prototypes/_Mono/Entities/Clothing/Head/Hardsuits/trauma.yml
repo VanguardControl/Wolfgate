@@ -28,6 +28,7 @@
       enum.RadarConsoleUiKey.Key:
         type: RadarConsoleBoundUserInterface
   - type: Armor
+    coverage: [Head] # WOLFGATE (P6, P3-D6): locational armour coverage
     modifiers:
       coefficients:
         Blunt: 0.95
@@ -85,6 +86,7 @@
       enum.RadarConsoleUiKey.Key:
         type: RadarConsoleBoundUserInterface
   - type: Armor
+    coverage: [Head] # WOLFGATE (P6, P3-D6): locational armour coverage
     modifiers:
       coefficients:
         Blunt: 0.9
