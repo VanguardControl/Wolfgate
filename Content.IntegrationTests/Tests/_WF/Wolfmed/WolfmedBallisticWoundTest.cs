@@ -137,6 +137,51 @@ public sealed class WolfmedBallisticWoundTest : GameTest
         });
     }
 
+    /// <summary>
+    /// P6: a beam is its own cause. Railgun and coilgun fire is Piercing, so it makes a gunshot wound that
+    /// never lodges a round; a laser is Heat and never touches the ballistic rules at all.
+    /// </summary>
+    [Test]
+    public async Task HitscanIsItsOwnCauseTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var rules = entities.System<WolfmedWoundRuleSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var gun = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var slug = entities.SpawnEntity("Magnum45", map.GridCoords); // Piercing 35, railgun-class.
+            var beam = entities.SpawnEntity("RedLaser", map.GridCoords); // Heat 18.
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(rules.GetCause(gun, slug, false), Is.EqualTo(WolfmedWoundCause.Hitscan));
+                Assert.That(rules.GetCause(gun, beam, false), Is.EqualTo(WolfmedWoundCause.Hitscan));
+            });
+
+            // 25 Piercing is well past WolfmedRuleLodgedRoundHeavy's 18 floor; only the Projectile causes
+            // reach that rule, so the hit must come out as a clean through-and-through.
+            Hit(entities, body, TargetBodyPart.LeftArm, slug, 25);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+
+            entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Heat", 25),
+                origin: gun, targetPart: TargetBodyPart.RightArm, tool: beam);
+            var burned = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Right);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(Prototypes(entities, wounds, arm), Does.Contain("WolfmedGunshotWound"));
+                Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WolfmedLodgedRoundWound"));
+                Assert.That(Prototypes(entities, wounds, burned), Does.Not.Contain("WolfmedGunshotWound"));
+            });
+        });
+    }
+
     /// <summary>Blasts and buckshot both leave fragments, by the same rule.</summary>
     [Test]
     public async Task ExplosionsAndBuckshotMakeShrapnelTest()

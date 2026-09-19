@@ -170,6 +170,7 @@
   - type: Clothing
     sprite: Clothing/Head/Hoods/rad.rsi
   - type: Armor
+    coverage: [Head] # WOLFGATE (P6, P3-D6): locational armour coverage
     modifiers:
       coefficients:
         Heat: 0.95

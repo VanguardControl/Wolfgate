@@ -3364,3 +3364,61 @@ feature adds no new network component and no new directed subscription.
    so this cannot fight `_CE` Z-levels or the phase-3 damage overlays, which sit one index above.
 6. **The client is told the stage, not the severity.** The threshold comparison happens once on the
    server, which keeps the profile a server-side tuning knob and the wire payload one byte per limb.
+
+## Final stages: P6 (2026-09-19)
+
+Phase 6: the predicted-damage flicker on wound hosts, the `damage` command's body-part argument, the
+locational-armour content pass, and a derived Hitscan wound cause. No new networked component, no new
+directed subscription on a pair that was already owned.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Client/_WF/Wolfmed/Damage/WolfmedPredictedDamageSystem.cs` | new | The flicker fix. Subscribes `<DamageableComponent, DamageDealtEvent>` (the seam only fires for wound hosts, and `<WoundHostComponent, DamageDealtEvent>` is already owned by the shared routing system) and sets `Suppressed`, so the client never writes predicted damage onto a wound host |
+| `Content.Shared/_WF/Wolfmed/Compat/DamageDealtEvent.cs` | modified | One new field, `Suppressed`: stop the write but still report the damage to the caller. Clearing the dict, the server's way, stays the other option |
+| `Content.Shared/Damage/Systems/DamageableSystem.cs` | modified (upstream) | **1 marked token** inside the existing GUARD D block: `if (damage.Empty \|\| dealt.Suppressed)` |
+| `Content.Server/_WF/Wolfmed/Commands/DamageCommand.Wolfmed.cs` | new | The body of the `damage` command's 5th argument: `WolfmedPartCompletion`, `WolfmedHurtPart`, `TryParseDamageSpecifier`. Partial of `Content.Server.Damage.Commands.DamageCommand`, uses `WoundTargetResolver.TryResolveExact` and `WoundDamageRoutingSystem.TryApplyPartDamage` |
+| `Content.Server/Damage/Commands/HurtCommand.cs` | modified (upstream) | **4 marked hook lines**, all bodies in the `_WF` partial: the completion branch, `args.Length > 5`, `args.Length >= 4` for the uid, and the dispatch to `WolfmedHurtPart` |
+| `Resources/Locale/en-US/_WF/wolfmed/damage-command.ftl` | new | `damage-command-arg-body-part`, `-error-body-part`, `-error-missing-body-part`, `-error-part-damage` |
+| `Resources/Locale/en-US/damage/damage-command.ftl` | modified (upstream) | **1 marked line**: the usage string gains `[bodyPart]` |
+| `Content.Shared/Weapons/Hitscan/Systems/HitscanBasicDamageSystem.cs` | modified (upstream) | **1 marked line**: `tool: ent`, so a beam hit carries the beam entity into the wound rules |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs` | modified | `GetCause` derives `Hitscan` from `HitscanBasicDamageComponent` on the tool; no per-prototype data needed |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundCause.cs` | modified | Doc comment only: `Hitscan` is derived now, not declared |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | modified | `WolfmedRuleGunshot` and `WolfmedRuleGraze` gain `Hitscan`; the lodged-round and shrapnel rules deliberately do not (P6-D3) |
+| `Content.Shared/_WF/Wolfmed/Armor/WolfmedPartArmorSystem.cs` | modified | `Covers` made public so the content pass can be asserted against shipped prototypes |
+| 37 prototype files under `Resources/Prototypes/**/Clothing/**` | modified (data) | **123 `coverage:` lines**, each marked `# WOLFGATE (P6, P3-D6)`. 100 head/mask/eye blocks → `[Head]`, 2 glove blocks → `[Hand]`, 21 over-uniform armour blocks → `[Torso, Arm, Leg]`. Files: `Entities/Clothing/{Eyes/glasses, Hands/gloves, Head/{base_clothinghead, eva-helmets, hardhats, hardsuit-helmets, hats, helmets, hoods}, Masks/masks, OuterClothing/{armor, vests}}.yml`, `Nyanotrasen/…/{Head/hats, OuterClothing/armor}.yml`, `_Goobstation/…/{Head/hardsuit-helmets, Head/modsuit, OuterClothing/armour}.yml`, `_Mono/…/{Eyes/glasses, Hands/gloves, Head/Hardsuits/*, Head/Helmets/ussp, Head/modsuit, OuterClothing/Vests/vests}.yml`, `_NF/…/{Head/hardsuit-helmets, Head/headwear_punks, OuterClothing/armor}.yml` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPredictionTest.cs` | new | `ClientDoesNotWritePredictedWoundHostDamageTest` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageCommandTest.cs` | new | `DamageCommandHitsTheNamedPartTest`, `DamageCommandWithoutAPartStillWorksTest` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedArmorCoverageTest.cs` | new | `ShippedCoverageIsWhatTheItemIsWornOnTest`, `CoverageReachesRoutedPartDamageTest` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBallisticWoundTest.cs` | modified | `HitscanIsItsOwnCauseTest` |
+| `Docs/Wolfmed/DECISIONS.md` | modified | New `## Phase 6 — shipped` section, P6-D1 to P6-D5 |
+
+### Tests
+
+- `ClientDoesNotWritePredictedWoundHostDamageTest`: a connected pair; the client drives `TryChangeDamage`
+  on its own copy of a `MobHuman` and on a plain damageable control in the same tick. The wound host's
+  `DamageableComponent.TotalDamage` is unchanged and the call still returns a non-empty specifier; the
+  control takes the full 20. Asserted at the seam rather than through a predicted swing: the swing would
+  need an in-combat player on both sides and reaches the same `DamageDealtEvent` block anyway.
+- `ShippedCoverageIsWhatTheItemIsWornOnTest`: three full-body suits still have unset coverage and still
+  `Covers` a foot they never name; six helmets/masks/gloves/vests carry exactly the expected part set.
+- `CoverageReachesRoutedPartDamageTest`: a riot helmet changes nothing about a routed leg hit; an
+  engineering hardsuit reduces the same hit.
+- `DamageCommandHitsTheNamedPartTest` / `DamageCommandWithoutAPartStillWorksTest`: the 5-argument form
+  confines the hit to the named arm; the 4-argument form still lands.
+- `HitscanIsItsOwnCauseTest`: `GetCause` returns `Hitscan` for a ballistic beam and a laser beam; a
+  25-Piercing beam hit makes a `WolfmedGunshotWound` and never a `WolfmedLodgedRoundWound`; a 25-Heat beam
+  hit makes no gunshot wound at all.
+
+### Deviations from the spec
+
+1. **The flicker is removed by suppression, not by predicting the routing** (P6-D1). The spec allowed
+   either; predicting it is not possible here, because wound creation is server-only by construction.
+2. **The predicted damage is still returned to the caller**, so popups and visual events that key off
+   `TryChangeDamage`'s result survive (P6-D2). The task text suggested suppressing them too; that would
+   have left a melee attacker with no red flash at all on wound hosts, since the server's `DoDamageEffect`
+   filter excludes them on purpose.
+3. **Full-body suits are left unannotated rather than given an explicit full part list** (P6-D4), because
+   unset already means "every part" and an explicit list rots when a `BodyPartType` is added.
+4. **Not annotated, recorded instead of guessed** (P6-D5): coats, winter coats and armoured jumpsuits; the
+   `_Mono` Aurora exosuit; `_NF` brass knuckles (an armour penalty on a hands item); every `- type: Armor`
+   on non-clothing. `WOLFMED_STATUS.md`'s "full 272-entry pass" line is now 123 of the ~250 clothing blocks.

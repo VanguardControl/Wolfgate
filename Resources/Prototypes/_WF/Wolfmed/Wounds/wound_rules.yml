@@ -362,13 +362,16 @@
   embedded:
     item: WolfmedSpentRound
 
-# Otherwise it went through.
+# Otherwise it went through. P6 admits Hitscan here and in the graze below, and nowhere else in this
+# section: the fork's only Piercing hitscan is railgun and coilgun fire (Magnum45, Coilgun134x92mm,
+# Hitscan145x114mm), which is hypervelocity and leaves nothing behind, so it gets the through-and-through
+# wound but never a lodged round. Lasers are Heat, so none of these Piercing rules ever sees one.
 - type: wolfmedWoundRule
   id: WolfmedRuleGunshot
   priority: 20
   wound: WolfmedGunshotWound
   damageTypes: [ Piercing ]
-  causes: [ Projectile ]
+  causes: [ Projectile, Hitscan ]
   minDamage: 7
   capabilities: [ Biological ]
 
@@ -378,7 +381,7 @@
   priority: 10
   wound: WolfmedGrazeWound
   damageTypes: [ Piercing ]
-  causes: [ Projectile ]
+  causes: [ Projectile, Hitscan ]
   maxDamage: 7
   minSeverity: 3
   capabilities: [ Biological ]

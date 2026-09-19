@@ -19,7 +19,7 @@ public enum WolfmedWoundCause : ushort
     /// <summary>A projectile that leaves debris behind: buckshot, flechettes, nails. Set by data.</summary>
     Fragment = 1 << 1,
 
-    /// <summary>A beam with no travelling entity. Set by data on the emitter.</summary>
+    /// <summary>A beam: the hit's tool is a hitscan entity, not a projectile. P6 derives it.</summary>
     Hitscan = 1 << 2,
 
     Explosion = 1 << 3,

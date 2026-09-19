@@ -52,7 +52,8 @@ public sealed class WolfmedPartArmorSystem : EntitySystem
     }
 
     /// <summary>Whether this armour's global modifiers reach the given part. Unset or empty covers everything.</summary>
-    private static bool Covers(ArmorComponent component, BodyPartType type, BodyPartSymmetry symmetry)
+    /// <remarks>Public since P6, so the coverage content pass can be asserted against the shipped prototypes.</remarks>
+    public static bool Covers(ArmorComponent component, BodyPartType type, BodyPartSymmetry symmetry)
     {
         if (component.Coverage is { Count: > 0 } parts && !parts.Contains(type))
             return false;

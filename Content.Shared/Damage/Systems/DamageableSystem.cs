@@ -272,7 +272,7 @@ namespace Content.Shared.Damage
                 damage = new DamageSpecifier(damage);
                 var dealt = new DamageDealtEvent(damage, origin, interruptsDoAfters);
                 RaiseLocalEvent(uid.Value, ref dealt);
-                if (damage.Empty)
+                if (damage.Empty || dealt.Suppressed) // WOLFGATE: P6, Suppressed skips the write but still reports the damage.
                     return damage;
             }
 

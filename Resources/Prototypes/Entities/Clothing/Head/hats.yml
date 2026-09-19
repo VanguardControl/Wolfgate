@@ -939,6 +939,7 @@
   - type: Clothing
     sprite: Clothing/Head/Hats/melon.rsi
   - type: Armor
+    coverage: [Head] # WOLFGATE (P6, P3-D6): locational armour coverage
     modifiers:
       coefficients:
         Blunt: 0.95
@@ -957,6 +958,7 @@
   - type: Clothing
     sprite: Clothing/Head/Hats/holyhatmelon.rsi
   - type: Armor
+    coverage: [Head] # WOLFGATE (P6, P3-D6): locational armour coverage
     modifiers:
       coefficients:
         Caustic: 0.95

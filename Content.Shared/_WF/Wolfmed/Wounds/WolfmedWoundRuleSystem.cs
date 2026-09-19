@@ -4,6 +4,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Projectiles;
 using Content.Shared.Throwing;
+using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Melee;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -97,6 +98,8 @@ public sealed class WolfmedWoundRuleSystem : EntitySystem
 
             if (HasComp<ProjectileComponent>(used))
                 cause |= WolfmedWoundCause.Projectile;
+            else if (HasComp<HitscanBasicDamageComponent>(used)) // P6: the tool of a beam hit is the beam entity itself.
+                cause |= WolfmedWoundCause.Hitscan;
             else if (HasComp<ThrownItemComponent>(used))
                 cause |= WolfmedWoundCause.Thrown;
             else if (used == origin)

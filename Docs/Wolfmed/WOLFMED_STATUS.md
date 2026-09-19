@@ -461,9 +461,16 @@ fracture"/"bleeding" on an undead skeleton needs its own design, never previousl
 
 ## Next phases (not started)
 
-1. **Phase 6: predicted routing** (wound-host damage is still unpredicted, D35); **the full 272-entry
+1. **Phase 6 shipped 2026-09-19** (P6-D1..D5, manifest `## Final stages: P6`): wound-host damage stays
+   unpredicted (D35), but the client no longer *writes* it, so the transient flicker is gone; the
+   `HurtCommand` part argument shipped; the locational-armour pass annotated 123 of the clothing
+   `- type: Armor` blocks by slot and left full-body suits unset (= full coverage) on purpose; the
+   `Hitscan` wound cause is now derived. Still open from the old phase-6 list: **armoured coats, winter
+   coats and jumpsuits, the `_Mono` Aurora exosuit, `_NF` brass knuckles and non-clothing armour**, all
+   held for the balance pass rather than guessed at. Original wording follows. ~~**Phase 6: predicted
+   routing** (wound-host damage is still unpredicted, D35); **the full 272-entry
    locational-armour content pass** (P3-D6); **`HurtCommand` part argument** (patch kept at
-   `reports/work-packages` as `WP8-hurtcommand-deferred.patch` in `C:\Users\jzo12\Documents\Wolfmed\plan\wp`). Explosion
+   `reports/work-packages` as `WP8-hurtcommand-deferred.patch` in `C:\Users\jzo12\Documents\Wolfmed\plan\wp`).~~ Explosion
    amputation and the `GibbingSystem.cs` container-mutation fix, both previously slated for phase 6, shipped
    in phase 4 instead and are struck from this list. **The phase-1 "blocked on a shared stage-based
    metabolizer" line above this one is struck outright, not carried to phase 6**: PLAN5 §8.7 found it

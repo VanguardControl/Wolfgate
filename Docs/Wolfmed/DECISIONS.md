@@ -119,6 +119,46 @@ Phase 4 is committed (`2b4a4675d0 phase 4`). Phase 5 = species coverage and the 
 
 Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `C:\Users\jzo12\Documents\Wolfmed\plan\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `C:/Users/jzo12/Documents/Wolfmed/plan/reports/analysis/damage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
 
+## Phase 6 — shipped (2026-09-19)
+
+- **P6-D1 The flicker is fixed by suppression, not by prediction.** The mechanism: on a wound host the client
+  ran the ordinary whole-body path (routing's `OnBeforeDamageChanged` and `OnDamageDealt` are both
+  `_net.IsServer`-gated), wrote the full post-armour figure into the mob's own `DamageableComponent`, and had
+  it replaced one state later by the server's projection (the sum of what each part kept, after the part
+  profile and the locational armour). Predicting the routing properly is not possible: wounds are entities
+  created server-side in a part container, the part choice consults server-only state, and `WoundSystem`
+  refuses to run off the server. So the client now suppresses the *write* at the existing GUARD D seam and
+  lets the mob's damage be pure server state. Cost: damage numbers and the health bar move one state late on
+  wound hosts, which is what D35 already recorded and what the flicker was hiding.
+- **P6-D2 The predicted hit still reports its damage.** `DamageDealtEvent` gained a `Suppressed` flag instead
+  of reusing "clear the dict": clearing it would make `TryChangeDamage` return an empty specifier, and
+  `SharedMeleeWeaponSystem` gates the red damage flash and the blunt→stamina prediction on that return while
+  the server's `DoDamageEffect` filter deliberately excludes the attacker. Clearing it would therefore have
+  left an attacker with no feedback at all on wound hosts. One token of upstream change
+  (`|| dealt.Suppressed`); the decision itself lives in `Content.Client._WF.Wolfmed.Damage.WolfmedPredictedDamageSystem`.
+- **P6-D3 Hitscan is derived, not declared.** `WolfmedWoundCause.Hitscan` existed but nothing ever produced
+  it, so beam hits fell through to `Environmental`. `HitscanBasicDamageSystem` now passes the beam entity as
+  `tool` (one marked line) and `WolfmedWoundRuleSystem.GetCause` reads `HitscanBasicDamageComponent`, so no
+  per-prototype data is needed. **Only `WolfmedRuleGunshot` and `WolfmedRuleGraze` admit it**: the fork's
+  Piercing hitscan is railgun and coilgun fire (`Magnum45`, `Coilgun134x92mm`, `Hitscan145x114mm`), which is
+  hypervelocity and leaves nothing behind, so it gets the through-and-through wound but never a lodged round
+  or a spent-round item. Every laser is Heat or Radiation, so the Piercing rules never see one and burns are
+  untouched. Side effect, accepted: a Blunt hitscan (`Hitscan145x114mmEMP`) no longer counts as a fall for
+  `WolfmedRuleDislocationThrown`.
+- **P6-D4 The armour pass is by slot, and full-body suits stay unannotated.** 123 `- type: Armor` blocks
+  gained `coverage:`: head, mask and eye items `[Head]`, gloves `[Hand]`, dedicated over-uniform armour
+  `[Torso, Arm, Leg]` (the set phase 3 gave the `_Mono` vests). Hardsuits, EVA, bio/rad suits, modsuit bodies,
+  coats, winter coats and jumpsuits keep coverage **unset**, which P3-D5 defines as "protects every part" —
+  that is what "full-body suits declare full coverage" means here, and writing an explicit part list for them
+  would go stale the first time a new `BodyPartType` appears. `WolfmedArmorCoverageTest` guards both halves.
+- **P6-D5 Balance consequence, stated plainly.** This finishes what P3-D26 flagged: a helmet no longer
+  protects the torso and a vest no longer protects the head, so stacking a vest with an unrelated helmet stops
+  working. Aimed headshots against a vest-only wearer hit for full damage, and hands/feet are now protected
+  only by gloves/boots or a full-body suit. Left for a balance pass, not guessed at: coats/winter coats and
+  jumpsuits with armour (soft armour over an ambiguous area), the `_Mono` Aurora exosuit (described as having
+  no head covering but sealing the rest), `_NF` brass knuckles (an armour *penalty* on a hands item), and
+  every `- type: Armor` on non-clothing (vehicles, blast doors, mothroaches).
+
 ## Phase 7 backlog — "Viscera" (user wants, 2026-09-14; not started, token budget)
 
 Wolfmed-only additions in `_WF/Wolfmed` (no Onyx source), to be planned lean (one Opus design+implement agent per package, builds per stage, lint/server/tests once at the end, one two-reviewer round):
