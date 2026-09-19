@@ -35,6 +35,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private Damage.WolfmedDegradationVisualsSystem _degradation = default!;
     [Dependency] private WolfmedInfectionSystem _infection = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
@@ -181,6 +182,9 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
 
         // The tourniquet has nothing left to save; take the clock off so it does not keep ticking.
         RemComp<WolfmedTourniquetComponent>(part);
+
+        // V3: dead tissue shows whether or not the part can carry the wound below.
+        _degradation.Refresh(CompOrNull<BodyPartComponent>(part)?.Body ?? part);
 
         var profile = _infection.Profile;
         if (!_wounds.CanCreateWound(part, profile.NecrosisWound))

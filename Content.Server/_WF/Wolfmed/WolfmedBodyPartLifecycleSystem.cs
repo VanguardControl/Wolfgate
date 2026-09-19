@@ -19,6 +19,7 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private WolfmedDamageableSystem _damageable = default!;
     [Dependency] private Wounds.WolfmedNecrosisSystem _necrosis = default!;
+    [Dependency] private Damage.WolfmedDegradationVisualsSystem _degradation = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
     /// <inheritdoc/>
@@ -54,6 +55,10 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
             var inserted = new OrganGotInsertedEvent(body);
             RaiseLocalEvent(part, ref inserted);
         }
+
+        // V3: the limb's wounds now show on the body's sprite instead of on the limb's own.
+        _degradation.Refresh(args.Part.Owner);
+        _degradation.Refresh(body);
     }
 
     /// <summary>Re-projects the body and the detached limb when a limb comes off.</summary>
@@ -78,6 +83,10 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
             var removed = new OrganGotRemovedEvent(body);
             RaiseLocalEvent(part, ref removed);
         }
+
+        // V3: the severed limb carries its own overlay now, and the body has one layer fewer to draw.
+        _degradation.Refresh(args.Part.Owner);
+        _degradation.Refresh(body);
     }
 
     /// <summary>Keeps a lost vital part's damage on the books; CheckVitalDamage only sums attached parts.</summary>

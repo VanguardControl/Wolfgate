@@ -237,7 +237,8 @@ private void SetupPart(EntityUid part)
         _pain.SetPain((body, EnsureComp<PainComponent>(body)), value);
     }
 
-    private bool TryGetVisualLayer(EntityUid part, out HumanoidVisualLayers layer)
+    // WOLFGATE (V3): public so the degradation overlay maps parts to layers the same way instead of forking it.
+    public bool TryGetVisualLayer(EntityUid part, out HumanoidVisualLayers layer)
     {
         layer = default;
         if (!TryComp(part, out BodyPartComponent? component))

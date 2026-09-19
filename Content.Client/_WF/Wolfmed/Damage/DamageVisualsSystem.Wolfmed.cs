@@ -1,4 +1,5 @@
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Damage;
 using Content.Shared.Body.Part;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -19,13 +20,17 @@ public sealed partial class DamageVisualsSystem
 
         // Option B: severed-limb wound rendering, independent of whether this entity has a DamageVisuals block.
         UpdateDetachedPartDamage(ent.Owner, ent.Comp);
+        UpdateDegradation(ent.Owner, ent.Comp); // V3
     }
 
     /// <summary>Option B: a detached part's own BodyPartComponent state changed (e.g. it was just severed).</summary>
     private void OnBodyPartState(Entity<BodyPartComponent> ent, ref AfterAutoHandleStateEvent args)
     {
-        if (TryComp(ent, out PartDamageVisualsComponent? damage))
-            UpdateDetachedPartDamage(ent.Owner, damage);
+        if (!TryComp(ent, out PartDamageVisualsComponent? damage))
+            return;
+
+        UpdateDetachedPartDamage(ent.Owner, damage);
+        UpdateDegradation(ent.Owner, damage); // V3
     }
 
     /// <summary>Drives each targeted sprite layer from that limb's own damage instead of the mob's aggregate (D30).</summary>
@@ -71,6 +76,69 @@ public sealed partial class DamageVisualsSystem
             damage = damage is null ? extraDamage : damage + extraDamage;
 
         return damage;
+    }
+
+    // --- V3: per-part degradation overlays ---
+
+    /// <summary>
+    /// Shows each limb's degradation stage. One overlay layer per visual layer, added once and then only
+    /// toggled or re-stated, so this never fights the damage overlays or the Z-level draw depth.
+    /// </summary>
+    private void UpdateDegradation(EntityUid uid, PartDamageVisualsComponent damage)
+    {
+        if (!TryComp(uid, out SpriteComponent? sprite))
+            return;
+
+        var id = CompOrNull<WolfmedDegradationVisualsComponent>(uid)?.Profile ??
+                 WolfmedDegradationVisualsComponent.DefaultProfile;
+        if (!_prototypeManager.TryIndex(id, out WolfmedDegradationProfilePrototype? profile))
+            return;
+
+        // A severed limb draws its overlay on its own sprite, which has no humanoid layer map; back on a
+        // body it is the body's layers that draw it, so its own copy goes quiet.
+        var severed = TryComp(uid, out BodyPartComponent? part);
+        if (severed && part!.Body != null)
+        {
+            foreach (var layer in WolfmedDegradationLayers.All)
+                UpdateDegradationLayer(uid, sprite, profile, layer, WolfmedPartDegradation.None, true);
+
+            return;
+        }
+
+        foreach (var layer in WolfmedDegradationLayers.All)
+            UpdateDegradationLayer(uid, sprite, profile, layer,
+                damage.Degradation.GetValueOrDefault(layer), severed);
+    }
+
+    /// <summary>Creates (once) and updates one degradation overlay layer.</summary>
+    private void UpdateDegradationLayer(EntityUid uid, SpriteComponent sprite,
+        WolfmedDegradationProfilePrototype profile, HumanoidVisualLayers layer, WolfmedPartDegradation stage,
+        bool severed)
+    {
+        var state = stage == WolfmedPartDegradation.None ? null : profile.GetState(layer, stage);
+        var key = $"WolfmedDegradation{layer}";
+        if (!SpriteSystem.LayerMapTryGet((uid, sprite), key, out var index, false))
+        {
+            if (state == null)
+                return;
+
+            // Immediately above the limb it belongs to: over the skin, under the jumpsuit and everything
+            // else the inventory adds further up the stack. A body sprite with no layer for this limb gets
+            // no overlay at all, which keeps human-shaped art off a non-humanoid wound host; a severed limb
+            // has no humanoid layer map to begin with, so its one overlay goes on top.
+            int? insert = null;
+            if (SpriteSystem.LayerMapTryGet((uid, sprite), layer, out var limb, false))
+                insert = limb + 1;
+            else if (!severed)
+                return;
+
+            index = SpriteSystem.AddLayer((uid, sprite), new SpriteSpecifier.Rsi(profile.Rsi, state), insert);
+            SpriteSystem.LayerMapSet((uid, sprite), key, index);
+        }
+
+        SpriteSystem.LayerSetVisible((uid, sprite), index, state != null);
+        if (state != null)
+            SpriteSystem.LayerSetRsiState((uid, sprite), index, state);
     }
 
     // --- Option B: severed-limb wound rendering (P3-D18) ---

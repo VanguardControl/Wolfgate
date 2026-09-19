@@ -3309,3 +3309,58 @@ Wound suite after V124: **199 passed, 0 failed, 0 skipped** (192 before).
   reads as a spray at 32px but is not a bespoke mist sprite.
 - **Nothing is predicted.** Wound creation is server-only (`_net.IsServer`), so every wound sound is
   `PlayPvs`. Only the relocate start, which has a user and runs in Shared, is `PlayPredicted`.
+
+## Final stages: V3 (2026-09-19)
+
+Per-part degradation visuals. A limb's own summed wound severity picks one of two organic stages (muscle,
+then bone), two mechanical stages (struts, then wiring) or, for dead tissue, a necrotic wash. Driven off
+`PartDamageVisualsComponent`, which was already networked and already had a client hook, so the whole
+feature adds no new network component and no new directed subscription.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Damage/WolfmedDegradation.cs` | new | `WolfmedPartDegradation` (None/Muscle/Bone/Struts/Wiring/Necrotic), `WolfmedDegradationProfilePrototype` (`wolfmedDegradationProfile`: `Rsi`, `Stage1`, `Stage2`, `Suffixes`, plus `GetStage`/`GetState`), `WolfmedDegradationVisualsComponent` (networked `Enabled` + `Profile`, the species opt-out), `WolfmedDegradationLayers` (the ten layers and their state prefixes) |
+| `Content.Server/_WF/Wolfmed/Damage/WolfmedDegradationVisualsSystem.cs` | new | Computes and networks the stages. Public `Refresh(uid)` and `GetStage(part, profile)`. Driven by the `WolfmedWoundLifecycleEvent` broadcast, so a wound closed by sutures or surgery (no damage change) still clears the overlay. Writes nothing when the stage set is unchanged |
+| `Content.Client/_WF/Wolfmed/Damage/DamageVisualsSystem.Wolfmed.cs` | modified | V3 section: `UpdateDegradation`, `UpdateDegradationLayer`, called from the existing `OnPartDamageVisualsState` and `OnBodyPartState` hooks. One layer per visual layer, added once at `limbIndex + 1` and afterwards only toggled or re-stated |
+| `Content.Shared/_Onyx/Wounds/WoundDamageComponents.cs` | modified (vendored) | **1 marked field + 1 marked using.** `PartDamageVisualsComponent.Degradation` (`[AutoNetworkedField] Dictionary<HumanoidVisualLayers, WolfmedPartDegradation>`) |
+| `Content.Shared/_Onyx/Wounds/WoundDamageProjectionSystem.cs` | modified (vendored) | **1 marked line.** `TryGetVisualLayer` made public so the overlay maps parts to layers the same way instead of forking the switch |
+| `Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs` | modified | Two `_degradation.Refresh` pairs: a limb coming off takes its overlay with it, a limb going back on gives it to the body |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs` | modified | One `Refresh` in `MakeNecrotic`, so dead tissue shows even when the part cannot carry the necrosis wound |
+| `Resources/Prototypes/_WF/Wolfmed/Damage/degradation.yml` | new | `WolfmedDegradationDefault`: stage1 25, stage2 60 summed severity, the RSI and the five state suffixes |
+| `Resources/Textures/_WF/Wolfmed/Effects/part_degradation.rsi` | new | 50 states (10 layers x 5 variants), 4 directions each. `CC-BY-SA-3.0`; copyright records the derivation from `Mobs/Species/Human/parts.rsi` with that RSI's credit verbatim |
+| `Tools/_WF/wolfmed/gen_part_degradation_rsi.py` | new | The generator. Masks every overlay through the matching human part sprite's alpha, erodes it, then grows a deterministic jagged blob inside it |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualsTest.cs` | modified | Four new tests, see below |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | One paragraph under Examination: what the stages look like, and that clothing hides them |
+
+### Tests
+
+- `OrganicDegradationStagesTest`: nothing below stage 1; two shallow cuts summing past it show muscle; a
+  deeper one shows bone; the other limbs stay clean; the stage reaches the client; on the client the
+  overlay layer exists, is visible, draws above its own limb layer and below `jumpsuit`; removing the
+  wounds clears it.
+- `MechanicalAndNecroticDegradationTest`: an IPC arm shows struts then wiring, never muscle or bone;
+  `MakeNecrotic` replaces a muscle stage with the necrotic state.
+- `DetachedLimbKeepsItsDegradationTest`: a severed arm carries its own stage and phase 3's detached damage
+  data, and the body stops drawing that layer.
+- `DegradationArtCoversEveryLayerAndStageTest`: every (layer, stage) the profile can select resolves to a
+  state that exists in the RSI. A missing state would be a client error log, which this suite fails on.
+
+### Design calls
+
+1. **Stages ride `PartDamageVisualsComponent` instead of a new component.** The client already subscribes
+   `<PartDamageVisualsComponent, AfterAutoHandleStateEvent>` and a second system could not subscribe the
+   same pair. One marked field is cheaper than a second networked component plus a hook for it.
+2. **Severity, not damage.** `Damage` on that component is the projected per-part damage the phase-3
+   overlay reads; it says nothing about how bad the wounds are, whether the part is flesh or frame, or
+   whether it is dead. The stages sum the part's own wound severities instead.
+3. **No hand/foot fold.** Phase 3 folds `LHand` into `LArm` because the stock six-layer `targetLayers`
+   list has no hand art. The overlay adds its own layers, so it uses all ten layers directly.
+4. **Human masks, eroded, for every species.** Each overlay is cut from the matching human part sprite's
+   alpha, then eroded once or twice, so it is a small central patch that still lands inside limbs of a
+   different shape. A species it does not fit adds `- type: WolfmedDegradationVisuals` / `enabled: false`;
+   nothing in the repo needs it today (both wound hosts, `BaseMobSpeciesOrganic` and `MobIPC`, are
+   humanoid). A body sprite with no layer for a given limb never gets that overlay at all.
+5. **Layers are added once and then only toggled.** No layer is ever removed and no draw depth is touched,
+   so this cannot fight `_CE` Z-levels or the phase-3 damage overlays, which sit one index above.
+6. **The client is told the stage, not the severity.** The threshold comparison happens once on the
+   server, which keeps the profile a server-side tuning knob and the wire payload one byte per limb.

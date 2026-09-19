@@ -4,6 +4,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
 using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 skips Onyx's Targeting stack; TargetBodyPart comes from Shitmed.
+using Content.Shared._WF.Wolfmed.Damage; // WOLFGATE (V3): PartDamageVisualsComponent.Degradation.
 using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -97,6 +98,12 @@ public sealed partial class PartDamageVisualsComponent : Component
 {
     [AutoNetworkedField]
     public Dictionary<HumanoidVisualLayers, DamageSpecifier> Damage = new();
+
+    // WOLFGATE (V3): degradation stage per layer, written by WolfmedDegradationVisualsSystem. It rides this
+    // component rather than a second one so it reuses the AfterAutoHandleState hook the client already has.
+    // Damage cannot stand in for it: it says nothing about wound severity, material or dead tissue.
+    [AutoNetworkedField]
+    public Dictionary<HumanoidVisualLayers, WolfmedPartDegradation> Degradation = new();
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]

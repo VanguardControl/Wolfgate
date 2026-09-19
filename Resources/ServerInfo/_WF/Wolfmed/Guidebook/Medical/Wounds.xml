@@ -14,6 +14,8 @@ The health analyzer lists damage, wounds, pain, bleeding, fractures, and organ c
 
 Body-part damage counts toward overall health. A wound is a separate result of a strong hit: a cut, burn, electrical injury, fracture, or structural defect. Damage can be removed while a wound and its effects remain.
 
+A badly wounded limb also shows it. Past a first threshold the skin opens onto muscle, and past a second onto bone; a chassis shows bare structure and then loose wiring. A necrotic limb darkens instead. Clothing hides all of it, so strip a patient before reading them by eye, and use an analyzer when you cannot.
+
 ## Effects
 
 Wounds progress through minor, moderate, severe, and critical stages. Pain, bleeding, and loss of limb function increase with severity.
