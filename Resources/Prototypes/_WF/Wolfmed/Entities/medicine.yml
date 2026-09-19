@@ -1,0 +1,18 @@
+# Dispensed antibiotics (W7). W5 shipped spaceacillin as a reaction only, so the one cure for a spreading
+# infection existed but nothing stocked it. This is the bottle medbay pulls off a shelf while chemistry
+# catches up, on the same base and the same 30u fill as every other shipped reagent bottle.
+
+- type: entity
+  id: SpaceacillinChemistryBottle
+  suffix: spaceacillin
+  parent: BaseChemistryBottleFilled
+  components:
+  - type: Label
+    currentLabel: reagent-name-spaceacillin
+  - type: SolutionContainerManager
+    solutions:
+      drink: # This solution name and target volume is hard-coded in ChemMasterComponent
+        maxVol: 30
+        reagents:
+        - ReagentId: Spaceacillin
+          Quantity: 30

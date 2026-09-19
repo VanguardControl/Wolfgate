@@ -26,3 +26,10 @@ health-analyzer-wound-fracture-treatment-mended = mended
 health-analyzer-wound-bleeding-short-mechanical = fluid leak
 health-analyzer-wound-fracture-short-frame = frame damage: { $grade }
 health-analyzer-wound-fracture-treated-short-frame = frame damage: { $grade } ({ $treatment })
+
+# WOLFGATE (W7): the rest of the mechanical column. A chassis reports the same pain figure and the same
+# clotting phases, and neither word means anything on a frame.
+health-analyzer-wound-pain-short-mechanical = fault signal: { $pain }
+health-analyzer-wound-clotting-inprogress-mechanical = sealant setting
+health-analyzer-wound-clotting-complete-mechanical = leak sealed
+health-analyzer-wound-clotting-mixed-mechanical = partially sealed

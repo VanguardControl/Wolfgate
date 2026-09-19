@@ -23,6 +23,9 @@
         amount: 2
       - id: PillCanisterKelotane
       - id: PillCanisterDermaline
+      # WOLFGATE (W7): charring is a burn and nothing else in this kit reaches it. Five entries in an
+      # eight-cell grid - WolfmedAvailabilityTest spawns the kit so an overflow fails a test, not a round.
+      - id: WolfmedSkinGraft
 
 - type: entity
   id: MedkitBruteFilled

@@ -7,6 +7,8 @@
     Bloodpack: 5
     Gauze: 5 # Frontier
     EpinephrineChemistryBottle: 3
+    SpaceacillinChemistryBottle: 3 # WOLFGATE (W7): the only cure for a spread infection (W5).
+    WolfmedSkinGraft: 2 # WOLFGATE (W7): the only treatment for charring (W4).
     PillCanisterTricordrazine: 3 # Mono
     Syringe: 5
     BoxBottle: 3

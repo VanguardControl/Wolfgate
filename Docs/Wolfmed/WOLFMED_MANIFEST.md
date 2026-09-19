@@ -3117,3 +3117,77 @@ Wound suite after W6: 180 passed / 0 failed / 0 skipped (173 before; 7 new).
    system, `WeldingHealingComponent` gained a fuel-free path in the Wolfmed partial that already owns the
    wound-repair half of it, and the wrench carries the component with `fuelCost: 0`. Blunt only, so it
    never seals a breach.
+
+## Final stages: W7 (Treatment matrix, content distribution, docs sweep) (2026-09-19)
+
+The consistency and completeness pass over W0-W6. No new wounds, no new systems: availability for the
+items W4 and W5 left unreachable, one complete treatment matrix over every wound prototype in the game,
+the guide and analyzer wording finished, and the status document brought up to phase 8.
+
+| path | status | notes |
+|---|---|---|
+| `Resources/Prototypes/_WF/Wolfmed/Entities/medicine.yml` | new | `SpaceacillinChemistryBottle`, 30u on `BaseChemistryBottleFilled`, same shape as every shipped reagent bottle. W5 shipped the reagent with a reaction and nothing that stocked it. |
+| `Resources/Prototypes/_WF/Wolfmed/Recipes/lathes.yml` | new | `WolfmedSkinGraft` lathe recipe, Plastic 50 + Cloth 50, costed beside Ointment and Gauze. |
+| `Resources/Prototypes/Recipes/Lathes/Packs/medical.yml` | modified | One marked line: the graft joins `TopicalsStatic`. Charring has no other exit, so it has to be printable. |
+| `Resources/Prototypes/Catalog/VendingMachines/Inventories/medical.yml` | modified | Two marked lines: `SpaceacillinChemistryBottle: 3` and `WolfmedSkinGraft: 2` in `NanoMedPlusInventory`. |
+| `Resources/Prototypes/Catalog/Fills/Crates/medical.yml` | modified | One marked entry: two spaceacillin bottles in `CrateMedicalSupplies`, so an infected crew is orderable without chemistry. |
+| `Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml` | modified | One marked entry: `WolfmedSkinGraft` in `MedkitBurnFilled`. Five entries in an eight-cell grid; `WolfmedAvailabilityTest` spawns the kit so an overflow fails a test rather than a round. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | Two lines: the pain and clotting findings take the same `-mechanical` suffix W6 gave the bleed line. |
+| `Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl` | modified | Four marked keys: `health-analyzer-wound-pain-short-mechanical` and the three `-clotting-*-mechanical` variants. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | New "Time and contamination" chapter (infection, sepsis, necrosis - W5 had nothing on this page), and a quick-reference list of wound - cause - danger - treatment covering all 33 wounds a player meets. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | New "Blunt trauma" section (relocate verb, concussion rest, bruised organ, internal bleeding), plus where the skin graft and spaceacillin come from. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundTreatmentMatrixTest.cs` | new | 4 tests. The complete matrix: all 44 wound prototypes x 8 treatment items, declared and checked against live prototype data. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs` | new | 3 tests. Every new item is vended or printed, every new reagent has a reaction, and the touched fills hold what they declare. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | new | 2 tests. Every wound name, every stage name, and every analyzer key the panel builds by concatenation, in both the organic and the mechanical form. |
+| `Docs/Wolfmed/WOLFMED_STATUS.md` | modified | New "What phase 8 delivers" section: wounds, framework, items, CVars, tests, carried gaps. |
+
+Wound suite after W7: **189 passed, 0 failed, 0 skipped** (180 before; 9 new). `Guidebook`,
+`PrototypeSaveTest`, `VendingMachine` and `Lathe` filters rerun green (20 passed, 1 skipped - the
+permanently `[Ignore]`d `TestAllRestocksAreAvailableToBuy`, confirmed by rerunning it alone).
+
+### Design calls
+
+1. **The matrix is declared, then checked against data, rather than measured by 352 real heals.** Spawning
+   44 wounds on the right body and applying 8 items to each is minutes of test time for the same
+   assertion. The sibling `WolfmedTreatmentMatrixTest` already drives three real heals through the
+   routing system to pin the gate itself; this one is the breadth pass and reads the gate. A cell is
+   `healingMultiplier > 0` AND the item's treatable damage types overlap the wound's AND the item's
+   `TreatmentCapability` set overlaps some profile that lists the wound.
+2. **The capability column is the union over carriers.** Three wounds sit in both the organic and the
+   mechanical profiles, so their rows say "some body carrying this wound can be treated with this item"
+   rather than "every body". Recorded in the test's own remarks; splitting the matrix per profile would
+   have doubled it to catch nothing that is not already covered by W6's organic/mechanical wall test.
+3. **The welding tools are in the matrix on an assumption, pinned separately.** A welder and a wrench are
+   gated by `damageContainers`, not by `TreatmentCapability`, so the matrix takes them as Mechanical and
+   `WeldingToolsAreMechanicalOnlyTest` asserts their container lists directly.
+4. **No forceps item.** W1 decided the existing `HemostatComponent` / `TweezersComponent` are the clean
+   removal tool and the spec's "forceps" is satisfied by the hemostat, which is already lathe-printable
+   and in the surgical crate. A third item with the same component would be content for its own sake.
+5. **Spaceacillin is not in a medkit.** `Medkit` is an eight-cell grid and the kits that would want an
+   antibiotic are the ones already at four or five entries; PROTO E's tourniquet was withdrawn from
+   `MedkitAdvancedFilled` in WP12-9 for exactly this. The vendor, the supplies crate and the chem
+   dispenser are three routes without risking a spawn error. The skin graft did fit the burn kit, and the
+   test proves it.
+6. **The analyzer's mechanical column was finished, not just checked.** W6 consumed phase 5's
+   `-mechanical`/`-frame` variants for bleeding and fractures and left pain and clotting reading as flesh
+   on a chassis. Four locale keys and a two-character suffix on two existing lines closes it, and the new
+   locale test keeps both halves of every such family present.
+
+### Gaps not closed (carried forward, unchanged from W0-W6)
+
+- **No Piercing fracture profile** (W0). `WolfmedBodyPartComponent.FractureProfile` is a single id and
+  `WoundFractureSystem` assumes one fracture per part; a second damage type needs a list on the component
+  plus a rewrite of creation, grading and treatment.
+- **`Hitscan` and `Surgery` causes are never derived** (W1). `HitscanBasicDamageSystem` passes `origin`
+  but no `tool`, and no rule filters on either flag, so deriving them would add an upstream hook that
+  nothing reads. One marked line plus a `WolfmedDamageCause` component whenever a rule wants them.
+- **Systemic bleeding chems still stop an arterial bleed** (W2); only the part-targeted topical path is
+  gated.
+- **The analyzer has no dedicated arterial, dislocated, concussed, numb or residue flag** (W2-W4). A medic
+  reads the wound name, which the quick reference now explains.
+- **Necrosis has no sprite on the limb** (W5), only the analyzer flag, the popup and the wound name.
+- **The short circuit's sparks spawn at the body** (W6); parts live in nullspace and have no coordinate.
+- **Five interactions reuse the plain do-after bar with no sound**: embedded removal (W1), relocate joint
+  (W3), deliberate cautery (W4), loosen tourniquet (W5) and the wrench repair (W6). One shared
+  `WolfmedWoundInteraction` sound set would close all five together; it is a phase-7 "Viscera" item
+  (V1 wound SFX) rather than a W7 one.

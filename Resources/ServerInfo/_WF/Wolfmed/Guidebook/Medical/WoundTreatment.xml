@@ -67,6 +67,22 @@ A severed tendon is mechanical damage, not an open wound, and no topical reaches
     <GuideEntityEmbed Entity="Hemostat"/>
   </Box>
 
+## Blunt trauma
+
+A bruise pack is the whole answer for an ordinary bruise and for a crush injury. The three complications a heavy hit leaves behind are not items at all.
+
+A [bold]dislocated joint[/bold] is set by hand. Select the limb on the targeting doll, alt-click the patient and choose [bold]Relocate joint[/bold]. On yourself it takes far longer and hurts twice as much.
+
+A [bold]concussion[/bold] has no treatment. It fades on its own and four times faster while the patient sleeps or lies buckled in a medical bed; painkillers only hide what it hurts.
+
+A [bold]bruised organ[/bold] is separate from the bruising over it. Treat the wound with a bruise pack and read the organ's own condition off the analyzer - the organ surgeries are what restore it.
+
+A crushing blow can also start [bold]internal bleeding[/bold], which no dressing reaches. It shows on the analyzer and comes out on the table.
+  <Box>
+    <GuideEntityEmbed Entity="Brutepack"/>
+    <GuideEntityEmbed Entity="Bonesetter"/>
+  </Box>
+
 ## Burns
 
 Ointment and regenerative mesh handle ordinary burns, frostbite and the damage a chemical burn has already done. Three things they do not handle:
@@ -76,6 +92,8 @@ A [bold]chemical burn[/bold] keeps working while the acid is still on the skin. 
 [bold]Charred tissue[/bold], left when a burn reaches its critical stage, carries no damage type, so nothing in a medkit reaches it. Open the part, graft it with a skin graft, seal it.
 
 [bold]Frostbite[/bold] numbs what it freezes. The patient will under-report a frozen limb; trust the analyzer.
+
+Skin grafts are in the burn kit and the surgical crate, come out of the medical vendor, and print on a medical lathe.
   <Box>
     <GuideEntityEmbed Entity="RegenerativeMesh"/>
     <GuideEntityEmbed Entity="WolfmedSkinGraft"/>
@@ -117,8 +135,11 @@ An open wound that nobody treats becomes infected. How fast depends on the wound
 Prevention is most of the work, and it is cheap. Dressing a wound early cuts its infection rate to a seventh; suturing or cauterising it stops the clock outright. Antiseptic - ethanol, bleach or spaceacillin applied to the skin - cleans an open wound and lets a local infection drain away over the next minute. None of that reaches an infection that has already spread.
 
 Once it has, the answer is [bold]spaceacillin[/bold] in the bloodstream. It clears contamination in every wound at once and pulls sepsis back; a large dose is poisonous, so treat and stop.
+
+Bottles come out of the medical vendor and the medical supplies crate. Chemistry can also make it from cryptobiolin and inaprovaline in equal parts.
   <Box>
     <GuideEntityEmbed Entity="Gauze"/>
+    <GuideEntityEmbed Entity="SpaceacillinChemistryBottle"/>
     <GuideEntityEmbed Entity="Syringe"/>
   </Box>
 

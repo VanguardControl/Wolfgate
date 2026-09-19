@@ -6,6 +6,7 @@
   - Brutepack
   - Ointment
   - Gauze
+  - WolfmedSkinGraft # WOLFGATE (W7): charring has no other exit, so the graft must be printable.
 
 - type: latheRecipePack
   id: BasicChemistryStatic

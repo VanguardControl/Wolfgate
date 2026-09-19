@@ -175,7 +175,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
                 or HealthAnalyzerClottingPhase.Complete
                 or HealthAnalyzerClottingPhase.Mixed)
                 details.Add(Loc.GetString(
-                    $"health-analyzer-wound-clotting-{diagnostic.ClottingPhase.ToString().ToLowerInvariant()}"));
+                    $"health-analyzer-wound-clotting-{diagnostic.ClottingPhase.ToString().ToLowerInvariant()}{mechanical}"));
 
             // W1: printed before the scars, because it is the finding that decides what the medic does next.
             if (diagnostic.EmbeddedObjects > 0)
@@ -195,8 +195,9 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
             if (diagnostic.ScarCount > 0)
                 details.Add(Loc.GetString("health-analyzer-wound-scars-short", ("count", diagnostic.ScarCount)));
 
+            // W7: a chassis reports the same figure, but it is not pain. Same switch as the bleed line.
             if (diagnostic.Pain > FixedPoint2.Zero)
-                details.Add(Loc.GetString("health-analyzer-wound-pain-short", ("pain", diagnostic.Pain)));
+                details.Add(Loc.GetString($"health-analyzer-wound-pain-short{mechanical}", ("pain", diagnostic.Pain)));
 
             if (diagnostic.Functionality != BodyPartFunctionalityState.Functional)
                 details.Add(Loc.GetString(

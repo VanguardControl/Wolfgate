@@ -217,6 +217,92 @@ first and alone, 3/3, so no environmental `db.ef` masking. Headless server (120 
 `Server Version 277.0.0.0 -> Ready` with zero `[ERRO]`/`[FATL]`/exception lines on every phase-5 package
 that touched a prototype or locale file (`WP13-6-report-server.log`).
 
+## What phase 8 delivers
+
+Phase 8 ("wound expansion", work packages H and W0-W7, 2026-09-19) is the content phase: **21 new wound
+prototypes** on a new data-driven rule framework, five new gameplay systems' worth of complications, and
+the availability, guide, analyzer and test sweep that makes all of it reachable. Phases 6 and 7 remain
+unstarted; phase 8 was taken first because it is `_WF` data and small `_WF` behaviours rather than
+prediction work.
+
+**The framework (W1).** A hit now chooses its wound rather than getting the one wound its damage type
+names. `WolfmedWoundCause` is a `[Flags]` enum (Projectile, Fragment, Hitscan, Explosion, Melee, Unarmed,
+Bite, Thrown, Environmental, Surgery) derived from the tool that landed the hit;
+`wolfmedWoundRule` prototypes filter on damage type, cause, damage band, part type and the part profile's
+`TreatmentCapabilities`, and the highest-priority match wins. A new wound is a `ruleOnly: true` prototype,
+its id in a part profile's `supportedWounds`, and a rule — **no C#**. Two extension points carry the rest:
+`WolfmedWoundLifecycleEvent` (broadcast, a wound created/changed/removed) and `WolfmedPartDamageEvent`
+(broadcast, one damage type of one hit, before the wound exists). Both are broadcasts because every
+directed wound-lifecycle pair is already owned.
+
+**The wounds (W1-W6), 21 of them, all `ruleOnly`:**
+
+| family | wounds |
+|---|---|
+| Ballistic (W1) | Graze, Gunshot, Lodged round, Shrapnel |
+| Slash and bite (W2) | Arterial bleed, Severed tendon, Avulsion |
+| Blunt (W3) | Crush injury, Concussion, Dislocation, Organ contusion |
+| Burns (W4) | Charring, Frostbite, Chemical burn, Internal burns |
+| Time (W5) | Necrosis |
+| Mechanical (W6) | Dent, Chassis breach, Short circuit, Servo damage, Overheating |
+
+Plus **embedded objects** (an object on the wound blocks every treatment until it is pulled out with a
+hemostat, tweezers or any sharp item), **cauterisation** (Heat seals bleeding, deliberately through a
+verb), **infection / sepsis** (a 0-100 progress model with Local, Spreading and Septic stages, prevented by
+dressings and cured by the new spaceacillin reagent), and **necrosis** (a tourniquet left on for ten
+minutes, a frozen or charred limb, or a late reattachment). The five mechanical wounds and the sixteen
+organic ones cannot cross: `CanCreateWound` and the rule filter each enforce it independently.
+
+**Balance (W0).** `healingMultiplier` was Onyx's unset field defaulting to 1, so removing damage closed the
+wound underneath it one for one; it is now 0.15 on the fifteen damage-healable wounds, 0 on the pure
+bleeders, and 1 on the mechanical ones (a welder repairs only by removing damage). Topicals are restricted
+by damage type through the new `HealingComponent.TreatedDamageTypes`: a bruise pack is for bruises, sutures
+for cuts. Fracture thresholds moved to the `_WF` `WolfmedFractureProfile` at 12/20/32/45 @ 25/50/80/100 %,
+which is what makes a fracture reachable with Wolfgate's 8-15 Blunt melee swings at all.
+
+**Content and availability (W7).** New items: `WolfmedSkinGraft` (the only exit from charring; burn kit,
+surgical crate, medical vendor, medical lathe), `SpaceacillinChemistryBottle` (the only cure for a spread
+infection; medical vendor, medical supplies crate, and a chemistry reaction from cryptobiolin +
+inaprovaline), `WolfmedSpentRound` and `WolfmedShrapnelFragment` (what comes out of a wound). New surgeries:
+artery repair, tendon repair, skin graft, servo replacement. The wrench gained a fuel-free
+`WeldingHealing` block for panel-beating; the cable coil carries `WolfmedServoKit`.
+
+**CVars** (`Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs`): `wolfmed.crit_heartbeat` (client, default
+true), `wolfmed.infection_enabled`, `wolfmed.infection_rate`, `wolfmed.sepsis_enabled`,
+`wolfmed.necrosis_enabled`, `wolfmed.necrosis_rate` (all server).
+
+**Crit heartbeat (WP H).** A looping heartbeat plays for a player whose own mob is in critical condition.
+It is a client system driven by `AfterAutoHandleStateEvent` on `MobStateComponent`, not
+`MobStateChangedEvent` — a server-only mob-state change, which is Wolfmed's normal case, never raises the
+latter client-side. Anything else on the client that has to track the local player's mob state should copy
+that pattern.
+
+**Player-facing documentation.** Both guide pages are complete for all 21 wounds: `Wounds.xml` carries a
+section per wound, the infection/sepsis/necrosis chapter, and a quick-reference list of
+wound - cause - danger - treatment; `WoundTreatment.xml` carries the per-item matrix, embedded objects,
+arterial bleeding, blunt complications, burns, cauterisation, infection, necrosis and mechanical repair,
+with where each new item comes from. The analyzer reads chassis findings in mechanical wording (fluid leak,
+frame damage, fault signal, sealant setting) rather than flesh wording.
+
+**Tests: 189 of 189 passed, 0 skipped** on the wound filter
+(`--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~Wolfmed|FullyQualifiedName~GibTest"`), up
+from 137 at the start of phase 8. Nine of those are W7's consistency pass:
+`WolfmedWoundTreatmentMatrixTest` declares, for **every wound prototype in the game**, which of the eight
+shipped treatment items reach it and which do not, and checks the declaration against live prototype data —
+a wound added later without a declared treatment fails it. `WolfmedAvailabilityTest` checks that every new
+item is vended or printed, every new reagent has a reaction, and the fills W7 touched actually hold what
+they declare (a full kit drops the entry and logs an error, which is how PROTO E's tourniquet was
+withdrawn). `WolfmedLocaleCoverageTest` resolves every wound name, every stage name and every key the
+analyzer panel builds by concatenation, in both the organic and the mechanical form.
+
+**Gaps carried out of phase 8:** no Piercing fracture profile (`FractureProfile` is a single id and
+`WoundFractureSystem` assumes one fracture per part — W0); `Hitscan` and `Surgery` are in the cause enum
+with nothing deriving them and no rule filtering on them (W1); systemic bleeding chems still stop an
+arterial bleed (W2); the analyzer names wounds but has no dedicated arterial, dislocated, concussed, numb
+or residue flag (W2-W4); necrosis has no sprite on the limb (W5); the short circuit's sparks spawn at the
+body because parts live in nullspace (W6); and the removal, relocate, cautery, tourniquet-loosen and wrench
+interactions all reuse the plain do-after bar with no sound of their own (W1-W6).
+
 ## Upstream footprint
 
 **55 tracked upstream files** carry `// WOLFGATE` hooks (see the manifest) — 16 shipped in phase 1, 6 more
