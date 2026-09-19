@@ -1,3 +1,4 @@
+using Content.Shared._Onyx.Wounds;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
@@ -23,6 +24,29 @@ public record struct WolfmedWoundSelectionEvent(
     float SeverityMultiplier,
     bool SuppressDefault = false);
 
+/// <summary>Which end of a wound's life the lifecycle event reports.</summary>
+public enum WolfmedWoundLifecycle : byte
+{
+    Created,
+    Changed,
+    Removed,
+}
+
+/// <summary>
+/// Broadcast by <see cref="WolfmedWoundTraitSystem"/> whenever a wound is created, changed or removed.
+/// The directed <c>WoundComponent</c> and <c>WoundableComponent</c> subscriptions for those three events
+/// are already held (by the trait system and by Onyx's WoundStatusEffectSystem), and a component/event
+/// pair can only have one owner, so Wolfmed systems that need wound lifecycle answer here instead.
+/// </summary>
+[ByRefEvent]
+public readonly record struct WolfmedWoundLifecycleEvent(
+    WolfmedWoundLifecycle Kind,
+    EntityUid Part,
+    EntityUid Wound,
+    ProtoId<WoundPrototype> Prototype,
+    FixedPoint2 OldSeverity,
+    FixedPoint2 Severity);
+
 /// <summary>Prying one embedded object out of a wound.</summary>
 [Serializable, NetSerializable]
 public sealed partial class WolfmedEmbeddedRemovalDoAfterEvent : SimpleDoAfterEvent
@@ -36,5 +60,17 @@ public sealed partial class WolfmedEmbeddedRemovalDoAfterEvent : SimpleDoAfterEv
     {
         Wound = wound;
         Clean = clean;
+    }
+}
+
+/// <summary>Forcing a dislocated joint back into place.</summary>
+[Serializable, NetSerializable]
+public sealed partial class WolfmedRelocateDoAfterEvent : SimpleDoAfterEvent
+{
+    public readonly NetEntity Wound;
+
+    public WolfmedRelocateDoAfterEvent(NetEntity wound)
+    {
+        Wound = wound;
     }
 }

@@ -1,5 +1,6 @@
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Part;
+using Content.Shared.FixedPoint;
 using Content.Shared.Movement.Systems;
 using Robust.Shared.Prototypes;
 
@@ -27,9 +28,32 @@ public sealed class WolfmedWoundTraitSystem : EntitySystem
     }
 
     // Onyx refreshes movement speed off fracture events, which a limb-penalty wound does not raise.
-    private void OnWoundCreated(Entity<WoundComponent> wound, ref WoundCreatedEvent args) => RefreshLimb(wound, args.Part);
-    private void OnWoundChanged(Entity<WoundComponent> wound, ref WoundChangedEvent args) => RefreshLimb(wound, args.Part);
-    private void OnWoundRemoved(Entity<WoundComponent> wound, ref WoundRemovedEvent args) => RefreshLimb(wound, args.Part);
+    // The relay is W3's extension point: the directed subscriptions for these three events are all taken,
+    // so other Wolfmed systems (concussion, organ contusion) answer the broadcast instead.
+    private void OnWoundCreated(Entity<WoundComponent> wound, ref WoundCreatedEvent args)
+    {
+        RefreshLimb(wound, args.Part);
+        Relay(WolfmedWoundLifecycle.Created, args.Part, wound, FixedPoint2.Zero);
+    }
+
+    private void OnWoundChanged(Entity<WoundComponent> wound, ref WoundChangedEvent args)
+    {
+        RefreshLimb(wound, args.Part);
+        Relay(WolfmedWoundLifecycle.Changed, args.Part, wound, args.OldSeverity);
+    }
+
+    private void OnWoundRemoved(Entity<WoundComponent> wound, ref WoundRemovedEvent args)
+    {
+        RefreshLimb(wound, args.Part);
+        Relay(WolfmedWoundLifecycle.Removed, args.Part, wound, wound.Comp.Severity);
+    }
+
+    private void Relay(WolfmedWoundLifecycle kind, EntityUid part, Entity<WoundComponent> wound, FixedPoint2 old)
+    {
+        var severity = kind == WolfmedWoundLifecycle.Removed ? FixedPoint2.Zero : wound.Comp.Severity;
+        var relayed = new WolfmedWoundLifecycleEvent(kind, part, wound, wound.Comp.Prototype, old, severity);
+        RaiseLocalEvent(ref relayed);
+    }
 
     private void RefreshLimb(Entity<WoundComponent> wound, EntityUid part)
     {

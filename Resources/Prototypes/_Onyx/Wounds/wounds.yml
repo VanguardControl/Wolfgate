@@ -36,6 +36,11 @@
     - WolfmedArterialBleedWound
     - WolfmedTendonCutWound
     - WolfmedAvulsionWound
+    # WOLFGATE (W3): blunt trauma wounds, also created only by wolfmedWoundRule.
+    - WolfmedCrushInjuryWound
+    - WolfmedConcussionWound
+    - WolfmedDislocationWound
+    - WolfmedOrganContusionWound
   organDamage:
     chances:
       Head: 0.05

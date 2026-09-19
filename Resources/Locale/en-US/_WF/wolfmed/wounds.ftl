@@ -19,3 +19,15 @@ wolfmed-wound-name-tendon-cut = severed tendon
 wolfmed-wound-name-avulsion = avulsion
 
 wolfmed-tourniquet-nowhere-to-tie = There is nothing here to tie a tourniquet around.
+
+# Blunt trauma wounds and setting a dislocated joint (W3).
+
+wolfmed-wound-name-crush-injury = crush injury
+wolfmed-wound-name-concussion = concussion
+wolfmed-wound-name-dislocation = dislocated joint
+wolfmed-wound-name-organ-contusion = bruised organ
+
+wolfmed-relocate-verb = Relocate joint
+wolfmed-relocate-start = { CAPITALIZE(THE($user)) } starts forcing { THE($target) }'s joint back into place.
+wolfmed-relocate-start-self = { CAPITALIZE(THE($user)) } grits { POSS-ADJ($user) } teeth and grabs { POSS-ADJ($user) } own joint.
+wolfmed-relocate-success = The joint goes back in with a sickening pop.

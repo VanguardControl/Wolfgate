@@ -2916,3 +2916,37 @@ Deviations from the spec:
 4. **Systemic bleeding chems still stop an arterial bleed.** `ModifyBodyBleeding` / `StopBodyBleeding` are not
    gated; only the part-targeted topical path is. A chem that stops all bleeding is a whole-body effect and
    was left alone, but W4's cauterisation work should decide whether heat seals an artery.
+
+## Final stages: W3 (Blunt trauma wounds) (2026-09-19)
+
+Four blunt-trauma wounds on W1's rule framework plus three small `_WF` systems for the effects data cannot
+express. No Onyx C# was touched; the one Onyx data edit is the `supportedWounds` list.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/blunt.yml` | new | `WolfmedCrushInjuryWound` (staged limb penalty, seeps at severe), `WolfmedConcussionWound` (staged blur/slur/knockdown, no damage types), `WolfmedDislocationWound` (limb penalty, no damage types), `WolfmedOrganContusionWound`. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | modified | Six W3 rules: crush at 30 Blunt (replaces the bruise), internal bleeding at 30 Blunt / 40 %, concussion at 15 Blunt on a head, organ contusion at 20 Blunt on a torso, dislocation at 18 Blunt on a limb, and 10-18 Blunt when thrown or environmental. All `continue`. |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | Four ids added to `OrganicBodyPartProfile.supportedWounds`, marked `# WOLFGATE (W3)`. Data only. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `WolfmedConcussionBehavior` (blur, stutter, knockdown, recoveryPerMinute, restMultiplier), `WolfmedDislocationBehavior` (delay, selfMultiplier, pain, selfPainMultiplier), `WolfmedOrganContusionBehavior` (damage, minRemainingHealth). All per stage. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | modified | `WolfmedWoundLifecycleEvent` (broadcast: Created/Changed/Removed) and `WolfmedRelocateDoAfterEvent`. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | Its three wound-lifecycle handlers now also broadcast `WolfmedWoundLifecycleEvent`. The directed `WoundComponent`/`WoundableComponent` subscriptions for those events are already owned, and a pair can have only one owner, so this is the seam every later Wolfmed system uses. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedConcussionComponent.cs` | new | On the body while any concussion is open: `Blur`, `Stutter`, recovery accumulator. Networked, because the client re-raises `GetBlurEvent` when eyewear changes. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedConcussionSystem.cs` | new | Contributes the blur through `GetBlurEvent`, slurs speech through `SharedStutteringSystem`, knocks the patient down when the wound lands or worsens, and fades severity on a one-second tick (`Recover`, `IsResting`: asleep or buckled to a `WolfmedBedHealMarker` bed). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedDislocationSystem.cs` | new | `AlternativeVerb` "Relocate joint" on any wound host carrying one, do-after (2.5x and double pain on yourself), `TryRelocate` public for tests and future surgery steps. Part comes from the user's targeting doll, falling back to the first dislocated part. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedOrganContusionSystem.cs` | new | Answers the lifecycle relay and takes health off one organ in the struck part, never below `minRemainingHealth`. `TryBruise` is public. |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Four wound names, the verb and three relocate popups. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Four new sections, including how to reach the relocate verb. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBluntWoundTest.cs` | new | Six tests: crush replaces the bruise and pops the joint, internal bleeding over 24 crushing blows, the concussion's full arc (stages, no item cures it, awake vs asleep recovery, clearing), dislocation penalties / topical refusal / verb / relocation, organ contusion with its clamp, names. |
+
+Deviations from the spec:
+1. **Function loss uses `WolfmedLimbPenaltyBehavior`, not the `BodyPartFunctionality` path** the task named.
+   W2 established this: `wounds.body_part_functionality_enabled` ships false (P2-3), so Onyx's impaired and
+   disabled states are inert. The behavior hooks the fracture branch of `FractureEffectSystem` instead, which
+   is ungated, and gives the same movement and manipulation multipliers.
+2. **Internal bleeding is a rule, not code.** The existing `InternalBleedingWound` is created by a second
+   `wolfmedWoundRule` on the same hit (`continue: true`), which is also W3's only chance roll (40 %).
+3. **The organ contusion carries `Blunt` damage types** so ordinary bruise treatment closes the record. The
+   organ's own condition is separate and recovers the way every other organ does.
+4. **A concussion is not treatable at all.** The wound lists no damage types, so no topical can reach it, and
+   it has no surgery: time and rest are the cure, painkillers only mask the pain. This is the spec read
+   literally; if a "diagnose and stabilise" surgery is wanted later, it is one step effect.
