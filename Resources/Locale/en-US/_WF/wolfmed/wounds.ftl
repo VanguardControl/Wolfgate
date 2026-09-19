@@ -110,3 +110,14 @@ reagent-effect-guidebook-cool-overheating =
         [1] Cools
        *[other] chance to cool
     } an overheated chassis
+
+# Splinting a fracture (V5).
+
+wolfmed-splint-start = { CAPITALIZE(THE($user)) } straps a splint around { THE($target) }'s limb.
+wolfmed-splint-start-self = { CAPITALIZE(THE($user)) } starts strapping a splint around { POSS-ADJ($user) } own limb.
+wolfmed-splint-success = The limb is braced. The bone stops shifting.
+wolfmed-splint-no-part = Select the limb to splint on the targeting doll first.
+wolfmed-splint-wrong-part = A splint goes around an arm or a leg. Nothing else here can be braced.
+wolfmed-splint-no-fracture = There is no broken bone there.
+wolfmed-splint-too-slight = The crack is too slight for a splint to hold anything.
+wolfmed-splint-already-treated = That bone is already set.

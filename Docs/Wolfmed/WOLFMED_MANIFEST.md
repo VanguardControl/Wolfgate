@@ -3191,3 +3191,49 @@ permanently `[Ignore]`d `TestAllRestocksAreAvailableToBuy`, confirmed by rerunni
   (W3), deliberate cautery (W4), loosen tourniquet (W5) and the wrench repair (W6). One shared
   `WolfmedWoundInteraction` sound set would close all five together; it is a phase-7 "Viscera" item
   (V1 wound SFX) rather than a W7 one.
+
+## Final stages: V5 (Splint) (2026-09-19)
+
+Phase 7 backlog item V5. A handheld splint applied to a fractured arm, hand, leg or foot through a
+do-after sets the fracture to `FractureTreatment.Reduced` without an incision, which is the profile's own
+`treatmentEffectScales` 0.25, and is used up doing it. Mending stays surgical (bone gel) or chemical
+(osteogen, stasizium), and a fresh hard blow resets the treatment through the existing
+`resetTreatmentOnDamage` path, exactly as it resets a bonesetter's reduction. No Onyx file was touched:
+the whole feature hangs off the public `WoundFractureSystem.TryReduce`.
+
+| path | status | notes |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedSplintComponent.cs` | new | `WolfmedSplintComponent` (`delay`, `selfMultiplier`, `parts`, `consumed`, begin/end sounds), the `WolfmedSplintRefusal` reason enum, and `WolfmedSplintDoAfterEvent`. `parts` is data, so a future brace for another limb type needs no C#. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedSplintSystem.cs` | new | `UseInHand` (self) and `AfterInteract` (others) start the do-after on the part the user has selected on the targeting doll, via `WoundTargetResolver.TryResolveExact`, the same resolution the tourniquet uses. `CanApply` returns the refusal reason; `TryApply` calls `TryReduce`, popups and `QueueDel`s the item. Both public so tests and future surgery steps skip the do-after. Server-side for the same reason `TourniquetSystem` is (D13): `TrySetTreatment` is a no-op off the server. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/splint.yml` | new | `WolfmedSplint` (delay 4 s) and `WolfmedSplintImprovised` (delay 7 s, same component otherwise). Both `BaseItem`, size Small, consumed on use. |
+| `Resources/Textures/_WF/Wolfmed/Objects/Medical/splint.rsi` | new | Original 32x32 PIL art, states `splint` (white polymer brace, blue straps) and `splint-improvised` (steel rod, cloth binding). `CC-BY-SA-3.0`, "Made for Wolfgate (Wolfmed)". No inhand states. |
+| `Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/splint.yml` | new | `construction` prototype for the improvised splint, `objectType: Item`, `category: construction-category-tools`, with the `icon:` the Release linter requires. |
+| `Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/splint.yml` | new | `constructionGraph`: MetalRod 2 + Cloth 2, one second each. |
+| `Resources/Prototypes/Catalog/VendingMachines/Inventories/medical.yml` | modified | One marked line: `WolfmedSplint: 4` in `NanoMedPlusInventory`. |
+| `Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml` | modified | One marked entry: `WolfmedSplint` in `MedkitBruteFilled`, the kit for blunt force. Fifth entry in an eight-cell grid; the other kits were at four or five already (W7), so no other fill was touched. |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Eight keys under a `V5` heading: two start popups, the success popup, and one per refusal reason. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | The Fractures section gains the splint: how to apply it, what Reduced is worth, that it is not a cure, that a hard blow undoes it, and where splints come from. Both splints embedded. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Two lines: the Fracture entry and its quick-reference line now name the splint beside the bonesetter. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSplintTest.cs` | new | 3 tests: a splint on a Comminuted leg sets the bone, cuts the penalty to a quarter and is consumed; the three refusals (unbroken limb, torso, head) and the locale keys; a hard hit undoes the splint and the limb takes a fresh one. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs` | modified | `WolfmedSplint` joins the obtainable items and `MedkitBruteFilled` the spawned fills; a new `CraftedItems` list checks `WolfmedSplintImprovised` against every construction recipe's target-node entity. |
+
+Wound suite after V5: **192 passed, 0 failed, 0 skipped** (189 before; 3 new).
+
+### Design calls and deviations
+
+1. **The splint does not touch a dislocation.** The task asked and answered this; the relocate verb (W3)
+   stays the only thing that sets a joint.
+2. **A Hairline fracture refuses the splint**, because `WolfmedFractureProfile.reductionMinimumGrade` is
+   `Simple` and `WoundFractureSystem.CanTreat` enforces it for every caller. The splint says so
+   (`wolfmed-splint-too-slight`) rather than silently failing; a hairline crack carries almost no penalty
+   to cut anyway.
+3. **The improvised splint is slower, not weaker.** `FractureTreatment` has no grade, so a worse splint
+   can only cost more time; 7 seconds against 4, and 17.5 against 10 on yourself.
+4. **Only `MedkitBruteFilled` got a splint.** W7 found the other kits at four to six entries in eight
+   cells, and an overflow logs an error that fails every pair test. The brute kit is also the right one:
+   fractures are blunt.
+5. **No lathe recipe.** The vendor stocks the proper splint and the improvised one is craftable from two
+   common materials anywhere, which is two routes; a third would have been surface for its own sake.
+6. **Speed is asserted as a ratio, not an absolute.** The same 60 Blunt that makes the fracture also
+   applies an ordinary damage slowdown that splinting does not touch, so the test asserts
+   `after / before == 1.75` (0.875 / 0.5), which is the treatment scale and nothing else.

@@ -170,7 +170,7 @@ A part running too hot to work properly. Nothing in a toolbox or a medkit reache
 
 ## Fracture
 
-Separate bone damage ranging from a hairline crack to a comminuted fracture. It slows movement and hand work, more so the worse the break. Reduction with a bonesetter weakens the penalty; mending with bone gel removes it entirely.
+Separate bone damage ranging from a hairline crack to a comminuted fracture. It slows movement and hand work, more so the worse the break. Reduction weakens the penalty to a quarter; mending removes it entirely. A splint reduces a broken arm or leg on the spot, a bonesetter does it on the table, and only bone gel or a bone-knitting reagent mends. A fresh hard blow to the same limb undoes a reduction, whichever did it.
 
 ## Surgical incision
 
@@ -212,7 +212,7 @@ Wound - cause - danger - treatment.
 
 [bold]Electrical wound[/bold] - a strong shock - pain, then loss of limb use - ointment, or a cable coil on a chassis.
 
-[bold]Fracture[/bold] - repeated or heavy blunt force - slower movement and hand work - bonesetter, then bone gel, in surgery.
+[bold]Fracture[/bold] - repeated or heavy blunt force - slower movement and hand work - a splint in the field, or bonesetter then bone gel in surgery.
 
 [bold]Graze[/bold] - a round that only caught the limb - a brief bleed - gauze, or nothing at all.
 

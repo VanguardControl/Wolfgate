@@ -4,6 +4,8 @@ using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Construction.NodeEntities;
+using Content.Shared.Construction.Prototypes;
 using Content.Shared.Research.Prototypes;
 using Content.Shared.VendingMachines;
 using Robust.Shared.Containers;
@@ -31,7 +33,11 @@ public sealed class WolfmedAvailabilityTest : GameTest
     [
         "WolfmedSkinGraft",
         "SpaceacillinChemistryBottle",
+        "WolfmedSplint", // V5
     ];
+
+    /// <summary>Items reached by crafting rather than by a vendor or a lathe.</summary>
+    private static readonly string[] CraftedItems = ["WolfmedSplintImprovised"]; // V5
 
     /// <summary>Reagents Wolfmed added. Each needs a reaction chemistry can run.</summary>
     private static readonly string[] ObtainableReagents = ["Spaceacillin"];
@@ -42,6 +48,7 @@ public sealed class WolfmedAvailabilityTest : GameTest
         ("MedkitBurnFilled", "WolfmedSkinGraft"),
         ("CrateMedicalSurgery", "WolfmedSkinGraft"),
         ("CrateMedicalSupplies", "SpaceacillinChemistryBottle"),
+        ("MedkitBruteFilled", "WolfmedSplint"), // V5
     ];
 
     /// <summary>Reachability: some vending inventory or lathe recipe names every new item.</summary>
@@ -71,6 +78,23 @@ public sealed class WolfmedAvailabilityTest : GameTest
                     Assert.That(vended.Contains(item) || printed.Contains(item), Is.True,
                         $"{item} is in no vending inventory and no lathe recipe: a player cannot get one, " +
                         "so whatever it treats has no treatment.");
+                }
+
+                // V5: the improvised splint is crafted, so its route is a construction recipe whose
+                // target node spawns it.
+                var crafted = prototypes.EnumeratePrototypes<ConstructionPrototype>()
+                    .Select(recipe =>
+                        prototypes.TryIndex<ConstructionGraphPrototype>(recipe.Graph, out var graph) &&
+                        graph.Nodes.TryGetValue(recipe.TargetNode, out var node)
+                            ? (node.Entity as StaticNodeEntity)?.Id
+                            : null)
+                    .Where(id => id != null)
+                    .ToHashSet();
+
+                foreach (var item in CraftedItems)
+                {
+                    Assert.That(prototypes.HasIndex<EntityPrototype>(item), Is.True, $"{item} does not exist.");
+                    Assert.That(crafted, Does.Contain(item), $"no construction recipe builds {item}.");
                 }
             });
         });

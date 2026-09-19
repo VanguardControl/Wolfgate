@@ -38,6 +38,9 @@
       - id: Gauze
       - id: PillCanisterIron
       - id: PillCanisterCopper
+      # WOLFGATE (V5): bones break from blunt force, which is what this kit is for. Five entries in an
+      # eight-cell grid - WolfmedAvailabilityTest spawns the kit so an overflow fails a test, not a round.
+      - id: WolfmedSplint
 
 - type: entity
   id: MedkitToxinFilled

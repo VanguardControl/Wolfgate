@@ -120,8 +120,14 @@ A ladder of painkillers suppresses pain by increasing amounts: ibuprofen, ketoro
 
 Bones break from blunt force. A single solid hit can crack one, and repeated blows to the same limb break it far sooner than the first hit alone would have.
 
-A fracture is mended in two steps: a bonesetter reduces it, then bone gel mends it, both through an open incision.
+A fracture is mended in two steps: a bonesetter reduces it, then bone gel mends it, both through an open incision. Osteogen knits a simple break without surgery, and stasizium knits any of them.
+
+Away from a table, a [bold]splint[/bold] does the first step on its own. Select the broken limb on the targeting doll and use the splint on the patient; on yourself it takes two and a half times as long. The break goes to [bold]set[/bold], which is a quarter of the movement and manipulation penalty, and the analyzer says so. It is not a cure: the bone is still broken, it still needs gel or a bone-knitting reagent, and a fresh hard blow to the same limb undoes the splint. Splints only go around arms, hands, legs and feet; a broken rib or skull is surgical.
+
+Splints are in the brute kit and the medical vendor. An [bold]improvised splint[/bold] - two metal rods and two cloth, crafted anywhere - does the same job more slowly.
   <Box>
+    <GuideEntityEmbed Entity="WolfmedSplint"/>
+    <GuideEntityEmbed Entity="WolfmedSplintImprovised"/>
     <GuideEntityEmbed Entity="Bonesetter"/>
     <GuideEntityEmbed Entity="BoneGel"/>
   </Box>
