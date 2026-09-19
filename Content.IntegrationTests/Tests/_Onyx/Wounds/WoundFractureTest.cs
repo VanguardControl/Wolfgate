@@ -247,10 +247,15 @@ public sealed class WoundFractureTest : GameTest
             // Product 2.0.
             Assert.That(manipulation.GetDurationMultiplier(body), Is.EqualTo(2f).Within(0.001f));
 
-            // removeWoundWhenMended: true -> the wound is gone, so GetEffect takes the Functional fallback.
+            // removeWoundWhenMended: true -> the fracture wound is gone.
+            // WOLFGATE (W3, re-derived in W4): mending no longer leaves a clean arm. 75 Blunt is over the
+            // crush rule's 30 and the dislocation rule's 18, so the same hit left a crush injury (Severe
+            // stage, manipulationModifier 1.6) and a popped joint (also 1.6) underneath. FractureEffectSystem
+            // reports the fracture in preference to them, which is why the 2.0 above was unaffected; with the
+            // fracture mended the worst limb penalty shows through: 1 + (1.6 - 1) * 1 * 1 = 1.6.
             Assert.That(fractures.TryMend(fractures.GetFracture(arm)!.Value.Owner));
             Assert.That(fractures.GetFracture(arm), Is.Null);
-            Assert.That(manipulation.GetDurationMultiplier(body), Is.EqualTo(1f).Within(0.001f));
+            Assert.That(manipulation.GetDurationMultiplier(body), Is.EqualTo(1.6f).Within(0.001f));
 
             // The leg is still Comminuted; detaching it removes the only mobility part, so the refresh raised
             // from OnPartChanged (OrganGotRemovedEvent, re-raised by WolfmedBodyPartLifecycleSystem) must

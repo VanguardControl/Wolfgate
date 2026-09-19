@@ -132,6 +132,7 @@
       methods: [Touch]
       effects:
       - !type:WashCreamPieReaction
+      - !type:WashChemicalBurns # WOLFGATE (W4): rinses caustic residue off a wound host.
   - type: StatusEffects
     allowed:
     - Stun

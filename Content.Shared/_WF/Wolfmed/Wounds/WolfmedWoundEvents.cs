@@ -24,6 +24,25 @@ public record struct WolfmedWoundSelectionEvent(
     float SeverityMultiplier,
     bool SuppressDefault = false);
 
+/// <summary>
+/// Broadcast by <see cref="WolfmedWoundRuleSystem"/> for every damage type of every hit that reaches a
+/// body part, with the cause already derived. The wound-selection event it is raised from is directed and
+/// single-owner, so systems that need to answer a hit rather than a wound listen here.
+/// </summary>
+/// <remarks>
+/// Raised before the rules run, so a handler sees the part as the hit found it. Server-only, because
+/// <c>WoundSystem.HandlePartDamageApplied</c> is.
+/// </remarks>
+[ByRefEvent]
+public readonly record struct WolfmedPartDamageEvent(
+    EntityUid Body,
+    EntityUid Part,
+    ProtoId<DamageTypePrototype> DamageType,
+    FixedPoint2 Amount,
+    WolfmedWoundCause Cause,
+    EntityUid? Origin,
+    EntityUid? Tool);
+
 /// <summary>Which end of a wound's life the lifecycle event reports.</summary>
 public enum WolfmedWoundLifecycle : byte
 {
@@ -60,6 +79,18 @@ public sealed partial class WolfmedEmbeddedRemovalDoAfterEvent : SimpleDoAfterEv
     {
         Wound = wound;
         Clean = clean;
+    }
+}
+
+/// <summary>Holding something hot against an open bleed until it stops.</summary>
+[Serializable, NetSerializable]
+public sealed partial class WolfmedCauteryDoAfterEvent : SimpleDoAfterEvent
+{
+    public readonly NetEntity Part;
+
+    public WolfmedCauteryDoAfterEvent(NetEntity part)
+    {
+        Part = part;
     }
 }
 

@@ -232,6 +232,29 @@
     amount: 8
   - type: SurgeryStepEmoteEffect
 
+# Burns (W4) ------------------------------------------------------------------
+# Charring carries no damage types, so the default Amount (remove it outright) is the only sensible one:
+# there is nothing to whittle down, the dead tissue is cut away and replaced in one step.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepGraftSkin
+  name: Graft the burned tissue
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedSkinGraft
+    duration: 6
+  - type: Sprite
+    sprite: _DV/Objects/Specific/medical.rsi
+    state: regenerative-mesh
+  - type: WolfmedSurgeryTreatWoundEffect
+    woundPrototype: WolfmedCharringWound
+  - type: WolfmedSurgeryPainEffect
+    amount: 14
+  - type: SurgeryStepEmoteEffect
+
 - type: entity
   parent: SurgeryStepBase
   id: SurgeryStepRepairTendon

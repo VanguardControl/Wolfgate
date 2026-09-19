@@ -67,6 +67,27 @@ A severed tendon is mechanical damage, not an open wound, and no topical reaches
     <GuideEntityEmbed Entity="Hemostat"/>
   </Box>
 
+## Burns
+
+Ointment and regenerative mesh handle ordinary burns, frostbite and the damage a chemical burn has already done. Three things they do not handle:
+
+A [bold]chemical burn[/bold] keeps working while the acid is still on the skin. Rinse the patient - water from any source will do, including a spray bottle or an extinguisher - before you bother treating the damage, or it will come straight back.
+
+[bold]Charred tissue[/bold], left when a burn reaches its critical stage, carries no damage type, so nothing in a medkit reaches it. Open the part, graft it with a skin graft, seal it.
+
+[bold]Frostbite[/bold] numbs what it freezes. The patient will under-report a frozen limb; trust the analyzer.
+  <Box>
+    <GuideEntityEmbed Entity="RegenerativeMesh"/>
+    <GuideEntityEmbed Entity="WolfmedSkinGraft"/>
+  </Box>
+
+## Cauterisation
+
+Heat seals bleeding. In a fight that means a laser closes wounds a knife would have left open; deliberately, it means holding something hot against a wound with the [bold]Cauterise wound[/bold] verb. That works on a severed artery when nothing else is to hand, and costs a deep burn and a great deal of pain. Use it when the patient is losing blood faster than they can reach a table.
+  <Box>
+    <GuideEntityEmbed Entity="Welder"/>
+  </Box>
+
 ## Medicine
 
 Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound.

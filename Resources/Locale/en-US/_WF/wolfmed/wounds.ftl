@@ -31,3 +31,24 @@ wolfmed-relocate-verb = Relocate joint
 wolfmed-relocate-start = { CAPITALIZE(THE($user)) } starts forcing { THE($target) }'s joint back into place.
 wolfmed-relocate-start-self = { CAPITALIZE(THE($user)) } grits { POSS-ADJ($user) } teeth and grabs { POSS-ADJ($user) } own joint.
 wolfmed-relocate-success = The joint goes back in with a sickening pop.
+
+# Burn wounds, cauterisation and washing off caustic (W4).
+
+wolfmed-wound-name-charring = charred tissue
+wolfmed-wound-name-frostbite = frostbite
+wolfmed-wound-name-chemical-burn = chemical burn
+wolfmed-wound-name-internal-burn = internal burns
+
+wolfmed-cauterize-verb = Cauterise wound
+wolfmed-cauterize-start = { CAPITALIZE(THE($user)) } presses { THE($tool) } against { THE($target) }'s wound.
+wolfmed-cauterize-start-self = { CAPITALIZE(THE($user)) } presses { THE($tool) } against { POSS-ADJ($user) } own wound.
+wolfmed-cauterize-success = The wound seals with a hiss and the smell of cooking.
+wolfmed-cauterize-nothing = There is nothing bleeding there to seal.
+
+wolfmed-chemical-burn-washed = The residue rinses away.
+
+reagent-effect-guidebook-wash-chemical-burns =
+    { $chance ->
+        [1] Washes
+       *[other] chance to wash
+    } corrosive residue off burned tissue

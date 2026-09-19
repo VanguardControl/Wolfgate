@@ -20,6 +20,10 @@
   healingMultiplier: 0.15
   behaviors:
   - !type:WolfmedArterialBleedBehavior
+  # W4: a stray laser closes a nicked artery. A severed one has to be held against something hot on
+  # purpose, which is what the "Cauterise wound" verb is for.
+  - !type:WolfmedCauteryResistBehavior
+    maxIncidentalSeverity: 12
   - !type:WoundPainBehavior
     painPerSeverity: 1.2
     minSeverity: 2

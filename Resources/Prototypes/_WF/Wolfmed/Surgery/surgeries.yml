@@ -237,3 +237,19 @@
     - SurgeryStepSealTendWound
   - type: WolfmedSurgeryWoundCondition
     woundPrototype: WolfmedTendonCutWound
+
+# Burns (W4) ------------------------------------------------------------------
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryGraftSkin
+  name: Graft Burned Tissue
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepGraftSkin
+    - SurgeryStepSealTendWound
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedCharringWound

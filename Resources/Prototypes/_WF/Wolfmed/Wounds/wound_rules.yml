@@ -5,6 +5,44 @@
 # Adding one: write the wound with `ruleOnly: true`, add it to the part profile's supportedWounds, then a
 # rule here. No C#.
 
+# Burns (W4) ------------------------------------------------------------------
+# Cold and caustic each replace Onyx's one shared BurnWound with a wound that behaves like the thing that
+# made it. Heat keeps the burn wound, because that is what chars; shock adds to the electrical one.
+# Charring itself has no rule: WolfmedCharringSystem makes it off the burn's top stage.
+
+# Cold does not burn, it freezes. Below the floor it is an ordinary burn wound, which is what a brush with
+# vacuum should be.
+- type: wolfmedWoundRule
+  id: WolfmedRuleFrostbite
+  priority: 96
+  wound: WolfmedFrostbiteWound
+  damageTypes: [ Cold ]
+  minDamage: 8
+  capabilities: [ Biological ]
+
+# Acid that is still on the skin. Replaces the burn wound; the residue is what makes it worth telling apart.
+- type: wolfmedWoundRule
+  id: WolfmedRuleChemicalBurn
+  priority: 96
+  wound: WolfmedChemicalBurnWound
+  damageTypes: [ Caustic ]
+  minDamage: 12 # the burn wound's own Caustic reopen threshold: below it a splash is just a burn
+  capabilities: [ Biological ]
+
+# Current through the body. Added to the electrical wound, not in place of it: the burn on the skin and the
+# damage along the path are two findings.
+- type: wolfmedWoundRule
+  id: WolfmedRuleInternalBurn
+  priority: 96
+  wound: WolfmedInternalBurnWound
+  damageTypes: [ Shock ]
+  minDamage: 15
+  severityMultiplier: 0.6
+  minSeverity: 6
+  replacesDefault: false
+  continue: true
+  capabilities: [ Biological ]
+
 # Blunt trauma (W3) -----------------------------------------------------------
 # Crush sits above the slash and bite rules because it replaces the plain bruise; everything under it runs
 # on the same hit through `continue`, so one heavy swing can crush the limb and pop the joint at once.

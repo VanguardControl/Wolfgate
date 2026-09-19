@@ -85,11 +85,33 @@ A blow to the chest that reached something inside it. It never destroys the orga
 
 ## Burn wound
 
-The result of heat or caustic exposure, including a laser or plasma weapon. Its main danger is increasing pain, and it may scar suitable tissue.
+The result of heat exposure, including a laser or plasma weapon. Its main danger is increasing pain, and it may scar suitable tissue. Heat also seals bleeding: a hit hot enough to burn closes whatever is bleeding on that part, at the cost of a deeper burn. See "Cauterisation" below.
+
+## Charred tissue
+
+What is left when a burn reaches its critical stage: the tissue there is dead. It carries no damage type at all, so no ointment, no mesh and no amount of damage healing reaches it, and it will not close on its own. Severe charring costs the limb its use and risks the tissue rotting. The only treatment is surgery - open the part, graft the dead tissue away with a skin graft, and seal it.
+
+## Frostbite
+
+The cold equivalent of a burn, and the reason a frozen limb stops complaining. Each stage takes more feeling out of the part: the patient reports less pain there than the injury deserves, so read the analyzer rather than the patient. At the deepest stage the tissue is frozen through and at risk. Treat it like any other burn damage; the numbness lifts once the wound does.
+
+## Chemical burn
+
+Acid that is still on the skin. It keeps eating the part every few seconds no matter how much of the damage is healed, and healing it does nothing about the residue. Wash the patient: a splash of water, a spray bottle, a fire extinguisher or a water puddle all rinse it off. Then treat the burn normally.
+
+## Internal burns
+
+Current takes the shortest path through the body and cooks what is in it. A strong shock leaves these in addition to the surface electrical wound, may damage the heart, and locks the patient's muscles for a moment - long enough to drop whatever they were holding.
 
 ## Electrical wound
 
 A lasting consequence of a strong electrical discharge. It causes one-time pain; severe stages impair the part and critical stages disable it. It is treated separately from an ordinary burn.
+
+## Cauterisation
+
+Heat closes bleeding. Any hit hot enough - a laser, a fire, a lit welder swung as a weapon - seals the bleeding wounds on the part it lands on and adds a burn for each one. A nicked artery closes this way; a badly severed one does not.
+
+To do it on purpose, hold something hot, select the part on the targeting doll and use the [bold]Cauterise wound[/bold] verb on the patient. A deliberate cautery seals what a stray hit cannot, including a severed artery, and costs a much deeper burn and a great deal of pain. It is a field measure: surgery is cleaner.
   <Box>
     <GuideEntityEmbed Entity="Gauze"/>
     <GuideEntityEmbed Entity="Bonesetter"/>

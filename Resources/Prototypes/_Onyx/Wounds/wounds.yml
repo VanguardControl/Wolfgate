@@ -41,6 +41,11 @@
     - WolfmedConcussionWound
     - WolfmedDislocationWound
     - WolfmedOrganContusionWound
+    # WOLFGATE (W4): burn wounds. Charring comes from WolfmedCharringSystem, the other three from rules.
+    - WolfmedCharringWound
+    - WolfmedFrostbiteWound
+    - WolfmedChemicalBurnWound
+    - WolfmedInternalBurnWound
   organDamage:
     chances:
       Head: 0.05
@@ -564,6 +569,11 @@
       - !type:WoundPainBehavior
         painPerSeverity: 0.8
         minSeverity: 10
+      # WOLFGATE (W4): tissue burned this far is dead. Crossing into this stage leaves charring, which no
+      # topical reaches - a skin graft is the only exit. See WolfmedCharringSystem.
+      - !type:WolfmedCharringBehavior
+        wound: WolfmedCharringWound
+        severity: 20
 
 - type: wound
   id: ElectricalWound

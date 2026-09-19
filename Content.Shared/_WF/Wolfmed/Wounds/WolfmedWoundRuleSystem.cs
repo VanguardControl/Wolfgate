@@ -110,10 +110,17 @@ public sealed class WolfmedWoundRuleSystem : EntitySystem
 
     private void OnWoundSelection(Entity<WoundableComponent> part, ref WolfmedWoundSelectionEvent args)
     {
+        var cause = GetCause(args.Origin, args.Tool, args.IsExplosion);
+
+        // W4's seam: the directed selection event has one owner, so systems that answer a hit rather than a
+        // wound (cautery, W5/W6) listen to this broadcast instead.
+        var hit = new WolfmedPartDamageEvent(args.Body, part, args.DamageType, args.Amount, cause,
+            args.Origin, args.Tool);
+        RaiseLocalEvent(ref hit);
+
         if (!HasRules(args.DamageType))
             return;
 
-        var cause = GetCause(args.Origin, args.Tool, args.IsExplosion);
         var multiplier = args.IsExplosion && ExplosionScaledTypes.Contains(args.DamageType)
             ? args.SeverityMultiplier
             : 1f;

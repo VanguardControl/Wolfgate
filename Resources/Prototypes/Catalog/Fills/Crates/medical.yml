@@ -73,6 +73,7 @@
     - id: SawElectric # Frontier
     # Shitmed Change
     - id: BoneGel
+    - id: WolfmedSkinGraft # WOLFGATE (W4): the graft step's tool, beside the bone gel it mirrors.
     - id: BoxLatexGloves
     - id: BoxSterileMask
 

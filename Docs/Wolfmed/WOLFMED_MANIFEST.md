@@ -2950,3 +2950,60 @@ Deviations from the spec:
 4. **A concussion is not treatable at all.** The wound lists no damage types, so no topical can reach it, and
    it has no surgery: time and rest are the cure, painkillers only mask the pain. This is the spec read
    literally; if a "diagnose and stabilise" surgery is wanted later, it is one step effect.
+
+## Final stages: W4 (Burn wounds and cauterisation) (2026-09-19)
+
+Four burn wounds, cauterisation, a skin graft and one new broadcast seam. Onyx C# is untouched; the two
+Onyx data edits are the `supportedWounds` list and a behavior on `BurnWound`'s critical stage.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | new | `WolfmedCharringWound` (no damage types, staged limb penalty, necrosis risk at critical), `WolfmedFrostbiteWound` (four stages of numbness, necrosis risk at critical), `WolfmedChemicalBurnWound` (staged caustic residue), `WolfmedInternalBurnWound` (staged shock behavior). |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/cautery.yml` | new | `WolfmedCauteryDefault`: heat floor 8, incidental burn 5, deliberate burn 14, deliberate pain 20, 4 s do-after, 2x on yourself. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | modified | Three W4 rules: frostbite from 8 Cold (replaces the burn), chemical burn from 12 Caustic (replaces), internal burn from 15 Shock (added to the electrical wound). Charring has no rule. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/slash_bite.yml` | modified | `WolfmedCauteryResistBehavior` (`maxIncidentalSeverity: 12`) on `WolfmedArterialBleedWound`. |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | Four ids in `OrganicBodyPartProfile.supportedWounds`, and `WolfmedCharringBehavior` on `BurnWound`'s `Critical` stage. Both marked `# WOLFGATE (W4)`, data only. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/removed_objects.yml` | modified | `WolfmedSkinGraft`, on the regenerative mesh's existing sprite. No new art. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | `SurgeryStepGraftSkin`: the graft tool, 6 s, `WolfmedSurgeryTreatWoundEffect` on `WolfmedCharringWound` at the default amount (removed outright). |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryGraftSkin`, gated on the charring wound, behind `SurgeryOpenIncision`. |
+| `Resources/Prototypes/Catalog/Fills/Backpacks/duffelbag.yml` | modified | One marked line: the graft in the surgical duffel, beside the bone gel. |
+| `Resources/Prototypes/Catalog/Fills/Crates/medical.yml` | modified | One marked line: the graft in the surgery crate. |
+| `Resources/Prototypes/Entities/Mobs/Species/base.yml` | modified | One marked line: `WashChemicalBurns` on the humanoid base's existing `[Water, SpaceCleaner]` touch reaction. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | modified | `WolfmedPartDamageEvent` (broadcast: body, part, damage type, amount, cause, origin, tool) and `WolfmedCauteryDoAfterEvent`. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs` | modified | Raises `WolfmedPartDamageEvent` before evaluating rules. Four lines. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `WolfmedCharringBehavior`, `WolfmedCauteryResistBehavior`, `WolfmedNumbnessBehavior`, `WolfmedNecrosisRiskBehavior`, `WolfmedCausticResidueBehavior`, `WolfmedElectricalShockBehavior`. All per stage. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetNecrosisRisk` / `GetPartNecrosisRisk`, W5's readers. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedCauteryProfilePrototype.cs` | new | `wolfmedCauteryProfile`: every cautery threshold and cost. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedFrostbiteComponent.cs` | new | On a frozen part: numbness accumulator, `NecrosisRisk`, `NecrosisOnset`. Networked. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedFrostbiteSystem.cs` | new | Pins pain suppression on the part at the stage's value (top-up, not a fresh dose) on a two-second tick, and keeps the necrosis flag current. `Refresh` public. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedChemicalBurnComponent.cs` | new | On a part with residue still on it. Its presence is the state. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedChemicalBurnSystem.cs` | new | Ticks the residue's damage into the part, arms and disarms off the lifecycle relay, and `Wash(body)` clears every part. |
+| `Content.Shared/_WF/Wolfmed/EntityEffects/WashChemicalBurns.cs` | new | Entity effect calling `Wash`; sits on the base mob's water touch reaction. |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSkinGraftComponent.cs` | new | `ISurgeryToolComponent` for the graft step. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs` | new | Incidental cautery off `WolfmedPartDamageEvent` for Heat; deliberate cautery as a `UtilityVerb` with a hot held item plus a do-after. `TryCauterize`, `HasSealableBleed` public. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedCharringSystem.cs` | new | Creates the charring when a burn crosses into the stage carrying `WolfmedCharringBehavior`. `TryChar` public. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedElectricalBurnSystem.cs` | new | Rolls heart damage and runs the spasm (drop held, paralyse through the Onyx compat) when an internal burn lands or worsens. `TryShockOrgan`, `Spasm` public. |
+| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | Four wound names, the cautery verb and four popups, the wash popup, the wash effect's guidebook line. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Charring, frostbite, chemical burn, internal burns and a cauterisation section. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | A burns section (wash, graft, numbness) and a cauterisation section. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs` | new | Six tests: charring off the top stage and its topical refusal, heat sealing bleeds with the arterial threshold both ways, frostbite numbness and the necrosis flag, the residue tick and the wash, internal burns with the heart and the spasm, names. |
+| `Content.IntegrationTests/Tests/_Onyx/Wounds/WoundFractureTest.cs` | modified | `EffectsRefreshOnTreatmentHealingAndDetachTest` re-derived: a mended arm now reports 1.6, not 1. See deviation 5. |
+
+Deviations from the spec:
+1. **Charring is a top-stage trigger, not a rule.** A `wolfmedWoundRule` fires on one hit's size; the spec
+   asked for a top-stage wound. `WolfmedCharringBehavior` on `BurnWound`'s critical stage is the threshold
+   instead, so a part chars because it has been burned that far. It fires once per crossing into the stage.
+2. **Skin graft surgery, no synthflesh reagent.** The spec allowed either. This fork ships no synthflesh, so
+   a reagent would have needed a new reagent, a metabolism entry and a vendor slot; the graft is one
+   component, one item and two prototypes on step effects that already exist.
+3. **The deliberate cautery is a `UtilityVerb`, not an `InteractUsing` handler.** Every interaction event on
+   `WoundHostComponent` is already owned (welder repair, embedded removal) and a pair can have only one
+   owner. A verb also reads as intent, which is exactly what separates it from a stray hit.
+4. **Heat already reduced bleeding before W4**, through `BloodlossHuman`'s `Heat: -0.5` coefficient, which
+   takes bleeding severity off any hot hit. W4 does not remove that. What it adds is the treatment state
+   (`Cauterized`, so sutures may then close the wound), the burn charged for it, and reach into arterial
+   bleeds, which W2 deliberately exempted from the severity-reduction path.
+5. **One pre-existing W3 test regression fixed.** `EffectsRefreshOnTreatmentHealingAndDetachTest` has been
+   failing since W3 and was masked as "skipped" in grouped runs: its 75-Blunt arm now also carries a crush
+   injury and a dislocation, whose 1.6 manipulation modifier the fracture was shadowing until it was mended.
+   The expectation is re-derived rather than the data changed.

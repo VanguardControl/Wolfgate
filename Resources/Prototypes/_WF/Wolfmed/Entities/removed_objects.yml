@@ -1,4 +1,5 @@
-# What comes out of a wound (W1). Both reuse sprites already in the repo, so no new art or attribution.
+# What comes out of a wound (W1), and what goes back on (W4). All three reuse sprites already in the repo,
+# so no new art or attribution.
 
 - type: entity
   parent: BaseItem
@@ -17,6 +18,25 @@
   - type: SpaceGarbage
   - type: StaticPrice
     price: 0
+
+# The skin graft (W4). Not a topical: it is the surgery tool for the graft step, which is the only thing
+# that clears charring. Sprite and item data come from the regenerative mesh it sits beside in a medkit.
+- type: entity
+  parent: BaseItem
+  id: WolfmedSkinGraft
+  name: skin graft
+  description: A sheet of vat-grown skin in sterile backing. Laid over dead tissue, in surgery.
+  components:
+  - type: Sprite
+    sprite: _DV/Objects/Specific/medical.rsi
+    state: regenerative-mesh
+  - type: Item
+    size: Small
+    sprite: _DV/Objects/Specific/medical.rsi
+    heldPrefix: regenerative-mesh
+  - type: WolfmedSkinGraft
+  - type: StaticPrice
+    price: 40
 
 - type: entity
   parent: BaseItem

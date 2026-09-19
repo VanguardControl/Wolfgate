@@ -1,6 +1,8 @@
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Part;
+using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
@@ -157,4 +159,128 @@ public sealed partial class WolfmedOrganContusionBehavior : WoundBehavior
     /// <summary>Health the organ is never taken below, so a contusion bruises and never destroys.</summary>
     [DataField]
     public FixedPoint2 MinRemainingHealth = FixedPoint2.New(1);
+}
+
+/// <summary>
+/// Declared on the top stage of a burn: tissue this badly cooked is dead, and a wound of its own is left
+/// behind the moment the burn reaches that stage. Read by
+/// <see cref="Content.Server._WF.Wolfmed.Wounds.WolfmedCharringSystem"/>.
+/// </summary>
+/// <remarks>
+/// Putting the trigger on a stage rather than on a hit is what makes charring a *top-stage* wound: a part
+/// chars because it has been burned that far, not because one shot was that big.
+/// </remarks>
+[DataDefinition]
+public sealed partial class WolfmedCharringBehavior : WoundBehavior
+{
+    /// <summary>The wound the dead tissue becomes.</summary>
+    [DataField]
+    public ProtoId<WoundPrototype> Wound = "WolfmedCharringWound";
+
+    /// <summary>Severity of the charring left each time the burn crosses into this stage.</summary>
+    [DataField]
+    public FixedPoint2 Severity = FixedPoint2.New(20);
+}
+
+/// <summary>
+/// How well this wound resists being burned shut. A wound that declares nothing is sealed by any heat that
+/// reaches it; declaring this behavior makes searing it harder or impossible.
+/// </summary>
+/// <remarks>
+/// The arterial bleed carries it: a stray laser closes a nicked artery, a severed one has to be held
+/// against something hot on purpose. Read by
+/// <see cref="Content.Server._WF.Wolfmed.Wounds.WolfmedCauterySystem"/>.
+/// </remarks>
+[DataDefinition]
+public sealed partial class WolfmedCauteryResistBehavior : WoundBehavior
+{
+    /// <summary>
+    /// Severity above which incidental heat (a laser hit, a fire, a welder swung as a weapon) no longer
+    /// seals the wound. A deliberate cautery ignores it.
+    /// </summary>
+    [DataField]
+    public FixedPoint2 MaxIncidentalSeverity = FixedPoint2.New(12);
+
+    /// <summary>Whether nothing but a deliberate cautery can ever seal it.</summary>
+    [DataField]
+    public bool DeliberateOnly;
+}
+
+/// <summary>
+/// Feeling draining out of the part the wound is on: frostbite dulls what it freezes. Expressed as pain
+/// suppression on the part, the same mechanism phase 5's painkillers use, so an analyzer reads a numb limb
+/// as a quiet one and the patient stops noticing what else is wrong with it.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedNumbnessBehavior : WoundBehavior
+{
+    /// <summary>Pain suppressed on the part, topped up every tick while the wound is open.</summary>
+    [DataField]
+    public FixedPoint2 Suppression = FixedPoint2.New(6);
+
+    /// <summary>How long the suppression takes to fade once the wound is gone.</summary>
+    [DataField]
+    public TimeSpan Decay = TimeSpan.FromSeconds(20);
+}
+
+/// <summary>
+/// The part is far enough gone that tissue in it may start dying. Carries no effect of its own: it is the
+/// flag W5's necrosis timer reads, through
+/// <see cref="WolfmedWoundTraitSystem.GetNecrosisRisk"/>.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedNecrosisRiskBehavior : WoundBehavior
+{
+    /// <summary>How much faster than a baseline at-risk part this one goes. 0 is no risk at all.</summary>
+    [DataField]
+    public float RiskMultiplier = 1f;
+
+    /// <summary>How long the part has to stay in this state before W5 should call it necrotic.</summary>
+    [DataField]
+    public TimeSpan Onset = TimeSpan.FromMinutes(5);
+}
+
+/// <summary>
+/// Something corrosive still on the skin. The wound keeps eating the part on a slow tick until the patient
+/// is washed off; see <see cref="Content.Shared._WF.Wolfmed.Wounds.WolfmedChemicalBurnSystem"/>.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedCausticResidueBehavior : WoundBehavior
+{
+    /// <summary>Damage dealt to the part on each tick. Kept under the wound's own rule threshold so the
+    /// residue cannot deepen itself into a fresh chemical burn.</summary>
+    [DataField]
+    public DamageSpecifier Damage = new();
+
+    /// <summary>Seconds between ticks.</summary>
+    [DataField]
+    public TimeSpan Interval = TimeSpan.FromSeconds(4);
+}
+
+/// <summary>
+/// What a shock does past the burn: current crossing the chest can stop a heart, and the muscles it
+/// crosses let go of whatever they were holding.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedElectricalShockBehavior : WoundBehavior
+{
+    /// <summary>Chance the discharge reaches the heart.</summary>
+    [DataField]
+    public float OrganDamageChance = 0.35f;
+
+    /// <summary>Organ health taken when it does.</summary>
+    [DataField]
+    public FixedPoint2 OrganDamage = FixedPoint2.New(3);
+
+    /// <summary>Shitmed organ slot the current looks for. Nothing happens when the body has no such organ.</summary>
+    [DataField]
+    public string OrganSlot = "heart";
+
+    /// <summary>How long the patient's muscles lock up. Zero skips the spasm.</summary>
+    [DataField]
+    public TimeSpan Spasm = TimeSpan.FromSeconds(1.5);
+
+    /// <summary>Whether the spasm also empties the patient's hands.</summary>
+    [DataField]
+    public bool DropHeld = true;
 }

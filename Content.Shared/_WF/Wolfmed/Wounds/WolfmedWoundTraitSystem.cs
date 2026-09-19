@@ -103,6 +103,43 @@ public sealed class WolfmedWoundTraitSystem : EntitySystem
     }
 
     /// <summary>
+    /// How fast the tissue under this wound is dying, and how long it has to stay that way before it is
+    /// gone. 0 for anything that does not declare the risk. W5's necrosis timer is the intended reader.
+    /// </summary>
+    public float GetNecrosisRisk(Entity<WoundComponent?> wound, out TimeSpan onset)
+    {
+        if (TryGetBehavior(wound, out WolfmedNecrosisRiskBehavior behavior))
+        {
+            onset = behavior.Onset;
+            return behavior.RiskMultiplier;
+        }
+
+        onset = TimeSpan.Zero;
+        return 0f;
+    }
+
+    /// <summary>The worst necrosis risk among the wounds a part is carrying, with its shortest onset.</summary>
+    public float GetPartNecrosisRisk(Entity<WoundableComponent?> part, out TimeSpan onset)
+    {
+        var risk = 0f;
+        onset = TimeSpan.Zero;
+        foreach (var wound in _wounds.GetWounds(part))
+        {
+            if (wound.Comp.State is WoundState.Healed or WoundState.Scarred)
+                continue;
+
+            var found = GetNecrosisRisk(wound.Owner, out var woundOnset);
+            if (found <= risk)
+                continue;
+
+            risk = found;
+            onset = woundOnset;
+        }
+
+        return risk;
+    }
+
+    /// <summary>
     /// The worst limb penalty the part's wounds impose, or false when none of them impose one.
     /// <paramref name="mobility"/> picks the movement multiplier (which scales down) over the
     /// manipulation duration multiplier (which scales up).
