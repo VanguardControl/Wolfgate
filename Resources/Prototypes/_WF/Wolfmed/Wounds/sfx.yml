@@ -1,0 +1,132 @@
+# What a wound sounds like, what a limb coming off sounds and looks like, and what a hit throws off a body
+# (V124: V1, V2, V4). One shipped profile; WolfmedWoundSfxSystem indexes it by id, so all of this is
+# retuned by editing this file. Every sound is a _WF collection from SoundCollections/wounds.yml.
+#
+# woundSounds is ordered: the first entry whose filters match wins. Fractures and dislocations come first
+# because they are Blunt wounds that must not sound like a bruise; the mechanical block comes before the
+# organic one because a chassis never wants a flesh sound.
+#
+# Nothing here decides WHEN a sound plays. The system plays one only for a wound that landed or jumped a
+# stage in the same tick something hit the body, so infection, necrosis and healing stay silent.
+
+- type: wolfmedSfxProfile
+  id: WolfmedSfxDefault
+  minSeverity: 5
+  soundInterval: 0.4
+  debrisInterval: 0.25
+
+  woundSounds:
+  # Bone. The one wound whose sound is the whole point of it.
+  - wounds: [ BoneFractureWound ]
+    sound:
+      collection: WolfmedWoundBone
+      params:
+        volume: 1
+        variation: 0.12
+
+  - wounds: [ WolfmedDislocationWound ]
+    sound:
+      collection: WolfmedWoundBone
+      params:
+        volume: -2
+        variation: 0.12
+
+  # A structural member in a chassis giving way.
+  - wounds: [ CyberneticFrameFractureWound ]
+    sound:
+      collection: WolfmedWoundFrame
+      params:
+        variation: 0.12
+
+  # Chassis: current first, then everything else that lands on metal.
+  - tissue: Mechanical
+    damageTypes: [ Shock ]
+    sound:
+      collection: WolfmedWoundShock
+      params:
+        volume: -3
+        variation: 0.12
+
+  - tissue: Mechanical
+    sound:
+      collection: WolfmedWoundChassis
+      params:
+        volume: -4
+        variation: 0.15
+
+  # Flesh, by what did it.
+  - tissue: Organic
+    damageTypes: [ Shock ]
+    sound:
+      collection: WolfmedWoundShock
+      params:
+        volume: -3
+        variation: 0.12
+
+  - tissue: Organic
+    damageTypes: [ Heat, Cold, Caustic ]
+    sound:
+      collection: WolfmedWoundBurn
+      params:
+        volume: -2
+        variation: 0.12
+
+  - tissue: Organic
+    damageTypes: [ Piercing ]
+    sound:
+      collection: WolfmedWoundPierce
+      params:
+        volume: -4
+        variation: 0.15
+
+  - tissue: Organic
+    damageTypes: [ Slash ]
+    sound:
+      collection: WolfmedWoundFlesh
+      params:
+        volume: -4
+        variation: 0.15
+
+  # Blunt is last: a fracture and a dislocation are Blunt too and have already been answered above.
+  - tissue: Organic
+    damageTypes: [ Blunt ]
+    minSeverity: 10
+    sound:
+      collection: WolfmedWoundBlunt
+      params:
+        volume: -6
+        variation: 0.15
+
+  # A limb coming off. The spill is the body's own reagent, so an IPC puts oil on the deck.
+  organicDismemberment:
+    sound:
+      collection: WolfmedDismemberOrganic
+      params:
+        variation: 0.1
+    effect: WolfmedBloodMistLarge
+    spillVolume: 25
+
+  mechanicalDismemberment:
+    sound:
+      collection: WolfmedDismemberMechanical
+      params:
+        variation: 0.1
+    effect: WolfmedSparkBurstLarge
+    spillVolume: 10
+
+  # Debris tiers, largest first: the first tier the hit clears is the one spawned.
+  organicDebris:
+  - effect: WolfmedBloodMistLarge
+    minSeverity: 25
+  - effect: WolfmedBloodMistMedium
+    minSeverity: 12
+  - effect: WolfmedBloodMistSmall
+    minSeverity: 4
+
+  mechanicalDebris:
+  - effect: WolfmedSparkBurstLarge
+    minSeverity: 25
+  - effect: WolfmedSparkBurstMedium
+    minSeverity: 12
+  - effect: WolfmedSparkBurstSmall
+    minSeverity: 4

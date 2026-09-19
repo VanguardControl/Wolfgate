@@ -144,6 +144,14 @@ public sealed partial class WolfmedDislocationBehavior : WoundBehavior
     /// <summary>Pain multiplier when the patient is their own medic.</summary>
     [DataField]
     public float SelfPainMultiplier = 2f;
+
+    /// <summary>Played at the patient when someone takes hold of the joint.</summary>
+    [DataField]
+    public SoundSpecifier? BeginSound = new SoundCollectionSpecifier("WolfmedJointStrain");
+
+    /// <summary>Played when the joint goes back in.</summary>
+    [DataField]
+    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WolfmedWoundBone");
 }
 
 /// <summary>

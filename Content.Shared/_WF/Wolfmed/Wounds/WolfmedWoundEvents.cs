@@ -67,6 +67,18 @@ public readonly record struct WolfmedWoundLifecycleEvent(
     FixedPoint2 Severity);
 
 /// <summary>
+/// A limb has just been torn off by damage. Broadcast from <c>AmputationSystem.TryAmputate</c>, which is
+/// the only damage-driven detach path; a surgical removal goes through <c>TryDetachPart</c> and raises
+/// nothing, which is what keeps the operating table quiet.
+/// </summary>
+/// <remarks>
+/// Raised after the part is detached and after the stump's wounds are created, so a handler sees the
+/// finished state. The part is no longer a child of the body.
+/// </remarks>
+[ByRefEvent]
+public readonly record struct WolfmedPartAmputatedEvent(EntityUid Body, EntityUid Part, EntityUid Parent);
+
+/// <summary>
 /// Antiseptic has reached this body's skin. Raised directed on the body by the
 /// <c>WolfmedCleanWounds</c> entity effect, which sits in Shared while
 /// <see cref="Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem"/> does not; handlers report how

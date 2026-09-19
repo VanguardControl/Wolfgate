@@ -36,4 +36,15 @@ public sealed class WolfmedCVars
     /// <summary>Multiplier on every necrosis timer, including the tourniquet clock.</summary>
     public static readonly CVarDef<float> NecrosisRate =
         CVarDef.Create("wolfmed.necrosis_rate", 1f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether wounds and dismemberment make a noise (V1/V2). False silences them without touching any
+    /// other part of the model.
+    /// </summary>
+    public static readonly CVarDef<bool> WoundSfx =
+        CVarDef.Create("wolfmed.wound_sfx", true, CVar.SERVERONLY);
+
+    /// <summary>Whether hits that wound throw blood mist or sparks (V4). The one knob for that spawn cost.</summary>
+    public static readonly CVarDef<bool> HitDebris =
+        CVarDef.Create("wolfmed.hit_debris", true, CVar.SERVERONLY);
 }

@@ -1,5 +1,6 @@
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
@@ -51,4 +52,12 @@ public sealed partial class WolfmedEmbeddedObjectComponent : Component
     /// <summary>Pain added on top of the cut, for the digging itself.</summary>
     [DataField]
     public FixedPoint2 SharpPain = FixedPoint2.New(10);
+
+    /// <summary>Played at the patient when the tool goes in.</summary>
+    [DataField]
+    public SoundSpecifier? BeginSound = new SoundCollectionSpecifier("WolfmedToolProbe");
+
+    /// <summary>Played when the object comes out.</summary>
+    [DataField]
+    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WolfmedToolExtract");
 }

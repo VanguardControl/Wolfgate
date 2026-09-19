@@ -2,11 +2,13 @@ using System.Linq;
 using Content.Server._EinsteinEngines.Silicon.WeldingHealing;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Tools.Components;
+using Robust.Server.Audio;
 
 namespace Content.Server._EinsteinEngines.Silicon.WeldingHealable;
 
@@ -17,6 +19,7 @@ public sealed partial class WeldingHealableSystem
     [Dependency] private WoundHealingSystem _woundHealing = default!;
     [Dependency] private WoundDamageRoutingSystem _woundRouting = default!;
     [Dependency] private ItemToggleSystem _repairToggle = default!;
+    [Dependency] private AudioSystem _repairAudio = default!;
 
     private void InitializeWoundRepair()
     {
@@ -91,6 +94,9 @@ public sealed partial class WeldingHealableSystem
         if (fuelled && TryComp(tool, out WelderComponent? spender) &&
             _solutionContainer.TryGetSolution(tool, spender.FuelSolutionName, out var solution))
             _solutionContainer.RemoveReagent(solution.Value, spender.FuelReagent, healing.FuelCost);
+        // WOLFGATE (V124): the tool's own useSound covers the start of the pass; this is the finish.
+        if (TryComp(tool, out WolfmedRepairSoundComponent? sound))
+            _repairAudio.PlayPvs(sound.EndSound, body);
         _popup.PopupEntity(Loc.GetString("comp-repairable-repair", ("target", body.Owner), ("tool", tool)),
             body, args.User);
 

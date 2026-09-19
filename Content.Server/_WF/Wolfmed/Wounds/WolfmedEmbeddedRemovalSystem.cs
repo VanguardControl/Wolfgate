@@ -10,6 +10,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.Weapons.Melee;
+using Robust.Server.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
@@ -24,6 +25,7 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 /// </remarks>
 public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
 {
+    [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
@@ -62,6 +64,7 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
                 ? "wolfmed-embedded-removal-start-self"
                 : "wolfmed-embedded-removal-start",
             ("user", args.User), ("target", body.Owner)), body, args.User);
+        _audio.PlayPvs(wound.Comp.BeginSound, body);
 
         args.Handled = _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager,
             args.User,
@@ -111,6 +114,8 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
             // W5: a knife in an open wound is the model's one source of dirty treatment.
             _infection.Contaminate(wound);
         }
+
+        _audio.PlayPvs(embedded.EndSound, body);
 
         var remaining = CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0;
         _popup.PopupEntity(Loc.GetString(remaining > 0

@@ -3237,3 +3237,75 @@ Wound suite after V5: **192 passed, 0 failed, 0 skipped** (189 before; 3 new).
 6. **Speed is asserted as a ratio, not an absolute.** The same 60 Blunt that makes the fracture also
    applies an ordinary damage slowdown that splinting does not touch, so the test asserts
    `after / before == 1.75` (0.875 / 0.5), which is the treatment scale and nothing else.
+
+## Final stages: V124 (Wound, dismemberment and interaction SFX/VFX) (2026-09-19)
+
+Phase 7 backlog items V1 (wound SFX by cause), V2 (dismemberment SFX/VFX) and V4 (hit debris), plus the
+five silent do-after interactions W7 carried forward. No new audio or art files: every sound is a repo
+file reached through a new `_WF` `soundCollection`, and the blood mist reuses `Fluids/splatter.rsi`.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedSfxProfilePrototype.cs` | new | `wolfmedSfxProfile`: an ordered `woundSounds` list (filters: wound ids, damage types read off the wound prototype, `tissue` Organic/Mechanical/Any, `minSeverity`), the two dismemberment specs, the debris tiers and the two throttle intervals. `GetWoundSound` and `GetDebris` are the selectors the tests drive. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundSfxComponent.cs` | new | Per-body throttle: `NextSound`, `NextDebris`, `LastHit`. Ensured on the body, so the state cannot outlive the entity the way a dictionary would. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedWoundSfxSystem.cs` | new | V1 + V4. Answers `WolfmedPartDamageEvent` (stamps `LastHit`) and `WolfmedWoundLifecycleEvent`. Sound on create or stage jump above the floor; debris on any worsening. `PlayPvs` at the **body**, because parts and wounds are in nullspace. `TryPlayWound`/`TrySpawnDebris`/`Now`/`Profile` are public for the tests and for the dismemberment system. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedDismembermentSystem.cs` | new | V2. Answers `WolfmedPartAmputatedEvent`: tear or shear sound, effect entity, and `TrySpill`, which builds a `Solution` of the body's own `BloodstreamComponent.BloodReagent` and hands it to `PuddleSystem.TrySpillAt`. `Play` and `TrySpill` are public. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedRepairSoundComponent.cs` | new | `EndSound` on a repair tool. The tool's own `useSound` already covers the start of a pass. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | modified | New `WolfmedPartAmputatedEvent(Body, Part, Parent)`. |
+| `Content.Shared/_Onyx/Wounds/AmputationSystem.cs` | modified | Two marked lines at the end of `TryAmputate` raising that event, plus one marked using. `TryAmputate` is the only damage-driven detach path, so surgery (which uses `TryDetachPart`) stays quiet. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.wound_sfx` and `wolfmed.hit_debris`, both server bool, both default true. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedEmbeddedObjectComponent.cs` | modified | `BeginSound` / `EndSound` (probe, wet extract). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `BeginSound` / `EndSound` on `WolfmedDislocationBehavior` (strain, then the joint going back). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedCauteryProfilePrototype.cs` | modified | `DeliberateBeginSound` / `DeliberateEndSound`. Incidental heat gets nothing: the hit already made a noise. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionComponents.cs` | modified | `LoosenSound` on `WolfmedTourniquetComponent`, which was an empty marker. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedEmbeddedRemovalSystem.cs` | modified | Plays the two sounds at the patient. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedDislocationSystem.cs` | modified | `PlayPredicted` on start (it has a user), `PlayPvs` on the set. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs` | modified | Plays start, and the sizzle only when something actually sealed. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs` | modified | `Loosen` resolves the component instead of `HasComp` and plays its `LoosenSound`. |
+| `Content.Server/_WF/Wolfmed/Medical/WeldingHealableSystem.Wolfmed.cs` | modified | One marked block: the repair-pass finish plays `WolfmedRepairSoundComponent.EndSound`. |
+| `Resources/Prototypes/_WF/Wolfmed/SoundCollections/wounds.yml` | new | 15 `soundCollection` prototypes, all pointing at files already in the repo. Wounds: `WolfmedWoundFlesh` (`/Audio/Weapons/bladeslice.ogg`, `/Audio/Weapons/Xeno/alien_claw_flesh1-3.ogg`), `WolfmedWoundPierce` (`/Audio/Weapons/Guns/Hits/bullet_meat1-4.ogg`), `WolfmedWoundBlunt` (`/Audio/Effects/hit_kick.ogg`, `/Audio/Weapons/genhit1-3.ogg`), `WolfmedWoundBone` (`/Audio/Effects/snap.ogg`, `/Audio/Effects/chopstickbreak.ogg`, `/Audio/Weapons/Guns/Hits/snap.ogg`), `WolfmedWoundBurn` (`/Audio/Effects/sizzle.ogg`, `/Audio/Effects/lightburn.ogg`), `WolfmedWoundShock` (`/Audio/Effects/sparks1-4.ogg`), `WolfmedWoundChassis` (`/Audio/_WF/Weapons/Impacts/impact_metal_03/07/11/15.ogg`), `WolfmedWoundFrame` (`/Audio/Effects/metal_crunch.ogg`, `/Audio/Effects/metal_break1.ogg`, `/Audio/Effects/metal_break3.ogg`). Dismemberment: `WolfmedDismemberOrganic` (`/Audio/Effects/gib1-3.ogg`), `WolfmedDismemberMechanical` (`/Audio/Effects/metal_break2.ogg`, `/Audio/Effects/metal_break4.ogg`, `/Audio/Effects/metal_scrape1.ogg`, `/Audio/Effects/metal_scrape3.ogg`). Interactions: `WolfmedToolProbe` (`/Audio/_Shitmed/Medical/Surgery/hemostat1.ogg`, `/Audio/_Shitmed/Medical/Surgery/retractor1.ogg`), `WolfmedToolExtract` (`/Audio/Effects/Fluids/splat.ogg`), `WolfmedJointStrain` (`/Audio/Effects/thudswoosh.ogg`), `WolfmedCauteryBegin` (`/Audio/_Shitmed/Medical/Surgery/cautery1.ogg`, `cautery2.ogg`), `WolfmedClothUnwrap` (`/Audio/Effects/unwrap.ogg`, `/Audio/Items/Handcuffs/rope_takeoff.ogg`), `WolfmedPanelBeat` (`/Audio/Effects/metal_thud1-3.ogg`). |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml` | new | The one shipped `WolfmedSfxDefault` profile: ten ordered wound-sound entries, the two dismemberment specs, three debris tiers per tissue, `minSeverity: 5`, `soundInterval: 0.4`, `debrisInterval: 0.25`. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/effects.yml` | new | Six debris entities. `WolfmedBloodMistSmall/Medium/Large`: `Fluids/splatter.rsi` (greyscale, so it tints) at `#8f1616`, scales 0.4/0.7/1.1, `TimedDespawn` 0.4/0.5/0.6. `WolfmedSparkBurstSmall/Medium/Large`: `EffectSparks` re-scaled. No system, no tick. |
+| `Resources/Prototypes/Entities/Objects/Tools/tools.yml` | modified | One marked line on the wrench: `- type: WolfmedRepairSound`. |
+| `Resources/Prototypes/Entities/Objects/Tools/welders.yml` | modified | One marked block on the welder: `WolfmedRepairSound` with the burn collection, since a welded seam should not clank. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSfxTest.cs` | new | 6 tests: sound selection per wound and tissue plus every named collection/effect existing; debris tiers and their `TimedDespawn`; a live hit spawning exactly one spray and then being throttled, and the spray despawning; a wound created with no hit behind it staying silent; dismemberment sounds and both spills (blood and oil) plus the real amputation path stamping the throttle; the five interaction sounds as data; both CVars off silencing their half. |
+
+Wound suite after V124: **199 passed, 0 failed, 0 skipped** (192 before).
+
+### Design calls and deviations
+
+1. **One profile prototype, not a prototype per rule.** `WolfmedCauteryProfilePrototype` and
+   `WolfmedInfectionProfilePrototype` already set the pattern: a single shipped instance a server retunes
+   in one file. The ordered `woundSounds` list gives the same reach a per-rule prototype would, without a
+   second id space to keep in step with the wound prototypes.
+2. **The damage gate is a timestamp, not a flag on the wound.** A wound plays a sound only if
+   `WolfmedPartDamageEvent` stamped the body in the same tick. That excludes infection, necrosis,
+   chemical-burn ticks, overheating and every heal at once, without any of those systems knowing the SFX
+   layer exists, and it needs no new field on `WoundComponent`.
+3. **Sound on a stage jump, debris on any worsening.** The spec's wording for V1 is "created or jumps a
+   stage"; V4's is "create or worsen". A wound with no stages therefore only ever sounds when it lands,
+   which is correct for the one-shot wounds and for merges into an existing bruise.
+4. **Everything plays at the body.** Wound entities sit in the part's `wounds` container and parts sit in
+   nullspace, so neither has a position. This is the same call W6 made for short-circuit sparks.
+5. **Dismemberment ignores the throttle but stamps it.** The hit that takes an arm off also creates the
+   stump's dismemberment and consequence wounds in the same tick; without the shared stamp that would be
+   two noises. The tear always plays; the wounds behind it do not.
+6. **The dismemberment spill reads the bloodstream.** `spillVolume` is a number, not a reagent, so an IPC
+   leaks oil because its `Bloodstream.bloodReagent` is `Oil`. Nothing in this package knows what an IPC is.
+7. **Fractures are keyed by wound id, not by damage type.** `BoneFractureWound` and
+   `WolfmedDislocationWound` are Blunt wounds; listing them above the Blunt entry is what stops a breaking
+   bone sounding like a bruise.
+8. **The blunt entry has its own floor of 10.** Every unarmed punch creates a small `BluntWound`, and at
+   the profile's floor of 5 a fist fight became a drum solo even through the throttle.
+9. **The wrench and welder finish sounds sit on a `_WF` component, not on `WeldingHealingComponent`.**
+   That component is upstream (`_EinsteinEngines`); the new one is two marked lines of YAML on two
+   prototypes and no upstream C# at all.
+
+### Gaps not closed
+
+- **V3 (per-part degradation sprites) is not in this package** and was not asked for: it needs 2 stages x
+  8 parts x organic/synthetic of new art.
+- **The debris sprites are reused, not drawn.** Blood mist is the puddle splatter tinted and scaled, which
+  reads as a spray at 32px but is not a bespoke mist sprite.
+- **Nothing is predicted.** Wound creation is server-only (`_net.IsServer`), so every wound sound is
+  `PlayPvs`. Only the relocate start, which has a user and runs in Shared, is `PlayPredicted`.

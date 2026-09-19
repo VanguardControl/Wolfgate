@@ -165,6 +165,8 @@
     damage:
       types:
         Blunt: -15
+  # WOLFGATE (V124): the ratchet plays when the pass starts; this is the panel going back into shape.
+  - type: WolfmedRepairSound
   - type: Sprite
     sprite: _NF/Objects/Tools/wrench.rsi # Frontier: separate sprites (add _NF folder)
     state: icon

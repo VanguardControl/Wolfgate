@@ -128,6 +128,10 @@
         Blunt: -25
         Piercing: -25
         Slash: -25
+  # WOLFGATE (V124): the welder loop covers the pass; this is the seam cooling at the end of it.
+  - type: WolfmedRepairSound
+    endSound:
+      collection: WolfmedWoundBurn
   - type: Cautery # Shitmed
     speed: 0.7
   - type: SurgeryTool # Shitmed

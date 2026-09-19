@@ -12,6 +12,7 @@ using Robust.Shared.Random;
 using Content.Shared.Throwing;
 using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8, Onyx's amputation part fields live on WolfmedBodyPartComponent.
 using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 facade + the TryDetachPart shim.
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE: V124, the dismemberment feedback event.
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -130,6 +131,10 @@ public sealed partial class AmputationSystem : EntitySystem
         ApplyAmputationConsequences(body, parent);
         _throwing.TryThrow(part, Vector2.UnitY, baseThrowSpeed: 3f,
             pushbackRatio: 0f, doSpin: true);
+        // WOLFGATE (V124): the one damage-driven detach path, so the dismemberment feedback hangs here
+        // rather than on TryDetachPart, which surgery also uses.
+        var amputated = new WolfmedPartAmputatedEvent(body, part, parent);
+        RaiseLocalEvent(ref amputated);
         return true;
     }
 

@@ -5,6 +5,7 @@ using Content.Shared.Body.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
@@ -21,6 +22,7 @@ public sealed class WolfmedDislocationSystem : EntitySystem
     [Dependency] private INetManager _net = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PainSystem _pain = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -57,6 +59,7 @@ public sealed class WolfmedDislocationSystem : EntitySystem
         var delay = self ? behavior.Delay * behavior.SelfMultiplier : behavior.Delay;
         _popup.PopupEntity(Loc.GetString(self ? "wolfmed-relocate-start-self" : "wolfmed-relocate-start",
             ("user", user), ("target", body.Owner)), body, user);
+        _audio.PlayPredicted(behavior.BeginSound, body, user);
 
         _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager,
             user,
@@ -94,6 +97,7 @@ public sealed class WolfmedDislocationSystem : EntitySystem
         if (!_wounds.RemoveWound(wound))
             return false;
 
+        _audio.PlayPvs(behavior.EndSound, body);
         _popup.PopupEntity(Loc.GetString("wolfmed-relocate-success", ("target", body)), body, user);
         return true;
     }

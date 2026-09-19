@@ -1,4 +1,5 @@
 using Content.Shared.FixedPoint;
+using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
@@ -107,4 +108,9 @@ public sealed partial class WolfmedNecrosisComponent : Component
 /// the record; it is what <see cref="WolfmedNecrosisSystem"/> counts minutes against.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
-public sealed partial class WolfmedTourniquetComponent : Component;
+public sealed partial class WolfmedTourniquetComponent : Component
+{
+    /// <summary>Played at the patient when the strap comes off.</summary>
+    [DataField]
+    public SoundSpecifier? LoosenSound = new SoundCollectionSpecifier("WolfmedClothUnwrap");
+}

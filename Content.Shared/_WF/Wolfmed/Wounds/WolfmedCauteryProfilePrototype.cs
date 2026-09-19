@@ -1,5 +1,6 @@
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
@@ -42,4 +43,12 @@ public sealed partial class WolfmedCauteryProfilePrototype : IPrototype
     /// <summary>Delay multiplier when the patient is doing it to themselves.</summary>
     [DataField]
     public float SelfMultiplier = 2f;
+
+    /// <summary>Played at the patient when the hot tool is put against the wound.</summary>
+    [DataField]
+    public SoundSpecifier? DeliberateBeginSound = new SoundCollectionSpecifier("WolfmedCauteryBegin");
+
+    /// <summary>Played when the bleed seals. Incidental heat gets nothing: the hit already made a noise.</summary>
+    [DataField]
+    public SoundSpecifier? DeliberateEndSound = new SoundCollectionSpecifier("WolfmedWoundBurn");
 }

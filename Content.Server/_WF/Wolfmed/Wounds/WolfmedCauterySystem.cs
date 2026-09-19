@@ -8,6 +8,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Popups;
 using Content.Shared.Temperature;
 using Content.Shared.Verbs;
+using Robust.Server.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
@@ -28,6 +29,7 @@ public sealed class WolfmedCauterySystem : EntitySystem
     /// <summary>The shipped profile. Retuning searing is an edit to that prototype, not to this file.</summary>
     public const string DefaultProfile = "WolfmedCauteryDefault";
 
+    [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
@@ -80,6 +82,7 @@ public sealed class WolfmedCauterySystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString(self ? "wolfmed-cauterize-start-self" : "wolfmed-cauterize-start",
             ("user", user), ("target", body.Owner), ("tool", tool)), body, user);
+        _audio.PlayPvs(profile.DeliberateBeginSound, body);
 
         _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager,
             user,
@@ -103,6 +106,9 @@ public sealed class WolfmedCauterySystem : EntitySystem
 
         var sealedWounds = TryCauterize(part.Value, deliberate: true);
         args.Handled = sealedWounds > 0;
+        if (sealedWounds > 0)
+            _audio.PlayPvs(GetProfile().DeliberateEndSound, body);
+
         _popup.PopupEntity(Loc.GetString(sealedWounds > 0
                 ? "wolfmed-cauterize-success"
                 : "wolfmed-cauterize-nothing",

@@ -8,6 +8,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
+using Robust.Server.Audio;
 using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
@@ -29,6 +30,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
 {
     private const float TickSeconds = 5f;
 
+    [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedBodySystem _body = default!;
@@ -200,7 +202,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     /// </summary>
     public bool Loosen(EntityUid body, EntityUid part, EntityUid user)
     {
-        if (!HasComp<WolfmedTourniquetComponent>(part))
+        if (!TryComp(part, out WolfmedTourniquetComponent? tourniquet))
             return false;
 
         foreach (var wound in _wounds.GetWounds(part).ToArray())
@@ -215,6 +217,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
             necrosis.Source == WolfmedNecrosisSource.Tourniquet)
             RemComp<WolfmedNecrosisComponent>(part);
 
+        _audio.PlayPvs(tourniquet.LoosenSound, body);
         _popup.PopupEntity(Loc.GetString("wolfmed-tourniquet-loosened"), body, user);
         return true;
     }
