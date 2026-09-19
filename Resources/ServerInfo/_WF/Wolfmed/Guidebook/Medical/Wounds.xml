@@ -118,6 +118,34 @@ To do it on purpose, hold something hot, select the part on the targeting doll a
     <GuideEntityEmbed Entity="Tourniquet"/>
   </Box>
 
+## Mechanical trauma
+
+An IPC's chassis and a cybernetic limb take their own five wounds. None of them can appear on flesh, and none of the wounds above can appear on a chassis: a machine does not bruise, concuss, dislocate a joint, get infected or go necrotic. Ordinary chassis damage is still recorded alongside these, and is what an analyzer reports as the total.
+
+## Dent
+
+Blunt force on something that does not bruise. Cosmetic at first; a deep one slows the limb. A welder or a wrench takes it out.
+
+## Chassis breach
+
+A hole in the casing, leaking coolant and hydraulic fluid. It is the mechanical bleed, and it never clots - it runs until it is welded shut. A breach opened by a round or by shrapnel holds the object, and refuses every repair until that has been pulled out.
+
+## Short circuit
+
+Current where it should not be. Each time it lands or worsens the frame locks up for a moment and the part throws sparks. A cable coil repairs it.
+
+## Servo damage
+
+A cut actuator behind the panel: the mechanical equivalent of a severed tendon. In an arm or a hand it makes hand work slow, in a leg it leaves a limp. Welding the panel does nothing; the wiring has to be replaced with a cable coil.
+
+## Overheating
+
+A part running too hot to work properly. Nothing in a toolbox or a medkit reaches it. It cools on its own, faster in a cold room or under anything cold, and in one step if the machine is doused in water.
+  <Box>
+    <GuideEntityEmbed Entity="Wrench"/>
+    <GuideEntityEmbed Entity="CableApcStack"/>
+  </Box>
+
 ## Special wounds
 
 ## Fracture

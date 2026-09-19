@@ -17,6 +17,7 @@
       methods: [Touch]
       effects:
       - !type:WashCreamPieReaction
+      - !type:WolfmedCoolOverheating # WOLFGATE (W6): water takes heat out of an overheated chassis.
   - type: DamageOnHighSpeedImpact
     damage:
       types:

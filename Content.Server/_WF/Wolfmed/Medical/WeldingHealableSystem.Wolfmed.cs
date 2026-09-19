@@ -43,10 +43,12 @@ public sealed partial class WeldingHealableSystem
         args.Handled = StartWoundRepair(body, partUid, args.User, args.Used, healing, delay);
     }
 
+    // WOLFGATE (W6): a tool with no fuel cost is not a welder. A wrench repairs a dented chassis and has
+    // nothing to burn, so the fuel check and the fuel spend below are both skipped for it.
     private bool CanUseRepairTool(EntityUid body, EntityUid user, EntityUid tool, WeldingHealingComponent healing) =>
         (body != user || healing.AllowSelfHeal) &&
         _toolSystem.HasQuality(tool, healing.QualityNeeded) &&
-        _toolSystem.GetWelderFuelAndCapacity(tool).fuel >= healing.FuelCost;
+        (healing.FuelCost <= 0 || _toolSystem.GetWelderFuelAndCapacity(tool).fuel >= healing.FuelCost);
 
     private bool CanRepairPart(EntityUid body, EntityUid part, WeldingHealingComponent healing)
     {
@@ -72,9 +74,13 @@ public sealed partial class WeldingHealableSystem
             !_repairToggle.IsActivated(tool) ||
             !CanUseRepairTool(body, args.User, tool, healing) ||
             !TryGetEntity(args.Part, out var part) || part is not { } partUid ||
-            !CanRepairPart(body, partUid, healing) ||
-            !TryComp(tool, out WelderComponent? welder) ||
-            !_solutionContainer.TryGetSolution(tool, welder.FuelSolutionName, out var solution))
+            !CanRepairPart(body, partUid, healing))
+            return;
+
+        // WOLFGATE (W6): only a fuelled tool has to have fuel to spend. A wrench has none.
+        var fuelled = healing.FuelCost > 0;
+        if (fuelled && (!TryComp(tool, out WelderComponent? welder) ||
+                        !_solutionContainer.TryGetSolution(tool, welder.FuelSolutionName, out _)))
             return;
 
         args.Handled = true;
@@ -82,7 +88,9 @@ public sealed partial class WeldingHealableSystem
         _woundRouting.WithTreatmentCapabilities(body, RepairCapabilities, () =>
             _woundRouting.TryApplyPartDamage(body, partUid, healing.Damage, user,
                 ignoreResistances: true, healWounds: true));
-        _solutionContainer.RemoveReagent(solution.Value, welder.FuelReagent, healing.FuelCost);
+        if (fuelled && TryComp(tool, out WelderComponent? spender) &&
+            _solutionContainer.TryGetSolution(tool, spender.FuelSolutionName, out var solution))
+            _solutionContainer.RemoveReagent(solution.Value, spender.FuelReagent, healing.FuelCost);
         _popup.PopupEntity(Loc.GetString("comp-repairable-repair", ("target", body.Owner), ("tool", tool)),
             body, args.User);
 

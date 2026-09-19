@@ -129,6 +129,11 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
             var partName = Loc.GetString($"targeting-part-{PartKey(part)}");
             var details = new List<string>();
 
+            // W6: a chassis does not bleed or fracture, it leaks and deforms. Phase 5 shipped the wording
+            // as -mechanical/-frame variants of three keys; this is the switch that consumes them.
+            var mechanical = diagnostic.Mechanical ? "-mechanical" : string.Empty;
+            var frame = diagnostic.Mechanical ? "-frame" : string.Empty;
+
             if (diagnostic.VisibleWounds.Count > 0)
             {
                 var wounds = diagnostic.VisibleWounds.Select(wound =>
@@ -148,15 +153,20 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
             {
                 var grade = Loc.GetString($"fracture-grade-{diagnostic.Fracture.ToString().ToLowerInvariant()}");
                 details.Add(diagnostic.FractureTreatment == FractureTreatment.None
-                    ? Loc.GetString("health-analyzer-wound-fracture-short", ("grade", grade))
-                    : Loc.GetString("health-analyzer-wound-fracture-treated-short",
+                    ? Loc.GetString($"health-analyzer-wound-fracture-short{frame}", ("grade", grade))
+                    : Loc.GetString($"health-analyzer-wound-fracture-treated-short{frame}",
                         ("grade", grade),
                         ("treatment", Loc.GetString(
                             $"health-analyzer-wound-fracture-treatment-{diagnostic.FractureTreatment.ToString().ToLowerInvariant()}"))));
             }
 
             if (diagnostic.BleedingRate > 0f)
-                details.Add(Loc.GetString("health-analyzer-wound-bleeding-short"));
+                details.Add(Loc.GetString($"health-analyzer-wound-bleeding-short{mechanical}"));
+
+            // W6: the one finding that is not a wound name - a hot part reads as hot even once the wound
+            // itself has cooled past its first stage.
+            if (diagnostic.Overheating)
+                details.Add(Loc.GetString("health-analyzer-wound-overheating-short"));
 
             if (diagnostic.InternalBleedingRate > 0f)
                 details.Add(Loc.GetString("health-analyzer-wound-internal-bleeding-short"));

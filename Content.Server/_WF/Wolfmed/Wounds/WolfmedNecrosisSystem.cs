@@ -143,7 +143,11 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     /// </summary>
     public void Start(EntityUid part, WolfmedNecrosisSource source, TimeSpan onset)
     {
-        if (TerminatingOrDeleted(part) || onset <= TimeSpan.Zero || !HasComp<WoundableComponent>(part))
+        // WOLFGATE (W6): a chassis has no tissue to lose, so no source starts the clock on one - not a
+        // tourniquet, not a deep freeze, not a limb left on the floor. Gated here and in MakeNecrotic so
+        // every entry point is covered.
+        if (TerminatingOrDeleted(part) || onset <= TimeSpan.Zero || !HasComp<WoundableComponent>(part) ||
+            !_traits.IsOrganic(part))
             return;
 
         var necrosis = EnsureComp<WolfmedNecrosisComponent>(part);
@@ -161,7 +165,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     /// </summary>
     public EntityUid? MakeNecrotic(EntityUid part)
     {
-        if (TerminatingOrDeleted(part) || !HasComp<WoundableComponent>(part))
+        if (TerminatingOrDeleted(part) || !HasComp<WoundableComponent>(part) || !_traits.IsOrganic(part))
             return null;
 
         var necrosis = EnsureComp<WolfmedNecrosisComponent>(part);
@@ -218,7 +222,8 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     /// <summary>Stamps the time a limb came off, for the reattachment grace period.</summary>
     public void OnDetached(EntityUid part)
     {
-        if (TerminatingOrDeleted(part) || !HasComp<WoundableComponent>(part))
+        // WOLFGATE (W6): a chassis limb keeps indefinitely, so it is not even stamped.
+        if (TerminatingOrDeleted(part) || !HasComp<WoundableComponent>(part) || !_traits.IsOrganic(part))
             return;
 
         var necrosis = EnsureComp<WolfmedNecrosisComponent>(part);
@@ -286,7 +291,8 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     /// <summary>Marks a part as being under a tourniquet. The one call site is TourniquetSystem.Apply.</summary>
     public void OnTourniquetApplied(EntityUid part)
     {
-        if (!TerminatingOrDeleted(part) && HasComp<WoundableComponent>(part))
+        // WOLFGATE (W6): a tourniquet on a cybernetic limb is bleeding control and nothing more.
+        if (!TerminatingOrDeleted(part) && HasComp<WoundableComponent>(part) && _traits.IsOrganic(part))
             EnsureComp<WolfmedTourniquetComponent>(part);
     }
 }

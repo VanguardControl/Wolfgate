@@ -273,3 +273,24 @@
   - type: WolfmedSurgeryPainEffect
     amount: 10
   - type: SurgeryStepEmoteEffect
+
+# Mechanical (W6) -------------------------------------------------------------
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepReplaceServo
+  name: Replace the servo run
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedServoKit
+    duration: 6
+  - type: Sprite
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coillv-30
+  - type: WolfmedSurgeryTreatWoundEffect
+    woundPrototype: WolfmedServoDamageWound
+  - type: WolfmedSurgeryPainEffect
+    amount: 6
+  - type: SurgeryStepEmoteEffect

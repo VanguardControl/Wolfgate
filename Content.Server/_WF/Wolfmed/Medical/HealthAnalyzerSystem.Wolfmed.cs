@@ -30,6 +30,8 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!; // WOLFGATE (W1)
     [Dependency] private WolfmedInfectionSystem _infection = default!; // WOLFGATE (W5)
     [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE (W5)
+    [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W6)
+    [Dependency] private WolfmedOverheatingSystem _overheating = default!; // WOLFGATE (W6)
 
     /// <summary>Per-part wound findings for a wound host, or null for anything else.</summary>
     public HealthAnalyzerWoundDiagnostics? BuildWoundDiagnostics(EntityUid body)
@@ -134,7 +136,9 @@ public sealed partial class HealthAnalyzerSystem
                 (ushort) Math.Clamp(_embedded.GetPartCount((part, woundable)), 0, ushort.MaxValue), // WOLFGATE (W1)
                 _infection.GetPartStage((part, woundable)), // WOLFGATE (W5)
                 _necrosis.IsNecrotic(part), // WOLFGATE (W5)
-                _necrosis.IsAtRisk(part)); // WOLFGATE (W5)
+                _necrosis.IsAtRisk(part), // WOLFGATE (W5)
+                _traits.IsMechanical((part, woundable)), // WOLFGATE (W6): picks the chassis wording
+                _overheating.IsOverheating(part)); // WOLFGATE (W6)
 
             if (diagnostic.HasFindings)
                 result[target] = diagnostic;

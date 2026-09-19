@@ -137,4 +137,26 @@ Dead tissue is permanent. It does not heal, no reagent or topical reaches it, th
     <GuideEntityEmbed Entity="Tourniquet"/>
     <GuideEntityEmbed Entity="Saw"/>
   </Box>
+
+## Mechanical repair
+
+An IPC and a cybernetic limb are not treated, they are repaired. No medicine, topical or reagent reaches them at all; what does is a tool, and which tool depends on the finding.
+
+A [bold]dent[/bold] is blunt force on something that does not bruise. A welder takes it out, and so does a plain [bold]wrench[/bold], which needs no fuel and does nothing else.
+
+A [bold]chassis breach[/bold] is the mechanical bleed: coolant and hydraulic fluid running out of a hole. It never clots, so it runs until a welder seals it. A breach opened by a round or by shrapnel keeps the object, and nothing - welder included - closes it until that has been pulled out with a hemostat or tweezers.
+
+A [bold]short circuit[/bold] locks the frame up for a moment and throws sparks each time it lands. A [bold]cable coil[/bold] repairs it.
+
+[bold]Servo damage[/bold] is the mechanical severed tendon: a cut actuator that leaves the limb slow or lame. Welding the panel shut does nothing for it - it takes a cable coil, because the wiring behind the panel is what has to be replaced.
+
+[bold]Overheating[/bold] is the one injury whose treatment is time. No tool reaches it. The part sheds heat on its own, faster in a cold room or under anything cold, and fastest of all if the patient is hosed down with water or an extinguisher.
+
+A chassis cannot become infected, cannot go septic and cannot become necrotic. A tourniquet on a cybernetic limb is a bleeding control measure and nothing more.
+  <Box>
+    <GuideEntityEmbed Entity="Welder"/>
+    <GuideEntityEmbed Entity="Wrench"/>
+    <GuideEntityEmbed Entity="CableApcStack"/>
+    <GuideEntityEmbed Entity="FireExtinguisher"/>
+  </Box>
 </Document>

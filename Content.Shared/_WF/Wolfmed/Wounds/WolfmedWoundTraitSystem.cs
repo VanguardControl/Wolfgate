@@ -76,6 +76,29 @@ public sealed class WolfmedWoundTraitSystem : EntitySystem
             args.Cancelled = true;
     }
 
+    /// <summary>
+    /// Whether the part is living tissue. The organic/mechanical selector W6 keys on: infection, necrosis
+    /// and every W1-W5 wound belong to parts that answer true, mechanical wounds to parts that answer false.
+    /// </summary>
+    /// <remarks>
+    /// Read off the part profile's <c>TreatmentCapabilities</c> rather than off a species, so a cybernetic
+    /// limb on a human answers false and a cloned organic limb on an IPC would answer true. A part with no
+    /// profile is treated as organic, which is what every non-Wolfmed caller expects.
+    /// </remarks>
+    public bool IsOrganic(Entity<WoundableComponent?> part) =>
+        !Resolve(part, ref part.Comp, false) ||
+        !_prototypes.TryIndex(part.Comp.Profile, out var profile) ||
+        profile.TreatmentCapabilities.Count == 0 ||
+        profile.TreatmentCapabilities.Contains(TreatmentCapability.Biological);
+
+    /// <summary>Whether the part is a chassis: repairable with tools, and never flesh.</summary>
+    public bool IsMechanical(Entity<WoundableComponent?> part) =>
+        Resolve(part, ref part.Comp, false) &&
+        _prototypes.TryIndex(part.Comp.Profile, out var profile) &&
+        !profile.TreatmentCapabilities.Contains(TreatmentCapability.Biological) &&
+        (profile.TreatmentCapabilities.Contains(TreatmentCapability.Mechanical) ||
+         profile.TreatmentCapabilities.Contains(TreatmentCapability.Electrical));
+
     /// <summary>The wound's behavior of this type at its current severity, if its prototype declares one.</summary>
     public bool TryGetBehavior<T>(Entity<WoundComponent?> wound, out T behavior) where T : WoundBehavior
     {

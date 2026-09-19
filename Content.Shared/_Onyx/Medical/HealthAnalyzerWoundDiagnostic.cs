@@ -21,13 +21,16 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     ushort EmbeddedObjects = 0, // WOLFGATE (W1): rounds and shrapnel still in the part.
     WolfmedInfectionStage Infection = WolfmedInfectionStage.None, // WOLFGATE (W5): worst stage on the part.
     bool Necrotic = false, // WOLFGATE (W5): the part is dead tissue.
-    bool NecrosisRisk = false) // WOLFGATE (W5): a tourniquet or a deep burn is killing it.
+    bool NecrosisRisk = false, // WOLFGATE (W5): a tourniquet or a deep burn is killing it.
+    bool Mechanical = false, // WOLFGATE (W6): a chassis, so the generic labels get their -mechanical variants.
+    bool Overheating = false) // WOLFGATE (W6): the part is running too hot to work properly.
 {
     public bool HasFindings =>
         Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||
         VisibleWounds.Count > 0 || Functionality != BodyPartFunctionalityState.Functional ||
         InternalBleedingRate > 0f || EmbeddedObjects > 0 || // WOLFGATE (W1)
-        Infection != WolfmedInfectionStage.None || Necrotic || NecrosisRisk; // WOLFGATE (W5)
+        Infection != WolfmedInfectionStage.None || Necrotic || NecrosisRisk || // WOLFGATE (W5)
+        Overheating; // WOLFGATE (W6)
 }
 
 [Serializable, NetSerializable]

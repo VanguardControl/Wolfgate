@@ -3056,3 +3056,64 @@ Deviations from the spec:
    public for any later caller.
 5. **Cleaning and antibiotics reset a wound rather than immunising it.** Progress falling to zero clears
    the `Cleaned` flag, so an open wound that has been cleared starts accumulating again from nothing.
+
+## Final stages: W6 (Mechanical wounds: IPC and cybernetic parts) (2026-09-19)
+
+| Path | Status | Notes |
+| --- | --- | --- |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/mechanical.yml` | new | The five wounds, all `ruleOnly`: `WolfmedDentWound`, `WolfmedBreachWound`, `WolfmedShortCircuitWound`, `WolfmedServoDamageWound`, `WolfmedOverheatingWound`. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | modified | Eight `wolfmedWoundRule`s at priority 99-89, all `capabilities: [ Mechanical ]`, all `replacesDefault: false` + `continue: true`. Three breach rules partition every hit by cause so the two ballistic ones can carry W1's `embedded` block without any hit paying twice. |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | Marked W6: the five wounds added to `IpcBodyPartProfile.supportedWounds` and `CyberneticBodyPartProfile.supportedWounds`. Nothing else changed. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `WolfmedShortCircuitBehavior` (stun, effect, sound) and `WolfmedOverheatBehavior` (coolingPerMinute / PerCold / PerDousing). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `IsOrganic(part)` and `IsMechanical(part)`: the organic/mechanical selector, read off the part profile's `TreatmentCapabilities`. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedOverheatingComponent.cs` | new | Part-level index and networked cooling rate. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedOverheatingSystem.cs` | new | Cooling tick, Cold-damage cooling off W4's `WolfmedPartDamageEvent`, `Douse(body)`, `Cool(part, amount)`, `IsOverheating(part)`, `Refresh(part)`. |
+| `Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCoolOverheating.cs` | new | Water touch effect; calls `Douse`. |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedServoKitComponent.cs` | new | `ISurgeryToolComponent` on the cable coil; the servo step's tool. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedShortCircuitSystem.cs` | new | Answers the W3 lifecycle broadcast: stun plus spark effect and sound. Public `Arc(body, behavior)`. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedInfectionSystem.cs` | modified | Marked W6: `IsOrganic` gate in `OnWoundLifecycle` and in `Contaminate`, so a chassis never goes septic. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs` | modified | Marked W6: `IsOrganic` gate in `Start`, `MakeNecrotic`, `OnDetached` and `OnTourniquetApplied`, so no source starts a necrosis clock on a chassis. |
+| `Content.Server/_WF/Wolfmed/Medical/WeldingHealableSystem.Wolfmed.cs` | modified | Marked W6: `fuelCost: 0` skips the fuel check and the fuel spend, which is what lets a wrench use the repair path. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Fills the two new per-part fields. |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified | Marked W6: `Mechanical` and `Overheating` optional trailing params. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | Consumes phase 5's `-mechanical` / `-frame` locale variants off the new flag, and prints the overheating line. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryReplaceServo`, gated on `WolfmedServoDamageWound`. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | `SurgeryStepReplaceServo`, tool `WolfmedServoKit`, effect `WolfmedSurgeryTreatWoundEffect`. |
+| `Resources/Prototypes/Entities/Objects/Tools/tools.yml` | modified | Marked W6: `WeldingHealing` on `Wrench` (`qualityNeeded: Anchoring`, `fuelCost: 0`, `Blunt: -15`). |
+| `Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml` | modified | Marked W6: `WolfmedServoKit` on `CableStack`. |
+| `Resources/Prototypes/Entities/Mobs/Species/base.yml` | modified | Marked W6: `WolfmedCoolOverheating` on the existing water touch reaction (for cybernetic limbs on organic species). |
+| `Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml` | modified | Marked W6: the same effect on the silicon base's own water reaction, for IPCs. |
+| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | Five wound names, three overheating stage names, the dousing popup, the analyzer line and the effect guidebook line. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | "Mechanical trauma" section: the five wounds and the wall between them and the organic set. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Mechanical repair" section: which tool for which finding, and what a chassis cannot get. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs` | new | Seven tests: the exclusion both ways (profiles and real hits), dents and breaches including the embedded round, short circuit and servo damage, overheating cooling three ways, the infection/necrosis gate, the wrench repair, and the analyzer wording. |
+
+Wound suite after W6: 180 passed / 0 failed / 0 skipped (173 before; 7 new).
+
+### Deviations from the spec
+
+1. **No mechanical lodged-round or shrapnel wound.** The spec left "lodged rounds/shrapnel can stay" to
+   this package to decide. They stay as *objects*, not as wounds: the two ballistic breach rules carry
+   W1's `embedded` block on an ordinary `WolfmedBreachWound`, so a round in a chassis still blocks every
+   repair until it is pulled out, but the flesh wounds themselves (`WolfmedLodgedRoundWound`,
+   `WolfmedShrapnelWound`, gunshot, graze) stay `[ Biological ]`. Reusing them would also have been a
+   trap: both carry `healingMultiplier: 0`, and a welder repairs only by removing damage, so a lodged
+   round in an IPC could never have been welded shut.
+2. **Servo damage is repaired by a surgery that uses the cable coil, not by the coil alone.** An item's
+   healing spec is matched against the wound's `damageTypes`, and damage removal needs damage of that type
+   on the part - which a Slash-caused servo wound does not have. Listing it under `Shock` would have made
+   it repairable only after someone also shocked the limb. It therefore carries no damage type at all
+   (like the tendon cut it mirrors) and `SurgeryReplaceServo` is the exit, with `WolfmedServoKit` on the
+   cable coil as the step's tool. That is both halves of the spec's "cable coil or the mechanical repair
+   surgery".
+3. **Mechanical wounds are added to the generic chassis wound, not substituted for it.** Following W4's
+   internal burn rather than W3's crush injury: `IpcMechanicalDamageWound` stays the total an analyzer
+   reads, and the five say what kind of damage it is. This also leaves every phase 5 mechanical test
+   unchanged.
+4. **Infection and necrosis are gated on the part profile, not on the wound.** One `IsOrganic` check in
+   four places beats opting every mechanical wound out one at a time, and it means a wound that *is*
+   infectable in flesh (a surgical incision, an embedded fragment) is simply inert on a chassis.
+5. **A wrench repairs dents.** The spec said "welder or wrench-class repair". Rather than a second repair
+   system, `WeldingHealingComponent` gained a fuel-free path in the Wolfmed partial that already owns the
+   wound-repair half of it, and the wrench carries the component with `fuelCost: 0`. Blunt only, so it
+   never seals a breach.

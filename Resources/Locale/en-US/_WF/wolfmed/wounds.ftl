@@ -88,3 +88,25 @@ reagent-effect-guidebook-treat-infection =
         [1] Clears
        *[other] chance to clear
     } infection from wounds and from the bloodstream
+
+# Mechanical wounds (W6).
+
+wolfmed-wound-name-dent = dent
+wolfmed-wound-name-breach = chassis breach
+wolfmed-wound-name-short-circuit = short circuit
+wolfmed-wound-name-servo-damage = servo damage
+wolfmed-wound-name-overheating = overheating
+
+wolfmed-wound-stage-warm = warm
+wolfmed-wound-stage-hot = hot
+wolfmed-wound-stage-overheated = overheated
+
+wolfmed-overheating-doused = Steam hisses off the casing.
+
+health-analyzer-wound-overheating-short = running hot
+
+reagent-effect-guidebook-cool-overheating =
+    { $chance ->
+        [1] Cools
+       *[other] chance to cool
+    } an overheated chassis

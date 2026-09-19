@@ -152,6 +152,19 @@
   - type: Tag
     tags:
     - Wrench
+  # WOLFGATE (W6): panel-beating. WeldingHealableSystem gates on this component, not on being a welder;
+  # fuelCost 0 is what tells its Wolfmed half to skip the fuel check and the fuel spend. Blunt only, so a
+  # wrench takes dents out of a chassis and never seals a breach.
+  - type: WeldingHealing
+    qualityNeeded: Anchoring
+    fuelCost: 0
+    doAfterDelay: 4
+    damageContainers:
+    - SiliconWolfmed
+    - InorganicWolfmed
+    damage:
+      types:
+        Blunt: -15
   - type: Sprite
     sprite: _NF/Objects/Tools/wrench.rsi # Frontier: separate sprites (add _NF folder)
     state: icon

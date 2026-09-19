@@ -21,6 +21,9 @@
     size: Small
     storedRotation: -90
   - type: CablePlacer
+  # WOLFGATE (W6): the surgery tool for the servo step. Servo damage carries no damage type, so the coil's
+  # Healing block below cannot reach it; replacing the run is a procedure, and this is what it needs.
+  - type: WolfmedServoKit
   - type: Clickable
   - type: StaticPrice
     price: 0

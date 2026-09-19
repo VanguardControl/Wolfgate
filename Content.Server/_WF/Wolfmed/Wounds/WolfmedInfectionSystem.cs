@@ -72,7 +72,11 @@ public sealed class WolfmedInfectionSystem : EntitySystem
 
     private void OnWoundLifecycle(ref WolfmedWoundLifecycleEvent args)
     {
+        // WOLFGATE (W6): a chassis does not go septic. The gate is the part profile rather than the wound,
+        // so a wound that can be infected in flesh (an embedded fragment, a surgical incision) is simply
+        // inert on an IPC or a cybernetic limb, and no mechanical wound has to opt out one at a time.
         if (args.Kind == WolfmedWoundLifecycle.Removed || TerminatingOrDeleted(args.Wound) ||
+            !_traits.IsOrganic(args.Part) ||
             !_prototypes.TryIndex(args.Prototype, out var prototype) ||
             !prototype.TryGetBehavior(args.Severity, out WolfmedInfectionRiskBehavior behavior) ||
             behavior.RiskMultiplier <= 0f)
@@ -281,7 +285,10 @@ public sealed class WolfmedInfectionSystem : EntitySystem
     /// </summary>
     public void Contaminate(EntityUid wound)
     {
-        if (TerminatingOrDeleted(wound) || !HasComp<WoundComponent>(wound))
+        // WOLFGATE (W6): nothing to contaminate on a chassis, so digging a fragment out of one with a knife
+        // costs nothing later.
+        if (TerminatingOrDeleted(wound) || !TryComp(wound, out WoundComponent? core) ||
+            !_traits.IsOrganic(core.HoldingPart))
             return;
 
         var infection = EnsureComp<WolfmedInfectionComponent>(wound);

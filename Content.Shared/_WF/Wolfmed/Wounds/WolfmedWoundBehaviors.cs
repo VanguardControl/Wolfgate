@@ -2,6 +2,7 @@ using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
@@ -283,4 +284,54 @@ public sealed partial class WolfmedElectricalShockBehavior : WoundBehavior
     /// <summary>Whether the spasm also empties the patient's hands.</summary>
     [DataField]
     public bool DropHeld = true;
+}
+
+/// <summary>
+/// Current that found a path it should not have inside a chassis: the part arcs, the frame locks up for a
+/// moment and something sparks. Read by
+/// <see cref="Content.Server._WF.Wolfmed.Wounds.WolfmedShortCircuitSystem"/>.
+/// </summary>
+/// <remarks>
+/// The mechanical counterpart of <see cref="WolfmedElectricalShockBehavior"/>: no heart to stop and no
+/// hands to open, so this is a shorter lock-up plus visible feedback that tells the player what happened.
+/// </remarks>
+[DataDefinition]
+public sealed partial class WolfmedShortCircuitBehavior : WoundBehavior
+{
+    /// <summary>How long the chassis is locked up each time the wound lands or worsens.</summary>
+    [DataField]
+    public TimeSpan Stun = TimeSpan.FromSeconds(1);
+
+    /// <summary>Effect spawned at the body. Null skips the visual.</summary>
+    [DataField]
+    public EntProtoId? Effect = "EffectSparks";
+
+    /// <summary>Sound collection played with it. Null skips the sound.</summary>
+    [DataField]
+    public SoundSpecifier? Sound = new SoundCollectionSpecifier("sparks");
+}
+
+/// <summary>
+/// A part running too hot. The wound cools on its own and far faster when something cold reaches it, so
+/// unlike every other wound in the system the passage of time is the treatment. Read by
+/// <see cref="WolfmedOverheatingSystem"/>.
+/// </summary>
+/// <remarks>
+/// The slowdown itself is <see cref="WolfmedLimbPenaltyBehavior"/> on the same stage; this only says how
+/// quickly the part sheds severity. Declared per stage so a badly overheated part cools slowly at first.
+/// </remarks>
+[DataDefinition]
+public sealed partial class WolfmedOverheatBehavior : WoundBehavior
+{
+    /// <summary>Severity shed per minute with nothing helping.</summary>
+    [DataField]
+    public FixedPoint2 CoolingPerMinute = FixedPoint2.New(6);
+
+    /// <summary>Severity shed per point of Cold damage that reaches the part.</summary>
+    [DataField]
+    public float CoolingPerCold = 1.5f;
+
+    /// <summary>Severity shed by one dousing, which is any water reaching the body.</summary>
+    [DataField]
+    public FixedPoint2 CoolingPerDousing = FixedPoint2.New(15);
 }

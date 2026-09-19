@@ -81,6 +81,13 @@
     - DismembermentWound
     - AmputationConsequenceWound
     - SystemicBleedingWound
+    # WOLFGATE (W6): mechanical wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds). None of
+    # them appears in OrganicBodyPartProfile, and none of that profile's Wolfmed wounds appears here.
+    - WolfmedDentWound
+    - WolfmedBreachWound
+    - WolfmedShortCircuitWound
+    - WolfmedServoDamageWound
+    - WolfmedOverheatingWound
   organDamage:
     # WOLFGATE (P5-1/P5-D13): inert until IPC organs carry OrganDamage (Sec 8.6-7 keeps organ damage
     # human-lineage only). Do NOT add maxAffected - Onyx sets it only on OrganicBodyPartProfile.
@@ -149,6 +156,13 @@
     - SurgicalIncisionWound
     - DismembermentWound
     - AmputationConsequenceWound
+    # WOLFGATE (W6): as on IpcBodyPartProfile above - a cybernetic limb dents, breaches, shorts, loses a
+    # servo and overheats exactly as an IPC chassis does.
+    - WolfmedDentWound
+    - WolfmedBreachWound
+    - WolfmedShortCircuitWound
+    - WolfmedServoDamageWound
+    - WolfmedOverheatingWound
   # WOLFGATE: no organDamage block on Onyx's original either - nothing to fold.
 
 - type: bodyPartProfile

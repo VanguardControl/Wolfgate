@@ -5,6 +5,137 @@
 # Adding one: write the wound with `ruleOnly: true`, add it to the part profile's supportedWounds, then a
 # rule here. No C#.
 
+# Mechanical (W6) -------------------------------------------------------------
+# Every rule here filters on `capabilities: [ Mechanical ]`, which only IpcBodyPartProfile and
+# CyberneticBodyPartProfile carry, and every rule in the organic sections below filters on
+# `[ Biological ]`. That one field is the whole organic/mechanical selector: neither set can ever fire on
+# the other's parts, and the part profiles' supportedWounds lists refuse the wound a second time.
+#
+# All of them are added to the generic chassis wound rather than replacing it (`replacesDefault: false`,
+# `continue: true`), so an analyzer still reads the total as chassis damage and these say what kind it is.
+#
+# There is no mechanical gunshot, graze, lodged-round or shrapnel wound: those four are flesh injuries and
+# stay `[ Biological ]`. What a chassis keeps is the object, not the wound, so the two ballistic breach
+# rules below carry W1's `embedded` block on an ordinary breach instead.
+
+# Heat the frame cannot shed fast enough. The wound cools itself, so the threshold is what it takes to
+# push a part past working temperature, not what it takes to melt it.
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechOverheating
+  priority: 99
+  wound: WolfmedOverheatingWound
+  damageTypes: [ Heat ]
+  minDamage: 8
+  severityMultiplier: 0.8
+  minSeverity: 8
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+
+# Current through the casing.
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechShortCircuit
+  priority: 98
+  wound: WolfmedShortCircuitWound
+  damageTypes: [ Shock ]
+  minDamage: 10
+  severityMultiplier: 0.7
+  minSeverity: 7
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+
+# Blunt force on something that does not bruise.
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechDent
+  priority: 94
+  wound: WolfmedDentWound
+  damageTypes: [ Blunt ]
+  minDamage: 8
+  severityMultiplier: 0.9
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+
+# A hole in the casing, and the fluid that runs out of it. Three rules rather than one, because a chassis
+# keeps what shot it: a breach opened by a round or a fragment holds the object, and W1's embedded-object
+# system then refuses every treatment - the welder included, since W2 put damage removal behind the same
+# attempt event - until it has been pulled out. The three `causes` filters partition every hit exactly
+# once, so no hit can ever match two of them and pay for the breach twice.
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechBreachFragment
+  priority: 93
+  wound: WolfmedBreachWound
+  damageTypes: [ Piercing ]
+  causes: [ Explosion, Fragment ]
+  minDamage: 2 # explosion damage is split across parts, so the per-part share is small
+  severityMultiplier: 0.8
+  minSeverity: 4
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+  embedded:
+    item: WolfmedShrapnelFragment
+    minCount: 1
+    maxCount: 2
+    maxTotal: 6
+
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechBreachRound
+  priority: 92
+  wound: WolfmedBreachWound
+  damageTypes: [ Piercing ]
+  causes: [ Projectile ]
+  minDamage: 8
+  severityMultiplier: 0.8
+  minSeverity: 6
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+  embedded:
+    item: WolfmedSpentRound
+
+# Everything that is not a round or a fragment: a blade, a claw, a thrown crate, a vent. Nothing stays in.
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechBreachSlash
+  priority: 91
+  wound: WolfmedBreachWound
+  damageTypes: [ Slash ]
+  minDamage: 8
+  severityMultiplier: 0.8
+  minSeverity: 6
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechBreachPiercing
+  priority: 90
+  wound: WolfmedBreachWound
+  damageTypes: [ Piercing ]
+  causes: [ Melee, Unarmed, Bite, Thrown, Environmental, Surgery, Hitscan ]
+  minDamage: 8
+  severityMultiplier: 0.8
+  minSeverity: 6
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+
+# Deep enough to have cut the actuator behind the panel. A limb only, like the tendon rule it mirrors:
+# there is no servo in a torso or a head to sever.
+- type: wolfmedWoundRule
+  id: WolfmedRuleMechServoDamage
+  priority: 89
+  wound: WolfmedServoDamageWound
+  damageTypes: [ Slash, Piercing ]
+  minDamage: 16
+  severityMultiplier: 0.5
+  minSeverity: 5
+  partTypes: [ Arm, Hand, Leg, Foot ]
+  replacesDefault: false
+  continue: true
+  capabilities: [ Mechanical ]
+
 # Burns (W4) ------------------------------------------------------------------
 # Cold and caustic each replace Onyx's one shared BurnWound with a wound that behaves like the thing that
 # made it. Heat keeps the burn wound, because that is what chars; shock adds to the electrical one.

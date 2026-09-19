@@ -253,3 +253,21 @@
     - SurgeryStepSealTendWound
   - type: WolfmedSurgeryWoundCondition
     woundPrototype: WolfmedCharringWound
+
+# Mechanical (W6) -------------------------------------------------------------
+# The mechanical repair procedure. Servo damage carries no damage type, so neither the welder nor the cable
+# coil's own healing block reaches it; the run behind the panel has to be replaced by hand.
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryReplaceServo
+  name: Replace Damaged Servo
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepReplaceServo
+    - SurgeryStepSealTendWound
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedServoDamageWound
