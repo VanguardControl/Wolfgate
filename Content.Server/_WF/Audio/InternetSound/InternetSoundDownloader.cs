@@ -2,8 +2,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +9,22 @@ using System.Threading.Tasks;
 namespace Content.Server._WF.Audio.InternetSound;
 
 /// <summary>
-/// Fetches audio from a link with yt-dlp and converts it to IMA ADPCM WAV with ffmpeg. Runs off the main thread.
-/// ADPCM rather than Ogg because clients can decode it off their main thread; the engine's Ogg loader can't be.
+/// Fetches audio from a link with yt-dlp and converts it to Ogg Vorbis with ffmpeg. Runs off the main thread.
+/// Ogg because it's what the engine's audio loader reads, which is what lets the result be mounted as an
+/// ordinary resource and played through speakers like any other sound.
 /// </summary>
 public static class InternetSoundDownloader
 {
-    public sealed record Settings(string YtDlpPath, string FfmpegPath, int MaxDurationSeconds, int TimeoutSeconds, int MaxSizeMb, int SampleRate, int Channels);
+    public sealed record Settings(
+        string YtDlpPath,
+        string FfmpegPath,
+        int MaxDurationSeconds,
+        int TimeoutSeconds,
+        int MaxSizeMb,
+        int SampleRate,
+        int Channels,
+        int BitrateKbps,
+        long MaxDownloadBytes = 64L * 1024 * 1024);
 
     public sealed record Result(string Title, byte[] Audio);
 
@@ -37,35 +45,67 @@ public static class InternetSoundDownloader
     /// </summary>
     public static async Task<Result> Fetch(string url, Settings settings, CancellationToken cancel)
     {
+        cancel.ThrowIfCancellationRequested();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancel);
         timeout.CancelAfter(TimeSpan.FromSeconds(settings.TimeoutSeconds));
 
-        await EnsurePublicHost(new Uri(url), timeout.Token);
+        var uri = new Uri(url);
+        if (uri.Scheme != Uri.UriSchemeHttps || uri.Port != 443)
+            throw new FetchException("wf-internet-sound-error-https");
+        using var downloadCancel = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token);
+        await using var proxy = new InternetSoundDownloadProxy(downloadCancel.Token,
+            maxDownloadBytes: settings.MaxDownloadBytes, onDownloadLimitExceeded: downloadCancel.Cancel);
 
         var dir = Path.Combine(Path.GetTempPath(), "wolfgate-internet-sound", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
 
         try
         {
+            // HLS can otherwise fall back to FFmpeg even with --downloader native. An empty
+            // tool directory makes that fallback fail closed; only our local-only conversion may use it.
+            var nativeTools = Path.Combine(dir, "native-only");
+            Directory.CreateDirectory(nativeTools);
             // "--" stops the link being read as an option; the filter refuses livestreams and long videos up front.
-            var download = await Run(settings.YtDlpPath,
-                new[]
-                {
-                    "--no-playlist", "--no-warnings", "--no-progress", "--no-simulate",
-                    "--match-filter", $"!is_live & duration <=? {settings.MaxDurationSeconds}",
-                    "-f", "bestaudio/best",
-                    "-o", Path.Combine(dir, "source.%(ext)s"),
-                    "--print", $"before_dl:{TitlePrefix}%(title)s",
-                    "--print", $"after_move:{PathPrefix}%(filepath)s",
-                    "--", url,
-                },
-                "wf-internet-sound-error-ytdlp-missing",
-                timeout.Token);
+            (int ExitCode, string Output, string Error) download;
+            try
+            {
+                download = await Run(settings.YtDlpPath,
+                    new[]
+                    {
+                        "--ignore-config", "--no-plugin-dirs", "--no-remote-components", "--no-cache-dir",
+                        "--proxy", proxy.Url,
+                        "--downloader", "native", "--fixup", "never",
+                        "--ffmpeg-location", nativeTools,
+                        "--no-playlist", "--no-warnings", "--no-progress", "--no-simulate",
+                        "--match-filter", $"!is_live & duration <=? {settings.MaxDurationSeconds}",
+                        // Manifests and fragments must also pass the proxy's HTTPS gate.
+                        "-f", "bestaudio[protocol=https]/bestaudio[protocol=http_dash_segments]/bestaudio[protocol=m3u8_native]/best[protocol=https]/best[protocol=http_dash_segments]/best[protocol=m3u8_native]",
+                        "-o", Path.Combine(dir, "source.%(ext)s"),
+                        "--print", $"before_dl:{TitlePrefix}%(title)s",
+                        "--print", $"after_move:{PathPrefix}%(filepath)s",
+                        "--", url,
+                    },
+                    "wf-internet-sound-error-ytdlp-missing",
+                    downloadCancel.Token);
+            }
+            catch (OperationCanceledException) when (proxy.DownloadLimitExceeded)
+            {
+                throw new FetchException("wf-internet-sound-error-download-too-large",
+                    DownloadMegabytes(settings.MaxDownloadBytes).ToString());
+            }
+
+            if (proxy.DownloadLimitExceeded)
+                throw new FetchException("wf-internet-sound-error-download-too-large",
+                    DownloadMegabytes(settings.MaxDownloadBytes).ToString());
 
             var lines = download.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var title = lines.FirstOrDefault(l => l.StartsWith(TitlePrefix))?[TitlePrefix.Length..] ?? url;
             var source = lines.FirstOrDefault(l => l.StartsWith(PathPrefix))?[PathPrefix.Length..];
 
+            if (proxy.RejectedInsecureTransport)
+                throw new FetchException("wf-internet-sound-error-https");
+            if (proxy.DeniedHost is { } denied)
+                throw new FetchException("wf-internet-sound-error-host", denied);
             if (download.ExitCode != 0)
                 throw new FetchException("wf-internet-sound-error-download", LastLine(download.Error));
 
@@ -73,15 +113,28 @@ public static class InternetSoundDownloader
             if (source == null || !File.Exists(source))
                 throw new FetchException("wf-internet-sound-error-rejected", settings.MaxDurationSeconds.ToString());
 
-            var output = Path.Combine(dir, "sound.wav");
+            var relativeSource = Path.GetRelativePath(dir, Path.GetFullPath(source));
+            if (Path.IsPathRooted(relativeSource) || relativeSource == ".."
+                || relativeSource.StartsWith(".." + Path.DirectorySeparatorChar))
+                throw new FetchException("wf-internet-sound-error-download", "Invalid download path.");
+
+            var output = Path.Combine(dir, "sound.ogg");
+
+            // Trimming rumble and everything near the new Nyquist first stops the encoder spending its very
+            // small budget on content a loudspeaker would never reproduce anyway.
+            var cutoff = (int) (settings.SampleRate * 0.45f);
+
             var convert = await Run(settings.FfmpegPath,
                 new[]
                 {
                     "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+                    // A downloaded manifest must not make FFmpeg open its own network connections.
+                    "-protocol_whitelist", "file,pipe",
                     "-i", source,
                     "-vn", "-map_metadata", "-1",
+                    "-af", $"highpass=f=70,lowpass=f={cutoff}",
                     "-ac", settings.Channels.ToString(), "-ar", settings.SampleRate.ToString(),
-                    "-c:a", "adpcm_ima_wav",
+                    "-c:a", "libvorbis", "-b:a", $"{settings.BitrateKbps}k",
                     "-t", settings.MaxDurationSeconds.ToString(),
                     output,
                 },
@@ -91,8 +144,13 @@ public static class InternetSoundDownloader
             if (convert.ExitCode != 0 || !File.Exists(output))
                 throw new FetchException("wf-internet-sound-error-transcode", LastLine(convert.Error));
 
+            var maxSizeBytes = checked((long) settings.MaxSizeMb * 1024 * 1024);
+            if (new FileInfo(output).Length > maxSizeBytes)
+                throw new FetchException("wf-internet-sound-error-too-large",
+                    (new FileInfo(output).Length / (1024 * 1024)).ToString());
+
             var audio = await File.ReadAllBytesAsync(output, timeout.Token);
-            if (audio.Length > settings.MaxSizeMb * 1024 * 1024)
+            if (audio.Length > maxSizeBytes)
                 throw new FetchException("wf-internet-sound-error-too-large", (audio.Length / (1024 * 1024)).ToString());
 
             return new Result(title, audio);
@@ -115,6 +173,7 @@ public static class InternetSoundDownloader
     /// </summary>
     private static async Task<(int ExitCode, string Output, string Error)> Run(string exe, IEnumerable<string> args, string missingKey, CancellationToken cancel)
     {
+        cancel.ThrowIfCancellationRequested();
         var info = new ProcessStartInfo(exe)
         {
             UseShellExecute = false,
@@ -171,51 +230,11 @@ public static class InternetSoundDownloader
         }
     }
 
-    /// <summary>
-    /// Refuses links whose host resolves to a loopback, private, link-local or other non-public address, so the
-    /// server can't be pointed at its own network. Redirects are followed by yt-dlp and aren't re-checked.
-    /// </summary>
-    private static async Task EnsurePublicHost(Uri uri, CancellationToken cancel)
-    {
-        IPAddress[] addresses;
-        try
-        {
-            addresses = IPAddress.TryParse(uri.Host.Trim('[', ']'), out var literal)
-                ? new[] { literal }
-                : await Dns.GetHostAddressesAsync(uri.DnsSafeHost, cancel);
-        }
-        catch (SocketException)
-        {
-            throw new FetchException("wf-internet-sound-error-host", uri.Host);
-        }
-
-        if (addresses.Length == 0 || addresses.Any(IsNonPublic))
-            throw new FetchException("wf-internet-sound-error-host", uri.Host);
-    }
-
-    private static bool IsNonPublic(IPAddress address)
-    {
-        if (address.IsIPv4MappedToIPv6)
-            address = address.MapToIPv4();
-
-        if (IPAddress.IsLoopback(address) || address.Equals(IPAddress.Any) || address.Equals(IPAddress.IPv6Any))
-            return true;
-
-        if (address.AddressFamily == AddressFamily.InterNetworkV6)
-            return address.IsIPv6LinkLocal || address.IsIPv6SiteLocal || address.IsIPv6UniqueLocal || address.IsIPv6Multicast;
-
-        var b = address.GetAddressBytes();
-        return b[0] is 0 or 10 or 127
-               || b[0] == 172 && b[1] is >= 16 and <= 31
-               || b[0] == 192 && b[1] == 168
-               || b[0] == 169 && b[1] == 254
-               || b[0] == 100 && b[1] is >= 64 and <= 127 // Carrier-grade NAT.
-               || b[0] >= 224; // Multicast and reserved.
-    }
-
     private static string LastLine(string text)
     {
         var line = text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault() ?? string.Empty;
         return line.Length > 200 ? line[..200] : line;
     }
+
+    private static long DownloadMegabytes(long bytes) => (bytes - 1) / (1024 * 1024) + 1;
 }

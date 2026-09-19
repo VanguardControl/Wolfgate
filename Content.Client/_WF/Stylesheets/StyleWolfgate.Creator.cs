@@ -22,6 +22,22 @@ public sealed partial class StyleWolfgate
     public const string StyleClassLinkButton = "LinkButton";
     public const string StyleClassCreatorBackdrop = "CreatorBackdrop";
 
+    /// <summary>Bordered inset for a text field, so an editor reads as a box rather than loose text.</summary>
+    public const string StyleClassCreatorInset = "CreatorInset";
+
+    /// <summary>Translucent panel grouping a set of species cards.</summary>
+    public const string StyleClassCreatorGroup = "CreatorGroup";
+
+    /// <summary>Card title: the heading font at card scale, keeping the accent colour.</summary>
+    public const string StyleClassCreatorCardTitle = "CreatorCardTitle";
+
+    /// <summary>Sex selector glyphs. The texture comes from the skin, the tint from the on/off class.</summary>
+    public const string StyleClassSexIconMale = "SexIconMale";
+    public const string StyleClassSexIconFemale = "SexIconFemale";
+    public const string StyleClassSexIconNone = "SexIconNone";
+    public const string StyleClassSexIconOn = "SexIconOn";
+    public const string StyleClassSexIconOff = "SexIconOff";
+
     /// <summary>Rules for the character creator: cards, headings, tabs, primary/toggle/link buttons, slot cards and swatches.</summary>
     private StyleRule[] CreatorRules()
     {
@@ -50,6 +66,24 @@ public sealed partial class StyleWolfgate
         slotBox.SetContentMarginOverride(StyleBox.Margin.All, 4);
 
         var swatchBox = new StyleBoxFlat { BackgroundColor = Color.White };
+
+        // Inset field: sunken and outlined, so a text editor has an edge.
+        var insetBox = new StyleBoxFlat
+        {
+            BackgroundColor = Ink.WithAlpha(0.55f),
+            BorderColor = EdgeSoft,
+            BorderThickness = new Thickness(1),
+        };
+        insetBox.SetContentMarginOverride(StyleBox.Margin.All, 4);
+
+        // Group backpane: a tint rather than a solid card, so the tiles inside still read as the surface.
+        var groupBox = new StyleBoxFlat
+        {
+            BackgroundColor = GlassLight.WithAlpha(0.35f),
+            BorderColor = EdgeSoft,
+            BorderThickness = new Thickness(1),
+        };
+        groupBox.SetContentMarginOverride(StyleBox.Margin.All, 10);
 
         return new StyleRule[]
         {
@@ -134,6 +168,27 @@ public sealed partial class StyleWolfgate
                         new SelectorElement(typeof(BoxContainer), null, null, null)),
                     new SelectorElement(typeof(Label), null, null, null)),
                 new[] { new StyleProperty(Label.StylePropertyFontColor, Text) }),
+
+            Element<PanelContainer>().Class(StyleClassCreatorInset)
+                .Prop(PanelContainer.StylePropertyPanel, insetBox),
+            Element<PanelContainer>().Class(StyleClassCreatorGroup)
+                .Prop(PanelContainer.StylePropertyPanel, groupBox),
+            Element<Label>().Class(StyleClassCreatorCardTitle)
+                .Prop(Label.StylePropertyFont, Display(13))
+                .Prop(Label.StylePropertyFontColor, Accent),
+
+            // Sex selector glyphs: texture per sex, tint per selection state. A child TextureRect does not
+            // inherit the button's pressed modulate, so the selector swaps the on/off class in code.
+            Element<TextureRect>().Class(StyleClassSexIconMale)
+                .Prop(TextureRect.StylePropertyTexture, Tex("sex_male.png")),
+            Element<TextureRect>().Class(StyleClassSexIconFemale)
+                .Prop(TextureRect.StylePropertyTexture, Tex("sex_female.png")),
+            Element<TextureRect>().Class(StyleClassSexIconNone)
+                .Prop(TextureRect.StylePropertyTexture, Tex("sex_none.png")),
+            Element<TextureRect>().Class(StyleClassSexIconOn)
+                .Prop(Control.StylePropertyModulateSelf, Text),
+            Element<TextureRect>().Class(StyleClassSexIconOff)
+                .Prop(Control.StylePropertyModulateSelf, TextMuted),
 
             // Colour swatches: a ring appears around the swatch on hover
             Element<ContainerButton>().Class(WolfgateColorPicker.StyleClassSwatch)

@@ -114,6 +114,9 @@ public partial class ChatBox : UIWidget
     public void Repopulate()
     {
         Contents.Clear();
+        // WOLFGATE - Replay seeks and filter changes rebuild the output from scratch.
+        _lastLine = null;
+        _lastLineRepeatCount = 0;
 
         foreach (var message in _controller.History)
         {
@@ -124,6 +127,9 @@ public partial class ChatBox : UIWidget
     private void OnChannelFilter(ChatChannel channel, bool active)
     {
         Contents.Clear();
+        // WOLFGATE - Replay seeks and filter changes rebuild the output from scratch.
+        _lastLine = null;
+        _lastLineRepeatCount = 0;
 
         foreach (var message in _controller.History)
         {

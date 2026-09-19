@@ -141,3 +141,13 @@ marking-FeroxiArmStripesBlitz-feroxi-arm-stripes-blitz = Stripes
 
 marking-FeroxiArmStripesTiger = Full Stripes
 marking-FeroxiArmStripesTiger-feroxi-arm-stripes-tiger = Stripes
+
+# Wolfgate: ported from HardLight
+marking-FeroxiLeftArmStripesBlitz = Shoulder Stripes
+marking-FeroxiLeftArmStripesTiger = Full Stripes
+marking-FeroxiLeftLegStripesBlitz = Calf Stripes
+marking-FeroxiLeftLegStripesTiger = Full Stripes
+marking-FeroxiRightArmStripesBlitz = Shoulder Stripes
+marking-FeroxiRightArmStripesTiger = Full Stripes
+marking-FeroxiRightLegStripesBlitz = Calf Stripes
+marking-FeroxiRightLegStripesTiger = Full Stripes

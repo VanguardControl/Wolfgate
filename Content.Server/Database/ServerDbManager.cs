@@ -22,6 +22,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using LogLevel = Robust.Shared.Log.LogLevel;
 using MSLogLevel = Microsoft.Extensions.Logging.LogLevel;
+using Content.Shared._Common.Consent; // WOLFGATE
 using Content.Shared._Mono.Company;
 using Content.Server._Mono.Company; // Mono
 
@@ -343,6 +344,16 @@ namespace Content.Server.Database
         Task<bool> RemoveGhostRoleWhitelist(Guid player, ProtoId<GhostRolePrototype> ghostRole); // Frontier
 
         #endregion
+
+        // WOLFGATE - consent system ported from HardLight
+        #region Consent Settings
+
+        Task<int> SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings);
+        Task<ConsentSettings> GetPlayerConsentSettingsAsync(NetUserId userId);
+        Task<ConsentFreetextReadReceipt> UpdatePlayerConsentReadReceipt(NetUserId readerUserId, int readConsentSettingsId);
+
+        #endregion
+        // End WOLFGATE
 
         #region IPintel
 
@@ -1230,6 +1241,30 @@ namespace Content.Server.Database
         }
 
         #endregion
+
+        // WOLFGATE - consent system ported from HardLight
+        #region Consent Settings
+
+        public Task<int> SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.SavePlayerConsentSettingsAsync(userId, consentSettings));
+        }
+
+        public Task<ConsentSettings> GetPlayerConsentSettingsAsync(NetUserId userId)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetPlayerConsentSettingsAsync(userId));
+        }
+
+        public Task<ConsentFreetextReadReceipt> UpdatePlayerConsentReadReceipt(NetUserId readerUserId, int readConsentSettingsId)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.UpdatePlayerConsentReadReceipt(readerUserId, readConsentSettingsId));
+        }
+
+        #endregion
+        // End WOLFGATE
 
         private async void HandleDatabaseNotification(DatabaseNotification notification)
         {

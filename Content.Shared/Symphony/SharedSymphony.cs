@@ -13,9 +13,10 @@ public static class SharedSymphony
     /// /symphony/roles/refresh, which makes the game re-read a player's rows for them. Version 3 added
     /// symphony_test_merges in /status: what a test merge build carries, from the stamp the workflow wrote. Version 4 added
     /// /symphony/hub, the hub switch: whether the server advertises itself, read and set while it runs. Version 5 added
-    /// /symphony/players: who is connected, with character, job, state and ping, which /admin/info does not carry.
+    /// /symphony/players: who is connected, with character, job, state and ping, which /admin/info does not carry. Version 6 added
+    /// symphony_round_duration and symphony_paused in /status: the round clock as the game keeps it, which stops while paused.
     /// </summary>
-    public const int ModuleVersion = 5;
+    public const int ModuleVersion = 6;
 
     /// <summary>
     /// Key of the one-time Discord link URL in a whitelist refusal's structured properties.

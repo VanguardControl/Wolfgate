@@ -1,12 +1,14 @@
 ﻿using Content.Shared.CharacterInfo;
 using Content.Shared.Objectives;
 using Robust.Client.Player;
+using Robust.Shared.Network; // WOLFGATE
 using Robust.Client.UserInterface;
 
 namespace Content.Client.CharacterInfo;
 
 public sealed partial class CharacterInfoSystem : EntitySystem
 {
+    [Dependency] private IClientNetManager _net = default!; // WOLFGATE
     [Dependency] private IPlayerManager _players = default!;
 
     public event Action<CharacterData>? OnCharacterUpdate;
@@ -21,7 +23,8 @@ public sealed partial class CharacterInfoSystem : EntitySystem
     public void RequestCharacterInfo()
     {
         var entity = _players.LocalEntity;
-        if (entity == null)
+        // WOLFGATE - Replay spectators have a local entity but no server to answer this request.
+        if (entity == null || !_net.IsConnected)
         {
             return;
         }

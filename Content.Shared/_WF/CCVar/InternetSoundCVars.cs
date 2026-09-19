@@ -15,6 +15,34 @@ public sealed class InternetSoundCVars
         CVarDef.Create("wf.internet_sound.enabled", true, CVar.SERVERONLY);
 
     /// <summary>
+    /// Whether crew can queue a track from a shuttle console, rather than only admins from the admin tab.
+    /// Turning this off leaves the admin side working.
+    /// </summary>
+    public static readonly CVarDef<bool> PlayerRequests =
+        CVarDef.Create("wf.internet_sound.player_requests", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// How many tracks may be in play at once across the whole server. PA recipients retain assets until
+    /// release, so this bounds both server transfers and client memory: a decoded seven-minute mono track
+    /// at the default rate costs about 18 MB.
+    /// </summary>
+    public static readonly CVarDef<int> MaxConcurrent =
+        CVarDef.Create("wf.internet_sound.max_concurrent", 2, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Extra tiles beyond a ship's bounds and maximum speaker range in which PA audio is prefetched.
+    /// Gives approaching listeners time to download; actual audibility is still determined by speakers.
+    /// </summary>
+    public static readonly CVarDef<float> PaPrefetchMargin =
+        CVarDef.Create("wf.internet_sound.pa_prefetch_margin", 64f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds a ship must wait between console requests. Cutting its current track allows an immediate replacement.
+    /// </summary>
+    public static readonly CVarDef<int> RequestCooldown =
+        CVarDef.Create("wf.internet_sound.request_cooldown", 60, CVar.SERVERONLY);
+
+    /// <summary>
     /// yt-dlp executable. A bare name is looked up on PATH.
     /// </summary>
     public static readonly CVarDef<string> YtDlpPath =
@@ -27,20 +55,29 @@ public sealed class InternetSoundCVars
         CVarDef.Create("wf.internet_sound.ffmpeg_path", "ffmpeg", CVar.SERVERONLY);
 
     /// <summary>
-    /// Longest sound in seconds. Longer links are refused. Clients hold the decoded audio in memory,
-    /// about 4 MB a minute at the default mono 32 kHz.
+    /// Longest sound in seconds. Longer links are refused.
     /// </summary>
     public static readonly CVarDef<int> MaxDuration =
-        CVarDef.Create("wf.internet_sound.max_duration", 480, CVar.SERVERONLY);
+        CVarDef.Create("wf.internet_sound.max_duration", 420, CVar.SERVERONLY);
 
     /// <summary>
-    /// Sample rate the audio is sent at, 8000 to 48000. Lower is smaller and quicker to arrive; 32 kHz keeps music clear.
+    /// Sample rate the audio is sent at, 8000 to 48000. This is the setting that matters for client memory:
+    /// the engine decodes to 16-bit PCM up front, so a track costs rate * channels * 2 bytes a second while
+    /// it plays, regardless of how small the Ogg was. 22050 is plenty for a loudspeaker.
     /// </summary>
     public static readonly CVarDef<int> SampleRate =
-        CVarDef.Create("wf.internet_sound.sample_rate", 32000, CVar.SERVERONLY);
+        CVarDef.Create("wf.internet_sound.sample_rate", 22050, CVar.SERVERONLY);
 
     /// <summary>
-    /// Send stereo instead of mono. Doubles the download size and client memory.
+    /// Ogg Vorbis bitrate in kbps, 8 to 192. Sets how much is sent to each client: 32 kbps is about
+    /// 240 KB a minute and holds up fine once a speaker has mangled it.
+    /// </summary>
+    public static readonly CVarDef<int> Bitrate =
+        CVarDef.Create("wf.internet_sound.bitrate", 32, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Send stereo instead of mono. Doubles client memory and wants a higher bitrate to be worth it.
+    /// Ship PA tracks are positional, so mono is the right choice for them either way.
     /// </summary>
     public static readonly CVarDef<bool> Stereo =
         CVarDef.Create("wf.internet_sound.stereo", false, CVar.SERVERONLY);
@@ -52,13 +89,28 @@ public sealed class InternetSoundCVars
         CVarDef.Create("wf.internet_sound.timeout", 120, CVar.SERVERONLY);
 
     /// <summary>
-    /// Largest converted file in megabytes that will be sent to clients.
+    /// Largest converted file in megabytes that will be sent to clients. At the default rate and bitrate a
+    /// full-length track is under 2 MB, so this only catches something having gone wrong.
     /// </summary>
     public static readonly CVarDef<int> MaxSizeMb =
-        CVarDef.Create("wf.internet_sound.max_size_mb", 20, CVar.SERVERONLY);
+        CVarDef.Create("wf.internet_sound.max_size_mb", 8, CVar.SERVERONLY);
 
     /// <summary>
-    /// Client volume for internet sounds, 0 to 1. Set from the radio popup.
+    /// Largest encrypted input download in megabytes, shared across all HTTPS tunnels and fragments.
+    /// </summary>
+    public static readonly CVarDef<int> MaxDownloadMb =
+        CVarDef.Create("wf.internet_sound.max_download_mb", 64, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds to wait for clients before starting a global admin sound. PA tracks do not wait;
+    /// each listener joins their shared timeline when the file arrives.
+    /// </summary>
+    public static readonly CVarDef<int> ReadyTimeout =
+        CVarDef.Create("wf.internet_sound.ready_timeout", 45, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Client volume for internet sounds, 0 to 1. Set from the radio popup. Ship PA tracks ignore this;
+    /// they're diegetic and follow the normal ambience sliders.
     /// </summary>
     public static readonly CVarDef<float> Volume =
         CVarDef.Create("wf.internet_sound.volume", 0.5f, CVar.CLIENTONLY | CVar.ARCHIVE);

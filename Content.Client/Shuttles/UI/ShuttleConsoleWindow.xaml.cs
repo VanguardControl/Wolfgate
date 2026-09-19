@@ -187,6 +187,8 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         // WOLFGATE
         ShipContainer.SetShuttle(coordinates?.EntityId);
         ShipContainer.SetConsole(owner);
+        CollisionBanner.SetShuttle(coordinates?.EntityId);
+        WfUpdateTractorCapture(cState.TractorSources); // WOLFGATE
 
         NavContainer.UpdateState(cState.NavState);
         MapContainer.UpdateState(cState.MapState);

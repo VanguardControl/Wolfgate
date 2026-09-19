@@ -118,11 +118,12 @@ public sealed partial class GunSystem : SharedGunSystem
         var shotProjectiles = new List<EntityUid>(ammo.Count);
 
         var offset = -1f; // Mono
+        var recoilRandom = GetRecoilRandom(gunUid); // WOLFGATE: seeded so the shooter's client predicts the same spread
         foreach (var (ent, shootable) in ammo)
         {
             offset = offset == -1f ? 0f : offset + 1f / ammo.Count;
             // Mono - move into foreach
-            var angle = GetRecoilAngle(Timing.CurTime, gun, mapDirection.ToAngle());
+            var angle = GetRecoilAngle(Timing.CurTime, gunUid, gun, mapDirection.ToAngle(), ref recoilRandom); // WOLFGATE
             // Update shot based on the recoil
             toMap = fromMap.Position + angle.ToVec() * mapDirection.Length();
             mapDirection = toMap - fromMap.Position;
@@ -257,13 +258,7 @@ public sealed partial class GunSystem : SharedGunSystem
             return;
         }
 
-        if (GunPrediction && user != null && TryComp<ActorComponent>(user, out var actor))
-        {
-            var predicted = EnsureComp<PredictedProjectileServerComponent>(uid);
-            predicted.Shooter = actor.PlayerSession;
-            predicted.ClientId = uid.Id;
-            predicted.ClientEnt = user;
-        }
+        MarkPredicted(uid, gunUid); // WOLFGATE: links to the shooter's predicted copy, see _WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs
 
         projectileComp.Damage *= gun.DamageModifier;
 
@@ -280,39 +275,7 @@ public sealed partial class GunSystem : SharedGunSystem
         }
     }
 
-    /// <summary>
-    /// Gets a linear spread of angles between start and end.
-    /// </summary>
-    /// <param name="start">Start angle in degrees</param>
-    /// <param name="end">End angle in degrees</param>
-    /// <param name="intervals">How many shots there are</param>
-    private Angle[] LinearSpread(Angle start, Angle end, int intervals)
-    {
-        var angles = new Angle[intervals];
-        DebugTools.Assert(intervals > 1);
-
-        for (var i = 0; i <= intervals - 1; i++)
-        {
-            angles[i] = new Angle(start + (end - start) * i / (intervals - 1));
-        }
-
-        return angles;
-    }
-
-    private Angle GetRecoilAngle(TimeSpan curTime, GunComponent component, Angle direction)
-    {
-        var timeSinceLastFire = (curTime - component.LastFire).TotalSeconds;
-        var newTheta = MathHelper.Clamp(component.CurrentAngle.Theta + component.AngleIncreaseModified.Theta - component.AngleDecayModified.Theta * timeSinceLastFire, component.MinAngleModified.Theta, component.MaxAngleModified.Theta);
-        component.CurrentAngle = new Angle(newTheta);
-        component.LastFire = component.NextFire;
-
-        // Convert it so angle can go either side.
-        var random = Random.NextFloat(-0.5f, 0.5f);
-        var spread = component.CurrentAngle.Theta * random;
-        var angle = new Angle(direction.Theta + component.CurrentAngle.Theta * random);
-        DebugTools.Assert(spread <= component.MaxAngleModified.Theta);
-        return angle;
-    }
+    // WOLFGATE: LinearSpread and GetRecoilAngle moved to _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs so the client can predict them
 
     protected override void Popup(string message, EntityUid? uid, EntityUid? user) { }
 

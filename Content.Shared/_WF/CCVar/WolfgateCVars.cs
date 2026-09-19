@@ -3,7 +3,7 @@ using Robust.Shared.Configuration;
 namespace Content.Shared._WF.CCVar;
 
 /// <summary>
-/// Client-side Wolfgate settings.
+/// Wolfgate settings.
 /// </summary>
 [CVarDefs]
 public sealed class WolfgateCVars
@@ -14,6 +14,18 @@ public sealed class WolfgateCVars
     /// </summary>
     public static readonly CVarDef<string> UiStyle =
         CVarDef.Create("wf.ui_style", "Wolfgate", CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    /// <summary>
+    /// Kill switch for the anatomy system. When false every anatomy gate fails and every anatomy UI is hidden.
+    /// </summary>
+    public static readonly CVarDef<bool> AnatomyEnabled =
+        CVarDef.Create("wf.anatomy_enabled", true, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
+    /// Version of the adult content notice this client has acknowledged; 0 means never.
+    /// </summary>
+    public static readonly CVarDef<int> AnatomyNoticeSeen =
+        CVarDef.Create("wf.anatomy_notice_seen", 0, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     /// <summary>
     /// Shows the title bar button that pops in-game windows out into their own OS window.

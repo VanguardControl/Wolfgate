@@ -3,7 +3,7 @@
   id: Hiss
   category: Vocal
   name: Hiss
-  icon: Interface/Actions/scream.png
+  icon: { sprite: _RMC14/Actions/xeno_emotes.rsi, state: hiss } # Wolfgate: was the default scream icon
   available: false
   whitelist:
     components:
@@ -27,7 +27,7 @@
   id: Meow
   category: Vocal
   name: Meow
-  icon: Interface/Actions/scream.png
+  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: meow } # Wolfgate: was the default scream icon
   available: false
   whitelist:
     components:
@@ -69,7 +69,7 @@
   id: Mew
   category: Vocal
   name: Mew
-  icon: Interface/Actions/scream.png
+  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: mew } # Wolfgate: was the default scream icon
   available: false
   whitelist:
     components:
@@ -88,7 +88,7 @@
   id: Growl
   category: Vocal
   name: Growl
-  icon: Interface/Actions/scream.png
+  icon: { sprite: _RMC14/Actions/xeno_emotes.rsi, state: growl } # Wolfgate: was the default scream icon
   available: false
   whitelist:
     components:
@@ -107,7 +107,7 @@
   id: Purr
   category: Vocal
   name: Purr
-  icon: Interface/Actions/scream.png
+  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: purr } # Wolfgate: was the default scream icon
   available: false
   whitelist:
     components:

@@ -16,6 +16,9 @@
                     <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#333333" BackgroundColor="#181818"/>
                 </PanelContainer.PanelOverride>
         <BoxContainer Orientation="Vertical" HorizontalAlignment="Center">
+        <!-- WOLFGATE: collision warning, across every mode -->
+        <wf:CollisionWarningBanner Name="CollisionBanner" SetWidth="970"/>
+        <wf:TractorCaptureBanner Name="CaptureBanner" SetWidth="970"/> <!-- WOLFGATE -->
         <!-- Top row mode buttons -->
         <PanelContainer VerticalExpand="False" HorizontalExpand="True" SetWidth="970">
             <PanelContainer.PanelOverride>

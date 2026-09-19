@@ -108,9 +108,11 @@ public sealed partial class HitscanDiffractSystem : EntitySystem
             ShotDirection = direction,
             Gun = originalArgs.Gun,
             Shooter = originalArgs.Shooter,
+            Predicted = originalArgs.Predicted, // WOLFGATE: the shooter's client draws the split beams too
         };
 
         RaiseLocalEvent(newHitscan, ref diffractedTraceEvent);
+        QueueDel(newHitscan); // WOLFGATE: the beam is done once traced; this was leaking an entity per split beam
     }
 
     private static Vector2 RotateVector(Vector2 vector, float angleRadians)

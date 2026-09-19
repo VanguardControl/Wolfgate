@@ -1,3 +1,4 @@
+using Content.Shared._WF.Audio.InternetSound; // WOLFGATE
 using Content.Client.Administration.Managers;
 using Content.Client.Launcher;
 using Content.Client.MainMenu;
@@ -162,6 +163,7 @@ public sealed partial class ContentReplayPlaybackManager
 
         switch (message)
         {
+            case InternetSoundReplayAsset: // WOLFGATE - Indexed by the internet sound system when playback starts.
             case BoundUserInterfaceMessage: // TODO REPLAYS refactor BUIs
             case RequestWindowAttentionEvent:
                 // Mark as handled -- the event won't get raised.

@@ -2,10 +2,11 @@
          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
          xmlns:humanoid="clr-namespace:Content.Client.Humanoid"
          xmlns:wfh="clr-namespace:Content.Client._WF.Humanoid"
+         xmlns:wfg="clr-namespace:Content.Client._WF.Genitals.UI"
          HorizontalExpand="True"
          SeparationOverride="0">
     <!-- WOLFGATE: creator rebuilt as cards with a preview column. Control names and tab order are unchanged
-         because the code-behind binds to them (tabs: Appearance, Jobs, Traits, Company, Markings, then Description). -->
+         because the code-behind binds to them (tabs: Species, Appearance, Jobs, Traits, Company, Markings, then Description). -->
     <!-- Editor column -->
     <BoxContainer Orientation="Vertical" Margin="12 12 12 12" HorizontalExpand="True" SeparationOverride="8">
         <PanelContainer StyleClasses="CreatorCard">
@@ -20,6 +21,14 @@
             </BoxContainer>
         </PanelContainer>
         <TabContainer Name="TabContainer" VerticalExpand="True" StyleClasses="CreatorTabs">
+            <!-- Species -->
+            <BoxContainer Orientation="Vertical">
+                <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                    <BoxContainer Orientation="Vertical" Margin="8" HorizontalExpand="True">
+                        <wfh:WolfgateSpeciesPicker Name="SpeciesPicker" HorizontalExpand="True" />
+                    </BoxContainer>
+                </ScrollContainer>
+            </BoxContainer>
             <!-- Appearance -->
             <BoxContainer Orientation="Vertical">
                 <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
@@ -28,7 +37,12 @@
                             <!-- Identity -->
                             <PanelContainer StyleClasses="CreatorCard" HorizontalExpand="True">
                                 <BoxContainer Orientation="Vertical" SeparationOverride="6">
-                                    <Label Text="{Loc 'wf-creator-identity'}" StyleClasses="CreatorHeading" />
+                                    <!-- WOLFGATE: sex moved out of its own row and into the heading, as icon boxes. -->
+                                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="6">
+                                        <Label Text="{Loc 'wf-creator-identity'}" StyleClasses="CreatorHeading" VAlign="Center" />
+                                        <Control HorizontalExpand="True" />
+                                        <wfh:WolfgateSexSelector Name="SexSelector" VerticalAlignment="Center" />
+                                    </BoxContainer>
                                     <BoxContainer HorizontalExpand="True" SeparationOverride="6">
                                         <Label Text="{Loc 'humanoid-profile-editor-species-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
                                         <Control HorizontalExpand="True" />
@@ -36,15 +50,16 @@
                                                        ToolTip="{Loc 'humanoid-profile-editor-guidebook-button-tooltip'}" />
                                         <OptionButton Name="SpeciesButton" MinWidth="180" />
                                     </BoxContainer>
+                                    <!-- WOLFGATE: overrides the species name wherever it is shown. -->
+                                    <BoxContainer HorizontalExpand="True" SeparationOverride="6">
+                                        <Label Text="{Loc 'wf-creator-custom-species-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
+                                        <Control HorizontalExpand="True" />
+                                        <LineEdit Name="CustomSpeciesNameEdit" MinWidth="180" />
+                                    </BoxContainer>
                                     <BoxContainer HorizontalExpand="True">
                                         <Label Text="{Loc 'humanoid-profile-editor-age-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
                                         <Control HorizontalExpand="True" />
                                         <LineEdit Name="AgeEdit" MinWidth="80" />
-                                    </BoxContainer>
-                                    <BoxContainer HorizontalExpand="True">
-                                        <Label Text="{Loc 'humanoid-profile-editor-sex-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
-                                        <Control HorizontalExpand="True" />
-                                        <OptionButton Name="SexButton" MinWidth="180" />
                                     </BoxContainer>
                                     <BoxContainer HorizontalExpand="True">
                                         <Label Text="{Loc 'humanoid-profile-editor-pronouns-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
@@ -82,10 +97,14 @@
                         <PanelContainer Name="HairCard" StyleClasses="CreatorCard" HorizontalExpand="True">
                             <BoxContainer Orientation="Vertical" SeparationOverride="6">
                                 <Label Text="{Loc 'wf-creator-hair'}" StyleClasses="CreatorHeading" />
-                                <BoxContainer Orientation="Horizontal" SeparationOverride="16" HorizontalExpand="True">
+                                <!-- WOLFGATE: a Grid, not a horizontal Box. A BoxContainer hands a stretching child
+                                     its full desired width once that exceeds its share, starving the sibling, and each
+                                     picker's desired width tracks its own tile-column count - so the two boxes settled
+                                     at wildly different widths. Grid columns always split evenly. -->
+                                <GridContainer Columns="2" HSeparationOverride="16" HorizontalExpand="True">
                                     <wfh:WolfgateSlotMarkingPicker Name="HairStylePicker" Category="Hair" HorizontalExpand="True" />
                                     <wfh:WolfgateSlotMarkingPicker Name="FacialHairPicker" Category="FacialHair" HorizontalExpand="True" />
-                                </BoxContainer>
+                                </GridContainer>
                             </BoxContainer>
                         </PanelContainer>
                         <!-- Eyes -->
@@ -135,7 +154,14 @@
             <!-- Markings -->
             <BoxContainer Name="MarkingsTab" Orientation="Vertical" Margin="8">
                 <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
-                    <wfh:WolfgateMarkingPicker Name="Markings" IgnoreCategories="Hair,FacialHair" />
+                    <!-- WOLFGATE: Genital ignored, so leftover genital markings never show here; anatomy has its own tab. -->
+                    <wfh:WolfgateMarkingPicker Name="Markings" IgnoreCategories="Hair,FacialHair,Genital" />
+                </ScrollContainer>
+            </BoxContainer>
+            <!-- WOLFGATE: anatomy tab (xmlns:wfg), appended last so tabs 0-5 keep their indices -->
+            <BoxContainer Name="GenitalsTab" Orientation="Vertical" Margin="8">
+                <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                    <wfg:WolfgateGenitalEditor Name="GenitalEditor" HorizontalExpand="True" />
                 </ScrollContainer>
             </BoxContainer>
         </TabContainer>
@@ -144,13 +170,37 @@
     <PanelContainer StyleClasses="CreatorPreview" Margin="0 12 12 12" MinWidth="320">
         <BoxContainer Orientation="Vertical" SeparationOverride="8" Margin="14 12">
             <Label Text="{Loc 'wf-creator-preview'}" StyleClasses="CreatorHeading" />
-            <SpriteView Name="SpriteView" Scale="8 8" Margin="4" HorizontalAlignment="Center" SizeFlagsStretchRatio="1" />
+            <!-- WOLFGATE: fixed box. SpriteView sizes itself from the sprite's rotated bounding box, so a
+                 species whose required marking uses a wide RSI (Shadekin's 64x32 tail) blew the whole pane
+                 out. Fit shrinks those to the box instead. -->
+            <SpriteView Name="SpriteView" Scale="8 8" Margin="4" HorizontalAlignment="Center"
+                        SetSize="288 288" Stretch="Fit" SizeFlagsStretchRatio="1" />
             <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" SeparationOverride="0">
                 <Button Name="SpriteRotateLeft" Text="◀" StyleClasses="OpenRight" />
                 <Button Name="SpriteRotateRight" Text="▶" StyleClasses="OpenLeft" />
             </BoxContainer>
             <Button Name="ShowClothes" Pressed="True" ToggleMode="True" StyleClasses="CreatorToggle"
                     Text="{Loc 'humanoid-profile-editor-clothing'}" HorizontalAlignment="Center" />
+            <!-- WOLFGATE: description moved out of its own tab and under the preview. The editor is capped
+                 and scrolls, so a long description cannot stretch the pane; Expand opens a full-size editor. -->
+            <BoxContainer Name="DescriptionBox" Orientation="Vertical" SeparationOverride="4" Margin="0 6 0 0">
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Label Text="{Loc 'humanoid-profile-editor-flavortext-tab'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
+                    <Control HorizontalExpand="True" />
+                    <Button Name="DescriptionExpand" Text="{Loc 'wf-creator-description-expand'}" StyleClasses="LinkButton" />
+                </BoxContainer>
+                <PanelContainer StyleClasses="CreatorInset" HorizontalExpand="True">
+                    <ScrollContainer HScrollEnabled="False" ReturnMeasure="True" MinHeight="96" MaxHeight="96" HorizontalExpand="True">
+                        <TextEdit Name="DescriptionEdit" HorizontalExpand="True" />
+                    </ScrollContainer>
+                </PanelContainer>
+                <!-- WOLFGATE: live length and the square bracket note, so neither surprises the player at save time. -->
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Label Name="DescriptionWarning" StyleClasses="Danger" VAlign="Center" Visible="False" />
+                    <Control HorizontalExpand="True" />
+                    <Label Name="DescriptionCounter" StyleClasses="CreatorFieldLabel" VAlign="Center" />
+                </BoxContainer>
+            </BoxContainer>
             <Control VerticalExpand="True" />
             <Button Name="SaveButton" Text="{Loc 'humanoid-profile-editor-save-button'}" StyleClasses="CreatorPrimary" />
             <Button Name="ResetButton" Disabled="True" Text="{Loc 'humanoid-profile-editor-reset-button'}" />

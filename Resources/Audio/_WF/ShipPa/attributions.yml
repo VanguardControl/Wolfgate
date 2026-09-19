@@ -1,0 +1,4 @@
+- files: ["speaker_static.ogg"]
+  license: "CC0-1.0"
+  copyright: "Generated procedurally with ffmpeg for Wolfgate"
+  source: "https://github.com/VanguardControl/Wolfgate"

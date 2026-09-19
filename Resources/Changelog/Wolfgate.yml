@@ -96,3 +96,149 @@ Entries:
   id: 100011
   time: '2026-09-12T16:23:54.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/9
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Fully ported RMC's projectile prediction system.
+    - type: Add
+      message: >-
+        Added client-side prediction for ranged weapons, including multi-shot,
+        pellet-based, and supported hitscan firing.
+  id: 100012
+  time: '2026-09-13T02:35:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/18
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added Avali, Canine, Felionoid, Shadekin, Skrell, Synth and Thaven as
+        playable species.
+    - type: Add
+      message: Added 14 Protogen subspecies.
+    - type: Add
+      message: Added a large set of new markings, hair and tails for the new species.
+    - type: Add
+      message: Added a custom species name field to the character creator.
+    - type: Add
+      message: >-
+        Added an Anatomy tab to the character creator and an in-game anatomy
+        panel, both behind the consent opt-in.
+    - type: Add
+      message: >-
+        Added a consent toggle that controls whether others can remove your
+        undergarments.
+    - type: Add
+      message: Synths and IPCs can recharge by draining APCs and charged power cells.
+    - type: Add
+      message: Rodentia can crawl under objects.
+    - type: Tweak
+      message: >-
+        Character descriptions can now be 4096 characters long and show how many
+        characters are left.
+    - type: Tweak
+      message: >-
+        Switching or creating a character now asks whether to save unsaved
+        changes.
+    - type: Tweak
+      message: >-
+        The consent menu now shows toggles on the left and your notes on the
+        right.
+    - type: Tweak
+      message: Tails now draw behind the body where they overlap the groin.
+    - type: Fix
+      message: >-
+        Characters with text in square brackets in their description can now be
+        saved.
+    - type: Fix
+      message: Rejuvenating a synth now refills its battery.
+    - type: Fix
+      message: >-
+        The character list no longer breaks when a saved character uses a
+        species that isn't available.
+    - type: Fix
+      message: Fixed viewing another player's consent notes causing an error.
+    - type: Fix
+      message: Fixed many markings not showing up for their species.
+  id: 100013
+  time: '2026-09-13T02:49:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/26
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now drag+drop ghosts as an admin to put them in control of a
+        body.
+    - type: Add
+      message: You can now ctrl+click a ghost as an admin to spawn them in.
+  id: 100014
+  time: '2026-09-13T17:01:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/28
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Far better impact sounds across the board!
+  id: 100015
+  time: '2026-09-14T07:54:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/30
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added a ship PA system to the ship panel of the shuttle console, as well
+        as green, amber, red and black alerts and general quarters.
+    - type: Add
+      message: You can now send PA announcements shipwide.
+  id: 100016
+  time: '2026-09-14T08:50:46.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/31
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added TCAS(Traffic Collision Avoidance System), to alert you of lethal
+        imminent collisions.
+  id: 100017
+  time: '2026-09-16T05:35:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/35
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Fixes a zero-value debris cleanup bug
+  id: 100018
+  time: '2026-09-17T18:22:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/38
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        The shuttle console's ship panel can now play a link over the ship's own
+        PA speakers, so it carries, fades with distance and distorts with damage
+        like any other sound they make.
+    - type: Tweak
+      message: >-
+        Internet sounds are sent as Ogg Vorbis instead of ADPCM, which is a good
+        deal smaller, and their audio is freed once a track has finished.
+  id: 100019
+  time: '2026-09-15T00:00:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/36
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Players can now play music through the PA system via YTDL, simply paste
+        a link into the ship control panel, and hit play. It's locally played
+        through ship speakers.
+  id: 100020
+  time: '2026-09-17T18:56:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/36
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added powered tractor beam dishes and control consoles for arrestor
+        vessels.
+    - type: Add
+      message: Cantwell-Class Arrestor ship.
+  id: 100021
+  time: '2026-09-19T06:44:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/39

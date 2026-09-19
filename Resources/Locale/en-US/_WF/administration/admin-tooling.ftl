@@ -57,6 +57,10 @@ wf-spawn-outfit-body-Default = Default human (bald John Doe)
 wf-spawn-outfit-body-Own = My selected character
 wf-spawn-outfit-control = Take control of the spawned mob
 wf-spawn-outfit-confirm = Spawn
+# Ghost mode (Ctrl+click a ghost as an admin)
+wf-spawn-outfit-ghost-title = Spawn Ghost as Outfit
+wf-spawn-outfit-ghost-info = Spawns [bold]{$name}[/bold]'s selected character wearing this outfit at their ghost and puts them in control.
+wf-spawn-outfit-ghost-confirm = Spawn {$name}
 
 ## spawnoutfit command
 cmd-spawnoutfit-desc = Spawns a humanoid wearing a starting gear outfit at the target entity.

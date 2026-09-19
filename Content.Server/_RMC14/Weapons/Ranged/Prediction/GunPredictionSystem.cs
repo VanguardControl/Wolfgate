@@ -21,7 +21,6 @@ namespace Content.Server._RMC14.Weapons.Ranged.Prediction;
 public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 {
     [Dependency] private IConfigurationManager _config = default!;
-    [Dependency] private GunSystem _gun = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedProjectileSystem _projectile = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -54,13 +53,16 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         _transformQuery = GetEntityQuery<TransformComponent>();
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
-        SubscribeNetworkEvent<RequestShootEvent>(OnShootRequest);
+        // WOLFGATE: RequestShootEvent is handled once, by SharedGunSystem.OnShootRequest
         SubscribeNetworkEvent<PredictedProjectileHitEvent>(OnPredictedProjectileHit);
 
         SubscribeLocalEvent<PredictedProjectileServerComponent, MapInitEvent>(OnPredictedMapInit);
         SubscribeLocalEvent<PredictedProjectileServerComponent, ComponentRemove>(OnPredictedRemove);
         SubscribeLocalEvent<PredictedProjectileServerComponent, EntityTerminatingEvent>(OnPredictedRemove);
         SubscribeLocalEvent<PredictedProjectileServerComponent, PreventCollideEvent>(OnPredictedPreventCollide);
+
+        // WOLFGATE: drain hit reports before this tick's collisions, so a shot the shooter predicted resolves as theirs
+        UpdatesBefore.Add(typeof(SharedPhysicsSystem));
 
         Subs.CVar(_config, RMCCVars.RMCGunPredictionPreventCollision, v => _preventCollision = v, true);
         Subs.CVar(_config, RMCCVars.RMCGunPredictionLogHits, v => _logHits = v, true);
@@ -72,11 +74,6 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
         _predicted.Clear();
-    }
-
-    private void OnShootRequest(RequestShootEvent ev, EntitySessionEventArgs args)
-    {
-        _gun.ShootRequested(ev.Gun, ev.Coordinates, ev.Target, ev.Shot, args.SenderSession);
     }
 
     private void OnPredictedMapInit(Entity<PredictedProjectileServerComponent> ent, ref MapInitEvent args)
@@ -158,6 +155,15 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
             ? _transform.GetMapCoordinates(other)
             : _transform.ToMapCoordinates(otherCoordinates);
 
+        // WOLFGATE: the bounds test below compares positions only, and Z-levels stack maps on the same coordinates,
+        // so a target on another map would otherwise count as a hit. Lag-compensated history can also predate a map
+        // change, hence the retry against where the target is now.
+        if (otherMapCoordinates.MapId != projectileCoordinates.MapId)
+            otherMapCoordinates = _transform.GetMapCoordinates(other);
+
+        if (otherMapCoordinates.MapId != projectileCoordinates.MapId)
+            return false;
+
         if (clientCoordinates != null &&
             (clientCoordinates.Value.InRange(otherMapCoordinates, _coordinateDeviation) ||
              clientCoordinates.Value.InRange(lowestCoordinate, _lowestCoordinateDeviation)))
@@ -197,6 +203,9 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         if (!_predicted.TryGetValue((player.UserId, ev.Projectile), out var projectile))
             return;
 
+        // WOLFGATE: one report per projectile is an anti-abuse gate, not just a dedupe. Collides never raises
+        // PreventCollideEvent and re-checks against the projectile's current position, so repeated reports would let a
+        // modified client re-roll claims along the whole flight, past shooter, crawling-target and shield rules.
         if (!_predictedProjectileServerQuery.TryComp(projectile, out var predictedProjectile) ||
             predictedProjectile.Hit)
         {

@@ -39,6 +39,13 @@ public sealed partial class ShipScreen : BoxContainer
 
         FitButton.OnPressed += _ => ShipView.FitToShip();
 
+        AlarmPanel.CodeRequested += code => CodeRequested?.Invoke(code);
+        AlarmPanel.GeneralQuartersRequested += active => GeneralQuartersRequested?.Invoke(active);
+        AlarmPanel.AnnounceRequested += text => AnnounceRequested?.Invoke(text);
+        AlarmPanel.SoundRequested += url => SoundRequested?.Invoke(url);
+        AlarmPanel.SoundStopRequested += () => SoundStopRequested?.Invoke();
+        AlarmPanel.CollisionAlertRequested += enabled => CollisionAlertRequested?.Invoke(enabled);
+
         DamageToggle.OnToggled += args => SetOverlay(() => ShipView.ShowDamage = args.Pressed);
         FireToggle.OnToggled += args => SetOverlay(() => ShipView.ShowFire = args.Pressed);
         PressureToggle.OnToggled += args => SetOverlay(() => ShipView.ShowPressure = args.Pressed);
@@ -55,6 +62,28 @@ public sealed partial class ShipScreen : BoxContainer
     /// </summary>
     public event Action? OverlaysChanged;
 
+    /// <summary>
+    /// The pilot picked a situation code on the PA panel.
+    /// </summary>
+    public event Action<string>? CodeRequested;
+
+    /// <summary>
+    /// The pilot sounded or secured general quarters.
+    /// </summary>
+    public event Action<bool>? GeneralQuartersRequested;
+
+    /// <summary>
+    /// The pilot wants a line read out over the PA.
+    /// </summary>
+    public event Action<string>? AnnounceRequested;
+    public event Action<string>? SoundRequested;
+    public event Action? SoundStopRequested;
+
+    /// <summary>
+    /// The pilot switched the collision warning on or off.
+    /// </summary>
+    public event Action<bool>? CollisionAlertRequested;
+
     public ShipOverlays Overlays => ShipView.Overlays;
 
     private void SetOverlay(Action apply)
@@ -67,6 +96,7 @@ public sealed partial class ShipScreen : BoxContainer
     {
         _shuttle = shuttle;
         ShipView.SetGrid(shuttle);
+        AlarmPanel.SetGrid(shuttle);
         _statsAccumulator = StatsInterval;
     }
 

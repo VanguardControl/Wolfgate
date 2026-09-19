@@ -64,6 +64,10 @@
             </PanelContainer>
             <PanelContainer StyleClasses="AngleRect" HorizontalExpand="True" Margin="0 6 0 0">
                 <BoxContainer Orientation="Vertical" Margin="8">
+                    <RichTextLabel Name="GhostInfo"
+                                   HorizontalExpand="True"
+                                   Visible="False"
+                                   Margin="0 0 0 6" />
                     <OptionButton Name="BodySelect"
                                   Prefix="{Loc 'wf-spawn-outfit-body-label'}"
                                   StyleClasses="ButtonSquare"

@@ -110,7 +110,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
     private void OnExamined(EntityUid uid, HumanoidAppearanceComponent component, ExaminedEvent args)
     {
         var identity = Identity.Entity(uid, EntityManager);
-        var species = GetSpeciesRepresentation(component.Species).ToLower();
+        var species = GetSpeciesRepresentation(component.Species, component.CustomSpeciesName).ToLower(); // WOLFGATE
         var age = GetAgeRepresentation(component.Species, component.Age);
 
         // WWDP EDIT
@@ -397,7 +397,18 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
 
         SetSpecies(uid, profile.Species, false, humanoid);
         SetSex(uid, profile.Sex, false, humanoid);
-        humanoid.EyeColor = profile.Appearance.EyeColor;
+
+        // WOLFGATE - ported from HardLight/Starlight: constrain eye colour per species.
+        var eyeColor = profile.Appearance.EyeColor;
+        if (_proto.TryIndex<SpeciesPrototype>(humanoid.Species, out var eyeSpecies)
+            && !EyeColor.VerifyEyeColor(eyeSpecies.EyeColoration, eyeColor))
+        {
+            eyeColor = EyeColor.ValidEyeColor(eyeSpecies.EyeColoration, eyeColor);
+        }
+
+        humanoid.EyeColor = eyeColor;
+        humanoid.CustomSpeciesName = profile.CustomSpeciesName;
+        // End WOLFGATE
 
         SetSkinColor(uid, profile.Appearance.SkinColor, false);
 
@@ -473,7 +484,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
             _appearance.SetData(uid, ScaleVisuals.Scale, new Vector2(profile.Appearance.Width, profile.Appearance.Height), appearance);
         }
 
-        RaiseLocalEvent(uid, new ProfileLoadFinishedEvent()); // Shitmed Change
+        RaiseLocalEvent(uid, new ProfileLoadFinishedEvent { Profile = profile }); // Shitmed Change, WOLFGATE - pass profile
         Dirty(uid, humanoid);
     }
 
@@ -542,6 +553,16 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
 
         if (sync)
             Dirty(uid, humanoid);
+    }
+
+    /// <summary>
+    /// WOLFGATE - as below, but a non-empty custom name replaces the species name outright.
+    /// </summary>
+    public string GetSpeciesRepresentation(string speciesId, string? customSpeciesName)
+    {
+        return string.IsNullOrWhiteSpace(customSpeciesName)
+            ? GetSpeciesRepresentation(speciesId)
+            : customSpeciesName;
     }
 
     /// <summary>

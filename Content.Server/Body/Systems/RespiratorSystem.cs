@@ -184,7 +184,8 @@ public sealed partial class RespiratorSystem : EntitySystem
     /// </summary>
     public bool CanMetabolizeInhaledAir(Entity<RespiratorComponent?> ent)
     {
-        if (!Resolve(ent, ref ent.Comp))
+        // WOLFGATE - Entities without a respirator cannot metabolize inhaled gases; absence is valid.
+        if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
         var ev = new InhaleLocationEvent();
@@ -203,7 +204,8 @@ public sealed partial class RespiratorSystem : EntitySystem
     /// </summary>
     public bool CanMetabolizeGas(Entity<RespiratorComponent?> ent, GasMixture gas)
     {
-        if (!Resolve(ent, ref ent.Comp))
+        // WOLFGATE - Entities without a respirator cannot metabolize inhaled gases; absence is valid.
+        if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
         var organs = _bodySystem.GetBodyOrganEntityComps<LungComponent>((ent, null));

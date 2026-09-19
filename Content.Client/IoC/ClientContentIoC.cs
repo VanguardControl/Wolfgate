@@ -1,5 +1,6 @@
 using Content.Client.Administration.Managers;
 using Content.Client.Changelog;
+using Content.Client._Common.Consent; // WOLFGATE
 using Content.Client.Chat.Managers;
 using Content.Client.Clickable;
 using Content.Client.DebugMon;
@@ -40,6 +41,7 @@ namespace Content.Client.IoC
             collection.Register<IChatManager, ChatManager>();
             collection.Register<ISharedChatManager, ChatManager>();
             collection.Register<IClientPreferencesManager, ClientPreferencesManager>();
+            collection.Register<IClientConsentManager, ClientConsentManager>(); // WOLFGATE - consent system
             collection.Register<IStylesheetManager, StylesheetManager>();
             collection.Register<IScreenshotHook, ScreenshotHook>();
             collection.Register<FullscreenHook, FullscreenHook>();

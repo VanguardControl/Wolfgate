@@ -1,0 +1,6 @@
+# collision_warning.ogg mixes collision_alarm.ogg and traffic.ogg, each at half gain,
+# ending with the klaxon (mono Vorbis quality 4). This keeps both audible in one PA voice.
+- files: ["traffic_alarm.ogg", "collision_alarm.ogg", "traffic.ogg", "collision_warning.ogg"]
+  license: "CC0-1.0"
+  copyright: ""
+  source: "https://github.com/VanguardControl/Wolfgate"

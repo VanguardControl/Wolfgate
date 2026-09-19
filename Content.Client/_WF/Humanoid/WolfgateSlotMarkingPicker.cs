@@ -144,7 +144,8 @@ public sealed class WolfgateSlotMarkingPicker : BoxContainer
     protected override void Resized()
     {
         base.Resized();
-        var columns = Math.Max(1, (int) ((Width - 4) / WolfgateMarkingTile.TileWidth));
+        // c tiles occupy 108c - 4, and the vertical scrollbar eats 10 more whenever the grid overflows.
+        var columns = Math.Max(1, (int) ((Width - 6) / WolfgateMarkingTile.TileWidth));
         if (_grid.Columns != columns)
             _grid.Columns = columns;
     }
@@ -171,7 +172,7 @@ public sealed class WolfgateSlotMarkingPicker : BoxContainer
 
         foreach (var (id, proto) in sorted)
         {
-            var tile = new WolfgateMarkingTile(id, Name(proto), proto.Sprites[0], _direction)
+            var tile = new WolfgateMarkingTile(id, Name(proto), proto.Sprites, _direction)
             {
                 Pressed = current?.MarkingId == id,
                 Tint = tint,

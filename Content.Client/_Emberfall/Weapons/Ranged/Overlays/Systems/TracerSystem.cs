@@ -72,9 +72,13 @@ public sealed partial class TracerSystem : EntitySystem
     {
         var query = EntityQueryEnumerator<TracerComponent, TransformComponent>();
 
-        while (query.MoveNext(out _, out var tracer, out var xform))
+        while (query.MoveNext(out var uid, out var tracer, out var xform))
         {
             if (xform.MapID != currentMap)
+                continue;
+
+            // WOLFGATE: a hidden projectile draws no trail, e.g. the server's copy of a shot the shooter predicted
+            if (TryComp<Robust.Client.GameObjects.SpriteComponent>(uid, out var sprite) && !sprite.Visible)
                 continue;
 
             var positions = tracer.Data.PositionHistory;

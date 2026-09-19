@@ -21,6 +21,8 @@
     - Protogen
     - Yowie # Goobstation
     - Tajaran # Goobstation
+    - Felionoid # Wolfgate: ported from HardLight/Starlight
+    - Avali # Wolfgate: ported from HardLight/Starlight
 
 - type: loadoutEffectGroup
   id: EffectSpeciesVox

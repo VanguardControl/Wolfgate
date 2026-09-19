@@ -53,10 +53,13 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     private readonly Label _appliedHeading;
     private readonly BoxContainer _applied;
     private readonly PanelContainer _appliedCard;
+    private readonly Button _clearAll;
+    private readonly BoxContainer _clearConfirm;
     private readonly ButtonGroup _partGroup = new();
     private readonly Dictionary<HumanoidVisualLayers, Button> _partButtons = new();
     private readonly HashSet<MarkingCategories> _ignoreCategories = new();
     private readonly List<MarkingCategories> _allCategories = Enum.GetValues<MarkingCategories>().ToList();
+    private IReadOnlySet<string> _hiddenMarkings = new HashSet<string>();
 
     private MarkingSet _current = new();
     private HumanoidVisualLayers _part = HumanoidVisualLayers.Chest;
@@ -64,7 +67,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     private Sex _sex = Sex.Unsexed;
     private bool _ignoreSpecies;
     private Direction _direction = Direction.South;
-    private readonly List<(TextureRect icon, SpriteSpecifier sprite)> _appliedIcons = new();
+    private readonly List<WolfgateMarkingIcon> _appliedIcons = new();
 
     /// <summary>Direction the tile and card sprites face; follows the preview pawn.</summary>
     public Direction PreviewDirection
@@ -78,8 +81,8 @@ public sealed class WolfgateMarkingPicker : BoxContainer
                 if (child is WolfgateMarkingTile tile)
                     tile.SetDirection(value);
             }
-            foreach (var (icon, sprite) in _appliedIcons)
-                icon.Texture = WolfgateMarkingTile.FrameFor(sprite, value);
+            foreach (var icon in _appliedIcons)
+                icon.SetDirection(value);
         }
     }
 
@@ -108,6 +111,20 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         }
     }
 
+    /// <summary>Marking ids never offered as tiles, e.g. the adult-only markings while the character is below the adult age.</summary>
+    public IReadOnlySet<string> HiddenMarkings
+    {
+        get => _hiddenMarkings;
+        set
+        {
+            if (_hiddenMarkings.SetEquals(value))
+                return;
+
+            _hiddenMarkings = value;
+            Populate(_search.Text);
+        }
+    }
+
     public WolfgateMarkingPicker()
     {
         IoCManager.InjectDependencies(this);
@@ -120,6 +137,8 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         _search.OnTextChanged += args => Populate(args.Text);
         _grid = new GridContainer { Columns = 8, HSeparationOverride = 4, VSeparationOverride = 4 };
         _appliedHeading = new Label { Text = Loc.GetString("wf-creator-markings-applied"), StyleClasses = { StyleWolfgate.StyleClassCreatorHeading } };
+        _clearAll = new Button { Text = Loc.GetString("wf-markings-clear-all"), StyleClasses = { StyleWolfgate.StyleClassLinkButton } };
+        _clearConfirm = BuildClearConfirm();
         _applied = new BoxContainer { Orientation = LayoutOrientation.Vertical, SeparationOverride = 6 };
 
         AddChild(Card(new BoxContainer
@@ -131,8 +150,15 @@ public sealed class WolfgateMarkingPicker : BoxContainer
                 new BoxContainer
                 {
                     Orientation = LayoutOrientation.Horizontal,
-                    Children = { new Label { Text = Loc.GetString("wf-creator-markings-available"), StyleClasses = { StyleWolfgate.StyleClassCreatorHeading }, HorizontalExpand = true }, _points },
+                    SeparationOverride = 8,
+                    Children =
+                    {
+                        new Label { Text = Loc.GetString("wf-creator-markings-available"), StyleClasses = { StyleWolfgate.StyleClassCreatorHeading }, HorizontalExpand = true },
+                        _points,
+                        _clearAll,
+                    },
                 },
+                _clearConfirm,
                 _parts,
                 _search,
                 // Capped height: past it the grid scrolls inside its box
@@ -147,6 +173,82 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         });
         _appliedCard.Visible = false;
         AddChild(_appliedCard);
+    }
+
+    /// <summary>
+    /// Confirmation row for Clear all, hidden until the button is pressed. Inline rather than a dialog so
+    /// the warning sits next to what it is about to wipe.
+    /// </summary>
+    private BoxContainer BuildClearConfirm()
+    {
+        var confirm = new Button { Text = Loc.GetString("wf-markings-clear-confirm"), StyleClasses = { StyleWolfgate.StyleClassCreatorPrimary } };
+        var cancel = new Button { Text = Loc.GetString("wf-markings-clear-cancel") };
+
+        var row = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Horizontal,
+            SeparationOverride = 8,
+            Visible = false,
+            Children =
+            {
+                new RichTextLabel { HorizontalExpand = true, VerticalAlignment = VAlignment.Center },
+                confirm,
+                cancel,
+            },
+        };
+        ((RichTextLabel) row.Children.First()).SetMessage(Loc.GetString("wf-markings-clear-warning"));
+
+        _clearAll.OnPressed += _ => SetClearConfirmVisible(true);
+        cancel.OnPressed += _ => SetClearConfirmVisible(false);
+        confirm.OnPressed += _ =>
+        {
+            SetClearConfirmVisible(false);
+            ClearAll();
+        };
+
+        return row;
+    }
+
+    private void SetClearConfirmVisible(bool visible)
+    {
+        _clearConfirm.Visible = visible;
+        _clearAll.Visible = !visible;
+    }
+
+    /// <summary>
+    /// Drops every marking this tab owns, then puts back the ones the species requires. Hair and facial
+    /// hair are not touched: they have their own pickers on the Appearance tab.
+    /// </summary>
+    private void ClearAll()
+    {
+        foreach (var category in _allCategories)
+        {
+            if (_ignoreCategories.Contains(category) || !_current.Markings.TryGetValue(category, out var list))
+                continue;
+
+            foreach (var marking in list.Where(m => !m.Forced).Select(m => m.MarkingId).ToList())
+                _current.Remove(category, marking);
+        }
+
+        // Required categories would otherwise leave the character missing a part it cannot go without.
+        foreach (var (category, points) in _current.Points)
+        {
+            if (!points.Required || _ignoreCategories.Contains(category))
+                continue;
+
+            foreach (var id in points.DefaultMarkings)
+            {
+                if (_markingManager.Markings.TryGetValue(id, out var proto))
+                    _current.AddBack(category, new Marking(id, proto.ResolveLinkedColors(MarkingColoring.GetMarkingLayerColors(proto, CurrentSkinColor, CurrentEyeColor, _current))));
+            }
+        }
+
+        if (!IgnoreSpecies)
+            _current.EnsureSpecies(_species, CurrentSkinColor, _markingManager);
+
+        Populate(_search.Text);
+        PopulateUsed();
+        OnMarkingRemoved?.Invoke(_current);
     }
 
     private static PanelContainer Card(Control content)
@@ -217,10 +319,12 @@ public sealed class WolfgateMarkingPicker : BoxContainer
             : _markingManager.MarkingsByCategoryAndSpeciesAndSex(category, _species, _sex);
     }
 
-    /// <summary>Every marking the species can use, from every category that is not ignored.</summary>
+    /// <summary>Every marking the species can use, from every category that is not ignored, minus the hidden ones.</summary>
     private IEnumerable<MarkingPrototype> ValidMarkings()
     {
-        return _allCategories.Where(c => !_ignoreCategories.Contains(c)).SelectMany(c => GetMarkings(c).Values);
+        return _allCategories.Where(c => !_ignoreCategories.Contains(c))
+            .SelectMany(c => GetMarkings(c).Values)
+            .Where(m => !_hiddenMarkings.Contains(m.ID));
     }
 
     private IEnumerable<MarkingPrototype> PartMarkings(HumanoidVisualLayers part)
@@ -278,6 +382,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     /// <summary>Rebuilds the tile grid for the selected body part; applied markings are lit and tinted.</summary>
     public void Populate(string filter)
     {
+        SetClearConfirmVisible(false);
         SetupPartButtons();
         _grid.DisposeAllChildren();
 
@@ -289,11 +394,12 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         foreach (var proto in sorted)
         {
             var applied = _current.TryGetMarking(proto.MarkingCategory, proto.ID, out var marking);
-            var tile = new WolfgateMarkingTile(proto.ID, Name(proto), proto.Sprites[0], _direction)
+            var tile = new WolfgateMarkingTile(proto.ID, Name(proto), proto.Sprites, _direction)
             {
                 Pressed = applied,
-                Tint = applied && marking!.MarkingColors.Count > 0 ? marking.MarkingColors[0] : Color.White,
             };
+            if (applied && marking!.MarkingColors.Count > 0)
+                tile.SetColors(proto.ResolveLinkedColors(marking.MarkingColors));
             var chosen = proto;
             tile.OnPressed += _ => Toggle(chosen);
             _grid.AddChild(tile);
@@ -331,16 +437,28 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     private void Add(MarkingPrototype proto)
     {
         var category = proto.MarkingCategory;
-        if (_current.PointsLeft(category) == 0 && !Forced && !SwapSingle(category))
+
+        // A full category whose whole budget is one marking (an undergarment top or bottom, a tail) swaps that
+        // marking for the new one in place, as the hair slot picker does, instead of refusing the pick.
+        var replaceAt = -1;
+        if (_current.PointsLeft(category) == 0 && !Forced)
         {
-            Populate(_search.Text);
-            return;
+            replaceAt = SingleSlotIndex(category);
+            if (replaceAt < 0)
+            {
+                Populate(_search.Text);
+                return;
+            }
         }
 
+        Marking? replaced = replaceAt >= 0 ? _current.Markings[category][replaceAt] : null;
         var marking = proto.AsMarking();
 
-        // Hair lives outside this set, so clone it in for the default colouring rules.
+        // Hair lives outside this set, so clone it in for the default colouring rules. The marking being replaced
+        // is left out, as if it had been removed first.
         var withHair = new MarkingSet(_current);
+        if (replaced != null)
+            withHair.Remove(category, replaceAt);
         if (HairMarking != null)
             withHair.AddBack(MarkingCategories.Hair, HairMarking);
         if (FacialHairMarking != null)
@@ -349,6 +467,11 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         if (!_markingManager.MustMatchSkin(_species, proto.BodyPart, out _, _prototypeManager))
         {
             var colors = MarkingColoring.GetMarkingLayerColors(proto, CurrentSkinColor, CurrentEyeColor, withHair);
+            if (replaced != null)
+                KeepColors(proto, replaced, colors);
+
+            // Linked sprites take their parent's colour, so the stored colours match what is drawn.
+            colors = proto.ResolveLinkedColors(colors);
             for (var i = 0; i < colors.Count; i++)
                 marking.SetColor(i, colors[i]);
         }
@@ -359,7 +482,11 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         }
 
         marking.Forced = Forced;
-        _current.AddBack(category, marking);
+        // Replace keeps the points as they are: both markings count against the same single point.
+        if (replaced != null)
+            _current.Replace(category, replaceAt, marking);
+        else
+            _current.AddBack(category, marking);
 
         Populate(_search.Text);
         PopulateUsed();
@@ -367,20 +494,44 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     }
 
     /// <summary>
-    /// In a category that only ever holds one marking, clicking another tile replaces the current one instead of
-    /// doing nothing until it is removed by hand. Returns false when the category is not such a single slot.
+    /// Index of the only marking counted in a full category whose whole budget is one marking, or -1 when the
+    /// category is not such a single slot. Forced markings cost no points, so they are skipped.
     /// </summary>
-    private bool SwapSingle(MarkingCategories category)
+    private int SingleSlotIndex(MarkingCategories category)
     {
-        if (!_current.TryGetCategory(category, out var applied))
-            return false;
+        if (_current.PointsLeft(category) != 0 || !_current.Markings.TryGetValue(category, out var applied))
+            return -1;
 
-        var counted = applied.Where(m => !m.Forced).ToList();
-        if (counted.Count != 1 || _current.PointsLeft(category) + counted.Count != 1)
-            return false;
+        var index = -1;
+        for (var i = 0; i < applied.Count; i++)
+        {
+            if (applied[i].Forced)
+                continue;
 
-        _current.Remove(category, counted[0].MarkingId);
-        return true;
+            if (index >= 0)
+                return -1;
+
+            index = i;
+        }
+
+        return index;
+    }
+
+    /// <summary>
+    /// A swapped-in marking keeps the colours of the one it replaces, sprite by sprite, as a new hairstyle keeps the
+    /// hair colour. Markings with forced colouring keep their own colours.
+    /// </summary>
+    private void KeepColors(MarkingPrototype proto, Marking replaced, List<Color> colors)
+    {
+        if (proto.ForcedColoring
+            || !_markingManager.TryGetMarking(replaced, out var replacedProto)
+            || replacedProto.ForcedColoring)
+        {
+            return;
+        }
+
+        for (var i = 0; i < colors.Count && i < replaced.MarkingColors.Count; i++)
+            colors[i] = replaced.MarkingColors[i];
     }
 
     private void Remove(MarkingPrototype proto)
@@ -425,15 +576,9 @@ public sealed class WolfgateMarkingPicker : BoxContainer
 
     private Control BuildAppliedCard(Marking marking, MarkingPrototype proto, bool topmost, bool bottommost)
     {
-        var icon = new TextureRect
-        {
-            Texture = WolfgateMarkingTile.FrameFor(proto.Sprites[0], _direction),
-            TextureScale = new Vector2(2, 2),
-            Stretch = TextureRect.StretchMode.KeepCentered,
-            MinSize = new Vector2(64, 64),
-            ModulateSelfOverride = marking.MarkingColors.Count > 0 ? marking.MarkingColors[0] : Color.White,
-        };
-        _appliedIcons.Add((icon, proto.Sprites[0]));
+        var icon = new WolfgateMarkingIcon(proto.Sprites, _direction);
+        icon.SetColors(proto.ResolveLinkedColors(marking.MarkingColors));
+        _appliedIcons.Add(icon);
         var name = new Label
         {
             Text = Loc.GetString(marking.Forced ? "marking-used-forced" : "marking-used",
@@ -459,18 +604,26 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         if (!proto.ForcedColoring)
         {
             var layers = GetMarkingStateNames(proto);
+            // A sprite linked to another takes that sprite's colour, so only the unlinked ones get a picker.
+            var ownColours = Enumerable.Range(0, proto.Sprites.Count).Count(j => !proto.IsColorLinked(j));
             for (var i = 0; i < proto.Sprites.Count && i < marking.MarkingColors.Count; i++)
             {
+                if (proto.IsColorLinked(i))
+                    continue;
+
                 var layer = i;
                 var picker = new WolfgateColorPicker { HorizontalExpand = true, Color = marking.MarkingColors[i] };
                 picker.SelectorType = ColorSelectorSliders.ColorSelectorType.Hsv;
                 picker.OnColorChanged += color =>
                 {
                     Recolor(proto, layer, color);
-                    if (layer == 0)
-                        icon.ModulateSelfOverride = color;
+                    if (_current.TryGetMarking(proto.MarkingCategory, proto.ID, out var updated))
+                        icon.SetColors(updated.MarkingColors);
                 };
-                card.AddChild(new Label { Text = Loc.GetString("wf-marking-layer-colour", ("layer", layers[i])), StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel } });
+                var caption = ownColours == 1
+                    ? Loc.GetString("wf-marking-colour")
+                    : Loc.GetString("wf-marking-layer-colour", ("layer", layers[i]));
+                card.AddChild(new Label { Text = caption, StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel } });
                 card.AddChild(picker);
             }
         }
@@ -529,15 +682,17 @@ public sealed class WolfgateMarkingPicker : BoxContainer
 
         var marking = new Marking(_current.Markings[category][index]);
         marking.SetColor(layer, color);
+
+        // Keep linked sprites in step with the sprite they follow, so the tiles and the saved colours agree.
+        var resolved = proto.ResolveLinkedColors(marking.MarkingColors);
+        for (var i = 0; i < resolved.Count; i++)
+            marking.SetColor(i, resolved[i]);
         _current.Replace(category, index, marking);
 
-        if (layer == 0)
+        foreach (var child in _grid.Children)
         {
-            foreach (var child in _grid.Children)
-            {
-                if (child is WolfgateMarkingTile { MarkingId: { } id } tile && id == proto.ID)
-                    tile.Tint = color;
-            }
+            if (child is WolfgateMarkingTile { MarkingId: { } id } tile && id == proto.ID)
+                tile.SetColors(marking.MarkingColors);
         }
 
         OnMarkingColorChange?.Invoke(_current);
@@ -545,6 +700,10 @@ public sealed class WolfgateMarkingPicker : BoxContainer
 
     private static string Name(MarkingPrototype proto) => Loc.GetString($"marking-{proto.ID}");
 
+    /// <summary>
+    /// Display name per sprite layer. Most markings have no per-layer string - only about two thirds are
+    /// translated - so an untranslated layer falls back to its readable state name rather than the raw key.
+    /// </summary>
     private static List<string> GetMarkingStateNames(MarkingPrototype proto)
     {
         var result = new List<string>();
@@ -553,10 +712,10 @@ public sealed class WolfgateMarkingPicker : BoxContainer
             switch (state)
             {
                 case SpriteSpecifier.Rsi rsi:
-                    result.Add(Loc.GetString($"marking-{proto.ID}-{rsi.RsiState}"));
+                    result.Add(LayerName(proto.ID, rsi.RsiState));
                     break;
                 case SpriteSpecifier.Texture texture:
-                    result.Add(Loc.GetString($"marking-{proto.ID}-{texture.TexturePath.Filename}"));
+                    result.Add(LayerName(proto.ID, texture.TexturePath.Filename));
                     break;
                 default:
                     result.Add(proto.ID);
@@ -564,5 +723,10 @@ public sealed class WolfgateMarkingPicker : BoxContainer
             }
         }
         return result;
+    }
+
+    private static string LayerName(string markingId, string state)
+    {
+        return WolfgateMarkingNames.LayerName(markingId, state);
     }
 }

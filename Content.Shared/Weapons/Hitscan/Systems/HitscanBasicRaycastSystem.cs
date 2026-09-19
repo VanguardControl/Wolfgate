@@ -5,6 +5,7 @@ using Content.Shared.Database;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Events;
 using Robust.Shared.Containers;
+using Robust.Shared.Network; // WOLFGATE
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Utility;
@@ -17,6 +18,7 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private ISharedAdminLogManager _log = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private INetManager _net = default!; // WOLFGATE
 
     public override void Initialize()
     {
@@ -50,6 +52,9 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
             Shooter = args.Shooter,
             HitEntities = [], // Mono
             DistanceTried = result?.Distance ?? ent.Comp.MaxDistance,
+            Predicted = args.Predicted, // WOLFGATE
+            // WOLFGATE: the client predicts the beam only; damage, stun and reflections stay server-side
+            Canceled = _net.IsClient,
         };
 
         if (result?.HitEntity != null) // Mono

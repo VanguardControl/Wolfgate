@@ -7,6 +7,8 @@
     snap:
     - Wallmount
   components:
+  - type: ShipPaSpeaker # WOLFGATE: stands in for PA speakers on ships that have none
+    fallback: true
   - type: StationAiWhitelist
   - type: WallMount
   - type: ApcPowerReceiver

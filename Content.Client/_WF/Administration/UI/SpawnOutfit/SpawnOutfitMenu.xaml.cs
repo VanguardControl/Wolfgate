@@ -13,11 +13,13 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Client._WF.Administration.UI.SpawnOutfit;
 
 /// <summary>
 /// Picks a starting gear outfit, grouped by department, to spawn a humanoid with at the target entity.
+/// In ghost mode the target is a ghost whose player gets spawned as their own character and put in control.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class SpawnOutfitMenu : DefaultWindow
@@ -25,6 +27,7 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IClientConsoleHost _consoleHost = default!;
     [Dependency] private IEntitySystemManager _entitySystem = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
     /// <summary>
     /// Gear IDs containing one of these belong to no job and get filed under Antagonists.
@@ -37,6 +40,7 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
     private static readonly SpawnOutfitBody[] Bodies = { SpawnOutfitBody.Random, SpawnOutfitBody.Default, SpawnOutfitBody.Own };
 
     private readonly NetEntity _target;
+    private readonly bool _forGhost;
     private readonly SpriteSystem _sprites;
     private readonly List<OutfitEntry> _entries = new();
     private readonly List<OutfitCategory> _categories = new();
@@ -44,16 +48,19 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
     private OutfitEntry? _selected;
     private OutfitCategory? _categoryFilter;
 
-    public SpawnOutfitMenu(NetEntity target)
+    public SpawnOutfitMenu(NetEntity target, bool forGhost = false)
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
         _target = target;
+        _forGhost = forGhost;
         _sprites = _entitySystem.GetEntitySystem<SpriteSystem>();
 
         BuildEntries();
         PopulateCategories();
         PopulateBodies();
+        if (forGhost)
+            SetupGhostMode();
 
         SearchBar.OnTextChanged += _ => PopulateOutfits();
         CategoryFilter.OnItemSelected += OnCategorySelected;
@@ -62,6 +69,23 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
 
         PopulateOutfits();
         UpdateDetails();
+    }
+
+    /// <summary>
+    /// Body and control are fixed in ghost mode: the ghost's player, as their own character.
+    /// </summary>
+    private void SetupGhostMode()
+    {
+        var name = _entityManager.TryGetEntity(_target, out var ghost)
+            ? _entityManager.GetComponent<MetaDataComponent>(ghost.Value).EntityName
+            : _target.ToString();
+
+        Title = Loc.GetString("wf-spawn-outfit-ghost-title");
+        GhostInfo.SetMessage(FormattedMessage.FromMarkupOrThrow(Loc.GetString("wf-spawn-outfit-ghost-info", ("name", FormattedMessage.EscapeText(name)))));
+        GhostInfo.Visible = true;
+        BodySelect.Visible = false;
+        ControlCheck.Visible = false;
+        ConfirmButton.Text = Loc.GetString("wf-spawn-outfit-ghost-confirm", ("name", name));
     }
 
     /// <summary>
@@ -345,6 +369,13 @@ public sealed partial class SpawnOutfitMenu : DefaultWindow
     {
         if (_selected == null)
             return;
+
+        if (_forGhost)
+        {
+            _consoleHost.ExecuteCommand($"{WolfgateAdminCommands.SpawnOutfitGhost} {_target} \"{_selected.Gear.ID}\"");
+            Close();
+            return;
+        }
 
         var body = Bodies[BodySelect.SelectedId];
         _consoleHost.ExecuteCommand($"{WolfgateAdminCommands.SpawnOutfit} {_target} \"{_selected.Gear.ID}\" {ControlCheck.Pressed} {body}");

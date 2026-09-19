@@ -35,6 +35,11 @@ public record struct HitscanTraceEvent
     /// Target that was being aimed at (Not necessarily hit).
     /// </summary>
     public EntityUid? Target;
+
+    /// <summary>
+    /// WOLFGATE: set when the shooter's client draws this beam itself, so the server leaves them out of its own.
+    /// </summary>
+    public bool Predicted;
 }
 
 /// <summary>
@@ -79,6 +84,11 @@ public record struct HitscanRaycastFiredEvent
     /// Cancelled hitscans should not apply damage or trigger follow-up effects.
     /// </summary>
     public bool Canceled;
+
+    /// <summary>
+    /// WOLFGATE: set when the shooter's client draws this beam itself, so the server leaves them out of its own.
+    /// </summary>
+    public bool Predicted;
 }
 
 [ByRefEvent]

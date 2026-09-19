@@ -18,6 +18,7 @@ public sealed partial class HitscanMultiRaycastSystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private ISharedAdminLogManager _log = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private Robust.Shared.Network.INetManager _net = default!; // WOLFGATE
 
     [Dependency] private EntityQuery<PhysicsComponent> _physicQuery = default!;
     private HashSet<EntityUid> _hitEntities = [];
@@ -67,6 +68,9 @@ public sealed partial class HitscanMultiRaycastSystem : EntitySystem
             Shooter = args.Shooter,
             HitEntities = _hitEntities,
             DistanceTried = latestDistance,
+            Predicted = args.Predicted, // WOLFGATE
+            // WOLFGATE: the client predicts the beam only; damage, stun and reflections stay server-side
+            Canceled = _net.IsClient,
         };
 
         RaiseLocalEvent(ent, ref trace);

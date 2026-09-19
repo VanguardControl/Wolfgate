@@ -3,7 +3,10 @@
 Run from the repository root:  python Tools/_WF/WolfgateUiTextures/generate_textures.py
 Requires Pillow. Slot and storage icons are recoloured copies of the stock Default theme.
 Palettes mirror Content.Client/_WF/Stylesheets/WolfgateSkin.cs; keep the two in sync.
+The Anatomy top-bar icon is white and tinted by the menu button, so one copy under
+Resources/Textures/_WF/Interface serves every skin.
 """
+import math
 import os
 import shutil
 from PIL import Image, ImageDraw
@@ -133,6 +136,63 @@ def save(im, *path):
     os.makedirs(os.path.dirname(full), exist_ok=True)
     im.save(full)
     written.append(os.path.relpath(full, OUT).replace(os.sep, "/"))
+
+
+
+def sex_icons():
+    """Mars / Venus / neuter glyphs for the character creator's sex selector.
+
+    Drawn pure white so the control can tint them; nothing else in the repo has a sex glyph.
+    """
+    size = 24
+
+    def blank():
+        return Image.new("RGBA", (size, size), CLEAR)
+
+    def dot(px, x, y):
+        if 0 <= x < size and 0 <= y < size:
+            px[x, y] = WHITE
+
+    def stamp(px, x, y):
+        # 2px pen, so the glyph reads at 24px
+        dot(px, x, y)
+        dot(px, x + 1, y)
+        dot(px, x, y + 1)
+        dot(px, x + 1, y + 1)
+
+    def ring(px, cx, cy, r):
+        steps = 180
+        for i in range(steps):
+            a = 2 * 3.14159265 * i / steps
+            stamp(px, int(round(cx + r * math.cos(a))),
+                      int(round(cy + r * math.sin(a))))
+
+    def line(px, x0, y0, x1, y1):
+        steps = max(abs(x1 - x0), abs(y1 - y0)) * 4 + 1
+        for i in range(steps + 1):
+            t = i / steps
+            stamp(px, int(round(x0 + (x1 - x0) * t)), int(round(y0 + (y1 - y0) * t)))
+
+    # Male: circle low-left with an arrow to the upper right
+    im = blank(); px = im.load()
+    ring(px, 8, 15, 5)
+    line(px, 12, 11, 19, 4)
+    line(px, 19, 4, 14, 4)
+    line(px, 19, 4, 19, 9)
+    save(im, STYLE, "sex_male.png")
+
+    # Female: circle up top with a cross below
+    im = blank(); px = im.load()
+    ring(px, 11, 8, 5)
+    line(px, 11, 13, 11, 21)
+    line(px, 7, 18, 15, 18)
+    save(im, STYLE, "sex_female.png")
+
+    # Unsexed: the neuter glyph, a circle with a plain stem
+    im = blank(); px = im.load()
+    ring(px, 11, 9, 5)
+    line(px, 11, 14, 11, 21)
+    save(im, STYLE, "sex_none.png")
 
 
 def style_textures():
@@ -327,6 +387,60 @@ def attributions():
         f.write("\n".join(lines))
 
 
+def anatomy_icon():
+    """Neutral outline figure for the Anatomy top-bar button: ring head, hollow torso, plain limbs.
+
+    Drawn white at 4x and downsampled to 64px like the stock svg.192dpi icons. The menu button tints it,
+    so one copy serves every skin. Writes the texture, its filtering sidecar and the folder's attributions.yml.
+    """
+    size, scale = 64, 4
+    big = size * scale
+
+    def u(v):
+        return int(round(v * scale))
+
+    mask = Image.new("L", (big, big), 0)
+    draw = ImageDraw.Draw(mask)
+
+    def capsule(x0, y0, x1, y1, width):
+        draw.line((u(x0), u(y0), u(x1), u(y1)), fill=255, width=u(width))
+        r = u(width) / 2
+        for x, y in ((x0, y0), (x1, y1)):
+            draw.ellipse((u(x) - r, u(y) - r, u(x) + r, u(y) + r), fill=255)
+
+    # Standing figure with a 4px pen: ring head and outlined torso, then limbs that stay clear of both holes
+    draw.ellipse((u(25), u(3), u(39), u(17)), fill=255)
+    draw.ellipse((u(29), u(7), u(35), u(13)), fill=0)
+    draw.rounded_rectangle((u(23), u(20), u(41), u(40)), radius=u(5), fill=255)
+    draw.rounded_rectangle((u(27), u(24), u(37), u(36)), radius=u(2), fill=0)
+    capsule(22, 23, 17, 40, 5)
+    capsule(42, 23, 47, 40, 5)
+    capsule(28, 40, 26, 59, 6)
+    capsule(36, 40, 38, 59, 6)
+
+    resample = getattr(Image, "Resampling", Image).LANCZOS
+    alpha = mask.resize((size, size), resample)
+
+    im = Image.new("RGBA", (size, size), (255, 255, 255, 0))
+    im.putalpha(alpha)
+
+    out_dir = os.path.join(ROOT, "Resources", "Textures", "_WF", "Interface")
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, "anatomy.svg.192dpi.png")
+    im.save(path)
+    with open(path + ".yml", "w", encoding="utf-8", newline="\n") as f:
+        f.write("sample:\n  filter: true\n")
+    lines = [
+        '- files: ["anatomy.svg.192dpi.png"]',
+        '  license: "CC-BY-SA-3.0"',
+        '  copyright: "Generated for Wolfgate by Tools/_WF/WolfgateUiTextures/generate_textures.py"',
+        '  source: "https://github.com/Aphelion-Moon/Wolfgate"',
+        "",
+    ]
+    with open(os.path.join(out_dir, "attributions.yml"), "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(lines))
+    print("Anatomy icon written to %s" % path)
+
 def window_icons():
     """White title bar icons for the window pop-out button, tinted by the stylesheet, so one set serves every skin.
     Drawn 4x and downsampled to match the 22px stock close cross."""
@@ -365,11 +479,13 @@ def main():
         STYLE = os.path.join(OUT, "Style")
         written = []
         style_textures()
+        sex_icons()
         overlay_textures()
         recolour_slots(hud_textures())
         recolour_storage()
         attributions()
         print("%s textures written to %s (%d files)" % (skin, OUT, len(written)))
+    anatomy_icon()
     window_icons()
 
 

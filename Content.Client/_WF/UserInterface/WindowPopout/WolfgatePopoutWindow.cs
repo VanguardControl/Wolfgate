@@ -16,8 +16,16 @@ public sealed class WolfgatePopoutWindow : OSWindow
 {
     private static readonly Vector2 AutoSize = new(float.NaN, float.NaN);
 
+    private static readonly AttachedProperty[] MarginProperties =
+    {
+        LayoutContainer.MarginLeftProperty,
+        LayoutContainer.MarginTopProperty,
+        LayoutContainer.MarginRightProperty,
+        LayoutContainer.MarginBottomProperty,
+    };
+
     private readonly BaseWindow _window;
-    private Vector2 _dockedPosition;
+    private readonly float[] _dockedMargins = new float[MarginProperties.Length];
     private Vector2 _dockedSetSize;
     private bool _dockedResizable;
     private bool _docking;
@@ -36,9 +44,12 @@ public sealed class WolfgatePopoutWindow : OSWindow
     /// </summary>
     public void PopOut()
     {
-        _dockedPosition = _window.Position;
         _dockedSetSize = _window.SetSize;
         _dockedResizable = _window.Resizable;
+        for (var i = 0; i < MarginProperties.Length; i++)
+        {
+            _dockedMargins[i] = _window.GetValue<float>(MarginProperties[i]);
+        }
 
         Show();
 
@@ -73,8 +84,6 @@ public sealed class WolfgatePopoutWindow : OSWindow
         // Keep a resize made while popped out, unless the window sizes itself.
         if (!float.IsNaN(_dockedSetSize.X) && !float.IsNaN(_dockedSetSize.Y))
             _window.SetSize = root.Size.X > 0 && root.Size.Y > 0 ? Vector2.Min(size, root.Size) : size;
-
-        LayoutContainer.SetPosition(_window, _dockedPosition);
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -94,10 +103,15 @@ public sealed class WolfgatePopoutWindow : OSWindow
         if (child != _window)
             return;
 
-        // Undo the popped-out layout so a later Open() in the game window looks as before.
+        // Undo the popped-out layout so a later Open() in the game window looks as before. The margins are restored
+        // as they were rather than through LayoutContainer.SetPosition, which shifts them by the control's current
+        // position and would walk an anchored window off-screen a little further on every pop out.
         _window.Resizable = _dockedResizable;
         _window.SetSize = _dockedSetSize;
-        LayoutContainer.SetPosition(_window, _dockedPosition);
+        for (var i = 0; i < MarginProperties.Length; i++)
+        {
+            _window.SetValue(MarginProperties[i], _dockedMargins[i]);
+        }
 
         // The window was closed or disposed by its owner, so the OS window goes too.
         if (!_docking)

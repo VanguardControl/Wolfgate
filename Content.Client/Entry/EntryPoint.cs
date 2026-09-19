@@ -1,5 +1,6 @@
 using Content.Client.Administration.Managers;
 using Content.Client.Changelog;
+using Content.Client._Common.Consent; // WOLFGATE
 using Content.Client.Chat.Managers;
 using Content.Client.DebugMon;
 using Content.Client.Eui;
@@ -63,6 +64,7 @@ namespace Content.Client.Entry
         [Dependency] private IOverlayManager _overlayManager = default!;
         [Dependency] private IChatManager _chatManager = default!;
         [Dependency] private IClientPreferencesManager _clientPreferencesManager = default!;
+        [Dependency] private IClientConsentManager _clientConsentManager = default!; // WOLFGATE
         [Dependency] private EuiManager _euiManager = default!;
         [Dependency] private IVoteManager _voteManager = default!;
         [Dependency] private DocumentParsingManager _documentParsingManager = default!;
@@ -174,6 +176,7 @@ namespace Content.Client.Entry
             _overlayManager.AddOverlay(new EmpBlastOverlay()); // Frontier
             _chatManager.Initialize();
             _clientPreferencesManager.Initialize();
+            _clientConsentManager.Initialize(); // WOLFGATE - consent system
             _euiManager.Initialize();
             _voteManager.Initialize();
             _userInterfaceManager.SetDefaultTheme("WolfgateTheme"); // WOLFGATE: Wolfgate HUD theme by default
