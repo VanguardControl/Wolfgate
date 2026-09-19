@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
+using Content.Server._WF.Wolfmed.Damage;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Compat;
@@ -313,6 +314,9 @@ public sealed class WolfmedVisualsTest : GameTest
 
     private static WolfmedPartDegradation Stage(IEntityManager entities, EntityUid body, HumanoidVisualLayers layer)
     {
+        // Wound-driven refreshes are coalesced to one walk per body per tick, so drain them first rather
+        // than running server ticks between every assertion.
+        entities.System<WolfmedDegradationVisualsSystem>().Update(0f);
         return entities.GetComponent<PartDamageVisualsComponent>(body).Degradation.GetValueOrDefault(layer);
     }
 

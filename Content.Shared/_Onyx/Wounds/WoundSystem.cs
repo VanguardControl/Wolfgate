@@ -162,6 +162,10 @@ public sealed partial class WoundSystem : EntitySystem
             part.Comp.Severable = false;
             part.Comp.AmputationOverflow = FixedPoint2.Zero;
             Dirty(part);
+
+            // WOLFGATE (W5): a part healed on its own keeps its dead tissue and its tourniquet otherwise.
+            var rejuvenated = new WolfmedRejuvenateEvent(part.Owner);
+            RaiseLocalEvent(ref rejuvenated);
         }
     }
 

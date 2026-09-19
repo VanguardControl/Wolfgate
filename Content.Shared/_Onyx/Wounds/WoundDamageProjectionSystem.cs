@@ -10,6 +10,7 @@ using Content.Shared.Humanoid;
 using Content.Shared.Rejuvenate;
 using Content.Shared._Onyx.Chemistry.Circulation;
 using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade.
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W5): the rejuvenate relay.
 using Robust.Shared.Network;
 
 namespace Content.Shared._Onyx.Wounds;
@@ -87,6 +88,11 @@ public sealed partial class WoundDamageProjectionSystem : EntitySystem
         }
 
         RefreshBodyDamage(body);
+
+        // WOLFGATE (W5): sepsis, dead tissue and tourniquets are not wounds, so clearing the wounds leaves
+        // them behind. The Wolfmed handler is server-side and both RejuvenateEvent pairs here are taken.
+        var rejuvenated = new WolfmedRejuvenateEvent(body);
+        RaiseLocalEvent(ref rejuvenated);
     }
 
     // WOLFGATE: D11 - was (Entity<WoundableComponent>, ref DamageDealtEvent).

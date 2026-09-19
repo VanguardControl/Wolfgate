@@ -6,6 +6,7 @@ using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Targeting;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -314,6 +315,55 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                 Assert.That(Prototypes(entities, wounds, arm), Does.Contain("SlashWound"),
                     "the knife leaves a cut of its own.");
                 Assert.That(pain.GetPain(arm), Is.GreaterThan(painBefore));
+            });
+        });
+    }
+
+    /// <summary>
+    /// The two ways a removal can end badly. An item id that is not a prototype must not eat the fragment
+    /// on the way to spawning nothing, and a limb that came off during the do-after must not be dug into.
+    /// </summary>
+    [Test]
+    public async Task RemovalRefusesBadIdAndDetachedLimbTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var pain = entities.System<PainSystem>();
+            var removal = entities.System<WolfmedEmbeddedRemovalSystem>();
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var bullet = entities.SpawnEntity("BulletMinigun", map.GridCoords);
+            Hit(entities, body, TargetBodyPart.LeftArm, bullet, 25);
+
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            var wound = FindWound(entities, wounds, arm, "WolfmedLodgedRoundWound");
+            var host = (body, entities.GetComponent<WoundHostComponent>(body));
+            var embedded = entities.GetComponent<WolfmedEmbeddedObjectComponent>(wound);
+            var count = embedded.Count;
+            Assert.That(count, Is.GreaterThan(0));
+
+            embedded.Item = "WolfmedNoSuchItemPrototype";
+            Assert.That(removal.TryRemoveOne(host, wound, body, clean: true), Is.Null);
+            Assert.That(entities.GetComponent<WolfmedEmbeddedObjectComponent>(wound).Count, Is.EqualTo(count),
+                "a bad id is refused before the fragment is consumed.");
+
+            embedded.Item = "WolfmedSpentRound";
+            var painBefore = pain.GetPain(arm);
+            Assert.That(entities.System<WolfmedBodySystem>().TryDetachPart(arm), Is.True);
+
+            Assert.That(removal.TryRemoveOne(host, wound, body, clean: false), Is.Null,
+                "the arm is on the floor; nothing comes out of the patient.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(entities.GetComponent<WolfmedEmbeddedObjectComponent>(wound).Count, Is.EqualTo(count));
+                Assert.That(pain.GetPain(arm), Is.EqualTo(painBefore),
+                    "and a severed limb is not charged the knife's pain.");
             });
         });
     }

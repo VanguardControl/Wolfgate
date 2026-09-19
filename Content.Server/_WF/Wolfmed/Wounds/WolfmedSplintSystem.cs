@@ -102,6 +102,14 @@ public sealed class WolfmedSplintSystem : EntitySystem
     /// </summary>
     public bool TryApply(Entity<WolfmedSplintComponent> splint, EntityUid body, EntityUid part, EntityUid user)
     {
+        // The limb can be blown off during the do-after and still pass CanApply on the floor, which would
+        // splint a severed leg and use the item up. TryResolvePart checks this at the start; re-check it here.
+        if (TerminatingOrDeleted(part) || !_body.BodyHasChild(body, part))
+        {
+            _popup.PopupEntity(Loc.GetString(GetRefusalMessage(WolfmedSplintRefusal.NoPart)), body, user);
+            return false;
+        }
+
         if (CanApply(splint, part) != WolfmedSplintRefusal.None ||
             _fractures.GetFracture(part) is not { } fracture ||
             !_fractures.TryReduce(fracture.Owner))

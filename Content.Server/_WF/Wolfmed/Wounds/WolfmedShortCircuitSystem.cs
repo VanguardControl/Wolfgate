@@ -21,6 +21,7 @@ public sealed class WolfmedShortCircuitSystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedStunSystem _stun = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -47,8 +48,10 @@ public sealed class WolfmedShortCircuitSystem : EntitySystem
         if (TerminatingOrDeleted(body))
             return;
 
+        // Map coordinates, not the body's own: a chassis inside a locker or a cryo pod would otherwise
+        // spark in the container's coordinate space.
         if (behavior.Effect is { } effect)
-            Spawn(effect, Transform(body).Coordinates);
+            Spawn(effect, _transform.GetMapCoordinates(body));
 
         if (behavior.Sound != null)
             _audio.PlayPvs(behavior.Sound, body);

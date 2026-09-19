@@ -3471,3 +3471,64 @@ paths and none blocking.
   **209 passed, 0 failed, 0 skipped**, matching P6's count — no regression from the LINT-pass edits.
 
 No regressions found; nothing on this list required a fix beyond what is in the table above.
+
+## Final stages: review fixes (2026-09-19)
+
+One fix pass over a code review of the final stages (`49ee1a9247..HEAD`). Seven of the eight findings were
+real and are fixed below; one was rejected. Four of the fixes are behavioural and carry a new integration
+test each; the rest are perf or correctness-of-placement and are covered by the existing suite.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | modified | New `WolfmedRejuvenateEvent(EntityUid Target)` broadcast: a rejuvenate has cleared this body's, or this detached part's, wounds |
+| `Content.Shared/_Onyx/Wounds/WoundDamageProjectionSystem.cs` | modified (vendored) | **1 marked using + 1 marked 4-line raise.** `OnRejuvenate` ends by broadcasting `WolfmedRejuvenateEvent` for the body |
+| `Content.Shared/_Onyx/Wounds/WoundSystem.cs` | modified (vendored) | **1 marked 3-line raise.** `OnPartRejuvenate` broadcasts the same event for a limb healed on its own |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedRejuvenateSystem.cs` | new | Answers the broadcast: removes `WolfmedSepsisComponent` from the body, `WolfmedNecrosisComponent` and `WolfmedTourniquetComponent` from every part, then `WolfmedDegradationVisualsSystem.Refresh`. Both `RejuvenateEvent` pairs on a body and a part are owned upstream, which is why this answers a broadcast |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedChemicalBurnComponent.cs` | modified | New cached `Interval` (seconds), set from the worst `WolfmedCausticResidueBehavior` on the part |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedChemicalBurnSystem.cs` | modified | `Update` gates on that interval inside the query loop, like `WolfmedOverheatingSystem`/`WolfmedFrostbiteSystem`/`WolfmedConcussionSystem`; the due list is allocated only when something is actually due, and `Tick` no longer walks a part's wounds every frame |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedInfectionSystem.cs` | modified | `SetProgress` dirties only when `Progress`, `Stage` or `Cleaned` moved; `TickSepsis` dirties only when the sepsis figure moved |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs` | modified | New private `ClearSource(part, source)`, used by the wound-lifecycle, tourniquet-unclamped and `Loosen` paths. `Source` and `Progress` are one slot, so dropping one source now falls back to the other (tourniquet or wound) and keeps the accumulated time instead of removing the component |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedSplintSystem.cs` | modified | `TryApply` re-asserts `TerminatingOrDeleted` + `BodyHasChild` before applying, with the existing `wolfmed-splint-no-part` popup |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs` | modified | `OnDoAfter` seals nothing when the part is no longer on the body (existing "nothing to seal" popup). New `SharedBodySystem` dependency |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedEmbeddedRemovalSystem.cs` | modified | `TryRemoveOne` refuses a part that has left the body, and validates `embedded.Item` against the prototype manager **before** `TryTakeOne` consumes it. New `SharedBodySystem` dependency |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedShortCircuitSystem.cs` | modified | `Arc` spawns the spark effect at `_transform.GetMapCoordinates(body)`, matching the other Wolfmed feedback systems; a chassis in a locker no longer sparks in the container's coordinate space |
+| `Content.Server/_WF/Wolfmed/Damage/WolfmedDegradationVisualsSystem.cs` | modified | The wound-lifecycle handler now queues the body in a `HashSet` drained once per `Update`, and `Refresh` builds into a reusable scratch dictionary, copying out only when the stage set actually changed |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs` | modified | Two new tests, see below |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSplintTest.cs` | modified | One new test |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBallisticWoundTest.cs` | modified | One new test |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualsTest.cs` | modified | The `Stage` helper drains the coalesced refresh before reading, the same way the infection tests hand `Update` their own time |
+
+### Tests
+
+- `RejuvenateClearsSepsisAndNecrosisTest`: tourniquet left on until the arm is necrotic and the patient is
+  septic; a `RejuvenateEvent` clears sepsis, the necrosis component, the tourniquet and the necrosis wound,
+  and twenty further minutes of infection plus an hour of necrosis do not bring any of it back.
+- `TourniquetClockSurvivesATreatedWoundTest`: a deep freeze takes the necrosis slot from a tourniquet;
+  treating the frostbite hands the slot back to the tourniquet with its accumulated progress intact.
+- `SplintRefusesALimbThatCameOffTest`: a severed leg still passes `CanApply`, but `TryApply` refuses it, the
+  fracture stays untreated and the splint is not consumed.
+- `RemovalRefusesBadIdAndDetachedLimbTest`: an `embedded.Item` that is not a registered prototype is refused
+  without decrementing the count; a limb detached mid-removal is refused and charged no pain.
+
+### Findings rejected, and parts of findings not taken
+
+- **Rejected: "`WolfmedInfectionSystem.OnWoundLifecycle` `EnsureComp`s onto every wound whose prototype
+  declares the risk, contrary to the class remark at line 29."** The remark is about the tick, and the tick
+  is what it says it is: `Update` walks `WolfmedInfectionComponent` holders and nothing else. Narrowing
+  `EnsureComp` to already-contaminated wounds would take away the component that `Contaminate`, `Clean`,
+  `Treat` and the analyzer all read off an as-yet-clean wound, and would need a second add-back pass the
+  moment a clean wound goes dirty. The real defect inside that finding, the unconditional `Dirty` on every
+  five-second tick, is fixed. The remark was left as written.
+- **Not taken: "skip `TickWound` entirely for wounds whose computed delta is zero."** A wound whose progress
+  delta is zero can still be past the local threshold, where the tick owes it pain and severity creep, so
+  the skip is not safe as stated. Gating the `Dirty` achieves what the finding was after (no state on the
+  wire for a wound that did not move) without that risk.
+- **Note on the degradation fix:** the coalescing changes *when* the overlay is recomputed, from once per
+  wound event to once per body per tick. That is invisible in play (the state only leaves the server at the
+  end of the tick), but it is why `WolfmedVisualsTest.Stage` now drains the queue before reading, the same
+  pattern the infection tests use when they hand `Update` their own minutes.
+
+### Build and suite
+
+`dotnet build Content.IntegrationTests -c DebugOpt` green; wound suite
+(`~_Onyx.Wounds|~Wolfmed|~GibTest`) **212 passed, 0 failed, 1 skipped** (the pre-existing skip).

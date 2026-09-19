@@ -94,6 +94,18 @@ public record struct WolfmedCleanWoundsEvent(int Cleaned = 0);
 [ByRefEvent]
 public record struct WolfmedAntibioticEvent(float Units, bool Treated = false);
 
+/// <summary>
+/// A rejuvenate has just cleared this entity's wounds. <paramref name="Target"/> is a wound host, or a
+/// detached part that was healed on its own.
+/// </summary>
+/// <remarks>
+/// Broadcast because both <c>WoundHostComponent</c> and <c>WoundableComponent</c> already own their
+/// <c>RejuvenateEvent</c> pair, and because the Wolfmed state a heal has to undo (sepsis on the body, dead
+/// tissue and a tourniquet on the parts) is not a wound and so survives the clear.
+/// </remarks>
+[ByRefEvent]
+public readonly record struct WolfmedRejuvenateEvent(EntityUid Target);
+
 /// <summary>Prying one embedded object out of a wound.</summary>
 [Serializable, NetSerializable]
 public sealed partial class WolfmedEmbeddedRemovalDoAfterEvent : SimpleDoAfterEvent

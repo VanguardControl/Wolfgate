@@ -50,14 +50,22 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
         if (!_net.IsServer)
             return;
 
-        // Buffered: applying the damage raises wound events that can add or remove the component.
-        var due = new List<EntityUid>();
+        // Gated in the query loop, not in Tick: walking a part's wounds costs a prototype lookup and a
+        // behavior iterator per wound, and that is due once every few seconds, not every frame.
+        List<EntityUid>? due = null;
         var query = EntityQueryEnumerator<WolfmedChemicalBurnComponent>();
         while (query.MoveNext(out var uid, out var residue))
         {
             residue.Accumulator += frameTime;
-            due.Add(uid);
+            if (residue.Accumulator < residue.Interval)
+                continue;
+
+            // Buffered: applying the damage raises wound events that can add or remove the component.
+            (due ??= new List<EntityUid>()).Add(uid);
         }
+
+        if (due == null)
+            return;
 
         foreach (var part in due)
             Tick(part);
@@ -70,16 +78,14 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
             CompOrNull<BodyPartComponent>(part)?.Body is not { } body)
             return;
 
+        residue.Accumulator = 0f;
         if (FindResidue(part) is not { } behavior)
         {
             RemComp<WolfmedChemicalBurnComponent>(part);
             return;
         }
 
-        if (residue.Accumulator < behavior.Interval.TotalSeconds)
-            return;
-
-        residue.Accumulator = 0f;
+        residue.Interval = Interval(behavior);
         if (!behavior.Damage.Empty)
             _routing.TryApplyPartDamage(body, part, behavior.Damage, healWounds: false);
     }
@@ -90,14 +96,18 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
         if (TerminatingOrDeleted(part))
             return;
 
-        if (FindResidue(part) == null)
+        if (FindResidue(part) is not { } behavior)
         {
             RemComp<WolfmedChemicalBurnComponent>(part);
             return;
         }
 
-        EnsureComp<WolfmedChemicalBurnComponent>(part);
+        EnsureComp<WolfmedChemicalBurnComponent>(part).Interval = Interval(behavior);
     }
+
+    /// <summary>The behavior's interval in seconds, floored so a zero in data cannot make this tick every frame.</summary>
+    private static float Interval(WolfmedCausticResidueBehavior behavior) =>
+        Math.Max(0.5f, (float) behavior.Interval.TotalSeconds);
 
     /// <summary>
     /// Rinses every part of the body clean. The burns stay and heal like any other wound; what stops is the

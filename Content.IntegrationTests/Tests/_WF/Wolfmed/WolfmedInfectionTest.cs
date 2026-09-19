@@ -19,6 +19,7 @@ using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
+using Content.Shared.Rejuvenate;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
@@ -369,6 +370,106 @@ public sealed class WolfmedInfectionTest : GameTest
 
             necrosis.Update(3600f);
             Assert.That(necrosis.IsNecrotic(arm), Is.False);
+        });
+    }
+
+    /// <summary>
+    /// A full heal has to reach what is not a wound. Sepsis lives on the body and dead tissue on the part,
+    /// so clearing every wound entity on its own left the patient septic off a necrotic limb that no
+    /// analyzer would show, forever.
+    /// </summary>
+    [Test]
+    public async Task RejuvenateClearsSepsisAndNecrosisTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var infection = entities.System<WolfmedInfectionSystem>();
+            var necrosis = entities.System<WolfmedNecrosisSystem>();
+            var tourniquet = entities.System<TourniquetSystem>();
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            Damage(entities, body, TargetBodyPart.LeftArm, "Slash", 25);
+
+            Assert.That(tourniquet.Apply(body, arm), Is.True);
+            necrosis.Update((float) infection.Profile.TourniquetOnset.TotalSeconds + 120f);
+            infection.Update(Minutes(20));
+            Assert.Multiple(() =>
+            {
+                Assert.That(necrosis.IsNecrotic(arm), Is.True);
+                Assert.That(entities.HasComponent<WolfmedSepsisComponent>(body), Is.True);
+            });
+
+            entities.EventBus.RaiseLocalEvent(body, new RejuvenateEvent());
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(entities.HasComponent<WolfmedSepsisComponent>(body), Is.False);
+                Assert.That(entities.HasComponent<WolfmedNecrosisComponent>(arm), Is.False);
+                Assert.That(entities.HasComponent<WolfmedTourniquetComponent>(arm), Is.False);
+                Assert.That(Prototypes(entities, arm), Does.Not.Contain("WolfmedNecrosisWound"));
+            });
+
+            // And it stays gone: the dead limb was the source that used to drive sepsis straight back up.
+            infection.Update(Minutes(20));
+            necrosis.Update(3600f);
+            Assert.Multiple(() =>
+            {
+                Assert.That(entities.HasComponent<WolfmedSepsisComponent>(body), Is.False);
+                Assert.That(necrosis.IsNecrotic(arm), Is.False);
+            });
+        });
+    }
+
+    /// <summary>
+    /// A part has one necrosis clock, so a wound that takes the slot from a tourniquet has to hand it back
+    /// when it is treated. Otherwise the ten minutes reset every time and the strap could stay on forever.
+    /// </summary>
+    [Test]
+    public async Task TourniquetClockSurvivesATreatedWoundTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var infection = entities.System<WolfmedInfectionSystem>();
+            var necrosis = entities.System<WolfmedNecrosisSystem>();
+            var tourniquet = entities.System<TourniquetSystem>();
+            var wounds = entities.System<WoundSystem>();
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            Damage(entities, body, TargetBodyPart.LeftArm, "Slash", 25);
+
+            Assert.That(tourniquet.Apply(body, arm), Is.True);
+            necrosis.Update(120f);
+            var accumulated = entities.GetComponent<WolfmedNecrosisComponent>(arm).Progress;
+            Assert.That(accumulated, Is.GreaterThan(0f));
+
+            // A deep freeze on the same arm takes the slot, because its onset is the shorter of the two.
+            Damage(entities, body, TargetBodyPart.LeftArm, "Cold", 90);
+            Assert.That(entities.GetComponent<WolfmedNecrosisComponent>(arm).Source,
+                Is.EqualTo(WolfmedNecrosisSource.Wound));
+
+            wounds.RemoveWound(FindWound(entities, arm, "WolfmedFrostbiteWound"));
+
+            var clock = entities.GetComponent<WolfmedNecrosisComponent>(arm);
+            Assert.Multiple(() =>
+            {
+                Assert.That(clock.Source, Is.EqualTo(WolfmedNecrosisSource.Tourniquet),
+                    "the strap is still on, so it takes its own clock back.");
+                Assert.That(clock.Onset, Is.EqualTo(infection.Profile.TourniquetOnset));
+                Assert.That(clock.Progress, Is.GreaterThanOrEqualTo(accumulated),
+                    "and the minutes it already spent are not given back.");
+            });
         });
     }
 

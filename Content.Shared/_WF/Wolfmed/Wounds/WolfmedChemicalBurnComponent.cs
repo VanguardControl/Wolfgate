@@ -12,4 +12,11 @@ public sealed partial class WolfmedChemicalBurnComponent : Component
     /// <summary>Seconds since the residue last bit.</summary>
     [ViewVariables]
     public float Accumulator;
+
+    /// <summary>
+    /// Seconds between bites, cached off the worst <see cref="WolfmedCausticResidueBehavior"/> on the part
+    /// so the per-frame pass can skip the part without walking its wounds.
+    /// </summary>
+    [ViewVariables]
+    public float Interval = 4f;
 }

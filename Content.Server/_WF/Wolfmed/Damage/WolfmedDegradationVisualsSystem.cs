@@ -27,6 +27,9 @@ public sealed class WolfmedDegradationVisualsSystem : EntitySystem
     [Dependency] private WoundDamageProjectionSystem _projection = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
+    private readonly HashSet<EntityUid> _pending = new();
+    private readonly Dictionary<HumanoidVisualLayers, WolfmedPartDegradation> _scratch = new();
+
     /// <inheritdoc/>
     public override void Initialize()
     {
@@ -39,7 +42,21 @@ public sealed class WolfmedDegradationVisualsSystem : EntitySystem
         if (TerminatingOrDeleted(args.Part))
             return;
 
-        Refresh(CompOrNull<BodyPartComponent>(args.Part)?.Body ?? GetDetachedRoot(args.Part));
+        // Coalesced: one explosion creates wounds on dozens of parts across several bodies in a single
+        // tick, and each event would otherwise walk a whole body. One walk per body per tick instead.
+        _pending.Add(CompOrNull<BodyPartComponent>(args.Part)?.Body ?? GetDetachedRoot(args.Part));
+    }
+
+    /// <inheritdoc/>
+    public override void Update(float frameTime)
+    {
+        if (_pending.Count == 0)
+            return;
+
+        foreach (var uid in _pending)
+            Refresh(uid);
+
+        _pending.Clear();
     }
 
     /// <summary>
@@ -60,7 +77,10 @@ public sealed class WolfmedDegradationVisualsSystem : EntitySystem
             return;
         }
 
-        var stages = new Dictionary<HumanoidVisualLayers, WolfmedPartDegradation>();
+        // Built into a scratch map and only copied out when it differs, so an unchanged body allocates
+        // nothing and sends nothing.
+        var stages = _scratch;
+        stages.Clear();
         foreach (var (part, _) in GetParts(uid))
         {
             if (!_projection.TryGetVisualLayer(part, out var layer))
@@ -78,7 +98,7 @@ public sealed class WolfmedDegradationVisualsSystem : EntitySystem
         if (Same(visual.Degradation, stages))
             return;
 
-        visual.Degradation = stages;
+        visual.Degradation = new Dictionary<HumanoidVisualLayers, WolfmedPartDegradation>(stages);
         Dirty(uid, visual);
     }
 

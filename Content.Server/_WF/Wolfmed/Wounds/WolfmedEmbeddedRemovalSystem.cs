@@ -4,6 +4,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Tools;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Targeting;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
@@ -28,6 +29,7 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PainSystem _pain = default!;
+    [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -98,8 +100,15 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
             !TryComp(wound, out WoundComponent? core))
             return null;
 
+        // The limb can come off during the do-after; digging in a severed one charges the cut and the
+        // contamination to something that is no longer part of the patient.
         var part = core.HoldingPart;
-        if (!_embedded.TryTakeOne((wound, embedded), out var item) || !_prototypes.HasIndex(item))
+        if (TerminatingOrDeleted(part) || !_body.BodyHasChild(body.Owner, part))
+            return null;
+
+        // Validated before the object is consumed: TryTakeOne decrements the count either way, so a bad id
+        // in a downstream rule used to eat the fragment and spawn nothing.
+        if (!_prototypes.HasIndex(embedded.Item) || !_embedded.TryTakeOne((wound, embedded), out var item))
             return null;
 
         var spawned = Spawn(item, _transform.GetMapCoordinates(body.Owner));

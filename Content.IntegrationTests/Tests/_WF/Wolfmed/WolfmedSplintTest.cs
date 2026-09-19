@@ -4,6 +4,7 @@ using Content.IntegrationTests.Fixtures;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -180,6 +181,43 @@ public sealed class WolfmedSplintTest : GameTest
             // And the limb takes a fresh splint, because the treatment is back to None.
             Assert.That(splints.TryApply(Splint(entities, map, "WolfmedSplint"), body, leg, body), Is.True);
             Assert.That(fractures.GetFracture(leg)!.Value.Comp2.Treatment, Is.EqualTo(FractureTreatment.Reduced));
+        });
+    }
+
+    /// <summary>
+    /// A limb blown off during the four-second do-after keeps its fracture and still reads as splintable on
+    /// its own, so the apply has to re-check that it is still attached to the patient.
+    /// </summary>
+    [Test]
+    public async Task SplintRefusesALimbThatCameOffTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var fractures = entities.System<WoundFractureSystem>();
+            var splints = entities.System<WolfmedSplintSystem>();
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+            var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
+            var splint = Splint(entities, map, "WolfmedSplint");
+
+            Assert.That(entities.System<WolfmedBodySystem>().TryDetachPart(leg), Is.True);
+            Assert.That(splints.CanApply(splint, leg), Is.EqualTo(WolfmedSplintRefusal.None),
+                "the severed leg still looks splintable on its own; only the body check catches it.");
+
+            Assert.That(splints.TryApply(splint, body, leg, body), Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(fractures.GetFracture(leg)!.Value.Comp2.Treatment, Is.EqualTo(FractureTreatment.None),
+                    "nothing was set on a leg lying on the floor.");
+                Assert.That(entities.Deleted(splint.Owner) || entities.IsQueuedForDeletion(splint.Owner), Is.False,
+                    "and the splint is still in hand.");
+            });
         });
     }
 

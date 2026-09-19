@@ -60,10 +60,8 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         var risk = _traits.GetPartNecrosisRisk(args.Part, out var onset);
         if (risk > 0f)
             Start(args.Part, WolfmedNecrosisSource.Wound, onset);
-        else if (TryComp(args.Part, out WolfmedNecrosisComponent? necrosis) &&
-                 !necrosis.Necrotic &&
-                 necrosis.Source == WolfmedNecrosisSource.Wound)
-            RemComp<WolfmedNecrosisComponent>(args.Part);
+        else
+            ClearSource(args.Part, WolfmedNecrosisSource.Wound);
     }
 
     private void OnGetVerbs(Entity<WoundHostComponent> body, ref GetVerbsEvent<Verb> args)
@@ -106,9 +104,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
             if (!IsClamped(uid))
             {
                 RemComp<WolfmedTourniquetComponent>(uid);
-                if (TryComp(uid, out WolfmedNecrosisComponent? applied) && !applied.Necrotic &&
-                    applied.Source == WolfmedNecrosisSource.Tourniquet)
-                    RemComp<WolfmedNecrosisComponent>(uid);
+                ClearSource(uid, WolfmedNecrosisSource.Tourniquet);
                 continue;
             }
 
@@ -160,6 +156,38 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         necrosis.Source = source;
         necrosis.Onset = onset;
         Dirty(part, necrosis);
+    }
+
+    /// <summary>
+    /// Takes one source off the clock. <see cref="WolfmedNecrosisComponent.Source"/> and its progress are a
+    /// single slot, so a part still at risk from the other source keeps the component and the time it has
+    /// already accumulated; without this, treating a frostbite reset a tourniquet's ten minutes to zero and
+    /// the strap could be left on forever.
+    /// </summary>
+    private void ClearSource(EntityUid part, WolfmedNecrosisSource source)
+    {
+        if (!TryComp(part, out WolfmedNecrosisComponent? necrosis) || necrosis.Necrotic ||
+            necrosis.Source != source)
+            return;
+
+        if (source != WolfmedNecrosisSource.Tourniquet && HasComp<WolfmedTourniquetComponent>(part))
+        {
+            necrosis.Source = WolfmedNecrosisSource.Tourniquet;
+            necrosis.Onset = _infection.Profile.TourniquetOnset;
+            Dirty(part, necrosis);
+            return;
+        }
+
+        if (source != WolfmedNecrosisSource.Wound &&
+            _traits.GetPartNecrosisRisk(part, out var onset) > 0f && onset > TimeSpan.Zero)
+        {
+            necrosis.Source = WolfmedNecrosisSource.Wound;
+            necrosis.Onset = onset;
+            Dirty(part, necrosis);
+            return;
+        }
+
+        RemComp<WolfmedNecrosisComponent>(part);
     }
 
     /// <summary>
@@ -217,9 +245,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         }
 
         RemComp<WolfmedTourniquetComponent>(part);
-        if (TryComp(part, out WolfmedNecrosisComponent? necrosis) && !necrosis.Necrotic &&
-            necrosis.Source == WolfmedNecrosisSource.Tourniquet)
-            RemComp<WolfmedNecrosisComponent>(part);
+        ClearSource(part, WolfmedNecrosisSource.Tourniquet);
 
         _audio.PlayPvs(tourniquet.LoosenSound, body);
         _popup.PopupEntity(Loc.GetString("wolfmed-tourniquet-loosened"), body, user);

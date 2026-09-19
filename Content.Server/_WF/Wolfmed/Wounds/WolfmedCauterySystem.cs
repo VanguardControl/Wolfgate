@@ -3,6 +3,7 @@ using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Targeting;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Body.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
 using Content.Shared.Popups;
@@ -32,6 +33,7 @@ public sealed class WolfmedCauterySystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PainSystem _pain = default!;
+    [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
@@ -104,7 +106,8 @@ public sealed class WolfmedCauterySystem : EntitySystem
             !TryGetEntity(args.Part, out var part))
             return;
 
-        var sealedWounds = TryCauterize(part.Value, deliberate: true);
+        // A limb lost during the do-after would otherwise be sealed and burned on the floor.
+        var sealedWounds = _body.BodyHasChild(body, part.Value) ? TryCauterize(part.Value, deliberate: true) : 0;
         args.Handled = sealedWounds > 0;
         if (sealedWounds > 0)
             _audio.PlayPvs(GetProfile().DeliberateEndSound, body);

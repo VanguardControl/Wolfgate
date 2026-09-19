@@ -188,12 +188,18 @@ public sealed class WolfmedInfectionSystem : EntitySystem
             return;
 
         var sources = CountSources(body);
-        body.Comp.Progress = Math.Clamp(body.Comp.Progress + (sources > 0
+        var progress = Math.Clamp(body.Comp.Progress + (sources > 0
                 ? profile.SepsisPerMinute * minutes * sources
                 : -profile.SepsisRecoveryPerMinute * minutes),
             0f,
             100f);
-        Dirty(body);
+
+        // Pinned at 100 is the common case for a patient nobody is treating; do not send that every tick.
+        if (progress != body.Comp.Progress)
+        {
+            body.Comp.Progress = progress;
+            Dirty(body);
+        }
 
         if (body.Comp.Progress <= 0f)
         {
@@ -247,6 +253,7 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         WolfmedInfectionProfilePrototype profile)
     {
         var infection = wound.Comp1;
+        var (oldProgress, oldStage, oldCleaned) = (infection.Progress, infection.Stage, infection.Cleaned);
         infection.Progress = Math.Clamp(progress, 0f, profile.SepsisAt);
 
         // Cleaning and antibiotics buy a reset, not immunity: an open wound that has been cleared starts
@@ -264,7 +271,11 @@ public sealed class WolfmedInfectionSystem : EntitySystem
             var value when value >= profile.LocalAt => WolfmedInfectionStage.Local,
             _ => WolfmedInfectionStage.None,
         };
-        Dirty(wound.Owner, infection);
+
+        // Most wounds on a populated server sit at a pinned progress (sutured, or already cleaned), and
+        // every one of them is in PVS for everyone who can see the patient. Only send a state that moved.
+        if (infection.Progress != oldProgress || infection.Stage != oldStage || infection.Cleaned != oldCleaned)
+            Dirty(wound.Owner, infection);
     }
 
     private static DamageSpecifier Damage(FixedPoint2 poison) =>
