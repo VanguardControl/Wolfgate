@@ -1,3 +1,4 @@
+#nullable enable
 using System.Threading.Tasks;
 using Content.Client._WF.Wolfmed.Audio;
 using Content.IntegrationTests.Pair;

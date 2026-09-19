@@ -3422,3 +3422,52 @@ directed subscription on a pair that was already owned.
 4. **Not annotated, recorded instead of guessed** (P6-D5): coats, winter coats and armoured jumpsuits; the
    `_Mono` Aurora exosuit; `_NF` brass knuckles (an armour penalty on a hands item); every `- type: Armor`
    on non-clothing. `WOLFMED_STATUS.md`'s "full 272-entry pass" line is now 123 of the ~250 clothing blocks.
+
+## Final stages: LINT (2026-09-19)
+
+Final hygiene pass over the whole branch: one clean YAML linter run, a CI-trap sweep over every file changed
+since `origin/main`, the two integration-test filter groups plus the wound suite, and the docs wrap-up. No
+new gameplay behaviour.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | Added `#nullable enable` — the file uses `BodyPartSymmetry?`/`TimeSpan?`/`float?` parameters without it, a CI-lint-as-error trap |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs` | modified | Added `#nullable enable` — uses `MobStateComponent?` without it |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs` | modified | Added `#nullable enable` — uses `BodyPartSymmetry?` without it |
+| `Docs/Wolfmed/WOLFMED_STATUS.md` | modified | Fixed a bare CR byte mid-line-8 (a mangled `C:\Users\jzo12\Documents\Wolfmed\plan\reports` path had eaten its own backslashes and the `r` of `reports` into a literal carriage-return byte — a CI CRLF-trap failure on a text file, not a binary asset false positive); rewrote the header/state paragraph to say phases 6, 7 and 8 plus the crit heartbeat are implemented, with the 209/209 wound-suite test count |
+| `Docs/Wolfmed/DECISIONS.md` | modified | New `## Final stages` section: the cross-package decisions the task asked to have collected (fracture thresholds, deterministic bands, no forceps, no Piercing fracture profile, mechanical `healingMultiplier: 1`, spaceacillin not in a medkit, the P6 flicker-fix approach, the heartbeat license note) plus every gap still open across H/W0-W7/V5/V124/V3/P6, as one bullet list |
+
+### YAML linter (Release)
+
+`dotnet run --project Content.YAMLLinter -c Release`, run once: **no errors found** (78 s). Only warnings
+(`RA0033`, prototype `id` literals; `NU1903`/`NU1510` NuGet advisories), none from `_WF`/`_Onyx`/Wolfmed
+paths and none blocking.
+
+### CI trap sweep (`git diff --name-only origin/main...HEAD`, 609 files)
+
+- **CRLF / bare CR.** `Tools/check_crlf.py` flags nearly the entire repository on this Windows checkout
+  because `core.autocrlf=true` converts every tracked text file to CRLF on checkout; `git ls-files --eol`
+  confirms every changed file is `i/lf` in the actual git blob (what CI checks out on Linux), so that tool's
+  local output is the known Windows false positive and was not otherwise acted on. A byte-level scan of the
+  609 changed files' blobs for a bare (non-CRLF) `\r` found 230 false positives (PNG/OGG binary bytes that
+  happen to contain `0x0D`) and one real one, fixed above (`WOLFMED_STATUS.md`).
+- **Nullable annotations without `#nullable enable`** in changed test files: 3 found and fixed, above.
+  `Content.Tests/` has no changed files on this branch.
+- **RSI meta.json / states / sizes**, **audio `attributions.yml` coverage**, and **prototype id references**:
+  all covered by the clean YAML linter run (it validates exactly these); spot-checked
+  `part_degradation.rsi/meta.json` (license, copyright, 50 states listed) and
+  `Resources/Audio/_WF/Wolfmed/attributions.yml` (covers `heartbeat_loop.ogg`, the only file in that folder)
+  by hand as well.
+- **Locale ids used in C# under `_WF/Wolfmed`**: 49 distinct `Loc.GetString("...")` ids collected, all exist
+  in some `.ftl` (one apparent miss, `medical-item-finished-using`, was a false positive from a BOM at the
+  start of the pre-existing upstream file it's defined in, not a missing key). No `Loc.GetString` calls or
+  loc-id-shaped fields found in `_WF/Wolfmed` YAML on this branch to cross-check separately.
+
+### Integration tests
+
+- `--filter "FullyQualifiedName~Tests.Body|~Tests.Damage|~Tests.Medical|~PrototypeSaveTest|~EntityTest|~Tests.Weapons|~Tests.Chemistry|~GuideEntry|~Tests.Guidebook"`:
+  **29 passed, 0 failed, 2 skipped** (pre-existing skips, unrelated to Wolfmed).
+- Wound suite `--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~Wolfmed|FullyQualifiedName~GibTest"`:
+  **209 passed, 0 failed, 0 skipped**, matching P6's count — no regression from the LINT-pass edits.
+
+No regressions found; nothing on this list required a fix beyond what is in the table above.

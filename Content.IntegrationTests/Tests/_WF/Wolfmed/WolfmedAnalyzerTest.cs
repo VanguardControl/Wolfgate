@@ -1,3 +1,4 @@
+#nullable enable
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server.Body.Components; // WOLFGATE: BloodstreamComponent is server-only here.

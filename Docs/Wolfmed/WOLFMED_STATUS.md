@@ -1,11 +1,17 @@
 # Wolfmed status
 
-Phases 1, 2, 3, 4 and 5 of the Space Onyx wound port are implemented, build, and pass their tests. Nothing is committed.
+Phases 1 through 8 of the Space Onyx wound port are implemented, build, and pass their tests: phase 6
+(routing-flicker fix, `HurtCommand` part argument, locational-armour coverage, hitscan cause), phase 7
+"Viscera" (wound/dismemberment/interaction SFX and VFX, per-part degradation visuals, the handheld splint)
+and phase 8 "Wound expansion" (21 new wounds on a data-driven rule framework, embedded objects, infection/
+necrosis/sepsis, mechanical wounds, the treatment matrix) are all shipped, alongside the crit heartbeat
+(WP H). The wound suite (`--filter "FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~Wolfmed|
+FullyQualifiedName~GibTest"`) passes 209 of 209 tests, 0 skipped. Nothing is committed.
 
 - **Branch / worktree:** `clanker/wolfmed-port-orchestration-454c3d` in `.claude/worktrees/rules-motd-updates-11c89c`.
 - **Onyx pin:** `2f5bab9946539cbe083010c9ae6fbc59b47ae377`. Reference sparse checkout at `C:\Users\jzo12\Documents\Wolfmed\onyx` (recreate with the clone command in `WOLFMED_HANDOFF.md`, using `core.longpaths=true` and a short path).
 - **Documents:** `DECISIONS.md` (D1–D35 plus the phase-2, phase-3, phase-4 and phase-5 sections), `WOLFMED_PLAN.md` (phase 1's file-level plan), `WOLFMED_PLAN2.md` (phase 2's), `WOLFMED_PLAN3.md` (phase 3's), `WOLFMED_PLAN4.md` (phase 4's), `WOLFMED_PLAN5.md` (phase 5's), `WOLFMED_MANIFEST.md` (every file: Onyx path, Wolfgate path, status, deviations, including the phase-2 §8.2, phase-3 §8.6, phase-4 §8.4 and phase-5 §8.4 user-decision summaries), `reports/analysis` (phase 1), `reports/analysis/phase2` (phase 2's five analyst reports plus `CRITIQUE2.md`), `reports/analysis/phase3` (phase 3's five analyst reports plus `CRITIQUE3.md`), `reports/analysis/phase4` (phase 4's five analyst reports plus `CRITIQUE4.md`) and `reports/analysis/phase5` (phase 5's five analyst reports plus `CRITIQUE5.md`), `reports/work-packages` (phase 1), `reports/work-packages/phase2` (one report and one verification per WP10-N package), `reports/work-packages/phase3` (one report and one verification per WP11-N package), `reports/work-packages/phase4` (one report and one verification per WP12-N package) and `reports/work-packages/phase5` (one report and one verification per WP13-N package).
-- **Reports:** the per-phase analyst, critique, work-package and verification reports were removed from the repo on 2026-09-14 to slim the PR; they live locally at `C:SERSJZO12DOCUMENTSWOLFMEDPLANeports` (same layout: `analysis/`, `analysis/phaseN/`, `work-packages/`, `work-packages/phaseN/`). Manifest rows that cite `Docs/Wolfmed/reports/...` refer to that local copy.
+- **Reports:** the per-phase analyst, critique, work-package and verification reports were removed from the repo on 2026-09-14 to slim the PR; they live locally at `C:\Users\jzo12\Documents\Wolfmed\plan\reports` (same layout: `analysis/`, `analysis/phaseN/`, `work-packages/`, `work-packages/phaseN/`). Manifest rows that cite `Docs/Wolfmed/reports/...` refer to that local copy.
 
 ## What phase 1 delivers
 

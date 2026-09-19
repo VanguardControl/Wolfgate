@@ -184,3 +184,87 @@ All in `_WF/Wolfmed` data and small `_WF` behaviours; Onyx files untouched. Plan
 - **W7 Treatment matrix + content:** forceps item, skin graft step, antibiotics reagent, shower/water wash interaction, guide and analyzer wording, tests per wound type.
 - **Balance note (2026-09-14):** fractures almost never occur with Onyx's per-hit thresholds (20/35/50/60, 5–100 %) against Wolfgate melee (8–15 Blunt per swing); proposed `_WF` override 12/20/32/45 at 25/50/80/100 % with accumulation 0.8, and optional Piercing fracture profile for heavy rounds — decide with W0.
 - **Art sourcing (2026-09-14):** sprites for the new items (forceps, splint, spent round, shrapnel, skin graft) and phase-7 degradation/debris art may be taken from other SS13/SS14 codebases (tg, CM-SS13, Goon, Bay, other SS14 forks) provided the source license is CC-BY-SA or otherwise compatible and every `meta.json` records license and attribution verbatim. CC-BY-NC-SA and unlicensed art are excluded. Record each borrowed RSI in the manifest with its source repo and commit.
+
+## Final stages (2026-09-19)
+
+Phases 6, 7 and 8 plus the crit heartbeat (WP H) shipped this run: H, W0–W7 (phase 8), V5/V124/V3 (phase 7)
+and P6 (phase 6), 14 work packages, one report each in `C:\Users\jzo12\Documents\Wolfmed\plan\p6\wp\`. The
+decisions below were made by those packages, not re-litigated here; this section exists so the owner does
+not have to open all 14 reports to find them.
+
+**Decisions carried from the individual work-package reports:**
+- **Fracture thresholds are 12/20/32/45 at 25/50/80/100 %** (`WolfmedFractureProfile`, W0), replacing Onyx's
+  20/35/50/60 at 5–100 % because Wolfgate melee (8–15 Blunt per swing) almost never crossed the Onyx bands.
+  `accumulationMultiplier` raised 0.4 → 0.8 alongside it. `BoneFractureWound`'s own stage thresholds were
+  lowered to match (20/35/50/60 → 12/20/32/45) so a fresh Hairline fracture is not below the wound's own
+  lowest stage.
+- **Deterministic damage bands instead of chance rolls, wherever the spec allowed it** (W1, W2): a heavy
+  round (>= 18 Piercing in one hit) always lodges rather than lodging "at high damage or by chance"; the
+  arterial-bleed and tendon-cut thresholds are flat damage bands, not rolls. The one chance roll that
+  remains is internal bleeding at 30 Blunt / 40 % (W3), kept because Onyx's own `InternalBleedingWound`
+  is chance-based. Rarity lives in the thresholds, which keeps the wound suite RNG-free.
+- **No forceps item.** The existing hemostat and tweezers components are the "clean tool" for pulling an
+  embedded object (W1); W7's planned forceps item was dropped because the two components it would have
+  carried already exist and are already lathe-printable and in the surgical crate.
+- **No Piercing fracture profile.** `WolfmedBodyPartComponent.FractureProfile` is a single id and
+  `WoundFractureSystem` assumes one fracture per part (`GetFracture` returns the first, creation bails if
+  one exists, grading re-derives the profile from the part). A second damage type needs a list on the
+  component plus a rewrite of creation, grading and treatment — past the "small marked change" the task
+  allowed, so W0 skipped it as scoped. Still open; see below.
+- **Mechanical wounds keep `healingMultiplier: 1`, not the 0.15 organic nerf** (W0). A welder is the only
+  thing that closes a chassis wound and it works by removing damage; at 0.15 the repeat loop would burn
+  fuel on a wound it could no longer reduce and chassis wounds would become permanently open. Flesh has
+  sutures and surgery for the 0.15 case; chassis does not.
+- **Spaceacillin is not in a medkit** (W7). Every medkit is at 4–8 cells already and `StorageFill` silently
+  drops an entry (and logs an error that fails every pair test) when a kit overflows. The medical vendor
+  (3), `CrateMedicalSupplies` (2) and the chemistry reaction from W5 are three routes without risking a
+  spawn error; the skin graft did fit the burn kit and shipped there instead.
+- **The routing flicker is fixed by client-side suppression, not by prediction** (P6-D1/D2). Wound routing
+  cannot be predicted — wounds are server-side entities in a per-part container and `WoundSystem` refuses
+  to run off the server — so the client now suppresses the *write* of predicted damage onto a wound host's
+  `DamageableComponent` at the existing GUARD D seam (`DamageDealtEvent.Suppressed`, one upstream token)
+  instead of writing and then being overwritten a state later. The report (not the return value) is kept,
+  so melee's red-flash and stamina prediction still fire for the attacker. Cost, already recorded at D35:
+  damage numbers and the health bar move one network state late on wound hosts.
+- **The heartbeat asset's license is pending the project owner's confirmation** (WP H /
+  `Resources/Audio/_WF/Wolfmed/attributions.yml`). The audio and its attributions entry were already on the
+  branch before WP H; the entry reads `license: "Custom"` with copyright text "Source and license to be
+  confirmed by the owner." WP H only wired playback and did not source or re-license the file. Needs an
+  answer before this branch ships to players.
+
+**Every gap still open, for the owner to act on:**
+- No Piercing fracture profile (W0) — see decision above; needs a list-typed `FractureProfile` plus a
+  rewrite of `WoundFractureSystem`'s creation/grading/treatment assumptions if a second fracture type per
+  part is wanted.
+- `Surgery` stays in `WolfmedWoundCause` with nothing deriving it, and no rule filters on it (W1/W7);
+  deriving it would add an upstream hook nothing currently reads, so it was left undone on purpose.
+- Systemic bleeding chemicals (`ModifyBodyBleeding`/`StopBodyBleeding`) still stop an arterial bleed; only
+  the part-targeted topical path is gated behind the arterial-bleed treatment ladder (W2, open per W4).
+- The analyzer names every wound but has no dedicated arterial / dislocated / concussed / numb / residue /
+  mechanical-overheating flag; a medic reads the wound name and the guide's quick reference (W2–W6).
+- Necrosis has no sprite or visual on the limb, only the analyzer flag, the popup and the wound name (W5).
+- The short circuit's spark effect spawns at the body rather than at the struck part, because parts live in
+  nullspace with no coordinate of their own (W6). `WolfmedOverheatingComponent.CoolingPerMinute` is
+  networked but nothing on the client reads it yet.
+- Seven interactions reuse the plain do-after bar with no sound or custom visuals of their own: embedded
+  object removal (W1), joint relocation (W3), deliberate cautery (W4), tourniquet loosening (W5), wrench
+  panel-beating (W6) and the splint (V5). V124 gave five of these a *begin/end sound* through
+  `SoundSpecifier` fields with sane defaults, so only the bar and any bespoke visual are still missing.
+- Spaceacillin has a chemistry reaction and is stocked on the vendor and in a supply crate, but has no
+  lathe recipe and is in no medkit fill (W5/W7, deliberate per the decision above).
+- Fever (infection's Spreading stage) climbs toward a fixed 313 K with no shiver, sweat or other feedback,
+  and nothing reads it back out except the existing temperature UI (W5). Non-sterile *conditions* are not
+  modelled beyond W1's improvised embedded-object removal calling `Contaminate` once (W5).
+- V3's per-part degradation stage thresholds (25/60 summed severity) are a first guess against a
+  dismemberment range of 80–200 and want a playtest pass; the bone overlay reads subtle at 32 px on pale
+  skin tones.
+- No inhand sprite for the splint (V5) — the RSI has room for eight frames. Nothing clears a splint's
+  reduction when the part is amputated (the item is consumed on use, so there is no worn state to clean up
+  and the reduction simply dies with the part).
+- Wound sounds and hit debris are all `PlayPvs`, never predicted, because wound creation is server-only
+  (V124); blood mist is the existing puddle-splatter sprite re-tinted, not bespoke art.
+- Locational armour is unannotated (full coverage) on armoured coats, winter coats and jumpsuits (soft
+  armour over an ambiguous body area), the `_Mono` Aurora exosuit (seals everything except the head), `_NF`
+  brass knuckles (an armour *penalty*, so narrowing its coverage would be a buff) and every non-clothing
+  `- type: Armor` block — all left for a balance pass rather than guessed at (P6-D4/D5).
+- The heartbeat asset's license is pending owner confirmation — see decision above.
