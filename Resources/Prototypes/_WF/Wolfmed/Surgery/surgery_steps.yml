@@ -188,3 +188,65 @@
   - type: WolfmedSurgeryOrganHealEffect
     slot: kidneys
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
+
+# Slash and bite (W2) ---------------------------------------------------------
+# The artery is clamped first and sutured second: WolfmedArterialBleedBehavior refuses every treatment
+# while the bleed is still running, so the clamp step is what makes the suture step possible.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepClampArtery
+  name: Clamp the severed artery
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Hemostat
+    duration: 3
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryIncisionTreatmentEffect
+    wound: WolfmedArterialBleedWound
+    treatment: Clamp
+  - type: WolfmedSurgeryPainEffect
+    amount: 8
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepRepairArtery
+  name: Suture the artery
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Tending
+    duration: 4
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryTreatWoundEffect
+    woundPrototype: WolfmedArterialBleedWound
+  - type: WolfmedSurgeryPainEffect
+    amount: 8
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepRepairTendon
+  name: Repair the tendon
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Tending
+    duration: 5
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryTreatWoundEffect
+    woundPrototype: WolfmedTendonCutWound
+  - type: WolfmedSurgeryPainEffect
+    amount: 10
+  - type: SurgeryStepEmoteEffect

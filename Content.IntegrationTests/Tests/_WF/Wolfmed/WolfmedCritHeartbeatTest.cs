@@ -41,37 +41,54 @@ public sealed class WolfmedCritHeartbeatTest
             var mind = mindSys.CreateMind(session.UserId).Owner;
             mindSys.TransferTo(mind, body);
         });
-        await pair.RunTicksSync(15);
+        await pair.RunTicksSync(30);
         Assert.That(session.AttachedEntity, Is.EqualTo(body), "The player did not attach to the new body.");
 
-        await client.WaitAssertion(() =>
-            Assert.That(heartbeat.Active, Is.False, "Precondition: an alive player hears no heartbeat."));
-
-        await server.WaitPost(() => mobState.ChangeMobState(body, MobState.Critical));
-        await pair.RunTicksSync(15);
-        await client.WaitAssertion(() =>
-        {
-            var clientBody = pair.ToClientUid(body);
-            var clientState = client.EntMan.GetComponent<MobStateComponent>(clientBody).CurrentState;
-            Assert.That(clientState, Is.EqualTo(MobState.Critical), "Precondition: the networked MobState must have reached the client.");
-            Assert.That(heartbeat.Active, Is.True, "Entering crit must start the loop.");
-        });
-
-        await server.WaitPost(() => mobState.ChangeMobState(body, MobState.Alive));
-        await pair.RunTicksSync(15);
-        await client.WaitAssertion(() =>
-            Assert.That(heartbeat.Active, Is.False, "Recovering from crit must stop the loop."));
-
-        await server.WaitPost(() => mobState.ChangeMobState(body, MobState.Critical));
-        await pair.RunTicksSync(15);
-        await client.WaitAssertion(() =>
-            Assert.That(heartbeat.Active, Is.True, "Re-entering crit must restart the loop."));
-
-        await server.WaitPost(() => mobState.ChangeMobState(body, MobState.Dead));
-        await pair.RunTicksSync(15);
-        await client.WaitAssertion(() =>
-            Assert.That(heartbeat.Active, Is.False, "Dying out of crit must stop the loop too."));
+        await AssertHeartbeat(pair, body, MobState.Alive, false,
+            "Precondition: an alive player hears no heartbeat.");
+        await AssertHeartbeat(pair, body, MobState.Critical, true,
+            "Entering crit must start the loop.");
+        await AssertHeartbeat(pair, body, MobState.Alive, false,
+            "Recovering from crit must stop the loop.");
+        await AssertHeartbeat(pair, body, MobState.Critical, true,
+            "Re-entering crit must restart the loop.");
+        await AssertHeartbeat(pair, body, MobState.Dead, false,
+            "Dying out of crit must stop the loop too.");
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Holds the body in a state until the client's copy agrees and reports the expected heartbeat.
+    /// </summary>
+    /// <remarks>
+    /// The state has to be held rather than set once: this mob carries no damage, so its thresholds pull
+    /// it straight back to Alive, and on a recycled pair the client can lose that race and read as a
+    /// failure of the heartbeat instead of one of the wait.
+    /// </remarks>
+    private static async Task AssertHeartbeat(TestPair pair, EntityUid body, MobState state, bool active, string because)
+    {
+        var mobState = pair.Server.EntMan.System<MobStateSystem>();
+        var heartbeat = pair.Client.System<WolfmedCritHeartbeatSystem>();
+        var clientState = MobState.Invalid;
+        var heard = !active;
+
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            await pair.Server.WaitPost(() => mobState.ChangeMobState(body, state));
+            await pair.RunTicksSync(10);
+            await pair.Client.WaitPost(() =>
+            {
+                heard = heartbeat.Active;
+                clientState = pair.Client.EntMan.TryGetComponent(pair.ToClientUid(body), out MobStateComponent? comp)
+                    ? comp.CurrentState
+                    : MobState.Invalid;
+            });
+
+            if (clientState == state && heard == active)
+                return;
+        }
+
+        Assert.Fail($"{because} (client state {clientState}, heartbeat {heard}).");
     }
 }

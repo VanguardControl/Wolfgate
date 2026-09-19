@@ -53,6 +53,20 @@ Any sharp item - a knife, a scalpel, a glass shard - works as well, but takes lo
     <GuideEntityEmbed Entity="KitchenKnife"/>
   </Box>
 
+## Arterial bleeding
+
+An arterial bleed is the one bleed a dressing will not fix. Gauze slows it, buying minutes rather than solving anything, and it will not take the wound's severity no matter how much you use.
+
+On an arm, hand, leg or foot, put a tourniquet on first: that stops the flow outright while it is applied, and only then will sutures close the wound underneath. In the torso or the head there is nothing to tie around, so the patient goes straight to the table: the artery repair surgery clamps the vessel and then sutures it.
+
+## Severed tendons
+
+A severed tendon is mechanical damage, not an open wound, and no topical reaches it. Open the limb and run the tendon repair surgery.
+  <Box>
+    <GuideEntityEmbed Entity="Tourniquet"/>
+    <GuideEntityEmbed Entity="Hemostat"/>
+  </Box>
+
 ## Medicine
 
 Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound.

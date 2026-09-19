@@ -233,7 +233,8 @@ public sealed partial class WoundBleedingSystem : EntitySystem
 
         var wounds = _wounds.GetWounds(part)
             .Select(wound => (Wound: wound, Bleeding: CompOrNull<WoundBleedingComponent>(wound)))
-            .Where(entry => entry.Bleeding is { CurrentRate: > 0f })
+            // WOLFGATE (W2): an arterial bleed does not give up severity to a dressing.
+            .Where(entry => entry.Bleeding is { CurrentRate: > 0f } && AllowsTopicalBleedReduction(entry.Wound))
             .OrderByDescending(entry => entry.Bleeding!.CurrentRate)
             .ToArray();
         var remaining = amount;
@@ -363,7 +364,8 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         if (behavior.AwakeMultiplier > 1f && TryGetBody(core.HoldingPart, out var patient) &&
             !HasComp<SleepingComponent>(patient))
             wound.Comp.BaseRate *= behavior.AwakeMultiplier;
-        var multiplier = core.State == WoundState.Open ? TreatmentMultiplier(wound.Comp.Treatment) : 0f;
+        // WOLFGATE (W2): an arterial bleed answers to its own treatment table; see WoundBleedingSystem.Wolfmed.
+        var multiplier = core.State == WoundState.Open ? GetTreatmentMultiplier(wound.Owner, wound.Comp.Treatment) : 0f;
         wound.Comp.CurrentRate = Math.Max(0f, wound.Comp.BaseRate * multiplier - wound.Comp.NaturalClotting);
         Dirty(wound);
 

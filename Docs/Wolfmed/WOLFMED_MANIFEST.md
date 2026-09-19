@@ -2871,3 +2871,48 @@ Deviations from the spec:
 4. `Hitscan`, `Bite` and `Surgery` exist in the cause enum but nothing derives them yet: hitscan weapons pass
    no tool, and bites arrive through melee as `Unarmed`. Both are one `WolfmedDamageCause` component in YAML
    (or one marked `tool:` argument) away, which is why the flags are already there for W2.
+
+## Final stages: W2 (Slash and bite wounds) (2026-09-19)
+
+Three wounds on W1's rule framework - an arterial bleed, a severed tendon, an avulsion - plus the two
+behaviours they need that no existing system provided: a bleed that only a tourniquet or surgery stops, and
+a limb penalty that does not depend on `wounds.body_part_functionality_enabled` (P2-3 keeps that false).
+
+| Path | Status | Notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | new | Three `WoundBehavior` subclasses. `WolfmedArterialBleedBehavior`: per-treatment bleeding multipliers, `topicalsReduceBleeding`, `requiresStoppedBleedToTreat`, `tourniquetableParts`. `WolfmedLimbPenaltyBehavior`: `movementModifier` / `manipulationModifier`. `WolfmedInfectionRiskBehavior`: `riskMultiplier`, the field W5 reads. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | new | Reads those behaviors off a live wound at its current severity. Cancels `WoundTreatmentAttemptEvent` on an arterial bleed that is still losing blood; refreshes movement speed on wound created/changed/removed (Onyx only does that off fracture events). Public: `TryGetBehavior<T>`, `GetInfectionRisk`, `GetPartInfectionRisk`, `TryGetLimbPenalty`, `CanTourniquet`, `CanTourniquetPart`. |
+| `Content.Server/_WF/Wolfmed/Wounds/WoundBleedingSystem.Wolfmed.cs` | new | Partial of the vendored bleeding system: `GetTreatmentMultiplier` (arterial override table), `AllowsTopicalBleedReduction`, `BandageArterialBleeds`. |
+| `Content.Server/_Onyx/Wounds/WoundBleedingSystem.cs` | modified | Two marked lines: `RefreshWound` routes through `GetTreatmentMultiplier`; `ReducePartBleeding` skips wounds that refuse topical bleed reduction. |
+| `Content.Server/_Onyx/Wounds/WoundHealingSystem.cs` | modified | Marked: `TreatBleeding` also records a dressing on arterial bleeds, which is all gauze achieves there. |
+| `Content.Shared/_Onyx/Wounds/WoundSystem.cs` | modified | Marked block in `HealWounds`: damage removal now raises `WoundTreatmentAttemptEvent` like `TreatWound` does. Closes a W1 gap too - embedded objects blocked `TreatWound` but not the damage path. |
+| `Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs` | modified | Marked block in `GetEffect`: a limb-penalty wound supplies the movement / manipulation multiplier when there is no fracture, before the CVar-gated functionality fallback. |
+| `Content.Server/_Onyx/Medical/Tourniquet/TourniquetSystem.cs` | modified | Marked: `CanApply` also asks `CanTourniquetPart`, `Apply` skips wounds a tourniquet cannot reach, and the refusal popup distinguishes "nothing to tie around" from "not bleeding". |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/slash_bite.yml` | new | `WolfmedArterialBleedWound` (rate 0.8, never clots, `healingMultiplier: 0.15` behind the treatment gate), `WolfmedTendonCutWound` (`healingMultiplier: 0`, limb penalty 0.7 / 1.5), `WolfmedAvulsionWound` (three stages, scars from severity 4, `riskMultiplier: 2.5`). |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | modified | Four rules: avulsion from `Bite` at >= 6; arterial from Slash >= 22 or Piercing >= 30, `replacesDefault: false` + `continue: true`; tendon from Slash >= 16 on limbs. All deterministic. |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | Marked: the three wounds added to `OrganicBodyPartProfile.supportedWounds`. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | `SurgeryStepClampArtery` (hemostat, reuses `WolfmedSurgeryIncisionTreatmentEffect` in Clamp mode), `SurgeryStepRepairArtery`, `SurgeryStepRepairTendon` (both `WolfmedSurgeryTreatWoundEffect`). No new C#. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryRepairArtery` (clamp, suture, seal), `SurgeryRepairTendon` (repair, seal), both gated on the wound. |
+| `Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml` | modified | Marked `WolfmedDamageCause: Bite` on `SimpleSpaceMobBase`, so every simple animal's unarmed attack is a bite. |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Three wound names and `wolfmed-tourniquet-nowhere-to-tie`. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Three new wound entries. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Arterial bleeding" and "Severed tendons" sections. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSlashBiteWoundTest.cs` | new | Seven tests: creation bands, gauze vs tourniquet vs treatment on an arterial bleed, the torso case, tendon penalties applied and cleared, tendon vs topicals, bite to avulsion with the infection field, names and surgeries. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs` | modified | Made deterministic. `ChangeMobState` on an undamaged mob is pulled back to Alive by its thresholds, so on a recycled pair the client could never see the state; the new `AssertHeartbeat` helper holds the state while it waits. Not a W2 behaviour change. |
+
+Deviations from the spec:
+1. **Sutures after a tourniquet are not distinguished from gauze after a tourniquet.** The gate is "the bleed
+   has stopped", not "the item is a suture": gauze and medicated sutures carry the same `treatedDamageTypes`
+   (Slash, Piercing) and the same negative `bloodlossModifier`, so telling them apart would need a new item
+   flag. Without a tourniquet gauze still only slows the bleed and cannot take its severity, which is the part
+   of the spec that carries the gameplay.
+2. **The tendon penalty does not use `WoundFunctionalityBehavior`.** Onyx's route for "this limb is impaired"
+   is gated on `wounds.body_part_functionality_enabled`, which P2-3 deliberately keeps false, so it would have
+   shipped inert. `WolfmedLimbPenaltyBehavior` hooks the fracture branch of `FractureEffectSystem` instead -
+   the same two multipliers, ungated. A fracture on the same limb shadows it, exactly as it already shadows
+   the functionality fallback.
+3. **Deterministic bands, no chance rolls**, following W1: rarity is in the thresholds (22 Slash, 30 Piercing,
+   16 Slash on a limb). One `chance:` line per rule reverses it.
+4. **Systemic bleeding chems still stop an arterial bleed.** `ModifyBodyBleeding` / `StopBodyBleeding` are not
+   gated; only the part-targeted topical path is. A chem that stops all bleeding is a whole-body effect and
+   was left alone, but W4's cauterisation work should decide whether heat seals an artery.

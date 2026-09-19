@@ -32,6 +32,10 @@
     - WolfmedGunshotWound
     - WolfmedLodgedRoundWound
     - WolfmedShrapnelWound
+    # WOLFGATE (W2): slash and bite wounds, also created only by wolfmedWoundRule.
+    - WolfmedArterialBleedWound
+    - WolfmedTendonCutWound
+    - WolfmedAvulsionWound
   organDamage:
     chances:
       Head: 0.05

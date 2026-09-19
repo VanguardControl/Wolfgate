@@ -11,3 +11,11 @@ wolfmed-embedded-removal-success = Something comes free.
 wolfmed-embedded-removal-partial = Something comes free. { $count } left in there.
 
 health-analyzer-wound-embedded-short = embedded objects: { $count }
+
+# Slash and bite wounds (W2).
+
+wolfmed-wound-name-arterial-bleed = arterial bleed
+wolfmed-wound-name-tendon-cut = severed tendon
+wolfmed-wound-name-avulsion = avulsion
+
+wolfmed-tourniquet-nowhere-to-tie = There is nothing here to tie a tourniquet around.

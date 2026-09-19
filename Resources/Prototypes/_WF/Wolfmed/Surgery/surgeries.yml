@@ -206,3 +206,34 @@
     part: Head
   - type: WolfmedSurgeryOrganDamagedCondition
     slot: eyes
+
+# Slash and bite (W2) ---------------------------------------------------------
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRepairArtery
+  name: Repair Severed Artery
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepClampArtery
+    - SurgeryStepRepairArtery
+    - SurgeryStepSealTendWound
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedArterialBleedWound
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRepairTendon
+  name: Repair Severed Tendon
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepRepairTendon
+    - SurgeryStepSealTendWound
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedTendonCutWound

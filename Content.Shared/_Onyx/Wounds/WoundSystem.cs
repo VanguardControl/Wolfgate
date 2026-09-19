@@ -405,6 +405,15 @@ public sealed partial class WoundSystem : EntitySystem
                 continue;
 
             var healed = FixedPoint2.Min(remaining, wound.Comp.Severity);
+            // WOLFGATE (W2): damage removal is a treatment too, so a wound that refuses treatment (an
+            // embedded object, an arterial bleed that is still pumping) refuses this path as well.
+            // Without this the attempt event only covered TreatWound and the damage side walked past it.
+            var attempt = new WoundTreatmentAttemptEvent(part.Owner, wound.Owner, healed);
+            RaiseLocalEvent(part.Owner, ref attempt);
+            RaiseLocalEvent(wound.Owner, ref attempt);
+            if (attempt.Cancelled)
+                continue;
+
             ChangeSeverity(wound.Owner, -healed);
             remaining -= healed;
         }

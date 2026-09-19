@@ -55,6 +55,18 @@ Fragments from a blast or from buckshot, several at a time. It behaves like a lo
     <GuideEntityEmbed Entity="WolfmedShrapnelFragment"/>
   </Box>
 
+## Arterial bleed
+
+A very deep cut, or a very deep puncture, that opened an artery. It bleeds several times faster than any ordinary wound and never clots on its own. Gauze slows it and nothing more; a tourniquet on the limb stops it entirely while it is on, and a torso or head artery cannot be tied off at all. Nothing closes it while it is still pumping - stop the bleeding first, then suture it or repair it surgically.
+
+## Severed tendon
+
+A deep cut to a limb can sever a tendon. In an arm or a hand it makes everything that hand does slower; in a leg or a foot it leaves a limp. It does not bleed, and no amount of gauze, sutures or medicine mends it - only the tendon repair surgery does.
+
+## Avulsion
+
+A bite that tore tissue away rather than cutting it. It bleeds, scars almost every time, and is far more likely than an ordinary wound to go bad if left open.
+
 ## Burn wound
 
 The result of heat or caustic exposure, including a laser or plasma weapon. Its main danger is increasing pain, and it may scar suitable tissue.

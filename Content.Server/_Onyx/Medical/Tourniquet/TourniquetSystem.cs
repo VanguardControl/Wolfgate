@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 — Onyx's TargetingComponent registers as "Targeting", colliding with Shitmed's; use Shitmed's identical field instead
 using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE: D10 — WoundTargetResolver replaces the absent TargetResolverSystem
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE: W2 — arterial bleeds decide where a tourniquet helps
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Systems;
 using Content.Shared.DoAfter;
@@ -19,6 +20,7 @@ public sealed partial class TourniquetSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WoundTargetResolver _targeting = default!; // WOLFGATE: D10 — TargetResolverSystem is absent; signature-exact TryResolveExact replacement
     [Dependency] private WoundBleedingSystem _bleeding = default!;
+    [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W2): which bleeds can be tied off
     [Dependency] private WoundDamageRoutingSystem _damage = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
@@ -57,7 +59,10 @@ public sealed partial class TourniquetSystem : EntitySystem
 
         if (!CanApply(body, part))
         {
-            _popup.PopupEntity(Loc.GetString("tourniquet-no-bleeding"), body, user);
+            // WOLFGATE (W2): an arterial bleed away from the limbs has nowhere to tie off; say so.
+            _popup.PopupEntity(Loc.GetString(_bleeding.GetPartRate(part) > 0f
+                ? "wolfmed-tourniquet-nowhere-to-tie"
+                : "tourniquet-no-bleeding"), body, user);
             return false;
         }
 
@@ -100,7 +105,8 @@ public sealed partial class TourniquetSystem : EntitySystem
         var applied = false;
         foreach (var wound in _wounds.GetWounds((part, Comp<WoundableComponent>(part))).ToArray())
         {
-            if (!TryComp(wound, out WoundBleedingComponent? bleeding) || bleeding.CurrentRate <= 0f)
+            if (!TryComp(wound, out WoundBleedingComponent? bleeding) || bleeding.CurrentRate <= 0f ||
+                !_traits.CanTourniquet(wound.Owner, part)) // WOLFGATE (W2): a torso or head artery cannot be tied off.
                 continue;
 
             applied |= _bleeding.SetTreatment(wound.Owner, BleedingTreatment.Clamped);
@@ -110,5 +116,6 @@ public sealed partial class TourniquetSystem : EntitySystem
     }
 
     private bool CanApply(EntityUid body, EntityUid part) =>
-        _body.BodyHasChild(body, part) && HasComp<WoundableComponent>(part) && _bleeding.GetPartRate(part) > 0f;
+        _body.BodyHasChild(body, part) && HasComp<WoundableComponent>(part) && _bleeding.GetPartRate(part) > 0f &&
+        _traits.CanTourniquetPart(part); // WOLFGATE (W2): nothing to do if every bleed here is untieable.
 }

@@ -4,6 +4,7 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Movement.Systems;
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W2)
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -22,6 +23,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
     [Dependency] private BodyPartFunctionalitySystem _functionality = default!;
     [Dependency] private WoundStatusEffectSystem _statusEffects = default!;
     [Dependency] private FractureAlertSystem _fractureAlerts = default!;
+    [Dependency] private WolfmedWoundTraitSystem _wolfmed = default!; // WOLFGATE (W2): limb penalties from wounds
 
     public override void Initialize()
     {
@@ -172,6 +174,12 @@ public sealed partial class FractureEffectSystem : EntitySystem
             };
             return (modifier, partScale, GetTreatmentScale(profile, fracture.Comp2.Treatment));
         }
+
+        // WOLFGATE (W2): Wolfmed's mechanical wounds (a severed tendon) answer here rather than through
+        // the functionality fallback below, which is inert while wounds.body_part_functionality_enabled
+        // stays false (P2-3). A fracture shadows them, as it already shadows the fallback.
+        if (_wolfmed.TryGetLimbPenalty(part, kind == EffectKind.Mobility, out var wolfmed))
+            return (wolfmed, partScale, 1f);
 
         var state = _functionality.GetState(part);
         var fallback = kind switch

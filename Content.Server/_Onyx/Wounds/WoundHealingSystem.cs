@@ -166,7 +166,9 @@ public sealed partial class WoundHealingSystem : EntitySystem
 
     private bool TreatBleeding(EntityUid part, float amount)
     {
-        return _bleeding.ReducePartBleeding(part, FixedPoint2.New(amount));
+        var reduced = _bleeding.ReducePartBleeding(part, FixedPoint2.New(amount));
+        // WOLFGATE (W2): a dressing cannot take an arterial bleed's severity, only slow its rate.
+        return _bleeding.BandageArterialBleeds(part) | reduced;
     }
 
     public bool IsCompatiblePart(

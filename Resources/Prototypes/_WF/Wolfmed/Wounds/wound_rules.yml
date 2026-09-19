@@ -5,6 +5,62 @@
 # Adding one: write the wound with `ruleOnly: true`, add it to the part profile's supportedWounds, then a
 # rule here. No C#.
 
+# Slash and bite (W2) ---------------------------------------------------------
+# Deterministic bands, like the ballistic ones below: a medic can read what a hit meant off the analyzer,
+# and the tests stay RNG-free. Rarity comes from the thresholds, not from a chance roll.
+
+# A bite tears tissue out rather than cutting it. Replaces the plain cut or puncture.
+- type: wolfmedWoundRule
+  id: WolfmedRuleAvulsion
+  priority: 80
+  wound: WolfmedAvulsionWound
+  damageTypes: [ Slash, Piercing ]
+  causes: [ Bite ]
+  minDamage: 6
+  capabilities: [ Biological ]
+
+# A cut deep enough to open an artery. Added to the cut rather than replacing it, and `continue` lets the
+# tendon rule roll on the same swing: one bad hit can do both.
+- type: wolfmedWoundRule
+  id: WolfmedRuleArterialBleedSlash
+  priority: 70
+  wound: WolfmedArterialBleedWound
+  damageTypes: [ Slash ]
+  minDamage: 22
+  severityMultiplier: 0.5
+  minSeverity: 8
+  replacesDefault: false
+  continue: true
+  capabilities: [ Biological ]
+
+# A puncture has to be deeper again to reach one.
+- type: wolfmedWoundRule
+  id: WolfmedRuleArterialBleedPiercing
+  priority: 69
+  wound: WolfmedArterialBleedWound
+  damageTypes: [ Piercing ]
+  minDamage: 30
+  severityMultiplier: 0.5
+  minSeverity: 8
+  replacesDefault: false
+  continue: true
+  capabilities: [ Biological ]
+
+# A limb only. A tendon in the torso or the head is not a thing a medic can splint around.
+- type: wolfmedWoundRule
+  id: WolfmedRuleTendonCut
+  priority: 60
+  wound: WolfmedTendonCutWound
+  damageTypes: [ Slash ]
+  minDamage: 16
+  severityMultiplier: 0.5
+  minSeverity: 5
+  partTypes: [ Arm, Hand, Leg, Foot ]
+  replacesDefault: false
+  capabilities: [ Biological ]
+
+# Ballistic (W1) ---------------------------------------------------------------
+
 # Explosions and buckshot leave fragments in the flesh. Explosion damage is split across parts, so the
 # per-part share is small; the floor is deliberately low.
 - type: wolfmedWoundRule
