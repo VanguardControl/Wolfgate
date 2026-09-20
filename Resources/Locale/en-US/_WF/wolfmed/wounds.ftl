@@ -1,4 +1,4 @@
-﻿# Ballistic wounds and pulling objects back out of them (W1).
+# Ballistic wounds and pulling objects back out of them (W1).
 
 wolfmed-wound-name-graze = graze
 wolfmed-wound-name-gunshot = gunshot wound
