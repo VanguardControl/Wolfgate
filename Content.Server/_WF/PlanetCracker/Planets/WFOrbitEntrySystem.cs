@@ -61,6 +61,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
 
         _nextRefresh = _timing.CurTime + RefreshInterval;
         Refresh();
+        SweepApproaches();
     }
 
     /// <summary>Recomputes what every shuttle console offers, so the button tracks the hull instead of the BUI state.</summary>
@@ -273,6 +274,8 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             return false;
         }
 
+        MarkApproach(hull.Value.Owner, planetUid, true);
+
         _nextRefresh = TimeSpan.Zero;
         return true;
     }
@@ -310,6 +313,8 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             reason = Loc.GetString("wf-orbit-refused");
             return false;
         }
+
+        MarkApproach(hull.Value.Owner, body.Value, false);
 
         _nextRefresh = TimeSpan.Zero;
         return true;

@@ -30,6 +30,7 @@ public sealed partial class WFGravityWellSystem : EntitySystem
     [Dependency] private ShuttleSystem _shuttle = default!;
     [Dependency] private ShipPaSystem _pa = default!;
     [Dependency] private WFOrbitDecaySystem _decay = default!;
+    [Dependency] private WFOrbitEntrySystem _orbitEntry = default!;
 
     /// <summary>Pull at the rim of the well and at the capture line, in m/s².</summary>
     public const float RimAcceleration = 0.15f;
@@ -42,12 +43,25 @@ public sealed partial class WFGravityWellSystem : EntitySystem
     /// <summary>Fraction of the orbit range inside which an adrift hull is captured onto the orbit layer.</summary>
     public const float CaptureFraction = 0.35f;
 
+    /// <summary>
+    /// How long a hull must have been adrift inside a well before it is pulled at all, and before it can be captured.
+    /// A breaker tripping, a brownout or an FTL arrival all read as "no thrust" for a moment; none of them is a wreck.
+    /// </summary>
+    public static readonly TimeSpan PullDelay = TimeSpan.FromSeconds(10);
+    public static readonly TimeSpan CaptureDelay = TimeSpan.FromSeconds(30);
+
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(1);
 
     private TimeSpan _nextSweep;
 
     /// <summary>Hulls in a well this sweep, with the body pulling them and its orbit layer.</summary>
     private readonly Dictionary<EntityUid, (EntityUid Body, EntityUid Orbit, float Range)> _pulled = new();
+
+    /// <summary>When each hull in a well was first seen adrift there; dropped the sweep it is not.</summary>
+    private readonly Dictionary<EntityUid, TimeSpan> _adriftSince = new();
+
+    /// <summary>Hulls adrift in a well this sweep, pulled yet or not.</summary>
+    private readonly HashSet<EntityUid> _adrift = new();
 
     /// <summary>Hulls already warned, so the PA speaks once per fall rather than once per sweep.</summary>
     private readonly HashSet<EntityUid> _warned = new();
@@ -75,10 +89,12 @@ public sealed partial class WFGravityWellSystem : EntitySystem
     private void Sweep()
     {
         _pulled.Clear();
+        _adrift.Clear();
 
         if (!_cfg.GetCVar(PlanetCrackerCVars.PlanetNetworks))
         {
             _warned.Clear();
+            _adriftSince.Clear();
             return;
         }
 
@@ -112,6 +128,12 @@ public sealed partial class WFGravityWellSystem : EntitySystem
                 if (distance > orbit.Range || _decay.HasStationKeeping(grid))
                     continue;
 
+                _adrift.Add(grid);
+                _adriftSince.TryAdd(grid, _timing.CurTime);
+
+                if (_timing.CurTime < _adriftSince[grid] + PullDelay)
+                    continue;
+
                 // Two wells overlapping: the nearer body wins.
                 if (_pulled.TryGetValue(grid, out var other)
                     && (_transform.GetWorldPosition(other.Body) - _transform.GetWorldPosition(xform)).Length() <= distance)
@@ -136,7 +158,9 @@ public sealed partial class WFGravityWellSystem : EntitySystem
 
             var distance = (_transform.GetWorldPosition(well.Body) - _transform.GetWorldPosition(grid)).Length();
 
-            if (distance <= well.Range * CaptureFraction && TryCapture(grid, well.Orbit))
+            if (distance <= well.Range * CaptureFraction
+                && _timing.CurTime >= _adriftSince[grid] + CaptureDelay
+                && TryCapture(grid, well.Body, well.Orbit))
                 _scratch.Add(grid);
         }
 
@@ -146,15 +170,32 @@ public sealed partial class WFGravityWellSystem : EntitySystem
         }
 
         _warned.RemoveWhere(grid => !_pulled.ContainsKey(grid));
+
+        _scratch.Clear();
+
+        foreach (var grid in _adriftSince.Keys)
+        {
+            if (!_adrift.Contains(grid))
+                _scratch.Add(grid);
+        }
+
+        foreach (var grid in _scratch)
+        {
+            _adriftSince.Remove(grid);
+        }
     }
 
     /// <summary>Hands a hull to the orbit layer at the spot it occupies, through the same hop the console uses.</summary>
-    private bool TryCapture(EntityUid grid, EntityUid orbit)
+    private bool TryCapture(EntityUid grid, EntityUid body, EntityUid orbit)
     {
         if (!TryComp<ShuttleComponent>(grid, out var shuttle) || !_shuttle.CanFTL(grid, out _))
             return false;
 
-        return _shuttle.WfFTLToLayer((grid, shuttle), orbit, _transform.GetWorldPosition(grid));
+        if (!_shuttle.WfFTLToLayer((grid, shuttle), orbit, _transform.GetWorldPosition(grid)))
+            return false;
+
+        _orbitEntry.MarkApproach(grid, body, true);
+        return true;
     }
 
     /// <summary>One frame of pull: infall is topped up towards the local limit, never pushed past it.</summary>
