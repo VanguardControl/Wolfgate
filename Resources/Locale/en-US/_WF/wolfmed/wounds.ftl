@@ -1,4 +1,4 @@
-# Ballistic wounds and pulling objects back out of them (W1).
+﻿# Ballistic wounds and pulling objects back out of them (W1).
 
 wolfmed-wound-name-graze = graze
 wolfmed-wound-name-gunshot = gunshot wound
@@ -117,7 +117,7 @@ wolfmed-splint-start = { CAPITALIZE(THE($user)) } straps a splint around { THE($
 wolfmed-splint-start-self = { CAPITALIZE(THE($user)) } starts strapping a splint around { POSS-ADJ($user) } own limb.
 wolfmed-splint-success = The limb is braced. The bone stops shifting.
 wolfmed-splint-no-part = Select the limb to splint on the targeting doll first.
-wolfmed-splint-wrong-part = A splint goes around an arm or a leg. Nothing else here can be braced.
+wolfmed-splint-wrong-part = A splint cannot brace that part.
 wolfmed-splint-no-fracture = There is no broken bone there.
 wolfmed-splint-too-slight = The crack is too slight for a splint to hold anything.
 wolfmed-splint-already-treated = That bone is already set.
