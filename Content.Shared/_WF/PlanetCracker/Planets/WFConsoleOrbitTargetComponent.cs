@@ -18,6 +18,10 @@ public sealed partial class WFConsoleOrbitTargetComponent : Component
     [DataField, AutoNetworkedField]
     public string PlanetName = string.Empty;
 
+    /// <summary>True when <see cref="Planet"/> is a world nobody is cleared to visit; entering its orbit asks first.</summary>
+    [DataField, AutoNetworkedField]
+    public bool Unsanctioned;
+
     /// <summary>True when the hull is parked on a planet orbit layer, which is what offers "leave orbit" instead.</summary>
     [DataField, AutoNetworkedField]
     public bool InOrbit;

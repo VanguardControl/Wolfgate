@@ -12,10 +12,14 @@ public sealed class WFEnterPlanetOrbitMessage : BoundUserInterfaceMessage
     /// <summary>The sector body whose orbit was asked for, so a stale button cannot silently target another world.</summary>
     public NetEntity Planet;
 
-    public WFEnterPlanetOrbitMessage(NetEntity console, NetEntity planet)
+    /// <summary>True once the pilot has pressed through the unsanctioned-world warning.</summary>
+    public bool Confirmed;
+
+    public WFEnterPlanetOrbitMessage(NetEntity console, NetEntity planet, bool confirmed = false)
     {
         Console = console;
         Planet = planet;
+        Confirmed = confirmed;
     }
 }
 

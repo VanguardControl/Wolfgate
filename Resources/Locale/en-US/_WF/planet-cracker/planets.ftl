@@ -43,3 +43,14 @@ cmd-wfplanet-hint-sub = <list|build|delete|spawn|system|tp>
 cmd-wfplanet-hint-planet = <planet name>
 cmd-wfplanet-hint-surface = <wfPlanetSurface id>
 cmd-wfplanet-hint-system = <starSystem id>
+
+# Unsanctioned worlds
+wf-orbit-unsanctioned-title = Unsanctioned world
+wf-orbit-unsanctioned-text = [color=#ff3030][bold]{ $planet } is not a sanctioned world.[/bold][/color]
+    Entering its orbit is a breach of sector law, and nobody is coming for a hull lost there.
+wf-orbit-unsanctioned-proceed = Enter orbit
+wf-orbit-unsanctioned-abort = Abort
+wf-orbit-unsanctioned-unconfirmed = { $planet } is unsanctioned. Confirm the entry at the console.
+
+# Gravity well
+wf-gravity-well-warning = Warning: { $ship } is adrift inside the gravity well of { $planet }. Restore thrust or be pulled into orbit.

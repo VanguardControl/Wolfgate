@@ -147,6 +147,10 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             }
         }
 
+        var unsanctioned = TryGetEntity(planet, out var planetUid)
+            && TryComp<WFSectorPlanetComponent>(planetUid, out var planetSector)
+            && !planetSector.Sanctioned;
+
         if (planet is null && !inOrbit && !liftoffAvailable && !liftoffActive)
         {
             RemCompDeferred<WFConsoleOrbitTargetComponent>(console);
@@ -158,6 +162,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         if (comp.Planet == planet
             && comp.PlanetName == planetName
             && comp.InOrbit == inOrbit
+            && comp.Unsanctioned == unsanctioned
             && comp.Busy == busy
             && comp.LiftoffAvailable == liftoffAvailable
             && comp.LiftoffActive == liftoffActive
@@ -172,6 +177,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         comp.Planet = planet;
         comp.PlanetName = planetName;
         comp.InOrbit = inOrbit;
+        comp.Unsanctioned = unsanctioned;
         comp.Busy = busy;
         comp.LiftoffAvailable = liftoffAvailable;
         comp.LiftoffActive = liftoffActive;
@@ -330,6 +336,13 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
     {
         if (GetEntity(args.Console) != uid || !IsPilot(args.Actor, uid) || !TryGetEntity(args.Planet, out var planet))
             return;
+
+        // The dialog is the explanation, this is the gate: an unsanctioned world is only entered on a confirmed request.
+        if (!args.Confirmed && TryComp<WFSectorPlanetComponent>(planet, out var sector) && !sector.Sanctioned)
+        {
+            _popup.PopupEntity(Loc.GetString("wf-orbit-unsanctioned-unconfirmed", ("planet", Name(planet.Value))), uid, args.Actor);
+            return;
+        }
 
         if (!TryEnterOrbit(uid, planet.Value, out var reason))
             _popup.PopupEntity(reason, uid, args.Actor);

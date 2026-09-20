@@ -29,6 +29,7 @@ public sealed partial class WFOrbitButton : BoxContainer
     private readonly Label _decayLabel;
 
     private WFEnterAtmosphereConfirmWindow? _confirm;
+    private WFUnsanctionedOrbitConfirmWindow? _unsanctionedConfirm;
 
     private EntityUid? _console;
 
@@ -234,7 +235,15 @@ public sealed partial class WFOrbitButton : BoxContainer
         if (target.Planet is not { } planet)
             return;
 
-        _ui.ClientSendUiMessage(console, ShuttleConsoleUiKey.Key, new WFEnterPlanetOrbitMessage(netConsole, planet));
+        if (!target.Unsanctioned)
+        {
+            _ui.ClientSendUiMessage(console, ShuttleConsoleUiKey.Key, new WFEnterPlanetOrbitMessage(netConsole, planet));
+            return;
+        }
+
+        _unsanctionedConfirm ??= new WFUnsanctionedOrbitConfirmWindow();
+        _unsanctionedConfirm.Ask(target.PlanetName,
+            () => _ui.ClientSendUiMessage(console, ShuttleConsoleUiKey.Key, new WFEnterPlanetOrbitMessage(netConsole, planet, true)));
     }
 
     /// <summary>
