@@ -21,6 +21,7 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -58,8 +59,7 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
                 continue;
 
             var progress = (float) (now - splatter.StartedAt).TotalSeconds / splatter.Travel;
-            _sprite.SetOffset((uid, sprite),
-                new Angle(splatter.Angle).ToVec() * splatter.Distance * Math.Clamp(progress, 0f, 1f));
+            Aim((uid, sprite), splatter, Math.Clamp(progress, 0f, 1f));
         }
     }
 
@@ -70,11 +70,19 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
 
         _sprite.SetColor((splatter.Owner, sprite), splatter.Comp.Color);
         _sprite.LayerSetRsiState((splatter.Owner, sprite), 0, splatter.Comp.State);
-        // FIX1: the state is single-direction and the sprite has noRot, so its own rotation is a world
-        // angle: the camera, the grid and the entity's rotation all leave it alone. The art points along
-        // +X, which is where a rotation of zero puts it, so the angle goes on unchanged.
-        _sprite.SetRotation((splatter.Owner, sprite), new Angle(splatter.Comp.Angle));
-        _sprite.SetOffset((splatter.Owner, sprite), Vector2.Zero);
+        Aim((splatter.Owner, sprite), splatter.Comp, 0f);
+    }
+
+    /// <summary>
+    /// Points and places the spray in WORLD space. A sprite's rotation and offset are local to its entity, and
+    /// the entity rides a grid that may be turned (and turning), so the entity's world rotation comes off the
+    /// networked world angle every frame. The art points along +X at zero.
+    /// </summary>
+    private void Aim(Entity<SpriteComponent> sprite, WolfmedHitSplatterComponent splatter, float progress)
+    {
+        var local = new Angle(splatter.Angle) - _transform.GetWorldRotation(sprite.Owner);
+        _sprite.SetRotation((sprite.Owner, sprite.Comp), local);
+        _sprite.SetOffset((sprite.Owner, sprite.Comp), local.ToVec() * splatter.Distance * progress);
     }
 
     private void Apply(Entity<WolfmedBloodSplatComponent> splat)
@@ -84,21 +92,5 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
 
         _sprite.SetColor((splat.Owner, sprite), splat.Comp.Color);
         _sprite.LayerSetRsiState((splat.Owner, sprite), 0, splat.Comp.State);
-        Face((splat.Owner, sprite), splat.Comp.Angle);
-    }
-
-    /// <summary>
-    /// Points a directional state without turning the picture. The entity's own rotation cannot do this:
-    /// the direction is a world direction, not one of the camera's. FIX1: the angle is exact, so it is
-    /// snapped here to whichever directions this particular wall state actually has.
-    /// </summary>
-    private void Face(Entity<SpriteComponent> splat, float angle)
-    {
-        var world = new Angle(angle) + MathHelper.PiOver2;
-        var eight = _sprite.TryGetLayer(splat.Owner, 0, out var layer, false) &&
-                    layer.ActualState?.RsiDirections == RsiDirectionType.Dir8;
-
-        splat.Comp.DirectionOverride = eight ? world.GetDir() : world.GetCardinalDir();
-        splat.Comp.EnableDirectionOverride = true;
     }
 }

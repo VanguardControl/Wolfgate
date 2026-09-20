@@ -15,9 +15,11 @@
     lifetime: 1.2
   - type: Sprite
     drawdepth: Effects
-    # FIX1: the spray leaves on the exact angle of the hit, so it uses the single-direction "_free" states
-    # and is rotated into place. noRot makes that rotation a world angle rather than a screen one.
-    noRot: true
+    # The spray leaves on the exact angle of the hit, so it uses the single-direction "_free" states and is
+    # rotated into place. NOT noRot: noRot pins a sprite to the SCREEN, so on a ship (where the camera turns
+    # with the grid) the spray flew off at the camera's angle from the true line. The client turns the sprite
+    # against the entity's world rotation each frame instead.
+    noRot: false
     sprite: _WF/Wolfmed/Effects/blood_splatter.rsi
     state: hitsplatter1_free
   - type: Tag
@@ -40,8 +42,9 @@
     lifetime: 900
   - type: Sprite
     drawdepth: WallTops
-    noRot: true
-    enableOverrideDir: true
+    # Not noRot and no direction override: the server turns the entity itself, snapped to the grid's axes, and
+    # the ordinary directional rendering does the rest for every camera angle.
+    noRot: false
     sprite: _WF/Wolfmed/Effects/blood_splatter.rsi
     state: splatter1
   - type: Tag

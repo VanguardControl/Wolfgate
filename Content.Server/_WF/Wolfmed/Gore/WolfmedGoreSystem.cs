@@ -109,7 +109,15 @@ public sealed class WolfmedGoreSystem : EntitySystem
         // is the line it came in on and already points away from whoever fired it.
         if (tool is { } projectile && !TerminatingOrDeleted(projectile) &&
             TryComp(projectile, out PhysicsComponent? physics) && physics.LinearVelocity.LengthSquared() > 0.01f)
-            return physics.LinearVelocity;
+        {
+            // LinearVelocity is in the PARENT's frame. A bullet crossing a ship is parented to the ship, so on a
+            // turned grid the raw vector points the wrong way by the grid's rotation. Turn it into world
+            // orientation, but do not add the grid's own velocity: the line that matters is relative to the deck.
+            var parent = Transform(projectile).ParentUid;
+            return parent.IsValid()
+                ? _transform.GetWorldRotation(parent).RotateVec(physics.LinearVelocity)
+                : physics.LinearVelocity;
+        }
 
         var target = _transform.GetMapCoordinates(body);
         foreach (var source in new[] { tool, origin })
@@ -235,6 +243,13 @@ public sealed class WolfmedGoreSystem : EntitySystem
         // Facing back the way it came, so the mark reads as something that hit the wall from the room.
         comp.Angle = (float) (splat.Angle + Math.PI).Theta;
         Dirty(entity, comp);
+
+        // Turn the entity itself to face back at the source, snapped to the grid's own axes (walls are grid
+        // aligned). A vector angle (0 = +X) becomes an entity rotation (0 = south) by a quarter turn; the
+        // grid's world rotation comes off because this is a local rotation.
+        var facing = new Angle(comp.Angle) + MathHelper.PiOver2 - _transform.GetWorldRotation(splat.Grid);
+        var snapped = Math.Round(facing.Theta / MathHelper.PiOver4) * MathHelper.PiOver4;
+        _transform.SetLocalRotation(entity, new Angle(snapped));
     }
 
     private void PlaceFloor(PendingSplat splat, MapGridComponent grid)

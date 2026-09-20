@@ -237,6 +237,60 @@ public sealed class WolfmedGoreTest : GameTest
     }
 
     /// <summary>
+    /// The spray follows the hit's line in WORLD space on a turned grid. Every other test here uses an unturned
+    /// map, which is how a screen-space (noRot) sprite passed them all and then flew off sideways on a ship,
+    /// where the grid, and the camera with it, are rotated.
+    /// </summary>
+    [Test]
+    public async Task SprayHoldsItsWorldLineOnATurnedGridTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var clientEntities = Pair.Client.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        var spray = EntityUid.Invalid;
+
+        await server.WaitPost(() => Floor(entities, map, 4));
+
+        await server.WaitAssertion(() =>
+        {
+            var gore = entities.System<WolfmedGoreSystem>();
+            var transform = entities.System<SharedTransformSystem>();
+            var profile = entities.System<WolfmedWoundSfxSystem>().Profile!;
+
+            // A ship lying a quarter turn off the map's axes.
+            transform.SetWorldRotation(map.Grid, Angle.FromDegrees(90));
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            spray = gore.TrySpawnSplatter(body, profile.HitSplatter, Vector2.UnitX, FixedPoint2.New(30))!.Value;
+            Assert.That(entities.GetComponent<WolfmedHitSplatterComponent>(spray).Angle, Is.EqualTo(0f).Within(0.001f),
+                "the networked angle is the world angle of the hit: due +X.");
+        });
+
+        await Pair.RunTicksSync(20);
+
+        await Pair.Client.WaitAssertion(() =>
+        {
+            var mirror = clientEntities.GetEntity(entities.GetNetEntity(spray));
+            var sprite = clientEntities.GetComponent<SpriteComponent>(mirror);
+            var world = clientEntities.System<SharedTransformSystem>().GetWorldRotation(mirror);
+
+            // What is on screen is the entity's world rotation plus the sprite's own.
+            var drawn = (world + sprite.Rotation).Reduced();
+            Assert.Multiple(() =>
+            {
+                Assert.That(Math.Abs(Angle.ShortestDistance(drawn, Angle.Zero).Theta), Is.LessThan(0.01),
+                    $"the art must point along world +X whatever the grid is doing; it points at {drawn.Degrees:0} degrees.");
+
+                var travelled = world.RotateVec(sprite.Offset);
+                Assert.That(travelled.X, Is.GreaterThan(0.05f), "and it travels along world +X");
+                Assert.That(Math.Abs(travelled.Y), Is.LessThan(0.05f), "not sideways.");
+            });
+        });
+    }
+
+    /// <summary>
     /// The spray that reaches a wall leaves an entity on it, facing back the way it came; the spray that
     /// does not leaves a cleanable decal where it stopped. Both carry the blood colour.
     /// </summary>
