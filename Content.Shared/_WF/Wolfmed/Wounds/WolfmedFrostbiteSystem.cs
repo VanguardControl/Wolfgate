@@ -54,6 +54,8 @@ public sealed class WolfmedFrostbiteSystem : EntitySystem
         if (!_net.IsServer)
             return;
 
+        // Buffered: Refresh adds or removes the component being walked.
+        List<EntityUid>? due = null;
         var query = EntityQueryEnumerator<WolfmedFrostbiteComponent>();
         while (query.MoveNext(out var uid, out var frostbite))
         {
@@ -62,7 +64,16 @@ public sealed class WolfmedFrostbiteSystem : EntitySystem
                 continue;
 
             frostbite.Accumulator = 0f;
-            Refresh(uid);
+            (due ??= new List<EntityUid>()).Add(uid);
+        }
+
+        if (due == null)
+            return;
+
+        foreach (var part in due)
+        {
+            if (!TerminatingOrDeleted(part))
+                Refresh(part);
         }
     }
 

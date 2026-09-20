@@ -95,10 +95,15 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
 
         // A tourniquet stays a tourniquet only while something under it is still clamped shut; sutures or
         // surgery on the wound underneath take the clock off with them.
+        // Buffered: both loops add and remove the components they walk.
+        var clamped = new List<EntityUid>();
         var tourniquets = EntityQueryEnumerator<WolfmedTourniquetComponent>();
-        while (tourniquets.MoveNext(out var uid, out _))
+        while (tourniquets.MoveNext(out var tourniquetUid, out _))
+            clamped.Add(tourniquetUid);
+
+        foreach (var uid in clamped)
         {
-            if (TerminatingOrDeleted(uid))
+            if (TerminatingOrDeleted(uid) || !HasComp<WolfmedTourniquetComponent>(uid))
                 continue;
 
             if (!IsClamped(uid))
@@ -111,10 +116,17 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
             Start(uid, WolfmedNecrosisSource.Tourniquet, profile.TourniquetOnset);
         }
 
+        var dyingParts = new List<EntityUid>();
         var dying = EntityQueryEnumerator<WolfmedNecrosisComponent>();
-        while (dying.MoveNext(out var uid, out var necrosis))
+        while (dying.MoveNext(out var dyingUid, out _))
+            dyingParts.Add(dyingUid);
+
+        foreach (var uid in dyingParts)
         {
-            if (necrosis.Necrotic || necrosis.Onset <= TimeSpan.Zero || TerminatingOrDeleted(uid))
+            if (TerminatingOrDeleted(uid) || !TryComp(uid, out WolfmedNecrosisComponent? necrosis))
+                continue;
+
+            if (necrosis.Necrotic || necrosis.Onset <= TimeSpan.Zero)
                 continue;
 
             necrosis.Progress += seconds;

@@ -616,6 +616,65 @@ public sealed class WolfmedInfectionTest : GameTest
     }
 
     /// <summary>Seconds for a number of minutes of model time.</summary>
+    /// <summary>
+    /// A tick adds and removes the components it walks (a wound closes, a septic body takes damage that
+    /// opens new wounds). Live enumeration threw "Collection was modified" and took the server down.
+    /// </summary>
+    [Test]
+    public async Task TickSurvivesWoundsChangingUnderItTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var infection = entities.System<WolfmedInfectionSystem>();
+            var necrosis = entities.System<WolfmedNecrosisSystem>();
+            var wounds = entities.System<WoundSystem>();
+
+            var closing = new List<EntityUid>();
+            for (var i = 0; i < 4; i++)
+            {
+                var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+                Damage(entities, body, TargetBodyPart.Torso, "Slash", 20);
+                Damage(entities, body, TargetBodyPart.LeftArm, "Slash", 10);
+                Damage(entities, body, TargetBodyPart.RightLeg, "Piercing", 10);
+                Damage(entities, body, TargetBodyPart.Head, "Heat", 10);
+                closing.Add(FindWound(entities, Part(entities, body, BodyPartType.Torso), "SlashWound"));
+
+                // One point under the burn's top stage: the infection's severity creep pushes it over, and
+                // that stage spawns a charring wound, which is itself infectable. That is a component added
+                // to the set the tick is walking.
+                wounds.CreateOrMergeWound(Part(entities, body, BodyPartType.Torso), "BurnWound", 79);
+            }
+
+            Assert.DoesNotThrow(() =>
+            {
+                for (var step = 0; step < 12; step++)
+                {
+                    // Close one wound per body part-way through so the tick meets healed wounds too.
+                    if (step == 3)
+                    {
+                        foreach (var wound in closing.Skip(2))
+                            wounds.SetWoundState(wound, WoundState.Healed);
+                    }
+
+                    // New wounds arrive between and because of ticks.
+                    if (step % 4 == 1)
+                    {
+                        var extra = entities.SpawnEntity("MobHuman", map.GridCoords);
+                        Damage(entities, extra, TargetBodyPart.Torso, "Slash", 15);
+                    }
+
+                    infection.Update(Minutes(5));
+                    necrosis.Update(Minutes(5));
+                }
+            });
+        });
+    }
+
     private static float Minutes(float minutes) => minutes * 60f;
 
     private static float Progress(IEntityManager entities, EntityUid wound) =>

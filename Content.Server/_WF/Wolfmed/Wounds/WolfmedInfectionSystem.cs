@@ -117,13 +117,28 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         var minutes = elapsed / 60f * _config.GetCVar(WolfmedCVars.InfectionRate);
         var profile = Profile;
 
+        // Buffered: a tick removes the component, and its damage can create wounds that gain one.
+        var dueWounds = new List<Entity<WolfmedInfectionComponent, WoundComponent>>();
         var wounds = EntityQueryEnumerator<WolfmedInfectionComponent, WoundComponent>();
         while (wounds.MoveNext(out var uid, out var infection, out var wound))
-            TickWound((uid, infection, wound), profile, minutes);
+            dueWounds.Add((uid, infection, wound));
 
+        foreach (var due in dueWounds)
+        {
+            if (!TerminatingOrDeleted(due) && HasComp<WolfmedInfectionComponent>(due))
+                TickWound(due, profile, minutes);
+        }
+
+        var dueSepsis = new List<Entity<WolfmedSepsisComponent>>();
         var sepsis = EntityQueryEnumerator<WolfmedSepsisComponent>();
         while (sepsis.MoveNext(out var uid, out var component))
-            TickSepsis((uid, component), profile, minutes);
+            dueSepsis.Add((uid, component));
+
+        foreach (var due in dueSepsis)
+        {
+            if (!TerminatingOrDeleted(due) && HasComp<WolfmedSepsisComponent>(due))
+                TickSepsis(due, profile, minutes);
+        }
     }
 
     private void TickWound(Entity<WolfmedInfectionComponent, WoundComponent> wound,
