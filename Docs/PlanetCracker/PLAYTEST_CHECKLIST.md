@@ -373,3 +373,17 @@ Do not report these.
 - Click a pustule tree with an empty hand: receive exactly one flesh pustule and hear pustule_pop. Repeat harvesting gives nothing. Harvested terrain is pinned so leaving/re-entering cannot refill it.
 - Eat the item for 15 units Natural Letoferol and 5 Nutriment in one bite. Click clear ground within two tiles to plant a normal nest, or throw it to trigger the usual nest-breaking sound, Letoferol spill and three ticks on impact. Merely dropping it does not pop it.
 - Impact bursts still pop at the population cap, but omit tick spawning when capacity is exhausted; they never leave an armed grenade behind or bypass the cap.
+
+
+## Orbit rules, gravity wells and planet gear (2026-09-20)
+
+- **Jetpacks.** Step off a hull on the orbit layer with a jetpack on: you hold the layer. Switch it off, or let the tank run dry, and you fall (and are maimed on the surface, as before). On any layer below orbit the pack refuses to start ("cannot hold you up in atmosphere"), and a wearer carried below orbit on a hull has the pack cut.
+- **Unsanctioned worlds.** *Enter orbit* on an unsanctioned world opens a red warning first; Abort sends nothing, *Enter orbit* proceeds. A raw unconfirmed request is refused server-side with a popup. Flip a world's sanction from the admin panel to test both.
+- **Gravity well.** Park a shuttle inside a world's orbit range in open space and cut every linear thruster (or its power). The PA warns once, the hull drifts towards the body, slowly at the rim and faster close in, and inside 35% of the range it is captured onto the orbit layer, where orbit decay takes over. Any running linear thruster, a force anchor, or a dock to a powered hull stops the pull.
+- **Approach cinematic.** Enter orbit from the console: after spool-up the hyperspace tunnel is replaced by the planet itself, starting where it stood in the sector sky and swelling to fill the view; leaving orbit plays the reverse. Only the crew of the hopping hull see it; a hull docked to it still sees the tunnel.
+- **Building on the surface.** Rods lay lattice straight onto natural ground; plating and floors then go on as usual. Cutting the lattice gives the original ground tile back, not a hole. Already-built tiles and tiles the biome did not place are untouched by this.
+- **Landing kits.** In the YouTool, and printable at an autolathe (Tools).
+- **Parachutes.** AstroVend and autolathe. Use on a crate, an item or a person (or in hand, for yourself): 3 s to strap on. Push them off a hull in orbit: the canopy opens on the first level fallen through, the fall is held slow, there is no damage, and the pack is left at the landing site. A step down a ledge does not open it.
+- **Takeoff sound.** Plays to the crew and nearby ground when Liftoff latches. PLACEHOLDER audio: replace `Resources/Audio/_WF/PlanetCracker/Flight/takeoff.ogg` in place.
+- **Admin Planet Control.** Admin menu, Wolfgate tab, or `planetcontrol`. Set local time (or Dawn/Noon/Dusk/Midnight), hold a weather for N seconds, set gravity in g (lift ratios follow at once) and toggle the sanction. Unbuilt worlds only take the sanction.
+- **Weather (SS13 port).** Storms run in phases: a light overlay telegraphs, the storm runs, a light overlay winds it down. Rain, dust, snow and ash use /tg/station's overlays; rain has start/mid/end loops. Thunderstorms (Asclepiu's heavy rain, Carcinoma's blood storm) drop real bolts on open ground near visitors: a flash, a crack, and a shock for anyone on that tile. Roofed tiles are never struck.
