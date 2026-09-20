@@ -15,6 +15,20 @@ public sealed class WolfmedCVars
         CVarDef.Create("wolfmed.crit_heartbeat", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     /// <summary>
+    /// Shock damage an EMP deals to each machine body part it reaches (cybernetic limbs, IPC parts). Zero turns
+    /// EMP damage to bodies off.
+    /// </summary>
+    public static readonly CVarDef<float> EmpPartDamage =
+        CVarDef.Create("wolfmed.emp_part_damage", 15f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Most one EMP deals to one body in total. The parts share it, so a full chassis takes this much and a lone
+    /// cybernetic limb takes wolfmed.emp_part_damage. Zero removes the ceiling.
+    /// </summary>
+    public static readonly CVarDef<float> EmpBodyDamage =
+        CVarDef.Create("wolfmed.emp_body_damage", 45f, CVar.SERVERONLY);
+
+    /// <summary>
     /// Multiplier on every wound's bleed rate. Applied where the rate is computed, so the analyzer, the spurts
     /// and the bloodstream all see the same slowed figure.
     /// </summary>

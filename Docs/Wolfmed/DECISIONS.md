@@ -286,3 +286,7 @@ not have to open all 14 reports to find them.
 - **Health analyzers need no power cell** (`PowerCellDraw`, `ToggleCellDraw`, `ActivatableUIRequiresPowerCell` commented out on `HandheldHealthAnalyzer`; the slot stays so fills and maps load).
 - **Analyzer doll geometry.** Shitmed laid the analyzer's doll buttons out at 2.5x over a doll `SetupIcon` draws at 3x. The XAML now carries the HUD targeting doll's exact 3x geometry and the highlight uses the HUD's mechanism (base part texture at 3x, centred).
 
+## EMP and machine bodies (2026-09-20)
+
+- `WolfmedEmpSystem` (server): an `EmpPulseEvent` reaching a non-organic `Woundable` part that is attached to a wound host deals Shock to it through the routing, which opens the W6 short-circuit wound (stun, sparks, cable coil). Parts are collected per body and resolved at the end of the tick so one pulse shares a budget: `wolfmed.emp_part_damage` (15) per part, `wolfmed.emp_body_damage` (45) per body per pulse. A lone cybernetic limb takes 15; a ten-part IPC takes 4.5 a part. Shitmed's own `CyberneticsSystem` still disables cybernetic parts for the pulse duration; this adds the damage. IPCs die at 100, so one EMP cannot kill a healthy one and three can.
+
