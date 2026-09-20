@@ -1,0 +1,17 @@
+# Planet gear any autolathe can turn out.
+
+- type: latheRecipePack
+  id: WFPlanetStatic
+  recipes:
+  - WFLandingThrusterKit
+
+- type: latheRecipe
+  id: WFLandingThrusterKit
+  result: WFLandingThrusterKit
+  categories:
+  - Tools
+  completetime: 8
+  materials:
+    Steel: 1500
+    Plastic: 500
+    Glass: 300

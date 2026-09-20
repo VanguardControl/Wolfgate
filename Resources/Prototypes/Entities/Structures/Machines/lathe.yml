@@ -159,6 +159,7 @@
     unlitRunningState: unlit-building
     staticPacks:
     - ToolsStatic
+    - WFPlanetStatic # WOLFGATE
     - PartsStatic
     - AtmosStatic
     - CablesStatic
