@@ -143,13 +143,22 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         return true;
     }
 
-    public bool ReduceBleeding(Entity<WoundComponent?> wound, FixedPoint2 amount)
+    public bool ReduceBleeding(Entity<WoundComponent?> wound, FixedPoint2 amount, bool dressing = false) // WOLFGATE: dressing
     {
         if (!_net.IsServer || amount <= FixedPoint2.Zero || !Resolve(wound, ref wound.Comp, false) ||
             !TryComp(wound, out WoundBleedingComponent? bleeding))
             return false;
 
         bleeding.BleedingSeverity = FixedPoint2.Max(FixedPoint2.Zero, bleeding.BleedingSeverity - amount);
+        // WOLFGATE: gauze that stops a bleed stays on the wound as a dressing. Removing the component here let the
+        // next severity change re-roll the bleed at full strength, and left nothing for the limb overlay to show.
+        if (dressing)
+        {
+            bleeding.Treatment = BleedingTreatment.Bandaged;
+            RefreshWound((wound, bleeding));
+            return true;
+        }
+
         if (bleeding.BleedingSeverity == FixedPoint2.Zero)
         {
             RemComp<WoundBleedingComponent>(wound.Owner);
@@ -227,7 +236,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         return modified;
     }
 
-    public bool ReducePartBleeding(Entity<WoundableComponent?> part, FixedPoint2 amount)
+    public bool ReducePartBleeding(Entity<WoundableComponent?> part, FixedPoint2 amount, bool dressing = false) // WOLFGATE: dressing
     {
         if (!_net.IsServer || amount <= FixedPoint2.Zero || !Resolve(part, ref part.Comp, false))
             return false;
@@ -247,7 +256,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
                 ? bleeding.BleedingSeverity
                 : bleeding.BleedingSeverity * remaining /
                   FixedPoint2.New(bleeding.CurrentRate + bleeding.NaturalClotting);
-            if (reduction <= FixedPoint2.Zero || !ReduceBleeding(wound.Owner, reduction))
+            if (reduction <= FixedPoint2.Zero || !ReduceBleeding(wound.Owner, reduction, dressing)) // WOLFGATE: dressing
                 continue;
 
             modified = true;
@@ -361,7 +370,8 @@ public sealed partial class WoundBleedingSystem : EntitySystem
             return;
         }
 
-        wound.Comp.BaseRate = wound.Comp.BleedingSeverity.Float() * behavior.Rate * bleedingMultiplier;
+        wound.Comp.BaseRate = wound.Comp.BleedingSeverity.Float() * behavior.Rate * bleedingMultiplier *
+                              _configuration.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate); // WOLFGATE: one knob for every bleed
         if (behavior.AwakeMultiplier > 1f && TryGetBody(core.HoldingPart, out var patient) &&
             !HasComp<SleepingComponent>(patient))
             wound.Comp.BaseRate *= behavior.AwakeMultiplier;

@@ -198,6 +198,9 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // The literals below are Onyx's unscaled rates; wolfmed.bleed_rate slows every bleed in normal play.
+        var bleedRateBefore = server.CfgMan.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate);
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate, 1f));
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -265,6 +268,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
                     "trap 6: a steel limb cracks its frame, not a bone.");
             });
         });
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate, bleedRateBefore));
     }
 
     /// <summary>
@@ -456,6 +460,9 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // The literals below are Onyx's unscaled rates; wolfmed.bleed_rate slows every bleed in normal play.
+        var bleedRateBefore = server.CfgMan.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate);
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate, 1f));
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -488,6 +495,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
                     "SlimeBodyPartProfile's bleedingMultiplier: 1.15 against OrganicBodyPartProfile's 1.0.");
             });
         });
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate, bleedRateBefore));
     }
 
     /// <summary>

@@ -192,6 +192,11 @@ public sealed partial class BodyPartFunctionalityComponent : Component
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WoundComponent : Component
 {
+    // WOLFGATE: severity at the last runtime-component sync. A wound only rolls for bleeding when it has grown
+    // since then (a new injury), so healing, closing or re-dressing it never restarts a bleed that was stopped.
+    [ViewVariables]
+    public FixedPoint2 LastSyncSeverity = FixedPoint2.Zero;
+
     [DataField, AutoNetworkedField]
     public EntityUid HoldingPart;
 

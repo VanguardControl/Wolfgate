@@ -106,8 +106,7 @@ public sealed class WolfmedSplintTest : GameTest
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             var splint = Splint(entities, map, "WolfmedSplint");
 
-            // The torso is broken on purpose: the part-type refusal has to hold even when there is a
-            // fracture sitting there to treat.
+            // The torso is broken on purpose: ribs fracture too, and a splint takes them.
             Blunt(entities, body, TargetBodyPart.Torso, 60);
 
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
@@ -118,9 +117,10 @@ public sealed class WolfmedSplintTest : GameTest
             {
                 Assert.That(splints.CanApply(splint, arm), Is.EqualTo(WolfmedSplintRefusal.NoFracture),
                     "nothing is broken in that arm.");
-                Assert.That(splints.CanApply(splint, torso), Is.EqualTo(WolfmedSplintRefusal.WrongPart),
-                    "a splint has nothing to wrap around a torso, broken or not.");
-                Assert.That(splints.CanApply(splint, head), Is.EqualTo(WolfmedSplintRefusal.WrongPart));
+                // Ribs and skulls fracture too, and the procedure says to splint them: the broken torso is accepted,
+                // and the unbroken head is refused for having no fracture, not for being a head.
+                Assert.That(splints.CanApply(splint, torso), Is.EqualTo(WolfmedSplintRefusal.None));
+                Assert.That(splints.CanApply(splint, head), Is.EqualTo(WolfmedSplintRefusal.NoFracture));
 
                 // The floor is the profile's own: the same grade a bonesetter refuses below.
                 var profile = prototypes.Index<FractureProfilePrototype>("WolfmedFractureProfile");
@@ -137,7 +137,8 @@ public sealed class WolfmedSplintTest : GameTest
                 }
             });
 
-            Assert.That(splints.TryApply(splint, body, torso, body), Is.False);
+            // The refusal that is left is the unbroken part.
+            Assert.That(splints.TryApply(splint, body, head, body), Is.False);
             Assert.That(entities.Deleted(splint.Owner), Is.False, "a refused splint is not used up.");
         });
     }

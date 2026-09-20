@@ -15,6 +15,13 @@ public sealed class WolfmedCVars
         CVarDef.Create("wolfmed.crit_heartbeat", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     /// <summary>
+    /// Multiplier on every wound's bleed rate. Applied where the rate is computed, so the analyzer, the spurts
+    /// and the bloodstream all see the same slowed figure.
+    /// </summary>
+    public static readonly CVarDef<float> BleedRate =
+        CVarDef.Create("wolfmed.bleed_rate", 0.6f, CVar.SERVERONLY);
+
+    /// <summary>
     /// Ceiling on a wound host's total damage. Part damage past it is discarded. High enough that any one limb
     /// can still reach its amputation threshold on a dead body. Zero disables the ceiling.
     /// </summary>

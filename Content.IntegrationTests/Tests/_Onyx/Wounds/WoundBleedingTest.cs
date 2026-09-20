@@ -54,6 +54,9 @@ public sealed class WoundBleedingTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // The literals below are Onyx's unscaled rates; wolfmed.bleed_rate slows every bleed in normal play.
+        var bleedRateBefore = server.CfgMan.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate);
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate, 1f));
         var entityManager = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -104,6 +107,7 @@ public sealed class WoundBleedingTest : GameTest
                     wounds.GetWounds((part.Id, entityManager.GetComponent<WoundableComponent>(part.Id))))
                 .Single().Comp.Prototype, Is.EqualTo(new ProtoId<WoundPrototype>("SystemicBleedingWound")));
         });
+        await server.WaitPost(() => server.CfgMan.SetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate, bleedRateBefore));
     }
 
     [Test]

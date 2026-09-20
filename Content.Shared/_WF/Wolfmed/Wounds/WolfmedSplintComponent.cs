@@ -25,11 +25,11 @@ public sealed partial class WolfmedSplintComponent : Component
     public float SelfMultiplier = 2.5f;
 
     /// <summary>
-    /// Part types a splint can be strapped around. A torso or a head has nothing to immobilise, so those
-    /// fractures stay surgical.
+    /// Part types a splint can be strapped around. Every part that can fracture, ribs and skull included: the
+    /// art has chest and head wraps, and refusing them left a torso fracture with no field treatment.
     /// </summary>
     [DataField]
-    public HashSet<BodyPartType> Parts = [BodyPartType.Arm, BodyPartType.Hand, BodyPartType.Leg, BodyPartType.Foot];
+    public HashSet<BodyPartType> Parts = [BodyPartType.Arm, BodyPartType.Hand, BodyPartType.Leg, BodyPartType.Foot, BodyPartType.Torso, BodyPartType.Head];
 
     /// <summary>Whether the splint is used up. False leaves a reusable frame for future content.</summary>
     [DataField]

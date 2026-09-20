@@ -239,17 +239,23 @@ public sealed partial class WoundSystem : EntitySystem
 
     private void SyncRuntimeComponents(Entity<WoundComponent> wound, WoundPrototype prototype)
     {
+        var previousSeverity = wound.Comp.LastSyncSeverity; // WOLFGATE
+        wound.Comp.LastSyncSeverity = wound.Comp.Severity; // WOLFGATE
+
         if (CanBleed(wound.Comp.HoldingPart) &&
             prototype.TryGetBehavior(wound.Comp.Severity, out WoundBleedingBehavior bleedingBehavior) &&
             bleedingBehavior.Rate > 0f && wound.Comp.Severity >= bleedingBehavior.MinimumSeverity)
         {
-            if (!TryComp(wound, out WoundBleedingComponent? bleeding))
+            if (!TryComp(wound, out WoundBleedingComponent? bleeding) &&
+                wound.Comp.Severity > previousSeverity) // WOLFGATE: only a wound that just grew rolls, see LastSyncSeverity
             {
                 var chance = Math.Clamp(bleedingBehavior.Chance, 0f, 1f);
                 if (chance > 0f && _random.Prob(chance))
                 {
                     bleeding = AddComp<WoundBleedingComponent>(wound);
-                    bleeding.BleedingSeverity = wound.Comp.Severity;
+                    // WOLFGATE: a grown wound gets its WoundChangedEvent next, and the bleeding system adds the growth
+                    // there. Starting from the old severity keeps that from being counted twice.
+                    bleeding.BleedingSeverity = previousSeverity > FixedPoint2.Zero ? previousSeverity : wound.Comp.Severity;
                     Dirty(wound, bleeding);
                 }
             }

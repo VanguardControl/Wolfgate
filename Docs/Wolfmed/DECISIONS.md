@@ -278,3 +278,11 @@ not have to open all 14 reports to find them.
 - **Infection tick crashed the server** ("Collection was modified"): infection, necrosis and frostbite ticks now buffer their targets.
 - **Test harness trap:** a test that fails inside a whole-suite run can be reported as *Skipped* ("dirty-disposed") while the run says Passed. Always rerun skipped tests standalone.
 
+## Playtest fixes, round 2 (2026-09-20)
+
+- **A stopped bleed stays stopped.** Two causes of "gauze held for seconds" and "a bruise pack made it bleed": (1) `WoundBleedingSystem.ReduceBleeding` removed the bleeding component at zero, and `WoundSystem.SyncRuntimeComponents` re-rolled the bleed at full wound severity on the next severity change of any kind, healing included; (2) nothing ever set `Bandaged` for an ordinary wound, so no dressing showed. Now: gauze (`dressing: true`) keeps the component at zero marked `Bandaged`, and a wound only rolls for bleeding when it has grown since the last sync (`WoundComponent.LastSyncSeverity`, marked). A fresh hit still reopens it.
+- **Bleeding slowed.** `wolfmed.bleed_rate` (default 0.6) multiplies every wound's rate where it is computed, so analyzer, spurts and bloodstream agree. Tests that assert Onyx's literal rates pin it to 1.
+- **Splints take torso and head.** Ribs and skulls fracture and the procedure says to splint; the art has chest and head wraps.
+- **Health analyzers need no power cell** (`PowerCellDraw`, `ToggleCellDraw`, `ActivatableUIRequiresPowerCell` commented out on `HandheldHealthAnalyzer`; the slot stays so fills and maps load).
+- **Analyzer doll geometry.** Shitmed laid the analyzer's doll buttons out at 2.5x over a doll `SetupIcon` draws at 3x. The XAML now carries the HUD targeting doll's exact 3x geometry and the highlight uses the HUD's mechanism (base part texture at 3x, centred).
+

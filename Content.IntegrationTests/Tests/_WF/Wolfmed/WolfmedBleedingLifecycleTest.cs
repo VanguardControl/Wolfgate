@@ -52,4 +52,57 @@ public sealed class WolfmedBleedingLifecycleTest : GameTest
             Assert.That(bloodstream.BleedAmount, Is.Zero);
         });
     }
+
+    /// <summary>
+    /// A bleed that gauze stopped stays stopped. The bleeding component used to be removed at zero, and the
+    /// next severity change of any kind (a bruise pack healing the wound, a state change) re-rolled the bleed
+    /// at full strength: gauze held for seconds, healing a wound made it bleed, and no dressing ever showed.
+    /// </summary>
+    [Test]
+    public async Task DressedBleedStaysStoppedTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var bleeding = entities.System<WoundBleedingSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var torso = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .Single(part => part.Component.PartType == BodyPartType.Torso).Id;
+
+            // Dressed: the component stays, at zero, marked Bandaged.
+            var cut = wounds.CreateOrMergeWound(torso, "SlashWound", 20)!.Value;
+            Assert.That(bleeding.GetPartRate(torso), Is.GreaterThan(0f));
+            Assert.That(bleeding.ReducePartBleeding(torso, 1000, dressing: true));
+            Assert.Multiple(() =>
+            {
+                Assert.That(bleeding.GetPartRate(torso), Is.Zero);
+                Assert.That(entities.GetComponent<WoundBleedingComponent>(cut).Treatment,
+                    Is.EqualTo(BleedingTreatment.Bandaged), "the gauze is what the limb overlay shows.");
+            });
+
+            // Healing the wound under the dressing does not reopen it.
+            Assert.That(wounds.ChangeSeverity(cut, -5));
+            wounds.RefreshRuntimeComponents(cut);
+            Assert.That(bleeding.GetPartRate(torso), Is.Zero, "treating a wound must never make it bleed.");
+
+            // Stopped without a dressing (clotting, a drug): the component goes, and healing still does not re-roll it.
+            var head = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .Single(part => part.Component.PartType == BodyPartType.Head).Id;
+            var second = wounds.CreateOrMergeWound(head, "SlashWound", 20)!.Value;
+            Assert.That(bleeding.ReduceBleeding(second, 1000));
+            Assert.That(entities.HasComponent<WoundBleedingComponent>(second), Is.False);
+            Assert.That(wounds.ChangeSeverity(second, -5));
+            Assert.That(entities.HasComponent<WoundBleedingComponent>(second), Is.False,
+                "a wound that shrank is not a new injury.");
+
+            // A fresh hit on it is, and bleeds again.
+            Assert.That(wounds.CreateOrMergeWound(head, "SlashWound", 10), Is.EqualTo(second));
+            Assert.That(bleeding.GetPartRate(head), Is.GreaterThan(0f));
+        });
+    }
 }
