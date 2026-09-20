@@ -1,11 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using Content.Shared._WF.PlanetCracker.Planets; // WOLFGATE
 using Content.Shared.Administration.Logs;
 using Content.Shared.Audio;
 using Content.Shared.Database;
 using Content.Shared.Interaction;
 using Content.Shared.Maps;
+using Content.Shared.Parallax.Biomes; // WOLFGATE
 using Content.Shared.Physics;
 using Content.Shared.Popups;
 using Content.Shared.Stacks;
@@ -38,6 +40,7 @@ public sealed partial class FloorTileSystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private SharedBiomeSystem _biome = default!; // WOLFGATE
 
     private static readonly Vector2 CheckRange = new(1f, 1f);
 
@@ -144,10 +147,16 @@ public sealed partial class FloorTileSystem : EntitySystem
                 var tile = _map.GetTileRef(gridUid, mapGrid, location);
                 var baseTurf = (ContentTileDefinition) _tileDefinitionManager[tile.Tile.TypeId];
 
-                if (HasBaseTurf(currentTileDefinition, baseTurf.ID))
+                // WOLFGATE: a planet's natural ground takes lattice directly, and remembers what is under it.
+                var onTerrain = WfIsPlanetTerrain(gridUid, mapGrid, tile) && HasBaseTurf(currentTileDefinition, ContentTileDefinition.SpaceID);
+
+                if (HasBaseTurf(currentTileDefinition, baseTurf.ID) || onTerrain)
                 {
                     if (!_stackSystem.Use(uid, 1, stack))
                         continue;
+
+                    if (onTerrain)
+                        EnsureComp<WFPlanetBuiltTilesComponent>(gridUid).Underlay[tile.GridIndices] = tile.Tile;
 
                     PlaceAt(args.User, gridUid, mapGrid, location, currentTileDefinition.TileId, component.PlaceTileSound);
                     args.Handled = true;
@@ -171,6 +180,19 @@ public sealed partial class FloorTileSystem : EntitySystem
                 return;
             }
         }
+    }
+
+    /// <summary>
+    /// WOLFGATE: true when this tile of a planet layer is still the ground the biome put there, which is the only
+    /// thing a crew may lay lattice straight onto. Anything already built is left to the ordinary base-turf chain.
+    /// </summary>
+    private bool WfIsPlanetTerrain(EntityUid gridUid, MapGridComponent mapGrid, TileRef tile)
+    {
+        if (tile.Tile.IsEmpty || !HasComp<WFPlanetLayerComponent>(gridUid) || !TryComp<BiomeComponent>(gridUid, out var biome))
+            return false;
+
+        return _biome.TryGetBiomeTile(tile.GridIndices, biome.Layers, biome.Seed, (MapGridComponent?) null, out var natural)
+            && natural.Value.TypeId == tile.Tile.TypeId;
     }
 
     public bool HasBaseTurf(ContentTileDefinition tileDef, string baseTurf)
