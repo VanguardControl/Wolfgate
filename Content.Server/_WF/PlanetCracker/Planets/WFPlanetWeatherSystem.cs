@@ -47,13 +47,21 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
                 continue;
             if (_timing.CurTime >= state.NextChange)
             {
-                state.Current = state.Current == null && profile.Weather.Count > 0
-                    ? (ProtoId<WeatherPrototype>?) _random.Pick(profile.Weather) : null;
-                var seconds = state.Current == null
-                    ? _random.NextFloat(profile.ClearMinSeconds, profile.ClearMaxSeconds)
-                    : _random.NextFloat(profile.WeatherMinSeconds, profile.WeatherMaxSeconds);
-                state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(seconds);
+                if (profile.Storms.Count > 0 || state.Phase != WFStormPhase.None)
+                {
+                    AdvanceStorm(state, profile);
+                }
+                else
+                {
+                    state.Current = state.Current == null && profile.Weather.Count > 0
+                        ? (ProtoId<WeatherPrototype>?) _random.Pick(profile.Weather) : null;
+                    var seconds = state.Current == null
+                        ? _random.NextFloat(profile.ClearMinSeconds, profile.ClearMaxSeconds)
+                        : _random.NextFloat(profile.WeatherMinSeconds, profile.WeatherMaxSeconds);
+                    state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(seconds);
+                }
             }
+            UpdateThunder(network, state, profile);
             foreach (var layer in network.Layers)
             {
                 if (layer != network.OrbitMap && !TerminatingOrDeleted(layer))

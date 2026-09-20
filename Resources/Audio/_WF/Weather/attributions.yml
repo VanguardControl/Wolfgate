@@ -1,0 +1,4 @@
+- files: ["rain_start.ogg", "rain_mid.ogg", "rain_end.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Rain loops by Cuboos from royalty-free sources, taken from tgstation (sound/ambience/weather/rain)."
+  source: "https://github.com/tgstation/tgstation/pull/89550"

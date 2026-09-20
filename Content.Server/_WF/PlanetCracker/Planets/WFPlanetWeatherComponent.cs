@@ -16,6 +16,23 @@ public sealed partial class WFPlanetWeatherComponent : Component
     public TimeSpan Epoch;
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan NextChange;
+
+    /// <summary>Where a phased storm has got to; <see cref="WFStormPhase.None"/> under clear skies.</summary>
+    [DataField] public WFStormPhase Phase;
+
+    /// <summary>Index into the profile's storms of the one running.</summary>
+    [DataField] public int Storm;
+
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
+    public TimeSpan NextThunder;
+}
+
+public enum WFStormPhase : byte
+{
+    None,
+    Telegraph,
+    Main,
+    End,
 }
 
 /// <summary>Remembers the state copied onto a static or newly-created transit map.</summary>

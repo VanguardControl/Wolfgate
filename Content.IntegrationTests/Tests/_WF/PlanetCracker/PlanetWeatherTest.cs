@@ -144,15 +144,19 @@ public sealed class PlanetWeatherTest
             {
                 var surface = proto.Index<WFPlanetSurfacePrototype>($"WFSurface{world}");
                 var profile = profiles.Single(p => p.PlanetType == surface.PlanetType);
-                Assert.That(profile.Weather, Is.Not.Empty);
+                Assert.That(profile.Storms, Is.Not.Empty);
                 Assert.That(profile.DaySeconds, Is.GreaterThan(0));
                 Assert.That(profile.InitialHour, Is.InRange(0, 23.999f));
                 Assert.That(profile.ClearMinSeconds, Is.GreaterThan(WeatherComponent.ShutdownTime.TotalSeconds));
                 Assert.That(profile.ClearMaxSeconds, Is.GreaterThanOrEqualTo(profile.ClearMinSeconds));
                 Assert.That(profile.WeatherMinSeconds, Is.GreaterThan(WeatherComponent.StartupTime.TotalSeconds));
                 Assert.That(profile.WeatherMaxSeconds, Is.GreaterThanOrEqualTo(profile.WeatherMinSeconds));
-                foreach (var weather in profile.Weather)
-                    Assert.That(proto.TryIndex(weather, out _), Is.True);
+                foreach (var storm in profile.Storms)
+                {
+                    Assert.That(proto.TryIndex(storm.Main, out _), Is.True);
+                    Assert.That(storm.Telegraph is not { } telegraph || proto.TryIndex(telegraph, out _), Is.True);
+                    Assert.That(storm.End is not { } end || proto.TryIndex(end, out _), Is.True);
+                }
             }
         });
         await pair.CleanReturnAsync();
@@ -196,10 +200,27 @@ public sealed class PlanetWeatherTest
             Assert.That(em.TryGetComponent<WeatherComponent>(layers.Last(), out var orbit) && orbit.Weather.Count > 0, Is.False);
             Assert.That(em.GetComponent<WFPlanetEnvironmentComponent>(layers.Last()).Weather,
                 Is.EqualTo(em.GetComponent<WFPlanetEnvironmentComponent>(layers[0]).Weather));
-            var network = em.GetComponent<CEZMapComponent>(layers[0]).NetworkUid;
-            em.GetComponent<WFPlanetWeatherComponent>(network).NextChange = TimeSpan.Zero;
         });
-        await server.WaitRunTicks(pair.SecondsToTicks(3f));
+
+        // A storm is up to three phases; each forced change moves it one on, and the last lands on clear skies.
+        for (var step = 0; step < 3; step++)
+        {
+            var clear = false;
+            await server.WaitPost(() =>
+            {
+                var em = server.EntMan;
+                var state = em.GetComponent<WFPlanetWeatherComponent>(em.GetComponent<CEZMapComponent>(layers[0]).NetworkUid);
+                clear = state.Current == null;
+                if (!clear)
+                    state.NextChange = TimeSpan.Zero;
+            });
+
+            if (clear)
+                break;
+
+            await server.WaitRunTicks(pair.SecondsToTicks(3f));
+        }
+
         await server.WaitAssertion(() =>
         {
             var em = server.EntMan;

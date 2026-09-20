@@ -41,7 +41,9 @@ public sealed partial class WFPlanetWeatherSystem
         if (!TryComp<WFPlanetWeatherComponent>(world, out var state))
             return false;
 
+        // Held as a storm's last phase, so the scheduler's next step from it is clear skies and its own cycle.
         state.Current = weather;
+        state.Phase = WFStormPhase.End;
         state.NextChange = _timing.CurTime + duration;
         _nextUpdate = TimeSpan.Zero;
         return true;

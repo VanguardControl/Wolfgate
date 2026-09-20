@@ -1,20 +1,39 @@
-# Weather is visual/audio only. Each world alternates with 3-7 minutes of clear skies.
+# Each world alternates phased storms with 3-7 minutes of clear skies. A storm telegraphs with a light overlay, runs,
+# and winds down through a light overlay again, after /tg/station's weather; thunder drops real bolts on open ground.
 - type: wfPlanetWeather
   id: WFPlanetWeatherAsclepiu
   planetType: PlanetAsclepiu
-  weather: [MonoLightRain, MonoRain, MonoStorm]
+  storms:
+  - main: WFRainLow
+  - telegraph: WFRainLow
+    main: WFRainMed
+    end: WFRainEnd
+  - telegraph: WFRainLow
+    main: WFRainHigh
+    end: WFRainEnd
+    thunder: true
   initialHour: 8
 
 - type: wfPlanetWeather
   id: WFPlanetWeatherFervidus
   planetType: PlanetFervidus
-  weather: [AshfallLight, Ashfall, AshfallHeavy]
+  storms:
+  - main: WFAshLight
+  - telegraph: WFAshLight
+    main: WFAshStorm
+    end: WFAshLight
   initialHour: 12
 
 - type: wfPlanetWeather
   id: WFPlanetWeatherMerak
   planetType: PlanetMerak
-  weather: [Sandstorm, SandstormHeavy]
+  storms:
+  - telegraph: WFDustLow
+    main: WFDustMed
+    end: WFDustLow
+  - telegraph: WFDustLow
+    main: WFDustHigh
+    end: WFDustLow
   initialHour: 15
   clearMinSeconds: 300
   clearMaxSeconds: 600
@@ -22,42 +41,206 @@
 - type: wfPlanetWeather
   id: WFPlanetWeatherAerumna
   planetType: PlanetAerumna
-  weather: [MonoLightRain, MonoRain]
+  storms:
+  - main: WFRainLow
+  - telegraph: WFRainLow
+    main: WFRainMed
+    end: WFRainEnd
   initialHour: 18
 
 - type: wfPlanetWeather
   id: WFPlanetWeatherThrascias
   planetType: PlanetThrascias
-  weather: [MonoSnowLight, MonoSnow, MonoBlizzard]
+  storms:
+  - main: WFSnowLight
+  - telegraph: WFSnowLight
+    main: WFSnowStorm
+    end: WFSnowLight
   initialHour: 6
 
 - type: wfPlanetWeather
   id: WFPlanetWeatherCarcinoma
   planetType: PlanetCarcinoma
-  weather: [WFBloodRain, WFBloodStorm]
+  storms:
+  - main: WFBloodRain
+  - telegraph: WFBloodRain
+    main: WFBloodStorm
+    end: WFBloodRain
+    thunder: true
   initialHour: 21
 
-# Reuse rain art, tinted red; these effects create no reagent puddles or biomass.
+# Overlays and rain loops from /tg/station (weather_effects.dmi, sound/ambience/weather/rain).
 - type: weather
-  id: WFBloodRain
+  id: WFRainLow
   sprite:
-    sprite: /Textures/_RMC14/Effects/weather.rsi
-    state: strata_storm_light
-  color: "#b83c46"
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: rain_low
   sound:
-    collection: Rain
+    path: /Audio/_WF/Weather/rain_start.ogg
+    params:
+      loop: true
+      volume: -8
+
+- type: weather
+  id: WFRainEnd
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: rain_low
+  sound:
+    path: /Audio/_WF/Weather/rain_end.ogg
+    params:
+      loop: true
+      volume: -8
+
+- type: weather
+  id: WFRainMed
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: rain_med
+  sound:
+    path: /Audio/_WF/Weather/rain_mid.ogg
+    params:
+      loop: true
+      volume: -6
+
+- type: weather
+  id: WFRainHigh
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: rain_high
+  sound:
+    path: /Audio/_WF/Weather/rain_mid.ogg
+    params:
+      loop: true
+      volume: -2
+
+- type: weather
+  id: WFSnowLight
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: light_snow
+  sound:
+    path: /Audio/Effects/Weather/snowstorm_weak.ogg
+    params:
+      loop: true
+      volume: -8
+
+- type: weather
+  id: WFSnowStorm
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: snow_storm
+  sound:
+    path: /Audio/Effects/Weather/snowstorm.ogg
+    params:
+      loop: true
+      volume: -4
+
+- type: weather
+  id: WFAshLight
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: light_ash
+  sound:
+    path: /Audio/Effects/Weather/snowstorm_weak.ogg
     params:
       loop: true
       volume: -10
+
+- type: weather
+  id: WFAshStorm
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: ash_storm
+  sound:
+    path: /Audio/Effects/Weather/snowstorm.ogg
+    params:
+      loop: true
+      volume: -6
+
+- type: weather
+  id: WFDustLow
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: dust_low
+  sound:
+    path: /Audio/Effects/Weather/snowstorm_weak.ogg
+    params:
+      loop: true
+      volume: -10
+
+- type: weather
+  id: WFDustMed
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: dust_med
+  sound:
+    path: /Audio/Effects/Weather/snowstorm_weak.ogg
+    params:
+      loop: true
+      volume: -6
+
+- type: weather
+  id: WFDustHigh
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: dust_high
+  sound:
+    path: /Audio/Effects/Weather/snowstorm.ogg
+    params:
+      loop: true
+      volume: -4
+
+# Tinted red; these create no reagent puddles or biomass.
+- type: weather
+  id: WFBloodRain
+  sprite:
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: rain_low
+  color: "#b83c46"
+  sound:
+    path: /Audio/_WF/Weather/rain_start.ogg
+    params:
+      loop: true
+      volume: -8
 
 - type: weather
   id: WFBloodStorm
   sprite:
-    sprite: /Textures/_RMC14/Effects/weather.rsi
-    state: strata_storm
+    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    state: rain_high
   color: "#b83c46"
   sound:
-    path: /Audio/Effects/Weather/rain_heavy.ogg
+    path: /Audio/_WF/Weather/rain_mid.ogg
     params:
       loop: true
-      volume: -10
+      volume: -2
+
+# A thunderbolt: one flash, one crack, gone.
+- type: entity
+  id: WFThunderbolt
+  categories: [ HideSpawnMenu ]
+  name: thunderbolt
+  components:
+  - type: Sprite
+    sprite: /Textures/_WF/Effects/thunderbolt.rsi
+    state: thunderbolt
+    offset: 0, 1
+    drawdepth: Effects
+    noRot: true
+    shader: unshaded
+  - type: PointLight
+    radius: 14
+    energy: 10
+    color: "#cfe4ff"
+    netsync: false
+  - type: TimedDespawn
+    lifetime: 0.6
+  - type: EmitSoundOnSpawn
+    sound:
+      path: /Audio/Effects/Lightning/lightningbolt.ogg
+      params:
+        volume: 6
+        maxDistance: 60
+        rolloffFactor: 0.5
+        variation: 0.1
