@@ -9,6 +9,7 @@
 - type: wound
   id: WolfmedGrazeWound
   name: wolfmed-wound-name-graze
+  analyzerCategory: Ballistic
   ruleOnly: true
   damageTypes:
     Piercing:
@@ -36,6 +37,7 @@
 - type: wound
   id: WolfmedGunshotWound
   name: wolfmed-wound-name-gunshot
+  analyzerCategory: Ballistic
   ruleOnly: true
   damageTypes:
     Piercing:
@@ -90,6 +92,7 @@
 - type: wound
   id: WolfmedLodgedRoundWound
   name: wolfmed-wound-name-lodged-round
+  analyzerCategory: Ballistic
   ruleOnly: true
   damageTypes:
     Piercing:
@@ -138,6 +141,7 @@
 - type: wound
   id: WolfmedShrapnelWound
   name: wolfmed-wound-name-shrapnel
+  analyzerCategory: Ballistic
   ruleOnly: true
   damageTypes:
     Piercing:

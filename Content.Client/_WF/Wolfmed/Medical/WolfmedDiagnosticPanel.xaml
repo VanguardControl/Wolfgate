@@ -44,11 +44,18 @@
                         <Label Text="{Loc 'health-analyzer-wound-diagnostics-title'}"
                                StyleClasses="LabelHeading" />
                         <PanelContainer Margin="0 2 0 4" StyleClasses="LowDivider" />
+                        <!-- UI2: systemic banners, then the category filter strip, then one card per part. -->
+                        <BoxContainer Name="WoundAlertsContainer"
+                                      Orientation="Vertical"
+                                      HorizontalExpand="True" />
+                        <GridContainer Name="WoundCategoryStrip"
+                                       Columns="5"
+                                       HorizontalExpand="True"
+                                       Margin="0 2 0 4" />
                         <RichTextLabel Name="WoundStateLabel" HorizontalAlignment="Left" HorizontalExpand="True" />
                         <BoxContainer Name="WoundFindingsContainer"
                                       Orientation="Vertical"
-                                      HorizontalExpand="True"
-                                      HorizontalAlignment="Left" />
+                                      HorizontalExpand="True" />
                     </BoxContainer>
                 </ScrollContainer>
 

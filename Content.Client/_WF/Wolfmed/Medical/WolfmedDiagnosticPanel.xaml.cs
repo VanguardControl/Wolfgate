@@ -32,10 +32,14 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
     private SpriteSystem _spriteSystem = default!;
     private IPrototypeManager _prototypes = default!;
     private IResourceCache _cache = default!;
+    private WolfmedAnalyzerIcons _icons = default!; // UI2
 
     private readonly Dictionary<NetEntity, (BoxContainer Row, EllipsisLabel Name, Label Health)> _organRows = new();
     private bool _organsUnavailable;
     private WolfmedDiagnosticTab _tab = WolfmedDiagnosticTab.Wounds;
+
+    /// <summary>UI2: the last scan, so a category chip can redraw the cards without waiting for the next one.</summary>
+    private HealthAnalyzerScannedUserMessage? _lastMessage;
 
     public WolfmedDiagnosticPanel()
     {
@@ -46,6 +50,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         _spriteSystem = _entityManager.System<SpriteSystem>();
         _prototypes = dependencies.Resolve<IPrototypeManager>();
         _cache = dependencies.Resolve<IResourceCache>();
+        _icons = new WolfmedAnalyzerIcons(_cache, _spriteSystem); // UI2
 
         WoundsButton.OnPressed += _ => SelectTab(WolfmedDiagnosticTab.Wounds);
         OrgansButton.OnPressed += _ => SelectTab(WolfmedDiagnosticTab.Organs);
@@ -57,6 +62,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
     /// <summary>Fills every tab from one scan message.</summary>
     public void Populate(HealthAnalyzerScannedUserMessage msg)
     {
+        _lastMessage = msg; // UI2
         DrawWoundDiagnostics(msg);
         DrawOrgans(msg);
         DrawChemicals(msg);
@@ -67,6 +73,12 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
     public void Clear()
     {
         WoundFindingsContainer.RemoveAllChildren();
+        // UI2: the banners, the filter strip and the filter itself belong to the patient that just left.
+        WoundAlertsContainer.RemoveAllChildren();
+        WoundCategoryStrip.RemoveAllChildren();
+        _lastMessage = null;
+        _woundTarget = null;
+        _categoryFilter = null;
         WoundStateLabel.Visible = false;
         VitalDamageRow.Visible = false;
         ClearOrganRows();
@@ -90,143 +102,8 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         ChemicalsButton.Disabled = _tab == WolfmedDiagnosticTab.Chemicals;
     }
 
-    private void DrawWoundDiagnostics(HealthAnalyzerScannedUserMessage msg)
-    {
-        WoundFindingsContainer.RemoveAllChildren();
-        WoundStateLabel.Visible = true;
-
-        VitalDamageRow.Visible = msg.VitalDamage != null;
-        if (msg.VitalDamage is { } vital)
-            VitalDamageLabel.Text = vital.ToString();
-
-        if (msg.ScanMode != true)
-        {
-            WoundStateLabel.SetMessage(Loc.GetString("health-analyzer-wound-diagnostics-inactive"));
-            return;
-        }
-
-        if (IsDangerousBloodLevel(msg.BloodLevel))
-            AddWoundFinding(Loc.GetString("health-analyzer-wound-blood-level-dangerous"));
-
-        if (msg.WoundDiagnostics == null)
-        {
-            WoundStateLabel.SetMessage(Loc.GetString("health-analyzer-wound-diagnostics-unavailable"));
-            return;
-        }
-
-        WoundStateLabel.Visible = false;
-
-        // W5: systemic, so it is printed above the parts rather than against any one of them.
-        if (msg.WoundDiagnostics.Sepsis > 0f)
-            AddWoundFinding(Loc.GetString("health-analyzer-wound-sepsis",
-                ("percent", (int) MathF.Round(msg.WoundDiagnostics.Sepsis))));
-
-        foreach (var part in SharedTargetingSystem.GetValidParts())
-        {
-            if (!msg.WoundDiagnostics.Parts.TryGetValue(part, out var diagnostic))
-                continue;
-
-            var partName = Loc.GetString($"targeting-part-{PartKey(part)}");
-            var details = new List<string>();
-
-            // W6: a chassis does not bleed or fracture, it leaks and deforms. Phase 5 shipped the wording
-            // as -mechanical/-frame variants of three keys; this is the switch that consumes them.
-            var mechanical = diagnostic.Mechanical ? "-mechanical" : string.Empty;
-            var frame = diagnostic.Mechanical ? "-frame" : string.Empty;
-
-            if (diagnostic.VisibleWounds.Count > 0)
-            {
-                var wounds = diagnostic.VisibleWounds.Select(wound =>
-                {
-                    var type = Loc.GetString(wound.Name);
-                    var stage = wound.StageName is { } stageName
-                        ? $" ({Loc.GetString(stageName)})"
-                        : string.Empty;
-                    return $"{type}{stage}{(wound.Count > 1 ? $" x{wound.Count}" : string.Empty)}";
-                });
-                details.Add(string.Join(", ", wounds));
-            }
-
-            // Onyx carries Fracture/FractureTreatment in the payload and never renders them; Wolfgate has shipped
-            // fractures with a live alert and two movement penalties since phase 2, so the grade is printed (P4-D25).
-            if (diagnostic.Fracture != FractureGrade.None)
-            {
-                var grade = Loc.GetString($"fracture-grade-{diagnostic.Fracture.ToString().ToLowerInvariant()}");
-                details.Add(diagnostic.FractureTreatment == FractureTreatment.None
-                    ? Loc.GetString($"health-analyzer-wound-fracture-short{frame}", ("grade", grade))
-                    : Loc.GetString($"health-analyzer-wound-fracture-treated-short{frame}",
-                        ("grade", grade),
-                        ("treatment", Loc.GetString(
-                            $"health-analyzer-wound-fracture-treatment-{diagnostic.FractureTreatment.ToString().ToLowerInvariant()}"))));
-            }
-
-            if (diagnostic.BleedingRate > 0f)
-                details.Add(Loc.GetString($"health-analyzer-wound-bleeding-short{mechanical}"));
-
-            // W6: the one finding that is not a wound name - a hot part reads as hot even once the wound
-            // itself has cooled past its first stage.
-            if (diagnostic.Overheating)
-                details.Add(Loc.GetString("health-analyzer-wound-overheating-short"));
-
-            if (diagnostic.InternalBleedingRate > 0f)
-                details.Add(Loc.GetString("health-analyzer-wound-internal-bleeding-short"));
-
-            if (diagnostic.ClottingPhase is HealthAnalyzerClottingPhase.InProgress
-                or HealthAnalyzerClottingPhase.Complete
-                or HealthAnalyzerClottingPhase.Mixed)
-                details.Add(Loc.GetString(
-                    $"health-analyzer-wound-clotting-{diagnostic.ClottingPhase.ToString().ToLowerInvariant()}{mechanical}"));
-
-            // W1: printed before the scars, because it is the finding that decides what the medic does next.
-            if (diagnostic.EmbeddedObjects > 0)
-                details.Add(Loc.GetString("health-analyzer-wound-embedded-short",
-                    ("count", diagnostic.EmbeddedObjects)));
-
-            // W5: dead tissue outranks everything else on the part; nothing but amputation clears it.
-            if (diagnostic.Necrotic)
-                details.Add(Loc.GetString("health-analyzer-wound-necrotic-short"));
-            else if (diagnostic.NecrosisRisk)
-                details.Add(Loc.GetString("health-analyzer-wound-necrosis-risk-short"));
-
-            if (diagnostic.Infection != WolfmedInfectionStage.None)
-                details.Add(Loc.GetString(
-                    $"health-analyzer-wound-infection-{diagnostic.Infection.ToString().ToLowerInvariant()}"));
-
-            if (diagnostic.ScarCount > 0)
-                details.Add(Loc.GetString("health-analyzer-wound-scars-short", ("count", diagnostic.ScarCount)));
-
-            // W7: a chassis reports the same figure, but it is not pain. Same switch as the bleed line.
-            if (diagnostic.Pain > FixedPoint2.Zero)
-                details.Add(Loc.GetString($"health-analyzer-wound-pain-short{mechanical}", ("pain", diagnostic.Pain)));
-
-            if (diagnostic.Functionality != BodyPartFunctionalityState.Functional)
-                details.Add(Loc.GetString(
-                    $"health-analyzer-wound-functionality-{diagnostic.Functionality.ToString().ToLowerInvariant()}"));
-
-            if (details.Count > 0)
-                AddWoundFinding(Loc.GetString("health-analyzer-wound-part-summary",
-                    ("part", partName), ("details", string.Join(" - ", details))));
-        }
-    }
-
-    internal static bool IsDangerousBloodLevel(float level) => !float.IsNaN(level) && level < DangerousBloodLevel;
-
-    private static string PartKey(TargetBodyPart part) => part.ToString()
-        .Replace("Left", "left-")
-        .Replace("Right", "right-")
-        .ToLowerInvariant();
-
-    private void AddWoundFinding(string text)
-    {
-        var label = new RichTextLabel
-        {
-            HorizontalExpand = true,
-            HorizontalAlignment = HAlignment.Left,
-            Margin = new Thickness(0, 0, 0, 6),
-        };
-        label.SetMessage(FormattedMessage.FromMarkupPermissive($"- {text}"));
-        WoundFindingsContainer.AddChild(label);
-    }
+    // UI2: DrawWoundDiagnostics and its helpers moved to WolfmedDiagnosticPanel.Wounds.cs, which builds
+    // cards instead of one joined line per part.
 
     private void DrawOrgans(HealthAnalyzerScannedUserMessage msg)
     {

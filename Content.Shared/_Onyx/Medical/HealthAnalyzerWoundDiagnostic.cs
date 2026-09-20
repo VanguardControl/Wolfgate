@@ -34,7 +34,12 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
 }
 
 [Serializable, NetSerializable]
-public readonly record struct HealthAnalyzerVisibleWound(LocId Name, LocId? StageName, int Count);
+public readonly record struct HealthAnalyzerVisibleWound(
+    LocId Name,
+    LocId? StageName,
+    int Count,
+    // WOLFGATE (UI2): the analyzer groups and tints its wound rows by this; resolved from the prototype.
+    WolfmedWoundCategory Category = WolfmedWoundCategory.Other);
 
 [Serializable, NetSerializable]
 public enum HealthAnalyzerClottingPhase : byte

@@ -340,6 +340,7 @@
 - type: wound
   id: BoneFractureWound
   name: wound-name-bone-fracture
+  analyzerCategory: Blunt # WOLFGATE (UI2)
   damageTypes: {}
   maximumSeverity: 200
   # WOLFGATE (W0 balance): stage thresholds track WolfmedFractureProfile's grades
@@ -396,6 +397,7 @@
 - type: wound
   id: CyberneticFrameFractureWound
   name: wound-name-cybernetic-frame-fracture
+  analyzerCategory: Mechanical # WOLFGATE (UI2)
   damageTypes: {}
   maximumSeverity: 200
   stages:
@@ -484,6 +486,7 @@
 - type: wound
   id: SystemicBleedingWound
   name: wound-name-systemic-bleeding
+  analyzerCategory: Internal # WOLFGATE (UI2)
   damageTypes: {}
   maximumSeverity: 200
   healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
@@ -637,6 +640,7 @@
 - type: wound
   id: SurgicalIncisionWound
   name: wound-name-surgical-incision
+  analyzerCategory: Cut # WOLFGATE (UI2)
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
@@ -652,6 +656,7 @@
 - type: wound
   id: DismembermentWound
   name: wound-name-dismemberment
+  analyzerCategory: Other # WOLFGATE (UI2)
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
@@ -669,6 +674,7 @@
 - type: wound
   id: IpcMechanicalDamageWound
   name: wound-name-ipc-mechanical-damage
+  analyzerCategory: Mechanical # WOLFGATE (UI2)
   damageTypes:
     Blunt:
       reopenMinimumDamage: 18
@@ -721,6 +727,7 @@
 - type: wound
   id: CyberneticMechanicalDamageWound
   name: wound-name-cybernetic-mechanical-damage
+  analyzerCategory: Mechanical # WOLFGATE (UI2)
   damageTypes:
     Blunt:
       reopenMinimumDamage: 18
@@ -1137,6 +1144,7 @@
 - type: wound
   id: AmputationConsequenceWound
   name: wound-name-amputation-consequence
+  analyzerCategory: Other # WOLFGATE (UI2)
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
@@ -1144,6 +1152,7 @@
 - type: wound
   id: InternalBleedingWound
   name: wound-name-internal-bleeding
+  analyzerCategory: Internal # WOLFGATE (UI2)
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
@@ -1156,6 +1165,7 @@
 - type: wound
   id: MedicalScarWound
   name: wound-name-medical-scar
+  analyzerCategory: Other # WOLFGATE (UI2)
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 1

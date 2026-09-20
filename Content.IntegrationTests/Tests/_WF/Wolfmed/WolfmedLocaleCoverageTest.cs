@@ -57,6 +57,10 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("health-analyzer-wound-necrosis-risk-short", [""]),
         ("health-analyzer-wound-scars-short", [""]),
         ("health-analyzer-wound-sepsis", [""]),
+        // UI2: the card readout's own strings.
+        ("health-analyzer-wound-category-chip", [""]),
+        ("health-analyzer-wound-no-findings", [""]),
+        ("health-analyzer-wound-no-findings-filtered", [""]),
     ];
 
     /// <summary>Every wound prototype names itself and its stages in a locale file.</summary>

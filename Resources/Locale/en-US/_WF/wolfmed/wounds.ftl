@@ -121,3 +121,19 @@ wolfmed-splint-wrong-part = A splint goes around an arm or a leg. Nothing else h
 wolfmed-splint-no-fracture = There is no broken bone there.
 wolfmed-splint-too-slight = The crack is too slight for a splint to hold anything.
 wolfmed-splint-already-treated = That bone is already set.
+
+# Analyzer wounds tab: the categorised card readout (UI2).
+
+wolfmed-wound-category-cut = cuts
+wolfmed-wound-category-puncture = punctures
+wolfmed-wound-category-ballistic = ballistic trauma
+wolfmed-wound-category-blunt = blunt trauma
+wolfmed-wound-category-burn = burns
+wolfmed-wound-category-internal = internal injury
+wolfmed-wound-category-infection = infection
+wolfmed-wound-category-mechanical = chassis damage
+wolfmed-wound-category-other = other
+
+health-analyzer-wound-category-chip = { $category }: { $count }
+health-analyzer-wound-no-findings = No wounds detected.
+health-analyzer-wound-no-findings-filtered = No { $category } on this patient.

@@ -6,6 +6,7 @@ using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Content.Shared._Onyx.Chemistry.Circulation;
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (UI2)
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -43,6 +44,14 @@ public sealed partial class WoundPrototype : IPrototype
 
     [DataField]
     public WoundVisibility Visibility = WoundVisibility.Visible;
+
+    /// <summary>
+    /// WOLFGATE (UI2): which bucket the analyzer's wounds tab files this wound under. Null lets
+    /// <see cref="Content.Shared._WF.Wolfmed.Wounds.WolfmedWoundCategories.Resolve"/> derive one from
+    /// <see cref="DamageTypes"/>; set it wherever the damage type would mislead.
+    /// </summary>
+    [DataField]
+    public WolfmedWoundCategory? AnalyzerCategory;
 
     /// <summary>
     /// Optional behavior bricks this wound is assembled from.

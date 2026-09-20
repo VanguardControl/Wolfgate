@@ -8,6 +8,7 @@ using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (UI2): the analyzer wound categories.
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -17,10 +18,12 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Systems;
+using Robust.Shared.ContentPack; // WOLFGATE (UI2): reads the analyzer icon RSI off disk.
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization; // WOLFGATE (T-P5-18): resolves the mechanical wound LocIds for real.
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility; // WOLFGATE (UI2): ResPath.
 
 namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 
@@ -485,6 +488,122 @@ public sealed class WolfmedAnalyzerTest : GameTest
             });
         });
     }
+
+    /// <summary>
+    /// UI2. Every visible wound reaches the panel carrying the category its card files it under. All three
+    /// resolution paths are covered: an explicit field on a Wolfmed wound, an explicit field on a vendored
+    /// Onyx wound, and the damage-type derivation for a wound that declares nothing.
+    /// </summary>
+    [Test]
+    public async Task VisibleWoundsCarryTheirCategoryTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var analyzer = entities.System<HealthAnalyzerSystem>();
+            var wounds = entities.System<WoundSystem>();
+            var graph = entities.System<SharedBodySystem>();
+
+            EntityUid Part(EntityUid body, BodyPartType type, BodyPartSymmetry? symmetry = null) =>
+                graph.GetBodyChildren(body).Single(part =>
+                    part.Component.PartType == type &&
+                    (symmetry == null || part.Component.Symmetry == symmetry)).Id;
+
+            var human = entities.SpawnEntity("MobHuman", map.GridCoords);
+            // `ruleOnly` gates only the default per-damage-type pass; a direct create is still allowed,
+            // which is what lets this assert the ballistic wound without firing a gun.
+            Assert.That(wounds.CreateOrMergeWound(
+                Part(human, BodyPartType.Arm, BodyPartSymmetry.Left), "WolfmedGunshotWound", 20), Is.Not.Null);
+            // BurnWound declares no analyzerCategory at all: Heat in its damageTypes is what makes it a burn.
+            Assert.That(wounds.CreateOrMergeWound(Part(human, BodyPartType.Head), "BurnWound", 20), Is.Not.Null);
+
+            var ipc = entities.SpawnEntity("MobIPC", map.GridCoords);
+            Assert.That(wounds.CreateOrMergeWound(
+                Part(ipc, BodyPartType.Arm, BodyPartSymmetry.Left), "IpcMechanicalDamageWound", 30), Is.Not.Null);
+
+            var organic = analyzer.BuildWoundDiagnostics(human)!;
+            var chassis = analyzer.BuildWoundDiagnostics(ipc)!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(Category(organic, TargetBodyPart.LeftArm, "wolfmed-wound-name-gunshot"),
+                    Is.EqualTo(WolfmedWoundCategory.Ballistic), "an explicit analyzerCategory wins.");
+                Assert.That(Category(organic, TargetBodyPart.Head, "wound-name-burn"),
+                    Is.EqualTo(WolfmedWoundCategory.Burn), "Heat damage derives Burn with no field set.");
+                Assert.That(Category(chassis, TargetBodyPart.LeftArm, "wound-name-ipc-mechanical-damage"),
+                    Is.EqualTo(WolfmedWoundCategory.Mechanical),
+                    "a chassis wound must never derive Blunt from the first damage type it lists.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// UI2. Nothing the panel draws may come up empty: every wound prototype resolves to a category, and
+    /// every category and condition the panel can draw has a name and a pictogram.
+    /// </summary>
+    [Test]
+    public async Task EveryWoundCategoryIsNamedAndDrawableTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        var locale = server.ResolveDependency<ILocalizationManager>();
+        var resources = server.ResolveDependency<IResourceManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var meta = resources.ContentFileReadAllText(IconRsi / "meta.json");
+
+            Assert.Multiple(() =>
+            {
+                foreach (var wound in prototypes.EnumeratePrototypes<WoundPrototype>().OrderBy(wound => wound.ID))
+                {
+                    Assert.That(WolfmedWoundCategories.All,
+                        Does.Contain(WolfmedWoundCategories.Resolve(wound)),
+                        $"{wound.ID} resolves to a category outside the enum.");
+                }
+
+                foreach (var category in WolfmedWoundCategories.All)
+                {
+                    Assert.That(locale.HasString(WolfmedWoundCategories.NameKey(category)), Is.True,
+                        $"category {category} has no name string.");
+                    AssertIcon(resources, meta, WolfmedWoundCategories.IconState(category));
+                }
+
+                // The part-level condition glyphs. The list is the second half of
+                // Tools/_WF/wolfmed/gen_analyzer_icons.py's CONDITION_STATES; the RSI is generated, so the
+                // failure this catches is a state renamed in the script and not in the panel.
+                foreach (var state in ConditionIcons)
+                    AssertIcon(resources, meta, state);
+            });
+        });
+    }
+
+    private static readonly ResPath IconRsi = new("/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi");
+
+    private static readonly string[] ConditionIcons =
+    [
+        "fracture", "bleeding", "internal_bleeding", "embedded", "necrosis", "overheating",
+        "scar", "pain", "impaired", "clotting", "sepsis", "blood_low",
+    ];
+
+    private static void AssertIcon(IResourceManager resources, string meta, string state)
+    {
+        Assert.That(resources.ContentFileExists(IconRsi / (state + ".png")), Is.True,
+            $"analyzer_icons.rsi has no {state}.png.");
+        Assert.That(meta, Does.Contain($"\"name\": \"{state}\""),
+            $"analyzer_icons.rsi meta.json does not list {state}.");
+    }
+
+    private static WolfmedWoundCategory Category(
+        HealthAnalyzerWoundDiagnostics diagnostics,
+        TargetBodyPart part,
+        string name) =>
+        diagnostics.Parts[part].VisibleWounds.Single(wound => wound.Name.Id == name).Category;
 
     private static EntityUid Bleed(IEntityManager entities, WoundSystem wounds, EntityUid part, string prototype)
     {

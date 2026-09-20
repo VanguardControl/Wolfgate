@@ -18,6 +18,7 @@
 - type: wound
   id: WolfmedDentWound
   name: wolfmed-wound-name-dent
+  analyzerCategory: Mechanical
   ruleOnly: true
   damageTypes:
     Blunt:
@@ -55,6 +56,7 @@
 - type: wound
   id: WolfmedBreachWound
   name: wolfmed-wound-name-breach
+  analyzerCategory: Mechanical
   ruleOnly: true
   damageTypes:
     Slash:
@@ -103,6 +105,7 @@
 - type: wound
   id: WolfmedShortCircuitWound
   name: wolfmed-wound-name-short-circuit
+  analyzerCategory: Mechanical
   ruleOnly: true
   damageTypes:
     Shock:
@@ -143,6 +146,7 @@
 - type: wound
   id: WolfmedServoDamageWound
   name: wolfmed-wound-name-servo-damage
+  analyzerCategory: Mechanical
   ruleOnly: true
   damageTypes: {}
   maximumSeverity: 80
@@ -172,6 +176,7 @@
 - type: wound
   id: WolfmedOverheatingWound
   name: wolfmed-wound-name-overheating
+  analyzerCategory: Mechanical
   ruleOnly: true
   damageTypes: {}
   maximumSeverity: 100

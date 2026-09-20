@@ -11,6 +11,7 @@
 - type: wound
   id: WolfmedCharringWound
   name: wolfmed-wound-name-charring
+  analyzerCategory: Burn
   ruleOnly: true
   damageTypes: {}
   maximumSeverity: 120
@@ -53,6 +54,7 @@
 - type: wound
   id: WolfmedFrostbiteWound
   name: wolfmed-wound-name-frostbite
+  analyzerCategory: Burn
   ruleOnly: true
   damageTypes:
     Cold:
@@ -114,6 +116,7 @@
 - type: wound
   id: WolfmedChemicalBurnWound
   name: wolfmed-wound-name-chemical-burn
+  analyzerCategory: Burn
   ruleOnly: true
   damageTypes:
     Caustic:
@@ -165,6 +168,7 @@
 - type: wound
   id: WolfmedInternalBurnWound
   name: wolfmed-wound-name-internal-burn
+  analyzerCategory: Internal
   ruleOnly: true
   damageTypes:
     Shock:

@@ -8,6 +8,7 @@
 - type: wound
   id: WolfmedArterialBleedWound
   name: wolfmed-wound-name-arterial-bleed
+  analyzerCategory: Cut
   ruleOnly: true
   damageTypes:
     Slash:
@@ -45,6 +46,7 @@
 - type: wound
   id: WolfmedTendonCutWound
   name: wolfmed-wound-name-tendon-cut
+  analyzerCategory: Cut
   ruleOnly: true
   damageTypes:
     Slash:
@@ -70,6 +72,7 @@
 - type: wound
   id: WolfmedAvulsionWound
   name: wolfmed-wound-name-avulsion
+  analyzerCategory: Cut
   ruleOnly: true
   damageTypes:
     Slash:

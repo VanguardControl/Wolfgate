@@ -3532,3 +3532,65 @@ test each; the rest are perf or correctness-of-placement and are covered by the 
 
 `dotnet build Content.IntegrationTests -c DebugOpt` green; wound suite
 (`~_Onyx.Wounds|~Wolfmed|~GibTest`) **212 passed, 0 failed, 1 skipped** (the pre-existing skip).
+## Final stages: UI2 (2026-09-19)
+
+The analyzer's wounds tab stops being a wall of text. Findings are now a systemic banner strip, a clickable
+category filter strip, and one card per injured body part: accent bar coloured by the part's worst finding,
+part-level conditions as icon chips, visible wounds as tinted icon rows grouped by category. Every string the
+old joined line printed is still shown, on a row or in a chip's tooltip; the W6 mechanical/frame wording
+switch is unchanged. No new networked component; the payload gains one field on an existing record struct.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundCategory.cs` | new | The `WolfmedWoundCategory` enum (byte, NetSerializable) and `WolfmedWoundCategories`: `All` (draw order), `Resolve(WoundPrototype)` (explicit field, else damage-type derivation, else Other), `NameKey`, `IconState` |
+| `Content.Shared/_Onyx/Wounds/WoundPrototype.cs` | modified (vendored) | **1 marked using + 1 marked `[DataField] WolfmedWoundCategory? AnalyzerCategory`**. Null means "derive from `damageTypes`" |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified (vendored) | **1 marked trailing field** on `HealthAnalyzerVisibleWound`: `WolfmedWoundCategory Category = Other`, defaulted so nothing else on the wire moves |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | The visible-wound grouping key gains the category, the sort leads with it (so the panel gets whole category blocks), and `WolfmedWoundCategories.Resolve` fills it |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified (vendored) | **10 marked `analyzerCategory:` lines**, only where derivation would be wrong or absent: BoneFracture→Blunt, CyberneticFrameFracture/IpcMechanicalDamage/CyberneticMechanicalDamage→Mechanical, SystemicBleeding/InternalBleeding→Internal, SurgicalIncision→Cut, Dismemberment/AmputationConsequence/MedicalScar→Other. The Slime/Plant/Blunt/Slash/Piercing/Burn/Electrical wounds derive correctly and declare nothing |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/ballistic.yml` | modified | 4 `analyzerCategory: Ballistic` (they list Piercing, which would derive Puncture) |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/slash_bite.yml` | modified | 3 `analyzerCategory: Cut` |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/blunt.yml` | modified | Crush/Concussion/Dislocation→Blunt, OrganContusion→Internal |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | Charring/Frostbite/ChemicalBurn→Burn, InternalBurn→Internal (it destroys organs; deviation from the task's "chemical/electrical = Burn" list, recorded below) |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml` | modified | Necrosis→Infection |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/mechanical.yml` | modified | 5 `analyzerCategory: Mechanical` |
+| `Tools/_WF/wolfmed/gen_analyzer_icons.py` | new | Deterministic PIL generator: 21 states, each an 8x supersampled alpha mask resized once, off-white on transparent so the client tints with `Modulate` |
+| `Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/` | new | 21 32x32 PNGs + `meta.json` (`CC-BY-SA-3.0`, "Made for Wolfgate (Wolfmed)"). 9 category states, 12 condition states (fracture, bleeding, internal_bleeding, embedded, necrosis, overheating, scar, pain, impaired, clotting, sepsis, blood_low) |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedWoundStyle.cs` | new | The whole palette in one static class, plus `Accent(diagnostic)` (necrotic/septic > bleeding > fracture > infection > neutral) and `WolfmedAnalyzerIcons`, which resolves each RSI state once and caches the `Texture` |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | new | The tab: alert banners, category chip strip with the filter, part cards, condition chips, wound rows, pain/scar footer. Partial of the existing panel |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml` | modified | `WoundAlertsContainer` (vertical) and `WoundCategoryStrip` (5-column grid so the chips wrap instead of clipping the ~470 px pane) added above the findings container |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | `_icons`, `_lastMessage` (so a chip press redraws without waiting for the next scan tick), `Clear()` drops the new containers and the filter; the old `DrawWoundDiagnostics`/`AddWoundFinding` text builder deleted |
+| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | 9 `wolfmed-wound-category-*` names, `health-analyzer-wound-category-chip`, `-no-findings`, `-no-findings-filtered` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | `VisibleWoundsCarryTheirCategoryTest`, `EveryWoundCategoryIsNamedAndDrawableTest` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | modified | The three new fixed keys added to `Fixed` |
+
+### Tests
+
+- `VisibleWoundsCarryTheirCategoryTest`: all three resolution paths at once. `WolfmedGunshotWound` on a human
+  arm must read `Ballistic` (explicit field beating its `Piercing` damage type), `BurnWound` on the head must
+  read `Burn` (pure derivation, no field), and `IpcMechanicalDamageWound` on a `MobIPC` arm must read
+  `Mechanical` (explicit field on a vendored prototype whose first damage type is Blunt).
+- `EveryWoundCategoryIsNamedAndDrawableTest`: every `WoundPrototype` in the game resolves to a member of
+  `WolfmedWoundCategories.All`; every category has a locale name and a state in the RSI; every condition
+  glyph the panel can draw exists as a PNG and is listed in `meta.json`. Read through `IResourceManager`, so
+  a state renamed in the generator and not in the panel fails here rather than in play.
+
+### Deviations from the spec
+
+- **`WolfmedInternalBurnWound` is `Internal`, not `Burn`.** The task's list puts chemical and electrical
+  burns under Burn and organ-destruction wounds under Internal; internal burns are both. Internal won,
+  because what the medic does about them is surgery, not burn ointment.
+- **Chips carry short text, not the full wording.** The fracture chip shows the grade word and the infection
+  chip the stage word; treatment state, counts and every other phrase live in the `ToolTip`. At the pane's
+  ~470 px a header row carrying the full phrases would clip, and the tab scrolls vertically only.
+- **The category filter is card-level, not row-level.** Clicking a chip hides cards with no wound in that
+  category; the cards that survive still show all their wounds, so a filtered view never hides a finding
+  that belongs to the part it is showing.
+- `health-analyzer-wound-part-summary` now has no consumer. It was left in place (and in the locale
+  coverage test) rather than removed, since removing a vendored-adjacent key is not this package's business.
+
+### Build
+
+`Content.Client`, `Content.Server` and `Content.IntegrationTests` all compile clean (`-t:Compile`,
+`Build succeeded`). The wound suite was **not** run for this package: the project owner was playtesting out
+of this repo's `bin/`, so only compile checks were possible and every `MSB3021`/`MSB3027` copy error was
+expected. The panel itself has not been seen on screen.

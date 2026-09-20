@@ -11,6 +11,7 @@
 - type: wound
   id: WolfmedCrushInjuryWound
   name: wolfmed-wound-name-crush-injury
+  analyzerCategory: Blunt
   ruleOnly: true
   damageTypes:
     Blunt:
@@ -50,6 +51,7 @@
 - type: wound
   id: WolfmedConcussionWound
   name: wolfmed-wound-name-concussion
+  analyzerCategory: Blunt
   ruleOnly: true
   damageTypes: {}
   maximumSeverity: 60
@@ -88,6 +90,7 @@
 - type: wound
   id: WolfmedDislocationWound
   name: wolfmed-wound-name-dislocation
+  analyzerCategory: Blunt
   ruleOnly: true
   damageTypes: {}
   maximumSeverity: 40
@@ -106,6 +109,7 @@
 - type: wound
   id: WolfmedOrganContusionWound
   name: wolfmed-wound-name-organ-contusion
+  analyzerCategory: Internal
   ruleOnly: true
   damageTypes:
     Blunt:
