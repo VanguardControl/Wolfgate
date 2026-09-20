@@ -78,18 +78,16 @@ namespace Content.Client.HealthAnalyzer.UI
                 bodyPartButton.Value.MouseFilter = MouseFilterMode.Stop;
                 bodyPartButton.Value.OnPressed += _ => SetActiveBodyPart(bodyPartButton.Key, bodyPartButton.Value);
             }
-            ReturnButton.OnPressed += _ => ResetBodyPart();
+            InitWolfmedTargeting(); // WOLFGATE: UI3 - was ReturnButton.OnPressed; the button is gone and the doll drives targeting.
             // Shitmed Change End
         }
 
         // Shitmed Change Start
         public void SetActiveBodyPart(TargetBodyPart part, TextureButton button)
         {
-            if (_target == null)
-                return;
-
-            // Bit of the ole shitcode until we have Groins in the prototypes.
-            OnBodyPartSelected?.Invoke(part == TargetBodyPart.Groin ? TargetBodyPart.Torso : part, _target.Value);
+            // WOLFGATE: UI3 - was OnBodyPartSelected (a per-part rescan). The doll now sets the local player's
+            // targeted part, exactly as the HUD doll and the targeting hotkeys do.
+            SelectWolfmedTargetPart(part);
         }
 
         public void ResetBodyPart()
@@ -125,8 +123,7 @@ namespace Content.Client.HealthAnalyzer.UI
 
             SetActiveButtons(_entityManager.HasComponent<TargetingComponent>(_target.Value));
 
-            ReturnButton.Visible = isPart;
-            WolfmedReturnPanel.Visible = isPart; // WOLFGATE: HOOK 26 - the frame around the button, so a whole-body scan shows no empty box.
+            // WOLFGATE: UI3 - the return button and its frame are gone with the part-view path.
             PartNameLabel.Visible = isPart;
 
             if (part != null)

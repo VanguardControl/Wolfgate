@@ -59,7 +59,9 @@ public sealed partial class HealthAnalyzerSystem
             ushort scarCount = 0;
             // WOLFGATE (UI2): the category joins the grouping key so two wounds that share a name but not a
             // category could never collapse into one row with the wrong icon.
-            var visibleWounds = new Dictionary<(LocId Name, LocId? StageName, WolfmedWoundCategory Category), int>();
+            // WOLFGATE (UI3): the prototype id joins the key too, so the row can name the treatment advice.
+            var visibleWounds =
+                new Dictionary<(LocId Name, LocId? StageName, WolfmedWoundCategory Category, string Prototype), int>();
             var clottingPhases = new HashSet<HealthAnalyzerClottingPhase>();
             var internalBleedingRate = 0f;
             var pain = TryComp(part, out PainComponent? painComponent)
@@ -108,7 +110,8 @@ public sealed partial class HealthAnalyzerSystem
                     continue;
 
                 var stageName = prototype.GetStageDefinition(wound.Comp.Severity)?.Name;
-                var key = (prototype.Name, stageName, WolfmedWoundCategories.Resolve(prototype)); // WOLFGATE (UI2)
+                // WOLFGATE (UI2 category, UI3 prototype id).
+                var key = (prototype.Name, stageName, WolfmedWoundCategories.Resolve(prototype), prototype.ID);
                 visibleWounds[key] = visibleWounds.GetValueOrDefault(key) + 1;
             }
 
@@ -117,7 +120,7 @@ public sealed partial class HealthAnalyzerSystem
                 .ThenBy(entry => entry.Key.Name)
                 .ThenBy(entry => entry.Key.StageName)
                 .Select(entry => new HealthAnalyzerVisibleWound(
-                    entry.Key.Name, entry.Key.StageName, entry.Value, entry.Key.Category))
+                    entry.Key.Name, entry.Key.StageName, entry.Value, entry.Key.Category, entry.Key.Prototype))
                 .ToList();
             var clottingPhase = clottingPhases.Count switch
             {

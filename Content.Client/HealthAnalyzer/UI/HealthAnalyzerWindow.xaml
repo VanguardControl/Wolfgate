@@ -36,18 +36,8 @@
                 VerticalExpand="True"
                 MinWidth="330">
             <!-- Shitmed Change Start -->
-                <!-- WOLFGATE: HOOK 26 - named so the frame hides with the button it wraps instead of leaving an empty box. -->
-                <PanelContainer Name="WolfmedReturnPanel" Visible="False" VerticalExpand="False" HorizontalExpand="True" Margin="2 2 2 2" MinHeight="40">
-                    <PanelContainer.PanelOverride>
-                        <graphics:StyleBoxFlat BorderThickness="4" BorderColor="#333333" BackgroundColor="#050505"/>
-                    </PanelContainer.PanelOverride>
-            <Button Name="ReturnButton"
-                    Text="{Loc 'health-analyzer-window-return-button-text'}"
-                    Margin="1"
-                    HorizontalExpand="True"
-                    VerticalExpand="True"
-                    StyleClasses="ButtonSquare"/>
-                </PanelContainer>
+            <!-- WOLFGATE: UI3 - the return button and its frame are gone; the doll no longer switches to a
+                 per-part scan, it sets the player's targeted body part. -->
             <!-- Shitmed Change End -->
             <BoxContainer
                 Name="PatientDataContainer"

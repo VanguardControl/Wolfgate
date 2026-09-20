@@ -45,6 +45,10 @@ public static class WolfmedWoundStyle
     public static readonly Color AlertBackground = Color.FromHex("#2a1414");
     public static readonly Color StageText = Color.FromHex("#8a8f96");
 
+    // UI3: the card of the part the medic is aiming at.
+    public static readonly Color CardTargeted = Color.FromHex("#1a1a20");
+    public static readonly Color TargetedBorder = Color.FromHex("#ffcf6b");
+
     public static Color Category(WolfmedWoundCategory category) => category switch
     {
         WolfmedWoundCategory.Cut => Cut,

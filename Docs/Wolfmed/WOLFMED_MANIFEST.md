@@ -3650,3 +3650,45 @@ and treatment overlays on limbs (G3).
   no tourniquet, and a recoloured gauze band would read as gauze.
 - **IPCs keep sparks.** The spray is gated on organic tissue, as the spec asked. The colour path is
   reagent-driven, so enabling an oil spray later is deleting the `organic &&` guard.
+
+## Final stages: UI3 (2026-09-19)
+
+Two changes to the health analyzer. **A**: the body doll no longer rescans one part, it sets the local
+player's targeted body part through the same path the HUD doll and the targeting hotkeys use; the Return
+button and its frame are gone, the targeted part's doll silhouette lights up, and the wounds tab marks and
+scrolls to that part's card. **B**: every wound row, condition chip, category chip and banner carries a
+"what is this and what do I do" tooltip, and clicking one opens a reused procedure window with a numbered
+step-by-step treatment. The advice is locale data keyed off the wound prototype id, which the payload now
+carries, so a wound shipped without advice fails a test rather than showing an empty tooltip.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml` | modified (upstream) | **1 marked block**: `WolfmedReturnPanel` and `ReturnButton` deleted. No other change |
+| `Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml.cs` | modified (upstream) | **3 marked hooks**: `ReturnButton.OnPressed` becomes `InitWolfmedTargeting()`; `SetActiveBodyPart`'s body becomes `SelectWolfmedTargetPart(part)`; the two `ReturnButton`/`WolfmedReturnPanel` visibility lines go. `OnBodyPartSelected`, `ResetBodyPart` and the server's part-view path are left in place, unused |
+| `Content.Client/_WF/Wolfmed/Medical/HealthAnalyzerWindow.Wolfmed.cs` | modified | The UI3 bodies: a doll-part texture overlay per button, `SelectWolfmedTargetPart` (Groin maps to Torso, then `TargetingUIController.CycleTarget`), and a `FrameUpdate` poll of the local player's `TargetingComponent.Target` that keeps the doll and the wounds tab in sync with hotkeys, the HUD doll and the server |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedTreatmentAdvice.cs` | new | The key scheme: `ShortKey`/`StepsKey` (prototype id to kebab slug), `ConditionShortKey`/`ConditionStepsKey`, `CategoryShortKey`, the `-mechanical` suffix, and the `Conditions` / `MechanicalConditions` / `MechanicalWounds` lists the coverage test iterates |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified (vendored) | **1 marked trailing field** on `HealthAnalyzerVisibleWound`: `string Prototype = ""`, defaulted so nothing else on the wire moves |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | The visible-wound grouping key gains the prototype id and the row carries it |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedTreatmentWindow.cs` | new | The procedure window: a code-built `FancyWindow` (summary, divider, scrolling numbered steps, "Open guidebook" button, `HelpGuidebookIds` pointing at `WoundTreatment`). `Show(title, summary, steps)` refills it and fronts it |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | `OnPartSelected` event and `SetTargetedPart`; the targeted card gets a full border in `TargetedBorder` plus a "targeted" tag; the card header's part name is a `ContainerButton` that moves the target; every wound row, chip and banner is wrapped in a `ContainerButton` carrying the advice tooltip and opening the procedure window; `FrameUpdate` drains the pending scroll-into-view |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | `Clear()` drops the pending scroll; `Dispose(bool)` closes the procedure window with the analyzer |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedWoundStyle.cs` | modified | Two colours: `CardTargeted`, `TargetedBorder` |
+| `Resources/Locale/en-US/_WF/Wolfmed/treatment-advice.ftl` | new | 44 wound tooltips and procedures, 5 `-mechanical` wound variants, 16 conditions plus 3 `-mechanical` variants, 9 category tooltips, 5 chrome strings. Every claim taken from `WolfmedWoundTreatmentMatrixTest` and the Wound treatment guide page |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentAdviceTest.cs` | new | 4 tests: every wound prototype has both keys and a numbered procedure; the dual-carrier set is re-derived from the body part profiles and each has chassis advice; every condition, category and chrome string resolves; the payload carries the prototype id and the keys derive from it |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | modified | Five UI3 chrome keys added to the fixed list |
+
+### Deviations from the spec
+
+- **Targeting is polled, not subscribed.** The spec suggested subscribing `TargetingSystem.TargetChange`
+  and unsubscribing on close. That event fires only for the hotkeys: the HUD doll calls
+  `TargetingUIController.CycleTarget` directly and the server can move the target on its own. A per-frame
+  read of the local player's `TargetingComponent.Target` sees all three, and leaks nothing to unsubscribe.
+- **Eyes and Mouth buttons were already commented out** in the analyzer's XAML, so there was nothing to
+  repoint at Head.
+- **No third "what it is" key.** The short key is both the tooltip and the window's summary paragraph, so
+  there is one string to keep true rather than two.
+- **Warning lines are a `Do not:` prefix, not a separate key.** A Fluent pattern line may not start with
+  `[`, so the colour markup begins after the prefix.
+- **Item names are the entity `name:` fields**, so the advice says "welding tool", "bruise pack" and
+  "bone setter" where the guidebook page says "welder", "bruise pack" and "bonesetter". The guide was left
+  alone; it is prose, and the advice is meant to be searched for in a vendor.

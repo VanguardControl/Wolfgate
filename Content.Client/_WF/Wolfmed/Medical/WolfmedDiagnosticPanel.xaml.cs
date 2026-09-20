@@ -79,10 +79,23 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         _lastMessage = null;
         _woundTarget = null;
         _categoryFilter = null;
+        _scrollTo = null; // UI3: the card it pointed at has just been destroyed.
         WoundStateLabel.Visible = false;
         VitalDamageRow.Visible = false;
         ClearOrganRows();
         ChemicalsContainer.RemoveAllChildren();
+    }
+
+    /// <summary>UI3: the procedure window is a separate window, so it has to go when the analyzer does.</summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _treatmentWindow?.Close();
+            _treatmentWindow = null;
+        }
+
+        base.Dispose(disposing);
     }
 
     private void SelectTab(WolfmedDiagnosticTab tab)

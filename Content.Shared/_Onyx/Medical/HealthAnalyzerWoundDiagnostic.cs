@@ -39,7 +39,9 @@ public readonly record struct HealthAnalyzerVisibleWound(
     LocId? StageName,
     int Count,
     // WOLFGATE (UI2): the analyzer groups and tints its wound rows by this; resolved from the prototype.
-    WolfmedWoundCategory Category = WolfmedWoundCategory.Other);
+    WolfmedWoundCategory Category = WolfmedWoundCategory.Other,
+    // WOLFGATE (UI3): the wound prototype id, which is what the treatment advice keys are derived from.
+    string Prototype = "");
 
 [Serializable, NetSerializable]
 public enum HealthAnalyzerClottingPhase : byte

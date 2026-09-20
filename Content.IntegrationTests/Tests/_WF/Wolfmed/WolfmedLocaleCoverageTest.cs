@@ -61,6 +61,12 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("health-analyzer-wound-category-chip", [""]),
         ("health-analyzer-wound-no-findings", [""]),
         ("health-analyzer-wound-no-findings-filtered", [""]),
+        // UI3: the targeting marks and the two banner titles the procedure window uses.
+        ("health-analyzer-wound-targeted-tag", [""]),
+        ("health-analyzer-wound-target-part-hint", [""]),
+        ("health-analyzer-wound-banner-sepsis", [""]),
+        ("health-analyzer-wound-banner-blood-low", [""]),
+        ("wolfmed-treatment-guidebook-button", [""]),
     ];
 
     /// <summary>Every wound prototype names itself and its stages in a locale file.</summary>

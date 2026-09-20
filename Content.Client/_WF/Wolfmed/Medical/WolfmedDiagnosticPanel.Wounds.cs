@@ -9,14 +9,17 @@ using Content.Shared.MedicalScanner;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._WF.Wolfmed.Medical;
 
 /// <summary>
-/// UI2: the wounds tab. One card per injured body part, with the part's conditions as icon chips and its
-/// wounds grouped by <see cref="WolfmedWoundCategory"/>, replacing the single joined line per part that
-/// phase 5 shipped. Every string the old line printed is still here, on the row or in its tooltip.
+/// UI2: the wounds tab. One card per body part, with the part's conditions as icon chips and its wounds
+/// grouped by <see cref="WolfmedWoundCategory"/>, replacing the single joined line per part that phase 5
+/// shipped. Every string the old line printed is still here, on the row or in its tooltip.
+/// UI3: the card of the targeted part is marked and scrolled to, its header moves the target, and every
+/// row, chip and banner carries treatment advice on hover and a procedure window on click.
 /// </summary>
 public sealed partial class WolfmedDiagnosticPanel
 {
@@ -28,6 +31,60 @@ public sealed partial class WolfmedDiagnosticPanel
 
     /// <summary>Whose findings are on screen, so the filter can be dropped when the patient changes.</summary>
     private NetEntity? _woundTarget;
+
+    /// <summary>UI3: the local player's targeted body part, mirrored from the analyzer window.</summary>
+    private TargetBodyPart? _targetedPart;
+
+    /// <summary>UI3: the card to bring into view once layout has placed it.</summary>
+    private Control? _scrollTo;
+
+    /// <summary>
+    /// UI3: set for the one redraw that follows a deliberate selection. Without it every scan tick would
+    /// drag the list back to the targeted card while the medic is reading another one.
+    /// </summary>
+    private bool _scrollToTargeted;
+
+    /// <summary>UI3: the procedure window, kept across repopulates. One per panel, not one per click.</summary>
+    private WolfmedTreatmentWindow? _treatmentWindow;
+
+    /// <summary>UI3: raised when the medic picks a part from a card header. The window moves the target.</summary>
+    public event Action<TargetBodyPart>? OnPartSelected;
+
+    /// <summary>UI3: called by the window whenever the local player's body-part target moves.</summary>
+    public void SetTargetedPart(TargetBodyPart? part, bool scrollIntoView)
+    {
+        if (_targetedPart == part && !scrollIntoView)
+            return;
+
+        _targetedPart = part;
+        _scrollToTargeted = scrollIntoView;
+        RefreshWoundFilter();
+        _scrollToTargeted = false;
+    }
+
+    /// <summary>Drains the pending scroll once the card it points at has been laid out.</summary>
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+
+        if (_scrollTo is not { } card)
+            return;
+
+        _scrollTo = null;
+        if (card.Parent == null)
+            return;
+
+        var offset = WoundsTab.GetScrollValue().Y;
+        Control? walk = card;
+        while (walk != null && walk != WoundsTab)
+        {
+            offset += walk.Position.Y;
+            walk = walk.Parent;
+        }
+
+        if (walk != null)
+            WoundsTab.VScrollTarget = MathF.Max(0f, offset - 8f);
+    }
 
     private void DrawWoundDiagnostics(HealthAnalyzerScannedUserMessage msg)
     {
@@ -57,7 +114,8 @@ public sealed partial class WolfmedDiagnosticPanel
             WoundAlertsContainer.AddChild(CreateAlertRow(
                 "blood_low",
                 WolfmedWoundStyle.Bleeding,
-                Loc.GetString("health-analyzer-wound-blood-level-dangerous")));
+                Loc.GetString("health-analyzer-wound-blood-level-dangerous"),
+                "blood-low"));
 
         if (msg.WoundDiagnostics == null)
         {
@@ -73,7 +131,8 @@ public sealed partial class WolfmedDiagnosticPanel
                 "sepsis",
                 WolfmedWoundStyle.Necrosis,
                 Loc.GetString("health-analyzer-wound-sepsis",
-                    ("percent", (int) MathF.Round(msg.WoundDiagnostics.Sepsis)))));
+                    ("percent", (int) MathF.Round(msg.WoundDiagnostics.Sepsis))),
+                "sepsis"));
 
         BuildCategoryStrip(msg.WoundDiagnostics);
 
@@ -87,7 +146,10 @@ public sealed partial class WolfmedDiagnosticPanel
                 !diagnostic.VisibleWounds.Any(wound => wound.Category == filter))
                 continue;
 
-            WoundFindingsContainer.AddChild(CreatePartCard(part, diagnostic));
+            var card = CreatePartCard(part, diagnostic);
+            WoundFindingsContainer.AddChild(card);
+            if (_scrollToTargeted && part == _targetedPart)
+                _scrollTo = card;
             cards++;
         }
 
@@ -139,7 +201,10 @@ public sealed partial class WolfmedDiagnosticPanel
         var button = new Button
         {
             StyleClasses = { "OpenBoth" },
-            ToolTip = Loc.GetString("health-analyzer-wound-category-chip", ("category", name), ("count", count)),
+            // UI3: the count, then what the category means and what closes it.
+            ToolTip = Tooltip(
+                Loc.GetString("health-analyzer-wound-category-chip", ("category", name), ("count", count)),
+                Advice(WolfmedTreatmentAdvice.CategoryShortKey(category), false)),
             Margin = new Thickness(0, 0, 3, 3),
             MinHeight = 22,
         };
@@ -180,7 +245,7 @@ public sealed partial class WolfmedDiagnosticPanel
             DrawWoundDiagnostics(message);
     }
 
-    private Control CreateAlertRow(string icon, Color colour, string text)
+    private Control CreateAlertRow(string icon, Color colour, string text, string condition)
     {
         var panel = new PanelContainer
         {
@@ -208,18 +273,24 @@ public sealed partial class WolfmedDiagnosticPanel
         row.AddChild(label);
 
         panel.AddChild(row);
-        return panel;
+        // UI3: a banner is a finding like any other, so it opens the same procedure window. The tooltip uses
+        // the plain title rather than the banner text, which carries colour markup a tooltip cannot render.
+        var title = Loc.GetString($"health-analyzer-wound-banner-{condition}");
+        return Clickable(panel, title, condition, false, title);
     }
 
     private Control CreatePartCard(TargetBodyPart part, HealthAnalyzerWoundDiagnostic diagnostic)
     {
+        // UI3: the targeted part gets a full border in its accent colour rather than the left bar alone.
+        var targeted = part == _targetedPart;
+        var accent = WolfmedWoundStyle.Accent(diagnostic);
         var card = new PanelContainer
         {
             PanelOverride = new StyleBoxFlat
             {
-                BackgroundColor = WolfmedWoundStyle.CardBackground,
-                BorderColor = WolfmedWoundStyle.Accent(diagnostic),
-                BorderThickness = new Thickness(3, 0, 0, 0),
+                BackgroundColor = targeted ? WolfmedWoundStyle.CardTargeted : WolfmedWoundStyle.CardBackground,
+                BorderColor = targeted ? WolfmedWoundStyle.TargetedBorder : accent,
+                BorderThickness = targeted ? new Thickness(3, 1, 1, 1) : new Thickness(3, 0, 0, 0),
             },
             Margin = new Thickness(0, 0, 0, 4),
             HorizontalExpand = true,
@@ -232,7 +303,7 @@ public sealed partial class WolfmedDiagnosticPanel
             Margin = new Thickness(6, 3, 4, 4),
         };
 
-        body.AddChild(CreateCardHeader(part, diagnostic));
+        body.AddChild(CreateCardHeader(part, diagnostic, targeted));
 
         foreach (var row in CreateWoundRows(diagnostic))
             body.AddChild(row);
@@ -245,7 +316,7 @@ public sealed partial class WolfmedDiagnosticPanel
     }
 
     /// <summary>Part name on the left, the part's conditions as icon chips on the right.</summary>
-    private Control CreateCardHeader(TargetBodyPart part, HealthAnalyzerWoundDiagnostic diagnostic)
+    private Control CreateCardHeader(TargetBodyPart part, HealthAnalyzerWoundDiagnostic diagnostic, bool targeted)
     {
         var header = new BoxContainer
         {
@@ -254,12 +325,32 @@ public sealed partial class WolfmedDiagnosticPanel
             HorizontalExpand = true,
         };
 
-        header.AddChild(new Label
+        // UI3: the part name is the second way to aim; it does exactly what the doll does.
+        var name = new ContainerButton
+        {
+            ToolTip = Loc.GetString("health-analyzer-wound-target-part-hint"),
+            VerticalAlignment = VAlignment.Center,
+        };
+        name.AddChild(new Label
         {
             Text = Loc.GetString($"targeting-part-{PartKey(part)}"),
             StyleClasses = { "LabelHeading" },
             VerticalAlignment = VAlignment.Center,
         });
+        name.OnPressed += _ => OnPartSelected?.Invoke(part);
+        header.AddChild(name);
+
+        if (targeted)
+        {
+            header.AddChild(new Label
+            {
+                Text = Loc.GetString("health-analyzer-wound-targeted-tag"),
+                StyleClasses = { "LabelSubText" },
+                FontColorOverride = WolfmedWoundStyle.TargetedBorder,
+                VerticalAlignment = VAlignment.Center,
+            });
+        }
+
         header.AddChild(new Control { HorizontalExpand = true });
 
         foreach (var chip in CreateConditionChips(diagnostic))
@@ -275,8 +366,9 @@ public sealed partial class WolfmedDiagnosticPanel
     private List<Control> CreateConditionChips(HealthAnalyzerWoundDiagnostic diagnostic)
     {
         // W6: a chassis does not bleed or fracture, it leaks and deforms.
-        var mechanical = diagnostic.Mechanical ? "-mechanical" : string.Empty;
-        var frame = diagnostic.Mechanical ? "-frame" : string.Empty;
+        var mech = diagnostic.Mechanical;
+        var mechanical = mech ? "-mechanical" : string.Empty;
+        var frame = mech ? "-frame" : string.Empty;
         var chips = new List<Control>();
 
         if (diagnostic.Fracture != FractureGrade.None)
@@ -288,7 +380,7 @@ public sealed partial class WolfmedDiagnosticPanel
                     ("grade", grade),
                     ("treatment", Loc.GetString(
                         $"health-analyzer-wound-fracture-treatment-{diagnostic.FractureTreatment.ToString().ToLowerInvariant()}")));
-            chips.Add(CreateChip("fracture", WolfmedWoundStyle.Fracture, grade, text));
+            chips.Add(CreateChip("fracture", WolfmedWoundStyle.Fracture, grade, text, "fracture", mech));
         }
 
         if (diagnostic.BleedingRate > 0f)
@@ -297,7 +389,9 @@ public sealed partial class WolfmedDiagnosticPanel
                 "bleeding",
                 WolfmedWoundStyle.Bleeding,
                 null,
-                Loc.GetString($"health-analyzer-wound-bleeding-short{mechanical}")));
+                Loc.GetString($"health-analyzer-wound-bleeding-short{mechanical}"),
+                "bleeding",
+                mech));
         }
 
         if (diagnostic.InternalBleedingRate > 0f)
@@ -306,7 +400,9 @@ public sealed partial class WolfmedDiagnosticPanel
                 "internal_bleeding",
                 WolfmedWoundStyle.InternalBleeding,
                 null,
-                Loc.GetString("health-analyzer-wound-internal-bleeding-short")));
+                Loc.GetString("health-analyzer-wound-internal-bleeding-short"),
+                "internal-bleeding",
+                mech));
         }
 
         if (diagnostic.ClottingPhase is HealthAnalyzerClottingPhase.InProgress
@@ -318,7 +414,9 @@ public sealed partial class WolfmedDiagnosticPanel
                 WolfmedWoundStyle.Clotting,
                 null,
                 Loc.GetString(
-                    $"health-analyzer-wound-clotting-{diagnostic.ClottingPhase.ToString().ToLowerInvariant()}{mechanical}")));
+                    $"health-analyzer-wound-clotting-{diagnostic.ClottingPhase.ToString().ToLowerInvariant()}{mechanical}"),
+                "clotting",
+                mech));
         }
 
         // W1: before the scars, because it is the finding that decides what the medic does next.
@@ -328,19 +426,21 @@ public sealed partial class WolfmedDiagnosticPanel
                 "embedded",
                 WolfmedWoundStyle.Embedded,
                 diagnostic.EmbeddedObjects.ToString(),
-                Loc.GetString("health-analyzer-wound-embedded-short", ("count", diagnostic.EmbeddedObjects))));
+                Loc.GetString("health-analyzer-wound-embedded-short", ("count", diagnostic.EmbeddedObjects)),
+                "embedded",
+                mech));
         }
 
         // W5: dead tissue outranks everything else on the part; nothing but amputation clears it.
         if (diagnostic.Necrotic)
         {
             chips.Add(CreateChip("necrosis", WolfmedWoundStyle.Necrosis, null,
-                Loc.GetString("health-analyzer-wound-necrotic-short")));
+                Loc.GetString("health-analyzer-wound-necrotic-short"), "necrosis", mech));
         }
         else if (diagnostic.NecrosisRisk)
         {
             chips.Add(CreateChip("necrosis", WolfmedWoundStyle.Pain, null,
-                Loc.GetString("health-analyzer-wound-necrosis-risk-short")));
+                Loc.GetString("health-analyzer-wound-necrosis-risk-short"), "necrosis-risk", mech));
         }
 
         if (diagnostic.Infection != WolfmedInfectionStage.None)
@@ -348,21 +448,24 @@ public sealed partial class WolfmedDiagnosticPanel
             var text = Loc.GetString(
                 $"health-analyzer-wound-infection-{diagnostic.Infection.ToString().ToLowerInvariant()}");
             chips.Add(CreateChip("infection", WolfmedWoundStyle.Infection,
-                diagnostic.Infection.ToString().ToLowerInvariant(), text));
+                diagnostic.Infection.ToString().ToLowerInvariant(), text,
+                WolfmedTreatmentAdvice.InfectionCondition(diagnostic.Infection), mech));
         }
 
         // W6: a hot part reads as hot even once the wound itself has cooled past its first stage.
         if (diagnostic.Overheating)
         {
             chips.Add(CreateChip("overheating", WolfmedWoundStyle.Overheating, null,
-                Loc.GetString("health-analyzer-wound-overheating-short")));
+                Loc.GetString("health-analyzer-wound-overheating-short"), "overheating", mech));
         }
 
         if (diagnostic.Functionality != BodyPartFunctionalityState.Functional)
         {
             chips.Add(CreateChip("impaired", WolfmedWoundStyle.Impaired, null,
                 Loc.GetString(
-                    $"health-analyzer-wound-functionality-{diagnostic.Functionality.ToString().ToLowerInvariant()}")));
+                    $"health-analyzer-wound-functionality-{diagnostic.Functionality.ToString().ToLowerInvariant()}"),
+                WolfmedTreatmentAdvice.FunctionalityCondition(diagnostic.Functionality),
+                mech));
         }
 
         return chips;
@@ -375,19 +478,19 @@ public sealed partial class WolfmedDiagnosticPanel
         foreach (var wound in diagnostic.VisibleWounds)
         {
             var colour = WolfmedWoundStyle.Category(wound.Category);
+            var name = Loc.GetString(wound.Name);
             var row = new BoxContainer
             {
                 Orientation = LayoutOrientation.Horizontal,
                 SeparationOverride = 5,
                 HorizontalExpand = true,
                 Margin = new Thickness(1, 2, 0, 0),
-                ToolTip = Loc.GetString(WolfmedWoundCategories.NameKey(wound.Category)),
             };
 
             row.AddChild(Icon(WolfmedWoundCategories.IconState(wound.Category), colour, IconSize));
             row.AddChild(new Label
             {
-                Text = Loc.GetString(wound.Name),
+                Text = name,
                 VerticalAlignment = VAlignment.Center,
             });
 
@@ -411,7 +514,22 @@ public sealed partial class WolfmedDiagnosticPanel
                 });
             }
 
-            rows.Add(row);
+            // UI3: the row is the click target for that wound's procedure; the category name stays on hover.
+            var category = Loc.GetString(WolfmedWoundCategories.NameKey(wound.Category));
+            if (string.IsNullOrEmpty(wound.Prototype))
+            {
+                row.ToolTip = category;
+                rows.Add(row);
+                continue;
+            }
+
+            rows.Add(Clickable(
+                row,
+                Capitalize(name),
+                WolfmedTreatmentAdvice.ShortKey(wound.Prototype),
+                WolfmedTreatmentAdvice.StepsKey(wound.Prototype),
+                diagnostic.Mechanical,
+                category));
         }
 
         return rows;
@@ -453,12 +571,17 @@ public sealed partial class WolfmedDiagnosticPanel
     }
 
     /// <summary>A pill with a tinted pictogram, an optional short value, and the full wording on hover.</summary>
-    private Control CreateChip(string icon, Color colour, string? text, string tooltip)
+    private Control CreateChip(
+        string icon,
+        Color colour,
+        string? text,
+        string headline,
+        string condition,
+        bool mechanical)
     {
         var panel = new PanelContainer
         {
             PanelOverride = new StyleBoxFlat { BackgroundColor = WolfmedWoundStyle.ChipBackground },
-            ToolTip = tooltip,
             Margin = new Thickness(0, 0, 2, 0),
             VerticalAlignment = VAlignment.Center,
         };
@@ -483,7 +606,60 @@ public sealed partial class WolfmedDiagnosticPanel
         }
 
         panel.AddChild(row);
-        return panel;
+        // UI3: the chip's own wording, then what to do about it, then the procedure on click.
+        return Clickable(panel, Capitalize(headline), condition, mechanical, headline);
+    }
+
+    /// <summary>Wraps a condition's control so it hovers with advice and opens the procedure on click.</summary>
+    private Control Clickable(Control content, string title, string condition, bool mechanical, string headline) =>
+        Clickable(
+            content,
+            title,
+            WolfmedTreatmentAdvice.ConditionShortKey(condition),
+            WolfmedTreatmentAdvice.ConditionStepsKey(condition),
+            mechanical,
+            headline);
+
+    private Control Clickable(
+        Control content,
+        string title,
+        string shortKey,
+        string stepsKey,
+        bool mechanical,
+        string headline)
+    {
+        var advice = Advice(shortKey, mechanical);
+        var button = new ContainerButton
+        {
+            HorizontalExpand = content.HorizontalExpand,
+            VerticalAlignment = content.VerticalAlignment,
+            ToolTip = Tooltip(headline, advice),
+        };
+        button.AddChild(content);
+        button.OnPressed += _ => OpenTreatment(title, advice, Advice(stepsKey, mechanical));
+        return button;
+    }
+
+    /// <summary>The <c>-mechanical</c> variant where the data has one, else the plain key, else nothing.</summary>
+    private static string Advice(string key, bool mechanical)
+    {
+        if (mechanical &&
+            Loc.TryGetString(key + WolfmedTreatmentAdvice.MechanicalSuffix, out var chassis))
+            return chassis;
+
+        return Loc.TryGetString(key, out var advice) ? advice : string.Empty;
+    }
+
+    private static string Tooltip(string headline, string advice) =>
+        string.IsNullOrEmpty(advice) ? headline : headline + "\n" + advice;
+
+    private void OpenTreatment(string title, string summary, string steps)
+    {
+        if (string.IsNullOrEmpty(summary) && string.IsNullOrEmpty(steps))
+            return;
+
+        _treatmentWindow ??= new WolfmedTreatmentWindow();
+        _treatmentWindow.Show(title, summary, steps);
     }
 
     private TextureRect Icon(string state, Color colour, float size) => new()

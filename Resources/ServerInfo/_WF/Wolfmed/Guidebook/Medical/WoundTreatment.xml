@@ -6,11 +6,13 @@
 
 2. Stop major external bleeding - a tourniquet buys time on a limb that will not stop bleeding on its own.
 
-3. Scan the patient and select the damaged part.
+3. Scan the patient. Clicking a part on the analyzer's doll, or a part's name in the wounds list, aims you at that part exactly as the targeting doll and the targeting hotkeys do, so the next dressing goes where you meant it to.
 
 4. Remove damage with treatment matching its type.
 
 5. Scan again: remaining wounds, fractures, and organ damage need separate treatment.
+
+Every wound, every condition chip and every category chip on the analyzer says what it is and what to do about it when you hover it, and opens a step-by-step procedure when you click it. This page is the long version of that.
   <Box>
     <GuideEntityEmbed Entity="HandheldHealthAnalyzer"/>
   </Box>
