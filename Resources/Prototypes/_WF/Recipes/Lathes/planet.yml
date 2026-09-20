@@ -4,6 +4,7 @@
   id: WFPlanetStatic
   recipes:
   - WFLandingThrusterKit
+  - WFParachute
 
 - type: latheRecipe
   id: WFLandingThrusterKit
@@ -15,3 +16,13 @@
     Steel: 1500
     Plastic: 500
     Glass: 300
+
+- type: latheRecipe
+  id: WFParachute
+  result: WFParachute
+  categories:
+  - Tools
+  completetime: 4
+  materials:
+    Cloth: 400
+    Plastic: 200

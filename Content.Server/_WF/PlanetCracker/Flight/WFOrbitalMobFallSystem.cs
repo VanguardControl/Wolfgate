@@ -7,6 +7,7 @@ using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._CE.ZLevels.Damage;
 using Content.Shared._Shitmed.Body.Events;
+using Content.Shared._WF.PlanetCracker.Parachute;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -40,7 +41,8 @@ public sealed partial class WFOrbitalMobFallSystem : EntitySystem
 
     private void OnFall(Entity<MobStateComponent> ent, ref CEZLevelFallMapEvent args)
     {
-        if (ent.Comp.CurrentState == MobState.Dead || HasComp<WFOrbitalMobFallComponent>(ent))
+        if (ent.Comp.CurrentState == MobState.Dead || HasComp<WFOrbitalMobFallComponent>(ent)
+            || HasComp<WFParachutedComponent>(ent))
             return;
         var map = Transform(ent).MapUid;
         if (map == null || !_zLevels.TryMapUp(map.Value, out var above)
