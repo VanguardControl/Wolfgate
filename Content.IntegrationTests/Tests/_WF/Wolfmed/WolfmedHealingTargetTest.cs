@@ -29,7 +29,7 @@ public sealed class WolfmedHealingTargetTest : GameTest
     [TestCase("Brutepack", "Blunt", true)]
     [TestCase("CableApcStack", "Heat", false)]
     [TestCase("CableApcStack", "Heat", true)]
-    public async Task TargetedItemsNeverHealAnotherLimbTest(string item, string damageType, bool missingPart)
+    public async Task TargetedItemsFinishTheirLimbFirstTest(string item, string damageType, bool missingPart)
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
@@ -82,20 +82,23 @@ public sealed class WolfmedHealingTargetTest : GameTest
         await server.WaitAssertion(() =>
         {
             var wounds = entities.System<WoundSystem>();
-            Assert.That(wounds.GetWounds(right).Sum(wound => wound.Comp.Severity.Float()), Is.EqualTo(6f),
-                "Neither a missing target nor changing aim during treatment may heal the other leg.");
-            if (!missingPart)
+            var other = wounds.GetWounds(right).Sum(wound => wound.Comp.Severity.Float());
+            if (missingPart)
             {
-                var treated = wounds.GetWounds(left).Sum(wound => wound.Comp.Severity.Float());
-                Assert.That(treated, Is.LessThan(6f), "The originally selected leg should be treated.");
-                // WOLFGATE (W0): on flesh the wound survives the item - BluntWound's `healingMultiplier: 0.15`
-                // means a topical takes 15 % of the damage it removes off the wound. The cable coil's chassis
-                // wound is exempt and still closes outright.
-                if (item == "Brutepack")
-                    Assert.That(treated, Is.GreaterThan(0f), "removing damage must not close a flesh wound.");
-                else
-                    Assert.That(treated, Is.Zero);
+                Assert.That(other, Is.EqualTo(6f), "a missing target must not send the treatment to another leg.");
+                return;
             }
+
+            var treated = wounds.GetWounds(left).Sum(wound => wound.Comp.Severity.Float());
+            Assert.Multiple(() =>
+            {
+                Assert.That(treated, Is.LessThan(6f),
+                    "changing aim during treatment does not redirect it: the leg it started on is the one treated.");
+                // SS13-style carry-on (owner request): the item moves to the next treatable part by itself, but
+                // only once the part it is on is finished. The user's own aim is never what moves it.
+                Assert.That(other == 6f || treated == 0f, Is.True,
+                    $"the other leg ({other}) may only be touched after the first ({treated}) is done.");
+            });
         });
     }
 }

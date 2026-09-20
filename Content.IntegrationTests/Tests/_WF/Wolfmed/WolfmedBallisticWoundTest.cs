@@ -39,6 +39,8 @@ public sealed class WolfmedBallisticWoundTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // Lodging is a roll now; the heavy band below asserts the lodged outcome, so the roll is forced to land.
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = 0f);
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -69,6 +71,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                 Assert.That(embedded.Item.Id, Is.EqualTo("WolfmedSpentRound"));
             });
         });
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
     }
 
     /// <summary>
@@ -229,6 +232,8 @@ public sealed class WolfmedBallisticWoundTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // Lodging is a roll now; this test is about what a lodged round does, so the roll is forced to land.
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = 0f);
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -271,6 +276,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Assert.That(removal.TryRemoveOne(host, wound, body, clean: true), Is.Null,
                 "there is nothing left to pull out.");
         });
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
     }
 
     /// <summary>Digging with a knife costs a fresh cut and pain; forceps do not. Both are found by the tool check.</summary>
@@ -279,6 +285,8 @@ public sealed class WolfmedBallisticWoundTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // Lodging is a roll now; this test is about what a lodged round does, so the roll is forced to land.
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = 0f);
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -317,6 +325,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                 Assert.That(pain.GetPain(arm), Is.GreaterThan(painBefore));
             });
         });
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
     }
 
     /// <summary>
@@ -328,6 +337,8 @@ public sealed class WolfmedBallisticWoundTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // Lodging is a roll now; this test is about what a lodged round does, so the roll is forced to land.
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = 0f);
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
 
@@ -366,6 +377,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                     "and a severed limb is not charged the knife's pain.");
             });
         });
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
     }
 
     /// <summary>The analyzer says how many objects are still in the part, by name.</summary>
@@ -374,6 +386,8 @@ public sealed class WolfmedBallisticWoundTest : GameTest
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
+        // Lodging is a roll now; this test is about what a lodged round does, so the roll is forced to land.
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = 0f);
         var entities = server.ResolveDependency<IEntityManager>();
         var locale = server.ResolveDependency<ILocalizationManager>();
         var map = await Pair.CreateTestMap();
@@ -398,6 +412,62 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                 Assert.That(locale.HasString("wolfmed-wound-name-shrapnel"));
                 Assert.That(locale.HasString("health-analyzer-wound-embedded-short"));
             });
+        });
+        await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
+    }
+
+    /// <summary>
+    /// A lodged round with nothing lodged in it is an ordinary gunshot wound. It used to stay in the analyzer
+    /// list as "lodged round" after the last round came out. Lodging itself is a roll: the same heavy hit
+    /// goes straight through when the roll misses.
+    /// </summary>
+    [Test]
+    public async Task ClearedLodgedRoundBecomesAGunshotWoundTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var rules = entities.System<WolfmedWoundRuleSystem>();
+            var removal = entities.System<WolfmedEmbeddedRemovalSystem>();
+            try
+            {
+                // The roll misses: a heavy round goes through.
+                rules.ForcedRoll = 0.99f;
+                var lucky = entities.SpawnEntity("MobHuman", map.GridCoords);
+                Hit(entities, lucky, TargetBodyPart.LeftArm, entities.SpawnEntity("BulletMinigun", map.GridCoords), 25);
+                var luckyArm = Part(entities, lucky, BodyPartType.Arm, BodyPartSymmetry.Left);
+                Assert.That(Prototypes(entities, wounds, luckyArm), Does.Contain("WolfmedGunshotWound"));
+                Assert.That(Prototypes(entities, wounds, luckyArm), Does.Not.Contain("WolfmedLodgedRoundWound"));
+
+                // The roll lands: it stays in.
+                rules.ForcedRoll = 0f;
+                var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+                Hit(entities, body, TargetBodyPart.LeftArm, entities.SpawnEntity("BulletMinigun", map.GridCoords), 25);
+                var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+                var wound = FindWound(entities, wounds, arm, "WolfmedLodgedRoundWound");
+                var severity = entities.GetComponent<WoundComponent>(wound).Severity;
+
+                var host = (body, entities.GetComponent<WoundHostComponent>(body));
+                Assert.That(removal.TryRemoveOne(host, wound, body, clean: true), Is.Not.Null);
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WolfmedLodgedRoundWound"),
+                        "nothing is lodged any more.");
+                    Assert.That(Prototypes(entities, wounds, arm), Does.Contain("WolfmedGunshotWound"));
+                    Assert.That(entities.GetComponent<WoundComponent>(FindWound(entities, wounds, arm, "WolfmedGunshotWound")).Severity,
+                        Is.EqualTo(severity), "the hole is as bad as it was.");
+                });
+            }
+            finally
+            {
+                rules.ForcedRoll = null;
+            }
         });
     }
 

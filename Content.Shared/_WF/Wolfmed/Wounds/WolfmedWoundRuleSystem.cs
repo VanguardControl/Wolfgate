@@ -131,7 +131,7 @@ public sealed class WolfmedWoundRuleSystem : EntitySystem
         foreach (var rule in EnumerateRules(args.DamageType))
         {
             if (!Matches(rule, part, args.Amount, cause) ||
-                rule.Chance < 1f && !_random.Prob(Math.Clamp(rule.Chance, 0f, 1f)))
+                rule.Chance < 1f && !Roll(Math.Clamp(rule.Chance, 0f, 1f)))
                 continue;
 
             Apply(rule, part, args.Amount * rule.SeverityMultiplier * multiplier);
@@ -196,4 +196,9 @@ public sealed class WolfmedWoundRuleSystem : EntitySystem
             : embedded.MinCount;
         _embedded.Add(wound, embedded.Item, count, embedded.MaxTotal);
     }
+
+    /// <summary>Test seam: when set, a rule's chance passes exactly when this value is below it.</summary>
+    public float? ForcedRoll;
+
+    private bool Roll(float chance) => ForcedRoll is { } forced ? forced < chance : _random.Prob(chance);
 }

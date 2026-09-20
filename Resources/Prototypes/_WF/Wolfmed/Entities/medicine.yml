@@ -16,3 +16,23 @@
         reagents:
         - ReagentId: Spaceacillin
           Quantity: 30
+
+# The practical way to clean a wound: antiseptics work by touch, and a spray is the touch a medic has to hand.
+- type: entity
+  parent: SprayBottle
+  id: WolfmedAntisepticSpray
+  name: antiseptic spray
+  description: Medical alcohol in a spray bottle. Spray it on an open wound to clean it before it festers.
+  suffix: Filled
+  components:
+  - type: Tag
+    tags:
+    - Spray
+  - type: SolutionContainerManager
+    solutions:
+      spray:
+        maxVol: 100
+        reagents:
+        - ReagentId: Ethanol
+          Quantity: 100
+

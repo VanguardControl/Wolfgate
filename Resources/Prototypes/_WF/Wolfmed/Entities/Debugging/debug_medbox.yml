@@ -48,6 +48,8 @@
     - id: Wrench
     - id: NaniteApplicator
     # Washing and cleaning
+    - id: WolfmedAntisepticSpray
+      amount: 2
     - id: SprayBottleWater
     - id: SprayBottleSpaceCleaner
     - id: Soap

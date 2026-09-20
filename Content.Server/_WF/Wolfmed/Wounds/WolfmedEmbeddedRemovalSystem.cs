@@ -35,6 +35,8 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private WolfmedInfectionSystem _infection = default!;
+    [Dependency] private WolfmedWoundTraitSystem _traits = default!;
+    [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private WoundDamageRoutingSystem _routing = default!;
     [Dependency] private WoundTargetResolver _targeting = default!;
 
@@ -112,6 +114,17 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
             return null;
 
         var spawned = Spawn(item, _transform.GetMapCoordinates(body.Owner));
+
+        // Nothing left in it: the wound stops being "a lodged round" and becomes the hole it always was, at the
+        // same severity. Done before the dirty-tool penalties so the contamination lands on the wound that stays.
+        if ((CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0) <= 0 &&
+            _traits.TryGetBehavior(wound, out WolfmedClearedWoundBehavior cleared))
+        {
+            var severity = core.Severity;
+            _wounds.RemoveWound(wound);
+            if (_wounds.CreateOrMergeWound(part, cleared.Wound, severity) is { } replacement)
+                wound = replacement;
+        }
 
         if (!clean)
         {

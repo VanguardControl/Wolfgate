@@ -3,6 +3,7 @@
 // (hooks-a.md 5a/5b/5d). Kept out of the upstream file so it carries only the call site.
 
 using System.Linq;
+using Content.Shared.FixedPoint;
 using Content.Server.Body.Components;
 using Content.Server.Medical.Components;
 using Content.Shared._Onyx.Wounds;
@@ -88,9 +89,44 @@ public sealed partial class HealingSystem
         _audio.PlayPvs(healing.HealingEndSound, entity.Owner);
 
         args.Repeat = !dontRepeat && IsWoundDamaged(entity, healing, requestedPart);
+
+        // SS13-style: with this part done, carry on to the next part the same item can still treat. The user's
+        // own body-part target is left where it was; only this do-after moves.
+        if (!args.Repeat && !dontRepeat && requestedPart != null &&
+            TryGetNextTreatablePart(entity, healing, requestedPart.Value, out var nextPart))
+        {
+            args.RequestedPart = GetNetEntity(nextPart);
+            args.Repeat = true;
+            _popupSystem.PopupEntity(Loc.GetString("wolfmed-healing-next-part",
+                ("part", Identity.Entity(nextPart, EntityManager))), entity, args.User);
+        }
+
         if (!args.Repeat && !dontRepeat)
             _popupSystem.PopupEntity(Loc.GetString("medical-item-finished-using", ("item", used)), entity.Owner, args.User);
         args.Handled = true;
+    }
+
+    /// <summary>The next body part, after <paramref name="current"/> in body order, that this item still has work on.</summary>
+    private bool TryGetNextTreatablePart(Entity<DamageableComponent> entity, HealingComponent healing, EntityUid current,
+        out EntityUid next)
+    {
+        next = default;
+        var parts = _bodySystem.GetBodyChildren(entity.Owner).Select(part => part.Id).ToList();
+        var start = parts.IndexOf(current);
+        for (var i = 1; i < parts.Count; i++)
+        {
+            var candidate = parts[(start + i) % parts.Count];
+            if (_woundHealing.ResolveHealingPart(entity, candidate, _woundHealing.GetTreatableDamage(healing),
+                    GetHealingContainers(healing), healing.TreatmentCapabilities, healing.AllowedWoundStages,
+                    healing.BloodlossModifier, healing.HealWounds) != candidate ||
+                !IsWoundDamaged(entity, healing, candidate))
+                continue;
+
+            next = candidate;
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>Onyx's wound-host half of HasDamage, kept beside Wolfgate's own checks instead of folded into them.</summary>
@@ -107,6 +143,12 @@ public sealed partial class HealingSystem
         RaiseLocalEvent(entity.Owner, ref resolve);
         if (!resolve.Accepted)
             return false;
+
+        // A dressing (cloth, gauze) exists to stop a bleed and heals a token amount on the side. Its work is done
+        // when the bleed is, or it grinds through the whole stack half a point at a time.
+        var dressingOnly = healing.BloodlossModifier < 0 && -treatable.GetTotal() < FixedPoint2.New(1.5);
+        if (dressingOnly)
+            return resolve.Part is { } dressedPart && _woundHealing.CanTreatBleeding(dressedPart);
 
         if (healing.HealDamage)
         {

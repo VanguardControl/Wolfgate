@@ -101,6 +101,9 @@
   maximumSeverity: 200
   healingMultiplier: 0
   behaviors:
+  # With the round out it is an ordinary gunshot wound, and is treated as one.
+  - !type:WolfmedClearedWoundBehavior
+    wound: WolfmedGunshotWound
   # W5: infection risk. A round still in the wound is a source of contamination, not just an object.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 2.2
@@ -150,6 +153,9 @@
   maximumSeverity: 150
   healingMultiplier: 0
   behaviors:
+  # With every fragment out it is a plain puncture.
+  - !type:WolfmedClearedWoundBehavior
+    wound: PiercingWound
   # W5: infection risk. Fragments carry whatever they came off.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 2.0

@@ -33,6 +33,7 @@ public sealed class WolfmedAvailabilityTest : GameTest
     [
         "WolfmedSkinGraft",
         "SpaceacillinChemistryBottle",
+        "WolfmedAntisepticSpray",
         "WolfmedSplint", // V5
     ];
 

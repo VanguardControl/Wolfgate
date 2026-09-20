@@ -343,3 +343,15 @@ public sealed partial class WolfmedOverheatBehavior : WoundBehavior
     [DataField]
     public FixedPoint2 CoolingPerDousing = FixedPoint2.New(15);
 }
+
+/// <summary>
+/// What an embedded-object wound becomes once the last object is out. A lodged round with nothing lodged in it
+/// is an ordinary hole: it turns into that wound, at the same severity, and is treated like one.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedClearedWoundBehavior : WoundBehavior
+{
+    [DataField(required: true)]
+    public ProtoId<WoundPrototype> Wound;
+}
+

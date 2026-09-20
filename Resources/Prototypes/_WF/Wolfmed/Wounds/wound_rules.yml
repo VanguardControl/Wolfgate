@@ -336,7 +336,7 @@
     maxCount: 2
     maxTotal: 6
 
-# A rifle-weight round stays in. Always, so a medic can rely on what a heavy hit means.
+# A rifle-weight round sometimes stays in. A roll, not a rule: most heavy hits go through.
 - type: wolfmedWoundRule
   id: WolfmedRuleLodgedRoundHeavy
   priority: 40
@@ -344,6 +344,7 @@
   damageTypes: [ Piercing ]
   causes: [ Projectile ]
   minDamage: 18
+  chance: 0.35
   capabilities: [ Biological ]
   embedded:
     item: WolfmedSpentRound
