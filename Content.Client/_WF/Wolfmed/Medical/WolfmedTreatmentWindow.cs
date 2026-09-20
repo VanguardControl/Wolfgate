@@ -28,7 +28,7 @@ public sealed class WolfmedTreatmentWindow : FancyWindow
         MinSize = new Vector2(340, 220);
         SetSize = new Vector2(420, 360);
         Resizable = true;
-        HelpGuidebookIds = [new ProtoId<GuideEntryPrototype>(TreatmentGuide)];
+        HelpGuidebookIds = new List<ProtoId<GuideEntryPrototype>> { new(TreatmentGuide) }; // not [..]: sandbox rejects CollectionsMarshal
 
         var root = new BoxContainer
         {

@@ -87,15 +87,16 @@ public static class WolfmedTreatmentAdvice
     /// <summary>A PascalCase prototype id as the kebab-case tail of a locale key.</summary>
     public static string Slug(string id)
     {
-        var result = string.Empty;
+        // StringBuilder, not string += char: that compiles to a ReadOnlySpan<char> concat the client sandbox rejects.
+        var result = new System.Text.StringBuilder(id.Length + 8);
         for (var i = 0; i < id.Length; i++)
         {
             if (i > 0 && char.IsUpper(id[i]))
-                result += "-";
+                result.Append('-');
 
-            result += char.ToLowerInvariant(id[i]);
+            result.Append(char.ToLowerInvariant(id[i]));
         }
 
-        return result;
+        return result.ToString();
     }
 }
