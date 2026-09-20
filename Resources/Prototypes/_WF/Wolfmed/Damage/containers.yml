@@ -17,7 +17,8 @@
   - Heat
   - Shock
   - Radiation
-  - Bloodloss
+  # WOLFGATE: Bloodloss removed again. It sits in the Airloss group, so an IPC showed oxygen loss; a machine
+  # that does not breathe takes none, ever. The id stays because the welder and nanite applicator list it.
 
 # WOLFGATE (P5-2/P5-D20, U13'): Onyx parity for IPC and cybernetic PARTS. Onyx's SiliconIpc takes the whole
 # Burn group (Heat, Shock, Cold, Caustic - Resources/Prototypes/Damage/groups.yml:9-16); Wolfgate's

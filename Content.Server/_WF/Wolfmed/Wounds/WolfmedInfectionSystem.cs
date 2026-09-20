@@ -44,6 +44,7 @@ public sealed class WolfmedInfectionSystem : EntitySystem
     /// <summary>Seconds between batches. Nothing in the model needs finer resolution than this.</summary>
     private const float TickSeconds = 5f;
 
+    [Dependency] private Content.Shared.Mobs.Systems.MobStateSystem _mobState = default!;
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
@@ -185,7 +186,8 @@ public sealed class WolfmedInfectionSystem : EntitySystem
                 infection.SeverityAdded += creep;
         }
 
-        if (infection.Stage < WolfmedInfectionStage.Spreading || body is not { } host)
+        // A corpse does not run a fever or take more poison; the damage had no ceiling on a dead body.
+        if (infection.Stage < WolfmedInfectionStage.Spreading || body is not { } host || _mobState.IsDead(host))
             return;
 
         Fever(host, profile, minutes);
@@ -223,6 +225,9 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         }
 
         _alerts.ShowAlert(body, SepsisAlert);
+        if (_mobState.IsDead(body))
+            return;
+
         Fever(body, profile, minutes);
 
         // A quarter of the rate at onset, the whole of it at 100: ignoring sepsis kills, noticing it late

@@ -75,7 +75,11 @@ public partial class SharedBodySystem
         {
             var category = MarkingCategoriesConversion.FromHumanoidVisualLayers(layer);
             if (bodyAppearance.MarkingSet.Markings.TryGetValue(category, out var markingList))
-                markingsByLayer[layer] = markingList.Select(m => new Marking(m.MarkingId, m.MarkingColors.ToList())).ToList();
+                // WOLFGATE: only this layer's markings. The category (Arms, Legs) spans both sides, and IPC limbs
+                // ARE markings, so losing one arm took both arms and both hands with it.
+                markingsByLayer[layer] = markingList
+                    .Where(m => _markingManager.Markings.TryGetValue(m.MarkingId, out var proto) && proto.BodyPart == layer)
+                    .Select(m => new Marking(m.MarkingId, m.MarkingColors.ToList())).ToList();
         }
 
         component.Markings = markingsByLayer;

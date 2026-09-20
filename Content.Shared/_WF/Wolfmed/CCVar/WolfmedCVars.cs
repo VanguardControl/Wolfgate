@@ -15,6 +15,13 @@ public sealed class WolfmedCVars
         CVarDef.Create("wolfmed.crit_heartbeat", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     /// <summary>
+    /// Ceiling on a wound host's total damage. Part damage past it is discarded. High enough that any one limb
+    /// can still reach its amputation threshold on a dead body. Zero disables the ceiling.
+    /// </summary>
+    public static readonly CVarDef<float> BodyDamageCap =
+        CVarDef.Create("wolfmed.body_damage_cap", 600f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
     /// Whether open wounds become infected at all (W5). False leaves existing infections in place and
     /// stops them progressing, so turning it off mid-round is safe.
     /// </summary>

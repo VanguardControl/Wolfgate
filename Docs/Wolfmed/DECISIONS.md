@@ -268,3 +268,13 @@ not have to open all 14 reports to find them.
   brass knuckles (an armour *penalty*, so narrowing its coverage would be a buff) and every non-clothing
   `- type: Armor` block — all left for a balance pass rather than guessed at (P6-D4/D5).
 - The heartbeat asset's license is pending owner confirmation — see decision above.
+
+## Playtest fixes (2026-09-19)
+
+- **IPCs take no Airloss-group damage, ever (owner decision, reverses P5-D5/P5-D5b).** `Bloodloss` came off `SiliconWolfmed` and the IPC bloodstream's `bloodlossDamage`/`bloodlossHealDamage` are empty: Bloodloss reads as oxygen loss on the analyzer and an IPC does not breathe. Consequence: an oil leak currently costs an IPC nothing but the oil. Open: give low oil its own consequence (slowdown or overheating) if leaks should matter.
+- **Body damage ceiling.** `wolfmed.body_damage_cap` (default 600, absolute, 0 disables). Routed part damage past it is discarded (`WolfmedBodyPartSystem.ClampToBodyCap`, one marked hook in `WoundDamageRoutingSystem`). Absolute rather than a multiple of the dead threshold because an IPC dies at 100 while its limbs come off near 200. Infection and sepsis no longer damage corpses.
+- **One severed arm took both IPC arms.** `SharedBodySystem.PartAppearance` copied every marking in the limb's category (Arms spans both sides; IPC limbs are markings). Now filtered to the layer's own markings (marked).
+- **Heartbeat kept looping after death.** `SharedAudioSystem.Stop` is a no-op on ticks that are not first-time-predicted; the client system now deletes its stream directly and reconciles every frame.
+- **Infection tick crashed the server** ("Collection was modified"): infection, necrosis and frostbite ticks now buffer their targets.
+- **Test harness trap:** a test that fails inside a whole-suite run can be reported as *Skipped* ("dirty-disposed") while the run says Passed. Always rerun skipped tests standalone.
+

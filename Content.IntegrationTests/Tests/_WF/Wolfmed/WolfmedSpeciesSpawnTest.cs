@@ -87,13 +87,9 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
                 // 250u chemical solution would be a trap. InjectableSolution is deliberately absent with it.
                 Assert.That(bloodstream.ChemicalMaxVolume, Is.EqualTo(FixedPoint2.Zero));
 
-                // P5-D6: Bloodloss, never Heat. Heat is in WoundHostComponent.LocalizedDamageTypes, so
-                // bloodloss damage dealt as Heat would route to a limb, raise IpcMechanicalDamageWound
-                // severity and bleed at chance 1 - a self-reinforcing leak loop.
-                Assert.That(bloodstream.BloodlossDamage.DamageDict.Keys,
-                    Is.EquivalentTo(new[] { new ProtoId<DamageTypePrototype>("Bloodloss") }));
-                Assert.That(bloodstream.BloodlossHealDamage.DamageDict.Keys,
-                    Is.EquivalentTo(new[] { new ProtoId<DamageTypePrototype>("Bloodloss") }));
+                // Oil loss deals no damage at all: Heat would route to a part and feed its own leak (P5-D6), and
+                // Bloodloss reads as oxygen loss on a machine that does not breathe.
+                Assert.That(bloodstream.BloodlossDamage.Empty && bloodstream.BloodlossHealDamage.Empty);
             });
 
             entities.DeleteEntity(body);
@@ -105,13 +101,11 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
     }
 
     /// <summary>
-    /// PLAN5 §6.2 T-P5-3 (U2(a) shipped). An IPC leaks oil, and that leak can actually hurt it — which is the
-    /// entire point of the <c>SiliconWolfmed</c> container. The <c>Bloodloss</c> assertion is what catches its
-    /// absence: the stock <c>Silicon</c> container has no <c>Bloodloss</c> type and
-    /// <c>DamageableSystem</c> drops unsupported types silently, with no log.
+    /// An IPC leaks oil and the leak registers on the bleed total, but it takes no Airloss-group damage from
+    /// it or from anything else: it does not breathe (owner decision, 2026-09-19, reversing P5-D5).
     /// </summary>
     [Test]
-    public async Task IpcLeaksOilAndTakesBloodlossTest()
+    public async Task IpcLeaksOilAndTakesNoAirlossTest()
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
@@ -151,17 +145,19 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             Assert.That(blood.GetBloodLevelPercentage(body), Is.LessThan(before),
                 "and the level falls as it leaks.");
 
-            // THE assertion that catches a missing SiliconWolfmed. Bloodloss is what BloodstreamSystem.Update
-            // deals below the 0.9 threshold (PROTO Q's `bloodlossDamage: {Bloodloss: 0.5}`), and what phase 3's
-            // P3-D1 vital-part charge applies to the body. Dealt directly here rather than by waiting on the
-            // bloodstream update tick, so the test is deterministic.
-            Assert.That(entities.System<WolfmedDamageableSystem>()
-                .TryChangeDamage(body, Spec("Bloodloss", 10), out _));
-            Assert.That(entities.GetComponent<DamageableComponent>(body).Damage.DamageDict
-                    .GetValueOrDefault(new ProtoId<DamageTypePrototype>("Bloodloss")),
-                Is.EqualTo(FixedPoint2.New(10)),
-                "the stock Silicon container has no Bloodloss type, so this is 0 without SiliconWolfmed - " +
-                "and oil loss would be purely cosmetic (PLAN5 U2).");
+            // An IPC does not breathe, so it never takes Airloss-group damage: Bloodloss reads as oxygen loss
+            // on the analyzer. Oil loss is a leak, not a damage source.
+            foreach (var type in new[] { "Bloodloss", "Asphyxiation" })
+            {
+                entities.System<WolfmedDamageableSystem>().TryChangeDamage(body, Spec(type, 10), out _);
+                Assert.That(entities.GetComponent<DamageableComponent>(body).Damage.DamageDict
+                        .GetValueOrDefault(new ProtoId<DamageTypePrototype>(type)),
+                    Is.EqualTo(FixedPoint2.Zero),
+                    $"an IPC must never hold {type} damage.");
+            }
+
+            Assert.That(bloodstream.BloodlossDamage.Empty && bloodstream.BloodlossHealDamage.Empty,
+                "and its bloodstream deals none when the oil runs low.");
         });
     }
 
@@ -433,6 +429,72 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
                         $"{profile.ID} names a non-primary circulatory stream. Wolfgate has exactly one blood " +
                         "solution per body, so SetBleedRates would drop that species' bleed rate to zero " +
                         "silently. Onyx sets this key on none of its own five profiles either (P5-D3).");
+            });
+        });
+    }
+
+    /// <summary>
+    /// IPC limbs are markings, and the Arms category holds both sides. Losing one arm used to take both arms
+    /// and both hands off the body sprite and put all four on the dropped limb.
+    /// </summary>
+    [Test]
+    public async Task IpcLosesOnlyTheSeveredArmTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            Assert.That(entities.System<AmputationSystem>().TryAmputate(body, arm));
+
+            var markings = entities.GetComponent<Content.Shared.Humanoid.HumanoidAppearanceComponent>(body)
+                .MarkingSet.Markings.Values.SelectMany(list => list).Select(marking => marking.MarkingId).ToList();
+            Assert.Multiple(() =>
+            {
+                Assert.That(markings, Does.Not.Contain("MobIPCLArmDefault"), "the severed arm leaves the body.");
+                Assert.That(markings, Does.Contain("MobIPCRArmDefault"), "the other arm stays.");
+                Assert.That(markings, Does.Contain("MobIPCRHandDefault"), "and so does its hand.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// Routed damage had no ceiling: ten parts and no per-limb cap let a burning body climb into the
+    /// thousands. The body total now stops at a multiple of the dead threshold.
+    /// </summary>
+    [Test]
+    public async Task BodyDamageIsCappedTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            // An IPC is the worst case: no ashing trigger, so a burning chassis never sheds the limbs that hold
+            // the damage.
+            var body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var parts = entities.System<SharedBodySystem>().GetBodyChildren(body).Select(part => part.Id).ToList();
+            var cap = FixedPoint2.New(server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>()
+                .GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BodyDamageCap));
+
+            // Small hits, like fire: under every finishing-hit threshold, so nothing is severed.
+            for (var i = 0; i < 40; i++)
+            {
+                foreach (var part in parts)
+                    Routing(entities).TryApplyPartDamage(body, part, Spec("Heat", 5), null, ignoreResistances: true);
+            }
+
+            var total = entities.GetComponent<DamageableComponent>(body).TotalDamage;
+            Assert.Multiple(() =>
+            {
+                Assert.That(total, Is.LessThanOrEqualTo(cap + 1), "2000 Heat went in.");
+                Assert.That(total, Is.GreaterThan(cap - 20), "the ceiling is a ceiling, not a refusal to take damage.");
             });
         });
     }

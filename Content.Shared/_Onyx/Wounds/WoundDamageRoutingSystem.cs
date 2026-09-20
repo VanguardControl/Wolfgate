@@ -791,6 +791,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 return;
             }
 
+            _wfPart.ClampToBodyCap(body, localized); // WOLFGATE: body-wide damage ceiling
             var overflow = AccumulateAmputationOverflow(target, ref localized);
             if (!overflow.Empty)
             {

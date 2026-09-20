@@ -30,12 +30,12 @@
     bloodReagent: Oil
     bloodMaxVolume: 250
     chemicalMaxVolume: 0
+    # WOLFGATE: an IPC never takes Airloss-group damage (Bloodloss reads as oxygen loss on the analyzer and
+    # it does not breathe). Oil loss deals no damage; SiliconWolfmed no longer accepts Bloodloss either.
     bloodlossDamage:
-      types:
-        Bloodloss: 0.5
+      types: {}
     bloodlossHealDamage:
-      types:
-        Bloodloss: -1
+      types: {}
   # WOLFGATE (P5-D5/P5-D5b): Silicon + the Bloodloss TYPE (not the Airloss group) so oil loss and phase 3's
   # P3-D1 vital-part Bloodloss charge actually land - the stock Silicon container has no Bloodloss and
   # DamageableSystem silently drops unsupported types (DamageableSystem.cs:270-277). PROTO S/T added

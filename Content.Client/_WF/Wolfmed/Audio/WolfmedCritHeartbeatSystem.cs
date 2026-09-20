@@ -107,10 +107,20 @@ public sealed class WolfmedCritHeartbeatSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// Reconciles every frame as well as on events. A mob state change replayed by prediction reaches the
+    /// handlers on a tick that is not first-time-predicted, so the events alone can miss the real transition.
+    /// </summary>
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+        Refresh();
+    }
+
     private void Start()
     {
         Active = true;
-        if (_stream != null)
+        if (_stream is { } existing && !Deleted(existing))
             return;
 
         var played = _audio.PlayGlobal(HeartbeatSound, Filter.Local(), false,
@@ -121,10 +131,13 @@ public sealed class WolfmedCritHeartbeatSystem : EntitySystem
     private void Stop()
     {
         Active = false;
-        if (_stream == null)
+        if (_stream is not { } stream)
             return;
 
-        _audio.Stop(_stream);
+        // Deleted directly: SharedAudioSystem.Stop is a no-op on a tick that is not first-time-predicted, which
+        // left the loop orphaned and playing through death.
         _stream = null;
+        if (!Deleted(stream))
+            QueueDel(stream);
     }
 }
