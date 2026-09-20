@@ -6,15 +6,40 @@ wf-admin-tab-spawn-vessel = Spawn Vessel
 
 ## Vessel spawn window
 wf-vessel-spawn-title = Spawn Vessel
-wf-vessel-spawn-search = Search by name or ID...
+wf-vessel-spawn-search = Search by name, ID or class...
 wf-vessel-spawn-size-label = Size:{" "}
+wf-vessel-spawn-category-label = Category:{" "}
 wf-vessel-spawn-owner-label = Owner:{" "}
 wf-vessel-spawn-owner-none = None
-wf-vessel-spawn-info = Vessels spawn at your current position. Picking an owner puts the deed on their ID card and locks the consoles to it.
-wf-vessel-spawn-stats = Size: {$size} | Price: {$price} | Class: {$classes} | Engine: {$engines}
 wf-vessel-spawn-none = None
 wf-vessel-spawn-button = Spawn
 wf-vessel-spawn-count = Showing {$shown} of {$total} vessels
+wf-vessel-spawn-none-selected = No vessel selected
+wf-vessel-spawn-tooltip-none = Select a vessel to spawn it.
+wf-vessel-spawn-tooltip-denied = You do not have permission to spawn vessels.
+
+wf-vessel-spawn-detail-id = ID
+wf-vessel-spawn-detail-category = Category
+wf-vessel-spawn-detail-classes = Classes
+wf-vessel-spawn-detail-size = Size
+wf-vessel-spawn-detail-engines = Engines
+wf-vessel-spawn-detail-price = Price
+wf-vessel-spawn-detail-grid = Grid
+wf-vessel-spawn-grid-value = {$width} x {$height} ({$count} tiles)
+
+# Category filter and grouped-list headers
+wf-vessel-spawn-category-all = All
+wf-vessel-spawn-category-Salvage = Salvage
+wf-vessel-spawn-category-Science = Science
+wf-vessel-spawn-category-CargoEngineering = Cargo & Engineering
+wf-vessel-spawn-category-Medical = Medical
+wf-vessel-spawn-category-Civilian = Civilian & Service
+wf-vessel-spawn-category-Expedition = Expedition
+wf-vessel-spawn-category-Escort = Pursuit & Escort
+wf-vessel-spawn-category-Security = Security
+wf-vessel-spawn-category-Military = Military
+wf-vessel-spawn-category-Antagonist = Antagonist
+wf-vessel-spawn-category-Other = Other
 
 # Frontier defines the other shipyard class names but not this one.
 shipyard-console-class-Mercenary = Mercenary

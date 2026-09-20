@@ -18,6 +18,7 @@ using Content.Shared.Camera;
 using Content.Shared.CCVar;
 using Content.Shared.Damage;
 using Content.Shared.Database;
+using Content.Shared._WF.Explosion; // WOLFGATE
 using Content.Shared.Explosion;
 using Content.Shared.Explosion.Components;
 using Content.Shared.Explosion.EntitySystems;
@@ -453,6 +454,10 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         {
             // camera shake
             CameraShake(iterationIntensity.Count * 4f, pos, queued.TotalIntensity);
+
+            // WOLFGATE: lets the shockwave push shove entities out from the epicentre. A silent blast does not.
+            var shockwave = new ExplosionShockwaveEvent(pos, iterationIntensity.Count, queued.Cause);
+            RaiseLocalEvent(ref shockwave);
 
             // play sound.
             // for the normal audio, we want everyone in pvs range

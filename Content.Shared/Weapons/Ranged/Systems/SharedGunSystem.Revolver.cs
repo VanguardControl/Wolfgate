@@ -608,7 +608,7 @@ public partial class SharedGunSystem
     {
         var currentIndex = ent.Comp.CurrentIndex;
 
-        var index = (currentIndex - 1) % ent.Comp.Capacity;
+        var index = (currentIndex - 1 + ent.Comp.Capacity) % ent.Comp.Capacity; // WOLFGATE: C# % keeps the sign, index 0 gave -1 and crashed the server
         var chamber = ent.Comp.Chambers[index];
         if (chamber == true)
         {
