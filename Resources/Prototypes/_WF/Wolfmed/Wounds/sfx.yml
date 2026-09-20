@@ -170,7 +170,7 @@
   # ordinary wound has to reach to join them: a critical slash runs about 0.2, so 1.5 is four or five bad
   # ones at once or one that nobody has touched.
   bleedSpurt:
-    majorRate: 1.5
+    majorRate: 0.9 # 1.5 before wolfmed.bleed_rate 0.6 scaled every rate
     stumpWounds: [ DismembermentWound ]
     interval: 6
     jitter: 2.5
@@ -187,3 +187,20 @@
       params:
         volume: -2
         variation: 0.12
+    mechanicalSound:
+      collection: WolfmedLeakHiss
+      params:
+        volume: -3
+        variation: 0.15
+
+  # A machine part that is damaged past minDamage, or knocked out by an EMP, sparks until it is fixed.
+  machineSparks:
+    minDamage: 10
+    interval: 5
+    jitter: 3
+    effect: WolfmedSparkBurstSmall
+    sound:
+      collection: sparks
+      params:
+        volume: -4
+        variation: 0.15

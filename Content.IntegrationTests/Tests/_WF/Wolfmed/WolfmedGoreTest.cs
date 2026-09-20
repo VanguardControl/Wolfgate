@@ -420,7 +420,7 @@ public sealed class WolfmedGoreTest : GameTest
             var stump = wounds.CreateOrMergeWound(arm, "DismembermentWound", FixedPoint2.New(40));
             Assert.That(stump, Is.Not.Null);
 
-            Assert.That(spurts.HasSpurtSource(body, spec, out var isStump), Is.True,
+            Assert.That(spurts.HasSpurtSource(body, spec, out var isStump, out _), Is.True,
                 "an open stump is a spurt source.");
             Assert.That(isStump, Is.True);
 
@@ -433,7 +433,7 @@ public sealed class WolfmedGoreTest : GameTest
             Assert.That(bleeding.SetTreatment(stump!.Value, BleedingTreatment.Clamped), Is.True);
             Assert.Multiple(() =>
             {
-                Assert.That(spurts.HasSpurtSource(body, spec, out _), Is.False,
+                Assert.That(spurts.HasSpurtSource(body, spec, out _, out _), Is.False,
                     "a treated stump is not a spurt source.");
                 Assert.That(spurts.TrySpurt(body), Is.False, "and a spurt on it does nothing.");
             });

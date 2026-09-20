@@ -64,6 +64,10 @@ public sealed partial class WolfmedSfxProfilePrototype : IPrototype
     [DataField]
     public WolfmedBleedSpurtSpec BleedSpurt = new();
 
+    /// <summary>Sparks off damaged or disabled machine parts.</summary>
+    [DataField]
+    public WolfmedMachineSparkSpec MachineSparks = new();
+
     /// <summary>The sound this wound makes, or null when the profile has nothing to say about it.</summary>
     public SoundSpecifier? GetWoundSound(
         ProtoId<WoundPrototype> wound,

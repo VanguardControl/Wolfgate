@@ -19,14 +19,14 @@ public sealed class WolfmedCVars
     /// EMP damage to bodies off.
     /// </summary>
     public static readonly CVarDef<float> EmpPartDamage =
-        CVarDef.Create("wolfmed.emp_part_damage", 15f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.emp_part_damage", 40f, CVar.SERVERONLY);
 
     /// <summary>
     /// Most one EMP deals to one body in total. The parts share it, so a full chassis takes this much and a lone
     /// cybernetic limb takes wolfmed.emp_part_damage. Zero removes the ceiling.
     /// </summary>
     public static readonly CVarDef<float> EmpBodyDamage =
-        CVarDef.Create("wolfmed.emp_body_damage", 45f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.emp_body_damage", 120f, CVar.SERVERONLY);
 
     /// <summary>
     /// Multiplier on every wound's bleed rate. Applied where the rate is computed, so the analyzer, the spurts

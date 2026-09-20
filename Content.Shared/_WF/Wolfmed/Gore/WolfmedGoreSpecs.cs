@@ -142,4 +142,35 @@ public sealed partial class WolfmedBleedSpurtSpec
     /// <summary>An open stump, which is wetter.</summary>
     [DataField]
     public SoundSpecifier? StumpSound;
+
+    /// <summary>What a leaking chassis sounds like instead: pressure escaping, not anything wet.</summary>
+    [DataField]
+    public SoundSpecifier? MechanicalSound;
 }
+
+/// <summary>
+/// A damaged or EMP-disabled machine part throws sparks every so often until it is repaired.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedMachineSparkSpec
+{
+    [DataField]
+    public bool Enabled = true;
+
+    /// <summary>Damage on one machine part at which it starts sparking.</summary>
+    [DataField]
+    public FixedPoint2 MinDamage = FixedPoint2.New(10);
+
+    [DataField]
+    public TimeSpan Interval = TimeSpan.FromSeconds(5);
+
+    [DataField]
+    public TimeSpan Jitter = TimeSpan.FromSeconds(3);
+
+    [DataField]
+    public EntProtoId Effect = "WolfmedSparkBurstSmall";
+
+    [DataField]
+    public SoundSpecifier? Sound;
+}
+

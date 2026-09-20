@@ -101,7 +101,7 @@ public sealed class WolfmedBleedSpurtSystem : EntitySystem
             return;
 
         var spec = profile.BleedSpurt;
-        if (!spec.Enabled || !HasSpurtSource(body, spec, out _))
+        if (!spec.Enabled || !HasSpurtSource(body, spec, out _, out _))
         {
             RemComp<WolfmedBleedSpurtComponent>(body);
             return;
@@ -117,9 +117,10 @@ public sealed class WolfmedBleedSpurtSystem : EntitySystem
     /// Whether this body is bleeding hard enough to throw blood, and whether the worst of it is an open
     /// stump. A body that has already run dry cannot spurt however bad its wounds are.
     /// </summary>
-    public bool HasSpurtSource(EntityUid body, WolfmedBleedSpurtSpec spec, out bool stump)
+    public bool HasSpurtSource(EntityUid body, WolfmedBleedSpurtSpec spec, out bool stump, out bool mechanical)
     {
         stump = false;
+        mechanical = false;
         if (!HasComp<WoundHostComponent>(body) ||
             _bloodstream.GetBloodLevelPercentage(body) < spec.MinBloodLevel)
             return false;
@@ -139,11 +140,16 @@ public sealed class WolfmedBleedSpurtSystem : EntitySystem
                     bleeding.Treatment == BleedingTreatment.None)
                 {
                     stump = true;
+                    mechanical = !_traits.IsOrganic((part, woundable));
                     return true;
                 }
 
-                major |= bleeding.CurrentRate >= spec.MajorRate ||
-                         _traits.TryGetBehavior(wound.Owner, out WolfmedArterialBleedBehavior _);
+                if (bleeding.CurrentRate >= spec.MajorRate ||
+                    _traits.TryGetBehavior(wound.Owner, out WolfmedArterialBleedBehavior _))
+                {
+                    major = true;
+                    mechanical |= !_traits.IsOrganic((part, woundable));
+                }
             }
         }
 
@@ -160,13 +166,16 @@ public sealed class WolfmedBleedSpurtSystem : EntitySystem
             return false;
 
         var spec = profile.BleedSpurt;
-        if (!HasSpurtSource(body, spec, out var stump))
+        if (!HasSpurtSource(body, spec, out var stump, out var mechanical))
             return false;
 
         // No direction: the gore system picks a random cardinal, which is what a spurt should look like.
         _gore.TrySpawnSplatter(body, profile.HitSplatter, null, spec.Severity);
 
-        var sound = stump ? spec.StumpSound ?? spec.Sound : spec.Sound;
+        // A chassis leaks under pressure; nothing about it is wet.
+        var sound = mechanical && spec.MechanicalSound != null
+            ? spec.MechanicalSound
+            : stump ? spec.StumpSound ?? spec.Sound : spec.Sound;
         if (sound != null)
             _audio.PlayPvs(sound, body);
 

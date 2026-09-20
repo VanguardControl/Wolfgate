@@ -25,6 +25,7 @@ public sealed class WolfmedEmpSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private WoundDamageRoutingSystem _routing = default!;
+    [Dependency] private Content.Server._WF.Wolfmed.Gore.WolfmedMachineSparkSystem _sparks = default!;
 
     private static readonly ProtoId<DamageTypePrototype> Shock = "Shock";
 
@@ -82,6 +83,9 @@ public sealed class WolfmedEmpSystem : EntitySystem
                 _routing.TryApplyPartDamage(body, part, new DamageSpecifier(shock, FixedPoint2.New(amount)),
                     ignoreResistances: true);
             }
+
+            // A pulse also switches cybernetics off without wounding them; the spark system has to look either way.
+            _sparks.QueueRefresh(body);
         }
     }
 }

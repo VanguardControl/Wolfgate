@@ -147,3 +147,12 @@
   files:
   - /Audio/_WF/Wolfmed/Bleeding/splatter.ogg
   - /Audio/_WF/Wolfmed/Bleeding/crackandbleed.ogg
+
+# A chassis losing fluid: pressure escaping, nothing wet.
+- type: soundCollection
+  id: WolfmedLeakHiss
+  files:
+  - /Audio/Items/hiss.ogg
+  - /Audio/Effects/spray.ogg
+  - /Audio/Effects/spray3.ogg
+

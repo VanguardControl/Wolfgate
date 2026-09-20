@@ -62,6 +62,11 @@ public sealed class WolfmedEmpTest : GameTest
                 Assert.That(Shock(entities, leg), Is.EqualTo(perPart), "one cybernetic limb takes the whole per-part hit.");
                 Assert.That(Total(entities, ipc), Is.GreaterThan(FixedPoint2.Zero), "a chassis is all machine.");
                 Assert.That(Total(entities, ipc), Is.LessThanOrEqualTo(perBody + 1), "and shares one budget per pulse.");
+
+                // Burnt-out machine parts spark until someone fixes them; flesh never does.
+                Assert.That(entities.HasComponent<Content.Server._WF.Wolfmed.Gore.WolfmedMachineSparkComponent>(ipc), Is.True);
+                Assert.That(entities.HasComponent<Content.Server._WF.Wolfmed.Gore.WolfmedMachineSparkComponent>(cyborg), Is.True);
+                Assert.That(entities.HasComponent<Content.Server._WF.Wolfmed.Gore.WolfmedMachineSparkComponent>(human), Is.False);
             });
         });
     }
