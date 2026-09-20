@@ -6,6 +6,7 @@
     xmlns:internet="clr-namespace:Content.Client._WF.Administration.UI.InternetSound"
     xmlns:power="clr-namespace:Content.Client._WF.Administration.UI.GridPower"
     xmlns:ert="clr-namespace:Content.Client._WF.Administration.UI.Ert"
+    xmlns:planets="clr-namespace:Content.Client._WF.Administration.UI.Planets"
     Margin="4"
     MinSize="50 50">
     <BoxContainer Orientation="Vertical">
@@ -14,6 +15,7 @@
             <cc:UICommandButton Command="playinternetsound" Text="{Loc wf-admin-tab-internet-sound}" WindowType="{x:Type internet:InternetSoundAdminWindow}" />
             <cc:UICommandButton Command="gridpower" Text="{Loc wf-admin-tab-grid-power}" WindowType="{x:Type power:GridPowerWindow}" />
             <cc:UICommandButton Command="ertbuilder" Text="{Loc wf-admin-tab-ert}" WindowType="{x:Type ert:ErtBuilderWindow}" />
+            <cc:UICommandButton Command="planetcontrol" Text="{Loc wf-admin-tab-planet-control}" WindowType="{x:Type planets:PlanetControlWindow}" />
         </GridContainer>
     </BoxContainer>
 </Control>
