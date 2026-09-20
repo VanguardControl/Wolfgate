@@ -63,6 +63,7 @@ public sealed partial class HealthAnalyzerSystem
             var visibleWounds =
                 new Dictionary<(LocId Name, LocId? StageName, WolfmedWoundCategory Category, string Prototype), int>();
             var clottingPhases = new HashSet<HealthAnalyzerClottingPhase>();
+            var treatments = WolfmedPartTreatments.None; // WOLFGATE (UI4)
             var internalBleedingRate = 0f;
             var pain = TryComp(part, out PainComponent? painComponent)
                 ? _pain.GetPain((part, painComponent))
@@ -90,6 +91,13 @@ public sealed partial class HealthAnalyzerSystem
 
                 if (HasComp<WoundScarComponent>(wound))
                     scarCount++;
+
+                // WOLFGATE (UI4): the treatments already on the part, whatever the wound's current rate.
+                if (TryComp(wound, out WoundBleedingComponent? treated))
+                    treatments |= WolfmedStepChecks.Flag(treated.Treatment);
+
+                if (TryComp(wound, out WolfmedInfectionComponent? contamination) && contamination.Cleaned)
+                    treatments |= WolfmedPartTreatments.Cleaned;
 
                 if (TryComp(wound, out WoundInternalBleedingComponent? internalBleeding) &&
                     wound.Comp.State == WoundState.Open && internalBleeding.Severity > FixedPoint2.Zero)
@@ -145,7 +153,8 @@ public sealed partial class HealthAnalyzerSystem
                 _necrosis.IsNecrotic(part), // WOLFGATE (W5)
                 _necrosis.IsAtRisk(part), // WOLFGATE (W5)
                 _traits.IsMechanical((part, woundable)), // WOLFGATE (W6): picks the chassis wording
-                _overheating.IsOverheating(part)); // WOLFGATE (W6)
+                _overheating.IsOverheating(part), // WOLFGATE (W6)
+                treatments); // WOLFGATE (UI4): what the procedure window ticks off
 
             if (diagnostic.HasFindings)
                 result[target] = diagnostic;

@@ -35,11 +35,17 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
         "health-analyzer-wound-target-part-hint",
         "health-analyzer-wound-banner-sepsis",
         "health-analyzer-wound-banner-blood-low",
+        // UI4: the procedure window's own chrome.
+        "wolfmed-treatment-resolved",
+        "wolfmed-treatment-avoid-heading",
+        "wolfmed-treatment-step-done",
+        "wolfmed-treatment-step-surgery",
+        "wolfmed-treatment-title",
     ];
 
     /// <summary>
-    /// Every wound prototype in the game has a tooltip line and a procedure. A wound added in a later
-    /// phase fails here until both are written.
+    /// Every wound prototype in the game has a tooltip line. The procedure behind it is a prototype and is
+    /// checked in <see cref="WolfmedTreatmentProcedureTest"/>.
     /// </summary>
     [Test]
     public async Task EveryWoundPrototypeHasAdviceTest()
@@ -56,14 +62,9 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
                 foreach (var wound in prototypes.EnumeratePrototypes<WoundPrototype>().OrderBy(wound => wound.ID))
                 {
                     var shortKey = WolfmedTreatmentAdvice.ShortKey(wound.ID);
-                    var stepsKey = WolfmedTreatmentAdvice.StepsKey(wound.ID);
 
                     Assert.That(locale.HasString(shortKey), Is.True,
                         $"{wound.ID} has no treatment tooltip ({shortKey}).");
-                    Assert.That(locale.HasString(stepsKey), Is.True,
-                        $"{wound.ID} has no treatment procedure ({stepsKey}).");
-                    Assert.That(locale.GetString(stepsKey), Does.StartWith("1."),
-                        $"{stepsKey} must be a numbered procedure, one step per line.");
                 }
             });
         });
@@ -105,16 +106,15 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
 
                 foreach (var id in dual)
                 {
-                    foreach (var key in new[]
-                             {
-                                 WolfmedTreatmentAdvice.ShortKey(id),
-                                 WolfmedTreatmentAdvice.StepsKey(id),
-                             })
-                    {
-                        var mechanical = key + WolfmedTreatmentAdvice.MechanicalSuffix;
-                        Assert.That(locale.HasString(mechanical), Is.True,
-                            $"{id} is carried by a chassis but has no chassis advice ({mechanical}).");
-                    }
+                    var mechanical = WolfmedTreatmentAdvice.ShortKey(id) +
+                                     WolfmedTreatmentAdvice.MechanicalSuffix;
+                    Assert.That(locale.HasString(mechanical), Is.True,
+                        $"{id} is carried by a chassis but has no chassis tooltip ({mechanical}).");
+
+                    // UI4: and the chassis procedure the window opens from that row.
+                    var procedure = WolfmedTreatmentAdvice.ProcedureId(id, true);
+                    Assert.That(prototypes.HasIndex<WolfmedTreatmentProcedurePrototype>(procedure), Is.True,
+                        $"{id} is carried by a chassis but has no chassis procedure ({procedure}).");
                 }
             });
         });
@@ -138,14 +138,11 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
             foreach (var condition in WolfmedTreatmentAdvice.Conditions)
             {
                 required.Add(WolfmedTreatmentAdvice.ConditionShortKey(condition));
-                required.Add(WolfmedTreatmentAdvice.ConditionStepsKey(condition));
             }
 
             foreach (var condition in WolfmedTreatmentAdvice.MechanicalConditions)
             {
                 required.Add(WolfmedTreatmentAdvice.ConditionShortKey(condition) +
-                             WolfmedTreatmentAdvice.MechanicalSuffix);
-                required.Add(WolfmedTreatmentAdvice.ConditionStepsKey(condition) +
                              WolfmedTreatmentAdvice.MechanicalSuffix);
             }
 
@@ -207,8 +204,8 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
                     "the row has to name its prototype or the panel cannot find its advice.");
                 Assert.That(WolfmedTreatmentAdvice.ShortKey(row.Prototype),
                     Is.EqualTo("wolfmed-treatment-short-wolfmed-gunshot-wound"));
-                Assert.That(WolfmedTreatmentAdvice.StepsKey(row.Prototype),
-                    Is.EqualTo("wolfmed-treatment-steps-wolfmed-gunshot-wound"));
+                Assert.That(WolfmedTreatmentAdvice.ProcedureId(row.Prototype, false),
+                    Is.EqualTo("WolfmedGunshotWound"));
             });
         });
     }

@@ -579,6 +579,10 @@ public sealed class WolfmedAnalyzerTest : GameTest
                 // failure this catches is a state renamed in the script and not in the panel.
                 foreach (var state in ConditionIcons)
                     AssertIcon(resources, meta, state);
+
+                // UI4: the procedure window's glyphs, for the steps with no item of their own.
+                foreach (var state in ProcedureIcons)
+                    AssertIcon(resources, meta, state);
             });
         });
     }
@@ -590,6 +594,9 @@ public sealed class WolfmedAnalyzerTest : GameTest
         "fracture", "bleeding", "internal_bleeding", "embedded", "necrosis", "overheating",
         "scar", "pain", "impaired", "clotting", "sepsis", "blood_low",
     ];
+
+    /// <summary>UI4: gen_analyzer_icons.py's PROCEDURE_STATES, used by the treatment window.</summary>
+    private static readonly string[] ProcedureIcons = ["surgery", "reagent", "warning", "done", "step"];
 
     private static void AssertIcon(IResourceManager resources, string meta, string state)
     {

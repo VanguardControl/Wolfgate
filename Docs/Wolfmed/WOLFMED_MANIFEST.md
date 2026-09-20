@@ -3692,3 +3692,42 @@ carries, so a wound shipped without advice fails a test rather than showing an e
 - **Item names are the entity `name:` fields**, so the advice says "welding tool", "bruise pack" and
   "bone setter" where the guidebook page says "welder", "bruise pack" and "bonesetter". The guide was left
   alone; it is prose, and the advice is meant to be searched for in a vendor.
+
+## Final stages: UI4 (2026-09-19)
+
+The analyzer's procedure window stops being a block of numbered text. A procedure is now a
+`wolfmedTreatmentProcedure` prototype: an ordered list of steps, each naming the item or reagent it is done
+with and the checks that say it has been done, plus the "do not" lines. The window draws one row per step
+with that item's own sprite, greys and ticks a row once its checks hold, outlines the first row that is not
+done, and re-evaluates itself from every scan without being rebuilt, so the scroll and the focus stay put.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedTreatmentProcedurePrototype.cs` | new | `wolfmedTreatmentProcedure`: `summary` (LocId), `steps`, `avoid`. A `WolfmedTreatmentStep` is `text` (LocId), optional `tool` (`EntProtoId`), optional `reagent` (`ProtoId<ReagentPrototype>`), a `surgery` flag and a `done` list of checks |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedStepChecks.cs` | new | `WolfmedStepCheck` (17 members), the `WolfmedPartTreatments` flags, `WolfmedProcedureState`, and the pure evaluator. No entities, no IoC, no client types, so the truth table is unit testable |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedTreatmentAdvice.cs` | modified | `StepsKey`/`ConditionStepsKey` removed; `ProcedureId`, `ConditionProcedureId` and `Pascal` added. The short keys and the condition/category lists are unchanged |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified (vendored) | **1 marked trailing field**: `WolfmedPartTreatments Treatments`, defaulted. Nothing else can tell a sutured or clamped part from an untouched one, because both bleed at zero |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Fills `Treatments` from each wound's `WoundBleedingComponent.Treatment` and `WolfmedInfectionComponent.Cleaned` |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedTreatmentWindow.cs` | rewritten | `WolfmedTreatmentSubject` (part + wound id or condition + mechanical) plus the row list. `Show` rebuilds only when the subject changes; `SetState` re-tints in place. Rows: number badge, 32 px tool sprite with the item's name on hover, wrapping text, tick. Done rows are `Modulate`d grey, the first pending row takes an accent border. "Do not" rows carry the warning glyph |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | Chips and rows carry their part; `OpenTreatment` resolves the procedure and titles the window "finding, part"; `RefreshTreatment` re-evaluates the open window on every repopulate; `BuildProcedureState` and `ConditionPresent` read the payload; a new patient closes the window |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | `DangerousBloodLevel` now aliases `WolfmedStepChecks.DangerousBloodLevel` |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/treatment_procedures.yml` | new | 68 procedures (44 wounds, 5 chassis wound variants, 16 conditions, 3 chassis condition variants), 215 steps, 31 avoid lines |
+| `Resources/Locale/en-US/_WF/wolfmed/treatment-advice.ftl` | modified | The 77 short keys, 9 category lines and 5 chrome strings are unchanged. The 68 `-steps-` blobs are replaced by 215 `wolfmed-treatment-step-<slug>-<n>` and 31 `wolfmed-treatment-avoid-<slug>-<n>` lines, plus 5 new chrome keys |
+| `Tools/_WF/wolfmed/gen_analyzer_icons.py` | modified | `PROCEDURE_STATES`: `surgery`, `reagent`, `warning`, `done`, `step`. The 21 existing glyphs regenerate byte for byte |
+| `Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi` | modified | Five new 32x32 glyphs plus `meta.json` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentProcedureTest.cs` | new | 5 tests: every wound prototype has a procedure; every condition (and chassis condition) has one; every step's text, summary, avoid line, tool and reagent resolves and no step names both; the dual-carrier set is re-derived and has both variants; the id derivation is pinned |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs` | new | 5 tests, no server: every check separates a done patient from an untreated one, the "nothing left to do" cases, the body-level checks without a part, all-checks-must-hold, and the bleeding-treatment flag map |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentAdviceTest.cs` | modified | The `-steps-` assertions are gone; the chassis test now also asserts the chassis procedure; five UI4 chrome keys added |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | The five procedure glyphs added to the icon coverage list |
+
+### Deviations from the spec
+
+- **No `StageBelow(<stage>)` check.** Nothing in the converted advice needed a per-stage gate;
+  `SubjectGone` covers "until it stops being listed". The payload carries the stage name, so it can be
+  added without another field.
+- **Tourniquets, sutures, cauteries and antiseptic needed the one permitted extra payload field.** All four
+  drive the bleeding rate to zero (or, for antiseptic, change nothing the payload reports), so the checks
+  for them cannot be read off the existing fields. They are one `[Flags]` byte, not four fields.
+- **The medical content is unchanged.** Every step and warning is the UI3 sentence, split at the existing
+  numbering. The only edits are mechanical: the `Do not: [color=...]...[/color]` wrapper is gone, because
+  the window now draws those rows in the warning colour itself, and the first letter of each is capitalised.

@@ -23,7 +23,10 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     bool Necrotic = false, // WOLFGATE (W5): the part is dead tissue.
     bool NecrosisRisk = false, // WOLFGATE (W5): a tourniquet or a deep burn is killing it.
     bool Mechanical = false, // WOLFGATE (W6): a chassis, so the generic labels get their -mechanical variants.
-    bool Overheating = false) // WOLFGATE (W6): the part is running too hot to work properly.
+    bool Overheating = false, // WOLFGATE (W6): the part is running too hot to work properly.
+    // WOLFGATE (UI4): what has already been done here. A clamped, sutured or cauterised wound bleeds at
+    // zero, so nothing else in this payload can tell a treated part from an untouched one.
+    WolfmedPartTreatments Treatments = WolfmedPartTreatments.None)
 {
     public bool HasFindings =>
         Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||

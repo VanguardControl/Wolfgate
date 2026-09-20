@@ -26,7 +26,8 @@ namespace Content.Client._WF.Wolfmed.Medical;
 [GenerateTypedNameReferences]
 public sealed partial class WolfmedDiagnosticPanel : BoxContainer
 {
-    private const float DangerousBloodLevel = 0.65f;
+    // UI4: shared, so the step check that greys "give a bloodpack" uses the same line as the banner.
+    private const float DangerousBloodLevel = WolfmedStepChecks.DangerousBloodLevel;
 
     private IEntityManager _entityManager = default!;
     private SpriteSystem _spriteSystem = default!;

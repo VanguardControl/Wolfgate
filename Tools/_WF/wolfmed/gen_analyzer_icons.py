@@ -42,6 +42,9 @@ CONDITION_STATES = [
     "fracture", "bleeding", "internal_bleeding", "embedded", "necrosis", "overheating",
     "scar", "pain", "impaired", "clotting", "sepsis", "blood_low",
 ]
+# UI4: the procedure window's chrome. A step row draws its tool's own entity sprite where it has one;
+# these cover the steps that have no item (surgery, a reagent, plain instruction) plus the row marks.
+PROCEDURE_STATES = ["surgery", "reagent", "warning", "done", "step"]
 
 
 class Mask:
@@ -199,6 +202,26 @@ def glyph(name):
         mask.dot((16, 16), 2.8, ink=0)
     elif name == "blood_low":
         return low_droplet()
+    elif name == "surgery":
+        # A scalpel held at an angle: blade, shoulder, handle.
+        mask.poly([(28, 4), (29, 10), (17, 20), (13, 16)])
+        mask.stroke([(14, 18), (5, 27)], 4.4)
+    elif name == "reagent":
+        # A vial: neck, shoulders, body filled to two thirds.
+        mask.box([12, 3, 20, 7], radius=1.4)
+        mask.poly([(13, 7), (19, 7), (24, 16), (24, 27), (8, 27), (8, 16)])
+        mask.poly([(15, 10), (17, 10), (21, 17), (11, 17)], ink=0)
+    elif name == "warning":
+        # A filled triangle with the bar and dot punched back out.
+        mask.poly([(16, 3), (30, 28), (2, 28)])
+        mask.stroke([(16, 12), (16, 20)], 3.4, ink=0)
+        mask.dot((16, 24.5), 2.1, ink=0)
+    elif name == "done":
+        mask.stroke([(5, 17), (12.5, 24.5), (27, 8)], 5)
+    elif name == "step":
+        # A neutral marker for a step that uses nothing: a ring with a solid centre.
+        mask.ring((16, 16), 10, 3)
+        mask.dot((16, 16), 4.4)
     else:
         raise SystemExit("no glyph for " + name)
 
@@ -241,7 +264,7 @@ def write_state(name):
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
-    states = CATEGORY_STATES + CONDITION_STATES
+    states = CATEGORY_STATES + CONDITION_STATES + PROCEDURE_STATES
     for name in states:
         write_state(name)
 

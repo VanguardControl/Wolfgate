@@ -8,16 +8,22 @@ namespace Content.Shared._WF.Wolfmed.Wounds;
 /// plus two FTL lines and the coverage test fails until both exist.
 /// </summary>
 /// <remarks>
-/// Two keys per subject. The short key is the tooltip, one or two lines. The steps key is the numbered
-/// procedure the treatment window prints, as markup, one step per line. A <c>-mechanical</c> variant of
-/// either is used when the part is a chassis and the advice differs; where it does not, the base key is
-/// used for both.
+/// The short key is the tooltip, one or two lines, and the procedure window reuses it as its summary.
+/// UI4 replaced the old numbered-text key with a <see cref="WolfmedTreatmentProcedurePrototype"/> whose id
+/// is derived here, so the steps are rows with tools and completion checks rather than a blob of markup.
+/// A <c>-mechanical</c> variant (and a <c>Mechanical</c> procedure) is used when the part is a chassis and
+/// the advice differs; where it does not, the base one serves both.
 /// </remarks>
 public static class WolfmedTreatmentAdvice
 {
     public const string ShortPrefix = "wolfmed-treatment-short-";
-    public const string StepsPrefix = "wolfmed-treatment-steps-";
     public const string MechanicalSuffix = "-mechanical";
+
+    /// <summary>UI4: the procedure id suffix that marks a chassis variant.</summary>
+    public const string MechanicalId = "Mechanical";
+
+    /// <summary>UI4: the procedure id prefix for the findings that are not wounds.</summary>
+    public const string ConditionId = "Cond";
 
     private const string ConditionInfix = "cond-";
     private const string CategoryInfix = "cat-";
@@ -67,11 +73,15 @@ public static class WolfmedTreatmentAdvice
 
     public static string ShortKey(string woundId) => ShortPrefix + Slug(woundId);
 
-    public static string StepsKey(string woundId) => StepsPrefix + Slug(woundId);
-
     public static string ConditionShortKey(string condition) => ShortPrefix + ConditionInfix + condition;
 
-    public static string ConditionStepsKey(string condition) => StepsPrefix + ConditionInfix + condition;
+    /// <summary>UI4: a wound's procedure prototype id. The chassis variant appends <see cref="MechanicalId"/>.</summary>
+    public static string ProcedureId(string woundId, bool mechanical) =>
+        mechanical ? woundId + MechanicalId : woundId;
+
+    /// <summary>UI4: a condition's procedure prototype id, e.g. <c>internal-bleeding</c> to <c>CondInternalBleeding</c>.</summary>
+    public static string ConditionProcedureId(string condition, bool mechanical) =>
+        ProcedureId(ConditionId + Pascal(condition), mechanical);
 
     public static string CategoryShortKey(WolfmedWoundCategory category) =>
         ShortPrefix + CategoryInfix + category.ToString().ToLowerInvariant();
@@ -95,6 +105,27 @@ public static class WolfmedTreatmentAdvice
                 result.Append('-');
 
             result.Append(char.ToLowerInvariant(id[i]));
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>UI4: a kebab-case condition name as the PascalCase tail of a prototype id.</summary>
+    public static string Pascal(string name)
+    {
+        // StringBuilder for the same reason Slug uses one: the client sandbox rejects span concatenation.
+        var result = new System.Text.StringBuilder(name.Length);
+        var upper = true;
+        for (var i = 0; i < name.Length; i++)
+        {
+            if (name[i] == '-')
+            {
+                upper = true;
+                continue;
+            }
+
+            result.Append(upper ? char.ToUpperInvariant(name[i]) : name[i]);
+            upper = false;
         }
 
         return result.ToString();
