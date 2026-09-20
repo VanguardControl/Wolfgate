@@ -54,4 +54,11 @@ public sealed class WolfmedCVars
     /// <summary>Whether hits that wound throw blood mist or sparks (V4). The one knob for that spawn cost.</summary>
     public static readonly CVarDef<bool> HitDebris =
         CVarDef.Create("wolfmed.hit_debris", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a major bleed or an open stump throws blood around every few seconds (G2). False leaves the
+    /// bleeding model alone and only stops the spectacle.
+    /// </summary>
+    public static readonly CVarDef<bool> BleedSpurts =
+        CVarDef.Create("wolfmed.bleed_spurts", true, CVar.SERVERONLY);
 }

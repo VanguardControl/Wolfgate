@@ -182,8 +182,8 @@ public sealed class WolfmedWoundSfxTest : GameTest
             });
         });
 
-        // Half a second of ticks is past every tier's lifetime.
-        await Pair.RunTicksSync(30);
+        // Past every effect's lifetime, the 1.2 s hit splatter included.
+        await Pair.RunTicksSync(120);
         await server.WaitAssertion(() =>
             Assert.That(entities.Deleted(mist), Is.True, "debris cleans itself up."));
     }
@@ -392,7 +392,10 @@ public sealed class WolfmedWoundSfxTest : GameTest
     private static string Id(SoundSpecifier sound) =>
         sound is SoundCollectionSpecifier collection ? collection.Collection ?? string.Empty : string.Empty;
 
-    /// <summary>Every Wolfmed debris effect currently alive on the test map.</summary>
+    /// <summary>
+    /// Every Wolfmed debris effect currently alive on the test map. GORE/G1 put the directional spray in
+    /// front of the blood mist for flesh, so it counts here too: it is the same throttled spawn.
+    /// </summary>
     private static List<EntityUid> Debris(IEntityManager entities, TestMapData map)
     {
         var found = new List<EntityUid>();
@@ -400,6 +403,7 @@ public sealed class WolfmedWoundSfxTest : GameTest
         while (query.MoveNext(out var uid, out _, out var meta))
         {
             if (meta.EntityPrototype?.ID.StartsWith("WolfmedBloodMist") == true ||
+                meta.EntityPrototype?.ID.StartsWith("WolfmedHitSplatter") == true ||
                 meta.EntityPrototype?.ID.StartsWith("WolfmedSparkBurst") == true)
                 found.Add(uid);
         }

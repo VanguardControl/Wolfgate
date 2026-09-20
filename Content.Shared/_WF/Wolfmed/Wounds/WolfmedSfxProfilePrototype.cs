@@ -1,4 +1,5 @@
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Gore;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
@@ -54,6 +55,14 @@ public sealed partial class WolfmedSfxProfilePrototype : IPrototype
     /// <summary>Spark tiers for a chassis.</summary>
     [DataField]
     public List<WolfmedDebrisTier> MechanicalDebris = new();
+
+    /// <summary>G1: the travelling spray and the splat it leaves. Organic bodies only.</summary>
+    [DataField]
+    public WolfmedHitSplatterSpec HitSplatter = new();
+
+    /// <summary>G2: what an arterial bleed or an open stump throws, and how often.</summary>
+    [DataField]
+    public WolfmedBleedSpurtSpec BleedSpurt = new();
 
     /// <summary>The sound this wound makes, or null when the profile has nothing to say about it.</summary>
     public SoundSpecifier? GetWoundSound(

@@ -125,3 +125,20 @@
   - /Audio/Effects/metal_thud1.ogg
   - /Audio/Effects/metal_thud2.ogg
   - /Audio/Effects/metal_thud3.ogg
+
+# --- Bleeding out (G2) ------------------------------------------------------------------------------
+
+# A wound throwing blood through the skin. New files, imported with the splatter art.
+- type: soundCollection
+  id: WolfmedBleedSpurt
+  files:
+  - /Audio/_WF/Wolfmed/Bleeding/blood1.ogg
+  - /Audio/_WF/Wolfmed/Bleeding/blood2.ogg
+  - /Audio/_WF/Wolfmed/Bleeding/blood3.ogg
+
+# An open stump, which is wetter and comes with the bone.
+- type: soundCollection
+  id: WolfmedBleedStump
+  files:
+  - /Audio/_WF/Wolfmed/Bleeding/splatter.ogg
+  - /Audio/_WF/Wolfmed/Bleeding/crackandbleed.ogg

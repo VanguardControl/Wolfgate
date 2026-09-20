@@ -41,5 +41,6 @@
     state: splint-improvised
   - type: WolfmedSplint
     delay: 7
+    overlay: SplintImprovised # G3: reads as a rod and a rag on the limb, not a medical brace.
   - type: StaticPrice
     price: 5

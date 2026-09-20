@@ -104,6 +104,11 @@ public sealed partial class PartDamageVisualsComponent : Component
     // Damage cannot stand in for it: it says nothing about wound severity, material or dead tissue.
     [AutoNetworkedField]
     public Dictionary<HumanoidVisualLayers, WolfmedPartDegradation> Degradation = new();
+
+    // WOLFGATE (GORE/G3): the dressing or splint each limb is wearing, written by
+    // WolfmedTreatmentVisualsSystem. Rides here for the same reason the degradation stage does.
+    [AutoNetworkedField]
+    public Dictionary<HumanoidVisualLayers, WolfmedPartTreatment> Treatments = new();
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]

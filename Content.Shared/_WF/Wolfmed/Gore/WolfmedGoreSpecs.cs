@@ -1,0 +1,123 @@
+using Content.Shared._Onyx.Wounds;
+using Content.Shared.Decals;
+using Content.Shared.FixedPoint;
+using Robust.Shared.Audio;
+using Robust.Shared.Prototypes;
+
+namespace Content.Shared._WF.Wolfmed.Gore;
+
+/// <summary>
+/// The mess a hit makes on an organic body (G1): a spray that travels away from whatever caused it and
+/// the splat it leaves at the end. Data on <c>WolfmedSfxProfilePrototype</c>, so a server retunes or
+/// disables the whole thing by editing one file.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedHitSplatterSpec
+{
+    /// <summary>False falls back to V4's blood mist, which is what a body with no bloodstream gets anyway.</summary>
+    [DataField]
+    public bool Enabled = true;
+
+    /// <summary>The travelling spray.</summary>
+    [DataField]
+    public EntProtoId Effect = "WolfmedHitSplatter";
+
+    /// <summary>RSI states the spray picks from. Each is one of the sprite sheet's spray variants.</summary>
+    [DataField]
+    public List<string> States = new() { "hitsplatter1", "hitsplatter2", "hitsplatter3" };
+
+    /// <summary>How long the spray takes to cross its distance. The splat lands when it arrives.</summary>
+    [DataField]
+    public TimeSpan Travel = TimeSpan.FromSeconds(1.1);
+
+    /// <summary>Travel distance bands, longest first. The first one the hit clears wins.</summary>
+    [DataField]
+    public List<WolfmedSplatterRange> Distances = new();
+
+    /// <summary>Blood on a wall. One of these per state in <see cref="WallStates"/>.</summary>
+    [DataField]
+    public EntProtoId WallSplat = "WolfmedBloodSplatWall";
+
+    /// <summary>RSI states a wall splatter picks from.</summary>
+    [DataField]
+    public List<string> WallStates = new();
+
+    /// <summary>Cleanable decals a floor splat picks from.</summary>
+    [DataField]
+    public List<ProtoId<DecalPrototype>> FloorDecals = new();
+
+    /// <summary>How many splats one tile may hold before the oldest is thrown away.</summary>
+    [DataField]
+    public int MaxPerTile = 3;
+
+    /// <summary>The travel distance this hit earns, in tiles.</summary>
+    public float GetDistance(FixedPoint2 severity)
+    {
+        foreach (var band in Distances)
+        {
+            if (severity >= band.MinSeverity)
+                return band.Tiles;
+        }
+
+        return Distances.Count > 0 ? Distances[^1].Tiles : 1f;
+    }
+}
+
+/// <summary>One severity band of splatter travel.</summary>
+[DataDefinition]
+public sealed partial class WolfmedSplatterRange
+{
+    [DataField]
+    public FixedPoint2 MinSeverity = FixedPoint2.Zero;
+
+    /// <summary>Tiles travelled. Also how far ahead the wall check looks.</summary>
+    [DataField]
+    public float Tiles = 1f;
+}
+
+/// <summary>
+/// What a body that is bleeding hard does about it (G2). Arterial bleeds and open stumps throw blood;
+/// everything else has to clear <see cref="MajorRate"/> first.
+/// </summary>
+[DataDefinition]
+public sealed partial class WolfmedBleedSpurtSpec
+{
+    [DataField]
+    public bool Enabled = true;
+
+    /// <summary>Bleed rate on one wound that counts as major on its own.</summary>
+    [DataField]
+    public float MajorRate = 1.5f;
+
+    /// <summary>Wounds that spurt while untreated whatever their rate: an open amputation stump.</summary>
+    [DataField]
+    public HashSet<ProtoId<WoundPrototype>> StumpWounds = new() { "DismembermentWound" };
+
+    /// <summary>Average gap between two spurts on one body.</summary>
+    [DataField]
+    public TimeSpan Interval = TimeSpan.FromSeconds(6);
+
+    /// <summary>Jitter either side of the interval, so two patients never sync up.</summary>
+    [DataField]
+    public TimeSpan Jitter = TimeSpan.FromSeconds(2.5);
+
+    /// <summary>Blood level below which there is nothing left to throw.</summary>
+    [DataField]
+    public float MinBloodLevel = 0.35f;
+
+    /// <summary>Severity the spurt is spawned as, which is what picks its travel distance.</summary>
+    [DataField]
+    public FixedPoint2 Severity = FixedPoint2.New(14);
+
+    /// <summary>Units of the body's own blood put on the deck with the spurt.</summary>
+    [DataField]
+    public FixedPoint2 SpillVolume = FixedPoint2.New(2);
+
+    /// <summary>A wound bleeding out through the skin.</summary>
+    [DataField]
+    public SoundSpecifier? Sound;
+
+    /// <summary>An open stump, which is wetter.</summary>
+    [DataField]
+    public SoundSpecifier? StumpSound;
+}

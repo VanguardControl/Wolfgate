@@ -1,0 +1,50 @@
+# Blood thrown around by a hit (GORE/G1). The art is greyscale on purpose: every one of these is tinted
+# on the client with the victim's own blood reagent colour, so a Vox bleeds the colour a Vox bleeds
+# without a second sprite anywhere.
+#
+# Neither entity has physics, a collision or an update loop. The spray is slid along one cardinal by the
+# client for the length of its animation and then thrown away; the wall splat sits still until a janitor
+# washes it off or its clock runs out.
+
+- type: entity
+  id: WolfmedHitSplatter
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedHitSplatter
+  - type: TimedDespawn
+    lifetime: 1.2
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    # The direction is picked by the server in the frame of the grid, not of the camera, so the sprite is
+    # told which way to face instead of being rotated into it.
+    enableOverrideDir: true
+    sprite: _WF/Wolfmed/Effects/blood_splatter.rsi
+    state: hitsplatter1
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# Where the spray hits a wall or a window. An entity and not a decal: decals draw on the floor layer,
+# under walls, so a decal on a wall tile would be invisible.
+- type: entity
+  id: WolfmedBloodSplatWall
+  name: blood
+  description: Someone was standing in the wrong place.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WolfmedBloodSplat
+  - type: WolfmedCleanable
+    cleanCost: 0.5
+  # Long, but not forever: a round should not end with every wall on the station painted.
+  - type: TimedDespawn
+    lifetime: 900
+  - type: Sprite
+    drawdepth: WallTops
+    noRot: true
+    enableOverrideDir: true
+    sprite: _WF/Wolfmed/Effects/blood_splatter.rsi
+    state: splatter1
+  - type: Tag
+    tags:
+    - HideContextMenu

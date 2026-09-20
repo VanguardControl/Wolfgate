@@ -21,6 +21,7 @@ public sealed partial class DamageVisualsSystem
         // Option B: severed-limb wound rendering, independent of whether this entity has a DamageVisuals block.
         UpdateDetachedPartDamage(ent.Owner, ent.Comp);
         UpdateDegradation(ent.Owner, ent.Comp); // V3
+        UpdateTreatments(ent.Owner, ent.Comp); // G3
     }
 
     /// <summary>Option B: a detached part's own BodyPartComponent state changed (e.g. it was just severed).</summary>
@@ -31,6 +32,7 @@ public sealed partial class DamageVisualsSystem
 
         UpdateDetachedPartDamage(ent.Owner, damage);
         UpdateDegradation(ent.Owner, damage); // V3
+        UpdateTreatments(ent.Owner, damage); // G3
     }
 
     /// <summary>Drives each targeted sprite layer from that limb's own damage instead of the mob's aggregate (D30).</summary>
@@ -133,6 +135,57 @@ public sealed partial class DamageVisualsSystem
                 return;
 
             index = SpriteSystem.AddLayer((uid, sprite), new SpriteSpecifier.Rsi(profile.Rsi, state), insert);
+            SpriteSystem.LayerMapSet((uid, sprite), key, index);
+        }
+
+        SpriteSystem.LayerSetVisible((uid, sprite), index, state != null);
+        if (state != null)
+            SpriteSystem.LayerSetRsiState((uid, sprite), index, state);
+    }
+
+    // --- G3: treatment overlays ---
+
+    /// <summary>
+    /// Shows the dressing or splint each limb is wearing. Same shape as the degradation overlay: one
+    /// layer per visual layer, added once and afterwards only toggled or re-stated.
+    /// </summary>
+    private void UpdateTreatments(EntityUid uid, PartDamageVisualsComponent damage)
+    {
+        if (!TryComp(uid, out SpriteComponent? sprite))
+            return;
+
+        var id = CompOrNull<WolfmedTreatmentVisualsComponent>(uid)?.Profile ??
+                 WolfmedTreatmentVisualsComponent.DefaultProfile;
+        if (!_prototypeManager.TryIndex(id, out WolfmedTreatmentOverlayProfilePrototype? profile))
+            return;
+
+        foreach (var layer in WolfmedTreatmentLayers.All)
+            UpdateTreatmentLayer(uid, sprite, profile, layer, damage.Treatments.GetValueOrDefault(layer));
+    }
+
+    /// <summary>Creates (once) and updates one treatment overlay layer.</summary>
+    private void UpdateTreatmentLayer(EntityUid uid, SpriteComponent sprite,
+        WolfmedTreatmentOverlayProfilePrototype profile, HumanoidVisualLayers layer,
+        WolfmedPartTreatment treatment)
+    {
+        var state = treatment == WolfmedPartTreatment.None ? null : profile.GetState(layer, treatment);
+        var key = $"WolfmedTreatment{layer}";
+        if (!SpriteSystem.LayerMapTryGet((uid, sprite), key, out var index, false))
+        {
+            if (state == null)
+                return;
+
+            // Above the limb and above its degradation overlay, below the clothing the inventory adds
+            // further up: a bandage covers a wound and a sleeve covers the bandage. Whichever of the two
+            // overlays is created second, inserting just above the one below it keeps that order, because
+            // an insert at the lower index pushes this layer up with it.
+            if (!SpriteSystem.LayerMapTryGet((uid, sprite), layer, out var below, false))
+                return;
+
+            if (SpriteSystem.LayerMapTryGet((uid, sprite), $"WolfmedDegradation{layer}", out var wound, false))
+                below = Math.Max(below, wound);
+
+            index = SpriteSystem.AddLayer((uid, sprite), new SpriteSpecifier.Rsi(profile.Rsi, state), below + 1);
             SpriteSystem.LayerMapSet((uid, sprite), key, index);
         }
 

@@ -1,3 +1,4 @@
+using Content.Server._WF.Wolfmed.Gore;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Wounds;
@@ -32,6 +33,7 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WolfmedGoreSystem _gore = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
 
     /// <inheritdoc/>
@@ -54,7 +56,10 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
         if (TerminatingOrDeleted(args.Body))
             return;
 
-        EnsureComp<WolfmedWoundSfxComponent>(args.Body).LastHit = _timing.CurTime;
+        var state = EnsureComp<WolfmedWoundSfxComponent>(args.Body);
+        state.LastHit = _timing.CurTime;
+        // Kept as a vector, not an entity: a projectile is usually gone by the time the wound lands (G1).
+        state.LastDirection = _gore.GetHitDirection(args.Body, args.Origin, args.Tool);
     }
 
     private void OnWoundLifecycle(ref WolfmedWoundLifecycleEvent args)
@@ -102,7 +107,11 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Spawns the debris tier this severity earns, if the body is off its throttle.</summary>
+    /// <summary>
+    /// Spawns the debris tier this severity earns, if the body is off its throttle. Flesh throws G1's
+    /// directional spray; the V4 mist is what a body with no bloodstream, or a disabled splatter, falls
+    /// back to, and a chassis still gets its sparks.
+    /// </summary>
     public EntityUid? TrySpawnDebris(
         EntityUid body,
         WolfmedWoundSfxComponent state,
@@ -116,6 +125,11 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
             return null;
 
         state.NextDebris = _timing.CurTime + profile.DebrisInterval;
+
+        if (organic &&
+            _gore.TrySpawnSplatter(body, profile.HitSplatter, state.LastDirection, severity) is { } splatter)
+            return splatter;
+
         return Spawn(effect, _transform.GetMapCoordinates(body));
     }
 

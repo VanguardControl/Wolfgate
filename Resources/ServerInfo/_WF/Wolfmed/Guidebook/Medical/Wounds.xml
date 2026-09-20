@@ -16,6 +16,10 @@ Body-part damage counts toward overall health. A wound is a separate result of a
 
 A badly wounded limb also shows it. Past a first threshold the skin opens onto muscle, and past a second onto bone; a chassis shows bare structure and then loose wiring. A necrotic limb darkens instead. Clothing hides all of it, so strip a patient before reading them by eye, and use an analyzer when you cannot.
 
+A treated limb shows that too: a dressed bleed wears a bandage, and a reduced fracture wears its splint until a fresh hard blow knocks it loose. Both disappear when the wound underneath is dealt with.
+
+Blood goes where it is thrown. A hard hit sprays it away from whatever caused it, onto the nearest wall or the deck, and an artery or an open stump keeps throwing it every few seconds until the bleeding is stopped. It is all space cleaner's problem afterwards - the janitor's spray and a mop of cleaner take blood off walls and floors alike.
+
 ## Effects
 
 Wounds progress through minor, moderate, severe, and critical stages. Pain, bleeding, and loss of limb function increase with severity.

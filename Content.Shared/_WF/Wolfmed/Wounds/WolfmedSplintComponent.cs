@@ -1,4 +1,5 @@
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Damage;
 using Content.Shared.Body.Part;
 using Content.Shared.DoAfter;
 using Robust.Shared.Audio;
@@ -39,6 +40,22 @@ public sealed partial class WolfmedSplintComponent : Component
 
     [DataField]
     public SoundSpecifier? EndSound;
+
+    /// <summary>Which overlay the limb wears once this one is on (G3).</summary>
+    [DataField]
+    public WolfmedPartTreatment Overlay = WolfmedPartTreatment.Splint;
+}
+
+/// <summary>
+/// Which splint is tied around this part, put on when one is applied and taken off when the fracture
+/// stops being Reduced. A <see cref="FractureTreatment"/> has no grade, so without this a rod and a rag
+/// would be indistinguishable from a medical splint on the sprite.
+/// </summary>
+[RegisterComponent]
+public sealed partial class WolfmedSplintMarkComponent : Component
+{
+    [DataField]
+    public WolfmedPartTreatment Overlay = WolfmedPartTreatment.Splint;
 }
 
 /// <summary>Why a splint refused, so the popup can say something useful.</summary>

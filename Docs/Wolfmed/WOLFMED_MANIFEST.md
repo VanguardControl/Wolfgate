@@ -3594,3 +3594,59 @@ switch is unchanged. No new networked component; the payload gains one field on 
 `Build succeeded`). The wound suite was **not** run for this package: the project owner was playtesting out
 of this repo's `bin/`, so only compile checks were possible and every `MSB3021`/`MSB3027` copy error was
 expected. The panel itself has not been seen on screen.
+
+## Final stages: GORE (2026-09-19)
+
+Directional hit splatter with cleanable wall and floor splats (G1), arterial and stump bleed spurts (G2),
+and treatment overlays on limbs (G3).
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Gore/WolfmedGoreComponents.cs` | new | `WolfmedHitSplatterComponent` (direction/distance/colour/state/travel, networked), `WolfmedBloodSplatComponent` (wall splat), `WolfmedCleanableComponent`, `WolfmedBleedSpurtComponent`. |
+| `Content.Shared/_WF/Wolfmed/Gore/WolfmedGoreSpecs.cs` | new | `WolfmedHitSplatterSpec`, `WolfmedSplatterRange`, `WolfmedBleedSpurtSpec`: all of G1 and G2's tuning as profile data. |
+| `Content.Shared/_WF/Wolfmed/Damage/WolfmedTreatmentOverlay.cs` | new | `WolfmedPartTreatment`, `wolfmedTreatmentOverlayProfile` prototype, `WolfmedTreatmentVisualsComponent` opt-out, `WolfmedTreatmentLayers` (six layers, hand/foot fold, rank). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedSfxProfilePrototype.cs` | modified | Two fields: `hitSplatter`, `bleedSpurt`. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundSfxComponent.cs` | modified | `LastDirection`: the world vector the last hit was travelling in. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedSplintComponent.cs` | modified | `Overlay` field plus `WolfmedSplintMarkComponent` on the part. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.bleed_spurts`. G1 stays on `wolfmed.hit_debris`. |
+| `Content.Shared/_Onyx/Wounds/WoundDamageComponents.cs` | modified | **Marked**: one `[AutoNetworkedField] Treatments` on `PartDamageVisualsComponent`, beside V3's `Degradation`. |
+| `Content.Server/_WF/Wolfmed/Gore/WolfmedGoreSystem.cs` | new | Spray spawn, direction resolution, blood colour, tile walk, wall/floor landing queue, per-tile cap, `CleanTile`. |
+| `Content.Server/_WF/Wolfmed/Gore/WolfmedBleedSpurtSystem.cs` | new | Spurt condition, clock component add/remove, spurt (spray + sound + spill). |
+| `Content.Server/_WF/Wolfmed/Gore/WolfmedCleanSplatsReaction.cs` | new | `WolfmedCleanSplats : ITileReaction`. |
+| `Content.Server/_WF/Wolfmed/Damage/WolfmedTreatmentVisualsSystem.cs` | new | Per-layer treatment, driven by the wound lifecycle, bleed refresh and fracture treatment change. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedWoundSfxSystem.cs` | modified | Stamps `LastDirection`; `TrySpawnDebris` prefers the spray for flesh, mist as fallback. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedSplintSystem.cs` | modified | Marks the part with the splint that was used. |
+| `Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs` | modified | Two treatment refreshes beside V3's. |
+| `Content.Client/_WF/Wolfmed/Effects/WolfmedGoreEffectSystem.cs` | new | Tints, states and faces both effects; slides the spray over its animation. |
+| `Content.Client/_WF/Wolfmed/Damage/DamageVisualsSystem.Wolfmed.cs` | modified | `UpdateTreatments` / `UpdateTreatmentLayer`, above the degradation layer, below clothing. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/gore.yml` | new | `WolfmedHitSplatter`, `WolfmedBloodSplatWall`. |
+| `Resources/Prototypes/_WF/Wolfmed/Decals/blood.yml` | new | `WolfmedBloodFloor1..7`, cleanable, custom colour. |
+| `Resources/Prototypes/_WF/Wolfmed/Damage/treatment_overlays.yml` | new | `WolfmedTreatmentOverlayDefault`. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml` | modified | `hitSplatter` and `bleedSpurt` blocks. |
+| `Resources/Prototypes/_WF/Wolfmed/SoundCollections/wounds.yml` | modified | `WolfmedBleedSpurt`, `WolfmedBleedStump`. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/splint.yml` | modified | `overlay: SplintImprovised` on the improvised splint. |
+| `Resources/Prototypes/Reagents/cleaning.yml` | modified | **Marked**: one `!type:WolfmedCleanSplats {}` on SpaceCleaner's `tileReactions`. |
+| `Resources/Textures/_WF/Wolfmed/Effects/blood_splatter.rsi` | new (imported) | NovaSector blood.dmi, CC-BY-SA-3.0. |
+| `Resources/Textures/_WF/Wolfmed/Mobs/treatment_overlays.rsi` | new (imported) | NovaSector on_limb_overlays.dmi, CC-BY-SA-3.0. |
+| `Resources/Audio/_WF/Wolfmed/Bleeding/*.ogg` | new (imported) | NovaSector sound/effects/wounds, CC-BY-SA-3.0, mono. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Two paragraphs: treated limbs show it, blood goes on walls and floors and space cleaner takes it. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGoreTest.cs` | new | Nine tests. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSfxTest.cs` | modified | The debris helper counts the spray; the despawn wait covers its 1.2 s. |
+
+### Deviations from the spec
+
+- **The wall check is `CollisionGroup.Impassable`, not a wall list.** `TurfSystem.IsTileBlocked` already
+  answers it and covers walls, windows, grilles and closed doors; a closed locker counts too, which reads
+  fine and costs nothing.
+- **The spray direction is snapped to a cardinal.** The art has four directions, so travelling on the true
+  angle would show a sprite pointing somewhere else. The cardinal is taken in the grid's frame, which is
+  also what makes the tile walk one integer step.
+- **`splint_tribal_*` is unused.** Nothing in this fork is a bound-wood splint; the enum member, the
+  prefix and the art are in place and one YAML line away from a user.
+- **No digitigrade variants.** Nothing in this fork marks a species digitigrade (no hit anywhere for the
+  word), so the plain leg states are used. The suffix table is prototype data, so a fork that gains one
+  ships a second profile rather than changing code.
+- **No tourniquet overlay.** `BleedingTreatment.Clamped` is deliberately not in `dressings`: the sheet has
+  no tourniquet, and a recoloured gauze band would read as gauze.
+- **IPCs keep sparks.** The spray is gated on organic tissue, as the spec asked. The colour path is
+  reagent-driven, so enabling an oil spray later is deleting the `organic &&` guard.

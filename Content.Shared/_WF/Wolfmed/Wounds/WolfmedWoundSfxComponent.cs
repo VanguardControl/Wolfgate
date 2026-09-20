@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
 /// <summary>
@@ -22,4 +24,11 @@ public sealed partial class WolfmedWoundSfxComponent : Component
     /// </summary>
     [DataField]
     public TimeSpan LastHit = TimeSpan.MinValue;
+
+    /// <summary>
+    /// World-space direction the last hit was travelling in, which is the way its spray goes (G1). Stored
+    /// as a vector rather than the attacker's entity because a projectile is usually deleted in the same
+    /// tick as the wound it caused. Null when nothing usable was behind the hit.
+    /// </summary>
+    public Vector2? LastDirection;
 }

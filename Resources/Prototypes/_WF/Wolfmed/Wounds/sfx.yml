@@ -130,3 +130,51 @@
     minSeverity: 12
   - effect: WolfmedSparkBurstSmall
     minSeverity: 4
+
+  # G1. Flesh throws this instead of the mist above; the mist stays as the fallback for a body with no
+  # bloodstream to take a colour from. The distance bands mirror the debris tiers, so one hit that earns a
+  # large spray also throws it three tiles. Wall states 1, 2 and 6 have eight directions, 3, 4 and 5 four.
+  hitSplatter:
+    effect: WolfmedHitSplatter
+    travel: 1.1
+    states: [ hitsplatter1, hitsplatter2, hitsplatter3 ]
+    distances:
+    - minSeverity: 25
+      tiles: 3
+    - minSeverity: 12
+      tiles: 2
+    - minSeverity: 0
+      tiles: 1
+    wallSplat: WolfmedBloodSplatWall
+    wallStates: [ splatter1, splatter2, splatter3, splatter4, splatter5, splatter6 ]
+    floorDecals:
+    - WolfmedBloodFloor1
+    - WolfmedBloodFloor2
+    - WolfmedBloodFloor3
+    - WolfmedBloodFloor4
+    - WolfmedBloodFloor5
+    - WolfmedBloodFloor6
+    - WolfmedBloodFloor7
+    maxPerTile: 3
+
+  # G2. An arterial bleed or an open stump throws blood every few seconds on its own. majorRate is what an
+  # ordinary wound has to reach to join them: a critical slash runs about 0.2, so 1.5 is four or five bad
+  # ones at once or one that nobody has touched.
+  bleedSpurt:
+    majorRate: 1.5
+    stumpWounds: [ DismembermentWound ]
+    interval: 6
+    jitter: 2.5
+    minBloodLevel: 0.35
+    severity: 14
+    spillVolume: 2
+    sound:
+      collection: WolfmedBleedSpurt
+      params:
+        volume: -4
+        variation: 0.12
+    stumpSound:
+      collection: WolfmedBleedStump
+      params:
+        volume: -2
+        variation: 0.12

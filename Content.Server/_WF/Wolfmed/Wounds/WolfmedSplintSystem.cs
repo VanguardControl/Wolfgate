@@ -115,6 +115,9 @@ public sealed class WolfmedSplintSystem : EntitySystem
             !_fractures.TryReduce(fracture.Owner))
             return false;
 
+        // G3: which splint is on the limb, so the overlay can tell a rod and a rag from a medical one.
+        EnsureComp<WolfmedSplintMarkComponent>(part).Overlay = splint.Comp.Overlay;
+
         _audio.PlayPvs(splint.Comp.EndSound, body);
         _popup.PopupEntity(Loc.GetString("wolfmed-splint-success", ("target", body)), body, user);
         if (splint.Comp.Consumed)
