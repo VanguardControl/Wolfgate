@@ -120,11 +120,9 @@ public sealed partial class HealingSystem
             }
         }
 
-        // W0: `!HealDamage` mirrors TryApplyHealing, which only calls TryHealWounds on that branch - an item
-        // that removes damage reaches wounds through the damage it removes. Without the guard a topical with
-        // healingMultiplier 0.15 reports work left after the part damage is gone and repeats over the whole
-        // stack for nothing.
-        if (healing.HealWounds && !healing.HealDamage && resolve.Part is { } woundPart &&
+        // Wounds count as work left for every wound-healing item: once the damage is gone a topical treats the
+        // wound directly (WoundHealingSystem.TryApplyHealing), so a contusion does not outlive its bruise packs.
+        if (healing.HealWounds && resolve.Part is { } woundPart &&
             _woundHealing.HasTreatableWounds(woundPart, treatable, healing.AllowedWoundStages))
             return true;
 

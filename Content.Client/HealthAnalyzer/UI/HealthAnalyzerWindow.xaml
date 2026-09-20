@@ -58,7 +58,10 @@
                             <PanelContainer.PanelOverride>
                                 <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#151515" BackgroundColor="#050505"/>
                             </PanelContainer.PanelOverride>
-                    <PanelContainer>
+                    <!-- WOLFGATE: one fixed 96x96 frame for the doll AND its buttons. Unsized, this panel stretched to the
+                         row height: the SpriteView stayed centred in it while PartView sat at its bottom-left, so every
+                         hover and selection highlight landed below and left of the limb. -->
+                    <PanelContainer SetSize="96 96" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextureRect Name="NoDataTex"
                                      Access="Public"
                                      SetSize="96 96"
@@ -70,143 +73,91 @@
                                     Name="SpriteView"
                                     Access="Public"
                                     SetSize="96 96"/>
-                        <!-- WOLFGATE: button geometry below is the HUD targeting doll's (3x), because SetupIcon draws this doll at 3x.
-                             Shitmed shipped 2.5x sizes here, so hover and selection highlights sat off the limbs. -->
+<!-- WOLFGATE: every button is placed from its limb's pixel bounds in the status doll art
+                             (_Shitmed/Interface/Targeting/Status/<part>.rsi, 32 px drawn at 3x): one art pixel of
+                             margin all round, which is the hover texture's outline. Shitmed's nested 2.5x layout and
+                             the HUD doll's layout both belong to different art and sat off these limbs.
+                             WolfmedAnalyzerDollLayoutTest measures this. -->
                         <PanelContainer
                             Name="PartView"
-                            SetSize="57 96"
-                            Margin="18 0 0 0"
-                            VerticalAlignment="Bottom"
-                            HorizontalAlignment="Left">
-                            <PanelContainer
-                                SetSize="18 39"
-                                Margin="0 7 0 0"
-                                HorizontalAlignment="Left">
-                                <TextureButton
-                                    Name="RightArmButton"
-                                    MinSize="18 30"
-                                    StyleClasses="TargetDollButtonRightArm"
-                                    VerticalAlignment="Top">
-                                </TextureButton>
-                                <TextureButton
-                                    Name="RightHandButton"
-                                    MinSize="18 18"
-                                    VerticalAlignment="Bottom"
-                                    StyleClasses="TargetDollButtonRightHand">
-                                </TextureButton>
-                            </PanelContainer>
-                            <PanelContainer
-                                SetSize="51 90"
-                                Margin="0 64 0 0"
-                                VerticalAlignment="Bottom"
-                                HorizontalAlignment="Center">
-                                <TextureButton
-                                    Name="HeadButton"
-                                    MinSize="33 27"
-                                    VerticalAlignment="Top"
-                                    HorizontalAlignment="Center"
-                                    StyleClasses="TargetDollButtonHead">
-                                    <!--<PanelContainer
-                            SetSize="15 15"
-                            Margin="0 9 0 0"
-                            HorizontalAlignment="Center">
+                            SetSize="96 96">
                             <TextureButton
-                                Name="EyesButton"
-                                MinSize="15 9"
+                                Name="HeadButton"
+                                SetSize="27 27"
+                                Margin="33 6 0 0"
+                                HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
-                                StyleClasses="TargetDollButtonEyes">
-                                <TextureRect
-                                    TexturePath="/Textures/Interface/Targeting/Doll/eyes.png"
-                                    Stretch="KeepAspectCentered"
-                                    SetSize="15 9"/>
-                            </TextureButton>
+                                StyleClasses="TargetDollButtonHead"/>
                             <TextureButton
-                                Name="MouthButton"
-                                SetSize="9 6"
-                                VerticalAlignment="Bottom"
-                                StyleClasses="TargetDollButtonMouth">
-                                <TextureRect
-                                    TexturePath="/Textures/Interface/Targeting/Doll/mouth.png"
-                                    Stretch="KeepAspectCentered"
-                                    SetSize="9 6"/>
-                            </TextureButton>
-                        </PanelContainer>-->
-                                </TextureButton>
-                                <TextureButton
-                                    Name="ChestButton"
-                                    SetSize="33 36"
-                                    Margin="0 21 0 0"
-                                    VerticalAlignment="Top"
-                                    HorizontalAlignment="Center"
-                                    StyleClasses="TargetDollButtonChest">
-                                </TextureButton>
-                                <PanelContainer
-                                    MinSize="45 42"
-                                    VerticalAlignment="Bottom"
-                                    HorizontalAlignment="Center">
-                                    <TextureButton
-                                        Name="GroinButton"
-                                        MinSize="33 18"
-                                        VerticalAlignment="Top"
-                                        HorizontalAlignment="Center"
-                                        StyleClasses="TargetDollButtonGroin">
-                                    </TextureButton>
-                                    <PanelContainer
-                                        MinSize="24 36"
-                                        VerticalAlignment="Bottom"
-                                        HorizontalAlignment="Right">
-                                        <TextureButton
-                                            Name="LeftLegButton"
-                                            MinSize="18 33"
-                                            VerticalAlignment="Top"
-                                            HorizontalAlignment="Left"
-                                            StyleClasses="TargetDollButtonLeftLeg">
-                                        </TextureButton>
-                                        <TextureButton
-                                            Name="LeftFootButton"
-                                            MinSize="24 12"
-                                            VerticalAlignment="Bottom"
-                                            StyleClasses="TargetDollButtonLeftFoot">
-                                        </TextureButton>
-                                    </PanelContainer>
-                                    <PanelContainer
-                                        MinSize="24 36"
-                                        VerticalAlignment="Bottom"
-                                        HorizontalAlignment="Left">
-                                        <TextureButton
-                                            Name="RightLegButton"
-                                            MinSize="18 33"
-                                            VerticalAlignment="Top"
-                                            HorizontalAlignment="Right"
-                                            StyleClasses="TargetDollButtonRightLeg">
-                                        </TextureButton>
-                                        <TextureButton
-                                            Name="RightFootButton"
-                                            MinSize="24 12"
-                                            VerticalAlignment="Bottom"
-                                            HorizontalAlignment="Center"
-                                            StyleClasses="TargetDollButtonRightFoot">
-                                        </TextureButton>
-                                    </PanelContainer>
-                                </PanelContainer>
-                            </PanelContainer>
-                            <PanelContainer
-                                SetSize="18 39"
-                                Margin="0 7 0 0"
-                                HorizontalAlignment="Right">
-                                <TextureButton
-                                    Name="LeftArmButton"
-                                    MinSize="18 30"
-                                    StyleClasses="TargetDollButtonLeftArm"
-                                    VerticalAlignment="Top">
-                                </TextureButton>
-                                <TextureButton
-                                    Name="LeftHandButton"
-                                    MinSize="18 18"
-                                    VerticalAlignment="Bottom"
-                                    StyleClasses="TargetDollButtonLeftHand">
-                                </TextureButton>
-                            </PanelContainer>
+                                Name="ChestButton"
+                                SetSize="33 27"
+                                Margin="30 27 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonChest"/>
+                            <TextureButton
+                                Name="GroinButton"
+                                SetSize="33 21"
+                                Margin="30 48 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonGroin"/>
+                            <TextureButton
+                                Name="RightArmButton"
+                                SetSize="21 24"
+                                Margin="18 27 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonRightArm"/>
+                            <TextureButton
+                                Name="RightHandButton"
+                                SetSize="18 18"
+                                Margin="18 45 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonRightHand"/>
+                            <TextureButton
+                                Name="LeftArmButton"
+                                SetSize="21 24"
+                                Margin="54 27 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonLeftArm"/>
+                            <TextureButton
+                                Name="LeftHandButton"
+                                SetSize="18 18"
+                                Margin="57 45 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonLeftHand"/>
+                            <TextureButton
+                                Name="RightLegButton"
+                                SetSize="18 24"
+                                Margin="30 57 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonRightLeg"/>
+                            <TextureButton
+                                Name="RightFootButton"
+                                SetSize="24 15"
+                                Margin="24 75 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonRightFoot"/>
+                            <TextureButton
+                                Name="LeftLegButton"
+                                SetSize="18 24"
+                                Margin="45 57 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonLeftLeg"/>
+                            <TextureButton
+                                Name="LeftFootButton"
+                                SetSize="24 15"
+                                Margin="45 75 0 0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                StyleClasses="TargetDollButtonLeftFoot"/>
                         </PanelContainer>
                     </PanelContainer>
                     </PanelContainer>

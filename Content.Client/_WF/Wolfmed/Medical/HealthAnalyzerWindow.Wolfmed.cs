@@ -60,24 +60,21 @@ public sealed partial class HealthAnalyzerWindow
     {
         foreach (var (part, button) in _bodyPartControls)
         {
-            // The HUD targeting doll's own mechanism: the part's base texture at the doll's 3x scale, centred
-            // in the button. The button geometry in the XAML is now the HUD's as well; Shitmed had laid these
-            // buttons out at 2.5x over a doll that SetupIcon draws at 3x, so every highlight drifted outward.
-            var texture = _cache
-                .GetResource<TextureResource>(DollTextures / (part.ToString().ToLowerInvariant() + ".png"))
-                .Texture;
+            // The limb's own frame from the status doll art, the same 32 px canvas SetupIcon draws at 3x, laid over
+            // the whole 96x96 view. It is the doll's exact silhouette in the doll's exact place by construction,
+            // so there is no per-button geometry to get wrong.
+            var name = part.ToString().ToLowerInvariant();
+            var state = new SpriteSpecifier.Rsi(new ResPath($"/Textures/_Shitmed/Interface/Targeting/Status/{name}.rsi"), $"{name}_0");
             var overlay = new TextureRect
             {
-                Texture = texture,
-                Stretch = TextureRect.StretchMode.KeepAspectCentered,
-                SetSize = new System.Numerics.Vector2(texture.Width * 3, texture.Height * 3),
-                HorizontalAlignment = HAlignment.Center,
-                VerticalAlignment = VAlignment.Center,
+                Texture = _spriteSystem.Frame0(state),
+                Stretch = TextureRect.StretchMode.Scale,
+                SetSize = new System.Numerics.Vector2(96, 96),
                 Visible = false,
                 MouseFilter = MouseFilterMode.Ignore,
                 Modulate = Color.FromHex("#ffcf6b"),
             };
-            button.AddChild(overlay);
+            PartView.AddChild(overlay);
             _wolfmedTargetOverlays[part] = overlay;
         }
 

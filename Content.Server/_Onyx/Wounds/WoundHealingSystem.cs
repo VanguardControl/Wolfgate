@@ -144,6 +144,11 @@ public sealed partial class WoundHealingSystem : EntitySystem
                 applied = _routing.TryApplyPartDamage(body, part, change, origin, healWounds: healing.Comp.HealWounds);
             if (healing.Comp.HealWounds && !healing.Comp.HealDamage)
                 applied |= _wounds.TryHealWounds(part, change, healing.Comp.AllowedWoundStages);
+            // WOLFGATE: a topical that removes damage only shrinks the wound by healingMultiplier of it, so the
+            // damage runs out first and the wound was left standing with nothing able to touch it. Once there is
+            // no damage left for the item to remove, it works on the wound itself.
+            else if (healing.Comp.HealWounds && !applied)
+                applied |= _wounds.TryHealWounds(part, change, healing.Comp.AllowedWoundStages);
         }
         else if (healing.Comp.HealDamage)
             applied = _routing.TryApplyDamage(body, change, origin, healWounds: healing.Comp.HealWounds);

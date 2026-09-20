@@ -331,6 +331,46 @@ public sealed class WolfmedBluntWoundTest : GameTest
         });
     }
 
+    /// <summary>
+    /// A contusion must not outlive its treatment. A bruise pack removes damage, and damage removal only shrinks
+    /// the wound by its healingMultiplier, so the damage ran out first and left a contusion nothing could touch.
+    /// Once the damage is gone the pack works on the wound itself.
+    /// </summary>
+    [Test]
+    public async Task BrutePackFinishesTheContusionTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var healing = entities.System<Content.Shared._Onyx.Wounds.WoundHealingSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+
+            // Ten, under the fracture floor, so the only wound is the bruise.
+            Blunt(entities, body, TargetBodyPart.LeftArm, 10);
+            Assert.That(Prototypes(entities, wounds, arm), Does.Contain("BluntWound"));
+
+            var pack = entities.SpawnEntity("Brutepack", map.GridCoords);
+            var item = (pack, entities.GetComponent<HealingComponent>(pack));
+            var uses = 0;
+            while (uses < 20 && healing.TryApplyHealing(body, arm, item, body, out _, out _))
+                uses++;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(uses, Is.LessThan(20), "treatment has to come to an end.");
+                Assert.That(entities.GetComponent<DamageableComponent>(arm).TotalDamage, Is.EqualTo(FixedPoint2.Zero));
+                Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("BluntWound"),
+                    "the bruise goes with the damage that caused it.");
+            });
+        });
+    }
+
     private static void Blunt(IEntityManager entities, EntityUid body, TargetBodyPart target, int amount)
     {
         entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Blunt", amount),
