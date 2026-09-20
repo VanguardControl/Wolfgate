@@ -12,6 +12,9 @@
   - /Audio/Weapons/Xeno/alien_claw_flesh1.ogg
   - /Audio/Weapons/Xeno/alien_claw_flesh2.ogg
   - /Audio/Weapons/Xeno/alien_claw_flesh3.ogg
+  - /Audio/_WF/Wolfmed/Bleeding/blood1.ogg
+  - /Audio/_WF/Wolfmed/Bleeding/blood2.ogg
+  - /Audio/_WF/Wolfmed/Bleeding/blood3.ogg
 
 # Something punches through it: gunshots, shrapnel, stabs.
 - type: soundCollection
@@ -132,9 +135,11 @@
 - type: soundCollection
   id: WolfmedBleedSpurt
   files:
-  - /Audio/_WF/Wolfmed/Bleeding/blood1.ogg
-  - /Audio/_WF/Wolfmed/Bleeding/blood2.ogg
-  - /Audio/_WF/Wolfmed/Bleeding/blood3.ogg
+  # Wet sounds only. NovaSector's blood1-3 are its slash-wound sounds and read as a blade, so they moved to
+  # WolfmedWoundFlesh.
+  - /Audio/_WF/Wolfmed/Bleeding/splatter.ogg
+  - /Audio/Effects/Fluids/splat.ogg
+  - /Audio/_NF/Effects/splat.ogg
 
 # An open stump, which is wetter and comes with the bone.
 - type: soundCollection
