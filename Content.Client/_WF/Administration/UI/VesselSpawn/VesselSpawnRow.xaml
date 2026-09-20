@@ -1,32 +1,18 @@
-<PanelContainer xmlns="https://spacestation14.io"
-                xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
-                HorizontalExpand="True">
-    <PanelContainer.PanelOverride>
-        <gfx:StyleBoxFlat BorderThickness="2" BorderColor="#101010" BackgroundColor="#242424"/>
-    </PanelContainer.PanelOverride>
-    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="6 4">
-        <BoxContainer Orientation="Vertical" HorizontalExpand="True">
-            <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
-                <Label Name="NameLabel"
-                       StyleClasses="LabelKeyText"
-                       HorizontalExpand="True" />
-                <Label Name="IdLabel"
-                       StyleClasses="LabelSubText"
-                       HorizontalAlignment="Right"
-                       Margin="0 0 4 0" />
-            </BoxContainer>
-            <Label Name="StatsLabel"
-                   StyleClasses="LabelSubText" />
-            <RichTextLabel Name="DescriptionLabel"
-                           HorizontalExpand="True"
-                           Margin="0 2 0 0"
-                           Modulate="#999999" />
-        </BoxContainer>
-        <Button Name="SpawnButton"
-                Text="{Loc 'wf-vessel-spawn-button'}"
-                StyleClasses="ButtonSquare"
-                MinWidth="90"
-                VerticalAlignment="Center"
-                Margin="6 0 0 0" />
+<ContainerButton xmlns="https://spacestation14.io"
+                 ToggleMode="True"
+                 StyleClasses="ButtonSquare"
+                 HorizontalExpand="True"
+                 Margin="0 1">
+    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="4 2">
+        <Label Name="NameLabel"
+               HorizontalExpand="True"
+               ClipText="True" />
+        <Label Name="SizeLabel"
+               StyleClasses="LabelSubText"
+               Margin="4 0" />
+        <Label Name="PriceLabel"
+               StyleClasses="LabelSubText"
+               MinWidth="60"
+               Align="Right" />
     </BoxContainer>
-</PanelContainer>
+</ContainerButton>

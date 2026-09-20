@@ -1,5 +1,7 @@
-using Content.Client._Mono.Shipyard;
+// using Content.Client._Mono.Shipyard; // WOLFGATE - unused now
 using Content.Client._NF.Shipyard.UI;
+// WOLFGATE - the Wolfgate ship previewer replaces the Mono preview-map flow for this button.
+using Content.Client._WF.ShipPreview.UI;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared._NF.Shipyard.BUI;
 using Content.Shared._NF.Shipyard.Events;
@@ -11,7 +13,10 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
 {
     private ShipyardConsoleMenu? _menu;
     private ShipyardRulesPopup? _rulesWindow;
-    [Dependency] private ShipyardPreviewSystem _preview = default!;
+    // WOLFGATE - no longer used by PreviewShip; kept only for the Mono mind-visit preview flow this button used to trigger.
+    // [Dependency] private ShipyardPreviewSystem _preview = default!;
+    // WOLFGATE - one shared previewer window per BUI instance, reused across Preview button presses.
+    private ShipPreviewWindow? _previewWindow;
     public int Balance { get; private set; }
 
     public int? ShipSellValue { get; private set; }
@@ -77,6 +82,8 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
         if (!disposing) return;
 
         _menu?.Dispose();
+        // WOLFGATE - close the shared previewer window along with the console menu, so it releases its preview map.
+        _previewWindow?.Close();
     }
 
     private void ApproveOrder(ButtonEventArgs args)
@@ -114,7 +121,17 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
         }
 
         var vessel = row.Vessel;
-        SendMessage(new ShipyardConsolePreviewMessage());
-        _preview.TryPreviewGrid(vessel);
+
+        // WOLFGATE - open the client-side ship previewer instead of visiting a server-side preview map.
+        // SendMessage(new ShipyardConsolePreviewMessage());
+        // _preview.TryPreviewGrid(vessel);
+        if (_previewWindow is not { IsOpen: true })
+        {
+            _previewWindow = ShipPreviewWindow.Open(vessel);
+            return;
+        }
+
+        _previewWindow.SetVessel(vessel);
+        _previewWindow.MoveToFront();
     }
 }

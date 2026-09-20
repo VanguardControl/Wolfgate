@@ -242,3 +242,10 @@ Entries:
   id: 100021
   time: '2026-09-19T06:44:40.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/39
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Added a new ship previewer,
+  id: 100022
+  time: '2026-09-19T14:47:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/43
