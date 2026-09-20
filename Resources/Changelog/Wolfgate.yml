@@ -249,3 +249,12 @@ Entries:
   id: 100022
   time: '2026-09-19T14:47:20.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/43
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Explosions now produce visual and physical shockwaves, blasting anyone
+        caught near the epicentre outwards and into whatever they hit. 
+  id: 100023
+  time: '2026-09-20T18:21:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/45
