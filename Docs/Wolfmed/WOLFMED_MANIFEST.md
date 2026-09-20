@@ -3771,3 +3771,32 @@ along the exact line of the hit, rather than by every wound-creating hit along o
   `BleedingSeverity += delta` path deterministically.
 - **The HUD doll was not changed.** See the report: its highlight is exactly concentric with its own hover
   ring on all eleven parts, and the one deviation is upstream and sub-pixel.
+
+## Final stages: LOOK (2026-09-20)
+
+The health examine on a wound host is a visual inspection: plain sentences, part by part, of what an
+examiner could actually see. Numbers, rates, severities and everything under the skin stay on the analyzer.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedLookPrototypes.cs` | new | `wolfmedWoundLook` (per wound: visibility, distance, per-stage locale keys, self hint), `wolfmedLookProfile` (clothing slot coverage, bleeding bands, sepsis threshold), `WolfmedLookVisibility` (None/Skin/Clothed) |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | new | Builds the inspection: per-part findings, clothing coverage from armour `coverage:` or slot defaults, bleeding bands, treatment, infection, scars, self-only pain and numbness, whole-body sepsis line |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml` | new | The `WolfmedLookDefault` profile and one `wolfmedWoundLook` for each of the 44 wound prototypes |
+| `Resources/Locale/en-US/_WF/Wolfmed/look.ftl` | new | Every string the inspection prints |
+| `Content.Shared/HealthExaminable/HealthExaminableSystem.cs` | modified | WOLFGATE (LOOK): `CreateMarkup` gains `detailed`, the wound-host branch calls `WolfmedVisualInspectionSystem`, and the verb is no longer disabled outside details range for a wound host |
+| `Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.PartStatus.cs` | modified | WOLFGATE (LOOK) comment only: no longer called, kept verbatim |
+| `Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.Pain.cs` | modified | WOLFGATE (LOOK) comment only; its `health-examinable-pain-*` keys live on in the self lines |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | A paragraph under "Examination" on what the examine shows and what it never shows |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualInspectionTest.cs` | new | 10 tests, including one that fails if any wound prototype has no `wolfmedWoundLook` and one that resolves every key |
+
+### Deviations from the spec
+
+- **Onyx's `AddPartStatusMarkup` is now dead code**, not deleted and not gutted. It lists damage types,
+  wound counts and a severity word, which is analyzer information; the upstream call site (already a
+  WOLFGATE-marked line) routes to `_WF` instead. The vendored file keeps a zero-code diff.
+- **The `[partstatus]` collapsible control is no longer produced.** A visual inspection is prose, and the
+  control's heading is a severity band the spec forbids. The client tag handler is untouched and inert.
+- **No per-slot "hides this" component on clothing.** Coverage is armour `coverage:` first, then the
+  `wolfmedLookProfile` slot table, per the spec's fallback list. A mask does not hide a head.
+- **A dressed wound is dropped from the part's bleeding total outright**, so a bandaged artery reads as
+  dressed rather than as dressed and spurting. That is the spec's rule 3 taken literally.

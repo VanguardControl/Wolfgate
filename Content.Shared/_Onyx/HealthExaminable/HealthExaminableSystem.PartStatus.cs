@@ -12,6 +12,10 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.HealthExaminable;
 
+// WOLFGATE (LOOK): the health examine no longer routes here. Onyx's readout lists damage types, wound
+// states and severities, which is analyzer information rather than something an examiner can see, so
+// HealthExaminableSystem.CreateMarkup calls WolfmedVisualInspectionSystem instead. The readout below is
+// kept verbatim for a fork that wants it back; the analyzer's wounds tab carries the same data in-game.
 public sealed partial class HealthExaminableSystem
 {
     private static readonly ProtoId<WoundPrototype> SurgicalIncision = "SurgicalIncisionWound";

@@ -3,6 +3,8 @@ using Content.Shared.Body.Systems;
 
 namespace Content.Shared.HealthExaminable;
 
+// WOLFGATE (LOOK): unused with the readout above it; the same pain bands and the same
+// health-examinable-pain-* keys live on in WolfmedVisualInspectionSystem's self lines.
 public sealed partial class HealthExaminableSystem
 {
     [Dependency] private SharedBodySystem _body = default!;
