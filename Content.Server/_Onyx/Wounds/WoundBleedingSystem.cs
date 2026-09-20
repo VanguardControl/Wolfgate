@@ -22,6 +22,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
 {
     private static readonly ProtoId<WoundPrototype> SystemicBleedingWound = "SystemicBleedingWound";
 
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem _wfInfection = default!; // WOLFGATE
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -58,7 +59,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
     private void OnWoundCreated(Entity<WoundBleedingComponent> wound, ref WoundCreatedEvent args) => RestartAutomaticClotting(wound);
     private void OnWoundChanged(Entity<WoundBleedingComponent> wound, ref WoundChangedEvent args)
     {
-        if (args.Severity > args.OldSeverity)
+        if (args.Severity > args.OldSeverity && !_wfInfection.ApplyingCreep) // WOLFGATE: infection creep is not a new injury, it must not strip the dressing
         {
             wound.Comp.BleedingSeverity += args.Severity - args.OldSeverity;
             wound.Comp.Treatment = BleedingTreatment.None;

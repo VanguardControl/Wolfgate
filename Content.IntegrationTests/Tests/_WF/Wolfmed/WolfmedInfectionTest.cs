@@ -675,6 +675,45 @@ public sealed class WolfmedInfectionTest : GameTest
         });
     }
 
+    /// <summary>
+    /// The infection widening a wound is not a new injury. It used to reset the bleeding treatment every
+    /// tick, so gauze on an infected wound held for five seconds and the limb never showed a dressing.
+    /// </summary>
+    [Test]
+    public async Task InfectionCreepKeepsTheDressingOnTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var infection = entities.System<WolfmedInfectionSystem>();
+            var bleeding = entities.System<Content.Shared._Onyx.Wounds.WoundBleedingSystem>();
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var torso = Part(entities, body, BodyPartType.Torso);
+            Damage(entities, body, TargetBodyPart.Torso, "Slash", 20);
+            var wound = FindWound(entities, torso, "SlashWound");
+
+            infection.Update(Minutes(5));
+            Assert.That(infection.GetStage(wound), Is.EqualTo(WolfmedInfectionStage.Local));
+
+            Assert.That(bleeding.SetTreatment(wound, BleedingTreatment.Bandaged));
+            var severity = entities.GetComponent<WoundComponent>(wound).Severity;
+            infection.Update(Minutes(2));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(entities.GetComponent<WoundComponent>(wound).Severity, Is.GreaterThan(severity),
+                    "the creep still happens.");
+                Assert.That(entities.GetComponent<WoundBleedingComponent>(wound).Treatment,
+                    Is.EqualTo(BleedingTreatment.Bandaged), "and the gauze stays on.");
+            });
+        });
+    }
+
     private static float Minutes(float minutes) => minutes * 60f;
 
     private static float Progress(IEntityManager entities, EntityUid wound) =>

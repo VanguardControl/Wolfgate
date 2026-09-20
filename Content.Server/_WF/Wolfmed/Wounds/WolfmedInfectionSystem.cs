@@ -68,6 +68,9 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSepsisComponent, ComponentShutdown>(OnSepsisShutdown);
     }
 
+    /// <summary>True while the infection tick is widening a wound, which is not an injury.</summary>
+    public bool ApplyingCreep { get; private set; }
+
     /// <summary>The profile every timer in the model comes from.</summary>
     public WolfmedInfectionProfilePrototype Profile => _prototypes.Index<WolfmedInfectionProfilePrototype>(DefaultProfile);
 
@@ -182,8 +185,21 @@ public sealed class WolfmedInfectionSystem : EntitySystem
             // rather than be cancelled by it. Capped so an ignored cut cannot widen forever.
             var creep = FixedPoint2.Min(profile.SeverityPerMinute * minutes,
                 profile.MaxSeverityAdded - infection.SeverityAdded);
-            if (creep > FixedPoint2.Zero && _wounds.ChangeSeverity(wound.Owner, creep))
-                infection.SeverityAdded += creep;
+            if (creep > FixedPoint2.Zero)
+            {
+                // Flagged so the bleeding system does not read it as a fresh hit: that stripped the dressing
+                // off an infected wound every tick, so gauze never held.
+                ApplyingCreep = true;
+                try
+                {
+                    if (_wounds.ChangeSeverity(wound.Owner, creep))
+                        infection.SeverityAdded += creep;
+                }
+                finally
+                {
+                    ApplyingCreep = false;
+                }
+            }
         }
 
         // A corpse does not run a fever or take more poison; the damage had no ceiling on a dead body.
