@@ -25,6 +25,8 @@ public sealed partial class WFOrbitEntrySystem
 
         if (!_zLevels.WfTryBeginLiftoff(grid, uid, args.Actor, out var reason))
             _popup.PopupEntity(reason, uid, args.Actor);
+        else
+            _flight.PlayTakeoff(grid);
 
         _nextRefresh = TimeSpan.Zero;
     }

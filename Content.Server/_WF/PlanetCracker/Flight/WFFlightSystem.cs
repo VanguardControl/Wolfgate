@@ -91,6 +91,10 @@ public sealed partial class WFFlightSystem : EntitySystem
     public static readonly SoundSpecifier HardLandingSound =
         new SoundCollectionSpecifier("WFGroundCrashImpacts");
 
+    /// <summary>Played once as a grounded hull's liftoff latches. PLACEHOLDER audio: replace takeoff.ogg in place.</summary>
+    public static readonly SoundSpecifier TakeoffSound =
+        new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Flight/takeoff.ogg");
+
     /// <summary>The scrape, looped on the hull for as long as it is still moving.</summary>
     public static readonly SoundSpecifier SkidSound =
         new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Flight/ground_grind_loop.ogg");
@@ -241,6 +245,16 @@ public sealed partial class WFFlightSystem : EntitySystem
     /// </summary>
     /// <param name="grid">The hull.</param>
     /// <param name="thud">False after a crash, where the blast has already been the noise the landing made.</param>
+    public void PlayTakeoff(EntityUid grid)
+    {
+        if (!TryComp<MapGridComponent>(grid, out var hull))
+            return;
+
+        var centre = _transform.ToMapCoordinates(new EntityCoordinates(grid, hull.LocalAABB.Center));
+        var radius = hull.LocalAABB.Size.Length() * 0.5f + 32f;
+        _audio.PlayGlobal(TakeoffSound, _audience.Aboard(grid).AddInRange(centre, radius), true);
+    }
+
     public void BeginSkid(EntityUid grid, bool thud = true)
     {
         LeaveLiftLost(grid);

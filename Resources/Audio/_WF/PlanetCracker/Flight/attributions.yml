@@ -21,3 +21,9 @@
   license: CC0-1.0
   copyright: "Original audio by Gandalf; dedicated to the public domain under CC0."
   source: https://github.com/VanguardControl/Wolfgate/tree/Planets-and-cracking/Resources/Audio/_WF/PlanetCracker/Flight
+
+# PLACEHOLDER: a copy of /Audio/Effects/Shuttle/hyperspace_begin.ogg until the maintainer supplies the takeoff sound.
+- files: ["takeoff.ogg"]
+  license: CC-BY-SA-3.0
+  copyright: "Placeholder copy of hyperspace_begin.ogg from NSV-13, edited by _starch_ (discord) to fit SS14."
+  source: https://github.com/BeeStation/NSV13/tree/master/nsv13/sound/effects/ship
