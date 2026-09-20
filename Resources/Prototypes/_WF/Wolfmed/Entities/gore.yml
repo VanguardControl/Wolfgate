@@ -15,12 +15,11 @@
     lifetime: 1.2
   - type: Sprite
     drawdepth: Effects
+    # FIX1: the spray leaves on the exact angle of the hit, so it uses the single-direction "_free" states
+    # and is rotated into place. noRot makes that rotation a world angle rather than a screen one.
     noRot: true
-    # The direction is picked by the server in the frame of the grid, not of the camera, so the sprite is
-    # told which way to face instead of being rotated into it.
-    enableOverrideDir: true
     sprite: _WF/Wolfmed/Effects/blood_splatter.rsi
-    state: hitsplatter1
+    state: hitsplatter1_free
   - type: Tag
     tags:
     - HideContextMenu

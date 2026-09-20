@@ -3,9 +3,9 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._WF.Wolfmed.Gore;
 
 /// <summary>
-/// A spray of blood thrown off a body by a hit, travelling in one cardinal direction. The server decides
-/// everything at spawn; the client tints the sprite, picks the frame set and slides it along
-/// <see cref="Direction"/> over <see cref="Travel"/> seconds.
+/// A spray of blood thrown off a body by a hit, travelling along the exact line of the hit. The server
+/// decides everything at spawn; the client tints the sprite, picks the frame set, turns it to
+/// <see cref="Angle"/> and slides it along that same angle over <see cref="Travel"/> seconds.
 /// </summary>
 /// <remarks>
 /// Networked rather than client-predicted because wound creation is server-only, and every field has to
@@ -14,9 +14,13 @@ namespace Content.Shared._WF.Wolfmed.Gore;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
 public sealed partial class WolfmedHitSplatterComponent : Component
 {
-    /// <summary>Which way the spray is going, in the frame of whatever it is parented to.</summary>
+    /// <summary>
+    /// FIX1: which way the spray is going, in world space, radians anticlockwise from +X. An exact angle
+    /// rather than a <c>Direction</c>: a hit from the north-east throws blood to the south-west, not west.
+    /// The sprite is turned to it, so the state it uses must be one of the RSI's single-direction ones.
+    /// </summary>
     [DataField, AutoNetworkedField]
-    public Direction Direction = Direction.South;
+    public float Angle;
 
     /// <summary>How far it travels, in tiles.</summary>
     [DataField, AutoNetworkedField]
@@ -26,9 +30,9 @@ public sealed partial class WolfmedHitSplatterComponent : Component
     [DataField, AutoNetworkedField]
     public Color Color = Color.White;
 
-    /// <summary>Which of the RSI's spray variants this one uses.</summary>
+    /// <summary>Which of the RSI's spray variants this one uses. Single-direction; see <see cref="Angle"/>.</summary>
     [DataField, AutoNetworkedField]
-    public string State = "hitsplatter1";
+    public string State = "hitsplatter1_free";
 
     /// <summary>Seconds the travel takes. Matches the animation the RSI state carries.</summary>
     [DataField, AutoNetworkedField]
@@ -53,9 +57,12 @@ public sealed partial class WolfmedBloodSplatComponent : Component
     [DataField, AutoNetworkedField]
     public string State = "splatter1";
 
-    /// <summary>Which way it faces: back towards whatever threw it.</summary>
+    /// <summary>
+    /// FIX1: which way it faces, in world space, radians anticlockwise from +X: back along the line the
+    /// spray came in on. The client snaps it to the nearest direction its own RSI state actually has.
+    /// </summary>
     [DataField, AutoNetworkedField]
-    public Direction Direction = Direction.South;
+    public float Angle;
 }
 
 /// <summary>

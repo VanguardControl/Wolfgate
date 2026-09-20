@@ -3731,3 +3731,43 @@ done, and re-evaluates itself from every scan without being rebuilt, so the scro
 - **The medical content is unchanged.** Every step and warning is the UI3 sentence, split at the existing
   numbering. The only edits are mechanical: the `Do not: [color=...]...[/color]` wrapper is gone, because
   the window now draws those rows in the warning colour itself, and the first letter of each is capitalised.
+
+## Final stages: FIX1 (2026-09-19)
+
+Three playtest bugs. The analyzer's wounds tab stops destroying the control the cursor is on every scan
+tick, so its tooltips hold; the analyzer doll's selection highlight is drawn the way the button draws its
+own hover graphic, so it lands on it exactly; and blood is thrown by a hit making the body bleed more,
+along the exact line of the hit, rather than by every wound-creating hit along one of four cardinals.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | **Bug 1.** `BuildSignature` reduces a payload to what decides which controls exist (parts, wounds by prototype/name/stage/count/category, condition chips as their discrete states, mechanical flag, banners, filter, targeted part) with pain, sepsis percent, blood level and bleed rates present only as `> 0` tests. `DrawWoundDiagnostics` rebuilds only when that string changes and otherwise calls `UpdateVaryingText`, which writes the moving numbers onto the labels it kept (`_sepsisLabel`, `_painLabels`). `FooterText` split out of `CreateFooter`; `CreateAlertRow` and `CreateFooter` hand their label back; `RefreshTreatment` runs on every payload either way, so UI4's live update is untouched |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | `Clear` calls `ResetWoundControls` |
+| `Content.Client/_WF/Wolfmed/Medical/HealthAnalyzerWindow.Wolfmed.cs` | modified | **Bug 2.** The per-button highlight is now the button's own `<part>_hover.png` drawn with `StretchMode.Scale`, which is the one mode that reproduces `TextureButton.Draw`'s `DrawTextureRectRegion(texture, PixelSizeBox)` |
+| `Content.Shared/_WF/Wolfmed/Gore/WolfmedGoreComponents.cs` | modified | **Bug 3.** `WolfmedHitSplatterComponent.Direction` and `WolfmedBloodSplatComponent.Direction` become `float Angle`, world radians from +X; the spray's default state becomes `hitsplatter1_free` |
+| `Content.Shared/_WF/Wolfmed/Gore/WolfmedGoreSpecs.cs` | modified | `WolfmedHitSplatterSpec` gains `MinBleedIncrease`, `BurstWindow` and `BurstBudget`; `States` defaults to the single-direction states |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundSfxComponent.cs` | modified | `BleedBefore`, `BurstWindowStart`, `SpraysInWindow` |
+| `Content.Server/_WF/Wolfmed/Gore/WolfmedGoreSystem.cs` | modified | `ResolveDirection` becomes `ResolveAngle` (no snapping, random angle with nothing behind the hit). The landing walk is a step walk along the exact line, four samples a tile, at most three tiles, in the grid's frame. The wall splat's facing is the spray angle plus pi |
+| `Content.Client/_WF/Wolfmed/Effects/WolfmedGoreEffectSystem.cs` | modified | The spray's sprite is rotated to `Angle` (a world angle, because the sprite is `noRot`) and slid along the same vector. The wall splat's direction is snapped here, to eight or four ways depending on what its own RSI state has |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/gore.yml` | modified | `WolfmedHitSplatter` uses `hitsplatter1_free` and drops `enableOverrideDir` |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml` | modified | `hitSplatter`: the free states, `minBleedIncrease: 1`, `burstWindow: 1.5`, `burstBudget: 3`, distance bands rebased on the bleed gain (15/6/0). `organicDebris` rebased the same way, smallest tier at 0 |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedWoundSfxSystem.cs` | modified | `OnPartDamage` snapshots `TotalBleeding` before the hit's wounds exist; `Update` resolves each hit body once, sprays when the gain clears `MinBleedIncrease`, and sizes the spray by the gain. `OnWoundLifecycle` now only spawns debris for a chassis. `TryTakeBurstBudget` gates the organic path, mist included |
+| `Tools/_WF/wolfmed/import_nova_blood.py` | modified | `free_state`/`add_free_states` crop the East row of each hitsplatter into a 1-direction 11-frame state; `--free` rebuilds them from the RSI alone |
+| `Resources/Textures/_WF/Wolfmed/Effects/blood_splatter.rsi` | modified | `hitsplatter1_free.png`, `hitsplatter2_free.png`, `hitsplatter3_free.png` (352x32 each) plus `meta.json` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGoreTest.cs` | modified | Angle assertions replace the Direction ones; 2 new tests: a projectile sprays along its velocity, and a 45 degree spray lands on the wall on the diagonal and not due east |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSfxTest.cs` | modified | The `Damage` helper drains the deferred resolve; 2 new tests: a burn throws nothing and a blunt hit that raises a bleed does, and the burst budget caps and recovers |
+
+### Deviations from the spec
+
+- **No injected random roll.** The owner's revision replaced the severity/probability curve with "sprayed
+  if and only if the hit raised the bleeding", which has no roll in it. What is left random is the spray's
+  art variant and the fallback angle when nothing is behind the hit, neither of which a test needs to fix.
+- **The blood decision is deferred by one system tick**, not taken on the wound event. A hit creates
+  several wounds across several damage types and the bleeding system updates them from its own handler, so
+  the only order-independent place to compare the bleeding is after the whole hit has landed. The test
+  helper drains it by calling `Update(0f)`.
+- **The blunt case is set up by hand.** `BluntWound`'s bleeding behaviour has a 0.25 to 0.7 chance, so the
+  test gives the bruise a `WoundBleedingComponent` itself and then hits it, which exercises the same
+  `BleedingSeverity += delta` path deterministically.
+- **The HUD doll was not changed.** See the report: its highlight is exactly concentric with its own hover
+  ring on all eleven parts, and the one deviation is upstream and sub-pixel.

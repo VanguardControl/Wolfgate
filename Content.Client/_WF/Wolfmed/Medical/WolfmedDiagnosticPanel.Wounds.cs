@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
@@ -50,6 +51,19 @@ public sealed partial class WolfmedDiagnosticPanel
     /// <summary>UI3: raised when the medic picks a part from a card header. The window moves the target.</summary>
     public event Action<TargetBodyPart>? OnPartSelected;
 
+    /// <summary>
+    /// FIX1: what the cards were last built from, with every continuously varying number left out. The
+    /// analyzer rescans about once a second and pain moves on nearly every tick, so rebuilding the
+    /// controls per payload destroyed whatever the cursor was hovering and closed its tooltip.
+    /// </summary>
+    private string? _woundSignature;
+
+    /// <summary>FIX1: the sepsis banner's text, which carries a percentage that moves between rebuilds.</summary>
+    private RichTextLabel? _sepsisLabel;
+
+    /// <summary>FIX1: the pain/scar line of each card, the only per-card text with a varying number in it.</summary>
+    private readonly Dictionary<TargetBodyPart, Label> _painLabels = new();
+
     /// <summary>UI3: called by the window whenever the local player's body-part target moves.</summary>
     public void SetTargetedPart(TargetBodyPart? part, bool scrollIntoView)
     {
@@ -86,6 +100,11 @@ public sealed partial class WolfmedDiagnosticPanel
             WoundsTab.VScrollTarget = MathF.Max(0f, offset - 8f);
     }
 
+    /// <summary>
+    /// FIX1: rebuilds the cards only when the payload's shape changed, and otherwise just moves the
+    /// numbers on the labels it kept. The treatment window is re-evaluated either way, so UI4's live
+    /// update still sees every scan.
+    /// </summary>
     private void DrawWoundDiagnostics(HealthAnalyzerScannedUserMessage msg)
     {
         // Populate runs on every scan update; the filter has to survive that, but not a new patient.
@@ -93,10 +112,33 @@ public sealed partial class WolfmedDiagnosticPanel
         {
             _woundTarget = msg.TargetEntity;
             _categoryFilter = null;
+            _woundSignature = null;
             // UI4: the open procedure belongs to the patient that just left, not to this one.
             _treatmentWindow?.Close();
         }
 
+        var signature = BuildSignature(msg);
+        // A deliberate selection has to redraw even when nothing moved, because the scroll is armed on the
+        // card object the rebuild produces.
+        if (!_scrollToTargeted && signature == _woundSignature)
+        {
+            UpdateVaryingText(msg);
+            RefreshTreatment();
+            return;
+        }
+
+        RebuildWoundDiagnostics(msg);
+        // Recomputed, not reused: the strip drops a filter whose category has healed away, which is part
+        // of the signature.
+        _woundSignature = BuildSignature(msg);
+        RefreshTreatment();
+    }
+
+    /// <summary>Throws every wound control away and builds them again from this payload.</summary>
+    private void RebuildWoundDiagnostics(HealthAnalyzerScannedUserMessage msg)
+    {
+        _sepsisLabel = null;
+        _painLabels.Clear();
         WoundAlertsContainer.RemoveAllChildren();
         WoundCategoryStrip.RemoveAllChildren();
         WoundFindingsContainer.RemoveAllChildren();
@@ -129,12 +171,15 @@ public sealed partial class WolfmedDiagnosticPanel
 
         // W5: systemic, so it is banner-level rather than an entry against any one part.
         if (msg.WoundDiagnostics.Sepsis > 0f)
+        {
             WoundAlertsContainer.AddChild(CreateAlertRow(
                 "sepsis",
                 WolfmedWoundStyle.Necrosis,
-                Loc.GetString("health-analyzer-wound-sepsis",
-                    ("percent", (int) MathF.Round(msg.WoundDiagnostics.Sepsis))),
-                "sepsis"));
+                SepsisText(msg.WoundDiagnostics.Sepsis),
+                "sepsis",
+                out var sepsis));
+            _sepsisLabel = sepsis;
+        }
 
         BuildCategoryStrip(msg.WoundDiagnostics);
 
@@ -155,9 +200,6 @@ public sealed partial class WolfmedDiagnosticPanel
             cards++;
         }
 
-        // UI4: the open procedure window follows the same scan the cards were drawn from.
-        RefreshTreatment();
-
         if (cards > 0)
             return;
 
@@ -173,6 +215,91 @@ public sealed partial class WolfmedDiagnosticPanel
             Margin = new Thickness(2, 2, 0, 0),
         });
     }
+
+    /// <summary>
+    /// FIX1: everything about a payload that decides which controls exist and what shape they take. Pain,
+    /// sepsis percent, blood level and bleed rates are in here only as the discrete tests the cards make
+    /// of them, never as their values, so the ordinary tick-to-tick drift does not rebuild anything.
+    /// </summary>
+    private string BuildSignature(HealthAnalyzerScannedUserMessage msg)
+    {
+        var text = new StringBuilder();
+        text.Append(_categoryFilter?.ToString() ?? "-").Append('|')
+            .Append(_targetedPart?.ToString() ?? "-").Append('|')
+            .Append(msg.ScanMode == true ? '1' : '0')
+            .Append(msg.VitalDamage != null ? '1' : '0')
+            .Append(IsDangerousBloodLevel(msg.BloodLevel) ? '1' : '0');
+
+        if (msg.WoundDiagnostics is not { } diagnostics)
+            return text.Append("|none").ToString();
+
+        text.Append(diagnostics.Sepsis > 0f ? "|sep" : "|-");
+
+        foreach (var part in SharedTargetingSystem.GetValidParts())
+        {
+            if (!diagnostics.Parts.TryGetValue(part, out var diagnostic))
+                continue;
+
+            text.Append('|').Append((int) part).Append(':')
+                .Append((int) diagnostic.Fracture).Append((int) diagnostic.FractureTreatment)
+                .Append((int) diagnostic.BleedingTreatment).Append((int) diagnostic.ClottingPhase)
+                .Append((int) diagnostic.Functionality).Append((int) diagnostic.Infection)
+                .Append((int) diagnostic.Treatments).Append(',')
+                .Append(diagnostic.EmbeddedObjects).Append(',')
+                .Append(diagnostic.BleedingRate > 0f ? '1' : '0')
+                .Append(diagnostic.InternalBleedingRate > 0f ? '1' : '0')
+                .Append(diagnostic.Necrotic ? '1' : '0')
+                .Append(diagnostic.NecrosisRisk ? '1' : '0')
+                .Append(diagnostic.Mechanical ? '1' : '0')
+                .Append(diagnostic.Overheating ? '1' : '0')
+                .Append(diagnostic.Pain > FixedPoint2.Zero ? '1' : '0')
+                .Append(diagnostic.ScarCount > 0 ? '1' : '0');
+
+            foreach (var wound in diagnostic.VisibleWounds)
+            {
+                text.Append(';').Append(wound.Prototype).Append('/')
+                    .Append(wound.Name.ToString()).Append('/')
+                    .Append(wound.StageName?.ToString() ?? "-").Append('/')
+                    .Append(wound.Count).Append('/').Append((int) wound.Category);
+            }
+        }
+
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// FIX1: moves the numbers that change on their own onto the labels the last rebuild left behind. The
+    /// tooltips are rebuilt with them; none of the advice strings carries one of these numbers, so in
+    /// practice this is the sepsis banner, the vital damage figure and one line per card.
+    /// </summary>
+    private void UpdateVaryingText(HealthAnalyzerScannedUserMessage msg)
+    {
+        if (msg.VitalDamage is { } vital)
+            VitalDamageLabel.Text = vital.ToString();
+
+        if (msg.WoundDiagnostics is not { } diagnostics)
+            return;
+
+        if (_sepsisLabel is { } sepsis && diagnostics.Sepsis > 0f)
+            sepsis.SetMessage(FormattedMessage.FromMarkupPermissive(SepsisText(diagnostics.Sepsis)));
+
+        foreach (var (part, label) in _painLabels)
+        {
+            if (diagnostics.Parts.TryGetValue(part, out var diagnostic) && FooterText(diagnostic) is { } text)
+                label.Text = text;
+        }
+    }
+
+    /// <summary>FIX1: dropped when the panel is cleared, so a stale label is never written to.</summary>
+    private void ResetWoundControls()
+    {
+        _woundSignature = null;
+        _sepsisLabel = null;
+        _painLabels.Clear();
+    }
+
+    private static string SepsisText(float sepsis) =>
+        Loc.GetString("health-analyzer-wound-sepsis", ("percent", (int) MathF.Round(sepsis)));
 
     /// <summary>One chip per category present on the patient. Clicking one filters the cards below.</summary>
     private void BuildCategoryStrip(HealthAnalyzerWoundDiagnostics diagnostics)
@@ -250,7 +377,11 @@ public sealed partial class WolfmedDiagnosticPanel
             DrawWoundDiagnostics(message);
     }
 
-    private Control CreateAlertRow(string icon, Color colour, string text, string condition)
+    private Control CreateAlertRow(string icon, Color colour, string text, string condition) =>
+        CreateAlertRow(icon, colour, text, condition, out _);
+
+    private Control CreateAlertRow(string icon, Color colour, string text, string condition,
+        out RichTextLabel body)
     {
         var panel = new PanelContainer
         {
@@ -276,6 +407,7 @@ public sealed partial class WolfmedDiagnosticPanel
         var label = new RichTextLabel { HorizontalExpand = true };
         label.SetMessage(FormattedMessage.FromMarkupPermissive(text));
         row.AddChild(label);
+        body = label;
 
         panel.AddChild(row);
         // UI3: a banner is a finding like any other, so it opens the same procedure window. The tooltip uses
@@ -313,8 +445,12 @@ public sealed partial class WolfmedDiagnosticPanel
         foreach (var row in CreateWoundRows(part, diagnostic))
             body.AddChild(row);
 
-        if (CreateFooter(diagnostic) is { } footer)
+        if (CreateFooter(diagnostic, out var painLabel) is { } footer)
+        {
             body.AddChild(footer);
+            if (painLabel != null)
+                _painLabels[part] = painLabel;
+        }
 
         card.AddChild(body);
         return card;
@@ -539,8 +675,11 @@ public sealed partial class WolfmedDiagnosticPanel
         return rows;
     }
 
-    /// <summary>Pain and scars: real findings, but never the reason a medic looks at the card.</summary>
-    private Control? CreateFooter(HealthAnalyzerWoundDiagnostic diagnostic)
+    /// <summary>
+    /// FIX1: the footer's wording, or null when the card has no footer. Pulled out of the builder because
+    /// the pain figure moves on nearly every scan and is written straight back onto the kept label.
+    /// </summary>
+    private static string? FooterText(HealthAnalyzerWoundDiagnostic diagnostic)
     {
         // W7: a chassis reports the same figure, but it is not pain.
         var mechanical = diagnostic.Mechanical ? "-mechanical" : string.Empty;
@@ -552,7 +691,14 @@ public sealed partial class WolfmedDiagnosticPanel
         if (diagnostic.ScarCount > 0)
             parts.Add(Loc.GetString("health-analyzer-wound-scars-short", ("count", diagnostic.ScarCount)));
 
-        if (parts.Count == 0)
+        return parts.Count == 0 ? null : string.Join("   ", parts);
+    }
+
+    /// <summary>Pain and scars: real findings, but never the reason a medic looks at the card.</summary>
+    private Control? CreateFooter(HealthAnalyzerWoundDiagnostic diagnostic, out Label? text)
+    {
+        text = null;
+        if (FooterText(diagnostic) is not { } wording)
             return null;
 
         var row = new BoxContainer
@@ -565,12 +711,13 @@ public sealed partial class WolfmedDiagnosticPanel
         row.AddChild(Icon(diagnostic.ScarCount > 0 && diagnostic.Pain <= FixedPoint2.Zero ? "scar" : "pain",
             WolfmedWoundStyle.Scar,
             ChipIconSize));
-        row.AddChild(new Label
+        text = new Label
         {
-            Text = string.Join("   ", parts),
+            Text = wording,
             StyleClasses = { "LabelSubText" },
             VerticalAlignment = VAlignment.Center,
-        });
+        };
+        row.AddChild(text);
         return row;
     }
 

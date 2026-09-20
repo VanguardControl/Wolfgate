@@ -60,12 +60,17 @@ public sealed partial class HealthAnalyzerWindow
     {
         foreach (var (part, button) in _bodyPartControls)
         {
+            // FIX1: the button's own hover texture, drawn the way the button draws it. TextureButton.Draw
+            // stretches it over the whole PixelSizeBox, and StretchMode.Scale is the one TextureRect mode
+            // that does the same, so the highlight lands on the hover graphic pixel for pixel. The analyzer
+            // doll's buttons are not whole multiples of the art (28x23 over an 11x9 texture), so anything
+            // that keeps the aspect ratio lands somewhere else.
             var overlay = new TextureRect
             {
                 Texture = _cache
-                    .GetResource<TextureResource>(DollTextures / (part.ToString().ToLowerInvariant() + ".png"))
+                    .GetResource<TextureResource>(DollTextures / (part.ToString().ToLowerInvariant() + "_hover.png"))
                     .Texture,
-                Stretch = TextureRect.StretchMode.KeepAspectCentered,
+                Stretch = TextureRect.StretchMode.Scale,
                 Visible = false,
                 MouseFilter = MouseFilterMode.Ignore,
                 Modulate = Color.FromHex("#ffcf6b"),

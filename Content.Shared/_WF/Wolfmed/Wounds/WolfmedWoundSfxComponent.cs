@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared.FixedPoint;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
@@ -31,4 +32,20 @@ public sealed partial class WolfmedWoundSfxComponent : Component
     /// tick as the wound it caused. Null when nothing usable was behind the hit.
     /// </summary>
     public Vector2? LastDirection;
+
+    /// <summary>
+    /// FIX1: the body's total bleeding severity as the current hit found it. The spray is triggered by a
+    /// hit making the body bleed more, so the figure has to be taken before the wounds are created and
+    /// compared once they all are.
+    /// </summary>
+    [DataField]
+    public FixedPoint2 BleedBefore;
+
+    /// <summary>FIX1: start of the window <see cref="SpraysInWindow"/> is counted over.</summary>
+    [DataField]
+    public TimeSpan BurstWindowStart = TimeSpan.MinValue;
+
+    /// <summary>FIX1: sprays this body has thrown since <see cref="BurstWindowStart"/>.</summary>
+    [DataField]
+    public int SpraysInWindow;
 }

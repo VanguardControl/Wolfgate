@@ -115,13 +115,15 @@
     spillVolume: 10
 
   # Debris tiers, largest first: the first tier the hit clears is the one spawned.
+  # FIX1: the organic tiers are read with the bleeding a hit opened, not with the wound's severity, and
+  # hitSplatter.minBleedIncrease is the floor now, so the smallest tier starts at nothing.
   organicDebris:
   - effect: WolfmedBloodMistLarge
-    minSeverity: 25
+    minSeverity: 15
   - effect: WolfmedBloodMistMedium
-    minSeverity: 12
+    minSeverity: 6
   - effect: WolfmedBloodMistSmall
-    minSeverity: 4
+    minSeverity: 0
 
   mechanicalDebris:
   - effect: WolfmedSparkBurstLarge
@@ -132,16 +134,23 @@
     minSeverity: 4
 
   # G1. Flesh throws this instead of the mist above; the mist stays as the fallback for a body with no
-  # bloodstream to take a colour from. The distance bands mirror the debris tiers, so one hit that earns a
-  # large spray also throws it three tiles. Wall states 1, 2 and 6 have eight directions, 3, 4 and 5 four.
+  # bloodstream to take a colour from. Wall states 1, 2 and 6 have eight directions, 3, 4 and 5 four.
+  #
+  # FIX1: a spray happens when, and only when, the hit made the body bleed more, so a blunt hit that opens
+  # a bleed throws blood and a slash that clots on contact does not. minBleedIncrease is the graze floor
+  # and the distance bands read the same figure, so a bleed a gunshot opens travels further than a knick.
+  # The burst budget is what keeps automatic fire to a few sprays a second.
   hitSplatter:
     effect: WolfmedHitSplatter
     travel: 1.1
-    states: [ hitsplatter1, hitsplatter2, hitsplatter3 ]
+    states: [ hitsplatter1_free, hitsplatter2_free, hitsplatter3_free ]
+    minBleedIncrease: 1
+    burstWindow: 1.5
+    burstBudget: 3
     distances:
-    - minSeverity: 25
+    - minSeverity: 15
       tiles: 3
-    - minSeverity: 12
+    - minSeverity: 6
       tiles: 2
     - minSeverity: 0
       tiles: 1

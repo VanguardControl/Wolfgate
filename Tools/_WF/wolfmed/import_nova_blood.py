@@ -1,7 +1,13 @@
 """Converts blood splatter states from NovaSector's icons/effects/blood.dmi into an RSI.
 
 Usage: python Tools/_WF/wolfmed/import_nova_blood.py <path to blood.dmi>
+       python Tools/_WF/wolfmed/import_nova_blood.py --free   (rebuild the free states from the RSI alone)
+
 DMI sheets are frame-major (frame 0 of every direction, then frame 1, ...); RSI sheets are direction-major.
+
+FIX1: each hitsplatter also gets a "<state>_free" single-direction copy of its East row. The spray is
+rotated to the exact angle of the hit, so it must not answer to RSI directions at all; East is the row
+whose art already points along +X, which is where a sprite rotation of zero puts it.
 """
 import json
 import os
@@ -14,6 +20,8 @@ STATES = ["hitsplatter1", "hitsplatter2", "hitsplatter3",
           "floor1", "floor2", "floor3", "floor4", "floor5", "floor6", "floor7"]
 OUT = "Resources/Textures/_WF/Wolfmed/Effects/blood_splatter.rsi"
 COMMIT = "7499f47bfc6b768a72c922be46971ebfccf794a1"
+FREE_SUFFIX = "_free"
+FREE_ROW = 2  # RSI direction order is South, North, East, West; East already points along +X.
 
 
 def parse(description):
@@ -27,6 +35,43 @@ def parse(description):
             key, value = [part.strip() for part in line.split("=", 1)]
             current[key] = value
     return states
+
+
+def free_state(name, size=32):
+    """Crops the East row out of an already written state sheet and saves it as a 1-direction state."""
+    sheet = Image.open(os.path.join(OUT, name + ".png")).convert("RGBA")
+    frames = sheet.width // size
+    row = sheet.crop((0, FREE_ROW * size, sheet.width, (FREE_ROW + 1) * size))
+    row.save(os.path.join(OUT, name + FREE_SUFFIX + ".png"))
+    return frames
+
+
+def add_free_states(meta_states, size=32):
+    """Appends a free copy of every hitsplatter to the state list, in place."""
+    for entry in list(meta_states):
+        if not entry["name"].startswith("hitsplatter") or entry["name"].endswith(FREE_SUFFIX):
+            continue
+
+        frames = free_state(entry["name"], size)
+        free = {"name": entry["name"] + FREE_SUFFIX}
+        if "delays" in entry:
+            free["delays"] = [list(entry["delays"][FREE_ROW])]
+        else:
+            free["delays"] = [[0.1] * frames]
+        meta_states.append(free)
+
+
+def rebuild_free():
+    """Regenerates the free states from the RSI that is already on disk, with no DMI needed."""
+    with open(os.path.join(OUT, "meta.json")) as handle:
+        meta = json.load(handle)
+
+    meta["states"] = [state for state in meta["states"] if not state["name"].endswith(FREE_SUFFIX)]
+    add_free_states(meta["states"], meta["size"]["x"])
+    with open(os.path.join(OUT, "meta.json"), "w", newline="\n") as handle:
+        json.dump(meta, handle, indent=4)
+        handle.write("\n")
+    print("wrote", len(meta["states"]), "states")
 
 
 def main(path):
@@ -56,6 +101,7 @@ def main(path):
             delays = [float(d) / 10 for d in state.get("delay", ",".join(["1"] * frames)).split(",")]
             entry["delays"] = [delays for _ in range(dirs)]
         meta_states.append(entry)
+    add_free_states(meta_states, size)
     meta = {
         "version": 1,
         "license": "CC-BY-SA-3.0",
@@ -71,4 +117,7 @@ def main(path):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if sys.argv[1] == "--free":
+        rebuild_free()
+    else:
+        main(sys.argv[1])

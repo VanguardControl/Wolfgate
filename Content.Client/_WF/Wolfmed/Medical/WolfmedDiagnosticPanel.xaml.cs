@@ -81,6 +81,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
         _woundTarget = null;
         _categoryFilter = null;
         _scrollTo = null; // UI3: the card it pointed at has just been destroyed.
+        ResetWoundControls(); // FIX1: the kept labels went with the cards.
         WoundStateLabel.Visible = false;
         VitalDamageRow.Visible = false;
         ClearOrganRows();

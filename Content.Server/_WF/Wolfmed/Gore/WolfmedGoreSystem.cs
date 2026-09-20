@@ -18,8 +18,8 @@ namespace Content.Server._WF.Wolfmed.Gore;
 
 /// <summary>
 /// G1: the spray a hit throws off a body of flesh, and the mark it leaves where it lands. The spray is a
-/// networked effect the client slides along one cardinal; the landing is decided here, once, at spawn
-/// time, and placed when the spray would have got there.
+/// networked effect the client slides along the exact angle of the hit (FIX1); the landing is decided
+/// here, once, at spawn time, and placed when the spray would have got there.
 /// </summary>
 /// <remarks>
 /// Server authoritative and deliberately cheap: one grid walk of at most three tiles per hit (already
@@ -76,14 +76,14 @@ public sealed class WolfmedGoreSystem : EntitySystem
 
         var xform = Transform(body);
         var grid = xform.GridUid;
-        var facing = ResolveDirection(direction, grid);
+        var angle = ResolveAngle(direction);
         var tiles = spec.GetDistance(severity);
 
-        // Parented to the grid, not the map, so the spray rides a moving shuttle and its grid-frame
-        // direction means the same thing to the client as it does to the tile walk below.
+        // Parented to the grid, not the map, so the spray rides a moving shuttle. The angle stays a world
+        // angle: the sprite does not rotate with its parent, so nothing else would line up.
         var effect = Spawn(spec.Effect, _transform.GetMoverCoordinates(body, xform));
         var splatter = EnsureComp<WolfmedHitSplatterComponent>(effect);
-        splatter.Direction = facing;
+        splatter.Angle = (float) angle.Theta;
         splatter.Distance = tiles;
         splatter.Color = color;
         splatter.State = _random.Pick(spec.States);
@@ -91,7 +91,7 @@ public sealed class WolfmedGoreSystem : EntitySystem
         Dirty(effect, splatter);
 
         if (grid is { } gridUid && TryComp(gridUid, out MapGridComponent? gridComp))
-            Queue(spec, (gridUid, gridComp), xform, facing, tiles, color);
+            Queue(spec, (gridUid, gridComp), xform, angle, tiles, color);
 
         return effect;
     }
@@ -169,19 +169,28 @@ public sealed class WolfmedGoreSystem : EntitySystem
         WolfmedHitSplatterSpec spec,
         Entity<MapGridComponent> grid,
         TransformComponent xform,
-        Direction facing,
+        Angle angle,
         float tiles,
         Color color)
     {
         var start = _map.TileIndicesFor(grid.Owner, grid.Comp, _transform.GetMapCoordinates(xform.Owner));
-        var step = facing.ToIntVec();
+        // The walk is in the grid's own frame; the angle is a world angle, so the grid's rotation comes off.
+        var step = (angle - _transform.GetWorldRotation(grid.Owner)).ToVec();
         var reach = Math.Max(1, (int) MathF.Round(tiles));
         var landing = start;
         var wall = false;
 
-        for (var i = 1; i <= reach; i++)
+        // FIX1: a step walk along the exact line rather than one cardinal, so a diagonal spray lands on the
+        // wall a diagonal spray would hit. Bounded: four samples a tile, at most three tiles.
+        var from = (Vector2) start + new Vector2(0.5f, 0.5f);
+        var samples = reach * SamplesPerTile;
+        for (var i = 1; i <= samples; i++)
         {
-            var tile = start + step * i;
+            var point = from + step * (i / (float) SamplesPerTile);
+            var tile = new Vector2i((int) MathF.Floor(point.X), (int) MathF.Floor(point.Y));
+            if (tile == landing)
+                continue;
+
             if (_turf.IsTileBlocked(grid.Owner, tile, CollisionGroup.Impassable, grid.Comp))
             {
                 landing = tile;
@@ -192,9 +201,12 @@ public sealed class WolfmedGoreSystem : EntitySystem
             landing = tile;
         }
 
-        _pending.Add(new PendingSplat(spec, grid.Owner, landing, facing, wall, color,
+        _pending.Add(new PendingSplat(spec, grid.Owner, landing, angle, wall, color,
             _timing.CurTime + spec.Travel));
     }
+
+    /// <summary>Samples taken per tile of reach when walking the spray's line.</summary>
+    private const int SamplesPerTile = 4;
 
     /// <summary>Puts the splat down, if the grid it was aimed at is still there.</summary>
     private void Place(PendingSplat splat)
@@ -221,7 +233,7 @@ public sealed class WolfmedGoreSystem : EntitySystem
         comp.Color = splat.Color;
         comp.State = _random.Pick(splat.Spec.WallStates);
         // Facing back the way it came, so the mark reads as something that hit the wall from the room.
-        comp.Direction = splat.Facing.GetOpposite();
+        comp.Angle = (float) (splat.Angle + Math.PI).Theta;
         Dirty(entity, comp);
     }
 
@@ -275,32 +287,20 @@ public sealed class WolfmedGoreSystem : EntitySystem
     }
 
     /// <summary>
-    /// Snaps a world direction to the cardinal the art has, in the frame of the grid the body stands on,
-    /// so the tile walk and the sprite agree. Nothing usable behind the hit picks a random way.
+    /// FIX1: the exact world angle the spray leaves on, kept as an angle rather than snapped to a
+    /// cardinal. Nothing usable behind the hit picks a random way.
     /// </summary>
-    private Direction ResolveDirection(Vector2? direction, EntityUid? grid)
-    {
-        if (direction is not { } vector || vector.LengthSquared() <= 0.01f)
-            return _random.Pick(Cardinals);
-
-        // FromWorldVec, not the plain Angle constructor: directions here are the engine's world
-        // convention, where zero is south, and GetCardinalDir reads them that way.
-        var angle = Angle.FromWorldVec(vector);
-        if (grid is { } gridUid)
-            angle -= _transform.GetWorldRotation(gridUid);
-
-        return angle.GetCardinalDir();
-    }
-
-    private static readonly Direction[] Cardinals =
-        [Direction.South, Direction.North, Direction.East, Direction.West];
+    public Angle ResolveAngle(Vector2? direction) =>
+        direction is { } vector && vector.LengthSquared() > 0.01f
+            ? new Angle(vector)
+            : _random.NextAngle();
 
     /// <summary>A spray still in the air, and what it will leave when it lands.</summary>
     private readonly record struct PendingSplat(
         WolfmedHitSplatterSpec Spec,
         EntityUid Grid,
         Vector2i Tile,
-        Direction Facing,
+        Angle Angle,
         bool Wall,
         Color Color,
         TimeSpan At);

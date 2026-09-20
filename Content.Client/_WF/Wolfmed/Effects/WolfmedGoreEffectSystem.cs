@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._WF.Wolfmed.Gore;
 using Robust.Client.GameObjects;
+using Robust.Shared.Graphics.RSI;
 using Robust.Shared.Timing;
 
 namespace Content.Client._WF.Wolfmed.Effects;
@@ -58,7 +59,7 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
 
             var progress = (float) (now - splatter.StartedAt).TotalSeconds / splatter.Travel;
             _sprite.SetOffset((uid, sprite),
-                splatter.Direction.ToVec() * splatter.Distance * Math.Clamp(progress, 0f, 1f));
+                new Angle(splatter.Angle).ToVec() * splatter.Distance * Math.Clamp(progress, 0f, 1f));
         }
     }
 
@@ -69,7 +70,10 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
 
         _sprite.SetColor((splatter.Owner, sprite), splatter.Comp.Color);
         _sprite.LayerSetRsiState((splatter.Owner, sprite), 0, splatter.Comp.State);
-        Face(sprite, splatter.Comp.Direction);
+        // FIX1: the state is single-direction and the sprite has noRot, so its own rotation is a world
+        // angle: the camera, the grid and the entity's rotation all leave it alone. The art points along
+        // +X, which is where a rotation of zero puts it, so the angle goes on unchanged.
+        _sprite.SetRotation((splatter.Owner, sprite), new Angle(splatter.Comp.Angle));
         _sprite.SetOffset((splatter.Owner, sprite), Vector2.Zero);
     }
 
@@ -80,16 +84,21 @@ public sealed class WolfmedGoreEffectSystem : EntitySystem
 
         _sprite.SetColor((splat.Owner, sprite), splat.Comp.Color);
         _sprite.LayerSetRsiState((splat.Owner, sprite), 0, splat.Comp.State);
-        Face(sprite, splat.Comp.Direction);
+        Face((splat.Owner, sprite), splat.Comp.Angle);
     }
 
     /// <summary>
     /// Points a directional state without turning the picture. The entity's own rotation cannot do this:
-    /// the direction is chosen in the frame of the grid it landed on, not of the camera.
+    /// the direction is a world direction, not one of the camera's. FIX1: the angle is exact, so it is
+    /// snapped here to whichever directions this particular wall state actually has.
     /// </summary>
-    private static void Face(SpriteComponent sprite, Direction direction)
+    private void Face(Entity<SpriteComponent> splat, float angle)
     {
-        sprite.DirectionOverride = direction;
-        sprite.EnableDirectionOverride = true;
+        var world = new Angle(angle) + MathHelper.PiOver2;
+        var eight = _sprite.TryGetLayer(splat.Owner, 0, out var layer, false) &&
+                    layer.ActualState?.RsiDirections == RsiDirectionType.Dir8;
+
+        splat.Comp.DirectionOverride = eight ? world.GetDir() : world.GetCardinalDir();
+        splat.Comp.EnableDirectionOverride = true;
     }
 }

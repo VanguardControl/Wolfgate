@@ -22,9 +22,31 @@ public sealed partial class WolfmedHitSplatterSpec
     [DataField]
     public EntProtoId Effect = "WolfmedHitSplatter";
 
-    /// <summary>RSI states the spray picks from. Each is one of the sprite sheet's spray variants.</summary>
+    /// <summary>
+    /// RSI states the spray picks from. Each is one of the sprite sheet's spray variants, and each must be
+    /// single-direction: the spray is rotated to the angle of the hit, not pointed at a facing (FIX1).
+    /// </summary>
     [DataField]
-    public List<string> States = new() { "hitsplatter1", "hitsplatter2", "hitsplatter3" };
+    public List<string> States = new() { "hitsplatter1_free", "hitsplatter2_free", "hitsplatter3_free" };
+
+    /// <summary>
+    /// FIX1: how much a hit has to raise the body's total bleeding before any blood flies. This, and not
+    /// the damage type, is the whole trigger: a blunt hit that opens a bleed sprays and a slash that does
+    /// not bleed stays dry. Bleeding severity is in wound-severity units, so a graze is well under one.
+    /// </summary>
+    [DataField]
+    public FixedPoint2 MinBleedIncrease = FixedPoint2.New(1);
+
+    /// <summary>FIX1: how long the burst budget counts over.</summary>
+    [DataField]
+    public TimeSpan BurstWindow = TimeSpan.FromSeconds(1.5);
+
+    /// <summary>
+    /// FIX1: how many sprays one body may throw inside <see cref="BurstWindow"/>. Automatic fire lands a
+    /// bleeding hit per bullet, and one spray per bullet is a wall of sprites.
+    /// </summary>
+    [DataField]
+    public int BurstBudget = 3;
 
     /// <summary>How long the spray takes to cross its distance. The splat lands when it arrives.</summary>
     [DataField]

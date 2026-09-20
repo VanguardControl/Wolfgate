@@ -16,6 +16,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Fluids.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Spawners;
 
@@ -122,9 +123,10 @@ public sealed class WolfmedWoundSfxTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(profile.GetDebris(true, FixedPoint2.New(1)), Is.Null, "a scratch throws nothing.");
-                Assert.That(profile.GetDebris(true, FixedPoint2.New(5))?.Id, Is.EqualTo("WolfmedBloodMistSmall"));
-                Assert.That(profile.GetDebris(true, FixedPoint2.New(15))?.Id, Is.EqualTo("WolfmedBloodMistMedium"));
+                // Organic tiers are keyed on the bleed increase now, and hitSplatter.minBleedIncrease is the floor,
+                // so the smallest tier starts at nothing.
+                Assert.That(profile.GetDebris(true, FixedPoint2.New(1))?.Id, Is.EqualTo("WolfmedBloodMistSmall"));
+                Assert.That(profile.GetDebris(true, FixedPoint2.New(8))?.Id, Is.EqualTo("WolfmedBloodMistMedium"));
                 Assert.That(profile.GetDebris(true, FixedPoint2.New(60))?.Id, Is.EqualTo("WolfmedBloodMistLarge"));
 
                 Assert.That(profile.GetDebris(false, FixedPoint2.New(1)), Is.Null);
@@ -219,6 +221,96 @@ public sealed class WolfmedWoundSfxTest : GameTest
             // The same wound worsening under a hit does both.
             Damage(entities, body, TargetBodyPart.Torso, "Slash", 30);
             Assert.That(Debris(entities, map), Has.Count.EqualTo(1));
+        });
+    }
+
+    /// <summary>
+    /// FIX1: the trigger is the bleed, not the damage type. A burn wounds and hurts and never bleeds, so
+    /// it throws nothing; a blunt hit that raises a bleeding wound throws blood like any other.
+    /// </summary>
+    [Test]
+    public async Task BloodOnlyFliesWhenTheHitBleedsTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var sfx = entities.System<WolfmedWoundSfxSystem>();
+            var burned = entities.SpawnEntity("MobHuman", map.GridCoords);
+
+            // BurnWound carries no WoundBleedingBehavior at any stage, so this cannot open a bleed.
+            Damage(entities, burned, TargetBodyPart.Torso, "Heat", 60);
+            Assert.Multiple(() =>
+            {
+                Assert.That(sfx.TotalBleeding(burned), Is.EqualTo(FixedPoint2.Zero),
+                    "a burn is the case that must not bleed; the test is meaningless if it does.");
+                Assert.That(Debris(entities, map), Is.Empty, "a hit that opens no bleed throws no blood.");
+            });
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            var sfx = entities.System<WolfmedWoundSfxSystem>();
+            var wounds = entities.System<WoundSystem>();
+            var bruised = entities.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 3, 3));
+            var torso = Part(entities, bruised, BodyPartType.Torso);
+
+            // A bruise that is already weeping. Placed by hand rather than rolled for, because the blunt
+            // bleeding behaviour has a chance and this test may not depend on it.
+            // Well under the wound's maximum severity, so the hit below has room to widen it.
+            var wound = wounds.CreateOrMergeWound(torso, "BluntWound", FixedPoint2.New(10));
+            Assert.That(wound, Is.Not.Null);
+            var bleeding = entities.EnsureComponent<WoundBleedingComponent>(wound!.Value);
+            bleeding.BleedingSeverity = FixedPoint2.New(10);
+            Assert.That(Debris(entities, map), Is.Empty, "creating that wound was not a hit.");
+
+            // Now hit it. Blunt, no cut anywhere, and the bleed goes up: that is a spray.
+            // Ten, not forty: a heavy blunt hit becomes a crush injury (a different wound) and can roll a fracture.
+            Damage(entities, bruised, TargetBodyPart.Torso, "Blunt", 10);
+            Assert.That(sfx.TotalBleeding(bruised), Is.GreaterThan(FixedPoint2.New(10)),
+                "the hit should have driven the bleed up.");
+            Assert.That(Debris(entities, map), Has.Count.EqualTo(1),
+                "a blunt hit that opens a bleed sprays like anything else.");
+        });
+    }
+
+    /// <summary>
+    /// FIX1: the burst budget. Automatic fire lands a bleeding hit per round, and the answer is a few
+    /// sprays a second rather than one sprite per bullet.
+    /// </summary>
+    [Test]
+    public async Task BurstBudgetCapsASustainedBurstTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var sfx = entities.System<WolfmedWoundSfxSystem>();
+            var spec = sfx.Profile!.HitSplatter;
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var state = entities.EnsureComponent<WolfmedWoundSfxComponent>(body);
+
+            Assert.That(spec.BurstBudget, Is.GreaterThan(0), "a budget of zero would disable the cap.");
+
+            for (var i = 0; i < spec.BurstBudget; i++)
+                Assert.That(sfx.TryTakeBurstBudget(state, spec), Is.True, $"spray {i} is inside the budget.");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(sfx.TryTakeBurstBudget(state, spec), Is.False, "the budget has to run out.");
+                Assert.That(state.SpraysInWindow, Is.EqualTo(spec.BurstBudget),
+                    "a refused spray must not be counted against the window.");
+            });
+
+            // The window is restarted lazily, so backdating it is what a quiet second looks like.
+            state.BurstWindowStart = sfx.Now - spec.BurstWindow;
+            Assert.That(sfx.TryTakeBurstBudget(state, spec), Is.True, "and it has to come back.");
         });
     }
 
@@ -427,5 +519,8 @@ public sealed class WolfmedWoundSfxTest : GameTest
             DamageDict = { [new ProtoId<DamageTypePrototype>(type)] = FixedPoint2.New(amount) },
         };
         entities.System<DamageableSystem>().TryChangeDamage(body, spec, origin: null, targetPart: target);
+        // FIX1: the blood spray is decided once the hit's wounds all exist, which in play is the system's
+        // own tick. Drained here so an assertion in the same block sees the same thing a player would.
+        entities.System<WolfmedWoundSfxSystem>().Update(0f);
     }
 }

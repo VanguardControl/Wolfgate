@@ -29,6 +29,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -87,16 +88,110 @@ public sealed class WolfmedGoreTest : GameTest
             var comp = entities.GetComponent<WolfmedHitSplatterComponent>(splatter!.Value);
             Assert.Multiple(() =>
             {
-                Assert.That(comp.Direction, Is.EqualTo(Direction.East));
+                Assert.That(comp.Angle, Is.EqualTo(0f).Within(0.001f), "due east is an angle of zero.");
                 Assert.That(comp.Distance, Is.EqualTo(3f), "a heavy hit throws it three tiles.");
                 Assert.That(profile.HitSplatter.States, Does.Contain(comp.State));
             });
+
+            // FIX1: an attacker off the diagonal throws blood off the diagonal, not at the nearest cardinal.
+            var corner = entities.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, -2, -2));
+            transform.SetWorldPosition(corner, new Vector2(-2.5f, -2.5f));
+            var diagonal = gore.GetHitDirection(body, corner, null);
+            Assert.That(diagonal, Is.Not.Null);
+
+            var offAxis = gore.TrySpawnSplatter(body, profile.HitSplatter, diagonal, FixedPoint2.New(30));
+            Assert.That(offAxis, Is.Not.Null);
+            Assert.That(entities.GetComponent<WolfmedHitSplatterComponent>(offAxis!.Value).Angle,
+                Is.EqualTo(MathF.PI / 4f).Within(0.001f),
+                "an attacker to the south-west throws it north-east, at 45 degrees exactly.");
 
             // Even with no direction the spray still happens, pointed somewhere.
             var random = gore.TrySpawnSplatter(body, profile.HitSplatter, null, FixedPoint2.New(5));
             Assert.That(random, Is.Not.Null);
             Assert.That(entities.GetComponent<WolfmedHitSplatterComponent>(random!.Value).Distance,
                 Is.EqualTo(1f), "a graze throws it one tile.");
+        });
+    }
+
+    /// <summary>
+    /// FIX1: a projectile answers with its own velocity, because by the time it wounds anything it is
+    /// standing on top of the victim and its position says nothing.
+    /// </summary>
+    [Test]
+    public async Task ProjectileSpraysAlongItsTravelTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var gore = entities.System<WolfmedGoreSystem>();
+            var physics = entities.System<SharedPhysicsSystem>();
+            var transform = entities.System<SharedTransformSystem>();
+            var profile = entities.System<WolfmedWoundSfxSystem>().Profile!;
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            transform.SetWorldPosition(body, new Vector2(0.5f, 0.5f));
+
+            // A round already at the victim, still carrying the line it came in on: up and to the right.
+            var round = entities.SpawnEntity("Crowbar", map.GridCoords);
+            transform.SetWorldPosition(round, new Vector2(0.5f, 0.5f));
+            physics.SetLinearVelocity(round, new Vector2(6f, 6f));
+
+            var travel = gore.GetHitDirection(body, body, round);
+            Assert.That(travel, Is.Not.Null, "the round's velocity is the direction.");
+
+            var splatter = gore.TrySpawnSplatter(body, profile.HitSplatter, travel, FixedPoint2.New(30));
+            Assert.That(splatter, Is.Not.Null);
+            Assert.That(entities.GetComponent<WolfmedHitSplatterComponent>(splatter!.Value).Angle,
+                Is.EqualTo(MathF.PI / 4f).Within(0.001f),
+                "the spray carries on the way the round was going.");
+        });
+    }
+
+    /// <summary>
+    /// FIX1: the landing is walked along the exact line, so a spray thrown at 45 degrees ends on the tile
+    /// a 45 degree line reaches and not on the one due east of the victim.
+    /// </summary>
+    [Test]
+    public async Task SplatterLandsAlongTheExactLineTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitPost(() => Floor(entities, map, 4));
+
+        await server.WaitAssertion(() =>
+        {
+            var gore = entities.System<WolfmedGoreSystem>();
+            var maps = entities.System<SharedMapSystem>();
+            var transform = entities.System<SharedTransformSystem>();
+            var profile = entities.System<WolfmedWoundSfxSystem>().Profile!;
+
+            // Plating on the diagonal, so the walk has somewhere to end up.
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 1), map.Tile.Tile);
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 2), map.Tile.Tile);
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            transform.SetWorldPosition(body, new Vector2(0.5f, 0.5f));
+
+            // A wall on the diagonal two tiles out, and clear floor due east of it.
+            entities.SpawnEntity("WallSolid", new EntityCoordinates(map.Grid, 2.5f, 2.5f));
+            gore.TrySpawnSplatter(body, profile.HitSplatter, new Vector2(1f, 1f), FixedPoint2.New(30));
+        });
+
+        await Pair.RunTicksSync(120);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(Splats(entities, map, new Vector2i(2, 2)), Has.Count.EqualTo(1),
+                "the diagonal spray should have marked the wall on the diagonal.");
+            Assert.That(Splats(entities, map, new Vector2i(2, 0)), Is.Empty,
+                "and nothing due east of the victim.");
         });
     }
 
@@ -186,8 +281,8 @@ public sealed class WolfmedGoreTest : GameTest
             var splat = entities.GetComponent<WolfmedBloodSplatComponent>(splats[0]);
             Assert.Multiple(() =>
             {
-                Assert.That(splat.Direction, Is.EqualTo(Direction.West),
-                    "a wall splatter faces back towards whatever threw it.");
+                Assert.That(MathF.Abs(splat.Angle), Is.EqualTo(MathF.PI).Within(0.001f),
+                    "a wall splatter faces back towards whatever threw it: due west of a spray going east.");
                 Assert.That(splat.Color, Is.EqualTo(colour));
                 Assert.That(entities.HasComponent<WolfmedCleanableComponent>(splats[0]), Is.True,
                     "a janitor has to be able to wash it off.");
