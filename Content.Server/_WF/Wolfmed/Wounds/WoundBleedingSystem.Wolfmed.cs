@@ -49,4 +49,36 @@ public sealed partial class WoundBleedingSystem
 
         return bandaged;
     }
+
+    /// <summary>
+    /// Whether a dressing can still do anything for this part. An arterial bleed that is already dressed keeps
+    /// a rate above zero that no topical can lower, and asking "is it bleeding" there made gauze apply itself
+    /// until the stack ran out.
+    /// </summary>
+    public bool CanDressBleeding(Entity<WoundableComponent?> part)
+    {
+        foreach (var wound in _wounds.GetWounds(part))
+        {
+            if (!TryComp(wound, out WoundBleedingComponent? bleeding) || bleeding.CurrentRate <= 0f)
+                continue;
+
+            if (AllowsTopicalBleedReduction(wound) || bleeding.Treatment == BleedingTreatment.None)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Whether the part still has a bleed that only a tourniquet or surgery will stop.</summary>
+    public bool HasUndressableBleed(Entity<WoundableComponent?> part)
+    {
+        foreach (var wound in _wounds.GetWounds(part))
+        {
+            if (TryComp(wound, out WoundBleedingComponent? bleeding) && bleeding.CurrentRate > 0f &&
+                !AllowsTopicalBleedReduction(wound))
+                return true;
+        }
+
+        return false;
+    }
 }

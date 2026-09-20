@@ -20,6 +20,7 @@ namespace Content.Server.Medical;
 public sealed partial class HealingSystem
 {
     [Dependency] private WoundHealingSystem _woundHealing = default!; // WOLFGATE: HOOK 8
+    [Dependency] private WoundBleedingSystem _woundBleeding = default!;
 
     private List<ProtoId<DamageContainerPrototype>>? GetHealingContainers(HealingComponent healing) =>
         healing.DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList();
@@ -102,7 +103,13 @@ public sealed partial class HealingSystem
         }
 
         if (!args.Repeat && !dontRepeat)
-            _popupSystem.PopupEntity(Loc.GetString("medical-item-finished-using", ("item", used)), entity.Owner, args.User);
+        {
+            // Say why it stopped when the part is still bleeding: the medic is otherwise left guessing.
+            var hint = requestedPart is { } stillBleeding && _woundBleeding.HasUndressableBleed(stillBleeding)
+                ? "wolfmed-healing-arterial-hint"
+                : "medical-item-finished-using";
+            _popupSystem.PopupEntity(Loc.GetString(hint, ("item", used)), entity.Owner, args.User);
+        }
         args.Handled = true;
     }
 

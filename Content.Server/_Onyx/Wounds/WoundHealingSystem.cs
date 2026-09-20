@@ -104,7 +104,7 @@ public sealed partial class WoundHealingSystem : EntitySystem
         return selected;
     }
 
-    public bool CanTreatBleeding(EntityUid part) => _bleeding.GetPartRate(part) > 0f;
+    public bool CanTreatBleeding(EntityUid part) => _bleeding.CanDressBleeding(part); // WOLFGATE: a dressed arterial bleed still has a rate, but nothing a topical can do about it
 
     public bool HasTreatableWounds(EntityUid part, DamageSpecifier healing, IReadOnlySet<string>? allowedStages) =>
         _wounds.GetHealingPotential(part, healing, allowedStages) > FixedPoint2.Zero;

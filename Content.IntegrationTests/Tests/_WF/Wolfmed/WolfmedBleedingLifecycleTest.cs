@@ -105,4 +105,38 @@ public sealed class WolfmedBleedingLifecycleTest : GameTest
             Assert.That(bleeding.GetPartRate(head), Is.GreaterThan(0f));
         });
     }
+
+    /// <summary>
+    /// A dressed arterial bleed still bleeds, slowly, and no topical can lower it further. "Is the part bleeding"
+    /// was the wrong question for whether gauze has work left: it made gauze apply itself to a shot chest until
+    /// the stack was gone.
+    /// </summary>
+    [Test]
+    public async Task DressingAnArteryIsDoneAfterOneTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var bleeding = entities.System<WoundBleedingSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var torso = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .Single(part => part.Component.PartType == BodyPartType.Torso).Id;
+
+            Assert.That(wounds.CreateOrMergeWound(torso, "WolfmedArterialBleedWound", 30), Is.Not.Null);
+            Assert.That(bleeding.CanDressBleeding(torso), Is.True, "an undressed artery is work for gauze.");
+
+            Assert.That(bleeding.BandageArterialBleeds(torso), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(bleeding.GetPartRate(torso), Is.GreaterThan(0f), "the dressing only slows it.");
+                Assert.That(bleeding.CanDressBleeding(torso), Is.False, "and a second dressing would do nothing.");
+                Assert.That(bleeding.HasUndressableBleed(torso), Is.True, "which is what the medic is told.");
+            });
+        });
+    }
 }

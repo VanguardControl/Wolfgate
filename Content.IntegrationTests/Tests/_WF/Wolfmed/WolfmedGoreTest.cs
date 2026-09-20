@@ -565,7 +565,10 @@ public sealed class WolfmedGoreTest : GameTest
                 Assert.That(overlay, Is.GreaterThan(limb), "a bandage draws over the arm it is on.");
                 Assert.That(sprites.LayerMapTryGet((clientBody, sprite), "jumpsuit",
                     out var jumpsuit, false), Is.True);
-                Assert.That(overlay, Is.LessThan(jumpsuit), "clothing still covers it.");
+                // Over the jumpsuit so a dressed chest can be seen at all, under a coat or a hardsuit.
+                Assert.That(overlay, Is.GreaterThan(jumpsuit), "a dressing under the jumpsuit showed nothing.");
+                Assert.That(sprites.LayerMapTryGet((clientBody, sprite), "outerClothing", out var outer, false), Is.True);
+                Assert.That(overlay, Is.LessThan(outer), "outer clothing still covers it.");
                 Assert.That(sprites.TryGetLayer((clientBody, sprite), "WolfmedTreatmentRArm",
                     out var layer, false) && layer.Visible, Is.True, "the overlay layer is off.");
             });

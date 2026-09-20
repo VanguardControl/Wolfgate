@@ -185,7 +185,15 @@ public sealed partial class DamageVisualsSystem
             if (SpriteSystem.LayerMapTryGet((uid, sprite), $"WolfmedDegradation{layer}", out var wound, false))
                 below = Math.Max(below, wound);
 
-            index = SpriteSystem.AddLayer((uid, sprite), new SpriteSpecifier.Rsi(profile.Rsi, state), below + 1);
+            // Over the jumpsuit, gloves and shoes, under a coat or a hardsuit: a dressing has to be seen to be any
+            // use as feedback, and a bandaged chest under a jumpsuit showed nothing at all. The anchor is the "id"
+            // slot, which sits between shoes/ears and outer clothing and carries no sprite of its own. Worn
+            // clothing is inserted just before its own slot layer, so anchoring on outerClothing itself would
+            // land this above a coat that is already on.
+            var insert = SpriteSystem.LayerMapTryGet((uid, sprite), "id", out var anchor, false)
+                ? Math.Max(anchor, below + 1)
+                : below + 1;
+            index = SpriteSystem.AddLayer((uid, sprite), new SpriteSpecifier.Rsi(profile.Rsi, state), insert);
             SpriteSystem.LayerMapSet((uid, sprite), key, index);
         }
 
