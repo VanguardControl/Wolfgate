@@ -25,6 +25,9 @@ public sealed class WolfmedTreatmentWindow : FancyWindow
 
     public WolfmedTreatmentWindow()
     {
+        // FancyWindow declares [Dependency] fields but never injects them; without this Help() dereferences null.
+        IoCManager.InjectDependencies(this);
+
         MinSize = new Vector2(340, 220);
         SetSize = new Vector2(420, 360);
         Resizable = true;
@@ -65,7 +68,8 @@ public sealed class WolfmedTreatmentWindow : FancyWindow
         guidebook.OnPressed += _ => Help();
         root.AddChild(guidebook);
 
-        AddChild(root);
+        // Into the contents container, not the window: a direct child is laid over the header and its title.
+        ContentsContainer.AddChild(root);
     }
 
     /// <summary>Refills the window. <paramref name="steps"/> is one numbered step per line.</summary>
