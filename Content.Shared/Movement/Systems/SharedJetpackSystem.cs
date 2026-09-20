@@ -1,5 +1,6 @@
 using Content.Shared.Actions;
 using Content.Shared._CE.ZLevels.Core.Components; // Mono/CE: planet (z-level map) detection
+using Content.Shared._WF.PlanetCracker.Planets; // WOLFGATE
 using Content.Shared._EE.CCVar; // EE
 using Content.Shared.Gravity;
 using Content.Shared.Input; // Mono/CE
@@ -196,7 +197,8 @@ public abstract partial class SharedJetpackSystem : EntitySystem
         if (TryComp<JetpackComponent>(component.Jetpack, out var jetpack)
             && (!CanEnableOnGrid(args.Transform.GridUid)
                 || !UserNotParented(uid, jetpack) // EE
-                || !IsWeightlessOrPlanet(uid))) // Mono/CE: planets (grid or open map) keep it on
+                || !IsWeightlessOrPlanet(uid) // Mono/CE: planets (grid or open map) keep it on
+                || WfInAtmosphere(uid))) // WOLFGATE
         {
             SetEnabled(component.Jetpack, jetpack, false, uid);
 
@@ -242,6 +244,13 @@ public abstract partial class SharedJetpackSystem : EntitySystem
     {
         if (args.Handled)
             return;
+
+        // WOLFGATE: said plainly, rather than the gravity line, which is not why it failed.
+        if (!IsEnabled(uid) && WfInAtmosphere(args.Performer))
+        {
+            _popup.PopupClient(Loc.GetString("wf-jetpack-atmosphere"), uid, args.Performer);
+            return;
+        }
 
         if (TryComp(uid, out TransformComponent? xform) && !CanEnableOnGrid(xform.GridUid)
         || !IsWeightlessOrPlanet(args.Performer)) // Mono/CE
@@ -333,6 +342,17 @@ public abstract partial class SharedJetpackSystem : EntitySystem
         return TryComp(user, out TransformComponent? xform) && HasComp<CEZMapComponent>(xform.MapUid);
     }
 
+    /// <summary>
+    /// WOLFGATE: below a planet's orbit layer the air is too thick and the pull too strong for a jetpack. Orbit itself
+    /// still flies, so a pack is what keeps somebody off a hull from falling, for as long as its tank lasts.
+    /// </summary>
+    protected bool WfInAtmosphere(EntityUid user)
+    {
+        return TryComp(user, out TransformComponent? xform)
+            && HasComp<WFPlanetLayerComponent>(xform.MapUid)
+            && !HasComp<WFOrbitLayerComponent>(xform.MapUid);
+    }
+
     private bool IsWeightlessOrPlanet(EntityUid user)
     {
         return _gravity.IsWeightless(user) || OverPlanet(user);
@@ -340,7 +360,7 @@ public abstract partial class SharedJetpackSystem : EntitySystem
 
     protected virtual bool CanEnable(EntityUid uid, EntityUid user, JetpackComponent component)
     {
-        return IsWeightlessOrPlanet(user); // Mono/CE
+        return IsWeightlessOrPlanet(user) && !WfInAtmosphere(user); // Mono/CE, WOLFGATE
     }
 
     // EE: check parent
