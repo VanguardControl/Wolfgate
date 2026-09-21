@@ -43,6 +43,17 @@ public abstract partial class CESharedZLevelsSystem
 
             if (!_zMapQuery.HasComp(xform.MapUid))
             {
+                // WOLFGATE: a body riding a hull never changes parent, so OnParentChanged cannot clear what it
+                // carries off the z-network. Anything left on it here would be spent on the next planet it reaches.
+                if (!HasComp<CEZTransitMapComponent>(xform.MapUid)
+                    && (zPhysicsComponent.Velocity != 0f || zPhysicsComponent.LocalPosition != 0f))
+                {
+                    zPhysicsComponent.Velocity = 0f;
+                    zPhysicsComponent.LocalPosition = 0f;
+                    DirtyField(uid, zPhysicsComponent, nameof(CEZPhysicsComponent.Velocity));
+                    DirtyField(uid, zPhysicsComponent, nameof(CEZPhysicsComponent.LocalPosition));
+                }
+
                 _activeBodies.RemoveAt(i);
                 continue;
             }

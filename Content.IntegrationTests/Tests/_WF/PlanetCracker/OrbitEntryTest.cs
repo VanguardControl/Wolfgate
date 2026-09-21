@@ -177,6 +177,98 @@ public sealed class OrbitEntryTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Crew standing on the deck ride the hop with it: nobody is thrown a level, dropped through the floor or hurt.</summary>
+    [Test]
+    public async Task CrewRideTheHopIntoOrbitUnharmed()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var orbits = server.System<WFOrbitEntrySystem>();
+
+        var site = await BuildSite(pair);
+        await Sweep(pair);
+
+        var mob = EntityUid.Invalid;
+
+        await server.WaitPost(() =>
+        {
+            // Real deck under them: the hop tosses whoever stands on a spaced tile, and that is not what is under test.
+            var plating = server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId;
+            var hullGrid = entMan.GetComponent<MapGridComponent>(site.Hull);
+            var deck = new List<(Vector2i, Tile)>();
+
+            for (var x = 0; x < 5; x++)
+            for (var y = 0; y < 5; y++)
+            {
+                deck.Add((new Vector2i(x, y), new Tile(plating)));
+            }
+
+            server.System<SharedMapSystem>().SetTiles(site.Hull, hullGrid, deck);
+
+            mob = entMan.SpawnEntity("MobHuman", entMan.GetComponent<TransformComponent>(site.Console).Coordinates);
+
+            // The regression: a throw made off any planet used to leave its arc on the body, unspent, until the
+            // ship reached a z-level - which launched the crew off the deck the moment they arrived in orbit.
+            server.System<Content.Shared.Throwing.ThrowingSystem>().TryThrow(mob, new Vector2(0.4f, 0f), 0.8f);
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(1.5f));
+
+        await server.WaitPost(() =>
+        {
+            Assert.That(entMan.GetComponent<Content.Shared._CE.ZLevels.Core.Components.CEZPhysicsComponent>(mob).Velocity, Is.EqualTo(0f),
+                "A throw off the z-network left vertical velocity on the body.");
+
+            // The test hull has no gravity, so the throw would carry them off it; stand them back at the console.
+            server.System<SharedTransformSystem>().SetCoordinates(mob, entMan.GetComponent<TransformComponent>(site.Console).Coordinates);
+            server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(mob, Vector2.Zero);
+
+            Assert.That(orbits.TryEnterOrbit(site.Console, site.Body, out var reason), Is.True, $"Refused orbit: {reason}");
+        });
+
+        var worstHeight = 0f;
+        var trail = $"hull={site.Hull} orbit={site.Orbit}";
+
+        // The whole hop and six seconds after it: spool-up, tunnel, arrival.
+        for (var i = 0; i < 70; i++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(0.25f));
+            await server.WaitPost(() =>
+            {
+                if (!entMan.EntityExists(mob))
+                {
+                    trail += $" [{i}: deleted]";
+                    return;
+                }
+
+                var z = entMan.GetComponent<Content.Shared._CE.ZLevels.Core.Components.CEZPhysicsComponent>(mob);
+                var x = entMan.GetComponent<TransformComponent>(mob);
+                worstHeight = MathF.Max(worstHeight, MathF.Abs(z.LocalPosition));
+                trail += $" [{i}: map={x.MapUid} grid={x.GridUid} h={z.LocalPosition:F2} v={z.Velocity:F2} g={z.CachedGroundHeight:F2}]";
+            });
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.EntityExists(mob), Is.True, $"The crew member was deleted. {trail}");
+            var xform = entMan.GetComponent<TransformComponent>(mob);
+            var z = entMan.GetComponent<Content.Shared._CE.ZLevels.Core.Components.CEZPhysicsComponent>(mob);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(xform.MapUid, Is.EqualTo(site.Orbit), $"The crew member did not end on the orbit layer. {trail}");
+                Assert.That(xform.GridUid, Is.EqualTo(site.Hull), "The crew member is no longer aboard.");
+                Assert.That(worstHeight, Is.LessThan(0.2f), $"The crew member left the deck: height {worstHeight}. {trail}");
+                // Damage is no witness here: the test hull is airless, and barotrauma is blunt like a fall is.
+                Assert.That(z.Velocity, Is.EqualTo(0f).Within(0.01f), $"The crew member is still moving vertically. {trail}");
+            }
+        });
+
+        await Teardown(pair, site);
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Leave orbit is the same hop in reverse: back onto the sector map the body sits on.</summary>
     [Test]
     public async Task LeavesOrbitForTheSectorMap()
