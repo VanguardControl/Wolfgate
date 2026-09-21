@@ -57,6 +57,7 @@
                     StyleClasses="ButtonSquare"/>
         </BoxContainer>
         </PanelContainer>
+        <wf:ShuttleCameraBar Name="CameraBar" SetWidth="970"/> <!-- WOLFGATE: hull camera views -->
         <!-- Contents box -->
         <BoxContainer Name="Contents"
                       HorizontalAlignment="Stretch"

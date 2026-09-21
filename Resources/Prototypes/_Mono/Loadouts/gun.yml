@@ -65,6 +65,13 @@
     back:
     - WeaponShotgunDoubleBarreledRubber
 
+- type: loadout #Mosin # WOLFGATE
+  id: ContractorMosinLoadout
+  price: 20000
+  storage:
+    back:
+    - WeaponSniperMosin
+
 - type: loadout #Beanbag Shells
   id: ContractorBeanbagAmmoLoadout
   price: 200

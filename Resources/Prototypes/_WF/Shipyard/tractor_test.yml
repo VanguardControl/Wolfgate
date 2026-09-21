@@ -4,7 +4,7 @@
   parent: BaseVessel
   name: TRACTOR TEST
   description: A small arrestor test vessel with a tractor dish, tractor control computer, flight controls, and an oversized 2 MW test power supply. Board through the port airlock; the dish is on the foredeck.
-  price: 0
+  price: 12000 # above appraisal for the arbitrage test; never sold
   purchasable: false
   category: Small
   group: Shipyard

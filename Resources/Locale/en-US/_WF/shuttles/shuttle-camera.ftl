@@ -1,0 +1,10 @@
+shuttle-console-camera-label = VIEW
+shuttle-console-camera-helm = HELM
+shuttle-console-camera-front = FRONT
+shuttle-console-camera-rear = REAR
+shuttle-console-camera-left = LEFT
+shuttle-console-camera-right = RIGHT
+shuttle-console-camera-zoom = ZOOM
+shuttle-console-camera-zoom-value = {$value}x
+shuttle-console-camera-low-light = LOW-LIGHT
+shuttle-console-camera-low-light-tooltip = Feed the hull cameras through a low-light sensor. Has no effect at the helm.

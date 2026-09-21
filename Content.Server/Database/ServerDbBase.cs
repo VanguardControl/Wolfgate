@@ -54,6 +54,8 @@ namespace Content.Server.Database
                 .Include(p => p.Profiles).ThenInclude(h => h.Jobs)
                 .Include(p => p.Profiles).ThenInclude(h => h.Antags)
                 .Include(p => p.Profiles).ThenInclude(h => h.Traits)
+                .Include(p => p.Profiles).ThenInclude(h => h.Components) // Mono
+                .Include(p => p.Profiles).ThenInclude(h => h.Items) // Mono
                 .Include(p => p.Profiles)
                     .ThenInclude(h => h.Loadouts)
                     .ThenInclude(l => l.Groups)
@@ -106,6 +108,8 @@ namespace Content.Server.Database
                 .Include(p => p.Jobs)
                 .Include(p => p.Antags)
                 .Include(p => p.Traits)
+                .Include(p => p.Components) // Mono
+                .Include(p => p.Items) // Mono
                 .Include(p => p.Loadouts)
                     .ThenInclude(l => l.Groups)
                     .ThenInclude(group => group.Loadouts)
@@ -288,7 +292,15 @@ namespace Content.Server.Database
                 loadouts,
                 company,
                 profile.CustomSpeciesName ?? string.Empty, // WOLFGATE
-                genitals); // WOLFGATE
+                genitals, // WOLFGATE
+                // Mono start
+                profile.Flags,
+                profile.Components.Select(component => new PersistentProfileComponent(
+                    component.Data,
+                    component.Sticky)),
+                profile.Items.Select(item => new PersistentProfileItem(
+                    item.Data,
+                    item.Sticky))); // Mono end
         }
 
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
@@ -328,6 +340,22 @@ namespace Content.Server.Database
             // WOLFGATE - anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))
                 profile.Genitals = GenitalProfileJson.Serialize(humanoid.Genitals);
+
+            // Mono start
+            profile.Flags = [..humanoid.Flags];
+            profile.Components.Clear();
+            profile.Components.AddRange(humanoid.Components.Select(component => new ProfileComponent
+            {
+                Data = component.Data,
+                Sticky = component.Sticky,
+            }));
+            profile.Items.Clear();
+            profile.Items.AddRange(humanoid.Items.Select(item => new ProfileItem
+            {
+                Data = item.Data,
+                Sticky = item.Sticky,
+            }));
+            // Mono end
 
             profile.Jobs.Clear();
             profile.Jobs.AddRange(
