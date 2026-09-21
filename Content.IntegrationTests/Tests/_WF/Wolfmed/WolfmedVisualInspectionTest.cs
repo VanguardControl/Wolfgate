@@ -232,6 +232,9 @@ public sealed class WolfmedVisualInspectionTest : GameTest
 
             var stitched = Bleed(entities, Wound(entities, arm, "SlashWound", 30), 6f);
             entities.GetComponent<WoundBleedingComponent>(stitched).Treatment = BleedingTreatment.Sutured;
+            // What suturing really does to the rate (the treatment multiplier is zero). The look reads the rate,
+            // not the label, so a dressing that is still losing can say so.
+            entities.GetComponent<WoundBleedingComponent>(stitched).CurrentRate = 0f;
             entities.EnsureComponent<WolfmedTourniquetComponent>(arm);
 
             // Comminuted at 60 Blunt, which is what the splint needs before it will go on.
@@ -282,6 +285,36 @@ public sealed class WolfmedVisualInspectionTest : GameTest
                     "a lodged round reads as a hole with nothing coming back out of it.");
                 Assert.That(seen, Does.Contain(Text(locale, "wolfmed-look-shrapnel-minor")),
                     "shrapnel stands out of the skin.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// Gauze over a wound it cannot hold reads as dressed AND bleeding. The look used to drop every dressed wound
+    /// from the bleeding total, so a bandaged artery looked finished.
+    /// </summary>
+    [Test]
+    public async Task LeakingDressingStillReadsAsBleedingTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var locale = server.ResolveDependency<ILocalizationManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            var wound = Bleed(entities, Wound(entities, arm, "SlashWound", 30), 2f);
+            entities.GetComponent<WoundBleedingComponent>(wound).Treatment = BleedingTreatment.Bandaged;
+
+            var line = Line(entities, locale, body, body, "left-arm");
+            Assert.Multiple(() =>
+            {
+                Assert.That(line, Does.Contain(Text(locale, "wolfmed-look-treatment-bandaged")));
+                Assert.That(line, Does.Contain(Text(locale, "wolfmed-look-bleed-flowing")),
+                    "blood getting past the dressing is the thing the medic most needs to see.");
             });
         });
     }

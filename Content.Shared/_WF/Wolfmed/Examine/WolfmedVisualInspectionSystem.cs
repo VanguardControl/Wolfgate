@@ -201,11 +201,13 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
 
             if (TryComp(wound, out WoundBleedingComponent? bleeding))
             {
-                // A dressed wound does not read as actively bleeding; the dressing is the finding instead.
+                // The dressing is a finding, and so is whatever still gets past it. A sutured, clamped or seared
+                // wound has no rate left, so only a dressing that is losing (gauze over a deep wound, a bandaged
+                // artery) reads as both dressed and bleeding. Hiding that told the medic the job was done.
                 if (bleeding.Treatment != BleedingTreatment.None)
                     treatment = (BleedingTreatment) Math.Max((byte) treatment, (byte) bleeding.Treatment);
-                else
-                    rate += bleeding.CurrentRate;
+
+                rate += bleeding.CurrentRate;
             }
 
             if (TryComp(wound, out WolfmedInfectionComponent? infected) && infected.Stage > infection)
