@@ -499,6 +499,45 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         });
     }
 
+    /// <summary>
+    /// The ceiling is for damage nobody dealt. A corpse drifts up to it by itself (cold, blood loss), and when the
+    /// ceiling also swallowed attacks a dead body could not be wounded or dismembered at all.
+    /// </summary>
+    [Test]
+    public async Task CappedCorpseCanStillBeDismemberedTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var attacker = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var torso = Part(entities, body, BodyPartType.Torso, BodyPartSymmetry.None);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            var cap = FixedPoint2.New(server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>()
+                .GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BodyDamageCap));
+
+            // Ambient damage runs the body up to the ceiling and stops there.
+            for (var i = 0; i < 200; i++)
+            {
+                foreach (var part in entities.System<SharedBodySystem>().GetBodyChildren(body).Select(p => p.Id).ToList())
+                    Routing(entities).TryApplyPartDamage(body, part, Spec("Cold", 5), null, ignoreResistances: true);
+            }
+
+            Assert.That(entities.GetComponent<DamageableComponent>(body).TotalDamage, Is.LessThanOrEqualTo(cap + 1));
+
+            // An attacker's blade still lands, and takes the arm off.
+            for (var i = 0; i < 12 && entities.System<SharedBodySystem>().BodyHasChild(body, arm); i++)
+                Routing(entities).TryApplyPartDamage(body, arm, Spec("Slash", 40), attacker, ignoreResistances: true);
+
+            Assert.That(entities.System<SharedBodySystem>().BodyHasChild(body, arm), Is.False,
+                "a corpse at the damage ceiling must still be dismemberable.");
+        });
+    }
+
     private static EntityUid Part(
         IEntityManager entities,
         EntityUid body,

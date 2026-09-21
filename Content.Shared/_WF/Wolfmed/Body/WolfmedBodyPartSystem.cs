@@ -16,7 +16,8 @@ public sealed class WolfmedBodyPartSystem : EntitySystem
     public WolfmedBodyPartComponent Get(EntityUid part) => CompOrNull<WolfmedBodyPartComponent>(part) ?? None;
 
     /// <summary>
-    /// Trims part damage so the body's total never passes the ceiling. Routed damage has no natural one (ten
+    /// Trims AMBIENT part damage (the caller only sends damage with no attacker behind it) so the body's total never
+    /// passes the ceiling. Attacks and explosions are never trimmed: limbs have to be able to come off a corpse. Routed damage has no natural one (ten
     /// parts, no per-limb cap), so a burning corpse climbed to its 1500 gib threshold. The ceiling is absolute,
     /// not a multiple of the dead threshold: an IPC dies at 100 but its limbs only come off near 200 each.
     /// </summary>

@@ -791,7 +791,11 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 return;
             }
 
-            _wfPart.ClampToBodyCap(body, localized); // WOLFGATE: body-wide damage ceiling
+            // WOLFGATE: body-wide damage ceiling, for damage nobody dealt (fire, cold, atmosphere, an EMP). A corpse
+            // drifts up to the ceiling on its own, and a ceiling that also stopped attacks meant a dead body could
+            // no longer be wounded or dismembered at all.
+            if (origin == null && !_explosionDamage.Contains(body))
+                _wfPart.ClampToBodyCap(body, localized);
             var overflow = AccumulateAmputationOverflow(target, ref localized);
             if (!overflow.Empty)
             {
