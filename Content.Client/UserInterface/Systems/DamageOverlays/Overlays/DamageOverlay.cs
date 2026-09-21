@@ -63,6 +63,9 @@ public sealed partial class DamageOverlay : Overlay
         if (args.Viewport.Eye != eyeComp.Eye)
             return;
 
+        if (WolfmedOwnsDeadScreen()) // WOLFGATE: the dead view is Wolfmed's; the white fade-out here never cleared.
+            return;
+
         TryApplyWolfmedPain(); // WOLFGATE: HOOK 15 — pain owns the brute vignette on wound hosts (Wolfmed phase 2).
 
         /*

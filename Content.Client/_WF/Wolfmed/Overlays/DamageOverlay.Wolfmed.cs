@@ -1,3 +1,4 @@
+using Content.Client._WF.Wolfmed.Overlays;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
@@ -6,6 +7,9 @@ namespace Content.Client.UserInterface.Systems.DamageOverlays.Overlays;
 
 public sealed partial class DamageOverlay
 {
+    /// <summary>True once the local player is dead and Wolfmed's grey dead view has taken over.</summary>
+    private bool WolfmedOwnsDeadScreen() => _entityManager.System<WolfmedDyingEffectsSystem>().OwnsDeadScreen;
+
     /// <summary>Overrides the brute vignette with Onyx's pain level on wound hosts.</summary>
     private void TryApplyWolfmedPain()
     {

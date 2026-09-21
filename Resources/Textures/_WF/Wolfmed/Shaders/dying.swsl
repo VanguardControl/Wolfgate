@@ -4,6 +4,7 @@ uniform sampler2D SCREEN_TEXTURE;
 uniform highp float level;    // 0 healthy .. 1 at death's door
 uniform highp float beat;     // 0..1 heartbeat thump
 uniform highp float blackout; // 0..1 eyelids
+uniform highp float dead;     // 0..1 the body has died: plain dim greyscale
 
 void fragment() {
     highp vec2 coord = FRAGCOORD.xy * SCREEN_PIXEL_SIZE.xy;
@@ -31,5 +32,10 @@ void fragment() {
     colour.r += beat * level * 0.06 * smoothstep(0.2, 0.7, dist);
 
     colour *= 1.0 - blackout;
+
+    // Dead: every colour gone, a little dimmer, a soft dark rim.
+    highp float deadGrey = dot(colour, vec3(0.299, 0.587, 0.114));
+    highp float rim = 1.0 - 0.45 * smoothstep(0.35, 0.85, dist);
+    colour = mix(colour, vec3(deadGrey, deadGrey, deadGrey) * 0.82 * rim, dead);
     COLOR = vec4(colour, tex.a);
 }

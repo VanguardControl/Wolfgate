@@ -22,6 +22,7 @@ public sealed class WolfmedDyingOverlay : Overlay
     public float Level;
     public float Beat;
     public float Blackout;
+    public float Dead;
 
     public WolfmedDyingOverlay()
     {
@@ -31,7 +32,7 @@ public sealed class WolfmedDyingOverlay : Overlay
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
-        return Level > 0f &&
+        return (Level > 0f || Dead > 0f) &&
                _entities.TryGetComponent(_player.LocalEntity, out EyeComponent? eye) &&
                args.Viewport.Eye == eye.Eye;
     }
@@ -45,6 +46,7 @@ public sealed class WolfmedDyingOverlay : Overlay
         _shader.SetParameter("level", Level);
         _shader.SetParameter("beat", Beat);
         _shader.SetParameter("blackout", Blackout);
+        _shader.SetParameter("dead", Dead);
 
         var handle = args.WorldHandle;
         handle.UseShader(_shader);

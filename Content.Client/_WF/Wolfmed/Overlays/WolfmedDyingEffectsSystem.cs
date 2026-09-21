@@ -34,8 +34,14 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     private const float BlackoutLevel = 0.72f;
     private const float BlackoutLength = 1.8f;
 
+    private const float BannerFadeIn = 1.2f;
+    private const float BannerHold = 5f;
+    private const float BannerFadeOut = 2f;
+
     private WolfmedDyingOverlay _overlay = default!;
+    private WolfmedDeathBannerOverlay _banner = default!;
     private bool _overlayAdded;
+    private bool _bannerAdded;
     private EntityUid? _swaying;
 
     private bool _enabled;
@@ -43,6 +49,8 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     private float _shake;
 
     private float _level;
+    private float _dead;
+    private float _deadTime;
     private float _time;
     private float _beatPhase;
     private float _nextBlackout;
@@ -52,6 +60,7 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     {
         base.Initialize();
         _overlay = new WolfmedDyingOverlay();
+        _banner = new WolfmedDeathBannerOverlay();
         SubscribeLocalEvent<WolfmedDyingSwayComponent, GetEyeOffsetEvent>(OnGetEyeOffset);
 
         Subs.CVar(_cfg, WolfmedCVars.DyingEffects, value => _enabled = value, true);
@@ -63,7 +72,11 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     {
         base.Shutdown();
         SetOverlay(false);
+        SetBanner(false);
     }
+
+    /// <summary>True while this system, not the stock damage overlay, draws the local player's dead screen.</summary>
+    public bool OwnsDeadScreen => _enabled && _player.LocalEntity is { } local && IsDead(local);
 
     /// <summary>How far gone a body is, 0 to 1, from its mob state and how deep into each band its damage is.</summary>
     public static float Level(MobState state, float damage, float critThreshold, float deadThreshold)
@@ -94,9 +107,14 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
         if (_level < 0.01f && target <= 0f)
             _level = 0f;
 
+        UpdateDeath(local, frameTime);
+
         if (_level <= 0f || local == null)
         {
-            SetOverlay(false);
+            _overlay.Level = 0f;
+            _overlay.Beat = 0f;
+            _overlay.Blackout = 0f;
+            SetOverlay(_dead > 0f);
             StopSway();
             return;
         }
@@ -116,6 +134,35 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
         SetOverlay(true);
 
         UpdateSway(local.Value, beat);
+    }
+
+    /// <summary>Greys the view out once dead, and shows the banner for a few seconds.</summary>
+    private void UpdateDeath(EntityUid? local, float frameTime)
+    {
+        var dead = _enabled && local is { } player && IsDead(player);
+        _dead += ((dead ? 1f : 0f) - _dead) * Math.Min(1f, frameTime * 1.2f);
+        if (!dead && _dead < 0.01f)
+            _dead = 0f;
+
+        _deadTime = dead ? _deadTime + frameTime : 0f;
+        _overlay.Dead = _dead;
+
+        var alpha = 0f;
+        if (dead && _deadTime < BannerFadeIn + BannerHold + BannerFadeOut)
+        {
+            alpha = _deadTime < BannerFadeIn
+                ? _deadTime / BannerFadeIn
+                : 1f - Math.Clamp((_deadTime - BannerFadeIn - BannerHold) / BannerFadeOut, 0f, 1f);
+        }
+
+        _banner.Alpha = alpha;
+        SetBanner(alpha > 0f);
+    }
+
+    private bool IsDead(EntityUid player)
+    {
+        return TryComp(player, out MobStateComponent? mob) && mob.CurrentState == MobState.Dead &&
+               TryComp(player, out MobThresholdsComponent? thresholds) && thresholds.ShowOverlays;
     }
 
     private float TargetLevel(EntityUid player)
@@ -208,6 +255,18 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     private void OnGetEyeOffset(Entity<WolfmedDyingSwayComponent> ent, ref GetEyeOffsetEvent args)
     {
         args.Offset += ent.Comp.Offset;
+    }
+
+    private void SetBanner(bool on)
+    {
+        if (on == _bannerAdded)
+            return;
+
+        _bannerAdded = on;
+        if (on)
+            _overlays.AddOverlay(_banner);
+        else
+            _overlays.RemoveOverlay(_banner);
     }
 
     private void SetOverlay(bool on)
