@@ -25142,3 +25142,19 @@ Entries:
   id: 2743
   time: '2026-09-21T02:48:04.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4577
+- author: LassiH
+  changes:
+    - type: Fix
+      message: limits the z pinch to 100 max fuel like every other generator
+    - type: Fix
+      message: fixes the material storage on sterling generators
+  id: 2744
+  time: '2026-09-21T10:37:50.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4738
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Sirius, Meteor and Pelican can run expeditions.
+  id: 2745
+  time: '2026-09-21T14:58:39.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4741
