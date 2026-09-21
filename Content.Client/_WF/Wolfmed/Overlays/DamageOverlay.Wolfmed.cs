@@ -1,5 +1,7 @@
 using Content.Client._WF.Wolfmed.Overlays;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared.Damage;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 
@@ -28,6 +30,18 @@ public sealed partial class DamageOverlay
         var painLevel = FixedPoint2
             .Min(1f, _entityManager.System<PainSystem>().GetPain((local, pain)) / pain.SoftPainCap)
             .Float();
-        BruteLevel = painLevel < 0.05f ? 0f : painLevel;
+
+        // Pain alone only gets loud close to the end, so physical damage on the way to crit counts too, and the
+        // curve is bent so the red shows from the first real injuries instead of the last ones.
+        var level = painLevel;
+        if (_entityManager.TryGetComponent(local, out DamageableComponent? damageable) &&
+            _entityManager.System<MobThresholdSystem>().TryGetIncapThreshold(local, out var crit) &&
+            crit.Value > FixedPoint2.Zero)
+        {
+            var hurt = damageable.DamagePerGroup.GetValueOrDefault("Brute") + damageable.DamagePerGroup.GetValueOrDefault("Burn");
+            level = Math.Max(level, FixedPoint2.Min(1f, hurt / crit.Value).Float());
+        }
+
+        BruteLevel = level < 0.04f ? 0f : MathF.Pow(level, 0.6f);
     }
 }

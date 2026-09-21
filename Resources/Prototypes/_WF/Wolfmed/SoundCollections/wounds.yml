@@ -138,7 +138,6 @@
   # Wet sounds only. NovaSector's blood1-3 are its slash-wound sounds and read as a blade, so they moved to
   # WolfmedWoundFlesh.
   - /Audio/_WF/Wolfmed/Bleeding/splatter.ogg
-  - /Audio/_NF/Effects/splat.ogg
 
 # An open stump, which is wetter and comes with the bone.
 - type: soundCollection
