@@ -47763,7 +47763,6 @@ entities:
           showEnts: False
           occludes: True
           ents:
-          - 3668
           - 3670
           - 3669
           - 3672
