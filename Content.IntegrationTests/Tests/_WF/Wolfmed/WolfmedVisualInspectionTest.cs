@@ -614,7 +614,12 @@ public sealed class WolfmedVisualInspectionTest : GameTest
                 }
 
                 // The name columns line up, and the whole-body lines stay as text.
-                Assert.That(rows.Select(row => row.PartLabel.SetWidth).Distinct().Count(), Is.EqualTo(1));
+                // One shared name column, and one that can never collapse: the rows are measured before the popup
+                // has a font, and a column fixed to that measurement hid every part name in the real client.
+                Assert.That(rows.Select(row => row.PartLabel.MinWidth).Distinct().Count(), Is.EqualTo(1));
+                Assert.That(rows[0].PartLabel.MinWidth, Is.GreaterThanOrEqualTo(80f));
+                Assert.That(rows.All(row => float.IsNaN(row.PartLabel.SetWidth)), Is.True,
+                    "a fixed width is what clipped the names away.");
                 Assert.That(Descendants(root).OfType<RichTextLabel>().Count(), Is.EqualTo(2),
                     "the title and the clothing notice are labels, not rows.");
             });

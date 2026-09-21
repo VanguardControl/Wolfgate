@@ -14,6 +14,9 @@ public sealed class WolfmedLookRow : PanelContainer
 {
     private const float NamePadding = 12f;
 
+    /// <summary>Floor for the name column. Wide enough for "right hand" at the examine popup's font.</summary>
+    private const float MinNameWidth = 84f;
+
     /// <summary>The name column, widened to match its siblings once every row exists.</summary>
     public readonly Label PartLabel;
 
@@ -38,7 +41,8 @@ public sealed class WolfmedLookRow : PanelContainer
         {
             Text = name,
             VerticalAlignment = VAlignment.Top,
-            ClipText = true,
+            MinWidth = MinNameWidth,
+            FontColorOverride = Color.FromHex("#D8DEE9"),
         };
 
         Chips = new WolfmedLookFlow { MaxWidth = maxWidth - NamePadding };
@@ -58,7 +62,11 @@ public sealed class WolfmedLookRow : PanelContainer
     /// <summary>Lines the name columns of every row up, and gives the chips the rest of the width.</summary>
     public void SetNameWidth(float width)
     {
-        PartLabel.SetWidth = width;
+        // A floor, never a fixed width. The rows are measured before the popup is in the UI tree, where a label
+        // has no font yet and measures as nothing: fixing the column to that hid every part name, so the rows
+        // showed what was wrong and not where.
+        width = MathF.Max(width, MinNameWidth);
+        PartLabel.MinWidth = width;
         Chips.MaxWidth = MathF.Max(60f, _maxWidth - width - NamePadding - 10f);
     }
 }
@@ -95,7 +103,6 @@ public sealed class WolfmedLookChip : PanelContainer
         {
             Text = finding.Label,
             FontColorOverride = colour,
-            StyleClasses = { "LabelSubText" },
             VerticalAlignment = VAlignment.Center,
         });
         AddChild(row);
