@@ -32,6 +32,11 @@ public sealed partial class ShuttleConsoleWindow
     /// </summary>
     public event Action<bool>? ShipCollisionAlertRequested;
 
+    /// <summary>
+    /// The pilot picked a hull camera view, zoom or low-light setting.
+    /// </summary>
+    public event Action<ShuttleCameraView, float, bool>? ShipCameraRequested;
+
     private void WfInitialize()
     {
         ShipContainer.CodeRequested += code => ShipCodeRequested?.Invoke(code);
@@ -40,6 +45,7 @@ public sealed partial class ShuttleConsoleWindow
         ShipContainer.SoundRequested += url => ShipSoundRequested?.Invoke(url);
         ShipContainer.SoundStopRequested += () => ShipSoundStopRequested?.Invoke();
         ShipContainer.CollisionAlertRequested += enabled => ShipCollisionAlertRequested?.Invoke(enabled);
+        CameraBar.CameraRequested += (view, zoom, lowLight) => ShipCameraRequested?.Invoke(view, zoom, lowLight);
 
         // Flipping an overlay changes what the server needs to send, so re-request with the new mask.
         ShipContainer.OverlaysChanged += () =>

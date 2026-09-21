@@ -1,5 +1,6 @@
 using Content.Server._Mono.Ships.Systems;
 using Content.Server._Mono.Shuttles.Components;
+using Content.Server._WF.Shuttles.Systems; // WOLFGATE
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
@@ -52,6 +53,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
     [Dependency] private StationJobsSystem _stationJobs = default!;
     [Dependency] private ILogManager _log = default!;
     [Dependency] private CrewedShuttleSystem _crewedShuttle = default!;
+    [Dependency] private ShuttleCameraSystem _camera = default!; // WOLFGATE
 
     private ISawmill _sawmill = default!;
 
@@ -480,6 +482,8 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         ActionBlockerSystem.UpdateCanMove(entity);
         pilotComponent.Position = EntityManager.GetComponent<TransformComponent>(entity).Coordinates;
         Dirty(entity, pilotComponent);
+
+        _camera.OnPilotAdded(entity, (uid, component)); // WOLFGATE: restore the console's camera view
     }
 
     public void RemovePilot(EntityUid pilotUid, PilotComponent pilotComponent)
@@ -491,6 +495,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
 
         pilotComponent.Console = null;
         pilotComponent.Position = null;
+        _camera.OnPilotRemoved(pilotUid); // WOLFGATE
         _eyeSystem.ResetZoom(pilotUid);
 
         if (!helm.SubscribedPilots.Remove(pilotUid))

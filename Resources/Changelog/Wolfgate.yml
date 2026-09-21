@@ -269,3 +269,10 @@ Entries:
   id: 100024
   time: '2026-09-21T03:53:04.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/50
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: A shuttle camera system
+  id: 100025
+  time: '2026-09-21T05:35:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/49
