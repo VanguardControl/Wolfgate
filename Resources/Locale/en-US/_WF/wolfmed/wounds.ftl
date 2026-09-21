@@ -142,3 +142,11 @@ wolfmed-wound-category-other = other
 health-analyzer-wound-category-chip = { $category }: { $count }
 health-analyzer-wound-no-findings = No wounds detected.
 health-analyzer-wound-no-findings-filtered = No { $category } on this patient.
+
+# Evisceration (EVISC): a torso opened by a hit its cap could not absorb.
+
+wolfmed-wound-name-evisceration = evisceration
+wolfmed-wound-name-chassis-breach = torn chassis
+
+wolfmed-evisceration-popup = { CAPITALIZE(THE($target)) }'s abdomen is torn open and the contents come out!
+wolfmed-chassis-breach-popup = { CAPITALIZE(THE($target)) }'s torso plating tears open and its internals spill out!

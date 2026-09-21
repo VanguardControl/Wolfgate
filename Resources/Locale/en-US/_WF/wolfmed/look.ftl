@@ -346,3 +346,10 @@ wolfmed-look-plant-burn-minor-short = scorched leaves
 wolfmed-look-plant-burn-moderate-short = blackened leaves
 wolfmed-look-plant-burn-severe-short = charred stem
 wolfmed-look-plant-burn-critical-short = burned to cinder
+
+# Evisceration (EVISC). Nothing covers this one: clothing does not close an abdomen.
+
+wolfmed-look-evisceration = [color=crimson]their abdomen laid open, organs exposed[/color]
+wolfmed-look-evisceration-short = abdomen laid open
+wolfmed-look-chassis-breach = [color=orange]their torso plating peeled back, internals exposed[/color]
+wolfmed-look-chassis-breach-short = torso torn open

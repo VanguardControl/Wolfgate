@@ -93,6 +93,17 @@ public sealed partial class WolfmedSurgeryIncisionTreatmentEffectComponent : Com
     [DataField] public WolfmedIncisionTreatment Treatment = WolfmedIncisionTreatment.Clamp;
 }
 
+/// <summary>
+/// Closes an evisceration: the tear goes, and its
+/// <see cref="Content.Shared._WF.Wolfmed.Wounds.WolfmedClearedWoundBehavior"/> names the sutured wound
+/// left in its place, so what the patient is left with is wound data rather than an id in C#.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryCloseEviscerationEffectComponent : Component
+{
+    [DataField] public ProtoId<WoundPrototype> WoundPrototype = "WolfmedEviscerationWound";
+}
+
 /// <summary>Which half of the incision chain an incision treatment step runs.</summary>
 public enum WolfmedIncisionTreatment : byte
 {

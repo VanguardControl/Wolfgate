@@ -294,3 +294,86 @@
   - type: WolfmedSurgeryPainEffect
     amount: 6
   - type: SurgeryStepEmoteEffect
+
+# Evisceration (EVISC) --------------------------------------------------------
+# The organic pair mirrors the artery repair (clamp with a hemostat, then close), and the mechanical pair
+# mirrors it in metal: seat the plating with a wrench, then run the seam with a welder. The two tools carry
+# WolfmedHullPlate and WolfmedHullWeld the way the cable coil carries WolfmedServoKit (W6).
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepClampEvisceration
+  name: Clamp the torn vessels
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Hemostat
+    duration: 5
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryIncisionTreatmentEffect
+    wound: WolfmedEviscerationWound
+    treatment: Clamp
+  - type: WolfmedSurgeryPainEffect
+    amount: 12
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepCloseEvisceration
+  name: Close the abdomen
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Cautery
+    duration: 8
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/cautery.rsi
+    state: cautery
+  - type: WolfmedSurgeryCloseEviscerationEffect
+    woundPrototype: WolfmedEviscerationWound
+  - type: WolfmedSurgeryPainEffect
+    amount: 20
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepSeatChassisPlating
+  name: Seat the torn plating
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedHullPlate
+    duration: 5
+  - type: Sprite
+    sprite: Objects/Tools/wrench.rsi
+    state: icon
+  - type: WolfmedSurgeryIncisionTreatmentEffect
+    wound: WolfmedChassisBreachWound
+    treatment: Clamp
+  - type: WolfmedSurgeryPainEffect
+    amount: 4
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepWeldChassisBreach
+  name: Weld the breach shut
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedHullWeld
+    duration: 8
+  - type: Sprite
+    sprite: Objects/Tools/welder.rsi
+    state: icon
+  - type: WolfmedSurgeryCloseEviscerationEffect
+    woundPrototype: WolfmedChassisBreachWound
+  - type: WolfmedSurgeryPainEffect
+    amount: 6
+  - type: SurgeryStepEmoteEffect

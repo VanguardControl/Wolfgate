@@ -437,3 +437,21 @@ wolfmed-treatment-short-cond-blood-low = The patient is dangerously low on blood
 wolfmed-treatment-step-cond-blood-low-1 = Work down this tab and stop every bleeding part. Replacing blood while it is still running out is wasted.
 wolfmed-treatment-step-cond-blood-low-2 = Gauze slows a bleed, medicated sutures close it, a tourniquet stops a limb outright.
 wolfmed-treatment-step-cond-blood-low-3 = Then give a bloodpack to put back what was lost.
+
+# Evisceration (EVISC).
+
+wolfmed-treatment-short-wolfmed-evisceration-wound = The abdomen is open and the organs are out of it. Nothing carried in a bag closes this; it is an operating table or nothing.
+wolfmed-treatment-step-wolfmed-evisceration-wound-1 = Pack the wound with gauze. It slows the bleeding. It will not stop it and it will not close anything.
+wolfmed-treatment-step-wolfmed-evisceration-wound-2 = Keep blood or saline going in. The patient is losing it faster than any other wound in the book.
+wolfmed-treatment-step-wolfmed-evisceration-wound-3 = Gather the organs off the floor, or fetch replacements, and put each one back with its own insertion surgery. The belly is already open, so there is no incision to cut.
+wolfmed-treatment-step-wolfmed-evisceration-wound-4 = Run Close Evisceration. A hemostat clamps the torn vessels first; nothing will close while they are still running.
+wolfmed-treatment-step-wolfmed-evisceration-wound-5 = Then the cautery closes the abdomen. It leaves a sutured cut, which ordinary treatment finishes.
+wolfmed-treatment-step-wolfmed-evisceration-wound-6 = Clean it with antiseptic and follow up with antibiotics. Nothing in the game gets infected faster.
+wolfmed-treatment-avoid-wolfmed-evisceration-wound-1 = Do not expect sutures, topicals or a medibot to touch this. Closing it with organs still missing is fine; the patient then needs transplants, not an open abdomen.
+
+wolfmed-treatment-short-wolfmed-chassis-breach-wound = The torso plating is torn open and the internals are out. Coolant does not clot, so it runs until somebody welds the seam.
+wolfmed-treatment-step-wolfmed-chassis-breach-wound-1 = Pack the breach. It slows the leak while you work.
+wolfmed-treatment-step-wolfmed-chassis-breach-wound-2 = Put the components back with their own insertion surgery. The casing is already open, so there is nothing to cut.
+wolfmed-treatment-step-wolfmed-chassis-breach-wound-3 = Run Weld Chassis Breach. A wrench seats the torn plating first.
+wolfmed-treatment-step-wolfmed-chassis-breach-wound-4 = Then weld the seam shut. It leaves an ordinary hole in the casing, which a welder closes normally.
+wolfmed-treatment-avoid-wolfmed-chassis-breach-wound-1 = Do not just weld at it. A breach this size refuses the tool outright until the plating has been seated on the table.

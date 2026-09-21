@@ -271,3 +271,38 @@
     - SurgeryStepSealTendWound
   - type: WolfmedSurgeryWoundCondition
     woundPrototype: WolfmedServoDamageWound
+
+# Evisceration (EVISC) --------------------------------------------------------
+# Neither carries a `requirement`: the belly or the casing is already open, and WolfmedEviscerationSystem
+# grants Shitmed's own incision state so the organ and component surgeries list without a scalpel. The
+# clamp comes first for the same reason the artery repair's does - WolfmedArterialBleedBehavior refuses
+# every treatment while the wound is still running, so nothing closes until the bleeders are held.
+#
+# Both complete with organ slots still empty, on purpose: a closed patient missing a liver is a transplant
+# (the existing SurgeryInsert<Organ> chain), not a reason to leave an abdomen open on the table.
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryCloseEvisceration
+  name: Close Evisceration
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    steps:
+    - SurgeryStepClampEvisceration
+    - SurgeryStepCloseEvisceration
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedEviscerationWound
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryWeldChassisBreach
+  name: Weld Chassis Breach
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    steps:
+    - SurgeryStepSeatChassisPlating
+    - SurgeryStepWeldChassisBreach
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedChassisBreachWound

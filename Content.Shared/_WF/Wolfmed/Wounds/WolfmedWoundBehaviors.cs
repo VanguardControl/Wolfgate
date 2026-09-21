@@ -353,5 +353,9 @@ public sealed partial class WolfmedClearedWoundBehavior : WoundBehavior
 {
     [DataField(required: true)]
     public ProtoId<WoundPrototype> Wound;
+
+    /// <summary>Severity the replacement lands at. Null carries the cleared wound's own severity over.</summary>
+    [DataField]
+    public FixedPoint2? Severity;
 }
 

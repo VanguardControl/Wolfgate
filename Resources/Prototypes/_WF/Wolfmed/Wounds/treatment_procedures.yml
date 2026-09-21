@@ -973,3 +973,51 @@
   - text: wolfmed-treatment-step-cond-blood-low-3
     tool: Bloodpack
     done: [ BloodRestored ]
+
+- type: wolfmedTreatmentProcedure
+  id: WolfmedEviscerationWound
+  summary: wolfmed-treatment-short-wolfmed-evisceration-wound
+  steps:
+  - text: wolfmed-treatment-step-wolfmed-evisceration-wound-1
+    tool: Gauze
+    done: [ Dressed ]
+  - text: wolfmed-treatment-step-wolfmed-evisceration-wound-2
+    tool: Bloodpack
+    done: [ BloodRestored ]
+  - text: wolfmed-treatment-step-wolfmed-evisceration-wound-3
+    surgery: true
+    done: [ OrgansRestored ]
+  - text: wolfmed-treatment-step-wolfmed-evisceration-wound-4
+    tool: Hemostat
+    surgery: true
+    done: [ BleedingStopped ]
+  - text: wolfmed-treatment-step-wolfmed-evisceration-wound-5
+    tool: Cautery
+    surgery: true
+    done: [ SubjectGone ]
+  - text: wolfmed-treatment-step-wolfmed-evisceration-wound-6
+    reagent: Ethanol
+    done: [ Cleaned ]
+  avoid:
+  - wolfmed-treatment-avoid-wolfmed-evisceration-wound-1
+
+- type: wolfmedTreatmentProcedure
+  id: WolfmedChassisBreachWound
+  summary: wolfmed-treatment-short-wolfmed-chassis-breach-wound
+  steps:
+  - text: wolfmed-treatment-step-wolfmed-chassis-breach-wound-1
+    tool: Gauze
+    done: [ Dressed ]
+  - text: wolfmed-treatment-step-wolfmed-chassis-breach-wound-2
+    surgery: true
+    done: [ OrgansRestored ]
+  - text: wolfmed-treatment-step-wolfmed-chassis-breach-wound-3
+    tool: Wrench
+    surgery: true
+    done: [ BleedingStopped ]
+  - text: wolfmed-treatment-step-wolfmed-chassis-breach-wound-4
+    tool: Welder
+    surgery: true
+    done: [ SubjectGone ]
+  avoid:
+  - wolfmed-treatment-avoid-wolfmed-chassis-breach-wound-1

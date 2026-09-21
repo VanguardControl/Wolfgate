@@ -37,9 +37,16 @@ public sealed partial class AmputationSystem : EntitySystem
     {
         if (!_net.IsServer ||
             !TryComp(part, out BodyPartComponent? bodyPart) || bodyPart.Body == null ||
-            bodyPart.PartType == BodyPartType.Torso || // WOLFGATE: D9
             _wfPart.Get(part).MaxDamage <= FixedPoint2.Zero) // WOLFGATE: D8
             return;
+
+        // WOLFGATE (EVISC): D9 never severs a torso, so its overflow is offered to evisceration instead.
+        if (bodyPart.PartType == BodyPartType.Torso)
+        {
+            var torso = new WolfmedTorsoOverflowEvent(args.Body, part.Owner, args.Damage, args.IsExplosion);
+            RaiseLocalEvent(ref torso);
+            return;
+        }
 
         if (args.ExplosionAmputationCandidate && TryExplosionAmputate(args.Body, part, args.Damage)) // WOLFGATE: P3-D15
             return;

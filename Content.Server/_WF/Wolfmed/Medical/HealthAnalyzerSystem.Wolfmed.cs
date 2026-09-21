@@ -12,6 +12,7 @@ using Content.Shared._WF.Wolfmed.Body;
 using Content.Server._WF.Wolfmed.Wounds; // WOLFGATE (W5)
 using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W1)
 using Content.Shared.Body.Components;
+using Content.Shared.Body.Part; // WOLFGATE (EVISC): BodyPartComponent, for the empty organ slot count.
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -154,13 +155,28 @@ public sealed partial class HealthAnalyzerSystem
                 _necrosis.IsAtRisk(part), // WOLFGATE (W5)
                 _traits.IsMechanical((part, woundable)), // WOLFGATE (W6): picks the chassis wording
                 _overheating.IsOverheating(part), // WOLFGATE (W6)
-                treatments); // WOLFGATE (UI4): what the procedure window ticks off
+                treatments, // WOLFGATE (UI4): what the procedure window ticks off
+                MissingOrgans(part, bodyPart)); // WOLFGATE (EVISC)
 
             if (diagnostic.HasFindings)
                 result[target] = diagnostic;
         }
 
         return new HealthAnalyzerWoundDiagnostics(result, _infection.GetSepsis(body)); // WOLFGATE (W5)
+    }
+
+    /// <summary>
+    /// WOLFGATE (EVISC): organ slots on this part with nothing in them. The slots are the ones the body
+    /// prototype created, so a part whose organs are all present reports zero and an eviscerated torso
+    /// reports what is still on the floor.
+    /// </summary>
+    private ushort MissingOrgans(EntityUid part, BodyPartComponent bodyPart)
+    {
+        var present = 0;
+        foreach (var _ in _bodySystem.GetPartOrgans(part, bodyPart))
+            present++;
+
+        return (ushort) Math.Clamp(bodyPart.Organs.Count - present, 0, ushort.MaxValue);
     }
 
     /// <summary>Organ health rows in medical reading order, or null for a non-wound-host.</summary>

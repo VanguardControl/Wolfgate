@@ -28,6 +28,8 @@
   - type: WolfmedBodyPart
     fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     maxDamage: 250
+    # WOLFGATE (EVISC): what the overflow past that cap buys, now that D9 spends it on nothing else.
+    eviscerationProfile: WolfmedEviscerationDefault
 
 - type: entity
   id: WolfmedBaseHead

@@ -210,6 +210,16 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
             "a deep cut to a chassis limb", "slow hand work, or a limp", "SurgeryReplaceServo"),
         ["WolfmedOverheatingWound"] = new(Nothing, Exit.Time,
             "heat on a chassis", "the part runs too hot to work properly"),
+
+        // EVISC, a torso opened by damage its cap could not absorb.
+        ["WolfmedEviscerationWound"] = new(Nothing, Exit.Surgery,
+            "a heavy cut or a blast on a torso already at its cap",
+            "the organs end up on the floor, and only the table closes it",
+            "SurgeryCloseEvisceration"),
+        ["WolfmedChassisBreachWound"] = new(Nothing, Exit.Surgery,
+            "the same hit on a chassis",
+            "coolant that never clots, and the components on the deck",
+            "SurgeryWeldChassisBreach"),
     };
 
     /// <summary>

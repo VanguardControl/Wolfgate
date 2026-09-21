@@ -167,6 +167,35 @@ Dead tissue is permanent. It does not heal, no reagent or topical reaches it, th
     <GuideEntityEmbed Entity="Saw"/>
   </Box>
 
+## Evisceration
+
+A torso does not come off. Damage past its structural limit has nowhere else to go, so a heavy cut - or a blast - on a torso that is already ruined tears it open instead. The abdomen is laid open, the organs it held are on the deck around the patient, and the wound will not clot, will not close and refuses every topical in the kit.
+
+It is visible through clothing and from across the room, so you will not need the analyzer to find it.
+
+1. [bold]Pack it.[/bold] Gauze slows the bleeding. It will not stop it and it will not close anything.
+
+2. [bold]Keep the blood going in.[/bold] Nothing in the book empties a patient faster.
+
+3. [bold]Gather the organs[/bold] off the floor, or fetch replacements from cloning or a freezer.
+
+4. [bold]Put each one back[/bold] with its own insertion surgery. The belly is already open, so there is no incision to cut and no skin to retract - the organ surgeries are simply there.
+
+5. [bold]Run Close Evisceration.[/bold] A hemostat clamps the torn vessels, then a cautery closes the abdomen. Nothing closes while the vessels are still running, which is why the clamp is first.
+
+6. [bold]Aftercare.[/bold] What is left is an ordinary cut, sutured shut. Clean it with antiseptic and follow up with antibiotics: an open abdomen is the dirtiest wound in the game.
+
+You can close the patient with organs still missing, and sometimes you should - a closed patient who needs a transplant is in far better shape than an open one who does not. Holding something hot against the wound stops the bleeding without closing it, which is the field answer when there is no table.
+
+A chassis tears the same way and is called a [bold]torn chassis[/bold]: the torso plating peels back, the components inside it end up on the deck, and what runs out is oil. Put the components back with their own insertion surgery, then run [bold]Weld Chassis Breach[/bold] - a wrench seats the torn plating and a welder runs the seam. That leaves the ordinary hole in the casing, which a welder closes normally.
+  <Box>
+    <GuideEntityEmbed Entity="Gauze"/>
+    <GuideEntityEmbed Entity="Hemostat"/>
+    <GuideEntityEmbed Entity="Cautery"/>
+    <GuideEntityEmbed Entity="Wrench"/>
+    <GuideEntityEmbed Entity="Welder"/>
+  </Box>
+
 ## Mechanical repair
 
 An IPC and a cybernetic limb are not treated, they are repaired. No medicine, topical or reagent reaches them at all; what does is a tool, and which tool depends on the finding.

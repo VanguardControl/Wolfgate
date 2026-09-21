@@ -502,3 +502,26 @@
     Moderate: { description: wolfmed-look-plant-burn-moderate, label: wolfmed-look-plant-burn-moderate-short }
     Severe: { description: wolfmed-look-plant-burn-severe, label: wolfmed-look-plant-burn-severe-short }
     Critical: { description: wolfmed-look-plant-burn-critical, label: wolfmed-look-plant-burn-critical-short }
+
+# Evisceration (EVISC). The one thing in the model that nothing hides: clothing does not cover an abdomen
+# that is no longer closed, and it reads from across the room.
+
+- type: wolfmedWoundLook
+  id: WolfmedLookEvisceration
+  wound: WolfmedEviscerationWound
+  description: wolfmed-look-evisceration
+  label: wolfmed-look-evisceration-short
+  visibility: Clothed
+  distant: true
+  icon: bleeding
+  colour: bleeding
+
+- type: wolfmedWoundLook
+  id: WolfmedLookChassisBreach
+  wound: WolfmedChassisBreachWound
+  description: wolfmed-look-chassis-breach
+  label: wolfmed-look-chassis-breach-short
+  visibility: Clothed
+  distant: true
+  icon: mechanical
+  colour: mechanical

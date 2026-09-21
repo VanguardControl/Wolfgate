@@ -36,7 +36,7 @@
       - !type:GibPartBehavior { }
 
 - type: entity
-  parent: [ PartIPCBase, BaseTorsoInorganic ]
+  parent: [ WolfmedBaseTorsoIpc, PartIPCBase, BaseTorsoInorganic ] # WOLFGATE (EVISC): torso damage cap, see _WF/Wolfmed/Body/species_parts.yml
   id: TorsoIPC
   name: "ipc torso"
   components:

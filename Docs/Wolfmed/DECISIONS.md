@@ -290,3 +290,33 @@ not have to open all 14 reports to find them.
 
 - `WolfmedEmpSystem` (server): an `EmpPulseEvent` reaching a non-organic `Woundable` part that is attached to a wound host deals Shock to it through the routing, which opens the W6 short-circuit wound (stun, sparks, cable coil). Parts are collected per body and resolved at the end of the tick so one pulse shares a budget: `wolfmed.emp_part_damage` (15) per part, `wolfmed.emp_body_damage` (45) per body per pulse. A lone cybernetic limb takes 15; a ten-part IPC takes 4.5 a part. Shitmed's own `CyberneticsSystem` still disables cybernetic parts for the pulse duration; this adds the damage. IPCs die at 100, so one EMP cannot kill a healthy one and three can.
 
+
+## Evisceration (2026-09-20)
+
+- **The torso's overflow buys disembowelment.** D9 never severs a torso, so `WoundableComponent.AmputationOverflow`
+  past the torso's 250 cap had no consumer. `AmputationSystem.OnPartDamageOverflowed` now raises
+  `WolfmedTorsoOverflowEvent` there (a marked three-line raise, no logic) and `WolfmedEviscerationSystem`
+  (server) answers it.
+- **Trigger, all data.** `wolfmedEviscerationProfile` (`WolfmedEviscerationDefault`), named by the torso's
+  `WolfmedBodyPart.eviscerationProfile`. A part that names no profile can never be opened. `finishingDamage`
+  is `Slash: 35`, so Blunt, Piercing and Heat can never do it however hard they land;
+  `explosionFinishingDamage` (`Slash 25 / Heat 30 / Blunt 45`) is the blast table. Both are read against the
+  OVERFLOW of one hit, which is the whole hit once the torso is at its cap. No CVar gate; alive, crit and
+  dead all qualify; one evisceration per torso, held by `WolfmedEviscerationComponent`.
+- **What comes out is data.** `organs` (stomach, liver, kidneys, intestines) always; `vitalOrgans` (heart,
+  lungs) only for an explosion or on `vitalChance` 0.15, seeded through `WolfmedEviscerationSystem.ForcedRoll`
+  in tests. The brain is in the head and a positronic one is deliberately absent from the chassis list.
+- **The open belly IS the open incision.** The system grants Shitmed's own `IncisionOpen` and `SkinRetracted`
+  to the torso, so every torso surgery that wants an open incision lists with no scalpel and no retractor,
+  and the SHIPPED organ insertion surgeries are what put the organs back. It remembers whether it granted
+  them, so a patient a medic had already cut open keeps their incision when the tear is closed.
+- **Exit.** `SurgeryCloseEvisceration` (hemostat clamp, then cautery) removes `WolfmedEviscerationWound` and
+  leaves a sutured `SlashWound` at the severity its `WolfmedClearedWoundBehavior` names. It completes with
+  organ slots still empty on purpose: a closed patient needing a transplant beats an open abdomen.
+- **IPCs do it too.** The same trigger on a mechanical torso makes `WolfmedChassisBreachWound` ("torn
+  chassis"), ejects the chassis's own torso components, leaks the body's own reagent (oil), hisses instead of
+  tearing and refreshes `WolfmedMachineSparkSystem`. `SurgeryWeldChassisBreach` (wrench, then welder) leaves
+  the ordinary `WolfmedBreachWound`. An IPC torso had no damage cap at all, because it parents
+  `BaseTorsoInorganic` rather than `BaseTorso`; `WolfmedBaseTorsoIpc` supplies one.
+- **The procedure window can see an empty slot.** `HealthAnalyzerWoundDiagnostic.MissingOrgans` and the
+  `OrgansRestored` step check, so "organs back in" greys itself.

@@ -37,6 +37,7 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryMendFractureEffectComponent, SurgeryStepCompleteCheckEvent>(OnFractureCheck);
         SubscribeLocalEvent<WolfmedSurgeryOrganHealEffectComponent, SurgeryStepCompleteCheckEvent>(OnOrganCheck);
         SubscribeLocalEvent<WolfmedSurgeryIncisionTreatmentEffectComponent, SurgeryStepCompleteCheckEvent>(OnIncisionCheck);
+        SubscribeLocalEvent<WolfmedSurgeryCloseEviscerationEffectComponent, SurgeryStepCompleteCheckEvent>(OnCloseEviscerationCheck);
     }
 
     private void OnWoundValid(Entity<WolfmedSurgeryWoundConditionComponent> ent, ref SurgeryValidEvent args)
@@ -98,6 +99,15 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     private void OnOrganCheck(Entity<WolfmedSurgeryOrganHealEffectComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
         if (!TryFindOrgan(args.Part, ent.Comp.Slot, out var organ) || organ.Comp.Health < organ.Comp.MaxHealth)
+            args.Cancelled = true;
+    }
+
+    /// <summary>EVISC: the closing step is done when the tear is gone, whatever replaced it.</summary>
+    private void OnCloseEviscerationCheck(
+        Entity<WolfmedSurgeryCloseEviscerationEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (FindWound(args.Part, ent.Comp.WoundPrototype) != null)
             args.Cancelled = true;
     }
 

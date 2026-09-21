@@ -48,6 +48,8 @@
     - WolfmedInternalBurnWound
     # WOLFGATE (W5): dead tissue, left by WolfmedNecrosisSystem rather than by a hit.
     - WolfmedNecrosisWound
+    # WOLFGATE (EVISC): the torso laid open. Created only by WolfmedEviscerationSystem, never by a rule.
+    - WolfmedEviscerationWound
   organDamage:
     chances:
       Head: 0.05
@@ -88,6 +90,8 @@
     - WolfmedShortCircuitWound
     - WolfmedServoDamageWound
     - WolfmedOverheatingWound
+    # WOLFGATE (EVISC): the chassis torso opened up. Created only by WolfmedEviscerationSystem.
+    - WolfmedChassisBreachWound
   organDamage:
     # WOLFGATE (P5-1/P5-D13): inert until IPC organs carry OrganDamage (Sec 8.6-7 keeps organ damage
     # human-lineage only). Do NOT add maxAffected - Onyx sets it only on OrganicBodyPartProfile.

@@ -109,3 +109,16 @@
     # trigger - CyberneticPartBase declares none, but every concrete limb's second parent is
     # BaseLeftArm/BaseLeftHand/... which parent Mono's MajorLimb (Blunt 190 / Slash 210 / Heat 250 + Ash)
     # or MinorLimb (150/180/230). See PLAN5 P5-D8b / U15.
+
+# WOLFGATE (EVISC): an organic torso gets its damage cap and evisceration profile from WolfmedBaseTorso by
+# way of BaseTorso. An IPC torso parents BaseTorsoInorganic instead and inherits neither, so without this
+# it has no cap, no overflow and could never be breached. Must stay FIRST in TorsoIPC's parent list (RT
+# first-parent-wins), which is why it restates WolfmedPartIpc's null fracture profile.
+- type: entity
+  id: WolfmedBaseTorsoIpc
+  abstract: true
+  components:
+  - type: WolfmedBodyPart
+    fractureProfile: null
+    maxDamage: 250
+    eviscerationProfile: WolfmedEviscerationDefault

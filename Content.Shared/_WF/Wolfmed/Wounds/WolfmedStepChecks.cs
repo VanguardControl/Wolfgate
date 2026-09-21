@@ -61,6 +61,9 @@ public enum WolfmedStepCheck : byte
 
     /// <summary>Blood is back above the analyzer's danger line.</summary>
     BloodRestored,
+
+    /// <summary>Every organ slot on the part is filled again.</summary>
+    OrgansRestored,
 }
 
 /// <summary>
@@ -153,6 +156,7 @@ public static class WolfmedStepChecks
             WolfmedStepCheck.Cooled => !part.Overheating,
             WolfmedStepCheck.NecrosisRiskCleared => !part.NecrosisRisk && !part.Necrotic,
             WolfmedStepCheck.FunctionRestored => part.Functionality == BodyPartFunctionalityState.Functional,
+            WolfmedStepCheck.OrgansRestored => part.MissingOrgans == 0,
             _ => false,
         };
     }

@@ -30,6 +30,7 @@ public sealed class WolfmedStepCheckTest
         Overheating = true,
         Functionality = BodyPartFunctionalityState.Disabled,
         Treatments = WolfmedPartTreatments.None,
+        MissingOrgans = 2,
     };
 
     /// <summary>A part on which every part-level check holds.</summary>

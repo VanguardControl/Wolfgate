@@ -165,6 +165,7 @@
     damage:
       types:
         Blunt: -15
+  - type: WolfmedHullPlate # WOLFGATE (EVISC): the surgery step that seats a torn chassis panel
   # WOLFGATE (V124): the ratchet plays when the pass starts; this is the panel going back into shape.
   - type: WolfmedRepairSound
   - type: Sprite

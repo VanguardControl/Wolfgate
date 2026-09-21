@@ -1,0 +1,38 @@
+using Content.Shared._Shitmed.Medical.Surgery.Tools;
+using Robust.Shared.GameStates;
+
+namespace Content.Shared._WF.Wolfmed.Surgery;
+
+/// <summary>
+/// Something to beat a torn panel back into shape with. The first step of closing a chassis breach, which
+/// is the mechanical answer to clamping bleeders: the plating has to line up before anything will weld.
+/// </summary>
+/// <remarks>
+/// Sits on the wrench, which already takes dents out of a chassis through its WeldingHealing block (W6).
+/// </remarks>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedHullPlateComponent : Component, ISurgeryToolComponent
+{
+    public string ToolName => "a wrench";
+
+    public bool? Used { get; set; }
+
+    [DataField]
+    public float Speed { get; set; } = 1f;
+}
+
+/// <summary>Something to run a seam with. Closes a chassis breach, where flesh would be cauterised.</summary>
+/// <remarks>
+/// Sits on the welder. The step is a surgery step rather than the welder's ordinary repair because a
+/// breach carries <c>healingMultiplier: 0</c>: swinging a lit welder at a torn-open chassis is not a repair.
+/// </remarks>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedHullWeldComponent : Component, ISurgeryToolComponent
+{
+    public string ToolName => "a welding tool";
+
+    public bool? Used { get; set; }
+
+    [DataField]
+    public float Speed { get; set; } = 1f;
+}

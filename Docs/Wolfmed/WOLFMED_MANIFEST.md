@@ -3839,3 +3839,61 @@ visible to whom is unchanged; only the presentation is.
 - **Rows have no expander.** The full sentence lives in the chip's tooltip, which is what the owner asked
   for; hover works inside the examine popup, since hit testing walks to the deepest control that does not
   ignore the mouse and the examine buttons in the same popup already have tooltips.
+
+## Final stages: EVISC (2026-09-20)
+
+Disembowelment. The torso is the one part D9 never severs, so the tear-off pressure past its 250 cap
+(`WoundableComponent.AmputationOverflow`) had no consumer at all; it now buys an abdomen laid open, the
+organs on the deck, and a wound only the operating table closes. Mechanical torsos get the same treatment
+in metal.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedEvisceration.cs` | new | `WolfmedTorsoOverflowEvent`, `WolfmedEviscerationComponent` (the one-at-a-time lock plus what incision state was granted), `wolfmedEviscerationProfile` prototype and its per-material `WolfmedEviscerationSpec` |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedEviscerationSystem.cs` | new | The trigger, the organ ejection, the feedback, the `IncisionOpen`/`SkinRetracted` grant, the closing step's effect and the `ForcedRoll` test seam |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedChassisToolComponents.cs` | new | `WolfmedHullPlate` (wrench) and `WolfmedHullWeld` (welder), surgery tools in the shape of W6's `WolfmedServoKit` |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartComponent.cs` | modified | `eviscerationProfile`: null means the part can never be opened |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `WolfmedClearedWoundBehavior.Severity`, so a cleared wound may land at its own severity rather than carrying the old one over |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedStepChecks.cs` | modified | `OrgansRestored` check |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryComponents.cs` | modified | `WolfmedSurgeryCloseEviscerationEffect` |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryConditionSystem.cs` | modified | Its completion check, shared so the BUI highlights the right row |
+| `Content.Shared/_Onyx/Wounds/AmputationSystem.cs` | modified | WOLFGATE (EVISC): the torso branch raises `WolfmedTorsoOverflowEvent` instead of returning. No logic in the vendored file |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified | WOLFGATE (EVISC): `MissingOrgans` on the payload |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Fills it: organ slots on the part with nothing in them |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/evisceration.yml` | new | `WolfmedEviscerationDefault` profile, `WolfmedEviscerationWound`, `WolfmedChassisBreachWound` |
+| `Resources/Prototypes/_WF/Wolfmed/Body/parts.yml` | modified | `eviscerationProfile` on `WolfmedBaseTorso` |
+| `Resources/Prototypes/_WF/Wolfmed/Body/species_parts.yml` | modified | `WolfmedBaseTorsoIpc`: the damage cap and profile an IPC torso's parent chain does not carry |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryCloseEvisceration`, `SurgeryWeldChassisBreach` |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | Clamp/close and seat/weld, four steps |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml` | modified | Both wounds: `visibility: Clothed`, `distant: true` |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/treatment_procedures.yml` | modified | Both procedures, with `Dressed` / `OrgansRestored` / `SubjectGone` checks |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | WOLFGATE (EVISC): one wound each into `OrganicBodyPartProfile` and `IpcBodyPartProfile` `supportedWounds` |
+| `Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml` | modified | WOLFGATE (EVISC): one line, `WolfmedBaseTorsoIpc` first in `TorsoIPC`'s parent list |
+| `Resources/Prototypes/Entities/Objects/Tools/tools.yml` | modified | WOLFGATE (EVISC): one line, `WolfmedHullPlate` on the wrench |
+| `Resources/Prototypes/Entities/Objects/Tools/welders.yml` | modified | WOLFGATE (EVISC): one line, `WolfmedHullWeld` on the welder |
+| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | Both names and both popups |
+| `Resources/Locale/en-US/_WF/wolfmed/look.ftl` | modified | Both descriptions and row labels |
+| `Resources/Locale/en-US/_WF/wolfmed/treatment-advice.ftl` | modified | Both tooltips, ten steps, two "do not" lines |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | An "Evisceration" section: the six-step fix, and the chassis variant |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEviscerationTest.cs` | new | 9 tests: trigger, the four negatives, one-at-a-time, explosion, items vs surgery, the incision shortcut, IPC, gib/delete |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundTreatmentMatrixTest.cs` | modified | Two rows, both `Exit.Surgery` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs` | modified | `MissingOrgans` on the "nothing has been done" fixture, so `OrgansRestored` separates |
+| `Docs/Wolfmed/DECISIONS.md` | modified | "Evisceration (2026-09-20)" |
+
+### Deviations from the spec
+
+- **No intestines come out, because this fork has no intestines.** The slot is listed in
+  `WolfmedEviscerationDefault.organic.organs` with a comment, so an intestines organ works the day one is
+  added; today a Slash evisceration empties stomach, liver and kidneys.
+- **An IPC torso has exactly one removable component**, its `pump` (`_EinsteinEngines/Body/Prototypes/ipc.yml`
+  fills `posbrain` and `pump`, and the brain never comes out). The breach wound, the oil leak and the
+  weld-closed repair all ship as specified; there is simply one thing on the deck rather than four.
+- **The degradation overlay is not forced by code.** The wound lands at severity 70, the profile's stage 2 is
+  60 and `healingMultiplier: 0` means nothing can whittle it down, so the torso sits at its worst stage for
+  exactly as long as the wound exists. A test pins it. Forcing it in C# would have meant a new branch in
+  `WolfmedDegradationVisualsSystem.GetStage` for no different outcome.
+- **The wound is named "torn chassis" on a chassis**, not "chassis breach": the guidebook and W6 already use
+  "chassis breach" for `WolfmedBreachWound`, which is what welding this one shut leaves behind. The
+  prototype id the spec asked for is unchanged.
+- **The closing surgery's cautery step does not carry a `remove:` list.** The granted `IncisionOpen` and
+  `SkinRetracted` come off with the wound instead, and only if this system was what put them there.

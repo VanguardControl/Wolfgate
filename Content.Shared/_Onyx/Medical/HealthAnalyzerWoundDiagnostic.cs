@@ -26,7 +26,10 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     bool Overheating = false, // WOLFGATE (W6): the part is running too hot to work properly.
     // WOLFGATE (UI4): what has already been done here. A clamped, sutured or cauterised wound bleeds at
     // zero, so nothing else in this payload can tell a treated part from an untouched one.
-    WolfmedPartTreatments Treatments = WolfmedPartTreatments.None)
+    WolfmedPartTreatments Treatments = WolfmedPartTreatments.None,
+    // WOLFGATE (EVISC): organ slots this part carries that nothing is in, which is how the procedure
+    // window can tell a patient whose organs are back in from one still waiting for them.
+    ushort MissingOrgans = 0)
 {
     public bool HasFindings =>
         Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||

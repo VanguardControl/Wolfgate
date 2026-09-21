@@ -1,4 +1,5 @@
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
@@ -26,4 +27,7 @@ public sealed partial class WolfmedBodyPartComponent : Component
 
     /// <summary>Overrides the host's per-part-type dismemberment severity.</summary>
     [DataField] public FixedPoint2? DismembermentSeverity;
+
+    /// <summary>How this part tears open when damage overflows its cap. Null means it never does.</summary>
+    [DataField] public ProtoId<WolfmedEviscerationProfilePrototype>? EviscerationProfile;
 }

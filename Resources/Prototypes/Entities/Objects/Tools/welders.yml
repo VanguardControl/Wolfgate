@@ -4,6 +4,7 @@
   id: Welder
   description: "Melts anything as long as it's fueled, don't forget your eye protection!"
   components:
+  - type: WolfmedHullWeld # WOLFGATE (EVISC): the surgery step that welds a chassis breach shut
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:
