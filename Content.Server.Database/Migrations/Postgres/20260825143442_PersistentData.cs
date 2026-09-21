@@ -16,7 +16,8 @@ namespace Content.Server.Database.Migrations.Postgres
                 name: "flags",
                 table: "profile",
                 type: "text[]",
-                nullable: false);
+                nullable: false,
+                defaultValueSql: "'{}'"); // WOLFGATE: existing profiles need a value, upstream has none
 
             migrationBuilder.CreateTable(
                 name: "profile_component",
