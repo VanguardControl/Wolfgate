@@ -30,4 +30,7 @@ public sealed partial class WolfmedBodyPartComponent : Component
 
     /// <summary>How this part tears open when damage overflows its cap. Null means it never does.</summary>
     [DataField] public ProtoId<WolfmedEviscerationProfilePrototype>? EviscerationProfile;
+
+    /// <summary>Half-width of this part as a target for bullets, in tiles. Zero uses the default for its type.</summary>
+    [DataField] public float AimSize;
 }

@@ -82,4 +82,16 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<bool> BleedSpurts =
         CVarDef.Create("wolfmed.bleed_spurts", true, CVar.SERVERONLY);
+
+    /// <summary>Whether bullets can stray from the aimed body part, by gun spread and range.</summary>
+    public static readonly CVarDef<bool> AimScatter =
+        CVarDef.Create("wolfmed.aim_scatter", true, CVar.SERVERONLY);
+
+    /// <summary>Chance to hit the aimed part with a tight gun or at point blank.</summary>
+    public static readonly CVarDef<float> AimBestChance =
+        CVarDef.Create("wolfmed.aim_best_chance", 0.9f, CVar.SERVERONLY);
+
+    /// <summary>Floor for the chance to hit the aimed part, however wide the spread or long the range.</summary>
+    public static readonly CVarDef<float> AimWorstChance =
+        CVarDef.Create("wolfmed.aim_worst_chance", 0.15f, CVar.SERVERONLY);
 }

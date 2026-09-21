@@ -36,6 +36,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private WoundTargetResolver _targetResolver = default!; // WOLFGATE: D10, Shitmed-backed replacement.
     [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE: D8, Onyx's extra part fields.
+    [Dependency] private WolfmedAimScatterSystem _wfAim = default!; // WOLFGATE: bullets can stray off the aimed part.
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private MobThresholdSystem _mobThreshold = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
@@ -707,7 +708,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                              TryGetActiveHandPart(body, out var handPart))
                         _requestedParts[body] = handPart;
                     else if (origin is { } targetingSource && _targetResolver.TryResolve(body, targetingSource, out var targetedPart))
-                        _requestedParts[body] = targetedPart;
+                        _requestedParts[body] = _wfAim.Scatter(body, targetingSource, _routedModifiers.GetValueOrDefault(body.Owner).Tool, targetedPart); // WOLFGATE
                     else if (origin is { } defibrillator && HasComp<DefibrillatorComponent>(defibrillator) &&
                              _targetResolver.TryResolveAvailable(body, TargetBodyPart.Torso, out var chestPart)) // WOLFGATE: D9
                         _requestedParts[body] = chestPart;

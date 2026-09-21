@@ -320,3 +320,13 @@ not have to open all 14 reports to find them.
   `BaseTorsoInorganic` rather than `BaseTorso`; `WolfmedBaseTorsoIpc` supplies one.
 - **The procedure window can see an empty slot.** `HealthAnalyzerWoundDiagnostic.MissingOrgans` and the
   `OrgansRestored` step check, so "organs back in" greys itself.
+
+## Aim scatter (2026-09-20)
+
+Bullets no longer always land on the shooter's targeted part. `WolfmedAimScatterSystem` (shared, `_WF/Wolfmed/Targeting`)
+projects the gun's current spread cone (`GunComponent.CurrentAngle`, floor `MinAngleModified`) out to the target's range and
+compares its half-width to the part's size (`WolfmedBodyPart.aimSize`, defaults per part type): chance = size / stray,
+clamped to `wolfmed.aim_worst_chance` (0.15) .. `wolfmed.aim_best_chance` (0.9). A miss goes to a weighted neighbouring part.
+Only hits whose tool is a projectile are rolled; melee, thrown items and explicit `targetPart` calls are untouched. Hitscan
+already lands on a random part (its origin is the gun, which has no targeting). `wolfmed.aim_scatter` turns it off.
+Hook: one marked line in `WoundDamageRoutingSystem`. Test: `WolfmedAimScatterTest`.
