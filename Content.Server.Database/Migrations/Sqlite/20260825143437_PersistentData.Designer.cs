@@ -3,6 +3,7 @@ using System;
 using Content.Server.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Content.Server.Database.Migrations.Sqlite
 {
     [DbContext(typeof(SqliteServerDbContext))]
-    partial class SqliteServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260825143437_PersistentData")]
+    partial class PersistentData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
@@ -622,104 +625,6 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.ToTable("connection_log", (string)null);
                 });
 
-            modelBuilder.Entity("Content.Server.Database.ConsentFreetextReadReceipt", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("consent_freetext_read_receipt_id");
-
-                    b.Property<DateTime>("ReadAt")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("read_at");
-
-                    b.Property<int>("ReadConsentSettingsId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("read_consent_settings_id");
-
-                    b.Property<Guid>("ReaderUserId")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("reader_user_id");
-
-                    b.HasKey("Id")
-                        .HasName("PK_consent_freetext_read_receipt");
-
-                    b.HasIndex("ReadConsentSettingsId")
-                        .HasDatabaseName("IX_consent_freetext_read_receipt_read_consent_settings_id");
-
-                    b.HasIndex("ReaderUserId", "ReadConsentSettingsId")
-                        .IsUnique();
-
-                    b.ToTable("consent_freetext_read_receipt", (string)null);
-                });
-
-            modelBuilder.Entity("Content.Server.Database.ConsentSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("consent_settings_id");
-
-                    b.Property<string>("ConsentFreetext")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("consent_freetext");
-
-                    b.Property<DateTime>("ConsentFreetextUpdatedAt")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("consent_freetext_updated_at");
-
-                    b.Property<int?>("ProfileId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("profile_id");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("PK_consent_settings");
-
-                    b.HasIndex("ProfileId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_consent_settings_profile_id");
-
-                    b.HasIndex("UserId", "ProfileId")
-                        .IsUnique();
-
-                    b.ToTable("consent_settings", (string)null);
-                });
-
-            modelBuilder.Entity("Content.Server.Database.ConsentToggle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("consent_toggle_id");
-
-                    b.Property<int>("ConsentSettingsId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("consent_settings_id");
-
-                    b.Property<string>("ToggleProtoId")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("toggle_proto_id");
-
-                    b.Property<string>("ToggleProtoState")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("toggle_proto_state");
-
-                    b.HasKey("Id")
-                        .HasName("PK_consent_toggle");
-
-                    b.HasIndex("ConsentSettingsId", "ToggleProtoId")
-                        .IsUnique();
-
-                    b.ToTable("consent_toggle", (string)null);
-                });
-
             modelBuilder.Entity("Content.Server.Database.IPIntelCache", b =>
                 {
                     b.Property<int>("Id")
@@ -918,11 +823,6 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("TEXT")
                         .HasColumnName("company");
 
-                    b.Property<string>("CustomSpeciesName")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("custom_species_name");
-
                     b.Property<string>("EyeColor")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -952,11 +852,6 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("gender");
-
-                    b.Property<string>("Genitals")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("genitals");
 
                     b.Property<string>("HairColor")
                         .IsRequired()
@@ -1542,91 +1437,6 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.ToTable("uploaded_resource_log", (string)null);
                 });
 
-            modelBuilder.Entity("Content.Server.Database.WayfarerSafetyDepositBox", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("wayfarer_safety_deposit_box_id");
-
-                    b.Property<Guid>("BoxId")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("box_id");
-
-                    b.Property<int>("CharacterIndex")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("character_index");
-
-                    b.Property<DateTime?>("LastWithdrawn")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("last_withdrawn");
-
-                    b.Property<int?>("LastWithdrawnRoundId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("last_withdrawn_round_id");
-
-                    b.Property<string>("Nickname")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("nickname");
-
-                    b.Property<string>("OwnerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("owner_name");
-
-                    b.Property<Guid>("OwnerUserId")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("owner_user_id");
-
-                    b.Property<string>("ProtoId")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("proto_id");
-
-                    b.Property<DateTime>("PurchaseDate")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("purchase_date");
-
-                    b.HasKey("Id")
-                        .HasName("PK_wayfarer_safety_deposit_box");
-
-                    b.HasIndex("BoxId")
-                        .IsUnique();
-
-                    b.HasIndex("OwnerUserId");
-
-                    b.ToTable("wayfarer_safety_deposit_box", (string)null);
-                });
-
-            modelBuilder.Entity("Content.Server.Database.WayfarerSafetyDepositBoxItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("wayfarer_safety_deposit_box_item_id");
-
-                    b.Property<int>("BoxId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("box_id");
-
-                    b.Property<DateTime>("DepositDate")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("deposit_date");
-
-                    b.Property<string>("EntityData")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("entity_data");
-
-                    b.HasKey("Id")
-                        .HasName("PK_wayfarer_safety_deposit_box_item");
-
-                    b.HasIndex("BoxId")
-                        .HasDatabaseName("IX_wayfarer_safety_deposit_box_item_box_id");
-
-                    b.ToTable("wayfarer_safety_deposit_box_item", (string)null);
-                });
-
             modelBuilder.Entity("Content.Server.Database.Whitelist", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -1929,40 +1739,6 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.Navigation("HWId");
 
                     b.Navigation("Server");
-                });
-
-            modelBuilder.Entity("Content.Server.Database.ConsentFreetextReadReceipt", b =>
-                {
-                    b.HasOne("Content.Server.Database.ConsentSettings", "ReadConsentSettings")
-                        .WithMany("ReadReceipts")
-                        .HasForeignKey("ReadConsentSettingsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_consent_freetext_read_receipt_consent_settings_read_consent_settings_id");
-
-                    b.Navigation("ReadConsentSettings");
-                });
-
-            modelBuilder.Entity("Content.Server.Database.ConsentSettings", b =>
-                {
-                    b.HasOne("Content.Server.Database.Profile", "Profile")
-                        .WithOne("ConsentSettings")
-                        .HasForeignKey("Content.Server.Database.ConsentSettings", "ProfileId")
-                        .HasConstraintName("FK_consent_settings_profile_profile_id");
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("Content.Server.Database.ConsentToggle", b =>
-                {
-                    b.HasOne("Content.Server.Database.ConsentSettings", "ConsentSettings")
-                        .WithMany("ConsentToggles")
-                        .HasForeignKey("ConsentSettingsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_consent_toggle_consent_settings_consent_settings_id");
-
-                    b.Navigation("ConsentSettings");
                 });
 
             modelBuilder.Entity("Content.Server.Database.Job", b =>
@@ -2274,18 +2050,6 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.Navigation("Profile");
                 });
 
-            modelBuilder.Entity("Content.Server.Database.WayfarerSafetyDepositBoxItem", b =>
-                {
-                    b.HasOne("Content.Server.Database.WayfarerSafetyDepositBox", "Box")
-                        .WithMany("Items")
-                        .HasForeignKey("BoxId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_wayfarer_safety_deposit_box_item_wayfarer_safety_deposit_box_box_id");
-
-                    b.Navigation("Box");
-                });
-
             modelBuilder.Entity("PlayerRound", b =>
                 {
                     b.HasOne("Content.Server.Database.Player", null)
@@ -2323,13 +2087,6 @@ namespace Content.Server.Database.Migrations.Sqlite
             modelBuilder.Entity("Content.Server.Database.ConnectionLog", b =>
                 {
                     b.Navigation("BanHits");
-                });
-
-            modelBuilder.Entity("Content.Server.Database.ConsentSettings", b =>
-                {
-                    b.Navigation("ConsentToggles");
-
-                    b.Navigation("ReadReceipts");
                 });
 
             modelBuilder.Entity("Content.Server.Database.Player", b =>
@@ -2382,13 +2139,9 @@ namespace Content.Server.Database.Migrations.Sqlite
                 {
                     b.Navigation("Antags");
 
-<<<<<<< HEAD
-                    b.Navigation("ConsentSettings");
-=======
                     b.Navigation("Components");
 
                     b.Navigation("Items");
->>>>>>> 2b7a01e27e (Persistence: Also Known As Admin Fuckery (#4577))
 
                     b.Navigation("Jobs");
 
@@ -2429,11 +2182,6 @@ namespace Content.Server.Database.Migrations.Sqlite
             modelBuilder.Entity("Content.Server.Database.ServerRoleBan", b =>
                 {
                     b.Navigation("Unban");
-                });
-
-            modelBuilder.Entity("Content.Server.Database.WayfarerSafetyDepositBox", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
