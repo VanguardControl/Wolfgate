@@ -5,6 +5,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Humanoid;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Damage;
 
@@ -20,12 +21,14 @@ namespace Content.Server._WF.Wolfmed.Damage;
 /// </remarks>
 public sealed class WolfmedTreatmentVisualsSystem : EntitySystem
 {
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private WoundDamageProjectionSystem _projection = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
     private readonly HashSet<EntityUid> _pending = new();
+    private readonly List<EntityUid> _expired = new();
     private readonly Dictionary<HumanoidVisualLayers, WolfmedPartTreatment> _scratch = new();
 
     /// <inheritdoc/>
@@ -56,6 +59,23 @@ public sealed class WolfmedTreatmentVisualsSystem : EntitySystem
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
+        // Dressings that have outlasted their wound come off on their own. A handful of parts at most.
+        var now = _timing.CurTime;
+        var marks = EntityQueryEnumerator<WolfmedDressingMarkComponent>();
+        while (marks.MoveNext(out var marked, out var mark))
+        {
+            if (now >= mark.Until)
+                _expired.Add(marked);
+        }
+
+        foreach (var marked in _expired)
+        {
+            RemComp<WolfmedDressingMarkComponent>(marked);
+            Queue(marked);
+        }
+
+        _expired.Clear();
+
         if (_pending.Count == 0)
             return;
 
@@ -134,6 +154,13 @@ public sealed class WolfmedTreatmentVisualsSystem : EntitySystem
         if (!splinted && HasComp<WolfmedSplintMarkComponent>(part))
             RemComp<WolfmedSplintMarkComponent>(part);
 
+        // A dressing outlives the wound it closed: each time the part reads as dressed the clock is pushed back, and
+        // the bandage stays on the sprite until it runs out.
+        if (dressed)
+            EnsureComp<WolfmedDressingMarkComponent>(part).Until = _timing.CurTime + profile.DressingLinger;
+        else if (TryComp(part, out WolfmedDressingMarkComponent? mark) && _timing.CurTime < mark.Until)
+            dressed = true;
+
         if (splinted)
             return CompOrNull<WolfmedSplintMarkComponent>(part)?.Overlay ?? WolfmedPartTreatment.Splint;
 
@@ -165,3 +192,12 @@ public sealed class WolfmedTreatmentVisualsSystem : EntitySystem
         return true;
     }
 }
+
+/// <summary>A dressing still on a part after its wound closed, and when it comes off.</summary>
+[RegisterComponent]
+public sealed partial class WolfmedDressingMarkComponent : Component
+{
+    [ViewVariables]
+    public TimeSpan Until;
+}
+

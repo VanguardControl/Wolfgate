@@ -592,10 +592,21 @@ public sealed class WolfmedGoreTest : GameTest
             Assert.That(Overlay(entities, body, HumanoidVisualLayers.RArm),
                 Is.EqualTo(WolfmedPartTreatment.Gauze), "a hand folds into its arm.");
 
-            // Healing the wound takes the dressing with it.
+            // Healing the wound leaves the dressing on: it lingers (profile.DressingLinger) so the medic can see
+            // the work was done, and comes off when its mark expires.
             wounds.RemoveWound(cut.Value);
             Assert.That(Overlay(entities, body, HumanoidVisualLayers.LArm),
-                Is.EqualTo(WolfmedPartTreatment.None), "no wound, no dressing.");
+                Is.EqualTo(WolfmedPartTreatment.Gauze), "the bandage outlives the wound it closed.");
+
+            var leftArm = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .First(part => part.Component.PartType == BodyPartType.Arm &&
+                               part.Component.Symmetry == BodyPartSymmetry.Left).Id;
+            entities.GetComponent<Content.Server._WF.Wolfmed.Damage.WolfmedDressingMarkComponent>(leftArm).Until =
+                System.TimeSpan.Zero;
+            entities.System<WolfmedTreatmentVisualsSystem>().Update(0f);
+            entities.System<WolfmedTreatmentVisualsSystem>().Refresh(body);
+            Assert.That(Overlay(entities, body, HumanoidVisualLayers.LArm),
+                Is.EqualTo(WolfmedPartTreatment.None), "and comes off once its time is up.");
         });
 
         await Pair.RunTicksSync(10);

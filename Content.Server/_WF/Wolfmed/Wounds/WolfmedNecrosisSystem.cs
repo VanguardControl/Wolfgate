@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared.FixedPoint;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.CCVar;
@@ -30,6 +31,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
 {
     private const float TickSeconds = 5f;
 
+    [Dependency] private Content.Shared._WF.Wolfmed.Examine.WolfmedVisualInspectionSystem _look = default!;
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -66,15 +68,46 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
 
     private void OnGetVerbs(Entity<WoundHostComponent> body, ref GetVerbsEvent<Verb> args)
     {
-        if (!args.CanInteract || !args.CanAccess || FindTourniquet(body, args.User) is not { } part)
+        if (!args.CanInteract || !args.CanAccess)
             return;
 
+        // One entry per tourniquet, each saying whether the bleed under it has stopped. A single verb picked a
+        // limb for the medic and gave no way to tell a tourniquet that was done from one still holding an artery.
         var user = args.User;
-        args.Verbs.Add(new Verb
+        var priority = 0;
+        foreach (var (part, component) in _body.GetBodyChildren(body))
         {
-            Text = Loc.GetString("wolfmed-tourniquet-loosen-verb"),
-            Act = () => Loosen(body, part, user),
-        });
+            if (!HasComp<WolfmedTourniquetComponent>(part))
+                continue;
+
+            var target = part;
+            var holding = IsHoldingABleed(part);
+            args.Verbs.Add(new Verb
+            {
+                Category = LoosenCategory,
+                Text = Loc.GetString(holding ? "wolfmed-tourniquet-loosen-part-holding" : "wolfmed-tourniquet-loosen-part-safe",
+                    ("part", _look.PartName(part, component))),
+                Message = Loc.GetString(holding ? "wolfmed-tourniquet-loosen-holding-tip" : "wolfmed-tourniquet-loosen-safe-tip"),
+                Priority = priority--,
+                Act = () => Loosen(body, target, user),
+            });
+        }
+    }
+
+    private static readonly VerbCategory LoosenCategory = new("wolfmed-tourniquet-loosen-verb", null);
+
+    /// <summary>Whether taking this tourniquet off would let a wound bleed again.</summary>
+    public bool IsHoldingABleed(EntityUid part)
+    {
+        foreach (var wound in _wounds.GetWounds(part))
+        {
+            if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
+                bleeding.Treatment == BleedingTreatment.Clamped &&
+                bleeding.BleedingSeverity > FixedPoint2.Zero)
+                return true;
+        }
+
+        return false;
     }
 
     /// <inheritdoc/>
@@ -249,6 +282,8 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         if (!TryComp(part, out WolfmedTourniquetComponent? tourniquet))
             return false;
 
+        var holding = IsHoldingABleed(part);
+
         foreach (var wound in _wounds.GetWounds(part).ToArray())
         {
             if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
@@ -260,7 +295,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         ClearSource(part, WolfmedNecrosisSource.Tourniquet);
 
         _audio.PlayPvs(tourniquet.LoosenSound, body);
-        _popup.PopupEntity(Loc.GetString("wolfmed-tourniquet-loosened"), body, user);
+        _popup.PopupEntity(Loc.GetString(holding ? "wolfmed-tourniquet-loosened" : "wolfmed-tourniquet-loosened-safe"), body, user);
         return true;
     }
 

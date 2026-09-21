@@ -57,6 +57,13 @@ public sealed partial class WolfmedTreatmentOverlayProfilePrototype : IPrototype
     [DataField]
     public HashSet<BleedingTreatment> Dressings = new();
 
+    /// <summary>
+    /// How long a dressing stays on the limb after the wound under it has closed. A bandage that vanished the
+    /// moment the treatment worked told the medic nothing had been done.
+    /// </summary>
+    [DataField]
+    public TimeSpan DressingLinger = TimeSpan.FromMinutes(5);
+
     /// <summary>The RSI state for one layer under one treatment, or null when there is no art for it.</summary>
     public string? GetState(HumanoidVisualLayers layer, WolfmedPartTreatment treatment)
     {

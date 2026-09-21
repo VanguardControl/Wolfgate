@@ -63,6 +63,11 @@ wolfmed-necrosis-warning = Something in your limb has gone cold and numb.
 wolfmed-necrosis-dead = The flesh there has died.
 wolfmed-tourniquet-loosen-verb = Loosen tourniquet
 wolfmed-tourniquet-loosened = The tourniquet comes off and the bleeding starts again.
+wolfmed-tourniquet-loosened-safe = The tourniquet comes off. Nothing under it is bleeding any more.
+wolfmed-tourniquet-loosen-part-holding = { CAPITALIZE($part) } (still holding a bleed)
+wolfmed-tourniquet-loosen-part-safe = { CAPITALIZE($part) } (bleeding stopped, safe to remove)
+wolfmed-tourniquet-loosen-holding-tip = The wound under this tourniquet will bleed again the moment it comes off. Close it first.
+wolfmed-tourniquet-loosen-safe-tip = Nothing under this tourniquet is bleeding. Take it off before the limb starts to die.
 
 health-analyzer-wound-infection-local = infection: local
 health-analyzer-wound-infection-spreading = infection: spreading

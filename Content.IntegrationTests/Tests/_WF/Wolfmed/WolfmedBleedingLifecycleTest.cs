@@ -139,4 +139,48 @@ public sealed class WolfmedBleedingLifecycleTest : GameTest
             });
         });
     }
+
+    /// <summary>
+    /// A bandage stays on the limb after the wound under it has closed, and a tourniquet knows whether it is still
+    /// holding a bleed. Both are what the medic reads to know what is done and what is safe to take off.
+    /// </summary>
+    [Test]
+    public async Task DressingLingersAndTourniquetKnowsItsJobTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var bleeding = entities.System<WoundBleedingSystem>();
+            var visuals = entities.System<Content.Server._WF.Wolfmed.Damage.WolfmedTreatmentVisualsSystem>();
+            var necrosis = entities.System<Content.Server._WF.Wolfmed.Wounds.WolfmedNecrosisSystem>();
+            var profile = server.ProtoMan.Index<Content.Shared._WF.Wolfmed.Damage.WolfmedTreatmentOverlayProfilePrototype>(
+                "WolfmedTreatmentOverlayDefault");
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .First(part => part.Component.PartType == BodyPartType.Arm).Id;
+
+            var cut = wounds.CreateOrMergeWound(arm, "SlashWound", 20)!.Value;
+            Assert.That(bleeding.ReducePartBleeding(arm, 1000, dressing: true));
+            Assert.That(visuals.GetTreatment(arm, profile),
+                Is.EqualTo(Content.Shared._WF.Wolfmed.Damage.WolfmedPartTreatment.Gauze));
+
+            // The wound closes and goes. The bandage does not go with it.
+            Assert.That(wounds.RemoveWound(cut));
+            Assert.That(visuals.GetTreatment(arm, profile),
+                Is.EqualTo(Content.Shared._WF.Wolfmed.Damage.WolfmedPartTreatment.Gauze),
+                "a dressing that vanished when the treatment worked told the medic nothing had been done.");
+
+            // A tourniquet over an open bleed is holding it; over nothing, it is safe to take off.
+            var second = wounds.CreateOrMergeWound(arm, "SlashWound", 20)!.Value;
+            Assert.That(bleeding.SetTreatment(second, BleedingTreatment.Clamped));
+            Assert.That(necrosis.IsHoldingABleed(arm), Is.True);
+            Assert.That(bleeding.ReduceBleeding(second, 1000));
+            Assert.That(necrosis.IsHoldingABleed(arm), Is.False);
+        });
+    }
 }

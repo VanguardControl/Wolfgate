@@ -13,6 +13,7 @@ public sealed partial class HealthExaminableSystem : EntitySystem
 {
     [Dependency] private ExamineSystemShared _examineSystem = default!;
     [Dependency] private WolfmedVisualInspectionSystem _look = default!; // WOLFGATE: LOOK
+    [Dependency] private Robust.Shared.Network.INetManager _net = default!; // WOLFGATE: LOOK
 
     public override void Initialize()
     {
@@ -33,6 +34,12 @@ public sealed partial class HealthExaminableSystem : EntitySystem
         {
             Act = () =>
             {
+                // WOLFGATE: a wound host's look is the server's to build. The verb is predicted, so the client ran
+                // this too, from its own partial copy of the wounds, and that tooltip (missing the bleed, missing
+                // wounds) could be the one left on screen.
+                if (look && _net.IsClient)
+                    return;
+
                 var markup = CreateMarkup(uid, args.User, component, damage, detailsRange); // WOLFGATE: GUARD F, examiner param for self-vs-other pain visibility; LOOK, examine range
                 _examineSystem.SendExamineTooltip(args.User, uid, markup, false, false);
             },

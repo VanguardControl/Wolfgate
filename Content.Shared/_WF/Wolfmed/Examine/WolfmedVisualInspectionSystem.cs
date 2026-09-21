@@ -420,7 +420,7 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
     }
 
     /// <summary>The part's name in the lower case a sentence wants, falling back to the entity's own.</summary>
-    private string PartName(EntityUid part, BodyPartComponent component)
+    public string PartName(EntityUid part, BodyPartComponent component)
     {
         if (_body.GetTargetBodyPart(component) is not { } target)
             return Name(part);
