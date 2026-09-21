@@ -2,3 +2,10 @@
   license: "CC-BY-SA-3.0"
   copyright: "Rain loops by Cuboos from royalty-free sources, taken from tgstation (sound/ambience/weather/rain)."
   source: "https://github.com/tgstation/tgstation/pull/89550"
+
+# Supplied by the maintainer (2026-09-21), converted to mono 44.1 kHz Vorbis on import.
+# TODO: licence, author and source are still to be filled in.
+- files: ["thunder_1.ogg", "thunder_2.ogg"]
+  license: "TODO"
+  copyright: "TODO: attribution pending from the maintainer"
+  source: "TODO"

@@ -2,6 +2,8 @@ using System.Numerics;
 using Content.Server.Electrocution;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Mobs.Components;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
@@ -21,8 +23,16 @@ public sealed partial class WFPlanetWeatherSystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private ISharedPlayerManager _players = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     public static readonly EntProtoId Thunderbolt = "WFThunderbolt";
+
+    /// <summary>
+    /// The thunder: one of two, at the strike, for everyone on the surface. Thunder carries for miles, so it is sent
+    /// to the whole map and left to fall off with distance rather than cut at PVS range.
+    /// </summary>
+    public static readonly SoundSpecifier ThunderSound = new SoundCollectionSpecifier("WFThunder",
+        AudioParams.Default.WithMaxDistance(120f).WithRolloffFactor(0.4f).WithVariation(0.05f));
 
     /// <summary>Seconds between bolts while a thunderstorm's main phase runs.</summary>
     private const float ThunderMinSeconds = 6f;
@@ -130,6 +140,7 @@ public sealed partial class WFPlanetWeatherSystem
 
             var coords = _maps.GridTileToLocal(ground, grid, tile.GridIndices);
             Spawn(Thunderbolt, coords);
+            _audio.PlayStatic(ThunderSound, Filter.BroadcastMap(Transform(ground).MapID), coords, true);
 
             _struck.Clear();
             _lookup.GetEntitiesInRange(coords, 0.7f, _struck);

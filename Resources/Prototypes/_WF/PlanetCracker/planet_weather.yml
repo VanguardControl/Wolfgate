@@ -236,11 +236,10 @@
     netsync: false
   - type: TimedDespawn
     lifetime: 0.6
-  - type: EmitSoundOnSpawn
-    sound:
-      path: /Audio/Effects/Lightning/lightningbolt.ogg
-      params:
-        volume: 6
-        maxDistance: 60
-        rolloffFactor: 0.5
-        variation: 0.1
+
+# The thunder is played by the strike itself, at the spot: it outlasts the bolt by seconds.
+- type: soundCollection
+  id: WFThunder
+  files:
+  - /Audio/_WF/Weather/thunder_1.ogg
+  - /Audio/_WF/Weather/thunder_2.ogg
