@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server.Power.Components;
@@ -39,6 +40,9 @@ public sealed partial class ShipPaFeedbackObserver : EntitySystem
 [TestOf(typeof(Content.Server._WF.ShipPa.ShipAlertSystem))]
 public sealed class ShipPaFeedbackTest : InteractionTest
 {
+    /// <summary>Real time allowed for the downloader to fail and the popup to reach the client.</summary>
+    private static readonly TimeSpan FailureTimeout = TimeSpan.FromSeconds(30);
+
     [Test]
     public async Task DelayedInternetSoundFailureReachesRequestingPlayer()
     {
@@ -76,9 +80,14 @@ public sealed class ShipPaFeedbackTest : InteractionTest
                     "The accepted request should remain tracked until its fetch fails.");
             });
 
-            const int maxTicks = 120;
-            for (var i = 0; i < maxTicks && !observer.CursorPopups.Any(p => p.Type == PopupType.MediumCaution); i++)
+            // The fetch fails on a worker thread in real time, and test ticks run as fast as they can,
+            // so a tick budget alone can run out before a loaded machine has even tried the executable.
+            var timeout = Stopwatch.StartNew();
+            while (timeout.Elapsed < FailureTimeout && !observer.CursorPopups.Any(p => p.Type == PopupType.MediumCaution))
+            {
                 await RunTicks(1);
+                await Task.Delay(10);
+            }
 
             Assert.That(observer.CursorPopups, Has.Some.Matches<PopupCursorEvent>(popup =>
                     popup.Type == PopupType.MediumCaution && popup.Message.Contains("yt-dlp wasn't found")),
