@@ -258,3 +258,14 @@ Entries:
   id: 100023
   time: '2026-09-20T18:21:29.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/45
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: The mosin is now a loadout weapon for 20k for contractors.
+    - type: Add
+      message: >-
+        The VG commander now spawns with a voucher for their wolfsnake ship,
+        backpack.
+  id: 100024
+  time: '2026-09-21T03:53:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/50

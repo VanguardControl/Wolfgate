@@ -27,12 +27,12 @@ public sealed partial class HitscanBasicDamageSystem : EntitySystem
             var damageDealt = _damage.TryChangeDamage(hitEntity,
                 dmg,
                 origin: args.Gun,
+                tool: ent.Owner, // Mono - we need this. Wolfmed's wound rules read it too, to tell hitscan from anything else.
                 armorPenetration: ent.Comp.ArmorPenetration,
-                tool: ent, // WOLFGATE (P6): the beam entity, so Wolfmed's wound rules can tell hitscan from anything else.
                 ignoreResistances: ent.Comp.IgnoreResistances); // Mono - AP
 
             if (damageDealt == null)
-                return;
+                continue;
 
             var damageEvent = new HitscanDamageDealtEvent
             {

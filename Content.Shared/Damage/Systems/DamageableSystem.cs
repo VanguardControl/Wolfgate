@@ -215,7 +215,7 @@ namespace Content.Shared.Damage
 
             var before = new BeforeDamageChangedEvent(damage, origin, targetPart, //Shitmed Change
                 false, originFlag, // Mono: originFlag
-                armorPenetration, tool); // WOLFGATE: D23, Wolfmed routing cancels before the resistance block, so the routed pass needs these.
+                armorPenetration, tool); // WOLFGATE: D23, Wolfmed routing cancels before the resistance block, so the routed pass needs these. Mono: tool also serves shield-breaking ammunition.
             RaiseLocalEvent(uid.Value, ref before);
 
             if (before.Cancelled)
@@ -503,8 +503,12 @@ namespace Content.Shared.Damage
         bool Cancelled = false,
         DamageOriginFlag? OriginFlag = null, // Mono: OriginFlag
         float ArmorPenetration = 0f, // WOLFGATE: D23, armour penetration for a handler that re-applies the damage itself.
-        EntityUid? Tool = null, // WOLFGATE: D23, the tool that dealt it, same reason.
-        DamageSpecifier? Applied = null); // WOLFGATE: D27, what a cancelling handler actually applied; TryChangeDamage returns it.
+        EntityUid? Tool = null, // WOLFGATE: D23, the tool that dealt it, same reason. Mono: early shield interception reads it too.
+        DamageSpecifier? Applied = null) // WOLFGATE: D27, what a cancelling handler actually applied; TryChangeDamage returns it.
+        : IInventoryRelayEvent // Mono: early shield interception
+    {
+        public SlotFlags TargetSlots => ~SlotFlags.POCKET;
+    }
 
     /// <summary>
     ///     Shitmed Change: Raised on parts before damage is done so we can cancel the damage if they evade.

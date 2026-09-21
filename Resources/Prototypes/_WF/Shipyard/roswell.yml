@@ -1,6 +1,6 @@
 - type: vessel
   id: WFRoswell
-  parent: BaseVesselAntag
+  parent: BaseVesselIFFDisabled
   name: Judge Roswell
   description: A compact arrestor and patrol vessel fitted with tractor beam equipment.
   price: 174669

@@ -297,7 +297,7 @@ public sealed partial class GunSystem : SharedGunSystem
                         PredictCartridge(volley, cartridge); // WOLFGATE
                         SetCartridgeSpent(ent!.Value, cartridge, true);
                         MuzzleFlash(gunUid, cartridge, worldAngle, user);
-                        Audio.PlayPredicted(gun.SoundGunshotModified, gunUid, user);
+                        Audio.PlayPredicted(cartridge.SoundGunshot ?? gun.SoundGunshotModified, gunUid, user);
                         Recoil(user, direction, gun.CameraRecoilScalarModified);
                         // TODO: Can't predict entity deletions.
                         //if (cartridge.DeleteOnSpawn)
