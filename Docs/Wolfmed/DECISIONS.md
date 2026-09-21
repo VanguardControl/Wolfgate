@@ -330,3 +330,11 @@ clamped to `wolfmed.aim_worst_chance` (0.15) .. `wolfmed.aim_best_chance` (0.9).
 Only hits whose tool is a projectile are rolled; melee, thrown items and explicit `targetPart` calls are untouched. Hitscan
 already lands on a random part (its origin is the gun, which has no targeting). `wolfmed.aim_scatter` turns it off.
 Hook: one marked line in `WoundDamageRoutingSystem`. Test: `WolfmedAimScatterTest`.
+
+## Blast dismemberment (2026-09-20)
+
+Onyx's explosion severing reads one limb's share of the blast against that limb's totals, so it almost never fires. After a
+blast is routed, `WolfmedExplosionSystem.TryBlastDismember` rolls on the whole blast (armour already applied): chance per limb =
+(total - `wolfmed.blast_dismember_min` 30) / (`wolfmed.blast_dismember_full` 150 - min) x `wolfmed.blast_dismember_chance` 0.8,
+rolling 1 + total/full random limbs through `AmputationSystem.TryAmputate`. Torso never; head only with
+`wolfmed.blast_dismember_head`. `wolfmed.blast_dismember` turns it off. Test: `WolfmedExplosionTest.BlastSizeRollsLimbsOffTest`.

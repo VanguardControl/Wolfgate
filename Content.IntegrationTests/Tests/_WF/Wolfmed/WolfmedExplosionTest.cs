@@ -141,6 +141,7 @@ public sealed class WolfmedExplosionTest : GameTest
             var explosion = entities.System<WolfmedExplosionSystem>();
             var graph = entities.System<SharedBodySystem>();
 
+            explosion.ForcedRoll = 1f; // no limb loss here, this test counts damaged parts.
             var host = entities.SpawnEntity("MobHuman", map.GridCoords);
             Assert.That(entities.HasComponent<WoundHostComponent>(host), Is.True);
             Assert.That(explosion.TryApplyExplosionDamage(host, Spec("Blunt", 40)), Is.True,
@@ -151,6 +152,7 @@ public sealed class WolfmedExplosionTest : GameTest
                                damageable.TotalDamage > FixedPoint2.Zero);
             Assert.That(hit, Is.GreaterThanOrEqualTo(2),
                 "the blast must spread across limbs instead of landing on one random part.");
+            explosion.ForcedRoll = null;
 
             var control = entities.SpawnEntity("WolfmedSurgeryControlBody", map.GridCoords);
             Assert.That(entities.HasComponent<WoundHostComponent>(control), Is.False);
@@ -165,6 +167,46 @@ public sealed class WolfmedExplosionTest : GameTest
                 Assert.That(Total(entities, control), Is.EqualTo(FixedPoint2.Zero));
             });
         });
+    }
+
+    /// <summary>A big blast tears limbs off by a roll on its size; a small one never does, and the head and torso stay.</summary>
+    [Test]
+    public async Task BlastSizeRollsLimbsOffTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        var explosion = server.System<WolfmedExplosionSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var graph = entities.System<SharedBodySystem>();
+            int Limbs(EntityUid body) => graph.GetBodyChildren(body).Count();
+
+            explosion.ForcedRoll = 0f;
+            var small = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var before = Limbs(small);
+            explosion.TryApplyExplosionDamage(small, Spec("Blunt", 25));
+            Assert.That(Limbs(small), Is.EqualTo(before), "a blast under the minimum never severs.");
+
+            // 200 is past the full mark of 150: two limbs are rolled, and the forced roll lands both.
+            var big = entities.SpawnEntity("MobHuman", map.GridCoords);
+            explosion.TryApplyExplosionDamage(big, Spec("Blunt", 200));
+            Assert.Multiple(() =>
+            {
+                Assert.That(Limbs(big), Is.LessThanOrEqualTo(before - 2));
+                Assert.That(graph.GetBodyChildrenOfType(big, BodyPartType.Head).Any(), Is.True);
+                Assert.That(graph.GetBodyChildrenOfType(big, BodyPartType.Torso).Any(), Is.True);
+            });
+
+            explosion.ForcedRoll = 0.99f;
+            var lucky = entities.SpawnEntity("MobHuman", map.GridCoords);
+            explosion.TryApplyExplosionDamage(lucky, Spec("Blunt", 200));
+            Assert.That(Limbs(lucky), Is.EqualTo(before), "a failed roll leaves every limb on.");
+            explosion.ForcedRoll = null;
+        });
+        await server.WaitPost(() => explosion.ForcedRoll = null);
     }
 
     /// <summary>

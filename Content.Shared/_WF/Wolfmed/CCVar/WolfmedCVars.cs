@@ -94,4 +94,24 @@ public sealed class WolfmedCVars
     /// <summary>Floor for the chance to hit the aimed part, however wide the spread or long the range.</summary>
     public static readonly CVarDef<float> AimWorstChance =
         CVarDef.Create("wolfmed.aim_worst_chance", 0.15f, CVar.SERVERONLY);
+
+    /// <summary>Whether a blast can tear limbs off outright.</summary>
+    public static readonly CVarDef<bool> BlastDismember =
+        CVarDef.Create("wolfmed.blast_dismember", true, CVar.SERVERONLY);
+
+    /// <summary>Blast damage to one body below which no limb is ever torn off.</summary>
+    public static readonly CVarDef<float> BlastDismemberMin =
+        CVarDef.Create("wolfmed.blast_dismember_min", 30f, CVar.SERVERONLY);
+
+    /// <summary>Blast damage at which the per-limb chance peaks. Every multiple of it also rolls one more limb.</summary>
+    public static readonly CVarDef<float> BlastDismemberFull =
+        CVarDef.Create("wolfmed.blast_dismember_full", 150f, CVar.SERVERONLY);
+
+    /// <summary>Peak chance for a rolled limb to come off.</summary>
+    public static readonly CVarDef<float> BlastDismemberChance =
+        CVarDef.Create("wolfmed.blast_dismember_chance", 0.8f, CVar.SERVERONLY);
+
+    /// <summary>Whether a blast may take the head as well.</summary>
+    public static readonly CVarDef<bool> BlastDismemberHead =
+        CVarDef.Create("wolfmed.blast_dismember_head", false, CVar.SERVERONLY);
 }
