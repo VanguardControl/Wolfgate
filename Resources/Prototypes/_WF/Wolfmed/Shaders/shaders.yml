@@ -1,0 +1,5 @@
+# Fading-out view of a body close to death (WolfmedDyingEffectsSystem).
+- type: shader
+  id: WolfmedDying
+  kind: source
+  path: "/Textures/_WF/Wolfmed/Shaders/dying.swsl"

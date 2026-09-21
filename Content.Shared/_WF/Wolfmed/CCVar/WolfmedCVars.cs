@@ -89,11 +89,11 @@ public sealed class WolfmedCVars
 
     /// <summary>Chance to hit the aimed part with a tight gun or at point blank.</summary>
     public static readonly CVarDef<float> AimBestChance =
-        CVarDef.Create("wolfmed.aim_best_chance", 0.9f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.aim_best_chance", 0.75f, CVar.SERVERONLY);
 
     /// <summary>Floor for the chance to hit the aimed part, however wide the spread or long the range.</summary>
     public static readonly CVarDef<float> AimWorstChance =
-        CVarDef.Create("wolfmed.aim_worst_chance", 0.15f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.aim_worst_chance", 0.1f, CVar.SERVERONLY);
 
     /// <summary>Whether a blast can tear limbs off outright.</summary>
     public static readonly CVarDef<bool> BlastDismember =
@@ -114,4 +114,8 @@ public sealed class WolfmedCVars
     /// <summary>Whether a blast may take the head as well.</summary>
     public static readonly CVarDef<bool> BlastDismemberHead =
         CVarDef.Create("wolfmed.blast_dismember_head", false, CVar.SERVERONLY);
+
+    /// <summary>Client: the fading-out view and camera sway when close to death.</summary>
+    public static readonly CVarDef<bool> DyingEffects =
+        CVarDef.Create("wolfmed.dying_effects", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

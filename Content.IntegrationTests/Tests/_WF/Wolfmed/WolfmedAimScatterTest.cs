@@ -78,8 +78,8 @@ public sealed class WolfmedAimScatterTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(tight, Is.EqualTo(0.9f).Within(0.001f));
-                Assert.That(hot, Is.EqualTo(0.15f).Within(0.001f));
+                Assert.That(tight, Is.EqualTo(0.75f).Within(0.001f));
+                Assert.That(hot, Is.EqualTo(0.1f).Within(0.001f));
             });
         });
         await server.WaitPost(() => aim.ForcedRoll = null);

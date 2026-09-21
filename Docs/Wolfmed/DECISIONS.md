@@ -338,3 +338,12 @@ blast is routed, `WolfmedExplosionSystem.TryBlastDismember` rolls on the whole b
 (total - `wolfmed.blast_dismember_min` 30) / (`wolfmed.blast_dismember_full` 150 - min) x `wolfmed.blast_dismember_chance` 0.8,
 rolling 1 + total/full random limbs through `AmputationSystem.TryAmputate`. Torso never; head only with
 `wolfmed.blast_dismember_head`. `wolfmed.blast_dismember` turns it off. Test: `WolfmedExplosionTest.BlastSizeRollsLimbsOffTest`.
+
+## Dying view (2026-09-20)
+
+Client-only `WolfmedDyingEffectsSystem` + `WolfmedDyingOverlay` (shader `WolfmedDying`, `Textures/_WF/Wolfmed/Shaders/dying.swsl`).
+A level 0..1 starts at half the crit threshold, reaches 0.55 on going critical and 1 at the dead threshold, eased so it never pops.
+It drives: colour draining to cold grey, double vision, a tunnel that squeezes on a heartbeat (pulse races toward crit, then slows),
+eyes drifting shut every few seconds past 0.72, and a slow camera sway through `GetEyeOffsetEvent` on a client-only
+`WolfmedDyingSwayComponent`. Sway honours `accessibility.reduced_motion` and the screen shake slider; `wolfmed.dying_effects`
+(client) turns it all off. Aim scatter defaults moved to 0.75 best / 0.1 worst.
