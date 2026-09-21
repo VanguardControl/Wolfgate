@@ -471,6 +471,44 @@ public sealed class WolfmedBallisticWoundTest : GameTest
         });
     }
 
+    /// <summary>
+    /// Sutures close a gunshot wound in a sane number of uses. The wound's healingMultiplier (how much removed
+    /// damage takes off it) was also applied to items working on the wound directly, so a suture closed three
+    /// severity a time and a critical wound outlasted twenty of them.
+    /// </summary>
+    [Test]
+    public async Task SuturesCloseACriticalGunshotWoundTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var healing = entities.System<WoundHealingSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var torso = Part(entities, body, BodyPartType.Torso, BodyPartSymmetry.None);
+
+            // The wound alone, with no damage left on the part: the state a patient is in once the damage has been
+            // treated and only the hole remains.
+            Assert.That(wounds.CreateOrMergeWound(torso, "WolfmedGunshotWound", 100), Is.Not.Null);
+
+            var suture = entities.SpawnEntity("MedicatedSuture", map.GridCoords);
+            var item = (suture, entities.GetComponent<Content.Server.Medical.Components.HealingComponent>(suture));
+            var uses = 0;
+            while (uses < 30 && healing.TryApplyHealing(body, torso, item, body, out _, out _))
+                uses++;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WolfmedGunshotWound"));
+                Assert.That(uses, Is.LessThanOrEqualTo(8), "a critical wound is a handful of sutures, not a box of them.");
+            });
+        });
+    }
+
     private static void Hit(IEntityManager entities, EntityUid body, TargetBodyPart target, EntityUid tool, int piercing)
     {
         entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Piercing", piercing),

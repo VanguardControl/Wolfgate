@@ -1,5 +1,6 @@
 using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Examine;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -48,6 +49,41 @@ public static class WolfmedWoundStyle
     // UI3: the card of the part the medic is aiming at.
     public static readonly Color CardTargeted = Color.FromHex("#1a1a20");
     public static readonly Color TargetedBorder = Color.FromHex("#ffcf6b");
+
+    /// <summary>
+    /// LOOK2: the same colours by the palette key a finding carries, so the examine's rows and the analyzer's
+    /// cards tint the same glyph the same way. The keys are <see cref="WolfmedLookPalette"/>'s; the test
+    /// asserts the two lists match, which is what stops a typo becoming a grey chip.
+    /// </summary>
+    private static readonly Dictionary<string, Color> LookColours = new()
+    {
+        ["cut"] = Cut,
+        ["puncture"] = Puncture,
+        ["ballistic"] = Ballistic,
+        ["blunt"] = Blunt,
+        ["burn"] = Burn,
+        ["internal"] = Internal,
+        ["infection"] = Infection,
+        ["mechanical"] = Mechanical,
+        ["other"] = Other,
+        ["bleeding"] = Bleeding,
+        ["internal_bleeding"] = InternalBleeding,
+        ["fracture"] = Fracture,
+        ["embedded"] = Embedded,
+        ["necrosis"] = Necrosis,
+        ["overheating"] = Overheating,
+        ["scar"] = Scar,
+        ["pain"] = Pain,
+        ["impaired"] = Impaired,
+        ["clotting"] = Clotting,
+        [WolfmedLookPalette.Neutral] = CardAccentNeutral,
+    };
+
+    /// <summary>Every key this palette answers to.</summary>
+    public static IReadOnlyCollection<string> LookKeys => LookColours.Keys;
+
+    /// <summary>The colour for a finding's palette key, grey for one nobody declared.</summary>
+    public static Color Look(string key) => LookColours.TryGetValue(key, out var colour) ? colour : Other;
 
     public static Color Category(WolfmedWoundCategory category) => category switch
     {

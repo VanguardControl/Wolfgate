@@ -3800,3 +3800,42 @@ examiner could actually see. Numbers, rates, severities and everything under the
   `wolfmedLookProfile` slot table, per the spec's fallback list. A mask does not hide a head.
 - **A dressed wound is dropped from the part's bleeding total outright**, so a bandaged artery reads as
   dressed rather than as dressed and spurting. That is the spec's rule 3 taken literally.
+
+## Final stages: LOOK2 (2026-09-20)
+
+The visual inspection LOOK shipped as prose is now rows: one per body part with something to show, marked
+in the colour of the worst finding on it, the part's name in a shared column, and each finding as a chip
+with the health analyzer's own pictogram, two to four words, and the full sentence on hover. What is
+visible to whom is unchanged; only the presentation is.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedLookReport.cs` | new | `WolfmedLookReport` / `WolfmedLookPart` / `WolfmedLookObservation` (icon, colour, label, sentence), `WolfmedLookClasses` (the nine finding classes the system builds itself), `WolfmedLookPalette` (the colour keys the data may name) |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedLookTag.cs` | new | Writes and reads `[wolfmedlook]` / `[wolfmedlookfinding]` / `[wolfmedlookend]`, in the same shape as Onyx's `partstatus`: nodes for the rows, a plain line after them for the chat copy |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | `GetLook` returns the structured report (public, so tests read findings rather than markup); `AddLookMarkup` writes it through the tag. Each finding is an object: glyph from the wound's analyzer category or the look's override, colour from the palette, label from the data, sentence from the description |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedLookPrototypes.cs` | modified | `label` / `hintLabel` / `icon` / `colour` on `wolfmedWoundLook` and on each stage; `classes` and `accentPriority` on `wolfmedLookProfile`; new `WolfmedLookGlyph` |
+| `Content.Client/_WF/Wolfmed/Examine/ExamineSystem.WolfmedLook.cs` | new | Partial of the client `ExamineSystem`: builds the rows in a width-capped `ScrollContainer`, lines up the name columns, keeps the whole-body lines as text and skips the per-part plain line |
+| `Content.Client/_WF/Wolfmed/Examine/WolfmedLookControls.cs` | new | `WolfmedLookRow` (left marker, name column, chips), `WolfmedLookChip` (tinted glyph, label, tooltip, `MouseFilter.Pass`), `WolfmedLookFlow` (wrapping layout for the chips) |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedWoundStyle.cs` | modified | `Look(key)` and `LookKeys`: the analyzer's palette addressed by the key a finding carries, so examine and analyzer tint the same glyph alike |
+| `Content.Client/Examine/ExamineSystem.cs` | modified | HOOK 14, one marked line: the inspection rows first, then Onyx's part-status boxes, then the plain label |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml` | modified | A `label` on every description and a `hintLabel` on every self hint; `icon`/`colour` overrides where the category glyph would mislead (fractures, dislocation, necrosis, arterial bleed, shrapnel, lodged round, overheating, stumps, servos, incisions, scars); the profile's `classes` table and `accentPriority` |
+| `Resources/Locale/en-US/_WF/wolfmed/look.ftl` | modified | 132 `-short` row labels, one per finding the examine can draw |
+| `Tools/_WF/wolfmed/gen_analyzer_icons.py` | modified | `LOOK_STATES`: `dressing`, `splint`, `tourniquet`, plus `write_meta`/`all_states` so a new state can be added without rewriting the other 26 pngs |
+| `Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/` | modified | `dressing.png`, `splint.png`, `tourniquet.png` and their `meta.json` entries |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | One sentence under "Examination" on the rows, the pictograms and the hover |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualInspectionTest.cs` | modified | 13 tests: the ten visibility tests now read the structured report, plus every glyph/colour/label in the data being drawable, the markup round-tripping with a readable plain-text copy, and the client building one row per part with a tooltip on every chip |
+
+### Deviations from the spec
+
+- **Labels are a data field, but a missing one falls back to the description key's `-short` form and then
+  to the whole sentence.** The findings the system builds itself (bleeding bands, dressings, splints,
+  tourniquet, infection, scars, numbness, pain) have their keys built in C# already, so they use the
+  suffix rather than a `label:` field; only wound looks carry one. The test still requires the field on
+  every wound description, so the fallback never fires in shipped data.
+- **Onyx's `health-examinable-pain-*` keys have no `-short` form.** They are already two words
+  ("hurts badly"), and they are vendored; the fallback uses them as labels verbatim.
+- **Self hints wear the pain glyph**, not their wound's category glyph: a hint is what the patient feels,
+  not something anybody can see.
+- **Rows have no expander.** The full sentence lives in the chip's tooltip, which is what the owner asked
+  for; hover works inside the examine popup, since hit testing walks to the deepest control that does not
+  ignore the mouse and the examine buttons in the same popup already have tooltips.

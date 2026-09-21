@@ -446,7 +446,13 @@ public sealed partial class WoundSystem : EntitySystem
                 if (settings.SeverityMultiplier <= 0f)
                     continue;
 
-                var remaining = -amount * settings.SeverityMultiplier * prototype.HealingMultiplier;
+                // WOLFGATE: an item working on the wound itself closes it at full strength. HealingMultiplier is how much
+                // of REMOVED DAMAGE comes off a wound (HandlePartDamageApplied); applied here as well it left a suture
+                // closing three severity a use, and a critical gunshot wound outlasting twenty of them. Zero still means
+                // "no topical closes this" (charring, a cut tendon, a lodged round).
+                var remaining = prototype.HealingMultiplier > 0f
+                    ? -amount * settings.SeverityMultiplier
+                    : FixedPoint2.Zero;
                 foreach (var wound in GetWounds(part).ToArray())
                 {
                     if (remaining <= FixedPoint2.Zero || wound.Comp.Prototype != prototype.ID ||

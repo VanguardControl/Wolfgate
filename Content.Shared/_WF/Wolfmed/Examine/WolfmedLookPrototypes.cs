@@ -32,12 +32,36 @@ public readonly struct WolfmedLookFinding
     /// <summary>What the patient notices instead when the finding itself is not visible.</summary>
     public readonly LocId? SelfHint;
 
-    public WolfmedLookFinding(LocId? description, WolfmedLookVisibility visibility, bool distant, LocId? selfHint)
+    /// <summary>LOOK2: the two-to-four word form of <see cref="Description"/> for the row.</summary>
+    public readonly LocId? Label;
+
+    /// <summary>LOOK2: the short form of <see cref="SelfHint"/>.</summary>
+    public readonly LocId? HintLabel;
+
+    /// <summary>LOOK2: glyph in analyzer_icons.rsi, or null for the wound's own category glyph.</summary>
+    public readonly string? Icon;
+
+    /// <summary>LOOK2: palette key, or null for the wound's own category colour.</summary>
+    public readonly string? Colour;
+
+    public WolfmedLookFinding(
+        LocId? description,
+        WolfmedLookVisibility visibility,
+        bool distant,
+        LocId? selfHint,
+        LocId? label,
+        LocId? hintLabel,
+        string? icon,
+        string? colour)
     {
         Description = description;
         Visibility = visibility;
         Distant = distant;
         SelfHint = selfHint;
+        Label = label;
+        HintLabel = hintLabel;
+        Icon = icon;
+        Colour = colour;
     }
 }
 
@@ -56,6 +80,20 @@ public sealed partial class WolfmedLookStage
 
     [DataField]
     public LocId? SelfHint;
+
+    /// <summary>LOOK2: the row label for this stage.</summary>
+    [DataField]
+    public LocId? Label;
+
+    /// <summary>LOOK2: the row label for this stage's self hint.</summary>
+    [DataField]
+    public LocId? HintLabel;
+
+    [DataField]
+    public string? Icon;
+
+    [DataField]
+    public string? Colour;
 }
 
 /// <summary>
@@ -90,6 +128,25 @@ public sealed partial class WolfmedWoundLookPrototype : IPrototype
     [DataField]
     public LocId? SelfHint;
 
+    /// <summary>LOOK2: the row label for <see cref="Description"/>, two to four words.</summary>
+    [DataField]
+    public LocId? Label;
+
+    /// <summary>LOOK2: the row label for <see cref="SelfHint"/>.</summary>
+    [DataField]
+    public LocId? HintLabel;
+
+    /// <summary>
+    /// LOOK2: glyph in analyzer_icons.rsi. Unset means the wound's own category glyph, which is what nearly
+    /// every wound wants; a fracture or a dead limb reads better as its condition.
+    /// </summary>
+    [DataField]
+    public string? Icon;
+
+    /// <summary>LOOK2: palette key. Unset means the wound's category colour.</summary>
+    [DataField]
+    public string? Colour;
+
     /// <summary>Per wound-stage overrides, keyed by the stage ids in the wound prototype's own table.</summary>
     [DataField]
     public Dictionary<string, WolfmedLookStage> Stages = new();
@@ -98,14 +155,32 @@ public sealed partial class WolfmedWoundLookPrototype : IPrototype
     public WolfmedLookFinding Resolve(string? stage)
     {
         if (stage == null || !Stages.TryGetValue(stage, out var definition))
-            return new WolfmedLookFinding(Description, Visibility, Distant, SelfHint);
+            return new WolfmedLookFinding(
+                Description, Visibility, Distant, SelfHint, Label, HintLabel, Icon, Colour);
 
         return new WolfmedLookFinding(
             definition.Description ?? Description,
             definition.Visibility ?? Visibility,
             definition.Distant ?? Distant,
-            definition.SelfHint ?? SelfHint);
+            definition.SelfHint ?? SelfHint,
+            definition.Label ?? Label,
+            definition.HintLabel ?? HintLabel,
+            definition.Icon ?? Icon,
+            definition.Colour ?? Colour);
     }
+}
+
+/// <summary>LOOK2: the glyph and colour one finding class draws with.</summary>
+[DataDefinition]
+public sealed partial class WolfmedLookGlyph
+{
+    /// <summary>State in analyzer_icons.rsi.</summary>
+    [DataField(required: true)]
+    public string Icon = string.Empty;
+
+    /// <summary>Palette key; see <see cref="WolfmedLookPalette"/>.</summary>
+    [DataField(required: true)]
+    public string Colour = string.Empty;
 }
 
 /// <summary>Which body parts an item worn in these slots hides, for clothing with no armour coverage.</summary>
@@ -162,4 +237,21 @@ public sealed partial class WolfmedLookProfilePrototype : IPrototype
     /// <summary>Sepsis progress before the patient is visibly flushed and sweating.</summary>
     [DataField]
     public float SepsisVisibleAt = 40f;
+
+    /// <summary>
+    /// LOOK2: the glyph and colour of every finding the inspection produces itself, keyed by the class names
+    /// in <see cref="WolfmedLookClasses"/>. Wound findings take their own category's glyph instead.
+    /// </summary>
+    [DataField]
+    public Dictionary<string, WolfmedLookGlyph> Classes = new();
+
+    /// <summary>
+    /// LOOK2: palette keys worst first. A part's row marker takes the first of these that any finding on it
+    /// carries, so a bleeding, bruised, splinted leg reads as bleeding.
+    /// </summary>
+    [DataField]
+    public List<string> AccentPriority = new();
+
+    /// <summary>The glyph declared for a finding class, if the data declares one.</summary>
+    public WolfmedLookGlyph? Glyph(string cls) => Classes.GetValueOrDefault(cls);
 }

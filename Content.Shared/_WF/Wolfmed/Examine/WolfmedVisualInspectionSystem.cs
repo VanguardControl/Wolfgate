@@ -14,17 +14,24 @@ using Robust.Shared.Utility;
 namespace Content.Shared._WF.Wolfmed.Examine;
 
 /// <summary>
-/// LOOK: the health examine on a wound host, rewritten as what a person could actually see. Every line it
-/// prints is something visible on the body in front of the examiner; numbers, rates, severities and
+/// LOOK: the health examine on a wound host, rewritten as what a person could actually see. Every finding it
+/// reports is something visible on the body in front of the examiner; numbers, rates, severities and
 /// anything under the skin stay on the health analyzer.
 /// </summary>
 /// <remarks>
-/// Built on demand from the examine verb, which runs on the server, so it reads server-side wound state
-/// directly and networks nothing new. What each wound looks like is data
+/// LOOK2: the result is structured rather than prose. <see cref="GetLook"/> returns one
+/// <see cref="WolfmedLookObservation"/> per finding, carrying a glyph, a palette colour, a short label and
+/// the full sentence; <see cref="AddLookMarkup"/> writes those into the examine message through
+/// <see cref="WolfmedLookTag"/> for the client to draw as rows, with the plain-text line alongside for
+/// everything else that renders the message. Runs on the server (the examine verb is not client-exclusive),
+/// so it reads wound state directly and networks nothing new. What each wound looks like is data
 /// (<see cref="WolfmedWoundLookPrototype"/>), not a switch: no wound id appears in this file.
 /// </remarks>
 public sealed class WolfmedVisualInspectionSystem : EntitySystem
 {
+    /// <summary>Appended to a finding's locale key for its row label.</summary>
+    private const string LabelSuffix = "-short";
+
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private InventorySystem _inventory = default!;
@@ -67,18 +74,48 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
     /// </summary>
     public void AddLookMarkup(EntityUid examined, EntityUid examiner, FormattedMessage message, bool detailed)
     {
+        if (GetLook(examined, examiner, detailed) is not { } report)
+            return;
+
+        if (!message.IsEmpty)
+            message.PushNewline();
+
+        message.AddMarkupOrThrow(report.Title);
+
+        foreach (var part in report.Parts)
+        {
+            // The nodes are what the client draws; the line after them is what every other reader gets.
+            WolfmedLookTag.WritePart(message, part);
+            message.PushNewline();
+            message.AddMarkupOrThrow(part.Line);
+            WolfmedLookTag.WriteEnd(message);
+        }
+
+        foreach (var note in report.Notes)
+        {
+            message.PushNewline();
+            message.AddMarkupOrThrow(note);
+        }
+    }
+
+    /// <summary>
+    /// LOOK2: everything one examiner can see on one patient, head to foot, with only the parts that have
+    /// something to show. Public so tests and any other presentation read the findings rather than markup.
+    /// </summary>
+    public WolfmedLookReport? GetLook(EntityUid examined, EntityUid examiner, bool detailed)
+    {
         var self = examined == examiner;
         detailed |= self;
 
         if (!_prototypes.TryIndex<WolfmedLookProfilePrototype>(WolfmedLookProfilePrototype.Default, out var profile))
-            return;
+            return null;
 
         var identity = Identity.Entity(examined, EntityManager);
-        if (!message.IsEmpty)
-            message.PushNewline();
-
-        message.AddMarkupOrThrow(Loc.GetString(self ? "wolfmed-look-title-self" : "wolfmed-look-title-other",
-            ("target", identity)));
+        var report = new WolfmedLookReport
+        {
+            Title = Loc.GetString(self ? "wolfmed-look-title-self" : "wolfmed-look-title-other",
+                ("target", identity)),
+        };
 
         var parts = _body.GetBodyChildren(examined)
             .OrderBy(part => PartOrder(part.Component.PartType))
@@ -86,23 +123,23 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             .ToList();
 
         var coverage = self ? null : GetCoverage(examined, profile);
-        var findings = new List<string>();
         var hidden = false;
         var lines = 0;
 
         foreach (var (part, component) in parts)
         {
-            findings.Clear();
+            var found = new WolfmedLookPart { Name = PartName(part, component) };
             var covered = coverage != null && IsCovered(coverage, component.PartType, component.Symmetry);
-            hidden |= AddPartFindings(part, self, detailed, covered, profile, findings);
-            if (findings.Count == 0)
+            hidden |= AddPartFindings(part, self, detailed, covered, profile, found);
+            if (found.Findings.Count == 0)
                 continue;
 
-            message.PushNewline();
-            message.AddMarkupOrThrow(Loc.GetString(self ? "wolfmed-look-part-self" : "wolfmed-look-part-other",
+            found.Accent = Accent(profile, found);
+            found.Line = Loc.GetString(self ? "wolfmed-look-part-self" : "wolfmed-look-part-other",
                 ("target", identity),
-                ("part", PartName(part, component)),
-                ("findings", string.Join(", ", findings))));
+                ("part", found.Name),
+                ("findings", string.Join(", ", found.Findings.Select(finding => finding.Label))));
+            report.Parts.Add(found);
             lines++;
         }
 
@@ -110,8 +147,7 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         if (detailed && TryComp(examined, out WolfmedSepsisComponent? sepsis) &&
             sepsis.Progress >= profile.SepsisVisibleAt)
         {
-            message.PushNewline();
-            message.AddMarkupOrThrow(Loc.GetString(self ? "wolfmed-look-sepsis-self" : "wolfmed-look-sepsis-other",
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-sepsis-self" : "wolfmed-look-sepsis-other",
                 ("target", identity)));
             lines++;
         }
@@ -119,22 +155,19 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         if (lines == 0)
         {
             // Nothing shown at all reads differently when there was something and the clothing took it.
-            message.PushNewline();
-            message.AddMarkupOrThrow(Loc.GetString(
+            report.Notes.Add(Loc.GetString(
                 hidden ? "wolfmed-look-hidden" : self ? "wolfmed-look-none-self" : "wolfmed-look-none-other",
                 ("target", identity)));
         }
         else if (hidden)
         {
-            message.PushNewline();
-            message.AddMarkupOrThrow(Loc.GetString("wolfmed-look-covered"));
+            report.Notes.Add(Loc.GetString("wolfmed-look-covered"));
         }
 
         if (!detailed)
-        {
-            message.PushNewline();
-            message.AddMarkupOrThrow(Loc.GetString("wolfmed-look-distant"));
-        }
+            report.Notes.Add(Loc.GetString("wolfmed-look-distant"));
+
+        return report;
     }
 
     /// <summary>Collects everything visible on one part. Returns true when something was hidden by clothing.</summary>
@@ -144,7 +177,7 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         bool detailed,
         bool covered,
         WolfmedLookProfilePrototype profile,
-        List<string> findings)
+        WolfmedLookPart found)
     {
         var mechanical = _traits.IsMechanical(part);
         var suffix = mechanical ? "-mechanical" : string.Empty;
@@ -185,9 +218,10 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             var finding = look.Resolve(prototype.GetStage(wound.Comp.Severity));
             if (finding.Description is not { } description || finding.Visibility == WolfmedLookVisibility.None)
             {
-                // Nothing to see. The patient still knows their own body hurts in a particular way.
+                // Nothing to see. The patient still knows their own body hurts in a particular way, and what
+                // they know is a feeling rather than a sight, so it wears the pain glyph.
                 if (self && finding.SelfHint is { } hint)
-                    Add(findings, seen, hint);
+                    Add(found, seen, hint.Id, finding.HintLabel?.Id, Glyph(profile, WolfmedLookClasses.Pain));
                 continue;
             }
 
@@ -200,7 +234,10 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
                 continue;
             }
 
-            Add(findings, seen, description);
+            // A wound draws with its analyzer category unless its look names something better.
+            var state = WolfmedWoundCategories.IconState(WolfmedWoundCategories.Resolve(prototype));
+            Add(found, seen, description.Id, finding.Label?.Id,
+                new WolfmedLookGlyph { Icon = finding.Icon ?? state, Colour = finding.Colour ?? state });
         }
 
         if (rate > profile.BleedOozing && (detailed || rate >= profile.DistantBleed))
@@ -210,9 +247,10 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
                 : "oozing";
 
             if (!covered)
-                Add(findings, seen, "wolfmed-look-bleed-" + band + suffix);
+                Add(found, seen, "wolfmed-look-bleed-" + band + suffix, null,
+                    Glyph(profile, WolfmedLookClasses.Bleed));
             else if (rate >= profile.SoakThrough)
-                Add(findings, seen, "wolfmed-look-soaking" + suffix);
+                Add(found, seen, "wolfmed-look-soaking" + suffix, null, Glyph(profile, WolfmedLookClasses.Soak));
             else
                 hidden = true;
         }
@@ -223,21 +261,24 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             if (covered)
                 hidden = true;
             else
-                Add(findings, seen, "wolfmed-look-treatment-" + treatment.ToString().ToLowerInvariant());
+                Add(found, seen, "wolfmed-look-treatment-" + treatment.ToString().ToLowerInvariant(), null,
+                    Glyph(profile, WolfmedLookClasses.Treatment));
         }
 
         if (detailed && TryComp(part, out WolfmedSplintMarkComponent? splint))
-            Add(findings, seen, "wolfmed-look-splint-" + splint.Overlay.ToString().ToLowerInvariant());
+            Add(found, seen, "wolfmed-look-splint-" + splint.Overlay.ToString().ToLowerInvariant(), null,
+                Glyph(profile, WolfmedLookClasses.Splint));
 
         if (detailed && HasComp<WolfmedTourniquetComponent>(part))
-            Add(findings, seen, "wolfmed-look-tourniquet");
+            Add(found, seen, "wolfmed-look-tourniquet", null, Glyph(profile, WolfmedLookClasses.Tourniquet));
 
         if (detailed && infection is WolfmedInfectionStage.Local or WolfmedInfectionStage.Spreading)
         {
             if (covered)
                 hidden = true;
             else
-                Add(findings, seen, "wolfmed-look-infection-" + infection.ToString().ToLowerInvariant());
+                Add(found, seen, "wolfmed-look-infection-" + infection.ToString().ToLowerInvariant(), null,
+                    Glyph(profile, WolfmedLookClasses.Infection));
         }
 
         if (detailed && scars > 0)
@@ -245,27 +286,72 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             if (covered)
                 hidden = true;
             else
-                findings.Add(Loc.GetString("wolfmed-look-scars", ("count", scars)));
+                Add(found, seen, "wolfmed-look-scars", null, Glyph(profile, WolfmedLookClasses.Scars),
+                    ("count", scars));
         }
 
         if (self && detailed && TryComp(part, out PainComponent? pain))
         {
             if (pain.Suppression > 0)
-                Add(findings, seen, "wolfmed-look-numb");
+                Add(found, seen, "wolfmed-look-numb", null, Glyph(profile, WolfmedLookClasses.Numb));
 
             if (GetPainLevel(part) is { } level)
-                Add(findings, seen, "health-examinable-pain-" + level);
+                Add(found, seen, "health-examinable-pain-" + level, null,
+                    Glyph(profile, WolfmedLookClasses.Pain));
         }
 
         return hidden;
     }
 
-    /// <summary>Adds a localized finding once per key, so two identical wounds read as one observation.</summary>
-    private void Add(List<string> findings, HashSet<string> seen, string key)
+    /// <summary>
+    /// Adds a finding once per locale key, so two identical wounds read as one observation. The key's string
+    /// is the tooltip; the label is the key the data named, else the key's own <c>-short</c> form, else the
+    /// whole sentence.
+    /// </summary>
+    private void Add(
+        WolfmedLookPart part,
+        HashSet<string> seen,
+        string key,
+        string? label,
+        WolfmedLookGlyph glyph,
+        params (string, object)[] args)
     {
-        if (seen.Add(key))
-            findings.Add(Loc.GetString(key));
+        if (!seen.Add(key))
+            return;
+
+        var text = Plain(Loc.GetString(key, args));
+        part.Findings.Add(new WolfmedLookObservation(glyph.Icon, glyph.Colour, Label(key, label, text, args), text));
     }
+
+    private string Label(string key, string? label, string text, (string, object)[] args)
+    {
+        if (label != null && Loc.TryGetString(label, out var declared, args))
+            return Plain(declared);
+
+        return Loc.TryGetString(key + LabelSuffix, out var shortForm, args) ? Plain(shortForm) : text;
+    }
+
+    /// <summary>The glyph declared for a finding class, or the neutral one if the profile is missing it.</summary>
+    private static WolfmedLookGlyph Glyph(WolfmedLookProfilePrototype profile, string cls) =>
+        profile.Glyph(cls) ?? new WolfmedLookGlyph { Icon = "other", Colour = WolfmedLookPalette.Neutral };
+
+    /// <summary>The row marker's colour: the worst finding on the part, in the order the profile declares.</summary>
+    private static string Accent(WolfmedLookProfilePrototype profile, WolfmedLookPart part)
+    {
+        foreach (var key in profile.AccentPriority)
+        {
+            foreach (var finding in part.Findings)
+            {
+                if (finding.Colour == key)
+                    return key;
+            }
+        }
+
+        return part.Findings.Count > 0 ? part.Findings[0].Colour : WolfmedLookPalette.Neutral;
+    }
+
+    /// <summary>Findings travel as plain text: the row's colour comes from the palette, not from markup.</summary>
+    private static string Plain(string markup) => FormattedMessage.RemoveMarkupPermissive(markup);
 
     /// <summary>Onyx's own pain bands, kept so the self line reads exactly as it did before.</summary>
     private string? GetPainLevel(EntityUid part)

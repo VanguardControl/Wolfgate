@@ -1,6 +1,10 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Text;
+using Content.Client._WF.Wolfmed.Examine;
+using Content.Client._WF.Wolfmed.Medical;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
@@ -14,8 +18,12 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Shared.ContentPack;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -40,8 +48,7 @@ public sealed class WolfmedVisualInspectionTest : GameTest
         "wolfmed-look-title-self", "wolfmed-look-title-other", "wolfmed-look-part-self",
         "wolfmed-look-part-other", "wolfmed-look-none-self", "wolfmed-look-none-other",
         "wolfmed-look-covered", "wolfmed-look-hidden", "wolfmed-look-distant", "wolfmed-look-sepsis-self",
-        "wolfmed-look-sepsis-other", "wolfmed-look-scars", "wolfmed-look-numb",
-        "wolfmed-look-tourniquet", "wolfmed-look-soaking", "wolfmed-look-soaking-mechanical",
+        "wolfmed-look-sepsis-other",
         "wolfmed-look-part-name-head", "wolfmed-look-part-name-torso", "wolfmed-look-part-name-groin",
         "wolfmed-look-part-name-left-arm", "wolfmed-look-part-name-left-hand",
         "wolfmed-look-part-name-right-arm", "wolfmed-look-part-name-right-hand",
@@ -387,26 +394,22 @@ public sealed class WolfmedVisualInspectionTest : GameTest
         {
             var keys = new List<string>(BuiltKeys);
 
-            foreach (var treatment in new[] { "bandaged", "clamped", "sutured", "cauterized" })
-                keys.Add("wolfmed-look-treatment-" + treatment);
-
-            foreach (var overlay in new[] { "gauze", "splint", "splintimprovised", "splinttribal" })
-                keys.Add("wolfmed-look-splint-" + overlay);
-
-            foreach (var stage in new[] { "local", "spreading" })
-                keys.Add("wolfmed-look-infection-" + stage);
-
-            foreach (var band in new[] { "oozing", "flowing", "spurting" })
+            // LOOK2: every finding the system builds itself needs the sentence and the row label beside it.
+            foreach (var key in FindingKeys())
             {
-                keys.Add("wolfmed-look-bleed-" + band);
-                keys.Add("wolfmed-look-bleed-" + band + "-mechanical");
+                keys.Add(key);
+                keys.Add(key + "-short");
             }
 
             foreach (var look in prototypes.EnumeratePrototypes<WolfmedWoundLookPrototype>())
             {
-                Collect(keys, look.Description, look.SelfHint);
+                Collect(keys, look.Description, look.Label);
+                Collect(keys, look.SelfHint, look.HintLabel);
                 foreach (var stage in look.Stages.Values)
-                    Collect(keys, stage.Description, stage.SelfHint);
+                {
+                    Collect(keys, stage.Description, stage.Label);
+                    Collect(keys, stage.SelfHint, stage.HintLabel);
+                }
 
                 // A stage the wound itself does not declare would never be reached.
                 var wound = prototypes.Index(look.Wound);
@@ -422,6 +425,327 @@ public sealed class WolfmedVisualInspectionTest : GameTest
         });
     }
 
+    /// <summary>
+    /// LOOK2: the rows are drawn from data, so the data has to be drawable. Every glyph is a state the RSI
+    /// really has, every colour is one the client's palette answers to, and every description has the short
+    /// label its row needs.
+    /// </summary>
+    [Test]
+    public async Task EveryLookFindingIsDrawableTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        var resources = server.ResolveDependency<IResourceManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var meta = resources.ContentFileReadAllText(IconRsi / "meta.json");
+            var profile = prototypes.Index<WolfmedLookProfilePrototype>(WolfmedLookProfilePrototype.Default);
+
+            Assert.Multiple(() =>
+            {
+                // The client holds the colours, the shared list holds the keys; they have to be one palette.
+                Assert.That(WolfmedWoundStyle.LookKeys.OrderBy(key => key),
+                    Is.EqualTo(WolfmedLookPalette.All.OrderBy(key => key)),
+                    "the client palette and the keys the data may name have drifted apart.");
+
+                foreach (var cls in WolfmedLookClasses.All)
+                {
+                    Assert.That(profile.Glyph(cls), Is.Not.Null, $"{profile.ID} declares no glyph for {cls}.");
+                    if (profile.Glyph(cls) is not { } glyph)
+                        continue;
+
+                    AssertDrawable(resources, meta, glyph.Icon, glyph.Colour, cls);
+                }
+
+                foreach (var key in profile.AccentPriority)
+                {
+                    Assert.That(WolfmedLookPalette.Knows(key), Is.True,
+                        $"{profile.ID} orders {key}, which is not a palette colour.");
+                }
+
+                // The nine analyzer categories are what a wound draws with when its look names nothing.
+                foreach (var category in WolfmedWoundCategories.All)
+                {
+                    var state = WolfmedWoundCategories.IconState(category);
+                    AssertDrawable(resources, meta, state, state, category.ToString());
+                }
+
+                foreach (var look in prototypes.EnumeratePrototypes<WolfmedWoundLookPrototype>())
+                {
+                    AssertLabelled(look.ID, "itself", look.Description, look.Label, look.SelfHint, look.HintLabel);
+                    AssertGlyph(resources, meta, look.ID, look.Icon, look.Colour);
+
+                    foreach (var (name, stage) in look.Stages)
+                    {
+                        AssertLabelled(look.ID, name, stage.Description ?? look.Description, stage.Label ?? look.Label,
+                            stage.SelfHint ?? look.SelfHint, stage.HintLabel ?? look.HintLabel);
+                        AssertGlyph(resources, meta, look.ID, stage.Icon, stage.Colour);
+                    }
+                }
+            });
+        });
+    }
+
+    /// <summary>
+    /// LOOK2: what the server writes is what the client reads back. A mauled patient goes through the markup
+    /// and comes out as the same parts, in the same order, with the same findings on them.
+    /// </summary>
+    [Test]
+    public async Task InspectionMarkupRoundTripsTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var medic = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            Bleed(entities, Wound(entities, arm, "SlashWound", 40), 2f);
+            Wound(entities, arm, "WolfmedShrapnelWound", 10);
+            Wound(entities, Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Right),
+                "WolfmedDislocationWound", 10);
+            entities.EnsureComponent<WolfmedTourniquetComponent>(arm);
+
+            var report = Report(entities, body, medic);
+            var message = Markup(entities, body, medic);
+            var read = ReadBack(message);
+
+            Assert.That(report.Parts, Has.Count.GreaterThan(1), "the patient needs more than one hurt part.");
+            Assert.That(read, Has.Count.EqualTo(report.Parts.Count), "every part must survive the markup.");
+
+            Assert.Multiple(() =>
+            {
+                for (var index = 0; index < report.Parts.Count; index++)
+                {
+                    var written = report.Parts[index];
+                    var (name, accent, findings) = read[index];
+                    Assert.That(name, Is.EqualTo(written.Name));
+                    Assert.That(accent, Is.EqualTo(written.Accent));
+                    Assert.That(findings.Select(finding => finding.Icon),
+                        Is.EqualTo(written.Findings.Select(finding => finding.Icon)));
+                    Assert.That(findings.Select(finding => finding.Colour),
+                        Is.EqualTo(written.Findings.Select(finding => finding.Colour)));
+                    Assert.That(findings.Select(finding => finding.Label),
+                        Is.EqualTo(written.Findings.Select(finding => finding.Label)));
+                    Assert.That(findings.Select(finding => finding.Text),
+                        Is.EqualTo(written.Findings.Select(finding => finding.Text)));
+                }
+
+                // The rows are for the tooltip; everything else reading the message gets plain sentences.
+                var plain = message.ToString();
+                Assert.That(plain, Does.Not.Contain(WolfmedLookTag.Part), "no tag soup in the chat copy.");
+                foreach (var part in report.Parts)
+                {
+                    Assert.That(plain, Does.Contain(part.Name));
+                    foreach (var finding in part.Findings)
+                        Assert.That(plain, Does.Contain(finding.Label));
+                }
+            });
+        });
+    }
+
+    /// <summary>
+    /// LOOK2: the client turns that markup into one row per hurt part, with a chip per finding carrying the
+    /// full sentence on hover. The mouse filter is the half that makes the tooltip work inside the examine
+    /// popup, so it is asserted too.
+    /// </summary>
+    [Test]
+    public async Task RowsAreBuiltForDamagedPartsOnlyTest()
+    {
+        var client = Pair.Client;
+        await client.WaitIdleAsync();
+        var entities = client.ResolveDependency<IEntityManager>();
+
+        var message = new FormattedMessage();
+        message.AddMarkupOrThrow("[color=DarkGray]You look them over.[/color]");
+        var parts = new List<WolfmedLookPart>
+        {
+            SamplePart("left arm", "bleeding", ("cut", "cut", "deep cut", "a deep cut"),
+                ("bleeding", "bleeding", "bleeding freely", "bleeding freely from it")),
+            SamplePart("right leg", "fracture", ("fracture", "fracture", "bent wrong", "bent at a wrong angle")),
+        };
+
+        foreach (var part in parts)
+        {
+            WolfmedLookTag.WritePart(message, part);
+            message.PushNewline();
+            message.AddMarkupOrThrow(part.Line);
+            WolfmedLookTag.WriteEnd(message);
+        }
+
+        message.PushNewline();
+        message.AddMarkupOrThrow("[color=DarkGray]The rest is covered by clothing.[/color]");
+
+        BoxContainer root = default!;
+        var built = false;
+
+        await client.WaitPost(() =>
+        {
+            root = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+            built = entities.System<Content.Client.Examine.ExamineSystem>()
+                .TryAddWolfmedLookMessage(root, message);
+            root.Measure(Vector2Helpers.Infinity);
+            root.Arrange(UIBox2.FromDimensions(Vector2.Zero, root.DesiredSize));
+        });
+
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(built, Is.True, "a message carrying the tag must be drawn as rows.");
+
+            var rows = Descendants(root).OfType<WolfmedLookRow>().ToList();
+            var chips = Descendants(root).OfType<WolfmedLookChip>().ToList();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(rows, Has.Count.EqualTo(parts.Count), "one row per part with something to show.");
+                Assert.That(chips, Has.Count.EqualTo(3), "one chip per finding.");
+                Assert.That(rows.Select(row => row.PartLabel.Text), Is.EqualTo(parts.Select(part => part.Name)));
+
+                foreach (var chip in chips)
+                {
+                    Assert.That(chip.ToolTip, Is.Not.Null.And.Not.Empty, "a chip with no tooltip says nothing.");
+                    Assert.That(chip.MouseFilter, Is.Not.EqualTo(Control.MouseFilterMode.Ignore),
+                        "a chip the mouse cannot find never shows its tooltip.");
+                }
+
+                // The name columns line up, and the whole-body lines stay as text.
+                Assert.That(rows.Select(row => row.PartLabel.SetWidth).Distinct().Count(), Is.EqualTo(1));
+                Assert.That(Descendants(root).OfType<RichTextLabel>().Count(), Is.EqualTo(2),
+                    "the title and the clothing notice are labels, not rows.");
+            });
+
+            root.Dispose();
+        });
+    }
+
+    private static readonly ResPath IconRsi = new("/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi");
+
+    private static WolfmedLookPart SamplePart(
+        string name,
+        string accent,
+        params (string Icon, string Colour, string Label, string Text)[] findings)
+    {
+        var part = new WolfmedLookPart { Name = name, Accent = accent };
+        foreach (var (icon, colour, label, text) in findings)
+            part.Findings.Add(new WolfmedLookObservation(icon, colour, label, text));
+
+        part.Line = name + ": " + string.Join(", ", part.Findings.Select(finding => finding.Label));
+        return part;
+    }
+
+    /// <summary>Parses an examine message back into the parts and findings it was written from.</summary>
+    private static List<(string Name, string Accent, List<WolfmedLookObservation> Findings)> ReadBack(
+        FormattedMessage message)
+    {
+        var parts = new List<(string, string, List<WolfmedLookObservation>)>();
+        List<WolfmedLookObservation>? findings = null;
+
+        foreach (var node in message.Nodes)
+        {
+            if (WolfmedLookTag.TryReadPart(node, out var name, out var accent))
+            {
+                findings = new List<WolfmedLookObservation>();
+                parts.Add((name, accent, findings));
+                continue;
+            }
+
+            if (findings != null && WolfmedLookTag.TryReadFinding(node, out var finding))
+                findings.Add(finding);
+        }
+
+        return parts;
+    }
+
+    private static IEnumerable<Control> Descendants(Control control)
+    {
+        foreach (var child in control.Children)
+        {
+            yield return child;
+            foreach (var nested in Descendants(child))
+                yield return nested;
+        }
+    }
+
+    /// <summary>The locale keys of every finding the system builds rather than reads off a wound.</summary>
+    private static List<string> FindingKeys()
+    {
+        var keys = new List<string>
+        {
+            "wolfmed-look-tourniquet", "wolfmed-look-scars", "wolfmed-look-numb",
+            "wolfmed-look-soaking", "wolfmed-look-soaking-mechanical",
+        };
+
+        foreach (var treatment in new[] { "bandaged", "clamped", "sutured", "cauterized" })
+            keys.Add("wolfmed-look-treatment-" + treatment);
+
+        foreach (var overlay in new[] { "gauze", "splint", "splintimprovised", "splinttribal" })
+            keys.Add("wolfmed-look-splint-" + overlay);
+
+        foreach (var stage in new[] { "local", "spreading" })
+            keys.Add("wolfmed-look-infection-" + stage);
+
+        foreach (var band in new[] { "oozing", "flowing", "spurting" })
+        {
+            keys.Add("wolfmed-look-bleed-" + band);
+            keys.Add("wolfmed-look-bleed-" + band + "-mechanical");
+        }
+
+        return keys;
+    }
+
+    private static void AssertLabelled(
+        string id,
+        string stage,
+        LocId? description,
+        LocId? label,
+        LocId? hint,
+        LocId? hintLabel)
+    {
+        if (description != null)
+            Assert.That(label, Is.Not.Null, $"{id} ({stage}) describes a finding with no row label.");
+
+        if (hint != null)
+            Assert.That(hintLabel, Is.Not.Null, $"{id} ({stage}) hints at a finding with no row label.");
+    }
+
+    private static void AssertGlyph(
+        IResourceManager resources,
+        string meta,
+        string id,
+        string? icon,
+        string? colour)
+    {
+        if (icon != null)
+            AssertIcon(resources, meta, icon, id);
+
+        if (colour != null)
+            Assert.That(WolfmedLookPalette.Knows(colour), Is.True, $"{id} names colour {colour}, which is not one.");
+    }
+
+    private static void AssertDrawable(
+        IResourceManager resources,
+        string meta,
+        string icon,
+        string colour,
+        string owner)
+    {
+        AssertIcon(resources, meta, icon, owner);
+        Assert.That(WolfmedLookPalette.Knows(colour), Is.True, $"{owner} names colour {colour}, which is not one.");
+    }
+
+    private static void AssertIcon(IResourceManager resources, string meta, string icon, string owner)
+    {
+        Assert.That(resources.ContentFileExists(IconRsi / (icon + ".png")), Is.True,
+            $"{owner} draws with {icon}, which analyzer_icons.rsi has no png for.");
+        Assert.That(meta, Does.Contain($"\"name\": \"{icon}\""),
+            $"analyzer_icons.rsi meta.json does not list {icon}.");
+    }
+
     private static void Collect(List<string> keys, LocId? description, LocId? hint)
     {
         if (description is { } value)
@@ -431,11 +755,53 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             keys.Add(self.Id);
     }
 
+    /// <summary>LOOK2: the structured inspection, which is what the system builds and the markup carries.</summary>
+    private static WolfmedLookReport Report(
+        IEntityManager entities,
+        EntityUid examined,
+        EntityUid examiner,
+        bool detailed = true)
+    {
+        var report = entities.System<WolfmedVisualInspectionSystem>().GetLook(examined, examiner, detailed);
+        Assert.That(report, Is.Not.Null, "the look profile is missing.");
+        return report!;
+    }
+
+    /// <summary>
+    /// Everything one inspection would put on screen, a part per line: the name, every row label and every
+    /// tooltip, then the whole-body notes. What the assertions above search.
+    /// </summary>
     private static string Look(IEntityManager entities, EntityUid examined, EntityUid examiner, bool detailed = true)
+    {
+        var report = Report(entities, examined, examiner, detailed);
+        var text = new StringBuilder();
+        text.AppendLine(FormattedMessage.RemoveMarkupPermissive(report.Title));
+
+        foreach (var part in report.Parts)
+        {
+            text.Append(part.Name).Append(" [").Append(part.Accent).Append(']');
+            foreach (var finding in part.Findings)
+                text.Append(": ").Append(finding.Label).Append(" (").Append(finding.Text).Append(')');
+
+            text.AppendLine();
+        }
+
+        foreach (var note in report.Notes)
+            text.AppendLine(FormattedMessage.RemoveMarkupPermissive(note));
+
+        return text.ToString();
+    }
+
+    /// <summary>The examine message the client is actually sent.</summary>
+    private static FormattedMessage Markup(
+        IEntityManager entities,
+        EntityUid examined,
+        EntityUid examiner,
+        bool detailed = true)
     {
         var message = new FormattedMessage();
         entities.System<WolfmedVisualInspectionSystem>().AddLookMarkup(examined, examiner, message, detailed);
-        return message.ToString();
+        return message;
     }
 
     /// <summary>The one line the inspection prints for a part, so a finding elsewhere cannot answer for it.</summary>

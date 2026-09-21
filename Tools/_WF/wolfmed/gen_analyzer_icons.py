@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Generates the Wolfmed analyzer_icons RSI: the pictograms the health analyzer's wounds tab draws.
 
-Two families, one state each, all 32x32 single-direction:
+Four families, one state each, all 32x32 single-direction:
   nine wound categories   cut puncture ballistic blunt burn internal infection mechanical other
   twelve part conditions  fracture bleeding internal_bleeding embedded necrosis overheating
                           scar pain impaired clotting sepsis blood_low
+  five procedure marks    surgery reagent warning done step
+  three LOOK2 findings    dressing splint tourniquet
 
 Every glyph is an off-white silhouette on transparent, so the client tints it per category with
 Modulate. Each is drawn as an 8x supersampled alpha mask and resized down once, which keeps the
@@ -45,6 +47,9 @@ CONDITION_STATES = [
 # UI4: the procedure window's chrome. A step row draws its tool's own entity sprite where it has one;
 # these cover the steps that have no item (surgery, a reagent, plain instruction) plus the row marks.
 PROCEDURE_STATES = ["surgery", "reagent", "warning", "done", "step"]
+# LOOK2: what is tied or strapped onto a limb, which the examine's rows show as findings of their own.
+# The look profile's `classes` table names these; nothing else in the wound data does.
+LOOK_STATES = ["dressing", "splint", "tourniquet"]
 
 
 class Mask:
@@ -222,6 +227,24 @@ def glyph(name):
         # A neutral marker for a step that uses nothing: a ring with a solid centre.
         mask.ring((16, 16), 10, 3)
         mask.dot((16, 16), 4.4)
+    elif name == "dressing":
+        # A plaster laid across the wound: the strip, the pad punched out of it, and the weave.
+        mask.stroke([(5, 23), (27, 9)], 8.5)
+        mask.box([11.5, 11.5, 20.5, 20.5], radius=1.6, ink=0)
+        for point in ((13.5, 13.5), (18.5, 13.5), (13.5, 18.5), (18.5, 18.5)):
+            mask.dot(point, 1.5)
+    elif name == "splint":
+        # A limb held between two rails and strapped across the middle.
+        mask.box([13, 2, 19, 30], radius=2.5)
+        mask.box([6.5, 8, 10, 24], radius=1.4)
+        mask.box([22, 8, 25.5, 24], radius=1.4)
+        mask.stroke([(4, 16), (28, 16)], 3.4, caps=False)
+    elif name == "tourniquet":
+        # A limb cinched in: it tapers to the band and widens again below it.
+        mask.poly([(9, 1), (23, 1), (19.5, 12), (12.5, 12)])
+        mask.poly([(12.5, 20), (19.5, 20), (23, 31), (9, 31)])
+        mask.box([4, 12.5, 24, 19.5], radius=1.4)
+        mask.stroke([(21, 16), (30, 7)], 3)
     else:
         raise SystemExit("no glyph for " + name)
 
@@ -262,12 +285,11 @@ def write_state(name):
     image.save(os.path.join(OUT_DIR, name + ".png"), optimize=True)
 
 
-def main():
-    os.makedirs(OUT_DIR, exist_ok=True)
-    states = CATEGORY_STATES + CONDITION_STATES + PROCEDURE_STATES
-    for name in states:
-        write_state(name)
+def all_states():
+    return CATEGORY_STATES + CONDITION_STATES + PROCEDURE_STATES + LOOK_STATES
 
+
+def write_meta(states):
     meta = {
         "version": 1,
         "license": "CC-BY-SA-3.0",
@@ -278,6 +300,15 @@ def main():
     with open(os.path.join(OUT_DIR, "meta.json"), "w", newline="\n") as handle:
         json.dump(meta, handle, indent=2)
         handle.write("\n")
+
+
+def main():
+    os.makedirs(OUT_DIR, exist_ok=True)
+    states = all_states()
+    for name in states:
+        write_state(name)
+
+    write_meta(states)
     print("wrote %d states to %s" % (len(states), OUT_DIR))
 
 

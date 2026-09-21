@@ -276,7 +276,7 @@ namespace Content.Client.Examine
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
 
-                if (!TryAddPartStatusMessage(vBox, message)) // WOLFGATE: HOOK 14 — Onyx's part-status boxes replace the plain label when the markup carries them.
+                if (!TryAddWolfmedLookMessage(vBox, message) && !TryAddPartStatusMessage(vBox, message)) // WOLFGATE: HOOK 14 — LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
                 {
                     var richLabel = new RichTextLabel() { Margin = new Thickness(4, 4, 0, 4)};
                     richLabel.SetMessage(message);

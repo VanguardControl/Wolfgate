@@ -84,6 +84,15 @@
     },
     {
       "name": "step"
+    },
+    {
+      "name": "dressing"
+    },
+    {
+      "name": "splint"
+    },
+    {
+      "name": "tourniquet"
     }
   ]
 }

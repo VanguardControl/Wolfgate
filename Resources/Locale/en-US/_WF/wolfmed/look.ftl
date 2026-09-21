@@ -1,5 +1,9 @@
 # LOOK: the health examine read as a visual inspection. Every string here is something an examiner could
 # see on the body in front of them; numbers, rates and severities stay on the health analyzer.
+#
+# LOOK2: the examine draws a row per damaged part, so every finding has two strings: the sentence below,
+# which is its tooltip and its plain-text line, and a `-short` label of two to four words for the row
+# itself. The wound data names the short one, the findings the system builds itself find it by suffix.
 
 wolfmed-look-title-self = [font size=11][color=DarkGray]You look yourself over.[/color][/font]
 wolfmed-look-title-other = [font size=11][color=DarkGray]You look { OBJECT($target) } over.[/color][/font]
@@ -185,3 +189,160 @@ wolfmed-look-plant-burn-minor = scorched leaves
 wolfmed-look-plant-burn-moderate = blackened leaves
 wolfmed-look-plant-burn-severe = a charred stem
 wolfmed-look-plant-burn-critical = burned to cinder
+
+# LOOK2: row labels. Two to four words each; the sentences above are what the chip says on hover.
+
+# Blood, treatment, infection and what the patient alone knows.
+wolfmed-look-bleed-oozing-short = oozing blood
+wolfmed-look-bleed-flowing-short = bleeding freely
+wolfmed-look-bleed-spurting-short = spurting blood
+wolfmed-look-bleed-oozing-mechanical-short = weeping fluid
+wolfmed-look-bleed-flowing-mechanical-short = leaking fluid
+wolfmed-look-bleed-spurting-mechanical-short = spraying fluid
+wolfmed-look-soaking-short = blood soaking through
+wolfmed-look-soaking-mechanical-short = fluid soaking through
+wolfmed-look-treatment-bandaged-short = bandaged
+wolfmed-look-treatment-clamped-short = clamped
+wolfmed-look-treatment-sutured-short = stitched
+wolfmed-look-treatment-cauterized-short = seared shut
+wolfmed-look-splint-gauze-short = gauze wrap
+wolfmed-look-splint-splint-short = splinted
+wolfmed-look-splint-splintimprovised-short = rough splint
+wolfmed-look-splint-splinttribal-short = wooden splint
+wolfmed-look-tourniquet-short = tourniquet
+wolfmed-look-infection-local-short = red and inflamed
+wolfmed-look-infection-spreading-short = red streaks
+wolfmed-look-scars-short = { $count } { $count ->
+    [one] scar
+   *[other] scars
+}
+wolfmed-look-numb-short = numb
+
+# Bruising and crushing.
+wolfmed-look-bruise-minor-short = faint bruising
+wolfmed-look-bruise-moderate-short = dark bruising
+wolfmed-look-bruise-severe-short = deep bruising
+wolfmed-look-bruise-critical-short = black bruising
+wolfmed-look-crush-moderate-short = crushed and swollen
+wolfmed-look-crush-severe-short = badly crushed
+
+# Cuts and punctures.
+wolfmed-look-cut-minor-short = shallow cut
+wolfmed-look-cut-moderate-short = deep cut
+wolfmed-look-cut-severe-short = gaping cut
+wolfmed-look-cut-critical-short = flesh laid open
+wolfmed-look-puncture-minor-short = small puncture
+wolfmed-look-puncture-moderate-short = deep puncture
+wolfmed-look-puncture-severe-short = wide puncture
+wolfmed-look-puncture-critical-short = punched through
+wolfmed-look-avulsion-minor-short = bite, torn skin
+wolfmed-look-avulsion-moderate-short = bite, torn flesh
+wolfmed-look-avulsion-severe-short = chunk torn out
+wolfmed-look-arterial-short = cut artery
+wolfmed-look-incision-short = open incision
+wolfmed-look-surgical-scar-short = surgical scar
+
+# Gunshots.
+wolfmed-look-graze-short = bullet graze
+wolfmed-look-gunshot-minor-short = bullet hole
+wolfmed-look-gunshot-moderate-short = bullet wound
+wolfmed-look-gunshot-severe-short = wide gunshot
+wolfmed-look-gunshot-critical-short = gunshot torn open
+wolfmed-look-lodged-round-short = bullet, no exit
+wolfmed-look-shrapnel-minor-short = metal fragment
+wolfmed-look-shrapnel-moderate-short = metal fragments
+wolfmed-look-shrapnel-severe-short = peppered with metal
+
+# Burns, cold and acid.
+wolfmed-look-burn-minor-short = reddened skin
+wolfmed-look-burn-moderate-short = blistered skin
+wolfmed-look-burn-severe-short = raw burn
+wolfmed-look-burn-critical-short = burned black
+wolfmed-look-charring-moderate-short = charred skin
+wolfmed-look-charring-severe-short = charred tissue
+wolfmed-look-charring-critical-short = blackened crust
+wolfmed-look-frostbite-minor-short = waxy skin
+wolfmed-look-frostbite-moderate-short = frozen white
+wolfmed-look-frostbite-severe-short = frozen grey
+wolfmed-look-frostbite-critical-short = blackened extremities
+wolfmed-look-chemical-minor-short = raw skin
+wolfmed-look-chemical-moderate-short = skin eaten away
+wolfmed-look-chemical-severe-short = eaten to the flesh
+wolfmed-look-electrical-minor-short = scorch mark
+wolfmed-look-electrical-moderate-short = entry burn
+wolfmed-look-electrical-severe-short = deep electrical burn
+wolfmed-look-electrical-critical-short = split, burnt skin
+wolfmed-look-internal-burn-self-short = burns inside
+
+# Bone, joints and the head.
+wolfmed-look-fracture-displaced-short = bent wrong
+wolfmed-look-fracture-comminuted-short = bone through skin
+wolfmed-look-fracture-ache-short = aches to move
+wolfmed-look-fracture-ache-bad-short = sharp on movement
+wolfmed-look-dislocation-short = out of joint
+wolfmed-look-tendon-self-short = answers badly
+wolfmed-look-concussion-self-short = head swimming
+wolfmed-look-concussion-severe-short = unfocused eyes
+
+# Missing flesh.
+wolfmed-look-dismemberment-short = torn off
+wolfmed-look-stump-short = a stump
+wolfmed-look-necrosis-short = dead tissue
+
+# Chassis.
+wolfmed-look-chassis-minor-short = scraped plating
+wolfmed-look-chassis-moderate-short = buckled plating
+wolfmed-look-chassis-severe-short = plating torn open
+wolfmed-look-chassis-critical-short = casing caved in
+wolfmed-look-dent-minor-short = shallow dent
+wolfmed-look-dent-moderate-short = deep dent
+wolfmed-look-dent-severe-short = plating hammered
+wolfmed-look-breach-minor-short = hole, seeping fluid
+wolfmed-look-breach-moderate-short = breach, running fluid
+wolfmed-look-breach-severe-short = gaping breach
+wolfmed-look-short-minor-short = scorched seam
+wolfmed-look-short-moderate-short = sparking seam
+wolfmed-look-short-severe-short = arcing sparks
+wolfmed-look-servo-severe-short = hanging slack
+wolfmed-look-servo-slack-short = answers slowly
+wolfmed-look-overheat-hot-short = giving off heat
+wolfmed-look-overheat-overheated-short = shimmering with heat
+wolfmed-look-overheat-self-short = runs hot
+wolfmed-look-frame-displaced-short = frame bent
+wolfmed-look-frame-comminuted-short = frame shattered
+
+# Slime.
+wolfmed-look-slime-blunt-minor-short = dented membrane
+wolfmed-look-slime-blunt-moderate-short = deep dent
+wolfmed-look-slime-blunt-severe-short = membrane collapsed
+wolfmed-look-slime-blunt-critical-short = membrane caved in
+wolfmed-look-slime-slash-minor-short = shallow split
+wolfmed-look-slime-slash-moderate-short = deep split
+wolfmed-look-slime-slash-severe-short = gaping split
+wolfmed-look-slime-slash-critical-short = membrane laid open
+wolfmed-look-slime-piercing-minor-short = small hole
+wolfmed-look-slime-piercing-moderate-short = deep hole
+wolfmed-look-slime-piercing-severe-short = wide hole
+wolfmed-look-slime-piercing-critical-short = punched through
+wolfmed-look-slime-burn-minor-short = clouded membrane
+wolfmed-look-slime-burn-moderate-short = blistered membrane
+wolfmed-look-slime-burn-severe-short = curdled membrane
+wolfmed-look-slime-burn-critical-short = membrane burned away
+
+# Plant.
+wolfmed-look-plant-blunt-minor-short = bruised stem
+wolfmed-look-plant-blunt-moderate-short = crushed stem
+wolfmed-look-plant-blunt-severe-short = badly crushed stem
+wolfmed-look-plant-blunt-critical-short = stem pulped
+wolfmed-look-plant-slash-minor-short = shallow cut
+wolfmed-look-plant-slash-moderate-short = deep cut
+wolfmed-look-plant-slash-severe-short = split stem
+wolfmed-look-plant-slash-critical-short = stem split open
+wolfmed-look-plant-piercing-minor-short = small bore hole
+wolfmed-look-plant-piercing-moderate-short = deep bore hole
+wolfmed-look-plant-piercing-severe-short = wide bore
+wolfmed-look-plant-piercing-critical-short = bored through
+wolfmed-look-plant-burn-minor-short = scorched leaves
+wolfmed-look-plant-burn-moderate-short = blackened leaves
+wolfmed-look-plant-burn-severe-short = charred stem
+wolfmed-look-plant-burn-critical-short = burned to cinder
