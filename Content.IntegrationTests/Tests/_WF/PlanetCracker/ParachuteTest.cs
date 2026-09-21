@@ -67,4 +67,40 @@ public sealed class ParachuteTest
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>A packed parachute comes off again into the hands of whoever takes it; an open one does not.</summary>
+    [Test]
+    public async Task APackedParachuteIsTakenOffByHand()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var chutes = server.System<WFParachuteSystem>();
+            var user = em.SpawnEntity("MobHuman", map.GridCoords);
+            var crate = em.SpawnEntity("CrateGenericSteel", map.GridCoords);
+            var worn = em.EnsureComponent<WFParachutedComponent>(crate);
+
+            worn.Deployed = true;
+            Assert.That(chutes.TryRemove((crate, worn), user), Is.False, "An open canopy was unstrapped mid-fall.");
+            Assert.That(em.HasComponent<WFParachutedComponent>(crate), Is.True);
+
+            worn.Deployed = false;
+            Assert.That(chutes.TryRemove((crate, worn), user), Is.True);
+            Assert.That(em.HasComponent<WFParachutedComponent>(crate), Is.False, "The parachute stayed on.");
+
+            var held = false;
+            foreach (var item in server.System<Content.Shared.Hands.EntitySystems.SharedHandsSystem>().EnumerateHeld(user))
+            {
+                held |= em.HasComponent<WFParachuteComponent>(item);
+            }
+
+            Assert.That(held, Is.True, "The pack did not go to the hands of whoever took it off.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
 }

@@ -5,11 +5,18 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._WF.PlanetCracker.Parachute;
 
-/// <summary>Draws the open canopy over anything falling under a parachute.</summary>
+/// <summary>Draws a parachute on its wearer: the pack strapped to them, and the open canopy over them in a fall.</summary>
 public sealed class WFParachuteVisualsSystem : EntitySystem
 {
     private static readonly SpriteSpecifier Canopy =
         new SpriteSpecifier.Rsi(new ResPath("_WF/Effects/parachute_canopy.rsi"), "canopy");
+
+    private static readonly SpriteSpecifier Pack =
+        new SpriteSpecifier.Rsi(new ResPath("_WF/Objects/Specific/parachute.rsi"), "icon");
+
+    /// <summary>The pack is drawn small and low, so it reads as worn rather than as an item lying on the wearer.</summary>
+    private static readonly Vector2 PackScale = new(0.6f, 0.6f);
+    private static readonly Vector2 PackOffset = new(0f, -0.1f);
 
     public override void Initialize()
     {
@@ -23,6 +30,14 @@ public sealed class WFParachuteVisualsSystem : EntitySystem
     {
         if (!TryComp<SpriteComponent>(ent, out var sprite))
             return;
+
+        if (!sprite.LayerMapTryGet(CanopyKey.Pack, out _))
+        {
+            var pack = sprite.AddLayer(Pack);
+            sprite.LayerMapSet(CanopyKey.Pack, pack);
+            sprite.LayerSetScale(pack, PackScale);
+            sprite.LayerSetOffset(pack, PackOffset);
+        }
 
         var has = sprite.LayerMapTryGet(CanopyKey.Key, out var layer);
 
@@ -46,12 +61,20 @@ public sealed class WFParachuteVisualsSystem : EntitySystem
 
     private void OnShutdown(Entity<WFParachutedComponent> ent, ref ComponentShutdown args)
     {
-        if (TryComp<SpriteComponent>(ent, out var sprite) && sprite.LayerMapTryGet(CanopyKey.Key, out var layer))
+        if (!TryComp<SpriteComponent>(ent, out var sprite))
+            return;
+
+        if (sprite.LayerMapTryGet(CanopyKey.Key, out var layer))
             sprite.RemoveLayer(layer);
+
+        // Looked up afresh: removing the canopy may have shifted the pack's index.
+        if (sprite.LayerMapTryGet(CanopyKey.Pack, out var pack))
+            sprite.RemoveLayer(pack);
     }
 
     private enum CanopyKey
     {
         Key,
+        Pack,
     }
 }

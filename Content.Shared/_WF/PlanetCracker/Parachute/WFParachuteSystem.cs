@@ -2,9 +2,11 @@ using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._CE.ZLevels.Damage;
 using Content.Shared.DoAfter;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Popups;
+using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 
@@ -22,6 +24,7 @@ public sealed partial class WFParachuteSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     /// <summary>Height over the ground under which a canopy that has stopped sinking counts as landed.</summary>
     private const float LandedHeight = 0.05f;
@@ -37,6 +40,10 @@ public sealed partial class WFParachuteSystem : EntitySystem
         SubscribeLocalEvent<WFParachuteComponent, WFParachuteAttachDoAfterEvent>(OnAttachDoAfter);
         SubscribeLocalEvent<WFParachutedComponent, CEZFallingDamageCalculateEvent>(OnFallDamage);
         SubscribeLocalEvent<WFParachutedComponent, CEZLevelFallMapEvent>(OnFallMap);
+
+        // Ahead of the pat-and-hug popups, which would otherwise answer an empty-handed click on a person first.
+        SubscribeLocalEvent<WFParachutedComponent, InteractHandEvent>(OnInteractHand, before: new[] { typeof(InteractionPopupSystem) });
+        SubscribeLocalEvent<WFParachutedComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
     }
 
     private void OnAfterInteract(Entity<WFParachuteComponent> ent, ref AfterInteractEvent args)
@@ -92,6 +99,51 @@ public sealed partial class WFParachuteSystem : EntitySystem
             ("target", target)), target, args.User);
 
         PredictedQueueDel(ent.Owner);
+    }
+
+    /// <summary>An empty-handed click on the wearer takes the pack off again.</summary>
+    private void OnInteractHand(Entity<WFParachutedComponent> ent, ref InteractHandEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        args.Handled = TryRemove(ent, args.User);
+    }
+
+    private void OnGetVerbs(Entity<WFParachutedComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
+    {
+        if (!args.CanInteract || !args.CanAccess || ent.Comp.Deployed)
+            return;
+
+        var user = args.User;
+
+        args.Verbs.Add(new AlternativeVerb
+        {
+            Text = Loc.GetString("wf-parachute-remove-verb"),
+            Act = () => TryRemove(ent, user),
+        });
+    }
+
+    /// <summary>Unstraps a packed parachute into the hands of whoever took it off. An open canopy stays on until touchdown.</summary>
+    public bool TryRemove(Entity<WFParachutedComponent> ent, EntityUid user)
+    {
+        if (ent.Comp.Deployed)
+        {
+            _popup.PopupClient(Loc.GetString("wf-parachute-remove-deployed"), ent, user);
+            return false;
+        }
+
+        _popup.PopupClient(Loc.GetString(ent.Owner == user ? "wf-parachute-removed-self" : "wf-parachute-removed",
+            ("target", ent.Owner)), ent, user);
+
+        // The pack is the server's to make; the client sees the component go with the next state.
+        if (_net.IsClient)
+            return true;
+
+        var pack = Spawn(ent.Comp.Pack, Transform(ent).Coordinates);
+        _hands.PickupOrDrop(user, pack);
+        RemComp<WFParachutedComponent>(ent);
+        return true;
     }
 
     /// <summary>A held fall never reaches the hurting speed, but anything that still lands hard under canopy is spared.</summary>
