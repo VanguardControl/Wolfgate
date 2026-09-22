@@ -1,4 +1,8 @@
 # WOLFGATE - Everything added through Wolfgate is stocked here; John Wolfgate sells the same list.
 - type: vendingMachineInventory
   id: WolfgateVendInventory
-  startingInventory: {}
+  startingInventory:
+    # Planets and cracking
+    WFPlanetTimepiece: 5
+    WFParachute: 10
+    WFLandingThrusterKit: 4
