@@ -17,6 +17,27 @@ Every wound, every condition chip and every category chip on the analyzer says w
     <GuideEntityEmbed Entity="HandheldHealthAnalyzer"/>
   </Box>
 
+## Painkillers
+
+Painkillers treat nothing. They buy a patient time and a way to walk to you, and every one of them is still standing on the wound underneath.
+
+[bold]Weak[/bold] - analgesic, ibuprofen, ketorolac. Takes enough pain off to get a downed crewman back on their feet. It can never keep anybody conscious.
+
+[bold]Strong[/bold] - opiate, tramadol, oxycodone. Enough to pull a patient out of unconsciousness when pain was the only thing holding them there, and enough to mask the limp, so they will walk on a broken leg and make it worse. It builds up sedation: the patient slows down, and past 60% of the meter they stop breathing properly. That is how an overdose kills.
+
+[bold]Stimulants[/bold] - ephedrine, desoxyephedrine, epinephrine. Holds somebody upright however much it hurts, and does nothing else.
+
+[bold]Emergency[/bold] - the stim pen. Thirty seconds up on your feet whatever the pain says, and then the bill: the pain comes back a third worse and you are on the floor for ten seconds.
+
+None of it touches blood, and none of it touches air. A patient who has bled out goes down through any dose you care to give them, which is the point.
+
+The analyzer names the tier and the time left at the top of the wounds tab, with the sedation beside it.
+  <Box>
+    <GuideEntityEmbed Entity="WolfmedAnalgesicPill"/>
+    <GuideEntityEmbed Entity="WolfmedOpiateChemistryBottle"/>
+    <GuideEntityEmbed Entity="WolfmedStimPen"/>
+  </Box>
+
 ## Biological tissue
 
 Every topical treats one kind of injury. Used on a part it cannot help, it refuses and says so - check the analyzer first.

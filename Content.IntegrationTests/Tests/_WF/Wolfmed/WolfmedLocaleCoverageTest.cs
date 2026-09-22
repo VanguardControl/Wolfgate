@@ -6,6 +6,7 @@ using Content.IntegrationTests.Fixtures;
 using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared._WF.Wolfmed.Reagents; // CONSC
 using Robust.Shared.Localization;
 using Robust.Shared.Prototypes;
 
@@ -37,6 +38,8 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
             ["NotApplicable", "None"], true),
         ("health-analyzer-wound-infection-", typeof(WolfmedInfectionStage), ["None"], false),
         ("health-analyzer-wound-functionality-", typeof(BodyPartFunctionalityState), ["Functional"], false),
+        // CONSC: the analyzer names the tier by enum member, None included (the guidebook prints it).
+        ("wolfmed-pain-relief-tier-", typeof(WolfmedPainReliefTier), [], false),
     ];
 
     /// <summary>Fixed keys the panel uses, with the suffixes it can append to each.</summary>
@@ -67,6 +70,11 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("health-analyzer-wound-banner-sepsis", [""]),
         ("health-analyzer-wound-banner-blood-low", [""]),
         ("wolfmed-treatment-guidebook-button", [""]),
+        // CONSC: the two body-level banners and the Downed alert.
+        ("health-analyzer-wound-pain-relief", [""]),
+        ("health-analyzer-wound-sedation", [""]),
+        ("alerts-wolfmed-downed-name", [""]),
+        ("alerts-wolfmed-downed-desc", [""]),
     ];
 
     /// <summary>Every wound prototype names itself and its stages in a locale file.</summary>

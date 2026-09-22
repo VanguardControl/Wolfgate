@@ -16,6 +16,7 @@ using Content.Shared.Forensics;
 using Content.Shared.Forensics.Components;
 using Content.Shared.HealthExaminable;
 using Content.Shared._Onyx.Wounds; // WOLFGATE: Wolfmed wound hosts own their own bleeding.
+using Content.Server._WF.Wolfmed.Consciousness; // WOLFGATE (CONSC)
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Rejuvenate;
@@ -42,6 +43,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
     [Dependency] private SharedStutteringSystem _stutteringSystem = default!;
     [Dependency] private AlertsSystem _alertsSystem = default!;
     [Dependency] private ForensicsSystem _forensicsSystem = default!;
+    [Dependency] private WolfmedConsciousnessSystem _wolfmedConsciousness = default!; // WOLFGATE (CONSC)
 
     public override void Initialize()
     {
@@ -140,6 +142,10 @@ public sealed partial class BloodstreamSystem : EntitySystem
 
             // deal bloodloss damage if their blood level is below a threshold.
             var bloodPercentage = GetBloodLevelPercentage(uid, bloodstream);
+
+            // WOLFGATE (CONSC): blood volume is a consciousness input and the bloodstream raises no event
+            // when it changes. This is the tick where the level is already known.
+            _wolfmedConsciousness.OnBloodLevelChanged(uid, bloodPercentage);
             if (bloodPercentage < bloodstream.BloodlossThreshold && !_mobStateSystem.IsDead(uid))
             {
                 // bloodloss damage is based on the base value, and modified by how low your blood level is.

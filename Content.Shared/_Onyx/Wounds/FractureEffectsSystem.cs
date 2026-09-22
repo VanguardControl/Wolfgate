@@ -5,6 +5,7 @@ using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Movement.Systems;
 using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W2)
+using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE (CONSC)
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -24,6 +25,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
     [Dependency] private WoundStatusEffectSystem _statusEffects = default!;
     [Dependency] private FractureAlertSystem _fractureAlerts = default!;
     [Dependency] private WolfmedWoundTraitSystem _wolfmed = default!; // WOLFGATE (W2): limb penalties from wounds
+    [Dependency] private WolfmedPainReliefSystem _wolfmedPainRelief = default!; // WOLFGATE (CONSC)
 
     public override void Initialize()
     {
@@ -97,6 +99,11 @@ public sealed partial class FractureEffectSystem : EntitySystem
 
     private void OnRefreshSpeed(Entity<WoundHostComponent> body, ref RefreshMovementSpeedModifiersEvent args)
     {
+        // WOLFGATE (CONSC): a strong painkiller masks the wound slowdowns, so a player walks on a broken leg
+        // while it keeps worsening underneath.
+        if (_wolfmedPainRelief.MasksSlowdown(body))
+            return;
+
         foreach (var (part, bodyPart) in _body.GetBodyChildren(body))
         {
             if (!body.Comp.MobilityParts.Contains(bodyPart.PartType) ||

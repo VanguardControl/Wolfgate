@@ -82,6 +82,11 @@
         decayDuration: 9
         identifier: Desoxyephedrine
         recoveryMultiplier: 1.75
+      # WOLFGATE (CONSC): painkiller tier. Stimulant: keeps a body on its feet however bad the pain is,
+      # and does nothing at all about blood or air.
+      - !type:WolfmedPainRelief
+        tier: Stimulant
+        strength: 8
     Medicine:
       effects:
       - !type:ResetNarcolepsy
@@ -117,6 +122,11 @@
       - !type:MovespeedModifier
         walkSpeedModifier: 1.15
         sprintSpeedModifier: 1.15
+      # WOLFGATE (CONSC): painkiller tier. Stimulant: holds a body upright however bad the pain is, and
+      # does nothing at all about blood or air.
+      - !type:WolfmedPainRelief
+        tier: Stimulant
+        strength: 6
       - !type:HealthChange
         conditions:
         - !type:OrganType # Goobstation - Yowie

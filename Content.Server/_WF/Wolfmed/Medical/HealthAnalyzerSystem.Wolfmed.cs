@@ -11,6 +11,8 @@ using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Server._WF.Wolfmed.Wounds; // WOLFGATE (W5)
 using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W1)
+using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE (CONSC)
+using Robust.Shared.Timing; // WOLFGATE (CONSC)
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part; // WOLFGATE (EVISC): BodyPartComponent, for the empty organ slot count.
 using Content.Shared.Chemistry.Components;
@@ -33,6 +35,8 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE (W5)
     [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W6)
     [Dependency] private WolfmedOverheatingSystem _overheating = default!; // WOLFGATE (W6)
+    [Dependency] private WolfmedPainReliefSystem _painRelief = default!; // WOLFGATE (CONSC)
+    [Dependency] private IGameTiming _analyzerTiming = default!; // WOLFGATE (CONSC)
 
     /// <summary>Per-part wound findings for a wound host, or null for anything else.</summary>
     public HealthAnalyzerWoundDiagnostics? BuildWoundDiagnostics(EntityUid body)
@@ -162,7 +166,18 @@ public sealed partial class HealthAnalyzerSystem
                 result[target] = diagnostic;
         }
 
-        return new HealthAnalyzerWoundDiagnostics(result, _infection.GetSepsis(body)); // WOLFGATE (W5)
+        // WOLFGATE (CONSC): what is masking the patient's pain, and how sedated it has left them.
+        var relief = CompOrNull<WolfmedPainReliefComponent>(body);
+        var reliefLeft = relief?.Ends is { } ends
+            ? MathF.Max(0f, (float) (ends - _analyzerTiming.CurTime).TotalSeconds)
+            : 0f;
+
+        return new HealthAnalyzerWoundDiagnostics(
+            result,
+            _infection.GetSepsis(body), // WOLFGATE (W5)
+            relief?.Tier ?? WolfmedPainReliefTier.None, // WOLFGATE (CONSC)
+            reliefLeft, // WOLFGATE (CONSC)
+            relief?.Sedation ?? 0f); // WOLFGATE (CONSC)
     }
 
     /// <summary>

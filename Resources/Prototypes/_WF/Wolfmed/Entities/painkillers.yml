@@ -1,0 +1,60 @@
+# Wolfmed's painkiller ladder in a player's hands (CONSC). A pill for the weak tier, a bottle for the
+# strong one and a pen for the emergency one, because the pen is the only one a Downed player can reach for
+# with one shaking hand.
+
+- type: entity
+  parent: Pill
+  id: WolfmedAnalgesicPill
+  name: analgesic pill
+  suffix: Wolfmed
+  description: A chalky painkiller. Takes the edge off a bad limb; heals nothing at all.
+  components:
+  - type: Sprite
+    sprite: _DV/Objects/Specific/Chemistry/pills.rsi
+    state: pill7
+  - type: SolutionContainerManager
+    solutions:
+      food:
+        maxVol: 20
+        reagents:
+        - ReagentId: WolfmedAnalgesic
+          Quantity: 15
+
+- type: entity
+  parent: BaseChemistryBottleFilled
+  id: WolfmedOpiateChemistryBottle
+  suffix: opiate
+  components:
+  - type: Label
+    currentLabel: reagent-name-wolfmed-opiate
+  - type: SolutionContainerManager
+    solutions:
+      drink: # This solution name and target volume is hard-coded in ChemMasterComponent
+        maxVol: 30
+        reagents:
+        - ReagentId: WolfmedOpiate
+          Quantity: 30
+
+- type: entity
+  parent: ChemicalMedipen
+  id: WolfmedStimPen
+  name: stim pen
+  description: Thirty seconds on your feet, and then the bill. For walking out of somewhere, not for staying.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Medical/medipen.rsi
+    layers:
+    - state: medipen
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#ff5c3b"
+  - type: SolutionContainerVisuals
+    maxFillLevels: 1
+    changeColor: false
+    emptySpriteName: medipen_empty
+  - type: SolutionContainerManager
+    solutions:
+      pen:
+        maxVol: 15
+        reagents:
+        - ReagentId: WolfmedStim
+          Quantity: 10

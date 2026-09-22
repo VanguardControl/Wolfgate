@@ -10,3 +10,36 @@
       amount: 1
   products:
     Spaceacillin: 2
+
+# Wolfmed's painkiller ladder (CONSC). Each one is two things chemistry already stocks, so the ladder is
+# reachable from the dispenser on a shift with no cargo.
+
+- type: reaction
+  id: WolfmedAnalgesic
+  reactants:
+    Ibuprofen:
+      amount: 1
+    Sugar:
+      amount: 1
+  products:
+    WolfmedAnalgesic: 2
+
+- type: reaction
+  id: WolfmedOpiate
+  reactants:
+    Tramadol:
+      amount: 1
+    Ethanol:
+      amount: 1
+  products:
+    WolfmedOpiate: 2
+
+- type: reaction
+  id: WolfmedStim
+  reactants:
+    Ephedrine:
+      amount: 1
+    Epinephrine:
+      amount: 1
+  products:
+    WolfmedStim: 2

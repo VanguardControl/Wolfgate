@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
 using Content.Shared.Damage;
@@ -172,6 +173,12 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
             !TryComp(player, out MobThresholdsComponent? thresholds) ||
             !thresholds.ShowOverlays)
             return 0f;
+
+        // CONSC: a wound host's damage total says nothing about how far gone it is. Consciousness does, so
+        // the view reads its depth instead: Downed 0.35 to 0.55, Unconscious 0.55 to 1.
+        if (TryComp(player, out WolfmedConsciousnessComponent? consciousness) &&
+            mob.CurrentState != MobState.Dead)
+            return consciousness.Depth;
 
         if (!_thresholds.TryGetThresholdForState(player, MobState.Dead, out var dead, thresholds))
             return 0f;

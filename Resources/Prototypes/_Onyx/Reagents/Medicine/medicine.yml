@@ -43,6 +43,11 @@
         decayDuration: 27
         identifier: Ibuprofen
         recoveryMultiplier: 2.5
+      # WOLFGATE (CONSC): painkiller tier. Weak, so it can pick a patient up off the floor but never
+      # keeps one awake.
+      - !type:WolfmedPainRelief
+        tier: Weak
+        strength: 14
       - !type:HealthChange
         damage:
           groups:
@@ -90,6 +95,10 @@
         decayDuration: 50
         identifier: Ketorolac
         recoveryMultiplier: 3
+      # WOLFGATE (CONSC): painkiller tier. The strongest of the weak rung.
+      - !type:WolfmedPainRelief
+        tier: Weak
+        strength: 26
       - !type:HealthChange
         damage:
           groups:
@@ -126,6 +135,12 @@
         decayDuration: 45
         identifier: Tramadol
         recoveryMultiplier: 3.5
+      # WOLFGATE (CONSC): painkiller tier. Strong: lifts unconsciousness when pain was the only cause,
+      # masks the wound slowdowns, and sedates.
+      - !type:WolfmedPainRelief
+        tier: Strong
+        strength: 45
+        sedation: 0.012
       - !type:GenericStatusEffect
         key: Adrenaline
         component: IgnoreSlowOnDamage
@@ -156,6 +171,12 @@
         decayDuration: 60
         identifier: Oxycodone
         recoveryMultiplier: 4.5
+      # WOLFGATE (CONSC): painkiller tier. The strongest thing medbay stocks, and the easiest to stop a
+      # patient breathing with.
+      - !type:WolfmedPainRelief
+        tier: Strong
+        strength: 80
+        sedation: 0.022
       - !type:GenericStatusEffect
         key: Adrenaline
         component: IgnoreSlowOnDamage

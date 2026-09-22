@@ -64,6 +64,11 @@
     - id: WolfmedDebugBottleTramadol
     - id: WolfmedDebugBottleKetorolac
     - id: WolfmedDebugBottleOxycodone
+    - id: WolfmedAnalgesicPill
+      amount: 3
+    - id: WolfmedOpiateChemistryBottle
+    - id: WolfmedStimPen
+      amount: 2
 
 - type: entity
   parent: BaseChemistryBottleFilled

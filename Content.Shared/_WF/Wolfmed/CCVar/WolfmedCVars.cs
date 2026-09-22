@@ -118,4 +118,37 @@ public sealed class WolfmedCVars
     /// <summary>Client: the fading-out view and camera sway when close to death.</summary>
     public static readonly CVarDef<bool> DyingEffects =
         CVarDef.Create("wolfmed.dying_effects", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    /// <summary>
+    /// Whether consciousness owns Alive/Critical on wound hosts (CONSC). False hands mob state back to the
+    /// damage thresholds, which is the pre-CONSC behaviour.
+    /// </summary>
+    public static readonly CVarDef<bool> Consciousness =
+        CVarDef.Create("wolfmed.consciousness", true, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Effective pain, as a share of the soft pain cap, at which a body goes Downed.</summary>
+    public static readonly CVarDef<float> ConsciousnessPainDown =
+        CVarDef.Create("wolfmed.consc_pain_down", 0.7f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Pain before the soft clamp, as a share of the soft pain cap, at which a body goes unconscious. Onyx's
+    /// PainComponent has no hard cap, so this is measured on the sum of the parts.
+    /// </summary>
+    public static readonly CVarDef<float> ConsciousnessPainOut =
+        CVarDef.Create("wolfmed.consc_pain_out", 1.25f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction at or below which a body goes Downed.</summary>
+    public static readonly CVarDef<float> ConsciousnessBloodDown =
+        CVarDef.Create("wolfmed.consc_blood_down", 0.6f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction at or below which a body goes unconscious.</summary>
+    public static readonly CVarDef<float> ConsciousnessBloodOut =
+        CVarDef.Create("wolfmed.consc_blood_out", 0.45f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// How far an input has to fall back below the value that caused a state before that state is left, as a
+    /// share of the entry value. Keeps a bleeding body from flickering in and out of Downed.
+    /// </summary>
+    public static readonly CVarDef<float> ConsciousnessHysteresis =
+        CVarDef.Create("wolfmed.consc_hysteresis", 0.1f, CVar.SERVERONLY);
 }

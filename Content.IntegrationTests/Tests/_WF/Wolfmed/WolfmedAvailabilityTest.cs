@@ -35,13 +35,17 @@ public sealed class WolfmedAvailabilityTest : GameTest
         "SpaceacillinChemistryBottle",
         "WolfmedAntisepticSpray",
         "WolfmedSplint", // V5
+        "WolfmedAnalgesicPill", // CONSC
+        "WolfmedOpiateChemistryBottle", // CONSC
+        "WolfmedStimPen", // CONSC
     ];
 
     /// <summary>Items reached by crafting rather than by a vendor or a lathe.</summary>
     private static readonly string[] CraftedItems = ["WolfmedSplintImprovised"]; // V5
 
     /// <summary>Reagents Wolfmed added. Each needs a reaction chemistry can run.</summary>
-    private static readonly string[] ObtainableReagents = ["Spaceacillin"];
+    private static readonly string[] ObtainableReagents =
+        ["Spaceacillin", "WolfmedAnalgesic", "WolfmedOpiate", "WolfmedStim"]; // CONSC
 
     /// <summary>Fills W7 changed or relies on, spawned so an overflow fails here.</summary>
     private static readonly (string Entity, string Content)[] Fills =

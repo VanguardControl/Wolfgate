@@ -5,6 +5,7 @@ using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared._WF.Wolfmed.Reagents; // CONSC
 using Content.Shared.FixedPoint;
 using Content.Shared.MedicalScanner;
 using Robust.Client.Graphics;
@@ -60,6 +61,11 @@ public sealed partial class WolfmedDiagnosticPanel
 
     /// <summary>FIX1: the sepsis banner's text, which carries a percentage that moves between rebuilds.</summary>
     private RichTextLabel? _sepsisLabel;
+
+    /// <summary>CONSC: the two body-level banners whose numbers drift between rebuilds.</summary>
+    private RichTextLabel? _painReliefLabel;
+
+    private RichTextLabel? _sedationLabel;
 
     /// <summary>FIX1: the pain/scar line of each card, the only per-card text with a varying number in it.</summary>
     private readonly Dictionary<TargetBodyPart, Label> _painLabels = new();
@@ -181,6 +187,22 @@ public sealed partial class WolfmedDiagnosticPanel
             _sepsisLabel = sepsis;
         }
 
+        // CONSC: what is masking the patient's pain, and how far the sedation has gone. Both are
+        // body-level, so they sit with the sepsis banner rather than against any one part.
+        if (msg.WoundDiagnostics.PainRelief != WolfmedPainReliefTier.None)
+        {
+            _painReliefLabel = CreateBannerRow("reagent", WolfmedWoundStyle.Infection,
+                PainReliefText(msg.WoundDiagnostics), out var reliefRow);
+            WoundAlertsContainer.AddChild(reliefRow);
+        }
+
+        if (msg.WoundDiagnostics.Sedation > 0f)
+        {
+            _sedationLabel = CreateBannerRow("warning", WolfmedWoundStyle.Necrosis,
+                SedationText(msg.WoundDiagnostics.Sedation), out var sedationRow);
+            WoundAlertsContainer.AddChild(sedationRow);
+        }
+
         BuildCategoryStrip(msg.WoundDiagnostics);
 
         var cards = 0;
@@ -234,6 +256,8 @@ public sealed partial class WolfmedDiagnosticPanel
             return text.Append("|none").ToString();
 
         text.Append(diagnostics.Sepsis > 0f ? "|sep" : "|-");
+        // CONSC: only the presence of each banner, never the numbers on it.
+        text.Append((int) diagnostics.PainRelief).Append(diagnostics.Sedation > 0f ? '1' : '0');
 
         foreach (var part in SharedTargetingSystem.GetValidParts())
         {
@@ -283,6 +307,13 @@ public sealed partial class WolfmedDiagnosticPanel
         if (_sepsisLabel is { } sepsis && diagnostics.Sepsis > 0f)
             sepsis.SetMessage(FormattedMessage.FromMarkupPermissive(SepsisText(diagnostics.Sepsis)));
 
+        // CONSC: the time left and the sedation percent both drift every tick.
+        if (_painReliefLabel is { } painRelief && diagnostics.PainRelief != WolfmedPainReliefTier.None)
+            painRelief.SetMessage(FormattedMessage.FromMarkupPermissive(PainReliefText(diagnostics)));
+
+        if (_sedationLabel is { } sedation && diagnostics.Sedation > 0f)
+            sedation.SetMessage(FormattedMessage.FromMarkupPermissive(SedationText(diagnostics.Sedation)));
+
         foreach (var (part, label) in _painLabels)
         {
             if (diagnostics.Parts.TryGetValue(part, out var diagnostic) && FooterText(diagnostic) is { } text)
@@ -295,11 +326,59 @@ public sealed partial class WolfmedDiagnosticPanel
     {
         _woundSignature = null;
         _sepsisLabel = null;
+        _painReliefLabel = null; // CONSC
+        _sedationLabel = null; // CONSC
         _painLabels.Clear();
     }
 
     private static string SepsisText(float sepsis) =>
         Loc.GetString("health-analyzer-wound-sepsis", ("percent", (int) MathF.Round(sepsis)));
+
+    /// <summary>CONSC: the tier, the time left, and the reminder that none of it treats anything.</summary>
+    private static string PainReliefText(HealthAnalyzerWoundDiagnostics diagnostics) =>
+        Loc.GetString("health-analyzer-wound-pain-relief",
+            ("tier", Loc.GetString(
+                $"wolfmed-pain-relief-tier-{diagnostics.PainRelief.ToString().ToLowerInvariant()}")),
+            ("seconds", (int) MathF.Round(diagnostics.PainReliefSeconds)));
+
+    private static string SedationText(float sedation) =>
+        Loc.GetString("health-analyzer-wound-sedation", ("percent", (int) MathF.Round(sedation * 100f)));
+
+    /// <summary>
+    /// CONSC: the alert row without the click-through. A painkiller is not a finding with a procedure, so
+    /// there is nothing for the treatment window to open.
+    /// </summary>
+    private RichTextLabel CreateBannerRow(string icon, Color colour, string text, out Control row)
+    {
+        var panel = new PanelContainer
+        {
+            PanelOverride = new StyleBoxFlat
+            {
+                BackgroundColor = WolfmedWoundStyle.AlertBackground,
+                BorderColor = colour,
+                BorderThickness = new Thickness(3, 0, 0, 0),
+            },
+            Margin = new Thickness(0, 0, 0, 3),
+            HorizontalExpand = true,
+        };
+
+        var content = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Horizontal,
+            SeparationOverride = 6,
+            HorizontalExpand = true,
+            Margin = new Thickness(6, 3, 4, 3),
+        };
+        content.AddChild(Icon(icon, colour, IconSize));
+
+        var label = new RichTextLabel { HorizontalExpand = true };
+        label.SetMessage(FormattedMessage.FromMarkupPermissive(text));
+        content.AddChild(label);
+
+        panel.AddChild(content);
+        row = panel;
+        return label;
+    }
 
     /// <summary>One chip per category present on the patient. Clicking one filters the cards below.</summary>
     private void BuildCategoryStrip(HealthAnalyzerWoundDiagnostics diagnostics)

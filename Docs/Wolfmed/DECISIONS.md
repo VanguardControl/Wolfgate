@@ -347,3 +347,49 @@ It drives: colour draining to cold grey, double vision, a tunnel that squeezes o
 eyes drifting shut every few seconds past 0.72, and a slow camera sway through `GetEyeOffsetEvent` on a client-only
 `WolfmedDyingSwayComponent`. Sway honours `accessibility.reduced_motion` and the screen shake slider; `wolfmed.dying_effects`
 (client) turns it all off. Aim scatter defaults moved to 0.75 best / 0.1 worst.
+
+## Consciousness (2026-09-22)
+
+The premise, from the owner: players are far too easy to kill. On a wound host (`WoundHostComponent`) damage
+totals now decide nothing at all. Two meters replace the `MobThresholds` crit/dead decision; this package is
+the first, CONSCIOUSNESS. LIFE is the BRAIN package and is not built yet. Mobs without `WoundHost` are
+untouched and still cross their thresholds exactly as before.
+
+- **The gate is one marked line.** `MobThresholdSystem.CheckThresholds` opens with
+  `if (_wolfmedConsciousness.OwnsMobState(target)) return;`, where `OwnsMobState` is
+  `wolfmed.consciousness && HasComp<WoundHostComponent>`. Nothing else in the threshold system changed:
+  `CurrentThresholdState` simply never moves for a wound host, so `OnUpdateMobState` leaves `MobState.Invalid`
+  and `ChangeState` no-ops. Consequence: **a wound host can no longer die of damage at all** until BRAIN
+  lands. Dead is reachable only by the paths that never went through the thresholds (a destroyed brain in
+  `OrganHealthSystem`, a gib, an admin). Defib and CPR still compare damage to the dead threshold and were
+  left alone per the spec.
+- **Three states.** Up, Downed (`WolfmedDownedComponent`, conscious and on the floor) and Unconscious
+  (`MobState.Critical`, unchanged). Dead is untouched.
+- **Four inputs, each normalised to "1 = this state".** Effective pain / (0.70 x soft cap) for Downed; pain
+  before the soft clamp / (1.25 x soft cap) for Unconscious; blood volume against 0.60 and 0.45; both legs
+  disabled or missing; and external pressures (0 none, 1 unconscious), which reach Downed at 0.7. The worst
+  wins. Hysteresis `wolfmed.consc_hysteresis` 0.1 means leaving a state needs the reading back under 0.9.
+- **"Pain before the soft clamp" is the sum of the parts, not a new field.** `PainSystem.SetPain` clamps the
+  part *and* the body to `SoftPainCap` (135), so the body's own value can never read past 1.0 of the cap.
+  `WolfmedConsciousnessSystem.GetUncappedPain` sums `GetPain` over the body's parts instead. No `_Onyx` edit,
+  and the vignette's own value is untouched.
+- **Airloss is a pressure, not a threshold.** `Airloss / (MobThresholds Critical)` is pushed through
+  `SetExternalPressure(body, "airloss", level)` on every `DamageChangedEvent`, so suffocation still reaches
+  Critical with the thresholds gated off. BRAIN replaces this key with real brain oxygenation.
+- **Blood is read on the bloodstream's own tick.** `BloodstreamComponent` raises no event when its volume
+  changes, so `BloodstreamSystem.Update` carries one marked three-line call at the point where it has already
+  computed the percentage. Everything else is event-driven (pain changed, damage changed, part functionality
+  changed, a painkiller dose) plus a 0.5 s poll of bodies that still have a nonzero input.
+- **Painkillers are four tiers and no healing.** `WolfmedPainReliefComponent` holds one dose per reagent,
+  written by the `WolfmedPainRelief` metabolism effect. Weak subtracts pain from the Downed test only; Strong
+  subtracts from both, masks the wound slowdowns (one marked hook in `FractureEffectsSystem.OnRefreshSpeed`)
+  and builds sedation; Stimulant lifts Downed outright regardless of pain; Emergency lifts both for a window
+  and then crashes (pain x1.3, Downed 10 s). **No tier touches blood, airloss or an external pressure.**
+- **Sedation is the overdose.** It slows movement and, past 0.6, applies Asphyxiation scaled by how far past.
+  That is a stand-in: BRAIN takes it over through `SetExternalPressure(body, "sedation", level)`.
+- **The dying view reads consciousness, not damage.** `WolfmedDyingEffectsSystem.TargetLevel` returns
+  `WolfmedConsciousnessComponent.Depth` for a wound host (0..0.35 approaching Downed, 0.35..0.55 Downed,
+  0.55..1 Unconscious by blood and pressure). `Level` itself is unchanged and still serves everything else.
+- **Rejuvenate is now the only thing that revives a wound host**, because the thresholds no longer do; the
+  handler sets `MobState.Alive` itself and re-evaluates a tick later, once every other rejuvenate handler has
+  run.

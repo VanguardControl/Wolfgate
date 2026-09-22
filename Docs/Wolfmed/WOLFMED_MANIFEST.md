@@ -3897,3 +3897,57 @@ in metal.
   prototype id the spec asked for is unchanged.
 - **The closing surgery's cautery step does not carry a `remove:` list.** The granted `IncisionOpen` and
   `SkinRetracted` come off with the wound instead, and only if this system was what put them there.
+
+## Final stages: CONSC (2026-09-22)
+
+Consciousness replaces the damage thresholds on wound hosts, plus the painkiller tiers that play against it.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | new | `WolfmedConsciousness` (Up/Downed/Unconscious), `WolfmedConsciousnessComponent` (State, Depth, Pressures, BloodFraction), `WolfmedDownedComponent`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/SharedWolfmedConsciousnessSystem.cs` | new | `OwnsMobState`, `SetExternalPressure` and `Refresh` seams. Abstract so the shared threshold gate resolves on both sides. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | new | Every Downed restriction, as existing ActionBlocker attempt events. `IsSelfOrCarried` is the self-only rule. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | new | The evaluation: pain, blood, legs, pressures, hysteresis, depth, mob state, rejuvenate. |
+| `Content.Client/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | new | Client subclass so the shared gate can resolve the system. No logic. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefComponent.cs` | new | Tiers, doses, sedation and the whole-body tuning. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefSystem.cs` | new | Dose lifetimes, sedation, the emergency window and its crash, the slowdown mask. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainRelief.cs` | new | The metabolism effect that gives a reagent a tier and a strength. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.consciousness`, `consc_pain_down` 0.7, `consc_pain_out` 1.25, `consc_blood_down` 0.6, `consc_blood_out` 0.45, `consc_hysteresis` 0.1. |
+| `Content.Shared/Mobs/Systems/MobThresholdSystem.cs` | modified | Upstream. One marked gate at the top of `CheckThresholds`, plus the using and the dependency. |
+| `Content.Server/Body/Systems/BloodstreamSystem.cs` | modified | Upstream. One marked call handing the blood percentage to consciousness on the tick that computes it. |
+| `Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs` | modified | Vendored. One marked early return in `OnRefreshSpeed` so a strong painkiller masks the wound slowdowns. |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified | Vendored. Three appended body-level fields: PainRelief, PainReliefSeconds, Sedation. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Fills the three new fields. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | Two body-level banners, their signature bits and their per-tick text. Non-clickable: a painkiller has no procedure. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDyingEffectsSystem.cs` | modified | `TargetLevel` reads `WolfmedConsciousnessComponent.Depth` on a wound host. `Level` unchanged. |
+| `Resources/Prototypes/_WF/Wolfmed/Alerts/alerts.yml` | modified | `WolfmedDowned` alert. |
+| `Resources/Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi` | new | Original 32x32 prone figure, CC-BY-SA-3.0, "Made for Wolfgate (Wolfmed)". |
+| `Resources/Prototypes/_WF/Wolfmed/Reagents/painkillers.yml` | new | `WolfmedAnalgesic` (weak 22), `WolfmedOpiate` (strong 70, sedation), `WolfmedStim` (emergency, 30 s). |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/painkillers.yml` | new | `WolfmedAnalgesicPill`, `WolfmedOpiateChemistryBottle`, `WolfmedStimPen`. |
+| `Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml` | modified | A reaction for each of the three new reagents. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml` | modified | The three new items in the debug crate. |
+| `Resources/Prototypes/Catalog/VendingMachines/Inventories/medical.yml` | modified | Upstream. Three marked vendor rows. |
+| `Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml` | modified | Vendored. Marked tier blocks on Ibuprofen, Ketorolac, Tramadol, Oxycodone. |
+| `Resources/Prototypes/Reagents/narcotics.yml` | modified | Upstream. Marked tier blocks on Desoxyephedrine and Ephedrine. |
+| `Resources/Prototypes/Reagents/medicine.yml` | modified | Upstream. Marked tier block on Epinephrine. |
+| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | new | Alert, tiers, analyzer banners, the three reagents. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | A "Consciousness" section. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | A "Painkillers" section. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | new | Ten tests: the gate, pain, Downed restrictions, the tiers, blood, legs, the pen's crash, the overdose, airloss, rejuvenate. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs` | modified | The three new items and three new reagents. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | modified | The tier family, the two banners and the Downed alert. |
+| `Docs/Wolfmed/DECISIONS.md` | modified | A "Consciousness" section. |
+
+Deviations from the spec:
+
+- **No new pain accessor on `PainComponent`.** The spec allowed one for "pain before the soft clamp".
+  Summing `PainSystem.GetPain` over the body's parts gives the same number with no `_Onyx` edit at all, so
+  `WolfmedConsciousnessSystem.GetUncappedPain` does that instead.
+- **"Emergency-lite" is its own tier, `Stimulant`,** rather than a flag on Emergency. Emergency carries a
+  fixed window and a crash; a stimulant is an ordinary refreshed dose. One enum member was cleaner than a
+  boolean that only means something for one tier.
+- **Happiness and ethanol were left alone.** Both carry `SuppressPain` and neither is in the spec's list of
+  classes to rate; giving a drink a consciousness tier is a balance call for the owner.
+- **The analyzer's pain-relief and sedation banners are not clickable.** Every other banner opens a treatment
+  procedure keyed on its condition id; a painkiller has no procedure, and inventing one would have needed a
+  prototype the treatment matrix tests would then police.

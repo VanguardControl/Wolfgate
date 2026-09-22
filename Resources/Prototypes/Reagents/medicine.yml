@@ -383,6 +383,11 @@
           min: 45
         reagent: Histamine
         amount: -5
+      # WOLFGATE (CONSC): painkiller tier. Stimulant: this is what an emergency medipen already carries,
+      # so a pen keeps doing what players expect of it without reaching the unconscious threshold.
+      - !type:WolfmedPainRelief
+        tier: Stimulant
+        strength: 6
       - !type:HealthChange
         conditions:
           # they gotta be in crit first

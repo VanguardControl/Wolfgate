@@ -1,6 +1,7 @@
 using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 keeps TargetBodyPart under _Shitmed; Onyx's _Onyx.Targeting copy is not ported.
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W5)
+using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE (CONSC)
 using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
@@ -67,11 +68,26 @@ public sealed class HealthAnalyzerWoundDiagnostics
     /// <summary>WOLFGATE (W5): systemic infection, 0 to 100. Body-level, so it sits beside the parts.</summary>
     public readonly float Sepsis;
 
+    /// <summary>WOLFGATE (CONSC): strongest painkiller tier in the patient, or None.</summary>
+    public readonly WolfmedPainReliefTier PainRelief;
+
+    /// <summary>WOLFGATE (CONSC): seconds of pain relief left.</summary>
+    public readonly float PainReliefSeconds;
+
+    /// <summary>WOLFGATE (CONSC): sedation, 0 to 1. Past its threshold the patient stops breathing.</summary>
+    public readonly float Sedation;
+
     public HealthAnalyzerWoundDiagnostics(
         Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts,
-        float sepsis = 0f) // WOLFGATE (W5)
+        float sepsis = 0f, // WOLFGATE (W5)
+        WolfmedPainReliefTier painRelief = WolfmedPainReliefTier.None, // WOLFGATE (CONSC)
+        float painReliefSeconds = 0f, // WOLFGATE (CONSC)
+        float sedation = 0f) // WOLFGATE (CONSC)
     {
         Parts = parts;
         Sepsis = sepsis; // WOLFGATE (W5)
+        PainRelief = painRelief; // WOLFGATE (CONSC)
+        PainReliefSeconds = painReliefSeconds; // WOLFGATE (CONSC)
+        Sedation = sedation; // WOLFGATE (CONSC)
     }
 }

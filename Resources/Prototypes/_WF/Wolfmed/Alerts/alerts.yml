@@ -7,3 +7,14 @@
     state: sepsis
   name: alerts-wolfmed-sepsis-name
   description: alerts-wolfmed-sepsis-desc
+
+# Downed (CONSC). On for as long as consciousness holds the body on the floor; the owner asked for a
+# persistent alert rather than a UI.
+
+- type: alert
+  id: WolfmedDowned
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-name
+  description: alerts-wolfmed-downed-desc
