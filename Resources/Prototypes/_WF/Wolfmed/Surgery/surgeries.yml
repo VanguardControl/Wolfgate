@@ -306,3 +306,23 @@
     - SurgeryStepWeldChassisBreach
   - type: WolfmedSurgeryWoundCondition
     woundPrototype: WolfmedChassisBreachWound
+
+# Brain repair (BRAIN) --------------------------------------------------------
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRepairBrain
+  name: Repair Brain
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepSawBones
+    - SurgeryStepRepairBrain
+    - SurgeryStepSealOrganWound
+  - type: SurgeryPartCondition
+    part: Head
+  - type: WolfmedSurgeryOrganDamagedCondition
+    slot: brain
+    destroyed: true

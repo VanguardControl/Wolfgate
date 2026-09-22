@@ -36,6 +36,7 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryTreatWoundEffectComponent, SurgeryStepCompleteCheckEvent>(OnTreatCheck);
         SubscribeLocalEvent<WolfmedSurgeryMendFractureEffectComponent, SurgeryStepCompleteCheckEvent>(OnFractureCheck);
         SubscribeLocalEvent<WolfmedSurgeryOrganHealEffectComponent, SurgeryStepCompleteCheckEvent>(OnOrganCheck);
+        SubscribeLocalEvent<WolfmedSurgeryBrainRepairEffectComponent, SurgeryStepCompleteCheckEvent>(OnBrainRepairCheck);
         SubscribeLocalEvent<WolfmedSurgeryIncisionTreatmentEffectComponent, SurgeryStepCompleteCheckEvent>(OnIncisionCheck);
         SubscribeLocalEvent<WolfmedSurgeryCloseEviscerationEffectComponent, SurgeryStepCompleteCheckEvent>(OnCloseEviscerationCheck);
     }
@@ -60,10 +61,12 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     private void OnOrganValid(Entity<WolfmedSurgeryOrganDamagedConditionComponent> ent, ref SurgeryValidEvent args)
     {
         // Damaged but still alive: OrganHealthSystem.Update destroys any organ at Health <= 0 on the next tick,
-        // so a dead organ is an insert job, not a heal job (P4-D24).
-        var treatable = TryFindOrgan(args.Part, ent.Comp.Slot, out var organ) &&
-                        organ.Comp.Health > FixedPoint2.Zero &&
-                        organ.Comp.Health < organ.Comp.MaxHealth;
+        // so a dead organ is an insert job, not a heal job (P4-D24). The brain is the exception, because
+        // OrganHealthSystem kills the mob instead of destroying it, and BRAIN's repair surgery wants it.
+        var found = TryFindOrgan(args.Part, ent.Comp.Slot, out var organ);
+        var treatable = ent.Comp.Destroyed
+            ? found && organ.Comp.Health <= FixedPoint2.Zero
+            : found && organ.Comp.Health > FixedPoint2.Zero && organ.Comp.Health < organ.Comp.MaxHealth;
 
         if (treatable == ent.Comp.Inverse)
             args.Cancelled = true;
@@ -99,6 +102,14 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     private void OnOrganCheck(Entity<WolfmedSurgeryOrganHealEffectComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
         if (!TryFindOrgan(args.Part, ent.Comp.Slot, out var organ) || organ.Comp.Health < organ.Comp.MaxHealth)
+            args.Cancelled = true;
+    }
+
+    /// <summary>BRAIN: the repair is done once the brain organ is whole again.</summary>
+    private void OnBrainRepairCheck(Entity<WolfmedSurgeryBrainRepairEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (!TryFindOrgan(args.Part, "brain", out var organ) || organ.Comp.Health < organ.Comp.MaxHealth)
             args.Cancelled = true;
     }
 

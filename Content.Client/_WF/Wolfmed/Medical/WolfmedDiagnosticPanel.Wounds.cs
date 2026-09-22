@@ -61,6 +61,8 @@ public sealed partial class WolfmedDiagnosticPanel
 
     /// <summary>FIX1: the sepsis banner's text, which carries a percentage that moves between rebuilds.</summary>
     private RichTextLabel? _sepsisLabel;
+    private RichTextLabel? _arrestLabel; // BRAIN
+    private RichTextLabel? _brainLabel; // BRAIN
 
     /// <summary>CONSC: the two body-level banners whose numbers drift between rebuilds.</summary>
     private RichTextLabel? _painReliefLabel;
@@ -144,6 +146,8 @@ public sealed partial class WolfmedDiagnosticPanel
     private void RebuildWoundDiagnostics(HealthAnalyzerScannedUserMessage msg)
     {
         _sepsisLabel = null;
+        _arrestLabel = null; // BRAIN
+        _brainLabel = null; // BRAIN
         _painLabels.Clear();
         WoundAlertsContainer.RemoveAllChildren();
         WoundCategoryStrip.RemoveAllChildren();
@@ -158,6 +162,38 @@ public sealed partial class WolfmedDiagnosticPanel
         {
             WoundStateLabel.SetMessage(Loc.GetString("health-analyzer-wound-diagnostics-inactive"));
             return;
+        }
+
+        // BRAIN: the two findings that outrank everything else on the body.
+        if (msg.WoundDiagnostics is { BrainDead: true })
+            WoundAlertsContainer.AddChild(CreateAlertRow(
+                "warning",
+                WolfmedWoundStyle.Necrosis,
+                Loc.GetString("health-analyzer-wound-brain-dead"),
+                "brain-death"));
+        else if (msg.WoundDiagnostics is { CardiacArrest: true } stopped)
+        {
+            WoundAlertsContainer.AddChild(CreateAlertRow(
+                "warning",
+                WolfmedWoundStyle.Bleeding,
+                ArrestText(stopped),
+                "cardiac-arrest",
+                out var arrest));
+            _arrestLabel = arrest;
+        }
+
+        if (msg.WoundDiagnostics is { Shutdown: true })
+            WoundAlertsContainer.AddChild(CreateAlertRow(
+                "warning",
+                WolfmedWoundStyle.Necrosis,
+                Loc.GetString("health-analyzer-wound-shutdown"),
+                "cardiac-arrest"));
+
+        if (msg.WoundDiagnostics is { BrainActivity: >= 0f } vitals)
+        {
+            _brainLabel = CreateBannerRow("reagent", WolfmedWoundStyle.Infection,
+                BrainText(vitals), out var brainRow);
+            WoundAlertsContainer.AddChild(brainRow);
         }
 
         if (IsDangerousBloodLevel(msg.BloodLevel))
@@ -256,6 +292,11 @@ public sealed partial class WolfmedDiagnosticPanel
             return text.Append("|none").ToString();
 
         text.Append(diagnostics.Sepsis > 0f ? "|sep" : "|-");
+        // BRAIN: the states, never the numbers that drift with them.
+        text.Append(diagnostics.CardiacArrest ? 'a' : '-')
+            .Append(diagnostics.BrainDead ? 'b' : '-')
+            .Append(diagnostics.Shutdown ? 's' : '-')
+            .Append(diagnostics.BrainActivity >= 0f ? 'v' : '-');
         // CONSC: only the presence of each banner, never the numbers on it.
         text.Append((int) diagnostics.PainRelief).Append(diagnostics.Sedation > 0f ? '1' : '0');
 
@@ -307,6 +348,13 @@ public sealed partial class WolfmedDiagnosticPanel
         if (_sepsisLabel is { } sepsis && diagnostics.Sepsis > 0f)
             sepsis.SetMessage(FormattedMessage.FromMarkupPermissive(SepsisText(diagnostics.Sepsis)));
 
+        // BRAIN: the countdown and the activity percentage both move every tick.
+        if (_arrestLabel is { } arrest && diagnostics.CardiacArrest)
+            arrest.SetMessage(FormattedMessage.FromMarkupPermissive(ArrestText(diagnostics)));
+
+        if (_brainLabel is { } brainLabel && diagnostics.BrainActivity >= 0f)
+            brainLabel.SetMessage(FormattedMessage.FromMarkupPermissive(BrainText(diagnostics)));
+
         // CONSC: the time left and the sedation percent both drift every tick.
         if (_painReliefLabel is { } painRelief && diagnostics.PainRelief != WolfmedPainReliefTier.None)
             painRelief.SetMessage(FormattedMessage.FromMarkupPermissive(PainReliefText(diagnostics)));
@@ -326,10 +374,28 @@ public sealed partial class WolfmedDiagnosticPanel
     {
         _woundSignature = null;
         _sepsisLabel = null;
+        _arrestLabel = null; // BRAIN
+        _brainLabel = null; // BRAIN
         _painReliefLabel = null; // CONSC
         _sedationLabel = null; // CONSC
         _painLabels.Clear();
     }
+
+    /// <summary>BRAIN: no pulse, and how long the brain has left if nothing changes.</summary>
+    private static string ArrestText(HealthAnalyzerWoundDiagnostics diagnostics)
+    {
+        if (diagnostics.BrainDeathSeconds < 0f)
+            return Loc.GetString("health-analyzer-wound-cardiac-arrest");
+
+        var total = (int) MathF.Round(diagnostics.BrainDeathSeconds);
+        return Loc.GetString("health-analyzer-wound-cardiac-arrest-timed",
+            ("minutes", total / 60), ("seconds", (total % 60).ToString("00")));
+    }
+
+    private static string BrainText(HealthAnalyzerWoundDiagnostics diagnostics) =>
+        Loc.GetString("health-analyzer-wound-brain-activity",
+            ("activity", (int) MathF.Round(diagnostics.BrainActivity * 100f)),
+            ("oxygen", (int) MathF.Round(MathF.Max(0f, diagnostics.Oxygenation) * 100f)));
 
     private static string SepsisText(float sepsis) =>
         Loc.GetString("health-analyzer-wound-sepsis", ("percent", (int) MathF.Round(sepsis)));
@@ -950,7 +1016,9 @@ public sealed partial class WolfmedDiagnosticPanel
             subject.Part != null && subject.Part == _targetedPart,
             SubjectPresent(subject, part, msg),
             msg.WoundDiagnostics?.Sepsis ?? 0f,
-            msg.BloodLevel);
+            msg.BloodLevel,
+            msg.WoundDiagnostics?.CardiacArrest ?? false, // BRAIN
+            msg.WoundDiagnostics?.BrainActivity ?? -1f); // BRAIN
     }
 
     /// <summary>Whether the finding the window was opened for is still being reported.</summary>
@@ -969,6 +1037,13 @@ public sealed partial class WolfmedDiagnosticPanel
 
         if (subject.Condition == "blood-low")
             return IsDangerousBloodLevel(msg.BloodLevel);
+
+        // BRAIN: both are body-level too.
+        if (subject.Condition == "cardiac-arrest")
+            return msg.WoundDiagnostics is { CardiacArrest: true } or { Shutdown: true };
+
+        if (subject.Condition == "brain-death")
+            return msg.WoundDiagnostics is { BrainDead: true };
 
         return part is { } diagnostic && ConditionPresent(subject.Condition, diagnostic);
     }

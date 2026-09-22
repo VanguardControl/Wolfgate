@@ -2,7 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Armor;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -152,6 +156,28 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             lines++;
         }
 
+        // BRAIN: body-level, like sepsis, and the first thing a medic checks for.
+        if (detailed && HasComp<WolfmedShutdownComponent>(examined))
+        {
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-shutdown-self" : "wolfmed-look-shutdown-other",
+                ("target", identity)));
+            lines++;
+        }
+        else if (detailed && HasComp<WolfmedCardiacArrestComponent>(examined))
+        {
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-no-pulse-self" : "wolfmed-look-no-pulse-other",
+                ("target", identity)));
+            lines++;
+        }
+
+        if (detailed && NotBreathing(examined))
+        {
+            report.Notes.Add(Loc.GetString(
+                self ? "wolfmed-look-not-breathing-self" : "wolfmed-look-not-breathing-other",
+                ("target", identity)));
+            lines++;
+        }
+
         if (lines == 0)
         {
             // Nothing shown at all reads differently when there was something and the clothing took it.
@@ -168,6 +194,26 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             report.Notes.Add(Loc.GetString("wolfmed-look-distant"));
 
         return report;
+    }
+
+    /// <summary>
+    /// BRAIN: a chest that is not moving. A stopped heart, a corpse, or a sedation overdose deep enough to
+    /// have taken the breathing with it.
+    /// </summary>
+    private bool NotBreathing(EntityUid examined)
+    {
+        // A machine never breathed in the first place.
+        if (HasComp<WolfmedShutdownComponent>(examined))
+            return false;
+
+        if (HasComp<WolfmedCardiacArrestComponent>(examined))
+            return true;
+
+        if (TryComp(examined, out MobStateComponent? mob) && mob.CurrentState == MobState.Dead)
+            return true;
+
+        return TryComp(examined, out WolfmedPainReliefComponent? relief) &&
+               relief.Sedation > relief.SedationAirlossThreshold;
     }
 
     /// <summary>Collects everything visible on one part. Returns true when something was hidden by clothing.</summary>

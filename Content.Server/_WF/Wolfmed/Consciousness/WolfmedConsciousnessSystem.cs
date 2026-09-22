@@ -30,13 +30,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     [Dependency] private readonly IConfigurationManager _configuration = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
     [Dependency] private readonly PainSystem _pain = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
-
-    /// <summary>Key the airloss stand-in writes to. BRAIN replaces it with real brain oxygenation.</summary>
-    public const string AirlossPressure = "airloss";
 
     /// <summary>
     /// How much of an external pressure is enough to put a body on the floor. 1 is unconscious, so anything
@@ -314,19 +310,11 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     }
 
     /// <summary>
-    /// Airloss keeps working while BRAIN is not here yet: suffocation damage is read against the crit
-    /// threshold it used to cross and pushed in as an external pressure.
+    /// Damage still moves pain and blood indirectly, so a re-evaluation is worth the event. Suffocation is
+    /// no longer read here at all: BRAIN's oxygenation clock owns it and pushes its own pressure in.
     /// </summary>
     private void OnDamageChanged(Entity<WolfmedConsciousnessComponent> body, ref DamageChangedEvent args)
     {
-        var level = 0f;
-        if (args.Damageable.DamagePerGroup.TryGetValue("Airloss", out var airloss) &&
-            airloss > FixedPoint2.Zero &&
-            _thresholds.TryGetThresholdForState(body, MobState.Critical, out var threshold) &&
-            threshold.Value > FixedPoint2.Zero)
-            level = airloss.Float() / threshold.Value.Float();
-
-        SetExternalPressure(body, AirlossPressure, level);
         Evaluate(body);
     }
 
@@ -348,6 +336,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     {
         comp.Pressures.Clear();
         comp.BloodFraction = 1f;
+        comp.Oxygenation = 1f;
         comp.DownLevel = 0f;
         comp.OutLevel = 0f;
         comp.State = WolfmedConsciousness.Up;

@@ -75,6 +75,7 @@
   - SurgeryRemoveEyes
   - SurgeryInsertEyes
   - SurgeryHealBrain
+  - SurgeryRepairBrain
   - SurgeryHealEyes
 
 - type: autodocProgram

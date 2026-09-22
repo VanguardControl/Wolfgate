@@ -522,6 +522,50 @@ public sealed class WolfmedAutodocTest : GameTest
         });
     }
 
+    /// <summary>
+    /// BRAIN: with the cardiac module fitted the pod runs the same defibrillation rule a medic's paddles do,
+    /// on its own, on an occupant whose heart has stopped.
+    /// </summary>
+    [Test]
+    public async Task DefibModuleRevivesAnArrestedOccupantTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var life = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem>();
+            var revival = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedRevivalSystem>();
+            var pod = Pod(entities, map);
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+            Assert.That(life.StartArrest(body, "test"), Is.True);
+
+            // Without the module the pod says so and nothing happens.
+            Assert.That(autodoc.TryDefibrillateOccupant(pod, body), Is.False);
+            Assert.That(life.InArrest(body), Is.True);
+
+            var slots = entities.System<ItemSlotsSystem>();
+            Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.ModuleSlotId,
+                entities.SpawnEntity("AutodocDefibModule", map.GridCoords), null), Is.True);
+            Assert.That(autodoc.HasDefibModule(pod), Is.True);
+
+            revival.ForcedRoll = 0f;
+            Assert.That(autodoc.TryDefibrillateOccupant(pod, body), Is.True);
+            revival.ForcedRoll = null;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(life.InArrest(body), Is.False, "the pod's shock did not restart the heart.");
+                Assert.That(entities.System<MobStateSystem>().IsDead(body), Is.False);
+            });
+        });
+    }
+
     private static Entity<AutodocComponent> Pod(IEntityManager entities, TestMapData map)
     {
         var pod = entities.SpawnEntity("WolfmedTestAutodoc", map.GridCoords);

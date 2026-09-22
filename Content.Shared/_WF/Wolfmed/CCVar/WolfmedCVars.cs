@@ -152,11 +152,102 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> ConsciousnessHysteresis =
         CVarDef.Create("wolfmed.consc_hysteresis", 0.1f, CVar.SERVERONLY);
 
-    /// <summary>Blood volume fraction at or under which a wound host dies. Stand-in until cardiac arrest lands.</summary>
-    public static readonly CVarDef<float> LifeBloodDead =
-        CVarDef.Create("wolfmed.life_blood_dead", 0.15f, CVar.SERVERONLY);
+    /// <summary>Blood volume fraction at or under which the heart stops (BRAIN).</summary>
+    public static readonly CVarDef<float> ArrestBlood =
+        CVarDef.Create("wolfmed.arrest_blood", 0.30f, CVar.SERVERONLY);
 
-    /// <summary>Airloss damage at or past which a wound host dies of suffocation. Stand-in until oxygenation lands.</summary>
-    public static readonly CVarDef<float> LifeAirlossDead =
-        CVarDef.Create("wolfmed.life_airloss_dead", 300f, CVar.SERVERONLY);
+    /// <summary>Brain oxygenation at or under which the heart stops.</summary>
+    public static readonly CVarDef<float> ArrestOxygenation =
+        CVarDef.Create("wolfmed.arrest_oxygenation", 0.15f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction at or under which a pain shock stops the heart instead of stunning.</summary>
+    public static readonly CVarDef<float> ArrestShockBlood =
+        CVarDef.Create("wolfmed.arrest_shock_blood", 0.5f, CVar.SERVERONLY);
+
+    /// <summary>Sepsis progress at or past which the heart can stop on its own.</summary>
+    public static readonly CVarDef<float> ArrestSepsis =
+        CVarDef.Create("wolfmed.arrest_sepsis", 80f, CVar.SERVERONLY);
+
+    /// <summary>Chance per second that late sepsis stops the heart.</summary>
+    public static readonly CVarDef<float> ArrestSepsisChance =
+        CVarDef.Create("wolfmed.arrest_sepsis_chance", 0.01f, CVar.SERVERONLY);
+
+    /// <summary>Shock damage in one electrocution at or past which the heart stops. Zero turns that off.</summary>
+    public static readonly CVarDef<float> ArrestShockDamage =
+        CVarDef.Create("wolfmed.arrest_shock_damage", 60f, CVar.SERVERONLY);
+
+    /// <summary>Seconds of a stopped heart that drain brain oxygenation from full to nothing.</summary>
+    public static readonly CVarDef<float> BrainArrestSeconds =
+        CVarDef.Create("wolfmed.brain_arrest_seconds", 120f, CVar.SERVERONLY);
+
+    /// <summary>Seconds of not breathing at all that drain brain oxygenation from full to nothing.</summary>
+    public static readonly CVarDef<float> BrainAirlossSeconds =
+        CVarDef.Create("wolfmed.brain_airloss_seconds", 180f, CVar.SERVERONLY);
+
+    /// <summary>Seconds at <see cref="BrainBloodFull"/> blood that drain oxygenation from full to nothing.</summary>
+    public static readonly CVarDef<float> BrainBloodSeconds =
+        CVarDef.Create("wolfmed.brain_blood_seconds", 300f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction under which perfusion starts costing the brain oxygen.</summary>
+    public static readonly CVarDef<float> BrainBloodStart =
+        CVarDef.Create("wolfmed.brain_blood_start", 0.5f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction at which the blood drain is at its full rate.</summary>
+    public static readonly CVarDef<float> BrainBloodFull =
+        CVarDef.Create("wolfmed.brain_blood_full", 0.3f, CVar.SERVERONLY);
+
+    /// <summary>Seconds of late sepsis that drain brain oxygenation from full to nothing.</summary>
+    public static readonly CVarDef<float> BrainSepsisSeconds =
+        CVarDef.Create("wolfmed.brain_sepsis_seconds", 600f, CVar.SERVERONLY);
+
+    /// <summary>Refill rate while perfused and breathing, as a share of the arrest drain rate.</summary>
+    public static readonly CVarDef<float> BrainRefillFactor =
+        CVarDef.Create("wolfmed.brain_refill_factor", 0.5f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Multiplier on the cold protection a brain gets from a low body temperature. The curve itself is data
+    /// (WolfmedBrainComponent.ColdSteps); 1 uses it as authored and higher values weaken it.
+    /// </summary>
+    public static readonly CVarDef<float> BrainColdFactor =
+        CVarDef.Create("wolfmed.brain_cold_factor", 1f, CVar.SERVERONLY);
+
+    /// <summary>Drain multiplier while somebody is doing CPR.</summary>
+    public static readonly CVarDef<float> BrainCprFactor =
+        CVarDef.Create("wolfmed.brain_cpr_factor", 0.25f, CVar.SERVERONLY);
+
+    /// <summary>Drain multiplier while an epinephrine-class stimulant is metabolising.</summary>
+    public static readonly CVarDef<float> BrainStimulantFactor =
+        CVarDef.Create("wolfmed.brain_stimulant_factor", 0.6f, CVar.SERVERONLY);
+
+    /// <summary>Oxygenation under which the brain organ starts taking irreversible damage.</summary>
+    public static readonly CVarDef<float> BrainDamageOxygenation =
+        CVarDef.Create("wolfmed.brain_damage_oxygenation", 0.4f, CVar.SERVERONLY);
+
+    /// <summary>Brain organ health lost per second at zero oxygenation, falling linearly to the threshold.</summary>
+    public static readonly CVarDef<float> BrainDamageRate =
+        CVarDef.Create("wolfmed.brain_damage_rate", 0.1f, CVar.SERVERONLY);
+
+    /// <summary>Oxygenation under which hypoxia starts pushing consciousness down.</summary>
+    public static readonly CVarDef<float> BrainPressureStart =
+        CVarDef.Create("wolfmed.brain_pressure_start", 0.75f, CVar.SERVERONLY);
+
+    /// <summary>Oxygenation at which hypoxia alone is enough to put a body out.</summary>
+    public static readonly CVarDef<float> BrainPressureOut =
+        CVarDef.Create("wolfmed.brain_pressure_out", 0.45f, CVar.SERVERONLY);
+
+    /// <summary>Minutes a repaired brain carries its trauma, with the concussion effects.</summary>
+    public static readonly CVarDef<float> BrainTraumaMinutes =
+        CVarDef.Create("wolfmed.brain_trauma_minutes", 30f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction under which a defibrillator can never restart the heart.</summary>
+    public static readonly CVarDef<float> DefibBlood =
+        CVarDef.Create("wolfmed.defib_blood", 0.40f, CVar.SERVERONLY);
+
+    /// <summary>Best chance a defibrillator has, at full brain oxygenation.</summary>
+    public static readonly CVarDef<float> DefibChance =
+        CVarDef.Create("wolfmed.defib_chance", 0.85f, CVar.SERVERONLY);
+
+    /// <summary>What the defibrillator's chance is multiplied by at zero brain oxygenation.</summary>
+    public static readonly CVarDef<float> DefibOxygenationFloor =
+        CVarDef.Create("wolfmed.defib_oxygenation_floor", 0.15f, CVar.SERVERONLY);
 }

@@ -48,6 +48,8 @@ namespace Content.Server._WF.Wolfmed.Autodoc;
 public sealed partial class AutodocSystem : EntitySystem
 {
     [Dependency] private readonly IAdminLogManager _adminLog = default!;
+    [Dependency] private Life.WolfmedLifeSystem _life = default!; // BRAIN
+    [Dependency] private Life.WolfmedRevivalSystem _revival = default!; // BRAIN
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IPrototypeManager _protos = default!;
     [Dependency] private readonly IRobustRandom _random = default!;

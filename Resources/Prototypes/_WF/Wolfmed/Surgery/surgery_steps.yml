@@ -377,3 +377,26 @@
   - type: WolfmedSurgeryPainEffect
     amount: 6
   - type: SurgeryStepEmoteEffect
+
+# Brain repair (BRAIN) --------------------------------------------------------
+# Unlike the heal steps above this one works on a DESTROYED organ, which is the only reason a brain-dead
+# body can ever be defibrillated again. One pass restores the whole organ and leaves the trauma behind.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepRepairBrain
+  name: Repair the brain
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Tending
+    duration: 8
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryPainEffect
+    amount: 40
+    sleepModifier: 0
+  - type: WolfmedSurgeryBrainRepairEffect
+  - type: SurgeryStepEmoteEffect

@@ -1,16 +1,19 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Compat;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Eye.Blinding.Systems;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Speech.EntitySystems;
 using Content.Shared.Stunnable;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
@@ -30,6 +33,8 @@ public sealed class WolfmedConcussionSystem : EntitySystem
     private const float TickSeconds = 1f;
 
     [Dependency] private BlurryVisionSystem _blurry = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedBodySystem _body = default!;
@@ -90,6 +95,11 @@ public sealed class WolfmedConcussionSystem : EntitySystem
             if (!Deleted(body) && body.Comp.Stutter)
                 _stutter.DoStutter(body, TimeSpan.FromSeconds(elapsed * 2f + 2f), refresh: true);
 
+            // A concussed or brain-damaged patient loses their grip now and then.
+            if (!Deleted(body) && body.Comp.Drop &&
+                _random.Prob(Math.Clamp(body.Comp.DropChance * elapsed, 0f, 1f)))
+                _hands.TryDrop(body.Owner, checkActionBlocker: false);
+
             Recover(body.Owner, elapsed);
         }
     }
@@ -133,8 +143,12 @@ public sealed class WolfmedConcussionSystem : EntitySystem
         if (Deleted(body))
             return;
 
-        var blur = 0f;
-        var stutter = false;
+        // BRAIN: organ damage and the trauma a repaired brain carries are not wounds, so they answer here.
+        var sources = new WolfmedConcussionSourcesEvent(body);
+        RaiseLocalEvent(ref sources);
+
+        var blur = sources.Blur;
+        var stutter = sources.Stutter;
         foreach (var (part, _) in _body.GetBodyChildren(body).ToArray())
         {
             foreach (var wound in _wounds.GetWounds(part))
@@ -148,7 +162,7 @@ public sealed class WolfmedConcussionSystem : EntitySystem
             }
         }
 
-        if (blur <= 0f && !stutter)
+        if (blur <= 0f && !stutter && !sources.Drop)
         {
             if (HasComp<WolfmedConcussionComponent>(body))
             {
@@ -160,9 +174,11 @@ public sealed class WolfmedConcussionSystem : EntitySystem
         }
 
         var concussion = EnsureComp<WolfmedConcussionComponent>(body);
-        var changed = concussion.Blur != blur || concussion.Stutter != stutter;
+        var changed = concussion.Blur != blur || concussion.Stutter != stutter ||
+                      concussion.Drop != sources.Drop;
         concussion.Blur = blur;
         concussion.Stutter = stutter;
+        concussion.Drop = sources.Drop;
         if (!changed)
             return;
 

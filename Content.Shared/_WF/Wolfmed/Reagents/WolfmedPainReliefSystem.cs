@@ -1,6 +1,5 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
-using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared.Body.Systems;
 using Content.Shared.FixedPoint;
@@ -23,7 +22,9 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
     [Dependency] private readonly PainSystem _pain = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly SharedWolfmedConsciousnessSystem _consciousness = default!;
-    [Dependency] private readonly WolfmedDamageableSystem _damage = default!;
+
+    /// <summary>Pressure key for an overdose that has stopped the patient breathing.</summary>
+    public const string SedationPressure = "sedation";
 
     private readonly List<EntityUid> _finished = new();
     private float _accumulator;
@@ -84,6 +85,22 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
     public float GetSedation(Entity<WolfmedPainReliefComponent?> body)
     {
         return Resolve(body, ref body.Comp, false) ? body.Comp.Sedation : 0f;
+    }
+
+    /// <summary>
+    /// BRAIN: how far past the threshold the sedation has pushed breathing, 0 to 1. The oxygenation clock
+    /// reads this exactly as it reads suffocation damage, so an overdose is still lethal without the
+    /// Asphyxiation stand-in that used to sit here.
+    /// </summary>
+    public float GetRespiratoryDepression(Entity<WolfmedPainReliefComponent?> body)
+    {
+        if (!Resolve(body, ref body.Comp, false) || body.Comp.SedationAirlossThreshold >= 1f ||
+            body.Comp.Sedation <= body.Comp.SedationAirlossThreshold)
+            return 0f;
+
+        return Math.Clamp(
+            (body.Comp.Sedation - body.Comp.SedationAirlossThreshold) /
+            (1f - body.Comp.SedationAirlossThreshold), 0f, 1f);
     }
 
     /// <summary>
@@ -187,16 +204,9 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
             ? body.Comp.Sedation + gain * elapsed
             : body.Comp.Sedation - body.Comp.SedationDecayPerSecond * elapsed, 0f, 1f);
 
-        if (body.Comp.Sedation > body.Comp.SedationAirlossThreshold &&
-            body.Comp.SedationAirlossThreshold < 1f)
-        {
-            // SEAM (BRAIN): this becomes SetExternalPressure(body, "sedation", depth) once brain
-            // oxygenation exists. Until then the damage keeps an overdose lethal.
-            var depth = (body.Comp.Sedation - body.Comp.SedationAirlossThreshold) /
-                        (1f - body.Comp.SedationAirlossThreshold);
-            _damage.ChangeDamage(body.Owner, body.Comp.SedationDamage * depth * elapsed,
-                ignoreResistances: true, interruptsDoAfters: false);
-        }
+        // BRAIN: respiratory depression is a pressure and an oxygenation input, never damage. The pressure
+        // is what puts the patient out; GetRespiratoryDepression is what starves the brain.
+        _consciousness.SetExternalPressure(body.Owner, SedationPressure, GetRespiratoryDepression(body.AsNullable()));
 
         if (Math.Abs(old - body.Comp.Sedation) < 0.0005f)
             return false;

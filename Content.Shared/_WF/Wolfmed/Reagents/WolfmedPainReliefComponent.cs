@@ -1,4 +1,3 @@
-using Content.Shared.Damage;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Wolfmed.Reagents;
@@ -85,16 +84,6 @@ public sealed partial class WolfmedPainReliefComponent : Component
     /// <summary>Sedation past which breathing is depressed.</summary>
     [DataField]
     public float SedationAirlossThreshold = 0.6f;
-
-    /// <summary>
-    /// Respiratory depression, applied per second past the threshold and scaled by how far past it. A seam:
-    /// BRAIN replaces this with oxygenation pushed through SetExternalPressure("sedation", ...).
-    /// </summary>
-    [DataField]
-    public DamageSpecifier SedationDamage = new()
-    {
-        DamageDict = { ["Asphyxiation"] = 0.8 },
-    };
 
     /// <summary>Pain is multiplied by this when an emergency window ends.</summary>
     [DataField]

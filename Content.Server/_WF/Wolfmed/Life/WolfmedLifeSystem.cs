@@ -1,0 +1,668 @@
+using Content.Server.Body.Components;
+using Content.Server._WF.Wolfmed.Consciousness;
+using Content.Server.Body.Systems;
+using Content.Server.Temperature.Components;
+using Content.Server._WF.Wolfmed.Wounds;
+using Content.Shared._Onyx.Body.Systems;
+using Content.Shared._Onyx.Wounds;
+using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Reagents;
+using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Body.Events;
+using Content.Shared.Body.Systems;
+using Content.Shared.Damage;
+using Content.Shared.Electrocution;
+using Content.Shared.FixedPoint;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Systems;
+using Robust.Shared.Configuration;
+using Robust.Shared.Random;
+using Robust.Shared.Timing;
+
+namespace Content.Server._WF.Wolfmed.Life;
+
+/// <summary>
+/// LIFE. Damage totals decide nothing on a wound host (CONSC) and neither does any total here: the heart
+/// either beats or it does not, and the brain either has oxygen or it is running out of it. Death is the
+/// brain organ being destroyed, which is ordinary <see cref="MobState.Dead"/> with nothing permanent
+/// attached to it.
+/// </summary>
+/// <remarks>
+/// Brain-missing is event driven on purpose. A poll for "this body has no brain" kills every brainless
+/// fixture the test suite spawns, which is what the interim system did.
+/// </remarks>
+public sealed class WolfmedLifeSystem : EntitySystem
+{
+    /// <summary>Pressure key for a stopped heart. Full, so an arrested body is always unconscious.</summary>
+    public const string ArrestPressure = "arrest";
+
+    /// <summary>Pressure key for a brain running out of oxygen while the heart still beats.</summary>
+    public const string HypoxiaPressure = "hypoxia";
+
+    /// <summary>Blood still moving under a rescuer's hands, as a fraction, while CPR is in progress.</summary>
+    private const float CprCirculation = 0.5f;
+
+    /// <summary>Oxygenation a successful defibrillation or a brain repair leaves behind.</summary>
+    public const float RestoredOxygenation = 0.35f;
+
+    /// <summary>Passive bleeding multiplier with no pulse behind it. Read by the Onyx bleeding system.</summary>
+    public const float ArrestBleedFactor = 0.25f;
+
+    private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
+
+    [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private OrganHealthSystem _organs = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private WolfmedConcussionSystem _concussion = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private WolfmedInfectionSystem _infection = default!;
+    [Dependency] private WolfmedPainReliefSystem _relief = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private WoundBleedingSystem _bleeding = default!;
+
+    private readonly List<EntityUid> _due = new();
+    private TimeSpan _nextTick;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        // The organ events are keyed on WolfmedOrganComponent: BrainComponent and HeartComponent already
+        // have their pairs taken by BrainSystem and HeartSystem, and one health component covers both.
+        SubscribeLocalEvent<WolfmedOrganComponent, OrganRemovedFromBodyEvent>(OnOrganRemoved);
+        SubscribeLocalEvent<WolfmedOrganComponent, OrganAddedToBodyEvent>(OnOrganAdded);
+        SubscribeLocalEvent<WolfmedPartAmputatedEvent>(OnAmputated);
+        SubscribeLocalEvent<WolfmedRejuvenateEvent>(OnRejuvenate);
+        SubscribeLocalEvent<WolfmedPainShockEvent>(OnPainShock);
+        SubscribeLocalEvent<WolfmedConcussionSourcesEvent>(OnConcussionSources);
+        SubscribeLocalEvent<ElectrocutedEvent>(OnElectrocuted);
+    }
+
+    #region Queries
+
+    /// <summary>True while this package, rather than the damage thresholds, decides this body's death.</summary>
+    public bool OwnsDeath(EntityUid body) => _consciousness.OwnsMobState(body);
+
+    public bool InArrest(EntityUid body) => HasComp<WolfmedCardiacArrestComponent>(body);
+
+    /// <summary>The brain organ's oxygenation clock, or null for a body that has no brain to run one.</summary>
+    public Entity<WolfmedBrainComponent>? GetBrain(EntityUid body)
+    {
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (TryComp(organ, out WolfmedBrainComponent? brain))
+                return (organ, brain);
+        }
+
+        return null;
+    }
+
+    /// <summary>The brain organ's health, whether or not it still runs a clock.</summary>
+    public Entity<WolfmedOrganComponent>? GetBrainOrgan(EntityUid body)
+    {
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (HasComp<BrainComponent>(organ) && TryComp(organ, out WolfmedOrganComponent? health))
+                return (organ, health);
+        }
+
+        return null;
+    }
+
+    public bool HasBrain(EntityUid body)
+    {
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (HasComp<BrainComponent>(organ))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>The heart's health, or null when there is no heart in the body at all.</summary>
+    public FixedPoint2? GetHeartHealth(EntityUid body)
+    {
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (HasComp<HeartComponent>(organ))
+                return CompOrNull<WolfmedOrganComponent>(organ)?.Health ?? FixedPoint2.New(1);
+        }
+
+        return null;
+    }
+
+    public float GetOxygenation(EntityUid body) => GetBrain(body)?.Comp.Oxygenation ?? 1f;
+
+    /// <summary>Brain activity, 0 to 1: the brain organ's health as a share of its maximum.</summary>
+    public float GetBrainActivity(EntityUid body)
+    {
+        if (GetBrainOrgan(body) is not { } organ || organ.Comp.MaxHealth <= FixedPoint2.Zero)
+            return 1f;
+
+        return Math.Clamp(organ.Comp.Health.Float() / organ.Comp.MaxHealth.Float(), 0f, 1f);
+    }
+
+    /// <summary>Passive bleeding multiplier. A stopped heart is not pushing anything out of a wound.</summary>
+    public float BleedFactor(EntityUid body) => InArrest(body) ? ArrestBleedFactor : 1f;
+
+    public float GetBlood(EntityUid body) =>
+        HasComp<BloodstreamComponent>(body) ? _bloodstream.GetBloodLevelPercentage(body) : 1f;
+
+    /// <summary>Somebody's hands are on the chest right now.</summary>
+    public bool InCpr(EntityUid body) =>
+        TryComp(body, out WolfmedCprComponent? cpr) && cpr.Ends > _timing.CurTime;
+
+    #endregion
+
+    #region Tick
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        if (_timing.CurTime < _nextTick)
+            return;
+
+        _nextTick = _timing.CurTime + TickInterval;
+
+        // Buffered: a tick can destroy an organ, which removes entities while the query is open.
+        _due.Clear();
+        var query = EntityQueryEnumerator<WolfmedConsciousnessComponent>();
+        while (query.MoveNext(out var uid, out _))
+            _due.Add(uid);
+
+        foreach (var body in _due)
+        {
+            if (!TerminatingOrDeleted(body))
+                Tick(body, (float) TickInterval.TotalSeconds);
+        }
+    }
+
+    /// <summary>
+    /// One body's share of a tick. Public so a test can fast-forward the clock instead of waiting out the
+    /// real seconds; the tick is the only thing that moves oxygenation.
+    /// </summary>
+    public void Tick(EntityUid body, float seconds)
+    {
+        if (seconds <= 0f || TerminatingOrDeleted(body) || !OwnsDeath(body))
+            return;
+
+        if (TryComp(body, out WolfmedCprComponent? cpr) && cpr.Ends <= _timing.CurTime)
+            RemComp<WolfmedCprComponent>(body);
+
+        if (GetBrain(body) is not { } brain)
+        {
+            // No clock to run. Mechanical bodies live here, and so does every brainless test fixture.
+            _consciousness.SetExternalPressure(body, HypoxiaPressure, 0f);
+            return;
+        }
+
+        var dead = _mobState.IsDead(body);
+        UpdateOxygenation(body, brain, seconds);
+
+        if (!dead)
+        {
+            UpdateBrainDamage(body, brain, seconds);
+            UpdateArrest(body, brain, seconds);
+        }
+
+        UpdateTrauma(body);
+        UpdatePressures(body, brain, dead);
+    }
+
+    /// <summary>The worst of the four inputs drains; nothing draining at all refills, slowly.</summary>
+    private void UpdateOxygenation(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)
+    {
+        var rate = DrainRate(body, brain);
+        var value = rate > 0f
+            ? brain.Comp.Oxygenation - rate * seconds
+            : brain.Comp.Oxygenation + RefillRate() * seconds;
+
+        SetOxygenation(brain, value);
+    }
+
+    private float RefillRate()
+    {
+        var arrestSeconds = _cfg.GetCVar(WolfmedCVars.BrainArrestSeconds);
+        return arrestSeconds <= 0f ? 0f : _cfg.GetCVar(WolfmedCVars.BrainRefillFactor) / arrestSeconds;
+    }
+
+    /// <summary>Oxygenation lost per second right now, with every multiplier already applied.</summary>
+    public float DrainRate(EntityUid body, Entity<WolfmedBrainComponent> brain)
+    {
+        var cpr = InCpr(body);
+        var worst = 0f;
+
+        if (InArrest(body))
+            worst = MathF.Max(worst, Per(_cfg.GetCVar(WolfmedCVars.BrainArrestSeconds)));
+
+        // CPR is rescue breaths as well as compressions, so it answers for the airway while it lasts.
+        if (!cpr)
+        {
+            var breath = Math.Clamp(MathF.Max(AirlossLevel(body), _relief.GetRespiratoryDepression(body)), 0f, 1f);
+            worst = MathF.Max(worst, breath * Per(_cfg.GetCVar(WolfmedCVars.BrainAirlossSeconds)));
+        }
+
+        var start = _cfg.GetCVar(WolfmedCVars.BrainBloodStart);
+        var full = _cfg.GetCVar(WolfmedCVars.BrainBloodFull);
+        var blood = GetBlood(body);
+        if (cpr && blood > full)
+            blood = MathF.Max(blood, CprCirculation);
+
+        if (blood < start && start > full)
+        {
+            var level = Math.Clamp((start - blood) / (start - full), 0f, 1f);
+            worst = MathF.Max(worst, level * Per(_cfg.GetCVar(WolfmedCVars.BrainBloodSeconds)));
+        }
+
+        if (_infection.GetSepsis(body) >= _cfg.GetCVar(WolfmedCVars.ArrestSepsis))
+            worst = MathF.Max(worst, Per(_cfg.GetCVar(WolfmedCVars.BrainSepsisSeconds)));
+
+        if (worst <= 0f)
+            return 0f;
+
+        worst *= ColdFactor(brain, body);
+
+        if (cpr)
+            worst *= _cfg.GetCVar(WolfmedCVars.BrainCprFactor);
+
+        if (_relief.GetTier(body) == WolfmedPainReliefTier.Stimulant)
+            worst *= _cfg.GetCVar(WolfmedCVars.BrainStimulantFactor);
+
+        return worst;
+    }
+
+    private static float Per(float seconds) => seconds > 0f ? 1f / seconds : 0f;
+
+    /// <summary>A cold brain keeps for longer. The curve is the organ's own data; the CVar scales it.</summary>
+    private float ColdFactor(Entity<WolfmedBrainComponent> brain, EntityUid body)
+    {
+        if (!TryComp(body, out TemperatureComponent? temperature))
+            return 1f;
+
+        var factor = 1f;
+        foreach (var step in brain.Comp.ColdSteps)
+        {
+            if (temperature.CurrentTemperature < step.Below)
+            {
+                factor = step.Factor;
+                break;
+            }
+        }
+
+        return Math.Clamp(factor * _cfg.GetCVar(WolfmedCVars.BrainColdFactor), 0f, 1f);
+    }
+
+    /// <summary>Suffocation damage against the threshold it used to cross, as 0 to 1.</summary>
+    private float AirlossLevel(EntityUid body)
+    {
+        if (!TryComp(body, out DamageableComponent? damageable) ||
+            !damageable.DamagePerGroup.TryGetValue("Airloss", out var airloss) ||
+            airloss <= FixedPoint2.Zero ||
+            !_thresholds.TryGetThresholdForState(body, MobState.Critical, out var threshold) ||
+            threshold.Value <= FixedPoint2.Zero)
+            return 0f;
+
+        return airloss.Float() / threshold.Value.Float();
+    }
+
+    /// <summary>Below the threshold the organ itself starts dying, and organ damage is not reversible.</summary>
+    private void UpdateBrainDamage(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)
+    {
+        if (!TryComp(brain, out WolfmedOrganComponent? organ) || organ.Health <= FixedPoint2.Zero)
+            return;
+
+        var threshold = _cfg.GetCVar(WolfmedCVars.BrainDamageOxygenation);
+        if (threshold > 0f && brain.Comp.Oxygenation < threshold)
+        {
+            var rate = _cfg.GetCVar(WolfmedCVars.BrainDamageRate) *
+                       Math.Clamp((threshold - brain.Comp.Oxygenation) / threshold, 0f, 1f);
+            if (rate > 0f)
+                _organs.ChangeHealth((brain.Owner, organ), FixedPoint2.New(-rate * seconds));
+        }
+
+        RefreshConcussion(body, brain, organ);
+    }
+
+    /// <summary>A damaged brain blurs, slurs and, far enough gone, drops things. W3's effects, no new system.</summary>
+    private void RefreshConcussion(EntityUid body, Entity<WolfmedBrainComponent> brain, WolfmedOrganComponent organ)
+    {
+        var share = organ.MaxHealth > FixedPoint2.Zero
+            ? organ.Health.Float() / organ.MaxHealth.Float()
+            : 1f;
+
+        var concussed = share < brain.Comp.ConcussionAt;
+        if (concussed == brain.Comp.Concussed)
+            return;
+
+        brain.Comp.Concussed = concussed;
+        _concussion.Refresh(body);
+    }
+
+    /// <summary>The trauma a repaired brain carries, and the moment it wears off.</summary>
+    private void UpdateTrauma(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedBrainTraumaComponent? trauma) || trauma.Ends > _timing.CurTime)
+            return;
+
+        RemComp<WolfmedBrainTraumaComponent>(body);
+        _concussion.Refresh(body);
+    }
+
+    private void UpdateArrest(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)
+    {
+        var heart = GetHeartHealth(body);
+        var blood = GetBlood(body);
+
+        if (TryComp(body, out WolfmedCardiacArrestComponent? arrest))
+        {
+            // The one route out that is not a defibrillator: the heart is back and there is blood to move.
+            if (arrest.Cause == "heart" && heart is { } health && health > FixedPoint2.Zero &&
+                blood > _cfg.GetCVar(WolfmedCVars.ArrestBlood))
+                EndArrest(body);
+
+            return;
+        }
+
+        // A heart that has stopped working, not a body that never had one: a species with no heart in its
+        // prototype at all is not in arrest, and a heart pulled out arrests on its own removal event.
+        if (heart is { } beating && beating <= FixedPoint2.Zero)
+        {
+            StartArrest(body, "heart");
+            return;
+        }
+
+        if (blood <= _cfg.GetCVar(WolfmedCVars.ArrestBlood))
+        {
+            StartArrest(body, "blood");
+            return;
+        }
+
+        if (brain.Comp.Oxygenation <= _cfg.GetCVar(WolfmedCVars.ArrestOxygenation))
+        {
+            StartArrest(body, "oxygen");
+            return;
+        }
+
+        if (_infection.GetSepsis(body) >= _cfg.GetCVar(WolfmedCVars.ArrestSepsis) &&
+            _random.Prob(Math.Clamp(_cfg.GetCVar(WolfmedCVars.ArrestSepsisChance) * seconds, 0f, 1f)))
+            StartArrest(body, "sepsis");
+    }
+
+    /// <summary>Arrest is a full pressure; hypoxia short of it ramps between the two CVars.</summary>
+    private void UpdatePressures(EntityUid body, Entity<WolfmedBrainComponent> brain, bool dead)
+    {
+        _consciousness.SetExternalPressure(body, ArrestPressure, !dead && InArrest(body) ? 1f : 0f);
+
+        var start = _cfg.GetCVar(WolfmedCVars.BrainPressureStart);
+        var outAt = _cfg.GetCVar(WolfmedCVars.BrainPressureOut);
+        var level = 0f;
+        if (!dead && start > outAt && brain.Comp.Oxygenation < start)
+            level = Math.Clamp((start - brain.Comp.Oxygenation) / (start - outAt), 0f, 1f);
+
+        _consciousness.SetExternalPressure(body, HypoxiaPressure, level);
+
+        if (TryComp(body, out WolfmedConsciousnessComponent? consciousness) &&
+            MathF.Abs(consciousness.Oxygenation - brain.Comp.Oxygenation) >= 0.005f)
+        {
+            consciousness.Oxygenation = brain.Comp.Oxygenation;
+            Dirty(body, consciousness);
+        }
+    }
+
+    #endregion
+
+    #region State changes
+
+    public void SetOxygenation(Entity<WolfmedBrainComponent> brain, float value)
+    {
+        var clamped = Math.Clamp(value, 0f, 1f);
+        if (MathF.Abs(brain.Comp.Oxygenation - clamped) < 0.0005f)
+            return;
+
+        brain.Comp.Oxygenation = clamped;
+        Dirty(brain);
+    }
+
+    public void SetOxygenation(EntityUid body, float value)
+    {
+        if (GetBrain(body) is { } brain)
+            SetOxygenation(brain, value);
+    }
+
+    /// <summary>Stops the heart. Only a defibrillator, a restored heart or a rejuvenate starts it again.</summary>
+    public bool StartArrest(EntityUid body, string cause)
+    {
+        if (TerminatingOrDeleted(body) || !OwnsDeath(body) || InArrest(body) || _mobState.IsDead(body) ||
+            GetBrain(body) == null)
+            return false;
+
+        var arrest = AddComp<WolfmedCardiacArrestComponent>(body);
+        arrest.StartTime = _timing.CurTime;
+        arrest.Cause = cause;
+        Dirty(body, arrest);
+
+        _consciousness.SetExternalPressure(body, ArrestPressure, 1f);
+        _bleeding.RefreshBody(body);
+        return true;
+    }
+
+    public bool EndArrest(EntityUid body)
+    {
+        if (!InArrest(body))
+            return false;
+
+        RemComp<WolfmedCardiacArrestComponent>(body);
+        _consciousness.SetExternalPressure(body, ArrestPressure, 0f);
+        _bleeding.RefreshBody(body);
+        return true;
+    }
+
+    /// <summary>
+    /// Brain death. Ordinary <see cref="MobState.Dead"/>: the ghost, the corpse and the death screen, with
+    /// nothing marking the body unrevivable.
+    /// </summary>
+    public bool Kill(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body) || _mobState.IsDead(body) || !_mobState.HasState(body, MobState.Dead))
+            return false;
+
+        _mobState.ChangeMobState(body, MobState.Dead);
+        return true;
+    }
+
+    /// <summary>What brain surgery leaves behind: a whole organ and the concussion effects for a while.</summary>
+    public void RepairBrain(EntityUid body)
+    {
+        if (GetBrainOrgan(body) is not { } organ)
+            return;
+
+        _organs.SetHealth(organ, organ.Comp.MaxHealth);
+        SetOxygenation(body, MathF.Max(GetOxygenation(body), RestoredOxygenation));
+
+        var trauma = EnsureComp<WolfmedBrainTraumaComponent>(body);
+        trauma.Ends = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WolfmedCVars.BrainTraumaMinutes));
+        Dirty(body, trauma);
+
+        if (GetBrain(body) is { } brain)
+            brain.Comp.Concussed = false;
+
+        _concussion.Refresh(body);
+    }
+
+    #endregion
+
+    #region Events
+
+    /// <summary>A brain leaving the body is death; a heart leaving it is arrest.</summary>
+    private void OnOrganRemoved(Entity<WolfmedOrganComponent> organ, ref OrganRemovedFromBodyEvent args)
+    {
+        var body = args.OldBody;
+        if (TerminatingOrDeleted(body) || !OwnsDeath(body))
+            return;
+
+        if (HasComp<BrainComponent>(organ) && !HasBrain(body))
+        {
+            Kill(body);
+            return;
+        }
+
+        if (!HasComp<HeartComponent>(organ))
+            return;
+
+        StartArrest(body, "heart");
+        _shutdown.Refresh(body);
+    }
+
+    /// <summary>A heart back in its slot gets one tick straight away, which is what ends the arrest.</summary>
+    private void OnOrganAdded(Entity<WolfmedOrganComponent> organ, ref OrganAddedToBodyEvent args)
+    {
+        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body) || !HasComp<HeartComponent>(organ))
+            return;
+
+        Tick(args.Body, 0.0001f);
+        _shutdown.Refresh(args.Body);
+    }
+
+    /// <summary>
+    /// A head torn off takes the brain with it. Event driven, and it asks what was on the part that came
+    /// off: a body that never had a brain in the first place has lost nothing.
+    /// </summary>
+    private void OnAmputated(ref WolfmedPartAmputatedEvent args)
+    {
+        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body) || !CarriedBrain(args.Part) ||
+            HasBrain(args.Body))
+            return;
+
+        Kill(args.Body);
+    }
+
+    /// <summary>Whether a detached part, or anything still hanging off it, was holding a brain.</summary>
+    private bool CarriedBrain(EntityUid part)
+    {
+        if (TerminatingOrDeleted(part))
+            return false;
+
+        foreach (var (child, _) in _body.GetBodyPartChildren(part))
+        {
+            foreach (var (organ, _) in _body.GetPartOrgans(child))
+            {
+                if (HasComp<BrainComponent>(organ))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void OnRejuvenate(ref WolfmedRejuvenateEvent args)
+    {
+        var body = args.Target;
+        if (TerminatingOrDeleted(body))
+            return;
+
+        EndArrest(body);
+        RemComp<WolfmedBrainTraumaComponent>(body);
+        RemComp<WolfmedCprComponent>(body);
+        _consciousness.SetExternalPressure(body, HypoxiaPressure, 0f);
+
+        if (GetBrainOrgan(body) is { } organ)
+            _organs.SetHealth(organ, organ.Comp.MaxHealth);
+
+        if (GetBrain(body) is { } brain)
+        {
+            SetOxygenation(brain, 1f);
+            brain.Comp.Concussed = false;
+        }
+
+        _concussion.Refresh(body);
+    }
+
+    /// <summary>A pain shock on a body that has already lost half its blood stops the heart instead.</summary>
+    private void OnPainShock(ref WolfmedPainShockEvent args)
+    {
+        if (!OwnsDeath(args.Body) || GetBlood(args.Body) > _cfg.GetCVar(WolfmedCVars.ArrestShockBlood))
+            return;
+
+        StartArrest(args.Body, "shock");
+    }
+
+    /// <summary>A big enough jolt stops the heart outright. A defibrillator's own zap is far below this.</summary>
+    private void OnElectrocuted(ElectrocutedEvent args)
+    {
+        var threshold = _cfg.GetCVar(WolfmedCVars.ArrestShockDamage);
+        if (threshold <= 0f || args.ShockDamage is not { } damage || damage < threshold ||
+            !OwnsDeath(args.TargetUid))
+            return;
+
+        StartArrest(args.TargetUid, "shock");
+    }
+
+    /// <summary>A damaged or freshly repaired brain contributes the same effects a concussion does.</summary>
+    private void OnConcussionSources(ref WolfmedConcussionSourcesEvent args)
+    {
+        if (TryComp(args.Body, out WolfmedBrainTraumaComponent? trauma) && trauma.Ends > _timing.CurTime)
+        {
+            args.Blur = MathF.Max(args.Blur, trauma.Blur);
+            args.Stutter = true;
+        }
+
+        if (GetBrain(args.Body) is not { } brain || !TryComp(brain, out WolfmedOrganComponent? organ) ||
+            organ.MaxHealth <= FixedPoint2.Zero)
+            return;
+
+        var share = Math.Clamp(organ.Health.Float() / organ.MaxHealth.Float(), 0f, 1f);
+        if (share >= brain.Comp.ConcussionAt)
+            return;
+
+        var depth = brain.Comp.ConcussionAt > 0f
+            ? Math.Clamp((brain.Comp.ConcussionAt - share) / brain.Comp.ConcussionAt, 0f, 1f)
+            : 1f;
+
+        args.Blur = MathF.Max(args.Blur, brain.Comp.MaxBlur * depth);
+        args.Stutter = true;
+        args.Drop |= share < brain.Comp.SevereAt;
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Seconds until the brain organ is destroyed at the current drain, or null when nothing is draining.
+    /// Stepped rather than solved: the damage rate depends on oxygenation, which is itself moving.
+    /// </summary>
+    public float? GetBrainDeathSeconds(EntityUid body)
+    {
+        if (GetBrain(body) is not { } brain || !TryComp(brain, out WolfmedOrganComponent? organ) ||
+            organ.Health <= FixedPoint2.Zero || _mobState.IsDead(body))
+            return null;
+
+        var rate = DrainRate(body, brain);
+        var threshold = _cfg.GetCVar(WolfmedCVars.BrainDamageOxygenation);
+        var damageRate = _cfg.GetCVar(WolfmedCVars.BrainDamageRate);
+        if (rate <= 0f || threshold <= 0f || damageRate <= 0f)
+            return null;
+
+        var oxygen = brain.Comp.Oxygenation;
+        var health = organ.Health.Float();
+        for (var second = 0; second < 3600; second++)
+        {
+            oxygen = MathF.Max(0f, oxygen - rate);
+            if (oxygen < threshold)
+                health -= damageRate * Math.Clamp((threshold - oxygen) / threshold, 0f, 1f);
+
+            if (health <= 0f)
+                return second + 1;
+        }
+
+        return null;
+    }
+}

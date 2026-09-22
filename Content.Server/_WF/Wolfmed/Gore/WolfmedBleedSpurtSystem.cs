@@ -2,6 +2,7 @@ using Content.Server.Body.Systems;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Gore;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Systems;
@@ -75,6 +76,14 @@ public sealed class WolfmedBleedSpurtSystem : EntitySystem
         {
             if (now < spurt.NextSpurt)
                 continue;
+
+            // BRAIN: a spurt is arterial pressure. A stopped heart has none, so the clock waits instead
+            // of firing; it picks straight back up when the heart does.
+            if (HasComp<WolfmedCardiacArrestComponent>(uid))
+            {
+                spurt.NextSpurt = now + Next(profile.BleedSpurt);
+                continue;
+            }
 
             if (!TrySpurt(uid))
             {

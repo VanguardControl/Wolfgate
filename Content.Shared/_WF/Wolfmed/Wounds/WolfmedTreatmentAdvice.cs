@@ -51,6 +51,8 @@ public static class WolfmedTreatmentAdvice
         "unavailable",
         "sepsis",
         "blood-low",
+        "cardiac-arrest",
+        "brain-death",
     ];
 
     /// <summary>The conditions a chassis reports differently. W6 already splits their wording; the advice follows.</summary>

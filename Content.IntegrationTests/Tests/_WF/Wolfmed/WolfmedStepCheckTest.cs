@@ -60,8 +60,9 @@ public sealed class WolfmedStepCheckTest
     [Test]
     public void EveryCheckSeparatesDoneFromNotDoneTest()
     {
-        var pending = new WolfmedProcedureState(Bad(), false, true, 40f, 0.3f);
-        var done = new WolfmedProcedureState(Good(), true, false, 0f, 1f);
+        // BRAIN adds the two body-level vitals: a stopped heart with a dead brain on the pending side.
+        var pending = new WolfmedProcedureState(Bad(), false, true, 40f, 0.3f, true, 0f);
+        var done = new WolfmedProcedureState(Good(), true, false, 0f, 1f, false, 1f);
 
         Assert.Multiple(() =>
         {
@@ -115,12 +116,15 @@ public sealed class WolfmedStepCheckTest
     [Test]
     public void BodyLevelChecksWorkWithoutAPartTest()
     {
-        var state = new WolfmedProcedureState(null, false, true, 0f, 1f);
+        var state = new WolfmedProcedureState(null, false, true, 0f, 1f, false, 1f);
 
         Assert.Multiple(() =>
         {
             Assert.That(WolfmedStepChecks.IsDone(WolfmedStepCheck.SepsisCleared, state), Is.True);
             Assert.That(WolfmedStepChecks.IsDone(WolfmedStepCheck.BloodRestored, state), Is.True);
+            // BRAIN: the arrest and brain-death procedures are banner-level too.
+            Assert.That(WolfmedStepChecks.IsDone(WolfmedStepCheck.PulseRestored, state), Is.True);
+            Assert.That(WolfmedStepChecks.IsDone(WolfmedStepCheck.BrainRepaired, state), Is.True);
             Assert.That(WolfmedStepChecks.IsDone(WolfmedStepCheck.BleedingStopped, state), Is.False);
             Assert.That(WolfmedStepChecks.IsDone(WolfmedStepCheck.FractureMended, state), Is.False);
 

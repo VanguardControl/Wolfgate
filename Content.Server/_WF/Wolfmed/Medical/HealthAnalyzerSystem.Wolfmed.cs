@@ -37,6 +37,8 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedOverheatingSystem _overheating = default!; // WOLFGATE (W6)
     [Dependency] private WolfmedPainReliefSystem _painRelief = default!; // WOLFGATE (CONSC)
     [Dependency] private IGameTiming _analyzerTiming = default!; // WOLFGATE (CONSC)
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem _life = default!; // WOLFGATE (BRAIN)
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedShutdownSystem _shutdown = default!; // WOLFGATE (BRAIN)
 
     /// <summary>Per-part wound findings for a wound host, or null for anything else.</summary>
     public HealthAnalyzerWoundDiagnostics? BuildWoundDiagnostics(EntityUid body)
@@ -172,12 +174,22 @@ public sealed partial class HealthAnalyzerSystem
             ? MathF.Max(0f, (float) (ends - _analyzerTiming.CurTime).TotalSeconds)
             : 0f;
 
+        // WOLFGATE (BRAIN): the two vitals that actually decide whether this patient lives.
+        var brain = _life.GetBrain(body);
+        var brainOrgan = _life.GetBrainOrgan(body);
+
         return new HealthAnalyzerWoundDiagnostics(
             result,
             _infection.GetSepsis(body), // WOLFGATE (W5)
             relief?.Tier ?? WolfmedPainReliefTier.None, // WOLFGATE (CONSC)
             reliefLeft, // WOLFGATE (CONSC)
-            relief?.Sedation ?? 0f); // WOLFGATE (CONSC)
+            relief?.Sedation ?? 0f, // WOLFGATE (CONSC)
+            _life.InArrest(body), // WOLFGATE (BRAIN)
+            brainOrgan is { } dead && dead.Comp.Health <= FixedPoint2.Zero, // WOLFGATE (BRAIN)
+            brainOrgan == null ? -1f : _life.GetBrainActivity(body), // WOLFGATE (BRAIN)
+            brain == null ? -1f : brain.Value.Comp.Oxygenation, // WOLFGATE (BRAIN)
+            _life.GetBrainDeathSeconds(body) ?? -1f, // WOLFGATE (BRAIN)
+            _shutdown.IsShutDown(body)); // WOLFGATE (BRAIN)
     }
 
     /// <summary>

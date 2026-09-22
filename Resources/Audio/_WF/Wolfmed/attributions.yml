@@ -2,3 +2,8 @@
   license: "Custom"
   copyright: "Seamless heartbeat loop supplied by the Wolfgate project owner; downmixed to mono. Source and license to be confirmed by the owner."
   source: "https://github.com/VanguardControl/Wolfgate"
+
+- files: ["flatline.ogg"]
+  license: "CC0-1.0"
+  copyright: "Made for Wolfgate (Wolfmed). Generated 1 kHz sine tone, ffmpeg lavfi."
+  source: "https://github.com/VanguardControl/Wolfgate"

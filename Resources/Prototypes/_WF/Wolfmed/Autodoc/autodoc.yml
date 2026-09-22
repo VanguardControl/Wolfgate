@@ -223,7 +223,7 @@
   parent: BaseItem
   id: AutodocDefibModule
   name: autodoc defibrillator module
-  description: A cardiac module for an autodoc. The pod recognises it and, for now, does nothing with it.
+  description: A cardiac module for an autodoc. With one installed the pod will shock a patient whose heart has stopped.
   components:
   - type: Sprite
     sprite: Objects/Specific/Medical/defib.rsi

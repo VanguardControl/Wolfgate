@@ -304,6 +304,9 @@ public sealed partial class PainSystem : EntitySystem
             ignoreActionBlocker: true, forceEmote: true);
         _jitter.DoJitter(entity, PainShockStunTime, true, 20f, 7f);
         ApplyPainShockAdrenaline(entity);
+        // WOLFGATE (BRAIN): a shock on a body that has already bled out stops the heart.
+        var shocked = new Content.Shared._WF.Wolfmed.Life.WolfmedPainShockEvent(entity.Owner);
+        RaiseLocalEvent(ref shocked);
     }
 
     private void OnRejuvenate(Entity<PainComponent> entity, ref RejuvenateEvent args)

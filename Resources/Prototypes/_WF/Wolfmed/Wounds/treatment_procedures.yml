@@ -1021,3 +1021,38 @@
     done: [ SubjectGone ]
   avoid:
   - wolfmed-treatment-avoid-wolfmed-chassis-breach-wound-1
+
+# BRAIN: the two body-level findings. Neither is opened from a part card; the banner is the click target.
+
+- type: wolfmedTreatmentProcedure
+  id: CondCardiacArrest
+  summary: wolfmed-treatment-short-cond-cardiac-arrest
+  steps:
+  - text: wolfmed-treatment-step-cond-cardiac-arrest-1
+  - text: wolfmed-treatment-step-cond-cardiac-arrest-2
+    reagent: Saline
+    done: [ BloodRestored ]
+  - text: wolfmed-treatment-step-cond-cardiac-arrest-3
+    tool: Defibrillator
+    done: [ PulseRestored ]
+  avoid:
+  - wolfmed-treatment-avoid-cond-cardiac-arrest-1
+  - wolfmed-treatment-avoid-cond-cardiac-arrest-2
+
+- type: wolfmedTreatmentProcedure
+  id: CondBrainDeath
+  summary: wolfmed-treatment-short-cond-brain-death
+  steps:
+  - text: wolfmed-treatment-step-cond-brain-death-1
+    reagent: Saline
+    done: [ BloodRestored ]
+  - text: wolfmed-treatment-step-cond-brain-death-2
+    tool: Hemostat
+    surgery: true
+    done: [ BrainRepaired ]
+  - text: wolfmed-treatment-step-cond-brain-death-3
+    tool: Defibrillator
+    done: [ PulseRestored ]
+  avoid:
+  - wolfmed-treatment-avoid-cond-brain-death-1
+  - wolfmed-treatment-avoid-cond-brain-death-2

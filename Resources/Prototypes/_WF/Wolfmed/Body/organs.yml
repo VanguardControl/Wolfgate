@@ -13,11 +13,13 @@
 # Human lineage only (DECISIONS.md §8.6-7, P3-D7); the other ~20 organ roots stay silent no-ops.
 
 # Brain: no destruction wound - OrganHealthSystem kills the mob instead of destroying the organ.
+# WolfmedBrain is BRAIN's oxygenation clock; only an organ that carries it runs one.
 - type: entity
   id: WolfmedOrganBrain
   abstract: true
   components:
   - type: WolfmedOrgan
+  - type: WolfmedBrain
   - type: OrganDamage
     hitChance: 0.8
     selectionWeight: 0.75
@@ -133,3 +135,38 @@
       Heat: 0.15
       Cold: 0.05
       Shock: 0.25
+
+# Machine organs (BRAIN). A positronic brain is a brain: destroying it kills the chassis through the same
+# OrganHealthSystem path a fleshy one uses. It carries no WolfmedBrain, so it runs no oxygenation clock.
+- type: entity
+  id: WolfmedOrganPositronicBrain
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+  - type: OrganDamage
+    hitChance: 0.8
+    selectionWeight: 0.75
+    damageMultipliers:
+      Blunt: 0.115
+      Slash: 0.25
+      Piercing: 0.42
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.3125
+
+# The micro pump is the chassis's heart: destroying it shuts the machine down rather than killing it.
+- type: entity
+  id: WolfmedOrganIpcPump
+  abstract: true
+  components:
+  - type: WolfmedOrgan
+  - type: OrganDamage
+    hitChance: 0.8
+    selectionWeight: 0.64
+    damageMultipliers:
+      Blunt: 0.1
+      Slash: 0.25
+      Piercing: 0.4
+      Heat: 0.15
+      Cold: 0.05
+      Shock: 0.3125

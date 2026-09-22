@@ -238,4 +238,28 @@ A chassis cannot become infected, cannot go septic and cannot become necrotic. A
     <GuideEntityEmbed Entity="CableApcStack"/>
     <GuideEntityEmbed Entity="FireExtinguisher"/>
   </Box>
+
+## Death and revival
+
+Damage totals no longer kill anybody with a body. Two things do: the heart stopping, and the brain running out of oxygen behind it.
+
+[bold]Cardiac arrest[/bold] is the heart stopping. The analyzer says CARDIAC ARREST and [bold]pulse: none[/bold], the patient is unconscious, the bleeding drops to a trickle because there is no pressure behind it, and the heartbeat you can hear in your own ears goes flat. It comes from a destroyed or missing heart, from blood under 30%, from a brain that is already out of oxygen, from a pain shock on somebody who has already bled out, from late sepsis, and from a big enough electric shock.
+
+[bold]Brain oxygenation[/bold] is the clock. It drains fastest with the heart stopped - about two minutes from full to empty - more slowly when the patient simply is not breathing, more slowly still on low blood or late sepsis. Below 40% the brain organ itself starts dying, and organ damage does not heal. The analyzer reads out [bold]brain activity[/bold] and, while the clock is running, an estimate of how long is left.
+
+What buys time: [bold]CPR[/bold] quarters the drain and stands in for breathing, but it never restarts a heart and it never revives anybody. [bold]Cold[/bold] halves the drain below 30 C and all but stops it at cryogenic temperatures - a body on the way to a cryopod has far longer than one on a warm floor. [bold]Epinephrine[/bold] and the other stimulants slow it too.
+
+[bold]Defibrillation[/bold] is the way back. It needs a brain in the head, blood above 40%, and some brain activity left. The chance falls with the oxygenation, so a shock in the first minute almost always takes and a shock after five minutes usually does not - but a failed shock costs nothing except the time, so keep going.
+
+[bold]Brain death[/bold] is when the brain organ reaches zero: the patient is dead, with a body and a ghost like any other death. There is still a way back, and it is work. Get the blood up, open the head and [bold]repair the brain[/bold] - the only thing in the game that raises organ health - and then shock them. A repaired brain carries the trauma for half an hour: blurred sight, slurred speech and a grip that lets go.
+
+Nothing Wolfmed does makes a body permanently unrevivable. [bold]Rot[/bold] is still the one hard stop, so get a corpse cold.
+  <Box>
+    <GuideEntityEmbed Entity="Defibrillator"/>
+    <GuideEntityEmbed Entity="Saline"/>
+    <GuideEntityEmbed Entity="Hemostat"/>
+  </Box>
+
+An [bold]IPC[/bold] has none of this. It does not bleed oxygen and it has no clock. Pull its cell or break its micro pump and it [bold]shuts down[/bold] - unconscious, indefinitely, with nothing running out - until the power or the pump is put back. Destroy its positronic brain and it is dead, and the way back is the same one flesh takes: repair the brain, then a jolt from a defibrillator to reboot it.
+
 </Document>

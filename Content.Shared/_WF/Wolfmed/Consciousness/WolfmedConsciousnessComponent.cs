@@ -41,6 +41,13 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     [ViewVariables]
     public Dictionary<string, float> Pressures = new();
 
+    /// <summary>
+    /// BRAIN: brain oxygenation, 1 down to 0. Mirrored off the brain organ so the client can fade the view
+    /// out as the clock runs without the organ entity being in its PVS.
+    /// </summary>
+    [AutoNetworkedField]
+    public float Oxygenation = 1f;
+
     /// <summary>Blood volume fraction at the bloodstream's last tick. 1 when the body has no bloodstream.</summary>
     [ViewVariables]
     public float BloodFraction = 1f;

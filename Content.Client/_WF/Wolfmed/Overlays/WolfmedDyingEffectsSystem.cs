@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
 using Content.Shared.Damage;
@@ -52,6 +53,7 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     private float _level;
     private float _dead;
     private float _deadTime;
+    private float _arrestTime = -1f;
     private float _time;
     private float _beatPhase;
     private float _nextBlackout;
@@ -141,6 +143,11 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     private void UpdateDeath(EntityUid? local, float frameTime)
     {
         var dead = _enabled && local is { } player && IsDead(player);
+
+        // BRAIN: a stopped heart gets its own banner, on the same fade, until the body actually dies.
+        var arrest = !dead && _enabled && local is { } arrested &&
+                     HasComp<WolfmedCardiacArrestComponent>(arrested);
+        _arrestTime = arrest ? (_arrestTime < 0f ? 0f : _arrestTime + frameTime) : -1f;
         _dead += ((dead ? 1f : 0f) - _dead) * Math.Min(1f, frameTime * 1.2f);
         if (!dead && _dead < 0.01f)
             _dead = 0f;
@@ -148,14 +155,17 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
         _deadTime = dead ? _deadTime + frameTime : 0f;
         _overlay.Dead = _dead;
 
+        var elapsed = dead ? _deadTime : _arrestTime;
         var alpha = 0f;
-        if (dead && _deadTime < BannerFadeIn + BannerHold + BannerFadeOut)
+        if (elapsed >= 0f && (dead || arrest) && elapsed < BannerFadeIn + BannerHold + BannerFadeOut)
         {
-            alpha = _deadTime < BannerFadeIn
-                ? _deadTime / BannerFadeIn
-                : 1f - Math.Clamp((_deadTime - BannerFadeIn - BannerHold) / BannerFadeOut, 0f, 1f);
+            alpha = elapsed < BannerFadeIn
+                ? elapsed / BannerFadeIn
+                : 1f - Math.Clamp((elapsed - BannerFadeIn - BannerHold) / BannerFadeOut, 0f, 1f);
         }
 
+        _banner.TitleKey = dead ? "wolfmed-death-banner" : "wolfmed-arrest-banner";
+        _banner.SubKey = dead ? "wolfmed-death-banner-sub" : "wolfmed-arrest-banner-sub";
         _banner.Alpha = alpha;
         SetBanner(alpha > 0f);
     }
@@ -178,7 +188,14 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
         // the view reads its depth instead: Downed 0.35 to 0.55, Unconscious 0.55 to 1.
         if (TryComp(player, out WolfmedConsciousnessComponent? consciousness) &&
             mob.CurrentState != MobState.Dead)
+        {
+            // BRAIN: in arrest the screen keeps fading toward black as the brain runs out of oxygen.
+            if (HasComp<WolfmedCardiacArrestComponent>(player))
+                return MathF.Max(consciousness.Depth,
+                    CritLevel + (1f - CritLevel) * (1f - Math.Clamp(consciousness.Oxygenation, 0f, 1f)));
+
             return consciousness.Depth;
+        }
 
         if (!_thresholds.TryGetThresholdForState(player, MobState.Dead, out var dead, thresholds))
             return 0f;

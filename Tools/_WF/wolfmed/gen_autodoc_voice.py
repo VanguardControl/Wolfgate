@@ -80,6 +80,9 @@ LINES = [
     ("unconscious", "THE PATIENT IS ASLEEP. GOOD.", None),
     ("critical", "PATIENT VITALS CRITICAL. OPERATOR REQUESTED.", None),
     ("defib-missing", "NO DEFIBRILLATOR MODULE IS INSTALLED. I CANNOT HELP WITH THAT.", None),
+    ("defib-charge", "CLEAR.", "Clear."),
+    ("defib-success", "SINUS RHYTHM RESTORED. WELCOME BACK.", None),
+    ("defib-failure", "NO RESPONSE. CHARGING AGAIN.", None),
 
     ("complete-1", "PROCEDURE COMPLETE. PLEASE COME AGAIN.", None),
     ("complete-2", "I HAVE FINISHED. YOU MAY GO.", None),

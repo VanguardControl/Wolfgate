@@ -335,6 +335,14 @@ public sealed partial class WoundBleedingSystem : EntitySystem
                 }
         }
 
+        // WOLFGATE (BRAIN): cardiac arrest drops passive bleeding to a trickle. Applied to the body's
+        // cached rates rather than to each wound, so the arrest never has to re-derive every wound.
+        if (HasComp<Content.Shared._WF.Wolfmed.Life.WolfmedCardiacArrestComponent>(body))
+        {
+            foreach (var stream in streamRates.Keys.ToArray())
+                streamRates[stream] *= Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem.ArrestBleedFactor;
+        }
+
         _circulation.SetBleedRates(body, streamRates);
         foreach (var (part, partRate) in partRates)
         {

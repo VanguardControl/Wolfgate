@@ -455,3 +455,18 @@ wolfmed-treatment-step-wolfmed-chassis-breach-wound-2 = Put the components back 
 wolfmed-treatment-step-wolfmed-chassis-breach-wound-3 = Run Weld Chassis Breach. A wrench seats the torn plating first.
 wolfmed-treatment-step-wolfmed-chassis-breach-wound-4 = Then weld the seam shut. It leaves an ordinary hole in the casing, which a welder closes normally.
 wolfmed-treatment-avoid-wolfmed-chassis-breach-wound-1 = Do not just weld at it. A breach this size refuses the tool outright until the plating has been seated on the table.
+
+# BRAIN: the two body-level findings that outrank everything else on the tab.
+wolfmed-treatment-short-cond-cardiac-arrest = The heart has stopped. The brain has a few minutes of oxygen left and then the patient is dead.
+wolfmed-treatment-step-cond-cardiac-arrest-1 = Start CPR and keep it going. It does not restart the heart; it buys the brain time.
+wolfmed-treatment-step-cond-cardiac-arrest-2 = Get the blood back up. Below 40% the paddles cannot circulate anything.
+wolfmed-treatment-step-cond-cardiac-arrest-3 = Then shock them. Every failed shock can be tried again, so keep going.
+wolfmed-treatment-avoid-cond-cardiac-arrest-1 = Do not stop CPR to fetch things. Every second without it is oxygen the brain will not get back.
+wolfmed-treatment-avoid-cond-cardiac-arrest-2 = Cold slows the clock right down. A body on the way to cryo has far longer than one on a warm floor.
+
+wolfmed-treatment-short-cond-brain-death = The brain organ is destroyed. The patient is dead, and they stay dead until somebody rebuilds it.
+wolfmed-treatment-step-cond-brain-death-1 = Get the blood above 40% first. A defibrillator below that does nothing at all.
+wolfmed-treatment-step-cond-brain-death-2 = Open the head and repair the brain. It is the only thing that raises brain activity.
+wolfmed-treatment-step-cond-brain-death-3 = Then shock them. With activity back the paddles have something to restart.
+wolfmed-treatment-avoid-cond-brain-death-1 = Rot is the one thing that cannot be undone. Get the body cold before you go looking for a surgeon.
+wolfmed-treatment-avoid-cond-brain-death-2 = A repaired brain keeps the trauma for half an hour. Blurred sight and a shaky grip are expected.

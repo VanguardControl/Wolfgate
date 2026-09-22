@@ -77,17 +77,47 @@ public sealed class HealthAnalyzerWoundDiagnostics
     /// <summary>WOLFGATE (CONSC): sedation, 0 to 1. Past its threshold the patient stops breathing.</summary>
     public readonly float Sedation;
 
+    /// <summary>WOLFGATE (BRAIN): the heart has stopped. No pulse, and the clock below is running.</summary>
+    public readonly bool CardiacArrest;
+
+    /// <summary>WOLFGATE (BRAIN): the brain organ is destroyed. The body is dead and needs surgery first.</summary>
+    public readonly bool BrainDead;
+
+    /// <summary>WOLFGATE (BRAIN): brain activity, 0 to 1, or -1 when there is no brain to read.</summary>
+    public readonly float BrainActivity;
+
+    /// <summary>WOLFGATE (BRAIN): brain oxygenation, 0 to 1, or -1 when there is no brain to read.</summary>
+    public readonly float Oxygenation;
+
+    /// <summary>WOLFGATE (BRAIN): seconds until brain death at the current drain, or -1 when nothing drains.</summary>
+    public readonly float BrainDeathSeconds;
+
+    /// <summary>WOLFGATE (BRAIN): a machine body with no power or no pump.</summary>
+    public readonly bool Shutdown;
+
     public HealthAnalyzerWoundDiagnostics(
         Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts,
         float sepsis = 0f, // WOLFGATE (W5)
         WolfmedPainReliefTier painRelief = WolfmedPainReliefTier.None, // WOLFGATE (CONSC)
         float painReliefSeconds = 0f, // WOLFGATE (CONSC)
-        float sedation = 0f) // WOLFGATE (CONSC)
+        float sedation = 0f, // WOLFGATE (CONSC)
+        bool cardiacArrest = false, // WOLFGATE (BRAIN)
+        bool brainDead = false, // WOLFGATE (BRAIN)
+        float brainActivity = -1f, // WOLFGATE (BRAIN)
+        float oxygenation = -1f, // WOLFGATE (BRAIN)
+        float brainDeathSeconds = -1f, // WOLFGATE (BRAIN)
+        bool shutdown = false) // WOLFGATE (BRAIN)
     {
         Parts = parts;
         Sepsis = sepsis; // WOLFGATE (W5)
         PainRelief = painRelief; // WOLFGATE (CONSC)
         PainReliefSeconds = painReliefSeconds; // WOLFGATE (CONSC)
         Sedation = sedation; // WOLFGATE (CONSC)
+        CardiacArrest = cardiacArrest; // WOLFGATE (BRAIN)
+        BrainDead = brainDead; // WOLFGATE (BRAIN)
+        BrainActivity = brainActivity; // WOLFGATE (BRAIN)
+        Oxygenation = oxygenation; // WOLFGATE (BRAIN)
+        BrainDeathSeconds = brainDeathSeconds; // WOLFGATE (BRAIN)
+        Shutdown = shutdown; // WOLFGATE (BRAIN)
     }
 }

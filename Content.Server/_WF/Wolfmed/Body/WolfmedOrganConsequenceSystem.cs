@@ -1,6 +1,7 @@
 using Content.Shared._Onyx.Body; // OrganFunctionChangedEvent is declared here, in OrganHealthSystem.cs.
 using Content.Shared.Body.Organ; // OrganComponent - Wolfgate keeps it here, not in _Shitmed.
-using Content.Shared._Shitmed.Body.Organ; // OrganEnableChangedEvent.
+using Content.Server._WF.Wolfmed.Life;
+using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
 
 namespace Content.Server._WF.Wolfmed.Body;
@@ -14,6 +15,8 @@ namespace Content.Server._WF.Wolfmed.Body;
 /// </remarks>
 public sealed class WolfmedOrganConsequenceSystem : EntitySystem
 {
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!; // BRAIN
+
     /// <inheritdoc/>
     public override void Initialize()
     {
@@ -34,5 +37,9 @@ public sealed class WolfmedOrganConsequenceSystem : EntitySystem
         // blindness path.
         var enable = new OrganEnableChangedEvent(args.Functional);
         RaiseLocalEvent(ent, ref enable);
+
+        // BRAIN: a machine body's pump is its heart. This pair is ours, so the shutdown system is told here.
+        if (HasComp<HeartComponent>(ent))
+            _shutdown.Refresh(args.Body);
     }
 }

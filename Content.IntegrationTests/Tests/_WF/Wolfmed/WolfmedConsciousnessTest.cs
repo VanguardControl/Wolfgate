@@ -2,6 +2,7 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._WF.Wolfmed.Consciousness;
+using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Body.Systems;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Consciousness;
@@ -411,8 +412,8 @@ public sealed class WolfmedConsciousnessTest : GameTest
     }
 
     /// <summary>
-    /// Too much of a sedating painkiller depresses breathing. That is the lethal end of an overdose today,
-    /// and the seam BRAIN replaces with oxygenation.
+    /// Too much of a sedating painkiller depresses breathing. BRAIN took the Asphyxiation stand-in out: the
+    /// overdose is now a pressure of its own and an input to the brain's oxygenation clock.
     /// </summary>
     [Test]
     public async Task SedationOverdoseTakesAirTest()
@@ -438,47 +439,17 @@ public sealed class WolfmedConsciousnessTest : GameTest
             var relief = entities.GetComponent<WolfmedPainReliefComponent>(body);
             Assert.That(relief.Sedation, Is.GreaterThan(relief.SedationAirlossThreshold));
 
+            var reliefSystem = entities.System<WolfmedPainReliefSystem>();
+            Assert.That(reliefSystem.GetRespiratoryDepression(body), Is.GreaterThan(0f),
+                "a sedation overdose stopped depressing breathing.");
+            Assert.That(entities.GetComponent<WolfmedConsciousnessComponent>(body).Pressures
+                    .ContainsKey(WolfmedPainReliefSystem.SedationPressure), Is.True);
+
             var damage = entities.GetComponent<DamageableComponent>(body);
-            Assert.That(damage.DamagePerGroup.TryGetValue("Airloss", out var airloss), Is.True);
-            Assert.That(airloss, Is.GreaterThan(FixedPoint2.Zero),
-                "a sedation overdose stopped costing the patient air.");
-        });
-    }
+            Assert.That(damage.DamagePerGroup.TryGetValue("Airloss", out var airloss) &&
+                        airloss > FixedPoint2.Zero, Is.False,
+                "the sedation stand-in still deals Asphyxiation damage.");
 
-    /// <summary>
-    /// Suffocation still reaches Critical with the damage thresholds gated off: airloss is read against the
-    /// threshold it used to cross and pushed in as an external pressure, which is BRAIN's seam.
-    /// </summary>
-    [Test]
-    public async Task AirlossStillReachesCriticalTest()
-    {
-        var server = Pair.Server;
-        await server.WaitIdleAsync();
-        var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
-
-        await server.WaitAssertion(() =>
-        {
-            var body = entities.SpawnEntity("WolfmedConscBody", map.GridCoords);
-            var comp = entities.GetComponent<WolfmedConsciousnessComponent>(body);
-
-            // The fixture's crit threshold is 100, so 80 Asphyxiation is 0.8 of a pressure: Downed, because
-            // 0.8 is past the 0.7 share that puts a body on the floor.
-            entities.System<DamageableSystem>()
-                .TryChangeDamage(body, Spec("Asphyxiation", 80), ignoreResistances: true);
-            Assert.That(comp.Pressures.ContainsKey(WolfmedConsciousnessSystem.AirlossPressure), Is.True);
-            Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
-
-            entities.System<DamageableSystem>()
-                .TryChangeDamage(body, Spec("Asphyxiation", 40), ignoreResistances: true);
-            Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious),
-                "suffocation stopped reaching Critical once the thresholds were gated.");
-
-            // No painkiller touches air either.
-            entities.System<WolfmedPainReliefSystem>()
-                .AddDose(body, "pen", WolfmedPainReliefTier.Emergency, 0f, TimeSpan.FromSeconds(30), 0f);
-            entities.System<WolfmedConsciousnessSystem>().Refresh(body);
-            Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious));
         });
     }
 
@@ -495,8 +466,9 @@ public sealed class WolfmedConsciousnessTest : GameTest
         await server.WaitAssertion(() =>
         {
             body = entities.SpawnEntity("WolfmedConscBody", map.GridCoords);
-            entities.System<DamageableSystem>()
-                .TryChangeDamage(body, Spec("Asphyxiation", 150), ignoreResistances: true);
+            // A full external pressure is the worst input there is, and BRAIN pushes arrest and hypoxia
+            // through this same seam. The fixture carries no organs, so the seam is driven directly.
+            entities.System<WolfmedConsciousnessSystem>().SetExternalPressure(body, "test", 1f);
             entities.System<WolfmedPainReliefSystem>()
                 .AddDose(body, "opiate", WolfmedPainReliefTier.Strong, 40f, TimeSpan.FromSeconds(60), 0.2f);
 
@@ -508,6 +480,8 @@ public sealed class WolfmedConsciousnessTest : GameTest
             var comp = entities.GetComponent<WolfmedConsciousnessComponent>(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
             Assert.That(comp.Pressures, Is.Empty);
+            Assert.That(entities.System<WolfmedLifeSystem>().InArrest(body), Is.False);
+            Assert.That(comp.Oxygenation, Is.EqualTo(1f));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.False);
             Assert.That(entities.HasComponent<WolfmedPainReliefComponent>(body), Is.False);
             Assert.That(entities.System<MobStateSystem>().IsAlive(body), Is.True);

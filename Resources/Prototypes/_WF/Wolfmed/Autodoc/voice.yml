@@ -214,6 +214,18 @@
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-missing.ogg
       message: wolfmed-autodoc-voice-defib-missing
+    defib-charge:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-charge.ogg
+      message: wolfmed-autodoc-voice-defib-charge
+    defib-success:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-success.ogg
+      message: wolfmed-autodoc-voice-defib-success
+    defib-failure:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-failure.ogg
+      message: wolfmed-autodoc-voice-defib-failure
     complete-1:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/complete-1.ogg
@@ -338,6 +350,9 @@
     Unconscious: [unconscious]
     Critical: [critical]
     DefibMissing: [defib-missing]
+    DefibCharge: [defib-charge]
+    DefibSuccess: [defib-success]
+    DefibFailure: [defib-failure]
     Complete: [complete-1, complete-2, complete-3]
     QueueComplete: [queue-complete]
     DiskMissing: [disk-missing]

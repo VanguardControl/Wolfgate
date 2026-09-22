@@ -1,4 +1,5 @@
 using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using JetBrains.Annotations;
@@ -25,14 +26,21 @@ public sealed class WolfmedCritHeartbeatSystem : EntitySystem
 
     private const string HeartbeatSound = "/Audio/_WF/Wolfmed/heartbeat_loop.ogg";
 
+    /// <summary>BRAIN: the one flat tone that marks the moment the heart stops. A flatline is silence after it.</summary>
+    private const string FlatlineSound = "/Audio/_WF/Wolfmed/flatline.ogg";
+
     private EntityUid? _stream;
     private bool _cvarEnabled = true;
+    private bool _flatlined;
 
     /// <summary>
     /// True whenever the loop should be playing, even if the headless audio backend returned no stream
     /// (e.g. in integration tests).
     /// </summary>
     public bool Active { get; private set; }
+
+    /// <summary>BRAIN: true while the local body's heart has stopped. A flatline is silence, so the loop is off.</summary>
+    public bool Flatlined { get; private set; }
 
     public override void Initialize()
     {
@@ -94,7 +102,16 @@ public sealed class WolfmedCritHeartbeatSystem : EntitySystem
     /// <summary>Re-checks the local entity's mob state and starts or stops the loop to match.</summary>
     private void Refresh()
     {
-        if (_cvarEnabled &&
+        // BRAIN: a stopped heart makes no sound at all. One flat tone marks the moment, then nothing.
+        var arrest = _player.LocalEntity is { } arrested && HasComp<WolfmedCardiacArrestComponent>(arrested);
+        Flatlined = arrest;
+        if (arrest && !_flatlined)
+            _audio.PlayGlobal(FlatlineSound, Filter.Local(), false, AudioParams.Default.WithVolume(-6f));
+
+        _flatlined = arrest;
+
+        if (!arrest &&
+            _cvarEnabled &&
             _player.LocalEntity is { } local &&
             TryComp<MobStateComponent>(local, out var mobState) &&
             mobState.CurrentState == MobState.Critical)

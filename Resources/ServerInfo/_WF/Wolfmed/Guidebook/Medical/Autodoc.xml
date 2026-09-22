@@ -41,7 +41,7 @@ Three beaker slots feed the reservoir. S.A.M. will only draw from a short list o
 
 ## When it goes wrong
 
-Losing power mid-step stops the pod where it stands, with the patient still open; restoring power resumes from the same step. If the patient dies the pod holds and calls for an operator on the medical channel. A defibrillator module slot exists and is reported in the window, but it does nothing yet.
+Losing power mid-step stops the pod where it stands, with the patient still open; restoring power resumes from the same step. If the patient dies the pod holds and calls for an operator on the medical channel. With a defibrillator module in its slot the pod shocks an occupant whose heart has stopped, on the same rule a medic's paddles follow: before the first procedure of a queue and again once the queue is done.
 
 A pod that has been emagged locks its lid and starts amputating. Cut the power or pry it open.
 </Document>

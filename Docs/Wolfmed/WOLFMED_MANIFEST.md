@@ -4015,3 +4015,89 @@ Deviations from the spec, and why:
 - **Pod ambience while operating was not added.** The operating sprite loops and every step plays its own
   tool sound; a second looping layer on top of that read as noise. The lid uses the existing
   `airlock_ext_open`/`_close` sounds.
+
+## Final stages: BRAIN (2026-09-22)
+
+Cardiac arrest, the brain oxygenation clock, brain death as ordinary `MobState.Dead`, the revival rules
+behind it, and the machine-body analogue. Replaces the interim `WolfmedLifeSystem`.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedLifeComponents.cs` | new | `WolfmedCardiacArrestComponent`, `WolfmedBrainComponent` (+ `WolfmedBrainColdStep`), `WolfmedBrainTraumaComponent`, `WolfmedCprComponent`, `WolfmedShutdownComponent` |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedLifeEvents.cs` | new | `WolfmedPainShockEvent`, `WolfmedConcussionSourcesEvent` |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | new | arrest triggers and exits, the oxygenation clock, brain organ damage, brain death, the analyzer's ETA, `Tick` as the test seam |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | new | the defibrillator rule, `StartCpr`, `ForcedRoll` test seam |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | new | machine bodies: power and pump, `"shutdown"` pressure |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedLifeSystem.cs` | deleted | the interim stand-in this package replaces |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLifeTest.cs` | deleted | its test |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `life_blood_dead` / `life_airloss_dead` out; 22 `arrest_*`, `brain_*` and `defib_*` CVars in |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | the `"airloss"` stand-in removed; oxygenation reset on rejuvenate |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | networked `Oxygenation`, which the dying view reads |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefSystem.cs` | modified | sedation is a `"sedation"` pressure plus `GetRespiratoryDepression`, not Asphyxiation damage |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs` | modified | one marked raise of `WolfmedPainShockEvent` |
+| `Content.Server/_Onyx/Wounds/WoundBleedingSystem.cs` | modified | one marked block: arrest scales the body's cached stream rates |
+| `Content.Server/_Shitmed/DelayedDeath/DelayedDeathSystem.cs` | modified | one marked `continue` so a wound host is not killed by a missing heart |
+| `Content.Server/Medical/DefibrillatorSystem.cs` | modified | one marked block replacing the threshold gate on a wound host |
+| `Content.Server/_EinsteinEngines/Medical/CPR/CPRSystem.cs` | modified | one marked condition: CPR marks the chest and never revives |
+| `Content.Server/_WF/Wolfmed/Gore/WolfmedBleedSpurtSystem.cs` | modified | no spurts without a pulse |
+| `Content.Server/_WF/Wolfmed/Body/WolfmedOrganConsequenceSystem.cs` | modified | tells the shutdown system when a pump changes state |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedConcussionSystem.cs` | modified | raises `WolfmedConcussionSourcesEvent`; the occasional dropped item |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedConcussionComponent.cs` | modified | `Drop`, `DropChance` |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryComponents.cs` | modified | `destroyed:` on the organ condition, `WolfmedSurgeryBrainRepairEffectComponent` |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryConditionSystem.cs` | modified | the destroyed-organ branch and the repair step check |
+| `Content.Server/_WF/Wolfmed/Surgery/WolfmedWoundSurgerySystem.cs` | modified | the repair step calls `WolfmedLifeSystem.RepairBrain` |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs` | modified | six body-level vitals on the payload |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | fills them |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | the arrest / brain-dead / shutdown banners, the brain activity row, the two new procedure subjects |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedStepChecks.cs` | modified | `PulseRestored`, `BrainRepaired`, two fields on `WolfmedProcedureState` |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedTreatmentAdvice.cs` | modified | `cardiac-arrest` and `brain-death` conditions |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | no pulse / not breathing / nothing running |
+| `Content.Client/_WF/Wolfmed/Audio/WolfmedCritHeartbeatSystem.cs` | modified | one flat tone at onset, then silence; `Flatlined` |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDyingEffectsSystem.cs` | modified | the arrest banner and the fade toward black as oxygenation falls |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDeathBannerOverlay.cs` | modified | the banner's locale keys are settable |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem{,.Procedure}.cs` | modified | `TryDefibrillateOccupant`, run before the first procedure and after the queue |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `DefibCharge`, `DefibSuccess`, `DefibFailure` voice events |
+| `Tools/_WF/wolfmed/gen_autodoc_voice{,_protos}.py` | modified | three new lines in the one source-of-truth table |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/defib-{charge,success,failure}.ogg` | new | eSpeak NG, regenerated from the table |
+| `Resources/Audio/_WF/Wolfmed/flatline.ogg` | new | 1 kHz tone, ffmpeg lavfi, CC0, attributed |
+| `Resources/Audio/_WF/Wolfmed/attributions.yml` | modified | the flatline entry |
+| `Resources/Prototypes/_WF/Wolfmed/Body/organs.yml` | modified | `WolfmedBrain` on the brain; `WolfmedOrganPositronicBrain`, `WolfmedOrganIpcPump` |
+| `Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml` | modified | one marked parent on `PositronicBrain` |
+| `Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml` | modified | one marked parent on `OrganIPCPump` |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryRepairBrain` |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | `SurgeryStepRepairBrain` |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/programs.yml` | modified | `SurgeryRepairBrain` on the Neuro disk |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/{autodoc,voice}.yml` | modified | module description; regenerated voice prototype |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/treatment_procedures.yml` | modified | `CondCardiacArrest`, `CondBrainDeath` |
+| `Resources/Locale/en-US/_WF/wolfmed/{wounds,look,death,treatment-advice,autodoc-voice}.ftl` | modified | analyzer vitals, examine lines, the arrest banner, the paddles' lines, both procedures |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Death and revival" |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Autodoc.xml` | modified | the module does something now |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs` | new | 10 tests |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocTest.cs` | modified | the defib module test |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | the airloss stand-in test moved to the BRAIN suite; sedation reads the pressure |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs` | modified | the two new checks |
+
+Deviations from the spec, and why:
+
+- **The spec's own timing summary does not follow from its own rule.** With damage starting under 0.4
+  oxygenation at 0.1/s at zero, an untreated arrest is brain-dead at about 246 s, not the "~198 s" the spec
+  quoted, and CPR keeps the brain out of the damage band entirely rather than reaching brain death at
+  "~6.5 min". The rule was implemented as written; the figures were not tuned to match the summary.
+- **`wolfmed.brain_cold_factor` is a multiplier on a curve, not the curve.** The spec asked for a "curve in
+  data" and named one CVar. The curve is `WolfmedBrainComponent.ColdSteps` (per organ prototype) and the CVar
+  scales the resolved factor, so both halves of the sentence exist.
+- **Hypoxia's own consciousness ramp is two CVars the spec did not name** (`brain_pressure_start` 0.75,
+  `brain_pressure_out` 0.45). Without them a patient at 0.2 oxygenation would walk around until the arrest
+  trigger fired at 0.15.
+- **A revived corpse always comes back at 0.35 oxygenation**, even if the brain was destroyed some other way
+  with a full tank. It is what makes "Dead -> Critical" deterministic rather than "Dead -> whatever
+  consciousness thinks".
+- **`SurgeryHealBrain` already existed** (P4) for a damaged but living brain and was left alone;
+  `SurgeryRepairBrain` is the new destroyed-organ surgery beside it, and the two conditions cannot overlap.
+- **The pod defibrillates at two points, not continuously.** Before the first procedure of a queue and when
+  the queue finishes. A pod that shocked any occupant on a timer would revive anybody who lay down in it.
+- **Rot was not re-tested.** `DefibrillatorSystem` refuses a rotten body before the Wolfmed block is reached
+  and that path is untouched, so the assertion would have measured `RottingSystem`, not this package.
+- **"Mechanical" needs `SiliconComponent`, not just an absent brain.** The first cut of
+  `WolfmedShutdownSystem.IsMechanical` read "wound host with no oxygenation clock", which shut down every
+  brainless test fixture on its first rejuvenate. The same trap the interim life system fell into.

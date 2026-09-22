@@ -353,3 +353,11 @@ wolfmed-look-evisceration = [color=crimson]their abdomen laid open, organs expos
 wolfmed-look-evisceration-short = abdomen laid open
 wolfmed-look-chassis-breach = [color=orange]their torso plating peeled back, internals exposed[/color]
 wolfmed-look-chassis-breach-short = torso torn open
+
+# BRAIN: what a hand on the neck and an ear to the chest tell you.
+wolfmed-look-no-pulse-self = You cannot find your own pulse.
+wolfmed-look-no-pulse-other = { CAPITALIZE(THE($target)) } has no pulse.
+wolfmed-look-not-breathing-self = You are not breathing.
+wolfmed-look-not-breathing-other = { CAPITALIZE(THE($target)) } is not breathing.
+wolfmed-look-shutdown-self = Nothing inside you is running.
+wolfmed-look-shutdown-other = Nothing inside { THE($target) } is running.

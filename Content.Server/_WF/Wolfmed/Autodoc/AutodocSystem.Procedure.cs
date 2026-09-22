@@ -273,6 +273,7 @@ public sealed partial class AutodocSystem
         }
 
         WarnAboutJunkReagents(ent);
+        TryDefibrillateOccupant(ent, body);
 
         if (!ent.Comp.AnaestheticGiven)
         {
@@ -479,8 +480,33 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
+    /// <summary>
+    /// BRAIN: with the module installed the pod shocks an occupant whose heart has stopped, on the same rule
+    /// a medic's paddles follow. It happens before the first procedure and again once the queue is done.
+    /// </summary>
+    public bool TryDefibrillateOccupant(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        if (!_life.InArrest(body) && !_mobState.IsDead(body))
+            return false;
+
+        if (!HasDefibModule(ent))
+        {
+            Speak(ent, AutodocVoiceEvent.DefibMissing);
+            return false;
+        }
+
+        Speak(ent, AutodocVoiceEvent.DefibCharge);
+        var revived = _revival.TryDefibrillate(body, out _);
+        Speak(ent, revived ? AutodocVoiceEvent.DefibSuccess : AutodocVoiceEvent.DefibFailure);
+        return revived;
+    }
+
     private void FinishQueue(Entity<AutodocComponent> ent)
     {
+        // BRAIN: a patient who arrested on the table is the last thing the pod does something about.
+        if (GetOccupant(ent) is { } patient)
+            TryDefibrillateOccupant(ent, patient);
+
         Speak(ent, AutodocVoiceEvent.QueueComplete);
         ent.Comp.State = AutodocState.Complete;
         ent.Comp.Locked = IsEmagged(ent);

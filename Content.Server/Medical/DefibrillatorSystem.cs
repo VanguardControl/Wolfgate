@@ -47,6 +47,7 @@ public sealed partial class DefibrillatorSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedRevivalSystem _wolfmedRevival = default!; // WOLFGATE (BRAIN)
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -203,6 +204,18 @@ public sealed partial class DefibrillatorSystem : EntitySystem
         }
         else
         {
+            // WOLFGATE (BRAIN): a wound host's damage total decides nothing. The brain and the heart do, so
+            // the whole threshold gate is replaced by the Wolfmed rule; the body lives in _WF.
+            if (_wolfmedRevival.OwnsRevival(target))
+            {
+                if (_wolfmedRevival.TryDefibrillate(target, out var wolfmedLine))
+                    dead = false;
+
+                _chatManager.TrySendInGameICMessage(uid, Loc.GetString(wolfmedLine),
+                    InGameICChatType.Speak, true);
+            }
+            else
+            {
             if (_mobState.IsDead(target, mob))
                 _damageable.TryChangeDamage(target, component.ZapHeal, true, origin: uid);
 
@@ -214,6 +227,7 @@ public sealed partial class DefibrillatorSystem : EntitySystem
                 _mobState.ChangeMobState(target, MobState.Critical, mob, uid);
                 dead = false;
             }
+            } // WOLFGATE (BRAIN)
 
             if (_mind.TryGetMind(target, out _, out var mind) &&
                 _player.TryGetSessionById(mind.UserId, out var playerSession))

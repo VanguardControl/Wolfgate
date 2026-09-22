@@ -437,3 +437,69 @@ heals by fiat and never applies a topical.
   amputation of a random limb and runs it, repeating until the power goes or somebody pries the lid.
 - **No revival.** `AutodocDefibModuleComponent` is recognised and reported in the window and does nothing;
   that is BRAIN's.
+
+## Brain death (2026-09-22)
+
+LIFE, the second meter CONSC left a hole for. On a wound host the heart either beats or it does not, and the
+brain either has oxygen or it is running out of it. **There is no permanent unrevivable state from Wolfmed.**
+Brain death IS `MobState.Dead` - the ghost, the corpse, the "YOU DIED" screen - and a dead body stays
+revivable if somebody does the work. `RottingSystem.IsRotten` is still the only hard stop and is untouched.
+
+- **Cardiac arrest** (`WolfmedCardiacArrestComponent`, networked, on the body). The body is Critical through
+  `SetExternalPressure(body, "arrest", 1)`, examine and the analyzer say "no pulse", the crit heartbeat loop
+  goes silent after one flat tone (`/Audio/_WF/Wolfmed/flatline.ogg`), the G2 spurts wait instead of firing
+  and passive bleeding runs at `WolfmedLifeSystem.ArrestBleedFactor` (0.25) applied to the body's cached
+  stream rates. Triggers: heart destroyed or removed; blood <= `wolfmed.arrest_blood` (0.30); brain
+  oxygenation <= `wolfmed.arrest_oxygenation` (0.15); a pain shock while blood <= `wolfmed.arrest_shock_blood`
+  (0.5); late sepsis at `wolfmed.arrest_sepsis` (80) with `wolfmed.arrest_sepsis_chance` (0.01/s); an
+  electrocution of `wolfmed.arrest_shock_damage` (60) or more. Ends: a defibrillator, a rejuvenate, or - only
+  when the heart was the cause - the heart back in the chest with blood above the arrest level. CPR never
+  ends it.
+- **The clock** (`WolfmedBrainComponent` on the brain organ, networked, `Oxygenation` 1 to 0). Drains by the
+  worst of: heart stopped (full drain in `wolfmed.brain_arrest_seconds` 120 s), not breathing (airloss over
+  the old crit threshold, or a sedation overdose, full drain in 180 s at 1.0), blood under 0.5 (linear to a
+  full drain in 300 s at 0.3), late sepsis (600 s). Refills at the arrest rate x `wolfmed.brain_refill_factor`
+  (0.5) when nothing drains. Multipliers: cold (`WolfmedBrainComponent.ColdSteps`, x0.5 under 30 C and x0.1
+  under 20 C, scaled by `wolfmed.brain_cold_factor`), CPR (x0.25, and CPR answers for breathing and counts
+  blood as at least 0.5), stimulants (x0.6). Under `wolfmed.brain_damage_oxygenation` (0.4) the brain ORGAN
+  takes `wolfmed.brain_damage_rate` (0.1/s at zero oxygenation, linear from the threshold) of irreversible
+  organ damage, and organ health 0 is death on the existing `OrganHealthSystem` path.
+- **Real timings, which are not the spec's own arithmetic.** With the rule as written (damage under 0.4
+  oxygenation, 0.1/s at zero) an untreated arrest reaches 0.4 at 72 s, zero at 120 s, and brain death at
+  about 246 s, not the 198 s the spec's summary line quoted. Under CPR the brain never reaches the damage
+  band inside ten minutes. The rule was implemented; the illustrative figure was not.
+- **Brain missing is event driven, never a poll.** `OrganRemovedFromBodyEvent` on `WolfmedOrganComponent`
+  and `WolfmedPartAmputatedEvent`, and the amputation handler asks whether the part that came off was
+  carrying the brain. A wound host that never had a brain (every brainless test fixture, including the one
+  `PassiveDamageMechanismStillRoutesIfReenabledTest` uses) lives exactly as long as anything else.
+- **Hypoxia is a pressure of its own.** CONSC's `"airloss"` stand-in is gone; the clock writes
+  `"hypoxia"`, ramping from `wolfmed.brain_pressure_start` (0.75) to `wolfmed.brain_pressure_out` (0.45).
+  Sedation's Asphyxiation stand-in is gone too: `WolfmedPainReliefSystem.GetRespiratoryDepression` is now
+  both a `"sedation"` pressure and a breathing input to the clock.
+- **Defibrillation** replaces the damage-threshold gate in `DefibrillatorSystem.Zap` with one marked block:
+  brain present, blood > `wolfmed.defib_blood` (0.40), brain organ health > 0, then a roll of
+  `wolfmed.defib_chance` (0.85) x lerp(`wolfmed.defib_oxygenation_floor` 0.15, 1, oxygenation). Success
+  clears the arrest, leaves 0.35 oxygenation and hands the state back to consciousness; a body that had been
+  Dead always comes back Critical, because it comes back on what the paddles put into it. A failed shock
+  costs the zap damage and can be tried again.
+- **Brain repair surgery** `SurgeryRepairBrain` (head incision, saw, `SurgeryStepRepairBrain` with a
+  tending tool, seal) is the only thing that raises organ health, matching D7. It restores the organ to
+  maximum and leaves `WolfmedBrainTraumaComponent` for `wolfmed.brain_trauma_minutes` (30), which feeds W3's
+  concussion effects. It is gated on a DESTROYED organ (`destroyed: true` on the organ condition), so it
+  never overlaps `SurgeryHealBrain`, which still handles a damaged but living brain.
+- **CPR** marks the chest (`WolfmedCprComponent`) for the do-after's length and nothing else. One marked
+  condition in `CPRSystem` skips the damage-threshold resuscitation on a wound host.
+- **The autodoc's defib module works.** With `AutodocDefibModuleComponent` in the module slot the pod runs
+  the same rule on an arrested occupant before the first procedure of a queue and again when the queue ends,
+  with three new eSpeak NG lines (`defib-charge` "CLEAR.", `defib-success`, `defib-failure`).
+- **Mechanical bodies have no clock.** `WolfmedShutdownComponent` (pressure `"shutdown"`) when the cell is
+  pulled or flat (`SiliconChargeDeathEvent`) or the micro pump is destroyed or removed. "Mechanical" is a
+  wound host that carries `SiliconComponent` AND runs no clock, not merely a body with no brain: the second
+  half alone is the brainless-poll bug in a different costume and it shut down every brainless fixture. That is not death and
+  nothing runs out. `PositronicBrain` and `OrganIPCPump` gained `WolfmedOrgan` + `OrganDamage`, so a
+  destroyed positronic brain is death on the same organ path a fleshy brain uses, and the way back is the
+  same: repair the brain, then a jolt.
+- **Shitmed's delayed death is gated off on a wound host** (one marked `continue` in
+  `DelayedDeathSystem.Update`): a missing heart is arrest, not a countdown. Its defib refusal for a body
+  with no heart or brain is kept.
+- Wolfmed still never adds `UnrevivableComponent`. Other content that sets it is still honoured.

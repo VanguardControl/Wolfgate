@@ -57,7 +57,17 @@ public sealed partial class WolfmedSurgeryOrganDamagedConditionComponent : Compo
 {
     [DataField(required: true)] public string Slot = string.Empty;
     [DataField] public bool Inverse;
+
+    /// <summary>BRAIN: match a destroyed organ (health 0) instead of a damaged but living one.</summary>
+    [DataField] public bool Destroyed;
 }
+
+/// <summary>
+/// BRAIN: puts a destroyed brain back together. The only thing that raises a brain organ past zero, and
+/// the only way a brain-dead body becomes defibrillatable again. Leaves the trauma behind.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryBrainRepairEffectComponent : Component;
 
 /// <summary>Restores health to a named organ slot on the selected part.</summary>
 [RegisterComponent, NetworkedComponent]

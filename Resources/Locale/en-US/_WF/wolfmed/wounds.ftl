@@ -150,3 +150,10 @@ wolfmed-wound-name-chassis-breach = torn chassis
 
 wolfmed-evisceration-popup = { CAPITALIZE(THE($target)) }'s abdomen is torn open and the contents come out!
 wolfmed-chassis-breach-popup = { CAPITALIZE(THE($target)) }'s torso plating tears open and its internals spill out!
+
+# BRAIN: the body-level vitals. Everything else on this tab is survivable; these two are not.
+health-analyzer-wound-cardiac-arrest = [color=#d63c2c]CARDIAC ARREST[/color] - pulse: none
+health-analyzer-wound-cardiac-arrest-timed = [color=#d63c2c]CARDIAC ARREST[/color] - pulse: none, est. brain death in { $minutes }:{ $seconds }
+health-analyzer-wound-brain-dead = [color=#d63c2c]BRAIN DEAD[/color] - no brain activity, no pulse
+health-analyzer-wound-brain-activity = brain activity { $activity }%, oxygenation { $oxygen }%
+health-analyzer-wound-shutdown = [color=#d63c2c]SHUTDOWN[/color] - no power or no pump

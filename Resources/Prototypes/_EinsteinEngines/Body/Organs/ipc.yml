@@ -53,7 +53,7 @@
 
 - type: entity
   id: OrganIPCPump
-  parent: BaseIPCOrgan
+  parent: [BaseIPCOrgan, WolfmedOrganIpcPump] # WOLFGATE (BRAIN): organ health, so the pump can be broken
   name: micro pump
   description: "A micro pump, used to circulate coolant."
   components:

@@ -20,6 +20,7 @@ public sealed class WolfmedWoundSurgerySystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private OrganHealthSystem _organHealth = default!;
+    [Dependency] private Life.WolfmedLifeSystem _life = default!; // BRAIN
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private WolfmedSurgeryConditionSystem _conditions = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
@@ -35,6 +36,7 @@ public sealed class WolfmedWoundSurgerySystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryTreatWoundEffectComponent, SurgeryStepEvent>(OnTreatWound);
         SubscribeLocalEvent<WolfmedSurgeryMendFractureEffectComponent, SurgeryStepEvent>(OnMendFracture);
         SubscribeLocalEvent<WolfmedSurgeryOrganHealEffectComponent, SurgeryStepEvent>(OnHealOrgan);
+        SubscribeLocalEvent<WolfmedSurgeryBrainRepairEffectComponent, SurgeryStepEvent>(OnRepairBrain);
         SubscribeLocalEvent<WolfmedSurgeryPainEffectComponent, SurgeryStepEvent>(OnSurgeryPain);
         SubscribeLocalEvent<WolfmedSurgeryIncisionWoundEffectComponent, SurgeryStepEvent>(OnOpenIncision);
         SubscribeLocalEvent<WolfmedSurgeryIncisionTreatmentEffectComponent, SurgeryStepEvent>(OnTreatIncision);
@@ -69,6 +71,12 @@ public sealed class WolfmedWoundSurgerySystem : EntitySystem
     {
         if (_conditions.TryFindOrgan(args.Part, ent.Comp.Slot, out var organ))
             _organHealth.ChangeHealth(organ, ent.Comp.Amount);
+    }
+
+    /// <summary>BRAIN: the whole organ back at once, and the trauma that comes with having been dead.</summary>
+    private void OnRepairBrain(Entity<WolfmedSurgeryBrainRepairEffectComponent> ent, ref SurgeryStepEvent args)
+    {
+        _life.RepairBrain(args.Body);
     }
 
     private void OnSurgeryPain(Entity<WolfmedSurgeryPainEffectComponent> ent, ref SurgeryStepEvent args)

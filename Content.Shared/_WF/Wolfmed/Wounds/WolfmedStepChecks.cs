@@ -64,6 +64,12 @@ public enum WolfmedStepCheck : byte
 
     /// <summary>Every organ slot on the part is filled again.</summary>
     OrgansRestored,
+
+    /// <summary>The heart is beating again.</summary>
+    PulseRestored,
+
+    /// <summary>The brain organ reads some activity, so a defibrillator has something to restart.</summary>
+    BrainRepaired,
 }
 
 /// <summary>
@@ -95,7 +101,10 @@ public readonly record struct WolfmedProcedureState(
     bool PartTargeted = false,
     bool SubjectPresent = true,
     float Sepsis = 0f,
-    float BloodLevel = 1f);
+    float BloodLevel = 1f,
+    // BRAIN: the two body-level vitals, for the arrest and brain-death procedures.
+    bool CardiacArrest = false,
+    float BrainActivity = -1f);
 
 /// <summary>
 /// UI4: the pure half of the procedure window. No entities, no IoC, no client types, so the truth table
@@ -133,6 +142,10 @@ public static class WolfmedStepChecks
                 return state.Sepsis <= 0f;
             case WolfmedStepCheck.BloodRestored:
                 return float.IsNaN(state.BloodLevel) || state.BloodLevel >= DangerousBloodLevel;
+            case WolfmedStepCheck.PulseRestored:
+                return !state.CardiacArrest;
+            case WolfmedStepCheck.BrainRepaired:
+                return state.BrainActivity > 0f;
         }
 
         if (state.Part is not { } part)
