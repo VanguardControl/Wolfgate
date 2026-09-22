@@ -186,6 +186,9 @@ public sealed partial class AutodocComponent : Component
     [ViewVariables]
     public bool AnaestheticGiven;
 
+    /// <summary>The missing-defib line has been said for this occupant; it is not repeated every procedure.</summary>
+    [ViewVariables] public bool DefibWarned;
+
     [ViewVariables]
     public TimeSpan NextIdleChatter;
 

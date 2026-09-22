@@ -471,9 +471,9 @@ public sealed partial class AutodocSystem
             ent.Comp.Queue.RemoveAt(0);
         }
 
-        Speak(ent, AutodocVoiceEvent.Complete);
         ent.Comp.AnaestheticGiven = false;
 
+        // The queue's last procedure is announced by FinishQueue; the ones before it just run on.
         if (ent.Comp.Queue.Count == 0)
         {
             FinishQueue(ent);
@@ -495,7 +495,9 @@ public sealed partial class AutodocSystem
 
         if (!HasDefibModule(ent))
         {
-            Speak(ent, AutodocVoiceEvent.DefibMissing);
+            if (!ent.Comp.DefibWarned)
+                Speak(ent, AutodocVoiceEvent.DefibMissing);
+            ent.Comp.DefibWarned = true;
             return false;
         }
 

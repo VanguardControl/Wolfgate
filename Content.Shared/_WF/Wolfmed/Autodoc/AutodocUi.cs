@@ -26,6 +26,9 @@ public sealed class AutodocBuiState : BoundUserInterfaceState
     public string Status = string.Empty;
     public string? CurrentStep;
     public float Progress;
+    /// <summary>Game time the current step ends at, so the client can run the bar between updates.</summary>
+    public TimeSpan StepEnds;
+    public float StepLength;
     public string? DiskProgram;
     public bool DefibModule;
     public bool SelfService;

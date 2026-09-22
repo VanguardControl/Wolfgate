@@ -20,6 +20,7 @@ namespace Content.Client._WF.Wolfmed.Autodoc;
 public sealed class AutodocWindow : DefaultWindow
 {
     private readonly IPrototypeManager _protos = IoCManager.Resolve<IPrototypeManager>();
+    private readonly IGameTiming _timing = IoCManager.Resolve<IGameTiming>();
 
     private readonly WolfmedBodyDoll _doll = new();
     private readonly WolfmedDiagnosticPanel _diagnostics = new();
@@ -27,7 +28,7 @@ public sealed class AutodocWindow : DefaultWindow
     private readonly Label _readout;
     private readonly Label _stepLine;
     private readonly Label _speech;
-    private readonly Label _cursor;
+    private readonly PanelContainer _cursor;
     private readonly Label _progressText;
     private readonly ProgressBar _progress;
     private readonly Label _patientTitle;
@@ -120,7 +121,12 @@ public sealed class AutodocWindow : DefaultWindow
         speechRow.AddChild(Text("> ", 12, Good, true));
         _speech = Text(string.Empty, 12, Good);
         speechRow.AddChild(_speech);
-        _cursor = Text("█", 12, Good);
+        _cursor = new PanelContainer
+        {
+            MinSize = new Vector2(8, 14),
+            VerticalAlignment = VAlignment.Center,
+            PanelOverride = Box(Good, margin: 0f),
+        };
         speechRow.AddChild(_cursor);
         headerRows.AddChild(speechRow);
         column.AddChild(header);
@@ -236,6 +242,18 @@ public sealed class AutodocWindow : DefaultWindow
             _blink = 0f;
             _cursor.Visible = !_cursor.Visible;
         }
+
+        if (_state is { CurrentStep: not null, StepLength: > 0f } state && state.State == AutodocState.Step)
+        {
+            var remaining = (float) (state.StepEnds - _timing.CurTime).TotalSeconds;
+            ShowProgress(Math.Clamp(1f - remaining / state.StepLength, 0f, 1f));
+        }
+    }
+
+    private void ShowProgress(float fraction)
+    {
+        _progress.Value = fraction;
+        _progressText.Text = $"{Gauge(fraction, 14)} {(int) (fraction * 100)}%";
     }
 
     private void SetFilter(TargetBodyPart? part)
@@ -281,8 +299,13 @@ public sealed class AutodocWindow : DefaultWindow
         _stepLine.Text = state.CurrentStep is { } step
             ? Loc.GetString("wolfmed-autodoc-ui-step", ("step", StepName(step)))
             : Loc.GetString($"wolfmed-autodoc-ui-idle-{(state.Occupied ? "occupied" : "empty")}");
-        _progress.Value = state.Progress;
-        _progressText.Text = state.CurrentStep != null ? $"{Gauge(state.Progress, 14)} {(int) (state.Progress * 100)}%" : string.Empty;
+        if (state.CurrentStep != null)
+            ShowProgress(state.Progress);
+        else
+        {
+            _progress.Value = 0f;
+            _progressText.Text = string.Empty;
+        }
 
         SetSpeech(state.LastLine ?? string.Empty);
         _filterLabel.Text = _filter is { } chosen

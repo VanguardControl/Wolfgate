@@ -209,7 +209,10 @@ public sealed partial class AutodocSystem : EntitySystem
             Speak(ent, AutodocVoiceEvent.DiskInserted);
 
         if (args.Container.ID == AutodocComponent.BodyContainerId)
+        {
             SetOccupantLying(args.Entity, true);
+            ent.Comp.DefibWarned = false;
+        }
 
         UpdateAppearance(ent);
         UpdateUi(ent);

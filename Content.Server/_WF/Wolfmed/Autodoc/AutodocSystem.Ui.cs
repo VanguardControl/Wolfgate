@@ -140,6 +140,8 @@ public sealed partial class AutodocSystem
             Progress = ent.Comp.StepLength > 0f
                 ? Math.Clamp(1f - ent.Comp.StepRemaining / ent.Comp.StepLength, 0f, 1f)
                 : 0f,
+            StepEnds = _timing.CurTime + TimeSpan.FromSeconds(Math.Max(0f, ent.Comp.StepRemaining)),
+            StepLength = ent.Comp.StepLength,
             SelfService = ent.Comp.SelfService,
             Anaesthesia = ent.Comp.Anaesthesia,
             Occupied = occupant != null,
