@@ -526,6 +526,14 @@ public partial class SharedGunSystem
                 if (ent == null)
                     continue;
 
+                // WOLFGATE: a slot can hold a round that is already gone; treating it as live crashed the server.
+                if (Deleted(ent.Value))
+                {
+                    component.AmmoSlots[index] = null;
+                    component.Chambers[index] = null;
+                    continue;
+                }
+
                 if (TryComp<CartridgeAmmoComponent>(ent, out var cartridge))
                 {
                     if (cartridge.Spent)
