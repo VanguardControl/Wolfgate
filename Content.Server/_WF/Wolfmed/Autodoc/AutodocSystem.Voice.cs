@@ -107,7 +107,10 @@ public sealed partial class AutodocSystem
         ent.Comp.VoiceStream = stream?.Entity;
         ent.Comp.VoiceBusyUntil = _timing.CurTime + GetLineLength(line);
         ent.Comp.VoiceSpoken++;
-        _chat.TrySendInGameICMessage(ent.Owner, Loc.GetString(line.Message, args), InGameICChatType.Speak, false);
+        var text = Loc.GetString(line.Message, args);
+        ent.Comp.LastLine = text;
+        _chat.TrySendInGameICMessage(ent.Owner, text, InGameICChatType.Speak, false);
+        UpdateUi(ent);
     }
 
     /// <summary>Starts the next queued line once the one before it has finished.</summary>

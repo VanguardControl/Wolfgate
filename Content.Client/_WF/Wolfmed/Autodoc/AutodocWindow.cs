@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Client._WF.Wolfmed.Medical;
 using Content.Shared._Shitmed.Targeting;
@@ -6,12 +7,15 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
+using static Content.Client._WF.Wolfmed.Autodoc.AutodocStyle;
 
 namespace Content.Client._WF.Wolfmed.Autodoc;
 
 /// <summary>
-/// S.A.M.'s window. The left half is the health analyzer's own doll and wound panel; the right half is the
-/// procedure list, the queue and the pod's controls.
+/// S.A.M.'s terminal. A header with the machine's readout and its last words, the patient on the left (the
+/// analyzer's own doll and wound panel), and on the right the procedures by category, the queue with its
+/// requirements, the reservoir, the hardware, and the controls.
 /// </summary>
 public sealed class AutodocWindow : DefaultWindow
 {
@@ -19,24 +23,40 @@ public sealed class AutodocWindow : DefaultWindow
 
     private readonly WolfmedBodyDoll _doll = new();
     private readonly WolfmedDiagnosticPanel _diagnostics = new();
+
+    private readonly Label _readout;
+    private readonly Label _stepLine;
+    private readonly Label _speech;
+    private readonly Label _cursor;
+    private readonly Label _progressText;
+    private readonly ProgressBar _progress;
+    private readonly Label _patientTitle;
+    private readonly Label _filterLabel;
     private readonly BoxContainer _procedures;
     private readonly BoxContainer _queueBox;
     private readonly BoxContainer _reservoirBox;
-    private readonly Label _statusLabel;
-    private readonly Label _stepLabel;
     private readonly Label _diskLabel;
     private readonly Label _moduleLabel;
     private readonly Label _trayLabel;
-    private readonly ProgressBar _progress;
+    private readonly Label _modeLabel;
     private readonly Button _startButton;
     private readonly Button _pauseButton;
     private readonly Button _abortButton;
     private readonly Button _ejectButton;
     private readonly CheckBox _anaesthesia;
-    private readonly Label _queueTitle;
+    private readonly Control _queueSection;
+    private readonly Label _queueHeadingCount;
+
+    private readonly HashSet<string> _collapsed = new();
+    private readonly Dictionary<string, string> _surgeryCategory = new();
+    private readonly Dictionary<string, string> _surgeryProgram = new();
+    private readonly List<AutodocCategoryPrototype> _categories;
+    private readonly string _fallbackCategory;
 
     private TargetBodyPart? _filter;
     private AutodocBuiState? _state;
+    private float _blink;
+    private string _speechText = string.Empty;
 
     public event Action<EntProtoId, TargetBodyPart>? OnQueueAdd;
     public event Action<int>? OnQueueRemove;
@@ -47,88 +67,185 @@ public sealed class AutodocWindow : DefaultWindow
     public AutodocWindow()
     {
         Title = Loc.GetString("wolfmed-autodoc-window-title");
-        MinSize = new Vector2(760, 520);
+        MinSize = new Vector2(920, 600);
+        SetSize = new Vector2(1040, 680);
 
-        var root = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8 };
-        Contents.AddChild(root);
+        _categories = _protos.EnumeratePrototypes<AutodocCategoryPrototype>().OrderBy(c => c.Order).ToList();
+        _fallbackCategory = _categories.FirstOrDefault(c => c.Fallback)?.ID ?? _categories.Last().ID;
+        foreach (var category in _categories)
+            foreach (var surgery in category.Surgeries)
+                _surgeryCategory[surgery.Id] = category.ID;
+        foreach (var program in _protos.EnumeratePrototypes<AutodocProgramPrototype>())
+            foreach (var surgery in program.Surgeries)
+                _surgeryProgram.TryAdd(surgery.Id, program.Name);
 
-        var left = new BoxContainer
+        var screen = new PanelContainer { PanelOverride = Box(Screen, margin: 8f), HorizontalExpand = true, VerticalExpand = true };
+        Contents.AddChild(screen);
+        var column = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
+        screen.AddChild(column);
+
+        // Header: the machine's readout and what it last said.
+        var header = new PanelContainer { PanelOverride = Box(Panel, Border, 8f), HorizontalExpand = true };
+        var headerRows = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 2 };
+        header.AddChild(headerRows);
+        var titleRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true };
+        titleRow.AddChild(Text("S.A.M.", 20, Amber, true));
+        titleRow.AddChild(Text("  " + Loc.GetString("wolfmed-autodoc-ui-subtitle"), 11, AmberDim) );
+        _readout = Text(string.Empty, 13, Amber, true);
+        _readout.HorizontalExpand = true;
+        _readout.Align = Label.AlignMode.Right;
+        titleRow.AddChild(_readout);
+        headerRows.AddChild(titleRow);
+
+        var progressRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 8 };
+        _stepLine = Text(string.Empty, 11, AmberDim);
+        _stepLine.HorizontalExpand = true;
+        progressRow.AddChild(_stepLine);
+        _progressText = Text(string.Empty, 11, Amber);
+        progressRow.AddChild(_progressText);
+        headerRows.AddChild(progressRow);
+
+        _progress = new ProgressBar
         {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            MinWidth = 340,
-            VerticalExpand = true,
-        };
-        left.AddChild(_doll);
-        left.AddChild(_diagnostics);
-        root.AddChild(left);
-
-        var right = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            MinValue = 0f,
+            MaxValue = 1f,
+            MinHeight = 6,
             HorizontalExpand = true,
-            VerticalExpand = true,
-            SeparationOverride = 4,
+            BackgroundStyleBoxOverride = Box(AmberFaint, margin: 0f),
+            ForegroundStyleBoxOverride = Box(Amber, margin: 0f),
         };
-        root.AddChild(right);
+        headerRows.AddChild(_progress);
 
-        _statusLabel = new Label { StyleClasses = { "LabelBig" } };
-        right.AddChild(_statusLabel);
+        var speechRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, Margin = new Thickness(0, 4, 0, 0) };
+        speechRow.AddChild(Text("> ", 12, Good, true));
+        _speech = Text(string.Empty, 12, Good);
+        speechRow.AddChild(_speech);
+        _cursor = Text("█", 12, Good);
+        speechRow.AddChild(_cursor);
+        headerRows.AddChild(speechRow);
+        column.AddChild(header);
 
-        _stepLabel = new Label { StyleClasses = { "LabelSubText" } };
-        right.AddChild(_stepLabel);
+        // Body: patient on the left, the console on the right.
+        var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 6, VerticalExpand = true };
+        column.AddChild(body);
 
-        _progress = new ProgressBar { MinValue = 0f, MaxValue = 1f, MinHeight = 12 };
-        right.AddChild(_progress);
+        var patient = new PanelContainer { PanelOverride = Box(Panel, Border, 6f), MinWidth = 360, VerticalExpand = true };
+        var patientColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4 };
+        patient.AddChild(patientColumn);
+        _patientTitle = Text(string.Empty, 11, AmberDim, true);
+        patientColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-patient")));
+        patientColumn.AddChild(_patientTitle);
+        var dollRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 8 };
+        dollRow.AddChild(_doll);
+        var dollNotes = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, VerticalAlignment = VAlignment.Center };
+        dollNotes.AddChild(Text(Loc.GetString("wolfmed-autodoc-ui-doll-hint"), 10, AmberDim));
+        _filterLabel = Text(string.Empty, 11, Cyan, true);
+        dollNotes.AddChild(_filterLabel);
+        var clear = FlatButton(Loc.GetString("wolfmed-autodoc-ui-filter-clear"), AmberDim);
+        clear.OnPressed += _ => SetFilter(null);
+        dollNotes.AddChild(clear);
+        dollRow.AddChild(dollNotes);
+        patientColumn.AddChild(dollRow);
+        patientColumn.AddChild(new ScrollContainer { VerticalExpand = true, HorizontalExpand = true, Children = { _diagnostics } });
+        body.AddChild(patient);
 
-        right.AddChild(new Label { Text = Loc.GetString("wolfmed-autodoc-window-procedures") });
-        _procedures = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
-        right.AddChild(new ScrollContainer { VerticalExpand = true, MinHeight = 140, Children = { _procedures } });
+        var console = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, VerticalExpand = true, SeparationOverride = 6 };
+        body.AddChild(console);
 
-        _queueTitle = new Label { Text = Loc.GetString("wolfmed-autodoc-window-queue") };
-        right.AddChild(_queueTitle);
-        _queueBox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
-        right.AddChild(new ScrollContainer { VerticalExpand = true, MinHeight = 110, Children = { _queueBox } });
+        // Procedures, grouped.
+        var procedurePanel = new PanelContainer { PanelOverride = Box(Panel, Border, 6f), VerticalExpand = true, HorizontalExpand = true };
+        var procedureColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        procedurePanel.AddChild(procedureColumn);
+        procedureColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-procedures"), Loc.GetString("wolfmed-autodoc-ui-procedures-hint")));
+        _procedures = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
+        procedureColumn.AddChild(new ScrollContainer { VerticalExpand = true, HorizontalExpand = true, MinHeight = 160, Children = { _procedures } });
+        console.AddChild(procedurePanel);
 
-        right.AddChild(new Label { Text = Loc.GetString("wolfmed-autodoc-window-reservoir") });
-        _reservoirBox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
-        right.AddChild(_reservoirBox);
+        // Queue.
+        var queuePanel = new PanelContainer { PanelOverride = Box(Panel, Border, 6f), HorizontalExpand = true };
+        var queueColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        queuePanel.AddChild(queueColumn);
+        var queueHeading = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true };
+        _queueHeadingCount = Text(string.Empty, 11, AmberDim);
+        queueColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-queue")));
+        queueColumn.AddChild(queueHeading);
+        queueHeading.AddChild(_queueHeadingCount);
+        _queueBox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
+        queueColumn.AddChild(new ScrollContainer { HorizontalExpand = true, MinHeight = 90, MaxHeight = 170, Children = { _queueBox } });
+        _queueSection = queuePanel;
+        console.AddChild(queuePanel);
 
-        _diskLabel = new Label { StyleClasses = { "LabelSubText" } };
-        right.AddChild(_diskLabel);
-        _moduleLabel = new Label { StyleClasses = { "LabelSubText" } };
-        right.AddChild(_moduleLabel);
-        _trayLabel = new Label { StyleClasses = { "LabelSubText" } };
-        right.AddChild(_trayLabel);
+        // Reservoir and hardware, side by side.
+        var lower = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 6 };
+        console.AddChild(lower);
 
-        _anaesthesia = new CheckBox { Text = Loc.GetString("wolfmed-autodoc-window-anaesthesia"), Pressed = true };
+        var reservoirPanel = new PanelContainer { PanelOverride = Box(Panel, Border, 6f), HorizontalExpand = true };
+        var reservoirColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        reservoirPanel.AddChild(reservoirColumn);
+        reservoirColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-reservoir")));
+        _reservoirBox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
+        reservoirColumn.AddChild(_reservoirBox);
+        lower.AddChild(reservoirPanel);
+
+        var hardwarePanel = new PanelContainer { PanelOverride = Box(Panel, Border, 6f), HorizontalExpand = true };
+        var hardwareColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        hardwarePanel.AddChild(hardwareColumn);
+        hardwareColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-hardware")));
+        _diskLabel = Text(string.Empty, 11);
+        _moduleLabel = Text(string.Empty, 11);
+        _trayLabel = Text(string.Empty, 11);
+        _modeLabel = Text(string.Empty, 11, AmberDim);
+        hardwareColumn.AddChild(_diskLabel);
+        hardwareColumn.AddChild(_moduleLabel);
+        hardwareColumn.AddChild(_trayLabel);
+        hardwareColumn.AddChild(_modeLabel);
+        lower.AddChild(hardwarePanel);
+
+        // Controls.
+        var controls = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 6 };
+        _anaesthesia = new CheckBox { Text = Loc.GetString("wolfmed-autodoc-ui-anaesthesia"), Pressed = true, HorizontalExpand = true };
+        _anaesthesia.Label.FontOverride = Mono(11);
+        _anaesthesia.Label.FontColorOverride = Amber;
         _anaesthesia.OnToggled += args => OnAnaesthesia?.Invoke(args.Pressed);
-        right.AddChild(_anaesthesia);
+        controls.AddChild(_anaesthesia);
 
-        var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 4 };
-        _startButton = new Button { Text = Loc.GetString("wolfmed-autodoc-window-start") };
+        _startButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-start"), Good, true);
         _startButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Start);
-        _pauseButton = new Button { Text = Loc.GetString("wolfmed-autodoc-window-pause") };
+        _pauseButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-pause"));
         _pauseButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Pause);
-        _abortButton = new Button { Text = Loc.GetString("wolfmed-autodoc-window-abort") };
+        _abortButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-abort"), Alert);
         _abortButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Abort);
-        _ejectButton = new Button { Text = Loc.GetString("wolfmed-autodoc-window-eject") };
+        _ejectButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-eject"), Alert);
         _ejectButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Eject);
-        buttons.AddChild(_startButton);
-        buttons.AddChild(_pauseButton);
-        buttons.AddChild(_abortButton);
-        buttons.AddChild(_ejectButton);
-        right.AddChild(buttons);
+        controls.AddChild(_startButton);
+        controls.AddChild(_pauseButton);
+        controls.AddChild(_abortButton);
+        controls.AddChild(_ejectButton);
+        console.AddChild(controls);
 
-        // A click on either doll filters the procedure list to that limb.
-        _doll.OnPartSelected += SelectPart;
-        _diagnostics.OnPartSelected += SelectPart;
+        _doll.OnPartSelected += part => SetFilter(_filter == part ? null : part);
+        _diagnostics.OnPartSelected += part => SetFilter(_filter == part ? null : part);
     }
 
-    private void SelectPart(TargetBodyPart part)
+    protected override void FrameUpdate(FrameEventArgs args)
     {
-        _filter = _filter == part ? null : part;
+        base.FrameUpdate(args);
+        _blink += args.DeltaSeconds;
+        if (_blink >= 0.5f)
+        {
+            _blink = 0f;
+            _cursor.Visible = !_cursor.Visible;
+        }
+    }
+
+    private void SetFilter(TargetBodyPart? part)
+    {
+        _filter = part;
         _doll.SetSelected(_filter);
         _diagnostics.SetTargetedPart(_filter, false);
+        _filterLabel.Text = _filter is { } chosen
+            ? Loc.GetString("wolfmed-autodoc-ui-filter", ("part", PartName(chosen)))
+            : Loc.GetString("wolfmed-autodoc-ui-filter-none");
         if (_state != null)
             DrawProcedures(_state);
     }
@@ -142,90 +259,178 @@ public sealed class AutodocWindow : DefaultWindow
             _doll.SetBody(state.Diagnostics.Body);
             _diagnostics.Visible = true;
             _diagnostics.Populate(state.Diagnostics);
+            _patientTitle.Text = Loc.GetString("wolfmed-autodoc-ui-patient-present");
         }
         else
         {
             _doll.SetBody(null);
             _diagnostics.Clear();
             _diagnostics.Visible = false;
+            _patientTitle.Text = Loc.GetString("wolfmed-autodoc-ui-patient-none");
         }
 
-        _statusLabel.Text = state.Status;
-        _stepLabel.Text = state.CurrentStep is { } step
-            ? Loc.GetString("wolfmed-autodoc-window-step", ("step", StepName(step)))
-            : string.Empty;
-        _progress.Value = state.Progress;
+        _readout.Text = state.Status;
+        _readout.FontColorOverride = state.State switch
+        {
+            AutodocState.Waiting or AutodocState.Paused => Cyan,
+            AutodocState.Faulted => Alert,
+            AutodocState.Complete => Good,
+            _ => Amber,
+        };
 
-        _diskLabel.Text = Loc.GetString("wolfmed-autodoc-window-disk",
-            ("disk", state.DiskProgram ?? Loc.GetString("wolfmed-autodoc-window-disk-none")));
-        _moduleLabel.Text = Loc.GetString(state.DefibModule
-            ? "wolfmed-autodoc-window-module-installed"
-            : "wolfmed-autodoc-window-module-missing");
-        _trayLabel.Text = Loc.GetString("wolfmed-autodoc-window-tray",
-            ("item", state.TrayItem ?? Loc.GetString("wolfmed-autodoc-window-tray-empty")));
+        _stepLine.Text = state.CurrentStep is { } step
+            ? Loc.GetString("wolfmed-autodoc-ui-step", ("step", StepName(step)))
+            : Loc.GetString($"wolfmed-autodoc-ui-idle-{(state.Occupied ? "occupied" : "empty")}");
+        _progress.Value = state.Progress;
+        _progressText.Text = state.CurrentStep != null ? $"{Gauge(state.Progress, 14)} {(int) (state.Progress * 100)}%" : string.Empty;
+
+        SetSpeech(state.LastLine ?? string.Empty);
+        _filterLabel.Text = _filter is { } chosen
+            ? Loc.GetString("wolfmed-autodoc-ui-filter", ("part", PartName(chosen)))
+            : Loc.GetString("wolfmed-autodoc-ui-filter-none");
+
+        _diskLabel.Text = Loc.GetString("wolfmed-autodoc-ui-disk", ("disk", state.DiskProgram ?? Loc.GetString("wolfmed-autodoc-ui-none")));
+        _moduleLabel.Text = Loc.GetString(state.DefibModule ? "wolfmed-autodoc-ui-module-installed" : "wolfmed-autodoc-ui-module-missing");
+        _moduleLabel.FontColorOverride = state.DefibModule ? Good : AmberDim;
+        _trayLabel.Text = Loc.GetString("wolfmed-autodoc-ui-tray", ("item", state.TrayItem ?? Loc.GetString("wolfmed-autodoc-ui-none")));
+        _trayLabel.FontColorOverride = state.State == AutodocState.Waiting ? Cyan : Amber;
+        _modeLabel.Text = Loc.GetString(state.SelfService ? "wolfmed-autodoc-ui-mode-self" : "wolfmed-autodoc-ui-mode-operator");
 
         _anaesthesia.Pressed = state.Anaesthesia;
-        _queueTitle.Visible = !state.SelfService;
 
         var running = state.State is AutodocState.Preparing or AutodocState.Step or AutodocState.Waiting;
-        _startButton.Disabled = running || !state.Occupied;
+        _startButton.Disabled = running || !state.Occupied || state.Queue.Count == 0;
         _pauseButton.Disabled = !running && state.State != AutodocState.Paused;
+        _pauseButton.Text = Loc.GetString(state.State == AutodocState.Paused ? "wolfmed-autodoc-ui-resume" : "wolfmed-autodoc-ui-pause");
         _abortButton.Disabled = state.State == AutodocState.Idle;
+        _ejectButton.Disabled = !state.Occupied;
 
         DrawProcedures(state);
         DrawQueue(state);
         DrawReservoir(state);
     }
 
+    private void SetSpeech(string text)
+    {
+        if (text == _speechText)
+            return;
+
+        _speechText = text;
+        _speech.Text = text;
+    }
+
     private void DrawProcedures(AutodocBuiState state)
     {
         _procedures.RemoveAllChildren();
-        foreach (var entry in state.Available)
+        var busy = state.State is AutodocState.Preparing or AutodocState.Step or AutodocState.Waiting;
+
+        if (!state.Occupied)
         {
-            if (_filter != null && entry.Part != _filter)
+            _procedures.AddChild(Text(Loc.GetString("wolfmed-autodoc-ui-procedures-empty"), 11, AmberDim));
+            return;
+        }
+
+        var visible = state.Available
+            .Where(entry => _filter == null || entry.Part == _filter)
+            .ToList();
+        if (visible.Count == 0)
+        {
+            _procedures.AddChild(Text(Loc.GetString("wolfmed-autodoc-ui-procedures-nothing"), 11, AmberDim));
+            return;
+        }
+
+        var groups = visible
+            .GroupBy(entry => _surgeryCategory.GetValueOrDefault(entry.Surgery.Id, _fallbackCategory))
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var category in _categories)
+        {
+            if (!groups.TryGetValue(category.ID, out var entries))
                 continue;
 
-            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true };
-            var button = new Button
+            var collapsed = _collapsed.Contains(category.ID);
+            var known = entries.Count(entry => entry.Known);
+            var header = FlatButton(
+                $"{(collapsed ? "[+]" : "[-]")} {Loc.GetString(category.Name).ToUpperInvariant()}  ({known}/{entries.Count})",
+                collapsed ? AmberDim : Amber);
+            header.HorizontalExpand = true;
+            header.TextAlign = Label.AlignMode.Left;
+            if (category.Note != null)
+                header.ToolTip = Loc.GetString(category.Note);
+            var id = category.ID;
+            header.OnPressed += _ =>
             {
-                Text = $"{SurgeryName(entry.Surgery)} ({Loc.GetString($"wolfmed-autodoc-part-{entry.Part.ToString().ToLowerInvariant()}")})",
-                HorizontalExpand = true,
-                Disabled = !entry.Known || state.State is AutodocState.Preparing or AutodocState.Step or AutodocState.Waiting,
-                ToolTip = entry.Known
-                    ? SurgeryDescription(entry.Surgery)
-                    : Loc.GetString("wolfmed-autodoc-window-locked"),
+                if (!_collapsed.Remove(id))
+                    _collapsed.Add(id);
+                if (_state != null)
+                    DrawProcedures(_state);
             };
+            _procedures.AddChild(header);
 
-            var captured = entry;
-            button.OnPressed += _ => OnQueueAdd?.Invoke(captured.Surgery, captured.Part);
-            row.AddChild(button);
-            _procedures.AddChild(row);
+            if (collapsed)
+                continue;
+
+            foreach (var entry in entries.OrderBy(e => e.Part).ThenBy(e => SurgeryName(e.Surgery)))
+                _procedures.AddChild(ProcedureRow(entry, busy));
         }
+    }
+
+    private Control ProcedureRow(AutodocProcedureEntry entry, bool busy)
+    {
+        var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, Margin = new Thickness(12, 1, 0, 1) };
+        var colour = entry.Known ? Amber : AmberFaint;
+        var name = Text(SurgeryName(entry.Surgery), 11, colour);
+        name.HorizontalExpand = true;
+        name.ToolTip = entry.Known
+            ? SurgeryDescription(entry.Surgery)
+            : Loc.GetString("wolfmed-autodoc-ui-locked", ("program", ProgramName(entry.Surgery)));
+        row.AddChild(name);
+        row.AddChild(Text(PartName(entry.Part).ToUpperInvariant() + "  ", 10, entry.Known ? Cyan : AmberFaint));
+
+        if (entry.Known)
+        {
+            var add = FlatButton(Loc.GetString("wolfmed-autodoc-ui-queue-add"), Good);
+            add.Disabled = busy;
+            var captured = entry;
+            add.OnPressed += _ => OnQueueAdd?.Invoke(captured.Surgery, captured.Part);
+            row.AddChild(add);
+        }
+        else
+        {
+            row.AddChild(Text(Loc.GetString("wolfmed-autodoc-ui-needs-disk", ("program", ProgramName(entry.Surgery))), 10, AmberFaint));
+        }
+
+        return row;
     }
 
     private void DrawQueue(AutodocBuiState state)
     {
         _queueBox.RemoveAllChildren();
+        _queueHeadingCount.Text = state.Queue.Count == 0
+            ? Loc.GetString("wolfmed-autodoc-ui-queue-empty")
+            : Loc.GetString("wolfmed-autodoc-ui-queue-count", ("count", state.Queue.Count));
+
         for (var i = 0; i < state.Queue.Count; i++)
         {
             var entry = state.Queue[i];
             var index = i;
+            var current = i == 0 && state.State is AutodocState.Preparing or AutodocState.Step or AutodocState.Waiting;
 
-            var block = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
-            var header = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true };
-            header.AddChild(new Label
-            {
-                Text = $"{index + 1}. {SurgeryName(entry.Surgery)} ({Loc.GetString($"wolfmed-autodoc-part-{entry.Part.ToString().ToLowerInvariant()}")})",
-                HorizontalExpand = true,
-            });
+            var block = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, Margin = new Thickness(0, 1, 0, 3) };
+            var header = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 4 };
+            var title = Text($"{(current ? ">" : " ")}{index + 1:00}  {SurgeryName(entry.Surgery)}  [{PartName(entry.Part).ToUpperInvariant()}]", 11, current ? Good : Amber, current);
+            title.HorizontalExpand = true;
+            header.AddChild(title);
 
             if (!state.SelfService)
             {
-                var up = new Button { Text = "^" };
+                var up = FlatButton("^", AmberDim);
+                up.Disabled = index == 0;
                 up.OnPressed += _ => OnQueueMove?.Invoke(index, true);
-                var down = new Button { Text = "v" };
+                var down = FlatButton("v", AmberDim);
+                down.Disabled = index == state.Queue.Count - 1;
                 down.OnPressed += _ => OnQueueMove?.Invoke(index, false);
-                var remove = new Button { Text = "X" };
+                var remove = FlatButton("x", Alert);
                 remove.OnPressed += _ => OnQueueRemove?.Invoke(index);
                 header.AddChild(up);
                 header.AddChild(down);
@@ -234,7 +439,10 @@ public sealed class AutodocWindow : DefaultWindow
 
             block.AddChild(header);
             foreach (var requirement in entry.Requirements)
-                block.AddChild(new Label { Text = "  " + requirement, StyleClasses = { "LabelSubText" } });
+            {
+                var waiting = requirement.Contains(Loc.GetString("wolfmed-autodoc-requirement-waiting"));
+                block.AddChild(Text("      " + requirement, 10, waiting ? Cyan : AmberDim));
+            }
 
             _queueBox.AddChild(block);
         }
@@ -243,19 +451,20 @@ public sealed class AutodocWindow : DefaultWindow
     private void DrawReservoir(AutodocBuiState state)
     {
         _reservoirBox.RemoveAllChildren();
+        var slot = 1;
         foreach (var entry in state.Reservoir)
         {
-            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true };
-            row.AddChild(new Label { Text = entry.Name, HorizontalExpand = true });
-            row.AddChild(new ProgressBar
-            {
-                MinValue = 0f,
-                MaxValue = MathF.Max(1f, entry.Max),
-                Value = entry.Volume,
-                MinWidth = 120,
-                MinHeight = 10,
-                Modulate = entry.Usable ? Color.White : Color.DarkGray,
-            });
+            var fraction = entry.Max > 0f ? entry.Volume / entry.Max : 0f;
+            var colour = entry.Usable ? Amber : AmberFaint;
+            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 6 };
+            row.AddChild(Text($"{slot++}", 11, AmberDim));
+            row.AddChild(Text(Gauge(fraction, 12), 11, colour));
+            row.AddChild(Text($"{(int) entry.Volume,3}u", 11, colour));
+            var name = Text(entry.Name, 11, colour);
+            name.HorizontalExpand = true;
+            name.ClipText = true;
+            name.ToolTip = entry.Usable ? null : Loc.GetString("wolfmed-autodoc-ui-reservoir-unusable");
+            row.AddChild(name);
             _reservoirBox.AddChild(row);
         }
     }
@@ -266,6 +475,12 @@ public sealed class AutodocWindow : DefaultWindow
     private string SurgeryDescription(EntProtoId surgery) =>
         _protos.TryIndex(surgery, out EntityPrototype? proto) ? proto.Description : string.Empty;
 
+    private string ProgramName(EntProtoId surgery) =>
+        _surgeryProgram.TryGetValue(surgery.Id, out var name) ? Loc.GetString(name) : Loc.GetString("wolfmed-autodoc-ui-none");
+
     private string StepName(string step) =>
         _protos.TryIndex(step, out EntityPrototype? proto) ? proto.Name : step;
+
+    private static string PartName(TargetBodyPart part) =>
+        Loc.GetString($"wolfmed-autodoc-part-{part.ToString().ToLowerInvariant()}");
 }

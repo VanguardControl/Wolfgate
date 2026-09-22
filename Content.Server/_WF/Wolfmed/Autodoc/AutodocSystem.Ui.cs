@@ -149,6 +149,7 @@ public sealed partial class AutodocSystem
                 : null,
             TrayItem = _slots.GetItemOrNull(ent.Owner, AutodocComponent.TraySlotId) is { } tray ? Name(tray) : null,
             Reservoir = BuildReservoir(ent),
+            LastLine = ent.Comp.LastLine,
         };
 
         if (occupant is { } body)

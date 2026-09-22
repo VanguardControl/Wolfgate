@@ -32,6 +32,8 @@ public sealed class AutodocBuiState : BoundUserInterfaceState
     public bool Anaesthesia;
     public bool Occupied;
     public string? TrayItem;
+    /// <summary>What S.A.M. said last, for the terminal line.</summary>
+    public string? LastLine;
 }
 
 /// <summary>A procedure the occupant's current condition allows on one part.</summary>

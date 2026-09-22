@@ -96,6 +96,9 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public float VoiceGain = -2f;
 
+    /// <summary>The transcript of the last line spoken, for the terminal window.</summary>
+    [ViewVariables] public string? LastLine;
+
     /// <summary>Lines waiting behind the one being spoken. Anything past this is dropped.</summary>
     [DataField]
     public int VoiceQueueMax = 3;
