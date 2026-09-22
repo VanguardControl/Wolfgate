@@ -7,6 +7,10 @@
     Bloodpack: 4294967295 # Infinite
     Gauze: 4294967295 # Infinite
     EmergencyMedipen: 4294967295 # Infinite
+    WolfmedSplint: 4294967295 # WOLFGATE (V5): Infinite
+    WolfmedAntisepticSpray: 4294967295 # WOLFGATE (W5): Infinite
+    WolfmedAnalgesicPill: 4294967295 # WOLFGATE (CONSC): Infinite
+    WolfmedStimPen: 20 # WOLFGATE (CONSC): limited, it is the emergency rung.
     PillCanisterTricordrazine: 4294967295 # Infinite - Mono
     HypoMini: 4294967295 # Infinite - Mono
     HypoMiniLimitedEdition: 10 # Limited because its a direct upgrade, and can be found on expeds 

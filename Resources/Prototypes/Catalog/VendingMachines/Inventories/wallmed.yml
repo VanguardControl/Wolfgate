@@ -9,5 +9,8 @@
     Syringe: 6 # Frontier: 3<6
     BoxFolderMedicalDoctor: 1 #Frontier
     MedTekCartridge: 1 # Frontier
+    WolfmedSplint: 2 # WOLFGATE (V5): field fracture care.
+    WolfmedAntisepticSpray: 2 # WOLFGATE (W5): clean a wound before it turns.
+    WolfmedAnalgesicPill: 4 # WOLFGATE (CONSC): enough to get back on your feet.
   contrabandInventory:
     PowerCellSmall: 2
