@@ -271,8 +271,9 @@ public abstract partial class SharedSurgerySystem
     {
         if (HasComp<SurgeryOperatingTableConditionComponent>(ent))
         {
-            if (!TryComp(args.Body, out BuckleComponent? buckle) ||
-                !HasComp<OperatingTableComponent>(buckle.BuckledTo))
+            if ((!TryComp(args.Body, out BuckleComponent? buckle) ||
+                !HasComp<OperatingTableComponent>(buckle.BuckledTo)) &&
+                !WolfmedOnOperatingPlatform(args.Body)) // WOLFGATE (AUTODOC): the pod is an operating platform.
             {
                 args.Invalid = StepInvalidReason.NeedsOperatingTable;
                 return;

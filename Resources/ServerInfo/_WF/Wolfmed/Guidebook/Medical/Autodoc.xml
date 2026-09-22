@@ -1,0 +1,47 @@
+<Document>
+
+# Autodoc
+
+A one-tile surgical pod running S.A.M., the Surgical Automation Module. It does not heal anybody. It performs the same surgeries a doctor performs, with the same steps, the same tools and the same consequences, and it will keep going whether or not you gave it anaesthetic.
+
+  <Box>
+    <GuideEntityEmbed Entity="MachineAutodoc"/>
+  </Box>
+
+## What it can and cannot do
+
+S.A.M. only performs surgery and pushes reagents out of its own reservoir. It never bandages a wound, never applies a topical and never heals damage that a surgery would not have healed. If a procedure would have left you open on the table, it leaves you open in the pod.
+
+It is slower than a surgeon: a fresh pod takes about a quarter longer per step, and a fully upgraded one is slightly faster than a human. Every step carries a small chance of a slip, which opens a shallow bleeding cut on the part it is working on and nothing worse. A damaged pod slips far more often.
+
+## Getting in
+
+Climb in from the verb menu, or drag a patient onto it. A crewman who is down but conscious can still crawl in by themselves; somebody who is unconscious has to be put in. The lid locks while a procedure is running and unlocks when the queue finishes, when the procedure is aborted, or when somebody pries it open with a crowbar.
+
+## Running it
+
+  <Box>
+    <GuideEntityEmbed Entity="AutodocProgramDiskTransplant"/>
+    <GuideEntityEmbed Entity="AutodocProgramDiskLimb"/>
+    <GuideEntityEmbed Entity="AutodocProgramDiskNeuro"/>
+    <GuideEntityEmbed Entity="AutodocProgramDiskCavity"/>
+  </Box>
+
+The window shows the patient's body doll and wound findings on the left, exactly as a health analyzer would. Clicking a limb filters the procedure list on the right to that limb. Add procedures to the queue, reorder them, and press Start.
+
+The base library covers tending, bleeding and arterial repair, internal bleeding, fractures, closing an incision, closing an evisceration, chassis and servo repair for machine bodies, and amputating a limb that is past saving. Four program disks unlock the rest: [bold]transplant[/bold] for organ removal and insertion, [bold]limb[/bold] for attaching limbs, [bold]neuro[/bold] for brain, eye and head surgery, and [bold]cavity[/bold] for cavity implants. Without the disk S.A.M. says so and refuses.
+
+An occupant with nobody at the console gets a cut-down window: one procedure, an anaesthesia toggle, and no queue.
+
+## The tray and the reservoir
+
+When a step needs a limb, an organ or an implant, the pod stops, opens its delivery tray and asks for exactly that item. Put the wrong thing in and it hands it straight back. The queue shows every requirement and whether it is loaded.
+
+Three beaker slots feed the reservoir. S.A.M. will only draw from a short list of reagents: the Wolfmed painkillers, spaceacillin, ethanol, saline, blood and the dexalin family. Anything else in a beaker is ignored and it will tell you so. A procedure that opens the body takes 15 units of anaesthetic before the first incision and 10 units of antibiotic after it closes, unless the procedure says otherwise. With no anaesthetic loaded it operates anyway, and the patient feels all of it.
+
+## When it goes wrong
+
+Losing power mid-step stops the pod where it stands, with the patient still open; restoring power resumes from the same step. If the patient dies the pod holds and calls for an operator on the medical channel. A defibrillator module slot exists and is reported in the window, but it does nothing yet.
+
+A pod that has been emagged locks its lid and starts amputating. Cut the power or pry it open.
+</Document>

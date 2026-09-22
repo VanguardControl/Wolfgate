@@ -1,0 +1,141 @@
+# The autodoc's library. The base program ships on the machine; the other four need their disk in the slot.
+
+- type: autodocProgram
+  id: WolfmedAutodocProgramBase
+  name: wolfmed-autodoc-program-base
+  surgeries:
+  # Getting in and out.
+  - SurgeryOpenIncision
+  - SurgeryOpenRibcage
+  - SurgeryCloseIncision
+  - SurgeryCloseEvisceration
+  # Tending.
+  - SurgeryTendWoundsBrute
+  - SurgeryTendWoundsBurn
+  - SurgeryTendWoundsBruteDeep
+  - SurgeryTendWoundsBurnDeep
+  - SurgeryGraftSkin
+  # Bleeding.
+  - SurgeryStopBleeding
+  - SurgeryStopInternalBleeding
+  - SurgeryRepairArtery
+  - SurgeryRepairTendon
+  # Bone.
+  - SurgeryMendFracture
+  - SurgeryHealAmputationConsequence
+  # Organ repair in place. Removal and insertion need the transplant disk.
+  - SurgeryHealHeart
+  - SurgeryHealLungs
+  - SurgeryHealLiver
+  - SurgeryHealStomach
+  - SurgeryHealKidneys
+  # Mechanical.
+  - SurgeryWeldChassisBreach
+  - SurgeryReplaceServo
+  # Last resort.
+  - SurgeryRemovePart
+
+- type: autodocProgram
+  id: WolfmedAutodocProgramTransplant
+  name: wolfmed-autodoc-program-transplant
+  surgeries:
+  - SurgeryRemoveHeart
+  - SurgeryInsertHeart
+  - SurgeryRemoveLungs
+  - SurgeryInsertLungs
+  - SurgeryRemoveLiver
+  - SurgeryInsertLiver
+  - SurgeryRemoveStomach
+  - SurgeryInsertStomach
+  - SurgeryInsertPump
+
+- type: autodocProgram
+  id: WolfmedAutodocProgramLimb
+  name: wolfmed-autodoc-program-limb
+  surgeries:
+  - SurgeryAttachLeftArm
+  - SurgeryAttachRightArm
+  - SurgeryAttachLeftLeg
+  - SurgeryAttachRightLeg
+  - SurgeryAttachLeftHand
+  - SurgeryAttachRightHand
+  - SurgeryAttachLeftFoot
+  - SurgeryAttachRightFoot
+  - SurgeryAttachHands
+
+- type: autodocProgram
+  id: WolfmedAutodocProgramNeuro
+  name: wolfmed-autodoc-program-neuro
+  surgeries:
+  - SurgeryAttachHead
+  - SurgeryRemoveBrain
+  - SurgeryInsertBrain
+  - SurgeryRemoveBorgBrain
+  - SurgeryInsertBorgBrain
+  - SurgeryRemoveEyes
+  - SurgeryInsertEyes
+  - SurgeryHealBrain
+  - SurgeryHealEyes
+
+- type: autodocProgram
+  id: WolfmedAutodocProgramCavity
+  name: wolfmed-autodoc-program-cavity
+  surgeries:
+  - SurgeryInsertItem
+
+# Per-surgery reagent overrides. Anything not listed here takes the pod's defaults: 15u anaesthetic before
+# the first incision of a surgery that opens the body, 10u antibiotic after it closes.
+
+- type: autodocProcedure
+  id: SurgeryTendWoundsBrute
+  anaesthetic: 0
+  antibiotic: 0
+
+- type: autodocProcedure
+  id: SurgeryTendWoundsBurn
+  anaesthetic: 0
+  antibiotic: 0
+
+- type: autodocProcedure
+  id: SurgeryRemovePart
+  anaesthetic: 25
+  antibiotic: 15
+
+- type: autodocProcedure
+  id: SurgeryOpenRibcage
+  anaesthetic: 25
+  antibiotic: 15
+
+- type: autodocProcedure
+  id: SurgeryWeldChassisBreach
+  anaesthetic: 0
+  antibiotic: 0
+
+- type: autodocProcedure
+  id: SurgeryReplaceServo
+  anaesthetic: 0
+  antibiotic: 0
+
+# The whole administrable list. A reagent that is not here is left in the beaker, whatever it is.
+
+- type: autodocReagents
+  id: WolfmedAutodocReagents
+  reagents:
+  - reagent: WolfmedOpiate
+    role: Anaesthetic
+  - reagent: WolfmedAnalgesic
+    role: Anaesthetic
+  - reagent: WolfmedStim
+    role: Fluid
+  - reagent: Spaceacillin
+    role: Antibiotic
+  - reagent: Ethanol
+    role: Antiseptic
+  - reagent: Saline
+    role: Fluid
+  - reagent: Blood
+    role: Fluid
+  - reagent: Dexalin
+    role: Oxygen
+  - reagent: DexalinPlus
+    role: Oxygen

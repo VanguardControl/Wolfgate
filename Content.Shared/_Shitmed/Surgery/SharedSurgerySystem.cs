@@ -378,12 +378,18 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private List<EntityUid> GetTools(EntityUid surgeon)
     {
+        if (WolfmedInternalTools(surgeon) is { } internalTools) // WOLFGATE (AUTODOC): a pod has no hands.
+            return internalTools;
+
         return _hands.EnumerateHeld(surgeon).ToList();
     }
 
     public bool IsLyingDown(EntityUid entity, EntityUid user)
     {
         if (_standing.IsDown(entity))
+            return true;
+
+        if (WolfmedOnOperatingPlatform(entity)) // WOLFGATE (AUTODOC): an occupant lies down inside the pod.
             return true;
 
         if (TryComp(entity, out BuckleComponent? buckle) &&

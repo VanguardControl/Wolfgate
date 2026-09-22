@@ -393,3 +393,47 @@ untouched and still cross their thresholds exactly as before.
 - **Rejuvenate is now the only thing that revives a wound host**, because the thresholds no longer do; the
   handler sets `MobState.Alive` itself and re-evaluates a tick later, once every other rejuvenate handler has
   run.
+
+## Autodoc (2026-09-22)
+
+A one-tile surgical pod, `MachineAutodoc`, running "S.A.M.". It performs REAL surgery: the pod is the
+performer in Shitmed's own step machinery, so every wound, condition, sound and side effect of a
+hand-performed surgery applies. It can only perform surgeries and push reagents; it never bandages, never
+heals by fiat and never applies a topical.
+
+- **The pod is the surgeon, through three marked hooks.** `SharedSurgerySystem.GetTools` asks the performer
+  for its own toolset first (`WolfmedSurgeryToolsEvent`) and falls back to hands, so a machine with no hands
+  can hold a scalpel; `IsLyingDown` and the operating-table condition both accept a pod occupant
+  (`SharedAutodocSystem.OnOperatingPlatform`). All three bodies live in
+  `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Autodoc.cs`; the upstream files carry six marked
+  lines between them. `WolfmedPerformStep` is the entry point: it repeats every check `OnTargetDoAfter` makes
+  and then raises the same `SurgeryStepEvent`, with no do-after and no hands.
+- **A procedure ends on its own last step, or when the surgery stops being valid.** `GetNextStep` walks the
+  requirement chain, and the closing step of most surgeries removes the incision its requirement opened, so a
+  naive loop re-opens the patient forever. The pod stops when the queued surgery's own final step reads
+  complete, or when a step it already started performing no longer validates - which is exactly what a
+  surgeon sees when the entry leaves the menu after the fracture is mended.
+- **The pod is sterile and slow.** `SanitizedComponent` is on the machine, so the unsterile-surgery poison
+  never fires against a patient the pod is treating. Base step time is 1.25x a surgeon's, falling to 0.9x at
+  the best manipulator tier; matter bins scale the reservoir; capacitors the draw. Malfunction is 2% a step
+  scaled by machine damage, and the only result is one shallow `SlashWound` on the part being worked on.
+- **Disks gate the advanced library, in data.** `autodocProgram` prototypes list surgery ids;
+  `WolfmedAutodocProgramBase` ships on the machine and Transplant / Limb / Neuro / Cavity each need their
+  disk in the slot. `autodocProcedure` prototypes (id = the surgery id) override the default 15u
+  anaesthetic / 10u antibiotic per procedure.
+- **One reagent list, not a flag on every reagent.** `autodocReagents` `WolfmedAutodocReagents` names every
+  administrable reagent and its role. Anything else in a beaker stays in the beaker and the pod says so.
+- **Downed can crawl in.** `WolfmedDownedReachableComponent` is a named exception to CONSC's "self only"
+  interaction rule, carried by the pod. Unconscious is still blocked by the ordinary action blocker.
+- **The UI reuses the analyzer.** The server sends the analyzer's own `HealthAnalyzerScannedUserMessage`
+  inside the pod's BUI state (`HealthAnalyzerSystem.WolfmedBuildScanMessage`), so the window mounts the
+  analyzer's `WolfmedDiagnosticPanel` verbatim and a new `WolfmedBodyDoll` control carrying the analyzer's
+  exact 3x doll geometry.
+- **One voice line, one file, one transcript.** `autodocVoice` maps 59 events to 71 line ids; each id has one
+  ogg and one Fluent transcript, both written by `Tools/_WF/wolfmed/gen_autodoc_voice*.py` from one table, so
+  the spoken line and the chat line can never disagree. Generated with eSpeak NG. No `SoundCollection` is
+  used: a collection would pick a file independently of the transcript.
+- **Emag is a threat, not a tool.** The lid locks, the lines switch to the sinister set and the pod queues an
+  amputation of a random limb and runs it, repeating until the power goes or somebody pries the lid.
+- **No revival.** `AutodocDefibModuleComponent` is recognised and reported in the window and does nothing;
+  that is BRAIN's.

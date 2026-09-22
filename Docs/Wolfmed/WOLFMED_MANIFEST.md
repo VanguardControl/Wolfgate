@@ -3951,3 +3951,67 @@ Deviations from the spec:
 - **The analyzer's pain-relief and sedation banners are not clickable.** Every other banner opens a treatment
   procedure keyed on its condition id; a painkiller has no procedure, and inventing one would have needed a
   prototype the treatment matrix tests would then police.
+
+## Final stages: AUTODOC (2026-09-22)
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | new | pod component, runtime state, `AutodocState`/`AutodocVisuals`, `WolfmedSurgeryToolsEvent` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | new | `autodocVoice`, `autodocProgram`, `autodocProcedure`, `autodocReagents`, `AutodocVoiceEvent` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocUi.cs` | new | `AutodocUiKey`, `AutodocBuiState`, the five BUI messages |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocItemComponents.cs` | new | `AutodocProgramDisk`, `AutodocDefibModule` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocDoAfterEvents.cs` | new | `AutodocPryDoAfterEvent` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/SharedAutodocSystem.cs` | new | `GetPod` / `OnOperatingPlatform`, the half both sides need |
+| `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Autodoc.cs` | new | hook bodies plus `WolfmedPerformStep`, `WolfmedCanPerformStep`, `WolfmedIsStepComplete`, `WolfmedSurgeryValid`, `WolfmedStepDuration` |
+| `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs` | modified | two marked hooks: `GetTools` asks the performer first, `IsLyingDown` accepts a pod occupant |
+| `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.Steps.cs` | modified | one marked hook: the operating-table condition accepts a pod occupant |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedReachableComponent.cs` | new | named exception to CONSC's self-only interaction rule |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | one marked condition so a Downed body can reach a pod |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | new | occupancy, verbs, drag-drop, prying, power, emag, tray toolset, appearance |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | new | library, queue, requirements, the state machine, reagents, step voice, malfunction, emag loop |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | new | BUI state and messages, machine part refresh, pry do-after |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Voice.cs` | new | `Speak` and idle chatter |
+| `Content.Server/_WF/Wolfmed/Surgery/SurgerySystem.Autodoc.cs` | new | `AllSurgeries` accessor onto the list `RefreshUI` already walks |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Autodoc.cs` | new | `WolfmedBuildScanMessage`, the analyzer payload built on demand |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocBoundUserInterface.cs` | new | BUI |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | new | one window: doll + diagnostic panel left, procedures/queue/reservoir/controls right |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedBodyDoll.cs` | new | the analyzer's doll as a reusable control, same 3x geometry |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/autodoc.yml` | new | `MachineAutodoc`, `AutodocMachineCircuitboard`, four program disks, `AutodocDefibModule` |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/programs.yml` | new | five programs, six procedure overrides, the reagent list |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | new | generated: 71 lines, 59 events |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/cargo.yml` | new | `CrateAutodocPrograms`, its cargo row, board and disk lathe recipes, `WolfmedAutodocPrograms` pack |
+| `Resources/Prototypes/Recipes/Lathes/Packs/medical.yml` | modified | one marked line: the board joins `MedicalBoardsStatic` |
+| `Resources/Prototypes/Entities/Structures/Machines/lathe.yml` | modified | one marked line: the disk pack joins the medical lathe's dynamic packs |
+| `Resources/Prototypes/Guidebook/medical.yml` | modified | one marked line: the guide page joins the medical index |
+| `Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml` | modified | `WolfmedAutodoc` guide entry |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Autodoc.xml` | new | the guide page |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc.ftl` | new | verbs, examine, status, requirements, window strings |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl` | new | generated: the transcript of all 71 lines |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/*.ogg` (71) | new | generated with eSpeak NG, mono Ogg Vorbis 32 kbps |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/attributions.yml` | new | CC-BY-SA-3.0, "Generated with eSpeak NG for Wolfgate (Wolfmed)" |
+| `Resources/Textures/_WF/Wolfmed/Structures/autodoc.rsi` | new | open/closed/operate, converted from CM-SS13 cryogenics.dmi, CC-BY-SA-3.0 |
+| `Resources/Maps/_NF/POI/medical.yml` | modified | one entity: `MachineAutodoc` at -6.5,40.5, beside the medbay's operating table |
+| `Tools/_WF/wolfmed/import_cm_autodoc.py` | new | DMI to RSI converter for the pod sprites |
+| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | new | eSpeak NG + ffmpeg; writes the oggs, the attributions and the transcript ftl |
+| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | new | writes `voice.yml` from the same line table |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocTest.cs` | new | 10 tests |
+
+Deviations from the spec, and why:
+
+- **No `SoundCollection` per event.** Each line id has exactly one ogg and one transcript and the prototype's
+  `events` block names the variants, so the audio and the chat line are chosen together. A collection would
+  pick a file independently of the transcript and the two could disagree.
+- **Embedded-object removal and joint relocation are not in the library.** Neither is a surgery in Wolfmed
+  (W1 and W3 built both as do-after interactions), and the pod is only allowed to perform surgeries. The
+  spec's other base-library items all exist as surgeries and are all in `WolfmedAutodocProgramBase`.
+- **The `StepRelocate` and `StepEmbedded` voice lines are generated and unreferenced** for the same reason;
+  they are there for whenever those procedures become surgeries.
+- **The doll is a new control, not the analyzer's XAML.** `WolfmedBodyDoll` carries the analyzer's exact
+  layout table; moving the analyzer onto it would have churned the window that
+  `WolfmedAnalyzerDollLayoutTest` measures. The wound cards themselves are the analyzer's own
+  `WolfmedDiagnosticPanel`, reused verbatim.
+- **The pod does not raise `SurgeryToolUsedEvent`.** That event is what refuses an unlit welder in a
+  surgeon's hand; the pod's tools are internal and always ready.
+- **Pod ambience while operating was not added.** The operating sprite loops and every step plays its own
+  tool sound; a second looping layer on top of that read as noise. The lid uses the existing
+  `airlock_ext_open`/`_close` sounds.

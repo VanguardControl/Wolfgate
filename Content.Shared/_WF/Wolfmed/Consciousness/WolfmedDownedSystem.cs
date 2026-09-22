@@ -66,7 +66,9 @@ public sealed class WolfmedDownedSystem : EntitySystem
     /// <summary>The whole of "self only": the target has to be the body or something the body is carrying.</summary>
     private void OnInteractionAttempt(Entity<WolfmedDownedComponent> ent, ref InteractionAttemptEvent args)
     {
-        if (args.Target is { } target && !IsSelfOrCarried(ent, target))
+        // AUTODOC: a pod marked reachable is the one thing off the body a Downed player may still touch.
+        if (args.Target is { } target && !IsSelfOrCarried(ent, target) &&
+            !HasComp<WolfmedDownedReachableComponent>(target))
             args.Cancelled = true;
     }
 

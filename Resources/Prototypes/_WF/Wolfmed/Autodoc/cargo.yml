@@ -1,0 +1,77 @@
+# The four program disks are the only way to unlock the pod's advanced surgery, so they need a route that
+# does not depend on a lathe being up: one crate, one cargo row, beside the other medical products.
+
+- type: entity
+  id: CrateAutodocPrograms
+  parent: CrateMedical
+  name: autodoc program crate
+  description: A full set of surgical programs for an autodoc, plus the cardiac module.
+  components:
+  - type: StorageFill
+    contents:
+    - id: AutodocProgramDiskTransplant
+    - id: AutodocProgramDiskLimb
+    - id: AutodocProgramDiskNeuro
+    - id: AutodocProgramDiskCavity
+    - id: AutodocDefibModule
+
+- type: cargoProduct
+  id: WolfmedAutodocPrograms
+  icon:
+    sprite: Objects/Specific/Research/researchdisk.rsi
+    state: icon
+  product: CrateAutodocPrograms
+  cost: 2200
+  category: cargoproduct-category-name-medical
+  group: market
+
+# Lathe recipes. The board sits with the other medical machine boards; the disks are ordinary medical prints.
+
+- type: latheRecipe
+  parent: BaseCircuitboardRecipe
+  id: AutodocMachineCircuitboard
+  result: AutodocMachineCircuitboard
+
+- type: latheRecipe
+  id: AutodocProgramDiskTransplant
+  result: AutodocProgramDiskTransplant
+  completetime: 4
+  materials:
+    Steel: 100
+    Glass: 100
+    Gold: 20
+
+- type: latheRecipe
+  id: AutodocProgramDiskLimb
+  result: AutodocProgramDiskLimb
+  completetime: 4
+  materials:
+    Steel: 100
+    Glass: 100
+    Gold: 20
+
+- type: latheRecipe
+  id: AutodocProgramDiskNeuro
+  result: AutodocProgramDiskNeuro
+  completetime: 4
+  materials:
+    Steel: 100
+    Glass: 100
+    Gold: 40
+
+- type: latheRecipe
+  id: AutodocProgramDiskCavity
+  result: AutodocProgramDiskCavity
+  completetime: 4
+  materials:
+    Steel: 100
+    Glass: 100
+    Gold: 20
+
+- type: latheRecipePack
+  id: WolfmedAutodocPrograms
+  recipes:
+  - AutodocProgramDiskTransplant
+  - AutodocProgramDiskLimb
+  - AutodocProgramDiskNeuro
+  - AutodocProgramDiskCavity

@@ -7,3 +7,8 @@
   id: WoundTreatment
   name: guide-entry-wound-treatment
   text: "/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml"
+
+- type: guideEntry
+  id: WolfmedAutodoc
+  name: guide-entry-wolfmed-autodoc
+  text: "/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Autodoc.xml"

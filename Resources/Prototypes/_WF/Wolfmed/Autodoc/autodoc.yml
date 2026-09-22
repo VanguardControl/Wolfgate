@@ -1,0 +1,233 @@
+- type: entity
+  parent: [BaseStructure, ConstructibleMachine]
+  id: MachineAutodoc
+  name: autodoc
+  description: A surgical pod running S.A.M., the Surgical Automation Module. It operates. It does not explain.
+  components:
+  - type: Sprite
+    sprite: _WF/Wolfmed/Structures/autodoc.rsi
+    drawdepth: Mobs
+    layers:
+    - state: open
+      map: [ "base" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.AutodocVisuals.State:
+        base:
+          Open: { state: open }
+          Closed: { state: closed }
+          Operating: { state: operate }
+          Unpowered: { state: open, color: "#555555" }
+  - type: InteractionOutline
+  - type: Transform
+    noRot: true
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        density: 200
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Autodoc
+    tools:
+    - Scalpel
+    - Retractor
+    - Hemostat
+    - Cautery
+    - Saw
+    - Drill
+    - Bonesetter
+    - BoneGel
+    - WolfmedSkinGraft
+    - Welder
+    - Wrench
+    - Screwdriver
+    - CableApcStack
+    basePrograms:
+    - WolfmedAutodocProgramBase
+  # The pod scrubs its own tools: without this every step would poison the patient for unsterile surgery.
+  - type: Sanitized
+  # Crawling into a surgical pod is exactly what a Downed player needs to be able to do.
+  - type: WolfmedDownedReachable
+  - type: ContainerContainer
+    containers:
+      autodoc_body: !type:ContainerSlot
+        showEnts: false
+      autodoc_tools: !type:Container
+      autodoc_tray: !type:ContainerSlot
+      autodoc_disk: !type:ContainerSlot
+      autodoc_module: !type:ContainerSlot
+      autodoc_beaker1: !type:ContainerSlot
+      autodoc_beaker2: !type:ContainerSlot
+      autodoc_beaker3: !type:ContainerSlot
+      machine_board: !type:Container
+      machine_parts: !type:Container
+  - type: ItemSlots
+    slots:
+      autodoc_tray:
+        name: wolfmed-autodoc-slot-tray
+        locked: true
+      autodoc_disk:
+        name: wolfmed-autodoc-slot-disk
+        whitelist:
+          components:
+          - AutodocProgramDisk
+      autodoc_module:
+        name: wolfmed-autodoc-slot-module
+        whitelist:
+          components:
+          - AutodocDefibModule
+      autodoc_beaker1:
+        name: wolfmed-autodoc-slot-beaker
+        whitelist:
+          components:
+          - FitsInDispenser
+      autodoc_beaker2:
+        name: wolfmed-autodoc-slot-beaker
+        whitelist:
+          components:
+          - FitsInDispenser
+      autodoc_beaker3:
+        name: wolfmed-autodoc-slot-beaker
+        whitelist:
+          components:
+          - FitsInDispenser
+  - type: UserInterface
+    interfaces:
+      enum.AutodocUiKey.Key:
+        type: AutodocBoundUserInterface
+  - type: ActivatableUI
+    key: enum.AutodocUiKey.Key
+    requiresComplex: false
+  - type: ActivatableUIRequiresPower
+  - type: Machine
+    board: AutodocMachineCircuitboard
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: StructuralMetallic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 150
+      behaviors:
+      - !type:EmptyAllContainersBehaviour
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalGlassBreak
+      - !type:ChangeConstructionNodeBehavior
+        node: machineFrame
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: ApcPowerReceiver
+    powerLoad: 2500
+  - type: ExtensionCableReceiver
+  - type: EmptyOnMachineDeconstruct
+    containers:
+    - autodoc_body
+    - autodoc_tray
+    - autodoc_disk
+    - autodoc_module
+    - autodoc_beaker1
+    - autodoc_beaker2
+    - autodoc_beaker3
+  - type: StaticPrice
+    price: 2500
+  - type: GuideHelp
+    guides:
+    - WolfmedAutodoc
+
+- type: entity
+  id: AutodocMachineCircuitboard
+  parent: BaseMachineCircuitboard
+  name: autodoc machine board
+  description: A machine printed circuit board for an autodoc.
+  components:
+  - type: Sprite
+    state: medical
+  - type: MachineBoard
+    prototype: MachineAutodoc
+    requirements:
+      Manipulator: 2
+      MatterBin: 2
+      Capacitor: 1
+    stackRequirements:
+      Glass: 5
+      Cable: 2
+
+- type: entity
+  abstract: true
+  parent: BaseItem
+  id: BaseAutodocProgramDisk
+  name: autodoc program disk
+  description: A surgical program for an autodoc. S.A.M. reads it once and remembers.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Research/researchdisk.rsi
+    state: icon
+  - type: StaticPrice
+    price: 400
+
+- type: entity
+  parent: BaseAutodocProgramDisk
+  id: AutodocProgramDiskTransplant
+  name: autodoc program disk (transplant)
+  description: Organ removal and insertion, for an autodoc.
+  components:
+  - type: Sprite
+    color: "#b34b4b"
+  - type: AutodocProgramDisk
+    program: WolfmedAutodocProgramTransplant
+
+- type: entity
+  parent: BaseAutodocProgramDisk
+  id: AutodocProgramDiskLimb
+  name: autodoc program disk (limb)
+  description: Limb attachment and reattachment, for an autodoc.
+  components:
+  - type: Sprite
+    color: "#4b8ab3"
+  - type: AutodocProgramDisk
+    program: WolfmedAutodocProgramLimb
+
+- type: entity
+  parent: BaseAutodocProgramDisk
+  id: AutodocProgramDiskNeuro
+  name: autodoc program disk (neuro)
+  description: Brain, eye and head surgery, for an autodoc.
+  components:
+  - type: Sprite
+    color: "#9a6fb0"
+  - type: AutodocProgramDisk
+    program: WolfmedAutodocProgramNeuro
+
+- type: entity
+  parent: BaseAutodocProgramDisk
+  id: AutodocProgramDiskCavity
+  name: autodoc program disk (cavity)
+  description: Cavity implantation and removal, for an autodoc.
+  components:
+  - type: Sprite
+    color: "#b09a4b"
+  - type: AutodocProgramDisk
+    program: WolfmedAutodocProgramCavity
+
+- type: entity
+  parent: BaseItem
+  id: AutodocDefibModule
+  name: autodoc defibrillator module
+  description: A cardiac module for an autodoc. The pod recognises it and, for now, does nothing with it.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Medical/defib.rsi
+    state: icon
+  - type: AutodocDefibModule
+  - type: StaticPrice
+    price: 600
