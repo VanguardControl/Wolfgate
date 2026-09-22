@@ -74,9 +74,10 @@ public sealed class StructuralCrashTest
         }
     }
 
-    [TestCase("/SharedMaps/_Mono/Shuttles/vaquita.yml")]
-    [TestCase("/SharedMaps/_Mono/Shuttles/BlackMarket/hazel.yml")]
-    [TestCase("/SharedMaps/_Mono/Shuttles/Expedition/arkansaw.yml")]
+    // Three sizes of hull still in the shipyard; the maps this ran on before were removed by the shipyard refactor.
+    [TestCase("/SharedMaps/_Mono/Shuttles/Civilian/autumn.yml")]
+    [TestCase("/SharedMaps/_Mono/Shuttles/CivilianExp/pelican.yml")]
+    [TestCase("/SharedMaps/_Mono/Shuttles/Scrapyard/mudskipper.yml")]
     public async Task RealHullLayoutsHaveBoundedFractures(string path)
     {
         await using var pair = await PoolManager.GetServerClient();
