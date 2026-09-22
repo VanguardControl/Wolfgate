@@ -1,0 +1,9 @@
+# ARREST: a stopped heart is MobState.Critical and looks dead to anyone examining it. The medical HUD is
+# what tells the difference, so it gets its own icon instead of the ordinary critical one.
+
+- type: healthIcon
+  id: HealthIconWolfmedArrest
+  parent: HealthIcon
+  icon:
+    sprite: /Textures/_WF/Wolfmed/Interface/health_icons.rsi
+    state: Flatline

@@ -156,6 +156,18 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             lines++;
         }
 
+        // ARREST: a stopped heart reads as a corpse from across the room. Nothing an examiner can see tells
+        // it apart from a body that has actually died; the analyzer and the medical HUD still can.
+        var arrested = HasComp<WolfmedCardiacArrestComponent>(examined) &&
+                       !HasComp<WolfmedShutdownComponent>(examined);
+        if (arrested)
+        {
+            report.Notes.Add(Loc.GetString(
+                self ? "wolfmed-look-appears-dead-self" : "wolfmed-look-appears-dead-other",
+                ("target", identity)));
+            lines++;
+        }
+
         // BRAIN: body-level, like sepsis, and the first thing a medic checks for.
         if (detailed && HasComp<WolfmedShutdownComponent>(examined))
         {
@@ -163,14 +175,14 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
                 ("target", identity)));
             lines++;
         }
-        else if (detailed && HasComp<WolfmedCardiacArrestComponent>(examined))
+        else if (detailed && arrested)
         {
             report.Notes.Add(Loc.GetString(self ? "wolfmed-look-no-pulse-self" : "wolfmed-look-no-pulse-other",
                 ("target", identity)));
             lines++;
         }
 
-        if (detailed && NotBreathing(examined))
+        if ((detailed || arrested) && NotBreathing(examined))
         {
             report.Notes.Add(Loc.GetString(
                 self ? "wolfmed-look-not-breathing-self" : "wolfmed-look-not-breathing-other",

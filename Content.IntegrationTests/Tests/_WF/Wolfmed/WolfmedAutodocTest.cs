@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Content.IntegrationTests.Fixtures;
@@ -56,6 +57,7 @@ public sealed class WolfmedAutodocTest : GameTest
     stepTime: 0.02
     bestStepTime: 0.02
     malfunctionChance: 0
+    autoPlanInterval: 0.2
   - type: ApcPowerReceiver
     needsPower: false
 
@@ -708,7 +710,7 @@ public sealed class WolfmedAutodocTest : GameTest
                 "an occupied pod draws its lid.");
 
             Assert.That(containers.TryGetContainer(pod, AutodocComponent.BodyContainerId, out var held), Is.True);
-            Assert.That(held!.ShowContents, Is.True, "the occupant is drawn, not hidden inside the machine.");
+            Assert.That(held!.ShowContents, Is.False, "the lid is down and the occupant is still drawn through it.");
 
             Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
             Assert.That(autodoc.TryStart(pod, null), Is.True);
@@ -718,8 +720,361 @@ public sealed class WolfmedAutodocTest : GameTest
             Assert.That(autodoc.TryEject(pod, force: true), Is.True);
             Assert.That(State(appearance, pod), Is.EqualTo(AutodocVisualState.Open),
                 "an empty pod is open, with nothing over the bed.");
+            Assert.That(held.ShowContents, Is.True, "the open bed hides whoever lies on it.");
         });
     }
+
+    /// <summary>
+    /// The planner walks the triage prototype top to bottom: what is emptying the patient comes before what
+    /// is broken, and what is broken before what merely hurts.
+    /// </summary>
+    [Test]
+    public async Task TriagePlanRunsInPriorityOrderTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+            Slash(entities, body, TargetBodyPart.Torso, 40);
+
+            pod = Pod(entities, map);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+        });
+
+        await Pair.RunTicksSync(10);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var order = TriageOrder(protos);
+
+            Assert.That(autodoc.TryPlan(pod), Is.GreaterThan(0), "a broken and bleeding body planned nothing.");
+            Assert.That(pod.Comp.Queue.Select(queued => queued.Surgery.Id),
+                Does.Contain("SurgeryMendFracture"), "the plan skipped the fracture.");
+
+            var ranks = pod.Comp.Queue.Select(queued => order[queued.Surgery.Id]).ToList();
+            Assert.That(ranks, Is.Ordered, $"the plan is out of triage order: {string.Join(", ", pod.Comp.Queue.Select(q => q.Surgery.Id))}");
+        });
+    }
+
+    /// <summary>
+    /// The planner only queues what the pod can finish alone: a limb attach stays out of the plan until the
+    /// arm is in the tray, and stays out for ever without the disk that unlocks it.
+    /// </summary>
+    [Test]
+    public async Task PlanSkipsWhatItCannotFinishTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+        EntityUid arm = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            entities.System<Content.Shared._WF.Wolfmed.Compat.WolfmedBodySystem>().TryDetachPart(arm);
+
+            pod = Pod(entities, map);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+        });
+
+        await Pair.RunTicksSync(10);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var slots = entities.System<ItemSlotsSystem>();
+
+            autodoc.TryPlan(pod);
+            Assert.That(Planned(pod), Does.Not.Contain("SurgeryAttachLeftArm"),
+                "the pod planned an attach with no arm and no disk.");
+
+            // The arm alone is not enough: the procedure is still not in the pod's library.
+            slots.SetLock(pod.Owner, AutodocComponent.TraySlotId, false);
+            Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.TraySlotId, arm, null), Is.True);
+            autodoc.TryPlan(pod);
+            Assert.That(Planned(pod), Does.Not.Contain("SurgeryAttachLeftArm"),
+                "the pod planned a procedure its disks do not unlock.");
+
+            slots.TryInsert(pod.Owner, AutodocComponent.DiskSlotId,
+                entities.SpawnEntity("AutodocProgramDiskLimb", map.GridCoords), null);
+            autodoc.TryPlan(pod);
+            Assert.That(Planned(pod), Does.Contain("SurgeryAttachLeftArm"),
+                "with the arm in the tray and the disk in the slot the pod still would not plan it.");
+        });
+    }
+
+    /// <summary>Self-service has one button: FIX ME plans and starts in the same press.</summary>
+    [Test]
+    public async Task FixMePlansAndStartsInSelfServiceTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+
+            pod = Pod(entities, map);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+            pod.Comp.SelfService = true;
+        });
+
+        await Pair.RunTicksSync(10);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            autodoc.Control(pod, AutodocControl.Plan, null);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(pod.Comp.Queue, Has.Count.EqualTo(1), "self-service takes one procedure at a time.");
+                Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Idle), "FIX ME did not start anything.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// With the autofix module fitted and AUTO on, the pod plans and starts by itself; with nothing left to
+    /// do it says so once and idles. Without the module the toggle does nothing at all.
+    /// </summary>
+    [Test]
+    public async Task AutofixModuleTreatsTheOccupantByItselfTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+        Entity<AutodocComponent> bare = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var slots = entities.System<ItemSlotsSystem>();
+
+            bare = Pod(entities, map);
+            autodoc.SetAuto(bare, true);
+            Assert.That(bare.Comp.Auto, Is.False, "a pod with no module switched itself on.");
+
+            pod = Pod(entities, map);
+            Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
+                entities.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+            Assert.That(autodoc.HasAutofixModule(pod), Is.True);
+
+            autodoc.SetAuto(pod, true);
+            Assert.That(pod.Comp.Auto, Is.True);
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+        });
+
+        await Pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Idle),
+                    "nobody pressed anything and the pod did nothing.");
+                Assert.That(pod.Comp.Queue, Is.Not.Empty, "the module started with an empty queue.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// A patient with nothing wrong with them: the module looks, finds nothing it can do, says so once and
+    /// leaves them alone instead of opening them up to have a look.
+    /// </summary>
+    [Test]
+    public async Task AutofixModuleIdlesWithNothingToDoTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var slots = entities.System<ItemSlotsSystem>();
+
+            pod = Pod(entities, map);
+            Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
+                entities.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+            autodoc.SetAuto(pod, true);
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+            Assert.That(autodoc.Plan(pod, body).Select(entry => $"{entry.Surgery.Id} {entry.Part}"), Is.Empty,
+                "the planner found work to do on a body with nothing wrong with it.");
+        });
+
+        await Pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(pod.Comp.AutoSaidNothing, Is.True, "the module never said it had nothing to do.");
+                Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Idle), "and it operated anyway.");
+                Assert.That(pod.Comp.Queue, Is.Empty);
+            });
+        });
+    }
+
+    /// <summary>The vital alarm reads the occupant, worst first, and a brain that has stopped ends it.</summary>
+    [Test]
+    public async Task VitalAlarmReadsTheOccupantTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+        EntityUid body = default;
+
+        await server.WaitAssertion(() =>
+        {
+            pod = Pod(entities, map);
+            body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(entities.System<AutodocSystem>().TryInsert(pod, body), Is.True);
+        });
+
+        // The power net writes Powered on its own tick, and an unpowered pod has no alarm to sound.
+        await Pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var life = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem>();
+            var consciousness = entities.System<Content.Server._WF.Wolfmed.Consciousness.WolfmedConsciousnessSystem>();
+
+            Assert.That(autodoc.GetAlarm(body), Is.EqualTo(AutodocAlarm.None), "a healthy patient set the alarm off.");
+            Assert.That(pod.Comp.AlarmLevel, Is.EqualTo(AutodocAlarm.None));
+
+            consciousness.SetExternalPressure(body, "test", 1f);
+            Assert.That(autodoc.GetAlarm(body), Is.EqualTo(AutodocAlarm.Critical));
+
+            Assert.That(life.StartArrest(body, "test"), Is.True);
+            Assert.That(autodoc.GetAlarm(body), Is.EqualTo(AutodocAlarm.Arrest),
+                "a stopped heart still read as ordinary crit.");
+        });
+
+        await Pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            Assert.That(pod.Comp.AlarmLevel, Is.EqualTo(AutodocAlarm.Arrest), "the pod is not beeping.");
+
+            var brain = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem>().GetBrainOrgan(body);
+            Assert.That(brain, Is.Not.Null);
+            entities.System<Content.Shared._Onyx.Body.Systems.OrganHealthSystem>()
+                .SetHealth(brain!.Value, FixedPoint2.Zero);
+
+            Assert.That(autodoc.GetAlarm(body), Is.EqualTo(AutodocAlarm.Flatline),
+                "a destroyed brain is one long tone, not a beep.");
+        });
+
+        await Pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(pod.Comp.AlarmLevel, Is.EqualTo(AutodocAlarm.Flatline),
+                "the beeping did not stop when there was nothing left to beep about.");
+        });
+    }
+
+    /// <summary>An eject is only an emergency while something is running; otherwise the pod says goodbye.</summary>
+    [Test]
+    public async Task EjectOnlyAlarmsWhileRunningTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+
+            pod = Pod(entities, map);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+        });
+
+        await Pair.RunTicksSync(10);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var locale = server.ResolveDependency<Robust.Shared.Localization.ILocalizationManager>();
+            Silence(pod);
+            autodoc.Control(pod, AutodocControl.Eject, null);
+
+            Assert.That(pod.Comp.LastLine, Is.EqualTo(locale.GetString("wolfmed-autodoc-voice-goodbye")),
+                "an eject from an idle pod raised the alarm.");
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+            Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
+            Assert.That(autodoc.TryStart(pod, null), Is.True);
+
+            Silence(pod);
+            autodoc.Control(pod, AutodocControl.Eject, null);
+
+            Assert.That(pod.Comp.LastLine, Is.EqualTo(locale.GetString("wolfmed-autodoc-voice-emergency-eject")),
+                "an eject with a patient open on the table was not an emergency.");
+        });
+    }
+
+    /// <summary>Every surgery the triage prototype names, in the order the planner would reach it.</summary>
+    private static Dictionary<string, int> TriageOrder(IPrototypeManager protos)
+    {
+        var order = new Dictionary<string, int>();
+        var triage = protos.Index<AutodocTriagePrototype>("WolfmedAutodocTriage");
+
+        foreach (var step in triage.Steps)
+        {
+            foreach (var surgery in step.Surgeries)
+                order.TryAdd(surgery.Id, order.Count);
+
+            foreach (var category in step.Categories)
+            {
+                foreach (var surgery in protos.Index(category).Surgeries)
+                    order.TryAdd(surgery.Id, order.Count);
+            }
+        }
+
+        return order;
+    }
+
+    private static string[] Planned(Entity<AutodocComponent> pod) =>
+        pod.Comp.Queue.Select(queued => queued.Surgery.Id).ToArray();
 
     private static AutodocVisualState State(SharedAppearanceSystem appearance, Entity<AutodocComponent> pod)
     {
@@ -747,6 +1102,12 @@ public sealed class WolfmedAutodocTest : GameTest
         entities.System<DamageableSystem>().TryChangeDamage(body, Spec(amount), origin: null, targetPart: target);
     }
 
+    private static void Slash(IEntityManager entities, EntityUid body, TargetBodyPart target, int amount)
+    {
+        entities.System<DamageableSystem>()
+            .TryChangeDamage(body, Spec(amount, "Slash"), origin: null, targetPart: target);
+    }
+
     private static EntityUid Part(IEntityManager entities, EntityUid body, BodyPartType type, BodyPartSymmetry symmetry)
     {
         return entities.System<SharedBodySystem>().GetBodyChildren(body)
@@ -754,8 +1115,8 @@ public sealed class WolfmedAutodocTest : GameTest
             .Id;
     }
 
-    private static DamageSpecifier Spec(int amount) => new()
+    private static DamageSpecifier Spec(int amount, string type = "Blunt") => new()
     {
-        DamageDict = { [new ProtoId<DamageTypePrototype>("Blunt")] = FixedPoint2.New(amount) },
+        DamageDict = { [new ProtoId<DamageTypePrototype>(type)] = FixedPoint2.New(amount) },
     };
 }

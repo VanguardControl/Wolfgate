@@ -43,6 +43,8 @@ public sealed partial class AutodocSystem
             var ent = (uid, comp);
             TickVoice(ent);
             TickEmag(ent);
+            TickAuto(ent);
+            TickAlarm(ent);
             TickIdleChatter(ent);
 
             switch (comp.State)

@@ -12,8 +12,15 @@ public sealed partial class AutodocProgramDiskComponent : Component
 }
 
 /// <summary>
-/// The defibrillator module seam. Nothing reads it beyond the pod's own status line: revival belongs to the
-/// BRAIN package, so the module is recognised, shown and otherwise inert.
+/// The cardiac module. With one fitted the pod shocks an occupant whose heart has stopped, on the rule a
+/// medic's paddles follow (BRAIN).
 /// </summary>
 [RegisterComponent, NetworkedComponent]
 public sealed partial class AutodocDefibModuleComponent : Component;
+
+/// <summary>
+/// The autofix module. With one fitted the pod may plan a triage queue and start it by itself, instead of
+/// waiting for somebody to press PLAN and START.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class AutodocAutofixModuleComponent : Component;

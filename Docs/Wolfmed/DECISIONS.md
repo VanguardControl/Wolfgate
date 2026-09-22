@@ -514,3 +514,59 @@ revivable if somebody does the work. `RottingSystem.IsRotten` is still the only 
   `DelayedDeathSystem.Update`): a missing heart is arrest, not a countdown. Its defib refusal for a body
   with no heart or brain is kept.
 - Wolfmed still never adds `UnrevivableComponent`. Other content that sets it is still honoured.
+
+## Arrest looks dead, autofix, pod alarms (AUTODOC3, 2026-09-22)
+
+### Cardiac arrest is a living body that looks dead
+
+The owner's complaint was that shooting somebody and watching them gasp is not satisfying. The first cut of
+this was to make arrest `MobState.Dead`; that was withdrawn, because metabolism, objectives, rot and every
+other rule that reads a living body have to keep treating an arrested patient as alive. **Arrest stays
+`MobState.Critical` exactly as BRAIN built it.** What changed is only what a person can perceive:
+
+- **No gasping.** One marked condition in `RespiratorSystem.Update` skips the gasp emote while
+  `WolfmedCardiacArrestComponent` is present. The body still suffocates and still takes the damage; the gasp
+  was the only part of it anybody could see or hear. Every other emote and vocalisation is already blocked
+  by `MobStateSystem`'s crit check, which the gasp bypassed with `ignoreActionBlocker: true`.
+- **Examine reads as a corpse.** `WolfmedVisualInspectionSystem` adds `wolfmed-look-appears-dead-*` for an
+  arrested body at any range, and the "is not breathing" note, which used to need the details range, now
+  shows at a distance too. "Has no pulse" still wants a hand on the neck.
+- **The medical HUD tells the truth.** `HealthIconWolfmedArrest` (a flatline drawn from the stock Critical
+  icon, `_WF/Wolfmed/Interface/health_icons.rsi`) replaces the crit icon on an arrested body, through one
+  marked hook in `ShowHealthIconsSystem.DecideHealthIcons` whose body is a `_WF` partial. The analyzer's
+  CARDIAC ARREST line is unchanged.
+- Death screen, banners, the crit heartbeat and the flatline tone are BRAIN's and are untouched.
+
+### Autofix module and triage
+
+- `AutodocTriagePrototype` (`autodocTriage`) is an ordered list of steps, each naming surgeries, categories,
+  or the cardiac module. `WolfmedAutodocTriage` is the shipped order: defibrillate, arterial and internal
+  bleeding, bleeding, evisceration, organ repair in place, bones, deep wounds, shallow wounds, mechanical
+  repair, limbs and organs the tray already holds, and finally closing whatever somebody else left open.
+- `AutodocSystem.Triage.cs` walks it against `GetAvailable`, so the planner can only ever queue a procedure
+  a human could have queued from the same window. It drops anything the disks do not unlock and anything
+  whose requirements want an item the delivery tray is not already holding.
+- `requiresStarted: true` on a step queues it only when the body is already past the procedure's own
+  requirements. Without it the last step would have queued a close on every intact limb, because closing an
+  incision is a valid surgery on anybody: the pod would simply open one first.
+- **PLAN** (base pod, no module) writes that queue and says "I HAVE A PLAN."; the operator still presses
+  START. In self-service the two are one **FIX ME** button. **AUTO** needs `AutodocAutofixModuleComponent`
+  in its own slot and plans and starts on its own every `autoPlanInterval` seconds while somebody is in the
+  pod, re-planning when a queue ends and saying "NOTHING MORE I CAN DO." once when the plan comes back
+  empty. An emagged pod ignores AUTO and keeps its own plans.
+
+### Vital alarm
+
+`AutodocAlarm` reads the occupant once a tick: Flatline (brain gone) beats Arrest beats Critical beats Dying
+(the oxygenation clock draining). Arrest beeps every 2 s, everything else every 4 s, with
+`/Audio/Machines/quickbeep.ogg`; a flatline is one `flatline.ogg` and then silence, because there is nothing
+left to call anybody for. The first beep of each escalation carries a line ("PATIENT IS DYING." for the
+clock, the existing critical line otherwise). `wolfmed.autodoc_alarm` turns the whole thing off.
+
+### Lid and eject
+
+The open art and the closed art are both whole pod sprites, so drawing them together showed the bed through
+the lid: the visualizer now draws exactly one layer per state, and the body container's `showEnts` follows
+the lid, server side, with the client re-occluding the occupant itself because the engine only recomputes
+container occlusion on a parent change. An eject only says "EMERGENCY EJECT" while something is running;
+from Idle or Complete it is "GOODBYE." and no abort.

@@ -21,6 +21,7 @@ public sealed partial class AutodocComponent : Component
     public const string TraySlotId = "autodoc_tray";
     public const string DiskSlotId = "autodoc_disk";
     public const string ModuleSlotId = "autodoc_module";
+    public const string AutofixSlotId = "autodoc_autofix";
 
     /// <summary>The three reservoir beaker slots, in UI order.</summary>
     public static readonly string[] ReservoirSlotIds = { "autodoc_beaker1", "autodoc_beaker2", "autodoc_beaker3" };
@@ -34,6 +35,10 @@ public sealed partial class AutodocComponent : Component
 
     [DataField]
     public ProtoId<AutodocReagentsPrototype> Reagents = "WolfmedAutodocReagents";
+
+    /// <summary>The order the pod treats a patient in when it plans for itself.</summary>
+    [DataField]
+    public ProtoId<AutodocTriagePrototype> Triage = "WolfmedAutodocTriage";
 
     /// <summary>Programs the pod knows without any disk in the slot.</summary>
     [DataField]
@@ -81,6 +86,29 @@ public sealed partial class AutodocComponent : Component
 
     [DataField]
     public float IdleChatterMax = 180f;
+
+    /// <summary>The monitor beep the vital alarm repeats while the occupant is failing.</summary>
+    [DataField]
+    public SoundSpecifier? AlarmSound = new SoundPathSpecifier("/Audio/Machines/quickbeep.ogg");
+
+    /// <summary>The one long tone a brain-dead occupant gets, once.</summary>
+    [DataField]
+    public SoundSpecifier? FlatlineSound = new SoundPathSpecifier("/Audio/_WF/Wolfmed/flatline.ogg");
+
+    /// <summary>Seconds between beeps while the occupant is unconscious or their brain is draining.</summary>
+    [DataField]
+    public float AlarmCritInterval = 4f;
+
+    /// <summary>Seconds between beeps while the occupant's heart has stopped.</summary>
+    [DataField]
+    public float AlarmArrestInterval = 2f;
+
+    [DataField]
+    public float AlarmGain = -4f;
+
+    /// <summary>Seconds the autofix module waits before looking at the patient again.</summary>
+    [DataField]
+    public float AutoPlanInterval = 5f;
 
     [DataField]
     public SoundSpecifier? LidOpenSound = new SoundPathSpecifier("/Audio/Machines/airlock_ext_open.ogg");
@@ -215,6 +243,45 @@ public sealed partial class AutodocComponent : Component
     /// <summary>Test seam: forces the next malfunction roll to succeed.</summary>
     [ViewVariables]
     public bool ForceMalfunction;
+
+    /// <summary>The autofix module's automatic mode. Nothing without the module in its slot.</summary>
+    [ViewVariables]
+    public bool Auto;
+
+    /// <summary>When the autofix module may look at the patient again.</summary>
+    [ViewVariables]
+    public TimeSpan AutoNextPlan;
+
+    /// <summary>"NOTHING MORE I CAN DO." is said once per patient, not once every time it re-plans.</summary>
+    [ViewVariables]
+    public bool AutoSaidNothing;
+
+    /// <summary>What the vital alarm read on its last tick, so an escalation is heard as one.</summary>
+    [ViewVariables]
+    public AutodocAlarm AlarmLevel;
+
+    /// <summary>When the next beep is due.</summary>
+    [ViewVariables]
+    public TimeSpan AlarmNext;
+}
+
+/// <summary>How bad the occupant is, as the pod's vital alarm reads it. Highest wins.</summary>
+public enum AutodocAlarm : byte
+{
+    /// <summary>Nothing to say: no occupant, or one whose brain is not losing ground.</summary>
+    None,
+
+    /// <summary>The brain's oxygen is draining but the body is still up.</summary>
+    Dying,
+
+    /// <summary>Unconscious.</summary>
+    Critical,
+
+    /// <summary>The heart has stopped.</summary>
+    Arrest,
+
+    /// <summary>The brain is gone. One long tone and then silence; there is nothing left to alarm about.</summary>
+    Flatline,
 }
 
 /// <summary>A line the pod has accepted but is not speaking yet, with the arguments it was raised with.</summary>

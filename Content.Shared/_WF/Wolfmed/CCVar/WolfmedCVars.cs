@@ -250,4 +250,8 @@ public sealed class WolfmedCVars
     /// <summary>What the defibrillator's chance is multiplied by at zero brain oxygenation.</summary>
     public static readonly CVarDef<float> DefibOxygenationFloor =
         CVarDef.Create("wolfmed.defib_oxygenation_floor", 0.15f, CVar.SERVERONLY);
+
+    /// <summary>The autodoc's vital alarm: the monitor beep over a failing occupant. False silences it.</summary>
+    public static readonly CVarDef<bool> AutodocAlarm =
+        CVarDef.Create("wolfmed.autodoc_alarm", true, CVar.SERVERONLY);
 }

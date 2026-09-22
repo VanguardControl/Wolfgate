@@ -94,16 +94,22 @@ public sealed partial class AutodocSystem
 
     private void OnControl(Entity<AutodocComponent> ent, ref AutodocControlMessage args)
     {
-        switch (args.Control)
+        Control(ent, args.Control, args.Actor);
+    }
+
+    /// <summary>One press of one button on the terminal. Public so a test drives the same path a player does.</summary>
+    public void Control(Entity<AutodocComponent> ent, AutodocControl control, EntityUid? actor)
+    {
+        switch (control)
         {
             case AutodocControl.Start:
-                TryStart(ent, args.Actor);
+                TryStart(ent, actor);
                 break;
             case AutodocControl.Pause:
                 // Only at a step boundary: the pod never stops with a scalpel in the wound.
                 ent.Comp.PauseRequested = ent.Comp.State != AutodocState.Paused;
                 if (ent.Comp.State == AutodocState.Paused)
-                    TryStart(ent, args.Actor);
+                    TryStart(ent, actor);
                 break;
             case AutodocControl.Abort:
                 ent.Comp.AbortRequested = true;
@@ -111,9 +117,36 @@ public sealed partial class AutodocSystem
                     Abort(ent);
                 break;
             case AutodocControl.Eject:
-                Speak(ent, AutodocVoiceEvent.EmergencyEject);
-                Abort(ent);
+                // An eject with a patient open on the table is an emergency; one from an idle or finished
+                // pod is somebody getting out, and gets a door held for them instead of an alarm.
+                if (IsRunning(ent))
+                {
+                    Speak(ent, AutodocVoiceEvent.EmergencyEject);
+                    Abort(ent);
+                }
+                else
+                {
+                    Speak(ent, AutodocVoiceEvent.Goodbye);
+                }
+
                 TryEject(ent, force: !ent.Comp.EmagRevealed);
+                break;
+            case AutodocControl.Plan:
+                // Self-service has no queue to look at, so PLAN and START are one button there.
+                if (TryPlan(ent) > 0)
+                {
+                    Speak(ent, AutodocVoiceEvent.Plan);
+                    if (ent.Comp.SelfService)
+                        TryStart(ent, actor);
+                }
+                else
+                {
+                    Speak(ent, AutodocVoiceEvent.AutoNothing);
+                }
+
+                break;
+            case AutodocControl.Auto:
+                SetAuto(ent, !ent.Comp.Auto);
                 break;
         }
 
@@ -146,6 +179,8 @@ public sealed partial class AutodocSystem
             Anaesthesia = ent.Comp.Anaesthesia,
             Occupied = occupant != null,
             DefibModule = HasDefibModule(ent),
+            AutofixModule = HasAutofixModule(ent),
+            Auto = ent.Comp.Auto,
             DiskProgram = CurrentDisk(ent) is { } disk && _protos.TryIndex(disk.Program, out var program)
                 ? Loc.GetString(program.Name)
                 : null,

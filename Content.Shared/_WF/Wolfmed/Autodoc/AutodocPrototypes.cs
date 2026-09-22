@@ -119,6 +119,68 @@ public enum AutodocVoiceEvent : byte
     Idle,
     Emag,
     Offline,
+    /// <summary>The pod has filled its own queue from the triage plan.</summary>
+    Plan,
+    /// <summary>The autofix module has taken over.</summary>
+    AutoEngaged,
+    /// <summary>The plan came back empty with the module on.</summary>
+    AutoNothing,
+    /// <summary>The autofix module has been switched off.</summary>
+    AutoOff,
+    /// <summary>The occupant's brain is running out of oxygen, which the vital alarm says out loud once.</summary>
+    Dying,
+    /// <summary>An eject with nothing running. Not an emergency, so not the emergency line.</summary>
+    Goodbye,
+}
+
+/// <summary>
+/// The order the pod treats a patient in when it plans for itself. Each step names surgeries, whole
+/// categories, or the cardiac module; the planner walks the steps in order and queues everything the
+/// occupant's condition currently allows. Nothing here does anything an operator could not queue by hand.
+/// </summary>
+[Prototype("autodocTriage")]
+public sealed partial class AutodocTriagePrototype : IPrototype
+{
+    [IdDataField]
+    public string ID { get; private set; } = default!;
+
+    [DataField(required: true)]
+    public List<AutodocTriageStep> Steps = new();
+}
+
+[DataDefinition]
+public sealed partial class AutodocTriageStep
+{
+    /// <summary>Surgeries this step covers, queued in the order they are written.</summary>
+    [DataField]
+    public List<EntProtoId> Surgeries = new();
+
+    /// <summary>Categories whose surgeries this step covers, after the ones it names itself.</summary>
+    [DataField]
+    public List<ProtoId<AutodocCategoryPrototype>> Categories = new();
+
+    /// <summary>What the occupant's condition has to be for this step to contribute at all.</summary>
+    [DataField]
+    public AutodocTriageCondition Condition = AutodocTriageCondition.Always;
+
+    /// <summary>A shock rather than a surgery: the cardiac module, if one is fitted.</summary>
+    [DataField]
+    public bool Defibrillate;
+
+    /// <summary>
+    /// Only queue these when the body is already past the procedure's own requirements. Closing an incision
+    /// is valid on anybody, because the pod would open one first; this is what stops it doing that.
+    /// </summary>
+    [DataField]
+    public bool RequiresStarted;
+}
+
+public enum AutodocTriageCondition : byte
+{
+    Always,
+
+    /// <summary>The occupant's heart has stopped.</summary>
+    Arrest,
 }
 
 /// <summary>A block of surgeries the pod can perform. The base library ships on the machine; the rest need a disk.</summary>

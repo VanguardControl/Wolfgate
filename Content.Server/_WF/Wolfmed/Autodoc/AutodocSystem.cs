@@ -32,6 +32,7 @@ using Content.Shared.Standing;
 using Content.Shared.Verbs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -52,6 +53,7 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly IAdminLogManager _adminLog = default!;
     [Dependency] private Life.WolfmedLifeSystem _life = default!; // BRAIN
     [Dependency] private Life.WolfmedRevivalSystem _revival = default!; // BRAIN
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IPrototypeManager _protos = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
@@ -95,6 +97,7 @@ public sealed partial class AutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, DamageChangedEvent>(OnDamaged);
 
         InitializeUi();
+        InitializeTriage();
     }
 
     private void OnMapInit(Entity<AutodocComponent> ent, ref MapInitEvent args)
@@ -212,6 +215,8 @@ public sealed partial class AutodocSystem : EntitySystem
         {
             SetOccupantLying(args.Entity, true);
             ent.Comp.DefibWarned = false;
+            ent.Comp.AutoSaidNothing = false;
+            ent.Comp.AutoNextPlan = TimeSpan.Zero;
         }
 
         UpdateAppearance(ent);
@@ -355,6 +360,22 @@ public sealed partial class AutodocSystem : EntitySystem
             : AutodocVisualState.Open;
 
         _appearance.SetData(ent, AutodocVisuals.State, state);
+        SetOccupantShown(ent, state is AutodocVisualState.Open or AutodocVisualState.Unpowered);
+    }
+
+    /// <summary>
+    /// The lid is opaque. With it open the occupant lies on the bed and is drawn; with it closed or working
+    /// they are inside the machine and nothing of them shows.
+    /// </summary>
+    private void SetOccupantShown(Entity<AutodocComponent> ent, bool shown)
+    {
+        if (!_containers.TryGetContainer(ent, AutodocComponent.BodyContainerId, out var container) ||
+            container.ShowContents == shown)
+            return;
+
+        container.ShowContents = shown;
+        if (TryComp(ent, out ContainerManagerComponent? manager))
+            Dirty(ent.Owner, manager);
     }
 
     /// <summary>Puts the pod back to Idle without touching the occupant.</summary>
@@ -372,6 +393,10 @@ public sealed partial class AutodocSystem : EntitySystem
         ent.Comp.SpokenFamilies.Clear();
         _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
     }
+
+    /// <summary>True while a procedure is under way, which is what makes an eject an emergency one.</summary>
+    public bool IsRunning(Entity<AutodocComponent> ent) =>
+        ent.Comp.State is AutodocState.Preparing or AutodocState.Step or AutodocState.Waiting or AutodocState.Paused;
 
     private void Fault(Entity<AutodocComponent> ent)
     {

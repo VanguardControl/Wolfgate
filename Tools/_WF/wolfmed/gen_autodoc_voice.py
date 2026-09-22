@@ -1,6 +1,9 @@
 """Generates S.A.M.'s voice lines for the autodoc as mono Ogg Vorbis, plus their locale transcripts.
 
-Usage: python Tools/_WF/wolfmed/gen_autodoc_voice.py [--report]
+Usage: python Tools/_WF/wolfmed/gen_autodoc_voice.py [--report] [line-id ...]
+
+Naming line ids renders only those; the transcripts and the attributions are always written from the whole
+table, so adding a line does not have to re-encode the sixty that were already right.
 
 eSpeak NG speaks each line, ffmpeg converts it to mono Ogg at 32 kbps. LINES is the single source of
 truth: the ogg file name, the FTL id, the spoken text and the voice priority all come from one row, so a
@@ -78,10 +81,17 @@ LINES = [
     ("reagent-missing", "I REQUIRE MORE ANAESTHETIC.", None, "Urgent"),
     ("reagent-ignored", "THAT IS NOT MEDICINE. I WILL NOT USE IT.", None, "Info"),
 
+    # Planning and the autofix module.
+    ("plan", "I HAVE A PLAN.", None, "Info"),
+    ("auto-engaged", "AUTOFIX ENGAGED.", None, "Info"),
+    ("auto-nothing", "NOTHING MORE I CAN DO.", None, "Info"),
+    ("auto-off", "AUTOFIX DISENGAGED. YOU ARE IN CHARGE AGAIN.", None, "Info"),
+
     ("paused", "PAUSED. I AM GOOD AT WAITING.", None, "Info"),
     ("resumed", "RESUMING.", None, "Info"),
     ("aborted", "PROCEDURE ABORTED. I HOPE YOU HAVE A REASON.", None, "Info"),
     ("emergency-eject", "EMERGENCY EJECT. MIND THE EDGES.", None, "Info"),
+    ("goodbye", "GOODBYE.", None, "Info"),
     ("power-lost", "POWER LOST. DO NOT MOVE.", None, "Urgent"),
     ("power-restored", "POWER RESTORED. WHERE WAS I.", None, "Info"),
     ("lid-forced", "THE LID HAS BEEN FORCED. NOTED.", None, "Urgent"),
@@ -90,6 +100,7 @@ LINES = [
     ("slip-fix", "NOT SUPPOSED TO HAPPEN. FIXING IT.", None, "Info"),
     ("unconscious", "THE PATIENT IS ASLEEP. GOOD.", None, "Info"),
     ("critical", "VITALS CRITICAL. OPERATOR REQUESTED.", None, "Urgent"),
+    ("dying", "PATIENT IS DYING.", None, "Urgent"),
     ("defib-missing", "NO DEFIBRILLATOR MODULE INSTALLED.", None, "Info"),
     ("defib-charge", "CLEAR.", "Clear.", "Urgent"),
     ("defib-success", "SINUS RHYTHM RESTORED. WELCOME BACK.", None, "Info"),
@@ -155,9 +166,18 @@ def main():
         print("eSpeak NG missing at", ESPEAK, file=sys.stderr)
         return 1
 
+    wanted = set(arg for arg in sys.argv[1:] if not arg.startswith("--"))
+    known = {line_id for line_id, _, _, _ in LINES}
+    if wanted - known:
+        print("no such line:", ", ".join(sorted(wanted - known)), file=sys.stderr)
+        return 1
+
     os.makedirs(OUT, exist_ok=True)
     wav = os.path.join(OUT, "_tmp.wav")
     for line_id, written, override, _ in LINES:
+        if wanted and line_id not in wanted:
+            continue
+
         subprocess.run([ESPEAK, "-v", "en-us", "-s", SPEED, "-p", PITCH, "-w", wav,
                         spoken(written, override)], check=True)
         ogg = os.path.join(OUT, line_id + ".ogg")
@@ -174,7 +194,7 @@ def main():
         for line_id, written, _, _ in LINES:
             handle.write(f"{PREFIX}{line_id} = {written}\n")
 
-    print("wrote", len(LINES), "lines")
+    print("wrote", len(wanted) if wanted else len(LINES), "lines and", len(LINES), "transcripts")
     return 0
 
 

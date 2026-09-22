@@ -98,7 +98,10 @@ public sealed partial class RespiratorSystem : EntitySystem
 
             if (respirator.Saturation < respirator.SuffocationThreshold)
             {
-                if (_gameTiming.CurTime >= respirator.LastGaspEmoteTime + respirator.GaspEmoteCooldown)
+                // WOLFGATE (ARREST): a body whose heart has stopped looks dead, so it does not gasp. It still
+                // suffocates; the gasp is the only part of it anyone can see or hear.
+                if (!HasComp<Content.Shared._WF.Wolfmed.Life.WolfmedCardiacArrestComponent>(uid) &&
+                    _gameTiming.CurTime >= respirator.LastGaspEmoteTime + respirator.GaspEmoteCooldown)
                 {
                     respirator.LastGaspEmoteTime = _gameTiming.CurTime;
                     _chat.TryEmoteWithChat(uid, respirator.GaspEmote, ChatTransmitRange.HideChat, ignoreActionBlocker: true);

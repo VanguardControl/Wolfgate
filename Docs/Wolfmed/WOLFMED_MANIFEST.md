@@ -4135,3 +4135,60 @@ Deviations from the spec, and why:
   `GenericVisualizer` entry that could only ever set it.
 - **The occupant's lying pose is the standing-state appearance key**, not a pod-specific visual layer, so
   leaving the pod hands the sprite straight back to whatever posture the body is in.
+
+## Final stages: AUTODOC3 (2026-09-22)
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Server/Body/Systems/RespiratorSystem.cs` | modified | one marked condition: no gasp emote while in cardiac arrest |
+| `Content.Client/Overlays/ShowHealthIconsSystem.cs` | modified | one marked hook: the arrest flatline icon before the mob-state icon |
+| `Content.Client/_WF/Wolfmed/Overlays/ShowHealthIconsSystem.Wolfmed.cs` | new | that hook's body |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | "appears to be dead" at any range; "not breathing" no longer needs details range |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `AutodocTriagePrototype`, `AutodocTriageStep`, `AutodocTriageCondition`, six voice events |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocItemComponents.cs` | modified | `AutodocAutofixModuleComponent` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | autofix slot id, triage id, alarm sounds and intervals, auto and alarm runtime state, `AutodocAlarm` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocUi.cs` | modified | `AutodocControl.Plan` / `.Auto`, `AutofixModule` and `Auto` in the BUI state |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.autodoc_alarm` |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs` | new | the planner, automatic mode and the vital alarm |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | `_cfg`, `InitializeTriage`, `IsRunning`, occupant hidden with the lid |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | `Control` made public, PLAN and AUTO, the eject split |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | `TickAuto` and `TickAlarm` in the update loop |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `IsBrainDead` |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocVisualizerSystem.cs` | modified | one visible layer per state, occupant occluded with the lid |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | PLAN / FIX ME, AUTO, the autofix hardware line |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/triage.yml` | new | `WolfmedAutodocTriage` |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/autodoc.yml` | modified | `autodoc_autofix` slot, `AutodocAutofixModule` |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/cargo.yml` | modified | the module in the crate, lathe recipes for both modules |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | regenerated | six new lines and events |
+| `Resources/Prototypes/_WF/Wolfmed/health_icons.yml` | new | `HealthIconWolfmedArrest` |
+| `Resources/Textures/_WF/Wolfmed/Interface/health_icons.rsi` | new | `Flatline`, derived from the stock Critical icon |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/{plan,auto-engaged,auto-nothing,auto-off,goodbye,dying}.ogg` | new | eSpeak NG, same chain as AUTODOC2 |
+| `Resources/Locale/en-US/_WF/wolfmed/{autodoc,autodoc-ui,autodoc-voice,look}.ftl` | modified | slot names, PLAN/FIX ME/AUTO, the new transcripts, the corpse lines |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/{Autodoc,WoundTreatment}.xml` | modified | triage and the alarm; arrest looks dead |
+| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | modified | renders only the line ids it is given |
+| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | modified | the six new events |
+| `Tools/_WF/wolfmed/gen_arrest_icon.py` | new | draws the flatline HUD icon |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedArrestLooksDeadTest.cs` | new | 4 tests |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocTest.cs` | modified | 6 new tests, lid assertion inverted |
+
+Deviations from the spec:
+
+- **Arrest is not `MobState.Dead`.** The spec's section A asked for it; the owner withdrew that mid-package
+  because every rule that reads a living body (metabolism, objectives, rot, corpse handling) has to keep
+  treating an arrested patient as alive. Arrest stays Critical and only its perceptible signs changed.
+- **The autofix module gets its own slot** rather than sharing the cardiac module's. The spec allowed
+  either; sharing would have made a pod choose between shocking a patient and triaging one, and step 1 of
+  the triage order is a shock.
+- **The triage order gained an eleventh step** for limbs and organs the tray already holds. The spec's list
+  stops at ten but its own rule ("skip anything needing a tray item unless the tray already holds a matching
+  one") only means anything if those procedures are in the order at all.
+- **The triage's closing step needs `requiresStarted`.** Closing an incision is a valid surgery on an
+  unopened body, because the pod would open one first, so without the flag the planner queued a close on
+  every intact limb of a healthy patient.
+- **Self-service keeps its START button** next to FIX ME. The spec said PLAN and START "collapse into one";
+  removing START would have taken away picking a single procedure by hand, which AUTODOC shipped.
+- **The lid test asserts server state, not sprite layers.** "One visible layer per state" lives in the
+  client visualizer; the test asserts the appearance state and the container's `showEnts`, which are what
+  the visualizer reads.
+- `AutodocDefibModule` gained a lathe recipe alongside the new one. It had none; the spec asked for the
+  autofix recipe to sit "alongside the defib module".

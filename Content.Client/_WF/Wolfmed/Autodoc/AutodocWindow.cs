@@ -38,8 +38,11 @@ public sealed class AutodocWindow : DefaultWindow
     private readonly BoxContainer _reservoirBox;
     private readonly Label _diskLabel;
     private readonly Label _moduleLabel;
+    private readonly Label _autofixLabel;
     private readonly Label _trayLabel;
     private readonly Label _modeLabel;
+    private readonly Button _planButton;
+    private readonly Button _autoButton;
     private readonly Button _startButton;
     private readonly Button _pauseButton;
     private readonly Button _abortButton;
@@ -199,10 +202,12 @@ public sealed class AutodocWindow : DefaultWindow
         hardwareColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-hardware")));
         _diskLabel = Text(string.Empty, 11);
         _moduleLabel = Text(string.Empty, 11);
+        _autofixLabel = Text(string.Empty, 11);
         _trayLabel = Text(string.Empty, 11);
         _modeLabel = Text(string.Empty, 11, AmberDim);
         hardwareColumn.AddChild(_diskLabel);
         hardwareColumn.AddChild(_moduleLabel);
+        hardwareColumn.AddChild(_autofixLabel);
         hardwareColumn.AddChild(_trayLabel);
         hardwareColumn.AddChild(_modeLabel);
         lower.AddChild(hardwarePanel);
@@ -214,6 +219,12 @@ public sealed class AutodocWindow : DefaultWindow
         _anaesthesia.Label.FontColorOverride = Amber;
         _anaesthesia.OnToggled += args => OnAnaesthesia?.Invoke(args.Pressed);
         controls.AddChild(_anaesthesia);
+
+        // PLAN writes the triage queue; in self-service it is FIX ME and starts as well.
+        _planButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-plan"), Amber, true);
+        _planButton.ToolTip = Loc.GetString("wolfmed-autodoc-ui-plan-hint");
+        _planButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Plan);
+        controls.AddChild(_planButton);
 
         _startButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-start"), Good, true);
         _startButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Start);
@@ -227,6 +238,10 @@ public sealed class AutodocWindow : DefaultWindow
         controls.AddChild(_pauseButton);
         controls.AddChild(_abortButton);
         controls.AddChild(_ejectButton);
+
+        _autoButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-auto-off"), Cyan);
+        _autoButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Auto);
+        controls.AddChild(_autoButton);
         console.AddChild(controls);
 
         _doll.OnPartSelected += part => SetFilter(_filter == part ? null : part);
@@ -315,6 +330,10 @@ public sealed class AutodocWindow : DefaultWindow
         _diskLabel.Text = Loc.GetString("wolfmed-autodoc-ui-disk", ("disk", state.DiskProgram ?? Loc.GetString("wolfmed-autodoc-ui-none")));
         _moduleLabel.Text = Loc.GetString(state.DefibModule ? "wolfmed-autodoc-ui-module-installed" : "wolfmed-autodoc-ui-module-missing");
         _moduleLabel.FontColorOverride = state.DefibModule ? Good : AmberDim;
+        _autofixLabel.Text = Loc.GetString(!state.AutofixModule ? "wolfmed-autodoc-ui-autofix-missing"
+            : state.Auto ? "wolfmed-autodoc-ui-autofix-auto"
+            : "wolfmed-autodoc-ui-autofix-installed");
+        _autofixLabel.FontColorOverride = !state.AutofixModule ? AmberDim : state.Auto ? Cyan : Good;
         _trayLabel.Text = Loc.GetString("wolfmed-autodoc-ui-tray", ("item", state.TrayItem ?? Loc.GetString("wolfmed-autodoc-ui-none")));
         _trayLabel.FontColorOverride = state.State == AutodocState.Waiting ? Cyan : Amber;
         _modeLabel.Text = Loc.GetString(state.SelfService ? "wolfmed-autodoc-ui-mode-self" : "wolfmed-autodoc-ui-mode-operator");
@@ -323,6 +342,19 @@ public sealed class AutodocWindow : DefaultWindow
 
         var running = state.State is AutodocState.Preparing or AutodocState.Step or AutodocState.Waiting;
         _startButton.Disabled = running || !state.Occupied || state.Queue.Count == 0;
+
+        _planButton.Text = Loc.GetString(state.SelfService ? "wolfmed-autodoc-ui-fixme" : "wolfmed-autodoc-ui-plan");
+        _planButton.ToolTip = Loc.GetString(state.SelfService
+            ? "wolfmed-autodoc-ui-fixme-hint"
+            : "wolfmed-autodoc-ui-plan-hint");
+        _planButton.Disabled = running || !state.Occupied;
+
+        _autoButton.Text = Loc.GetString(state.Auto ? "wolfmed-autodoc-ui-auto-on" : "wolfmed-autodoc-ui-auto-off");
+        _autoButton.Label.FontColorOverride = state.Auto ? Good : AmberDim;
+        _autoButton.Disabled = !state.AutofixModule;
+        _autoButton.ToolTip = Loc.GetString(state.AutofixModule
+            ? "wolfmed-autodoc-ui-auto-hint"
+            : "wolfmed-autodoc-ui-auto-needs-module");
         _pauseButton.Disabled = !running && state.State != AutodocState.Paused;
         _pauseButton.Text = Loc.GetString(state.State == AutodocState.Paused ? "wolfmed-autodoc-ui-resume" : "wolfmed-autodoc-ui-pause");
         _abortButton.Disabled = state.State == AutodocState.Idle;

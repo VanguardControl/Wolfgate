@@ -33,6 +33,20 @@ The base library covers tending, bleeding and arterial repair, internal bleeding
 
 An occupant with nobody at the console gets a cut-down window: one procedure, an anaesthesia toggle, and no queue.
 
+## Triage, and letting it decide
+
+[bold]PLAN[/bold] fills the queue with what S.A.M. would do, in the order it would do it: a shock first if the heart has stopped and the cardiac module is fitted, then arterial and internal bleeding, then the rest of the bleeding, an open abdomen, organ repair, bones, deep wounds, shallow ones, chassis repair, and finally closing anything somebody else left open. It skips whatever needs a limb or an organ handing to it, unless the right one is already in the tray, and whatever its disks do not unlock. You still press Start. In self-service the two collapse into one [bold]FIX ME[/bold] button.
+
+  <Box>
+    <GuideEntityEmbed Entity="AutodocAutofixModule"/>
+  </Box>
+
+The [bold]autofix module[/bold] adds an [bold]AUTO[/bold] toggle. With it on, the pod plans and starts by itself whenever somebody is lying in it, re-plans when the queue runs out in case something started bleeding on the table, and says so when there is nothing left it can do. It never queues anything you could not have queued yourself; it only saves the scheduling. An emagged pod in AUTO plans amputations.
+
+## The alarm
+
+The pod beeps over a patient who is losing ground: every four seconds while they are unconscious or their brain is running out of oxygen, every two once the heart has stopped, with a line the first time. When the brain is gone it sounds one long flat tone and then nothing, because there is nothing left to call anybody for.
+
 ## The tray and the reservoir
 
 When a step needs a limb, an organ or an implant, the pod stops, opens its delivery tray and asks for exactly that item. Put the wrong thing in and it hands it straight back. The queue shows every requirement and whether it is loaded.

@@ -61,6 +61,7 @@
       autodoc_tray: !type:ContainerSlot
       autodoc_disk: !type:ContainerSlot
       autodoc_module: !type:ContainerSlot
+      autodoc_autofix: !type:ContainerSlot
       autodoc_beaker1: !type:ContainerSlot
       autodoc_beaker2: !type:ContainerSlot
       autodoc_beaker3: !type:ContainerSlot
@@ -81,6 +82,13 @@
         whitelist:
           components:
           - AutodocDefibModule
+      # Its own slot rather than a shared one: the cardiac module and the autofix module are worth having
+      # at the same time, and an autofix queue that starts with a shock is the whole point of triage.
+      autodoc_autofix:
+        name: wolfmed-autodoc-slot-autofix
+        whitelist:
+          components:
+          - AutodocAutofixModule
       autodoc_beaker1:
         name: wolfmed-autodoc-slot-beaker
         whitelist:
@@ -132,6 +140,7 @@
     - autodoc_tray
     - autodoc_disk
     - autodoc_module
+    - autodoc_autofix
     - autodoc_beaker1
     - autodoc_beaker2
     - autodoc_beaker3
@@ -226,5 +235,19 @@
     sprite: Objects/Specific/Medical/defib.rsi
     state: icon
   - type: AutodocDefibModule
+  - type: StaticPrice
+    price: 600
+
+- type: entity
+  parent: BaseItem
+  id: AutodocAutofixModule
+  name: autodoc autofix module
+  description: A triage module for an autodoc. With one installed the pod decides for itself what a patient needs, and does it.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Research/researchdisk.rsi
+    state: icon
+    color: "#6fd6ff"
+  - type: AutodocAutofixModule
   - type: StaticPrice
     price: 600

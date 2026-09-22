@@ -207,6 +207,26 @@
         path: /Audio/_WF/Wolfmed/Autodoc/voice/reagent-ignored.ogg
       message: wolfmed-autodoc-voice-reagent-ignored
       priority: Info
+    plan:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/plan.ogg
+      message: wolfmed-autodoc-voice-plan
+      priority: Info
+    auto-engaged:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/auto-engaged.ogg
+      message: wolfmed-autodoc-voice-auto-engaged
+      priority: Info
+    auto-nothing:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/auto-nothing.ogg
+      message: wolfmed-autodoc-voice-auto-nothing
+      priority: Info
+    auto-off:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/auto-off.ogg
+      message: wolfmed-autodoc-voice-auto-off
+      priority: Info
     paused:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/paused.ogg
@@ -226,6 +246,11 @@
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/emergency-eject.ogg
       message: wolfmed-autodoc-voice-emergency-eject
+      priority: Info
+    goodbye:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/goodbye.ogg
+      message: wolfmed-autodoc-voice-goodbye
       priority: Info
     power-lost:
       sound:
@@ -261,6 +286,11 @@
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/critical.ogg
       message: wolfmed-autodoc-voice-critical
+      priority: Urgent
+    dying:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/dying.ogg
+      message: wolfmed-autodoc-voice-dying
       priority: Urgent
     defib-missing:
       sound:
@@ -432,6 +462,12 @@
     DiskMissing: [disk-missing]
     DiskInserted: [disk-inserted]
     DiskRemoved: [disk-removed]
+    Plan: [plan]
+    AutoEngaged: [auto-engaged]
+    AutoNothing: [auto-nothing]
+    AutoOff: [auto-off]
+    Dying: [dying]
+    Goodbye: [goodbye]
     Idle: [idle-1, idle-2, idle-3, idle-4, idle-5]
     Emag: [emag-1, emag-2, emag-3, emag-4, emag-5]
     Offline: [offline]

@@ -14,6 +14,7 @@
     - id: AutodocProgramDiskNeuro
     - id: AutodocProgramDiskCavity
     - id: AutodocDefibModule
+    - id: AutodocAutofixModule
 
 - type: cargoProduct
   id: WolfmedAutodocPrograms
@@ -68,6 +69,24 @@
     Glass: 100
     Gold: 20
 
+- type: latheRecipe
+  id: AutodocDefibModule
+  result: AutodocDefibModule
+  completetime: 4
+  materials:
+    Steel: 150
+    Glass: 100
+    Gold: 40
+
+- type: latheRecipe
+  id: AutodocAutofixModule
+  result: AutodocAutofixModule
+  completetime: 4
+  materials:
+    Steel: 150
+    Glass: 100
+    Gold: 40
+
 - type: latheRecipePack
   id: WolfmedAutodocPrograms
   recipes:
@@ -75,3 +94,5 @@
   - AutodocProgramDiskLimb
   - AutodocProgramDiskNeuro
   - AutodocProgramDiskCavity
+  - AutodocDefibModule
+  - AutodocAutofixModule

@@ -354,6 +354,10 @@ wolfmed-look-evisceration-short = abdomen laid open
 wolfmed-look-chassis-breach = [color=orange]their torso plating peeled back, internals exposed[/color]
 wolfmed-look-chassis-breach-short = torso torn open
 
+# ARREST: what anyone can see from across the room once the heart has stopped.
+wolfmed-look-appears-dead-self = You do not look alive.
+wolfmed-look-appears-dead-other = { CAPITALIZE(THE($target)) } appears to be dead.
+
 # BRAIN: what a hand on the neck and an ear to the chest tell you.
 wolfmed-look-no-pulse-self = You cannot find your own pulse.
 wolfmed-look-no-pulse-other = { CAPITALIZE(THE($target)) } has no pulse.

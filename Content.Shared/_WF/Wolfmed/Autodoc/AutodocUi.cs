@@ -31,6 +31,9 @@ public sealed class AutodocBuiState : BoundUserInterfaceState
     public float StepLength;
     public string? DiskProgram;
     public bool DefibModule;
+    public bool AutofixModule;
+    /// <summary>The autofix module is fitted and switched on, so the pod plans and starts by itself.</summary>
+    public bool Auto;
     public bool SelfService;
     public bool Anaesthesia;
     public bool Occupied;
@@ -76,6 +79,12 @@ public enum AutodocControl : byte
     Pause,
     Abort,
     Eject,
+
+    /// <summary>Fill the queue from the triage plan. In self-service it also starts: the FIX ME button.</summary>
+    Plan,
+
+    /// <summary>Toggle the autofix module's automatic mode.</summary>
+    Auto,
 }
 
 [Serializable, NetSerializable]

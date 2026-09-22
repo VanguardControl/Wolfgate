@@ -143,6 +143,21 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
     public float GetOxygenation(EntityUid body) => GetBrain(body)?.Comp.Oxygenation ?? 1f;
 
+    /// <summary>
+    /// The brain is gone: either the organ is destroyed or the body has died some other way. What separates
+    /// this from cardiac arrest is that no shock will do anything about it until the brain is rebuilt.
+    /// </summary>
+    public bool IsBrainDead(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body))
+            return false;
+
+        if (_mobState.IsDead(body))
+            return true;
+
+        return GetBrainOrgan(body) is { } organ && organ.Comp.Health <= FixedPoint2.Zero;
+    }
+
     /// <summary>Brain activity, 0 to 1: the brain organ's health as a share of its maximum.</summary>
     public float GetBrainActivity(EntityUid body)
     {

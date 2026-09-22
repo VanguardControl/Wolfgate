@@ -71,7 +71,8 @@ wolfmed-autodoc-program-cavity = cavity
 
 wolfmed-autodoc-slot-tray = Delivery tray
 wolfmed-autodoc-slot-disk = Program disk
-wolfmed-autodoc-slot-module = Module
+wolfmed-autodoc-slot-module = Cardiac module
+wolfmed-autodoc-slot-autofix = Autofix module
 wolfmed-autodoc-slot-beaker = Reservoir
 
 wolfmed-autodoc-window-title = S.A.M. - Surgical Automation Module
