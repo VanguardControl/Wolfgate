@@ -151,4 +151,12 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> ConsciousnessHysteresis =
         CVarDef.Create("wolfmed.consc_hysteresis", 0.1f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction at or under which a wound host dies. Stand-in until cardiac arrest lands.</summary>
+    public static readonly CVarDef<float> LifeBloodDead =
+        CVarDef.Create("wolfmed.life_blood_dead", 0.15f, CVar.SERVERONLY);
+
+    /// <summary>Airloss damage at or past which a wound host dies of suffocation. Stand-in until oxygenation lands.</summary>
+    public static readonly CVarDef<float> LifeAirlossDead =
+        CVarDef.Create("wolfmed.life_airloss_dead", 300f, CVar.SERVERONLY);
 }
