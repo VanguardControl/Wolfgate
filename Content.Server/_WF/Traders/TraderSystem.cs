@@ -1,4 +1,17 @@
 using System.Linq;
+using System.Collections.Generic;
+using Content.Shared._Mono.Detection;
+using Content.Shared.Temperature.Components;
+using Content.Shared.Gravity;
+using Content.Shared.Damage.Components;
+using Content.Shared.Chemistry.Reaction;
+using Content.Shared.Atmos.Rotting;
+using Content.Shared.Atmos.Components;
+using Content.Server.Temperature.Components;
+using Content.Server.Movement.Components;
+using Content.Server.Body.Components;
+using Content.Shared.Body.Components;
+using Content.Server.Atmos.Components;
 using System.Numerics;
 using Content.Server._NF.Bank;
 using Content.Server._NF.Shipyard.Components;
@@ -130,8 +143,55 @@ public sealed class TraderSystem : EntitySystem
         RemComp<InteractionPopupComponent>(ent);
         RemComp<ClimbingComponent>(ent); // no dragging them onto their own table
 
+        // Nothing that ticks: no breathing, blood, metabolism, temperature, pressure, fire, rot,
+        // chemistry, stamina or lag compensation on a body that never moves or takes damage.
+        RemComp<RespiratorComponent>(ent);
+        RemComp<BloodstreamComponent>(ent);
+        RemComp<MetabolizerComponent>(ent);
+        RemComp<TemperatureComponent>(ent);
+        RemComp<TemperatureSpeedComponent>(ent);
+        RemComp<BarotraumaComponent>(ent);
+        RemComp<AtmosExposedComponent>(ent);
+        RemComp<FlammableComponent>(ent);
+        RemComp<PerishableComponent>(ent);
+        RemComp<ReactiveComponent>(ent);
+        RemComp<StaminaComponent>(ent);
+        RemComp<LagCompensationComponent>(ent);
+        RemComp<ThermalSignatureComponent>(ent);
+        RemComp<GravityAffectedComponent>(ent);
+
+        // Organs metabolise on their own; the lungs breathe.
+        foreach (var part in Descendants(ent))
+        {
+            RemComp<MetabolizerComponent>(part);
+            RemComp<LungComponent>(part);
+            RemComp<StomachComponent>(part);
+        }
+
         if (TryComp<PhysicsComponent>(ent, out var physics))
             _physics.SetBodyType(ent, BodyType.Static, body: physics);
+    }
+
+    /// <summary>
+    /// Everything parented under an entity, containers included.
+    /// </summary>
+    private List<EntityUid> Descendants(EntityUid root)
+    {
+        var found = new List<EntityUid>();
+        var pending = new Queue<EntityUid>();
+        pending.Enqueue(root);
+
+        while (pending.TryDequeue(out var uid))
+        {
+            var children = Transform(uid).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                found.Add(child);
+                pending.Enqueue(child);
+            }
+        }
+
+        return found;
     }
 
     private void OnTerminating(Entity<TraderComponent> ent, ref EntityTerminatingEvent args)
