@@ -156,4 +156,6 @@ health-analyzer-wound-cardiac-arrest = [color=#d63c2c]CARDIAC ARREST[/color] - p
 health-analyzer-wound-cardiac-arrest-timed = [color=#d63c2c]CARDIAC ARREST[/color] - pulse: none, est. brain death in { $minutes }:{ $seconds }
 health-analyzer-wound-brain-dead = [color=#d63c2c]BRAIN DEAD[/color] - no brain activity, no pulse
 health-analyzer-wound-brain-activity = brain activity { $activity }%, oxygenation { $oxygen }%
+health-analyzer-wound-brain-damage = brain damage, { $activity }% tissue left, oxygenation { $oxygen }%. Brain repair surgery once the patient is breathing.
+health-analyzer-wound-brain-damage-critical = CRITICAL brain damage, { $activity }% tissue left, oxygenation { $oxygen }%. Brain repair surgery now.
 health-analyzer-wound-shutdown = [color=#d63c2c]SHUTDOWN[/color] - no power or no pump

@@ -94,16 +94,19 @@
         whitelist:
           components:
           - FitsInDispenser
+          - DrainableSolution # WOLFGATE: bottles and jugs too, not only beakers.
       autodoc_beaker2:
         name: wolfmed-autodoc-slot-beaker
         whitelist:
           components:
           - FitsInDispenser
+          - DrainableSolution # WOLFGATE: bottles and jugs too, not only beakers.
       autodoc_beaker3:
         name: wolfmed-autodoc-slot-beaker
         whitelist:
           components:
           - FitsInDispenser
+          - DrainableSolution # WOLFGATE: bottles and jugs too, not only beakers.
   - type: UserInterface
     interfaces:
       enum.AutodocUiKey.Key:

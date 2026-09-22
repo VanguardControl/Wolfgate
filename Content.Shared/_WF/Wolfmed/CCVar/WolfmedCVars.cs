@@ -254,4 +254,26 @@ public sealed class WolfmedCVars
     /// <summary>The autodoc's vital alarm: the monitor beep over a failing occupant. False silences it.</summary>
     public static readonly CVarDef<bool> AutodocAlarm =
         CVarDef.Create("wolfmed.autodoc_alarm", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Times the autodoc repeats one step that changes nothing about the part before it gives the whole
+    /// procedure up. The guard against a completion check that can never pass.
+    /// </summary>
+    public static readonly CVarDef<int> AutodocStepRetries =
+        CVarDef.Create("wolfmed.autodoc_step_retries", 3, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Wound severity one tend-wounds surgery pass closes, per damage type of the tended group. Tending is
+    /// the surgical way to close cuts and bruises, so it reaches the wound at the strength a suture does
+    /// instead of through the damage routing's healing multiplier.
+    /// </summary>
+    public static readonly CVarDef<float> SurgeryTendStrength =
+        CVarDef.Create("wolfmed.surgery_tend_strength", 15f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Sedation (0 to 1) the autodoc will not push a patient past. Respiratory depression starts at 0.6, so
+    /// the pod stops well short of it and says so rather than anaesthetising somebody to death.
+    /// </summary>
+    public static readonly CVarDef<float> AutodocSedationCap =
+        CVarDef.Create("wolfmed.autodoc_sedation_cap", 0.5f, CVar.SERVERONLY);
 }

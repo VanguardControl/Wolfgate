@@ -4192,3 +4192,67 @@ Deviations from the spec:
   the visualizer reads.
 - `AutodocDefibModule` gained a lathe recipe alongside the new one. It had none; the spec asked for the
   autofix recipe to sit "alongside the defib module".
+
+## Final stages: AUTODOC4 (2026-09-22)
+
+The pod can never loop, and it can now clear the two things that used to block it. Plus four owner playtest
+findings folded in: the tend-wounds completion check, the anaesthetic dose, the self-service queue and a
+brain nobody could repair.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryComponents.cs` | modified | `WolfmedSurgeryEmbeddedCondition`, `WolfmedSurgeryExtractEmbeddedEffect`, `WolfmedSurgeryRelocateJointEffect`, `anyDamage` on the organ condition |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryConditionSystem.cs` | modified | listing and completion checks for both new steps; `GetTreatableGroupSeverity` |
+| `Content.Server/_WF/Wolfmed/Surgery/WolfmedWoundSurgerySystem.cs` | modified | the two step effects, each calling the hand path's own code |
+| `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.Steps.cs` | modified | HOOK 26 and HOOK 27, two marked call sites in the tend-wounds handlers |
+| `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Wolfmed.cs` | modified | HOOK 24 rewritten, HOOK 26 and HOOK 27 bodies |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | stall fields, `FailedProcedures`, `StepRuns`, `BlockedReason`, `AutoReplanLimit`, anaesthesia fields |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `Stall`, `Clothing`, `SedationLimit` voice events |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | stall guard, part and body signatures, closure, blocked-on-patient waiting, one dose a queue, oxygen tick, reservoir fallback |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs` | modified | planner skips failed and embedded-blocked procedures, bounded re-plans, hand queues are run not replaced |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | fresh memory per occupant, sleep key, pain relief and status dependencies |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | anaesthesia readout, reservoir reads drainable containers |
+| `Content.Shared/_WF/Wolfmed/Autodoc/SharedAutodocSystem.cs` | modified | `CanDropTargetEvent` answered shared, so a drop is not decided server-only |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | brain damage is a red finding under 60%, critical under 25% |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `autodoc_step_retries`, `surgery_tend_strength`, `autodoc_sedation_cap` |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryRemoveEmbeddedObjects`, `SurgeryRelocateJoint`, brain repair on any damage |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | `SurgeryStepExtractEmbedded`, `SurgeryStepRelocateJoint` |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/programs.yml` | modified | both new surgeries in the base library |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/triage.yml` | modified | removal first after the defib, relocation before bones |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/autodoc.yml` | modified | reservoir slots accept `DrainableSolution` |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/treatment_procedures.yml` | modified | the pod named for lodged rounds, shrapnel and dislocations |
+| `Resources/Locale/en-US/_WF/Wolfmed/treatment-advice.ftl` | modified | three new advice lines |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc.ftl` | modified | `wolfmed-autodoc-status-anaesthesia` |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | brain damage findings |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | modified | generated with the three new lines |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | modified | generated |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/{stall,clothing,sedation-limit}.ogg` | new | eSpeak NG, the AUTODOC2 chain |
+| `Tools/_WF/wolfmed/gen_autodoc_voice*.py` | modified | three rows and three events |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | new | nine tests |
+
+### Deviations
+
+- **The stall guard counts runs, not "the check's observable changing twice in a row".** The spec's wording
+  compares the observable before and after; what is implemented compares the part after each run against
+  the part after the previous run of the same step, which is the same test written once instead of twice
+  and makes the first run cheap. Three unchanged runs abandon the procedure, so a step is begun at most
+  three times, which is what the spec's test asks for.
+- **Pain and bleed rates are out of the part signature.** Both move every tick on their own, and a
+  signature that moved with them could never read "no progress"; the signature is wound prototypes,
+  severities, states, embedded counts, the fracture, organ health and part damage.
+- **The AUTO re-plan signature is coarser still**: which wounds exist and in what state, not how severe.
+  Severity drifts as a wound heals passively, which reset the bound every second and defeated it.
+- **HOOK 24 was rewritten, not only extended.** The tend surgeries' listing condition upstream asks whether
+  the BODY is damaged, so the planner queued a tend on every limb of a patient with one cut - the owner's
+  twenty-procedure queue. On a wound host a tend now lists only where there is severity tending could close.
+- **Tending completes on wounds, not on the part's damage figure.** The part's `DamageableComponent` is the
+  routing's bookkeeping; what is wrong with a Wolfmed part is its wounds, so that is what the step waits on.
+- **A clothed patient is asked to undress, not operated on through the jumpsuit.** The upstream armour check
+  refuses every step over a covered part, and the pod used to answer that with `Fault` and die. It now waits,
+  says so once and picks the procedure straight back up. Cutting through clothing would have broken the
+  package's own rule that the pod follows every surgeon's rule.
+- **`SurgeryHealBrain` was kept** alongside the repair rather than merged away: the repair restores the whole
+  organ and leaves trauma behind, which is not what a brain at 80% wants. The repair is now listed for any
+  damaged brain, which is the one path that was missing.
+- **The brain-damage finding is a coloured banner, not a clickable procedure.** Wiring a new condition id
+  into the treatment-advice mapping is a package of its own; the banner names the surgery in its text.

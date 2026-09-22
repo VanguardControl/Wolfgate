@@ -10,6 +10,7 @@ using Content.Server._Shitmed.Medical.Surgery;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Autodoc;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -29,6 +30,8 @@ using Content.Shared.Popups;
 using Content.Shared.Power;
 using Content.Shared.Rotation;
 using Content.Shared.Standing;
+using Content.Shared.StatusEffect;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared.Verbs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
@@ -50,6 +53,9 @@ namespace Content.Server._WF.Wolfmed.Autodoc;
 /// </summary>
 public sealed partial class AutodocSystem : EntitySystem
 {
+    /// <summary>The status effect key every sleep chem in the game uses, so the pod stacks with them.</summary>
+    private const string SleepKey = "ForcedSleep";
+
     [Dependency] private readonly IAdminLogManager _adminLog = default!;
     [Dependency] private Life.WolfmedLifeSystem _life = default!; // BRAIN
     [Dependency] private Life.WolfmedRevivalSystem _revival = default!; // BRAIN
@@ -72,10 +78,14 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
+    [Dependency] private readonly StatusEffectsSystem _status = default!;
+    [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly SurgerySystem _surgery = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
+    [Dependency] private readonly WoundFractureSystem _fractures = default!;
+    [Dependency] private readonly WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private readonly WoundSystem _wounds = default!;
     [Dependency] private readonly PowerReceiverSystem _power = default!;
 
@@ -86,7 +96,6 @@ public sealed partial class AutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<AutodocComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
         SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnDragDrop);
-        SubscribeLocalEvent<AutodocComponent, CanDropTargetEvent>(OnCanDropTarget);
         SubscribeLocalEvent<AutodocComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<AutodocComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<AutodocComponent, PowerChangedEvent>(OnPowerChanged);
@@ -190,12 +199,6 @@ public sealed partial class AutodocSystem : EntitySystem
         Speak(ent, AutodocVoiceEvent.Greeting);
     }
 
-    private void OnCanDropTarget(Entity<AutodocComponent> ent, ref CanDropTargetEvent args)
-    {
-        args.CanDrop = GetOccupant(ent) == null && !ent.Comp.Locked && HasComp<BodyComponent>(args.Dragged);
-        args.Handled = true;
-    }
-
     private void OnDragDrop(Entity<AutodocComponent> ent, ref DragDropTargetEvent args)
     {
         if (args.Handled || !TryInsert(ent, args.Dragged))
@@ -217,6 +220,11 @@ public sealed partial class AutodocSystem : EntitySystem
             ent.Comp.DefibWarned = false;
             ent.Comp.AutoSaidNothing = false;
             ent.Comp.AutoNextPlan = TimeSpan.Zero;
+
+            // Everything the pod learned about the last patient goes with them.
+            ent.Comp.FailedProcedures.Clear();
+            ent.Comp.AutoSignature = null;
+            ent.Comp.AutoReplans = 0;
         }
 
         UpdateAppearance(ent);
@@ -234,6 +242,10 @@ public sealed partial class AutodocSystem : EntitySystem
         if (args.Container.ID == AutodocComponent.BodyContainerId)
         {
             SetOccupantLying(args.Entity, false);
+            WakeOccupant(ent, args.Entity);
+            ent.Comp.FailedProcedures.Clear();
+            ent.Comp.AutoSignature = null;
+            ent.Comp.AutoReplans = 0;
             Reset(ent);
             _ui.CloseUis(ent.Owner);
         }
@@ -391,6 +403,11 @@ public sealed partial class AutodocSystem : EntitySystem
         ent.Comp.PowerPaused = false;
         ent.Comp.Locked = IsEmagged(ent);
         ent.Comp.SpokenFamilies.Clear();
+        ent.Comp.StallStep = null;
+        ent.Comp.StallSignature = null;
+        ent.Comp.StallCount = 0;
+        ent.Comp.StepRuns.Clear();
+        ent.Comp.BlockedReason = null;
         _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
     }
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Shared._WF.Wolfmed.Autodoc;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Server.Construction;
 using Content.Shared.Construction;
@@ -174,7 +175,8 @@ public sealed partial class AutodocSystem
         var state = new AutodocBuiState
         {
             State = ent.Comp.State,
-            Status = Loc.GetString($"wolfmed-autodoc-status-{ent.Comp.State.ToString().ToLowerInvariant()}"),
+            Status = Loc.GetString($"wolfmed-autodoc-status-{ent.Comp.State.ToString().ToLowerInvariant()}") +
+                     AnaesthesiaStatus(occupant),
             CurrentStep = ent.Comp.CurrentStep?.Id,
             Progress = ent.Comp.StepLength > 0f
                 ? Math.Clamp(1f - ent.Comp.StepRemaining / ent.Comp.StepLength, 0f, 1f)
@@ -217,6 +219,27 @@ public sealed partial class AutodocSystem
         _ui.SetUiState(ent.Owner, AutodocUiKey.Key, state);
     }
 
+    /// <summary>
+    /// What the patient is under, on the same line as the state: how long the painkiller has left and how
+    /// sedated it has left them, which is the number the pod's own cap is measured against.
+    /// </summary>
+    private string AnaesthesiaStatus(EntityUid? occupant)
+    {
+        if (occupant is not { } body || !TryComp(body, out WolfmedPainReliefComponent? relief))
+            return string.Empty;
+
+        var seconds = relief.Ends is { } ends
+            ? MathF.Max(0f, (float) (ends - _timing.CurTime).TotalSeconds)
+            : 0f;
+
+        if (seconds <= 0f && relief.Sedation <= 0f)
+            return string.Empty;
+
+        return "  " + Loc.GetString("wolfmed-autodoc-status-anaesthesia",
+            ("seconds", MathF.Round(seconds)),
+            ("percent", MathF.Round(relief.Sedation * 100f)));
+    }
+
     private List<AutodocReservoirEntry> BuildReservoir(Entity<AutodocComponent> ent)
     {
         var result = new List<AutodocReservoirEntry>();
@@ -231,7 +254,7 @@ public sealed partial class AutodocSystem
         foreach (var slot in AutodocComponent.ReservoirSlotIds)
         {
             if (_slots.GetItemOrNull(ent.Owner, slot) is not { } beaker ||
-                !_solutions.TryGetFitsInDispenser(beaker, out _, out var solution))
+                !TryGetReservoirSolution(beaker, out _, out var solution))
             {
                 result.Add(new AutodocReservoirEntry(Loc.GetString("wolfmed-autodoc-reservoir-empty"), 0f, ent.Comp.ReservoirSize, false));
                 continue;

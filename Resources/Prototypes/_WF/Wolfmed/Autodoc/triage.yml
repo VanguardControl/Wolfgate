@@ -9,20 +9,25 @@
   - defibrillate: true
     condition: Arrest
 
-  # 2. What is emptying the patient fastest.
+  # 2. Anything still lodged in a part. WolfmedEmbeddedObjectComponent refuses every treatment on the wound
+  # it is in, so a round left in the torso makes every other procedure on that torso hopeless.
+  - surgeries:
+    - SurgeryRemoveEmbeddedObjects
+
+  # 3. What is emptying the patient fastest.
   - surgeries:
     - SurgeryRepairArtery
     - SurgeryStopInternalBleeding
 
-  # 3. Then the rest of the bleeding.
+  # 4. Then the rest of the bleeding.
   - surgeries:
     - SurgeryStopBleeding
 
-  # 4. An open abdomen: not fatal this second, but everything after it is worse with the organs out.
+  # 5. An open abdomen: not fatal this second, but everything after it is worse with the organs out.
   - surgeries:
     - SurgeryCloseEvisceration
 
-  # 5. Organ repair in place. Removal and insertion need a hand at the tray, so the planner skips them.
+  # 6. Organ repair in place. Removal and insertion need a hand at the tray, so the planner skips them.
   - surgeries:
     - SurgeryHealHeart
     - SurgeryHealLungs
@@ -33,28 +38,32 @@
     - SurgeryHealBrain
     - SurgeryHealEyes
 
-  # 6. Bones.
+  # 7. Joints back in their sockets before the bones under them are opened.
+  - surgeries:
+    - SurgeryRelocateJoint
+
+  # 8. Bones.
   - surgeries:
     - SurgeryMendFracture
     - SurgeryHealAmputationConsequence
 
-  # 7. Deep tissue before shallow: the deep surgeries are the ones gauze cannot reach.
+  # 9. Deep tissue before shallow: the deep surgeries are the ones gauze cannot reach.
   - surgeries:
     - SurgeryTendWoundsBruteDeep
     - SurgeryTendWoundsBurnDeep
 
-  # 8. Everything else on the surface.
+  # 10. Everything else on the surface.
   - surgeries:
     - SurgeryTendWoundsBrute
     - SurgeryTendWoundsBurn
     - SurgeryGraftSkin
     - SurgeryRepairTendon
 
-  # 9. Synthetic bodies.
+  # 11. Synthetic bodies.
   - categories:
     - WolfmedAutodocCategoryMechanical
 
-  # 10. Putting parts and organs back. The planner skips every one of these unless the delivery tray
+  # 12. Putting parts and organs back. The planner skips every one of these unless the delivery tray
   # already holds something that fits, so it never queues a procedure it cannot finish alone.
   - surgeries:
     - SurgeryAttachHead
@@ -75,7 +84,7 @@
     - SurgeryInsertEyes
     - SurgeryInsertPump
 
-  # 11. Whatever somebody else left open. Every procedure above closes after itself, so this only ever
+  # 13. Whatever somebody else left open. Every procedure above closes after itself, so this only ever
   # catches a patient who was already lying open when they went in; requiresStarted is what says so.
   - requiresStarted: true
     surgeries:

@@ -191,7 +191,11 @@ public sealed partial class WolfmedDiagnosticPanel
 
         if (msg.WoundDiagnostics is { BrainActivity: >= 0f } vitals)
         {
-            _brainLabel = CreateBannerRow("reagent", WolfmedWoundStyle.Infection,
+            // BRAIN: a brain that has lost tissue is a finding, not a quiet status line. Under a quarter
+            // left there is not much of the patient in there any more.
+            var damaged = vitals.BrainActivity < BrainDamageFinding;
+            _brainLabel = CreateBannerRow(damaged ? "warning" : "reagent",
+                damaged ? WolfmedWoundStyle.Necrosis : WolfmedWoundStyle.Infection,
                 BrainText(vitals), out var brainRow);
             WoundAlertsContainer.AddChild(brainRow);
         }
@@ -296,7 +300,9 @@ public sealed partial class WolfmedDiagnosticPanel
         text.Append(diagnostics.CardiacArrest ? 'a' : '-')
             .Append(diagnostics.BrainDead ? 'b' : '-')
             .Append(diagnostics.Shutdown ? 's' : '-')
-            .Append(diagnostics.BrainActivity >= 0f ? 'v' : '-');
+            .Append(diagnostics.BrainActivity >= 0f ? 'v' : '-')
+            .Append(diagnostics.BrainActivity < BrainDamageCritical ? 'c'
+                : diagnostics.BrainActivity < BrainDamageFinding ? 'd' : '-');
         // CONSC: only the presence of each banner, never the numbers on it.
         text.Append((int) diagnostics.PainRelief).Append(diagnostics.Sedation > 0f ? '1' : '0');
 
@@ -392,10 +398,25 @@ public sealed partial class WolfmedDiagnosticPanel
             ("minutes", total / 60), ("seconds", (total % 60).ToString("00")));
     }
 
-    private static string BrainText(HealthAnalyzerWoundDiagnostics diagnostics) =>
-        Loc.GetString("health-analyzer-wound-brain-activity",
+    /// <summary>Brain tissue left under which the analyzer calls it damage rather than a reading.</summary>
+    private const float BrainDamageFinding = 0.6f;
+
+    /// <summary>And under which it stops being polite about it.</summary>
+    private const float BrainDamageCritical = 0.25f;
+
+    private static string BrainText(HealthAnalyzerWoundDiagnostics diagnostics)
+    {
+        var line = diagnostics.BrainActivity switch
+        {
+            < BrainDamageCritical => "health-analyzer-wound-brain-damage-critical",
+            < BrainDamageFinding => "health-analyzer-wound-brain-damage",
+            _ => "health-analyzer-wound-brain-activity",
+        };
+
+        return Loc.GetString(line,
             ("activity", (int) MathF.Round(diagnostics.BrainActivity * 100f)),
             ("oxygen", (int) MathF.Round(MathF.Max(0f, diagnostics.Oxygenation) * 100f)));
+    }
 
     private static string SepsisText(float sepsis) =>
         Loc.GetString("health-analyzer-wound-sepsis", ("percent", (int) MathF.Round(sepsis)));

@@ -131,6 +131,12 @@ public enum AutodocVoiceEvent : byte
     Dying,
     /// <summary>An eject with nothing running. Not an emergency, so not the emergency line.</summary>
     Goodbye,
+    /// <summary>A step that keeps changing nothing. The procedure is abandoned.</summary>
+    Stall,
+    /// <summary>Clothing over the part the pod is trying to open. It cannot undress anybody.</summary>
+    Clothing,
+    /// <summary>The patient is as sedated as the pod is willing to make them. No more anaesthetic.</summary>
+    SedationLimit,
 }
 
 /// <summary>

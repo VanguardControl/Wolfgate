@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Steps;
 using Content.Shared._WF.Wolfmed.Body;
@@ -22,6 +23,7 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private WoundFractureSystem _fractures = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
@@ -39,6 +41,30 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryBrainRepairEffectComponent, SurgeryStepCompleteCheckEvent>(OnBrainRepairCheck);
         SubscribeLocalEvent<WolfmedSurgeryIncisionTreatmentEffectComponent, SurgeryStepCompleteCheckEvent>(OnIncisionCheck);
         SubscribeLocalEvent<WolfmedSurgeryCloseEviscerationEffectComponent, SurgeryStepCompleteCheckEvent>(OnCloseEviscerationCheck);
+        SubscribeLocalEvent<WolfmedSurgeryEmbeddedConditionComponent, SurgeryValidEvent>(OnEmbeddedValid);
+        SubscribeLocalEvent<WolfmedSurgeryExtractEmbeddedEffectComponent, SurgeryStepCompleteCheckEvent>(OnExtractCheck);
+        SubscribeLocalEvent<WolfmedSurgeryRelocateJointEffectComponent, SurgeryStepCompleteCheckEvent>(OnRelocateCheck);
+    }
+
+    private void OnEmbeddedValid(Entity<WolfmedSurgeryEmbeddedConditionComponent> ent, ref SurgeryValidEvent args)
+    {
+        if (_embedded.GetPartCount(args.Part) > 0 == ent.Comp.Inverse)
+            args.Cancelled = true;
+    }
+
+    /// <summary>Done when the part is empty, whatever is left of the wounds the objects were in.</summary>
+    private void OnExtractCheck(Entity<WolfmedSurgeryExtractEmbeddedEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (_embedded.GetPartCount(args.Part) > 0)
+            args.Cancelled = true;
+    }
+
+    private void OnRelocateCheck(Entity<WolfmedSurgeryRelocateJointEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (FindWound(args.Part, ent.Comp.Wound) != null)
+            args.Cancelled = true;
     }
 
     private void OnWoundValid(Entity<WolfmedSurgeryWoundConditionComponent> ent, ref SurgeryValidEvent args)
@@ -64,9 +90,11 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         // so a dead organ is an insert job, not a heal job (P4-D24). The brain is the exception, because
         // OrganHealthSystem kills the mob instead of destroying it, and BRAIN's repair surgery wants it.
         var found = TryFindOrgan(args.Part, ent.Comp.Slot, out var organ);
-        var treatable = ent.Comp.Destroyed
-            ? found && organ.Comp.Health <= FixedPoint2.Zero
-            : found && organ.Comp.Health > FixedPoint2.Zero && organ.Comp.Health < organ.Comp.MaxHealth;
+        var treatable = ent.Comp.AnyDamage
+            ? found && organ.Comp.Health < organ.Comp.MaxHealth
+            : ent.Comp.Destroyed
+                ? found && organ.Comp.Health <= FixedPoint2.Zero
+                : found && organ.Comp.Health > FixedPoint2.Zero && organ.Comp.Health < organ.Comp.MaxHealth;
 
         if (treatable == ent.Comp.Inverse)
             args.Cancelled = true;
@@ -215,6 +243,38 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
                 !_prototypes.TryIndex(wound.Comp.Prototype, out WoundPrototype? prototype) ||
                 // Wolfgate's DamageGroupPrototype.DamageTypes is List<string>, Onyx's is List<ProtoId<...>>.
                 !prototype.DamageTypes.Keys.Any(type => types.Contains(type.Id)))
+                continue;
+
+            severity += wound.Comp.Severity;
+        }
+
+        return severity;
+    }
+
+    /// <summary>
+    /// Severity on a part a tend step could still close: wounds damaging the group whose prototype lets a
+    /// treatment reach them at all, and which are not refusing treatment this second. A lodged round, a
+    /// charred patch and a cut tendon are all left out, so a tend step never waits on one.
+    /// </summary>
+    public FixedPoint2 GetTreatableGroupSeverity(Entity<WoundableComponent?> part, ProtoId<DamageGroupPrototype> group)
+    {
+        if (!Resolve(part, ref part.Comp, false) || !_prototypes.TryIndex(group, out var groupPrototype))
+            return FixedPoint2.Zero;
+
+        var types = groupPrototype.DamageTypes.ToHashSet();
+        var severity = FixedPoint2.Zero;
+        foreach (var wound in _wounds.GetWounds(part))
+        {
+            if (HasComp<WoundScarComponent>(wound) ||
+                !_prototypes.TryIndex(wound.Comp.Prototype, out WoundPrototype? prototype) ||
+                prototype.HealingMultiplier <= 0f ||
+                !prototype.DamageTypes.Keys.Any(type => types.Contains(type.Id)))
+                continue;
+
+            var attempt = new WoundTreatmentAttemptEvent(part.Owner, wound.Owner, wound.Comp.Severity);
+            RaiseLocalEvent(part.Owner, ref attempt);
+            RaiseLocalEvent(wound.Owner, ref attempt);
+            if (attempt.Cancelled)
                 continue;
 
             severity += wound.Comp.Severity;

@@ -96,6 +96,10 @@ LINES = [
     ("power-restored", "POWER RESTORED. WHERE WAS I.", None, "Info"),
     ("lid-forced", "THE LID HAS BEEN FORCED. NOTED.", None, "Urgent"),
 
+    ("stall", "THIS IS NOT WORKING.", None, "Urgent"),
+    ("clothing", "REMOVE YOUR CLOTHING. I CANNOT CUT IT.", None, "Urgent"),
+    ("sedation-limit", "SEDATION AT LIMIT.", None, "Info"),
+
     ("slip", "OOPS.", None, "Urgent"),
     ("slip-fix", "NOT SUPPOSED TO HAPPEN. FIXING IT.", None, "Info"),
     ("unconscious", "THE PATIENT IS ASLEEP. GOOD.", None, "Info"),

@@ -570,3 +570,52 @@ the lid: the visualizer now draws exactly one layer per state, and the body cont
 the lid, server side, with the client re-occluding the occupant itself because the engine only recomputes
 container occlusion on a parent change. An eject only says "EMERGENCY EJECT" while something is running;
 from Idle or Complete it is "GOODBYE." and no abort.
+
+### No procedure may loop (AUTODOC4)
+
+The owner's pod repeated "Repair damaged tissue" for ever on a torso with a lodged round in it. Four things
+were wrong, and all four are fixed:
+
+- **The two hand-only treatments are surgeries now.** `SurgeryRemoveEmbeddedObjects` (open incision ->
+  `SurgeryStepExtractEmbedded` -> seal) and `SurgeryRelocateJoint` (one toolless step) call
+  `WolfmedEmbeddedRemovalSystem.TryRemoveOne` and `WolfmedDislocationSystem.TryRelocate`, the very code the
+  hand do-afters call, so the pod leaves what a medic's hemostat would leave and the verbs are untouched.
+  Both are base-library programs; the extraction lists only while the part still holds something and the
+  relocation only while the limb carries a `WolfmedDislocationWound`.
+- **The tend check read the whole body (HOOK 26).** Shitmed's `OnTendWoundsCheck` cancels while the BODY has
+  damage of the group, so tending a torso could never finish while a hand had a scratch. On a wound host the
+  check reads the part, and reads its wounds rather than its damage figure. HOOK 24 got the same treatment on
+  the listing side, which is what stopped the planner queueing a tend on every limb.
+- **A tend pass is worth the incision (HOOK 27).** The step's damage removal reached a wound through the
+  routing's `HealingMultiplier`, a tenth of what came off; tending now treats the part's matching wounds
+  directly at `wolfmed.surgery_tend_strength` (15) a pass, the way a suture does, so a moderate cut closes in
+  two or three passes. Wounds nothing closes and wounds refusing treatment are untouched, because
+  `TreatWound` raises the same attempt event a dressing does.
+- **The stall guard.** A step whose completion check still fails and whose part looks exactly as it did after
+  the previous run made no progress; `wolfmed.autodoc_step_retries` (3) of those and the pod says
+  "THIS IS NOT WORKING.", drops the procedure, records it in `FailedProcedures` for this occupant, closes the
+  patient if it was the pod that opened them, and moves on. The signature deliberately leaves out pain and
+  bleed rates, which move on their own every tick.
+- **The planner.** It never queues anything in `FailedProcedures`, it puts `SurgeryRemoveEmbeddedObjects`
+  first after the defib and `SurgeryRelocateJoint` before the bones, and it queues nothing else on a part
+  that still has something lodged in it. AUTO re-plans at most `AutoReplanLimit` (2) more times against an
+  unchanged body and then idles with "NOTHING MORE I CAN DO."
+
+### What else the playtest found (AUTODOC4)
+
+- **One anaesthetic per queue, not per procedure.** A twenty-item plan used to push 15u of opiate twenty
+  times, walking sedation to 100% and stopping the patient's breathing. The pod doses once for the run, tops
+  up only when the painkiller has under `AnaestheticTopUp` (20 s) left, never past
+  `wolfmed.autodoc_sedation_cap` (0.5, against a 0.6 depression threshold) and says "SEDATION AT LIMIT."
+  instead. While the anaesthetic is in them the occupant is held under with `ForcedSleepingComponent`, which
+  is what silences Shitmed's surgery scream, and is woken when the queue ends, aborts or they leave. Past the
+  threshold the pod pushes 5u of a dexalin-class chem if the reservoir holds one.
+- **AUTO stopped eating hand-written queues.** `TryPlan` no longer clears the queue when the plan is empty,
+  and the module runs a queue somebody typed instead of replacing it every few seconds.
+- **The reservoir takes bottles and jugs.** The three slots whitelisted `FitsInDispenser` only, and the code
+  read only that solution; both now fall back to `DrainableSolution`.
+- **A clothed patient no longer faults the pod.** `StepInvalidReason.Armor` is answered with
+  "REMOVE YOUR CLOTHING." and a retry every tick, not with `Fault`.
+- **A damaged brain has a procedure.** `SurgeryRepairBrain` was gated on a destroyed brain, so a patient at
+  three per cent brain tissue had nothing listed at all; the condition takes `anyDamage: true` now, and the
+  analyzer calls anything under 60% brain damage and anything under 25% critical.

@@ -12,9 +12,17 @@ public sealed partial class AutodocSystem
     /// <summary>Whether the vital alarm is allowed to make any noise at all.</summary>
     private bool _alarmEnabled = true;
 
+    /// <summary>Runs of one step that change nothing before the pod abandons the procedure.</summary>
+    private int _stepRetries = 3;
+
+    /// <summary>Sedation the pod will not push a patient past.</summary>
+    private float _sedationCap = 0.5f;
+
     private void InitializeTriage()
     {
         Subs.CVar(_cfg, WolfmedCVars.AutodocAlarm, value => _alarmEnabled = value, true);
+        Subs.CVar(_cfg, WolfmedCVars.AutodocStepRetries, value => _stepRetries = Math.Max(1, value), true);
+        Subs.CVar(_cfg, WolfmedCVars.AutodocSedationCap, value => _sedationCap = Math.Clamp(value, 0f, 1f), true);
     }
 
     #region The plan
@@ -54,6 +62,8 @@ public sealed partial class AutodocSystem
                 foreach (var entry in available)
                 {
                     if (entry.Surgery != surgery || !entry.Known ||
+                        ent.Comp.FailedProcedures.Contains((entry.Surgery.Id, entry.Part)) ||
+                        IsBlockedByEmbedded(ent, body, entry) ||
                         step.RequiresStarted && !AlreadyStarted(body, entry) ||
                         !taken.Add((entry.Surgery.Id, entry.Part)) ||
                         !CanPlanWithoutHelp(ent, entry.Surgery))
@@ -75,9 +85,27 @@ public sealed partial class AutodocSystem
     private bool AlreadyStarted(EntityUid body, AutodocProcedureEntry entry)
     {
         return ResolvePart(body, entry.Part) is { } part &&
-               _surgery.GetSingleton(entry.Surgery) is { } surgeryEnt &&
+               IsProcedureStarted(body, part, entry.Surgery);
+    }
+
+    /// <summary>The same question for one named surgery on one resolved part.</summary>
+    public bool IsProcedureStarted(EntityUid body, EntityUid part, EntProtoId surgery)
+    {
+        return _surgery.GetSingleton(surgery) is { } surgeryEnt &&
                _surgery.GetNextStep(body, part, surgeryEnt) is { } next &&
-               MetaData(next.Surgery.Owner).EntityPrototype?.ID == entry.Surgery.Id;
+               MetaData(next.Surgery.Owner).EntityPrototype?.ID == surgery.Id;
+    }
+
+    /// <summary>
+    /// A part with something still stuck in it takes no other work. WolfmedEmbeddedObjectComponent refuses
+    /// every treatment on the wound it sits in, so anything else planned on that part would repeat until
+    /// the stall guard stopped it. The removal is planned first and the rest of the part waits for it.
+    /// </summary>
+    private bool IsBlockedByEmbedded(Entity<AutodocComponent> ent, EntityUid body, AutodocProcedureEntry entry)
+    {
+        return entry.Surgery != RemoveEmbedded &&
+               ResolvePart(body, entry.Part) is { } part &&
+               _embedded.GetPartCount(part) > 0;
     }
 
     /// <summary>The surgeries one triage step covers: the ones it names, then its categories' own.</summary>
@@ -126,6 +154,12 @@ public sealed partial class AutodocSystem
             return 0;
 
         var plan = Plan(ent, body);
+
+        // An empty plan leaves the queue alone. It used to clear it first, so with the autofix module on
+        // anything an operator queued by hand was thrown away within a few seconds and never ran.
+        if (plan.Count == 0)
+            return 0;
+
         ent.Comp.Queue.Clear();
 
         // Self-service is one procedure at a time, so the plan gives it the first thing that matters.
@@ -147,6 +181,8 @@ public sealed partial class AutodocSystem
         ent.Comp.Auto = auto && HasAutofixModule(ent);
         ent.Comp.AutoNextPlan = TimeSpan.Zero;
         ent.Comp.AutoSaidNothing = false;
+        ent.Comp.AutoSignature = null;
+        ent.Comp.AutoReplans = 0;
 
         if (!ent.Comp.Auto)
             Speak(ent, AutodocVoiceEvent.AutoOff);
@@ -164,9 +200,11 @@ public sealed partial class AutodocSystem
         if (ent.Comp.State is not (AutodocState.Idle or AutodocState.Complete))
             return;
 
-        if (GetOccupant(ent) == null)
+        if (GetOccupant(ent) is not { } body)
         {
             ent.Comp.AutoSaidNothing = false;
+            ent.Comp.AutoSignature = null;
+            ent.Comp.AutoReplans = 0;
             return;
         }
 
@@ -175,10 +213,39 @@ public sealed partial class AutodocSystem
 
         ent.Comp.AutoNextPlan = _timing.CurTime + TimeSpan.FromSeconds(ent.Comp.AutoPlanInterval);
 
+        // Somebody queued something by hand. Running it is the module's job; replacing it is not.
+        if (ent.Comp.Queue.Count > 0)
+        {
+            TryStart(ent, null);
+            return;
+        }
+
+        // A body the pod is not changing gets a bounded number of looks. Without this a procedure that
+        // lists again the moment it finishes would have the module plan, run and plan again for ever.
+        var signature = BodySignature(body);
+        if (signature != ent.Comp.AutoSignature)
+        {
+            ent.Comp.AutoSignature = signature;
+            ent.Comp.AutoReplans = 0;
+        }
+        else if (ent.Comp.AutoReplans >= ent.Comp.AutoReplanLimit)
+        {
+            if (!ent.Comp.AutoSaidNothing)
+                Speak(ent, AutodocVoiceEvent.AutoNothing);
+
+            ent.Comp.AutoSaidNothing = true;
+            UpdateUi(ent);
+            return;
+        }
+        else
+        {
+            ent.Comp.AutoReplans++;
+        }
+
         if (TryPlan(ent) == 0)
         {
-            // Said once per patient: the pod re-plans for ever in case a bleed starts, but it only
-            // announces the empty plan the first time.
+            // Said once per patient: the pod keeps looking in case a bleed starts, but it only announces
+            // the empty plan the first time.
             if (!ent.Comp.AutoSaidNothing)
                 Speak(ent, AutodocVoiceEvent.AutoNothing);
 

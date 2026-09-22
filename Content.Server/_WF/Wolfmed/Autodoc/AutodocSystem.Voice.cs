@@ -127,10 +127,13 @@ public sealed partial class AutodocSystem
     }
 
     /// <summary>Volume for a step or tool sound: quieter while S.A.M. is talking over it.</summary>
-    private AudioParams DuckedParams(Entity<AutodocComponent> ent, AudioParams param) =>
-        IsSpeaking(ent)
+    private AudioParams DuckedParams(Entity<AutodocComponent> ent, AudioParams param)
+    {
+        param = param.AddVolume(ent.Comp.ToolVolume);
+        return IsSpeaking(ent)
             ? param.AddVolume(SharedAudioSystem.GainToVolume(ent.Comp.DuckedToolGain))
             : param;
+    }
 
     /// <summary>Small talk while there is somebody in the pod and nothing to do.</summary>
     private void TickIdleChatter(Entity<AutodocComponent> ent)

@@ -19,6 +19,7 @@ wolfmed-autodoc-status-waiting = WAITING FOR MATERIAL
 wolfmed-autodoc-status-paused = HOLDING
 wolfmed-autodoc-status-complete = PROCEDURE COMPLETE
 wolfmed-autodoc-status-faulted = FAULT
+wolfmed-autodoc-status-anaesthesia = ANAESTHESIA { $seconds }s, SEDATION { $percent }%
 
 wolfmed-autodoc-radio-critical = AUTODOC { $location }: PATIENT VITALS CRITICAL. OPERATOR REQUESTED.
 

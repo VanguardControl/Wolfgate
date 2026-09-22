@@ -23,6 +23,9 @@ public sealed class WolfmedWoundSurgerySystem : EntitySystem
     [Dependency] private Life.WolfmedLifeSystem _life = default!; // BRAIN
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private WolfmedSurgeryConditionSystem _conditions = default!;
+    [Dependency] private Content.Shared._WF.Wolfmed.Wounds.WolfmedDislocationSystem _dislocation = default!;
+    [Dependency] private Content.Shared._WF.Wolfmed.Wounds.WolfmedEmbeddedObjectSystem _embedded = default!;
+    [Dependency] private Wounds.WolfmedEmbeddedRemovalSystem _removal = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WoundFractureSystem _fractures = default!;
     [Dependency] private WoundScarSystem _scars = default!;
@@ -40,6 +43,33 @@ public sealed class WolfmedWoundSurgerySystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryPainEffectComponent, SurgeryStepEvent>(OnSurgeryPain);
         SubscribeLocalEvent<WolfmedSurgeryIncisionWoundEffectComponent, SurgeryStepEvent>(OnOpenIncision);
         SubscribeLocalEvent<WolfmedSurgeryIncisionTreatmentEffectComponent, SurgeryStepEvent>(OnTreatIncision);
+        SubscribeLocalEvent<WolfmedSurgeryExtractEmbeddedEffectComponent, SurgeryStepEvent>(OnExtractEmbedded);
+        SubscribeLocalEvent<WolfmedSurgeryRelocateJointEffectComponent, SurgeryStepEvent>(OnRelocateJoint);
+    }
+
+    /// <summary>
+    /// AUTODOC4: one step empties the part, one object at a time through the hand path's own removal, so
+    /// what the patient is left with is what a hemostat would have left. A machine with no hands could not
+    /// use the do-after version, and a lodged round refuses every other treatment on the part until it is out.
+    /// </summary>
+    private void OnExtractEmbedded(Entity<WolfmedSurgeryExtractEmbeddedEffectComponent> ent, ref SurgeryStepEvent args)
+    {
+        if (!TryComp(args.Body, out WoundHostComponent? host))
+            return;
+
+        for (var taken = 0; taken < ent.Comp.MaxPerStep; taken++)
+        {
+            if (_embedded.GetEmbeddedWound(args.Part) is not { } wound ||
+                _removal.TryRemoveOne((args.Body, host), wound.Owner, args.User, ent.Comp.Clean) == null)
+                return;
+        }
+    }
+
+    /// <summary>AUTODOC4: the relocate verb's own code, without the do-after and without a hand.</summary>
+    private void OnRelocateJoint(Entity<WolfmedSurgeryRelocateJointEffectComponent> ent, ref SurgeryStepEvent args)
+    {
+        if (_conditions.FindWound(args.Part, ent.Comp.Wound) is { } wound)
+            _dislocation.TryRelocate(args.Body, wound.Owner, args.User);
     }
 
     private void OnClampBleeding(Entity<WolfmedSurgeryClampBleedingEffectComponent> ent, ref SurgeryStepEvent args)

@@ -325,4 +325,36 @@
     part: Head
   - type: WolfmedSurgeryOrganDamagedCondition
     slot: brain
-    destroyed: true
+    # BRAIN/AUTODOC4: any damaged brain, not only a destroyed one. A brain at three per cent is alive, so
+    # the destroyed-only test left the one patient who most needed this surgery with nothing listed.
+    anyDamage: true
+
+# Hand-only treatments as surgeries (AUTODOC4) --------------------------------
+# Both list only while there is something to do, so the planner cannot queue either on a clean part. The
+# extraction opens the part first because that is what makes the objects reachable, and closes after; the
+# relocation needs neither, exactly as the hand verb needs neither.
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRemoveEmbeddedObjects
+  name: Remove Embedded Objects
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepExtractEmbedded
+    - SurgeryStepSealTendWound
+  - type: WolfmedSurgeryEmbeddedCondition
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRelocateJoint
+  name: Relocate Joint
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    steps:
+    - SurgeryStepRelocateJoint
+  - type: WolfmedSurgeryWoundCondition
+    woundPrototype: WolfmedDislocationWound

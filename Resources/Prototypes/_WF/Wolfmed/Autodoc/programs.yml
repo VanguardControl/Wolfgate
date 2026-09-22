@@ -20,9 +20,12 @@
   - SurgeryStopInternalBleeding
   - SurgeryRepairArtery
   - SurgeryRepairTendon
-  # Bone.
+  # Bone and joints.
   - SurgeryMendFracture
   - SurgeryHealAmputationConsequence
+  - SurgeryRelocateJoint
+  # What is still stuck in the patient. Blocks every other treatment on its part until it is out.
+  - SurgeryRemoveEmbeddedObjects
   # Organ repair in place. Removal and insertion need the transplant disk.
   - SurgeryHealHeart
   - SurgeryHealLungs

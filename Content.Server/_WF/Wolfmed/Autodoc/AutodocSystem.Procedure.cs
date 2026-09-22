@@ -1,10 +1,17 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
+using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Effects.Step;
 using Content.Shared._Shitmed.Medical.Surgery.Steps;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Autodoc;
+using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.Reagents;
+using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Bed.Sleep;
 using Content.Shared.Body.Part;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -32,7 +39,16 @@ public sealed partial class AutodocSystem
         ["SurgeryStepSealTendWound"] = AutodocVoiceEvent.StepClose,
         ["SurgeryStepCloseEvisceration"] = AutodocVoiceEvent.StepEvisceration,
         ["SurgeryStepClampEvisceration"] = AutodocVoiceEvent.StepEvisceration,
+        // Both are hemostat steps, which would otherwise announce themselves as clamping.
+        ["SurgeryStepExtractEmbedded"] = AutodocVoiceEvent.StepEmbedded,
+        ["SurgeryStepRelocateJoint"] = AutodocVoiceEvent.StepRelocate,
     };
+
+    /// <summary>The surgery that puts a patient back together after an abandoned procedure.</summary>
+    private static readonly EntProtoId CloseIncision = "SurgeryCloseIncision";
+
+    /// <summary>The one procedure that may be planned on a part that still has something stuck in it.</summary>
+    public static readonly EntProtoId RemoveEmbedded = "SurgeryRemoveEmbeddedObjects";
 
     public override void Update(float frameTime)
     {
@@ -43,6 +59,7 @@ public sealed partial class AutodocSystem
         {
             var ent = (uid, comp);
             TickVoice(ent);
+            TickOxygen(ent);
             TickEmag(ent);
             TickAuto(ent);
             TickAlarm(ent);
@@ -254,6 +271,7 @@ public sealed partial class AutodocSystem
         ent.Comp.Operator = user == body ? null : user;
         ent.Comp.Locked = true;
         ent.Comp.AnaestheticGiven = false;
+        ent.Comp.SaidSedationLimit = false;
         ent.Comp.AbortRequested = false;
         ent.Comp.PauseRequested = false;
         ent.Comp.State = AutodocState.Preparing;
@@ -279,26 +297,125 @@ public sealed partial class AutodocSystem
         WarnAboutJunkReagents(ent);
         TryDefibrillateOccupant(ent, body);
 
-        // A fresh procedure gets to announce each family of work once more.
+        // A fresh procedure gets to announce each family of work once more, and starts the stall guard
+        // from nothing: the step counts only mean anything within one procedure.
         ent.Comp.SpokenFamilies.Clear();
+        ClearStall(ent);
 
-        if (!ent.Comp.AnaestheticGiven)
-        {
-            ent.Comp.AnaestheticGiven = true;
-            var dose = ent.Comp.Queue.Count > 0
-                ? ent.Comp.Queue[0].Requirements
-                    .Where(r => r.Kind == AutodocRequirementKind.Reagent && r.Reagent == nameof(AutodocReagentRole.Anaesthetic))
-                    .Sum(r => r.Units)
-                : 0f;
-
-            if (dose > 0f && ent.Comp.Anaesthesia)
-                Speak(ent, PushReagent(ent, body, AutodocReagentRole.Anaesthetic, dose)
-                    ? AutodocVoiceEvent.Anaesthetic
-                    : AutodocVoiceEvent.NoAnaesthetic);
-        }
+        MaintainAnaesthesia(ent, body);
 
         ent.Comp.State = AutodocState.Step;
         BeginStep(ent);
+    }
+
+    /// <summary>
+    /// One anaesthetic for the whole queue, topped up only as it runs out and never past the sedation cap.
+    /// The pod used to push its full dose at every procedure, so a twenty-item plan walked the patient from
+    /// a fifth sedated to completely under and then stopped their breathing. While the anaesthetic is in
+    /// them they are asleep: Shitmed's step emote is the scream, and it only looks at ForcedSleeping.
+    /// </summary>
+    private void MaintainAnaesthesia(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        if (!ent.Comp.Anaesthesia)
+            return;
+
+        // Somebody already unconscious, arrested or dead is as under as anaesthetic could make them.
+        if (_mobState.IsCritical(body) || _mobState.IsDead(body) || _life.InArrest(body))
+            return;
+
+        var dose = QueueAnaestheticDose(ent);
+        if (dose <= 0f)
+            return;
+
+        if (ent.Comp.AnaestheticGiven && !NeedsTopUp(ent, body))
+        {
+            Sedate(ent, body);
+            return;
+        }
+
+        if (_relief.GetSedation(body) >= _sedationCap)
+        {
+            if (!ent.Comp.SaidSedationLimit)
+            {
+                ent.Comp.SaidSedationLimit = true;
+                Speak(ent, AutodocVoiceEvent.SedationLimit);
+            }
+
+            Sedate(ent, body);
+            return;
+        }
+
+        var pushed = PushReagent(ent, body, AutodocReagentRole.Anaesthetic, dose);
+        if (!ent.Comp.AnaestheticGiven)
+            Speak(ent, pushed ? AutodocVoiceEvent.Anaesthetic : AutodocVoiceEvent.NoAnaesthetic);
+
+        ent.Comp.AnaestheticGiven = true;
+        if (pushed)
+            Sedate(ent, body);
+    }
+
+    /// <summary>The largest anaesthetic dose anything in the queue asks for. One dose covers the run.</summary>
+    private float QueueAnaestheticDose(Entity<AutodocComponent> ent)
+    {
+        return ent.Comp.Queue
+            .SelectMany(queued => queued.Requirements)
+            .Where(r => r.Kind == AutodocRequirementKind.Reagent && r.Reagent == nameof(AutodocReagentRole.Anaesthetic))
+            .Select(r => r.Units)
+            .DefaultIfEmpty(0f)
+            .Max();
+    }
+
+    /// <summary>True when the painkiller is about to lapse with the queue still running.</summary>
+    private bool NeedsTopUp(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedPainReliefComponent? relief) || relief.Ends is not { } ends)
+            return true;
+
+        return ends - _timing.CurTime < TimeSpan.FromSeconds(ent.Comp.AnaestheticTopUp);
+    }
+
+    /// <summary>Holds the occupant asleep for as long as the painkiller in them lasts.</summary>
+    private void Sedate(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        var left = CompOrNull<WolfmedPainReliefComponent>(body)?.Ends is { } ends
+            ? ends - _timing.CurTime
+            : TimeSpan.FromSeconds(ent.Comp.AnaestheticTopUp);
+
+        if (left <= TimeSpan.Zero)
+            return;
+
+        if (_status.TryAddStatusEffect<ForcedSleepingComponent>(body, SleepKey, left, true))
+            ent.Comp.Sedated = true;
+    }
+
+    /// <summary>Wakes an occupant the pod put under. Called wherever a run ends, however it ends.</summary>
+    public void WakeOccupant(Entity<AutodocComponent> ent, EntityUid? occupant = null)
+    {
+        if (!ent.Comp.Sedated)
+            return;
+
+        ent.Comp.Sedated = false;
+        if ((occupant ?? GetOccupant(ent)) is { } body && !TerminatingOrDeleted(body))
+            _status.TryRemoveStatusEffect(body, SleepKey);
+    }
+
+    /// <summary>
+    /// The pod counters its own respiratory depression when the reservoir holds something that can: past
+    /// the sedation threshold a few units of a dexalin-class chem keeps the patient breathing. With nothing
+    /// loaded the vital alarm is all the patient gets.
+    /// </summary>
+    private void TickOxygen(Entity<AutodocComponent> ent)
+    {
+        if (!IsRunning(ent) || !IsPowered(ent) || GetOccupant(ent) is not { } body)
+            return;
+
+        if (_timing.CurTime < ent.Comp.NextOxygen ||
+            _relief.GetSedation(body) <= ent.Comp.OxygenSedation &&
+            _relief.GetRespiratoryDepression(body) <= 0f)
+            return;
+
+        ent.Comp.NextOxygen = _timing.CurTime + TimeSpan.FromSeconds(MathF.Max(1f, ent.Comp.OxygenInterval));
+        PushReagent(ent, body, AutodocReagentRole.Oxygen, ent.Comp.OxygenDose);
     }
 
     private void BeginStep(Entity<AutodocComponent> ent)
@@ -354,16 +471,26 @@ public sealed partial class AutodocSystem
 
         if (!_surgery.WolfmedCanPerformStep(ent.Owner, body, part, stepEnt, out var reason))
         {
-            if (reason == StepInvalidReason.MissingTool)
+            switch (reason)
             {
-                EnterWaiting(ent, queued);
-                return;
-            }
+                case StepInvalidReason.MissingTool:
+                    EnterWaiting(ent, queued);
+                    return;
 
-            Fault(ent);
-            return;
+                // Clothing over the part. The pod has no hands to undress anybody with, so it asks and keeps
+                // asking: a patient who climbed in dressed used to fault the machine outright.
+                case StepInvalidReason.Armor:
+                    EnterBlocked(ent, reason);
+                    return;
+
+                default:
+                    Fault(ent);
+                    return;
+            }
         }
 
+        ent.Comp.BlockedReason = null;
+        ent.Comp.StepRuns[stepId.Id] = ent.Comp.StepRuns.GetValueOrDefault(stepId.Id) + 1;
         ent.Comp.CurrentStep = stepId;
         ent.Comp.CurrentSurgery = owningSurgery;
         ent.Comp.StepLength = MathF.Max(0.1f, _surgery.WolfmedStepDuration(stepEnt) * GetStepSpeed(ent));
@@ -441,11 +568,179 @@ public sealed partial class AutodocSystem
                 Fault(ent);
                 return;
             }
+
+            // The guard against a step that can never finish: its completion check still fails and the part
+            // looks exactly as it did after the last run, so nothing the pod is doing is reaching the patient.
+            if (NoteStall(ent, part, stepId, _surgery.WolfmedIsStepComplete(body, part, stepId, surgeryId)))
+            {
+                ent.Comp.CurrentStep = null;
+                CloseTray(ent);
+                StallProcedure(ent, body, queued);
+                return;
+            }
         }
 
         ent.Comp.CurrentStep = null;
         CloseTray(ent);
         BeginStep(ent);
+    }
+
+    /// <summary>
+    /// Counts runs of one step that changed nothing the completion check could be waiting for. Three of
+    /// them in a row (wolfmed.autodoc_step_retries) and the procedure is hopeless, whatever it thinks it
+    /// still wants. A completed step clears the count, so an ordinary repeatable step never trips it.
+    /// </summary>
+    private bool NoteStall(Entity<AutodocComponent> ent, EntityUid part, EntProtoId stepId, bool complete)
+    {
+        if (complete)
+        {
+            ent.Comp.StallStep = null;
+            ent.Comp.StallSignature = null;
+            ent.Comp.StallCount = 0;
+            return false;
+        }
+
+        var signature = PartSignature(part);
+        if (ent.Comp.StallStep == stepId && ent.Comp.StallSignature == signature)
+        {
+            ent.Comp.StallCount++;
+        }
+        else
+        {
+            ent.Comp.StallStep = stepId;
+            ent.Comp.StallSignature = signature;
+            ent.Comp.StallCount = 1;
+        }
+
+        return ent.Comp.StallCount >= _stepRetries;
+    }
+
+    private void ClearStall(Entity<AutodocComponent> ent)
+    {
+        ent.Comp.StallStep = null;
+        ent.Comp.StallSignature = null;
+        ent.Comp.StallCount = 0;
+        ent.Comp.StepRuns.Clear();
+        ent.Comp.BlockedReason = null;
+    }
+
+    /// <summary>
+    /// What the pod can see of a part, discrete enough that ordinary drift does not read as progress:
+    /// wound prototypes, severities, states and embedded counts, the fracture, organ health and the part's
+    /// own damage. Pain and bleed rates are deliberately left out - both move on their own every tick,
+    /// which would hide a step achieving nothing behind a number that always changes.
+    /// </summary>
+    public string PartSignature(EntityUid part)
+    {
+        var signature = new StringBuilder();
+        if (TryComp(part, out DamageableComponent? damageable))
+            signature.Append(damageable.TotalDamage.Int()).Append(';');
+
+        if (TryComp(part, out WoundableComponent? woundable))
+        {
+            foreach (var wound in _wounds.GetWounds((part, woundable)))
+            {
+                signature.Append(wound.Comp.Prototype.Id).Append(':')
+                    .Append(wound.Comp.Severity.Int()).Append(':')
+                    .Append((int) wound.Comp.State).Append(':')
+                    .Append(CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0).Append(';');
+            }
+        }
+
+        if (_fractures.GetFracture(part) is { } fracture)
+            signature.Append((int) fracture.Comp2.Grade).Append(':').Append((int) fracture.Comp2.Treatment).Append(';');
+
+        foreach (var (organ, comp) in _body.GetPartOrgans(part))
+        {
+            signature.Append(comp.SlotId).Append(':')
+                .Append((CompOrNull<WolfmedOrganComponent>(organ)?.Health ?? FixedPoint2.Zero).Int()).Append(';');
+        }
+
+        return signature.ToString();
+    }
+
+    /// <summary>
+    /// The whole occupant as the PLANNER sees them: which wounds exist and what state they are in, not how
+    /// severe they are. Severity drifts by a fraction every second as a wound heals, and a signature that
+    /// moved with it would have read as progress for ever and defeated the re-plan bound. A new wound, a
+    /// wound closing, a fracture being set or an object coming out all change this.
+    /// </summary>
+    public string BodySignature(EntityUid body)
+    {
+        var signature = new StringBuilder();
+        foreach (var (part, _) in _body.GetBodyChildren(body))
+        {
+            if (TryComp(part, out WoundableComponent? woundable))
+            {
+                foreach (var wound in _wounds.GetWounds((part, woundable)))
+                {
+                    signature.Append(wound.Comp.Prototype.Id).Append(':')
+                        .Append((int) wound.Comp.State).Append(':')
+                        .Append(CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0).Append(';');
+                }
+            }
+
+            if (_fractures.GetFracture(part) is { } fracture)
+                signature.Append((int) fracture.Comp2.Grade).Append(':').Append((int) fracture.Comp2.Treatment).Append(';');
+
+            foreach (var (organ, comp) in _body.GetPartOrgans(part))
+            {
+                signature.Append(comp.SlotId).Append(':')
+                    .Append((CompOrNull<WolfmedOrganComponent>(organ)?.Health ?? FixedPoint2.Zero).Int() / 5).Append(';');
+            }
+
+            signature.Append('|');
+        }
+
+        return signature.ToString();
+    }
+
+    /// <summary>
+    /// Gives up on a procedure the pod cannot finish: it says so, drops it, remembers it for as long as this
+    /// occupant is in the pod, closes them back up if it was the pod that opened them, and carries on with
+    /// the next queued item rather than repeating the same step until somebody pulls the lid off.
+    /// </summary>
+    private void StallProcedure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued queued)
+    {
+        Speak(ent, AutodocVoiceEvent.Stall);
+        ent.Comp.FailedProcedures.Add((queued.Surgery.Id, queued.Part));
+        ent.Comp.Queue.Remove(queued);
+        ClearStall(ent);
+
+        _adminLog.Add(LogType.Action, LogImpact.Medium,
+            $"autodoc {ToPrettyString(ent.Owner)} abandoned {queued.Surgery} on {ToPrettyString(body)}: no progress in {_stepRetries} attempts");
+
+        TryQueueClosure(ent, body, queued);
+
+        if (ent.Comp.Queue.Count == 0)
+        {
+            FinishQueue(ent);
+            return;
+        }
+
+        ent.Comp.State = AutodocState.Preparing;
+        UpdateUi(ent);
+    }
+
+    /// <summary>
+    /// Puts the patient back together after an abandoned procedure, but only when they are already open:
+    /// closing an incision lists on an intact body too, because the pod would cut one to close it.
+    /// </summary>
+    private void TryQueueClosure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued abandoned)
+    {
+        if (abandoned.Surgery == CloseIncision ||
+            ResolvePart(body, abandoned.Part) is not { } part ||
+            !IsKnown(ent, CloseIncision) ||
+            !_surgery.WolfmedSurgeryValid(body, part, CloseIncision) ||
+            !IsProcedureStarted(body, part, CloseIncision))
+            return;
+
+        ent.Comp.Queue.Insert(0, new AutodocQueued
+        {
+            Surgery = CloseIncision,
+            Part = abandoned.Part,
+            Requirements = BuildRequirements(ent, CloseIncision),
+        });
     }
 
     private bool IsFinalStep(EntProtoId surgery, EntProtoId step)
@@ -473,8 +768,6 @@ public sealed partial class AutodocSystem
 
             ent.Comp.Queue.RemoveAt(0);
         }
-
-        ent.Comp.AnaestheticGiven = false;
 
         // The queue's last procedure is announced by FinishQueue; the ones before it just run on.
         if (ent.Comp.Queue.Count == 0)
@@ -525,7 +818,9 @@ public sealed partial class AutodocSystem
         if (GetOccupant(ent) is { } patient)
             TryDefibrillateOccupant(ent, patient);
 
+        _audio.PlayPvs(ent.Comp.DoneSound, ent.Owner);
         Speak(ent, AutodocVoiceEvent.QueueComplete);
+        WakeOccupant(ent);
         ent.Comp.State = AutodocState.Complete;
         ent.Comp.Locked = IsEmagged(ent);
         ent.Comp.CurrentStep = null;
@@ -537,6 +832,7 @@ public sealed partial class AutodocSystem
     public void Abort(Entity<AutodocComponent> ent)
     {
         Speak(ent, AutodocVoiceEvent.Aborted);
+        WakeOccupant(ent);
         ent.Comp.Queue.Clear();
         ent.Comp.AbortRequested = false;
         ent.Comp.State = AutodocState.Idle;
@@ -601,6 +897,25 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
+    /// <summary>
+    /// Waiting on the patient rather than on the tray: clothing over the part. The pod says so once and
+    /// looks again every tick, so it picks the procedure straight back up once the way is clear.
+    /// </summary>
+    private void EnterBlocked(Entity<AutodocComponent> ent, StepInvalidReason reason)
+    {
+        var first = ent.Comp.BlockedReason == null;
+        ent.Comp.State = AutodocState.Waiting;
+        ent.Comp.CurrentStep = null;
+        ent.Comp.Pending = null;
+        ent.Comp.BlockedReason = reason;
+
+        if (first)
+            Speak(ent, AutodocVoiceEvent.Clothing);
+
+        UpdateAppearance(ent);
+        UpdateUi(ent);
+    }
+
     private void TickWaiting(Entity<AutodocComponent> ent)
     {
         if (GetOccupant(ent) == null)
@@ -615,6 +930,13 @@ public sealed partial class AutodocSystem
         if (ent.Comp.AbortRequested)
         {
             Abort(ent);
+            return;
+        }
+
+        if (ent.Comp.BlockedReason != null)
+        {
+            ent.Comp.State = AutodocState.Step;
+            BeginStep(ent);
             return;
         }
 
@@ -713,7 +1035,7 @@ public sealed partial class AutodocSystem
                 break;
 
             if (_slots.GetItemOrNull(ent.Owner, slot) is not { } beaker ||
-                !_solutions.TryGetFitsInDispenser(beaker, out var soln, out _))
+                !TryGetReservoirSolution(beaker, out var soln, out _))
                 continue;
 
             var taken = _solutions.SplitSolutionPerReagentWithOnly(soln.Value, left, allowed);
@@ -726,6 +1048,19 @@ public sealed partial class AutodocSystem
         }
 
         return pushed;
+    }
+
+    /// <summary>
+    /// The solution the pod draws out of whatever is in a reservoir slot. A beaker fits a dispenser; a
+    /// chemistry bottle or a jug does not and only answers as a drainable container, which is why loading
+    /// one used to do nothing at all.
+    /// </summary>
+    public bool TryGetReservoirSolution(EntityUid container,
+        [NotNullWhen(true)] out Entity<SolutionComponent>? soln,
+        [NotNullWhen(true)] out Solution? solution)
+    {
+        return _solutions.TryGetFitsInDispenser(container, out soln, out solution) ||
+               _solutions.TryGetDrainableSolution(container, out soln, out solution);
     }
 
     /// <summary>One line the first time a beaker holds something the pod refuses to use.</summary>
@@ -742,7 +1077,7 @@ public sealed partial class AutodocSystem
         foreach (var slot in AutodocComponent.ReservoirSlotIds)
         {
             if (_slots.GetItemOrNull(ent.Owner, slot) is not { } beaker ||
-                !_solutions.TryGetFitsInDispenser(beaker, out _, out var solution))
+                !TryGetReservoirSolution(beaker, out _, out var solution))
                 continue;
 
             if (solution.Contents.Any(reagent => !allowed.Contains(reagent.Reagent.Prototype)))

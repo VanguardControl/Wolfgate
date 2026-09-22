@@ -213,12 +213,14 @@ wolfmed-treatment-step-wolfmed-lodged-round-wound-1 = Select the part on the tar
 wolfmed-treatment-step-wolfmed-lodged-round-wound-2 = Use a hemostat or tweezers on the patient and wait out the bar. That pulls the round out cleanly.
 wolfmed-treatment-step-wolfmed-lodged-round-wound-3 = Any sharp item works instead, a knife, a scalpel or a shard, but it is slower, it hurts, and it leaves a fresh dirty cut that infects faster.
 wolfmed-treatment-step-wolfmed-lodged-round-wound-4 = Only then treat what is underneath with gauze and medicated sutures.
+wolfmed-treatment-step-wolfmed-lodged-round-wound-5 = A surgical pod does the whole job unattended: its Remove Embedded Objects programme opens the part, takes the round out and closes again.
 wolfmed-treatment-avoid-wolfmed-lodged-round-wound-1 = Nothing at all works while an object is in the part. Not gauze, not sutures, not surgery.
 
 wolfmed-treatment-short-wolfmed-shrapnel-wound = Fragments in the part. Each one blocks treatment, and the analyzer counts how many are left.
 wolfmed-treatment-step-wolfmed-shrapnel-wound-1 = Select the part on the targeting doll.
 wolfmed-treatment-step-wolfmed-shrapnel-wound-2 = Pull one fragment out with a hemostat or tweezers. Repeat until the embedded count reaches zero.
 wolfmed-treatment-step-wolfmed-shrapnel-wound-3 = Treat what is underneath with gauze and medicated sutures.
+wolfmed-treatment-step-wolfmed-shrapnel-wound-4 = A surgical pod clears every fragment in one pass with its Remove Embedded Objects programme, and closes the part after.
 wolfmed-treatment-avoid-wolfmed-shrapnel-wound-1 = Do not dig with a knife unless you have to. It is slower, it hurts, and it leaves a dirty cut.
 
 # W2 slash and bite -----------------------------------------------------------
@@ -259,6 +261,7 @@ wolfmed-treatment-short-wolfmed-dislocation-wound = A joint out of its socket. I
 wolfmed-treatment-step-wolfmed-dislocation-wound-1 = Select the limb on the targeting doll.
 wolfmed-treatment-step-wolfmed-dislocation-wound-2 = Alt-click the patient and choose Relocate joint.
 wolfmed-treatment-step-wolfmed-dislocation-wound-3 = On yourself it takes two and a half times as long and hurts twice as much. Get someone else to do it.
+wolfmed-treatment-step-wolfmed-dislocation-wound-4 = A surgical pod sets it with its Relocate Joint programme, which needs neither your hands nor a second person.
 wolfmed-treatment-avoid-wolfmed-dislocation-wound-1 = No item sets a joint. A splint is for a broken bone, not a popped one.
 
 wolfmed-treatment-short-wolfmed-organ-contusion-wound = A bruised organ under the bruising. The wound and the organ are treated separately.

@@ -60,6 +60,12 @@ public sealed partial class WolfmedSurgeryOrganDamagedConditionComponent : Compo
 
     /// <summary>BRAIN: match a destroyed organ (health 0) instead of a damaged but living one.</summary>
     [DataField] public bool Destroyed;
+
+    /// <summary>
+    /// Match any organ below full health, destroyed or not. A brain at three per cent is alive, so the
+    /// destroyed-only test left it with no listed procedure at all and nothing anyone could do about it.
+    /// </summary>
+    [DataField] public bool AnyDamage;
 }
 
 /// <summary>
@@ -119,4 +125,33 @@ public enum WolfmedIncisionTreatment : byte
 {
     Clamp,
     Close,
+}
+
+/// <summary>Gates a surgery on the selected part still having something stuck in it.</summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryEmbeddedConditionComponent : Component
+{
+    /// <summary>Inverts the test, so the surgery lists only once the part is clear.</summary>
+    [DataField] public bool Inverse;
+}
+
+/// <summary>
+/// Takes everything out of the part through the same code a hemostat in a hand uses, so a round the pod
+/// digs out leaves exactly the wound, the contamination and the item a medic would have left.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryExtractEmbeddedEffectComponent : Component
+{
+    /// <summary>A surgical tool works cleanly: no extra cut, no contamination.</summary>
+    [DataField] public bool Clean = true;
+
+    /// <summary>Objects one step may take out, so a broken count cannot spin the loop.</summary>
+    [DataField] public int MaxPerStep = 24;
+}
+
+/// <summary>Puts a dislocated joint back, through the same code the relocate verb's do-after calls.</summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryRelocateJointEffectComponent : Component
+{
+    [DataField] public ProtoId<WoundPrototype> Wound = "WolfmedDislocationWound";
 }

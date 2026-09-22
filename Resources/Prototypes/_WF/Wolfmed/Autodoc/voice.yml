@@ -267,6 +267,21 @@
         path: /Audio/_WF/Wolfmed/Autodoc/voice/lid-forced.ogg
       message: wolfmed-autodoc-voice-lid-forced
       priority: Urgent
+    stall:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/stall.ogg
+      message: wolfmed-autodoc-voice-stall
+      priority: Urgent
+    clothing:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/clothing.ogg
+      message: wolfmed-autodoc-voice-clothing
+      priority: Urgent
+    sedation-limit:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/sedation-limit.ogg
+      message: wolfmed-autodoc-voice-sedation-limit
+      priority: Info
     slip:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/slip.ogg
@@ -468,6 +483,9 @@
     AutoOff: [auto-off]
     Dying: [dying]
     Goodbye: [goodbye]
+    Stall: [stall]
+    Clothing: [clothing]
+    SedationLimit: [sedation-limit]
     Idle: [idle-1, idle-2, idle-3, idle-4, idle-5]
     Emag: [emag-1, emag-2, emag-3, emag-4, emag-5]
     Offline: [offline]

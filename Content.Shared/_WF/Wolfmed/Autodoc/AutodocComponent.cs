@@ -1,3 +1,4 @@
+using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Part;
 using Content.Shared.Construction.Prototypes;
@@ -71,6 +72,22 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public float DefaultAntibiotic = 10f;
 
+    /// <summary>Seconds of painkiller left under which the pod tops the anaesthetic up mid-queue.</summary>
+    [DataField]
+    public float AnaestheticTopUp = 20f;
+
+    /// <summary>Units of a dexalin-class chem pushed to counter the pod's own respiratory depression.</summary>
+    [DataField]
+    public float OxygenDose = 5f;
+
+    /// <summary>Seconds between oxygen pushes, so one long queue cannot flood the patient.</summary>
+    [DataField]
+    public float OxygenInterval = 10f;
+
+    /// <summary>Sedation past which the pod starts pushing oxygen, if it has any.</summary>
+    [DataField]
+    public float OxygenSedation = 0.6f;
+
     /// <summary>Reservoir capacity the UI draws each beaker bar against, before matter bins.</summary>
     [DataField]
     public float BaseReservoirSize = 50f;
@@ -110,6 +127,13 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public float AutoPlanInterval = 5f;
 
+    /// <summary>
+    /// Plans the autofix module may run against a body it is not changing before it stops looking. Without
+    /// a bound a procedure that lists again the moment it finishes would have the pod loop on it for ever.
+    /// </summary>
+    [DataField]
+    public int AutoReplanLimit = 2;
+
     [DataField]
     public SoundSpecifier? LidOpenSound = new SoundPathSpecifier("/Audio/Machines/airlock_ext_open.ogg");
 
@@ -123,6 +147,12 @@ public sealed partial class AutodocComponent : Component
     /// <summary>Volume of the voice lines, in dB.</summary>
     [DataField]
     public float VoiceGain = -2f;
+
+    /// <summary>Volume (dB) the pod plays its tool sounds at; a hand tool is held next to the ear, the pod is a machine in the room.</summary>
+    [DataField] public float ToolVolume = -8f;
+
+    /// <summary>Played when the whole queue is done. A microwave ding, because it is.</summary>
+    [DataField] public SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Machines/microwave_done_beep.ogg");
 
     /// <summary>The transcript of the last line spoken, for the terminal window.</summary>
     [ViewVariables] public string? LastLine;
@@ -210,9 +240,21 @@ public sealed partial class AutodocComponent : Component
     [ViewVariables]
     public AutodocRequirement? Pending;
 
-    /// <summary>The anaesthetic dose for the running procedure has already been pushed.</summary>
+    /// <summary>The anaesthetic dose for the running QUEUE has been pushed. One dose, not one per procedure.</summary>
     [ViewVariables]
     public bool AnaestheticGiven;
+
+    /// <summary>The pod put this occupant under and owes them a wake-up.</summary>
+    [ViewVariables]
+    public bool Sedated;
+
+    /// <summary>"SEDATION AT LIMIT." is said once a run, not once a procedure.</summary>
+    [ViewVariables]
+    public bool SaidSedationLimit;
+
+    /// <summary>When the pod may push oxygen again.</summary>
+    [ViewVariables]
+    public TimeSpan NextOxygen;
 
     /// <summary>The missing-defib line has been said for this occupant; it is not repeated every procedure.</summary>
     [ViewVariables] public bool DefibWarned;
@@ -244,6 +286,39 @@ public sealed partial class AutodocComponent : Component
     [ViewVariables]
     public bool ForceMalfunction;
 
+    /// <summary>The step the stall guard is counting repeats of.</summary>
+    [ViewVariables]
+    public EntProtoId? StallStep;
+
+    /// <summary>What the part looked like after the last run of <see cref="StallStep"/>.</summary>
+    [ViewVariables]
+    public string? StallSignature;
+
+    /// <summary>Runs of <see cref="StallStep"/> that left the part exactly as they found it.</summary>
+    [ViewVariables]
+    public int StallCount;
+
+    /// <summary>
+    /// Surgery and part pairs the pod gave up on for the occupant now in it. The planner never queues one
+    /// again, so a procedure that cannot work is tried once and not once a plan. Cleared when they leave.
+    /// </summary>
+    [ViewVariables]
+    public HashSet<(string Surgery, TargetBodyPart Part)> FailedProcedures = new();
+
+    /// <summary>
+    /// How often each step of the running procedure has been begun. Diagnostic only: the stall guard is
+    /// what bounds it, and this is how a test and a ViewVariables window can see that it did.
+    /// </summary>
+    [ViewVariables]
+    public Dictionary<string, int> StepRuns = new();
+
+    /// <summary>
+    /// Set while a step cannot start for something the patient can fix, such as clothing over the part.
+    /// The pod waits and retries instead of faulting, and says so once.
+    /// </summary>
+    [ViewVariables]
+    public StepInvalidReason? BlockedReason;
+
     /// <summary>The autofix module's automatic mode. Nothing without the module in its slot.</summary>
     [ViewVariables]
     public bool Auto;
@@ -255,6 +330,14 @@ public sealed partial class AutodocComponent : Component
     /// <summary>"NOTHING MORE I CAN DO." is said once per patient, not once every time it re-plans.</summary>
     [ViewVariables]
     public bool AutoSaidNothing;
+
+    /// <summary>What the occupant's whole body looked like the last time the module planned.</summary>
+    [ViewVariables]
+    public string? AutoSignature;
+
+    /// <summary>Plans run against an unchanged body. Past <see cref="AutoReplanLimit"/> the module idles.</summary>
+    [ViewVariables]
+    public int AutoReplans;
 
     /// <summary>What the vital alarm read on its last tick, so an escalation is heard as one.</summary>
     [ViewVariables]

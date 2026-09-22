@@ -400,3 +400,42 @@
     sleepModifier: 0
   - type: WolfmedSurgeryBrainRepairEffect
   - type: SurgeryStepEmoteEffect
+
+# Hand-only treatments as surgery steps (AUTODOC4) ----------------------------
+# W1 and W3 built embedded-object removal and joint relocation as do-after interactions, which a machine
+# with no hands cannot drive. These two steps call the very same code those do-afters call, so the pod
+# leaves what a medic's hemostat would have left, and the hand verbs keep working untouched.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepExtractEmbedded
+  name: Extract the foreign objects
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Hemostat
+    duration: 5
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
+    state: hemostat
+  - type: WolfmedSurgeryExtractEmbeddedEffect
+  - type: WolfmedSurgeryPainEffect
+    amount: 10
+  - type: SurgeryStepEmoteEffect
+
+# No tool: the relocate do-after needs a hand, not an instrument, and the pod's manipulator is its hand.
+# The pain the wrench costs is the dislocation behavior's own, charged by the relocate code.
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepRelocateJoint
+  name: Relocate the joint
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    duration: 5
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
+    state: bonesetter
+  - type: WolfmedSurgeryRelocateJointEffect
+  - type: SurgeryStepEmoteEffect
