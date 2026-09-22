@@ -21,7 +21,7 @@ public sealed class LiftoffTest
 {
     /// <summary>The latch drives the existing CE spool and every upward transit until the hull reaches orbit.</summary>
     [Test]
-    public async Task LatchedLiftoffClimbsFromGroundToOrbit()
+    public async Task LatchedLiftoffClimbsFromGroundIntoTheAir()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -31,6 +31,7 @@ public sealed class LiftoffTest
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
         var ground = layers[0];
+        var air = layers[1];
         var orbit = layers[^1];
         await LayTiles(pair, ground, new Vector2i(-2, -2), new Vector2i(18, 18));
 
@@ -45,18 +46,30 @@ public sealed class LiftoffTest
                 $"A grounded, powered hull was refused liftoff: {reason}"));
 
         var reached = false;
+        var trail = "";
         for (var second = 0; second < 45 && !reached; second++)
         {
             await server.WaitRunTicks(pair.SecondsToTicks(1f));
             await server.WaitPost(() =>
-                reached = entMan.GetComponent<TransformComponent>(hull).MapUid == orbit);
+            {
+                var x = entMan.GetComponent<TransformComponent>(hull);
+                var z = entMan.GetComponent<Content.Shared._CE.ZLevels.Core.Components.CEZPhysicsComponent>(hull);
+                trail += $" [{second}: map={x.MapUid} h={z.LocalPosition:F2} v={z.Velocity:F2} latch={entMan.HasComponent<WFLiftoffComponent>(hull)}]";
+                reached = x.MapUid == air;
+            });
         }
 
-        Assert.That(reached, Is.True, "The latched liftoff never carried the hull into orbit.");
+        Assert.That(reached, Is.True, $"The latched liftoff never carried the hull off the ground into the air. ground={ground} air={air} orbit={orbit}{trail}");
         await server.WaitRunTicks(2);
         await server.WaitAssertion(() =>
             Assert.That(entMan.HasComponent<WFLiftoffComponent>(hull), Is.False,
-                "The liftoff latch remained engaged after orbit arrival."));
+                "The liftoff latch remained engaged once the hull was airborne."));
+
+        // A takeoff, not a climb: with nobody holding the key the hull stays in the air layer rather than going on up.
+        await server.WaitRunTicks(pair.SecondsToTicks(8f));
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<TransformComponent>(hull).MapUid, Is.Not.EqualTo(orbit),
+                "Liftoff carried the hull all the way to orbit."));
 
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();

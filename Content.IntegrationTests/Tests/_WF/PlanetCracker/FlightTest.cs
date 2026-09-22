@@ -897,61 +897,6 @@ public sealed class FlightTest
     }
 
     /// <summary>
-    /// A hull with the lift to fly climbs from the ground all the way into orbit on one latched Liftoff request: every
-    /// air layer, the cloud layer, and the last gap into orbit. A pilot whose latch stopped feeding the normal CE
-    /// ascent path in a gap, unable to reach orbit, is what this guards against.
-    /// </summary>
-    [Test]
-    public async Task LatchedLiftoffClimbsFromGroundToOrbit()
-    {
-        await using var pair = await PoolManager.GetServerClient();
-        var server = pair.Server;
-        var entMan = server.EntMan;
-
-        await EnableFeature(pair);
-
-        var layers = await BuildStandalone(pair);
-        var ground = layers[0];
-        var orbit = layers[^1];
-        var groundMapId = await MapIdOf(pair, ground);
-
-        await LayTiles(pair, ground, new Vector2i(-8, -8), new Vector2i(24, 24));
-        var hull = await BuildCracker(pair, groundMapId);
-        await MapInitHull(pair, hull);
-        await AddLandingThrusters(pair, hull, 3);
-        var pilot = await HoldVertical(pair, hull, ShuttleButtons.None);
-        var console = FindShuttleConsole(entMan, hull);
-        var levels = server.System<CEZLevelsSystem>();
-        var started = false;
-        string? reason = null;
-
-        await server.WaitPost(() => started = levels.WfTryBeginLiftoff(hull, console, pilot, out reason));
-        Assert.That(started, Is.True, $"The grounded Liftoff request was refused: {reason}");
-
-        var trail = new List<string>();
-        var reached = false;
-
-        // The latch stays engaged the whole way and feeds the same input the old held key did.
-        for (var second = 0; second < 45 && !reached; second++)
-        {
-            await server.WaitRunTicks(pair.SecondsToTicks(1f));
-
-            await server.WaitPost(() =>
-            {
-                var map = entMan.GetComponent<TransformComponent>(hull).MapUid;
-                var z = entMan.TryGetComponent(hull, out CEZPhysicsComponent? zPhys) ? zPhys.LocalPosition : float.NaN;
-                trail.Add($"{second}s {entMan.ToPrettyString(map)} z={z:F2}");
-                reached = map == orbit;
-            });
-        }
-
-        Assert.That(reached, Is.True, "The hull never reached orbit on latched liftoff: " + string.Join(" | ", trail));
-
-        await Teardown(pair, layers);
-        await pair.CleanReturnAsync();
-    }
-
-    /// <summary>
     /// A hull that has landed on the ground and lifted off again still answers its planar thrusters: a relaunched
     /// shuttle that climbed but could not move sideways is what this guards against.
     /// </summary>

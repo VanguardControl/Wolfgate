@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Content.Server._CE.ZLevels.Core.Components;
 using Content.Server._NF.Shuttles.Components;
 using Content.Server._WF.PlanetCracker.Flight;
 using Content.Server.Shuttles.Components;
@@ -187,6 +188,31 @@ public sealed partial class CEZLevelsSystem
         return true;
     }
 
+    /// <summary>Progress up the ground gap at which a takeoff is done; past the settle zone, so the hull drifts on up.</summary>
+    private const float WFTakeoffProgress = 0.8f;
+
+    /// <summary>True once the hull is off the ground for good: high in the first gap, or anywhere above it.</summary>
+    private bool WfHasTakenOff(EntityUid grid, EntityUid map)
+    {
+        if (HasComp<WFOrbitLayerComponent>(map))
+            return true;
+
+        if (TryComp<CEZTransitMapComponent>(map, out var transit))
+        {
+            if (transit.LowerMap is not { } lower || !WfIsGroundLayer(lower))
+                return true;
+
+            return TryComp<CEZPhysicsComponent>(grid, out var zPhysics) && zPhysics.LocalPosition >= WFTakeoffProgress;
+        }
+
+        return HasComp<WFPlanetLayerComponent>(map) && !WfIsGroundLayer(map);
+    }
+
+    private bool WfIsGroundLayer(EntityUid map)
+    {
+        return HasComp<CEZGroundLayerComponent>(map) || TryComp<CEZMapComponent>(map, out var zMap) && zMap.Depth == 0;
+    }
+
     /// <summary>Adds every valid latch to CE's ordinary per-grid upward input.</summary>
     private void WfCollectLiftoffInputs()
     {
@@ -201,9 +227,18 @@ public sealed partial class CEZLevelsSystem
             if (TerminatingOrDeleted(grid))
                 continue;
 
-            if (Transform(grid).MapUid is { } map && HasComp<WFOrbitLayerComponent>(map))
+            // Liftoff is a takeoff, not a climb to orbit: once the hull is most of the way up the first gap the latch
+            // lets go, and release-to-settle carries it the rest of the way onto the air layer, where it hovers. From
+            // there the pilot holds R to climb, or does not.
+            if (Transform(grid).MapUid is { } map && WfHasTakenOff(grid, map))
             {
                 WfCancelLiftoff(grid);
+
+                // The climb's momentum would otherwise carry the hull up through every gap and out into orbit anyway;
+                // from a standstill this high in the gap, release-to-settle lifts it the last stretch onto the layer.
+                if (TryComp<CEZGridFallerComponent>(grid, out var faller))
+                    faller.Velocity = 0f;
+
                 continue;
             }
 

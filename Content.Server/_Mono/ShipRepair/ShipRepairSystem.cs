@@ -19,6 +19,7 @@ public sealed partial class ShipRepairSystem : SharedShipRepairSystem
 
         InitCommands();
         InitGhosts();
+        InitializeSplit(); // WOLFGATE
     }
 
     private void OnShipBought(Entity<ShuttleComponent> ent, ref ShipBoughtEvent ev)

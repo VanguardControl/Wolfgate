@@ -121,7 +121,7 @@ There is no cabling on either hull: every powered machine is switched to `!Needs
 
 **Lift over a planet is landing thrusters, not the gravity generator (F10).** The transport now carries two `WFThrusterLanding` instead of its gravgen; anything else you fly down there needs some bolted on, or converted with a `WFLandingThrusterKit` (spawn one, click an anchored thruster with it). The console shows the hull's *lift ratio* under the orbit button: green at 1.00 or better, amber down to 0.50, red below that. At 1.00 the hull flies exactly as it always did.
 
-**Do.** Board the transport, take its shuttle console, and press *Enter atmosphere: Asclepiu*. Then hold **F** to descend. On the ground, use **Liftoff** on the shuttle console to ascend to orbit; click again or press **F** to cancel. **R** remains an airborne climb control.
+**Do.** Board the transport, take its shuttle console, and press *Enter atmosphere: Asclepiu*. Then hold **F** to descend. On the ground, use **Liftoff** on the shuttle console to take off into the first air layer; click again or press **F** to cancel. From the air, hold **R** to climb on to orbit.
 
 **See.** The lift readout above the button reads about 2.6 : 1 with both thrusters powered. The hull drops out of orbit into the gap below it and hangs there; **F** then walks it down a layer at a time: orbit (depth 4) → three air layers → ground (depth 0). The altimeter tracks it. On touchdown the thrusters disable.
 
@@ -335,7 +335,7 @@ Do not report these.
 
 ## Liftoff and Carcinoma hull infestation
 
-- A grounded shuttle offers **Liftoff**. With sufficient lift and power it spools up and climbs to orbit without holding a key. Cancel from the same button or by pressing descend. Losing the pilot, power/lift, or acquiring a tether cancels the ascent.
+- A grounded shuttle offers **Liftoff**. With sufficient lift and power it spools up, climbs off the ground and settles hovering on the first air layer, then hands the hull back to the pilot; **R** from there climbs to orbit. Cancel from the same button or by pressing descend. Losing the pilot, power/lift, or acquiring a tether cancels the ascent.
 - Leave a stationary hull on Carcinoma for 45�75 seconds. Large flesh tendrils begin appearing around its perimeter, at most four; cut or attack every tendril to release the hull. The last tendril grants at least 45 seconds to launch before another can grow. A tendril on a docked hull also blocks departure.
 - Sealed hulls exclude biomass. Open an exterior door and wait for growth: actual chimera flesh enters and spreads across connected hull tiles. It cannot spread onto planet terrain, extracted chunks, or through a dock onto another grid. Growth is capped at 256 biomass entities per hull.
 - Supplied original audio is attributed to Gandalf under CC0-1.0. Existing borrowed audio retains its prior attribution.

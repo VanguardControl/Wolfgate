@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Content.Server._Mono.ShipRepair;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.PlanetCracker.Cracker;
 using Content.Server.Access.Systems;
@@ -24,6 +25,7 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IdCardSystem _idCard = default!;
     [Dependency] private ShipyardSystem _shipyard = default!;
+    [Dependency] private ShipRepairSystem _shipRepair = default!;
     [Dependency] private WFCrackerOwnershipSystem _ownership = default!;
 
     /// <summary>
@@ -49,6 +51,10 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
         // Same post-load steps the shipyard applies, minus deeds and ownership.
         EntityManager.AddComponents(gridUid.Value, vessel.AddComponents);
         _metaData.SetEntityName(gridUid.Value, vessel.Name);
+
+        // This path raises no purchase event: the shipyard's repair snapshot has to be taken here too, or an SRD has
+        // nothing to rebuild the vessel from.
+        _shipRepair.GenerateRepairData(gridUid.Value);
 
         // This path raises no purchase event, so an admin- or ERT-spawned cracker would otherwise carry unbound anchors.
         if (HasComp<WFPlanetCrackerComponent>(gridUid.Value))
