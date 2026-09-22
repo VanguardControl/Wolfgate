@@ -26,10 +26,9 @@
   # does (anchors.yml:47-51). The hard MachineMask/MachineLayer fixture inherited from
   # BaseMachineIndestructible is untouched, so AnchorableSystem.TileFree still keeps two miners off one
   # tile (it tests CanCollide and Hard, never BodyType).
-  # (c) The cell slot is declared inline rather than by multi-parenting PowerCellSlotHighItem, because
-  # ItemSlots ensures its own ContainerSlot at ComponentInit (ItemSlotsSystem.Oninitialize calls
-  # EnsureContainer per slot, Content.Shared/Containers/ItemSlot/ItemSlotsSystem.cs:84-91) so no
-  # ContainerContainer entry is needed at all.
+  # (c) The cell slot is declared inline rather than by multi-parenting PowerCellSlotHighItem. ItemSlots
+  # ensures its own ContainerSlot at ComponentInit, but the prototype save test diffs the containers a
+  # spawn creates against the prototype, so the slot is declared beside the machine's own two anyway.
   # (d) The placeholder art is 64x64 (2x2) but the fixture is left at the inherited 1x1, for the reason
   # spelled out at machines.yml:103-106 - an even-sided AABB centred on a tile centre straddles four
   # tiles by half-tiles and cannot align to the snap grid, and AnchorEntity claims one tile either way.
@@ -65,6 +64,11 @@
           Mining:    { visible: true }
           Exhausted: { visible: false }
           Broken:    { visible: false }
+  - type: ContainerContainer
+    containers:
+      machine_board: !type:Container
+      machine_parts: !type:Container
+      cell_slot: !type:ContainerSlot
   - type: PowerCellSlot
     cellSlotId: cell_slot
     fitsInCharger: false     # it defaults to true (PowerCellSlotComponent.cs:23); an anchored machine must not be shoved into a recharger
