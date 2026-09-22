@@ -41,6 +41,7 @@ public sealed partial class AutodocSystem
         while (query.MoveNext(out var uid, out var comp))
         {
             var ent = (uid, comp);
+            TickVoice(ent);
             TickEmag(ent);
             TickIdleChatter(ent);
 
@@ -275,6 +276,9 @@ public sealed partial class AutodocSystem
         WarnAboutJunkReagents(ent);
         TryDefibrillateOccupant(ent, body);
 
+        // A fresh procedure gets to announce each family of work once more.
+        ent.Comp.SpokenFamilies.Clear();
+
         if (!ent.Comp.AnaestheticGiven)
         {
             ent.Comp.AnaestheticGiven = true;
@@ -365,7 +369,7 @@ public sealed partial class AutodocSystem
         ent.Comp.Pending = null;
 
         PlayToolStart(ent, stepEnt);
-        Speak(ent, GetStepVoice(stepEnt, stepId));
+        SpeakStep(ent, GetStepVoice(stepEnt, stepId));
         UpdateAppearance(ent);
         UpdateUi(ent);
     }
@@ -761,7 +765,7 @@ public sealed partial class AutodocSystem
                     toolComp.StartSound == null)
                     continue;
 
-                _audio.PlayPvs(toolComp.StartSound, ent.Owner);
+                _audio.PlayPvs(toolComp.StartSound, ent.Owner, DuckedParams(ent, toolComp.StartSound.Params));
                 return;
             }
         }

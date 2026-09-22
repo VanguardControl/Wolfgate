@@ -3,7 +3,8 @@
 Usage: python Tools/_WF/wolfmed/gen_autodoc_voice_protos.py
 
 Every AutodocVoiceEvent member appears in EVENTS with at least one line id, and every line id it names is a
-row of gen_autodoc_voice.LINES, so the prototype cannot reference a file that was never rendered.
+row of gen_autodoc_voice.LINES, so the prototype cannot reference a file that was never rendered. The
+priority column comes along with the line, which is what the pod's voice queue sorts on.
 """
 import os
 import sys
@@ -82,7 +83,7 @@ EVENTS = [
 
 
 def main():
-    ids = {line_id for line_id, _, _ in LINES}
+    ids = {line_id for line_id, _, _, _ in LINES}
     for _, variants in EVENTS:
         for variant in variants:
             if variant not in ids:
@@ -93,11 +94,12 @@ def main():
            "- type: autodocVoice",
            "  id: WolfmedAutodocVoiceSam",
            "  lines:"]
-    for line_id, _, _ in LINES:
+    for line_id, _, _, priority in LINES:
         out.append("    " + line_id + ":")
         out.append("      sound:")
         out.append("        path: " + AUDIO + "/" + line_id + ".ogg")
         out.append("      message: " + PREFIX + line_id)
+        out.append("      priority: " + priority)
     out.append("  events:")
     for event, variants in EVENTS:
         out.append("    " + event + ": [" + ", ".join(variants) + "]")

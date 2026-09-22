@@ -4101,3 +4101,37 @@ Deviations from the spec, and why:
 - **"Mechanical" needs `SiliconComponent`, not just an absent brain.** The first cut of
   `WolfmedShutdownSystem.IsMechanical` read "wound host with no oxygenation clock", which shut down every
   brainless test fixture on its first rejuvenate. The same trap the interim life system fell into.
+
+## Final stages: AUTODOC2 (2026-09-22)
+
+| path | status | notes |
+| --- | --- | --- |
+| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | modified | priority column, `-s 165 -p 25`, the new ffmpeg filter chain, `--report` duration check |
+| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | modified | carries the priority into the prototype |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/*.ogg` | modified | all 74 lines regenerated at the new settings |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | modified | regenerated transcripts, step lines cut to one or two words |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | modified | regenerated, every line now carries `priority` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `AutodocVoicePriority`, `AutodocVoiceLine.Priority` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | voice queue state, `AutodocVoiceRequest`, `AutodocStepFamily`, ducking gain |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Voice.cs` | modified | the queue, the priority rules, step families, `DuckedParams` |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | ticks the queue, announces one line per step family, ducks the tool sound |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | lays the occupant down, clears the spoken families on reset |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocVisualizerSystem.cs` | new | base/lid layers, the colour reset, the draw depth flip |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/autodoc.yml` | modified | two sprite layers, no `GenericVisualizer`, `showEnts: true` |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocTest.cs` | modified | four new tests |
+
+Deviations from the spec, and why:
+
+- **`slip-fix` is Info, not Urgent.** The spec puts "slip" in the urgent set, and both slip lines were urgent
+  at first, which meant "NOT SUPPOSED TO HAPPEN. FIXING IT." cut "OOPS." off after two frames. The apology
+  now queues behind the interruption it belongs to.
+- **Line durations are read off the ogg at runtime**, with `SharedAudioSystem.GetAudioLength`, rather than
+  written into the generated table. The spec allowed either; this way the queue cannot disagree with a file
+  that was regenerated without the table.
+- **Two step lines needed a second pass.** "SETTING BONE." (1.20 s) and "EXTRACTING OBJECT." (1.70 s) were
+  over the 1.2 s bound at `-s 165`, so they are "SETTING." and "RETRIEVING.".
+- **Unpowered still dims and now also draws open.** The spec only asked that powered states stop being dim.
+  The unpowered colour is the same `#555555`, applied by the visualizer and cleared by it, instead of by a
+  `GenericVisualizer` entry that could only ever set it.
+- **The occupant's lying pose is the standing-state appearance key**, not a pod-specific visual layer, so
+  leaving the pod hands the sprite straight back to whatever posture the body is in.

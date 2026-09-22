@@ -566,6 +566,176 @@ public sealed class WolfmedAutodocTest : GameTest
         });
     }
 
+    /// <summary>
+    /// Every line is short enough for the job it does: a step announcement has to be over before the step
+    /// it announces, and nothing may hold the queue up for long.
+    /// </summary>
+    [Test]
+    public async Task VoiceLinesStayWithinTheirDurationBoundsTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var voice = protos.Index<AutodocVoicePrototype>("WolfmedAutodocVoiceSam");
+
+            Assert.Multiple(() =>
+            {
+                foreach (var (id, line) in voice.Lines)
+                {
+                    var seconds = autodoc.GetLineLength(line).TotalSeconds;
+                    Assert.That(seconds, Is.GreaterThan(0.1), $"{id} is silent.");
+
+                    switch (line.Priority)
+                    {
+                        case AutodocVoicePriority.Step:
+                            Assert.That(seconds, Is.LessThanOrEqualTo(1.2), $"{id} is too long for a step.");
+                            break;
+                        case AutodocVoicePriority.Urgent:
+                            Assert.That(seconds, Is.LessThanOrEqualTo(3.0), $"{id} is too long to interrupt with.");
+                            break;
+                        case AutodocVoicePriority.Info:
+                            Assert.That(seconds, Is.LessThanOrEqualTo(4.0), $"{id} holds the queue up.");
+                            break;
+                    }
+                }
+            });
+        });
+    }
+
+    /// <summary>Three step announcements at once: one is spoken and the rest are dropped, never stacked.</summary>
+    [Test]
+    public async Task StepLinesNeverOverlapTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var pod = Pod(entities, map);
+            Silence(pod);
+
+            autodoc.Speak(pod, AutodocVoiceEvent.StepIncision);
+            autodoc.Speak(pod, AutodocVoiceEvent.StepSaw);
+            autodoc.Speak(pod, AutodocVoiceEvent.StepSuture);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(pod.Comp.VoiceSpoken, Is.EqualTo(1), "only the first step line was spoken.");
+                Assert.That(pod.Comp.VoiceQueue, Is.Empty, "and the other two were dropped, not queued.");
+                Assert.That(autodoc.IsSpeaking(pod), Is.True);
+            });
+        });
+    }
+
+    /// <summary>An urgent line cuts a playing info line off mid-word instead of waiting behind it.</summary>
+    [Test]
+    public async Task UrgentLineInterruptsAPlayingLineTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+        EntityUid greeting = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            pod = Pod(entities, map);
+            Silence(pod);
+
+            autodoc.Speak(pod, AutodocVoiceEvent.Greeting);
+            Assert.That(pod.Comp.VoiceStream, Is.Not.Null, "the greeting is playing.");
+            greeting = pod.Comp.VoiceStream!.Value;
+
+            autodoc.Speak(pod, AutodocVoiceEvent.Critical);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(pod.Comp.VoiceSpoken, Is.EqualTo(2), "the urgent line started at once.");
+                Assert.That(pod.Comp.VoiceStream, Is.Not.EqualTo(greeting), "on a stream of its own.");
+                Assert.That(pod.Comp.VoiceQueue, Is.Empty, "and nothing was left waiting.");
+            });
+        });
+
+        await Pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.Deleted(greeting), Is.True, "the greeting's stream was stopped, not left to finish.");
+        });
+    }
+
+    /// <summary>
+    /// Open, closed and operating each map to their own art, and the occupant is drawn either way: on top of
+    /// the bed with the lid open, under the lid with it closed.
+    /// </summary>
+    [Test]
+    public async Task VisualStateFollowsTheLidTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+        EntityUid body = default;
+
+        await server.WaitAssertion(() =>
+        {
+            body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
+            pod = Pod(entities, map);
+        });
+
+        await Pair.RunTicksSync(10);
+
+        await server.WaitAssertion(() =>
+        {
+            var autodoc = entities.System<AutodocSystem>();
+            var appearance = entities.System<SharedAppearanceSystem>();
+            var containers = entities.System<SharedContainerSystem>();
+
+            Assert.That(autodoc.TryInsert(pod, body), Is.True);
+            Assert.That(State(appearance, pod), Is.EqualTo(AutodocVisualState.Closed),
+                "an occupied pod draws its lid.");
+
+            Assert.That(containers.TryGetContainer(pod, AutodocComponent.BodyContainerId, out var held), Is.True);
+            Assert.That(held!.ShowContents, Is.True, "the occupant is drawn, not hidden inside the machine.");
+
+            Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
+            Assert.That(autodoc.TryStart(pod, null), Is.True);
+            Assert.That(State(appearance, pod), Is.EqualTo(AutodocVisualState.Operating),
+                "and the animated lid while it works.");
+
+            Assert.That(autodoc.TryEject(pod, force: true), Is.True);
+            Assert.That(State(appearance, pod), Is.EqualTo(AutodocVisualState.Open),
+                "an empty pod is open, with nothing over the bed.");
+        });
+    }
+
+    private static AutodocVisualState State(SharedAppearanceSystem appearance, Entity<AutodocComponent> pod)
+    {
+        appearance.TryGetData<AutodocVisualState>(pod.Owner, AutodocVisuals.State, out var state);
+        return state;
+    }
+
+    /// <summary>Forgets whatever the pod said while it was starting up, so a queue assertion starts from silence.</summary>
+    private static void Silence(Entity<AutodocComponent> pod)
+    {
+        pod.Comp.VoiceQueue.Clear();
+        pod.Comp.VoiceBusyUntil = TimeSpan.Zero;
+        pod.Comp.VoiceSpoken = 0;
+        pod.Comp.VoiceStream = null;
+    }
+
     private static Entity<AutodocComponent> Pod(IEntityManager entities, TestMapData map)
     {
         var pod = entities.SpawnEntity("WolfmedTestAutodoc", map.GridCoords);

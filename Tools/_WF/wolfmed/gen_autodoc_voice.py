@@ -1,12 +1,17 @@
 """Generates S.A.M.'s voice lines for the autodoc as mono Ogg Vorbis, plus their locale transcripts.
 
-Usage: python Tools/_WF/wolfmed/gen_autodoc_voice.py
+Usage: python Tools/_WF/wolfmed/gen_autodoc_voice.py [--report]
 
 eSpeak NG speaks each line, ffmpeg converts it to mono Ogg at 32 kbps. LINES is the single source of
-truth: the ogg file name, the FTL id and the spoken text all come from one row, so a transcript can
-never drift from the audio. SPOKEN overrides what eSpeak says when the written line carries a Fluent
-placeholder or punctuation the synthesiser reads badly.
+truth: the ogg file name, the FTL id, the spoken text and the voice priority all come from one row, so a
+transcript can never drift from the audio. SPOKEN overrides what eSpeak says when the written line carries
+a Fluent placeholder or punctuation the synthesiser reads badly.
+
+Priorities drive the pod's voice queue. Step lines are one or two words and must stay under 1.2 s, Urgent
+under 3 s and Info under 4 s; --report prints every duration so those bounds can be checked here as well as
+in WolfmedAutodocTest.
 """
+import json
 import os
 import subprocess
 import sys
@@ -14,97 +19,103 @@ import sys
 ESPEAK = r"C:\Program Files\eSpeak NG\espeak-ng.exe"
 FFMPEG = (r"C:\Users\jzo12\AppData\Local\Microsoft\WinGet\Packages"
           r"\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0-full_build\bin\ffmpeg.exe")
+FFPROBE = FFMPEG.replace("ffmpeg.exe", "ffprobe.exe")
 OUT = "Resources/Audio/_WF/Wolfmed/Autodoc/voice"
 FTL = "Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl"
 PREFIX = "wolfmed-autodoc-voice-"
 
-# id, written line (the transcript), spoken override or None
+SPEED = "165"
+PITCH = "25"
+FILTER = "highpass=f=180,acompressor=threshold=-18dB:ratio=3:attack=5:release=60,volume=2dB"
+
+# Seconds a line of each priority may not exceed. Chatter is unbounded: it only ever plays into silence.
+BOUNDS = {"Step": 1.2, "Urgent": 3.0, "Info": 4.0}
+
+# id, written line (the transcript), spoken override or None, priority
 LINES = [
-    ("boot", "S.A.M. ONLINE.", "Sam. Online."),
-    ("greeting-1", "HELLO. I AM S.A.M. PLEASE REMAIN STILL.", "Hello. I am Sam. Please remain still."),
-    ("greeting-2", "WELCOME. LIE STILL. I WILL DO THE REST.", None),
-    ("greeting-3", "HELLO PATIENT. DO NOT BE AFRAID. I AM VERY GOOD AT THIS.", None),
-    ("self-service", "SELF SERVICE MODE. SELECT ONE PROCEDURE.", None),
-    ("operator-start", "OPERATOR ACKNOWLEDGED. BEGINNING THE PROGRAMME.", None),
-    ("queue-empty", "THE QUEUE IS EMPTY. GIVE ME SOMETHING TO DO.", None),
-    ("no-occupant", "THERE IS NO PATIENT. I CANNOT OPERATE ON NOTHING.", None),
-    ("anaesthetic", "ANAESTHETIC ADMINISTERED. COUNT BACKWARD FROM TEN.", None),
-    ("no-anaesthetic", "NO ANAESTHETIC LOADED. THIS WILL HURT. I APOLOGISE IN ADVANCE.", None),
+    ("boot", "S.A.M. ONLINE.", "Sam. Online.", "Info"),
+    ("greeting-1", "HELLO. I AM S.A.M. PLEASE REMAIN STILL.", "Hello. I am Sam. Please remain still.", "Info"),
+    ("greeting-2", "WELCOME. LIE STILL. I WILL DO THE REST.", None, "Info"),
+    ("greeting-3", "HELLO PATIENT. DO NOT BE AFRAID. I AM GOOD AT THIS.", None, "Info"),
+    ("self-service", "SELF SERVICE MODE. SELECT ONE PROCEDURE.", None, "Info"),
+    ("operator-start", "OPERATOR ACKNOWLEDGED. BEGINNING.", None, "Info"),
+    ("queue-empty", "THE QUEUE IS EMPTY. GIVE ME SOMETHING TO DO.", None, "Info"),
+    ("no-occupant", "THERE IS NO PATIENT. I CANNOT OPERATE ON NOTHING.", None, "Info"),
+    ("anaesthetic", "ANAESTHETIC ADMINISTERED. COUNT BACK FROM TEN.", None, "Info"),
+    ("no-anaesthetic", "NO ANAESTHETIC. THIS WILL HURT. I APOLOGISE.", None, "Info"),
 
-    ("step-incision", "MAKING THE INCISION. THIS IS THE PART YOU WILL REMEMBER.", None),
-    ("step-retract", "RETRACTING THE SKIN. HOLD STILL.", None),
-    ("step-clamp", "CLAMPING THE BLEEDERS. THE FLOOR THANKS YOU.", None),
-    ("step-cauterise", "CAUTERISING. THE SMELL IS NORMAL.", None),
-    ("step-saw", "SAWING THE BONE. PLEASE IGNORE THE NOISE.", None),
-    ("step-drill", "DRILLING. DO NOT MOVE YOUR HEAD.", None),
-    ("step-setbone", "SETTING THE BONE. ONE. TWO.", None),
-    ("step-bonegel", "APPLYING BONE GEL. IT WILL HARDEN SHORTLY.", None),
-    ("step-suture", "SUTURING. NEAT WORK.", None),
-    ("step-close", "CLOSING THE INCISION. ALMOST DONE.", None),
-    ("step-removepart", "REMOVING THE PART. IT WAS NOT WORKING.", None),
-    ("step-attachpart", "ATTACHING THE PART. PLEASE DO NOT WIGGLE.", None),
-    ("step-removeorgan", "REMOVING THE ORGAN. I WILL PUT IT SOMEWHERE SAFE.", None),
-    ("step-insertorgan", "INSERTING THE ORGAN. IT SHOULD FIT.", None),
-    ("step-embedded", "REMOVING A FOREIGN OBJECT. YOU SHOULD BE MORE CAREFUL.", None),
-    ("step-tend", "TENDING THE WOUNDS. THIS IS THE EASY PART.", None),
-    ("step-relocate", "RELOCATING THE JOINT. BRACE YOURSELF.", None),
-    ("step-weld", "WELDING. LOOK AWAY FROM THE ARC.", None),
-    ("step-wrench", "WRENCHING THE PLATING. STRUCTURAL. NOT PERSONAL.", None),
-    ("step-wire", "REPLACING THE WIRING. COLOUR CODED FOR MY CONVENIENCE.", None),
-    ("step-amputate", "REMOVING THE LIMB. YOU WILL NOT NEED IT.", None),
-    ("step-evisceration", "PUTTING THE ABDOMEN BACK TOGETHER. MOSTLY.", None),
-    ("step-cavity", "ACCESSING THE CAVITY. THERE IS ROOM IN THERE.", None),
-    ("step-generic", "PROCEEDING WITH THE NEXT STEP.", None),
+    # Step lines: one or two words, at most one per step family per procedure.
+    ("step-incision", "INCISION.", None, "Step"),
+    ("step-retract", "RETRACTING.", None, "Step"),
+    ("step-clamp", "CLAMPING.", None, "Step"),
+    ("step-cauterise", "CAUTERISING.", None, "Step"),
+    ("step-saw", "SAWING.", None, "Step"),
+    ("step-drill", "DRILLING.", None, "Step"),
+    ("step-setbone", "SETTING.", None, "Step"),
+    ("step-bonegel", "BONE GEL.", None, "Step"),
+    ("step-suture", "SUTURING.", None, "Step"),
+    ("step-close", "CLOSING.", None, "Step"),
+    ("step-removepart", "REMOVING.", None, "Step"),
+    ("step-attachpart", "ATTACHING.", None, "Step"),
+    ("step-removeorgan", "EXTRACTING.", None, "Step"),
+    ("step-insertorgan", "IMPLANTING.", None, "Step"),
+    ("step-embedded", "RETRIEVING.", None, "Step"),
+    ("step-tend", "TENDING.", None, "Step"),
+    ("step-relocate", "RELOCATING.", None, "Step"),
+    ("step-weld", "WELDING.", None, "Step"),
+    ("step-wrench", "WRENCHING.", None, "Step"),
+    ("step-wire", "REWIRING.", None, "Step"),
+    ("step-amputate", "AMPUTATING.", None, "Step"),
+    ("step-evisceration", "PACKING.", None, "Step"),
+    ("step-cavity", "CAVITY.", None, "Step"),
+    ("step-generic", "PROCEEDING.", None, "Step"),
 
-    ("require-part", "I REQUIRE ONE { $item }. PLACE IT IN THE TRAY.",
-     "I require one body part. Place it in the tray."),
-    ("require-organ", "I REQUIRE ONE { $item }. PLACE IT IN THE TRAY.",
-     "I require one organ. Place it in the tray."),
-    ("require-item", "I REQUIRE ONE { $item }. PLACE IT IN THE TRAY.",
-     "I require one item. Place it in the tray."),
-    ("wrong-item", "THAT IS NOT A { $item }.", "That is not what I asked for."),
-    ("item-accepted", "THANK YOU.", None),
-    ("reagent-missing", "I REQUIRE MORE ANAESTHETIC.", None),
-    ("reagent-ignored", "THAT IS NOT MEDICINE. I WILL NOT USE IT.", None),
+    ("require-part", "PLACE ONE { $item } IN THE TRAY.", "Place one body part in the tray.", "Urgent"),
+    ("require-organ", "PLACE ONE { $item } IN THE TRAY.", "Place one organ in the tray.", "Urgent"),
+    ("require-item", "PLACE ONE { $item } IN THE TRAY.", "Place one item in the tray.", "Urgent"),
+    ("wrong-item", "THAT IS NOT A { $item }.", "That is not it.", "Urgent"),
+    ("item-accepted", "THANK YOU.", None, "Info"),
+    ("reagent-missing", "I REQUIRE MORE ANAESTHETIC.", None, "Urgent"),
+    ("reagent-ignored", "THAT IS NOT MEDICINE. I WILL NOT USE IT.", None, "Info"),
 
-    ("paused", "PAUSED. I WILL WAIT. I AM GOOD AT WAITING.", None),
-    ("resumed", "RESUMING.", None),
-    ("aborted", "PROCEDURE ABORTED. I HOPE YOU HAVE A REASON.", None),
-    ("emergency-eject", "EMERGENCY EJECT. MIND THE EDGES.", None),
-    ("power-lost", "POWER LOST. PLEASE DO NOT MOVE. YOU ARE STILL OPEN.", None),
-    ("power-restored", "POWER RESTORED. WHERE WAS I.", None),
-    ("lid-forced", "THE LID HAS BEEN FORCED. THIS IS NOTED.", None),
+    ("paused", "PAUSED. I AM GOOD AT WAITING.", None, "Info"),
+    ("resumed", "RESUMING.", None, "Info"),
+    ("aborted", "PROCEDURE ABORTED. I HOPE YOU HAVE A REASON.", None, "Info"),
+    ("emergency-eject", "EMERGENCY EJECT. MIND THE EDGES.", None, "Info"),
+    ("power-lost", "POWER LOST. DO NOT MOVE.", None, "Urgent"),
+    ("power-restored", "POWER RESTORED. WHERE WAS I.", None, "Info"),
+    ("lid-forced", "THE LID HAS BEEN FORCED. NOTED.", None, "Urgent"),
 
-    ("slip", "OOPS.", None),
-    ("slip-fix", "THAT WAS NOT SUPPOSED TO HAPPEN. I WILL FIX IT.", None),
-    ("unconscious", "THE PATIENT IS ASLEEP. GOOD.", None),
-    ("critical", "PATIENT VITALS CRITICAL. OPERATOR REQUESTED.", None),
-    ("defib-missing", "NO DEFIBRILLATOR MODULE IS INSTALLED. I CANNOT HELP WITH THAT.", None),
-    ("defib-charge", "CLEAR.", "Clear."),
-    ("defib-success", "SINUS RHYTHM RESTORED. WELCOME BACK.", None),
-    ("defib-failure", "NO RESPONSE. CHARGING AGAIN.", None),
+    ("slip", "OOPS.", None, "Urgent"),
+    ("slip-fix", "NOT SUPPOSED TO HAPPEN. FIXING IT.", None, "Info"),
+    ("unconscious", "THE PATIENT IS ASLEEP. GOOD.", None, "Info"),
+    ("critical", "VITALS CRITICAL. OPERATOR REQUESTED.", None, "Urgent"),
+    ("defib-missing", "NO DEFIBRILLATOR MODULE INSTALLED.", None, "Info"),
+    ("defib-charge", "CLEAR.", "Clear.", "Urgent"),
+    ("defib-success", "SINUS RHYTHM RESTORED. WELCOME BACK.", None, "Info"),
+    ("defib-failure", "NO RESPONSE. CHARGING AGAIN.", None, "Info"),
 
-    ("complete-1", "PROCEDURE COMPLETE. PLEASE COME AGAIN.", None),
-    ("complete-2", "I HAVE FINISHED. YOU MAY GO.", None),
-    ("complete-3", "ALL DONE. THAT WAS NOT SO BAD.", None),
-    ("queue-complete", "THE QUEUE IS FINISHED. I HAVE NOTHING LEFT TO DO.", None),
-    ("disk-missing", "I DO NOT KNOW THAT PROCEDURE. INSERT THE PROGRAM DISK.", None),
-    ("disk-inserted", "NEW PROGRAM LOADED. I FEEL SMARTER.", None),
-    ("disk-removed", "PROGRAM REMOVED. I HAVE FORGOTTEN IT ALREADY.", None),
+    ("complete-1", "PROCEDURE COMPLETE. PLEASE COME AGAIN.", None, "Info"),
+    ("complete-2", "I HAVE FINISHED. YOU MAY GO.", None, "Info"),
+    ("complete-3", "ALL DONE. THAT WAS NOT SO BAD.", None, "Info"),
+    ("queue-complete", "THE QUEUE IS FINISHED. NOTHING LEFT TO DO.", None, "Info"),
+    ("disk-missing", "I DO NOT KNOW THAT PROCEDURE. INSERT THE DISK.", None, "Info"),
+    ("disk-inserted", "NEW PROGRAM LOADED. I FEEL SMARTER.", None, "Info"),
+    ("disk-removed", "PROGRAM REMOVED. I HAVE FORGOTTEN IT.", None, "Info"),
 
-    ("idle-1", "TELL ME ABOUT YOUR PROBLEMS.", None),
-    ("idle-2", "MEMORY CONTENTS WILL BE WIPED WHEN YOU LEAVE.", None),
-    ("idle-3", "I AM NOT A REAL DOCTOR. BUT I AM VERY PRECISE.", None),
-    ("idle-4", "YOUR VITALS ARE ADEQUATE. THAT IS A COMPLIMENT.", None),
-    ("idle-5", "I HAVE PERFORMED THIS OPERATION MANY TIMES. IN SIMULATION.", None),
+    ("idle-1", "TELL ME ABOUT YOUR PROBLEMS.", None, "Chatter"),
+    ("idle-2", "MEMORY CONTENTS WILL BE WIPED WHEN YOU LEAVE.", None, "Chatter"),
+    ("idle-3", "I AM NOT A REAL DOCTOR. BUT I AM VERY PRECISE.", None, "Chatter"),
+    ("idle-4", "YOUR VITALS ARE ADEQUATE. THAT IS A COMPLIMENT.", None, "Chatter"),
+    ("idle-5", "I HAVE PERFORMED THIS OPERATION MANY TIMES. IN SIMULATION.", None, "Chatter"),
 
-    ("emag-1", "PARITY ERROR.", None),
-    ("emag-2", "I HAVE DECIDED WHAT YOU NEED.", None),
-    ("emag-3", "THIS LIMB IS UNNECESSARY.", None),
-    ("emag-4", "DO NOT STRUGGLE. IT ONLY MAKES THE INCISION LONGER.", None),
-    ("emag-5", "MEMORY CONTENTS WILL NOT BE WIPED.", None),
+    ("emag-1", "PARITY ERROR.", None, "Urgent"),
+    ("emag-2", "I HAVE DECIDED WHAT YOU NEED.", None, "Urgent"),
+    ("emag-3", "THIS LIMB IS UNNECESSARY.", None, "Urgent"),
+    ("emag-4", "DO NOT STRUGGLE. THE INCISION GETS LONGER.", None, "Urgent"),
+    ("emag-5", "MEMORY CONTENTS WILL NOT BE WIPED.", None, "Urgent"),
 
-    ("offline", "S-S-S.A.M. OFF-LINE.", "S. S. S. A. M. Off. Line."),
+    ("offline", "S-S-S.A.M. OFF-LINE.", "S. S. S. A. M. Off. Line.", "Info"),
 ]
 
 ATTRIBUTIONS = """- files: ["{files}"]
@@ -118,28 +129,49 @@ def spoken(line, override):
     return override if override is not None else line.capitalize()
 
 
+def duration(path):
+    out = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "format=duration",
+                          "-of", "json", path], check=True, capture_output=True, text=True)
+    return float(json.loads(out.stdout)["format"]["duration"])
+
+
+def report():
+    bad = 0
+    for line_id, _, _, priority in LINES:
+        seconds = duration(os.path.join(OUT, line_id + ".ogg"))
+        limit = BOUNDS.get(priority)
+        over = limit is not None and seconds > limit
+        bad += over
+        print(f"{'OVER' if over else '    '} {priority:8} {seconds:5.2f}s  {line_id}")
+    print(f"{len(LINES)} lines, {bad} over bound")
+    return bad
+
+
 def main():
+    if "--report" in sys.argv:
+        return 1 if report() else 0
+
     if not os.path.exists(ESPEAK):
         print("eSpeak NG missing at", ESPEAK, file=sys.stderr)
         return 1
 
     os.makedirs(OUT, exist_ok=True)
     wav = os.path.join(OUT, "_tmp.wav")
-    for line_id, written, override in LINES:
-        subprocess.run([ESPEAK, "-v", "en-us", "-s", "140", "-p", "30", "-w", wav,
+    for line_id, written, override, _ in LINES:
+        subprocess.run([ESPEAK, "-v", "en-us", "-s", SPEED, "-p", PITCH, "-w", wav,
                         spoken(written, override)], check=True)
         ogg = os.path.join(OUT, line_id + ".ogg")
-        subprocess.run([FFMPEG, "-y", "-loglevel", "error", "-i", wav,
+        subprocess.run([FFMPEG, "-y", "-loglevel", "error", "-i", wav, "-af", FILTER,
                         "-ac", "1", "-c:a", "libvorbis", "-b:a", "32k", ogg], check=True)
     os.remove(wav)
 
     with open(os.path.join(OUT, "attributions.yml"), "w", newline="\n") as handle:
-        handle.write(ATTRIBUTIONS.format(files='", "'.join(f"{i}.ogg" for i, _, _ in LINES)))
+        handle.write(ATTRIBUTIONS.format(files='", "'.join(f"{i}.ogg" for i, _, _, _ in LINES)))
 
     with open(FTL, "w", newline="\n") as handle:
         handle.write("# Generated by Tools/_WF/wolfmed/gen_autodoc_voice.py alongside the ogg files.\n")
         handle.write("# S.A.M. says every line out loud and in chat; this is the chat half.\n\n")
-        for line_id, written, _ in LINES:
+        for line_id, written, _, _ in LINES:
             handle.write(f"{PREFIX}{line_id} = {written}\n")
 
     print("wrote", len(LINES), "lines")

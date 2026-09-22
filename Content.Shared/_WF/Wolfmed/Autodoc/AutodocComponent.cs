@@ -96,6 +96,18 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public float VoiceGain = -2f;
 
+    /// <summary>Lines waiting behind the one being spoken. Anything past this is dropped.</summary>
+    [DataField]
+    public int VoiceQueueMax = 3;
+
+    /// <summary>Seconds of silence idle chatter waits for before it will speak.</summary>
+    [DataField]
+    public float VoiceChatterSilence = 8f;
+
+    /// <summary>Gain the step and tool sounds drop to while a voice line is playing.</summary>
+    [DataField]
+    public float DuckedToolGain = 0.6f;
+
     // Runtime state, written on the server only.
 
     [ViewVariables]
@@ -174,9 +186,59 @@ public sealed partial class AutodocComponent : Component
     [ViewVariables]
     public TimeSpan NextIdleChatter;
 
+    /// <summary>Lines waiting for the current one to finish, in speaking order.</summary>
+    [ViewVariables]
+    public List<AutodocVoiceRequest> VoiceQueue = new();
+
+    /// <summary>When the line being spoken ends. Silence before that is what chatter waits for.</summary>
+    [ViewVariables]
+    public TimeSpan VoiceBusyUntil;
+
+    /// <summary>The audio stream of the line being spoken, so an urgent line can cut it off.</summary>
+    [ViewVariables]
+    public EntityUid? VoiceStream;
+
+    /// <summary>Lines actually spoken, as opposed to queued or dropped. Counts for the queue tests.</summary>
+    [ViewVariables]
+    public int VoiceSpoken;
+
+    /// <summary>Step families already announced in the running procedure; each one speaks once.</summary>
+    [ViewVariables]
+    public HashSet<AutodocStepFamily> SpokenFamilies = new();
+
     /// <summary>Test seam: forces the next malfunction roll to succeed.</summary>
     [ViewVariables]
     public bool ForceMalfunction;
+}
+
+/// <summary>A line the pod has accepted but is not speaking yet, with the arguments it was raised with.</summary>
+public sealed class AutodocVoiceRequest
+{
+    public AutodocVoiceRequest(string line, (string, object)[] args)
+    {
+        Line = line;
+        Args = args;
+    }
+
+    public readonly string Line;
+
+    public readonly (string, object)[] Args;
+}
+
+/// <summary>
+/// Step lines are grouped so a procedure announces each kind of work once instead of once a step. Which
+/// family a step belongs to is read off the voice event the step resolved to.
+/// </summary>
+public enum AutodocStepFamily : byte
+{
+    Incision,
+    Bleeding,
+    Bone,
+    Closing,
+    Part,
+    Organ,
+    Mechanical,
+    Other,
 }
 
 /// <summary>One queued procedure and the requirements worked out when it was queued.</summary>

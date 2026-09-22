@@ -29,6 +29,29 @@ public sealed partial class AutodocVoiceLine
 
     [DataField(required: true)]
     public LocId Message;
+
+    /// <summary>How the line behaves in the pod's voice queue. Generated with the line, never hand written.</summary>
+    [DataField]
+    public AutodocVoicePriority Priority = AutodocVoicePriority.Info;
+}
+
+/// <summary>
+/// What a line does when the pod is already talking. Only one line is ever audible at a time, so every id
+/// carries the rule for its own interruption.
+/// </summary>
+public enum AutodocVoicePriority : byte
+{
+    /// <summary>Small talk. Only ever starts into silence, never queues.</summary>
+    Chatter,
+
+    /// <summary>Announces a step. Dropped outright if anything is playing or waiting; the next step speaks instead.</summary>
+    Step,
+
+    /// <summary>Waits its turn in the queue.</summary>
+    Info,
+
+    /// <summary>Cuts off whatever is playing and speaks now.</summary>
+    Urgent,
 }
 
 /// <summary>Everything S.A.M. has something to say about.</summary>

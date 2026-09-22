@@ -27,6 +27,8 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Power;
+using Content.Shared.Rotation;
+using Content.Shared.Standing;
 using Content.Shared.Verbs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
@@ -67,6 +69,7 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
+    [Dependency] private readonly StandingStateSystem _standing = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly SurgerySystem _surgery = default!;
@@ -205,6 +208,9 @@ public sealed partial class AutodocSystem : EntitySystem
         if (args.Container.ID == AutodocComponent.DiskSlotId)
             Speak(ent, AutodocVoiceEvent.DiskInserted);
 
+        if (args.Container.ID == AutodocComponent.BodyContainerId)
+            SetOccupantLying(args.Entity, true);
+
         UpdateAppearance(ent);
         UpdateUi(ent);
     }
@@ -219,6 +225,7 @@ public sealed partial class AutodocSystem : EntitySystem
 
         if (args.Container.ID == AutodocComponent.BodyContainerId)
         {
+            SetOccupantLying(args.Entity, false);
             Reset(ent);
             _ui.CloseUis(ent.Owner);
         }
@@ -324,6 +331,19 @@ public sealed partial class AutodocSystem : EntitySystem
         args.Tools = tools;
     }
 
+    /// <summary>
+    /// The occupant lies on the bed rather than standing on it. Same appearance key standing up and lying
+    /// down use, so leaving the pod hands the sprite straight back to whatever state the body is in.
+    /// </summary>
+    private void SetOccupantLying(EntityUid body, bool lying)
+    {
+        if (TerminatingOrDeleted(body) || !HasComp<RotationVisualsComponent>(body))
+            return;
+
+        _appearance.SetData(body, RotationVisuals.RotationState,
+            lying || _standing.IsDown(body) ? RotationState.Horizontal : RotationState.Vertical);
+    }
+
     private void UpdateAppearance(Entity<AutodocComponent> ent)
     {
         var state = !IsPowered(ent) ? AutodocVisualState.Unpowered
@@ -346,6 +366,7 @@ public sealed partial class AutodocSystem : EntitySystem
         ent.Comp.AnaestheticGiven = false;
         ent.Comp.PowerPaused = false;
         ent.Comp.Locked = IsEmagged(ent);
+        ent.Comp.SpokenFamilies.Clear();
         _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
     }
 

@@ -429,10 +429,21 @@ heals by fiat and never applies a topical.
   inside the pod's BUI state (`HealthAnalyzerSystem.WolfmedBuildScanMessage`), so the window mounts the
   analyzer's `WolfmedDiagnosticPanel` verbatim and a new `WolfmedBodyDoll` control carrying the analyzer's
   exact 3x doll geometry.
-- **One voice line, one file, one transcript.** `autodocVoice` maps 59 events to 71 line ids; each id has one
-  ogg and one Fluent transcript, both written by `Tools/_WF/wolfmed/gen_autodoc_voice*.py` from one table, so
-  the spoken line and the chat line can never disagree. Generated with eSpeak NG. No `SoundCollection` is
-  used: a collection would pick a file independently of the transcript.
+- **One voice line, one file, one transcript.** `autodocVoice` maps 62 events to 74 line ids; each id has one
+  ogg, one Fluent transcript and one priority, all written by `Tools/_WF/wolfmed/gen_autodoc_voice*.py` from
+  one table, so the spoken line and the chat line can never disagree. Generated with eSpeak NG. No
+  `SoundCollection` is used: a collection would pick a file independently of the transcript.
+- **The pod is never two voices at once (AUTODOC2).** Every line carries an `AutodocVoicePriority`. `Urgent`
+  stops the playing stream and speaks now, `Info` waits in a queue of at most three, `Step` is dropped
+  outright if anything is playing or waiting, and `Chatter` only starts after eight seconds of silence. Step
+  announcements are one or two words and a procedure speaks at most one per `AutodocStepFamily`, so a long
+  surgery says "INCISION. CLAMPING. SAWING. SUTURING." and not a sentence a step. Line length is read off the
+  ogg, so the queue can never outrun the audio, and a tool sound plays at 0.6 gain while a line is running.
+- **The pod is a bed, not a box (AUTODOC2).** Two sprite layers: the open pod as the base, the lid over it.
+  With the lid open the sprite sits at `BelowMobs` and the occupant (`showEnts: true`, laid down through the
+  standing-state appearance key) is drawn on top; closed, it goes to `OverMobs` and the lid covers them. The
+  dim unpowered colour is applied and cleared by `AutodocVisualizerSystem`: a `GenericVisualizer` could only
+  ever set a layer colour, never put it back, so one unpowered tick at map init dimmed the pod for good.
 - **Emag is a threat, not a tool.** The lid locks, the lines switch to the sinister set and the pod queues an
   amputation of a random limb and runs it, repeating until the power goes or somebody pries the lid.
 - **No revival.** `AutodocDefibModuleComponent` is recognised and reported in the window and does nothing;

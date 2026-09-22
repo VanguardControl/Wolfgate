@@ -4,21 +4,17 @@
   name: autodoc
   description: A surgical pod running S.A.M., the Surgical Automation Module. It operates. It does not explain.
   components:
+  # The bed is its own layer under the occupant; the lid is a second layer the visualizer raises over them.
   - type: Sprite
     sprite: _WF/Wolfmed/Structures/autodoc.rsi
-    drawdepth: Mobs
+    drawdepth: BelowMobs
     layers:
     - state: open
-      map: [ "base" ]
+      map: [ "enum.AutodocVisualLayers.Base" ]
+    - state: closed
+      map: [ "enum.AutodocVisualLayers.Lid" ]
+      visible: false
   - type: Appearance
-  - type: GenericVisualizer
-    visuals:
-      enum.AutodocVisuals.State:
-        base:
-          Open: { state: open }
-          Closed: { state: closed }
-          Operating: { state: operate }
-          Unpowered: { state: open, color: "#555555" }
   - type: InteractionOutline
   - type: Transform
     noRot: true
@@ -58,8 +54,9 @@
   - type: WolfmedDownedReachable
   - type: ContainerContainer
     containers:
+      # The occupant stays drawn: with the lid open they lie on the bed, with it closed the lid covers them.
       autodoc_body: !type:ContainerSlot
-        showEnts: false
+        showEnts: true
       autodoc_tools: !type:Container
       autodoc_tray: !type:ContainerSlot
       autodoc_disk: !type:ContainerSlot
