@@ -161,5 +161,7 @@ namespace Content.Shared.Input
         public static readonly BoundKeyFunction MappingRemoveDecal = "MappingRemoveDecal";
         public static readonly BoundKeyFunction MappingCancelEraseDecal = "MappingCancelEraseDecal";
         public static readonly BoundKeyFunction MappingOpenContextMenu = "MappingOpenContextMenu";
+        public static readonly BoundKeyFunction MappingUndo = "MappingUndo"; // WOLFGATE - mapping undo
+        public static readonly BoundKeyFunction MappingRedo = "MappingRedo"; // WOLFGATE - mapping undo
     }
 }

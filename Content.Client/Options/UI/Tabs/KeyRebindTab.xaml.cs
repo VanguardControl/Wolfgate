@@ -253,6 +253,8 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.OpenAHelp);
             AddButton(ContentKeyFunctions.OpenConsentWindow); // WOLFGATE - consent system
             AddButton(ContentKeyFunctions.OpenAnatomyPanel); // WOLFGATE - anatomy panel
+            AddButton(ContentKeyFunctions.MappingUndo); // WOLFGATE - mapping undo
+            AddButton(ContentKeyFunctions.MappingRedo); // WOLFGATE - mapping undo
             AddButton(ContentKeyFunctions.OpenActionsMenu);
             AddButton(ContentKeyFunctions.OpenEmotesMenu);
             AddButton(ContentKeyFunctions.ToggleRoundEndSummaryWindow);
