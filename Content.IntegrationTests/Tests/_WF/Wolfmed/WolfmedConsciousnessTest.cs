@@ -147,10 +147,11 @@ public sealed class WolfmedConsciousnessTest : GameTest
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
+        EntityUid body = default;
 
         await server.WaitAssertion(() =>
         {
-            var body = entities.SpawnEntity("WolfmedConscBody", map.GridCoords);
+            body = entities.SpawnEntity("WolfmedConscBody", map.GridCoords);
             var pain = entities.System<PainSystem>();
             var consciousness = entities.System<WolfmedConsciousnessSystem>();
             var comp = entities.GetComponent<WolfmedConsciousnessComponent>(body);
@@ -170,9 +171,22 @@ public sealed class WolfmedConsciousnessTest : GameTest
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed),
                 "the body stood up inside the hysteresis band.");
 
-            // 0.80 of the cap is 108, which is 0.84 of the Downed threshold: under the band, so up.
+            // 0.80 of the cap is 108, which is 0.84 of the Downed threshold: under the band.
             pain.SetPain(body, FixedPoint2.New(108));
             consciousness.Refresh(body);
+
+            // AUTODOC5: getting up also takes the two-second dwell, which is what stops a body on the
+            // threshold flickering (and playing the body-fall sound) several times a second.
+            Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed),
+                "the body got up inside the dwell.");
+        });
+
+        await Pair.RunSeconds(3);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = entities.GetComponent<WolfmedConsciousnessComponent>(body);
+            entities.System<WolfmedConsciousnessSystem>().Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.False);
         });
@@ -312,7 +326,10 @@ public sealed class WolfmedConsciousnessTest : GameTest
             SetBlood(0.52f);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
 
+            // AUTODOC5: past the band the body is up as soon as its two-second dwell on the floor is over.
             SetBlood(0.7f);
+            comp.DownedUntil = TimeSpan.Zero;
+            consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
         });
     }
@@ -346,8 +363,10 @@ public sealed class WolfmedConsciousnessTest : GameTest
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
 
+            // AUTODOC5: one working leg is enough to stand on, once the two-second dwell is over.
             entities.GetComponent<BodyPartFunctionalityComponent>(legs[0]).State =
                 BodyPartFunctionalityState.Functional;
+            comp.DownedUntil = TimeSpan.Zero;
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
         });

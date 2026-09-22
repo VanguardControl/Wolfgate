@@ -65,6 +65,20 @@ public sealed partial class WolfmedConsciousnessComponent : Component
 
     [ViewVariables]
     public float OutLevel;
+
+    /// <summary>
+    /// Server: the earliest the body may stand back up. A stun landing on the Downed edge used to flip the
+    /// state several times a second, and every flip was another body-fall sound.
+    /// </summary>
+    [ViewVariables]
+    public TimeSpan DownedUntil;
+
+    /// <summary>
+    /// Server: the body has been on its feet at least once. A body still being assembled has no legs yet,
+    /// which reads as both legs gone, and the dwell must not hold a crewman down before they ever stood up.
+    /// </summary>
+    [ViewVariables]
+    public bool WasUp;
 }
 
 /// <summary>
@@ -81,4 +95,8 @@ public sealed partial class WolfmedDownedComponent : Component
     /// <summary>The alert shown for as long as the body is Downed.</summary>
     [DataField]
     public ProtoId<AlertPrototype> Alert = "WolfmedDowned";
+
+    /// <summary>The hands have already let go for this spell on the floor. One drop per Downed, not per tick.</summary>
+    [ViewVariables]
+    public bool Dropped;
 }

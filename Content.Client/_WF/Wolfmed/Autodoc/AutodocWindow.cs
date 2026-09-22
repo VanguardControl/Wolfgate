@@ -19,6 +19,9 @@ namespace Content.Client._WF.Wolfmed.Autodoc;
 /// </summary>
 public sealed class AutodocWindow : DefaultWindow
 {
+    /// <summary>The bottom row. Exposed so the layout test can measure the controls that used to be squeezed out.</summary>
+    public BoxContainer ControlsRow => _controls;
+
     private readonly IPrototypeManager _protos = IoCManager.Resolve<IPrototypeManager>();
     private readonly IGameTiming _timing = IoCManager.Resolve<IGameTiming>();
 
@@ -43,12 +46,14 @@ public sealed class AutodocWindow : DefaultWindow
     private readonly Label _modeLabel;
     private readonly Button _planButton;
     private readonly Button _autoButton;
+    private readonly Button _cutButton;
     private readonly Button _startButton;
     private readonly Button _pauseButton;
     private readonly Button _abortButton;
     private readonly Button _ejectButton;
     private readonly CheckBox _anaesthesia;
     private readonly Control _queueSection;
+    private readonly BoxContainer _controls;
     private readonly Label _queueHeadingCount;
 
     private readonly HashSet<string> _collapsed = new();
@@ -71,7 +76,7 @@ public sealed class AutodocWindow : DefaultWindow
     public AutodocWindow()
     {
         Title = Loc.GetString("wolfmed-autodoc-window-title");
-        MinSize = new Vector2(920, 600);
+        MinSize = new Vector2(920, 520);
         SetSize = new Vector2(1040, 680);
 
         _categories = _protos.EnumeratePrototypes<AutodocCategoryPrototype>().OrderBy(c => c.Order).ToList();
@@ -155,7 +160,7 @@ public sealed class AutodocWindow : DefaultWindow
         dollNotes.AddChild(clear);
         dollRow.AddChild(dollNotes);
         patientColumn.AddChild(dollRow);
-        patientColumn.AddChild(new TerminalScroll { VerticalExpand = true, HorizontalExpand = true, MinHeight = 120, Children = { _diagnostics } });
+        patientColumn.AddChild(new TerminalScroll { VerticalExpand = true, HorizontalExpand = true, MinHeight = 80, Children = { _diagnostics } });
         body.AddChild(patient);
 
         var console = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, VerticalExpand = true, SeparationOverride = 6 };
@@ -167,7 +172,7 @@ public sealed class AutodocWindow : DefaultWindow
         procedurePanel.AddChild(procedureColumn);
         procedureColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-procedures"), Loc.GetString("wolfmed-autodoc-ui-procedures-hint")));
         _procedures = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
-        procedureColumn.AddChild(new TerminalScroll { VerticalExpand = true, HorizontalExpand = true, MinHeight = 120, Children = { _procedures } });
+        procedureColumn.AddChild(new TerminalScroll { VerticalExpand = true, HorizontalExpand = true, MinHeight = 80, Children = { _procedures } });
         console.AddChild(procedurePanel);
 
         // Queue.
@@ -180,7 +185,7 @@ public sealed class AutodocWindow : DefaultWindow
         queueColumn.AddChild(queueHeading);
         queueHeading.AddChild(_queueHeadingCount);
         _queueBox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
-        queueColumn.AddChild(new TerminalScroll { HorizontalExpand = true, MinHeight = 120, Children = { _queueBox } });
+        queueColumn.AddChild(new TerminalScroll { HorizontalExpand = true, MinHeight = 80, Children = { _queueBox } });
         _queueSection = queuePanel;
         console.AddChild(queuePanel);
 
@@ -212,8 +217,11 @@ public sealed class AutodocWindow : DefaultWindow
         hardwareColumn.AddChild(_modeLabel);
         lower.AddChild(hardwarePanel);
 
-        // Controls.
+        // Controls. Anchored on the window's own column rather than inside the console, so the row is one of
+        // the fixed children the layout serves before it hands what is left to the body: a BoxContainer that
+        // runs out of room clamps its last children to nothing, which is how this row used to vanish.
         var controls = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 6 };
+        _controls = controls;
         _anaesthesia = new CheckBox { Text = Loc.GetString("wolfmed-autodoc-ui-anaesthesia"), Pressed = true, HorizontalExpand = true };
         _anaesthesia.Label.FontOverride = Mono(11);
         _anaesthesia.Label.FontColorOverride = Amber;
@@ -239,10 +247,15 @@ public sealed class AutodocWindow : DefaultWindow
         controls.AddChild(_abortButton);
         controls.AddChild(_ejectButton);
 
+        _cutButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-cut"), Alert);
+        _cutButton.ToolTip = Loc.GetString("wolfmed-autodoc-ui-cut-hint");
+        _cutButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.CutClothing);
+        controls.AddChild(_cutButton);
+
         _autoButton = FlatButton(Loc.GetString("wolfmed-autodoc-ui-auto-off"), Cyan);
         _autoButton.OnPressed += _ => OnControl?.Invoke(AutodocControl.Auto);
         controls.AddChild(_autoButton);
-        console.AddChild(controls);
+        column.AddChild(controls);
 
         _doll.OnPartSelected += part => SetFilter(_filter == part ? null : part);
         _diagnostics.OnPartSelected += part => SetFilter(_filter == part ? null : part);
@@ -359,6 +372,8 @@ public sealed class AutodocWindow : DefaultWindow
         _pauseButton.Text = Loc.GetString(state.State == AutodocState.Paused ? "wolfmed-autodoc-ui-resume" : "wolfmed-autodoc-ui-pause");
         _abortButton.Disabled = state.State == AutodocState.Idle;
         _ejectButton.Disabled = !state.Occupied;
+        _cutButton.Disabled = !state.ClothingBlocked;
+        _cutButton.Label.FontColorOverride = state.ClothingBlocked ? Alert : AmberFaint;
 
         DrawProcedures(state);
         DrawQueue(state);

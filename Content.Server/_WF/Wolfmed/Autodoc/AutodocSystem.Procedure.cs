@@ -11,8 +11,14 @@ using Content.Shared._WF.Wolfmed.Autodoc;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Server.Body.Components;
+using Content.Server._WF.Wolfmed.Life;
+using Content.Shared.Chat;
+using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Body.Part;
+using Content.Shared.Inventory;
+using Content.Shared.Popups;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
@@ -62,6 +68,7 @@ public sealed partial class AutodocSystem
             TickOxygen(ent);
             TickEmag(ent);
             TickAuto(ent);
+            TickDefib(ent);
             TickAlarm(ent);
             TickIdleChatter(ent);
 
@@ -296,6 +303,7 @@ public sealed partial class AutodocSystem
 
         WarnAboutJunkReagents(ent);
         TryDefibrillateOccupant(ent, body);
+        TryTransfuse(ent, body);
 
         // A fresh procedure gets to announce each family of work once more, and starts the stall guard
         // from nothing: the step counts only mean anything within one procedure.
@@ -766,6 +774,10 @@ public sealed partial class AutodocSystem
             _adminLog.Add(LogType.Action, LogImpact.Medium,
                 $"autodoc {ToPrettyString(ent.Owner)} finished {queued.Surgery} on {ToPrettyString(body)} for operator {ToPrettyString(ent.Comp.Operator)}");
 
+            // AUTODOC5: the part gives up whatever damage the wounds this procedure closed used to carry.
+            if (ResolvePart(body, queued.Part) is { } part)
+                _damageSync.SyncPart(part);
+
             ent.Comp.Queue.RemoveAt(0);
         }
 
@@ -793,7 +805,11 @@ public sealed partial class AutodocSystem
     public bool TryDefibrillateOccupant(Entity<AutodocComponent> ent, EntityUid body)
     {
         if (!_life.InArrest(body) && !_mobState.IsDead(body))
+        {
+            ent.Comp.DefibAttempt = 0;
+            ent.Comp.DefibBlocked = null;
             return false;
+        }
 
         if (!HasDefibModule(ent))
         {
@@ -803,22 +819,77 @@ public sealed partial class AutodocSystem
             return false;
         }
 
+        ent.Comp.DefibNext = _timing.CurTime + TimeSpan.FromSeconds(MathF.Max(0.1f, ent.Comp.DefibRetryDelay));
+
+        // A gate is not something another shock fixes, so the pod does not even charge: it says what is
+        // wrong, once, and says it again only when the reason changes.
+        if (_revival.GetRefusal(body) is { } refusal && refusal != WolfmedRevivalSystem.NoResponse)
+        {
+            if (ent.Comp.DefibBlocked != refusal)
+            {
+                ent.Comp.DefibBlocked = refusal;
+                Speak(ent, AutodocVoiceEvent.DefibBlocked);
+                _chat.TrySendInGameICMessage(ent.Owner, Loc.GetString(refusal), InGameICChatType.Speak, false);
+            }
+
+            return false;
+        }
+
+        ent.Comp.DefibBlocked = null;
+        if (ent.Comp.DefibAttempt >= _defibAttempts)
+            return false;
+
+        ent.Comp.DefibAttempt++;
         Speak(ent, AutodocVoiceEvent.DefibCharge);
         _audio.PlayPvs(DefibChargeSound, ent.Owner);
         var revived = _revival.TryDefibrillate(body, out _);
         _audio.PlayPvs(DefibZapSound, ent.Owner);
         _audio.PlayPvs(revived ? DefibSuccessSound : DefibFailureSound, ent.Owner);
-        Speak(ent, revived ? AutodocVoiceEvent.DefibSuccess : AutodocVoiceEvent.DefibFailure);
-        return revived;
+
+        if (revived)
+        {
+            ent.Comp.DefibAttempt = 0;
+            Speak(ent, AutodocVoiceEvent.DefibSuccess);
+            return true;
+        }
+
+        // "CHARGING AGAIN" is now true: TickDefib comes back in DefibRetryDelay seconds until the pod runs
+        // out of attempts, and then it says so instead of promising a shock it will never give.
+        Speak(ent, ent.Comp.DefibAttempt >= _defibAttempts
+            ? AutodocVoiceEvent.DefibGaveUp
+            : AutodocVoiceEvent.DefibFailure);
+        return false;
+    }
+
+    /// <summary>The shocks between the procedures: one every DefibRetryDelay while the heart is stopped.</summary>
+    private void TickDefib(Entity<AutodocComponent> ent)
+    {
+        if (!IsPowered(ent) || !HasDefibModule(ent) || _timing.CurTime < ent.Comp.DefibNext ||
+            GetOccupant(ent) is not { } body)
+            return;
+
+        if (!_life.InArrest(body) && !_mobState.IsDead(body))
+            return;
+
+        if (ent.Comp.DefibAttempt >= _defibAttempts && _revival.GetRefusal(body) == null)
+            return;
+
+        TryDefibrillateOccupant(ent, body);
     }
 
     private void FinishQueue(Entity<AutodocComponent> ent)
     {
         // BRAIN: a patient who arrested on the table is the last thing the pod does something about.
         if (GetOccupant(ent) is { } patient)
+        {
             TryDefibrillateOccupant(ent, patient);
+            TryTransfuse(ent, patient);
 
-        _audio.PlayPvs(ent.Comp.DoneSound, ent.Owner);
+            // AUTODOC5: nothing the pod did went through the damage path, so the parts still carry the
+            // damage of every wound it closed. They give it up here, and the body total with it.
+            _damageSync.SyncBody(patient);
+        }
+
         Speak(ent, AutodocVoiceEvent.QueueComplete);
         WakeOccupant(ent);
         ent.Comp.State = AutodocState.Complete;
@@ -899,7 +970,8 @@ public sealed partial class AutodocSystem
 
     /// <summary>
     /// Waiting on the patient rather than on the tray: clothing over the part. The pod says so once and
-    /// looks again every tick, so it picks the procedure straight back up once the way is clear.
+    /// looks again every tick, so it picks the procedure straight back up once the way is clear. Somebody
+    /// awake is asked to undress or press CUT; somebody who cannot is warned that AUTO will do it for them.
     /// </summary>
     private void EnterBlocked(Entity<AutodocComponent> ent, StepInvalidReason reason)
     {
@@ -910,10 +982,85 @@ public sealed partial class AutodocSystem
         ent.Comp.BlockedReason = reason;
 
         if (first)
-            Speak(ent, AutodocVoiceEvent.Clothing);
+        {
+            ent.Comp.ClothingSince = _timing.CurTime;
+            var body = GetOccupant(ent);
+            var helpless = body is { } patient && !CanUndress(patient);
+            Speak(ent, ent.Comp.Auto && helpless ? AutodocVoiceEvent.ClothingAuto : AutodocVoiceEvent.Clothing);
+
+            if (body is { } awake && !helpless)
+                _popup.PopupEntity(Loc.GetString("wolfmed-autodoc-popup-clothing"), ent.Owner, awake,
+                    PopupType.MediumCaution);
+        }
 
         UpdateAppearance(ent);
         UpdateUi(ent);
+    }
+
+    /// <summary>Slots the surgery access rules look at, and the only ones the pod ever cuts.</summary>
+    private const SlotFlags CutSlots = SlotFlags.OUTERCLOTHING | SlotFlags.INNERCLOTHING;
+
+    /// <summary>
+    /// Acts on a clothing block. A pressed CUT button cuts now; an AUTO pod whose patient is in no state to
+    /// undress themselves cuts once it has waited its delay out. Anything else waits for a person.
+    /// </summary>
+    private void TickClothing(Entity<AutodocComponent> ent)
+    {
+        if (GetOccupant(ent) is not { } body)
+            return;
+
+        if (ent.Comp.CutClothingRequested)
+        {
+            CutClothing(ent, body);
+            return;
+        }
+
+        if (!ent.Comp.Auto || CanUndress(body) ||
+            _timing.CurTime - ent.Comp.ClothingSince < TimeSpan.FromSeconds(MathF.Max(0f, ent.Comp.ClothingCutDelay)))
+            return;
+
+        CutClothing(ent, body);
+    }
+
+    /// <summary>True while the occupant could still take their own clothes off.</summary>
+    private bool CanUndress(EntityUid body)
+    {
+        return !_mobState.IsIncapacitated(body) &&
+               !HasComp<WolfmedDownedComponent>(body) &&
+               !HasComp<ForcedSleepingComponent>(body);
+    }
+
+    /// <summary>
+    /// Cuts the garments in the way off and destroys them: the outer layer and the jumpsuit, which is what
+    /// the surgery access rules read. The ID, bag, shoes, gloves, mask and headset are left alone.
+    /// </summary>
+    public bool CutClothing(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        ent.Comp.CutClothingRequested = false;
+        if (!_inventory.TryGetContainerSlotEnumerator(body, out var slots, CutSlots))
+            return false;
+
+        var cut = false;
+        while (slots.MoveNext(out var slot))
+        {
+            if (slot.ContainedEntity is not { } garment ||
+                !_inventory.TryUnequip(body, slot.ID, force: true, silent: true))
+                continue;
+
+            QueueDel(garment);
+            cut = true;
+        }
+
+        if (!cut)
+            return false;
+
+        Speak(ent, AutodocVoiceEvent.Cutting);
+        _audio.PlayPvs(ent.Comp.CutSound, ent.Owner, DuckedParams(ent, AudioParams.Default));
+
+        ent.Comp.BlockedReason = null;
+        ent.Comp.State = AutodocState.Step;
+        BeginStep(ent);
+        return true;
     }
 
     private void TickWaiting(Entity<AutodocComponent> ent)
@@ -935,6 +1082,13 @@ public sealed partial class AutodocSystem
 
         if (ent.Comp.BlockedReason != null)
         {
+            if (ent.Comp.BlockedReason == StepInvalidReason.Armor)
+            {
+                TickClothing(ent);
+                if (ent.Comp.State != AutodocState.Waiting)
+                    return;
+            }
+
             ent.Comp.State = AutodocState.Step;
             BeginStep(ent);
             return;
@@ -1086,6 +1240,83 @@ public sealed partial class AutodocSystem
                 return;
             }
         }
+    }
+
+    #endregion
+
+    #region Blood
+
+    /// <summary>
+    /// Tops the occupant's blood up out of the reservoir: ten units at a time until they are back over the
+    /// pod's target or the beakers run dry. Their own blood reagent first; saline counts as volume, which is
+    /// what the bloodstream already makes of it.
+    /// </summary>
+    public bool TryTransfuse(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        if (!TryComp(body, out BloodstreamComponent? blood))
+            return false;
+
+        if (_bloodstream.GetBloodLevelPercentage(body, blood) >= _transfuseBelow)
+        {
+            ent.Comp.Transfusing = false;
+            return false;
+        }
+
+        var pushed = false;
+        var target = Math.Clamp(ent.Comp.TransfuseTarget, 0f, 1f);
+        // Bounded so an unreachable target cannot spin: twenty pushes is two whole bloodstreams.
+        for (var i = 0; i < 20 && _bloodstream.GetBloodLevelPercentage(body, blood) < target; i++)
+        {
+            var taken = DrawFluid(ent, blood.BloodReagent, ent.Comp.TransfuseDose);
+            if (taken <= FixedPoint2.Zero)
+                break;
+
+            _bloodstream.TryModifyBloodLevel(body, taken, blood);
+            pushed = true;
+        }
+
+        if (pushed)
+            Speak(ent, AutodocVoiceEvent.Transfusing);
+
+        ent.Comp.Transfusing = _bloodstream.GetBloodLevelPercentage(body, blood) < _transfuseBelow;
+        return pushed;
+    }
+
+    /// <summary>True while the occupant is low enough on blood for the pod to want to do something.</summary>
+    public bool NeedsTransfusion(EntityUid body) =>
+        TryComp(body, out BloodstreamComponent? blood) &&
+        _bloodstream.GetBloodLevelPercentage(body, blood) < _transfuseBelow;
+
+    /// <summary>Takes up to a dose of the patient's own blood reagent, then of any other loaded fluid.</summary>
+    private FixedPoint2 DrawFluid(Entity<AutodocComponent> ent, string bloodReagent, float units)
+    {
+        if (!_protos.TryIndex(ent.Comp.Reagents, out var list))
+            return FixedPoint2.Zero;
+
+        var fluids = list.Reagents
+            .Where(entry => entry.AutodocAdministrable && entry.Role == AutodocReagentRole.Fluid)
+            .Select(entry => entry.Reagent.Id)
+            .ToArray();
+
+        var matching = fluids.Where(id => id == bloodReagent).ToArray();
+        foreach (var wanted in new[] { matching, fluids })
+        {
+            if (wanted.Length == 0)
+                continue;
+
+            foreach (var slot in AutodocComponent.ReservoirSlotIds)
+            {
+                if (_slots.GetItemOrNull(ent.Owner, slot) is not { } beaker ||
+                    !TryGetReservoirSolution(beaker, out var soln, out _))
+                    continue;
+
+                var taken = _solutions.SplitSolutionPerReagentWithOnly(soln.Value, FixedPoint2.New(units), wanted);
+                if (taken.Volume > FixedPoint2.Zero)
+                    return taken.Volume;
+            }
+        }
+
+        return FixedPoint2.Zero;
     }
 
     #endregion

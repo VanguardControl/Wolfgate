@@ -18,11 +18,19 @@ public sealed partial class AutodocSystem
     /// <summary>Sedation the pod will not push a patient past.</summary>
     private float _sedationCap = 0.5f;
 
+    /// <summary>Blood volume fraction under which the pod reaches for the reservoir.</summary>
+    private float _transfuseBelow = 0.8f;
+
+    /// <summary>Shocks the pod gives one patient before it gives up.</summary>
+    private int _defibAttempts = 5;
+
     private void InitializeTriage()
     {
         Subs.CVar(_cfg, WolfmedCVars.AutodocAlarm, value => _alarmEnabled = value, true);
         Subs.CVar(_cfg, WolfmedCVars.AutodocStepRetries, value => _stepRetries = Math.Max(1, value), true);
         Subs.CVar(_cfg, WolfmedCVars.AutodocSedationCap, value => _sedationCap = Math.Clamp(value, 0f, 1f), true);
+        Subs.CVar(_cfg, WolfmedCVars.AutodocTransfuseBelow, value => _transfuseBelow = Math.Clamp(value, 0f, 1f), true);
+        Subs.CVar(_cfg, WolfmedCVars.AutodocDefibAttempts, value => _defibAttempts = Math.Max(1, value), true);
     }
 
     #region The plan

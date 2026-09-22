@@ -16,10 +16,14 @@ wolfmed-autodoc-status-idle = STANDBY
 wolfmed-autodoc-status-preparing = PREPARING
 wolfmed-autodoc-status-step = OPERATING
 wolfmed-autodoc-status-waiting = WAITING FOR MATERIAL
+wolfmed-autodoc-status-waiting-clothing = WAITING: CLOTHING
+wolfmed-autodoc-status-transfusing = TRANSFUSING
 wolfmed-autodoc-status-paused = HOLDING
 wolfmed-autodoc-status-complete = PROCEDURE COMPLETE
 wolfmed-autodoc-status-faulted = FAULT
 wolfmed-autodoc-status-anaesthesia = ANAESTHESIA { $seconds }s, SEDATION { $percent }%
+
+wolfmed-autodoc-popup-clothing = S.A.M. cannot reach your skin. Take the clothing off, or press CUT CLOTHING.
 
 wolfmed-autodoc-radio-critical = AUTODOC { $location }: PATIENT VITALS CRITICAL. OPERATOR REQUESTED.
 

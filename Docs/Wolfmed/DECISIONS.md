@@ -619,3 +619,48 @@ were wrong, and all four are fixed:
 - **A damaged brain has a procedure.** `SurgeryRepairBrain` was gated on a destroyed brain, so a patient at
   three per cent brain tissue had nothing listed at all; the condition takes `anyDamage: true` now, and the
   analyzer calls anything under 60% brain damage and anything under 25% critical.
+
+## Pod blood, clothing, residual damage, UI fit (AUTODOC5, 2026-09-22)
+
+- **Downed is a transition, not a state that can flicker.** Consciousness adds and removes
+  `WolfmedDownedComponent` as its inputs cross the threshold, and the component downed and stood the body on
+  every add and remove: on the edge, where a stun leaves you, that was a body-fall sound several times a
+  second. Downed now only downs a body that is standing with no knockdown on it, only stands one that is
+  down with no knockdown left, and `WolfmedConsciousnessComponent.DownedUntil` keeps a body on the floor for
+  at least two seconds whatever the inputs do. Hysteresis is a band and the inputs cross it; a dwell is not.
+  The dwell needs `WasUp`: a body still being assembled has no legs yet, which reads as both legs gone, and
+  holding one down for two seconds before it ever stood up broke every test that spawns a mob and uses it in
+  the same breath.
+- **Going down drops what you were holding**, the way a knockdown does. Run from `WolfmedDownedSystem`'s
+  Update on the first tick of being down, not from the component's startup: startup runs inside the
+  consciousness evaluation, where a hand's container will not give its item up. Picking things back up while
+  Downed is still allowed, so the CONSC rule "self only" is unchanged.
+- **A wound does not own the damage it was made from.** The part's `DamageableComponent` carries it and the
+  body totals every part, so surgery that closes a wound directly (HOOK 27's tend, embedded removal) left
+  ghost brute nothing but a brute pack could clear. `WolfmedWoundDamageSyncSystem` lowers each wound-backed
+  damage type on a part to what its remaining wounds account for, and never raises one, so damage nothing
+  models is untouched and no path can invent healing.
+- **The pod cuts clothing rather than waiting on it for ever.** AUTODOC4 had it ask and retry, which is a
+  deadlock when there is nobody to ask. A conscious patient is told to undress or press CUT; one who cannot
+  is cut for by AUTO after five seconds. Only the outer layer and the jumpsuit, which are the slots the
+  surgery access rules read - the pod has no business with an ID or a backpack.
+- **A BoxContainer that runs out of room clamps its last children to zero.** That is why the window's
+  headless test passed while the owner's bottom row was missing: nothing can hang below the window, it just
+  stops existing. The controls row moved onto the window's own column so the layout serves it before the
+  body, and the test now measures the row's height at two UI scales instead of asking about overflow.
+- **A corpse gets the flat defibrillator chance once it has been repaired.** The oxygenation scaling is what
+  makes speed matter on an arrested body still on the clock; a dead body has no circulation and therefore no
+  way to raise that number, so the medic who repaired the brain and put the blood back was being told "no
+  response" at 13% a shock for a reason nothing on the body showed. CPR on a corpse now also refills
+  oxygenation slowly, because chest compressions circulate.
+- **"Charging again" has to be true.** The pod retries a failed shock every five seconds up to
+  `wolfmed.autodoc_defib_attempts`, then says it cannot restart the heart. A gate refusal (no blood, brain
+  damage) never charges at all: it says which gate, once, and again only when the reason changes.
+- **Asphyxiation is capped at `wolfmed.airloss_cap` (200); Bloodloss is not.** The body damage cap only ever
+  saw part damage, so suffocation counted past 700 on a body that cannot die of the number. Bloodloss is left
+  alone because decapitation and the other vital losses deal a fixed lethal figure through it. BRAIN's hypoxia clock carries the
+  lethality; the reading stops at the old death line, which is also what stops a blood pack being spent on
+  bloodloss damage that could never come down.
+- **One close chain serves every part, so its bone step is named for no part.** "Mend ribcage" read wrong on
+  a head. Renamed "Mend bone" rather than split into a per-part chain: `SurgeryCloseIncision` is named as a
+  requirement by a dozen surgeries and splitting it is a change of its own shape.

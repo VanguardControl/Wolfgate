@@ -4256,3 +4256,61 @@ brain nobody could repair.
   damaged brain, which is the one path that was missing.
 - **The brain-damage finding is a coloured banner, not a clickable procedure.** Wiring a new condition id
   into the treatment-advice mapping is a package of its own; the banner names the surgery in its text.
+
+## Final stages: AUTODOC5 (2026-09-22)
+
+Twelve owner playtest findings: the drop-sound loop, the finish ding, the window's missing bottom row,
+residual damage after surgery, transfusion, clothing, dropping held items on going down, blood packs on a
+full bloodstream, the head's "Mend ribcage" label, the defibrillator's odds on a corpse, the pod's empty
+promise to charge again, and airloss past 700.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundDamageSyncSystem.cs` | new | lowers a part's damage to what its wounds still account for |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | idempotent Down/Stand, `DropEverything` on the first tick down |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | `DownedUntil` dwell, `WasUp`, `WolfmedDownedComponent.Dropped` |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | `MinDownedTime`, the dwell in `Evaluate`/`Apply` |
+| `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Wolfmed.cs` | modified | HOOK 27 syncs the part's damage after a tend |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | transfusion, clothing cutting, defib retry, no finish sound, damage sync |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | `StatusLine`, CUT CLOTHING control, clothing/transfusing flags |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs` | modified | `wolfmed.autodoc_transfuse_below` and `wolfmed.autodoc_defib_attempts` |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | inventory and damage-sync dependencies, per-occupant defib reset |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | transfusion, clothing and defib fields; `DoneSound` removed |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocUi.cs` | modified | `ClothingBlocked`, `Transfusing`, `AutodocControl.CutClothing` |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | voice events Transfusing, Cutting, ClothingAuto, DefibBlocked, DefibGaveUp |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | controls row on the window column, CUT CLOTHING button, smaller minimums |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocStyle.cs` | modified | the static font cache is locked |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | `GetRefusal`, flat chance on a dead body |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | CPR refills a corpse's oxygenation |
+| `Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs` | modified | a blood pack has no work on a full bloodstream |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs` | modified | marked: the airloss ceiling in `ApplySystemicDamage` |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartSystem.cs` | modified | `AirlossCeiling` |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `autodoc_transfuse_below`, `autodoc_defib_attempts`, `airloss_cap` |
+| `Resources/Prototypes/_Shitmed/Entities/Surgery/surgery_steps.yml` | modified | marked: `SurgeryStepMendRibcage` renamed "Mend bone" |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | modified | generated: 88 lines, 76 events |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc.ftl` | modified | waiting-clothing, transfusing, the clothing popup |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc-ui.ftl` | modified | CUT CLOTHING and its tooltip |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl` | modified | generated transcripts |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/{transfuse,cutting,clothing-auto,defib-blocked,defib-gaveup}.ogg` | new | eSpeak NG, the AUTODOC2 chain |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/clothing.ogg` | modified | retuned line |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Downed drops what you hold; the dwell |
+| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | modified | five new rows |
+| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | modified | five new events |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDownedTransitionTest.cs` | new | one fall on the edge, held items dropped |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocWindowLayoutTest.cs` | new | the controls row at UI scale 1 and 1.25 |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocCareTest.cs` | new | ghost damage, transfusion, CUT CLOTHING, AUTO cutting |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVitalLimitsTest.cs` | new | the airloss cap, the blood pack, the corpse chance, the second shock |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | three tests now wait the Downed dwell out instead of expecting instant recovery |
+
+Deviations from the spec:
+
+- **No head-specific close chain.** `SurgeryStepMendRibcage` is renamed "Mend bone" instead of a separate
+  "Seal cranium" step behind a head-only `SurgeryCloseIncisionHead`. One close chain is named as a
+  `requirement` by a dozen surgeries; splitting it per part is a package of its own, and the generic name
+  fixes the wrong label on every non-torso part at once.
+- **Airloss recovery is not separately tested.** The cap is asserted by applying the damage directly rather
+  than simulating thirty seconds without air; the drain back down is the vanilla respirator path, untouched.
+- **Bloodloss is not capped, only Asphyxiation.** Decapitation and the other vital losses deal a fixed
+  lethal 315 Bloodloss on purpose; a 200 ceiling made them survivable.
+- **CPR raising a corpse's oxygenation is a flat rate**, and only on a body that is Dead: an arrested body
+  still on the clock keeps BRAIN's "CPR buys time" balance exactly as it was.

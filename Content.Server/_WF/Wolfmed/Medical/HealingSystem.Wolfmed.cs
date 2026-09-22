@@ -136,8 +136,11 @@ public sealed partial class HealingSystem
         return false;
     }
 
-    /// <summary>Onyx's wound-host half of HasDamage, kept beside Wolfgate's own checks instead of folded into them.</summary>
-    private bool IsWoundDamaged(Entity<DamageableComponent> entity, HealingComponent healing, EntityUid? requestedPart)
+    /// <summary>
+    /// Onyx's wound-host half of HasDamage, kept beside Wolfgate's own checks instead of folded into them.
+    /// Public so a test can ask whether an item has any work on a patient without driving its do-after.
+    /// </summary>
+    public bool IsWoundDamaged(Entity<DamageableComponent> entity, HealingComponent healing, EntityUid? requestedPart)
     {
         if (!TryComp(entity, out WoundHostComponent? host))
             return false;
@@ -159,8 +162,14 @@ public sealed partial class HealingSystem
 
         if (healing.HealDamage)
         {
+            var bloodFull = IsBloodFull(entity);
             foreach (var (type, amount) in treatable.DamageDict)
             {
+                // A blood pack on a full bloodstream has nothing to do, whatever bloodloss damage the body
+                // is still carrying: it was being spent one pack at a time on a number it could not move.
+                if (bloodFull && type == "Bloodloss")
+                    continue;
+
                 var source = host.LocalizedDamageTypes.Contains(type) ? resolve.Part : entity.Owner;
                 if (amount < 0 && source is { } sourceEntity &&
                     TryComp(sourceEntity, out DamageableComponent? sourceDamage) &&
@@ -179,12 +188,18 @@ public sealed partial class HealingSystem
             _woundHealing.CanTreatBleeding(bleedingPart))
             return true;
 
-        if (healing.ModifyBloodLevel > 0 && TryComp<BloodstreamComponent>(entity, out var hostBloodstream) &&
-            _solutionContainerSystem.ResolveSolution(entity.Owner, hostBloodstream.BloodSolutionName,
-                ref hostBloodstream.BloodSolution, out var hostBlood) &&
-            hostBlood.Volume < hostBlood.MaxVolume)
+        if (healing.ModifyBloodLevel > 0 && !IsBloodFull(entity))
             return true;
 
         return false;
+    }
+
+    /// <summary>True when the bloodstream is already at its maximum volume, so nothing can add to it.</summary>
+    private bool IsBloodFull(EntityUid body)
+    {
+        return TryComp<BloodstreamComponent>(body, out var bloodstream) &&
+               _solutionContainerSystem.ResolveSolution(body, bloodstream.BloodSolutionName,
+                   ref bloodstream.BloodSolution, out var blood) &&
+               blood.Volume >= blood.MaxVolume;
     }
 }

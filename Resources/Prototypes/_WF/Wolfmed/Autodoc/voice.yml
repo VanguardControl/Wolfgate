@@ -277,6 +277,21 @@
         path: /Audio/_WF/Wolfmed/Autodoc/voice/clothing.ogg
       message: wolfmed-autodoc-voice-clothing
       priority: Urgent
+    clothing-auto:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/clothing-auto.ogg
+      message: wolfmed-autodoc-voice-clothing-auto
+      priority: Urgent
+    cutting:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/cutting.ogg
+      message: wolfmed-autodoc-voice-cutting
+      priority: Info
+    transfuse:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/transfuse.ogg
+      message: wolfmed-autodoc-voice-transfuse
+      priority: Info
     sedation-limit:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/sedation-limit.ogg
@@ -327,6 +342,16 @@
         path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-failure.ogg
       message: wolfmed-autodoc-voice-defib-failure
       priority: Info
+    defib-blocked:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-blocked.ogg
+      message: wolfmed-autodoc-voice-defib-blocked
+      priority: Urgent
+    defib-gaveup:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/defib-gaveup.ogg
+      message: wolfmed-autodoc-voice-defib-gaveup
+      priority: Urgent
     complete-1:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/complete-1.ogg
@@ -472,6 +497,8 @@
     DefibCharge: [defib-charge]
     DefibSuccess: [defib-success]
     DefibFailure: [defib-failure]
+    DefibBlocked: [defib-blocked]
+    DefibGaveUp: [defib-gaveup]
     Complete: [complete-1, complete-2, complete-3]
     QueueComplete: [queue-complete]
     DiskMissing: [disk-missing]
@@ -485,6 +512,9 @@
     Goodbye: [goodbye]
     Stall: [stall]
     Clothing: [clothing]
+    ClothingAuto: [clothing-auto]
+    Cutting: [cutting]
+    Transfusing: [transfuse]
     SedationLimit: [sedation-limit]
     Idle: [idle-1, idle-2, idle-3, idle-4, idle-5]
     Emag: [emag-1, emag-2, emag-3, emag-4, emag-5]

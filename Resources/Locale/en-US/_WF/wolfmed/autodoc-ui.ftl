@@ -45,6 +45,8 @@ wolfmed-autodoc-ui-pause = HOLD
 wolfmed-autodoc-ui-resume = RESUME
 wolfmed-autodoc-ui-abort = ABORT
 wolfmed-autodoc-ui-eject = EJECT
+wolfmed-autodoc-ui-cut = CUT CLOTHING
+wolfmed-autodoc-ui-cut-hint = CUT AND DESTROY WHATEVER IS BETWEEN ME AND THE SKIN
 wolfmed-autodoc-ui-locked = I DO NOT KNOW THAT PROCEDURE. INSERT THE { $program } DISK.
 wolfmed-autodoc-ui-needs-disk = NEEDS { $program }
 

@@ -133,8 +133,18 @@ public enum AutodocVoiceEvent : byte
     Goodbye,
     /// <summary>A step that keeps changing nothing. The procedure is abandoned.</summary>
     Stall,
-    /// <summary>Clothing over the part the pod is trying to open. It cannot undress anybody.</summary>
+    /// <summary>Clothing over the part the pod is trying to open. The patient may undress or press CUT.</summary>
     Clothing,
+    /// <summary>Nobody is going to undress the patient, so the pod is about to do it with a blade.</summary>
+    ClothingAuto,
+    /// <summary>The garments are being cut off.</summary>
+    Cutting,
+    /// <summary>Blood or saline is going in.</summary>
+    Transfusing,
+    /// <summary>Something about the patient means a shock cannot help, whatever the paddles do.</summary>
+    DefibBlocked,
+    /// <summary>Every shock the pod is willing to give has been given.</summary>
+    DefibGaveUp,
     /// <summary>The patient is as sedated as the pod is willing to make them. No more anaesthetic.</summary>
     SedationLimit,
 }

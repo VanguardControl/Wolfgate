@@ -151,8 +151,20 @@ public sealed partial class AutodocComponent : Component
     /// <summary>Volume (dB) the pod plays its tool sounds at; a hand tool is held next to the ear, the pod is a machine in the room.</summary>
     [DataField] public float ToolVolume = -8f;
 
-    /// <summary>Played when the whole queue is done. A microwave ding, because it is.</summary>
-    [DataField] public SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Machines/microwave_done_beep.ogg");
+    /// <summary>Units of blood or saline one transfusion push moves.</summary>
+    [DataField] public float TransfuseDose = 10f;
+
+    /// <summary>Blood volume fraction the pod transfuses up to.</summary>
+    [DataField] public float TransfuseTarget = 0.9f;
+
+    /// <summary>Seconds the pod gives a patient to undress before AUTO cuts the clothing off them.</summary>
+    [DataField] public float ClothingCutDelay = 5f;
+
+    /// <summary>Seconds between one shock and the next.</summary>
+    [DataField] public float DefibRetryDelay = 5f;
+
+    /// <summary>The shears. An existing cutting sound, not a new one.</summary>
+    [DataField] public SoundSpecifier? CutSound = new SoundPathSpecifier("/Audio/Items/wirecutter.ogg");
 
     /// <summary>The transcript of the last line spoken, for the terminal window.</summary>
     [ViewVariables] public string? LastLine;
@@ -318,6 +330,30 @@ public sealed partial class AutodocComponent : Component
     /// </summary>
     [ViewVariables]
     public StepInvalidReason? BlockedReason;
+
+    /// <summary>When the clothing block started, so AUTO can cut once the patient has had their chance.</summary>
+    [ViewVariables]
+    public TimeSpan ClothingSince;
+
+    /// <summary>Somebody pressed CUT CLOTHING. Acted on at the next look at the blocked step.</summary>
+    [ViewVariables]
+    public bool CutClothingRequested;
+
+    /// <summary>The occupant is low on blood and the reservoir can do something about it.</summary>
+    [ViewVariables]
+    public bool Transfusing;
+
+    /// <summary>Shocks given to the occupant now in the pod.</summary>
+    [ViewVariables]
+    public int DefibAttempt;
+
+    /// <summary>When the pod may charge again.</summary>
+    [ViewVariables]
+    public TimeSpan DefibNext;
+
+    /// <summary>The refusal the pod has already said out loud, so it only repeats when the reason changes.</summary>
+    [ViewVariables]
+    public string? DefibBlocked;
 
     /// <summary>The autofix module's automatic mode. Nothing without the module in its slot.</summary>
     [ViewVariables]

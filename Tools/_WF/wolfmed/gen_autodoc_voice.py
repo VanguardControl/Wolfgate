@@ -97,7 +97,10 @@ LINES = [
     ("lid-forced", "THE LID HAS BEEN FORCED. NOTED.", None, "Urgent"),
 
     ("stall", "THIS IS NOT WORKING.", None, "Urgent"),
-    ("clothing", "REMOVE YOUR CLOTHING. I CANNOT CUT IT.", None, "Urgent"),
+    ("clothing", "REMOVE YOUR CLOTHING OR PRESS CUT.", None, "Urgent"),
+    ("clothing-auto", "NOBODY IS UNDRESSING YOU. I WILL CUT.", None, "Urgent"),
+    ("cutting", "CUTTING.", None, "Info"),
+    ("transfuse", "TRANSFUSING.", None, "Info"),
     ("sedation-limit", "SEDATION AT LIMIT.", None, "Info"),
 
     ("slip", "OOPS.", None, "Urgent"),
@@ -109,6 +112,8 @@ LINES = [
     ("defib-charge", "CLEAR.", "Clear.", "Urgent"),
     ("defib-success", "SINUS RHYTHM RESTORED. WELCOME BACK.", None, "Info"),
     ("defib-failure", "NO RESPONSE. CHARGING AGAIN.", None, "Info"),
+    ("defib-blocked", "I CANNOT SHOCK THIS PATIENT YET.", None, "Urgent"),
+    ("defib-gaveup", "I CANNOT RESTART THE HEART.", None, "Urgent"),
 
     ("complete-1", "PROCEDURE COMPLETE. PLEASE COME AGAIN.", None, "Info"),
     ("complete-2", "I HAVE FINISHED. YOU MAY GO.", None, "Info"),

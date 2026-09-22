@@ -40,6 +40,10 @@ public sealed class AutodocBuiState : BoundUserInterfaceState
     public string? TrayItem;
     /// <summary>What S.A.M. said last, for the terminal line.</summary>
     public string? LastLine;
+    /// <summary>Waiting on clothing rather than on the tray, which is what the CUT button is for.</summary>
+    public bool ClothingBlocked;
+    /// <summary>The pod is topping the occupant's blood up out of the reservoir.</summary>
+    public bool Transfusing;
 }
 
 /// <summary>A procedure the occupant's current condition allows on one part.</summary>
@@ -85,6 +89,9 @@ public enum AutodocControl : byte
 
     /// <summary>Toggle the autofix module's automatic mode.</summary>
     Auto,
+
+    /// <summary>Cut and destroy whatever is in the way of the skin.</summary>
+    CutClothing,
 }
 
 [Serializable, NetSerializable]

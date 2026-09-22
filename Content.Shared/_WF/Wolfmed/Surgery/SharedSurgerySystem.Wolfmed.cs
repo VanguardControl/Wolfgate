@@ -6,6 +6,7 @@ using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Surgery;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -18,6 +19,7 @@ public abstract partial class SharedSurgerySystem
     [Dependency] private WoundSystem _wolfmedWounds = default!; // WOLFGATE: HOOK 25
     [Dependency] private WolfmedSurgeryConditionSystem _wolfmedConditions = default!; // WOLFGATE: HOOK 24
     [Dependency] private IConfigurationManager _wolfmedCfg = default!; // WOLFGATE: HOOK 27
+    [Dependency] private WolfmedWoundDamageSyncSystem _wolfmedDamageSync = default!; // WOLFGATE (AUTODOC5): HOOK 27
 
     /// <summary>
     /// HOOK 24 body: whether a tend surgery should stay off this part. Upstream lists it wherever the BODY
@@ -83,5 +85,10 @@ public abstract partial class SharedSurgerySystem
             healing.DamageDict[type] = -strength;
 
         _wolfmedWounds.TryHealWounds(part, healing);
+
+        // AUTODOC5: closing the wound by hand leaves the damage it was made from on the part, and the body
+        // totals every part, so a patient tended back to no wounds still read as hurt and only a brute pack
+        // could clear it. The part now gives up the damage its wounds no longer account for.
+        _wolfmedDamageSync.SyncPart(part);
     }
 }

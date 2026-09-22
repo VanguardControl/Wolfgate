@@ -36,27 +36,11 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     /// </summary>
     public bool TryDefibrillate(EntityUid body, out string message)
     {
-        message = "wolfmed-defib-no-response";
+        message = NoResponse;
 
-        if (TerminatingOrDeleted(body) || !OwnsRevival(body))
-            return false;
-
-        if (!_life.HasBrain(body))
+        if (GetRefusal(body) is { } refusal)
         {
-            message = "wolfmed-defib-no-brain";
-            return false;
-        }
-
-        if (_life.GetBlood(body) <= _cfg.GetCVar(WolfmedCVars.DefibBlood))
-        {
-            message = "wolfmed-defib-no-blood";
-            return false;
-        }
-
-        // A destroyed brain has to be put back together first; see SurgeryRepairBrain.
-        if (_life.GetBrainOrgan(body) is not { } organ || organ.Comp.Health <= FixedPoint2.Zero)
-        {
-            message = "wolfmed-defib-brain-dead";
+            message = refusal;
             return false;
         }
 
@@ -68,15 +52,50 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         return true;
     }
 
-    /// <summary>The paddles' odds: their base chance, scaled by how much oxygen is left in the brain.</summary>
+    /// <summary>The line a failed roll gets, as opposed to a gate that no number of shocks will move.</summary>
+    public const string NoResponse = "wolfmed-defib-no-response";
+
+    /// <summary>
+    /// Why the paddles will not even charge, or null when they will. Separate from the shock itself so a
+    /// machine can say what is wrong instead of zapping a body it was never going to restart.
+    /// </summary>
+    public string? GetRefusal(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body) || !OwnsRevival(body))
+            return NoResponse;
+
+        if (!_life.HasBrain(body))
+            return "wolfmed-defib-no-brain";
+
+        if (_life.GetBlood(body) <= _cfg.GetCVar(WolfmedCVars.DefibBlood))
+            return "wolfmed-defib-no-blood";
+
+        // A destroyed brain has to be put back together first; see SurgeryRepairBrain.
+        if (_life.GetBrainOrgan(body) is not { } organ || organ.Comp.Health <= FixedPoint2.Zero)
+            return "wolfmed-defib-brain-dead";
+
+        return null;
+    }
+
+    /// <summary>
+    /// The paddles' odds. On a body still on the arrest clock they are scaled by how much oxygen is left in
+    /// the brain, which is what makes speed matter. A corpse has no circulation and therefore no way to
+    /// raise that number, so once its brain has been repaired and its blood put back it gets the flat base
+    /// chance: the surgery was the work, and a medic who has done it should not be told "no response"
+    /// eight times in a row for a reason nothing on the body shows.
+    /// </summary>
     public float GetChance(EntityUid body)
     {
         if (_life.GetBrainOrgan(body) is not { } organ || organ.Comp.Health <= FixedPoint2.Zero)
             return 0f;
 
+        var chance = _cfg.GetCVar(WolfmedCVars.DefibChance);
+        if (_mobState.IsDead(body))
+            return Math.Clamp(chance, 0f, 1f);
+
         var floor = Math.Clamp(_cfg.GetCVar(WolfmedCVars.DefibOxygenationFloor), 0f, 1f);
         var oxygen = Math.Clamp(_life.GetOxygenation(body), 0f, 1f);
-        return Math.Clamp(_cfg.GetCVar(WolfmedCVars.DefibChance) * (floor + (1f - floor) * oxygen), 0f, 1f);
+        return Math.Clamp(chance * (floor + (1f - floor) * oxygen), 0f, 1f);
     }
 
     /// <summary>Heart going again, brain with something in it, and consciousness deciding the rest.</summary>

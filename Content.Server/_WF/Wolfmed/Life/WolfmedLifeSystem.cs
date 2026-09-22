@@ -238,12 +238,25 @@ public sealed class WolfmedLifeSystem : EntitySystem
     private void UpdateOxygenation(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)
     {
         var rate = DrainRate(body, brain);
+
+        // AUTODOC5: chest compressions circulate. On a corpse there is nothing else moving blood at all, so
+        // CPR is the only thing that can raise the number a defibrillator's odds used to be read off. An
+        // arrested body still on the clock is untouched: CPR buys it time, it does not undo the arrest.
+        if (_mobState.IsDead(body) && InCpr(body))
+        {
+            SetOxygenation(brain, brain.Comp.Oxygenation + CprDeadRefill * seconds);
+            return;
+        }
+
         var value = rate > 0f
             ? brain.Comp.Oxygenation - rate * seconds
             : brain.Comp.Oxygenation + RefillRate() * seconds;
 
         SetOxygenation(brain, value);
     }
+
+    /// <summary>Oxygenation a minute of CPR puts back into a corpse's brain, per second.</summary>
+    private const float CprDeadRefill = 1f / 90f;
 
     private float RefillRate()
     {

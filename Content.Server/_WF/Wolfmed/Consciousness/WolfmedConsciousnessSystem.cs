@@ -42,6 +42,13 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
 
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(0.5);
 
+    /// <summary>
+    /// How long Downed lasts at the least. Hysteresis alone is not enough on the edge itself: pain, relief
+    /// and an outside pressure all move every tick, and each flip out of Downed and back put the body on the
+    /// floor again with another fall sound.
+    /// </summary>
+    private static readonly TimeSpan MinDownedTime = TimeSpan.FromSeconds(2);
+
     private float _painDown;
     private float _painOut;
     private float _bloodDown;
@@ -172,6 +179,11 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             _ => WolfmedConsciousness.Up,
         };
 
+        // A body that has only just gone down stays down, whatever the inputs have done since.
+        if (target == WolfmedConsciousness.Up && body.Comp.State == WolfmedConsciousness.Downed &&
+            _timing.CurTime < body.Comp.DownedUntil)
+            target = WolfmedConsciousness.Downed;
+
         var watching = downLevel > 0f || outLevel > 0f || target != WolfmedConsciousness.Up ||
                        _relief.GetTier(body.Owner) != WolfmedPainReliefTier.None;
 
@@ -194,6 +206,8 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     private void Apply(Entity<WolfmedConsciousnessComponent> body, WolfmedConsciousness state, float depth,
         bool watching)
     {
+        var was = body.Comp.State;
+        body.Comp.WasUp |= state == WolfmedConsciousness.Up;
         body.Comp.Watching = watching;
 
         if (body.Comp.State != state || MathF.Abs(body.Comp.Depth - depth) >= 0.005f)
@@ -204,9 +218,19 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         }
 
         if (state == WolfmedConsciousness.Downed)
+        {
+            // Only a body that has been on its feet dwells. One still being assembled has no legs yet,
+            // which reads as both legs gone, and a dwell there would hold a fresh crewman down for two
+            // seconds before they had ever stood up.
+            if (was != WolfmedConsciousness.Downed && body.Comp.WasUp)
+                body.Comp.DownedUntil = _timing.CurTime + MinDownedTime;
+
             EnsureComp<WolfmedDownedComponent>(body);
+        }
         else
+        {
             RemComp<WolfmedDownedComponent>(body);
+        }
 
         if (_mobState.IsDead(body))
             return;

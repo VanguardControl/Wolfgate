@@ -1106,6 +1106,12 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
 
             var oldValue = systemic.Damage.DamageDict.GetValueOrDefault(type);
             var value = FixedPoint2.Max(FixedPoint2.Zero, systemic.Damage.DamageDict.GetValueOrDefault(type) + amount);
+
+            // WOLFGATE (AUTODOC5): the body damage cap only ever saw localized (part) damage, so airloss
+            // counted without limit on a body that cannot die of the number. BRAIN's hypoxia clock carries
+            // the lethality; the reading stops at the old death line.
+            if (_wfPart.AirlossCeiling(type) is { } ceiling && value > ceiling)
+                value = FixedPoint2.Max(oldValue, ceiling);
             if (value == oldValue)
                 continue;
 

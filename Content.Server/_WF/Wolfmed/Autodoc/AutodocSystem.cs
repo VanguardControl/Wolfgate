@@ -24,6 +24,7 @@ using Content.Shared.Emag.Components;
 using Content.Shared.Emag.Systems;
 using Content.Shared.Examine;
 using Content.Shared.Interaction;
+using Content.Shared.Inventory;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
@@ -68,6 +69,7 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly ClimbSystem _climb = default!;
     [Dependency] private readonly EmagSystem _emag = default!;
     [Dependency] private readonly HealthAnalyzerSystem _analyzer = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly ItemSlotsSystem _slots = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
@@ -86,6 +88,7 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
     [Dependency] private readonly WoundFractureSystem _fractures = default!;
     [Dependency] private readonly WolfmedEmbeddedObjectSystem _embedded = default!;
+    [Dependency] private readonly WolfmedWoundDamageSyncSystem _damageSync = default!;
     [Dependency] private readonly WoundSystem _wounds = default!;
     [Dependency] private readonly PowerReceiverSystem _power = default!;
 
@@ -218,6 +221,9 @@ public sealed partial class AutodocSystem : EntitySystem
         {
             SetOccupantLying(args.Entity, true);
             ent.Comp.DefibWarned = false;
+            ent.Comp.DefibAttempt = 0;
+            ent.Comp.DefibBlocked = null;
+            ent.Comp.DefibNext = TimeSpan.Zero;
             ent.Comp.AutoSaidNothing = false;
             ent.Comp.AutoNextPlan = TimeSpan.Zero;
 
@@ -408,6 +414,8 @@ public sealed partial class AutodocSystem : EntitySystem
         ent.Comp.StallCount = 0;
         ent.Comp.StepRuns.Clear();
         ent.Comp.BlockedReason = null;
+        ent.Comp.CutClothingRequested = false;
+        ent.Comp.Transfusing = false;
         _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
     }
 

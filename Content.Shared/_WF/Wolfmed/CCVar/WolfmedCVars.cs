@@ -270,6 +270,26 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> SurgeryTendStrength =
         CVarDef.Create("wolfmed.surgery_tend_strength", 15f, CVar.SERVERONLY);
 
+    /// <summary>Shocks the autodoc gives one patient before it says it cannot restart the heart.</summary>
+    public static readonly CVarDef<int> AutodocDefibAttempts =
+        CVarDef.Create("wolfmed.autodoc_defib_attempts", 5, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Ceiling on a wound host's Asphyxiation. The localized body cap only ever saw part damage, so
+    /// suffocation counted past 700 on a body that cannot die of the number; BRAIN's hypoxia clock carries
+    /// the lethality, and this is the old death line. Bloodloss is not capped: the vital losses (decapitation)
+    /// deal a fixed lethal figure through it.
+    /// </summary>
+    public static readonly CVarDef<float> AirlossCap =
+        CVarDef.Create("wolfmed.airloss_cap", 200f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Blood volume fraction under which the autodoc transfuses out of its reservoir. It pushes until the
+    /// occupant is back above the pod's own target or the reservoir runs dry.
+    /// </summary>
+    public static readonly CVarDef<float> AutodocTransfuseBelow =
+        CVarDef.Create("wolfmed.autodoc_transfuse_below", 0.8f, CVar.SERVERONLY);
+
     /// <summary>
     /// Sedation (0 to 1) the autodoc will not push a patient past. Respiratory depression starts at 0.6, so
     /// the pod stops well short of it and says so rather than anaesthetising somebody to death.

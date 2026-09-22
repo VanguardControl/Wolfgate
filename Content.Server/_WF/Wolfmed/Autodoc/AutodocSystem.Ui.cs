@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._WF.Wolfmed.Autodoc;
 using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared.Chemistry.EntitySystems;
@@ -155,6 +156,13 @@ public sealed partial class AutodocSystem
             case AutodocControl.Auto:
                 SetAuto(ent, !ent.Comp.Auto);
                 break;
+            case AutodocControl.CutClothing:
+                // Acted on now when the pod is already stuck on clothing, and remembered if it is not yet.
+                ent.Comp.CutClothingRequested = true;
+                if (ent.Comp.BlockedReason == StepInvalidReason.Armor && GetOccupant(ent) is { } patient)
+                    CutClothing(ent, patient);
+
+                break;
         }
 
         UpdateUi(ent);
@@ -172,11 +180,13 @@ public sealed partial class AutodocSystem
             return;
 
         var occupant = GetOccupant(ent);
+        ent.Comp.Transfusing = occupant is { } bleeding && NeedsTransfusion(bleeding);
         var state = new AutodocBuiState
         {
             State = ent.Comp.State,
-            Status = Loc.GetString($"wolfmed-autodoc-status-{ent.Comp.State.ToString().ToLowerInvariant()}") +
-                     AnaesthesiaStatus(occupant),
+            Status = StatusLine(ent) + AnaesthesiaStatus(occupant),
+            ClothingBlocked = ent.Comp.BlockedReason == StepInvalidReason.Armor,
+            Transfusing = ent.Comp.Transfusing,
             CurrentStep = ent.Comp.CurrentStep?.Id,
             Progress = ent.Comp.StepLength > 0f
                 ? Math.Clamp(1f - ent.Comp.StepRemaining / ent.Comp.StepLength, 0f, 1f)
@@ -217,6 +227,19 @@ public sealed partial class AutodocSystem
         }
 
         _ui.SetUiState(ent.Owner, AutodocUiKey.Key, state);
+    }
+
+    /// <summary>
+    /// The big readout. Waiting names what it is waiting for: "material" was a lie for a dressed patient,
+    /// who needs a button pressed rather than something put in the tray.
+    /// </summary>
+    private string StatusLine(Entity<AutodocComponent> ent)
+    {
+        if (ent.Comp.State == AutodocState.Waiting && ent.Comp.BlockedReason == StepInvalidReason.Armor)
+            return Loc.GetString("wolfmed-autodoc-status-waiting-clothing");
+
+        var status = Loc.GetString($"wolfmed-autodoc-status-{ent.Comp.State.ToString().ToLowerInvariant()}");
+        return ent.Comp.Transfusing ? status + "  " + Loc.GetString("wolfmed-autodoc-status-transfusing") : status;
     }
 
     /// <summary>

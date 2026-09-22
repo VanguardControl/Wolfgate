@@ -26,13 +26,18 @@ public static class AutodocStyle
 
     public static Font Mono(int size, bool bold = false)
     {
-        if (Fonts.TryGetValue((bold, size), out var font))
-            return font;
+        // The cache is static and two clients can build a window at once (the layout test's two UI scales),
+        // which corrupted a plain Dictionary.
+        lock (Fonts)
+        {
+            if (Fonts.TryGetValue((bold, size), out var font))
+                return font;
 
-        var cache = IoCManager.Resolve<IResourceCache>();
-        font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
-        Fonts[(bold, size)] = font;
-        return font;
+            var cache = IoCManager.Resolve<IResourceCache>();
+            font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
+            Fonts[(bold, size)] = font;
+            return font;
+        }
     }
 
     public static StyleBoxFlat Box(Color background, Color? border = null, float margin = 6f)

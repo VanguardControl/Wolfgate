@@ -154,7 +154,7 @@
 - type: entity
   parent: SurgeryStepBase
   id: SurgeryStepMendRibcage
-  name: Mend ribcage
+  name: Mend bone # WOLFGATE (AUTODOC5): one close chain serves every part, so "ribcage" was on the head too
   categories: [ HideSpawnMenu ]
   components:
   - type: SurgeryStep
