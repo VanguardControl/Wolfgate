@@ -52,6 +52,8 @@
           - HeadOfPersonnel
           - HeadOfSecurity
         - type: Announcer
+        # WOLFGATE - ships sold anywhere on this station end up on the used ship lot.
+        - type: UsedShipMarket
 
 - type: gameMap
   id: EmptyFrontier

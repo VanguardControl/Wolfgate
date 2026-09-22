@@ -87,6 +87,18 @@ public sealed partial class ShipPaSystem
         QueueRefresh(GetSpeakerGrid(ent));
     }
 
+    /// <summary>
+    /// Re-indexes a speaker on a grid loaded from a saved copy: the load never raises MapInitEvent, and
+    /// the startup index runs before the transform says which grid the speaker ended up on.
+    /// </summary>
+    public void ReindexSpeaker(Entity<ShipPaSpeakerComponent> ent)
+    {
+        IndexSpeaker(ent);
+        UpdateDamage(ent);
+        UpdateAppearance(ent);
+        QueueRefresh(GetSpeakerGrid(ent));
+    }
+
     private void OnSpeakerShutdown(Entity<ShipPaSpeakerComponent> ent, ref ComponentShutdown args)
     {
         DisableSpeaker(ent);

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared._WF.Roles; // WOLFGATE
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Random;
 using Robust.Shared.Collections;
@@ -27,6 +28,12 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
     /// </summary>
     public string? EntityName;
 
+    /// <summary>
+    /// WOLFGATE: player-written job title, for roles with a custom job title prototype.
+    /// </summary>
+    [DataField]
+    public string? CustomJobTitle;
+
     /*
      * Loadout-specific data used for validation.
      */
@@ -48,6 +55,7 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         }
 
         weh.EntityName = EntityName;
+        weh.CustomJobTitle = CustomJobTitle; // WOLFGATE
 
         return weh;
     }
@@ -63,6 +71,7 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         if (!protoManager.TryIndex(Role, out var roleProto))
         {
             EntityName = null;
+            CustomJobTitle = null; // WOLFGATE
             SelectedLoadouts.Clear();
             return;
         }
@@ -89,6 +98,8 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
                 EntityName = null;
             }
         }
+
+        CustomJobTitle = CustomJobTitleRules.Sanitize(CustomJobTitle, Role, protoManager); // WOLFGATE
 
         // In some instances we might not have picked up a new group for existing data.
         foreach (var groupProto in roleProto.Groups)
@@ -460,7 +471,8 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         if (!Role.Equals(other.Role) ||
             SelectedLoadouts.Count != other.SelectedLoadouts.Count ||
             Points != other.Points ||
-            EntityName != other.EntityName)
+            EntityName != other.EntityName ||
+            CustomJobTitle != other.CustomJobTitle) // WOLFGATE
         {
             return false;
         }

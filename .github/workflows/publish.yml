@@ -30,7 +30,7 @@ concurrency:
 
 permissions:
   contents: read
-  actions: read   # to resolve the build artifact's download URL for the CDN
+  actions: write   # to resolve the build artifact's download URL for the CDN, and delete it afterwards
   pull-requests: read   # to name the pull requests being test merged
 
 jobs:
@@ -83,7 +83,7 @@ jobs:
         path: release/
         if-no-files-found: error
         compression-level: 0
-        retention-days: 3
+        retention-days: 1
 
     - name: Publish to Robust.Cdn
       run: python3 Tools/publish_github_artifact.py
@@ -94,6 +94,13 @@ jobs:
         GITHUB_REPOSITORY: ${{ github.repository }}
         VERSION_SUFFIX: ${{ steps.testmerge.outputs.suffix }}${{ inputs.request_id != '' && format('-{0}', inputs.request_id) || '' }}
         FORK_ID: ${{ inputs.fork_id }}
+
+    # The artifact is only a hand-off to the CDN. Every one left behind counts against the org's 500 MB
+    # Actions storage, and once that is full every upload fails with a 403.
+    - name: Delete build artifact
+      run: gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/${{ steps.artifact.outputs.artifact-id }}"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # A test merge or test fork build is not a release of main, so its changelog entries are not announced.
     - name: Publish changelog (Discord)

@@ -25158,3 +25158,56 @@ Entries:
   id: 2745
   time: '2026-09-21T14:58:39.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4741
+- author: SuperGDPWYL
+  changes:
+    - type: Tweak
+      message: >-
+        Stamps can be put into deposit boxes again. They dry up and become
+        nothing more than a collector's item, however.
+  id: 2746
+  time: '2026-09-21T19:40:11.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4709
+- author: Mrrpip
+  changes:
+    - type: Fix
+      message: >-
+        Locked windoors on the QJ270 and 490 have been replaced with unlocked
+        variants. Sorry about that.
+  id: 2747
+  time: '2026-09-21T22:12:54.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4746
+- author: Mrrpip
+  changes:
+    - type: Fix
+      message: Fixed Chimera ships being 'grid'
+  id: 2748
+  time: '2026-09-21T22:34:35.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4745
+- author: kasature90
+  changes:
+    - type: Add
+      message: >-
+        Added Shuilian as a large botany ship. Available in Zvezda & CC
+        shipyards.
+    - type: Tweak
+      message: Added limits to VG Keelback, Lancehead, Wolfsnake, & Leviathan.
+    - type: Tweak
+      message: Adjusted research costs for T2/T3/T4 LPC research to be more in line.
+    - type: Tweak
+      message: Removed shield shunt/shield blocker from Neptune.
+    - type: Tweak
+      message: Decreased DC cost for PDV T1 & T2 LPCs.
+    - type: Fix
+      message: >-
+        Fixed VG LPCs being unusually cheap. They should be more consistent with
+        other T3/T4 costs. Fixed Polaris LPC missing T3 ingredients such as
+        fissile, fixed Luda LPC missing DU cost.
+    - type: Fix
+      message: >-
+        Fixed minor mapping issues with Kunai, Shirokami, & Skalpel (missing
+        APCs, inaccessible nanomeds, etc)
+    - type: Fix
+      message: Fixed GS QJ series names being too long and blocking the preview button.
+  id: 2749
+  time: '2026-09-21T22:48:56.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4750

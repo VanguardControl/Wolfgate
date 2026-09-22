@@ -2,6 +2,7 @@
 using Content.Client._NF.Shipyard.UI;
 // WOLFGATE - the Wolfgate ship previewer replaces the Mono preview-map flow for this button.
 using Content.Client._WF.ShipPreview.UI;
+using Content.Shared._WF.Traders; // WOLFGATE
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared._NF.Shipyard.BUI;
 using Content.Shared._NF.Shipyard.Events;
@@ -48,6 +49,13 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
         _menu.OnRenameShip += RenameShip;
         _menu.TargetIdButton.OnPressed += _ => SendMessage(new ItemSlotButtonPressedEvent("ShipyardConsole-targetId"));
         _menu.OnPreviewShip += PreviewShip;
+
+        // WOLFGATE - an NPC dealer only sells; the card is theirs to hold and the server refuses both buttons.
+        if (EntMan.HasComponent<TraderComponent>(Owner))
+        {
+            _menu.HideSellControls();
+            _menu.TargetIdButton.Disabled = true;
+        }
     }
 
     private void Populate(List<string> availablePrototypes, List<string> unavailablePrototypes, bool freeListings, bool validId)

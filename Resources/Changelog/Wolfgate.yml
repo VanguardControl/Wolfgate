@@ -276,3 +276,33 @@ Entries:
   id: 100025
   time: '2026-09-21T05:35:29.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/49
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Custom job name for vagrants!
+  id: 100026
+  time: '2026-09-21T19:38:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/58
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        NPC traders at Caelestinus Central. Talk to them across their table, pay
+        with cash or your ID, get a receipt.
+    - type: Add
+      message: >-
+        Fuel technician who refuels your docked ship. Shipyard dealer for new
+        ships, used ship salesman who buys yours and relists it.
+    - type: Add
+      message: >-
+        Ships sold at Caelestinus Central now turn up at the used ship lot 5
+        minutes later, exactly as you left them, at a 5% markup.
+    - type: Add
+      message: John Wolfgate and the Wolfgate Vending Machine.
+    - type: Tweak
+      message: >-
+        The old vending machines and shipyard consoles on Caelestinus Central
+        have been replaced by the traders.
+  id: 100027
+  time: '2026-09-22T16:23:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/59

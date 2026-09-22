@@ -1675,7 +1675,7 @@
   description: uplink-pdv-t1-voucher-desc
   productEntity: ShipVoucherPdvT1
   cost:
-    Doubloon: 150
+    Doubloon: 75
   categories:
   - UplinkPdvVouchers
   conditions:
@@ -1690,7 +1690,7 @@
   description: uplink-pdv-t2-voucher-desc
   productEntity: ShipVoucherPdvT2
   cost:
-    Doubloon: 275
+    Doubloon: 150
   categories:
   - UplinkPdvVouchers
   conditions:
@@ -1728,7 +1728,7 @@
     whitelist:
       tags:
       - FactionStaticUplinkPdv
-      
+
 - type: listing
   id: UplinkHardBombPDV
   name:  uplink-HardBomb-PDV-name

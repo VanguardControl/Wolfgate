@@ -1133,6 +1133,11 @@ namespace Content.Server.Database.Migrations.Postgres
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CustomJobTitle")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("custom_job_title");
+
                     b.Property<string>("EntityName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")

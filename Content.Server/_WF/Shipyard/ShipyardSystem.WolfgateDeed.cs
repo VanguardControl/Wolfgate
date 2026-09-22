@@ -33,14 +33,16 @@ public sealed partial class ShipyardSystem
     /// vessel tags and crew requirement. Skipped on purpose: payment, vouchers, purchase-attempt checks,
     /// ID access levels and job title, and the shipyard console messages.
     /// </summary>
-    public bool TryAssignDeed(EntityUid shuttleUid, EntityUid idCard, ICommonSession owner, VesselPrototype vessel)
+    /// <param name="vessel">Design the ship was built from, if it is still known.</param>
+    /// <param name="shipName">Name to keep, for a ship that already had one. Null takes the design's.</param>
+    public bool TryAssignDeed(EntityUid shuttleUid, EntityUid idCard, ICommonSession owner, VesselPrototype? vessel, string? shipName = null)
     {
         if (!HasComp<ShuttleComponent>(shuttleUid) || !TryComp<IdCardComponent>(idCard, out var card))
             return false;
 
         var ownerEntity = owner.AttachedEntity is { Valid: true } attached ? attached : (EntityUid?)null;
         var ownerName = ownerEntity != null ? Name(ownerEntity.Value).Trim() : owner.Name;
-        var name = vessel.Name;
+        var name = vessel?.Name ?? Name(shuttleUid);
 
         if (!string.IsNullOrEmpty(card.CompanyName))
         {
@@ -51,13 +53,18 @@ public sealed partial class ShipyardSystem
 
         // Ships with a matching game map get a station so players can late-join onto them.
         EntityUid? shuttleStation = null;
-        if (_prototypeManager.TryIndex<GameMapPrototype>(vessel.ID, out var stationProto)
+        if (vessel != null
+            && _prototypeManager.TryIndex<GameMapPrototype>(vessel.ID, out var stationProto)
             && stationProto.Stations.TryGetValue(vessel.ID, out var stationConfig))
         {
             shuttleStation = _station.InitializeNewStation(stationConfig, new List<EntityUid> { shuttleUid });
             name = Name(shuttleStation.Value);
             EnsureComp<ExtraShuttleInformationComponent>(shuttleStation.Value).Vessel = vessel.ID;
         }
+
+        // A ship that is changing hands rather than rolling off the line keeps the name it had.
+        if (shipName != null)
+            name = shipName;
 
         EnsureComp<FTLLockComponent>(shuttleUid);
         EntityManager.System<ShuttleConsoleSystem>().ToggleFTLLock(shuttleUid, new List<NetEntity>(), true);
@@ -89,11 +96,14 @@ public sealed partial class ShipyardSystem
         AddShipAccessToEntities(shuttleUid);
         EnsureComp<LinkedLifecycleGridParentComponent>(shuttleUid);
 
-        EnsureComp<VesselComponent>(shuttleUid).VesselId = vessel.ID;
-        EnsureComp<TagComponent>(shuttleUid);
-        _tagSystem.TryAddTags(shuttleUid, vessel.Tags);
-        if (vessel.RequireCrew || vessel.Classes.Contains(VesselClass.Capital) || _tagSystem.HasTag(shuttleUid, CrewedShuttleTag))
-            EnsureComp<CrewedShuttleComponent>(shuttleUid);
+        if (vessel != null)
+        {
+            EnsureComp<VesselComponent>(shuttleUid).VesselId = vessel.ID;
+            EnsureComp<TagComponent>(shuttleUid);
+            _tagSystem.TryAddTags(shuttleUid, vessel.Tags);
+            if (vessel.RequireCrew || vessel.Classes.Contains(VesselClass.Capital) || _tagSystem.HasTag(shuttleUid, CrewedShuttleTag))
+                EnsureComp<CrewedShuttleComponent>(shuttleUid);
+        }
 
         _shuttleRecordsSystem.AddRecord(new ShuttleRecord(
             name: deedShuttle.ShuttleName ?? string.Empty,
@@ -101,7 +111,7 @@ public sealed partial class ShipyardSystem
             ownerName: ownerName,
             entityUid: GetNetEntity(shuttleUid),
             purchasedWithVoucher: false,
-            purchasePrice: (uint)vessel.Price));
+            purchasePrice: (uint)(vessel?.Price ?? 0)));
 
         if (ownerEntity != null)
         {
@@ -109,7 +119,14 @@ public sealed partial class ShipyardSystem
             RaiseLocalEvent(purchaseEv);
         }
 
-        _metaData.SetEntityName(shuttleUid, GetFullName(deedShuttle));
+        var fullName = GetFullName(deedShuttle);
+        _metaData.SetEntityName(shuttleUid, fullName);
+        if (shuttleStation != null)
+        {
+            _station.RenameStation(shuttleStation.Value, fullName, loud: false);
+            _metaData.SetEntityName(shuttleStation.Value, fullName);
+        }
+
         return true;
     }
 

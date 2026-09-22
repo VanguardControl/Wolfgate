@@ -1073,6 +1073,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("INTEGER")
                         .HasColumnName("profile_role_loadout_id");
 
+                    b.Property<string>("CustomJobTitle")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("custom_job_title");
+
                     b.Property<string>("EntityName")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT")

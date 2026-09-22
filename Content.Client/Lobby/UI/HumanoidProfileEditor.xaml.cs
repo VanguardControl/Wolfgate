@@ -1168,6 +1168,7 @@ namespace Content.Client.Lobby.UI
         public void RefreshLoadouts()
         {
             _loadoutWindow?.Dispose();
+            CloseCustomJobTitle(); // WOLFGATE
         }
 
         /// <summary>
@@ -1471,6 +1472,7 @@ namespace Content.Client.Lobby.UI
                     _jobPriorities.Add((job.ID, selector));
                     jobContainer.AddChild(selector);
                     jobContainer.AddChild(loadoutWindowBtn);
+                    AddCustomJobTitleButton(job, jobContainer); // WOLFGATE
                     category.AddChild(jobContainer);
                 }
             }
@@ -1482,6 +1484,7 @@ namespace Content.Client.Lobby.UI
         {
             _loadoutWindow?.Dispose();
             _loadoutWindow = null;
+            CloseCustomJobTitle(); // WOLFGATE: it edits the same role loadout
             var collection = IoCManager.Instance;
 
             if (collection == null || _playerManager.LocalSession == null || Profile == null)
@@ -1721,6 +1724,7 @@ namespace Content.Client.Lobby.UI
 
             _loadoutWindow?.Dispose();
             _loadoutWindow = null;
+            CloseCustomJobTitle(); // WOLFGATE
             _anatomySaveConfirm?.Close(); // WOLFGATE
             _anatomySaveConfirm = null; // WOLFGATE
         }
