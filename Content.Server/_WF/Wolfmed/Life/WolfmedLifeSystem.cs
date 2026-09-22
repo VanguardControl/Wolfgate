@@ -217,6 +217,9 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (GetBrain(body) is not { } brain)
         {
             // No clock to run. Mechanical bodies live here, and so does every brainless test fixture.
+            // The heart-restored exit still runs: it is the only way out of arrest that needs no clock, and
+            // without it a chassis with its pump back would stay arrested until a defibrillator found it.
+            TryEndHeartArrest(body);
             _consciousness.SetExternalPressure(body, HypoxiaPressure, 0f);
             return;
         }
@@ -391,13 +394,9 @@ public sealed class WolfmedLifeSystem : EntitySystem
         var heart = GetHeartHealth(body);
         var blood = GetBlood(body);
 
-        if (TryComp(body, out WolfmedCardiacArrestComponent? arrest))
+        if (InArrest(body))
         {
-            // The one route out that is not a defibrillator: the heart is back and there is blood to move.
-            if (arrest.Cause == "heart" && heart is { } health && health > FixedPoint2.Zero &&
-                blood > _cfg.GetCVar(WolfmedCVars.ArrestBlood))
-                EndArrest(body);
-
+            TryEndHeartArrest(body);
             return;
         }
 
@@ -424,6 +423,20 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (_infection.GetSepsis(body) >= _cfg.GetCVar(WolfmedCVars.ArrestSepsis) &&
             _random.Prob(Math.Clamp(_cfg.GetCVar(WolfmedCVars.ArrestSepsisChance) * seconds, 0f, 1f)))
             StartArrest(body, "sepsis");
+    }
+
+    /// <summary>
+    /// The one route out of arrest that is not a defibrillator: the heart is back and there is blood for it
+    /// to move. Kept off the oxygenation clock so it also reaches a body that runs no clock at all.
+    /// </summary>
+    private bool TryEndHeartArrest(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedCardiacArrestComponent? arrest) || arrest.Cause != "heart" ||
+            GetHeartHealth(body) is not { } health || health <= FixedPoint2.Zero ||
+            GetBlood(body) <= _cfg.GetCVar(WolfmedCVars.ArrestBlood))
+            return false;
+
+        return EndArrest(body);
     }
 
     /// <summary>Arrest is a full pressure; hypoxia short of it ramps between the two CVars.</summary>

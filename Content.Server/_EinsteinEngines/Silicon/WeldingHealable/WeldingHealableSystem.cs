@@ -25,6 +25,10 @@ public sealed partial class WeldingHealableSystem : SharedWeldingHealableSystem
     public override void Initialize()
     {
         InitializeWoundRepair();
+        // WOLFGATE (W6): the wound-host repair in the _WF partial must beat FlammableSystem to the welder,
+        // and the engine makes every subscription a system has to one event share its ordering, so this one
+        // carries it too. Harmless: Repair only handles the interaction when it actually repairs, so a
+        // welder used on anything else still reaches FlammableSystem exactly as it did.
         SubscribeLocalEvent<WeldingHealableComponent, InteractUsingEvent>(Repair,
             before: [typeof(FlammableSystem)]);
         SubscribeLocalEvent<WeldingHealableComponent, SiliconRepairFinishedEvent>(OnRepairFinished);

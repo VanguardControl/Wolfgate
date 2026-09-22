@@ -261,6 +261,9 @@ public sealed class AutodocWindow : DefaultWindow
         _diagnostics.OnPartSelected += part => SetFilter(_filter == part ? null : part);
     }
 
+    /// <summary>Last percent drawn into the progress label, or -1 for nothing drawn yet.</summary>
+    private int _progressPercent = -1;
+
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
@@ -281,7 +284,14 @@ public sealed class AutodocWindow : DefaultWindow
     private void ShowProgress(float fraction)
     {
         _progress.Value = fraction;
-        _progressText.Text = $"{Gauge(fraction, 14)} {(int) (fraction * 100)}%";
+
+        // FrameUpdate calls this every frame of a step; the gauge and the label only change once a percent.
+        var percent = (int) (fraction * 100);
+        if (percent == _progressPercent)
+            return;
+
+        _progressPercent = percent;
+        _progressText.Text = $"{Gauge(fraction, 14)} {percent}%";
     }
 
     private void SetFilter(TargetBodyPart? part)

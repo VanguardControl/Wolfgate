@@ -279,6 +279,54 @@ public sealed class WolfmedConsciousnessTest : GameTest
     }
 
     /// <summary>
+    /// GAMEPLAY: relief does not add up dose by dose. A cocktail counts as its strongest single dose plus a
+    /// share of the rest, so drinking one of everything cannot discount pain away for free.
+    /// </summary>
+    [Test]
+    public async Task StackedPainkillersHitTheReliefCapTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var relief = entities.System<WolfmedPainReliefSystem>();
+            var body = entities.SpawnEntity("WolfmedConscBody", map.GridCoords);
+            var window = TimeSpan.FromSeconds(60);
+
+            // The three weak reagents in the game, at their own strengths.
+            relief.AddDose(body, "ibuprofen", WolfmedPainReliefTier.Weak, 14f, window, 0f);
+            Assert.That(relief.GetRelief(body), Is.EqualTo(14f).Within(0.01f),
+                "one painkiller was worth anything but its own strength.");
+
+            relief.AddDose(body, "ketorolac", WolfmedPainReliefTier.Weak, 26f, window, 0f);
+            relief.AddDose(body, "analgesic", WolfmedPainReliefTier.Weak, 22f, window, 0f);
+
+            var comp = entities.GetComponent<WolfmedPainReliefComponent>(body);
+            var expected = 26f + comp.StackShare * (14f + 22f);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(relief.GetRelief(body), Is.EqualTo(expected).Within(0.01f));
+                Assert.That(relief.GetRelief(body), Is.LessThan(62f),
+                    "three weak painkillers still added up to the sum of their strengths.");
+                Assert.That(relief.GetStrongRelief(body), Is.EqualTo(0f),
+                    "a weak painkiller counted against the unconscious threshold.");
+            });
+
+            // The strong tier caps on its own terms, off the strongest strong dose.
+            relief.AddDose(body, "tramadol", WolfmedPainReliefTier.Strong, 45f, window, 0f);
+            relief.AddDose(body, "oxycodone", WolfmedPainReliefTier.Strong, 80f, window, 0f);
+
+            Assert.That(relief.GetStrongRelief(body),
+                Is.EqualTo(80f + comp.StackShare * 45f).Within(0.01f),
+                "two strong painkillers stacked their strengths against unconsciousness.");
+        });
+    }
+
+    /// <summary>
     /// Blood is its own input: it downs and crits a body with no pain at all, and no painkiller of any tier
     /// touches it. That is the whole of the owner's "up until you have no blood" rule.
     /// </summary>

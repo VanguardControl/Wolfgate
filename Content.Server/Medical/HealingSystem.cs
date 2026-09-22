@@ -52,6 +52,9 @@ public sealed partial class HealingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<HealingComponent, UseInHandEvent>(OnHealingUse);
+        // WOLFGATE: HOOK 8, a cable coil is both a healing item for a chassis and a cable placer, so the
+        // heal has to be offered first. Only a heal that actually happens sets Handled, so a coil used on
+        // anything that is not a wounded machine still places cable exactly as it did before.
         SubscribeLocalEvent<HealingComponent, AfterInteractEvent>(OnHealingAfterInteract,
             before: [typeof(CableSystem)]);
         SubscribeLocalEvent<DamageableComponent, HealingDoAfterEvent>(OnDoAfter);

@@ -75,7 +75,9 @@ sealed partial class DamageCommand
         [NotNullWhen(true)] out DamageSpecifier? damage)
     {
         damage = null;
-        if (!float.TryParse(quantity, out var amount))
+        // NaN and the infinities parse, and compare false against every clamp downstream, which would leave
+        // a part's damage corrupted until a full heal.
+        if (!float.TryParse(quantity, out var amount) || !float.IsFinite(amount))
         {
             shell.WriteLine(Loc.GetString("damage-command-error-quantity", ("arg", quantity)));
             return false;

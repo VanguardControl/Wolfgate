@@ -284,6 +284,10 @@ not have to open all 14 reports to find them.
 - **Bleeding slowed.** `wolfmed.bleed_rate` (default 0.6) multiplies every wound's rate where it is computed, so analyzer, spurts and bloodstream agree. Tests that assert Onyx's literal rates pin it to 1.
 - **Splints take torso and head.** Ribs and skulls fracture and the procedure says to splint; the art has chest and head wraps.
 - **Health analyzers need no power cell** (`PowerCellDraw`, `ToggleCellDraw`, `ActivatableUIRequiresPowerCell` commented out on `HandheldHealthAnalyzer`; the slot stays so fills and maps load).
+- **Analyzer window geometry (REVIEW, 2026-09-22).** The analyzer window itself is 900x600 and resizable,
+  two panes side by side, rather than the fixed 350x650 of §8.4-5. The wound panel, the treatment advice and
+  the doll do not fit a single narrow column; §8.4-5's "window geometry untouched" is superseded for the
+  window frame, and everything inside it is still Shitmed's own layout.
 - **Analyzer doll geometry.** Shitmed laid the analyzer's doll buttons out at 2.5x over a doll `SetupIcon` draws at 3x. The XAML now carries the HUD targeting doll's exact 3x geometry and the highlight uses the HUD's mechanism (base part texture at 3x, centred).
 
 ## EMP and machine bodies (2026-09-20)

@@ -23,6 +23,9 @@ public sealed partial class WeldingHealableSystem
 
     private void InitializeWoundRepair()
     {
+        // WOLFGATE (W6): a welder on a damaged chassis repairs it instead of setting it on fire, which is
+        // what FlammableSystem would do with the same interaction. Ordered on the WoundHost pair only, so
+        // nothing else in the game changes order.
         SubscribeLocalEvent<WoundHostComponent, InteractUsingEvent>(OnWoundRepair,
             before: [typeof(FlammableSystem)]);
         SubscribeLocalEvent<WoundHostComponent, WoundRepairFinishedEvent>(OnWoundRepairFinished);

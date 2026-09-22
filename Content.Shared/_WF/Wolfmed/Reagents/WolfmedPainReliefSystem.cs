@@ -236,6 +236,8 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
         var tier = WolfmedPainReliefTier.None;
         var relief = 0f;
         var strong = 0f;
+        var bestRelief = 0f;
+        var bestStrong = 0f;
         TimeSpan? ends = null;
 
         foreach (var dose in body.Comp.Doses.Values)
@@ -244,12 +246,21 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
                 tier = dose.Tier;
 
             relief += dose.Strength;
+            bestRelief = MathF.Max(bestRelief, dose.Strength);
             if (dose.Tier >= WolfmedPainReliefTier.Strong)
+            {
                 strong += dose.Strength;
+                bestStrong = MathF.Max(bestStrong, dose.Strength);
+            }
 
             if (ends == null || dose.Ends > ends)
                 ends = dose.Ends;
         }
+
+        // Diminishing returns: the strongest dose counts whole, everything else only for its share. Chugging
+        // one of each painkiller must not discount enough pain to stay on your feet through anything.
+        relief = Cap(bestRelief, relief, body.Comp.StackShare);
+        strong = Cap(bestStrong, strong, body.Comp.StackShare);
 
         if (body.Comp.EmergencyEnds is { } emergency)
         {
@@ -265,6 +276,10 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
         Dirty(body);
         _movement.RefreshMovementSpeedModifiers(body);
     }
+
+    /// <summary>The strongest single dose, plus <paramref name="share"/> of everything else.</summary>
+    private static float Cap(float best, float total, float share) =>
+        best + MathF.Max(total - best, 0f) * Math.Clamp(share, 0f, 1f);
 
     private void OnRefreshSpeed(EntityUid uid, WolfmedPainReliefComponent component,
         RefreshMovementSpeedModifiersEvent args)

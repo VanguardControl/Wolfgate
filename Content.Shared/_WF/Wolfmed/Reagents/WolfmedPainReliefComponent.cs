@@ -73,6 +73,13 @@ public sealed partial class WolfmedPainReliefComponent : Component
     [AutoNetworkedField]
     public float Sedation;
 
+    /// <summary>
+    /// How much of every dose past the strongest one still counts. Relief is the strongest single dose plus
+    /// this share of the rest, so a second and third painkiller help less and less instead of adding up.
+    /// </summary>
+    [DataField]
+    public float StackShare = 0.35f;
+
     /// <summary>Sedation lost per second with no strong painkiller in the body.</summary>
     [DataField]
     public float SedationDecayPerSecond = 0.035f;

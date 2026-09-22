@@ -4314,3 +4314,38 @@ Deviations from the spec:
   lethal 315 Bloodloss on purpose; a 200 ceiling made them survivable.
 - **CPR raising a corpse's oxygenation is a flat rate**, and only on a body that is Dead: an arrested body
   still on the clock keeps BRAIN's "CPR buys time" balance exactly as it was.
+
+## Final stages: REVIEW (2026-09-22)
+
+Merge-preflight review fixes (UPSTREAM, CRASH, CLIENT, DATA, GAMEPLAY, CI findings).
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | the heart-restored exit from arrest is its own method and runs with or without an oxygenation clock |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedOverheatSystem.cs` | new | a wound host past its overheat threshold burns through the wound pipeline instead of being set Dead |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedOverheatComponent.cs` | new | per-body burn pulse and its heat, tunable from a prototype |
+| `Content.Server/_Goobstation/Temperature/KillOnOverheatSystem.cs` | modified | one marked hook: Wolfmed takes the kill for a body whose death it owns |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefSystem.cs` | modified | relief is the strongest dose plus a share of the rest, not the sum |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefComponent.cs` | modified | `StackShare` (0.35) data field behind that cap |
+| `Content.Server/_WF/Wolfmed/Commands/DamageCommand.Wolfmed.cs` | modified | the admin damage command rejects NaN and the infinities |
+| `Content.Server/Medical/HealingSystem.cs` | modified | the `before: CableSystem` ordering is marked and explained |
+| `Content.Server/_EinsteinEngines/Silicon/WeldingHealable/WeldingHealableSystem.cs` | modified | the `before: FlammableSystem` ordering is marked and explained |
+| `Content.Server/_WF/Wolfmed/Medical/WeldingHealableSystem.Wolfmed.cs` | modified | the reason for the wound-host ordering |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | the progress label is rebuilt once a percent, not once a frame |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedBodyDoll.cs` | modified | one preview entity reused across scans, stale layers hidden |
+| `Docs/Wolfmed/DECISIONS.md` | modified | the analyzer window's own geometry recorded against §8.4-5 |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs` | modified | arrest ends on a body with no clock once its pump is back |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | stacked painkillers hit the relief cap |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs` | new | overheating burns a wound host and leaves other mobs to upstream |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedThresholdFallbackTest.cs` | new | a non-wound-host mob crits and dies at its prototype thresholds |
+
+Deviations:
+
+- **The two `before:` orderings could not be gated to wound hosts.** The engine requires every subscription
+  a system makes to one event to carry the same ordering (`EntityEventBus.UpdateOrderSeq`), so the
+  wound-host handlers' ordering forces the same ordering on the upstream handler beside them. Both are
+  marked and explained instead. Neither handler sets `Handled` unless it does its work, so the reorder
+  changes nothing for cable placing or for setting things on fire.
+- **Overheating is a burn, not a shutdown.** Heat routed through the ordinary pipeline kills the pump long
+  before the positronic brain, so an IPC shuts down through `WolfmedShutdownSystem` on its own rather than
+  through a second, special-cased path.

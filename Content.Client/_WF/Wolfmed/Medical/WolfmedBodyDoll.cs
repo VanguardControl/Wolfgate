@@ -98,10 +98,15 @@ public sealed class WolfmedBodyDoll : PanelContainer
         }
 
         _view.Visible = true;
-        if (!_entities.Deleted(_dollEntity))
-            _entities.QueueDeleteEntity(_dollEntity);
 
-        _dollEntity = _entities.Spawn("AlertSpriteView");
+        // One preview entity for the life of the control: a scan lands about once a second, and spawning a
+        // fresh doll for each one churned entities for nothing.
+        if (_entities.Deleted(_dollEntity))
+        {
+            _dollEntity = _entities.Spawn("AlertSpriteView");
+            _view.SetEntity(_dollEntity);
+        }
+
         if (!_entities.TryGetComponent(_dollEntity, out SpriteComponent? sprite))
             return;
 
@@ -118,10 +123,16 @@ public sealed class WolfmedBodyDoll : PanelContainer
                 sprite.LayerSetTexture(layer, _sprites.Frame0(rsi));
 
             sprite.LayerSetScale(layer, new Vector2(3f, 3f));
+            sprite.LayerSetVisible(layer, true);
             layer++;
         }
 
-        _view.SetEntity(_dollEntity);
+        // A shorter scan than the last one leaves layers behind; hide them rather than redraw stale limbs.
+        while (sprite.TryGetLayer(layer, out _))
+        {
+            sprite.LayerSetVisible(layer, false);
+            layer++;
+        }
     }
 
     /// <summary>Highlights one limb, or none.</summary>

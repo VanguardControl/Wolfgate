@@ -433,6 +433,43 @@ public sealed class WolfmedBrainTest : GameTest
         });
     }
 
+    /// <summary>
+    /// A body with no oxygenation clock still leaves arrest when its pump is back. Nothing puts a chassis
+    /// into arrest today, but the way out must not depend on the clock: a body that got there any other way
+    /// would otherwise wait forever for a defibrillator.
+    /// </summary>
+    [Test]
+    public async Task ArrestEndsWithoutAClockTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var life = entities.System<WolfmedLifeSystem>();
+            var graph = entities.System<SharedBodySystem>();
+            var ipc = entities.SpawnEntity("MobIPC", map.GridCoords);
+            Assert.That(life.GetBrain(ipc), Is.Null, "the chassis fixture runs an oxygenation clock.");
+
+            var pump = Organ<HeartComponent>(entities, ipc);
+            var torso = graph.GetBodyChildrenOfType(ipc, BodyPartType.Torso).First().Id;
+            Assert.That(graph.RemoveOrgan(pump), Is.True);
+
+            var arrest = entities.AddComponent<WolfmedCardiacArrestComponent>(ipc);
+            arrest.Cause = "heart";
+            Assert.That(life.InArrest(ipc), Is.True);
+
+            life.Tick(ipc, 1f);
+            Assert.That(life.InArrest(ipc), Is.True, "arrest ended with the pump still out of the chassis.");
+
+            Assert.That(graph.InsertOrgan(torso, pump, "pump"), Is.True);
+            Assert.That(life.InArrest(ipc), Is.False,
+                "the pump was back with fluid behind it and the chassis stayed arrested.");
+        });
+    }
+
     private static void Run(WolfmedLifeSystem life, EntityUid body, int seconds)
     {
         for (var second = 0; second < seconds; second++)
