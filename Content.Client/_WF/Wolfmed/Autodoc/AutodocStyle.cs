@@ -1,3 +1,4 @@
+using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -86,6 +87,19 @@ public static class AutodocStyle
         button.Label.FontOverride = Mono(11, accent);
         button.Label.FontColorOverride = colour ?? Amber;
         return button;
+    }
+
+    /// <summary>
+    /// A scroll box that asks the layout only for its minimum height, so a column of them fits the window and
+    /// the expanding one takes what is left. A plain ScrollContainer asks for its whole content and overflows.
+    /// </summary>
+    public sealed class TerminalScroll : ScrollContainer
+    {
+        protected override Vector2 MeasureOverride(Vector2 availableSize)
+        {
+            var size = base.MeasureOverride(availableSize);
+            return new Vector2(size.X, MinHeight);
+        }
     }
 
     /// <summary>A text gauge in the terminal's own vocabulary: [#####.....] 50%.</summary>

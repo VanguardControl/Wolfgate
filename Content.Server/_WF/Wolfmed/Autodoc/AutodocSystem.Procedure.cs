@@ -13,6 +13,7 @@ using Content.Shared.Database;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -490,6 +491,12 @@ public sealed partial class AutodocSystem
     /// BRAIN: with the module installed the pod shocks an occupant whose heart has stopped, on the same rule
     /// a medic's paddles follow. It happens before the first procedure and again once the queue is done.
     /// </summary>
+    // The same set a hand defibrillator plays, so a pod shock sounds like one.
+    private static readonly SoundPathSpecifier DefibChargeSound = new("/Audio/Items/Defib/defib_charge.ogg");
+    private static readonly SoundPathSpecifier DefibZapSound = new("/Audio/Items/Defib/defib_zap.ogg");
+    private static readonly SoundPathSpecifier DefibSuccessSound = new("/Audio/Items/Defib/defib_success.ogg");
+    private static readonly SoundPathSpecifier DefibFailureSound = new("/Audio/Items/Defib/defib_failed.ogg");
+
     public bool TryDefibrillateOccupant(Entity<AutodocComponent> ent, EntityUid body)
     {
         if (!_life.InArrest(body) && !_mobState.IsDead(body))
@@ -504,7 +511,10 @@ public sealed partial class AutodocSystem
         }
 
         Speak(ent, AutodocVoiceEvent.DefibCharge);
+        _audio.PlayPvs(DefibChargeSound, ent.Owner);
         var revived = _revival.TryDefibrillate(body, out _);
+        _audio.PlayPvs(DefibZapSound, ent.Owner);
+        _audio.PlayPvs(revived ? DefibSuccessSound : DefibFailureSound, ent.Owner);
         Speak(ent, revived ? AutodocVoiceEvent.DefibSuccess : AutodocVoiceEvent.DefibFailure);
         return revived;
     }

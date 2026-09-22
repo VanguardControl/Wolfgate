@@ -155,7 +155,7 @@ public sealed class AutodocWindow : DefaultWindow
         dollNotes.AddChild(clear);
         dollRow.AddChild(dollNotes);
         patientColumn.AddChild(dollRow);
-        patientColumn.AddChild(new ScrollContainer { VerticalExpand = true, HorizontalExpand = true, Children = { _diagnostics } });
+        patientColumn.AddChild(new TerminalScroll { VerticalExpand = true, HorizontalExpand = true, MinHeight = 120, Children = { _diagnostics } });
         body.AddChild(patient);
 
         var console = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, VerticalExpand = true, SeparationOverride = 6 };
@@ -167,7 +167,7 @@ public sealed class AutodocWindow : DefaultWindow
         procedurePanel.AddChild(procedureColumn);
         procedureColumn.AddChild(Heading(Loc.GetString("wolfmed-autodoc-ui-procedures"), Loc.GetString("wolfmed-autodoc-ui-procedures-hint")));
         _procedures = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
-        procedureColumn.AddChild(new ScrollContainer { VerticalExpand = true, HorizontalExpand = true, MinHeight = 160, Children = { _procedures } });
+        procedureColumn.AddChild(new TerminalScroll { VerticalExpand = true, HorizontalExpand = true, MinHeight = 120, Children = { _procedures } });
         console.AddChild(procedurePanel);
 
         // Queue.
@@ -180,7 +180,7 @@ public sealed class AutodocWindow : DefaultWindow
         queueColumn.AddChild(queueHeading);
         queueHeading.AddChild(_queueHeadingCount);
         _queueBox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
-        queueColumn.AddChild(new ScrollContainer { HorizontalExpand = true, MinHeight = 90, MaxHeight = 170, Children = { _queueBox } });
+        queueColumn.AddChild(new TerminalScroll { HorizontalExpand = true, MinHeight = 120, Children = { _queueBox } });
         _queueSection = queuePanel;
         console.AddChild(queuePanel);
 
@@ -479,13 +479,15 @@ public sealed class AutodocWindow : DefaultWindow
 
             if (!state.SelfService)
             {
+                var first = current ? 1 : 0;
                 var up = FlatButton("^", AmberDim);
-                up.Disabled = index == 0;
+                up.Disabled = index <= first;
                 up.OnPressed += _ => OnQueueMove?.Invoke(index, true);
                 var down = FlatButton("v", AmberDim);
                 down.Disabled = index == state.Queue.Count - 1;
                 down.OnPressed += _ => OnQueueMove?.Invoke(index, false);
                 var remove = FlatButton("x", Alert);
+                remove.Disabled = current;
                 remove.OnPressed += _ => OnQueueRemove?.Invoke(index);
                 header.AddChild(up);
                 header.AddChild(down);

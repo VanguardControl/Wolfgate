@@ -72,9 +72,14 @@ public sealed partial class AutodocSystem
 
     private void OnQueueRemove(Entity<AutodocComponent> ent, ref AutodocQueueRemoveMessage args)
     {
-        if (ent.Comp.State is AutodocState.Idle or AutodocState.Complete &&
-            args.Index >= 0 && args.Index < ent.Comp.Queue.Count)
+        // Anything not under the knife can go, even mid-run; the running one needs Abort.
+        var first = ent.Comp.State is AutodocState.Idle or AutodocState.Complete ? 0 : 1;
+        if (args.Index >= first && args.Index < ent.Comp.Queue.Count)
+        {
             ent.Comp.Queue.RemoveAt(args.Index);
+            // An operator editing the queue by hand has taken over from the planner.
+            SetAuto(ent, false);
+        }
 
         UpdateUi(ent);
     }
@@ -82,11 +87,12 @@ public sealed partial class AutodocSystem
     private void OnQueueMove(Entity<AutodocComponent> ent, ref AutodocQueueMoveMessage args)
     {
         var target = args.Up ? args.Index - 1 : args.Index + 1;
-        if (ent.Comp.State is AutodocState.Idle or AutodocState.Complete &&
-            args.Index >= 0 && args.Index < ent.Comp.Queue.Count &&
-            target >= 0 && target < ent.Comp.Queue.Count)
+        var first = ent.Comp.State is AutodocState.Idle or AutodocState.Complete ? 0 : 1;
+        if (args.Index >= first && args.Index < ent.Comp.Queue.Count &&
+            target >= first && target < ent.Comp.Queue.Count)
         {
             (ent.Comp.Queue[args.Index], ent.Comp.Queue[target]) = (ent.Comp.Queue[target], ent.Comp.Queue[args.Index]);
+            SetAuto(ent, false);
         }
 
         UpdateUi(ent);
