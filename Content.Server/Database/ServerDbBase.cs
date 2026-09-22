@@ -231,6 +231,7 @@ namespace Content.Server.Database
                 var loadout = new RoleLoadout(role.RoleName)
                 {
                     EntityName = role.EntityName,
+                    CustomJobTitle = role.CustomJobTitle, // WOLFGATE
                 };
 
                 foreach (var group in role.Groups)
@@ -356,6 +357,7 @@ namespace Content.Server.Database
                 {
                     RoleName = role,
                     EntityName = loadouts.EntityName ?? string.Empty,
+                    CustomJobTitle = loadouts.CustomJobTitle, // WOLFGATE
                 };
 
                 foreach (var (group, groupLoadouts) in loadouts.SelectedLoadouts)

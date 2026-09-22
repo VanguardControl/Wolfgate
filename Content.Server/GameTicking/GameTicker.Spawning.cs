@@ -23,6 +23,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
 using Content.Server._Corvax.Respawn; // Frontier
+using Content.Shared._WF.Roles; // WOLFGATE
 
 namespace Content.Server.GameTicking
 {
@@ -246,6 +247,7 @@ namespace Content.Server.GameTicking
 
             _roles.MindAddJobRole(newMind, silent: silent, jobPrototype:jobId);
             var jobName = _jobs.MindTryGetJobName(newMind);
+            var customJobTitle = CustomJobTitleRules.GetTitle(character, jobId, _prototypeManager); // WOLFGATE
             _admin.UpdatePlayerList(player);
 
             if (lateJoin && !silent)
@@ -256,7 +258,7 @@ namespace Content.Server.GameTicking
                         Loc.GetString("latejoin-arrival-announcement-special",
                             ("character", MetaData(mob).EntityName),
                             ("entity", mob),
-                            ("job", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(jobName))),
+                            ("job", customJobTitle ?? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(jobName))), // WOLFGATE: custom title
                         Loc.GetString("latejoin-arrival-sender"),
                         playDefaultSound: false,
                         colorOverride: Color.Gold);
@@ -267,7 +269,7 @@ namespace Content.Server.GameTicking
                         Loc.GetString("latejoin-arrival-announcement",
                             ("character", MetaData(mob).EntityName),
                             ("entity", mob),
-                            ("job", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(jobName))),
+                            ("job", customJobTitle ?? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(jobName))), // WOLFGATE: custom title
                         Loc.GetString("latejoin-arrival-sender"),
                         playDefaultSound: false);
                 }

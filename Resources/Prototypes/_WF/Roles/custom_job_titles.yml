@@ -1,0 +1,312 @@
+# Roles whose players can write their own job title. The id is the role loadout id.
+# Every job's name is always rejected; these lists add to that.
+# Matching ignores case, spacing and punctuation, reads look-alike digits as letters ("Adm1n")
+# and joins spaced-out letters ("A D M I N").
+# blockedTitles: rejected only as the whole title.
+# blockedWords: whole words or phrases rejected anywhere in the title ("admin" doesn't catch "badminton").
+- type: customJobTitle
+  id: JobContractor
+  blockedTitles:
+  # Staff and out-of-game roles
+  - Staff
+  - Server Staff
+  - Game Staff
+  - Host
+  - Server Host
+  - Owner
+  - Server Owner
+  - Dev
+  - Developer
+  - Game Developer
+  - Server Developer
+  - Coder
+  - Maintainer
+  - Mentor
+  - Helper
+  - GM
+  - Bot
+  - Server
+  - System
+  - Announcer
+  - Narrator
+  - AI
+  # Placeholders that read as broken records
+  - None
+  - Nobody
+  - N/A
+  - NA
+  - TBD
+  - Test
+  - Placeholder
+  - Undefined
+  - Error
+  - Unassigned
+  - Redacted
+  - Classified
+
+  blockedWords:
+  # Staff impersonation and meta
+  - admin
+  - admins
+  - administrator
+  - administrators
+  - adminbus
+  - admeme
+  - admemes
+  - headmin
+  - moderator
+  - moderators
+  - mod
+  - mods
+  - gamemaster
+  - game master
+  - ooc
+  - ahelp
+  - bwoink
+  - antag
+  - antags
+  - antagonist
+  - antagonists
+
+  # Command and job-name impersonation
+  - head of
+  - chief of
+  - chief engineer
+  - chief medical
+  - research director
+  - security officer
+  - security cadet
+  - station security
+  - sector security
+  - corporate security
+  - corporate liaison
+  - corporate liason
+  - public affairs
+  - traffic controller
+  - station ai
+  - quartermaster
+  - qm
+  - hos
+  - cmo
+  - overseer
+  - warden
+  - judge
+  - magistrate
+  - ambassador
+  - diplomat
+  - prince
+  - princess
+  - hicom
+  - high command
+  - central command
+  - emergency response
+  - emergency responder
+  - internal affairs
+  - g man
+
+  # Law enforcement
+  - police
+  - policeman
+  - policewoman
+  - cop
+  - cops
+  - sheriff
+  - deputy
+  - marshal
+  - marshall
+  - constable
+  - bailiff
+  - law enforcement
+  - swat
+  - fbi
+  - cia
+  - interpol
+
+  # Military ranks and units
+  - commander
+  - admiral
+  - commodore
+  - brigadier
+  - colonel
+  - lieutenant
+  - sergeant
+  - serzhant
+  - corporal
+  - commissar
+  - space marine
+  - space marines
+  - marine corps
+  - rifleman
+  - corpsman
+  - infanteer
+  - fireteam
+
+  # Factions and corporations
+  - centcom
+  - centcomm
+  - nanotrasen
+  - nt
+  - ert
+  - tsf
+  - tsfmc
+  - marsoc
+  - ussp
+  - pdv
+  - mmc
+  - vg
+  - nfsd
+  - winter solstice
+  - grand vizier
+  - vizier
+  - tarkhan
+  - asvaran
+  - denasvar
+  - rahkshan
+  - spasaka
+
+  # Antagonists and silicons
+  - syndicate
+  - syndie
+  - syndi
+  - nukie
+  - nukies
+  - nukeop
+  - nukeops
+  - nuclear operative
+  - traitor
+  - traitors
+  - changeling
+  - cultist
+  - cyborg
+  - borg
+
+  # Slurs
+  - nigger
+  - niggers
+  - nigga
+  - niggas
+  - nigguh
+  - negro
+  - negroes
+  - sand nigger
+  - coon
+  - coons
+  - jungle bunny
+  - porch monkey
+  - chink
+  - chinks
+  - gook
+  - gooks
+  - zipperhead
+  - jap
+  - japs
+  - spic
+  - spics
+  - spick
+  - wetback
+  - wetbacks
+  - beaner
+  - beaners
+  - kike
+  - kikes
+  - heeb
+  - raghead
+  - ragheads
+  - towelhead
+  - towelheads
+  - paki
+  - pakis
+  - wop
+  - dago
+  - redskin
+  - redskins
+  - injun
+  - squaw
+  - honky
+  - faggot
+  - faggots
+  - fag
+  - fags
+  - dyke
+  - dykes
+  - tranny
+  - trannies
+  - shemale
+  - retard
+  - retards
+  - retarded
+  - tard
+  - tards
+  - mongoloid
+  - spaz
+
+  # Hate and extremism
+  - nazi
+  - nazis
+  - neonazi
+  - hitler
+  - fuhrer
+  - fuehrer
+  - heil
+  - sieg heil
+  - third reich
+  - white power
+  - white pride
+  - kkk
+  - klan
+  - klansman
+  - grand wizard
+  - "1488"
+  - isis
+  - jihad
+  - jihadi
+  - terrorist
+  - terrorists
+
+  # Sexual abuse and explicit
+  - rape
+  - rapist
+  - raper
+  - molester
+  - pedo
+  - pedos
+  - pedophile
+  - pedophiles
+  - paedophile
+  - paedo
+  - loli
+  - lolicon
+  - shota
+  - shotacon
+  - cock
+  - cocks
+  - dick
+  - dicks
+  - penis
+  - pussy
+  - cunt
+  - cunts
+  - twat
+  - cum
+  - jizz
+  - whore
+  - whores
+  - slut
+  - sluts
+
+  # Profanity
+  - fuck
+  - fucks
+  - fucker
+  - fuckers
+  - fucking
+  - motherfucker
+  - shit
+  - shits
+  - shitter
+  - bitch
+  - bitches
+  - ass
+  - asshole
+  - assholes
+  - bastard

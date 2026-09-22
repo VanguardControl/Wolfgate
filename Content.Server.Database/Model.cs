@@ -625,6 +625,12 @@ namespace Content.Server.Database
         public string? EntityName { get; set; }
 
         /// <summary>
+        /// WOLFGATE: player-written job title, for roles that allow one.
+        /// </summary>
+        [MaxLength(256)]
+        public string? CustomJobTitle { get; set; }
+
+        /// <summary>
         /// Store the saved loadout groups. These may get validated and removed when loaded at runtime.
         /// </summary>
         public List<ProfileLoadoutGroup> Groups { get; set; } = new();

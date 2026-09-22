@@ -466,6 +466,12 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         if (args.Actor is not { Valid: true } player)
             return;
 
+        // WOLFGATE: a trader hosting this console may refuse to buy ships back.
+        var attemptEv = new _WF.Shipyard.ShipyardConsoleActionAttemptEvent(player, _WF.Shipyard.ShipyardConsoleAction.Sell);
+        RaiseLocalEvent(uid, ref attemptEv);
+        if (attemptEv.Cancelled)
+            return;
+
         if (component.TargetIdSlot.ContainerSlot?.ContainedEntity is not { Valid: true } targetId)
         {
             ConsolePopup(player, Loc.GetString("shipyard-console-no-idcard"));
@@ -616,7 +622,9 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             return;
 
         // kind of cursed. We need to update the UI when an Id is entered, but the UI needs to know the player characters bank account.
-        if (!TryComp<ActivatableUIComponent>(uid, out var uiComp) || uiComp.Key == null)
+        // WOLFGATE: was a check for ActivatableUI.Key, which a trader hosting this console has not got.
+        // The key that was actually opened is right here, and other keys on the same entity still bail.
+        if (args.UiKey is not ShipyardConsoleUiKey)
             return;
 
         if (args.Actor is not { Valid: true } player)
@@ -663,6 +671,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
 
     private void ConsolePopup(EntityUid uid, string text)
     {
+        LastConsolePopup = text; // WOLFGATE: hosting traders read back why a sale was refused
         _popup.PopupEntity(text, uid);
     }
 
@@ -715,10 +724,13 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
             return;
 
         // kind of cursed. We need to update the UI when an Id is entered, but the UI needs to know the player characters bank account.
-        if (!TryComp<ActivatableUIComponent>(uid, out var uiComp) || uiComp.Key == null)
+        // WOLFGATE: a trader hosting this console has no ActivatableUI, so fall back to whichever shipyard key is open on it.
+        Enum? key = TryComp<ActivatableUIComponent>(uid, out var uiComp) ? uiComp.Key : null;
+        key ??= GetOpenShipyardKey(uid);
+        if (key == null)
             return;
 
-        var uiUsers = _ui.GetActors(uid, uiComp.Key);
+        var uiUsers = _ui.GetActors(uid, key);
 
         foreach (var user in uiUsers)
         {
@@ -755,10 +767,27 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
                 fullName,
                 sellValue,
                 targetId,
-                (ShipyardConsoleUiKey)uiComp.Key,
+                (ShipyardConsoleUiKey)key,
                 voucherUsed);
 
         }
+    }
+
+    /// <summary>
+    /// Wolfgate: the shipyard listing currently open on an entity, if any.
+    /// </summary>
+    private Enum? GetOpenShipyardKey(EntityUid uid)
+    {
+        if (!TryComp<UserInterfaceComponent>(uid, out var ui))
+            return null;
+
+        foreach (var (key, _) in ui.Actors)
+        {
+            if (key is ShipyardConsoleUiKey)
+                return key;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -1100,6 +1129,12 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
     public void OnUnassignDeedMessage(EntityUid uid, ShipyardConsoleComponent component, ShipyardConsoleUnassignDeedMessage args)
     {
         if (args.Actor is not { Valid: true } player)
+            return;
+
+        // WOLFGATE: a trader hosting this console may refuse to touch an existing deed.
+        var attemptEv = new _WF.Shipyard.ShipyardConsoleActionAttemptEvent(player, _WF.Shipyard.ShipyardConsoleAction.UnassignDeed);
+        RaiseLocalEvent(uid, ref attemptEv);
+        if (attemptEv.Cancelled)
             return;
 
         if (component.TargetIdSlot.ContainerSlot?.ContainedEntity is not { Valid: true } targetId)
