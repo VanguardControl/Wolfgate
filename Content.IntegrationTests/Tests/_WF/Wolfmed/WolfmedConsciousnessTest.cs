@@ -156,21 +156,21 @@ public sealed class WolfmedConsciousnessTest : GameTest
 
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
 
-            // 0.70 x the 135 soft cap is 94.5. 95 is the first whole number past it.
-            pain.SetPain(body, FixedPoint2.New(95));
+            // 0.95 x the 135 soft cap is 128.25. 129 is the first whole number past it.
+            pain.SetPain(body, FixedPoint2.New(129));
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.True);
             Assert.That(entities.GetComponent<MobStateComponent>(body).CurrentState,
                 Is.EqualTo(MobState.Alive), "Downed is conscious: it is not Critical.");
 
-            // Hysteresis: 0.9 x 94.5 = 85.05, so 86 is still on the floor.
-            pain.SetPain(body, FixedPoint2.New(86));
+            // Hysteresis: 0.9 x 128.25 = 115.4, so 116 is still on the floor.
+            pain.SetPain(body, FixedPoint2.New(116));
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed),
                 "the body stood up inside the hysteresis band.");
 
-            // 0.60 of the cap is 81, which is 0.857 of the Downed threshold: under the band, so up.
-            pain.SetPain(body, FixedPoint2.New(81));
+            // 0.80 of the cap is 108, which is 0.84 of the Downed threshold: under the band, so up.
+            pain.SetPain(body, FixedPoint2.New(108));
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.False);
@@ -197,7 +197,7 @@ public sealed class WolfmedConsciousnessTest : GameTest
             Assert.That(blocker.CanInteract(body, airlock), Is.True);
             Assert.That(blocker.CanAttack(body), Is.True);
 
-            entities.System<PainSystem>().SetPain(body, FixedPoint2.New(95));
+            entities.System<PainSystem>().SetPain(body, FixedPoint2.New(129));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.True);
 
             // Themselves and what they are carrying, and nothing else.
@@ -292,12 +292,12 @@ public sealed class WolfmedConsciousnessTest : GameTest
 
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
 
-            // 0.50 is 1.25 of the way to the 0.60 Downed threshold and 0.91 of the way to the 0.45 one.
-            SetBlood(0.5f);
+            // 0.45 is past the 0.50 Downed threshold and 0.78 of the way to the 0.35 one.
+            SetBlood(0.45f);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
 
-            // 0.40 is past 0.45.
-            SetBlood(0.4f);
+            // 0.30 is past 0.35.
+            SetBlood(0.3f);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious));
 
             // Not one tier of painkiller touches blood.
@@ -307,11 +307,11 @@ public sealed class WolfmedConsciousnessTest : GameTest
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious),
                 "a painkiller lifted a body that had run out of blood.");
 
-            // 0.62 is 0.95 of the way to the Downed threshold: inside the hysteresis band, still down.
-            SetBlood(0.62f);
+            // 0.52 is 0.96 of the way to the Downed threshold: inside the hysteresis band, still down.
+            SetBlood(0.52f);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
 
-            SetBlood(0.75f);
+            SetBlood(0.7f);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
         });
     }

@@ -150,8 +150,10 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
         var organic = _traits.IsOrganic(args.Part);
         _prototypes.TryIndex(args.Prototype, out var prototype);
 
+        // A hit that only deepens an existing wound is still a hit: it sounds once its growth is a wound's worth.
         if (args.Severity >= profile.MinSeverity &&
-            (args.Kind == WolfmedWoundLifecycle.Created || JumpedStage(prototype, args.OldSeverity, args.Severity)))
+            (args.Kind == WolfmedWoundLifecycle.Created || JumpedStage(prototype, args.OldSeverity, args.Severity) ||
+             args.Severity - args.OldSeverity >= profile.MinSeverity))
             TryPlayWound(body, state, profile, args.Prototype, prototype, organic, args.Severity);
 
         // FIX1: a chassis still sparks off the wound itself, because a chassis does not bleed and has no
