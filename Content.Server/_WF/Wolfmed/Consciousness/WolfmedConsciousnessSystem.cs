@@ -156,7 +156,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         var downLevel = MathF.Max(painDown, MathF.Max(bloodDown, pressure / PressureDownShare));
         var outLevel = MathF.Max(painOut, MathF.Max(bloodOut, pressure));
 
-        if (LegsGone(body))
+        if (!LegsGone(body))
+            body.Comp.HadLegs = true;
+        else if (body.Comp.HadLegs)
             downLevel = MathF.Max(downLevel, 1f);
 
         if (_relief.InCrash(body.Owner))

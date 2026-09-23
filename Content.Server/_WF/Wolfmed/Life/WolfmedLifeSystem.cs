@@ -580,13 +580,19 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// A head torn off takes the brain with it. Event driven, and it asks what was on the part that came
     /// off: a body that never had a brain in the first place has lost nothing.
     /// </summary>
-    private void OnAmputated(ref WolfmedPartAmputatedEvent args)
+    private void OnAmputated(ref WolfmedPartAmputatedEvent args) => OnPartDetached(args.Body, args.Part);
+
+    /// <summary>
+    /// Any part leaving the body, however it left: amputation, surgery, or a gib that deletes the part in
+    /// place. The part lifecycle system owns the body's part-removed event and forwards it here.
+    /// </summary>
+    public void OnPartDetached(EntityUid body, EntityUid part)
     {
-        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body))
+        if (TerminatingOrDeleted(body) || !OwnsDeath(body))
             return;
 
-        if (CarriedBrain(args.Part) && !HasBrain(args.Body) || LostVitalPart(args.Body, args.Part))
-            Kill(args.Body);
+        if (CarriedBrain(part) && !HasBrain(body) || LostVitalPart(body, part))
+            Kill(body);
     }
 
     /// <summary>

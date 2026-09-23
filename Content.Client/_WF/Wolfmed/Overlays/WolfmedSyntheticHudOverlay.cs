@@ -9,15 +9,15 @@ using Robust.Shared.Enums;
 namespace Content.Client._WF.Wolfmed.Overlays;
 
 /// <summary>
-/// The helmet readout itself: two bracketed blocks in the top corners, a banner along the top edge, and the
+/// The helmet readout itself: two inset diagnostic blocks, a central warning strip, and the
 /// standby and kernel-panic screens. Pure screen-space drawing, no controls, so it can never take a click.
 /// Every value is owned by <see cref="WolfmedSyntheticHudSystem"/>.
 /// </summary>
 public sealed class WolfmedSyntheticHudOverlay : Overlay
 {
-    public static readonly Color Phosphor = Color.FromHex("#6fd6ff");
-    public static readonly Color Dim = Color.FromHex("#3f8ea8");
-    public static readonly Color Faint = Color.FromHex("#1b3a46");
+    public static readonly Color Phosphor = Color.FromHex("#ff5148");
+    public static readonly Color Dim = Color.FromHex("#d58b80");
+    public static readonly Color Faint = Color.FromHex("#54201c");
 
     private static readonly Color Warn = Color.FromHex("#ffc24d");
     private static readonly Color Crit = Color.FromHex("#ff8a3c");
@@ -68,17 +68,37 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
         var control = args.ViewportControl as Control;
         var screen = WolfmedSyntheticHudLayout.Screen(args.ViewportBounds,
             control?.GlobalPixelPosition ?? Vector2i.Zero);
-        var scale = WolfmedSyntheticHudLayout.Scale(Scale, control?.UIScale ?? 1f);
+        if (screen.Width < 160f || screen.Height < 80f)
+            return;
+
+        // Small embedded viewports get one readable status strip instead of microscopic panels.
+        if (screen.Width < 960f || screen.Height < 480f)
+        {
+            var compact = new UIBox2(screen.Left + screen.Width * 0.20f, screen.Top + screen.Height * 0.25f,
+                screen.Left + screen.Width * 0.68f, screen.Top + screen.Height * 0.25f + 32f);
+            var text = DeathAlpha > 0.004f ? DeathTitle : PanicAlpha > 0.004f ? PanicTitle :
+                StandbyAlpha > 0.004f ? StandbyTitle : BannerAlpha > 0.004f ? Banner :
+                SystemAlpha > 0.004f ? Status : Glyph;
+            var alpha = MathF.Max(MathF.Max(DeathAlpha, PanicAlpha), MathF.Max(StandbyAlpha,
+                MathF.Max(BannerAlpha, MathF.Max(SystemAlpha, GlyphAlpha))));
+            Block(handle, compact, alpha);
+            Text(handle, AutodocStyle.Mono(11), RowBox(compact, 0, 20f), text, Phosphor.WithAlpha(alpha));
+            return;
+        }
+
+        var scale = WolfmedSyntheticHudLayout.FitScale(screen,
+            WolfmedSyntheticHudLayout.Scale(Scale, control?.UIScale ?? 1f));
         var font = AutodocStyle.Mono((int) WolfmedSyntheticHudLayout.Font(scale));
         var bold = AutodocStyle.Mono((int) WolfmedSyntheticHudLayout.Font(scale), true);
         var line = WolfmedSyntheticHudLayout.LineHeight(scale);
 
+        if (SystemAlpha > 0.004f)
+            DrawOptics(handle, screen);
+
         if (GlyphAlpha > 0.004f)
         {
-            handle.DrawString(font,
-                new Vector2(screen.Left + WolfmedSyntheticHudLayout.Margin,
-                    screen.Top + WolfmedSyntheticHudLayout.Margin + WolfmedSyntheticHudLayout.Font(scale)),
-                Glyph, 1f, Phosphor.WithAlpha(GlyphAlpha * 0.5f));
+            Text(handle, font, WolfmedSyntheticHudLayout.Banner(screen, scale), Glyph,
+                Phosphor.WithAlpha(GlyphAlpha * 0.5f));
         }
 
         if (SystemAlpha > 0.004f)
@@ -105,21 +125,17 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
         var box = Shift(WolfmedSyntheticHudLayout.System(screen, scale));
         Block(handle, box, SystemAlpha);
 
-        var origin = WolfmedSyntheticHudLayout.TextOrigin(box, scale);
-        handle.DrawString(bold, origin, Loc.GetString("wolfmed-synthetic-system"), 1f,
+        Text(handle, bold, RowBox(box, 0, line), Loc.GetString("wolfmed-synthetic-system") + "  " + Spinner,
             Phosphor.WithAlpha(SystemAlpha));
-        handle.DrawString(bold, new Vector2(box.Right - WolfmedSyntheticHudLayout.Padding -
-            WolfmedSyntheticHudLayout.CharWidth(scale), origin.Y), Spinner, 1f, Phosphor.WithAlpha(SystemAlpha));
 
-        var y = origin.Y;
+        var index = 1;
         foreach (var row in SystemRows)
         {
-            y += line;
-            handle.DrawString(font, new Vector2(origin.X, y), row, 1f, Dim.WithAlpha(SystemAlpha));
+            Text(handle, font, RowBox(box, index++, line), row, Dim.WithAlpha(SystemAlpha));
         }
 
         // The status line: harmless flavour while whole, the worst fault's advice once not.
-        handle.DrawString(font, new Vector2(origin.X, box.Bottom - WolfmedSyntheticHudLayout.Padding), Status, 1f,
+        Text(handle, font, RowBox(box, WolfmedSyntheticHudLayout.SystemRows - 1, line), Status,
             (Rows.Count > 0 ? Warn : Dim).WithAlpha(SystemAlpha * 0.9f));
     }
 
@@ -130,24 +146,20 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
         var box = Shift(WolfmedSyntheticHudLayout.Diagnostics(screen, scale, lines));
         Block(handle, box, DiagnosticsAlpha);
 
-        var origin = WolfmedSyntheticHudLayout.TextOrigin(box, scale);
-        handle.DrawString(bold, origin, Loc.GetString("wolfmed-synthetic-diagnostics"), 1f,
+        Text(handle, bold, RowBox(box, 0, line),
+            $"{Loc.GetString("wolfmed-synthetic-diagnostics")}  {Math.Min(lines, Rows.Count)}/{Rows.Count}",
             Phosphor.WithAlpha(DiagnosticsAlpha));
 
-        var y = origin.Y;
-        var width = WolfmedSyntheticHudLayout.CharWidth(scale);
+        var index = 1;
         foreach (var row in Rows.Take(lines))
         {
-            y += line;
-            // A new line slides in from the right and fades up with it; both are zero under reduced motion.
-            var slide = (1f - row.Slide) * width * 6f;
+            // Reveal in place so animation cannot carry a fault outside the viewport.
+            var area = RowBox(box, index++, line);
             var alpha = DiagnosticsAlpha * Math.Clamp(row.Slide, 0.15f, 1f);
             var colour = Tint(row.Severity);
-            handle.DrawString(bold, new Vector2(origin.X + slide, y), row.Tag, 1f, colour.WithAlpha(alpha));
-            handle.DrawString(font, new Vector2(origin.X + slide + width * 7f, y), row.Part, 1f,
-                Dim.WithAlpha(alpha));
-            handle.DrawString(font, new Vector2(origin.X + slide + width * 19f, y), row.Text, 1f,
-                colour.WithAlpha(alpha));
+            Text(handle, bold, Column(area, 0f, 0.15f), row.Tag, colour.WithAlpha(alpha));
+            Text(handle, font, Column(area, 0.15f, 0.46f), row.Part, Dim.WithAlpha(alpha));
+            Text(handle, font, Column(area, 0.46f, 1f), row.Text, colour.WithAlpha(alpha));
         }
     }
 
@@ -158,11 +170,8 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
         handle.DrawRect(box, Color.Black.WithAlpha(0.45f * BannerAlpha));
         Frame(handle, box, colour.WithAlpha(0.7f * BannerAlpha));
 
-        var size = handle.GetDimensions(bold, Banner, 1f);
-        handle.DrawString(bold,
-            new Vector2(box.Left + (box.Width - size.X) / 2f, box.Top + WolfmedSyntheticHudLayout.Padding +
-                WolfmedSyntheticHudLayout.Font(scale)),
-            Banner, 1f, colour.WithAlpha(BannerAlpha));
+        Text(handle, bold, RowBox(box, 0, WolfmedSyntheticHudLayout.LineHeight(scale)), Banner,
+            colour.WithAlpha(BannerAlpha), true);
     }
 
     private void DrawStandby(DrawingHandleScreen handle, UIBox2 screen, Font bold, Font font, float line)
@@ -170,17 +179,14 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
         handle.DrawRect(screen, Color.FromHex("#04090c").WithAlpha(0.62f * StandbyAlpha));
 
         var centre = new Vector2(screen.Left + screen.Width / 2f, screen.Top + screen.Height / 2f);
-        var scale = MathF.Max(1f, screen.Height / 260f);
-        var title = handle.GetDimensions(bold, StandbyTitle, scale);
-        handle.DrawString(bold, new Vector2(centre.X - title.X / 2f, centre.Y - title.Y), StandbyTitle, scale,
-            Phosphor.WithAlpha(StandbyAlpha * 0.85f));
+        Text(handle, bold, new UIBox2(screen.Left + 16f, centre.Y - line * 3f,
+            screen.Right - 16f, centre.Y), StandbyTitle, Phosphor.WithAlpha(StandbyAlpha * 0.85f), true, 3f);
 
         if (!RebootVisible)
             return;
 
-        var sub = handle.GetDimensions(font, RebootText, 1f);
-        handle.DrawString(font, new Vector2(centre.X - sub.X / 2f, centre.Y + line), RebootText, 1f,
-            Dim.WithAlpha(StandbyAlpha));
+        Text(handle, font, new UIBox2(screen.Left + 16f, centre.Y + line,
+            screen.Right - 16f, centre.Y + line * 2f), RebootText, Dim.WithAlpha(StandbyAlpha), true);
     }
 
     private void DrawPanic(DrawingHandleScreen handle, UIBox2 screen, Font font, float line)
@@ -189,11 +195,13 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
 
         var x = screen.Left + screen.Width * 0.08f;
         var y = screen.Top + screen.Height * 0.16f;
-        handle.DrawString(font, new Vector2(x, y), PanicTitle, 1f, Fail.WithAlpha(PanicAlpha));
+        Text(handle, font, new UIBox2(x, y, screen.Right - 16f, y + line), PanicTitle, Fail.WithAlpha(PanicAlpha));
         foreach (var row in Panic)
         {
             y += line;
-            handle.DrawString(font, new Vector2(x, y), row, 1f, Dim.WithAlpha(PanicAlpha * 0.85f));
+            if (y + line > screen.Bottom - 16f)
+                break;
+            Text(handle, font, new UIBox2(x, y, screen.Right - 16f, y + line), row, Dim.WithAlpha(PanicAlpha * 0.85f));
         }
     }
 
@@ -204,43 +212,119 @@ public sealed class WolfmedSyntheticHudOverlay : Overlay
         var core = new UIBox2(screen.Left, middle - height / 2f, screen.Right, middle + height / 2f);
         handle.DrawRect(core, Color.Black.WithAlpha(0.72f * DeathAlpha));
 
-        var text = height * 0.4f / WolfmedSyntheticHudLayout.Font(scale);
-        var size = handle.GetDimensions(bold, DeathTitle, text);
-        var centre = screen.Left + screen.Width / 2f;
-        handle.DrawString(bold, new Vector2(centre - size.X / 2f, middle - size.Y * 0.62f), DeathTitle, text,
-            Phosphor.WithAlpha(DeathAlpha));
-
-        var sub = handle.GetDimensions(font, DeathSub, 1f);
-        handle.DrawString(font, new Vector2(centre - sub.X / 2f, middle + size.Y * 0.36f), DeathSub, 1f,
-            Dim.WithAlpha(DeathAlpha * 0.9f));
+        Text(handle, bold, new UIBox2(core.Left + 16f, core.Top + 6f, core.Right - 16f, middle),
+            DeathTitle, Phosphor.WithAlpha(DeathAlpha), true, 4f);
+        Text(handle, font, new UIBox2(core.Left + 16f, middle, core.Right - 16f, core.Bottom - 6f),
+            DeathSub, Dim.WithAlpha(DeathAlpha * 0.9f), true);
     }
 
-    /// <summary>A block's backing: dark glass, a one-pixel frame and a faint scanline band.</summary>
+    /// <summary>Broken concentric arcs evoke machine vision without a crosshair over the player.</summary>
+    private void DrawOptics(DrawingHandleScreen handle, UIBox2 screen)
+    {
+        var centre = new Vector2(screen.Left + screen.Width * 0.5f, screen.Top + screen.Height * 0.52f);
+        var radius = MathF.Min(screen.Width * 0.075f, screen.Height * 0.14f);
+        var alpha = SystemAlpha * (Tier == WolfmedSyntheticTier.Heavy ? 0.42f : 0.22f);
+        var rings = Tier >= WolfmedSyntheticTier.Moderate ? 2 : 1;
+        for (var ring = 0; ring < rings; ring++)
+        {
+            var r = radius + ring * 7f;
+            for (var segment = 0; segment < 3; segment++)
+            {
+                var start = segment * MathF.Tau / 3f + ring * 0.25f;
+                for (var step = 0; step < 28; step++)
+                {
+                    var a = start + step * 0.055f;
+                    var b = a + 0.055f;
+                    handle.DrawLine(centre + new Vector2(MathF.Cos(a), MathF.Sin(a)) * r,
+                        centre + new Vector2(MathF.Cos(b), MathF.Sin(b)) * r, Phosphor.WithAlpha(alpha));
+                }
+            }
+        }
+
+        // Calibration ticks sit beside the arcs, leaving the world visible through the centre.
+        for (var i = -5; i <= 5; i++)
+        {
+            var y = centre.Y + i * radius / 6f;
+            var length = i % 5 == 0 ? 10f : 4f;
+            foreach (var side in new[] { -1f, 1f })
+            {
+                var x = centre.X + side * (radius + 20f);
+                handle.DrawLine(new Vector2(x, y), new Vector2(x + side * length, y),
+                    Phosphor.WithAlpha(alpha));
+            }
+        }
+    }
+
+    /// <summary>A light glass backing and interrupted red brackets keep the world readable.</summary>
     private static void Block(DrawingHandleScreen handle, UIBox2 box, float alpha)
     {
-        handle.DrawRect(box, Color.FromHex("#04141b").WithAlpha(0.42f * alpha));
+        handle.DrawRect(box, Color.FromHex("#160706").WithAlpha(0.28f * alpha));
         for (var y = box.Top + 2f; y < box.Bottom; y += 3f)
             handle.DrawRect(new UIBox2(box.Left, y, box.Right, y + 1f), Faint.WithAlpha(0.18f * alpha));
 
         Frame(handle, box, Phosphor.WithAlpha(0.45f * alpha));
     }
 
-    /// <summary>A one-pixel bracket: the full frame plus brighter corner ticks.</summary>
+    /// <summary>Interrupted brackets with clean, matching chamfered corners.</summary>
     private static void Frame(DrawingHandleScreen handle, UIBox2 box, Color colour)
     {
-        handle.DrawRect(new UIBox2(box.Left, box.Top, box.Right, box.Top + 1f), colour);
-        handle.DrawRect(new UIBox2(box.Left, box.Bottom - 1f, box.Right, box.Bottom), colour);
-        handle.DrawRect(new UIBox2(box.Left, box.Top, box.Left + 1f, box.Bottom), colour);
-        handle.DrawRect(new UIBox2(box.Right - 1f, box.Top, box.Right, box.Bottom), colour);
-
-        var tick = MathF.Min(10f, box.Width / 4f);
-        var bright = colour.WithAlpha(MathF.Min(1f, colour.A * 2f));
-        handle.DrawRect(new UIBox2(box.Left, box.Top, box.Left + tick, box.Top + 2f), bright);
-        handle.DrawRect(new UIBox2(box.Right - tick, box.Bottom - 2f, box.Right, box.Bottom), bright);
+        var tick = MathF.Min(24f, box.Width / 4f);
+        handle.DrawLine(new Vector2(box.Left + tick, box.Top), new Vector2(box.Right - tick, box.Top), colour);
+        handle.DrawLine(new Vector2(box.Left + tick, box.Bottom), new Vector2(box.Right - tick, box.Bottom), colour);
+        foreach (var corner in new[] {
+                     new Vector2(box.Left, box.Top), new Vector2(box.Right, box.Top),
+                     new Vector2(box.Left, box.Bottom), new Vector2(box.Right, box.Bottom) })
+        {
+            var dx = corner.X == box.Left ? 1f : -1f;
+            var dy = corner.Y == box.Top ? 1f : -1f;
+            handle.DrawLine(corner + new Vector2(dx * 8f, 0f), corner + new Vector2(dx * tick, 0f), colour);
+            handle.DrawLine(corner + new Vector2(dx * 8f, 0f), corner + new Vector2(0f, dy * 8f), colour);
+            handle.DrawLine(corner + new Vector2(0f, dy * 8f), corner + new Vector2(0f, dy * tick), colour);
+        }
     }
 
     private UIBox2 Shift(UIBox2 box) =>
         Jitter == 0f ? box : new UIBox2(box.Left + Jitter, box.Top, box.Right + Jitter, box.Bottom);
+
+    private static UIBox2 RowBox(UIBox2 box, int row, float line) => new(
+        box.Left + WolfmedSyntheticHudLayout.Padding,
+        box.Top + WolfmedSyntheticHudLayout.Padding + row * line,
+        box.Right - WolfmedSyntheticHudLayout.Padding,
+        box.Top + WolfmedSyntheticHudLayout.Padding + (row + 1) * line);
+
+    private static UIBox2 Column(UIBox2 row, float start, float end) => new(
+        row.Left + row.Width * start, row.Top, row.Left + row.Width * end - 4f, row.Bottom);
+
+    /// <summary>Measure actual glyphs: font sizes are not pixel heights, and DrawString uses a top-left.</summary>
+    private static void Text(DrawingHandleScreen handle, Font font, UIBox2 area, string text, Color colour,
+        bool centred = false, float maxScale = 1f)
+    {
+        if (area.Width <= 0f || area.Height <= 2f || text.Length == 0)
+            return;
+
+        var scale = MathF.Min(maxScale, (area.Height - 2f) / font.GetLineHeight(1f));
+        // Font metrics are rounded to pixels. Check the chosen size instead of assuming exact scaling.
+        while (scale > 0.05f && font.GetLineHeight(scale) > area.Height - 2f)
+            scale -= 0.01f;
+
+        var display = text;
+        if (handle.GetDimensions(font, display, scale).X > area.Width)
+        {
+            var length = text.Length;
+            do
+            {
+                display = text[..length] + "...";
+                length--;
+            } while (length >= 0 && handle.GetDimensions(font, display, scale).X > area.Width);
+        }
+
+        var size = handle.GetDimensions(font, display, scale);
+        if (size.X > area.Width)
+            return;
+
+        handle.DrawString(font, new Vector2(centred ? area.Left + (area.Width - size.X) / 2f : area.Left,
+            area.Top + (area.Height - size.Y) / 2f), display, scale, colour);
+    }
 
     private static Color Tint(WolfmedSyntheticSeverity severity) => severity switch
     {

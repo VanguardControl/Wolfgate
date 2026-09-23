@@ -20,6 +20,8 @@ namespace Content.Server._WF.Wolfmed.Life;
 public sealed class WolfmedOverheatSystem : EntitySystem
 {
     private static readonly TimeSpan PulseInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan EpisodeGap = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan WarningInterval = TimeSpan.FromSeconds(20);
     private static readonly ProtoId<DamageTypePrototype> Heat = "Heat";
 
     [Dependency] private readonly IGameTiming _timing = default!;
@@ -41,10 +43,19 @@ public sealed class WolfmedOverheatSystem : EntitySystem
         if (comp.NextPulse > _timing.CurTime)
             return true;
 
-        comp.NextPulse = _timing.CurTime + PulseInterval;
+        // A gap longer than a couple of pulses means the body cooled off in between: a new episode, warned
+        // again straight away. Within one episode the warning repeats slowly rather than every pulse.
+        var now = _timing.CurTime;
+        var newEpisode = now - comp.NextPulse > EpisodeGap;
+        comp.NextPulse = now + PulseInterval;
 
-        _popup.PopupEntity(Loc.GetString(popup, ("name", Identity.Name(body, EntityManager))), body,
-            PopupType.LargeCaution);
+        // The upstream line says the circuits shut down, which is no longer what happens here.
+        if (newEpisode || now >= comp.NextWarning)
+        {
+            comp.NextWarning = now + WarningInterval;
+            _popup.PopupEntity(Loc.GetString("wolfmed-overheat-popup", ("name", Identity.Name(body, EntityManager))),
+                body, PopupType.MediumCaution);
+        }
 
         var damage = new DamageSpecifier(_prototypes.Index(Heat), FixedPoint2.New(comp.HeatPerPulse));
         _damageable.ChangeDamage(body, damage);

@@ -413,6 +413,10 @@ public sealed partial class WolfmedDiagnosticPanel
             _ => "health-analyzer-wound-brain-activity",
         };
 
+        // A positronic brain runs no oxygenation clock, and the server sends -1 for it.
+        if (diagnostics.Oxygenation < 0f)
+            line += "-core";
+
         return Loc.GetString(line,
             ("activity", (int) MathF.Round(diagnostics.BrainActivity * 100f)),
             ("oxygen", (int) MathF.Round(MathF.Max(0f, diagnostics.Oxygenation) * 100f)));

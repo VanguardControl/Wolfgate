@@ -513,6 +513,39 @@ public sealed class WolfmedBrainTest : GameTest
         });
     }
 
+    /// <summary>
+    /// A head blown apart is a head lost. Gibbing deletes the part in its slot instead of amputating it, so
+    /// the removal arrives while the part is already terminating; an IPC walked on after exactly that.
+    /// </summary>
+    [Test]
+    public async Task GibbedHeadKillsTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        EntityUid ipc = default;
+
+        await server.WaitPost(() =>
+        {
+            ipc = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var gibs = entities.System<BodySystem>().GibPart(Part(entities, ipc, BodyPartType.Head));
+            Assert.That(gibs, Is.Not.Empty, "the head did not gib.");
+        });
+
+        await Pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.System<SharedBodySystem>();
+            Assert.Multiple(() =>
+            {
+                Assert.That(body.GetBodyChildrenOfType(ipc, BodyPartType.Head), Is.Empty, "the head is still on.");
+                Assert.That(entities.System<MobStateSystem>().IsDead(ipc), Is.True, "a chassis with its head gibbed kept running.");
+            });
+        });
+    }
+
     /// <summary>Taking the positronic brain out is death, the same as taking a fleshy one out.</summary>
     [Test]
     public async Task PositronicBrainOutIsDeathTest()

@@ -79,6 +79,13 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     /// </summary>
     [ViewVariables]
     public bool WasUp;
+
+    /// <summary>
+    /// Server: the body has had a working leg at least once. Until then a missing pair of legs is a body
+    /// still being assembled, and downing it played the body-fall sound on every spawn.
+    /// </summary>
+    [ViewVariables]
+    public bool HadLegs;
 }
 
 /// <summary>

@@ -14,6 +14,8 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Inventory;
 using Content.Shared.Rejuvenate;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
 using Robust.Shared.GameObjects;
@@ -845,6 +847,10 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(pain.GetRawPain(healingBody), Is.EqualTo(FixedPoint2.New(8.59)));
 
             Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE
+            // WOLFGATE (BRAIN): losing the head is death on a wound host now. This test is about pain
+            // bookkeeping on a living body, so the body is put back on its feet, and re-armed, for the pain-shock checks.
+            entityManager.System<MobStateSystem>().ChangeMobState(body, MobState.Alive);
+            entityManager.GetComponent<PainShockTargetComponent>(body).Armed = true; // death disarms it
             Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.Zero));
             // WOLFGATE: Onyx's 13.05 assumes the detached head takes the full 5 Blunt. Wolfgate's Shitmed
             // `OnPartDamageModify` (<BodyPartComponent, DamageModifyEvent>) still runs on a loose limb and

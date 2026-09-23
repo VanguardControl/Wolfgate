@@ -6,7 +6,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Client._WF.Wolfmed.Overlays;
 
 /// <summary>
-/// The screen pass under the synthetic readout: the cyan edge tint, the occasional torn slice and the
+/// The screen pass under the synthetic readout: the red phosphor edge tint, the occasional torn slice and the
 /// standby drain. <see cref="WolfmedSyntheticHudSystem"/> owns every value.
 /// </summary>
 public sealed class WolfmedSyntheticScreenOverlay : Overlay

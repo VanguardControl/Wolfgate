@@ -15,4 +15,8 @@ public sealed partial class WolfmedOverheatComponent : Component
     /// <summary>When the next burn pulse is due.</summary>
     [ViewVariables]
     public TimeSpan NextPulse;
+
+    /// <summary>When the overheating popup may show again within the same episode.</summary>
+    [ViewVariables]
+    public TimeSpan NextWarning;
 }

@@ -242,11 +242,12 @@ public sealed class WolfmedSyntheticHudTest : GameTest
     {
         Assert.Multiple(() =>
         {
-            foreach (var (width, height) in new[] { (1920f, 1080f), (1280f, 720f) })
+            foreach (var (width, height) in new[] { (2560f, 1351f), (1920f, 1080f), (1280f, 720f), (640f, 480f), (1024f, 768f) })
             {
-                foreach (var scale in new[] { 1f, 1.4f })
+                foreach (var requested in new[] { 0.6f, 1f, 1.4f, 2.5f, 5f })
                 {
                     var screen = new UIBox2(0f, 0f, width, height);
+                    var scale = WolfmedSyntheticHudLayout.FitScale(screen, requested);
                     var lines = WolfmedSyntheticHudLayout.MaxLines(screen, scale,
                         WolfmedSyntheticHudComponent.MaxFaults);
                     Assert.That(lines, Is.GreaterThan(3), $"{width}x{height} at {scale} shows almost no faults.");
@@ -262,7 +263,7 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                     {
                         Assert.That(box.Left, Is.GreaterThanOrEqualTo(screen.Left));
                         Assert.That(box.Right, Is.LessThanOrEqualTo(screen.Right));
-                        Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Top + height * WolfmedSyntheticHudLayout.TopBand),
+                        Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Top + height * WolfmedSyntheticHudLayout.BottomBand),
                             $"{name} at {width}x{height} reaches below the readout's own band.");
 
                         foreach (var (reserved, area) in WolfmedSyntheticHudLayout.Reserved(screen))
@@ -272,7 +273,11 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                         }
                     }
 
-                    // And the two corner blocks never run into each other or into the banner.
+                    // Inset readouts stay below chat, away from the side buttons, and off the character.
+                    Assert.That(blocks[0].Box.Top, Is.GreaterThanOrEqualTo(height * 0.40f));
+                    Assert.That(blocks[1].Box.Top, Is.GreaterThanOrEqualTo(height * 0.40f));
+                    Assert.That(blocks[0].Box.Left, Is.GreaterThanOrEqualTo(width * 0.14f));
+                    Assert.That(blocks[1].Box.Right, Is.LessThanOrEqualTo(width * 0.90f));
                     Assert.That(WolfmedSyntheticHudLayout.Overlaps(blocks[0].Box, blocks[1].Box), Is.False);
                     Assert.That(WolfmedSyntheticHudLayout.Overlaps(blocks[0].Box, blocks[2].Box), Is.False);
                     Assert.That(WolfmedSyntheticHudLayout.Overlaps(blocks[1].Box, blocks[2].Box), Is.False);
@@ -304,7 +309,7 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                     Assert.That(screen.Width, Is.EqualTo((float) width));
                     Assert.That(screen.Height, Is.EqualTo((float) height));
 
-                    var scale = WolfmedSyntheticHudLayout.Scale(1f, ui);
+                    var scale = WolfmedSyntheticHudLayout.FitScale(screen, WolfmedSyntheticHudLayout.Scale(1f, ui));
                     var lines = WolfmedSyntheticHudLayout.MaxLines(screen, scale,
                         WolfmedSyntheticHudComponent.MaxFaults);
 
@@ -320,7 +325,7 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                         Assert.That(box.Top, Is.GreaterThanOrEqualTo(screen.Top), $"{where} starts above the viewport.");
                         Assert.That(box.Right, Is.LessThanOrEqualTo(screen.Right), $"{where} runs off the right edge.");
                         Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Bottom), $"{where} runs off the bottom edge.");
-                        Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Top + height * WolfmedSyntheticHudLayout.TopBand),
+                        Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Top + height * WolfmedSyntheticHudLayout.BottomBand),
                             $"{where} reaches below the readout's own band.");
                     }
                 }

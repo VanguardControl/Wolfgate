@@ -22,6 +22,7 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
     [Dependency] private Damage.WolfmedDegradationVisualsSystem _degradation = default!;
     [Dependency] private Damage.WolfmedTreatmentVisualsSystem _treatments = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private Life.WolfmedLifeSystem _life = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -66,6 +67,11 @@ public sealed class WolfmedBodyPartLifecycleSystem : EntitySystem
     /// <summary>Re-projects the body and the detached limb when a limb comes off.</summary>
     private void OnPartRemoved(Entity<WoundHostComponent> body, ref BodyPartRemovedEvent args)
     {
+        // Ahead of the guard below: a gibbed part leaves its slot while it is being deleted, and a gibbed
+        // head is still a lost head.
+        if (!TerminatingOrDeleted(body))
+            _life.OnPartDetached(body, args.Part.Owner);
+
         // Same guard as OnPartAdded: RecursiveDeleteEntity detaches every part while the mob terminates, and
         // RefreshDetachedDamage's EnsureComp<PartDamageVisualsComponent> throws on a terminating entity.
         if (TerminatingOrDeleted(body) || TerminatingOrDeleted(args.Part.Owner))
