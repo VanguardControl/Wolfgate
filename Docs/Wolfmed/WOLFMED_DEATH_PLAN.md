@@ -8,13 +8,15 @@
 
 I re-checked the load-bearing claims against the code: the breathing rule, `Kill`, the ghost branch, the sedation model, the defib gate, the non-wound-host species and the pod's missing return prompt. For this revision I also checked the `MobThresholdsComponent` access rule, the brainless branch of `WolfmedLifeSystem.Tick`, the sedation lines, the crit-action grant path, the autodoc alarm enum, the `ghost` command path and the species file paths.
 
+**Changelog.** Revised 2026-09-22 after the owner accepted OD1-6, OD9, OD22 and the reviewer's six revisions and three corrections.
+
 **Conventions.**
 - Citations use the rundown's short file names (its Appendix B). Files outside that key are given as full repo paths.
 - Every number I propose is a **starting value for playtesting**, written as *(start: value, `where it lives`)*. **new** marks a CVar or prototype field that does not exist yet. **existing** marks one that does.
 - "Derived" means worked out from the code's own rates, not measured.
 - "To confirm" names the file to check before building.
 - **OD1–OD22** are this plan's owner decisions (§13). **D-numbers** (D1–D35) always mean the entries in `Docs/Wolfmed/DECISIONS.md`, for example DECISIONS D27 (the accumulator).
-- **[OD1 wording]** marks player-facing text that depends on the open terminology decision OD1. If the owner picks OD1 (a), those strings say "brain death" instead. Only locale changes.
+- **[OD1 wording]** marks player-facing text that follows the terminology decision OD1 (answered (b), §13). If OD1 is ever revisited to (a), those strings say "brain death" instead. Only locale changes.
 
 ---
 
@@ -28,7 +30,7 @@ I re-checked the load-bearing claims against the code: the breathing rule, `Kill
 |---|---|---|---|---|
 | **Up** | Alive | everything | yes | 0 |
 | **Downed** (crawling) | Alive | crawl, talk, radio, use carried items on self, pick up items within reach, Call for help | yes | 0 (Downed is not helpless) |
-| **Faint** | Critical | hear; see the reason and "you will come round shortly" | **yes** | ≤ 20 s |
+| **Faint** | Critical | hear; see the reason, anything else holding them down, and "you will come round shortly" (conditional, §5.2) | **yes** | ≤ 20 s |
 | **Unconscious** | Critical | hear; see the reason and what will wake them | **yes**, unless §4 lists a suppressor | until the cause is fixed (per-cause budget, §2.3) |
 | **Cardiac arrest** (Dying) | Critical, looks dead | hear; Succumb and Last Words, both honest | no | the rescue window, about 4 min untreated (§2.3 explains why it stays long) |
 | **Catastrophic brain injury** (CBI) [OD1 wording] | Dead | ghost; told exactly how they can return | no | until surgery and a defib |
@@ -49,7 +51,7 @@ IPCs use the same rungs under machine names: Downed, **Shutdown** (Unconscious),
 | # | Name | Core content | Owner decisions needed first |
 |---|---|---|---|
 | M1a | The honest loop | breathing, the suffocation gate, causes and alerts, pain faint, honest Succumb, stable revival, IPC shutdown reasons, pickup, Call for help | OD1, OD2, OD3, OD4, OD5, OD6, OD9, OD21, OD22 |
-| M1b | Burns and caps | per-part ceiling, overflow event, burn fluid loss and dressing, uncapped fire measurement | OD11, OD12 |
+| M1b | Burns and caps | per-part ceiling, overflow carried on each hit's event, burn fluid loss and dressing, uncapped fire measurement | OD11, OD12 |
 | M2 | Arrest, revival and medic information | vitals block, explanation card, positronic core repair, restart hook, sedation model, executions and suicide, wait as a ghost | OD7 (c), OD8, OD10, OD14, OD17, OD20 |
 | M3 | Consequences keep mattering | deterministic organs, graded organ effects, brain and core injury input, stumps, barotrauma, blast head | OD15 |
 | M4 | Species and IPC death | conformance test, organ data, non-wound-host species (both Synth branches), circulatory collapse, IPC core-heat route | OD16, OD10 |
@@ -86,7 +88,7 @@ Every cause must pass all four steps. Milestone 1 tests the loop for bleeding, b
 | **Drain** | The rate at which oxygenation falls. `WolfmedLifeSystem.DrainRate` takes the worst of arrest, breathing, low blood and sepsis (WolfmedLifeSystem.cs:269-300). |
 | **Cause** | **New.** The input that currently sets the body's state. Alerts, messages, the HUD, the analyzer and examine all read it. |
 | **Route** | A named process that makes one cause worse at a stated rate, driven by one measurable quantity (blood volume, oxygenation, toxin load, core temperature). A route never reads another route's bookkeeping. |
-| **Faint** | **New.** Unconsciousness with a fixed maximum length. You come round Downed even if the cause remains. |
+| **Faint** | **New.** Unconsciousness with a fixed maximum length. The faint ends even if its cause remains; you come round Downed unless another cause still holds you under (§5.1 Blockers). |
 | **Unconscious** | Unconsciousness that lasts as long as its bodily cause, such as blood at or below 35%. It ends when the cause is fixed. |
 | **Dying** | Only cardiac arrest (organics) and **thermal shutdown** (IPC: the core-heat route is destroying the core, §3.11). Both are helpless states that end in death with no further event. Only Dying offers Succumb and Last Words (OD3). |
 | **Helpless time** | Time the player can neither move nor speak: Faint, Unconscious, arrest, Shutdown, thermal shutdown. Downed does not count. Dead does not count either, because the ghost has been told how to return. |
@@ -135,7 +137,7 @@ After M2, a medic should be able to order patients from signs alone. The M2 play
 |---|---|---|---|
 | **Up** | Alive | — | — |
 | **Downed** | Alive + `WolfmedDownedComponent` | Any of: body pain ≥ 128.25; blood ≤ 50%; oxygenation ≤ 0.54; sedation ≥ 0.88; both legs gone; stim crash; brain injury (brain HP < 25%, M3); radiation sickness (M5); toxin load (M5); cold or heat (M5). IPC: pain, oil ≤ 50%, core HP < 25% (M3). | every input back under 0.9 of its line (`wolfmed.consc_hysteresis` existing, WolfmedCVars.cs:152-153), with the existing 2 s dwell |
-| **Faint** | Critical | summed pain crosses the faint line while the faint is armed (§3.1); a heavy head blow (§3.6, M3) | its timer ends, or (pain only) a strong or emergency painkiller; then Downed |
+| **Faint** | Critical | summed pain crosses the faint line while the faint is armed (§3.1); a heavy head blow (§3.6, M3) | its timer ends, or (pain only) a strong or emergency painkiller; then Downed, unless another input still meets the Unconscious line (§5.1 Blockers) |
 | **Unconscious** | Critical | blood ≤ 35%; oxygenation ≤ 0.45; sedation 1.0; toxic coma (M5); deep cold (M5); heat stroke (M5). IPC: **Shutdown** (power, pump), oil ≤ 35%. | its cause clears |
 | **Cardiac arrest** | Critical, looks dead (standing decision) | heart destroyed or removed; blood ≤ 30%; oxygenation ≤ 0.15; electrocution ≥ 60 after insulation; cold arrest (M5). Sepsis and toxins arrive through the oxygen trigger (§3.5). | a defib; or a heart put back when the heart was the cause (WolfmedLifeSystem.cs:434-442) |
 | **Thermal shutdown** (IPC, M4) | Critical | chassis above the core-heat line while the core loses HP (§3.11) | chassis cools below the wake line (then Downed from pain), or core failure |
@@ -168,7 +170,7 @@ These are design targets that the scenario tests assert. Each names what enforce
 
 | Cause | Helpless state | Target (starting values) | What ends it | Tuning handle |
 |---|---|---|---|---|
-| Pain | Faint | **≤ 20 s per faint.** Another faint needs a fresh rise of 40 or a drop below the leave line first (§3.1). | timer, or a strong or emergency painkiller | `wolfmed.pain_faint_seconds` 20 new; `wolfmed.pain_faint_rise` 40 new |
+| Pain | Faint | **≤ 20 s per faint**; hits during a faint never lengthen it. Another faint needs a fresh rise of 40 over the pain at waking, or a drop below the leave line, and never starts within 30 s of waking (§3.1). **Per encounter:** ≤ 40 s Critical in 2 minutes of fire and repeated hits, Downed for the rest (`SustainedFireFaintTest`). | timer, or a strong or emergency painkiller | `wolfmed.pain_faint_seconds` 20 new; `wolfmed.pain_faint_rise` 40 new; `wolfmed.pain_faint_cooldown` 30 new |
 | Head blow (M3) | Faint | ≤ 5 s | timer | `wolfmed.head_knockout_seconds` 5 new |
 | Blood loss, bleeding stopped | Unconscious | **≈ 60 s** from 35% (19.5 u at 0.33 u/s, BloodstreamSystem.cs:128-131, derived); faster with a transfusion | blood > 41.5% | existing `wolfmed.consc_blood_out` |
 | Oxygen, air restored | Unconscious | **≈ 7 s** from the Unconscious line to waking; ≈ 45 s from oxygenation 0.3 (refill 0.0042/s, derived) | oxygenation > 0.48 | existing `wolfmed.brain_refill_factor` 0.5 |
@@ -234,14 +236,17 @@ Shortening the window is OD22.
 - **Body pain = min(135, Σ part pain)**, recomputed on every change through a marked Onyx edit in `PainSystem.SetPain` (PainSystem.cs:208-219). In `GetPainBeforeAdrenaline` (:187-193), each part's share becomes part ÷ Σ parts, so suppression is subtracted once.
   - The Downed test keeps reading the capped body value after relief. Painkillers therefore still lift a badly burned patient: summed floors ≈ 480, body 135, minus an opiate's 70 gives 65, which stands them up. This keeps the standing decision.
 - **Faint.**
-  - When summed pain after strong relief crosses the faint line and the faint is *armed*, the body faints for *(start: 20 s, `wolfmed.pain_faint_seconds` new)* and then comes round Downed. The faint line is `wolfmed.consc_pain_out` (existing, a multiplier of 1.4 on the 135 soft cap, so 189; WolfmedCVars.cs:137-138).
-  - The faint **re-arms** only when summed pain falls below the leave line (170.1), or rises *(start: 40, `wolfmed.pain_faint_rise` new)* above its level at waking. A steady injury therefore never re-faints. A fresh wound can.
+  - When summed pain after strong relief crosses the faint line and the faint is *armed*, the body faints for *(start: 20 s, `wolfmed.pain_faint_seconds` new)* and then comes round Downed, unless another input still meets the Unconscious line (§5.1 Blockers). The faint line is `wolfmed.consc_pain_out` (existing, a multiplier of 1.4 on the 135 soft cap, so 189; WolfmedCVars.cs:137-138).
+  - **Fixed length.** Damage taken during a faint never extends `PainFaintUntil`. 20 s is a hard maximum per faint.
+  - The faint **re-arms** only when summed pain falls below the leave line (170.1), or rises *(start: 40, `wolfmed.pain_faint_rise` new)* above the **re-arm baseline**. The baseline is the summed pain at the moment of waking, not at fainting, so pain added during the faint does not count toward the rise. A steady injury therefore never re-faints. A fresh wound can.
+  - **Cooldown.** After waking, no new faint can start for *(start: 30 s, `wolfmed.pain_faint_cooldown` new)*, whatever the pain does. The re-arm rule applies again once it ends.
+  - **Per-encounter budget.** `SustainedFireFaintTest` (M1a) measures chained faints: a 10-stack fire plus a hit every 2 s for 2 minutes. Total Critical time over the 2 minutes must be ≤ 40 s, and the patient is Downed (not Critical) for the rest. The timers alone allow three faints (60 s) in 2 minutes at the starting values, so the budget relies on summed pain levelling off at the part clamps (derived). If the test fails, raise the cooldown: 50 s caps any 2 minutes at two faints (40 s) by the timers alone.
   - A **Strong** or **Emergency** painkiller ends a faint at once and blocks new ones while active. This is the standing "painkillers bring you out of Unconscious" rule. Today only Emergency lifts the out test (`LiftsUnconscious`, :264-266).
-  - Mechanics: two server fields on `WolfmedConsciousnessComponent` (`PainFaintUntil`, `PainFaintArmedBelow`). The check runs on the existing 0.5 s poll (:123-138).
+  - Mechanics: server fields on `WolfmedConsciousnessComponent`: `PainFaintUntil`, `PainFaintArmedBelow`, and new `PainFaintBaseline` (the re-arm baseline) and `PainFaintCooldownUntil`. The check runs on the existing 0.5 s poll (:123-138).
 - **Pain shock.**
   - It keeps its fall, scream and 2 s stun.
   - The shock arrest is removed as data only *(`wolfmed.arrest_shock_blood` existing, 0.5 → 0; WolfmedLifeSystem.cs:653-659)*.
-  - Adrenaline (OD5, recommended): it **no longer stands you up**. For 30 s it gives crawl speed ×1.5 and removes the 1.5× do-after penalty, "drag yourself to safety".
+  - Adrenaline (OD5, decided): it **no longer stands you up**. For 30 s it gives crawl speed ×1.5 and removes the 1.5× do-after penalty, "drag yourself to safety".
   - This needs a marked edit, because `GetPain` applies ×0.7 to every reading (PainSystem.cs:175-178). The hard-coded shock constants move to CVars in the same edit: `wolfmed.pain_shock_threshold` 130, `wolfmed.pain_shock_rearm` 110, `wolfmed.adrenaline_seconds` 30, `wolfmed.adrenaline_crawl_multiplier` 1.5 (all new).
 - **Worsens by.** New injury only. **Pain is never a route to death.**
 - **Mechanical bodies** never faint from pain (OD9). `WolfmedShutdownSystem.IsMechanical` (WolfmedShutdownSystem.cs:50-62) gates the faint.
@@ -249,9 +254,9 @@ Shortening the window is OD22.
 **First aid:** painkillers (unchanged tiers), a splint. **Definitive:** close the wounds. **Recovery:** part pain falls 1/9 per s to its floor; you stand below 115.4.
 
 **Patient sees:**
-- Downed alert "Downed: pain", with the text "The pain has put you on the floor. You can crawl and treat yourself. A painkiller will get you up; the wounds are still there."
-- Faint: popup "The pain takes you under." The card and alert say "Passed out: pain. You will come round in a few seconds."
-- Waking: "You come round, still in agony."
+- Downed alert "Downed: pain", with the text "The pain has put you on the floor. You can crawl and treat yourself. A painkiller will get you moving unless something else is holding you down; the wounds are still there." While Blockers is not empty it adds "Still holding you down: {blockers}", for example "blood loss" (§5.1).
+- Faint: popup "The pain takes you under." The card and alert say "Passed out: pain. You will come round in a few seconds." While another cause also meets the Unconscious line: "Passed out: pain. The pain will pass in a few seconds, but something else is keeping you under. Still holding you down: {blockers}."
+- Waking: "You come round, still in agony." It adds "Still holding you down: {blockers}" when another input still meets the Downed line.
 - Adrenaline start and end each get a line.
 
 **Medic sees:**
@@ -281,7 +286,8 @@ Shortening the window is OD22.
 **Patient sees:**
 - Per-wound bleeding status while Up (slow, steady, heavy, spurting, naming the part).
 - "Downed: blood loss", with "You are light-headed and cold. Stop the bleeding; you need blood. Painkillers will not help."
-- "Unconscious: blood loss. You will come round as your blood recovers, if the bleeding stops."
+- "Unconscious: blood loss. You will come round as your blood recovers, if the bleeding stops." While another cause also meets the Unconscious line: "Unconscious: blood loss. You will not come round until your blood recovers and the rest is treated."
+- Both add "Still holding you down: {blockers}" while Blockers is not empty (§5.1), for example "pain" or "no oxygen".
 
 **Medic sees:**
 - Examine: pooling and trails, "pale and clammy", "weak, rapid pulse" (from `BloodBand`, §5.5).
@@ -380,7 +386,7 @@ Succumb and Last Words are offered but do not kill (P4).
 **Medic sees:**
 - "Appears dead", "no pulse" (existing).
 - Analyzer: "CARDIAC ARREST: {cause}" plus the existing brain-death countdown (wounds.ftl:156).
-- The defib verdict in words: "Shock will work", "Shock refused: blood 24%, transfuse ≈ N u", or "No heart: transplant first".
+- The defib verdict in words: "Shock indicated", "Shock refused: blood 24%, transfuse ≈ N u", or "No heart: transplant first". Never "Shock will work": a shock succeeds 85% of the time (WolfmedRevivalSystem.cs:62-80, 88-92).
 
 ### 3.6 Brain and core injury
 
@@ -420,7 +426,7 @@ Succumb and Last Words are offered but do not kill (P4).
 - Dressed burns infect at the untreated rate (P20). Infection openness is the profile's `TreatmentMultipliers` entry for the wound's **bleeding** treatment (WolfmedInfectionSystem.cs:163-166), so a burn is always "untreated".
 
 **Target.**
-- **The cap goes, replaced by a per-part ceiling (§6).** Fire keeps growing burns, fluid loss and, on the torso, organ damage. It cannot delete a limb or the head (OD12).
+- **The cap goes, replaced by a per-part ceiling (§6).** Fire keeps growing burns and fluid loss. Organ harm stays per hit on the hit's total (§6.2), so a saturated torso gives fire no extra route into the organs. It cannot delete a limb or the head (OD12).
 - **Fluid-loss route (new, OD11).**
   - Each open burn wound at severity ≥ *(start: 20, burn wound field `fluidLossFrom` new)* loses blood volume at severity × *(start: 0.002 u/s, `fluidLossPerSeverity` new)*. Global multiplier: `wolfmed.burn_fluid_rate` 1 new.
   - The fields go on the Onyx `BurnWound` stages as marked YAML lines (wounds.yml:554-608), plus the Wolfmed burn prototypes (burns.yml).
@@ -439,7 +445,7 @@ Succumb and Last Words are offered but do not kill (P4).
 - Burn dressing.
 - Painkillers to get moving.
 
-**Definitive:** skin graft (burn kit), then fluids or blood. **Recovery:** fluid loss stops once dressed or grafted; blood regenerates as in §3.2.
+**Definitive:** skin graft (burn kit), then fluids or blood. **Recovery:** dressing cuts fluid loss to × 0.25; it does not stop it. Only a graft stops it. Blood regenerates as in §3.2.
 
 **Patient sees:** "You are on fire! Resist to pat it out." Then the status "Burns weeping fluid (severe): dress your burns; you will need fluids." Then the blood-loss texts.
 
@@ -497,7 +503,10 @@ Succumb and Last Words are offered but do not kill (P4).
   | > heat threshold − 7 K | Downed ("heat exhaustion") | `wolfmed.hyperthermia_down_offset` 7 new |
   | > heat threshold | Unconscious ("heat stroke"), brain drain 1/300 per s | `wolfmed.hyperthermia_brain_seconds` 300 new |
 
-- **Heat inputs are suppressed while the body is on fire and for 30 s after** *(start: `wolfmed.heat_fire_grace_seconds` 30 new)*. Otherwise every fire would trigger heat stroke and override the burn route and the 20 s faint budget.
+- **Fire grace** *(start: 30 s, `wolfmed.heat_fire_grace_seconds` new)*. Otherwise every fire would trigger heat stroke and override the burn route and the 20 s faint budget.
+  - The grace only delays **entering** a heat cause (Downed "heat exhaustion" or Unconscious "heat stroke"). It lasts while the body is on fire and for 30 s after it is extinguished.
+  - It never clears a heat cause the body already has. A heat-stroke patient who catches fire stays in heat stroke.
+  - It is granted once per cooling cycle. Re-ignition does not renew or extend it until the core temperature has fallen back below the heat-exhaustion line (heat threshold − 7 K).
 - Fever's 313 K ceiling stays below the heat lines. A fever reads "feverish" and never Downs.
 - Cold arrest is the most rescuable arrest, because the brain is protected.
 
@@ -611,8 +620,13 @@ This is server `_WF` code reading a server component, so it needs **no hook**. T
 - `Evaluate` (WolfmedConsciousnessSystem.cs:141-193) already computes every input. It keeps them and picks the one that meets the current state's line.
   - Ties (only causes that meet the current state's line compete): Arrest > CoreHeat > Shutdown > Blood > Oil > Hypoxia > Sedation > Toxin > Cold > Heat > Radiation > Brain > Core > HeadBlow > PainFaint > Pain > Legs > Crash.
   - The hypoxia sub-source is the largest active drain.
+- **Blockers (new).** There is still one main `Cause`, but other inputs can hold the body too. `WolfmedConsciousnessComponent` gains `[AutoNetworkedField] Blockers`, a small `[Flags]` enum with one bit per cause value above.
+  - The server computes it in `Evaluate` from the inputs that meet the current state's line: every such input except `Cause` sets its bit.
+  - An input inside its leave band (crossed back over its line but not yet under 0.9 of it, `wolfmed.consc_hysteresis`) still counts, because it still blocks leaving.
+  - The line is the Unconscious line for every Critical state and the Downed line for Downed. So the waking message lists what still holds the body Downed.
+  - It is dirtied only on change, like `Cause`.
 - `Apply` (:208-243) raises a new `WolfmedConsciousnessChangedEvent(oldState, newState, oldCause, newCause)`. Raising our own event avoids a second subscriber on a pair that is already taken.
-- Per-cause text lives in a `wolfmedConsciousnessCause` **prototype**. Fields: `alertDowned`, `alertOut`, transition lines (down, out, wake, stand), `symptom`, `help`, `syntheticHudLine`, `dying` (bool).
+- Per-cause text lives in a `wolfmedConsciousnessCause` **prototype**. Fields: `alertDowned`, `alertOut`, transition lines (down, out, wake, stand), `symptom`, `help`, `helpBlocked` (the conditional form of `help`, shown while Blockers is not empty), `blockerName` (the short noun used in "Still holding you down: …"), `syntheticHudLine`, `dying` (bool).
 
 ### 5.2 Patient alerts, messages and the explanation card
 
@@ -635,13 +649,17 @@ This is server `_WF` code reading a server component, so it needs **no hook**. T
 
 | Cause | Downed alert | Out alert | Short text |
 |---|---|---|---|
-| Pain | Downed: pain | Passed out: pain | "A painkiller will get you up; the wounds are still there." / "You will come round in a few seconds." |
-| Blood | Downed: blood loss | Unconscious: blood loss | "Stop the bleeding; you need blood. Painkillers will not help." / "You will come round as your blood recovers, if the bleeding stops." |
+| Pain | Downed: pain | Passed out: pain | "A painkiller will get you moving unless something else is holding you down; the wounds are still there." / "You will come round in a few seconds." (blocked: "The pain will pass in a few seconds, but something else is keeping you under.") |
+| Blood | Downed: blood loss | Unconscious: blood loss | "Stop the bleeding; you need blood. Painkillers will not help." / "You will come round as your blood recovers, if the bleeding stops." (blocked: "You will not come round until your blood recovers and the rest is treated.") |
 | Oxygen | Short of breath | Unconscious: no oxygen | "Get to air." / "You need air: internals, or somewhere with atmosphere." |
 | Sedation | Drowsy | Unconscious: overdose | "Painkillers are slowing you down." / "Too much painkiller; your breathing is slowed." |
 | Arrest | — | Cardiac arrest: {cause} | "You need a defibrillator. Brain injury begins in about a minute without CPR. You can choose to let go." |
 | Head blow, head injury, toxin, radiation, cold, heat, legs, crash | one line each, same pattern | | |
 | IPC (Oil, Core, CoreHeat, Shutdown) | HUD lines (§5.6) | | |
+
+**Overlapping causes (M1a).**
+- Every alert, card line and transition message that names the cause adds "Still holding you down: {blockers}" while Blockers is not empty (§5.1). It lists each blocker's `blockerName`, for example "Still holding you down: blood loss".
+- No text promises waking or standing unconditionally. A `help` line that makes such a promise has a `helpBlocked` form, shown while Blockers is not empty. The pain Downed line is conditional in both forms.
 
 **Transition messages** (none today, rundown §4.7 item 5). One self popup per transition, in `_WF/wolfmed/consciousness.ftl`:
 - going down, fainting, going Unconscious, waking, standing;
@@ -653,9 +671,10 @@ The sedation warnings (0.4 / 0.6 / 0.8) are not M1a messages. They ship with the
 
 **Explanation card (M2).** A small client text panel on the unconscious screen, drawn from the cause prototype, with no numbers:
 - the cause;
+- anything else holding you down (Blockers, §5.1);
 - what is happening, in symptoms;
-- what will wake you;
-- for a Faint, "you will come round shortly";
+- what will wake you, in its conditional form while Blockers is not empty;
+- for a Faint, "you will come round shortly", only while Blockers is empty;
 - while Dying, a coarse bar and the rescue line (§2.3).
 
 **Dying view (M2).** The `pressure − 1` depth term is dead code (WolfmedConsciousnessSystem.cs:196-206). Depth follows the active route's progress instead: blood 35% → 30%, oxygenation 0.45 → 0.15, toxin 120 → coma drain. A Faint uses its own short white-out, so "brief" looks different from "dying".
@@ -679,7 +698,7 @@ The sedation warnings (0.4 / 0.6 / 0.8) are not M1a messages. They ship with the
 2. **New actions** in `Resources/Prototypes/_WF/Wolfmed/Actions/dying.yml` (`ActionWolfmedSuccumb`, `ActionWolfmedLastWords`) that raise **new event types**. `CritMobActionsSystem` already subscribes `CritSuccumbEvent` and `CritLastWordsEvent` (CritMobActionsSystem.cs:33-35), so reusing those would also run the upstream ghost path.
 3. **New `WolfmedDyingActionsSystem`** (`_WF/Wolfmed/Life`). It grants the actions from `StartArrest` and removes them from `EndArrest` and on death, using direct calls (WolfmedLifeSystem.cs:486-511) rather than new subscriptions. Thermal shutdown grants and removes them the same way (M4).
 4. **On confirm,** in one call:
-   1. set the brain (or positronic core) organ to 0 HP;
+   1. set the brain (or positronic core) organ's health to 0. The organ entity stays where it is, and the body and the mind (the character's identity) are preserved, so brain repair surgery plus a defib brings the same person back;
    2. `EndArrest` (or end thermal shutdown);
    3. `WolfmedLifeSystem.Kill`;
    4. only then the ghost attempt with a returnable ghost.
@@ -694,9 +713,9 @@ The sedation warnings (0.4 / 0.6 / 0.8) are not M1a messages. They ship with the
 
 **Succumb dialog (starting wording) [OD1 wording]:**
 
-> **Let go?** Your heart has stopped ({cause}). If you let go, your character dies now: catastrophic brain injury. You become a ghost. A medic can still bring the body back with brain repair surgery and a defibrillator, until it decays in about {minutes} minutes. If they do, you will be offered the chance to return. [Let go] [Keep fighting]
+> **Let go?** Your heart has stopped ({cause}). If you let go, your character dies now: catastrophic brain injury. Your brain stays in your body, and you stay you. You become a ghost. A medic can still bring you back with brain repair surgery and a defibrillator, until your body decays in about {minutes} minutes. If they do, you will be offered the chance to return. [Let go] [Keep fighting]
 
-For an IPC in thermal shutdown: "Your core is overheating … core failure … core repair and a restart".
+For an IPC in thermal shutdown: "Your core is overheating … core failure … your core stays in your chassis … core repair and a restart".
 
 **Last Words:** whisper up to 30 characters (existing limit, CritMobActionsSystem.cs:27), then the same dialog.
 
@@ -746,8 +765,8 @@ For an IPC in thermal shutdown: "Your core is overheating … core failure … c
 | Circulation | `pulse weak; blood 41%, falling fast; transfuse ≈ 27 u to 50%` |
 | Brain | existing line in words, plus the existing arrest countdown |
 | Active routes | each running route with its first-aid step |
-| After a restart | `Arrest cause: blood. Still present: yes. Transfuse.` Kept for *(start: 300 s, `wolfmed.arrest_cause_memory_seconds` new)* |
-| Defib verdict | `Shock will work` / `Refused: pulse present` / `Refused: no heart, transplant first` |
+| After a restart | `Arrest cause: blood. Still present: yes. Transfuse ≈ 30 u within 45 s to stop the heart stopping again; ≈ 75 u to 50% to stop the brain injury.` The first number is the units to *(start: 35%, `wolfmed.post_shock_blood_target` new)* plus the units lost to the current bleed rate over the grace (§7.1). Kept for *(start: 300 s, `wolfmed.arrest_cause_memory_seconds` new)* |
+| Defib verdict | `Shock indicated` / `Refused: pulse present` / `Refused: no heart, transplant first`. Never "will work": a shock succeeds 85% of the time (WolfmedRevivalSystem) |
 
 M1a ships the state-and-cause, breathing and circulation lines. M2 ships the rest.
 
@@ -790,21 +809,28 @@ Weapons and explosions, which have an origin, can still destroy limbs as today.
 
 ### 6.2 Where the overflow goes (M1b)
 
-- **One marked Onyx edit** in `WoundDamageRoutingSystem` (:800-829). When a hit overflows the torso's 250 or the ambient per-part ceiling, raise `PartDamageAppliedEvent` with **the overflow as its damage** and a new `Overflow: true` flag. It goes before the early return when nothing was kept, or after the normal event when some was. The flag is a new field on the event record (marked Onyx edit, WoundEvents.cs:47).
+- **Principle.** A bookkeeping ceiling never changes what one bullet does to organs or wounds. Saturation deliberately does **not** make smaller hits reach organs: organ reach lines are per hit on `Total`, the same on a fresh or a saturated part.
+- **One event per hit.** A marked Onyx edit in `WoundDamageRoutingSystem` (:800-829) raises **one** `PartDamageAppliedEvent` per hit carrying two amounts:
+  - `Applied`: the damage stored on the part (the event's existing damage, :814-829);
+  - `Overflow`: the damage the ceiling (torso 250 or the ambient per-part ceiling) discarded;
+  - `Total = Applied + Overflow`.
+
+  The event is raised even when nothing was stored (`Applied` 0), so it moves ahead of the early return. `Overflow` is a new field on the event record (marked Onyx edit, WoundEvents.cs:47). There is no second event.
 - **Handlers.** `OrganDamageSystem.OnPartDamageApplied` (OrganDamageSystem.cs:33-38) is the single subscriber and calls the others in a load-bearing order: wounds, fractures, amputation, bleeding, organs.
-  - **Wounds** grow up to their prototype caps.
-  - **Bleeding**, or burn fluid loss for burns, follows wound growth.
-  - **Organs** take overflow through §8 (M3; until then the existing roll runs on overflow too).
-  - **Amputation and fractures skip** `Overflow` events, because the torso never severs and fractures read stored Blunt. This skip is a marked Onyx edit in that same dispatcher method.
+  - **Wounds** grow on `Total`, up to their prototype caps.
+  - **Bleeding**, and burn fluid loss for burns, follow the wounds.
+  - **Organs** read `Total` exactly once per hit: the §8 reach lines from M3, and the existing roll until then.
+  - **Fractures and amputation** read `Applied` only, because the torso never severs and fractures read stored Blunt. This is a marked Onyx edit in that same dispatcher method.
+  - **Pain** comes from the stored change as before (below).
 - **Where overflow pain comes from.** Pain is added from the stored-damage change (WoundDamageProjectionSystem.cs:99-105), and overflow is by definition not stored. So overflow adds **no direct pain**. It adds pain only through **wound pain floors** as the wounds grow, and part pain stays clamped at 135 (WoundDamageComponents.cs:149). A torso holding 250 (250 × 0.67 ≈ 167) already sits at that clamp, so on a saturated torso overflow is felt as bleeding, fluid loss and organ damage, not as more pain.
 - **Evisceration** keeps its own `PartDamageOverflowedEvent` (:803-805), raised first.
-- **The DECISIONS D27 accumulator (`AccumulateApplied`) must not count overflow**, or the body's damage number drifts.
-- `PartDamageAppliedEvent` otherwise keeps its current meaning (applied damage, :814-829).
+- **The DECISIONS D27 accumulator (`AccumulateApplied`) counts `Applied` only**, or the body's damage number drifts.
+- A handler that does not read `Overflow` sees exactly today's event. No consequence is counted twice: one event, one wound update and one organ read per hit.
 
 ### 6.3 What stops runaway numbers instead
 
 - per-part bookkeeping caps and the corpse ceiling;
-- wound severity caps: a wound at cap escalates, burn → charring, and on a saturated torso into organs;
+- wound severity caps: a wound at cap escalates, burn → charring; organ harm stays per hit (§6.2);
 - the pain soft cap;
 - the whole-body gib at Blunt 1500 (Species/base.yml:289-295);
 - above all, the **lethal routes**: blood runs out, organs fail, the core cooks. Harm ends the body before numbers can grow without limit;
@@ -832,9 +858,11 @@ The shown body total becomes a sum of capped parts plus the systemic pool, so it
 3. **Post-shock grace** *(start: 45 s, `wolfmed.post_shock_grace_seconds` new)*: the blood and oxygen arrest triggers are held off. The drains still run and are shown. This is the medic's window to transfuse or restore air.
 4. **The remaining problem is visible.**
    - Patient: "Your heart lurches back into rhythm. You are still {cause}: {help}."
-   - Analyzer: "REVIVED. Still at risk: blood 26%. Transfuse ≥ 15 u within 45 s or the heart stops again; ≈ 72 u to 50% to stop the brain injury."
+   - Analyzer: "REVIVED. Still at risk: blood 26%. Transfuse ≈ 27 u within 45 s to stop the heart stopping again; ≈ 72 u to 50% to stop the brain injury."
+   - **The first number aims above 30% with margin.** It is the units to reach *(start: 35%, `wolfmed.post_shock_blood_target` new)* plus the units lost to the current bleed rate over the grace. The example assumes the bleeding is stopped (300 u pool). The line keeps the two goals apart in words.
    - Below 50% blood the brain keeps draining and the refill waits (WolfmedLifeSystem.cs:245-297). Below 41.5% the patient stays Unconscious from blood, which is honest and named.
 5. **Dependable fix:** the cause's definitive treatment (§3). For blood, transfuse above 50%.
+6. **Once per arrest episode.** The oxygenation restore (max(current, 0.5)) and the grace are granted once per arrest episode. A second successful shock within *(start: 300 s, `wolfmed.post_shock_repeat_seconds` new)* of a successful one restarts the heart and changes nothing else: oxygenation stays where it is, and no new grace starts. So the patient re-arrests at once unless blood is above 30% and oxygenation above 0.15. Restoring to "the value at the previous shock minus what was lost since" was considered and rejected as more bookkeeping for the same result. Two shocks without blood therefore leave the patient worse than one shock with blood.
 
 **A shock at the recommended gate (blood 25%, 300 u human pool), no transfusion, derived:**
 
@@ -846,7 +874,7 @@ The shown body total becomes a sum of capped parts plus the systemic pool, so it
 | 45 s | 0.35 | grace ends; blood still ≤ 30%, so **the heart stops again** |
 | ~105 s | 0.15 | the oxygen trigger, if blood was raised above 30% but not to 50% (sooner or later with partial transfusion) |
 
-**Is 45 s enough?** For the immediate goal, yes: avoiding the re-arrest takes only 15 u (25% → 30%), and the pod already transfuses before it shocks. Stopping the brain drain takes 75 u to reach 50%, which the medic has about 105 s for after the shock. The tissue lost inside the grace is negligible. Hand medics must carry blood when they shock a bled-out patient, which the analyzer's refusal and verdict lines already tell them. Whether a hand medic can really deliver 15 u in 45 s depends on the blood pack's delivery rate, which the M1a bleeding scenario measures (to confirm in `HealingSystem.Wolfmed.cs`). If playtest shows they cannot, raise the grace to 90 s. This is OD6 (c).
+**Is 45 s enough?** For the immediate goal, yes: avoiding the re-arrest strictly takes 15 u (25% → 30%), and the pod already transfuses before it shocks. The analyzer asks for about 30 u (25% → 35%) plus the bleed over the grace, so a slow or partial transfusion still clears the 30% line. Stopping the brain drain takes 75 u to reach 50%, which the medic has about 105 s for after the shock. The tissue lost inside the grace is negligible. Hand medics must carry blood when they shock a bled-out patient, which the analyzer's refusal and verdict lines already tell them. Whether a hand medic can really deliver the guided ≈ 30 u in 45 s depends on the blood pack's delivery rate, which the M1a bleeding scenario measures (to confirm in `HealingSystem.Wolfmed.cs`). If playtest shows they cannot, raise the grace to 90 s. This is OD6 (c).
 
 **Migration:** `BrainRepairMakesADeadBodyDefibrillatableTest` (WolfmedBrainTest.cs:189, the assertion at :231 expects Critical after the shock) and any test asserting 0.35 must read the CVar.
 
@@ -854,7 +882,7 @@ The shown body total becomes a sum of capped parts plus the systemic pool, so it
 
 | Hole | Fix | Where | Milestone |
 |---|---|---|---|
-| Blood gate 0.40 sits above the 0.30 blood arrest, although DECISIONS.md:730-734 records the fix as "strictly under" and the code comment agrees (WolfmedRevivalSystem.cs:70-72; WolfmedCVars.cs:243-244) | **OD6.** Recommended: `wolfmed.defib_blood` (existing) 0.40 → *(start: 0.25)*, with the grace window and a refusal and analyzer line naming the units to 30% and to 50% | CVar, locale | M1a |
+| Blood gate 0.40 sits above the 0.30 blood arrest, although DECISIONS.md:730-734 records the fix as "strictly under" and the code comment agrees (WolfmedRevivalSystem.cs:70-72; WolfmedCVars.cs:243-244) | **OD6 (decided (a)).** `wolfmed.defib_blood` (existing) 0.40 → *(start: 0.25)*, with the grace window and a refusal and analyzer line naming the units to the post-shock target (35% plus the bleed over the grace, §7.1) and to 50% | CVar, locale | M1a |
 | Defib reports success on a beating heart (WolfmedRevivalSystem.cs:37-53) | refuse: "Pulse present: shock not indicated"; deal only the zap | `GetRefusal` | M1a |
 | Pod ignores rot, `Unrevivable` and a missing heart. The pod already calls `GetRefusal` (AutodocSystem.Procedure.cs:928-952), so the fix is in that function. | move the rot and `Unrevivable` checks (DefibrillatorSystem.cs:195-204) into `GetRefusal`, and add "no heart: transplant first" for species whose heart carries Wolfmed data. The hand defib keeps its own checks, so DefibrillatorSystem.cs is not edited. | WolfmedRevivalSystem.cs:62-80 | M1a |
 | Pod never offers a return | §5.4 item 6 | `_WF` autodoc | M1a |
@@ -890,7 +918,7 @@ The shown body total becomes a sum of capped parts plus the systemic pool, so it
    | Torso | 10 | 18 | 30 | 20 | 15 |
    | Head | 8 | 15 | 15 | 20 | 15 |
 
-   A hit reaches the organs when its damage **after armour** exceeds the line. Overflow events on a saturated part (§6.2) always reach them.
+   A hit reaches the organs when its damage **after armour** exceeds the line. The line is tested once per hit on `Total` (§6.2), so a saturated part behaves exactly like a fresh one: saturation never lets a smaller hit reach the organs.
 2. **No roll for which organ.** The excess is **split across the part's organs by the existing `selectionWeight`** (organs.yml:52-134). Organ damage = (hit − line) × the organ's per-type multiplier × weight share × *(start: 4, `wolfmed.organ_damage_scale` new)*, capped at *(start: 5 HP per organ per hit, `wolfmed.organ_hit_cap` new)*. The Onyx part rolls (wounds.yml:53-62, 95-106) and per-organ `hitChance` are bypassed.
 3. **Hook:** a marked Onyx edit in `OrganDamageSystem.OnPartDamageApplied`. When the part carries `organReach`, it calls the new `WolfmedOrganThresholdSystem` and returns; otherwise it keeps the old roll. The component+event pair keeps its single owner. The head-blow faint (§3.6) is checked in the same call.
 4. **Calibration (unarmoured rifle round, 14 Piercing, torso; derived at scale 4):**
@@ -925,12 +953,17 @@ The shown body total becomes a sum of capped parts plus the systemic pool, so it
 ### 9.1 Approach
 
 - **Every round-start species must answer three questions:** what disables it, what kills it, what restores it.
-- **Conformance test** `WolfmedSpeciesConformanceTest` (M4). It spawns every `roundStart: true` species and fails **with the species name** unless an explicit `wolfmedSpeciesException` list (YAML, with a reason string per entry) excuses it, if:
+- **Conformance test** `WolfmedSpeciesConformanceTest` (report mode from M1a, strict in M4). It spawns every `roundStart: true` species and fails **with the species name** unless an explicit `wolfmedSpeciesException` list (YAML, with a reason string per entry) excuses it, if:
   - the body is not a wound host;
   - the brain lacks `WolfmedBrain` + `WolfmedOrgan` (organics);
   - the heart or lungs lack `WolfmedOrgan`;
   - a mechanical body lacks a core and pump with `WolfmedOrgan`;
   - 29% blood fails to arrest it, or brain removal fails to kill it (organics); a pulled power source fails to shut it down, or core removal fails to kill it (mechanical).
+- **Report mode (M1a).** The same checks run for every round-start species. Instead of failing, the test writes the non-conforming list (species and failed check) into the test output. It asserts only that this list equals a checked-in expected list, so a new regression fails while a known gap does not.
+  - The expected list is a **C# array** (`KnownGaps`) in the test file, not `Resources/Prototypes/_WF/Wolfmed/species_known_gaps.yml`. A file under Resources/Prototypes would need its own prototype kind to pass the prototype loader and YAML lint, and would ship test-only data with the game. The array lives beside the test and shows up in code review.
+  - It starts as whatever the first run reports (§9.2 predicts groups A′, B, C and D). Because the assertion is equality, a fixed species also fails until its entry is removed, so the list only shrinks.
+  - **M4** deletes the array and makes the test strict: every species conforms or is excused by `wolfmedSpeciesException`.
+- **Human and IPC only before M4.** M1a's scenario tests run for Human and IPC. Passing human scenarios does not imply the loop works for every species; the report-mode test is what tracks the rest.
 
 This replaces a per-species archetype prototype with a much cheaper check.
 
@@ -971,7 +1004,7 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 
 **The tension.** The owner's rule is "No one should be unrevivable; brain death is when you actually die." The review points out that if brain death is routinely repaired, the word overstates the stakes, and players cannot tell a setback from the end.
 
-**Recommendation (OD1, open per INPUT.md §4).** Three player-facing terms, each with honest ghost text, used identically in alerts, the analyzer, examine, the guidebook and DECISIONS.md:
+**Recommendation (OD1, was open per INPUT.md §4; accepted 2026-09-22).** Three player-facing terms, each with honest ghost text, used identically in alerts, the analyzer, examine, the guidebook and DECISIONS.md:
 
 | Term | Mechanic | Ghost text |
 |---|---|---|
@@ -998,12 +1031,12 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 | P1 | IPC cannot die; pain holds it under forever | **Fixed:** pain Downs only; core-heat route with thermal shutdown; torso hits reach the core; core repair; restart hook | §3.11, §7.2, §8 | M1a, M2, M3, M4 | `PainScenarioTest` (IPC branch), `IpcCoreInputTest`, `CoreRepairTest`, `IpcFireScenarioTest` |
 | P2 | hidden 4.3-min suffocation clock | **Fixed:** Unconscious breathes; explicit suppressors | §4 | M1a | `PainScenarioTest`, `OxygenScenarioTest` |
 | P3 | 600 cap makes fire harmless; burns have no route | **Fixed:** per-part ceiling with overflow consequences; burn fluid loss | §6, §3.7 | M1b | `BurnScenarioTest` |
-| P4 | Succumb and Last Words in pain crit; do not kill; can heal | **Fixed:** Dying only; brain to 0 then Kill; no Asphyxiation top-up; honest dialog on every exit path; pod return prompt | §5.4 | M1a | `HonestEndingScenarioTest` |
-| P5 | player cannot tell state or reason | **Fixed:** cause field, alerts, messages, HUD reasons, IPC heartbeat off (M1a); card, vitals, dying depth (M2) | §5 | M1a, M2 | `AnalyzerStateLinesTest`, `AnalyzerVitalsTest` |
-| P6 | successful shock relapses | **Fixed:** breathing, clean refill, oxygenation 0.5, grace window, visible remaining problem | §7.1 | M1a | `BleedingScenarioTest`, `PostShockOxygenTest` |
+| P4 | Succumb and Last Words in pain crit; do not kill; can heal | **Fixed:** Dying only; brain organ health to 0 (organ entity, body and mind kept, so brain repair plus a defib returns the same person), then Kill; no Asphyxiation top-up; honest dialog on every exit path; pod return prompt | §5.4 | M1a | `HonestEndingScenarioTest` |
+| P5 | player cannot tell state or reason | **Fixed:** cause field, Blockers, alerts, messages, HUD reasons, IPC heartbeat off (M1a); card, vitals, dying depth (M2) | §5 | M1a, M2 | `AnalyzerStateLinesTest`, `OverlappingCausesTest`, `AnalyzerVitalsTest` |
+| P6 | successful shock relapses | **Fixed:** breathing, clean refill, oxygenation 0.5, grace window, visible remaining problem, once per arrest episode | §7.1 | M1a | `BleedingScenarioTest`, `PostShockOxygenTest`, `RepeatedShockTest` |
 | P7 | Bloodloss read as not breathing | **Fixed** | §4.3–4.4 | M1a | `BleedingScenarioTest` |
-| P8 | torso at 250 ignores hits | **Fixed:** overflow event (M1b); deterministic organs (M3) | §6.2, §8 | M1b, M3 | `SaturatedTorsoTest`, `OrganCalibrationTest` |
-| P9 | species without clock or heart data | **Fixed:** conformance test, parent edits, group D reparent, circulatory collapse | §9 | M4 | `WolfmedSpeciesConformanceTest`, `SpeciesArrestTest` |
+| P8 | torso at 250 ignores hits | **Fixed:** one event per hit carrying `Applied` and `Overflow` (M1b); deterministic organs (M3) | §6.2, §8 | M1b, M3 | `SaturatedTorsoTest`, `OrganCalibrationTest` |
+| P9 | species without clock or heart data | **Fixed:** conformance test (report mode M1a, strict M4), parent edits, group D reparent, circulatory collapse | §9 | M1a, M4 | `WolfmedSpeciesConformanceTest`, `SpeciesArrestTest` |
 | P10 | executions no longer kill | **Fixed:** execution sets brain HP 0, then `Kill` (CBI, revivable; OD17). Replaces DECISIONS HOOK 13's torso top-up through the M2 marked hook at SharedExecutionSystem.cs:224-226 | §5.4 (Executions and suicide) | M2 | `ExecutionAndSuicideTest` |
 | P11 | revival holes | **Fixed:** shared refusal (rot, `Unrevivable`, heart, pulse), blood gate (OD6), pod return prompt (M1a); restart hook, core repair (M2) | §7.2 | M1a, M2 | `HonestEndingScenarioTest`, autodoc additions, `RestartHookTest`, `CoreRepairTest` |
 | P12 | Poison, Radiation, Cellular cannot knock out or kill | **Fixed** for Poison and Radiation. **Cellular deferred** to M6's deferred list: no normal-play source found in the rundown that needs a route; revisit if content uses it | §3.8–3.9 | M5; M6 (deferred) | `ToxinScenarioTest`, `RadiationScenarioTest` |
@@ -1058,9 +1091,9 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 | 3 | Content.Shared/Mobs/Systems/MobThresholdSystem.cs (new method beside :324) | upstream | `SetTriggersAlerts` setter | M1a |
 | 4 | Content.Shared/_Onyx/Wounds/PainSystem.cs:175-219 | Onyx | body = min(135, Σ); shares; adrenaline; shock CVars | M1a |
 | 5 | Content.Server/_Onyx/Wounds/WoundInternalBleedingSystem.cs:52-71 | Onyx | once-a-second tick | M1a |
-| 6 | Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:800-829 | Onyx | overflow `PartDamageAppliedEvent` | M1b |
+| 6 | Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:800-829 | Onyx | one `PartDamageAppliedEvent` per hit carrying `Applied` and `Overflow`, raised even when nothing is stored | M1b |
 | 7 | Content.Shared/_Onyx/Wounds/WoundEvents.cs:47 | Onyx | `Overflow` field | M1b |
-| 8 | Content.Server/_Onyx/Wounds/OrganDamageSystem.cs:33-38 | Onyx | fractures and amputation skip `Overflow` | M1b |
+| 8 | Content.Server/_Onyx/Wounds/OrganDamageSystem.cs:33-38 | Onyx | wounds and organs read `Total`; fractures and amputation read `Applied` | M1b |
 | 9 | Content.Server/_EinsteinEngines/Silicon/DeadStartupButton/DeadStartupButtonSystem.cs:40-67 | upstream (EE) | restart uses `GetRefusal` | M2 |
 | 10 | Content.Server/Electrocution/ElectrocutionSystem.cs:388-394 | upstream | arrest reads post-insulation shock | M2 |
 | 11 | Content.Shared/Execution/SharedExecutionSystem.cs:224-226 | upstream | existing HOOK 13 rewritten (not a new hook) | M2 |
@@ -1080,13 +1113,14 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 
 **Scope:**
 - breathing (§4);
-- cause and alerts (§5.1–5.2, minus the card and the sedation warnings);
-- pain faint and one pain number (§3.1);
+- cause, Blockers and alerts, with conditional promise texts (§5.1–5.2, minus the card and the sedation warnings);
+- pain faint with its fixed length, wake baseline and cooldown, and one pain number (§3.1);
 - pain-shock arrest removal;
 - adrenaline per OD5;
 - honest Succumb and Last Words, the crit-action strip, the ghost hook with its dialogs, the pod return prompt (§5.4);
-- post-shock course (§7.1);
+- post-shock course, the analyzer's two transfusion numbers (to 35% plus the bleed over the grace, and to 50%) and the once-per-episode rule for repeated shocks (§7.1);
 - revival refusals and the blood gate (§7.2, M1a rows);
+- `WolfmedSpeciesConformanceTest` in report mode with its known-gaps array (§9.1);
 - autodoc faint handling (§7.2);
 - internal bleed tick (P22);
 - pickup within reach and Call for help (§5.3);
@@ -1102,7 +1136,7 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 | Kind | Items |
 |---|---|
 | New `_WF` | `WolfmedBreathingSystem`, `WolfmedConditionAlertSystem`, `WolfmedDyingActionsSystem`, shared `WolfmedCritActionsSystem`, `wolfmedConsciousnessCause` prototypes, `Actions/dying.yml`, `Alerts/alerts.yml` entries, `consciousness.ftl`, `death.ftl` |
-| Changed `_WF` | `WolfmedLifeSystem` (breathing level, refill rule, post-shock oxygenation and grace, `Breathing` and `BloodBand`), `WolfmedConsciousnessSystem` and its component (Cause, faint fields, Breathing, BloodBand), `WolfmedRevivalSystem` (`GetRefusal`), `WolfmedShutdownSystem` (reason), `WolfmedDownedSystem` (pickup, Call for help), `WolfmedVisualInspectionSystem`, `HealthAnalyzerSystem.Wolfmed.cs`, `AutodocSystem.Procedure.cs` and `.Triage.cs`, `WolfmedSyntheticHudSystem`, `WolfmedCritHeartbeatSystem`, `WolfmedCVars` |
+| Changed `_WF` | `WolfmedLifeSystem` (breathing level, refill rule, post-shock oxygenation and grace, `Breathing` and `BloodBand`), `WolfmedConsciousnessSystem` and its component (Cause, Blockers, faint fields, Breathing, BloodBand), `WolfmedRevivalSystem` (`GetRefusal`), `WolfmedShutdownSystem` (reason), `WolfmedDownedSystem` (pickup, Call for help), `WolfmedVisualInspectionSystem`, `HealthAnalyzerSystem.Wolfmed.cs`, `AutodocSystem.Procedure.cs` and `.Triage.cs`, `WolfmedSyntheticHudSystem`, `WolfmedCritHeartbeatSystem`, `WolfmedCVars` |
 | Marked edits (5) | inventory #1–#5 |
 | Data | `wolfmed.arrest_shock_blood` 0; `wolfmed.defib_blood` 0.25 |
 
@@ -1129,9 +1163,12 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 
 | Test | Asserts |
 |---|---|
-| `BleedingScenarioTest` | Human, arterial arm wound (Slash 25). Downed at ≤ 50% with cause Blood; Unconscious at ≤ 35% **while inhaling** (saturation above its suffocation threshold). Analyzer lines: `DOWNED: blood loss`, breathing `normal`, circulation names the blood %. Tourniquet at 55%: never Unconscious; stands after regeneration. Blood held at 60% for 10 min: oxygenation stays 1 (P7). **Untreated branch:** arrest at ≤ 30% with cause "blood"; Succumb appears only now; at 24% the defib refuses and the analyzer names the units; at the gate (25%) a shock succeeds. After the shock: **Unconscious, cause Blood, breathing, grace active**; no re-arrest inside the grace. Transfused to 60% at 10 s: **Downed within 10 s**, Up within 60 s, no re-arrest in 10 min. **Second branch:** shocked at 25% and not transfused: re-arrest at 45 s ±20%. Records the blood pack's delivery rate (OD6 (c) input). |
+| `BleedingScenarioTest` | Human, arterial arm wound (Slash 25). Downed at ≤ 50% with cause Blood; Unconscious at ≤ 35% **while inhaling** (saturation above its suffocation threshold). Analyzer lines: `DOWNED: blood loss`, breathing `normal`, circulation names the blood %. Tourniquet at 55%: never Unconscious; stands after regeneration. Blood held at 60% for 10 min: oxygenation stays 1 (P7). **Untreated branch:** arrest at ≤ 30% with cause "blood"; Succumb appears only now; at 24% the defib refuses and the analyzer names the units; at the gate (25%) a shock succeeds. After the shock: **Unconscious, cause Blood, breathing, grace active**; no re-arrest inside the grace. The analyzer reads "Transfuse ≈ N u within 45 s to stop the heart stopping again; ≈ M u to 50% to stop the brain injury", with N = the units to 35% plus the units lost to the current bleed rate over the grace, and M = the units to 50%; asserted once with the bleed stopped and once with a slow bleed (N larger by the bleed). Transfused by exactly N inside the grace: no re-arrest when the grace ends. Transfused to 60% at 10 s: **Downed within 10 s**, Up within 60 s, no re-arrest in 10 min. **Second branch:** shocked at 25% and not transfused: re-arrest at 45 s ±20%. Records the blood pack's delivery rate (OD6 (c) input). |
+| `RepeatedShockTest` | Human, blood 25%, bleed stopped. Shock, no transfusion; re-arrest at about 45 s. Second shock inside `wolfmed.post_shock_repeat_seconds`: the heart restarts, oxygenation is unchanged by the shock, no grace starts, and the patient re-arrests at once because blood is not above 30%. A repeat with blood raised above 30% before the second shock: no immediate re-arrest. **Conclusion asserted:** at 3 min, the two-shocks-no-blood patient has lower oxygenation and more brain tissue lost than a patient given one shock plus the analyzer's N units inside the grace. |
 | `PostShockOxygenTest` | Oxygen arrest in an airless room; air restored; shock: Downed at once, breathing, cause Hypoxia; Up within 15 s ±20%; no Unconscious. |
-| `PainScenarioTest` | Summed pain ≥ 189 at full blood gives a Faint with cause PainFaint, breathing on, Downed within 20 s. No second faint while pain is steady over 10 min; Asphyxiation 0, oxygenation 1, no arrest, no Succumb. A +40 rise faints again. An opiate ends a faint and stands the patient up. The pain shock does not stand them up (OD5). Analyzer: `FAINTED: pain`. An IPC with heavy chassis wounds is Downed and **never** Unconscious. |
+| `PainScenarioTest` | Summed pain ≥ 189 at full blood gives a Faint with cause PainFaint, breathing on, Downed within 20 s. Hits during the faint do not lengthen it: it still ends at 20 s. No second faint while pain is steady over 10 min; Asphyxiation 0, oxygenation 1, no arrest, no Succumb. A +40 rise over the pain at waking faints again, but never inside the 30 s cooldown: a rise during the cooldown faints no earlier than its end. Pain added during a faint does not count toward the rise. An opiate ends a faint and stands the patient up. The pain shock does not stand them up (OD5). Analyzer: `FAINTED: pain`. An IPC with heavy chassis wounds is Downed and **never** Unconscious. |
+| `SustainedFireFaintTest` | Human in a 10-stack fire, taking a weapon hit every 2 s for 2 minutes. Total Critical time over the 2 minutes ≤ 40 s; the patient is Downed, not Critical, for the rest. No faint lasts over 20 s, and none starts within 30 s of waking. Rerun unchanged in M1b once fire is uncapped. |
+| `OverlappingCausesTest` | Each case checks `Cause`, `Blockers` and the shown text; no text promises waking or standing while Blockers is not empty. **Pain plus bleeding:** Downed by pain with blood at 52% after a dip below 50% (inside the leave band): Cause Pain, Blockers Blood, the alert reads "A painkiller will get you moving unless something else is holding you down" and "Still holding you down: blood loss"; an opiate does not stand them up until blood clears its leave line. A pain faint at 40% blood, then bleeding to 34%: Cause becomes Blood and Blockers holds PainFaint. An opiate ends the faint: the patient stays Unconscious with cause Blood, Blockers is empty, and the text names blood and says nothing about coming round in a few seconds. **Sedation plus hypoxia:** sedation 1.0 set directly on an airless tile: Cause Hypoxia, Blockers Sedation. Internals fitted: still Unconscious, cause Sedation, the text names the overdose; the patient wakes only as sedation falls. **IPC power loss plus overheating:** written in M4, when thermal shutdown exists (see M4). |
 | `BodyPainTracksPartsTest` (P13) | Body pain equals min(135, Σ parts) after every change, including direct part edits; an opiate's suppression lowers the Downed reading once, not once per part. |
 | `PainShockNoArrestTest` (P14) | A pain shock at 45% blood: stun and fall, no arrest, no `WolfmedCardiacArrestComponent`. |
 | `OxygenScenarioTest` | Airless tile, no internals: Downed, then Unconscious (cause Hypoxia, sub-source Airway) at the derived times ±20%; examine says "gasping"; analyzer breathing `none: no air`. Internals fitted at Unconscious: drain 0 within 3 s while Asphyxiation is still above 0; awake within 15 s. Lungs removed in station air: suffocates with sub-source Lungs. |
@@ -1139,10 +1176,13 @@ This is the engineer draft's resolution of every round-start body prototype, cor
 | `DownedPickupTest` (P16) | Downed: picks up an item on its own tile and one adjacent; cannot pick up at 3 m; cannot fire the picked-up gun. |
 | `CallForHelpTest` | Downed: the action shouts, sets the medical-HUD flag for 60 s, and is refused during the 30 s cooldown; not available Up or Unconscious. |
 | `IpcShutdownScenarioTest` | Pull the cell: Shutdown (reason Power), HUD line matches, analyzer `SHUTDOWN: no power`, no death over 30 simulated min; reinsert: Up within 2 s. Destroy the pump: reason Pump; replace it: Up. Oil at 45%: Downed with cause Oil. No heartbeat for an IPC. **Measurement:** a 10-stack fire records chassis temperature over time (the M4 calibration input). |
-| `HonestEndingScenarioTest` | Faint, blood-Unconscious and shutdown bodies have no Succumb. An arrested body has it. Using it gives Dead, brain 0, no arrest component, a returnable ghost, and unchanged Asphyxiation. **The `ghost` command in arrest opens the Succumb dialog and does not ghost until it is confirmed.** The `ghost` command from a faint opens the "left alive but empty" dialog; confirming gives a non-returnable ghost and no damage. Brain repair plus defib (hand and pod) revives, and the return prompt opens. |
+| `HonestEndingScenarioTest` | Faint, blood-Unconscious and shutdown bodies have no Succumb. An arrested body has it. Using it gives Dead, brain health 0 with the brain organ entity still in the body, no arrest component, a returnable ghost, and unchanged Asphyxiation. **The `ghost` command in arrest opens the Succumb dialog and does not ghost until it is confirmed.** The `ghost` command from a faint opens the "left alive but empty" dialog; confirming gives a non-returnable ghost and no damage. Brain repair plus defib (hand and pod) revives the same mind, and the return prompt opens. |
 | `CriticalHearingTest` | a Critical player receives nearby speech (pins the existing behaviour). |
 | `AnalyzerStateLinesTest` | for Downed (pain, blood), Faint, Unconscious (blood, hypoxia), arrest and Shutdown, the state-and-cause, breathing and circulation lines match §5.5; `BloodBand` matches the blood %. |
 | Autodoc additions | a fainted occupant is anaesthetised; `AutodocAlarm.Critical` does not sound for a faint; the pod refuses a rotten corpse and a heartless body with the hand defib's messages. |
+| `WolfmedSpeciesConformanceTest` (report mode, §9.1) | runs the §9.1 checks for every round-start species; writes the non-conforming list to the test output; asserts only that the list equals the `KnownGaps` array, so a new gap or a fixed-but-still-listed species fails. |
+
+**Species coverage.** M1a's scenario tests run for Human and IPC. Passing human scenarios does not imply the loop works for every species; the report-mode conformance test tracks the rest until M4.
 
 **Owner playtest:**
 - get shot, crawl, pick up your dropped gun (you cannot fire it), bandage yourself, Call for help;
@@ -1159,29 +1199,29 @@ Check that each screen explains itself.
 
 **Scope:**
 - per-part ceiling in `ClampToBodyCap`, the corpse ceiling and the admin bypass (§6.1);
-- the overflow event with the Overflow flag, excluding the accumulator and skipped by amputation and fractures (§6.2);
-- burn fluid loss with no puddle, dressing, burn infection coverage (§3.7);
+- one `PartDamageAppliedEvent` per hit carrying `Applied` and `Overflow`: wounds and organs read `Total`; fractures, amputation and the accumulator read `Applied` (§6.2);
+- burn fluid loss with no puddle, dressing that cuts it to × 0.25 (only a graft stops it), burn infection coverage (§3.7);
 - confirm or fix extinguishing while Downed;
 - measure the uncapped fire first, then set the burn rate.
 
 **Design rules implemented:** principle E; §6; the OD11 and OD12 recommendations.
 
-**If a decision goes the other way:** OD11 (b) or (c) drops the fluid-loss route; burns then kill only through overflow organ damage or sepsis. OD12 (b) removes the per-part ceiling on the living; `BurnPart` then deletes limbs in long fires.
+**If a decision goes the other way:** OD11 (b) or (c) drops the fluid-loss route; burns then kill only through sepsis, or through an organ-cooking route under (b). Overflow alone gives fire no route into the organs (§6.2). OD12 (b) removes the per-part ceiling on the living; `BurnPart` then deletes limbs in long fires.
 
 **Systems and files:**
 - `_WF`: `WolfmedBodyPartSystem` (`ClampToBodyCap`), `DamageCommand.Wolfmed.cs` (bypass), new `WolfmedFluidLossSystem` and `WolfmedDressedComponent`, `HealingSystem.Wolfmed.cs`, `WolfmedInfectionSystem` (`dressedMultiplier`), burns.yml, `WolfmedCVars`.
 - Marked edits (3): inventory #6–#8.
 - Marked YAML: wounds.yml `BurnWound` stages (`fluidLossFrom`, `fluidLossPerSeverity`).
 
-**Test migration:** `DamageTotalsNeverCritAWoundHostTest` (WolfmedConsciousnessTest.cs:101); `WolfmedDamageCommandTest`; `WolfmedBurnWoundTest` and `WolfmedEviscerationTest` (overflow now raises a second event; evisceration must still fire first); `WolfmedInfectionTest` (dressed burns).
+**Test migration:** `DamageTotalsNeverCritAWoundHostTest` (WolfmedConsciousnessTest.cs:101); `WolfmedDamageCommandTest`; `WolfmedBurnWoundTest` and `WolfmedEviscerationTest` (the one event per hit now carries `Overflow` and is raised even when nothing is stored; evisceration must still fire first); `WolfmedInfectionTest` (dressed burns).
 
 **Acceptance tests:**
 
 | Test | Asserts |
 |---|---|
-| `BurnScenarioTest` | 10-stack fire: Heat keeps landing past the old 600 total; burn severity keeps rising; no limb or head is destroyed by environmental heat; one faint of ≤ 20 s, then Downed (pain); breathing throughout, Asphyxiation 0; blood falls at the fluid-loss rate with no blood puddle; untreated, the patient arrests with cause Blood inside the window derived from the **measured** severity (±20%). Extinguished, dressed and given 60 u at 60 s: alive, Downed or Up, blood stable at 10 min. An opiate stands them up. |
-| `SaturatedTorsoTest` | A torso at 250 shot 5 more times: each shot raises the gunshot wound's **severity** and the torso's **bleed rate**, and delivers an `Overflow` event to the organ step (a test seam counts it; organ damage itself is asserted in M3); no fracture or amputation from the overflow; stored torso damage stays 250; torso pain stays at the 135 clamp; the body total does not drift. |
-| `AmbientCeilingTest` | the admin part command with the bypass can pass 600 and destroy a limb (P31); an arm under fire stops at 152 stored while its burn keeps growing; a corpse is capped. |
+| `BurnScenarioTest` | 10-stack fire: Heat keeps landing past the old 600 total; burn severity keeps rising; no limb or head is destroyed by environmental heat; one faint of ≤ 20 s, then Downed (pain); breathing throughout, Asphyxiation 0; blood falls at the fluid-loss rate with no blood puddle; untreated, the patient arrests with cause Blood inside the window derived from the **measured** severity (±20%). Extinguished, dressed and given 60 u at 60 s: fluid loss falls to × 0.25 of its rate, not to 0; a graft then stops it; alive, Downed or Up, blood stable at 10 min. An opiate stands them up. |
+| `SaturatedTorsoTest` | **Same hit, same organ and wound consequences, saturated or not.** A torso at 250 and a fresh torso each take the same 5 shots. For each shot, the wound growth, the bleed-rate change and the `Total` handed to the organ step match between the two (a test seam records them; organ damage itself is asserted in M3). On the saturated torso: `Applied` 0 and `Overflow` equal to the hit; no fracture or amputation; stored damage stays 250; pain stays at the 135 clamp. **No consequence counted twice:** exactly one event and one organ-step call per shot; the accumulator and the body total count `Applied` only and do not drift. |
+| `AmbientCeilingTest` | the admin part command with the bypass can pass 600 and destroy a limb (P31); an arm under fire stops at 152 stored while its burn keeps growing; a corpse is capped. **Same hit, same consequences:** a fire tick that crosses the ceiling raises one event whose `Applied` + `Overflow` equals the tick, and grows the burn wound and its fluid loss exactly as the same tick below the ceiling does. **No consequence counted twice:** one event and one organ-step call per tick; the accumulator counts `Applied` only. |
 | `BurnDressingInfectionTest` (P20) | two identical contaminated burns, one dressed: the dressed one's infection progresses at 0.15 × the undressed rate ±20%. |
 
 **Owner playtest:** set someone on fire and treat them (extinguish, dress, fluids); leave one untreated and watch the named route; burn an IPC and watch it Down but stay conscious; use the admin part command to destroy a limb.
@@ -1278,7 +1318,7 @@ Check that each screen explains itself.
 ### M4: species and IPC death
 
 **Scope:**
-- conformance test and exception list (§9.1);
+- conformance test made strict: the M1a `KnownGaps` array is deleted, and the exception list is added (§9.1);
 - organ parent edits (groups A′, B, C);
 - circulatory collapse strings;
 - group D: reparent Shadekin and ProtoKin; **Synth per OD16, both branches scoped:**
@@ -1295,13 +1335,14 @@ Check that each screen explains itself.
 - `_WF`: locale, `WolfmedOverheatSystem` (core-heat route and thermal shutdown; also correct its summary comment, WolfmedOverheatSystem.cs:13-19), `WolfmedDyingActionsSystem`, `WolfmedShutdownSystem` (Synth power, mechanical branch only), the `wolfmedSpeciesException` prototype.
 - Marked code edits: none.
 
-**Test migration:** `WolfmedSpeciesSpawnTest`, `WolfmedSpeciesProfileTest`; `WolfmedOverheatTest.OverheatBurnsInsteadOfKillingTest` (:22), which asserts that overheating never kills.
+**Test migration:** `WolfmedSpeciesSpawnTest`, `WolfmedSpeciesProfileTest`; `WolfmedSpeciesConformanceTest` (report mode to strict); `WolfmedOverheatTest.OverheatBurnsInsteadOfKillingTest` (:22), which asserts that overheating never kills.
 
 **Acceptance tests:**
 
 | Test | Asserts |
 |---|---|
-| `WolfmedSpeciesConformanceTest` | passes for every round-start species, or names it with its exception reason |
+| `WolfmedSpeciesConformanceTest` (strict) | passes for every round-start species, or names it with its exception reason; no `KnownGaps` array remains |
+| `OverlappingCausesTest`, IPC branch (deferred from M1a) | cell pulled while the chassis is above 500 K: Cause CoreHeat (thermal shutdown), Blockers holds Shutdown (Power), Succumb offered. Cooled below 450 K: stays shut down with cause Shutdown (Power), Succumb removed, and no text says the IPC will come back Downed while the cell is empty. Cell reinserted: Downed (pain) or Up. |
 | `SpeciesArrestTest` | a moth's heart destroyed arrests it; a skrell at 29% blood arrests; a diona's brain removed kills it; a slime survives decapitation; a shadekin at 29% blood arrests |
 | `SynthBranchTest` | organic branch: a synth at 29% blood arrests and brain removal kills. Mechanical branch: an empty `SynthBattery` gives Shutdown (reason Power) and no death over 30 min; core removal gives core failure |
 | `IpcFireScenarioTest` | a burning IPC below 500 K is Downed (pain), conscious, has **no** Succumb and can pat itself out; above 500 K it enters thermal shutdown (Critical, cause CoreHeat) and gains Succumb and Last Words; cooled below 450 K it returns to Downed and loses them; an untreated 10-stack fire destroys the core (core failure); extinguished within 60 s the core survives |
@@ -1335,7 +1376,7 @@ Check that each screen explains itself.
 | `ToxinScenarioTest` | Poison 60: Downed, cause Toxin. Poison 130: Unconscious, breathing, brain drains at 1/600 per s ±20%, arrest by oxygen at the derived time. Dylovene at coma: load falls, wakes below 108 (the 0.9 leave line), then stands. Untreated clearance matches 0.1/s ±20%; an impaired liver halves it. |
 | `RadiationScenarioTest` | Radiation 40: blood flat over 60 s at 90% (regeneration stopped). Radiation 100: blood falls 0.1 u/s ±20%. Radiation 80: Downed, cause Radiation. Hyronalin brings radiation below 40 and regeneration resumes. An IPC at Radiation 100 loses no oil. |
 | `HypothermiaScenarioTest` | Lines taken from the M5 measurement: Downed, Unconscious (breathing), then arrest with cause Cold; the brain drain is ×0.1; rewarming wakes the patient. |
-| `HeatStrokeScenarioTest` | Core temperature above threshold − 7 K: Downed, cause Heat. Above threshold: Unconscious, breathing, brain drain 1/300 per s ±20%. Cooling wakes them. While on fire and for 30 s after: no Heat cause. |
+| `HeatStrokeScenarioTest` | Core temperature above threshold − 7 K: Downed, cause Heat. Above threshold: Unconscious, breathing, brain drain 1/300 per s ±20%. Cooling wakes them. **Fire grace:** a body on fire, and for 30 s after it is extinguished, does not enter a Heat cause. An existing heat stroke persists through ignition (the grace never clears it). Re-ignition within the grace does not extend it: the grace still ends 30 s after the first extinguishing. Only after the core has cooled below the heat-exhaustion line does a new fire grant a new grace. |
 | `SepsisNotToxinTest` | a septic body's toxin load stays 0. |
 | `AcidResidueTest` (P21) | acid residue grows its chemical-burn wound only; the plain burn wound's severity does not change. |
 
@@ -1376,21 +1417,23 @@ Check that each screen explains itself.
 
 ## 13. Decisions the owner must make
 
+**Answered 2026-09-22:** the owner accepted the recommendations for OD1, OD2, OD3, OD4, OD5, OD6, OD9 and OD22, and the reviewer's six revisions and three corrections. Those rows are marked **Decided**; the rest stay open.
+
 "Needed before" is the first milestone that builds on the answer. "Other answer" says what changes if the owner does not take the recommendation.
 
 | # | Decision | Options | Recommendation | Needed before | Other answer |
 |---|---|---|---|---|---|
-| **OD1** | **Terminology and permanence** (open per INPUT.md §4) | (a) keep "brain death"; (b) "catastrophic brain injury" for revivable Dead, and "permanent loss" for rot or no brain left; (c) add a Wolfmed-made permanent death (e.g. CBI for N min) | **(b).** Honest stakes with no mechanical change, and the "no one is unrevivable" rule stays. Also confirm the §10 sub-questions: a surviving brain item can be revived as the same person (**yes**), and destroying the brain item is permanent (**yes**). | M1a | (a): swap the [OD1 wording] strings. (c): revisits a standing decision; adds a timer and `Unrevivable`, a new milestone item. |
-| OD2 | What Succumb does | (a) brain to 0 (CBI), then Kill; (b) Dead with brain intact, so a defib alone revives. A third option, "nothing but ghosting", is **ruled out** by the approved fix that Succumb really ends the character's life (INPUT.md §3). | **(a).** It equals the untreated outcome, and the dialog can be exactly true. | M1a | (b): skip the brain step; the dialog says "a defibrillator alone can bring you back". |
-| OD3 | Who may Succumb ("actually dying") | (a) arrest only; (b) arrest plus IPC thermal shutdown (the core-heat route); (c) (b) plus any body whose brain is losing tissue outside arrest | **(b).** The approval says "actually dying" without defining it. Thermal shutdown is helpless like arrest (§3.11). (c) adds little, because tissue loss outside arrest ends in arrest anyway. | M1a (organic), M4 (IPC) | (a): an overheating IPC has no exit until core failure. |
-| OD4 | Pain unconsciousness | (a) bounded faint, re-armed only by a fresh rise or recovery, ended by strong painkillers; (b) held while pain lasts, breathing on; (c) periodic faint every N s while pain stays high | **(a).** It gives a hard helpless-time bound and puts sustained pain in the crawling stage. | M1a | (b) or (c): the pain budget in §2.3 and `PainScenarioTest` change. |
-| OD5 | Pain-shock adrenaline | (a) no stand-up; 30 s crawl ×1.5 and no do-after penalty; (b) keep the 30 s stand-up, announced; (c) ×0.7 on the faint test only | **(a).** It keeps the "one last push" inside the crawling stage and fixes P14's stand-up half. All options remove the shock arrest. | M1a | (b) or (c): only the adrenaline block of the PainSystem edit changes. |
-| **OD6** | **Defib blood gate and post-shock grace** (touches your recorded fix, DECISIONS.md:730-734: "strictly under the threshold", which the shipped 0.40 does not meet) | (a) honour the recorded intent: gate 0.25 plus a 45 s grace on the blood and oxygen triggers, with the refusal and analyzer naming units to 30% and 50%; (b) keep 0.40, labelled "transfuse ≈ N u first", which **revisits** your recorded decision; (c) (a) with a 90 s grace | **(a)**, moving to **(c)** only if the M1a measurement shows a hand medic cannot give 15 u in 45 s. A shock works on the arrests that actually happen, and the remaining problem is named with a dependable fix. The pod already transfuses first. | M1a | (b): `BleedingScenarioTest` shocks after transfusing to 40%. |
+| **OD1** | **Terminology and permanence** (was open per INPUT.md §4) | (a) keep "brain death"; (b) "catastrophic brain injury" for revivable Dead, and "permanent loss" for rot or no brain left; (c) add a Wolfmed-made permanent death (e.g. CBI for N min) | **Decided: (b).** Honest stakes with no mechanical change, and the "no one is unrevivable" rule stays. Also confirm the §10 sub-questions: a surviving brain item can be revived as the same person (**yes**), and destroying the brain item is permanent (**yes**). | M1a | (a): swap the [OD1 wording] strings. (c): revisits a standing decision; adds a timer and `Unrevivable`, a new milestone item. |
+| OD2 | What Succumb does | (a) brain organ health to 0 (CBI), then Kill. The organ entity, the body and the mind (identity) are preserved, so brain repair surgery plus a defib brings the same person back; (b) Dead with brain intact, so a defib alone revives. A third option, "nothing but ghosting", is **ruled out** by the approved fix that Succumb really ends the character's life (INPUT.md §3). | **Decided: (a).** It equals the untreated outcome, and the dialog can be exactly true. | M1a | (b): skip the brain step; the dialog says "a defibrillator alone can bring you back". |
+| OD3 | Who may Succumb ("actually dying") | (a) arrest only; (b) arrest plus IPC thermal shutdown (the core-heat route); (c) (b) plus any body whose brain is losing tissue outside arrest | **Decided: (b).** The approval says "actually dying" without defining it. Thermal shutdown is helpless like arrest (§3.11). (c) adds little, because tissue loss outside arrest ends in arrest anyway. | M1a (organic), M4 (IPC) | (a): an overheating IPC has no exit until core failure. |
+| OD4 | Pain unconsciousness | (a) bounded faint, re-armed only by a fresh rise or recovery, ended by strong painkillers; (b) held while pain lasts, breathing on; (c) periodic faint every N s while pain stays high | **Decided: (a),** with the reviewer's chaining limits: fixed length, re-arm baseline at waking, 30 s cooldown, 40 s per 2 minutes (§3.1). It gives a hard helpless-time bound and puts sustained pain in the crawling stage. | M1a | (b) or (c): the pain budget in §2.3 and `PainScenarioTest` change. |
+| OD5 | Pain-shock adrenaline | (a) no stand-up; 30 s crawl ×1.5 and no do-after penalty; (b) keep the 30 s stand-up, announced; (c) ×0.7 on the faint test only | **Decided: (a).** It keeps the "one last push" inside the crawling stage and fixes P14's stand-up half. All options remove the shock arrest. | M1a | (b) or (c): only the adrenaline block of the PainSystem edit changes. |
+| **OD6** | **Defib blood gate and post-shock grace** (touches your recorded fix, DECISIONS.md:730-734: "strictly under the threshold", which the shipped 0.40 does not meet) | (a) honour the recorded intent: gate 0.25 plus a 45 s grace on the blood and oxygen triggers, with the refusal and analyzer naming units to 30% and 50%; (b) keep 0.40, labelled "transfuse ≈ N u first", which **revisits** your recorded decision; (c) (a) with a 90 s grace | **Decided: (a)**, moving to **(c)** only if the M1a measurement shows a hand medic cannot give the guided ≈ 30 u in 45 s. Revised with the reviewer: the analyzer's short-term target is 35% plus the bleed over the grace, and the restore and grace come once per arrest episode (§7.1). A shock works on the arrests that actually happen, and the remaining problem is named with a dependable fix. The pod already transfuses first. | M1a | (b): `BleedingScenarioTest` shocks after transfusing to 40%. |
 | OD7 | Downed reach | (a) self and carried items only (today); (b) plus floor items within reach; (c) (b) plus pressure or gauze on an adjacent Downed person | **(b)** in M1a (already intended, AUTODOC5). Try **(c)** in the M2 playtest. | M1a (b); M2 (c) | (a): drop `DownedPickupTest`. |
 | OD8 | Long non-dying helplessness | (a) nothing; (b) automatic distress flag on HUDs, plus a returnable "wait as a ghost" after 90 s, offered only while nothing is draining, with exact text; (c) offer it at once | **(b).** It respects "shutdown is not death" without trapping the player. In practice it covers IPC shutdown and stable Unconscious bodies (§5.4). Risk: a returning ghost may have seen things (§14). | M2 | (a): drop the M2 item and its test. |
-| OD9 | IPC pain | (a) Downed only; the shock is a 2 s "sensor overload" stun; (b) a 10 s "reboot" faint with the same re-arm rule; (c) (a) plus a later "suppress damage sensors" self-action costing heat | **(a).** No painkiller reaches an IPC, so a pain knockout could only be undone by welding. Keep (b) and (c) as later flavour. | M1a | (b): the IPC branch of `PainScenarioTest` expects a 10 s faint. |
+| OD9 | IPC pain | (a) Downed only; the shock is a 2 s "sensor overload" stun; (b) a 10 s "reboot" faint with the same re-arm rule; (c) (a) plus a later "suppress damage sensors" self-action costing heat | **Decided: (a).** No painkiller reaches an IPC, so a pain knockout could only be undone by welding. Keep (b) and (c) as later flavour. | M1a | (b): the IPC branch of `PainScenarioTest` expects a 10 s faint. |
 | OD10 | IPC death routes | (a) core, head or gib only (today); (b) add the core-heat route with thermal shutdown and penetrating torso hits reaching the core, with core repair surgery; power and pump loss stay non-lethal. Sub-question: should a repaired core carry the brain-trauma effects? | **(b).** Fixes P1 and keeps "power-loss survival" as a deliberate trait. Sub-question: **no trauma on IPCs**; a cosmetic "CORE RESTORED" HUD line instead (§7.2). | M2 (core repair), M3 (torso hits), M4 (heat) | (a): drop the core-heat route, `IpcCoreInputTest` stays (Downed), `IpcFireScenarioTest` changes. |
-| OD11 | Burns' lethal route | (a) fluid loss into blood volume; (b) organ cooking only; (c) sepsis only (today's fallback) | **(a)**, plus overflow into torso organs. It is visible and treatable, and medics already know the blood route. | M1b | see M1b. |
+| OD11 | Burns' lethal route | (a) fluid loss into blood volume; (b) organ cooking only; (c) sepsis only (today's fallback) | **(a)**. Overflow still counts toward each hit's organ harm, per hit on `Total` (§6.2). It is visible and treatable, and medics already know the blood route. | M1b | see M1b. |
 | OD12 | Can environmental harm destroy limbs or the head? | (a) no: per-part ceiling at 0.8 × destruction, with overflow still causing consequences; (b) yes: uncapped on the living | **(a).** A fire should not quietly dismember, or burn a head into the permanence question. Weapons and explosions still can. | M1b | see M1b. |
 | OD13 | Toxins and radiation lethality | (a) routes as §3.8–3.9, with liver clearance (the one passive-healing exception) and infection no longer dealing Poison; (b) keep them non-lethal | **(a)**, all three parts. | M5 | see M5. |
 | OD14 | Opioid antagonist | add a new reagent / reuse an existing one / none | **Add one** (Fluent name, medical vendor, chemistry recipe). The overdose loop needs a definitive fix. | M2 | see M2. |
@@ -1401,7 +1444,7 @@ Check that each screen explains itself.
 | OD19 | LOOC while Unconscious (`looc.enabled_crit`, a server CVar) | on / off | **On.** It costs nothing and eases helpless time, including the arrest window. | any time (server config) | off: the arrest window keeps hearing, the card and Succumb only. |
 | OD20 | Fake Death | (a) becomes "Play dead" while Downed; (b) remove it | **(a).** It is roleplay for a conscious player. | M2 | see M2. |
 | OD21 | Standing decisions | — | **Keep all.** Two are read rather than changed: "painkillers bring you out … unless blood or oxygen" extends naturally to sedation, toxins, temperature and brain injury; "IPC shutdown is not death" stays, and the new IPC death route is heat (thermal shutdown), not power or pump shutdown. OD6 is the one place this plan touches a recorded decision. | M1a | — |
-| OD22 | Arrest rescue window (the review's helpless-time point) | (a) keep ≈ 4 min untreated, ≈ 9 min with CPR, and give the patient hearing, the card with a coarse bar and rescue line, LOOC (OD19) and an honest Succumb; (b) shorten it, e.g. `wolfmed.brain_arrest_seconds` 120 → 60, halving both windows; (c) keep it for rescuers but offer the arrested patient "wait as a ghost" with return | **(a).** The window is what makes arrest the triage signal the owner's goal names, and Succumb means nobody is forced to sit through it (§2.3). (c) would duplicate Succumb with a weaker promise. | M1a (CVar), M2 (card) | (b): every arrest time in §2.3, §1.5 and the tests halves. |
+| OD22 | Arrest rescue window (the review's helpless-time point) | (a) keep ≈ 4 min untreated, ≈ 9 min with CPR, and give the patient hearing, the card with a coarse bar and rescue line, LOOC (OD19) and an honest Succumb; (b) shorten it, e.g. `wolfmed.brain_arrest_seconds` 120 → 60, halving both windows; (c) keep it for rescuers but offer the arrested patient "wait as a ghost" with return | **Decided: (a).** The window is what makes arrest the triage signal the owner's goal names, and Succumb means nobody is forced to sit through it (§2.3). (c) would duplicate Succumb with a weaker promise. | M1a (CVar), M2 (card) | (b): every arrest time in §2.3, §1.5 and the tests halves. |
 
 ---
 
@@ -1425,6 +1468,6 @@ Check that each screen explains itself.
 | **M1 size** | about 16 systems | Split into M1a (no damage-model change) and M1b (caps and burns), each with its own tests and playtest. |
 | **Hook drift on upstream merges** | **5 code edits in M1a and 15 to 18 in total** (inventory in §12: 8 upstream, 7–9 Onyx, plus 1 existing hook rewritten), and marked YAML lines in M1b, M2, M3 and M4 | One line or block per hook handing off to `_WF`, listed in the manifest. Each hook's Wolfmed branch is covered by a named acceptance test. |
 | **Placeholder art** | new per-cause alerts reuse existing icons (downed.rsi, crit, low oxygen, sepsis) | Listed as art debt; the text carries the meaning. |
-| **Network cost** | new fields: Cause, Breathing, BloodBand, shutdown Reason | small enums and bytes, dirtied only on change (the existing pattern, WolfmedConsciousnessSystem.cs:215-220). |
+| **Network cost** | new fields: Cause, Blockers (a flag set), Breathing, BloodBand, shutdown Reason | small enums and bytes, dirtied only on change (the existing pattern, WolfmedConsciousnessSystem.cs:215-220). |
 | **Timing brittleness in tests** | the scenarios assert time windows | Pin CVars and assert order plus ±20% bands, as the bleed-rate tests already do. |
 | **Derived numbers are not measurements** | nothing in the rundown or this plan was run | M1a and M1b scenarios are the first measurements; revisit every starting value against them. |
