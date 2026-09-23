@@ -25,6 +25,10 @@
   - !type:WoundScarBehavior
     threshold: 4
     chance: 1
+  # M1b: dead skin weeps like the burn that made it (OD11); a graft is what stops it.
+  - !type:WolfmedFluidLossBehavior
+    from: 0
+    perSeverity: 0.0008
   stages:
     Moderate:
       name: wound-stage-moderate

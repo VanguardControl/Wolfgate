@@ -62,6 +62,13 @@ public sealed class WolfmedScenario
         return new GasMixture(moles, Atmospherics.T20C);
     }
 
+    /// <summary>
+    /// Keeps Mono's grid cleanup off the test grid. A scenario runs for minutes of game time with no player
+    /// nearby, and the cleanup then deletes the grid and the patient on it.
+    /// </summary>
+    public void KeepGrid(EntityUid grid) =>
+        Entities.EnsureComponent<Content.Server._Mono.Cleanup.CleanupImmuneComponent>(grid);
+
     /// <summary>Gives the test map's tiles air, or an unbreathable mix at the same pressure.</summary>
     public void SetAir(EntityUid map, bool air)
     {

@@ -127,6 +127,55 @@ public sealed class WolfmedEviscerationTest : GameTest
     }
 
     /// <summary>
+    /// M1b (plan §6.2): the hit past the cap still arrives as one event after evisceration has had its
+    /// overflow: nothing stored, the whole cut as Overflow. (The cut's wound is already at its 200 here;
+    /// wound growth on overflow is SaturatedTorsoTest's.)
+    /// </summary>
+    [Test]
+    public async Task OverflowHitFollowsTheTearTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        var hits = entities.System<WolfmedPartHitSystem>();
+
+        try
+        {
+            await server.WaitAssertion(() =>
+            {
+                var body = Patient(entities, map.GridCoords, out var torso);
+                Cut(entities, body, Cap);
+                Forced(entities, 1f);
+
+                var wounds = entities.System<WoundSystem>();
+                var seen = new List<(PartDamageAppliedEvent Hit, bool Torn)>();
+                hits.Observer = (part, hit) =>
+                {
+                    if (part == torso)
+                        seen.Add((hit, FindWound(entities, wounds, torso, "WolfmedEviscerationWound") != null));
+                };
+
+                Cut(entities, body, BigSlash);
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(seen, Has.Count.EqualTo(1), "the cut past the cap was not exactly one event.");
+                    Assert.That(seen[0].Torn, Is.True, "the hit's event came before evisceration had its overflow.");
+                    Assert.That(seen[0].Hit.Damage.GetTotal(), Is.EqualTo(FixedPoint2.Zero), "a capped torso stored some of the cut.");
+                    Assert.That(seen[0].Hit.Overflow?.GetTotal(), Is.EqualTo(FixedPoint2.New(BigSlash)),
+                        "the event does not carry the whole cut as Overflow.");
+                });
+            });
+        }
+        finally
+        {
+            hits.Observer = null;
+            await server.WaitPost(() => entities.System<WolfmedEviscerationSystem>().ForcedRoll = null);
+        }
+    }
+
+    /// <summary>
     /// Everything that must NOT open a torso: a small cut, the three damage types the profile leaves out of
     /// its table, and a big cut on a torso that is nowhere near its cap.
     /// </summary>
@@ -494,8 +543,8 @@ public sealed class WolfmedEviscerationTest : GameTest
         entities.System<WolfmedEviscerationSystem>().ForcedRoll = roll;
 
     /// <summary>
-    /// A cut on the torso with somebody behind it. The attacker matters: damage with no origin is trimmed
-    /// by the body-wide ceiling, which would stop the torso ever reaching its own cap.
+    /// A cut on the torso with somebody behind it, as a weapon would be: damage with no origin is ambient harm
+    /// and goes through the M1b ceilings.
     /// </summary>
     private static void Cut(IEntityManager entities, EntityUid body, int amount) =>
         Hit(entities, body, "Slash", amount);

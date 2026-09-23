@@ -795,8 +795,11 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
             // WOLFGATE: body-wide damage ceiling, for damage nobody dealt (fire, cold, atmosphere, an EMP). A corpse
             // drifts up to the ceiling on its own, and a ceiling that also stopped attacks meant a dead body could
             // no longer be wounded or dismembered at all.
-            if (origin == null && !_explosionDamage.Contains(body))
-                _wfPart.ClampToBodyCap(body, localized);
+            // WOLFGATE (M1b): per-part ceiling for damage nobody dealt (fire, cold, atmosphere, an EMP), plus the
+            // corpse ceiling. What it trims is not lost: it rides on the hit's event as Overflow.
+            var discarded = origin == null && !_explosionDamage.Contains(body)
+                ? _wfPart.ClampToBodyCap(body, target, localized)
+                : new DamageSpecifier();
             var overflow = AccumulateAmputationOverflow(target, ref localized);
             if (!overflow.Empty)
             {
@@ -805,28 +808,40 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 RaiseLocalEvent(target, ref overflowed);
             }
 
-            if (localized.Empty || !_body.BodyHasChild(body, target))
+            discarded += overflow; // WOLFGATE (M1b)
+            if ((localized.Empty && discarded.Empty) || !_body.BodyHasChild(body, target)) // WOLFGATE (M1b)
             {
                 _projection.RefreshBodyDamage(body);
                 return;
             }
 
-            if (_damage.TryChangeDamage(target,
+            // WOLFGATE (M1b): one event per hit, raised even when the ceiling stored nothing.
+            var stored = !localized.Empty && _damage.TryChangeDamage(target,
                     localized,
                     out var appliedDamage,
                     ignoreResistances: true,
                     interruptsDoAfters: interruptsDoAfters,
                     origin: origin,
-                    ignoreGlobalModifiers: true))
+                    ignoreGlobalModifiers: true)
+                ? appliedDamage
+                : null;
+            if (stored != null || !discarded.Empty) // WOLFGATE (M1b)
             {
-                _applied.Add(body);
-                AccumulateApplied(body, appliedDamage); // WOLFGATE: D27
-                var applied = new PartDamageAppliedEvent(body, target, appliedDamage,
+                if (stored != null) // WOLFGATE (M1b)
+                {
+                    _applied.Add(body);
+                    AccumulateApplied(body, stored); // WOLFGATE: D27, Applied only (M1b)
+                }
+
+                var applied = new PartDamageAppliedEvent(body, target, stored ?? new DamageSpecifier(), // WOLFGATE (M1b)
                     !_skipWoundHealing.Contains(body), origin, _explosionDamage.Contains(body),
                     overflow.Empty && _explosionAmputationCandidates.GetValueOrDefault(body) == target,
                     _woundSeverityMultipliers.GetValueOrDefault(body, 1f),
-                    _routedModifiers.GetValueOrDefault(body).Tool); // WOLFGATE (W1): carry the weapon to the wound rules.
+                    _routedModifiers.GetValueOrDefault(body).Tool, // WOLFGATE (W1): carry the weapon to the wound rules.
+                    discarded.Empty ? null : discarded); // WOLFGATE (M1b)
                 RaiseLocalEvent(target, ref applied);
+                if (stored == null) // WOLFGATE (M1b): nothing stored, so nothing re-projected the body.
+                    _projection.RefreshBodyDamage(body);
                 return;
             }
         }

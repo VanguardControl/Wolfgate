@@ -55,7 +55,14 @@ public readonly record struct PartDamageAppliedEvent(
     float WoundSeverityMultiplier = 1f,
     // WOLFGATE (W1): the projectile or weapon that dealt the hit. Wolfmed's wound rules read it to tell a
     // gunshot from a knife; routing already carries it for armour penetration.
-    EntityUid? Tool = null);
+    EntityUid? Tool = null,
+    // WOLFGATE (M1b): what a ceiling (the torso's cap, the ambient per-part ceiling) discarded from this hit.
+    // Damage is what was stored (Applied); wounds and organs read Total, fractures and amputation Applied.
+    DamageSpecifier? Overflow = null)
+{
+    /// <summary>WOLFGATE (M1b): the whole hit, stored or not.</summary>
+    public DamageSpecifier Total => Overflow is not { Empty: false } overflow ? Damage : Damage + overflow;
+}
 
 /// <summary>
 /// Raised when damage is dealt to a part that is already at (or pushed past) its

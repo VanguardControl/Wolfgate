@@ -37,8 +37,9 @@ public sealed class WolfmedCVars
         CVarDef.Create("wolfmed.bleed_rate", 0.3f, CVar.SERVERONLY);
 
     /// <summary>
-    /// Ceiling on a wound host's total damage. Part damage past it is discarded. High enough that any one limb
-    /// can still reach its amputation threshold on a dead body. Zero disables the ceiling.
+    /// Corpse ceiling (M1b): a DEAD wound host's total damage from damage nobody dealt (fire, atmosphere) stops
+    /// here; the living are held by the per-part ceiling instead (wolfmed.ambient_part_cap_fraction). High
+    /// enough that any one limb can still reach its amputation threshold on a dead body. Zero disables it.
     /// </summary>
     public static readonly CVarDef<float> BodyDamageCap =
         CVarDef.Create("wolfmed.body_damage_cap", 600f, CVar.SERVER | CVar.REPLICATED);
@@ -363,9 +364,13 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> PainFaintRise =
         CVarDef.Create("wolfmed.pain_faint_rise", 40f, CVar.SERVERONLY);
 
-    /// <summary>Seconds after waking from a pain faint during which no new one starts.</summary>
+    /// <summary>
+    /// Seconds after waking from a pain faint during which no new one starts. 50 since M1b (plan §3.1's fallback):
+    /// with overflow growing burns past the ceilings, a fire alone re-armed a faint every 50 s at 30, three in two
+    /// minutes; 50 caps any two minutes at two faints (40 s).
+    /// </summary>
     public static readonly CVarDef<float> PainFaintCooldown =
-        CVarDef.Create("wolfmed.pain_faint_cooldown", 30f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.pain_faint_cooldown", 50f, CVar.SERVERONLY);
 
     /// <summary>Body pain at which an armed pain shock fires: the fall, the scream and the 2 s stun.</summary>
     public static readonly CVarDef<float> PainShockThreshold =
@@ -422,4 +427,58 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> CauteryPopupSeconds =
         CVarDef.Create("wolfmed.cautery_popup_seconds", 10f, CVar.SERVERONLY);
+
+    // M1b: burns and caps (plan §3.7, §6, OD11, OD12).
+
+    /// <summary>
+    /// Per-part ceiling for damage nobody dealt, as a fraction of the part's lowest destruction threshold (arm
+    /// and leg 152, hand and foot 120, head 400). A part without one (the torso) keeps its own cap. What the
+    /// ceiling trims still grows wounds and fluid loss; it is only not stored. Zero turns it off.
+    /// </summary>
+    public static readonly CVarDef<float> AmbientPartCapFraction =
+        CVarDef.Create("wolfmed.ambient_part_cap_fraction", 0.8f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Multiplier on every burn wound's fluid loss into blood volume (OD11). Zero turns the route off.</summary>
+    public static readonly CVarDef<float> BurnFluidRate =
+        CVarDef.Create("wolfmed.burn_fluid_rate", 1f, CVar.SERVERONLY);
+
+    /// <summary>Fraction of its fluid loss a dressed burn keeps. Only a graft stops it.</summary>
+    public static readonly CVarDef<float> BurnDressedFluidFactor =
+        CVarDef.Create("wolfmed.burn_dressed_fluid_factor", 0.25f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Severity a dressed or grafted burn has to grow by, from where it was treated, before the treatment is
+    /// lost and it weeps in full again. The burn's own reopen line.
+    /// </summary>
+    public static readonly CVarDef<float> BurnTreatmentLostSeverity =
+        CVarDef.Create("wolfmed.burn_treatment_lost_severity", 15f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Charring severity per point of Heat a part takes while its burn is already at the burn's maximum (a wound
+    /// at cap escalates, plan §6.3).
+    /// </summary>
+    public static readonly CVarDef<float> CharEscalation =
+        CVarDef.Create("wolfmed.char_escalation", 1f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds a hand or foot's charring has to sit at its maximum, while the part keeps taking Heat, before the
+    /// part crumbles to ash (OD12). The head and torso never crumble.
+    /// </summary>
+    public static readonly CVarDef<float> CharCrumbleSeconds =
+        CVarDef.Create("wolfmed.char_crumble_seconds", 180f, CVar.SERVERONLY);
+
+    /// <summary>Multiplier on wolfmed.char_crumble_seconds for arms and legs.</summary>
+    public static readonly CVarDef<float> CharCrumbleLimbMultiplier =
+        CVarDef.Create("wolfmed.char_crumble_limb_multiplier", 2f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds without Heat after which a charred part's crumble clock starts over: "keeps taking Heat" allows a
+    /// fire's one-second ticks landing on other parts in between.
+    /// </summary>
+    public static readonly CVarDef<float> CharCrumbleGapSeconds =
+        CVarDef.Create("wolfmed.char_crumble_gap_seconds", 10f, CVar.SERVERONLY);
+
+    /// <summary>Units a second of burn fluid loss at which the analyzer reads it as "fast" rather than "slow".</summary>
+    public static readonly CVarDef<float> AnalyzerBurnFast =
+        CVarDef.Create("wolfmed.analyzer_burn_fast", 0.5f, CVar.SERVERONLY);
 }

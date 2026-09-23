@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Targeting;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
@@ -62,8 +63,13 @@ sealed partial class DamageCommand
         if (!TryParseDamageSpecifier(args[0], args[1], shell, out var damage))
             return;
 
-        if (!_entManager.System<WoundDamageRoutingSystem>()
-                .TryApplyPartDamage(target, part, damage, ignoreResistances: ignoreResistances))
+        // M1b (P31): an admin's hit has no origin, so the ambient ceilings would stop it short of destroying the
+        // part. The command lands in full.
+        var applied = false;
+        _entManager.System<WolfmedBodyPartSystem>().WithCeilingBypass(target, () =>
+            applied = _entManager.System<WoundDamageRoutingSystem>()
+                .TryApplyPartDamage(target, part, damage, ignoreResistances: ignoreResistances));
+        if (!applied)
             shell.WriteLine(Loc.GetString("damage-command-error-part-damage", ("target", target)));
     }
 

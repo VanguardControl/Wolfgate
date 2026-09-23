@@ -251,6 +251,8 @@
     state: regenerative-mesh
   - type: WolfmedSurgeryTreatWoundEffect
     woundPrototype: WolfmedCharringWound
+  # M1b: the graft closes the part's weeping burns too; their fluid loss stops.
+  - type: WolfmedSurgeryGraftBurnsEffect
   - type: WolfmedSurgeryPainEffect
     amount: 14
   - type: SurgeryStepEmoteEffect

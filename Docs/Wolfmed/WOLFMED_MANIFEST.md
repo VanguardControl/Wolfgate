@@ -4618,3 +4618,36 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestOneTest.cs` | new | Defib, vacuum spam, IPC crawl, rejuvenate cell, revolver casing. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs` | new | The dialog at UI scale 1 and 1.25. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs`, `WolfmedLocaleCoverageTest.cs` | modified | The pens; the takes-hold key family. |
+
+## M1b (2026-09-23)
+
+Marked upstream and Onyx edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Shared/_Onyx/Wounds/WoundEvents.cs:59-64` | Onyx | WOLFGATE (M1b): `PartDamageAppliedEvent.Overflow` (what a ceiling cut) and the computed `Total` (Applied + Overflow). |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:798-844` | Onyx | WOLFGATE (M1b): `ClampToBodyCap(body, part, …)` returns what it cut; with the torso cap's overflow it rides on the hit as `Overflow`; one `PartDamageAppliedEvent` per hit, raised even when nothing was stored; the D27 accumulator adds Applied only. `PartDamageOverflowedEvent` is still raised first. |
+| `Content.Server/_Onyx/Wounds/OrganDamageSystem.cs:27, 36-43, 74` | Onyx | WOLFGATE (M1b): the dispatcher hands `Total` to wounds, bleeding and the organ roll and Applied to fractures and amputation; `WolfmedPartHitSystem.OnHit` first (charring escalation, OD12 crumble, test seam). |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml:575-578` | Onyx YAML | WOLFGATE (M1b): `WolfmedFluidLossBehavior` on `BurnWound` (from 20, 0.0008 u/s per severity). |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartSystem.cs` | modified | Per-part ambient ceiling, corpse ceiling, `WithCeilingBypass`, `AmbientCeiling`; `WolfmedPartDestructionThresholdEvent`. |
+| `Content.Server/_WF/Wolfmed/Body/WolfmedPartCeilingSystem.cs` | new | A part's lowest Destructible trigger. |
+| `Content.Server/_WF/Wolfmed/Commands/DamageCommand.Wolfmed.cs` | modified | The part form bypasses the ceilings (P31). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedBurnFluidComponents.cs` | new | `WolfmedFluidLossBehavior`, `WolfmedFluidLossComponent`, `WolfmedDressedComponent`, `WolfmedBurnFluidLossComponent`, `WolfmedSurgeryGraftBurnsEffectComponent`. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedFluidLossSystem.cs` | new | Burn fluid loss, no puddle; dress and graft. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedPartHitSystem.cs` | new | Burn-at-cap escalation into charring; OD12 crumble; the per-hit test seam. |
+| `Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs` | modified | A Heat-removing item dresses the part's weeping wounds. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedInfectionSystem.cs`, `Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionProfilePrototype.cs`, `Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml` | modified | `dressedMultiplier` 0.15 for dressed or grafted wounds with no bleeding treatment (P20). |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `GetVolumeLossRate` (bleeding + burns); the post-shock transfusion number counts burn loss. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs`, `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs` | modified | "Fluid loss from burns" line; the trend counts burn loss. |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | "has weeping burns". |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M1b block at the end; `body_damage_cap` doc (corpse ceiling); `pain_faint_cooldown` 30 → 50. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | Charring weeps (from 0). |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | The graft step grafts the part's burns. |
+| `Resources/Locale/en-US/_WF/wolfmed/burns.ftl` | new | Crumble, fluid-loss, analyzer and examine lines. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBurnScenarioTest.cs` | new | `FireMeasurementTest`, `BurnScenarioTest`, `SaturatedTorsoTest`, `AmbientCeilingTest`, `BurnDressingInfectionTest`, `CharCrumbleTest`, `DownedCanPatOutFireTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs`, `WolfmedEviscerationTest.cs`, `WolfmedInfectionTest.cs`, `WolfmedDamageCommandTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `WolfmedAmputationTest.cs`, `WolfmedConsciousnessTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs`, `Scenarios/WolfmedScenario.cs` | modified | Test migration (DECISIONS M1b); `KeepGrid` against Mono's grid cleanup. |

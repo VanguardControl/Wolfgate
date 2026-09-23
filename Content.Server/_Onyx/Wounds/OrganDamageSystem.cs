@@ -24,6 +24,7 @@ public sealed partial class OrganDamageSystem : EntitySystem
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private AmputationSystem _amputation = default!; // WOLFGATE: D26 lifted in phase 3 (WP11-1); AmputationSystem is now vendored.
     [Dependency] private OrganHealthSystem _organHealth = default!;
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedPartHitSystem _wfHits = default!; // WOLFGATE (M1b)
 
     public override void Initialize()
     {
@@ -32,10 +33,14 @@ public sealed partial class OrganDamageSystem : EntitySystem
 
     private void OnPartDamageApplied(Entity<WoundableComponent> part, ref PartDamageAppliedEvent args)
     {
-        _wounds.HandlePartDamageApplied(part, ref args);
+        // WOLFGATE (M1b): wounds, bleeding and organs read the whole hit (Total); fractures and amputation read
+        // only what was stored (Applied). One event per hit, so nothing is counted twice.
+        var total = args with { Damage = args.Total, Overflow = null };
+        _wfHits.OnHit(part, args);
+        _wounds.HandlePartDamageApplied(part, ref total);
         _fractures.HandlePartDamageApplied(part, ref args);
         _amputation.HandlePartDamageApplied(part, ref args); // WOLFGATE: D26 lifted in phase 3 (WP11-1); order wounds -> fractures -> amputation -> bleeding is load-bearing.
-        _bleeding.HandlePartDamageApplied(part, ref args);
+        _bleeding.HandlePartDamageApplied(part, ref total); // WOLFGATE (M1b): Total
 
         if (!_net.IsServer || !TryComp(part, out BodyPartComponent? bodyPart) || bodyPart.Body == null ||
             !_prototypes.TryIndex(part.Comp.Profile, out var profile))
@@ -66,7 +71,7 @@ public sealed partial class OrganDamageSystem : EntitySystem
             if (!_random.Prob(Math.Clamp(policy.HitChance, 0f, 1f)))
                 continue;
 
-            var applied = GetOrganDamage(args.Damage, policy);
+            var applied = GetOrganDamage(total.Damage, policy); // WOLFGATE (M1b): Total, once per hit
             if (applied <= FixedPoint2.Zero)
                 continue;
 

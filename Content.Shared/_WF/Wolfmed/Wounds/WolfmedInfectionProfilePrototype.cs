@@ -54,6 +54,13 @@ public sealed partial class WolfmedInfectionProfilePrototype : IPrototype
         [BleedingTreatment.Cauterized] = 0f,
     };
 
+    /// <summary>
+    /// M1b (P20): progress multiplier for a wound with no bleeding treatment that is under a burn dressing or a
+    /// graft (<see cref="WolfmedDressedComponent"/>). A burn has no bleed to bandage, so it used to count as open.
+    /// </summary>
+    [DataField]
+    public float DressedMultiplier = 1f;
+
     /// <summary>Progress multiplier for a wound something dirty has been in: a knife digging a round out.</summary>
     [DataField]
     public float ContaminationMultiplier = 2.5f;

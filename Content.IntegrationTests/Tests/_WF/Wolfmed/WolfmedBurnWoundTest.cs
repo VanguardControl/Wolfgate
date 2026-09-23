@@ -99,6 +99,44 @@ public sealed class WolfmedBurnWoundTest : GameTest
     }
 
     /// <summary>
+    /// M1b (plan §6.3): a burn at its maximum does not drop further Heat. It escalates, one charring point per
+    /// point of Heat (wolfmed.char_escalation 1), up to the charring's own maximum.
+    /// </summary>
+    [Test]
+    public async Task BurnAtItsCapEscalatesIntoCharringTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var wounds = entities.System<WoundSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var torso = Part(entities, body, BodyPartType.Torso);
+
+            for (var i = 0; i < 7; i++)
+                Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
+
+            var burn = FindWound(entities, wounds, torso, "BurnWound");
+            var charring = FindWound(entities, wounds, torso, "WolfmedCharringWound");
+            Assert.That(entities.GetComponent<WoundComponent>(burn).Severity, Is.EqualTo(FixedPoint2.New(200)),
+                "the burn is not at its maximum, so the test proves nothing.");
+            var before = entities.GetComponent<WoundComponent>(charring).Severity;
+
+            Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
+            Assert.That(entities.GetComponent<WoundComponent>(charring).Severity, Is.EqualTo(before + 30),
+                "Heat past a burn's maximum did not escalate into charring.");
+
+            for (var i = 0; i < 5; i++)
+                Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
+            Assert.That(entities.GetComponent<WoundComponent>(charring).Severity, Is.EqualTo(FixedPoint2.New(120)),
+                "charring went past its own maximum.");
+        });
+    }
+
+    /// <summary>
     /// Heat seals bleeding. An ordinary cut closes to a stray hot hit; a severed artery does not, and
     /// needs someone holding the tool against it on purpose.
     /// </summary>

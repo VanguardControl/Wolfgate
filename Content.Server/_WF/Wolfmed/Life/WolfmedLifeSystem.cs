@@ -69,6 +69,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private WolfmedShutdownSystem _shutdown = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private Wounds.WolfmedFluidLossSystem _fluidLoss = default!; // M1b
 
     private readonly List<EntityUid> _due = new();
     private TimeSpan _nextTick;
@@ -608,6 +609,12 @@ public sealed class WolfmedLifeSystem : EntitySystem
     }
 
     /// <summary>
+    /// M1b: all blood volume leaving the body, in units a second: the bleeding plus the burns' fluid loss
+    /// (<see cref="Wounds.WolfmedFluidLossSystem"/>), which weeps rather than bleeds but empties the same pool.
+    /// </summary>
+    public float GetVolumeLossRate(EntityUid body) => GetBleedRate(body) + _fluidLoss.GetRate(body);
+
+    /// <summary>
     /// The two transfusion numbers (plan §7.1): units to <see cref="WolfmedCVars.PostShockBloodTarget"/> plus
     /// what the current bleed takes over the grace, which keeps the heart going; and units to the line where
     /// the blood stops draining the brain. Zero when the body has no bloodstream or is already past the line.
@@ -625,7 +632,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         var volume = GetBlood(body) * pool;
         var target = _cfg.GetCVar(WolfmedCVars.PostShockBloodTarget) * pool;
         var safe = _cfg.GetCVar(WolfmedCVars.BrainBloodStart) * pool;
-        var bleed = GetBleedRate(body) * MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.PostShockGraceSeconds));
+        var bleed = GetVolumeLossRate(body) * MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.PostShockGraceSeconds)); // M1b: burns too
 
         return (MathF.Max(0f, target - volume) + bleed, MathF.Max(0f, safe - volume));
     }

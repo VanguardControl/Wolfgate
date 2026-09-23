@@ -572,6 +572,10 @@
   - !type:WoundScarBehavior
     threshold: 20
     chance: 1
+  # WOLFGATE (M1b): burns weep into blood volume (OD11), set against the measured fire. WolfmedFluidLossSystem.
+  - !type:WolfmedFluidLossBehavior
+    from: 20
+    perSeverity: 0.0008
   stages:
     Minor:
       name: wound-stage-minor

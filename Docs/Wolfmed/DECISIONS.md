@@ -1250,3 +1250,170 @@ PainFaint input only puts 1 in `outLevel` during a faint, when the body is Uncon
 
 **Numbers.** `wolfmed.bleed_rate` 0.3, internal bleed 0.01, `wolfmed.painkiller_absorb_seconds` 4,
 `wolfmed.cautery_popup_seconds` 10; pens 10 u analgesic and 3 u opiate.
+
+## M1b (2026-09-23)
+
+Burns and caps. Plan: `WOLFMED_DEATH_PLAN.md` §12 M1b, §6, §3.7, §2.5/§6.3, OD11 (yes), OD12 as the owner answered
+it on 2026-09-23 (appendages can crumble after long charring, head and torso never), P31.
+
+**The measurement, first.** `WolfmedBurnScenarioTest.FireMeasurementTest`, a human in a 10-stack fire in station
+air, never patting it out.
+- Before any M1b code, with `wolfmed.body_damage_cap` 0: the fire lasts 100 s (the stacks fade 0.1 a second).
+  It lands 1614 Heat, 1485 stored and 129 cut by the torso's 250. Nearly all of it lands in the first 100 s:
+  1485 stored by 120 s and no more after. Total burn severity is 1615 at 120 s and 1647 at 300 s, from body heat.
+  The critic's estimate of Heat "on the order of 2,000" was high. Arms and legs stored 181 to 200 Heat, past the
+  new 152 ceiling but under the 250 ash line, so this fire would not have ashed a limb even uncapped.
+- The same fire under M1b: Total Heat 1615 (every hit's Total, stored or not). Stored 1272 to 1290 and 324 to 343
+  not stored. Burn severity is about 1700 by 120 s: the ceiling cuts nothing from the wounds, and a burn at its
+  200 escalates into charring. Fluid loss runs at 1.36 u/s.
+- **The rate set against it:** `fluidLossPerSeverity` **0.0008** u/s per point (plan start 0.002). At 0.002 the
+  measured burns would lose about 3.4 u/s. The heart would stop about two minutes after ignition, before a
+  medic could reasonably arrive. At 0.0008, from ignition untreated: Downed by blood at about 195 s, Unconscious
+  at about 245 s, arrest at 255 to 270 s (`BurnScenarioTest`: arrest 260 s against 258 s derived from the
+  measured burns). That is close to the arterial cut's 274 s (playtest 1).
+- A dressed full-body burn loses 1.06 → 0.26 u/s, under regeneration (0.33 u/s), so a dressed patient's blood is
+  stable. A graft takes it to 0.
+
+**What was built.**
+- **One event per hit (§6.2).** `PartDamageAppliedEvent` gets `Overflow` (what a ceiling cut from this hit) and a
+  computed `Total` (Applied + Overflow). Its `Damage` stays the stored amount (Applied). In routing, one
+  `PartDamageAppliedEvent` is raised per hit, including one that stored nothing. `PartDamageOverflowedEvent`
+  (evisceration, tear-off pressure) still goes first and still carries only the torso cap's overflow. The ambient
+  ceiling's cut never counts as tear-off pressure. The dispatcher (`OrganDamageSystem.OnPartDamageApplied`)
+  hands `Total` to wounds, bleeding and the organ roll, once. Fractures and amputation get Applied. The D27
+  accumulator adds Applied only.
+- **The ceilings (§6.1).** `WolfmedBodyPartSystem.ClampToBodyCap(body, part, damage)` now returns what it cut:
+  - *Per-part ceiling* for damage with no origin that is not an explosion:
+    `wolfmed.ambient_part_cap_fraction` 0.8 × the part's lowest Destructible trigger. That gives arm and leg 152,
+    hand and foot 120, and a human head 400. IPC parts get 152, the head included, because their base carries
+    the limb triggers. `WolfmedPartCeilingSystem` (server) answers the new `WolfmedPartDestructionThresholdEvent`
+    from the part's `DestructibleComponent`. The torso's 400 trigger gives 320, so its own 250 cap governs, as
+    the plan says.
+  - *Corpse ceiling:* `wolfmed.body_damage_cap` 600 now applies only to Dead bodies.
+  - *Admin bypass (P31):* `WolfmedBodyPartSystem.WithCeilingBypass`, used by the part form of `damage`. `_WF` on
+    both ends, no hook.
+- **Burn fluid loss (§3.7, OD11).**
+  - `WolfmedFluidLossSystem` runs once a second. Every wound whose prototype declares `WolfmedFluidLossBehavior`
+    loses severity × `perSeverity` × `wolfmed.burn_fluid_rate` (1) once it is at `from` or above.
+  - Declared on `BurnWound` (`from` 20, marked Onyx YAML) and on `WolfmedCharringWound` (`from` 0).
+  - The volume is split out of the blood solution and discarded, so there is no puddle. A sub-hundredth
+    remainder carries to the next tick.
+  - Dead bodies lose nothing. Arrest does not slow it. `WolfmedBurnFluidLossComponent` on the body carries the
+    rate for the analyzer and examine.
+- **Dressing and graft.**
+  - A healing item that removes Heat (ointment, burn packs, gel) dresses the resolved part's weeping wounds
+    (`WolfmedDressedComponent`), from `HealingSystem.Wolfmed.cs`: × `wolfmed.burn_dressed_fluid_factor` 0.25.
+  - The existing graft surgery step (`SurgeryStepGraftSkin`) carries the new `WolfmedSurgeryGraftBurnsEffect`.
+    It grafts every weeping wound on the part: × 0.
+  - A dressed or grafted wound that grows `wolfmed.burn_treatment_lost_severity` (15, the burn's reopen line)
+    past where it was treated loses the treatment.
+- **Burn infection (P20).** Infection profile `dressedMultiplier` 0.15. A wound with no bleeding treatment that
+  is dressed or grafted progresses at 0.15. Measured 3.29 against 21.95 over three minutes (0.150).
+- **A wound at its cap escalates (§6.3).** Heat on a part whose burn is at its 200 becomes charring:
+  `wolfmed.char_escalation` 1 point per point of Heat, up to the charring's 120.
+- **OD12, crumbling.** A hand or foot whose charring sits at its maximum (120) crumbles to ash after
+  `wolfmed.char_crumble_seconds` 180 of Heat still arriving. "Still arriving" means gaps of at most
+  `wolfmed.char_crumble_gap_seconds` 10. Arms and legs take × `wolfmed.char_crumble_limb_multiplier` 2. Head and
+  torso never crumble. The crumble goes through Shitmed's `BurnPart`, a tick later: no stump wound (cauterised),
+  organs dropped, the ordinary part-loss handling, and "The left hand crumbles to ash!". It is wired through
+  `WolfmedPartHitSystem`, the dispatcher's one-line hand-off, which sees each hit once before the wounds do.
+  `CharCrumbleTest` with the clock pinned at 20 s: the hand crumbled 20 s after charring through and the arm 39 s
+  after. The head and torso, under the same 10 Heat a second, charred through at 30 s and were still attached at
+  120 s, the head storing at most 400.
+- **Extinguishing while Downed (to confirm).** Confirmed, no change. `FlammableSystem.Resist` needs
+  `CanInteract(uid, null)`, and `WolfmedDownedSystem` blocks only interactions with a target. Only the fall's own
+  2 s stun blocks it. `DownedCanPatOutFireTest` pins it.
+- **What people read.**
+  - Analyzer: "Fluid loss from burns: slow/fast (x u/s)" under the circulation line; fast from
+    `wolfmed.analyzer_burn_fast` 0.5 u/s. The blood trend and the post-shock transfusion number now count burn loss
+    (`WolfmedLifeSystem.GetVolumeLossRate`).
+  - Examine, close up: "has weeping burns".
+  - The patient: "Your burns are weeping fluid. Dress them; you will need fluids." when it starts.
+
+**The pain faint's cooldown, 30 → 50 s (plan §3.1's fallback).** Burns now grow past where the old 600 stopped
+them, so pain keeps rising through a fire, and each +40 over the pain at waking re-arms a faint. At 30 s, a pure
+10-stack fire fainted the patient three times in two minutes (60 s Critical). `SustainedFireFaintTest` (fire plus
+blows) measured 53 s in one full run and 37.5 s in another. Plan §3.1 names the fix if that test fails: raise the
+cooldown to 50, which caps any two minutes at two faints by the timers alone. With 50:
+- the burn scenario faints at 15 s and 85 s: 40 s in the fire's two minutes;
+- `SustainedFireFaintTest` read 40.5 s at its half-second samples, two faints of 20 s, the second 50 s after
+  waking.
+
+**Differs from the plan, and why.**
+- **Burn rate 0.0008, not 0.002.** Set against the measurement, as the plan asks.
+- **`BurnScenarioTest` sees two faints, not "one faint".** The M1a re-arm rule (+40 over the pain at waking)
+  refaints a patient whose burns keep growing. The test asserts each faint ≤ 20 s and at most 40 s Critical in
+  the fire's two minutes (§2.3).
+- **`fluidLossFrom`/`fluidLossPerSeverity` are one wound behavior**, `WolfmedFluidLossBehavior { from, perSeverity }`,
+  declared once on `BurnWound`'s base behaviors (a single marked YAML block) instead of on each stage. The values
+  are the same at every stage, so one declaration is the smaller Onyx edit. The charring wound weeps too.
+  - Why: the plan puts the fields on "the Wolfmed burn prototypes (burns.yml)" as well.
+  - The effect: the overflow that escalates into charring keeps adding fluid loss. The plan's AmbientCeilingTest
+    asks for this ("grows the burn wound and its fluid loss").
+- **The graft is the existing charring surgery.** A burn under 80 never chars, so it has no graft to receive. A
+  dressing leaves it at × 0.25, which at those severities is under 0.04 u/s. There is no graft item outside
+  surgery ("burn kit" in the plan).
+- **A new hand-off method.** `WolfmedPartHitSystem.OnHit` is one more line in the same marked dispatcher method
+  (inventory #8). The plan's §6.3 escalation and the owner's OD12 crumble both need each hit's Total once, and
+  only one system may subscribe the event. It also carries the test seam (`Observer`). `SaturatedTorsoTest` and
+  `AmbientCeilingTest` read the Total the dispatcher hands to wounds and organs there. Organ damage itself is
+  M3's to assert.
+- **Treatment is lost on regrowth** (`wolfmed.burn_treatment_lost_severity`, new). The plan says nothing about a
+  dressed burn burned again. Without this, a grafted burn would never weep again.
+- **The patient's "Burns weeping fluid" is a popup and a line when it starts, not a status alert.** An alert would
+  need a prototype and an icon. The analyzer and examine carry the ongoing state.
+- **The analyzer's burn line is its own row** under circulation, not appended to a bleed-rate figure. The panel
+  has no bleed-rate figure.
+- **`TryApplyPartDamage` returns false for a hit that stored nothing**, although its event is raised and its
+  wounds grow. It reports what was stored, as before.
+- **IPC heads get a 152 ambient ceiling**, not 400. Their part base carries the MajorLimb triggers (190/210).
+
+**Test migration.**
+- `DamageTotalsNeverCritAWoundHostTest`: comment only. The 600 it names is no longer a body-wide cap on the
+  living.
+- `WolfmedDamageCommandTest`: new `DamageCommandPassesTheAmbientCeilingTest`. The command stores 200 Heat on an
+  arm; the same Heat with no origin stores 152.
+- `WolfmedBurnWoundTest`: new `BurnAtItsCapEscalatesIntoCharringTest`.
+- `WolfmedEviscerationTest`: new `OverflowHitFollowsTheTearTest`. The hit past the cap is one event, raised after
+  evisceration has had its overflow, with Applied 0 and Overflow the whole cut.
+- `WolfmedInfectionTest`: a dressed burn infects at under a quarter of an open one.
+- `WolfmedSpeciesSpawnTest`:
+  - `BodyDamageIsCappedTest` now asserts each living part at its per-part ceiling. It sends 300 Heat a part,
+    past the torso's 250.
+  - `CappedCorpseCanStillBeDismemberedTest` kills the body first, since the corpse ceiling is what it tests.
+  - `DionaLimbIsDestroyedNotSeveredTest` and `IpcLimbSeverabilityAndGibCeilingTest` give their 195 Blunt an
+    attacker, because ambient damage no longer destroys limbs.
+- `WolfmedAmputationTest`:
+  - `OverflowAmputationMechanismIsInertOnShippedLimbsTest` gives its head hits an attacker. 16 × 25 ambient
+    Blunt sat exactly at the head's 400 ceiling.
+  - `GunsAndLasersAmputateOverThresholdLimbsTest` gives its bullets and lasers a shooter. A hand's ambient
+    ceiling (120) is under its 200 thresholds.
+- These tests were skipped in every full run, which hid the failures. Each failed alone until migrated.
+- `SustainedFireFaintTest` pins the shipped 50 s cooldown and checks it on the server clock (`PainFaintCooldownUntil`).
+  It now times everything on the server clock too. Counting half-second loops ran about 6% slow, because every
+  `WaitPost`/`WaitAssertion` runs ticks of its own: the M1a version read a real 50 s gap as 47 s, and 30 s as
+  28.5 s. It asserts at most two faints in the two minutes and at most 21 s each as sampled (≤ 42 s in all).
+  Two 20 s faints read 40.5 s and 41.6 s in two runs.
+
+**Tests.** Final full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`): 424 total, 414 passed, 0 failed,
+10 skipped; each skipped test passes alone.
+
+**Numbers.** `wolfmed.ambient_part_cap_fraction` 0.8, `wolfmed.body_damage_cap` 600 (corpse), `burn_fluid_rate` 1,
+`burn_dressed_fluid_factor` 0.25, `burn_treatment_lost_severity` 15, `char_escalation` 1, `char_crumble_seconds`
+180, `char_crumble_limb_multiplier` 2, `char_crumble_gap_seconds` 10, `analyzer_burn_fast` 0.5,
+`pain_faint_cooldown` 50; `fluidLossPerSeverity` 0.0008 (burn from 20, charring from 0); infection
+`dressedMultiplier` 0.15.
+
+**For the M3 merge.**
+- M3's organ hand-off in `OrganDamageSystem.OnPartDamageApplied` must read `total` (the hit's Total), not `args`.
+- Barotrauma routes through `ClampToBodyCap(body, part, damage)` like any damage with no origin.
+- `WolfmedPartHitSystem.OnHit` runs first in that method.
+
+**Found on the way.**
+- **Mono's grid cleanup deletes long scenario grids.** In two of three full runs, `PainScenarioTest` failed with
+  its body gone ("does not have WolfmedConsciousnessComponent"). `GridCleanupSystem` had deleted the test grid
+  during the ten-minute stretch: no player nearby, no powered APC, low value. The test passes alone. The new
+  `WolfmedScenario.KeepGrid` gives the grid `CleanupImmuneComponent`. `PainScenarioTest` and the M1b burn
+  scenarios call it.
+- The dressing hook in `HealingSystem.Wolfmed.cs` is exercised only through its `Dress` seam. No test drives a
+  real ointment do-after.

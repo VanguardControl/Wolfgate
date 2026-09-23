@@ -51,6 +51,49 @@ public sealed class WolfmedDamageCommandTest : GameTest
         });
     }
 
+    /// <summary>
+    /// M1b (P31): the part form is an admin's hit with no origin, so it bypasses the ambient per-part ceiling and
+    /// lands in full; the same Heat with no origin and no command stops at 0.8 of the arm's lowest destruction line.
+    /// </summary>
+    [Test]
+    public async Task DamageCommandPassesTheAmbientCeilingTest()
+    {
+        var map = await Pair.CreateTestMap();
+        var entities = Server.EntMan;
+
+        EntityUid admin = default, ambient = default;
+        await Server.WaitPost(() =>
+        {
+            admin = entities.SpawnEntity("MobHuman", map.GridCoords);
+            ambient = entities.SpawnEntity("MobHuman", map.GridCoords);
+        });
+
+        await Pair.WaitCommand($"damage Heat 200 true {entities.GetNetEntity(admin)} LeftArm");
+
+        await Server.WaitAssertion(() =>
+        {
+            var graph = entities.System<SharedBodySystem>();
+            var damage = entities.System<WolfmedDamageableSystem>();
+            EntityUid LeftArm(EntityUid body) => graph.GetBodyChildren(body).Single(part =>
+                part.Component.PartType == BodyPartType.Arm && part.Component.Symmetry == BodyPartSymmetry.Left).Id;
+
+            var ambientArm = LeftArm(ambient);
+            entities.System<Content.Shared._Onyx.Wounds.WoundDamageRoutingSystem>().TryApplyPartDamage(ambient,
+                ambientArm, new Content.Shared.Damage.DamageSpecifier
+                {
+                    DamageDict = { ["Heat"] = FixedPoint2.New(200) },
+                }, null, ignoreResistances: true);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(damage.GetAllDamage(LeftArm(admin)).GetTotal(), Is.EqualTo(FixedPoint2.New(200)),
+                    "the admin command was held at the ceiling.");
+                Assert.That(damage.GetAllDamage(ambientArm).GetTotal(), Is.EqualTo(FixedPoint2.New(152)),
+                    "ambient Heat was not held at 0.8 x 190.");
+            });
+        });
+    }
+
     /// <summary>The four-argument form still routes normally instead of being read as a part name.</summary>
     [Test]
     public async Task DamageCommandWithoutAPartStillWorksTest()

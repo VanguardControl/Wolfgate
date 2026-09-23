@@ -247,7 +247,8 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             // limbs already live with (PLAN5 R11, handed to the balance pass).
             var second = entities.SpawnEntity("MobIPC", map.GridCoords);
             blunted = Part(entities, second, BodyPartType.Arm, BodyPartSymmetry.Left);
-            Assert.That(routing.TryApplyPartDamage(second, blunted, Spec("Blunt", 195), null,
+            // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling (152).
+            Assert.That(routing.TryApplyPartDamage(second, blunted, Spec("Blunt", 195), first,
                 ignoreResistances: true));
         });
 
@@ -393,7 +394,9 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             Assert.That(entities.System<WolfmedBodyPartSystem>().Get(arm).AmputationThresholds, Is.Empty);
             // 195 Blunt clears MajorLimb's Blunt rung of 190. WolfmedPartDiona declares no Destructible of its
             // own, so the limb keeps the trigger every organic arm and leg carries (Body/Parts/base.yml).
-            Assert.That(Routing(entities).TryApplyPartDamage(body, arm, Spec("Blunt", 195), null,
+            // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling (152).
+            var attacker = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(Routing(entities).TryApplyPartDamage(body, arm, Spec("Blunt", 195), attacker,
                 ignoreResistances: true));
         });
 
@@ -464,7 +467,8 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
 
     /// <summary>
     /// Routed damage had no ceiling: ten parts and no per-limb cap let a burning body climb into the
-    /// thousands. The body total now stops at a multiple of the dead threshold.
+    /// thousands. M1b: a living body's parts each stop at the ambient per-part ceiling (0.8 of the part's lowest
+    /// destruction threshold; the torso keeps its own 250), so nothing a fire does is stored past it.
     /// </summary>
     [Test]
     public async Task BodyDamageIsCappedTest()
@@ -480,21 +484,28 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             // the damage.
             var body = entities.SpawnEntity("MobIPC", map.GridCoords);
             var parts = entities.System<SharedBodySystem>().GetBodyChildren(body).Select(part => part.Id).ToList();
-            var cap = FixedPoint2.New(server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>()
-                .GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BodyDamageCap));
+            var ceilings = entities.System<Content.Shared._WF.Wolfmed.Body.WolfmedBodyPartSystem>();
 
-            // Small hits, like fire: under every finishing-hit threshold, so nothing is severed.
-            for (var i = 0; i < 40; i++)
+            // Small hits, like fire: under every finishing-hit threshold, so nothing is severed. 300 in all per
+            // part, past every ceiling including the torso's 250.
+            for (var i = 0; i < 60; i++)
             {
                 foreach (var part in parts)
                     Routing(entities).TryApplyPartDamage(body, part, Spec("Heat", 5), null, ignoreResistances: true);
             }
 
-            var total = entities.GetComponent<DamageableComponent>(body).TotalDamage;
             Assert.Multiple(() =>
             {
-                Assert.That(total, Is.LessThanOrEqualTo(cap + 1), "2000 Heat went in.");
-                Assert.That(total, Is.GreaterThan(cap - 20), "the ceiling is a ceiling, not a refusal to take damage.");
+                foreach (var part in parts)
+                {
+                    var stored = entities.GetComponent<DamageableComponent>(part).TotalDamage;
+                    var ceiling = ceilings.AmbientCeiling(part) ?? FixedPoint2.New(250);
+                    var own = ceilings.Get(part).MaxDamage;
+                    if (own > FixedPoint2.Zero)
+                        ceiling = FixedPoint2.Min(ceiling, own);
+                    Assert.That(stored, Is.LessThanOrEqualTo(ceiling + 1), $"{entities.ToPrettyString(part)} stored past its ceiling.");
+                    Assert.That(stored, Is.GreaterThan(ceiling - 10), "the ceiling is a ceiling, not a refusal to take damage.");
+                }
             });
         });
     }
@@ -519,6 +530,11 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
             var cap = FixedPoint2.New(server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>()
                 .GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BodyDamageCap));
+
+            // M1b: the body-wide ceiling is the corpse ceiling now, so the body is dead first.
+            entities.System<Content.Shared.Mobs.Systems.MobStateSystem>()
+                .ChangeMobState(body, Content.Shared.Mobs.MobState.Dead);
+            Assert.That(entities.System<Content.Shared.Mobs.Systems.MobStateSystem>().IsDead(body), Is.True);
 
             // Ambient damage runs the body up to the ceiling and stops there.
             for (var i = 0; i < 200; i++)

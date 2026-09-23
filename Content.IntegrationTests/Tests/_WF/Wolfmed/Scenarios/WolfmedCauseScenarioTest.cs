@@ -54,6 +54,12 @@ public sealed class WolfmedCauseScenarioTest : GameTest
     private const float FaintSeconds = 20f;
     private const float Cooldown = 30f;
 
+    /// <summary>
+    /// M1b: the shipped cooldown. With fire no longer stopped at the old 600 its burns keep climbing, and at 30 s a
+    /// fire plus blows chained three faints (53 s in two minutes); plan §3.1's fallback is 50.
+    /// </summary>
+    private const float ShippedCooldown = 50f;
+
     private async Task PinPain()
     {
         await OverrideCVar(Side.Server, WolfmedCVars.Consciousness, true);
@@ -133,6 +139,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
         await Server.WaitPost(() =>
         {
             s.SetAir(map.MapUid, true);
+            s.KeepGrid(map.Grid); // M1b: the ten-minute stretch outlived Mono's grid cleanup in full runs.
             a = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
         });
         await RunSeconds(3);
@@ -318,12 +325,14 @@ public sealed class WolfmedCauseScenarioTest : GameTest
 
     /// <summary>
     /// The per-encounter budget (plan §2.3): a 10-stack fire and a weapon hit every 2 s for 2 minutes. At
-    /// most 40 s Critical, Downed for the rest once down; no faint over 20 s; none within 30 s of waking.
+    /// most 40 s Critical, Downed for the rest once down; no faint over 20 s; none inside the cooldown (the
+    /// shipped 50 s since M1b).
     /// </summary>
     [Test]
     public async Task SustainedFireFaintTest()
     {
         await PinPain();
+        await OverrideCVar(Side.Server, WolfmedCVars.PainFaintCooldown, ShippedCooldown);
         var map = await Pair.CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid a = default;
@@ -346,12 +355,22 @@ public sealed class WolfmedCauseScenarioTest : GameTest
         var wentDown = false;
         float? faintStart = null;
         float? lastWake = null;
+        TimeSpan? cooldownUntil = null;
         var faints = new List<(float Start, float Length)>();
         var causes = new HashSet<WolfmedCause>();
 
-        for (var tick = 0; tick < 240; tick++)
+        // M1b: times are the server's clock. Every WaitPost and WaitAssertion runs ticks of its own, so counting
+        // half-second loops ran about 6% slow and read a 50 s cooldown as 47 s.
+        var t0 = 0f;
+        var previous = 0f;
+        await Server.WaitPost(() => t0 = previous = Now);
+        for (var tick = 0; ; tick++)
         {
-            var t = tick * 0.5f;
+            var elapsed = 0f;
+            await Server.WaitPost(() => elapsed = Now - t0);
+            if (elapsed >= 120f)
+                break;
+
             if (tick % 4 == 0)
             {
                 var target = targets[tick / 4 % targets.Length];
@@ -363,16 +382,23 @@ public sealed class WolfmedCauseScenarioTest : GameTest
             await RunSeconds(0.5f);
             await Server.WaitAssertion(() =>
             {
+                var t = Now - t0;
+                var dt = Now - previous;
+                previous = Now;
                 var comp = Consc(a);
                 if (comp.State == WolfmedConsciousness.Unconscious)
                 {
-                    critical += 0.5f;
+                    critical += dt;
                     causes.Add(comp.Cause);
                     if (faintStart == null)
                     {
                         faintStart = t;
+                        // M1b: the rule itself, on the server's clock, and the sampled gap within a poll.
+                        if (cooldownUntil is { } until)
+                            Assert.That(SGameTiming.CurTime, Is.GreaterThanOrEqualTo(until),
+                                "a faint started inside the cooldown.");
                         if (lastWake is { } wake)
-                            Assert.That(t - wake, Is.GreaterThanOrEqualTo(Cooldown - 1f),
+                            Assert.That(t - wake, Is.GreaterThanOrEqualTo(ShippedCooldown - 1f),
                                 $"a faint started {t - wake:0.0} s after waking.");
                     }
                 }
@@ -382,6 +408,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                     {
                         faints.Add((start, t - start));
                         lastWake = t;
+                        cooldownUntil = comp.PainFaintCooldownUntil;
                         faintStart = null;
                     }
 
@@ -394,14 +421,18 @@ public sealed class WolfmedCauseScenarioTest : GameTest
             });
         }
 
-        TestContext.Out.WriteLine($"SustainedFireFaint: Critical {critical} s of 120; faints " +
+        TestContext.Out.WriteLine($"SustainedFireFaint: Critical {critical:0.0} s of 120; faints " +
                                   string.Join(", ", faints.Select(f => $"{f.Start:0.0}s+{f.Length:0.0}s")) +
                                   $"; causes while Critical: {string.Join(", ", causes)}.");
 
         Assert.Multiple(() =>
         {
             Assert.That(faints.Count + (faintStart != null ? 1 : 0), Is.GreaterThan(0), "the encounter never fainted.");
-            Assert.That(critical, Is.LessThanOrEqualTo(40f), "more than 40 s helpless in two minutes.");
+            // The budget is two 20 s faints. Each is seen from the sample after it starts to the one after the
+            // half-second poll that ends it, so each can read up to a second long.
+            Assert.That(faints.Count + (faintStart != null ? 1 : 0), Is.LessThanOrEqualTo(2),
+                "more than two faints in two minutes.");
+            Assert.That(critical, Is.LessThanOrEqualTo(2 * (FaintSeconds + 1f)), "more than 40 s helpless in two minutes.");
             Assert.That(faints.All(f => f.Length <= FaintSeconds + 1f), Is.True, "a faint ran past 20 s.");
             Assert.That(causes, Is.EquivalentTo(new[] { WolfmedCause.PainFaint }),
                 "something other than a pain faint held the patient under.");

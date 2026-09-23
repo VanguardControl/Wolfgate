@@ -17,6 +17,8 @@
     Clamped: 0.5
     Sutured: 0
     Cauterized: 0
+  # M1b (P20): a dressed or grafted burn, which has no bleeding treatment of its own.
+  dressedMultiplier: 0.15
   contaminationMultiplier: 2.5
   localPainPerMinute: 4
   severityPerMinute: 1

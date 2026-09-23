@@ -155,6 +155,21 @@ public sealed class WolfmedInfectionTest : GameTest
             infection.Update(Minutes(2));
             Assert.That(Progress(entities, septicWound), Is.GreaterThan(spread),
                 "the antiseptic never reaches what has already left the wound.");
+
+            // M1b (P20): a burn has no bleed to bandage; its own dressing is what counts.
+            var fluid = entities.System<WolfmedFluidLossSystem>();
+            var dressedBurnBody = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var openBurnBody = entities.SpawnEntity("MobHuman", map.GridCoords);
+            foreach (var patient in new[] { dressedBurnBody, openBurnBody })
+                Damage(entities, patient, TargetBodyPart.Torso, "Heat", 30);
+
+            var dressedBurn = FindWound(entities, Part(entities, dressedBurnBody, BodyPartType.Torso), "BurnWound");
+            var openBurn = FindWound(entities, Part(entities, openBurnBody, BodyPartType.Torso), "BurnWound");
+            Assert.That(fluid.Dress(Part(entities, dressedBurnBody, BodyPartType.Torso)), Is.True);
+
+            infection.Update(Minutes(3));
+            Assert.That(Progress(entities, dressedBurn), Is.LessThan(Progress(entities, openBurn) / 4f),
+                "a dressed burn infects as if it were open.");
         });
     }
 

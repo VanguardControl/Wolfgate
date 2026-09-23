@@ -23,6 +23,7 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedConsciousnessSystem _vitalsConsciousness = default!;
     [Dependency] private WolfmedRevivalSystem _vitalsRevival = default!;
     [Dependency] private WolfmedBreathingSystem _vitalsBreathing = default!;
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedFluidLossSystem _vitalsFluidLoss = default!; // M1b
 
     /// <summary>State and cause, breathing, circulation and the defib verdict, or null when consciousness does not run this body.</summary>
     public WolfmedVitalsReport? BuildVitals(EntityUid body)
@@ -59,6 +60,9 @@ public sealed partial class HealthAnalyzerSystem
             report.Trend = GetBloodTrend(body, bloodstream, report.Blood);
             report.UnitsToLine = _life.GetTransfusionGuidance(body).ToBrainSafe;
             report.Line = _vitalsCfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f;
+            // M1b (plan §3.7): a burn patient reads as a fluids patient.
+            report.BurnFluid = _vitalsFluidLoss.GetRate(body);
+            report.BurnFluidFast = report.BurnFluid >= _vitalsCfg.GetCVar(WolfmedCVars.AnalyzerBurnFast);
         }
 
         SetVerdict(body, report);
@@ -94,7 +98,7 @@ public sealed partial class HealthAnalyzerSystem
         var regeneration = blood < 1f && interval > 0f && !_vitalsMobState.IsDead(body)
             ? refresh.Float() / interval
             : 0f;
-        var net = regeneration - _life.GetBleedRate(body);
+        var net = regeneration - _life.GetVolumeLossRate(body); // M1b: burn fluid loss empties the same pool
 
         if (-net >= _vitalsCfg.GetCVar(WolfmedCVars.AnalyzerBloodFast))
             return WolfmedBloodTrend.FallingFast;

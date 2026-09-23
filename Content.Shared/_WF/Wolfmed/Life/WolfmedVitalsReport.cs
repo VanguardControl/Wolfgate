@@ -102,6 +102,12 @@ public sealed class WolfmedVitalsReport
     public float VerdictSafeUnits;
 
     public float VerdictSafeLine;
+
+    /// <summary>M1b: burn fluid loss in units a second, 0 when nothing weeps.</summary>
+    public float BurnFluid;
+
+    /// <summary>M1b: at or over <c>wolfmed.analyzer_burn_fast</c>.</summary>
+    public bool BurnFluidFast;
 }
 
 /// <summary>
@@ -116,6 +122,9 @@ public static class WolfmedVitalsText
         var lines = new List<string> { StateLine(report), BreathingLine(report) };
         if (CirculationLine(report) is { } circulation)
             lines.Add(circulation);
+
+        if (BurnFluidLine(report) is { } burns)
+            lines.Add(burns);
 
         if (VerdictLine(report) is { } verdict)
             lines.Add(verdict);
@@ -229,6 +238,16 @@ public static class WolfmedVitalsText
             ? Loc.GetString("wolfmed-vitals-circulation-transfuse",
                 ("pulse", pulse), ("percent", percent), ("trend", trend), ("units", units), ("line", line))
             : Loc.GetString("wolfmed-vitals-circulation", ("pulse", pulse), ("percent", percent), ("trend", trend));
+    }
+
+    /// <summary>M1b: "Fluid loss from burns: fast (1.4 u/s)", beside the circulation line. Null while nothing weeps.</summary>
+    public static string? BurnFluidLine(WolfmedVitalsReport report)
+    {
+        if (report.Mechanical || report.BurnFluid <= 0f)
+            return null;
+
+        return Loc.GetString(report.BurnFluidFast ? "wolfmed-vitals-burn-fluid-fast" : "wolfmed-vitals-burn-fluid-slow",
+            ("rate", MathF.Round(report.BurnFluid, 1)));
     }
 
     /// <summary>"Defib: shock indicated", or the refusal with what to do first. Null while hidden.</summary>

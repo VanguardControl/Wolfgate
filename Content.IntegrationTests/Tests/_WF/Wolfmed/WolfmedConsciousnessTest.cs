@@ -119,7 +119,8 @@ public sealed class WolfmedConsciousnessTest : GameTest
             Assert.That(mobState.IsCritical(body), Is.False);
             Assert.That(mobState.IsDead(body), Is.False);
 
-            // Past the 600 body damage cap, which is itself well past the old dead threshold.
+            // 600 in all, well past the old dead threshold. M1b: no body-wide cap on the living any more; the
+            // per-part ceiling applies to damage nobody dealt, and none of it decides the state either.
             damage.TryChangeDamage(body, Spec("Blunt", 350), ignoreResistances: true);
             Assert.That(mobState.IsAlive(body), Is.True);
             Assert.That(mobState.IsDead(body), Is.False);

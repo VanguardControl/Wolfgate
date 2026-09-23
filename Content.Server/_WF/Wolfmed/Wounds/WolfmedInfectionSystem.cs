@@ -164,6 +164,9 @@ public sealed class WolfmedInfectionSystem : EntitySystem
             ? bleeding.Treatment
             : BleedingTreatment.None;
         var openness = profile.TreatmentMultipliers.GetValueOrDefault(treatment, 1f);
+        // M1b (P20): a burn has no bleed to bandage; its dressing is the treatment.
+        if (treatment == BleedingTreatment.None && HasComp<WolfmedDressedComponent>(wound))
+            openness = profile.DressedMultiplier;
 
         if (infection.Cleaned && infection.Stage < WolfmedInfectionStage.Spreading)
             SetProgress(wound, infection.Progress - profile.CleanDecayPerMinute * minutes, profile);

@@ -199,6 +199,14 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             lines++;
         }
 
+        // M1b (plan §3.7): burns deep enough to lose fluid, so a burn patient reads as a fluids patient.
+        if (!machine && detailed && HasComp<WolfmedBurnFluidLossComponent>(examined))
+        {
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-weeping-burns-self" : "wolfmed-look-weeping-burns-other",
+                ("target", identity)));
+            lines++;
+        }
+
         if (lines == 0)
         {
             // Nothing shown at all reads differently when there was something and the clothing took it.

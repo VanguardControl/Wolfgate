@@ -204,6 +204,9 @@ public sealed class WolfmedAmputationTest : GameTest
         await server.WaitAssertion(() =>
         {
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            // M1b: a shooter behind every round. Damage with no origin is ambient harm and stops at a hand's
+            // ceiling (0.8 x 150 = 120), short of these thresholds.
+            var shooter = entities.SpawnEntity("MobHuman", map.GridCoords);
             Assert.That(entities.HasComponent<WoundHostComponent>(body), Is.True,
                 "MobHuman is not a wound host; the D21/D32 species wiring is missing.");
 
@@ -230,7 +233,7 @@ public sealed class WolfmedAmputationTest : GameTest
             // host default of 40 precisely so a standard round can finish an over-threshold limb).
             var leftHandWoundable = entities.GetComponent<WoundableComponent>(leftHand);
             for (var i = 0; i < 14; i++)
-                Assert.That(routing.TryApplyPartDamage(body, leftHand, Spec("Piercing", 14)));
+                Assert.That(routing.TryApplyPartDamage(body, leftHand, Spec("Piercing", 14), shooter));
 
             Assert.Multiple(() =>
             {
@@ -241,7 +244,7 @@ public sealed class WolfmedAmputationTest : GameTest
 
             // Hit 15 takes the hand to 210 (progress 1.05) and only ARMS it - the threshold hit never
             // detaches.
-            Assert.That(routing.TryApplyPartDamage(body, leftHand, Spec("Piercing", 14)));
+            Assert.That(routing.TryApplyPartDamage(body, leftHand, Spec("Piercing", 14), shooter));
             Assert.Multiple(() =>
             {
                 Assert.That(leftHandWoundable.Severable, Is.True);
@@ -249,7 +252,7 @@ public sealed class WolfmedAmputationTest : GameTest
             });
 
             // ONE more 14-Piercing round finishes it: pre-hit progress 210/200 >= 1 and 14 >= 12.
-            Assert.That(routing.TryApplyPartDamage(body, leftHand, Spec("Piercing", 14)));
+            Assert.That(routing.TryApplyPartDamage(body, leftHand, Spec("Piercing", 14), shooter));
             Assert.That(graph.BodyHasChild(body, leftHand), Is.False,
                 "a limb over its Piercing threshold must be severed by one 14-Piercing round (hit 16).");
             Assert.That(entities.Deleted(leftHand), Is.False, "amputated, not gibbed.");
@@ -259,13 +262,13 @@ public sealed class WolfmedAmputationTest : GameTest
             // limb a Heat threshold equal to its Piercing one (Hand 200) and a Heat finishing minimum of 15.
             var rightHandWoundable = entities.GetComponent<WoundableComponent>(rightHand);
             for (var i = 0; i < 12; i++)
-                Assert.That(routing.TryApplyPartDamage(body, rightHand, Spec("Heat", 16)));
+                Assert.That(routing.TryApplyPartDamage(body, rightHand, Spec("Heat", 16), shooter));
 
             // 12 * 16 = 192; progress 192/200 = 0.96 < 1.
             Assert.That(rightHandWoundable.Severable, Is.False);
 
             // Hit 13 -> 208, progress 1.04, arms the hand.
-            Assert.That(routing.TryApplyPartDamage(body, rightHand, Spec("Heat", 16)));
+            Assert.That(routing.TryApplyPartDamage(body, rightHand, Spec("Heat", 16), shooter));
             Assert.Multiple(() =>
             {
                 Assert.That(rightHandWoundable.Severable, Is.True);
@@ -273,16 +276,16 @@ public sealed class WolfmedAmputationTest : GameTest
             });
 
             // ONE more 16-Heat shot finishes it: 16 >= the Heat finishing minimum of 15 (hit 14).
-            Assert.That(routing.TryApplyPartDamage(body, rightHand, Spec("Heat", 16)));
+            Assert.That(routing.TryApplyPartDamage(body, rightHand, Spec("Heat", 16), shooter));
             Assert.That(graph.BodyHasChild(body, rightHand), Is.False,
                 "a limb over its Heat threshold must be severed by one 16-Heat laser shot (hit 14).");
             Assert.That(entities.Deleted(rightHand), Is.False, "amputated, not gibbed.");
 
             // --- A BELOW-threshold limb is severed by neither. Foot Piercing/Heat thresholds are 220.
             for (var i = 0; i < 5; i++)
-                Assert.That(routing.TryApplyPartDamage(body, leftFoot, Spec("Piercing", 14)));
+                Assert.That(routing.TryApplyPartDamage(body, leftFoot, Spec("Piercing", 14), shooter));
             for (var i = 0; i < 3; i++)
-                Assert.That(routing.TryApplyPartDamage(body, rightFoot, Spec("Heat", 16)));
+                Assert.That(routing.TryApplyPartDamage(body, rightFoot, Spec("Heat", 16), shooter));
 
             Assert.Multiple(() =>
             {
@@ -302,19 +305,19 @@ public sealed class WolfmedAmputationTest : GameTest
             // Slash threshold is 130, so PLAN3 §8.2's table predicts ceil(130/32) + 1 = 6 hits.
             var leftArmWoundable = entities.GetComponent<WoundableComponent>(leftArm);
             for (var i = 0; i < 4; i++)
-                Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Slash", 32)));
+                Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Slash", 32), shooter));
 
             // 4 * 32 = 128; progress 128/130 = 0.985.
             Assert.That(leftArmWoundable.Severable, Is.False);
 
-            Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Slash", 32))); // 160, arms it
+            Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Slash", 32), shooter)); // 160, arms it
             Assert.Multiple(() =>
             {
                 Assert.That(leftArmWoundable.Severable, Is.True);
                 Assert.That(graph.BodyHasChild(body, leftArm), Is.True);
             });
 
-            Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Slash", 32))); // 32 >= 15 -> detach
+            Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Slash", 32), shooter)); // 32 >= 15 -> detach
             Assert.That(graph.BodyHasChild(body, leftArm), Is.False,
                 "six machete-grade slashes must take an arm off (PLAN3 §8.2).");
             Assert.That(entities.Deleted(leftArm), Is.False, "amputated, not gibbed.");
@@ -338,6 +341,9 @@ public sealed class WolfmedAmputationTest : GameTest
             // (a) a real limb: the overflow accumulator never engages, and the THRESHOLD path is what
             // severs.
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            // M1b: an attacker behind every hit. Damage with no origin is ambient harm and stops at the head's
+            // ceiling (0.8 x 500 = 400), which is exactly where this test's 16 chunks leave it.
+            var attacker = entities.SpawnEntity("MobHuman", map.GridCoords);
             var graph = entities.System<SharedBodySystem>();
             var routing = entities.System<WoundDamageRoutingSystem>();
             var head = graph.GetBodyChildren(body)
@@ -359,7 +365,7 @@ public sealed class WolfmedAmputationTest : GameTest
             // amputation is reachable at all: threshold 350, and this test peaks at 450.
             for (var i = 1; i <= 16; i++)
             {
-                Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 25)));
+                Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 25), attacker));
                 // AccumulateAmputationOverflow early-returns because WolfmedBodyPartComponent.MaxDamage is
                 // 0 on every shipped limb, so the accumulator can never leave zero.
                 Assert.That(woundable.AmputationOverflow, Is.EqualTo(FixedPoint2.Zero),
@@ -373,7 +379,7 @@ public sealed class WolfmedAmputationTest : GameTest
 
             // One Blunt 50 - exactly the finishing minimum - takes it off at 450, proving the threshold path
             // is alive and that only the overflow half is inert.
-            Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 50)));
+            Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 50), attacker));
             Assert.That(graph.BodyHasChild(body, head), Is.False);
 
             // (b) the same mechanism on a bespoke part with maxDamage: 50 accumulates, proving it is
