@@ -29,13 +29,15 @@
     parts: [ Foot ]
   - slots: [ HEAD ]
     parts: [ Head ]
-  # Rates are severity * the stage's rate * wolfmed.bleed_rate, so a fresh minor cut runs at about 0.6, a
-  # deep one at 2.7 and a cut artery at 9. The gore system calls 0.9 a major bleed; flowing sits just above.
-  bleedOozing: 0.05
-  bleedFlowing: 1.0
-  bleedSpurting: 5.0
-  soakThrough: 1.0
-  distantBleed: 3.0
+  # Rates are severity * the stage's rate * wolfmed.bleed_rate, so a fresh minor cut runs at about 0.3, a
+  # deep one at 1.35 and a cut artery at 4.5. The gore system calls 0.45 a major bleed; flowing sits just
+  # above. Every band was halved with wolfmed.bleed_rate 0.6 -> 0.3 (playtest 1), so the words still match
+  # the wounds.
+  bleedOozing: 0.025
+  bleedFlowing: 0.5
+  bleedSpurting: 2.5
+  soakThrough: 0.5
+  distantBleed: 1.5
   sepsisVisibleAt: 40
   # LOOK2: the glyph and colour of every finding the inspection builds itself rather than reading off a
   # wound. Keys are WolfmedLookClasses; icons are states in analyzer_icons.rsi.

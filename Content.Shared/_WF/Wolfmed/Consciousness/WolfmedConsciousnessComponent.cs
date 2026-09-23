@@ -96,6 +96,10 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     [ViewVariables]
     public string LastConditionLine = string.Empty;
 
+    /// <summary>Server: how many condition lines the patient has been told. Tests count spam with it.</summary>
+    [ViewVariables]
+    public int ConditionLineCount;
+
     /// <summary>Server: the largest drain behind the hypoxia pressure. Written by the life tick.</summary>
     [ViewVariables]
     public WolfmedCauseSource HypoxiaSource = WolfmedCauseSource.None;

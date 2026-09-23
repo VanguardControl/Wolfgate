@@ -7,7 +7,8 @@ wolfmed-arrest-banner-sub = Minutes left. Someone has to find you.
 
 # BRAIN: what the paddles say.
 wolfmed-defib-success = Sinus rhythm restored.
-wolfmed-defib-no-response = No response.
+wolfmed-defib-no-response = No response. Charge again.
+wolfmed-defib-not-monitored = Shock refused: no vital signs this device can read.
 wolfmed-defib-no-brain = No neural activity. Nothing to restart.
 wolfmed-defib-no-blood = Shock refused: blood {$percent}%. Transfuse ≈ {$units} u first; ≈ {$safe} u to {$line}%.
 wolfmed-defib-brain-dead = Brain flatlined. Repair the brain first.

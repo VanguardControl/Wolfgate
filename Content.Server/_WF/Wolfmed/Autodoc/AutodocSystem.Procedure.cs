@@ -932,7 +932,7 @@ public sealed partial class AutodocSystem
 
         // A gate is not something another shock fixes, so the pod does not even charge: it says what is
         // wrong, once, and says it again only when the reason changes.
-        if (_revival.GetRefusal(body) is { } refusal && refusal != WolfmedRevivalSystem.NoResponse)
+        if (_revival.GetRefusal(body) is { } refusal)
         {
             if (ent.Comp.DefibBlocked != refusal)
             {

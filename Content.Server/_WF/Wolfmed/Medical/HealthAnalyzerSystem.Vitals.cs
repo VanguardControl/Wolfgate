@@ -117,7 +117,7 @@ public sealed partial class HealthAnalyzerSystem
         report.Verdict = refusal switch
         {
             null => WolfmedDefibVerdict.Indicated,
-            WolfmedRevivalSystem.NoResponse => WolfmedDefibVerdict.Hidden,
+            WolfmedRevivalSystem.NotMonitored => WolfmedDefibVerdict.Hidden,
             WolfmedRevivalSystem.Rotten => WolfmedDefibVerdict.Rotten,
             WolfmedRevivalSystem.NoBrain => WolfmedDefibVerdict.NoBrain,
             WolfmedRevivalSystem.BrainDead => WolfmedDefibVerdict.BrainDead,

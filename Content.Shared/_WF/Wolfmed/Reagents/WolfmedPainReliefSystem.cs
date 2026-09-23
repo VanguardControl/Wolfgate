@@ -254,6 +254,7 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
 
     private void Recalculate(Entity<WolfmedPainReliefComponent> body)
     {
+        var oldTier = body.Comp.Tier;
         var tier = WolfmedPainReliefTier.None;
         var relief = 0f;
         var strong = 0f;
@@ -296,6 +297,13 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
         body.Comp.Ends = ends;
         Dirty(body);
         _movement.RefreshMovementSpeedModifiers(body);
+
+        // Playtest 1: the patient is told when a painkiller takes hold and when it wears off.
+        if (tier != oldTier && _net.IsServer)
+        {
+            var ev = new WolfmedPainReliefTierChangedEvent(body, oldTier, tier);
+            RaiseLocalEvent(ref ev);
+        }
     }
 
     /// <summary>The strongest single dose, plus <paramref name="share"/> of everything else.</summary>
@@ -317,3 +325,10 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
             RemComp<WolfmedPainReliefComponent>(uid);
     }
 }
+
+/// <summary>Broadcast when a body's strongest active painkiller tier changes. Server only.</summary>
+[ByRefEvent]
+public readonly record struct WolfmedPainReliefTierChangedEvent(
+    EntityUid Body,
+    WolfmedPainReliefTier Old,
+    WolfmedPainReliefTier New);

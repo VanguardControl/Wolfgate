@@ -40,6 +40,8 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("health-analyzer-wound-functionality-", typeof(BodyPartFunctionalityState), ["Functional"], false),
         // CONSC: the analyzer names the tier by enum member, None included (the guidebook prints it).
         ("wolfmed-pain-relief-tier-", typeof(WolfmedPainReliefTier), [], false),
+        // Playtest 1: the patient's "takes hold" line, built from the tier a dose reached.
+        ("wolfmed-painkiller-takes-hold-", typeof(WolfmedPainReliefTier), ["None"], false),
     ];
 
     /// <summary>Fixed keys the panel uses, with the suffixes it can append to each.</summary>

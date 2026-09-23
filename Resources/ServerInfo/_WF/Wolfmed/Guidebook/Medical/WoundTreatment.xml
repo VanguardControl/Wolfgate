@@ -31,10 +31,12 @@ Painkillers treat nothing. They buy a patient time and a way to walk to you, and
 
 None of it touches blood, and none of it touches air. A patient who has bled out goes down through any dose you care to give them, which is the point.
 
-The analyzer names the tier and the time left at the top of the wounds tab, with the sedation beside it.
+The analyzer names the tier and the time left at the top of the wounds tab, with the sedation beside it. The patient feels a dose take hold and feels it wear off. Swallowed, a painkiller takes a few seconds to reach the blood; a pen works at once, and you can use one on yourself while you are down. The [bold]analgesic pen[/bold] is the weak rung, the [bold]opiate pen[/bold] the strong one, dosed to stay under the breathing line if you take one at a time.
   <Box>
     <GuideEntityEmbed Entity="WolfmedAnalgesicPill"/>
     <GuideEntityEmbed Entity="WolfmedOpiateChemistryBottle"/>
+    <GuideEntityEmbed Entity="WolfmedAnalgesicPen"/>
+    <GuideEntityEmbed Entity="WolfmedOpiatePen"/>
     <GuideEntityEmbed Entity="WolfmedStimPen"/>
   </Box>
 

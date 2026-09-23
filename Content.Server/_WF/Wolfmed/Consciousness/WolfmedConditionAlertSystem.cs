@@ -3,6 +3,7 @@ using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Chat.Managers;
 using Content.Server.Popups;
 using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared.Alert;
 using Content.Shared.Chat;
 using Content.Shared.Mobs;
@@ -45,6 +46,7 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         SubscribeLocalEvent<WolfmedConsciousnessComponent, WolfmedConsciousnessChangedEvent>(OnChanged);
         SubscribeLocalEvent<WolfmedConsciousnessComponent, WolfmedConditionAlertEvent>(OnAlertClicked);
         SubscribeLocalEvent<WolfmedAdrenalineEvent>(OnAdrenaline);
+        SubscribeLocalEvent<WolfmedPainReliefTierChangedEvent>(OnPainReliefTier);
     }
 
     /// <summary>Hands the body's health alerts to this system. Called from the wound host's startup.</summary>
@@ -297,6 +299,7 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     public void Tell(Entity<WolfmedConsciousnessComponent> body, string line, PopupType type = PopupType.MediumCaution)
     {
         body.Comp.LastConditionLine = line;
+        body.Comp.ConditionLineCount++;
         _popup.PopupEntity(line, body, body, type);
 
         if (!TryComp(body, out ActorComponent? actor))
@@ -322,5 +325,25 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
 
         Tell((args.Body, comp), Loc.GetString(args.Started ? "wolfmed-condition-adrenaline-start" : "wolfmed-condition-adrenaline-end"),
             PopupType.Medium);
+    }
+
+    /// <summary>
+    /// Playtest 1: a painkiller the patient cannot see working feels like nothing. One line when a tier takes
+    /// hold and one when it wears off; the stim's end is the crash's own line. Machines feel none of it.
+    /// </summary>
+    private void OnPainReliefTier(ref WolfmedPainReliefTierChangedEvent args)
+    {
+        if (!TryComp(args.Body, out WolfmedConsciousnessComponent? comp) || _mobState.IsDead(args.Body) ||
+            _shutdown.IsMechanical(args.Body))
+            return;
+
+        string? key = null;
+        if (args.New > args.Old)
+            key = $"wolfmed-painkiller-takes-hold-{args.New.ToString().ToLowerInvariant()}";
+        else if (args.Old != WolfmedPainReliefTier.Emergency)
+            key = args.New == WolfmedPainReliefTier.None ? "wolfmed-painkiller-worn-off" : "wolfmed-painkiller-fading";
+
+        if (key != null)
+            Tell((args.Body, comp), Loc.GetString(key), PopupType.Medium);
     }
 }

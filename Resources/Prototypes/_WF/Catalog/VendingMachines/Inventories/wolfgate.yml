@@ -9,6 +9,8 @@
     WolfmedAnalgesicPill: 10
     WolfmedOpiateChemistryBottle: 3
     WolfmedStimPen: 4
+    WolfmedAnalgesicPen: 10
+    WolfmedOpiatePen: 6
     SpaceacillinChemistryBottle: 3
     # Autodoc consumables. The pod itself and its board come from the medical lathe.
     AutodocProgramDiskTransplant: 2

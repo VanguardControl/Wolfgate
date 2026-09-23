@@ -1144,3 +1144,109 @@ Two reviewers read the M1a commits. What changed:
 - **Review pathspec.** In this repository the code lives in `Content.Server`, `Content.Shared`, `Content.Client`
   and `Content.IntegrationTests`; a pathspec of `Content` matches none of them. Diff M1a with
   `git diff 8e4a5cd15b..HEAD -- Content.* Resources Docs`. No code change.
+
+## M1a playtest 1 fixes (2026-09-23)
+
+The owner's first M1a playtest, eight findings in priority order (`plan/p7/PLAYTEST1-spec.md`).
+
+**1. Bleeding nerfed.** `wolfmed.bleed_rate` 0.6 → 0.3 (every wound bleed ×0.5; the arterial wound keeps its own
+0.8 stage rate, about four times a critical slash, so it stays the worst bleed). Internal bleeding does not read
+that knob, so its rate is halved in data (`InternalBleedingWound` 0.02 → 0.01 per severity per second, marked
+Onyx YAML). The words follow the rates: the examine bleed bands (`look.yml`) and the gore system's major-bleed
+rate (`sfx.yml` 0.9 → 0.45) are halved too, so a cut artery still reads "spurting". Regeneration (0.33 u/s),
+the 300 u pool and the lines (50/35/30%) are unchanged. Measured by the new `BleedTimingTest` (human, full blood,
+station air, untreated):
+
+| | before (0.6) | after (0.3) |
+|---|---|---|
+| Arterial arm cut (Slash 25), rate at the cut | 2.75 u/s | 1.38 u/s |
+| Downed / Unconscious / arrest | 64 / 91 / 100 s | 186 / 253 / 274 s |
+| Plain cut (Slash 15), rate at the cut | 0.30 u/s | 0.15 u/s |
+| Plain cut clots / lowest blood | 30 s / 99.7% | 30 s / 99.8% |
+
+The arterial cut now takes 4.6 minutes from Up to arrest (the owner's floor is 4), with about three minutes on
+the feet to tie a tourniquet. The test pins the shipped rate and asserts arrest ≥ 240 s, within +20% of 274 s,
+Downed within ±20% of 186 s, and a plain cut clotted inside a minute having cost under 5% of the blood.
+`InternalBleedTickTest` expects 0.1 and 0.2 u/s now. `BleedingScenarioTest` needed no band change; it reads the
+blood band fresh at the Unconscious line, because the slower bleed lands there between two life ticks.
+
+**Found on the way (not changed): vacuum bleeds.** A human in vacuum bleeds 1.8 u/s by two minutes in, more than
+an arterial cut: barotrauma's Blunt opens bleeding blunt wounds on every part. Downed by pain at about 55 s, by
+blood at about 150 s, arrest at about 205 s. Worth a look with M1b's caps.
+
+**2. Painkillers you can feel.**
+- Why a drink "did nothing": a swallowed dose waits the stomach's `DigestionDelay` (20 s) before it reaches the
+  blood. Now any reagent with a `WolfmedPainRelief` effect waits `wolfmed.painkiller_absorb_seconds` (new, 4 s)
+  instead: `WolfmedOralAbsorptionSystem` (`_WF`) answers the stomach's one marked line. Measured: the analgesic
+  pill takes hold 5 s after swallowing and stands a pain-Downed patient up at once; 5 u of opiate ends a pain
+  faint inside the same 5 s.
+- The tiers reach the tests as designed: weak 22 lifts any pain-Downed body (body pain is capped at 135, and
+  135 − 22 = 113 is under the 115.4 stand line); strong ends a faint; neither lifts a blood-Downed body.
+- The sedation cost: the opiate adds 0.018 sedation a second while a dose runs and metabolises at 0.1 u/s, so
+  5 u runs about 54 s and peaks at 74% sedation, past the 60% line where breathing slows. That is the designed
+  overdose and was left alone; the guidebook already says so.
+- Lines: `WolfmedPainReliefSystem` raises `WolfmedPainReliefTierChangedEvent` when the strongest tier changes, and
+  the condition alert system tells the patient "The painkiller takes the edge off." / "The opiate takes hold." /
+  "The stimulant kicks in." / "The stim hits. You have seconds on your feet." on reaching a tier, "The stronger
+  painkiller wears off." on a drop, and "The painkiller wears off." at none. The stim's end is the crash's own
+  line. Machines hear none of it.
+- Pens (`painkillers.yml`, the stim pen's medipen sprite recoloured, CC-BY-SA-3.0): `WolfmedAnalgesicPen` 10 u
+  analgesic (price 10) and `WolfmedOpiatePen` 3 u opiate (price 20). 3 u is about the most opiate one pen can
+  hold and stay under the breathing line: measured 26 s of strong relief, 46% peak sedation. The analgesic pen:
+  54 s, no sedation. Both inject on use-in-hand, which a Downed body may do to itself. Vended in `wolfgate.yml`
+  (10/6), `wallmed.yml` (4/2) and `civimed.yml` (infinite/40). Guidebook line in `WoundTreatment.xml`.
+
+**3. The defibrillator's "No response".** `WolfmedRevivalSystem.TryDefibrillate` used "No response" for both the
+failed roll and the "this system does not own the body" fallback. Now the roll alone says "No response. Charge
+again." and the fallback is `wolfmed-defib-not-monitored` ("Shock refused: no vital signs this device can
+read."); the pod treats it as a gate and says it once, and the analyzer hides the verdict for it. What the owner
+hit: the gate passes a transfused patient in arrest, and the paddles and the analyzer read the same `GetRefusal`.
+The odds are what bite: `GetChance` scales `wolfmed.defib_chance` 0.85 by the brain's oxygen, down to
+`wolfmed.defib_oxygenation_floor` 0.15. After about two minutes of arrest the oxygen is near 0 and a shock takes
+at 13-19% (18.5% in the test, at oxygenation 0.08), so several "No response" in a row is the expected run. Left
+as data for the owner: a floor of 0.4 would make the worst case 34%. A body that has died of the brain meanwhile
+is refused with "Brain flatlined. Repair the brain first.", and the analyzer says "brain repair surgery first".
+Shocks repeat freely while the heart is stopped; the hand defibrillator's zap delay is the only limit.
+
+**4. Message spam in space.** The remembered words are one line: "You feel your wounds painfully close!"
+(`bloodstream-component-wounds-cauterized`). Onyx's bleeding system printed it on every damage event whose Heat
+trimmed a bleed on the part, with no limit, so any Heat arriving every second on a bleeding body (a fire, hot gas,
+a fight somewhere hot) printed it every second. It now goes through
+`WolfmedCauterySystem.TryAnnounceWoundsClosing`, once per `wolfmed.cautery_popup_seconds` (new, 10 s) per body.
+Measured: 19 lines in 20 s unlimited, 5 in the next 40 s. In pure vacuum it did not fire at all (barotrauma's
+Blunt outweighs its Heat in the bleed modifier sum), and the condition lines were one per real change: 2 in the
+first minute, 6 over four minutes (down, adrenaline, blood loss, out, arrest). No Downed/Up flapping was found;
+the Downed dwell and the hysteresis already hold.
+
+**5. The "Let go" dialog.** The window opened centred on an empty body and grew off the bottom when the text
+arrived, and `OpenCentered` measures a window before it has a parent, at whatever UI scale it last had. The EUI
+now opens (or re-centres) when the state arrives, measures again in place and re-centres. The body text wraps at
+420 units with no vertical expand, the old 200-unit minimum height is gone, and the margins match the treatment
+window. `WolfmedChoiceWindowLayoutTest` at UI scale 1 and 1.25: on screen, centred, text wrapped and unpadded,
+both buttons inside (one unit of slack for the pixel grid at 1.25).
+
+**6. IPC crawl on low power.** Not zeroed on the server: an IPC at charge state 1 (12%) Downed by frame pain moves
+at walk 0.34, sprint 0.61 (crawl 0.3 × low power 0.45). The Silicon speed table's `0: 0.00` entry is never read
+(the lookup floors at key 1). What was wrong is prediction: `SiliconComponent.ChargeState` was never networked,
+so the client predicted every IPC at full charge and its crawl snapped back. It is networked now (marked EE
+edit), dirtied only on change. A cell under 5% rounds to charge state 0, which the Silicon death system treats as
+empty: that IPC shuts down (Unconscious) and cannot crawl. That is the Silicon design and was not changed.
+
+**7. Rejuvenate and a missing cell.** `WolfmedShutdownSystem.RestoreCell` on `WolfmedRejuvenateEvent`: a chassis
+whose cell slot is empty gets its slot's `startingItem` (the prototype's own cell) inserted past the slot lock,
+and the charge state is pushed at once, so the shutdown clears on the same tick.
+
+**8. The resolve errors.** All 149 came from one upstream path: `SharedGunSystem.OnRevolverGetState` sending a
+revolver's `AmmoSlots` with a deleted casing in them. Mono's spent-casing despawn (30 s) gave a fired casing a
+`TimedDespawn` while it was still in the cylinder, so it was deleted in its slot. No Wolfmed system was involved.
+`SetCartridgeSpent` takes a `despawn` flag (marked), the revolver passes false when it fires, and
+`EmptyRevolver` arms the timer when it drops a spent casing on the floor.
+
+**Review lows folded in.** `OnMobStateChanged`'s death branch now goes through `Apply`, so a death raises
+`WolfmedConsciousnessChangedEvent` like any change (the alert system says nothing for the dead) instead of
+repeating Apply's side effects by hand. The `MathF.Max(outLevel, faintLevel)` in `Evaluate`'s depth is not dead:
+`faintLevel` is summed pain against the faint line, which deepens a Downed body's view as its pain climbs; the
+PainFaint input only puts 1 in `outLevel` during a faint, when the body is Unconscious. Kept, with a comment.
+
+**Numbers.** `wolfmed.bleed_rate` 0.3, internal bleed 0.01, `wolfmed.painkiller_absorb_seconds` 4,
+`wolfmed.cautery_popup_seconds` 10; pens 10 u analgesic and 3 u opiate.

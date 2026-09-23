@@ -30,10 +30,11 @@ public sealed class WolfmedCVars
 
     /// <summary>
     /// Multiplier on every wound's bleed rate. Applied where the rate is computed, so the analyzer, the spurts
-    /// and the bloodstream all see the same slowed figure.
+    /// and the bloodstream all see the same slowed figure. 0.3 since playtest 1: one untreated arterial arm cut
+    /// takes about five minutes from Up to arrest.
     /// </summary>
     public static readonly CVarDef<float> BleedRate =
-        CVarDef.Create("wolfmed.bleed_rate", 0.6f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.bleed_rate", 0.3f, CVar.SERVERONLY);
 
     /// <summary>
     /// Ceiling on a wound host's total damage. Part damage past it is discarded. High enough that any one limb
@@ -406,4 +407,19 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> AnalyzerBloodFast =
         CVarDef.Create("wolfmed.analyzer_blood_fast", 1f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds a swallowed painkiller sits in the stomach before it reaches the blood, instead of the stomach's
+    /// 20 s (playtest 1). Any reagent with a Wolfmed pain relief effect counts. Never longer than the stomach's
+    /// own delay.
+    /// </summary>
+    public static readonly CVarDef<float> PainkillerAbsorbSeconds =
+        CVarDef.Create("wolfmed.painkiller_absorb_seconds", 4f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds between two "You feel your wounds painfully close!" lines on one body (playtest 1). Vacuum deals a
+    /// little Heat every second, and each tick on a bleeding body used to say it again.
+    /// </summary>
+    public static readonly CVarDef<float> CauteryPopupSeconds =
+        CVarDef.Create("wolfmed.cautery_popup_seconds", 10f, CVar.SERVERONLY);
 }

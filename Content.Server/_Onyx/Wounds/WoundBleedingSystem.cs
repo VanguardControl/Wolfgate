@@ -23,6 +23,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
     private static readonly ProtoId<WoundPrototype> SystemicBleedingWound = "SystemicBleedingWound";
 
     [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem _wfInfection = default!; // WOLFGATE
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedCauterySystem _wfCautery = default!; // WOLFGATE (playtest 1)
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -104,7 +105,8 @@ public sealed partial class WoundBleedingSystem : EntitySystem
             !ReducePartBleeding(part.AsNullable(), reduction))
             return;
 
-        if (-reduction.Float() <= bloodstream.BloodHealedSoundThreshold)
+        if (-reduction.Float() <= bloodstream.BloodHealedSoundThreshold &&
+            _wfCautery.TryAnnounceWoundsClosing(args.Body)) // WOLFGATE (playtest 1): once per cooldown, not every vacuum tick
         {
             _popup.PopupEntity(Loc.GetString("bloodstream-component-wounds-cauterized"), args.Body, args.Body,
                 PopupType.Medium);

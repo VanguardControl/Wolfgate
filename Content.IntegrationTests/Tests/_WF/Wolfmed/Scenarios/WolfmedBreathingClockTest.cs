@@ -147,7 +147,9 @@ public sealed class WolfmedBreathingClockTest : GameTest
         {
             bleedRate = (startBlood - s.Blood(a)) * s.Pool(a) / elapsed;
             TestContext.Out.WriteLine($"arterial arm cut (Slash 25): {bleedRate:F2} u/s net; Downed at {downedAt} s, Unconscious at {outAt} s from 56%.");
-            Assert.That(s.Vitals(a).BloodBand, Is.EqualTo(WolfmedBloodBand.Critical));
+            // Fresh: the networked band is written by the once-a-second life tick and can trail the bloodstream's
+            // tick that knocked the patient out, now that the slower bleed lands there a second earlier.
+            Assert.That(s.Life.GetBloodBand(a), Is.EqualTo(WolfmedBloodBand.Critical));
         });
 
         // Unconscious and breathing: the respirator keeps cycling and never runs short in station air.
@@ -373,6 +375,91 @@ public sealed class WolfmedBreathingClockTest : GameTest
             }
         });
     }
+
+    /// <summary>
+    /// Playtest 1: the bleed route from a healthy body at the shipped bleed rate. One untreated arterial arm cut
+    /// takes at least four minutes from Up to arrest, Downed and Unconscious on the way; a plain cut (Slash 15)
+    /// clots on its own long before it could put anyone down.
+    /// </summary>
+    [Test]
+    public async Task BleedTimingTest()
+    {
+        await PinClock();
+        await OverrideCVar(Side.Server, WolfmedCVars.BleedRate, ShippedBleedRate);
+        var map = await Pair.CreateTestMap();
+        var s = new WolfmedScenario(SEntMan);
+        EntityUid artery = default;
+        EntityUid cut = default;
+
+        await Server.WaitPost(() =>
+        {
+            s.SetAir(map.MapUid, true);
+            artery = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            cut = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+        });
+        await RunSeconds(3);
+
+        float arteryRate = 0f, cutRate = 0f;
+        await Server.WaitAssertion(() =>
+        {
+            var damage = SEntMan.System<DamageableSystem>();
+            damage.TryChangeDamage(artery, WolfmedScenario.Spec("Slash", 25), origin: null, targetPart: TargetBodyPart.LeftArm);
+            damage.TryChangeDamage(cut, WolfmedScenario.Spec("Slash", 15), origin: null, targetPart: TargetBodyPart.RightArm);
+
+            var arm = s.Part(artery, BodyPartType.Arm, BodyPartSymmetry.Left);
+            Assert.That(SEntMan.System<WoundSystem>().GetWounds(arm)
+                .Any(w => w.Comp.Prototype == "WolfmedArterialBleedWound"), Is.True, "Slash 25 did not cut the artery.");
+            arteryRate = s.Life.GetBleedRate(artery);
+            cutRate = s.Life.GetBleedRate(cut);
+        });
+
+        int? downedAt = null, outAt = null, arrestAt = null, clottedAt = null;
+        var cutLowest = 1f;
+        var cutStayedUp = true;
+        var elapsed = 0;
+        while ((arrestAt == null || clottedAt == null) && elapsed < 900)
+        {
+            await RunSeconds(1);
+            elapsed++;
+            await Server.WaitPost(() =>
+            {
+                var state = s.State(artery);
+                if (downedAt == null && state != WolfmedConsciousness.Up)
+                    downedAt = elapsed;
+                if (outAt == null && state == WolfmedConsciousness.Unconscious)
+                    outAt = elapsed;
+                if (arrestAt == null && s.Life.InArrest(artery))
+                    arrestAt = elapsed;
+
+                cutLowest = MathF.Min(cutLowest, s.Blood(cut));
+                cutStayedUp &= s.State(cut) == WolfmedConsciousness.Up;
+                if (clottedAt == null && s.Life.GetBleedRate(cut) <= 0f)
+                    clottedAt = elapsed;
+            });
+        }
+
+        TestContext.Out.WriteLine($"bleed_rate {ShippedBleedRate}: arterial arm cut (Slash 25) {arteryRate:F2} u/s at the cut; " +
+                                  $"Downed at {downedAt} s, Unconscious at {outAt} s, arrest at {arrestAt} s from full blood.");
+        TestContext.Out.WriteLine($"plain cut (Slash 15) {cutRate:F2} u/s at the cut; clotted at {clottedAt} s, lowest blood {cutLowest:P1}.");
+        Assert.Multiple(() =>
+        {
+            Assert.That(arrestAt, Is.Not.Null, "the artery never stopped the heart.");
+            Assert.That(downedAt, Is.Not.Null.And.LessThan(outAt ?? int.MaxValue));
+            Assert.That(outAt, Is.Not.Null.And.LessThan(arrestAt ?? int.MaxValue));
+            Assert.That(clottedAt, Is.Not.Null, "the plain cut never clotted.");
+            Assert.That(cutStayedUp, Is.True, "a plain cut put the patient down.");
+
+            // Playtest 1: at least four minutes from Up to arrest. Measured 186 / 253 / 274 s (100 s at 0.6).
+            Assert.That(arrestAt, Is.GreaterThanOrEqualTo(240), "an arterial arm cut kills in under four minutes.");
+            Assert.That(arrestAt, Is.LessThanOrEqualTo(274f * (1f + Band)));
+            Assert.That(downedAt, Is.InRange(186f * (1f - Band), 186f * (1f + Band)));
+            Assert.That(clottedAt, Is.LessThanOrEqualTo(60), "a plain cut is still bleeding after a minute.");
+            Assert.That(cutLowest, Is.GreaterThan(0.95f), "a plain cut lost more than 5% of the blood.");
+        });
+    }
+
+    /// <summary>The wolfmed.bleed_rate default; the timing test pins it so the numbers it reports are the shipped ones.</summary>
+    private const float ShippedBleedRate = 0.3f;
 
     /// <summary>
     /// Once per arrest episode (plan §7.1 item 6). A second shock inside the repeat window restarts the heart
@@ -703,7 +790,7 @@ public sealed class WolfmedBreathingClockTest : GameTest
             var wounds = SEntMan.System<WoundSystem>();
             Assert.That(wounds.CreateOrMergeWound(s.Part(ten, BodyPartType.Torso), "InternalBleedingWound", FixedPoint2.New(10)), Is.Not.Null);
             Assert.That(wounds.CreateOrMergeWound(s.Part(twenty, BodyPartType.Torso), "InternalBleedingWound", FixedPoint2.New(20)), Is.Not.Null);
-            Assert.That(s.Life.GetBleedRate(ten), Is.EqualTo(0.2f).Within(0.001f), "severity 10 is not 0.2 u/s by the prototype.");
+            Assert.That(s.Life.GetBleedRate(ten), Is.EqualTo(0.1f).Within(0.001f), "severity 10 is not 0.1 u/s by the prototype.");
 
             c0 = s.Blood(control) * s.Pool(control);
             t0 = s.Blood(ten) * s.Pool(ten);
@@ -720,8 +807,8 @@ public sealed class WolfmedBreathingClockTest : GameTest
             TestContext.Out.WriteLine($"internal bleed: severity 10 {lostTen:F3} u/s, severity 20 {lostTwenty:F3} u/s (control regenerated {regen:F1} u).");
             Assert.Multiple(() =>
             {
-                Assert.That(lostTen, Is.InRange(0.2f * (1f - Band), 0.2f * (1f + Band)));
-                Assert.That(lostTwenty, Is.InRange(0.4f * (1f - Band), 0.4f * (1f + Band)));
+                Assert.That(lostTen, Is.InRange(0.1f * (1f - Band), 0.1f * (1f + Band)));
+                Assert.That(lostTwenty, Is.InRange(0.2f * (1f - Band), 0.2f * (1f + Band)));
             });
         });
     }

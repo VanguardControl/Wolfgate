@@ -9,8 +9,11 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Popups;
 using Content.Shared.Temperature;
 using Content.Shared.Verbs;
+using Content.Shared._WF.Wolfmed.CCVar;
 using Robust.Server.Audio;
+using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
@@ -31,6 +34,8 @@ public sealed class WolfmedCauterySystem : EntitySystem
     public const string DefaultProfile = "WolfmedCauteryDefault";
 
     [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private SharedBodySystem _body = default!;
@@ -48,6 +53,23 @@ public sealed class WolfmedCauterySystem : EntitySystem
         SubscribeLocalEvent<WolfmedPartDamageEvent>(OnPartDamage);
         SubscribeLocalEvent<WoundHostComponent, GetVerbsEvent<UtilityVerb>>(OnGetVerbs);
         SubscribeLocalEvent<WoundHostComponent, WolfmedCauteryDoAfterEvent>(OnDoAfter);
+    }
+
+    /// <summary>
+    /// Whether the body may be told "You feel your wounds painfully close!" now (playtest 1). Heat that trims a
+    /// bleed says so at most once per <see cref="WolfmedCVars.CauteryPopupSeconds"/>: vacuum's barotrauma deals
+    /// a little Heat every second, and on a bleeding body each tick used to print the line again.
+    /// </summary>
+    public bool TryAnnounceWoundsClosing(EntityUid body)
+    {
+        var announce = EnsureComp<WolfmedCauteryAnnounceComponent>(body);
+        var now = _timing.CurTime;
+        if (now < announce.Next)
+            return false;
+
+        announce.Next = now + TimeSpan.FromSeconds(MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.CauteryPopupSeconds)));
+        announce.Count++;
+        return true;
     }
 
     private void OnPartDamage(ref WolfmedPartDamageEvent args)

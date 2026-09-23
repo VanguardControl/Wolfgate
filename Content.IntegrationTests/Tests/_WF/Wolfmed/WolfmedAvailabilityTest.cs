@@ -38,6 +38,8 @@ public sealed class WolfmedAvailabilityTest : GameTest
         "WolfmedAnalgesicPill", // CONSC
         "WolfmedOpiateChemistryBottle", // CONSC
         "WolfmedStimPen", // CONSC
+        "WolfmedAnalgesicPen", // playtest 1
+        "WolfmedOpiatePen", // playtest 1
     ];
 
     /// <summary>Items reached by crafting rather than by a vendor or a lathe.</summary>

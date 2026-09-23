@@ -58,6 +58,14 @@ wolfmed-condition-heart-restart-still = Your heart restarts. Still down: { $caus
 wolfmed-condition-adrenaline-start = Adrenaline: you can crawl faster for a while.
 wolfmed-condition-adrenaline-end = The adrenaline fades.
 
+# Playtest 1: the patient feels a painkiller arrive and leave. Keys are built from the tier name.
+wolfmed-painkiller-takes-hold-weak = The painkiller takes the edge off.
+wolfmed-painkiller-takes-hold-strong = The opiate takes hold.
+wolfmed-painkiller-takes-hold-stimulant = The stimulant kicks in.
+wolfmed-painkiller-takes-hold-emergency = The stim hits. You have seconds on your feet.
+wolfmed-painkiller-fading = The stronger painkiller wears off.
+wolfmed-painkiller-worn-off = The painkiller wears off.
+
 wolfmed-cause-pain = pain
 wolfmed-cause-pain-symptom = Pain has you on the floor.
 wolfmed-cause-pain-help = A painkiller gets you moving, unless something else holds you. The wounds remain.

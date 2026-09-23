@@ -45,8 +45,14 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     /// <summary>Test seam, mirroring <c>WolfmedEviscerationSystem.ForcedRoll</c>: a forced chance roll.</summary>
     public float? ForcedRoll;
 
-    /// <summary>The line a failed roll gets, as opposed to a gate that no number of shocks will move.</summary>
+    /// <summary>
+    /// The line a failed roll gets, and only a failed roll: another shock may work. Every gate that no number
+    /// of shocks will move has its own line (playtest 1: a bare "No response" used to stand for both).
+    /// </summary>
     public const string NoResponse = "wolfmed-defib-no-response";
+
+    /// <summary>The refusal for a body this system does not decide: gone, or not a wound host under consciousness.</summary>
+    public const string NotMonitored = "wolfmed-defib-not-monitored";
 
     public const string Success = "wolfmed-defib-success";
     public const string NoBrain = "wolfmed-defib-no-brain";
@@ -67,8 +73,6 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     /// </summary>
     public bool TryDefibrillate(EntityUid body, out string message)
     {
-        message = NoResponse;
-
         if (GetRefusal(body) is { } refusal)
         {
             message = refusal;
@@ -76,7 +80,10 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         }
 
         if (!Roll(GetChance(body)))
+        {
+            message = NoResponse;
             return false;
+        }
 
         Revive(body);
         message = Success;
@@ -92,7 +99,7 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     public string? GetRefusal(EntityUid body)
     {
         if (TerminatingOrDeleted(body) || !OwnsRevival(body))
-            return NoResponse;
+            return NotMonitored;
 
         if (_rotting.IsRotten(body))
             return Rotten;

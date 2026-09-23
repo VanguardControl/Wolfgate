@@ -4575,3 +4575,46 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | `VitalsBlockHeadsThePanelTest` (client panel). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualInspectionTest.cs` | modified | `BreathingAndPulseReadTheNetworkedVitalsTest`; new keys in the resolve list. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | modified | `SystemBlockCarriesSensorsAndCoreTemperatureTest`. |
+
+## M1a playtest 1 fixes (2026-09-23)
+
+Marked upstream, Onyx and vendored edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml:1166` | Onyx YAML | WOLFGATE (playtest 1): internal bleed rate 0.02 → 0.01, halved with `wolfmed.bleed_rate`, which it does not read. |
+| `Content.Server/Body/Systems/StomachSystem.cs:15, 59` | upstream | WOLFGATE (playtest 1): the digestion delay per reagent comes from `WolfmedOralAbsorptionSystem`; painkillers absorb in 4 s. |
+| `Content.Server/_Onyx/Wounds/WoundBleedingSystem.cs:26, 109` | Onyx | WOLFGATE (playtest 1): "wounds painfully close" once per `wolfmed.cautery_popup_seconds` per body, through `WolfmedCauterySystem`. |
+| `Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs:595, 605` | upstream (Mono) | WOLFGATE (playtest 1): `SetCartridgeSpent(..., despawn)`; no casing despawn while it stays in a cylinder. |
+| `Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs:455-460, 548-550` | upstream | WOLFGATE (playtest 1): a fired casing keeps its slot alive; `EmptyRevolver` arms the despawn on the floor. The source of the 149 MetaData resolve errors. |
+| `Content.Shared/_EinsteinEngines/Silicon/Components/SiliconComponent.cs:12, 16` | vendored EE | WOLFGATE (playtest 1): `ChargeState` networked, so the client predicts the low-power crawl. |
+| `Content.Server/_EinsteinEngines/Silicon/Charge/Systems/SiliconChargeSystem.cs:142-145` | vendored EE | WOLFGATE (playtest 1): dirty `SiliconComponent` when the charge state changes. |
+| `Resources/Prototypes/Catalog/VendingMachines/Inventories/wallmed.yml:15-16` | upstream YAML | WOLFGATE (playtest 1): analgesic and opiate pens. |
+| `Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml:14-15` | upstream YAML | WOLFGATE (playtest 1): analgesic and opiate pens. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.bleed_rate` 0.3; new `wolfmed.painkiller_absorb_seconds` 4 and `wolfmed.cautery_popup_seconds` 10. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml`, `sfx.yml` | modified | Bleed bands and the major-bleed rate halved with the bleed rate. |
+| `Content.Server/_WF/Wolfmed/Medical/WolfmedOralAbsorptionSystem.cs` | new | Painkiller digestion delay. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefSystem.cs` | modified | `WolfmedPainReliefTierChangedEvent`. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConditionAlertSystem.cs` | modified | Painkiller takes-hold and wears-off lines; counts condition lines. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | `ConditionLineCount` (server, tests). |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | Death goes through `Apply`; the depth comment (review lows). |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/painkillers.yml` | modified | `WolfmedAnalgesicPen`, `WolfmedOpiatePen`. |
+| `Resources/Prototypes/_WF/Catalog/VendingMachines/Inventories/wolfgate.yml` | modified | The pens. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | The pens and the onset line. |
+| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | Painkiller lines. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | `NoResponse` is the failed roll only; `NotMonitored` for the fallback. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs`, `Medical/HealthAnalyzerSystem.Vitals.cs` | modified | Read `NotMonitored`. |
+| `Resources/Locale/en-US/_WF/wolfmed/death.ftl` | modified | "No response. Charge again."; the not-monitored refusal. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs`, `WolfmedCauteryAnnounceComponent.cs` | modified, new | The wounds-closing rate limit. |
+| `Content.Client/_WF/Wolfmed/Life/WolfmedChoiceEui.cs`, `WolfmedChoiceWindow.cs` | modified | Open and centre once the text is in; wrap; size to content. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | modified | `RestoreCell` on rejuvenate. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs` | modified | `BleedTimingTest`; internal bleed bands; fresh blood band. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPainkillerTest.cs` | new | `OralPainkillerTakesHoldTest`, `PainkillerPenTest` ×2. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestOneTest.cs` | new | Defib, vacuum spam, IPC crawl, rejuvenate cell, revolver casing. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs` | new | The dialog at UI scale 1 and 1.25. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs`, `WolfmedLocaleCoverageTest.cs` | modified | The pens; the takes-hold key family. |

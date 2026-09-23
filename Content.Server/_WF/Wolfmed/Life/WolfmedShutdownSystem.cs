@@ -1,3 +1,4 @@
+using Content.Server._EinsteinEngines.Silicon.Charge;
 using Content.Server._EinsteinEngines.Silicon.Death;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Shared._EinsteinEngines.Silicon.Components;
@@ -7,7 +8,10 @@ using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Systems;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
+using Content.Shared.PowerCell.Components;
+using Robust.Shared.Containers;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
@@ -29,6 +33,9 @@ public sealed class WolfmedShutdownSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private ItemSlotsSystem _itemSlots = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SiliconChargeSystem _siliconCharge = default!;
 
     private TimeSpan _nextReconcile;
 
@@ -100,7 +107,36 @@ public sealed class WolfmedShutdownSystem : EntitySystem
     private void OnChargeAlive(EntityUid uid, SiliconDownOnDeadComponent comp, SiliconChargeAliveEvent args) =>
         Refresh(uid, true);
 
-    private void OnRejuvenate(ref WolfmedRejuvenateEvent args) => Refresh(args.Target);
+    private void OnRejuvenate(ref WolfmedRejuvenateEvent args)
+    {
+        RestoreCell(args.Target);
+        Refresh(args.Target);
+    }
+
+    /// <summary>
+    /// Playtest 1: a full heal puts a missing cell back, the chassis prototype's own starting one, and tells
+    /// the charge tracking at once so the shutdown clears on the same tick rather than on its next pass.
+    /// </summary>
+    public bool RestoreCell(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body) || !TryComp(body, out SiliconComponent? silicon) ||
+            !TryComp(body, out PowerCellSlotComponent? cellSlot) ||
+            !_itemSlots.TryGetSlot(body, cellSlot.CellSlotId, out var slot) || slot.HasItem ||
+            slot.StartingItem is not { } starting || slot.ContainerSlot is not { } container)
+            return false;
+
+        var cell = Spawn(starting, Transform(body).Coordinates);
+        if (!_container.Insert(cell, container))
+        {
+            Del(cell);
+            return false;
+        }
+
+        if (_siliconCharge.TryGetSiliconBattery(body, out var battery) && battery.MaxCharge > 0f)
+            _siliconCharge.UpdateChargeState(body, (short) MathF.Round(battery.CurrentCharge / battery.MaxCharge * 10f), silicon);
+
+        return true;
+    }
 
     /// <summary>
     /// Re-reads power and pump and sets the shutdown state to match. Called by whoever already owns the

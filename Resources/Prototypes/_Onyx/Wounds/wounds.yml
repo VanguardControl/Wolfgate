@@ -1163,7 +1163,7 @@
   healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundInternalBleedingBehavior
-    rate: 0.02
+    rate: 0.01 # WOLFGATE (playtest 1): halved with wolfmed.bleed_rate, which this bleed does not read
     chance: 1
 
 - type: wound

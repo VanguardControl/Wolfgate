@@ -233,6 +233,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         var watching = downLevel > 0f || outLevel > 0f || faintLevel > 0f || target != WolfmedConsciousness.Up ||
                        _relief.GetTier(body.Owner) != WolfmedPainReliefTier.None;
 
+        // Not a double count: the PainFaint input puts 1 in outLevel only while a faint runs, and then the body is
+        // Unconscious. faintLevel is summed pain against the faint line, the only thing that deepens a Downed
+        // body's view as its pain climbs towards a faint.
         var depth = Depth(target, downLevel, MathF.Max(outLevel, faintLevel), bloodOut,
             body.Comp.Pressures.Count > 0 ? GetPressure(body) : 0f);
         Apply(body, target, depth, watching, cause, GetSource(body, cause), blockers);
@@ -569,20 +572,14 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     {
         if (args.NewMobState == MobState.Dead)
         {
-            // Death is someone else's (a destroyed brain, a gib, an admin). Drop the Downed restrictions.
-            RemComp<WolfmedDownedComponent>(uid);
-            _callForHelp.Refresh(uid, false);
-
             // M1a: the dead are past Succumb and Last Words (plan §5.4).
             _dyingActions.Revoke(uid);
-            comp.State = WolfmedConsciousness.Unconscious;
-            comp.Depth = 1f;
-            comp.Cause = WolfmedCause.None;
-            comp.CauseSource = WolfmedCauseSource.None;
-            comp.Blockers = WolfmedCauseFlags.None;
             comp.PainFaintUntil = null;
-            comp.Watching = false;
-            Dirty(uid, comp);
+
+            // Death is someone else's (a destroyed brain, a gib, an admin). Apply drops the Downed restrictions
+            // and Call for help and raises the change like any other; the alert system says nothing for the dead.
+            Apply((uid, comp), WolfmedConsciousness.Unconscious, 1f, false,
+                WolfmedCause.None, WolfmedCauseSource.None, WolfmedCauseFlags.None);
         }
 
         // M1a: the Dead alert, and the way back out of it, are the condition alert system's.
