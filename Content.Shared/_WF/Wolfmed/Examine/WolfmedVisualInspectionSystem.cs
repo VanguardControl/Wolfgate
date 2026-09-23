@@ -2,8 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._EinsteinEngines.Silicon.Components;
+using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
-using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -182,11 +183,19 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             lines++;
         }
 
-        if ((detailed || arrested) && NotBreathing(examined))
+        // M1a: the chest and the pulse, read off the networked vitals (plan §4.5, §5.5). A machine has neither.
+        var machine = HasComp<SiliconComponent>(examined) || HasComp<WolfmedShutdownComponent>(examined);
+        var vitals = CompOrNull<WolfmedConsciousnessComponent>(examined);
+        if (!machine && BreathingKey(examined, vitals) is { } breathing &&
+            (detailed || arrested && breathing == "wolfmed-look-not-breathing"))
         {
-            report.Notes.Add(Loc.GetString(
-                self ? "wolfmed-look-not-breathing-self" : "wolfmed-look-not-breathing-other",
-                ("target", identity)));
+            report.Notes.Add(Loc.GetString(breathing + (self ? "-self" : "-other"), ("target", identity)));
+            lines++;
+        }
+
+        if (!machine && detailed && !arrested && vitals != null && CirculationKey(vitals.BloodBand) is { } pulse)
+        {
+            report.Notes.Add(Loc.GetString(pulse + (self ? "-self" : "-other"), ("target", identity)));
             lines++;
         }
 
@@ -209,24 +218,38 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
     }
 
     /// <summary>
-    /// BRAIN: a chest that is not moving. A stopped heart, a corpse, or a sedation overdose deep enough to
-    /// have taken the breathing with it.
+    /// M1a: what the chest is doing, from <see cref="WolfmedConsciousnessComponent.Breathing"/>, which the
+    /// server's life tick sets for every cause: arrest, death, no lungs, no air, sedation past its depression
+    /// line (slow and shallow, no longer "not breathing"). Null when it is breathing normally.
     /// </summary>
-    private bool NotBreathing(EntityUid examined)
+    private string? BreathingKey(EntityUid examined, WolfmedConsciousnessComponent? vitals)
     {
-        // A machine never breathed in the first place.
-        if (HasComp<WolfmedShutdownComponent>(examined))
-            return false;
+        // A corpse whose vitals have not been rewritten since it died is still not breathing.
+        if (TryComp(examined, out MobStateComponent? mob) && mob.CurrentState == MobState.Dead ||
+            HasComp<WolfmedCardiacArrestComponent>(examined))
+            return "wolfmed-look-not-breathing";
 
-        if (HasComp<WolfmedCardiacArrestComponent>(examined))
-            return true;
-
-        if (TryComp(examined, out MobStateComponent? mob) && mob.CurrentState == MobState.Dead)
-            return true;
-
-        return TryComp(examined, out WolfmedPainReliefComponent? relief) &&
-               relief.Sedation > relief.SedationAirlossThreshold;
+        return vitals?.Breathing switch
+        {
+            WolfmedBreathing.None => "wolfmed-look-not-breathing",
+            WolfmedBreathing.Gasping => "wolfmed-look-gasping",
+            WolfmedBreathing.Depressed => "wolfmed-look-breathing-slow",
+            _ => null,
+        };
     }
+
+    /// <summary>
+    /// M1a: circulation in a hand-on-the-neck's words, from <see cref="WolfmedConsciousnessComponent.BloodBand"/>.
+    /// A strong pulse is not a finding; an arrested heart already has its own "no pulse" line.
+    /// </summary>
+    private static string? CirculationKey(WolfmedBloodBand band) => band switch
+    {
+        WolfmedBloodBand.Low => "wolfmed-look-pale",
+        WolfmedBloodBand.Weak => "wolfmed-look-pulse-weak",
+        WolfmedBloodBand.Critical => "wolfmed-look-pulse-faint",
+        WolfmedBloodBand.None => "wolfmed-look-no-pulse",
+        _ => null,
+    };
 
     /// <summary>Collects everything visible on one part. Returns true when something was hidden by clothing.</summary>
     private bool AddPartFindings(

@@ -107,6 +107,7 @@ public sealed class WolfmedBreathingClockTest : GameTest
 
         int? downedAt = null;
         int? outAt = null;
+        string[] downedLines = [];
         var elapsed = 0;
         while (outAt == null && elapsed < 400)
         {
@@ -122,7 +123,10 @@ public sealed class WolfmedBreathingClockTest : GameTest
                     Assert.That(state, Is.Not.EqualTo(WolfmedConsciousness.Unconscious), $"out at {blood:P1} blood.");
 
                 if (downedAt == null && state != WolfmedConsciousness.Up)
+                {
                     downedAt = elapsed;
+                    downedLines = s.AnalyzerLines(a); // M1a D: what the medic reads at the Downed line.
+                }
                 if (state == WolfmedConsciousness.Unconscious)
                     outAt = elapsed;
             });
@@ -130,6 +134,14 @@ public sealed class WolfmedBreathingClockTest : GameTest
 
         Assert.That(downedAt, Is.Not.Null, "the bleed never put the patient down.");
         Assert.That(outAt, Is.Not.Null, "the bleed never knocked the patient out.");
+        TestContext.Out.WriteLine($"analyzer at Downed: {string.Join(" | ", downedLines)}");
+        Assert.Multiple(() =>
+        {
+            Assert.That(downedLines[0], Is.EqualTo("DOWNED: blood loss"));
+            Assert.That(downedLines[1], Is.EqualTo("Breathing: normal"));
+            Assert.That(downedLines[2], Does.Match(@"^Circulation: pulse weak and rapid; blood (49|50)%"),
+                "the circulation line does not name the blood %.");
+        });
 
         await Server.WaitAssertion(() =>
         {
@@ -524,6 +536,7 @@ public sealed class WolfmedBreathingClockTest : GameTest
 
         int? downedAt = null;
         int? outAt = null;
+        string[] outLines = [];
         var gasping = false;
         for (var second = 1; second <= 320 && outAt == null; second++)
         {
@@ -540,11 +553,20 @@ public sealed class WolfmedBreathingClockTest : GameTest
                 }
 
                 if (s.State(body) == WolfmedConsciousness.Unconscious)
+                {
                     outAt = now;
+                    outLines = s.AnalyzerLines(body); // M1a D
+                }
             });
         }
 
         TestContext.Out.WriteLine($"no air: Downed at {downedAt} s, Unconscious at {outAt} s.");
+        TestContext.Out.WriteLine($"analyzer at Unconscious: {string.Join(" | ", outLines)}");
+        Assert.Multiple(() =>
+        {
+            Assert.That(outLines[0], Does.StartWith("UNCONSCIOUS: no oxygen"));
+            Assert.That(outLines[1], Does.StartWith("Breathing: none: no air"));
+        });
         Assert.Multiple(() =>
         {
             Assert.That(gasping, Is.True, "a suffocating patient never read as gasping for air.");

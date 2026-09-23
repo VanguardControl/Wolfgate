@@ -165,6 +165,10 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
 
         await server.WaitAssertion(() =>
         {
+            // M1a D: station air. In the test map's vacuum, barotrauma kept landing fresh damage on the patient,
+            // which the pod rightly treated as new work; the test failed about half its runs, before M1a too.
+            new Scenarios.WolfmedScenario(entities).SetAir(map.MapUid, true);
+
             var autodoc = entities.System<AutodocSystem>();
             var slots = entities.System<ItemSlotsSystem>();
             body = entities.SpawnEntity("MobHuman", map.GridCoords);
@@ -447,7 +451,8 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
                     .Append(entities.HasComponent<WolfmedPodWoundComponent>(wound) ? "pod" : "real").Append(' ');
         }
 
-        return $"PLAN[{plan}] WOUNDS[{wounds}]";
+        return $"PLAN[{plan}] WOUNDS[{wounds}] FAILED[{string.Join(", ", pod.Comp.FailedProcedures)}] " +
+               $"STATE[{pod.Comp.State}] QUEUE[{string.Join(", ", pod.Comp.Queue.Select(q => $"{q.Surgery.Id}@{q.Part}"))}]";
     }
 
     private static Entity<AutodocComponent> Pod(IEntityManager entities, TestMapData map)

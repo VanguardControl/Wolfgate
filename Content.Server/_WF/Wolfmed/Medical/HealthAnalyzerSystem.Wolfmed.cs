@@ -196,7 +196,8 @@ public sealed partial class HealthAnalyzerSystem
             postShock?.Units ?? -1f, // WOLFGATE (M1a)
             postShock?.SafeUnits ?? 0f, // WOLFGATE (M1a)
             postShock?.GraceSeconds ?? 0f, // WOLFGATE (M1a)
-            postShock?.SafeLine ?? 0f); // WOLFGATE (M1a)
+            postShock?.SafeLine ?? 0f, // WOLFGATE (M1a)
+            BuildVitals(body)); // WOLFGATE (M1a): the vitals block, HealthAnalyzerSystem.Vitals.cs
     }
 
     /// <summary>

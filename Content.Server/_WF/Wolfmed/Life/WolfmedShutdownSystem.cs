@@ -141,7 +141,8 @@ public sealed class WolfmedShutdownSystem : EntitySystem
     private bool HasPower(EntityUid body) =>
         !TryComp(body, out SiliconDownOnDeadComponent? silicon) || !silicon.Dead;
 
-    private bool HasPump(EntityUid body)
+    /// <summary>A coolant pump in the chassis that has not been destroyed. The analyzer's cooling line reads it too.</summary>
+    public bool HasPump(EntityUid body)
     {
         foreach (var (organ, _) in _body.GetBodyOrgans(body))
         {

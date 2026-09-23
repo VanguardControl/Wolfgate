@@ -4506,3 +4506,72 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | new | `DownedPickupTest`, `CallForHelpTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocFaintTest.cs` | new | `FaintedOccupantIsAnaesthetisedTest`, `FaintDoesNotSoundTheCriticalAlarmTest`, `PodRefusesRotAndHeartlessBodiesTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | `DownedReachesOnlyItselfTest`: a loose item within reach is reachable, a door is not. |
+
+## M1a A: breathing and the clock (2026-09-22; listed by package D)
+
+Package A left no manifest section; this lists its marked edits and files from commit `8f71617774`.
+
+Marked upstream and Onyx edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Server/Body/Systems/RespiratorSystem.cs:43` | upstream, dependency | WOLFGATE (M1a): `WolfmedBreathingSystem`, the `_WF` half of the line below. |
+| `Content.Server/Body/Systems/RespiratorSystem.cs:85-87` | upstream | WOLFGATE (M1a): `!_mobState.IsIncapacitated(uid)` becomes `!_wolfmedBreathing.BreathingSuppressed(uid)`: a wound host breathes while unconscious; others keep the upstream rule. Inventory #1. |
+| `Content.Server/Medical/DefibrillatorSystem.cs:214-216, 224` | upstream | WOLFGATE (M1a): the Wolfmed refusal line is localised with the patient's numbers (`WolfmedRevivalSystem.LocalizeLine`). Not in the plan's inventory; the plan said this file would not be edited. |
+| `Content.Server/_Onyx/Wounds/WoundInternalBleedingSystem.cs:6, 18, 20-23, 64, 79` | Onyx | WOLFGATE (M1a): P22, internal bleeding ticks once a second so the amount survives FixedPoint2 rounding. Inventory #5. |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs:99-112, 129-132, 146-149` | Onyx | WOLFGATE (M1a): the post-shock transfusion numbers on the analyzer payload. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Server/_WF/Wolfmed/Life/WolfmedBreathingSystem.cs` | new | Who breathes, the suffocation level, the breathing assessment. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | Breathing input, clean refill, post-shock grace and repeat rule, transfusion guidance, vital signs, blood band, bleed rate. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedPostShockComponent.cs` | new | Grace and repeat window of the last successful shock. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | Shared `GetRefusal`, `LocalizeLine`, the post-shock `Revive`. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | Resets the vital signs with the rest of the state. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | The pod's refusal line carries the numbers. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Post-shock advice on the payload. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalSigns.cs` | new | `WolfmedBreathing`, `WolfmedBreathingSource`, `WolfmedBloodBand`. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedPostShockText.cs` | new | The analyzer's post-shock line. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | Networked `Breathing`, `BreathingSource`, `BloodBand`. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.arrest_shock_blood` 0, `defib_blood` 0.25, `airloss_full` 100, `post_shock_oxygenation` 0.5, `post_shock_grace_seconds` 45, `post_shock_repeat_seconds` 300, `post_shock_blood_target` 0.35, `blood_band_pale` 0.8. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | The post-shock banner. |
+| `Resources/Locale/en-US/_WF/wolfmed/death.ftl` | modified | Refusals with numbers; post-shock lines. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`, `WolfmedScenario.cs` | new | The seven package A tests and the scenario helper. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs`, `WolfmedArrestLooksDeadTest.cs`, `WolfmedPlaytestFixesTest.cs` | modified | Migrations: real suffocation, 0.5 after a shock, the 0.25 gate and the pulse refusal. |
+
+## M1a D: medic lines, conformance, closure (2026-09-23)
+
+Marked Onyx edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs:5` | Onyx, using | WOLFGATE (M1a): `WolfmedVitalsReport`'s namespace. |
+| `Content.Shared/_Onyx/Medical/HealthAnalyzerWoundDiagnostic.cs:114-115, 133, 150` | Onyx | WOLFGATE (M1a): the analyzer payload carries the vitals block (`Vitals`), built by `_WF` `HealthAnalyzerSystem.Vitals.cs`. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs` | new | `WolfmedVitalsReport`, `WolfmedVitalsState`, `WolfmedBloodTrend`, `WolfmedDefibVerdict`, and `WolfmedVitalsText`, the words. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | new | Builds the vitals block: state and cause, fresh breathing and blood band, trend, units to 50%, defib verdict. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | modified | Passes the block into the payload. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | modified | `HasPump` public for the cooling line. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | Any organ insertion refreshes the vital signs. |
+| `Content.Server/_WF/Wolfmed/Hud/WolfmedSyntheticHudSystem.cs` | modified | Fills `Sensors` and `CoreTemperature`. |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudComponent.cs` | modified | Networked `Sensors`, `CoreTemperature`. |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | Chest and pulse read from the networked `Breathing` and `BloodBand`; sedation reads slow and shallow. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.analyzer_blood_fast` 1. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | The vitals block as the panel's first banner row. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlaySystem.cs` | modified | SENSOR and CORE rows. |
+| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl` | new | The vitals block's words. |
+| `Resources/Locale/en-US/_WF/wolfmed/look.ftl` | modified | Gasping, slow breathing, pale, weak pulse, barely palpable pulse. |
+| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | modified | SENSOR and CORE row strings. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedMedicLinesTest.cs` | new | `AnalyzerStateLinesTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesConformanceTest.cs` | new | Report mode with `KnownGaps` (98). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedScenario.cs` | modified | `Report`, `AnalyzerLines`, `Analyzer` helpers. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`, `WolfmedCauseScenarioTest.cs` | modified | The analyzer lines the plan's scenarios name. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | `VitalsBlockHeadsThePanelTest` (client panel). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualInspectionTest.cs` | modified | `BreathingAndPulseReadTheNetworkedVitalsTest`; new keys in the resolve list. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | modified | `SystemBlockCarriesSensorsAndCoreTemperatureTest`. |

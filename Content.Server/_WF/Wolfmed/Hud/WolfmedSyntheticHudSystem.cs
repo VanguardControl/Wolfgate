@@ -4,6 +4,7 @@ using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
+using Content.Server.Temperature.Components;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Body;
@@ -186,6 +187,10 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         var newIntegrity = weight > 0f ? integrity / weight : 1f;
         var newServos = limbs > 0f ? servos / limbs : 1f;
         var causeLine = CauseLine(hud.Owner);
+        var sensors = TryComp(hud.Owner, out PainComponent? pain) && pain.SoftPainCap > FixedPoint2.Zero
+            ? Math.Clamp(pain.Value.Float() / pain.SoftPainCap.Float(), 0f, 1f)
+            : 0f;
+        var temperature = TryComp(hud.Owner, out TemperatureComponent? heat) ? heat.CurrentTemperature : -1f;
 
         if (Same(hud.Comp.Faults, faults) &&
             Near(hud.Comp.Integrity, newIntegrity) &&
@@ -195,7 +200,9 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
             hud.Comp.Shutdown == down &&
             hud.Comp.CoreOffline == offline &&
             hud.Comp.Advice == advice &&
-            hud.Comp.CauseLine == causeLine)
+            hud.Comp.CauseLine == causeLine &&
+            Near(hud.Comp.Sensors, sensors) &&
+            MathF.Abs(hud.Comp.CoreTemperature - temperature) < 0.5f)
             return;
 
         hud.Comp.Faults = faults;
@@ -207,6 +214,8 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         hud.Comp.CoreOffline = offline;
         hud.Comp.Advice = advice;
         hud.Comp.CauseLine = causeLine;
+        hud.Comp.Sensors = sensors;
+        hud.Comp.CoreTemperature = temperature;
         Dirty(hud);
     }
 

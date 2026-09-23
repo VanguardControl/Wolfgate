@@ -363,5 +363,17 @@ wolfmed-look-no-pulse-self = You cannot find your own pulse.
 wolfmed-look-no-pulse-other = { CAPITALIZE(THE($target)) } has no pulse.
 wolfmed-look-not-breathing-self = You are not breathing.
 wolfmed-look-not-breathing-other = { CAPITALIZE(THE($target)) } is not breathing.
+
+# M1a: the chest and the pulse, from the networked vitals (plan §4.5, §5.5).
+wolfmed-look-gasping-self = You are gasping for air.
+wolfmed-look-gasping-other = { CAPITALIZE(THE($target)) } is gasping for air.
+wolfmed-look-breathing-slow-self = Your breathing is slow and shallow.
+wolfmed-look-breathing-slow-other = { CAPITALIZE(THE($target)) } is breathing slowly and shallowly.
+wolfmed-look-pale-self = You look pale.
+wolfmed-look-pale-other = { CAPITALIZE(THE($target)) } looks pale.
+wolfmed-look-pulse-weak-self = You are pale and clammy, and your pulse is weak and fast.
+wolfmed-look-pulse-weak-other = { CAPITALIZE(THE($target)) } is pale and clammy, with a weak, rapid pulse.
+wolfmed-look-pulse-faint-self = You can barely find your own pulse.
+wolfmed-look-pulse-faint-other = { CAPITALIZE(THE($target)) } has a barely palpable pulse.
 wolfmed-look-shutdown-self = Nothing inside you is running.
 wolfmed-look-shutdown-other = Nothing inside { THE($target) } is running.

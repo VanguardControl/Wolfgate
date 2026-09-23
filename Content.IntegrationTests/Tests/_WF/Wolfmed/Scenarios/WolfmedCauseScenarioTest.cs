@@ -154,6 +154,8 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                 Assert.That(alerts.GetShownHealthAlert(a)?.Id, Is.EqualTo("WolfmedFaintPain"));
                 Assert.That(alerts.GetConditionText(a), Does.Contain(Loc.GetString("wolfmed-cause-pain-faint-help")),
                     "an unblocked faint did not say the patient comes round in a few seconds.");
+                // M1a D: what the medic reads (plan §12 M1a).
+                Assert.That(s.AnalyzerLines(a)[0], Is.EqualTo("FAINTED: pain"));
             });
         });
 
@@ -686,6 +688,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                     Does.Contain("CELL EMPTY"));
                 Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WolfmedOutShutdown"));
                 Assert.That(alerts.GetTitle(ipc), Is.EqualTo("Shutdown: no power"));
+                Assert.That(s.AnalyzerLines(ipc)[0], Is.EqualTo("SHUTDOWN: no power"), "M1a D: the analyzer line.");
                 Assert.That(SEntMan.HasComponent<WolfmedSyntheticHudComponent>(ipc), Is.True,
                     "no synthetic readout, so the client heartbeat gate has nothing to read.");
             });

@@ -64,6 +64,7 @@ public sealed partial class WolfmedDiagnosticPanel
     private RichTextLabel? _sepsisLabel;
     private RichTextLabel? _arrestLabel; // BRAIN
     private RichTextLabel? _postShockLabel; // M1a
+    private RichTextLabel? _vitalsLabel; // M1a: the vitals block
     private RichTextLabel? _brainLabel; // BRAIN
 
     /// <summary>CONSC: the two body-level banners whose numbers drift between rebuilds.</summary>
@@ -151,6 +152,7 @@ public sealed partial class WolfmedDiagnosticPanel
         _arrestLabel = null; // BRAIN
         _brainLabel = null; // BRAIN
         _postShockLabel = null; // M1a
+        _vitalsLabel = null; // M1a
         _painLabels.Clear();
         WoundAlertsContainer.RemoveAllChildren();
         WoundCategoryStrip.RemoveAllChildren();
@@ -165,6 +167,14 @@ public sealed partial class WolfmedDiagnosticPanel
         {
             WoundStateLabel.SetMessage(Loc.GetString("health-analyzer-wound-diagnostics-inactive"));
             return;
+        }
+
+        // M1a: the vitals block heads the panel (plan §5.5): state and cause, breathing, circulation, defib.
+        if (msg.WoundDiagnostics?.Vitals is { } vitalsBlock)
+        {
+            _vitalsLabel = CreateBannerRow("warning", VitalsColour(vitalsBlock), VitalsText(vitalsBlock),
+                out var vitalsRow);
+            WoundAlertsContainer.AddChild(vitalsRow);
         }
 
         // BRAIN: the two findings that outrank everything else on the body.
@@ -317,6 +327,7 @@ public sealed partial class WolfmedDiagnosticPanel
             .Append(diagnostics.BrainDead ? 'b' : '-')
             .Append(diagnostics.Shutdown ? 's' : '-')
             .Append(diagnostics.PostShockUnits >= 0f ? 'r' : '-') // M1a
+            .Append(diagnostics.Vitals is { } shownVitals ? (char) ('A' + (int) shownVitals.State) : '-') // M1a
             .Append(diagnostics.BrainActivity >= 0f ? 'v' : '-')
             .Append(diagnostics.BrainActivity < BrainDamageCritical ? 'c'
                 : diagnostics.BrainActivity < BrainDamageFinding ? 'd' : '-');
@@ -375,6 +386,10 @@ public sealed partial class WolfmedDiagnosticPanel
         if (_arrestLabel is { } arrest && diagnostics.CardiacArrest)
             arrest.SetMessage(FormattedMessage.FromMarkupPermissive(ArrestText(diagnostics)));
 
+        // M1a: every vitals line can move between scans (cause, blood %, trend, verdict).
+        if (_vitalsLabel is { } vitalsLabel && diagnostics.Vitals is { } vitals)
+            vitalsLabel.SetMessage(FormattedMessage.FromMarkupPermissive(VitalsText(vitals)));
+
         if (_postShockLabel is { } postShock && diagnostics.PostShockUnits >= 0f) // M1a
             postShock.SetMessage(FormattedMessage.FromMarkupPermissive(PostShockText(msg.BloodLevel, diagnostics)));
 
@@ -403,10 +418,24 @@ public sealed partial class WolfmedDiagnosticPanel
         _arrestLabel = null; // BRAIN
         _brainLabel = null; // BRAIN
         _postShockLabel = null; // M1a
+        _vitalsLabel = null; // M1a
         _painReliefLabel = null; // CONSC
         _sedationLabel = null; // CONSC
         _painLabels.Clear();
     }
+
+    /// <summary>M1a: the vitals block, one line each, worded by the shared text so the tests read the same.</summary>
+    private static string VitalsText(WolfmedVitalsReport vitals) =>
+        FormattedMessage.EscapeText(string.Join("\n", WolfmedVitalsText.Lines(vitals)));
+
+    /// <summary>M1a: the block's edge colour follows how much trouble the patient is in.</summary>
+    private static Color VitalsColour(WolfmedVitalsReport vitals) => vitals.State switch
+    {
+        WolfmedVitalsState.Up => WolfmedWoundStyle.Clotting,
+        WolfmedVitalsState.Downed => WolfmedWoundStyle.Pain,
+        WolfmedVitalsState.Faint => WolfmedWoundStyle.Pain,
+        _ => WolfmedWoundStyle.Necrosis,
+    };
 
     /// <summary>M1a: the post-shock transfusion line.</summary>
     private static string PostShockText(float bloodLevel, HealthAnalyzerWoundDiagnostics diagnostics) =>

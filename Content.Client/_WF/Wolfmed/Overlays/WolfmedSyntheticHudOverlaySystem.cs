@@ -195,6 +195,11 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
 
         _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-fluid", ("value", Gauge(hud.Fluid))));
         _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-servo", ("value", Gauge(hud.Servos))));
+        // M1a D (plan §5.6): what the damage sensors are reporting, and how hot the chassis is running.
+        _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-sensor", ("value", Gauge(hud.Sensors))));
+        if (hud.CoreTemperature >= 0f)
+            _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-core-temp",
+                ("value", (int) MathF.Round(hud.CoreTemperature))));
         _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-faults", ("count", hud.Faults.Count)));
 
         _hud.Status = hud.Advice.Length > 0

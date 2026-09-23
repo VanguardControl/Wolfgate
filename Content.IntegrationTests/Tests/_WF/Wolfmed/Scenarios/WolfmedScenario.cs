@@ -6,6 +6,8 @@ using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server._WF.Wolfmed.Life;
+using Content.Server.Medical;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared.Atmos;
 using Content.Shared.Body.Part;
@@ -71,6 +73,20 @@ public sealed class WolfmedScenario
 
     public WolfmedConsciousnessComponent Vitals(EntityUid body) =>
         Entities.GetComponent<WolfmedConsciousnessComponent>(body);
+
+    /// <summary>The analyzer's vitals block for the body (M1a, plan §5.5), built fresh.</summary>
+    public WolfmedVitalsReport Report(EntityUid body)
+    {
+        var report = Entities.System<HealthAnalyzerSystem>().BuildVitals(body);
+        Assert.That(report, Is.Not.Null, "the analyzer has no vitals block for this body.");
+        return report!;
+    }
+
+    /// <summary>The analyzer's vitals block as the panel shows it, one line each.</summary>
+    public string[] AnalyzerLines(EntityUid body) => WolfmedVitalsText.Lines(Report(body)).ToArray();
+
+    /// <summary>All of the vitals block as one string, for Does.Contain assertions and the test output.</summary>
+    public string Analyzer(EntityUid body) => string.Join(" | ", AnalyzerLines(body));
 
     public RespiratorComponent Respirator(EntityUid body) => Entities.GetComponent<RespiratorComponent>(body);
 

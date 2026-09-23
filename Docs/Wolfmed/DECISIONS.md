@@ -931,3 +931,188 @@ icon. Succumb and Last Words use the upstream crit action icons.
 
 **Left for later.** IPC thermal shutdown's Succumb (M4). The Succumb and leave dialogs have no client test that
 presses their buttons; the EUI reaching the client is tested, and the answer is tested on the server.
+
+## M1a A: breathing and the clock (2026-09-22; written up by package D)
+
+Package A stopped before it wrote anything down; package B committed its tree unchanged as `8f71617774`. This
+section records that work from the code and its comments, so the M1a record is complete. Plan: §4, §3.2, §3.3,
+§7.1, §7.2 (M1a rows).
+
+**What was built.**
+- **Who breathes.** `WolfmedBreathingSystem` (server, `_WF/Wolfmed/Life`). The one marked hook in
+  `RespiratorSystem` asks `BreathingSuppressed` instead of `IsIncapacitated`. A wound host stops breathing only
+  when dead or in arrest. A body that is not a wound host, or any body while `wolfmed.consciousness` is off,
+  keeps the upstream rule. The `DebrainedComponent` and gasp-in-arrest guards are untouched.
+- **The breathing input (§4.3).** `SuffocationLevel` is 0 unless the respirator is suffocating now, and then it
+  is Asphyxiation ÷ `wolfmed.airloss_full` (100). "Suffocating" means as many short cycles in a row as the
+  respirator's own alert needs (`SuffocationCycleThreshold`), not one: a body getting its breath back dips
+  under the line for a single cycle. Bloodloss is never read (P7). The refill runs whenever every live drain is
+  0, however much Asphyxiation or Bloodloss is left.
+- **Vital signs.** `Assess` gives what the chest is doing and why: None (dead, arrest, no brain, no lungs),
+  Gasping (no air), Depressed (sedation past its line) or Normal. `GetBloodBand` gives the circulation band:
+  pale at `wolfmed.blood_band_pale` 0.8, weak at the Downed line, barely palpable at the Unconscious line,
+  none in arrest or death. Both are networked on `WolfmedConsciousnessComponent` (`Breathing`,
+  `BreathingSource`, `BloodBand`); there is no new component. The life tick writes them and dirties them only
+  on a change.
+- **The post-shock course (§7.1).** A successful shock ends the arrest. On the first shock of an episode,
+  oxygenation becomes max(current, `wolfmed.post_shock_oxygenation` 0.5); a body that had died gets exactly
+  0.5. `WolfmedPostShockComponent` opens a `wolfmed.post_shock_grace_seconds` (45) grace that holds off the blood
+  and oxygen triggers; the drains still run. Another success within `wolfmed.post_shock_repeat_seconds` (300)
+  only restarts the heart. The patient comes round on consciousness's own lines, so a patient whose blood was
+  not the cause is Downed at once. `RepairBrain` uses the same 0.5.
+- **The two transfusion numbers.** `GetTransfusionGuidance`: N = units to `wolfmed.post_shock_blood_target`
+  (35%) plus the current bleed rate × the grace; M = units to `wolfmed.brain_blood_start` (50%).
+  `GetPostShockAdvice` feeds the analyzer's "Revived: … Transfuse ≈ N u within 45 s …; ≈ M u to 50% …" line
+  (`WolfmedPostShockText`, shared).
+- **Revival refusals (§7.2).** One `WolfmedRevivalSystem.GetRefusal` for the hand defibrillator and the pod: rot,
+  other content's `Unrevivable`, no brain, a destroyed brain, no heart (only for a species whose body prototype
+  carries a Wolfmed heart), pulse present, and the blood gate `wolfmed.defib_blood` 0.25 (strictly under).
+  `LocalizeLine` puts the patient's numbers into the paddle line ("Shock refused: blood 24% … Transfuse ≈ 33 u
+  first; ≈ 78 u to reach 50%"). No line says a shock will work.
+- **Data.** `wolfmed.arrest_shock_blood` 0: the pain-shock arrest is gone.
+- **P22.** `WoundInternalBleedingSystem` bleeds once a second, so each amount is well above FixedPoint2's 0.01
+  step (marked Onyx edit).
+- **Tests.** `Scenarios/WolfmedBreathingClockTest.cs`: `BleedingScenarioTest`, `RepeatedShockTest`,
+  `PostShockOxygenTest`, `OxygenScenarioTest`, `InternalBleedTickTest`, `PainShockNoArrestTest`,
+  `NonWoundHostCriticalStillDoesNotBreatheTest`. The scenario helper `WolfmedScenario` drives them. The
+  migrations are in `WolfmedBrainTest`, `WolfmedArrestLooksDeadTest` and `WolfmedPlaytestFixesTest`.
+
+**Differs from the plan, as far as the code shows.**
+- The plan says `DefibrillatorSystem.cs` is not edited. A made one small marked edit there: the hand
+  defibrillator's refusal is localised with the patient's numbers. The rot and `Unrevivable` checks stayed in
+  the hand defibrillator, as the plan says, and are also in `GetRefusal`.
+- "Suffocating" needs the respirator's alert threshold of short cycles, not `SuffocationCycles > 0` (above).
+
+## M1a D: medic lines, conformance, closure (2026-09-23)
+
+Plan: §5.5 (the M1a lines and the defib verdict), §1.5, §9.1, §11, §12 M1a.
+
+**What was built.**
+- **The analyzer's vitals block.** `WolfmedVitalsReport` (shared, networked) rides on
+  `HealthAnalyzerWoundDiagnostics.Vitals`, one marked Onyx field. `WolfmedVitalsText` holds the words, shared so
+  the panel and the tests read the same text. `HealthAnalyzerSystem.Vitals.cs` (server, `_WF`) builds it:
+  - the state (Up, Downed, Faint, Unconscious, Arrest, Shutdown, Dead), cause, sub-source and blockers from
+    consciousness;
+  - breathing and the blood band read fresh from `WolfmedBreathingSystem.Assess` and
+    `WolfmedLifeSystem.GetBloodBand`, not the networked copy the life tick writes once a second, so the pulse
+    words always agree with the blood % on the same line;
+  - blood %, its trend, and the units to the brain-safe line (`wolfmed.brain_blood_start`, 50%). The trend is
+    net regeneration against every bleed; "falling fast" starts at a net loss of `wolfmed.analyzer_blood_fast`
+    (new, 1 u/s);
+  - the defib verdict, from the shared `GetRefusal`.
+- **What it says.**
+  - State: "DOWNED: blood loss", "FAINTED: pain", "UNCONSCIOUS: no oxygen (no air)", "CARDIAC ARREST: blood",
+    "SHUTDOWN: no power", "DEAD: catastrophic brain injury" [OD1 wording]. Blockers follow as "(also: …)",
+    minus the one an arrest already names.
+  - Breathing: "normal", "depressed: sedation 72%", "none: no air, gasping", "none: cardiac arrest", "none: no
+    working lungs".
+  - Circulation: "pulse weak and rapid; blood 45%, rising; transfuse ≈ 14 u to 50%".
+  - Verdict (Faint, Unconscious, arrest and dead only): "Defib: shock indicated", or "Defib: refused: …" with
+    pulse present, "no heart, transplant first", "blood 24%, transfuse ≈ 33 u first (≈ 78 u to 50%)", "brain
+    destroyed, brain repair surgery first", "no brain", "body decayed", or other content's reason. It never
+    says "will work".
+  - Machines: "ONLINE", "SHUTDOWN: no power" or "coolant pump offline", "DOWNED: frame damage" or "hydraulic
+    pressure low", "CORE FAILURE"; "Cooling: pump running/offline" in place of breathing; "Hydraulics: oil
+    100%, steady" in place of circulation; no verdict (the restart button is M2).
+- **The panel.** The block is the first banner row of the wound tab. Its text is redrawn on every scan, and
+  the row is rebuilt only when the state changes. The pod mounts the same panel.
+- **Examine** (`WolfmedVisualInspectionSystem`) reads the networked `Breathing` and `BloodBand`:
+  - "is not breathing": arrest, death, no lungs, no brain. It shows at a distance too while arrested, as
+    before.
+  - "is gasping for air"; "is breathing slowly and shallowly" for sedation past 0.6, which used to read "not
+    breathing".
+  - "looks pale" (≤ 80% blood), "is pale and clammy, with a weak, rapid pulse" (≤ 50%), "has a barely palpable
+    pulse" (≤ 35%), "has no pulse" (dead).
+  - These are close-examination findings only, like a hand on the neck. Machines get none of them.
+- **Vitals on organ insertion.** Any organ going in now refreshes the vital signs (the heart already ticked the
+  body). A body being assembled gets its heart before its lungs, so it read "not breathing: no lungs" for up to
+  a second after spawning; the new examine test found it. A lung transplant now reads as breathing at once.
+- **Synthetic HUD rows (§5.6, left by B).** SENSOR (the chassis's pain against its soft cap) and CORE (chassis
+  temperature in K, the M4 core-heat input) in the SYSTEM block.
+- **Species conformance, report mode (§9.1).** `WolfmedSpeciesConformanceTest.KnownGapsAreExactlyTheReportTest`
+  spawns every round-start species. Checks:
+  - it is a wound host;
+  - organics: the brain has `WolfmedBrain` and `WolfmedOrgan`, heart and lungs have `WolfmedOrgan`, 29% blood
+    arrests, and removing the brain kills;
+  - machines: core and pump have `WolfmedOrgan`, pulling the cell shuts the chassis down, and removing the core
+    kills.
+
+  The result is 98 gaps across 32 species, checked in as `KnownGaps` in the test file and grouped as §9.2
+  groups them. It matches §9.2's prediction, with two things §9.2 did not say:
+  - ProtoThaven's lungs lack data too;
+  - every protogen subspecies is group C.
+
+  IPC and the full-data group (Human, Oni, Dwarf, Chitinid, Resomi, Thaven, Vox, Avali) conform.
+
+**Differs from the plan, and why.**
+- **The defib verdict ships in M1a.** The brief asks for it; §5.5 had put it in M2.
+- **The analyzer reads breathing and the blood band fresh** rather than the networked field (above). Examine,
+  which is shared code, reads the networked field as the plan says.
+- **Not in M1a, and not built:** AVPU, blue lips, weeping burns, pupils. They are §5.5 signs outside M1a's
+  scope list. A strong pulse is not an examine finding: adding it to every healthy body would have replaced
+  "You see no injuries".
+- **One new CVar** for the trend words: `wolfmed.analyzer_blood_fast`.
+- **Test names.** The conformance test is class `WolfmedSpeciesConformanceTest`, method
+  `KnownGapsAreExactlyTheReportTest`, because a C# method cannot share its class's name. `AnalyzerStateLinesTest`
+  is in `Scenarios/WolfmedMedicLinesTest.cs`. Its hypoxic case lowers oxygenation directly; the airless
+  "Breathing: none: no air" is asserted in `OxygenScenarioTest`.
+- **The analyzer lines B and A left out are now asserted where the plan put them:** "DOWNED: blood loss" in
+  `BleedingScenarioTest`, "UNCONSCIOUS: no oxygen" and "none: no air" in `OxygenScenarioTest`, "FAINTED: pain"
+  in `PainScenarioTest`, "SHUTDOWN: no power" in `IpcShutdownScenarioTest`.
+- **The self-aid "hold pressure on your own wound" (§3.2, "to confirm")** needs no new verb. It is gauze or a
+  bandage on yourself, which a Downed body can already use at 1.5× time.
+
+**Not done in M1a (found in the §11 audit).** The stock `LowOxygen` alert is not replaced on wound hosts by
+"Can't breathe: {source}" (§3.3). The per-cause hypoxia alerts ("Short of breath", "Unconscious: no oxygen")
+carry the cause instead. Replacing the respirator's own alert needs a marked upstream edit; it goes with M2's
+alert work.
+
+**Still red, not caused by M1a.** `WolfmedPlaytestFixesTest.AutofixRunsOnceAndThenOnlyForSomethingNewTest`
+failed about half its solo runs before M1a as well: package B measured 3 of 5 at the base `8e4a5cd15b`. Two things
+were mixed in it:
+- **The vacuum.** The test map is a vacuum, and barotrauma kept landing new damage on the patient. The test now
+  gives the map station air.
+- **A real autodoc gap.** The failures left show it every time. In the runs that fail, the pod abandons
+  `SurgeryStopBleeding` on the fractured arm (the stall guard). It then finishes its queue with its own incision
+  still open, and the planner wants `SurgeryCloseIncision` there straight after QUEUE COMPLETE. The likely
+  trigger is the crush rule's chance of an internal bleed at Blunt ≥ 30 (plan §8, M3 makes it deterministic).
+  `TryQueueClosure` does not queue the closure at that moment. Accepting an open `IncisionOpenComponent` there
+  was tried and did not change it, so it was reverted.
+- **What is left for the autodoc work.** Find why the closure is not valid when the stop-bleeding procedure is
+  abandoned, and why that procedure stalls on an internal bleed at all. The test's failure message now names
+  the abandoned procedures, the state and the queue.
+
+## M1a complete: what a player now experiences (2026-09-23)
+
+M1a changes no damage model. It changes who breathes, what every state is called, and what the choices do.
+
+- **Getting hurt.** Pain puts you on the floor (body pain ≥ 128.25) and knocks you out for at most 20 s when the
+  summed pain crosses 189. Nothing extends a faint. Another needs a rise of 40 over the pain at waking and
+  never comes within 30 s. A strong or emergency painkiller ends a faint. A pain shock (130) drops and stuns
+  you and gives 30 s of adrenaline: crawl ×1.5 and no do-after penalty. It no longer stands you up or stops a
+  bleeding heart. Two minutes of fire and blows cost 18.5 s of unconsciousness. Pain never kills. Machines are
+  only ever Downed by damage.
+- **Unconscious bodies breathe.** Only arrest and death stop the chest. The brain reads real suffocation (no
+  air, no lungs), never Bloodloss. With no air: Downed at about 188 s, Unconscious at about 205 s, arrest at
+  about 259 s. Air back at the Unconscious line wakes you in about 7 s.
+- **Bleeding.** Downed at 50%, Unconscious at 35% and still breathing, arrest at 30%. The defibrillator refuses
+  under 25% and says how much blood to give. A shock gives oxygenation 0.5 and a 45 s grace. The analyzer
+  asks for N u within the grace (to 35% plus the bleed) and M u to 50%. Repeated shocks without blood do not
+  help.
+- **Every state names its cause.** The patient gets per-cause alerts and one line per transition ("The pain
+  takes you under"), each with what else is holding them down. The IPC HUD says CELL EMPTY, COOLANT PUMP
+  OFFLINE, HYDRAULIC PRESSURE LOW or MOBILITY LOST, and shows sensor load and chassis temperature. Machines
+  and faints get no heartbeat.
+- **The medic reads it.** The analyzer heads its panel with the state and cause, breathing, circulation (blood %,
+  trend, units to 50%) and the defib verdict. Examine shows the chest (not breathing, gasping, slow and
+  shallow) and the pulse (pale; pale and clammy with a weak, rapid pulse; barely palpable).
+- **Crawling.** Downed, you can pick up loose items on your own tile and the ones next to it (1.5 m). You still
+  cannot fire. Call for help shouts your line and flags you on medical HUDs for 60 s, with a 30 s cooldown.
+- **Honest endings.** Succumb and Last Words appear only in cardiac arrest. Each opens a dialog that says
+  exactly what happens: catastrophic brain injury, the brain stays in the body, a returnable ghost, and revival
+  by brain repair plus a defibrillator until the body rots. Typing `ghost` in arrest opens the same dialog.
+  Anywhere else it offers "left alive but empty" with no return and no damage. The pod offers the way back
+  after a revival, as the hand defibrillator does. The pod keeps a fainted occupant anaesthetised and does not
+  sound its Critical alarm for a faint.
+- **Species.** The scenarios run for Human and IPC. The report-mode conformance test lists the 98 known gaps
+  in 32 other round-start species until M4 closes them.

@@ -1,6 +1,16 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
+using Content.Client._WF.Wolfmed.Medical;
+using Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
+using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared.MedicalScanner;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Content.IntegrationTests.Fixtures;
+using Content.IntegrationTests.Fixtures.Attributes;
 using Content.Server.Body.Components; // WOLFGATE: BloodstreamComponent is server-only here.
 using Content.Server.Medical; // WOLFGATE: HOOK 23's builders are a _WF partial of this server system.
 using Content.Shared._Onyx.Body.Systems;
@@ -611,6 +621,75 @@ public sealed class WolfmedAnalyzerTest : GameTest
         TargetBodyPart part,
         string name) =>
         diagnostics.Parts[part].VisibleWounds.Single(wound => wound.Name.Id == name).Category;
+
+    /// <summary>
+    /// M1a (plan §5.5): the vitals block heads the panel. The diagnostics carry it for a wound host, a chassis
+    /// gets the machine words, and the client's panel draws the state-and-cause line as its first row, the
+    /// same text <see cref="WolfmedVitalsText"/> gives the tests.
+    /// </summary>
+    [Test]
+    public async Task VitalsBlockHeadsThePanelTest()
+    {
+        await OverrideCVar(Side.Server, WolfmedCVars.Consciousness, true);
+        await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessBloodDown, 0.5f);
+        await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessBloodOut, 0.35f);
+        var server = Pair.Server;
+        var client = Pair.Client;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        HealthAnalyzerScannedUserMessage? message = null;
+        var expected = string.Empty;
+
+        await server.WaitAssertion(() =>
+        {
+            var s = new WolfmedScenario(entities);
+            var analyzer = entities.System<HealthAnalyzerSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var ipc = entities.SpawnEntity("MobIPC", map.GridCoords);
+            s.SetBlood(body, 0.45f);
+            s.Consciousness.Refresh(body);
+            s.Life.UpdateVitalSigns(body);
+
+            var vitals = analyzer.BuildWoundDiagnostics(body)!.Vitals;
+            Assert.That(vitals, Is.Not.Null, "a wound host's diagnostics carry no vitals block.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(vitals!.State, Is.EqualTo(WolfmedVitalsState.Downed));
+                Assert.That(vitals.Cause, Is.EqualTo(WolfmedCause.Blood));
+                Assert.That(vitals.Mechanical, Is.False);
+                Assert.That(analyzer.BuildWoundDiagnostics(ipc)!.Vitals!.Mechanical, Is.True);
+                Assert.That(WolfmedVitalsText.StateLine(analyzer.BuildWoundDiagnostics(ipc)!.Vitals!),
+                    Is.EqualTo("ONLINE"));
+            });
+
+            message = analyzer.WolfmedBuildScanMessage(body);
+            expected = WolfmedVitalsText.StateLine(vitals!);
+        });
+
+        await client.WaitAssertion(() =>
+        {
+            var panel = new WolfmedDiagnosticPanel();
+            panel.Populate(message!);
+            var texts = Descendants(panel).OfType<RichTextLabel>()
+                .Select(label => FormattedMessage.RemoveMarkupPermissive(label.GetMessage() ?? string.Empty))
+                .ToList();
+
+            Assert.That(texts, Is.Not.Empty, "the panel drew no banner rows.");
+            Assert.That(texts[0], Does.StartWith(expected), "the vitals block is not the panel's first row.");
+            Assert.That(texts[0], Does.Contain("Breathing: normal").And.Contain("pulse weak and rapid"));
+        });
+    }
+
+    private static IEnumerable<Control> Descendants(Control control)
+    {
+        foreach (var child in control.Children)
+        {
+            yield return child;
+            foreach (var descendant in Descendants(child))
+                yield return descendant;
+        }
+    }
 
     private static EntityUid Bleed(IEntityManager entities, WoundSystem wounds, EntityUid part, string prototype)
     {

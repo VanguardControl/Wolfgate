@@ -398,4 +398,11 @@ public sealed class WolfmedCVars
     /// <summary>Seconds after a Call for help before the next one.</summary>
     public static readonly CVarDef<float> CallForHelpCooldown =
         CVarDef.Create("wolfmed.call_for_help_cooldown", 30f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Units a second of net blood (or oil) loss at which the analyzer's circulation line reads "falling fast"
+    /// rather than "falling" (M1a, plan §5.5).
+    /// </summary>
+    public static readonly CVarDef<float> AnalyzerBloodFast =
+        CVarDef.Create("wolfmed.analyzer_blood_fast", 1f, CVar.SERVERONLY);
 }

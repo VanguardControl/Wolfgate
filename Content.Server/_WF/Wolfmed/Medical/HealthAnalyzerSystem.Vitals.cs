@@ -1,0 +1,141 @@
+using Content.Server.Body.Components;
+using Content.Server._WF.Wolfmed.Consciousness;
+using Content.Server._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Reagents;
+using Content.Shared.FixedPoint;
+using Content.Shared.Mobs.Systems;
+using Robust.Shared.Configuration;
+
+namespace Content.Server.Medical;
+
+/// <summary>
+/// M1a: the analyzer's vitals block (plan §5.5): the state and cause off the consciousness component, the
+/// breathing and circulation read fresh from the breathing and life systems. The pod mounts the same panel,
+/// so it gets the block too.
+/// </summary>
+public sealed partial class HealthAnalyzerSystem
+{
+    [Dependency] private IConfigurationManager _vitalsCfg = default!;
+    [Dependency] private MobStateSystem _vitalsMobState = default!;
+    [Dependency] private WolfmedConsciousnessSystem _vitalsConsciousness = default!;
+    [Dependency] private WolfmedRevivalSystem _vitalsRevival = default!;
+    [Dependency] private WolfmedBreathingSystem _vitalsBreathing = default!;
+
+    /// <summary>State and cause, breathing, circulation and the defib verdict, or null when consciousness does not run this body.</summary>
+    public WolfmedVitalsReport? BuildVitals(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? consciousness) ||
+            !_vitalsConsciousness.OwnsMobState(body))
+            return null;
+
+        var mechanical = _shutdown.IsMechanical(body);
+        var report = new WolfmedVitalsReport
+        {
+            State = GetVitalsState(body, consciousness, mechanical),
+            Cause = consciousness.Cause,
+            Source = consciousness.CauseSource,
+            Blockers = consciousness.Blockers,
+            Mechanical = mechanical,
+            Sedation = CompOrNull<WolfmedPainReliefComponent>(body)?.Sedation ?? 0f,
+            PumpRunning = mechanical && _shutdown.HasPump(body),
+            // Read fresh rather than off the networked copy the life tick writes once a second, so the pulse
+            // words always agree with the blood % on the same line.
+            BloodBand = _life.GetBloodBand(body),
+        };
+        (report.Breathing, report.BreathingSource) = _vitalsBreathing.Assess(body);
+
+        if (report.State == WolfmedVitalsState.Dead)
+        {
+            report.BrainDestroyed = _life.GetBrainOrgan(body) is { } brain && brain.Comp.Health <= FixedPoint2.Zero;
+            report.Cause = WolfmedCause.None;
+        }
+
+        if (TryComp(body, out BloodstreamComponent? bloodstream))
+        {
+            report.Blood = _life.GetBlood(body);
+            report.Trend = GetBloodTrend(body, bloodstream, report.Blood);
+            report.UnitsToLine = _life.GetTransfusionGuidance(body).ToBrainSafe;
+            report.Line = _vitalsCfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f;
+        }
+
+        SetVerdict(body, report);
+        return report;
+    }
+
+    private WolfmedVitalsState GetVitalsState(EntityUid body, WolfmedConsciousnessComponent consciousness, bool mechanical)
+    {
+        if (_vitalsMobState.IsDead(body))
+            return WolfmedVitalsState.Dead;
+
+        if (_life.InArrest(body))
+            return WolfmedVitalsState.Arrest;
+
+        return consciousness.State switch
+        {
+            WolfmedConsciousness.Up => WolfmedVitalsState.Up,
+            WolfmedConsciousness.Downed => WolfmedVitalsState.Downed,
+            _ when mechanical || consciousness.Cause == WolfmedCause.Shutdown => WolfmedVitalsState.Shutdown,
+            _ when WolfmedCauses.IsFaint(consciousness.Cause) => WolfmedVitalsState.Faint,
+            _ => WolfmedVitalsState.Unconscious,
+        };
+    }
+
+    /// <summary>
+    /// Net flow: regeneration against every bleed. "Falling fast" at a net loss of
+    /// <see cref="WolfmedCVars.AnalyzerBloodFast"/> units a second or more.
+    /// </summary>
+    private WolfmedBloodTrend GetBloodTrend(EntityUid body, BloodstreamComponent bloodstream, float blood)
+    {
+        var interval = (float) bloodstream.UpdateInterval.TotalSeconds;
+        FixedPoint2 refresh = bloodstream.BloodRefreshAmount;
+        var regeneration = blood < 1f && interval > 0f && !_vitalsMobState.IsDead(body)
+            ? refresh.Float() / interval
+            : 0f;
+        var net = regeneration - _life.GetBleedRate(body);
+
+        if (-net >= _vitalsCfg.GetCVar(WolfmedCVars.AnalyzerBloodFast))
+            return WolfmedBloodTrend.FallingFast;
+
+        return net < 0f ? WolfmedBloodTrend.Falling
+            : net > 0f ? WolfmedBloodTrend.Rising
+            : WolfmedBloodTrend.Steady;
+    }
+
+    /// <summary>
+    /// The paddles' answer in the analyzer's words, from the refusal the hand defibrillator and the pod share.
+    /// Shown only for a body that could need a shock: out cold, arrested or dead, and not a machine.
+    /// </summary>
+    private void SetVerdict(EntityUid body, WolfmedVitalsReport report)
+    {
+        if (report.Mechanical || report.State is WolfmedVitalsState.Up or WolfmedVitalsState.Downed)
+            return;
+
+        var refusal = _vitalsRevival.GetRefusal(body);
+        report.Verdict = refusal switch
+        {
+            null => WolfmedDefibVerdict.Indicated,
+            WolfmedRevivalSystem.NoResponse => WolfmedDefibVerdict.Hidden,
+            WolfmedRevivalSystem.Rotten => WolfmedDefibVerdict.Rotten,
+            WolfmedRevivalSystem.NoBrain => WolfmedDefibVerdict.NoBrain,
+            WolfmedRevivalSystem.BrainDead => WolfmedDefibVerdict.BrainDead,
+            WolfmedRevivalSystem.NoHeart => WolfmedDefibVerdict.NoHeart,
+            WolfmedRevivalSystem.PulsePresent => WolfmedDefibVerdict.PulsePresent,
+            WolfmedRevivalSystem.NoBlood => WolfmedDefibVerdict.NoBlood,
+            _ => WolfmedDefibVerdict.Unrevivable,
+        };
+
+        if (report.Verdict == WolfmedDefibVerdict.Unrevivable)
+            report.VerdictReason = refusal;
+
+        if (report.Verdict != WolfmedDefibVerdict.NoBlood)
+            return;
+
+        var (units, safe) = _life.GetTransfusionGuidance(body);
+        report.VerdictUnits = units;
+        report.VerdictSafeUnits = safe;
+        report.VerdictSafeLine = _vitalsCfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f;
+    }
+}

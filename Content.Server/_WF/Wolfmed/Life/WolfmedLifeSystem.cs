@@ -751,8 +751,17 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// <summary>A heart back in its slot gets one tick straight away, which is what ends the arrest.</summary>
     private void OnOrganAdded(Entity<WolfmedOrganComponent> organ, ref OrganAddedToBodyEvent args)
     {
-        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body) || !HasComp<HeartComponent>(organ))
+        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body))
             return;
+
+        // M1a D: any other organ refreshes the vital signs at once. A body being assembled gets its heart
+        // before its lungs, and without this read "not breathing: no lungs" until the next life tick; a lung
+        // transplant reads as breathing the moment it is in.
+        if (!HasComp<HeartComponent>(organ))
+        {
+            UpdateVitalSigns(args.Body);
+            return;
+        }
 
         Tick(args.Body, 0.0001f);
         _shutdown.Refresh(args.Body);

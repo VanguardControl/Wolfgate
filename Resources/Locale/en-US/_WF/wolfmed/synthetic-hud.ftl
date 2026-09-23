@@ -12,6 +12,8 @@ wolfmed-synthetic-row-integrity = CHASSIS { $value }
 wolfmed-synthetic-row-power = POWER   { $value }
 wolfmed-synthetic-row-fluid = FLUID   { $value }
 wolfmed-synthetic-row-servo = SERVO   { $value }
+wolfmed-synthetic-row-sensor = SENSOR  { $value }
+wolfmed-synthetic-row-core-temp = CORE    { $value } K
 wolfmed-synthetic-row-faults = FAULTS  { $count }
 
 # The idle status line, cycled slowly while nothing is wrong.

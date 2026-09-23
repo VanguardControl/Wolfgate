@@ -2,6 +2,7 @@ using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 keeps TargetBodyPart u
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W5)
 using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE (CONSC)
+using Content.Shared._WF.Wolfmed.Life; // WOLFGATE (M1a): the vitals block
 using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
@@ -110,6 +111,9 @@ public sealed class HealthAnalyzerWoundDiagnostics
     /// <summary>WOLFGATE (M1a): that blood line, as a percentage.</summary>
     public readonly float PostShockSafeLine;
 
+    /// <summary>WOLFGATE (M1a): the vitals block: state and cause, breathing, circulation, defib verdict (plan §5.5).</summary>
+    public readonly WolfmedVitalsReport? Vitals;
+
     public HealthAnalyzerWoundDiagnostics(
         Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts,
         float sepsis = 0f, // WOLFGATE (W5)
@@ -125,7 +129,8 @@ public sealed class HealthAnalyzerWoundDiagnostics
         float postShockUnits = -1f, // WOLFGATE (M1a)
         float postShockSafeUnits = 0f, // WOLFGATE (M1a)
         float postShockGraceSeconds = 0f, // WOLFGATE (M1a)
-        float postShockSafeLine = 0f) // WOLFGATE (M1a)
+        float postShockSafeLine = 0f, // WOLFGATE (M1a)
+        WolfmedVitalsReport? vitals = null) // WOLFGATE (M1a): package D's vitals block
     {
         Parts = parts;
         Sepsis = sepsis; // WOLFGATE (W5)
@@ -142,5 +147,6 @@ public sealed class HealthAnalyzerWoundDiagnostics
         PostShockSafeUnits = postShockSafeUnits; // WOLFGATE (M1a)
         PostShockGraceSeconds = postShockGraceSeconds; // WOLFGATE (M1a)
         PostShockSafeLine = postShockSafeLine; // WOLFGATE (M1a)
+        Vitals = vitals; // WOLFGATE (M1a)
     }
 }

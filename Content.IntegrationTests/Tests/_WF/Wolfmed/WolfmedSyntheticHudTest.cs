@@ -440,6 +440,47 @@ public sealed class WolfmedSyntheticHudTest : GameTest
         });
     }
 
+    /// <summary>
+    /// M1a D (plan §5.6): the SYSTEM block carries a damage-sensor row, the chassis's pain against its soft
+    /// cap, and a core-temperature row off the chassis temperature, the M4 core-heat input.
+    /// </summary>
+    [Test]
+    public async Task SystemBlockCarriesSensorsAndCoreTemperatureTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var hudSystem = entities.System<WolfmedSyntheticHudSystem>();
+            var body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var hud = entities.EnsureComponent<WolfmedSyntheticHudComponent>(body);
+            hudSystem.Refresh((body, hud));
+            Assert.Multiple(() =>
+            {
+                Assert.That(hud.Sensors, Is.EqualTo(0f).Within(0.01f), "an undamaged chassis reports sensor load.");
+                Assert.That(hud.CoreTemperature, Is.GreaterThan(0f), "no chassis temperature on the readout.");
+            });
+
+            var torso = Part(entities, body, BodyPartType.Torso);
+            var pain = entities.GetComponent<PainComponent>(torso);
+            pain.WoundPain = FixedPoint2.New(67.5f);
+            entities.System<PainSystem>().SetPain((torso, pain), FixedPoint2.New(67.5f));
+            var heat = entities.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(body);
+            heat.CurrentTemperature = 450f;
+            hudSystem.Refresh((body, hud));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(hud.Sensors, Is.EqualTo(0.5f).Within(0.01f), "half the soft cap is half the sensor load.");
+                Assert.That(hud.CoreTemperature, Is.EqualTo(450f).Within(0.5f));
+                Assert.That(Loc.GetString("wolfmed-synthetic-row-core-temp", ("value", 450)), Does.Contain("450 K"));
+            });
+        });
+    }
+
     private static DamageSpecifier Spec(string type, int amount) => new()
     {
         DamageDict = { [new ProtoId<DamageTypePrototype>(type)] = FixedPoint2.New(amount) },

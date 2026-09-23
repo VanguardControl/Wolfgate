@@ -6,6 +6,11 @@ using System.Text;
 using Content.Client._WF.Wolfmed.Examine;
 using Content.Client._WF.Wolfmed.Medical;
 using Content.IntegrationTests.Fixtures;
+using Content.IntegrationTests.Fixtures.Attributes;
+using Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
+using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
@@ -49,6 +54,12 @@ public sealed class WolfmedVisualInspectionTest : GameTest
         "wolfmed-look-part-other", "wolfmed-look-none-self", "wolfmed-look-none-other",
         "wolfmed-look-covered", "wolfmed-look-hidden", "wolfmed-look-distant", "wolfmed-look-sepsis-self",
         "wolfmed-look-sepsis-other",
+        // M1a: the chest and the pulse.
+        "wolfmed-look-gasping-self", "wolfmed-look-gasping-other", "wolfmed-look-breathing-slow-self",
+        "wolfmed-look-breathing-slow-other", "wolfmed-look-pale-self", "wolfmed-look-pale-other",
+        "wolfmed-look-pulse-weak-self", "wolfmed-look-pulse-weak-other", "wolfmed-look-pulse-faint-self",
+        "wolfmed-look-pulse-faint-other", "wolfmed-look-not-breathing-self", "wolfmed-look-not-breathing-other",
+        "wolfmed-look-no-pulse-self", "wolfmed-look-no-pulse-other",
         "wolfmed-look-part-name-head", "wolfmed-look-part-name-torso", "wolfmed-look-part-name-groin",
         "wolfmed-look-part-name-left-arm", "wolfmed-look-part-name-left-hand",
         "wolfmed-look-part-name-right-arm", "wolfmed-look-part-name-right-hand",
@@ -380,6 +391,64 @@ public sealed class WolfmedVisualInspectionTest : GameTest
                 Assert.That(Look(entities, body, body, false),
                     Does.Contain(Text(locale, "wolfmed-look-cut-moderate")),
                     "your own body is never far away.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// M1a (plan §4.5, §5.5): the chest and the pulse come from the networked vitals the life tick sets.
+    /// Sedation past its depression line reads as slow, shallow breathing, never as "not breathing"; the blood
+    /// bands read pale, then pale and clammy with a weak pulse, then barely palpable; a hand on the neck needs
+    /// to be close; a chassis has neither.
+    /// </summary>
+    [Test]
+    public async Task BreathingAndPulseReadTheNetworkedVitalsTest()
+    {
+        await OverrideCVar(Side.Server, WolfmedCVars.Consciousness, true);
+        await OverrideCVar(Side.Server, WolfmedCVars.BloodBandPale, 0.8f);
+        await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessBloodDown, 0.5f);
+        await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessBloodOut, 0.35f);
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var s = new WolfmedScenario(entities);
+            var medic = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var sedated = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var pale = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var weak = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var faint = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var machine = entities.SpawnEntity("MobIPC", map.GridCoords);
+
+            Assert.That(Look(entities, sedated, medic), Does.Not.Contain("breathing").And.Not.Contain("pulse"),
+                "a healthy patient already read as short of breath or pulse.");
+
+            var relief = entities.EnsureComponent<WolfmedPainReliefComponent>(sedated);
+            relief.Sedation = 0.8f;
+            s.SetBlood(pale, 0.7f);
+            s.SetBlood(weak, 0.45f);
+            s.SetBlood(faint, 0.33f);
+            s.SetBlood(machine, 0.4f);
+            foreach (var body in new[] { sedated, pale, weak, faint, machine })
+                s.Life.UpdateVitalSigns(body);
+
+            Assert.That(s.Vitals(sedated).Breathing, Is.EqualTo(WolfmedBreathing.Depressed));
+            var slowed = Look(entities, sedated, medic);
+            Assert.Multiple(() =>
+            {
+                Assert.That(slowed, Does.Contain("breathing slowly and shallowly"));
+                Assert.That(slowed, Does.Not.Contain("is not breathing"), "sedation read as a stopped chest.");
+                Assert.That(Look(entities, pale, medic), Does.Contain("looks pale"));
+                Assert.That(Look(entities, weak, medic), Does.Contain("pale and clammy, with a weak, rapid pulse"));
+                Assert.That(Look(entities, faint, medic), Does.Contain("barely palpable pulse"));
+                Assert.That(Look(entities, weak, medic, false), Does.Not.Contain("pulse"),
+                    "a pulse was felt from across the room.");
+                Assert.That(Look(entities, weak, weak), Does.Contain("your pulse is weak and fast"));
+                Assert.That(Look(entities, machine, medic), Does.Not.Contain("pulse").And.Not.Contain("pale"),
+                    "a chassis read as flesh.");
             });
         });
     }
