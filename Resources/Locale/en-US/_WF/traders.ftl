@@ -69,6 +69,19 @@ trader-refuel-receipt-total =
 
 ## Shipyard dealer
 trader-shipyard-no-selling = I only sell them. Take her to the used ship salesman.
+trader-shipyard-prompt-unassign = I want to give up my ship's papers.
+trader-shipyard-response-unassign = Let me see the card.
+trader-shipyard-unassign-confirm = Strike the { $ship } off your card? She stays where she is, but she won't be yours on paper and her doors won't know you.
+trader-shipyard-unassigned = Done. The { $ship } is off your card, and you're free to buy another.
+trader-shipyard-prompt-rename = I'd like to rename my ship.
+trader-shipyard-response-rename = New paint on the papers? Let me see the card.
+trader-shipyard-rename-ask = And what should the { $ship } be called from now on?
+trader-shipyard-rename-placeholder = New ship name
+trader-shipyard-rename-cancelled = Keeping the old name, then.
+trader-shipyard-renamed = Done. She's the { $ship } now.
+trader-shipyard-papers-refused = I can't change those papers right now.
+trader-shipyard-papers-refused-reason = I can't change those papers right now. { $reason }
+trader-text-submit = Confirm
 trader-shipyard-sold = She's all yours. Fly her carefully.
 trader-shipyard-unknown-design = Unknown design
 trader-shipyard-receipt-name = Vessel Purchase Receipt

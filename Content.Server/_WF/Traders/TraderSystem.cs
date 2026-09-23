@@ -109,6 +109,7 @@ public sealed class TraderSystem : EntitySystem
         {
             subs.Event<TraderDialogueSelectMessage>(OnDialogueSelect);
             subs.Event<TraderConfirmMessage>(OnConfirm);
+            subs.Event<TraderTextMessage>(OnText);
         });
     }
 
@@ -477,6 +478,7 @@ public sealed class TraderSystem : EntitySystem
 
         ent.Comp.Customer = null;
         ent.Comp.Confirming = false;
+        ent.Comp.TextPrompt = null;
         ent.Comp.PendingOption = null;
         ent.Comp.ReplyAt = null;
         ent.Comp.ReplyLine = null;
@@ -543,9 +545,22 @@ public sealed class TraderSystem : EntitySystem
     public void AskConfirmation(Entity<TraderComponent> ent, string line)
     {
         ent.Comp.Confirming = true;
+        ent.Comp.TextPrompt = null;
         ent.Comp.CurrentLine = line;
         ent.Comp.LastInput = _timing.CurTime;
-        Say(ent, line);
+        UpdateDialogueState(ent);
+    }
+
+    /// <summary>
+    /// Asks the customer to type an answer. The reply comes back as a <see cref="TraderTextEnteredEvent"/>.
+    /// </summary>
+    public void AskText(Entity<TraderComponent> ent, string line, string placeholder, int maxLength)
+    {
+        ent.Comp.Confirming = false;
+        ent.Comp.TextPrompt = placeholder;
+        ent.Comp.TextMaxLength = maxLength;
+        ent.Comp.CurrentLine = line;
+        ent.Comp.LastInput = _timing.CurTime;
         UpdateDialogueState(ent);
     }
 
@@ -576,14 +591,15 @@ public sealed class TraderSystem : EntitySystem
             return;
 
         var options = new List<string>();
-        if (!ent.Comp.Confirming && _proto.TryIndex(ent.Comp.Dialogue, out var dialogue))
+        if (!ent.Comp.Confirming && ent.Comp.TextPrompt == null && _proto.TryIndex(ent.Comp.Dialogue, out var dialogue))
         {
             foreach (var option in dialogue.Options)
                 options.Add(Loc.GetString(option.Prompt));
         }
 
         _ui.SetUiState(ent.Owner, TraderUiKey.Dialogue,
-            new TraderDialogueState(ent.Comp.CurrentLine, options, ent.Comp.Confirming));
+            new TraderDialogueState(ent.Comp.CurrentLine, options, ent.Comp.Confirming,
+                ent.Comp.TextPrompt, ent.Comp.TextMaxLength));
     }
 
     #endregion
@@ -736,6 +752,25 @@ public sealed class TraderSystem : EntitySystem
         ent.Comp.PendingOption = null;
 
         var ev = new TraderConfirmedEvent(ent.Owner, args.Actor, args.Accepted);
+        RaiseLocalEvent(ent.Owner, ref ev);
+
+        UpdateDialogueState(ent);
+    }
+
+    private void OnText(Entity<TraderComponent> ent, ref TraderTextMessage args)
+    {
+        if (ent.Comp.Customer != args.Actor || ent.Comp.TextPrompt == null)
+            return;
+
+        NoteInput(ent);
+        ent.Comp.TextPrompt = null;
+        ent.Comp.PendingOption = null;
+
+        var text = args.Text?.Trim();
+        if (text != null && text.Length > ent.Comp.TextMaxLength)
+            text = text[..ent.Comp.TextMaxLength];
+
+        var ev = new TraderTextEnteredEvent(ent.Owner, args.Actor, string.IsNullOrEmpty(text) ? null : text);
         RaiseLocalEvent(ent.Owner, ref ev);
 
         UpdateDialogueState(ent);

@@ -139,6 +139,54 @@ public sealed partial class ShipyardSystem
         return false;
     }
 
+    /// <summary>
+    /// Runs the console's own unassign path: cooldown, voucher rules and all. True when the deed left the card.
+    /// </summary>
+    public bool TryHostedUnassign(EntityUid host, EntityUid customer, Enum uiKey, EntityUid idCard, out string? refusal)
+    {
+        refusal = null;
+
+        if (!TryComp<ShipyardConsoleComponent>(host, out var console))
+            return false;
+
+        LastConsolePopup = null;
+        OnUnassignDeedMessage(host, console, new ShipyardConsoleUnassignDeedMessage { Actor = customer, UiKey = uiKey });
+
+        if (!HasDeed(idCard))
+            return true;
+
+        refusal = LastConsolePopup;
+        return false;
+    }
+
+    /// <summary>
+    /// Runs the console's own rename path. True when the deed now carries the new name.
+    /// </summary>
+    public bool TryHostedRename(EntityUid host, EntityUid customer, Enum uiKey, EntityUid idCard, string name, out string? refusal)
+    {
+        refusal = null;
+
+        if (!TryComp<ShipyardConsoleComponent>(host, out var console))
+            return false;
+
+        LastConsolePopup = null;
+        OnRenameMessage(host, console, new ShipyardConsoleRenameMessage(name) { Actor = customer, UiKey = uiKey });
+
+        if (TryComp<ShuttleDeedComponent>(idCard, out var deed) && deed.ShuttleName == name)
+            return true;
+
+        refusal = LastConsolePopup;
+        return false;
+    }
+
+    /// <summary>
+    /// The full name of the ship a deed card points at.
+    /// </summary>
+    public string? GetDeedName(EntityUid idCard)
+    {
+        return TryComp<ShuttleDeedComponent>(idCard, out var deed) ? GetFullName(deed) : null;
+    }
+
     #endregion
 
     #region Pricing
