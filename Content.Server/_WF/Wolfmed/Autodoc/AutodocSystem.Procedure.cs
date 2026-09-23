@@ -936,7 +936,7 @@ public sealed partial class AutodocSystem
             {
                 ent.Comp.DefibBlocked = refusal;
                 Speak(ent, AutodocVoiceEvent.DefibBlocked);
-                _chat.TrySendInGameICMessage(ent.Owner, Loc.GetString(refusal), InGameICChatType.Speak, false);
+                _chat.TrySendInGameICMessage(ent.Owner, _revival.LocalizeLine(body, refusal), InGameICChatType.Speak, false);
             }
 
             return false;

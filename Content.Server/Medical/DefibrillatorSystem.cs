@@ -211,7 +211,9 @@ public sealed partial class DefibrillatorSystem : EntitySystem
                 if (_wolfmedRevival.TryDefibrillate(target, out var wolfmedLine))
                     dead = false;
 
-                _chatManager.TrySendInGameICMessage(uid, Loc.GetString(wolfmedLine),
+                // WOLFGATE (M1a): the refusal carries the patient's numbers (blood %, units to transfuse).
+                var wolfmedText = _wolfmedRevival.LocalizeLine(target, wolfmedLine);
+                _chatManager.TrySendInGameICMessage(uid, wolfmedText,
                     InGameICChatType.Speak, true);
 
                 // A gate is not a failed shock: the medic has to fix something before another one is worth
@@ -219,7 +221,7 @@ public sealed partial class DefibrillatorSystem : EntitySystem
                 if (wolfmedLine != Content.Server._WF.Wolfmed.Life.WolfmedRevivalSystem.NoResponse &&
                     wolfmedLine != "wolfmed-defib-success")
                 {
-                    _popup.PopupEntity(Loc.GetString(wolfmedLine), target, user,
+                    _popup.PopupEntity(wolfmedText, target, user, // WOLFGATE (M1a)
                         Content.Shared.Popups.PopupType.MediumCaution);
                 }
             }

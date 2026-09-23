@@ -90,8 +90,9 @@ public sealed class WolfmedArrestLooksDeadTest : GameTest
             breathing = entities.SpawnEntity("WolfmedTestGasper", map.GridCoords);
             arrested = entities.SpawnEntity("WolfmedTestGasper", map.GridCoords);
 
-            // Both unconscious: the respirator only refills a body that is not incapacitated, so both of
-            // them stay under the threshold and the only difference left is the stopped heart.
+            // Both unconscious on the airless test map. An unconscious wound host breathes since M1a, but
+            // there is nothing here to breathe, so both stay under the threshold and the only difference
+            // left is the stopped heart.
             consciousness.SetExternalPressure(breathing, "test", 1f);
             Assert.That(life.StartArrest(arrested, "test"), Is.True);
         });

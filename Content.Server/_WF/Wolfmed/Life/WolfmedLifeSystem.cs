@@ -48,9 +48,6 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// <summary>Blood still moving under a rescuer's hands, as a fraction, while CPR is in progress.</summary>
     private const float CprCirculation = 0.5f;
 
-    /// <summary>Oxygenation a successful defibrillation or a brain repair leaves behind.</summary>
-    public const float RestoredOxygenation = 0.35f;
-
     /// <summary>Passive bleeding multiplier with no pulse behind it. Read by the Onyx bleeding system.</summary>
     public const float ArrestBleedFactor = 0.25f;
 
@@ -61,15 +58,16 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private MobStateSystem _mobState = default!;
-    [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private OrganHealthSystem _organs = default!;
     [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private WolfmedBreathingSystem _breathing = default!;
     [Dependency] private WolfmedConcussionSystem _concussion = default!;
     [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
     [Dependency] private WolfmedInfectionSystem _infection = default!;
     [Dependency] private WolfmedPainReliefSystem _relief = default!;
     [Dependency] private WolfmedShutdownSystem _shutdown = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
+    [Dependency] private WoundSystem _wounds = default!;
 
     private readonly List<EntityUid> _due = new();
     private TimeSpan _nextTick;
@@ -145,6 +143,22 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
     public float GetOxygenation(EntityUid body) => GetBrain(body)?.Comp.Oxygenation ?? 1f;
 
+    /// <summary>Oxygenation a successful shock or a brain repair leaves at the least (M1a, plan §7.1).</summary>
+    public float PostShockOxygenation => Math.Clamp(_cfg.GetCVar(WolfmedCVars.PostShockOxygenation), 0f, 1f);
+
+    /// <summary>A successful shock is holding off the blood and oxygen arrest triggers right now.</summary>
+    public bool InPostShockGrace(EntityUid body) => GetPostShockGraceSeconds(body) > 0f;
+
+    /// <summary>Seconds left on the post-shock grace, or 0 when there is none.</summary>
+    public float GetPostShockGraceSeconds(EntityUid body) =>
+        TryComp(body, out WolfmedPostShockComponent? post) ? MathF.Max(0f, post.GraceSeconds) : 0f;
+
+    /// <summary>
+    /// The time a successful shock restores anything again: another success inside it only restarts the
+    /// heart (<see cref="WolfmedCVars.PostShockRepeatSeconds"/>).
+    /// </summary>
+    public float PostShockRepeatSeconds => MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.PostShockRepeatSeconds));
+
     /// <summary>
     /// The brain is gone: either the organ is destroyed or the body has died some other way. What separates
     /// this from cardiac arrest is that no shock will do anything about it until the brain is rebuilt.
@@ -216,6 +230,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (TryComp(body, out WolfmedCprComponent? cpr) && cpr.Ends <= _timing.CurTime)
             RemComp<WolfmedCprComponent>(body);
 
+        AdvancePostShock(body, seconds);
+
         if (GetBrain(body) is not { } brain)
         {
             // No clock to run. Mechanical bodies live here, and so does every brainless test fixture.
@@ -223,6 +239,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
             // without it a chassis with its pump back would stay arrested until a defibrillator found it.
             TryEndHeartArrest(body);
             _consciousness.SetExternalPressure(body, HypoxiaPressure, 0f);
+            UpdateVitalSigns(body);
             return;
         }
 
@@ -237,6 +254,22 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
         UpdateTrauma(body);
         UpdatePressures(body, brain, dead);
+        UpdateVitalSigns(body);
+    }
+
+    /// <summary>
+    /// Runs the post-shock clocks on the life tick. Once the grace is spent and the repeat window has passed,
+    /// the next shock is a fresh episode and the record goes.
+    /// </summary>
+    private void AdvancePostShock(EntityUid body, float seconds)
+    {
+        if (!TryComp(body, out WolfmedPostShockComponent? post))
+            return;
+
+        post.GraceSeconds = MathF.Max(0f, post.GraceSeconds - seconds);
+        post.SinceRestore += seconds;
+        if (post.GraceSeconds <= 0f && post.SinceRestore >= PostShockRepeatSeconds)
+            RemComp<WolfmedPostShockComponent>(body);
     }
 
     /// <summary>The worst of the four inputs drains; nothing draining at all refills, slowly.</summary>
@@ -281,7 +314,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         // CPR is rescue breaths as well as compressions, so it answers for the airway while it lasts.
         if (!cpr)
         {
-            var breath = Math.Clamp(MathF.Max(AirlossLevel(body), _relief.GetRespiratoryDepression(body)), 0f, 1f);
+            var breath = Math.Clamp(MathF.Max(BreathingLevel(body), _relief.GetRespiratoryDepression(body)), 0f, 1f);
             worst = MathF.Max(worst, breath * Per(_cfg.GetCVar(WolfmedCVars.BrainAirlossSeconds)));
         }
 
@@ -335,18 +368,12 @@ public sealed class WolfmedLifeSystem : EntitySystem
         return Math.Clamp(factor * _cfg.GetCVar(WolfmedCVars.BrainColdFactor), 0f, 1f);
     }
 
-    /// <summary>Suffocation damage against the threshold it used to cross, as 0 to 1.</summary>
-    private float AirlossLevel(EntityUid body)
-    {
-        if (!TryComp(body, out DamageableComponent? damageable) ||
-            !damageable.DamagePerGroup.TryGetValue("Airloss", out var airloss) ||
-            airloss <= FixedPoint2.Zero ||
-            !_thresholds.TryGetThresholdForState(body, MobState.Critical, out var threshold) ||
-            threshold.Value <= FixedPoint2.Zero)
-            return 0f;
-
-        return airloss.Float() / threshold.Value.Float();
-    }
+    /// <summary>
+    /// Not breathing, 0 to 1 (plan §4.3): real suffocation only. Leftover Asphyxiation on a body that is
+    /// breathing again, and Bloodloss at any time, never count; blood reaches the brain through the blood
+    /// input alone.
+    /// </summary>
+    public float BreathingLevel(EntityUid body) => _breathing.SuffocationLevel(body);
 
     /// <summary>Below the threshold the organ itself starts dying, and organ damage is not reversible.</summary>
     private void UpdateBrainDamage(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)
@@ -402,6 +429,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
             return;
         }
 
+        // M1a: a successful shock buys the medic its grace. The drains still run and still show; only the
+        // blood and oxygen triggers wait. A heart that is itself destroyed stops whatever the grace says.
+        var grace = InPostShockGrace(body);
+
         // A heart that has stopped working, not a body that never had one: a species with no heart in its
         // prototype at all is not in arrest, and a heart pulled out arrests on its own removal event.
         if (heart is { } beating && beating <= FixedPoint2.Zero)
@@ -410,13 +441,13 @@ public sealed class WolfmedLifeSystem : EntitySystem
             return;
         }
 
-        if (blood <= _cfg.GetCVar(WolfmedCVars.ArrestBlood))
+        if (!grace && blood <= _cfg.GetCVar(WolfmedCVars.ArrestBlood))
         {
             StartArrest(body, "blood");
             return;
         }
 
-        if (brain.Comp.Oxygenation <= _cfg.GetCVar(WolfmedCVars.ArrestOxygenation))
+        if (!grace && brain.Comp.Oxygenation <= _cfg.GetCVar(WolfmedCVars.ArrestOxygenation))
         {
             StartArrest(body, "oxygen");
             return;
@@ -462,6 +493,114 @@ public sealed class WolfmedLifeSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// The networked breathing and circulation words examine and the analyzer read (plan §4.5, §5.5). Only
+    /// dirtied when one of them changes.
+    /// </summary>
+    public void UpdateVitalSigns(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? consciousness))
+            return;
+
+        var (breathing, source) = _breathing.Assess(body);
+        var band = GetBloodBand(body);
+        if (consciousness.Breathing == breathing && consciousness.BreathingSource == source &&
+            consciousness.BloodBand == band)
+            return;
+
+        consciousness.Breathing = breathing;
+        consciousness.BreathingSource = source;
+        consciousness.BloodBand = band;
+        Dirty(body, consciousness);
+    }
+
+    /// <summary>Blood volume in a medic's words. The lines are consciousness's own Downed and Unconscious ones.</summary>
+    public WolfmedBloodBand GetBloodBand(EntityUid body)
+    {
+        if (_mobState.IsDead(body) || InArrest(body))
+            return WolfmedBloodBand.None;
+
+        if (!HasComp<BloodstreamComponent>(body))
+            return WolfmedBloodBand.Normal;
+
+        var blood = GetBlood(body);
+        if (blood <= _cfg.GetCVar(WolfmedCVars.ConsciousnessBloodOut))
+            return WolfmedBloodBand.Critical;
+
+        if (blood <= _cfg.GetCVar(WolfmedCVars.ConsciousnessBloodDown))
+            return WolfmedBloodBand.Weak;
+
+        return blood <= _cfg.GetCVar(WolfmedCVars.BloodBandPale) ? WolfmedBloodBand.Low : WolfmedBloodBand.Normal;
+    }
+
+    /// <summary>
+    /// Blood leaving the body right now, in units a second: the wounds' stream rate (the bloodstream removes
+    /// it once per update interval) plus every open internal bleed.
+    /// </summary>
+    public float GetBleedRate(EntityUid body)
+    {
+        var rate = 0f;
+        if (TryComp(body, out BloodstreamComponent? bloodstream) && bloodstream.UpdateInterval > TimeSpan.Zero)
+            rate += bloodstream.BleedAmount / (float) bloodstream.UpdateInterval.TotalSeconds;
+
+        foreach (var (part, _) in _body.GetBodyChildren(body))
+        {
+            if (!TryComp(part, out WoundableComponent? woundable))
+                continue;
+
+            foreach (var wound in _wounds.GetWounds((part, woundable)))
+            {
+                if (wound.Comp.State == WoundState.Open &&
+                    TryComp(wound, out WoundInternalBleedingComponent? internalBleeding) &&
+                    internalBleeding.Severity > FixedPoint2.Zero)
+                    rate += internalBleeding.Rate * internalBleeding.Severity.Float();
+            }
+        }
+
+        return rate;
+    }
+
+    /// <summary>
+    /// The two transfusion numbers (plan §7.1): units to <see cref="WolfmedCVars.PostShockBloodTarget"/> plus
+    /// what the current bleed takes over the grace, which keeps the heart going; and units to the line where
+    /// the blood stops draining the brain. Zero when the body has no bloodstream or is already past the line.
+    /// </summary>
+    public (float ToTarget, float ToBrainSafe) GetTransfusionGuidance(EntityUid body)
+    {
+        if (!TryComp(body, out BloodstreamComponent? bloodstream))
+            return (0f, 0f);
+
+        FixedPoint2 max = bloodstream.BloodMaxVolume;
+        var pool = max.Float();
+        if (pool <= 0f)
+            return (0f, 0f);
+
+        var volume = GetBlood(body) * pool;
+        var target = _cfg.GetCVar(WolfmedCVars.PostShockBloodTarget) * pool;
+        var safe = _cfg.GetCVar(WolfmedCVars.BrainBloodStart) * pool;
+        var bleed = GetBleedRate(body) * MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.PostShockGraceSeconds));
+
+        return (MathF.Max(0f, target - volume) + bleed, MathF.Max(0f, safe - volume));
+    }
+
+    /// <summary>
+    /// What the analyzer says after a successful shock: shown while that shock is inside its repeat window,
+    /// the heart is still going and the blood is still under the brain-safe line. Null otherwise.
+    /// </summary>
+    public WolfmedPostShockAdvice? GetPostShockAdvice(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedPostShockComponent? post) || InArrest(body) || _mobState.IsDead(body) ||
+            post.SinceRestore >= PostShockRepeatSeconds)
+            return null;
+
+        var (units, safe) = GetTransfusionGuidance(body);
+        if (safe <= 0f)
+            return null;
+
+        return new WolfmedPostShockAdvice(units, safe, GetPostShockGraceSeconds(body),
+            _cfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f);
+    }
+
     #endregion
 
     #region State changes
@@ -496,6 +635,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
         _consciousness.SetExternalPressure(body, ArrestPressure, 1f);
         _bleeding.RefreshBody(body);
+        UpdateVitalSigns(body);
         return true;
     }
 
@@ -507,6 +647,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         RemComp<WolfmedCardiacArrestComponent>(body);
         _consciousness.SetExternalPressure(body, ArrestPressure, 0f);
         _bleeding.RefreshBody(body);
+        UpdateVitalSigns(body);
         return true;
     }
 
@@ -530,7 +671,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
             return;
 
         _organs.SetHealth(organ, organ.Comp.MaxHealth);
-        SetOxygenation(body, MathF.Max(GetOxygenation(body), RestoredOxygenation));
+        SetOxygenation(body, MathF.Max(GetOxygenation(body), PostShockOxygenation));
 
         var trauma = EnsureComp<WolfmedBrainTraumaComponent>(body);
         trauma.Ends = _timing.CurTime + TimeSpan.FromMinutes(_cfg.GetCVar(WolfmedCVars.BrainTraumaMinutes));
@@ -635,6 +776,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         EndArrest(body);
         RemComp<WolfmedBrainTraumaComponent>(body);
         RemComp<WolfmedCprComponent>(body);
+        RemComp<WolfmedPostShockComponent>(body);
         _consciousness.SetExternalPressure(body, HypoxiaPressure, 0f);
 
         if (GetBrainOrgan(body) is { } organ)
@@ -649,10 +791,14 @@ public sealed class WolfmedLifeSystem : EntitySystem
         _concussion.Refresh(body);
     }
 
-    /// <summary>A pain shock on a body that has already lost half its blood stops the heart instead.</summary>
+    /// <summary>
+    /// A pain shock on a body that has already bled out stops the heart instead. Off by default since M1a
+    /// (<see cref="WolfmedCVars.ArrestShockBlood"/> 0): pain is never a route to death.
+    /// </summary>
     private void OnPainShock(ref WolfmedPainShockEvent args)
     {
-        if (!OwnsDeath(args.Body) || GetBlood(args.Body) > _cfg.GetCVar(WolfmedCVars.ArrestShockBlood))
+        var threshold = _cfg.GetCVar(WolfmedCVars.ArrestShockBlood);
+        if (threshold <= 0f || !OwnsDeath(args.Body) || GetBlood(args.Body) > threshold)
             return;
 
         StartArrest(args.Body, "shock");
@@ -728,3 +874,6 @@ public sealed class WolfmedLifeSystem : EntitySystem
         return null;
     }
 }
+
+/// <summary>The analyzer's post-shock numbers: units inside the grace, units to the brain-safe line (a %).</summary>
+public readonly record struct WolfmedPostShockAdvice(float Units, float SafeUnits, float GraceSeconds, float SafeLine);

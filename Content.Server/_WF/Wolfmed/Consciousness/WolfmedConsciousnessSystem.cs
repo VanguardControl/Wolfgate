@@ -2,6 +2,7 @@ using Content.Server.Body.Components;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
@@ -363,6 +364,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         comp.Pressures.Clear();
         comp.BloodFraction = 1f;
         comp.Oxygenation = 1f;
+        comp.Breathing = WolfmedBreathing.Normal;
+        comp.BreathingSource = WolfmedBreathingSource.None;
+        comp.BloodBand = WolfmedBloodBand.Normal;
         comp.DownLevel = 0f;
         comp.OutLevel = 0f;
         comp.State = WolfmedConsciousness.Up;

@@ -1,3 +1,4 @@
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Alert;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -47,6 +48,18 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     /// </summary>
     [AutoNetworkedField]
     public float Oxygenation = 1f;
+
+    /// <summary>M1a: what the chest is doing. Set by the life tick; examine and the analyzer read it.</summary>
+    [AutoNetworkedField]
+    public WolfmedBreathing Breathing = WolfmedBreathing.Normal;
+
+    /// <summary>M1a: why <see cref="Breathing"/> is not Normal.</summary>
+    [AutoNetworkedField]
+    public WolfmedBreathingSource BreathingSource = WolfmedBreathingSource.None;
+
+    /// <summary>M1a: circulation as a medic describes it, from blood volume. Set by the life tick.</summary>
+    [AutoNetworkedField]
+    public WolfmedBloodBand BloodBand = WolfmedBloodBand.Normal;
 
     /// <summary>Blood volume fraction at the bloodstream's last tick. 1 when the body has no bloodstream.</summary>
     [ViewVariables]

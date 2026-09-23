@@ -178,6 +178,9 @@ public sealed partial class HealthAnalyzerSystem
         var brain = _life.GetBrain(body);
         var brainOrgan = _life.GetBrainOrgan(body);
 
+        // WOLFGATE (M1a): the remaining problem after a shock, in units (plan §7.1).
+        var postShock = _life.GetPostShockAdvice(body);
+
         return new HealthAnalyzerWoundDiagnostics(
             result,
             _infection.GetSepsis(body), // WOLFGATE (W5)
@@ -189,7 +192,11 @@ public sealed partial class HealthAnalyzerSystem
             brainOrgan == null ? -1f : _life.GetBrainActivity(body), // WOLFGATE (BRAIN)
             brain == null ? -1f : brain.Value.Comp.Oxygenation, // WOLFGATE (BRAIN)
             _life.GetBrainDeathSeconds(body) ?? -1f, // WOLFGATE (BRAIN)
-            _shutdown.IsShutDown(body)); // WOLFGATE (BRAIN)
+            _shutdown.IsShutDown(body), // WOLFGATE (BRAIN)
+            postShock?.Units ?? -1f, // WOLFGATE (M1a)
+            postShock?.SafeUnits ?? 0f, // WOLFGATE (M1a)
+            postShock?.GraceSeconds ?? 0f, // WOLFGATE (M1a)
+            postShock?.SafeLine ?? 0f); // WOLFGATE (M1a)
     }
 
     /// <summary>

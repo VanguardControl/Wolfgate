@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Content.IntegrationTests.Fixtures;
+using Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server._WF.Wolfmed.Life;
@@ -10,6 +11,8 @@ using Content.Shared._Onyx.Body.Systems;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
@@ -22,6 +25,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Rejuvenate;
 using Content.Shared.Traits.Assorted;
 using NUnit.Framework;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -183,7 +187,8 @@ public sealed class WolfmedBrainTest : GameTest
 
     /// <summary>
     /// Brain death is not the end of it. The paddles refuse a destroyed brain, the surgery puts it back, and
-    /// then the same paddles work.
+    /// then the same paddles work. M1a: the patient comes back on the post-shock oxygenation, and with their
+    /// blood in them that is Downed at once, not unconscious.
     /// </summary>
     [Test]
     public async Task BrainRepairMakesADeadBodyDefibrillatableTest()
@@ -227,16 +232,24 @@ public sealed class WolfmedBrainTest : GameTest
             Assert.That(line, Is.EqualTo("wolfmed-defib-success"));
             revival.ForcedRoll = null;
 
+            var restored = server.ResolveDependency<IConfigurationManager>().GetCVar(WolfmedCVars.PostShockOxygenation);
             Assert.Multiple(() =>
             {
                 Assert.That(mobState.IsDead(body), Is.False, "the revived body stayed dead.");
-                Assert.That(mobState.IsCritical(body), Is.True, "the revived body woke straight up.");
+                Assert.That(life.GetOxygenation(body), Is.EqualTo(restored).Within(0.001f),
+                    "the shock did not leave the post-shock oxygenation.");
+                Assert.That(entities.GetComponent<WolfmedConsciousnessComponent>(body).State,
+                    Is.EqualTo(WolfmedConsciousness.Downed), "a revived body with its blood did not come round Downed.");
+                Assert.That(mobState.IsCritical(body), Is.False);
                 Assert.That(life.InArrest(body), Is.False);
             });
         });
     }
 
-    /// <summary>Blood under the defibrillator's floor is a refusal, whatever the brain says.</summary>
+    /// <summary>
+    /// Blood under the defibrillator's floor (M1a: 25%) is a refusal whatever the brain says, and the refusal
+    /// names the units. A beating heart is refused too: a shock is not indicated.
+    /// </summary>
     [Test]
     public async Task DefibrillatorNeedsBloodAndABrainTest()
     {
@@ -250,12 +263,21 @@ public sealed class WolfmedBrainTest : GameTest
             var life = entities.System<WolfmedLifeSystem>();
             var revival = entities.System<WolfmedRevivalSystem>();
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
-            Bleed(entities, body, 0.25f);
+            Bleed(entities, body, 0.2f);
             life.Tick(body, 1f);
+            Assert.That(life.InArrest(body), Is.True);
 
             revival.ForcedRoll = 0f;
             Assert.That(revival.TryDefibrillate(body, out var line), Is.False);
-            Assert.That(line, Is.EqualTo("wolfmed-defib-no-blood"));
+            Assert.That(line, Is.EqualTo(WolfmedRevivalSystem.NoBlood));
+
+            // 20% of a 300 u pool: 45 u to the 35% post-shock target, 90 u to 50%.
+            var text = revival.LocalizeLine(body, line);
+            Assert.That(text, Does.Contain("≈ 45 u").And.Contain("≈ 90 u"), $"the refusal names no units: {text}");
+
+            var healthy = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(revival.TryDefibrillate(healthy, out var pulse), Is.False, "the paddles restarted a beating heart.");
+            Assert.That(pulse, Is.EqualTo(WolfmedRevivalSystem.PulsePresent));
             revival.ForcedRoll = null;
         });
     }
@@ -320,7 +342,11 @@ public sealed class WolfmedBrainTest : GameTest
         });
     }
 
-    /// <summary>Suffocation drains the brain, and putting the air back lets it fill again.</summary>
+    /// <summary>
+    /// Real suffocation drains the brain, and putting the air back lets it fill again (M1a, plan §4.3).
+    /// Asphyxiation on a body that is breathing is bookkeeping: it drains nothing before, and it does not
+    /// hold the refill back after.
+    /// </summary>
     [Test]
     public async Task SuffocationDrainsAndRecoversTest()
     {
@@ -328,23 +354,60 @@ public sealed class WolfmedBrainTest : GameTest
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
         var map = await Pair.CreateTestMap();
+        var scenario = new WolfmedScenario(entities);
+        EntityUid body = default;
+        var starved = 0f;
 
         await server.WaitAssertion(() =>
         {
             var life = entities.System<WolfmedLifeSystem>();
-            var damage = entities.System<DamageableSystem>();
-            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            scenario.SetAir(map.MapUid, true);
+            body = entities.SpawnEntity("MobHuman", map.GridCoords);
 
-            damage.TryChangeDamage(body, Spec("Asphyxiation", 200), ignoreResistances: true);
+            entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Asphyxiation", 150), ignoreResistances: true);
             Run(life, body, 60);
-            var starved = life.GetOxygenation(body);
+            Assert.That(life.GetOxygenation(body), Is.EqualTo(1f).Within(0.001f),
+                "Asphyxiation on a breathing patient drained the brain.");
+
+            scenario.SetAir(map.MapUid, false);
+        });
+
+        await WaitForBreathing(scenario, body, suffocating: true);
+
+        await server.WaitAssertion(() =>
+        {
+            var life = entities.System<WolfmedLifeSystem>();
+            Run(life, body, 60);
+            starved = life.GetOxygenation(body);
             Assert.That(starved, Is.LessThan(0.8f), "suffocation cost the brain nothing.");
+            scenario.SetAir(map.MapUid, true);
+        });
 
-            damage.TryChangeDamage(body, Spec("Asphyxiation", -200), ignoreResistances: true);
+        await WaitForBreathing(scenario, body, suffocating: false);
+
+        await server.WaitAssertion(() =>
+        {
+            var life = entities.System<WolfmedLifeSystem>();
+            Assert.That(scenario.Damage(body, "Asphyxiation"), Is.GreaterThan(FixedPoint2.Zero),
+                "the damage healed before the check; this proves nothing about leftover Asphyxiation.");
+            var breathing = life.GetOxygenation(body);
             Run(life, body, 60);
-            Assert.That(life.GetOxygenation(body), Is.GreaterThan(starved),
+            Assert.That(life.GetOxygenation(body), Is.GreaterThan(breathing),
                 "the brain never refilled once the patient was breathing again.");
         });
+    }
+
+    /// <summary>Real time until the respirator is, or is no longer, suffocating.</summary>
+    private async Task WaitForBreathing(WolfmedScenario scenario, EntityUid body, bool suffocating)
+    {
+        var done = false;
+        for (var second = 0; second < 30 && !done; second++)
+        {
+            await Pair.RunSeconds(1);
+            await Pair.Server.WaitPost(() => done = scenario.Breathing.IsSuffocating(body) == suffocating);
+        }
+
+        Assert.That(done, Is.True, suffocating ? "the respirator never ran short." : "the respirator never recovered.");
     }
 
     /// <summary>Rejuvenate undoes an arrest, the clock and the organ damage behind it.</summary>

@@ -40,6 +40,7 @@ public sealed partial class RespiratorSystem : EntitySystem
     [Dependency] private IPrototypeManager _protoMan = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
     [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedBreathingSystem _wolfmedBreathing = default!; // WOLFGATE (M1a)
 
     private static readonly ProtoId<MetabolismGroupPrototype> GasId = new("Gas");
 
@@ -81,7 +82,9 @@ public sealed partial class RespiratorSystem : EntitySystem
 
             UpdateSaturation(uid, -(float) respirator.UpdateInterval.TotalSeconds, respirator);
 
-            if (!_mobState.IsIncapacitated(uid) && !HasComp<DebrainedComponent>(uid)) // Shitmed Change - Cannot breathe in crit or when no brain.
+            // WOLFGATE (M1a): a wound host breathes while unconscious; only arrest and death stop it there.
+            // Everything else keeps the incapacitated rule (WolfmedBreathingSystem).
+            if (!_wolfmedBreathing.BreathingSuppressed(uid) && !HasComp<DebrainedComponent>(uid)) // Shitmed Change - Cannot breathe in crit or when no brain.
             {
                 switch (respirator.Status)
                 {

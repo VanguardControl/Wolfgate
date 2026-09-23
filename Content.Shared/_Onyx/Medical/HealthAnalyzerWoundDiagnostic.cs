@@ -95,6 +95,21 @@ public sealed class HealthAnalyzerWoundDiagnostics
     /// <summary>WOLFGATE (BRAIN): a machine body with no power or no pump.</summary>
     public readonly bool Shutdown;
 
+    /// <summary>
+    /// WOLFGATE (M1a): after a successful shock, units to transfuse inside the grace to keep the heart
+    /// going (plan §7.1), or -1 when there is no post-shock advice to show.
+    /// </summary>
+    public readonly float PostShockUnits;
+
+    /// <summary>WOLFGATE (M1a): units to the blood line where the brain stops draining.</summary>
+    public readonly float PostShockSafeUnits;
+
+    /// <summary>WOLFGATE (M1a): seconds left on the post-shock grace; 0 once it has run out.</summary>
+    public readonly float PostShockGraceSeconds;
+
+    /// <summary>WOLFGATE (M1a): that blood line, as a percentage.</summary>
+    public readonly float PostShockSafeLine;
+
     public HealthAnalyzerWoundDiagnostics(
         Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts,
         float sepsis = 0f, // WOLFGATE (W5)
@@ -106,7 +121,11 @@ public sealed class HealthAnalyzerWoundDiagnostics
         float brainActivity = -1f, // WOLFGATE (BRAIN)
         float oxygenation = -1f, // WOLFGATE (BRAIN)
         float brainDeathSeconds = -1f, // WOLFGATE (BRAIN)
-        bool shutdown = false) // WOLFGATE (BRAIN)
+        bool shutdown = false, // WOLFGATE (BRAIN)
+        float postShockUnits = -1f, // WOLFGATE (M1a)
+        float postShockSafeUnits = 0f, // WOLFGATE (M1a)
+        float postShockGraceSeconds = 0f, // WOLFGATE (M1a)
+        float postShockSafeLine = 0f) // WOLFGATE (M1a)
     {
         Parts = parts;
         Sepsis = sepsis; // WOLFGATE (W5)
@@ -119,5 +138,9 @@ public sealed class HealthAnalyzerWoundDiagnostics
         Oxygenation = oxygenation; // WOLFGATE (BRAIN)
         BrainDeathSeconds = brainDeathSeconds; // WOLFGATE (BRAIN)
         Shutdown = shutdown; // WOLFGATE (BRAIN)
+        PostShockUnits = postShockUnits; // WOLFGATE (M1a)
+        PostShockSafeUnits = postShockSafeUnits; // WOLFGATE (M1a)
+        PostShockGraceSeconds = postShockGraceSeconds; // WOLFGATE (M1a)
+        PostShockSafeLine = postShockSafeLine; // WOLFGATE (M1a)
     }
 }

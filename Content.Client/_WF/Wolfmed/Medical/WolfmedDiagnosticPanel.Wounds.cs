@@ -6,6 +6,7 @@ using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared._WF.Wolfmed.Reagents; // CONSC
+using Content.Shared._WF.Wolfmed.Life; // M1a
 using Content.Shared.FixedPoint;
 using Content.Shared.MedicalScanner;
 using Robust.Client.Graphics;
@@ -62,6 +63,7 @@ public sealed partial class WolfmedDiagnosticPanel
     /// <summary>FIX1: the sepsis banner's text, which carries a percentage that moves between rebuilds.</summary>
     private RichTextLabel? _sepsisLabel;
     private RichTextLabel? _arrestLabel; // BRAIN
+    private RichTextLabel? _postShockLabel; // M1a
     private RichTextLabel? _brainLabel; // BRAIN
 
     /// <summary>CONSC: the two body-level banners whose numbers drift between rebuilds.</summary>
@@ -148,6 +150,7 @@ public sealed partial class WolfmedDiagnosticPanel
         _sepsisLabel = null;
         _arrestLabel = null; // BRAIN
         _brainLabel = null; // BRAIN
+        _postShockLabel = null; // M1a
         _painLabels.Clear();
         WoundAlertsContainer.RemoveAllChildren();
         WoundCategoryStrip.RemoveAllChildren();
@@ -188,6 +191,19 @@ public sealed partial class WolfmedDiagnosticPanel
                 WolfmedWoundStyle.Necrosis,
                 Loc.GetString("health-analyzer-wound-shutdown"),
                 "cardiac-arrest"));
+
+        // M1a: a restarted heart with the blood still low. The units that keep it going, and the units that
+        // stop the brain injury, kept apart (plan §7.1).
+        if (msg.WoundDiagnostics is { PostShockUnits: >= 0f } revived)
+        {
+            WoundAlertsContainer.AddChild(CreateAlertRow(
+                "blood_low",
+                WolfmedWoundStyle.Bleeding,
+                PostShockText(msg.BloodLevel, revived),
+                "blood-low",
+                out var postShock));
+            _postShockLabel = postShock;
+        }
 
         if (msg.WoundDiagnostics is { BrainActivity: >= 0f } vitals)
         {
@@ -300,6 +316,7 @@ public sealed partial class WolfmedDiagnosticPanel
         text.Append(diagnostics.CardiacArrest ? 'a' : '-')
             .Append(diagnostics.BrainDead ? 'b' : '-')
             .Append(diagnostics.Shutdown ? 's' : '-')
+            .Append(diagnostics.PostShockUnits >= 0f ? 'r' : '-') // M1a
             .Append(diagnostics.BrainActivity >= 0f ? 'v' : '-')
             .Append(diagnostics.BrainActivity < BrainDamageCritical ? 'c'
                 : diagnostics.BrainActivity < BrainDamageFinding ? 'd' : '-');
@@ -358,6 +375,9 @@ public sealed partial class WolfmedDiagnosticPanel
         if (_arrestLabel is { } arrest && diagnostics.CardiacArrest)
             arrest.SetMessage(FormattedMessage.FromMarkupPermissive(ArrestText(diagnostics)));
 
+        if (_postShockLabel is { } postShock && diagnostics.PostShockUnits >= 0f) // M1a
+            postShock.SetMessage(FormattedMessage.FromMarkupPermissive(PostShockText(msg.BloodLevel, diagnostics)));
+
         if (_brainLabel is { } brainLabel && diagnostics.BrainActivity >= 0f)
             brainLabel.SetMessage(FormattedMessage.FromMarkupPermissive(BrainText(diagnostics)));
 
@@ -382,10 +402,16 @@ public sealed partial class WolfmedDiagnosticPanel
         _sepsisLabel = null;
         _arrestLabel = null; // BRAIN
         _brainLabel = null; // BRAIN
+        _postShockLabel = null; // M1a
         _painReliefLabel = null; // CONSC
         _sedationLabel = null; // CONSC
         _painLabels.Clear();
     }
+
+    /// <summary>M1a: the post-shock transfusion line.</summary>
+    private static string PostShockText(float bloodLevel, HealthAnalyzerWoundDiagnostics diagnostics) =>
+        WolfmedPostShockText.Format(bloodLevel, diagnostics.PostShockUnits, diagnostics.PostShockSafeUnits,
+            diagnostics.PostShockGraceSeconds, diagnostics.PostShockSafeLine);
 
     /// <summary>BRAIN: no pulse, and how long the brain has left if nothing changes.</summary>
     private static string ArrestText(HealthAnalyzerWoundDiagnostics diagnostics)

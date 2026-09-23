@@ -121,12 +121,13 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
             var slots = entities.System<ItemSlotsSystem>();
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
 
-            Bleed(entities, body, 0.30f);
+            // M1a: the gate is 25%, under the 30% arrest, so the refusal needs a body bled further than that.
+            Bleed(entities, body, 0.20f);
             life.Tick(body, 1f);
 
             Assert.Multiple(() =>
             {
-                Assert.That(life.InArrest(body), Is.True, "a body at 30% blood kept a pulse.");
+                Assert.That(life.InArrest(body), Is.True, "a body at 20% blood kept a pulse.");
                 Assert.That(revival.GetRefusal(body), Is.EqualTo("wolfmed-defib-no-blood"),
                     "the paddles refused for some other reason than the blood.");
             });

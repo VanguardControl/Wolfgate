@@ -160,9 +160,12 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> ArrestOxygenation =
         CVarDef.Create("wolfmed.arrest_oxygenation", 0.15f, CVar.SERVERONLY);
 
-    /// <summary>Blood volume fraction at or under which a pain shock stops the heart instead of stunning.</summary>
+    /// <summary>
+    /// Blood volume fraction at or under which a pain shock stops the heart instead of stunning. Zero turns
+    /// that trigger off (M1a: pain is never a route to death).
+    /// </summary>
     public static readonly CVarDef<float> ArrestShockBlood =
-        CVarDef.Create("wolfmed.arrest_shock_blood", 0.5f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.arrest_shock_blood", 0f, CVar.SERVERONLY);
 
     /// <summary>Sepsis progress at or past which the heart can stop on its own.</summary>
     public static readonly CVarDef<float> ArrestSepsis =
@@ -239,9 +242,12 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> BrainTraumaMinutes =
         CVarDef.Create("wolfmed.brain_trauma_minutes", 30f, CVar.SERVERONLY);
 
-    /// <summary>Blood volume fraction under which a defibrillator can never restart the heart.</summary>
+    /// <summary>
+    /// Blood volume fraction under which a defibrillator refuses to shock. Under the 0.30 blood arrest, so the
+    /// common arrest is shockable; the post-shock grace covers the transfusion that has to follow.
+    /// </summary>
     public static readonly CVarDef<float> DefibBlood =
-        CVarDef.Create("wolfmed.defib_blood", 0.40f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.defib_blood", 0.25f, CVar.SERVERONLY);
 
     /// <summary>Best chance a defibrillator has, at full brain oxygenation.</summary>
     public static readonly CVarDef<float> DefibChance =
@@ -307,4 +313,37 @@ public sealed class WolfmedCVars
     /// <summary>Text size multiplier for the synthetic readout.</summary>
     public static readonly CVarDef<float> SyntheticHudScale =
         CVarDef.Create("wolfmed.synthetic_hud_scale", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    /// <summary>
+    /// Asphyxiation at which a suffocating body counts as not breathing at all. Read only while the respirator
+    /// is actually suffocating; leftover damage on a breathing body is bookkeeping.
+    /// </summary>
+    public static readonly CVarDef<float> AirlossFull =
+        CVarDef.Create("wolfmed.airloss_full", 100f, CVar.SERVERONLY);
+
+    /// <summary>Brain oxygenation a successful shock or a brain repair leaves at the least.</summary>
+    public static readonly CVarDef<float> PostShockOxygenation =
+        CVarDef.Create("wolfmed.post_shock_oxygenation", 0.5f, CVar.SERVERONLY);
+
+    /// <summary>Seconds after a successful shock during which the blood and oxygen arrest triggers hold off.</summary>
+    public static readonly CVarDef<float> PostShockGraceSeconds =
+        CVarDef.Create("wolfmed.post_shock_grace_seconds", 45f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds after a successful shock during which another one only restarts the heart: no oxygenation
+    /// restore and no new grace. One restore per arrest episode.
+    /// </summary>
+    public static readonly CVarDef<float> PostShockRepeatSeconds =
+        CVarDef.Create("wolfmed.post_shock_repeat_seconds", 300f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Blood volume fraction the transfusion guidance aims for after a shock, with margin over the arrest line.
+    /// The units named are the units to this plus the current bleed over the grace.
+    /// </summary>
+    public static readonly CVarDef<float> PostShockBloodTarget =
+        CVarDef.Create("wolfmed.post_shock_blood_target", 0.35f, CVar.SERVERONLY);
+
+    /// <summary>Blood volume fraction at or under which the circulation reads pale rather than normal.</summary>
+    public static readonly CVarDef<float> BloodBandPale =
+        CVarDef.Create("wolfmed.blood_band_pale", 0.8f, CVar.SERVER | CVar.REPLICATED);
 }
