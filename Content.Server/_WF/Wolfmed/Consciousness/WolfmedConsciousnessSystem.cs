@@ -446,6 +446,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             pain.SoftPainCap <= FixedPoint2.Zero)
         {
             comp.PainFaintUntil = null;
+            comp.PainFaintStart = null;
             return false;
         }
 
@@ -461,6 +462,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
 
             // Waking. The baseline is the pain now, so what was added during the faint never counts.
             comp.PainFaintUntil = null;
+            comp.PainFaintStart = null;
             comp.PainFaintBaseline = summed;
             comp.PainFaintCooldownUntil = now + TimeSpan.FromSeconds(MathF.Max(0f, _faintCooldown));
             comp.PainFaintArmed = false;
@@ -476,6 +478,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         if (!comp.PainFaintArmed && summed < comp.PainFaintBaseline + _faintRise)
             return false;
 
+        comp.PainFaintStart = now;
         comp.PainFaintUntil = now + TimeSpan.FromSeconds(MathF.Max(0f, _faintSeconds));
         comp.PainFaintArmed = false;
         return true;
@@ -488,6 +491,23 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     public bool InFaint(EntityUid body) =>
         TryComp(body, out WolfmedConsciousnessComponent? comp) && !_mobState.IsDead(body) &&
         comp.State == WolfmedConsciousness.Unconscious && comp.Cause == WolfmedCause.PainFaint;
+
+    /// <summary>
+    /// Playtest 2: the running pain faint's start and end, for the alert's countdown and the seconds in the text.
+    /// Null when no faint runs.
+    /// </summary>
+    public (TimeSpan Start, TimeSpan End)? GetFaintWindow(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp) || comp.PainFaintUntil is not { } until ||
+            until <= _timing.CurTime)
+            return null;
+
+        return (comp.PainFaintStart ?? _timing.CurTime, until);
+    }
+
+    /// <summary>Whole seconds left in the running pain faint, rounded up; null when none runs.</summary>
+    public int? GetFaintSecondsLeft(EntityUid body) =>
+        GetFaintWindow(body) is { } window ? (int) Math.Ceiling((window.End - _timing.CurTime).TotalSeconds) : null;
 
     /// <summary>A pain faint is running on this body.</summary>
     public bool IsFainted(EntityUid body) =>
@@ -533,7 +553,8 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
 
     /// <summary>
     /// Both legs gone or disabled. Shitmed already drops the body when the last leg leaves; this reads the
-    /// same state as a consciousness input, so the two agree instead of fighting.
+    /// same state as a consciousness input, so the two agree instead of fighting. Playtest 2: a leg Shitmed has
+    /// switched off (<see cref="BodyPartComponent.Enabled"/>) counts as disabled too, since it is what drops the body.
     /// </summary>
     private bool LegsGone(EntityUid body)
     {
@@ -545,7 +566,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             if (bodyPart.PartType != BodyPartType.Leg)
                 continue;
 
-            if (CompOrNull<BodyPartFunctionalityComponent>(part)?.State !=
+            if (bodyPart.Enabled && CompOrNull<BodyPartFunctionalityComponent>(part)?.State !=
                 BodyPartFunctionalityState.Disabled)
                 return false;
         }
@@ -575,6 +596,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             // M1a: the dead are past Succumb and Last Words (plan §5.4).
             _dyingActions.Revoke(uid);
             comp.PainFaintUntil = null;
+            comp.PainFaintStart = null;
 
             // Death is someone else's (a destroyed brain, a gib, an admin). Apply drops the Downed restrictions
             // and Call for help and raises the change like any other; the alert system says nothing for the dead.
@@ -602,6 +624,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         comp.Blockers = WolfmedCauseFlags.None;
         comp.HypoxiaSource = WolfmedCauseSource.None;
         comp.PainFaintUntil = null;
+        comp.PainFaintStart = null;
         comp.PainFaintArmed = true;
         comp.PainFaintBaseline = 0f;
         comp.PainFaintCooldownUntil = TimeSpan.Zero;

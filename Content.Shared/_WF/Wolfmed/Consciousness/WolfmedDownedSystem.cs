@@ -35,6 +35,7 @@ public sealed class WolfmedDownedSystem : EntitySystem
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -85,6 +86,9 @@ public sealed class WolfmedDownedSystem : EntitySystem
 
         // M1a: the alert is the condition alert system's now, one per cause.
         _blocker.UpdateCanMove(ent);
+
+        // Playtest 2: the crawl floor holds only while Downed (WolfmedCrawlSystem).
+        _movement.RefreshMovementSpeedModifiers(ent);
     }
 
     private void OnShutdown(Entity<WolfmedDownedComponent> ent, ref ComponentShutdown args)
@@ -98,6 +102,7 @@ public sealed class WolfmedDownedSystem : EntitySystem
             _standing.Stand(ent);
 
         _blocker.UpdateCanMove(ent);
+        _movement.RefreshMovementSpeedModifiers(ent);
     }
 
     /// <summary>

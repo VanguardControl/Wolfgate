@@ -78,6 +78,7 @@ wolfmed-cause-pain-faint = a pain faint
 wolfmed-cause-pain-faint-title = Passed out: pain
 wolfmed-cause-pain-faint-symptom = Pain knocked you out.
 wolfmed-cause-pain-faint-help = You come round in seconds.
+wolfmed-cause-pain-faint-help-timed = Coming round in { $seconds } s.
 wolfmed-cause-pain-faint-help-blocked = The pain passes in seconds; something else keeps you under.
 wolfmed-cause-pain-faint-out = The pain takes you under.
 
@@ -200,3 +201,9 @@ wolfmed-call-for-help-title = Call for help
 wolfmed-call-for-help-prompt = Shout what? Empty for "{ $default }".
 wolfmed-call-for-help-default = Help! I'm down!
 wolfmed-call-for-help-cooldown = You just called. Wait.
+
+# Playtest 2: what a limb's wound penalty costs, told once when it first bites and kept in the condition text.
+wolfmed-limb-penalty-hands = Your hands are hurt; everything takes longer.
+wolfmed-limb-penalty-hands-burn = Your hands are badly burned; everything takes longer.
+wolfmed-limb-penalty-legs = Your legs are hurt; moving is slow.
+wolfmed-limb-penalty-legs-burn = Your legs are badly burned; moving is slow.

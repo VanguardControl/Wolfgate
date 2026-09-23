@@ -182,7 +182,8 @@ public sealed class WolfmedMedicLinesTest : GameTest
             lines = s.AnalyzerLines(faint);
             Assert.Multiple(() =>
             {
-                Assert.That(lines[0], Is.EqualTo("FAINTED: pain"));
+                // Playtest 2: the faint's seconds left.
+                Assert.That(lines[0], Does.Match(@"^FAINTED: pain, \d+ s$"));
                 Assert.That(lines[1], Is.EqualTo("Breathing: normal"), "a fainted patient is breathing (plan §4).");
                 Assert.That(lines[^1], Is.EqualTo("Defib: refused: pulse present"));
             });

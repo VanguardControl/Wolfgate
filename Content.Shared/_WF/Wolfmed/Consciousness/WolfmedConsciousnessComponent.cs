@@ -77,6 +77,10 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     [ViewVariables]
     public TimeSpan? PainFaintUntil;
 
+    /// <summary>Server: when the running pain faint began. The faint alert's countdown runs from here to <see cref="PainFaintUntil"/>.</summary>
+    [ViewVariables]
+    public TimeSpan? PainFaintStart;
+
     /// <summary>
     /// Server: a crossing of the faint line faints. Cleared by a faint, set again when summed pain falls under
     /// the leave line.
@@ -91,6 +95,14 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     /// <summary>Server: no new faint starts before this, whatever the pain does.</summary>
     [ViewVariables]
     public TimeSpan PainFaintCooldownUntil;
+
+    /// <summary>Server, playtest 2: the patient has been told their hands are slowed by their wounds.</summary>
+    [ViewVariables]
+    public bool HandsPenaltyTold;
+
+    /// <summary>Server, playtest 2: the patient has been told their legs are slowed by their wounds.</summary>
+    [ViewVariables]
+    public bool LegsPenaltyTold;
 
     /// <summary>Server: the last condition line the patient was told. Tests and admins read it.</summary>
     [ViewVariables]

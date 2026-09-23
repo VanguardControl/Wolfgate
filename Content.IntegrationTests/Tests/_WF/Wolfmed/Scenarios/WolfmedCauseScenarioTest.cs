@@ -159,10 +159,12 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                 Assert.That(SEntMan.System<MobStateSystem>().IsCritical(a), Is.True, "a faint is Critical.");
                 Assert.That(s.Breathing.BreathingSuppressed(a), Is.False, "a fainted patient stopped breathing.");
                 Assert.That(alerts.GetShownHealthAlert(a)?.Id, Is.EqualTo("WolfmedFaintPain"));
-                Assert.That(alerts.GetConditionText(a), Does.Contain(Loc.GetString("wolfmed-cause-pain-faint-help")),
-                    "an unblocked faint did not say the patient comes round in a few seconds.");
+                // Playtest 2: the seconds, counted from the faint's start.
+                Assert.That(alerts.GetConditionText(a),
+                    Does.Contain(Loc.GetString("wolfmed-cause-pain-faint-help-timed", ("seconds", (int) FaintSeconds))),
+                    "an unblocked faint did not say when the patient comes round.");
                 // M1a D: what the medic reads (plan §12 M1a).
-                Assert.That(s.AnalyzerLines(a)[0], Is.EqualTo("FAINTED: pain"));
+                Assert.That(s.AnalyzerLines(a)[0], Is.EqualTo($"FAINTED: pain, {(int) FaintSeconds} s"));
             });
         });
 

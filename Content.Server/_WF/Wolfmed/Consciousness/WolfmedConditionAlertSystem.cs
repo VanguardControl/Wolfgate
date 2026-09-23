@@ -4,6 +4,8 @@ using Content.Server.Chat.Managers;
 using Content.Server.Popups;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Reagents;
+using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Body.Part;
 using Content.Shared.Alert;
 using Content.Shared.Chat;
 using Content.Shared.Mobs;
@@ -39,6 +41,10 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!;
     [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private readonly WolfmedWoundTraitSystem _woundTraits = default!;
+
+    /// <summary>Bodies whose limb-penalty wounds changed this tick; checked once in the update.</summary>
+    private readonly HashSet<EntityUid> _limbChecks = new();
 
     public override void Initialize()
     {
@@ -47,6 +53,19 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         SubscribeLocalEvent<WolfmedConsciousnessComponent, WolfmedConditionAlertEvent>(OnAlertClicked);
         SubscribeLocalEvent<WolfmedAdrenalineEvent>(OnAdrenaline);
         SubscribeLocalEvent<WolfmedPainReliefTierChangedEvent>(OnPainReliefTier);
+        SubscribeLocalEvent<WolfmedWoundLifecycleEvent>(OnWoundLifecycle);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        if (_limbChecks.Count == 0)
+            return;
+
+        foreach (var body in _limbChecks)
+            CheckLimbPenalties(body);
+
+        _limbChecks.Clear();
     }
 
     /// <summary>Hands the body's health alerts to this system. Called from the wound host's startup.</summary>
@@ -115,7 +134,21 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         if (prototype.SupportsSeverity)
             ShowHealth(body, alert, prototype);
         else
-            _alerts.ShowAlert(body, alert);
+            _alerts.ShowAlert(body, alert, cooldown: GetFaintCountdown(body));
+    }
+
+    /// <summary>
+    /// Playtest 2: a pain faint's alert ticks down to waking. Only while the faint is all that holds the body
+    /// under; with a blocker the text says what else keeps them out instead of a countdown.
+    /// </summary>
+    public (TimeSpan, TimeSpan)? GetFaintCountdown(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp) ||
+            comp.State != WolfmedConsciousness.Unconscious || comp.Cause != WolfmedCause.PainFaint ||
+            comp.Blockers != WolfmedCauseFlags.None || _consciousness.GetFaintWindow(body) is not { } window)
+            return null;
+
+        return (window.Start, window.End);
     }
 
     /// <summary>
@@ -212,7 +245,67 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         if (BlockerLine(comp) is { } blockers)
             parts.Add(blockers);
 
+        if (!_mobState.IsDead(body))
+        {
+            if (LimbPenaltyLine(body, false) is { } hands)
+                parts.Add(hands);
+            if (LimbPenaltyLine(body, true) is { } legs)
+                parts.Add(legs);
+        }
+
         return string.Join(" ", parts);
+    }
+
+    /// <summary>
+    /// Playtest 2: "Your hands are badly burned; everything takes longer." while the body's wounds slow its hands
+    /// (or, for <paramref name="legs"/>, its legs). Null when nothing does.
+    /// </summary>
+    public string? LimbPenaltyLine(EntityUid body, bool legs)
+    {
+        var penalty = _woundTraits.GetBodyLimbPenalty(body, legs, out var burn);
+        if (legs ? penalty >= 1f : penalty <= 1f)
+            return null;
+
+        return Loc.GetString((legs, burn) switch
+        {
+            (true, true) => "wolfmed-limb-penalty-legs-burn",
+            (true, false) => "wolfmed-limb-penalty-legs",
+            (false, true) => "wolfmed-limb-penalty-hands-burn",
+            _ => "wolfmed-limb-penalty-hands",
+        });
+    }
+
+    private void OnWoundLifecycle(ref WolfmedWoundLifecycleEvent args)
+    {
+        if (CompOrNull<BodyPartComponent>(args.Part)?.Body is { } body && HasComp<WolfmedConsciousnessComponent>(body))
+            _limbChecks.Add(body);
+    }
+
+    /// <summary>
+    /// Tells the patient once when a limb's penalty first bites, and forgets once it is gone so the next one is told
+    /// too. A body that is out cannot hear it; it is told on coming round.
+    /// </summary>
+    public void CheckLimbPenalties(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body) || !TryComp(body, out WolfmedConsciousnessComponent? comp) ||
+            _mobState.IsDead(body))
+            return;
+
+        var awake = comp.State != WolfmedConsciousness.Unconscious;
+        comp.HandsPenaltyTold = TellLimbPenalty((body, comp), false, comp.HandsPenaltyTold, awake);
+        comp.LegsPenaltyTold = TellLimbPenalty((body, comp), true, comp.LegsPenaltyTold, awake);
+    }
+
+    private bool TellLimbPenalty(Entity<WolfmedConsciousnessComponent> body, bool legs, bool told, bool awake)
+    {
+        if (LimbPenaltyLine(body, legs) is not { } line)
+            return false;
+
+        if (told || !awake)
+            return told;
+
+        Tell(body, line);
+        return true;
     }
 
     /// <summary>What helps, for the state the body is in; the blocked form while something else holds it.</summary>
@@ -220,6 +313,12 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         bool blocked)
     {
         LocId? key;
+
+        // Playtest 2: an unblocked pain faint says when it ends.
+        if (state == WolfmedConsciousness.Unconscious && !blocked && proto.ID == nameof(WolfmedCause.PainFaint) &&
+            _consciousness.GetFaintSecondsLeft(body) is { } seconds)
+            return Loc.GetString("wolfmed-cause-pain-faint-help-timed", ("seconds", seconds));
+
         if (state == WolfmedConsciousness.Unconscious)
             key = blocked && proto.HelpOutBlocked is { } outBlocked ? outBlocked : proto.HelpOut;
         else
@@ -238,6 +337,10 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     private void OnChanged(Entity<WolfmedConsciousnessComponent> body, ref WolfmedConsciousnessChangedEvent args)
     {
         Refresh(body);
+
+        // Playtest 2: a penalty that bit while the body was out is told once it comes round, after the waking line.
+        if (args.OldState == WolfmedConsciousness.Unconscious && args.NewState != WolfmedConsciousness.Unconscious)
+            _limbChecks.Add(body);
 
         if (_mobState.IsDead(body) || TransitionLine(body, args) is not { } line)
             return;

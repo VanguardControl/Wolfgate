@@ -47,6 +47,8 @@ public sealed partial class HealthAnalyzerSystem
             BloodBand = _life.GetBloodBand(body),
         };
         (report.Breathing, report.BreathingSource) = _vitalsBreathing.Assess(body);
+        if (report.State == WolfmedVitalsState.Faint)
+            report.FaintSeconds = _vitalsConsciousness.GetFaintSecondsLeft(body) ?? -1;
 
         if (report.State == WolfmedVitalsState.Dead)
         {

@@ -14,6 +14,7 @@ namespace Content.Shared._WF.Wolfmed.Wounds;
 public sealed class WolfmedWoundTraitSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private Content.Shared.Body.Systems.SharedBodySystem _body = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
@@ -181,6 +182,42 @@ public sealed class WolfmedWoundTraitSystem : EntitySystem
         }
 
         return modifier != 1f;
+    }
+
+    /// <summary>
+    /// Playtest 2: the worst wound penalty across the body's hands and arms (manipulation, highest) or legs and feet
+    /// (movement, lowest), and whether a burn is behind it. 1 when nothing slows them.
+    /// </summary>
+    public float GetBodyLimbPenalty(EntityUid body, bool mobility, out bool burn)
+    {
+        burn = false;
+        var worst = 1f;
+        if (!TryComp(body, out WoundHostComponent? host))
+            return worst;
+
+        var types = mobility ? host.MobilityParts : host.ManipulationParts;
+        foreach (var (part, bodyPart) in _body.GetBodyChildren(body))
+        {
+            if (!types.Contains(bodyPart.PartType))
+                continue;
+
+            foreach (var wound in _wounds.GetWounds(part))
+            {
+                if (wound.Comp.State is WoundState.Healed or WoundState.Scarred ||
+                    !TryGetBehavior(wound.Owner, out WolfmedLimbPenaltyBehavior behavior))
+                    continue;
+
+                var value = mobility ? behavior.MovementModifier : behavior.ManipulationModifier;
+                if (mobility ? value >= worst : value <= worst)
+                    continue;
+
+                worst = value;
+                burn = _prototypes.TryIndex(wound.Comp.Prototype, out var proto) &&
+                       WolfmedWoundCategories.Resolve(proto) == WolfmedWoundCategory.Burn;
+            }
+        }
+
+        return worst;
     }
 
     /// <summary>Whether a tourniquet on this part can do anything for this wound.</summary>

@@ -1417,3 +1417,80 @@ cooldown to 50, which caps any two minutes at two faints by the timers alone. Wi
   scenarios call it.
 - The dressing hook in `HealingSystem.Wolfmed.cs` is exercised only through its `Dress` seam. No test drives a
   real ointment do-after.
+
+## Playtest 2: faint timer, fire helplessness (2026-09-23)
+
+The owner's second playtest (`plan/p7/PLAYTEST2-spec.md`): "There needs to be some kind of indication of when you'll
+come round from pain crit" and "I stood in fire and my hands stopped working / I couldn't crawl at all".
+
+**1. The faint counts down.**
+- The faint alert (`WolfmedFaintPain`) carries the engine's alert cooldown from the faint's start to
+  `PainFaintUntil` (new server field `PainFaintStart`), so the icon ticks down to waking. It is shown only while the
+  faint is all that holds the body under (cause PainFaint, no blockers). A faint that ends early (a strong
+  painkiller) changes the state or cause, and the alert that replaces it has no cooldown.
+- The condition text says "Coming round in {N} s." (`wolfmed-cause-pain-faint-help-timed`) in place of "You come
+  round in seconds." while unblocked; the blocked form is unchanged ("something else keeps you under" plus the
+  blockers). The "out" line at the faint's start carries the seconds too.
+- The analyzer: "FAINTED: pain, {N} s" (`FaintSeconds` on the vitals report); a blocked faint keeps
+  "FAINTED: pain (also: …)" with no seconds.
+
+**2. What took the hands and the crawl: Shitmed's limb switch-off, not Wolfmed.** Reproduced in
+`FireHelplessnessTest` before any change (10-stack fire, station air, sampled every 5 s):
+- `SharedBodySystem.CheckBodyPart` switches a part off (`BodyPartComponent.Enabled = false`) when its stored damage
+  reaches `IntegrityThresholds[CriticallyWounded]`, 90, whatever the damage is. M1b's ambient ceilings let a
+  burning arm or leg store up to 152 and a hand or foot 120, so every limb crossed 90 during the fire.
+- A switched-off arm or hand raises `BodyPartDisabledEvent` and `HandsSystem` removes the hand: 2 hands at 20 s,
+  1 at 25 s (right arm off at 103), 0 at 35 s (left arm off at 98). No hand, no pen, no pickup.
+- A switched-off leg leaves `BodyComponent.LegEntities`; `UpdateMovementSpeed` averages over the enabled legs, so
+  one leg off halved the base speed (crawl 0.188 at 40 s) and both off set it to 0 (walk 0.000 from 50 s on, to
+  the end of the run). Nothing Wolfmed could multiply brought it back.
+- Not the cause: Onyx's `BodyPartFunctionalityState` stayed Functional throughout (P2-3 keeps it off); Wolfmed's
+  limb penalties never went past ×0.65 movement (charring stayed at 20-32, its Moderate stage, with no penalty);
+  the faints (15-30 s, 85-100 s) and the pain shock's stun were short and ended. `CanInteract` and Call for help were
+  intact at every Downed sample; the hands were simply gone.
+
+**The fix, to the plan's rule (§2.2: a Downed body can always crawl, use its carried items on itself and Call for
+help).**
+- **Burns never switch a limb off.** Marked edit in `CheckBodyPart`: on a wound host, the switch-off and
+  switch-on lines read the part's damage less its Burn group (Heat, Cold, Shock, Caustic;
+  `WolfmedLimbIntegrity.ForEnable`). Brute past 90 still switches a limb off exactly as before; the targeting doll
+  still reads the full damage. Applies to legs too, so the plan's "painkillers still lift a badly burned patient"
+  holds.
+- **Burns slow the hands instead.** `BurnWound` gets `WolfmedLimbPenaltyBehavior` manipulation ×1.25 at Severe (50)
+  and ×1.5 at Critical (80) (marked Onyx YAML); charring keeps its own ×1.3/×1.6 and movement penalties. Measured:
+  an arm burned to 152 and its hand to 120 do a pen's do-after at ×2.06.
+- **Crawl floor** (`wolfmed.crawl_floor` 0.35, new, replicated). `WolfmedCrawlSystem` answers a new
+  `WolfmedSpeedFloorEvent`, raised by a marked line in `MovementSpeedModifierSystem.RefreshMovementSpeedModifiers`
+  after every other modifier. While Downed a wound host never crawls under 0.35 × lying-down 0.3 × the default base
+  (2.5 walk, 4.5 sprint): 0.263 walk. With no working leg it drags itself on its arms at exactly that (×1.5 while
+  adrenaline runs); with no working arm and no working leg it cannot move. "Working" is attached, switched on and not
+  Onyx-Disabled. Because Shitmed gives a body with no enabled leg a base speed of 0, a second marked line in
+  `SharedBodySystem.UpdateMovementSpeed` gives a legless wound host the default base instead and refreshes the
+  modifiers against it; the floor then sets the real speed. An arm switching on or off refreshes the speed on the
+  next update (`WoundableComponent` + `BodyPartEnableChangedEvent`).
+- **Legs switched off Down the body.** `WolfmedConsciousnessSystem.LegsGone` counts a leg Shitmed has switched off,
+  since that is what drops the body; before, only Onyx-Disabled or missing legs counted, and a body with both legs
+  broken past 90 lay on the floor while Wolfmed called it Up.
+- **The penalty is told.** When a wound penalty first slows the hands or the legs the patient hears "Your hands are
+  badly burned; everything takes longer." / "Your legs are badly burned; moving is slow." (or "…are hurt…" for other
+  wounds), once until it clears; a body that was out hears it on coming round. The same line sits in the condition
+  text while it lasts. `WolfmedWoundTraitSystem.GetBodyLimbPenalty` reads the worst penalty and whether a burn is
+  behind it; the condition alert system answers the broadcast `WolfmedWoundLifecycleEvent` and checks once a tick.
+
+**After the fix**, the same fire: both hands at every sample, the pen picked up and injected at 60 s (the analgesic
+then stood the body up, as the plan's standing decision says), crawl 0.375-0.563 at every Downed sample, Call for
+help at every Downed sample, faints at 15-30 s and 85-100 s unchanged.
+
+**Differs from the spec, and why.**
+- The spec suspected Wolfmed's limb penalties or the M1b escalation. Neither disabled anything; the cause was the
+  Shitmed switch-off that DECISIONS P2-3 deliberately left running, reached by M1b's higher ambient ceilings.
+- Burns are excluded from the switch-off on every limb, not only hands and arms: a burned leg switched off would
+  make the body Downed by legs, which no painkiller lifts.
+- Burns carry no movement penalty of their own; charring's existing one stays.
+- `FireHelplessnessTest` accepts a sample where the pain shock's 2 s stun blocks movement (speed is still above 0).
+
+**Numbers.** `wolfmed.crawl_floor` 0.35 (floor 0.263 walk, 0.473 sprint for a human); BurnWound manipulation ×1.25
+(Severe), ×1.5 (Critical).
+
+**Tests.** Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`): 428 total, 421 passed, 0 failed, 7
+skipped; each skipped test passes alone.

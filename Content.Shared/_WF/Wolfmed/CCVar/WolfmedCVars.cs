@@ -481,4 +481,12 @@ public sealed class WolfmedCVars
     /// <summary>Units a second of burn fluid loss at which the analyzer reads it as "fast" rather than "slow".</summary>
     public static readonly CVarDef<float> AnalyzerBurnFast =
         CVarDef.Create("wolfmed.analyzer_burn_fast", 0.5f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Playtest 2 (plan §2.2): the slowest a Downed wound host crawls, as a fraction of the normal Downed crawl
+    /// (a healthy body's base speed times the lying-down modifier), whatever its leg penalties say. With no working
+    /// leg it drags itself on its arms at exactly this; only no working arm and no working leg stops it.
+    /// </summary>
+    public static readonly CVarDef<float> CrawlFloor =
+        CVarDef.Create("wolfmed.crawl_floor", 0.35f, CVar.SERVER | CVar.REPLICATED);
 }

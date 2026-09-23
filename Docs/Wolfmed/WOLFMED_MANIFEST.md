@@ -4651,3 +4651,31 @@ Files:
 | `Resources/Locale/en-US/_WF/wolfmed/burns.ftl` | new | Crumble, fluid-loss, analyzer and examine lines. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBurnScenarioTest.cs` | new | `FireMeasurementTest`, `BurnScenarioTest`, `SaturatedTorsoTest`, `AmbientCeilingTest`, `BurnDressingInfectionTest`, `CharCrumbleTest`, `DownedCanPatOutFireTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs`, `WolfmedEviscerationTest.cs`, `WolfmedInfectionTest.cs`, `WolfmedDamageCommandTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `WolfmedAmputationTest.cs`, `WolfmedConsciousnessTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs`, `Scenarios/WolfmedScenario.cs` | modified | Test migration (DECISIONS M1b); `KeepGrid` against Mono's grid cleanup. |
+
+## Playtest 2: faint timer, fire helplessness (2026-09-23)
+
+Marked upstream and Onyx edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.Targeting.cs:306-319` | Shitmed | WOLFGATE (playtest 2): on a wound host the switch-off and switch-on lines read the part's damage less its Burn group (`WolfmedLimbIntegrity.ForEnable`); burns never take a hand or a leg away. |
+| `Content.Shared/Body/Systems/SharedBodySystem.Parts.cs:816-824` | upstream (Shitmed) | WOLFGATE (playtest 2): a wound host with no enabled leg keeps the default base speed (`WolfmedCrawlSystem.LeglessBase`) instead of 0, and its modifiers are refreshed after every base change. |
+| `Content.Shared/Movement/Systems/MovementSpeedModifierSystem.cs:92-109` | upstream | WOLFGATE (playtest 2): `WolfmedSpeedFloorEvent` raised after the modifiers are gathered; its result is what is stored (the crawl floor). |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml:601-603, 611-613` | Onyx YAML | WOLFGATE (playtest 2): `BurnWound` Severe/Critical manipulation penalty ×1.25/×1.5. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedCrawlSystem.cs` | new | `WolfmedSpeedFloorEvent`, the crawl floor and legless crawl, `WolfmedLimbIntegrity`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | Refresh the speed when Downed starts and ends. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | `PainFaintStart`; `HandsPenaltyTold`, `LegsPenaltyTold`. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | Faint start, `GetFaintWindow`, `GetFaintSecondsLeft`; `LegsGone` counts switched-off legs. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConditionAlertSystem.cs` | modified | Faint alert countdown, timed help, limb-penalty popup and condition line. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetBodyLimbPenalty`. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs`, `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | modified | "FAINTED: pain, {N} s". |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.crawl_floor` 0.35. |
+| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl`, `analyzer-vitals.ftl` | modified | Timed faint help, limb-penalty lines, timed analyzer state. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedFireHelplessnessTest.cs` | new | `FireHelplessnessTest` (the reproduction table and the assertions). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs` | new | `FaintCountdownTest`, `BurnsNeverSwitchALimbOffTest`, `CrawlFloorTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs`, `WolfmedMedicLinesTest.cs` | modified | The faint's text and analyzer line now carry the seconds. |

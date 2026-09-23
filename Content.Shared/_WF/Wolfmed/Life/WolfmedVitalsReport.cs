@@ -108,6 +108,9 @@ public sealed class WolfmedVitalsReport
 
     /// <summary>M1b: at or over <c>wolfmed.analyzer_burn_fast</c>.</summary>
     public bool BurnFluidFast;
+
+    /// <summary>Playtest 2: whole seconds left in a pain faint, -1 when none runs.</summary>
+    public int FaintSeconds = -1;
 }
 
 /// <summary>
@@ -148,7 +151,13 @@ public static class WolfmedVitalsText
         };
 
         if (report.Blockers == WolfmedCauseFlags.None || report.State is WolfmedVitalsState.Up or WolfmedVitalsState.Dead)
-            return state;
+        {
+            // Playtest 2: a faint that nothing else holds says when it ends; a blocked one names the blocker instead.
+            return report.State == WolfmedVitalsState.Faint && report.FaintSeconds >= 0
+                ? Loc.GetString("wolfmed-vitals-state-faint-timed",
+                    ("cause", CauseName(report.Cause, report.Source, report.Mechanical)), ("seconds", report.FaintSeconds))
+                : state;
+        }
 
         // An arrest already names what stopped the heart; the same cause again as a blocker says nothing new.
         var shown = report.Blockers & ~ArrestSourceFlag(report);

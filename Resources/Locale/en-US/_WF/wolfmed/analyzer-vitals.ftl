@@ -5,6 +5,7 @@ wolfmed-vitals-state-up = CONSCIOUS
 wolfmed-vitals-state-up-mechanical = ONLINE
 wolfmed-vitals-state-downed = DOWNED: { $cause }
 wolfmed-vitals-state-faint = FAINTED: { $cause }
+wolfmed-vitals-state-faint-timed = FAINTED: { $cause }, { $seconds } s
 wolfmed-vitals-state-unconscious = UNCONSCIOUS: { $cause }
 wolfmed-vitals-state-arrest = CARDIAC ARREST: { $cause }
 wolfmed-vitals-state-shutdown = SHUTDOWN: { $cause }
