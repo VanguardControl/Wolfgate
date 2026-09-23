@@ -88,6 +88,13 @@ public sealed partial class HealthAnalyzerWindow
         // Bit of the ole shitcode until we have Groins in the prototypes.
         var target = part == TargetBodyPart.Groin ? TargetBodyPart.Torso : part;
 
+        // An admin ghost has no target to move. The doll still picks the card, for this window only.
+        if (!CanTarget())
+        {
+            ApplyWolfmedTarget(target, true);
+            return;
+        }
+
         _wolfmedTargeting ??= UserInterfaceManager.GetUIController<TargetingUIController>();
         _wolfmedTargeting.CycleTarget(target);
 
@@ -104,10 +111,17 @@ public sealed partial class HealthAnalyzerWindow
     {
         base.FrameUpdate(args);
 
+        // Nothing to follow for a viewer that cannot target; the doll's own pick stands.
+        if (!CanTarget())
+            return;
+
         var target = ReadWolfmedTarget();
         if (target != _wolfmedTargetedPart)
             ApplyWolfmedTarget(target, false);
     }
+
+    private bool CanTarget() =>
+        _wolfmedPlayers.LocalEntity is { } player && _entityManager.HasComponent<TargetingComponent>(player);
 
     private TargetBodyPart? ReadWolfmedTarget() =>
         _wolfmedPlayers.LocalEntity is { } player &&
