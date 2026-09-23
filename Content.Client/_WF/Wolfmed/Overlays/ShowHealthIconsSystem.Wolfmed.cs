@@ -13,6 +13,9 @@ public sealed partial class ShowHealthIconsSystem
     /// </summary>
     private static readonly ProtoId<HealthIconPrototype> ArrestIcon = "HealthIconWolfmedArrest";
 
+    /// <summary>M1a: whether the local player sees health icons, for the Call for help flag.</summary>
+    public bool WolfmedHudActive => IsActive;
+
     private HealthIconPrototype? WolfmedArrestIcon(EntityUid uid)
     {
         return HasComp<WolfmedCardiacArrestComponent>(uid) && _prototypeMan.TryIndex(ArrestIcon, out var icon)

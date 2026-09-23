@@ -41,7 +41,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly PainSystem _pain = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly WolfmedCallForHelpSystem _callForHelp = default!;
     [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private readonly WolfmedDyingActionsSystem _dyingActions = default!;
     [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
     [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
 
@@ -386,6 +388,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             RemComp<WolfmedDownedComponent>(body);
         }
 
+        // M1a: Call for help exists while Downed and nowhere else (plan §5.3).
+        _callForHelp.Refresh(body, state == WolfmedConsciousness.Downed);
+
         if (!_mobState.IsDead(body))
         {
             var mobState = state == WolfmedConsciousness.Unconscious ? MobState.Critical : MobState.Alive;
@@ -473,6 +478,14 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         return true;
     }
 
+    /// <summary>
+    /// The body is out in a faint: Critical with a faint as its cause (a pain faint in M1a; the head blow joins
+    /// in M3). What the autodoc asks before treating Critical as an emergency (plan §7.2).
+    /// </summary>
+    public bool InFaint(EntityUid body) =>
+        TryComp(body, out WolfmedConsciousnessComponent? comp) && !_mobState.IsDead(body) &&
+        comp.State == WolfmedConsciousness.Unconscious && comp.Cause == WolfmedCause.PainFaint;
+
     /// <summary>A pain faint is running on this body.</summary>
     public bool IsFainted(EntityUid body) =>
         TryComp(body, out WolfmedConsciousnessComponent? comp) && comp.PainFaintUntil > _timing.CurTime;
@@ -558,6 +571,10 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         {
             // Death is someone else's (a destroyed brain, a gib, an admin). Drop the Downed restrictions.
             RemComp<WolfmedDownedComponent>(uid);
+            _callForHelp.Refresh(uid, false);
+
+            // M1a: the dead are past Succumb and Last Words (plan §5.4).
+            _dyingActions.Revoke(uid);
             comp.State = WolfmedConsciousness.Unconscious;
             comp.Depth = 1f;
             comp.Cause = WolfmedCause.None;

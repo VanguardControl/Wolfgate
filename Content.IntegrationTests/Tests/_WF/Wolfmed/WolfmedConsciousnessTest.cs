@@ -194,7 +194,10 @@ public sealed class WolfmedConsciousnessTest : GameTest
         });
     }
 
-    /// <summary>What Downed costs: everything past the body's own reach.</summary>
+    /// <summary>
+    /// What Downed costs: everything past the body's own reach. M1a (P16, OD7 (b)): a loose item lying within
+    /// reach is inside it now; a door is not.
+    /// </summary>
     [Test]
     public async Task DownedReachesOnlyItselfTest()
     {
@@ -224,6 +227,8 @@ public sealed class WolfmedConsciousnessTest : GameTest
                 "a Downed body cannot use what is already in its hands.");
             Assert.That(downed.IsSelfOrCarried(body, body), Is.True);
             Assert.That(downed.IsSelfOrCarried(body, pen), Is.False);
+            Assert.That(blocker.CanInteract(body, pen), Is.True, "a Downed body cannot reach a pen at its side.");
+            Assert.That(downed.IsWithinReach(body, airlock), Is.False, "a door counted as a loose item.");
 
             Assert.That(blocker.CanInteract(body, airlock), Is.False, "a Downed body opened a door.");
             Assert.That(blocker.CanAttack(body), Is.False, "a Downed body swung at something.");

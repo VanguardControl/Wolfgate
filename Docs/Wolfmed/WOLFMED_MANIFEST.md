@@ -4465,3 +4465,44 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDownedTransitionTest.cs` | modified | the Downed alerts sit in the health slot. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | modified | the two-fracture fixture is pain-numb: it would faint now. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs` | modified | package A's `PainShockNoArrestTest` stays under the faint line. |
+
+## M1a C: honest endings and crawling (2026-09-22)
+
+Marked upstream edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Server/Ghost/GhostSystem.cs:76` | upstream, dependency | WOLFGATE (M1a): `WolfmedDyingActionsSystem`, the `_WF` half of the two lines below. |
+| `Content.Server/Ghost/GhostSystem.cs:675-679` | upstream | WOLFGATE (M1a): a wound host's own `ghost` command (`viaCommand && !forced && canReturnGlobal`) opens Wolfmed's honest dialog instead: Succumb while Dying, "left alive but empty" otherwise. Returns true, so the command prints no denial. Inventory #2. |
+| `Content.Server/Ghost/GhostSystem.cs:705` | upstream | WOLFGATE (M1a): a wound host never enters the kill-crit branch, so it never gets the Asphyxiation top-up or a free returnable ghost from Critical. Inventory #2. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedCritActionsSystem.cs` | new | Strips the upstream Critical actions from wound hosts on both sides at `MobStateActionsComponent` startup. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedDyingActions.cs` | new | `WolfmedSuccumbActionEvent`, `WolfmedLastWordsActionEvent` (`MaxLength`), `WolfmedChoiceEuiState`, `WolfmedChoiceMessage`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedCallForHelp.cs` | new | Networked `WolfmedCallForHelpComponent` (flag and cooldown) and `WolfmedCallForHelpActionEvent` (`MaxLength`). |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | `IsWithinReach`: loose floor items within `wolfmed.downed_reach` pass the Downed interaction check. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.downed_reach` 1.5, `wolfmed.call_for_help_seconds` 60, `wolfmed.call_for_help_cooldown` 30. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedDyingActionsSystem.cs` | new | Grants and revokes Succumb and Last Words, the Succumb and leave dialogs, `Succumb` (brain 0, Kill, EndArrest, returnable ghost), `LeaveAlive`, the ghost-command hand-off. Also holds `WolfmedDyingActionsComponent`. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedChoiceEui.cs` | new | Server half of the yes/no dialog. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `StartArrest` grants and `EndArrest` revokes the Dying actions (direct calls). |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | `OfferReturn`: the return prompt after a pod revival. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | `InFaint`; Call for help refreshed on every apply; the Dying actions and Call for help go on death. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedCallForHelpSystem.cs` | new | The Downed-only action, the shout, the flag and the cooldown. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | Consciousness dependency. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | Anaesthetises a fainted occupant; offers the return after a pod revival. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs` | modified | No `AutodocAlarm.Critical` for a faint. |
+| `Content.Client/_WF/Wolfmed/Life/WolfmedChoiceEui.cs`, `WolfmedChoiceWindow.cs` | new | Client half of the yes/no dialog. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedCallForHelpIconSystem.cs` | new | The Call for help flag on medical HUDs. |
+| `Content.Client/_WF/Wolfmed/Overlays/ShowHealthIconsSystem.Wolfmed.cs` | modified | `WolfmedHudActive` accessor for the flag. |
+| `Resources/Prototypes/_WF/Wolfmed/Actions/dying.yml` | new | `ActionWolfmedSuccumb`, `ActionWolfmedLastWords`. |
+| `Resources/Prototypes/_WF/Wolfmed/Actions/downed.yml` | new | `ActionWolfmedCallForHelp`. |
+| `Resources/Prototypes/_WF/Wolfmed/health_icons.yml` | modified | `HealthIconWolfmedCallForHelp`. |
+| `Resources/Locale/en-US/_WF/wolfmed/death.ftl` | modified | Succumb, leave and Last Words dialog strings ([OD1 wording]). |
+| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | Call for help strings; the arrest help and alert say "You can choose to let go." |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedHonestEndingTest.cs` | new | `HonestEndingScenarioTest`, `CritSuccumbNeverGrantedToWoundHostsTest`, `CriticalHearingTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | new | `DownedPickupTest`, `CallForHelpTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocFaintTest.cs` | new | `FaintedOccupantIsAnaesthetisedTest`, `FaintDoesNotSoundTheCriticalAlarmTest`, `PodRefusesRotAndHeartlessBodiesTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | `DownedReachesOnlyItselfTest`: a loose item within reach is reachable, a door is not. |

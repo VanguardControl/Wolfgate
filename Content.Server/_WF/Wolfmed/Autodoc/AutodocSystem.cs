@@ -60,6 +60,7 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly IAdminLogManager _adminLog = default!;
     [Dependency] private Life.WolfmedLifeSystem _life = default!; // BRAIN
     [Dependency] private Life.WolfmedRevivalSystem _revival = default!; // BRAIN
+    [Dependency] private Consciousness.WolfmedConsciousnessSystem _consciousness = default!; // M1a: faints
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IPrototypeManager _protos = default!;

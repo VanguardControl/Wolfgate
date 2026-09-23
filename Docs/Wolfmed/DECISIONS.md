@@ -840,3 +840,94 @@ before B started, and B builds on it. A has no report or DECISIONS section of it
 **Left for later packages.** The analyzer's "FAINTED: pain" and "SHUTDOWN: no power" lines (D; the scenario
 tests assert the patient's titles instead). Succumb in the scenario tests (C). The synthetic HUD's pain/sensor
 and core-temperature rows (§5.6) were not added.
+
+## M1a C: honest endings and crawling (2026-09-23)
+
+Plan: `WOLFMED_DEATH_PLAN.md` §5.4, §5.3, §2.2, and the autodoc rows of §7.2.
+
+**What was built.**
+- **Crit actions stripped** (§5.4 item 1). The new shared `WolfmedCritActionsSystem` removes the `MobState.Critical` entry
+  from `MobStateActionsComponent.Actions` at `ComponentStartup` on wound hosts while `wolfmed.consciousness` is on,
+  on both client and server. It removes the whole list, so Fake Death goes with it; Play dead is M2 (OD20). The
+  `MobStateActionsComponent` + `ComponentStartup` pair was grepped and is free. The list is replaced with a copy
+  rather than edited in place.
+- **Succumb and Last Words** (§5.4 items 2-4, OD2 (a), OD3). `ActionWolfmedSuccumb` and `ActionWolfmedLastWords`
+  are in `Actions/dying.yml` and raise the new `WolfmedSuccumbActionEvent` and `WolfmedLastWordsActionEvent`
+  (Last Words' cap is `maxLength: 30` on the event). `WolfmedDyingActionsSystem` grants them from `StartArrest` and
+  removes them from `EndArrest` and from consciousness's death handler. All three are direct calls. Both actions
+  open the Succumb dialog. Last Words first whispers the capped text with "..." added. On confirm, the brain
+  organ's health goes to 0 where it sits, then `Kill`, then `EndArrest` on the corpse, then
+  `OnGhostAttempt(canReturnGlobal: true)`. The body is dead by then, so the ghost is returnable. The mind stays
+  owned by the body, and brain repair plus a defibrillator brings the same person back.
+- **The dialogs.** `WolfmedChoiceEui` (server) and its client window show the exact text with two buttons. Closing
+  the window counts as no. Wording is in `death.ftl` ([OD1 wording], OD1 (b)): "Let go?" / "Let go" / "Keep
+  fighting", naming the arrest cause and the minutes until the body rots (from `PerishableComponent`; a body
+  that does not rot gets the text without the time). The "Leave your body?" dialog reads "Your character will be
+  left alive but empty. You cannot return to this body." with "Leave" / "Stay". A dialog still open when the
+  heart restarts is withdrawn. A "leave" confirmed after the body has gone into arrest opens Succumb instead.
+- **The ghost command** (§5.4 item 5). The marked `GhostSystem.OnGhostAttempt` hook hands a wound host's own
+  `ghost` command (`viaCommand && !forced && canReturnGlobal`) to `WolfmedDyingActionsSystem.TryOpenGhostDialog`.
+  In arrest that is the Succumb dialog. In any other living state it is the leave dialog, which ghosts with
+  `canReturn = false` and does not touch the body. The hook returns true, so the command prints no "denied"
+  (the plan's "to confirm": `GhostCommand` prints the denial only on false). A second marked condition keeps a
+  wound host out of the kill-crit branch altogether, so the Asphyxiation top-up never applies and a Critical
+  wound host never gets upstream's free returnable ghost.
+- **Pod return prompt** (§5.4 item 6). `WolfmedRevivalSystem.OfferReturn` opens the stock `ReturnToBodyEui` for
+  a ghost whose body the pod has just revived. `AutodocSystem.TryDefibrillateOccupant` calls it on success. The
+  hand defibrillator already opened the prompt.
+- **Pickup within reach** (§5.3, P16, OD7 (b)). `WolfmedDownedSystem.OnInteractionAttempt` also lets a Downed body
+  reach an `ItemComponent` that is not anchored, not in a container, and within `wolfmed.downed_reach` (1.5 m:
+  the body's own tile and the neighbouring ones, diagonals included). Guns still cannot fire and throwing is
+  still blocked.
+- **Call for help** (§5.3). The `ActionWolfmedCallForHelp` action (`Actions/downed.yml`) exists only while
+  Downed. `WolfmedCallForHelpSystem.Refresh` is called directly from consciousness's `Apply` and death handler. The
+  action opens a one-line dialog; an empty line shouts "Help! I'm down!". The line is capped at `maxLength: 60`
+  on the event and said aloud at normal range, where the exclamation makes it a shout. The call sets
+  `WolfmedCallForHelpComponent.FlagUntil` for `wolfmed.call_for_help_seconds` 60 and `CooldownUntil` for
+  `wolfmed.call_for_help_cooldown` 30. Both fields are networked. The client's `WolfmedCallForHelpIconSystem`
+  shows `HealthIconWolfmedCallForHelp` to anyone with a medical HUD while the flag lasts. The flag outlasts
+  Downed on purpose, so a caller who goes under is still marked.
+- **Autodoc and faints** (§7.2). `WolfmedConsciousnessSystem.InFaint` means Critical with cause PainFaint; the
+  head blow joins it in M3. `MaintainAnaesthesia` now anaesthetises a fainted occupant, and `GetAlarm` does not
+  raise `AutodocAlarm.Critical` for a faint. Rot, `Unrevivable` and no heart were already in the shared
+  `GetRefusal` (package A), so the pod refuses in the hand defibrillator's words; the tests now pin it.
+- **Arrest text.** The arrest help and alert now end with "You can choose to let go." Package B had held this
+  back until Succumb existed.
+
+**Differs from the plan, and why.**
+- **Succumb order.** The plan's order is `EndArrest`, then `Kill`. This build runs `Kill` first and then ends
+  the arrest on the corpse. Ending the arrest on a living body re-evaluates it for a moment as having a heartbeat.
+  That changes its cause and plays "Your heart lurches back into rhythm" to a patient who is letting go. The end
+  state is the one the plan asks for: Dead, brain at 0, no arrest component. The plan's real constraint, that
+  `Kill` runs before `OrganHealthSystem`'s next update, still holds.
+- **Hook placement.** The plan puts the whole hook inside the kill-crit branch. The dialog is placed earlier
+  instead: after upstream's `PreventGhosting` and `CanGhostInteract` checks and before `UnVisit`. From there it
+  does not depend on the `ghost.killcrit` CVar and runs before any side effect. The branch itself gets a one-line
+  "not a wound host" condition. Upstream's `GhostAttemptHandleEvent` would have needed no hook, but it carries no
+  `viaCommand` or `forced`, and cryosleep calls the attempt with `viaCommand: true`, so it cannot tell the
+  player's own command apart.
+- **The dialog is a new EUI.** `QuickDialog` has no body text and no yes/no. Tests answer through
+  `WolfmedDyingActionsSystem.Confirm`, the same method the window's buttons call.
+- **"Editable" Call for help** is a one-line dialog each time with a default. The length caps (30 and 60) are
+  fields on the action events, not CVars.
+- **The HUD flag** is drawn by its own client system. It reads the medical HUD state through a `WolfmedHudActive`
+  accessor added to the `_WF` partial of `ShowHealthIconsSystem`. Subclassing `EquipmentHudSystem` would
+  duplicate its component subscriptions.
+
+**Found on the way (not changed).**
+- **Going Downed stuns briefly.** The fall adds `KnockedDown` and a short `Stunned` for about 2 s, and `Stunned`
+  cancels every interaction, including reaching the body's own tile. `DownedPickupTest` waits it out.
+- **A succumbed corpse bleeds faster.** It has no arrest component, so it bleeds passively at the full rate. A
+  body that died of untreated arrest keeps the component and bleeds at ×0.25. Worth a look in M2, when corpse
+  bleeding is revisited.
+- **An upstream helper is broken.** `SharedHandsSystem.TrySelectEmptyHand` never selects anything, because it asks
+  `IsHolding(null)`, which is always false. The test selects an empty hand itself.
+
+**Numbers.** `wolfmed.downed_reach` 1.5 m, `wolfmed.call_for_help_seconds` 60, `wolfmed.call_for_help_cooldown`
+30; Last Words 30 characters, a call 60 characters.
+
+**Art debt.** Call for help reuses the stock critical health icon on the right, and the action uses the scream
+icon. Succumb and Last Words use the upstream crit action icons.
+
+**Left for later.** IPC thermal shutdown's Succumb (M4). The Succumb and leave dialogs have no client test that
+presses their buttons; the EUI reaching the client is tested, and the answer is tested on the server.

@@ -140,7 +140,7 @@ wolfmed-cause-arrest-source-sepsis = sepsis
 wolfmed-cause-arrest-source-shock = shock
 wolfmed-cause-arrest-source-other = unknown cause
 wolfmed-cause-arrest-symptom = Your heart has stopped.
-wolfmed-cause-arrest-help-out = You need a defibrillator. Brain injury begins in about a minute without CPR.
+wolfmed-cause-arrest-help-out = You need a defibrillator. Brain injury begins in about a minute without CPR. You can choose to let go.
 wolfmed-cause-arrest-out = Your heart stops.
 
 wolfmed-cause-shutdown = shutdown
@@ -184,6 +184,12 @@ alerts-wolfmed-downed-legs-desc = Your legs will not hold you. A splint or a rep
 alerts-wolfmed-downed-crash-name = Downed: stim crash
 alerts-wolfmed-downed-crash-desc = The stim has worn off and your body is paying for it. It passes in a few seconds unless something else holds you. Click for details.
 alerts-wolfmed-out-arrest-name = Cardiac arrest
-alerts-wolfmed-out-arrest-desc = Your heart has stopped. You need a defibrillator. Brain injury begins in about a minute without CPR. Click for details.
+alerts-wolfmed-out-arrest-desc = Your heart has stopped. You need a defibrillator. Brain injury begins in about a minute without CPR. You can choose to let go. Click for details.
 alerts-wolfmed-out-shutdown-name = Shutdown
 alerts-wolfmed-out-shutdown-desc = Your systems have shut down and nothing is getting worse. A charged cell or a working pump brings the chassis back online, unless something else holds it. Click for details.
+
+# M1a: Call for help, the crawling stage's own action (plan §5.3).
+wolfmed-call-for-help-title = Call for help
+wolfmed-call-for-help-prompt = What do you shout? Leave it empty for "{ $default }"
+wolfmed-call-for-help-default = Help! I'm down!
+wolfmed-call-for-help-cooldown = You called a moment ago. Save your breath.

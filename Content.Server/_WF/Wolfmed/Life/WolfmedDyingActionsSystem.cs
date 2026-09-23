@@ -1,0 +1,341 @@
+using Content.Server._WF.Wolfmed.Consciousness;
+using Content.Server.Administration;
+using Content.Server.Chat.Systems;
+using Content.Server.EUI;
+using Content.Server.Ghost;
+using Content.Shared._Onyx.Body.Systems;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared.Actions;
+using Content.Shared.Atmos.Rotting;
+using Content.Shared.Chat;
+using Content.Shared.FixedPoint;
+using Content.Shared.GameTicking;
+using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
+
+namespace Content.Server._WF.Wolfmed.Life;
+
+/// <summary>Which honest dialog a body has open.</summary>
+public enum WolfmedEndingChoice : byte
+{
+    None,
+
+    /// <summary>Dying: let go now, catastrophic brain injury, revivable, returnable ghost.</summary>
+    Succumb,
+
+    /// <summary>Not dying: leave the body alive but empty, no way back.</summary>
+    LeaveAlive,
+}
+
+/// <summary>Holds the Dying actions a body has been granted. Server only.</summary>
+[RegisterComponent]
+public sealed partial class WolfmedDyingActionsComponent : Component
+{
+    [DataField]
+    public EntityUid? Succumb;
+
+    [DataField]
+    public EntityUid? LastWords;
+}
+
+/// <summary>
+/// Every way a wound host leaves its body is honest (M1a, plan §5.4, OD2, OD3). Succumb and Last Words exist
+/// only while Dying and do exactly what their dialog says: the brain organ goes to 0 in place, the body dies,
+/// and the ghost can return after brain repair and a defibrillator. The <c>ghost</c> command reaches the same
+/// dialog in arrest, and a "left alive but empty" one, with no way back, in any other living state.
+/// </summary>
+/// <remarks>
+/// Granted and revoked by direct calls from <see cref="WolfmedLifeSystem.StartArrest"/>,
+/// <see cref="WolfmedLifeSystem.EndArrest"/> and consciousness's death handler, never by new subscriptions.
+/// </remarks>
+public sealed class WolfmedDyingActionsSystem : EntitySystem
+{
+    public static readonly EntProtoId SuccumbAction = "ActionWolfmedSuccumb";
+    public static readonly EntProtoId LastWordsAction = "ActionWolfmedLastWords";
+
+    [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private readonly EuiManager _eui = default!;
+    [Dependency] private readonly GhostSystem _ghost = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private readonly OrganHealthSystem _organs = default!;
+    [Dependency] private readonly QuickDialogSystem _quickDialog = default!;
+    [Dependency] private readonly SharedActionsSystem _actions = default!;
+    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private readonly WolfmedLifeSystem _life = default!;
+
+    private readonly Dictionary<EntityUid, (WolfmedEndingChoice Choice, WolfmedChoiceEui? Eui)> _pending = new();
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WolfmedDyingActionsComponent, WolfmedSuccumbActionEvent>(OnSuccumbAction);
+        SubscribeLocalEvent<WolfmedDyingActionsComponent, WolfmedLastWordsActionEvent>(OnLastWordsAction);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _pending.Clear());
+    }
+
+    #region Queries
+
+    /// <summary>Dying on a wound host: the heart has stopped and the body is not dead yet.</summary>
+    public bool IsDying(EntityUid body) =>
+        !TerminatingOrDeleted(body) && _life.OwnsDeath(body) && _life.InArrest(body) && !_mobState.IsDead(body);
+
+    /// <summary>Wolfmed, not upstream's kill-crit branch, decides how this body is left.</summary>
+    public bool OwnsEnding(EntityUid? body) => body is { } uid && _life.OwnsDeath(uid);
+
+    /// <summary>The dialog this body has open, if any. What the tests read.</summary>
+    public WolfmedEndingChoice GetPendingChoice(EntityUid body) =>
+        _pending.TryGetValue(body, out var pending) ? pending.Choice : WolfmedEndingChoice.None;
+
+    #endregion
+
+    #region Grant and revoke
+
+    /// <summary>Gives a Dying body Succumb and Last Words. Called when the heart stops.</summary>
+    public void Grant(EntityUid body)
+    {
+        if (!IsDying(body))
+            return;
+
+        var comp = EnsureComp<WolfmedDyingActionsComponent>(body);
+        _actions.AddAction(body, ref comp.Succumb, SuccumbAction);
+        _actions.AddAction(body, ref comp.LastWords, LastWordsAction);
+    }
+
+    /// <summary>Takes them away again, and withdraws an open Succumb dialog. Heart restarted, or dead.</summary>
+    public void Revoke(EntityUid body)
+    {
+        if (_pending.TryGetValue(body, out var pending) && pending.Choice == WolfmedEndingChoice.Succumb)
+            Withdraw(body);
+
+        if (TerminatingOrDeleted(body) || !TryComp(body, out WolfmedDyingActionsComponent? comp))
+            return;
+
+        if (comp.Succumb is { } succumb)
+            Del(succumb);
+
+        if (comp.LastWords is { } lastWords)
+            Del(lastWords);
+
+        RemComp<WolfmedDyingActionsComponent>(body);
+    }
+
+    #endregion
+
+    #region Actions
+
+    private void OnSuccumbAction(Entity<WolfmedDyingActionsComponent> ent, ref WolfmedSuccumbActionEvent args)
+    {
+        if (args.Handled || !IsDying(ent))
+            return;
+
+        args.Handled = true;
+        OpenSuccumbDialog(ent);
+    }
+
+    private void OnLastWordsAction(Entity<WolfmedDyingActionsComponent> ent, ref WolfmedLastWordsActionEvent args)
+    {
+        if (args.Handled || !IsDying(ent) || !TryComp(ent, out ActorComponent? actor))
+            return;
+
+        args.Handled = true;
+        var body = ent.Owner;
+        var session = actor.PlayerSession;
+        var maxLength = args.MaxLength;
+        _quickDialog.OpenDialog(session, Loc.GetString("wolfmed-last-words-title"),
+            Loc.GetString("wolfmed-last-words-prompt", ("max", maxLength)),
+            (string words) =>
+            {
+                if (session.AttachedEntity == body)
+                    SayLastWords(body, words, maxLength);
+            });
+    }
+
+    /// <summary>Whispers the words, cut to the limit, then opens the Succumb dialog. Dying only.</summary>
+    public bool SayLastWords(EntityUid body, string words, int maxLength)
+    {
+        if (!IsDying(body))
+            return false;
+
+        words = words.Trim();
+        if (words.Length > maxLength)
+            words = words[..Math.Max(0, maxLength)];
+
+        if (words.Length > 0)
+        {
+            _chat.TrySendInGameICMessage(body, Loc.GetString("wolfmed-last-words-whisper", ("words", words)),
+                InGameICChatType.Whisper, ChatTransmitRange.Normal, checkRadioPrefix: false,
+                ignoreActionBlocker: true);
+        }
+
+        OpenSuccumbDialog(body);
+        return true;
+    }
+
+    #endregion
+
+    #region Dialogs
+
+    /// <summary>
+    /// The marked GhostSystem hook's hand-off: a wound host's own <c>ghost</c> command. Opens the Succumb
+    /// dialog while Dying and the "left alive but empty" dialog in any other living state; true means the
+    /// attempt was handled here and nobody has been ghosted yet.
+    /// </summary>
+    public bool TryOpenGhostDialog(EntityUid body)
+    {
+        if (!_life.OwnsDeath(body) || _mobState.IsDead(body) || TerminatingOrDeleted(body))
+            return false;
+
+        if (IsDying(body))
+            OpenSuccumbDialog(body);
+        else
+            OpenLeaveDialog(body);
+
+        return true;
+    }
+
+    /// <summary>"Let go?": the exact consequences (OD1 wording), then a revivable death on yes.</summary>
+    public void OpenSuccumbDialog(EntityUid body)
+    {
+        if (!IsDying(body))
+            return;
+
+        var minutes = RotMinutes(body);
+        var text = minutes is { } left
+            ? Loc.GetString("wolfmed-succumb-dialog-text", ("cause", ArrestCauseName(body)), ("minutes", left))
+            : Loc.GetString("wolfmed-succumb-dialog-text-no-decay", ("cause", ArrestCauseName(body)));
+
+        Open(body, WolfmedEndingChoice.Succumb, new WolfmedChoiceEuiState(
+            Loc.GetString("wolfmed-succumb-dialog-title"), text,
+            Loc.GetString("wolfmed-succumb-dialog-accept"), Loc.GetString("wolfmed-succumb-dialog-deny")));
+    }
+
+    /// <summary>The <c>ghost</c> command while not Dying: the body stays alive, the player cannot return.</summary>
+    public void OpenLeaveDialog(EntityUid body)
+    {
+        Open(body, WolfmedEndingChoice.LeaveAlive, new WolfmedChoiceEuiState(
+            Loc.GetString("wolfmed-leave-dialog-title"), Loc.GetString("wolfmed-leave-dialog-text"),
+            Loc.GetString("wolfmed-leave-dialog-accept"), Loc.GetString("wolfmed-leave-dialog-deny")));
+    }
+
+    private void Open(EntityUid body, WolfmedEndingChoice choice, WolfmedChoiceEuiState state)
+    {
+        Withdraw(body);
+
+        WolfmedChoiceEui? eui = null;
+        if (TryComp(body, out ActorComponent? actor))
+        {
+            eui = new WolfmedChoiceEui(state, accepted =>
+            {
+                if (accepted)
+                    Confirm(body);
+                else
+                    Decline(body);
+            });
+        }
+
+        _pending[body] = (choice, eui);
+        if (eui != null)
+            _eui.OpenEui(eui, actor!.PlayerSession);
+    }
+
+    /// <summary>Closes the body's open dialog, if any, without acting on it.</summary>
+    private void Withdraw(EntityUid body)
+    {
+        if (!_pending.Remove(body, out var pending))
+            return;
+
+        pending.Eui?.Withdraw();
+    }
+
+    /// <summary>The player said yes to the body's open dialog. Public so a test can answer it.</summary>
+    public bool Confirm(EntityUid body)
+    {
+        if (!_pending.Remove(body, out var pending))
+            return false;
+
+        return pending.Choice switch
+        {
+            WolfmedEndingChoice.Succumb => Succumb(body),
+            WolfmedEndingChoice.LeaveAlive => LeaveAlive(body),
+            _ => false,
+        };
+    }
+
+    /// <summary>The player said no, or closed the window.</summary>
+    public void Decline(EntityUid body)
+    {
+        _pending.Remove(body);
+    }
+
+    #endregion
+
+    #region Endings
+
+    /// <summary>
+    /// Succumb (OD2 (a)), in this order: the brain organ to 0 where it sits, so the body and the mind stay and
+    /// brain repair plus a defibrillator brings the same person back; death now, because the organ system
+    /// would only apply it on its next update; the arrest ended on the corpse; then a returnable ghost.
+    /// </summary>
+    public bool Succumb(EntityUid body)
+    {
+        if (!IsDying(body))
+            return false;
+
+        if (_life.GetBrainOrgan(body) is { } brain)
+            _organs.SetHealth(brain, FixedPoint2.Zero);
+
+        // Kill before EndArrest: ending the arrest on a living body would announce a heartbeat for a moment.
+        _life.Kill(body);
+        _life.EndArrest(body);
+
+        if (_mind.TryGetMind(body, out var mindId, out var mind) && mind.OwnedEntity == body)
+            _ghost.OnGhostAttempt(mindId, canReturnGlobal: true, mind: mind);
+
+        return true;
+    }
+
+    /// <summary>Leaves a living body empty, with no way back. The body is not touched. Dying goes to Succumb.</summary>
+    public bool LeaveAlive(EntityUid body)
+    {
+        if (IsDying(body))
+        {
+            OpenSuccumbDialog(body);
+            return false;
+        }
+
+        if (!_mind.TryGetMind(body, out var mindId, out var mind) || mind.OwnedEntity != body)
+            return false;
+
+        return _ghost.OnGhostAttempt(mindId, canReturnGlobal: _mobState.IsDead(body), mind: mind);
+    }
+
+    #endregion
+
+    /// <summary>"blood loss", "no oxygen": what stopped the heart, from the arrest cause's own names.</summary>
+    private string ArrestCauseName(EntityUid body)
+    {
+        var source = TryComp(body, out WolfmedConsciousnessComponent? consciousness) &&
+                     consciousness.Cause == WolfmedCause.Arrest
+            ? consciousness.CauseSource
+            : WolfmedCauseSource.ArrestOther;
+
+        return _conditionAlerts.GetCausePrototype(WolfmedCause.Arrest) is { } proto &&
+               proto.Sources.TryGetValue(source, out var name)
+            ? Loc.GetString(name)
+            : Loc.GetString("wolfmed-condition-source-unknown");
+    }
+
+    /// <summary>Whole minutes until the body rots, or null for a body that never does.</summary>
+    private int? RotMinutes(EntityUid body)
+    {
+        if (!TryComp(body, out PerishableComponent? perishable))
+            return null;
+
+        var left = perishable.RotAfter - perishable.RotAccumulator;
+        return (int) Math.Ceiling(Math.Max(0, left.TotalMinutes));
+    }
+}

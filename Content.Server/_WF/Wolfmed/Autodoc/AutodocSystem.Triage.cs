@@ -319,7 +319,8 @@ public sealed partial class AutodocSystem
         if (_life.InArrest(body))
             return AutodocAlarm.Arrest;
 
-        if (_mobState.IsCritical(body))
+        // M1a: a pain faint is seconds long and expected under the knife; it is not an emergency.
+        if (_mobState.IsCritical(body) && !_consciousness.InFaint(body))
             return AutodocAlarm.Critical;
 
         return _life.GetBrain(body) is { } brain && _life.DrainRate(body, brain) > 0f

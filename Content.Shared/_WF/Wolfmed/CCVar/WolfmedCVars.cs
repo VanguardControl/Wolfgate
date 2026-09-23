@@ -383,4 +383,19 @@ public sealed class WolfmedCVars
     /// <summary>Crawl speed multiplier while adrenaline runs on a Downed body.</summary>
     public static readonly CVarDef<float> AdrenalineCrawlMultiplier =
         CVarDef.Create("wolfmed.adrenaline_crawl_multiplier", 1.5f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
+    /// Metres a Downed body can reach for an item on the floor: its own tile and the ones next to it (M1a,
+    /// plan §5.3, OD7 (b)). Guns still cannot be fired.
+    /// </summary>
+    public static readonly CVarDef<float> DownedReach =
+        CVarDef.Create("wolfmed.downed_reach", 1.5f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Seconds a Call for help keeps the caller flagged on medical HUDs.</summary>
+    public static readonly CVarDef<float> CallForHelpSeconds =
+        CVarDef.Create("wolfmed.call_for_help_seconds", 60f, CVar.SERVERONLY);
+
+    /// <summary>Seconds after a Call for help before the next one.</summary>
+    public static readonly CVarDef<float> CallForHelpCooldown =
+        CVarDef.Create("wolfmed.call_for_help_cooldown", 30f, CVar.SERVERONLY);
 }

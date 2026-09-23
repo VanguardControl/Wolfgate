@@ -345,8 +345,10 @@ public sealed partial class AutodocSystem
         if (!ent.Comp.Anaesthesia)
             return;
 
-        // Somebody already unconscious, arrested or dead is as under as anaesthetic could make them.
-        if (_mobState.IsCritical(body) || _mobState.IsDead(body) || _life.InArrest(body))
+        // Somebody already unconscious, arrested or dead is as under as anaesthetic could make them. M1a: a
+        // pain faint is not: it ends by itself in seconds, and the patient would wake on the table.
+        if (_mobState.IsCritical(body) && !_consciousness.InFaint(body) || _mobState.IsDead(body) ||
+            _life.InArrest(body))
             return;
 
         var dose = QueueAnaestheticDose(ent);
@@ -957,6 +959,9 @@ public sealed partial class AutodocSystem
         {
             ent.Comp.DefibAttempt = 0;
             Speak(ent, AutodocVoiceEvent.DefibSuccess);
+
+            // M1a: the ghost is offered the way back, as the hand defibrillator does (plan §5.4 item 6).
+            _revival.OfferReturn(body);
             return true;
         }
 

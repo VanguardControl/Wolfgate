@@ -1,4 +1,6 @@
 using Content.Server._WF.Wolfmed.Consciousness;
+using Content.Server.EUI;
+using Content.Server.Ghost;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.CCVar;
@@ -7,10 +9,12 @@ using Content.Shared.Atmos.Rotting;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Prototypes;
 using Content.Shared.FixedPoint;
+using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Traits.Assorted;
 using Robust.Shared.Configuration;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -27,6 +31,9 @@ public sealed class WolfmedRevivalSystem : EntitySystem
 {
     [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private EuiManager _eui = default!;
+    [Dependency] private ISharedPlayerManager _player = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IRobustRandom _random = default!;
@@ -213,6 +220,20 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         // repeat shock with nothing fixed, this is also the tick that stops the heart again.
         _life.Tick(body, 0.0001f);
         _consciousness.Refresh(body);
+    }
+
+    /// <summary>
+    /// Offers a revived body's ghost the way back, the prompt the hand defibrillator already opens (M1a, plan
+    /// §5.4 item 6), so the Succumb dialog's promise holds for a pod revival too. True when a prompt opened.
+    /// </summary>
+    public bool OfferReturn(EntityUid body)
+    {
+        if (!_mind.TryGetMind(body, out _, out var mind) || mind.CurrentEntity == body ||
+            !_player.TryGetSessionById(mind.UserId, out var session))
+            return false;
+
+        _eui.OpenEui(new ReturnToBodyEui(mind, _mind, _player), session);
+        return true;
     }
 
     /// <summary>

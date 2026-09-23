@@ -1,9 +1,11 @@
 using Content.Shared._Goobstation.DoAfter;
 using System.Linq;
+using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
+using Content.Shared.Item;
 using Content.Shared.Movement.Events;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Pulling.Events;
@@ -11,13 +13,16 @@ using Content.Shared.Standing;
 using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Events;
+using Robust.Shared.Configuration;
+using Robust.Shared.Containers;
 using Robust.Shared.Network;
 
 namespace Content.Shared._WF.Wolfmed.Consciousness;
 
 /// <summary>
-/// What Downed costs: the body stays on the floor and can only reach itself. Crawling, talking, radio and
-/// examining are untouched; doors, buttons, containers, other people, melee and guns are not.
+/// What Downed costs: the body stays on the floor and can only reach itself and loose items within reach.
+/// Crawling, talking, radio and examining are untouched; doors, buttons, containers, other people, melee and
+/// guns are not.
 /// </summary>
 /// <remarks>
 /// Every restriction is an existing ActionBlocker attempt event, so no item, door or gun needed changing.
@@ -27,9 +32,12 @@ public sealed class WolfmedDownedSystem : EntitySystem
 {
     [Dependency] private readonly ActionBlockerSystem _blocker = default!;
     [Dependency] private readonly WolfmedBodyPainSystem _bodyPain = default!;
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -118,13 +126,32 @@ public sealed class WolfmedDownedSystem : EntitySystem
             args.Cancel();
     }
 
-    /// <summary>The whole of "self only": the target has to be the body or something the body is carrying.</summary>
+    /// <summary>
+    /// "Self only", plus loose items within reach (M1a, OD7 (b)): the target has to be the body, something
+    /// it carries, a pod marked reachable, or an item lying on the floor next to it.
+    /// </summary>
     private void OnInteractionAttempt(Entity<WolfmedDownedComponent> ent, ref InteractionAttemptEvent args)
     {
         // AUTODOC: a pod marked reachable is the one thing off the body a Downed player may still touch.
         if (args.Target is { } target && !IsSelfOrCarried(ent, target) &&
-            !HasComp<WolfmedDownedReachableComponent>(target))
+            !HasComp<WolfmedDownedReachableComponent>(target) && !IsWithinReach(ent, target))
             args.Cancelled = true;
+    }
+
+    /// <summary>
+    /// An item lying loose on the floor within <c>wolfmed.downed_reach</c>: the body's own tile and the ones
+    /// next to it. Not anchored, not inside anything.
+    /// </summary>
+    public bool IsWithinReach(EntityUid user, EntityUid target)
+    {
+        if (!HasComp<ItemComponent>(target) || _container.IsEntityInContainer(target))
+            return false;
+
+        var xform = Transform(target);
+        if (xform.Anchored)
+            return false;
+
+        return _transform.InRange(Transform(user).Coordinates, xform.Coordinates, _cfg.GetCVar(WolfmedCVars.DownedReach));
     }
 
     private void OnAttackAttempt(EntityUid uid, WolfmedDownedComponent component, AttackAttemptEvent args)

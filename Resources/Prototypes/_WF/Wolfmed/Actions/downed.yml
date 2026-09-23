@@ -1,0 +1,13 @@
+# M1a (plan §5.3): the crawling stage's own action. Granted while Downed and nowhere else.
+
+- type: entity
+  id: ActionWolfmedCallForHelp
+  name: Call for help
+  description: Shout for help and mark yourself on medical HUDs for a minute.
+  components:
+  - type: InstantAction
+    itemIconStyle: NoItem
+    checkCanInteract: false
+    icon: Interface/Actions/scream.png
+    event: !type:WolfmedCallForHelpActionEvent
+      maxLength: 60

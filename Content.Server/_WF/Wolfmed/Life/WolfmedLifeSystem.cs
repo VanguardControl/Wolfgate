@@ -63,6 +63,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private WolfmedBreathingSystem _breathing = default!;
     [Dependency] private WolfmedConcussionSystem _concussion = default!;
     [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private WolfmedDyingActionsSystem _dyingActions = default!;
     [Dependency] private WolfmedInfectionSystem _infection = default!;
     [Dependency] private WolfmedPainReliefSystem _relief = default!;
     [Dependency] private WolfmedShutdownSystem _shutdown = default!;
@@ -672,6 +673,9 @@ public sealed class WolfmedLifeSystem : EntitySystem
         _consciousness.SetExternalPressure(body, ArrestPressure, 1f);
         _bleeding.RefreshBody(body);
         UpdateVitalSigns(body);
+
+        // M1a: only the Dying may let go (plan §5.4).
+        _dyingActions.Grant(body);
         return true;
     }
 
@@ -681,6 +685,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
             return false;
 
         RemComp<WolfmedCardiacArrestComponent>(body);
+        _dyingActions.Revoke(body);
         _consciousness.SetExternalPressure(body, ArrestPressure, 0f);
         _bleeding.RefreshBody(body);
         UpdateVitalSigns(body);
