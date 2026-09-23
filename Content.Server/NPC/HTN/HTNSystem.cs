@@ -47,6 +47,7 @@ public sealed partial class HTNSystem : EntitySystem
         _loadedQuery = GetEntityQuery<LoadedChunkComponent>(); // Frontier
         SubscribeLocalEvent<HTNComponent, MobStateChangedEvent>(_npc.OnMobStateChange);
         SubscribeLocalEvent<HTNComponent, MapInitEvent>(_npc.OnNPCMapInit);
+        SubscribeLocalEvent<HTNComponent, ComponentStartup>(OnHTNStartup); // WOLFGATE
         SubscribeLocalEvent<HTNComponent, PlayerAttachedEvent>(_npc.OnPlayerNPCAttach);
         SubscribeLocalEvent<HTNComponent, PlayerDetachedEvent>(_npc.OnPlayerNPCDetach);
         SubscribeLocalEvent<HTNComponent, ComponentShutdown>(OnHTNShutdown);
@@ -299,7 +300,18 @@ public sealed partial class HTNSystem : EntitySystem
                 comp.PlanningToken = null;
             }
 
-            Update(comp, frameTime);
+            // WOLFGATE: one broken NPC must not take the whole update loop down with it.
+            try
+            {
+                Update(comp, frameTime);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"NPC {ToPrettyString(uid)} threw during its update and has been put to sleep: {e}");
+                comp.Blackboard.SetValue(NPCBlackboard.Owner, uid);
+                _npc.SleepNPC(uid, comp);
+            }
+
             count++;
             updates++;
         }
@@ -307,6 +319,16 @@ public sealed partial class HTNSystem : EntitySystem
         // only reset our counter back to 0 if we finish iterating.
         // otherwise it lets us know where we left off.
         count = 0;
+    }
+
+    /// <summary>
+    /// WOLFGATE: a grid loaded from a save is already map-initialised, so its NPCs never see MapInit
+    /// and come up with no Owner in their blackboard. The blackboard is not saved, so set it here.
+    /// </summary>
+    private void OnHTNStartup(EntityUid uid, HTNComponent component, ComponentStartup args)
+    {
+        if (!component.Blackboard.ContainsKey(NPCBlackboard.Owner))
+            component.Blackboard.SetValue(NPCBlackboard.Owner, uid);
     }
 
     private void AppendDebugText(HTNTask task, StringBuilder text, List<int> planBtr, List<int> btr, ref int level)
