@@ -9,8 +9,18 @@ namespace Content.Client.UserInterface.Systems.DamageOverlays.Overlays;
 
 public sealed partial class DamageOverlay
 {
-    /// <summary>True once the local player is dead and Wolfmed's grey dead view has taken over.</summary>
-    private bool WolfmedOwnsDeadScreen() => _entityManager.System<WolfmedDyingEffectsSystem>().OwnsDeadScreen;
+    /// <summary>
+    /// True once Wolfmed draws this player's damage view itself: the grey dead screen after death, or, for
+    /// a mechanical body, the synthetic diagnostics readout, which replaces the vignette outright (HUD).
+    /// </summary>
+    private bool WolfmedOwnsScreen()
+    {
+        if (_playerManager.LocalEntity is { } local &&
+            _entityManager.System<WolfmedSyntheticHudOverlaySystem>().OwnsView(local))
+            return true;
+
+        return _entityManager.System<WolfmedDyingEffectsSystem>().OwnsDeadScreen;
+    }
 
     /// <summary>Overrides the brute vignette with Onyx's pain level on wound hosts.</summary>
     private void TryApplyWolfmedPain()

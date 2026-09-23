@@ -296,4 +296,15 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> AutodocSedationCap =
         CVarDef.Create("wolfmed.autodoc_sedation_cap", 0.5f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a mechanical body draws the synthetic diagnostics readout instead of the organic vignette
+    /// and dying view. False puts a chassis back on the flesh presentation.
+    /// </summary>
+    public static readonly CVarDef<bool> SyntheticHud =
+        CVarDef.Create("wolfmed.synthetic_hud", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    /// <summary>Text size multiplier for the synthetic readout.</summary>
+    public static readonly CVarDef<float> SyntheticHudScale =
+        CVarDef.Create("wolfmed.synthetic_hud_scale", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

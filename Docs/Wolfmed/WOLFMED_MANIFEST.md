@@ -4349,3 +4349,39 @@ Deviations:
 - **Overheating is a burn, not a shutdown.** Heat routed through the ordinary pipeline kills the pump long
   before the positronic brain, so an IPC shuts down through `WolfmedShutdownSystem` on its own rather than
   through a second, special-cased path.
+
+## Final stages: HUD (2026-09-22)
+
+Synthetic diagnostics readout: a mechanical body draws a film-style helmet HUD instead of the organic red
+vignette and dying view. The fault list is the analyzer payload for one body, pushed rather than pulled.
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudComponent.cs` | new | networked readout: faults, integrity, fluid, power, servos, shutdown, core, advice. `WolfmedSyntheticFault`, the severity tag and the condition enum live here. |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudLinePrototype.cs` | new | `syntheticHudLine`: wound or condition -> locale line, tag, escalation severity, advice. |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudLineSystem.cs` | new | the table lookup, the part labels and the pure tier function (`Strain`, `Tier`, 0.08/0.25/0.55). |
+| `Content.Server/_WF/Wolfmed/Hud/WolfmedSyntheticHudSystem.cs` | new | fills the component twice a second for every mechanical wound host, dirty only on change. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlaySystem.cs` | new | drives the readout: tiers, slide-in, blips, spinner, jitter, glitch, standby and the panic/death sequence. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlay.cs` | new | the screen-space drawing. No controls, no input. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticScreenOverlay.cs` | new | the shader pass: cyan rim, torn slice, standby drain. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudLayout.cs` | new | block rectangles and the reserved HUD regions the layout test measures against. |
+| `Content.Client/_WF/Wolfmed/Overlays/DamageOverlay.Wolfmed.cs` | modified | `WolfmedOwnsDeadScreen` became `WolfmedOwnsScreen`, which is also true for a synthetic body. |
+| `Content.Client/UserInterface/Systems/DamageOverlays/Overlays/DamageOverlay.cs` | modified | the one marked call site renamed with it. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDyingEffectsSystem.cs` | modified | four marked gates: the dying view, the sway, the death banner and the arrest banner all skip a synthetic body. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.synthetic_hud`, `wolfmed.synthetic_hud_scale` (both client, archived). |
+| `Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml` | new | 15 rows: seven wounds and eight conditions, fallback included. |
+| `Resources/Prototypes/_WF/Wolfmed/Shaders/shaders.yml` | modified | the `WolfmedSynthetic` shader entry. |
+| `Resources/Textures/_WF/Wolfmed/Shaders/synthetic.swsl` | new | rim tint, slice tear, scan, standby drain. |
+| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | new | every readout string. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | new | five tests: fault building and ordering, the cap, the organic gate, the tier bands, data/locale coverage, layout at two resolutions and two scales. |
+
+Deviations from the spec:
+- **Advice comes from its own short locale keys, not the analyzer's.** The analyzer's mechanical advice keys
+  (`wolfmed-treatment-step-wolfmed-breach-wound-2`) are whole sentences; a HUD line is two or three words.
+  The `syntheticHudLine` rows name their own `advice` key, which says the same thing in the readout's voice.
+- **Power is on the wire, not read client-side.** `BatteryComponent` is server-only, so the cell charge
+  rides in the component with everything else. It is omitted from the block when there is no readable cell.
+- **The kernel panic does not freeze the game for two seconds.** It holds a static register dump on screen
+  for two seconds and then fades to the `CORE OFFLINE` banner; nothing stops the client ticking.
+- **The reserved HUD regions in the layout test are declared, not measured from the live controls.** They
+  are deliberately generous bands for the hotbar, alerts column, chat pane and targeting doll.

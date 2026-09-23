@@ -1,0 +1,130 @@
+# HUD: the wound-to-readout table the synthetic diagnostics overlay is built from. Every line a mechanical
+# body puts on its own screen is one of these rows; nothing in the overlay hardcodes a fault string.
+#
+# A row is keyed either on a wound prototype or on a condition the body reports some other way. `severity`
+# is the tag until `escalateAt`, then `escalated`. `advice` is the single line the SYSTEM block shows when
+# this is the worst fault on the readout; the analyzer's own advice keys are whole paragraphs, so the HUD
+# keeps its own terse ones here.
+
+- type: syntheticHudLine
+  id: SyntheticHudDent
+  wound: WolfmedDentWound
+  line: wolfmed-synthetic-line-dent
+  severity: Info
+  minSeverity: 10
+  escalateAt: 60
+  escalated: Warn
+  advice: wolfmed-synthetic-advice-dent
+
+- type: syntheticHudLine
+  id: SyntheticHudBreach
+  wound: WolfmedBreachWound
+  line: wolfmed-synthetic-line-breach
+  severity: Warn
+  escalateAt: 60
+  escalated: Crit
+  advice: wolfmed-synthetic-advice-breach
+
+- type: syntheticHudLine
+  id: SyntheticHudShortCircuit
+  wound: WolfmedShortCircuitWound
+  line: wolfmed-synthetic-line-short-circuit
+  severity: Warn
+  escalateAt: 50
+  escalated: Crit
+  advice: wolfmed-synthetic-advice-short-circuit
+
+- type: syntheticHudLine
+  id: SyntheticHudServo
+  wound: WolfmedServoDamageWound
+  line: wolfmed-synthetic-line-servo
+  severity: Crit
+  escalateAt: 30
+  escalated: Fail
+  advice: wolfmed-synthetic-advice-servo
+
+- type: syntheticHudLine
+  id: SyntheticHudOverheating
+  wound: WolfmedOverheatingWound
+  line: wolfmed-synthetic-line-overheating
+  severity: Warn
+  escalateAt: 45
+  escalated: Crit
+  advice: wolfmed-synthetic-advice-overheating
+
+- type: syntheticHudLine
+  id: SyntheticHudChassisBreach
+  wound: WolfmedChassisBreachWound
+  line: wolfmed-synthetic-line-chassis-breach
+  severity: Fail
+  advice: wolfmed-synthetic-advice-chassis-breach
+
+# The generic chassis total, which every damaged part carries. It only earns a row once the part is really
+# hurt, or it would fill the readout on its own and push the specific findings off the bottom.
+- type: syntheticHudLine
+  id: SyntheticHudFrame
+  wound: IpcMechanicalDamageWound
+  line: wolfmed-synthetic-line-frame
+  severity: Info
+  minSeverity: 25
+  escalateAt: 60
+  escalated: Warn
+  advice: wolfmed-synthetic-advice-frame
+
+# Conditions -------------------------------------------------------------------
+
+- type: syntheticHudLine
+  id: SyntheticHudFallback
+  condition: Fallback
+  line: wolfmed-synthetic-line-fallback
+  severity: Warn
+  advice: wolfmed-synthetic-advice-fallback
+
+- type: syntheticHudLine
+  id: SyntheticHudLowFluid
+  condition: LowFluid
+  line: wolfmed-synthetic-line-low-fluid
+  severity: Crit
+  advice: wolfmed-synthetic-advice-low-fluid
+
+- type: syntheticHudLine
+  id: SyntheticHudShutdown
+  condition: Shutdown
+  line: wolfmed-synthetic-line-shutdown
+  severity: Fail
+  advice: wolfmed-synthetic-advice-shutdown
+
+- type: syntheticHudLine
+  id: SyntheticHudBrainDamage
+  condition: BrainDamage
+  line: wolfmed-synthetic-line-core-degraded
+  severity: Crit
+  advice: wolfmed-synthetic-advice-core
+
+- type: syntheticHudLine
+  id: SyntheticHudBrainDestroyed
+  condition: BrainDestroyed
+  line: wolfmed-synthetic-line-core-offline
+  severity: Fail
+  advice: wolfmed-synthetic-advice-core
+
+- type: syntheticHudLine
+  id: SyntheticHudPartDisabled
+  condition: PartDisabled
+  line: wolfmed-synthetic-line-actuator-offline
+  severity: Fail
+  advice: wolfmed-synthetic-advice-servo
+
+- type: syntheticHudLine
+  id: SyntheticHudPartMissing
+  condition: PartMissing
+  line: wolfmed-synthetic-line-limb-detached
+  severity: Fail
+  advice: wolfmed-synthetic-advice-limb
+
+- type: syntheticHudLine
+  id: SyntheticHudEmbedded
+  condition: Embedded
+  line: wolfmed-synthetic-line-embedded
+  severity: Warn
+  advice: wolfmed-synthetic-advice-embedded

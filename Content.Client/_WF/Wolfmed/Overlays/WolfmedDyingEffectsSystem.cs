@@ -25,6 +25,8 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private SharedContentEyeSystem _eye = default!;
+    // HUD: a mechanical body has its own presentation and must never get the organic one.
+    [Dependency] private WolfmedSyntheticHudOverlaySystem _synthetic = default!;
 
     /// <summary>Damage, as a share of the crit threshold, where the effects start.</summary>
     public const float StartRatio = 0.5f;
@@ -79,7 +81,8 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     }
 
     /// <summary>True while this system, not the stock damage overlay, draws the local player's dead screen.</summary>
-    public bool OwnsDeadScreen => _enabled && _player.LocalEntity is { } local && IsDead(local);
+    public bool OwnsDeadScreen =>
+        _enabled && _player.LocalEntity is { } local && !_synthetic.OwnsView(local) && IsDead(local);
 
     /// <summary>How far gone a body is, 0 to 1, from its mob state and how deep into each band its damage is.</summary>
     public static float Level(MobState state, float damage, float critThreshold, float deadThreshold)
@@ -103,7 +106,7 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
         base.FrameUpdate(frameTime);
 
         var local = _player.LocalEntity;
-        var target = _enabled && local is { } player ? TargetLevel(player) : 0f;
+        var target = _enabled && local is { } player && !_synthetic.OwnsView(player) ? TargetLevel(player) : 0f;
 
         // Ease toward the target so a big hit or a heal never pops the screen.
         _level += (target - _level) * Math.Min(1f, frameTime * 1.5f);
@@ -142,10 +145,10 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
     /// <summary>Greys the view out once dead, and shows the banner for a few seconds.</summary>
     private void UpdateDeath(EntityUid? local, float frameTime)
     {
-        var dead = _enabled && local is { } player && IsDead(player);
+        var dead = _enabled && local is { } player && !_synthetic.OwnsView(player) && IsDead(player);
 
         // BRAIN: a stopped heart gets its own banner, on the same fade, until the body actually dies.
-        var arrest = !dead && _enabled && local is { } arrested &&
+        var arrest = !dead && _enabled && local is { } arrested && !_synthetic.OwnsView(arrested) &&
                      HasComp<WolfmedCardiacArrestComponent>(arrested);
         _arrestTime = arrest ? (_arrestTime < 0f ? 0f : _arrestTime + frameTime) : -1f;
         _dead += ((dead ? 1f : 0f) - _dead) * Math.Min(1f, frameTime * 1.2f);

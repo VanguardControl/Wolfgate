@@ -668,3 +668,34 @@ were wrong, and all four are fixed:
 - **One close chain serves every part, so its bone step is named for no part.** "Mend ribcage" read wrong on
   a head. Renamed "Mend bone" rather than split into a per-part chain: `SurgeryCloseIncision` is named as a
   requirement by a dozen surgeries and splitting it is a change of its own shape.
+
+## Synthetic HUD (2026-09-22)
+
+A mechanical body gets its own damage presentation. The organic red vignette and the dying view are gated
+off for it (`WolfmedSyntheticHudOverlaySystem.OwnsView`, checked in `DamageOverlay` and in four places in
+`WolfmedDyingEffectsSystem`); organic bodies and non-wound-host silicons are untouched.
+
+- **A body is mechanical when its torso is.** `WolfmedSyntheticHudSystem.IsMechanicalBody` asks W6's
+  `WolfmedWoundTraitSystem.IsMechanical` about the torso only, so a human with one cybernetic arm is still
+  flesh and still gets the vignette.
+- **Pushed, not pulled.** Wound entities are server-only, so the server fills a networked
+  `WolfmedSyntheticHudComponent` (faults, integrity, fluid, power, servos, shutdown, core, advice) twice a
+  second and dirties it only when something moved. Twelve lines maximum.
+- **Every line is data.** `syntheticHudLine` prototypes map a wound id or a condition to a locale line, a
+  tag, an escalation severity and a one-line advice; an unmapped wound whose `analyzerCategory` is
+  `Mechanical` hits the fallback row. Nothing in the overlay hardcodes a fault string.
+- **Newest first.** A fault the readout did not carry last tick goes to the top, worst tag leading;
+  everything already on screen keeps its order. The advice line is always the top fault's.
+- **Four tiers off one number.** `Strain` is the worse of CONSC's `Depth` and lost chassis integrity;
+  0.08 / 0.25 / 0.55 separate Idle (a corner glyph), Light (SYSTEM block), Moderate (DIAGNOSTICS and a
+  still cyan rim) and Heavy (pulsing rim, one-pixel jitter, an occasional torn slice, and the integrity
+  banner). Downed, shutdown/unconscious and dead override the banner with crawl mode, standby and a kernel
+  panic into `CORE OFFLINE`.
+- **Integrity is the parts, not the damage total.** Each part is read against its own amputation
+  thresholds, torso and head weighted double, so losing an arm costs less than a cracked chassis.
+- **It can never take a click.** The readout is a plain screen-space `Overlay` with no controls at all, and
+  `WolfmedSyntheticHudLayout` keeps its three blocks in the top 32 % of the screen, clear of the hotbar,
+  alerts column, chat pane and targeting doll at 1920x1080 and 1280x720.
+- **Reduced motion and two CVars.** `accessibility.reduced_motion` drops the slide-in, the jitter and the
+  glitch and leaves the tint; `wolfmed.synthetic_hud` puts a chassis back on the organic presentation and
+  `wolfmed.synthetic_hud_scale` sizes the text.
