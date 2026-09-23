@@ -86,7 +86,6 @@ trader-used-unknown-design = unknown design
 trader-used-unknown-seller = an anonymous seller
 trader-used-no-ship = I don't see a ship on that ID.
 trader-used-quote = I can give you { $amount } for the { $ship }.
-trader-used-unsavable-aboard = Get the { $thing } off her first; I can't take it with the ship.
 trader-used-sale-refused = Can't take her like that, I'm afraid.
 trader-used-sale-refused-reason = Can't take her like that, I'm afraid. { $reason }
 trader-used-sale-done = { $amount }, straight into your account. Pleasure.

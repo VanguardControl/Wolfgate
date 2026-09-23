@@ -213,6 +213,16 @@ public sealed partial class ShipyardSystem
     /// </summary>
     public bool TrySaveShip(EntityUid grid, [NotNullWhen(true)] out string? data)
     {
+        return TrySaveShip(grid, new List<EntityUid>(), out data);
+    }
+
+    /// <summary>
+    /// Serialises a grid and everything on it to YAML in memory. Mobs and mechs are flagged unsavable
+    /// so map saves skip them; <paramref name="carry"/> lists the ones to bring along regardless, and
+    /// their prototypes are made savable for the duration of the write.
+    /// </summary>
+    public bool TrySaveShip(EntityUid grid, List<EntityUid> carry, [NotNullWhen(true)] out string? data)
+    {
         data = null;
 
         using var writer = new StringWriter();
@@ -221,6 +231,16 @@ public sealed partial class ShipyardSystem
         var options = SerializationOptions.Default;
         options.MissingEntityBehaviour = MissingEntityBehaviour.Ignore;
         options.LogAutoInclude = null;
+
+        var lifted = new List<EntityPrototype>();
+        foreach (var uid in carry)
+        {
+            if (MetaData(uid).EntityPrototype is { MapSavable: false } proto && !lifted.Contains(proto))
+                lifted.Add(proto);
+        }
+
+        foreach (var proto in lifted)
+            proto.MapSavable = true;
 
         try
         {
@@ -231,6 +251,11 @@ public sealed partial class ShipyardSystem
         {
             Log.Error($"Failed to copy {ToPrettyString(grid)} for resale: {e}");
             return false;
+        }
+        finally
+        {
+            foreach (var proto in lifted)
+                proto.MapSavable = false;
         }
 
         data = writer.ToString();

@@ -69,6 +69,7 @@ public sealed class TraderShipTest
     private const string MarkerProto = "Wrench";
     private const string VesselProto = "Guppy";
     private const string BorgProto = "BorgChassisGeneric";
+    private const string BorgName = "Wolfgate resale borg";
     private const string ShipName = "Test Barge";
     private const string MarkerName = "Wolfgate resale marker";
 
@@ -583,19 +584,15 @@ public sealed class TraderShipTest
                 "The ship should have gravity before it is sold.");
 
             var deck = entMan.GetComponent<MapGridComponent>(shuttle).LocalAABB.Center;
-            Assert.That(marketSys.GetUnsavableAboard(shuttle), Is.Empty,
-                "A stock hull, humming computers and all, should be sellable.");
-
-            var borg = entMan.SpawnEntity(BorgProto, new EntityCoordinates(shuttle, deck));
-
-            Assert.That(marketSys.GetUnsavableAboard(shuttle), Does.Contain(borg),
-                "A borg aboard should block the sale.");
-
-            entMan.DeleteEntity(borg);
-
             var leftover = marketSys.GetUnsavableAboard(shuttle);
             Assert.That(leftover, Is.Empty,
-                $"Nothing else on a stock hull should be unsavable: {string.Join(", ", leftover.Select(uid => entMan.ToPrettyString(uid).ToString()))}");
+                $"Nothing on a stock hull should need carrying: {string.Join(", ", leftover.Select(uid => entMan.ToPrettyString(uid).ToString()))}");
+
+            // A mindless borg rides along with the hull, the way it would through the console.
+            var borg = entMan.SpawnEntity(BorgProto, new EntityCoordinates(shuttle, deck));
+            metaSys.SetEntityName(borg, BorgName);
+            Assert.That(marketSys.GetUnsavableAboard(shuttle), Does.Contain(borg),
+                "The borg should be listed for carrying.");
         });
 
         // Docking settles over a few ticks; wait for it rather than assuming a count.
@@ -637,6 +634,8 @@ public sealed class TraderShipTest
                 .First(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityName == MarkerName);
             Assert.That(entMan.GetComponent<DamageableComponent>(boughtMarker).TotalDamage, Is.EqualTo(FixedPoint2.New(7)),
                 "Damage should survive the resale copy.");
+            Assert.That(Descendants(entMan, bought).Any(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityName == BorgName),
+                Is.True, "The borg should have come with the ship.");
             Assert.That(entMan.HasComponent<ShuttleDeedComponent>(bought), Is.False, "The old deed must not come back.");
 
             // The grid never map-inits again, so the nav map has to be rebuilt by hand.
