@@ -377,7 +377,8 @@ public sealed class WolfmedBreathingClockTest : GameTest
     /// <summary>
     /// Once per arrest episode (plan §7.1 item 6). A second shock inside the repeat window restarts the heart
     /// and nothing else, so with blood still at 25% the heart stops again at once; with blood above 30% it
-    /// holds. Two shocks and no blood leave the patient worse than one shock and N units.
+    /// holds. Two shocks and no blood leave the patient worse than one shock and N units. A patient who
+    /// recovered in between starts a new episode.
     /// </summary>
     [Test]
     public async Task RepeatedShockTest()
@@ -437,6 +438,42 @@ public sealed class WolfmedBreathingClockTest : GameTest
                 Assert.That(s.Life.GetOxygenation(twice), Is.LessThanOrEqualTo(s.Life.GetOxygenation(once)));
                 Assert.That(s.Life.GetBrainActivity(twice), Is.LessThan(s.Life.GetBrainActivity(once)),
                     "two shocks without blood lost no more brain than one shock with N units.");
+            });
+        });
+
+        // A patient who got up with the blood back has recovered: a new arrest well inside the repeat window
+        // is its own episode, with its own restore and grace.
+        EntityUid well = default;
+        await Server.WaitAssertion(() =>
+        {
+            well = ArrestAndShock(s, map);
+            s.SetBlood(well, 0.6f);
+            s.Advance(well, 10, _ => s.State(well) == WolfmedConsciousness.Downed);
+        });
+
+        // Downed has a two-second dwell on the real clock before anyone stands.
+        await RunSeconds(2.5f);
+        await Server.WaitAssertion(() =>
+        {
+            // Well inside the 300 s repeat window: only the recovery can end the episode here.
+            s.Advance(well, 90, _ => !SEntMan.HasComponent<WolfmedPostShockComponent>(well));
+            Assert.Multiple(() =>
+            {
+                Assert.That(s.State(well), Is.EqualTo(WolfmedConsciousness.Up), "never stood after the transfusion.");
+                Assert.That(SEntMan.HasComponent<WolfmedPostShockComponent>(well), Is.False,
+                    "a recovered patient's arrest episode never ended.");
+            });
+
+            s.SetBlood(well, 0.29f);
+            s.Life.Tick(well, 1f);
+            Assert.That(s.Life.InArrest(well), Is.True, "29% blood kept a pulse.");
+            s.SetBlood(well, 0.25f);
+            Assert.That(s.Shock(well, out var line), Is.True, line);
+            Assert.Multiple(() =>
+            {
+                Assert.That(s.Life.InPostShockGrace(well), Is.True, "a new arrest after recovery was treated as a repeat.");
+                Assert.That(s.Life.GetOxygenation(well), Is.GreaterThanOrEqualTo(0.5f - 0.001f));
+                Assert.That(s.Life.InArrest(well), Is.False);
             });
         });
     }

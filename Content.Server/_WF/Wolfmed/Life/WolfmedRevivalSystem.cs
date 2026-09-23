@@ -189,7 +189,7 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     /// The post-shock course (plan §7.1). The heart starts; the first shock of an arrest episode also lifts
     /// oxygenation to <see cref="WolfmedCVars.PostShockOxygenation"/> and opens the grace in which the blood
     /// and oxygen triggers wait. Another success inside <see cref="WolfmedCVars.PostShockRepeatSeconds"/> of
-    /// that one only restarts the heart. Consciousness decides the rest: with blood above the Downed line the
+    /// that one only restarts the heart, unless the patient recovered in between. Consciousness decides the rest: with blood above the Downed line the
     /// patient comes round Downed at once.
     /// </summary>
     public void Revive(EntityUid body)

@@ -259,8 +259,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
     }
 
     /// <summary>
-    /// Runs the post-shock clocks on the life tick. Once the grace is spent and the repeat window has passed,
-    /// the next shock is a fresh episode and the record goes.
+    /// Runs the post-shock clocks on the life tick. The record goes, and the next shock is a fresh episode,
+    /// once the grace is spent and either the repeat window has passed or the patient has recovered.
     /// </summary>
     private void AdvancePostShock(EntityUid body, float seconds)
     {
@@ -269,9 +269,19 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
         post.GraceSeconds = MathF.Max(0f, post.GraceSeconds - seconds);
         post.SinceRestore += seconds;
-        if (post.GraceSeconds <= 0f && post.SinceRestore >= PostShockRepeatSeconds)
+        if (post.GraceSeconds <= 0f && (post.SinceRestore >= PostShockRepeatSeconds || RecoveredFromArrest(body)))
             RemComp<WolfmedPostShockComponent>(body);
     }
+
+    /// <summary>
+    /// The arrest episode is over: the patient is standing, the heart is going and the blood is back above the
+    /// line where it drains the brain. A later arrest is a new emergency and earns its own restore and grace.
+    /// </summary>
+    private bool RecoveredFromArrest(EntityUid body) =>
+        !InArrest(body) && !_mobState.IsDead(body) &&
+        TryComp(body, out WolfmedConsciousnessComponent? consciousness) &&
+        consciousness.State == WolfmedConsciousness.Up &&
+        GetTransfusionGuidance(body).ToBrainSafe <= 0f;
 
     /// <summary>The worst of the four inputs drains; nothing draining at all refills, slowly.</summary>
     private void UpdateOxygenation(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)

@@ -105,10 +105,14 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         _actions.AddAction(body, ref comp.LastWords, LastWordsAction);
     }
 
-    /// <summary>Takes them away again, and withdraws an open Succumb dialog. Heart restarted, or dead.</summary>
+    /// <summary>
+    /// Takes them away again, and withdraws an open Succumb dialog. Heart restarted, or dead; on death any open
+    /// dialog goes, since "left alive but empty" no longer describes the body.
+    /// </summary>
     public void Revoke(EntityUid body)
     {
-        if (_pending.TryGetValue(body, out var pending) && pending.Choice == WolfmedEndingChoice.Succumb)
+        if (_pending.TryGetValue(body, out var pending) &&
+            (pending.Choice == WolfmedEndingChoice.Succumb || _mobState.IsDead(body)))
             Withdraw(body);
 
         if (TerminatingOrDeleted(body) || !TryComp(body, out WolfmedDyingActionsComponent? comp))
@@ -298,9 +302,15 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Leaves a living body empty, with no way back. The body is not touched. Dying goes to Succumb.</summary>
+    /// <summary>
+    /// Leaves a living body empty, with no way back. The body is not touched. Dying goes to Succumb; a body
+    /// that died while the dialog was open is refused, so the ghost never comes back returnable.
+    /// </summary>
     public bool LeaveAlive(EntityUid body)
     {
+        if (TerminatingOrDeleted(body) || _mobState.IsDead(body))
+            return false;
+
         if (IsDying(body))
         {
             OpenSuccumbDialog(body);
@@ -310,7 +320,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         if (!_mind.TryGetMind(body, out var mindId, out var mind) || mind.OwnedEntity != body)
             return false;
 
-        return _ghost.OnGhostAttempt(mindId, canReturnGlobal: _mobState.IsDead(body), mind: mind);
+        return _ghost.OnGhostAttempt(mindId, canReturnGlobal: false, mind: mind);
     }
 
     #endregion

@@ -241,6 +241,25 @@ public sealed class WolfmedHonestEndingTest : GameTest
             });
         });
 
+        // --- "Left alive but empty" open when the body dies another way: the dialog goes, nothing is ghosted. ---
+        var (diedBody, diedMind) = await Possess("MobHuman", map);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(GhostCommand(diedMind), Is.True);
+            Assert.That(dying.GetPendingChoice(diedBody), Is.EqualTo(WolfmedEndingChoice.LeaveAlive));
+
+            s.Life.Kill(diedBody);
+            Assert.That(mobState.IsDead(diedBody), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(dying.GetPendingChoice(diedBody), Is.EqualTo(WolfmedEndingChoice.None),
+                    "death left the \"left alive but empty\" dialog open.");
+                Assert.That(dying.Confirm(diedBody), Is.False);
+                Assert.That(dying.LeaveAlive(diedBody), Is.False, "a dead body was left \"alive but empty\".");
+                Assert.That(ServerSession!.AttachedEntity, Is.EqualTo(diedBody), "a stale dialog ghosted the player.");
+            });
+        });
+
         // --- Arrest: Last Words, the ghost command, then Succumb. ---
         var (body, mindId) = await Possess("MobHuman", map);
         FixedPoint2 asphyxiation = default;

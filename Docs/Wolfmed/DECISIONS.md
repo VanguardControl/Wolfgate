@@ -1116,3 +1116,31 @@ M1a changes no damage model. It changes who breathes, what every state is called
   sound its Critical alarm for a faint.
 - **Species.** The scenarios run for Human and IPC. The report-mode conformance test lists the 98 known gaps
   in 32 other round-start species until M4 closes them.
+
+## M1a review fixes (2026-09-23)
+
+Two reviewers read the M1a commits. What changed:
+
+- **"Left alive but empty" can no longer come back returnable.** If the body died some other way while that
+  dialog was open, confirming it used to ghost with `canReturnGlobal` = dead, so the ghost could return,
+  against the dialog's "you cannot return". Now death withdraws any open dialog (`Revoke` on death withdraws
+  both kinds; heart restarts still withdraw only Succumb), `LeaveAlive` refuses a dead body, and it always
+  ghosts with no way back. The player ghosts from the corpse the ordinary way. Test: a new branch in
+  `HonestEndingScenarioTest`.
+- **A recovered patient's next arrest is a new episode.** Plan §7.1 item 6 grants the restore and the grace once
+  per arrest episode, and the code defined the episode only by `wolfmed.post_shock_repeat_seconds` (300 s)
+  since the last restore. A patient who got up and walked off, then arrested again from a new wound within
+  300 s, got no restore and no grace. Now the post-shock record also ends once the grace is spent and the
+  patient is Up, not in arrest, with blood at or above `wolfmed.brain_blood_start` (the line where blood stops
+  draining the brain, also where the analyzer's post-shock advice stops). A patient still down, or up with low
+  blood, keeps the 300 s window, so the plan's repeat-shock rule is unchanged for a continuing episode. No new
+  CVar. Test: a new branch in `RepeatedShockTest`.
+- **Asphyxiation readers the M1a test-migration table names but no package touched.** `WolfmedSpeciesSpawnTest`
+  (`IpcLeaksOilAndTakesNoAirlossTest`) and `WolfmedVitalLimitsTest` only assert the raw `Asphyxiation` and
+  `Bloodloss` entries in `DamageableComponent.Damage` (IPC takes none; the Airloss cap). Neither reads the
+  brain's breathing input or consciousness, so neither needed migrating. Both run, and pass, in the full filter.
+- **Package A's paperwork.** `plan/p7/wp/A-report.md` now exists as a standalone record, reconstructed from
+  commit `8f71617774`, the code and the `## M1a A` section above, and labelled as a reconstruction.
+- **Review pathspec.** In this repository the code lives in `Content.Server`, `Content.Shared`, `Content.Client`
+  and `Content.IntegrationTests`; a pathspec of `Content` matches none of them. Diff M1a with
+  `git diff 8e4a5cd15b..HEAD -- Content.* Resources Docs`. No code change.

@@ -331,7 +331,8 @@ public sealed class WolfmedCVars
 
     /// <summary>
     /// Seconds after a successful shock during which another one only restarts the heart: no oxygenation
-    /// restore and no new grace. One restore per arrest episode.
+    /// restore and no new grace. One restore per arrest episode; a patient who gets up with the blood back
+    /// ends the episode early.
     /// </summary>
     public static readonly CVarDef<float> PostShockRepeatSeconds =
         CVarDef.Create("wolfmed.post_shock_repeat_seconds", 300f, CVar.SERVERONLY);
