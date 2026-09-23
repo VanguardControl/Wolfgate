@@ -1,7 +1,7 @@
 # Consciousness and painkillers (CONSC).
 
 alerts-wolfmed-downed-name = Downed
-alerts-wolfmed-downed-desc = You are on the floor and can only reach yourself. You can crawl, talk and use what you are already carrying. You cannot stand, fight, shoot, pull or touch anything else until you are steadier.
+alerts-wolfmed-downed-desc = On the floor. You can crawl, talk and use what you carry.
 
 # Painkiller tiers, as the analyzer and the guidebook name them.
 
@@ -45,54 +45,54 @@ wolfmed-condition-title-out = Unconscious: { $cause }
 wolfmed-condition-cause-unknown = something else
 wolfmed-condition-cause-with-source = { $cause } ({ $source })
 wolfmed-condition-source-unknown = unknown cause
-wolfmed-condition-blockers = Still holding you down: { $blockers }.
+wolfmed-condition-blockers = Also: { $blockers }.
 wolfmed-condition-chat = [color=#d9b38c]{ $message }[/color]
 
-wolfmed-condition-down = You collapse to the floor.
+wolfmed-condition-down = You collapse.
 wolfmed-condition-out = Everything goes dark.
-wolfmed-condition-wake = You come round on the floor.
-wolfmed-condition-wake-up = You come round and get to your feet.
-wolfmed-condition-stand = You get back on your feet.
-wolfmed-condition-heart-restart = Your heart lurches back into rhythm.
-wolfmed-condition-heart-restart-still = Your heart lurches back into rhythm. You are still held down by { $cause }: { $help }
-wolfmed-condition-adrenaline-start = Adrenaline floods you: you can drag yourself along faster, for a little while.
+wolfmed-condition-wake = You come round.
+wolfmed-condition-wake-up = You come round and stand.
+wolfmed-condition-stand = You get up.
+wolfmed-condition-heart-restart = Your heart restarts.
+wolfmed-condition-heart-restart-still = Your heart restarts. Still down: { $cause }. { $help }
+wolfmed-condition-adrenaline-start = Adrenaline: you can crawl faster for a while.
 wolfmed-condition-adrenaline-end = The adrenaline fades.
 
 wolfmed-cause-pain = pain
-wolfmed-cause-pain-symptom = The pain has put you on the floor. You can crawl and treat yourself.
-wolfmed-cause-pain-help = A painkiller will get you moving unless something else is holding you down; the wounds are still there.
-wolfmed-cause-pain-help-mechanical = Damage sensors are overloaded. Welding and cabling the frame will get you moving unless something else is holding you down; painkillers do nothing for a chassis.
-wolfmed-cause-pain-down = The pain drops you to the floor.
+wolfmed-cause-pain-symptom = Pain has you on the floor.
+wolfmed-cause-pain-help = A painkiller gets you moving, unless something else holds you. The wounds remain.
+wolfmed-cause-pain-help-mechanical = Sensors overloaded. Weld and cable the frame; painkillers do nothing.
+wolfmed-cause-pain-down = The pain drops you.
 wolfmed-cause-pain-wake = You come round, still in agony.
-wolfmed-cause-pain-stand = The pain eases enough for you to stand.
+wolfmed-cause-pain-stand = The pain eases. You stand.
 
 wolfmed-cause-pain-faint = a pain faint
 wolfmed-cause-pain-faint-title = Passed out: pain
-wolfmed-cause-pain-faint-symptom = The pain has knocked you out.
-wolfmed-cause-pain-faint-help = You will come round in a few seconds.
-wolfmed-cause-pain-faint-help-blocked = The pain will pass in a few seconds, but something else is keeping you under.
+wolfmed-cause-pain-faint-symptom = Pain knocked you out.
+wolfmed-cause-pain-faint-help = You come round in seconds.
+wolfmed-cause-pain-faint-help-blocked = The pain passes in seconds; something else keeps you under.
 wolfmed-cause-pain-faint-out = The pain takes you under.
 
 wolfmed-cause-blood = blood loss
-wolfmed-cause-blood-symptom = You are light-headed and cold.
-wolfmed-cause-blood-help = Stop the bleeding; you need blood. Painkillers will not help.
-wolfmed-cause-blood-help-out = You will come round as your blood recovers, if the bleeding stops.
-wolfmed-cause-blood-help-out-blocked = You will not come round until your blood recovers and the rest is treated.
-wolfmed-cause-blood-down = You sink to the floor, light-headed and cold.
-wolfmed-cause-blood-out = Everything goes grey as the blood drains from your head.
+wolfmed-cause-blood-symptom = Light-headed and cold.
+wolfmed-cause-blood-help = Stop the bleeding. You need blood, not painkillers.
+wolfmed-cause-blood-help-out = You come round as your blood recovers, if the bleeding stops.
+wolfmed-cause-blood-help-out-blocked = You need blood, and the rest treated.
+wolfmed-cause-blood-down = You sink to the floor, light-headed.
+wolfmed-cause-blood-out = Everything goes grey.
 wolfmed-cause-blood-wake = You come round, weak and cold.
-wolfmed-cause-blood-stand = You feel steady enough to stand.
+wolfmed-cause-blood-stand = Steady enough to stand.
 
 wolfmed-cause-oil = hydraulic pressure low
 wolfmed-cause-oil-title-out = Shutdown: hydraulic pressure low
-wolfmed-cause-oil-symptom = Hydraulic pressure is low; the frame cannot hold itself up.
-wolfmed-cause-oil-help = Weld the breach and refill the oil.
-wolfmed-cause-oil-help-out = Weld the breach and refill the oil; the chassis comes back online as the pressure returns.
-wolfmed-cause-oil-help-out-blocked = Weld the breach and refill the oil; something else is also keeping the chassis down.
-wolfmed-cause-oil-down = Hydraulic pressure drops and your frame sags to the floor.
-wolfmed-cause-oil-out = Hydraulic pressure fails. Shutting down.
-wolfmed-cause-oil-wake = Hydraulic pressure restored. Back online.
-wolfmed-cause-oil-stand = Hydraulic pressure holds. You stand.
+wolfmed-cause-oil-symptom = Hydraulic pressure low. The frame cannot stand.
+wolfmed-cause-oil-help = Weld the breach, refill the oil.
+wolfmed-cause-oil-help-out = Weld the breach, refill the oil.
+wolfmed-cause-oil-help-out-blocked = Weld the breach, refill the oil. Something else also holds the chassis.
+wolfmed-cause-oil-down = Hydraulic pressure drops. Your frame sags.
+wolfmed-cause-oil-out = Hydraulic pressure failed. Shutting down.
+wolfmed-cause-oil-wake = Pressure restored. Online.
+wolfmed-cause-oil-stand = Pressure holds. You stand.
 
 wolfmed-cause-hypoxia = no oxygen
 wolfmed-cause-hypoxia-title-downed = Short of breath
@@ -101,34 +101,34 @@ wolfmed-cause-hypoxia-source-lungs = lungs failing
 wolfmed-cause-hypoxia-source-circulation = poor circulation
 wolfmed-cause-hypoxia-source-sepsis = sepsis
 wolfmed-cause-hypoxia-source-sedation = breathing slowed
-wolfmed-cause-hypoxia-symptom = You cannot get your breath and your vision swims.
-wolfmed-cause-hypoxia-help = Get to air, and get whatever is starving you of oxygen treated.
-wolfmed-cause-hypoxia-help-out = You need oxygen: air or internals, and whatever is starving you of it treated.
-wolfmed-cause-hypoxia-down = You cannot get your breath; you sink to the floor.
+wolfmed-cause-hypoxia-symptom = You cannot get your breath.
+wolfmed-cause-hypoxia-help = Get to air. Treat what starves you of oxygen.
+wolfmed-cause-hypoxia-help-out = You need air or internals, and the cause treated.
+wolfmed-cause-hypoxia-down = Short of breath, you sink to the floor.
 wolfmed-cause-hypoxia-out = Your vision narrows to nothing.
 wolfmed-cause-hypoxia-wake = You come round gasping.
 wolfmed-cause-hypoxia-stand = Your breathing steadies.
 
 wolfmed-cause-sedation = overdose
 wolfmed-cause-sedation-title-downed = Drowsy
-wolfmed-cause-sedation-symptom = Painkillers are slowing you down.
-wolfmed-cause-sedation-help = It wears off with time; another dose makes it worse.
-wolfmed-cause-sedation-help-out = Too much painkiller; your breathing is slowed. It wears off with time.
-wolfmed-cause-sedation-down = Your eyelids droop and you slump to the floor.
+wolfmed-cause-sedation-symptom = Painkillers are slowing you.
+wolfmed-cause-sedation-help = Wears off with time. Another dose makes it worse.
+wolfmed-cause-sedation-help-out = Overdose. Breathing slowed. Wears off with time.
+wolfmed-cause-sedation-down = You slump, eyelids drooping.
 wolfmed-cause-sedation-out = The painkillers drag you under.
 wolfmed-cause-sedation-wake = You surface, groggy.
 wolfmed-cause-sedation-stand = The drowsiness lifts.
 
 wolfmed-cause-legs = legs
 wolfmed-cause-legs-symptom = Your legs will not hold you.
-wolfmed-cause-legs-help = A splint or a repaired leg gets you up; you can still crawl.
+wolfmed-cause-legs-help = Splint or repair a leg. You can crawl.
 wolfmed-cause-legs-down = Your legs give way.
 wolfmed-cause-legs-stand = You get your legs under you.
 
 wolfmed-cause-crash = stim crash
-wolfmed-cause-crash-symptom = The stim has worn off and your body is paying for it.
-wolfmed-cause-crash-help = The crash passes on its own in a few seconds unless something else is holding you down.
-wolfmed-cause-crash-down = The stim wears off and your legs give out.
+wolfmed-cause-crash-symptom = The stim wore off.
+wolfmed-cause-crash-help = Passes in seconds, unless something else holds you.
+wolfmed-cause-crash-down = The stim wears off. Your legs give out.
 wolfmed-cause-crash-stand = The crash passes.
 
 wolfmed-cause-arrest = cardiac arrest
@@ -140,56 +140,55 @@ wolfmed-cause-arrest-source-sepsis = sepsis
 wolfmed-cause-arrest-source-shock = shock
 wolfmed-cause-arrest-source-other = unknown cause
 wolfmed-cause-arrest-symptom = Your heart has stopped.
-wolfmed-cause-arrest-help-out = You need a defibrillator. Brain injury begins in about a minute without CPR. You can choose to let go.
+wolfmed-cause-arrest-help-out = Defibrillator needed. Brain injury in about a minute without CPR. You may let go.
 wolfmed-cause-arrest-out = Your heart stops.
 
 wolfmed-cause-shutdown = shutdown
 wolfmed-cause-shutdown-title = Shutdown: { $source }
 wolfmed-cause-shutdown-source-power = no power
 wolfmed-cause-shutdown-source-pump = coolant pump offline
-wolfmed-cause-shutdown-symptom = Your systems have shut down. Nothing is getting worse.
-wolfmed-cause-shutdown-help-out = A charged cell or a working pump brings the chassis back online, unless something else is holding it down.
+wolfmed-cause-shutdown-symptom = Systems down. Nothing is getting worse.
+wolfmed-cause-shutdown-help-out = A charged cell or working pump brings you back, unless something else holds you.
 wolfmed-cause-shutdown-out = Power lost. Shutting down.
-wolfmed-cause-shutdown-wake = Systems back online.
+wolfmed-cause-shutdown-wake = Systems online.
 
 wolfmed-cause-other = something else
 
-# M1a: condition alerts. Alert tooltips cannot change with the blockers, so every one is written
-# conditionally; clicking the alert gives the full text with what else is holding you down.
+# M1a: condition alerts. Short: clicking the alert gives the full text with what else holds you down.
 
 alerts-wolfmed-downed-pain-name = Downed: pain
-alerts-wolfmed-downed-pain-desc = The pain has put you on the floor. You can crawl and treat yourself. A painkiller will get you moving unless something else is holding you down; the wounds are still there. Click for details.
+alerts-wolfmed-downed-pain-desc = Pain has you down. Crawl and treat yourself. A painkiller gets you moving.
 alerts-wolfmed-downed-frame-name = Downed: frame damage
-alerts-wolfmed-downed-frame-desc = Damage sensors are overloaded and the frame will not stand. Welding and cabling will get you moving unless something else is holding you down. Click for details.
+alerts-wolfmed-downed-frame-desc = Sensors overloaded. The frame will not stand. Weld and cable to get moving.
 alerts-wolfmed-faint-pain-name = Passed out: pain
-alerts-wolfmed-faint-pain-desc = The pain has knocked you out. It passes in a few seconds; you come round then unless something else is keeping you under. Click for details.
+alerts-wolfmed-faint-pain-desc = Knocked out by pain. Passes in seconds.
 alerts-wolfmed-downed-blood-name = Downed: blood loss
-alerts-wolfmed-downed-blood-desc = You are light-headed and cold. Stop the bleeding; you need blood. Painkillers will not help. Click for details.
+alerts-wolfmed-downed-blood-desc = Light-headed and cold. Stop the bleeding. You need blood.
 alerts-wolfmed-out-blood-name = Unconscious: blood loss
-alerts-wolfmed-out-blood-desc = You will come round as your blood recovers, if the bleeding stops and nothing else holds you. Click for details.
+alerts-wolfmed-out-blood-desc = You come round as your blood recovers, if the bleeding stops.
 alerts-wolfmed-downed-oil-name = Downed: hydraulic pressure low
-alerts-wolfmed-downed-oil-desc = Hydraulic pressure is low; the frame cannot hold itself up. Weld the breach and refill the oil. Click for details.
+alerts-wolfmed-downed-oil-desc = Hydraulic pressure low. Weld the breach, refill the oil.
 alerts-wolfmed-out-oil-name = Shutdown: hydraulic pressure low
-alerts-wolfmed-out-oil-desc = The chassis has shut down for lack of hydraulic pressure. It comes back online as the pressure returns, if nothing else holds it. Click for details.
+alerts-wolfmed-out-oil-desc = Shut down for lack of hydraulic pressure. Back online as it returns.
 alerts-wolfmed-downed-hypoxia-name = Short of breath
-alerts-wolfmed-downed-hypoxia-desc = Your brain is short of oxygen. Get to air, and get whatever is starving you of it treated. Click for details.
+alerts-wolfmed-downed-hypoxia-desc = Short of oxygen. Get to air.
 alerts-wolfmed-out-hypoxia-name = Unconscious: no oxygen
-alerts-wolfmed-out-hypoxia-desc = You need oxygen: air or internals, and whatever is starving you of it treated. Click for details.
+alerts-wolfmed-out-hypoxia-desc = You need air or internals.
 alerts-wolfmed-downed-sedation-name = Drowsy
-alerts-wolfmed-downed-sedation-desc = Painkillers are slowing you down. It wears off with time; another dose makes it worse. Click for details.
+alerts-wolfmed-downed-sedation-desc = Painkillers are slowing you. Wears off with time.
 alerts-wolfmed-out-sedation-name = Unconscious: overdose
-alerts-wolfmed-out-sedation-desc = Too much painkiller; your breathing is slowed. It wears off with time. Click for details.
+alerts-wolfmed-out-sedation-desc = Overdose. Breathing slowed. Wears off with time.
 alerts-wolfmed-downed-legs-name = Downed: legs
-alerts-wolfmed-downed-legs-desc = Your legs will not hold you. A splint or a repaired leg gets you up; you can still crawl. Click for details.
+alerts-wolfmed-downed-legs-desc = Your legs will not hold you. Splint or repair. You can crawl.
 alerts-wolfmed-downed-crash-name = Downed: stim crash
-alerts-wolfmed-downed-crash-desc = The stim has worn off and your body is paying for it. It passes in a few seconds unless something else holds you. Click for details.
+alerts-wolfmed-downed-crash-desc = Stim crash. Passes in seconds.
 alerts-wolfmed-out-arrest-name = Cardiac arrest
-alerts-wolfmed-out-arrest-desc = Your heart has stopped. You need a defibrillator. Brain injury begins in about a minute without CPR. You can choose to let go. Click for details.
+alerts-wolfmed-out-arrest-desc = Heart stopped. Defibrillator needed. Brain injury in about a minute without CPR. You may let go.
 alerts-wolfmed-out-shutdown-name = Shutdown
-alerts-wolfmed-out-shutdown-desc = Your systems have shut down and nothing is getting worse. A charged cell or a working pump brings the chassis back online, unless something else holds it. Click for details.
+alerts-wolfmed-out-shutdown-desc = Systems down. Nothing is getting worse. A charged cell or working pump brings you back.
 
 # M1a: Call for help, the crawling stage's own action (plan §5.3).
 wolfmed-call-for-help-title = Call for help
-wolfmed-call-for-help-prompt = What do you shout? Leave it empty for "{ $default }"
+wolfmed-call-for-help-prompt = Shout what? Empty for "{ $default }".
 wolfmed-call-for-help-default = Help! I'm down!
-wolfmed-call-for-help-cooldown = You called a moment ago. Save your breath.
+wolfmed-call-for-help-cooldown = You just called. Wait.

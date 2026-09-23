@@ -516,8 +516,8 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                 Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
                 Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.Pain));
                 Assert.That(comp.Blockers, Is.EqualTo(WolfmedCauseFlags.Blood), "blood in its leave band is not a blocker.");
-                Assert.That(text, Does.Contain("A painkiller will get you moving unless something else is holding you down"));
-                Assert.That(text, Does.Contain("Still holding you down: blood loss"));
+                Assert.That(text, Does.Contain("A painkiller gets you moving, unless something else holds you"));
+                Assert.That(text, Does.Contain("Also: blood loss"));
             });
 
             // An opiate does not stand them up until blood clears its leave line.
@@ -552,7 +552,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                 Assert.That(text, Does.Contain(Loc.GetString("wolfmed-cause-pain-faint-help-blocked")));
                 Assert.That(text, Does.Not.Contain(Loc.GetString("wolfmed-cause-pain-faint-help")),
                     "a blocked faint still promised coming round in a few seconds.");
-                Assert.That(text, Does.Contain("Still holding you down: blood loss"));
+                Assert.That(text, Does.Contain("Also: blood loss"));
             });
 
             s.SetBlood(b, 0.34f);
@@ -597,7 +597,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
             var comp = Consc(c);
             Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.Hypoxia), $"oxygenation {s.Life.GetOxygenation(c):0.00}");
             Assert.That(comp.Blockers & WolfmedCauseFlags.Sedation, Is.EqualTo(WolfmedCauseFlags.Sedation));
-            Assert.That(alerts.GetConditionText(c), Does.Contain("Still holding you down: " + Loc.GetString("wolfmed-cause-sedation")));
+            Assert.That(alerts.GetConditionText(c), Does.Contain("Also: " + Loc.GetString("wolfmed-cause-sedation")));
         });
 
         // Air back: the airway drain stops, the overdose's own drain does not, and the text names it.
