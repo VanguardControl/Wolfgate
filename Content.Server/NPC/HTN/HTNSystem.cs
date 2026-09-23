@@ -221,11 +221,13 @@ public sealed partial class HTNSystem : EntitySystem
             {
                 if (comp.PlanningJob.Exception != null)
                 {
-                    Log.Fatal($"Received exception on planning job for {uid}!");
+                    // WOLFGATE: log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
+                    Log.Error($"Received exception on planning job for {ToPrettyString(uid)}, removing its HTN: {comp.PlanningJob.Exception}");
                     _npc.SleepNPC(uid);
-                    var exc = comp.PlanningJob.Exception;
+                    comp.PlanningJob = null;
+                    comp.PlanningToken = null;
                     RemComp<HTNComponent>(uid);
-                    throw exc;
+                    continue;
                 }
 
                 // If a new planning job has finished then handle it.
