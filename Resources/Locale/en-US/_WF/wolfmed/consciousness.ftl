@@ -198,7 +198,7 @@ alerts-wolfmed-out-shutdown-desc = Systems down. Nothing is getting worse. A cha
 
 # M1a: Call for help, the crawling stage's own action (plan §5.3).
 wolfmed-call-for-help-title = Call for help
-wolfmed-call-for-help-prompt = Shout what? Empty for "{ $default }".
+wolfmed-call-for-help-prompt = Shout (blank = "{ $default }")
 wolfmed-call-for-help-default = Help! I'm down!
 wolfmed-call-for-help-cooldown = You just called. Wait.
 

@@ -89,6 +89,9 @@ public sealed class WolfmedCrawlSystem : EntitySystem
             return;
 
         var downed = HasComp<WolfmedDownedComponent>(ent);
+        if (!downed)
+            return;
+
         var legs = HasWorkingLimb(ent, BodyPartType.Leg);
         if (!legs)
         {
@@ -99,9 +102,6 @@ public sealed class WolfmedCrawlSystem : EntitySystem
             args.Sprint = sprint / args.BaseSprint;
             return;
         }
-
-        if (!downed)
-            return;
 
         var (floorWalk, floorSprint) = Floor(ent, true);
         args.Walk = MathF.Max(args.Walk, floorWalk / args.BaseWalk);
