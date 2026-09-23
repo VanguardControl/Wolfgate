@@ -375,6 +375,31 @@ public sealed partial class AutodocComponent : Component
     [ViewVariables]
     public int AutoReplans;
 
+    /// <summary>
+    /// The wounds the occupant already had a moment ago. Anything that appears on them while the pod is
+    /// working is the pod's own work and is marked as such.
+    /// </summary>
+    [ViewVariables]
+    public HashSet<EntityUid> PreProcedureWounds = new();
+
+    /// <summary>
+    /// How long after a run the pod still owns what turns up on the occupant. The damage a cautery deals
+    /// does not become a wound in the same tick as the step, so the window outlives the last step.
+    /// </summary>
+    [DataField]
+    public float PodWoundGrace = 1f;
+
+    /// <summary>Game time that window closes at.</summary>
+    [ViewVariables]
+    public TimeSpan PodWoundUntil;
+
+    /// <summary>
+    /// The occupant was already dead or arrested when this run started, or the pod has already held once for
+    /// this death. Operating on a corpse is the whole point of brain repair, so it is not a reason to stop.
+    /// </summary>
+    [ViewVariables]
+    public bool OccupantWasDead;
+
     /// <summary>What the vital alarm read on its last tick, so an escalation is heard as one.</summary>
     [ViewVariables]
     public AutodocAlarm AlarmLevel;

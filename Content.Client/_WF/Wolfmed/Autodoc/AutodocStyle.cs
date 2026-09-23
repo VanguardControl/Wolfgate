@@ -22,20 +22,21 @@ public static class AutodocStyle
     private const string MonoPath = "/Fonts/RobotoMono/RobotoMono-Regular.ttf";
     private const string MonoBoldPath = "/Fonts/RobotoMono/RobotoMono-Bold.ttf";
 
-    private static readonly Dictionary<(bool Bold, int Size), Font> Fonts = new();
+    private static readonly Dictionary<(IResourceCache Cache, bool Bold, int Size), Font> Fonts = new();
 
     public static Font Mono(int size, bool bold = false)
     {
-        // The cache is static and two clients can build a window at once (the layout test's two UI scales),
-        // which corrupted a plain Dictionary.
+        // The cache is static, and two clients can build a window at once. The dictionary is locked, and the
+        // owning resource cache is part of the key: a Font carries the engine's glyph cache with it, so
+        // handing one client's font to another client's UI thread corrupts that cache rather than this one.
+        var cache = IoCManager.Resolve<IResourceCache>();
         lock (Fonts)
         {
-            if (Fonts.TryGetValue((bold, size), out var font))
+            if (Fonts.TryGetValue((cache, bold, size), out var font))
                 return font;
 
-            var cache = IoCManager.Resolve<IResourceCache>();
             font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
-            Fonts[(bold, size)] = font;
+            Fonts[(cache, bold, size)] = font;
             return font;
         }
     }

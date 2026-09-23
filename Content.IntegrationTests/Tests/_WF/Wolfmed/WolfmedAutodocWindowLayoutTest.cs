@@ -1,9 +1,11 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Content.Client._WF.Wolfmed.Autodoc;
 using Content.IntegrationTests.Fixtures;
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Autodoc;
 using NUnit.Framework;
 using Robust.Client.UserInterface;
@@ -84,6 +86,69 @@ public sealed class WolfmedAutodocWindowLayoutTest : GameTest
             config.SetCVar(CVars.DisplayUIScale, original);
         });
         await Pair.RunTicksSync(5);
+    }
+
+    /// <summary>
+    /// The reorder buttons. The window used to work out what could move from the row it was drawing rather
+    /// than from the pod's state, so while a procedure ran it left the buttons around it live and every
+    /// message they sent was thrown away by the server.
+    /// </summary>
+    [Test]
+    [TestCase(AutodocState.Idle, 0)]
+    [TestCase(AutodocState.Step, 1)]
+    public async Task QueueButtonsFollowTheServersBoundTest(AutodocState state, int first)
+    {
+        var client = Pair.Client;
+        AutodocWindow window = default!;
+
+        var queue = new List<AutodocQueueEntry>
+        {
+            new("SurgeryMendFracture", TargetBodyPart.LeftLeg, new List<string>()),
+            new("SurgeryMendFracture", TargetBodyPart.RightLeg, new List<string>()),
+            new("SurgeryMendFracture", TargetBodyPart.LeftArm, new List<string>()),
+        };
+
+        // The window is built and filled but never opened: this measures what DrawQueue decided, and laying
+        // a second window out alongside the one the test above opens races the engine's glyph cache.
+        await client.WaitPost(() =>
+        {
+            window = new AutodocWindow();
+            window.Update(new AutodocBuiState { State = state, Occupied = true, Queue = queue });
+        });
+
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(AutodocQueueRules.FirstMovable(state), Is.EqualTo(first),
+                "the shared rule and the test disagree about what may move.");
+
+            var up = Buttons(window, "^");
+            var down = Buttons(window, "v");
+            Assert.Multiple(() =>
+            {
+                Assert.That(up, Has.Count.EqualTo(queue.Count), "a queue row is missing its move buttons.");
+
+                for (var index = 0; index < queue.Count; index++)
+                {
+                    Assert.That(up[index].Disabled, Is.EqualTo(index <= first),
+                        $"row {index}'s ^ does not match the server's bound.");
+                    Assert.That(down[index].Disabled, Is.EqualTo(index < first || index >= queue.Count - 1),
+                        $"row {index}'s v does not match the server's bound.");
+                }
+            });
+        });
+
+    }
+
+    private static List<Button> Buttons(Control root, string text)
+    {
+        var found = new List<Button>();
+        Walk(root, control =>
+        {
+            if (control is Button button && button.Text == text)
+                found.Add(button);
+        });
+
+        return found;
     }
 
     private static void Walk(Control control, Action<Control> visit)

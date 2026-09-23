@@ -213,6 +213,15 @@ public sealed partial class DefibrillatorSystem : EntitySystem
 
                 _chatManager.TrySendInGameICMessage(uid, Loc.GetString(wolfmedLine),
                     InGameICChatType.Speak, true);
+
+                // A gate is not a failed shock: the medic has to fix something before another one is worth
+                // giving, so the reason goes where they are looking rather than only into a speech bubble.
+                if (wolfmedLine != Content.Server._WF.Wolfmed.Life.WolfmedRevivalSystem.NoResponse &&
+                    wolfmedLine != "wolfmed-defib-success")
+                {
+                    _popup.PopupEntity(Loc.GetString(wolfmedLine), target, user,
+                        Content.Shared.Popups.PopupType.MediumCaution);
+                }
             }
             else
             {

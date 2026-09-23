@@ -490,6 +490,10 @@ public sealed class AutodocWindow : DefaultWindow
             ? Loc.GetString("wolfmed-autodoc-ui-queue-empty")
             : Loc.GetString("wolfmed-autodoc-ui-queue-count", ("count", state.Queue.Count));
 
+        // The same bound the server applies to a move or a remove, read off the pod's state rather than off
+        // each row: the buttons around the running procedure used to be live and do nothing.
+        var first = AutodocQueueRules.FirstMovable(state.State);
+
         for (var i = 0; i < state.Queue.Count; i++)
         {
             var entry = state.Queue[i];
@@ -504,15 +508,14 @@ public sealed class AutodocWindow : DefaultWindow
 
             if (!state.SelfService)
             {
-                var first = current ? 1 : 0;
                 var up = FlatButton("^", AmberDim);
                 up.Disabled = index <= first;
                 up.OnPressed += _ => OnQueueMove?.Invoke(index, true);
                 var down = FlatButton("v", AmberDim);
-                down.Disabled = index == state.Queue.Count - 1;
+                down.Disabled = index < first || index >= state.Queue.Count - 1;
                 down.OnPressed += _ => OnQueueMove?.Invoke(index, false);
                 var remove = FlatButton("x", Alert);
-                remove.Disabled = current;
+                remove.Disabled = index < first;
                 remove.OnPressed += _ => OnQueueRemove?.Invoke(index);
                 header.AddChild(up);
                 header.AddChild(down);

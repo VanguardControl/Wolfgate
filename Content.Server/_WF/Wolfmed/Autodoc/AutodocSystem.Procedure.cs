@@ -56,6 +56,9 @@ public sealed partial class AutodocSystem
     /// <summary>The one procedure that may be planned on a part that still has something stuck in it.</summary>
     public static readonly EntProtoId RemoveEmbedded = "SurgeryRemoveEmbeddedObjects";
 
+    /// <summary>The defibrillator refusal the pod can do something about on its own.</summary>
+    private const string NoBlood = "wolfmed-defib-no-blood";
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -84,6 +87,8 @@ public sealed partial class AutodocSystem
                     TickWaiting(ent);
                     break;
             }
+
+            TickPodWounds(ent);
         }
     }
 
@@ -275,6 +280,15 @@ public sealed partial class AutodocSystem
             return true;
         }
 
+        // Everything the occupant is carrying now is theirs; what turns up from here is the pod's.
+        SnapshotWounds(ent, body);
+
+        // A corpse or an arrested patient is operated on normally: repairing a brain and restarting a heart
+        // are exactly the procedures that want one. Only a death that happens mid-run stops the pod.
+        ent.Comp.OccupantWasDead = _mobState.IsDead(body) || _life.InArrest(body);
+        if (ent.Comp.OccupantWasDead)
+            Speak(ent, AutodocVoiceEvent.DeadProceeding);
+
         ent.Comp.Operator = user == body ? null : user;
         ent.Comp.Locked = true;
         ent.Comp.AnaestheticGiven = false;
@@ -302,13 +316,17 @@ public sealed partial class AutodocSystem
         }
 
         WarnAboutJunkReagents(ent);
-        TryDefibrillateOccupant(ent, body);
+
+        // Blood first: the shock's own gate wants a bloodstream that can circulate, so a pod that shocked
+        // before it transfused refused every patient who arrested from blood loss.
         TryTransfuse(ent, body);
+        TryDefibrillateOccupant(ent, body);
 
         // A fresh procedure gets to announce each family of work once more, and starts the stall guard
         // from nothing: the step counts only mean anything within one procedure.
         ent.Comp.SpokenFamilies.Clear();
         ClearStall(ent);
+        SnapshotWounds(ent, body);
 
         MaintainAnaesthesia(ent, body);
 
@@ -682,6 +700,10 @@ public sealed partial class AutodocSystem
             {
                 foreach (var wound in _wounds.GetWounds((part, woundable)))
                 {
+                    // The pod's own incisions and sutures are not news to the planner.
+                    if (HasComp<WolfmedPodWoundComponent>(wound))
+                        continue;
+
                     signature.Append(wound.Comp.Prototype.Id).Append(':')
                         .Append((int) wound.Comp.State).Append(':')
                         .Append(CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0).Append(';');
@@ -703,6 +725,84 @@ public sealed partial class AutodocSystem
         return signature.ToString();
     }
 
+    /// <summary>Every wound the occupant is carrying right now, whoever made it.</summary>
+    private IEnumerable<EntityUid> OccupantWounds(EntityUid body)
+    {
+        foreach (var (part, _) in _body.GetBodyChildren(body))
+        {
+            if (!TryComp(part, out WoundableComponent? woundable))
+                continue;
+
+            foreach (var wound in _wounds.GetWounds((part, woundable)))
+                yield return wound.Owner;
+        }
+    }
+
+    /// <summary>
+    /// Claims what the pod has just made. Runs every tick while a procedure is under way and for a grace
+    /// period after the last one: a cautery's burn and a scalpel's incision land through the damage path a
+    /// tick or two behind the step, so marking only at the procedure boundaries let one through each run,
+    /// and one is enough for the planner to find work and start again.
+    /// </summary>
+    private void TickPodWounds(Entity<AutodocComponent> ent)
+    {
+        if (IsRunning(ent))
+            ent.Comp.PodWoundUntil = _timing.CurTime + TimeSpan.FromSeconds(MathF.Max(0f, ent.Comp.PodWoundGrace));
+        else if (_timing.CurTime >= ent.Comp.PodWoundUntil)
+            return;
+
+        if (GetOccupant(ent) is { } body)
+            MarkPodWounds(ent, body);
+    }
+
+    /// <summary>What the patient walked in with. Taken at the start of every procedure.</summary>
+    private void SnapshotWounds(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        ent.Comp.PreProcedureWounds.Clear();
+        foreach (var wound in OccupantWounds(body))
+            ent.Comp.PreProcedureWounds.Add(wound);
+    }
+
+    /// <summary>
+    /// Marks everything the procedure added. Surgery cuts the patient open and sews them shut again, so a
+    /// run always ends with wounds that were not there before; without this the planner reads them as a new
+    /// problem, plans, operates, and leaves another set behind it.
+    /// </summary>
+    private void MarkPodWounds(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        if (TerminatingOrDeleted(body))
+            return;
+
+        foreach (var wound in OccupantWounds(body))
+        {
+            if (!ent.Comp.PreProcedureWounds.Contains(wound))
+                EnsureComp<WolfmedPodWoundComponent>(wound);
+        }
+
+        SnapshotWounds(ent, body);
+    }
+
+    /// <summary>
+    /// True when every wound on this entry's part is one the pod made. A triage step that treats wounds has
+    /// nothing to do there, whatever the surgery menu still lists.
+    /// </summary>
+    public bool PodWoundsOnly(EntityUid body, TargetBodyPart target)
+    {
+        if (ResolvePart(body, target) is not { } part || !TryComp(part, out WoundableComponent? woundable))
+            return false;
+
+        var any = false;
+        foreach (var wound in _wounds.GetWounds((part, woundable)))
+        {
+            if (!HasComp<WolfmedPodWoundComponent>(wound))
+                return false;
+
+            any = true;
+        }
+
+        return any;
+    }
+
     /// <summary>
     /// Gives up on a procedure the pod cannot finish: it says so, drops it, remembers it for as long as this
     /// occupant is in the pod, closes them back up if it was the pod that opened them, and carries on with
@@ -710,6 +810,7 @@ public sealed partial class AutodocSystem
     /// </summary>
     private void StallProcedure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued queued)
     {
+        MarkPodWounds(ent, body);
         Speak(ent, AutodocVoiceEvent.Stall);
         ent.Comp.FailedProcedures.Add((queued.Surgery.Id, queued.Part));
         ent.Comp.Queue.Remove(queued);
@@ -761,6 +862,7 @@ public sealed partial class AutodocSystem
 
     private void CompleteProcedure(Entity<AutodocComponent> ent, EntityUid body)
     {
+        MarkPodWounds(ent, body);
         if (ent.Comp.Queue.Count > 0)
         {
             var queued = ent.Comp.Queue[0];
@@ -821,6 +923,11 @@ public sealed partial class AutodocSystem
 
         ent.Comp.DefibNext = _timing.CurTime + TimeSpan.FromSeconds(MathF.Max(0.1f, ent.Comp.DefibRetryDelay));
 
+        // The one gate the pod can clear itself. Blood goes in and the refusal is asked again before
+        // anything is said, so a patient who arrested from blood loss is transfused and then shocked.
+        if (_revival.GetRefusal(body) == NoBlood && TryTransfuse(ent, body))
+            ent.Comp.DefibBlocked = null;
+
         // A gate is not something another shock fixes, so the pod does not even charge: it says what is
         // wrong, once, and says it again only when the reason changes.
         if (_revival.GetRefusal(body) is { } refusal && refusal != WolfmedRevivalSystem.NoResponse)
@@ -879,11 +986,16 @@ public sealed partial class AutodocSystem
 
     private void FinishQueue(Entity<AutodocComponent> ent)
     {
+        // One run, one QUEUE COMPLETE. Every path into a finished queue used to say it again.
+        if (ent.Comp.State == AutodocState.Complete)
+            return;
+
         // BRAIN: a patient who arrested on the table is the last thing the pod does something about.
         if (GetOccupant(ent) is { } patient)
         {
-            TryDefibrillateOccupant(ent, patient);
+            MarkPodWounds(ent, patient);
             TryTransfuse(ent, patient);
+            TryDefibrillateOccupant(ent, patient);
 
             // AUTODOC5: nothing the pod did went through the damage path, so the parts still carry the
             // damage of every wound it closed. They give it up here, and the body total with it.
@@ -902,6 +1014,9 @@ public sealed partial class AutodocSystem
 
     public void Abort(Entity<AutodocComponent> ent)
     {
+        if (GetOccupant(ent) is { } aborted)
+            MarkPodWounds(ent, aborted);
+
         Speak(ent, AutodocVoiceEvent.Aborted);
         WakeOccupant(ent);
         ent.Comp.Queue.Clear();
@@ -914,11 +1029,17 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
-    /// <summary>Pauses and calls for help when the patient crashes. True when the pod stopped.</summary>
+    /// <summary>
+    /// Pauses and calls for help when the patient crashes UNDER the knife. True when the pod stopped. A body
+    /// that was already dead or arrested when the run started is not a crash: the pod was asked to operate
+    /// on a corpse, which is how a brain is repaired and a heart restarted. The flag is also set by the hold
+    /// itself, so the operator's RESUME carries on instead of stopping again on the same death.
+    /// </summary>
     private bool WatchOccupant(Entity<AutodocComponent> ent, EntityUid body)
     {
-        if (_mobState.IsDead(body))
+        if (_mobState.IsDead(body) && !ent.Comp.OccupantWasDead)
         {
+            ent.Comp.OccupantWasDead = true;
             ent.Comp.State = AutodocState.Paused;
             ent.Comp.PauseRequested = true;
             Speak(ent, AutodocVoiceEvent.Critical);

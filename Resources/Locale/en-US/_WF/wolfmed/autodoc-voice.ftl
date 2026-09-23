@@ -60,6 +60,7 @@ wolfmed-autodoc-voice-clothing-auto = NOBODY IS UNDRESSING YOU. I WILL CUT.
 wolfmed-autodoc-voice-cutting = CUTTING.
 wolfmed-autodoc-voice-transfuse = TRANSFUSING.
 wolfmed-autodoc-voice-sedation-limit = SEDATION AT LIMIT.
+wolfmed-autodoc-voice-dead-proceeding = PATIENT IS DEAD. PROCEEDING.
 wolfmed-autodoc-voice-slip = OOPS.
 wolfmed-autodoc-voice-slip-fix = NOT SUPPOSED TO HAPPEN. FIXING IT.
 wolfmed-autodoc-voice-unconscious = THE PATIENT IS ASLEEP. GOOD.

@@ -67,7 +67,9 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         if (!_life.HasBrain(body))
             return "wolfmed-defib-no-brain";
 
-        if (_life.GetBlood(body) <= _cfg.GetCVar(WolfmedCVars.DefibBlood))
+        // Strictly under. The arrest triggers sit just below this line (blood 0.30, a pain shock under
+        // 0.5), so a body on the threshold has to be shockable or the common arrest can never be restarted.
+        if (_life.GetBlood(body) < _cfg.GetCVar(WolfmedCVars.DefibBlood))
             return "wolfmed-defib-no-blood";
 
         // A destroyed brain has to be put back together first; see SurgeryRepairBrain.

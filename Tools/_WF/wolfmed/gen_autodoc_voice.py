@@ -102,6 +102,7 @@ LINES = [
     ("cutting", "CUTTING.", None, "Info"),
     ("transfuse", "TRANSFUSING.", None, "Info"),
     ("sedation-limit", "SEDATION AT LIMIT.", None, "Info"),
+    ("dead-proceeding", "PATIENT IS DEAD. PROCEEDING.", None, "Info"),
 
     ("slip", "OOPS.", None, "Urgent"),
     ("slip-fix", "NOT SUPPOSED TO HAPPEN. FIXING IT.", None, "Info"),

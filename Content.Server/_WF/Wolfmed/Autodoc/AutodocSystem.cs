@@ -231,6 +231,8 @@ public sealed partial class AutodocSystem : EntitySystem
             ent.Comp.FailedProcedures.Clear();
             ent.Comp.AutoSignature = null;
             ent.Comp.AutoReplans = 0;
+            ent.Comp.PreProcedureWounds.Clear();
+            ent.Comp.OccupantWasDead = false;
         }
 
         UpdateAppearance(ent);
@@ -252,6 +254,8 @@ public sealed partial class AutodocSystem : EntitySystem
             ent.Comp.FailedProcedures.Clear();
             ent.Comp.AutoSignature = null;
             ent.Comp.AutoReplans = 0;
+            ent.Comp.PreProcedureWounds.Clear();
+            ent.Comp.OccupantWasDead = false;
             Reset(ent);
             _ui.CloseUis(ent.Owner);
         }
@@ -416,6 +420,7 @@ public sealed partial class AutodocSystem : EntitySystem
         ent.Comp.BlockedReason = null;
         ent.Comp.CutClothingRequested = false;
         ent.Comp.Transfusing = false;
+        ent.Comp.PreProcedureWounds.Clear();
         _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
     }
 

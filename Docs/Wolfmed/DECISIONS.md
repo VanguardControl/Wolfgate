@@ -722,3 +722,24 @@ off for it (`WolfmedSyntheticHudOverlaySystem.OwnsView`, checked in `DamageOverl
   the pressure whenever the flag already agreed, so anything that clears every pressure (a rejuvenate)
   left the flag behind: it now writes both halves every time and re-reads the cause once a second for
   bodies that are already down.
+
+## Playtest fixes: defib on arrest, autofix stops (2026-09-22)
+
+Four owner findings from the Wolfmed playtest.
+
+- **Nothing would shock an arrested patient.** `wolfmed.defib_blood` (0.40) sat above every arrest trigger
+  that involves blood (arrest at 0.30, a pain shock under 0.50), so the patients who arrest in practice were
+  all refused at the gate. The gate is now strictly under the threshold, the refusal is popped up to the
+  medic as well as spoken, and the pod transfuses out of its reservoir before it charges and again whenever
+  blood is what is blocking it. A plain arrest with blood in the body was always shockable; nobody had one.
+- **AUTO looped.** Surgery leaves an incision, a suture and a cautery burn behind it, so the body always
+  looked different and always had "work" on it. Wounds that appear while the pod operates carry
+  `WolfmedPodWoundComponent`; the body signature ignores them, and a triage step marked `ignorePodWounds`
+  skips a part whose every wound the pod made. QUEUE COMPLETE is spoken once per run.
+- **The pod held for a patient it was asked to operate on because they were dead.** Repairing a brain means
+  operating on a corpse. The vitals hold now only fires for a death that happens mid-run, says
+  "PATIENT IS DEAD. PROCEEDING." once for one that was already dead, and marks the death as handled so the
+  operator's RESUME carries on instead of stopping again on the same body.
+- **The queue reorder buttons did nothing.** The window worked out what could move from the row it was
+  drawing rather than from the pod's state, so the buttons around the running procedure were live and the
+  server threw away every message they sent. `AutodocQueueRules.FirstMovable` is the one rule both ends use.

@@ -15,12 +15,15 @@
     - SurgeryRemoveEmbeddedObjects
 
   # 3. What is emptying the patient fastest.
-  - surgeries:
+  - ignorePodWounds: true
+    surgeries:
     - SurgeryRepairArtery
     - SurgeryStopInternalBleeding
 
-  # 4. Then the rest of the bleeding.
-  - surgeries:
+  # 4. Then the rest of the bleeding. A part whose only wounds the pod made is skipped: surgery leaves an
+  # incision and a sutured slash of its own, and treating those would have the pod re-plan after every run.
+  - ignorePodWounds: true
+    surgeries:
     - SurgeryStopBleeding
 
   # 5. An open abdomen: not fatal this second, but everything after it is worse with the organs out.
@@ -48,12 +51,14 @@
     - SurgeryHealAmputationConsequence
 
   # 9. Deep tissue before shallow: the deep surgeries are the ones gauze cannot reach.
-  - surgeries:
+  - ignorePodWounds: true
+    surgeries:
     - SurgeryTendWoundsBruteDeep
     - SurgeryTendWoundsBurnDeep
 
   # 10. Everything else on the surface.
-  - surgeries:
+  - ignorePodWounds: true
+    surgeries:
     - SurgeryTendWoundsBrute
     - SurgeryTendWoundsBurn
     - SurgeryGraftSkin

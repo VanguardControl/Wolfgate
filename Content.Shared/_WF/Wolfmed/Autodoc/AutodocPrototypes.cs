@@ -147,6 +147,8 @@ public enum AutodocVoiceEvent : byte
     DefibGaveUp,
     /// <summary>The patient is as sedated as the pod is willing to make them. No more anaesthetic.</summary>
     SedationLimit,
+    /// <summary>The occupant was already dead when the run started, which is not a reason to stop.</summary>
+    DeadProceeding,
 }
 
 /// <summary>
@@ -189,6 +191,13 @@ public sealed partial class AutodocTriageStep
     /// </summary>
     [DataField]
     public bool RequiresStarted;
+
+    /// <summary>
+    /// Skip this step on a part whose every wound the pod made itself. Surgery leaves an incision and a
+    /// sutured slash behind it, and a wound step that counted those as work re-planned after every run.
+    /// </summary>
+    [DataField]
+    public bool IgnorePodWounds;
 }
 
 public enum AutodocTriageCondition : byte

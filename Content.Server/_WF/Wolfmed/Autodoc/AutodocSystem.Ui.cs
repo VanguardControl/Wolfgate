@@ -75,7 +75,7 @@ public sealed partial class AutodocSystem
     private void OnQueueRemove(Entity<AutodocComponent> ent, ref AutodocQueueRemoveMessage args)
     {
         // Anything not under the knife can go, even mid-run; the running one needs Abort.
-        var first = ent.Comp.State is AutodocState.Idle or AutodocState.Complete ? 0 : 1;
+        var first = AutodocQueueRules.FirstMovable(ent.Comp.State);
         if (args.Index >= first && args.Index < ent.Comp.Queue.Count)
         {
             ent.Comp.Queue.RemoveAt(args.Index);
@@ -88,16 +88,29 @@ public sealed partial class AutodocSystem
 
     private void OnQueueMove(Entity<AutodocComponent> ent, ref AutodocQueueMoveMessage args)
     {
-        var target = args.Up ? args.Index - 1 : args.Index + 1;
-        var first = ent.Comp.State is AutodocState.Idle or AutodocState.Complete ? 0 : 1;
-        if (args.Index >= first && args.Index < ent.Comp.Queue.Count &&
-            target >= first && target < ent.Comp.Queue.Count)
+        TryMoveQueued(ent, args.Index, args.Up);
+    }
+
+    /// <summary>
+    /// One press of ^ or v. Public so a test drives the same path a player does. Returns whether the queue
+    /// actually changed; the entry under the knife cannot move and neither can anything past the ends.
+    /// </summary>
+    public bool TryMoveQueued(Entity<AutodocComponent> ent, int index, bool up)
+    {
+        var target = up ? index - 1 : index + 1;
+        var first = AutodocQueueRules.FirstMovable(ent.Comp.State);
+        var moved = index >= first && index < ent.Comp.Queue.Count &&
+                    target >= first && target < ent.Comp.Queue.Count;
+
+        if (moved)
         {
-            (ent.Comp.Queue[args.Index], ent.Comp.Queue[target]) = (ent.Comp.Queue[target], ent.Comp.Queue[args.Index]);
+            (ent.Comp.Queue[index], ent.Comp.Queue[target]) = (ent.Comp.Queue[target], ent.Comp.Queue[index]);
+            // An operator editing the queue by hand has taken over from the planner.
             SetAuto(ent, false);
         }
 
         UpdateUi(ent);
+        return moved;
     }
 
     private void OnControl(Entity<AutodocComponent> ent, ref AutodocControlMessage args)

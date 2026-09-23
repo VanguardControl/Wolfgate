@@ -4385,3 +4385,34 @@ Deviations from the spec:
   for two seconds and then fades to the `CORE OFFLINE` banner; nothing stops the client ticking.
 - **The reserved HUD regions in the layout test are declared, not measured from the live controls.** They
   are deliberately generous bands for the hotbar, alerts column, chat pane and targeting doll.
+
+## Final stages: playtest fixes, defib and autofix (2026-09-22)
+
+| path | status | notes |
+| --- | --- | --- |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | the blood gate is strictly under `wolfmed.defib_blood`, so a body on the threshold is shockable. |
+| `Content.Server/Medical/DefibrillatorSystem.cs` | modified | a gate refusal is popped up to the medic as well as spoken by the paddles. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | transfuse before the shock and again on a blood refusal; pod wounds marked while it works; `OccupantWasDead`; one QUEUE COMPLETE per run. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs` | modified | the planner skips a step's surgeries on a part whose only wounds the pod made. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | `TryMoveQueued` seam, shared with the client through `AutodocQueueRules`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | the new per-occupant state is cleared with the rest on insert, removal and reset. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocWoundComponents.cs` | new | `WolfmedPodWoundComponent`, the marker on a wound the pod made itself. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | `PreProcedureWounds`, `PodWoundGrace`/`PodWoundUntil`, `OccupantWasDead`. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `ignorePodWounds` on a triage step, `DeadProceeding` voice event. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocUi.cs` | modified | `AutodocQueueRules.FirstMovable`, the one bound both ends of the queue UI follow. |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | the reorder buttons read that bound off the pod's state instead of off each row. |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocStyle.cs` | modified | the static font cache is keyed by the owning resource cache; one client's `Font` carries the engine glyph cache and two clients corrupted it. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/triage.yml` | modified | `ignorePodWounds: true` on the bleeding and tending steps. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl`, `Resources/Audio/_WF/Wolfmed/Autodoc/voice/dead-proceeding.ogg` | modified/new | `dead-proceeding` "PATIENT IS DEAD. PROCEEDING." (Info), eSpeak NG through the AUTODOC2 chain. |
+| `Tools/_WF/wolfmed/gen_autodoc_voice{,_protos}.py` | modified | the new line's row and event. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPlaytestFixesTest.cs` | new | six tests: the hand defib on a plain arrest, the blood refusal and the pod's transfusion, autofix running once, a brain-dead occupant operated on, a death mid-run and its RESUME, queue reorder. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocWindowLayoutTest.cs` | modified | the reorder buttons' enabled state against the shared bound, idle and running. |
+
+Deviations:
+- **Anything that appears on an occupant while the pod works is the pod's**, not only what a step created:
+  a cautery's burn lands through the damage path a tick or two behind the step, so marking only at the
+  procedure boundaries let one wound a run through, which was enough to restart the planner. The window
+  closes `PodWoundGrace` (1 s) after the last step, so an injury from outside during a run is miscredited.
+- **No client test presses the reorder button.** Robust's `BaseButton` has no public press, so the window
+  test asserts what `DrawQueue` decided and the server test drives `TryMoveQueued`, the seam the message
+  handler calls.

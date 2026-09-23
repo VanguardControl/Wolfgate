@@ -57,6 +57,17 @@ public readonly record struct AutodocQueueEntry(EntProtoId Surgery, TargetBodyPa
 [Serializable, NetSerializable]
 public readonly record struct AutodocReservoirEntry(string Name, float Volume, float Max, bool Usable);
 
+/// <summary>
+/// The one rule both ends of the queue UI follow: while a procedure is running the top entry is under the
+/// knife and cannot be moved or removed. The window used to work this out per row, so it left the buttons
+/// around the running procedure enabled while the server refused every message they sent.
+/// </summary>
+public static class AutodocQueueRules
+{
+    public static int FirstMovable(AutodocState state) =>
+        state is AutodocState.Idle or AutodocState.Complete ? 0 : 1;
+}
+
 [Serializable, NetSerializable]
 public sealed class AutodocQueueAddMessage(EntProtoId surgery, TargetBodyPart part) : BoundUserInterfaceMessage
 {

@@ -72,6 +72,7 @@ public sealed partial class AutodocSystem
                     if (entry.Surgery != surgery || !entry.Known ||
                         ent.Comp.FailedProcedures.Contains((entry.Surgery.Id, entry.Part)) ||
                         IsBlockedByEmbedded(ent, body, entry) ||
+                        step.IgnorePodWounds && PodWoundsOnly(body, entry.Part) ||
                         step.RequiresStarted && !AlreadyStarted(body, entry) ||
                         !taken.Add((entry.Surgery.Id, entry.Part)) ||
                         !CanPlanWithoutHelp(ent, entry.Surgery))
