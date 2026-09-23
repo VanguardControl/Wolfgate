@@ -25211,3 +25211,37 @@ Entries:
   id: 2749
   time: '2026-09-21T22:48:56.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4750
+- author: kasature90
+  changes:
+    - type: Add
+      message: Added Kresta and Kynda to PDV T0.
+    - type: Tweak
+      message: >-
+        Europa external armor buffed to 2 layers of reinforced plastitanium
+        instead of 1 layer of rplas and 1 layer of normal. Added 4 empty medium
+        energy hardpoints for PD (go steal your PD from TSF or something).
+    - type: Tweak
+      message: Lowered the cooldown timer for LPCs. Made TSF T1/T0 LPCs cheaper.
+    - type: Tweak
+      message: >-
+        Readded the PDV LPC researches & recipes. Their recipe matches the price
+        of the uplink entry, and the uplink entries have had (relatively) minor
+        taxes added to them to compensate for no R&D requirements. Take a little
+        advantage of lathe upgrades I suppose.
+    - type: Tweak
+      message: Moved PDV Osa-II to T1.
+    - type: Fix
+      message: Fixed Polaris LPC cooldown timer being too low.
+    - type: Fix
+      message: >-
+        Fixed Shuilian missing some service essentials (autolathe, biofab,
+        service techfab).
+    - type: Fix
+      message: Fixed Motley-Anne fighter LPCs being unobtainable.
+    - type: Fix
+      message: Fixed cargo turn in chutes giving the wrong paper.
+    - type: Fix
+      message: Removed guidebook pages for ships that don't exist anymore.
+  id: 2750
+  time: '2026-09-23T00:47:14.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4756
