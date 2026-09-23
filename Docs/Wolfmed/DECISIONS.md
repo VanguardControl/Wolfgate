@@ -743,3 +743,100 @@ Four owner findings from the Wolfmed playtest.
 - **The queue reorder buttons did nothing.** The window worked out what could move from the row it was
   drawing rather than from the pod's state, so the buttons around the running procedure were live and the
   server threw away every message they sent. `AutodocQueueRules.FirstMovable` is the one rule both ends use.
+
+## M1a B: causes, faint and alerts (2026-09-23)
+
+Plan: `WOLFMED_DEATH_PLAN.md` §5.1, §5.2 (without the explanation card and the sedation warnings), §3.1, §2.3,
+§3.11 (M1a parts), §5.6.
+
+**What was built.**
+- **Cause and Blockers.** `WolfmedConsciousnessComponent` carries networked `Cause` (`WolfmedCause`),
+  `CauseSource` (`WolfmedCauseSource`: the hypoxia drain, the arrest trigger, the shutdown reason) and
+  `Blockers` (`WolfmedCauseFlags`, one bit per cause). `Evaluate` keeps every input under its cause (pain,
+  pain faint, blood or oil, one per pressure key, legs, crash) and picks the cause with the plan's tie order
+  (Arrest > Shutdown > Blood > Oil > Hypoxia > Sedation > Other > PainFaint > Pain > Legs > Crash). Critical
+  states read the Unconscious line, Downed the Downed line. `Apply` raises `WolfmedConsciousnessChangedEvent`
+  on any change of state, cause or blockers.
+- **How a cause is picked, precisely.** An input past its line (level ≥ 1) names the state before one that is
+  only inside its leave band (≥ 0.9). Everything at or past its leave line, other than the cause, is a
+  blocker. So a faint at 40% blood is Cause PainFaint, Blockers Blood (blood is in its band); at 34% blood the
+  cause becomes Blood and the faint is the blocker. The plan's `OverlappingCausesTest` reads this way.
+- **Pain faint** (plan §3.1). Summed part pain at or over the faint line (1.4 × 135 = 189) faints for
+  `wolfmed.pain_faint_seconds` 20; nothing extends it. Waking records the summed pain as the baseline, starts
+  `wolfmed.pain_faint_cooldown` 30 and disarms. It re-arms under the leave line (170.1) or on a rise of
+  `wolfmed.pain_faint_rise` 40 over the baseline, never inside the cooldown. A Strong or Emergency dose ends a
+  faint and blocks the next (`WolfmedPainReliefSystem.EndsFaint`, which reads the doses, so a stimulant on top
+  of an opiate still counts). Mechanical bodies never faint. Pain no longer holds anybody Unconscious; only the
+  faint does, and it is `MobState.Critical` and breathing (package A).
+- **One pain number (P13).** Marked `PainSystem.SetPain` edit: a body's pain is min(soft cap, Σ parts) after
+  every change, and a direct set on the body is rederived from the parts. Suppression shares are part ÷ Σ
+  parts, so the body's suppression comes off once. The Downed test still reads the capped body value less
+  relief.
+- **Pain shock and adrenaline (OD5).** The shock's constants are CVars (`wolfmed.pain_shock_threshold` 130,
+  `wolfmed.pain_shock_rearm` 110, `wolfmed.adrenaline_seconds` 30, `wolfmed.adrenaline_crawl_multiplier` 1.5).
+  `GetPain` no longer multiplies by 0.7, so adrenaline stands nobody up; while it runs a Downed body crawls
+  ×1.5 and loses the 1.5× do-after penalty (`WolfmedDownedSystem`). Start and end are told to the patient
+  through the broadcast `WolfmedAdrenalineEvent` raised by `WolfmedBodyPainSystem`, the `_WF` half of the edit.
+- **Alerts.** `MobThresholdSystem.SetTriggersAlerts` (marked, beside `SetAllowRevives`) turns the stock health
+  alerts off on a wound host at startup when `wolfmed.consciousness` is on. `WolfmedConditionAlertSystem` then
+  owns the Health category: the stock Alive alert (`HumanHealth`/`BorgHealth`) while Up with its severity from
+  the worst Downed-level input, a per-cause alert while Downed or Critical, and the stock Dead alert. Bodies
+  that are not wound hosts are untouched. `HumanCrit` and `HumanHealth` readers were grepped: the thresholds'
+  own dictionary and `PainNumbnessSystem` only.
+- **Pain numbness decision.** The Up doll does not raise `BeforeAlertSeverityCheckEvent`. Its one reader,
+  pain numbness, pins the doll at full health, which would hide blood loss too; numbness already zeroes pain
+  in the inputs the severity reads.
+- **Lines.** One popup plus a chat line (Notifications channel) per transition: down, out (faint, arrest and
+  shutdown included), waking, standing, the heart restarting ("… You are still held down by {cause}: {help}"),
+  adrenaline start and end. Every line that names a cause and a state adds "Still holding you down: …" while
+  Blockers is not empty. The last line is kept in `LastConditionLine` for tests and admins.
+- **Cause prototypes.** `wolfmedConsciousnessCause`, one per M1a cause in
+  `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml`, id = enum name; text in `consciousness.ftl`.
+- **IPC.** `WolfmedShutdownComponent.Reason` (Power or Pump, networked) is set in `WolfmedShutdownSystem.Refresh`;
+  an empty cell wins when both are missing. The blood input on a mechanical body is cause Oil. The synthetic
+  HUD's banner is the cause's `syntheticHudLine` (`WolfmedSyntheticHudComponent.CauseLine`) instead of the
+  blanket STANDBY: "CELL EMPTY: SHUTDOWN. AWAITING POWER.", "COOLANT PUMP OFFLINE: SHUTDOWN",
+  "HYDRAULIC PRESSURE LOW", "MOBILITY LOST: FRAME DAMAGE", "MOBILITY LOST: ACTUATORS OFFLINE". The crit
+  heartbeat is silent for any body with the synthetic readout and for a faint.
+
+**Differs from the plan, and why.**
+- The plan calls `PainFaintUntil` and `PainFaintArmedBelow` existing fields; neither existed. All four faint
+  fields are new: `PainFaintUntil`, `PainFaintArmed` (a flag rather than a stored line), `PainFaintBaseline`,
+  `PainFaintCooldownUntil`.
+- Hypoxia sub-sources are Airway, Lungs, Circulation, Sepsis and Sedation: the drains that exist in M1a
+  (blood below 50% and sedation depression are drains too). Toxin and Heat arrive with M5.
+- `WolfmedCause.Other` names a pressure key no cause claims (admin and test keys); stock alerts, generic lines.
+- Alert tooltips are static in the engine, so they cannot change with the blockers. Every alert is written
+  conditionally ("… unless something else is holding you down") and clicking one (`WolfmedConditionAlertEvent`)
+  pops up and prints the full text with the blockers; the transition lines carry the blockers too.
+- The prototype has Downed and Critical forms of the help (`help`/`helpBlocked`, `helpOut`/`helpOutBlocked`),
+  titles, and a mechanical Downed alert and help for pain (`WolfmedDownedFrame`: painkillers do nothing for a
+  chassis). The plan's field list had one `help`.
+- Sedation plus hypoxia: with air back and the overdose still in the body, the cause stays Hypoxia with source
+  Sedation, not Sedation, because depression is its own brain drain (plan §3.4) and keeps the brain under the
+  hypoxic line. The text names the overdose ("no oxygen (breathing slowed)", blocker "overdose"). When the dose
+  ends the patient wakes as sedation falls and the brain refills: 59 s in the test.
+- The arrest help does not yet say "You can choose to let go": Succumb is package C's.
+- The heartbeat gate reads the synthetic HUD component rather than `OwnsView`, which is false when the player
+  turned the readout off.
+
+**Numbers.** Faint 20 s, rise 40, cooldown 30; shock 130 / re-arm 110; adrenaline 30 s, crawl ×1.5; the faint
+line stays `wolfmed.consc_pain_out` 1.4. Measured: `SustainedFireFaintTest` (10-stack fire, Blunt 6 every 2 s,
+2 min) spent 18.5 s Critical in one faint, Downed for the rest, so the 30 s cooldown holds the 40 s budget
+without the 50 s fallback. IPC 10-stack fire (M4 input, `IpcShutdownScenarioTest` output): chassis peak 1112 K
+at about 50 s, about 155 s above 383 K and about 125 s above 500 K.
+
+**Art debt.** Every new alert reuses an icon: `downed.rsi` for the Downed ones, the stock critical, bleed,
+breathing, dead and borg-critical icons for the rest.
+
+**Test fixtures that changed with the faint.** Pain past 189 now faints where the pain shock's 0.7 adrenaline
+discount used to keep it under: `WolfmedAutodocLoopTest.LongQueueDosesOnceAndWakesThePatientTest` (two broken legs)
+is made pain-numb, and package A's `PainShockNoArrestTest` hits the head with 40 instead of 60 so the shock fires on
+a conscious body (a fainted, Critical body takes no paralysis).
+
+**Package A's state.** Package A stopped before committing; its work was committed unchanged as a `wip:` checkpoint
+before B started, and B builds on it. A has no report or DECISIONS section of its own.
+
+**Left for later packages.** The analyzer's "FAINTED: pain" and "SHUTDOWN: no power" lines (D; the scenario
+tests assert the patient's titles instead). Succumb in the scenario tests (C). The synthetic HUD's pain/sensor
+and core-temperature rows (§5.6) were not added.

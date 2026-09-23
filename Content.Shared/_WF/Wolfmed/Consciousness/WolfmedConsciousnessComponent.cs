@@ -61,6 +61,45 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     [AutoNetworkedField]
     public WolfmedBloodBand BloodBand = WolfmedBloodBand.Normal;
 
+    /// <summary>M1a: the input that sets the current state (plan §5.1). None while Up.</summary>
+    [AutoNetworkedField]
+    public WolfmedCause Cause = WolfmedCause.None;
+
+    /// <summary>M1a: the sub-source behind <see cref="Cause"/>: the hypoxia drain, arrest trigger or shutdown reason.</summary>
+    [AutoNetworkedField]
+    public WolfmedCauseSource CauseSource = WolfmedCauseSource.None;
+
+    /// <summary>M1a: every other input that meets the current state's line and so also holds the body.</summary>
+    [AutoNetworkedField]
+    public WolfmedCauseFlags Blockers = WolfmedCauseFlags.None;
+
+    /// <summary>Server: the running pain faint ends here. Never moved later once set (plan §3.1).</summary>
+    [ViewVariables]
+    public TimeSpan? PainFaintUntil;
+
+    /// <summary>
+    /// Server: a crossing of the faint line faints. Cleared by a faint, set again when summed pain falls under
+    /// the leave line.
+    /// </summary>
+    [ViewVariables]
+    public bool PainFaintArmed = true;
+
+    /// <summary>Server: summed pain at the moment of waking. A rise of <c>wolfmed.pain_faint_rise</c> over it re-arms.</summary>
+    [ViewVariables]
+    public float PainFaintBaseline;
+
+    /// <summary>Server: no new faint starts before this, whatever the pain does.</summary>
+    [ViewVariables]
+    public TimeSpan PainFaintCooldownUntil;
+
+    /// <summary>Server: the last condition line the patient was told. Tests and admins read it.</summary>
+    [ViewVariables]
+    public string LastConditionLine = string.Empty;
+
+    /// <summary>Server: the largest drain behind the hypoxia pressure. Written by the life tick.</summary>
+    [ViewVariables]
+    public WolfmedCauseSource HypoxiaSource = WolfmedCauseSource.None;
+
     /// <summary>Blood volume fraction at the bloodstream's last tick. 1 when the body has no bloodstream.</summary>
     [ViewVariables]
     public float BloodFraction = 1f;
@@ -112,7 +151,7 @@ public sealed partial class WolfmedDownedComponent : Component
     [DataField]
     public float DoAfterMultiplier = 1.5f;
 
-    /// <summary>The alert shown for as long as the body is Downed.</summary>
+    /// <summary>The Downed alert when the cause names none of its own (M1a: the condition alert system shows it).</summary>
     [DataField]
     public ProtoId<AlertPrototype> Alert = "WolfmedDowned";
 

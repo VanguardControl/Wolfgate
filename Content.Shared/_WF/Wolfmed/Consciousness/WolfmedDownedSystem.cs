@@ -1,11 +1,11 @@
 using Content.Shared._Goobstation.DoAfter;
 using System.Linq;
 using Content.Shared.ActionBlocker;
-using Content.Shared.Alert;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Movement.Events;
+using Content.Shared.Movement.Systems;
 using Content.Shared.Pulling.Events;
 using Content.Shared.Standing;
 using Content.Shared.Stunnable;
@@ -26,7 +26,7 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 public sealed class WolfmedDownedSystem : EntitySystem
 {
     [Dependency] private readonly ActionBlockerSystem _blocker = default!;
-    [Dependency] private readonly AlertsSystem _alerts = default!;
+    [Dependency] private readonly WolfmedBodyPainSystem _bodyPain = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
@@ -43,6 +43,7 @@ public sealed class WolfmedDownedSystem : EntitySystem
         SubscribeLocalEvent<WolfmedDownedComponent, ThrowAttemptEvent>(OnThrowAttempt);
         SubscribeLocalEvent<WolfmedDownedComponent, StartPullAttemptEvent>(OnPullAttempt);
         SubscribeLocalEvent<WolfmedDownedComponent, GetDoAfterDelayMultiplierEvent>(OnGetDelayMultiplier);
+        SubscribeLocalEvent<WolfmedDownedComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
     }
 
     /// <summary>
@@ -74,13 +75,12 @@ public sealed class WolfmedDownedSystem : EntitySystem
         if (!_standing.IsDown(ent) && !HasComp<KnockedDownComponent>(ent))
             _standing.Down(ent, true, false, false);
 
-        _alerts.ShowAlert(ent, ent.Comp.Alert);
+        // M1a: the alert is the condition alert system's now, one per cause.
         _blocker.UpdateCanMove(ent);
     }
 
     private void OnShutdown(Entity<WolfmedDownedComponent> ent, ref ComponentShutdown args)
     {
-        _alerts.ClearAlert(ent, ent.Comp.Alert);
         if (TerminatingOrDeleted(ent))
             return;
 
@@ -152,9 +152,21 @@ public sealed class WolfmedDownedSystem : EntitySystem
         args.Cancel();
     }
 
+    /// <summary>Slower on your back, unless a pain shock's adrenaline is running (OD5).</summary>
     private void OnGetDelayMultiplier(Entity<WolfmedDownedComponent> ent, ref GetDoAfterDelayMultiplierEvent args)
     {
-        args.Multiplier *= ent.Comp.DoAfterMultiplier;
+        if (!_bodyPain.HasAdrenaline(ent))
+            args.Multiplier *= ent.Comp.DoAfterMultiplier;
+    }
+
+    /// <summary>OD5: a pain shock's adrenaline is a burst of crawling, "drag yourself to safety".</summary>
+    private void OnRefreshSpeed(Entity<WolfmedDownedComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
+    {
+        if (!_bodyPain.HasAdrenaline(ent))
+            return;
+
+        var multiplier = _bodyPain.AdrenalineCrawlMultiplier;
+        args.ModifySpeed(multiplier, multiplier);
     }
 
     /// <summary>True for the body itself and for anything in its hands, pockets, bag or belt.</summary>

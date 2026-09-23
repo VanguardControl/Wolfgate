@@ -3,6 +3,7 @@ using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Shared._EinsteinEngines.Silicon.Components;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Systems;
@@ -114,11 +115,24 @@ public sealed class WolfmedShutdownSystem : EntitySystem
         // The flag and the pressure are written every time, never skipped when the flag already agrees:
         // they are two halves of one state and only one of them survives a rejuvenate. SetExternalPressure
         // is itself a no-op when the level has not moved.
-        var down = !(powered ?? HasPower(body)) || !HasPump(body);
+        var power = powered ?? HasPower(body);
+        var down = !power || !HasPump(body);
         if (down)
-            EnsureComp<WolfmedShutdownComponent>(body);
+        {
+            // M1a: the reason the HUD and the alerts name. An empty cell is the one the player can fix.
+            var shutdown = EnsureComp<WolfmedShutdownComponent>(body);
+            var reason = power ? WolfmedCauseSource.Pump : WolfmedCauseSource.Power;
+            if (shutdown.Reason != reason)
+            {
+                shutdown.Reason = reason;
+                Dirty(body, shutdown);
+                _consciousness.Refresh(body);
+            }
+        }
         else
+        {
             RemComp<WolfmedShutdownComponent>(body);
+        }
 
         _consciousness.SetExternalPressure(body, ShutdownPressure, down ? 1f : 0f);
     }

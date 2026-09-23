@@ -1,7 +1,13 @@
 #nullable enable
 using System.Threading.Tasks;
+using System.Linq;
 using Content.Client._WF.Wolfmed.Audio;
 using Content.IntegrationTests.Pair;
+using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -55,6 +61,72 @@ public sealed class WolfmedCritHeartbeatTest
             "Re-entering crit must restart the loop.");
         await AssertHeartbeat(pair, body, MobState.Dead, false,
             "Dying out of crit must stop the loop too.");
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// M1a: a pain faint is Critical now, but a few seconds under from pain is not the dying heartbeat; and a
+    /// machine never hears a human heart (plan §3.11).
+    /// </summary>
+    [Test]
+    public async Task HeartbeatSilentForFaintsAndMachinesTest()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var client = pair.Client;
+        var sEntMan = server.EntMan;
+        var mindSys = sEntMan.System<SharedMindSystem>();
+        var heartbeat = client.System<WolfmedCritHeartbeatSystem>();
+        var map = await pair.CreateTestMap();
+        var session = server.PlayerMan.GetSessionById(client.Session!.UserId);
+
+        EntityUid human = default;
+        await server.WaitPost(() =>
+        {
+            mindSys.WipeMind(session.ContentData()?.Mind);
+            human = sEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            mindSys.TransferTo(mindSys.CreateMind(session.UserId).Owner, human);
+
+            // 100 on the torso and 100 on the head: 200 summed, past the 189 faint line.
+            var pain = sEntMan.System<PainSystem>();
+            foreach (var (part, comp) in sEntMan.System<SharedBodySystem>().GetBodyChildren(human))
+            {
+                if (comp.PartType is BodyPartType.Torso or BodyPartType.Head)
+                    pain.SetPain(part, FixedPoint2.New(100));
+            }
+        });
+        await pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            var consciousness = sEntMan.GetComponent<WolfmedConsciousnessComponent>(human);
+            Assert.That(consciousness.Cause, Is.EqualTo(WolfmedCause.PainFaint), "the fixture did not faint.");
+            Assert.That(sEntMan.System<MobStateSystem>().IsCritical(human), Is.True);
+        });
+        await client.WaitPost(() =>
+        {
+            Assert.That(client.EntMan.GetComponent<MobStateComponent>(pair.ToClientUid(human)).CurrentState,
+                Is.EqualTo(MobState.Critical), "the client never saw the faint.");
+            Assert.That(heartbeat.Active, Is.False, "a pain faint started the dying heartbeat.");
+        });
+
+        EntityUid ipc = default;
+        await server.WaitPost(() =>
+        {
+            ipc = sEntMan.SpawnEntity("MobIPC", map.GridCoords);
+            mindSys.TransferTo(mindSys.CreateMind(session.UserId).Owner, ipc);
+        });
+        await pair.RunTicksSync(30);
+
+        // Held in Critical the way the organic test holds it: a machine still never hears it.
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            await server.WaitPost(() => sEntMan.System<MobStateSystem>().ChangeMobState(ipc, MobState.Critical));
+            await pair.RunTicksSync(10);
+            await client.WaitPost(() =>
+                Assert.That(heartbeat.Active, Is.False, "a machine heard the human heartbeat."));
+        }
 
         await pair.CleanReturnAsync();
     }

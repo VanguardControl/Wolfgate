@@ -8,7 +8,9 @@ using Content.Server._WF.Wolfmed.Life;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Hud;
+using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -344,7 +346,8 @@ public sealed class WolfmedSyntheticHudTest : GameTest
     /// <summary>
     /// STANDBY means exactly one of two things: the chassis is shut down, or it is unconscious. Hull damage
     /// is neither of them, however much of it there is, and a readout that says otherwise is telling a
-    /// walking machine it has stopped.
+    /// walking machine it has stopped. M1a: the banner names the cause instead of a blanket STANDBY, so a
+    /// pulled pump reads as the pump (plan §5.6).
     /// </summary>
     [Test]
     public async Task StandbyOnlyWhenTheChassisIsDownTest()
@@ -382,6 +385,8 @@ public sealed class WolfmedSyntheticHudTest : GameTest
 
                 Assert.That(shutdown.IsShutDown(body), Is.False, "hull damage shut the chassis down.");
                 Assert.That(hud.Shutdown, Is.False, "the readout called standby on a chassis that still walks.");
+                Assert.That(hud.CauseLine, Is.Not.EqualTo("wolfmed-synthetic-cause-shutdown"),
+                    "the readout named a shutdown on a chassis that still walks.");
             }
 
             Assert.Multiple(() =>
@@ -405,6 +410,12 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                 Assert.That(shutdown.IsShutDown(down), Is.True, "a chassis with no pump kept running.");
                 Assert.That(downHud.Shutdown, Is.True, "the readout missed the shutdown.");
                 Assert.That(mobState.IsCritical(down), Is.True, "a shut-down chassis stayed on its feet.");
+                Assert.That(entities.GetComponent<WolfmedShutdownComponent>(down).Reason,
+                    Is.EqualTo(WolfmedCauseSource.Pump), "a pulled pump was not the shutdown's reason.");
+                Assert.That(downHud.CauseLine, Is.EqualTo("wolfmed-synthetic-cause-shutdown"),
+                    "the banner did not name the shutdown.");
+                Assert.That(entities.GetComponent<WolfmedConsciousnessComponent>(down).CauseSource,
+                    Is.EqualTo(WolfmedCauseSource.Pump), "the banner's source is not the pump.");
             });
 
             // A rejuvenate wipes every consciousness pressure, this one included. The flag may not outlive
@@ -421,6 +432,11 @@ public sealed class WolfmedSyntheticHudTest : GameTest
 
             Assert.That(shutdown.IsShutDown(shut) && !mobState.IsCritical(shut) && !mobState.IsDead(shut),
                 Is.False, "the readout was left in standby over a chassis that was up and walking.");
+
+            var hud = entities.GetComponent<WolfmedSyntheticHudComponent>(shut);
+            entities.System<WolfmedSyntheticHudSystem>().Refresh((shut, hud));
+            Assert.That(!shutdown.IsShutDown(shut) && hud.CauseLine == "wolfmed-synthetic-cause-shutdown",
+                Is.False, "the banner kept naming a shutdown over a chassis that was up and walking.");
         });
     }
 

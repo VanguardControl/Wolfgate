@@ -1,4 +1,6 @@
 using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared._WF.Wolfmed.Hud;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -114,7 +116,8 @@ public sealed class WolfmedCritHeartbeatSystem : EntitySystem
             _cvarEnabled &&
             _player.LocalEntity is { } local &&
             TryComp<MobStateComponent>(local, out var mobState) &&
-            mobState.CurrentState == MobState.Critical)
+            mobState.CurrentState == MobState.Critical &&
+            !Silent(local))
         {
             Start();
         }
@@ -123,6 +126,14 @@ public sealed class WolfmedCritHeartbeatSystem : EntitySystem
             Stop();
         }
     }
+
+    /// <summary>
+    /// M1a: no heartbeat for a machine (the synthetic readout is its sound), and none for a faint: a few
+    /// seconds under from pain is not the dying heartbeat.
+    /// </summary>
+    private bool Silent(EntityUid local) =>
+        HasComp<WolfmedSyntheticHudComponent>(local) ||
+        CompOrNull<WolfmedConsciousnessComponent>(local)?.Cause is { } cause && WolfmedCauses.IsFaint(cause);
 
     /// <summary>
     /// Reconciles every frame as well as on events. A mob state change replayed by prediction reaches the

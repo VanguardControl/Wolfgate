@@ -73,6 +73,22 @@ public sealed class WolfmedDownedTransitionTest : GameTest
                 Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.True,
                     "the body left Downed while the stun still held it.");
             });
+
+            // M1a: the Downed alert is the condition alert system's, in the Health slot, and it replaces the
+            // stock health doll rather than sitting beside it. An unclaimed pressure has no alert of its own.
+            var alerts = entities.System<WolfmedConditionAlertSystem>();
+            Assert.That(alerts.GetShownHealthAlert(body)?.Id, Is.EqualTo("WolfmedDowned"),
+                "the health slot does not show the Downed alert.");
+
+            // A named cause shows its own: pain on the torso past the Downed line.
+            consciousness.SetExternalPressure(body, "wolfmed-test", 0f);
+            var torso = System.Linq.Enumerable.Single(
+                entities.System<Content.Shared.Body.Systems.SharedBodySystem>().GetBodyChildren(body),
+                part => part.Component.PartType == Content.Shared.Body.Part.BodyPartType.Torso).Id;
+            entities.System<Content.Shared._Onyx.Wounds.PainSystem>().SetPain(torso,
+                Content.Shared.FixedPoint.FixedPoint2.New(129));
+            Assert.That(alerts.GetShownHealthAlert(body)?.Id, Is.EqualTo("WolfmedDownedPain"),
+                "no Downed: pain alert.");
         });
     }
 

@@ -346,4 +346,41 @@ public sealed class WolfmedCVars
     /// <summary>Blood volume fraction at or under which the circulation reads pale rather than normal.</summary>
     public static readonly CVarDef<float> BloodBandPale =
         CVarDef.Create("wolfmed.blood_band_pale", 0.8f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
+    /// Seconds a pain faint lasts. A hard maximum: damage taken during the faint never extends it (M1a, plan
+    /// §3.1).
+    /// </summary>
+    public static readonly CVarDef<float> PainFaintSeconds =
+        CVarDef.Create("wolfmed.pain_faint_seconds", 20f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Summed pain over the pain at waking that re-arms the faint. Pain added during a faint does not count,
+    /// so a steady injury never faints twice; a fresh wound can.
+    /// </summary>
+    public static readonly CVarDef<float> PainFaintRise =
+        CVarDef.Create("wolfmed.pain_faint_rise", 40f, CVar.SERVERONLY);
+
+    /// <summary>Seconds after waking from a pain faint during which no new one starts.</summary>
+    public static readonly CVarDef<float> PainFaintCooldown =
+        CVarDef.Create("wolfmed.pain_faint_cooldown", 30f, CVar.SERVERONLY);
+
+    /// <summary>Body pain at which an armed pain shock fires: the fall, the scream and the 2 s stun.</summary>
+    public static readonly CVarDef<float> PainShockThreshold =
+        CVarDef.Create("wolfmed.pain_shock_threshold", 130f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Body pain the shock has to fall back under before it can fire again.</summary>
+    public static readonly CVarDef<float> PainShockRearm =
+        CVarDef.Create("wolfmed.pain_shock_rearm", 110f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
+    /// Seconds of adrenaline a pain shock gives. It no longer stands anyone up (OD5): it speeds the crawl and
+    /// lifts the Downed do-after penalty.
+    /// </summary>
+    public static readonly CVarDef<float> AdrenalineSeconds =
+        CVarDef.Create("wolfmed.adrenaline_seconds", 30f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Crawl speed multiplier while adrenaline runs on a Downed body.</summary>
+    public static readonly CVarDef<float> AdrenalineCrawlMultiplier =
+        CVarDef.Create("wolfmed.adrenaline_crawl_multiplier", 1.5f, CVar.SERVER | CVar.REPLICATED);
 }

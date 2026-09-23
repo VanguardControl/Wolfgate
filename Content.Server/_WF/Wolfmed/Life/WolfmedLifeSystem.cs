@@ -303,10 +303,17 @@ public sealed class WolfmedLifeSystem : EntitySystem
     }
 
     /// <summary>Oxygenation lost per second right now, with every multiplier already applied.</summary>
-    public float DrainRate(EntityUid body, Entity<WolfmedBrainComponent> brain)
+    public float DrainRate(EntityUid body, Entity<WolfmedBrainComponent> brain) => DrainRate(body, brain, out _);
+
+    /// <summary>
+    /// <see cref="DrainRate(EntityUid, Entity{WolfmedBrainComponent})"/>, and which drain is the largest: the
+    /// hypoxia cause's sub-source (M1a, plan §5.1).
+    /// </summary>
+    public float DrainRate(EntityUid body, Entity<WolfmedBrainComponent> brain, out WolfmedCauseSource source)
     {
         var cpr = InCpr(body);
         var worst = 0f;
+        source = WolfmedCauseSource.None;
 
         if (InArrest(body))
             worst = MathF.Max(worst, Per(_cfg.GetCVar(WolfmedCVars.BrainArrestSeconds)));
@@ -314,8 +321,17 @@ public sealed class WolfmedLifeSystem : EntitySystem
         // CPR is rescue breaths as well as compressions, so it answers for the airway while it lasts.
         if (!cpr)
         {
-            var breath = Math.Clamp(MathF.Max(BreathingLevel(body), _relief.GetRespiratoryDepression(body)), 0f, 1f);
-            worst = MathF.Max(worst, breath * Per(_cfg.GetCVar(WolfmedCVars.BrainAirlossSeconds)));
+            var suffocation = BreathingLevel(body);
+            var depression = _relief.GetRespiratoryDepression(body);
+            var breath = Math.Clamp(MathF.Max(suffocation, depression), 0f, 1f);
+            var rate = breath * Per(_cfg.GetCVar(WolfmedCVars.BrainAirlossSeconds));
+            if (rate > worst)
+            {
+                worst = rate;
+                source = depression > suffocation ? WolfmedCauseSource.Sedation
+                    : _breathing.Assess(body).Source == WolfmedBreathingSource.Lungs ? WolfmedCauseSource.Lungs
+                    : WolfmedCauseSource.Airway;
+            }
         }
 
         var start = _cfg.GetCVar(WolfmedCVars.BrainBloodStart);
@@ -327,11 +343,23 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (blood < start && start > full)
         {
             var level = Math.Clamp((start - blood) / (start - full), 0f, 1f);
-            worst = MathF.Max(worst, level * Per(_cfg.GetCVar(WolfmedCVars.BrainBloodSeconds)));
+            var rate = level * Per(_cfg.GetCVar(WolfmedCVars.BrainBloodSeconds));
+            if (rate > worst)
+            {
+                worst = rate;
+                source = WolfmedCauseSource.Circulation;
+            }
         }
 
         if (_infection.GetSepsis(body) >= _cfg.GetCVar(WolfmedCVars.ArrestSepsis))
-            worst = MathF.Max(worst, Per(_cfg.GetCVar(WolfmedCVars.BrainSepsisSeconds)));
+        {
+            var rate = Per(_cfg.GetCVar(WolfmedCVars.BrainSepsisSeconds));
+            if (rate > worst)
+            {
+                worst = rate;
+                source = WolfmedCauseSource.Sepsis;
+            }
+        }
 
         if (worst <= 0f)
             return 0f;
@@ -482,6 +510,14 @@ public sealed class WolfmedLifeSystem : EntitySystem
         var level = 0f;
         if (!dead && start > outAt && brain.Comp.Oxygenation < start)
             level = Math.Clamp((start - brain.Comp.Oxygenation) / (start - outAt), 0f, 1f);
+
+        // M1a: the hypoxia cause names its largest drain; recorded before the pressure re-evaluates.
+        if (TryComp(body, out WolfmedConsciousnessComponent? sourced))
+        {
+            DrainRate(body, brain, out var source);
+            if (source != WolfmedCauseSource.None || level <= 0f)
+                sourced.HypoxiaSource = source;
+        }
 
         _consciousness.SetExternalPressure(body, HypoxiaPressure, level);
 

@@ -1,3 +1,4 @@
+using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Body.Components;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.CCVar;
@@ -23,8 +24,15 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 /// bleeding body from flickering between states.
 /// </summary>
 /// <remarks>
+/// <para>
+/// M1a: every input is kept with the cause it stands for, so the state carries a <see cref="WolfmedCause"/>
+/// and the other inputs still holding the body as Blockers (plan §5.1). Pain no longer holds a body
+/// unconscious: crossing the faint line starts a pain faint of fixed length instead (plan §3.1).
+/// </para>
+/// <para>
 /// Dead is not this system's to give. It stays on the paths that never went through the damage thresholds (a
-/// destroyed brain, a gib, an admin) until the BRAIN package lands the second meter.
+/// destroyed brain, a gib, an admin).
+/// </para>
 /// </remarks>
 public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSystem
 {
@@ -33,7 +41,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly PainSystem _pain = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
     [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
+    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
 
     /// <summary>
     /// How much of an external pressure is enough to put a body on the floor. 1 is unconscious, so anything
@@ -55,6 +65,12 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     private float _bloodDown;
     private float _bloodOut;
     private float _hysteresis;
+    private float _faintSeconds;
+    private float _faintRise;
+    private float _faintCooldown;
+
+    /// <summary>One input per cause, rebuilt on every evaluation.</summary>
+    private readonly Dictionary<WolfmedCause, (float Down, float Out)> _inputs = new();
 
     public override void Initialize()
     {
@@ -64,6 +80,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         Subs.CVar(_configuration, WolfmedCVars.ConsciousnessBloodDown, value => _bloodDown = value, true);
         Subs.CVar(_configuration, WolfmedCVars.ConsciousnessBloodOut, value => _bloodOut = value, true);
         Subs.CVar(_configuration, WolfmedCVars.ConsciousnessHysteresis, value => _hysteresis = value, true);
+        Subs.CVar(_configuration, WolfmedCVars.PainFaintSeconds, value => _faintSeconds = value, true);
+        Subs.CVar(_configuration, WolfmedCVars.PainFaintRise, value => _faintRise = value, true);
+        Subs.CVar(_configuration, WolfmedCVars.PainFaintCooldown, value => _faintCooldown = value, true);
 
         SubscribeLocalEvent<WoundHostComponent, ComponentStartup>(OnWoundHostStartup);
         SubscribeLocalEvent<WolfmedConsciousnessComponent, PainChangedEvent>(OnPainChanged);
@@ -76,6 +95,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     private void OnWoundHostStartup(Entity<WoundHostComponent> ent, ref ComponentStartup args)
     {
         EnsureComp<WolfmedConsciousnessComponent>(ent);
+
+        // M1a: the stock health alerts read damage totals, which say nothing on a wound host.
+        _conditionAlerts.TakeOver(ent);
     }
 
     /// <inheritdoc/>
@@ -138,7 +160,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         }
     }
 
-    /// <summary>Reads every input, picks the worst, and applies the state it names.</summary>
+    /// <summary>Reads every input, picks the worst, and applies the state and cause it names.</summary>
     public void Evaluate(Entity<WolfmedConsciousnessComponent> body)
     {
         if (TerminatingOrDeleted(body) || !OwnsMobState(body))
@@ -146,24 +168,41 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
 
         if (_mobState.IsDead(body))
         {
-            Apply(body, WolfmedConsciousness.Unconscious, 1f, false);
+            Apply(body, WolfmedConsciousness.Unconscious, 1f, false, WolfmedCause.None, WolfmedCauseSource.None,
+                WolfmedCauseFlags.None);
             return;
         }
 
-        var (painDown, painOut) = GetPainLevels(body);
-        var (bloodDown, bloodOut) = GetBloodLevels(body);
-        var pressure = GetPressure(body);
+        var mechanical = _shutdown.IsMechanical(body);
+        _inputs.Clear();
 
-        var downLevel = MathF.Max(painDown, MathF.Max(bloodDown, pressure / PressureDownShare));
-        var outLevel = MathF.Max(painOut, MathF.Max(bloodOut, pressure));
+        var (painDown, faintLevel) = GetPainLevels(body, mechanical);
+        AddInput(WolfmedCause.Pain, painDown, 0f);
+
+        if (UpdatePainFaint(body, mechanical))
+            AddInput(WolfmedCause.PainFaint, 0f, 1f);
+
+        var (bloodDown, bloodOut) = GetBloodLevels(body);
+        AddInput(mechanical ? WolfmedCause.Oil : WolfmedCause.Blood, bloodDown, bloodOut);
+
+        foreach (var (key, level) in body.Comp.Pressures)
+            AddInput(PressureCause(key), level / PressureDownShare, level);
 
         if (!LegsGone(body))
             body.Comp.HadLegs = true;
         else if (body.Comp.HadLegs)
-            downLevel = MathF.Max(downLevel, 1f);
+            AddInput(WolfmedCause.Legs, 1f, 0f);
 
         if (_relief.InCrash(body.Owner))
-            downLevel = MathF.Max(downLevel, 1f);
+            AddInput(WolfmedCause.Crash, 1f, 0f);
+
+        var downLevel = 0f;
+        var outLevel = 0f;
+        foreach (var (down, outOf) in _inputs.Values)
+        {
+            downLevel = MathF.Max(downLevel, down);
+            outLevel = MathF.Max(outLevel, outOf);
+        }
 
         body.Comp.DownLevel = downLevel;
         body.Comp.OutLevel = outLevel;
@@ -187,10 +226,116 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             _timing.CurTime < body.Comp.DownedUntil)
             target = WolfmedConsciousness.Downed;
 
-        var watching = downLevel > 0f || outLevel > 0f || target != WolfmedConsciousness.Up ||
+        var (cause, blockers) = PickCause(body, target, leaving);
+
+        var watching = downLevel > 0f || outLevel > 0f || faintLevel > 0f || target != WolfmedConsciousness.Up ||
                        _relief.GetTier(body.Owner) != WolfmedPainReliefTier.None;
 
-        Apply(body, target, Depth(target, downLevel, outLevel, bloodOut, pressure), watching);
+        var depth = Depth(target, downLevel, MathF.Max(outLevel, faintLevel), bloodOut,
+            body.Comp.Pressures.Count > 0 ? GetPressure(body) : 0f);
+        Apply(body, target, depth, watching, cause, GetSource(body, cause), blockers);
+    }
+
+    private void AddInput(WolfmedCause cause, float down, float outOf)
+    {
+        if (down <= 0f && outOf <= 0f)
+            return;
+
+        if (_inputs.TryGetValue(cause, out var existing))
+        {
+            down = MathF.Max(down, existing.Down);
+            outOf = MathF.Max(outOf, existing.Out);
+        }
+
+        _inputs[cause] = (down, outOf);
+    }
+
+    /// <summary>
+    /// The cause is the input that meets the state's line, first in the tie order; an input only inside its
+    /// leave band names the state only when nothing crosses the line. Every other input at or past its leave
+    /// line still blocks leaving, so it is a blocker. Critical states read the Unconscious line, Downed the
+    /// Downed line (plan §5.1).
+    /// </summary>
+    private (WolfmedCause Cause, WolfmedCauseFlags Blockers) PickCause(Entity<WolfmedConsciousnessComponent> body,
+        WolfmedConsciousness state, float leaving)
+    {
+        if (state == WolfmedConsciousness.Up)
+            return (WolfmedCause.None, WolfmedCauseFlags.None);
+
+        var critical = state == WolfmedConsciousness.Unconscious;
+        var crossing = WolfmedCause.None;
+        var inBand = WolfmedCause.None;
+        var meeting = WolfmedCauseFlags.None;
+
+        foreach (var cause in WolfmedCauses.Priority)
+        {
+            if (!_inputs.TryGetValue(cause, out var input))
+                continue;
+
+            var level = critical ? input.Out : input.Down;
+            if (level < leaving)
+                continue;
+
+            meeting |= WolfmedCauses.Flag(cause);
+            if (level >= 1f && crossing == WolfmedCause.None)
+                crossing = cause;
+            else if (inBand == WolfmedCause.None)
+                inBand = cause;
+        }
+
+        var picked = crossing != WolfmedCause.None ? crossing : inBand;
+
+        // Only the Downed dwell holds a body with nothing past a line: keep naming what put it there.
+        if (picked == WolfmedCause.None)
+            picked = body.Comp.State == state && body.Comp.Cause != WolfmedCause.None ? body.Comp.Cause : Strongest(critical);
+
+        return (picked, meeting & ~WolfmedCauses.Flag(picked));
+    }
+
+    private WolfmedCause Strongest(bool critical)
+    {
+        var best = WolfmedCause.None;
+        var bestLevel = 0f;
+        foreach (var (cause, input) in _inputs)
+        {
+            var level = critical ? input.Out : input.Down;
+            if (level > bestLevel)
+            {
+                best = cause;
+                bestLevel = level;
+            }
+        }
+
+        return best;
+    }
+
+    private static WolfmedCause PressureCause(string key) => key switch
+    {
+        WolfmedLifeSystem.ArrestPressure => WolfmedCause.Arrest,
+        WolfmedLifeSystem.HypoxiaPressure => WolfmedCause.Hypoxia,
+        WolfmedPainReliefSystem.SedationPressure => WolfmedCause.Sedation,
+        WolfmedShutdownSystem.ShutdownPressure => WolfmedCause.Shutdown,
+        _ => WolfmedCause.Other,
+    };
+
+    /// <summary>The sub-source a cause with several routes carries: the drain, the trigger, the reason.</summary>
+    private WolfmedCauseSource GetSource(Entity<WolfmedConsciousnessComponent> body, WolfmedCause cause)
+    {
+        return cause switch
+        {
+            WolfmedCause.Hypoxia => body.Comp.HypoxiaSource,
+            WolfmedCause.Arrest => CompOrNull<WolfmedCardiacArrestComponent>(body)?.Cause switch
+            {
+                "blood" => WolfmedCauseSource.ArrestBlood,
+                "oxygen" => WolfmedCauseSource.ArrestOxygen,
+                "heart" => WolfmedCauseSource.ArrestHeart,
+                "sepsis" => WolfmedCauseSource.ArrestSepsis,
+                "shock" => WolfmedCauseSource.ArrestShock,
+                _ => WolfmedCauseSource.ArrestOther,
+            },
+            WolfmedCause.Shutdown => CompOrNull<WolfmedShutdownComponent>(body)?.Reason ?? WolfmedCauseSource.Power,
+            _ => WolfmedCauseSource.None,
+        };
     }
 
     /// <summary>Downed carries the first third of the dying view, Unconscious the rest.</summary>
@@ -207,16 +352,22 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     }
 
     private void Apply(Entity<WolfmedConsciousnessComponent> body, WolfmedConsciousness state, float depth,
-        bool watching)
+        bool watching, WolfmedCause cause, WolfmedCauseSource source, WolfmedCauseFlags blockers)
     {
         var was = body.Comp.State;
+        var oldCause = body.Comp.Cause;
+        var oldBlockers = body.Comp.Blockers;
         body.Comp.WasUp |= state == WolfmedConsciousness.Up;
         body.Comp.Watching = watching;
 
-        if (body.Comp.State != state || MathF.Abs(body.Comp.Depth - depth) >= 0.005f)
+        if (body.Comp.State != state || MathF.Abs(body.Comp.Depth - depth) >= 0.005f ||
+            body.Comp.Cause != cause || body.Comp.CauseSource != source || body.Comp.Blockers != blockers)
         {
             body.Comp.State = state;
             body.Comp.Depth = depth;
+            body.Comp.Cause = cause;
+            body.Comp.CauseSource = source;
+            body.Comp.Blockers = blockers;
             Dirty(body);
         }
 
@@ -235,26 +386,34 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             RemComp<WolfmedDownedComponent>(body);
         }
 
-        if (_mobState.IsDead(body))
-            return;
+        if (!_mobState.IsDead(body))
+        {
+            var mobState = state == WolfmedConsciousness.Unconscious ? MobState.Critical : MobState.Alive;
+            if (_mobState.HasState(body, mobState))
+                _mobState.ChangeMobState(body, mobState);
+        }
 
-        var mobState = state == WolfmedConsciousness.Unconscious ? MobState.Critical : MobState.Alive;
-        if (_mobState.HasState(body, mobState))
-            _mobState.ChangeMobState(body, mobState);
+        if (was != state || oldCause != cause || oldBlockers != blockers)
+        {
+            var ev = new WolfmedConsciousnessChangedEvent(was, state, oldCause, cause, oldBlockers, blockers);
+            RaiseLocalEvent(body, ref ev);
+        }
+
+        if (state == WolfmedConsciousness.Up)
+            _conditionAlerts.RefreshHealthSeverity(body);
     }
 
     /// <summary>
-    /// Downed reads the effective pain the vignette reads; Unconscious reads the pain before the soft clamp,
-    /// which is the sum of the parts (the body's own value is clamped, so it can never say more than 1.0).
+    /// Downed reads the effective pain the vignette reads: the body's value, which is min(soft cap, Σ parts)
+    /// since P13, less relief. The second value is summed pain against the faint line, for the dying view.
     /// </summary>
-    private (float Down, float Out) GetPainLevels(Entity<WolfmedConsciousnessComponent> body)
+    private (float Down, float Faint) GetPainLevels(Entity<WolfmedConsciousnessComponent> body, bool mechanical)
     {
         if (!TryComp(body, out PainComponent? pain) || pain.SoftPainCap <= FixedPoint2.Zero)
             return (0f, 0f);
 
         var cap = pain.SoftPainCap.Float();
         var down = 0f;
-        var outLevel = 0f;
 
         if (!_relief.LiftsDowned(body.Owner) && _painDown > 0f)
         {
@@ -262,18 +421,65 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             down = MathF.Max(0f, effective) / (cap * _painDown);
         }
 
-        if (!_relief.LiftsUnconscious(body.Owner) && _painOut > 0f)
-        {
-            var uncapped = GetUncappedPain(body) - _relief.GetStrongRelief(body.Owner);
-            outLevel = MathF.Max(0f, uncapped) / (cap * _painOut);
-        }
-
-        return (down, outLevel);
+        var faint = mechanical || _painOut <= 0f ? 0f : GetUncappedPain(body) / (cap * _painOut);
+        return (down, faint);
     }
 
     /// <summary>
-    /// Pain before the soft clamp. <c>PainSystem.SetPain</c> clamps the part and the body alike to the soft
-    /// cap, so the body's own value tops out at exactly 1.0 of it; the parts still carry the rest.
+    /// Runs the pain faint (plan §3.1) and says whether one is running now. A faint lasts a fixed time that
+    /// nothing extends. It re-arms only when summed pain falls under the leave line or rises by
+    /// <c>wolfmed.pain_faint_rise</c> over the pain at waking, and never inside the cooldown after waking. A
+    /// strong or emergency painkiller ends it and blocks the next; a mechanical body never faints.
+    /// </summary>
+    private bool UpdatePainFaint(Entity<WolfmedConsciousnessComponent> body, bool mechanical)
+    {
+        var comp = body.Comp;
+        if (mechanical || _painOut <= 0f || !TryComp(body, out PainComponent? pain) ||
+            pain.SoftPainCap <= FixedPoint2.Zero)
+        {
+            comp.PainFaintUntil = null;
+            return false;
+        }
+
+        var now = _timing.CurTime;
+        var summed = GetUncappedPain(body);
+        var line = pain.SoftPainCap.Float() * _painOut;
+        var blocked = _relief.EndsFaint(body.Owner);
+
+        if (comp.PainFaintUntil is { } until)
+        {
+            if (now < until && !blocked)
+                return true;
+
+            // Waking. The baseline is the pain now, so what was added during the faint never counts.
+            comp.PainFaintUntil = null;
+            comp.PainFaintBaseline = summed;
+            comp.PainFaintCooldownUntil = now + TimeSpan.FromSeconds(MathF.Max(0f, _faintCooldown));
+            comp.PainFaintArmed = false;
+            return false;
+        }
+
+        if (summed < line * (1f - _hysteresis))
+            comp.PainFaintArmed = true;
+
+        if (blocked || now < comp.PainFaintCooldownUntil || summed < line)
+            return false;
+
+        if (!comp.PainFaintArmed && summed < comp.PainFaintBaseline + _faintRise)
+            return false;
+
+        comp.PainFaintUntil = now + TimeSpan.FromSeconds(MathF.Max(0f, _faintSeconds));
+        comp.PainFaintArmed = false;
+        return true;
+    }
+
+    /// <summary>A pain faint is running on this body.</summary>
+    public bool IsFainted(EntityUid body) =>
+        TryComp(body, out WolfmedConsciousnessComponent? comp) && comp.PainFaintUntil > _timing.CurTime;
+
+    /// <summary>
+    /// Pain before the soft clamp. The body's own value is clamped to the soft cap, so it tops out at exactly
+    /// 1.0 of it; the parts still carry the rest.
     /// </summary>
     public float GetUncappedPain(EntityUid body)
     {
@@ -299,7 +505,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         return (MathF.Max(0f, down), MathF.Max(0f, outLevel));
     }
 
-    /// <summary>The worst thing pushed in from outside, airloss included.</summary>
+    /// <summary>The worst thing pushed in from outside.</summary>
     private static float GetPressure(Entity<WolfmedConsciousnessComponent> body)
     {
         var worst = 0f;
@@ -348,15 +554,22 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     private void OnMobStateChanged(EntityUid uid, WolfmedConsciousnessComponent comp,
         MobStateChangedEvent args)
     {
-        if (args.NewMobState != MobState.Dead)
-            return;
+        if (args.NewMobState == MobState.Dead)
+        {
+            // Death is someone else's (a destroyed brain, a gib, an admin). Drop the Downed restrictions.
+            RemComp<WolfmedDownedComponent>(uid);
+            comp.State = WolfmedConsciousness.Unconscious;
+            comp.Depth = 1f;
+            comp.Cause = WolfmedCause.None;
+            comp.CauseSource = WolfmedCauseSource.None;
+            comp.Blockers = WolfmedCauseFlags.None;
+            comp.PainFaintUntil = null;
+            comp.Watching = false;
+            Dirty(uid, comp);
+        }
 
-        // Death is someone else's (a destroyed brain, a gib, an admin). Drop the Downed restrictions.
-        RemComp<WolfmedDownedComponent>(uid);
-        comp.State = WolfmedConsciousness.Unconscious;
-        comp.Depth = 1f;
-        comp.Watching = false;
-        Dirty(uid, comp);
+        // M1a: the Dead alert, and the way back out of it, are the condition alert system's.
+        _conditionAlerts.Refresh(uid);
     }
 
     private void OnRejuvenate(EntityUid uid, WolfmedConsciousnessComponent comp, RejuvenateEvent args)
@@ -370,6 +583,14 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         comp.DownLevel = 0f;
         comp.OutLevel = 0f;
         comp.State = WolfmedConsciousness.Up;
+        comp.Cause = WolfmedCause.None;
+        comp.CauseSource = WolfmedCauseSource.None;
+        comp.Blockers = WolfmedCauseFlags.None;
+        comp.HypoxiaSource = WolfmedCauseSource.None;
+        comp.PainFaintUntil = null;
+        comp.PainFaintArmed = true;
+        comp.PainFaintBaseline = 0f;
+        comp.PainFaintCooldownUntil = TimeSpan.Zero;
         comp.Depth = 0f;
         Dirty(uid, comp);
         RemComp<WolfmedDownedComponent>(uid);
@@ -379,6 +600,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         if (_mobState.HasState(uid, MobState.Alive))
             _mobState.ChangeMobState(uid, MobState.Alive);
 
+        _conditionAlerts.Refresh(uid);
         comp.Watching = true;
         comp.NextEvaluation = TimeSpan.Zero;
     }

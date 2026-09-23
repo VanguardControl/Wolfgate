@@ -27,12 +27,11 @@ public sealed partial class PainSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private Content.Shared._WF.Wolfmed.Consciousness.WolfmedBodyPainSystem _wolfmedPain = default!; // WOLFGATE (M1a)
 
-    private const float PainShockAdrenalineMultiplier = 0.7f;
-    private static readonly FixedPoint2 PainShockThreshold = 130;
-    private static readonly FixedPoint2 PainShockRearmThreshold = 110;
+    // WOLFGATE (M1a): the shock's threshold, re-arm and adrenaline length are CVars now
+    // (WolfmedBodyPainSystem), and adrenaline no longer multiplies pain by 0.7 (OD5).
     private static readonly TimeSpan PainShockStunTime = TimeSpan.FromSeconds(2f);
-    private static readonly TimeSpan PainShockAdrenalineTime = TimeSpan.FromSeconds(30f);
     private float _recoveryAccumulator;
 
     public override void Initialize()
@@ -145,10 +144,9 @@ public sealed partial class PainSystem : EntitySystem
         {
             if (shockTarget.AdrenalineEnds is { } adrenalineEnds && _timing.CurTime >= adrenalineEnds)
             {
-                var oldPain = GetPainBeforeAdrenaline((bodyUid, bodyPain)) * PainShockAdrenalineMultiplier;
                 shockTarget.AdrenalineEnds = null;
                 Dirty(bodyUid, shockTarget);
-                RaisePainChanged(bodyUid, bodyPain, oldPain);
+                _wolfmedPain.AdrenalineChanged(bodyUid, false); // WOLFGATE (M1a): OD5, pain never moved
             }
 
             UpdatePainShock((bodyUid, bodyPain), mobState, shockTarget);
@@ -167,16 +165,8 @@ public sealed partial class PainSystem : EntitySystem
         if (!Resolve(entity, ref entity.Comp, false))
             return FixedPoint2.Zero;
 
-        var pain = GetPainBeforeAdrenaline((entity.Owner, entity.Comp));
-        var adrenalineTarget = entity.Owner;
-        if (TryComp(entity, out BodyPartComponent? part) && part.Body is { } body)
-            adrenalineTarget = body;
-
-        if (TryComp(adrenalineTarget, out PainShockTargetComponent? shockTarget) &&
-            shockTarget.AdrenalineEnds > _timing.CurTime)
-            pain *= PainShockAdrenalineMultiplier;
-
-        return pain;
+        // WOLFGATE (M1a): OD5, adrenaline no longer takes 30% off every reading; it no longer stands anyone up.
+        return GetPainBeforeAdrenaline((entity.Owner, entity.Comp));
     }
 
     private FixedPoint2 GetPainBeforeAdrenaline(Entity<PainComponent> entity)
@@ -188,7 +178,9 @@ public sealed partial class PainSystem : EntitySystem
         if (TryComp(entity, out BodyPartComponent? part) && part.Body is { } body &&
             TryComp(body, out PainComponent? bodyPain) && bodyPain.Value > FixedPoint2.Zero)
         {
-            var share = entity.Comp.Value.Float() / bodyPain.Value.Float();
+            // WOLFGATE (M1a): P13, the share is of the sum of the parts, not of the capped body value, so the
+            // body's suppression is taken off once in total rather than once per part.
+            var share = _wolfmedPain.SuppressionShare((entity.Owner, entity.Comp), body);
             suppression += bodyPain.Suppression * share;
         }
 
@@ -204,6 +196,11 @@ public sealed partial class PainSystem : EntitySystem
     {
         if (!_net.IsServer || !Resolve(entity, ref entity.Comp, false))
             return false;
+
+        // WOLFGATE (M1a): P13, a body's pain is min(soft cap, sum of its parts) after every change, direct
+        // sets included. The part branch below still calls this for the body; the value is rederived.
+        if (_wolfmedPain.TryGetDerivedPain(entity.Owner, out var derived))
+            value = derived;
 
         value = FixedPoint2.Clamp(value, FixedPoint2.Zero, entity.Comp.SoftPainCap);
         var old = entity.Comp.Value;
@@ -281,7 +278,7 @@ public sealed partial class PainSystem : EntitySystem
         var pain = GetPain((entity.Owner, entity.Comp));
         var rearmPain = GetPainBeforeAdrenaline(entity);
 
-        if (rearmPain < PainShockRearmThreshold)
+        if (rearmPain < _wolfmedPain.ShockRearm) // WOLFGATE (M1a): CVar
         {
             if (!shockTarget.Armed)
             {
@@ -291,7 +288,7 @@ public sealed partial class PainSystem : EntitySystem
             return;
         }
 
-        if (!shockTarget.Armed || pain < PainShockThreshold)
+        if (!shockTarget.Armed || pain < _wolfmedPain.ShockThreshold) // WOLFGATE (M1a): CVar
             return;
 
         if (!_stun.TryUpdateParalyzeDuration(entity, PainShockStunTime))
@@ -458,10 +455,10 @@ public sealed partial class PainSystem : EntitySystem
         if (!TryComp(entity, out PainShockTargetComponent? shockTarget))
             return;
 
-        var oldPain = GetPain(entity.AsNullable());
-        shockTarget.AdrenalineEnds = _timing.CurTime + PainShockAdrenalineTime;
+        // WOLFGATE (M1a): OD5, adrenaline leaves pain alone; it speeds the crawl instead (WolfmedBodyPainSystem).
+        shockTarget.AdrenalineEnds = _timing.CurTime + _wolfmedPain.AdrenalineTime;
         Dirty(entity.Owner, shockTarget);
-        RaisePainChanged(entity.Owner, entity.Comp, oldPain);
+        _wolfmedPain.AdrenalineChanged(entity.Owner, true);
     }
 
     private static float GetRecoveryMultiplier(PainComponent pain)

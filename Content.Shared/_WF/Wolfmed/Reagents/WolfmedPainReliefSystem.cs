@@ -66,6 +66,27 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
         return Resolve(body, ref body.Comp, false) && body.Comp.EmergencyEnds > _timing.CurTime;
     }
 
+    /// <summary>
+    /// M1a: a strong or emergency painkiller is in the body. It ends a pain faint at once and stops a new one
+    /// starting, whatever tier a stimulant on top reports (plan §3.1).
+    /// </summary>
+    public bool EndsFaint(Entity<WolfmedPainReliefComponent?> body)
+    {
+        if (!Resolve(body, ref body.Comp, false))
+            return false;
+
+        if (body.Comp.EmergencyEnds > _timing.CurTime)
+            return true;
+
+        foreach (var dose in body.Comp.Doses.Values)
+        {
+            if (dose.Tier is WolfmedPainReliefTier.Strong or WolfmedPainReliefTier.Emergency)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>The crash after an emergency window. Downed on its own, whatever the other inputs say.</summary>
     public bool InCrash(Entity<WolfmedPainReliefComponent?> body)
     {

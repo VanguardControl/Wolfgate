@@ -128,6 +128,11 @@ public sealed class WolfmedPainTest : GameTest
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             var pain = entities.System<PainSystem>();
 
+            // M1a (P13): the body's pain is the sum of its parts, so the pain goes on the torso; a direct set on
+            // the body is rederived from the parts.
+            var torso = entities.System<SharedBodySystem>().GetBodyChildren(body)
+                .Single(part => part.Component.PartType == BodyPartType.Torso).Id;
+
             // WoundDamageProjectionSystem.SetupBody ensures PainComponent on every wound host at map-init, so
             // a real mob carries the overlay's input from the moment it spawns.
             Assert.That(entities.HasComponent<WoundHostComponent>(body), Is.True);
@@ -138,28 +143,26 @@ public sealed class WolfmedPainTest : GameTest
 
             // WOLFGATE (measured): 6 / 135 = 0.044, below DamageOverlay.Wolfmed.cs's 0.05 floor, so the
             // vignette stays fully off. FixedPoint2 division truncates (FixedPoint2.cs:116), 0.0444 -> 0.04.
-            Assert.That(pain.SetPain(body, FixedPoint2.New(6)), Is.True);
+            Assert.That(pain.SetPain(torso, FixedPoint2.New(6)), Is.True);
             Assert.That(Level(pain, body, comp), Is.EqualTo(0f).Within(0.0001f));
 
             // 6.75 is exactly 5% of the 135 soft cap: the first pain value that draws anything.
-            Assert.That(pain.SetPain(body, FixedPoint2.New(6.75)), Is.True);
+            Assert.That(pain.SetPain(torso, FixedPoint2.New(6.75)), Is.True);
             Assert.That(Level(pain, body, comp), Is.EqualTo(0.05f).Within(0.0001f));
 
             // Half the cap, half the vignette.
-            Assert.That(pain.SetPain(body, FixedPoint2.New(67.5)), Is.True);
+            Assert.That(pain.SetPain(torso, FixedPoint2.New(67.5)), Is.True);
             Assert.That(Level(pain, body, comp), Is.EqualTo(0.5f).Within(0.0001f));
 
-            // WOLFGATE (measured): SetPain clamps to the soft cap (135), which is over the 130 pain-shock
-            // threshold, so the shock fires synchronously from RaisePainChanged and its 30 s adrenaline window
-            // multiplies GetPain by 0.7 -> 94.5. The overlay reads GetPain, not the raw value, so the vignette
-            // visibly EASES as the shock lands: 94.5 / 135 = 0.7, not 1.0. That is Onyx's design, and this is
-            // the first test in the tree to pin it.
-            Assert.That(pain.SetPain(body, FixedPoint2.New(200)), Is.True);
+            // SetPain clamps to the soft cap (135), which is over the 130 pain-shock threshold, so the shock
+            // fires synchronously from RaisePainChanged. M1a (OD5): its adrenaline no longer takes 30% off every
+            // reading, so the vignette stays full as the shock lands.
+            Assert.That(pain.SetPain(torso, FixedPoint2.New(200)), Is.True);
             Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(135)));
             Assert.That(entities.HasComponent<StunnedComponent>(body), Is.True,
                 "pain shock did not fire on a real MobHuman: WP10-5's PainShockTarget wiring or the StatusEffects allow-list is missing.");
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(94.5)));
-            Assert.That(Level(pain, body, comp), Is.EqualTo(0.7f).Within(0.0001f));
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135)));
+            Assert.That(Level(pain, body, comp), Is.EqualTo(1f).Within(0.0001f));
         });
     }
 
@@ -213,9 +216,15 @@ public sealed class WolfmedPainTest : GameTest
             Assert.That(shockTarget.Armed, Is.False);
             Assert.That(shockTarget.AdrenalineEnds, Is.Not.Null);
 
-            // 135 * 0.7 = 94.5. GetPain applies the adrenaline factor while the window is open; GetRawPain
-            // does not, which is what keeps the shock from immediately re-arming (rearm needs < 110 raw).
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(94.5)));
+            // M1a (OD5): adrenaline no longer takes 30% off the reading, so it never stands anyone up. The
+            // window is wolfmed.adrenaline_seconds long, and the shock re-arms only under wolfmed.pain_shock_rearm.
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135)));
+            var cfg = server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>();
+            var timing = server.ResolveDependency<Robust.Shared.Timing.IGameTiming>();
+            Assert.That((shockTarget.AdrenalineEnds!.Value - timing.CurTime).TotalSeconds,
+                Is.EqualTo(cfg.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.AdrenalineSeconds)).Within(0.1));
+            Assert.That(entities.System<Content.Shared._WF.Wolfmed.Consciousness.WolfmedBodyPainSystem>()
+                .HasAdrenaline(body), Is.True);
         });
     }
 

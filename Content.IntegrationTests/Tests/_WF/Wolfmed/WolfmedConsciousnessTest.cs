@@ -30,10 +30,9 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// themselves.
 /// </summary>
 /// <remarks>
-/// The fixture carries no <c>PainShockTarget</c> on purpose: the pain shock's 30 s adrenaline window
-/// multiplies every pain reading by 0.7 the moment raw pain reaches 130, which would make every number in
-/// the pain tests a function of when the shock fired. The blood tests use a real MobHuman, which has one,
-/// and keep pain at zero so it never arms.
+/// The fixture carries no <c>PainShockTarget</c>, so no pain shock stuns it mid-test. M1a: pain goes on the
+/// parts, because the body's own pain is the sum of its parts (P13), and pain past the unconscious line is a
+/// pain faint of fixed length, not a held unconsciousness.
 /// </remarks>
 [TestFixture]
 [TestOf(typeof(WolfmedConsciousnessSystem))]
@@ -155,24 +154,27 @@ public sealed class WolfmedConsciousnessTest : GameTest
             var pain = entities.System<PainSystem>();
             var consciousness = entities.System<WolfmedConsciousnessSystem>();
             var comp = entities.GetComponent<WolfmedConsciousnessComponent>(body);
+            var torso = Torso(entities, body);
 
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Up));
 
-            // 0.95 x the 135 soft cap is 128.25. 129 is the first whole number past it.
-            pain.SetPain(body, FixedPoint2.New(129));
+            // 0.95 x the 135 soft cap is 128.25. 129 is the first whole number past it. M1a (P13): the body's
+            // pain is the sum of its parts, so the torso carries it.
+            pain.SetPain(torso, FixedPoint2.New(129));
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.True);
             Assert.That(entities.GetComponent<MobStateComponent>(body).CurrentState,
                 Is.EqualTo(MobState.Alive), "Downed is conscious: it is not Critical.");
+            Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.Pain), "Downed by pain did not name pain.");
 
             // Hysteresis: 0.9 x 128.25 = 115.4, so 116 is still on the floor.
-            pain.SetPain(body, FixedPoint2.New(116));
+            pain.SetPain(torso, FixedPoint2.New(116));
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Downed),
                 "the body stood up inside the hysteresis band.");
 
             // 0.80 of the cap is 108, which is 0.84 of the Downed threshold: under the band.
-            pain.SetPain(body, FixedPoint2.New(108));
+            pain.SetPain(torso, FixedPoint2.New(108));
             consciousness.Refresh(body);
 
             // AUTODOC5: getting up also takes the two-second dwell, which is what stops a body on the
@@ -212,7 +214,7 @@ public sealed class WolfmedConsciousnessTest : GameTest
             Assert.That(blocker.CanInteract(body, airlock), Is.True);
             Assert.That(blocker.CanAttack(body), Is.True);
 
-            entities.System<PainSystem>().SetPain(body, FixedPoint2.New(129));
+            entities.System<PainSystem>().SetPain(Torso(entities, body), FixedPoint2.New(129));
             Assert.That(entities.HasComponent<WolfmedDownedComponent>(body), Is.True);
 
             // Themselves and what they are carrying, and nothing else.
@@ -230,8 +232,8 @@ public sealed class WolfmedConsciousnessTest : GameTest
     }
 
     /// <summary>
-    /// Past the unconscious point the body goes Critical, a weak painkiller can never lift that, and a
-    /// strong one can because pain was the only thing holding it there.
+    /// Past the unconscious point the body faints (M1a: a pain faint of fixed length, Critical), a weak
+    /// painkiller never ends it, and a strong one does because pain was the only thing holding it there.
     /// </summary>
     [Test]
     public async Task PainCritIsLiftedByStrongPainkillersOnlyTest()
@@ -259,17 +261,18 @@ public sealed class WolfmedConsciousnessTest : GameTest
             pain.SetPain(head, FixedPoint2.New(100));
             Assert.That(consciousness.GetUncappedPain(body), Is.EqualTo(200f).Within(0.01f));
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious));
+            Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.PainFaint), "200 summed pain did not faint.");
             Assert.That(entities.System<MobStateSystem>().IsCritical(body), Is.True);
 
-            // Weak: 1.25 x 135 = 168.75, and 200 - 22 is still past it. Weak never lifts unconsciousness
-            // however much it discounts, because it is not counted against this threshold at all.
+            // Weak: the faint line is 1.4 x 135 = 189. Weak relief never ends a faint however much it
+            // discounts, because it is not counted against this line at all.
             relief.AddDose(body, "weak", WolfmedPainReliefTier.Weak, 22f, TimeSpan.FromSeconds(30), 0f);
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious),
                 "a weak painkiller lifted unconsciousness.");
 
-            // Strong: 200 - 70 = 130, under 168.75, and the effective pain of 135 - 92 is under the Downed
-            // threshold too, so the patient is back on their feet.
+            // Strong: a strong painkiller ends the faint at once (plan §3.1), and the effective pain of
+            // 135 - 92 is under the Downed threshold too, so the patient is back on their feet.
             relief.AddDose(body, "strong", WolfmedPainReliefTier.Strong, 70f, TimeSpan.FromSeconds(30), 0f);
             consciousness.Refresh(body);
             Assert.That(comp.State, Is.Not.EqualTo(WolfmedConsciousness.Unconscious),
@@ -446,6 +449,8 @@ public sealed class WolfmedConsciousnessTest : GameTest
             pain.SetPain(head, FixedPoint2.New(100));
             Assert.That(entities.GetComponent<WolfmedConsciousnessComponent>(body).State,
                 Is.EqualTo(WolfmedConsciousness.Unconscious));
+            Assert.That(entities.GetComponent<WolfmedConsciousnessComponent>(body).Cause,
+                Is.EqualTo(WolfmedCause.PainFaint), "M1a: pain past the unconscious line is a faint.");
 
             // The reagent's own window is 30 s; this is the same mechanism on a timer a test can wait out.
             entities.System<WolfmedPainReliefSystem>()
@@ -564,6 +569,10 @@ public sealed class WolfmedConsciousnessTest : GameTest
             Assert.That(entities.System<MobStateSystem>().IsAlive(body), Is.True);
         });
     }
+
+    private static EntityUid Torso(IEntityManager entities, EntityUid body) =>
+        entities.System<SharedBodySystem>().GetBodyChildren(body)
+            .Single(part => part.Component.PartType == BodyPartType.Torso).Id;
 
     private static DamageSpecifier Spec(string type, int amount) => new()
     {

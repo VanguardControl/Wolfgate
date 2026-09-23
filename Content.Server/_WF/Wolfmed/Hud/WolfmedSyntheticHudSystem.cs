@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._EinsteinEngines.Silicon.Charge;
+using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
@@ -43,6 +44,7 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly SiliconChargeSystem _charge = default!;
     [Dependency] private readonly WolfmedBodyPartSystem _wfPart = default!;
+    [Dependency] private readonly WolfmedConditionAlertSystem _conditions = default!;
     [Dependency] private readonly WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private readonly WolfmedLifeSystem _life = default!;
     [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
@@ -183,6 +185,7 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
 
         var newIntegrity = weight > 0f ? integrity / weight : 1f;
         var newServos = limbs > 0f ? servos / limbs : 1f;
+        var causeLine = CauseLine(hud.Owner);
 
         if (Same(hud.Comp.Faults, faults) &&
             Near(hud.Comp.Integrity, newIntegrity) &&
@@ -191,7 +194,8 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
             Near(hud.Comp.Power, power) &&
             hud.Comp.Shutdown == down &&
             hud.Comp.CoreOffline == offline &&
-            hud.Comp.Advice == advice)
+            hud.Comp.Advice == advice &&
+            hud.Comp.CauseLine == causeLine)
             return;
 
         hud.Comp.Faults = faults;
@@ -202,7 +206,24 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         hud.Comp.Shutdown = down;
         hud.Comp.CoreOffline = offline;
         hud.Comp.Advice = advice;
+        hud.Comp.CauseLine = causeLine;
         Dirty(hud);
+    }
+
+    /// <summary>
+    /// M1a: the cause's own banner line while the chassis is down or shut down (plan §5.6). A shutdown that
+    /// consciousness has not caught up with yet still reads as a shutdown.
+    /// </summary>
+    private string CauseLine(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? consciousness) || _life.IsBrainDead(body))
+            return string.Empty;
+
+        var cause = consciousness.State == WolfmedConsciousness.Up ? WolfmedCause.None : consciousness.Cause;
+        if (cause == WolfmedCause.None && _shutdown.IsShutDown(body))
+            cause = WolfmedCause.Shutdown;
+
+        return _conditions.GetCausePrototype(cause)?.SyntheticHudLine?.Id ?? string.Empty;
     }
 
     /// <summary>

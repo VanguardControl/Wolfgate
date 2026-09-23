@@ -330,6 +330,17 @@ public sealed partial class MobThresholdSystem : EntitySystem
         VerifyThresholds(uid, component);
     }
 
+    // WOLFGATE (M1a): the one way _WF code can hand a wound host's health alerts to Wolfmed's condition
+    // alerts (plan §5.2); the component's access rule keeps TriggersAlerts to this system.
+    public void SetTriggersAlerts(EntityUid uid, bool value, MobThresholdsComponent? component = null)
+    {
+        if (!Resolve(uid, ref component, false) || component.TriggersAlerts == value)
+            return;
+
+        component.TriggersAlerts = value;
+        Dirty(uid, component);
+    }
+
     #endregion
 
     #region Private Implementation

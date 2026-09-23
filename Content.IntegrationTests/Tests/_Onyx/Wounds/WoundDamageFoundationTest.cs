@@ -870,19 +870,24 @@ public sealed class WoundDamageFoundationTest : GameTest
             // above deliberately leaves 4.5 on the body and nothing in between clears it, so every figure
             // would be off by 4.5 * the adrenaline multiplier. Clear it explicitly instead of re-deriving them.
             Assert.That(pain.ClearPainSuppression(body));
-            Assert.That(pain.SetPain(body, FixedPoint2.New(200)), Is.True);
+            // WOLFGATE (M1a): P13, the body's pain is min(135, sum of the parts), so the 200 goes on a part (it
+            // clamps at the part's own 135) and a direct set on the body would be rederived. OD5: adrenaline no
+            // longer takes 30% off the reading, so every 94.5 below is 135 and 73.5 is 105.
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
+            Assert.That(pain.SetPain(torso, FixedPoint2.New(200)), Is.True);
             Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(135)));
             Assert.That(entityManager.HasComponent<StunnedComponent>(body), Is.True);
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(94.5)));
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135))); // WOLFGATE (M1a)
             Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.False);
 
             Assert.That(pain.SuppressPain(body, "PainShockTest", 30, TimeSpan.FromSeconds(10)));
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(73.5)));
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(105))); // WOLFGATE (M1a)
             Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.True);
             Assert.That(pain.ClearPainSuppression(body));
             Assert.That(entityManager.HasComponent<StunnedComponent>(body), Is.True);
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(94.5)));
-            Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.True);
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135))); // WOLFGATE (M1a)
+            // WOLFGATE (M1a): back at 135 with no adrenaline discount, the re-armed shock fires again at once.
+            Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.False);
 
             entityManager.EventBus.RaiseLocalEvent(body, new RejuvenateEvent());
             Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.Zero));

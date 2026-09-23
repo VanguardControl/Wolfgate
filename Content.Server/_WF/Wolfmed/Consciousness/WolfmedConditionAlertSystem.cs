@@ -1,0 +1,326 @@
+using System.Linq;
+using Content.Server._WF.Wolfmed.Life;
+using Content.Server.Chat.Managers;
+using Content.Server.Popups;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared.Alert;
+using Content.Shared.Chat;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
+using Content.Shared.Popups;
+using Robust.Server.GameObjects;
+using Robust.Shared.Maths;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
+
+namespace Content.Server._WF.Wolfmed.Consciousness;
+
+/// <summary>
+/// What a wound host is told about its own condition (M1a, plan §5.2): one alert per cause and state in
+/// place of the stock health alerts, and one line per transition (down, out, waking, standing, the heart).
+/// Every line that names the cause also names whatever else is holding the body, and none of them promises
+/// waking or standing while something else is.
+/// </summary>
+/// <remarks>
+/// The stock alerts read damage totals, which say nothing on a wound host, so they are switched off per
+/// body through the marked <c>MobThresholdSystem.SetTriggersAlerts</c>. This system then owns the whole
+/// Health category on that body, Dead included. Bodies that are not wound hosts keep the stock alerts.
+/// </remarks>
+public sealed class WolfmedConditionAlertSystem : EntitySystem
+{
+    [Dependency] private readonly AlertsSystem _alerts = default!;
+    [Dependency] private readonly IChatManager _chat = default!;
+    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
+    [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WolfmedConsciousnessComponent, WolfmedConsciousnessChangedEvent>(OnChanged);
+        SubscribeLocalEvent<WolfmedConsciousnessComponent, WolfmedConditionAlertEvent>(OnAlertClicked);
+        SubscribeLocalEvent<WolfmedAdrenalineEvent>(OnAdrenaline);
+    }
+
+    /// <summary>Hands the body's health alerts to this system. Called from the wound host's startup.</summary>
+    public void TakeOver(EntityUid body)
+    {
+        if (!_consciousness.OwnsMobState(body) || !TryComp(body, out MobThresholdsComponent? thresholds))
+            return;
+
+        _thresholds.SetTriggersAlerts(body, false, thresholds);
+        Refresh(body);
+    }
+
+    /// <summary>Whether this system shows the body's health alerts.</summary>
+    public bool Owns(EntityUid body) =>
+        _consciousness.OwnsMobState(body) && TryComp(body, out MobThresholdsComponent? thresholds) &&
+        !thresholds.TriggersAlerts;
+
+    /// <summary>The alert the body should be showing right now, from its mob state, state and cause.</summary>
+    public ProtoId<AlertPrototype>? GetAlert(EntityUid body)
+    {
+        if (!TryComp(body, out MobThresholdsComponent? thresholds) ||
+            !TryComp(body, out WolfmedConsciousnessComponent? consciousness))
+            return null;
+
+        if (_mobState.IsDead(body))
+            return thresholds.StateAlertDict.GetValueOrDefault(MobState.Dead);
+
+        var cause = GetCausePrototype(consciousness.Cause);
+        switch (consciousness.State)
+        {
+            case WolfmedConsciousness.Downed:
+                if (cause?.AlertDownedMechanical is { } mechanical && _shutdown.IsMechanical(body))
+                    return mechanical;
+
+                return cause?.AlertDowned ?? CompOrNull<WolfmedDownedComponent>(body)?.Alert ??
+                    new ProtoId<AlertPrototype>("WolfmedDowned");
+            case WolfmedConsciousness.Unconscious:
+                return cause?.AlertOut ?? thresholds.StateAlertDict.GetValueOrDefault(MobState.Critical);
+            default:
+                return thresholds.StateAlertDict.GetValueOrDefault(MobState.Alive);
+        }
+    }
+
+    /// <summary>The alert in the body's health slot right now, whoever put it there.</summary>
+    public ProtoId<AlertPrototype>? GetShownHealthAlert(EntityUid body)
+    {
+        if (!TryComp(body, out AlertsComponent? alerts))
+            return null;
+
+        ProtoId<AlertCategoryPrototype> category = CompOrNull<MobThresholdsComponent>(body)?.HealthAlertCategory ?? "Health";
+        if (!alerts.Alerts.TryGetValue(AlertKey.ForCategory(category), out var state))
+            return null;
+
+        return state.Type;
+    }
+
+    /// <summary>Shows the alert the body should be showing. Alerts in one category replace each other.</summary>
+    public void Refresh(EntityUid body)
+    {
+        if (!Owns(body) || GetAlert(body) is not { } alert)
+            return;
+
+        if (!_alerts.TryGet(alert, out var prototype))
+            return;
+
+        if (prototype.SupportsSeverity)
+            ShowHealth(body, alert, prototype);
+        else
+            _alerts.ShowAlert(body, alert);
+    }
+
+    /// <summary>
+    /// The health doll while Up: its severity from the worst Downed-level input, not from damage, so a
+    /// bled-out patient no longer shows a healthy icon.
+    /// </summary>
+    public void RefreshHealthSeverity(EntityUid body)
+    {
+        if (!Owns(body) || _mobState.IsDead(body) || GetAlert(body) is not { } alert ||
+            !_alerts.TryGet(alert, out var prototype) || !prototype.SupportsSeverity)
+            return;
+
+        ShowHealth(body, alert, prototype);
+    }
+
+    private void ShowHealth(EntityUid body, ProtoId<AlertPrototype> alert, AlertPrototype prototype)
+    {
+        var level = CompOrNull<WolfmedConsciousnessComponent>(body)?.DownLevel ?? 0f;
+        var severity = (short) MathF.Round(MathHelper.Lerp(prototype.MinSeverity, prototype.MaxSeverity,
+            Math.Clamp(level, 0f, 1f)));
+
+        // BeforeAlertSeverityCheckEvent is not raised: its one reader, pain numbness, pins the doll at full
+        // health, which would hide blood loss too. Numbness already zeroes pain in these inputs.
+        _alerts.ShowAlert(body, alert, severity);
+    }
+
+    public WolfmedConsciousnessCausePrototype? GetCausePrototype(WolfmedCause cause) =>
+        cause != WolfmedCause.None && _prototypes.TryIndex<WolfmedConsciousnessCausePrototype>(cause.ToString(), out var proto)
+            ? proto
+            : null;
+
+    /// <summary>The cause's short name, with its sub-source where it has one: "no oxygen (no air)".</summary>
+    public string GetCauseName(WolfmedCause cause, WolfmedCauseSource source = WolfmedCauseSource.None)
+    {
+        if (GetCausePrototype(cause) is not { } proto)
+            return Loc.GetString("wolfmed-condition-cause-unknown");
+
+        var name = Loc.GetString(proto.BlockerName);
+        return proto.Sources.TryGetValue(source, out var sourceName)
+            ? Loc.GetString("wolfmed-condition-cause-with-source", ("cause", name), ("source", Loc.GetString(sourceName)))
+            : name;
+    }
+
+    /// <summary>"blood loss, pain": what else is holding the body, in tie order.</summary>
+    public string GetBlockerNames(WolfmedCauseFlags blockers) =>
+        string.Join(", ", WolfmedCauses.Each(blockers).Select(cause => GetCauseName(cause)));
+
+    /// <summary>"Downed: blood loss", "Passed out: pain", "Cardiac arrest: blood".</summary>
+    public string GetTitle(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp))
+            return string.Empty;
+
+        if (_mobState.IsDead(body))
+            return Loc.GetString("wolfmed-condition-title-dead");
+
+        if (comp.State == WolfmedConsciousness.Up)
+            return Loc.GetString("wolfmed-condition-title-up");
+
+        var proto = GetCausePrototype(comp.Cause);
+        var critical = comp.State == WolfmedConsciousness.Unconscious;
+        var source = proto != null && proto.Sources.TryGetValue(comp.CauseSource, out var sourceName)
+            ? Loc.GetString(sourceName)
+            : Loc.GetString("wolfmed-condition-source-unknown");
+        var name = GetCauseName(comp.Cause);
+
+        if ((critical ? proto?.TitleOut : proto?.TitleDowned) is { } title)
+            return Loc.GetString(title, ("cause", name), ("source", source));
+
+        return Loc.GetString(critical ? "wolfmed-condition-title-out" : "wolfmed-condition-title-downed",
+            ("cause", GetCauseName(comp.Cause, comp.CauseSource)));
+    }
+
+    /// <summary>
+    /// The whole explanation: title, symptom, what helps (its conditional form while something else holds
+    /// the body) and "Still holding you down: …". What the alert click and the tests read.
+    /// </summary>
+    public string GetConditionText(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp))
+            return string.Empty;
+
+        var parts = new List<string> { GetTitle(body) };
+        if (comp.State != WolfmedConsciousness.Up && !_mobState.IsDead(body) &&
+            GetCausePrototype(comp.Cause) is { } proto)
+        {
+            if (proto.Symptom is { } symptom)
+                parts.Add(Loc.GetString(symptom));
+
+            if (Help(body, proto, comp.State, comp.Blockers != WolfmedCauseFlags.None) is { } help)
+                parts.Add(help);
+        }
+
+        if (BlockerLine(comp) is { } blockers)
+            parts.Add(blockers);
+
+        return string.Join(" ", parts);
+    }
+
+    /// <summary>What helps, for the state the body is in; the blocked form while something else holds it.</summary>
+    private string? Help(EntityUid body, WolfmedConsciousnessCausePrototype proto, WolfmedConsciousness state,
+        bool blocked)
+    {
+        LocId? key;
+        if (state == WolfmedConsciousness.Unconscious)
+            key = blocked && proto.HelpOutBlocked is { } outBlocked ? outBlocked : proto.HelpOut;
+        else
+            key = blocked && proto.HelpBlocked is { } helpBlocked ? helpBlocked
+                : proto.HelpMechanical is { } mechanical && _shutdown.IsMechanical(body) ? mechanical
+                : proto.Help;
+
+        return key is { } found ? Loc.GetString(found) : null;
+    }
+
+    private string? BlockerLine(WolfmedConsciousnessComponent comp) =>
+        comp.Blockers == WolfmedCauseFlags.None || comp.State == WolfmedConsciousness.Up
+            ? null
+            : Loc.GetString("wolfmed-condition-blockers", ("blockers", GetBlockerNames(comp.Blockers)));
+
+    private void OnChanged(Entity<WolfmedConsciousnessComponent> body, ref WolfmedConsciousnessChangedEvent args)
+    {
+        Refresh(body);
+
+        if (_mobState.IsDead(body) || TransitionLine(body, args) is not { } line)
+            return;
+
+        Tell(body, line, args.NewState == WolfmedConsciousness.Up ? PopupType.Medium : PopupType.MediumCaution);
+    }
+
+    /// <summary>The one line a transition earns, or null when only the blockers moved.</summary>
+    private string? TransitionLine(Entity<WolfmedConsciousnessComponent> body, WolfmedConsciousnessChangedEvent args)
+    {
+        var proto = GetCausePrototype(args.NewCause);
+        var old = GetCausePrototype(args.OldCause);
+        var blocked = args.NewBlockers != WolfmedCauseFlags.None;
+        string? line;
+
+        if (args.OldCause == WolfmedCause.Arrest && args.NewCause != WolfmedCause.Arrest)
+        {
+            // The heart restarting: what is still wrong, and what helps.
+            line = args.NewState == WolfmedConsciousness.Up || proto == null
+                ? Loc.GetString("wolfmed-condition-heart-restart")
+                : Loc.GetString("wolfmed-condition-heart-restart-still",
+                    ("cause", GetCauseName(args.NewCause, body.Comp.CauseSource)),
+                    ("help", Help(body, proto, args.NewState, blocked) ?? string.Empty));
+            return WithBlockers(body, line, args.NewState);
+        }
+
+        if (args.OldState == args.NewState && args.OldCause == args.NewCause)
+            return null;
+
+        switch (args.NewState)
+        {
+            case WolfmedConsciousness.Up:
+                line = old?.Stand is { } stand && args.OldState == WolfmedConsciousness.Downed
+                    ? Loc.GetString(stand)
+                    : Loc.GetString(args.OldState == WolfmedConsciousness.Unconscious
+                        ? "wolfmed-condition-wake-up"
+                        : "wolfmed-condition-stand");
+                return line;
+            case WolfmedConsciousness.Downed:
+                line = args.OldState == WolfmedConsciousness.Unconscious
+                    ? proto?.Wake is { } wake ? Loc.GetString(wake) : Loc.GetString("wolfmed-condition-wake")
+                    : proto?.Down is { } down ? Loc.GetString(down) : Loc.GetString("wolfmed-condition-down");
+                return WithBlockers(body, line, args.NewState);
+            default:
+                line = proto?.Out is { } outLine ? Loc.GetString(outLine) : Loc.GetString("wolfmed-condition-out");
+                if (proto != null && Help(body, proto, args.NewState, blocked) is { } help)
+                    line = $"{line} {help}";
+
+                return WithBlockers(body, line, args.NewState);
+        }
+    }
+
+    private string WithBlockers(Entity<WolfmedConsciousnessComponent> body, string line, WolfmedConsciousness state)
+    {
+        return state != WolfmedConsciousness.Up && BlockerLine(body.Comp) is { } blockers ? $"{line} {blockers}" : line;
+    }
+
+    /// <summary>A popup over the body for its own player, and the same line in their chat to read back.</summary>
+    public void Tell(Entity<WolfmedConsciousnessComponent> body, string line, PopupType type = PopupType.MediumCaution)
+    {
+        body.Comp.LastConditionLine = line;
+        _popup.PopupEntity(line, body, body, type);
+
+        if (!TryComp(body, out ActorComponent? actor))
+            return;
+
+        var wrapped = Loc.GetString("wolfmed-condition-chat", ("message", FormattedMessage.EscapeText(line)));
+        _chat.ChatMessageToOne(ChatChannel.Notifications, line, wrapped, body, false, actor.PlayerSession.Channel);
+    }
+
+    private void OnAlertClicked(Entity<WolfmedConsciousnessComponent> body, ref WolfmedConditionAlertEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        args.Handled = true;
+        Tell(body, GetConditionText(body), PopupType.Medium);
+    }
+
+    private void OnAdrenaline(ref WolfmedAdrenalineEvent args)
+    {
+        if (!TryComp(args.Body, out WolfmedConsciousnessComponent? comp) || _mobState.IsDead(args.Body))
+            return;
+
+        Tell((args.Body, comp), Loc.GetString(args.Started ? "wolfmed-condition-adrenaline-start" : "wolfmed-condition-adrenaline-end"),
+            PopupType.Medium);
+    }
+}

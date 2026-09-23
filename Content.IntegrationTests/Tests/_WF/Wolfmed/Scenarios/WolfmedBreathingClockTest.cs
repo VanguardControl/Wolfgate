@@ -686,7 +686,11 @@ public sealed class WolfmedBreathingClockTest : GameTest
 
             var routing = SEntMan.System<WoundDamageRoutingSystem>();
             Assert.That(routing.TryApplyPartDamage(body, s.Part(body, BodyPartType.Torso), WolfmedScenario.Spec("Blunt", 60)));
-            Assert.That(routing.TryApplyPartDamage(body, s.Part(body, BodyPartType.Head), WolfmedScenario.Spec("Blunt", 60)));
+            // Package B: 60 on the head as well sums past the 189 faint line, and a fainted body is Critical, which
+            // takes no paralysis. 40 keeps the summed pain under the line and the body's (capped) pain at 135.
+            Assert.That(routing.TryApplyPartDamage(body, s.Part(body, BodyPartType.Head), WolfmedScenario.Spec("Blunt", 40)));
+            Assert.That(SEntMan.GetComponent<WolfmedConsciousnessComponent>(body).Cause, Is.Not.EqualTo(WolfmedCause.PainFaint),
+                "the fixture fainted, so the shock's stun cannot be checked.");
             s.Advance(body, 5);
 
             Assert.Multiple(() =>

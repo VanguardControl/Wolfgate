@@ -118,7 +118,7 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
         _hud.Tier = tier;
         BuildRows(hud, frameTime);
         BuildSystem(hud, tier);
-        UpdateBanner(hud, tier, dead, standby, downed);
+        UpdateBanner(hud, tier, dead, standby, downed, consciousness);
         UpdateDeath(hud, dead, frameTime);
         UpdateMotion(tier, strain, standby, frameTime);
 
@@ -207,9 +207,14 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
         WolfmedSyntheticTier tier,
         bool dead,
         bool standby,
-        bool downed)
+        bool downed,
+        WolfmedConsciousnessComponent? consciousness)
     {
-        _hud.StandbyTitle = Loc.GetString("wolfmed-synthetic-banner-standby");
+        // M1a: the cause's own line replaces the blanket STANDBY (plan §5.6).
+        var causeLine = hud.CauseLine.Length > 0
+            ? Loc.GetString(hud.CauseLine, ("source", (consciousness?.CauseSource ?? WolfmedCauseSource.None).ToString()))
+            : null;
+        _hud.StandbyTitle = causeLine ?? Loc.GetString("wolfmed-synthetic-banner-standby");
         _hud.RebootText = Loc.GetString("wolfmed-synthetic-banner-reboot");
         _hud.RebootVisible = (int) (_time * 1.6f) % 2 == 0;
 
@@ -221,7 +226,7 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
 
         if (downed)
         {
-            _hud.Banner = Loc.GetString("wolfmed-synthetic-banner-downed");
+            _hud.Banner = causeLine ?? Loc.GetString("wolfmed-synthetic-banner-downed");
             _hud.BannerSeverity = WolfmedSyntheticSeverity.Crit;
         }
         else if (tier == WolfmedSyntheticTier.Heavy)

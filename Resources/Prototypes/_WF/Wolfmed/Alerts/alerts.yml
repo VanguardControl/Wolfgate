@@ -8,13 +8,169 @@
   name: alerts-wolfmed-sepsis-name
   description: alerts-wolfmed-sepsis-desc
 
-# Downed (CONSC). On for as long as consciousness holds the body on the floor; the owner asked for a
-# persistent alert rather than a UI.
+# Downed (CONSC). The Downed alert when the cause names none of its own. M1a moved it into the Health
+# category: on a wound host the condition alerts replace the stock health alerts (plan §5.2).
 
 - type: alert
   id: WolfmedDowned
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
   icons:
   - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
     state: downed
   name: alerts-wolfmed-downed-name
   description: alerts-wolfmed-downed-desc
+
+# M1a: one alert per cause and state (plan §5.2), all in the Health category so each replaces the last.
+# Clicking one tells the patient everything holding them down. The icons are reused placeholders (art debt):
+# downed for every Downed alert, the stock critical, bleed and breathing icons for the rest.
+
+- type: alert
+  id: WolfmedDownedPain
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-pain-name
+  description: alerts-wolfmed-downed-pain-desc
+
+- type: alert
+  id: WolfmedDownedFrame
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-frame-name
+  description: alerts-wolfmed-downed-frame-desc
+
+- type: alert
+  id: WolfmedFaintPain
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_critical.rsi
+    state: critical
+  name: alerts-wolfmed-faint-pain-name
+  description: alerts-wolfmed-faint-pain-desc
+
+- type: alert
+  id: WolfmedDownedBlood
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/bleed.rsi
+    state: bleed3
+  name: alerts-wolfmed-downed-blood-name
+  description: alerts-wolfmed-downed-blood-desc
+
+- type: alert
+  id: WolfmedOutBlood
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/bleed.rsi
+    state: bleed6
+  name: alerts-wolfmed-out-blood-name
+  description: alerts-wolfmed-out-blood-desc
+
+- type: alert
+  id: WolfmedDownedOil
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-oil-name
+  description: alerts-wolfmed-downed-oil-desc
+
+- type: alert
+  id: WolfmedOutOil
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/Interface/Alerts/borg_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-oil-name
+  description: alerts-wolfmed-out-oil-desc
+
+- type: alert
+  id: WolfmedDownedHypoxia
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
+    state: not_enough_oxy
+  name: alerts-wolfmed-downed-hypoxia-name
+  description: alerts-wolfmed-downed-hypoxia-desc
+
+- type: alert
+  id: WolfmedOutHypoxia
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-hypoxia-name
+  description: alerts-wolfmed-out-hypoxia-desc
+
+- type: alert
+  id: WolfmedDownedSedation
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-sedation-name
+  description: alerts-wolfmed-downed-sedation-desc
+
+- type: alert
+  id: WolfmedOutSedation
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-sedation-name
+  description: alerts-wolfmed-out-sedation-desc
+
+- type: alert
+  id: WolfmedDownedLegs
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-legs-name
+  description: alerts-wolfmed-downed-legs-desc
+
+- type: alert
+  id: WolfmedDownedCrash
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-crash-name
+  description: alerts-wolfmed-downed-crash-desc
+
+- type: alert
+  id: WolfmedOutArrest
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_dead.rsi
+    state: dead
+  name: alerts-wolfmed-out-arrest-name
+  description: alerts-wolfmed-out-arrest-desc
+
+- type: alert
+  id: WolfmedOutShutdown
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/Interface/Alerts/borg_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-shutdown-name
+  description: alerts-wolfmed-out-shutdown-desc

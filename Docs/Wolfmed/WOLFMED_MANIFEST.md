@@ -4416,3 +4416,52 @@ Deviations:
 - **No client test presses the reorder button.** Robust's `BaseButton` has no public press, so the window
   test asserts what `DrawQueue` decided and the server test drives `TryMoveQueued`, the seam the message
   handler calls.
+
+## M1a B: causes, faint and alerts (2026-09-22)
+
+Marked upstream and Onyx edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Shared/Mobs/Systems/MobThresholdSystem.cs:333-343` | upstream, new method | WOLFGATE (M1a): `SetTriggersAlerts`, the one way `_WF` code can hand a wound host's health alerts to `WolfmedConditionAlertSystem` (the component's access rule keeps the field to this system). Inventory #3. |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:30` | Onyx | WOLFGATE (M1a): dependency on `WolfmedBodyPainSystem`, the `_WF` half of the edits below. |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:32-33` | Onyx | WOLFGATE (M1a): the shock threshold, re-arm and adrenaline constants and the 0.7 adrenaline multiplier removed; CVars `wolfmed.pain_shock_threshold`, `wolfmed.pain_shock_rearm`, `wolfmed.adrenaline_seconds`. |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:149` | Onyx | WOLFGATE (M1a): adrenaline running out hands off to `AdrenalineChanged` instead of raising a pain change (OD5: pain never moved). |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:168-169` | Onyx | WOLFGATE (M1a): `GetPain` no longer multiplies by 0.7 under adrenaline (OD5). |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:181-183` | Onyx | WOLFGATE (M1a): P13, a part's share of the body's suppression is part over the sum of the parts. |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:200-203` | Onyx | WOLFGATE (M1a): P13, a body's pain is min(soft cap, Σ parts) after every change; direct sets are rederived. |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:281, 291` | Onyx | WOLFGATE (M1a): the re-arm and threshold read the CVars. |
+| `Content.Shared/_Onyx/Wounds/PainSystem.cs:458-461` | Onyx | WOLFGATE (M1a): the shock's adrenaline window from the CVar; hands off to `AdrenalineChanged` (crawl boost, patient line). |
+| `Content.IntegrationTests/Tests/_Onyx/Wounds/WoundDamageFoundationTest.cs:873-890` | Onyx test | WOLFGATE (M1a): the shock block sets the 200 on a part (P13) and reads 135/105 instead of 94.5/73.5 (OD5); the re-armed shock fires again at 135. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessCause.cs` | new | `WolfmedCause`, `WolfmedCauseFlags`, `WolfmedCauseSource`, tie order, `wolfmedConsciousnessCause` prototype, `WolfmedConsciousnessChangedEvent`, `WolfmedConditionAlertEvent`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedBodyPainSystem.cs` | new | P13 derived body pain and suppression share, shock CVars, adrenaline state and `WolfmedAdrenalineEvent`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | networked `Cause`, `CauseSource`, `Blockers`; faint fields; `HypoxiaSource`; `LastConditionLine`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | the Downed alert moved to the condition alerts; adrenaline crawl ×1.5 and no do-after penalty. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefSystem.cs` | modified | `EndsFaint`. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedLifeComponents.cs` | modified | networked `WolfmedShutdownComponent.Reason`. |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudComponent.cs` | modified | `CauseLine`. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.pain_faint_seconds` 20, `pain_faint_rise` 40, `pain_faint_cooldown` 30, `pain_shock_threshold` 130, `pain_shock_rearm` 110, `adrenaline_seconds` 30, `adrenaline_crawl_multiplier` 1.5. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | inputs per cause, cause and blockers, the pain faint, the change event, alert hand-off. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConditionAlertSystem.cs` | new | condition alerts, the Up doll's severity, transition lines, the alert click, adrenaline lines. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | modified | sets the shutdown reason. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `DrainRate` reports its largest drain; the hypoxia sub-source is recorded. |
+| `Content.Server/_WF/Wolfmed/Hud/WolfmedSyntheticHudSystem.cs` | modified | fills `CauseLine`. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlaySystem.cs` | modified | the banner shows the cause's line instead of STANDBY and MOBILITY LOST. |
+| `Content.Client/_WF/Wolfmed/Audio/WolfmedCritHeartbeatSystem.cs` | modified | silent for machines and faints. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml` | new | one cause prototype per M1a cause. |
+| `Resources/Prototypes/_WF/Wolfmed/Alerts/alerts.yml` | modified | 15 condition alerts; `WolfmedDowned` moved into the Health category with the click event. |
+| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | cause, title, help, transition and alert strings. |
+| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | modified | per-cause banner lines. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs` | new | `PainScenarioTest`, `SustainedFireFaintTest`, `BodyPainTracksPartsTest`, `OverlappingCausesTest`, `IpcShutdownScenarioTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | pain on the parts (P13); the unconscious cases are faints. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs` | modified | pain on the torso; OD5 readings; the adrenaline window from its CVar. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | modified | the banner names the pump shutdown and clears on rejuvenate. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs` | modified | `HeartbeatSilentForFaintsAndMachinesTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDownedTransitionTest.cs` | modified | the Downed alerts sit in the health slot. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | modified | the two-fracture fixture is pain-numb: it would faint now. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs` | modified | package A's `PainShockNoArrestTest` stays under the faint line. |

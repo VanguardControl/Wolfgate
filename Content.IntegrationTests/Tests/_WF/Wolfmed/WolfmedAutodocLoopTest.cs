@@ -486,6 +486,10 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var slots = entities.System<ItemSlotsSystem>();
             body = entities.SpawnEntity("MobHuman", map.GridCoords);
 
+            // M1a: two broken legs sum to about 200 pain, past the 189 faint line now that the pain shock's
+            // adrenaline no longer takes 30% off it. This test is about dosing, so the patient feels nothing.
+            entities.EnsureComponent<Content.Shared.Traits.Assorted.PainNumbnessComponent>(body);
+
             foreach (var target in new[] { TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg })
                 Blunt(entities, body, target, 60);
 

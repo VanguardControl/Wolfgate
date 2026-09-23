@@ -81,6 +81,16 @@ wolfmed-synthetic-banner-integrity = STRUCTURAL INTEGRITY { $value } - SEEK MAIN
 wolfmed-synthetic-banner-downed = MOBILITY LOST - CRAWL MODE
 wolfmed-synthetic-banner-standby = STANDBY
 wolfmed-synthetic-banner-reboot = REBOOT PENDING...
+
+# M1a: the banner names what holds the chassis down instead of a blanket STANDBY (plan §5.6).
+wolfmed-synthetic-cause-pain = MOBILITY LOST: FRAME DAMAGE
+wolfmed-synthetic-cause-legs = MOBILITY LOST: ACTUATORS OFFLINE
+wolfmed-synthetic-cause-oil = HYDRAULIC PRESSURE LOW
+wolfmed-synthetic-cause-shutdown = { $source ->
+    [Pump] COOLANT PUMP OFFLINE: SHUTDOWN
+   *[other] CELL EMPTY: SHUTDOWN. AWAITING POWER.
+}
+
 wolfmed-synthetic-banner-panic = KERNEL PANIC
 wolfmed-synthetic-panic-dump = SEGMENTATION FAULT AT 0x{ $address }
 wolfmed-synthetic-death-banner = CORE OFFLINE

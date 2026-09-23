@@ -46,6 +46,13 @@ public sealed partial class WolfmedSyntheticHudComponent : Component
     /// <summary>Advice line for the worst active fault, or empty while nothing is wrong.</summary>
     [AutoNetworkedField]
     public string Advice = string.Empty;
+
+    /// <summary>
+    /// M1a: the banner line for whatever holds the chassis down, from its cause (plan §5.6), in place of the
+    /// blanket STANDBY. Takes the cause's sub-source as <c>$source</c>. Empty while the chassis is up.
+    /// </summary>
+    [AutoNetworkedField]
+    public string CauseLine = string.Empty;
 }
 
 /// <summary>One line of the DIAGNOSTICS block: which part, what it says, and how loud.</summary>

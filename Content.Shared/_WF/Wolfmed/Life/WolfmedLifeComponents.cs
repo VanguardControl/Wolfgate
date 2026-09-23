@@ -100,5 +100,11 @@ public sealed partial class WolfmedCprComponent : Component
 /// A mechanical body with no power or no pump: the machine analogue of cardiac arrest. Unconscious through
 /// an external pressure, with no oxygenation clock behind it and nothing that runs out.
 /// </summary>
-[RegisterComponent, NetworkedComponent]
-public sealed partial class WolfmedShutdownComponent : Component;
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class WolfmedShutdownComponent : Component
+{
+    /// <summary>M1a: why the machine stopped, Power or Pump. The HUD, alerts and analyzer name it.</summary>
+    [AutoNetworkedField]
+    public Content.Shared._WF.Wolfmed.Consciousness.WolfmedCauseSource Reason =
+        Content.Shared._WF.Wolfmed.Consciousness.WolfmedCauseSource.Power;
+}
