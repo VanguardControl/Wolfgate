@@ -105,10 +105,15 @@
     factions:
     - NanoTrasen
   - type: StandingState
+  # WOLFGATE (HUD/BRAIN): Critical is back. On a wound host CONSC owns the mob state and writes Critical
+  # for an unconscious body; with the state missing a chassis could never be knocked out or shut down, so
+  # a pulled cell or a destroyed pump left a machine walking while its readout said STANDBY.
+  # MobThresholds names no Critical rung, so damage totals still cannot put it there.
   - type: MobState
     allowedStates:
     - Alive
-    - Dead # why did EE just not remove the state and instead made them crit at 119.999???
+    - Critical
+    - Dead
   - type: MobThresholds
     thresholds:
       0: Alive

@@ -7,6 +7,7 @@ using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Systems;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
@@ -21,8 +22,14 @@ public sealed class WolfmedShutdownSystem : EntitySystem
     /// <summary>Pressure key for a machine with nothing running.</summary>
     public const string ShutdownPressure = "shutdown";
 
+    /// <summary>How often a chassis that is already down re-checks that it should still be.</summary>
+    private static readonly TimeSpan ReconcileInterval = TimeSpan.FromSeconds(1);
+
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+
+    private TimeSpan _nextReconcile;
 
     public override void Initialize()
     {
@@ -56,6 +63,36 @@ public sealed class WolfmedShutdownSystem : EntitySystem
 
     public bool IsShutDown(EntityUid body) => HasComp<WolfmedShutdownComponent>(body);
 
+    /// <summary>
+    /// Only bodies that are already down are polled, which is normally none of them. A shutdown is written
+    /// as an external pressure, and anything that resets a body wholesale (a rejuvenate clears every
+    /// pressure it finds) can leave the flag on a chassis that is walking around: the readout would then
+    /// show STANDBY over a machine in a firefight. The cause is re-read here instead of trusted.
+    /// </summary>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_timing.CurTime < _nextReconcile)
+            return;
+
+        _nextReconcile = _timing.CurTime + ReconcileInterval;
+
+        var query = EntityQueryEnumerator<WolfmedShutdownComponent>();
+        while (query.MoveNext(out var body, out _))
+        {
+            if (!TerminatingOrDeleted(body) && IsMechanical(body))
+            {
+                Refresh(body);
+                continue;
+            }
+
+            // Not a chassis any more, so nothing here owns it.
+            RemComp<WolfmedShutdownComponent>(body);
+            _consciousness.SetExternalPressure(body, ShutdownPressure, 0f);
+        }
+    }
+
     private void OnChargeDeath(EntityUid uid, SiliconDownOnDeadComponent comp, SiliconChargeDeathEvent args) =>
         Refresh(uid, false);
 
@@ -74,10 +111,10 @@ public sealed class WolfmedShutdownSystem : EntitySystem
         if (TerminatingOrDeleted(body) || !IsMechanical(body))
             return;
 
+        // The flag and the pressure are written every time, never skipped when the flag already agrees:
+        // they are two halves of one state and only one of them survives a rejuvenate. SetExternalPressure
+        // is itself a no-op when the level has not moved.
         var down = !(powered ?? HasPower(body)) || !HasPump(body);
-        if (down == IsShutDown(body))
-            return;
-
         if (down)
             EnsureComp<WolfmedShutdownComponent>(body);
         else

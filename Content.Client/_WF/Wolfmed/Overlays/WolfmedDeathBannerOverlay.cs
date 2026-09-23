@@ -1,6 +1,7 @@
 using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
+using Robust.Client.UserInterface;
 using Robust.Shared.Enums;
 
 namespace Content.Client._WF.Wolfmed.Overlays;
@@ -39,7 +40,9 @@ public sealed class WolfmedDeathBannerOverlay : Overlay
     protected override void Draw(in OverlayDrawArgs args)
     {
         var handle = args.ScreenHandle;
-        var bounds = args.ViewportBounds;
+        // ViewportBounds is global physical pixels; the handle is already at the control's own top-left.
+        var bounds = WolfmedSyntheticHudLayout.Screen(args.ViewportBounds,
+            (args.ViewportControl as Control)?.GlobalPixelPosition ?? Vector2i.Zero);
         var height = bounds.Height * 0.16f;
         var middle = bounds.Top + bounds.Height / 2f;
 

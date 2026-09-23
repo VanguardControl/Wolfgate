@@ -1,15 +1,22 @@
 #nullable enable
 using System.Linq;
+using System.Numerics;
 using Content.Client._WF.Wolfmed.Overlays;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._WF.Wolfmed.Hud;
+using Content.Server._WF.Wolfmed.Life;
+using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Hud;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
+using Content.Shared.Mobs.Systems;
+using Content.Shared.Rejuvenate;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Maths;
@@ -272,6 +279,161 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                 }
             }
         });
+    }
+
+    /// <summary>
+    /// The readout draws in the viewport control's own coordinates. <c>ViewportBounds</c> arrives in global
+    /// physical pixels while the handle is already translated to the control's top-left, so a viewport that
+    /// does not start at the window origin used to throw both corner blocks off the screen; and the text
+    /// scale has to carry the UI scale, because those pixels are physical ones.
+    /// </summary>
+    [Test]
+    public void LayoutFollowsTheViewportControlTest()
+    {
+        Assert.Multiple(() =>
+        {
+            foreach (var (x, y, width, height) in new[] { (0, 0, 1920, 1080), (260, 140, 1280, 720), (96, 0, 1600, 900) })
+            {
+                var bounds = new UIBox2i(x, y, x + width, y + height);
+
+                foreach (var ui in new[] { 1f, 1.25f, 2f })
+                {
+                    var screen = WolfmedSyntheticHudLayout.Screen(bounds, new Vector2(x, y));
+                    Assert.That(screen.Left, Is.EqualTo(0f), "the readout kept the viewport's global origin.");
+                    Assert.That(screen.Top, Is.EqualTo(0f), "the readout kept the viewport's global origin.");
+                    Assert.That(screen.Width, Is.EqualTo((float) width));
+                    Assert.That(screen.Height, Is.EqualTo((float) height));
+
+                    var scale = WolfmedSyntheticHudLayout.Scale(1f, ui);
+                    var lines = WolfmedSyntheticHudLayout.MaxLines(screen, scale,
+                        WolfmedSyntheticHudComponent.MaxFaults);
+
+                    foreach (var (name, box) in new (string, UIBox2)[]
+                             {
+                                 ("system", WolfmedSyntheticHudLayout.System(screen, scale)),
+                                 ("diagnostics", WolfmedSyntheticHudLayout.Diagnostics(screen, scale, lines)),
+                                 ("banner", WolfmedSyntheticHudLayout.Banner(screen, scale)),
+                             })
+                    {
+                        var where = $"{name} at {width}x{height}+{x}+{y}, ui scale {ui}";
+                        Assert.That(box.Left, Is.GreaterThanOrEqualTo(screen.Left), $"{where} starts left of the viewport.");
+                        Assert.That(box.Top, Is.GreaterThanOrEqualTo(screen.Top), $"{where} starts above the viewport.");
+                        Assert.That(box.Right, Is.LessThanOrEqualTo(screen.Right), $"{where} runs off the right edge.");
+                        Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Bottom), $"{where} runs off the bottom edge.");
+                        Assert.That(box.Bottom, Is.LessThanOrEqualTo(screen.Top + height * WolfmedSyntheticHudLayout.TopBand),
+                            $"{where} reaches below the readout's own band.");
+                    }
+                }
+            }
+
+            // The player's text setting is clamped, so wolfmed.synthetic_hud_scale 0 cannot collapse a block.
+            Assert.That(WolfmedSyntheticHudLayout.Scale(0f, 1f), Is.EqualTo(WolfmedSyntheticHudLayout.MinScale));
+            Assert.That(WolfmedSyntheticHudLayout.Scale(99f, 1f), Is.EqualTo(WolfmedSyntheticHudLayout.MaxScale));
+            var floor = WolfmedSyntheticHudLayout.System(new UIBox2(0f, 0f, 1920f, 1080f),
+                WolfmedSyntheticHudLayout.Scale(0f, 1f));
+            Assert.That(floor.Width, Is.GreaterThan(100f), "a zero text scale collapsed the SYSTEM block.");
+            Assert.That(floor.Height, Is.GreaterThan(60f), "a zero text scale collapsed the SYSTEM block.");
+        });
+    }
+
+    /// <summary>
+    /// STANDBY means exactly one of two things: the chassis is shut down, or it is unconscious. Hull damage
+    /// is neither of them, however much of it there is, and a readout that says otherwise is telling a
+    /// walking machine it has stopped.
+    /// </summary>
+    [Test]
+    public async Task StandbyOnlyWhenTheChassisIsDownTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        EntityUid shut = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var hudSystem = entities.System<WolfmedSyntheticHudSystem>();
+            var shutdown = entities.System<WolfmedShutdownSystem>();
+            var mobState = entities.System<MobStateSystem>();
+            var damage = entities.System<DamageableSystem>();
+
+            var body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var hud = entities.EnsureComponent<WolfmedSyntheticHudComponent>(body);
+
+            // Small hits spread over the chassis, under the finishing damage so nothing is severed. While
+            // the machine is still on its feet the readout may never claim standby: the flag is about the
+            // cell and the pump, never about the hull.
+            var targets = new[]
+            {
+                TargetBodyPart.Torso, TargetBodyPart.Head, TargetBodyPart.LeftArm,
+                TargetBodyPart.RightArm, TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg,
+            };
+
+            for (var hit = 0; hit < 120 && mobState.IsAlive(body); hit++)
+            {
+                damage.TryChangeDamage(body, Spec("Blunt", 6), ignoreResistances: true,
+                    targetPart: targets[hit % targets.Length]);
+                hudSystem.Refresh((body, hud));
+
+                Assert.That(shutdown.IsShutDown(body), Is.False, "hull damage shut the chassis down.");
+                Assert.That(hud.Shutdown, Is.False, "the readout called standby on a chassis that still walks.");
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(hud.Integrity, Is.LessThan(1f), "the chassis never took real damage.");
+                Assert.That(hud.Faults, Is.Not.Empty, "the chassis took damage and reported no faults.");
+            });
+
+            // The cause the spec names, on a fresh chassis: the micro pump out of it, and that one does
+            // stop the machine rather than only telling it that it stopped.
+            var down = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var downHud = entities.EnsureComponent<WolfmedSyntheticHudComponent>(down);
+            shut = down;
+
+            Assert.That(entities.System<SharedBodySystem>().RemoveOrgan(Organ<HeartComponent>(entities, down)),
+                Is.True);
+            hudSystem.Refresh((down, downHud));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(shutdown.IsShutDown(down), Is.True, "a chassis with no pump kept running.");
+                Assert.That(downHud.Shutdown, Is.True, "the readout missed the shutdown.");
+                Assert.That(mobState.IsCritical(down), Is.True, "a shut-down chassis stayed on its feet.");
+            });
+
+            // A rejuvenate wipes every consciousness pressure, this one included. The flag may not outlive
+            // it: that leaves STANDBY over a chassis that is up and walking.
+            entities.EventBus.RaiseLocalEvent(down, new RejuvenateEvent());
+        });
+
+        await Pair.RunTicksSync(60);
+
+        await server.WaitAssertion(() =>
+        {
+            var shutdown = entities.System<WolfmedShutdownSystem>();
+            var mobState = entities.System<MobStateSystem>();
+
+            Assert.That(shutdown.IsShutDown(shut) && !mobState.IsCritical(shut) && !mobState.IsDead(shut),
+                Is.False, "the readout was left in standby over a chassis that was up and walking.");
+        });
+    }
+
+    private static DamageSpecifier Spec(string type, int amount) => new()
+    {
+        DamageDict = { [new ProtoId<DamageTypePrototype>(type)] = FixedPoint2.New(amount) },
+    };
+
+    private static EntityUid Organ<T>(IEntityManager entities, EntityUid body) where T : IComponent
+    {
+        foreach (var (organ, _) in entities.System<SharedBodySystem>().GetBodyOrgans(body))
+        {
+            if (entities.HasComponent<T>(organ))
+                return organ;
+        }
+
+        Assert.Fail($"the fixture has no {typeof(T).Name}.");
+        return default;
     }
 
     private static EntityUid Part(

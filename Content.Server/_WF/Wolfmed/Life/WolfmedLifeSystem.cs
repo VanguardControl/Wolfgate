@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server.Body.Components;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server.Body.Systems;
@@ -13,6 +14,7 @@ using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Events;
+using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Electrocution;
@@ -580,11 +582,24 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// </summary>
     private void OnAmputated(ref WolfmedPartAmputatedEvent args)
     {
-        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body) || !CarriedBrain(args.Part) ||
-            HasBrain(args.Body))
+        if (TerminatingOrDeleted(args.Body) || !OwnsDeath(args.Body))
             return;
 
-        Kill(args.Body);
+        if (CarriedBrain(args.Part) && !HasBrain(args.Body) || LostVitalPart(args.Body, args.Part))
+            Kill(args.Body);
+    }
+
+    /// <summary>
+    /// The body lost its last part of a type it cannot do without. A chassis keeps its positronic brain in
+    /// the torso, so decapitating an IPC carries no brain off and the rule above never fires. The prototype
+    /// already calls a head vital and upstream only ever turned that into bloodloss damage, which an
+    /// inorganic damage container does not carry at all; death on a wound host is ours, so the flag is read
+    /// here instead.
+    /// </summary>
+    private bool LostVitalPart(EntityUid body, EntityUid part)
+    {
+        return TryComp(part, out BodyPartComponent? bodyPart) && bodyPart.IsVital &&
+               !_body.GetBodyChildrenOfType(body, bodyPart.PartType).Any();
     }
 
     /// <summary>Whether a detached part, or anything still hanging off it, was holding a brain.</summary>

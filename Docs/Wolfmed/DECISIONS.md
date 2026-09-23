@@ -699,3 +699,26 @@ off for it (`WolfmedSyntheticHudOverlaySystem.OwnsView`, checked in `DamageOverl
 - **Reduced motion and two CVars.** `accessibility.reduced_motion` drops the slide-in, the jitter and the
   glitch and leaves the tint; `wolfmed.synthetic_hud` puts a chassis back on the organic presentation and
   `wolfmed.synthetic_hud_scale` sizes the text.
+
+## Playtest fixes: IPC decapitation, readout placement (2026-09-22)
+
+- **A vital part taken off is death.** `WolfmedLifeSystem` killed a body only when the severed part
+  carried a brain. An IPC keeps its positronic brain in the torso, so a decapitated chassis walked on.
+  The prototype already calls a head vital (`BodyPartComponent.IsVital`, which upstream only ever turned
+  into bloodloss damage an inorganic damage container does not carry), so the amputation handler now also
+  kills a body that has lost its last part of a vital type. Taking the positronic brain out by surgery was
+  already death on the organ path and now has a test.
+- **The readout drew a viewport away from its corners.** `OverlayDrawArgs.ViewportBounds` is the viewport
+  control's draw box in global physical pixels, while a screen-space overlay's handle is already
+  translated to that control's top-left. `WolfmedSyntheticHudLayout.Screen` takes the global origin back
+  off and `.Scale` multiplies the player's text setting by the control's UI scale, because those pixels
+  are physical ones. `WolfmedDeathBannerOverlay` read the same bounds the same wrong way and is fixed with
+  it. The fault list is now also cut to `MaxLines`, so a large text scale shortens the list instead of
+  running it under the game HUD.
+- **STANDBY over a walking machine.** Two causes, both fixed. `MobIPC` had no `Critical` state, so CONSC's
+  Unconscious could never reach the mob state: pain or a pulled pump left the chassis on its feet with the
+  readout saying STANDBY. Critical is back in `allowedStates` (marked); `MobThresholds` still names no
+  Critical rung, so damage totals cannot put it there. And `WolfmedShutdownSystem.Refresh` skipped writing
+  the pressure whenever the flag already agreed, so anything that clears every pressure (a rejuvenate)
+  left the flag behind: it now writes both halves every time and re-reads the cause once a second for
+  bodies that are already down.

@@ -24,6 +24,30 @@ public static class WolfmedSyntheticHudLayout
     /// <summary>Share of the screen height the readout may use. Everything below it belongs to the game HUD.</summary>
     public const float TopBand = 0.32f;
 
+    /// <summary>Smallest and largest the player's own text setting may be. A zero would collapse the blocks.</summary>
+    public const float MinScale = 0.6f;
+
+    public const float MaxScale = 2.5f;
+
+    /// <summary>
+    /// The viewport in the coordinates a screen-space overlay actually draws in.
+    /// <c>OverlayDrawArgs.ViewportBounds</c> is the viewport control's draw box in GLOBAL physical pixels,
+    /// while the handle handed to that control's Draw is already translated to its own top-left, so the
+    /// global origin has to come back off or every block lands a viewport away from the corner it wants.
+    /// </summary>
+    public static UIBox2 Screen(UIBox2i bounds, Vector2 origin) => new(
+        bounds.Left - origin.X,
+        bounds.Top - origin.Y,
+        bounds.Right - origin.X,
+        bounds.Bottom - origin.Y);
+
+    /// <summary>
+    /// The text scale as drawn: the player's setting times the control's UI scale, because the handle works
+    /// in physical pixels and everything else on screen is sized that way too.
+    /// </summary>
+    public static float Scale(float setting, float uiScale) =>
+        Math.Clamp(setting, MinScale, MaxScale) * MathF.Max(0.1f, uiScale);
+
     public static float Font(float scale) => MathF.Max(8f, MathF.Round(BaseFont * scale));
 
     public static float LineHeight(float scale) => Font(scale) + 4f;

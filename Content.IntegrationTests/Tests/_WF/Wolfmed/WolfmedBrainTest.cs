@@ -2,10 +2,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Content.IntegrationTests.Fixtures;
+using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Temperature.Components;
 using Content.Shared._Onyx.Body.Systems;
+using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Life;
@@ -469,6 +471,70 @@ public sealed class WolfmedBrainTest : GameTest
                 "the pump was back with fluid behind it and the chassis stayed arrested.");
         });
     }
+
+    /// <summary>
+    /// A head torn off is death for flesh and for a chassis alike. An IPC keeps its positronic brain in the
+    /// torso, so nothing leaves with the head: the head is a vital part, and that is the rule that has to
+    /// carry it.
+    /// </summary>
+    [Test]
+    public async Task DecapitationKillsTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var amputation = entities.System<AmputationSystem>();
+            var life = entities.System<WolfmedLifeSystem>();
+            var mobState = entities.System<MobStateSystem>();
+
+            var ipc = entities.SpawnEntity("MobIPC", map.GridCoords);
+            Assert.That(life.HasBrain(ipc), Is.True, "the chassis fixture has no positronic brain.");
+            Assert.That(amputation.TryAmputate(ipc, Part(entities, ipc, BodyPartType.Head)), Is.True);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(mobState.IsDead(ipc), Is.True, "a decapitated chassis kept running.");
+                Assert.That(life.HasBrain(ipc), Is.True,
+                    "the positronic brain went with the head, so this proves nothing about the vital rule.");
+            });
+
+            // The control: flesh dies on the brain leaving with the head, and still must.
+            var human = entities.SpawnEntity("MobHuman", map.GridCoords);
+            Assert.That(amputation.TryAmputate(human, Part(entities, human, BodyPartType.Head)), Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(mobState.IsDead(human), Is.True, "a decapitated human stayed alive.");
+                Assert.That(life.HasBrain(human), Is.False);
+            });
+        });
+    }
+
+    /// <summary>Taking the positronic brain out is death, the same as taking a fleshy one out.</summary>
+    [Test]
+    public async Task PositronicBrainOutIsDeathTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var ipc = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var brain = Organ<BrainComponent>(entities, ipc);
+
+            Assert.That(entities.System<SharedBodySystem>().RemoveOrgan(brain), Is.True);
+            Assert.That(entities.System<MobStateSystem>().IsDead(ipc), Is.True,
+                "a chassis with its positronic brain in somebody's hand kept running.");
+        });
+    }
+
+    private static EntityUid Part(IEntityManager entities, EntityUid body, BodyPartType type) =>
+        entities.System<SharedBodySystem>().GetBodyChildrenOfType(body, type).First().Id;
 
     private static void Run(WolfmedLifeSystem life, EntityUid body, int seconds)
     {
