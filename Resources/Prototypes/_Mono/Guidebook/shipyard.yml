@@ -5,12 +5,9 @@
   priority: 6
   children:
   - ShipyardNFROperation
-  - ShipyardArgent
-  - ShipyardJudiciary
-  - ShipyardSabine
   - ShipyardTakeaway
-#  - ShipyardRuby
   - ShipyardMotleyAnne
+<<<<<<< HEAD
   - ShipyardFenrir
   - ShipPa # WOLFGATE
 
@@ -28,26 +25,18 @@
   id: ShipyardSabine
   name: guide-entry-shipyard-sabine
   text: "/ServerInfo/_Mono/Guidebook/Shipyard/Sabine.xml"
+=======
+>>>>>>> 047bf3da74 (Shipyard Stuff Go Read My Big CL (#4756))
 
 - type: guideEntry
   id: ShipyardTakeaway
   name: guide-entry-shipyard-takeaway
   text: "/ServerInfo/_Mono/Guidebook/Shipyard/Takeaway.xml"
 
-#- type: guideEntry
-#  id: ShipyardRuby
-#  name: guide-entry-shipyard-ruby
-#  text: "/ServerInfo/_Mono/Guidebook/Shipyard/Ruby.xml"
-
 - type: guideEntry
   id: ShipyardMotleyAnne
   name: guide-entry-shipyard-motley-anne
   text: "/ServerInfo/_Mono/Guidebook/Shipyard/MotleyAnne.xml"
-
-- type: guideEntry
-  id: ShipyardFenrir
-  name: guide-entry-shipyard-fenrir
-  text: "/ServerInfo/_Mono/Guidebook/Shipyard/Fenrir.xml"
 
 - type: guideEntry
   id: ShipyardNFROperation
