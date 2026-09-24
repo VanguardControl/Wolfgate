@@ -30,7 +30,6 @@ public abstract partial class SharedLatheSystem : EntitySystem
     [Dependency] private EmagSystem _emag = default!;
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedSolutionContainerSystem _solution = default!;
-    [Dependency] private SharedFabricationSiloSystem _fabricationSilo = default!;
     [Dependency] protected EntityQuery<StackComponent> _stackQuery = default!;
 
     public readonly Dictionary<string, List<LatheRecipePrototype>> InverseRecipes = new();
@@ -137,15 +136,20 @@ public abstract partial class SharedLatheSystem : EntitySystem
         // mono start
         foreach (var (reagent, needed) in recipe.Reagents)
         {
-            var local = FixedPoint2.Zero;
-            if (component.ReagentOutputSlotId is { } slotId &&
-                _container.TryGetContainer(uid, slotId, out var container) &&
-                container.ContainedEntities.Count > 0 &&
-                _solution.TryGetDrainableSolution(container.ContainedEntities[0], out _, out var solution))
-                local = solution.GetReagent(new ReagentId(reagent.Id, [])).Quantity;
-
-            if (local + _fabricationSilo.GetReagentAmount(uid, reagent) < needed * amount)
+            // WOLFGATE START: count the linked chemical silo
+            // if (component.ReagentOutputSlotId is not { } slotId)
+            //     return false;
+            //
+            // if (!_container.TryGetContainer(uid, slotId, out var container) ||
+            //     container.ContainedEntities.Count == 0)
+            //     return false;
+            //
+            // if (!_solution.TryGetDrainableSolution(container.ContainedEntities[0], out _, out var solution )
+            //     || solution.GetReagent(new ReagentId(reagent.Id, [])).Quantity < needed * amount)
+            //     return false;
+            if (GetAvailableReagent(uid, component, reagent) < needed * amount)
                 return false;
+            // WOLFGATE END
         }
         // mono end
 

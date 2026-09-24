@@ -1,17 +1,21 @@
-using Content.Server.Lathe;
 using System.Collections.Generic;
 using System.Linq;
+using Content.Server._WF.Lathe;
 using Content.Server.Power.Components;
-using Content.Shared.Lathe;
+using Content.Server.Storage.Components;
+using Content.Shared._WF.Lathe;
 using Content.Shared.Chemistry.EntitySystems;
-using Content.Shared.Interaction;
 using Content.Shared.FixedPoint;
+using Content.Shared.Interaction;
 using Content.Shared.Research.Prototypes;
 using Robust.Server.Containers;
 using Robust.Shared.GameObjects;
 
-namespace Content.IntegrationTests.Tests.Lathe;
+namespace Content.IntegrationTests.Tests._WF.Lathe;
 
+/// <summary>
+/// Fabrication silos: depositing chemicals and parts, linking lathes, and drawing stock.
+/// </summary>
 [TestFixture]
 public sealed class FabricationSiloTest
 {
@@ -27,7 +31,7 @@ public sealed class FabricationSiloTest
         var entities = server.EntMan;
         await server.WaitAssertion(() =>
         {
-            var silo = entities.SpawnEntity("MachineChemicalSilo", map.GridCoords);
+            var silo = entities.SpawnEntity("WFMachineChemicalSilo", map.GridCoords);
             var container = entities.SpawnEntity(prototype, map.GridCoords);
             var user = entities.SpawnEntity(null, map.GridCoords);
             var solutions = server.System<SharedSolutionContainerSystem>();
@@ -36,15 +40,53 @@ public sealed class FabricationSiloTest
                 Assert.That(solutions.TryAddReagent(solution!.Value, reagent, added), Is.True);
             var expected = contents!.Volume;
             Assert.That(expected, Is.GreaterThan(FixedPoint2.Zero));
+
             var interaction = new InteractUsingEvent(user, container, silo, map.GridCoords);
             entities.EventBus.RaiseLocalEvent(silo, interaction);
             Assert.That(interaction.Handled, Is.True);
+
             var accepted = server.ProtoMan.EnumeratePrototypes<LatheRecipePrototype>().Any(recipe => recipe.Reagents.ContainsKey(reagent));
             var stock = entities.GetComponent<FabricationSiloComponent>(silo).Reagents;
             Assert.That(stock.GetValueOrDefault(reagent), Is.EqualTo(accepted ? expected : FixedPoint2.Zero));
             Assert.That(contents.Volume, Is.EqualTo(accepted ? FixedPoint2.Zero : expected),
                 "Rejected chemicals must remain in the original container.");
+
             entities.DeleteEntity(container);
+            entities.DeleteEntity(silo);
+            entities.DeleteEntity(user);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task DepositMixtureCreditsWhatWasRemoved()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var server = pair.Server;
+        var entities = server.EntMan;
+        await server.WaitAssertion(() =>
+        {
+            var silo = entities.SpawnEntity("WFMachineChemicalSilo", map.GridCoords);
+            var beaker = entities.SpawnEntity("Beaker", map.GridCoords);
+            var user = entities.SpawnEntity(null, map.GridCoords);
+            var solutions = server.System<SharedSolutionContainerSystem>();
+            Assert.That(solutions.TryGetDrainableSolution(beaker, out var solution, out var contents), Is.True);
+            Assert.That(solutions.TryAddReagent(solution!.Value, "Superconductant", 10), Is.True);
+            Assert.That(solutions.TryAddReagent(solution.Value, "Dylovene", 10), Is.True);
+            Assert.That(solutions.TryAddReagent(solution.Value, "Water", 10), Is.True);
+            var before = contents!.Volume;
+
+            entities.EventBus.RaiseLocalEvent(silo, new InteractUsingEvent(user, beaker, silo, map.GridCoords));
+
+            var stock = entities.GetComponent<FabricationSiloComponent>(silo).Reagents;
+            var credited = stock.Values.Aggregate(FixedPoint2.Zero, (sum, amount) => sum + amount);
+            Assert.That(credited, Is.EqualTo(before - contents.Volume), "The silo must credit exactly what left the beaker.");
+            Assert.That(stock.GetValueOrDefault("Superconductant"), Is.EqualTo(FixedPoint2.New(10)));
+            Assert.That(stock.GetValueOrDefault("Dylovene"), Is.EqualTo(FixedPoint2.New(10)));
+            Assert.That(contents.Volume, Is.EqualTo(FixedPoint2.New(10)), "Water is not a recipe reagent and must stay.");
+
+            entities.DeleteEntity(beaker);
             entities.DeleteEntity(silo);
             entities.DeleteEntity(user);
         });
@@ -59,18 +101,51 @@ public sealed class FabricationSiloTest
         var entities = pair.Server.EntMan;
         await pair.Server.WaitAssertion(() =>
         {
-            var silo = entities.SpawnEntity("MachinePartsSilo", map.GridCoords);
+            var silo = entities.SpawnEntity("WFMachinePartsSilo", map.GridCoords);
             var item = entities.SpawnEntity(null, map.GridCoords);
             var component = entities.SpawnEntity("ElectromagnetEconomy1", map.GridCoords);
             var user = entities.SpawnEntity(null, map.GridCoords);
             var storage = entities.GetComponent<FabricationSiloComponent>(silo).Parts;
+            Assert.That(storage, Is.Not.Null);
+
             entities.EventBus.RaiseLocalEvent(silo, new InteractUsingEvent(user, item, silo, map.GridCoords));
-            Assert.That(storage.Contains(item), Is.False);
+            Assert.That(storage!.Contains(item), Is.False);
             Assert.That(entities.EntityExists(item), Is.True);
+
             entities.EventBus.RaiseLocalEvent(silo, new InteractUsingEvent(user, component, silo, map.GridCoords));
             Assert.That(storage.Contains(component), Is.True);
+
             entities.DeleteEntity(silo);
             entities.DeleteEntity(item);
+            entities.DeleteEntity(user);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ToolIngredientsAreNotStoredByUse()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var server = pair.Server;
+        var entities = server.EntMan;
+        await server.WaitAssertion(() =>
+        {
+            var silo = entities.SpawnEntity("WFMachinePartsSilo", map.GridCoords);
+            var lathe = entities.SpawnEntity("PrecisionAssemblerEconomyCompact", map.GridCoords);
+            var tool = entities.SpawnEntity("Multitool", map.GridCoords);
+            var user = entities.SpawnEntity(null, map.GridCoords);
+            Assert.That(server.System<FabricationSiloSystem>().IsRecipePart("Multitool"), Is.True);
+
+            entities.EventBus.RaiseLocalEvent(silo, new InteractUsingEvent(user, tool, silo, map.GridCoords));
+            Assert.That(entities.GetComponent<FabricationSiloComponent>(silo).Parts!.Contains(tool), Is.False);
+
+            entities.EventBus.RaiseLocalEvent(lathe, new InteractUsingEvent(user, tool, lathe, map.GridCoords));
+            Assert.That(entities.GetComponent<EntityStorageComponent>(lathe).Contents.Contains(tool), Is.False);
+
+            entities.DeleteEntity(silo);
+            entities.DeleteEntity(lathe);
+            entities.DeleteEntity(tool);
             entities.DeleteEntity(user);
         });
         await pair.CleanReturnAsync();
@@ -87,8 +162,8 @@ public sealed class FabricationSiloTest
         await server.WaitAssertion(() =>
         {
             var machine = entities.SpawnEntity("PrecisionAssemblerEconomyCompact", map.GridCoords);
-            var parts = entities.SpawnEntity("MachinePartsSilo", map.GridCoords);
-            var chemicals = entities.SpawnEntity("MachineChemicalSilo", map.GridCoords);
+            var parts = entities.SpawnEntity("WFMachinePartsSilo", map.GridCoords);
+            var chemicals = entities.SpawnEntity("WFMachineChemicalSilo", map.GridCoords);
             var silos = server.System<FabricationSiloSystem>();
             var containers = server.System<ContainerSystem>();
             var partsStore = entities.GetComponent<FabricationSiloComponent>(parts);
@@ -108,11 +183,14 @@ public sealed class FabricationSiloTest
             Assert.That(silos.GetUiState(parts, partsStore).Clients.Any(c => c.Entity == netMachine && c.Linked), Is.True);
 
             for (var i = 0; i < 3; i++)
-                containers.Insert(entities.SpawnEntity("ElectromagnetEconomy1", map.GridCoords), partsStore.Parts);
+            {
+                containers.Insert(entities.SpawnEntity("ElectromagnetEconomy1", map.GridCoords), partsStore.Parts!);
+            }
+
             chemicalStore.Reagents["Superconductant"] = 30;
             var stock = silos.GetUiState(parts, partsStore).Stock;
-            Assert.That(stock.Count, Is.EqualTo(1), "Identical parts must share a single inventory row.");
-            Assert.That(stock[0].Label, Does.EndWith("×3"));
+            Assert.That(stock, Has.Count.EqualTo(1), "Identical parts must share a single inventory row.");
+            Assert.That(stock[0].Amount, Is.EqualTo(FixedPoint2.New(3)));
             Assert.That(silos.GetPartAmount(machine, "ElectromagnetEconomy1"), Is.EqualTo(3));
             Assert.That(silos.ConsumeParts(machine, "ElectromagnetEconomy1", 2), Is.EqualTo(2));
             Assert.That(silos.GetPartAmount(machine, "ElectromagnetEconomy1"), Is.EqualTo(1),
@@ -122,6 +200,7 @@ public sealed class FabricationSiloTest
             entities.EventBus.RaiseLocalEvent(parts, new ToggleFabricationSiloClientMessage(netMachine));
             Assert.That(links.PartsSilo, Is.Null);
             Assert.That(links.ChemicalSilo, Is.EqualTo(chemicals));
+
             entities.DeleteEntity(machine);
             entities.DeleteEntity(parts);
             entities.DeleteEntity(chemicals);

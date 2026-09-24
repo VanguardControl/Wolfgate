@@ -299,8 +299,10 @@
   cost: 50000
   recipeUnlocks:
   - MaterialSiloMachineCircuitboard
-  - PartsSiloMachineCircuitboard
-  - ChemicalSiloMachineCircuitboard
+  # WOLFGATE START: fabrication silos
+  - WFPartsSiloMachineCircuitboard
+  - WFChemicalSiloMachineCircuitboard
+  # WOLFGATE END
   technologyPrerequisites:
   - SuperParts
   position: -1, 6

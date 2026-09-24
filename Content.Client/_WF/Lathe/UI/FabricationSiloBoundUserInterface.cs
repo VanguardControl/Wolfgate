@@ -1,9 +1,12 @@
-using Content.Shared.Lathe;
+using Content.Shared._WF.Lathe;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
 
-namespace Content.Client.Lathe.UI;
+namespace Content.Client._WF.Lathe.UI;
 
+/// <summary>
+/// Opens the fabrication silo window and sends its link and eject requests.
+/// </summary>
 [UsedImplicitly]
 public sealed class FabricationSiloBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
@@ -13,8 +16,8 @@ public sealed class FabricationSiloBoundUserInterface(EntityUid owner, Enum uiKe
     {
         base.Open();
         _menu = this.CreateWindow<FabricationSiloMenu>();
-        _menu.OnClientPressed += uid => SendPredictedMessage(new ToggleFabricationSiloClientMessage(uid));
-        _menu.OnPartPressed += uid => SendPredictedMessage(new EjectFabricationSiloPartMessage(uid));
+        _menu.OnClientPressed += uid => SendMessage(new ToggleFabricationSiloClientMessage(uid));
+        _menu.OnPartPressed += uid => SendMessage(new EjectFabricationSiloPartMessage(uid));
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)

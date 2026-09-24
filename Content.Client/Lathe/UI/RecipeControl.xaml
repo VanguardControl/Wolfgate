@@ -1,12 +1,25 @@
-<Control xmlns="https://spacestation14.io" HorizontalExpand="True" MinHeight="58">
-    <Button Name="Button" HorizontalExpand="True" StyleClasses="ButtonSquare">
-        <BoxContainer Orientation="Horizontal" Margin="6 4" SeparationOverride="10">
-            <BoxContainer Name="RecipeDisplayContainer" MinSize="32 32" MaxSize="32 32" VerticalAlignment="Center" />
+<Control xmlns="https://spacestation14.io">
+    <Button
+        Name="Button"
+        HorizontalExpand="True"
+        Margin="0"
+        StyleClasses="ButtonSquare">
+        <BoxContainer Orientation="Horizontal">
+            <BoxContainer
+                Name="RecipeDisplayContainer"
+                Margin="0 0 4 0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MinSize="32 32"
+                />
+            <!-- WOLFGATE START: availability subtitle, clipped name and queue affordance -->
+            <!-- <Label Name="RecipeName" HorizontalExpand="True" /> -->
             <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalAlignment="Center" SeparationOverride="3">
                 <Label Name="RecipeName" HorizontalExpand="True" ClipText="True" />
                 <Label Name="AvailabilityLabel" StyleClasses="LabelSubText" HorizontalExpand="True" ClipText="True" />
             </BoxContainer>
             <Label Text="+" StyleClasses="LabelHeading" VerticalAlignment="Center" Margin="6 0" />
+            <!-- WOLFGATE END -->
         </BoxContainer>
     </Button>
 </Control>

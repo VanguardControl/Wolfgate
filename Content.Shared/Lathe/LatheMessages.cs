@@ -1,6 +1,3 @@
-using Content.Shared.Chemistry.Reagent;
-using Content.Shared.FixedPoint;
-using Content.Shared.Materials;
 using Content.Shared.Research.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
@@ -8,7 +5,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared.Lathe;
 
 [Serializable, NetSerializable]
-public sealed class LatheUpdateState : BoundUserInterfaceState
+public sealed partial class LatheUpdateState : BoundUserInterfaceState // WOLFGATE: partial for silo state
 {
     public List<ProtoId<LatheRecipePrototype>> Recipes;
 
@@ -18,48 +15,15 @@ public sealed class LatheUpdateState : BoundUserInterfaceState
 
     public bool Looping = false; // Mono
     public bool Skipping = false; // Mono
-    public bool PartsSiloLinked;
-    public bool ChemicalSiloLinked;
-    // These lists correspond to Recipes and Queue respectively. Each value
-    // describes whether the next single item can start with current supplies.
-    public List<bool> RecipeReady;
-    public List<bool> QueueReady;
-    public List<LatheMissingSupplies> QueueMissingSupplies;
 
-    public LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes,
-        List<LatheRecipeBatch> queue,
-        LatheRecipePrototype? currentlyProducing = null,
-        bool looping = false,
-        bool skipping = false,
-        bool partsSiloLinked = false,
-        bool chemicalSiloLinked = false,
-        List<bool>? recipeReady = null,
-        List<bool>? queueReady = null,
-        List<LatheMissingSupplies>? queueMissingSupplies = null) // Frontier: change queue type // Mono
+    public LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes, List<LatheRecipeBatch> queue, LatheRecipePrototype? currentlyProducing = null, bool looping = false, bool skipping = false) // Frontier: change queue type // Mono
     {
         Recipes = recipes;
         Queue = queue;
         CurrentlyProducing = currentlyProducing;
         Looping = looping; // Mono
         Skipping = skipping; // Mono
-        PartsSiloLinked = partsSiloLinked;
-        ChemicalSiloLinked = chemicalSiloLinked;
-        RecipeReady = recipeReady ?? new List<bool>();
-        QueueReady = queueReady ?? new List<bool>();
-        QueueMissingSupplies = queueMissingSupplies ?? new List<LatheMissingSupplies>();
     }
-}
-
-/// <summary>
-/// Supplies missing for the next item in one queued batch, including linked silos.
-/// </summary>
-[Serializable, NetSerializable]
-public sealed class LatheMissingSupplies
-{
-    public bool DesignAvailable = true;
-    public Dictionary<ProtoId<MaterialPrototype>, int> Materials = new();
-    public Dictionary<EntProtoId, int> Entities = new();
-    public Dictionary<ProtoId<ReagentPrototype>, FixedPoint2> Reagents = new();
 }
 
 /// <summary>
@@ -125,22 +89,6 @@ public sealed class LatheRecipeCancelMessage : BoundUserInterfaceMessage
     public LatheRecipeCancelMessage(int index)
     {
         Index = index;
-    }
-}
-
-/// <summary>
-///     Changes the requested total for an existing queued batch.
-/// </summary>
-[Serializable, NetSerializable]
-public sealed class LatheRecipeAmountMessage : BoundUserInterfaceMessage
-{
-    public readonly int Index;
-    public readonly int Amount;
-
-    public LatheRecipeAmountMessage(int index, int amount)
-    {
-        Index = index;
-        Amount = amount;
     }
 }
 

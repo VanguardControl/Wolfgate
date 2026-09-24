@@ -18,7 +18,7 @@
         layer:
         - MachineLayer
   - type: Lathe
-  - type: FabricationSiloClient
+  - type: FabricationSiloClient # WOLFGATE
   - type: MaterialStorage
     whitelist: # Frontier
       tags: # Frontier

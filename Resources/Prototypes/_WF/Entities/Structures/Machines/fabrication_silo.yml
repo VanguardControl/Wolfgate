@@ -1,0 +1,95 @@
+- type: entity
+  id: WFBaseFabricationSilo
+  abstract: true
+  parent: [ BaseMachinePowered, ConstructibleMachine ]
+  name: fabrication silo
+  components:
+  - type: Sprite
+    sprite: Structures/Machines/silo.rsi
+    snapCardinals: true
+    layers:
+    - state: silo
+      map: [ "base" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.PowerDeviceVisuals.Powered:
+        base:
+          True: { state: silo_active }
+          False: { state: silo }
+  - type: FabricationSilo
+  - type: ActivatableUI
+    key: enum.FabricationSiloUiKey.Key
+  - type: ActivatableUIRequiresPower
+  - type: UserInterface
+    interfaces:
+      enum.FabricationSiloUiKey.Key:
+        type: FabricationSiloBoundUserInterface
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 190
+        mask: [MachineMask]
+        layer: [MachineLayer]
+  - type: WiresVisuals
+  - type: WiresPanel
+  - type: StaticPrice
+    price: 1500
+
+- type: entity
+  id: WFMachinePartsSilo
+  parent: WFBaseFabricationSilo
+  name: parts silo
+  description: Stores precursor components and supplies them to linked fabrication machines. Use a component on it to deposit it.
+  components:
+  - type: FabricationSilo
+    kind: Parts
+  - type: ContainerContainer
+    containers:
+      machine_board: !type:Container
+      machine_parts: !type:Container
+      fabrication_parts: !type:Container
+  - type: Machine
+    board: WFPartsSiloMachineCircuitboard
+
+- type: entity
+  id: WFMachineChemicalSilo
+  parent: WFBaseFabricationSilo
+  name: chemical silo
+  description: Stores chemicals used in fabrication recipes separately and supplies them to linked machines. Use a beaker or jerry can on it to deposit accepted chemicals.
+  components:
+  - type: FabricationSilo
+    kind: Chemicals
+  - type: Machine
+    board: WFChemicalSiloMachineCircuitboard
+
+- type: entity
+  id: WFPartsSiloMachineCircuitboard
+  parent: BaseMachineCircuitboard
+  name: parts silo machine board
+  components:
+  - type: Sprite
+    state: supply
+  - type: MachineBoard
+    prototype: WFMachinePartsSilo
+    requirements:
+      MatterBin: 4
+    stackRequirements:
+      Cable: 1
+
+- type: entity
+  id: WFChemicalSiloMachineCircuitboard
+  parent: BaseMachineCircuitboard
+  name: chemical silo machine board
+  components:
+  - type: Sprite
+    state: supply
+  - type: MachineBoard
+    prototype: WFMachineChemicalSilo
+    requirements:
+      MatterBin: 4
+    stackRequirements:
+      Cable: 1

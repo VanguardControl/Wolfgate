@@ -181,8 +181,6 @@ namespace Content.Shared.Lathe
     [Serializable]
     public sealed partial class LatheRecipeBatch
     {
-        public const int MaxItemsRequested = 9999;
-
         private static int NextIndex = 0; // Mono
         public int Index; // Mono - for de-queuing recipes to work properly
         public LatheRecipePrototype Recipe;

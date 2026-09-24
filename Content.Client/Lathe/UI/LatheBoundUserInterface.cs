@@ -1,9 +1,8 @@
+using Content.Shared._WF.Lathe; // WOLFGATE
 using Content.Shared.Lathe;
 using Content.Shared.Research.Components;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
-using Robust.Client.UserInterface.Controls;
-using System.Numerics;
 
 namespace Content.Client.Lathe.UI
 {
@@ -20,9 +19,7 @@ namespace Content.Client.Lathe.UI
         {
             base.Open();
 
-            _menu = this.CreateWindow<LatheMenu>();
-            // A saved position from a smaller viewport can leave the title bar off-screen.
-            LayoutContainer.SetPosition(_menu, Vector2.Max(Vector2.Zero, _menu.Position));
+            _menu = this.CreateWindowCenteredRight<LatheMenu>();
             _menu.SetEntity(Owner);
 
             _menu.OnServerListButtonPressed += _ =>
@@ -39,7 +36,7 @@ namespace Content.Client.Lathe.UI
             _menu.OnLoopCheckboxPressed += (loop) => SendMessage(new LatheSetLoopingMessage(loop));
             _menu.OnSkipCheckboxPressed += (skip) => SendMessage(new LatheSetSkipMessage(skip));
             _menu.OnRecipeCancelled += (index) => SendMessage(new LatheRecipeCancelMessage(index));
-            _menu.OnRecipeAmountChanged += (index, amount) => SendMessage(new LatheRecipeAmountMessage(index, amount));
+            _menu.OnRecipeAmountChanged += (index, amount) => SendMessage(new LatheRecipeAmountMessage(index, amount)); // WOLFGATE
             // </Mono>
         }
 
@@ -50,18 +47,15 @@ namespace Content.Client.Lathe.UI
             switch (state)
             {
                 case LatheUpdateState msg:
+                    _menu?.SetWolfgateState(msg); // WOLFGATE
                     if (_menu != null)
-                    {
                         _menu.Recipes = msg.Recipes;
-                        _menu.SetSupplyReadiness(msg.Recipes, msg.RecipeReady, msg.QueueReady, msg.QueueMissingSupplies);
-                    }
                     _menu?.PopulateRecipes();
                     _menu?.UpdateCategories();
-                    _menu?.SetQueueInfo(msg.CurrentlyProducing);
                     _menu?.PopulateQueueList(msg.Queue);
+                    _menu?.SetQueueInfo(msg.CurrentlyProducing);
                     _menu?.SetLooping(msg.Looping); // Mono
                     _menu?.SetSkipping(msg.Skipping); // Mono
-                    _menu?.SetSupplyLinks(msg.PartsSiloLinked, msg.ChemicalSiloLinked);
                     break;
             }
         }
