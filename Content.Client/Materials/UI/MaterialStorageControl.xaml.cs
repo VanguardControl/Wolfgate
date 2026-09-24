@@ -50,7 +50,7 @@ public sealed partial class MaterialStorageControl : ScrollContainer
 
         var canEject = materialStorage.CanEjectStoredMaterials;
         var mats = _materialStorage.GetStoredMaterials((_owner.Value, materialStorage));
-        // WOLFGATE: set before the unchanged-materials return so linking or unlinking a silo shows at once
+        // WOLFGATE(Lathe): set before the unchanged-materials return so linking or unlinking a silo shows at once
         SiloLinkedLabel.Visible = _entityManager.TryGetComponent<OreSiloClientComponent>(_owner.Value, out var client) && client.Silo != null;
 
         if (_currentMaterials.Equals(mats))
@@ -96,6 +96,6 @@ public sealed partial class MaterialStorageControl : ScrollContainer
 
         _currentMaterials = mats;
         NoMatsLabel.Visible = MaterialList.ChildCount == 1;
-        // SiloLinkedLabel.Visible = _entityManager.TryGetComponent<OreSiloClientComponent>(_owner.Value, out var client) && client.Silo != null; // WOLFGATE: moved above
+        // SiloLinkedLabel.Visible = _entityManager.TryGetComponent<OreSiloClientComponent>(_owner.Value, out var client) && client.Silo != null; // WOLFGATE(Lathe): moved above
     }
 }

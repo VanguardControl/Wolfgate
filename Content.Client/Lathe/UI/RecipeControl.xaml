@@ -12,7 +12,7 @@
                 VerticalAlignment="Center"
                 MinSize="32 32"
                 />
-            <!-- WOLFGATE START: availability subtitle, clipped name and queue affordance -->
+            <!-- WOLFGATE(Lathe) START: availability subtitle, clipped name and queue affordance -->
             <!-- <Label Name="RecipeName" HorizontalExpand="True" /> -->
             <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalAlignment="Center" SeparationOverride="3">
                 <Label Name="RecipeName" HorizontalExpand="True" ClipText="True" />

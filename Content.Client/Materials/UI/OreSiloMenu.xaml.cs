@@ -31,7 +31,7 @@ public sealed partial class OreSiloMenu : FancyWindow
 
     public void Update(OreSiloBuiState state)
     {
-        // WOLFGATE START: list filling is static so fabrication silo windows share it; the parameter keeps the field's name so the body is unchanged
+        // WOLFGATE(Lathe) START: list filling is static so fabrication silo windows share it; the parameter keeps the field's name so the body is unchanged
         UpdateClientList(ClientList, state);
     }
 

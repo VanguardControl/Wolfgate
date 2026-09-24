@@ -235,11 +235,11 @@ namespace Content.Server.Lathe
                 return false;
 
             // Frontier: argument check
-            if (quantity <= 0 || quantity > LatheRecipeBatch.MaxItemsRequested) // WOLFGATE
+            if (quantity <= 0 || quantity > LatheRecipeBatch.MaxItemsRequested) // WOLFGATE(Lathe): cap the batch size
                 return false;
             // Frontier: argument check
 
-            // WOLFGATE START: queued jobs wait for supplies; batch size and queue length are capped
+            // WOLFGATE(Lathe) START: queued jobs wait for supplies; batch size and queue length are capped
             // // Mono - debt
             // if (!canDebt && !CanProduceEnd((uid, component), recipe, quantity)) // Frontier: 1<quantity
             //     return false;
@@ -272,7 +272,7 @@ namespace Content.Server.Lathe
                 return false;
 
             // Frontier: handle batches
-            // WOLFGATE START: skip blocked batches without dropping them
+            // WOLFGATE(Lathe) START: skip blocked batches without dropping them
             // var batch = component.Queue.First();
             var batchIndex = component.SkipBad
                 ? FindStartableBatch(uid, component)
@@ -286,7 +286,7 @@ namespace Content.Server.Lathe
             var actor = batch.Actor; // Mono: Adds actor
             var recipe = batch.Recipe;
             // <Mono> - resources now consumed as the production goes
-            // WOLFGATE START: blocked batches are handled by the batch selection above
+            // WOLFGATE(Lathe) START: blocked batches are handled by the batch selection above
             // if (!CanProduce(uid, recipe, 1, component))
             // {
             //     if (component.SkipBad)
@@ -307,7 +307,7 @@ namespace Content.Server.Lathe
                 _materialStorage.TryChangeMaterialAmount(uid, mat, adjustedAmount);
             }
 
-            // WOLFGATE START: draw reagents and parts from linked silos too
+            // WOLFGATE(Lathe) START: draw reagents and parts from linked silos too
             // foreach (var (reag, amount) in recipe.Reagents)
             // {
             //     if (component.ReagentOutputSlotId is not { } slotId)
@@ -359,7 +359,7 @@ namespace Content.Server.Lathe
 
             batch.ItemsPrinted++;
             if (batch.ItemsPrinted >= batch.ItemsRequested || batch.ItemsPrinted < 0) // Rollover sanity check
-                component.Queue.RemoveAt(batchIndex); // WOLFGATE
+                component.Queue.RemoveAt(batchIndex); // WOLFGATE(Lathe): remove the batch that printed, which may not be first
             // End Frontier
 
             var time = _reagentSpeed.ApplySpeed(uid, recipe.CompleteTime) * component.TimeMultiplier;
@@ -459,13 +459,13 @@ namespace Content.Server.Lathe
             if (!Resolve(uid, ref component))
                 return;
 
-            // WOLFGATE START: a queued batch waiting for supplies is not being fabricated
+            // WOLFGATE(Lathe) START: a queued batch waiting for supplies is not being fabricated
             // var producing = component.CurrentRecipe ?? component.Queue.FirstOrDefault()?.Recipe; // Frontier: add ?.Recipe
             var producing = component.CurrentRecipe;
             // WOLFGATE END
 
             var state = new LatheUpdateState(GetAvailableRecipes(uid, component), component.Queue, producing, component.Loop, component.SkipBad); // Mono
-            FillWolfgateState(uid, component, state); // WOLFGATE
+            FillWolfgateState(uid, component, state); // WOLFGATE(Lathe): add the printing batch and recipe readiness
             _uiSys.SetUiState(uid, LatheUiKey.Key, state);
         }
 
@@ -712,7 +712,7 @@ namespace Content.Server.Lathe
         // Mono
         public override bool CanProduce(EntityUid uid, LatheRecipePrototype recipe, int amount = 1, LatheComponent? component = null)
         {
-            // WOLFGATE START: count parts in the linked parts silo
+            // WOLFGATE(Lathe) START: count parts in the linked parts silo
             // if (!TryComp<EntityStorageComponent>(uid, out var storage) &&
             //     recipe.Entities.Count != 0)
             //     return false;

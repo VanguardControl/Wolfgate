@@ -136,7 +136,7 @@ public abstract partial class SharedLatheSystem : EntitySystem
         // mono start
         foreach (var (reagent, needed) in recipe.Reagents)
         {
-            // WOLFGATE START: count the linked chemical silo
+            // WOLFGATE(Lathe) START: count the linked chemical silo
             // if (component.ReagentOutputSlotId is not { } slotId)
             //     return false;
             //

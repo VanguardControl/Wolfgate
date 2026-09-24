@@ -105,7 +105,7 @@
   components:
   - type: SolutionContainerManager
     solutions:
-      # WOLFGATE START: key matches the tank solution the other components use
+      # WOLFGATE(Lathe) START: key matches the tank solution the other components use
       # beaker:
       tank:
       # WOLFGATE END

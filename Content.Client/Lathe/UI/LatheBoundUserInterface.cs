@@ -1,4 +1,4 @@
-using Content.Shared._WF.Lathe; // WOLFGATE
+using Content.Shared._WF.Lathe; // WOLFGATE(Lathe)
 using Content.Shared.Lathe;
 using Content.Shared.Research.Components;
 using JetBrains.Annotations;
@@ -36,7 +36,7 @@ namespace Content.Client.Lathe.UI
             _menu.OnLoopCheckboxPressed += (loop) => SendMessage(new LatheSetLoopingMessage(loop));
             _menu.OnSkipCheckboxPressed += (skip) => SendMessage(new LatheSetSkipMessage(skip));
             _menu.OnRecipeCancelled += (index) => SendMessage(new LatheRecipeCancelMessage(index));
-            _menu.OnRecipeAmountChanged += (index, amount) => SendMessage(new LatheRecipeAmountMessage(index, amount)); // WOLFGATE
+            _menu.OnRecipeAmountChanged += (index, amount) => SendMessage(new LatheRecipeAmountMessage(index, amount)); // WOLFGATE(Lathe): send edited queue totals
             // </Mono>
         }
 
@@ -47,7 +47,7 @@ namespace Content.Client.Lathe.UI
             switch (state)
             {
                 case LatheUpdateState msg:
-                    _menu?.SetWolfgateState(msg); // WOLFGATE
+                    _menu?.SetWolfgateState(msg); // WOLFGATE(Lathe): pass the printing batch and recipe readiness to the menu
                     if (_menu != null)
                         _menu.Recipes = msg.Recipes;
                     _menu?.PopulateRecipes();

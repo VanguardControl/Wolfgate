@@ -150,7 +150,7 @@ public sealed partial class LatheMenu : FancyWindow
 
         foreach (var prototype in sortedRecipesToShow)
         {
-            // WOLFGATE START: readiness comes from the server so linked silos count
+            // WOLFGATE(Lathe) START: readiness comes from the server so linked silos count
             // var canProduce = _lathe.CanProduce(Entity, prototype, quantity, component: lathe);
             var canProduce = IsRecipeReady(prototype);
             // WOLFGATE END
@@ -209,7 +209,7 @@ public sealed partial class LatheMenu : FancyWindow
                 continue;
 
             var name = Loc.GetString(proto.Name);
-            var currentAmount = GetEntityCount(id) + GetSiloPartCount(id); // WOLFGATE
+            var currentAmount = GetEntityCount(id) + GetSiloPartCount(id); // WOLFGATE(Lathe): count parts in the linked parts silo
 
             var missingAmount = amount - currentAmount;
 
@@ -229,7 +229,7 @@ public sealed partial class LatheMenu : FancyWindow
                 continue;
 
             var name = Loc.GetString(proto.LocalizedName);
-            var currentAmount = GetReagentAmount(id) + GetSiloReagentAmount(id); // WOLFGATE
+            var currentAmount = GetReagentAmount(id) + GetSiloReagentAmount(id); // WOLFGATE(Lathe): count reagents in the linked chemical silo
 
             var missingAmount = amount - currentAmount;
 
@@ -300,7 +300,7 @@ public sealed partial class LatheMenu : FancyWindow
     /// <param name="queue"></param>
     public void PopulateQueueList(List<LatheRecipeBatch> queue) // Frontier: LatheRecipePrototype<LatheRecipeBatch
     {
-        // WOLFGATE START: queue cards with editable totals, updated in place
+        // WOLFGATE(Lathe) START: queue cards with editable totals, updated in place
         // QueueList.DisposeAllChildren();
         //
         // var idx = 1;
@@ -362,7 +362,7 @@ public sealed partial class LatheMenu : FancyWindow
         if (recipe.Icon != null)
         {
             var textRect = new TextureRect();
-            // WOLFGATE START: fixed icon size so recipe and queue rows line up
+            // WOLFGATE(Lathe) START: fixed icon size so recipe and queue rows line up
             textRect.SetSize = new System.Numerics.Vector2(32, 32);
             textRect.Stretch = TextureRect.StretchMode.KeepAspectCentered;
             // WOLFGATE END
@@ -373,7 +373,7 @@ public sealed partial class LatheMenu : FancyWindow
         if (recipe.Result is { } result)
         {
             var entProtoView = new EntityPrototypeView();
-            entProtoView.SetSize = new System.Numerics.Vector2(32, 32); // WOLFGATE
+            entProtoView.SetSize = new System.Numerics.Vector2(32, 32); // WOLFGATE(Lathe): fixed icon size so recipe and queue rows line up
             entProtoView.SetPrototype(result);
             return entProtoView;
         }

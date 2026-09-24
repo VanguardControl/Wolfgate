@@ -6,8 +6,8 @@
     Title="{Loc 'lathe-menu-title'}"
     MinSize="790 500"
     SetSize="940 600">
-    <!-- WOLFGATE: xmlns:wf on the root tag; MinSize was "550 450" and SetSize "750 500" -->
-    <!-- WOLFGATE START: two-column layout with queue cards and linked supplies -->
+    <!-- WOLFGATE(Lathe): xmlns:wf on the root tag; MinSize was "550 450" and SetSize "750 500" -->
+    <!-- WOLFGATE(Lathe) START: two-column layout with queue cards and linked supplies -->
     <!--
     <BoxContainer
         Orientation="Horizontal"

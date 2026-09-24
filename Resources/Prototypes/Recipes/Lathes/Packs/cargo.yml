@@ -30,7 +30,7 @@
   - OreProcessorIndustrialMachineCircuitboard
   - OreMagnetMachineCircuitboard # Mono
   - MaterialSiloMachineCircuitboard
-  # WOLFGATE START: fabrication silos
+  # WOLFGATE(Lathe) START: fabrication silos
   - WFPartsSiloMachineCircuitboard
   - WFChemicalSiloMachineCircuitboard
   # WOLFGATE END

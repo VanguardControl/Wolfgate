@@ -17,7 +17,7 @@ public sealed partial class RecipeControl : Control
 
         RecipeName.Text = latheSystem.GetRecipeName(recipe);
         RecipeDisplayContainer.AddChild(displayControl);
-        // WOLFGATE START: recipes stay queueable while supplies are missing
+        // WOLFGATE(Lathe) START: recipes stay queueable while supplies are missing
         // Button.Disabled = !canProduce;
         AvailabilityLabel.Text = Loc.GetString(canProduce ? "lathe-menu-recipe-ready" : "lathe-menu-recipe-missing");
         RecipeName.ToolTip = RecipeName.Text;

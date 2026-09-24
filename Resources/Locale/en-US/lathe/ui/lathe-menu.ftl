@@ -7,7 +7,7 @@ lathe-menu-category-all = All
 lathe-menu-search-filter = Filter:
 lathe-menu-amount = Amount:
 lathe-menu-loop = Loop
-# WOLFGATE START: skip no longer drops blocked jobs
+# WOLFGATE(Lathe) START: skip no longer drops blocked jobs
 # lathe-menu-skip = Skip If Insufficient
 lathe-menu-skip = Skip blocked jobs
 # WOLFGATE END
@@ -28,7 +28,7 @@ lathe-menu-material-amount-missing = { $amount ->
 lathe-menu-entity-amount-missing = {$amount} of {$material} ([color=red]{$missingAmount} missing[/color])
 lathe-menu-reagent-amount-missing = {$amount}u of {$material} ([color=red]{$missingAmount}u missing[/color])
 lathe-menu-no-materials-message = No materials loaded.
-# WOLFGATE START: name the ore silo now that lathes link several silos
+# WOLFGATE(Lathe) START: name the ore silo now that lathes link several silos
 # lathe-menu-silo-linked-message = Silo Linked
 lathe-menu-silo-linked-message = Ore silo connected
 # WOLFGATE END
