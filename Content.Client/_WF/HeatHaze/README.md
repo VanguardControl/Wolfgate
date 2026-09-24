@@ -1,7 +1,8 @@
 # HeatHaze
 
-Hot air shimmers. Tiles whose air is over 360 K, about where unprotected bodies start to burn, distort the world seen
-through them, easing up to full strength at 800 K, so fires and superheated rooms read at a glance. Purely client side:
+Hot air shimmers. Tiles whose air is over 325 K, the heat damage threshold of the base species, distort the world seen
+through them. The haze fades in from nothing there (it stays under a pixel until about 350 K) and reaches full strength
+at 800 K, so fires and superheated rooms read at a glance. Purely client side:
 it reads the per-tile temperature the gas tile overlay already networks, so it costs no bandwidth. Players can turn it
 off or scale it with `wf.heat_haze.enabled` and `wf.heat_haze.strength` (`HeatHazeCVars`); it is also off while reduced
 motion is on.

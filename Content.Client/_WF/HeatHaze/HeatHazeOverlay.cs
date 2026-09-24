@@ -27,8 +27,8 @@ public sealed partial class HeatHazeOverlay : Overlay
     [Dependency] private IMapManager _mapMan = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
-    /// <summary>Air temperature, in kelvin, the haze starts at: about where unprotected bodies start to burn.</summary>
-    public const float MinTemperature = 360f;
+    /// <summary>Air temperature, in kelvin, the haze fades in from: the base species' heat damage threshold.</summary>
+    public const float MinTemperature = 325f;
 
     /// <summary>Air temperature, in kelvin, the haze reaches full strength at.</summary>
     public const float FullTemperature = 800f;
