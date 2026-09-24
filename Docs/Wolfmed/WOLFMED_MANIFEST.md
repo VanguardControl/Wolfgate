@@ -4780,3 +4780,58 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | modified | `CallForHelpTest` waits out the fall's stutter, in station air. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`, `WolfmedPainTest.cs`, `WolfmedConsciousnessTest.cs` | modified | Head hits that are now knockouts moved to an arm or aimed at the torso. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`, `WolfmedBluntWoundTest.cs`, `WolfmedBurnWoundTest.cs`, `WolfmedAmputationTest.cs`, `WolfmedDamageCommandTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `Scenarios/WolfmedBurnScenarioTest.cs`, `Scenarios/WolfmedPlaytestTwoTest.cs` | modified | Test migration (DECISIONS M3). |
+
+## M4 (2026-09-24)
+
+No marked C# edits (plan §12 M4: "Marked code edits: none"). Marked upstream YAML lines:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Resources/Prototypes/Body/Organs/Animal/animal.yml:36, 141` | upstream YAML | WOLFGATE (M4): OD16, plan §9.2 group B. `OrganAnimalLungs` + `WolfmedOrganLungs`, `OrganAnimalHeart` + `WolfmedOrganHeart`: the animal heart (moth, reptilian, vulpkanin, canine, felionoid, tajaran, rodentia and others) can arrest. Inert on bodies that are not wound hosts. |
+| `Resources/Prototypes/Body/Organs/arachnid.yml:91` | upstream YAML | WOLFGATE (M4): OD16, group B. `OrganArachnidHeart` + `WolfmedOrganHeart`. |
+| `Resources/Prototypes/Body/Organs/diona.yml:136, 158` | upstream YAML | WOLFGATE (M4): OD16, group C. `OrganDionaBrainNymph` + `WolfmedOrganBrain` (the nymph organ is the brain clock), `OrganDionaLungsNymph` + `WolfmedOrganLungs`. |
+| `Resources/Prototypes/Body/Organs/slime.yml:3, 47` | upstream YAML | WOLFGATE (M4): OD16, group C. `SentientSlimeCore` + `WolfmedOrganBrain` (the core is the brain), `OrganSlimeLungs` + `WolfmedOrganLungs`. |
+| `Resources/Prototypes/Body/Parts/slime.yml:40-42` | upstream YAML | WOLFGATE (M4): plan §9.3. `HeadSlime` `vital: false`: the core is in the torso, so a slime survives decapitation. |
+| `Resources/Prototypes/_DV/Body/Organs/feroxi.yml:34`, `_DV/Body/Organs/harpy.yml:3`, `_NF/Body/Organs/goblin_organs.yml:69`, `_Mono/Body/Organs/hydra.yml:93` | upstream YAML | WOLFGATE (M4): OD16, group A′. The Feroxi, Harpy, Goblin and Hydrakin lungs + `WolfmedOrganLungs`. |
+| `Resources/Prototypes/_Mono/Body/Organs/protogen.yml:40, 137, 176` | upstream YAML | WOLFGATE (M4): OD16, group C. `OrganProtogenBrain` + `WolfmedOrganBrain`, `OrganProtogenLungs` + `WolfmedOrganLungs`, `OrganProtogenHeart` + `WolfmedOrganHeart` (every Proto- heart parents it). |
+| `Resources/Prototypes/_HL/Body/Organs/skrell.yml:42, 89, 175` | upstream YAML | WOLFGATE (M4): OD16, group C. Skrell lungs, heart and brain + the Wolfmed abstracts. |
+| `Resources/Prototypes/_HL/Body/Organs/synth.yml:23, 121` | upstream YAML | WOLFGATE (M4): OD16, Synth mechanical. `OrganSynthBrain` + `WolfmedOrganPositronicBrain` (the ccu is the core), `OrganSynthHeart` + `WolfmedOrganIpcPump` (the coolant pump). |
+| `Resources/Prototypes/_HL/Body/Parts/synth.yml:5` | upstream YAML | WOLFGATE (M4): OD16. `PartSynth` parents `WolfmedPartIpc` first: the IPC chassis wound profile. |
+| `Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml:259-266` | upstream YAML | WOLFGATE (M4): OD16. `BaseMobSynth` gets `WoundHost`, `PainShockTarget` and `DeadStartupButton`. |
+| `Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml:19-22, 94-108` | upstream YAML | WOLFGATE (M4): OD16, group D. `WoundHost`, `PainShockTarget`; passive regeneration neutralised (D29); Blunt gib 400 → 1500 (D22); the body-level Heat 1500 ash trigger removed (OD12). |
+| `Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml:630-634, 729-741` | upstream YAML | WOLFGATE (M4): OD16, group D. `BaseMobProtoKin` gets `WoundHost`, `PainShockTarget`, `LayingDown`; passive regeneration neutralised, Blunt gib 1500, no Heat ash, as the Shadekin. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Server/_WF/Wolfmed/Life/WolfmedOverheatSystem.cs` | rewritten | The core-heat route and thermal shutdown (plan §3.11); the pulse without organ reach; the summary corrected. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedCoreHeatComponent.cs` | new | Core temperature, `Hot`, `ThermalShutdown`; the machine marker shared code reads. |
+| `Content.Server/_WF/Wolfmed/Body/WolfmedOrganThresholdSystem.cs` | modified | `WithoutOrganReach`. |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedOrganComponent.cs` | modified | `ImpairedCoolingFactor`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessCause.cs` | modified | Cause `CoreHeat` 20 (flag, tie order after Arrest); `CirculatoryCollapse` prototype id and `PrototypeId`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | Networked `Heartless`. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | The `coreheat` pressure is cause CoreHeat. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConditionAlertSystem.cs` | modified | The heartless cause prototype; the collapse restart line; the line out of thermal shutdown. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedDyingActionsSystem.cs` | modified | Dying includes thermal shutdown; Succumb and `EndDeliberately` end it on the corpse; the core and collapse dialog texts. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `IsHeartless`; `Heartless` set at `StartArrest`; the CoreHeat route. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | modified | `IsMechanical` and `HasPower` for the Synth's battery; the Synth power poll. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedDormantSystem.cs`, `WolfmedCardSystem.cs` | modified | No wait-as-a-ghost in thermal shutdown; the card bar is the core in thermal shutdown. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedRevivalComponents.cs` | modified | `WolfmedRoutes.CoreHeat` (`1 << 15`). |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs`, `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | modified | `ThermalShutdown` state, `Heartless` (collapse lines), the temperature line. |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudComponent.cs`, `Content.Server/_WF/Wolfmed/Hud/WolfmedSyntheticHudSystem.cs` | modified | `CoreTempCritical`; the CORE row is the core's temperature; the Synth's power. |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | "is smoking, too hot to touch"; a synth reads as a machine. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedExplanationCard.cs` | modified | The heartless cause prototype. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDyingEffectsSystem.cs` | modified | The collapse banner. |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedSpeciesExceptionPrototype.cs` | new | `wolfmedSpeciesException` and `WolfmedSpeciesCheck`. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M4 block at the end. |
+| `Resources/Prototypes/_WF/Wolfmed/Body/species_exceptions.yml` | new | IPC, Synth, Diona, ProtoDionae, SlimePerson, ProtoSlimePerson. |
+| `Resources/Prototypes/_WF/Wolfmed/Body/organs.yml` | modified | The pump's `impairedCoolingFactor` 0.5. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/species_causes.yml`, `Alerts/species_alerts.yml` | new | CoreHeat and CirculatoryCollapse causes and alerts. |
+| `Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml` | modified | CORE TEMP CRITICAL line (M4 block at the end). |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/synth_core.yml` | new | `SurgeryRepairSynthCore` and its re-flash step. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryRepairBrain` is not offered on a synth. |
+| `Resources/Locale/en-US/_WF/wolfmed/species.ftl` | new | Every M4 string. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedIpcDeathTest.cs`, `WolfmedSpeciesTest.cs` | new | `IpcFireScenarioTest`, `ThermalShutdownSuccumbTest`, `SpeciesArrestTest`, `SynthBranchTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesConformanceTest.cs` | rewritten | Strict (`EverySpeciesConformsOrIsExcusedTest`). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `WolfmedSyntheticHudTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs` | modified | Test migration (DECISIONS M4); the OverlappingCausesTest IPC branch. |

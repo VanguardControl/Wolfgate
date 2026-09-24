@@ -52,6 +52,7 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
     [Dependency] private readonly WolfmedSyntheticHudLineSystem _lines = default!;
     [Dependency] private readonly WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private readonly WoundSystem _wounds = default!;
+    [Dependency] private readonly Content.Server._HL.Silicons.Synths.Battery.SynthBatterySystem _synthBattery = default!; // M4
 
     private TimeSpan _next;
 
@@ -182,11 +183,16 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         if (HasComp<Content.Shared._WF.Wolfmed.Life.WolfmedCoreRestoredComponent>(hud.Owner) && !offline)
             AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.CoreRestored);
 
+        // M4 (plan §3.11, §5.6): CORE TEMP CRITICAL while the chassis heats; thermal shutdown is the banner's.
+        var heat = CompOrNull<Content.Shared._WF.Wolfmed.Life.WolfmedCoreHeatComponent>(hud.Owner);
+        if (heat is { Hot: true, ThermalShutdown: false } && !offline)
+            AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.CoreTempCritical);
+
         var faults = Order(hud.Comp.Faults, found);
         var advice = faults.Count > 0 ? faults[0].Advice : string.Empty;
         var power = _charge.TryGetSiliconBattery(hud.Owner, out var battery) && battery.MaxCharge > 0f
             ? Math.Clamp(battery.CurrentCharge / battery.MaxCharge, 0f, 1f)
-            : -1f;
+            : SynthPower(hud.Owner); // M4: a synth's cell sits in its battery organ slot
 
         var newIntegrity = weight > 0f ? integrity / weight : 1f;
         var newServos = limbs > 0f ? servos / limbs : 1f;
@@ -194,7 +200,9 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         var sensors = TryComp(hud.Owner, out PainComponent? pain) && pain.SoftPainCap > FixedPoint2.Zero
             ? Math.Clamp(pain.Value.Float() / pain.SoftPainCap.Float(), 0f, 1f)
             : 0f;
-        var temperature = TryComp(hud.Owner, out TemperatureComponent? heat) ? heat.CurrentTemperature : -1f;
+        // M4 (plan §3.11): the CORE row is the core's own temperature once the core-heat route tracks it.
+        var temperature = heat?.CoreTemperature ??
+                          (TryComp(hud.Owner, out TemperatureComponent? chassis) ? chassis.CurrentTemperature : -1f);
 
         if (Same(hud.Comp.Faults, faults) &&
             Near(hud.Comp.Integrity, newIntegrity) &&
@@ -221,6 +229,15 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         hud.Comp.Sensors = sensors;
         hud.Comp.CoreTemperature = temperature;
         Dirty(hud);
+    }
+
+    /// <summary>M4 (OD16): a synth's charge, 0 to 1, from the cell in its battery organ slot; -1 with none.</summary>
+    private float SynthPower(EntityUid body)
+    {
+        if (!_synthBattery.TryGetBattery(body, out var cell) || cell.Value.Comp.MaxCharge <= 0f)
+            return -1f;
+
+        return Math.Clamp(cell.Value.Comp.CurrentCharge / cell.Value.Comp.MaxCharge, 0f, 1f);
     }
 
     /// <summary>

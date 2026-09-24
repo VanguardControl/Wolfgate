@@ -85,4 +85,10 @@ public enum WolfmedRoutes : ushort
 
     /// <summary>Brain oxygenation under the line where the tissue itself dies.</summary>
     TissueLoss = 1 << 9,
+
+    /// <summary>
+    /// M4 (plan §3.11): a machine's positronic core past its heat line, losing health. The top bit, so the routes M5
+    /// adds in parallel keep the bits after TissueLoss.
+    /// </summary>
+    CoreHeat = 1 << 15,
 }

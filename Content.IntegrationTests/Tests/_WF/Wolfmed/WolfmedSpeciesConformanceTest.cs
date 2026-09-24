@@ -6,7 +6,9 @@ using Content.IntegrationTests.Fixtures;
 using Content.IntegrationTests.Fixtures.Attributes;
 using Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 using Content.Server.Body.Components;
+using Content.Server._HL.Silicons.Synths.Battery;
 using Content.Server._WF.Wolfmed.Life;
+using Content.Shared._HL.Silicons.Synths.Battery;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
@@ -26,133 +28,32 @@ using Robust.Shared.Prototypes;
 namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 
 /// <summary>
-/// M1a (plan §9.1), report mode: every round-start species answers what disables it, what kills it and what
-/// restores it. The checks run for every species and the ones that fail are written to the test output; the
-/// test asserts only that they are exactly <see cref="KnownGaps"/>. A new gap fails, and so does a fixed
-/// species still on the list, so the list only shrinks. M4 deletes the list and makes the test strict.
+/// M4 (plan §9.1), strict: every round-start species answers what disables it, what kills it and what restores it.
+/// Every check runs on every species; a failure is named with the species and fails the test unless its
+/// <see cref="WolfmedSpeciesExceptionPrototype"/> excuses it with the plan's reason. An excuse that is no longer needed
+/// fails too, and so does a species on a ladder (organic or machine) its exception does not name.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedLifeSystem))]
 public sealed class WolfmedSpeciesConformanceTest : GameTest
 {
-    /// <summary>
-    /// The known gaps as of M1a, "Species: check". The plan's §9.2 groups: A′ (lungs without data), B (heart
-    /// without data), C (no brain clock), D (not wound hosts), and the heartless species of C′.
-    /// </summary>
-    private static readonly string[] KnownGaps =
-    [
-        // A′ (plan §9.2): lungs without Wolfmed data.
-        "Feroxi: lungs lack WolfmedOrgan",
-        "Goblin: lungs lack WolfmedOrgan",
-        "Harpy: lungs lack WolfmedOrgan",
-        "Hydrakin: lungs lack WolfmedOrgan",
-        // B: hearts without Wolfmed data (and, for some, lungs too); the heart can never be destroyed by trauma.
-        "Arachnid: heart lacks WolfmedOrgan",
-        "Arachnid: lungs lack WolfmedOrgan",
-        "Canine: heart lacks WolfmedOrgan",
-        "Felionoid: heart lacks WolfmedOrgan",
-        "Moth: heart lacks WolfmedOrgan",
-        "ProtoThaven: heart lacks WolfmedOrgan",
-        "ProtoThaven: lungs lack WolfmedOrgan",
-        "Reptilian: heart lacks WolfmedOrgan",
-        "Rodentia: heart lacks WolfmedOrgan",
-        "Tajaran: heart lacks WolfmedOrgan",
-        "Vulpkanin: heart lacks WolfmedOrgan",
-        // C and C′: no brain clock, so no arrest, and brain removal does not kill; Diona and the slimes have no heart.
-        "Diona: 29% blood does not arrest",
-        "Diona: brain lacks WolfmedBrain and WolfmedOrgan",
-        "Diona: brain removal does not kill",
-        "Diona: lungs lack WolfmedOrgan",
-        "Diona: no heart",
-        "ProtoArachnid: 29% blood does not arrest",
-        "ProtoArachnid: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoArachnid: brain removal does not kill",
-        "ProtoArachnid: heart lacks WolfmedOrgan",
-        "ProtoArachnid: lungs lack WolfmedOrgan",
-        "ProtoAvali: 29% blood does not arrest",
-        "ProtoAvali: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoAvali: brain removal does not kill",
-        "ProtoAvali: heart lacks WolfmedOrgan",
-        "ProtoAvali: lungs lack WolfmedOrgan",
-        "ProtoDawi: 29% blood does not arrest",
-        "ProtoDawi: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoDawi: brain removal does not kill",
-        "ProtoDawi: heart lacks WolfmedOrgan",
-        "ProtoDawi: lungs lack WolfmedOrgan",
-        "ProtoDionae: 29% blood does not arrest",
-        "ProtoDionae: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoDionae: brain removal does not kill",
-        "ProtoDionae: lungs lack WolfmedOrgan",
-        "ProtoDionae: no heart",
-        "ProtoFeline: 29% blood does not arrest",
-        "ProtoFeline: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoFeline: brain removal does not kill",
-        "ProtoFeline: heart lacks WolfmedOrgan",
-        "ProtoFeline: lungs lack WolfmedOrgan",
-        "ProtoHumie: 29% blood does not arrest",
-        "ProtoHumie: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoHumie: brain removal does not kill",
-        "ProtoHumie: heart lacks WolfmedOrgan",
-        "ProtoHumie: lungs lack WolfmedOrgan",
-        "ProtoMoth: 29% blood does not arrest",
-        "ProtoMoth: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoMoth: brain removal does not kill",
-        "ProtoMoth: heart lacks WolfmedOrgan",
-        "ProtoMoth: lungs lack WolfmedOrgan",
-        "ProtoReptile: 29% blood does not arrest",
-        "ProtoReptile: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoReptile: brain removal does not kill",
-        "ProtoReptile: heart lacks WolfmedOrgan",
-        "ProtoReptile: lungs lack WolfmedOrgan",
-        "ProtoResomi: 29% blood does not arrest",
-        "ProtoResomi: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoResomi: brain removal does not kill",
-        "ProtoResomi: heart lacks WolfmedOrgan",
-        "ProtoResomi: lungs lack WolfmedOrgan",
-        "ProtoSlimePerson: 29% blood does not arrest",
-        "ProtoSlimePerson: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoSlimePerson: brain removal does not kill",
-        "ProtoSlimePerson: lungs lack WolfmedOrgan",
-        "ProtoSlimePerson: no heart",
-        "ProtoVox: 29% blood does not arrest",
-        "ProtoVox: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoVox: brain removal does not kill",
-        "ProtoVox: heart lacks WolfmedOrgan",
-        "ProtoVox: lungs lack WolfmedOrgan",
-        "ProtoVulp: 29% blood does not arrest",
-        "ProtoVulp: brain lacks WolfmedBrain and WolfmedOrgan",
-        "ProtoVulp: brain removal does not kill",
-        "ProtoVulp: heart lacks WolfmedOrgan",
-        "ProtoVulp: lungs lack WolfmedOrgan",
-        "Protogen: 29% blood does not arrest",
-        "Protogen: brain lacks WolfmedBrain and WolfmedOrgan",
-        "Protogen: brain removal does not kill",
-        "Protogen: heart lacks WolfmedOrgan",
-        "Protogen: lungs lack WolfmedOrgan",
-        "Skrell: 29% blood does not arrest",
-        "Skrell: brain lacks WolfmedBrain and WolfmedOrgan",
-        "Skrell: brain removal does not kill",
-        "Skrell: heart lacks WolfmedOrgan",
-        "Skrell: lungs lack WolfmedOrgan",
-        "SlimePerson: 29% blood does not arrest",
-        "SlimePerson: brain lacks WolfmedBrain and WolfmedOrgan",
-        "SlimePerson: brain removal does not kill",
-        "SlimePerson: lungs lack WolfmedOrgan",
-        "SlimePerson: no heart",
-        // D (OD16): not wound hosts at all; stock thresholds, none of Wolfmed applies.
-        "ProtoKin: not a wound host",
-        "Shadekin: not a wound host",
-        "Synth: not a wound host",
-    ];
-
     [Test]
-    public async Task KnownGapsAreExactlyTheReportTest()
+    public async Task EverySpeciesConformsOrIsExcusedTest()
     {
         await OverrideCVar(Side.Server, WolfmedCVars.Consciousness, true);
         await OverrideCVar(Side.Server, WolfmedCVars.ArrestBlood, 0.30f);
         var map = await Pair.CreateTestMap();
-        var gaps = new List<string>();
+        var failed = new Dictionary<string, HashSet<WolfmedSpeciesCheck>>();
+        var ladders = new Dictionary<string, bool>();
         var machines = new List<(string Species, EntityUid Body)>();
+        var protoManager = Server.ResolveDependency<IPrototypeManager>();
+
+        void Fail(string species, WolfmedSpeciesCheck check)
+        {
+            if (!failed.TryGetValue(species, out var set))
+                failed[species] = set = new HashSet<WolfmedSpeciesCheck>();
+            set.Add(check);
+        }
 
         await Server.WaitAssertion(() =>
         {
@@ -160,59 +61,70 @@ public sealed class WolfmedSpeciesConformanceTest : GameTest
             var s = new WolfmedScenario(SEntMan);
             var shutdown = SEntMan.System<WolfmedShutdownSystem>();
             var mobState = SEntMan.System<MobStateSystem>();
-            var protoManager = Server.ResolveDependency<IPrototypeManager>();
 
             foreach (var species in protoManager.EnumeratePrototypes<SpeciesPrototype>()
                          .Where(species => species.RoundStart)
                          .OrderBy(species => species.ID))
             {
+                var id = species.ID;
+                failed[id] = new HashSet<WolfmedSpeciesCheck>();
                 var body = SEntMan.SpawnEntity(species.Prototype, map.GridCoords);
-                void Gap(string check) => gaps.Add($"{species.ID}: {check}");
 
                 if (!SEntMan.HasComponent<WoundHostComponent>(body))
                 {
-                    Gap("not a wound host");
+                    Fail(id, WolfmedSpeciesCheck.WoundHost);
+                    ladders[id] = false;
                     SEntMan.DeleteEntity(body);
                     continue;
                 }
 
                 var organs = graph.GetBodyOrgans(body).Select(organ => organ.Id).ToList();
                 var mechanical = shutdown.IsMechanical(body);
+                ladders[id] = mechanical;
                 var brains = organs.Where(organ => SEntMan.HasComponent<BrainComponent>(organ)).ToList();
                 var hearts = organs.Where(organ => SEntMan.HasComponent<HeartComponent>(organ)).ToList();
 
                 if (mechanical)
                 {
-                    CheckOrgans(Gap, "core", brains);
-                    CheckOrgans(Gap, "pump", hearts);
+                    if (brains.Count == 0 || !brains.All(SEntMan.HasComponent<WolfmedOrganComponent>))
+                        Fail(id, WolfmedSpeciesCheck.CoreData);
+                    if (hearts.Count == 0 || !hearts.All(SEntMan.HasComponent<WolfmedOrganComponent>))
+                        Fail(id, WolfmedSpeciesCheck.PumpData);
 
                     // The power check needs the charge loop, which only runs on a chassis with a mind.
                     var minds = SEntMan.System<SharedMindSystem>();
                     minds.TransferTo(minds.CreateMind(null).Owner, body);
-                    machines.Add((species.ID, body));
+                    machines.Add((id, body));
                     continue;
                 }
 
-                if (brains.Count == 0)
-                    Gap("no brain");
-                else if (!brains.All(brain => SEntMan.HasComponent<WolfmedBrainComponent>(brain) &&
-                                              SEntMan.HasComponent<WolfmedOrganComponent>(brain)))
-                    Gap("brain lacks WolfmedBrain and WolfmedOrgan");
+                if (brains.Count == 0 || !brains.All(brain => SEntMan.HasComponent<WolfmedBrainComponent>(brain) &&
+                                                               SEntMan.HasComponent<WolfmedOrganComponent>(brain)))
+                    Fail(id, WolfmedSpeciesCheck.BrainData);
 
-                CheckOrgans(Gap, "heart", hearts);
-                CheckOrgans(Gap, "lungs", organs.Where(organ => SEntMan.HasComponent<LungComponent>(organ)).ToList());
+                if (hearts.Count == 0)
+                    Fail(id, WolfmedSpeciesCheck.Heart);
+                else if (!hearts.All(SEntMan.HasComponent<WolfmedOrganComponent>))
+                    Fail(id, WolfmedSpeciesCheck.HeartData);
 
-                // 29% blood stops the heart.
+                // Lungs belong to a body that breathes. A species built without a respirator (the Shadekin) has none.
+                var lungs = organs.Where(organ => SEntMan.HasComponent<LungComponent>(organ)).ToList();
+                if (lungs.Count == 0 && SEntMan.HasComponent<RespiratorComponent>(body))
+                    Fail(id, WolfmedSpeciesCheck.Lungs);
+                else if (!lungs.All(SEntMan.HasComponent<WolfmedOrganComponent>))
+                    Fail(id, WolfmedSpeciesCheck.LungData);
+
+                // 29% blood stops the heart (or collapses the circulation).
                 if (!SEntMan.HasComponent<BloodstreamComponent>(body))
                 {
-                    Gap("no bloodstream");
+                    Fail(id, WolfmedSpeciesCheck.BloodArrest);
                 }
                 else
                 {
                     s.SetBlood(body, 0.29f);
                     s.Advance(body, 1);
                     if (!s.Life.InArrest(body))
-                        Gap("29% blood does not arrest");
+                        Fail(id, WolfmedSpeciesCheck.BloodArrest);
                 }
 
                 // Taking the brain out kills.
@@ -220,27 +132,27 @@ public sealed class WolfmedSpeciesConformanceTest : GameTest
                 var brainOut = graph.GetBodyOrgans(second)
                     .FirstOrDefault(organ => SEntMan.HasComponent<BrainComponent>(organ.Id)).Id;
                 if (brainOut == default || !graph.RemoveOrgan(brainOut) || !mobState.IsDead(second))
-                    Gap("brain removal does not kill");
+                    Fail(id, WolfmedSpeciesCheck.BrainRemoval);
 
                 SEntMan.DeleteEntity(body);
                 SEntMan.DeleteEntity(second);
             }
+        });
 
-            // A pulled cell, for every machine at once.
+        // A synth's battery system puts its starting cell in on its first update.
+        await RunSeconds(2);
+
+        // The power source out, for every machine at once: an IPC's cell slot, a synth's battery organ slot.
+        await Server.WaitAssertion(() =>
+        {
             foreach (var (species, body) in machines)
             {
-                if (!SEntMan.System<ItemSlotsSystem>().TryGetSlot(body, "cell_slot", out var slot) ||
-                    slot.Item is not { } cell)
-                {
-                    gaps.Add($"{species}: no power cell slot");
-                    continue;
-                }
-
-                SEntMan.System<SharedContainerSystem>().Remove(cell, slot.ContainerSlot!);
+                if (!PullPower(body))
+                    Fail(species, WolfmedSpeciesCheck.PowerShutdown);
             }
         });
 
-        await RunSeconds(2);
+        await RunSeconds(3);
 
         await Server.WaitAssertion(() =>
         {
@@ -251,36 +163,57 @@ public sealed class WolfmedSpeciesConformanceTest : GameTest
             foreach (var (species, body) in machines)
             {
                 if (!shutdown.IsShutDown(body))
-                    gaps.Add($"{species}: pulled power source does not shut down");
+                    Fail(species, WolfmedSpeciesCheck.PowerShutdown);
 
-                // Taking the core out kills.
                 var core = graph.GetBodyOrgans(body).FirstOrDefault(organ => SEntMan.HasComponent<BrainComponent>(organ.Id)).Id;
                 if (core == default || !graph.RemoveOrgan(core) || !mobState.IsDead(body))
-                    gaps.Add($"{species}: core removal does not kill");
+                    Fail(species, WolfmedSpeciesCheck.CoreRemoval);
             }
         });
 
-        gaps.Sort(string.CompareOrdinal);
-        TestContext.Out.WriteLine($"Species conformance, report mode: {gaps.Count} gap(s).");
-        foreach (var gap in gaps)
-            TestContext.Out.WriteLine($"        \"{gap}\",");
-
-        var known = KnownGaps.OrderBy(gap => gap, System.StringComparer.Ordinal).ToList();
-        Assert.Multiple(() =>
+        var problems = new List<string>();
+        var exceptions = protoManager.EnumeratePrototypes<WolfmedSpeciesExceptionPrototype>().ToDictionary(e => e.ID);
+        foreach (var (species, checks) in failed.OrderBy(pair => pair.Key, System.StringComparer.Ordinal))
         {
-            Assert.That(gaps.Except(known), Is.Empty,
-                "new species gaps: fix them, or excuse them in KnownGaps with the plan's reason.");
-            Assert.That(known.Except(gaps), Is.Empty,
-                "these species conform now: take them off KnownGaps.");
-        });
+            exceptions.TryGetValue(species, out var exception);
+            var mechanical = ladders.GetValueOrDefault(species);
+            if ((exception?.Mechanical ?? false) != mechanical)
+                problems.Add($"{species}: runs the {(mechanical ? "machine" : "organic")} ladder, its exception says otherwise");
+
+            var excused = exception?.Excuses.ToHashSet() ?? new HashSet<WolfmedSpeciesCheck>();
+            foreach (var check in checks.Where(check => !excused.Contains(check)).OrderBy(check => check))
+                problems.Add($"{species}: fails {check}");
+
+            foreach (var check in excused.Where(check => !checks.Contains(check)).OrderBy(check => check))
+                problems.Add($"{species}: excused from {check}, which it now passes");
+
+            TestContext.Out.WriteLine($"{species}: {(mechanical ? "machine" : "organic")}" +
+                                      (checks.Count == 0 ? ", conforms" : $", fails {string.Join(", ", checks)}") +
+                                      (exception != null ? $" (exception: {exception.Reason})" : string.Empty));
+        }
+
+        foreach (var stale in exceptions.Keys.Where(id => !failed.ContainsKey(id)))
+            problems.Add($"{stale}: an exception for a species that is not round-start");
+
+        Assert.That(problems, Is.Empty, "species conformance (plan §9.1): " + string.Join("; ", problems));
     }
 
-    /// <summary>Every organ of the kind carries Wolfmed organ health, and there is at least one.</summary>
-    private void CheckOrgans(System.Action<string> gap, string name, List<EntityUid> organs)
+    /// <summary>Takes the power source out: the cell slot an IPC has, or the cell in a synth's battery organ slot.</summary>
+    private bool PullPower(EntityUid body)
     {
-        if (organs.Count == 0)
-            gap($"no {name}");
-        else if (!organs.All(organ => SEntMan.HasComponent<WolfmedOrganComponent>(organ)))
-            gap($"{name} lack{(name.EndsWith('s') ? string.Empty : "s")} WolfmedOrgan");
+        var containers = SEntMan.System<SharedContainerSystem>();
+        if (SEntMan.TryGetComponent(body, out SynthBatteryComponent? synth))
+        {
+            if (!SEntMan.System<SynthBatterySystem>().TryGetBatteryContainer(body, synth.OrganSlot, out _, out var container) ||
+                container.ContainedEntities.Count == 0)
+                return false;
+
+            return containers.Remove(container.ContainedEntities[0], container);
+        }
+
+        if (!SEntMan.System<ItemSlotsSystem>().TryGetSlot(body, "cell_slot", out var slot) || slot.Item is not { } cell)
+            return false;
+
+        return containers.Remove(cell, slot.ContainerSlot!);
     }
 }

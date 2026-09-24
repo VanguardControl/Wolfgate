@@ -35,12 +35,37 @@ public sealed class WolfmedOrganThresholdSystem : EntitySystem
     /// <summary>Test seam: every organ a hit reached, with the health it took.</summary>
     public Action<EntityUid, FixedPoint2>? Observer;
 
+    /// <summary>Nesting depth of <see cref="WithoutOrganReach"/>.</summary>
+    private int _noReach;
+
+    /// <summary>
+    /// M4 (plan §3.11, principle C): runs <paramref name="action"/> with the reach lines off. The overheat pulse cooks
+    /// a chassis's parts for its pain; the core-heat route is the one way heat reaches the core, so the pulse must not
+    /// be a second, hidden one through the torso's Heat line.
+    /// </summary>
+    public void WithoutOrganReach(Action action)
+    {
+        _noReach++;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            _noReach--;
+        }
+    }
+
     /// <summary>
     /// One hit on a part. Returns false when the part has no reach lines, which leaves it to Onyx's roll; true
     /// when this system owns the part's organ damage, whether or not the hit reached anything.
     /// </summary>
     public bool HandleHit(EntityUid part, DamageSpecifier total)
     {
+        // M4: owned and reaching nothing, so Onyx's roll does not run for the pulse either.
+        if (_noReach > 0)
+            return true;
+
         if (!TryComp(part, out WolfmedBodyPartComponent? data) || data.OrganReach.Count == 0)
             return false;
 

@@ -19,6 +19,9 @@ public enum WolfmedVitalsState : byte
     /// <summary>A machine that has stopped: no power, no pump, or no hydraulic pressure.</summary>
     Shutdown = 5,
     Dead = 6,
+
+    /// <summary>M4 (plan §3.11): a machine's core past its heat line. Dying, like arrest.</summary>
+    ThermalShutdown = 7,
 }
 
 /// <summary>Which way the blood (or oil) is going, from the bleed against regeneration.</summary>
@@ -136,6 +139,14 @@ public sealed class WolfmedVitalsReport
 
     /// <summary>M2 (plan §7.2): a dead chassis's restart button, in words. Hidden for anything else.</summary>
     public WolfmedRestartVerdict Restart;
+
+    /// <summary>M4 (OD16): a species built with no heart. Its arrest reads as circulatory collapse.</summary>
+    public bool Heartless;
+
+    /// <summary>M4 (plan §3.11): a machine's core and chassis temperatures in kelvin; -1 when not shown.</summary>
+    public float CoreTemperature = -1f;
+
+    public float ChassisTemperature = -1f;
 }
 
 /// <summary>M2 (plan §7.2): what a dead chassis's restart button would do, in the analyzer's words.</summary>
@@ -183,6 +194,10 @@ public static class WolfmedVitalsText
 
         if (OrganLine(report) is { } organs)
             lines.Add(organs);
+
+        // M4 (plan §3.11): a hot machine's core and chassis.
+        if (TemperatureLine(report) is { } temperature)
+            lines.Add(temperature);
 
         if (VerdictLine(report) is { } verdict)
             lines.Add(verdict);
@@ -250,11 +265,24 @@ public static class WolfmedVitalsText
             ? null
             : Loc.GetString($"wolfmed-vitals-restart-verdict-{report.Restart.ToString().ToLowerInvariant()}");
 
+    /// <summary>
+    /// M4 (plan §3.11): "Temperature: core 540 K, chassis 812 K", shown while a machine's core or chassis is past
+    /// wolfmed.ipc_core_heat_warn_k. Null otherwise.
+    /// </summary>
+    public static string? TemperatureLine(WolfmedVitalsReport report) =>
+        !report.Mechanical || report.CoreTemperature < 0f
+            ? null
+            : Loc.GetString("wolfmed-vitals-temperature", ("core", (int) MathF.Round(report.CoreTemperature)),
+                ("chassis", (int) MathF.Round(report.ChassisTemperature)));
+
     /// <summary>"DOWNED: blood loss", "FAINTED: pain", "CARDIAC ARREST: blood", "SHUTDOWN: no power".</summary>
     public static string StateLine(WolfmedVitalsReport report)
     {
         var state = report.State switch
         {
+            // M4 (OD16): a heartless species' arrest.
+            WolfmedVitalsState.Arrest when report.Heartless => Loc.GetString("wolfmed-vitals-state-collapse",
+                ("cause", CauseName(report.Cause, report.Source, report.Mechanical))),
             WolfmedVitalsState.Up => Loc.GetString(report.Mechanical
                 ? "wolfmed-vitals-state-up-mechanical"
                 : "wolfmed-vitals-state-up"),
@@ -327,6 +355,8 @@ public static class WolfmedVitalsText
                 ("percent", (int) MathF.Round(report.Sedation * 100f))),
             WolfmedBreathing.Gasping => Loc.GetString("wolfmed-vitals-breathing-gasping"),
             WolfmedBreathing.Laboured => Loc.GetString("wolfmed-vitals-breathing-laboured"), // M3
+            WolfmedBreathing.None when report.Heartless && report.BreathingSource == WolfmedBreathingSource.Arrest =>
+                Loc.GetString("wolfmed-vitals-breathing-none-collapse"), // M4
             WolfmedBreathing.None => Loc.GetString(
                 $"wolfmed-vitals-breathing-none-{report.BreathingSource.ToString().ToLowerInvariant()}"),
             _ => Loc.GetString("wolfmed-vitals-breathing-normal"),

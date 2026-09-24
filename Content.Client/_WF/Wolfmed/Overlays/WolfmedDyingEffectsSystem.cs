@@ -167,7 +167,9 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
                 : 1f - Math.Clamp((elapsed - BannerFadeIn - BannerHold) / BannerFadeOut, 0f, 1f);
         }
 
-        _banner.TitleKey = dead ? "wolfmed-death-banner" : "wolfmed-arrest-banner";
+        // M4 (OD16): a heartless species' arrest is circulatory collapse.
+        var heartless = local is { } body && CompOrNull<WolfmedConsciousnessComponent>(body)?.Heartless == true;
+        _banner.TitleKey = dead ? "wolfmed-death-banner" : heartless ? "wolfmed-collapse-banner" : "wolfmed-arrest-banner";
         _banner.SubKey = dead ? "wolfmed-death-banner-sub" : "wolfmed-arrest-banner-sub";
         _banner.Alpha = alpha;
         SetBanner(alpha > 0f);

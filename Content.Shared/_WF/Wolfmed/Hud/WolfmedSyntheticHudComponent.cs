@@ -121,4 +121,7 @@ public enum WolfmedSyntheticCondition : byte
 
     /// <summary>M2 (OD10): the core was repaired a while ago. Cosmetic: no trauma on a machine.</summary>
     CoreRestored,
+
+    /// <summary>M4 (plan §3.11): core or chassis past the warning line, before thermal shutdown.</summary>
+    CoreTempCritical,
 }

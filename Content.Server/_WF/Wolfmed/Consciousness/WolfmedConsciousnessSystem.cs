@@ -327,6 +327,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         WolfmedPainReliefSystem.SedationPressure => WolfmedCause.Sedation,
         WolfmedShutdownSystem.ShutdownPressure => WolfmedCause.Shutdown,
         WolfmedLifeSystem.InjuryPressure => mechanical ? WolfmedCause.Core : WolfmedCause.Brain, // M3
+        WolfmedOverheatSystem.CoreHeatPressure => WolfmedCause.CoreHeat, // M4
         _ => WolfmedCause.Other,
     };
 

@@ -20,6 +20,7 @@ public sealed class WolfmedCardSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly WolfmedLifeSystem _life = default!;
+    [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
 
     private TimeSpan _next;
     private readonly List<EntityUid> _stale = new();
@@ -80,6 +81,10 @@ public sealed class WolfmedCardSystem : EntitySystem
         else
         {
             card.Window = 0f;
+
+            // M4 (plan §3.11): in thermal shutdown the bar is what is left of the core.
+            if (_overheat.InThermalShutdown(body) && _life.GetBrainOrgan(body) is { } core)
+                reserve = (sbyte) Math.Clamp((int) MathF.Ceiling(10f * core.Comp.Fraction), 0, 10);
         }
 
         if (card.Reserve == reserve && card.Cpr == cpr && card.Examined == examined)

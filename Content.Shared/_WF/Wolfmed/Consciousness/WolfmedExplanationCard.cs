@@ -18,7 +18,7 @@ public static class WolfmedExplanationCard
         WolfmedCardComponent? card)
     {
         var lines = new List<string>();
-        var proto = Cause(prototypes, consciousness.Cause);
+        var proto = Cause(prototypes, consciousness.Cause, consciousness.Heartless); // M4: circulatory collapse
 
         lines.Add(Title(proto, consciousness));
 
@@ -54,14 +54,17 @@ public static class WolfmedExplanationCard
     public static (int Tenths, string Label)? Bar(IPrototypeManager prototypes, WolfmedConsciousnessComponent consciousness,
         WolfmedCardComponent? card)
     {
-        if (card is not { Reserve: >= 0 } || Cause(prototypes, consciousness.Cause) is not { Dying: true })
+        if (card is not { Reserve: >= 0 } ||
+            Cause(prototypes, consciousness.Cause, consciousness.Heartless) is not { Dying: true })
             return null;
 
         return (Math.Clamp((int) card.Reserve, 0, 10), Loc.GetString("wolfmed-card-bar"));
     }
 
-    private static WolfmedConsciousnessCausePrototype? Cause(IPrototypeManager prototypes, WolfmedCause cause) =>
-        cause != WolfmedCause.None && prototypes.TryIndex<WolfmedConsciousnessCausePrototype>(cause.ToString(), out var proto)
+    private static WolfmedConsciousnessCausePrototype? Cause(IPrototypeManager prototypes, WolfmedCause cause,
+        bool heartless = false) =>
+        cause != WolfmedCause.None &&
+        prototypes.TryIndex<WolfmedConsciousnessCausePrototype>(WolfmedCauses.PrototypeId(cause, heartless), out var proto)
             ? proto
             : null;
 

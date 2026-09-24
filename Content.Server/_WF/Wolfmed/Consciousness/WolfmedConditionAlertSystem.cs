@@ -93,7 +93,7 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         if (_mobState.IsDead(body))
             return thresholds.StateAlertDict.GetValueOrDefault(MobState.Dead);
 
-        var cause = GetCausePrototype(consciousness.Cause);
+        var cause = GetCausePrototype(consciousness.Cause, consciousness.Heartless);
         switch (consciousness.State)
         {
             case WolfmedConsciousness.Downed:
@@ -175,8 +175,12 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         _alerts.ShowAlert(body, alert, severity);
     }
 
-    public WolfmedConsciousnessCausePrototype? GetCausePrototype(WolfmedCause cause) =>
-        cause != WolfmedCause.None && _prototypes.TryIndex<WolfmedConsciousnessCausePrototype>(cause.ToString(), out var proto)
+    public WolfmedConsciousnessCausePrototype? GetCausePrototype(WolfmedCause cause) => GetCausePrototype(cause, false);
+
+    /// <summary>M4 (OD16): the cause's prototype, circulatory collapse in place of arrest for a heartless body.</summary>
+    public WolfmedConsciousnessCausePrototype? GetCausePrototype(WolfmedCause cause, bool heartless) =>
+        cause != WolfmedCause.None &&
+        _prototypes.TryIndex<WolfmedConsciousnessCausePrototype>(WolfmedCauses.PrototypeId(cause, heartless), out var proto)
             ? proto
             : null;
 
@@ -208,12 +212,12 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
         if (comp.State == WolfmedConsciousness.Up)
             return Loc.GetString("wolfmed-condition-title-up");
 
-        var proto = GetCausePrototype(comp.Cause);
+        var proto = GetCausePrototype(comp.Cause, comp.Heartless);
         var critical = comp.State == WolfmedConsciousness.Unconscious;
         var source = proto != null && proto.Sources.TryGetValue(comp.CauseSource, out var sourceName)
             ? Loc.GetString(sourceName)
             : Loc.GetString("wolfmed-condition-source-unknown");
-        var name = GetCauseName(comp.Cause);
+        var name = proto != null ? Loc.GetString(proto.BlockerName) : GetCauseName(comp.Cause);
 
         if ((critical ? proto?.TitleOut : proto?.TitleDowned) is { } title)
             return Loc.GetString(title, ("cause", name), ("source", source));
@@ -233,7 +237,7 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
 
         var parts = new List<string> { GetTitle(body) };
         if (comp.State != WolfmedConsciousness.Up && !_mobState.IsDead(body) &&
-            GetCausePrototype(comp.Cause) is { } proto)
+            GetCausePrototype(comp.Cause, comp.Heartless) is { } proto)
         {
             if (proto.Symptom is { } symptom)
                 parts.Add(Loc.GetString(symptom));
@@ -351,19 +355,30 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     /// <summary>The one line a transition earns, or null when only the blockers moved.</summary>
     private string? TransitionLine(Entity<WolfmedConsciousnessComponent> body, WolfmedConsciousnessChangedEvent args)
     {
-        var proto = GetCausePrototype(args.NewCause);
-        var old = GetCausePrototype(args.OldCause);
+        var proto = GetCausePrototype(args.NewCause, body.Comp.Heartless);
+        var old = GetCausePrototype(args.OldCause, body.Comp.Heartless);
         var blocked = args.NewBlockers != WolfmedCauseFlags.None;
         string? line;
 
         if (args.OldCause == WolfmedCause.Arrest && args.NewCause != WolfmedCause.Arrest)
         {
-            // The heart restarting: what is still wrong, and what helps.
+            // The heart restarting: what is still wrong, and what helps. M4: a heartless body's circulation returns.
+            var heartless = body.Comp.Heartless;
             line = args.NewState == WolfmedConsciousness.Up || proto == null
-                ? Loc.GetString("wolfmed-condition-heart-restart")
-                : Loc.GetString("wolfmed-condition-heart-restart-still",
+                ? Loc.GetString(heartless ? "wolfmed-condition-collapse-restart" : "wolfmed-condition-heart-restart")
+                : Loc.GetString(heartless ? "wolfmed-condition-collapse-restart-still" : "wolfmed-condition-heart-restart-still",
                     ("cause", GetCauseName(args.NewCause, body.Comp.CauseSource)),
                     ("help", Help(body, proto, args.NewState, blocked) ?? string.Empty));
+            return WithBlockers(body, line, args.NewState);
+        }
+
+        // M4 (plan §3.11): out of thermal shutdown. Still shut down for another reason says so, and nothing more.
+        if (args.OldCause == WolfmedCause.CoreHeat && args.NewCause != WolfmedCause.CoreHeat)
+        {
+            line = args.NewState == WolfmedConsciousness.Unconscious
+                ? Loc.GetString("wolfmed-condition-core-cooled-still",
+                    ("cause", GetCauseName(args.NewCause, body.Comp.CauseSource)))
+                : Loc.GetString("wolfmed-condition-core-cooled");
             return WithBlockers(body, line, args.NewState);
         }
 

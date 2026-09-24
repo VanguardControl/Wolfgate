@@ -40,6 +40,12 @@ public enum WolfmedCause : byte
 
     /// <summary>M3: the same for a chassis's positronic core.</summary>
     Core = 14,
+
+    /// <summary>
+    /// M4: thermal shutdown. A machine's positronic core past its heat line is losing health; Dying, like arrest.
+    /// Numbered 20 so the causes M5 adds in parallel keep 15 upwards.
+    /// </summary>
+    CoreHeat = 20,
 }
 
 /// <summary>One bit per <see cref="WolfmedCause"/>: 1 shifted by the cause's value.</summary>
@@ -61,6 +67,7 @@ public enum WolfmedCauseFlags : uint
     HeadBlow = 1u << (int) WolfmedCause.HeadBlow,
     Brain = 1u << (int) WolfmedCause.Brain,
     Core = 1u << (int) WolfmedCause.Core,
+    CoreHeat = 1u << (int) WolfmedCause.CoreHeat, // M4
 }
 
 /// <summary>
@@ -101,6 +108,7 @@ public static class WolfmedCauses
     public static readonly WolfmedCause[] Priority =
     {
         WolfmedCause.Arrest,
+        WolfmedCause.CoreHeat, // M4
         WolfmedCause.Shutdown,
         WolfmedCause.Blood,
         WolfmedCause.Oil,
@@ -131,6 +139,16 @@ public static class WolfmedCauses
 
     /// <summary>A faint: unconscious for a fixed time, not for as long as a cause lasts. M3 adds the head blow.</summary>
     public static bool IsFaint(WolfmedCause cause) => cause is WolfmedCause.PainFaint or WolfmedCause.HeadBlow;
+
+    /// <summary>M4 (OD16): the cause prototype a heartless species' arrest reads instead of Arrest's.</summary>
+    public const string CirculatoryCollapse = "CirculatoryCollapse";
+
+    /// <summary>
+    /// M4: the cause prototype's id. The enum name, except that a heartless body's arrest is circulatory collapse:
+    /// the same state and routes, told in its own words.
+    /// </summary>
+    public static string PrototypeId(WolfmedCause cause, bool heartless) =>
+        heartless && cause == WolfmedCause.Arrest ? CirculatoryCollapse : cause.ToString();
 }
 
 /// <summary>

@@ -136,3 +136,11 @@
   line: wolfmed-synthetic-line-core-restored
   severity: Info
   advice: wolfmed-synthetic-advice-core-restored
+
+# M4 (plan §3.11, §5.6): the chassis is heating toward thermal shutdown. Thermal shutdown itself is the cause banner.
+- type: syntheticHudLine
+  id: SyntheticHudCoreTempCritical
+  condition: CoreTempCritical
+  line: wolfmed-synthetic-line-core-temp-critical
+  severity: Crit
+  advice: wolfmed-synthetic-advice-core-temp

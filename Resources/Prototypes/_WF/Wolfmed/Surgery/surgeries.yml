@@ -323,6 +323,11 @@
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
     part: Head
+  # M4 (OD16): a synth's brain slot holds its core, which SurgeryRepairSynthCore (synth_core.yml) repairs.
+  - type: SurgeryBodyComponentCondition
+    components:
+    - type: SynthBattery
+    inverse: true
   - type: WolfmedSurgeryOrganDamagedCondition
     slot: brain
     # BRAIN/AUTODOC4: any damaged brain, not only a destroyed one. A brain at three per cent is alive, so

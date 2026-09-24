@@ -13,8 +13,10 @@ using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared.Body.Components;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Part;
+using Content.Shared.Body.Prototypes;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Electrocution;
@@ -22,6 +24,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Configuration;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
@@ -76,6 +79,9 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private Wounds.WolfmedFluidLossSystem _fluidLoss = default!; // M1b
+    [Dependency] private IComponentFactory _factory = default!; // M4
+    [Dependency] private IPrototypeManager _prototypes = default!; // M4
+    [Dependency] private WolfmedOverheatSystem _overheat = default!; // M4
 
     private readonly List<EntityUid> _due = new();
     private TimeSpan _nextTick;
@@ -124,6 +130,29 @@ public sealed class WolfmedLifeSystem : EntitySystem
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// M4 (OD16): the species is built without a heart: no slot of its body prototype holds one. Its arrest is
+    /// circulatory collapse. A body that has lost its heart is not heartless; its arrest is cause "heart".
+    /// </summary>
+    public bool IsHeartless(EntityUid body)
+    {
+        if (!TryComp(body, out BodyComponent? comp) || comp.Prototype is not { } id ||
+            !_prototypes.TryIndex<BodyPrototype>(id, out var prototype))
+            return false;
+
+        var heart = _factory.GetComponentName(typeof(HeartComponent));
+        foreach (var slot in prototype.Slots.Values)
+        {
+            foreach (var organId in slot.Organs.Values)
+            {
+                if (_prototypes.TryIndex<EntityPrototype>(organId, out var organ) && organ.Components.ContainsKey(heart))
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     public bool HasBrain(EntityUid body)
@@ -752,6 +781,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (_fluidLoss.GetRate(body) > 0f)
             routes |= WolfmedRoutes.BurnFluid;
 
+        // M4 (plan §3.11): a machine's core past its heat line.
+        if (_overheat.CoreCooking(body))
+            routes |= WolfmedRoutes.CoreHeat;
+
         if (GetBrain(body) is not { } brain)
             return routes;
 
@@ -862,6 +895,14 @@ public sealed class WolfmedLifeSystem : EntitySystem
         arrest.StartTime = _timing.CurTime;
         arrest.Cause = cause;
         Dirty(body, arrest);
+
+        // M4 (OD16): a species with no heart collapses instead; the texts read this before the pressure lands.
+        if (TryComp(body, out WolfmedConsciousnessComponent? consciousness) &&
+            consciousness.Heartless != IsHeartless(body))
+        {
+            consciousness.Heartless = !consciousness.Heartless;
+            Dirty(body, consciousness);
+        }
 
         _consciousness.SetExternalPressure(body, ArrestPressure, 1f);
         _bleeding.RefreshBody(body);

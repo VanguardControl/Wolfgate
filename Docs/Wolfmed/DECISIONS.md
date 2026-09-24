@@ -1865,3 +1865,156 @@ and the IPC torso's `organReach` (data in `parts.yml` and `species_parts.yml`) o
 and pass alone and in the final run: `OxygenScenarioTest` (M1b saw the same) and `HeartbeatTracksLocalPlayerCritTest`.
 Mid-session another worktree rebuilt the shared RobustToolbox, and a run failed to load types until this project was
 rebuilt; the final run is on a fresh build.
+
+## M4 (2026-09-24)
+
+Species and IPC death. Plan: `WOLFMED_DEATH_PLAN.md` §12 M4, §9, §3.11, §11 (M4 rows); the owner's answers of 2026-09-24:
+OD16 (a) parity with Synth **mechanical**, OD10 (b) (the core-heat route; core repair shipped in M2), OD3 (b) (Succumb in
+thermal shutdown). Branch `Wolfmed-m4`, from `7baf456a14`.
+
+**The measurement, first** (`IpcFireScenarioTest`'s trace; the plan asked for the core-heat rate to be set against it).
+- Under M3 the overheat pulse (20 Heat a second from 383 K, 30 after the IPC's ×1.5 Heat modifier) crossed the torso's Heat
+  reach line (20) and went into the core: an IPC's core was destroyed about 30 s into a 10-stack fire, by a hidden second
+  route and before any thermal shutdown could exist.
+- The chassis in a 10-stack fire in station air: 501 K at 4 s, a peak of about 1140 K at 48 s, then down as the stacks
+  fade. Above 500 K for about 125 s untreated, 108 s when put out at 60 s, 88 s at 40 s and 56 s at 20 s.
+- So a chassis-temperature line (the plan's "once the chassis passes 500 K") cannot give the plan's target: untreated and
+  put out at a minute differ by 15% in time over the line, and the chassis passes 500 K four seconds after ignition, before
+  the IPC is even Downed, so "the IPC can pat itself out while still Downed, before 500 K" was impossible.
+
+**What was built.**
+- **The core-heat route** (`WolfmedOverheatSystem`, plan §3.11). The positronic core has its own temperature
+  (`WolfmedCoreHeatComponent`, shared and networked, ensured on every mechanical wound host). Each second it closes
+  `wolfmed.ipc_core_heat_soak` (0.02) of its gap to the chassis, and a working, powered coolant pump takes
+  `wolfmed.ipc_pump_cooling` (5 K/s) off it, down to body temperature. The pump's M3 band finally has its consumer: an
+  impaired pump cools at its organ's `impairedCoolingFactor` (0.5), a destroyed, missing or unpowered one not at all.
+  - Over `wolfmed.ipc_core_heat_k` (500 K) the core loses `wolfmed.ipc_core_heat_rate` (0.2) health a second for every
+    100 K it is over the line, and the chassis is in **thermal shutdown**: the `coreheat` pressure, Unconscious (Critical),
+    cause `CoreHeat` (tie order Arrest > CoreHeat > Shutdown), Dying. Under `wolfmed.ipc_core_heat_wake_k` (450 K) it
+    ends and the chassis comes round on consciousness's own inputs (Downed by pain, in a fire). A core at 0 is core failure
+    through the organ path, as before.
+  - Steady state (derived): with a working pump the core passes its line only while the chassis holds over
+    500 + 5 / 0.02 = 750 K; with an impaired pump 625 K; with no pump or no power, 500 K.
+  - **Measured** (`IpcFireScenarioTest`, shipped values): Downed by pain at 6 s, CORE TEMP CRITICAL on the readout before
+    the shutdown, thermal shutdown at 41 s, core failure at 102 s untreated. Put out at 60 s: thermal shutdown from 42 s to
+    125 s, the core left at 2.8 of 15 (19%: Downed, cause Core, core repair needed). Patted out from 12 s: the core peaked
+    at 486 K and never shut down.
+- **The pulse no longer reaches the organs.** `WolfmedOrganThresholdSystem.WithoutOrganReach` wraps the pulse, so heat
+  reaches the core only by the core-heat route (principle C). The pulse still burns the parts, which is what Downs a
+  burning chassis by pain; it never kills (`OverheatBurnsInsteadOfKillingTest`).
+- **Succumb and Last Words in thermal shutdown** (OD3 (b), plan §5.4). `IsDying` is arrest or thermal shutdown; the
+  overheat system grants and revokes the actions by direct call, as arrest does. Succumb keeps its order: the core to 0
+  where it sits, `Kill`, the arrest ended, the thermal shutdown ended on the corpse, a returnable ghost. The dialog: "Your
+  core is overheating. Let go and your chassis dies now: core failure. Your core stays in your chassis, and you stay you; a
+  technician can bring you back with core repair and the restart button." The `ghost` command in thermal shutdown opens it.
+  Wait as a ghost is never offered in thermal shutdown (Succumb covers it).
+- **What people read.** The readout's banner is the cause's line, "THERMAL SHUTDOWN: CORE DAMAGE"; before it, a
+  "CORE TEMP CRITICAL" fault from `wolfmed.ipc_core_heat_warn_k` (400 K, core or chassis); the SYSTEM block's CORE row is
+  now the core's own temperature. The analyzer: "THERMAL SHUTDOWN: core overheating", "Temperature: core N K, chassis M K"
+  while either is over the warning line, and the route "core overheating (put the fire out, cool the chassis)". Examine, at
+  any range: "is smoking, too hot to touch". The alert `WolfmedOutCoreHeat`. Coming out: "Core temperature back under the
+  line. Systems online.", or "… Still down: {cause}." when something else holds the chassis. The card's bar (for a
+  player who turned the readout off) is what is left of the core.
+- **Organ data (plan §9.2).** Marked parent edits: A′ lungs (Feroxi, Harpy, Goblin, Hydrakin); B hearts (`OrganAnimalHeart`,
+  `OrganArachnidHeart`) and the arachnid's `OrganAnimalLungs`; C brains, hearts and lungs (protogen, which covers every
+  Proto- subspecies and ProtoThaven; skrell; the diona's nymph brain and lungs; the slime's `SentientSlimeCore` as its brain,
+  and its gas sacs). **A balance change to announce:** moths, reptilians, vulpkanin, canines, felionoids, tajaran, rodentia,
+  arachnids (and anything else on the animal heart) can now arrest from heart trauma, and the group C species arrest, run a
+  brain clock and die when the brain is taken.
+- **Circulatory collapse** (OD16, C′). `WolfmedConsciousnessComponent.Heartless` (networked) is set when an arrest starts on
+  a body whose prototype has no heart in any slot (Diona, the slimes). The arrest is the same state with the same triggers
+  and routes; its words are the `CirculatoryCollapse` cause prototype's (`WolfmedCauses.PrototypeId`): "Circulatory
+  collapse: blood loss", "Your circulation has collapsed.", "Your circulation returns.", the Succumb dialog, the analyzer's
+  "CIRCULATORY COLLAPSE: blood" and "Breathing: none: circulatory collapse", the alert `WolfmedOutCollapse` and the banner
+  "YOUR CIRCULATION HAS COLLAPSED". A human whose heart is taken out is not heartless: that is arrest, cause heart.
+- **A slime survives decapitation** (plan §9.3). Its head is marked `vital: false`, since its core is in the torso.
+- **Group D wound hosts** (OD16). Shadekin and ProtoKin get `WoundHost` and `PainShockTarget` (ProtoKin also `LayingDown`
+  for the crawl); they are not reparented, because `BaseMobSpeciesOrganic` would give a respirator to species built without
+  lungs. For parity with the organic base: their passive regeneration is neutralised (D29), their Blunt gib rises 400 → 1500
+  (D22, the body total is the sum of the parts), and their body-level Heat 1500 ash is removed: the living per-part ceilings
+  sum past 1500, so a long fire would have burned the body away, which OD12 rules out.
+- **Synth, the machine ladder** (OD16, the plan's M4-mechanical branch). The parts take the IPC wound profile
+  (`WolfmedPartIpc` first in `PartSynth`'s parents; the torso and head keep the organic reach lines and caps), the ccu is
+  the positronic core (`WolfmedOrganPositronicBrain`), the heart is the coolant pump (`WolfmedOrganIpcPump`), and the mob
+  gets `WoundHost`, `PainShockTarget` and the restart button (`DeadStartupButton`). `IsMechanical` recognises the
+  `SynthBattery`; `HasPower` reads its `Unpowered` flag, polled once a second by the shutdown system because the battery
+  raises nothing another system may subscribe; the readout's power reads the cell in the battery organ slot. Its core sits
+  in the head's brain slot, so it gets its own core repair on the head (`SurgeryRepairSynthCore`: wrench, multitool,
+  welder, the same steps as the IPC's) and the organic brain repair is excluded on a synth.
+- **The conformance test is strict** (plan §9.1). `WolfmedSpeciesConformanceTest.EverySpeciesConformsOrIsExcusedTest`: the
+  `KnownGaps` array is gone. The checks are an enum (`WolfmedSpeciesCheck`); the deliberate differences are
+  `wolfmedSpeciesException` prototypes (`Body/species_exceptions.yml`: the species id, whether it runs the machine ladder,
+  the checks it is excused, the reason). The test fails, naming the species, on a failure not excused, on an excuse the
+  species no longer needs, on a species on a ladder its exception does not name, and on an exception for a species that is
+  not round-start.
+
+**The species matrix, after M4.** 41 round-start species. 35 organic species conform with no exception at all. IPC and
+Synth conform on the machine ladder, which their exceptions record. Diona, ProtoDionae, SlimePerson and ProtoSlimePerson
+are excused one check, Heart: they have none and collapse instead (plan §9.3). Every gap §9.2 predicted and M1a's report
+listed (98 across 32 species) is closed.
+
+**Differs from the plan, and why.**
+- **A core temperature, not the chassis's.** The plan triggers thermal shutdown on the chassis at 500 K. Measured, that
+  cannot separate an untreated fire from one put out at a minute, and it leaves no time to pat the fire out (above). The
+  core soaks up the chassis's heat instead; the plan itself names "chassis and core temperature" for the medic and a core
+  temperature row for the HUD. The CVar names and lines (500 K, 450 K) are the plan's, read on the core.
+- **The rate scales with how far over the line the core is** (0.2 HP/s per 100 K), not a flat HP/s. Simulated on the
+  measured trace, a flat rate leaves 78% between the put-out and the untreated core loss, a proportional one 63%, so both
+  outcomes keep a margin of about 20%. Hotter cooks faster, which the readout's CORE row shows.
+- **The pump cools, and needs power.** Nothing cooled a chassis before; the plan's pump band ("cooling × 0.5, overheats
+  sooner") needed a consumer (M3 left `impairedCoolingFactor` for it). A pump with no power behind it does not pump, so a
+  chassis whose cell is out while it burns soaks its heat unopposed.
+- **The overheat pulse reaches no organ** (above). Not in the plan; the plan's single-route principle needs it.
+- **The lung check applies to a body that breathes.** The M1a report flagged a body with no lungs; Shadekin and ProtoKin
+  are built with no lungs and no respirator, deliberately, so that is not a gap. A body with a respirator and no lungs
+  still fails.
+- **The exception list names the machine ladder.** IPC and Synth fail no check, but their entries say they run the
+  machine ladder, and the test holds each species to the ladder its entry names (plan §9.3 lists both).
+- **Synth core repair and the restart button.** Not in the plan's Synth branch; without them a synth's core failure was
+  permanent, against the owner's "no one is unrevivable".
+- **Group D parity edits** (passive regeneration, the gib line, the Heat ash) are not in the plan; each applies a rule an
+  earlier package set for every organic body (D29, D22, OD12).
+- **Numbered for the parallel M5:** `WolfmedCause.CoreHeat` is 20 and `WolfmedRoutes.CoreHeat` is `1 << 15`, so M5's new
+  causes and routes can take 15 upwards and bit 10 upwards without a clash.
+- **`wolfmed-vitals-cause-shutdown-mechanical` ("shutdown").** A shutdown as a blocker ("THERMAL SHUTDOWN: core overheating
+  (also: shutdown)") read "(also: unknown cause)".
+
+**Numbers.** `wolfmed.ipc_core_heat_k` 500, `ipc_core_heat_wake_k` 450, `ipc_core_heat_rate` 0.2 (per 100 K over),
+`ipc_core_heat_soak` 0.02, `ipc_pump_cooling` 5, `ipc_core_heat_warn_k` 400; pump `impairedCoolingFactor` 0.5.
+
+**Test migration.**
+- `WolfmedSpeciesConformanceTest`: report mode to strict (above).
+- `WolfmedOverheatTest.OverheatBurnsInsteadOfKillingTest`: unchanged assertions (the pulse never kills); its summary says
+  the core-heat route is the lethal one now.
+- `WolfmedSpeciesSpawnTest.ProtogenIsAWoundHostTest`: flipped as its comment asked: the protogen brain, heart and lungs
+  carry `OrganDamage`, the rest still do not.
+- `WolfmedSyntheticHudTest.SystemBlockCarriesSensorsAndCoreTemperatureTest`: the CORE row is the core's temperature, set
+  through the core-heat route.
+- `WolfmedSpeciesProfileTest`: nothing needed changing.
+- `Scenarios/WolfmedCauseScenarioTest.OverlappingCausesTest`: the IPC branch deferred from M1a (cell pulled in thermal
+  shutdown, then cooled).
+
+**Tests.** New: `Scenarios/WolfmedIpcDeathTest.cs` (`IpcFireScenarioTest`, `ThermalShutdownSuccumbTest`),
+`Scenarios/WolfmedSpeciesTest.cs` (`SpeciesArrestTest`, `SynthBranchTest`). Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`), final run: 458 total, 451 passed, 0 failed, 7 skipped (all autodoc or blast fixtures, disposed dirty); each skipped test passes alone. An earlier full run had the same counts with a different set of 7 skips, each also passing alone. Measured in the final run: Downed 5.2 s, thermal shutdown 41.3 s, core failure 102.3 s; put out at 60 s the core was left at 3.1 of 15; patted out, the core peaked at 484 K.
+
+**For the M5 merge.**
+- `WolfmedCause`, `WolfmedCauseFlags`, `WolfmedCauses.Priority`, `WolfmedRoutes` and consciousness's `PressureCause` switch
+  each gained one M4 entry at the end (CoreHeat); M5's entries go beside them.
+- Synth is mechanical now, but its damage container is still HardLight's `Synth` (Brute, Burn, Toxin, Genetic, Bloodloss),
+  so it takes Poison: M5's toxin route should skip `IsMechanical` bodies, as the plan says for IPCs. Synth also
+  regenerates its fluid through HardLight's `SynthBloodstream`, not the bloodstream step M5's radiation factor hooks.
+- Diona, the slimes, the protogens and skrell run a brain clock now, so M5's toxin and heat drains reach them.
+
+**Found, not changed.**
+- The autodoc knows neither `SurgeryRepairCore` (M2) nor `SurgeryRepairSynthCore`: a pod will not repair a machine's core.
+- A synth's nanite self-repair (`SynthBloodstream`) heals Brute and Burn over time while it has fluid and hunger, which no
+  other wound host does; it is HardLight's species feature and was left.
+- The plan's "temperature bar" on the readout is the CORE row's number; no graphic bar was drawn.
+- A synth's `SynthBlood` is its fluid on the machine ladder, so losing it reads as the oil cause ("hydraulic pressure
+  low") at the same 50% and 35% lines. A synth's own fire has not been measured: its chassis has a thermal regulator and a
+  lower specific heat than an IPC's, and the core-heat route applies to it unchanged.
+- The Release YAML linter was not run: a Release build writes into the RobustToolbox junction this worktree shares with
+  the main checkout, which the brief forbids. Every touched YAML file was parsed, (kind, id) pairs checked for duplicates,
+  and every prototype loads in the integration server.
+
+**Art debt.** `WolfmedOutCoreHeat` reuses the borg critical icon, `WolfmedOutCollapse` the human dead icon.

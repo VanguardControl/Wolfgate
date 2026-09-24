@@ -66,6 +66,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
     [Dependency] private readonly WolfmedLifeSystem _life = default!;
+    [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
 
     private readonly Dictionary<EntityUid, (WolfmedEndingChoice Choice, WolfmedChoiceEui? Eui)> _pending = new();
 
@@ -104,14 +105,19 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
 
         _life.Kill(body);
         _life.EndArrest(body);
+        _overheat.EndThermalShutdown(body); // M4
         return true;
     }
 
     #region Queries
 
-    /// <summary>Dying on a wound host: the heart has stopped and the body is not dead yet.</summary>
+    /// <summary>
+    /// Dying on a wound host: the heart has stopped, or (M4, OD3 (b)) a machine is in thermal shutdown, and the body
+    /// is not dead yet.
+    /// </summary>
     public bool IsDying(EntityUid body) =>
-        !TerminatingOrDeleted(body) && _life.OwnsDeath(body) && _life.InArrest(body) && !_mobState.IsDead(body);
+        !TerminatingOrDeleted(body) && _life.OwnsDeath(body) &&
+        (_life.InArrest(body) || _overheat.InThermalShutdown(body)) && !_mobState.IsDead(body);
 
     /// <summary>Wolfmed, not upstream's kill-crit branch, decides how this body is left.</summary>
     public bool OwnsEnding(EntityUid? body) => body is { } uid && _life.OwnsDeath(uid);
@@ -124,7 +130,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
 
     #region Grant and revoke
 
-    /// <summary>Gives a Dying body Succumb and Last Words. Called when the heart stops.</summary>
+    /// <summary>Gives a Dying body Succumb and Last Words. Called when the heart stops or thermal shutdown starts.</summary>
     public void Grant(EntityUid body)
     {
         if (!IsDying(body))
@@ -238,9 +244,27 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
             return;
 
         var minutes = RotMinutes(body);
-        var text = minutes is { } left
-            ? Loc.GetString("wolfmed-succumb-dialog-text", ("cause", ArrestCauseName(body)), ("minutes", left))
-            : Loc.GetString("wolfmed-succumb-dialog-text-no-decay", ("cause", ArrestCauseName(body)));
+        string text;
+        if (_overheat.InThermalShutdown(body))
+        {
+            // M4 (plan §5.4): a machine's core failure, core repair and the restart button.
+            text = minutes is { } rot
+                ? Loc.GetString("wolfmed-succumb-dialog-text-core", ("minutes", rot))
+                : Loc.GetString("wolfmed-succumb-dialog-text-core-no-decay");
+        }
+        else if (CompOrNull<WolfmedConsciousnessComponent>(body)?.Heartless == true)
+        {
+            // M4 (OD16): a species with no heart has circulatory collapse, not a stopped heart.
+            text = minutes is { } rot
+                ? Loc.GetString("wolfmed-succumb-dialog-text-collapse", ("cause", ArrestCauseName(body)), ("minutes", rot))
+                : Loc.GetString("wolfmed-succumb-dialog-text-collapse-no-decay", ("cause", ArrestCauseName(body)));
+        }
+        else
+        {
+            text = minutes is { } left
+                ? Loc.GetString("wolfmed-succumb-dialog-text", ("cause", ArrestCauseName(body)), ("minutes", left))
+                : Loc.GetString("wolfmed-succumb-dialog-text-no-decay", ("cause", ArrestCauseName(body)));
+        }
 
         Open(body, WolfmedEndingChoice.Succumb, new WolfmedChoiceEuiState(
             Loc.GetString("wolfmed-succumb-dialog-title"), text,
@@ -325,6 +349,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         // Kill before EndArrest: ending the arrest on a living body would announce a heartbeat for a moment.
         _life.Kill(body);
         _life.EndArrest(body);
+        _overheat.EndThermalShutdown(body); // M4: on the corpse, for the same reason
 
         if (_mind.TryGetMind(body, out var mindId, out var mind) && mind.OwnedEntity == body)
             _ghost.OnGhostAttempt(mindId, canReturnGlobal: true, mind: mind);

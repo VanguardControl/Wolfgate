@@ -166,6 +166,8 @@
   abstract: true
   components:
   - type: WolfmedOrgan
+    # M4 (plan §8.5): the pump cools the positronic core; under half health it cools at half the rate.
+    impairedCoolingFactor: 0.5
   - type: OrganDamage
     hitChance: 0.8
     selectionWeight: 0.64

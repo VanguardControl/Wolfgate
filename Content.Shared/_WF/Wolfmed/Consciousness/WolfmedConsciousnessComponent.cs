@@ -65,6 +65,13 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     [AutoNetworkedField]
     public bool PulseIrregular;
 
+    /// <summary>
+    /// M4 (OD16): a species built with no heart (Diona, the slimes). Its arrest is circulatory collapse: the same
+    /// state and routes, told in other words. Set by the life system when the arrest starts.
+    /// </summary>
+    [AutoNetworkedField]
+    public bool Heartless;
+
     /// <summary>M1a: the input that sets the current state (plan §5.1). None while Up.</summary>
     [AutoNetworkedField]
     public WolfmedCause Cause = WolfmedCause.None;

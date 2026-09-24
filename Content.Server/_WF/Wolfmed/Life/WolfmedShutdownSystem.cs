@@ -2,6 +2,7 @@ using Content.Server._EinsteinEngines.Silicon.Charge;
 using Content.Server._EinsteinEngines.Silicon.Death;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Shared._EinsteinEngines.Silicon.Components;
+using Content.Shared._HL.Silicons.Synths.Battery;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Consciousness;
@@ -53,11 +54,13 @@ public sealed class WolfmedShutdownSystem : EntitySystem
     /// <summary>
     /// Mechanical: a wound host that is a machine and runs no oxygenation clock. Both halves matter. A body
     /// that simply has no brain organ is a test fixture or a species Wolfmed does not model, not a chassis,
-    /// and shutting one of those down would be the brainless-poll bug in a different costume.
+    /// and shutting one of those down would be the brainless-poll bug in a different costume. M4 (OD16): a synth,
+    /// powered by its <see cref="SynthBatteryComponent"/>, is a machine too.
     /// </summary>
     public bool IsMechanical(EntityUid body)
     {
-        if (!_consciousness.OwnsMobState(body) || !HasComp<SiliconComponent>(body))
+        if (!_consciousness.OwnsMobState(body) ||
+            !HasComp<SiliconComponent>(body) && !HasComp<SynthBatteryComponent>(body))
             return false;
 
         foreach (var (organ, _) in _body.GetBodyOrgans(body))
@@ -85,6 +88,14 @@ public sealed class WolfmedShutdownSystem : EntitySystem
             return;
 
         _nextReconcile = _timing.CurTime + ReconcileInterval;
+
+        // M4 (OD16): a synth's battery raises nothing a second system may subscribe, so its power is polled here.
+        var synths = EntityQueryEnumerator<SynthBatteryComponent, WolfmedConsciousnessComponent>();
+        while (synths.MoveNext(out var synth, out _, out _))
+        {
+            if (!TerminatingOrDeleted(synth) && !HasComp<WolfmedShutdownComponent>(synth))
+                Refresh(synth);
+        }
 
         var query = EntityQueryEnumerator<WolfmedShutdownComponent>();
         while (query.MoveNext(out var body, out _))
@@ -173,9 +184,17 @@ public sealed class WolfmedShutdownSystem : EntitySystem
         _consciousness.SetExternalPressure(body, ShutdownPressure, down ? 1f : 0f);
     }
 
-    /// <summary>A cell in the chassis with something left in it. SiliconDownOnDead already tracks both. M2: the restart reads it.</summary>
-    public bool HasPower(EntityUid body) =>
-        !TryComp(body, out SiliconDownOnDeadComponent? silicon) || !silicon.Dead;
+    /// <summary>
+    /// A cell in the chassis with something left in it. SiliconDownOnDead already tracks both. M2: the restart reads
+    /// it. M4 (OD16): a synth runs on the cell in its battery organ slot, and its battery system keeps the flag.
+    /// </summary>
+    public bool HasPower(EntityUid body)
+    {
+        if (TryComp(body, out SynthBatteryComponent? synth))
+            return !synth.Unpowered;
+
+        return !TryComp(body, out SiliconDownOnDeadComponent? silicon) || !silicon.Dead;
+    }
 
     /// <summary>A coolant pump in the chassis that has not been destroyed. The analyzer's cooling line reads it too.</summary>
     public bool HasPump(EntityUid body)

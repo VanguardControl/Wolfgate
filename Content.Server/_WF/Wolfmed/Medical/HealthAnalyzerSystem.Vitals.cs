@@ -26,6 +26,7 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedBreathingSystem _vitalsBreathing = default!;
     [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedFluidLossSystem _vitalsFluidLoss = default!; // M1b
     [Dependency] private WolfmedCardSystem _vitalsCard = default!; // M2
+    [Dependency] private WolfmedOverheatSystem _vitalsOverheat = default!; // M4
 
     /// <summary>State and cause, breathing, circulation and the defib verdict, or null when consciousness does not run this body.</summary>
     public WolfmedVitalsReport? BuildVitals(EntityUid body)
@@ -47,6 +48,7 @@ public sealed partial class HealthAnalyzerSystem
             // Read fresh rather than off the networked copy the life tick writes once a second, so the pulse
             // words always agree with the blood % on the same line.
             BloodBand = _life.GetBloodBand(body),
+            Heartless = consciousness.Heartless, // M4 (OD16)
         };
         (report.Breathing, report.BreathingSource) = _vitalsBreathing.Assess(body);
         if (report.State == WolfmedVitalsState.Faint)
@@ -72,7 +74,18 @@ public sealed partial class HealthAnalyzerSystem
         SetVerdict(body, report);
         SetRoutesAndRestart(body, report);
         SetOrganReadings(body, report);
+        SetTemperatures(body, report);
         return report;
+    }
+
+    /// <summary>M4 (plan §3.11): a machine's core and chassis temperatures, while either is past the warning line.</summary>
+    private void SetTemperatures(EntityUid body, WolfmedVitalsReport report)
+    {
+        if (!report.Mechanical || !TryComp(body, out WolfmedCoreHeatComponent? heat) || !heat.Hot)
+            return;
+
+        report.CoreTemperature = heat.CoreTemperature;
+        report.ChassisTemperature = heat.ChassisTemperature;
     }
 
     /// <summary>
@@ -140,6 +153,9 @@ public sealed partial class HealthAnalyzerSystem
 
         if (_life.InArrest(body))
             return WolfmedVitalsState.Arrest;
+
+        if (_vitalsOverheat.InThermalShutdown(body))
+            return WolfmedVitalsState.ThermalShutdown; // M4
 
         return consciousness.State switch
         {

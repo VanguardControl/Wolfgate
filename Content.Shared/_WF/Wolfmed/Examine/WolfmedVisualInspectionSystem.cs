@@ -190,7 +190,9 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         }
 
         // M1a: the chest and the pulse, read off the networked vitals (plan §4.5, §5.5). A machine has neither.
-        var machine = HasComp<SiliconComponent>(examined) || HasComp<WolfmedShutdownComponent>(examined);
+        // M4: every mechanical wound host carries the core-heat component, a synth included.
+        var machine = HasComp<SiliconComponent>(examined) || HasComp<WolfmedShutdownComponent>(examined) ||
+                      HasComp<WolfmedCoreHeatComponent>(examined);
         var vitals = CompOrNull<WolfmedConsciousnessComponent>(examined);
         if (!machine && BreathingKey(examined, vitals) is { } breathing &&
             (detailed || arrested && breathing == "wolfmed-look-not-breathing"))
@@ -209,6 +211,14 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         if (!machine && detailed && HasComp<WolfmedBurnFluidLossComponent>(examined))
         {
             report.Notes.Add(Loc.GetString(self ? "wolfmed-look-weeping-burns-self" : "wolfmed-look-weeping-burns-other",
+                ("target", identity)));
+            lines++;
+        }
+
+        // M4 (plan §3.11): a chassis heating toward thermal shutdown smokes, which shows at any range.
+        if (TryComp(examined, out WolfmedCoreHeatComponent? heat) && heat.Hot)
+        {
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-too-hot-self" : "wolfmed-look-too-hot-other",
                 ("target", identity)));
             lines++;
         }

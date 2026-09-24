@@ -37,6 +37,9 @@
   name: "slime head"
   parent: [PartSlime, BaseHead]
   components:
+  # WOLFGATE (M4, plan 9.3): a slime's core, its brain, is in the torso, so losing the head is not death.
+  - type: BodyPart
+    vital: false
   - type: Extractable # Mono Shitmed
     juiceSolution:
       reagents:

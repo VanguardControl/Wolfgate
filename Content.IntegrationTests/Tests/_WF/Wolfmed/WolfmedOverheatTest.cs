@@ -12,7 +12,9 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 
 /// <summary>
 /// GAMEPLAY: overheating a wound host burns it through the wound model. Upstream set MobState.Dead
-/// outright, which skipped arrest, the alarms and every other BRAIN-aware system.
+/// outright, which skipped arrest, the alarms and every other BRAIN-aware system. M4: the pulse itself still never
+/// kills; a machine now dies of heat only through the core-heat route (plan §3.11), which
+/// <c>WolfmedIpcDeathTest</c> covers.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedOverheatSystem))]

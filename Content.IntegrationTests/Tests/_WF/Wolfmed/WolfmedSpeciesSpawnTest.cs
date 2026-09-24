@@ -6,6 +6,8 @@ using Content.Server._EinsteinEngines.Silicon.WeldingHealing;
 using Content.Server.Body.Components; // WOLFGATE: BloodstreamComponent is server-only here.
 using Content.Server.Body.Systems;
 using Content.Shared._Onyx.Body;
+using Content.Shared._Shitmed.Body.Organ; // M4: HeartComponent
+using Content.Shared.Body.Components; // M4: LungComponent
 using Content.Shared._Onyx.Chemistry.Circulation;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8.
@@ -347,13 +349,17 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
                             Is.EqualTo(new ProtoId<BodyPartProfilePrototype>("OrganicBodyPartProfile")),
                             $"protogen is organic, not cybernetic (U4(a)); {component.PartType} must prove it.");
 
-                    // P5-D19 / U12′, stated rather than omitted. PartProtogen derives from BasePart and the
-                    // organs from BaseProtogenOrgan, and the seven marked `parent:` edits that attach
-                    // OrganDamage live only on Body/Organs/human.yml. Flip this assertion the day
-                    // _Mono/Body/Organs/protogen.yml is instrumented - do not delete it.
+                    // P5-D19 / U12′, flipped by M4 (OD16 parity, plan §9.2 group C): the brain, heart and lungs
+                    // carry Wolfmed data now (marked parent edits in _Mono/Body/Organs/protogen.yml). The other
+                    // protogen organs still carry none, as the human's eyes-to-kidneys set is outside §9.1's checks.
                     foreach (var (organ, _) in graph.GetBodyOrgans(host))
-                        Assert.That(entities.HasComponent<OrganDamageComponent>(organ), Is.False,
-                            "protogen organs carry no OrganDamage - a recorded phase-5 gap, not an omission.");
+                    {
+                        var vital = entities.HasComponent<BrainComponent>(organ) ||
+                                    entities.HasComponent<HeartComponent>(organ) ||
+                                    entities.HasComponent<LungComponent>(organ);
+                        Assert.That(entities.HasComponent<OrganDamageComponent>(organ), Is.EqualTo(vital),
+                            "protogen brain, heart and lungs carry OrganDamage (M4); the rest do not.");
+                    }
                 }
             });
 

@@ -589,4 +589,45 @@ public sealed class WolfmedCVars
     /// <summary>Shock in one hit, after armour, from which the current reaches the heart.</summary>
     public static readonly CVarDef<float> ElectricHeartFrom =
         CVarDef.Create("wolfmed.electric_heart_from", 15f, CVar.SERVERONLY);
+
+    // M4: species and IPC death (plan §3.11, §9).
+
+    /// <summary>
+    /// Core temperature, in kelvin, at which a machine's positronic core starts losing health and the chassis goes
+    /// into thermal shutdown (Dying, cause CoreHeat).
+    /// </summary>
+    public static readonly CVarDef<float> IpcCoreHeatK =
+        CVarDef.Create("wolfmed.ipc_core_heat_k", 500f, CVar.SERVERONLY);
+
+    /// <summary>Core temperature under which thermal shutdown ends and the chassis comes back online.</summary>
+    public static readonly CVarDef<float> IpcCoreHeatWakeK =
+        CVarDef.Create("wolfmed.ipc_core_heat_wake_k", 450f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Core health lost a second for every 100 K the core is over wolfmed.ipc_core_heat_k. Set against the M1a/M4 IPC
+    /// fire measurement: an untreated 10-stack fire destroys the core, one put out at 60 s leaves it standing.
+    /// </summary>
+    public static readonly CVarDef<float> IpcCoreHeatRate =
+        CVarDef.Create("wolfmed.ipc_core_heat_rate", 0.2f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Share of the gap to the chassis temperature the core closes each second. The core soaks the chassis's heat
+    /// up rather than following it, so a fire put out early never cooks it.
+    /// </summary>
+    public static readonly CVarDef<float> IpcCoreHeatSoak =
+        CVarDef.Create("wolfmed.ipc_core_heat_soak", 0.02f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Kelvin a second a working, powered coolant pump takes off a core above body temperature. An impaired pump
+    /// cools at its organ's impairedCoolingFactor of this.
+    /// </summary>
+    public static readonly CVarDef<float> IpcPumpCooling =
+        CVarDef.Create("wolfmed.ipc_pump_cooling", 5f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Core or chassis temperature from which the readout warns CORE TEMP CRITICAL and the analyzer shows the
+    /// temperatures, before the core itself is at risk.
+    /// </summary>
+    public static readonly CVarDef<float> IpcCoreHeatWarnK =
+        CVarDef.Create("wolfmed.ipc_core_heat_warn_k", 400f, CVar.SERVERONLY);
 }

@@ -442,7 +442,8 @@ public sealed class WolfmedSyntheticHudTest : GameTest
 
     /// <summary>
     /// M1a D (plan §5.6): the SYSTEM block carries a damage-sensor row, the chassis's pain against its soft
-    /// cap, and a core-temperature row off the chassis temperature, the M4 core-heat input.
+    /// cap, and a core-temperature row. M4: the row is the positronic core's own temperature, which the core-heat
+    /// route tracks, not the chassis's.
     /// </summary>
     [Test]
     public async Task SystemBlockCarriesSensorsAndCoreTemperatureTest()
@@ -468,8 +469,10 @@ public sealed class WolfmedSyntheticHudTest : GameTest
             var pain = entities.GetComponent<PainComponent>(torso);
             pain.WoundPain = FixedPoint2.New(67.5f);
             entities.System<PainSystem>().SetPain((torso, pain), FixedPoint2.New(67.5f));
-            var heat = entities.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(body);
-            heat.CurrentTemperature = 450f;
+            // M4: the core's temperature, set through the core-heat route.
+            var overheat = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedOverheatSystem>();
+            overheat.Tick(body, 0.0001f);
+            overheat.SetCoreTemperature(body, 450f);
             hudSystem.Refresh((body, hud));
 
             Assert.Multiple(() =>

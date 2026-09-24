@@ -31,6 +31,12 @@ public sealed partial class WolfmedOrganComponent : Component
     /// </summary>
     [DataField] public float ImpairedRegenFactor = 1f;
 
+    /// <summary>
+    /// M4 (plan §8.5): core cooling multiplier while this organ is impaired (a machine's coolant pump: 0.5), so an
+    /// impaired pump lets the core overheat sooner. 1 means the organ does no cooling.
+    /// </summary>
+    [DataField] public float ImpairedCoolingFactor = 1f;
+
     /// <summary>OK, impaired or failed, from health against <see cref="ImpairedBelow"/>.</summary>
     public WolfmedOrganBand Band =>
         Health <= FixedPoint2.Zero ? WolfmedOrganBand.Failed

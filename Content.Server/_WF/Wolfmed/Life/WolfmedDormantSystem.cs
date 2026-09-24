@@ -48,6 +48,7 @@ public sealed class WolfmedDormantSystem : EntitySystem
     [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
     [Dependency] private readonly WolfmedLifeSystem _life = default!;
     [Dependency] private readonly WolfmedRevivalSystem _revival = default!;
+    [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
 
     private readonly Dictionary<EntityUid, WolfmedChoiceEui> _open = new();
     private readonly List<EntityUid> _due = new();
@@ -91,6 +92,7 @@ public sealed class WolfmedDormantSystem : EntitySystem
     {
         if (!TryComp(body, out WolfmedConsciousnessComponent? consciousness) || _mobState.IsDead(body) ||
             consciousness.State != WolfmedConsciousness.Unconscious || _life.InArrest(body) ||
+            _overheat.InThermalShutdown(body) || // M4: Dying, and Succumb covers it
             WolfmedCauses.IsFaint(consciousness.Cause))
             return false;
 

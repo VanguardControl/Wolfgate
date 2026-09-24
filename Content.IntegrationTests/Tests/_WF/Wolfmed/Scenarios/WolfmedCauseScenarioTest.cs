@@ -665,9 +665,76 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                 Is.LessThan(0.6f), "the patient woke before the sedation fell.");
         });
 
-        // IPC power loss plus overheating: written in M4, when thermal shutdown exists (plan §12 M4).
-        // Cell pulled above 500 K: Cause CoreHeat, Blockers Shutdown (Power), Succumb offered. Cooled below
-        // 450 K: Cause Shutdown (Power), Succumb removed, no text promising the IPC comes back Downed.
+        // --- M4: IPC power loss plus overheating (plan §12 M4, deferred from M1a). ---
+        // The core past its 500 K line with the cell pulled: Cause CoreHeat, Blockers Shutdown (Power), Succumb offered.
+        // Cooled under 450 K: Cause Shutdown (Power), Succumb removed, no text promising the IPC comes back Downed.
+        await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatK, 500f);
+        await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatWakeK, 450f);
+        EntityUid ipc = default;
+        EntityUid cell = default;
+        await Server.WaitPost(() =>
+        {
+            ipc = SEntMan.SpawnEntity("MobIPC", map.GridCoords);
+            var minds = SEntMan.System<SharedMindSystem>();
+            minds.TransferTo(minds.CreateMind(null).Owner, ipc); // the charge loop runs only on a chassis with a mind
+        });
+        await RunSeconds(2);
+
+        await Server.WaitAssertion(() =>
+        {
+            var overheat = SEntMan.System<WolfmedOverheatSystem>();
+            SEntMan.GetComponent<TemperatureComponent>(ipc).CurrentTemperature = 900f;
+            overheat.SetCoreTemperature(ipc, 600f);
+            overheat.Tick(ipc, 1f);
+            Assert.That(Consc(ipc).Cause, Is.EqualTo(WolfmedCause.CoreHeat), "a core past its line is not thermal shutdown.");
+
+            var slots = SEntMan.System<ItemSlotsSystem>();
+            Assert.That(slots.TryGetSlot(ipc, "cell_slot", out var slot), Is.True);
+            cell = slot!.Item!.Value;
+            Assert.That(SEntMan.System<SharedContainerSystem>().Remove(cell, slot.ContainerSlot!), Is.True);
+        });
+        await RunSeconds(2);
+
+        await Server.WaitAssertion(() =>
+        {
+            var comp = Consc(ipc);
+            Assert.Multiple(() =>
+            {
+                Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious));
+                Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.CoreHeat), "the shutdown outranked thermal shutdown.");
+                Assert.That(comp.Blockers & WolfmedCauseFlags.Shutdown, Is.EqualTo(WolfmedCauseFlags.Shutdown),
+                    "the pulled cell is not a blocker.");
+                Assert.That(SEntMan.GetComponent<WolfmedShutdownComponent>(ipc).Reason, Is.EqualTo(WolfmedCauseSource.Power));
+                Assert.That(SEntMan.HasComponent<WolfmedDyingActionsComponent>(ipc), Is.True, "thermal shutdown offers no Succumb.");
+                Assert.That(alerts.GetConditionText(ipc), Does.Contain("Also: shutdown"));
+            });
+
+            // Cooled under the wake line; the cell is still out.
+            var overheat = SEntMan.System<WolfmedOverheatSystem>();
+            SEntMan.GetComponent<TemperatureComponent>(ipc).CurrentTemperature = 300f;
+            overheat.SetCoreTemperature(ipc, 440f);
+            overheat.Tick(ipc, 1f);
+
+            comp = Consc(ipc);
+            var text = alerts.GetConditionText(ipc);
+            Assert.Multiple(() =>
+            {
+                Assert.That(comp.State, Is.EqualTo(WolfmedConsciousness.Unconscious), "a cooled chassis with no cell came up.");
+                Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.Shutdown));
+                Assert.That(comp.CauseSource, Is.EqualTo(WolfmedCauseSource.Power));
+                Assert.That(SEntMan.HasComponent<WolfmedDyingActionsComponent>(ipc), Is.False, "Succumb outlived thermal shutdown.");
+                Assert.That(comp.LastConditionLine, Does.Not.Contain("Downed").And.Not.Contain("online"),
+                    $"the cooling line promised the chassis back: {comp.LastConditionLine}");
+                Assert.That(text, Does.Not.Contain("Downed"), $"the condition text promised Downed: {text}");
+            });
+
+            var slots = SEntMan.System<ItemSlotsSystem>();
+            Assert.That(slots.TryGetSlot(ipc, "cell_slot", out var slot), Is.True);
+            Assert.That(SEntMan.System<SharedContainerSystem>().Insert(cell, slot!.ContainerSlot!), Is.True);
+        });
+
+        var back = await WaitFor(() => Consc(ipc).State != WolfmedConsciousness.Unconscious, 5f);
+        Assert.That(back, Is.Not.Null, "the cell back did not bring the cooled chassis round.");
     }
 
     /// <summary>
