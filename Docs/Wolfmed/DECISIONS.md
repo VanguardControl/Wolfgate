@@ -2018,3 +2018,180 @@ listed (98 across 32 species) is closed.
   and every prototype loads in the integration server.
 
 **Art debt.** `WolfmedOutCoreHeat` reuses the borg critical icon, `WolfmedOutCollapse` the human dead icon.
+
+## M5 (2026-09-23)
+
+The remaining causes: toxins, radiation, cold and heat. Plan: `WOLFMED_DEATH_PLAN.md` §12 M5, §3.8-3.10, P21, the §11
+rows marked M5; the owner's OD13 (a) of 2026-09-24 (toxins and radiation get lethal routes, liver clearance is the one
+passive-healing exception, infection and sepsis no longer deal Poison); the fire grace rules as revised. Branch
+`Wolfmed-m5`, from `7baf456a14`, in parallel with M4.
+
+**The measurement, first** (`WolfmedTemperatureTest.ColdRoomMeasurementTest`, run on the base before any M5 code). A
+naked human's surface temperature, the `TemperatureComponent` reading the atmosphere and the regulator move:
+- In air it settles about 22 K over the air within a minute: 293 K air holds 308 K, 273 K holds 295 K, 253 K holds
+  275 K, 233 K holds 254 K, 213 K holds 235 K, 173 K holds 195 K. The maps' freezers are 235 K air (about 256 K).
+- **In space it reaches 16 K within a minute** (224 K two seconds after spawning, 96 K at 12 s, 49 K at 22 s). The
+  default test map behaves the same: it has no atmosphere, so every test body on it is in space.
+- A 10-stack fire in station air peaks at 832-836 K at 30-35 s and burns out at 100 s (about 440 K); the surface is
+  under 318 K 30 s later. **Put out at its hottest (30 s), it takes 55 s** to get under 318 K.
+
+Read straight off that surface, the plan's lines (for a human 290, 275 and 262 K, below) would stop the heart of
+anyone in space within about 3 s, and of a cook in a 235 K freezer within about 35 s: the surface reaches equilibrium in
+a minute, so the air alone would decide the state. The plan assumed a core that takes time to cool (§3.10 names a "core
+temperature" and asks for this measurement before the lines are picked). Hence the core model below.
+
+**What was built.**
+- **Toxins (§3.8, OD13).** `WolfmedToxinSystem` (server). The load is the body's systemic Poison
+  (`SystemicDamageComponent`), never wound damage. Consciousness reads it as cause Toxin against two lines: Downed at
+  `wolfmed.consc_toxin_down` 60, a toxic coma at `wolfmed.consc_toxin_out` 120 (Unconscious, breathing). The ordinary 0.9
+  hysteresis puts waking under 108 and standing under 54. In the coma the brain drains at 1/`wolfmed.brain_toxin_seconds`
+  (600) a second, the sepsis shape, and the heart stops through the oxygen trigger, named "toxin" ("CARDIAC ARREST:
+  poisoning"). Clearance: a working liver (the organ carrying `LiverComponent`) takes `wolfmed.toxin_clearance` 0.1
+  Poison a second out in the life tick; an impaired one × its `impairedClearanceFactor` (new organ field, 0.5 on
+  `WolfmedOrganLiver`); a failed or missing one nothing. A liver with no Wolfmed organ data counts as working.
+- **Pools separated (OD13).** A spreading infection and sepsis deal no Poison. The profile's `spreadingPoisonPerMinute`
+  and `sepsisPoisonPerMinute` are removed rather than left inert. Fever stays; sepsis kills through its own brain drain
+  (M2), so a septic patient is not driven twice.
+- **Radiation (§3.9).** `WolfmedRadiationSystem` (server). Systemic Radiation at `wolfmed.rad_marrow_stop` 40 stops blood
+  regeneration: a × 0 inside `WolfmedLifeSystem.BloodRegenFactor`, the seam M3 built on the bloodstream's marked line. At
+  `wolfmed.rad_marrow_bleed` 100 the marrow also costs `wolfmed.rad_marrow_rate` 0.1 u/s, split out of the blood solution
+  in the life tick (no puddle) and counted in the analyzer's trend and transfusion numbers. At `wolfmed.consc_rad_down`
+  80 the patient is Downed, cause Radiation ("radiation sickness"), never Unconscious; it kills through the blood route.
+  Machines: no marrow and no radiation cause. A chassis does carry Radiation (its container takes it; the test's IPC
+  kept 50 of 100 after its modifier); it stays the chassis's slowdown and pain.
+- **Cold and heat (§3.10).** `WolfmedBodyTemperatureSystem` (server, its own one-second update).
+  - **Lines per species** from the `TemperatureComponent` damage thresholds (a protecting container's while inside
+    one): hypothermic (Downed) under cold + `wolfmed.hypothermia_down_offset` 30 K; Unconscious, breathing, under
+    + `hypothermia_out_offset` 15 K; the heart stops, cause "cold", under + `hypothermia_arrest_offset` 2 K. Heat
+    exhaustion (Downed) over heat − `wolfmed.hyperthermia_down_offset` 7 K; heat stroke (Unconscious) over the heat
+    threshold, with a brain drain of 1/`wolfmed.hyperthermia_brain_seconds` (300) a second and an arrest through the
+    oxygen trigger named "heat". A human: 290, 275 and 262 K; 318 and 325 K.
+  - **The core temperature** the lines read (deviation 1): it follows a warmer surface at once, and above the normal
+    temperature it follows the surface down at once; below normal it closes the gap to a colder surface over
+    `wolfmed.core_cooling_seconds` (900). A body starts with a normal core. A container that protects from cold damage
+    (the cryo pod) holds it, so a cryo patient is neither hypothermic in the pod nor arrested on the way out (read
+    from `ParentColdDamageThreshold`, which the pod's `ContainerTemperatureDamageThresholds` sets; no test drives a
+    real pod).
+  - **Fire grace**, exactly as revised: granted on catching fire unless the body already holds a heat cause; it holds
+    while burning and `wolfmed.heat_fire_grace_seconds` after the first time the fire goes out; re-ignition never moves
+    that end; it only delays entering a heat cause and never clears one; a new one comes only once the grace is over and
+    the core is back under the heat exhaustion line. Default 60 s, not 30 (deviation 3).
+  - An input is the core's offset from normal over the line's offset from normal (1 at the line), with the ordinary
+    0.9 hysteresis, and nothing at or under `wolfmed.temperature_input_floor` (0.5) of the way: a body a couple of
+    kelvin off normal in ordinary air gets no notch on the health doll and costs no polling.
+  - Cold arrest keeps the brain's existing cold protection (× 0.1 on the drain and on tissue loss). The paddles and the
+    pod refuse a core still under the arrest line ("Shock refused: core temperature 250 K. Rewarm above 262 K first.");
+    a heart restarted there would stop again on the next tick (addition 5). A corpse's core keeps following its surface
+    for that gate.
+- **The causes.** `Toxin` 16, `Radiation` 17, `Cold` 18, `Heat` 19, in the plan's tie order (… Sedation > Toxin > Cold >
+  Heat > Radiation > … Brain). Prototypes in `Consciousness/remaining_causes.yml`, alerts in `Alerts/remaining_alerts.yml`
+  (stock toxin-gas and temperature icons, art debt), text in `remaining-causes.ftl`: "Downed: poisoned", "Unconscious:
+  toxic coma", "Downed: radiation sickness", "Downed: hypothermic", "Unconscious: hypothermia", "Downed: heat exhaustion",
+  "Unconscious: heat stroke", each with symptom, help, blocked forms and transition lines. Hypoxia gains the sources
+  toxic coma and heat stroke; arrest gains cold, poisoning and heat stroke.
+- **What the medic reads.** Analyzer: "Toxins: 72, high; liver clearing" (low / high / comatose, brain at risk; the liver
+  clearing / impaired, clearing slowly / failed / missing), "Radiation: 120, marrow failing: blood not regenerating,
+  losing 0.1 u/s" (or "marrow suppressed"), "Core temperature: 271 K, hypothermic" (or "overheating") while the core
+  counts, and "Defib: refused: core 250 K, rewarm above 262 K first". Routes: "toxic coma (antitoxin)", "heat stroke (cool
+  them, now)", "marrow failing (anti-radiation drugs, blood)", "still cooling (warm them)"; they also withdraw "wait as a
+  ghost" and tell a waiting ghost. Examine, close up, while the cause holds the body: retching and sweating; grey and
+  sickly, bruising at the gums; cold and stiff to the touch; skin hot and dry.
+- **P21, acid residue.** `WolfmedChemicalBurnSystem` marks the part and the wound the residue is biting through
+  (`ResidueTarget`) while it deals its damage, and `WolfmedWoundRuleSystem` puts that damage into that chemical burn
+  instead of a plain burn. The residue deepens its own burn, whose stages bite harder, until it is washed off.
+- **Guidebook.** Infection no longer "takes toxin damage" (Wounds.xml, WoundTreatment.xml, the treatment card); one
+  paragraph on the four causes.
+
+**Numbers.** `wolfmed.consc_toxin_down` 60, `consc_toxin_out` 120, `brain_toxin_seconds` 600, `toxin_clearance` 0.1,
+`rad_marrow_stop` 40, `rad_marrow_bleed` 100, `rad_marrow_rate` 0.1, `consc_rad_down` 80, `hypothermia_down_offset` 30,
+`hypothermia_out_offset` 15, `hypothermia_arrest_offset` 2, `hyperthermia_down_offset` 7, `hyperthermia_brain_seconds`
+300, `heat_fire_grace_seconds` 60, and new: `core_cooling_seconds` 900, `temperature_line_max_share` 0.6,
+`temperature_input_floor` 0.5; liver `impairedClearanceFactor` 0.5.
+
+**Measured** (the M5 tests, shipped values pinned).
+- **Poison.** 60: Downed at once. 130 with no liver: Unconscious and breathing, the brain drained 0.100 in 60 s, and the
+  heart stopped at 511 s, cause "toxin" (derived 510 s). A working liver cleared 6.00 in 60 s, an impaired one 3.00.
+  130 on the liver alone: awake at 221 s (load 107.9; derived 220 s), under the Downed line at 761 s (derived 760 s).
+  15 u of dylovene at 130: awake at 20 s (load 107.0), standing at 67 s (load 53.3).
+- **Radiation.** Sixty seconds at 90% blood: no radiation +21.0 u, radiation 40 +0.0 u, radiation 100 −5.8 u (derived
+  −6.0 u), the chassis at 100 +0.0 u of oil. 15 u of hyronalin took the dose under 40 in 60 s, and the blood then came
+  back 7.0 u in 20 s. Derived from those rates for a human at radiation 100 from full blood: Downed by blood at 25 min,
+  Unconscious at 32.5 min, arrest at 35 min; Downed by radiation sickness at once.
+- **Hypothermia.** The 235 K freezer (surface 256 K), fast-forwarded: Downed at 419 s, Unconscious at 943 s, arrest
+  (cause "cold") at 1980 s, each the second the core's cooling derives; the arrested brain drained at exactly a tenth of
+  the arrest rate; the paddles refused until the core was rewarmed, then shocked; a patient rewarmed to 305 K woke the
+  next second and stood. **Space, real time** (`SpaceColdSmokeTest`): hypothermic at 69 s, Unconscious from cold at
+  126 s, cold arrest at 172 s (derived from the recorded surface 75, 125 and 171 s). The re-run measurement: in 173 K air
+  Downed at about 195 s, in 213 K air just after five minutes; 233 K and warmer air do not Down a naked human within five minutes.
+- **Heat stroke.** At 330 K the brain drained 0.200 in 60 s and the heart stopped at 256 s, cause "heat" (derived 255 s).
+  The heat cause came 61 s after a fire went out, at the shipped 60 s grace; re-igniting 15 s into the grace moved nothing;
+  a heat stroke caught fire and stayed; a still-hot body's second fire got no grace, a cooled one's did.
+- **Acid residue.** Ten residue ticks: the chemical burn 20 → 35, the plain burn on the same torso 30 → 30.
+- **Species lines.** Reptilian (cold threshold 285 K, normal 310 K): 300.1 / 292.5 / 286.0 K. Avali (normal 261 K, heat
+  threshold 310 K): 303 / 310 K, fever ceiling 282 K. Human, reptilian and avali stand in station air.
+
+**Differs from the plan, and why.**
+1. **A core temperature, not the surface reading.** See the measurement. `wolfmed.core_cooling_seconds` 900 gives space
+   about a minute before hypothermia, two before unconsciousness and three before the cold arrest, close to the blood
+   arrest barotrauma gives (M1a playtest 1: about 205 s) but on a route that protects the brain; and a naked cook seven
+   minutes in a freezer before going down. Warming follows the surface at once, so rewarming wakes a patient as soon as
+   they are somewhere warm; heat reads the surface as it is, so the measured fire numbers hold.
+2. **The offsets shrink for a species whose normal temperature is near a threshold** (`wolfmed.temperature_line_max_share`
+   0.6: no Downed line further than 60% of the way from the threshold towards normal, the other lines scaled alike).
+   At the plan's fixed offsets a reptilian, an asakim or a Proto reptile (cold threshold 285 K, normal 310 K) would be
+   hypothermic at its own normal temperature (Downed under 315 K). A human's lines are exactly the plan's.
+3. **Fire grace 60 s, not 30.** A fire that burns out leaves a surface under the heat exhaustion line 30 s later; one put
+   out at its hottest takes 55 s. At 30 s, putting someone out promptly, the right first aid, earned them heat stroke 30 s
+   later. The rules are exactly as revised; the test pins the shipped 60 and checks the grace ends on it.
+4. **A fever never Downs, for every species.** The infection's fever climbs to the profile's 313 K, which for a species
+   with a normal temperature of 261 K (avali, some protogen subspecies; heat threshold 310 K) is heat stroke. It now stops
+   at the point where the species' heat starts to count (the input floor), which leaves the human fever at 313 K.
+5. **Additions the plan implies but does not name:** the TooCold defib refusal; heat stroke's arrest named "heat" (the
+   plan's list of arrest causes has cold and toxin); the analyzer's core temperature line; four routes (toxic coma, heat
+   stroke, marrow, still cooling), so "wait as a ghost" is withdrawn for them as §5.4 asks; examine signs for each cause.
+6. **Enum values leave room for M4.** `WolfmedCause` 15 and `WolfmedRoutes` bit 10 are unused, for M4's core heat, so the
+   parallel branches do not collide on a number. Sources: hypoxia `Toxin` 10 and `Heat` 11; arrest `ArrestCold` 30,
+   `ArrestToxin` 31, `ArrestHeat` 32.
+7. **No marked edit.** Inventory #16 landed in M3; the radiation factor multiplies into the same method.
+8. **The cold and heat inputs tick on their own one-second update, not the life tick**, because the surface they follow
+   moves only in real time; `WolfmedBodyTemperatureSystem.Tick` is the test seam. Toxin clearance and the marrow loss run
+   in the life tick (`WolfmedScenario.Advance` fast-forwards them).
+9. **Tests the plan does not list:** `ColdRoomMeasurementTest` (the opening measurement, records only),
+   `SpaceColdSmokeTest` (the milestone's real-time smoke test), `SpeciesLinesTest`.
+
+**Test migration.**
+- `WolfmedInfectionTest`: the spreading stage runs a fever and deals no Poison; `SepsisPoisonsAndAntibioticsClearItTest`
+  is now `SepsisShowsAndAntibioticsClearItTest` and asserts no Poison.
+- `WolfmedBurnWoundTest.ChemicalBurnsTickUntilWashedTest`: unchanged and green; `AcidResidueTest` carries P21's assertion.
+- `WolfmedBleedingLifecycleTest`: reads no regeneration; nothing to migrate (the seam was M3's).
+- `WolfmedLocaleCoverageTest`: the route and dormant-route families pick up the four new routes by themselves.
+
+**Found on the way.**
+- **A test's own output can vanish.** `TestContext.Out` written inside a server callback, while other tests run in
+  parallel, sometimes lands in no test's output. The M5 tests collect their lines and write them from a `[TearDown]`.
+- **The default test map is space for temperature.** Every existing test body on it cools like a spaced crewman. The
+  full filter stayed green: none holds a body there long enough to reach the hypothermia line (about a minute).
+
+**Tests.** New: `Scenarios/WolfmedRemainingCausesTest.cs` (`ToxinScenarioTest`, `RadiationScenarioTest`,
+`SepsisNotToxinTest`, `AcidResidueTest`), `Scenarios/WolfmedTemperatureTest.cs` (`ColdRoomMeasurementTest`,
+`HypothermiaScenarioTest`, `HeatStrokeScenarioTest`, `SpeciesLinesTest`, `SpaceColdSmokeTest`).
+Final full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`): 463 total, 456 passed, 0 failed, 7 skipped
+(dirty-disposed: `AcidResidueTest`, `AutofixStopsReplanningABodyItIsNotChangingTest`,
+`BrainDeadOccupantIsOperatedOnWithoutHoldingTest`, `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`,
+`PainkillerPenTest("WolfmedAnalgesicPen",Weak)`, `StalledProcedureIsAbandonedAndNeverReplannedTest`,
+`VisualStateFollowsTheLidTest`); each passes alone. The run before the 60 s grace and the fever ceiling: 462 total,
+454 passed, 0 failed, 8 skipped, each passing alone.
+
+**For the merge with M4.**
+- `WolfmedCause` 15 and `WolfmedRoutes` bit 10 are free for CoreHeat. Both branches append to the tie order array, the
+  arrest source switches in `WolfmedLifeSystem.ArrestSource` / `GetRestartMemory` and `WolfmedConsciousnessSystem.GetSource`,
+  `WolfmedOrganComponent` (M5 `ImpairedClearanceFactor` beside M4's `ImpairedCoolingFactor`), `organs.yml` and the CVars.
+- Mechanical bodies get none of the M5 inputs (`WolfmedShutdownSystem.IsMechanical`); a Synth made mechanical in M4 is
+  covered by the same check. The IPC core-heat route is M4's and reads nothing here.
+- Species conformance (M4) does not check temperature lines; `SpeciesLinesTest` covers the three species it names.
+
+**For the owner's playtest.** A chemistry poisoning (dylovene wakes a toxic coma in about 20 s), a radiation leak (at 100
+the blood starts going; 40 already stops it coming back), a freezer (naked: down in 7 minutes, out in 16, the heart at
+33), space (down in about a minute, the heart about 3 minutes in, cold arrest protects the brain: rewarm, then shock), a
+hot room, and a fire (no heat stroke, whether it burns out or is put out). Knobs: `wolfmed.core_cooling_seconds`, the
+offsets, `wolfmed.heat_fire_grace_seconds`.

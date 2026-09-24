@@ -46,6 +46,20 @@ public enum WolfmedCause : byte
     /// Numbered 20 so the causes M5 adds in parallel keep 15 upwards.
     /// </summary>
     CoreHeat = 20,
+
+    // M5: 15 is left for M4's CoreHeat.
+
+    /// <summary>M5: systemic Poison past its lines: Downed, then a toxic coma that drains the brain.</summary>
+    Toxin = 16,
+
+    /// <summary>M5: radiation sickness. Downed only; it kills through the blood (the marrow route).</summary>
+    Radiation = 17,
+
+    /// <summary>M5: a core temperature under the hypothermia lines: Downed, then Unconscious. Arrest is its own trigger.</summary>
+    Cold = 18,
+
+    /// <summary>M5: a core temperature over the heat lines: heat exhaustion (Downed), then heat stroke (Unconscious).</summary>
+    Heat = 19,
 }
 
 /// <summary>One bit per <see cref="WolfmedCause"/>: 1 shifted by the cause's value.</summary>
@@ -68,6 +82,11 @@ public enum WolfmedCauseFlags : uint
     Brain = 1u << (int) WolfmedCause.Brain,
     Core = 1u << (int) WolfmedCause.Core,
     CoreHeat = 1u << (int) WolfmedCause.CoreHeat, // M4
+
+    Toxin = 1u << (int) WolfmedCause.Toxin, // M5
+    Radiation = 1u << (int) WolfmedCause.Radiation,
+    Cold = 1u << (int) WolfmedCause.Cold,
+    Heat = 1u << (int) WolfmedCause.Heat,
 }
 
 /// <summary>
@@ -86,6 +105,10 @@ public enum WolfmedCauseSource : byte
     Sepsis = 4,
     Sedation = 5,
 
+    // M5: a toxic coma and heat stroke drain the brain too.
+    Toxin = 10,
+    Heat = 11,
+
     // Arrest: what stopped the heart.
     ArrestBlood = 20,
     ArrestOxygen = 21,
@@ -93,6 +116,11 @@ public enum WolfmedCauseSource : byte
     ArrestSepsis = 23,
     ArrestShock = 24,
     ArrestOther = 25,
+
+    // M5: the cold trigger, and the oxygen trigger with a toxic coma or heat stroke behind it.
+    ArrestCold = 30,
+    ArrestToxin = 31,
+    ArrestHeat = 32,
 
     // Shutdown: why the machine stopped.
     Power = 40,
@@ -114,6 +142,10 @@ public static class WolfmedCauses
         WolfmedCause.Oil,
         WolfmedCause.Hypoxia,
         WolfmedCause.Sedation,
+        WolfmedCause.Toxin, // M5
+        WolfmedCause.Cold,
+        WolfmedCause.Heat,
+        WolfmedCause.Radiation,
         WolfmedCause.Other,
         WolfmedCause.Brain,
         WolfmedCause.Core,

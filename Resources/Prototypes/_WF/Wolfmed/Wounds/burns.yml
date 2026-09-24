@@ -129,7 +129,8 @@
   maximumSeverity: 160
   healingMultiplier: 0.15
   behaviors:
-  # Well under the rule's own 12 minimum, so the residue can never deepen itself into a second burn.
+  # M5 (P21): what the residue deals deepens this wound and nothing else (WolfmedChemicalBurnSystem.ResidueTarget):
+  # never a second chemical burn, and never the plain burn it used to grow. Its stages bite harder as it deepens.
   - !type:WolfmedCausticResidueBehavior
     damage:
       types:

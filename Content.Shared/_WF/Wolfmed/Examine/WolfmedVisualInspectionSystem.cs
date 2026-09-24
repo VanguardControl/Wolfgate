@@ -42,6 +42,15 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
     /// <summary>Appended to a finding's locale key for its row label.</summary>
     private const string LabelSuffix = "-short";
 
+    /// <summary>M5: the close-up sign each remaining cause leaves while it holds the body, as a locale key stem.</summary>
+    private static readonly (WolfmedCause Cause, string Key)[] RemainingCauseSigns =
+    {
+        (WolfmedCause.Toxin, "wolfmed-look-poisoned"),
+        (WolfmedCause.Radiation, "wolfmed-look-radiation-sick"),
+        (WolfmedCause.Cold, "wolfmed-look-hypothermic"),
+        (WolfmedCause.Heat, "wolfmed-look-overheated"),
+    };
+
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IConfigurationManager _cfg = default!; // M2
     [Dependency] private SharedBodySystem _body = default!;
@@ -241,6 +250,19 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             report.Notes.Add(Loc.GetString(self ? "wolfmed-look-unequal-pupils-self" : "wolfmed-look-unequal-pupils-other",
                 ("target", identity)));
             lines++;
+        }
+
+        // M5 (plan §3.8-3.10): a poisoned patient retches, a sick one is grey, a cold one is stiff, a hot one is dry.
+        if (!machine && detailed && vitals != null)
+        {
+            foreach (var (cause, key) in RemainingCauseSigns)
+            {
+                if (vitals.Cause != cause && (vitals.Blockers & WolfmedCauses.Flag(cause)) == 0)
+                    continue;
+
+                report.Notes.Add(Loc.GetString(key + (self ? "-self" : "-other"), ("target", identity)));
+                lines++;
+            }
         }
 
         if (lines == 0)

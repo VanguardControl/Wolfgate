@@ -83,6 +83,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!; // M4
     [Dependency] private WolfmedOverheatSystem _overheat = default!; // M4
 
+    [Dependency] private WolfmedToxinSystem _toxin = default!; // M5
+    [Dependency] private WolfmedRadiationSystem _radiation = default!;
+    [Dependency] private WolfmedBodyTemperatureSystem _temperature = default!;
+
     private readonly List<EntityUid> _due = new();
     private TimeSpan _nextTick;
 
@@ -270,6 +274,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
         AdvancePostShock(body, seconds);
         ExpireArrestMemory(body); // M2
 
+        // M5 (plan §3.8-3.9): the liver clears Poison and a failing marrow costs blood, brain or no brain.
+        _toxin.Clear(body, seconds);
+        _radiation.Tick(body, seconds);
+
         if (GetBrain(body) is not { } brain)
         {
             // No clock to run. Mechanical bodies live here, and so does every brainless test fixture.
@@ -338,6 +346,9 @@ public sealed class WolfmedLifeSystem : EntitySystem
             "oxygen" => BreathingLevel(body) > 0f || _relief.GetRespiratoryDepression(body) > 0f,
             "heart" => GetHeartHealth(body) is not { } heart || heart <= FixedPoint2.Zero,
             "sepsis" => _infection.GetSepsis(body) >= _cfg.GetCVar(WolfmedCVars.ArrestSepsis),
+            "cold" => _temperature.IsColdArrest(body), // M5
+            "toxin" => _toxin.InComa(body),
+            "heat" => _temperature.InHeatStroke(body),
             _ => false,
         };
 
@@ -352,6 +363,9 @@ public sealed class WolfmedLifeSystem : EntitySystem
         "heart" => WolfmedCauseSource.ArrestHeart,
         "sepsis" => WolfmedCauseSource.ArrestSepsis,
         "shock" => WolfmedCauseSource.ArrestShock,
+        "cold" => WolfmedCauseSource.ArrestCold, // M5
+        "toxin" => WolfmedCauseSource.ArrestToxin,
+        "heat" => WolfmedCauseSource.ArrestHeat,
         _ => WolfmedCauseSource.ArrestOther,
     };
 
@@ -454,6 +468,21 @@ public sealed class WolfmedLifeSystem : EntitySystem
                 worst = rate;
                 source = WolfmedCauseSource.Sepsis;
             }
+        }
+
+        // M5 (plan §3.8, §3.10): a toxic coma and heat stroke drain the brain on clocks of their own.
+        var toxin = _toxin.DrainRate(body);
+        if (toxin > worst)
+        {
+            worst = toxin;
+            source = WolfmedCauseSource.Toxin;
+        }
+
+        var heat = _temperature.DrainRate(body);
+        if (heat > worst)
+        {
+            worst = heat;
+            source = WolfmedCauseSource.Heat;
         }
 
         if (worst <= 0f)
@@ -582,8 +611,22 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (!grace && brain.Comp.Oxygenation <= _cfg.GetCVar(WolfmedCVars.ArrestOxygenation))
         {
             // M2 (OD15): late sepsis stops the heart through this trigger, on its own drain, and is named for it.
+            // M5: so do a toxic coma and heat stroke.
             DrainRate(body, brain, out var drain);
-            StartArrest(body, drain == WolfmedCauseSource.Sepsis ? "sepsis" : "oxygen");
+            StartArrest(body, drain switch
+            {
+                WolfmedCauseSource.Sepsis => "sepsis",
+                WolfmedCauseSource.Toxin => "toxin",
+                WolfmedCauseSource.Heat => "heat",
+                _ => "oxygen",
+            });
+            return;
+        }
+
+        // M5 (plan §3.10): a core under the cold arrest line stops the heart; the brain's cold protection applies.
+        if (_temperature.IsColdArrest(body))
+        {
+            StartArrest(body, "cold");
             return;
         }
 
@@ -669,7 +712,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
                 factor *= Math.Clamp(health.ImpairedRegenFactor, 0f, 1f);
         }
 
-        return factor;
+        // M5 (plan §3.9): past wolfmed.rad_marrow_stop the marrow makes nothing.
+        return factor * _radiation.RegenFactor(body);
     }
 
     /// <summary>
@@ -785,8 +829,21 @@ public sealed class WolfmedLifeSystem : EntitySystem
         if (_overheat.CoreCooking(body))
             routes |= WolfmedRoutes.CoreHeat;
 
+        // M5 (plan §5.4): the failing marrow and a hypothermic core still cooling.
+        if (_radiation.GetMarrowLossRate(body) > 0f)
+            routes |= WolfmedRoutes.Marrow;
+
+        if (_temperature.StillCooling(body))
+            routes |= WolfmedRoutes.Hypothermia;
+
         if (GetBrain(body) is not { } brain)
             return routes;
+
+        if (_toxin.InComa(body))
+            routes |= WolfmedRoutes.Toxin;
+
+        if (_temperature.InHeatStroke(body))
+            routes |= WolfmedRoutes.HeatStroke;
 
         if (InArrest(body))
             routes |= WolfmedRoutes.Arrest;
@@ -821,7 +878,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// M1b: all blood volume leaving the body, in units a second: the bleeding plus the burns' fluid loss
     /// (<see cref="Wounds.WolfmedFluidLossSystem"/>), which weeps rather than bleeds but empties the same pool.
     /// </summary>
-    public float GetVolumeLossRate(EntityUid body) => GetBleedRate(body) + _fluidLoss.GetRate(body);
+    public float GetVolumeLossRate(EntityUid body) =>
+        GetBleedRate(body) + _fluidLoss.GetRate(body) + _radiation.GetMarrowLossRate(body); // M5: the marrow too
 
     /// <summary>
     /// The two transfusion numbers (plan §7.1): units to <see cref="WolfmedCVars.PostShockBloodTarget"/> plus

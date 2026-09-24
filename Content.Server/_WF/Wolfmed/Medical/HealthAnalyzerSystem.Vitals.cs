@@ -28,6 +28,10 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedCardSystem _vitalsCard = default!; // M2
     [Dependency] private WolfmedOverheatSystem _vitalsOverheat = default!; // M4
 
+    [Dependency] private WolfmedToxinSystem _vitalsToxin = default!; // M5
+    [Dependency] private WolfmedRadiationSystem _vitalsRadiation = default!;
+    [Dependency] private WolfmedBodyTemperatureSystem _vitalsTemperature = default!;
+
     /// <summary>State and cause, breathing, circulation and the defib verdict, or null when consciousness does not run this body.</summary>
     public WolfmedVitalsReport? BuildVitals(EntityUid body)
     {
@@ -75,6 +79,8 @@ public sealed partial class HealthAnalyzerSystem
         SetRoutesAndRestart(body, report);
         SetOrganReadings(body, report);
         SetTemperatures(body, report);
+
+        SetRemainingCauses(body, report); // M5
         return report;
     }
 
@@ -86,6 +92,44 @@ public sealed partial class HealthAnalyzerSystem
 
         report.CoreTemperature = heat.CoreTemperature;
         report.ChassisTemperature = heat.ChassisTemperature;
+    }
+
+    /// <summary>
+    /// M5 (plan §3.8-3.10): the toxin load in words with what the liver is doing, radiation with the marrow's stage,
+    /// and the core temperature while it is cold or hot enough to count. Flesh only.
+    /// </summary>
+    private void SetRemainingCauses(EntityUid body, WolfmedVitalsReport report)
+    {
+        if (report.Mechanical)
+            return;
+
+        var toxin = _vitalsToxin.GetLoad(body);
+        if (toxin > 0f)
+        {
+            var (down, outLevel) = _vitalsToxin.GetLevels(body);
+            report.Toxin = toxin;
+            report.ToxinBand = outLevel >= 1f ? WolfmedToxinBand.Coma
+                : down >= 1f ? WolfmedToxinBand.High
+                : WolfmedToxinBand.Low;
+            report.Liver = _vitalsToxin.GetLiver(body);
+        }
+
+        var radiation = _vitalsRadiation.GetRadiation(body);
+        if (radiation > 0f)
+        {
+            report.Radiation = radiation;
+            report.MarrowLoss = _vitalsRadiation.GetMarrowLossRate(body);
+            report.RadiationBand = report.MarrowLoss > 0f ? WolfmedRadiationBand.Failing
+                : _vitalsRadiation.RegenFactor(body) <= 0f ? WolfmedRadiationBand.Suppressed
+                : WolfmedRadiationBand.Low;
+        }
+
+        var (coldDown, _, heatDown, _) = _vitalsTemperature.GetLevels(body);
+        if ((coldDown > 0f || heatDown > 0f) && _vitalsTemperature.GetCore(body) is { } core)
+        {
+            report.Core = core;
+            report.CoreCold = coldDown > 0f;
+        }
     }
 
     /// <summary>
@@ -208,11 +252,18 @@ public sealed partial class HealthAnalyzerSystem
             WolfmedRevivalSystem.NoHeart => WolfmedDefibVerdict.NoHeart,
             WolfmedRevivalSystem.PulsePresent => WolfmedDefibVerdict.PulsePresent,
             WolfmedRevivalSystem.NoBlood => WolfmedDefibVerdict.NoBlood,
+            WolfmedRevivalSystem.TooCold => WolfmedDefibVerdict.TooCold, // M5
             _ => WolfmedDefibVerdict.Unrevivable,
         };
 
         if (report.Verdict == WolfmedDefibVerdict.Unrevivable)
             report.VerdictReason = refusal;
+
+        if (report.Verdict == WolfmedDefibVerdict.TooCold)
+        {
+            report.VerdictCore = _vitalsTemperature.GetCore(body) ?? 0f;
+            report.VerdictRewarm = _vitalsTemperature.GetLines(body)?.ColdArrest ?? 0f;
+        }
 
         if (report.Verdict != WolfmedDefibVerdict.NoBlood)
             return;

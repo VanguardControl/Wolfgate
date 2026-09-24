@@ -22,8 +22,8 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 /// <see cref="WolfmedInfectionRiskBehavior"/> carries <see cref="WolfmedInfectionComponent"/> and gains
 /// progress on a slow batched tick, scaled by that risk, by what has been done to the wound and by
 /// whether something dirty has been in it. Past the profile's thresholds it hurts and widens (local),
-/// then feverish and toxic (spreading), then it feeds <see cref="WolfmedSepsisComponent"/> on the body,
-/// which is the stage that kills.
+/// then feverish (spreading), then it feeds <see cref="WolfmedSepsisComponent"/> on the body, which is the
+/// stage that kills. M5 (OD13): neither stage deals Poison; the toxin load is its own route.
 /// </summary>
 /// <remarks>
 /// One tick walks only wounds that are already contaminated and bodies that are already septic, so the
@@ -39,8 +39,6 @@ public sealed class WolfmedInfectionSystem : EntitySystem
     /// <summary>Alert shown while the patient is septic.</summary>
     public static readonly ProtoId<AlertPrototype> SepsisAlert = "WolfmedSepsis";
 
-    private static readonly ProtoId<DamageTypePrototype> Poison = "Poison";
-
     /// <summary>Seconds between batches. Nothing in the model needs finer resolution than this.</summary>
     private const float TickSeconds = 5f;
 
@@ -52,9 +50,9 @@ public sealed class WolfmedInfectionSystem : EntitySystem
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private TemperatureSystem _temperature = default!;
-    [Dependency] private WolfmedDamageableSystem _damageable = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private Life.WolfmedBodyTemperatureSystem _bodyTemperature = default!; // M5
 
     private float _accumulator;
 
@@ -251,12 +249,12 @@ public sealed class WolfmedInfectionSystem : EntitySystem
             }
         }
 
-        // A corpse does not run a fever or take more poison; the damage had no ceiling on a dead body.
+        // A corpse does not run a fever. M5 (OD13): a spreading infection no longer deals Poison; toxins are their own
+        // route, and sepsis has its own brain drain.
         if (infection.Stage < WolfmedInfectionStage.Spreading || body is not { } host || _mobState.IsDead(host))
             return;
 
         Fever(host, profile, minutes);
-        _damageable.ChangeDamage(host, Damage(profile.SpreadingPoisonPerMinute * minutes), ignoreResistances: true);
 
         if (infection.Stage == WolfmedInfectionStage.Septic && _config.GetCVar(WolfmedCVars.SepsisEnabled))
             EnsureComp<WolfmedSepsisComponent>(host);
@@ -293,14 +291,8 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         if (_mobState.IsDead(body))
             return;
 
+        // M5 (OD13): sepsis deals no Poison. It kills through its own brain drain past wolfmed.arrest_sepsis.
         Fever(body, profile, minutes);
-
-        // A quarter of the rate at onset, the whole of it at 100: ignoring sepsis kills, noticing it late
-        // still leaves a window.
-        var scale = 0.25f + 0.75f * body.Comp.Progress / 100f;
-        _damageable.ChangeDamage(body.Owner,
-            Damage(profile.SepsisPoisonPerMinute * minutes * scale),
-            ignoreResistances: true);
     }
 
     /// <summary>Spreading wounds and dead limbs, both of which keep a systemic infection fed.</summary>
@@ -324,12 +316,13 @@ public sealed class WolfmedInfectionSystem : EntitySystem
 
     private void Fever(EntityUid body, WolfmedInfectionProfilePrototype profile, float minutes)
     {
-        if (!TryComp(body, out TemperatureComponent? temperature) ||
-            temperature.CurrentTemperature >= profile.FeverTemperature)
+        // M5 (plan §3.10): never past the point where this species' heat starts to count; a fever never Downs.
+        var ceiling = _bodyTemperature.FeverCeiling(body, profile.FeverTemperature);
+        if (!TryComp(body, out TemperatureComponent? temperature) || temperature.CurrentTemperature >= ceiling)
             return;
 
         _temperature.ForceChangeTemperature(body,
-            Math.Min(profile.FeverTemperature, temperature.CurrentTemperature + profile.FeverRise * minutes * 60f),
+            Math.Min(ceiling, temperature.CurrentTemperature + profile.FeverRise * minutes * 60f),
             temperature);
     }
 
@@ -362,9 +355,6 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         if (infection.Progress != oldProgress || infection.Stage != oldStage || infection.Cleaned != oldCleaned)
             Dirty(wound.Owner, infection);
     }
-
-    private static DamageSpecifier Damage(FixedPoint2 poison) =>
-        new() { DamageDict = { [Poison] = poison } };
 
     private IEnumerable<EntityUid> Parts(EntityUid body)
     {

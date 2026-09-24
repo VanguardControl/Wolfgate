@@ -75,6 +75,8 @@
     Circulation: wolfmed-cause-hypoxia-source-circulation
     Sepsis: wolfmed-cause-hypoxia-source-sepsis
     Sedation: wolfmed-cause-hypoxia-source-sedation
+    Toxin: wolfmed-cause-hypoxia-source-toxin # M5
+    Heat: wolfmed-cause-hypoxia-source-heat
 
 - type: wolfmedConsciousnessCause
   id: Sedation
@@ -125,6 +127,9 @@
     ArrestSepsis: wolfmed-cause-arrest-source-sepsis
     ArrestShock: wolfmed-cause-arrest-source-shock
     ArrestOther: wolfmed-cause-arrest-source-other
+    ArrestCold: wolfmed-cause-arrest-source-cold # M5
+    ArrestToxin: wolfmed-cause-arrest-source-toxin
+    ArrestHeat: wolfmed-cause-arrest-source-heat
 
 - type: wolfmedConsciousnessCause
   id: Shutdown

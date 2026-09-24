@@ -71,6 +71,12 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
             Tick(part);
     }
 
+    /// <summary>
+    /// M5 (P21): the part and the wound the residue is biting through right now. The wound rules put every wound
+    /// the residue's damage makes into this one instead of a plain burn.
+    /// </summary>
+    public (EntityUid Part, ProtoId<WoundPrototype> Wound)? ResidueTarget { get; private set; }
+
     private void Tick(EntityUid part)
     {
         if (TerminatingOrDeleted(part) ||
@@ -79,15 +85,26 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
             return;
 
         residue.Accumulator = 0f;
-        if (FindResidue(part) is not { } behavior)
+        if (FindResidue(part, out var wound) is not { } behavior)
         {
             RemComp<WolfmedChemicalBurnComponent>(part);
             return;
         }
 
         residue.Interval = Interval(behavior);
-        if (!behavior.Damage.Empty)
+        if (behavior.Damage.Empty)
+            return;
+
+        // M5 (P21): the residue deepens its own chemical burn, never the plain one.
+        ResidueTarget = (part, wound);
+        try
+        {
             _routing.TryApplyPartDamage(body, part, behavior.Damage, healWounds: false);
+        }
+        finally
+        {
+            ResidueTarget = null;
+        }
     }
 
     /// <summary>Arms or disarms the part from the chemical burns it is actually carrying.</summary>
@@ -135,9 +152,13 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
     }
 
     /// <summary>The worst residue on the part, or null when nothing there is still corroding.</summary>
-    private WolfmedCausticResidueBehavior? FindResidue(EntityUid part)
+    private WolfmedCausticResidueBehavior? FindResidue(EntityUid part) => FindResidue(part, out _);
+
+    /// <summary>The worst residue on the part and the wound prototype carrying it.</summary>
+    private WolfmedCausticResidueBehavior? FindResidue(EntityUid part, out ProtoId<WoundPrototype> source)
     {
         WolfmedCausticResidueBehavior? found = null;
+        source = default;
         foreach (var wound in _wounds.GetWounds(part))
         {
             if (wound.Comp.State is WoundState.Healed or WoundState.Scarred ||
@@ -146,7 +167,10 @@ public sealed class WolfmedChemicalBurnSystem : EntitySystem
                 continue;
 
             if (found == null || behavior.Interval < found.Interval)
+            {
                 found = behavior;
+                source = wound.Comp.Prototype;
+            }
         }
 
         return found;

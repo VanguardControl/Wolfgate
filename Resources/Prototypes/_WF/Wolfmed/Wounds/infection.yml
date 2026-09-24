@@ -25,11 +25,11 @@
   maxSeverityAdded: 15
   feverTemperature: 313
   feverRise: 0.05
-  spreadingPoisonPerMinute: 1
+  # M5 (OD13): spreadingPoisonPerMinute and sepsisPoisonPerMinute are gone. Neither stage deals Poison any more;
+  # sepsis kills through its own brain drain, and the toxin load is a route of its own.
   sepsisPerMinute: 12
   sepsisRecoveryPerMinute: 8
   sepsisAntibioticPerUnit: 6
-  sepsisPoisonPerMinute: 6
   tourniquetOnset: 600
   warnFraction: 0.6
   reattachGrace: 300

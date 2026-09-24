@@ -26,6 +26,7 @@ public sealed class WolfmedWoundRuleSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private WolfmedChemicalBurnSystem _chemicalBurns = default!; // M5 (P21)
 
     /// <summary>Damage types explosions scale the severity of, mirroring WoundSystem.HandlePartDamageApplied.</summary>
     private static readonly HashSet<ProtoId<DamageTypePrototype>> ExplosionScaledTypes =
@@ -120,6 +121,14 @@ public sealed class WolfmedWoundRuleSystem : EntitySystem
         var hit = new WolfmedPartDamageEvent(args.Body, part, args.DamageType, args.Amount, cause,
             args.Origin, args.Tool);
         RaiseLocalEvent(ref hit);
+
+        // M5 (P21): acid residue still on the skin deepens the chemical burn it came from, never a plain burn.
+        if (_chemicalBurns.ResidueTarget is { } residue && residue.Part == part.Owner)
+        {
+            _wounds.CreateOrMergeWound(part.AsNullable(), residue.Wound, args.Amount);
+            args.SuppressDefault = true;
+            return;
+        }
 
         if (!HasRules(args.DamageType))
             return;
