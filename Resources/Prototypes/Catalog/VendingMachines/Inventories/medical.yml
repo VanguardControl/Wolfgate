@@ -13,6 +13,7 @@
     WolfmedAnalgesicPill: 6 # WOLFGATE (CONSC): the weak rung of the painkiller ladder.
     WolfmedOpiateChemistryBottle: 2 # WOLFGATE (CONSC): the strong rung.
     WolfmedStimPen: 2 # WOLFGATE (CONSC): thirty seconds on your feet, then the crash.
+    WolfmedNaloxonePen: 2 # WOLFGATE (M2): OD14, the opioid antagonist that reverses an overdose.
     WolfmedSplint: 4 # WOLFGATE (V5): field treatment for a fracture, short of the table.
     PillCanisterTricordrazine: 3 # Mono
     Syringe: 5

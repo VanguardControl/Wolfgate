@@ -178,6 +178,10 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         else if (core != null && _life.GetBrainActivity(hud.Owner) < BrainWarn)
             AddCondition(found, TargetBodyPart.Head, WolfmedSyntheticCondition.BrainDamage);
 
+        // M2 (OD10): a repaired core shows it for a while, in place of the trauma a brain would carry.
+        if (HasComp<Content.Shared._WF.Wolfmed.Life.WolfmedCoreRestoredComponent>(hud.Owner) && !offline)
+            AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.CoreRestored);
+
         var faults = Order(hud.Comp.Faults, found);
         var advice = faults.Count > 0 ? faults[0].Advice : string.Empty;
         var power = _charge.TryGetSiliconBattery(hud.Owner, out var battery) && battery.MaxCharge > 0f

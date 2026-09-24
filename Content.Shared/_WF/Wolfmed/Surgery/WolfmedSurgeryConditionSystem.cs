@@ -137,7 +137,7 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     private void OnBrainRepairCheck(Entity<WolfmedSurgeryBrainRepairEffectComponent> ent,
         ref SurgeryStepCompleteCheckEvent args)
     {
-        if (!TryFindOrgan(args.Part, "brain", out var organ) || organ.Comp.Health < organ.Comp.MaxHealth)
+        if (!TryFindOrgan(args.Part, ent.Comp.Slot, out var organ) || organ.Comp.Health < organ.Comp.MaxHealth) // M2: slot
             args.Cancelled = true;
     }
 

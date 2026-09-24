@@ -108,13 +108,15 @@ public sealed class WolfmedTreatmentRestrictionTest : GameTest
             // bleeding `minimumSeverity: 9`, so the bleed is there for the suture's bloodlossModifier to close
             // rather than having lapsed on its own.
             Assert.That(routing.TryApplyPartDamage(body, cutArm, Spec("Slash", 11), null, ignoreResistances: true));
-            Assert.That(routing.TryApplyPartDamage(body, bruisedArm, Spec("Blunt", 10), null, ignoreResistances: true));
+            // M2: 7, under BluntWound's bleeding `minimumSeverity: 8`. At 10 a quarter of bruises rolled a bleed that
+            // the suture then stopped, and the assertion below failed about one run in four.
+            Assert.That(routing.TryApplyPartDamage(body, bruisedArm, Spec("Blunt", 7), null, ignoreResistances: true));
             var cut = FindWound(entities, wounds, cutArm, "SlashWound");
             var bruise = FindWound(entities, wounds, bruisedArm, "BluntWound");
 
             Assert.That(healing.TryApplyHealing(body, bruisedArm, (suture, sutureHealing), null, out _, out _),
                 Is.False, "a suture is not a bruise pack.");
-            Assert.That(bruise.Comp.Severity, Is.EqualTo(FixedPoint2.New(10)));
+            Assert.That(bruise.Comp.Severity, Is.EqualTo(FixedPoint2.New(7)));
 
             Assert.That(healing.TryApplyHealing(body, cutArm, (suture, sutureHealing), null, out _, out var stopped));
             Assert.Multiple(() =>

@@ -140,7 +140,7 @@
       - !type:WolfmedPainRelief
         tier: Strong
         strength: 45
-        sedation: 0.012
+        sedationPerUnit: 0.11 # WOLFGATE (M2): sedation aims for this per unit in the blood (plan §3.4); a 5 u dose stays under 0.6
       - !type:GenericStatusEffect
         key: Adrenaline
         component: IgnoreSlowOnDamage
@@ -176,7 +176,7 @@
       - !type:WolfmedPainRelief
         tier: Strong
         strength: 80
-        sedation: 0.022
+        sedationPerUnit: 0.12 # WOLFGATE (M2): sedation aims for this per unit in the blood (plan §3.4); a 5 u dose stays under 0.6
       - !type:GenericStatusEffect
         key: Adrenaline
         component: IgnoreSlowOnDamage

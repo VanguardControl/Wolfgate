@@ -14,5 +14,6 @@
     WolfmedAnalgesicPill: 4 # WOLFGATE (CONSC): enough to get back on your feet.
     WolfmedAnalgesicPen: 4 # WOLFGATE (playtest 1): a painkiller a Downed player can use on themselves.
     WolfmedOpiatePen: 2 # WOLFGATE (playtest 1): the strong rung as a pen.
+    WolfmedNaloxonePen: 1 # WOLFGATE (M2): OD14, reverses an overdose.
   contrabandInventory:
     PowerCellSmall: 2

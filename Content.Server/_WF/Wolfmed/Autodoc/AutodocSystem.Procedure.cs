@@ -361,7 +361,10 @@ public sealed partial class AutodocSystem
             return;
         }
 
-        if (_relief.GetSedation(body) >= _sedationCap)
+        // M2 (plan §3.4): sedation aims for the units in the blood, so the pod pushes only what keeps that aim under
+        // its cap. It tops up as the dose is used, the way an anaesthetist runs a drip.
+        dose = CapAnaestheticDose(ent, body, dose);
+        if (_relief.GetSedation(body) >= _sedationCap || dose < MinAnaestheticPush)
         {
             if (!ent.Comp.SaidSedationLimit)
             {
@@ -380,6 +383,31 @@ public sealed partial class AutodocSystem
         ent.Comp.AnaestheticGiven = true;
         if (pushed)
             Sedate(ent, body);
+    }
+
+    /// <summary>M2: a push smaller than this is not worth making; the target is already at the cap.</summary>
+    private const float MinAnaestheticPush = 0.1f;
+
+    /// <summary>
+    /// M2 (plan §3.4): the units that keep the occupant's sedation target under the pod's cap, at the strongest
+    /// sedation per unit among the anaesthetics it may push. A dose that sedates nothing is not capped.
+    /// </summary>
+    private float CapAnaestheticDose(Entity<AutodocComponent> ent, EntityUid body, float dose)
+    {
+        if (!_protos.TryIndex(ent.Comp.Reagents, out var list))
+            return dose;
+
+        var perUnit = list.Reagents
+            .Where(entry => entry.AutodocAdministrable && entry.Role == AutodocReagentRole.Anaesthetic)
+            .Select(entry => _relief.SedationPerUnit(entry.Reagent.Id))
+            .DefaultIfEmpty(0f)
+            .Max();
+
+        if (perUnit <= 0f)
+            return dose;
+
+        var room = _sedationCap - _relief.GetSedationTarget(body);
+        return MathF.Min(dose, MathF.Max(0f, room / perUnit));
     }
 
     /// <summary>The largest anaesthetic dose anything in the queue asks for. One dose covers the run.</summary>

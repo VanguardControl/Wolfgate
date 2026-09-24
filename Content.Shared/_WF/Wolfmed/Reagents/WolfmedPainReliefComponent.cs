@@ -24,11 +24,14 @@ public enum WolfmedPainReliefTier : byte
     Emergency = 4,
 }
 
-/// <summary>One reagent's contribution. Doses stack across reagents and are keyed by reagent id.</summary>
+/// <summary>
+/// One reagent's contribution. Doses stack across reagents and are keyed by reagent id. M2: the sedation a dose
+/// asks for is a target (its units in the blood times the reagent's sedation per unit), not a rate.
+/// </summary>
 public record struct WolfmedPainReliefDose(
     WolfmedPainReliefTier Tier,
     float Strength,
-    float SedationPerSecond,
+    float SedationTarget,
     TimeSpan Ends);
 
 /// <summary>
@@ -80,9 +83,17 @@ public sealed partial class WolfmedPainReliefComponent : Component
     [DataField]
     public float StackShare = 0.35f;
 
-    /// <summary>Sedation lost per second with no strong painkiller in the body.</summary>
+    /// <summary>Sedation lost per second while it is above its target (M2: the target, not "no dose").</summary>
     [DataField]
     public float SedationDecayPerSecond = 0.035f;
+
+    /// <summary>M2: an antagonist holds the sedation target at zero until this time.</summary>
+    [ViewVariables]
+    public TimeSpan? ReversalEnds;
+
+    /// <summary>M2: the highest sedation warning the patient has been given since sedation last fell under it (0 none, 1-3).</summary>
+    [ViewVariables]
+    public int WarnedLevel;
 
     /// <summary>Movement speed multiplier at full sedation.</summary>
     [DataField]

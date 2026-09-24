@@ -613,11 +613,11 @@ public sealed class WolfmedCauseScenarioTest : GameTest
         {
             s.SetAir(map.MapUid, false);
             c = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
-            // A sedating dose that holds sedation at 1.0 while it lasts.
+            // A sedating dose that holds sedation at 1.0 while it lasts. M2: a target past full, reached in 20 s.
             SEntMan.System<WolfmedPainReliefSystem>().AddDose(c, "overdose", WolfmedPainReliefTier.Strong, 0f,
-                TimeSpan.FromSeconds(600), 0.5f);
+                TimeSpan.FromSeconds(600), 1.5f);
         });
-        await RunSeconds(12);
+        await RunSeconds(22);
 
         await Server.WaitAssertion(() =>
         {
@@ -628,7 +628,8 @@ public sealed class WolfmedCauseScenarioTest : GameTest
             // Brain clock forward to the hypoxic line: both now hold the body, hypoxia names it.
             s.Advance(c, 100);
             var comp = Consc(c);
-            Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.Hypoxia), $"oxygenation {s.Life.GetOxygenation(c):0.00}");
+            Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.Hypoxia), $"oxygenation {s.Life.GetOxygenation(c):0.00}, " +
+                $"pressures {string.Join(", ", comp.Pressures.Select(p => $"{p.Key}={p.Value:R}"))}, state {comp.State}");
             Assert.That(comp.Blockers & WolfmedCauseFlags.Sedation, Is.EqualTo(WolfmedCauseFlags.Sedation));
             Assert.That(alerts.GetConditionText(c), Does.Contain("Also: " + Loc.GetString("wolfmed-cause-sedation")));
         });

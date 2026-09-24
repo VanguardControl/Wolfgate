@@ -159,8 +159,8 @@ health-analyzer-wound-brain-activity = brain activity { $activity }%, oxygenatio
 health-analyzer-wound-brain-damage = brain damage, { $activity }% tissue left, oxygenation { $oxygen }%. Brain repair surgery once the patient is breathing.
 health-analyzer-wound-brain-damage-critical = CRITICAL brain damage, { $activity }% tissue left, oxygenation { $oxygen }%. Brain repair surgery now.
 health-analyzer-wound-brain-activity-core = core integrity { $activity }%
-health-analyzer-wound-brain-damage-core = core damage, { $activity }% integrity left. Brain repair surgery.
-health-analyzer-wound-brain-damage-critical-core = CRITICAL core damage, { $activity }% integrity left. Brain repair surgery now.
+health-analyzer-wound-brain-damage-core = core damage, { $activity }% integrity left. Core repair surgery.
+health-analyzer-wound-brain-damage-critical-core = CRITICAL core damage, { $activity }% integrity left. Core repair surgery now, then the restart button.
 health-analyzer-wound-shutdown = [color=#d63c2c]SHUTDOWN[/color] - no power or no pump
 
 # Overheating on a wound host burns the chassis instead of killing it outright.

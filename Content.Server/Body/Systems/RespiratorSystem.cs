@@ -41,6 +41,7 @@ public sealed partial class RespiratorSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedBreathingSystem _wolfmedBreathing = default!; // WOLFGATE (M1a)
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedBreathingAlertSystem _wolfmedBreathingAlert = default!; // WOLFGATE (M2)
 
     private static readonly ProtoId<MetabolismGroupPrototype> GasId = new("Gas");
 
@@ -303,7 +304,7 @@ public sealed partial class RespiratorSystem : EntitySystem
             var organs = _bodySystem.GetBodyOrganEntityComps<LungComponent>((ent, null));
             foreach (var entity in organs)
             {
-                _alertsSystem.ShowAlert(ent, entity.Comp1.Alert);
+                _alertsSystem.ShowAlert(ent, _wolfmedBreathingAlert.SuffocationAlert(ent, entity.Comp1.Alert)); // WOLFGATE (M2): "Can't breathe: no air" on a wound host
             }
         }
 

@@ -22,6 +22,7 @@ public sealed partial class HealingSystem
     [Dependency] private WoundHealingSystem _woundHealing = default!; // WOLFGATE: HOOK 8
     [Dependency] private WoundBleedingSystem _woundBleeding = default!;
     [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedFluidLossSystem _wfFluidLoss = default!; // M1b
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem _wfInfection = default!; // M2
 
     private List<ProtoId<DamageContainerPrototype>>? GetHealingContainers(HealingComponent healing) =>
         healing.DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList();
@@ -56,12 +57,21 @@ public sealed partial class HealingSystem
                 healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier, healing.HealWounds)
             : null;
 
+        // M2 (P20): a suture closes what it treats, and infection reads that as a treated wound.
+        EntityUid? suturedPart = HasComp<Content.Shared._WF.Wolfmed.Wounds.WolfmedSutureComponent>(used)
+            ? requestedPart ?? _woundHealing.ResolveHealingPart(entity, null, treatable, GetHealingContainers(healing),
+                healing.TreatmentCapabilities, healing.AllowedWoundStages, healing.BloodlossModifier, healing.HealWounds)
+            : null;
+
         if (!_woundHealing.TryApplyHealing(entity, requestedPart, (used, healing), args.User,
                 out var healed, out var stoppedBleeding))
             return;
 
         if (burnPart is { } dressedPart)
             _wfFluidLoss.Dress(dressedPart);
+
+        if (suturedPart is { } closedPart)
+            _wfInfection.MarkSutured(closedPart, healing.TreatedDamageTypes?.Select(type => type.Id).ToList());
 
         if (healing.ModifyBloodLevel != 0)
             _bloodstreamSystem.TryModifyBloodLevel(entity.Owner, healing.ModifyBloodLevel);

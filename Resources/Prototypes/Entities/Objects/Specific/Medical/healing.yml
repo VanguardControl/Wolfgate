@@ -191,6 +191,7 @@
   - type: Item
     heldPrefix: medicated-suture
     storedRotation: -90
+  - type: WolfmedSuture # WOLFGATE (M2): P20, what it closes infects at the Sutured rate
   - type: Healing
     damageContainers:
     - Biological

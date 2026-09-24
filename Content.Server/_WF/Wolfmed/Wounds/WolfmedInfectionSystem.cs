@@ -99,6 +99,48 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         args.Treated |= Treat(body, args.Units);
     }
 
+    /// <summary>
+    /// M2 (P20): a suture went into this part. Every open wound it treats (its prototype shares a damage type with
+    /// <paramref name="types"/>, or any wound when that is null) counts as sutured for infection. Returns how many.
+    /// </summary>
+    public int MarkSutured(EntityUid part, IReadOnlyCollection<string>? types)
+    {
+        if (!TryComp(part, out WoundableComponent? woundable))
+            return 0;
+
+        var marked = 0;
+        foreach (var wound in _wounds.GetWounds((part, woundable)))
+        {
+            if (wound.Comp.State is WoundState.Healed or WoundState.Scarred ||
+                !_prototypes.TryIndex(wound.Comp.Prototype, out var prototype) ||
+                types != null && !prototype.DamageTypes.Keys.Any(type => types.Contains(type.Id)))
+                continue;
+
+            EnsureComp<WolfmedSuturedComponent>(wound).TreatedSeverity = wound.Comp.Severity;
+            marked++;
+        }
+
+        return marked;
+    }
+
+    /// <summary>
+    /// The Sutured openness for a sutured wound, or null for one that is not, or whose suture no longer holds because
+    /// the wound grew wolfmed.suture_treatment_lost_severity past it (the marker goes then).
+    /// </summary>
+    private float? SuturedOpenness(EntityUid wound, WoundComponent core, WolfmedInfectionProfilePrototype profile)
+    {
+        if (!TryComp(wound, out WolfmedSuturedComponent? sutured))
+            return null;
+
+        if (core.Severity - sutured.TreatedSeverity >= FixedPoint2.New(_config.GetCVar(WolfmedCVars.SutureTreatmentLostSeverity)))
+        {
+            RemComp<WolfmedSuturedComponent>(wound);
+            return null;
+        }
+
+        return profile.TreatmentMultipliers.GetValueOrDefault(BleedingTreatment.Sutured, 0f);
+    }
+
     private void OnSepsisShutdown(Entity<WolfmedSepsisComponent> body, ref ComponentShutdown args)
     {
         if (!TerminatingOrDeleted(body))
@@ -167,6 +209,10 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         // M1b (P20): a burn has no bleed to bandage; its dressing is the treatment.
         if (treatment == BleedingTreatment.None && HasComp<WolfmedDressedComponent>(wound))
             openness = profile.DressedMultiplier;
+
+        // M2 (P20): a sutured wound is closed at the profile's Sutured rate, whatever its bleeding says.
+        if (SuturedOpenness(wound, core, profile) is { } sutured)
+            openness = MathF.Min(openness, sutured);
 
         if (infection.Cleaned && infection.Stage < WolfmedInfectionStage.Spreading)
             SetProgress(wound, infection.Progress - profile.CleanDecayPerMinute * minutes, profile);

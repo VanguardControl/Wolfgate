@@ -1,11 +1,15 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared.Body.Systems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Rejuvenate;
+using Robust.Shared.Configuration;
 using Robust.Shared.Network;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._WF.Wolfmed.Reagents;
@@ -16,8 +20,10 @@ namespace Content.Shared._WF.Wolfmed.Reagents;
 /// </summary>
 public sealed class WolfmedPainReliefSystem : EntitySystem
 {
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly PainSystem _pain = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
@@ -97,10 +103,25 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
     /// Strong painkillers hide the wound slowdowns, so a player can walk on a broken leg. The fracture keeps
     /// worsening underneath, which is the trade.
     /// </summary>
+    /// <remarks>
+    /// M2 (P30): read off the doses, like <see cref="EndsFaint"/>. The strongest tier alone let a stimulant on top of
+    /// a strong painkiller bring the slowdowns back, because Stimulant outranks Strong.
+    /// </remarks>
     public bool MasksSlowdown(EntityUid body)
     {
-        return TryComp(body, out WolfmedPainReliefComponent? relief) &&
-               relief.Tier is WolfmedPainReliefTier.Strong or WolfmedPainReliefTier.Emergency;
+        if (!TryComp(body, out WolfmedPainReliefComponent? relief))
+            return false;
+
+        if (relief.Tier is WolfmedPainReliefTier.Strong or WolfmedPainReliefTier.Emergency)
+            return true;
+
+        foreach (var dose in relief.Doses.Values)
+        {
+            if (dose.Tier is WolfmedPainReliefTier.Strong or WolfmedPainReliefTier.Emergency)
+                return true;
+        }
+
+        return false;
     }
 
     public float GetSedation(Entity<WolfmedPainReliefComponent?> body)
@@ -125,11 +146,70 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
     }
 
     /// <summary>
+    /// M2 (plan §3.4): the sedation the body is moving toward, 0 to 1. Every sedating dose's units in the blood
+    /// times its sedation per unit; zero while an antagonist is in the blood.
+    /// </summary>
+    public float GetSedationTarget(Entity<WolfmedPainReliefComponent?> body)
+    {
+        if (!Resolve(body, ref body.Comp, false) || body.Comp.ReversalEnds > _timing.CurTime)
+            return 0f;
+
+        var target = 0f;
+        foreach (var dose in body.Comp.Doses.Values)
+            target += dose.SedationTarget;
+
+        return Math.Clamp(target, 0f, 1f);
+    }
+
+    /// <summary>
+    /// M2: the sedation a reagent aims for per unit in the blood, from its <see cref="WolfmedPainRelief"/> effect.
+    /// 0 for anything that does not sedate. The autodoc doses against it.
+    /// </summary>
+    public float SedationPerUnit(string reagent)
+    {
+        if (!_prototypes.TryIndex<ReagentPrototype>(reagent, out var prototype) || prototype.Metabolisms == null)
+            return 0f;
+
+        var perUnit = 0f;
+        foreach (var entry in prototype.Metabolisms.Values)
+        {
+            foreach (var effect in entry.Effects)
+            {
+                if (effect is WolfmedPainRelief relief)
+                    perUnit = MathF.Max(perUnit, relief.SedationPerUnit);
+            }
+        }
+
+        return perUnit;
+    }
+
+    /// <summary>
+    /// M2 (OD14): an antagonist takes <paramref name="amount"/> off the sedation at once and holds the target at zero
+    /// for <paramref name="duration"/>, so the painkiller still in the blood cannot pull it back up meanwhile.
+    /// </summary>
+    public void ReverseSedation(EntityUid body, float amount, TimeSpan duration)
+    {
+        if (!_net.IsServer || !TryComp(body, out WolfmedPainReliefComponent? comp))
+            return;
+
+        var ends = _timing.CurTime + duration;
+        if (comp.ReversalEnds == null || comp.ReversalEnds < ends)
+            comp.ReversalEnds = ends;
+
+        comp.Sedation = Math.Clamp(comp.Sedation - MathF.Max(0f, amount), 0f, 1f);
+        _consciousness.SetExternalPressure(body, SedationPressure, GetRespiratoryDepression((body, comp)));
+        CheckWarnings((body, comp));
+        _movement.RefreshMovementSpeedModifiers(body);
+        Dirty(body, comp);
+    }
+
+    /// <summary>
     /// Adds or refreshes one reagent's dose. Doses are keyed by reagent, so two painkillers stack while one
-    /// painkiller metabolising every tick does not.
+    /// painkiller metabolising every tick does not. M2: <paramref name="sedationTarget"/> is the sedation this dose
+    /// asks for right now (its units in the blood times the reagent's sedation per unit).
     /// </summary>
     public void AddDose(EntityUid body, string key, WolfmedPainReliefTier tier, float strength,
-        TimeSpan duration, float sedationPerSecond)
+        TimeSpan duration, float sedationTarget)
     {
         if (!_net.IsServer || tier == WolfmedPainReliefTier.None || duration <= TimeSpan.Zero)
             return;
@@ -144,7 +224,7 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
             comp.EmergencyEnds = _timing.CurTime + duration;
         }
 
-        comp.Doses[key] = new WolfmedPainReliefDose(tier, strength, sedationPerSecond,
+        comp.Doses[key] = new WolfmedPainReliefDose(tier, strength, MathF.Max(0f, sedationTarget),
             _timing.CurTime + duration);
         Recalculate((body, comp));
         _consciousness.Refresh(body);
@@ -199,6 +279,9 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
             changed = true;
         }
 
+        if (body.Comp.ReversalEnds is { } reversal && now >= reversal)
+            body.Comp.ReversalEnds = null;
+
         if (UpdateSedation(body, elapsed) || changed)
             Recalculate(body);
 
@@ -206,28 +289,28 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
             _consciousness.Refresh(body);
 
         if (body.Comp.Doses.Count == 0 && body.Comp.Sedation <= 0f &&
-            body.Comp.EmergencyEnds == null && body.Comp.CrashEnds == null)
+            body.Comp.EmergencyEnds == null && body.Comp.CrashEnds == null && body.Comp.ReversalEnds == null)
             _finished.Add(body);
     }
 
     /// <summary>
-    /// Sedation rises while a sedating painkiller is in the body and falls back when it is not. Past the
-    /// threshold it depresses breathing, which is the lethal end of an overdose today.
+    /// M2 (plan §3.4): sedation moves toward its target, rising at <c>wolfmed.sedation_rise</c> and falling at
+    /// <see cref="WolfmedPainReliefComponent.SedationDecayPerSecond"/>, so a steady dose levels off. Past the
+    /// threshold it depresses breathing, which is the lethal end of an overdose.
     /// </summary>
     private bool UpdateSedation(Entity<WolfmedPainReliefComponent> body, float elapsed)
     {
-        var gain = 0f;
-        foreach (var dose in body.Comp.Doses.Values)
-            gain += dose.SedationPerSecond;
-
+        var target = GetSedationTarget(body.AsNullable());
         var old = body.Comp.Sedation;
-        body.Comp.Sedation = Math.Clamp(gain > 0f
-            ? body.Comp.Sedation + gain * elapsed
-            : body.Comp.Sedation - body.Comp.SedationDecayPerSecond * elapsed, 0f, 1f);
+        var rise = MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.SedationRise));
+        body.Comp.Sedation = Math.Clamp(old < target
+            ? MathF.Min(target, old + rise * elapsed)
+            : MathF.Max(target, old - body.Comp.SedationDecayPerSecond * elapsed), 0f, 1f);
 
         // BRAIN: respiratory depression is a pressure and an oxygenation input, never damage. The pressure
         // is what puts the patient out; GetRespiratoryDepression is what starves the brain.
         _consciousness.SetExternalPressure(body.Owner, SedationPressure, GetRespiratoryDepression(body.AsNullable()));
+        CheckWarnings(body);
 
         if (Math.Abs(old - body.Comp.Sedation) < 0.0005f)
             return false;
@@ -235,6 +318,39 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
         _movement.RefreshMovementSpeedModifiers(body);
         Dirty(body);
         return true;
+    }
+
+    /// <summary>
+    /// M2 (plan §3.4): one warning each time sedation climbs past <c>wolfmed.sedation_warn</c>, the breathing line
+    /// and <c>wolfmed.sedation_warn_heavy</c>. A line re-arms once sedation falls back under it.
+    /// </summary>
+    private void CheckWarnings(Entity<WolfmedPainReliefComponent> body)
+    {
+        if (!_net.IsServer)
+            return;
+
+        var level = SedationWarningLevel(body.Comp.Sedation, body.Comp.SedationAirlossThreshold);
+        if (level < body.Comp.WarnedLevel)
+            body.Comp.WarnedLevel = level;
+
+        while (body.Comp.WarnedLevel < level)
+        {
+            body.Comp.WarnedLevel++;
+            var ev = new WolfmedSedationWarningEvent(body, body.Comp.WarnedLevel);
+            RaiseLocalEvent(ref ev);
+        }
+    }
+
+    /// <summary>How many of the three warning lines a sedation is at or past, in order: drowsy, breathing, barely awake.</summary>
+    public int SedationWarningLevel(float sedation, float breathingLine)
+    {
+        if (sedation < _cfg.GetCVar(WolfmedCVars.SedationWarn))
+            return 0;
+
+        if (sedation < breathingLine)
+            return 1;
+
+        return sedation < _cfg.GetCVar(WolfmedCVars.SedationWarnHeavy) ? 2 : 3;
     }
 
     /// <summary>The bill for an emergency pen: every part's pain goes up by a data multiplier.</summary>
@@ -325,6 +441,10 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
             RemComp<WolfmedPainReliefComponent>(uid);
     }
 }
+
+/// <summary>M2: broadcast when sedation climbs past a warning line (1 drowsy, 2 breathing slows, 3 barely awake). Server only.</summary>
+[ByRefEvent]
+public readonly record struct WolfmedSedationWarningEvent(EntityUid Body, int Level);
 
 /// <summary>Broadcast when a body's strongest active painkiller tier changes. Server only.</summary>
 [ByRefEvent]

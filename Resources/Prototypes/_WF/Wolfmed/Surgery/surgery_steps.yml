@@ -441,3 +441,57 @@
     state: bonesetter
   - type: WolfmedSurgeryRelocateJointEffect
   - type: SurgeryStepEmoteEffect
+
+# Core repair (M2, OD10) ------------------------------------------------------
+# The three chassis steps: the wrench opens the housing, the multitool re-flashes the core, the welder seals it.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepUnseatCore
+  name: Unbolt the core housing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedHullPlate
+    add:
+    - type: WolfmedCoreHousingOpen
+    duration: 4
+  - type: Sprite
+    sprite: Objects/Tools/wrench.rsi
+    state: icon
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepRepairCore
+  name: Re-flash the positronic core
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedCoreProbe
+    duration: 8
+  - type: Sprite
+    sprite: _NF/Objects/Tools/multitool.rsi
+    state: icon
+  - type: WolfmedSurgeryBrainRepairEffect
+    slot: posbrain
+  - type: SurgeryStepEmoteEffect
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepReseatCore
+  name: Weld the core housing shut
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedHullWeld
+    remove:
+    - type: WolfmedCoreHousingOpen
+    duration: 4
+  - type: Sprite
+    sprite: Objects/Tools/welder.rsi
+    state: icon
+  - type: SurgeryStepEmoteEffect

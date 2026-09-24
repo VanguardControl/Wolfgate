@@ -358,3 +358,25 @@
     - SurgeryStepRelocateJoint
   - type: WolfmedSurgeryWoundCondition
     woundPrototype: WolfmedDislocationWound
+
+# Core repair (M2, OD10) ------------------------------------------------------
+# The positronic core's answer to brain repair: a destroyed core put back together where it sits, so the chassis's
+# own mind comes back on the restart button rather than a different person in a new core. Chassis steps: unbolt the
+# housing, re-flash the core, weld the housing shut. No trauma follows on a machine.
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRepairCore
+  name: Repair Positronic Core
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    steps:
+    - SurgeryStepUnseatCore
+    - SurgeryStepRepairCore
+    - SurgeryStepReseatCore
+  - type: SurgeryPartCondition
+    part: Torso
+  - type: WolfmedSurgeryOrganDamagedCondition
+    slot: posbrain
+    anyDamage: true

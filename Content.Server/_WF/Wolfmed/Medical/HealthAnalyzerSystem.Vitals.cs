@@ -24,6 +24,7 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedRevivalSystem _vitalsRevival = default!;
     [Dependency] private WolfmedBreathingSystem _vitalsBreathing = default!;
     [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedFluidLossSystem _vitalsFluidLoss = default!; // M1b
+    [Dependency] private WolfmedCardSystem _vitalsCard = default!; // M2
 
     /// <summary>State and cause, breathing, circulation and the defib verdict, or null when consciousness does not run this body.</summary>
     public WolfmedVitalsReport? BuildVitals(EntityUid body)
@@ -68,7 +69,48 @@ public sealed partial class HealthAnalyzerSystem
         }
 
         SetVerdict(body, report);
+        SetRoutesAndRestart(body, report);
         return report;
+    }
+
+    /// <summary>
+    /// M2 (plan §5.5): the routes making the patient worse, the "After a restart" memory with its transfusion numbers
+    /// while blood is the cause still present, and a dead chassis's restart verdict. Also tells the patient's card a
+    /// medic is reading them.
+    /// </summary>
+    private void SetRoutesAndRestart(EntityUid body, WolfmedVitalsReport report)
+    {
+        report.Routes = _life.GetActiveRoutes(body);
+        _vitalsCard.MarkExamined(body);
+
+        if (_life.GetRestartMemory(body) is { } memory)
+        {
+            report.RestartCause = memory.Cause;
+            report.RestartPresent = memory.Present;
+            if (memory.Present && memory.Cause == WolfmedCauseSource.ArrestBlood)
+            {
+                var (units, safe) = _life.GetTransfusionGuidance(body);
+                report.RestartUnits = units;
+                report.RestartSafeUnits = safe;
+                report.RestartGraceSeconds = _life.GetPostShockGraceSeconds(body);
+                report.RestartSafeLine = _vitalsCfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f;
+            }
+        }
+
+        if (!report.Mechanical || report.State != WolfmedVitalsState.Dead)
+            return;
+
+        report.Restart = _vitalsRevival.GetRestartRefusal(body) switch
+        {
+            null => WolfmedRestartVerdict.Ready,
+            WolfmedRevivalSystem.NotMonitored => WolfmedRestartVerdict.Hidden,
+            WolfmedRevivalSystem.RestartNoHead => WolfmedRestartVerdict.NoHead,
+            WolfmedRevivalSystem.RestartNoCore => WolfmedRestartVerdict.NoCore,
+            WolfmedRevivalSystem.RestartCoreDestroyed => WolfmedRestartVerdict.CoreDestroyed,
+            WolfmedRevivalSystem.RestartNoPump => WolfmedRestartVerdict.NoPump,
+            WolfmedRevivalSystem.RestartNoPower => WolfmedRestartVerdict.NoPower,
+            _ => WolfmedRestartVerdict.Refused,
+        };
     }
 
     private WolfmedVitalsState GetVitalsState(EntityUid body, WolfmedConsciousnessComponent consciousness, bool mechanical)

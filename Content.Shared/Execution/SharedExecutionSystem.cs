@@ -7,7 +7,6 @@ using Content.Shared.DoAfter;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Content.Shared._Onyx.Wounds; // WOLFGATE: HOOK 13, executions must finish wound-host victims outright.
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
 using Content.Shared.Weapons.Melee;
@@ -33,7 +32,6 @@ public sealed partial class SharedExecutionSystem : EntitySystem
     [Dependency] private SharedCombatModeSystem _combat = default!;
     [Dependency] private SharedExecutionSystem _execution = default!;
     [Dependency] private SharedMeleeWeaponSystem _melee = default!;
-    [Dependency] private WoundDamageRoutingSystem _woundRouting = default!; // WOLFGATE: HOOK 13
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -217,13 +215,18 @@ public sealed partial class SharedExecutionSystem : EntitySystem
 
             var suicideGhostEvent = new SuicideGhostEvent(victim);
             RaiseLocalEvent(victim, suicideGhostEvent);
+
+            // WOLFGATE (M2): OD17, on a wound host a suicide is brain 0 then death; the ghost above cannot return.
+            var suicided = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Suicide);
+            RaiseLocalEvent(victim, ref suicided);
         }
         else
         {
             _melee.AttemptLightAttack(attacker, weapon, meleeWeaponComp, victim);
-            // WOLFGATE: HOOK 13 - one routed limb hit will not kill, so top the victim up to lethal.
-            // TryApplyLethalDamage self-guards on WoundHostComponent and the server, so this is safe unconditionally.
-            _woundRouting.TryApplyLethalDamage(victim, meleeWeaponComp.Damage, attacker);
+            // WOLFGATE (M2): HOOK 13 rewritten (OD17). A wound host's execution is a catastrophic brain injury, brain 0
+            // then death, revivable. The old torso top-up (TryApplyLethalDamage) no longer killed anybody.
+            var executed = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Execution);
+            RaiseLocalEvent(victim, ref executed);
         }
 
         _combat.SetInCombatMode(attacker, prev);

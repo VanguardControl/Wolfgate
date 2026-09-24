@@ -128,3 +128,11 @@
   line: wolfmed-synthetic-line-embedded
   severity: Warn
   advice: wolfmed-synthetic-advice-embedded
+
+# M2 (OD10): a repaired positronic core carries no brain trauma; the readout says so for the trauma's length instead.
+- type: syntheticHudLine
+  id: SyntheticHudCoreRestored
+  condition: CoreRestored
+  line: wolfmed-synthetic-line-core-restored
+  severity: Info
+  advice: wolfmed-synthetic-advice-core-restored

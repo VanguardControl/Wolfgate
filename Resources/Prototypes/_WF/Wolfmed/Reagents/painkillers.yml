@@ -38,11 +38,13 @@
     Medicine:
       metabolismRate: 0.1
       effects:
-      # Strong: enough to walk a patient off the field, at the price of the sedation meter.
+      # Strong: enough to walk a patient off the field, at the price of the sedation meter. M2 (plan §3.4):
+      # sedation aims for 0.22 per unit in the blood, so one 3 u pen levels off under the 0.6 breathing line and
+      # two put the patient on the floor.
       - !type:WolfmedPainRelief
         tier: Strong
         strength: 70
-        sedation: 0.018
+        sedationPerUnit: 0.22
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
@@ -77,3 +79,21 @@
         damage:
           types:
             Poison: 1.5
+
+# M2 (OD14): the opioid antagonist. The overdose loop's definitive fix: each unit metabolised takes 0.3 off the
+# sedation, and while it is in the blood the painkillers still there cannot pull the sedation back up. It wears off
+# faster than they do, so a big overdose can come back and need a second dose.
+- type: reagent
+  id: WolfmedNaloxone
+  name: reagent-name-wolfmed-naloxone
+  group: Medicine
+  desc: reagent-desc-wolfmed-naloxone
+  physicalDesc: reagent-physical-desc-translucent
+  flavor: bitter
+  color: "#b8e3f0"
+  metabolisms:
+    Medicine:
+      metabolismRate: 0.5
+      effects:
+      - !type:WolfmedReverseSedation
+        sedationReversePerUnit: 0.3

@@ -173,9 +173,12 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> ArrestSepsis =
         CVarDef.Create("wolfmed.arrest_sepsis", 80f, CVar.SERVERONLY);
 
-    /// <summary>Chance per second that late sepsis stops the heart.</summary>
+    /// <summary>
+    /// Chance per second that late sepsis stops the heart. 0 since M2 (OD15): sepsis at <see cref="ArrestSepsis"/>
+    /// drains the brain and the arrest arrives through the oxygen trigger, on the same clock every time.
+    /// </summary>
     public static readonly CVarDef<float> ArrestSepsisChance =
-        CVarDef.Create("wolfmed.arrest_sepsis_chance", 0.01f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.arrest_sepsis_chance", 0f, CVar.SERVERONLY);
 
     /// <summary>Shock damage in one electrocution at or past which the heart stops. Zero turns that off.</summary>
     public static readonly CVarDef<float> ArrestShockDamage =
@@ -489,4 +492,49 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> CrawlFloor =
         CVarDef.Create("wolfmed.crawl_floor", 0.35f, CVar.SERVER | CVar.REPLICATED);
+
+    // M2: arrest, revival and medic information (plan §3.4, §5.2-5.5, §7.2, OD7 (c), OD8, OD10, OD14, OD17).
+
+    /// <summary>
+    /// Sedation gained per second while it is under its target: the units of sedating painkiller in the blood times
+    /// each reagent's sedationPerUnit (plan §3.4). A steady dose levels off at its target.
+    /// </summary>
+    public static readonly CVarDef<float> SedationRise =
+        CVarDef.Create("wolfmed.sedation_rise", 0.05f, CVar.SERVERONLY);
+
+    /// <summary>Sedation at which the patient is warned it is getting drowsy, and at which examine reads "responds to voice".</summary>
+    public static readonly CVarDef<float> SedationWarn =
+        CVarDef.Create("wolfmed.sedation_warn", 0.4f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Sedation at which the patient is warned it can barely stay awake. Must stay under the 0.88 Downed point.</summary>
+    public static readonly CVarDef<float> SedationWarnHeavy =
+        CVarDef.Create("wolfmed.sedation_warn_heavy", 0.8f, CVar.SERVERONLY);
+
+    /// <summary>Brain oxygenation under which examine reads "blue lips": the hypoxia Downed line.</summary>
+    public static readonly CVarDef<float> ExamineCyanosisOxygenation =
+        CVarDef.Create("wolfmed.examine_cyanosis_oxygenation", 0.54f, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
+    /// Seconds after a heart restarts during which the analyzer keeps "Arrest cause: … Still present: …" (plan §5.5).
+    /// </summary>
+    public static readonly CVarDef<float> ArrestCauseMemorySeconds =
+        CVarDef.Create("wolfmed.arrest_cause_memory_seconds", 300f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds of continuous, stable, non-dying helplessness (Unconscious or shutdown with nothing draining) before the
+    /// body is flagged in distress on medical HUDs and the player is offered "wait as a ghost" (OD8 (b)).
+    /// </summary>
+    public static readonly CVarDef<float> DormantOfferSeconds =
+        CVarDef.Create("wolfmed.dormant_offer_seconds", 90f, CVar.SERVERONLY);
+
+    /// <summary>Seconds the explanation card says "A medic is examining you" after an analyzer scan.</summary>
+    public static readonly CVarDef<float> CardExaminedSeconds =
+        CVarDef.Create("wolfmed.card_examined_seconds", 3f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Severity a sutured wound has to grow by, from where it was sutured, before the suture no longer counts as a
+    /// treated wound for infection (P20). The suture's counterpart of wolfmed.burn_treatment_lost_severity.
+    /// </summary>
+    public static readonly CVarDef<float> SutureTreatmentLostSeverity =
+        CVarDef.Create("wolfmed.suture_treatment_lost_severity", 15f, CVar.SERVERONLY);
 }

@@ -161,6 +161,10 @@ public sealed class WolfmedBrainTest : GameTest
             Run(life, cold, 120);
             Assert.That(life.GetOxygenation(cold), Is.GreaterThan(life.GetOxygenation(cpr)),
                 "a cold body did not keep its brain longer than a warm one under CPR.");
+
+            // M2 (P24): the tissue is protected as well as the oxygen, so the cold brain has lost less of itself.
+            Assert.That(life.GetBrainActivity(cold), Is.GreaterThanOrEqualTo(life.GetBrainActivity(untreated)),
+                "a cold brain lost more tissue than a warm one.");
         });
 
         await server.WaitAssertion(() =>
@@ -495,6 +499,14 @@ public sealed class WolfmedBrainTest : GameTest
         {
             Assert.That(entities.System<MobStateSystem>().IsDead(ipc), Is.True,
                 "a destroyed positronic brain did not kill the chassis.");
+
+            // M2 (plan §7.2, OD10): core repair and the restart button, which reads the pump as well as the core.
+            var life = entities.System<WolfmedLifeSystem>();
+            var revival = entities.System<WolfmedRevivalSystem>();
+            life.RepairBrain(ipc);
+            Assert.That(entities.HasComponent<WolfmedBrainTraumaComponent>(ipc), Is.False, "a repaired core carries brain trauma.");
+            Assert.That(revival.GetRestartRefusal(ipc), Is.EqualTo(WolfmedRevivalSystem.RestartNoPump),
+                "the restart does not refuse a chassis with its pump out.");
         });
     }
 

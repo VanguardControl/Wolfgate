@@ -4679,3 +4679,62 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedFireHelplessnessTest.cs` | new | `FireHelplessnessTest` (the reproduction table and the assertions). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs` | new | `FaintCountdownTest`, `BurnsNeverSwitchALimbOffTest`, `CrawlFloorTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs`, `WolfmedMedicLinesTest.cs` | modified | The faint's text and analyzer line now carry the seconds. |
+
+## M2 (2026-09-23)
+
+Marked upstream, Onyx and vendored edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Server/Body/Systems/RespiratorSystem.cs:44, 307` | upstream | WOLFGATE (M2): the suffocation alert asks `WolfmedBreathingAlertSystem.SuffocationAlert`, "Can't breathe: no air" on a wound host (plan §3.3). |
+| `Content.Server/_EinsteinEngines/Silicon/DeadStartupButton/DeadStartupButtonSystem.cs:29, 50-52` | upstream (EE) | WOLFGATE (M2): on a wound host the restart is `WolfmedRevivalSystem.TryRestart` (core, head, power, pump), not the damage total (inventory #9). |
+| `Content.Shared/Execution/SharedExecutionSystem.cs:219-221, 226-229` | upstream | WOLFGATE (M2): HOOK 13 rewritten (inventory #11, OD17): the execution and the self-execution raise `WolfmedEndingEvent` on the victim instead of the torso top-up; the HOOK 13 `using` and `WoundDamageRoutingSystem` dependency are gone. |
+| `Content.Server/Chat/SuicideSystem.cs:31, 74-75` | upstream | WOLFGATE (M2): OD17, `WolfmedDyingActionsSystem.EndDeliberately` after upstream's suicide events (inventory #12). |
+| `Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml:143, 179` | Onyx YAML | WOLFGATE (M2): tramadol and oxycodone `sedationPerUnit` 0.11 and 0.12 in place of the per-second `sedation` (plan §3.4). |
+| `Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml:194` | upstream YAML | WOLFGATE (M2): `WolfmedSuture` on `MedicatedSuture` (P20). |
+| `Resources/Prototypes/Entities/Objects/Tools/tools.yml:234` | upstream YAML | WOLFGATE (M2): `WolfmedCoreProbe` on `Multitool`, the core repair step's tool (OD10). |
+| `Resources/Prototypes/Catalog/VendingMachines/Inventories/medical.yml:16`, `wallmed.yml:17` | upstream YAML | WOLFGATE (M2): the naloxone pen (OD14). |
+| `Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml:16` | Frontier YAML | WOLFGATE (M2): the naloxone pen (OD14). |
+
+Not needed: inventory #10 (`ElectrocutionSystem`): the electrocuted event already carries the post-insulation coefficient.
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainRelief.cs` | modified | `sedationPerUnit` (target per unit in the blood); new `WolfmedReverseSedation` effect. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedPainReliefComponent.cs`, `WolfmedPainReliefSystem.cs` | modified | Target-based sedation, rise and decay, warnings (`WolfmedSedationWarningEvent`), antagonist hold, `SedationPerUnit`, `GetSedationTarget`; `MasksSlowdown` reads the doses (P30). |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedSedationWarningSystem.cs` | new | Tells the patient the three sedation warnings. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | The anaesthetic push is capped at the units that keep the sedation target under the pod's cap. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | Cold slows tissue loss (P24); sepsis-named oxygen arrest (OD15); P28 post-insulation shock; `GetActiveRoutes`, `GetInternalBleedRate`; arrest memory and `GetRestartMemory`; `RepairBrain` gives a machine CORE RESTORED instead of trauma. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | `GetRestartRefusal`, `TryRestart`, `Restart`. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | modified | `HasPower` public for the restart. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedDyingActionsSystem.cs` | modified | `WolfmedEndingEvent` handler and `EndDeliberately` (OD17). |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedEndingEvents.cs` | new | `WolfmedEnding`, `WolfmedEndingEvent`. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedRevivalComponents.cs` | new | `WolfmedArrestMemoryComponent`, `WolfmedCoreRestoredComponent`, `WolfmedCardComponent`, `WolfmedRoutes`. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedCardSystem.cs` | new | The explanation card's server half: the bar, CPR, examined. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedDormantSystem.cs`, `Content.Shared/_WF/Wolfmed/Life/WolfmedDormant.cs` | new | Wait as a ghost and the distress flag (OD8). |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedBreathingAlertSystem.cs` | new | "Can't breathe: no air / no lungs". |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedCrawlActionsSystem.cs`, `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedCrawlActions.cs` | new | Check yourself, Play dead (OD20). |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | The crawl actions refresh in `Apply`; the Unconscious depth by route; a pressure step onto or off 1 always lands. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | `CanAidAdjacent`: gauze onto a Downed neighbour (OD7 (c)). |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDyingDepth.cs`, `WolfmedExplanationCard.cs` | new | The depth by route; the card's text. |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | AVPU, blue lips, pupils, "appears lifeless". |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs`, `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | modified | Routes line, "After a restart" line, restart verdict; marks the card examined. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | CORE FAILURE banner for a dead core; the M1a post-shock banner hides while the vitals line carries its numbers. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedExplanationCardSystem.cs`, `WolfmedExplanationCardOverlay.cs` | new | The card and the faint white-out. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDyingEffectsSystem.cs` | modified | No dying view in a faint. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedDistressIconSystem.cs` | new | The distress flag on medical HUDs. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedInfectionSystem.cs`, `Content.Shared/_WF/Wolfmed/Wounds/WolfmedSutureComponents.cs`, `Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs` | modified / new | Sutures count as treated for infection (P20). |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryComponents.cs`, `WolfmedSurgeryConditionSystem.cs`, `WolfmedChassisToolComponents.cs` | modified | The repair effect's `slot`; `WolfmedCoreProbe`, `WolfmedCoreHousingOpen`. |
+| `Content.Shared/_WF/Wolfmed/Hud/WolfmedSyntheticHudComponent.cs`, `Content.Server/_WF/Wolfmed/Hud/WolfmedSyntheticHudSystem.cs` | modified | `CoreRestored` condition and its line. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M2 block at the end; `arrest_sepsis_chance` 0. |
+| `Resources/Prototypes/_WF/Wolfmed/Reagents/painkillers.yml`, `Entities/painkillers.yml`, `Recipes/reactions.yml` | modified | Opiate `sedationPerUnit`; naloxone, its pen and recipe. |
+| `Resources/Prototypes/_WF/Catalog/VendingMachines/Inventories/wolfgate.yml` | modified | The naloxone pen. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml`, `surgery_steps.yml` | modified | `SurgeryRepairCore` and its three steps. |
+| `Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml`, `Alerts/alerts.yml`, `Actions/downed.yml`, `Actions/dormant.yml` | modified / new | CORE RESTORED line; "Can't breathe" alerts; Play dead and Check yourself; Wait as a ghost. |
+| `Resources/Locale/en-US/_WF/wolfmed/revival.ftl` | new | M2 lines. |
+| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl`, `look.ftl`, `synthetic-hud.ftl`, `wounds.ftl`, `consciousness.ftl` | modified | Routes, restart, examine signs, CORE RESTORED, core repair wording, naloxone in the sedation help. |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | The sedation model and naloxone. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs`, `WolfmedMedicInfoTest.cs` | new | The M2 acceptance tests. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs`, `WolfmedBrainTest.cs`, `WolfmedDyingLevelTest.cs`, `WolfmedLocaleCoverageTest.cs`, `WolfmedTreatmentRestrictionTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs`, `Scenarios/WolfmedMedicLinesTest.cs` | modified | Test migration (DECISIONS M2); locale coverage for the route and restart families; the suture test's bruise can no longer roll a bleed. |

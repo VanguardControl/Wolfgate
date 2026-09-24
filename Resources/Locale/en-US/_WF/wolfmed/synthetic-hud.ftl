@@ -97,3 +97,7 @@ wolfmed-synthetic-banner-panic = KERNEL PANIC
 wolfmed-synthetic-panic-dump = SEGMENTATION FAULT AT 0x{ $address }
 wolfmed-synthetic-death-banner = CORE OFFLINE
 wolfmed-synthetic-death-banner-sub = No further diagnostics. The chassis has stopped reporting.
+
+# M2 (OD10): a repaired core, cosmetic; no trauma on a machine.
+wolfmed-synthetic-line-core-restored = CORE RESTORED: DIAGNOSTICS
+wolfmed-synthetic-advice-core-restored = DIAGNOSTICS RUNNING. NO ACTION NEEDED

@@ -505,12 +505,13 @@ public sealed class WolfmedConsciousnessTest : GameTest
         await server.WaitAssertion(() =>
         {
             body = entities.SpawnEntity("WolfmedConscBody", map.GridCoords);
+            // M2 (plan §3.4): a dose now asks for a target, and sedation climbs toward it at wolfmed.sedation_rise.
             entities.System<WolfmedPainReliefSystem>()
-                .AddDose(body, "opiate", WolfmedPainReliefTier.Strong, 10f, TimeSpan.FromSeconds(30), 0.5f);
+                .AddDose(body, "opiate", WolfmedPainReliefTier.Strong, 10f, TimeSpan.FromSeconds(60), 1.5f);
         });
 
-        // 0.5 sedation a second, past the 0.6 threshold inside two.
-        await server.WaitRunTicks(150);
+        // 0.05 a second toward full sedation: past the 0.6 threshold at 12 s.
+        await RunSeconds(16);
 
         await server.WaitAssertion(() =>
         {

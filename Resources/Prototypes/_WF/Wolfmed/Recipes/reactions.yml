@@ -43,3 +43,14 @@
       amount: 1
   products:
     WolfmedStim: 2
+
+# M2 (OD14): naloxone, the overdose's definitive fix, from two things chemistry makes from its own dispenser.
+- type: reaction
+  id: WolfmedNaloxone
+  reactants:
+    Inaprovaline:
+      amount: 1
+    Ammonia:
+      amount: 1
+  products:
+    WolfmedNaloxone: 2

@@ -118,4 +118,7 @@ public enum WolfmedSyntheticCondition : byte
 
     /// <summary>A mechanical wound with no line of its own.</summary>
     Fallback,
+
+    /// <summary>M2 (OD10): the core was repaired a while ago. Cosmetic: no trauma on a machine.</summary>
+    CoreRestored,
 }

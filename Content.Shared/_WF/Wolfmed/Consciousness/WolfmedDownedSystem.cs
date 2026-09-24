@@ -11,11 +11,13 @@ using Content.Shared.Movement.Systems;
 using Content.Shared.Pulling.Events;
 using Content.Shared.Standing;
 using Content.Shared.Stunnable;
+using Content.Shared.Tag;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Consciousness;
 
@@ -39,6 +41,7 @@ public sealed class WolfmedDownedSystem : EntitySystem
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly StandingStateSystem _standing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly TagSystem _tags = default!; // M2
 
     public override void Initialize()
     {
@@ -138,10 +141,29 @@ public sealed class WolfmedDownedSystem : EntitySystem
     private void OnInteractionAttempt(Entity<WolfmedDownedComponent> ent, ref InteractionAttemptEvent args)
     {
         // AUTODOC: a pod marked reachable is the one thing off the body a Downed player may still touch.
+        // M2 (OD7 (c)): and a Downed neighbour, with gauze in hand.
         if (args.Target is { } target && !IsSelfOrCarried(ent, target) &&
-            !HasComp<WolfmedDownedReachableComponent>(target) && !IsWithinReach(ent, target))
+            !HasComp<WolfmedDownedReachableComponent>(target) && !IsWithinReach(ent, target) &&
+            !CanAidAdjacent(ent, target))
             args.Cancelled = true;
     }
+
+    /// <summary>
+    /// M2 (OD7 (c), plan §5.3): a Downed body may press gauze on another Downed body within <c>wolfmed.downed_reach</c>,
+    /// and nothing else. The gauze has to be the item in the active hand; the Downed do-after penalty still applies.
+    /// </summary>
+    public bool CanAidAdjacent(EntityUid user, EntityUid target)
+    {
+        if (target == user || !HasComp<WolfmedDownedComponent>(target) ||
+            _hands.GetActiveItem(user) is not { } item || !_tags.HasTag(item, AidTag))
+            return false;
+
+        return _transform.InRange(Transform(user).Coordinates, Transform(target).Coordinates,
+            _cfg.GetCVar(WolfmedCVars.DownedReach));
+    }
+
+    /// <summary>What a Downed body may press on a Downed neighbour: gauze, and anything else tagged as a dressing like it.</summary>
+    private static readonly ProtoId<TagPrototype> AidTag = "Gauze";
 
     /// <summary>
     /// An item lying loose on the floor within <c>wolfmed.downed_reach</c>: the body's own tile and the ones

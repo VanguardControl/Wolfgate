@@ -231,6 +231,7 @@
   - type: Tool
     qualities:
     - Pulsing
+  - type: WolfmedCoreProbe # WOLFGATE (M2): OD10, the core repair step that re-flashes a positronic core
   - type: NetworkConfigurator
   - type: ActivatableUI
     key: enum.NetworkConfiguratorUiKey.List

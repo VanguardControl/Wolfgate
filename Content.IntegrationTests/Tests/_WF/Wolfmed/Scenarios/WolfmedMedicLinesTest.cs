@@ -157,7 +157,9 @@ public sealed class WolfmedMedicLinesTest : GameTest
                 Assert.That(lines[0], Is.EqualTo("DOWNED: pain"));
                 Assert.That(lines[1], Is.EqualTo("Breathing: normal"));
                 Assert.That(lines[2], Does.StartWith("Circulation: pulse strong; blood 100%"));
-                Assert.That(lines, Has.Length.EqualTo(3), "a Downed patient got a defib verdict.");
+                // M2 (plan §5.5): a patient who is down reads what is getting worse, here nothing.
+                Assert.That(lines[3], Is.EqualTo("Getting worse: nothing now"));
+                Assert.That(lines, Has.Length.EqualTo(4), "a Downed patient got a defib verdict.");
             });
 
             lines = s.AnalyzerLines(bled);

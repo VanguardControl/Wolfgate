@@ -174,3 +174,25 @@
     state: critical
   name: alerts-wolfmed-out-shutdown-name
   description: alerts-wolfmed-out-shutdown-desc
+
+# M2 (plan §3.3): the respirator's suffocation alert on a wound host names its source instead of always blaming
+# the air. Same category as the stock breathing alerts, so each replaces the other and the respirator's own clear
+# takes it off.
+
+- type: alert
+  id: WolfmedCantBreatheAir
+  category: Breathing
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
+    state: not_enough_oxy
+  name: alerts-wolfmed-cant-breathe-air-name
+  description: alerts-wolfmed-cant-breathe-air-desc
+
+- type: alert
+  id: WolfmedCantBreatheLungs
+  category: Breathing
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
+    state: not_enough_oxy
+  name: alerts-wolfmed-cant-breathe-lungs-name
+  description: alerts-wolfmed-cant-breathe-lungs-desc

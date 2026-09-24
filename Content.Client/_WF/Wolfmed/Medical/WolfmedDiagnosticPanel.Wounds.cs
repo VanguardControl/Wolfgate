@@ -178,11 +178,12 @@ public sealed partial class WolfmedDiagnosticPanel
         }
 
         // BRAIN: the two findings that outrank everything else on the body.
-        if (msg.WoundDiagnostics is { BrainDead: true })
+        if (msg.WoundDiagnostics is { BrainDead: true } deadBrain)
             WoundAlertsContainer.AddChild(CreateAlertRow(
                 "warning",
                 WolfmedWoundStyle.Necrosis,
-                Loc.GetString("health-analyzer-wound-brain-dead"),
+                // M2 (OD10): a positronic core (no oxygenation clock, -1) names core repair and the restart.
+                Loc.GetString(deadBrain.Oxygenation < 0f ? "health-analyzer-wound-brain-dead-core" : "health-analyzer-wound-brain-dead"),
                 "brain-death"));
         else if (msg.WoundDiagnostics is { CardiacArrest: true } stopped)
         {
@@ -204,7 +205,8 @@ public sealed partial class WolfmedDiagnosticPanel
 
         // M1a: a restarted heart with the blood still low. The units that keep it going, and the units that
         // stop the brain injury, kept apart (plan §7.1).
-        if (msg.WoundDiagnostics is { PostShockUnits: >= 0f } revived)
+        // M2: the vitals block's "After a restart" line carries the same numbers; the banner only shows without it.
+        if (msg.WoundDiagnostics is { PostShockUnits: >= 0f } revived && revived.Vitals is not { RestartUnits: >= 0f })
         {
             WoundAlertsContainer.AddChild(CreateAlertRow(
                 "blood_low",
@@ -327,6 +329,7 @@ public sealed partial class WolfmedDiagnosticPanel
             .Append(diagnostics.BrainDead ? 'b' : '-')
             .Append(diagnostics.Shutdown ? 's' : '-')
             .Append(diagnostics.PostShockUnits >= 0f ? 'r' : '-') // M1a
+            .Append(diagnostics.Vitals is { RestartUnits: >= 0f } ? 'R' : '-') // M2
             .Append(diagnostics.Vitals is { } shownVitals ? (char) ('A' + (int) shownVitals.State) : '-') // M1a
             .Append(diagnostics.BrainActivity >= 0f ? 'v' : '-')
             .Append(diagnostics.BrainActivity < BrainDamageCritical ? 'c'

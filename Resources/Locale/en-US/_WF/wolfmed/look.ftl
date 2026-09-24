@@ -377,3 +377,14 @@ wolfmed-look-pulse-faint-self = You can barely find your own pulse.
 wolfmed-look-pulse-faint-other = { CAPITALIZE(THE($target)) } has a barely palpable pulse.
 wolfmed-look-shutdown-self = Nothing inside you is running.
 wolfmed-look-shutdown-other = Nothing inside { THE($target) } is running.
+
+# M2 (plan §5.5): the medic's close-up signs. AVPU from the state and cause; lips and pupils from the vitals.
+wolfmed-look-avpu-alert = { CAPITALIZE(THE($target)) } is awake and answers you.
+wolfmed-look-avpu-voice = { CAPITALIZE(THE($target)) } is drowsy and responds only to voice.
+wolfmed-look-avpu-pain = { CAPITALIZE(THE($target)) } is out cold and stirs only to pain.
+wolfmed-look-avpu-unresponsive = { CAPITALIZE(THE($target)) } is unresponsive.
+wolfmed-look-blue-lips = { CAPITALIZE(POSS-ADJ($target)) } lips are blue.
+wolfmed-look-pupils-pinpoint = { CAPITALIZE(POSS-ADJ($target)) } pupils are pinpoint.
+wolfmed-look-pupils-unequal = { CAPITALIZE(POSS-ADJ($target)) } pupils are unequal, and { SUBJECT($target) } { CONJUGATE-BE($target) } confused.
+# M2 (plan §5.3, OD20): Play dead, seen from a distance.
+wolfmed-look-lifeless-other = { CAPITALIZE(THE($target)) } appears lifeless.

@@ -28,9 +28,12 @@ public sealed partial class WolfmedPainRelief : EntityEffect
     [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(4);
 
-    /// <summary>Sedation accumulated per second while the dose is active. 0 to 1 is the whole meter.</summary>
+    /// <summary>
+    /// M2 (plan §3.4): sedation this reagent aims for per unit in the blood. The body's sedation moves toward the
+    /// sum over every sedating reagent, so a steady dose levels off instead of climbing for as long as it lasts.
+    /// </summary>
     [DataField]
-    public float Sedation;
+    public float SedationPerUnit;
 
     /// <summary>Dose key. Defaults to the reagent id, so one reagent never stacks with itself.</summary>
     [DataField]
@@ -45,13 +48,47 @@ public sealed partial class WolfmedPainRelief : EntityEffect
     public override void Effect(EntityEffectBaseArgs args)
     {
         var key = Identifier;
-        if (key.Length == 0 && args is EntityEffectReagentArgs { Reagent: { } reagent })
-            key = reagent.ID;
+        var units = 0f;
+        if (args is EntityEffectReagentArgs { Reagent: { } reagent } reagentArgs)
+        {
+            if (key.Length == 0)
+                key = reagent.ID;
+
+            // The units still in the blood at this tick, not the ones being metabolised: the target falls as the
+            // dose is used up.
+            units = reagentArgs.Source?.GetTotalPrototypeQuantity(reagent.ID).Float() ?? reagentArgs.Quantity.Float();
+        }
 
         if (key.Length == 0)
             key = Tier.ToString();
 
         args.EntityManager.System<WolfmedPainReliefSystem>()
-            .AddDose(args.TargetEntity, key, Tier, Strength, Duration, Sedation);
+            .AddDose(args.TargetEntity, key, Tier, Strength, Duration, units * SedationPerUnit);
+    }
+}
+
+/// <summary>
+/// M2 (OD14): an opioid antagonist. Every unit metabolised takes <see cref="SedationReversePerUnit"/> off the body's
+/// sedation, and while it is in the blood the sedating painkillers cannot pull sedation back up.
+/// </summary>
+public sealed partial class WolfmedReverseSedation : EntityEffect
+{
+    /// <summary>Sedation removed per unit metabolised.</summary>
+    [DataField]
+    public float SedationReversePerUnit = 0.3f;
+
+    /// <summary>How long one metabolism tick holds the sedation target at zero. A rolling refresh.</summary>
+    [DataField]
+    public TimeSpan Duration = TimeSpan.FromSeconds(4);
+
+    protected override string? ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
+        => Loc.GetString("reagent-effect-guidebook-wolfmed-reverse-sedation", ("chance", Probability),
+            ("amount", MathF.Round(SedationReversePerUnit * 100f)));
+
+    public override void Effect(EntityEffectBaseArgs args)
+    {
+        var units = args is EntityEffectReagentArgs reagentArgs ? reagentArgs.Quantity.Float() : 1f;
+        args.EntityManager.System<WolfmedPainReliefSystem>()
+            .ReverseSedation(args.TargetEntity, units * SedationReversePerUnit, Duration);
     }
 }

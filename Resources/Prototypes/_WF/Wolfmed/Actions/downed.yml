@@ -11,3 +11,29 @@
     icon: Interface/Actions/scream.png
     event: !type:WolfmedCallForHelpActionEvent
       maxLength: 60
+
+# M2 (plan §5.3): Play dead replaces Fake Death (OD20), Downed only; Check yourself, Up or Downed.
+
+- type: entity
+  id: ActionWolfmedPlayDead
+  name: Play dead
+  description: Lie still and look dead from a distance. Moving, speaking or doing anything ends it.
+  components:
+  - type: InstantAction
+    itemIconStyle: NoItem
+    checkCanInteract: false
+    icon:
+      sprite: Interface/Actions/actions_crit.rsi
+      state: fakedeath
+    event: !type:WolfmedPlayDeadActionEvent
+
+- type: entity
+  id: ActionWolfmedCheckYourself
+  name: Check yourself
+  description: Look yourself over and list what is wrong, in words.
+  components:
+  - type: InstantAction
+    itemIconStyle: NoItem
+    checkCanInteract: false
+    icon: Interface/Actions/eyeopen.png
+    event: !type:WolfmedCheckYourselfActionEvent

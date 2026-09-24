@@ -1494,3 +1494,188 @@ help at every Downed sample, faints at 15-30 s and 85-100 s unchanged.
 
 **Tests.** Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`): 428 total, 421 passed, 0 failed, 7
 skipped; each skipped test passes alone.
+
+## M2 (2026-09-23)
+
+Arrest, revival and medic information. Plan: `WOLFMED_DEATH_PLAN.md` §12 M2, §5.2-5.5, §3.3 (the breathing alert),
+§3.4, §7.2 (M2 rows), §11 (M2 rows); the owner's answers of 2026-09-23: OD7 (c), OD8 (b), OD10 (b) with no trauma on a
+repaired core, OD14 (a new antagonist), OD15 (sepsis half), OD17, OD20 (a). Branch `Wolfmed-m2`, from `bedaf99945`.
+
+**What was built.**
+- **Sedation model (§3.4, P15).** The `WolfmedPainRelief` effect's per-second `sedation` is gone; `sedationPerUnit`
+  replaces it. Each metabolism tick the dose asks for (units of that reagent still in the blood) × per unit; the body's
+  sedation moves toward the sum at `wolfmed.sedation_rise` 0.05/s and falls toward it at the existing 0.035/s, so a
+  steady dose levels off and a finished one decays. Opiate 0.22/u, tramadol 0.11/u, oxycodone 0.12/u (marked Onyx YAML).
+  - Measured (`SedationModelTest`, one standard dose: the 3 u opiate pen, 5 u tramadol or oxycodone): peaks 0.46, 0.46
+    and 0.49. Doubled: 0.92, 0.90 and 0.97, each Downed with cause Sedation. Three doses reach full sedation.
+  - Warnings (self popup and chat, once each as sedation climbs; a line re-arms once sedation falls back under it):
+    "You feel heavy and drowsy." at `wolfmed.sedation_warn` 0.4, "Your breathing slows. Another dose could stop it." at
+    the component's `SedationAirlossThreshold` 0.6 (so it moves with the depression line), "You can barely stay
+    awake." at `wolfmed.sedation_warn_heavy` 0.8. Measured firing at 0.41, 0.62 and 0.83.
+    `WolfmedSedationWarningSystem` (server) tells them through the condition alert system.
+  - Depression past 0.6 is still its own brain drain and never Asphyxiation (`SedationOverdoseTakesAirTest` keeps that
+    assertion).
+- **Naloxone (OD14).** `WolfmedNaloxone` ("naloxone"), `WolfmedReverseSedation` effect: each unit metabolised takes
+  `sedationReversePerUnit` 0.3 off the sedation and holds the target at zero for 4 s past the last tick, so the opioid
+  still in the blood cannot pull it back up meanwhile. Metabolism 0.5 u/s; it wears off before the opioid does, so a
+  large overdose can come back. Recipe Inaprovaline + Ammonia → 2 (no conflict with an existing reaction). The 5 u
+  `WolfmedNaloxonePen`: NanoMed 2 and the Wolfgate vendor 4, wallmed 1, civimed 40. Measured: a full overdose was out
+  of Unconscious 0.5 s after the pen and under 0.6 within the pen's run.
+- **The autodoc under the new model.** The pod pushes only the units that keep the occupant's sedation target under
+  `wolfmed.autodoc_sedation_cap` 0.5, at the strongest sedation per unit among the anaesthetics it may push, and tops
+  up as the dose is used. Its 15 u opiate default would have asked for 3.3 and overdosed every patient.
+- **Stim on strong (P30).** `MasksSlowdown` reads the doses, as `EndsFaint` already did: a stimulant on top of a strong
+  painkiller no longer brings the wound slowdowns back just because Stimulant outranks Strong.
+- **Sepsis on a clock (OD15, data).** `wolfmed.arrest_sepsis_chance` 0.01 → 0. Sepsis at 80 drains the brain at 1/600
+  a second and the heart stops through the oxygen trigger; that arrest is named "sepsis" when sepsis is the drain behind
+  it. Measured 511 s from full, both runs (derived 510 s).
+- **Cold (P24).** Tissue loss below 0.4 oxygenation is multiplied by the same cold factor as the drain; so is the
+  analyzer's brain-death estimate. Measured 0.100 of the warm loss at 280 K.
+- **Electrocution (P28).** The arrest reads shock × the siemens coefficient the electrocution attempt left after
+  insulation, the same figure it deals as damage. No upstream edit was needed (below).
+- **Sutures (P20).** `WolfmedSutureComponent` on `MedicatedSuture` (marked YAML); `HealingSystem.Wolfmed.cs` marks the
+  treated part's open wounds that share the item's treated types with `WolfmedSuturedComponent`. Infection reads the
+  profile's existing `Sutured` rate (0) for them until the wound grows `wolfmed.suture_treatment_lost_severity` 15 past
+  where it was sutured. Measured: 6 minutes, sutured 0.00 against open 36.46.
+- **Executions and suicide (OD17, P10, P29).** HOOK 13 rewritten: the execution raises `WolfmedEndingEvent` on the
+  victim, and `WolfmedDyingActionsSystem.EndDeliberately` sets the brain (or positronic core) to 0 where it sits, kills,
+  and ends any arrest on the corpse: the order Succumb uses. A suicide raises the same event from the self-execution
+  branch, and `SuicideSystem.Suicide` calls the same method after its own events (marked line). The ghost from a
+  suicide is upstream's, non-returnable. Brain repair plus a shock revives an executed body.
+- **Restart button (§7.2).** Marked line in `DeadStartupButtonSystem`: on a wound host
+  `WolfmedRevivalSystem.TryRestart` decides instead of the damage total. `GetRestartRefusal`: rot, other content's
+  `Unrevivable`, no head, no core, core destroyed, no pump, no power; each with a line ("buzzes: core destroyed. Core
+  repair surgery first."). A restart goes to Critical and lets consciousness decide, as a shock does.
+- **Core repair (OD10).** `SurgeryRepairCore` on the torso, listed while the `posbrain` slot's core is damaged: unbolt
+  the housing (wrench, `WolfmedHullPlate`), re-flash the core (multitool, new `WolfmedCoreProbe`, marked YAML on
+  `Multitool`), weld the housing shut (welder, `WolfmedHullWeld`); `WolfmedCoreHousingOpen` marks the step in between.
+  The repair step is `WolfmedSurgeryBrainRepairEffect` with a new `slot` field (`posbrain`). `RepairBrain` gives a
+  machine no `WolfmedBrainTrauma`; `WolfmedCoreRestoredComponent` puts "CORE RESTORED: DIAGNOSTICS" (Info) on the
+  synthetic HUD for `wolfmed.brain_trauma_minutes`. The analyzer's core lines name core repair, and a dead core's banner
+  reads "CORE FAILURE - core destroyed. Core repair surgery, then the restart button."
+- **The vitals block, completed (§5.5).** Two new lines and one verdict:
+  - "Getting worse: bleeding (pressure, gauze, tourniquet); sepsis (antibiotics)", or "Getting worse: nothing now".
+    `WolfmedLifeSystem.GetActiveRoutes` lists every drain on the brain (arrest, airway, lungs, sedation, circulation,
+    sepsis), tissue loss, bleeding, internal bleeding and burn fluid loss.
+  - "After a restart: arrest cause blood. Still present: yes. Transfuse ≈ N u within 45 s to stop the heart stopping
+    again; ≈ M u to 50% to stop the brain injury." `WolfmedArrestMemoryComponent` is written whenever a living heart
+    restarts and kept `wolfmed.arrest_cause_memory_seconds` 300. "Still present": blood under the brain-safe line,
+    still suffocating or overdosed, the heart still failed, sepsis still past its line. The M1a post-shock banner hides
+    while this line carries the same numbers.
+  - A dead chassis: "Restart: ready" or "Restart: refused: core destroyed, core repair surgery first".
+  - The brain line and the arrest countdown were already their own rows; the defib verdict shipped in M1a.
+- **Examine (§5.5, §5.3).** Close up, others only: AVPU from the state and cause ("awake and answers you" while Downed,
+  "drowsy and responds only to voice" at `wolfmed.sedation_warn` or Downed by sedation, "stirs only to pain" in a faint,
+  "unresponsive" out cold or in arrest; nothing for somebody up and clear-headed); "lips are blue" under
+  `wolfmed.examine_cyanosis_oxygenation` 0.54; "pupils are pinpoint" with the sedation; "pupils are unequal, and they
+  are confused" with a brain injury (the brain organ under its concussion line, or a repaired brain's trauma). A head
+  wound's own concussion adds nothing: `InternalFindingsNeverShowTest` keeps a mild one invisible. At range, a Downed
+  body playing dead "appears lifeless".
+- **The explanation card (§5.2, §2.3).** `WolfmedExplanationCard` (shared) builds the lines from the cause prototype:
+  title, "Also holding you down: …", symptom, the help that wakes you in its blocked form while something else holds
+  you (so a blocked faint never says "shortly"), "Someone is giving you CPR.", "A medic is examining you.". While Dying,
+  a ten-cell bar of the rescue window with no seconds. `WolfmedCardSystem` (server) keeps `WolfmedCardComponent`
+  (networked) on unconscious bodies: the bar in tenths of the untreated window the brain had when the arrest was first
+  read (CPR refills it), CPR, and an analyzer read within `wolfmed.card_examined_seconds` 3. The client's
+  `WolfmedExplanationCardSystem` draws it low on the screen; a machine whose synthetic HUD owns the view gets none.
+- **Dying view (§5.2).** The Unconscious depth follows the route toward arrest (shared `WolfmedDyingDepth`: blood 35% to
+  30%, oxygenation 0.45 to 0.15, whichever is further), not `pressure − 1`, which was dead code. A faint draws no dying
+  view; it gets its own white-out.
+- **"Can't breathe" (§3.3).** A marked line in `RespiratorSystem` shows "Can't breathe: no air" in place of the lung's
+  stock low-gas alert on a wound host; `WolfmedBreathingAlertSystem` shows "Can't breathe: no lungs" for a body with no
+  working lungs, which the respirator never alerts because it alerts once per lung. Same Breathing category, so the
+  respirator's own clear takes them off.
+- **Crawling stage (§5.3).** `WolfmedCrawlActionsSystem`, granted from consciousness's `Apply` beside Call for help:
+  Check yourself (Up or Downed: the condition text and the self look, to your own chat) and Play dead (Downed only,
+  OD20; moving, speaking or doing anything to anything ends it; being dragged does not). Adjacent aid (OD7 (c)):
+  `WolfmedDownedSystem.CanAidAdjacent` lets a Downed body interact with a Downed neighbour within `wolfmed.downed_reach`
+  while the item in its active hand is tagged `Gauze`; the Downed do-after penalty still applies.
+- **Wait as a ghost (OD8 (b)).** `WolfmedDormantSystem`: Unconscious or shut down, alive, not in arrest, not a faint, no
+  drain on a brain and no route running is stable; after `wolfmed.dormant_offer_seconds` 90 of that without a break the
+  body is flagged in distress on medical HUDs (the Call for help icon, once) and gets the "Wait as a ghost" action. It
+  opens a dialog with the plan's text; yes spawns a returnable ghost from the living body through the ghost system's own
+  spawn (a visit, not `OnGhostAttempt`). Anything getting worse withdraws the flag, the action and an open dialog; a
+  waiting ghost is told "Your body is getting worse: {route}. You can return to it now." once per route. When the body
+  wakes the ghost is offered the return prompt.
+
+**Numbers.** `wolfmed.sedation_rise` 0.05, `sedation_warn` 0.4, `sedation_warn_heavy` 0.8,
+`examine_cyanosis_oxygenation` 0.54, `arrest_cause_memory_seconds` 300, `dormant_offer_seconds` 90,
+`card_examined_seconds` 3, `suture_treatment_lost_severity` 15, `arrest_sepsis_chance` 0; `sedationPerUnit` opiate 0.22,
+tramadol 0.11, oxycodone 0.12; naloxone 0.3 per unit, 0.5 u/s, 5 u pen.
+
+**Differs from the plan, and why.**
+- **The standard dose "targets about 0.45"** is read as reaching about 0.45. With the target falling as the reagent is
+  used, a 0.45 target reaches only about 0.35 at the planned rise, and two doses would not Down anybody. The per-unit
+  figures are set so the realised peaks match the plan's ladder: one dose about 0.46, two about 0.9, three full.
+  The to-confirm per item: `WolfmedOpiatePen` delivers 3 u; tramadol and oxycodone ship in no item, so 5 u (the
+  syringe's smallest setting) is their dose, and a full 15 u syringe is three doses.
+- **The antagonist also holds the target at zero** while it is in the blood. "Lowers sedation by 0.3 a unit" alone
+  would be undone at 0.05/s by the opioid still there.
+- **No marked edit in `ElectrocutionSystem` (inventory #10).** The electrocuted event already carries the coefficient
+  the insulation left, so the fix is `_WF`-only.
+- **Execution goes through an event, not a call.** `SharedExecutionSystem` is shared and the ending is server code;
+  `WolfmedEndingEvent` has one server subscriber. The old `_woundRouting` dependency and its `using` left the upstream
+  file with it; `WoundDamageRoutingSystem.TryApplyLethalDamage` now has no caller (left in place, vendored Onyx).
+- **Suicide's kill is in `Suicide()`, after upstream's own events,** rather than in the default damage handler, so an
+  environmental suicide (a microwave, a gun) kills a wound host too.
+- **Core repair has no incision requirement**; the three chassis steps are the whole surgery, as the chassis breach
+  weld is. The plan said "a copy of SurgeryRepairBrain".
+- **"CORE INTEGRITY {word}" is M3's** (the core-injury input); M2 adds only CORE RESTORED.
+- **The routes** add bleeding, internal bleeding and tissue loss to the plan's list, because each is something getting
+  worse with its own first aid. Wait as a ghost uses the same list, so any bleeding blocks the offer.
+- **AVPU and the pupils are close-up findings for others only.** Nobody sees their own pupils; "you are unresponsive"
+  to yourself is meaningless. Nothing is added for a healthy body, as M1a D did for the strong pulse.
+- **Play dead reads "appears lifeless" at range only.** Close up the medic sees them breathing and answering.
+- **Adjacent aid is gauze only, onto a Downed neighbour only.** "Pressure" has no verb of its own (M1a D: pressure is
+  gauze or a bandage); an unconscious neighbour is not "Downed" in the plan's terms. Widening it to anyone on the floor
+  is one condition in `CanAidAdjacent`, for the owner's playtest.
+- **The distress flag is on medical HUDs only** and reuses the Call for help icon. There is no robotics HUD to put it on.
+- **"Can't breathe: lungs damaged"** is not built: it is M3's lung route. The two alerts M2 ships are "no air" and "no
+  lungs".
+- **The rescue line "A medic is examining you"** comes from any vitals build: the hand analyzer and the pod's panel.
+- **Test names:** `AdjacentDownedAidTest` is new (the plan lists no test for OD7 (c)); Check yourself is asserted in
+  `PlayDeadTest`. `StimOnStrongTest` asserts the masking through `MasksSlowdown`, not a measured walk speed, because a
+  fracture's grade is a roll.
+
+**Test migration.**
+- `WolfmedConsciousnessTest.SedationOverdoseTakesAirTest`: a target of 1.5 and 16 s instead of 0.5 a second; keeps
+  "no Asphyxiation". `StackedPainkillersHitTheReliefCapTest` needed nothing: its doses ask for no sedation.
+- `Scenarios/WolfmedCauseScenarioTest.OverlappingCausesTest`: the overdose asks for 1.5 and gets 22 s to reach it.
+- `WolfmedDyingLevelTest`: new `DepthFollowsTheRoute`.
+- `WolfmedBrainTest.ArrestClockRunsOutTest`: the cold brain has lost no more tissue than the warm one;
+  `MechanicalShutdownAndDeathTest`: a repaired core carries no trauma and the restart refuses a chassis with no pump.
+- `Scenarios/WolfmedMedicLinesTest`: a Downed patient's vitals block gains "Getting worse: nothing now" (four lines).
+- `WolfmedLocaleCoverageTest`: the route and restart-verdict enum families.
+- grep `arrest_sepsis_chance`: no test pinned it.
+
+**Tests.** New in `Scenarios/WolfmedRevivalTest.cs`: `RestartHookTest`, `CoreRepairTest`, `ExecutionAndSuicideTest`,
+`SepsisDeterministicTest`, `ColdBrainTest`, `InsulatedShockTest`, `SutureInfectionTest`. New in
+`Scenarios/WolfmedMedicInfoTest.cs`: `AnalyzerVitalsTest`, `ExplanationCardTest`, `SedationModelTest`,
+`StimOnStrongTest`, `WaitAsGhostTest`, `PlayDeadTest`, `AdjacentDownedAidTest`.
+Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`): 443 total, 435 passed, 0 failed, 8 skipped; each
+skipped test passes alone.
+
+**Found on the way.**
+- `BloodstreamSystem.TryModifyBleedAmount` does nothing on a wound host (GUARD E3), so tests that need a bleed make a
+  wound.
+- A test that raises a `SurgeryStepEvent` by hand has to pass the tools: Shitmed applies a step's add and remove only
+  when one of them carries the step's tool.
+- **Fixed (M1a):** `SetExternalPressure` ignored any change under 0.001, so a ramp whose last step onto 1 was smaller
+  stalled just short (hypoxia held at 0.9994) and never crossed its line; with the new sedation sitting at exactly 1,
+  `OverlappingCausesTest` named Sedation instead of Hypoxia. A step onto or off the full line now always lands.
+- **Fixed (test):** `WolfmedTreatmentRestrictionTest.SuturesTreatCutsAndBleedingNotBruisesTest` failed alone about one
+  run in four: its 10 Blunt bruise rolled BluntWound's 25% bleed, which the suture then stopped. The bruise is 7 now,
+  under the bleed's `minimumSeverity: 8`.
+
+**Art debt.** Play dead reuses the Fake Death icon, Check yourself the eye icon, Wait as a ghost the ghost icon; the
+distress flag the Call for help icon; the naloxone pen the medipen sprite recoloured; the "Can't breathe" alerts the
+stock low-oxygen icon.
+
+**For the M3 merge.**
+- `WolfmedCause` and `WolfmedConsciousnessCausePrototype` are untouched; the card reads any cause M3 adds from its
+  prototype (a head-blow faint gets the white-out through `WolfmedCauses.IsFaint`).
+- M3's lung route should add a `WolfmedCantBreatheLungsDamaged` source to `WolfmedBreathingAlertSystem.SuffocationAlert`
+  and a route bit if it drains through its own source.
+- M2 edited `WolfmedLifeSystem` (tissue loss cold factor, sepsis naming, routes, arrest memory, core restore),
+  `WolfmedConsciousnessSystem` (the Downed actions call in `Apply`, the depth function, the pressure dead band) and
+  `WolfmedSyntheticHudSystem` (one CORE RESTORED line after the core block).

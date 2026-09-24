@@ -46,6 +46,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     [Dependency] private readonly WolfmedDyingActionsSystem _dyingActions = default!;
     [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
     [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private readonly WolfmedCrawlActionsSystem _crawlActions = default!; // M2
 
     /// <summary>
     /// How much of an external pressure is enough to put a body on the floor. 1 is unconscious, so anything
@@ -115,7 +116,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         }
         else
         {
-            if (consciousness.Pressures.TryGetValue(key, out var old) && MathF.Abs(old - level) < 0.001f)
+            // M2: a small step onto the full line still lands, or a ramp stalls just short of 1 and never crosses.
+            if (consciousness.Pressures.TryGetValue(key, out var old) && MathF.Abs(old - level) < 0.001f &&
+                old >= 1f == level >= 1f)
                 return;
 
             consciousness.Pressures[key] = level;
@@ -236,8 +239,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         // Not a double count: the PainFaint input puts 1 in outLevel only while a faint runs, and then the body is
         // Unconscious. faintLevel is summed pain against the faint line, the only thing that deepens a Downed
         // body's view as its pain climbs towards a faint.
-        var depth = Depth(target, downLevel, MathF.Max(outLevel, faintLevel), bloodOut,
-            body.Comp.Pressures.Count > 0 ? GetPressure(body) : 0f);
+        var depth = Depth(target, downLevel, MathF.Max(outLevel, faintLevel), body.Comp);
         Apply(body, target, depth, watching, cause, GetSource(body, cause), blockers);
     }
 
@@ -343,15 +345,19 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         };
     }
 
-    /// <summary>Downed carries the first third of the dying view, Unconscious the rest.</summary>
-    private static float Depth(WolfmedConsciousness state, float downLevel, float outLevel, float bloodOut,
-        float pressure)
+    /// <summary>
+    /// Downed carries the first third of the dying view, Unconscious the rest. M2 (plan §5.2): the Unconscious depth
+    /// follows the active route toward arrest (blood 35% to 30%, oxygenation 0.45 to 0.15) instead of a pressure past 1.
+    /// </summary>
+    private float Depth(WolfmedConsciousness state, float downLevel, float outLevel, WolfmedConsciousnessComponent comp)
     {
         return state switch
         {
             WolfmedConsciousness.Downed => 0.35f + 0.2f * Math.Clamp(outLevel, 0f, 1f),
-            WolfmedConsciousness.Unconscious => 0.55f + 0.45f * Math.Clamp(
-                MathF.Max(bloodOut - 1f, pressure - 1f), 0f, 1f),
+            WolfmedConsciousness.Unconscious => WolfmedDyingDepth.Unconscious(WolfmedDyingDepth.RouteProgress(
+                comp.BloodFraction, _bloodOut, _configuration.GetCVar(WolfmedCVars.ArrestBlood),
+                comp.Oxygenation, _configuration.GetCVar(WolfmedCVars.BrainPressureOut),
+                _configuration.GetCVar(WolfmedCVars.ArrestOxygenation))),
             _ => 0.35f * Math.Clamp(downLevel, 0f, 1f),
         };
     }
@@ -393,6 +399,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
 
         // M1a: Call for help exists while Downed and nowhere else (plan §5.3).
         _callForHelp.Refresh(body, state == WolfmedConsciousness.Downed);
+
+        // M2: Check yourself while Up or Downed, Play dead while Downed (plan §5.3).
+        _crawlActions.Refresh(body, state);
 
         if (!_mobState.IsDead(body))
         {
@@ -539,16 +548,6 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         var down = _bloodDown < 1f ? (1f - fraction) / (1f - _bloodDown) : 0f;
         var outLevel = _bloodOut < 1f ? (1f - fraction) / (1f - _bloodOut) : 0f;
         return (MathF.Max(0f, down), MathF.Max(0f, outLevel));
-    }
-
-    /// <summary>The worst thing pushed in from outside.</summary>
-    private static float GetPressure(Entity<WolfmedConsciousnessComponent> body)
-    {
-        var worst = 0f;
-        foreach (var level in body.Comp.Pressures.Values)
-            worst = MathF.Max(worst, level);
-
-        return worst;
     }
 
     /// <summary>

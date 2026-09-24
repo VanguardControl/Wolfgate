@@ -75,6 +75,36 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         SubscribeLocalEvent<WolfmedDyingActionsComponent, WolfmedSuccumbActionEvent>(OnSuccumbAction);
         SubscribeLocalEvent<WolfmedDyingActionsComponent, WolfmedLastWordsActionEvent>(OnLastWordsAction);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _pending.Clear());
+        SubscribeLocalEvent<WolfmedConsciousnessComponent, WolfmedEndingEvent>(OnEnding); // M2
+    }
+
+    /// <summary>M2 (OD17): the marked execution lines hand a wound host's ending over.</summary>
+    private void OnEnding(Entity<WolfmedConsciousnessComponent> ent, ref WolfmedEndingEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        args.Handled = EndDeliberately(ent);
+    }
+
+    /// <summary>
+    /// M2 (OD17, P10, P29): an execution or a suicide on a wound host. The brain (or positronic core) goes to 0 where
+    /// it sits, then the body dies, then an arrest in progress ends on the corpse: catastrophic brain injury, the
+    /// order Succumb uses, so brain repair and a shock (or core repair and a restart) bring the body back. Who the
+    /// ghost is and whether it can return is the caller's; a suicide has already ghosted for good.
+    /// </summary>
+    public bool EndDeliberately(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body) || !_life.OwnsDeath(body) || _mobState.IsDead(body))
+            return false;
+
+        Withdraw(body);
+        if (_life.GetBrainOrgan(body) is { } brain)
+            _organs.SetHealth(brain, FixedPoint2.Zero);
+
+        _life.Kill(body);
+        _life.EndArrest(body);
+        return true;
     }
 
     #region Queries

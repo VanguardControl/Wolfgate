@@ -192,6 +192,10 @@ public sealed class WolfmedDyingEffectsSystem : EntitySystem
         if (TryComp(player, out WolfmedConsciousnessComponent? consciousness) &&
             mob.CurrentState != MobState.Dead)
         {
+            // M2 (plan §5.2): a faint gets its own short white-out (WolfmedExplanationCardSystem), not the dying view.
+            if (consciousness.State == WolfmedConsciousness.Unconscious && WolfmedCauses.IsFaint(consciousness.Cause))
+                return 0f;
+
             // BRAIN: in arrest the screen keeps fading toward black as the brain runs out of oxygen.
             if (HasComp<WolfmedCardiacArrestComponent>(player))
                 return MathF.Max(consciousness.Depth,

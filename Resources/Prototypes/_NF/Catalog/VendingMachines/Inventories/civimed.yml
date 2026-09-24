@@ -13,6 +13,7 @@
     WolfmedStimPen: 20 # WOLFGATE (CONSC): limited, it is the emergency rung.
     WolfmedAnalgesicPen: 4294967295 # WOLFGATE (playtest 1): Infinite
     WolfmedOpiatePen: 40 # WOLFGATE (playtest 1): limited, it sedates.
+    WolfmedNaloxonePen: 40 # WOLFGATE (M2): OD14, reverses an overdose.
     PillCanisterTricordrazine: 4294967295 # Infinite - Mono
     HypoMini: 4294967295 # Infinite - Mono
     HypoMiniLimitedEdition: 10 # Limited because its a direct upgrade, and can be found on expeds 

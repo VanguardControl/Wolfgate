@@ -111,6 +111,43 @@ public sealed class WolfmedVitalsReport
 
     /// <summary>Playtest 2: whole seconds left in a pain faint, -1 when none runs.</summary>
     public int FaintSeconds = -1;
+
+    /// <summary>M2 (plan §5.5): every process making the patient worse right now, each named with its first aid.</summary>
+    public WolfmedRoutes Routes;
+
+    /// <summary>M2: why the heart last stopped, as an Arrest* source; None outside wolfmed.arrest_cause_memory_seconds.</summary>
+    public WolfmedCauseSource RestartCause;
+
+    /// <summary>M2: that cause is still there.</summary>
+    public bool RestartPresent;
+
+    /// <summary>M2: for blood still present, the units to the post-shock target plus the bleed over the grace; -1 none.</summary>
+    public float RestartUnits = -1f;
+
+    /// <summary>M2: units to the brain-safe line, the grace left in seconds, and that line as a percentage.</summary>
+    public float RestartSafeUnits;
+
+    public float RestartGraceSeconds;
+    public float RestartSafeLine;
+
+    /// <summary>M2 (plan §7.2): a dead chassis's restart button, in words. Hidden for anything else.</summary>
+    public WolfmedRestartVerdict Restart;
+}
+
+/// <summary>M2 (plan §7.2): what a dead chassis's restart button would do, in the analyzer's words.</summary>
+[Serializable, NetSerializable]
+public enum WolfmedRestartVerdict : byte
+{
+    Hidden = 0,
+    Ready = 1,
+    NoHead = 2,
+    NoCore = 3,
+    CoreDestroyed = 4,
+    NoPump = 5,
+    NoPower = 6,
+
+    /// <summary>Rot or other content's unrevivable reason.</summary>
+    Refused = 7,
 }
 
 /// <summary>
@@ -129,11 +166,78 @@ public static class WolfmedVitalsText
         if (BurnFluidLine(report) is { } burns)
             lines.Add(burns);
 
+        // M2 (plan §5.5): what is getting worse, and what the last arrest was.
+        if (RoutesLine(report) is { } routes)
+            lines.Add(routes);
+
+        if (RestartLine(report) is { } restart)
+            lines.Add(restart);
+
         if (VerdictLine(report) is { } verdict)
             lines.Add(verdict);
 
+        if (RestartVerdictLine(report) is { } button)
+            lines.Add(button);
+
         return lines;
     }
+
+    /// <summary>
+    /// M2: "Getting worse: bleeding (pressure, gauze, tourniquet); sepsis (antibiotics)", or "Getting worse: nothing
+    /// now" for a patient who is down but stable (§1.5's fourth priority). Not shown on the dead, nor on somebody up
+    /// with nothing running.
+    /// </summary>
+    public static string? RoutesLine(WolfmedVitalsReport report)
+    {
+        if (report.State == WolfmedVitalsState.Dead)
+            return null;
+
+        if (report.Routes == WolfmedRoutes.None)
+            return report.State == WolfmedVitalsState.Up ? null : Loc.GetString("wolfmed-vitals-routes-none");
+
+        var names = new List<string>();
+        for (var bit = 0; bit < 16; bit++)
+        {
+            var route = (WolfmedRoutes) (1 << bit);
+            if ((report.Routes & route) == 0)
+                continue;
+
+            var key = $"wolfmed-vitals-route-{route.ToString().ToLowerInvariant()}";
+            names.Add(report.Mechanical && Loc.TryGetString(key + "-mechanical", out var machine) ? machine : Loc.GetString(key));
+        }
+
+        return Loc.GetString("wolfmed-vitals-routes", ("routes", string.Join("; ", names)));
+    }
+
+    /// <summary>
+    /// M2: "After a restart: arrest cause blood. Still present: yes. Transfuse ≈ 30 u within 45 s ...". Kept for
+    /// wolfmed.arrest_cause_memory_seconds after the heart started again.
+    /// </summary>
+    public static string? RestartLine(WolfmedVitalsReport report)
+    {
+        if (report.RestartCause == WolfmedCauseSource.None)
+            return null;
+
+        var cause = SourceName(report.RestartCause);
+        if (!report.RestartPresent || report.RestartUnits < 0f)
+        {
+            return Loc.GetString("wolfmed-vitals-restart", ("cause", cause),
+                ("present", Loc.GetString(report.RestartPresent ? "wolfmed-vitals-yes" : "wolfmed-vitals-no")));
+        }
+
+        return report.RestartGraceSeconds > 0f
+            ? Loc.GetString("wolfmed-vitals-restart-transfuse", ("cause", cause),
+                ("units", MathF.Ceiling(report.RestartUnits)), ("seconds", MathF.Ceiling(report.RestartGraceSeconds)),
+                ("safe", MathF.Ceiling(report.RestartSafeUnits)), ("line", MathF.Round(report.RestartSafeLine)))
+            : Loc.GetString("wolfmed-vitals-restart-transfuse-late", ("cause", cause),
+                ("safe", MathF.Ceiling(report.RestartSafeUnits)), ("line", MathF.Round(report.RestartSafeLine)));
+    }
+
+    /// <summary>M2 (plan §7.2): "Restart: ready" or "Restart: refused: core destroyed, core repair first". Dead chassis only.</summary>
+    public static string? RestartVerdictLine(WolfmedVitalsReport report) =>
+        report.Restart == WolfmedRestartVerdict.Hidden
+            ? null
+            : Loc.GetString($"wolfmed-vitals-restart-verdict-{report.Restart.ToString().ToLowerInvariant()}");
 
     /// <summary>"DOWNED: blood loss", "FAINTED: pain", "CARDIAC ARREST: blood", "SHUTDOWN: no power".</summary>
     public static string StateLine(WolfmedVitalsReport report)

@@ -173,8 +173,8 @@ public sealed class WolfmedShutdownSystem : EntitySystem
         _consciousness.SetExternalPressure(body, ShutdownPressure, down ? 1f : 0f);
     }
 
-    /// <summary>A cell in the chassis with something left in it. SiliconDownOnDead already tracks both.</summary>
-    private bool HasPower(EntityUid body) =>
+    /// <summary>A cell in the chassis with something left in it. SiliconDownOnDead already tracks both. M2: the restart reads it.</summary>
+    public bool HasPower(EntityUid body) =>
         !TryComp(body, out SiliconDownOnDeadComponent? silicon) || !silicon.Dead;
 
     /// <summary>A coolant pump in the chassis that has not been destroyed. The analyzer's cooling line reads it too.</summary>

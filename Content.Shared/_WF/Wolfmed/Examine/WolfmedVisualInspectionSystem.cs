@@ -3,14 +3,19 @@ using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._EinsteinEngines.Silicon.Components;
+using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Robust.Shared.Configuration;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Armor;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
+using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
 using Robust.Shared.Prototypes;
@@ -38,6 +43,7 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
     private const string LabelSuffix = "-short";
 
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private IConfigurationManager _cfg = default!; // M2
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private PainSystem _pain = default!;
@@ -207,6 +213,9 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             lines++;
         }
 
+        // M2 (plan §5.5, §5.3): responsiveness, blue lips and the pupils close up; playing dead at any range.
+        lines += AddM2Signs(examined, report, identity, self, detailed, machine, arrested, vitals);
+
         if (lines == 0)
         {
             // Nothing shown at all reads differently when there was something and the clothing took it.
@@ -223,6 +232,93 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             report.Notes.Add(Loc.GetString("wolfmed-look-distant"));
 
         return report;
+    }
+
+    /// <summary>
+    /// M2 (plan §5.5): the medic's close-up signs, from networked values only. AVPU from the state and cause (no new
+    /// numbers): alert while Downed, responds to voice when sedated past wolfmed.sedation_warn, to pain in a faint,
+    /// unresponsive when out or dying; nothing for somebody up and clear-headed. Blue lips under
+    /// wolfmed.examine_cyanosis_oxygenation, pinpoint pupils with the sedation, unequal pupils with a concussion. A
+    /// Downed body playing dead reads "appears lifeless" from anywhere (plan §5.3, OD20). Returns the lines added.
+    /// </summary>
+    private int AddM2Signs(EntityUid examined, WolfmedLookReport report, EntityUid identity, bool self, bool detailed,
+        bool machine, bool arrested, WolfmedConsciousnessComponent? vitals)
+    {
+        // Signs somebody else reads off you; nobody sees their own pupils.
+        if (self)
+            return 0;
+
+        var added = 0;
+        var dead = TryComp(examined, out MobStateComponent? mob) && mob.CurrentState == MobState.Dead;
+
+        if (!detailed && !dead && HasComp<WolfmedPlayingDeadComponent>(examined))
+        {
+            report.Notes.Add(Loc.GetString("wolfmed-look-lifeless-other", ("target", identity)));
+            added++;
+        }
+
+        if (machine || !detailed || dead || vitals == null)
+            return added;
+
+        var sedation = CompOrNull<WolfmedPainReliefComponent>(examined)?.Sedation ?? 0f;
+        var sedated = sedation >= _cfg.GetCVar(WolfmedCVars.SedationWarn);
+        var avpu = vitals.State switch
+        {
+            _ when arrested => "unresponsive",
+            WolfmedConsciousness.Unconscious when WolfmedCauses.IsFaint(vitals.Cause) => "pain",
+            WolfmedConsciousness.Unconscious => "unresponsive",
+            _ when sedated || vitals.Cause == WolfmedCause.Sedation => "voice",
+            WolfmedConsciousness.Downed => "alert",
+            _ => null,
+        };
+
+        // Up close, a Downed body playing dead is still breathing and blinking: the medic sees through it.
+        if (avpu != null)
+        {
+            report.Notes.Add(Loc.GetString($"wolfmed-look-avpu-{avpu}", ("target", identity)));
+            added++;
+        }
+
+        if (!arrested && vitals.Oxygenation < _cfg.GetCVar(WolfmedCVars.ExamineCyanosisOxygenation))
+        {
+            report.Notes.Add(Loc.GetString("wolfmed-look-blue-lips", ("target", identity)));
+            added++;
+        }
+
+        if (sedated)
+        {
+            report.Notes.Add(Loc.GetString("wolfmed-look-pupils-pinpoint", ("target", identity)));
+            added++;
+        }
+
+        if (BrainInjured(examined))
+        {
+            report.Notes.Add(Loc.GetString("wolfmed-look-pupils-unequal", ("target", identity)));
+            added++;
+        }
+
+        return added;
+    }
+
+    /// <summary>
+    /// M2: a brain injury, not a knock on the head: the brain organ under its concussion line, or a repaired brain
+    /// still carrying its trauma. A head wound's own concussion has its own look.
+    /// </summary>
+    private bool BrainInjured(EntityUid body)
+    {
+        if (HasComp<WolfmedBrainTraumaComponent>(body))
+            return true;
+
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (!TryComp(organ, out WolfmedBrainComponent? brain) || !TryComp(organ, out WolfmedOrganComponent? health) ||
+                health.MaxHealth <= FixedPoint2.Zero)
+                continue;
+
+            return health.Health.Float() / health.MaxHealth.Float() < brain.ConcussionAt;
+        }
+
+        return false;
     }
 
     /// <summary>

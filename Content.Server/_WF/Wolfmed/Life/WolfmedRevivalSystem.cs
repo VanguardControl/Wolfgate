@@ -1,6 +1,13 @@
+using System.Linq;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server.EUI;
 using Content.Server.Ghost;
+using Content.Server.Popups;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.IdentityManagement;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.CCVar;
@@ -41,6 +48,10 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     [Dependency] private SharedRottingSystem _rotting = default!;
     [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
     [Dependency] private WolfmedLifeSystem _life = default!;
+    [Dependency] private PopupSystem _popup = default!; // M2
+    [Dependency] private SharedAudioSystem _audio = default!; // M2
+    [Dependency] private SharedBodySystem _body = default!; // M2
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!; // M2
 
     /// <summary>Test seam, mirroring <c>WolfmedEviscerationSystem.ForcedRoll</c>: a forced chance roll.</summary>
     public float? ForcedRoll;
@@ -241,6 +252,78 @@ public sealed class WolfmedRevivalSystem : EntitySystem
 
         _eui.OpenEui(new ReturnToBodyEui(mind, _mind, _player), session);
         return true;
+    }
+
+    /// <summary>
+    /// M2 (plan §7.2): why a dead chassis's restart button will not bring it back, or null when it will. It reads what
+    /// a machine needs to run, never a damage total: a core in the chassis that is not destroyed, a head, a charged
+    /// cell and a pump. Rot and other content's <see cref="UnrevivableComponent"/> still stop it.
+    /// </summary>
+    public string? GetRestartRefusal(EntityUid body)
+    {
+        if (TerminatingOrDeleted(body) || !OwnsRevival(body))
+            return NotMonitored;
+
+        if (_rotting.IsRotten(body))
+            return Rotten;
+
+        if (TryComp(body, out UnrevivableComponent? unrevivable))
+            return unrevivable.ReasonMessage;
+
+        if (!_body.GetBodyChildrenOfType(body, BodyPartType.Head).Any())
+            return RestartNoHead;
+
+        if (!_life.HasBrain(body))
+            return RestartNoCore;
+
+        if (_life.GetBrainOrgan(body) is not { } core || core.Comp.Health <= FixedPoint2.Zero)
+            return RestartCoreDestroyed;
+
+        if (!_shutdown.HasPump(body))
+            return RestartNoPump;
+
+        return _shutdown.HasPower(body) ? null : RestartNoPower;
+    }
+
+    public const string RestartNoHead = "wolfmed-restart-no-head";
+    public const string RestartNoCore = "wolfmed-restart-no-core";
+    public const string RestartCoreDestroyed = "wolfmed-restart-core-destroyed";
+    public const string RestartNoPump = "wolfmed-restart-no-pump";
+    public const string RestartNoPower = "wolfmed-restart-no-power";
+
+    /// <summary>
+    /// M2 (plan §7.2): the marked restart-button hook's hand-off. False when Wolfmed does not decide this body, and the
+    /// button's own damage check runs. Otherwise the chassis comes back, or the button buzzes and says why not.
+    /// </summary>
+    public bool TryRestart(EntityUid body, SoundSpecifier? buzz = null)
+    {
+        if (!OwnsRevival(body) || !_mobState.IsDead(body))
+            return false;
+
+        if (GetRestartRefusal(body) is { } refusal)
+        {
+            if (buzz != null)
+                _audio.PlayPvs(buzz, body);
+
+            _popup.PopupEntity(Loc.GetString(refusal, ("target", Identity.Entity(body, EntityManager))), body);
+            return true;
+        }
+
+        Restart(body);
+        return true;
+    }
+
+    /// <summary>
+    /// A dead chassis back on: Critical first, then consciousness decides from its inputs, as a shock does for flesh.
+    /// Consciousness's own lines tell the player; the button plays its success sound on the way to Alive.
+    /// </summary>
+    public void Restart(EntityUid body)
+    {
+        if (_mobState.HasState(body, MobState.Critical))
+            _mobState.ChangeMobState(body, MobState.Critical);
+
+        _life.Tick(body, 0.0001f);
+        _consciousness.Refresh(body);
     }
 
     /// <summary>

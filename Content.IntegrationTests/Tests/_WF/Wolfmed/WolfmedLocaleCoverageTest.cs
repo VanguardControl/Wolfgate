@@ -42,6 +42,10 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("wolfmed-pain-relief-tier-", typeof(WolfmedPainReliefTier), [], false),
         // Playtest 1: the patient's "takes hold" line, built from the tier a dose reached.
         ("wolfmed-painkiller-takes-hold-", typeof(WolfmedPainReliefTier), ["None"], false),
+        // M2: the routes line, the waiting ghost's "getting worse" line and a dead chassis's restart verdict.
+        ("wolfmed-vitals-route-", typeof(Content.Shared._WF.Wolfmed.Life.WolfmedRoutes), ["None"], false),
+        ("wolfmed-dormant-route-", typeof(Content.Shared._WF.Wolfmed.Life.WolfmedRoutes), ["None"], false),
+        ("wolfmed-vitals-restart-verdict-", typeof(Content.Shared._WF.Wolfmed.Life.WolfmedRestartVerdict), ["Hidden"], false),
     ];
 
     /// <summary>Fixed keys the panel uses, with the suffixes it can append to each.</summary>

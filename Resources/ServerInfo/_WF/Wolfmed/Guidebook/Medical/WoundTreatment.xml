@@ -23,7 +23,7 @@ Painkillers treat nothing. They buy a patient time and a way to walk to you, and
 
 [bold]Weak[/bold] - analgesic, ibuprofen, ketorolac. Takes enough pain off to get a downed crewman back on their feet. It can never keep anybody conscious.
 
-[bold]Strong[/bold] - opiate, tramadol, oxycodone. Enough to pull a patient out of unconsciousness when pain was the only thing holding them there, and enough to mask the limp, so they will walk on a broken leg and make it worse. It builds up sedation: the patient slows down, and past 60% of the meter they stop breathing properly. That is how an overdose kills.
+[bold]Strong[/bold] - opiate, tramadol, oxycodone. Enough to pull a patient out of unconsciousness when pain was the only thing holding them there, and enough to mask the limp, so they will walk on a broken leg and make it worse. It sedates: whatever is in the blood pulls the sedation meter toward a level and holds it there, and the patient slows down. One ordinary dose stays under 60%; two put the patient on the floor; past 60% they stop breathing properly. That is how an overdose kills. The patient feels it coming: drowsy, then breathing slowing, then barely awake. [bold]Naloxone[/bold] reverses it at once; it wears off before the painkiller does, so a big overdose can need a second pen.
 
 [bold]Stimulants[/bold] - ephedrine, desoxyephedrine, epinephrine. Holds somebody upright however much it hurts, and does nothing else.
 
@@ -38,6 +38,7 @@ The analyzer names the tier and the time left at the top of the wounds tab, with
     <GuideEntityEmbed Entity="WolfmedAnalgesicPen"/>
     <GuideEntityEmbed Entity="WolfmedOpiatePen"/>
     <GuideEntityEmbed Entity="WolfmedStimPen"/>
+    <GuideEntityEmbed Entity="WolfmedNaloxonePen"/>
   </Box>
 
 ## Biological tissue
@@ -264,6 +265,6 @@ Nothing Wolfmed does makes a body permanently unrevivable. [bold]Rot[/bold] is s
     <GuideEntityEmbed Entity="Hemostat"/>
   </Box>
 
-An [bold]IPC[/bold] has none of this. It does not bleed oxygen and it has no clock. Pull its cell or break its micro pump and it [bold]shuts down[/bold] - unconscious, indefinitely, with nothing running out - until the power or the pump is put back. Destroy its positronic brain and it is dead, and the way back is the same one flesh takes: repair the brain, then a jolt from a defibrillator to reboot it.
+An [bold]IPC[/bold] has none of this. It does not bleed oxygen and it has no clock. Pull its cell or break its micro pump and it [bold]shuts down[/bold] - unconscious, indefinitely, with nothing running out - until the power or the pump is put back. Destroy its positronic core and it is dead. The way back is [bold]core repair[/bold] on the torso - unbolt the housing with a wrench, re-flash the core with a multitool, weld the housing shut - and then the [bold]restart button[/bold]. The button checks what the chassis needs to run: a head, a core, a pump and a charged cell, and it says which is missing. A repaired core carries no trauma; the chassis reads CORE RESTORED for a while.
 
 </Document>

@@ -73,7 +73,12 @@ public sealed partial class WolfmedSurgeryOrganDamagedConditionComponent : Compo
 /// the only way a brain-dead body becomes defibrillatable again. Leaves the trauma behind.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
-public sealed partial class WolfmedSurgeryBrainRepairEffectComponent : Component;
+public sealed partial class WolfmedSurgeryBrainRepairEffectComponent : Component
+{
+    /// <summary>M2 (OD10): the organ slot the step repairs. "posbrain" makes it core repair on a chassis.</summary>
+    [DataField]
+    public string Slot = "brain";
+}
 
 /// <summary>Restores health to a named organ slot on the selected part.</summary>
 [RegisterComponent, NetworkedComponent]

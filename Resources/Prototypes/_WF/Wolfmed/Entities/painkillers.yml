@@ -113,3 +113,31 @@
           Quantity: 3
   - type: StaticPrice
     price: 20
+
+# M2 (OD14): the antagonist as a pen, so a medic (or a Downed patient on themselves) can reverse an overdose on the
+# spot. 5 u takes up to 1.5 off the sedation over about ten seconds.
+- type: entity
+  parent: ChemicalMedipen
+  id: WolfmedNaloxonePen
+  name: naloxone pen
+  description: Reverses a painkiller overdose. Takes the sedation off and gets the patient breathing; the pain comes back with it.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Medical/medipen.rsi
+    layers:
+    - state: medipen
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#b8e3f0"
+  - type: SolutionContainerVisuals
+    maxFillLevels: 1
+    changeColor: false
+    emptySpriteName: medipen_empty
+  - type: SolutionContainerManager
+    solutions:
+      pen:
+        maxVol: 15
+        reagents:
+        - ReagentId: WolfmedNaloxone
+          Quantity: 5
+  - type: StaticPrice
+    price: 15
