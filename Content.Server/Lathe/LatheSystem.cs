@@ -21,6 +21,7 @@ using Content.Server.DeviceLinking.Systems; // Mono
 using Content.Shared.Emag.Components;
 using Content.Shared.Emag.Systems;
 using Content.Shared.Examine;
+using Content.Shared.FixedPoint;
 using Content.Shared.Lathe;
 using Content.Shared.Lathe.Prototypes;
 using Content.Shared.Materials;
@@ -457,6 +458,12 @@ namespace Content.Server.Lathe
             var recipes = GetAvailableRecipes(uid, component);
             var recipeReady = recipes.Select(id => CanProduce(uid, _proto.Index(id), 1, component)).ToList();
             var queueReady = component.Queue.Select(batch => CanProduce(uid, batch.Recipe, 1, component)).ToList();
+            var queueMissingSupplies = component.Queue.Select(batch =>
+            {
+                var missing = GetMissingSupplies(uid, batch.Recipe, component);
+                missing.DesignAvailable = recipes.Contains(batch.Recipe.ID);
+                return missing;
+            }).ToList();
 
             var state = new LatheUpdateState(
                 recipes,
@@ -467,7 +474,8 @@ namespace Content.Server.Lathe
                 _fabricationSilo.GetLinkedSilo(uid, FabricationSiloKind.Parts) != null,
                 _fabricationSilo.GetLinkedSilo(uid, FabricationSiloKind.Chemicals) != null,
                 recipeReady,
-                queueReady); // Mono
+                queueReady,
+                queueMissingSupplies); // Mono
             _uiSys.SetUiState(uid, LatheUiKey.Key, state);
         }
 
@@ -757,6 +765,56 @@ namespace Content.Server.Lathe
             }
 
             return base.CanProduce(uid, recipe, amount, component);
+        }
+
+        private LatheMissingSupplies GetMissingSupplies(EntityUid uid, LatheRecipePrototype recipe, LatheComponent component)
+        {
+            var missing = new LatheMissingSupplies();
+
+            foreach (var (material, amount) in recipe.Materials)
+            {
+                var needed = AdjustMaterial(amount, recipe.MaterialDiscountScale, component.FinalMaterialUseMultiplier);
+                var shortage = needed - _materialStorage.GetMaterialAmount(uid, material);
+                if (shortage > 0)
+                    missing.Materials[material] = shortage;
+            }
+
+            TryComp<EntityStorageComponent>(uid, out var storage);
+            foreach (var (entity, needed) in recipe.Entities)
+            {
+                var local = 0;
+                if (storage != null)
+                {
+                    foreach (var stored in storage.Contents.ContainedEntities)
+                    {
+                        if (MetaData(stored).EntityPrototype?.ID != entity.Id)
+                            continue;
+
+                        _stackQuery.TryComp(stored, out var stack);
+                        local += stack?.Count ?? 1;
+                    }
+                }
+
+                var shortage = needed - local - _fabricationSilo.GetPartAmount(uid, entity);
+                if (shortage > 0)
+                    missing.Entities[entity] = shortage;
+            }
+
+            foreach (var (reagent, needed) in recipe.Reagents)
+            {
+                var local = FixedPoint2.Zero;
+                if (component.ReagentOutputSlotId is { } slotId &&
+                    _container.TryGetContainer(uid, slotId, out var container) &&
+                    container.ContainedEntities.Count > 0 &&
+                    _solution.TryGetDrainableSolution(container.ContainedEntities[0], out _, out var solution))
+                    local = solution.GetReagent(new ReagentId(reagent.Id, [])).Quantity;
+
+                var shortage = needed - local - _fabricationSilo.GetReagentAmount(uid, reagent);
+                if (shortage > 0)
+                    missing.Reagents[reagent] = shortage;
+            }
+
+            return missing;
         }
     }
 }

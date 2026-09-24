@@ -49,7 +49,7 @@ namespace Content.Client.Lathe.UI
                     if (_menu != null)
                     {
                         _menu.Recipes = msg.Recipes;
-                        _menu.SetSupplyReadiness(msg.Recipes, msg.RecipeReady, msg.QueueReady);
+                        _menu.SetSupplyReadiness(msg.Recipes, msg.RecipeReady, msg.QueueReady, msg.QueueMissingSupplies);
                     }
                     _menu?.PopulateRecipes();
                     _menu?.UpdateCategories();

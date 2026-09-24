@@ -41,5 +41,12 @@ lathe-menu-chemical-silo-offline = Chemical silo offline
 lathe-menu-status-printing = Printing
 lathe-menu-status-ready = Ready
 lathe-menu-status-waiting = Waiting for supplies
+lathe-menu-status-design-unavailable = Design unavailable
+lathe-menu-queue-missing-material = { $amount ->
+    [1] {NATURALFIXED($amount, 2)} {$unit} of {$material}
+    *[other] {NATURALFIXED($amount, 2)} {MAKEPLURAL($unit)} of {$material}
+}
+lathe-menu-queue-missing-entity = {$amount} × {$material}
+lathe-menu-queue-missing-reagent = {NATURALFIXED($amount, 2)}u {$material}
 lathe-menu-recipe-ready = Ready to start
 lathe-menu-recipe-missing = Waiting for supplies

@@ -1,3 +1,6 @@
+using Content.Shared.Chemistry.Reagent;
+using Content.Shared.FixedPoint;
+using Content.Shared.Materials;
 using Content.Shared.Research.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
@@ -21,6 +24,7 @@ public sealed class LatheUpdateState : BoundUserInterfaceState
     // describes whether the next single item can start with current supplies.
     public List<bool> RecipeReady;
     public List<bool> QueueReady;
+    public List<LatheMissingSupplies> QueueMissingSupplies;
 
     public LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes,
         List<LatheRecipeBatch> queue,
@@ -30,7 +34,8 @@ public sealed class LatheUpdateState : BoundUserInterfaceState
         bool partsSiloLinked = false,
         bool chemicalSiloLinked = false,
         List<bool>? recipeReady = null,
-        List<bool>? queueReady = null) // Frontier: change queue type // Mono
+        List<bool>? queueReady = null,
+        List<LatheMissingSupplies>? queueMissingSupplies = null) // Frontier: change queue type // Mono
     {
         Recipes = recipes;
         Queue = queue;
@@ -41,7 +46,20 @@ public sealed class LatheUpdateState : BoundUserInterfaceState
         ChemicalSiloLinked = chemicalSiloLinked;
         RecipeReady = recipeReady ?? new List<bool>();
         QueueReady = queueReady ?? new List<bool>();
+        QueueMissingSupplies = queueMissingSupplies ?? new List<LatheMissingSupplies>();
     }
+}
+
+/// <summary>
+/// Supplies missing for the next item in one queued batch, including linked silos.
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class LatheMissingSupplies
+{
+    public bool DesignAvailable = true;
+    public Dictionary<ProtoId<MaterialPrototype>, int> Materials = new();
+    public Dictionary<EntProtoId, int> Entities = new();
+    public Dictionary<ProtoId<ReagentPrototype>, FixedPoint2> Reagents = new();
 }
 
 /// <summary>

@@ -59,14 +59,16 @@ public sealed partial class LatheMenu : FancyWindow
     private bool _chemicalSiloLinked;
     private readonly Dictionary<ProtoId<LatheRecipePrototype>, bool> _recipeReady = new();
     private List<bool> _queueReady = new();
+    private List<LatheMissingSupplies> _queueMissingSupplies = new();
 
-    public void SetSupplyReadiness(List<ProtoId<LatheRecipePrototype>> recipes, List<bool> recipeReady, List<bool> queueReady)
+    public void SetSupplyReadiness(List<ProtoId<LatheRecipePrototype>> recipes, List<bool> recipeReady, List<bool> queueReady, List<LatheMissingSupplies> queueMissingSupplies)
     {
         _recipeReady.Clear();
         for (var i = 0; i < recipes.Count && i < recipeReady.Count; i++)
             _recipeReady[recipes[i]] = recipeReady[i];
 
         _queueReady = queueReady;
+        _queueMissingSupplies = queueMissingSupplies;
     }
 
     public LatheMenu()
@@ -348,10 +350,19 @@ public sealed partial class LatheMenu : FancyWindow
                 VerticalAlignment = VAlignment.Center,
             };
             details.AddChild(new Label { Text = _lathe.GetRecipeName(batch.Recipe), HorizontalExpand = true });
+            var missingSupplies = idx - 1 < _queueMissingSupplies.Count ? _queueMissingSupplies[idx - 1] : null;
+            var designUnavailable = !ready && missingSupplies is { DesignAvailable: false };
             var status = Loc.GetString(isPrinting
                 ? "lathe-menu-status-printing"
-                : ready ? "lathe-menu-status-ready" : "lathe-menu-status-waiting");
+                : ready ? "lathe-menu-status-ready" : designUnavailable
+                    ? "lathe-menu-status-design-unavailable" : "lathe-menu-status-waiting");
             details.AddChild(new Label { Text = status, StyleClasses = { "LabelSubText" } });
+            if (!ready && missingSupplies != null)
+            {
+                var missing = GetMissingSuppliesText(missingSupplies);
+                if (!string.IsNullOrEmpty(missing))
+                    details.AddChild(new Label { Text = missing, StyleClasses = { "LabelSubText" } });
+            }
             queueContents.AddChild(details);
 
             var printed = new Label
@@ -395,6 +406,40 @@ public sealed partial class LatheMenu : FancyWindow
             QueueList.AddChild(queuedRecipeBox);
             idx++;
         }
+    }
+
+    private string GetMissingSuppliesText(LatheMissingSupplies missing)
+    {
+        var supplies = new List<string>();
+        foreach (var (id, amount) in missing.Materials)
+        {
+            if (!_prototypeManager.TryIndex(id, out var proto))
+                continue;
+
+            var sheets = amount / (float) _materialStorage.GetSheetVolume(proto);
+            supplies.Add(Loc.GetString("lathe-menu-queue-missing-material",
+                ("amount", sheets), ("unit", Loc.GetString(proto.Unit)), ("material", Loc.GetString(proto.Name))));
+        }
+
+        foreach (var (id, amount) in missing.Entities)
+        {
+            if (!_prototypeManager.TryIndex(id, out var proto))
+                continue;
+
+            supplies.Add(Loc.GetString("lathe-menu-queue-missing-entity",
+                ("amount", amount), ("material", Loc.GetString(proto.Name))));
+        }
+
+        foreach (var (id, amount) in missing.Reagents)
+        {
+            if (!_prototypeManager.TryIndex(id, out var proto))
+                continue;
+
+            supplies.Add(Loc.GetString("lathe-menu-queue-missing-reagent",
+                ("amount", amount.Float()), ("material", Loc.GetString(proto.LocalizedName))));
+        }
+
+        return string.Join(", ", supplies);
     }
 
     public void SetQueueInfo(LatheRecipePrototype? recipe)
