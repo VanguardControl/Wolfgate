@@ -2446,3 +2446,15 @@ Three findings, all confirmed against the code and fixed. Branch `Wolfmed-fixes3
 6 skipped (dirty-disposed: `AutofixStopsReplanningABodyItIsNotChangingTest`, `AutofixModuleIdlesWithNothingToDoTest`,
 `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`, `PowerLossPausesAndRestoreResumesTest`,
 `SlipOpensOneSmallWoundTest`, `VisualStateFollowsTheLidTest`). Each passed alone.
+
+## Synth takes no poison (2026-09-24)
+
+The owner's answer to M6's open call: a Synth is synthetic with organic parts, not the other way round, and the one
+organic weakness M4 left dangling goes. HardLight's `Synth` damage container accepts the Toxin group, but since OD16
+made the Synth mechanical the toxin route, liver clearance and consciousness all skipped it, so Poison landed, hurt,
+and never mattered or cleared. The `Synth` damage modifier set now has `Poison: 0`, the same coefficient the IPC set
+carries, so gas, stings and venom do not land on a Synth at all. Radiation (Synth 0.8, IPC 0.5) is untouched: it has
+no machine route either, and the owner has not ruled on it.
+
+`SynthRunsNoToxinRouteTest` became `SynthTakesNoPoisonTest`: the dose now goes through resistances and the load must
+stay zero; the human control still ends in a toxic coma.

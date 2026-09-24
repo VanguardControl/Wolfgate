@@ -312,12 +312,12 @@ public sealed class WolfmedLeftoversTest : GameTest
     }
 
     /// <summary>
-    /// M4's leftover, confirmed: a synth runs on the machine ladder, and its HardLight damage container still takes
-    /// Poison, so M5's toxin route must skip it. A synth holding 130 Poison is neither poisoned nor in a toxic coma, no
-    /// liver clears it, and the analyzer shows no toxin line; a human with the same load is in a toxic coma.
+    /// A Synth is mechanical (OD16) and its modifier set now zeroes Poison, so a poison dose that goes through
+    /// resistances never lands: no load, no toxin cause, no coma, no analyzer line. A human with the same dose is in a
+    /// toxic coma. The owner's call on 2026-09-24: synthetic with organic parts, and no organic weakness left dangling.
     /// </summary>
     [Test]
-    public async Task SynthRunsNoToxinRouteTest()
+    public async Task SynthTakesNoPoisonTest()
     {
         await Pin();
         var map = await Pair.CreateTestMap();
@@ -337,21 +337,20 @@ public sealed class WolfmedLeftoversTest : GameTest
         {
             var toxin = SEntMan.System<WolfmedToxinSystem>();
             var damage = SEntMan.System<DamageableSystem>();
-            damage.TryChangeDamage(synth, WolfmedScenario.Spec("Poison", 130), ignoreResistances: true);
-            damage.TryChangeDamage(human, WolfmedScenario.Spec("Poison", 130), ignoreResistances: true);
+            damage.TryChangeDamage(synth, WolfmedScenario.Spec("Poison", 130));
+            damage.TryChangeDamage(human, WolfmedScenario.Spec("Poison", 130));
             s.Consciousness.Refresh(synth);
             s.Consciousness.Refresh(human);
 
-            Note($"SynthRunsNoToxinRouteTest: synth load {toxin.GetLoad(synth)}, state {s.State(synth)}, " +
+            Note($"SynthTakesNoPoisonTest: synth load {toxin.GetLoad(synth)}, state {s.State(synth)}, " +
                  $"cause {s.Vitals(synth).Cause}; analyzer {s.Analyzer(synth)}");
             Assert.Multiple(() =>
             {
                 Assert.That(SEntMan.System<WolfmedShutdownSystem>().IsMechanical(synth), Is.True, "a synth is not a machine.");
-                Assert.That(toxin.GetLoad(synth), Is.GreaterThan(0f), "the synth took no Poison: nothing to skip.");
+                Assert.That(toxin.GetLoad(synth), Is.Zero, "the synth took Poison through its modifier set.");
                 Assert.That(s.Vitals(synth).Cause, Is.Not.EqualTo(WolfmedCause.Toxin), "the synth is poisoned.");
-                Assert.That(s.State(synth), Is.Not.EqualTo(WolfmedConsciousness.Unconscious), "the synth is in a toxic coma.");
-                Assert.That(toxin.GetClearanceRate(synth), Is.Zero, "a liver clears a machine's Poison.");
-                Assert.That(s.Analyzer(synth), Does.Not.Contain("Toxins:"), "the analyzer shows a machine's toxin load.");
+                Assert.That(s.State(synth), Is.EqualTo(WolfmedConsciousness.Up), "the poison did something to the synth.");
+                Assert.That(s.Analyzer(synth), Does.Not.Contain("Toxins:"), "the analyzer shows a toxin load on a synth.");
                 Assert.That(s.State(human), Is.EqualTo(WolfmedConsciousness.Unconscious), "the human control is not in a coma.");
                 Assert.That(s.Vitals(human).Cause, Is.EqualTo(WolfmedCause.Toxin));
             });

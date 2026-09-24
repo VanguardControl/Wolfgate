@@ -4919,3 +4919,10 @@ No marked upstream or Onyx edits.
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedConsequencesTest.cs` | modified | `LungArrestRestartMemoryTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs` | modified | The frostbite test reads `GetPartNecrosisOnset`. |
 | `Docs/Wolfmed/DECISIONS.md`, this file | modified | The review fixes section; inline corrections for the heartbeat licence, M2's restart memory and the necrosis row. |
+
+## Synth takes no poison (2026-09-24)
+
+| File | Kind | Change |
+| --- | --- | --- |
+| `Resources/Prototypes/_HL/Damage/modifier_sets.yml:5` | upstream YAML | WOLFGATE (Wolfmed): `Poison: 0` on the `Synth` modifier set (OD16, the owner's 2026-09-24 call). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedLeftoversTest.cs` | test | `SynthRunsNoToxinRouteTest` renamed `SynthTakesNoPoisonTest`; the dose goes through resistances and the load must be zero. |
