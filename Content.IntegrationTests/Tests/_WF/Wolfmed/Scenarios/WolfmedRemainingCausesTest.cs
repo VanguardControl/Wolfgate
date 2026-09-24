@@ -389,6 +389,11 @@ public sealed class WolfmedRemainingCausesTest : GameTest
 
         await Server.WaitPost(() =>
         {
+            // M6: station air. In the default map's vacuum the surface passes the cold damage line about two seconds
+            // in, and a cold tick landing on a torso left a plain burn the assertions below read as the residue's.
+            var scenario = new WolfmedScenario(SEntMan);
+            scenario.SetAir(map.MapUid, true);
+            scenario.KeepGrid(map.Grid);
             scalded = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             splashed = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
         });

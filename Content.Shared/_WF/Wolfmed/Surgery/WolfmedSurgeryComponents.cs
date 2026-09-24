@@ -66,6 +66,12 @@ public sealed partial class WolfmedSurgeryOrganDamagedConditionComponent : Compo
     /// destroyed-only test left it with no listed procedure at all and nothing anyone could do about it.
     /// </summary>
     [DataField] public bool AnyDamage;
+
+    /// <summary>
+    /// M6: the surgery stays valid while the part carries any of these, whatever the organ's health. Core repair
+    /// lists its open housing here, so the weld that closes it is still reachable once the core is whole.
+    /// </summary>
+    [DataField] public ComponentRegistry? ValidWhile;
 }
 
 /// <summary>

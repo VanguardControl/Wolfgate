@@ -236,8 +236,10 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             var chassis = Part(entities, body, BodyPartType.Torso);
 
             // The IPC modifier set multiplies Shock by 2.5 before routing, so 12 reaches the part as 30,
-            // and the rule's severityMultiplier 0.7 makes that a 21-severity short.
-            Damage(entities, body, TargetBodyPart.Torso, "Shock", 12);
+            // and the rule's severityMultiplier 0.7 makes that a 21-severity short. M6 (P25): this file's Damage
+            // helper ignores resistances, which the routing now honours, so this hit takes the resistances.
+            entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Shock", 12), origin: null,
+                targetPart: TargetBodyPart.Torso);
             var short_ = FindWound(entities, wounds, chassis, "WolfmedShortCircuitWound");
 
             Assert.Multiple(() =>
@@ -314,8 +316,10 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
 
             // The IPC modifier set multiplies Heat by 1.5, so 40 reaches the part as 60; the rule's
-            // severityMultiplier 0.8 makes that 48, past the 45 the worst stage starts at.
-            Damage(entities, body, TargetBodyPart.LeftArm, "Heat", 40);
+            // severityMultiplier 0.8 makes that 48, past the 45 the worst stage starts at. M6 (P25): the Damage
+            // helper ignores resistances, which the routing now honours, so this hit takes the resistances.
+            entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Heat", 40), origin: null,
+                targetPart: TargetBodyPart.LeftArm);
             var wound = FindWound(entities, wounds, arm, "WolfmedOverheatingWound");
 
             Assert.Multiple(() =>
@@ -328,9 +332,11 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
                 Assert.That(slow, Is.GreaterThan(1f), "a hot part works slowly.");
             });
 
-            // Cold on the part is the cheap way to say "put it somewhere cold".
+            // Cold on the part is the cheap way to say "put it somewhere cold". M6: with resistances, as above; the
+            // chassis's own Cold modifier is what leaves some heat for the next step to shed.
             var hot = entities.GetComponent<WoundComponent>(wound).Severity;
-            Damage(entities, body, TargetBodyPart.LeftArm, "Cold", 50);
+            entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Cold", 50), origin: null,
+                targetPart: TargetBodyPart.LeftArm);
             var cooled = entities.GetComponent<WoundComponent>(wound).Severity;
             Assert.That(cooled, Is.LessThan(hot), "cold takes heat out of it.");
 

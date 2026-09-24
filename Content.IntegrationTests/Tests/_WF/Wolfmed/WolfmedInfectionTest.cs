@@ -472,10 +472,16 @@ public sealed class WolfmedInfectionTest : GameTest
             var accumulated = entities.GetComponent<WolfmedNecrosisComponent>(arm).Progress;
             Assert.That(accumulated, Is.GreaterThan(0f));
 
-            // A deep freeze on the same arm takes the slot, because its onset is the shorter of the two.
+            // A deep freeze on the same arm takes the slot, because its onset is the shorter of the two. M6: its
+            // risk multiplier 1.5 divides the 300 s onset.
             Damage(entities, body, TargetBodyPart.LeftArm, "Cold", 90);
-            Assert.That(entities.GetComponent<WolfmedNecrosisComponent>(arm).Source,
-                Is.EqualTo(WolfmedNecrosisSource.Wound));
+            Assert.Multiple(() =>
+            {
+                Assert.That(entities.GetComponent<WolfmedNecrosisComponent>(arm).Source,
+                    Is.EqualTo(WolfmedNecrosisSource.Wound));
+                Assert.That(entities.GetComponent<WolfmedNecrosisComponent>(arm).Onset.TotalSeconds,
+                    Is.EqualTo(200d).Within(0.01d));
+            });
 
             wounds.RemoveWound(FindWound(entities, arm, "WolfmedFrostbiteWound"));
 
@@ -488,6 +494,57 @@ public sealed class WolfmedInfectionTest : GameTest
                 Assert.That(clock.Progress, Is.GreaterThanOrEqualTo(accumulated),
                     "and the minutes it already spent are not given back.");
             });
+        });
+    }
+
+    /// <summary>
+    /// <c>NecrosisRiskTest</c> (plan §12 M6, P30): a wound's necrosis risk multiplier divides its onset. Frostbite frozen
+    /// through (risk 1.5, onset 300 s) kills the limb in 200 s; charring (risk 1, onset 480 s) takes its full 480 s. The
+    /// multiplier used to be read only as "is there a risk at all", so both limbs took their raw onsets.
+    /// </summary>
+    [Test]
+    public async Task NecrosisRiskTest()
+    {
+        await OverrideCVar(Content.IntegrationTests.Fixtures.Attributes.Side.Server, WolfmedCVars.NecrosisEnabled, true);
+        await OverrideCVar(Content.IntegrationTests.Fixtures.Attributes.Side.Server, WolfmedCVars.NecrosisRate, 1f);
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var necrosis = entities.System<WolfmedNecrosisSystem>();
+            var wounds = entities.System<WoundSystem>();
+
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var frozen = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            var charred = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Right);
+            Assert.That(wounds.CreateOrMergeWound(frozen, "WolfmedFrostbiteWound", FixedPoint2.New(90)), Is.Not.Null);
+            Assert.That(wounds.CreateOrMergeWound(charred, "WolfmedCharringWound", FixedPoint2.New(100)), Is.Not.Null);
+
+            var frozenClock = entities.GetComponent<WolfmedNecrosisComponent>(frozen);
+            var charredClock = entities.GetComponent<WolfmedNecrosisComponent>(charred);
+            Assert.Multiple(() =>
+            {
+                Assert.That(frozenClock.Source, Is.EqualTo(WolfmedNecrosisSource.Wound));
+                Assert.That(charredClock.Source, Is.EqualTo(WolfmedNecrosisSource.Wound));
+                Assert.That(frozenClock.Onset.TotalSeconds, Is.EqualTo(200d).Within(0.01d), "risk 1.5 did not shorten 300 s.");
+                Assert.That(charredClock.Onset.TotalSeconds, Is.EqualTo(480d).Within(0.01d), "risk 1 changed the onset.");
+            });
+
+            // 210 s: past the frozen arm's 200, well inside the charred arm's 480.
+            necrosis.Update(210f);
+            Assert.Multiple(() =>
+            {
+                Assert.That(necrosis.IsNecrotic(frozen), Is.True, "the frozen arm outlived its shortened onset.");
+                Assert.That(necrosis.IsNecrotic(charred), Is.False);
+                Assert.That(necrosis.IsAtRisk(charred), Is.True);
+            });
+
+            // And the charred arm goes at its own 480.
+            necrosis.Update(280f);
+            Assert.That(necrosis.IsNecrotic(charred), Is.True);
         });
     }
 

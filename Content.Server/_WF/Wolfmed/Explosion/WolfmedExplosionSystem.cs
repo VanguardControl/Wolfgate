@@ -47,7 +47,7 @@ public sealed class WolfmedExplosionSystem : EntitySystem
             TargetBodyPart.All,
             DamageDistribution.SplitWithVariation,
             ignoreResistances: true,
-            interruptsDoAfters: false,
+            interruptsDoAfters: true, // M6 (OD18): a blast is a hit, as it is upstream.
             variation: _variation,
             isExplosion: true,
             woundSeverityMultiplier: _multiplier,

@@ -20,6 +20,8 @@ These are constraints for every agent. Do not re-litigate them; flag concrete pr
 - **D32 Species (§8.1 item 1):** `- type: WoundHost` on `BaseMobSpeciesOrganic`. Diona and slime ship on the Organic profile (Onyx-consistent) until phase 5. **Protogen is excluded** (synthetic: remove `WoundHost` in its own prototype with a `# WOLFGATE` comment). Re-enumerate descendants at implementation time and list every exclusion in the manifest.
 - **D33 PassiveDamage (§8.1 item 2):** accept D29 — body-level `PassiveDamage` neutralised on wound hosts; Onyx per-profile recovery is the only passive heal. Recorded as a balance deviation.
 - **D34 Do-afters (§8.1 item 5):** accept the loss of damage-interrupts-do-after on wound hosts for phase 1.
+  *[M6 correction: closed by OD18 (a). One part hit of `wolfmed.doafter_interrupt_damage` (10) or more cancels the hit
+  body's treatment, surgery and break-on-damage do-afters; ticks and systemic damage do not. See "M6".]*
 - **D35 Prediction (§8.1 item 6):** accept unpredicted wound-host damage for phase 1 (transient mispredict). Predicting routing is a later phase.
 - **No commits.** Work packages leave the tree uncommitted; the verify stage snapshots a patch per WP under `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
 
@@ -111,6 +113,8 @@ Phase 4 is committed (`2b4a4675d0 phase 4`). Phase 5 = species coverage and the 
 - **U5 Cable coil (user decision): YES, nerf now** — Mechanical-only `treatmentCapabilities`; humans lose the cable-coil burn heal. Changelog-worthy; record as a deliberate balance fix.
 - **U4 Protogen (user decision): LIFT the exclusion** — organic-profile wound host; organ gap (no `OrganDamage` on protogen organs) recorded.
 - **U1 IPC pain (user decision): KEEP Onyx's pain on IPCs** (pain shock possible, no chemical relief; repair lowers pain).
+  *[M6 correction: the CONSC report's "IPCs have no pain" was wrong; this entry is right. Since M1a (OD9) pain only
+  Downs a machine: it never faints one or holds one under.]*
 - **U3′:** (b) 190/210 `MajorLimb` parity for IPC limb gib triggers. **U15:** (a) marked `Destructible` on `CyberneticPartBase`, no Heat/Ash rung. **U2:** (a) `SiliconWolfmed` container + PROTO S/T companion lines (welder/nanite keep working). **U13′:** (b) `_WF` `InorganicWolfmed` part container restoring Cold/Caustic.
 - **Group B:** all PLAN5 §8.4 defaults (U16 `chemicalMaxVolume: 0`, no `InjectableSolution`; U17 diona limbs destroyed not severed; U18 drop PROTO R; pain numbness closed permanently per numbness.md).
 - **Execution:** sequential packages; manifest appended directly; one owner per shared YAML file as PLAN5 assigns; the `_WF` container file lands in WP13-0 (revision N-ordering fix).
@@ -203,6 +207,9 @@ not have to open all 14 reports to find them.
   arterial-bleed and tendon-cut thresholds are flat damage bands, not rolls. The one chance roll that
   remains is internal bleeding at 30 Blunt / 40 % (W3), kept because Onyx's own `InternalBleedingWound`
   is chance-based. Rarity lives in the thresholds, which keeps the wound suite RNG-free.
+  *[M6 correction: the lodged round is a roll, not a certainty: 35 % at 18 Piercing or more
+  (`WolfmedRuleLodgedRoundHeavy`) and 20 % from 7 to 18 (`WolfmedRuleLodgedRound`), kept as flavour by OD15. The crush
+  internal bleed became a band in M3: every Blunt hit of 40 or more.]*
 - **No forceps item.** The existing hemostat and tweezers components are the "clean tool" for pulling an
   embedded object (W1); W7's planned forceps item was dropped because the two components it would have
   carried already exist and are already lathe-printable and in the surgical crate.
@@ -272,7 +279,13 @@ not have to open all 14 reports to find them.
 ## Playtest fixes (2026-09-19)
 
 - **IPCs take no Airloss-group damage, ever (owner decision, reverses P5-D5/P5-D5b).** `Bloodloss` came off `SiliconWolfmed` and the IPC bloodstream's `bloodlossDamage`/`bloodlossHealDamage` are empty: Bloodloss reads as oxygen loss on the analyzer and an IPC does not breathe. Consequence: an oil leak currently costs an IPC nothing but the oil. Open: give low oil its own consequence (slowdown or overheating) if leaks should matter.
+  *[M6 correction: a leak costs more than the oil. Consciousness reads oil as the blood input: 50 % or less Downs the
+  chassis and 35 % or less shuts it down, cause Oil ("HYDRAULIC PRESSURE LOW", M1a).]*
 - **Body damage ceiling.** `wolfmed.body_damage_cap` (default 600, absolute, 0 disables). Routed part damage past it is discarded (`WolfmedBodyPartSystem.ClampToBodyCap`, one marked hook in `WoundDamageRoutingSystem`). Absolute rather than a multiple of the dead threshold because an IPC dies at 100 while its limbs come off near 200. Infection and sepsis no longer damage corpses.
+  *[M6 correction: the ceiling only ever applied to damage with no origin that was not an explosion, and M1b replaced
+  it: a per-part ceiling (0.8 of the part's lowest destruction trigger) for that damage on the living, with the cut
+  still carried as the hit's Overflow; 600 is now a corpse ceiling. An IPC does not die at 100: damage totals decide
+  nothing on a wound host; a chassis dies of core failure, losing its core or head, or a gib.]*
 - **One severed arm took both IPC arms.** `SharedBodySystem.PartAppearance` copied every marking in the limb's category (Arms spans both sides; IPC limbs are markings). Now filtered to the layer's own markings (marked).
 - **Heartbeat kept looping after death.** `SharedAudioSystem.Stop` is a no-op on ticks that are not first-time-predicted; the client system now deletes its stream directly and reconciles every frame.
 - **Infection tick crashed the server** ("Collection was modified"): infection, necrosis and frostbite ticks now buffer their targets.
@@ -293,6 +306,9 @@ not have to open all 14 reports to find them.
 ## EMP and machine bodies (2026-09-20)
 
 - `WolfmedEmpSystem` (server): an `EmpPulseEvent` reaching a non-organic `Woundable` part that is attached to a wound host deals Shock to it through the routing, which opens the W6 short-circuit wound (stun, sparks, cable coil). Parts are collected per body and resolved at the end of the tick so one pulse shares a budget: `wolfmed.emp_part_damage` (15) per part, `wolfmed.emp_body_damage` (45) per body per pulse. A lone cybernetic limb takes 15; a ten-part IPC takes 4.5 a part. Shitmed's own `CyberneticsSystem` still disables cybernetic parts for the pulse duration; this adds the damage. IPCs die at 100, so one EMP cannot kill a healthy one and three can.
+  *[M6 correction: the shipped values are 40 per part and 120 per body. IPCs do not die of damage totals, so no number
+  of EMPs kills one by itself; the Shock lands on the parts (pain, short circuits) and reaches the core only through the
+  torso's reach line (M3).]*
 
 
 ## Evisceration (2026-09-20)
@@ -334,6 +350,7 @@ clamped to `wolfmed.aim_worst_chance` (0.15) .. `wolfmed.aim_best_chance` (0.9).
 Only hits whose tool is a projectile are rolled; melee, thrown items and explicit `targetPart` calls are untouched. Hitscan
 already lands on a random part (its origin is the gun, which has no targeting). `wolfmed.aim_scatter` turns it off.
 Hook: one marked line in `WoundDamageRoutingSystem`. Test: `WolfmedAimScatterTest`.
+*[M6 correction: the shipped clamps are 0.1 worst and 0.75 best, as "Dying view" below records.]*
 
 ## Blast dismemberment (2026-09-20)
 
@@ -342,6 +359,8 @@ blast is routed, `WolfmedExplosionSystem.TryBlastDismember` rolls on the whole b
 (total - `wolfmed.blast_dismember_min` 30) / (`wolfmed.blast_dismember_full` 150 - min) x `wolfmed.blast_dismember_chance` 0.8,
 rolling 1 + total/full random limbs through `AmputationSystem.TryAmputate`. Torso never; head only with
 `wolfmed.blast_dismember_head`. `wolfmed.blast_dismember` turns it off. Test: `WolfmedExplosionTest.BlastSizeRollsLimbsOffTest`.
+*[M6 correction: until M3 Onyx's own per-part explosion roll could still take the head with the CVar off (P27). M3's
+veto in `AmputationSystem.HandlePartDamageApplied` makes this sentence true (`BlastHeadTest`).]*
 
 ## Dying view (2026-09-20)
 
@@ -373,6 +392,9 @@ untouched and still cross their thresholds exactly as before.
   before the soft clamp / (1.25 x soft cap) for Unconscious; blood volume against 0.60 and 0.45; both legs
   disabled or missing; and external pressures (0 none, 1 unconscious), which reach Downed at 0.7. The worst
   wins. Hysteresis `wolfmed.consc_hysteresis` 0.1 means leaving a state needs the reading back under 0.9.
+  *[M6 correction: the shipped lines are pain 0.95 and 1.4 of the soft cap (`wolfmed.consc_pain_down`,
+  `wolfmed.consc_pain_out`) and blood 0.5 and 0.35 (`wolfmed.consc_blood_down`, `wolfmed.consc_blood_out`). Since M1a
+  the 1.4 pain line starts a bounded faint (20 s) rather than holding anybody Unconscious.]*
 - **"Pain before the soft clamp" is the sum of the parts, not a new field.** `PainSystem.SetPain` clamps the
   part *and* the body to `SoftPainCap` (135), so the body's own value can never read past 1.0 of the cap.
   `WolfmedConsciousnessSystem.GetUncappedPain` sums `GetPain` over the body's parts instead. No `_Onyx` edit,
@@ -396,7 +418,8 @@ untouched and still cross their thresholds exactly as before.
   0.55..1 Unconscious by blood and pressure). `Level` itself is unchanged and still serves everything else.
 - **Rejuvenate is now the only thing that revives a wound host**, because the thresholds no longer do; the
   handler sets `MobState.Alive` itself and re-evaluates a tick later, once every other rejuvenate handler has
-  run.
+  run. *[M6 correction: no longer the only one. The defibrillator (BRAIN, the hand paddles and the pod) and the IPC and
+  synth restart button (M2) revive a wound host too.]*
 
 ## Autodoc (2026-09-22)
 
@@ -469,7 +492,9 @@ revivable if somebody does the work. `RottingSystem.IsRotten` is still the only 
   (0.5); late sepsis at `wolfmed.arrest_sepsis` (80) with `wolfmed.arrest_sepsis_chance` (0.01/s); an
   electrocution of `wolfmed.arrest_shock_damage` (60) or more. Ends: a defibrillator, a rejuvenate, or - only
   when the heart was the cause - the heart back in the chest with blood above the arrest level. CPR never
-  ends it.
+  ends it. *[M6 correction: the pain-shock arrest is gone (`wolfmed.arrest_shock_blood` 0, M1a), the sepsis roll is gone
+  (`wolfmed.arrest_sepsis_chance` 0: sepsis drains the brain and stops the heart through the oxygen trigger, M2), and
+  the electrocution reads the shock after insulation (M2). Cold, toxins and heat stroke stop the heart too (M5).]*
 - **The clock** (`WolfmedBrainComponent` on the brain organ, networked, `Oxygenation` 1 to 0). Drains by the
   worst of: heart stopped (full drain in `wolfmed.brain_arrest_seconds` 120 s), not breathing (airloss over
   the old crit threshold, or a sedation overdose, full drain in 180 s at 1.0), blood under 0.5 (linear to a
@@ -479,10 +504,15 @@ revivable if somebody does the work. `RottingSystem.IsRotten` is still the only 
   blood as at least 0.5), stimulants (x0.6). Under `wolfmed.brain_damage_oxygenation` (0.4) the brain ORGAN
   takes `wolfmed.brain_damage_rate` (0.1/s at zero oxygenation, linear from the threshold) of irreversible
   organ damage, and organ health 0 is death on the existing `OrganHealthSystem` path.
+  *[M6 correction: "not breathing" read the whole Airloss group, Bloodloss included (P7), not airloss and sedation.
+  M1a replaced it with real suffocation (the respirator's own reading) and sedation's depression; M3 added damaged
+  lungs, M5 the toxic coma and heat stroke drains. The refill runs whenever no drain does.]*
 - **Real timings, which are not the spec's own arithmetic.** With the rule as written (damage under 0.4
   oxygenation, 0.1/s at zero) an untreated arrest reaches 0.4 at 72 s, zero at 120 s, and brain death at
   about 246 s, not the 198 s the spec's summary line quoted. Under CPR the brain never reaches the damage
   band inside ten minutes. The rule was implemented; the illustrative figure was not.
+  *[M6 correction: under CPR it does. The death rundown derives the damage band at about 289 s and catastrophic brain
+  injury at about 534 s with CPR throughout.]*
 - **Brain missing is event driven, never a poll.** `OrganRemovedFromBodyEvent` on `WolfmedOrganComponent`
   and `WolfmedPartAmputatedEvent`, and the amputation handler asks whether the part that came off was
   carrying the brain. A wound host that never had a brain (every brainless test fixture, including the one
@@ -496,7 +526,9 @@ revivable if somebody does the work. `RottingSystem.IsRotten` is still the only 
   `wolfmed.defib_chance` (0.85) x lerp(`wolfmed.defib_oxygenation_floor` 0.15, 1, oxygenation). Success
   clears the arrest, leaves 0.35 oxygenation and hands the state back to consciousness; a body that had been
   Dead always comes back Critical, because it comes back on what the paddles put into it. A failed shock
-  costs the zap damage and can be tried again.
+  costs the zap damage and can be tried again. *[M6 correction: the gate is `wolfmed.defib_blood` 0.25 and a shock
+  leaves `wolfmed.post_shock_oxygenation` 0.5 with a 45 s grace, since M1a (OD6); the refusals are shared with the pod
+  in `WolfmedRevivalSystem.GetRefusal`.]*
 - **Brain repair surgery** `SurgeryRepairBrain` (head incision, saw, `SurgeryStepRepairBrain` with a
   tending tool, seal) is the only thing that raises organ health, matching D7. It restores the organ to
   maximum and leaves `WolfmedBrainTraumaComponent` for `wolfmed.brain_trauma_minutes` (30), which feeds W3's
@@ -507,13 +539,17 @@ revivable if somebody does the work. `RottingSystem.IsRotten` is still the only 
 - **The autodoc's defib module works.** With `AutodocDefibModuleComponent` in the module slot the pod runs
   the same rule on an arrested occupant before the first procedure of a queue and again when the queue ends,
   with three new eSpeak NG lines (`defib-charge` "CLEAR.", `defib-success`, `defib-failure`).
+  *[M6 correction: it also charges again every 5 s after a failed shock, up to `wolfmed.autodoc_defib_attempts` (5),
+  as AUTODOC5 records.]*
 - **Mechanical bodies have no clock.** `WolfmedShutdownComponent` (pressure `"shutdown"`) when the cell is
   pulled or flat (`SiliconChargeDeathEvent`) or the micro pump is destroyed or removed. "Mechanical" is a
   wound host that carries `SiliconComponent` AND runs no clock, not merely a body with no brain: the second
   half alone is the brainless-poll bug in a different costume and it shut down every brainless fixture. That is not death and
   nothing runs out. `PositronicBrain` and `OrganIPCPump` gained `WolfmedOrgan` + `OrganDamage`, so a
   destroyed positronic brain is death on the same organ path a fleshy brain uses, and the way back is the
-  same: repair the brain, then a jolt.
+  same: repair the brain, then a jolt. *[M6 correction: no surgery reached a positronic brain until M2. The way back is
+  core repair (`SurgeryRepairCore` on an IPC's chassis, `SurgeryRepairSynthCore` on a synth's head), then the restart
+  button, not a defibrillator. Since M6 the pod runs both with the neuro disk.]*
 - **Shitmed's delayed death is gated off on a wound host** (one marked `continue` in
   `DelayedDeathSystem.Update`): a missing heart is arrest, not a countdown. Its defib refusal for a body
   with no heart or brain is kept.
@@ -638,7 +674,8 @@ were wrong, and all four are fixed:
 - **Going down drops what you were holding**, the way a knockdown does. Run from `WolfmedDownedSystem`'s
   Update on the first tick of being down, not from the component's startup: startup runs inside the
   consciousness evaluation, where a hand's container will not give its item up. Picking things back up while
-  Downed is still allowed, so the CONSC rule "self only" is unchanged.
+  Downed is still allowed, so the CONSC rule "self only" is unchanged. *[M6 correction: it was not; the interaction
+  block refused the floor (P16). Since M1a a Downed body picks up loose items within `wolfmed.downed_reach` (1.5 m).]*
 - **A wound does not own the damage it was made from.** The part's `DamageableComponent` carries it and the
   body totals every part, so surgery that closes a wound directly (HOOK 27's tend, embedded removal) left
   ghost brute nothing but a brute pack could clear. `WolfmedWoundDamageSyncSystem` lowers each wound-backed
@@ -664,7 +701,9 @@ were wrong, and all four are fixed:
   saw part damage, so suffocation counted past 700 on a body that cannot die of the number. Bloodloss is left
   alone because decapitation and the other vital losses deal a fixed lethal figure through it. BRAIN's hypoxia clock carries the
   lethality; the reading stops at the old death line, which is also what stops a blood pack being spent on
-  bloodloss damage that could never come down.
+  bloodloss damage that could never come down. *[M6 correction: that figure no longer kills anything. Losing a vital
+  part is death through the amputation handler (the brain's part, or the last head), and Bloodloss damage decides
+  nothing on a wound host; blood volume is the route.]*
 - **One close chain serves every part, so its bone step is named for no part.** "Mend ribcage" read wrong on
   a head. Renamed "Mend bone" rather than split into a per-part chain: `SurgeryCloseIncision` is named as a
   requirement by a dozen surgeries and splitting it is a change of its own shape.
@@ -1616,6 +1655,7 @@ tramadol 0.11, oxycodone 0.12; naloxone 0.3 per unit, 0.5 u/s, 5 u pen.
 - **Execution goes through an event, not a call.** `SharedExecutionSystem` is shared and the ending is server code;
   `WolfmedEndingEvent` has one server subscriber. The old `_woundRouting` dependency and its `using` left the upstream
   file with it; `WoundDamageRoutingSystem.TryApplyLethalDamage` now has no caller (left in place, vendored Onyx).
+  *[M6: removed, with the routing's MobThresholdSystem dependency it alone used.]*
 - **Suicide's kill is in `Suicide()`, after upstream's own events,** rather than in the default damage handler, so an
   environmental suicide (a microwave, a gun) kills a wound host too.
 - **Core repair has no incision requirement**; the three chassis steps are the whole surgery, as the chassis breach
@@ -1853,6 +1893,7 @@ the relief has under 20 s left, so two extra closures pushed a third dose in `Lo
 **Found, not changed.** `SurgeryStopBleeding` on a bleeding crush wound still stalls after three clamps: the stall guard
 compares severities, not bleed rates, so a clamp that is lowering the rate reads as no progress. The pod abandons it,
 closes up and goes on; the wound is later repaired by tending. Worth a look with the autodoc.
+*[M6: fixed. The signature carries each wound's bleeding severity, which only treatment lowers.]*
 
 **For the owner's playtest.** Three rifle rounds to the head are catastrophic brain injury, and five to an IPC's torso
 are core failure. Both follow from the plan's reach lines and the calibration scale; if either is too quick, the head's
@@ -2007,6 +2048,7 @@ listed (98 across 32 species) is closed.
 
 **Found, not changed.**
 - The autodoc knows neither `SurgeryRepairCore` (M2) nor `SurgeryRepairSynthCore`: a pod will not repair a machine's core.
+  *[M6: fixed, both on the neuro disk.]*
 - A synth's nanite self-repair (`SynthBloodstream`) heals Brute and Burn over time while it has fluid and hunger, which no
   other wound host does; it is HardLight's species feature and was left.
 - The plan's "temperature bar" on the readout is the CORE row's number; no graphic bar was drawn.
@@ -2195,3 +2237,166 @@ the blood starts going; 40 already stops it coming back), a freezer (naked: down
 33), space (down in about a minute, the heart about 3 minutes in, cold arrest protects the brain: rewarm, then shock), a
 hot room, and a fire (no heat stroke, whether it burns out or is put out). Knobs: `wolfmed.core_cooling_seconds`, the
 offsets, `wolfmed.heat_fire_grace_seconds`.
+
+## M6 (2026-09-24)
+
+Leftovers. Plan: `WOLFMED_DEATH_PLAN.md` §12 M6, §11 (M6 rows), P17, P25, P30, the rundown's Appendix A; the owner's
+OD18 (a) of 2026-09-24. Also the small leftovers earlier milestones flagged: the pod and a machine's core (M4), a
+synth's Poison (M4), Onyx's uncalled `TryApplyLethalDamage` (M2), the pod's stop-bleeding progress check (M3). Branch
+`Wolfmed-m6`, from `a76ecd98f5`.
+
+**What was built.**
+- **Being hit interrupts (OD18, P17).** `WolfmedDoAfterInterruptSystem` (server) is called once per hit from
+  `WolfmedPartHitSystem.OnHit`, the dispatcher's existing hand-off. A hit whose Total (after armour, stored or not)
+  is `wolfmed.doafter_interrupt_damage` (10) or more cancels the do-afters the hit body is performing: treatment
+  (`HealingDoAfterEvent`, the tourniquet) and surgery steps (`SurgeryDoAfterEvent`) always, and anything that asks to
+  break on damage (cuffing, prying, injecting, Wolfmed's splint, embedded removal, cautery and joint relocation, which
+  all asked for it and never got it on a wound host). The hit carries the caller's `interruptsDoAfters` on
+  `PartDamageAppliedEvent.InterruptsDoAfters` (one marked Onyx field), so the ticks upstream already marks as not
+  interrupting (fire, temperature, barotrauma, the bloodstream) never count; systemic damage (Bloodloss, Poison) lands
+  on no part and never counts. The IPC overheat pulse now passes false like fire; an explosion passes true, as it does
+  upstream (it passed false before).
+- **The routed pass keeps the caller's arguments (P25).** `BeforeDamageChangedEvent` carries `IgnoreResistances`,
+  `InterruptsDoAfters` and `PartMultiplier` (one marked upstream line at construction, one at the record). Routing
+  passes the first two to its routed pass instead of the defaults, skips the part's armour (`PartDamageModifyEvent`)
+  when resistances are ignored, and scales the localized damage that reaches the part by Shitmed's part multiplier,
+  once, before the armour.
+- **Fracture grade (P30).** A fracture is created at the trauma that graded it (the hit plus the part's earlier Blunt ×
+  `accumulationMultiplier`), not at the hit alone, which sat under the fracture's own lowest grade: a fracture from
+  accumulated damage had no grade, no penalty, could not be treated and shadowed any other limb penalty on the part.
+  One marked Onyx line in `WoundFractureSystem.HandlePartDamageApplied`.
+- **Necrosis risk multiplier (P30).** A wound's `riskMultiplier` divides its onset
+  (`WolfmedWoundTraitSystem.GetPartNecrosisOnset`, the soonest over the part's wounds); it was only ever read as "is
+  there a risk". Data unchanged, so frostbite frozen through (risk 1.5, onset 300 s) kills the limb in 200 s and
+  charring (risk 1, 480 s) keeps its 480 s. Tourniquets and late reattachment are unchanged.
+- **The pod repairs a machine's core** (M4's leftover). `SurgeryRepairCore` and `SurgeryRepairSynthCore` are on the
+  neuro disk beside brain repair, in the neuro category and in the planner's organ-repair step, with no anaesthetic
+  or antibiotic (`autodocProcedure`), and the pod carries a multitool for the re-flash step. The pod test found that
+  both surgeries went invalid the moment the core was whole, so neither the pod nor a surgeon could reach the weld that
+  closes the housing: the organ condition's new `validWhile` (the open-housing marker) keeps them listed until it is
+  welded.
+- **The pod sees a clamp working** (M3's leftover). The stall guard's part signature carries each wound's bleeding
+  severity, which does not drift (only a treatment lowers it and only a new injury raises it), so a clamp that is
+  closing a bleed is progress; a bleed needing five clamps is closed in one procedure instead of abandoned after three.
+- **A synth's Poison runs no toxin route** (M4's leftover): confirmed, no change needed. Consciousness, the analyzer and
+  liver clearance all skip `IsMechanical` bodies, and a synth has no brain clock to drain. The Poison itself still lands
+  (HardLight's `Synth` container takes the Toxin group) and stays, since nothing clears a machine's Poison.
+- **Onyx's `TryApplyLethalDamage` is removed**, with the routing's `MobThresholdSystem` dependency it alone used: its
+  one caller (HOOK 13) went in M2.
+- **DECISIONS.md corrections** (the rundown's Appendix A and what later milestones changed): marked inline as
+  *[M6 correction: …]* where each stale statement stands, so the history reads as it was decided and the note says
+  what the game does now. The stale comments the appendix names are corrected in place (the tourniquet's Asphyxiation
+  in `_WF/Wolfmed/Damage/containers.yml`, the IPC profile's "inert" Cold, Caustic and organ damage in Onyx's
+  `wounds.yml`, the `"airloss"` pressure key in the consciousness system and component).
+
+**Appendix A, row by row.**
+
+| Topic | Where | Now |
+|---|---|---|
+| Consciousness thresholds | "Consciousness" | corrected inline: pain 0.95 / 1.4, blood 0.5 / 0.35 |
+| EMP 15/45, three EMPs kill an IPC | "EMP and machine bodies" | corrected inline: 40/120, no damage total kills an IPC |
+| IPCs die at 100 | "Playtest fixes", "EMP" | corrected inline: core failure, core or head lost, gib |
+| Body cap scope | "Playtest fixes" | corrected inline: no origin, not an explosion; per-part ceiling and corpse ceiling since M1b |
+| Aim scatter 0.15/0.9 | "Aim scatter" | corrected inline: 0.1/0.75 |
+| Why Bloodloss is uncapped | "AUTODOC5" | corrected inline: the figure kills nothing; vital-part loss is death through the amputation handler |
+| Heavy round always lodges | "Final stages" | corrected inline: 35 % / 20 % rolls, kept as flavour (OD15) |
+| Blast head only with the CVar | "Blast dismemberment" | true since M3 (inline note) |
+| IPC oil costs nothing | "Playtest fixes" | corrected inline: oil 50 % Downs, 35 % shuts down (M1a) |
+| IPC pain | "Phase 5" U1 | the entry was right, the CONSC report wrong; pain only Downs a machine (M1a) |
+| Pickup while Downed | "AUTODOC5" | true since M1a (inline note) |
+| CPR never reaches the damage band | "Brain death" | corrected inline: 289 s, CBI 534 s |
+| Pod shocks | "Brain death" | corrected inline: also every 5 s, up to 5 |
+| IPC brain: repair, then a jolt | "Brain death" | corrected inline: core repair, then the restart button (M2), pod since M6 |
+| Rejuvenate the only revival | "Consciousness" | corrected inline: defibrillator and restart button too |
+| "Not breathing" | "Brain death" | corrected inline: the Airloss group; replaced in M1a |
+| Overheat kills the pump first | code comment, manifest | the code comment was rewritten in M4; the manifest row is annotated |
+| Tourniquet Asphyxiation on the part | `containers.yml` comment | corrected: it goes to the systemic pool |
+| IPC organ damage, Cold, Caustic inert | Onyx `wounds.yml` comments | corrected: live |
+| Acid residue cannot deepen a second burn | `burns.yml` | true since M5 (P21) |
+| `"airloss"` pressure key | consciousness comments | corrected: gone since BRAIN |
+
+Also annotated inline, because M1a, M2 and M5 changed them: the arrest triggers (pain-shock arrest and sepsis roll
+gone, electrocution after insulation, cold, toxin and heat added), the defib gate (0.25) and post-shock oxygenation
+(0.5), D34 (closed by OD18), and M2's, M3's and M4's "left in place" / "not changed" notes this milestone closes.
+
+**§11, the M6 rows.** P17 fixed (OD18). P25 fixed. P30: fracture grade and necrosis multiplier fixed; the stage
+functionality and the `wolfmed.consciousness` toggle stay dropped, as the plan decided. The deferred list stays deferred,
+because the plan makes each "if still wanted" and nobody asked: P26 (targeting), the zombie flicker (P29), airway
+obstruction, and the Cellular route (P12). On P12, for the owner: content does deal Cellular (unstable reagents, some
+gases, a Mono projectile with Cellular 5), and on a wound host it still has no route.
+
+**Numbers.** `wolfmed.doafter_interrupt_damage` 10 (new). Necrosis onsets now effective: frostbite 200 s, charring
+480 s (data unchanged).
+
+**Differs from the plan, and why.**
+1. **Break-on-damage do-afters are interrupted too**, not only self-treatment and surgery, at the same one-hit line
+   (upstream's own default threshold is 1 per damage event). P17 names cuffing, D34 had accepted losing exactly this, and
+   Wolfmed's own treatments already asked to break on damage. A hit under 10 interrupts nothing on a wound host.
+2. **"Self-treatment" is the treatment the hit body is doing**, to itself or to someone else: a medic shot while
+   bandaging is interrupted. A hit on the patient does not stop the surgeon's step, because a do-after belongs to the
+   one performing it (upstream's rule).
+3. **Inventory #18 is one field on the Onyx event**, `PartDamageAppliedEvent.InterruptsDoAfters`, and its argument where
+   routing raises the event; the handler is `_WF`. That is the plan's "to confirm".
+4. **P25 needed an upstream edit** in `DamageableSystem.cs` as well as inventory #17's Onyx lines: routing takes the hit
+   from `BeforeDamageChangedEvent`, which carried none of the three arguments.
+5. **The part multiplier scales damage, not healing.** Shitmed scales both; on a wound host the only healing multiplier
+   that is not 1 is the Shitmed tend's 2.5, which HOOK 27 already replaced with direct wound treatment.
+6. **Balance consequences of P25, stated plainly.** A heavy (wide) melee swing deals its part multiplier (0.5) to a
+   wound host, as Shitmed meant. Callers that ignore resistances now skip the part's armour too: explosions (whose
+   armour is the explosion resistance applied before the damage arrives; wound hosts got part armour on top, a second
+   reduction), EMP Shock on chassis parts, temperature and barotrauma damage (which also stop taking the species'
+   modifier set, as upstream intends), and the admin `damage` command with its ignore-resistances flag.
+7. **The overheat pulse and explosions' `interruptsDoAfters`** changed (false and true), so each is what it is: a tick
+   and a hit.
+8. **Fracture: fixed, not removed.** Necrosis multiplier: fixed, not removed; the data keeps its values, so frostbite is
+   faster than it was (200 s against 300 s), as the field always said it should be.
+9. **Core repair's `validWhile`** is not in the plan; without it the pod left every housing unbolted, and so would a
+   surgeon working from the menu.
+10. **Where the tests live.** The plan's migration targets: `RoutingPassesIgnoreResistancesTest` in
+    `WolfmedDamageBridgeTest`, `FractureGradeTest` in `WolfmedBluntWoundTest`, `NecrosisRiskTest` in
+    `WolfmedInfectionTest`; `HitInterruptsSelfTreatmentTest` and the leftovers' tests in
+    `Scenarios/WolfmedLeftoversTest.cs`. The milestone's real-time test is `PodRepairsACoreTest` (the pod runs the
+    surgeries tick by tick).
+
+**Test migration.**
+- `WolfmedDamageBridgeTest`: new `RoutingPassesIgnoreResistancesTest`. The existing armour and penetration tests pass
+  unchanged.
+- `WolfmedBluntWoundTest`: new `FractureGradeTest` (a certain-creation copy of `WolfmedFractureProfile` as a test
+  prototype, so the grade is not a roll).
+- `WolfmedInfectionTest`: new `NecrosisRiskTest`; `TourniquetClockSurvivesATreatedWoundTest` asserts the freeze's
+  onset is 200 s.
+- `WolfmedTreatmentProcedureTest`, `WolfmedWoundSurgeryTest`: nothing to migrate for the interruption. The surgery
+  tests raise step events directly, past the do-after, and the procedure tests deal no damage during a do-after.
+- `WolfmedMechanicalWoundTest` (not in the plan's table): its damage helper ignores resistances, and
+  `ShortCircuitAndServoDamageTest` (a 21-severity short from the IPC's Shock × 2.5) and
+  `OverheatingCoolsRatherThanHealsTest` (48 from Heat × 1.5, then a partial cooling from the chassis's Cold modifier)
+  counted on the modifier set applying anyway, which was P25. Those three hits now take the resistances they expect.
+- `WolfmedWoundSurgeryTest.SurgeryFractureLadderReducesThenMendsTest` (not in the table): its second Blunt 75 lands on
+  an arm already holding 75, so the new fracture starts at 135 (P30), not 75. It is driven down to 15 from wherever it
+  starts, and the test asserts it started above 75.
+- `Scenarios/WolfmedRemainingCausesTest.AcidResidueTest` (M5's, flaky, not caused by M6): it ran in the default map's
+  vacuum, where the body's surface passes the cold damage line about two seconds in; a cold tick under the frostbite
+  rule's 8 lands as a plain `BurnWound`, and on the torso that read as the residue's. It failed alone once in the final
+  M6 run. It now gets station air, as the other M5 scenarios do, and passed alone three times running.
+
+**Tests.** New: `HitInterruptsSelfTreatmentTest`, `RoutingPassesIgnoreResistancesTest`, `FractureGradeTest`,
+`NecrosisRiskTest`, `PodRepairsACoreTest`, `PodClampProgressTest`, `SynthRunsNoToxinRouteTest`.
+Final full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt, on the final code): 474 total, 468
+passed, 0 failed, 6 skipped (dirty-disposed: `PodClampProgressTest`, `CutClothingUnblocksTheProcedureTest`,
+`AutofixStopsReplanningABodyItIsNotChangingTest`, `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`,
+`VisualStateFollowsTheLidTest`, `BrainDeadOccupantIsOperatedOnWithoutHoldingTest`); each passes alone. (The first solo
+run of `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest` ended in a test-host "Internal CLR error"; it passed in
+three solo reruns after.) Earlier full runs: 474 / 465 / 1 failed / 8 skipped (the short-circuit migration), then
+474 / 469 / 0 / 5 skipped; the failures and solo failures they showed are the migrations listed above.
+
+**Found, not changed.**
+- A synth's Poison has nowhere to go: no route, no clearance, and HardLight's `Synth` container keeps taking it, so a
+  poisoned synth keeps the systemic damage (and its pain) until something heals Toxin on a synth. Whether a machine
+  synth should take Poison at all is the owner's species call.
+- Acid residue ticks are 1 to 3 Caustic, under the interrupt line, so they never interrupt; a future stronger residue
+  would need `interruptsDoAfters: false` (the routing's part entry point takes none).
+- The Cellular route stays deferred (above).
+
+**For the owner's playtest** (plan §12 M6). Bandage yourself while being shot (a hit of 10 or more stops it; fire does
+not); a heavy swing against a wound host does half; admin `damage` with ignore-resistances passes armour; a pod with
+the neuro disk repairs an IPC's or a synth's core; read this file against what the game does.

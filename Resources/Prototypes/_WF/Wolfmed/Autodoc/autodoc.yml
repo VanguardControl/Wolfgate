@@ -46,6 +46,8 @@
     - Wrench
     - Screwdriver
     - CableApcStack
+    # M6: the core repair's re-flash step (WolfmedCoreProbe).
+    - Multitool
     basePrograms:
     - WolfmedAutodocProgramBase
   # The pod scrubs its own tools: without this every step would poison the patient for unsterile surgery.

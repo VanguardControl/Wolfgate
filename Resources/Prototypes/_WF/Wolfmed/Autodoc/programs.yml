@@ -80,6 +80,9 @@
   - SurgeryHealBrain
   - SurgeryRepairBrain
   - SurgeryHealEyes
+  # M6: a machine's core, the positronic brain's repair (OD10). The IPC's is in the chassis, a synth's in the head.
+  - SurgeryRepairCore
+  - SurgeryRepairSynthCore
 
 - type: autodocProgram
   id: WolfmedAutodocProgramCavity
@@ -117,6 +120,17 @@
 
 - type: autodocProcedure
   id: SurgeryReplaceServo
+  anaesthetic: 0
+  antibiotic: 0
+
+# M6: a chassis has no blood to dose.
+- type: autodocProcedure
+  id: SurgeryRepairCore
+  anaesthetic: 0
+  antibiotic: 0
+
+- type: autodocProcedure
+  id: SurgeryRepairSynthCore
   anaesthetic: 0
   antibiotic: 0
 

@@ -164,6 +164,30 @@ public sealed class WolfmedWoundTraitSystem : EntitySystem
     }
 
     /// <summary>
+    /// M6 (P30): how long the part's tissue has left, from the wound that kills it soonest: each wound's onset
+    /// divided by its risk multiplier. Zero when nothing on the part carries a necrosis risk.
+    /// </summary>
+    public TimeSpan GetPartNecrosisOnset(Entity<WoundableComponent?> part)
+    {
+        var soonest = TimeSpan.Zero;
+        foreach (var wound in _wounds.GetWounds(part))
+        {
+            if (wound.Comp.State is WoundState.Healed or WoundState.Scarred)
+                continue;
+
+            var risk = GetNecrosisRisk(wound.Owner, out var onset);
+            if (risk <= 0f || onset <= TimeSpan.Zero)
+                continue;
+
+            var effective = onset / risk;
+            if (soonest == TimeSpan.Zero || effective < soonest)
+                soonest = effective;
+        }
+
+        return soonest;
+    }
+
+    /// <summary>
     /// The worst limb penalty the part's wounds impose, or false when none of them impose one.
     /// <paramref name="mobility"/> picks the movement multiplier (which scales down) over the
     /// manipulation duration multiplier (which scales up).

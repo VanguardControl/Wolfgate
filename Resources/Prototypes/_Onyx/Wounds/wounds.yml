@@ -73,9 +73,9 @@
     - Slash
     - Piercing
     - Heat
-    - Cold    # WOLFGATE (P5-1/P5-D20): inert unless U13'(b) ships - PartIPCBase's Inorganic container
-    - Shock   #   (Brute + Heat/Shock) supports neither Cold nor Caustic. Onyx's SiliconIpc does.
-    - Caustic # WOLFGATE (P5-1/P5-D20): as above. Kept so the profile stays a verbatim Onyx copy.
+    - Cold    # WOLFGATE (P5-1/P5-D20, corrected M6): live. U13'(b) shipped: the parts' InorganicWolfmed
+    - Shock   #   container (_WF/Wolfmed/Damage/containers.yml) takes the whole Burn group, as Onyx's SiliconIpc does.
+    - Caustic # WOLFGATE (P5-1/P5-D20, corrected M6): as above, live.
   supportedWounds:
     - IpcMechanicalDamageWound
     - ElectricalWound
@@ -93,8 +93,9 @@
     # WOLFGATE (EVISC): the chassis torso opened up. Created only by WolfmedEviscerationSystem.
     - WolfmedChassisBreachWound
   organDamage:
-    # WOLFGATE (P5-1/P5-D13): inert until IPC organs carry OrganDamage (Sec 8.6-7 keeps organ damage
-    # human-lineage only). Do NOT add maxAffected - Onyx sets it only on OrganicBodyPartProfile.
+    # WOLFGATE (P5-1/P5-D13, corrected M6): live. The core and the pump carry OrganDamage since BRAIN, and the
+    # IPC torso's organReach (M3) replaces this roll there. Do NOT add maxAffected - Onyx sets it only on
+    # OrganicBodyPartProfile.
     chances:
       Head: 0.05
       # WOLFGATE (D9): Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent

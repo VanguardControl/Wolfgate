@@ -96,6 +96,12 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
                 ? found && organ.Comp.Health <= FixedPoint2.Zero
                 : found && organ.Comp.Health > FixedPoint2.Zero && organ.Comp.Health < organ.Comp.MaxHealth;
 
+        // M6: a repair that has already fixed the organ stays listed until its closing step has run.
+        var part = args.Part;
+        if (!treatable && !ent.Comp.Inverse && ent.Comp.ValidWhile is { } open &&
+            open.Values.Any(entry => HasComp(part, entry.Component.GetType())))
+            return;
+
         if (treatable == ent.Comp.Inverse)
             args.Cancelled = true;
     }

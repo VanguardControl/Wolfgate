@@ -59,8 +59,9 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         if (TerminatingOrDeleted(args.Part))
             return;
 
-        var risk = _traits.GetPartNecrosisRisk(args.Part, out var onset);
-        if (risk > 0f)
+        // M6 (P30): the wound's risk multiplier shortens its onset; it used to be read only as "is there a risk".
+        var onset = _traits.GetPartNecrosisOnset(args.Part);
+        if (onset > TimeSpan.Zero)
             Start(args.Part, WolfmedNecrosisSource.Wound, onset);
         else
             ClearSource(args.Part, WolfmedNecrosisSource.Wound);
@@ -224,7 +225,7 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         }
 
         if (source != WolfmedNecrosisSource.Wound &&
-            _traits.GetPartNecrosisRisk(part, out var onset) > 0f && onset > TimeSpan.Zero)
+            _traits.GetPartNecrosisOnset(part) is var onset && onset > TimeSpan.Zero)
         {
             necrosis.Source = WolfmedNecrosisSource.Wound;
             necrosis.Onset = onset;

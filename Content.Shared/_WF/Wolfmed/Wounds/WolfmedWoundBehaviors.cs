@@ -240,11 +240,13 @@ public sealed partial class WolfmedNumbnessBehavior : WoundBehavior
 [DataDefinition]
 public sealed partial class WolfmedNecrosisRiskBehavior : WoundBehavior
 {
-    /// <summary>How much faster than a baseline at-risk part this one goes. 0 is no risk at all.</summary>
+    /// <summary>
+    /// How much faster than a baseline at-risk part this one goes: the onset is divided by it (M6). 0 is no risk.
+    /// </summary>
     [DataField]
     public float RiskMultiplier = 1f;
 
-    /// <summary>How long the part has to stay in this state before W5 should call it necrotic.</summary>
+    /// <summary>How long the part has to stay in this state at a risk of 1 before W5 calls it necrotic.</summary>
     [DataField]
     public TimeSpan Onset = TimeSpan.FromMinutes(5);
 }

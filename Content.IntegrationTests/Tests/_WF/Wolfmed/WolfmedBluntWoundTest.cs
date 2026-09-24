@@ -16,6 +16,8 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Eye.Blinding.Components;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands.Components;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Stunnable;
 using Content.Shared.Verbs;
 using Robust.Shared.GameObjects;
@@ -39,6 +41,117 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedConcussionSystem))]
 public sealed class WolfmedBluntWoundTest : GameTest
 {
+    // M6: WolfmedFractureProfile with every grade's creation chance at 1, so FractureGradeTest is not a roll.
+    [TestPrototypes]
+    private const string TestProtos = @"
+- type: fractureProfile
+  id: WolfmedTestFractureProfileCertain
+  damageType: Blunt
+  wound: BoneFractureWound
+  severityMultiplier: 1
+  resetTreatmentOnDamage: true
+  worsenMinimumDamage: 5
+  minimumHitDamage: 3
+  accumulationMultiplier: 0.8
+  reductionMinimumGrade: Simple
+  removeWoundWhenMended: true
+  alert: BrokenBones
+  alertMinimumGrade: Simple
+  alertHiddenTreatments: [Mended]
+  treatmentEffectScales:
+    None: 1
+    Reduced: 0.25
+    Mended: 0
+  grades:
+    Hairline:
+      threshold: 12
+      creationChance: 1
+      movementModifier: 0.625
+      manipulationModifier: 1.1
+    Simple:
+      threshold: 20
+      creationChance: 1
+      movementModifier: 0.5
+      manipulationModifier: 1.25
+    Displaced:
+      threshold: 32
+      creationChance: 1
+      movementModifier: 0
+      manipulationModifier: 1.5
+    Comminuted:
+      threshold: 45
+      creationChance: 1
+      movementModifier: 0
+      manipulationModifier: 2.0
+
+- type: entity
+  id: WolfmedTestFractureHeldItem
+  components:
+  - type: Item
+";
+
+    /// <summary>
+    /// <c>FractureGradeTest</c> (plan §12 M6, P30): a fracture made from accumulated damage starts at the grade that
+    /// trauma earned. It used to start at the last hit's severity alone, under its own lowest grade: no grade, no
+    /// penalty, no treatment, and it shadowed any other limb penalty. And the grade is the penalty: a worse grade slows
+    /// the hand more, and a reduction scales it down.
+    /// </summary>
+    [Test]
+    public async Task FractureGradeTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var fractures = entities.System<WoundFractureSystem>();
+            var effects = entities.System<FractureEffectSystem>();
+            var hands = entities.System<SharedHandsSystem>();
+            var body = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
+            entities.GetComponent<WolfmedBodyPartComponent>(arm).FractureProfile = "WolfmedTestFractureProfileCertain";
+
+            // The manipulation multiplier reads the arm on the side of the hand holding the item.
+            var item = entities.SpawnEntity("WolfmedTestFractureHeldItem", map.GridCoords);
+            var handsComp = entities.GetComponent<HandsComponent>(body);
+            var left = hands.EnumerateHands(body, handsComp).Single(hand => hand.Location == HandLocation.Left);
+            Assert.That(hands.TryPickup(body, item, left, checkActionBlocker: false, animate: false, handsComp: handsComp));
+            Assert.That(effects.GetDurationMultiplier(body, item), Is.EqualTo(1f).Within(0.001f));
+
+            // 10 Blunt is under Hairline's 12: no fracture, and the arm keeps the 10.
+            Blunt(entities, body, TargetBodyPart.LeftArm, 10);
+            Assert.That(fractures.GetFracture(arm), Is.Null, "10 Blunt broke a bone.");
+
+            // Another 10: 10 + 10 x 0.8 = 18 of trauma, a Hairline fracture, although the hit alone is under every grade.
+            Blunt(entities, body, TargetBodyPart.LeftArm, 10);
+            var fracture = fractures.GetFracture(arm);
+            Assert.That(fracture, Is.Not.Null, "accumulated trauma of 18 made no fracture.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(fracture!.Value.Comp2.Grade, Is.EqualTo(FractureGrade.Hairline),
+                    "a fracture from accumulated damage has no grade (P30).");
+                Assert.That(fracture.Value.Comp1.Severity.Float(), Is.EqualTo(18f).Within(0.05f),
+                    "the fracture did not start at the trauma that graded it.");
+            });
+            var hairline = effects.GetDurationMultiplier(body, item);
+            Assert.That(hairline, Is.EqualTo(1.1f).Within(0.001f), "a Hairline fracture does not slow the hand.");
+
+            // 20 more worsens it by the hit: 38, Displaced, and the hand slows further.
+            Blunt(entities, body, TargetBodyPart.LeftArm, 20);
+            fracture = fractures.GetFracture(arm);
+            Assert.That(fracture!.Value.Comp2.Grade, Is.EqualTo(FractureGrade.Displaced));
+            var displaced = effects.GetDurationMultiplier(body, item);
+            Assert.That(displaced, Is.EqualTo(1.5f).Within(0.001f));
+            Assert.That(displaced, Is.GreaterThan(hairline), "a worse grade is not a worse penalty.");
+
+            // A graded fracture takes treatment: reduced, the penalty is a quarter.
+            Assert.That(fractures.TryReduce(fracture.Value.Owner), Is.True, "the fracture cannot be reduced.");
+            Assert.That(effects.GetDurationMultiplier(body, item), Is.EqualTo(1f + 0.5f * 0.25f).Within(0.001f));
+        });
+    }
+
     /// <summary>
     /// A heavy swing crushes the limb in place of the ordinary bruise and pops the joint on the way; a
     /// light one does neither.

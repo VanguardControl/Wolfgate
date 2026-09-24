@@ -21,6 +21,9 @@
   - type: WolfmedSurgeryOrganDamagedCondition
     slot: brain
     anyDamage: true
+    # M6: as SurgeryRepairCore, the housing weld stays reachable once the core is whole.
+    validWhile:
+    - type: WolfmedCoreHousingOpen
 
 - type: entity
   parent: SurgeryStepBase

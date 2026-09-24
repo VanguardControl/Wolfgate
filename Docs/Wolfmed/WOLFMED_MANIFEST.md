@@ -4348,7 +4348,9 @@ Deviations:
   changes nothing for cable placing or for setting things on fire.
 - **Overheating is a burn, not a shutdown.** Heat routed through the ordinary pipeline kills the pump long
   before the positronic brain, so an IPC shuts down through `WolfmedShutdownSystem` on its own rather than
-  through a second, special-cased path.
+  through a second, special-cased path. *[M6 correction: it almost never did (organ rolls, about one in a million).
+  Since M4 the pulse reaches no organ at all and the lethal route is the core-heat route: thermal shutdown, then core
+  failure.]*
 
 ## Final stages: HUD (2026-09-22)
 
@@ -4865,3 +4867,43 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs` | new | `ToxinScenarioTest`, `RadiationScenarioTest`, `SepsisNotToxinTest`, `AcidResidueTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs` | new | `ColdRoomMeasurementTest`, `HypothermiaScenarioTest`, `HeatStrokeScenarioTest`, `SpeciesLinesTest`, `SpaceColdSmokeTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs` | modified | Infection and sepsis deal no Poison; `SepsisPoisonsAndAntibioticsClearItTest` renamed `SepsisShowsAndAntibioticsClearItTest`. |
+
+## M6 (2026-09-24)
+
+Marked upstream and Onyx edits (inventory #17 and #18, plus the P25 event fields and the P30 fracture line):
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Shared/Damage/Systems/DamageableSystem.cs:219` | upstream | WOLFGATE (M6): P25. `BeforeDamageChangedEvent` is built with the caller's `ignoreResistances`, `interruptsDoAfters` and `partMultiplier`, so a handler that cancels and re-applies the damage (Wolfmed routing) can pass them on. |
+| `Content.Shared/Damage/Systems/DamageableSystem.cs:509` | upstream | WOLFGATE (M6): P25. The three fields on the record, defaulted so every other reader is unchanged. |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:60-62` | Onyx | WOLFGATE (M6): P25. `_ignoreResistances` and `_partMultipliers`, the pass's arguments for its part step. |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:101-114` | Onyx | WOLFGATE (M6): P25 (inventory #17). `OnBeforeDamageChanged` records the part multiplier and passes `IgnoreResistances` and `InterruptsDoAfters` to `RouteThroughBodyModifiers` instead of the defaults. |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:658, 710` | Onyx | WOLFGATE (M6): P25. `RouteThroughBodyModifiers` marks a pass that ignores resistances, and clears it. |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:750-756, 770` | Onyx | WOLFGATE (M6): P25. The part multiplier scales the localized damage once; ignoring resistances skips the part's armour (`PartDamageModifyEvent`). |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:828` | Onyx | WOLFGATE (M6): OD18 (inventory #18). The hit's `interruptsDoAfters` on its `PartDamageAppliedEvent`. |
+| `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs:41, 557` | Onyx | WOLFGATE (M6): `TryApplyLethalDamage` removed (no caller since M2's HOOK 13 rewrite), with the `MobThresholdSystem` dependency only it read. |
+| `Content.Shared/_Onyx/Wounds/WoundEvents.cs:62-63` | Onyx | WOLFGATE (M6): OD18. `PartDamageAppliedEvent.InterruptsDoAfters`, default true. |
+| `Content.Shared/_Onyx/Wounds/WoundFractureSystem.cs:57-59` | Onyx | WOLFGATE (M6): P30. A new fracture is created at the effective trauma that graded it, not at the hit alone, so it never starts gradeless. |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml:76-78, 96-98` | Onyx YAML (comments) | WOLFGATE (corrected M6): the IPC profile's Cold, Caustic and organ damage are live, not inert (rundown Appendix A). No data change. |
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedDoAfterInterruptSystem.cs` | new | OD18: one part hit of `wolfmed.doafter_interrupt_damage` or more cancels the hit body's treatment, surgery and break-on-damage do-afters. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedPartHitSystem.cs` | modified | Calls the interrupt system once per hit. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedOverheatSystem.cs` | modified | The pulse passes `interruptsDoAfters: false`, as fire does. |
+| `Content.Server/_WF/Wolfmed/Explosion/WolfmedExplosionSystem.cs` | modified | A blast passes `interruptsDoAfters: true`, as upstream does. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs`, `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs`, `WolfmedWoundBehaviors.cs` | modified | P30: `GetPartNecrosisOnset`, the onset divided by the risk multiplier. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | The stall signature carries each wound's bleeding severity. |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryComponents.cs`, `WolfmedSurgeryConditionSystem.cs` | modified | `validWhile` on the organ-damaged condition. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml`, `synth_core.yml` | modified | Core repairs stay listed while the housing is open (`validWhile: WolfmedCoreHousingOpen`). |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/programs.yml`, `categories.yml`, `triage.yml`, `autodoc.yml` | modified | Core repairs on the neuro disk, in the neuro category and the organ-repair triage step, with no reagents; a multitool in the pod's tools. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M6 block at the end: `wolfmed.doafter_interrupt_damage`. |
+| `Resources/Prototypes/_WF/Wolfmed/Damage/containers.yml`, `Content.Shared/_WF/Wolfmed/Consciousness/SharedWolfmedConsciousnessSystem.cs`, `WolfmedConsciousnessComponent.cs` | modified | Comments only: rundown Appendix A corrections. |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | M6 sections; inline *[M6 correction]* notes. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedLeftoversTest.cs` | new | `HitInterruptsSelfTreatmentTest`, `PodRepairsACoreTest`, `PodClampProgressTest`, `SynthRunsNoToxinRouteTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageBridgeTest.cs`, `WolfmedBluntWoundTest.cs`, `WolfmedInfectionTest.cs` | modified | `RoutingPassesIgnoreResistancesTest`, `FractureGradeTest`, `NecrosisRiskTest`; the tourniquet clock migration. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs` | modified | The short-circuit and overheating hits take resistances (they had counted on P25's dropped flag). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSurgeryTest.cs` | modified | The second fracture of the ladder test starts at the arm's whole trauma (P30). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs` | modified | `AcidResidueTest` gets station air (a vacuum cold tick left a plain burn on the torso). |

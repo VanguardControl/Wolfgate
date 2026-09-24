@@ -102,9 +102,10 @@ public sealed class WolfmedOverheatSystem : EntitySystem
                 body, PopupType.MediumCaution);
         }
 
-        // M4: the parts burn and hurt; the core is the core-heat route's alone.
+        // M4: the parts burn and hurt; the core is the core-heat route's alone. M6: a tick, like fire, so it
+        // interrupts no do-after (OD18).
         var damage = new DamageSpecifier(_prototypes.Index(Heat), FixedPoint2.New(comp.HeatPerPulse));
-        _organReach.WithoutOrganReach(() => _damageable.ChangeDamage(body, damage));
+        _organReach.WithoutOrganReach(() => _damageable.ChangeDamage(body, damage, interruptsDoAfters: false));
         return true;
     }
 

@@ -5,10 +5,10 @@
 # (DamageableSystem.cs:270-277). A separate id keeps borgs, cyborg parts and every other
 # `damageContainer: Silicon` entity on the stock container (D2).
 #
-# Bloodloss is added as a TYPE, not via the Airloss group (P5-D5b): the tourniquet's `Asphyxiation: 5`
-# application cost is applied to the PART (TourniquetSystem.cs:88-89), whose container this does not
-# change, so taking the whole group would buy nothing and open an unaudited Asphyxiation surface on an
-# entity that dies at a projected total of 100.
+# Bloodloss is added as a TYPE, not via the Airloss group (P5-D5b), so the mob carries no Asphyxiation
+# surface. M6 correction: the tourniquet's `Asphyxiation: 5` is not applied to the part. Asphyxiation is not a
+# localized type, so the routing puts it in the body's systemic pool, which this container (no Airloss) drops on
+# an IPC. An IPC dies of its core, not of a projected total.
 - type: damageContainer
   id: SiliconWolfmed
   supportedGroups:

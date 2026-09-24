@@ -690,9 +690,11 @@ public sealed partial class AutodocSystem
 
     /// <summary>
     /// What the pod can see of a part, discrete enough that ordinary drift does not read as progress:
-    /// wound prototypes, severities, states and embedded counts, the fracture, organ health and the part's
-    /// own damage. Pain and bleed rates are deliberately left out - both move on their own every tick,
-    /// which would hide a step achieving nothing behind a number that always changes.
+    /// wound prototypes, severities, states and embedded counts, each wound's bleeding severity, the fracture,
+    /// organ health and the part's own damage. Pain and bleed rates are deliberately left out - both move on
+    /// their own every tick, which would hide a step achieving nothing behind a number that always changes.
+    /// The bleeding severity does not drift: only a treatment lowers it and only a new injury raises it, so a
+    /// clamp that is closing a bleed reads as progress (M6; it used to read as a stall after three clamps).
     /// </summary>
     public string PartSignature(EntityUid part)
     {
@@ -707,7 +709,8 @@ public sealed partial class AutodocSystem
                 signature.Append(wound.Comp.Prototype.Id).Append(':')
                     .Append(wound.Comp.Severity.Int()).Append(':')
                     .Append((int) wound.Comp.State).Append(':')
-                    .Append(CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0).Append(';');
+                    .Append(CompOrNull<WolfmedEmbeddedObjectComponent>(wound)?.Count ?? 0).Append(':')
+                    .Append(CompOrNull<WoundBleedingComponent>(wound)?.BleedingSeverity.Int() ?? -1).Append(';');
             }
         }
 

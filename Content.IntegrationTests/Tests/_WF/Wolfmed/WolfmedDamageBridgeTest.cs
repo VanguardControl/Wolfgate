@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
+using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Compat;
@@ -402,6 +403,82 @@ public sealed class WolfmedDamageBridgeTest : GameTest
                 Assert.That(LeftArmDamage(armoredFullPenetration), Is.EqualTo(FixedPoint2.New(10)));
                 Assert.That(LeftArmDamage(unarmored), Is.EqualTo(FixedPoint2.New(10)));
                 Assert.That(LeftArmDamage(armoredFullPenetration), Is.GreaterThan(LeftArmDamage(armoredNoPenetration)));
+            });
+        });
+    }
+
+    /// <summary>
+    /// <c>RoutingPassesIgnoreResistancesTest</c> (plan §12 M6, P25): the routed pass keeps the caller's arguments. A hit
+    /// with ignoreResistances ignores the armour on the part, not only the body's; Shitmed's part multiplier (a heavy
+    /// swing's 0.5) reaches the part exactly once; and a caller's interruptsDoAfters reaches the hit's event (OD18).
+    /// </summary>
+    [Test]
+    public async Task RoutingPassesIgnoreResistancesTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var graph = entities.System<SharedBodySystem>();
+            var damage = entities.System<DamageableSystem>();
+            var inventory = entities.System<InventorySystem>();
+            var hits = entities.System<WolfmedPartHitSystem>();
+
+            FixedPoint2 LeftArmDamage(EntityUid body) =>
+                entities.GetComponent<DamageableComponent>(graph.GetBodyChildren(body)
+                    .Single(part => part.Component.PartType == BodyPartType.Arm &&
+                                    part.Component.Symmetry == BodyPartSymmetry.Left).Id).TotalDamage;
+
+            EntityUid Armoured()
+            {
+                var body = entities.SpawnEntity("WolfmedBridgeBody", map.GridCoords);
+                Assert.That(inventory.TryEquip(body, entities.SpawnEntity("WolfmedBridgeArmor", map.GridCoords), "outerClothing"));
+                return body;
+            }
+
+            var resisted = Armoured();
+            Assert.That(damage.TryChangeDamage(resisted, Spec("Blunt", 10), targetPart: TargetBodyPart.LeftArm), Is.Not.Null);
+
+            var ignoring = Armoured();
+            Assert.That(damage.TryChangeDamage(ignoring, Spec("Blunt", 10), ignoreResistances: true,
+                targetPart: TargetBodyPart.LeftArm), Is.Not.Null);
+
+            var swung = entities.SpawnEntity("WolfmedBridgeBody", map.GridCoords);
+            Assert.That(damage.TryChangeDamage(swung, Spec("Blunt", 10), partMultiplier: 0.5f,
+                targetPart: TargetBodyPart.LeftArm), Is.Not.Null);
+
+            var swungArmoured = Armoured();
+            Assert.That(damage.TryChangeDamage(swungArmoured, Spec("Blunt", 10), partMultiplier: 0.5f,
+                targetPart: TargetBodyPart.LeftArm), Is.Not.Null);
+
+            // What each hit's event carries for the do-after check.
+            var interrupts = new List<bool>();
+            hits.Observer = (_, hit) => interrupts.Add(hit.InterruptsDoAfters);
+            try
+            {
+                var ticked = entities.SpawnEntity("WolfmedBridgeBody", map.GridCoords);
+                damage.TryChangeDamage(ticked, Spec("Heat", 5), interruptsDoAfters: false, targetPart: TargetBodyPart.LeftArm);
+                damage.TryChangeDamage(ticked, Spec("Blunt", 5), targetPart: TargetBodyPart.LeftArm);
+            }
+            finally
+            {
+                hits.Observer = null;
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(LeftArmDamage(resisted), Is.EqualTo(FixedPoint2.New(5)), "the part armour stopped applying.");
+                Assert.That(LeftArmDamage(ignoring), Is.EqualTo(FixedPoint2.New(10)),
+                    "ignoreResistances did not reach the part's armour.");
+                Assert.That(LeftArmDamage(swung), Is.EqualTo(FixedPoint2.New(5)), "the part multiplier was not applied once.");
+                Assert.That(entities.GetComponent<DamageableComponent>(swung).TotalDamage, Is.EqualTo(FixedPoint2.New(5)),
+                    "the body took more than its parts.");
+                Assert.That(LeftArmDamage(swungArmoured), Is.EqualTo(FixedPoint2.New(2.5)),
+                    "the multiplier and the armour did not both apply, once each.");
+                Assert.That(interrupts, Is.EqualTo(new[] { false, true }), "interruptsDoAfters did not reach the hit.");
             });
         });
     }

@@ -40,6 +40,8 @@
     - SurgeryRepairBrain
     - SurgeryHealBrain
     - SurgeryHealEyes
+    - SurgeryRepairCore
+    - SurgeryRepairSynthCore
 
   # 7. Joints back in their sockets before the bones under them are opened.
   - surgeries:

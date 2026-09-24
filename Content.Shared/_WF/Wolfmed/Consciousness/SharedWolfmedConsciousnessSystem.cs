@@ -6,7 +6,7 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 
 /// <summary>
 /// The half of consciousness both sides need: who owns mob state, and the seam other systems push a level
-/// through. The evaluation itself is server-side (pain, blood and airloss all are).
+/// through. The evaluation itself is server-side (pain, blood and the brain all are).
 /// </summary>
 public abstract class SharedWolfmedConsciousnessSystem : EntitySystem
 {
@@ -34,8 +34,8 @@ public abstract class SharedWolfmedConsciousnessSystem : EntitySystem
     /// not stacked, so a system can keep writing its current level. Zero removes the key.
     /// </summary>
     /// <remarks>
-    /// The seam BRAIN uses for brain oxygenation and for sedation's respiratory depression; airloss uses it
-    /// today so suffocation still reaches Critical without the thresholds.
+    /// The seam the life systems use: brain oxygenation ("hypoxia"), sedation, arrest, a machine's shutdown, brain
+    /// or core injury and core heat. Suffocation reaches the brain as oxygenation; there is no "airloss" key.
     /// </remarks>
     public virtual void SetExternalPressure(EntityUid body, string key, float level)
     {

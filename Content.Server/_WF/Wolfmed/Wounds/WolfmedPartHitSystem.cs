@@ -14,7 +14,8 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 /// <summary>
 /// Wolfmed's hand-off from Onyx's one-event-per-hit dispatcher (M1b, plan §6.2). It sees each hit's Total once,
 /// before the wounds do. A burn already at its maximum escalates into charring (plan §6.3), and a charred hand,
-/// foot, arm or leg that keeps cooking crumbles to ash (OD12). The head and torso never crumble.
+/// foot, arm or leg that keeps cooking crumbles to ash (OD12). The head and torso never crumble. A big enough hit
+/// interrupts what the body is doing (OD18, <see cref="WolfmedDoAfterInterruptSystem"/>).
 /// </summary>
 public sealed class WolfmedPartHitSystem : EntitySystem
 {
@@ -24,6 +25,7 @@ public sealed class WolfmedPartHitSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WolfmedCharringSystem _charring = default!;
+    [Dependency] private WolfmedDoAfterInterruptSystem _interrupt = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
     private const string Heat = "Heat";
@@ -38,6 +40,7 @@ public sealed class WolfmedPartHitSystem : EntitySystem
     public void OnHit(EntityUid part, PartDamageAppliedEvent hit)
     {
         Observer?.Invoke(part, hit);
+        _interrupt.OnHit(hit); // M6 (OD18)
 
         var heat = hit.Total.DamageDict.GetValueOrDefault(Heat);
         if (heat <= FixedPoint2.Zero || TerminatingOrDeleted(part))

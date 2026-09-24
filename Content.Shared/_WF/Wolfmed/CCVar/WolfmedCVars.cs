@@ -721,4 +721,14 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> TemperatureInputFloor =
         CVarDef.Create("wolfmed.temperature_input_floor", 0.5f, CVar.SERVERONLY);
+
+    // M6: leftovers (plan §12 M6, OD18).
+
+    /// <summary>
+    /// One part hit this large or larger, after armour, cancels the do-afters the hit body is performing: treatment,
+    /// surgery and anything that breaks on damage (OD18, P17). Ticks that pass interruptsDoAfters false (fire,
+    /// bleeding, temperature) and systemic damage never count. 0 turns it off.
+    /// </summary>
+    public static readonly CVarDef<float> DoAfterInterruptDamage =
+        CVarDef.Create("wolfmed.doafter_interrupt_damage", 10f, CVar.SERVERONLY);
 }

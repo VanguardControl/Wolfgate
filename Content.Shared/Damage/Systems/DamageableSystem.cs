@@ -215,7 +215,8 @@ namespace Content.Shared.Damage
 
             var before = new BeforeDamageChangedEvent(damage, origin, targetPart, //Shitmed Change
                 false, originFlag, // Mono: originFlag
-                armorPenetration, tool); // WOLFGATE: D23, Wolfmed routing cancels before the resistance block, so the routed pass needs these. Mono: tool also serves shield-breaking ammunition.
+                armorPenetration, tool, // WOLFGATE: D23, Wolfmed routing cancels before the resistance block, so the routed pass needs these. Mono: tool also serves shield-breaking ammunition.
+                IgnoreResistances: ignoreResistances, InterruptsDoAfters: interruptsDoAfters, PartMultiplier: partMultiplier ?? 1f); // WOLFGATE (M6): P25, the routed pass re-applies the caller's arguments.
             RaiseLocalEvent(uid.Value, ref before);
 
             if (before.Cancelled)
@@ -504,7 +505,8 @@ namespace Content.Shared.Damage
         DamageOriginFlag? OriginFlag = null, // Mono: OriginFlag
         float ArmorPenetration = 0f, // WOLFGATE: D23, armour penetration for a handler that re-applies the damage itself.
         EntityUid? Tool = null, // WOLFGATE: D23, the tool that dealt it, same reason. Mono: early shield interception reads it too.
-        DamageSpecifier? Applied = null) // WOLFGATE: D27, what a cancelling handler actually applied; TryChangeDamage returns it.
+        DamageSpecifier? Applied = null, // WOLFGATE: D27, what a cancelling handler actually applied; TryChangeDamage returns it.
+        bool IgnoreResistances = false, bool InterruptsDoAfters = true, float PartMultiplier = 1.00f) // WOLFGATE (M6): P25, the caller's arguments for a handler that re-applies the damage itself.
         : IInventoryRelayEvent // Mono: early shield interception
     {
         public SlotFlags TargetSlots => ~SlotFlags.POCKET;

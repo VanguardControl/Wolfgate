@@ -36,8 +36,8 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     public float Depth;
 
     /// <summary>
-    /// Levels pushed in from outside the pain, blood and leg inputs; 0 none, 1 unconscious. The seam BRAIN
-    /// pushes brain oxygenation through, and where airloss sits until it does.
+    /// Levels pushed in from outside the pain, blood and leg inputs; 0 none, 1 unconscious. Keys include
+    /// "hypoxia", "sedation", "arrest", "shutdown", "injury" and "coreheat"; the old "airloss" key is gone.
     /// </summary>
     [ViewVariables]
     public Dictionary<string, float> Pressures = new();

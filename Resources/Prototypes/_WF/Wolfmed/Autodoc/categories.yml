@@ -71,6 +71,8 @@
   - SurgeryHealBrain
   - SurgeryRepairBrain
   - SurgeryHealEyes
+  - SurgeryRepairCore
+  - SurgeryRepairSynthCore
 
 - type: autodocCategory
   id: WolfmedAutodocCategoryLimbs

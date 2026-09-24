@@ -293,9 +293,13 @@ public sealed class WolfmedWoundSurgeryTest : GameTest
             // forever on the commonest grade. Drive a fresh Comminuted fracture down into the Hairline band
             // (WolfmedFractureProfile: Hairline 12, Simple starts at 20) and assert the set-bone step reports
             // itself complete anyway.
+            // M6 (P30): the new fracture starts at the arm's whole trauma (75 + the 75 already stored x 0.8 = 135), not
+            // at the hit alone, so it is driven down to 15 from wherever it starts.
             Assert.That(routing.TryApplyPartDamage(body, arm, Spec("Blunt", 75)));
             var second = fractures.GetFracture(arm)!.Value;
-            Assert.That(entities.System<WoundSystem>().ChangeSeverity(second.Owner, -60));
+            Assert.That(second.Comp1.Severity, Is.GreaterThan(FixedPoint2.New(75)),
+                "a second blow to a battered arm did not count the trauma already there.");
+            Assert.That(entities.System<WoundSystem>().ChangeSeverity(second.Owner, FixedPoint2.New(15) - second.Comp1.Severity));
             Assert.Multiple(() =>
             {
                 Assert.That(second.Comp1.Severity, Is.EqualTo(FixedPoint2.New(15)));

@@ -54,7 +54,9 @@ public sealed partial class WoundFractureSystem : EntitySystem
             !_random.Prob(Math.Clamp(gradeSettings.CreationChance, 0f, 1f)))
             return;
 
-        if (_wounds.CreateOrMergeWound(part.Owner, profile.Wound, damage * profile.SeverityMultiplier) is not { } wound ||
+        // WOLFGATE (M6): P30, the fracture starts at the trauma that graded it. Created at the hit alone, a fracture
+        // made from accumulated damage sat under its own lowest grade: no grade, no penalty, no treatment.
+        if (_wounds.CreateOrMergeWound(part.Owner, profile.Wound, effectiveTrauma * profile.SeverityMultiplier) is not { } wound ||
             !TryComp(wound, out WoundComponent? core))
             return;
 

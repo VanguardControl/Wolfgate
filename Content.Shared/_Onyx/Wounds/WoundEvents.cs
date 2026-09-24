@@ -58,7 +58,9 @@ public readonly record struct PartDamageAppliedEvent(
     EntityUid? Tool = null,
     // WOLFGATE (M1b): what a ceiling (the torso's cap, the ambient per-part ceiling) discarded from this hit.
     // Damage is what was stored (Applied); wounds and organs read Total, fractures and amputation Applied.
-    DamageSpecifier? Overflow = null)
+    DamageSpecifier? Overflow = null,
+    // WOLFGATE (M6): OD18, whether this hit may interrupt a do-after. Fire, bleeding and other ticks pass false.
+    bool InterruptsDoAfters = true)
 {
     /// <summary>WOLFGATE (M1b): the whole hit, stored or not.</summary>
     public DamageSpecifier Total => Overflow is not { Empty: false } overflow ? Damage : Damage + overflow;

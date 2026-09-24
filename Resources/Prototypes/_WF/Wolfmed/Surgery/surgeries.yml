@@ -385,3 +385,6 @@
   - type: WolfmedSurgeryOrganDamagedCondition
     slot: posbrain
     anyDamage: true
+    # M6: a whole core with the housing still unbolted still lists, so the weld that closes it can be reached.
+    validWhile:
+    - type: WolfmedCoreHousingOpen
