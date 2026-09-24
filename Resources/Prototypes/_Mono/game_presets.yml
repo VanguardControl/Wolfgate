@@ -169,7 +169,7 @@
   - MonoMonolithicEventsScheduler
   - ManualPortstrikeTsfPdv
   - StarSystemKyphrus
-  - MonoXenoBorgShuttleSpawnerSchedulerSlow
+  - MonoXenoBorgShuttleSpawnerSchedulerSlow # WOLFGATE: Monolith #4558
 
 - type: gamePreset
   id: MonoAllAtOnce
@@ -192,7 +192,7 @@
   - RoundEndRuleHour3
   - ManualPortstrikeTsfPdv
   - StarSystemKyphrus
-  - MonoXenoBorgShuttleSpawnerSchedulerSlow
+  - MonoXenoBorgShuttleSpawnerSchedulerSlow # WOLFGATE: Monolith #4558
 
 - type: gamePreset
   id: MonoRogueTSFHyperwar
@@ -206,22 +206,4 @@
   - Hyperwar
   - RoundEndRuleHour3
   - PortstrikeAnnounceRuleHour2
-  - StarSystemKyphrus
-
-- type: gamePreset
-  id: MonoXeno
-  name: mono-Xeno-title
-  description: mono-Xeno-description
-  showInVote: true
-  rules:
-  - NFAdventure
-  - BasicStationEventScheduler
-  - BluespaceEventScheduler
-  - BluespaceDungeonEventScheduler
-  - BluespaceSalvageEventScheduler
-  - SmugglingEventScheduler
-  - FrontierRoundstartVariation
-  - MonoXenoborgShuttleSpawnerScheduler
-  - MonoMonolithicEventsScheduler
-  - ManualPortstrikeTsfPdv
   - StarSystemKyphrus

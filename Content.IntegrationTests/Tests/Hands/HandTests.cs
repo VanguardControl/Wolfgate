@@ -36,6 +36,9 @@ public sealed class HandTests
         var server = pair.Server;
 
         var entMan = server.ResolveDependency<IEntityManager>();
+        // WOLFGATE START: unused, the actor is spawned instead of read from the session
+        // var playerMan = server.ResolveDependency<IPlayerManager>();
+        // WOLFGATE END
         var mapSystem = server.System<SharedMapSystem>();
         var sys = entMan.System<SharedHandsSystem>();
         var tSys = entMan.System<TransformSystem>();
@@ -45,13 +48,13 @@ public sealed class HandTests
 
         EntityUid player = default;
 
-        // WOLFGATE: spawn the actor instead of using the session's entity. A pair recycled with a real ticker
+        // WOLFGATE START: spawn the actor instead of using the session's entity. A pair recycled with a real ticker
         // restarts the round before the client reconnects, so the session can be a ghost without hands.
         await server.WaitPost(() => player = entMan.SpawnEntity("MobHuman", data.GridCoords));
         await pair.RunTicksSync(5);
         await server.WaitAssertion(() =>
             Assert.That(entMan.HasComponent<HandsComponent>(player), "The spawned actor has no hands."));
-        // End WOLFGATE
+        // WOLFGATE END
 
         EntityUid item = default;
         HandsComponent hands = default!;
@@ -92,6 +95,9 @@ public sealed class HandTests
         await pair.RunTicksSync(5);
 
         var entMan = server.ResolveDependency<IEntityManager>();
+        // WOLFGATE START: unused, the actor is spawned instead of read from the session
+        // var playerMan = server.ResolveDependency<IPlayerManager>();
+        // WOLFGATE END
         var mapSystem = server.System<SharedMapSystem>();
         var sys = entMan.System<SharedHandsSystem>();
         var tSys = entMan.System<TransformSystem>();
@@ -106,13 +112,13 @@ public sealed class HandTests
         await server.WaitPost(() => box = server.EntMan.SpawnEntity("TestPickUpThenDropInContainerTestBox", map.GridCoords));
         await server.WaitPost(() => item = server.EntMan.SpawnEntity("Crowbar", map.GridCoords));
 
-        // WOLFGATE: spawn the actor instead of using the session's entity. A pair recycled with a real ticker
+        // WOLFGATE START: spawn the actor instead of using the session's entity. A pair recycled with a real ticker
         // restarts the round before the client reconnects, so the session can be a ghost without hands.
         await server.WaitPost(() => player = entMan.SpawnEntity("MobHuman", map.GridCoords));
         await pair.RunTicksSync(5);
         await server.WaitAssertion(() =>
             Assert.That(entMan.HasComponent<HandsComponent>(player), "The spawned actor has no hands."));
-        // End WOLFGATE
+        // WOLFGATE END
 
         // place the player at the exact same coordinates and have them grab the crowbar
         await server.WaitPost(() =>

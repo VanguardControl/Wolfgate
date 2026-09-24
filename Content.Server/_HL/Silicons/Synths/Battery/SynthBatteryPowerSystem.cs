@@ -4,7 +4,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
-using Content.Shared.Power.Components; // WOLFGATE - battery moved to shared here
+using Content.Shared.Power.Components; // WOLFGATE: battery moved to shared here
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Power; // WOLFGATE
 using Content.Shared.Rejuvenate; // WOLFGATE

@@ -1,6 +1,5 @@
 namespace Content.Server.Wires;
 
-// WOLFGATE
 public sealed partial class WiresSystem
 {
     /// <summary>

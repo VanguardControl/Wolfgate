@@ -4,12 +4,12 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Genitals.Prototypes;
 
-/// <summary>Global anatomy settings. A single prototype, id Default, read through SharedGenitalsSystem.Settings.</summary>
+/// <summary>Global anatomy settings. A single prototype, id WFDefault, read through SharedGenitalsSystem.Settings.</summary>
 [Prototype]
 public sealed partial class GenitalSettingsPrototype : IPrototype
 {
     /// <summary>Id of the settings prototype the game reads.</summary>
-    public static readonly ProtoId<GenitalSettingsPrototype> DefaultId = "Default";
+    public static readonly ProtoId<GenitalSettingsPrototype> DefaultId = "WFDefault";
 
     [IdDataField]
     public string ID { get; private set; } = default!;
@@ -53,7 +53,7 @@ public sealed partial class GenitalSettingsPrototype : IPrototype
 
     /// <summary>Shape used to draw external testicles; the profile has no testicle shape of its own.</summary>
     [DataField]
-    public ProtoId<GenitalShapePrototype> TesticlesShape = "GenitalShapeTesticlesPair";
+    public ProtoId<GenitalShapePrototype> TesticlesShape = "WFGenitalShapeTesticlesPair";
 
     /// <summary>Seconds another player needs to remove or put back an undergarment.</summary>
     [DataField]
@@ -74,11 +74,11 @@ public sealed partial class GenitalSettingsPrototype : IPrototype
     [DataField]
     public ProtoId<ConsentTogglePrototype> MasterConsent = "GenitalMarkings";
 
-    /// <summary>Toggle a target needs before others may remove their undergarments (UndergarmentStrip). Unset refuses.</summary>
+    /// <summary>Toggle a target needs before others may remove their undergarments (WFUndergarmentStrip). Unset refuses.</summary>
     [DataField]
     public ProtoId<ConsentTogglePrototype>? StripConsent;
 
-    /// <summary>Toggle a patient needs before anatomy surgery by someone else (AnatomySurgery). Unset refuses.</summary>
+    /// <summary>Toggle a patient needs before anatomy surgery by someone else (WFAnatomySurgery). Unset refuses.</summary>
     [DataField]
     public ProtoId<ConsentTogglePrototype>? SurgeryConsent;
 

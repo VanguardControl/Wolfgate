@@ -2,7 +2,7 @@ using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared._WF.Genitals;
+namespace Content.Shared._WF.Genitals.Profile;
 
 /// <summary>Ordinary markings that require an adult character (the settings' AdultOnlyMarkings, e.g. pregnancy overlays).</summary>
 public static class GenitalAdultMarkings

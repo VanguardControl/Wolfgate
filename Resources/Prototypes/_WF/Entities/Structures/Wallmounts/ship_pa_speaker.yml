@@ -1,5 +1,5 @@
 - type: entity
-  id: WallmountShipPaSpeaker
+  id: WFWallmountShipPaSpeaker
   name: PA speaker
   description: A ship-wide public address loudspeaker. Carries the pilot's announcements and the ship's alarms; useless once it's been smashed.
   placement:
@@ -83,7 +83,7 @@
     repairTime: 3
     repairCost: 6
   - type: Construction
-    graph: ShipPaSpeaker
+    graph: WFShipPaSpeaker
     node: speaker
   - type: StaticPrice
     price: 150

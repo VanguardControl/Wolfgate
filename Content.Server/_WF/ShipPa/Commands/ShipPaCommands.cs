@@ -157,6 +157,6 @@ public sealed partial class ShipPaSpeakersCommand : ShipPaCommand
         }
 
         var (online, total, _) = _pa.CountSpeakers(grid);
-        shell.WriteLine($"{online}/{total} online");
+        shell.WriteLine(Loc.GetString("cmd-shippa_speakers-online", ("online", online), ("total", total)));
     }
 }

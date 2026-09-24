@@ -6,6 +6,7 @@ using Content.Client.Options.UI;
 using Content.Client.UserInterface.Systems.EscapeMenu;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Genitals;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
@@ -40,7 +41,7 @@ public sealed partial class WolfgateGenitalEditor : BoxContainer
     private const string PregnancyMarkingPrefix = "Pregnant-";
 
     /// <summary>Its art is the same at every cup size, so the creator says so.</summary>
-    private static readonly ProtoId<GenitalShapePrototype> UddersShape = "GenitalShapeBreastsUdders";
+    private static readonly ProtoId<GenitalShapePrototype> UddersShape = "WFGenitalShapeBreastsUdders";
 
     private static readonly SheathType[] SheathTypes = { SheathType.None, SheathType.Sheath, SheathType.Slit };
 

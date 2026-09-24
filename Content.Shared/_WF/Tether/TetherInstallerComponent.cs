@@ -17,7 +17,7 @@ public sealed partial class TetherInstallerComponent : Component
 {
     /// <summary>Entity spawned on a successful install.</summary>
     [DataField]
-    public EntProtoId AnchorEyePrototype = "TetherAnchorEye";
+    public EntProtoId AnchorEyePrototype = "WFTetherAnchorEye";
 
     /// <summary>Material consumed per install, in the same units as <see cref="Content.Shared.Materials.MaterialStorageComponent.Storage"/> (a sheet is 100).</summary>
     [DataField, AutoNetworkedField]

@@ -7,8 +7,10 @@ concurrency:
 
 jobs:
   size-label:
+    # WOLFGATE START: default token permissions are read-only
     permissions:
       pull-requests: write
+    # WOLFGATE END
     runs-on: ubuntu-latest
     steps:
       - name: size-label

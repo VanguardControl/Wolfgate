@@ -25,7 +25,7 @@ public sealed class ShipPaArbitrationTest
         var pa = entMan.System<ShipPaSystem>();
         await server.WaitPost(() =>
         {
-            var speaker = entMan.SpawnEntity("WallmountShipPaSpeaker", map.GridCoords);
+            var speaker = entMan.SpawnEntity("WFWallmountShipPaSpeaker", map.GridCoords);
             entMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
         });
 
@@ -63,7 +63,7 @@ public sealed class ShipPaArbitrationTest
         var pa = entMan.System<ShipPaSystem>();
         await server.WaitPost(() =>
         {
-            var speaker = entMan.SpawnEntity("WallmountShipPaSpeaker", map.GridCoords);
+            var speaker = entMan.SpawnEntity("WFWallmountShipPaSpeaker", map.GridCoords);
             entMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
         });
 

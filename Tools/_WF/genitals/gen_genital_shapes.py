@@ -121,7 +121,7 @@ class Shape:
 
     @property
     def id(self):
-        return f"GenitalShape{self.slot}{self.suffix}"
+        return f"WFGenitalShape{self.slot}{self.suffix}"
 
     @property
     def loc(self):

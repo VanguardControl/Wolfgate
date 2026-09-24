@@ -57,7 +57,7 @@ public sealed class CollisionWarningTest
             entManager.EnsureComponent<ShuttleComponent>(ship);
             entManager.SpawnEntity("ComputerShuttle", new EntityCoordinates(ship, new Vector2(0.5f, 0.5f)));
 
-            var speaker = entManager.SpawnEntity("WallmountShipPaSpeaker",
+            var speaker = entManager.SpawnEntity("WFWallmountShipPaSpeaker",
                 new EntityCoordinates(ship, new Vector2(1.5f, 1.5f)));
             entManager.RemoveComponent<ApcPowerReceiverComponent>(speaker);
 
@@ -155,7 +155,7 @@ public sealed class CollisionWarningTest
 
             entManager.EnsureComponent<ShuttleComponent>(ship);
             entManager.SpawnEntity("ComputerShuttle", new EntityCoordinates(ship, new Vector2(0.5f, 0.5f)));
-            entManager.SpawnEntity("WallmountShipPaSpeaker", new EntityCoordinates(ship, new Vector2(1.5f, 1.5f)));
+            entManager.SpawnEntity("WFWallmountShipPaSpeaker", new EntityCoordinates(ship, new Vector2(1.5f, 1.5f)));
 
             physicsSystem.SetBodyType(ship, BodyType.Dynamic);
             physicsSystem.SetLinearVelocity(ship, new Vector2(100f, 0f));
@@ -287,7 +287,7 @@ public sealed class CollisionWarningTest
 
             entManager.EnsureComponent<ShuttleComponent>(ship);
             var console = entManager.SpawnEntity("ComputerShuttle", new EntityCoordinates(ship, new Vector2(0.5f, 0.5f)));
-            entManager.SpawnEntity("WallmountShipPaSpeaker", new EntityCoordinates(ship, new Vector2(1.5f, 1.5f)));
+            entManager.SpawnEntity("WFWallmountShipPaSpeaker", new EntityCoordinates(ship, new Vector2(1.5f, 1.5f)));
 
             physicsSystem.SetBodyType(ship, BodyType.Dynamic);
             physicsSystem.SetLinearVelocity(ship, new Vector2(100f, 0f));

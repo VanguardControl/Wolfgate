@@ -140,8 +140,9 @@ public sealed partial class MarkingSet
         Points = MarkingPoints.CloneMarkingPointDictionary(other.Points);
     }
 
+    // WOLFGATE START: one undergarment top and one bottom per character
     /// <summary>
-    /// WOLFGATE - one undergarment top and one bottom per character, for every species. Works on the cloned points,
+    /// One undergarment top and one bottom per character, for every species. Works on the cloned points,
     /// never the prototype's: a missing entry becomes an optional budget of 1 with no default markings, and an
     /// entry above 1 is lowered to 1.
     /// </summary>
@@ -151,7 +152,7 @@ public sealed partial class MarkingSet
         LimitToOne(points, MarkingCategories.UndergarmentBottom);
     }
 
-    /// <summary>WOLFGATE - caps one category of a cloned points dictionary at a single marking.</summary>
+    /// <summary>Caps one category of a cloned points dictionary at a single marking.</summary>
     private static void LimitToOne(Dictionary<MarkingCategories, MarkingPoints> points, MarkingCategories category)
     {
         if (!points.TryGetValue(category, out var limit))
@@ -159,6 +160,7 @@ public sealed partial class MarkingSet
         else if (limit.Points > 1)
             limit.Points = 1;
     }
+    // WOLFGATE END
 
     /// <summary>
     ///     Filters and colors markings based on species and it's restrictions in the marking's prototype from this marking set.
@@ -263,12 +265,13 @@ public sealed partial class MarkingSet
     {
         IoCManager.Resolve(ref markingManager);
 
+        // WOLFGATE START: collect removals per category
+        // One list for the whole set removed indices found in one category from every later category.
+        // var toRemove = new List<int>();
+        // WOLFGATE END
         foreach (var (category, list) in Markings)
         {
-            // WOLFGATE: collected per category and removed from the back. This used to be one list for the
-            // whole set, so indices found in one category were removed again from every later category, and
-            // removing front to back shifted the remaining indices onto the wrong markings.
-            var toRemove = new List<int>();
+            var toRemove = new List<int>(); // WOLFGATE
             for (var i = 0; i < list.Count; i++)
             {
                 if (!markingManager.TryGetMarking(list[i], out var marking))
@@ -279,21 +282,30 @@ public sealed partial class MarkingSet
 
                 if (marking.Sprites.Count != list[i].MarkingColors.Count)
                 {
-                    // WOLFGATE - keep saved colours when a marking gains colour-linked sprites (e.g. a split tail).
+                    // WOLFGATE START: keep saved colours when a marking gains colour-linked sprites
+                    // list[i] = new Marking(marking.ID, marking.Sprites.Count);
                     list[i] = TryPadLinkedColors(marking, list[i], out var padded)
                         ? padded
                         : new Marking(marking.ID, marking.Sprites.Count);
+                    // WOLFGATE END
                 }
             }
 
+            // WOLFGATE START: remove from the back so earlier indices stay valid
+            // foreach (var i in toRemove)
+            // {
+            //     Remove(category, i);
+            // }
             for (var i = toRemove.Count - 1; i >= 0; i--)
             {
                 Remove(category, toRemove[i]);
             }
+            // WOLFGATE END
         }
     }
 
-    /// <summary>WOLFGATE - pads missing colours from their colorLinks parents; false if any missing sprite has no linked parent.</summary>
+    // WOLFGATE START: pads missing colours from their colorLinks parents
+    /// <summary>Pads missing colours from their colorLinks parents; false if any missing sprite has no linked parent.</summary>
     private static bool TryPadLinkedColors(MarkingPrototype proto, Marking saved, [NotNullWhen(true)] out Marking? padded)
     {
         padded = null;
@@ -333,6 +345,7 @@ public sealed partial class MarkingSet
         padded = new Marking(proto.ID, colors) { Visible = saved.Visible, Forced = saved.Forced };
         return true;
     }
+    // WOLFGATE END
 
     /// <summary>
     ///     Ensures that the default markings as defined by the marking point set in this marking set are applied.

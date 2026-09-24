@@ -1,0 +1,11 @@
+- type: entity
+  id: MonoXenoborgShuttleSpawnerScheduler
+  parent: BaseGameRule
+  components:
+  - type: BasicStationEventScheduler
+    scheduledGameRules: !type:NestedSelector
+      tableId: XenoborgShipTable
+    minimumTimeUntilFirstEvent: 1800 # 30 minutes
+    minMaxEventTiming:
+      min: 2400 # 40 minutes between events
+      max: 3600 # 60 minutes between events

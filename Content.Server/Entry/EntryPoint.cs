@@ -110,7 +110,7 @@ namespace Content.Server.Entry
                 IoCManager.Resolve<IConnectionManager>().Initialize();
                 _dbManager.Init();
                 IoCManager.Resolve<IServerPreferencesManager>().Init();
-                IoCManager.Resolve<IServerConsentManager>().Initialize(); // WOLFGATE - consent system
+                IoCManager.Resolve<IServerConsentManager>().Initialize(); // WOLFGATE: consent system
                 IoCManager.Resolve<INodeGroupFactory>().Initialize();
                 IoCManager.Resolve<ContentNetworkResourceManager>().Initialize();
                 IoCManager.Resolve<GhostKickManager>().Initialize();

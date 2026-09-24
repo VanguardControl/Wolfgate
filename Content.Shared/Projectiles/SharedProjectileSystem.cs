@@ -119,9 +119,10 @@ public abstract partial class SharedProjectileSystem : EntitySystem
             || component.ProjectileSpent || component is { Weapon: null, OnlyCollideWhenShot: true })
             return;
 
-        // WOLFGATE: the client's GunPredictionSystem handles its predicted copies
+        // WOLFGATE START: the client's GunPredictionSystem handles its predicted copies
         if (HasComp<PredictedProjectileClientComponent>(uid))
             return;
+        // WOLFGATE END
 
         ProjectileCollide((uid, component, args.OurBody), args.OtherEntity);
     }
@@ -140,9 +141,10 @@ public abstract partial class SharedProjectileSystem : EntitySystem
         RaiseLocalEvent(target, ref attemptEv);
         if (attemptEv.Cancelled)
         {
-            // WOLFGATE: a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them
+            // WOLFGATE START: a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them
             if (_net.IsServer)
                 RemComp<PredictedProjectileServerComponent>(uid);
+            // WOLFGATE END
 
             SetShooter(uid, component, target);
             return null;
@@ -194,7 +196,7 @@ public abstract partial class SharedProjectileSystem : EntitySystem
         var impactFilter = Robust.Shared.Player.Filter.Pvs(coordinates, entityMan: EntityManager);
         var damageFilter = Robust.Shared.Player.Filter.Pvs(coordinates, entityMan: EntityManager);
 
-        // WOLFGATE: skip these for a shooter whose own predicted copy already played them. Hit means the shooter's
+        // WOLFGATE START: skip these for a shooter whose own predicted copy already played them. Hit means the shooter's
         // client reported this projectile as having hit something, which it only does after playing the impact and
         // the flash locally, so a projectile they never claimed still shows them both.
         if (_guns.GunPrediction &&
@@ -204,6 +206,7 @@ public abstract partial class SharedProjectileSystem : EntitySystem
             impactFilter = impactFilter.RemovePlayer(predictedShooter);
             damageFilter = damageFilter.RemovePlayer(predictedShooter);
         }
+        // WOLFGATE END
 
         if (modifiedDamage is not null && (EntityManager.EntityExists(component.Shooter) || EntityManager.EntityExists(component.Weapon)))
         {

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: emoteSounds
   id: MaleFelionoid
   params:
@@ -87,7 +87,7 @@
     Hew:
       collection: Hew
 
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: emoteSounds
   parent: UnisexAvali
   id: MaleAvali

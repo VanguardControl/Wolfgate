@@ -163,7 +163,7 @@ public sealed partial class ContentReplayPlaybackManager
 
         switch (message)
         {
-            case InternetSoundReplayAsset: // WOLFGATE - Indexed by the internet sound system when playback starts.
+            case InternetSoundReplayAsset: // WOLFGATE: indexed by the internet sound system when playback starts
             case BoundUserInterfaceMessage: // TODO REPLAYS refactor BUIs
             case RequestWindowAttentionEvent:
                 // Mark as handled -- the event won't get raised.

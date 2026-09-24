@@ -708,14 +708,14 @@ namespace Content.Shared.Interaction
                 return ev.InRange;
             }
 
-            // WOLFGATE: let the target extend the reach range (e.g. traders trading across a table).
+            // WOLFGATE START: let the target extend the reach range (e.g. traders trading across a table)
             if (range > 0f)
             {
                 var bonusEv = new InteractionRangeBonusEvent(origin, other);
                 RaiseLocalEvent(other.Owner, ref bonusEv);
                 range += bonusEv.Bonus;
             }
-            // WOLFGATE end
+            // WOLFGATE END
 
             return InRangeUnobstructed(origin,
                 other,

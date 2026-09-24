@@ -6,7 +6,7 @@
   announcements and the ship's alarms to anyone standing near a working one.
 
   <Box>
-    <GuideEntityEmbed Entity="WallmountShipPaSpeaker" Caption="PA speaker"/>
+    <GuideEntityEmbed Entity="WFWallmountShipPaSpeaker" Caption="PA speaker"/>
   </Box>
 
   ## Placement

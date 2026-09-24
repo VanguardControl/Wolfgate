@@ -10,7 +10,7 @@ namespace Content.Server._WF.Silicons.Battery;
 /// </summary>
 public sealed class SynthBatteryDrinkerSystem : EntitySystem
 {
-    [Dependency] private readonly SynthBatterySystem _synthBattery = default!;
+    [Dependency] private SynthBatterySystem _synthBattery = default!;
 
     public override void Initialize()
     {

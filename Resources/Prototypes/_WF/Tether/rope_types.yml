@@ -1,6 +1,6 @@
 # Stage 2A owns the real rope types. This one exists so the rope core can be tried in game.
 - type: ropeType
-  id: RopeDebug
+  id: WFRopeDebug
   name: rope-name-debug
   stiffness: 6000
   dampingRatio: 0.7

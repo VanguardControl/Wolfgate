@@ -3,7 +3,6 @@ using Content.Shared.DeviceNetwork.Components;
 
 namespace Content.Server.DeviceNetwork.Systems;
 
-// WOLFGATE
 public sealed partial class DeviceNetworkSystem
 {
     /// <summary>

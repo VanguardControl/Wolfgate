@@ -16,6 +16,9 @@
     - MonolithRuleRoleplayTwoTextChat
     - MonolithRuleRoleplayThreeProperGrammar
     - MonolithRuleRoleplayFourCharacterActions
+    # WOLFGATE START: erotic roleplay rule removed, PR #27
+    #- MonolithRuleRoleplayFiveEroticRoleplay
+    # WOLFGATE END
     - MonolithRuleRoleplaySixMetagame
     - MonolithRuleRoleplaySevenSafeZones
     - MonolithRuleRoleplayEightFactionRoles
@@ -102,6 +105,14 @@
   name: guide-entry-monolith-rule-roleplay-four-character-actions
   text: "/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Four_CharacterActions.xml"
   ruleEntry: true
+
+# WOLFGATE START: erotic roleplay rule entry removed, PR #27
+#- type: guideEntry
+#  id: MonolithRuleRoleplayFiveEroticRoleplay
+#  name: guide-entry-monolith-rule-roleplay-five-erotic-roleplay
+#  text: "/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Five_EroticRoleplay.xml"
+#  ruleEntry: true
+# WOLFGATE END
 
 - type: guideEntry
   id: MonolithRuleRoleplaySixMetagame

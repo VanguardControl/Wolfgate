@@ -5,7 +5,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._Common.Consent;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)] // WOLFGATE - raise AfterAutoHandleState so anatomy visuals follow consent changes
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)] // WOLFGATE: raise AfterAutoHandleState so anatomy visuals follow consent changes
 public partial class ConsentComponent : Component
 {
     /// <summary>

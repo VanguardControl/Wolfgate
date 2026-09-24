@@ -1,6 +1,6 @@
 # One slot of an admin-built ERT. The ERT Builder fills in the title, briefing, outfit and ID setup at spawn.
 - type: entity
-  id: WolfgateErtSpawner
+  id: WFErtSpawner
   parent: MarkerBase
   name: ERT spawn point
   categories: [ HideSpawnMenu ]

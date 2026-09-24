@@ -3,7 +3,7 @@ using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager;
-using Robust.Shared.Serialization.Markdown;
+using Robust.Shared.Serialization.Markdown; // WOLFGATE
 using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.Markdown.Validation;
 using Robust.Shared.Serialization.Markdown.Value;
@@ -12,8 +12,9 @@ using Robust.Shared.Serialization.TypeSerializers.Interfaces;
 
 namespace Content.Shared.Damage;
 
+// WOLFGATE START: adds writing support so DamageSpecifier can round-trip through DamageDict
 public sealed class DamageSpecifierDictionarySerializer : ITypeReader<Dictionary<string, FixedPoint2>, MappingDataNode>,
-    ITypeWriter<Dictionary<string, FixedPoint2>> // WOLFGATE: writes the non-zero types back out
+    ITypeWriter<Dictionary<string, FixedPoint2>>
 {
     public DataNode Write(ISerializationManager serializationManager, Dictionary<string, FixedPoint2> value,
         IDependencyCollection dependencies, bool alwaysWrite = false, ISerializationContext? context = null)
@@ -31,6 +32,7 @@ public sealed class DamageSpecifierDictionarySerializer : ITypeReader<Dictionary
 
         return node;
     }
+    // WOLFGATE END
 
     private ITypeValidator<Dictionary<string, FixedPoint2>, MappingDataNode> _damageTypeSerializer = new PrototypeIdDictionarySerializer<FixedPoint2, DamageTypePrototype>();
     private ITypeValidator<Dictionary<string, FixedPoint2>, MappingDataNode> _damageGroupSerializer = new PrototypeIdDictionarySerializer<FixedPoint2, DamageGroupPrototype>();

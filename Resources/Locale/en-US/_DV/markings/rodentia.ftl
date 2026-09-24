@@ -198,7 +198,3 @@ marking-RodentiaFootLeftBasic-l_foot = Foot
 
 marking-RodentiaFootRightBasic = Right Foot - Basic
 marking-RodentiaFootRightBasic-r_foot = Foot
-
-# Wolfgate: ported from HardLight
-marking-RodentiaHeadTopEarDefault = Rodentia Ears
-marking-RodentiaTailDefault = Rodentia Tail

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: entity
   id: ActionViewMoods
   name: View Moods

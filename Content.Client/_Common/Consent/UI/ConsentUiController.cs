@@ -16,7 +16,7 @@ using static Robust.Client.UserInterface.Controls.BaseButton;
 namespace Content.Client._Common.Consent.UI;
 
 /// <summary>
-/// Wolfgate: the consent preferences live in a Game Options tab rather than their own window, so the HUD
+/// WOLFGATE: the consent preferences live in a Game Options tab rather than their own window, so the HUD
 /// button and the keybind both just open Options there.
 /// </summary>
 [UsedImplicitly]

@@ -32,7 +32,7 @@ public sealed class ExplosionShockwaveOverlay : Overlay
         IoCManager.InjectDependencies(this);
 
         _system = system;
-        _shader = _proto.Index<ShaderPrototype>("WfExplosionShockwave").Instance().Duplicate();
+        _shader = _proto.Index<ShaderPrototype>("WFExplosionShockwave").Instance().Duplicate();
         ZIndex = 102; // After the singularity's own distortion, which sits at 101.
     }
 

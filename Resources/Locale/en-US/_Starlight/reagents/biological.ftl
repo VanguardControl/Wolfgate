@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 reagent-name-avali-blood = diluted ammonia blood
 reagent-desc-avali-blood = Smells like piss.
 reagent-physical-desc-avali = non-ferrous

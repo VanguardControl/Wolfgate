@@ -32,7 +32,7 @@ public abstract partial class ObfuscationMethod
     }
 }
 
-// WOLFGATE - ported from HardLight/Starlight: needed by the Avali "Scratch" language.
+// WOLFGATE START: ported from HardLight/Starlight, needed by the Avali "Scratch" language
 /// <summary>
 ///     Obfuscates the letters and digits of a message into random ones, keeping spaces and
 ///     punctuation intact.
@@ -52,7 +52,7 @@ public partial class RandomObfuscation : ObfuscationMethod
         builder.Append(message);
     }
 }
-// End WOLFGATE
+// WOLFGATE END
 
 /// <summary>
 ///     The most primitive method of obfuscation - replaces the entire message with one random replacement phrase.

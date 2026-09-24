@@ -4,6 +4,8 @@ using Content.Server._WF.Genitals;
 using Content.Shared._Common.Consent;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Organ;
@@ -22,15 +24,15 @@ namespace Content.IntegrationTests.Tests._WF.Genitals;
 public static class GenitalTestHelpers
 {
     public const string MasterToggle = "GenitalMarkings";
-    public const string StripToggle = "UndergarmentStrip";
-    public const string SurgeryToggle = "AnatomySurgery";
+    public const string StripToggle = "WFUndergarmentStrip";
+    public const string SurgeryToggle = "WFAnatomySurgery";
 
-    public static readonly ProtoId<GenitalShapePrototype> PenisHuman = "GenitalShapePenisHuman";
-    public static readonly ProtoId<GenitalShapePrototype> PenisKnotted = "GenitalShapePenisKnotted";
-    public static readonly ProtoId<GenitalShapePrototype> PenisHemi = "GenitalShapePenisHemi";
-    public static readonly ProtoId<GenitalShapePrototype> VaginaHuman = "GenitalShapeVaginaHuman";
-    public static readonly ProtoId<GenitalShapePrototype> VaginaSlit = "GenitalShapeVaginaSlit";
-    public static readonly ProtoId<GenitalShapePrototype> BreastsPair = "GenitalShapeBreastsPair";
+    public static readonly ProtoId<GenitalShapePrototype> PenisHuman = "WFGenitalShapePenisHuman";
+    public static readonly ProtoId<GenitalShapePrototype> PenisKnotted = "WFGenitalShapePenisKnotted";
+    public static readonly ProtoId<GenitalShapePrototype> PenisHemi = "WFGenitalShapePenisHemi";
+    public static readonly ProtoId<GenitalShapePrototype> VaginaHuman = "WFGenitalShapeVaginaHuman";
+    public static readonly ProtoId<GenitalShapePrototype> VaginaSlit = "WFGenitalShapeVaginaSlit";
+    public static readonly ProtoId<GenitalShapePrototype> BreastsPair = "WFGenitalShapeBreastsPair";
 
     /// <summary>Every organ, all valid: knotted penis with a sheath, external testicles, vagina with womb, breasts.</summary>
     public static GenitalProfile FullProfile()

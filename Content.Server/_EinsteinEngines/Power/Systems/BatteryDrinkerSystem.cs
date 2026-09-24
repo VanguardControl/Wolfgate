@@ -1,7 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis; // WOLFGATE: was System.Linq
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
 using Content.Shared.Power.Components;
+// WOLFGATE START: PowerCellSlotComponent access removed, no longer needed
+// using Content.Shared.PowerCell.Components;
+// WOLFGATE END
 using Content.Shared._EinsteinEngines.Silicon;
 using Content.Shared._EinsteinEngines.Silicon.Components; // WOLFGATE
 using Content.Shared._WF.Power; // WOLFGATE
@@ -49,9 +52,10 @@ public sealed partial class BatteryDrinkerSystem : EntitySystem
             !TryGetDrinkerBattery(args.User, out var drinkerBattery)) // WOLFGATE: was silicon-only
             return;
 
-        // WOLFGATE: don't offer to drain your own cell.
+        // WOLFGATE START: don't offer to drain your own cell
         if (drinkerBattery.Value.Owner == uid)
             return;
+        // WOLFGATE END
 
         AlternativeVerb verb = new()
         {
@@ -63,8 +67,9 @@ public sealed partial class BatteryDrinkerSystem : EntitySystem
         args.Verbs.Add(verb);
     }
 
+    // WOLFGATE START: drinker battery lookup that also covers synths
     /// <summary>
-    /// WOLFGATE: finds the battery a drinker stores its charge in. Synths keep their cell in an
+    /// Finds the battery a drinker stores its charge in. Synths keep their cell in an
     /// organ slot, so the event gives their system first refusal before the stock silicon lookup.
     /// </summary>
     private bool TryGetDrinkerBattery(EntityUid drinker, [NotNullWhen(true)] out Entity<BatteryComponent>? battery)
@@ -97,6 +102,7 @@ public sealed partial class BatteryDrinkerSystem : EntitySystem
 
         return false;
     }
+    // WOLFGATE END
 
     private bool TestDrinkableBattery(EntityUid target, BatteryDrinkerComponent drinkerComp)
     {
@@ -137,41 +143,61 @@ public sealed partial class BatteryDrinkerSystem : EntitySystem
         var source = args.Target.Value;
         var drinker = uid;
 
+        // WOLFGATE START: fail closed instead of crashing when the source has no battery
+        // var sourceBattery = Comp<BatteryComponent>(source);
         if (!TryComp<BatteryComponent>(source, out var sourceBattery))
             return;
+        // WOLFGATE END
 
-        // WOLFGATE: resolve the drinker's own store, wherever it lives.
+        // WOLFGATE START: resolve the drinker's own store, wherever it lives (synths keep it in an organ slot)
+        // _silicon.TryGetSiliconBattery(drinker, out var drinkerBatteryComponent);
+        //
+        // if (!TryComp(uid, out PowerCellSlotComponent? batterySlot))
+        //     return;
+        //
+        // var container = _container.GetContainer(uid, batterySlot.CellSlotId);
+        // var drinkerBattery = container.ContainedEntities.First();
         if (!TryGetDrinkerBattery(drinker, out var drinkerBattery))
             return;
 
         var drinkerBatteryComponent = drinkerBattery.Value.Comp;
+        // WOLFGATE END
 
         TryComp<BatteryDrinkerSourceComponent>(source, out var sourceComp);
+
+        // WOLFGATE START: TryGetDrinkerBattery already guarantees a battery
+        // DebugTools.AssertNotNull(drinkerBattery);
+        //
+        // if (drinkerBattery == null)
+        //     return;
+        // WOLFGATE END
 
         var amountToDrink = drinkerComp.DrinkMultiplier * 1000;
 
         amountToDrink = MathF.Min(amountToDrink, sourceBattery.CurrentCharge);
-        amountToDrink = MathF.Min(amountToDrink, drinkerBatteryComponent.MaxCharge - drinkerBatteryComponent.CurrentCharge);
+        amountToDrink = MathF.Min(amountToDrink, drinkerBatteryComponent.MaxCharge - drinkerBatteryComponent.CurrentCharge); // WOLFGATE
 
         if (sourceComp != null && sourceComp.MaxAmount > 0)
             amountToDrink = MathF.Min(amountToDrink, (float) sourceComp.MaxAmount);
 
         if (amountToDrink <= 0)
         {
-            // WOLFGATE: say which side is the problem instead of always blaming the source.
+            // WOLFGATE START: say which side is the problem instead of always blaming the source
+            // _popup.PopupEntity(Loc.GetString("battery-drinker-empty", ("target", source)), drinker, drinker);
             var message = sourceBattery.CurrentCharge <= 0
                 ? Loc.GetString("battery-drinker-empty", ("target", source))
                 : Loc.GetString("battery-drinker-full");
 
             _popup.PopupEntity(message, drinker, drinker);
+            // WOLFGATE END
             return;
         }
 
         if (_battery.TryUseCharge(source, amountToDrink))
-            _battery.SetCharge(drinkerBattery.Value.Owner, drinkerBatteryComponent.CurrentCharge + amountToDrink, drinkerBatteryComponent);
+            _battery.SetCharge(drinkerBattery.Value.Owner, drinkerBatteryComponent.CurrentCharge + amountToDrink, drinkerBatteryComponent); // WOLFGATE
         else
         {
-            _battery.SetCharge(drinkerBattery.Value.Owner, sourceBattery.CurrentCharge + drinkerBatteryComponent.CurrentCharge, drinkerBatteryComponent);
+            _battery.SetCharge(drinkerBattery.Value.Owner, sourceBattery.CurrentCharge + drinkerBatteryComponent.CurrentCharge, drinkerBatteryComponent); // WOLFGATE
             _battery.SetCharge(source, 0);
         }
 

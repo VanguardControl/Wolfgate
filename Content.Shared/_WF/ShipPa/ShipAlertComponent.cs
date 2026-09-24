@@ -11,7 +11,7 @@ namespace Content.Shared._WF.ShipPa;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class ShipAlertComponent : Component
 {
-    [DataField, AutoNetworkedField] public ProtoId<ShipAlertCodePrototype> Code = "ShipCodeGreen";
+    [DataField, AutoNetworkedField] public ProtoId<ShipAlertCodePrototype> Code = "WFShipCodeGreen";
 
     [DataField, AutoNetworkedField] public bool GeneralQuarters;
 

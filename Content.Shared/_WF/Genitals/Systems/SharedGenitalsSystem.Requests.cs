@@ -3,6 +3,7 @@ using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.Humanoid;
 using Robust.Shared.Player;
+using Content.Shared._WF.Genitals.Events;
 
 namespace Content.Shared._WF.Genitals.Systems;
 

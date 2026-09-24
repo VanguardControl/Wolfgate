@@ -221,13 +221,17 @@ public sealed partial class HTNSystem : EntitySystem
             {
                 if (comp.PlanningJob.Exception != null)
                 {
-                    // WOLFGATE: log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
+                    // WOLFGATE START: log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
+                    // Log.Fatal($"Received exception on planning job for {uid}!");
                     Log.Error($"Received exception on planning job for {ToPrettyString(uid)}, removing its HTN: {comp.PlanningJob.Exception}");
                     _npc.SleepNPC(uid);
+                    // var exc = comp.PlanningJob.Exception;
                     comp.PlanningJob = null;
                     comp.PlanningToken = null;
                     RemComp<HTNComponent>(uid);
+                    // throw exc;
                     continue;
+                    // WOLFGATE END
                 }
 
                 // If a new planning job has finished then handle it.
@@ -302,7 +306,7 @@ public sealed partial class HTNSystem : EntitySystem
                 comp.PlanningToken = null;
             }
 
-            // WOLFGATE: one broken NPC must not take the whole update loop down with it.
+            // WOLFGATE START: one broken NPC must not take the whole update loop down with it.
             try
             {
                 Update(comp, frameTime);
@@ -313,7 +317,7 @@ public sealed partial class HTNSystem : EntitySystem
                 comp.Blackboard.SetValue(NPCBlackboard.Owner, uid);
                 _npc.SleepNPC(uid, comp);
             }
-
+            // WOLFGATE END
             count++;
             updates++;
         }
@@ -323,8 +327,9 @@ public sealed partial class HTNSystem : EntitySystem
         count = 0;
     }
 
+    // WOLFGATE START: NPCs from a loaded grid need their blackboard Owner set on startup
     /// <summary>
-    /// WOLFGATE: a grid loaded from a save is already map-initialised, so its NPCs never see MapInit
+    /// A grid loaded from a save is already map-initialised, so its NPCs never see MapInit
     /// and come up with no Owner in their blackboard. The blackboard is not saved, so set it here.
     /// </summary>
     private void OnHTNStartup(EntityUid uid, HTNComponent component, ComponentStartup args)
@@ -332,6 +337,7 @@ public sealed partial class HTNSystem : EntitySystem
         if (!component.Blackboard.ContainsKey(NPCBlackboard.Owner))
             component.Blackboard.SetValue(NPCBlackboard.Owner, uid);
     }
+    // WOLFGATE END
 
     private void AppendDebugText(HTNTask task, StringBuilder text, List<int> planBtr, List<int> btr, ref int level)
     {

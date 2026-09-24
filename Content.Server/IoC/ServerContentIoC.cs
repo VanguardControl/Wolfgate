@@ -45,7 +45,7 @@ namespace Content.Server.IoC
             IoCManager.Register<IChatSanitizationManager, ChatSanitizationManager>();
             IoCManager.Register<IServerPreferencesManager, ServerPreferencesManager>();
             IoCManager.Register<IServerDbManager, ServerDbManager>();
-            IoCManager.Register<IServerConsentManager, ServerConsentManager>(); // WOLFGATE - consent system
+            IoCManager.Register<IServerConsentManager, ServerConsentManager>(); // WOLFGATE: consent system
             IoCManager.Register<RecipeManager, RecipeManager>();
             IoCManager.Register<INodeGroupFactory, NodeGroupFactory>();
             IoCManager.Register<IConnectionManager, ConnectionManager>();

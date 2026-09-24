@@ -12,6 +12,6 @@
         <tabs:AccessibilityTab Name="AccessibilityTab" />
         <tabs:AdminOptionsTab Name="AdminOptionsTab" />
         <dtabs:DeltaTab Name="ExtraTab" /> <!-- Delta-V -->
-        <wftabs:WolfgateConsentTab Name="ConsentTab" /> <!-- WOLFGATE: appended, so existing tab indices stay valid -->
+        <wftabs:WolfgateConsentTab Name="ConsentTab" /> <!-- WOLFGATE: consent tab (xmlns:wftabs), appended so existing tab indices stay valid -->
     </TabContainer>
 </DefaultWindow>

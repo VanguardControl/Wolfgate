@@ -1,3 +1,5 @@
+using Content.Shared._WF.Genitals.Profile;
+
 namespace Content.Shared._WF.Genitals;
 
 /// <summary>Localised cup and testicle size words, shared by examine, the Anatomy panel and the creator.</summary>

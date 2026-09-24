@@ -114,7 +114,7 @@ public sealed class UndergarmentStripTest : InteractionTest
                 AssertVerbs(SPlayer, target, "target without a ConsentComponent (NPC)");
 
                 GenitalTestHelpers.GrantConsent(SEntMan, target);
-                AssertVerbs(SPlayer, target, "target without UndergarmentStrip");
+                AssertVerbs(SPlayer, target, "target without WFUndergarmentStrip");
 
                 GenitalTestHelpers.RevokeConsent(SEntMan, target);
                 AssertVerbs(SPlayer, target, "target with cleared toggles (ghosted)");
@@ -161,7 +161,7 @@ public sealed class UndergarmentStripTest : InteractionTest
         await Server.WaitPost(() => GenitalTestHelpers.GrantConsent(SEntMan, target));
         await RunTicks(5);
         await Client.WaitAssertion(() =>
-            Assert.That(ClientVerbs(), Is.Empty, "The client must drop the verbs once the target turns UndergarmentStrip off."));
+            Assert.That(ClientVerbs(), Is.Empty, "The client must drop the verbs once the target turns WFUndergarmentStrip off."));
     }
 
     /// <summary>Clothing over the region and the removal cooldown disable the verbs with a reason; put-back ignores the cooldown.</summary>
@@ -259,7 +259,7 @@ public sealed class UndergarmentStripTest : InteractionTest
                 "The client must receive the put-back."));
     }
 
-    /// <summary>Turning UndergarmentStrip off puts back only what others removed; turning adult content off puts back everything.</summary>
+    /// <summary>Turning WFUndergarmentStrip off puts back only what others removed; turning adult content off puts back everything.</summary>
     [Test]
     public async Task RevocationTest()
     {
@@ -279,7 +279,7 @@ public sealed class UndergarmentStripTest : InteractionTest
 
             GenitalTestHelpers.GrantConsent(SEntMan, target);
             Assert.That(genitals.Undergarments, Is.EqualTo(UndergarmentFlags.TopRemoved),
-                "Turning UndergarmentStrip off must put back only the removal by another player.");
+                "Turning WFUndergarmentStrip off must put back only the removal by another player.");
 
             GenitalTestHelpers.GrantConsent(SEntMan, target, GenitalTestHelpers.StripToggle);
             Assert.That(genitals.Undergarments, Is.EqualTo(UndergarmentFlags.TopRemoved),
@@ -306,7 +306,7 @@ public sealed class UndergarmentStripTest : InteractionTest
     }
 
     /// <summary>
-    /// A running removal cancels, changing nothing, when the target puts on a jumpsuit, turns UndergarmentStrip off or dies,
+    /// A running removal cancels, changing nothing, when the target puts on a jumpsuit, turns WFUndergarmentStrip off or dies,
     /// and the actor's client is told why.
     /// </summary>
     [Test]
@@ -326,7 +326,7 @@ public sealed class UndergarmentStripTest : InteractionTest
             Assert.That(inventory.TryUnequip(target, JumpsuitSlot, silent: true, force: true), "Could not remove the jumpsuit."));
 
         await ServerStart(target, UndergarmentSlot.Bottom, true);
-        await AssertCancelledBy(target, "UndergarmentStrip turned off", FailConsent, () => GenitalTestHelpers.GrantConsent(SEntMan, target));
+        await AssertCancelledBy(target, "WFUndergarmentStrip turned off", FailConsent, () => GenitalTestHelpers.GrantConsent(SEntMan, target));
         await Server.WaitPost(() => GenitalTestHelpers.GrantConsent(SEntMan, target, GenitalTestHelpers.StripToggle));
 
         await ServerStart(target, UndergarmentSlot.Bottom, true);
@@ -484,7 +484,7 @@ public sealed class UndergarmentStripTest : InteractionTest
 
     /// <summary>
     /// Makes the player an adult with adult content on (the actor), and spawns a present adult target one tile away with
-    /// adult content, UndergarmentStrip, anatomy and both undergarments.
+    /// adult content, WFUndergarmentStrip, anatomy and both undergarments.
     /// </summary>
     private async Task<EntityUid> SpawnConsentingTarget()
     {
@@ -650,7 +650,7 @@ public sealed class UndergarmentStripTest : InteractionTest
 
 /// <summary>
 /// Every anatomy-eligible roundstart species can wear an undergarment top and bottom, and its body draws them, so the
-/// UndergarmentStrip toggle protects something. Exactly the listed exceptions (no fitting art) have none.
+/// WFUndergarmentStrip toggle protects something. Exactly the listed exceptions (no fitting art) have none.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(SharedUndergarmentStripSystem))]

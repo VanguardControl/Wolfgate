@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight (Shadekin traits)
+# WOLFGATE: ported from HardLight (Shadekin traits)
 hl-trait-extreme-light-sensitivity-desc = Light is agonizing to your form. Even MODERATE exposure causes severe burns.
 hl-trait-extreme-light-sensitivity-name = Extreme Light Sensitivity
 hl-trait-extreme-shadekin-regeneration-desc = In TOTAL darkness, your essence rapidly heals all but cellular damage.

@@ -80,19 +80,19 @@ check an existing `_WF/TractorBeam` test first to tell the difference.
 
 ## 2. Content (stage 2A): rope types, anchor eye, installer
 
-Rope types and coils (stack max 30, 1 unit = 1 m): `RopeHemp` (cheap, stiffness mid, breakForce low, maxStretch
-0.08), `RopeSynthetic` (stronger, 0.12), `RopeBungee` (very low stiffness, maxStretch 1.0, strong), `RopeSteelCable`
-(very stiff, maxStretch 0.02, very strong), `RopeTowCable` (capital ship grade, steel cable x4). Numbers must be
+Rope types and coils (stack max 30, 1 unit = 1 m): `WFRopeHemp` (cheap, stiffness mid, breakForce low, maxStretch
+0.08), `WFRopeSynthetic` (stronger, 0.12), `WFRopeBungee` (very low stiffness, maxStretch 1.0, strong), `WFRopeSteelCable`
+(very stiff, maxStretch 0.02, very strong), `WFRopeTowCable` (capital ship grade, steel cable x4). Numbers must be
 tuned against shuttle masses in this fork (read a few grids' masses via the test or the tractor beam README), not
 guessed: a small shuttle under full thrust should snap hemp, stretch synthetic, and be held by steel.
 Lathe recipes (autolathe / engineering techfab) and cargo-free: craftable from cloth / plastic / steel.
 
-`TetherAnchorEye`: anchored, non colliding, draws above walls, may be built on any tile including wall tiles (hull
+`WFTetherAnchorEye`: anchored, non colliding, draws above walls, may be built on any tile including wall tiles (hull
 exterior), `RopeAttachPoint` maxRopes 2, damageable (destroyed -> ropes sever), construction graph (2 steel + 1 rod,
 welder to finish; wrench/welder to deconstruct), construction menu entry under utilities.
 
-`TetherInstaller` ("tether install gun"): item with material storage for steel (insert sheets by hand), examine
-shows remaining installs, click a tile within range 3 -> 1.5 s doafter -> spawns `TetherAnchorEye` there, costs
+`WFTetherInstaller` ("tether install gun"): item with material storage for steel (insert sheets by hand), examine
+shows remaining installs, click a tile within range 3 -> 1.5 s doafter -> spawns `WFTetherAnchorEye` there, costs
 the same steel as manual construction. Refuses tiles that already hold an eye or are space. Uses grapple gun
 sounds (`/Audio/Weapons/Guns/MagIn/kinetic_reload.ogg`, `/Audio/Weapons/Guns/Gunshots/harpoon.ogg`).
 
@@ -102,18 +102,18 @@ see the grappling gun and cable coil RSIs for scale), with valid meta.json (lice
 
 ## 3. Harpoon turret (stage 2B)
 
-`ShipHarpoonTurret`: anchored hardpoint structure, needs power (MV/APC receiver), a `Strap` so a crew member buckles
+`WFShipHarpoonTurret`: anchored hardpoint structure, needs power (MV/APC receiver), a `Strap` so a crew member buckles
 in to man it. While buckled the operator's gun input drives the turret's `Gun` (upstream hook: `SharedGunSystem.TryGetGun`
 gets a WOLFGATE-marked branch that returns the manned turret's gun for an operator with `MannedTurretOperatorComponent`;
 keep it predicted and shared). The turret sprite rotates to the aim direction; firing arc limited to a configurable
 cone relative to the turret's mounting rotation. Unbuckling, power loss or turret destruction ends manning.
 
-Fires `ShipHarpoon` (entity ammo, one at a time, reloaded by hand from `ShipHarpoon` items; the gun holds one). The
+Fires `WFShipHarpoon` (entity ammo, one at a time, reloaded by hand from `WFShipHarpoon` items; the gun holds one). The
 harpoon is an embeddable projectile. "Shot well" rule: embeds only when speed at impact >= minimum and the angle
 between the velocity and the hit surface normal is within 50 degrees, and the target is an anchored entity on a
 grid other than the firing grid (or a loose dynamic body >= 50 kg). Otherwise it glances off with a spark/clank and
 lies loose. On embed the harpoon gains a `RopeAttachPoint` bound to the struck grid and the system calls
-`RopeSystem.TryCreateRope(turret, harpoon, RopeTowCable, distance * 1.05)`. While in flight a visual-only rope pays
+`RopeSystem.TryCreateRope(turret, harpoon, WFRopeTowCable, distance * 1.05)`. While in flight a visual-only rope pays
 out behind the harpoon; it is cut if it outruns `maxLength`.
 
 Operator controls (actions granted while manning, also verbs on the turret): Reel in, Pay out (hold to repeat;
@@ -133,7 +133,7 @@ substation terminals) plus, when linked, the partner clamp's `PowerCordNode`. Re
 ends are `QueueReflood`ed whenever the link is made or broken. A clamp is only conductive while anchored, its rope
 exists and the partner references it back.
 
-Items: `PowerCordHV`, `PowerCordMV`, `PowerCordLV` coils (rope types with `loadBearing: false`, maxLength 20 m, snap
+Items: `WFPowerCordHV`, `WFPowerCordMV`, `WFPowerCordLV` coils (rope types with `loadBearing: false`, maxLength 20 m, snap
 when over-stretched, coloured like the matching cable). Using a cord coil on a cable, generator, SMES, substation or
 APC that has a node of the matching voltage on that tile spawns an anchored `PowerCordClamp{HV,MV,LV}` there (small
 sprite, `RopeAttachPoint`, non colliding) and starts the normal carried-rope flow from it; using it on a second valid

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-MothHairHighPonytail = Curly Ponytail
 marking-MothHairShortCut = Short Cut
 marking-MothHairShortMessy = Short Messy

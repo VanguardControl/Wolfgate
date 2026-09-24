@@ -13,7 +13,7 @@ public sealed partial class ShipHarpoonTurretComponent : Component
 {
     /// <summary>Rope type the embedded harpoon is tied off with. Stage 2A owns the prototype.</summary>
     [DataField, AutoNetworkedField]
-    public ProtoId<RopeTypePrototype> RopeType = "RopeTowCable";
+    public ProtoId<RopeTypePrototype> RopeType = "WFRopeTowCable";
 
     /// <summary>Total width of the firing cone, centred on <see cref="MountRotation"/>.</summary>
     [DataField, AutoNetworkedField]

@@ -34,13 +34,13 @@ public sealed class HarpoonTest
 
 - type: entity
   id: WFTestHarpoonTurret
-  parent: BaseShipHarpoonTurret
+  parent: WFBaseShipHarpoonTurret
   components:
   - type: ShipHarpoonTurret
     ropeType: WFTestTowCable
     arc: 120
   - type: BallisticAmmoProvider
-    proto: ShipHarpoon
+    proto: WFShipHarpoon
     capacity: 1
     cycleable: false
 ";

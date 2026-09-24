@@ -1,10 +1,16 @@
+// WOLFGATE START: Linq no longer used, Numerics for the sweep
+// using System.Linq;
 using System.Numerics;
+// WOLFGATE END
 using Content.Client.Projectiles;
-using Content.Shared._Crescent.ShipShields;
-using Content.Shared._Mono.SpaceArtillery;
+using Content.Shared._Crescent.ShipShields; // WOLFGATE
+using Content.Shared._Mono.SpaceArtillery; // WOLFGATE
 using Content.Shared._RMC14.Weapons.Ranged.Prediction;
-using Content.Shared.BarricadeBlock;
+using Content.Shared.BarricadeBlock; // WOLFGATE
 using Content.Shared.Projectiles;
+// WOLFGATE START: OnShootRequest moved to SharedGunSystem, which now replays RequestShootEvent when repredicting
+// using Content.Shared.Weapons.Ranged.Events;
+// WOLFGATE END
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Client.GameObjects;
 using Robust.Client.Physics;
@@ -12,9 +18,9 @@ using Robust.Client.Player;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
-using Robust.Shared.Physics;
+using Robust.Shared.Physics; // WOLFGATE
 using Robust.Shared.Physics.Components;
-using Robust.Shared.Physics.Dynamics;
+using Robust.Shared.Physics.Dynamics; // WOLFGATE
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
@@ -23,6 +29,9 @@ namespace Content.Client._RMC14.Weapons.Ranged.Prediction;
 
 public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 {
+    // WOLFGATE START: _gun and OnShootRequest moved to SharedGunSystem, which now replays RequestShootEvent when repredicting
+    // [Dependency] private SharedGunSystem _gun = default!;
+    // WOLFGATE END
     [Dependency] private Robust.Client.Physics.PhysicsSystem _physics = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private ProjectileSystem _projectile = default!;
@@ -53,7 +62,9 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 
         SubscribeLocalEvent<PhysicsUpdateBeforeSolveEvent>(OnBeforeSolve);
         SubscribeLocalEvent<PhysicsUpdateAfterSolveEvent>(OnAfterSolve);
-        // WOLFGATE: SharedGunSystem.OnShootRequest replays RequestShootEvent when repredicting
+        // WOLFGATE START: SharedGunSystem.OnShootRequest replays RequestShootEvent when repredicting instead
+        // SubscribeLocalEvent<RequestShootEvent>(OnShootRequest);
+        // WOLFGATE END
 
         SubscribeLocalEvent<PredictedProjectileClientComponent, UpdateIsPredictedEvent>(OnClientProjectileUpdateIsPredicted);
         SubscribeLocalEvent<PredictedProjectileClientComponent, ComponentStartup>(OnClientProjectileStartup);
@@ -63,9 +74,10 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         SubscribeLocalEvent<PredictedProjectileServerComponent, ComponentShutdown>(OnServerProjectileShutdown); // WOLFGATE
 
         UpdatesBefore.Add(typeof(TransformSystem));
-        // WOLFGATE: sweep copies fired this tick before physics moves them
+        // WOLFGATE START: sweep copies fired this tick before physics moves them
         UpdatesAfter.Add(typeof(SharedGunSystem));
         UpdatesBefore.Add(typeof(SharedPhysicsSystem));
+        // WOLFGATE END
     }
 
     private void OnBeforeSolve(ref PhysicsUpdateBeforeSolveEvent ev)
@@ -92,6 +104,16 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         }
     }
 
+    // WOLFGATE START: moved to SharedGunSystem.OnShootRequest, which now replays RequestShootEvent when repredicting
+    // private void OnShootRequest(RequestShootEvent ev, EntitySessionEventArgs args)
+    // {
+    //     if (_timing.IsFirstTimePredicted)
+    //         return;
+    //
+    //     _gun.ShootRequested(ev.Gun, ev.Coordinates, ev.Target, null, args.SenderSession);
+    // }
+    // WOLFGATE END
+
     private void OnClientProjectileUpdateIsPredicted(Entity<PredictedProjectileClientComponent> ent, ref UpdateIsPredictedEvent args)
     {
         args.IsPredicted = true;
@@ -106,6 +128,24 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 
     private void OnClientProjectileStartCollide(Entity<PredictedProjectileClientComponent> ent, ref StartCollideEvent args)
     {
+        // WOLFGATE START: hits go through Hit, filtered like the server and deferred off first-time ticks
+        // if (ent.Comp.Hit)
+        //     return;
+        //
+        // if (!TryComp(ent, out ProjectileComponent? projectile) ||
+        //     !TryComp(ent, out PhysicsComponent? physics))
+        // {
+        //     return;
+        // }
+        //
+        // var netEnt = GetNetEntity(args.OtherEntity);
+        // var pos = _transform.GetMapCoordinates(args.OtherEntity);
+        // var hit = new HashSet<(NetEntity, MapCoordinates)> { (netEnt, pos) };
+        // var ev = new PredictedProjectileHitEvent(ent.Owner.Id, hit);
+        // RaiseNetworkEvent(ev);
+        //
+        // _projectile.ProjectileCollide((ent, projectile, physics), args.OtherEntity, null, true);
+
         // WOLFGATE: same filter as SharedProjectileSystem.OnStartCollide, which skips predicted copies
         if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture || !args.OtherFixture.Hard)
             return;
@@ -122,11 +162,22 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         }
 
         Hit((ent, ent.Comp, projectile, args.OurBody), args.OtherEntity, null);
+        // WOLFGATE END
     }
 
     private void OnServerProjectileStartup(Entity<PredictedProjectileServerComponent> ent, ref ComponentStartup args)
     {
-        // WOLFGATE: hide the server's copy from the shooter, whose client already shows its predicted one
+        // WOLFGATE START: hide the server's copy from the shooter, whose client already shows its predicted one
+        // if (!GunPrediction)
+        //     return;
+        //
+        // // Keep the server's projectile visible for the shooter so they can see it
+        // // Impact effects will be handled on the server side
+        // if (ent.Comp.ClientEnt == _player.LocalEntity && _spriteQuery.TryComp(ent, out var sprite))
+        // {
+        //     sprite.Visible = true;
+        // }
+
         if (!GunPrediction || ent.Comp.ClientEnt == null || ent.Comp.ClientEnt != _player.LocalEntity || _ignorePredictionHideQuery.HasComp(ent))
             return;
 
@@ -139,8 +190,10 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         // Its local collisions would replay the predicted copy's impact. ProjectileSpent isn't networked, so this sticks.
         if (TryComp(ent, out ProjectileComponent? projectile))
             projectile.ProjectileSpent = true;
+        // WOLFGATE END
     }
 
+    // WOLFGATE START: client hit detection for predicted copies
     /// <summary>
     /// WOLFGATE: the server's copy is gone, so drop a predicted copy that never registered a hit.
     /// </summary>
@@ -301,6 +354,7 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         RaiseLocalEvent(other, ref otherEv);
         return !otherEv.Cancelled;
     }
+    // WOLFGATE END
 
     public override void Update(float frameTime)
     {
@@ -308,6 +362,41 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 
         if (!_timing.IsFirstTimePredicted)
             return;
+
+        // WOLFGATE START: server copies stay hidden, hits come from collisions and the sweep
+        // // Ensure server projectiles are visible for the shooter
+        // var serverProjectiles = EntityQueryEnumerator<PredictedProjectileServerComponent, SpriteComponent>();
+        // while (serverProjectiles.MoveNext(out var uid, out var serverProjectile, out var sprite))
+        // {
+        //     if (serverProjectile.ClientEnt == _player.LocalEntity && !sprite.Visible)
+        //         sprite.Visible = true;
+        // }
+        //
+        // // TODO gun prediction remove this once the client reliably detects collisions
+        // var projectiles = EntityQueryEnumerator<PredictedProjectileClientComponent, ProjectileComponent, PhysicsComponent>();
+        // while (projectiles.MoveNext(out var uid, out var predicted, out var projectile, out var physics))
+        // {
+        //     if (predicted.Hit)
+        //         continue;
+        //
+        //     var contacts = _physics.GetContactingEntities(uid, physics, true);
+        //     if (contacts.Count == 0)
+        //         continue;
+        //
+        //     var hit = new HashSet<(NetEntity, MapCoordinates)>();
+        //     foreach (var contact in contacts)
+        //     {
+        //         var netEnt = GetNetEntity(contact);
+        //         var pos = _transform.GetMapCoordinates(contact);
+        //         hit.Add((netEnt, pos));
+        //     }
+        //
+        //     var ev = new PredictedProjectileHitEvent(uid.Id, hit);
+        //     RaiseNetworkEvent(ev);
+        //
+        //     // Impact effects will be handled on the server side
+        //     _projectile.ProjectileCollide((uid, projectile, physics), contacts.First(), null, true);
+        // }
 
         // WOLFGATE: copies that hit last tick have been drawn at the impact point, so remove them now
         var spent = EntityQueryEnumerator<PredictedProjectileClientComponent>();
@@ -333,7 +422,8 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 
         _pendingHits.Clear();
 
-        Sweep(frameTime); // WOLFGATE
+        Sweep(frameTime);
+        // WOLFGATE END
 
         var predictedQuery = EntityQueryEnumerator<PredictedProjectileHitComponent, SpriteComponent, TransformComponent>();
         while (predictedQuery.MoveNext(out var hit, out var sprite, out var xform))

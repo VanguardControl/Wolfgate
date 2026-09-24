@@ -1,6 +1,37 @@
+# # SPDX-FileCopyrightText: 2023 Debug
+# # SPDX-FileCopyrightText: 2025 Redrover1760
+# #
+# # SPDX-License-Identifier: AGPL-3.0-or-later
+
+# name: Publish Changelog
+
+# on:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '0 10 * * *'
+
+# jobs:
+#  publish_changelog:
+#     runs-on: ubuntu-latest
+#     steps:
+
+#     - name: checkout
+#       uses: actions/checkout@v3
+#       with:
+#         token: ${{secrets.GITHUB_TOKEN}}
+#         ref: main
+
+#     - name: Publish changelog
+#       run: Tools/actions_changelogs_since_last_run.py
+#       env:
+#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         DISCORD_WEBHOOK_URL: ${{ secrets.CHANGELOG_DISCORD_WEBHOOK }}
+#     continue-on-error: true
+
+# WOLFGATE START: re-enabled, posts Wolfgate and upstream Monolith changelogs
 name: Publish Changelog
 
-# Wolfgate: posts new changelog entries to Discord, both our own (Wolfgate.yml) and upstream Monolith's
+# Posts new changelog entries to Discord, both our own (Wolfgate.yml) and upstream Monolith's
 # (Monolith.yml). Runs daily and on demand. The script compares against the previous successful run of
 # this workflow, so a failed run is retried in full next time rather than losing entries.
 
@@ -34,3 +65,4 @@ jobs:
           # Upstream Monolith changes. Same channel unless CHANGELOG_DISCORD_WEBHOOK_UPSTREAM is set. Remove this
           # line to not post upstream changes at all.
           DISCORD_WEBHOOK_URL_UPSTREAM: ${{ secrets.CHANGELOG_DISCORD_WEBHOOK_UPSTREAM || secrets.CHANGELOG_DISCORD_WEBHOOK }}
+# WOLFGATE END

@@ -149,13 +149,14 @@ public abstract partial class SharedGunSystem : EntitySystem
 
     private void OnShootRequest(RequestShootEvent msg, EntitySessionEventArgs args)
     {
-        // WOLFGATE: one path for both sides that links predicted projectiles. ShootRequested (with the mech and
+        // WOLFGATE START: one path for both sides that links predicted projectiles. ShootRequested (with the mech and
         // Goob burst-target handling that used to live here) is in _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs.
         // The client already fired this shot from GunSystem.Update on its first-time tick, so it only replays it here.
         if (_netManager.IsClient && Timing.IsFirstTimePredicted)
             return;
 
         ShootRequested(msg.Gun, msg.Coordinates, msg.Target, msg.Shot, args.SenderSession, msg.Predicted);
+        // WOLFGATE END
     }
 
     private void OnStopShootRequest(RequestStopShootEvent ev, EntitySessionEventArgs args)

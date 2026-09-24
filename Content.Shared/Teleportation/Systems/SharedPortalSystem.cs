@@ -96,13 +96,13 @@ public abstract partial class SharedPortalSystem : EntitySystem
         if (Transform(subject).Anchored)
             return;
 
-        // WOLFGATE - lets a portal refuse a subject (the Shadekin dark portal). Raised before pulls are broken,
+        // WOLFGATE START: lets a portal refuse a subject (the Shadekin dark portal). Raised before pulls are broken,
         // since the veto checks who is pulling the subject.
         var attempt = new OnAttemptPortalEvent(subject);
         RaiseLocalEvent(uid, attempt);
         if (attempt.Cancelled)
             return;
-        // End WOLFGATE
+        // WOLFGATE END
 
         // break pulls before portal enter so we dont break shit
         if (TryComp<PullableComponent>(subject, out var pullable) && pullable.BeingPulled)

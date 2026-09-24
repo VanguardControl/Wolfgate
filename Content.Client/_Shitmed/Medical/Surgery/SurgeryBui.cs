@@ -29,29 +29,32 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private (EntityUid Ent, EntProtoId Proto)? _surgery;
     private readonly List<EntProtoId> _previousSurgeries = new();
 
-    // WOLFGATE - the last state's choices without anatomy surgeries for viewers who lack adult content; every read uses this.
+    // WOLFGATE: the last state's choices without anatomy surgeries for viewers who lack adult content; every read uses this.
     private Dictionary<NetEntity, List<EntProtoId>> _choices = new();
 
-    // WOLFGATE - block body so the anatomy consent system is resolved too
+    // WOLFGATE START: block body so the anatomy consent system is resolved too
+    // public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
         _system = _entities.System<SurgerySystem>();
-        _genitalConsent = _entities.System<GenitalConsentSystem>(); // WOLFGATE
+        _genitalConsent = _entities.System<GenitalConsentSystem>();
     }
+    // WOLFGATE END
 
-    // WOLFGATE - refilter when the viewer's consent settings arrive or change
+    // WOLFGATE START: refilter when the viewer's consent settings arrive or change
     protected override void Open()
     {
         base.Open();
         _consentManager.OnServerDataLoaded += Refilter;
     }
 
-    // WOLFGATE - re-runs Update with the stored state so the anatomy filter follows the viewer's consent
+    // Re-runs Update with the stored state so the anatomy filter follows the viewer's consent.
     private void Refilter()
     {
         if (State is SurgeryBuiState state)
             Update(state);
     }
+    // WOLFGATE END
 
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)
     {
@@ -74,15 +77,15 @@ public sealed partial class SurgeryBui : BoundUserInterface
     {
         base.Dispose(disposing);
         if (disposing)
-        {
+        { // WOLFGATE
             _consentManager.OnServerDataLoaded -= Refilter; // WOLFGATE
             _window?.Dispose();
-        }
+        } // WOLFGATE
     }
 
     private void Update(SurgeryBuiState state)
     {
-        _choices = _genitalConsent.FilterSurgeryChoices(state.Choices); // WOLFGATE - hide anatomy surgeries from viewers without adult content
+        _choices = _genitalConsent.FilterSurgeryChoices(state.Choices); // WOLFGATE: hide anatomy surgeries from viewers without adult content
 
         if (!_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryTargetComp)
             || !surgeryTargetComp.CanOperate)
@@ -109,7 +112,11 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 _previousSurgeries.Clear();
 
                 if (!_entities.TryGetNetEntity(_part, out var netPart)
-                    || !_choices.TryGetValue(netPart.Value, out var surgeries)) // WOLFGATE - filtered choices
+                    // WOLFGATE START: filtered choices
+                    // || State is not SurgeryBuiState s
+                    // || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
+                    || !_choices.TryGetValue(netPart.Value, out var surgeries))
+                    // WOLFGATE END
                     return;
 
                 OnPartPressed(netPart.Value, surgeries);
@@ -143,7 +150,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _surgery = null;
 
         var options = new List<(NetEntity netEntity, EntityUid entity, string Name, BodyPartType? PartType)>();
-        foreach (var choice in _choices.Keys) // WOLFGATE - filtered choices; a part the filter emptied is gone
+        foreach (var choice in _choices.Keys) // WOLFGATE: filtered choices; a part the filter emptied is gone
             if (_entities.TryGetEntity(choice, out var ent))
             {
                 if (_entities.TryGetComponent(ent, out BodyPartComponent? part))
@@ -176,7 +183,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
         foreach (var (netEntity, entity, partName, _) in options)
         {
             //var netPart = _entities.GetNetEntity(part.Owner);
-            var surgeries = _choices[netEntity]; // WOLFGATE - filtered choices
+            var surgeries = _choices[netEntity]; // WOLFGATE: filtered choices
             var partButton = new XenoChoiceControl();
 
             partButton.Set(partName, null);

@@ -1,7 +1,7 @@
 - type: construction
   name: PA speaker
-  id: ShipPaSpeaker
-  graph: ShipPaSpeaker
+  id: WFShipPaSpeaker
+  graph: WFShipPaSpeaker
   startNode: start
   targetNode: speaker
   category: construction-category-structures

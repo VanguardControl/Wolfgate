@@ -1,4 +1,4 @@
-# Wolfgate: inventory templates for the Protogen subspecies, ported from HardLight.
+# WOLFGATE: inventory templates for the Protogen subspecies, ported from HardLight.
 # Built from Wolfgate's own human template so the Monolith slots (neck2/neck3/balaclava/
 # armbands/helmetcover/helmetattachment) are kept. HardLight's accessory1/accessory2 slots
 # are omitted - SlotFlags here has no ACCESSORY/ACCESSORYALT - and so is outerClothing2,

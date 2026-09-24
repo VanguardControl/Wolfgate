@@ -61,10 +61,11 @@ namespace Content.Client.Lobby
             var lobbyNameCvar = _cfg.GetCVar(CCVars.ServerLobbyName);
             var serverName = _baseClient.GameInfo?.ServerName ?? string.Empty;
 
-            // WOLFGATE: rich label so long names wrap in the menu column; unformatted so brackets in names survive
+            // WOLFGATE START: rich label so long names wrap in the menu column; unformatted so brackets in names survive
             Lobby.ServerName.SetMessage(FormattedMessage.FromUnformatted(string.IsNullOrEmpty(lobbyNameCvar)
                 ? Loc.GetString("ui-lobby-title", ("serverName", serverName))
                 : lobbyNameCvar));
+            // WOLFGATE END
 
             var width = _cfg.GetCVar(CCVars.ServerLobbyRightPanelWidth);
             // WOLFGATE: the game-menu lobby keeps the chat as a dock, at most 30% of the window

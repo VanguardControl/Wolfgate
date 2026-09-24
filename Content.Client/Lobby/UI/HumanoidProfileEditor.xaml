@@ -5,8 +5,10 @@
          xmlns:wfg="clr-namespace:Content.Client._WF.Genitals.UI"
          HorizontalExpand="True"
          SeparationOverride="0">
-    <!-- WOLFGATE: creator rebuilt as cards with a preview column. Control names and tab order are unchanged
-         because the code-behind binds to them (tabs: Species, Appearance, Jobs, Traits, Company, Markings, then Description). -->
+    <!-- WOLFGATE START: creator rebuilt as cards with a preview column (also covers the root tag above, which
+         cannot hold a comment: wfh/wfg xmlns and SeparationOverride added, cc/ui xmlns dropped). Control names and
+         tab order are unchanged because the code-behind binds to them (tabs: Species, Appearance, Jobs, Traits,
+         Company, Markings, then Description). -->
     <!-- Editor column -->
     <BoxContainer Orientation="Vertical" Margin="12 12 12 12" HorizontalExpand="True" SeparationOverride="8">
         <PanelContainer StyleClasses="CreatorCard">
@@ -177,6 +179,9 @@
                         SetSize="288 288" Stretch="Fit" SizeFlagsStretchRatio="1" />
             <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" SeparationOverride="0">
                 <Button Name="SpriteRotateLeft" Text="◀" StyleClasses="OpenRight" />
+                <!-- WOLFGATE START: separator dropped, the two rotate buttons now form one segmented control -->
+                <!-- <cc:VSeparator Margin="2 0 3 0" /> -->
+                <!-- WOLFGATE END -->
                 <Button Name="SpriteRotateRight" Text="▶" StyleClasses="OpenLeft" />
             </BoxContainer>
             <Button Name="ShowClothes" Pressed="True" ToggleMode="True" StyleClasses="CreatorToggle"
@@ -214,4 +219,5 @@
             </BoxContainer>
         </BoxContainer>
     </PanelContainer>
+    <!-- WOLFGATE END -->
 </BoxContainer>

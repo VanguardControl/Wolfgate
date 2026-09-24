@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-ProtogenAltVisor = Protogen Visor (Alternate)
 marking-ProtogenAltVisor-altvisor_screen_protogen = Screen
 marking-ProtogenAltVisor-altvisor_trim_protogen = Trim

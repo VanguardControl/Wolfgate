@@ -21,6 +21,9 @@ namespace Content.Server._RMC14.Weapons.Ranged.Prediction;
 public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 {
     [Dependency] private IConfigurationManager _config = default!;
+    // WOLFGATE START: unused, RequestShootEvent is handled by SharedGunSystem.OnShootRequest now
+    // [Dependency] private GunSystem _gun = default!;
+    // WOLFGATE END
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedProjectileSystem _projectile = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -53,7 +56,9 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
         _transformQuery = GetEntityQuery<TransformComponent>();
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
-        // WOLFGATE: RequestShootEvent is handled once, by SharedGunSystem.OnShootRequest
+        // WOLFGATE START: RequestShootEvent is handled once, by SharedGunSystem.OnShootRequest
+        // SubscribeNetworkEvent<RequestShootEvent>(OnShootRequest);
+        // WOLFGATE END
         SubscribeNetworkEvent<PredictedProjectileHitEvent>(OnPredictedProjectileHit);
 
         SubscribeLocalEvent<PredictedProjectileServerComponent, MapInitEvent>(OnPredictedMapInit);
@@ -75,6 +80,13 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
     {
         _predicted.Clear();
     }
+
+    // WOLFGATE START: moved to SharedGunSystem.OnShootRequest, handled once there
+    // private void OnShootRequest(RequestShootEvent ev, EntitySessionEventArgs args)
+    // {
+    //     _gun.ShootRequested(ev.Gun, ev.Coordinates, ev.Target, ev.Shot, args.SenderSession);
+    // }
+    // WOLFGATE END
 
     private void OnPredictedMapInit(Entity<PredictedProjectileServerComponent> ent, ref MapInitEvent args)
     {
@@ -155,7 +167,7 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
             ? _transform.GetMapCoordinates(other)
             : _transform.ToMapCoordinates(otherCoordinates);
 
-        // WOLFGATE: the bounds test below compares positions only, and Z-levels stack maps on the same coordinates,
+        // WOLFGATE START: the bounds test below compares positions only, and Z-levels stack maps on the same coordinates,
         // so a target on another map would otherwise count as a hit. Lag-compensated history can also predate a map
         // change, hence the retry against where the target is now.
         if (otherMapCoordinates.MapId != projectileCoordinates.MapId)
@@ -163,6 +175,7 @@ public sealed partial class GunPredictionSystem : SharedGunPredictionSystem
 
         if (otherMapCoordinates.MapId != projectileCoordinates.MapId)
             return false;
+        // WOLFGATE END
 
         if (clientCoordinates != null &&
             (clientCoordinates.Value.InRange(otherMapCoordinates, _coordinateDeviation) ||

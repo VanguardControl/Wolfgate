@@ -45,6 +45,7 @@ cmd-shippa_gq-help = Usage: {$command} <grid> <true|false>
 
 cmd-shippa_speakers-desc = Lists a ship's PA speakers and their status.
 cmd-shippa_speakers-help = Usage: {$command} <grid>
+cmd-shippa_speakers-online = {$online}/{$total} online
 
 # Shared command errors and hints.
 cmd-shippa-invalid-grid = '{$grid}' is not a grid entity.

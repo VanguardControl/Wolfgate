@@ -3,7 +3,7 @@ using Content.Server._Mono.Cleanup;
 
 namespace Content.IntegrationTests.Tests._WF;
 
-// WOLFGATE - Regression coverage for invalid cleanup protection radii.
+// Regression coverage for invalid cleanup protection radii.
 public sealed class CleanupRadiusTest : InteractionTest
 {
     [Test]

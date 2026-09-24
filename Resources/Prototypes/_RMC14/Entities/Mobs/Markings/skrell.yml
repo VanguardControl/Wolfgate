@@ -1,4 +1,4 @@
-# Wolfgate: fields with no consumer in this fork removed (see the port notes).
+# WOLFGATE: fields with no consumer in this fork removed (see the port notes).
 # "Hair"
 - type: marking
   id: RMCHairSkrellLong
@@ -342,20 +342,20 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     skrell_shortfringetail_BEHIND: TailBehind
     skrell_shortfringetail_fringe_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_shortfringetail_BEHIND: skrell_shortfringetail_FRONT
     skrell_shortfringetail_fringe_BEHIND: skrell_shortfringetail_fringe_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art, anatomy zone only
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art, anatomy zone only
       state: skrell_shortfringetail_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art, anatomy zone only
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art, anatomy zone only
       state: skrell_shortfringetail_fringe_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
       state: skrell_shortfringetail_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
       state: skrell_shortfringetail_fringe_BEHIND
 
 - type: marking
@@ -363,20 +363,20 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     skrell_fringetail_BEHIND: TailBehind
     skrell_fringetail_fringe_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_fringetail_BEHIND: skrell_fringetail_FRONT
     skrell_fringetail_fringe_BEHIND: skrell_fringetail_fringe_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_fringetail_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_fringetail_fringe_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_fringetail_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_fringetail_fringe_BEHIND
 
 - type: marking
@@ -384,20 +384,20 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     skrell_longfringetail_BEHIND: TailBehind
     skrell_longfringetail_fringe_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_longfringetail_BEHIND: skrell_longfringetail_FRONT
     skrell_longfringetail_fringe_BEHIND: skrell_longfringetail_fringe_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_longfringetail_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_longfringetail_fringe_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_longfringetail_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_longfringetail_fringe_BEHIND
 
 - type: marking
@@ -405,16 +405,16 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     skrell_xlongfringetail_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_xlongfringetail_BEHIND: skrell_xlongfringetail_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_xlongfringetail_FRONT
     - sprite: _RMC14/Mobs/Skrells/tails.rsi
       state: skrell_xlongfringetail_fringe
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_xlongfringetail_BEHIND
 
 - type: marking
@@ -422,14 +422,14 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     skrell_tail_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_tail_BEHIND: skrell_tail_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_tail_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_tail_BEHIND
 
 - type: marking
@@ -437,14 +437,14 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     skrell_tail_short_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_tail_short_BEHIND: skrell_tail_short_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art, anatomy zone only
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art, anatomy zone only
       state: skrell_tail_short_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
       state: skrell_tail_short_BEHIND
 
 - type: marking
@@ -452,14 +452,14 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     skrell_tail_long_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_tail_long_BEHIND: skrell_tail_long_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_tail_long_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_tail_long_BEHIND
 
 - type: marking
@@ -467,12 +467,12 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Skrell]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     skrell_tail_xlong_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     skrell_tail_xlong_BEHIND: skrell_tail_xlong_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - split art
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: split art
       state: skrell_tail_xlong_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE - south frame on TailBehind
+    - sprite: _WF/Mobs/Customization/TailSplit/_RMC14/Mobs/Skrells/tails.rsi # WOLFGATE: south frame on TailBehind
       state: skrell_tail_xlong_BEHIND

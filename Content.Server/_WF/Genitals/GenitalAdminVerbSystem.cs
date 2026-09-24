@@ -3,6 +3,8 @@ using Content.Server.Chat.Managers;
 using Content.Server.Preferences.Managers;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Administration;

@@ -1,7 +1,7 @@
 using Content.Shared.DoAfter;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._WF.Genitals;
+namespace Content.Shared._WF.Genitals.Events;
 
 /// <summary>DoAfter for another player removing or putting back an undergarment.</summary>
 [Serializable, NetSerializable]

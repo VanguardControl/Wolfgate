@@ -176,10 +176,10 @@ namespace Content.Client.Entry
             _overlayManager.AddOverlay(new EmpBlastOverlay()); // Frontier
             _chatManager.Initialize();
             _clientPreferencesManager.Initialize();
-            _clientConsentManager.Initialize(); // WOLFGATE - consent system
+            _clientConsentManager.Initialize(); // WOLFGATE: consent system
             _euiManager.Initialize();
             _voteManager.Initialize();
-            _userInterfaceManager.SetDefaultTheme("WolfgateTheme"); // WOLFGATE: Wolfgate HUD theme by default
+            _userInterfaceManager.SetDefaultTheme("WFTheme"); // WOLFGATE: Wolfgate HUD theme by default
             _userInterfaceManager.SetActiveTheme(_configManager.GetCVar(CVars.InterfaceTheme));
             _documentParsingManager.Initialize();
             _titleWindowManager.Initialize();

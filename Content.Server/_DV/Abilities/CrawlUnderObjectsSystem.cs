@@ -1,8 +1,19 @@
-using Content.Shared._DV.Abilities;
 using Content.Shared.Actions;
+// WOLFGATE START: sneak logic moved to SharedCrawlUnderObjectsSystem, its usings with it
+// using Content.Shared.Climbing.Components;
+// using Content.Shared.Climbing.Events;
+using Content.Shared._DV.Abilities;
+// using Content.Shared.Maps;
+// using Content.Shared.Movement.Systems;
+// using Content.Shared.Physics;
+// using Robust.Server.GameObjects;
+// using Robust.Shared.Physics;
+// using Robust.Shared.Physics.Systems;
+// WOLFGATE END
 
 namespace Content.Server._DV.Abilities;
 
+// WOLFGATE START: server half now only grants the toggle action; rest lives in SharedCrawlUnderObjectsSystem
 /// <summary>
 /// Server half of sneaking: hands out the toggle action. Everything else lives in the shared system.
 /// </summary>
@@ -25,3 +36,4 @@ public sealed partial class CrawlUnderObjectsSystem : SharedCrawlUnderObjectsSys
         _actions.AddAction(ent, ref ent.Comp.ToggleHideAction, ent.Comp.ActionProto);
     }
 }
+// WOLFGATE END

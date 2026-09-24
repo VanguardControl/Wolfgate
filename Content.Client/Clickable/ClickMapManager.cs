@@ -98,7 +98,8 @@ namespace Content.Client.Clickable
             return SampleClickMap(rsiData.ClickMap, pos, rsi.Size, offset);
         }
 
-        // WOLFGATE: whether a frame draws anything at all. The character creator uses it to avoid
+        // WOLFGATE START: opaque frame check for the character creator
+        // Whether a frame draws anything at all. The character creator uses it to avoid
         // previewing a sprite in a direction it is empty in, e.g. a tail seen from the front.
         public bool HasOpaquePixels(RSI rsi, RSI.StateId state, RsiDirection dir, int frame)
         {
@@ -141,6 +142,7 @@ namespace Content.Client.Clickable
 
             return false;
         }
+        // WOLFGATE END
 
         private static bool SampleClickMap(ClickMap map, Vector2i pos, Vector2i bounds, Vector2i offset)
         {

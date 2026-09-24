@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: emoteSounds
   parent: UnisexSilicon
   id: UnisexSynth
@@ -46,7 +46,7 @@
 
 # Xeno vocalization set (generic). Uses available hiss sounds and a harsh scream stand-in.
 
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: emoteSounds
   parent: UnisexShadekin
   id: MaleShadekin
@@ -93,7 +93,7 @@
     DefaultDeathgasp:
       collection: FemaleDeathGasp
 
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: emoteSounds
   id: UnisexAvali
   params:

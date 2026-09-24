@@ -175,7 +175,7 @@
     - NFServiceStatic # Frontier
     - MonoRestraintsStatic # Mono
     - ReportingStatic # DeltaV
-    - TetherStatic # WOLFGATE
+    - WFTetherStatic # WOLFGATE
   - type: EmagLatheRecipes
     emagStaticPacks:
     - StaticAmmoRecipePack

@@ -6,6 +6,7 @@ using Content.Shared.Decals;
 using Content.Shared.Examine;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared._Shitmed.Humanoid.Events; // Shitmed Change
+using Content.Shared._WF.Prototypes; // WOLFGATE
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
@@ -79,6 +80,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
          */
 
         var profile = export.Profile;
+        WFLegacyPrototypeIds.ResolveProfile(profile); // WOLFGATE: exports saved before a species or loadout rename
         var collection = IoCManager.Instance;
         profile.EnsureValid(session, collection!);
         return profile;
@@ -397,8 +399,8 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
 
         SetSpecies(uid, profile.Species, false, humanoid);
         SetSex(uid, profile.Sex, false, humanoid);
-
-        // WOLFGATE - ported from HardLight/Starlight: constrain eye colour per species.
+        // WOLFGATE START: ported from HardLight/Starlight, constrain eye colour per species
+        // humanoid.EyeColor = profile.Appearance.EyeColor;
         var eyeColor = profile.Appearance.EyeColor;
         if (_proto.TryIndex<SpeciesPrototype>(humanoid.Species, out var eyeSpecies)
             && !EyeColor.VerifyEyeColor(eyeSpecies.EyeColoration, eyeColor))
@@ -408,7 +410,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
 
         humanoid.EyeColor = eyeColor;
         humanoid.CustomSpeciesName = profile.CustomSpeciesName;
-        // End WOLFGATE
+        // WOLFGATE END
 
         SetSkinColor(uid, profile.Appearance.SkinColor, false);
 
@@ -484,7 +486,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
             _appearance.SetData(uid, ScaleVisuals.Scale, new Vector2(profile.Appearance.Width, profile.Appearance.Height), appearance);
         }
 
-        RaiseLocalEvent(uid, new ProfileLoadFinishedEvent { Profile = profile }); // Shitmed Change, WOLFGATE - pass profile
+        RaiseLocalEvent(uid, new ProfileLoadFinishedEvent { Profile = profile }); // Shitmed Change, WOLFGATE: pass profile
         Dirty(uid, humanoid);
     }
 
@@ -555,8 +557,9 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
             Dirty(uid, humanoid);
     }
 
+    // WOLFGATE START: as below, but a non-empty custom name replaces the species name outright
     /// <summary>
-    /// WOLFGATE - as below, but a non-empty custom name replaces the species name outright.
+    /// As below, but a non-empty custom name replaces the species name outright.
     /// </summary>
     public string GetSpeciesRepresentation(string speciesId, string? customSpeciesName)
     {
@@ -564,6 +567,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
             ? GetSpeciesRepresentation(speciesId)
             : customSpeciesName;
     }
+    // WOLFGATE END
 
     /// <summary>
     /// Takes ID of the species prototype, returns UI-friendly name of the species.

@@ -10,10 +10,12 @@
   name: wooden barricade
   abstract: true
   components:
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  # WOLFGATE START: material bullet impacts
+  - type: RangedDamageSound
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactWood
+        collection: WFBulletImpactWood
+  # WOLFGATE END
   - type: InteractionOutline
   - type: Sprite
     sprite: Structures/barricades.rsi

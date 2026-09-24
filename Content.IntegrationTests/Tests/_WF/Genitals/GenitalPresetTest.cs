@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Content.Shared._WF.Genitals;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
@@ -117,7 +118,7 @@ public sealed class GenitalPresetTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(canine.ID, Is.EqualTo("GenitalPresetCanine"));
+                Assert.That(canine.ID, Is.EqualTo("WFGenitalPresetCanine"));
                 Assert.That(human.Fallback, Is.True);
 
                 Assert.That(vulp.Penis!.MatchSkin, Is.False);

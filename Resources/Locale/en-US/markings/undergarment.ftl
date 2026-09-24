@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-UndergarmentBottomBoxers = Boxers
 marking-UndergarmentBottomBoxersReptilian = Boxers
 marking-UndergarmentBottomBoxersVox = Boxers

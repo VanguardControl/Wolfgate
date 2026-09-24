@@ -95,8 +95,8 @@ stepped nor drawn.
 
 ## Debug content
 
-`Resources/Prototypes/_WF/Tether/` holds only the `RopeDebug` rope type, the
-`RopeAttachPointDebug` eye and the `RopeCoilDebug` coil, so the core can be tried in
+`Resources/Prototypes/_WF/Tether/` holds only the `WFRopeDebug` rope type, the
+`WFRopeAttachPointDebug` eye and the `WFRopeCoilDebug` coil, so the core can be tried in
 game. Stage 2A owns the real content.
 
 ## Tests

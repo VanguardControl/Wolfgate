@@ -7,7 +7,7 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.Lobby.UI;
 
-/// <summary>WOLFGATE: the Custom Job button on job rows whose role allows a custom job title.</summary>
+/// <summary>The Custom Job button on job rows whose role allows a custom job title.</summary>
 public sealed partial class HumanoidProfileEditor
 {
     private CustomJobTitleWindow? _customJobTitleWindow;

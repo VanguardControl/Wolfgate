@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 using Content.Shared._Common.Consent;
+using Content.Shared._WF.Prototypes; // WOLFGATE
 using Content.Server.Database;
 using Robust.Shared.Prototypes;
 using System.Linq;
@@ -13,7 +14,8 @@ public static class PlayerConsentSettingsExtensions
     public static PlayerConsentSettings ToPlayerConsentSettings(this ConsentSettings dbConsentSettings)
     {
         return new(dbConsentSettings.ConsentFreetext ?? "", (dbConsentSettings.ConsentToggles ?? new()).ToDictionary(
-            keySelector: t => new ProtoId<ConsentTogglePrototype>(t.ToggleProtoId),
+            // WOLFGATE: rows saved before a toggle rename load under its current id.
+            keySelector: t => new ProtoId<ConsentTogglePrototype>(WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.ConsentToggles, t.ToggleProtoId)),
             elementSelector: t => t.ToggleProtoState
         ));
     }

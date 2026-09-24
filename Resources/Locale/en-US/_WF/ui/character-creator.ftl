@@ -45,22 +45,22 @@ wf-bodypart-Special = Special
 wf-bodypart-Hair = Hair
 wf-bodypart-FacialHair = Facial Hair
 
-# WOLFGATE: body parts added by the HardLight port.
+# Body parts added by the HardLight port.
 wf-bodypart-UndergarmentTop = Underwear (Top)
 wf-bodypart-UndergarmentBottom = Underwear (Bottom)
 wf-bodypart-TailBehind = Tail (Behind)
 wf-bodypart-TailOversuit = Tail (Over Suit)
 
-# WOLFGATE: description box moved under the preview.
+# Description box moved under the preview.
 wf-creator-description-expand = Expand
 
-# WOLFGATE: clear all markings.
+# Clear all markings.
 wf-markings-clear-all = Clear all
 wf-markings-clear-confirm = Clear markings
 wf-markings-clear-cancel = Cancel
 wf-markings-clear-warning = Remove every marking on this character? Parts the species requires stay.
 
-# WOLFGATE: species name override.
+# Species name override.
 wf-creator-custom-species-label = Species name:
 
 # Description box: live length and the two things that change the text when it is saved.

@@ -162,20 +162,20 @@
   speciesRestriction: [ Thaven, ProtoThaven ]
   forcedColoring: false
   followSkinColor: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     taileel1_BEHIND: TailBehind
     taileel2_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     taileel1_BEHIND: taileel1_FRONT
     taileel2_BEHIND: taileel2_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: taileel1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: taileel2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: taileel1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: taileel2_BEHIND
 
 - type: marking
@@ -188,14 +188,14 @@
       type:
         !type:EyeColoring
           negative: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     taileel3_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     taileel3_BEHIND: taileel3_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art, anatomy zone only
     state: taileel3_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
     state: taileel3_BEHIND
   shader: unshaded
 
@@ -206,20 +206,20 @@
   speciesRestriction: [ Thaven, ProtoThaven ]
   forcedColoring: false
   followSkinColor: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     tailnurse1_BEHIND: TailBehind
     tailnurse2_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     tailnurse1_BEHIND: tailnurse1_FRONT
     tailnurse2_BEHIND: tailnurse2_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: tailnurse1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: tailnurse2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: tailnurse1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: tailnurse2_BEHIND
 
 - type: marking
@@ -321,14 +321,14 @@
   speciesRestriction: [ Thaven, ProtoThaven ]
   forcedColoring: false
   followSkinColor: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     carpish_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     carpish_BEHIND: carpish_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: carpish_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: carpish_BEHIND
 
 - type: marking
@@ -338,14 +338,14 @@
   speciesRestriction: [ Thaven, ProtoThaven ]
   forcedColoring: false
   followSkinColor: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     draconiclong_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     draconiclong_BEHIND: draconiclong_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: draconiclong_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: draconiclong_BEHIND
 
 - type: marking
@@ -355,14 +355,14 @@
   speciesRestriction: [ Thaven, ProtoThaven ]
   forcedColoring: false
   followSkinColor: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     fishtail_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     fishtail_BEHIND: fishtail_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: split art
     state: fishtail_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/thaven/thaven.rsi # WOLFGATE: south frame on TailBehind
     state: fishtail_BEHIND
     
 - type: marking

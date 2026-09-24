@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-NFHumanHairBighawk = Mohawk (Big)
 marking-NFHumanHairChub = Chub
 marking-NFHumanHairHalfshavedEmo = Half-shaved Eno

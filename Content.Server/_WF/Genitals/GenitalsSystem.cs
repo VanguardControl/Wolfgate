@@ -1,5 +1,6 @@
 using Content.Shared._Common.Consent;
 using Content.Shared._WF.Genitals;
+using Content.Shared._WF.Genitals.Events;
 using Content.Shared._WF.Genitals.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Enums;

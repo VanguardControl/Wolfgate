@@ -14,8 +14,10 @@ public sealed class RequestShootEvent : EntityEventArgs
     public NetEntity? Target;
     public List<int>? Shot;
 
+    // WOLFGATE START: predicted shot effects
     /// <summary>
-    /// WOLFGATE: whether the client is drawing this shot's own effects, so the server can skip sending them back.
+    /// Whether the client is drawing this shot's own effects, so the server can skip sending them back.
     /// </summary>
     public bool Predicted;
+    // WOLFGATE END
 }

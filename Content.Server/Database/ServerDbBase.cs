@@ -13,6 +13,8 @@ using Content.Server.Administration.Managers;
 using Content.Shared._Common.Consent; // WOLFGATE
 using Content.Shared._Mono.Company;
 using Content.Shared._WF.Genitals; // WOLFGATE
+using Content.Shared._WF.Genitals.Profile; // WOLFGATE
+using Content.Shared._WF.Prototypes; // WOLFGATE
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.Ghost.Roles;
@@ -68,7 +70,7 @@ namespace Content.Server.Database
             var profiles = new Dictionary<int, ICharacterProfile>(maxSlot);
             foreach (var profile in prefs.Profiles)
             {
-                profiles[profile.Slot] = ConvertProfiles(profile, _opsLog); // WOLFGATE - anatomy read problems go to the ops log
+                profiles[profile.Slot] = ConvertProfiles(profile, _opsLog); // WOLFGATE: anatomy read problems go to the ops log
             }
 
             return new PlayerPreferences(profiles, prefs.SelectedCharacterSlot, Color.FromHex(prefs.AdminOOCColor));
@@ -190,7 +192,7 @@ namespace Content.Server.Database
             prefs.SelectedCharacterSlot = newSlot;
         }
 
-        private static HumanoidCharacterProfile ConvertProfiles(Profile profile, ISawmill? log = null) // WOLFGATE - log
+        private static HumanoidCharacterProfile ConvertProfiles(Profile profile, ISawmill? log = null) // WOLFGATE: log
         {
             var jobs = profile.Jobs.ToDictionary(j => new ProtoId<JobPrototype>(j.JobName), j => (JobPriority) j.Priority);
             var antags = profile.Antags.Select(a => new ProtoId<AntagPrototype>(a.AntagName));
@@ -241,7 +243,8 @@ namespace Content.Server.Database
                     {
                         groupLoadouts.Add(new Loadout()
                         {
-                            Prototype = profLoadout.LoadoutName,
+                            // WOLFGATE: rows saved before a loadout rename load under its current id.
+                            Prototype = WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.Loadouts, profLoadout.LoadoutName),
                         });
                     }
                 }
@@ -257,14 +260,15 @@ namespace Content.Server.Database
             var height = profile.Height <= 0.005f ? 1.0f : profile.Height;
             var width = profile.Width <= 0.005f ? 1.0f : profile.Width;
 
-            // WOLFGATE - anatomy JSON; an empty column means the profile is not migrated yet.
+            // WOLFGATE START: anatomy JSON; an empty column means the profile is not migrated yet.
             var genitals = GenitalProfileJson.Deserialize(profile.Genitals, log ?? Logger.GetSawmill("db.genitals"), profile.Id)
                            ?? GenitalProfile.Unmigrated;
+            // WOLFGATE END
 
             return new HumanoidCharacterProfile(
                 profile.CharacterName,
                 profile.FlavorText,
-                profile.Species,
+                WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.Species, profile.Species), // WOLFGATE: renamed species ids
                 profile.Age,
                 sex,
                 gender,
@@ -326,9 +330,10 @@ namespace Content.Server.Database
             profile.Company = humanoid.Company;
             profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE
 
-            // WOLFGATE - anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
+            // WOLFGATE START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))
                 profile.Genitals = GenitalProfileJson.Serialize(humanoid.Genitals);
+            // WOLFGATE END
 
             profile.Jobs.Clear();
             profile.Jobs.AddRange(
@@ -1942,7 +1947,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
 
         #endregion
 
-        // WOLFGATE - consent system ported from HardLight
+        // WOLFGATE START: consent system ported from HardLight
         #region Consent Settings
 
         private static async Task DeletePlayerConsentSettings(ServerDbContext db, NetUserId userId)
@@ -2066,7 +2071,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
         }
 
         #endregion
-        // End WOLFGATE
+        // WOLFGATE END
 
         // Mono
         #region Company

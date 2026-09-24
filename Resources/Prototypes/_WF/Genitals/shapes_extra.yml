@@ -2,7 +2,7 @@
 
 # Cloacal slit vulva, reusing the ported slit line: 3 px, vertical, south only, drawn in the vulva colour.
 - type: genitalShape
-  id: GenitalShapeVaginaSlit
+  id: WFGenitalShapeVaginaSlit
   slot: Vagina
   name: wf-genitals-shape-vagina-slit
   examineName: wf-genitals-shape-vagina-slit-examine

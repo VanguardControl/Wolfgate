@@ -39,7 +39,7 @@ public sealed class ShipPaInternetSoundTest
 
     private const string SourceSound = "/Audio/Effects/Arcade/newgame.ogg";
 
-    private const string SpeakerProto = "WallmountShipPaSpeaker";
+    private const string SpeakerProto = "WFWallmountShipPaSpeaker";
 
     [Test]
     public async Task ATrackHasOneTimelineAndClearsItself()
