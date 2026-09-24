@@ -169,3 +169,13 @@
   parent: BaseGoldCircuitboardRecipe
   id: MaterialSiloMachineCircuitboard
   result: MaterialSiloMachineCircuitboard
+
+- type: latheRecipe
+  parent: BaseGoldCircuitboardRecipe
+  id: PartsSiloMachineCircuitboard
+  result: PartsSiloMachineCircuitboard
+
+- type: latheRecipe
+  parent: BaseGoldCircuitboardRecipe
+  id: ChemicalSiloMachineCircuitboard
+  result: ChemicalSiloMachineCircuitboard

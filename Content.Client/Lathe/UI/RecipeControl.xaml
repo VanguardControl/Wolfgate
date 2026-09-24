@@ -1,18 +1,30 @@
-<Control xmlns="https://spacestation14.io">
-    <Button
-        Name="Button"
-        HorizontalExpand="True"
-        Margin="0"
-        StyleClasses="ButtonSquare">
-        <BoxContainer Orientation="Horizontal">
-            <BoxContainer
-                Name="RecipeDisplayContainer"
-                Margin="0 0 4 0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                MinSize="32 32"
-                />
-            <Label Name="RecipeName" HorizontalExpand="True" />
-        </BoxContainer>
-    </Button>
+<Control xmlns="https://spacestation14.io"
+         xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
+         HorizontalExpand="True">
+    <PanelContainer>
+        <PanelContainer.PanelOverride>
+            <gfx:StyleBoxFlat BorderThickness="1" BorderColor="#35424b" BackgroundColor="#1a2026" />
+        </PanelContainer.PanelOverride>
+        <Button Name="Button" HorizontalExpand="True" Margin="0" StyleClasses="ButtonSquare">
+            <BoxContainer Orientation="Horizontal" Margin="4 3" SeparationOverride="8">
+                <BoxContainer Name="RecipeDisplayContainer" MinSize="38 38" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalAlignment="Center" SeparationOverride="2">
+                    <Label Name="RecipeName" HorizontalExpand="True" />
+                    <Label Name="AvailabilityLabel" StyleClasses="LabelSubText" HorizontalExpand="True" />
+                </BoxContainer>
+                <PanelContainer Name="ReadyBadge" VerticalAlignment="Center">
+                    <PanelContainer.PanelOverride>
+                        <gfx:StyleBoxFlat BorderThickness="1" BorderColor="#397e72" BackgroundColor="#1a302e" />
+                    </PanelContainer.PanelOverride>
+                    <Label Text="{Loc 'lathe-menu-status-ready'}" Margin="6 3" />
+                </PanelContainer>
+                <PanelContainer Name="WaitingBadge" VerticalAlignment="Center" Visible="False">
+                    <PanelContainer.PanelOverride>
+                        <gfx:StyleBoxFlat BorderThickness="1" BorderColor="#855e36" BackgroundColor="#302519" />
+                    </PanelContainer.PanelOverride>
+                    <Label Text="{Loc 'lathe-menu-status-waiting'}" Margin="6 3" />
+                </PanelContainer>
+            </BoxContainer>
+        </Button>
+    </PanelContainer>
 </Control>

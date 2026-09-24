@@ -1133,6 +1133,34 @@
         defaultPrototype: ComponentBrickEconomy1
 
 - type: entity
+  id: PartsSiloMachineCircuitboard
+  parent: BaseMachineCircuitboard
+  name: parts silo machine board
+  components:
+  - type: Sprite
+    state: supply
+  - type: MachineBoard
+    prototype: MachinePartsSilo
+    requirements:
+      MatterBin: 4
+    stackRequirements:
+      Cable: 1
+
+- type: entity
+  id: ChemicalSiloMachineCircuitboard
+  parent: BaseMachineCircuitboard
+  name: chemical silo machine board
+  components:
+  - type: Sprite
+    state: supply
+  - type: MachineBoard
+    prototype: MachineChemicalSilo
+    requirements:
+      MatterBin: 4
+    stackRequirements:
+      Cable: 1
+
+- type: entity
   id: CentrifugeMachineCircuitboard
   parent: BaseMachineCircuitboard
   name: centrifuge machine board

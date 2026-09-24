@@ -6,6 +6,6 @@
         <BoxContainer Name="MaterialList" Orientation="Vertical" VerticalExpand="True">
             <Label Name="NoMatsLabel" Text="{Loc 'lathe-menu-no-materials-message'}" HorizontalAlignment="Center" VerticalAlignment="Center" VerticalExpand="True"/>
         </BoxContainer>
-        <Label Name="SiloLinkedLabel" Text="{Loc 'lathe-menu-silo-linked-message'}" StyleClasses="LabelSubText" Visible="False" HorizontalAlignment="Center"/>
+        <Label Name="SiloLinkedLabel" Text="{Loc 'lathe-menu-silo-linked-message'}" StyleClasses="LabelSubText" Visible="False" HorizontalAlignment="Center" Margin="0 4 0 0"/>
     </BoxContainer>
 </ScrollContainer>

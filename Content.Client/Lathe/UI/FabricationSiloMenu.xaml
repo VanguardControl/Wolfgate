@@ -1,0 +1,25 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
+                      Title="Fabrication silo"
+                      MinSize="440 300"
+                      SetSize="480 560">
+    <BoxContainer Orientation="Vertical" Margin="12 12 12 12" SeparationOverride="8">
+        <Label Name="KindLabel" Text="SUPPLY NETWORK" StyleClasses="LabelKeyText" />
+        <Label Text="Linked machines" StyleClasses="LabelKeyText" />
+        <PanelContainer VerticalExpand="True" SizeFlagsStretchRatio="1">
+            <PanelContainer.PanelOverride>
+                <graphics:StyleBoxFlat BackgroundColor="#101b24" BorderColor="#31516a" BorderThickness="1" />
+            </PanelContainer.PanelOverride>
+            <ItemList Name="ClientList" SelectMode="Button" VerticalExpand="True" />
+        </PanelContainer>
+        <Label Name="StockLabel" Text="Stored supplies" StyleClasses="LabelKeyText" />
+        <PanelContainer VerticalExpand="True" SizeFlagsStretchRatio="2">
+            <PanelContainer.PanelOverride>
+                <graphics:StyleBoxFlat BackgroundColor="#101b24" BorderColor="#31516a" BorderThickness="1" />
+            </PanelContainer.PanelOverride>
+            <ItemList Name="StockList" SelectMode="Button" VerticalExpand="True" />
+        </PanelContainer>
+        <Label Name="HintLabel" Text="Select a machine to link or unlink it." />
+    </BoxContainer>
+</controls:FancyWindow>

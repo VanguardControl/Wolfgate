@@ -238,6 +238,28 @@
 
 - type: entity
   parent: BaseNFFlatpack
+  id: PartsSiloFlatpack
+  name: parts silo flatpack
+  description: A flatpack used for constructing a parts silo.
+  components:
+  - type: Flatpack
+    entity: MachinePartsSilo
+  - type: StaticPrice
+    price: 400
+
+- type: entity
+  parent: BaseNFFlatpack
+  id: ChemicalSiloFlatpack
+  name: chemical silo flatpack
+  description: A flatpack used for constructing a chemical silo.
+  components:
+  - type: Flatpack
+    entity: MachineChemicalSilo
+  - type: StaticPrice
+    price: 400
+
+- type: entity
+  parent: BaseNFFlatpack
   id: OreBoxFlatpack
   name: ore box flatpack
   description: A flatpack used for constructing an ore box.

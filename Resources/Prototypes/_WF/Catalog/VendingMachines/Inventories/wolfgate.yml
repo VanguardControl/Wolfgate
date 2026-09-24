@@ -13,3 +13,6 @@
     PowerCordCoilHV: 4
     ShipHarpoonTurretFlatpack: 2
     ShipHarpoon: 8
+    # Fabrication silos.
+    PartsSiloFlatpack: 2
+    ChemicalSiloFlatpack: 2
