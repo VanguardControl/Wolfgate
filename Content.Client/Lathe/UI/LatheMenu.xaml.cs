@@ -43,6 +43,7 @@ public sealed partial class LatheMenu : FancyWindow
     public event Action<bool>? OnLoopCheckboxPressed;
     public event Action<bool>? OnSkipCheckboxPressed;
     public event Action<int>? OnRecipeCancelled;
+    public event Action<int, int>? OnRecipeAmountChanged;
     // </Mono>
 
     public List<ProtoId<LatheRecipePrototype>> Recipes = new();
@@ -353,13 +354,36 @@ public sealed partial class LatheMenu : FancyWindow
             details.AddChild(new Label { Text = status, StyleClasses = { "LabelSubText" } });
             queueContents.AddChild(details);
 
-            var progress = new Label
+            var printed = new Label
             {
-                Text = $"{batch.ItemsPrinted}/{batch.ItemsRequested}",
+                Text = $"{batch.ItemsPrinted}/",
                 VerticalAlignment = VAlignment.Center,
-                MinWidth = 44,
             };
-            queueContents.AddChild(progress);
+            queueContents.AddChild(printed);
+            var amount = new LineEdit
+            {
+                Text = batch.ItemsRequested.ToString(),
+                MinWidth = 48,
+                VerticalAlignment = VAlignment.Center,
+                ToolTip = Loc.GetString("lathe-menu-queue-amount-tooltip", ("max", LatheRecipeBatch.MaxItemsRequested)),
+            };
+            void ApplyAmount()
+            {
+                if (!int.TryParse(amount.Text, out var requested) ||
+                    requested <= 0 ||
+                    requested > LatheRecipeBatch.MaxItemsRequested ||
+                    requested < batch.ItemsPrinted)
+                {
+                    amount.SetText(batch.ItemsRequested.ToString());
+                    return;
+                }
+
+                if (requested != batch.ItemsRequested)
+                    OnRecipeAmountChanged?.Invoke(batch.Index, requested);
+            }
+            amount.OnTextEntered += _ => ApplyAmount();
+            amount.OnFocusExit += _ => ApplyAmount();
+            queueContents.AddChild(amount);
             // <Mono>
             var cancelButton = new Button();
             cancelButton.Text = "×";

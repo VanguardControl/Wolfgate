@@ -29,6 +29,7 @@ lathe-menu-silo-linked-message = Ore silo connected
 lathe-menu-fabricating-message = Fabricating...
 lathe-menu-materials-title = Materials
 lathe-menu-queue-title = Build Queue
+lathe-menu-queue-amount-tooltip = Requested total (up to {$max}). Press Enter or leave the field to apply.
 lathe-menu-recipes-title = Recipes
 lathe-menu-quantity-hint = items per job
 lathe-menu-queue-empty = Queue is clear. Choose a recipe to get started.

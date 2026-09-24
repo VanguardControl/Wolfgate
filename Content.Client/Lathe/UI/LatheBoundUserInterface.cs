@@ -35,6 +35,7 @@ namespace Content.Client.Lathe.UI
             _menu.OnLoopCheckboxPressed += (loop) => SendMessage(new LatheSetLoopingMessage(loop));
             _menu.OnSkipCheckboxPressed += (skip) => SendMessage(new LatheSetSkipMessage(skip));
             _menu.OnRecipeCancelled += (index) => SendMessage(new LatheRecipeCancelMessage(index));
+            _menu.OnRecipeAmountChanged += (index, amount) => SendMessage(new LatheRecipeAmountMessage(index, amount));
             // </Mono>
         }
 

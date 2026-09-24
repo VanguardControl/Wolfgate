@@ -110,6 +110,22 @@ public sealed class LatheRecipeCancelMessage : BoundUserInterfaceMessage
     }
 }
 
+/// <summary>
+///     Changes the requested total for an existing queued batch.
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class LatheRecipeAmountMessage : BoundUserInterfaceMessage
+{
+    public readonly int Index;
+    public readonly int Amount;
+
+    public LatheRecipeAmountMessage(int index, int amount)
+    {
+        Index = index;
+        Amount = amount;
+    }
+}
+
 [NetSerializable, Serializable]
 public enum LatheUiKey
 {

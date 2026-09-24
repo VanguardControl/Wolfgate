@@ -92,6 +92,7 @@ namespace Content.Server.Lathe
             SubscribeLocalEvent<LatheComponent, LatheSetLoopingMessage>(OnLatheSetLoopingMessage);
             SubscribeLocalEvent<LatheComponent, LatheSetSkipMessage>(OnLatheSetSkipMessage);
             SubscribeLocalEvent<LatheComponent, LatheRecipeCancelMessage>(OnLatheRecipeCancelMessage);
+            SubscribeLocalEvent<LatheComponent, LatheRecipeAmountMessage>(OnLatheRecipeAmountMessage);
 
             SubscribeLocalEvent<LatheComponent, BeforeActivatableUIOpenEvent>((u, c, _) => UpdateUserInterfaceState(u, c));
             SubscribeLocalEvent<LatheComponent, MaterialAmountChangedEvent>(OnMaterialAmountChanged);
@@ -239,7 +240,7 @@ namespace Content.Server.Lathe
                 return false;
 
             // Frontier: argument check
-            if (quantity <= 0)
+            if (quantity <= 0 || quantity > LatheRecipeBatch.MaxItemsRequested)
                 return false;
             // Frontier: argument check
 
@@ -250,7 +251,11 @@ namespace Content.Server.Lathe
 
             // Frontier: queue up a batch
             if (component.Queue.Count > 0 && component.Queue[^1].Recipe.ID == recipe.ID)
+            {
+                if (component.Queue[^1].ItemsRequested > LatheRecipeBatch.MaxItemsRequested - quantity)
+                    return false;
                 component.Queue[^1].ItemsRequested += quantity;
+            }
             else
                 component.Queue.Add(new LatheRecipeBatch(recipe, 0, quantity,
                 GetNetEntity(actor))); // Mono: Adds actor
@@ -610,6 +615,28 @@ namespace Content.Server.Lathe
             var id = args.Index;
             if (ent.Comp.Queue.RemoveAll(recipe => recipe.Index == id) != 0)
                 UpdateUserInterfaceState(ent, ent.Comp);
+        }
+
+        private void OnLatheRecipeAmountMessage(Entity<LatheComponent> ent, ref LatheRecipeAmountMessage args)
+        {
+            var index = args.Index;
+            var batchIndex = ent.Comp.Queue.FindIndex(batch => batch.Index == index);
+            if (batchIndex < 0)
+                return;
+
+            var batch = ent.Comp.Queue[batchIndex];
+            if (args.Amount <= 0 ||
+                args.Amount > LatheRecipeBatch.MaxItemsRequested ||
+                args.Amount < batch.ItemsPrinted)
+                return;
+
+            if (args.Amount == batch.ItemsPrinted)
+                ent.Comp.Queue.RemoveAt(batchIndex);
+            else
+                batch.ItemsRequested = args.Amount;
+
+            TryStartProducing(ent, ent.Comp);
+            UpdateUserInterfaceState(ent, ent.Comp);
         }
         // </Mono>
         #endregion
