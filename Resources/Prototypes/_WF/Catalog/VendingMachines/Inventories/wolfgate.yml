@@ -6,3 +6,15 @@
     WFPlanetTimepiece: 5
     WFParachute: 10
     WFLandingThrusterKit: 4
+    # Tethers
+    RopeHempCoil: 6
+    RopeSyntheticCoil: 6
+    RopeBungeeCoil: 4
+    RopeSteelCableCoil: 4
+    RopeTowCableCoil: 2
+    TetherInstaller: 3
+    PowerCordCoilLV: 4
+    PowerCordCoilMV: 4
+    PowerCordCoilHV: 4
+    ShipHarpoonTurretFlatpack: 2
+    ShipHarpoon: 8

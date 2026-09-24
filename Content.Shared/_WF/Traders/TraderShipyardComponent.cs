@@ -28,6 +28,24 @@ public sealed partial class TraderShipyardComponent : Component
     /// </summary>
     [ViewVariables]
     public Enum? ActiveKey;
+
+    /// <summary>
+    /// Deed card the customer has been asked about giving up.
+    /// </summary>
+    [ViewVariables]
+    public EntityUid? PendingUnassign;
+
+    /// <summary>
+    /// Deed card the customer has been asked to name a ship for.
+    /// </summary>
+    [ViewVariables]
+    public EntityUid? PendingRename;
+
+    /// <summary>
+    /// Lets the hosted console run its unassign path for the one call the dealer makes.
+    /// </summary>
+    [ViewVariables]
+    public bool AllowUnassign;
 }
 
 /// <summary>

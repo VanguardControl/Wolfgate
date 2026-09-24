@@ -306,3 +306,50 @@ Entries:
   id: 100027
   time: '2026-09-22T16:23:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/59
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: Xenomorphs buffed, added Reclamation gamemode.
+  id: 100028
+  time: '2026-09-22T20:26:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/48
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Rope. Tie it between anchor eyes on two ships, or to a loose crate, and
+        tow. Hemp, synthetic, bungee, steel cable and tow cable, each with its
+        own strength and stretch.
+    - type: Add
+      message: >-
+        Tether anchor eyes, built by hand or bolted down with the tether
+        installer.
+    - type: Add
+      message: >-
+        Ship harpoon turret. Strap in, line up the shot, and put a tow cable
+        into another hull. Reel in, pay out, release.
+    - type: Add
+      message: LV, MV and HV power cords that link two ships' power nets.
+    - type: Add
+      message: All of the above is stocked in the Wolfgate Vending Machine.
+  id: 100029
+  time: '2026-09-23T02:16:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/62
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Emergency responders now get an emergency responder ship voucher for a
+        smol medical ship.
+  id: 100030
+  time: '2026-09-23T23:24:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/66
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        The crafting menu has x2, x5, x10, x20, x50 and All buttons to craft an
+        item several times in a row.
+  id: 100031
+  time: '2026-09-24T00:27:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/67

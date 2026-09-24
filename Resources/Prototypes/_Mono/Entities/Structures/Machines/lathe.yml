@@ -33,7 +33,7 @@
     # rogue start
     - MonoRogueWeaponsDynamicMelee
     - MonoRogueWeaponsDynamicRanged
-    #- MonoRogueVouchersDynamic
+    - MonoRogueVouchersDynamic
     - MonoRogueMiscDynamic
     - MonoRogueGearDynamic
     #- MonoRogueGearProDynamic

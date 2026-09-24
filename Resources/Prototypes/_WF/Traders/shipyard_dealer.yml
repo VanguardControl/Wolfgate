@@ -41,6 +41,14 @@
     action: BuyShip
     argument: ComputerShipyardSr
     requires: Id
+  - prompt: trader-shipyard-prompt-rename
+    response: trader-shipyard-response-rename
+    action: RenameShip
+    requires: DeedId
+  - prompt: trader-shipyard-prompt-unassign
+    response: trader-shipyard-response-unassign
+    action: UnassignDeed
+    requires: DeedId
   - prompt: trader-shipyard-prompt-who
     response: trader-shipyard-response-who
     action: None

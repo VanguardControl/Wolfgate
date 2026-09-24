@@ -1,4 +1,17 @@
 using System.Linq;
+using System.Collections.Generic;
+using Content.Shared._Mono.Detection;
+using Content.Shared.Temperature.Components;
+using Content.Shared.Gravity;
+using Content.Shared.Damage.Components;
+using Content.Shared.Chemistry.Reaction;
+using Content.Shared.Atmos.Rotting;
+using Content.Shared.Atmos.Components;
+using Content.Server.Temperature.Components;
+using Content.Server.Movement.Components;
+using Content.Server.Body.Components;
+using Content.Shared.Body.Components;
+using Content.Server.Atmos.Components;
 using System.Numerics;
 using Content.Server._NF.Bank;
 using Content.Server._NF.Shipyard.Components;
@@ -96,6 +109,7 @@ public sealed class TraderSystem : EntitySystem
         {
             subs.Event<TraderDialogueSelectMessage>(OnDialogueSelect);
             subs.Event<TraderConfirmMessage>(OnConfirm);
+            subs.Event<TraderTextMessage>(OnText);
         });
     }
 
@@ -130,8 +144,55 @@ public sealed class TraderSystem : EntitySystem
         RemComp<InteractionPopupComponent>(ent);
         RemComp<ClimbingComponent>(ent); // no dragging them onto their own table
 
+        // Nothing that ticks: no breathing, blood, metabolism, temperature, pressure, fire, rot,
+        // chemistry, stamina or lag compensation on a body that never moves or takes damage.
+        RemComp<RespiratorComponent>(ent);
+        RemComp<BloodstreamComponent>(ent);
+        RemComp<MetabolizerComponent>(ent);
+        RemComp<TemperatureComponent>(ent);
+        RemComp<TemperatureSpeedComponent>(ent);
+        RemComp<BarotraumaComponent>(ent);
+        RemComp<AtmosExposedComponent>(ent);
+        RemComp<FlammableComponent>(ent);
+        RemComp<PerishableComponent>(ent);
+        RemComp<ReactiveComponent>(ent);
+        RemComp<StaminaComponent>(ent);
+        RemComp<LagCompensationComponent>(ent);
+        RemComp<ThermalSignatureComponent>(ent);
+        RemComp<GravityAffectedComponent>(ent);
+
+        // Organs metabolise on their own; the lungs breathe.
+        foreach (var part in Descendants(ent))
+        {
+            RemComp<MetabolizerComponent>(part);
+            RemComp<LungComponent>(part);
+            RemComp<StomachComponent>(part);
+        }
+
         if (TryComp<PhysicsComponent>(ent, out var physics))
             _physics.SetBodyType(ent, BodyType.Static, body: physics);
+    }
+
+    /// <summary>
+    /// Everything parented under an entity, containers included.
+    /// </summary>
+    private List<EntityUid> Descendants(EntityUid root)
+    {
+        var found = new List<EntityUid>();
+        var pending = new Queue<EntityUid>();
+        pending.Enqueue(root);
+
+        while (pending.TryDequeue(out var uid))
+        {
+            var children = Transform(uid).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                found.Add(child);
+                pending.Enqueue(child);
+            }
+        }
+
+        return found;
     }
 
     private void OnTerminating(Entity<TraderComponent> ent, ref EntityTerminatingEvent args)
@@ -417,6 +478,7 @@ public sealed class TraderSystem : EntitySystem
 
         ent.Comp.Customer = null;
         ent.Comp.Confirming = false;
+        ent.Comp.TextPrompt = null;
         ent.Comp.PendingOption = null;
         ent.Comp.ReplyAt = null;
         ent.Comp.ReplyLine = null;
@@ -483,9 +545,22 @@ public sealed class TraderSystem : EntitySystem
     public void AskConfirmation(Entity<TraderComponent> ent, string line)
     {
         ent.Comp.Confirming = true;
+        ent.Comp.TextPrompt = null;
         ent.Comp.CurrentLine = line;
         ent.Comp.LastInput = _timing.CurTime;
-        Say(ent, line);
+        UpdateDialogueState(ent);
+    }
+
+    /// <summary>
+    /// Asks the customer to type an answer. The reply comes back as a <see cref="TraderTextEnteredEvent"/>.
+    /// </summary>
+    public void AskText(Entity<TraderComponent> ent, string line, string placeholder, int maxLength)
+    {
+        ent.Comp.Confirming = false;
+        ent.Comp.TextPrompt = placeholder;
+        ent.Comp.TextMaxLength = maxLength;
+        ent.Comp.CurrentLine = line;
+        ent.Comp.LastInput = _timing.CurTime;
         UpdateDialogueState(ent);
     }
 
@@ -516,14 +591,15 @@ public sealed class TraderSystem : EntitySystem
             return;
 
         var options = new List<string>();
-        if (!ent.Comp.Confirming && _proto.TryIndex(ent.Comp.Dialogue, out var dialogue))
+        if (!ent.Comp.Confirming && ent.Comp.TextPrompt == null && _proto.TryIndex(ent.Comp.Dialogue, out var dialogue))
         {
             foreach (var option in dialogue.Options)
                 options.Add(Loc.GetString(option.Prompt));
         }
 
         _ui.SetUiState(ent.Owner, TraderUiKey.Dialogue,
-            new TraderDialogueState(ent.Comp.CurrentLine, options, ent.Comp.Confirming));
+            new TraderDialogueState(ent.Comp.CurrentLine, options, ent.Comp.Confirming,
+                ent.Comp.TextPrompt, ent.Comp.TextMaxLength));
     }
 
     #endregion
@@ -676,6 +752,25 @@ public sealed class TraderSystem : EntitySystem
         ent.Comp.PendingOption = null;
 
         var ev = new TraderConfirmedEvent(ent.Owner, args.Actor, args.Accepted);
+        RaiseLocalEvent(ent.Owner, ref ev);
+
+        UpdateDialogueState(ent);
+    }
+
+    private void OnText(Entity<TraderComponent> ent, ref TraderTextMessage args)
+    {
+        if (ent.Comp.Customer != args.Actor || ent.Comp.TextPrompt == null)
+            return;
+
+        NoteInput(ent);
+        ent.Comp.TextPrompt = null;
+        ent.Comp.PendingOption = null;
+
+        var text = args.Text?.Trim();
+        if (text != null && text.Length > ent.Comp.TextMaxLength)
+            text = text[..ent.Comp.TextMaxLength];
+
+        var ev = new TraderTextEnteredEvent(ent.Owner, args.Actor, string.IsNullOrEmpty(text) ? null : text);
         RaiseLocalEvent(ent.Owner, ref ev);
 
         UpdateDialogueState(ent);

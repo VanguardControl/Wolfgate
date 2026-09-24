@@ -8,6 +8,7 @@ using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Traders;
 using Content.Shared.GameTicking;
 using Robust.Shared.Audio.Components;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
@@ -195,20 +196,17 @@ public sealed class UsedShipMarketSystem : EntitySystem
             designName = design.Name;
         }
 
-        // The map loader silently drops these, so the copy comes back without them. The salesman
-        // refuses a sale before it gets this far; anything that reaches here really is lost.
-        var unsavable = GetUnsavableAboard(shuttle);
-        if (unsavable.Count > 0)
-        {
-            var names = string.Join(", ", unsavable.Select(uid => ToPrettyString(uid).ToString()));
-            Log.Warning($"Copying {ToPrettyString(shuttle)} for resale loses {unsavable.Count} entities: {names}");
-        }
+        // Pets, borgs and mechs are not map-savable, but the console already refuses a sale with a
+        // player aboard, so whatever is left can ride along with the hull.
+        var carry = GetUnsavableAboard(shuttle);
+        if (carry.Count > 0)
+            Log.Info($"Copying {ToPrettyString(shuttle)} for resale with {carry.Count} crew or machines aboard.");
 
         // A docked hull's joints and docks point at the station; the copy cannot carry them and a
         // dangling reference makes the whole load fail. The hull is about to be deleted regardless.
         _docking.UndockDocks(shuttle);
 
-        if (!_shipyard.TrySaveShip(shuttle, out var data))
+        if (!_shipyard.TrySaveShip(shuttle, carry, out var data))
         {
             Log.Error($"Could not copy {shipName} for the used lot; it is lost.");
             return false;
@@ -242,6 +240,8 @@ public sealed class UsedShipMarketSystem : EntitySystem
     /// </summary>
     public List<EntityUid> GetUnsavableAboard(EntityUid grid)
     {
+        // Players are never copied; the sale rules keep them off the hull before this runs anyway.
+
         var found = new List<EntityUid>();
         var pending = new Queue<EntityUid>();
         pending.Enqueue(grid);
@@ -254,7 +254,9 @@ public sealed class UsedShipMarketSystem : EntitySystem
                 // A prototype that is not saved takes everything inside it with it, so do not recurse.
                 if (MetaData(child).EntityPrototype is { MapSavable: false } && !IsTransient(child))
                 {
-                    found.Add(child);
+                    if (!HasComp<ActorComponent>(child))
+                        found.Add(child);
+
                     continue;
                 }
 

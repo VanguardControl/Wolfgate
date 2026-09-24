@@ -2,6 +2,8 @@
 using System.Linq;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.Shipyard;
+using Content.Server.NPC.HTN;
+using Content.Server.NPC;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -79,6 +81,20 @@ public sealed class UsedShipSaveTest
                     count++;
             }
             Assert.That(count, Is.EqualTo(damaged), "Every dent should survive the copy.");
+
+            // Reloaded grids skip MapInit, which is where an NPC's Owner used to be set. A console
+            // autopilot with no Owner throws every tick and freezes every NPC on the server.
+            var npcs = 0;
+            var q = entMan.EntityQueryEnumerator<HTNComponent, TransformComponent>();
+            while (q.MoveNext(out var npc, out var htn, out var xf))
+            {
+                if (xf.GridUid != loaded.Value)
+                    continue;
+                npcs++;
+                Assert.That(htn.Blackboard.ContainsKey(NPCBlackboard.Owner), Is.True, $"{entMan.ToPrettyString(npc)} has no Owner.");
+                Assert.That(htn.Blackboard.GetValue<EntityUid>(NPCBlackboard.Owner), Is.EqualTo(npc));
+            }
+            Assert.That(npcs, Is.GreaterThan(0), "The vessel should carry at least one HTN entity (autopilot console).");
         });
 
         await pair.CleanReturnAsync();

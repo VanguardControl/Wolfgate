@@ -139,6 +139,54 @@ public sealed partial class ShipyardSystem
         return false;
     }
 
+    /// <summary>
+    /// Runs the console's own unassign path: cooldown, voucher rules and all. True when the deed left the card.
+    /// </summary>
+    public bool TryHostedUnassign(EntityUid host, EntityUid customer, Enum uiKey, EntityUid idCard, out string? refusal)
+    {
+        refusal = null;
+
+        if (!TryComp<ShipyardConsoleComponent>(host, out var console))
+            return false;
+
+        LastConsolePopup = null;
+        OnUnassignDeedMessage(host, console, new ShipyardConsoleUnassignDeedMessage { Actor = customer, UiKey = uiKey });
+
+        if (!HasDeed(idCard))
+            return true;
+
+        refusal = LastConsolePopup;
+        return false;
+    }
+
+    /// <summary>
+    /// Runs the console's own rename path. True when the deed now carries the new name.
+    /// </summary>
+    public bool TryHostedRename(EntityUid host, EntityUid customer, Enum uiKey, EntityUid idCard, string name, out string? refusal)
+    {
+        refusal = null;
+
+        if (!TryComp<ShipyardConsoleComponent>(host, out var console))
+            return false;
+
+        LastConsolePopup = null;
+        OnRenameMessage(host, console, new ShipyardConsoleRenameMessage(name) { Actor = customer, UiKey = uiKey });
+
+        if (TryComp<ShuttleDeedComponent>(idCard, out var deed) && deed.ShuttleName == name)
+            return true;
+
+        refusal = LastConsolePopup;
+        return false;
+    }
+
+    /// <summary>
+    /// The full name of the ship a deed card points at.
+    /// </summary>
+    public string? GetDeedName(EntityUid idCard)
+    {
+        return TryComp<ShuttleDeedComponent>(idCard, out var deed) ? GetFullName(deed) : null;
+    }
+
     #endregion
 
     #region Pricing
@@ -213,6 +261,16 @@ public sealed partial class ShipyardSystem
     /// </summary>
     public bool TrySaveShip(EntityUid grid, [NotNullWhen(true)] out string? data)
     {
+        return TrySaveShip(grid, new List<EntityUid>(), out data);
+    }
+
+    /// <summary>
+    /// Serialises a grid and everything on it to YAML in memory. Mobs and mechs are flagged unsavable
+    /// so map saves skip them; <paramref name="carry"/> lists the ones to bring along regardless, and
+    /// their prototypes are made savable for the duration of the write.
+    /// </summary>
+    public bool TrySaveShip(EntityUid grid, List<EntityUid> carry, [NotNullWhen(true)] out string? data)
+    {
         data = null;
 
         using var writer = new StringWriter();
@@ -221,6 +279,16 @@ public sealed partial class ShipyardSystem
         var options = SerializationOptions.Default;
         options.MissingEntityBehaviour = MissingEntityBehaviour.Ignore;
         options.LogAutoInclude = null;
+
+        var lifted = new List<EntityPrototype>();
+        foreach (var uid in carry)
+        {
+            if (MetaData(uid).EntityPrototype is { MapSavable: false } proto && !lifted.Contains(proto))
+                lifted.Add(proto);
+        }
+
+        foreach (var proto in lifted)
+            proto.MapSavable = true;
 
         try
         {
@@ -231,6 +299,11 @@ public sealed partial class ShipyardSystem
         {
             Log.Error($"Failed to copy {ToPrettyString(grid)} for resale: {e}");
             return false;
+        }
+        finally
+        {
+            foreach (var proto in lifted)
+                proto.MapSavable = false;
         }
 
         data = writer.ToString();

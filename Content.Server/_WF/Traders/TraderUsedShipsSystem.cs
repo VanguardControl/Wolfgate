@@ -87,9 +87,6 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
             return;
         }
 
-        if (!CanTakeShip(trader, shuttle))
-            return;
-
         if (!_shipyard.TryHostConsole(ent.Owner, ent.Comp.Console, out _))
         {
             _trader.SayAndShow(trader, Loc.GetString("trader-cannot-help"));
@@ -130,9 +127,6 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
         }
 
         // Somebody could have walked a borg aboard while the customer was thinking.
-        if (!CanTakeShip(traderEnt, shuttle))
-            return;
-
         if (!_shipyard.TryHostConsole(ent.Owner, ent.Comp.Console, out var uiKey))
         {
             _trader.SayAndShow(traderEnt, Loc.GetString("trader-cannot-help"));
@@ -167,21 +161,6 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
         PrintSaleReceipt(traderEnt, customer, shipName, bill);
         _trader.SayAndShow(traderEnt, Loc.GetString("trader-used-sale-done",
             ("amount", BankSystemExtensions.ToSpesoString(bill))));
-    }
-
-    /// <summary>
-    /// Whether the salesman can copy the hull at all. Anything the map loader will not write out is
-    /// gone the moment the ship is sold, so it is sent off the ship rather than quietly destroyed.
-    /// </summary>
-    private bool CanTakeShip(Entity<TraderComponent> trader, EntityUid shuttle)
-    {
-        var unsavable = _market.GetUnsavableAboard(shuttle);
-        if (unsavable.Count == 0)
-            return true;
-
-        _trader.SayAndShow(trader, Loc.GetString("trader-used-unsavable-aboard",
-            ("thing", Name(unsavable[0]))));
-        return false;
     }
 
     /// <summary>

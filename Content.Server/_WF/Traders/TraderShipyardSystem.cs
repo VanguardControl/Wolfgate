@@ -6,6 +6,7 @@ using Content.Server.GameTicking;
 using Content.Shared._Mono.Shipyard;
 using Content.Shared._Mono.Ships.Components;
 using Content.Shared._NF.Bank;
+using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Traders;
 using Robust.Server.GameObjects;
@@ -34,11 +35,31 @@ public sealed partial class TraderShipyardSystem : EntitySystem
         SubscribeLocalEvent<TraderShipyardComponent, TraderConversationEndedEvent>(OnConversationEnded);
         SubscribeLocalEvent<TraderShipyardComponent, BoundUIClosedEvent>(OnUiClosed);
         SubscribeLocalEvent<TraderShipyardComponent, ShipyardConsoleActionAttemptEvent>(OnConsoleAction);
+        SubscribeLocalEvent<TraderShipyardComponent, TraderConfirmedEvent>(OnConfirmed);
+        SubscribeLocalEvent<TraderShipyardComponent, TraderTextEnteredEvent>(OnTextEntered);
         SubscribeLocalEvent<ShipyardShuttlePurchaseEvent>(OnShipPurchased);
     }
 
     private void OnAction(Entity<TraderShipyardComponent> ent, ref TraderActionEvent args)
     {
+        // Any other service taking over means an older question is dead.
+        ent.Comp.PendingUnassign = null;
+        ent.Comp.PendingRename = null;
+
+        if (!args.Handled && args.Action == TraderAction.UnassignDeed)
+        {
+            args.Handled = true;
+            AskUnassign(ent, args.Customer);
+            return;
+        }
+
+        if (!args.Handled && args.Action == TraderAction.RenameShip)
+        {
+            args.Handled = true;
+            AskRename(ent, args.Customer);
+            return;
+        }
+
         if (args.Action != TraderAction.BuyShip || args.Handled)
             return;
 
@@ -119,11 +140,179 @@ public sealed partial class TraderShipyardSystem : EntitySystem
     /// </summary>
     private void OnConsoleAction(Entity<TraderShipyardComponent> ent, ref ShipyardConsoleActionAttemptEvent args)
     {
+        if (args.Action == ShipyardConsoleAction.UnassignDeed && ent.Comp.AllowUnassign)
+            return;
+
         args.Cancelled = true;
 
         if (args.Action == ShipyardConsoleAction.Sell && TryComp<TraderComponent>(ent, out var trader))
             _trader.Say((ent.Owner, trader), Loc.GetString("trader-shipyard-no-selling"));
     }
+
+    #region Papers
+
+    /// <summary>
+    /// The customer's own deed card on the counter, asking for it if it is not there.
+    /// </summary>
+    private bool TryGetDeedCard(Entity<TraderComponent> trader, EntityUid customer, out EntityUid idCard)
+    {
+        if (_trader.TryGetZoneId(trader, customer, out idCard, out var wrongOwner) && _shipyard.HasDeed(idCard))
+            return true;
+
+        _trader.SayAndShow(trader, wrongOwner
+            ? Loc.GetString("trader-not-your-id")
+            : Loc.GetString("trader-request-item", ("thing", Loc.GetString("trader-thing-deed-id"))));
+        return false;
+    }
+
+    /// <summary>
+    /// Puts the card in a hosted copy of the dealer's first console, runs <paramref name="action"/> against it
+    /// and hands the card back. False when the console could not be set up.
+    /// </summary>
+    private bool WithHostedCard(Entity<TraderShipyardComponent> ent, Entity<TraderComponent> trader, EntityUid idCard, Action<Enum> action)
+    {
+        var console = ent.Comp.Consoles.FirstOrDefault()?.Console;
+        if (console == null
+            || !_shipyard.TryHostConsole(ent.Owner, console.Value, out var uiKey)
+            || !_trader.TryHoldItem(trader, idCard)
+            || !_shipyard.TryInsertHostedId(ent.Owner, idCard))
+        {
+            _trader.ReturnHeldItems(trader);
+            _shipyard.ClearHostedConsole(ent.Owner);
+            _trader.SayAndShow(trader, Loc.GetString("trader-cannot-help"));
+            return false;
+        }
+
+        try
+        {
+            action(uiKey);
+        }
+        finally
+        {
+            _trader.ReturnHeldItems(trader);
+            _shipyard.ClearHostedConsole(ent.Owner);
+        }
+
+        return true;
+    }
+
+    private void AskUnassign(Entity<TraderShipyardComponent> ent, EntityUid customer)
+    {
+        if (!TryComp<TraderComponent>(ent, out var trader) || !TryGetDeedCard((ent.Owner, trader), customer, out var idCard))
+            return;
+
+        ent.Comp.PendingUnassign = idCard;
+        _trader.AskConfirmation((ent.Owner, trader), Loc.GetString("trader-shipyard-unassign-confirm",
+            ("ship", _shipyard.GetDeedName(idCard) ?? Loc.GetString("trader-shipyard-unknown-design"))));
+    }
+
+    private void OnConfirmed(Entity<TraderShipyardComponent> ent, ref TraderConfirmedEvent args)
+    {
+        if (ent.Comp.PendingUnassign is not { } pending)
+            return;
+
+        ent.Comp.PendingUnassign = null;
+
+        if (!args.Accepted || !TryComp<TraderComponent>(ent, out var trader))
+            return;
+
+        var traderEnt = (ent.Owner, trader);
+        var customer = args.Customer;
+
+        // The card could have been swapped while the customer was thinking.
+        if (!TryGetDeedCard(traderEnt, customer, out var idCard) || idCard != pending)
+            return;
+
+        var shipName = _shipyard.GetDeedName(idCard);
+        var done = false;
+        string? refusal = null;
+
+        // Everything inside is the console's own unassign: the cooldown, voucher rules and admin log.
+        var ran = WithHostedCard(ent, traderEnt, idCard, uiKey =>
+        {
+            ent.Comp.AllowUnassign = true;
+            try
+            {
+                done = _shipyard.TryHostedUnassign(ent.Owner, customer, uiKey, idCard, out refusal);
+            }
+            finally
+            {
+                ent.Comp.AllowUnassign = false;
+            }
+        });
+
+        if (!ran)
+            return;
+
+        if (!done)
+        {
+            _trader.SayAndShow(traderEnt, refusal == null
+                ? Loc.GetString("trader-shipyard-papers-refused")
+                : Loc.GetString("trader-shipyard-papers-refused-reason", ("reason", refusal)));
+            return;
+        }
+
+        _trader.SayAndShow(traderEnt, Loc.GetString("trader-shipyard-unassigned",
+            ("ship", shipName ?? Loc.GetString("trader-shipyard-unknown-design"))));
+    }
+
+    private void AskRename(Entity<TraderShipyardComponent> ent, EntityUid customer)
+    {
+        if (!TryComp<TraderComponent>(ent, out var trader) || !TryGetDeedCard((ent.Owner, trader), customer, out var idCard))
+            return;
+
+        ent.Comp.PendingRename = idCard;
+        _trader.AskText((ent.Owner, trader),
+            Loc.GetString("trader-shipyard-rename-ask",
+                ("ship", _shipyard.GetDeedName(idCard) ?? Loc.GetString("trader-shipyard-unknown-design"))),
+            Loc.GetString("trader-shipyard-rename-placeholder"),
+            ShuttleDeedComponent.MaxNameLength);
+    }
+
+    private void OnTextEntered(Entity<TraderShipyardComponent> ent, ref TraderTextEnteredEvent args)
+    {
+        if (ent.Comp.PendingRename is not { } pending)
+            return;
+
+        ent.Comp.PendingRename = null;
+
+        if (!TryComp<TraderComponent>(ent, out var trader))
+            return;
+
+        var traderEnt = (ent.Owner, trader);
+
+        if (args.Text is not { } name)
+        {
+            _trader.SayAndShow(traderEnt, Loc.GetString("trader-shipyard-rename-cancelled"));
+            return;
+        }
+
+        var customer = args.Customer;
+        if (!TryGetDeedCard(traderEnt, customer, out var idCard) || idCard != pending)
+            return;
+
+        var done = false;
+        string? refusal = null;
+
+        var ran = WithHostedCard(ent, traderEnt, idCard, uiKey =>
+            done = _shipyard.TryHostedRename(ent.Owner, customer, uiKey, idCard, name, out refusal));
+
+        if (!ran)
+            return;
+
+        if (!done)
+        {
+            _trader.SayAndShow(traderEnt, refusal == null
+                ? Loc.GetString("trader-shipyard-papers-refused")
+                : Loc.GetString("trader-shipyard-papers-refused-reason", ("reason", refusal)));
+            return;
+        }
+
+        _trader.SayAndShow(traderEnt, Loc.GetString("trader-shipyard-renamed",
+            ("ship", _shipyard.GetDeedName(idCard) ?? name)));
+    }
+
+    #endregion
 
     /// <summary>
     /// Prints a receipt when the purchase went over a trader's counter.
