@@ -491,7 +491,7 @@ public enum LogType
     /// </summary>
     Instrument = 103,
 
-    // WOLFGATE START: consent (ported from HardLight) and anatomy log types; high ids avoid clashing with upstream
+    // WOLFGATE(Genitals) START: consent (ported from HardLight) and anatomy log types; high ids avoid clashing with upstream
     /// <summary>
     /// Players changing their consent settings.
     /// </summary>
