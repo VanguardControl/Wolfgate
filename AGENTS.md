@@ -57,8 +57,8 @@ shows what changed.
 
 ## Documenting changes
 
-Each module has a `README.md` in `Content.Server/_WF/<Module>/`, or in `Content.Shared` or `Content.Client` if it
-has no server code, or in `Docs/_WF/<Module>/` if it has no C# at all. Write its overview by hand: what the
+Each module has a `README.md` in `Content.Server/_WF/<Module>/`, or in `Content.Shared/_WF/<Module>/` or
+`Content.Client/_WF/<Module>/` if it has no server code, or in `Docs/_WF/<Module>/` if it has no C# at all. Write its overview by hand: what the
 module does, how players or admins use it and its main entry points, in a few lines. Longer design notes can
 follow.
 
