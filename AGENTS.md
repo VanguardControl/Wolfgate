@@ -46,6 +46,28 @@ existing events, a partial class in `_WF`, then a marked edit. Don't reformat, r
 code, and don't delete upstream code outright; comment or branch around it inside a marked block so a merge
 shows what changed.
 
+## Documenting changes
+
+Every Wolfgate change is recorded in one of two places, in the same change that makes it.
+
+**Module README.** Each module (a `_WF` folder name shared across areas, e.g. `Traders`) has a `README.md` in
+`Content.Server/_WF/<Module>/`, or in `Content.Shared`/`Content.Client` if the module has no server code. It
+contains:
+
+- An overview: what the module does and how players or admins use it, in a few lines.
+- Files: every file that belongs to the module, across all areas (C#, tests, prototypes, locale, textures,
+  audio, maps, guidebook pages, tools, docs).
+- Non-modular edits: every file outside `_WF` the module edits, each with a one-line reason.
+
+Longer design notes can follow those sections.
+
+**Master non-modular list.** `Docs/_WF/NONMODULAR.md` (create it if it doesn't exist yet) lists every file outside
+`_WF` that Wolfgate edits for a change too small to be a module, each with a one-line reason. An edit that
+belongs to a module goes in that module's README instead, never in both.
+
+Both lists include edits that can't carry a marker (JSON, images, audio, maps), since the list is their only
+record. Update them whenever a change adds, moves or removes a file, or starts or stops editing an upstream one.
+
 ## Before building
 
 - Check whether the feature already exists in upstream SS14 or any fork layer (`_NF`, `_Mono`, `_DV`, `_CE`,
