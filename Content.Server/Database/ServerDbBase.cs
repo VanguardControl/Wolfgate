@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Content.Server._Mono.Company;
 using Content.Server._WF.Genitals; // WOLFGATE
+using Content.Server._WF.Prototypes; // WOLFGATE
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Shared._Common.Consent; // WOLFGATE
@@ -65,6 +66,15 @@ namespace Content.Server.Database
 
             if (prefs is null)
                 return null;
+
+            // WOLFGATE START: rows holding renamed prototype ids are saved under the current ids on load.
+            var legacyRows = false;
+            foreach (var profile in prefs.Profiles)
+                legacyRows |= WFLegacyDbRows.Update(profile);
+
+            if (legacyRows)
+                await WFLegacyDbRows.Save(db.DbContext, _opsLog, cancel);
+            // WOLFGATE END
 
             var maxSlot = prefs.Profiles.Max(p => p.Slot) + 1;
             var profiles = new Dictionary<int, ICharacterProfile>(maxSlot);
@@ -2036,6 +2046,10 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 .Include(c => c.ReadReceipts)
                 .AsSplitQuery()
                 .SingleOrDefaultAsync(c => c.UserId == userId);
+
+            // Rows holding renamed toggle ids are saved under the current ids on load.
+            if (consentSettings != null && WFLegacyDbRows.Update(consentSettings))
+                await WFLegacyDbRows.Save(db.DbContext, _opsLog);
 
             return consentSettings ?? new();
         }
