@@ -1,7 +1,5 @@
-using Content.Shared.Chemistry.Reagent;
-using Content.Shared.FixedPoint;
 using Robust.Shared.Containers;
-using Robust.Shared.Prototypes;
+using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Lathe;
@@ -9,13 +7,19 @@ namespace Content.Shared._WF.Lathe;
 /// <summary>
 /// Stores lathe recipe parts or reagents for linked lathes.
 /// </summary>
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(SharedFabricationSiloSystem))]
 public sealed partial class FabricationSiloComponent : Component
 {
     /// <summary>
     /// Container that holds a parts silo's stock.
     /// </summary>
     public const string PartsContainerId = "fabrication_parts";
+
+    /// <summary>
+    /// Item slot a chemical silo withdraws reagents into.
+    /// </summary>
+    public const string ContainerSlotId = "beakerSlot";
 
     /// <summary>
     /// Which kind of supply this silo holds.
@@ -26,7 +30,7 @@ public sealed partial class FabricationSiloComponent : Component
     /// <summary>
     /// Furthest a linked machine can be.
     /// </summary>
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float Range = 125f;
 
     /// <summary>
@@ -36,16 +40,16 @@ public sealed partial class FabricationSiloComponent : Component
     public int MaxParts = 250;
 
     /// <summary>
-    /// Machines linked to this silo.
+    /// Solution a chemical silo stores its reagents in.
     /// </summary>
     [DataField]
-    public HashSet<EntityUid> Clients = new();
+    public string SolutionName = "tank";
 
     /// <summary>
-    /// Stored reagents, kept as separate amounts so they never react.
+    /// Machines linked to this silo.
     /// </summary>
-    [DataField]
-    public Dictionary<ProtoId<ReagentPrototype>, FixedPoint2> Reagents = new();
+    [DataField, AutoNetworkedField]
+    public HashSet<EntityUid> Clients = new();
 
     /// <summary>
     /// Stored parts; only a parts silo has one.

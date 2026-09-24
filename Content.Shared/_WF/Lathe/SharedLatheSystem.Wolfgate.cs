@@ -1,3 +1,4 @@
+using Content.Shared._WF.Lathe;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
@@ -7,12 +8,14 @@ namespace Content.Shared.Lathe;
 
 public abstract partial class SharedLatheSystem
 {
+    [Dependency] private SharedFabricationSiloSystem _siloStock = default!;
+
     /// <summary>
     /// Reagent a lathe can draw from its beaker slot and its linked chemical silo.
     /// </summary>
     public FixedPoint2 GetAvailableReagent(EntityUid uid, LatheComponent component, ProtoId<ReagentPrototype> reagent)
     {
-        return GetSlotReagent(uid, component, reagent, out _) + GetSiloReagent(uid, reagent);
+        return GetSlotReagent(uid, component, reagent, out _) + _siloStock.GetReagentAmount(uid, reagent);
     }
 
     /// <summary>
@@ -31,13 +34,5 @@ public abstract partial class SharedLatheSystem
             return FixedPoint2.Zero;
 
         return contents.GetReagent(new ReagentId(reagent.Id, null)).Quantity;
-    }
-
-    /// <summary>
-    /// Reagent in the lathe's linked chemical silo; only the server tracks silo stock.
-    /// </summary>
-    protected virtual FixedPoint2 GetSiloReagent(EntityUid uid, ProtoId<ReagentPrototype> reagent)
-    {
-        return FixedPoint2.Zero;
     }
 }

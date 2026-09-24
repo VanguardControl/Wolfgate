@@ -32,11 +32,6 @@ public sealed partial class LatheSystem
         return count;
     }
 
-    protected override FixedPoint2 GetSiloReagent(EntityUid uid, ProtoId<ReagentPrototype> reagent)
-    {
-        return _fabricationSilo.GetReagentAmount(uid, reagent);
-    }
-
     /// <summary>
     /// Takes a recipe part from the lathe's storage first, then from its parts silo.
     /// </summary>
@@ -165,12 +160,10 @@ public sealed partial class LatheSystem
     }
 
     /// <summary>
-    /// Adds silo links, readiness and silo stock to a lathe UI state.
+    /// Adds readiness, counting local storage and linked silos, to a lathe UI state.
     /// </summary>
     private void FillWolfgateState(EntityUid uid, LatheComponent component, LatheUpdateState state)
     {
-        state.PartsSiloLinked = _fabricationSilo.GetLinkedSilo(uid, FabricationSiloKind.Parts) != null;
-        state.ChemicalSiloLinked = _fabricationSilo.GetLinkedSilo(uid, FabricationSiloKind.Chemicals) != null;
         state.PrintingBatch = component.CurrentRecipe != null ? component.PrintingBatch : null;
 
         // Readiness walks every recipe; BoundUIOpenedEvent refreshes it for the first viewer.
@@ -190,7 +183,5 @@ public sealed partial class LatheSystem
             missing.DesignAvailable = designs.Contains(batch.Recipe.ID);
             state.QueueSupplies[batch.Index] = missing;
         }
-
-        _fabricationSilo.CollectStock(uid, state.SiloParts, state.SiloReagents);
     }
 }

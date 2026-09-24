@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client._WF.Lathe;
 using Content.Client._WF.Lathe.UI;
 using Content.Shared._WF.Lathe;
 using Content.Shared.Chemistry.Reagent;
@@ -20,14 +21,17 @@ public sealed partial class LatheMenu
     private readonly Dictionary<int, LatheQueueEntry> _queueEntries = new();
     private Label? _queueEmptyLabel;
     private LatheUpdateState? _wolfgateState;
+    private FabricationSiloSystem? _fabricationSilo;
+
+    private FabricationSiloSystem FabricationSilo => _fabricationSilo ??= _entityManager.System<FabricationSiloSystem>();
 
     /// <summary>
-    /// Takes the server's readiness, silo links and silo stock from a state update.
+    /// Takes the server's readiness from a state update; silo links and stock are read from the networked silos.
     /// </summary>
     public void SetWolfgateState(LatheUpdateState state)
     {
         _wolfgateState = state;
-        SupplyStatus.SetLinks(state.PartsSiloLinked, state.ChemicalSiloLinked);
+        SupplyStatus.SetOwner(Entity);
     }
 
     private bool IsRecipeReady(LatheRecipePrototype recipe)
@@ -37,12 +41,12 @@ public sealed partial class LatheMenu
 
     private int GetSiloPartCount(EntProtoId part)
     {
-        return _wolfgateState?.SiloParts.GetValueOrDefault(part) ?? 0;
+        return FabricationSilo.GetPartAmount(Entity, part);
     }
 
     private FixedPoint2 GetSiloReagentAmount(ProtoId<ReagentPrototype> reagent)
     {
-        return _wolfgateState?.SiloReagents.GetValueOrDefault(reagent) ?? FixedPoint2.Zero;
+        return FabricationSilo.GetReagentAmount(Entity, reagent);
     }
 
     /// <summary>

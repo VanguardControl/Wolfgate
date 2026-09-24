@@ -19,7 +19,6 @@ public sealed partial class LatheSupplySystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private EntityStorageSystem _entityStorage = default!;
-    [Dependency] private FabricationSiloSystem _fabricationSilo = default!;
     [Dependency] private LatheSystem _lathe = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
@@ -40,7 +39,6 @@ public sealed partial class LatheSupplySystem : EntitySystem
             HasComp<ToolComponent>(args.Used) ||
             !TryComp<EntityStorageComponent>(ent, out var storage) ||
             MetaData(args.Used).EntityPrototype?.ID is not { } part ||
-            !_fabricationSilo.IsRecipePart(part) ||
             !UsesPart(ent, part))
             return;
 

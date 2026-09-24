@@ -19,11 +19,11 @@
           False: { state: silo }
   - type: FabricationSilo
   - type: ActivatableUI
-    key: enum.FabricationSiloUiKey.Key
+    key: enum.OreSiloUiKey.Key
   - type: ActivatableUIRequiresPower
   - type: UserInterface
     interfaces:
-      enum.FabricationSiloUiKey.Key:
+      enum.OreSiloUiKey.Key:
         type: FabricationSiloBoundUserInterface
   - type: Fixtures
     fixtures:
@@ -43,7 +43,7 @@
   id: WFMachinePartsSilo
   parent: WFBaseFabricationSilo
   name: parts silo
-  description: Stores precursor components and supplies them to linked fabrication machines. Use a component on it to deposit it.
+  description: Stores precursor components and supplies them to linked fabrication machines. Use a component on it, or dump a bag into it, to deposit components that fabrication machines use.
   components:
   - type: FabricationSilo
     kind: Parts
@@ -52,6 +52,9 @@
       machine_board: !type:Container
       machine_parts: !type:Container
       fabrication_parts: !type:Container
+  - type: EmptyOnMachineDeconstruct
+    containers:
+    - fabrication_parts
   - type: Machine
     board: WFPartsSiloMachineCircuitboard
 
@@ -59,10 +62,35 @@
   id: WFMachineChemicalSilo
   parent: WFBaseFabricationSilo
   name: chemical silo
-  description: Stores chemicals used in fabrication recipes separately and supplies them to linked machines. Use a beaker or jerry can on it to deposit accepted chemicals.
+  description: Stores up to 1500u of chemicals without letting them react and supplies them to linked fabrication machines. Pour in chemicals that fabrication machines use with a beaker, jug, jerry can or syringe; withdraw them one at a time into an inserted beaker.
   components:
   - type: FabricationSilo
     kind: Chemicals
+  # The store never reacts, so nothing may drain or draw it: no Drainable, Drawable, Dumpable or Spillable.
+  - type: SolutionContainerManager
+    solutions:
+      tank:
+        maxVol: 1500
+        canReact: false
+  - type: RefillableSolution
+    solution: tank
+    preventTransferOut: true
+  - type: ContainerContainer
+    containers:
+      machine_board: !type:Container
+      machine_parts: !type:Container
+      beakerSlot: !type:ContainerSlot
+  # Clicking with a beaker pours; alt-click or the window inserts it.
+  - type: ItemSlots
+    slots:
+      beakerSlot:
+        insertOnInteract: false
+        ejectOnBreak: true
+        whitelist:
+          components:
+          - FitsInDispenser
+  - type: ExaminableSolution
+    solution: tank
   - type: Machine
     board: WFChemicalSiloMachineCircuitboard
 
@@ -79,6 +107,13 @@
       MatterBin: 4
     stackRequirements:
       Cable: 1
+    tagRequirements:
+      MicroprocessorEconomy1:
+        amount: 1
+        defaultPrototype: MicroprocessorEconomy1
+      ComponentBrickEconomy1:
+        amount: 4
+        defaultPrototype: ComponentBrickEconomy1
 
 - type: entity
   id: WFChemicalSiloMachineCircuitboard
@@ -93,3 +128,10 @@
       MatterBin: 4
     stackRequirements:
       Cable: 1
+    tagRequirements:
+      MicroprocessorEconomy1:
+        amount: 1
+        defaultPrototype: MicroprocessorEconomy1
+      ComponentBrickEconomy1:
+        amount: 4
+        defaultPrototype: ComponentBrickEconomy1

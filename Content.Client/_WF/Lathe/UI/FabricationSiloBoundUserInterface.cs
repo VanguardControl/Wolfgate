@@ -1,11 +1,13 @@
 using Content.Shared._WF.Lathe;
+using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Materials.OreSilo;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
 
 namespace Content.Client._WF.Lathe.UI;
 
 /// <summary>
-/// Opens the fabrication silo window and sends its link and eject requests.
+/// Opens the fabrication silo window and sends its link, eject, container and reagent requests.
 /// </summary>
 [UsedImplicitly]
 public sealed class FabricationSiloBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
@@ -16,14 +18,20 @@ public sealed class FabricationSiloBoundUserInterface(EntityUid owner, Enum uiKe
     {
         base.Open();
         _menu = this.CreateWindow<FabricationSiloMenu>();
-        _menu.OnClientPressed += uid => SendMessage(new ToggleFabricationSiloClientMessage(uid));
+        _menu.SetEntity(Owner);
+        _menu.OnClientEntryPressed += uid => SendPredictedMessage(new ToggleOreSiloClientMessage(uid));
         _menu.OnPartPressed += uid => SendMessage(new EjectFabricationSiloPartMessage(uid));
+        _menu.OnSlotPressed += () =>
+            SendMessage(new ItemSlotButtonPressedEvent(FabricationSiloComponent.ContainerSlotId));
+        _menu.OnWithdrawPressed += (reagent, amount) =>
+            SendMessage(new WithdrawFabricationSiloReagentMessage(reagent, amount));
+        _menu.OnDiscardPressed += reagent => SendMessage(new DiscardFabricationSiloReagentMessage(reagent));
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         base.UpdateState(state);
-        if (state is FabricationSiloBuiState silo)
+        if (state is OreSiloBuiState silo)
             _menu?.Update(silo);
     }
 }
