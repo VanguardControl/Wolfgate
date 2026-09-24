@@ -1421,6 +1421,8 @@ Check that each screen explains itself.
 
 **Answered 2026-09-23 (for M2):** OD7 (c) yes. OD8 (b). OD10 (b), no trauma on a repaired core. OD14 add a new antagonist reagent. OD17 execution = CBI, suicide = Dead with brain 0 and a non-returnable ghost. OD20 (a) Play dead while Downed.
 
+**Answered 2026-09-24 (for M4-M6):** OD16 (a) parity, exceptions only where §9.3 lists them, Synth is mechanical. OD13 (a) all three parts. OD18 (a).
+
 **Answered 2026-09-22:** the owner accepted the recommendations for OD1, OD2, OD3, OD4, OD5, OD6, OD9 and OD22, and the reviewer's six revisions and three corrections. Those rows are marked **Decided**; the rest stay open.
 
 "Needed before" is the first milestone that builds on the answer. "Other answer" says what changes if the owner does not take the recommendation.
