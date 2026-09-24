@@ -187,11 +187,15 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         if (UpdatePainFaint(body, mechanical))
             AddInput(WolfmedCause.PainFaint, 0f, 1f);
 
+        // M3: a heavy blow to the head, on the same fixed-length rules as the pain faint (plan §3.6).
+        if (UpdateHeadBlow(body, mechanical))
+            AddInput(WolfmedCause.HeadBlow, 0f, 1f);
+
         var (bloodDown, bloodOut) = GetBloodLevels(body);
         AddInput(mechanical ? WolfmedCause.Oil : WolfmedCause.Blood, bloodDown, bloodOut);
 
         foreach (var (key, level) in body.Comp.Pressures)
-            AddInput(PressureCause(key), level / PressureDownShare, level);
+            AddInput(PressureCause(key, mechanical), level / PressureDownShare, level);
 
         if (!LegsGone(body))
             body.Comp.HadLegs = true;
@@ -316,12 +320,13 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         return best;
     }
 
-    private static WolfmedCause PressureCause(string key) => key switch
+    private static WolfmedCause PressureCause(string key, bool mechanical) => key switch
     {
         WolfmedLifeSystem.ArrestPressure => WolfmedCause.Arrest,
         WolfmedLifeSystem.HypoxiaPressure => WolfmedCause.Hypoxia,
         WolfmedPainReliefSystem.SedationPressure => WolfmedCause.Sedation,
         WolfmedShutdownSystem.ShutdownPressure => WolfmedCause.Shutdown,
+        WolfmedLifeSystem.InjuryPressure => mechanical ? WolfmedCause.Core : WolfmedCause.Brain, // M3
         _ => WolfmedCause.Other,
     };
 
@@ -494,27 +499,70 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     }
 
     /// <summary>
-    /// The body is out in a faint: Critical with a faint as its cause (a pain faint in M1a; the head blow joins
-    /// in M3). What the autodoc asks before treating Critical as an emergency (plan §7.2).
+    /// M3: knocks the patient out for <c>wolfmed.head_knockout_seconds</c> after a heavy blow to the head (plan
+    /// §3.6). A blow during the knockout never lengthens it. Machines never faint (OD9), and nor does a body
+    /// consciousness does not run. Called by <c>WolfmedOrganThresholdSystem</c> on the hit.
+    /// </summary>
+    public bool StartHeadBlow(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp) || !OwnsMobState(body) ||
+            _mobState.IsDead(body) || _shutdown.IsMechanical(body))
+            return false;
+
+        var now = _timing.CurTime;
+        if (comp.HeadBlowUntil > now)
+            return false;
+
+        comp.HeadBlowStart = now;
+        comp.HeadBlowUntil = now + TimeSpan.FromSeconds(MathF.Max(0f,
+            _configuration.GetCVar(WolfmedCVars.HeadKnockoutSeconds)));
+        Evaluate((body, comp));
+        return true;
+    }
+
+    /// <summary>Whether a head-blow knockout is running; clears it once it has run out.</summary>
+    private bool UpdateHeadBlow(Entity<WolfmedConsciousnessComponent> body, bool mechanical)
+    {
+        if (body.Comp.HeadBlowUntil is not { } until)
+            return false;
+
+        if (!mechanical && _timing.CurTime < until)
+            return true;
+
+        body.Comp.HeadBlowUntil = null;
+        body.Comp.HeadBlowStart = null;
+        return false;
+    }
+
+    /// <summary>
+    /// The body is out in a faint: Critical with a faint as its cause, a pain faint or (M3) a head blow. What the
+    /// autodoc asks before treating Critical as an emergency (plan §7.2).
     /// </summary>
     public bool InFaint(EntityUid body) =>
         TryComp(body, out WolfmedConsciousnessComponent? comp) && !_mobState.IsDead(body) &&
-        comp.State == WolfmedConsciousness.Unconscious && comp.Cause == WolfmedCause.PainFaint;
+        comp.State == WolfmedConsciousness.Unconscious && WolfmedCauses.IsFaint(comp.Cause);
 
     /// <summary>
-    /// Playtest 2: the running pain faint's start and end, for the alert's countdown and the seconds in the text.
-    /// Null when no faint runs.
+    /// Playtest 2: the running faint's start and end, for the alert's countdown and the seconds in the text.
+    /// M3: the head blow's while it is the cause, else the pain faint's. Null when no faint runs.
     /// </summary>
     public (TimeSpan Start, TimeSpan End)? GetFaintWindow(EntityUid body)
     {
-        if (!TryComp(body, out WolfmedConsciousnessComponent? comp) || comp.PainFaintUntil is not { } until ||
-            until <= _timing.CurTime)
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp))
             return null;
 
-        return (comp.PainFaintStart ?? _timing.CurTime, until);
+        var now = _timing.CurTime;
+        if (comp.HeadBlowUntil is { } blow && blow > now &&
+            (comp.Cause == WolfmedCause.HeadBlow || comp.PainFaintUntil is not { } pain || pain <= now))
+            return (comp.HeadBlowStart ?? now, blow);
+
+        if (comp.PainFaintUntil is not { } until || until <= now)
+            return null;
+
+        return (comp.PainFaintStart ?? now, until);
     }
 
-    /// <summary>Whole seconds left in the running pain faint, rounded up; null when none runs.</summary>
+    /// <summary>Whole seconds left in the running faint (pain or head blow), rounded up; null when none runs.</summary>
     public int? GetFaintSecondsLeft(EntityUid body) =>
         GetFaintWindow(body) is { } window ? (int) Math.Ceiling((window.End - _timing.CurTime).TotalSeconds) : null;
 
@@ -596,6 +644,8 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             _dyingActions.Revoke(uid);
             comp.PainFaintUntil = null;
             comp.PainFaintStart = null;
+            comp.HeadBlowUntil = null; // M3
+            comp.HeadBlowStart = null;
 
             // Death is someone else's (a destroyed brain, a gib, an admin). Apply drops the Downed restrictions
             // and Call for help and raises the change like any other; the alert system says nothing for the dead.
@@ -615,6 +665,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         comp.Breathing = WolfmedBreathing.Normal;
         comp.BreathingSource = WolfmedBreathingSource.None;
         comp.BloodBand = WolfmedBloodBand.Normal;
+        comp.PulseIrregular = false; // M3
         comp.DownLevel = 0f;
         comp.OutLevel = 0f;
         comp.State = WolfmedConsciousness.Up;
@@ -627,6 +678,8 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         comp.PainFaintArmed = true;
         comp.PainFaintBaseline = 0f;
         comp.PainFaintCooldownUntil = TimeSpan.Zero;
+        comp.HeadBlowUntil = null; // M3
+        comp.HeadBlowStart = null;
         comp.Depth = 0f;
         Dirty(uid, comp);
         RemComp<WolfmedDownedComponent>(uid);

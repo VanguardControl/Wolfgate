@@ -88,8 +88,9 @@ public sealed class WolfmedDamageCommandTest : GameTest
             {
                 Assert.That(damage.GetAllDamage(LeftArm(admin)).GetTotal(), Is.EqualTo(FixedPoint2.New(200)),
                     "the admin command was held at the ceiling.");
-                Assert.That(damage.GetAllDamage(ambientArm).GetTotal(), Is.EqualTo(FixedPoint2.New(152)),
-                    "ambient Heat was not held at 0.8 x 190.");
+                // M3 (P19): the arm's lowest destruction line is Slash 210 since the Blunt and Heat rungs rose.
+                Assert.That(damage.GetAllDamage(ambientArm).GetTotal(), Is.EqualTo(FixedPoint2.New(168)),
+                    "ambient Heat was not held at 0.8 x 210.");
             });
         });
     }

@@ -89,6 +89,10 @@ public sealed partial class AmputationSystem : EntitySystem
             !TryComp(part, out DamageableComponent? damageable))
             return;
 
+        // WOLFGATE (M3): P27, a blast never takes the head unless wolfmed.blast_dismember_head is on.
+        if (args.IsExplosion && !_wfPart.BlastMaySever(part))
+            return;
+
         var damage = _damageable.GetAllDamage((part.Owner, damageable));
         if (args.ExplosionAmputationCandidate && TryExplosionAmputate(args.Body, part, args.Damage, damage)) // WOLFGATE: P3-D15
             return;

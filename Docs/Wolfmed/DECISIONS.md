@@ -1679,3 +1679,189 @@ stock low-oxygen icon.
 - M2 edited `WolfmedLifeSystem` (tissue loss cold factor, sepsis naming, routes, arrest memory, core restore),
   `WolfmedConsciousnessSystem` (the Downed actions call in `Apply`, the depth function, the pressure dead band) and
   `WolfmedSyntheticHudSystem` (one CORE RESTORED line after the core block).
+
+## M3 (2026-09-23)
+
+Consequences keep mattering. Plan: `WOLFMED_DEATH_PLAN.md` §12 M3, §8, §3.6, §3.7 "stumps" (P19), P23, P27, OD15 as the
+owner answered it (bands for crush internal bleed and electrical heart damage; sepsis is M2's).
+
+**What was built.**
+- **Organ reach (§8.1-3).** `WolfmedBodyPartComponent.OrganReach` (per damage type) on the torso (Piercing 10, Slash 18,
+  Blunt 30, Heat 20, Shock 15), the head (8, 15, 15, 20, 15) and, restated, the IPC torso (OD10: penetrating torso hits
+  reach the core). `WolfmedOrganThresholdSystem` (server, `_WF/Wolfmed/Body`) takes each hit's **Total** once: for every
+  type over its line, organ damage = (hit - line) × the organ's `damageMultipliers` entry × its `selectionWeight` share
+  of the working organs in the part × `wolfmed.organ_damage_scale`, capped at `wolfmed.organ_hit_cap` (5) per organ per
+  hit. No roll: `hitChance`, `maxDamageFraction` and the profile chances are left to Onyx's roll, which still runs for a
+  part without reach lines. The hand-off is one marked line in `OrganDamageSystem.OnPartDamageApplied` (inventory #13),
+  after M1b's `WolfmedPartHitSystem.OnHit`, reading `total` (the M1b note). No new subscription.
+- **A destroyed organ leaves the split.** An organ at 0 is skipped at once and is deleted a tick later, so the share
+  is always over the organs that still work. An eviscerated or shot-out chest sends the next hits into what is left.
+- **Graded bands (§8.5).** `WolfmedOrganComponent.ImpairedBelow` (0.5) and `Band` (OK / impaired / failed).
+  - Lungs: a breathing input, (0.5 - health fraction) / 0.5 × `wolfmed.lung_damage_factor` (1), into the same drain as
+    suffocation, hypoxia sub-source Lungs. Breathing reads `Laboured` ("short of breath"; examine and analyzer).
+  - Heart: `impairedRegenFactor` 0.5 halves blood regeneration (one marked line at the bloodstream's regeneration step,
+    `BloodstreamSystem` → `WolfmedLifeSystem.BloodRegenFactor`); a networked `PulseIrregular` for examine
+    ("has an irregular pulse") and the analyzer.
+  - Brain: below `wolfmed.consc_brain_down` (0.25) the new `injury` pressure (`wolfmed.injury_down_pressure` 0.75)
+    holds the patient Downed, cause Brain ("Downed: head injury"), never Unconscious. Examine: "has unequal pupils and
+    seems confused".
+  - IPC core: the same pressure from the brainless branch of the life tick under `wolfmed.consc_core_down` (0.25), cause
+    Core, never a shutdown by itself. HUD: "CORE INTEGRITY CRITICAL: MOBILITY LOST".
+  - The analyzer: an "Organs:" vitals line naming every impaired or failed organ with its effect ("lungs impaired
+    (short of breath); heart impaired (irregular pulse, blood slow to recover)"); the organ tab adds "impaired" or
+    "failed" after the health.
+- **Head blow (§3.6).** Blunt ≥ `wolfmed.head_knockout_blunt` (30) in one hit to the head (the whole hit, after armour)
+  knocks the patient out for `wolfmed.head_knockout_seconds` (5), cause HeadBlow, checked inside the organ hand-off. It
+  is a faint on M1a's machinery: `HeadBlowUntil`/`HeadBlowStart` beside the pain faint's fields, `WolfmedCauses.IsFaint`,
+  `InFaint` (the pod keeps a knocked-out occupant anaesthetised and raises no Critical alarm), the countdown alert and
+  "Coming round in N s", the analyzer's "FAINTED: head blow, N s", no heartbeat. A blow during the knockout never
+  lengthens it. Machines are never knocked out (OD9).
+- **OD15 bands.** Electrical: every hit's Shock (whole, after armour) over `wolfmed.electric_heart_from` (15) takes
+  `wolfmed.electric_heart_factor` (0.2) per point off the heart, on flesh only (the parts the internal burn forms on),
+  read off the broadcast `WolfmedPartDamageEvent`. The 35/50/75% rolls and their fields are gone; the spasm stays.
+  Crush: `WolfmedRuleCrushInternalBleed` fires on every Blunt hit of 40 or more (was 40% from 30), a `_WF` rule edit.
+  The lodged-round chances stay (flavour).
+- **Stumps (P19).** Marked YAML in `Body/Parts/base.yml`: `MajorLimb` Blunt 190 → 400, Heat 250 → 350; `MinorLimb`
+  Blunt 150 → 270, Heat 230 → 320. Each is 100 over the highest sever threshold of the limbs that share it (leg Blunt
+  300, arm/leg Heat 250, foot Blunt 170, foot Heat 220). And limbs now finish on Blunt 10
+  (`dismembermentFinishingDamage`, a separate limb anchor in `parts.yml`; the head keeps the host's 50), so a club
+  finishes a limb beaten past its threshold and it comes off with a bleeding stump.
+- **Barotrauma (P23).** Marked edit: on a wound host the pressure damage has no origin, so routing lands it on a part
+  by weight and M1b's ambient ceiling applies (`ClampToBodyCap`), not the victim's own doll pick.
+- **Blast head (P27).** One marked line at the top of `AmputationSystem.HandlePartDamageApplied`: an explosion hit on a
+  head does nothing there unless `wolfmed.blast_dismember_head` is on (`WolfmedBodyPartSystem.BlastMaySever`). That one
+  place covers both the Onyx per-part explosion roll and an ordinary finishing hit from a blast share.
+
+**Numbers.** `wolfmed.organ_damage_scale` 3.4, `organ_hit_cap` 5, `lung_damage_factor` 1, `consc_brain_down` 0.25,
+`consc_core_down` 0.25, `injury_down_pressure` 0.75, `head_knockout_seconds` 5, `head_knockout_blunt` 30,
+`electric_heart_factor` 0.2, `electric_heart_from` 15; organ `impairedBelow` 0.5, heart `impairedRegenFactor` 0.5;
+crush internal bleed from Blunt 40; limb rungs above; limb Blunt finishing 10.
+
+**Measured** (`WolfmedConsequencesTest`, the shipped values pinned).
+- **Calibration, rifle round (Piercing 14) to an unarmoured chest**, organ health after each hit (of 15):
+
+  | Hit | Lungs | Heart | Liver | Stomach | Kidneys |
+  |---|---|---|---|---|---|
+  | 1 | 13.12 | 14.06 | 13.44 | 14.27 | 14.34 |
+  | 4 | 7.48 (impaired) | 11.24 | 8.76 | 12.08 | 12.36 |
+  | 8 | 0 (failed) | 7.48 (impaired) | 2.52 | 9.16 | 9.72 |
+  | 10 | 0 | 4.68 | 0 | 6.98 | 7.74 |
+  | 12 | 0 | 0.06 | 0 | 3.40 | 4.48 |
+  | 13 | 0 | 0 (failed: arrest) | 0 | 1.61 | 2.85 |
+
+  Two bodies took identical damage hit for hit. A hit at the line (Piercing 10) reached nothing, and five rounds on a
+  torso already holding its 250 did exactly what they did to a fresh one. In play the chest's other routes arrive
+  first: destroyed lungs are real suffocation (hit 8), and each destroyed organ leaves its internal bleed.
+- **Head:** a rifle round is (14 - 8) × 0.42 × the brain's 77% share × 3.4 = 6.6, capped at 5, so three rounds to the
+  head destroy the brain (catastrophic brain injury), and the Downed rung (under 25%) is passed over. A Blunt-30 blow
+  takes 4.5 off the brain and knocks out; four such blows destroy it.
+- **IPC:** the core (54% of the chassis torso's organ weight) takes 3.08 a rifle round: under 25% (Downed, cause Core)
+  on hit 4, core failure on hit 5, with the pump at 2.5 of 15.
+- **Lungs at 30%:** breathing level 0.40; Downed (hypoxia, source Lungs) at 206 s and Unconscious at 247 s in station
+  air (derived 207 and 248).
+- **Head blow:** the patient was up again 5.8 s after a Blunt-30 blow, measured at half-second polls, with a second
+  heavy blow 2 s in; a Blunt-29 blow knocked nobody out.
+- **Heart impaired (40%):** 3 u of blood regenerated in 20 s against 6 u for a healthy heart.
+- **Electrical:** Shock 35 to an arm took exactly 4 off the heart on three bodies; Shock 15 took nothing.
+- **Stumps:** a bat (Blunt 15) took the arm off on hit 18 at 270 stored (sever 250, destruction 400), the leg on hit
+  21 at 315 (300 / 400), the hand on hit 11 at 165 (150 / 270), the foot on hit 13 at 195 (170 / 270); a laser (Heat
+  16) took the other arm off on hit 17 at 272 (250 / 350). Each left a bleeding stump on its parent.
+- **Barotrauma:** 84 vacuum ticks on a body whose doll was on the left arm landed on all 10 parts, the left arm 7 to
+  12 times and the torso 17 to 23 (three runs).
+
+**Differs from the plan, and why.**
+- **Scale 3.4, not 4.** The plan derived its calibration (lungs impaired after about 4 rifle rounds, heart failing
+  after 13-14) with every organ's share fixed. Here a destroyed organ leaves the split, so the survivors take more:
+  at 4 the heart failed on the 11th round, outside the test's 12-16. 3.4 gives lungs impaired on hit 4 and the heart
+  failing on hit 13, each one hit inside its band. Keeping destroyed organs in the split would have needed their
+  weights remembered after deletion; the concentrating rule is also the one that makes an eviscerated or shot-out
+  chest dangerous.
+- **The head blow uses M1a's faint machinery** (the orchestrator's instruction, which replaces the brief's "its own
+  pressure/timer"): its own `HeadBlowUntil`/`HeadBlowStart` beside the pain faint's fields, and every faint reader
+  (`IsFaint`, `InFaint`, the countdown, the timed help, the analyzer) covers it. The pain faint's re-arm, cooldown and
+  painkiller rules do not apply: a concussion is not ended by an opiate, and the knockout never lengthens.
+- **The timed faint text is prototype data** (`helpOutTimed`); playtest 2 had the pain faint's key hard-coded in the
+  condition alert system.
+- **Blast head veto in `AmputationSystem`, through `WolfmedBodyPartSystem`, not `WolfmedExplosionSystem`.** Confirmed:
+  Onyx's per-part explosion roll raises no event `_WF` can cancel (inventory #15's "to confirm"). The candidate pick in
+  `WoundDamageRoutingSystem` is not the only way a blast severs a head (a blast share can also be an ordinary finishing
+  hit on a severable head), and `HandlePartDamageApplied` sees both. `AmputationSystem` is shared, so the check lives in
+  the shared `WolfmedBodyPartSystem` rather than the server-only explosion system.
+- **The regeneration seam (inventory #16) lands in M3, not M5.** The impaired heart halves blood regeneration, which
+  needs exactly the line M5's radiation marrow route needs. `WolfmedLifeSystem.BloodRegenFactor` is the `_WF` end; M5
+  multiplies its own factor in there.
+- **Liver clearance and IPC pump cooling bands are not built.** Neither route exists yet: toxin clearance is M5 (which
+  the plan says reads "the liver band") and chassis cooling is M4's core-heat route. `WolfmedOrganComponent.Band` and
+  `ImpairedBelow` are what they read; the factor fields (`impairedClearanceFactor`, `impairedCoolingFactor`) belong
+  with their consumers, so no inert tunable ships.
+- **Electrical band per hit, on `WolfmedPartDamageEvent`.** The old roll answered the internal burn's lifecycle, which
+  does not carry the hit's Shock. The band reads the broadcast per-hit seam on flesh parts (the parts the internal burn
+  can form on). The heart slot is a constant; the behaviour's `organDamageChance`/`organDamage`/`organSlot` are removed.
+- **Blunt finishing 10 on limbs.** The plan raises the destruction rungs; alone that leaves clubs (10-20 Blunt) unable
+  to finish a severable limb against Onyx's Blunt 50, so they would pound on to the new rung and still destroy it. The
+  head keeps 50 (its own anchor).
+- **The ambient ceilings follow the rungs.** M1b's per-part ceiling is 0.8 × the lowest Destructible trigger, which is
+  now Slash (210 limbs, 180 hands and feet): arm and leg 168 (was 152), hand and foot 144 (was 120), head 400 as before.
+  Fire still cannot destroy or sever a limb (Heat 168 of a 250 sever threshold, 350 destruction).
+- **Diona limbs** (never severable, `amputationThresholds: {}`) now need Blunt 400 / Heat 350 / Slash 210 to be
+  destroyed, like any organic limb.
+- **IPC parts** keep their own Destructible (Blunt 190, Slash 210, no ash; `PartIPCBase`), so an IPC limb is still
+  destroyed rather than severed by Blunt: P19 is about bleeding stumps and the plan's edit is to `Body/Parts/base.yml`.
+- **The pod closes up after a cut-short procedure** (below). Not in the plan; the test that exposed it is red otherwise.
+- **New analyzer, examine and HUD text** the plan names only as effects: the "Organs:" vitals line, "impaired"/"failed"
+  in the organ tab, "has an irregular pulse", "has unequal pupils and seems confused", Breathing "laboured: lungs
+  damaged", the HUD's "CORE INTEGRITY CRITICAL: MOBILITY LOST" (a fixed line; the HUD line takes no word).
+
+**Test migration.**
+- `WolfmedOrganTest`: the T-ORG-CAP torso declares an empty `organReach`, since Onyx's roll runs only on a part
+  without reach lines; new `OrganDamageFollowsTheReachLineTest` (the line, the formula, the per-hit cap).
+- `WolfmedBluntWoundTest.CrushCanBleedInternallyTest`: the band, every Blunt 40 torso blow bleeds inside and no Blunt 35
+  crush does, instead of "at least one in 24 at 40%".
+- `WolfmedBurnWoundTest.ShockBurnsInsideAndSpasmsTest`: the heart has already lost the band (at least 5) to the Shock-40
+  hit; no roll to drive by hand.
+- `WolfmedAmputationTest`: comments only (the new rungs; limbs finish on Blunt 10). No assertion moved.
+- `WolfmedExplosionTest`: unchanged. `BlastHeadTest` covers the veto.
+- The M1b ceiling tests follow the new rungs: `AmbientCeilingTest` (an arm holds 168, not 152; the crossing tick starts
+  at 166, not 150; the admin command destroys a limb with Blunt 410, over the 400 rung), `DamageCommandPassesTheAmbientCeilingTest`
+  (168), `DionaLimbIsDestroyedNotSeveredTest` (Slash 215 over the unchanged Slash rung, instead of Blunt 195), comments
+  in `WolfmedPlaytestTwoTest` and `WolfmedSpeciesSpawnTest`.
+- `WolfmedPlaytestFixesTest.AutofixRunsOnceAndThenOnlyForSomethingNewTest`: no change to the test; the pod fix below.
+- Tests whose head blow is now a knockout: `PainShockNoArrestTest` and `WolfmedPainTest.PainShockStunsAtThresholdTest`
+  put their second Blunt 40 / 60 on an arm instead of the head (a knocked-out body is Critical and takes no stun), and
+  `DamageTotalsNeverCritAWoundHostTest` aims its 250 and 350 Blunt at the torso (routed to a random part, it could land
+  on the head and knock the patient out, which is the blow's doing, not a damage total's).
+- `WolfmedBluntWoundTest.ConcussionFadesOnlyWithTimeTest`: its Blunt-25 head hit now also takes 3 off the brain, and
+  a brain under 90% slurs on its own; the test puts the brain back to full so it still reads the wound's stages alone.
+- `WolfmedCrawlingActionsTest.CallForHelpTest`: station air, and the call waits 3 s after the fall. Going Downed stuns
+  for about 2 s, and a stun stutters (a Goob edit to `TryStun`), which mangled "airlock" in the shouted line at
+  random: the test passed alone at the base and failed alone on M3, whose extra random draws (barotrauma's part pick)
+  moved the stutter onto the word.
+
+**Found on the way, and fixed: the pod left incisions open.** `AutofixRunsOnceAndThenOnlyForSomethingNewTest` (Blunt 60
+on an arm) failed about half its runs before M3 (M1a D traced it to the crush rule's 40% internal bleed). The band makes
+the bleed certain, so it failed every run, which let it be traced. Every wound surgery ends with a seal step that closes
+the incision its requirement opened, but when the problem it treats goes away before that step (the internal bleed
+stopped, the bone mended, the tissue repaired) the surgery stops being valid, the pod completes it without the seal,
+and the incision stays open. The next procedure on the part then found the open incision as its bleeding wound and
+stalled on it, and the run ended with the arm open. Now a procedure cut short that way queues `SurgeryCloseIncision`
+straight after itself (`AutodocSystem.FinishStep`, the same `TryQueueClosure` an abandoned procedure uses). The test
+passes alone and in the full run. A closure the pod adds this way (or after an abandoned procedure) is marked a
+continuation (`AutodocQueued.Continuation`) and takes no fresh anaesthetic: the pod tops up at every procedure while
+the relief has under 20 s left, so two extra closures pushed a third dose in `LongQueueDosesOnceAndWakesThePatientTest`
+(45 u against its 30).
+
+**Found, not changed.** `SurgeryStopBleeding` on a bleeding crush wound still stalls after three clamps: the stall guard
+compares severities, not bleed rates, so a clamp that is lowering the rate reads as no progress. The pod abandons it,
+closes up and goes on; the wound is later repaired by tending. Worth a look with the autodoc.
+
+**For the owner's playtest.** Three rifle rounds to the head are catastrophic brain injury, and five to an IPC's torso
+are core failure. Both follow from the plan's reach lines and the calibration scale; if either is too quick, the head's
+and the IPC torso's `organReach` (data in `parts.yml` and `species_parts.yml`) or `wolfmed.organ_hit_cap` are the knobs.
+
+**Tests.** Final full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`): 439 total, 433 passed, 0 failed,
+6 skipped (dirty-disposed: `SlipOpensOneSmallWoundTest`, `CutClothingUnblocksTheProcedureTest`,
+`VisualStateFollowsTheLidTest`, `PodChargesAgainAfterAFailedShockTest`, `AutofixStopsReplanningABodyItIsNotChangingTest`,
+`FaintedOccupantIsAnaesthetisedTest`); each skipped test passes alone. Two tests failed once each in earlier full runs
+and pass alone and in the final run: `OxygenScenarioTest` (M1b saw the same) and `HeartbeatTracksLocalPlayerCritTest`.
+Mid-session another worktree rebuilt the shared RobustToolbox, and a run failed to load types until this project was
+rebuilt; the final run is on a fresh build.

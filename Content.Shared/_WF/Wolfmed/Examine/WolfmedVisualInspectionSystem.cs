@@ -216,6 +216,23 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         // M2 (plan §5.5, §5.3): responsiveness, blue lips and the pupils close up; playing dead at any range.
         lines += AddM2Signs(examined, report, identity, self, detailed, machine, arrested, vitals);
 
+        // M3 (plan §3.6, §8): what organ damage shows a hand on the neck and a penlight. An impaired heart beats
+        // irregularly; a brain holding the patient down leaves unequal pupils.
+        if (!machine && detailed && !arrested && vitals is { PulseIrregular: true })
+        {
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-pulse-irregular-self" : "wolfmed-look-pulse-irregular-other",
+                ("target", identity)));
+            lines++;
+        }
+
+        if (!machine && detailed && vitals != null &&
+            (vitals.Cause == WolfmedCause.Brain || (vitals.Blockers & WolfmedCauseFlags.Brain) != 0))
+        {
+            report.Notes.Add(Loc.GetString(self ? "wolfmed-look-unequal-pupils-self" : "wolfmed-look-unequal-pupils-other",
+                ("target", identity)));
+            lines++;
+        }
+
         if (lines == 0)
         {
             // Nothing shown at all reads differently when there was something and the clothing took it.
@@ -338,6 +355,7 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
             WolfmedBreathing.None => "wolfmed-look-not-breathing",
             WolfmedBreathing.Gasping => "wolfmed-look-gasping",
             WolfmedBreathing.Depressed => "wolfmed-look-breathing-slow",
+            WolfmedBreathing.Laboured => "wolfmed-look-short-of-breath", // M3: damaged lungs
             _ => null,
         };
     }

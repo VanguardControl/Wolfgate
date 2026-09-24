@@ -4698,6 +4698,18 @@ Marked upstream, Onyx and vendored edits:
 
 Not needed: inventory #10 (`ElectrocutionSystem`): the electrocuted event already carries the post-insulation coefficient.
 
+## M3 (2026-09-23)
+
+Marked upstream and Onyx edits:
+
+| File:line | Kind | Reason |
+|---|---|---|
+| `Content.Server/_Onyx/Wounds/OrganDamageSystem.cs:28, 46-49` | Onyx | WOLFGATE (M3): inventory #13. A part with reach lines hands the hit's Total to `WolfmedOrganThresholdSystem.HandleHit` (deterministic organ split, head blow) and skips Onyx's roll; parts without reach lines keep the roll. |
+| `Content.Shared/_Onyx/Wounds/AmputationSystem.cs:92-94` | Onyx | WOLFGATE (M3): inventory #15, P27. An explosion hit on a head does nothing in `HandlePartDamageApplied` unless `wolfmed.blast_dismember_head` is on (`WolfmedBodyPartSystem.BlastMaySever`): covers Onyx's explosion roll and a blast's finishing hit. |
+| `Content.Server/Atmos/EntitySystems/BarotraumaSystem.cs:243-245, 266, 282` | upstream | WOLFGATE (M3): inventory #14, P23. A wound host's pressure damage has no origin: a part by weight, under the ambient per-part ceiling. |
+| `Content.Server/Body/Systems/BloodstreamSystem.cs:47, 131-132` | upstream | WOLFGATE (M3): blood regeneration × `WolfmedLifeSystem.BloodRegenFactor` (an impaired heart halves it). This is inventory #16's line, which the plan gives to M5 (radiation stops regeneration); M5 extends the same method. |
+| `Resources/Prototypes/Body/Parts/base.yml:285, 297, 320, 332` | upstream YAML | WOLFGATE (M3): P19. `MajorLimb` Blunt 190 → 400, Heat 250 → 350; `MinorLimb` Blunt 150 → 270, Heat 230 → 320: above every limb's sever threshold, so a limb comes off with a stump before it can be destroyed. |
+
 Files:
 
 | File | Change | Why |
@@ -4738,3 +4750,33 @@ Files:
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | The sedation model and naloxone. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs`, `WolfmedMedicInfoTest.cs` | new | The M2 acceptance tests. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs`, `WolfmedBrainTest.cs`, `WolfmedDyingLevelTest.cs`, `WolfmedLocaleCoverageTest.cs`, `WolfmedTreatmentRestrictionTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs`, `Scenarios/WolfmedMedicLinesTest.cs` | modified | Test migration (DECISIONS M2); locale coverage for the route and restart families; the suture test's bruise can no longer roll a bleed. |
+
+| `Content.Server/_WF/Wolfmed/Body/WolfmedOrganThresholdSystem.cs` | new | Organ reach and split (plan §8), the head blow (§3.6); `Observer` test seam. |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartComponent.cs` | modified | `OrganReach`. |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedOrganComponent.cs` | modified | `ImpairedBelow`, `ImpairedRegenFactor`, `Band`, `Fraction`; `WolfmedOrganBand`. |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartSystem.cs` | modified | `BlastMaySever` (P27). |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessCause.cs` | modified | Causes `HeadBlow` 12, `Brain` 13, `Core` 14 (flags, tie order); `IsFaint` covers the head blow; prototype field `helpOutTimed`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | `HeadBlowUntil`, `HeadBlowStart`; networked `PulseIrregular`. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | `StartHeadBlow`, the head-blow faint input; `injury` pressure → Brain or Core; `InFaint` and `GetFaintWindow` cover the head blow. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConditionAlertSystem.cs` | modified | The faint countdown and timed help for any faint cause, the timed text from the cause prototype. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `InjuryPressure` (brain in `UpdatePressures`, core in the brainless branch); the lung input in `DrainRate`; `BloodRegenFactor`; `HeartImpaired` and `PulseIrregular` in `UpdateVitalSigns`. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedBreathingSystem.cs` | modified | `LungDamageLevel`; `Assess` reads Laboured / LungsDamaged. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalSigns.cs` | modified | `WolfmedBreathing.Laboured`, `WolfmedBreathingSource.LungsDamaged`. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs`, `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | modified | "Breathing: laboured"; the "Organs:" line (`WolfmedOrganReading`); the blood trend counts the regeneration factor. |
+| `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | The organ tab says "impaired" or "failed" after the health. |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | "short of breath", "has an irregular pulse", "has unequal pupils and seems confused". |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedElectricalBurnSystem.cs` | modified | OD15 electrical band on `WolfmedPartDamageEvent`; the roll is gone. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `WolfmedElectricalShockBehavior` loses its roll fields (`organDamageChance`, `organDamage`, `organSlot`). |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M3 block at the end; the ambient-ceiling doc names the new ceilings. |
+| `Resources/Prototypes/_WF/Wolfmed/Body/parts.yml`, `species_parts.yml` | modified | `organReach` on torso, head, IPC torso; limbs finish on Blunt 10. |
+| `Resources/Prototypes/_WF/Wolfmed/Body/organs.yml` | modified | Heart `impairedRegenFactor` 0.5; the header notes what the roll fields still do. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/wound_rules.yml` | modified | OD15: the crush internal bleed at Blunt 40, no chance. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | The internal burn's roll fields go. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml` | modified | `helpOutTimed` on PainFaint. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/organ_causes.yml`, `Alerts/organ_alerts.yml` | new | HeadBlow, Brain, Core causes and alerts. |
+| `Resources/Locale/en-US/_WF/wolfmed/organs.ftl` | new | Every M3 string. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedConsequencesTest.cs` | new | `OrganCalibrationTest`, `LungRouteTest`, `BrainInjuryInputTest`, `IpcCoreInputTest`, `ElectricalHeartBandTest`, `CrushInternalBleedBandTest`, `StumpTest`, `BarotraumaPartTest`, `BlastHeadTest`, `HeartBandTest`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs`, `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | A procedure cut short before its seal step queues `SurgeryCloseIncision` after itself (`TryQueueClosure` takes an index); the pod's own closures are `AutodocQueued.Continuation` and take no fresh anaesthetic. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | modified | `CallForHelpTest` waits out the fall's stutter, in station air. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`, `WolfmedPainTest.cs`, `WolfmedConsciousnessTest.cs` | modified | Head hits that are now knockouts moved to an arm or aimed at the torso. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`, `WolfmedBluntWoundTest.cs`, `WolfmedBurnWoundTest.cs`, `WolfmedAmputationTest.cs`, `WolfmedDamageCommandTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `Scenarios/WolfmedBurnScenarioTest.cs`, `Scenarios/WolfmedPlaytestTwoTest.cs` | modified | Test migration (DECISIONS M3). |

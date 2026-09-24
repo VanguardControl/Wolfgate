@@ -16,6 +16,9 @@ public enum WolfmedBreathing : byte
 
     /// <summary>Not breathing at all: arrest, death, no brain, or no lungs.</summary>
     None = 3,
+
+    /// <summary>M3: breathing, but damaged lungs cannot keep up (plan §3.3). "Short of breath".</summary>
+    Laboured = 4,
 }
 
 /// <summary>Why breathing is not <see cref="WolfmedBreathing.Normal"/>.</summary>
@@ -38,6 +41,9 @@ public enum WolfmedBreathingSource : byte
     NoBrain = 5,
 
     Dead = 6,
+
+    /// <summary>M3: the lungs are there but under their impaired line.</summary>
+    LungsDamaged = 7,
 }
 
 /// <summary>Circulation in the words a medic uses, from blood volume. Set by the server's life tick.</summary>

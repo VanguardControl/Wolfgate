@@ -222,11 +222,11 @@ public sealed class WolfmedAmputationTest : GameTest
             // WOLFGATE: every accumulation below deliberately stays under Shitmed's own `Destructible`
             // GibPartBehavior triggers, which fire from DamageChangedEvent (i.e. before AmputationSystem
             // ever sees the hit) and would DESTROY the limb instead of amputating it:
-            // `MinorLimb` hands/feet Blunt 150 / Slash 180 / Heat 230, `MajorLimb` arms/legs Blunt 190 /
-            // Slash 210 / Heat 250 (Resources/Prototypes/Body/Parts/base.yml:276-338). Piercing has no
-            // trigger at all. The two tight cases are the Heat hand (peaks at 224 against 230) and the
-            // Slash arm (peaks at 192 against 210); every detached part is asserted alive below, which is
-            // what distinguishes an amputation from a gib.
+            // `MinorLimb` hands/feet Blunt 270 / Slash 180 / Heat 320, `MajorLimb` arms/legs Blunt 400 /
+            // Slash 210 / Heat 350 (Resources/Prototypes/Body/Parts/base.yml; M3 raised Blunt and Heat above
+            // every sever threshold, P19). Piercing has no trigger at all. The tight case is the Slash arm
+            // (peaks at 192 against 210); every detached part is asserted alive below, which is what
+            // distinguishes an amputation from a gib.
 
             // --- BaseBullet: Piercing 14 (projectiles.yml). Hand Piercing threshold 200, per-part
             // dismembermentFinishingDamage Piercing 12 (parts.yml, DECISIONS §8.6-1: lowered from Onyx's
@@ -299,9 +299,9 @@ public sealed class WolfmedAmputationTest : GameTest
                     "three laser shots must not take a foot off; the threshold is 220 Heat.");
             });
 
-            // --- The melee case is UNCHANGED by DECISIONS §8.6-1: Slash and Blunt are deliberately absent
-            // from the per-part dismembermentFinishingDamage dict, so they still fall back to Onyx's host
-            // defaults (Slash 15 / Blunt 50). Machete/large-melee baseline is Slash 32 (sword.yml); the arm
+            // --- The melee case is UNCHANGED by DECISIONS §8.6-1: Slash is deliberately absent from the
+            // per-part dismembermentFinishingDamage dict, so it still falls back to Onyx's host default (15).
+            // (M3 added Blunt 10 on limbs, P19; see StumpTest.) Machete/large-melee baseline is Slash 32 (sword.yml); the arm
             // Slash threshold is 130, so PLAN3 §8.2's table predicts ceil(130/32) + 1 = 6 hits.
             var leftArmWoundable = entities.GetComponent<WoundableComponent>(leftArm);
             for (var i = 0; i < 4; i++)
@@ -356,13 +356,12 @@ public sealed class WolfmedAmputationTest : GameTest
             // can still be attached well past its threshold for the AmputationOverflow assertion to mean
             // anything (once detached, bodyPart.Body == null short-circuits HandlePartDamageApplied).
             //
-            // WOLFGATE: the HEAD is used rather than PLAN3's arm because of a limit PLAN3 did not account
-            // for - Shitmed's own `Destructible` GIBS a limb well before its Blunt amputation threshold is
-            // reachable. `MajorLimb` (arms, legs) gibs at Blunt 190 while the arm's Blunt amputation
-            // threshold is 250, and `MinorLimb` (hands, feet) gibs at Blunt 150 against thresholds of
-            // 150/170 (Resources/Prototypes/Body/Parts/base.yml:276-330). `BaseHead`'s own thresholds are
-            // Blunt 500 / Slash 600 / Heat 700 (:105-122), so the head is the only part on which a Blunt
-            // amputation is reachable at all: threshold 350, and this test peaks at 450.
+            // WOLFGATE: the HEAD is used rather than PLAN3's arm because, when this was written, Shitmed's own
+            // `Destructible` gibbed a limb before its Blunt amputation threshold was reachable (arm Blunt 190
+            // against a threshold of 250). M3 (P19) raised the limb rungs above severing, and limbs now finish
+            // on Blunt 10, so a limb would come off on the first chunk past its threshold; the head keeps the
+            // host's Blunt 50 minimum, which is what this test needs. `BaseHead`'s own thresholds are Blunt
+            // 500 / Slash 600 / Heat 700, and the head's Blunt amputation threshold is 350; this test peaks at 450.
             for (var i = 1; i <= 16; i++)
             {
                 Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 25), attacker));

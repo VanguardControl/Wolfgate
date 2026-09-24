@@ -1,0 +1,125 @@
+using Content.Server._WF.Wolfmed.Consciousness;
+using Content.Shared._Onyx.Body;
+using Content.Shared._Onyx.Body.Systems;
+using Content.Shared._WF.Wolfmed.Body;
+using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.Damage;
+using Content.Shared.FixedPoint;
+using Robust.Shared.Configuration;
+
+namespace Content.Server._WF.Wolfmed.Body;
+
+/// <summary>
+/// M3 (plan §8): organ damage by the size of the hit, not by a roll. A hit whose damage after armour exceeds its
+/// part's reach line for a type reaches the organs inside, and the excess is split across the working organs by
+/// weight: (hit - line) × the organ's multiplier for the type × its weight share × <c>wolfmed.organ_damage_scale</c>,
+/// capped per organ per hit. A destroyed organ leaves the split, so the organs left take more. Also the heavy
+/// head blow (plan §3.6).
+/// </summary>
+/// <remarks>
+/// Called once per hit, with the hit's Total, from the one marked line in Onyx's
+/// <c>OrganDamageSystem.OnPartDamageApplied</c>; a part without reach lines keeps Onyx's roll. No subscription of
+/// its own.
+/// </remarks>
+public sealed class WolfmedOrganThresholdSystem : EntitySystem
+{
+    [Dependency] private IConfigurationManager _config = default!;
+    [Dependency] private OrganHealthSystem _organHealth = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+
+    private const string Blunt = "Blunt";
+
+    /// <summary>Test seam: every organ a hit reached, with the health it took.</summary>
+    public Action<EntityUid, FixedPoint2>? Observer;
+
+    /// <summary>
+    /// One hit on a part. Returns false when the part has no reach lines, which leaves it to Onyx's roll; true
+    /// when this system owns the part's organ damage, whether or not the hit reached anything.
+    /// </summary>
+    public bool HandleHit(EntityUid part, DamageSpecifier total)
+    {
+        if (!TryComp(part, out WolfmedBodyPartComponent? data) || data.OrganReach.Count == 0)
+            return false;
+
+        if (TerminatingOrDeleted(part) || !TryComp(part, out BodyPartComponent? bodyPart) ||
+            bodyPart.Body is not { } body)
+            return true;
+
+        DamageOrgans(part, data, total);
+
+        if (bodyPart.PartType == BodyPartType.Head)
+            TryHeadBlow(body, total);
+
+        return true;
+    }
+
+    /// <summary>What each reach line leaves over, per damage type. Empty when the hit reached nothing.</summary>
+    public Dictionary<string, float> GetExcess(WolfmedBodyPartComponent data, DamageSpecifier total)
+    {
+        var excess = new Dictionary<string, float>();
+        foreach (var (type, line) in data.OrganReach)
+        {
+            var amount = total.DamageDict.GetValueOrDefault(type);
+            if (amount > line)
+                excess[type] = (amount - line).Float();
+        }
+
+        return excess;
+    }
+
+    private void DamageOrgans(EntityUid part, WolfmedBodyPartComponent data, DamageSpecifier total)
+    {
+        var excess = GetExcess(data, total);
+        if (excess.Count == 0)
+            return;
+
+        var organs = new List<(EntityUid Id, WolfmedOrganComponent Health, OrganDamageComponent Policy)>();
+        var weight = 0f;
+        foreach (var (organ, _) in _body.GetPartOrgans(part))
+        {
+            if (!TryComp(organ, out WolfmedOrganComponent? health) || health.Health <= FixedPoint2.Zero ||
+                !TryComp(organ, out OrganDamageComponent? policy))
+                continue;
+
+            organs.Add((organ, health, policy));
+            weight += MathF.Max(0f, policy.SelectionWeight);
+        }
+
+        if (organs.Count == 0 || weight <= 0f)
+            return;
+
+        var scale = MathF.Max(0f, _config.GetCVar(WolfmedCVars.OrganDamageScale));
+        var cap = _config.GetCVar(WolfmedCVars.OrganHitCap);
+        foreach (var (organ, health, policy) in organs)
+        {
+            var share = MathF.Max(0f, policy.SelectionWeight) / weight;
+            var sum = 0f;
+            foreach (var (type, over) in excess)
+                sum += over * MathF.Max(0f, policy.DamageMultipliers.GetValueOrDefault(type));
+
+            var damage = sum * share * scale;
+            if (cap > 0f)
+                damage = MathF.Min(damage, cap);
+
+            var applied = FixedPoint2.New(damage);
+            if (applied <= FixedPoint2.Zero)
+                continue;
+
+            _organHealth.ChangeHealth((organ, health), -applied);
+            Observer?.Invoke(organ, applied);
+        }
+    }
+
+    /// <summary>A heavy enough blow to the head knocks the patient out for a few seconds (plan §3.6).</summary>
+    private void TryHeadBlow(EntityUid body, DamageSpecifier total)
+    {
+        var line = _config.GetCVar(WolfmedCVars.HeadKnockoutBlunt);
+        if (line <= 0f || total.DamageDict.GetValueOrDefault(Blunt).Float() < line)
+            return;
+
+        _consciousness.StartHeadBlow(body);
+    }
+}

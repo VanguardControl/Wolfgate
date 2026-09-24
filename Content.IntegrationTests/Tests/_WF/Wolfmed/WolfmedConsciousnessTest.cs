@@ -113,7 +113,10 @@ public sealed class WolfmedConsciousnessTest : GameTest
             // Numb, so pain contributes nothing and damage is the only thing left that could do it.
             entities.EnsureComponent<PainNumbnessComponent>(body);
 
-            damage.TryChangeDamage(body, Spec("Blunt", 250), ignoreResistances: true);
+            // M3: on the torso. Routed to a random part, a hit this size on the head is a knockout (plan §3.6),
+            // which is a consequence of the blow, not of a damage total.
+            var torso = Content.Shared._Shitmed.Targeting.TargetBodyPart.Torso;
+            damage.TryChangeDamage(body, Spec("Blunt", 250), ignoreResistances: true, targetPart: torso);
             Assert.That(mobState.IsAlive(body), Is.True,
                 "250 Blunt crit a wound host: the MobThresholdSystem gate is not holding.");
             Assert.That(mobState.IsCritical(body), Is.False);
@@ -121,7 +124,7 @@ public sealed class WolfmedConsciousnessTest : GameTest
 
             // 600 in all, well past the old dead threshold. M1b: no body-wide cap on the living any more; the
             // per-part ceiling applies to damage nobody dealt, and none of it decides the state either.
-            damage.TryChangeDamage(body, Spec("Blunt", 350), ignoreResistances: true);
+            damage.TryChangeDamage(body, Spec("Blunt", 350), ignoreResistances: true, targetPart: torso);
             Assert.That(mobState.IsAlive(body), Is.True);
             Assert.That(mobState.IsDead(body), Is.False);
 

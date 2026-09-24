@@ -45,6 +45,12 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// <summary>Pressure key for a brain running out of oxygen while the heart still beats.</summary>
     public const string HypoxiaPressure = "hypoxia";
 
+    /// <summary>
+    /// M3: pressure key for a brain (organic, cause Brain) or positronic core (machine, cause Core) under its
+    /// Downed line (plan §3.6). Downs, never knocks out.
+    /// </summary>
+    public const string InjuryPressure = "injury";
+
     /// <summary>Blood still moving under a rescuer's hands, as a fraction, while CPR is in progress.</summary>
     private const float CprCirculation = 0.5f;
 
@@ -242,6 +248,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
             // without it a chassis with its pump back would stay arrested until a defibrillator found it.
             TryEndHeartArrest(body);
             _consciousness.SetExternalPressure(body, HypoxiaPressure, 0f);
+            // M3: a chassis's positronic core under its line holds it Downed, cause Core (plan §3.6).
+            UpdateInjury(body, WolfmedCVars.ConsciousnessCoreDown);
             UpdateVitalSigns(body);
             UpdateCoreRestored(body); // M2
             return;
@@ -379,12 +387,14 @@ public sealed class WolfmedLifeSystem : EntitySystem
         {
             var suffocation = BreathingLevel(body);
             var depression = _relief.GetRespiratoryDepression(body);
-            var breath = Math.Clamp(MathF.Max(suffocation, depression), 0f, 1f);
+            var lungs = LungDamageLevel(body); // M3: damaged lungs (plan §3.3)
+            var breath = Math.Clamp(MathF.Max(MathF.Max(suffocation, depression), lungs), 0f, 1f);
             var rate = breath * Per(_cfg.GetCVar(WolfmedCVars.BrainAirlossSeconds));
             if (rate > worst)
             {
                 worst = rate;
-                source = depression > suffocation ? WolfmedCauseSource.Sedation
+                source = lungs > suffocation && lungs >= depression ? WolfmedCauseSource.Lungs
+                    : depression > suffocation ? WolfmedCauseSource.Sedation
                     : _breathing.Assess(body).Source == WolfmedBreathingSource.Lungs ? WolfmedCauseSource.Lungs
                     : WolfmedCauseSource.Airway;
             }
@@ -587,6 +597,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         }
 
         _consciousness.SetExternalPressure(body, HypoxiaPressure, level);
+        UpdateInjury(body, WolfmedCVars.ConsciousnessBrainDown); // M3: brain injury (plan §3.6)
 
         if (TryComp(body, out WolfmedConsciousnessComponent? consciousness) &&
             MathF.Abs(consciousness.Oxygenation - brain.Comp.Oxygenation) >= 0.005f)
@@ -594,6 +605,42 @@ public sealed class WolfmedLifeSystem : EntitySystem
             consciousness.Oxygenation = brain.Comp.Oxygenation;
             Dirty(body, consciousness);
         }
+    }
+
+    /// <summary>
+    /// M3 (plan §3.6): a brain, or a chassis's positronic core, under its Downed line writes the injury pressure.
+    /// It Downs and never knocks out, and nothing heals an organ on its own, so it holds until surgery.
+    /// </summary>
+    private void UpdateInjury(EntityUid body, CVarDef<float> line)
+    {
+        var level = 0f;
+        if (!_mobState.IsDead(body) && GetBrainOrgan(body) is { } organ && organ.Comp.Health > FixedPoint2.Zero &&
+            organ.Comp.Fraction < _cfg.GetCVar(line))
+            level = Math.Clamp(_cfg.GetCVar(WolfmedCVars.InjuryDownPressure), 0f, 1f);
+
+        _consciousness.SetExternalPressure(body, InjuryPressure, level);
+    }
+
+    /// <summary>M3 (plan §3.3): damaged lungs as a breathing input, 0 to 1. See <see cref="WolfmedBreathingSystem.LungDamageLevel"/>.</summary>
+    public float LungDamageLevel(EntityUid body) => _breathing.LungDamageLevel(body);
+
+    /// <summary>
+    /// M3 (plan §8): blood regeneration multiplier from the organs, the heart's impaired band (× its
+    /// <c>impairedRegenFactor</c>). The bloodstream's one marked line asks it every regeneration step.
+    /// </summary>
+    public float BloodRegenFactor(EntityUid body)
+    {
+        if (!OwnsDeath(body))
+            return 1f;
+
+        var factor = 1f;
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (TryComp(organ, out WolfmedOrganComponent? health) && health.Band == WolfmedOrganBand.Impaired)
+                factor *= Math.Clamp(health.ImpairedRegenFactor, 0f, 1f);
+        }
+
+        return factor;
     }
 
     /// <summary>
@@ -607,14 +654,29 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
         var (breathing, source) = _breathing.Assess(body);
         var band = GetBloodBand(body);
+        var irregular = band != WolfmedBloodBand.None && HeartImpaired(body); // M3
         if (consciousness.Breathing == breathing && consciousness.BreathingSource == source &&
-            consciousness.BloodBand == band)
+            consciousness.BloodBand == band && consciousness.PulseIrregular == irregular)
             return;
 
         consciousness.Breathing = breathing;
         consciousness.BreathingSource = source;
         consciousness.BloodBand = band;
+        consciousness.PulseIrregular = irregular;
         Dirty(body, consciousness);
+    }
+
+    /// <summary>M3 (plan §8): a heart under its impaired line, still beating.</summary>
+    public bool HeartImpaired(EntityUid body)
+    {
+        foreach (var (organ, _) in _body.GetBodyOrgans(body))
+        {
+            if (HasComp<HeartComponent>(organ) && TryComp(organ, out WolfmedOrganComponent? health) &&
+                health.Band == WolfmedOrganBand.Impaired)
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Blood volume in a medic's words. The lines are consciousness's own Downed and Unconscious ones.</summary>

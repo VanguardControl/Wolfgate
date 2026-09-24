@@ -2,6 +2,7 @@ using Content.Server.Body.Components;
 using Content.Shared._Shitmed.Body.Components;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared._WF.Wolfmed.Reagents;
@@ -73,6 +74,31 @@ public sealed class WolfmedBreathingSystem : EntitySystem
         return Math.Clamp(asphyxiation.Float() / full, 0f, 1f);
     }
 
+    /// <summary>
+    /// M3 (plan §3.3): damaged lungs as a breathing input, 0 to 1. Under their impaired line the lungs give
+    /// (line - health fraction) / line, times <see cref="WolfmedCVars.LungDamageFactor"/>; several lungs are
+    /// averaged. No lungs at all is the respirator's suffocation, not this.
+    /// </summary>
+    public float LungDamageLevel(EntityUid body)
+    {
+        var factor = _cfg.GetCVar(WolfmedCVars.LungDamageFactor);
+        if (factor <= 0f || !TryComp(body, out BodyComponent? bodyComp))
+            return 0f;
+
+        var total = 0f;
+        var count = 0;
+        foreach (var lung in _body.GetBodyOrganEntityComps<LungComponent>((body, bodyComp)))
+        {
+            if (!TryComp(lung.Owner, out WolfmedOrganComponent? health) || health.ImpairedBelow <= 0f)
+                continue;
+
+            total += Math.Clamp((health.ImpairedBelow - health.Fraction) / health.ImpairedBelow, 0f, 1f);
+            count++;
+        }
+
+        return count == 0 ? 0f : Math.Clamp(total / count * factor, 0f, 1f);
+    }
+
     /// <summary>What the chest is doing and why, in the order a medic would rule things out.</summary>
     public (WolfmedBreathing Breathing, WolfmedBreathingSource Source) Assess(EntityUid body)
     {
@@ -94,6 +120,10 @@ public sealed class WolfmedBreathingSystem : EntitySystem
 
         if (IsSuffocating(respirator))
             return (WolfmedBreathing.Gasping, WolfmedBreathingSource.NoAir);
+
+        // M3: impaired lungs breathe, but not enough (plan §3.3, §8).
+        if (LungDamageLevel(body) > 0f)
+            return (WolfmedBreathing.Laboured, WolfmedBreathingSource.LungsDamaged);
 
         if (_relief.GetRespiratoryDepression(body) > 0f)
             return (WolfmedBreathing.Depressed, WolfmedBreathingSource.Sedation);

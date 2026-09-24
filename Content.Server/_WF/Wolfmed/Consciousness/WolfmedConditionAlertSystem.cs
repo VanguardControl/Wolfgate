@@ -138,13 +138,13 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     }
 
     /// <summary>
-    /// Playtest 2: a pain faint's alert ticks down to waking. Only while the faint is all that holds the body
-    /// under; with a blocker the text says what else keeps them out instead of a countdown.
+    /// Playtest 2: a faint's alert ticks down to waking (M3: the head blow's too). Only while the faint is all that
+    /// holds the body under; with a blocker the text says what else keeps them out instead of a countdown.
     /// </summary>
     public (TimeSpan, TimeSpan)? GetFaintCountdown(EntityUid body)
     {
         if (!TryComp(body, out WolfmedConsciousnessComponent? comp) ||
-            comp.State != WolfmedConsciousness.Unconscious || comp.Cause != WolfmedCause.PainFaint ||
+            comp.State != WolfmedConsciousness.Unconscious || !WolfmedCauses.IsFaint(comp.Cause) ||
             comp.Blockers != WolfmedCauseFlags.None || _consciousness.GetFaintWindow(body) is not { } window)
             return null;
 
@@ -314,10 +314,10 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     {
         LocId? key;
 
-        // Playtest 2: an unblocked pain faint says when it ends.
-        if (state == WolfmedConsciousness.Unconscious && !blocked && proto.ID == nameof(WolfmedCause.PainFaint) &&
+        // Playtest 2: an unblocked faint says when it ends (M3: the text is the cause's own, for the head blow).
+        if (state == WolfmedConsciousness.Unconscious && !blocked && proto.HelpOutTimed is { } timed &&
             _consciousness.GetFaintSecondsLeft(body) is { } seconds)
-            return Loc.GetString("wolfmed-cause-pain-faint-help-timed", ("seconds", seconds));
+            return Loc.GetString(timed, ("seconds", seconds));
 
         if (state == WolfmedConsciousness.Unconscious)
             key = blocked && proto.HelpOutBlocked is { } outBlocked ? outBlocked : proto.HelpOut;

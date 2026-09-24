@@ -84,8 +84,8 @@ public sealed class WolfmedBluntWoundTest : GameTest
     }
 
     /// <summary>
-    /// A crushing blow can start a bleed nothing external will reach. The one chance roll in W3, so this
-    /// takes enough swings that a run of bad luck is not a plausible failure.
+    /// A crushing blow can start a bleed nothing external will reach. M3 (OD15): a band, not a roll. Every blow
+    /// of 40 or more bleeds inside, and a crush under it never does.
     /// </summary>
     [Test]
     public async Task CrushCanBleedInternallyTest()
@@ -98,21 +98,24 @@ public sealed class WolfmedBluntWoundTest : GameTest
         await server.WaitAssertion(() =>
         {
             var wounds = entities.System<WoundSystem>();
-            var bled = 0;
 
-            for (var i = 0; i < 8; i++)
+            for (var i = 0; i < 4; i++)
             {
-                var body = entities.SpawnEntity("MobHuman", map.GridCoords);
-                for (var hit = 0; hit < 3; hit++)
-                    Blunt(entities, body, TargetBodyPart.Torso, 35);
+                var heavy = entities.SpawnEntity("MobHuman", map.GridCoords);
+                var light = entities.SpawnEntity("MobHuman", map.GridCoords);
+                Blunt(entities, heavy, TargetBodyPart.Torso, 40);
+                Blunt(entities, light, TargetBodyPart.Torso, 35);
 
-                var torso = Part(entities, body, BodyPartType.Torso, BodyPartSymmetry.None);
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedCrushInjuryWound"));
-                if (Prototypes(entities, wounds, torso).Contains("InternalBleedingWound"))
-                    bled++;
+                var heavyTorso = Part(entities, heavy, BodyPartType.Torso, BodyPartSymmetry.None);
+                var lightTorso = Part(entities, light, BodyPartType.Torso, BodyPartSymmetry.None);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(Prototypes(entities, wounds, heavyTorso), Does.Contain("WolfmedCrushInjuryWound")
+                        .And.Contain("InternalBleedingWound"), $"run {i}: a Blunt 40 blow did not bleed inside.");
+                    Assert.That(Prototypes(entities, wounds, lightTorso), Does.Contain("WolfmedCrushInjuryWound")
+                        .And.Not.Contain("InternalBleedingWound"), $"run {i}: a Blunt 35 crush bled inside.");
+                });
             }
-
-            Assert.That(bled, Is.GreaterThan(0), "24 crushing blows without one internal bleed at 40 %.");
         });
     }
 
@@ -136,6 +139,12 @@ public sealed class WolfmedBluntWoundTest : GameTest
 
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             Blunt(entities, body, TargetBodyPart.Head, 25);
+
+            // M3 (plan §8): Blunt 25 also passes the head's reach line (15) and takes 3 off the brain, and a brain
+            // under 90% slurs on its own. This test is about the wound's stages, so the brain is made whole again.
+            var brain = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem>().GetBrainOrgan(body)!.Value;
+            Assert.That(brain.Comp.Health, Is.LessThan(brain.Comp.MaxHealth), "the blow did not reach the brain.");
+            entities.System<Content.Shared._Onyx.Body.Systems.OrganHealthSystem>().SetHealth(brain, brain.Comp.MaxHealth);
 
             var head = Part(entities, body, BodyPartType.Head, BodyPartSymmetry.None);
             var concussion = FindWound(entities, wounds, head, "WolfmedConcussionWound");

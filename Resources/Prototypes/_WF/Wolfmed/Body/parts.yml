@@ -30,6 +30,14 @@
     maxDamage: 250
     # WOLFGATE (EVISC): what the overflow past that cap buys, now that D9 spends it on nothing else.
     eviscerationProfile: WolfmedEviscerationDefault
+    # M3 (plan §8): what one hit, after armour, has to exceed to reach the organs; the excess is split across
+    # them by weight. Read on the whole hit, so a saturated torso behaves exactly like a fresh one.
+    organReach:
+      Piercing: 10
+      Slash: 18
+      Blunt: 30
+      Heat: 20
+      Shock: 15
 
 - type: entity
   id: WolfmedBaseHead
@@ -46,6 +54,13 @@
     dismembermentFinishingDamage: &wolfmedFinishingDamage
       Piercing: 12
       Heat: 15
+    # M3 (plan §8): the head's reach lines. A Blunt hit of wolfmed.head_knockout_blunt also knocks out.
+    organReach:
+      Piercing: 8
+      Slash: 15
+      Blunt: 15
+      Heat: 20
+      Shock: 15
 
 - type: entity
   id: WolfmedBaseLeftArm
@@ -58,7 +73,13 @@
       Piercing: 250
       Blunt: 250
       Heat: 250 # WOLFGATE (P3 balance)
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    # WOLFGATE (P3 balance). M3 (P19): limbs add Blunt 10, so a club finishes a limb beaten past its Blunt
+    # threshold and it comes off with a bleeding stump; Onyx's host default of 50 left clubs pounding on until
+    # the limb was destroyed. The head keeps the default above.
+    dismembermentFinishingDamage: &wolfmedLimbFinishingDamage
+      Piercing: 12
+      Heat: 15
+      Blunt: 10
 
 - type: entity
   id: WolfmedBaseRightArm
@@ -67,7 +88,7 @@
   - type: WolfmedBodyPart
     fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedArmThresholds
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
   id: WolfmedBaseLeftHand
@@ -80,7 +101,7 @@
       Piercing: 200
       Blunt: 150
       Heat: 200 # WOLFGATE (P3 balance)
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
   id: WolfmedBaseRightHand
@@ -89,7 +110,7 @@
   - type: WolfmedBodyPart
     fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedHandThresholds
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
   id: WolfmedBaseLeftLeg
@@ -102,7 +123,7 @@
       Piercing: 250
       Blunt: 300
       Heat: 250 # WOLFGATE (P3 balance)
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
   id: WolfmedBaseRightLeg
@@ -111,7 +132,7 @@
   - type: WolfmedBodyPart
     fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedLegThresholds
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
   id: WolfmedBaseLeftFoot
@@ -124,7 +145,7 @@
       Piercing: 220
       Blunt: 170
       Heat: 220 # WOLFGATE (P3 balance)
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
   id: WolfmedBaseRightFoot
@@ -133,4 +154,4 @@
   - type: WolfmedBodyPart
     fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedFootThresholds
-    dismembermentFinishingDamage: *wolfmedFinishingDamage # WOLFGATE (P3 balance)
+    dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)

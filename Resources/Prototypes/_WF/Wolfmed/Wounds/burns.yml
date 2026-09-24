@@ -168,7 +168,8 @@
 
 # Burns where the current went, not where it touched. Added on top of Onyx's ElectricalWound rather than
 # replacing it: the surface mark and the damage inside are separate findings. WolfmedElectricalBurnSystem
-# rolls for the heart and locks the patient's muscles each time this lands or worsens.
+# locks the patient's muscles each time this lands or worsens. M3 (OD15): the heart takes a band on each hit's
+# Shock (wolfmed.electric_heart_factor over wolfmed.electric_heart_from) instead of a roll per stage.
 - type: wound
   id: WolfmedInternalBurnWound
   name: wolfmed-wound-name-internal-burn
@@ -194,16 +195,12 @@
       severity: 25
       behaviors:
       - !type:WolfmedElectricalShockBehavior
-        organDamageChance: 0.5
-        organDamage: 4
         spasm: 2
     Severe:
       name: wound-stage-severe
       severity: 50
       behaviors:
       - !type:WolfmedElectricalShockBehavior
-        organDamageChance: 0.75
-        organDamage: 6
         spasm: 3
       - !type:WolfmedLimbPenaltyBehavior
         movementModifier: 0.8

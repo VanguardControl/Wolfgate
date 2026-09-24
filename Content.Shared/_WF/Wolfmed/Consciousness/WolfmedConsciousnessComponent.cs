@@ -61,6 +61,10 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     [AutoNetworkedField]
     public WolfmedBloodBand BloodBand = WolfmedBloodBand.Normal;
 
+    /// <summary>M3 (plan §8): the heart is impaired, so the pulse is irregular. Set by the life tick; examine reads it.</summary>
+    [AutoNetworkedField]
+    public bool PulseIrregular;
+
     /// <summary>M1a: the input that sets the current state (plan §5.1). None while Up.</summary>
     [AutoNetworkedField]
     public WolfmedCause Cause = WolfmedCause.None;
@@ -95,6 +99,14 @@ public sealed partial class WolfmedConsciousnessComponent : Component
     /// <summary>Server: no new faint starts before this, whatever the pain does.</summary>
     [ViewVariables]
     public TimeSpan PainFaintCooldownUntil;
+
+    /// <summary>Server, M3: a head-blow knockout ends here (plan §3.6). Never moved later once set.</summary>
+    [ViewVariables]
+    public TimeSpan? HeadBlowUntil;
+
+    /// <summary>Server, M3: when the running head-blow knockout began, for the alert's countdown.</summary>
+    [ViewVariables]
+    public TimeSpan? HeadBlowStart;
 
     /// <summary>Server, playtest 2: the patient has been told their hands are slowed by their wounds.</summary>
     [ViewVariables]

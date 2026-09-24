@@ -33,4 +33,10 @@ public sealed partial class WolfmedBodyPartComponent : Component
 
     /// <summary>Half-width of this part as a target for bullets, in tiles. Zero uses the default for its type.</summary>
     [DataField] public float AimSize;
+
+    /// <summary>
+    /// M3 (plan §8): per damage type, what one hit has to exceed, after armour, to reach the organs inside. The
+    /// excess is split across them by weight. A part with none keeps Onyx's organ roll.
+    /// </summary>
+    [DataField] public Dictionary<ProtoId<DamageTypePrototype>, FixedPoint2> OrganReach = new();
 }

@@ -267,24 +267,13 @@ public sealed partial class WolfmedCausticResidueBehavior : WoundBehavior
 }
 
 /// <summary>
-/// What a shock does past the burn: current crossing the chest can stop a heart, and the muscles it
-/// crosses let go of whatever they were holding.
+/// What a shock does past the burn: the muscles it crosses lock and let go of whatever they were holding. M3
+/// (OD15): the heart damage is no longer a roll here but a band on each hit's Shock, in
+/// <c>WolfmedElectricalBurnSystem</c>.
 /// </summary>
 [DataDefinition]
 public sealed partial class WolfmedElectricalShockBehavior : WoundBehavior
 {
-    /// <summary>Chance the discharge reaches the heart.</summary>
-    [DataField]
-    public float OrganDamageChance = 0.35f;
-
-    /// <summary>Organ health taken when it does.</summary>
-    [DataField]
-    public FixedPoint2 OrganDamage = FixedPoint2.New(3);
-
-    /// <summary>Shitmed organ slot the current looks for. Nothing happens when the body has no such organ.</summary>
-    [DataField]
-    public string OrganSlot = "heart";
-
     /// <summary>How long the patient's muscles lock up. Zero skips the spasm.</summary>
     [DataField]
     public TimeSpan Spasm = TimeSpan.FromSeconds(1.5);

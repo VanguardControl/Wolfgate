@@ -31,6 +31,15 @@ public enum WolfmedCause : byte
 
     /// <summary>An outside pressure no cause claims: admin and test keys.</summary>
     Other = 11,
+
+    /// <summary>M3: a heavy blow to the head. A faint: Critical for a fixed few seconds.</summary>
+    HeadBlow = 12,
+
+    /// <summary>M3: a brain under a quarter of its health holds the patient Downed.</summary>
+    Brain = 13,
+
+    /// <summary>M3: the same for a chassis's positronic core.</summary>
+    Core = 14,
 }
 
 /// <summary>One bit per <see cref="WolfmedCause"/>: 1 shifted by the cause's value.</summary>
@@ -49,6 +58,9 @@ public enum WolfmedCauseFlags : uint
     Arrest = 1u << (int) WolfmedCause.Arrest,
     Shutdown = 1u << (int) WolfmedCause.Shutdown,
     Other = 1u << (int) WolfmedCause.Other,
+    HeadBlow = 1u << (int) WolfmedCause.HeadBlow,
+    Brain = 1u << (int) WolfmedCause.Brain,
+    Core = 1u << (int) WolfmedCause.Core,
 }
 
 /// <summary>
@@ -95,6 +107,9 @@ public static class WolfmedCauses
         WolfmedCause.Hypoxia,
         WolfmedCause.Sedation,
         WolfmedCause.Other,
+        WolfmedCause.Brain,
+        WolfmedCause.Core,
+        WolfmedCause.HeadBlow,
         WolfmedCause.PainFaint,
         WolfmedCause.Pain,
         WolfmedCause.Legs,
@@ -114,8 +129,8 @@ public static class WolfmedCauses
         }
     }
 
-    /// <summary>A faint: unconscious for a fixed time, not for as long as a cause lasts.</summary>
-    public static bool IsFaint(WolfmedCause cause) => cause == WolfmedCause.PainFaint;
+    /// <summary>A faint: unconscious for a fixed time, not for as long as a cause lasts. M3 adds the head blow.</summary>
+    public static bool IsFaint(WolfmedCause cause) => cause is WolfmedCause.PainFaint or WolfmedCause.HeadBlow;
 }
 
 /// <summary>
@@ -172,6 +187,13 @@ public sealed partial class WolfmedConsciousnessCausePrototype : IPrototype
     /// <summary>The form of <see cref="HelpOut"/> shown while something else also holds the body.</summary>
     [DataField]
     public LocId? HelpOutBlocked;
+
+    /// <summary>
+    /// A faint's <see cref="HelpOut"/> with the seconds left (<c>$seconds</c>), shown while nothing else holds the
+    /// body. Playtest 2 wrote it for the pain faint; M3 moved it into data for the head blow.
+    /// </summary>
+    [DataField]
+    public LocId? HelpOutTimed;
 
     /// <summary><see cref="Help"/> on a mechanical body, when it has to differ.</summary>
     [DataField]

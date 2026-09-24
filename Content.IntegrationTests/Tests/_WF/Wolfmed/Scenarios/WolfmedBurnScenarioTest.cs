@@ -489,7 +489,8 @@ public sealed class WolfmedBurnScenarioTest : GameTest
 
     /// <summary>
     /// The ceilings (P31, plan §6.1). The admin part command passes them and can destroy a limb; an arm in the fire
-    /// stores 152 while its burn keeps growing; a corpse stops at the corpse ceiling. A tick that crosses the
+    /// stores its ceiling (168 since M3 raised the Blunt and Heat rungs; 0.8 of the Slash rung 210) while its burn
+    /// keeps growing; a corpse stops at the corpse ceiling. A tick that crosses the
     /// ceiling raises one event whose Applied + Overflow is the tick, and grows the burn and its fluid loss exactly
     /// as the same tick with no ceiling does; the accumulator counts Applied only.
     /// </summary>
@@ -525,31 +526,31 @@ public sealed class WolfmedBurnScenarioTest : GameTest
 
         EntityUid rightArm = default;
         await Server.WaitPost(() => rightArm = s.Part(admin, BodyPartType.Arm, BodyPartSymmetry.Right));
-        await Pair.WaitCommand($"damage Blunt 200 true {net} RightArm");
+        await Pair.WaitCommand($"damage Blunt 410 true {net} RightArm"); // M3 (P19): the Blunt rung is 400
         await RunSeconds(1);
         await Server.WaitAssertion(() =>
             Assert.That(SEntMan.System<SharedBodySystem>().BodyHasChild(admin, rightArm), Is.False,
                 "the admin command could not destroy a limb."));
 
-        // --- An arm in the fire: stores 152, the burn keeps growing. ---
+        // --- An arm in the fire: stores its ceiling (168), the burn keeps growing. ---
         EntityUid burning = default, burningArm = default;
         await Server.WaitAssertion(() =>
         {
             burning = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             SEntMan.EnsureComponent<PainNumbnessComponent>(burning);
             burningArm = s.Part(burning, BodyPartType.Arm, BodyPartSymmetry.Left);
-            var burnAt152 = 0f;
-            for (var i = 0; i < 40; i++)
+            var burnAtCeiling = 0f;
+            for (var i = 0; i < 45; i++)
             {
                 Routing.TryApplyPartDamage(burning, burningArm, Spec("Heat", 5), null, ignoreResistances: true);
-                if (i == 30)
-                    burnAt152 = BurnSeverity(burningArm);
+                if (i == 34)
+                    burnAtCeiling = BurnSeverity(burningArm);
             }
 
             Assert.Multiple(() =>
             {
-                Assert.That(Stored(burningArm), Is.EqualTo(152f).Within(0.5f), "the arm is not held at 0.8 x 190.");
-                Assert.That(BurnSeverity(burningArm), Is.GreaterThan(burnAt152), "the burn stopped growing at the ceiling.");
+                Assert.That(Stored(burningArm), Is.EqualTo(168f).Within(0.5f), "the arm is not held at 0.8 x 210.");
+                Assert.That(BurnSeverity(burningArm), Is.GreaterThan(burnAtCeiling), "the burn stopped growing at the ceiling.");
             });
         });
 
@@ -588,10 +589,10 @@ public sealed class WolfmedBurnScenarioTest : GameTest
                 var openArm = s.Part(open, BodyPartType.Arm, BodyPartSymmetry.Left);
                 var parts = SEntMan.System<WolfmedBodyPartSystem>();
 
-                // Both arms at 150 Heat and a 150 burn; the open one got there with the ceiling off.
-                Routing.TryApplyPartDamage(capped, cappedArm, Spec("Heat", 150), null, ignoreResistances: true);
+                // Both arms at 166 Heat and a 166 burn, 2 under the ceiling; the open one got there with it off.
+                Routing.TryApplyPartDamage(capped, cappedArm, Spec("Heat", 166), null, ignoreResistances: true);
                 parts.WithCeilingBypass(open, () =>
-                    Routing.TryApplyPartDamage(open, openArm, Spec("Heat", 150), null, ignoreResistances: true));
+                    Routing.TryApplyPartDamage(open, openArm, Spec("Heat", 166), null, ignoreResistances: true));
                 Assert.That(BurnSeverity(cappedArm), Is.EqualTo(BurnSeverity(openArm)).Within(0.01f));
 
                 events.Clear();
@@ -613,7 +614,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
                         "Applied is not the room under the ceiling.");
                     Assert.That(events[capped][0].Overflow?.DamageDict.GetValueOrDefault("Heat").Float() ?? 0f,
                         Is.EqualTo(8f).Within(0.01f), "Overflow is not what the ceiling cut.");
-                    Assert.That(Stored(cappedArm), Is.EqualTo(152f).Within(0.01f), "Applied was not the room under the ceiling.");
+                    Assert.That(Stored(cappedArm), Is.EqualTo(168f).Within(0.01f), "Applied was not the room under the ceiling.");
                     Assert.That(cappedReturn?.DamageDict.GetValueOrDefault("Heat").Float() ?? 0f, Is.EqualTo(2f).Within(0.01f),
                         "the accumulator counted overflow.");
                     Assert.That(BurnSeverity(cappedArm) - cappedBurn, Is.EqualTo(BurnSeverity(openArm) - openBurn).Within(0.01f),
