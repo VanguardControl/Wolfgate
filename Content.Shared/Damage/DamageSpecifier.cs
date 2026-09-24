@@ -26,12 +26,12 @@ namespace Content.Shared.Damage
 
         // These exist solely so the wiki works. Please do not touch them or use them.
         [JsonPropertyName("types")]
-        [DataField("types", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageTypePrototype>), readOnly: true)] // WOLFGATE: DamageDict writes the types
+        [DataField("types", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageTypePrototype>), readOnly: true)] // WOLFGATE(Shipyard): DamageDict writes the types
         [UsedImplicitly]
         private Dictionary<string,FixedPoint2>? _damageTypeDictionary;
 
         [JsonPropertyName("groups")]
-        [DataField("groups", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageGroupPrototype>), readOnly: true)] // WOLFGATE: groups are resolved into DamageDict
+        [DataField("groups", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageGroupPrototype>), readOnly: true)] // WOLFGATE(Shipyard): groups are resolved into DamageDict
         [UsedImplicitly]
         private Dictionary<string, FixedPoint2>? _damageGroupDictionary;
 
@@ -40,7 +40,7 @@ namespace Content.Shared.Damage
         /// </summary>
         [JsonIgnore]
         [ViewVariables(VVAccess.ReadWrite)]
-        [IncludeDataField(customTypeSerializer: typeof(DamageSpecifierDictionarySerializer))] // WOLFGATE: writable
+        [IncludeDataField(customTypeSerializer: typeof(DamageSpecifierDictionarySerializer))] // WOLFGATE(Shipyard): writable
         public Dictionary<string, FixedPoint2> DamageDict { get; set; } = new();
 
         /// <summary>
@@ -439,7 +439,7 @@ namespace Content.Shared.Damage
 
         public static DamageSpecifier operator *(FixedPoint2 factor, DamageSpecifier damageSpec) => damageSpec * factor;
 
-        // WOLFGATE START: zero entries do not count
+        // WOLFGATE(Shipyard) START: zero entries do not count
         // An initialised but undamaged entity equals its prototype, so map saves stay free of empty damage blocks.
         public bool Equals(DamageSpecifier? other)
         {

@@ -1,5 +1,5 @@
 using Content.Shared.Actions;
-// WOLFGATE START: sneak logic moved to SharedCrawlUnderObjectsSystem, its usings with it
+// WOLFGATE(Species) START: sneak logic moved to SharedCrawlUnderObjectsSystem, its usings with it
 // using Content.Shared.Climbing.Components;
 // using Content.Shared.Climbing.Events;
 using Content.Shared._DV.Abilities;
@@ -13,7 +13,7 @@ using Content.Shared._DV.Abilities;
 
 namespace Content.Server._DV.Abilities;
 
-// WOLFGATE START: server half now only grants the toggle action; rest lives in SharedCrawlUnderObjectsSystem
+// WOLFGATE(Species) START: server half now only grants the toggle action; rest lives in SharedCrawlUnderObjectsSystem
 /// <summary>
 /// Server half of sneaking: hands out the toggle action. Everything else lives in the shared system.
 /// </summary>

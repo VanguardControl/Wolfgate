@@ -1,5 +1,5 @@
-# WOLFGATE: Wolfgate's language system has no icons or obfuscation fonts, so those
-# fields are dropped.
+# WOLFGATE(Species): icon and obfuscation font fields dropped
+# Wolfgate's language system has neither.
 - type: language
   id: Scratch
   speech:

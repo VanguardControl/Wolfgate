@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-LizardCrestLargeTop = Crest (Large)
 marking-LizardCrestLargeTop-primary = Crest (Large) primary
 marking-LizardCrestLargeTop-secondary = Crest (Large) secondary

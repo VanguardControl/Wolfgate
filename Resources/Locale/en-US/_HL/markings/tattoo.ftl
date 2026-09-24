@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-TattooFelionoidHeartLeftArm = Felionoid Heart Tattoo (left arm)
 marking-TattooFelionoidHeartRightArm = Felionoid Heart Tattoo (right arm)
 marking-TattooFelionoidHiveChest = Felionoid Hive Tattoo (chest)

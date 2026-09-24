@@ -36,7 +36,7 @@
   - type: HitscanBatteryAmmoProvider
     proto: RedLightLaser
     fireCost: 50
-  # WOLFGATE START: lets synths and IPCs eat a charged cell.
+  # WOLFGATE(Silicons) START: lets synths and IPCs eat a charged cell.
   - type: BatteryDrinkerSource
     drinkSpeedMulti: 2
   # WOLFGATE END

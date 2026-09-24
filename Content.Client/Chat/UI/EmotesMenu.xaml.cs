@@ -23,7 +23,7 @@ public sealed partial class EmotesMenu : RadialMenu
 
     public event Action<ProtoId<EmotePrototype>>? OnPlayEmote;
 
-    // WOLFGATE START: matches server ChatSystem.AllowedToUseEmote order (granted bypasses lists)
+    // WOLFGATE(Species) START: matches server ChatSystem.AllowedToUseEmote order (granted bypasses lists)
     /// <summary>
     /// Whether the player may use an emote, by the same rule the server applies in
     /// ChatSystem.AllowedToUseEmote: a granted emote bypasses both lists, otherwise the lists decide and
@@ -54,10 +54,10 @@ public sealed partial class EmotesMenu : RadialMenu
         var main = FindControl<RadialContainer>("Main");
 
         var emotes = _prototypeManager.EnumeratePrototypes<EmotePrototype>();
-        var player = _playerManager.LocalSession?.AttachedEntity; // WOLFGATE: hoisted out of the loop
+        var player = _playerManager.LocalSession?.AttachedEntity; // WOLFGATE(Species): hoisted out of the loop
         foreach (var emote in emotes)
         {
-            // WOLFGATE START: emote filter rewritten to match the server
+            // WOLFGATE(Species) START: emote filter rewritten to match the server
             // An emote with no trigger words cannot be spoken, so it has nothing to show.
             if (emote.Category == EmoteCategory.Invalid || emote.ChatTriggers.Count == 0)
                 continue;

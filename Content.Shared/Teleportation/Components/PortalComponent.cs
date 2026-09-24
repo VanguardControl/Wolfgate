@@ -55,7 +55,7 @@ public sealed partial class PortalComponent : Component
     public bool RandomTeleport = true;
 }
 
-// WOLFGATE START: ported from HardLight/Starlight - lets systems veto a portal teleport
+// WOLFGATE(Species) START: ported from HardLight/Starlight - lets systems veto a portal teleport
 public sealed class OnAttemptPortalEvent : CancellableEntityEventArgs
 {
     public EntityUid Subject { get; }

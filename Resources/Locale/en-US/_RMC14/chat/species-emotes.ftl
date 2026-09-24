@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight (Skrell)
+# WOLFGATE(Species): ported from HardLight (Skrell)
 rmc-emote-name-peep = Peep
 rmc-emote-name-anger = Trill angrily
 rmc-emote-peep = peeps with surprise!

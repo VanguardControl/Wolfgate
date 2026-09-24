@@ -290,7 +290,7 @@
   name: glass table
   description: A square piece of glass, standing on four metal legs.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -350,7 +350,7 @@
   name: reinforced glass table
   description: A square piece of glass, standing on four metal legs. Extra robust.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -432,7 +432,7 @@
   name: plasma glass table
   description: A square piece of plasma glass, standing on four metal legs. Pretty!
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -538,7 +538,7 @@
   name: wood table
   description: Do not apply fire to this. Rumour says it burns easily.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -923,7 +923,7 @@
   name: wood counter
   description: Do not apply fire to this. Rumour says it burns easily.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:

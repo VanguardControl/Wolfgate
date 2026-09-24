@@ -1,2 +1,2 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-HumanHairOmbreAlternate = Ombre (Alt)

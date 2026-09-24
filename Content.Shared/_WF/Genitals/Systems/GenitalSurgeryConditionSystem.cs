@@ -1,6 +1,5 @@
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._WF.Genitals.Components;
-using Content.Shared._WF.Surgery;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.GameTicking;

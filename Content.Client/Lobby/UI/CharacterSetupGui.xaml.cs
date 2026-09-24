@@ -11,7 +11,7 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
-using Content.Client._WF.Stylesheets; // WOLFGATE
+using Content.Client._WF.Stylesheets; // WOLFGATE(Stylesheets)
 
 namespace Content.Client.Lobby.UI
 {
@@ -26,12 +26,12 @@ namespace Content.Client.Lobby.UI
         [Dependency] private IPrototypeManager _protomanager = default!;
         [Dependency] private IResourceCache _resourceCache = default!;
         [Dependency] private IConfigurationManager _cfg = default!;
-        [Dependency] private ILogManager _logManager = default!; // WOLFGATE
+        [Dependency] private ILogManager _logManager = default!; // WOLFGATE: logs characters that can't be previewed
 
         private readonly Button _createNewCharacterButton;
 
         public event Action<int>? SelectCharacter;
-        // WOLFGATE START: new-character request, so unsaved edits can be confirmed first
+        // WOLFGATE(Humanoid) START: new-character request, so unsaved edits can be confirmed first
         /// <summary>Raised instead of creating a character directly.</summary>
         public event Action? NewCharacter;
         // WOLFGATE END
@@ -42,7 +42,7 @@ namespace Content.Client.Lobby.UI
             RobustXamlLoader.Load(this);
             IoCManager.InjectDependencies(this);
 
-            // WOLFGATE: skinned backdrop for the creator shell
+            // WOLFGATE(Stylesheets): skinned backdrop for the creator shell
             BackgroundPanel.StyleClasses.Add(StyleWolfgate.StyleClassCreatorBackdrop);
 
             _createNewCharacterButton = new Button
@@ -52,7 +52,7 @@ namespace Content.Client.Lobby.UI
 
             _createNewCharacterButton.OnPressed += args =>
             {
-                NewCharacter?.Invoke(); // WOLFGATE: was CreateCharacter + ReloadCharacterPickers here
+                NewCharacter?.Invoke(); // WOLFGATE(Humanoid): was CreateCharacter + ReloadCharacterPickers here
                 args.Event.Handle();
             };
 
@@ -89,8 +89,9 @@ namespace Content.Client.Lobby.UI
             foreach (var (slot, character) in _preferencesManager.Preferences!.Characters)
             {
                 numberOfFullSlots++;
-                // WOLFGATE START: a character this build cannot preview is skipped instead of aborting the loop, which used
-                // to leave the player without the rest of their characters and without the create-character button.
+                // WOLFGATE START: a character this build cannot preview is skipped instead of aborting the loop
+                // Aborting left the player without the rest of their characters and without the create-character
+                // button.
                 CharacterPickerButton characterPickerButton;
                 try
                 {

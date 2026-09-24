@@ -2,7 +2,7 @@
   id: GauzeLefteyePatch
   bodyPart: Eyes
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -17,7 +17,7 @@
   id: GauzeLefteyePad
   bodyPart: Eyes
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -32,7 +32,7 @@
   id: GauzeRighteyePatch
   bodyPart: Eyes
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -47,7 +47,7 @@
   id: GauzeRighteyePad
   bodyPart: Eyes
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -62,7 +62,7 @@
   id: GauzeBlindfold
   bodyPart: Eyes
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Arachnid, Goblin, Felinid, Oni, Harpy, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Harpy, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -77,7 +77,7 @@
   id: GauzeShoulder
   bodyPart: Chest
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -92,7 +92,7 @@
   id: GauzeStomach
   bodyPart: Chest
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -107,7 +107,7 @@
   id: GauzeUpperArmRight
   bodyPart: RArm
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, SlimePerson, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -122,7 +122,7 @@
   id: GauzeLowerArmRight
   bodyPart: RArm, RHand
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, SlimePerson, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia
   coloring:
     default:
@@ -137,7 +137,7 @@
   id: GauzeLeftArm
   bodyPart: LArm, LHand
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -152,7 +152,7 @@
   id: GauzeLowerLegLeft
   bodyPart: LFoot
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -167,7 +167,7 @@
   id: GauzeUpperLegLeft
   bodyPart: LLeg
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -182,7 +182,7 @@
   id: GauzeUpperLegRight
   bodyPart: RLeg
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -197,7 +197,7 @@
   id: GauzeLowerLegRight
   bodyPart: RFoot
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Arachnid, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -212,7 +212,7 @@
   id: GauzeBoxerWrapRight
   bodyPart: RHand
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, SlimePerson, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:
@@ -227,7 +227,7 @@
   id: GauzeBoxerWrapLeft
   bodyPart: LHand
   markingCategory: Overlay
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, SlimePerson, Goblin, Felinid, Oni, Vulpkanin, Rodentia, Tajaran, Feroxi, WFCanine] # Delta V - Felinid, Oni, Vulpkanin, Rodentia; Goob - Tajaran
   coloring:
     default:

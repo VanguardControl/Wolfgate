@@ -3,7 +3,7 @@ using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager;
-using Robust.Shared.Serialization.Markdown; // WOLFGATE
+using Robust.Shared.Serialization.Markdown; // WOLFGATE(Shipyard)
 using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.Markdown.Validation;
 using Robust.Shared.Serialization.Markdown.Value;
@@ -12,7 +12,7 @@ using Robust.Shared.Serialization.TypeSerializers.Interfaces;
 
 namespace Content.Shared.Damage;
 
-// WOLFGATE START: adds writing support so DamageSpecifier can round-trip through DamageDict
+// WOLFGATE(Shipyard) START: adds writing support so DamageSpecifier can round-trip through DamageDict
 public sealed class DamageSpecifierDictionarySerializer : ITypeReader<Dictionary<string, FixedPoint2>, MappingDataNode>,
     ITypeWriter<Dictionary<string, FixedPoint2>>
 {

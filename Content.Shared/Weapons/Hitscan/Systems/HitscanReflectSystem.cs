@@ -20,7 +20,7 @@ public sealed partial class HitscanReflectSystem : EntitySystem
 
     private void OnHitscanHit(Entity<HitscanReflectComponent> hitscan, ref HitscanRaycastFiredEvent args)
     {
-        // WOLFGATE START: a predicted beam is drawn client-side only; reflections are rolled on the server
+        // WOLFGATE(Weapons) START: a predicted beam is drawn client-side only; reflections are rolled on the server
         if (args.Canceled)
             return;
         // WOLFGATE END

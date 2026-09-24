@@ -68,7 +68,7 @@
     UndergarmentBottom:
       points: 3
       required: false
-    # WOLFGATE: Genital marking points removed with the legacy genital markings (replaced by organ-based anatomy).
+    # WOLFGATE(Genitals): Genital marking points removed with the legacy genital markings (replaced by organ-based anatomy).
     Chest:
       points: 10
       required: false

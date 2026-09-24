@@ -2,7 +2,7 @@
   id: HumanHairGatheredlow
   bodyPart: Hair
   markingCategory: Hair
-  # WOLFGATE: add Canine
+  # WOLFGATE(Species): add Canine
   speciesRestriction: [Human, Dwarf, SlimePerson, Oni, Goblin, Felinid, Vulpkanin, WFCanine] # Frontier: add Oni, Goblin, Felinid, Vulpkanin
   sprites:
     - sprite: _Impstation/Mobs/Customization/human_hair.rsi
@@ -12,7 +12,7 @@
   id: HumanHairLowpigtails
   bodyPart: Hair
   markingCategory: Hair
-  # WOLFGATE: add Canine
+  # WOLFGATE(Species): add Canine
   speciesRestriction: [Human, Dwarf, SlimePerson, Oni, Goblin, Felinid, Vulpkanin, WFCanine] # Frontier: add Oni, Goblin, Felinid, Vulpkanin
   sprites:
     - sprite: _Impstation/Mobs/Customization/human_hair.rsi
@@ -22,7 +22,7 @@
   id: HumanHairFrenchBraid
   bodyPart: Hair
   markingCategory: Hair
-  # WOLFGATE: add Canine
+  # WOLFGATE(Species): add Canine
   speciesRestriction: [Human, Dwarf, SlimePerson, Oni, Goblin, Felinid, Vulpkanin, WFCanine] # Frontier: add Oni, Goblin, Felinid, Vulpkanin
   sprites:
     - sprite: _Impstation/Mobs/Customization/human_hair.rsi

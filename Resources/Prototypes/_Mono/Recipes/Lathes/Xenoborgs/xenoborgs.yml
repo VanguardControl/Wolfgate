@@ -5,7 +5,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic and Glass cost
+     # WOLFGATE(Xenoborgs) START: added Plastic and Glass cost
      Plastic: 3000
      Glass: 3000
      # WOLFGATE END
@@ -39,7 +39,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic cost
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
      Plastic: 3000
      # WOLFGATE END
 
@@ -49,7 +49,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic and Bluespace cost
+     # WOLFGATE(Xenoborgs) START: added Plastic and Bluespace cost
      Plastic: 3000
      Bluespace: 100
      # WOLFGATE END
@@ -60,7 +60,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic cost
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
      Plastic: 3000
      # WOLFGATE END
 
@@ -70,7 +70,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic cost
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
      Plastic: 3000
      # WOLFGATE END
 
@@ -80,7 +80,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic cost
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
      Plastic: 3000
      # WOLFGATE END
 
@@ -90,7 +90,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic and Bluespace cost
+     # WOLFGATE(Xenoborgs) START: added Plastic and Bluespace cost
      Plastic: 3000
      Bluespace: 100
      # WOLFGATE END
@@ -101,7 +101,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic cost
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
      Plastic: 3000
      # WOLFGATE END
 
@@ -111,7 +111,7 @@
   completetime: 2
   materials:
      Steel: 3000
-     # WOLFGATE START: added Plastic and Bluespace cost
+     # WOLFGATE(Xenoborgs) START: added Plastic and Bluespace cost
      Plastic: 3000
      Bluespace: 100
      # WOLFGATE END

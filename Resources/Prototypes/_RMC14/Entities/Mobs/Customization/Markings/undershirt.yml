@@ -1,8 +1,7 @@
 # Tan Undershirts
-# WOLFGATE: ported from HardLight
-# WOLFGATE: forcedColoring dropped - it hid the colour picker for these and left the
-# pre-coloured art being tinted to the wearer's skin. Same coloring block as the
-# vanilla undergarments.
+# WOLFGATE(Genitals): ported from HardLight
+# WOLFGATE(Genitals): forcedColoring dropped, same coloring block as the vanilla undergarments
+# It hid the colour picker for these and left the pre-coloured art tinted to the wearer's skin.
 - type: marking
   id: RMCUndershirtStandard
   bodyPart: UndergarmentTop

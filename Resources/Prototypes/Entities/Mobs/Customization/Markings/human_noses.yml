@@ -4,7 +4,7 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
@@ -16,7 +16,7 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
@@ -28,7 +28,7 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
@@ -40,7 +40,7 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
@@ -52,7 +52,7 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  # WOLFGATE: added Canine
+  # WOLFGATE(Species): added Canine
   speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi

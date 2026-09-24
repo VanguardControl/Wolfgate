@@ -1,4 +1,4 @@
-# WOLFGATE: consent system ported from HardLight.
+# WOLFGATE(Genitals): consent system ported from HardLight.
 
 # UI
 game-hud-open-consent-window-button-tooltip = Open consent preferences in Game Options.
@@ -16,11 +16,11 @@ consent-examine-verb = Consent Info
 consent-examine-not-set = This player has no consent preferences set.
 
 # Consent toggles
-# WOLFGATE: GenitalMarkings is the adult content master switch.
+# WOLFGATE(Genitals): GenitalMarkings is the adult content master switch.
 consent-GenitalMarkings = Adult content
     .desc = Show anatomy content, such as anatomy options, sprites and descriptions. Others can only remove your undergarments or perform anatomy surgery on you if you also turn on those toggles. Off by default.
 
-# WOLFGATE: consent moved into a Game Options tab.
+# WOLFGATE(Genitals): consent moved into a Game Options tab.
 ui-options-tab-consent = Consent
 ui-options-consent-save = Save
 ui-options-consent-unavailable = Connect to a server to set your consent preferences.

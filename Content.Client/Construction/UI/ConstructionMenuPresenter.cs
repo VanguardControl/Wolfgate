@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Numerics;
-using Content.Client._WF.Construction; // WOLFGATE
+using Content.Client._WF.Construction; // WOLFGATE(Construction)
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Shared.Construction.Prototypes;
@@ -113,7 +113,7 @@ namespace Content.Client.Construction.UI
             };
 
             _constructionView.RecipeFavorited += (_, _) => OnViewFavoriteRecipe();
-            _constructionView.CraftRepeatPressed += (_, count) => OnCraftRepeat(count); // WOLFGATE
+            _constructionView.CraftRepeatPressed += (_, count) => OnCraftRepeat(count); // WOLFGATE(Construction)
 
             PopulateCategories();
             OnViewPopulateRecipes(_constructionView, (string.Empty, string.Empty));
@@ -417,7 +417,7 @@ namespace Content.Client.Construction.UI
             _constructionView.BuildButtonPressed = pressed;
         }
 
-        // WOLFGATE: repeat-craft buttons
+        // WOLFGATE(Construction): repeat-craft buttons
         private void OnCraftRepeat(int count)
         {
             if (_selected is { Type: ConstructionType.Item } recipe)

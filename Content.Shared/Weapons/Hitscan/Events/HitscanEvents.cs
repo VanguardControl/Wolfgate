@@ -36,7 +36,7 @@ public record struct HitscanTraceEvent
     /// </summary>
     public EntityUid? Target;
 
-    // WOLFGATE START: predicted hitscan
+    // WOLFGATE(Weapons) START: predicted hitscan
     /// <summary>
     /// Set when the shooter's client draws this beam itself, so the server leaves them out of its own.
     /// </summary>
@@ -87,7 +87,7 @@ public record struct HitscanRaycastFiredEvent
     /// </summary>
     public bool Canceled;
 
-    // WOLFGATE START: predicted hitscan
+    // WOLFGATE(Weapons) START: predicted hitscan
     /// <summary>
     /// Set when the shooter's client draws this beam itself, so the server leaves them out of its own.
     /// </summary>

@@ -2,11 +2,11 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Content.Client.Humanoid;
-using Content.Client._WF.Genitals; // WOLFGATE
-using Content.Client._WF.Genitals.UI; // WOLFGATE
-using Content.Client._WF.Humanoid; // WOLFGATE
-using Content.Shared._WF.Genitals; // WOLFGATE
-using Content.Shared._WF.Genitals.Profile; // WOLFGATE
+using Content.Client._WF.Genitals; // WOLFGATE(Genitals)
+using Content.Client._WF.Genitals.UI; // WOLFGATE(Genitals)
+using Content.Client._WF.Humanoid; // WOLFGATE(Humanoid)
+using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
+using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Client.Lobby.UI.Loadouts;
 using Content.Client.Lobby.UI.Roles;
 using Content.Client.Message;
@@ -14,7 +14,7 @@ using Content.Client.Players.PlayTimeTracking;
 using Content.Client.Sprite;
 using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Client.UserInterface.Controls;
-using Content.Client._WF.UserInterface.Controls; // WOLFGATE
+using Content.Client._WF.UserInterface.Controls; // WOLFGATE(UserInterface)
 using Content.Shared._Mono.Company;
 using Content.Shared.CCVar;
 using Content.Shared.Clothing;
@@ -61,8 +61,8 @@ namespace Content.Client.Lobby.UI
         private readonly EntityWhitelistSystem _whitelist; // Frontier
         private readonly CompanyManager _companyManager; // Mono
 
-        private WolfgateDescriptionWindow? _descriptionWindow; // WOLFGATE
-        private AnatomySaveConfirmWindow? _anatomySaveConfirm; // WOLFGATE
+        private WolfgateDescriptionWindow? _descriptionWindow; // WOLFGATE(Humanoid)
+        private AnatomySaveConfirmWindow? _anatomySaveConfirm; // WOLFGATE(Genitals)
 
         // One at a time.
         private LoadoutWindow? _loadoutWindow;
@@ -103,7 +103,7 @@ namespace Content.Client.Lobby.UI
 
         private Direction _previewRotation = Direction.North;
 
-        private WolfgateColorPicker _rgbSkinColorSelector; // WOLFGATE: swatches + sliders
+        private WolfgateColorPicker _rgbSkinColorSelector; // WOLFGATE(UserInterface): swatches + sliders
 
         private bool _isDirty;
 
@@ -170,7 +170,7 @@ namespace Content.Client.Lobby.UI
 
             SaveButton.OnPressed += args =>
             {
-                // WOLFGATE START: ask before a save that would clear anatomy
+                // WOLFGATE(Genitals) START: ask before a save that would clear anatomy
                 if (AnatomyClearedOnSave())
                 {
                     OpenAnatomySaveConfirm(() => Save?.Invoke());
@@ -178,7 +178,7 @@ namespace Content.Client.Lobby.UI
                 }
                 // WOLFGATE END
 
-                GenitalEditor.ResetPreview(); // WOLFGATE: the lobby preview is rebuilt as worn
+                GenitalEditor.ResetPreview(); // WOLFGATE(Genitals): the lobby preview is rebuilt as worn
                 Save?.Invoke();
             };
 
@@ -195,14 +195,14 @@ namespace Content.Client.Lobby.UI
 
             #region Appearance
 
-            TabContainer.SetTabTitle(0, Loc.GetString("wf-creator-species-tab")); // WOLFGATE
-            TabContainer.SetTabTitle(1, Loc.GetString("humanoid-profile-editor-appearance-tab")); // WOLFGATE: shifted by the species tab
+            TabContainer.SetTabTitle(0, Loc.GetString("wf-creator-species-tab")); // WOLFGATE(Humanoid)
+            TabContainer.SetTabTitle(1, Loc.GetString("humanoid-profile-editor-appearance-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
             #region Sex
 
-            SexSelector.OnSexSelected += SetSex; // WOLFGATE
+            SexSelector.OnSexSelected += SetSex; // WOLFGATE(Humanoid)
 
-            // WOLFGATE START: species name override; blank falls back to the species' own name
+            // WOLFGATE(Humanoid) START: species name override; blank falls back to the species' own name
             CustomSpeciesNameEdit.IsValid = value => value.Length <= HumanoidCharacterProfile.MaxCustomSpeciesNameLength;
             CustomSpeciesNameEdit.OnTextChanged += args =>
             {
@@ -215,7 +215,7 @@ namespace Content.Client.Lobby.UI
             };
             // WOLFGATE END
 
-            // WOLFGATE START: description box under the preview, plus a full-size editor for longer text
+            // WOLFGATE(Humanoid) START: description box under the preview, plus a full-size editor for longer text
             DescriptionEdit.Placeholder = new Rope.Leaf(Loc.GetString("flavor-text-placeholder"));
             DescriptionEdit.OnTextChanged += _ => OnFlavorTextChange(Rope.Collapse(DescriptionEdit.TextRope).Trim());
             DescriptionEdit.OnTextChanged += _ => UpdateDescriptionStatus(Rope.Collapse(DescriptionEdit.TextRope));
@@ -253,8 +253,8 @@ namespace Content.Client.Lobby.UI
 
             RefreshSpecies();
 
-            SpeciesPicker.OnSpeciesSelected += SetSpecies; // WOLFGATE
-            SpeciesPicker.OnSpeciesInfoRequested += OpenSpeciesGuidebook; // WOLFGATE
+            SpeciesPicker.OnSpeciesSelected += SetSpecies; // WOLFGATE(Humanoid)
+            SpeciesPicker.OnSpeciesInfoRequested += OpenSpeciesGuidebook; // WOLFGATE(Humanoid)
             SpeciesButton.OnItemSelected += args =>
             {
                 SpeciesButton.SelectId(args.Id);
@@ -270,7 +270,7 @@ namespace Content.Client.Lobby.UI
                 OnSkinColorOnValueChanged();
             };
 
-            RgbSkinColorContainer.AddChild(_rgbSkinColorSelector = new WolfgateColorPicker()); // WOLFGATE
+            RgbSkinColorContainer.AddChild(_rgbSkinColorSelector = new WolfgateColorPicker()); // WOLFGATE(UserInterface)
             _rgbSkinColorSelector.SelectorType = ColorSelectorSliders.ColorSelectorType.Hsv; // defaults color selector to HSV
             _rgbSkinColorSelector.OnColorChanged += _ =>
             {
@@ -446,7 +446,7 @@ namespace Content.Client.Lobby.UI
 
             #region Jobs
 
-            TabContainer.SetTabTitle(2, Loc.GetString("humanoid-profile-editor-jobs-tab")); // WOLFGATE: shifted by the species tab
+            TabContainer.SetTabTitle(2, Loc.GetString("humanoid-profile-editor-jobs-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
             PreferenceUnavailableButton.AddItem(
                 Loc.GetString("humanoid-profile-editor-preference-unavailable-stay-in-lobby-button"),
@@ -479,7 +479,7 @@ namespace Content.Client.Lobby.UI
 
             #region Company
 
-            TabContainer.SetTabTitle(4, Loc.GetString("humanoid-profile-editor-company-tab")); // WOLFGATE: shifted by the species tab
+            TabContainer.SetTabTitle(4, Loc.GetString("humanoid-profile-editor-company-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
             // Clear any existing items
             CompanyButton.Clear();
@@ -546,7 +546,7 @@ namespace Content.Client.Lobby.UI
 
             #region Markings
 
-            TabContainer.SetTabTitle(5, Loc.GetString("humanoid-profile-editor-markings-tab")); // WOLFGATE: shifted by the species tab
+            TabContainer.SetTabTitle(5, Loc.GetString("humanoid-profile-editor-markings-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
             Markings.OnMarkingAdded += OnMarkingChange;
             Markings.OnMarkingRemoved += OnMarkingChange;
@@ -555,7 +555,7 @@ namespace Content.Client.Lobby.UI
 
             #endregion Markings
 
-            // WOLFGATE START: anatomy tab, found by position so a tab added or moved upstream cannot shift it
+            // WOLFGATE(Genitals) START: anatomy tab, found by position so a tab added or moved upstream cannot shift it
             TabContainer.SetTabTitle(GenitalsTab.GetPositionInParent(), Loc.GetString("wf-genitals-tab"));
             GenitalEditor.OnProfileChanged += genitals =>
             {
@@ -604,7 +604,7 @@ namespace Content.Client.Lobby.UI
         /// </summary>
         public void RefreshFlavorText()
         {
-            // WOLFGATE: the description lives under the preview now, so this only shows or hides that box.
+            // WOLFGATE(Humanoid): the description lives under the preview now, so this only shows or hides that box.
             DescriptionBox.Visible = _cfgManager.GetCVar(CCVars.FlavorText);
         }
 
@@ -618,7 +618,7 @@ namespace Content.Client.Lobby.UI
             EnforceSpeciesTraitRestrictions();
 
             var traits = _prototypeManager.EnumeratePrototypes<TraitPrototype>().OrderBy(t => Loc.GetString(t.Name)).ToList();
-            TabContainer.SetTabTitle(3, Loc.GetString("humanoid-profile-editor-traits-tab")); // WOLFGATE: shifted by the species tab
+            TabContainer.SetTabTitle(3, Loc.GetString("humanoid-profile-editor-traits-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
             if (traits.Count < 1)
             {
@@ -1053,7 +1053,7 @@ namespace Content.Client.Lobby.UI
                 }
             }
 
-            // WOLFGATE START: populate the species picker and sync its selection
+            // WOLFGATE(Humanoid) START: populate the species picker and sync its selection
             SpeciesPicker.Populate();
             if (Profile != null)
             {
@@ -1174,7 +1174,7 @@ namespace Content.Client.Lobby.UI
         public void RefreshLoadouts()
         {
             _loadoutWindow?.Dispose();
-            CloseCustomJobTitle(); // WOLFGATE
+            CloseCustomJobTitle(); // WOLFGATE(Roles)
         }
 
         /// <summary>
@@ -1191,7 +1191,7 @@ namespace Content.Client.Lobby.UI
             if (Profile == null || !_prototypeManager.HasIndex(Profile.Species))
                 return;
 
-            // WOLFGATE START: the doll wears job clothes only in the As worn anatomy preview
+            // WOLFGATE(Genitals) START: the doll wears job clothes only in the As worn anatomy preview
             var jobClothes = _entManager.System<GenitalPreviewSystem>().DollWearsClothes(ShowClothes.Pressed);
             PreviewDummy = _controller.LoadProfileEntity(Profile, JobOverride, jobClothes);
             // WOLFGATE END
@@ -1221,8 +1221,8 @@ namespace Content.Client.Lobby.UI
             CharacterSlot = slot;
             IsDirty = false;
             JobOverride = null;
-            GenitalEditor.ResetPreview(); // WOLFGATE: every load (open, save, close) starts the preview as worn
-            _anatomySaveConfirm?.Close(); // WOLFGATE: an open confirmation describes the previous profile
+            GenitalEditor.ResetPreview(); // WOLFGATE(Genitals): every load (open, save, close) starts the preview as worn
+            _anatomySaveConfirm?.Close(); // WOLFGATE(Genitals): an open confirmation describes the previous profile
 
             UpdateNameEdit();
             UpdateFlavorTextEdit();
@@ -1236,7 +1236,7 @@ namespace Content.Client.Lobby.UI
             UpdateEyePickers();
             UpdateSaveButton();
             UpdateMarkings();
-            // WOLFGATE START: sync the anatomy tab and doll with the loaded profile
+            // WOLFGATE(Genitals) START: sync the anatomy tab and doll with the loaded profile
             UpdateGenitalEditor();
             if (Profile != null)
                 GenitalEditor.SetProfile(Profile.Genitals);
@@ -1277,7 +1277,7 @@ namespace Content.Client.Lobby.UI
 
         private void OnSpeciesInfoButtonPressed(BaseButton.ButtonEventArgs args)
         {
-            // WOLFGATE START: body split out so the species tab's per-card info buttons can reach it
+            // WOLFGATE(Humanoid) START: body split out so the species tab's per-card info buttons can reach it
             OpenSpeciesGuidebook(Profile?.Species ?? SharedHumanoidAppearanceSystem.DefaultSpecies);
         }
 
@@ -1290,7 +1290,7 @@ namespace Content.Client.Lobby.UI
             // I.e., do what jobs/antags do.
 
             var guidebookController = UserInterfaceManager.GetUIController<GuidebookUIController>();
-            // WOLFGATE START: species is now a parameter, computed by the caller instead
+            // WOLFGATE(Humanoid) START: species is now a parameter, computed by the caller instead
             // var species = Profile?.Species ?? SharedHumanoidAppearanceSystem.DefaultSpecies;
             // WOLFGATE END
             var page = DefaultSpeciesGuidebook;
@@ -1486,7 +1486,7 @@ namespace Content.Client.Lobby.UI
                     _jobPriorities.Add((job.ID, selector));
                     jobContainer.AddChild(selector);
                     jobContainer.AddChild(loadoutWindowBtn);
-                    AddCustomJobTitleButton(job, jobContainer); // WOLFGATE
+                    AddCustomJobTitleButton(job, jobContainer); // WOLFGATE(Roles)
                     category.AddChild(jobContainer);
                 }
             }
@@ -1498,7 +1498,7 @@ namespace Content.Client.Lobby.UI
         {
             _loadoutWindow?.Dispose();
             _loadoutWindow = null;
-            CloseCustomJobTitle(); // WOLFGATE: it edits the same role loadout
+            CloseCustomJobTitle(); // WOLFGATE(Roles): it edits the same role loadout
             var collection = IoCManager.Instance;
 
             if (collection == null || _playerManager.LocalSession == null || Profile == null)
@@ -1554,7 +1554,7 @@ namespace Content.Client.Lobby.UI
             UpdateJobPriorities();
         }
 
-        // WOLFGATE START: full-size description editor
+        // WOLFGATE(Humanoid) START: full-size description editor
         /// <summary>Opens the big description editor, kept in step with the small box.</summary>
         private void OpenDescriptionWindow()
         {
@@ -1587,7 +1587,7 @@ namespace Content.Client.Lobby.UI
             SetDirty();
         }
 
-        // WOLFGATE START: live description counter and warnings
+        // WOLFGATE(Humanoid) START: live description counter and warnings
         /// <summary>
         /// Live character count, plus a warning when the text holds square brackets (stripped as formatting
         /// tags when saved) or runs past the limit (cut when saved).
@@ -1629,7 +1629,7 @@ namespace Content.Client.Lobby.UI
                 return;
 
             Profile = Profile.WithCharacterAppearance(Profile.Appearance.WithMarkings(markings.GetForwardEnumerator().ToList()));
-            UpdateGenitalEditor(); // WOLFGATE: undergarment and pregnancy notices
+            UpdateGenitalEditor(); // WOLFGATE(Genitals): undergarment and pregnancy notices
             ReloadProfilePreview();
         }
 
@@ -1672,7 +1672,7 @@ namespace Content.Client.Lobby.UI
                     }
                 // Goobstation Section End - Tajaran
 
-                // WOLFGATE START: ported from HardLight, unrestricted skin colour
+                // WOLFGATE(Species) START: ported from HardLight, unrestricted skin colour
                 case HumanoidSkinColor.AnyColour:
                     {
                         if (!RgbSkinColorContainer.Visible)
@@ -1730,7 +1730,7 @@ namespace Content.Client.Lobby.UI
                 }
             }
 
-            UpdateGenitalEditor(); // WOLFGATE: tile colours follow the skin
+            UpdateGenitalEditor(); // WOLFGATE(Genitals): tile colours follow the skin
             ReloadProfilePreview();
         }
 
@@ -1742,7 +1742,7 @@ namespace Content.Client.Lobby.UI
 
             _loadoutWindow?.Dispose();
             _loadoutWindow = null;
-            // WOLFGATE START: also close the job title and anatomy confirm windows
+            // WOLFGATE(Genitals) START: also close the job title and anatomy confirm windows
             CloseCustomJobTitle();
             _anatomySaveConfirm?.Close();
             _anatomySaveConfirm = null;
@@ -1760,13 +1760,13 @@ namespace Content.Client.Lobby.UI
             base.ExitedTree();
             _entManager.DeleteEntity(PreviewDummy);
             PreviewDummy = EntityUid.Invalid;
-            _anatomySaveConfirm?.Close(); // WOLFGATE: the editor left the lobby, so there is nothing left to save
+            _anatomySaveConfirm?.Close(); // WOLFGATE(Genitals): the editor left the lobby, so there is nothing left to save
         }
 
         private void SetAge(int newAge)
         {
             Profile = Profile?.WithAge(newAge);
-            UpdateGenitalEditor(); // WOLFGATE: context only; the anatomy survives typing through a minor age
+            UpdateGenitalEditor(); // WOLFGATE(Genitals): context only; the anatomy survives typing through a minor age
             ReloadPreview();
         }
 
@@ -1789,7 +1789,7 @@ namespace Content.Client.Lobby.UI
 
             UpdateGenderControls();
             Markings.SetSex(newSex);
-            UpdateGenitalEditor(); // WOLFGATE
+            UpdateGenitalEditor(); // WOLFGATE(Genitals)
             ReloadPreview();
         }
 
@@ -1802,7 +1802,7 @@ namespace Content.Client.Lobby.UI
         private void SetSpecies(string newSpecies)
         {
             Profile = Profile?.WithSpecies(newSpecies);
-            // WOLFGATE START: keep the species picker and dropdown in step, drop hair the new species lacks
+            // WOLFGATE(Humanoid) START: keep the species picker and dropdown in step, drop hair the new species lacks
             EnforceSpeciesHair();
             SpeciesPicker.SetSelected(newSpecies);
             var speciesIndex = _species.FindIndex(s => s.ID == newSpecies);
@@ -1820,11 +1820,11 @@ namespace Content.Client.Lobby.UI
             RefreshTraits(); // Frontier
             UpdateSexControls(); // update sex for new species
             UpdateSpeciesGuidebookIcon();
-            UpdateGenitalEditor(); // WOLFGATE: context only; browsing an excluded species keeps the anatomy
+            UpdateGenitalEditor(); // WOLFGATE(Genitals): context only; browsing an excluded species keeps the anatomy
             ReloadPreview();
         }
 
-        // WOLFGATE START: drop hair the new species lacks
+        // WOLFGATE(Humanoid) START: drop hair the new species lacks
         /// <summary>
         /// Hair and facial hair are stored outside the marking set, so a species change has to
         /// drop them by hand. Without this, switching to a species with no hair left the old style on the
@@ -1942,7 +1942,7 @@ namespace Content.Client.Lobby.UI
 
         private void UpdateFlavorTextEdit()
         {
-            // WOLFGATE START: keep the live description status in step when the profile reloads
+            // WOLFGATE(Humanoid) START: keep the live description status in step when the profile reloads
             if (DescriptionBox.Visible)
             {
                 DescriptionEdit.TextRope = new Rope.Leaf(Profile?.FlavorText ?? "");
@@ -1970,7 +1970,7 @@ namespace Content.Client.Lobby.UI
 
         private void UpdateSexControls()
         {
-            // WOLFGATE START: otherwise the previous character's segments stay visible and lit
+            // WOLFGATE(Humanoid) START: otherwise the previous character's segments stay visible and lit
             if (Profile == null)
             {
                 SexSelector.Visible = false;
@@ -1993,10 +1993,10 @@ namespace Content.Client.Lobby.UI
                 sexes.Add(Sex.Unsexed);
             }
 
-            // WOLFGATE START: an icon box per sex, and a real SetSex when the current one is not offered by the
-            // new species. The old dropdown only moved its visual selection, because OptionButton.SelectId
-            // does not raise OnItemSelected - so switching a Male character to Vox left Profile.Sex on Male
-            // while the box read "None", and the markings were never revalidated.
+            // WOLFGATE(Humanoid) START: an icon box per sex, and a real SetSex when the new species lacks the current one
+            // The old dropdown only moved its visual selection, because OptionButton.SelectId does not raise
+            // OnItemSelected - so switching a Male character to Vox left Profile.Sex on Male while the box read
+            // "None", and the markings were never revalidated.
             SexSelector.SetSexes(sexes);
 
             if (sexes.Contains(Profile.Sex))
@@ -2077,7 +2077,7 @@ namespace Content.Client.Lobby.UI
                     }
                 // Goobstation Section End - Tajaran
 
-                // WOLFGATE START: ported from HardLight, unrestricted skin colour
+                // WOLFGATE(Species) START: ported from HardLight, unrestricted skin colour
                 case HumanoidSkinColor.AnyColour:
                     {
                         if (!RgbSkinColorContainer.Visible)
@@ -2125,7 +2125,7 @@ namespace Content.Client.Lobby.UI
             );
         }
 
-        // WOLFGATE START: anatomy tab context and save confirmation
+        // WOLFGATE(Genitals) START: anatomy tab context and save confirmation
         /// <summary>
         /// Passes the character context to the anatomy tab and hides adult-only markings below the adult age.
         /// Never rewrites Profile.Genitals: the tab shows its gates instead of clearing anything while the player types.
@@ -2231,7 +2231,7 @@ namespace Content.Client.Lobby.UI
                 facialHairMarking,
                 Profile.Species,
                 1);
-            HairCard.Visible = HairStylePicker.Visible || FacialHairPicker.Visible; // WOLFGATE: no hair card for species without hair
+            HairCard.Visible = HairStylePicker.Visible || FacialHairPicker.Visible; // WOLFGATE(Humanoid): no hair card for species without hair
         }
 
         private void UpdateCMarkingsHair()
@@ -2324,7 +2324,7 @@ namespace Content.Client.Lobby.UI
         private void SetPreviewRotation(Direction direction)
         {
             SpriteView.OverrideDirection = (Direction) ((int) direction % 4 * 2);
-            // WOLFGATE START: the picker tiles face the same way as the preview pawn
+            // WOLFGATE(Humanoid) START: the picker tiles face the same way as the preview pawn
             HairStylePicker.PreviewDirection = SpriteView.OverrideDirection.Value;
             FacialHairPicker.PreviewDirection = SpriteView.OverrideDirection.Value;
             Markings.PreviewDirection = SpriteView.OverrideDirection.Value;

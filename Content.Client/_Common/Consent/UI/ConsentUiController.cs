@@ -16,8 +16,8 @@ using static Robust.Client.UserInterface.Controls.BaseButton;
 namespace Content.Client._Common.Consent.UI;
 
 /// <summary>
-/// WOLFGATE: the consent preferences live in a Game Options tab rather than their own window, so the HUD
-/// button and the keybind both just open Options there.
+/// WOLFGATE(Genitals): the consent preferences live in a Game Options tab rather than their own window
+/// The HUD button and the keybind both just open Options there.
 /// </summary>
 [UsedImplicitly]
 public sealed class ConsentUiController : UIController, IOnStateChanged<GameplayState>

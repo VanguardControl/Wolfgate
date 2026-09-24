@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND MIT
 
 # Head
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: ThavenCheekBarbels
   bodyPart: HeadTop

@@ -15,8 +15,8 @@
     Head: MobSlimeHead
     Hair: MobSlimeMarkingFollowSkin
     FacialHair: MobSlimeMarkingFollowSkin
-    # WOLFGATE START: ported from HardLight, slimes can take the same head/tail marking slots as
-    # other species, so anthro ears, snouts and tails render on them
+    # WOLFGATE(Species) START: ported from HardLight, slimes take the head and tail marking slots of other species
+    # Anthro ears, snouts and tails render on them.
     Snout: MobHumanoidAnyMarking
     HeadSide: MobHumanoidAnyMarking
     HeadTop: MobHumanoidAnyMarking
@@ -25,11 +25,11 @@
     TailOversuit: MobHumanoidAnyMarking
     # WOLFGATE END
     Chest: MobSlimeTorso
-    UndergarmentTop: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    UndergarmentBottom: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    Genital: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    Penis: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    Breasts: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
+    UndergarmentTop: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    UndergarmentBottom: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    Genital: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    Penis: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    Breasts: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
     Eyes: MobHumanoidEyes
     LArm: MobSlimeLArm
     RArm: MobSlimeRArm

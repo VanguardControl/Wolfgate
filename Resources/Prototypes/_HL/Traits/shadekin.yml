@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight, adapted to Wolfgate's TraitPrototype.
+# WOLFGATE(Species): ported from HardLight, adapted to Wolfgate's TraitPrototype.
 # HardLight's `replaceComponents` and `requirements` fields do not exist here, and `NaturalRegen`
 # is not a trait in this fork, so those are dropped. The trait requirement that Dark Healing needs
 # a light-sensitivity trait is therefore not enforced automatically.

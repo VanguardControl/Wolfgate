@@ -1,6 +1,6 @@
 using System.Linq;
-using Content.Client._WF.Stylesheets; // WOLFGATE
-using Content.Shared._WF.CCVar; // WOLFGATE
+using Content.Client._WF.Stylesheets; // WOLFGATE(Stylesheets)
+using Content.Shared._WF.CCVar; // WOLFGATE(Stylesheets)
 using Content.Client.UserInterface.Screens;
 using Content.Shared._Mono.CCVar;
 using Content.Shared.CCVar;
@@ -43,7 +43,7 @@ public sealed partial class MiscTab : Control
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         ShowOocPatronColor.Visible = _playerManager.LocalSession?.Channel?.UserData.PatronTier is { };
 
-        // WOLFGATE START: UI skin picker
+        // WOLFGATE(Stylesheets) START: UI skin picker
         var styleEntries = WolfgateSkins.All
             .Select(skin => new OptionDropDownCVar<string>.ValueOption(skin.Id, Loc.GetString(skin.Name)))
             .ToList();

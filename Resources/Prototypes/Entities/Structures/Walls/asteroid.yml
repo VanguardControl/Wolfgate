@@ -10,7 +10,7 @@
   name: asteroid rock
   description: A rocky asteroid.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -736,7 +736,7 @@
   name: rock
   suffix: planetmap
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:

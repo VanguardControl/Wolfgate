@@ -1,4 +1,3 @@
-using Content.Shared._WF.Interaction;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Movement.Components;
 

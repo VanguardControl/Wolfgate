@@ -1,5 +1,5 @@
-<!-- WOLFGATE START: rebrand from Monolith to Wolfgate -->
-<p align="center"><img alt="Wolfgate" width="800" height="266" src="Resources/Textures/_WF/Logo/logo.png" /></p>
+<!-- WOLFGATE(Branding) START: rebrand from Monolith to Wolfgate -->
+<p align="center"><img alt="Wolfgate" width="800" height="266" src="Resources/Textures/_WF/Branding/Logo/logo.png" /></p>
 
 Wolfgate is a fork of [Monolith](https://github.com/Monolith-Station/Monolith), itself a fork of [Frontier Station 14](https://github.com/new-frontiers-14/frontier-station-14), running on the [Robust Toolbox](https://github.com/space-wizards/RobustToolbox) engine written in C#.
 
@@ -15,7 +15,7 @@ If you want to host or create content for Wolfgate, this is the repo you need. I
 
 ## Contributing
 
-<!-- WOLFGATE START: rebrand contributing section -->
+<!-- WOLFGATE(Branding) START: rebrand contributing section -->
 Contributions are welcome. Wolfgate-specific code lives in `_WF` folders, and edits to upstream files are marked with `// WOLFGATE` comments so they are easy to find when merging from Monolith.
 
 We are not accepting translations on this repository.
@@ -60,7 +60,7 @@ The scripts below make the job easier.
 
 ## License
 
-<!-- WOLFGATE START: reworded license section for Wolfgate branding -->
+<!-- WOLFGATE(Branding) START: reworded license section for Wolfgate branding -->
 See the REUSE headers for detailed licensing information for each file. The work as a whole is licensed under the GNU Affero General Public License version 3.0.
 
 Licensing inherited from Monolith and Frontier:

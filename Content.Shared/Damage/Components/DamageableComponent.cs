@@ -44,7 +44,7 @@ namespace Content.Shared.Damage
         /// <remarks>
         ///     If this data-field is specified, this allows damageable components to be initialized with non-zero damage.
         /// </remarks>
-        [DataField] // WOLFGATE: written on save so a resold ship keeps its dents
+        [DataField] // WOLFGATE(Shipyard): written on save so a resold ship keeps its dents
         public DamageSpecifier Damage = new();
 
         /// <summary>

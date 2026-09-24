@@ -1,8 +1,8 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-SynthWingsDragon = Synth Wings (Dragon)
 marking-SynthWingsDragon-dragon = Wings
 
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-SynthAntenna = Synth Antenna (Factory)
 marking-SynthAntenna-antenna_synth = Antenna
 marking-SynthAntennaCurl = Synth Antenna (Curl)

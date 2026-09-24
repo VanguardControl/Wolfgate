@@ -1,4 +1,4 @@
-using Content.Shared._FarHorizons.Damage; // WOLFGATE
+using Content.Shared._FarHorizons.Damage; // WOLFGATE(Species)
 using Content.Shared._Shitmed.Targeting;
 // Shitmed Change
 using Content.Shared.Body.Systems;
@@ -245,7 +245,7 @@ namespace Content.Shared.Damage
                 }
             }
 
-            // WOLFGATE START: heal modifiers, ported from HardLight
+            // WOLFGATE(Species) START: heal modifiers, ported from HardLight
             // Lets healing be adjusted even when resistances are ignored. Synths use this to be immune to
             // organic medicine.
             if (!ignoreGlobalModifiers && damage.GetTotal() < 0)

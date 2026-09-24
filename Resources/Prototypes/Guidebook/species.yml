@@ -13,15 +13,15 @@
   - Vox
   - Goblin # Frontier
   - Vulpkanin # DeltaV
-  - WFCanine # WOLFGATE
+  - WFCanine # WOLFGATE(Species)
   - Harpy # DeltaV
   - Felinid # DeltaV
-  - Felionoid # WOLFGATE: ported from HardLight/Starlight
-  - Avali # WOLFGATE: ported from HardLight/Starlight
-  - Skrell # WOLFGATE: ported from HardLight
-  - Shadekin # WOLFGATE: ported from HardLight/Starlight
-  - Thaven # WOLFGATE: ported from HardLight/Impstation
-  - Synth # WOLFGATE: ported from HardLight
+  - Felionoid # WOLFGATE(Species): ported from HardLight/Starlight
+  - Avali # WOLFGATE(Species): ported from HardLight/Starlight
+  - Skrell # WOLFGATE(Species): ported from HardLight
+  - Shadekin # WOLFGATE(Species): ported from HardLight/Starlight
+  - Thaven # WOLFGATE(Species): ported from HardLight/Impstation
+  - Synth # WOLFGATE(Species): ported from HardLight
   - Oni # DeltaV
   - Chitinid # DeltaV
   - Resomi # Floof
@@ -82,7 +82,7 @@
   id: Protogen
   name: species-name-protogen
   text: "/ServerInfo/Guidebook/Mobs/Protogen.xml"
-  # WOLFGATE START: the 14 subspecies ported from HardLight
+  # WOLFGATE(Species) START: the 14 subspecies ported from HardLight
   children:
   - ProtoVulp
   - ProtoVox

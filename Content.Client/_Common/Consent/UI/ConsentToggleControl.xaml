@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
             <gfx:StyleBoxFlat BackgroundColor="#1B1B1E" />
         </PanelContainer.PanelOverride>
         <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5">
-            <!-- WOLFGATE: the name takes the spare width and wraps, and the buttons keep their size, so a long
+            <!-- WOLFGATE(Genitals): the name takes the spare width and wraps, and the buttons keep their size, so a long
                  name in a narrow pane no longer squashes them. -->
             <BoxContainer Orientation="Horizontal" Margin="5">
                 <RichTextLabel Name="ConsentToggleNameLabel" HorizontalExpand="True" />

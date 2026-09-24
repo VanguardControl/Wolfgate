@@ -1,17 +1,17 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: ArfelharpyTopWingsBubber
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_arfelharpy_top_front_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_arfelharpy_top_front_BEHIND: m_wings_arfelharpy_top_front_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_arfelharpy_top_front_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_arfelharpy_top_front_BEHIND
 
 - type: marking
@@ -19,14 +19,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_bat_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_bat_behind_BEHIND: m_wings_bat_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_bat_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_bat_behind_BEHIND
 
 - type: marking
@@ -34,14 +34,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_bee_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_bee_behind_BEHIND: m_wings_bee_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_bee_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_bee_behind_BEHIND
 
 - type: marking
@@ -49,14 +49,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_beetle_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_beetle_behind_BEHIND: m_wings_beetle_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_beetle_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_beetle_behind_BEHIND
 
 - type: marking
@@ -64,20 +64,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_dragonalt1_behind_primary_BEHIND: TailBehind
     m_wings_dragonalt1_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_dragonalt1_behind_primary_BEHIND: m_wings_dragonalt1_behind_primary_FRONT
     m_wings_dragonalt1_behind_secondary_BEHIND: m_wings_dragonalt1_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_dragonalt1_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_dragonalt1_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_dragonalt1_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_dragonalt1_behind_secondary_BEHIND
 
 - type: marking
@@ -85,20 +85,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_dragonalt2_behind_primary_BEHIND: TailBehind
     m_wings_dragonalt2_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_dragonalt2_behind_primary_BEHIND: m_wings_dragonalt2_behind_primary_FRONT
     m_wings_dragonalt2_behind_secondary_BEHIND: m_wings_dragonalt2_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_dragonalt2_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_dragonalt2_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_dragonalt2_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_dragonalt2_behind_secondary_BEHIND
 
 - type: marking
@@ -106,26 +106,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_dragonsynth_behind_primary_BEHIND: TailBehind
     m_wings_dragonsynth_behind_secondary_BEHIND: TailBehind
     m_wings_dragonsynth_behind_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_dragonsynth_behind_primary_BEHIND: m_wings_dragonsynth_behind_primary_FRONT
     m_wings_dragonsynth_behind_secondary_BEHIND: m_wings_dragonsynth_behind_secondary_FRONT
     m_wings_dragonsynth_behind_tertiary_BEHIND: m_wings_dragonsynth_behind_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_dragonsynth_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_dragonsynth_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_dragonsynth_behind_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_dragonsynth_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_dragonsynth_behind_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_dragonsynth_behind_tertiary_BEHIND
 
 - type: marking
@@ -133,14 +133,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_extra_succubus_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_extra_succubus_behind_BEHIND: m_wings_extra_succubus_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_extra_succubus_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_extra_succubus_behind_BEHIND
 
 - type: marking
@@ -148,14 +148,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_fairy_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_fairy_behind_BEHIND: m_wings_fairy_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_fairy_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_fairy_behind_BEHIND
 
 - type: marking
@@ -163,26 +163,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_feathery_behind_primary_BEHIND: TailBehind
     m_wings_feathery_behind_secondary_BEHIND: TailBehind
     m_wings_feathery_behind_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_feathery_behind_primary_BEHIND: m_wings_feathery_behind_primary_FRONT
     m_wings_feathery_behind_secondary_BEHIND: m_wings_feathery_behind_secondary_FRONT
     m_wings_feathery_behind_tertiary_BEHIND: m_wings_feathery_behind_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_feathery_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_feathery_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_feathery_behind_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_feathery_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_feathery_behind_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_feathery_behind_tertiary_BEHIND
 
 - type: marking
@@ -190,26 +190,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_featheryalt1_behind_primary_BEHIND: TailBehind
     m_wings_featheryalt1_behind_secondary_BEHIND: TailBehind
     m_wings_featheryalt1_behind_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_featheryalt1_behind_primary_BEHIND: m_wings_featheryalt1_behind_primary_FRONT
     m_wings_featheryalt1_behind_secondary_BEHIND: m_wings_featheryalt1_behind_secondary_FRONT
     m_wings_featheryalt1_behind_tertiary_BEHIND: m_wings_featheryalt1_behind_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_featheryalt1_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_featheryalt1_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_featheryalt1_behind_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_featheryalt1_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_featheryalt1_behind_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_featheryalt1_behind_tertiary_BEHIND
 
 - type: marking
@@ -217,20 +217,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_featheryalt2_behind_primary_BEHIND: TailBehind
     m_wings_featheryalt2_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_featheryalt2_behind_primary_BEHIND: m_wings_featheryalt2_behind_primary_FRONT
     m_wings_featheryalt2_behind_secondary_BEHIND: m_wings_featheryalt2_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_featheryalt2_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_featheryalt2_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_featheryalt2_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_featheryalt2_behind_secondary_BEHIND
 
 - type: marking
@@ -238,14 +238,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpy_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpy_behind_BEHIND: m_wings_harpy_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpy_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpy_behind_BEHIND
 
 - type: marking
@@ -253,14 +253,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpy_top_front_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpy_top_front_BEHIND: m_wings_harpy_top_front_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpy_top_front_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpy_top_front_BEHIND
 
 - type: marking
@@ -268,14 +268,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpyalt_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpyalt_behind_BEHIND: m_wings_harpyalt_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpyalt_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpyalt_behind_BEHIND
 
 - type: marking
@@ -283,14 +283,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpyalt_fluffless_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpyalt_fluffless_behind_BEHIND: m_wings_harpyalt_fluffless_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpyalt_fluffless_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpyalt_fluffless_behind_BEHIND
 
 - type: marking
@@ -298,14 +298,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpyalt_fluffless_top_front_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpyalt_fluffless_top_front_BEHIND: m_wings_harpyalt_fluffless_top_front_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpyalt_fluffless_top_front_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpyalt_fluffless_top_front_BEHIND
 
 - type: marking
@@ -313,14 +313,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpyalt_top_front_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpyalt_top_front_BEHIND: m_wings_harpyalt_top_front_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpyalt_top_front_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpyalt_top_front_BEHIND
 
 - type: marking
@@ -328,26 +328,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpybat_behind_primary_BEHIND: TailBehind
     m_wings_harpybat_behind_secondary_BEHIND: TailBehind
     m_wings_harpybat_behind_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpybat_behind_primary_BEHIND: m_wings_harpybat_behind_primary_FRONT
     m_wings_harpybat_behind_secondary_BEHIND: m_wings_harpybat_behind_secondary_FRONT
     m_wings_harpybat_behind_tertiary_BEHIND: m_wings_harpybat_behind_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_behind_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_behind_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_behind_tertiary_BEHIND
 
 - type: marking
@@ -355,20 +355,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpybat_fluffless_behind_primary_BEHIND: TailBehind
     m_wings_harpybat_fluffless_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpybat_fluffless_behind_primary_BEHIND: m_wings_harpybat_fluffless_behind_primary_FRONT
     m_wings_harpybat_fluffless_behind_secondary_BEHIND: m_wings_harpybat_fluffless_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_fluffless_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_fluffless_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_fluffless_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_fluffless_behind_secondary_BEHIND
 
 - type: marking
@@ -376,20 +376,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpybat_fluffless_top_front_primary_BEHIND: TailBehind
     m_wings_harpybat_fluffless_top_front_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpybat_fluffless_top_front_primary_BEHIND: m_wings_harpybat_fluffless_top_front_primary_FRONT
     m_wings_harpybat_fluffless_top_front_secondary_BEHIND: m_wings_harpybat_fluffless_top_front_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_fluffless_top_front_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_fluffless_top_front_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_fluffless_top_front_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_fluffless_top_front_secondary_BEHIND
 
 - type: marking
@@ -397,26 +397,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_harpybat_top_front_primary_BEHIND: TailBehind
     m_wings_harpybat_top_front_secondary_BEHIND: TailBehind
     m_wings_harpybat_top_front_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_harpybat_top_front_primary_BEHIND: m_wings_harpybat_top_front_primary_FRONT
     m_wings_harpybat_top_front_secondary_BEHIND: m_wings_harpybat_top_front_secondary_FRONT
     m_wings_harpybat_top_front_tertiary_BEHIND: m_wings_harpybat_top_front_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_top_front_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_top_front_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_harpybat_top_front_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_top_front_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_top_front_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_harpybat_top_front_tertiary_BEHIND
 
 - type: marking
@@ -424,14 +424,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_insect_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_insect_behind_BEHIND: m_wings_insect_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_insect_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_insect_behind_BEHIND
 
 - type: marking
@@ -439,14 +439,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_low_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_low_behind_BEHIND: m_wings_low_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_behind_BEHIND
 
 - type: marking
@@ -454,26 +454,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_low_jewel_behind_primary_BEHIND: TailBehind
     m_wings_low_jewel_behind_secondary_BEHIND: TailBehind
     m_wings_low_jewel_behind_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_low_jewel_behind_primary_BEHIND: m_wings_low_jewel_behind_primary_FRONT
     m_wings_low_jewel_behind_secondary_BEHIND: m_wings_low_jewel_behind_secondary_FRONT
     m_wings_low_jewel_behind_tertiary_BEHIND: m_wings_low_jewel_behind_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_jewel_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_jewel_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_jewel_behind_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_jewel_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_jewel_behind_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_jewel_behind_tertiary_BEHIND
 
 - type: marking
@@ -503,26 +503,26 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_low_tri_behind_primary_BEHIND: TailBehind
     m_wings_low_tri_behind_secondary_BEHIND: TailBehind
     m_wings_low_tri_behind_tertiary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_low_tri_behind_primary_BEHIND: m_wings_low_tri_behind_primary_FRONT
     m_wings_low_tri_behind_secondary_BEHIND: m_wings_low_tri_behind_secondary_FRONT
     m_wings_low_tri_behind_tertiary_BEHIND: m_wings_low_tri_behind_tertiary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_tri_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_tri_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_low_tri_behind_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_tri_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_tri_behind_secondary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_low_tri_behind_tertiary_BEHIND
 
 - type: marking
@@ -543,14 +543,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_minibat_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_minibat_behind_BEHIND: m_wings_minibat_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_minibat_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_minibat_behind_BEHIND
 
 - type: marking
@@ -558,14 +558,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_minifeather_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_minifeather_behind_BEHIND: m_wings_minifeather_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_minifeather_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_minifeather_behind_BEHIND
 
 - type: marking
@@ -573,20 +573,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_pterodactyl_behind_primary_BEHIND: TailBehind
     m_wings_pterodactyl_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_pterodactyl_behind_primary_BEHIND: m_wings_pterodactyl_behind_primary_FRONT
     m_wings_pterodactyl_behind_secondary_BEHIND: m_wings_pterodactyl_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_pterodactyl_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_pterodactyl_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_pterodactyl_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_pterodactyl_behind_secondary_BEHIND
 
 - type: marking
@@ -594,20 +594,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_renamon_behind_primary_BEHIND: TailBehind
     m_wings_renamon_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_renamon_behind_primary_BEHIND: m_wings_renamon_behind_primary_FRONT
     m_wings_renamon_behind_secondary_BEHIND: m_wings_renamon_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_renamon_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_renamon_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_renamon_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_renamon_behind_secondary_BEHIND
 
 - type: marking
@@ -615,20 +615,20 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_robowing_behind_primary_BEHIND: TailBehind
     m_wings_robowing_behind_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_robowing_behind_primary_BEHIND: m_wings_robowing_behind_primary_FRONT
     m_wings_robowing_behind_secondary_BEHIND: m_wings_robowing_behind_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_robowing_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_robowing_behind_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_robowing_behind_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_robowing_behind_secondary_BEHIND
 
 - type: marking
@@ -636,14 +636,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     m_wings_spider_legs_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_spider_legs_behind_BEHIND: m_wings_spider_legs_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art
     state: m_wings_spider_legs_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: m_wings_spider_legs_behind_BEHIND
 
 - type: marking
@@ -651,14 +651,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_succubus_behind_primary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_succubus_behind_primary_BEHIND: m_wings_succubus_behind_primary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_succubus_behind_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_succubus_behind_primary_BEHIND
 
 - type: marking
@@ -666,14 +666,14 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_tinybat_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_tinybat_behind_BEHIND: m_wings_tinybat_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_tinybat_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_tinybat_behind_BEHIND
 
 - type: marking
@@ -681,12 +681,12 @@
   bodyPart: Tail
   markingCategory: Chest
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Shadekin, WFCanine]
-  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     m_wings_tinyfeather_behind_BEHIND: TailBehind
-  colorLinks: # WOLFGATE: both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     m_wings_tinyfeather_behind_BEHIND: m_wings_tinyfeather_behind_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
     state: m_wings_tinyfeather_behind_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Bubber/wings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
     state: m_wings_tinyfeather_behind_BEHIND

@@ -1,5 +1,5 @@
 using Content.Shared.Guidebook;
-using Robust.Shared.Network; // WOLFGATE
+using Robust.Shared.Network; // WOLFGATE: replays skip the guidebook data request
 
 namespace Content.Client.Guidebook;
 
@@ -11,7 +11,7 @@ namespace Content.Client.Guidebook;
 /// </summary>
 public sealed partial class GuidebookDataSystem : EntitySystem // WOLFGATE: partial for the network dependency
 {
-    [Dependency] private IClientNetManager _net = default!; // WOLFGATE
+    [Dependency] private IClientNetManager _net = default!; // WOLFGATE: replays skip the guidebook data request
 
     private GuidebookData? _data;
 

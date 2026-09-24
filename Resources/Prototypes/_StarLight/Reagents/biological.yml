@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight.
+# WOLFGATE(Species): ported from HardLight.
 # HardLight's Vampiric-organ variants are dropped here - Wolfgate has no vampire system.
 - type: reagent
   parent: Blood

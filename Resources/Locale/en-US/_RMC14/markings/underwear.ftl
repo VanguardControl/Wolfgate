@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Genitals): ported from HardLight
 marking-RMCUnderwearBoxers = Boxers (Tan)
 marking-RMCUnderwearBoxers-c_boxers = Boxers
 marking-RMCUnderwearBoxersBlue = Boxers (Desert)

@@ -2,7 +2,7 @@
   id: ProtogenTail
   bodyPart: Tail
   markingCategory: Tail
-  # WOLFGATE START: split tail, south frame on TailBehind, front on TailOversuit
+  # WOLFGATE(Genitals) START: split tail, south frame on TailBehind, front on TailOversuit
   speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoResomi, ProtoThaven, ProtoVox, ProtoVulp]
   layering:
     tail_protogen_FRONT: TailOversuit
@@ -10,9 +10,9 @@
   colorLinks:
     tail_protogen_BEHIND: tail_protogen_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_FRONT # index 0 keeps the saved single colour
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_BEHIND
   # WOLFGATE END
 
@@ -20,7 +20,7 @@
   id: ProtogenTailBushy
   bodyPart: Tail
   markingCategory: Tail
-  # WOLFGATE START: split tail, south frame on TailBehind, front on TailOversuit
+  # WOLFGATE(Genitals) START: split tail, south frame on TailBehind, front on TailOversuit
   speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoResomi, ProtoThaven, ProtoVox, ProtoVulp]
   layering:
     bushy_tail_protogen_FRONT: TailOversuit
@@ -28,9 +28,9 @@
   colorLinks:
     bushy_tail_protogen_BEHIND: bushy_tail_protogen_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: bushy_tail_protogen_FRONT # index 0 keeps the saved single colour
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: bushy_tail_protogen_BEHIND
   # WOLFGATE END
 
@@ -38,7 +38,7 @@
   id: ProtogenTailShark
   bodyPart: Tail
   markingCategory: Tail
-  # WOLFGATE START: split tail, south frame on TailBehind, front on TailOversuit
+  # WOLFGATE(Genitals) START: split tail, south frame on TailBehind, front on TailOversuit
   speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoResomi, ProtoThaven, ProtoVox, ProtoVulp]
   layering:
     shark_tail_protogen_FRONT: TailOversuit
@@ -46,9 +46,9 @@
   colorLinks:
     shark_tail_protogen_BEHIND: shark_tail_protogen_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: shark_tail_protogen_FRONT # index 0 keeps the saved single colour
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: shark_tail_protogen_BEHIND
   # WOLFGATE END
 
@@ -56,7 +56,7 @@
   id: ProtogenEars
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoThaven, ProtoVox, ProtoVulp]  # WOLFGATE: was [Protogen]
+  speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoThaven, ProtoVox, ProtoVulp]  # WOLFGATE(Species): was [Protogen]
   sprites:
   - sprite: _Mono/Mobs/Customization/protogen_parts.rsi
     state: ears_protogen
@@ -65,7 +65,7 @@
   id: TwoProtogenEars
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoThaven, ProtoVox, ProtoVulp]  # WOLFGATE: was [Protogen]
+  speciesRestriction: [Protogen, ProtoAvali, ProtoDawi, ProtoFeline, ProtoHumie, ProtoKin, ProtoMoth, ProtoThaven, ProtoVox, ProtoVulp]  # WOLFGATE(Species): was [Protogen]
   sprites:
   - sprite: _Mono/Mobs/Customization/protogen_parts.rsi
     state: two_ears_protogen
@@ -74,7 +74,7 @@
   id: ProtogenVisor
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Protogen, ProtoDawi, ProtoHumie]  # WOLFGATE: was [Protogen]
+  speciesRestriction: [Protogen, ProtoDawi, ProtoHumie]  # WOLFGATE(Species): was [Protogen]
   sprites:
   - sprite: _Mono/Mobs/Customization/protogen_parts.rsi
     state: visor_protogen

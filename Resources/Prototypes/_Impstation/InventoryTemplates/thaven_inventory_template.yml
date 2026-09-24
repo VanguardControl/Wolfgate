@@ -24,8 +24,8 @@
 # i'm using the offsets from funky's thaven_inventory_template.yml.
 # therefore, the copyright text remains. just in case -emmawantsblahaj
 
-# WOLFGATE: HardLight's ACCESSORY/ACCESSORYALT slots removed - Wolfgate has no accessory
-# slot system, so Thaven use the same slot set as every other species here.
+# WOLFGATE(Species): HardLight's ACCESSORY/ACCESSORYALT slots are removed
+# Wolfgate has no accessory slot system, so Thaven use the same slot set as every other species here.
 - type: inventoryTemplate
   id: thaven
   slots:

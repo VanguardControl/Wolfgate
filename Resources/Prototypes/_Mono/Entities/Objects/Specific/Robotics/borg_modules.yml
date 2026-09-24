@@ -282,7 +282,7 @@
     items:
     - EnergySword
     - WeaponLaserGunXenoborg
-    - JetpackXenoborgRechargable # WOLFGATE
+    - JetpackXenoborgRechargable # WOLFGATE(Xenoborgs)
         # Frontier -> GoobStation -> Monolith: droppable borg items
   - type: DroppableBorgModule
     moduleId: Surgery
@@ -329,7 +329,7 @@
     items:
     - EnergySword
     - WeaponLaserCannonXenoborg
-    - JetpackXenoborgRechargable # WOLFGATE
+    - JetpackXenoborgRechargable # WOLFGATE(Xenoborgs)
   - type: DroppableBorgModule
     moduleId: Surgery
     items:

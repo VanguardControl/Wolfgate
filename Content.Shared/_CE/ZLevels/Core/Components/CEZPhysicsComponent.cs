@@ -59,7 +59,7 @@ public sealed partial class CEZPhysicsComponent : Component
     [DataField]
     public int DrawDepthDefault;
 
-    // WOLFGATE START: transition-based airborne draw depth
+    // WOLFGATE(Species) START: transition-based airborne draw depth
     /// <summary>
     /// True while the sprite has been lifted to OverMobs for being airborne, so the draw depth is only
     /// written on the way up and on the way down and other systems may change it in between.

@@ -4,7 +4,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -19,7 +19,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -34,7 +34,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -49,7 +49,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -64,7 +64,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -79,7 +79,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -94,7 +94,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -109,7 +109,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -124,7 +124,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -139,7 +139,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -154,7 +154,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -169,7 +169,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -184,7 +184,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -199,7 +199,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -214,7 +214,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -229,7 +229,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -244,7 +244,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -259,7 +259,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -274,7 +274,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -289,7 +289,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -304,7 +304,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -319,7 +319,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -335,23 +335,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     aspen_BEHIND: TailBehind
   colorLinks:
     aspen_BEHIND: aspen_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: aspen_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: aspen_BEHIND
   # WOLFGATE END
 
@@ -360,23 +360,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     atlas_BEHIND: TailBehind
   colorLinks:
     atlas_BEHIND: atlas_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: atlas_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: atlas_BEHIND
   # WOLFGATE END
 
@@ -385,23 +385,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     brown_BEHIND: TailBehind
   colorLinks:
     brown_BEHIND: brown_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: brown_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: brown_BEHIND
   # WOLFGATE END
 
@@ -410,23 +410,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     deathshead_BEHIND: TailBehind
   colorLinks:
     deathshead_BEHIND: deathshead_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: deathshead_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: deathshead_BEHIND
   # WOLFGATE END
 
@@ -435,23 +435,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     feathery_BEHIND: TailBehind
   colorLinks:
     feathery_BEHIND: feathery_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: feathery_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: feathery_BEHIND
   # WOLFGATE END
 
@@ -460,23 +460,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     firewatch_BEHIND: TailBehind
   colorLinks:
     firewatch_BEHIND: firewatch_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: firewatch_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: firewatch_BEHIND
   # WOLFGATE END
 
@@ -485,23 +485,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     gothic_BEHIND: TailBehind
   colorLinks:
     gothic_BEHIND: gothic_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: gothic_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: gothic_BEHIND
   # WOLFGATE END
 
@@ -510,23 +510,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     jungle_BEHIND: TailBehind
   colorLinks:
     jungle_BEHIND: jungle_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: jungle_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: jungle_BEHIND
   # WOLFGATE END
 
@@ -535,23 +535,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     lovers_BEHIND: TailBehind
   colorLinks:
     lovers_BEHIND: lovers_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: lovers_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: lovers_BEHIND
   # WOLFGATE END
 
@@ -560,23 +560,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     luna_BEHIND: TailBehind
   colorLinks:
     luna_BEHIND: luna_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: luna_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: luna_BEHIND
   # WOLFGATE END
 
@@ -585,23 +585,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     mint_BEHIND: TailBehind
   colorLinks:
     mint_BEHIND: mint_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: mint_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: mint_BEHIND
   # WOLFGATE END
 
@@ -610,23 +610,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     moffra_BEHIND: TailBehind
   colorLinks:
     moffra_BEHIND: moffra_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: moffra_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: moffra_BEHIND
   # WOLFGATE END
 
@@ -635,23 +635,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     monarch_BEHIND: TailBehind
   colorLinks:
     monarch_BEHIND: monarch_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: monarch_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: monarch_BEHIND
   # WOLFGATE END
 
@@ -660,23 +660,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     moonfly_BEHIND: TailBehind
   colorLinks:
     moonfly_BEHIND: moonfly_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: moonfly_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: moonfly_BEHIND
   # WOLFGATE END
 
@@ -685,23 +685,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     oakworm_BEHIND: TailBehind
   colorLinks:
     oakworm_BEHIND: oakworm_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: oakworm_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: oakworm_BEHIND
   # WOLFGATE END
 
@@ -710,23 +710,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     plain_BEHIND: TailBehind
   colorLinks:
     plain_BEHIND: plain_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: plain_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: plain_BEHIND
   # WOLFGATE END
 
@@ -735,23 +735,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     plasmafire_BEHIND: TailBehind
   colorLinks:
     plasmafire_BEHIND: plasmafire_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: plasmafire_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: plasmafire_BEHIND
   # WOLFGATE END
 
@@ -760,23 +760,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     poison_BEHIND: TailBehind
   colorLinks:
     poison_BEHIND: poison_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: poison_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: poison_BEHIND
   # WOLFGATE END
 
@@ -785,23 +785,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     ragged_BEHIND: TailBehind
   colorLinks:
     ragged_BEHIND: ragged_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: ragged_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: ragged_BEHIND
   # WOLFGATE END
 
@@ -810,23 +810,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     reddish_BEHIND: TailBehind
   colorLinks:
     reddish_BEHIND: reddish_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: reddish_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: reddish_BEHIND
   # WOLFGATE END
 
@@ -835,23 +835,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     rosy_BEHIND: TailBehind
   colorLinks:
     rosy_BEHIND: rosy_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: rosy_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: rosy_BEHIND
   # WOLFGATE END
 
@@ -860,23 +860,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     royal_BEHIND: TailBehind
   colorLinks:
     royal_BEHIND: royal_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: royal_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: royal_BEHIND
   # WOLFGATE END
 
@@ -885,23 +885,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     snow_BEHIND: TailBehind
   colorLinks:
     snow_BEHIND: snow_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: snow_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: snow_BEHIND
   # WOLFGATE END
 
@@ -910,23 +910,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     whitefly_BEHIND: TailBehind
   colorLinks:
     whitefly_BEHIND: whitefly_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: whitefly_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: whitefly_BEHIND
   # WOLFGATE END
 
@@ -935,23 +935,23 @@
   bodyPart: Tail
   markingCategory: Tail
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
         !type:SimpleColoring
           color: "#FFFFFF"
-  # WOLFGATE START: south-frame anatomy layering behind body; tail halves share colour
+  # WOLFGATE(Genitals) START: south-frame anatomy layering behind body; tail halves share colour
   layering:
     witchking_BEHIND: TailBehind
   colorLinks:
     witchking_BEHIND: witchking_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split tail art into front/behind anatomy zones
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  # WOLFGATE(Genitals) START: split tail art into front/behind anatomy zones
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: witchking_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Nyanotrasen/Mobs/Customization/Moth/moth_wings.rsi
     state: witchking_BEHIND
   # WOLFGATE END
 
@@ -962,7 +962,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -977,7 +977,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -992,7 +992,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1007,7 +1007,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1022,7 +1022,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1037,7 +1037,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1054,7 +1054,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1069,7 +1069,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1084,7 +1084,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1099,7 +1099,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1114,7 +1114,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1129,7 +1129,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1145,7 +1145,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1160,7 +1160,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1175,7 +1175,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1190,7 +1190,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1205,7 +1205,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1220,7 +1220,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1236,7 +1236,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1251,7 +1251,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1266,7 +1266,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1281,7 +1281,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1296,7 +1296,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1311,7 +1311,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1327,7 +1327,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1342,7 +1342,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1357,7 +1357,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1372,7 +1372,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1387,7 +1387,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1402,7 +1402,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1418,7 +1418,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1433,7 +1433,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1448,7 +1448,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1463,7 +1463,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1478,7 +1478,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1493,7 +1493,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1509,7 +1509,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1524,7 +1524,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1539,7 +1539,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1554,7 +1554,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1569,7 +1569,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1584,7 +1584,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1600,7 +1600,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1615,7 +1615,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1630,7 +1630,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1645,7 +1645,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1660,7 +1660,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1675,7 +1675,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1691,7 +1691,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1706,7 +1706,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1721,7 +1721,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1736,7 +1736,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1751,7 +1751,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1766,7 +1766,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1782,7 +1782,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1797,7 +1797,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1812,7 +1812,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1827,7 +1827,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1842,7 +1842,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1857,7 +1857,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1873,7 +1873,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1888,7 +1888,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1903,7 +1903,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1918,7 +1918,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1933,7 +1933,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1948,7 +1948,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1964,7 +1964,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1979,7 +1979,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -1994,7 +1994,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2009,7 +2009,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2024,7 +2024,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2039,7 +2039,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2055,7 +2055,7 @@
   bodyPart: Head
   markingCategory: Head
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2070,7 +2070,7 @@
   bodyPart: Chest
   markingCategory: Chest
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2085,7 +2085,7 @@
   bodyPart: LArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2100,7 +2100,7 @@
   bodyPart: RArm
   markingCategory: Arms
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2115,7 +2115,7 @@
   bodyPart: LLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:
@@ -2130,7 +2130,7 @@
   bodyPart: RLeg
   markingCategory: Legs
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE: was [Moth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): was [Moth]
   coloring:
     default:
       type:

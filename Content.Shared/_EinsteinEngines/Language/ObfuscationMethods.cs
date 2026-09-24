@@ -32,7 +32,7 @@ public abstract partial class ObfuscationMethod
     }
 }
 
-// WOLFGATE START: ported from HardLight/Starlight, needed by the Avali "Scratch" language
+// WOLFGATE(Species) START: ported from HardLight/Starlight, needed by the Avali "Scratch" language
 /// <summary>
 ///     Obfuscates the letters and digits of a message into random ones, keeping spaces and
 ///     punctuation intact.

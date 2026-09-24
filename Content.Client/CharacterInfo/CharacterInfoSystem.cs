@@ -1,14 +1,14 @@
 ﻿using Content.Shared.CharacterInfo;
 using Content.Shared.Objectives;
 using Robust.Client.Player;
-using Robust.Shared.Network; // WOLFGATE
+using Robust.Shared.Network; // WOLFGATE: replays skip the character info request
 using Robust.Client.UserInterface;
 
 namespace Content.Client.CharacterInfo;
 
 public sealed partial class CharacterInfoSystem : EntitySystem
 {
-    [Dependency] private IClientNetManager _net = default!; // WOLFGATE
+    [Dependency] private IClientNetManager _net = default!; // WOLFGATE: replays skip the character info request
     [Dependency] private IPlayerManager _players = default!;
 
     public event Action<CharacterData>? OnCharacterUpdate;

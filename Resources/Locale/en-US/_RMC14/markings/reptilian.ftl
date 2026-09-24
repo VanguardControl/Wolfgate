@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-LizardChestDragonwings = Draconic Wings
 marking-LizardChestDragonwings-body_dragonwings = Draconic Wings
 marking-LizardChestDragonwings-body_dragonwings_membrane = Draconic Wings Membrane

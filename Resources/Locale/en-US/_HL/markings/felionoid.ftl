@@ -1,7 +1,7 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-FelionoidTailAnimated = Felionoid Tail (wag)
 
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-FelionoidFacialHairBeard = Felionoid Facial Hair Beard
 marking-FelionoidFacialHairColonel = Felionoid Facial Hair Colonel
 marking-FelionoidFacialHairFu = Felionoid Facial Hair Fu

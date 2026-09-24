@@ -72,7 +72,7 @@ public sealed partial class MarkingSet
         }
 
         Points = MarkingPoints.CloneMarkingPointDictionary(points.Points);
-        LimitUndergarments(Points); // WOLFGATE
+        LimitUndergarments(Points); // WOLFGATE(Genitals)
 
         foreach (var marking in markings)
         {
@@ -120,7 +120,7 @@ public sealed partial class MarkingSet
         }
 
         Points = MarkingPoints.CloneMarkingPointDictionary(points.Points);
-        LimitUndergarments(Points); // WOLFGATE
+        LimitUndergarments(Points); // WOLFGATE(Genitals)
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public sealed partial class MarkingSet
         Points = MarkingPoints.CloneMarkingPointDictionary(other.Points);
     }
 
-    // WOLFGATE START: one undergarment top and one bottom per character
+    // WOLFGATE(Genitals) START: one undergarment top and one bottom per character
     /// <summary>
     /// One undergarment top and one bottom per character, for every species. Works on the cloned points,
     /// never the prototype's: a missing entry becomes an optional budget of 1 with no default markings, and an
@@ -265,13 +265,13 @@ public sealed partial class MarkingSet
     {
         IoCManager.Resolve(ref markingManager);
 
-        // WOLFGATE START: collect removals per category
+        // WOLFGATE(Genitals) START: collect removals per category
         // One list for the whole set removed indices found in one category from every later category.
         // var toRemove = new List<int>();
         // WOLFGATE END
         foreach (var (category, list) in Markings)
         {
-            var toRemove = new List<int>(); // WOLFGATE
+            var toRemove = new List<int>(); // WOLFGATE(Genitals)
             for (var i = 0; i < list.Count; i++)
             {
                 if (!markingManager.TryGetMarking(list[i], out var marking))
@@ -282,7 +282,7 @@ public sealed partial class MarkingSet
 
                 if (marking.Sprites.Count != list[i].MarkingColors.Count)
                 {
-                    // WOLFGATE START: keep saved colours when a marking gains colour-linked sprites
+                    // WOLFGATE(Genitals) START: keep saved colours when a marking gains colour-linked sprites
                     // list[i] = new Marking(marking.ID, marking.Sprites.Count);
                     list[i] = TryPadLinkedColors(marking, list[i], out var padded)
                         ? padded
@@ -291,7 +291,7 @@ public sealed partial class MarkingSet
                 }
             }
 
-            // WOLFGATE START: remove from the back so earlier indices stay valid
+            // WOLFGATE(Genitals) START: remove from the back so earlier indices stay valid
             // foreach (var i in toRemove)
             // {
             //     Remove(category, i);
@@ -304,7 +304,7 @@ public sealed partial class MarkingSet
         }
     }
 
-    // WOLFGATE START: pads missing colours from their colorLinks parents
+    // WOLFGATE(Genitals) START: pads missing colours from their colorLinks parents
     /// <summary>Pads missing colours from their colorLinks parents; false if any missing sprite has no linked parent.</summary>
     private static bool TryPadLinkedColors(MarkingPrototype proto, Marking saved, [NotNullWhen(true)] out Marking? padded)
     {

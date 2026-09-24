@@ -27,7 +27,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Content.Shared.Body.Organ;
-using Content.Shared._WF.Surgery; // WOLFGATE
+using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
@@ -341,7 +341,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         if (ev.Cancelled)
             return false;
 
-        // WOLFGATE START: let a surgery refuse a particular surgeon (adult content and patient consent)
+        // WOLFGATE(Genitals) START: let a surgery refuse a particular surgeon (adult content and patient consent)
         var userEv = new SurgeryUserValidEvent(user, body, targetPart);
         RaiseLocalEvent(surgeryEntId, ref userEv);
         if (userEv.Cancelled)

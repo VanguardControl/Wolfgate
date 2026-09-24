@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Content.Shared.Power.Components; // WOLFGATE: battery moved to shared here
+using Content.Shared.Power.Components; // WOLFGATE(Silicons): battery moved to shared here
 using Content.Shared._HL.Silicons.Synths.Battery;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;

@@ -220,7 +220,7 @@
   id: ChairWood
   parent: UnanchoredChairBase
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -405,7 +405,7 @@
   parent: ChairBase
   description: Did you get a splinter? Well, at least it’s eco friendly.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:

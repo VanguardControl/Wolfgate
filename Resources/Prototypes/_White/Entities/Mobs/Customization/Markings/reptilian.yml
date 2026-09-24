@@ -24,7 +24,7 @@
   id: LizardShoutEasternDragon
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Reptilian, ProtoReptile] # WOLFGATE: added ProtoReptile
+  speciesRestriction: [Reptilian, ProtoReptile] # WOLFGATE(Species): added ProtoReptile
   sprites:
   - sprite: _White/Mobs/Customization/snouts.rsi
     state: eastern_dragon
@@ -35,7 +35,7 @@
   id: LizardShoutEasternDragonUsiki
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Reptilian, ProtoReptile] # WOLFGATE: added ProtoReptile
+  speciesRestriction: [Reptilian, ProtoReptile] # WOLFGATE(Species): added ProtoReptile
   sprites:
   - sprite: _White/Mobs/Customization/snouts.rsi
     state: eastern_dragon
@@ -50,7 +50,7 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Reptilian]
-  # WOLFGATE START: split tail, south frame behind the body
+  # WOLFGATE(Genitals) START: split tail, south frame behind the body
   layering:
     snake_large_BEHIND: TailBehind
     snake_large_overlay_BEHIND: TailBehind
@@ -59,14 +59,14 @@
     snake_large_overlay_BEHIND: snake_large_overlay_FRONT
   # WOLFGATE END
   sprites:
-    # WOLFGATE START: split tail art
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    # WOLFGATE(Genitals) START: split tail art
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_overlay_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_overlay_BEHIND
     # WOLFGATE END
 
@@ -75,7 +75,7 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: []
-  # WOLFGATE START: split tail, south frame behind the body
+  # WOLFGATE(Genitals) START: split tail, south frame behind the body
   layering:
     snake_large_wagging_BEHIND: TailBehind
     snake_large_wagging_overlay_BEHIND: TailBehind
@@ -84,14 +84,14 @@
     snake_large_wagging_overlay_BEHIND: snake_large_wagging_overlay_FRONT
   # WOLFGATE END
   sprites:
-    # WOLFGATE START: split tail art
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    # WOLFGATE(Genitals) START: split tail art
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_wagging_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_wagging_overlay_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_wagging_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_White/Mobs/Customization/reptilian_64x32.rsi
       state: snake_large_wagging_overlay_BEHIND
     # WOLFGATE END
 

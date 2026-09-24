@@ -19,7 +19,6 @@ using Content.Shared._Mono.Ships.Components;
 using Content.Shared._NF.Shipyard;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
-using Content.Shared._WF.Access;
 using Content.Shared._WF.Traders;
 using Content.Shared.Access.Components;
 using Content.Shared.Mind;

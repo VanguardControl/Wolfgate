@@ -25,11 +25,11 @@
     FacialHair: MobHumanoidAnyMarking
     Snout: MobHumanoidAnyMarking
     Chest: MobYowieTorso
-    UndergarmentTop: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    UndergarmentBottom: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    Genital: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    Penis: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
-    Breasts: MobHumanoidAnyMarking # WOLFGATE: underwear/genital layers ported from HardLight
+    UndergarmentTop: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    UndergarmentBottom: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    Genital: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    Penis: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    Breasts: MobHumanoidAnyMarking # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
     Eyes: MobHumanoidEyes
     LArm: MobYowieLArm
     RArm: MobYowieRArm
@@ -40,8 +40,8 @@
     LFoot: MobYowieLFoot
     RFoot: MobYowieRFoot
     Tail: MobHumanoidAnyMarking
-    TailBehind: MobHumanoidAnyMarking # WOLFGATE: split tail layers ported from HardLight/Floof
-    TailOversuit: MobHumanoidAnyMarking # WOLFGATE: split tail layers ported from HardLight/Floof
+    TailBehind: MobHumanoidAnyMarking # WOLFGATE(Genitals): split tail layers ported from HardLight/Floof
+    TailOversuit: MobHumanoidAnyMarking # WOLFGATE(Genitals): split tail layers ported from HardLight/Floof
     HeadTop: MobHumanoidAnyMarking
 
 - type: markingPoints

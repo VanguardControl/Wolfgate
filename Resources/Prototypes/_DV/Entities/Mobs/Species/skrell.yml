@@ -1,4 +1,4 @@
-# WOLFGATE: psionic components (InnatePsionicPowers, PsionicBonusChance) dropped - Wolfgate has no psionics system.
+# WOLFGATE(Species): psionic components (InnatePsionicPowers, PsionicBonusChance) dropped - Wolfgate has no psionics system.
 - type: entity
   save: false
   parent: BaseMobSpeciesOrganic
@@ -9,7 +9,7 @@
   # HardLight start
   - type: LanguageKnowledge
     speaks:
-    - TauCetiBasic # WOLFGATE: HardLight's GalacticCommon is TauCetiBasic here
+    - TauCetiBasic # WOLFGATE(Species): HardLight's GalacticCommon is TauCetiBasic here
     - Bubblish
     understands:
     - TauCetiBasic
@@ -82,7 +82,7 @@
         type: SurgeryBui
   - type: Speech
     speechVerb: Skrell
-    allowedEmotes: [ 'RMCSkrellPeep', 'RMCSkrellAnger', 'Trill', 'Warble' ] # WOLFGATE: was RMCSkrellWarble, which shared Warble's trigger words
+    allowedEmotes: [ 'RMCSkrellPeep', 'RMCSkrellAnger', 'Trill', 'Warble' ] # WOLFGATE(Species): was RMCSkrellWarble, which shared Warble's trigger words
   - type: Vocal
     sounds:
       Male: RMCMaleSkrell
@@ -94,7 +94,7 @@
     drawdepth: Mobs
     layers:
       - map: [ "enum.HumanoidVisualLayers.TailBehind" ]
-      - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE: anatomy anchor
+      - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE(Genitals): anatomy anchor
       - map: [ "enum.HumanoidVisualLayers.Chest" ]
       - map: [ "enum.HumanoidVisualLayers.Head" ]
       - map: [ "enum.HumanoidVisualLayers.Snout" ]
@@ -132,16 +132,16 @@
         visible: false
       - map: [ "id" ]
       - map: [ "gloves" ]
-      - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE: anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
+      - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE(Genitals): anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
       - map: [ "shoes" ]
       - map: [ "ears" ]
       - map: [ "outerClothing" ]
-      - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE: anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
+      - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE(Genitals): anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
       - map: [ "eyes" ]
       - map: [ "belt" ]
       - map: [ "back" ]
       - map: [ "neck" ]
-      - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # WOLFGATE: drawn above the neck slots so cloaks do not cover the tail
+      - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # WOLFGATE(Genitals): drawn above the neck slots so cloaks do not cover the tail
       - map: [ "enum.HumanoidVisualLayers.FacialHair" ]
       - map: [ "enum.HumanoidVisualLayers.Hair" ]
       - map: [ "enum.HumanoidVisualLayers.HeadSide" ]

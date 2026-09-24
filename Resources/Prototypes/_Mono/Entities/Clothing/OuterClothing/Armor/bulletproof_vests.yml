@@ -5,7 +5,7 @@
   name: light bulletproof vest
   description: A simple kevlar vest of unknown origin. This one is a simple bulletproof vest made to resist low caliber rounds.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -39,7 +39,7 @@
   name: medium bulletproof vest
   description: A simple kevlar vest of unknown origin. This one is more heavily reinforced against bullets at the cost of it being cumbersome.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -75,7 +75,7 @@
   name: heavy bulletproof vest
   description: A simple kevlar vest of unknown origin. This juggernaut vest makes you practically a walking tank, at the cost of heat protection and extreme bulk.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -112,7 +112,7 @@
   name: polyvalent bulletproof vest
   description: A simple kevlar vest of unknown origin. This one isn't made to protect against a specific type of threat.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -146,7 +146,7 @@
   name: stabproof bulletproof vest
   description: A simple kevlar vest of unknown origin. This one is reinforced against stabbings.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END

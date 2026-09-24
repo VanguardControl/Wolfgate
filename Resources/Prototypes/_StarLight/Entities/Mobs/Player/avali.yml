@@ -3,6 +3,6 @@
   name: Urist McSpaceRaptor
   parent: BaseMobAvali
   id: MobAvali
-# WOLFGATE: HardLight's PotentialPsionic was dropped here - Wolfgate has no psionics system,
-# and no other player mob in this fork carries it.
+# WOLFGATE(Species): HardLight's PotentialPsionic is dropped
+# Wolfgate has no psionics system, and no other player mob in this fork carries it.
 #chirp!

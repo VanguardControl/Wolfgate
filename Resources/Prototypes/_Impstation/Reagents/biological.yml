@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight.
+# WOLFGATE(Species): ported from HardLight.
 # HardLight's Vampiric-organ variants are dropped here - Wolfgate has no vampire system, so the
 # plain nourishment effects apply to everyone.
 - type: reagent # can't parent it to blood because anybody should be able to drink it, the flesh/organs are the toxic parts (fugu moment)

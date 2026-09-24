@@ -44,4 +44,4 @@
     back:
     - RubberStampDoctor
     - BoxFolderMedicalDoctor
-    - WFShipVoucherMedicalResponder # WOLFGATE: free Triage or Stubby
+    - WFShipVoucherMedicalResponder # WOLFGATE(Shipyard): free Triage or Stubby

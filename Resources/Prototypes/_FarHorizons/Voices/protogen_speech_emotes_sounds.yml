@@ -37,7 +37,7 @@
       collection: MaleGasp
     DefaultDeathgasp:
       collection: MaleDeathGasp
-    SiliconDeathgasp: # WOLFGATE: _Mono protogen mobs use this emote
+    SiliconDeathgasp: # WOLFGATE(Species): _Mono protogen mobs use this emote
       collection: MaleDeathGasp
     Mew:
       collection: ProtoFelionoidMew
@@ -50,7 +50,7 @@
     Yip:
       collection: ProtoVulpYip
     Whine:
-      collection: VulpkaninWhines # WOLFGATE: Whine collection does not exist here
+      collection: VulpkaninWhines # WOLFGATE(Species): Whine collection does not exist here
     Growl:
       collection: ProtoVulpGrowl
     Howl:
@@ -143,7 +143,7 @@
       collection: FemaleGasp
     DefaultDeathgasp:
       collection: FemaleDeathGasp
-    SiliconDeathgasp: # WOLFGATE: _Mono protogen mobs use this emote
+    SiliconDeathgasp: # WOLFGATE(Species): _Mono protogen mobs use this emote
       collection: FemaleDeathGasp
     Mew:
       collection: ProtoFelionoidMew
@@ -156,7 +156,7 @@
     Yip:
       collection: ProtoVulpYip
     Whine:
-      collection: VulpkaninWhines # WOLFGATE: Whine collection does not exist here
+      collection: VulpkaninWhines # WOLFGATE(Species): Whine collection does not exist here
     Growl:
       collection: ProtoVulpGrowl
     Howl:

@@ -47,7 +47,7 @@ public sealed partial class HTNSystem : EntitySystem
         _loadedQuery = GetEntityQuery<LoadedChunkComponent>(); // Frontier
         SubscribeLocalEvent<HTNComponent, MobStateChangedEvent>(_npc.OnMobStateChange);
         SubscribeLocalEvent<HTNComponent, MapInitEvent>(_npc.OnNPCMapInit);
-        SubscribeLocalEvent<HTNComponent, ComponentStartup>(OnHTNStartup); // WOLFGATE
+        SubscribeLocalEvent<HTNComponent, ComponentStartup>(OnHTNStartup); // WOLFGATE(Traders)
         SubscribeLocalEvent<HTNComponent, PlayerAttachedEvent>(_npc.OnPlayerNPCAttach);
         SubscribeLocalEvent<HTNComponent, PlayerDetachedEvent>(_npc.OnPlayerNPCDetach);
         SubscribeLocalEvent<HTNComponent, ComponentShutdown>(OnHTNShutdown);
@@ -221,7 +221,7 @@ public sealed partial class HTNSystem : EntitySystem
             {
                 if (comp.PlanningJob.Exception != null)
                 {
-                    // WOLFGATE START: log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
+                    // WOLFGATE(Traders) START: log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
                     // Log.Fatal($"Received exception on planning job for {uid}!");
                     Log.Error($"Received exception on planning job for {ToPrettyString(uid)}, removing its HTN: {comp.PlanningJob.Exception}");
                     _npc.SleepNPC(uid);
@@ -306,7 +306,7 @@ public sealed partial class HTNSystem : EntitySystem
                 comp.PlanningToken = null;
             }
 
-            // WOLFGATE START: one broken NPC must not take the whole update loop down with it.
+            // WOLFGATE(Traders) START: one broken NPC must not take the whole update loop down with it.
             try
             {
                 Update(comp, frameTime);
@@ -327,7 +327,7 @@ public sealed partial class HTNSystem : EntitySystem
         count = 0;
     }
 
-    // WOLFGATE START: NPCs from a loaded grid need their blackboard Owner set on startup
+    // WOLFGATE(Traders) START: NPCs from a loaded grid need their blackboard Owner set on startup
     /// <summary>
     /// A grid loaded from a save is already map-initialised, so its NPCs never see MapInit
     /// and come up with no Owner in their blackboard. The blackboard is not saved, so set it here.
