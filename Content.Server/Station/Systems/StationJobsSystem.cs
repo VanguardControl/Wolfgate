@@ -55,6 +55,7 @@ public sealed partial class StationJobsSystem : EntitySystem
 
         ent.Comp.OverflowJobs = ent.Comp.SetupAvailableJobs
             .Where(x => x.Value[0] < 0)
+            .Where(x => x.Key.Id == SharedGameTicker.FallbackOverflowJob) // WOLFGATE: only Vagrant is handed out as overflow
             .Select(x => x.Key)
             .ToHashSet();
     }
