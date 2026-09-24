@@ -247,7 +247,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             // limbs already live with (PLAN5 R11, handed to the balance pass).
             var second = entities.SpawnEntity("MobIPC", map.GridCoords);
             blunted = Part(entities, second, BodyPartType.Arm, BodyPartSymmetry.Left);
-            // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling (152).
+            // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling.
             Assert.That(routing.TryApplyPartDamage(second, blunted, Spec("Blunt", 195), first,
                 ignoreResistances: true));
         });
@@ -392,11 +392,13 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
 
             Assert.That(entities.System<WolfmedBodyPartSystem>().Get(arm).AmputationThresholds, Is.Empty);
-            // 195 Blunt clears MajorLimb's Blunt rung of 190. WolfmedPartDiona declares no Destructible of its
+            // 215 Slash clears MajorLimb's Slash rung of 210. WolfmedPartDiona declares no Destructible of its
             // own, so the limb keeps the trigger every organic arm and leg carries (Body/Parts/base.yml).
-            // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling (152).
+            // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling.
+            // M3 (P19): the Blunt rung this used (190) is 400 now, above every limb's Blunt sever threshold; the
+            // Slash rung is unchanged, and a diona limb still cannot be severed, so it is still destroyed.
             var attacker = entities.SpawnEntity("MobHuman", map.GridCoords);
-            Assert.That(Routing(entities).TryApplyPartDamage(body, arm, Spec("Blunt", 195), attacker,
+            Assert.That(Routing(entities).TryApplyPartDamage(body, arm, Spec("Slash", 215), attacker,
                 ignoreResistances: true));
         });
 

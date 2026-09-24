@@ -1,3 +1,4 @@
+using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Robust.Shared.Serialization;
 
@@ -111,7 +112,14 @@ public sealed class WolfmedVitalsReport
 
     /// <summary>Playtest 2: whole seconds left in a pain faint, -1 when none runs.</summary>
     public int FaintSeconds = -1;
+
+    /// <summary>M3 (plan §8): every organ with Wolfmed data that is impaired or failed, in medical reading order.</summary>
+    public List<WolfmedOrganReading> Organs = new();
 }
+
+/// <summary>M3: one organ the analyzer names, by its body slot, and how it is doing.</summary>
+[Serializable, NetSerializable]
+public readonly record struct WolfmedOrganReading(string Slot, WolfmedOrganBand Band);
 
 /// <summary>
 /// The words for <see cref="WolfmedVitalsReport"/>. One place, so the analyzer panel, the pod and the tests
@@ -128,6 +136,9 @@ public static class WolfmedVitalsText
 
         if (BurnFluidLine(report) is { } burns)
             lines.Add(burns);
+
+        if (OrganLine(report) is { } organs)
+            lines.Add(organs);
 
         if (VerdictLine(report) is { } verdict)
             lines.Add(verdict);
@@ -211,6 +222,7 @@ public static class WolfmedVitalsText
             WolfmedBreathing.Depressed => Loc.GetString("wolfmed-vitals-breathing-depressed",
                 ("percent", (int) MathF.Round(report.Sedation * 100f))),
             WolfmedBreathing.Gasping => Loc.GetString("wolfmed-vitals-breathing-gasping"),
+            WolfmedBreathing.Laboured => Loc.GetString("wolfmed-vitals-breathing-laboured"), // M3
             WolfmedBreathing.None => Loc.GetString(
                 $"wolfmed-vitals-breathing-none-{report.BreathingSource.ToString().ToLowerInvariant()}"),
             _ => Loc.GetString("wolfmed-vitals-breathing-normal"),
@@ -257,6 +269,31 @@ public static class WolfmedVitalsText
 
         return Loc.GetString(report.BurnFluidFast ? "wolfmed-vitals-burn-fluid-fast" : "wolfmed-vitals-burn-fluid-slow",
             ("rate", MathF.Round(report.BurnFluid, 1)));
+    }
+
+    /// <summary>
+    /// M3 (plan §8): "Organs: lungs impaired (short of breath); heart impaired (irregular pulse)". Null while every
+    /// organ is OK.
+    /// </summary>
+    public static string? OrganLine(WolfmedVitalsReport report)
+    {
+        if (report.Organs.Count == 0)
+            return null;
+
+        var parts = new List<string>();
+        foreach (var (slot, band) in report.Organs)
+        {
+            var key = slot.ToLowerInvariant();
+            var name = Loc.TryGetString($"wolfmed-vitals-organ-{key}", out var named) ? named : key;
+            var word = Loc.GetString($"wolfmed-vitals-organ-band-{band.ToString().ToLowerInvariant()}",
+                ("organ", name));
+            parts.Add(Loc.TryGetString($"wolfmed-vitals-organ-{key}-{band.ToString().ToLowerInvariant()}",
+                out var effect)
+                ? Loc.GetString("wolfmed-vitals-organ-with-effect", ("reading", word), ("effect", effect))
+                : word);
+        }
+
+        return Loc.GetString("wolfmed-vitals-organs", ("organs", string.Join("; ", parts)));
     }
 
     /// <summary>"Defib: shock indicated", or the refusal with what to do first. Null while hidden.</summary>

@@ -23,6 +23,7 @@
   symptom: wolfmed-cause-pain-faint-symptom
   helpOut: wolfmed-cause-pain-faint-help
   helpOutBlocked: wolfmed-cause-pain-faint-help-blocked
+  helpOutTimed: wolfmed-cause-pain-faint-help-timed # M3: was hard-coded in the condition alert system
   out: wolfmed-cause-pain-faint-out
 
 - type: wolfmedConsciousnessCause

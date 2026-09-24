@@ -11,6 +11,10 @@
 # Shitmed's (D8), so they live on WolfmedOrgan here. Organ damage is irreversible (DECISIONS.md §8.6-4):
 # nothing in Wolfgate raises organ health, and Onyx's only healer is its own surgery (D7).
 # Human lineage only (DECISIONS.md §8.6-7, P3-D7); the other ~20 organ roots stay silent no-ops.
+#
+# M3 (plan §8): OrganDamage's selectionWeight and damageMultipliers now drive a deterministic split (a hit
+# past its part's organReach line); hitChance and maxDamageFraction are only read by Onyx's roll, which is
+# left for parts without reach lines. Every organ is impaired under WolfmedOrgan.impairedBelow (0.5).
 
 # Brain: no destruction wound - OrganHealthSystem kills the mob instead of destroying the organ.
 # WolfmedBrain is BRAIN's oxygenation clock; only an organ that carries it runs one.
@@ -55,6 +59,8 @@
   - type: WolfmedOrgan
     destructionWound: InternalBleedingWound
     destructionWoundSeverity: 45
+    # M3 (plan §8): under half health the heart is impaired, and blood regenerates at half the rate.
+    impairedRegenFactor: 0.5
   - type: OrganDamage
     hitChance: 0.8
     selectionWeight: 0.64

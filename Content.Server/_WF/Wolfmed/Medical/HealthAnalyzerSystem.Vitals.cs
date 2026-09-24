@@ -1,6 +1,7 @@
 using Content.Server.Body.Components;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
@@ -68,7 +69,26 @@ public sealed partial class HealthAnalyzerSystem
         }
 
         SetVerdict(body, report);
+        SetOrganReadings(body, report);
         return report;
+    }
+
+    /// <summary>M3 (plan §8): the organs that are impaired or failed, in the organ tab's reading order.</summary>
+    private void SetOrganReadings(EntityUid body, WolfmedVitalsReport report)
+    {
+        var found = new List<(int Order, WolfmedOrganReading Reading)>();
+        foreach (var (organ, component) in _bodySystem.GetBodyOrgans(body))
+        {
+            if (!TryComp(organ, out WolfmedOrganComponent? health) || health.Band == WolfmedOrganBand.Ok)
+                continue;
+
+            var slot = component.SlotId ?? string.Empty;
+            found.Add((OrganOrder(slot), new WolfmedOrganReading(slot, health.Band)));
+        }
+
+        found.Sort((left, right) => left.Order.CompareTo(right.Order));
+        foreach (var (_, reading) in found)
+            report.Organs.Add(reading);
     }
 
     private WolfmedVitalsState GetVitalsState(EntityUid body, WolfmedConsciousnessComponent consciousness, bool mechanical)
@@ -98,7 +118,7 @@ public sealed partial class HealthAnalyzerSystem
         var interval = (float) bloodstream.UpdateInterval.TotalSeconds;
         FixedPoint2 refresh = bloodstream.BloodRefreshAmount;
         var regeneration = blood < 1f && interval > 0f && !_vitalsMobState.IsDead(body)
-            ? refresh.Float() / interval
+            ? refresh.Float() / interval * _life.BloodRegenFactor(body) // M3: an impaired heart regenerates less
             : 0f;
         var net = regeneration - _life.GetVolumeLossRate(body); // M1b: burn fluid loss empties the same pool
 

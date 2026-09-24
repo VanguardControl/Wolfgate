@@ -196,6 +196,8 @@ public sealed class WolfmedCrawlingActionsTest : GameTest
 
         await Server.WaitPost(() =>
         {
+            // M3: station air, so no barotrauma lands on the caller while the test waits.
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             minds.WipeMind(session.ContentData()?.Mind);
             body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             minds.TransferTo(minds.CreateMind(session.UserId).Owner, body);
@@ -211,7 +213,15 @@ public sealed class WolfmedCrawlingActionsTest : GameTest
             PutDown(body);
             Assert.That(State(body), Is.EqualTo(WolfmedConsciousness.Downed));
             Assert.That(HasCallAction(body), Is.True, "a Downed body has no Call for help.");
+        });
 
+        // M3: the fall's stun stutters (a Goob edit to TryStun), which mangles "airlock" at random; a call made
+        // inside it came through or not depending on how the random draws before it fell. Wait it out.
+        await RunSeconds(3);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(State(body), Is.EqualTo(WolfmedConsciousness.Downed));
             Assert.That(calls.CallForHelp(body, "Medic! Over by the airlock!", 60), Is.True);
             var comp = SEntMan.GetComponent<WolfmedCallForHelpComponent>(body);
             var now = SGameTiming.CurTime;

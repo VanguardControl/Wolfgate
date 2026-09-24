@@ -195,7 +195,7 @@ public sealed class WolfmedPlaytestTwoTest : GameTest
             leftHand = s.Part(body, BodyPartType.Hand, BodyPartSymmetry.Left);
             rightArm = s.Part(body, BodyPartType.Arm, BodyPartSymmetry.Right);
 
-            // Ambient Heat: stops at the ceilings (152 arm, 120 hand), far past Shitmed's 90.
+            // Ambient Heat under the ceilings (168 arm, 144 hand since M3), far past Shitmed's 90.
             Routing.TryApplyPartDamage(body, leftArm, WolfmedScenario.Spec("Heat", 150));
             Routing.TryApplyPartDamage(body, leftHand, WolfmedScenario.Spec("Heat", 120));
         });

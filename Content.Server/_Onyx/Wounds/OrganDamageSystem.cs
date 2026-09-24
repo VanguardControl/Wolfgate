@@ -25,6 +25,7 @@ public sealed partial class OrganDamageSystem : EntitySystem
     [Dependency] private AmputationSystem _amputation = default!; // WOLFGATE: D26 lifted in phase 3 (WP11-1); AmputationSystem is now vendored.
     [Dependency] private OrganHealthSystem _organHealth = default!;
     [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedPartHitSystem _wfHits = default!; // WOLFGATE (M1b)
+    [Dependency] private Content.Server._WF.Wolfmed.Body.WolfmedOrganThresholdSystem _wfOrgans = default!; // WOLFGATE (M3)
 
     public override void Initialize()
     {
@@ -41,6 +42,11 @@ public sealed partial class OrganDamageSystem : EntitySystem
         _fractures.HandlePartDamageApplied(part, ref args);
         _amputation.HandlePartDamageApplied(part, ref args); // WOLFGATE: D26 lifted in phase 3 (WP11-1); order wounds -> fractures -> amputation -> bleeding is load-bearing.
         _bleeding.HandlePartDamageApplied(part, ref total); // WOLFGATE (M1b): Total
+
+        // WOLFGATE (M3): a part with reach lines takes organ damage by the size of the whole hit (plan §8), and
+        // checks the head blow there; the roll below stays for parts without them.
+        if (_net.IsServer && _wfOrgans.HandleHit(part, total.Damage))
+            return;
 
         if (!_net.IsServer || !TryComp(part, out BodyPartComponent? bodyPart) || bodyPart.Body == null ||
             !_prototypes.TryIndex(part.Comp.Profile, out var profile))

@@ -328,7 +328,9 @@ public sealed partial class AutodocSystem
         ClearStall(ent);
         SnapshotWounds(ent, body);
 
-        MaintainAnaesthesia(ent, body);
+        // M3: a closure the pod added to finish the last procedure is part of it; the patient is still under.
+        if (ent.Comp.Queue.Count == 0 || !ent.Comp.Queue[0].Continuation)
+            MaintainAnaesthesia(ent, body);
 
         ent.Comp.State = AutodocState.Step;
         BeginStep(ent);
@@ -586,6 +588,12 @@ public sealed partial class AutodocSystem
             {
                 ent.Comp.CurrentStep = null;
                 CloseTray(ent);
+
+                // M3: a surgery whose problem went away before its closing step (the bleed stopped, the bone
+                // mended) stops being valid and skips the seal, which left the pod's incision open. Close it next.
+                if (!performed)
+                    TryQueueClosure(ent, body, queued, 1);
+
                 CompleteProcedure(ent, body);
                 return;
             }
@@ -834,10 +842,12 @@ public sealed partial class AutodocSystem
     }
 
     /// <summary>
-    /// Puts the patient back together after an abandoned procedure, but only when they are already open:
-    /// closing an incision lists on an intact body too, because the pod would cut one to close it.
+    /// Puts the patient back together after an abandoned or cut-short procedure, but only when they are already
+    /// open: closing an incision lists on an intact body too, because the pod would cut one to close it. The
+    /// closure goes in at <paramref name="index"/>: first for an abandoned procedure, which has already left the
+    /// queue, and straight after the current one for a procedure about to complete.
     /// </summary>
-    private void TryQueueClosure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued abandoned)
+    private void TryQueueClosure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued abandoned, int index = 0)
     {
         if (abandoned.Surgery == CloseIncision ||
             ResolvePart(body, abandoned.Part) is not { } part ||
@@ -846,11 +856,12 @@ public sealed partial class AutodocSystem
             !IsProcedureStarted(body, part, CloseIncision))
             return;
 
-        ent.Comp.Queue.Insert(0, new AutodocQueued
+        ent.Comp.Queue.Insert(Math.Min(index, ent.Comp.Queue.Count), new AutodocQueued
         {
             Surgery = CloseIncision,
             Part = abandoned.Part,
             Requirements = BuildRequirements(ent, CloseIncision),
+            Continuation = true,
         });
     }
 

@@ -467,6 +467,12 @@ public sealed class AutodocQueued
 
     /// <summary>Steps the pod has actually performed, so a surgery that stops being valid reads as finished.</summary>
     public int StepsDone;
+
+    /// <summary>
+    /// M3: a closure the pod queued itself to finish the procedure before it. Part of that procedure, so it takes
+    /// no fresh anaesthetic.
+    /// </summary>
+    public bool Continuation;
 }
 
 /// <summary>Something the pod needs in the tray or the reservoir before a step can run.</summary>

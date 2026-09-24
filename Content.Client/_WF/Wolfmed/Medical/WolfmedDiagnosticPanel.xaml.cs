@@ -4,6 +4,7 @@ using Content.Client._Onyx.Medical.HealthAnalyzer;
 using Content.Shared._Onyx.Medical;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
+using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage.Prototypes;
@@ -165,7 +166,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
                     existing.Name.ToolTip = name;
                 }
 
-                var health = Loc.GetString("health-analyzer-window-organ-health", ("percent", percent));
+                var health = OrganHealthText(organ, organEntity.Value, percent);
                 if (existing.Health.Text != health)
                     existing.Health.Text = health;
 
@@ -197,7 +198,7 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
             row.AddChild(nameLabel);
             var healthLabel = new Label
             {
-                Text = Loc.GetString("health-analyzer-window-organ-health", ("percent", percent)),
+                Text = OrganHealthText(organ, organEntity.Value, percent),
             };
             row.AddChild(healthLabel);
             OrgansContainer.AddChild(row);
@@ -210,6 +211,22 @@ public sealed partial class WolfmedDiagnosticPanel : BoxContainer
             OrgansContainer.RemoveChild(_organRows[entity].Row);
             _organRows.Remove(entity);
         }
+    }
+
+    /// <summary>
+    /// M3 (plan §8): the health, and "impaired" or "failed" after it when the organ's band says so, from the
+    /// organ's own impaired line.
+    /// </summary>
+    private string OrganHealthText(HealthAnalyzerOrganInfo organ, EntityUid organEntity, int percent)
+    {
+        if (organ.Health <= FixedPoint2.Zero)
+            return Loc.GetString("health-analyzer-window-organ-health-failed");
+
+        if (_entityManager.TryGetComponent(organEntity, out WolfmedOrganComponent? data) &&
+            (float) organ.Health / (float) organ.MaxHealth < data.ImpairedBelow)
+            return Loc.GetString("health-analyzer-window-organ-health-impaired", ("percent", percent));
+
+        return Loc.GetString("health-analyzer-window-organ-health", ("percent", percent));
     }
 
     private void ClearOrganRows()

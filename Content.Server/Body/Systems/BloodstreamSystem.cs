@@ -44,6 +44,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
     [Dependency] private AlertsSystem _alertsSystem = default!;
     [Dependency] private ForensicsSystem _forensicsSystem = default!;
     [Dependency] private WolfmedConsciousnessSystem _wolfmedConsciousness = default!; // WOLFGATE (CONSC)
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem _wolfmedLife = default!; // WOLFGATE (M3)
 
     public override void Initialize()
     {
@@ -127,7 +128,8 @@ public sealed partial class BloodstreamSystem : EntitySystem
             // Adds blood to their blood level if it is below the maximum; Blood regeneration. Must be alive.
             if (bloodSolution.Volume < bloodSolution.MaxVolume && !_mobStateSystem.IsDead(uid))
             {
-                TryModifyBloodLevel(uid, bloodstream.BloodRefreshAmount, bloodstream);
+                // WOLFGATE (M3): an impaired heart regenerates at its band's factor (plan §8); 1 everywhere else.
+                TryModifyBloodLevel(uid, bloodstream.BloodRefreshAmount * _wolfmedLife.BloodRegenFactor(uid), bloodstream);
             }
 
             // Removes blood from the bloodstream based on bleed amount (bleed rate)

@@ -186,7 +186,7 @@ public sealed class WolfmedPainTest : GameTest
             var pain = entities.System<PainSystem>();
             var parts = graph.GetBodyChildren(body).ToList();
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
-            var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
+            var arm = parts.Single(part => part.Component.PartType == BodyPartType.Arm).Id;
 
             var shockTarget = entities.GetComponent<PainShockTargetComponent>(body);
             Assert.That(shockTarget.Armed, Is.True);
@@ -206,10 +206,11 @@ public sealed class WolfmedPainTest : GameTest
                 "pain shock fired below its 130 threshold.");
             Assert.That(shockTarget.Armed, Is.True);
 
-            // The same hit on the head takes the body to 200.4, which SetPain clamps to the 135 soft cap.
+            // The same hit on the arm takes the body to 200.4, which SetPain clamps to the 135 soft cap.
             // 135 >= 130, the target is armed, so UpdatePainShock paralyses for 2 s, screams, jitters and
-            // opens the adrenaline window - all synchronously, from RaisePainChanged.
-            Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 60)));
+            // opens the adrenaline window - all synchronously, from RaisePainChanged. M3: the arm, not the head,
+            // because Blunt 30 or more to the head is a knockout (plan §3.6), and a knocked-out body takes no stun.
+            Assert.That(routing.TryApplyPartDamage(body, arm, Spec("Blunt", 60)));
             Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(135)));
             Assert.That(entities.HasComponent<StunnedComponent>(body), Is.True,
                 "no paralysis: P2-D24's `StatusEffects allowed: [Stun, KnockedDown, Jitter]` is what lets StunSystemOnyxCompat.TryUpdateParalyzeDuration succeed.");

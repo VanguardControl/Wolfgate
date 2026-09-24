@@ -188,15 +188,14 @@
   continue: true
   capabilities: [ Biological ]
 
-# Crushed tissue bleeds where nobody can see it. The one chance roll in W3: a crush injury is a reliable
-# consequence, internal bleeding is the luck of where the blow landed.
+# Crushed tissue bleeds where nobody can see it. M3 (OD15): a band, not a roll. Every blow of 40 or more
+# bleeds inside (it was 40% of blows from 30), so a medic can read it off the size of the hit.
 - type: wolfmedWoundRule
   id: WolfmedRuleCrushInternalBleed
   priority: 90
   wound: InternalBleedingWound
   damageTypes: [ Blunt ]
-  minDamage: 30
-  chance: 0.4
+  minDamage: 40
   severityMultiplier: 0.5
   minSeverity: 10
   partTypes: [ Head, Torso, Arm, Leg ]

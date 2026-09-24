@@ -122,3 +122,11 @@
     fractureProfile: null
     maxDamage: 250
     eviscerationProfile: WolfmedEviscerationDefault
+    # M3 (plan §8, OD10): penetrating torso hits reach the positronic core and the pump, on the same lines as
+    # an organic torso (_WF/Wolfmed/Body/parts.yml), restated because this torso never inherits WolfmedBaseTorso.
+    organReach:
+      Piercing: 10
+      Slash: 18
+      Blunt: 30
+      Heat: 20
+      Shock: 15

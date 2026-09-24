@@ -36,6 +36,15 @@ public sealed class WolfmedBodyPartSystem : EntitySystem
         return cap > 0f ? FixedPoint2.New(cap) : null;
     }
 
+    /// <summary>
+    /// M3 (P27): whether a blast may take this part off. The head only while <c>wolfmed.blast_dismember_head</c>
+    /// is on, whichever path the blast would sever it by: Onyx's per-part explosion roll or an ordinary finishing
+    /// hit. Read by one marked line in Onyx's <c>AmputationSystem.HandlePartDamageApplied</c>.
+    /// </summary>
+    public bool BlastMaySever(EntityUid part) =>
+        _config.GetCVar(WolfmedCVars.BlastDismemberHead) ||
+        CompOrNull<Content.Shared.Body.Part.BodyPartComponent>(part)?.PartType != Content.Shared.Body.Part.BodyPartType.Head;
+
     private readonly HashSet<EntityUid> _ceilingBypass = new();
 
     /// <summary>

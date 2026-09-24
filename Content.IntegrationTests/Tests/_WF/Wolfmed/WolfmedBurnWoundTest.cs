@@ -320,7 +320,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
 
     /// <summary>
     /// A shock burns along the path the current took: an internal wound on top of the surface mark, a
-    /// chance at the heart, and hands that let go.
+    /// band of heart damage on the Shock past 15 (M3, OD15), and hands that let go.
     /// </summary>
     [Test]
     public async Task ShockBurnsInsideAndSpasmsTest()
@@ -352,13 +352,15 @@ public sealed class WolfmedBurnWoundTest : GameTest
                     Is.EqualTo(FixedPoint2.New(24)));
             });
 
-            // The heart roll is a chance, so it is driven directly rather than waited for.
-            var heart = electrical.TryShockOrgan(body, "heart", FixedPoint2.New(4));
+            // M3 (OD15): no roll. The hit's own Shock took 0.2 × (40 - 15) = 5 off the heart through the band, and
+            // the torso's Shock reach line (15) sent more of it into the chest's organs by weight.
+            var heart = electrical.TryShockOrgan(body, WolfmedElectricalBurnSystem.HeartSlot, FixedPoint2.New(0.01f));
             Assert.That(heart, Is.Not.Null);
             var health = entities.GetComponent<WolfmedOrganComponent>(heart!.Value);
             Assert.Multiple(() =>
             {
-                Assert.That(health.Health, Is.LessThan(health.MaxHealth));
+                Assert.That(health.Health, Is.LessThanOrEqualTo(health.MaxHealth - FixedPoint2.New(5)),
+                    "the band did not reach the heart.");
                 Assert.That(health.Health, Is.GreaterThan(FixedPoint2.Zero), "shocked, not stopped.");
             });
 

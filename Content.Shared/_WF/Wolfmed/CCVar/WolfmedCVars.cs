@@ -432,7 +432,7 @@ public sealed class WolfmedCVars
 
     /// <summary>
     /// Per-part ceiling for damage nobody dealt, as a fraction of the part's lowest destruction threshold (arm
-    /// and leg 152, hand and foot 120, head 400). A part without one (the torso) keeps its own cap. What the
+    /// and leg 168, hand and foot 144 since M3 raised the limbs' Blunt and Heat rungs, head 400). A part without one (the torso) keeps its own cap. What the
     /// ceiling trims still grows wounds and fluid loss; it is only not stored. Zero turns it off.
     /// </summary>
     public static readonly CVarDef<float> AmbientPartCapFraction =
@@ -489,4 +489,56 @@ public sealed class WolfmedCVars
     /// </summary>
     public static readonly CVarDef<float> CrawlFloor =
         CVarDef.Create("wolfmed.crawl_floor", 0.35f, CVar.SERVER | CVar.REPLICATED);
+
+    // M3: consequences keep mattering (plan §8, §3.6, OD15).
+
+    /// <summary>
+    /// Organ damage per point of a hit past its part's reach line, before the organ's own per-type multiplier
+    /// and weight share (plan §8). Set so an unarmoured rifle round (Piercing 14) to the chest impairs the lungs
+    /// on hit 4 and fails the heart on hit 13; destroyed organs leave the split, so the survivors take more.
+    /// </summary>
+    public static readonly CVarDef<float> OrganDamageScale =
+        CVarDef.Create("wolfmed.organ_damage_scale", 3.4f, CVar.SERVERONLY);
+
+    /// <summary>Most health one organ loses to one hit through the reach lines.</summary>
+    public static readonly CVarDef<float> OrganHitCap =
+        CVarDef.Create("wolfmed.organ_hit_cap", 5f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Damaged lungs as a breathing input (plan §3.3): (impaired line - lung health fraction) / impaired line,
+    /// times this, while the lungs are under their impaired line. Zero turns the route off.
+    /// </summary>
+    public static readonly CVarDef<float> LungDamageFactor =
+        CVarDef.Create("wolfmed.lung_damage_factor", 1f, CVar.SERVERONLY);
+
+    /// <summary>Brain health fraction under which the brain holds the patient Downed, cause Brain (plan §3.6).</summary>
+    public static readonly CVarDef<float> ConsciousnessBrainDown =
+        CVarDef.Create("wolfmed.consc_brain_down", 0.25f, CVar.SERVERONLY);
+
+    /// <summary>Positronic core health fraction under which the chassis is Downed, cause Core (plan §3.6).</summary>
+    public static readonly CVarDef<float> ConsciousnessCoreDown =
+        CVarDef.Create("wolfmed.consc_core_down", 0.25f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// The injury pressure brain or core damage writes. Between the Downed share (0.7) and 1, so it Downs and
+    /// never knocks out: neither heals on its own, so an Unconscious rung would be helpless time only surgery ends.
+    /// </summary>
+    public static readonly CVarDef<float> InjuryDownPressure =
+        CVarDef.Create("wolfmed.injury_down_pressure", 0.75f, CVar.SERVERONLY);
+
+    /// <summary>Seconds a heavy blow to the head knocks the patient out (plan §3.6). Nothing extends it.</summary>
+    public static readonly CVarDef<float> HeadKnockoutSeconds =
+        CVarDef.Create("wolfmed.head_knockout_seconds", 5f, CVar.SERVERONLY);
+
+    /// <summary>Blunt in one hit to the head, after armour, that knocks the patient out.</summary>
+    public static readonly CVarDef<float> HeadKnockoutBlunt =
+        CVarDef.Create("wolfmed.head_knockout_blunt", 30f, CVar.SERVERONLY);
+
+    /// <summary>Heart health per point of Shock over wolfmed.electric_heart_from in one hit (OD15, replaces the rolls).</summary>
+    public static readonly CVarDef<float> ElectricHeartFactor =
+        CVarDef.Create("wolfmed.electric_heart_factor", 0.2f, CVar.SERVERONLY);
+
+    /// <summary>Shock in one hit, after armour, from which the current reaches the heart.</summary>
+    public static readonly CVarDef<float> ElectricHeartFrom =
+        CVarDef.Create("wolfmed.electric_heart_from", 15f, CVar.SERVERONLY);
 }

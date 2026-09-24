@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
+using Content.IntegrationTests.Fixtures.Attributes;
 using Content.Server._Shitmed.DelayedDeath; // WOLFGATE: DelayedDeathComponent is server-only here.
 using Content.Shared._Onyx.Body;
 using Content.Shared._Onyx.Body.Systems;
@@ -38,6 +39,9 @@ public sealed class WolfmedOrganTest : GameTest
     // 0.04 for a torso on the shipped OrganicBodyPartProfile. T-ORG-CAP forces it to 1.0 in a bespoke
     // profile so the cap can be measured deterministically; `maxAffected: 1` plus a single organ with
     // `hitChance: 1` removes the draw-without-replacement roll as well.
+    //
+    // M3 (plan §8): the roll only runs on a part without reach lines, so the T-ORG-CAP torso declares an empty
+    // `organReach`. WolfmedOrganReachBody keeps the shipped torso lines for the reach test.
     //
     // WoundableComponent is EnsureComp'd at runtime by WoundDamageProjectionSystem.SetupPart and defaults
     // its Profile to OrganicBodyPartProfile, so the only way to attach a different profile is to declare
@@ -89,6 +93,28 @@ public sealed class WolfmedOrganTest : GameTest
   components:
   - type: Woundable
     profile: WolfmedOrganTestProfile
+  - type: WolfmedBodyPart
+    organReach: {}
+
+- type: body
+  id: WolfmedOrganReachGraph
+  name: ""wolfmed organ reach body""
+  root: torso
+  slots:
+    torso:
+      part: TorsoHuman
+      organs:
+        wolfmedtest: WolfmedOrganTestOrgan
+
+- type: entity
+  id: WolfmedOrganReachBody
+  parent: InventoryBase
+  components:
+  - type: Body
+    prototype: WolfmedOrganReachGraph
+  - type: Damageable
+    damageContainer: Biological
+  - type: WoundHost
 
 - type: entity
   id: WolfmedOrganTestOrgan
@@ -167,7 +193,10 @@ public sealed class WolfmedOrganTest : GameTest
         });
     }
 
-    /// <summary>PLAN3 §6.2 T-ORG-CAP. The per-application cap is what makes organ damage a slow ratchet.</summary>
+    /// <summary>
+    /// PLAN3 §6.2 T-ORG-CAP. The per-application cap is what makes Onyx's organ roll a slow ratchet. M3: the roll
+    /// is left only for parts without reach lines, which this torso is.
+    /// </summary>
     [Test]
     public async Task OrganDamageIsCappedPerApplicationTest()
     {
@@ -200,6 +229,48 @@ public sealed class WolfmedOrganTest : GameTest
             Assert.That(routing.TryApplyPartDamage(body, torso, Spec("Piercing", 1000)));
             Assert.That(health.Health, Is.EqualTo(FixedPoint2.New(6)),
                 "the cap is per application, not per point of damage.");
+        });
+    }
+
+    /// <summary>
+    /// M3 (plan §8): a part with reach lines. A hit at the line reaches nothing; past it, the organ takes
+    /// (hit - line) × its multiplier × its weight share × wolfmed.organ_damage_scale, capped per hit by
+    /// wolfmed.organ_hit_cap, every time and with no roll.
+    /// </summary>
+    [Test]
+    public async Task OrganDamageFollowsTheReachLineTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        await OverrideCVar(Side.Server, Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.OrganDamageScale, 3.4f);
+        await OverrideCVar(Side.Server, Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.OrganHitCap, 5f);
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("WolfmedOrganReachBody", map.GridCoords);
+            var attacker = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var graph = entities.System<SharedBodySystem>();
+            var routing = entities.System<WoundDamageRoutingSystem>();
+            var torso = graph.GetBodyChildren(body)
+                .Single(part => part.Component.PartType == BodyPartType.Torso).Id;
+            var organ = graph.GetPartOrgans(torso).Single().Id;
+            var health = entities.GetComponent<WolfmedOrganComponent>(organ);
+
+            // The torso's Piercing line is 10: a hit of 10 reaches nothing.
+            Assert.That(routing.TryApplyPartDamage(body, torso, Spec("Piercing", 10), attacker));
+            Assert.That(health.Health, Is.EqualTo(FixedPoint2.New(15)), "a hit at the line reached the organ.");
+
+            // Piercing 12: (12 - 10) × 0.5 × 1 (the only organ) × 3.4 = 3.4.
+            Assert.That(routing.TryApplyPartDamage(body, torso, Spec("Piercing", 12), attacker));
+            Assert.That(health.Health.Float(), Is.EqualTo(11.6f).Within(0.011f));
+
+            // Piercing 100 would be 153; the per-hit cap holds it at 5, and so it does for 1000.
+            Assert.That(routing.TryApplyPartDamage(body, torso, Spec("Piercing", 100), attacker));
+            Assert.That(health.Health.Float(), Is.EqualTo(6.6f).Within(0.011f), "the per-hit cap did not hold.");
+            Assert.That(routing.TryApplyPartDamage(body, torso, Spec("Piercing", 1000), attacker));
+            Assert.That(health.Health.Float(), Is.EqualTo(1.6f).Within(0.011f), "the cap is per hit, not per point.");
         });
     }
 
