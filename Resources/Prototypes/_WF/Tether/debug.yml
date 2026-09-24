@@ -4,11 +4,11 @@
   id: WFRopeDebug
   name: rope-name-debug
   icon: { sprite: "/Textures/Objects/Tools/cable-coils.rsi", state: coillv-30 }
-  spawn: RopeCoilDebug1
+  spawn: WFRopeCoilDebug1
   maxCount: 30
 
 - type: entity
-  id: RopeAttachPointDebug
+  id: WFRopeAttachPointDebug
   name: tether eye
   suffix: Debug
   description: A ring bolted to the hull. Rope can be tied to it.
@@ -26,7 +26,7 @@
     maxRopes: 2
 
 - type: entity
-  id: RopeCoilDebug
+  id: WFRopeCoilDebug
   parent: BaseItem
   name: rope coil
   suffix: Debug, Full
@@ -44,13 +44,13 @@
     stackType: WFRopeDebug
     count: 30
   - type: RopeCoil
-    ropeType: RopeDebug
+    ropeType: WFRopeDebug
     metresPerUnit: 1
     slack: 1.15
 
 - type: entity
-  id: RopeCoilDebug1
-  parent: RopeCoilDebug
+  id: WFRopeCoilDebug1
+  parent: WFRopeCoilDebug
   suffix: Debug, 1
   components:
   - type: Sprite

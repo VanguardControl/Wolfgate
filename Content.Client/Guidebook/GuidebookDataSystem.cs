@@ -9,7 +9,7 @@ namespace Content.Client.Guidebook;
 /// Requests data from the server on <see cref="Initialize"/>.
 /// Can also be pushed new data when the server reloads prototypes.
 /// </summary>
-public sealed partial class GuidebookDataSystem : EntitySystem // WOLFGATE - Partial for the network dependency.
+public sealed partial class GuidebookDataSystem : EntitySystem // WOLFGATE: partial for the network dependency
 {
     [Dependency] private IClientNetManager _net = default!; // WOLFGATE
 
@@ -21,9 +21,10 @@ public sealed partial class GuidebookDataSystem : EntitySystem // WOLFGATE - Par
 
         SubscribeNetworkEvent<UpdateGuidebookDataEvent>(OnServerUpdated);
 
-        // WOLFGATE - Replay playback starts these systems without a server connection.
+        // WOLFGATE START: replay playback starts these systems without a server connection
         if (_net.IsConnected)
             RaiseNetworkEvent(new RequestGuidebookDataEvent());
+        // WOLFGATE END
     }
 
     private void OnServerUpdated(UpdateGuidebookDataEvent args)

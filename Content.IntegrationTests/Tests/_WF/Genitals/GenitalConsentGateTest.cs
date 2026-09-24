@@ -146,7 +146,7 @@ public sealed class GenitalConsentGateTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The Default settings name both anatomy toggles; both exist on each side and require the master switch.</summary>
+    /// <summary>The WFDefault settings name both anatomy toggles; both exist on each side and require the master switch.</summary>
     [Test]
     public async Task SettingsWiredTest()
     {
@@ -159,12 +159,12 @@ public sealed class GenitalConsentGateTest
             var settings = protoMan.Index(GenitalSettingsPrototype.DefaultId);
             Assert.Multiple(() =>
             {
-                Assert.That(settings.StripConsent, Is.EqualTo(strip), "stripConsent must name UndergarmentStrip.");
-                Assert.That(settings.SurgeryConsent, Is.EqualTo(surgery), "surgeryConsent must name AnatomySurgery.");
-                Assert.That(protoMan.TryIndex(strip, out var stripProto), Is.True, "UndergarmentStrip must exist.");
-                Assert.That(protoMan.TryIndex(surgery, out var surgeryProto), Is.True, "AnatomySurgery must exist.");
-                Assert.That(stripProto?.Requires, Is.EqualTo(settings.MasterConsent), "UndergarmentStrip must require the master switch.");
-                Assert.That(surgeryProto?.Requires, Is.EqualTo(settings.MasterConsent), "AnatomySurgery must require the master switch.");
+                Assert.That(settings.StripConsent, Is.EqualTo(strip), "stripConsent must name WFUndergarmentStrip.");
+                Assert.That(settings.SurgeryConsent, Is.EqualTo(surgery), "surgeryConsent must name WFAnatomySurgery.");
+                Assert.That(protoMan.TryIndex(strip, out var stripProto), Is.True, "WFUndergarmentStrip must exist.");
+                Assert.That(protoMan.TryIndex(surgery, out var surgeryProto), Is.True, "WFAnatomySurgery must exist.");
+                Assert.That(stripProto?.Requires, Is.EqualTo(settings.MasterConsent), "WFUndergarmentStrip must require the master switch.");
+                Assert.That(surgeryProto?.Requires, Is.EqualTo(settings.MasterConsent), "WFAnatomySurgery must require the master switch.");
                 Assert.That(protoMan.Index(settings.MasterConsent).Requires, Is.Null, "The master switch requires nothing.");
             });
         }

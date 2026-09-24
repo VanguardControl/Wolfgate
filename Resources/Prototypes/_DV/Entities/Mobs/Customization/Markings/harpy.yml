@@ -43,15 +43,17 @@
         category: Hair
       fallbackTypes:
       - !type:SimpleColoring
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE START: split tail, south frame behind the body
+  layering:
     rooster_tail_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     rooster_tail_BEHIND: rooster_tail_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Harpy/harpy_tails.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Harpy/harpy_tails.rsi
     state: rooster_tail_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Harpy/harpy_tails.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Harpy/harpy_tails.rsi
     state: rooster_tail_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: HarpyTailFinch

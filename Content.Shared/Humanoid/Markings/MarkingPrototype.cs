@@ -35,7 +35,7 @@ namespace Content.Shared.Humanoid.Markings
         [DataField("sprites", required: true)]
         public List<SpriteSpecifier> Sprites { get; private set; } = default!;
 
-        // WOLFGATE - ported from HardLight/Floof: multi-layer markings.
+        // WOLFGATE START: ported from HardLight/Floof, multi-layer markings
         /// <summary>
         /// Places individual sprites of this marking into arbitrary humanoid layers rather than all
         /// into <see cref="BodyPart"/>. Lets a tail sit behind the mob from most angles and over the
@@ -51,7 +51,7 @@ namespace Content.Shared.Humanoid.Markings
         /// </summary>
         [DataField("colorLinks")]
         public Dictionary<string, string>? ColorLinks { get; private set; }
-        // End WOLFGATE
+        // WOLFGATE END
 
         // impstation edit - allow markings to support shaders
 		[DataField("shader")]
@@ -62,7 +62,7 @@ namespace Content.Shared.Humanoid.Markings
             return new Marking(ID, Sprites.Count);
         }
 
-        // WOLFGATE - colour links, ported from HardLight/Floof.
+        // WOLFGATE START: colour links, ported from HardLight/Floof
         /// <summary>
         /// Per-sprite colours with <see cref="ColorLinks"/> applied: a linked sprite takes the colour of the sprite
         /// it follows. Returns a copy and leaves the input alone. With links, the copy has one colour per sprite.
@@ -73,7 +73,7 @@ namespace Content.Shared.Humanoid.Markings
             if (ColorLinks is not { Count: > 0 })
                 return resolved;
 
-            // WOLFGATE - pad first, so a list saved before the marking gained linked sprites never leaves them white.
+            // Pad first, so a list saved before the marking gained linked sprites never leaves them white.
             while (resolved.Count < Sprites.Count)
                 resolved.Add(Color.White);
 
@@ -105,6 +105,6 @@ namespace Content.Shared.Humanoid.Markings
                 && Sprites[index] is SpriteSpecifier.Rsi rsi
                 && ColorLinks.ContainsKey(rsi.RsiState);
         }
-        // End WOLFGATE
+        // WOLFGATE END
     }
 }

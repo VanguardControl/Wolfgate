@@ -1,15 +1,16 @@
 <Control xmlns="https://spacestation14.io" MinWidth="360" MaxWidth="600">
-    <!-- WOLFGATE: two option columns so long preset names stay inside the panel, heading styles for the title -->
+    <!-- WOLFGATE START: wider panel and two option columns so long preset names fit, heading styles for the title -->
     <PanelContainer StyleClasses="AngleRect" />
     <BoxContainer Margin="10 8" Orientation="Vertical" SeparationOverride="4">
         <Label Name="VoteCaller" StyleClasses="LabelSubText" />
         <RichTextLabel Name="VoteTitle" StyleClasses="LabelHeading" />
         <Button Margin="4 4" Name="FollowVoteTarget" Text="{Loc 'ui-vote-follow-button-popup'}" Visible="False"></Button>
-
+        
         <GridContainer Columns="2" Name="VoteOptionsContainer" HSeparationOverride="4" VSeparationOverride="4" />
         <BoxContainer Orientation="Horizontal">
             <ProgressBar Margin="4" HorizontalExpand="True" Name="TimeLeftBar" MinValue="0" MaxValue="1" />
             <Label Name="TimeLeftText" StyleClasses="LabelSubText" VAlign="Center" />
         </BoxContainer>
     </BoxContainer>
+    <!-- WOLFGATE END -->
 </Control>

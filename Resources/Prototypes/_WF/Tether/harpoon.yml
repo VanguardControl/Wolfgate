@@ -1,8 +1,8 @@
 # Harpoon turret: the hardpoint, the harpoon it fires, the operator's controls and how it is built.
-# The tow cable rope type (RopeTowCable) is content, owned by the rope types file.
+# The tow cable rope type (WFRopeTowCable) is content, owned by the rope types file.
 
 - type: entity
-  id: ShipHarpoon
+  id: WFShipHarpoon
   parent: BaseItem
   name: ship harpoon
   description: A barbed steel spike with a cable eye in its tail. Fired from a hardpoint launcher, it bites into a hull if it goes in straight and fast.
@@ -47,7 +47,7 @@
     price: 80
 
 - type: entity
-  id: BaseShipHarpoonTurret
+  id: WFBaseShipHarpoonTurret
   abstract: true
   name: harpoon turret
   description: A deck-mounted harpoon launcher. Strap in, line up the shot and put a tow cable into whatever you are trying to keep.
@@ -85,7 +85,7 @@
     buckleOnInteractHand: true
     unbuckleDistanceSquared: 0.09 # (30 cm)^2, as vehicles do: recoil must not throw the operator out of the seat
   - type: ShipHarpoonTurret
-    ropeType: RopeTowCable
+    ropeType: WFRopeTowCable
     arc: 120
     reelRate: 1.5
     reelMaxTension: 120000
@@ -117,8 +117,8 @@
   - type: Climbable
 
 - type: entity
-  id: ShipHarpoonTurret
-  parent: BaseShipHarpoonTurret
+  id: WFShipHarpoonTurret
+  parent: WFBaseShipHarpoonTurret
   components:
   - type: ApcPowerReceiver
     powerLoad: 500
@@ -129,12 +129,12 @@
 
 - type: entity
   parent: BaseFlatpack
-  id: ShipHarpoonTurretFlatpack
+  id: WFShipHarpoonTurretFlatpack
   name: harpoon turret flatpack
   description: A flatpack used for constructing a ship harpoon turret.
   components:
   - type: Flatpack
-    entity: ShipHarpoonTurret
+    entity: WFShipHarpoonTurret
   - type: Sprite
     layers:
     - state: base
@@ -147,7 +147,7 @@
 # Operator controls, granted while buckled in.
 
 - type: entity
-  id: ActionWFHarpoonReelIn
+  id: WFActionHarpoonReelIn
   name: Reel in
   description: Winds the tow cable in. Stalls if the load is too much for the winch.
   components:
@@ -157,7 +157,7 @@
     checkCanInteract: false
 
 - type: entity
-  id: ActionWFHarpoonPayOut
+  id: WFActionHarpoonPayOut
   name: Pay out
   description: Lets the tow cable run out.
   components:
@@ -167,7 +167,7 @@
     checkCanInteract: false
 
 - type: entity
-  id: ActionWFHarpoonRelease
+  id: WFActionHarpoonRelease
   name: Release cable
   description: Cuts the tow cable loose at the turret. The harpoon stays where it is.
   components:
@@ -203,7 +203,7 @@
       - tool: Welding
         doAfter: 4
   - node: turret
-    entity: ShipHarpoonTurret
+    entity: WFShipHarpoonTurret
     actions:
     - !type:SetAnchor
       value: true
@@ -225,7 +225,7 @@
 
 - type: construction
   name: harpoon turret
-  id: ShipHarpoonTurret
+  id: WFShipHarpoonTurret
   graph: WFShipHarpoonTurret
   startNode: start
   targetNode: turret

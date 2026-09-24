@@ -39,9 +39,9 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
     [Dependency] private SharedProjectileSystem _projectiles = default!;
     [Dependency] private SharedToolSystem _tools = default!;
 
-    private const string ReelInAction = "ActionWFHarpoonReelIn";
-    private const string PayOutAction = "ActionWFHarpoonPayOut";
-    private const string ReleaseAction = "ActionWFHarpoonRelease";
+    private const string ReelInAction = "WFActionHarpoonReelIn";
+    private const string PayOutAction = "WFActionHarpoonPayOut";
+    private const string ReleaseAction = "WFActionHarpoonRelease";
     private const string PryingQuality = "Prying";
 
     /// <summary>Loose bodies lighter than this are not worth sinking a harpoon into.</summary>

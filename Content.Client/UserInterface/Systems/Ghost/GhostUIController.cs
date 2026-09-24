@@ -130,7 +130,13 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
 
     private void OnWarpsResponse(GhostWarpsResponseEvent msg)
     {
-        // WOLFGATE: GhostOrbitWindow fetches its own targets through GhostOrbitSystem.
+        // WOLFGATE START: GhostOrbitWindow fetches its own targets through GhostOrbitSystem.
+        // if (Gui?.TargetWindow is not { } window)
+        //     return;
+        //
+        // window.UpdateWarps(msg.Warps);
+        // window.Populate();
+        // WOLFGATE END
     }
 
     private void OnRoleCountUpdated(GhostUpdateGhostRoleCountEvent msg)
@@ -158,7 +164,9 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
         Gui.RequestWarpsPressed += RequestWarps;
         Gui.ReturnToBodyPressed += ReturnToBody;
         Gui.GhostRolesPressed += GhostRolesPressed;
-        // WOLFGATE: GhostOrbitWindow sends its own orbit requests, no WarpClicked
+        // WOLFGATE START: GhostOrbitWindow sends its own orbit requests, no WarpClicked
+        // Gui.TargetWindow.WarpClicked += OnWarpClicked;
+        // WOLFGATE END
         Gui.TargetWindow.OnGhostnadoClicked += OnGhostnadoClicked;
         Gui.GhostRespawnPressed += GuiOnGhostRespawnPressed;
         UpdateGui();
@@ -177,7 +185,10 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
         Gui.RequestWarpsPressed -= RequestWarps;
         Gui.ReturnToBodyPressed -= ReturnToBody;
         Gui.GhostRolesPressed -= GhostRolesPressed;
-        Gui.TargetWindow.OnGhostnadoClicked -= OnGhostnadoClicked; // WOLFGATE: was WarpClicked
+        // WOLFGATE START: orbit window has no WarpClicked
+        // Gui.TargetWindow.WarpClicked -= OnWarpClicked;
+        Gui.TargetWindow.OnGhostnadoClicked -= OnGhostnadoClicked;
+        // WOLFGATE END
         Gui.GhostRespawnPressed -= GuiOnGhostRespawnPressed;
 
         Gui.Hide();
@@ -190,7 +201,9 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
 
     private void RequestWarps()
     {
-        // WOLFGATE: the orbit window requests its targets when it opens
+        // WOLFGATE START: the orbit window requests its targets when it opens
+        // _system?.RequestWarps();
+        // WOLFGATE END
         Gui?.TargetWindow.Populate();
         Gui?.TargetWindow.OpenCentered();
     }

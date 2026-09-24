@@ -4,7 +4,7 @@ lobbyduration = 180
 lobbyenabled = true
 
 [chat]
-motd = "Welcome to Wolfgate, a derivative of Monolith! Your story takes place in the Colossus Sector. Be sure to join our Discord!"
+motd = "Welcome to Wolfgate, a derivative of Monolith! Your story takes place in the Colossus Sector. Be sure to join our Discord!" # WOLFGATE: was Monolith motd
 
 [console]
 login_host_user = "GoobStation"

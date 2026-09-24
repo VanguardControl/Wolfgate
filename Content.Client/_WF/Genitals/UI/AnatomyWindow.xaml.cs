@@ -3,6 +3,7 @@ using Content.Client._WF.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Humanoid;
@@ -84,7 +85,7 @@ public sealed partial class AnatomyWindow : FancyWindow
     }
 
     /// <summary>Shows the controls for the local body, or the reason they are unavailable.</summary>
-    /// <param name="stripConsent">The saved UndergarmentStrip value; null while consent has not loaded.</param>
+    /// <param name="stripConsent">The saved WFUndergarmentStrip value; null while consent has not loaded.</param>
     /// <param name="pendingArousal">An arousal value the controller has yet to send; the slider keeps showing it.</param>
     public void Refresh(EntityUid? body, bool optedIn, bool canSaveDefaults, bool? stripConsent, byte? pendingArousal)
     {

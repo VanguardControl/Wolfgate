@@ -345,7 +345,7 @@ namespace Content.Server.Database
 
         #endregion
 
-        // WOLFGATE - consent system ported from HardLight
+        // WOLFGATE START: consent system ported from HardLight
         #region Consent Settings
 
         Task<int> SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings);
@@ -353,7 +353,7 @@ namespace Content.Server.Database
         Task<ConsentFreetextReadReceipt> UpdatePlayerConsentReadReceipt(NetUserId readerUserId, int readConsentSettingsId);
 
         #endregion
-        // End WOLFGATE
+        // WOLFGATE END
 
         #region IPintel
 
@@ -1242,7 +1242,7 @@ namespace Content.Server.Database
 
         #endregion
 
-        // WOLFGATE - consent system ported from HardLight
+        // WOLFGATE START: consent system ported from HardLight
         #region Consent Settings
 
         public Task<int> SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings)
@@ -1264,7 +1264,7 @@ namespace Content.Server.Database
         }
 
         #endregion
-        // End WOLFGATE
+        // WOLFGATE END
 
         private async void HandleDatabaseNotification(DatabaseNotification notification)
         {

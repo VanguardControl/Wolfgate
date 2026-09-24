@@ -3,6 +3,7 @@ using Content.Shared._WF.Genitals.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Prototypes;
+using Content.Shared._WF.Genitals.Events;
 
 namespace Content.Shared._WF.Genitals.Systems;
 

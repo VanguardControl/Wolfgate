@@ -43,20 +43,20 @@
 # Synthliz markings
 
 # tail
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: marking
   id: LizardTailSynth
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [ Reptilian ]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     tail_synthliz_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     tail_synthliz_BEHIND: tail_synthliz_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE: split art
     state: tail_synthliz_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE: south frame on TailBehind
     state: tail_synthliz_BEHIND
 
 - type: marking
@@ -64,14 +64,14 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: []
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy
     tail_synthliz_wagging_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     tail_synthliz_wagging_BEHIND: tail_synthliz_wagging_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE - split art
+  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE: split art
     state: tail_synthliz_wagging_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_CD/Mobs/Customization/Synthliz/tails.rsi # WOLFGATE: south frame on TailBehind
     state: tail_synthliz_wagging_BEHIND
 
 # snout

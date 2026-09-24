@@ -180,8 +180,9 @@ public sealed partial class MarkingPicker : Control
 
     private string GetMarkingName(MarkingPrototype marking) => Loc.GetString($"marking-{marking.ID}");
 
+    // WOLFGATE START: list icon for a marking, not just Frame0
     /// <summary>
-    /// WOLFGATE - list icon for a marking. Frame0 is the south frame, and a split tail's first sprite is its
+    /// Frame0 is the south frame, and a split tail's first sprite is its
     /// FRONT half, whose south frame is empty; a marking drawn only from behind has an empty FRONT half in
     /// every direction. Show the first sprite and direction that draw something, and keep the old behaviour
     /// for a marking that is empty from every angle, such as the "none" and "bald" options.
@@ -198,6 +199,7 @@ public sealed partial class MarkingPicker : Control
 
         return marking.Sprites[0].Frame0();
     }
+    // WOLFGATE END
 
     private List<string> GetMarkingStateNames(MarkingPrototype marking)
     {
@@ -206,14 +208,14 @@ public sealed partial class MarkingPicker : Control
         {
             switch (markingState)
             {
-                // WOLFGATE - a split tail's state is renamed, and most layers have no string at all, so the
-                // shared lookup falls back to the unsplit name and then to the state read as words.
+                // WOLFGATE START: split tail state names fall back through shared lookup instead of raw state
                 case SpriteSpecifier.Rsi rsi:
                     result.Add(WolfgateMarkingNames.LayerName(marking.ID, rsi.RsiState));
                     break;
                 case SpriteSpecifier.Texture texture:
                     result.Add(WolfgateMarkingNames.LayerName(marking.ID, texture.TexturePath.Filename));
                     break;
+                // WOLFGATE END
             }
         }
 
@@ -246,7 +248,7 @@ public sealed partial class MarkingPicker : Control
                 continue;
             }
 
-            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", ListIcon(marking)); // WOLFGATE - icon from a facing the marking is visible in
+            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", ListIcon(marking)); // WOLFGATE: icon from a facing the marking is visible in
             item.Metadata = marking;
         }
 
@@ -280,7 +282,7 @@ public sealed partial class MarkingPicker : Control
             var _item = new ItemList.Item(CMarkingsUsed)
             {
                 Text = text,
-                Icon = ListIcon(newMarking), // WOLFGATE - icon from a facing the marking is visible in
+                Icon = ListIcon(newMarking), // WOLFGATE: icon from a facing the marking is visible in
                 Selectable = true,
                 Metadata = newMarking,
                 IconModulate = marking.MarkingColors[0]
@@ -431,7 +433,7 @@ public sealed partial class MarkingPicker : Control
                 Orientation = LayoutOrientation.Vertical,
             };
 
-            // WOLFGATE - ported from HardLight/Floof: a sprite whose colour is linked to another
+            // WOLFGATE START: ported from HardLight/Floof: a sprite whose colour is linked to another
             // sprite's gets no picker of its own. The selector is still created and kept in the list
             // so the remaining pickers stay aligned with their colour indices.
             var linked = prototype.ColorLinks is { Count: > 0 }
@@ -440,7 +442,7 @@ public sealed partial class MarkingPicker : Control
 
             if (!linked)
                 CMarkingColors.AddChild(colorContainer);
-            // End WOLFGATE
+            // WOLFGATE END
 
             WolfgateColorPicker colorSelector = new WolfgateColorPicker(); // WOLFGATE
             colorSelector.SelectorType = ColorSelectorSliders.ColorSelectorType.Hsv; // defaults color selector to HSV
@@ -546,7 +548,7 @@ public sealed partial class MarkingPicker : Control
         var item = new ItemList.Item(CMarkingsUsed)
         {
             Text = Loc.GetString("marking-used", ("marking-name", $"{GetMarkingName(marking)}"), ("marking-category", Loc.GetString($"markings-category-{marking.MarkingCategory}"))),
-            Icon = ListIcon(marking), // WOLFGATE - icon from a facing the marking is visible in
+            Icon = ListIcon(marking), // WOLFGATE: icon from a facing the marking is visible in
             Selectable = true,
             Metadata = marking,
         };
@@ -570,7 +572,7 @@ public sealed partial class MarkingPicker : Control
 
         if (marking.MarkingCategory == _selectedMarkingCategory)
         {
-            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", ListIcon(marking)); // WOLFGATE - icon from a facing the marking is visible in
+            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", ListIcon(marking)); // WOLFGATE: icon from a facing the marking is visible in
             item.Metadata = marking;
         }
         _selectedMarking = null;

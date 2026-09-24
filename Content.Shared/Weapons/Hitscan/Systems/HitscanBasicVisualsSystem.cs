@@ -77,6 +77,7 @@ public sealed partial class HitscanBasicVisualsSystem : EntitySystem
             sprites.Add((netCoords, shotAngle.FlipPositive(), hitscan.ImpactFlash, 1f));
         }
 
+        // WOLFGATE START: predicted hitscan beams
         if (sprites.Count == 0)
             return;
 
@@ -99,5 +100,6 @@ public sealed partial class HitscanBasicVisualsSystem : EntitySystem
             filter = filter.RemovePlayer(session);
 
         RaiseNetworkEvent(ev, filter);
+        // WOLFGATE END
     }
 }

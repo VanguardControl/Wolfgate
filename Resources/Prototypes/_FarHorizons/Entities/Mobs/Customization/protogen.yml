@@ -5,12 +5,12 @@
 
 #region PROTOGEN BASE ####
 # Put markings HERE if they can be used by ALL species (Protogen lights/armor are the exception since it always needs to be adjusted..) ####
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 - type: marking
   id: ProtogenLights
   bodyPart: RHand
   markingCategory: Special
-  speciesRestriction: [Protogen, ProtoReptile, ProtoHumie, ProtoDawi, ProtoArachnid, ProtoSlimePerson] # Wolfgate: it is a required Special default for ProtoSlimePerson
+  speciesRestriction: [Protogen, ProtoReptile, ProtoHumie, ProtoDawi, ProtoArachnid, ProtoSlimePerson] # WOLFGATE: it is a required Special default for ProtoSlimePerson
   sprites:
   - sprite: _FarHorizons/Mobs/Customization/protogen/led_shapes_body.rsi
     state: body
@@ -606,14 +606,14 @@
   bodyPart: Tail
   markingCategory: Overlay
   speciesRestriction: [ProtoAvali]
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE: the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
     wings_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE: both halves of a tail share one colour
     wings_BEHIND: wings_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi # WOLFGATE: split art, anatomy zone only
     state: wings_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi # WOLFGATE: anatomy zone of the south frame on TailBehind
     state: wings_BEHIND
 
 #region ARACHNID

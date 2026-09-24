@@ -10,7 +10,7 @@ using Robust.Shared.Map;
 
 namespace Content.IntegrationTests.Tests._WF;
 
-// WOLFGATE - the explosion shockwave shove leaves buckled mobs in their seat until the blast breaks it.
+// The explosion shockwave shove leaves buckled mobs in their seat until the blast breaks it.
 public sealed class ExplosionShockwavePushTest : InteractionTest
 {
     /// <summary>Expansion steps to claim the wave had, which sets its reach and how hard it shoves.</summary>

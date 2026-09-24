@@ -2,6 +2,7 @@ using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Robust.Shared.Prototypes;
+using Content.Shared._WF.Genitals.Profile;
 
 namespace Content.Shared._WF.Genitals.Migration;
 
@@ -12,7 +13,7 @@ public static partial class LegacyGenitalMarkings
     private const string SawmillName = "genitals.migration";
 
     /// <summary>Penis shape for synthesised sheaths when the species preset's shape cannot have one.</summary>
-    public static readonly ProtoId<GenitalShapePrototype> FallbackSheathShape = "GenitalShapePenisNondescript";
+    public static readonly ProtoId<GenitalShapePrototype> FallbackSheathShape = "WFGenitalShapePenisNondescript";
 
     /// <summary>The generated id-to-entry table.</summary>
     public static IReadOnlyDictionary<string, LegacyEntry> Entries => Table;
@@ -306,7 +307,7 @@ public readonly record struct LegacyEntry(
 }
 
 /// <summary>Species data one migration needs.</summary>
-/// <param name="SheathShape">The species preset's male penis shape if it allows a sheath, else GenitalShapePenisNondescript.</param>
+/// <param name="SheathShape">The species preset's male penis shape if it allows a sheath, else WFGenitalShapePenisNondescript.</param>
 /// <param name="TissueColor">The preset tissue colour for species that are not HumanToned; null for HumanToned.</param>
 /// <param name="SkinColor">The profile's skin colour; a marking colour equal to it becomes match skin.</param>
 /// <param name="SheathCapableShapes">Penis shapes whose allowedSheaths include Sheath; null allows every shape.</param>

@@ -2,7 +2,7 @@
 - type: emote
   id: HarpyHonk
   name: delta-chat-emote-name-honk
-  icon: Interface/Emotes/honk.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/honk.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -21,7 +21,7 @@
 - type: emote
   id: HarpyRing
   name: delta-chat-emote-name-ring
-  icon: Interface/Emotes/chime.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/chime.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -41,7 +41,7 @@
 - type: emote
   id: HarpyPew
   name: delta-chat-emote-name-pew
-  icon: Interface/Emotes/vocal.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/vocal.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -59,7 +59,7 @@
 - type: emote
   id: HarpyBang
   name: delta-chat-emote-name-bang
-  icon: Interface/Emotes/vocal.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/vocal.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -78,7 +78,7 @@
 - type: emote
   id: HarpyBeep
   name: delta-chat-emote-name-beep
-  icon: Interface/Emotes/beep.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/beep.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -97,7 +97,7 @@
 - type: emote
   id: HarpyRev
   name: delta-chat-emote-name-rev
-  icon: Interface/Emotes/vocal.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/vocal.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -116,7 +116,7 @@
 - type: emote
   id: HarpyCaw
   name: delta-chat-emote-name-caw
-  icon: _Goobstation/Interface/Emotes/caw.png # Wolfgate: was the default scream icon
+  icon: _Goobstation/Interface/Emotes/caw.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -136,7 +136,7 @@
 - type: emote
   id: Bark
   name: delta-chat-emote-name-bark
-  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: bark } # Wolfgate: was the default scream icon
+  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: bark } # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -155,7 +155,7 @@
 - type: emote
   id: Snarl
   name: delta-chat-emote-name-snarl
-  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: snarl } # Wolfgate: was the default scream icon
+  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: snarl } # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -174,7 +174,7 @@
 - type: emote
   id: Whimper # Starlight / Monolith: Renamed to whimper
   name: delta-chat-emote-name-whine
-  icon: Interface/Emotes/cry.png # Wolfgate: was the default scream icon
+  icon: Interface/Emotes/cry.png # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -193,7 +193,7 @@
 - type: emote
   id: Howl
   name: delta-chat-emote-name-howl
-  icon: { sprite: _RMC14/Actions/xeno_emotes.rsi, state: roar } # Wolfgate: was the default scream icon
+  icon: { sprite: _RMC14/Actions/xeno_emotes.rsi, state: roar } # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -212,7 +212,7 @@
 - type: emote
   id: Awoo
   name: delta-chat-emote-name-awoo
-  icon: { sprite: _RMC14/Actions/xeno_emotes.rsi, state: roar } # Wolfgate: was the default scream icon
+  icon: { sprite: _RMC14/Actions/xeno_emotes.rsi, state: roar } # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:
@@ -232,7 +232,7 @@
 - type: emote
   id: Gnash
   name: chat-emote-name-gnash
-  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: gnash } # Wolfgate: was the default scream icon
+  icon: { sprite: _RMC14/Actions/species_emotes.rsi, state: gnash } # WOLFGATE: was the default scream icon
   category: Vocal
   available: false
   whitelist:

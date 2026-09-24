@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# WOLFGATE START: rewritten for Wolfgate CDN publishing
 """Publish this workflow run's build artifact to Robust.Cdn.
 
 The CDN's one-shot publish takes a URL and pulls the archive itself, so nothing large is uploaded from here:
@@ -34,6 +35,9 @@ from datetime import datetime, timezone
 ROBUST_CDN_URL = os.environ.get("ROBUST_CDN_URL") or "https://wolfgatecdn.a13.info/"
 # Empty means the fork itself: the workflow passes its fork_id input through as is.
 FORK_ID = os.environ.get("FORK_ID") or "wolfgate"
+# Upstream default before the fork-configurable overrides above:
+# ROBUST_CDN_URL = "https://wizards.cdn.spacestation14.com/"
+# FORK_ID = "wizards"
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 PUBLISH_TOKEN = os.environ["PUBLISH_TOKEN"]
@@ -147,3 +151,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# WOLFGATE END

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Content.Shared._Common.Consent;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Body.Systems;
 using Content.Shared.Humanoid;
@@ -92,7 +94,7 @@ public sealed class ArousalTest
         var probe = entMan.System<ArousalProbeSystem>();
         var map = await pair.CreateTestMap();
 
-        // Any dedicated opt-in works; UndergarmentStrip is a real toggle.
+        // Any dedicated opt-in works; WFUndergarmentStrip is a real toggle.
         ProtoId<ConsentTogglePrototype> toggle = StripToggle;
 
         await server.WaitAssertion(() =>

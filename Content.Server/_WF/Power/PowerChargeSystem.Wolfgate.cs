@@ -2,7 +2,6 @@ using Content.Server.Power.Components;
 
 namespace Content.Server.Power.EntitySystems;
 
-// WOLFGATE
 public sealed partial class PowerChargeSystem
 {
     /// <summary>

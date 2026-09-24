@@ -59,18 +59,18 @@ BEHIND_LAYER = "TailBehind"
 FRONT_SUFFIX = "_FRONT"
 BEHIND_SUFFIX = "_BEHIND"
 
-MARK_SPLIT_ART = "# WOLFGATE - split art"
-MARK_BEHIND_ART = "# WOLFGATE - south frame on TailBehind"
-MARK_LAYERING = "# WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy"
-MARK_LINKS = "# WOLFGATE - both halves of a tail share one colour"
+MARK_SPLIT_ART = "# WOLFGATE: split art"
+MARK_BEHIND_ART = "# WOLFGATE: south frame on TailBehind"
+MARK_LAYERING = "# WOLFGATE: the south frame draws behind the body, so the tail never covers anatomy"
+MARK_LINKS = "# WOLFGATE: both halves of a tail share one colour"
 MARK_PLAIN = "# WOLFGATE"
-MARK_RENAME = "# WOLFGATE - renamed by the south split"
+MARK_RENAME = "# WOLFGATE: renamed by the south split"
 
 # The zone-limited variant, written by --mode zone: the south frame keeps its place and only the
 # pixels that could land on anatomy are moved behind the body.
-MARK_ZONE_ART = "# WOLFGATE - split art, anatomy zone only"
-MARK_ZONE_BEHIND = "# WOLFGATE - anatomy zone of the south frame on TailBehind"
-MARK_ZONE_LAYERING = ("# WOLFGATE - the anatomy zone of the south frame draws behind the body, "
+MARK_ZONE_ART = "# WOLFGATE: split art, anatomy zone only"
+MARK_ZONE_BEHIND = "# WOLFGATE: anatomy zone of the south frame on TailBehind"
+MARK_ZONE_LAYERING = ("# WOLFGATE: the anatomy zone of the south frame draws behind the body, "
                       "so the tail never covers anatomy")
 COMMENTS_FULL = {MARK_ZONE_ART: MARK_SPLIT_ART, MARK_ZONE_BEHIND: MARK_BEHIND_ART,
                  MARK_ZONE_LAYERING: MARK_LAYERING}
@@ -201,7 +201,7 @@ class Prototypes:
                         self.shapes.append(item)
                     elif kind == "genitalSheath":
                         self.sheaths.append(item)
-                    elif kind == "genitalSettings" and pid == "Default":
+                    elif kind == "genitalSettings" and pid == "WFDefault":
                         self.settings = item
 
 

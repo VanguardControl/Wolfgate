@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-EarringsBangleLeft = Bangle Earrings (Left)
 marking-EarringsBangleLeft-bangle_l = Bangle Earrings (Left)
 marking-EarringsBangleRight = Bangle Earrings (Right)

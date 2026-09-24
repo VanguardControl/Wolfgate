@@ -558,9 +558,10 @@ public sealed partial class ContentAudioSystem
         {
             return;
         }
-        // WOLFGATE - Replay shutdown flushes audio entities before the UI leaves gameplay.
+        // WOLFGATE START: replay shutdown flushes audio entities before the UI leaves gameplay
         if (TryComp<AudioComponent>(_ambientMusicStream, out var audio))
             FadeOut(_ambientMusicStream, audio);
+        // WOLFGATE END
         _ambientMusicStream = null;
     }
 

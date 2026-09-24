@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Content.Shared._WF.Genitals;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Robust.Shared.Localization;
 using Robust.Shared.Maths;

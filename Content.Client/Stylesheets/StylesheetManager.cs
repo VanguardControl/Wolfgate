@@ -1,10 +1,11 @@
-using System.Linq;
+using System.Linq; // WOLFGATE
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
-using Robust.Shared.Configuration;
+using Robust.Shared.Configuration; // WOLFGATE
 using Robust.Shared.IoC;
 using Content.Client._WF.Stylesheets; // WOLFGATE
 using Content.Shared._WF.CCVar; // WOLFGATE
+using Content.Shared._WF.Prototypes; // WOLFGATE
 using Robust.Shared; // WOLFGATE
 
 namespace Content.Client.Stylesheets
@@ -20,13 +21,20 @@ namespace Content.Client.Stylesheets
 
         public void Initialize()
         {
-            // WOLFGATE: the active skin comes from a CVar and is swapped live when it changes
+            // WOLFGATE START: the active skin comes from a CVar and is swapped live when it changes
+            // SheetNano = new StyleNano(_resourceCache).Stylesheet;
+            // SheetSpace = new StyleSpace(_resourceCache).Stylesheet;
+            // A theme saved under a renamed id moves to the current one
+            var savedTheme = _cfg.GetCVar(CVars.InterfaceTheme);
+            var currentTheme = WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.HudThemes, savedTheme);
+            if (currentTheme != savedTheme)
+                _cfg.SetCVar(CVars.InterfaceTheme, currentTheme);
             _cfg.OnValueChanged(WolfgateCVars.UiStyle, _ => ApplySkin(syncHudTheme: true));
             ApplySkin(syncHudTheme: false);
-            // WOLFGATE end
+            // WOLFGATE END
         }
 
-        // WOLFGATE: rebuilds both sheets over the stock ones with the chosen skin and pushes them to every root
+        // WOLFGATE START: rebuilds both sheets over the stock ones with the chosen skin and pushes them to every root
         private void ApplySkin(bool syncHudTheme)
         {
             var skin = WolfgateSkins.Get(_cfg.GetCVar(WolfgateCVars.UiStyle));
@@ -42,6 +50,6 @@ namespace Content.Client.Stylesheets
             if (theme != skin.HudTheme && (theme == string.Empty || WolfgateSkins.All.Any(s => s.HudTheme == theme)))
                 _cfg.SetCVar(CVars.InterfaceTheme, skin.HudTheme);
         }
-        // WOLFGATE end
+        // WOLFGATE END
     }
 }

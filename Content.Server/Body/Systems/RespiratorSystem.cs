@@ -184,7 +184,7 @@ public sealed partial class RespiratorSystem : EntitySystem
     /// </summary>
     public bool CanMetabolizeInhaledAir(Entity<RespiratorComponent?> ent)
     {
-        // WOLFGATE - Entities without a respirator cannot metabolize inhaled gases; absence is valid.
+        // WOLFGATE: entities without a respirator cannot metabolize inhaled gases; absence is valid.
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
@@ -204,7 +204,7 @@ public sealed partial class RespiratorSystem : EntitySystem
     /// </summary>
     public bool CanMetabolizeGas(Entity<RespiratorComponent?> ent, GasMixture gas)
     {
-        // WOLFGATE - Entities without a respirator cannot metabolize inhaled gases; absence is valid.
+        // WOLFGATE: entities without a respirator cannot metabolize inhaled gases; absence is valid.
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 

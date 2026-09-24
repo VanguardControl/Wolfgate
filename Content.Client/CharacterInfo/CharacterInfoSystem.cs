@@ -23,7 +23,7 @@ public sealed partial class CharacterInfoSystem : EntitySystem
     public void RequestCharacterInfo()
     {
         var entity = _players.LocalEntity;
-        // WOLFGATE - Replay spectators have a local entity but no server to answer this request.
+        // WOLFGATE: Replay spectators have a local entity but no server to answer this request.
         if (entity == null || !_net.IsConnected)
         {
             return;

@@ -97,11 +97,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
             NavContainer.Visible = false;
         }
 
-        // WOLFGATE
+        // WOLFGATE START: ship mode
         if (mode != ShuttleConsoleMode.Ship)
         {
             WfSetShipMode(false);
         }
+        // WOLFGATE END
 
         if (mode != ShuttleConsoleMode.Map)
         {
@@ -120,11 +121,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         SwitchMode(ShuttleConsoleMode.Nav);
     }
 
-    // WOLFGATE
+    // WOLFGATE START: ship mode
     private void ShipPressed(BaseButton.ButtonEventArgs obj)
     {
         SwitchMode(ShuttleConsoleMode.Ship);
     }
+    // WOLFGATE END
 
     private void MapPressed(BaseButton.ButtonEventArgs obj)
     {
@@ -143,10 +145,11 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
             case ShuttleConsoleMode.Nav:
                 NavContainer.Visible = true;
                 break;
-            // WOLFGATE
+            // WOLFGATE START: ship mode
             case ShuttleConsoleMode.Ship:
                 WfSetShipMode(true);
                 break;
+            // WOLFGATE END
             case ShuttleConsoleMode.Map:
                 MapContainer.Visible = true;
                 MapContainer.Startup();
@@ -184,11 +187,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         NavContainer.SetConsole(owner);
         MapContainer.SetShuttle(coordinates?.EntityId);
         MapContainer.SetConsole(owner);
-        // WOLFGATE
+        // WOLFGATE START: ship screen, collision and tractor state
         ShipContainer.SetShuttle(coordinates?.EntityId);
         ShipContainer.SetConsole(owner);
         CollisionBanner.SetShuttle(coordinates?.EntityId);
-        WfUpdateTractorCapture(cState.TractorSources); // WOLFGATE
+        WfUpdateTractorCapture(cState.TractorSources);
+        // WOLFGATE END
 
         NavContainer.UpdateState(cState.NavState);
         MapContainer.UpdateState(cState.MapState);

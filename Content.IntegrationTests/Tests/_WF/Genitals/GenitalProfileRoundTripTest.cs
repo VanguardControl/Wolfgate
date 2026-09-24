@@ -7,6 +7,7 @@ using Content.Server.Humanoid;
 using Content.Server.Preferences.Managers;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Migration;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
 using Robust.Client.State;

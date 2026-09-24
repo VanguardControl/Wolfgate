@@ -341,11 +341,12 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         if (ev.Cancelled)
             return false;
 
-        // WOLFGATE - anatomy: let a surgery refuse a particular surgeon (adult content and patient consent).
+        // WOLFGATE START: let a surgery refuse a particular surgeon (adult content and patient consent)
         var userEv = new SurgeryUserValidEvent(user, body, targetPart);
         RaiseLocalEvent(surgeryEntId, ref userEv);
         if (userEv.Cancelled)
             return false;
+        // WOLFGATE END
 
         surgeryEnt = (surgeryEntId, surgeryComp);
         part = targetPart;

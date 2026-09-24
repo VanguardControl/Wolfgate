@@ -25,6 +25,24 @@ safety-deposit-console-box-lost = Lost
 safety-deposit-box-boxSlot = Box Slot
 safety-deposit-console-boxSlot = Box Slot
 
+# Console popups
+safety-deposit-console-error-invalid-box-size = Error: Invalid box size.
+safety-deposit-console-error-no-character-data = Error: Could not load character data.
+safety-deposit-console-error-no-bank-account = Error: No bank account found.
+safety-deposit-console-error-insufficient-funds = Insufficient funds. You need ${$cost}, but only have ${$bank} in bank and ${$savings} in savings.
+safety-deposit-console-error-transaction-failed = Transaction failed.
+safety-deposit-console-purchase-success = Safety deposit box purchased! Box ID: {$id}...
+safety-deposit-console-error-no-box-in-slot = Please insert a safety deposit box.
+safety-deposit-console-error-invalid-box = Invalid safety deposit box.
+safety-deposit-console-error-not-owner = This box does not belong to you.
+safety-deposit-console-error-no-storage = Error: Box has no storage.
+safety-deposit-console-deposit-success = Safety deposit box contents saved. The box has been stored.
+safety-deposit-console-error-box-not-found = Box not found.
+safety-deposit-console-error-not-lost = This box is not lost and cannot be reclaimed.
+safety-deposit-console-reclaim-success = Lost box reclaimed! A new empty box has been issued.
+safety-deposit-console-error-already-withdrawn = Box already withdrawn in world.
+safety-deposit-console-withdraw-success = Safety deposit box retrieved.
+
 # Examine text
 safety-deposit-stored-examine = [color=gray]This item has a signature on it that indicates that it was at one point stowed in a deposit box.[/color]
 safety-deposit-box-examine-id = [color=cyan]Box ID:[/color] {$id}...

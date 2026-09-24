@@ -9,11 +9,12 @@ public sealed class ShuttleBoundUserInterfaceState : BoundUserInterfaceState
     public NavInterfaceState NavState;
     public ShuttleMapInterfaceState MapState;
     public DockingInterfaceState DockState;
-    // WOLFGATE: Expose active tractor sources to the captured ship's helm.
+    // WOLFGATE START: expose active tractor sources to the captured ship's helm
     /// <summary>Names of the distinct ships currently applying an active tractor beam to this shuttle.</summary>
     public string[] TractorSources;
+    // WOLFGATE END
 
-    public ShuttleBoundUserInterfaceState(NavInterfaceState navState, ShuttleMapInterfaceState mapState, DockingInterfaceState dockState,
+    public ShuttleBoundUserInterfaceState(NavInterfaceState navState, ShuttleMapInterfaceState mapState, DockingInterfaceState dockState, // WOLFGATE
         string[]? tractorSources = null) // WOLFGATE
     {
         NavState = navState;

@@ -439,8 +439,8 @@ namespace Content.Shared.Damage
 
         public static DamageSpecifier operator *(FixedPoint2 factor, DamageSpecifier damageSpec) => damageSpec * factor;
 
-        // WOLFGATE: zero entries do not count, so an initialised but undamaged entity equals its
-        // prototype and map saves stay free of empty damage blocks.
+        // WOLFGATE START: zero entries do not count
+        // An initialised but undamaged entity equals its prototype, so map saves stay free of empty damage blocks.
         public bool Equals(DamageSpecifier? other)
         {
             if (other == null)
@@ -460,6 +460,7 @@ namespace Content.Shared.Damage
 
             return true;
         }
+        // WOLFGATE END
 
         public FixedPoint2 this[string key] => DamageDict[key];
     }

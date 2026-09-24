@@ -3,96 +3,96 @@
 # Every roundstart species except the excluded ones must be listed exactly once (GenitalPresetTest).
 
 - type: genitalPreset
-  id: GenitalPresetDefault
+  id: WFGenitalPresetDefault
   fallback: true
   explicitFallback: [ Human, Dwarf, Goblin, Oni, Diona, SlimePerson, Synth, Protogen, ProtoHumie, ProtoKin, ProtoDawi, ProtoDionae, ProtoSlimePerson, ProtoThaven, Thaven, Shadekin ]
   male:
-    penis: { shape: GenitalShapePenisHuman, lengthCm: 15 }
+    penis: { shape: WFGenitalShapePenisHuman, lengthCm: 15 }
     testicles: { type: External, size: 2 }
   female:
-    vagina: { shape: GenitalShapeVaginaHuman }
+    vagina: { shape: WFGenitalShapeVaginaHuman }
     womb: true
-    breasts: { shape: GenitalShapeBreastsPair, cup: 3 }
+    breasts: { shape: WFGenitalShapeBreastsPair, cup: 3 }
 
 - type: genitalPreset
-  id: GenitalPresetCanine
-  species: [ Vulpkanin, Canine, ProtoVulp ]
+  id: WFGenitalPresetCanine
+  species: [ Vulpkanin, WFCanine, ProtoVulp ]
   male:
-    penis: { shape: GenitalShapePenisKnotted, lengthCm: 15, sheath: Sheath }
+    penis: { shape: WFGenitalShapePenisKnotted, lengthCm: 15, sheath: Sheath }
     testicles: { type: External, size: 2 }
   female:
-    vagina: { shape: GenitalShapeVaginaHuman }
+    vagina: { shape: WFGenitalShapeVaginaHuman }
     womb: true
-    breasts: { shape: GenitalShapeBreastsPair, cup: 2 }
+    breasts: { shape: WFGenitalShapeBreastsPair, cup: 2 }
 
 - type: genitalPreset
-  id: GenitalPresetFeline
+  id: WFGenitalPresetFeline
   species: [ Felinid, Tajaran, Felionoid, ProtoFeline ]
   male:
-    penis: { shape: GenitalShapePenisBarbKnot, lengthCm: 13, sheath: Sheath }
+    penis: { shape: WFGenitalShapePenisBarbKnot, lengthCm: 13, sheath: Sheath }
     testicles: { type: External, size: 2 }
   female:
-    vagina: { shape: GenitalShapeVaginaHuman }
+    vagina: { shape: WFGenitalShapeVaginaHuman }
     womb: true
-    breasts: { shape: GenitalShapeBreastsPair, cup: 2 }
+    breasts: { shape: WFGenitalShapeBreastsPair, cup: 2 }
 
 - type: genitalPreset
-  id: GenitalPresetReptile
+  id: WFGenitalPresetReptile
   species: [ Reptilian, Hydrakin, ProtoReptile ]
   male:
-    penis: { shape: GenitalShapePenisHemi, lengthCm: 15, sheath: Slit }
+    penis: { shape: WFGenitalShapePenisHemi, lengthCm: 15, sheath: Slit }
     testicles: { type: Internal }
   female:
-    vagina: { shape: GenitalShapeVaginaSlit }
+    vagina: { shape: WFGenitalShapeVaginaSlit }
     womb: true
 
 - type: genitalPreset
-  id: GenitalPresetAquatic
+  id: WFGenitalPresetAquatic
   species: [ Feroxi ]
   male:
-    penis: { shape: GenitalShapePenisTapered, lengthCm: 15, sheath: Slit }
+    penis: { shape: WFGenitalShapePenisTapered, lengthCm: 15, sheath: Slit }
     testicles: { type: Internal }
   female:
-    vagina: { shape: GenitalShapeVaginaSlit }
+    vagina: { shape: WFGenitalShapeVaginaSlit }
     womb: true
 
 - type: genitalPreset
-  id: GenitalPresetAmphibian
+  id: WFGenitalPresetAmphibian
   species: [ Skrell ]
   male:
-    penis: { shape: GenitalShapePenisNondescript, lengthCm: 12, sheath: Slit }
+    penis: { shape: WFGenitalShapePenisNondescript, lengthCm: 12, sheath: Slit }
     testicles: { type: Internal }
   female:
-    vagina: { shape: GenitalShapeVaginaSlit }
+    vagina: { shape: WFGenitalShapeVaginaSlit }
     womb: true
 
 - type: genitalPreset
-  id: GenitalPresetAvian
+  id: WFGenitalPresetAvian
   species: [ Avali, Harpy, ProtoAvali, Vox, Resomi, ProtoVox, ProtoResomi ]
   male:
-    penis: { shape: GenitalShapePenisNondescript, lengthCm: 10, sheath: Slit }
+    penis: { shape: WFGenitalShapePenisNondescript, lengthCm: 10, sheath: Slit }
     testicles: { type: Internal }
   female:
-    vagina: { shape: GenitalShapeVaginaSlit }
+    vagina: { shape: WFGenitalShapeVaginaSlit }
     womb: true
 
 - type: genitalPreset
-  id: GenitalPresetArthropod
+  id: WFGenitalPresetArthropod
   species: [ Arachnid, Moth, Chitinid, ProtoMoth, ProtoArachnid ]
   male:
-    penis: { shape: GenitalShapePenisNondescript, lengthCm: 12, sheath: Slit }
+    penis: { shape: WFGenitalShapePenisNondescript, lengthCm: 12, sheath: Slit }
     testicles: { type: Internal }
   female:
-    vagina: { shape: GenitalShapeVaginaSlit }
+    vagina: { shape: WFGenitalShapeVaginaSlit }
     womb: true
 
 - type: genitalPreset
-  id: GenitalPresetRodent
+  id: WFGenitalPresetRodent
   species: [ Rodentia ]
   male:
-    penis: { shape: GenitalShapePenisNondescript, lengthCm: 12, sheath: Sheath }
+    penis: { shape: WFGenitalShapePenisNondescript, lengthCm: 12, sheath: Sheath }
     testicles: { type: External, size: 2 }
   female:
-    vagina: { shape: GenitalShapeVaginaHuman }
+    vagina: { shape: WFGenitalShapeVaginaHuman }
     womb: true
-    breasts: { shape: GenitalShapeBreastsPair, cup: 1 }
+    breasts: { shape: WFGenitalShapeBreastsPair, cup: 1 }

@@ -7,7 +7,7 @@
       path: /Audio/_RMC14/Voice/Skrell/anger2.ogg
     Trill:
       collection: RMCSkrellTrill
-    Warble: # Wolfgate: the shared Warble emote, played with the Skrell's own sound
+    Warble: # WOLFGATE: the shared Warble emote, played with the Skrell's own sound
       collection: RMCSkrellWarble
 
 - type: emoteSounds

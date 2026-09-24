@@ -1,5 +1,5 @@
 using Content.Shared.Humanoid;
-using Content.Shared.Overlays; // WOLFGATE - Wolfgate already has NightVisionComponent here
+using Content.Shared.Overlays; // WOLFGATE: Wolfgate already has NightVisionComponent here
 using Content.Shared.NightVision; // WOLFGATE
 using Content.Shared.Alert;
 using System.Linq;
@@ -245,7 +245,7 @@ public sealed partial class ShadekinSystem : EntitySystem
 
     private void ToggleNightVision(EntityUid uid, ShadekinState shadekinState)
     {
-        // WOLFGATE - Wolfgate's night vision starts disabled, so adding the component never showed anything.
+        // WOLFGATE: Wolfgate's night vision starts disabled, so adding the component never showed anything.
         // Keep the component, and the look set in YAML, and switch it with the light level instead.
         var nightVision = EnsureComp<NightVisionComponent>(uid);
         _nightVision.SetEnabled((uid, nightVision), shadekinState == ShadekinState.Dark);

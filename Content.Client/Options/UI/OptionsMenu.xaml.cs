@@ -10,8 +10,8 @@ namespace Content.Client.Options.UI
     {
         [Dependency] private IClientAdminManager _adminManager = default!;
 
-        /// <summary>WOLFGATE: index of the consent tab, so the HUD button can open straight to it.</summary>
-        public const int ConsentTabIndex = 7;
+        /// <summary>Index of the consent tab, so the HUD button can open straight to it.</summary>
+        public const int ConsentTabIndex = 7; // WOLFGATE
 
         public OptionsMenu()
         {

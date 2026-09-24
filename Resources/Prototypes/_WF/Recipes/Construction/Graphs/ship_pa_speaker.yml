@@ -1,5 +1,5 @@
 - type: constructionGraph
-  id: ShipPaSpeaker
+  id: WFShipPaSpeaker
   start: start
   graph:
   - node: start
@@ -12,7 +12,7 @@
         doAfter: 2
 
   - node: speaker
-    entity: WallmountShipPaSpeaker
+    entity: WFWallmountShipPaSpeaker
     edges:
     - to: start
       completed:

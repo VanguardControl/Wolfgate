@@ -1,0 +1,6 @@
+- type: latheRecipe
+  id: XenoborgModuleToolBasic
+  result: XenoborgModuleToolBasic
+  completetime: 2
+  materials:
+    Steel: 3000

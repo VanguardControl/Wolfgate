@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024-2025 Space Wizards Federation
 // SPDX-License-Identifier: MIT
-// Wolfgate: ported from HardLight.
+// WOLFGATE: ported from HardLight.
 
 using Content.Server.Database;
 using Content.Shared._Common.Consent;
@@ -37,7 +37,7 @@ public sealed class ServerConsentManager : IServerConsentManager
     public void Initialize()
     {
         _netManager.RegisterNetMessage<MsgUpdateConsent>(HandleUpdateConsentMessage);
-        // WOLFGATE - HardLight calls LoadData from UserDbDataManager directly; Wolfgate's copy
+        // WOLFGATE: HardLight calls LoadData from UserDbDataManager directly; Wolfgate's copy
         // exposes a registration hook instead, so use that rather than editing it.
         _userDb.AddOnLoadPlayer(LoadData);
     }

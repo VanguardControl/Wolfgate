@@ -51,7 +51,7 @@ public sealed class ShipPaFeedbackTest : InteractionTest
 
         await Server.WaitPost(() =>
         {
-            var speaker = SEntMan.SpawnEntity("WallmountShipPaSpeaker", MapData.GridCoords);
+            var speaker = SEntMan.SpawnEntity("WFWallmountShipPaSpeaker", MapData.GridCoords);
             SEntMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
         });
         await RunTicks(20);

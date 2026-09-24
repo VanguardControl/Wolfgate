@@ -3,6 +3,8 @@ using Content.Shared._Shitmed.Humanoid.Events;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Components;
@@ -82,11 +84,11 @@ public sealed partial class GenitalOrganSystem : EntitySystem
     {
         return slot switch
         {
-            GenitalSlot.Penis => "OrganWFPenis",
-            GenitalSlot.Testicles => "OrganWFTesticles",
-            GenitalSlot.Vagina => "OrganWFVagina",
-            GenitalSlot.Womb => "OrganWFWomb",
-            GenitalSlot.Breasts => "OrganWFBreasts",
+            GenitalSlot.Penis => "WFOrganPenis",
+            GenitalSlot.Testicles => "WFOrganTesticles",
+            GenitalSlot.Vagina => "WFOrganVagina",
+            GenitalSlot.Womb => "WFOrganWomb",
+            GenitalSlot.Breasts => "WFOrganBreasts",
             _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, null),
         };
     }

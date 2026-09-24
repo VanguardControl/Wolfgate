@@ -59,12 +59,14 @@ public sealed partial class CEZPhysicsComponent : Component
     [DataField]
     public int DrawDepthDefault;
 
+    // WOLFGATE START: transition-based airborne draw depth
     /// <summary>
-    /// WOLFGATE: true while the sprite has been lifted to OverMobs for being airborne, so the draw depth is only
+    /// True while the sprite has been lifted to OverMobs for being airborne, so the draw depth is only
     /// written on the way up and on the way down and other systems may change it in between.
     /// </summary>
     [ViewVariables]
     public bool DrawDepthLifted;
+    // WOLFGATE END
 
     /// <summary>
     /// When the mapinit entity is created, its initial Sprite Offset value is written here in order to apply an offset based on the Z position relative to this value.

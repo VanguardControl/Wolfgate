@@ -1,7 +1,7 @@
 # Sheath and slit art (ported from NovaSector). Outer states take the sheath colour, inner states the penis colour.
 
 - type: genitalSheath
-  id: Sheath
+  id: WFSheath
   sheathType: Sheath
   sprite: _WF/Mobs/Customization/Markings/Genital/sheath.rsi
   retractedOuter: sheath_normal_0_FRONT
@@ -11,7 +11,7 @@
   erectOuter: sheath_normal_1_FRONT     # the sheath stays at the base; confirm _0 against _1 in the screenshot harness
 
 - type: genitalSheath
-  id: Slit
+  id: WFSlit
   sheathType: Slit
   sprite: _WF/Mobs/Customization/Markings/Genital/sheath.rsi
   retractedOuter: sheath_slit_0_FRONT        # intentionally empty padding state

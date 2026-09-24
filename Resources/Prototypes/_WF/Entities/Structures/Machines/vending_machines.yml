@@ -1,12 +1,12 @@
-# WOLFGATE - Placeholder vendomat sprite until the machine gets its own.
+# Placeholder vendomat sprite until the machine gets its own.
 - type: entity
   parent: [BaseStructureDisableToolUse, BaseStructureIndestructible, VendingMachine]
-  id: VendingMachineWolfgate
+  id: WFVendingMachineWolfgate
   name: Wolfgate Vending Machine
   description: Stocks everything that carries the Wolfgate name.
   components:
   - type: VendingMachine
-    pack: WolfgateVendInventory
+    pack: WFWolfgateVendInventory
     offState: off
     brokenState: broken
     normalState: normal-unshaded

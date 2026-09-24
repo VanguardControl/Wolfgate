@@ -59,7 +59,7 @@ public sealed class ShipPaFallbackTest
             Assert.That(StreamsFor(entMan, id!.Value), Is.Empty);
             Assert.That(entMan.GetComponent<ShipPaSpeakerComponent>(alarm).Enabled, Is.True);
 
-            speaker = entMan.SpawnEntity("WallmountShipPaSpeaker", map.GridCoords);
+            speaker = entMan.SpawnEntity("WFWallmountShipPaSpeaker", map.GridCoords);
             entMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
         });
 

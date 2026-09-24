@@ -31,9 +31,10 @@ namespace Content.Client.Lobby.UI
         private readonly Button _createNewCharacterButton;
 
         public event Action<int>? SelectCharacter;
-
-        /// <summary>WOLFGATE: raised instead of creating straight away, so unsaved edits can be confirmed first.</summary>
+        // WOLFGATE START: new-character request, so unsaved edits can be confirmed first
+        /// <summary>Raised instead of creating a character directly.</summary>
         public event Action? NewCharacter;
+        // WOLFGATE END
         public event Action<int>? DeleteCharacter;
 
         public CharacterSetupGui(HumanoidProfileEditor profileEditor)
@@ -88,8 +89,7 @@ namespace Content.Client.Lobby.UI
             foreach (var (slot, character) in _preferencesManager.Preferences!.Characters)
             {
                 numberOfFullSlots++;
-
-                // WOLFGATE: a character this build cannot preview is skipped instead of aborting the loop, which used
+                // WOLFGATE START: a character this build cannot preview is skipped instead of aborting the loop, which used
                 // to leave the player without the rest of their characters and without the create-character button.
                 CharacterPickerButton characterPickerButton;
                 try
@@ -105,7 +105,7 @@ namespace Content.Client.Lobby.UI
                     _logManager.GetSawmill("lobby").Error($"Could not show character in slot {slot}: {e}");
                     continue;
                 }
-                // End WOLFGATE
+                // WOLFGATE END
 
                 Characters.AddChild(characterPickerButton);
 

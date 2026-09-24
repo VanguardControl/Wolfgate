@@ -4,6 +4,7 @@ using Content.Server._WF.Genitals;
 using Content.Server.Database;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Migration;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
 using Microsoft.Data.Sqlite;
@@ -192,8 +193,8 @@ public sealed class GenitalProfilePersistenceTest
 
         var columns = new[]
         {
-            "{\"v\":2,\"breasts\":{\"shape\":\"GenitalShapeBreastsPair\",\"cup\":4},\"future\":true}",
-            "{\"v\":1,\"penis\":{\"shape\":\"GenitalShapePenisRenamed\"},\"breasts\":{\"shape\":\"GenitalShapeBreastsPair\",\"cup\":4}}",
+            "{\"v\":2,\"breasts\":{\"shape\":\"WFGenitalShapeBreastsPair\",\"cup\":4},\"future\":true}",
+            "{\"v\":1,\"penis\":{\"shape\":\"GenitalShapePenisRenamed\"},\"breasts\":{\"shape\":\"WFGenitalShapeBreastsPair\",\"cup\":4}}",
         };
 
         foreach (var column in columns)

@@ -1,12 +1,12 @@
 # Wolfgate HUD theme: listed first in the options menu and used as the client default.
 - type: hudTheme
-  id: WolfgateTheme
+  id: WFTheme
   name: ui-options-hud-theme-wolfgate
   path: /Textures/_WF/Interface/Wolfgate/
   order: -2
 
 - type: uiTheme
-  id: WolfgateTheme
+  id: WFTheme
   path: /Textures/_WF/Interface/Wolfgate/
   colors:
     whiteText: "#E6EDF3"
@@ -21,13 +21,13 @@
 
 # Aphelion cassette-futurism theme, paired with the WolfgateRetro UI skin.
 - type: hudTheme
-  id: WolfgateRetroTheme
+  id: WFRetroTheme
   name: ui-options-hud-theme-wolfgate-retro
   path: /Textures/_WF/Interface/WolfgateRetro/
   order: -1
 
 - type: uiTheme
-  id: WolfgateRetroTheme
+  id: WFRetroTheme
   path: /Textures/_WF/Interface/WolfgateRetro/
   colors:
     whiteText: "#EDE6D2"

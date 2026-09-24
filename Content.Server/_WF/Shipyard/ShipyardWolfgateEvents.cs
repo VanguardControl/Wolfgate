@@ -1,7 +1,7 @@
 namespace Content.Server._WF.Shipyard;
 
 /// <summary>
-/// Wolfgate: raised just before a sold ship is deleted, while the grid is still intact and still
+/// Raised just before a sold ship is deleted, while the grid is still intact and still
 /// carries its deed. Last chance to copy it.
 /// </summary>
 [ByRefEvent]
@@ -12,7 +12,7 @@ public record struct ShipSoldEvent(
     int Appraisal);
 
 /// <summary>
-/// Wolfgate: raised on a shipyard console before it sells or unassigns, so a trader hosting the
+/// Raised on a shipyard console before it sells or unassigns, so a trader hosting the
 /// console can refuse.
 /// </summary>
 [ByRefEvent]

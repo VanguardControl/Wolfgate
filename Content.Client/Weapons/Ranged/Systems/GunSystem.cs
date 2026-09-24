@@ -250,7 +250,7 @@ public sealed partial class GunSystem : SharedGunSystem
 
         var predicting = GunPrediction && _gameState.IsPredictionEnabled; // WOLFGATE
         DrewHitscan = false; // WOLFGATE
-        var projectiles = ShootRequested(GetNetEntity(gunUid), GetNetCoordinates(coordinates), target, null, (Robust.Shared.Player.ICommonSession)session, predicting);
+        var projectiles = ShootRequested(GetNetEntity(gunUid), GetNetCoordinates(coordinates), target, null, (Robust.Shared.Player.ICommonSession)session, predicting); // WOLFGATE
 
         EntityManager.RaisePredictiveEvent(new RequestShootEvent()
         {
@@ -317,8 +317,10 @@ public sealed partial class GunSystem : SharedGunSystem
                     MuzzleFlash(gunUid, newAmmo, worldAngle, user);
                     Audio.PlayPredicted(gun.SoundGunshotModified, gunUid, user);
                     Recoil(user, direction, gun.CameraRecoilScalarModified);
-                    if (PredictAmmo(volley, ent!.Value)) // WOLFGATE: fired as its own predicted copy
+                    // WOLFGATE START: fired as its own predicted copy
+                    if (PredictAmmo(volley, ent!.Value))
                         break;
+                    // WOLFGATE END
                     if (IsClientSide(ent!.Value))
                         Del(ent.Value);
                     else
@@ -328,9 +330,10 @@ public sealed partial class GunSystem : SharedGunSystem
                     Audio.PlayPredicted(gun.SoundGunshotModified, gunUid, user);
                     Recoil(user, direction, gun.CameraRecoilScalarModified);
                     PredictHitscan(volley, ent, volley.Direction); // WOLFGATE: draw the beam now rather than waiting for the server's
-                    // WOLFGATE: the server fires the hitscan, so don't leak the client-side ammo
+                    // WOLFGATE START: the server fires the hitscan, so don't leak the client-side ammo
                     if (ent != null && IsClientSide(ent.Value))
                         QueueDel(ent.Value);
+                    // WOLFGATE END
                     break;
             }
         }

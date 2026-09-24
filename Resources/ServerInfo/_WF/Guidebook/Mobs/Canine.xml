@@ -9,6 +9,6 @@
   Canilunzt they grew up speaking - is Vulpkanin.
 
   <Box>
-    <GuideEntityEmbed Entity="MobCanine" Caption="Canine"/>
+    <GuideEntityEmbed Entity="WFMobCanine" Caption="Canine"/>
   </Box>
 </Document>

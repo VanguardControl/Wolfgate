@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Migration;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
@@ -169,7 +170,7 @@ public sealed class LegacyGenitalMarkingsTest
                 Assert.That(amputatedTesticles.Testicles?.Size, Is.EqualTo(2));
 
                 // Udders C.
-                Assert.That(udders.Breasts?.Shape, Is.EqualTo(new ProtoId<GenitalShapePrototype>("GenitalShapeBreastsUdders")));
+                Assert.That(udders.Breasts?.Shape, Is.EqualTo(new ProtoId<GenitalShapePrototype>("WFGenitalShapeBreastsUdders")));
                 Assert.That(udders.Breasts?.Cup, Is.EqualTo(3));
 
                 // Every result already satisfies the organ rules.
@@ -210,7 +211,7 @@ public sealed class LegacyGenitalMarkingsTest
                 // Two breast markings: the first one listed wins, and both are removed.
                 Assert.That(pairFirst.Genitals.Breasts?.Shape, Is.EqualTo(BreastsPair));
                 Assert.That(pairFirst.Genitals.Breasts?.Cup, Is.EqualTo(1));
-                Assert.That(roundFirst.Genitals.Breasts?.Shape, Is.EqualTo(new ProtoId<GenitalShapePrototype>("GenitalShapeBreastsPairRound")));
+                Assert.That(roundFirst.Genitals.Breasts?.Shape, Is.EqualTo(new ProtoId<GenitalShapePrototype>("WFGenitalShapeBreastsPairRound")));
                 Assert.That(roundFirst.Genitals.Breasts?.Cup, Is.EqualTo(4));
                 Assert.That(pairFirst.Appearance.Markings, Is.Empty);
                 Assert.That(pairFirst.Genitals.LegacyMarkings, Has.Count.EqualTo(2));
@@ -420,7 +421,7 @@ public sealed class LegacyGenitalMarkingsTest
                 Assert.That(genitals.Penis?.Sheath, Is.EqualTo(SheathType.Sheath), "The fused sheath art becomes the penis's sheath.");
                 Assert.That(genitals.Testicles?.Type, Is.EqualTo(TesticleType.External));
                 Assert.That(genitals.Testicles?.Size, Is.EqualTo(2));
-                Assert.That(genitals.Breasts?.Shape.Id, Is.EqualTo("GenitalShapeBreastsPairRound"));
+                Assert.That(genitals.Breasts?.Shape.Id, Is.EqualTo("WFGenitalShapeBreastsPairRound"));
                 Assert.That(genitals.Breasts?.Cup, Is.EqualTo(3));
                 Assert.That(genitals.LegacyMarkings, Is.EqualTo(legacy.Select(id => id + "@#FFFFFFFF")));
                 Assert.That(Ids(validated.Appearance), Is.EqualTo(new[] { "Pregnant-1" }), "Only the pregnancy overlay stays.");

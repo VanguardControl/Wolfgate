@@ -83,6 +83,8 @@ namespace Content.Server.Preferences.Managers
         {
             var userId = message.MsgChannel.UserId;
 
+            // WOLFGATE START: this handler is async void, so an exception here used to vanish and the client was
+            // never told its character had not saved; log it with the slot instead
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (message.Profile == null)
             {
@@ -90,8 +92,6 @@ namespace Content.Server.Preferences.Managers
                 return;
             }
 
-            // WOLFGATE: this handler is async void, so an exception here used to vanish and the client was never told
-            // its character had not saved. Log it with the slot instead.
             try
             {
                 await SetProfile(userId, message.Slot, message.Profile, false);
@@ -100,6 +100,7 @@ namespace Content.Server.Preferences.Managers
             {
                 _sawmill.Error($"Failed to save character for user {userId} in slot {message.Slot}: {e}");
             }
+            // WOLFGATE END
         }
 
         public async Task SetProfile(NetUserId userId, int slot, ICharacterProfile profile,
@@ -119,8 +120,8 @@ namespace Content.Server.Preferences.Managers
 
             profile.EnsureValid(session, _dependencies);
 
-            // WOLFGATE - an unreadable anatomy column is kept only for the anatomy the server loaded from it, unchanged; a
-            // client's LoadFailed flag alone keeps nothing.
+            // WOLFGATE START: an unreadable anatomy column is kept only for the anatomy the server loaded from it,
+            // unchanged; a client's LoadFailed flag alone keeps nothing
             if (profile is HumanoidCharacterProfile { Genitals.LoadFailed: true } wfProfile
                 && !(curPrefs.Characters.TryGetValue(slot, out var wfOld)
                      && wfOld is HumanoidCharacterProfile { Genitals.LoadFailed: true } wfOldProfile
@@ -128,7 +129,7 @@ namespace Content.Server.Preferences.Managers
             {
                 profile = wfProfile.WithGenitals(wfProfile.Genitals.WithoutLoadFailed());
             }
-            // End WOLFGATE
+            // WOLFGATE END
 
             // Mono
             if (!authoritative && profile is HumanoidCharacterProfile humanoid)

@@ -84,8 +84,8 @@ public sealed class PowerCordTest
                 entities.SpawnEntity("WFTestCordConsumer", Tile(gridB, 1, 1)));
             consumer.DrawRate = Load;
 
-            clampA = entities.SpawnEntity("PowerCordClampHV", Tile(gridA, 2, 1));
-            clampB = entities.SpawnEntity("PowerCordClampHV", Tile(gridB, 0, 1));
+            clampA = entities.SpawnEntity("WFPowerCordClampHV", Tile(gridA, 2, 1));
+            clampB = entities.SpawnEntity("WFPowerCordClampHV", Tile(gridB, 0, 1));
         });
 
         await server.WaitRunTicks(SettleTicks);
@@ -95,7 +95,7 @@ public sealed class PowerCordTest
                 "Two separate hulls must not share power before the cord is run.");
 
             Assert.That(entities.System<RopeSystem>()
-                .TryCreateRope(clampA, clampB, "PowerCordHV", 14f, out var created), Is.True);
+                .TryCreateRope(clampA, clampB, "WFPowerCordHV", 14f, out var created), Is.True);
             rope = created!.Value;
         });
 
@@ -149,7 +149,7 @@ public sealed class PowerCordTest
             var cableA = entities.SpawnEntity("CableHV", Tile(gridA, 2, 1));
             var cableB = entities.SpawnEntity("CableHV", Tile(gridB, 0, 1));
             var user = entities.SpawnEntity(null, Tile(gridA, 1, 1));
-            var coil = entities.SpawnEntity("PowerCordCoilHV", Tile(gridA, 1, 1));
+            var coil = entities.SpawnEntity("WFPowerCordCoilHV", Tile(gridA, 1, 1));
 
             // Both clicks happen inside one tick, so the carried end cannot be dropped in between.
             Interact(entities, user, coil, cableA);
@@ -189,7 +189,7 @@ public sealed class PowerCordTest
             var (gridA, gridB) = CreatePair(entities, maps, map.MapId);
             var cable = entities.SpawnEntity("CableHV", Tile(gridA, 2, 1));
             var user = entities.SpawnEntity(null, Tile(gridA, 1, 1));
-            var coil = entities.SpawnEntity("PowerCordCoilMV", Tile(gridA, 1, 1));
+            var coil = entities.SpawnEntity("WFPowerCordCoilMV", Tile(gridA, 1, 1));
 
             Interact(entities, user, coil, cable);
             Assert.Multiple(() =>
@@ -199,13 +199,13 @@ public sealed class PowerCordTest
             });
 
             // The same cord is equally refused by a clamp of another voltage.
-            var clamp = entities.SpawnEntity("PowerCordClampHV", Tile(gridA, 2, 1));
+            var clamp = entities.SpawnEntity("WFPowerCordClampHV", Tile(gridA, 2, 1));
             Interact(entities, user, coil, clamp);
             Assert.That(entities.HasComponent<RopeCarrierComponent>(user), Is.False,
                 "A clamp only takes its own cord.");
 
             // ... and a clamp refuses plain rope.
-            var rope = entities.SpawnEntity("RopeCoilDebug", Tile(gridA, 1, 1));
+            var rope = entities.SpawnEntity("WFRopeCoilDebug", Tile(gridA, 1, 1));
             Interact(entities, user, rope, clamp);
             Assert.That(entities.HasComponent<RopeCarrierComponent>(user), Is.False,
                 "Plain rope does not belong on a power clamp.");
@@ -234,7 +234,7 @@ public sealed class PowerCordTest
             (gridA, gridB) = CreatePair(entities, maps, map.MapId);
             var cable = entities.SpawnEntity("CableHV", Tile(gridA, 2, 1));
             var user = entities.SpawnEntity(null, Tile(gridA, 1, 1));
-            var coil = entities.SpawnEntity("PowerCordCoilHV", Tile(gridA, 1, 1));
+            var coil = entities.SpawnEntity("WFPowerCordCoilHV", Tile(gridA, 1, 1));
 
             Interact(entities, user, coil, cable);
             Assert.That(CountClamps(entities), Is.EqualTo(1), "The first click bolts a clamp down.");

@@ -1,10 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared._WF.Genitals.Migration;
 using Content.Shared._WF.Genitals.Prototypes;
+using Content.Shared._WF.Prototypes;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared._WF.Genitals;
+namespace Content.Shared._WF.Genitals.Profile;
 
 /// <summary>Why the validator changed or refused anatomy.</summary>
 public enum GenitalIssue : byte
@@ -34,7 +35,7 @@ public static class GenitalProfileValidator
     public const int MinCup = 1;
     public const int MaxCup = 19;
 
-    /// <summary>The Default settings prototype (settings.yml).</summary>
+    /// <summary>The WFDefault settings prototype (settings.yml).</summary>
     public static GenitalSettingsPrototype GetSettings(IPrototypeManager proto)
     {
         return proto.Index(GenitalSettingsPrototype.DefaultId);
@@ -250,7 +251,8 @@ public static class GenitalProfileValidator
         if (penis == null)
             return null;
 
-        if (!TryGetShape(penis.Shape, GenitalSlot.Penis, proto, issues, out var shape))
+        var shapeId = CurrentShape(penis.Shape);
+        if (!TryGetShape(shapeId, GenitalSlot.Penis, proto, issues, out var shape))
             return null;
 
         var min = settings.MinLengthCm;
@@ -278,14 +280,15 @@ public static class GenitalProfileValidator
         var color = NormaliseColor(penis.Color, issues);
         var sheathColor = NormaliseColor(penis.SheathColor, issues);
 
-        if (length == penis.LengthCm
+        if (shapeId == penis.Shape
+            && length == penis.LengthCm
             && sheath == penis.Sheath
             && visibility == penis.Visibility
             && SameColor(color, penis.Color)
             && SameColor(sheathColor, penis.SheathColor))
             return penis;
 
-        return penis.With(lengthCm: length, sheath: sheath, color: color, sheathColor: sheathColor, visibility: visibility);
+        return penis.With(shape: shapeId, lengthCm: length, sheath: sheath, color: color, sheathColor: sheathColor, visibility: visibility);
     }
 
     private static TesticlesProfile? ValidateTesticles(TesticlesProfile? testicles, GenitalSettingsPrototype settings,
@@ -326,16 +329,17 @@ public static class GenitalProfileValidator
         if (vagina == null)
             return null;
 
-        if (!TryGetShape(vagina.Shape, GenitalSlot.Vagina, proto, issues, out _))
+        var shapeId = CurrentShape(vagina.Shape);
+        if (!TryGetShape(shapeId, GenitalSlot.Vagina, proto, issues, out _))
             return null;
 
         var visibility = NormaliseVisibility(vagina.Visibility, issues);
         var color = NormaliseColor(vagina.Color, issues);
 
-        if (visibility == vagina.Visibility && SameColor(color, vagina.Color))
+        if (shapeId == vagina.Shape && visibility == vagina.Visibility && SameColor(color, vagina.Color))
             return vagina;
 
-        return vagina.With(color: color, visibility: visibility);
+        return vagina.With(shape: shapeId, color: color, visibility: visibility);
     }
 
     private static BreastsProfile? ValidateBreasts(BreastsProfile? breasts, IPrototypeManager proto, List<GenitalIssue>? issues)
@@ -343,7 +347,8 @@ public static class GenitalProfileValidator
         if (breasts == null)
             return null;
 
-        if (!TryGetShape(breasts.Shape, GenitalSlot.Breasts, proto, issues, out _))
+        var shapeId = CurrentShape(breasts.Shape);
+        if (!TryGetShape(shapeId, GenitalSlot.Breasts, proto, issues, out _))
             return null;
 
         var cup = breasts.Cup;
@@ -356,10 +361,16 @@ public static class GenitalProfileValidator
         var visibility = NormaliseVisibility(breasts.Visibility, issues);
         var color = NormaliseColor(breasts.Color, issues);
 
-        if (cup == breasts.Cup && visibility == breasts.Visibility && SameColor(color, breasts.Color))
+        if (shapeId == breasts.Shape && cup == breasts.Cup && visibility == breasts.Visibility && SameColor(color, breasts.Color))
             return breasts;
 
-        return breasts.With(cup: cup, color: color, visibility: visibility);
+        return breasts.With(shape: shapeId, cup: cup, color: color, visibility: visibility);
+    }
+
+    /// <summary>The shape id, with a renamed id (such as from an old character export) mapped to the current one.</summary>
+    private static ProtoId<GenitalShapePrototype> CurrentShape(ProtoId<GenitalShapePrototype> id)
+    {
+        return WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.GenitalShapes, id.Id);
     }
 
     /// <summary>The shape must exist and belong to the slot.</summary>

@@ -12,6 +12,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Organ;
@@ -37,9 +38,9 @@ namespace Content.IntegrationTests.Tests._WF.Genitals;
 public sealed class GenitalSurgeryTest
 {
     // Plain strings: the YAML linter validates static prototype-id fields, and these are checked by SurgeryPrototypesTest.
-    private const string RemovePenis = "SurgeryWFRemovePenis";
-    private const string InsertPenis = "SurgeryWFInsertPenis";
-    private const string RemoveVagina = "SurgeryWFRemoveVagina";
+    private const string RemovePenis = "WFSurgeryRemovePenis";
+    private const string InsertPenis = "WFSurgeryInsertPenis";
+    private const string RemoveVagina = "WFSurgeryRemoveVagina";
     private const string OpenIncision = "SurgeryOpenIncision";
     private const string StepOpenIncision = "SurgeryStepOpenIncisionScalpel";
     private const string StepClampInternal = "SurgeryStepClampInternalBleeders";
@@ -48,16 +49,16 @@ public sealed class GenitalSurgeryTest
     private const string StepSealOrgan = "SurgeryStepSealOrganWound";
     private const string NonHumanoidMob = "MobMouse";
     private const string RefusedKey = "wf-anatomy-surgery-refused";
-    private const string ProcedurePopupPrefix = "surgery-popup-procedure-SurgeryWF";
+    private const string ProcedurePopupPrefix = "surgery-popup-procedure-WFSurgery";
 
     /// <summary>One remove and one insert surgery per organ, with the organ's marker component.</summary>
     private static readonly (GenitalSlot Slot, string Remove, string Insert, Type Marker)[] Procedures =
     {
         (GenitalSlot.Penis, RemovePenis, InsertPenis, typeof(PenisOrganComponent)),
-        (GenitalSlot.Testicles, "SurgeryWFRemoveTesticles", "SurgeryWFInsertTesticles", typeof(TesticlesOrganComponent)),
-        (GenitalSlot.Vagina, RemoveVagina, "SurgeryWFInsertVagina", typeof(VaginaOrganComponent)),
-        (GenitalSlot.Womb, "SurgeryWFRemoveWomb", "SurgeryWFInsertWomb", typeof(WombOrganComponent)),
-        (GenitalSlot.Breasts, "SurgeryWFRemoveBreasts", "SurgeryWFInsertBreasts", typeof(BreastsOrganComponent)),
+        (GenitalSlot.Testicles, "WFSurgeryRemoveTesticles", "WFSurgeryInsertTesticles", typeof(TesticlesOrganComponent)),
+        (GenitalSlot.Vagina, RemoveVagina, "WFSurgeryInsertVagina", typeof(VaginaOrganComponent)),
+        (GenitalSlot.Womb, "WFSurgeryRemoveWomb", "WFSurgeryInsertWomb", typeof(WombOrganComponent)),
+        (GenitalSlot.Breasts, "WFSurgeryRemoveBreasts", "WFSurgeryInsertBreasts", typeof(BreastsOrganComponent)),
     };
 
     /// <summary>How a surgeon fails the surgeon check.</summary>
@@ -368,7 +369,7 @@ public sealed class GenitalSurgeryTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Surgery by another player needs the patient's AnatomySurgery toggle; self-surgery needs only the master switch.</summary>
+    /// <summary>Surgery by another player needs the patient's WFAnatomySurgery toggle; self-surgery needs only the master switch.</summary>
     [Test]
     public async Task OtherPlayerAndSelfSurgeryTest()
     {
@@ -385,12 +386,12 @@ public sealed class GenitalSurgeryTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(IsSurgeryValid(entMan, patient, torso, RemovePenis, StepRemoveOrgan, surgeon), Is.False, "Another player operated without AnatomySurgery.");
+                Assert.That(IsSurgeryValid(entMan, patient, torso, RemovePenis, StepRemoveOrgan, surgeon), Is.False, "Another player operated without WFAnatomySurgery.");
                 Assert.That(IsSurgeryValid(entMan, patient, torso, RemovePenis, StepRemoveOrgan, patient), Is.True, "Self-surgery must need only the master switch.");
             });
 
             GrantConsent(entMan, patient, SurgeryToggle);
-            Assert.That(IsSurgeryValid(entMan, patient, torso, RemovePenis, StepRemoveOrgan, surgeon), Is.True, "Another player must be allowed with AnatomySurgery.");
+            Assert.That(IsSurgeryValid(entMan, patient, torso, RemovePenis, StepRemoveOrgan, surgeon), Is.True, "Another player must be allowed with WFAnatomySurgery.");
         });
 
         await pair.CleanReturnAsync();
@@ -772,6 +773,6 @@ public sealed class GenitalSurgeryTest
 
     private static bool IsAnatomyId(EntProtoId id)
     {
-        return id.Id.StartsWith("SurgeryWF", StringComparison.Ordinal);
+        return id.Id.StartsWith("WFSurgery", StringComparison.Ordinal);
     }
 }

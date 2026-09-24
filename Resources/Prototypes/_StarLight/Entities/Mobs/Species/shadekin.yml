@@ -7,7 +7,7 @@
   components:
     - type: LanguageKnowledge
       speaks:
-      - TauCetiBasic # Wolfgate: HardLight's GalacticCommon is TauCetiBasic here
+      - TauCetiBasic # WOLFGATE: HardLight's GalacticCommon is TauCetiBasic here
       - Marish
       understands:
       - TauCetiBasic
@@ -131,7 +131,7 @@
           Heat: 0.1
     - type: Fingerprint
     - type: Blindable
-    - type: NightVision # WOLFGATE - ShadekinSystem turns this on in the dark
+    - type: NightVision # WOLFGATE: ShadekinSystem turns this on in the dark
       phosphorColor: "#C8B4FF"
     # Other
     - type: Temperature

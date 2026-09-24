@@ -3,6 +3,7 @@ using Content.Server.GameTicking;
 using Content.Shared._Common.Consent;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Examine;
@@ -28,9 +29,9 @@ public sealed class GenitalExamineTest
 {
     private const string Jumpsuit = "ClothingUniformJumpsuitColorGrey";
     private const string JumpsuitSlot = "jumpsuit";
-    private const string PenisOrganProto = "OrganWFPenis";
+    private const string PenisOrganProto = "WFOrganPenis";
 
-    private static readonly ProtoId<GenitalShapePrototype> PenisNondescript = "GenitalShapePenisNondescript";
+    private static readonly ProtoId<GenitalShapePrototype> PenisNondescript = "WFGenitalShapePenisNondescript";
 
     // What another examiner reads about ExamineProfile.
     private const string PenisLine = "penis is exposed: knotted, approximately 21 cm when erect, flaccid.";

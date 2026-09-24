@@ -1,4 +1,4 @@
-# WOLFGATE - NPC traders added to Caelestinus Central (Docs/Wolfgate/Traders/plan.md)
+# NPC traders added to Caelestinus Central (Docs/Wolfgate/Traders/plan.md)
 
 ## Otho Kessler - EVA outfitter (astro_trader.yml)
 trader-astro-greeting = Suit up or ship out?

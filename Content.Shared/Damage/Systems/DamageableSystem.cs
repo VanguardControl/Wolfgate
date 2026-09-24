@@ -245,15 +245,16 @@ namespace Content.Shared.Damage
                 }
             }
 
-            // WOLFGATE - ported from HardLight: let healing be adjusted even when resistances are
-            // ignored. Synths use this to be immune to organic medicine.
+            // WOLFGATE START: heal modifiers, ported from HardLight
+            // Lets healing be adjusted even when resistances are ignored. Synths use this to be immune to
+            // organic medicine.
             if (!ignoreGlobalModifiers && damage.GetTotal() < 0)
             {
                 var healEv = new HealModifyEvent(damage, origin);
                 RaiseLocalEvent(uid.Value, healEv);
                 damage = healEv.Damage;
             }
-            // End WOLFGATE
+            // WOLFGATE END
 
             if (!ignoreGlobalModifiers)
                 damage = ApplyUniversalAllModifiers(damage);

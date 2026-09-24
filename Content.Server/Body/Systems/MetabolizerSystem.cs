@@ -198,11 +198,11 @@ namespace Content.Server.Body.Systems
                     var actualEntity = ent.Comp2?.Body ?? solutionEntityUid.Value;
                     var args = new EntityEffectReagentArgs(actualEntity, EntityManager, ent, solution, mostToRemove, proto, null, scale);
 
-                    // WOLFGATE - ported from HardLight: lets Synths convert metabolised Nutriment
+                    // WOLFGATE START: ported from HardLight: lets Synths convert metabolised Nutriment
                     // into battery charge.
                     var metabolized = new RailroadingReagentMetabolizedEvent(new ReagentQuantity(reagent, mostToRemove));
                     RaiseLocalEvent(actualEntity, ref metabolized);
-                    // End WOLFGATE
+                    // WOLFGATE END
 
                     // do all effects, if conditions apply
                     foreach (var effect in entry.Effects)

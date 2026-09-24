@@ -153,7 +153,8 @@ namespace Content.Server.Connection
                 var properties = new Dictionary<string, object>();
                 if (reason == ConnectionDenyReason.Full)
                     properties["delay"] = _cfg.GetCVar(CCVars.GameServerFullReconnectDelay);
-                AddSymphonyLink(userId, properties); // Symphony: the Discord link as a property, so the client can offer a button
+                // WOLFGATE: Symphony, the Discord link as a property so the client can offer a button
+                AddSymphonyLink(userId, properties);
 
                 e.Deny(new NetDenyReason(msg, properties));
             }
@@ -323,7 +324,8 @@ namespace Content.Server.Connection
             }
 
             // Checks for whitelist IF it's enabled AND the user isn't an admin. Admins are always allowed.
-            if (_cfg.GetCVar(CCVars.WhitelistEnabled) && (!wasInGame || _whitelistPassed.Contains(userId)) && adminData is null) // Frontier: allow users who joined before panic bunker was enforced to reconnect. Symphony: not one who passed a running whitelist, so a revoke holds
+            // WOLFGATE: Symphony, not one who passed a running whitelist, so a revoke holds
+            if (_cfg.GetCVar(CCVars.WhitelistEnabled) && (!wasInGame || _whitelistPassed.Contains(userId)) && adminData is null) // Frontier: allow users who joined before panic bunker was enforced to reconnect
             {
                 if (_whitelists is null)
                 {
@@ -344,11 +346,13 @@ namespace Content.Server.Connection
                     if (!whitelistStatus.isWhitelisted)
                     {
                         // Not whitelisted.
-                        return (ConnectionDenyReason.Whitelist, await SymphonyWhitelistRefusal(whitelist, e, whitelistStatus.denyMessage!), null); // Symphony: with the Discord link that gets them whitelisted
+                        // WOLFGATE: Symphony, with the Discord link that gets them whitelisted
+                        return (ConnectionDenyReason.Whitelist, await SymphonyWhitelistRefusal(whitelist, e, whitelistStatus.denyMessage!), null);
                     }
 
                     // Whitelisted, don't check any more.
-                    _whitelistPassed.Add(userId); // Symphony: so a later revoke is checked on reconnect rather than waved through
+                    // WOLFGATE: Symphony, so a later revoke is checked on reconnect rather than waved through
+                    _whitelistPassed.Add(userId);
                     break;
                 }
             }

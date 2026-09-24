@@ -4,7 +4,8 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, Canine] #Einstein Engines - Felinid, Oni, Harpy
+  # WOLFGATE: added Canine
+  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
     state: schnozz
@@ -15,7 +16,8 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, Canine] #Einstein Engines - Felinid, Oni, Harpy
+  # WOLFGATE: added Canine
+  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
     state: nubby
@@ -26,7 +28,8 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, Canine] #Einstein Engines - Felinid, Oni, Harpy
+  # WOLFGATE: added Canine
+  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
     state: droop
@@ -37,7 +40,8 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, Canine] #Einstein Engines - Felinid, Oni, Harpy
+  # WOLFGATE: added Canine
+  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
     state: blob
@@ -48,7 +52,8 @@
   markingCategory: Snout
   followSkinColor: true
   forcedColoring: true
-  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, Canine] #Einstein Engines - Felinid, Oni, Harpy
+  # WOLFGATE: added Canine
+  speciesRestriction: [Human, Dwarf, Felinid, Oni, Harpy, WFCanine] #Einstein Engines - Felinid, Oni, Harpy
   sprites:
   - sprite: Mobs/Customization/human_noses.rsi
     state: uppie

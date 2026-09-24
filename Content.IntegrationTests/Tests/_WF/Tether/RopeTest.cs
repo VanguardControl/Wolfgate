@@ -67,7 +67,7 @@ public sealed class RopeTest
     count: 1
 ";
 
-    private const string AttachPoint = "RopeAttachPointDebug";
+    private const string AttachPoint = "WFRopeAttachPointDebug";
     private const float Stretch = 0.05f;
 
     [Test]

@@ -1,5 +1,6 @@
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
+using Content.Shared._WF.Genitals.Profile;
 
 namespace Content.Shared._WF.Genitals.Prototypes;
 

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-LizardTailSnake = Snake Tail
 marking-LizardTailSnake-tail_snake_primary = Primary color
 marking-LizardTailSnake-tail_snake_secondary = Under Tone color

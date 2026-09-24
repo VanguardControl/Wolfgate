@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-ArfelharpyTopWingsBubber = Arfel Harpy Top Wings
 marking-BatWingsBubber = Bat Wings
 marking-BeeWingsBubber = Bee Wings

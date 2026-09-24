@@ -1,4 +1,4 @@
-# WOLFGATE - NPC traders (Docs/Wolfgate/Traders/plan.md)
+# NPC traders (Docs/Wolfgate/Traders/plan.md)
 
 ## Conversation
 trader-busy = One moment, please.

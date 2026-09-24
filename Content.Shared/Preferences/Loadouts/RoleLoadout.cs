@@ -28,11 +28,10 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
     /// </summary>
     public string? EntityName;
 
-    /// <summary>
-    /// WOLFGATE: player-written job title, for roles with a custom job title prototype.
-    /// </summary>
+    // WOLFGATE START: player-written job title, for roles with a custom job title prototype
     [DataField]
     public string? CustomJobTitle;
+    // WOLFGATE END
 
     /*
      * Loadout-specific data used for validation.
@@ -471,7 +470,7 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         if (!Role.Equals(other.Role) ||
             SelectedLoadouts.Count != other.SelectedLoadouts.Count ||
             Points != other.Points ||
-            EntityName != other.EntityName ||
+            EntityName != other.EntityName || // WOLFGATE
             CustomJobTitle != other.CustomJobTitle) // WOLFGATE
         {
             return false;

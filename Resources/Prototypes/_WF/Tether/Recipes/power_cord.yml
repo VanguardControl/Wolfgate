@@ -2,7 +2,7 @@
 
 - type: latheRecipe
   id: WFPowerCordCoilHV
-  result: PowerCordCoilHV1
+  result: WFPowerCordCoilHV1
   categories:
   - Parts
   completetime: 0.2
@@ -13,7 +13,7 @@
 - type: latheRecipe
   parent: WFPowerCordCoilHV
   id: WFPowerCordCoilMV
-  result: PowerCordCoilMV1
+  result: WFPowerCordCoilMV1
   materials:
     Steel: 30
     Plastic: 20
@@ -21,7 +21,7 @@
 - type: latheRecipe
   parent: WFPowerCordCoilHV
   id: WFPowerCordCoilLV
-  result: PowerCordCoilLV1
+  result: WFPowerCordCoilLV1
   materials:
     Steel: 20
     Plastic: 20

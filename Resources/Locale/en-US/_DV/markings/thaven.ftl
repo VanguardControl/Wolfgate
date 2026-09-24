@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE: ported from HardLight
 marking-ThavenCheekBarbels = Cheek Barbels
 marking-ThavenCheekBarbels-cheek_barbels = Cheek Barbels
 marking-ThavenEyebrowBarbels = Eyebrow Barbels

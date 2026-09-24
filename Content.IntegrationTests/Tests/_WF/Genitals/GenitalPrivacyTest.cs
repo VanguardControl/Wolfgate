@@ -10,6 +10,7 @@ using Content.Server.Preferences.Managers;
 using Content.Shared._Common.Consent;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Administration;
 using Content.Shared.Chat;

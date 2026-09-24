@@ -64,7 +64,7 @@ public enum ArousalState : byte
     Full,
 }
 
-/// <summary>Runtime undergarment state. ByOther bits mark removals by another player; they are undone when the owner revokes UndergarmentStrip.</summary>
+/// <summary>Runtime undergarment state. ByOther bits mark removals by another player; they are undone when the owner revokes WFUndergarmentStrip.</summary>
 [Flags, Serializable, NetSerializable]
 public enum UndergarmentFlags : byte
 {

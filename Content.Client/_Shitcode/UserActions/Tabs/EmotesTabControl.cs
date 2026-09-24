@@ -85,8 +85,19 @@ public sealed partial class EmotesTabControl : BaseTabControl
         if (emote.Category == EmoteCategory.Invalid || emote.ChatTriggers.Count == 0)
             return false;
 
-        // WOLFGATE: AllowedEmotes first, matching ChatSystem.AllowedToUseEmote and the emote wheel. A
+        // WOLFGATE START: AllowedEmotes first, matching ChatSystem.AllowedToUseEmote and the emote wheel. A
         // species granted an emote may use it even when the emote's own whitelist rejects it.
+        // if (!whitelistSystem.IsWhitelistPassOrNull(emote.Whitelist, player) ||
+        //     whitelistSystem.IsBlacklistPass(emote.Blacklist, player))
+        //     return false;
+        //
+        // if (!emote.Available &&
+        //     _entManager.TryGetComponent<SpeechComponent>(player, out var speech) &&
+        //     !speech.AllowedEmotes.Contains(emote.ID))
+        //     return false;
+        //
+        // return true;
+
         if (_entManager.TryGetComponent<SpeechComponent>(player, out var speech) &&
             speech.AllowedEmotes.Contains(emote.ID))
             return true;
@@ -96,6 +107,7 @@ public sealed partial class EmotesTabControl : BaseTabControl
             return false;
 
         return emote.Available;
+        // WOLFGATE END
     }
 
     private void OnPlayEmote(ProtoId<EmotePrototype> protoId)

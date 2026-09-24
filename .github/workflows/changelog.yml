@@ -5,9 +5,9 @@ on:
     types: [closed]
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Wolfgate: built-in token instead of bot PAT
-  CHANGELOG_DIR: Resources/Changelog/Wolfgate.yml # Wolfgate: our changes. Monolith.yml fills itself from upstream merges.
-  CHANGELOG_START_ID: 100000 # Wolfgate: keep our ids above Monolith's so the client's read marker follows this file.
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # WOLFGATE: built-in token instead of bot PAT
+  CHANGELOG_DIR: Resources/Changelog/Wolfgate.yml # WOLFGATE: our changes. Monolith.yml fills itself from upstream merges.
+  CHANGELOG_START_ID: 100000 # WOLFGATE: keep our ids above Monolith's so the client's read marker follows this file.
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout Base Branch # Mono
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Wolfgate
+          token: ${{ secrets.GITHUB_TOKEN }} # WOLFGATE
           ref: "${{ github.event.pull_request.base.ref }}" # Mono
 
       - name: Setup Git

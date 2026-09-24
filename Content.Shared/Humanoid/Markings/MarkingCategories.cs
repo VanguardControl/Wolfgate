@@ -13,11 +13,11 @@ namespace Content.Shared.Humanoid.Markings
         HeadSide,
         Snout,
         Chest,
-        // WOLFGATE - ported from HardLight: underwear and genital marking slots.
+        // WOLFGATE START: underwear and genital marking slots, ported from HardLight
         UndergarmentTop,
         UndergarmentBottom,
         Genital,
-        // End WOLFGATE
+        // WOLFGATE END
         Arms,
         Legs,
         Wings, // For IPC wings porting from SimpleStation
@@ -40,13 +40,13 @@ namespace Content.Shared.Humanoid.Markings
                 HumanoidVisualLayers.HeadSide => MarkingCategories.HeadSide,
                 HumanoidVisualLayers.Snout => MarkingCategories.Snout,
                 HumanoidVisualLayers.Chest => MarkingCategories.Chest,
-                // WOLFGATE - ported from HardLight: underwear and genital marking slots.
+                // WOLFGATE START: underwear and genital marking slots, ported from HardLight
                 HumanoidVisualLayers.UndergarmentTop => MarkingCategories.UndergarmentTop,
                 HumanoidVisualLayers.UndergarmentBottom => MarkingCategories.UndergarmentBottom,
                 HumanoidVisualLayers.Genital => MarkingCategories.Genital,
                 HumanoidVisualLayers.Penis => MarkingCategories.Genital,
                 HumanoidVisualLayers.Breasts => MarkingCategories.Genital,
-                // End WOLFGATE
+                // WOLFGATE END
                 HumanoidVisualLayers.RArm => MarkingCategories.Arms,
                 HumanoidVisualLayers.LArm => MarkingCategories.Arms,
                 HumanoidVisualLayers.RHand => MarkingCategories.Arms,
