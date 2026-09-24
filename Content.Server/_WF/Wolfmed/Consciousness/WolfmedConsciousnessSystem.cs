@@ -47,6 +47,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
     [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
     [Dependency] private readonly WolfmedCrawlActionsSystem _crawlActions = default!; // M2
+    [Dependency] private readonly WolfmedToxinSystem _toxin = default!; // M5
+    [Dependency] private readonly WolfmedRadiationSystem _radiation = default!;
+    [Dependency] private readonly WolfmedBodyTemperatureSystem _temperature = default!;
 
     /// <summary>
     /// How much of an external pressure is enough to put a body on the floor. 1 is unconscious, so anything
@@ -197,6 +200,17 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         foreach (var (key, level) in body.Comp.Pressures)
             AddInput(PressureCause(key, mechanical), level / PressureDownShare, level);
 
+        // M5 (plan §3.8-3.10): toxins, radiation, cold and heat, each read against its own lines. Machines have none.
+        if (!mechanical)
+        {
+            var (toxinDown, toxinOut) = _toxin.GetLevels(body);
+            AddInput(WolfmedCause.Toxin, toxinDown, toxinOut);
+            AddInput(WolfmedCause.Radiation, _radiation.GetDownLevel(body), 0f);
+            var temperature = _temperature.GetLevels(body);
+            AddInput(WolfmedCause.Cold, temperature.ColdDown, temperature.ColdOut);
+            AddInput(WolfmedCause.Heat, temperature.HeatDown, temperature.HeatOut);
+        }
+
         if (!LegsGone(body))
             body.Comp.HadLegs = true;
         else if (body.Comp.HadLegs)
@@ -343,6 +357,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
                 "heart" => WolfmedCauseSource.ArrestHeart,
                 "sepsis" => WolfmedCauseSource.ArrestSepsis,
                 "shock" => WolfmedCauseSource.ArrestShock,
+                "cold" => WolfmedCauseSource.ArrestCold, // M5
+                "toxin" => WolfmedCauseSource.ArrestToxin,
+                "heat" => WolfmedCauseSource.ArrestHeat,
                 _ => WolfmedCauseSource.ArrestOther,
             },
             WolfmedCause.Shutdown => CompOrNull<WolfmedShutdownComponent>(body)?.Reason ?? WolfmedCauseSource.Power,

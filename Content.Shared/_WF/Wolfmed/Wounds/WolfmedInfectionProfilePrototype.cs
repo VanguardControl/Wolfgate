@@ -92,9 +92,7 @@ public sealed partial class WolfmedInfectionProfilePrototype : IPrototype
     [DataField]
     public float FeverRise = 0.05f;
 
-    /// <summary>Poison dealt to the body per minute per spreading wound.</summary>
-    [DataField]
-    public FixedPoint2 SpreadingPoisonPerMinute = FixedPoint2.New(1);
+    // M5 (OD13): the spreading stage and sepsis dealt Poison here; they no longer do, so both fields are gone.
 
     // Sepsis.
 
@@ -109,10 +107,6 @@ public sealed partial class WolfmedInfectionProfilePrototype : IPrototype
     /// <summary>Sepsis progress an antibiotic clears per unit metabolised.</summary>
     [DataField]
     public float SepsisAntibioticPerUnit = 6f;
-
-    /// <summary>Poison per minute at full sepsis; it scales linearly from a quarter of this at onset.</summary>
-    [DataField]
-    public FixedPoint2 SepsisPoisonPerMinute = FixedPoint2.New(6);
 
     // Necrosis.
 

@@ -4780,3 +4780,37 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | modified | `CallForHelpTest` waits out the fall's stutter, in station air. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`, `WolfmedPainTest.cs`, `WolfmedConsciousnessTest.cs` | modified | Head hits that are now knockouts moved to an arm or aimed at the torso. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`, `WolfmedBluntWoundTest.cs`, `WolfmedBurnWoundTest.cs`, `WolfmedAmputationTest.cs`, `WolfmedDamageCommandTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `Scenarios/WolfmedBurnScenarioTest.cs`, `Scenarios/WolfmedPlaytestTwoTest.cs` | modified | Test migration (DECISIONS M3). |
+
+## M5 (2026-09-23)
+
+Marked upstream, Onyx and vendored edits: **none.** Inventory #16 (the bloodstream's regeneration seam) landed in M3;
+M5's radiation factor is one more multiplier inside `WolfmedLifeSystem.BloodRegenFactor`, which that marked line already
+calls. Everything else is `_WF` code or data.
+
+Files:
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Server/_WF/Wolfmed/Life/WolfmedToxinSystem.cs` | new | Toxin load (systemic Poison), its lines, the toxic coma's brain drain, liver clearance (OD13). |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRadiationSystem.cs` | new | The marrow route: regeneration factor, marrow blood loss (discarded, no puddle), the Downed level; `WolfmedMarrowLossComponent`. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedBodyTemperatureSystem.cs`, `WolfmedBodyTemperatureComponent.cs` | new | The core temperature (lags a colder surface), the per-species lines, the cold and heat inputs, the fire grace, heat stroke's drain, the cold arrest query. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | Clearance and marrow steps in `Tick`; toxin and heat drains in `DrainRate`; the oxygen trigger names "toxin" and "heat"; the cold arrest trigger; `BloodRegenFactor` × radiation; `GetVolumeLossRate` counts the marrow; four new routes; restart memory for cold, toxin and heat. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | Toxin, Radiation, Cold and Heat inputs in `Evaluate` (flesh only); arrest sources "cold", "toxin", "heat". |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | `TooCold` refusal; `LocalizeLine` carries the core and the rewarm line. |
+| `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | modified | Toxins with the liver, radiation with the marrow, the core temperature; the TooCold verdict. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedInfectionSystem.cs` | modified | Spreading infection and sepsis deal no Poison (OD13); the fever stops under the species' heat input (`FeverCeiling`). |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionProfilePrototype.cs`, `Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml` | modified | `spreadingPoisonPerMinute` and `sepsisPoisonPerMinute` removed. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedChemicalBurnSystem.cs`, `WolfmedWoundRuleSystem.cs`, `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | P21: the residue's damage deepens its own chemical burn (`ResidueTarget`), never a plain burn. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessCause.cs` | modified | Causes `Toxin` 16, `Radiation` 17, `Cold` 18, `Heat` 19 (15 left for M4's CoreHeat); sources `Toxin` 10, `Heat` 11, `ArrestCold` 30, `ArrestToxin` 31, `ArrestHeat` 32; tie order. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedRevivalComponents.cs` | modified | Routes `Toxin`, `HeatStroke`, `Marrow`, `Hypothermia` (bits 11-14; 10 left for M4). |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs` | modified | Toxin, liver, radiation and core fields and lines; `WolfmedDefibVerdict.TooCold`; `WolfmedToxinBand`, `WolfmedLiverState`, `WolfmedRadiationBand`. |
+| `Content.Shared/_WF/Wolfmed/Body/WolfmedOrganComponent.cs`, `Resources/Prototypes/_WF/Wolfmed/Body/organs.yml` | modified | `impairedClearanceFactor` (liver 0.5). |
+| `Content.Shared/_WF/Wolfmed/Examine/WolfmedVisualInspectionSystem.cs` | modified | Close-up signs: retching, grey and sickly, cold and stiff, hot and dry. |
+| `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M5 block at the end. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/remaining_causes.yml`, `Alerts/remaining_alerts.yml` | new | The four causes and their seven alerts. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml` | modified | Hypoxia sources Toxin and Heat; arrest sources cold, toxin, heat. |
+| `Resources/Locale/en-US/_WF/wolfmed/remaining-causes.ftl` | new | Every M5 string. |
+| `Resources/Locale/en-US/_WF/wolfmed/treatment-advice.ftl`, `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml`, `WoundTreatment.xml` | modified | Infection no longer "takes toxin damage"; a paragraph on the four causes. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs` | new | `ToxinScenarioTest`, `RadiationScenarioTest`, `SepsisNotToxinTest`, `AcidResidueTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs` | new | `ColdRoomMeasurementTest`, `HypothermiaScenarioTest`, `HeatStrokeScenarioTest`, `SpeciesLinesTest`, `SpaceColdSmokeTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs` | modified | Infection and sepsis deal no Poison; `SepsisPoisonsAndAntibioticsClearItTest` renamed `SepsisShowsAndAntibioticsClearItTest`. |

@@ -32,6 +32,8 @@ Pain puts you down at 70% of your pain ceiling and out past it; blood puts you d
 
 Nothing here can kill you on its own. A lost fight leaves a wounded crewman on the deck for a medic to find, not a body.
 
+Poison, radiation, cold and heat are causes of their own. Poison in the blood puts you down past 60 and into a [bold]toxic coma[/bold] past 120, which starves the brain; your liver clears it slowly and antitoxin (dylovene) fast. Radiation past 80 puts you down; past 40 your marrow stops making blood and past 100 you lose it as well, so it kills the way blood loss does - anti-radiation drugs and blood. A core that cools well below normal puts you down, then out, then stops the heart, and the cold protects the brain while it is stopped: rewarm before the paddles. A core that runs hot gives [bold]heat exhaustion[/bold], then [bold]heat stroke[/bold], which damages the brain. Being on fire does not count until a while after the fire is out.
+
 ## Effects
 
 Wounds progress through minor, moderate, severe, and critical stages. Pain, bleeding, and loss of limb function increase with severity.
@@ -142,7 +144,7 @@ Two things happen to a wound that nobody treats, and neither of them needs anoth
 
 ## Infection
 
-Any open wound can go bad, and some go bad far faster: a bite, a bullet hole, an open surgical site, or anything a knife has been dug around in. An infected wound hurts and keeps reopening faster than a dressing closes it. Left alone it spreads, and the patient runs a fever and takes toxin damage.
+Any open wound can go bad, and some go bad far faster: a bite, a bullet hole, an open surgical site, or anything a knife has been dug around in. An infected wound hurts and keeps reopening faster than a dressing closes it. Left alone it spreads and the patient runs a fever; once it is in the blood (sepsis) it starves the brain.
 
 Dressing a wound early cuts the rate to a seventh of itself; suturing or cauterising it stops the clock outright. Antiseptic on the skin - ethanol, bleach or spaceacillin - drains an infection that is still local. Once it has spread, spaceacillin in the bloodstream is the only answer.
 
@@ -264,7 +266,7 @@ Wound - cause - danger - treatment.
 
 [bold]Internal burns[/bold] - a strong shock - heart damage, locked muscles - ointment or regenerative mesh.
 
-[bold]Infection[/bold] - an open wound left untreated - pain, fever, toxin damage, then sepsis - antiseptic while local, spaceacillin once it spreads.
+[bold]Infection[/bold] - an open wound left untreated - pain, fever, then sepsis - antiseptic while local, spaceacillin once it spreads.
 
 [bold]Necrosis[/bold] - a tourniquet left on, a frozen or charred limb, a late reattachment - permanent dead tissue that keeps the patient septic - amputation and a replacement part.
 

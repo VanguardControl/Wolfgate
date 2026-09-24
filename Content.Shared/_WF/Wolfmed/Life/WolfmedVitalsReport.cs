@@ -49,6 +49,45 @@ public enum WolfmedDefibVerdict : byte
 
     /// <summary>Other content's <c>UnrevivableComponent</c>; <see cref="WolfmedVitalsReport.VerdictReason"/> names it.</summary>
     Unrevivable = 8,
+
+    /// <summary>M5: the core is still under the cold arrest line; rewarm first.</summary>
+    TooCold = 9,
+}
+
+/// <summary>M5 (plan §3.8): the toxin load against its lines.</summary>
+[Serializable, NetSerializable]
+public enum WolfmedToxinBand : byte
+{
+    Low = 0,
+
+    /// <summary>At or past the Downed line.</summary>
+    High = 1,
+
+    /// <summary>At or past the coma line: the brain is draining.</summary>
+    Coma = 2,
+}
+
+/// <summary>M5 (plan §3.8, OD13): what the liver is doing for toxin clearance.</summary>
+[Serializable, NetSerializable]
+public enum WolfmedLiverState : byte
+{
+    None = 0,
+    Working = 1,
+    Impaired = 2,
+    Failed = 3,
+}
+
+/// <summary>M5 (plan §3.9): the marrow route's stage.</summary>
+[Serializable, NetSerializable]
+public enum WolfmedRadiationBand : byte
+{
+    Low = 0,
+
+    /// <summary>Past wolfmed.rad_marrow_stop: no blood regenerates.</summary>
+    Suppressed = 1,
+
+    /// <summary>Past wolfmed.rad_marrow_bleed: blood is lost as well.</summary>
+    Failing = 2,
 }
 
 /// <summary>
@@ -136,6 +175,31 @@ public sealed class WolfmedVitalsReport
 
     /// <summary>M2 (plan §7.2): a dead chassis's restart button, in words. Hidden for anything else.</summary>
     public WolfmedRestartVerdict Restart;
+
+    /// <summary>M5 (plan §3.8): the toxin load, -1 when there is none.</summary>
+    public float Toxin = -1f;
+
+    public WolfmedToxinBand ToxinBand;
+    public WolfmedLiverState Liver;
+
+    /// <summary>M5 (plan §3.9): systemic radiation, -1 when there is none.</summary>
+    public float Radiation = -1f;
+
+    public WolfmedRadiationBand RadiationBand;
+
+    /// <summary>M5: blood the failing marrow costs, units a second.</summary>
+    public float MarrowLoss;
+
+    /// <summary>M5 (plan §3.10): the core temperature in kelvin while it is cold or hot enough to count, else -1.</summary>
+    public float Core = -1f;
+
+    /// <summary>M5: <see cref="Core"/> is on the cold side.</summary>
+    public bool CoreCold;
+
+    /// <summary>M5: for a cold refusal, the core and the line it has to be rewarmed past, in kelvin.</summary>
+    public float VerdictCore;
+
+    public float VerdictRewarm;
 }
 
 /// <summary>M2 (plan §7.2): what a dead chassis's restart button would do, in the analyzer's words.</summary>
@@ -173,6 +237,16 @@ public static class WolfmedVitalsText
 
         if (BurnFluidLine(report) is { } burns)
             lines.Add(burns);
+
+        // M5 (plan §3.8-3.10): toxins and the liver, radiation and the marrow, the core temperature.
+        if (ToxinLine(report) is { } toxins)
+            lines.Add(toxins);
+
+        if (RadiationLine(report) is { } radiation)
+            lines.Add(radiation);
+
+        if (CoreTemperatureLine(report) is { } core)
+            lines.Add(core);
 
         // M2 (plan §5.5): what is getting worse, and what the last arrest was.
         if (RoutesLine(report) is { } routes)
@@ -291,6 +365,9 @@ public static class WolfmedVitalsText
         {
             WolfmedCauseSource.ArrestBlood => WolfmedCauseFlags.Blood,
             WolfmedCauseSource.ArrestOxygen => WolfmedCauseFlags.Hypoxia,
+            WolfmedCauseSource.ArrestCold => WolfmedCauseFlags.Cold, // M5
+            WolfmedCauseSource.ArrestToxin => WolfmedCauseFlags.Toxin,
+            WolfmedCauseSource.ArrestHeat => WolfmedCauseFlags.Heat,
             _ => WolfmedCauseFlags.None,
         };
 
@@ -375,6 +452,38 @@ public static class WolfmedVitalsText
             ("rate", MathF.Round(report.BurnFluid, 1)));
     }
 
+    /// <summary>M5 (plan §3.8): "Toxins: 72, high; liver clearing". Null while the body carries no Poison.</summary>
+    public static string? ToxinLine(WolfmedVitalsReport report)
+    {
+        if (report.Mechanical || report.Toxin <= 0f)
+            return null;
+
+        return Loc.GetString("wolfmed-vitals-toxins",
+            ("load", (int) MathF.Round(report.Toxin)),
+            ("band", Loc.GetString($"wolfmed-vitals-toxin-band-{report.ToxinBand.ToString().ToLowerInvariant()}")),
+            ("liver", Loc.GetString($"wolfmed-vitals-liver-{report.Liver.ToString().ToLowerInvariant()}")));
+    }
+
+    /// <summary>M5 (plan §3.9): "Radiation: 120, marrow failing: blood not regenerating, losing 0.1 u/s".</summary>
+    public static string? RadiationLine(WolfmedVitalsReport report)
+    {
+        if (report.Mechanical || report.Radiation <= 0f)
+            return null;
+
+        return Loc.GetString($"wolfmed-vitals-radiation-{report.RadiationBand.ToString().ToLowerInvariant()}",
+            ("dose", (int) MathF.Round(report.Radiation)), ("rate", MathF.Round(report.MarrowLoss, 2)));
+    }
+
+    /// <summary>M5 (plan §3.10): "Core temperature: 271 K, hypothermic". Null while the core is near normal.</summary>
+    public static string? CoreTemperatureLine(WolfmedVitalsReport report)
+    {
+        if (report.Mechanical || report.Core < 0f)
+            return null;
+
+        return Loc.GetString(report.CoreCold ? "wolfmed-vitals-core-cold" : "wolfmed-vitals-core-hot",
+            ("kelvin", (int) MathF.Round(report.Core)));
+    }
+
     /// <summary>
     /// M3 (plan §8): "Organs: lungs impaired (short of breath); heart impaired (irregular pulse)". Null while every
     /// organ is OK.
@@ -411,6 +520,9 @@ public static class WolfmedVitalsText
                 ("units", MathF.Ceiling(report.VerdictUnits)),
                 ("safe", MathF.Ceiling(report.VerdictSafeUnits)),
                 ("line", MathF.Round(report.VerdictSafeLine))),
+            WolfmedDefibVerdict.TooCold => Loc.GetString("wolfmed-vitals-verdict-toocold",
+                ("kelvin", (int) MathF.Round(report.VerdictCore)),
+                ("line", (int) MathF.Ceiling(report.VerdictRewarm))),
             WolfmedDefibVerdict.Unrevivable => Loc.GetString("wolfmed-vitals-verdict-unrevivable",
                 ("reason", report.VerdictReason is { } reason && Loc.TryGetString(reason, out var text)
                     ? text

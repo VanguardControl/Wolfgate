@@ -96,6 +96,8 @@
   - type: WolfmedOrgan
     destructionWound: InternalBleedingWound
     destructionWoundSeverity: 40
+    # M5 (plan §3.8, OD13): under half health the liver clears Poison at half wolfmed.toxin_clearance; failed, none.
+    impairedClearanceFactor: 0.5
   - type: OrganDamage
     selectionWeight: 1.1 # hitChance left at the 1.0 default
     damageMultipliers:

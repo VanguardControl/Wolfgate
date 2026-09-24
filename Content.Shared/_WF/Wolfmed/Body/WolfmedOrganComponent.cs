@@ -31,6 +31,12 @@ public sealed partial class WolfmedOrganComponent : Component
     /// </summary>
     [DataField] public float ImpairedRegenFactor = 1f;
 
+    /// <summary>
+    /// M5 (plan §3.8, OD13): toxin clearance multiplier while this organ is impaired (the liver: 0.5). Read only
+    /// for a liver; a failed liver clears nothing.
+    /// </summary>
+    [DataField] public float ImpairedClearanceFactor = 1f;
+
     /// <summary>OK, impaired or failed, from health against <see cref="ImpairedBelow"/>.</summary>
     public WolfmedOrganBand Band =>
         Health <= FixedPoint2.Zero ? WolfmedOrganBand.Failed

@@ -52,6 +52,7 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!; // M2
     [Dependency] private SharedBodySystem _body = default!; // M2
     [Dependency] private WolfmedShutdownSystem _shutdown = default!; // M2
+    [Dependency] private WolfmedBodyTemperatureSystem _temperature = default!; // M5
 
     /// <summary>Test seam, mirroring <c>WolfmedEviscerationSystem.ForcedRoll</c>: a forced chance roll.</summary>
     public float? ForcedRoll;
@@ -71,6 +72,9 @@ public sealed class WolfmedRevivalSystem : EntitySystem
     public const string NoHeart = "wolfmed-defib-no-heart";
     public const string PulsePresent = "wolfmed-defib-pulse-present";
     public const string NoBlood = "wolfmed-defib-no-blood";
+
+    /// <summary>M5 (plan §3.10): the core is still under the cold arrest line; a shock would only stop again.</summary>
+    public const string TooCold = "wolfmed-defib-too-cold";
 
     /// <summary>The hand defibrillator's own rot line, so the pod refuses a rotten body in the same words.</summary>
     public const string Rotten = "defibrillator-rotten";
@@ -137,6 +141,10 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         if (_life.GetBlood(body) < _cfg.GetCVar(WolfmedCVars.DefibBlood))
             return NoBlood;
 
+        // M5: a heart restarted in a core still under the cold arrest line stops again on the next tick. Rewarm first.
+        if (_temperature.IsColdArrest(body))
+            return TooCold;
+
         return null;
     }
 
@@ -153,7 +161,10 @@ public sealed class WolfmedRevivalSystem : EntitySystem
             ("units", MathF.Ceiling(toTarget)),
             ("safe", MathF.Ceiling(toSafe)),
             ("target", MathF.Round(_cfg.GetCVar(WolfmedCVars.PostShockBloodTarget) * 100f)),
-            ("line", MathF.Round(_cfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f)));
+            ("line", MathF.Round(_cfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f)),
+            // M5: the cold refusal's core temperature and the line to rewarm past.
+            ("kelvin", MathF.Round(_temperature.GetCore(body) ?? 0f)),
+            ("rewarm", MathF.Ceiling(_temperature.GetLines(body)?.ColdArrest ?? 0f)));
     }
 
     /// <summary>

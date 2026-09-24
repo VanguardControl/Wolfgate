@@ -85,4 +85,18 @@ public enum WolfmedRoutes : ushort
 
     /// <summary>Brain oxygenation under the line where the tissue itself dies.</summary>
     TissueLoss = 1 << 9,
+
+    // M5: bit 10 is left for M4's core heat.
+
+    /// <summary>A toxic coma draining the brain.</summary>
+    Toxin = 1 << 11,
+
+    /// <summary>Heat stroke draining the brain.</summary>
+    HeatStroke = 1 << 12,
+
+    /// <summary>Radiation past the marrow's bleed line: blood lost with nothing making more.</summary>
+    Marrow = 1 << 13,
+
+    /// <summary>A hypothermic core still cooling.</summary>
+    Hypothermia = 1 << 14,
 }

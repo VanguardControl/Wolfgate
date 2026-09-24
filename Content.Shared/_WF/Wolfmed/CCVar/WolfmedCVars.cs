@@ -589,4 +589,95 @@ public sealed class WolfmedCVars
     /// <summary>Shock in one hit, after armour, from which the current reaches the heart.</summary>
     public static readonly CVarDef<float> ElectricHeartFrom =
         CVarDef.Create("wolfmed.electric_heart_from", 15f, CVar.SERVERONLY);
+
+    // M5: toxins, radiation, cold and heat (plan §3.8-3.10, OD13).
+
+    /// <summary>Toxin load (systemic Poison) at which a body goes Downed, cause Toxin.</summary>
+    public static readonly CVarDef<float> ConsciousnessToxinDown =
+        CVarDef.Create("wolfmed.consc_toxin_down", 60f, CVar.SERVERONLY);
+
+    /// <summary>Toxin load at which a body falls into a toxic coma (Unconscious, breathing) and the brain drains.</summary>
+    public static readonly CVarDef<float> ConsciousnessToxinOut =
+        CVarDef.Create("wolfmed.consc_toxin_out", 120f, CVar.SERVERONLY);
+
+    /// <summary>Seconds of a toxic coma that drain brain oxygenation from full to nothing (the sepsis shape).</summary>
+    public static readonly CVarDef<float> BrainToxinSeconds =
+        CVarDef.Create("wolfmed.brain_toxin_seconds", 600f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Poison a working liver clears a second (OD13): the one passive healing a wound host gets. An impaired liver
+    /// clears at its organ's impairedClearanceFactor, a failed or missing one not at all.
+    /// </summary>
+    public static readonly CVarDef<float> ToxinClearance =
+        CVarDef.Create("wolfmed.toxin_clearance", 0.1f, CVar.SERVERONLY);
+
+    /// <summary>Radiation at or past which the marrow stops: no blood regenerates (plan §3.9).</summary>
+    public static readonly CVarDef<float> RadiationMarrowStop =
+        CVarDef.Create("wolfmed.rad_marrow_stop", 40f, CVar.SERVERONLY);
+
+    /// <summary>Radiation at or past which the body also loses blood, wolfmed.rad_marrow_rate a second.</summary>
+    public static readonly CVarDef<float> RadiationMarrowBleed =
+        CVarDef.Create("wolfmed.rad_marrow_bleed", 100f, CVar.SERVERONLY);
+
+    /// <summary>Units of blood a second lost past wolfmed.rad_marrow_bleed. Discarded, never spilled.</summary>
+    public static readonly CVarDef<float> RadiationMarrowRate =
+        CVarDef.Create("wolfmed.rad_marrow_rate", 0.1f, CVar.SERVERONLY);
+
+    /// <summary>Radiation at which a body goes Downed, cause Radiation ("radiation sickness"). Never unconscious.</summary>
+    public static readonly CVarDef<float> ConsciousnessRadiationDown =
+        CVarDef.Create("wolfmed.consc_rad_down", 80f, CVar.SERVERONLY);
+
+    /// <summary>Kelvin over the species' cold damage threshold under which the core is hypothermic: Downed.</summary>
+    public static readonly CVarDef<float> HypothermiaDownOffset =
+        CVarDef.Create("wolfmed.hypothermia_down_offset", 30f, CVar.SERVERONLY);
+
+    /// <summary>Kelvin over the cold damage threshold under which hypothermia knocks the patient out (breathing).</summary>
+    public static readonly CVarDef<float> HypothermiaOutOffset =
+        CVarDef.Create("wolfmed.hypothermia_out_offset", 15f, CVar.SERVERONLY);
+
+    /// <summary>Kelvin over the cold damage threshold under which the heart stops, cause "cold".</summary>
+    public static readonly CVarDef<float> HypothermiaArrestOffset =
+        CVarDef.Create("wolfmed.hypothermia_arrest_offset", 2f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Kelvin under the species' heat damage threshold over which the core is in heat exhaustion: Downed. Past the
+    /// threshold itself is heat stroke.
+    /// </summary>
+    public static readonly CVarDef<float> HyperthermiaDownOffset =
+        CVarDef.Create("wolfmed.hyperthermia_down_offset", 7f, CVar.SERVERONLY);
+
+    /// <summary>Seconds of heat stroke that drain brain oxygenation from full to nothing.</summary>
+    public static readonly CVarDef<float> HyperthermiaBrainSeconds =
+        CVarDef.Create("wolfmed.hyperthermia_brain_seconds", 300f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds after a fire goes out during which the body still cannot enter a heat cause (plan §3.10). It holds
+    /// while burning too, never clears a heat cause the body already has, and comes once per cooling cycle. 60, not the
+    /// plan's 30: a human put out at a 10-stack fire's hottest (832 K) is under the heat exhaustion line 55 s later.
+    /// </summary>
+    public static readonly CVarDef<float> HeatFireGraceSeconds =
+        CVarDef.Create("wolfmed.heat_fire_grace_seconds", 60f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds for the core to close about two thirds of the gap to a colder body surface. The surface is what the
+    /// atmosphere moves, and in space it reaches about 16 K within a minute; the core lags it, so cold takes minutes.
+    /// Warming, and anything above the normal body temperature, follows the surface at once.
+    /// </summary>
+    public static readonly CVarDef<float> CoreCoolingSeconds =
+        CVarDef.Create("wolfmed.core_cooling_seconds", 900f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// The furthest a hypothermia or heat exhaustion line may sit from the damage threshold, as a share of the gap
+    /// between that threshold and the species' normal temperature. A species whose normal temperature is close to a
+    /// threshold gets its offsets scaled down, so it is never Downed at its own normal temperature.
+    /// </summary>
+    public static readonly CVarDef<float> TemperatureLineMaxShare =
+        CVarDef.Create("wolfmed.temperature_line_max_share", 0.6f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Share of the way from normal to a temperature line under which the core counts as nothing at all: no notch on
+    /// the health doll for a body a few kelvin off normal in ordinary air.
+    /// </summary>
+    public static readonly CVarDef<float> TemperatureInputFloor =
+        CVarDef.Create("wolfmed.temperature_input_floor", 0.5f, CVar.SERVERONLY);
 }

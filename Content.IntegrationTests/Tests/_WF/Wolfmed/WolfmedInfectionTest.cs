@@ -82,13 +82,17 @@ public sealed class WolfmedInfectionTest : GameTest
                     "and reopens faster than it closes, which is what 'slower healing' means here.");
             });
 
-            var poison = Damage(entities, body, "Poison");
+            var temperature = entities.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(body)
+                .CurrentTemperature;
             infection.Update(Minutes(5));
             Assert.Multiple(() =>
             {
                 Assert.That(infection.GetStage(wound), Is.EqualTo(WolfmedInfectionStage.Spreading));
-                Assert.That(Damage(entities, body, "Poison"), Is.GreaterThan(poison),
-                    "past the wound it is a systemic poisoning.");
+                // M5 (OD13): past the wound it is a fever, not a poisoning; the toxin load is its own route.
+                Assert.That(entities.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(body)
+                    .CurrentTemperature, Is.GreaterThan(temperature), "a spreading infection runs no fever.");
+                Assert.That(Damage(entities, body, "Poison"), Is.EqualTo(FixedPoint2.Zero),
+                    "a spreading infection still deals Poison.");
                 Assert.That(entities.GetComponent<WolfmedInfectionComponent>(wound).Progress,
                     Is.GreaterThanOrEqualTo(profile.SpreadingAt));
             });
@@ -252,11 +256,11 @@ public sealed class WolfmedInfectionTest : GameTest
     }
 
     /// <summary>
-    /// Sepsis: the body-level stage. It shows on the patient's own alerts, poisons them faster the further
-    /// it has got, and an antibiotic is the only thing that reverses it.
+    /// Sepsis: the body-level stage. It shows on the patient's own alerts and an antibiotic is the only thing that
+    /// reverses it. M5 (OD13): it deals no Poison; it kills through its own brain drain.
     /// </summary>
     [Test]
-    public async Task SepsisPoisonsAndAntibioticsClearItTest()
+    public async Task SepsisShowsAndAntibioticsClearItTest()
     {
         var server = Pair.Server;
         await server.WaitIdleAsync();
@@ -281,12 +285,11 @@ public sealed class WolfmedInfectionTest : GameTest
                 Assert.That(entities.HasComponent<WolfmedSepsisComponent>(body), Is.True);
             });
 
-            var poison = Damage(entities, body, "Poison");
             infection.Update(Minutes(4));
             Assert.Multiple(() =>
             {
                 Assert.That(infection.GetSepsis(body), Is.GreaterThan(0f));
-                Assert.That(Damage(entities, body, "Poison"), Is.GreaterThan(poison));
+                Assert.That(Damage(entities, body, "Poison"), Is.EqualTo(FixedPoint2.Zero), "sepsis still deals Poison.");
                 Assert.That(alerts.IsShowingAlert(body, WolfmedInfectionSystem.SepsisAlert), Is.True);
             });
 
