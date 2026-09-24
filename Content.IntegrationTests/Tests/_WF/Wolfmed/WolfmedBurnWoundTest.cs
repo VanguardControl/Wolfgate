@@ -250,9 +250,10 @@ public sealed class WolfmedBurnWoundTest : GameTest
                 Assert.That(Suppression(entities, torso), Is.GreaterThan(moderate));
                 Assert.That(frostbite.NecrosisRisk, Is.GreaterThan(0f));
                 Assert.That(frostbite.NecrosisOnset, Is.GreaterThan(TimeSpan.Zero));
-                Assert.That(traits.GetPartNecrosisRisk(torso, out var onset), Is.EqualTo(frostbite.NecrosisRisk),
+                // Review fix: the part's reader is GetPartNecrosisOnset (M6, the onset over the risk).
+                Assert.That(traits.GetPartNecrosisOnset(torso),
+                    Is.EqualTo(frostbite.NecrosisOnset / frostbite.NecrosisRisk),
                     "and the same figure is readable off the part's wounds.");
-                Assert.That(onset, Is.EqualTo(frostbite.NecrosisOnset));
             });
 
             // Thawed out: the wound goes, the flag goes with it, and the numbness is left to fade.
@@ -261,7 +262,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(entities.HasComponent<WolfmedFrostbiteComponent>(torso), Is.False);
-                Assert.That(traits.GetPartNecrosisRisk(torso, out _), Is.EqualTo(0f));
+                Assert.That(traits.GetPartNecrosisOnset(torso), Is.EqualTo(TimeSpan.Zero));
             });
         });
     }

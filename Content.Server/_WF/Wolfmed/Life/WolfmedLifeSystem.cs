@@ -331,8 +331,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
     /// <summary>
     /// M2 (plan §5.5): why the heart last stopped, as the arrest cause's sub-source, and whether that cause is still
-    /// there: blood still under the line where it starves the brain, still suffocating or overdosed, the heart still
-    /// failed, sepsis still past its line. Null outside the memory window, while arrested again, or dead.
+    /// there: blood still under the line where it starves the brain, still suffocating, overdosed or on damaged lungs,
+    /// the heart still failed, sepsis still past its line. Null outside the memory window, while arrested again, or dead.
     /// </summary>
     public (WolfmedCauseSource Cause, bool Present)? GetRestartMemory(EntityUid body)
     {
@@ -343,7 +343,8 @@ public sealed class WolfmedLifeSystem : EntitySystem
         var present = memory.Cause switch
         {
             "blood" => HasComp<BloodstreamComponent>(body) && GetBlood(body) < _cfg.GetCVar(WolfmedCVars.BrainBloodStart),
-            "oxygen" => BreathingLevel(body) > 0f || _relief.GetRespiratoryDepression(body) > 0f,
+            // Every breath input DrainRate folds together, M3's damaged lungs included.
+            "oxygen" => BreathingLevel(body) > 0f || _relief.GetRespiratoryDepression(body) > 0f || LungDamageLevel(body) > 0f,
             "heart" => GetHeartHealth(body) is not { } heart || heart <= FixedPoint2.Zero,
             "sepsis" => _infection.GetSepsis(body) >= _cfg.GetCVar(WolfmedCVars.ArrestSepsis),
             "cold" => _temperature.IsColdArrest(body), // M5
@@ -855,6 +856,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
                 routes |= _breathing.Assess(body).Source == WolfmedBreathingSource.Lungs
                     ? WolfmedRoutes.Lungs
                     : WolfmedRoutes.Airway;
+
+            // M3: damaged lungs drain the brain with the airway clear, the same input DrainRate reads.
+            if (LungDamageLevel(body) > 0f)
+                routes |= WolfmedRoutes.Lungs;
 
             if (_relief.GetRespiratoryDepression(body) > 0f)
                 routes |= WolfmedRoutes.Sedation;

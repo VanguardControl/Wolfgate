@@ -238,6 +238,9 @@ not have to open all 14 reports to find them.
   branch before WP H; the entry reads `license: "Custom"` with copyright text "Source and license to be
   confirmed by the owner." WP H only wired playback and did not source or re-license the file. Needs an
   answer before this branch ships to players.
+  *[M2-M6 review correction: resolved by `65aab0b387` (heartbeat attribution). The entry reads
+  `license: "CC-BY-SA-3.0"`, taken from Skyrat-tg by Skyrat-SS13 and downmixed to mono, source
+  `https://github.com/Skyrat-SS13/Skyrat-tg`. Nothing is pending.]*
 
 **Every gap still open, for the owner to act on:**
 - No Piercing fracture profile (W0) — see decision above; needs a list-typed `FractureProfile` plus a
@@ -275,6 +278,7 @@ not have to open all 14 reports to find them.
   brass knuckles (an armour *penalty*, so narrowing its coverage would be a buff) and every non-clothing
   `- type: Armor` block — all left for a balance pass rather than guessed at (P6-D4/D5).
 - The heartbeat asset's license is pending owner confirmation — see decision above.
+  *[M2-M6 review correction: closed; CC-BY-SA-3.0 from Skyrat-tg since `65aab0b387`, see above.]*
 
 ## Playtest fixes (2026-09-19)
 
@@ -1601,6 +1605,8 @@ repaired core, OD14 (a new antagonist), OD15 (sepsis half), OD17, OD20 (a). Bran
     restarts and kept `wolfmed.arrest_cause_memory_seconds` 300. "Still present": blood under the brain-safe line,
     still suffocating or overdosed, the heart still failed, sepsis still past its line. The M1a post-shock banner hides
     while this line carries the same numbers.
+    *[M2-M6 review correction: M3's damaged lungs count too, for "Still present" after an oxygen arrest and for the
+    lungs route; see "M2-M6 review fixes".]*
   - A dead chassis: "Restart: ready" or "Restart: refused: core destroyed, core repair surgery first".
   - The brain line and the arrest countdown were already their own rows; the defib verdict shipped in M1a.
 - **Examine (§5.5, §5.3).** Close up, others only: AVPU from the state and cause ("awake and answers you" while Downed,
@@ -2400,3 +2406,43 @@ three solo reruns after.) Earlier full runs: 474 / 465 / 1 failed / 8 skipped (t
 **For the owner's playtest** (plan §12 M6). Bandage yourself while being shot (a hit of 10 or more stops it; fire does
 not); a heavy swing against a wound host does half; admin `damage` with ignore-resistances passes armour; a pod with
 the neuro disk repairs an IPC's or a synth's core; read this file against what the game does.
+
+## M2-M6 review fixes (2026-09-24)
+
+Four read-only reviews of `ef4fbdb11d..ce4e281421` (reports in `C:/Users/jzo12/Documents/Wolfmed/plan/p7/review/`).
+Three findings, all confirmed against the code and fixed. Branch `Wolfmed-fixes3`, from `ce4e281421`.
+
+- **Damaged lungs are a cause still present (HIGH).** Since M3, `DrainRate` folds `LungDamageLevel` into the same breath
+  input as suffocation and sedation, so lungs under their impaired line can stop the heart on their own, and the arrest
+  is named "oxygen". `GetRestartMemory`'s "oxygen" arm read only suffocation and sedation, so after the shock the
+  analyzer said "Still present: no" while the lungs went on draining the brain. It now reads the lungs too.
+  - **Also fixed, same cause (not in the reviews):** `GetActiveRoutes` set the lungs route only for a suffocating body
+    with no lungs, so the same patient read "Getting worse: nothing now". The lungs route ("lungs failing (air,
+    internals, lung surgery)") now also shows while the lungs are under their impaired line. M2's "For the M3 merge"
+    note had asked for this. Wait as a ghost was never affected: `IsStable` already refuses any drain on the brain.
+  - Measured (`WolfmedConsequencesTest.LungArrestRestartMemoryTest`, new): lungs at 10% (level 0.8) in station air
+    stopped the heart at 191 s (derived 191 s), cause "oxygen". After the shock: "Still present: yes" and the lungs
+    route. With the lungs healed: "Still present: no" and no lungs route.
+- **Heartbeat licence (MEDIUM).** `65aab0b387` set `attributions.yml` to CC-BY-SA-3.0 (Skyrat-tg), but "Final stages"
+  still called the licence pending in two places. Both now carry an inline correction note, as M6 marked its
+  Appendix A items. M2's restart-memory bullet has a note too.
+- **`GetPartNecrosisRisk` removed (LOW).** Nothing in the game has called it since M6. It picked the wound with the
+  highest risk and returned that wound's raw onset, which disagreed with `GetPartNecrosisOnset`, the reader in use. The
+  review missed one caller, a test: `WolfmedBurnWoundTest.FrostbiteNumbsAndThenRisksTheLimbTest` now reads
+  `GetPartNecrosisOnset` (the frostbite's onset divided by its risk, and zero once thawed). The manifest row that names
+  the method is annotated.
+
+**Known flakes (not changed).**
+- `HeartbeatTracksLocalPlayerCritTest` failed once in the full run on `ce4e281421` (30 minutes, with four reviewers
+  running on the machine) and once in M3's runs, and passes alone. It forces a mob state on a healthy body and holds it
+  for up to 20 tries of 10 ticks. The failure log has no detail and the cause is not a fixed tick count or a wait
+  shorter than the heartbeat's own update, which runs every client frame. One possibility, not confirmed: the default
+  test map is a vacuum, so pressure and cold damage keep making consciousness re-assert the mob state against the forced
+  one. It passed in this run.
+- `AcidResidueTest` passed in the full run. `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest` was skipped
+  (dirty-disposed) and passed alone first time, with no test-host crash.
+
+**Tests.** Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt): 475 total, 469 passed, 0 failed,
+6 skipped (dirty-disposed: `AutofixStopsReplanningABodyItIsNotChangingTest`, `AutofixModuleIdlesWithNothingToDoTest`,
+`EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`, `PowerLossPausesAndRestoreResumesTest`,
+`SlipOpensOneSmallWoundTest`, `VisualStateFollowsTheLidTest`). Each passed alone.

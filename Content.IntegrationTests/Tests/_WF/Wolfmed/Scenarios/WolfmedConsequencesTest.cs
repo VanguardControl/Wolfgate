@@ -22,6 +22,7 @@ using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Hud;
 using Content.Shared._WF.Wolfmed.Life;
+using Content.Shared._WF.Wolfmed.Reagents;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
@@ -252,6 +253,76 @@ public sealed class WolfmedConsequencesTest : GameTest
                 Assert.That(downed + out1, Is.EqualTo(248f).Within(248f * Band), "hypoxic at the wrong time.");
             });
             _log.Add($"LungRoute: lungs 30%, Downed at {downed} s, Unconscious at {downed + out1} s.");
+        });
+    }
+
+    /// <summary>
+    /// Review fix (M2 with M3): an arrest from damaged lungs alone, in clear air with no sedation, is named "oxygen".
+    /// After the shock the "After a restart" line says the cause is still present while the lungs stay impaired, and
+    /// the routes name the lungs; once the lungs are healed the cause reads gone.
+    /// </summary>
+    [Test]
+    public async Task LungArrestRestartMemoryTest()
+    {
+        await Pin();
+        await OverrideCVar(Side.Server, WolfmedCVars.ArrestOxygenation, 0.15f);
+        await OverrideCVar(Side.Server, WolfmedCVars.ArrestBlood, 0.30f);
+        await OverrideCVar(Side.Server, WolfmedCVars.DefibBlood, 0.25f);
+        await OverrideCVar(Side.Server, WolfmedCVars.ArrestCauseMemorySeconds, 300f);
+        var map = await Pair.CreateTestMap();
+        var s = new WolfmedScenario(SEntMan);
+
+        await Server.WaitAssertion(() =>
+        {
+            s.KeepGrid(map.Grid);
+            s.SetAir(map.MapUid, true);
+            var body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            SetHealthFraction(body, "lungs", 0.1f);
+            s.Advance(body, 1);
+
+            // The premise: the damaged lungs are the only breath input.
+            Assert.Multiple(() =>
+            {
+                Assert.That(Organ(body, "lungs").Comp.Band, Is.EqualTo(WolfmedOrganBand.Impaired));
+                Assert.That(s.Life.LungDamageLevel(body), Is.EqualTo(0.8f).Within(0.01f));
+                Assert.That(s.Life.BreathingLevel(body), Is.Zero, "the body is suffocating, not only short of breath.");
+                Assert.That(SEntMan.System<WolfmedPainReliefSystem>().GetRespiratoryDepression(body), Is.Zero);
+            });
+
+            // Drain 0.8 / 180 per second: the arrest line 0.15 at about 191 s.
+            var arrested = s.Advance(body, 400, _ => s.Life.InArrest(body));
+            Assert.Multiple(() =>
+            {
+                Assert.That(s.Life.InArrest(body), Is.True, "the damaged lungs never stopped the heart.");
+                Assert.That(SEntMan.GetComponent<WolfmedCardiacArrestComponent>(body).Cause, Is.EqualTo("oxygen"));
+                Assert.That(arrested, Is.EqualTo(191f).Within(191f * Band), "arrested at the wrong time.");
+            });
+
+            Assert.That(s.Shock(body, out var line), Is.True, line);
+            var report = s.Report(body);
+            var restart = WolfmedVitalsText.RestartLine(report);
+            _log.Add($"LungArrestRestartMemory: arrest at {arrested} s; {restart} | {WolfmedVitalsText.RoutesLine(report)}");
+            Assert.Multiple(() =>
+            {
+                Assert.That(s.Life.GetRestartMemory(body), Is.EqualTo((WolfmedCauseSource.ArrestOxygen, true)));
+                Assert.That(report.RestartCause, Is.EqualTo(WolfmedCauseSource.ArrestOxygen));
+                Assert.That(report.RestartPresent, Is.True, "the lungs are still damaged but the cause reads gone.");
+                Assert.That(restart, Does.Contain($"Still present: {Loc.GetString("wolfmed-vitals-yes")}"));
+                Assert.That(report.Routes & WolfmedRoutes.Lungs, Is.EqualTo(WolfmedRoutes.Lungs),
+                    "the routes do not name the damaged lungs.");
+            });
+
+            SetHealthFraction(body, "lungs", 1f);
+            report = s.Report(body);
+            Assert.Multiple(() =>
+            {
+                Assert.That(s.Life.LungDamageLevel(body), Is.Zero);
+                Assert.That(s.Life.GetRestartMemory(body), Is.EqualTo((WolfmedCauseSource.ArrestOxygen, false)));
+                Assert.That(report.RestartPresent, Is.False, "healed lungs still read as the cause.");
+                Assert.That(WolfmedVitalsText.RestartLine(report),
+                    Does.Contain($"Still present: {Loc.GetString("wolfmed-vitals-no")}"));
+                Assert.That(report.Routes & WolfmedRoutes.Lungs, Is.EqualTo(WolfmedRoutes.None));
+            });
         });
     }
 

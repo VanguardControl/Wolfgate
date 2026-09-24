@@ -142,27 +142,6 @@ public sealed class WolfmedWoundTraitSystem : EntitySystem
         return 0f;
     }
 
-    /// <summary>The worst necrosis risk among the wounds a part is carrying, with its shortest onset.</summary>
-    public float GetPartNecrosisRisk(Entity<WoundableComponent?> part, out TimeSpan onset)
-    {
-        var risk = 0f;
-        onset = TimeSpan.Zero;
-        foreach (var wound in _wounds.GetWounds(part))
-        {
-            if (wound.Comp.State is WoundState.Healed or WoundState.Scarred)
-                continue;
-
-            var found = GetNecrosisRisk(wound.Owner, out var woundOnset);
-            if (found <= risk)
-                continue;
-
-            risk = found;
-            onset = woundOnset;
-        }
-
-        return risk;
-    }
-
     /// <summary>
     /// M6 (P30): how long the part's tissue has left, from the wound that kills it soonest: each wound's onset
     /// divided by its risk multiplier. Zero when nothing on the part carries a necrosis risk.

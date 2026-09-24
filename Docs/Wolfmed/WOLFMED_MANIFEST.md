@@ -2972,7 +2972,7 @@ Onyx data edits are the `supportedWounds` list and a behavior on `BurnWound`'s c
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs` | modified | `WolfmedPartDamageEvent` (broadcast: body, part, damage type, amount, cause, origin, tool) and `WolfmedCauteryDoAfterEvent`. |
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs` | modified | Raises `WolfmedPartDamageEvent` before evaluating rules. Four lines. |
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundBehaviors.cs` | modified | `WolfmedCharringBehavior`, `WolfmedCauteryResistBehavior`, `WolfmedNumbnessBehavior`, `WolfmedNecrosisRiskBehavior`, `WolfmedCausticResidueBehavior`, `WolfmedElectricalShockBehavior`. All per stage. |
-| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetNecrosisRisk` / `GetPartNecrosisRisk`, W5's readers. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetNecrosisRisk` / `GetPartNecrosisRisk`, W5's readers. *[M2-M6 review correction: `GetPartNecrosisRisk` removed, uncalled since M6; the part's reader is `GetPartNecrosisOnset`.]* |
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedCauteryProfilePrototype.cs` | new | `wolfmedCauteryProfile`: every cautery threshold and cost. |
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedFrostbiteComponent.cs` | new | On a frozen part: numbness accumulator, `NecrosisRisk`, `NecrosisOnset`. Networked. |
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedFrostbiteSystem.cs` | new | Pins pain suppression on the part at the stage's value (top-up, not a fresh dose) on a two-second tick, and keeps the necrosis flag current. `Refresh` public. |
@@ -4907,3 +4907,15 @@ Files:
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs` | modified | The short-circuit and overheating hits take resistances (they had counted on P25's dropped flag). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSurgeryTest.cs` | modified | The second fracture of the ladder test starts at the arm's whole trauma (P30). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs` | modified | `AcidResidueTest` gets station air (a vacuum cold tick left a plain burn on the torso). |
+
+## M2-M6 review fixes (2026-09-24)
+
+No marked upstream or Onyx edits.
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Server/_WF/Wolfmed/Life/WolfmedLifeSystem.cs` | modified | `GetRestartMemory` and `GetActiveRoutes` read M3's damaged lungs. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetPartNecrosisRisk` removed (uncalled since M6). |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedConsequencesTest.cs` | modified | `LungArrestRestartMemoryTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs` | modified | The frostbite test reads `GetPartNecrosisOnset`. |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The review fixes section; inline corrections for the heartbeat licence, M2's restart memory and the necrosis row. |
