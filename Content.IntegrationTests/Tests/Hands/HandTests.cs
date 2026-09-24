@@ -48,8 +48,9 @@ public sealed class HandTests
 
         EntityUid player = default;
 
-        // WOLFGATE START: spawn the actor instead of using the session's entity. A pair recycled with a real ticker
-        // restarts the round before the client reconnects, so the session can be a ghost without hands.
+        // WOLFGATE START: spawn the actor instead of using the session's entity
+        // A pair recycled with a real ticker restarts the round before the client reconnects, so the session can
+        // be a ghost without hands.
         await server.WaitPost(() => player = entMan.SpawnEntity("MobHuman", data.GridCoords));
         await pair.RunTicksSync(5);
         await server.WaitAssertion(() =>
@@ -112,8 +113,9 @@ public sealed class HandTests
         await server.WaitPost(() => box = server.EntMan.SpawnEntity("TestPickUpThenDropInContainerTestBox", map.GridCoords));
         await server.WaitPost(() => item = server.EntMan.SpawnEntity("Crowbar", map.GridCoords));
 
-        // WOLFGATE START: spawn the actor instead of using the session's entity. A pair recycled with a real ticker
-        // restarts the round before the client reconnects, so the session can be a ghost without hands.
+        // WOLFGATE START: spawn the actor instead of using the session's entity
+        // A pair recycled with a real ticker restarts the round before the client reconnects, so the session can
+        // be a ghost without hands.
         await server.WaitPost(() => player = entMan.SpawnEntity("MobHuman", map.GridCoords));
         await pair.RunTicksSync(5);
         await server.WaitAssertion(() =>

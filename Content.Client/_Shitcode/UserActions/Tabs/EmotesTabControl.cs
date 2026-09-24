@@ -85,8 +85,8 @@ public sealed partial class EmotesTabControl : BaseTabControl
         if (emote.Category == EmoteCategory.Invalid || emote.ChatTriggers.Count == 0)
             return false;
 
-        // WOLFGATE START: AllowedEmotes first, matching ChatSystem.AllowedToUseEmote and the emote wheel. A
-        // species granted an emote may use it even when the emote's own whitelist rejects it.
+        // WOLFGATE(Species) START: AllowedEmotes first, matching ChatSystem.AllowedToUseEmote and the emote wheel
+        // A species granted an emote may use it even when the emote's own whitelist rejects it.
         // if (!whitelistSystem.IsWhitelistPassOrNull(emote.Whitelist, player) ||
         //     whitelistSystem.IsBlacklistPass(emote.Blacklist, player))
         //     return false;

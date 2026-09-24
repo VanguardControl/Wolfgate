@@ -7,7 +7,7 @@
     snap:
     - Wallmount
   components:
-  # WOLFGATE START: stands in for PA speakers on ships that have none
+  # WOLFGATE(ShipPa) START: stands in for PA speakers on ships that have none
   - type: ShipPaSpeaker
     fallback: true
   # WOLFGATE END

@@ -67,7 +67,7 @@
       points: 1
       required: true
       defaultMarkings: [ ThavenEars1 ]
-    # WOLFGATE: Genital marking points removed with the legacy genital markings (replaced by organ-based anatomy).
+    # WOLFGATE(Genitals): Genital marking points removed with the legacy genital markings (replaced by organ-based anatomy).
     Head:
       points: 5 # 4 < 5, Funky, makes it so that you can have even more customization options on your thaven, sickeningly many even
       required: false

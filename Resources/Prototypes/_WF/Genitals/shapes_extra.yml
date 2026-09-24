@@ -1,4 +1,4 @@
-# Hand-written shapes. Their locale keys are written by Tools/_WF/genitals/gen_genital_shapes.py (EXTRA_LOC).
+# Hand-written shapes. Their locale keys are written by Tools/_WF/Genitals/gen_genital_shapes.py (EXTRA_LOC).
 
 # Cloacal slit vulva, reusing the ported slit line: 3 px, vertical, south only, drawn in the vulva colour.
 - type: genitalShape
@@ -6,7 +6,7 @@
   slot: Vagina
   name: wf-genitals-shape-vagina-slit
   examineName: wf-genitals-shape-vagina-slit-examine
-  sprite: _WF/Mobs/Customization/Markings/Genital/sheath.rsi
+  sprite: _WF/Genitals/Mobs/Customization/Markings/Genital/sheath.rsi
   state: sheath_slit_0_FRONT_inner
   sizes: [1]
   arousedSizes: []

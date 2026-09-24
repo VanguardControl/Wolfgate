@@ -35,7 +35,7 @@ public sealed partial class CleanupHelperSystem : EntitySystem
     /// </summary>
     public bool HasNearbyPlayers(EntityCoordinates coord, float radius)
     {
-        // WOLFGATE START: fail closed, an invalid protection radius must not permit cleanup or reach the spatial query
+        // WOLFGATE(Cleanup) START: fail closed, an invalid protection radius must not permit cleanup or reach the spatial query
         if (!float.IsFinite(radius) || radius <= 0f)
             return true;
         // WOLFGATE END
@@ -65,7 +65,7 @@ public sealed partial class CleanupHelperSystem : EntitySystem
     /// </summary>
     public bool HasNearbyGrids(EntityCoordinates coord, float radius)
     {
-        // WOLFGATE START: price-scaled cleanup can produce zero or non-finite radii, preserve the entity in that case
+        // WOLFGATE(Cleanup) START: price-scaled cleanup can produce zero or non-finite radii, preserve the entity in that case
         if (!float.IsFinite(radius) || radius <= 0f)
             return true;
         // WOLFGATE END

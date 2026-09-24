@@ -7,21 +7,21 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Tajaran]
-  # WOLFGATE START: the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
   layering:
     tail_BEHIND: TailBehind
   # WOLFGATE END
-  # WOLFGATE START: both halves of a tail share one colour
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
   colorLinks:
     tail_BEHIND: tail_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split art, south frame on TailBehind
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/tails.rsi
   #   state: tail
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_BEHIND
   # WOLFGATE END
 
@@ -30,21 +30,21 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Tajaran]
-  # WOLFGATE START: the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
   layering:
     tail_anim_BEHIND: TailBehind
   # WOLFGATE END
-  # WOLFGATE START: both halves of a tail share one colour
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
   colorLinks:
     tail_anim_BEHIND: tail_anim_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split art, south frame on TailBehind
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/tails.rsi
   #   state: tail_anim
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_anim_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_anim_BEHIND
   # WOLFGATE END
 
@@ -53,25 +53,25 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Tajaran]
-  # WOLFGATE START: the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
   layering:
     tail_BEHIND: TailBehind
   # WOLFGATE END
-  # WOLFGATE START: both halves of a tail share one colour
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
   colorLinks:
     tail_BEHIND: tail_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split art
+  # WOLFGATE(Genitals) START: split art
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/tails.rsi
   #   state: tail
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_FRONT
   # WOLFGATE END
   - sprite: _Goobstation/Mobs/Customization/Tajaran/tail_markings.rsi
     state: tail_rings
-  # WOLFGATE START: south frame on TailBehind
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  # WOLFGATE(Genitals) START: south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_BEHIND
   # WOLFGATE END
 
@@ -80,29 +80,29 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Tajaran]
-  # WOLFGATE START: the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
   layering:
     tail_anim_BEHIND: TailBehind
     tail_anim_rings_BEHIND: TailBehind
   # WOLFGATE END
-  # WOLFGATE START: both halves of a tail share one colour
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
   colorLinks:
     tail_anim_BEHIND: tail_anim_FRONT
     tail_anim_rings_BEHIND: tail_anim_rings_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split art, south frame on TailBehind
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/tails.rsi
   #   state: tail_anim
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/tail_markings.rsi
   #   state: tail_anim_rings
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_anim_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tail_markings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tail_markings.rsi
     state: tail_anim_rings_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tails.rsi
     state: tail_anim_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tail_markings.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/tail_markings.rsi
     state: tail_anim_rings_BEHIND
   # WOLFGATE END
 
@@ -111,29 +111,29 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Tajaran]
-  # WOLFGATE START: the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
   layering:
     m_tail_leopard_primary_BEHIND: TailBehind
     m_tail_leopard_tertiary_BEHIND: TailBehind
   # WOLFGATE END
-  # WOLFGATE START: both halves of a tail share one colour
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
   colorLinks:
     m_tail_leopard_primary_BEHIND: m_tail_leopard_primary_FRONT
     m_tail_leopard_tertiary_BEHIND: m_tail_leopard_tertiary_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split art, south frame on TailBehind
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
   #   state: m_tail_leopard_primary
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
   #   state: m_tail_leopard_tertiary
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_tertiary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_tertiary_BEHIND
   # WOLFGATE END
 
@@ -142,29 +142,29 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Tajaran]
-  # WOLFGATE START: the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
   layering:
     m_tail_leopard_primary_wag_BEHIND: TailBehind
     m_tail_leopard_tertiary_wag_BEHIND: TailBehind
   # WOLFGATE END
-  # WOLFGATE START: both halves of a tail share one colour
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
   colorLinks:
     m_tail_leopard_primary_wag_BEHIND: m_tail_leopard_primary_wag_FRONT
     m_tail_leopard_tertiary_wag_BEHIND: m_tail_leopard_tertiary_wag_FRONT
   # WOLFGATE END
   sprites:
-  # WOLFGATE START: split art, south frame on TailBehind
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
   #   state: m_tail_leopard_primary_wag
   # - sprite: _Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
   #   state: m_tail_leopard_tertiary_wag
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_primary_wag_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_tertiary_wag_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_primary_wag_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi
     state: m_tail_leopard_tertiary_wag_BEHIND
   # WOLFGATE END
 

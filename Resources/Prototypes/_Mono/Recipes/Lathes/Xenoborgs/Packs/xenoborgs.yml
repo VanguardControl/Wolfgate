@@ -9,7 +9,7 @@
   recipes:
   - XenoborgModuleBasic
   - XenoborgModuleTool
-  - XenoborgModuleToolBasic # WOLFGATE: Monolith #4558
+  - XenoborgModuleToolBasic # WOLFGATE(Xenoborgs): Monolith #4558
   - XenoborgModuleDefense
   - XenoborgModuleJammer
   - XenoborgModuleHeavyLaser

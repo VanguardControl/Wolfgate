@@ -88,7 +88,7 @@ public static class MarkingColoring
 [DataDefinition]
 public sealed partial class LayerColoringDefinition
 {
-    // WOLFGATE START: nullable type, ported from HardLight
+    // WOLFGATE(Genitals) START: nullable type, ported from HardLight
     // Markings may declare "type: null" to skip type-based colouring entirely and fall straight through to
     // fallbackTypes/fallbackColor.
     [DataField("type")]
@@ -109,7 +109,7 @@ public sealed partial class LayerColoringDefinition
 
     public Color GetColor(Color? skin, Color? eyes, MarkingSet markingSet)
     {
-        // WOLFGATE START: type may be null
+        // WOLFGATE(Genitals) START: type may be null
         Color? color = null;
         if (Type != null)
             color = Type.GetColor(skin, eyes, markingSet);

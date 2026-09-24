@@ -1,8 +1,8 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: emote
   id: Marr
   name: chat-emote-name-marr
-  icon: Interface/Emotes/vocal.png # WOLFGATE: was the default scream icon
+  icon: Interface/Emotes/vocal.png # WOLFGATE(Species): was the default scream icon
   category: Vocal
   available: false
   whitelist:

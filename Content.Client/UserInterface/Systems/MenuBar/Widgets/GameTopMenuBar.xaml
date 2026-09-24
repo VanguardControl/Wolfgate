@@ -83,7 +83,7 @@
         HorizontalExpand="True"
         AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
         />
-    <!-- WOLFGATE START: consent system ported from HardLight -->
+    <!-- WOLFGATE(Genitals) START: consent system ported from HardLight -->
     <ui:MenuButton
         Name="ConsentButton"
         Access="Internal"
@@ -95,11 +95,11 @@
         AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
         />
     <!-- WOLFGATE END -->
-    <!-- WOLFGATE START: anatomy panel; shares the consent cog's slot, and only one of the two is visible -->
+    <!-- WOLFGATE(Genitals) START: anatomy panel; shares the consent cog's slot, and only one of the two is visible -->
     <ui:MenuButton
         Name="AnatomyButton"
         Access="Internal"
-        Icon="{xe:Tex '/Textures/_WF/Interface/anatomy.svg.192dpi.png'}"
+        Icon="{xe:Tex '/Textures/_WF/Genitals/Interface/anatomy.svg.192dpi.png'}"
         BoundKey = "{x:Static is:ContentKeyFunctions.OpenAnatomyPanel}"
         ToolTip="{Loc 'wf-anatomy-button-tooltip'}"
         MinSize="42 64"

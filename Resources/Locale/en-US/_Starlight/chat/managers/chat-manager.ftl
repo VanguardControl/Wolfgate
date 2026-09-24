@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight (Thaven speech verb)
+# WOLFGATE(Species): ported from HardLight (Thaven speech verb)
 chat-speech-verb-name-thaven = Thaven
 chat-speech-verb-thaven-1 = sings
 chat-speech-verb-thaven-2 = chimes

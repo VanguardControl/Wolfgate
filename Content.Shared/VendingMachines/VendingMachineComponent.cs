@@ -256,7 +256,7 @@ namespace Content.Shared.VendingMachines
         public bool RequiresCash = false;
     }
 
-    // WOLFGATE START: a data definition, so a live machine's stock can be written out with its grid
+    // WOLFGATE(Shipyard) START: a data definition, so a live machine's stock can be written out with its grid
     [Serializable, NetSerializable, DataDefinition]
     public sealed partial class VendingMachineInventoryEntry
     {

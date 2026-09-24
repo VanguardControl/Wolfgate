@@ -2,9 +2,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Bank;
-using Content.Shared._WF.Genitals; // WOLFGATE
-using Content.Shared._WF.Genitals.Migration; // WOLFGATE
-using Content.Shared._WF.Genitals.Profile; // WOLFGATE
+using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
+using Content.Shared._WF.Genitals.Migration; // WOLFGATE(Genitals)
+using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Humanoid;
@@ -35,7 +35,7 @@ namespace Content.Shared.Preferences
 
         public const int MaxNameLength = 32;
         public const int MaxLoadoutNameLength = 32;
-        public const int MaxDescLength = 4096; // WOLFGATE: was 512
+        public const int MaxDescLength = 4096; // WOLFGATE(Humanoid): was 512
 
         public const int DefaultBalance = 75000;
 
@@ -146,7 +146,7 @@ namespace Content.Shared.Preferences
         [DataField]
         public string Company { get; private set; } = "None";
 
-        // WOLFGATE START: custom species display name
+        // WOLFGATE(Humanoid) START: custom species display name
         /// <summary>
         /// Shown instead of the species name wherever the species is displayed. Empty means
         /// the species' own name is used.
@@ -157,7 +157,7 @@ namespace Content.Shared.Preferences
         public const int MaxCustomSpeciesNameLength = 32;
         // WOLFGATE END
 
-        // WOLFGATE START: creator anatomy
+        // WOLFGATE(Genitals) START: creator anatomy
         /// <summary>
         /// Creator anatomy. Absent data (old exports, old code paths) means not yet migrated.
         /// </summary>
@@ -180,9 +180,9 @@ namespace Content.Shared.Preferences
             HashSet<ProtoId<AntagPrototype>> antagPreferences,
             HashSet<ProtoId<TraitPrototype>> traitPreferences,
             Dictionary<string, RoleLoadout> loadouts,
-            string company = "None", // WOLFGATE
-            string customSpeciesName = "", // WOLFGATE
-            GenitalProfile? genitals = null) // WOLFGATE
+            string company = "None", // WOLFGATE: the company is passed through the constructor
+            string customSpeciesName = "", // WOLFGATE(Humanoid)
+            GenitalProfile? genitals = null) // WOLFGATE(Genitals)
         {
             Name = name;
             FlavorText = flavortext;
@@ -199,8 +199,8 @@ namespace Content.Shared.Preferences
             _traitPreferences = traitPreferences;
             _loadouts = loadouts;
             Company = company;
-            CustomSpeciesName = customSpeciesName; // WOLFGATE
-            Genitals = genitals ?? GenitalProfile.Unmigrated; // WOLFGATE
+            CustomSpeciesName = customSpeciesName; // WOLFGATE(Humanoid)
+            Genitals = genitals ?? GenitalProfile.Unmigrated; // WOLFGATE(Genitals)
         }
 
         /// <summary>Copy constructor but with overridable references (to prevent useless copies)</summary>
@@ -211,8 +211,8 @@ namespace Content.Shared.Preferences
             HashSet<ProtoId<TraitPrototype>> traitPreferences,
             Dictionary<string, RoleLoadout> loadouts)
             : this(other.Name, other.FlavorText, other.Species, other.Age, other.Sex, other.Gender, other.BankBalance, other.Appearance, other.SpawnPriority,
-                jobPriorities, other.PreferenceUnavailable, antagPreferences, traitPreferences, loadouts, other.Company, other.CustomSpeciesName, // WOLFGATE
-                other.Genitals) // WOLFGATE: GenitalProfile is immutable, so copies share it
+                jobPriorities, other.PreferenceUnavailable, antagPreferences, traitPreferences, loadouts, other.Company, other.CustomSpeciesName, // WOLFGATE(Humanoid)
+                other.Genitals) // WOLFGATE(Genitals): GenitalProfile is immutable, so copies share it
         {
         }
 
@@ -232,9 +232,9 @@ namespace Content.Shared.Preferences
                 new HashSet<ProtoId<AntagPrototype>>(other.AntagPreferences),
                 new HashSet<ProtoId<TraitPrototype>>(other.TraitPreferences),
                 new Dictionary<string, RoleLoadout>(other.Loadouts),
-                other.Company, // WOLFGATE
-                other.CustomSpeciesName, // WOLFGATE
-                other.Genitals.Clone()) // WOLFGATE
+                other.Company, // WOLFGATE: copies keep the company
+                other.CustomSpeciesName, // WOLFGATE(Humanoid)
+                other.Genitals.Clone()) // WOLFGATE(Genitals)
         {
         }
 
@@ -257,7 +257,7 @@ namespace Content.Shared.Preferences
             return new()
             {
                 Species = species,
-                Genitals = GenitalProfile.Empty, // WOLFGATE: nothing to migrate
+                Genitals = GenitalProfile.Empty, // WOLFGATE(Genitals): nothing to migrate
             };
         }
 
@@ -310,7 +310,7 @@ namespace Content.Shared.Preferences
                 Gender = gender,
                 Species = species,
                 Appearance = HumanoidCharacterAppearance.Random(species, sex),
-                Genitals = GenitalProfile.Empty, // WOLFGATE: random profiles have no anatomy
+                Genitals = GenitalProfile.Empty, // WOLFGATE(Genitals): random profiles have no anatomy
             };
         }
 
@@ -420,14 +420,14 @@ namespace Content.Shared.Preferences
             return new(this) { PreferenceUnavailable = mode };
         }
 
-        // WOLFGATE START: custom species display name setter
+        // WOLFGATE(Humanoid) START: custom species display name setter
         public HumanoidCharacterProfile WithCustomSpeciesName(string customSpeciesName)
         {
             return new(this) { CustomSpeciesName = customSpeciesName };
         }
         // WOLFGATE END
 
-        // WOLFGATE START: replaces the creator anatomy
+        // WOLFGATE(Genitals) START: replaces the creator anatomy
         public HumanoidCharacterProfile WithGenitals(GenitalProfile genitals)
         {
             return new(this) { Genitals = genitals };
@@ -555,8 +555,8 @@ namespace Content.Shared.Preferences
             if (SpawnPriority != other.SpawnPriority) return false;
             if (Species != other.Species) return false;
             if (Company != other.Company) return false;
-            if (CustomSpeciesName != other.CustomSpeciesName) return false; // WOLFGATE
-            if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE
+            if (CustomSpeciesName != other.CustomSpeciesName) return false; // WOLFGATE(Humanoid)
+            if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE(Genitals)
             if (!_jobPriorities.SequenceEqual(other._jobPriorities)) return false;
             if (!_antagPreferences.SequenceEqual(other._antagPreferences)) return false;
             if (!_traitPreferences.SequenceEqual(other._traitPreferences)) return false;
@@ -604,8 +604,9 @@ namespace Content.Shared.Preferences
 
             var age = Math.Clamp(Age, speciesPrototype.MinAge, speciesPrototype.MaxAge);
 
-            // WOLFGATE START: anatomy - convert legacy genital markings and drop adult-only markings below the adult age, then
-            // apply the adult gate and organ rules. This runs before marking validation, which would keep or drop the old ids.
+            // WOLFGATE(Genitals) START: converts legacy genital markings and applies the anatomy rules
+            // Adult-only markings are dropped below the adult age, then the adult gate and organ rules apply. This
+            // runs before marking validation, which would keep or drop the old ids.
             var wfContext = LegacyGenitalMarkings.ContextFor(Species, Appearance.SkinColor, prototypeManager);
             var (wfAppearance, wfGenitals) = LegacyGenitalMarkings.Migrate(Appearance,
                 Genitals ?? GenitalProfile.Unmigrated, // crafted network data can deliver null
@@ -663,8 +664,9 @@ namespace Content.Shared.Preferences
                 name = GetName(Species, gender);
             }
 
-            // WOLFGATE START: permissive, because RemoveMarkupOrThrow threw on text like "[]" and the save handler is
-            // async void, so the character silently failed to save. Stray tags are stripped instead.
+            // WOLFGATE(Humanoid) START: flavor text strips stray tags instead of throwing
+            // RemoveMarkupOrThrow threw on text like "[]" and the save handler is async void, so the character
+            // silently failed to save.
             // string flavortext;
             // if (FlavorText.Length > MaxDescLength)
             // {
@@ -688,7 +690,7 @@ namespace Content.Shared.Preferences
             }
             // End Frontier
 
-            var appearance = HumanoidCharacterAppearance.EnsureValid(wfAppearance, Species, Sex); // WOLFGATE: wfAppearance
+            var appearance = HumanoidCharacterAppearance.EnsureValid(wfAppearance, Species, Sex); // WOLFGATE(Humanoid): wfAppearance
 
             var prefsUnavailableMode = PreferenceUnavailable switch
             {
@@ -741,11 +743,11 @@ namespace Content.Shared.Preferences
             Gender = gender;
             BankBalance = bankBalance;
             Appearance = appearance;
-            Genitals = wfGenitals; // WOLFGATE
+            Genitals = wfGenitals; // WOLFGATE(Genitals)
             SpawnPriority = spawnPriority;
 
-            // WOLFGATE START: the custom species name is free text, so it gets the same treatment as the
-            // character name: trimmed, length-capped and stripped of anything that is not printable.
+            // WOLFGATE(Humanoid) START: the custom species name is sanitized like the character name
+            // It is free text, so it is trimmed, length-capped and stripped of anything that is not printable.
             CustomSpeciesName = new string(CustomSpeciesName
                     .Trim()
                     .Where(c => !char.IsControl(c))
@@ -860,8 +862,8 @@ namespace Content.Shared.Preferences
         public override int GetHashCode()
         {
             var hashCode = new HashCode();
-            // WOLFGATE START: hash only what MemberwiseEquals compares by value; these hashed by reference
-            // and broke equal profiles hashing alike
+            // WOLFGATE START: hash only what MemberwiseEquals compares by value
+            // These hashed by reference and broke equal profiles hashing alike.
             // hashCode.Add(_jobPriorities);
             // hashCode.Add(_antagPreferences);
             // hashCode.Add(_traitPreferences);
@@ -879,8 +881,8 @@ namespace Content.Shared.Preferences
             hashCode.Add(BankBalance); // Frontier
             hashCode.Add((int)SpawnPriority);
             hashCode.Add((int)PreferenceUnavailable);
-            hashCode.Add(Company); // WOLFGATE
-            hashCode.Add(CustomSpeciesName); // WOLFGATE
+            hashCode.Add(Company); // WOLFGATE: the company is part of the hash
+            hashCode.Add(CustomSpeciesName); // WOLFGATE(Humanoid)
             return hashCode.ToHashCode();
         }
 

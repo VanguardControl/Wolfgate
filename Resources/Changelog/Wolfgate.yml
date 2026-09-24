@@ -353,3 +353,10 @@ Entries:
   id: 100031
   time: '2026-09-24T00:27:11.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/67
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: You should no longer get a random job on Hyperwar.
+  id: 100032
+  time: '2026-09-24T05:10:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/71

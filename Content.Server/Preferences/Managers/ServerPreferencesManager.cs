@@ -83,8 +83,9 @@ namespace Content.Server.Preferences.Managers
         {
             var userId = message.MsgChannel.UserId;
 
-            // WOLFGATE START: this handler is async void, so an exception here used to vanish and the client was
-            // never told its character had not saved; log it with the slot instead
+            // WOLFGATE START: a failed save is logged with its slot
+            // This handler is async void, so an exception here used to vanish and the client was never told its
+            // character had not saved.
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (message.Profile == null)
             {
@@ -120,8 +121,8 @@ namespace Content.Server.Preferences.Managers
 
             profile.EnsureValid(session, _dependencies);
 
-            // WOLFGATE START: an unreadable anatomy column is kept only for the anatomy the server loaded from it,
-            // unchanged; a client's LoadFailed flag alone keeps nothing
+            // WOLFGATE(Genitals) START: an unreadable anatomy column is kept only if the server loaded it that way
+            // It must be unchanged from the stored one; a client's LoadFailed flag alone keeps nothing.
             if (profile is HumanoidCharacterProfile { Genitals.LoadFailed: true } wfProfile
                 && !(curPrefs.Characters.TryGetValue(slot, out var wfOld)
                      && wfOld is HumanoidCharacterProfile { Genitals.LoadFailed: true } wfOldProfile
@@ -345,9 +346,10 @@ namespace Content.Server.Preferences.Managers
 
                 if (prefs != null)
                 {
-                    // WOLFGATE: this path read the database straight into the client and undid the sanitizing that
-                    // FinishLoad does on login, so anything this build no longer has - a species from a branch that
-                    // is not deployed, a removed job - reached the lobby raw and threw there.
+                    // WOLFGATE: sanitized here like FinishLoad does on login
+                    // This path read the database straight into the client, so anything this build no longer has -
+                    // a species from a branch that is not deployed, a removed job - reached the lobby raw and threw
+                    // there.
                     prefs = SanitizePreferences(session, prefs, _dependencies);
 
                     prefsData.Prefs = prefs;

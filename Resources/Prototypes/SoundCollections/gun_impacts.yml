@@ -1,6 +1,6 @@
 - type: soundCollection
   id: MeatBulletImpact
-  # WOLFGATE START: Skyrat flesh impacts, was bullet_meat1-4.ogg
+  # WOLFGATE(Weapons) START: Skyrat flesh impacts, was bullet_meat1-4.ogg
   files:
   - /Audio/_WF/Weapons/Impacts/impact_flesh_01.ogg
   - /Audio/_WF/Weapons/Impacts/impact_flesh_02.ogg
@@ -21,7 +21,7 @@
 
 - type: soundCollection
   id: MetalBulletImpact
-  # WOLFGATE START: Skyrat metal impacts, was ric1-5.ogg
+  # WOLFGATE(Weapons) START: Skyrat metal impacts, was ric1-5.ogg
   files:
   - /Audio/_WF/Weapons/Impacts/impact_metal_01.ogg
   - /Audio/_WF/Weapons/Impacts/impact_metal_02.ogg

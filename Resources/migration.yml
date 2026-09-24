@@ -564,7 +564,7 @@ GunneryServer: GunneryServerMedium # Mono
 
 # Frontier: put Frontier-related migrations in nf_migration.yml. Thank you.
 
-# WOLFGATE START: WF prototype id prefix
+# WOLFGATE(Prototypes) START: WF prototype id prefix
 # 2026-09-23
 ActionWFHarpoonPayOut: WFActionHarpoonPayOut
 ActionWFHarpoonReelIn: WFActionHarpoonReelIn

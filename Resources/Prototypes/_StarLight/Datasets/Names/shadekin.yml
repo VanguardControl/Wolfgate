@@ -1,4 +1,4 @@
-# WOLFGATE: converted from HardLight localizedDataset - Wolfgate species use plain datasets.
+# WOLFGATE(Species): converted from HardLight localizedDataset - Wolfgate species use plain datasets.
 - type: dataset
   id: names_shadekin
   values:

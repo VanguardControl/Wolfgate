@@ -1,4 +1,4 @@
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: damageModifierSet
   id: Avali # Not as good as thick fur like the vulps, but still rather insulating.
   coefficients:
@@ -7,7 +7,7 @@
 
 # Baseline damage modifier set for Shadekin.
 
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: damageModifierSet
   id: Shadekin
   coefficients:

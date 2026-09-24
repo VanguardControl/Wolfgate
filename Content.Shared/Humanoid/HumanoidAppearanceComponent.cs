@@ -47,7 +47,7 @@ public sealed partial class HumanoidAppearanceComponent : Component
     [DataField(required: true), AutoNetworkedField]
     public ProtoId<SpeciesPrototype> Species { get; set; }
 
-    // WOLFGATE START: player-supplied name shown instead of the species name
+    // WOLFGATE(Humanoid) START: player-supplied name shown instead of the species name
     /// <summary>
     /// Player-supplied name shown instead of the species name. Empty means use the species.
     /// </summary>

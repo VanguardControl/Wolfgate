@@ -1,12 +1,12 @@
-using System.Linq; // WOLFGATE
+using System.Linq; // WOLFGATE(Stylesheets)
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
-using Robust.Shared.Configuration; // WOLFGATE
+using Robust.Shared.Configuration; // WOLFGATE(Stylesheets)
 using Robust.Shared.IoC;
-using Content.Client._WF.Stylesheets; // WOLFGATE
-using Content.Shared._WF.CCVar; // WOLFGATE
-using Content.Shared._WF.Prototypes; // WOLFGATE
-using Robust.Shared; // WOLFGATE
+using Content.Client._WF.Stylesheets; // WOLFGATE(Stylesheets)
+using Content.Shared._WF.CCVar; // WOLFGATE(Stylesheets)
+using Content.Shared._WF.Prototypes; // WOLFGATE(Stylesheets)
+using Robust.Shared; // WOLFGATE(Stylesheets)
 
 namespace Content.Client.Stylesheets
 {
@@ -14,14 +14,14 @@ namespace Content.Client.Stylesheets
     {
         [Dependency] private IUserInterfaceManager _userInterfaceManager = default!;
         [Dependency] private IResourceCache _resourceCache = default!;
-        [Dependency] private IConfigurationManager _cfg = default!; // WOLFGATE
+        [Dependency] private IConfigurationManager _cfg = default!; // WOLFGATE(Stylesheets)
 
         public Stylesheet SheetNano { get; private set; } = default!;
         public Stylesheet SheetSpace { get; private set; } = default!;
 
         public void Initialize()
         {
-            // WOLFGATE START: the active skin comes from a CVar and is swapped live when it changes
+            // WOLFGATE(Stylesheets) START: the active skin comes from a CVar and is swapped live when it changes
             // SheetNano = new StyleNano(_resourceCache).Stylesheet;
             // SheetSpace = new StyleSpace(_resourceCache).Stylesheet;
             // A theme saved under a renamed id moves to the current one
@@ -34,7 +34,7 @@ namespace Content.Client.Stylesheets
             // WOLFGATE END
         }
 
-        // WOLFGATE START: rebuilds both sheets over the stock ones with the chosen skin and pushes them to every root
+        // WOLFGATE(Stylesheets) START: rebuilds both sheets over the stock ones with the chosen skin and pushes them to every root
         private void ApplySkin(bool syncHudTheme)
         {
             var skin = WolfgateSkins.Get(_cfg.GetCVar(WolfgateCVars.UiStyle));

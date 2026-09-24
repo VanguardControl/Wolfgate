@@ -89,13 +89,13 @@ public sealed partial class GunSystem : SharedGunSystem
     {
         base.Initialize();
         UpdatesOutsidePrediction = true;
-        UpdatesBefore.Add(typeof(Robust.Shared.Physics.Systems.SharedPhysicsSystem)); // WOLFGATE: predicted copies move on the tick they're fired, like the server's
+        UpdatesBefore.Add(typeof(Robust.Shared.Physics.Systems.SharedPhysicsSystem)); // WOLFGATE(Weapons): predicted copies move on the tick they're fired, like the server's
         SubscribeLocalEvent<AmmoCounterComponent, ItemStatusCollectMessage>(OnAmmoCounterCollect);
         SubscribeLocalEvent<AmmoCounterComponent, UpdateClientAmmoEvent>(OnUpdateClientAmmo);
         SubscribeAllEvent<MuzzleFlashEvent>(OnMuzzleFlash);
 
         // Plays animated effects on the client.
-        SubscribeAllEvent<HitscanEvent>(OnHitscan); // WOLFGATE: also draws the beams this client predicts locally
+        SubscribeAllEvent<HitscanEvent>(OnHitscan); // WOLFGATE(Weapons): also draws the beams this client predicts locally
 
         InitializeMagazineVisuals();
         InitializeSpentAmmo();
@@ -192,7 +192,7 @@ public sealed partial class GunSystem : SharedGunSystem
 
     public override void Update(float frameTime)
     {
-        base.Update(frameTime); // WOLFGATE: keeps the Mono multi-shot offset in step with the server
+        base.Update(frameTime); // WOLFGATE(Weapons): keeps the Mono multi-shot offset in step with the server
 
         if (!Timing.IsFirstTimePredicted)
             return;
@@ -248,17 +248,17 @@ public sealed partial class GunSystem : SharedGunSystem
         if (_player.LocalSession is not { } session)
             return;
 
-        var predicting = GunPrediction && _gameState.IsPredictionEnabled; // WOLFGATE
-        DrewHitscan = false; // WOLFGATE
-        var projectiles = ShootRequested(GetNetEntity(gunUid), GetNetCoordinates(coordinates), target, null, (Robust.Shared.Player.ICommonSession)session, predicting); // WOLFGATE
+        var predicting = GunPrediction && _gameState.IsPredictionEnabled; // WOLFGATE(Weapons)
+        DrewHitscan = false; // WOLFGATE(Weapons)
+        var projectiles = ShootRequested(GetNetEntity(gunUid), GetNetCoordinates(coordinates), target, null, (Robust.Shared.Player.ICommonSession)session, predicting); // WOLFGATE(Weapons)
 
         EntityManager.RaisePredictiveEvent(new RequestShootEvent()
         {
             Target = target,
             Coordinates = GetNetCoordinates(coordinates),
             Gun = GetNetEntity(gunUid),
-            Shot = projectiles, // WOLFGATE: one slot per fired projectile, holding its predicted copy's id
-            Predicted = DrewHitscan, // WOLFGATE: this client already drew this shot's beams
+            Shot = projectiles, // WOLFGATE(Weapons): one slot per fired projectile, holding its predicted copy's id
+            Predicted = DrewHitscan, // WOLFGATE(Weapons): this client already drew this shot's beams
         });
     }
 
@@ -272,15 +272,15 @@ public sealed partial class GunSystem : SharedGunSystem
         // This also means any ammo specific stuff can be grabbed as necessary.
         var direction = TransformSystem.ToMapCoordinates(fromCoordinates).Position - TransformSystem.ToMapCoordinates(toCoordinates).Position;
         var worldAngle = direction.ToAngle().Opposite();
-        var volley = BeginVolley(gunUid, gun, fromCoordinates, toCoordinates, user, ammo.Count); // WOLFGATE: recoil and predicted copies
+        var volley = BeginVolley(gunUid, gun, fromCoordinates, toCoordinates, user, ammo.Count); // WOLFGATE(Weapons): recoil and predicted copies
 
         foreach (var (ent, shootable) in ammo)
         {
-            NextRound(volley); // WOLFGATE
+            NextRound(volley); // WOLFGATE(Weapons)
 
             if (throwItems)
             {
-                ReserveSlot(volley, ent); // WOLFGATE
+                ReserveSlot(volley, ent); // WOLFGATE(Weapons)
                 Recoil(user, direction, gun.CameraRecoilScalarModified);
                 if (IsClientSide(ent!.Value))
                     Del(ent.Value);
@@ -294,7 +294,7 @@ public sealed partial class GunSystem : SharedGunSystem
                 case CartridgeAmmoComponent cartridge:
                     if (!cartridge.Spent)
                     {
-                        PredictCartridge(volley, cartridge); // WOLFGATE
+                        PredictCartridge(volley, cartridge); // WOLFGATE(Weapons)
                         SetCartridgeSpent(ent!.Value, cartridge, true);
                         MuzzleFlash(gunUid, cartridge, worldAngle, user);
                         Audio.PlayPredicted(cartridge.SoundGunshot ?? gun.SoundGunshotModified, gunUid, user);
@@ -317,7 +317,7 @@ public sealed partial class GunSystem : SharedGunSystem
                     MuzzleFlash(gunUid, newAmmo, worldAngle, user);
                     Audio.PlayPredicted(gun.SoundGunshotModified, gunUid, user);
                     Recoil(user, direction, gun.CameraRecoilScalarModified);
-                    // WOLFGATE START: fired as its own predicted copy
+                    // WOLFGATE(Weapons) START: fired as its own predicted copy
                     if (PredictAmmo(volley, ent!.Value))
                         break;
                     // WOLFGATE END
@@ -329,8 +329,8 @@ public sealed partial class GunSystem : SharedGunSystem
                 case HitscanAmmoComponent:
                     Audio.PlayPredicted(gun.SoundGunshotModified, gunUid, user);
                     Recoil(user, direction, gun.CameraRecoilScalarModified);
-                    PredictHitscan(volley, ent, volley.Direction); // WOLFGATE: draw the beam now rather than waiting for the server's
-                    // WOLFGATE START: the server fires the hitscan, so don't leak the client-side ammo
+                    PredictHitscan(volley, ent, volley.Direction); // WOLFGATE(Weapons): draw the beam now rather than waiting for the server's
+                    // WOLFGATE(Weapons) START: the server fires the hitscan, so don't leak the client-side ammo
                     if (ent != null && IsClientSide(ent.Value))
                         QueueDel(ent.Value);
                     // WOLFGATE END

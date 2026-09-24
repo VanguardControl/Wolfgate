@@ -313,7 +313,7 @@
 - type: emote
   id: Gasp
   name: chat-emote-name-gasp
-  icon: Interface/Emotes/scream.png # WOLFGATE: was the default scream action icon; this is the open-mouthed face
+  icon: Interface/Emotes/scream.png # WOLFGATE(Species): was the default scream action icon; this is the open-mouthed face
   whitelist:
     components:
     - Respirator

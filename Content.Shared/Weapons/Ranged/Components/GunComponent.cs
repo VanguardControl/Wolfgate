@@ -61,7 +61,7 @@ public sealed partial class GunComponent : Component
     /// Used for recoil purposes.
     /// </summary>
     [DataField]
-    [AutoNetworkedField] // WOLFGATE: predicted recoil
+    [AutoNetworkedField] // WOLFGATE(Weapons): predicted recoil
     public TimeSpan LastFire = TimeSpan.Zero;
 
     /// <summary>

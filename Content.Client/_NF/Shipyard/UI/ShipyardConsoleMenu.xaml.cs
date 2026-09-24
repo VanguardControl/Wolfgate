@@ -50,7 +50,7 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
         RenameButton.OnPressed += OnRenameButtonPressed;
     }
 
-    // WOLFGATE START: an NPC dealer only sells ships; the server refuses these two anyway.
+    // WOLFGATE(Traders) START: an NPC dealer only sells ships; the server refuses these two anyway.
     public void HideSellControls()
     {
         SellShipButton.Visible = false;

@@ -65,7 +65,7 @@
   id: WallBrick
   name: brick wall
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -256,7 +256,7 @@
   id: WallIce
   name: ice wall
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -278,7 +278,7 @@
   id: WallPlasma
   name: plasma wall
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -603,7 +603,7 @@
   id: WallSandstone
   name: sandstone wall
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -1003,7 +1003,7 @@
   name: wood wall
   description: The traditional greytide defense.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -1159,7 +1159,7 @@
   id: WallVaultRock
   name: rock vault wall
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -1177,7 +1177,7 @@
   id: WallVaultSandstone
   name: sandstone vault wall
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
@@ -1286,7 +1286,7 @@
   name: snow brick wall
   description: A cold, not-so-impenetrable wall.
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:

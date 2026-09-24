@@ -219,7 +219,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         var proto = IoCManager.Resolve<IPrototypeManager>();
         var markingManager = IoCManager.Resolve<MarkingManager>();
 
-        // WOLFGATE START: species-aware hair validation
+        // WOLFGATE(Humanoid) START: species-aware hair validation
         // Hair is stored outside the marking set, so switching to a species that cannot wear it used to leave it
         // on the character with no picker to remove it.
         if (!markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.Hair, species).ContainsKey(hairStyleId))
@@ -245,7 +245,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
                 skinColor = Humanoid.SkinColor.ValidSkinTone(speciesProto.SkinColoration, skinColor);
             }
 
-            // WOLFGATE START: per-species eye colour, ported from HardLight/Starlight
+            // WOLFGATE(Species) START: per-species eye colour, ported from HardLight/Starlight
             if (!Humanoid.EyeColor.VerifyEyeColor(speciesProto.EyeColoration, eyeColor))
             {
                 eyeColor = Humanoid.EyeColor.ValidEyeColor(speciesProto.EyeColoration, eyeColor);

@@ -28,7 +28,7 @@
 #         DISCORD_WEBHOOK_URL: ${{ secrets.CHANGELOG_DISCORD_WEBHOOK }}
 #     continue-on-error: true
 
-# WOLFGATE START: re-enabled, posts Wolfgate and upstream Monolith changelogs
+# WOLFGATE(Ci) START: re-enabled, posts Wolfgate and upstream Monolith changelogs
 name: Publish Changelog
 
 # Posts new changelog entries to Discord, both our own (Wolfgate.yml) and upstream Monolith's

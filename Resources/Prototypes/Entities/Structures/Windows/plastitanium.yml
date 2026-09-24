@@ -9,7 +9,7 @@
     snap:
     - Window
   components:
-  # WOLFGATE START: material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:

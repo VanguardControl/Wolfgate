@@ -35,7 +35,7 @@ namespace Content.Shared.Humanoid.Markings
         [DataField("sprites", required: true)]
         public List<SpriteSpecifier> Sprites { get; private set; } = default!;
 
-        // WOLFGATE START: ported from HardLight/Floof, multi-layer markings
+        // WOLFGATE(Genitals) START: ported from HardLight/Floof, multi-layer markings
         /// <summary>
         /// Places individual sprites of this marking into arbitrary humanoid layers rather than all
         /// into <see cref="BodyPart"/>. Lets a tail sit behind the mob from most angles and over the
@@ -62,7 +62,7 @@ namespace Content.Shared.Humanoid.Markings
             return new Marking(ID, Sprites.Count);
         }
 
-        // WOLFGATE START: colour links, ported from HardLight/Floof
+        // WOLFGATE(Genitals) START: colour links, ported from HardLight/Floof
         /// <summary>
         /// Per-sprite colours with <see cref="ColorLinks"/> applied: a linked sprite takes the colour of the sprite
         /// it follows. Returns a copy and leaves the input alone. With links, the copy has one colour per sprite.

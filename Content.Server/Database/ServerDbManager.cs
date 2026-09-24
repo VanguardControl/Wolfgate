@@ -22,7 +22,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using LogLevel = Robust.Shared.Log.LogLevel;
 using MSLogLevel = Microsoft.Extensions.Logging.LogLevel;
-using Content.Shared._Common.Consent; // WOLFGATE
+using Content.Shared._Common.Consent; // WOLFGATE(Genitals)
 using Content.Shared._Mono.Company;
 using Content.Server._Mono.Company; // Mono
 
@@ -345,7 +345,7 @@ namespace Content.Server.Database
 
         #endregion
 
-        // WOLFGATE START: consent system ported from HardLight
+        // WOLFGATE(Genitals) START: consent system ported from HardLight
         #region Consent Settings
 
         Task<int> SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings);
@@ -1242,7 +1242,7 @@ namespace Content.Server.Database
 
         #endregion
 
-        // WOLFGATE START: consent system ported from HardLight
+        // WOLFGATE(Genitals) START: consent system ported from HardLight
         #region Consent Settings
 
         public Task<int> SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings)

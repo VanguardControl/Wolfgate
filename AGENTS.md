@@ -5,46 +5,84 @@ here exists to keep upstream merges cheap and Wolfgate changes easy to find.
 
 ## Modularity
 
-New files go in the `_WF` folder for their area:
+Wolfgate code is split into modules. A module is one feature (`Traders`, `ShipPa`, `Tether`, ...), and its
+PascalCase name is its folder name in every area:
 
-| Area | Folder |
+| Area | Module folder |
 |---|---|
-| C# | `Content.Client/_WF`, `Content.Server/_WF`, `Content.Shared/_WF` |
-| Tests | `Content.IntegrationTests/Tests/_WF`, `Content.Tests/_WF` |
-| Prototypes | `Resources/Prototypes/_WF` |
-| Localization | `Resources/Locale/en-US/_WF` |
-| Textures, audio, maps | `Resources/Textures/_WF`, `Resources/Audio/_WF`, `Resources/Maps/_WF` |
-| Guidebook pages | `Resources/ServerInfo/_WF` |
-| Scripts and generators | `Tools/_WF` |
-| Design docs | `Docs/_WF` |
+| C# | `Content.Client/_WF/<Module>`, `Content.Server/_WF/<Module>`, `Content.Shared/_WF/<Module>` |
+| Tests | `Content.IntegrationTests/Tests/_WF/<Module>`, `Content.Tests/_WF/<Module>` |
+| Prototypes | `Resources/Prototypes/_WF/<Module>` |
+| Localization | `Resources/Locale/en-US/_WF/<Module>` |
+| Textures, audio, maps | `Resources/Textures/_WF/<Module>`, `Resources/Audio/_WF/<Module>`, `Resources/Maps/_WF/<Module>` |
+| Guidebook pages | `Resources/ServerInfo/_WF/<Module>` |
+| Scripts and generators | `Tools/_WF/<Module>` |
+| Design docs | `Docs/_WF/<Module>` |
+
+Every file under a `_WF` folder sits inside a module folder; below it, any sub-structure is fine. A new feature
+gets a new module, not files at a `_WF` root.
 
 Namespaces follow the folder (`Content.Server._WF.Traders`). A partial class that extends an upstream system
-lives in `_WF` but keeps the upstream namespace.
+lives in its module folder but keeps the upstream namespace.
 
 Content ported from another fork may keep that fork's folder and IDs (`_HL`, `_Common`, `_Floof`, ...).
 Database migrations stay in `Content.Server.Database/Migrations` and are named `Wolfgate<Change>`. Symphony
-(the hub integration, `*/Symphony` and `*.Symphony.cs`) is its own module and stays where it is.
+(the hub integration, `*/Symphony` and `*.Symphony.cs`) is the one module outside `_WF`; its paths are listed in
+`Tools/_WF/Ci/modules.yml`.
 
-Any edit to a file outside `_WF` is non-modular and must be marked:
+Any edit to a file outside `_WF` is non-modular and must be marked with the module it serves:
 
-- A single line: `// WOLFGATE` at the end of the line, or `// WOLFGATE: reason` on the line above.
-- A block: `// WOLFGATE START: reason` before it and `// WOLFGATE END` after it.
-- JavaScript uses the `//` forms. YAML, Fluent, Python and TOML use `#` (`# WOLFGATE START: reason` /
-  `# WOLFGATE END`). XAML and XML use `<!-- WOLFGATE: reason -->` and `<!-- WOLFGATE START/END -->`.
-- Added `using` lines count as edits and get `// WOLFGATE`.
+- A single line: `// WOLFGATE(Traders): reason` at the end of the line or on the line above. The reason may be
+  left out (`// WOLFGATE(Traders)`) only where the module makes it obvious, such as a `using` line; the
+  generated docs still list the file.
+- A block: `// WOLFGATE(Traders) START: reason` before it and `// WOLFGATE END` after it.
+- A small standalone edit that belongs to no module leaves the module out: `// WOLFGATE: reason`. Its reason
+  is required.
+- The reason is the rest of the marker's line; the generated docs show nothing past it, so keep it to one
+  complete clause and put longer notes on the lines below.
+- JavaScript uses the `//` forms. YAML, Fluent, Python and TOML use `#` (`# WOLFGATE(Traders) START: reason` /
+  `# WOLFGATE END`). XAML and XML use `<!-- WOLFGATE(Traders): reason -->` and
+  `<!-- WOLFGATE(Traders) START: reason -->` / `<!-- WOLFGATE END -->`.
+- Added `using` lines count as edits and get `// WOLFGATE(<Module>)`.
 - Fluent and `.gitignore` only treat `#` as a comment at the start of a line, so never put a marker at the end
   of a line there. The same goes for YAML block scalars (`|`, `>`).
 - A comment can't go inside an XML tag, so an added attribute or `xmlns` on a tag is named in the nearest marker
   instead.
 - Guidebook XML (`Resources/ServerInfo`): the parser only skips a comment that sits directly before content, so
   put the marker at the start of the line it marks, or just before `<Document>` for the first line inside it.
-- Exempt: files that can't hold comments (JSON, images, audio, rich-text `.txt` such as `Resources/ServerInfo/Rules.txt`),
-  map files (the mapper rewrites them), generated EF migration and snapshot files, and `Resources/Changelog`.
+- Files that can't hold comments (JSON, images, audio, rich-text `.txt` such as `Resources/ServerInfo/Rules.txt`)
+  and map files (the mapper rewrites them) take no marker; list them under `unmarked` in
+  `Tools/_WF/Ci/modules.yml` instead (see below). Generated EF migration and snapshot files and
+  `Resources/Changelog` are exempt entirely.
 
 Keep upstream edits to the smallest hook that works. Prefer, in order: a new `_WF` system that subscribes to
 existing events, a partial class in `_WF`, then a marked edit. Don't reformat, reorder or re-indent upstream
 code, and don't delete upstream code outright; comment or branch around it inside a marked block so a merge
 shows what changed.
+
+## Documenting changes
+
+Each module has a `README.md` in `Content.Server/_WF/<Module>/`, or in `Content.Shared/_WF/<Module>/` or
+`Content.Client/_WF/<Module>/` if it has no server code, or in `Docs/_WF/<Module>/` if it has no C# at all.
+Write its overview by hand: what the module does, how players or admins use it and its main entry points, in a
+few lines. Longer design notes can follow.
+
+The rest is generated by `python Tools/_WF/Ci/modules.py --write`, from the module folders and the tagged markers:
+
+- In each module README, the sections between the `WOLFGATE-GENERATED` comments: every file in the module, and
+  every file outside `_WF` it edits with the reasons from its markers.
+- `Docs/_WF/NONMODULAR.md`: every standalone edit (untagged markers), with its reasons.
+
+Never edit generated sections by hand; fix the markers or folders and regenerate. Files that can't hold a
+marker are listed under `unmarked` in `Tools/_WF/Ci/modules.yml` (path, module or none, reason), and the
+generator adds them to the right list.
+
+Run `--write` after any change that adds, moves or removes a `_WF` file or a marker, and commit the result. CI
+runs `--check`, which fails when the generated docs are stale, a marker names an unknown module, `START`/`END`
+don't pair, a standalone marker has no reason, a `_WF` file sits outside a module folder or a module has no
+README or still has the TODO overview; and `--pr-check origin/<base>`,
+which fails when a pull request edits a file outside `_WF` that has no marker and no `unmarked` entry (skipped
+for `[AUTOPORT]` pull requests).
 
 ## Before building
 

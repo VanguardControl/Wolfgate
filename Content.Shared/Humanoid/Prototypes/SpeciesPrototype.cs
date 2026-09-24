@@ -32,7 +32,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     [DataField(required: true)]
     public bool RoundStart { get; private set; } = false;
 
-    // WOLFGATE START: subspecies
+    // WOLFGATE(Species) START: subspecies
     /// <summary>
     /// The species this one is a variant of, if any. Purely cosmetic: the character creator
     /// lists a subspecies under its parent instead of on its own. Subspecies are ordinary species in
@@ -91,7 +91,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     [DataField(required: true)]
     public HumanoidSkinColor SkinColoration { get; private set; }
 
-    // WOLFGATE START: ported from HardLight/Starlight, per-species eye colour
+    // WOLFGATE(Species) START: ported from HardLight/Starlight, per-species eye colour
     /// <summary>
     /// How this species' eye colour is constrained. Shadekin use this to keep their eyes dark.
     /// </summary>
@@ -111,7 +111,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     [DataField]
     public SpeciesNaming Naming { get; private set; } = SpeciesNaming.FirstLast;
 
-    // WOLFGATE START: Unsexed is offered by default
+    // WOLFGATE(Species) START: Unsexed is offered by default
     /// <summary>
     /// Unsexed is offered by default. Species that are genuinely sexless (Vox, Arachnid, IPC)
     /// still declare `sexes: [Unsexed]` and are unaffected.

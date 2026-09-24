@@ -1,7 +1,7 @@
 #####    SNOUTS    #####
 
 ## CANID SNOUTS ##
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: SnoutCanidAlt2
   bodyPart: Snout

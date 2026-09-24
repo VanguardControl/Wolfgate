@@ -425,7 +425,7 @@ public sealed class GenitalAnchorLayerTest
     /// zone. The zone is the union of the south frame of every FRONT anatomy state - each shape at every size and arousal
     /// step, plus the sheath and slit art - shifted by the chest and groin offsets of each species the marking is allowed
     /// on, so no configuration of anatomy can be covered. South art outside the zone stays on the front layer where the
-    /// artist drew it: Tools/_WF/tails/split_tails_batch.py --mode zone cuts each state along that line, moving the whole
+    /// artist drew it: Tools/_WF/Genitals/tails/split_tails_batch.py --mode zone cuts each state along that line, moving the whole
     /// south frame behind the body only where the body was hiding it anyway. The south-facing frames of a state are the
     /// direction-0 frames of its RSI sheet, or the whole sheet for a single-direction state. Every sprite that is layered
     /// to TailBehind must also be colour-linked to an earlier sprite of the same marking, so the picker shows no extra
@@ -536,7 +536,7 @@ public sealed class GenitalAnchorLayerTest
                         Assert.That(over, Is.Zero,
                             $"{marking.ID}: sprite {rsi.RsiState} draws on {layer}, above the anatomy anchors, and {over} of its "
                             + $"{pixels.Count} south-facing pixel(s) land inside the anatomy zone. Move those pixels into a state "
-                            + $"layered to {behindLayer} (Tools/_WF/tails/split_tails_batch.py --mode zone --apply).");
+                            + $"layered to {behindLayer} (Tools/_WF/Genitals/tails/split_tails_batch.py --mode zone --apply).");
                     }
                 }
 

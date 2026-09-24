@@ -7,15 +7,15 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Content.Server._Mono.Company;
-using Content.Server._WF.Genitals; // WOLFGATE
-using Content.Server._WF.Prototypes; // WOLFGATE
+using Content.Server._WF.Genitals; // WOLFGATE(Genitals)
+using Content.Server._WF.Prototypes; // WOLFGATE(Prototypes)
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
-using Content.Shared._Common.Consent; // WOLFGATE
+using Content.Shared._Common.Consent; // WOLFGATE(Genitals)
 using Content.Shared._Mono.Company;
-using Content.Shared._WF.Genitals; // WOLFGATE
-using Content.Shared._WF.Genitals.Profile; // WOLFGATE
-using Content.Shared._WF.Prototypes; // WOLFGATE
+using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
+using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
+using Content.Shared._WF.Prototypes; // WOLFGATE(Prototypes)
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.Ghost.Roles;
@@ -67,7 +67,7 @@ namespace Content.Server.Database
             if (prefs is null)
                 return null;
 
-            // WOLFGATE START: rows holding renamed prototype ids are saved under the current ids on load.
+            // WOLFGATE(Prototypes) START: rows holding renamed prototype ids are saved under the current ids on load.
             var legacyRows = false;
             foreach (var profile in prefs.Profiles)
                 legacyRows |= WFLegacyDbRows.Update(profile);
@@ -80,7 +80,7 @@ namespace Content.Server.Database
             var profiles = new Dictionary<int, ICharacterProfile>(maxSlot);
             foreach (var profile in prefs.Profiles)
             {
-                profiles[profile.Slot] = ConvertProfiles(profile, _opsLog); // WOLFGATE: anatomy read problems go to the ops log
+                profiles[profile.Slot] = ConvertProfiles(profile, _opsLog); // WOLFGATE(Genitals): anatomy read problems go to the ops log
             }
 
             return new PlayerPreferences(profiles, prefs.SelectedCharacterSlot, Color.FromHex(prefs.AdminOOCColor));
@@ -202,7 +202,7 @@ namespace Content.Server.Database
             prefs.SelectedCharacterSlot = newSlot;
         }
 
-        private static HumanoidCharacterProfile ConvertProfiles(Profile profile, ISawmill? log = null) // WOLFGATE: log
+        private static HumanoidCharacterProfile ConvertProfiles(Profile profile, ISawmill? log = null) // WOLFGATE(Genitals): log
         {
             var jobs = profile.Jobs.ToDictionary(j => new ProtoId<JobPrototype>(j.JobName), j => (JobPriority) j.Priority);
             var antags = profile.Antags.Select(a => new ProtoId<AntagPrototype>(a.AntagName));
@@ -243,7 +243,7 @@ namespace Content.Server.Database
                 var loadout = new RoleLoadout(role.RoleName)
                 {
                     EntityName = role.EntityName,
-                    CustomJobTitle = role.CustomJobTitle, // WOLFGATE
+                    CustomJobTitle = role.CustomJobTitle, // WOLFGATE(Roles)
                 };
 
                 foreach (var group in role.Groups)
@@ -253,7 +253,7 @@ namespace Content.Server.Database
                     {
                         groupLoadouts.Add(new Loadout()
                         {
-                            // WOLFGATE: rows saved before a loadout rename load under its current id.
+                            // WOLFGATE(Prototypes): rows saved before a loadout rename load under its current id.
                             Prototype = WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.Loadouts, profLoadout.LoadoutName),
                         });
                     }
@@ -270,7 +270,7 @@ namespace Content.Server.Database
             var height = profile.Height <= 0.005f ? 1.0f : profile.Height;
             var width = profile.Width <= 0.005f ? 1.0f : profile.Width;
 
-            // WOLFGATE START: anatomy JSON; an empty column means the profile is not migrated yet.
+            // WOLFGATE(Genitals) START: anatomy JSON; an empty column means the profile is not migrated yet.
             var genitals = GenitalProfileJson.Deserialize(profile.Genitals, log ?? Logger.GetSawmill("db.genitals"), profile.Id)
                            ?? GenitalProfile.Unmigrated;
             // WOLFGATE END
@@ -278,7 +278,7 @@ namespace Content.Server.Database
             return new HumanoidCharacterProfile(
                 profile.CharacterName,
                 profile.FlavorText,
-                WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.Species, profile.Species), // WOLFGATE: renamed species ids
+                WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.Species, profile.Species), // WOLFGATE(Prototypes): renamed species ids
                 profile.Age,
                 sex,
                 gender,
@@ -302,13 +302,13 @@ namespace Content.Server.Database
                 traits.ToHashSet(),
                 loadouts,
                 company,
-                profile.CustomSpeciesName ?? string.Empty, // WOLFGATE
-                genitals); // WOLFGATE
+                profile.CustomSpeciesName ?? string.Empty, // WOLFGATE(Humanoid)
+                genitals); // WOLFGATE(Genitals)
         }
 
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
         {
-            var existingRow = profile != null; // WOLFGATE
+            var existingRow = profile != null; // WOLFGATE(Genitals)
             profile ??= new Profile();
             var appearance = (HumanoidCharacterAppearance) humanoid.CharacterAppearance;
             List<string> markingStrings = new();
@@ -338,9 +338,9 @@ namespace Content.Server.Database
             profile.Slot = slot;
             profile.PreferenceUnavailable = (DbPreferenceUnavailableMode) humanoid.PreferenceUnavailable;
             profile.Company = humanoid.Company;
-            profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE
+            profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE(Humanoid)
 
-            // WOLFGATE START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
+            // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))
                 profile.Genitals = GenitalProfileJson.Serialize(humanoid.Genitals);
             // WOLFGATE END
@@ -372,7 +372,7 @@ namespace Content.Server.Database
                 {
                     RoleName = role,
                     EntityName = loadouts.EntityName ?? string.Empty,
-                    CustomJobTitle = loadouts.CustomJobTitle, // WOLFGATE
+                    CustomJobTitle = loadouts.CustomJobTitle, // WOLFGATE(Roles)
                 };
 
                 foreach (var (group, groupLoadouts) in loadouts.SelectedLoadouts)
@@ -1957,7 +1957,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
 
         #endregion
 
-        // WOLFGATE START: consent system ported from HardLight
+        // WOLFGATE(Genitals) START: consent system ported from HardLight
         #region Consent Settings
 
         private static async Task DeletePlayerConsentSettings(ServerDbContext db, NetUserId userId)
@@ -2070,8 +2070,8 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                     ReadAt = DateTime.UtcNow,
                 };
 
-                // WOLFGATE: HardLight never adds or saves the new receipt, so read tracking there
-                // silently does nothing. Persist it.
+                // WOLFGATE(Genitals): persist the new receipt, which HardLight never adds or saves
+                // Read tracking silently did nothing there.
                 db.DbContext.ConsentFreetextReadReceipt.Add(readReceipt);
             }
             else

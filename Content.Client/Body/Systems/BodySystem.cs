@@ -20,7 +20,7 @@ public sealed partial class BodySystem : SharedBodySystem
         bool visible,
         SpriteComponent sprite)
     {
-        // WOLFGATE START: resolve linked marking colours on severed parts
+        // WOLFGATE(Genitals) START: resolve linked marking colours on severed parts
         // A severed part draws every sprite of a marking; without this a split tail's BEHIND half is white.
         if (colors != null)
             colors = markingPrototype.ResolveLinkedColors(colors);

@@ -5,7 +5,7 @@
   name: web vest
   description: A synthetic armor vest. This one has added webbing and ballistic plates.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -32,7 +32,7 @@
   name: mercenary web vest
   description: A high-quality armored vest made from a hard synthetic material. It's surprisingly flexible and light, despite formidable armor plating.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -60,7 +60,7 @@
   name: detective's vest
   description: A hard-boiled private investigator's armored vest.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -76,7 +76,7 @@
   name: hi-viz vest
   description: A high-visibility vest used in work zones.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -104,7 +104,7 @@
   name: vest
   description: A thick vest with a rubbery, water-resistant shell.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END
@@ -120,7 +120,7 @@
   name: tank harness
   description: A simple harness that can hold a gas tank.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END

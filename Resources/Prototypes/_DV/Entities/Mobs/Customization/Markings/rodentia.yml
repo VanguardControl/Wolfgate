@@ -24,15 +24,15 @@
   coloring:
     default:
       type: !type:TattooColoring
-  # WOLFGATE START: split tail, south frame behind the body
+  # WOLFGATE(Genitals) START: split tail, south frame behind the body
   layering:
     mouse_BEHIND: TailBehind
   colorLinks:
     mouse_BEHIND: mouse_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
       state: mouse_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
       state: mouse_BEHIND
   # WOLFGATE END
 
@@ -343,15 +343,15 @@
   markingCategory: Tail
   bodyPart: Tail
   speciesRestriction: [Rodentia]
-  # WOLFGATE START: split tail, south frame behind the body
+  # WOLFGATE(Genitals) START: split tail, south frame behind the body
   layering:
     mouse_BEHIND: TailBehind
   colorLinks:
     mouse_BEHIND: mouse_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
       state: mouse_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
       state: mouse_BEHIND
   # WOLFGATE END
 
@@ -380,15 +380,15 @@
   markingCategory: Tail
   bodyPart: Tail
   speciesRestriction: [Rodentia]
-  # WOLFGATE START: split tail, anatomy zone of the south frame behind the body
+  # WOLFGATE(Genitals) START: split tail, anatomy zone of the south frame behind the body
   layering:
     short_BEHIND: TailBehind
   colorLinks:
     short_BEHIND: short_FRONT
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
       state: short_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Rodentia/tail_markings.rsi
       state: short_BEHIND
   # WOLFGATE END
 

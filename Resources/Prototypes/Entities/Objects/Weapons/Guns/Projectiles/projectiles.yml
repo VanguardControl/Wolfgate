@@ -105,7 +105,7 @@
       types:
         Piercing: 14
     soundHit:
-      # WOLFGATE START: untagged targets sound like metal
+      # WOLFGATE(Weapons) START: untagged targets sound like metal
       # path: /Audio/Weapons/Guns/Hits/bullet_hit.ogg
       collection: MetalBulletImpact
       # WOLFGATE END

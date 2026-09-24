@@ -119,7 +119,7 @@ public abstract partial class SharedProjectileSystem : EntitySystem
             || component.ProjectileSpent || component is { Weapon: null, OnlyCollideWhenShot: true })
             return;
 
-        // WOLFGATE START: the client's GunPredictionSystem handles its predicted copies
+        // WOLFGATE(Weapons) START: the client's GunPredictionSystem handles its predicted copies
         if (HasComp<PredictedProjectileClientComponent>(uid))
             return;
         // WOLFGATE END
@@ -141,7 +141,7 @@ public abstract partial class SharedProjectileSystem : EntitySystem
         RaiseLocalEvent(target, ref attemptEv);
         if (attemptEv.Cancelled)
         {
-            // WOLFGATE START: a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them
+            // WOLFGATE(Weapons) START: a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them
             if (_net.IsServer)
                 RemComp<PredictedProjectileServerComponent>(uid);
             // WOLFGATE END
@@ -196,9 +196,9 @@ public abstract partial class SharedProjectileSystem : EntitySystem
         var impactFilter = Robust.Shared.Player.Filter.Pvs(coordinates, entityMan: EntityManager);
         var damageFilter = Robust.Shared.Player.Filter.Pvs(coordinates, entityMan: EntityManager);
 
-        // WOLFGATE START: skip these for a shooter whose own predicted copy already played them. Hit means the shooter's
-        // client reported this projectile as having hit something, which it only does after playing the impact and
-        // the flash locally, so a projectile they never claimed still shows them both.
+        // WOLFGATE(Weapons) START: skip these for a shooter whose own predicted copy already played them
+        // Hit means the shooter's client reported this projectile as having hit something, which it only does
+        // after playing the impact and the flash locally, so a projectile they never claimed still shows them both.
         if (_guns.GunPrediction &&
             CompOrNull<PredictedProjectileServerComponent>(projectile) is { Shooter: { } predictedShooter } predictedServer &&
             (predicted || predictedServer.Hit))

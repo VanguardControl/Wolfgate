@@ -1,0 +1,21 @@
+# Emergency responder starting voucher: one free Triage or Stubby from the medical shipyard.
+- type: entity
+  parent: BaseShipVoucher
+  id: WFShipVoucherMedicalResponder
+  name: emergency responder ship voucher
+  description: Allows for one free MI Triage or UW Stubby purchase from the Medical Shipyard. Destroyed on sale.
+  components:
+  - type: Sprite
+    layers:
+    - state: blue
+    - sprite: _WF/Shipyard/Objects/Misc/voucher_medical.rsi
+      state: vouchermedical
+  - type: Item
+    heldPrefix: blue
+  - type: ShipyardVoucher
+    destroyOnEmpty: true
+    consoleType: Medical
+    companyName: MD
+    vessels:
+    - Triage
+    - Stubby

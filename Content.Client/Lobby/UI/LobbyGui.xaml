@@ -13,7 +13,7 @@
     <!-- Background -->
     <TextureRect Access="Public" VerticalExpand="True" HorizontalExpand="True" Name="Background"
                  Stretch="KeepAspectCovered" />
-    <!-- WOLFGATE START: upstream lobby layout, replaced by the game-menu rebuild below -->
+    <!-- WOLFGATE(Stylesheets) START: upstream lobby layout, replaced by the game-menu rebuild below -->
     <!--
     <BoxContainer Name="MainContainer" VerticalExpand="True" HorizontalExpand="True" Orientation="Horizontal"
                   Margin="10 10 10 10" SeparationOverride="2">
@@ -150,7 +150,7 @@
     </BoxContainer>
     -->
     <!-- WOLFGATE END -->
-    <!-- WOLFGATE START: lobby rebuilt as a game menu (menu column, character hero, docked chat, info strip).
+    <!-- WOLFGATE(Stylesheets) START: lobby rebuilt as a game menu (menu column, character hero, docked chat, info strip).
          Control names are unchanged so LobbyState, LobbyUIController and AHelpUIController keep working. -->
     <BoxContainer Name="MainContainer" VerticalExpand="True" HorizontalExpand="True" Orientation="Vertical"
                   SeparationOverride="0">

@@ -1,6 +1,6 @@
 using Content.Server._HL.Silicons.Synths.Battery;
 using Content.Shared._HL.Silicons.Synths.Battery;
-using Content.Shared._WF.Power;
+using Content.Shared._WF.Silicons;
 
 namespace Content.Server._WF.Silicons.Battery;
 

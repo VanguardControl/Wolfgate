@@ -307,7 +307,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
         }
     }
 
-    // WOLFGATE START: onContinue, so switching and creating a character reuse this prompt
+    // WOLFGATE(Humanoid) START: onContinue, so switching and creating a character reuse this prompt
     /// <summary>
     /// Asks about unsaved changes, then runs <paramref name="onContinue"/>. Used by closing the editor,
     /// switching character and creating one, so none of them can drop edits silently. Cancel keeps the editor.
@@ -322,7 +322,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
         _savePanel.SaveButton.OnPressed += _ =>
         {
-            // WOLFGATE START: the editor's anatomy confirmation guards this save too; Cancel returns to the editor unsaved.
+            // WOLFGATE(Genitals) START: the editor's anatomy confirmation guards this save too; Cancel returns to the editor unsaved.
             if (_profileEditor != null && _profileEditor.AnatomyClearedOnSave())
             {
                 _savePanel.Close();
@@ -339,17 +339,17 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
             _savePanel.Close();
 
-            onContinue(); // WOLFGATE: was CloseProfileEditor()
+            onContinue(); // WOLFGATE(Humanoid): was CloseProfileEditor()
         };
 
         _savePanel.NoSaveButton.OnPressed += _ =>
         {
             _savePanel.Close();
 
-            onContinue(); // WOLFGATE: was CloseProfileEditor()
+            onContinue(); // WOLFGATE(Humanoid): was CloseProfileEditor()
         };
 
-        // WOLFGATE: Cancel goes back to the editor with the edits intact.
+        // WOLFGATE(Humanoid): Cancel goes back to the editor with the edits intact.
         _savePanel.CancelButton.OnPressed += _ => _savePanel.Close();
 
         _savePanel.OpenCentered();
@@ -386,7 +386,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
             // Open the save panel if we have unsaved changes.
             if (_profileEditor.Profile != null && _profileEditor.IsDirty)
             {
-                OpenSavePanel(CloseProfileEditor); // WOLFGATE: was OpenSavePanel()
+                OpenSavePanel(CloseProfileEditor); // WOLFGATE(Humanoid): was OpenSavePanel()
 
                 return;
             }
@@ -397,7 +397,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
         _profileEditor.Save += SaveProfile;
 
-        // WOLFGATE START: switching used to drop unsaved edits without asking.
+        // WOLFGATE(Humanoid) START: switching used to drop unsaved edits without asking.
         _characterSetup.SelectCharacter += args =>
         {
             void Switch()
@@ -413,7 +413,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
         };
         // WOLFGATE END
 
-        // WOLFGATE START: creating a character used to drop unsaved edits without asking.
+        // WOLFGATE(Humanoid) START: creating a character used to drop unsaved edits without asking.
         _characterSetup.NewCharacter += () =>
         {
             void Create()

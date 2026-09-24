@@ -6,7 +6,7 @@
     species:
     - SlimePerson
     - Vox
-    # WOLFGATE: uses the Slime body
+    # WOLFGATE(Species): uses the Slime body
     - ProtoSlimePerson
 
 - type: loadoutEffectGroup
@@ -24,7 +24,7 @@
     - Oni
     - Felinid
     - Vulpkanin
-    - WFCanine # WOLFGATE
+    - WFCanine # WOLFGATE(Species)
     - Harpy
     - Rodentia
     - Protogen # Mono
@@ -34,7 +34,7 @@
     - Yowie # Goob
     - Tajaran # Goob
     - Hydrakin # Mono
-    # WOLFGATE START: Protogen subspecies + the six species the earlier port missed
+    # WOLFGATE(Species) START: Protogen subspecies + the six species the earlier port missed
     - ProtoVulp
     - ProtoVox
     - ProtoThaven
@@ -72,7 +72,7 @@
     - Oni
     - Felinid
     - Vulpkanin
-    - WFCanine # WOLFGATE
+    - WFCanine # WOLFGATE(Species)
     - Harpy
     - Rodentia
     - Protogen # Mono
@@ -83,7 +83,7 @@
     - Diona # Mono
     - Hydrakin # Mono
     - Feroxi # Mono/DV
-    # WOLFGATE START: Protogen subspecies (not ProtoDionae - no shoes slot) + the six the earlier port missed
+    # WOLFGATE(Species) START: Protogen subspecies (not ProtoDionae - no shoes slot) + the six the earlier port missed
     - ProtoVulp
     - ProtoVox
     - ProtoThaven

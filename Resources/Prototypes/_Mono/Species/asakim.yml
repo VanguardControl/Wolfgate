@@ -19,7 +19,7 @@
     Head: MobAsakimHead
     HeadTop: MobAsakimAnyMarking
     Chest: MobAsakimTorso
-    # WOLFGATE START: underwear/genital layers ported from HardLight
+    # WOLFGATE(Genitals) START: underwear/genital layers ported from HardLight
     UndergarmentTop: MobHumanoidAnyMarking
     UndergarmentBottom: MobHumanoidAnyMarking
     Genital: MobHumanoidAnyMarking
@@ -27,7 +27,7 @@
     Breasts: MobHumanoidAnyMarking
     # WOLFGATE END
     Tail: MobHumanoidAnyMarking
-    # WOLFGATE START: split tail layers ported from HardLight/Floof
+    # WOLFGATE(Genitals) START: split tail layers ported from HardLight/Floof
     TailBehind: MobHumanoidAnyMarking
     TailOversuit: MobHumanoidAnyMarking
     # WOLFGATE END

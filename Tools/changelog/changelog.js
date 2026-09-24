@@ -55,7 +55,7 @@ async function main() {
     const entry = {
         author: author,
         changes: entries,
-        id: getNextCLNumber(), // WOLFGATE: was getHighestCLNumber() + 1
+        id: getNextCLNumber(), // WOLFGATE(Ci): was getHighestCLNumber() + 1
         time: time,
         url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/${process.env.PR_NUMBER}`,
     };
@@ -131,7 +131,7 @@ function getHighestCLNumber() {
     return Math.max(...clNumbers, 0);
 }
 
-// WOLFGATE START: new entry ids never go below CHANGELOG_START_ID
+// WOLFGATE(Ci) START: new entry ids never go below CHANGELOG_START_ID
 // One above the highest in the file, so a fresh changelog can start above the upstream one's ids.
 function getNextCLNumber() {
     const startId = parseInt(process.env.CHANGELOG_START_ID || "1", 10);
@@ -145,7 +145,7 @@ function writeChangelog(entry) {
     // Create a new changelogs file if it does not exist
     if (fs.existsSync(`../../${process.env.CHANGELOG_DIR}`)) {
         const file = fs.readFileSync(`../../${process.env.CHANGELOG_DIR}`, "utf8");
-        // WOLFGATE START: an empty file counts as no entries, was data = yaml.load(file);
+        // WOLFGATE(Ci) START: an empty file counts as no entries, was data = yaml.load(file);
         data = yaml.load(file) || data;
         data.Entries = data.Entries || [];
         // WOLFGATE END
@@ -153,7 +153,7 @@ function writeChangelog(entry) {
 
     data.Entries.push(entry);
 
-    // WOLFGATE START: keep the top-level keys other than Entries (Order, Name, AdminOnly)
+    // WOLFGATE(Ci) START: keep the top-level keys other than Entries (Order, Name, AdminOnly)
     const { Entries, ...header } = data;
     const headerText = Object.keys(header).length > 0 ? yaml.dump(header, { indent: 2 }) : "";
     // WOLFGATE END
@@ -161,7 +161,7 @@ function writeChangelog(entry) {
     // Write updated changelogs file
     fs.writeFileSync(
         `../../${process.env.CHANGELOG_DIR}`,
-        // WOLFGATE START: header kept, was "Entries:\n" + yaml.dump(data.Entries, ...)
+        // WOLFGATE(Ci) START: header kept, was "Entries:\n" + yaml.dump(data.Entries, ...)
         headerText +
             "Entries:\n" +
             yaml.dump(Entries, { indent: 2 }).replace(/^---/, "")

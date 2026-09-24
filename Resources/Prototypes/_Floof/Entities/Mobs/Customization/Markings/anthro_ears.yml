@@ -1,5 +1,5 @@
 #####    EARS    #####
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: EarsFox
   bodyPart: HeadTop
@@ -292,7 +292,7 @@
   markingCategory: HeadTop
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
   colorLinks:
-    m_ears_deer_ADJ: m_ears_deer_FRONT # WOLFGATE: named EarsCow's sprites, so the link never applied
+    m_ears_deer_ADJ: m_ears_deer_FRONT # WOLFGATE(Genitals): named EarsCow's sprites, so the link never applied
   sprites:
   - sprite: _Floof/Mobs/Customization/skyratears.rsi
     state: m_ears_deer_ADJ
@@ -305,7 +305,7 @@
   markingCategory: HeadTop
   speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
   colorLinks:
-    m_ears_deer2_ADJ: m_ears_deer2_FRONT # WOLFGATE: named EarsCow's sprites, so the link never applied
+    m_ears_deer2_ADJ: m_ears_deer2_FRONT # WOLFGATE(Genitals): named EarsCow's sprites, so the link never applied
   sprites:
   - sprite: _Floof/Mobs/Customization/skyratears.rsi
     state: m_ears_deer2_ADJ
@@ -953,7 +953,7 @@
   - sprite: _Floof/Mobs/Customization/skyratears.rsi
     state: m_ears_faefox_tertiary
 
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: EarsSixEars
   bodyPart: HeadTop

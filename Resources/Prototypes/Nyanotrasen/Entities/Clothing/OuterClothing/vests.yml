@@ -4,7 +4,7 @@
   name: valet vest
   description: A goofy red vest almost certainly designed with the sole purpose of being demeaning.
   components:
-  # WOLFGATE START: anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
   - type: GenitalCoverage
     regions: Chest
   # WOLFGATE END

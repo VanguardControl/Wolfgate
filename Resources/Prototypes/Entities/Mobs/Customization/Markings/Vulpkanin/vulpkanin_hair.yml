@@ -251,7 +251,7 @@
 #     - sprite: Mobs/Customization/Vulpkanin/facial_hair.rsi
 #       state: kita
 # STARLIGHT END
-# WOLFGATE: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: VulpFacialHairGoatee
   bodyPart: FacialHair

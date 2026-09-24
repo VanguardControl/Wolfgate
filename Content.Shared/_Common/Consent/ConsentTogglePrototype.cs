@@ -44,7 +44,7 @@ public sealed partial class ConsentTogglePrototype : IPrototype
 
     private string? _sortKey;
 
-    /// <summary>WOLFGATE: toggle that must be on for this one to matter; the consent tab indents and disables dependents.</summary>
+    /// <summary>WOLFGATE(Genitals): toggle that must be on for this one to matter; the consent tab indents and disables dependents.</summary>
     [DataField]
     public ProtoId<ConsentTogglePrototype>? Requires;
 }

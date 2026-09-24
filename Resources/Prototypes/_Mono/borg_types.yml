@@ -175,7 +175,7 @@
     - BorgModuleXenoborgEngineer
   defaultModules:
   - XenoborgModuleBasic
-  # WOLFGATE START: Monolith #4558
+  # WOLFGATE(Xenoborgs) START: Monolith #4558
   # - XenoborgModuleTool
   - XenoborgModuleToolBasic
   # WOLFGATE END

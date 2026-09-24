@@ -28,7 +28,7 @@
   - type: LanguageSpeaker
   - type: LanguageKnowledge
     speaks:
-    - TauCetiBasic # WOLFGATE: HardLight's GalacticCommon is TauCetiBasic here
+    - TauCetiBasic # WOLFGATE(Species): HardLight's GalacticCommon is TauCetiBasic here
     - Machine
     understands:
     - TauCetiBasic

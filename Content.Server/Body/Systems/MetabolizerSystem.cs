@@ -1,4 +1,4 @@
-using Content.Shared._HL.Railroading.Events; // WOLFGATE
+using Content.Shared._HL.Railroading.Events; // WOLFGATE(Silicons)
 using Content.Server.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Administration.Logs;
@@ -198,8 +198,7 @@ namespace Content.Server.Body.Systems
                     var actualEntity = ent.Comp2?.Body ?? solutionEntityUid.Value;
                     var args = new EntityEffectReagentArgs(actualEntity, EntityManager, ent, solution, mostToRemove, proto, null, scale);
 
-                    // WOLFGATE START: ported from HardLight: lets Synths convert metabolised Nutriment
-                    // into battery charge.
+                    // WOLFGATE(Silicons) START: ported from HardLight, Synths turn metabolised Nutriment into charge
                     var metabolized = new RailroadingReagentMetabolizedEvent(new ReagentQuantity(reagent, mostToRemove));
                     RaiseLocalEvent(actualEntity, ref metabolized);
                     // WOLFGATE END

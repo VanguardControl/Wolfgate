@@ -1,19 +1,19 @@
-using System.Numerics; // WOLFGATE
-using Content.Shared.Climbing.Events; // WOLFGATE
-using Content.Shared.IdentityManagement; // WOLFGATE
-using Content.Shared.Movement.Systems; // WOLFGATE
+using System.Numerics; // WOLFGATE(Species)
+using Content.Shared.Climbing.Events; // WOLFGATE(Species)
+using Content.Shared.IdentityManagement; // WOLFGATE(Species)
+using Content.Shared.Movement.Systems; // WOLFGATE(Species)
 using Content.Shared.Popups;
-using Content.Shared.Standing; // WOLFGATE
-using Robust.Shared.Network; // WOLFGATE
-using Robust.Shared.Physics; // WOLFGATE
-using Robust.Shared.Physics.Collision.Shapes; // WOLFGATE
-using Robust.Shared.Physics.Systems; // WOLFGATE
-using Robust.Shared.Timing; // WOLFGATE
+using Content.Shared.Standing; // WOLFGATE(Species)
+using Robust.Shared.Network; // WOLFGATE(Species)
+using Robust.Shared.Physics; // WOLFGATE(Species)
+using Robust.Shared.Physics.Collision.Shapes; // WOLFGATE(Species)
+using Robust.Shared.Physics.Systems; // WOLFGATE(Species)
+using Robust.Shared.Timing; // WOLFGATE(Species)
 
 namespace Content.Shared._DV.Abilities;
 
-// WOLFGATE START: rewritten as a shared, predicted system with HardLight's squeeze geometry; the Delta-V
-// original was server-only and stripped table bits from the collision mask instead
+// WOLFGATE(Species) START: rewritten as a shared, predicted system with HardLight's squeeze geometry
+// The Delta-V original was server-only and stripped table bits from the collision mask instead.
 /// <summary>
 /// Sneaking slows the mob down and shrinks its circle fixtures so it can squeeze past mobs and furniture.
 /// Walking through tables stays blocked; once it has climbed onto one it is drawn underneath it.

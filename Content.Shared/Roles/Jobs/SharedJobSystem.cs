@@ -147,7 +147,7 @@ public abstract partial class SharedJobSystem : EntitySystem
     {
         if (MindTryGetJob(mindId, out var prototype))
         {
-            name = TryGetCustomJobTitle(mindId.Value, prototype, out var title) ? title : prototype.LocalizedName; // WOLFGATE: custom job title
+            name = TryGetCustomJobTitle(mindId.Value, prototype, out var title) ? title : prototype.LocalizedName; // WOLFGATE(Roles): custom job title
             return true;
         }
 

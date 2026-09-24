@@ -46,19 +46,19 @@
 - type: humanoidBaseSprite
   id: WFMobCanineHead
   baseSprite:
-    sprite: _WF/Mobs/Species/Canine/parts.rsi
+    sprite: _WF/Species/Mobs/Species/Canine/parts.rsi
     state: head_m
 
 - type: humanoidBaseSprite
   id: WFMobCanineHeadMale
   baseSprite:
-    sprite: _WF/Mobs/Species/Canine/parts.rsi
+    sprite: _WF/Species/Mobs/Species/Canine/parts.rsi
     state: head_m
 
 - type: humanoidBaseSprite
   id: WFMobCanineHeadFemale
   baseSprite:
-    sprite: _WF/Mobs/Species/Canine/parts.rsi
+    sprite: _WF/Species/Mobs/Species/Canine/parts.rsi
     state: head_f
 
 - type: markingPoints

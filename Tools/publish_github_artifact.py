@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# WOLFGATE START: rewritten for Wolfgate CDN publishing
+# WOLFGATE(Ci) START: rewritten for Wolfgate CDN publishing
 """Publish this workflow run's build artifact to Robust.Cdn.
 
 The CDN's one-shot publish takes a URL and pulls the archive itself, so nothing large is uploaded from here:

@@ -22,7 +22,7 @@ public sealed partial class MainMenuControl : Control
         LayoutContainer.SetMarginTop(VBox, 30);
         LayoutContainer.SetGrowHorizontal(VBox, LayoutContainer.GrowDirection.Begin);
 
-        var logoTexture = resCache.GetResource<TextureResource>("/Textures/_WF/Logo/logo.png"); // WOLFGATE: Wolfgate logo
+        var logoTexture = resCache.GetResource<TextureResource>("/Textures/_WF/Branding/Logo/logo.png"); // WOLFGATE(Branding): Wolfgate logo
         Logo.Texture = logoTexture;
 
         var currentUserName = configMan.GetCVar(CVars.PlayerName);

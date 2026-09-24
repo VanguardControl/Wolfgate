@@ -21,7 +21,7 @@ namespace Content.Server.Database
 
         public DbSet<Preference> Preference { get; set; } = null!;
         public DbSet<Profile> Profile { get; set; } = null!;
-        // WOLFGATE START: consent system ported from HardLight
+        // WOLFGATE(Genitals) START: consent system ported from HardLight
         public DbSet<ConsentSettings> ConsentSettings { get; set; } = null!;
         public DbSet<ConsentFreetextReadReceipt> ConsentFreetextReadReceipt { get; set; } = null!;
         // WOLFGATE END
@@ -64,7 +64,7 @@ namespace Content.Server.Database
                 .HasIndex(p => new {p.Slot, PrefsId = p.PreferenceId})
                 .IsUnique();
 
-            // WOLFGATE START: consent system ported from HardLight
+            // WOLFGATE(Genitals) START: consent system ported from HardLight
             modelBuilder.Entity<ConsentSettings>()
                 .HasIndex(c => new { c.UserId, c.ProfileId })
                 .IsUnique();
@@ -491,19 +491,19 @@ namespace Content.Server.Database
 
         public string Company { get; set; } = "None";
 
-        // WOLFGATE: player-set species name override, empty when unused.
+        // WOLFGATE(Humanoid): player-set species name override, empty when unused.
         [Column("custom_species_name")] public string CustomSpeciesName { get; set; } = "";
 
-        // WOLFGATE: creator anatomy as versioned JSON; empty until the profile is migrated or saved.
+        // WOLFGATE(Genitals): creator anatomy as versioned JSON; empty until the profile is migrated or saved.
         [Column("genitals")] public string Genitals { get; set; } = "";
 
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 
-        public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE: consent system
+        public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE(Genitals): consent system
     }
 
-    // WOLFGATE START: consent system ported from HardLight
+    // WOLFGATE(Genitals) START: consent system ported from HardLight
     #region Consent Settings
 
     public class ConsentSettings
@@ -625,7 +625,7 @@ namespace Content.Server.Database
         [MaxLength(256)]
         public string? EntityName { get; set; }
 
-        // WOLFGATE START: custom job title
+        // WOLFGATE(Roles) START: custom job title
         /// <summary>
         /// Player-written job title, for roles that allow one.
         /// </summary>
