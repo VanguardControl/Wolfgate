@@ -15,14 +15,32 @@ public sealed class LatheUpdateState : BoundUserInterfaceState
 
     public bool Looping = false; // Mono
     public bool Skipping = false; // Mono
+    public bool PartsSiloLinked;
+    public bool ChemicalSiloLinked;
+    // These lists correspond to Recipes and Queue respectively. Each value
+    // describes whether the next single item can start with current supplies.
+    public List<bool> RecipeReady;
+    public List<bool> QueueReady;
 
-    public LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes, List<LatheRecipeBatch> queue, LatheRecipePrototype? currentlyProducing = null, bool looping = false, bool skipping = false) // Frontier: change queue type // Mono
+    public LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes,
+        List<LatheRecipeBatch> queue,
+        LatheRecipePrototype? currentlyProducing = null,
+        bool looping = false,
+        bool skipping = false,
+        bool partsSiloLinked = false,
+        bool chemicalSiloLinked = false,
+        List<bool>? recipeReady = null,
+        List<bool>? queueReady = null) // Frontier: change queue type // Mono
     {
         Recipes = recipes;
         Queue = queue;
         CurrentlyProducing = currentlyProducing;
         Looping = looping; // Mono
         Skipping = skipping; // Mono
+        PartsSiloLinked = partsSiloLinked;
+        ChemicalSiloLinked = chemicalSiloLinked;
+        RecipeReady = recipeReady ?? new List<bool>();
+        QueueReady = queueReady ?? new List<bool>();
     }
 }
 

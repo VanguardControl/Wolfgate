@@ -46,13 +46,17 @@ namespace Content.Client.Lathe.UI
             {
                 case LatheUpdateState msg:
                     if (_menu != null)
+                    {
                         _menu.Recipes = msg.Recipes;
+                        _menu.SetSupplyReadiness(msg.Recipes, msg.RecipeReady, msg.QueueReady);
+                    }
                     _menu?.PopulateRecipes();
                     _menu?.UpdateCategories();
-                    _menu?.PopulateQueueList(msg.Queue);
                     _menu?.SetQueueInfo(msg.CurrentlyProducing);
+                    _menu?.PopulateQueueList(msg.Queue);
                     _menu?.SetLooping(msg.Looping); // Mono
                     _menu?.SetSkipping(msg.Skipping); // Mono
+                    _menu?.SetSupplyLinks(msg.PartsSiloLinked, msg.ChemicalSiloLinked);
                     break;
             }
         }

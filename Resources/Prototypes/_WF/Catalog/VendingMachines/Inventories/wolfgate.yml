@@ -19,3 +19,6 @@
     AutodocProgramDiskCavity: 2
     AutodocDefibModule: 2
     AutodocAutofixModule: 2
+    # Fabrication silos.
+    PartsSiloFlatpack: 2
+    ChemicalSiloFlatpack: 2

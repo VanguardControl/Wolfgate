@@ -104,7 +104,7 @@
     capacity: 75
   - type: ExtendDescription
     descriptionList:
-    - description: Insert components for recipes by placing them on top of the lathe, then "open / close" inside its right-click menu.
+    - description: Insert recipe components by using them on the lathe.
       color: "#4f94ad"
       requireDetailRange: true
 
