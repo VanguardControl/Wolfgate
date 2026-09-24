@@ -32,7 +32,9 @@ Database migrations stay in `Content.Server.Database/Migrations` and are named `
 
 Any edit to a file outside `_WF` is non-modular and must be marked with the module it serves:
 
-- A single line: `// WOLFGATE(Traders)` at the end of the line, or `// WOLFGATE(Traders): reason` on the line above.
+- A single line: `// WOLFGATE(Traders): reason` at the end of the line or on the line above. The reason may be
+  left out (`// WOLFGATE(Traders)`) only where the module makes it obvious, such as a `using` line; the
+  generated docs still list the file.
 - A block: `// WOLFGATE(Traders) START: reason` before it and `// WOLFGATE END` after it.
 - A small standalone edit that belongs to no module leaves the module out: `// WOLFGATE: reason`.
 - JavaScript uses the `//` forms. YAML, Fluent, Python and TOML use `#` (`# WOLFGATE(Traders) START: reason` /
