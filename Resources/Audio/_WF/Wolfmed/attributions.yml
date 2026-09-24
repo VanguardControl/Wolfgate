@@ -1,7 +1,7 @@
 - files: ["heartbeat_loop.ogg"]
-  license: "Custom"
-  copyright: "Seamless heartbeat loop supplied by the Wolfgate project owner; downmixed to mono. Source and license to be confirmed by the owner."
-  source: "https://github.com/VanguardControl/Wolfgate"
+  license: "CC-BY-SA-3.0"
+  copyright: "Taken from Skyrat-tg by Skyrat-SS13. Downmixed to mono."
+  source: "https://github.com/Skyrat-SS13/Skyrat-tg"
 
 - files: ["flatline.ogg"]
   license: "CC0-1.0"
