@@ -19,8 +19,15 @@ public abstract class SharedFabricationSiloSystem : EntitySystem
         if (!TryComp<FabricationSiloComponent>(silo, out var store) || store.Kind != kind)
             return false;
 
-        return _power.IsPowered(silo)
-            && _transform.GetGrid(silo) == _transform.GetGrid(client)
+        return _power.IsPowered(silo) && CanLink(silo, client, kind);
+    }
+
+    public bool CanLink(EntityUid silo, EntityUid client, FabricationSiloKind kind)
+    {
+        if (!TryComp<FabricationSiloComponent>(silo, out var store) || store.Kind != kind)
+            return false;
+
+        return _transform.GetGrid(silo) == _transform.GetGrid(client)
             && _transform.InRange(silo, client, store.Range);
     }
 

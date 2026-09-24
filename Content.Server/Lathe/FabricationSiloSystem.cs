@@ -1,6 +1,8 @@
 using System.Linq;
 using Content.Server.Pinpointer;
 using Content.Server.Stack;
+using Content.Shared.Popups;
+using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
@@ -30,8 +32,22 @@ public sealed class FabricationSiloSystem : SharedFabricationSiloSystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private StackSystem _stacks = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly HashSet<Entity<FabricationSiloClientComponent>> _nearby = new();
+    private float _refreshTimer;
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _refreshTimer += frameTime;
+        if (_refreshTimer < 1f)
+            return;
+        _refreshTimer = 0f;
+        var query = EntityQueryEnumerator<FabricationSiloComponent>();
+        while (query.MoveNext(out var uid, out var silo))
+            UpdateUi(uid, silo);
+    }
 
     public override void Initialize()
     {
@@ -98,7 +114,7 @@ public sealed class FabricationSiloSystem : SharedFabricationSiloSystem
         }
         else
         {
-            if (!CanTransmit(ent.Owner, uid, ent.Comp.Kind))
+            if (!CanLink(ent.Owner, uid, ent.Comp.Kind))
                 return;
 
             if (link is { } old && TryComp<FabricationSiloComponent>(old, out var previous))
@@ -136,31 +152,66 @@ public sealed class FabricationSiloSystem : SharedFabricationSiloSystem
         if (ent.Comp.Kind == FabricationSiloKind.Parts)
         {
             var proto = MetaData(args.Used).EntityPrototype?.ID;
-            if (proto == null || !IsRecipePart(proto) || ent.Comp.Parts.ContainedEntities.Count >= 250)
+            if (proto == null || !IsRecipePart(proto))
+            {
+                _popup.PopupEntity(Loc.GetString("fabrication-silo-part-rejected"), ent.Owner, args.User);
                 return;
+            }
+
+            if (ent.Comp.Parts.ContainedEntities.Count >= 250)
+            {
+                args.Handled = true;
+                _popup.PopupEntity(Loc.GetString("fabrication-silo-full"), ent.Owner, args.User);
+                return;
+            }
 
             args.Handled = _containers.Insert(args.Used, ent.Comp.Parts);
+            if (!args.Handled)
+                _popup.PopupEntity(Loc.GetString("fabrication-silo-insertion-failed"), ent.Owner, args.User);
         }
         else if (_solutions.TryGetDrainableSolution(args.Used, out var solutionEntity, out var solution))
         {
+            // Handle even a rejected transfer so another interaction cannot spill the contents.
+            args.Handled = true;
+            var transferred = FixedPoint2.Zero;
+            var wasEmpty = solution.Volume == FixedPoint2.Zero;
+            var rejected = new HashSet<string>();
             foreach (var reagent in solution.Contents.ToArray())
             {
+                var key = new ProtoId<ReagentPrototype>(reagent.Reagent.Prototype);
                 // The store tracks standard reagent types. Data-bearing reagents must
                 // remain in physical containers so their metadata is not discarded.
-                if (reagent.Reagent.Data is { Count: > 0 })
+                if (reagent.Reagent.Data is { Count: > 0 } || !IsRecipeReagent(key))
+                {
+                    rejected.Add(_prototypes.Index(key).LocalizedName);
                     continue;
+                }
 
-                var key = new ProtoId<ReagentPrototype>(reagent.Reagent.Prototype);
-                if (!IsRecipeReagent(key) || reagent.Quantity <= FixedPoint2.Zero)
+                if (reagent.Quantity <= FixedPoint2.Zero)
                     continue;
 
                 if (!_solutions.RemoveReagent(solutionEntity.Value, reagent.Reagent, reagent.Quantity))
                     continue;
 
                 ent.Comp.Reagents[key] = ent.Comp.Reagents.GetValueOrDefault(key) + reagent.Quantity;
-                args.Handled = true;
+                transferred += reagent.Quantity;
             }
+
+            if (transferred > FixedPoint2.Zero)
+                _popup.PopupEntity(Loc.GetString("fabrication-silo-transferred", ("amount", transferred.Float())), ent.Owner, args.User);
+            if (rejected.Count > 0)
+                _popup.PopupEntity(Loc.GetString("fabrication-silo-chemicals-rejected",
+                    ("chemicals", string.Join(", ", rejected))), ent.Owner, args.User);
+            else if (transferred == FixedPoint2.Zero)
+                _popup.PopupEntity(Loc.GetString(wasEmpty ? "fabrication-silo-container-empty" : "fabrication-silo-insertion-failed"), ent.Owner, args.User);
         }
+        else if (ent.Comp.Kind == FabricationSiloKind.Chemicals && HasComp<DrainableSolutionComponent>(args.Used))
+        {
+            args.Handled = true;
+            _popup.PopupEntity(Loc.GetString("fabrication-silo-container-unavailable"), ent.Owner, args.User);
+        }
+        else if (ent.Comp.Kind == FabricationSiloKind.Chemicals)
+            _popup.PopupEntity(Loc.GetString("fabrication-silo-needs-container"), ent.Owner, args.User);
 
         if (args.Handled)
         {
@@ -218,34 +269,41 @@ public sealed class FabricationSiloSystem : SharedFabricationSiloSystem
         if (!_ui.IsUiOpen(uid, FabricationSiloUiKey.Key))
             return;
 
-        var clients = new List<(NetEntity, string)>();
+        _ui.SetUiState(uid, FabricationSiloUiKey.Key, GetUiState(uid, comp));
+    }
+
+    public FabricationSiloBuiState GetUiState(EntityUid uid, FabricationSiloComponent comp)
+    {
+        var clients = new List<(NetEntity, string, bool, bool)>();
         _nearby.Clear();
         _lookup.GetEntitiesInRange(Transform(uid).Coordinates, comp.Range, _nearby);
         foreach (var client in _nearby)
         {
             var linked = comp.Kind == FabricationSiloKind.Parts ? client.Comp.PartsSilo : client.Comp.ChemicalSilo;
-            if (linked != null && linked != uid || !CanTransmit(uid, client.Owner, comp.Kind))
+            if (linked != null && linked != uid || !CanLink(uid, client.Owner, comp.Kind))
                 continue;
 
-            var status = linked == uid ? " [linked]" : "";
             clients.Add((GetNetEntity(client.Owner),
-                $"{Identity.Name(client.Owner, EntityManager)} ({_navMap.GetNearestBeaconString(client.Owner, onlyName: true)}){status}"));
+                $"{Identity.Name(client.Owner, EntityManager)} ({_navMap.GetNearestBeaconString(client.Owner, onlyName: true)})",
+                linked == uid, CanTransmit(uid, client.Owner, comp.Kind)));
         }
 
         foreach (var client in comp.Clients)
         {
-            if (_nearby.Any(e => e.Owner == client))
+            if (clients.Any(e => e.Item1 == GetNetEntity(client)) || Deleted(client))
                 continue;
-            clients.Add((GetNetEntity(client), $"{Identity.Name(client, EntityManager)} [linked, out of range]"));
+            clients.Add((GetNetEntity(client), Identity.Name(client, EntityManager), true, CanTransmit(uid, client, comp.Kind)));
         }
 
         var stock = new List<(NetEntity?, string)>();
         if (comp.Kind == FabricationSiloKind.Parts && comp.Parts != null)
         {
-            foreach (var part in comp.Parts.ContainedEntities)
+            // Keep the physical items intact, but present identical components as one stock row.
+            foreach (var group in comp.Parts.ContainedEntities.Where(part => !TerminatingOrDeleted(part))
+                         .GroupBy(part => (MetaData(part).EntityPrototype?.ID, MetaData(part).EntityName)))
             {
-                var count = TryComp<StackComponent>(part, out var stack) ? stack.Count : 1;
-                stock.Add((GetNetEntity(part), $"{MetaData(part).EntityName} ×{count}"));
+                var count = group.Sum(part => TryComp<StackComponent>(part, out var stack) ? stack.Count : 1);
+                stock.Add((GetNetEntity(group.First()), $"{group.Key.EntityName} ×{count}"));
             }
         }
         else
@@ -254,8 +312,7 @@ public sealed class FabricationSiloSystem : SharedFabricationSiloSystem
                 stock.Add((null, $"{_prototypes.Index(reagent).LocalizedName}: {amount}u"));
         }
 
-        _ui.SetUiState(uid, FabricationSiloUiKey.Key,
-            new FabricationSiloBuiState(comp.Kind, clients, stock));
+        return new FabricationSiloBuiState(comp.Kind, clients, stock);
     }
 
     public int ConsumeParts(EntityUid client, EntProtoId prototype, int amount)
@@ -275,7 +332,10 @@ public sealed class FabricationSiloSystem : SharedFabricationSiloSystem
             if (take < available)
                 _stacks.SetCount(part, available - take);
             else
+            {
+                _containers.Remove(part, comp.Parts);
                 QueueDel(part);
+            }
             consumed += take;
             if (consumed >= amount)
                 break;

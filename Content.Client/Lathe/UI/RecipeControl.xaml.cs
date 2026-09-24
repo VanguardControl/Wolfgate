@@ -18,8 +18,7 @@ public sealed partial class RecipeControl : Control
         RecipeName.Text = latheSystem.GetRecipeName(recipe);
         RecipeDisplayContainer.AddChild(displayControl);
         AvailabilityLabel.Text = Loc.GetString(canProduce ? "lathe-menu-recipe-ready" : "lathe-menu-recipe-missing");
-        ReadyBadge.Visible = canProduce;
-        WaitingBadge.Visible = !canProduce;
+        RecipeName.ToolTip = RecipeName.Text;
         TooltipTextSupplier = tooltipTextSupplier;
         Button.TooltipSupplier = SupplyTooltip;
 

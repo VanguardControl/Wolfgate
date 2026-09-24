@@ -2,6 +2,8 @@ using Content.Shared.Lathe;
 using Content.Shared.Research.Components;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using System.Numerics;
 
 namespace Content.Client.Lathe.UI
 {
@@ -18,7 +20,9 @@ namespace Content.Client.Lathe.UI
         {
             base.Open();
 
-            _menu = this.CreateWindowCenteredRight<LatheMenu>();
+            _menu = this.CreateWindow<LatheMenu>();
+            // A saved position from a smaller viewport can leave the title bar off-screen.
+            LayoutContainer.SetPosition(_menu, Vector2.Max(Vector2.Zero, _menu.Position));
             _menu.SetEntity(Owner);
 
             _menu.OnServerListButtonPressed += _ =>

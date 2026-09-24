@@ -161,7 +161,7 @@ public sealed partial class LatheMenu : FancyWindow
         }
 
         var sortedRecipesToShow = recipesToShow.OrderBy(_lathe.GetRecipeName);
-        RecipeList.Children.Clear();
+        RecipeList.DisposeAllChildren();
         foreach (var prototype in sortedRecipesToShow)
         {
             var canProduce = _recipeReady.GetValueOrDefault(prototype.ID);
@@ -332,6 +332,12 @@ public sealed partial class LatheMenu : FancyWindow
                 BorderThickness = new Thickness(1),
             };
 
+            var card = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Vertical,
+                HorizontalExpand = true,
+                SeparationOverride = 4,
+            };
             var queueContents = new BoxContainer
             {
                 Orientation = BoxContainer.LayoutOrientation.Horizontal,
@@ -339,6 +345,7 @@ public sealed partial class LatheMenu : FancyWindow
                 Margin = new Thickness(5),
                 SeparationOverride = 7,
             };
+            card.AddChild(queueContents);
             var number = new Label { Text = $"{idx:00}", MinWidth = 24, VerticalAlignment = VAlignment.Center };
             queueContents.AddChild(number);
             queueContents.AddChild(GetRecipeDisplayControl(batch.Recipe));
@@ -349,7 +356,9 @@ public sealed partial class LatheMenu : FancyWindow
                 HorizontalExpand = true,
                 VerticalAlignment = VAlignment.Center,
             };
-            details.AddChild(new Label { Text = _lathe.GetRecipeName(batch.Recipe), HorizontalExpand = true });
+            var recipeName = new RichTextLabel { HorizontalExpand = true };
+            recipeName.SetMessage(_lathe.GetRecipeName(batch.Recipe));
+            details.AddChild(recipeName);
             var missingSupplies = idx - 1 < _queueMissingSupplies.Count ? _queueMissingSupplies[idx - 1] : null;
             var designUnavailable = !ready && missingSupplies is { DesignAvailable: false };
             var status = Loc.GetString(isPrinting
@@ -361,20 +370,40 @@ public sealed partial class LatheMenu : FancyWindow
             {
                 var missing = GetMissingSuppliesText(missingSupplies);
                 if (!string.IsNullOrEmpty(missing))
-                    details.AddChild(new Label { Text = missing, StyleClasses = { "LabelSubText" } });
+                {
+                    var shortage = new RichTextLabel { HorizontalExpand = true, Margin = new Thickness(6, 0, 6, 6) };
+                    shortage.SetMessage(missing);
+                    card.AddChild(shortage);
+                }
             }
             queueContents.AddChild(details);
+
+            var actions = new BoxContainer
+            {
+                HorizontalExpand = true,
+                SeparationOverride = 6,
+                Margin = new Thickness(6, 0, 6, 6),
+            };
+            actions.AddChild(new Label
+            {
+                Text = Loc.GetString("lathe-menu-job-progress"),
+                HorizontalExpand = true,
+                StyleClasses = { "LabelSubText" },
+                VerticalAlignment = VAlignment.Center,
+            });
+            card.AddChild(actions);
 
             var printed = new Label
             {
                 Text = $"{batch.ItemsPrinted}/",
                 VerticalAlignment = VAlignment.Center,
             };
-            queueContents.AddChild(printed);
+            actions.AddChild(printed);
             var amount = new LineEdit
             {
                 Text = batch.ItemsRequested.ToString(),
-                MinWidth = 48,
+                MinWidth = 58,
+                MaxWidth = 58,
                 VerticalAlignment = VAlignment.Center,
                 ToolTip = Loc.GetString("lathe-menu-queue-amount-tooltip", ("max", LatheRecipeBatch.MaxItemsRequested)),
             };
@@ -394,15 +423,17 @@ public sealed partial class LatheMenu : FancyWindow
             }
             amount.OnTextEntered += _ => ApplyAmount();
             amount.OnFocusExit += _ => ApplyAmount();
-            queueContents.AddChild(amount);
+            actions.AddChild(amount);
             // <Mono>
             var cancelButton = new Button();
             cancelButton.Text = "×";
+            cancelButton.VerticalAlignment = VAlignment.Center;
+            cancelButton.ToolTip = Loc.GetString("lathe-menu-cancel-job");
             cancelButton.StyleClasses.Add(StyleBase.ButtonCaution);
             cancelButton.OnPressed += _ => OnRecipeCancelled?.Invoke(batch.Index);
-            queueContents.AddChild(cancelButton);
+            actions.AddChild(cancelButton);
             // </Mono>
-            queuedRecipeBox.AddChild(queueContents);
+            queuedRecipeBox.AddChild(card);
             QueueList.AddChild(queuedRecipeBox);
             idx++;
         }
@@ -439,7 +470,7 @@ public sealed partial class LatheMenu : FancyWindow
                 ("amount", amount.Float()), ("material", Loc.GetString(proto.LocalizedName))));
         }
 
-        return string.Join(", ", supplies);
+        return string.Join("\n", supplies.Select(supply => "• " + supply));
     }
 
     public void SetQueueInfo(LatheRecipePrototype? recipe)
@@ -484,6 +515,8 @@ public sealed partial class LatheMenu : FancyWindow
         if (recipe.Icon != null)
         {
             var textRect = new TextureRect();
+            textRect.SetSize = new System.Numerics.Vector2(32, 32);
+            textRect.Stretch = TextureRect.StretchMode.KeepAspectCentered;
             textRect.Texture = _spriteSystem.Frame0(recipe.Icon);
             return textRect;
         }
@@ -491,6 +524,7 @@ public sealed partial class LatheMenu : FancyWindow
         if (recipe.Result is { } result)
         {
             var entProtoView = new EntityPrototypeView();
+            entProtoView.SetSize = new System.Numerics.Vector2(32, 32);
             entProtoView.SetPrototype(result);
             return entProtoView;
         }

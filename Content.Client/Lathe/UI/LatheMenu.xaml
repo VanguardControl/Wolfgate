@@ -3,8 +3,8 @@
     xmlns:ui="clr-namespace:Content.Client.Materials.UI"
     xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
     Title="{Loc 'lathe-menu-title'}"
-    MinSize="790 540"
-    SetSize="980 650">
+    MinSize="790 500"
+    SetSize="940 600">
     <BoxContainer Orientation="Horizontal" VerticalExpand="True" HorizontalExpand="True" SeparationOverride="10" Margin="8">
         <!-- Recipe browser -->
         <BoxContainer Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True" SizeFlagsStretchRatio="5" SeparationOverride="6">
@@ -18,8 +18,8 @@
                     <OptionButton Name="FilterOption" MinWidth="145" StyleClasses="ButtonSquare" />
                 </BoxContainer>
             </PanelContainer>
-            <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
-                <BoxContainer Name="RecipeList" Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" RectClipContent="True" SeparationOverride="4" />
+            <ScrollContainer VerticalExpand="True" HScrollEnabled="False" RectClipContent="True">
+                <BoxContainer Name="RecipeList" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="4" />
             </ScrollContainer>
             <PanelContainer>
                 <PanelContainer.PanelOverride>
@@ -41,7 +41,7 @@
 
         <!-- Work queue and linked supplies -->
         <BoxContainer Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True" SizeFlagsStretchRatio="5" SeparationOverride="8">
-            <PanelContainer>
+            <PanelContainer VerticalExpand="True" SizeFlagsStretchRatio="3">
                 <PanelContainer.PanelOverride>
                     <gfx:StyleBoxFlat BorderThickness="1" BorderColor="#35424b" BackgroundColor="#151b21" />
                 </PanelContainer.PanelOverride>
@@ -57,19 +57,19 @@
                         <BoxContainer Orientation="Horizontal" Margin="7" SeparationOverride="8">
                             <Label Name="QueueStatusLabel" Text="{Loc 'lathe-menu-status-printing'}" StyleClasses="LabelHeading" VerticalAlignment="Center" />
                             <BoxContainer Name="FabricatingDisplayContainer" MinSize="32 32" />
-                            <Label Name="NameLabel" HorizontalExpand="True" VerticalAlignment="Center" />
+                            <Label Name="NameLabel" ClipText="True" HorizontalExpand="True" VerticalAlignment="Center" />
                         </BoxContainer>
                     </PanelContainer>
-                    <ScrollContainer VerticalExpand="True" HScrollEnabled="False" MinHeight="145">
+                    <ScrollContainer VerticalExpand="True" HScrollEnabled="False" RectClipContent="True" MinHeight="180">
                         <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" SeparationOverride="4">
                             <Label Name="QueueEmptyLabel" Text="{Loc 'lathe-menu-queue-empty'}" StyleClasses="LabelSubText" HorizontalAlignment="Center" VerticalAlignment="Center" VerticalExpand="True" />
-                            <BoxContainer Name="QueueList" Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" RectClipContent="True" SeparationOverride="4" />
+                            <BoxContainer Name="QueueList" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="4" />
                         </BoxContainer>
                     </ScrollContainer>
                 </BoxContainer>
             </PanelContainer>
 
-            <PanelContainer VerticalExpand="True">
+            <PanelContainer VerticalExpand="True" SizeFlagsStretchRatio="2">
                 <PanelContainer.PanelOverride>
                     <gfx:StyleBoxFlat BorderThickness="1" BorderColor="#35424b" BackgroundColor="#151b21" />
                 </PanelContainer.PanelOverride>
@@ -77,10 +77,11 @@
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
                         <Label Text="{Loc 'lathe-menu-supplies-title'}" StyleClasses="LabelHeading" HorizontalExpand="True" />
                     </BoxContainer>
-                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="10">
-                        <Label Name="PartsSiloStatus" Text="{Loc 'lathe-menu-parts-silo-offline'}" StyleClasses="LabelSubText" />
-                        <Label Name="ChemicalSiloStatus" Text="{Loc 'lathe-menu-chemical-silo-offline'}" StyleClasses="LabelSubText" />
+                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" SeparationOverride="3">
+                        <Label ClipText="True" Name="PartsSiloStatus" Text="{Loc 'lathe-menu-parts-silo-offline'}" StyleClasses="LabelSubText" />
+                        <Label ClipText="True" Name="ChemicalSiloStatus" Text="{Loc 'lathe-menu-chemical-silo-offline'}" StyleClasses="LabelSubText" />
                     </BoxContainer>
+                    <Label Text="{Loc 'lathe-menu-silo-link-hint'}" StyleClasses="LabelSubText" ClipText="True" />
                     <ui:MaterialStorageControl Name="MaterialsList" VerticalExpand="True" HorizontalExpand="True" />
                 </BoxContainer>
             </PanelContainer>

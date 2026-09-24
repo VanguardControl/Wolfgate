@@ -105,7 +105,7 @@
   components:
   - type: SolutionContainerManager
     solutions:
-      beaker:
+      tank:
         maxVol: 250 #Mono 200 >> 250
   - type: Sprite
     sprite: _NF/Objects/Specific/Chemistry/jerrycan.rsi

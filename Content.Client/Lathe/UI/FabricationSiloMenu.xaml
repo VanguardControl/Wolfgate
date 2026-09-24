@@ -1,25 +1,17 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
-                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
-                      xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
-                      Title="Fabrication silo"
-                      MinSize="440 300"
-                      SetSize="480 560">
-    <BoxContainer Orientation="Vertical" Margin="12 12 12 12" SeparationOverride="8">
-        <Label Name="KindLabel" Text="SUPPLY NETWORK" StyleClasses="LabelKeyText" />
-        <Label Text="Linked machines" StyleClasses="LabelKeyText" />
-        <PanelContainer VerticalExpand="True" SizeFlagsStretchRatio="1">
-            <PanelContainer.PanelOverride>
-                <graphics:StyleBoxFlat BackgroundColor="#101b24" BorderColor="#31516a" BorderThickness="1" />
-            </PanelContainer.PanelOverride>
-            <ItemList Name="ClientList" SelectMode="Button" VerticalExpand="True" />
-        </PanelContainer>
-        <Label Name="StockLabel" Text="Stored supplies" StyleClasses="LabelKeyText" />
-        <PanelContainer VerticalExpand="True" SizeFlagsStretchRatio="2">
-            <PanelContainer.PanelOverride>
-                <graphics:StyleBoxFlat BackgroundColor="#101b24" BorderColor="#31516a" BorderThickness="1" />
-            </PanelContainer.PanelOverride>
-            <ItemList Name="StockList" SelectMode="Button" VerticalExpand="True" />
-        </PanelContainer>
-        <Label Name="HintLabel" Text="Select a machine to link or unlink it." />
+    xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+    Title="{Loc 'fabrication-silo-title'}" MinSize="560 480" SetSize="660 680">
+    <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="8">
+        <Label Name="KindLabel" StyleClasses="LabelHeading" />
+        <RichTextLabel Name="HintLabel" />
+        <Label Text="{Loc 'fabrication-silo-machines'}" StyleClasses="LabelKeyText" />
+        <ScrollContainer VerticalExpand="True" SizeFlagsStretchRatio="2" HScrollEnabled="False" RectClipContent="True" MinHeight="120">
+            <BoxContainer Name="ClientList" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="4" />
+        </ScrollContainer>
+        <Label Name="StockLabel" StyleClasses="LabelHeading" />
+        <LineEdit Name="SearchBar" PlaceHolder="{Loc 'fabrication-silo-search'}" />
+        <ScrollContainer VerticalExpand="True" SizeFlagsStretchRatio="3" HScrollEnabled="False" RectClipContent="True" MinHeight="160">
+            <BoxContainer Name="StockList" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="4" />
+        </ScrollContainer>
     </BoxContainer>
 </controls:FancyWindow>

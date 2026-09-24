@@ -131,7 +131,7 @@
   id: MachineChemicalSilo
   parent: BaseFabricationSilo
   name: chemical silo
-  description: Stores recipe chemicals separately and supplies them to linked fabrication machines. Use a reagent container on it to deposit chemicals.
+  description: Stores chemicals used in fabrication recipes separately and supplies them to linked machines. Use a beaker or jerry can on it to deposit accepted chemicals.
   components:
   - type: FabricationSilo
     kind: Chemicals

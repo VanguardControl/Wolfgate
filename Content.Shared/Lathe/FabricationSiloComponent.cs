@@ -58,12 +58,12 @@ public enum FabricationSiloUiKey : byte
 public sealed class FabricationSiloBuiState : BoundUserInterfaceState
 {
     public readonly FabricationSiloKind Kind;
-    public readonly List<(NetEntity Entity, string Label)> Clients;
+    public readonly List<(NetEntity Entity, string Label, bool Linked, bool Available)> Clients;
     public readonly List<(NetEntity? Entity, string Label)> Stock;
 
     public FabricationSiloBuiState(
         FabricationSiloKind kind,
-        List<(NetEntity Entity, string Label)> clients,
+        List<(NetEntity Entity, string Label, bool Linked, bool Available)> clients,
         List<(NetEntity? Entity, string Label)> stock)
     {
         Kind = kind;
