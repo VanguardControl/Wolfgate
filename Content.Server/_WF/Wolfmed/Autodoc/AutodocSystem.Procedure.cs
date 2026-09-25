@@ -315,6 +315,10 @@ public sealed partial class AutodocSystem
             return;
         }
 
+        // Playtest 3 SAM: a follow-up whose moment never came (the deep tend closed everything) goes quietly.
+        if (DropStaleFollowUps(ent, body))
+            return;
+
         WarnAboutJunkReagents(ent);
 
         // Blood first: the shock's own gate wants a bloodstream that can circulate, so a pod that shocked
@@ -602,6 +606,7 @@ public sealed partial class AutodocSystem
         if (ent.Comp.CurrentStep is { } stepId && ent.Comp.CurrentSurgery is { } surgeryId)
         {
             RollMalfunction(ent, part);
+            var before = PartSignature(part); // Playtest 3 SAM: the stall guard measures this pass, not the last one
             var performed = _surgery.WolfmedPerformStep(ent.Owner, body, part, surgeryId, stepId);
             if (performed)
                 queued.StepsDone++;
@@ -635,7 +640,7 @@ public sealed partial class AutodocSystem
 
             // The guard against a step that can never finish: its completion check still fails and the part
             // looks exactly as it did after the last run, so nothing the pod is doing is reaching the patient.
-            if (NoteStall(ent, part, stepId, _surgery.WolfmedIsStepComplete(body, part, stepId, surgeryId)))
+            if (NoteStall(ent, part, stepId, _surgery.WolfmedIsStepComplete(body, part, stepId, surgeryId), before))
             {
                 ent.Comp.CurrentStep = null;
                 CloseTray(ent);
@@ -654,7 +659,12 @@ public sealed partial class AutodocSystem
     /// them in a row (wolfmed.autodoc_step_retries) and the procedure is hopeless, whatever it thinks it
     /// still wants. A completed step clears the count, so an ordinary repeatable step never trips it.
     /// </summary>
-    private bool NoteStall(Entity<AutodocComponent> ent, EntityUid part, EntProtoId stepId, bool complete)
+    /// <remarks>
+    /// Playtest 3 SAM: a pass counts only when it ran to its end (the caller has it performed), its completion check
+    /// said "not complete", and the part reads exactly as it did right before that pass. The first pass of a step used
+    /// to count whatever it did, so two idle passes after it were enough.
+    /// </remarks>
+    private bool NoteStall(Entity<AutodocComponent> ent, EntityUid part, EntProtoId stepId, bool complete, string before)
     {
         if (complete)
         {
@@ -665,6 +675,14 @@ public sealed partial class AutodocSystem
         }
 
         var signature = PartSignature(part);
+        if (signature != before)
+        {
+            ent.Comp.StallStep = stepId;
+            ent.Comp.StallSignature = signature;
+            ent.Comp.StallCount = 0;
+            return false;
+        }
+
         if (ent.Comp.StallStep == stepId && ent.Comp.StallSignature == signature)
         {
             ent.Comp.StallCount++;
@@ -849,16 +867,17 @@ public sealed partial class AutodocSystem
     /// occupant is in the pod, closes them back up if it was the pod that opened them, and carries on with
     /// the next queued item rather than repeating the same step until somebody pulls the lid off.
     /// </summary>
-    private void StallProcedure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued queued)
+    private void StallProcedure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued queued, bool speak = true)
     {
         MarkPodWounds(ent, body);
-        Speak(ent, AutodocVoiceEvent.Stall);
+        if (speak) // Playtest 3 SAM: clothing it cannot take off has already had its line
+            Speak(ent, AutodocVoiceEvent.Stall);
         ent.Comp.FailedProcedures.Add((queued.Surgery.Id, queued.Part));
         ent.Comp.Queue.Remove(queued);
         ClearStall(ent);
 
         _adminLog.Add(LogType.Action, LogImpact.Medium,
-            $"autodoc {ToPrettyString(ent.Owner)} abandoned {queued.Surgery} on {ToPrettyString(body)}: no progress in {_stepRetries} attempts");
+            $"autodoc {ToPrettyString(ent.Owner)} abandoned {queued.Surgery} on {ToPrettyString(body)}: {(speak ? $"no progress in {_stepRetries} attempts" : "clothing it could not take off")}");
 
         TryQueueClosure(ent, body, queued);
 
@@ -1047,8 +1066,13 @@ public sealed partial class AutodocSystem
             // AUTODOC5: nothing the pod did went through the damage path, so the parts still carry the
             // damage of every wound it closed. They give it up here, and the body total with it.
             _damageSync.SyncBody(patient);
+
+            // Playtest 3 SAM: inside an AUTO run the queue is not finished until a fresh plan finds nothing.
+            if (ContinueAutoRun(ent, patient))
+                return;
         }
 
+        EndAutoRun(ent);
         Speak(ent, AutodocVoiceEvent.QueueComplete);
         WakeOccupant(ent);
         ent.Comp.State = AutodocState.Complete;
@@ -1065,6 +1089,7 @@ public sealed partial class AutodocSystem
             MarkPodWounds(ent, aborted);
 
         Speak(ent, AutodocVoiceEvent.Aborted);
+        ent.Comp.AutoSession = false; // Playtest 3 SAM: an abort ends the run
         WakeOccupant(ent);
         ent.Comp.Queue.Clear();
         ent.Comp.AbortRequested = false;
@@ -1153,6 +1178,31 @@ public sealed partial class AutodocSystem
         {
             ent.Comp.ClothingSince = _timing.CurTime;
             var body = GetOccupant(ent);
+
+            // Playtest 3 SAM: the WAITING line names the first thing in the way. Something the pod already found it
+            // cannot take off, holding the next procedure on the same part, is not announced a second time.
+            var known = ent.Comp.GarmentStuck ? ent.Comp.BlockingGarment : null;
+            ent.Comp.GarmentStuck = false;
+            ent.Comp.BlockingGarment = null;
+            ent.Comp.BlockingSlot = null;
+            if (body != null)
+            {
+                foreach (var (slot, item) in Blockers(ent, body.Value))
+                {
+                    ent.Comp.BlockingGarment = item;
+                    ent.Comp.BlockingSlot = slot.Name;
+                    break;
+                }
+            }
+
+            if (known != null && known == ent.Comp.BlockingGarment)
+            {
+                ent.Comp.GarmentStuck = true;
+                UpdateAppearance(ent);
+                UpdateUi(ent);
+                return;
+            }
+
             var helpless = body is { } patient && !CanUndress(patient);
             Speak(ent, ent.Comp.Auto && helpless ? AutodocVoiceEvent.ClothingAuto : AutodocVoiceEvent.Clothing);
 
@@ -1165,7 +1215,10 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
-    /// <summary>Slots the surgery access rules look at, and the only ones the pod ever cuts.</summary>
+    /// <summary>
+    /// The only slots the pod ever cuts. The armour check reads more than these (<see cref="ArmorSlots"/>); playtest 3
+    /// SAM: the rest come off whole.
+    /// </summary>
     private const SlotFlags CutSlots = SlotFlags.OUTERCLOTHING | SlotFlags.INNERCLOTHING;
 
     /// <summary>
@@ -1187,6 +1240,13 @@ public sealed partial class AutodocSystem
             _timing.CurTime - ent.Comp.ClothingSince < TimeSpan.FromSeconds(MathF.Max(0f, ent.Comp.ClothingCutDelay)))
             return;
 
+        // Playtest 3 SAM: waited the whole delay on something it cannot take off. The rest of the queue goes on.
+        if (ent.Comp.GarmentStuck)
+        {
+            AbandonForClothing(ent, body);
+            return;
+        }
+
         CutClothing(ent, body);
     }
 
@@ -1205,25 +1265,26 @@ public sealed partial class AutodocSystem
     public bool CutClothing(Entity<AutodocComponent> ent, EntityUid body)
     {
         ent.Comp.CutClothingRequested = false;
-        if (!_inventory.TryGetContainerSlotEnumerator(body, out var slots, CutSlots))
-            return false;
 
-        var cut = false;
-        while (slots.MoveNext(out var slot))
+        // Playtest 3 SAM: whatever the armour check reads on the blocked part. The suit and the jumpsuit are still cut;
+        // gloves, boots and a helmet come off whole. It used to cut those two whatever the part, so gloves or boots
+        // held the pod on WAITING: CLOTHING for ever.
+        var stuckBefore = ent.Comp.GarmentStuck ? ent.Comp.BlockingGarment : null;
+        var (cut, removed) = Undress(ent, body);
+        AnnounceUndress(ent, cut, removed);
+
+        if (ent.Comp.GarmentStuck)
         {
-            if (slot.ContainedEntity is not { } garment ||
-                !_inventory.TryUnequip(body, slot.ID, force: true, silent: true))
-                continue;
+            // The delay to giving the procedure up starts when the pod first finds it cannot take this off.
+            if (stuckBefore != ent.Comp.BlockingGarment)
+                ent.Comp.ClothingSince = _timing.CurTime;
 
-            QueueDel(garment);
-            cut = true;
+            UpdateUi(ent);
+            return false;
         }
 
-        if (!cut)
+        if (!cut && removed.Count == 0)
             return false;
-
-        Speak(ent, AutodocVoiceEvent.Cutting);
-        _audio.PlayPvs(ent.Comp.CutSound, ent.Owner, DuckedParams(ent, AudioParams.Default));
 
         ent.Comp.BlockedReason = null;
         ent.Comp.State = AutodocState.Step;

@@ -121,9 +121,15 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
             _traits.TryGetBehavior(wound, out WolfmedClearedWoundBehavior cleared))
         {
             var severity = core.Severity;
+            var old = wound;
+            var podMade = HasComp<Content.Shared._WF.Wolfmed.Autodoc.WolfmedPodWoundComponent>(old);
             _wounds.RemoveWound(wound);
             if (_wounds.CreateOrMergeWound(part, cleared.Wound, severity) is { } replacement)
+            {
                 wound = replacement;
+                // Playtest 3 SAM: the hole the round leaves is the patient's wound, not something the pod made.
+                RaiseLocalEvent(new WolfmedWoundReplacedEvent(old, replacement, podMade));
+            }
         }
 
         if (!clean)
@@ -160,4 +166,17 @@ public sealed class WolfmedEmbeddedRemovalSystem : EntitySystem
     private bool IsSlashing(EntityUid used) =>
         TryComp(used, out MeleeWeaponComponent? melee) &&
         melee.Damage.DamageDict.GetValueOrDefault("Slash") > FixedPoint2.Zero;
+}
+
+/// <summary>
+/// Playtest 3 SAM: broadcast when a lodged object comes out and its wound becomes another one. The pod counts
+/// every wound that appears while it works as its own; this tells it the replacement is the old wound.
+/// </summary>
+public sealed class WolfmedWoundReplacedEvent(EntityUid old, EntityUid replacement, bool podMade) : EntityEventArgs
+{
+    public readonly EntityUid Old = old;
+    public readonly EntityUid Replacement = replacement;
+
+    /// <summary>The old wound was one the pod made, so the replacement is too.</summary>
+    public readonly bool PodMade = podMade;
 }

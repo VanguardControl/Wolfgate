@@ -5003,3 +5003,31 @@ WOLFGATE block; everything else is `_WF` code, Wolfmed prototypes, locale and te
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedHydraulicFluidTest.cs` | new | `HydraulicFluidTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs`, `WolfmedEviscerationTest.cs`, `Scenarios/WolfmedIpcFluidLossTest.cs` | modified | Migrated from Oil to hydraulic fluid. |
 | `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round 2" sections. |
+
+## Playtest 3, S.A.M. round (2026-09-24)
+
+Two marked Shitmed edits; everything else is `_WF` code, Wolfmed locale and voice data, and tests.
+
+| File | Kind | Change |
+| --- | --- | --- |
+| `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.Steps.cs:348-349` | Shitmed | WOLFGATE (playtest 3 SAM): `OnTendWoundsStep` hands a wound host with no damage of the step's group to `WolfmedTendUndamaged` before the damage gate, so the pass still closes the part's wounds. It returned without touching them, and the pod said THIS IS NOT WORKING (DECISIONS "Playtest 3, S.A.M. round", item 3). |
+| `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs:128` | Shitmed | WOLFGATE (playtest 3 SAM): `OnWoundedValid`'s "some damage somewhere" gate does not apply to a wound host (`WolfmedJudgedByWounds`), which HOOK 24 already judges by its wounds; a patient healed with packs kept every wound and got no tend planned. |
+| `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Tend.cs` | new | `WolfmedTendUndamaged` and `WolfmedJudgedByWounds`, the hook bodies. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/SharedAutodocSystem.cs` | modified | The drop check answers before the climb's; `AutodocComponent, AttemptClimbEvent` refuses climbing onto the pod; `AutodocComponent, ItemSlotInsertAttemptEvent` keeps whole bodies out of the tray. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | `AutoSession`, `VoiceEvents`, `ProceduresAnnounced`, `BlockingGarment`, `BlockingSlot`, `GarmentStuck`; `AutodocQueued.FollowUp`, `.IgnorePodWounds`. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `AutodocVoiceEvent.Removing`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | Eject slides the body off the pod (`SlideOff` replaces the climb; the `ClimbSystem` dependency is gone); the drag-drop handles a body before construction's drag-drop and the climb; `WolfmedWoundReplacedEvent` subscription; the run and garment state reset on insert and in `Reset`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Session.cs` | new | The AUTO run (`ContinueAutoRun`, `EndAutoRun`), follow-ups (`QueueFollowUp`, `PlanTendFollowUps`, `DropStaleFollowUps`, `StillPlannable`), `OnWoundReplaced`, `CountVoice`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Undress.cs` | new | `ArmorSlots` (Shitmed's table), `Blockers`, `Undress`, `CanTakeOff`, `StowInTray`, `AbandonForClothing`, `BlockingStatus`, `AnnounceUndress`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Triage.cs` | modified | `Plan` collects follow-ups; `TryPlan(whole)` over `WritePlan`; `AutoPlan`, the bounded planner `TickAuto` used inline, now shared with the run's re-plan; the run marked where it starts. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | `Prepare` drops stale follow-ups; the stall guard measures each pass (`NoteStall(…, before)`); `StallProcedure(speak)`; `FinishQueue` continues the run; `EnterBlocked` names the garment; `TickClothing` gives a procedure up; `CutClothing` undresses the blocked part. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Voice.cs` | modified | Counts voice events and procedure announcements. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | WAITING names the garment and its slot. |
+| `Content.Server/_WF/Wolfmed/Wounds/WolfmedEmbeddedRemovalSystem.cs` | modified | `WolfmedWoundReplacedEvent`, broadcast when a pulled round's wound is replaced. |
+| `Tools/_WF/wolfmed/gen_autodoc_voice.py`, `gen_autodoc_voice_protos.py` | modified | The `removing` line and the `Removing` event. |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/removing.ogg`, `attributions.yml` | new, modified | Generated (eSpeak NG). |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl` | modified | Generated: `removing`. |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc.ftl` | modified | `wolfmed-autodoc-no-climb`, `wolfmed-autodoc-status-waiting-garment`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeSamTest.cs` | new | `PodHoldsOneTest`, `AutoIsOneRunTest`, `NoStallWhileWorkingTest`, `PodUndressesWhatItCannotCutTest`, `PodUndressesWhatItCannotCutLockedTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | modified | `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`: the torso's other work is queued after the removal as follow-ups and has run by the end of the queue. |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, S.A.M. round" sections; two AUTODOC statements annotated inline. |

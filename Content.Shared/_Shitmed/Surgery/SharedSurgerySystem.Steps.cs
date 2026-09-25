@@ -345,6 +345,9 @@ public abstract partial class SharedSurgerySystem
     {
         var group = ent.Comp.MainGroup == "Brute" ? BruteDamageTypes : BurnDamageTypes;
 
+        if (WolfmedTendUndamaged(args.Body, args.Part, ent.Comp.MainGroup, group)) // WOLFGATE (playtest 3 SAM): wounds with no damage left still close
+            return;
+
         if (!HasDamageGroup(args.Body, group, out var damageable)
             && !HasDamageGroup(args.Part, group, out var _)
             || damageable == null) // This shouldnt be possible but the compiler doesn't shut up.

@@ -215,8 +215,10 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             {
                 Assert.That(planned[0], Is.EqualTo("SurgeryRemoveEmbeddedObjects"),
                     $"the removal is not first in the plan: {string.Join(", ", planned)}");
-                Assert.That(planned.Skip(1).Any(id => id.StartsWith("SurgeryTendWounds")), Is.False,
-                    "the planner queued other work on a part that still has a round in it.");
+                // Playtest 3 SAM: the rest of the part follows the removal in the same plan, as follow-ups the pod
+                // drops at their turn if the round is still in. Nothing on the part runs ahead of the removal.
+                Assert.That(pod.Comp.Queue.Skip(1).Where(queued => queued.Part == TargetBodyPart.Torso).All(queued => queued.FollowUp),
+                    Is.True, "the planner queued work on a part that still has a round in it, not waiting on the removal.");
             });
 
             Assert.That(autodoc.TryStart(pod, null), Is.True);
@@ -237,13 +239,15 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             });
         });
 
-        // With the blocker gone the torso is ordinary work again.
+        // With the blocker gone the torso was ordinary work again, in the same queue (playtest 3 SAM): the bruise
+        // was tended after the removal, so there is no tend left to plan on it.
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(autodoc.TryPlan(pod), Is.GreaterThan(0), "a bruised torso planned nothing once cleared.");
-            Assert.That(pod.Comp.Queue.Select(queued => queued.Surgery.Id).Any(id => id.StartsWith("SurgeryTendWounds")),
-                Is.True, "the bruise is still not queueable with the round out.");
+            Assert.That(autodoc.GetOccupant(pod), Is.Not.Null);
+            Assert.That(autodoc.Plan(pod, autodoc.GetOccupant(pod)!.Value)
+                    .Any(entry => entry.Part == TargetBodyPart.Torso && entry.Surgery.Id.StartsWith("SurgeryTendWounds")),
+                Is.False, $"the torso's tend did not follow the removal (state {pod.Comp.State}).");
         });
 
         await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);

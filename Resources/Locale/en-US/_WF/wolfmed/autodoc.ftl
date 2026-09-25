@@ -99,3 +99,7 @@ wolfmed-autodoc-window-tray-empty = EMPTY
 wolfmed-autodoc-window-locked = I DO NOT KNOW THAT PROCEDURE. INSERT THE PROGRAM DISK.
 
 guide-entry-wolfmed-autodoc = Autodoc
+
+# Playtest 3, S.A.M. round
+wolfmed-autodoc-no-climb = The pod is for lying in, not on.
+wolfmed-autodoc-status-waiting-garment = WAITING: { $item } ON { $slot }

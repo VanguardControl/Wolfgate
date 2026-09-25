@@ -15,7 +15,6 @@ using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
-using Content.Shared.Climbing.Systems;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Damage;
 using Content.Shared.Database;
@@ -24,6 +23,8 @@ using Content.Shared.Emag.Components;
 using Content.Shared.Emag.Systems;
 using Content.Shared.Examine;
 using Content.Shared.Interaction;
+using Content.Shared.Maps;
+using Content.Shared.Physics;
 using Content.Shared.Inventory;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
@@ -38,6 +39,8 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -67,7 +70,6 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly BloodstreamSystem _bloodstream = default!;
     [Dependency] private readonly ChatSystem _chat = default!;
-    [Dependency] private readonly ClimbSystem _climb = default!;
     [Dependency] private readonly EmagSystem _emag = default!;
     [Dependency] private readonly HealthAnalyzerSystem _analyzer = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
@@ -92,6 +94,8 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private readonly WolfmedWoundDamageSyncSystem _damageSync = default!;
     [Dependency] private readonly WoundSystem _wounds = default!;
     [Dependency] private readonly PowerReceiverSystem _power = default!;
+    [Dependency] private readonly SharedMapSystem _map = default!; // Playtest 3 SAM: eject beside the pod
+    [Dependency] private readonly TurfSystem _turf = default!; // Playtest 3 SAM
 
     public override void Initialize()
     {
@@ -99,7 +103,9 @@ public sealed partial class AutodocSystem : EntitySystem
 
         SubscribeLocalEvent<AutodocComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<AutodocComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
-        SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnDragDrop);
+        // Playtest 3 SAM: before construction's drag-drop and the climb, which both answer a drop on any machine.
+        SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnDragDrop,
+            before: new[] { typeof(Content.Server._Goobstation.DragDrop.GoobDragDropSystem), typeof(Content.Shared.Climbing.Systems.ClimbSystem) });
         SubscribeLocalEvent<AutodocComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<AutodocComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<AutodocComponent, PowerChangedEvent>(OnPowerChanged);
@@ -108,6 +114,8 @@ public sealed partial class AutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, EntRemovedFromContainerMessage>(OnRemoved);
         SubscribeLocalEvent<AutodocComponent, WolfmedSurgeryToolsEvent>(OnGetTools);
         SubscribeLocalEvent<AutodocComponent, DamageChangedEvent>(OnDamaged);
+
+        SubscribeLocalEvent<Wounds.WolfmedWoundReplacedEvent>(OnWoundReplaced); // Playtest 3 SAM
 
         InitializeUi();
         InitializeTriage();
@@ -158,9 +166,38 @@ public sealed partial class AutodocSystem : EntitySystem
             return false;
 
         _containers.Remove(body, container);
-        _climb.ForciblySetClimbing(body, ent);
+        // Playtest 3 SAM: off the lid, not onto it. The pod is not climbable, so the old climb was a no-op and the
+        // body lay on the pod's own tile, under the lid of the next occupant, looking like a second patient.
+        SlideOff(ent, body);
         _audio.PlayPvs(ent.Comp.LidOpenSound, ent);
         return true;
+    }
+
+    /// <summary>The pod's front first, then its sides, then behind it.</summary>
+    private static readonly Direction[] EjectDirections =
+        { Direction.South, Direction.East, Direction.West, Direction.North };
+
+    /// <summary>
+    /// Puts an ejected body on the first open floor tile beside the pod. Space and anything a mob would bump into
+    /// are skipped; with every side blocked, or off a grid, the body stays where the container put it.
+    /// </summary>
+    private void SlideOff(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        var xform = Transform(ent.Owner);
+        if (xform.GridUid is not { } grid || !TryComp(grid, out MapGridComponent? gridComp))
+            return;
+
+        var tile = _map.TileIndicesFor(grid, gridComp, xform.Coordinates);
+        foreach (var direction in EjectDirections)
+        {
+            var target = tile.Offset(xform.LocalRotation.RotateDir(direction));
+            if (!_map.TryGetTileRef(grid, gridComp, target, out var turf) || turf.Tile.IsEmpty ||
+                _turf.IsSpace(turf) || _turf.IsTileBlocked(turf, CollisionGroup.MobMask))
+                continue;
+
+            _xform.SetCoordinates(body, _map.GridTileToLocal(grid, gridComp, target));
+            return;
+        }
     }
 
     private void OnGetVerbs(Entity<AutodocComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
@@ -205,7 +242,15 @@ public sealed partial class AutodocSystem : EntitySystem
 
     private void OnDragDrop(Entity<AutodocComponent> ent, ref DragDropTargetEvent args)
     {
-        if (args.Handled || !TryInsert(ent, args.Dragged))
+        if (args.Handled)
+            return;
+
+        // Playtest 3 SAM: a body dropped on the pod goes in or nowhere. A refused drop used to fall through to
+        // construction's drag-drop, which "uses" the body on the pod and fills an open delivery tray with it.
+        if (HasComp<BodyComponent>(args.Dragged))
+            args.Handled = true;
+
+        if (!TryInsert(ent, args.Dragged))
             return;
 
         ent.Comp.SelfService = args.Dragged == args.User;
@@ -234,6 +279,14 @@ public sealed partial class AutodocSystem : EntitySystem
             ent.Comp.AutoReplans = 0;
             ent.Comp.PreProcedureWounds.Clear();
             ent.Comp.OccupantWasDead = false;
+
+            // Playtest 3 SAM: a new patient is a new run, with its own counts and nothing stuck on them yet.
+            ent.Comp.AutoSession = false;
+            ent.Comp.VoiceEvents.Clear();
+            ent.Comp.ProceduresAnnounced = 0;
+            ent.Comp.BlockingGarment = null;
+            ent.Comp.BlockingSlot = null;
+            ent.Comp.GarmentStuck = false;
         }
 
         UpdateAppearance(ent);
@@ -422,6 +475,10 @@ public sealed partial class AutodocSystem : EntitySystem
         ent.Comp.CutClothingRequested = false;
         ent.Comp.Transfusing = false;
         ent.Comp.PreProcedureWounds.Clear();
+        ent.Comp.AutoSession = false; // Playtest 3 SAM
+        ent.Comp.BlockingGarment = null; // Playtest 3 SAM
+        ent.Comp.BlockingSlot = null;
+        ent.Comp.GarmentStuck = false;
         _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
     }
 

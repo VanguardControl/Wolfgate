@@ -287,6 +287,11 @@
         path: /Audio/_WF/Wolfmed/Autodoc/voice/cutting.ogg
       message: wolfmed-autodoc-voice-cutting
       priority: Info
+    removing:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/removing.ogg
+      message: wolfmed-autodoc-voice-removing
+      priority: Info
     transfuse:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/transfuse.ogg
@@ -519,6 +524,7 @@
     Clothing: [clothing]
     ClothingAuto: [clothing-auto]
     Cutting: [cutting]
+    Removing: [removing]
     Transfusing: [transfuse]
     SedationLimit: [sedation-limit]
     DeadProceeding: [dead-proceeding]

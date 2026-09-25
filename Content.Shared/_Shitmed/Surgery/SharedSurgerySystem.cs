@@ -124,7 +124,8 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             || !TryComp(args.Part, out DamageableComponent? partDamageable)
             || damageable.TotalDamage <= 0
             && partDamageable.TotalDamage <= 0
-            && !HasComp<IncisionOpenComponent>(args.Part))
+            && !HasComp<IncisionOpenComponent>(args.Part)
+            && !WolfmedJudgedByWounds(args.Body)) // WOLFGATE (playtest 3 SAM): a wound host lists by its wounds (HOOK 24)
             args.Cancelled = true;
 
         if (WolfmedWoundWindowFails(ent, args.Body, args.Part)) // WOLFGATE: HOOK 24 - P4-D19 wound-severity window

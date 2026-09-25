@@ -249,7 +249,7 @@ public sealed partial class AutodocSystem
     private string StatusLine(Entity<AutodocComponent> ent)
     {
         if (ent.Comp.State == AutodocState.Waiting && ent.Comp.BlockedReason == StepInvalidReason.Armor)
-            return Loc.GetString("wolfmed-autodoc-status-waiting-clothing");
+            return BlockingStatus(ent) ?? Loc.GetString("wolfmed-autodoc-status-waiting-clothing"); // Playtest 3 SAM
 
         var status = Loc.GetString($"wolfmed-autodoc-status-{ent.Comp.State.ToString().ToLowerInvariant()}");
         return ent.Comp.Transfusing ? status + "  " + Loc.GetString("wolfmed-autodoc-status-transfusing") : status;

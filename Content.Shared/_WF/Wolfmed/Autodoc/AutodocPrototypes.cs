@@ -149,6 +149,8 @@ public enum AutodocVoiceEvent : byte
     SedationLimit,
     /// <summary>The occupant was already dead when the run started, which is not a reason to stop.</summary>
     DeadProceeding,
+    /// <summary>Playtest 3 SAM: something the pod does not cut is coming off the patient into the tray.</summary>
+    Removing,
 }
 
 /// <summary>

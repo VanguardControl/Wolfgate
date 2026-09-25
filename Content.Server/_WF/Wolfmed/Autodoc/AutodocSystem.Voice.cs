@@ -42,6 +42,7 @@ public sealed partial class AutodocSystem
     /// </summary>
     public void Speak(Entity<AutodocComponent> ent, AutodocVoiceEvent voiceEvent, params (string, object)[] args)
     {
+        CountVoice(ent, voiceEvent); // Playtest 3 SAM
         if (!_protos.TryIndex(ent.Comp.Voice, out var voice) ||
             !voice.Events.TryGetValue(voiceEvent, out var ids) ||
             ids.Count == 0)
@@ -89,6 +90,10 @@ public sealed partial class AutodocSystem
     private void SpeakStep(Entity<AutodocComponent> ent, AutodocVoiceEvent voiceEvent)
     {
         var family = StepFamilies.GetValueOrDefault(voiceEvent, AutodocStepFamily.Other);
+        // Playtest 3 SAM: a procedure's first step line is its announcement; a closure the pod added is part of the one before.
+        if (ent.Comp.SpokenFamilies.Count == 0 && ent.Comp.Queue.Count > 0 && !ent.Comp.Queue[0].Continuation)
+            ent.Comp.ProceduresAnnounced++;
+
         if (!ent.Comp.SpokenFamilies.Add(family))
             return;
 

@@ -100,6 +100,8 @@ LINES = [
     ("clothing", "REMOVE YOUR CLOTHING OR PRESS CUT.", None, "Urgent"),
     ("clothing-auto", "NOBODY IS UNDRESSING YOU. I WILL CUT.", None, "Urgent"),
     ("cutting", "CUTTING.", None, "Info"),
+    # Playtest 3 SAM: gloves, boots and helmets come off whole; the transcript names them.
+    ("removing", "REMOVING { $item }.", "Removing.", "Info"),
     ("transfuse", "TRANSFUSING.", None, "Info"),
     ("sedation-limit", "SEDATION AT LIMIT.", None, "Info"),
     ("dead-proceeding", "PATIENT IS DEAD. PROCEEDING.", None, "Info"),

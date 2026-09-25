@@ -58,6 +58,7 @@ wolfmed-autodoc-voice-stall = THIS IS NOT WORKING.
 wolfmed-autodoc-voice-clothing = REMOVE YOUR CLOTHING OR PRESS CUT.
 wolfmed-autodoc-voice-clothing-auto = NOBODY IS UNDRESSING YOU. I WILL CUT.
 wolfmed-autodoc-voice-cutting = CUTTING.
+wolfmed-autodoc-voice-removing = REMOVING { $item }.
 wolfmed-autodoc-voice-transfuse = TRANSFUSING.
 wolfmed-autodoc-voice-sedation-limit = SEDATION AT LIMIT.
 wolfmed-autodoc-voice-dead-proceeding = PATIENT IS DEAD. PROCEEDING.

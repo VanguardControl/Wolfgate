@@ -597,7 +597,9 @@ other rule that reads a living body have to keep treating an arrested patient as
   START. In self-service the two are one **FIX ME** button. **AUTO** needs `AutodocAutofixModuleComponent`
   in its own slot and plans and starts on its own every `autoPlanInterval` seconds while somebody is in the
   pod, re-planning when a queue ends and saying "NOTHING MORE I CAN DO." once when the plan comes back
-  empty. An emagged pod ignores AUTO and keeps its own plans.
+  empty. An emagged pod ignores AUTO and keeps its own plans. *[Playtest 3 SAM correction: an AUTO run re-plans the
+  moment its queue drains, without a word, and says AUTO ENGAGED and QUEUE COMPLETE once each; AUTO plans the whole
+  triage in self-service too. See "Playtest 3, S.A.M. round".]*
 
 ### Vital alarm
 
@@ -688,7 +690,9 @@ were wrong, and all four are fixed:
 - **The pod cuts clothing rather than waiting on it for ever.** AUTODOC4 had it ask and retry, which is a
   deadlock when there is nobody to ask. A conscious patient is told to undress or press CUT; one who cannot
   is cut for by AUTO after five seconds. Only the outer layer and the jumpsuit, which are the slots the
-  surgery access rules read - the pod has no business with an ID or a backpack.
+  surgery access rules read - the pod has no business with an ID or a backpack. *[Playtest 3 SAM correction: the
+  rules also read the head slot for the head, the gloves for a hand and the shoes for a foot. The pod still cuts only
+  the suit and the jumpsuit and takes those off whole; see the slot table in "Playtest 3, S.A.M. round".]*
 - **A BoxContainer that runs out of room clamps its last children to zero.** That is why the window's
   headless test passed while the owner's bottom row was missing: nothing can hang below the window, it just
   stops existing. The controls row moved onto the window's own column so the layout serves it before the
@@ -2895,3 +2899,161 @@ passed, 0 failed, 9 skipped (dirty-disposed autodoc fixtures: `PodRepairsACoreTe
 0 failed, 4 skipped (before the reaction check and the guidebook lines); and 474 passed, 1 failed, 8 skipped, the failure
 `HonestEndingScenarioTest` ("the last words were not whispered", a client chat-history read ten ticks after the whisper, in a
 run slowed to 23 minutes against 5), which passed in the other two runs and alone; every skip passed alone.
+
+## Playtest 3, S.A.M. round (2026-09-24)
+
+The owner's four pod reports (`plan/p7/PLAYTEST3-SAM-spec.md`). Branch `Wolfmed-fixes7`, from `36ed230814`. Each was
+reproduced before it was fixed; a throwaway diagnostic test (removed) drove the pod through a dozen patients at test and
+at real step speed to find what the reports were made of.
+
+**1. Two patients in one pod.**
+- **The cause: the second patient was lying on the pod, not in it.** Nothing ever put two bodies in the body container
+  (a `ContainerSlot`; `TryInsert`, the Climb in verb and the drag-drop all refuse while it is occupied, and the panel,
+  the alarm and the appearance all read the container). But Mono gives every `ConstructibleMachine` a `Climbable`
+  (`Machines/base_structuremachines.yml:90`), so the old eject's `ForciblySetClimbing(body, pod)` really did climb the
+  body onto the pod. A body that does not move stays there: ejected unconscious, the patient lay at the pod's centre
+  for as long as the test ran (without the climb, physics pushes even an unconscious body off the machine's fixture
+  within five ticks, to 0.85 tiles south of its centre). A body on the pod's tile is
+  drawn on the bed while the lid is open and under the lid while it is closed, so with B inside, A looked like a second
+  occupant; when B's run ended and the lid opened there were two people on the bed.
+- **Found on the way: a real way in.** A body dropped on an occupied pod fell through the pod's drag-drop to
+  construction's (Goob's `InteractUsing(user, body, pod)`), which puts the body in the delivery tray whenever the tray is
+  open, that is whenever the pod is waiting on material. The client normally hides the drop, but only when the pod's
+  drop check runs before the climb's, which nothing ordered.
+- **Fixed.** Eject slides the body to the first open floor tile beside the pod: its front (south), then east, west and
+  north, skipping space and anything a mob bumps into; boxed in or off a grid it stays where the container put it. The
+  pod refuses every climb onto it (`AutodocComponent, AttemptClimbEvent`, "The pod is for lying in, not on."). A body
+  dropped on the pod is the pod's to handle, in or nowhere, before construction's drag-drop and the climb; the drop
+  check answers before the climb's; the tray refuses whole bodies (`ItemSlotInsertAttemptEvent`).
+
+**2. AUTO is one run.**
+- **What the owner heard, measured.** Every drained queue said QUEUE COMPLETE; every plan after it said AUTO ENGAGED,
+  the start line (OPERATOR ACKNOWLEDGED) and the anaesthetic line again, because `TryStart` starts a new dose. Three
+  things made a patient take several queues: in self-service (the owner climbing in by himself) the plan was cut to one
+  procedure, so AUTO ran exactly one procedure a queue ("it queues 1 item"); a part with something lodged in it gets
+  only the removal, and the rest of the part waits for the next plan; and a deep wound's tend stops being valid once it
+  drops under the deep window, so the shallow tend waits for the next plan too.
+- **The run.** It starts with the module's first plan: AUTO ENGAGED, the start line and the anaesthetic line, once.
+  When the queue drains the pod plans again on the spot, with the same bounded planner the module's tick uses
+  (`AutoPlan`: `AutoSignature`, `AutoReplans`, `AutoReplanLimit`), and carries on without a word, the patient still
+  asleep and the lid still locked. Only a re-plan that finds nothing is the end: QUEUE COMPLETE once, the patient woken,
+  the lid unlocked. That QUEUE COMPLETE is the run's last word; the module's next empty look stays quiet ("NOTHING MORE I
+  CAN DO" is kept, once per patient, for a patient the module never found any work on). An abort, AUTO switched off, an
+  emag, lost power or the patient leaving ends the run. A queue somebody typed that AUTO runs is the start of a run too.
+- **Per-procedure announcements are unchanged**: one step line per step family per procedure.
+- **AUTO plans the whole triage in self-service.** FIX ME still gives self-service one procedure.
+- **Follow-ups the planner can see.** Only for states the pod's own work brings about: (a) work on a part held back only
+  because something is lodged in it is queued straight after the removal when the removal is in the same plan; (b) a
+  tend of a severity window (the deep tends, `minWoundSeverity`) queues the tend of the window below it on the same
+  group and part, since tending only ever lowers a wound. A follow-up (`AutodocQueued.FollowUp`) is checked against the
+  planner's own rules at its turn (still listed, not given up, nothing lodged, and for a step that skips the pod's own
+  work, more than the pod's own wounds left on the part) and dropped quietly, with no antibiotic
+  and no line, if they fail. Nothing else is foreseen: a tend waiting on an artery still waits for the next plan, which
+  the run now makes silently.
+- **Found on the way: the round's hole was the pod's.** Pulling a lodged round out replaces its wound with a new
+  gunshot wound entity, and every wound that appears while the pod works is marked the pod's own
+  (`WolfmedPodWoundComponent`), which the `ignorePodWounds` triage steps skip. So a run that pulled a round out of a
+  deep chest wound ended with the gunshot untreated. `WolfmedEmbeddedRemovalSystem` now broadcasts
+  `WolfmedWoundReplacedEvent`; the pod carries the old wound's standing over to the replacement.
+
+**3. "THIS IS NOT WORKING" while it was working.**
+- **What tripped it: a tend pass that could not reach a wound.** Shitmed's tend step returns before HOOK 27 unless the
+  body or the part still carries damage of its group. On a wound host that damage is not what the step is for: brute
+  packs, ointment and the pod's own damage sync take it off while the wounds stay, the completion check (HOOK 26) and
+  the listing (HOOK 24) read the wounds, and the upstream listing condition is satisfied by any damage on the body or an
+  open incision. So the tend listed, ran, closed nothing, and after three passes the pod gave it up and said so, with
+  every procedure round it visibly working. Reproduced by `NoStallWhileWorkingTest` (packs used before the pod: Stall 1
+  and an untreated burn without the fix).
+- **Nothing else tripped it.** Forty random patients at test speed and seven owner-like patients (rifle to the chest
+  and head, sabre, club, fire) at real step speed: no step other than that tend ever reached a second idle pass.
+- **Fixed.** `WolfmedTendUndamaged` (a marked hook in `OnTendWoundsStep`, body in `_WF/Wolfmed/Surgery`): on a wound host
+  with no damage of the group on the body or the part, the step tends the part's wounds (HOOK 27) and skips the damage
+  half. **The counting** (`NoteStall`): a pass counts only when it was performed, its completion check still says
+  "not complete", and the part's signature is the same after the pass as right before it, measured in the same tick.
+  The first pass of a step used to count as one whatever it did, so two idle passes after a working one were enough;
+  now it takes three idle passes. A pass that changes anything resets the count. `PartSignature` and M6's bleeding
+  severity in it are unchanged; a step waiting on a tool, the tray or clothing is never performed and never counted.
+- **And the listing** (`WolfmedJudgedByWounds`, a marked condition in `OnWoundedValid`): the tends' "some damage on the
+  body, or the part open" gate does not apply to a wound host, which HOOK 24 already lists by wounds a tend can close.
+  Without it the same packed patient got no tend at all whenever nothing else on the body happened to carry damage
+  (`NoStallWhileWorkingTest` failed that way when run alone). Non-wound-hosts are unchanged.
+
+**4. Stuck on WAITING: Clothing.**
+- **The armour check, read** (`SharedSurgerySystem.CanPerformStep`, `.Steps.cs:889-900`, applied in
+  `OnToolCanPerform` `:283-293`): a garment in any of the part's slots refuses every step on it with
+  `StepInvalidReason.Armor`.
+
+  | Part | Slots that block it |
+  | --- | --- |
+  | Head | head |
+  | Torso | outer clothing, jumpsuit |
+  | Arm | outer clothing, jumpsuit |
+  | Hand | gloves |
+  | Leg | outer clothing, legs (unused in this fork) |
+  | Foot | shoes |
+  | Tail, other | none |
+
+  Eyes, mask, ears, neck, belt, back, suit storage, pockets and ID never block anything. The owner's goggles, gas mask,
+  IFF strobe, headset, back-slot hardsuit, belt and tank were never the problem; the tactical gloves (a hand) and the
+  combat boots (a foot) were, and the pod only ever cut the suit and the jumpsuit, so the first hand or foot procedure
+  waited for ever and nothing queued after it ran.
+- **The pod undresses the blocked part** (`AutodocSystem.Undress.cs`, `ArmorSlots` mirrors the table). The suit and the
+  jumpsuit are cut and destroyed as before; everything else in the part's slots comes off whole, into the delivery tray
+  when it is empty and onto the floor beside the pod otherwise (the eject's tile rule), and is never destroyed. Before
+  taking anything off the pod meets the refusals a person would: the slot container's `CanRemove` (unremoveable items)
+  and `BeingUnequippedAttemptEvent` asked as the pod (locked or unremovable clothing, a helmet still attached to its
+  suit). A hardsuit helmet comes off with its suit, which is a cut slot. Only the blocked part's slots are touched:
+  a hand procedure no longer cuts the suit. The CUT button does the same. Voice: the new `removing` line, "REMOVING
+  { $item }." (spoken "Removing.", Info), from the voice table; `Cutting` as before.
+- **Something it cannot take off.** The WAITING line names it: "WAITING: <ITEM> ON <SLOT>" (every clothing wait now
+  names the first thing in the way). The clothing line is said once; a second procedure held by the same garment is not
+  announced again. An AUTO pod that has waited `ClothingCutDelay` after finding it cannot take the garment off gives the
+  procedure up the way a stall does (recorded as failed, closed up if the pod opened it, the rest of the queue goes on),
+  without the stall's line.
+
+**Differs from the spec, and why.**
+1. **Double occupancy's test.** A never "still lies on top and free to climb off": the cause is a body on top looking
+   like an occupant, so, as the spec allows for that case, eject slides the body off to the front tile, and the test
+   asserts A is off the pod's tile, not in a container, not climbing, and cannot climb back on.
+2. **The pod refuses climbing onto it altogether**, and a body dropped on it is the pod's to handle. Not in the spec;
+   both are the same bug by other routes (one of them a real second body in the tray).
+3. **"Once per patient"** is once per run. A run lasts until a re-plan finds nothing, which for everything the spec
+   describes is the whole stay; a patient who gets something new after QUEUE COMPLETE gets a new run with its own AUTO
+   ENGAGED and QUEUE COMPLETE.
+4. **"Greeting"**: the spec's greeting is taken as the insertion greeting (said once per patient already) and the plan
+   line as the start line (OPERATOR ACKNOWLEDGED); AUTO never said I HAVE A PLAN. Both are asserted once.
+5. **"Three procedure lines"**: a procedure's announcement is its first step line (`ProceduresAnnounced`); a closure the
+   pod adds after a cut-short procedure belongs to that procedure. The fixture (a round lodged in a deep chest wound)
+   needs four procedures, not three, because the gunshot bleeds; the test asserts one announcement per procedure.
+6. **AUTO plans the whole triage in self-service**, which the spec did not ask for; it was the owner's "queues 1 item".
+7. **The unremovable case uses a helmet, not a mask.** The armour check never reads the mask slot for the head, so a
+   locked mask blocks nothing; an unremovable helmet is the same case on the slot that does block.
+8. **Abandoning for clothing** says nothing more than the clothing line (no THIS IS NOT WORKING).
+9. **Found and fixed outside the four:** the round's replacement wound (item 2), the tray taking a body (item 1), the
+   tends' listing on a wound host with no damage (item 3).
+10. **The follow-ups foresee two states only** (the lodged object out, the deep window tended down). A tend waiting on
+    an artery that is still pumping is not foreseen; the run's silent re-plan picks it up.
+11. **The stall's reproduction is a packed patient**, the one step found to trip the guard. The spec's other candidates
+    (retract, a dry clamp, a seal that completes on the next pass, a step still running, a pass while waiting) were
+    checked in the code and in the diagnostic runs and never counted twice.
+
+**Test migration.** `WolfmedAutodocLoopTest.EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`: nothing on the
+torso runs ahead of the removal, and the rest of the torso's work is queued after it as follow-ups (it used to assert
+nothing else was queued at all); by the end of the queue the bruise has been tended, so no tend is left to plan (it
+used to plan it in a second queue).
+
+**Tests.** New in `Scenarios/WolfmedPlaytestThreeSamTest.cs`: `PodHoldsOneTest`, `AutoIsOneRunTest`,
+`NoStallWhileWorkingTest`, `PodUndressesWhatItCannotCutTest`, `PodUndressesWhatItCannotCutLockedTest`. Each failed
+before its fix: A lay at the pod's centre after the old climbing eject; the old AUTO said AUTO ENGAGED, the start line
+and QUEUE COMPLETE per queue (diagnostic transcript); the packed patient drew THIS IS NOT WORKING and an abandoned burn
+tend; with only the two cut slots handled, the gloves and boots held all six hand and foot procedures. Measured in
+`AutoIsOneRunTest`: removal > stop bleeding > deep tend > tend (> closure); the deep tend comes from the run's silent
+re-plan, since it cannot list while the round is in; AutoEngaged, start line, anaesthetic line, greeting and
+QueueComplete once each, four procedure announcements. In `PodUndressesWhatItCannotCutTest` the gloves went into the
+tray and the boots onto the floor beside the pod; in the
+locked case the line read "WAITING: HELMET ON HEAD" and both head procedures were given up, the torso treated.
+
+Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt, final code): 486 total, 481 passed, 0 failed,
+5 skipped (dirty-disposed: `AutofixModuleIdlesWithNothingToDoTest`, `DeathDuringAProcedureHoldsAndResumesTest`,
+`FixMePlansAndStartsInSelfServiceTest`, `QueueMoveReordersTest`, `SelfServiceOccupantIsTreatedTest`); each passed alone.
+

@@ -88,6 +88,7 @@ EVENTS = [
     ("Clothing", ["clothing"]),
     ("ClothingAuto", ["clothing-auto"]),
     ("Cutting", ["cutting"]),
+    ("Removing", ["removing"]),
     ("Transfusing", ["transfuse"]),
     ("SedationLimit", ["sedation-limit"]),
     ("DeadProceeding", ["dead-proceeding"]),

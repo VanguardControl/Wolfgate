@@ -407,6 +407,38 @@ public sealed partial class AutodocComponent : Component
     /// <summary>When the next beep is due.</summary>
     [ViewVariables]
     public TimeSpan AlarmNext;
+
+    // Playtest 3 SAM.
+
+    /// <summary>
+    /// An AUTO run is under way for this occupant: it began with the module's first plan and ends only when a
+    /// re-plan after the last procedure finds nothing. Queues inside it follow each other without a word.
+    /// </summary>
+    [ViewVariables]
+    public bool AutoSession;
+
+    /// <summary>Every voice event raised for the occupant now in the pod, spoken or dropped. Counts for the tests.</summary>
+    [ViewVariables]
+    public Dictionary<AutodocVoiceEvent, int> VoiceEvents = new();
+
+    /// <summary>Procedures that announced their first step for the occupant now in the pod. Counts for the tests.</summary>
+    [ViewVariables]
+    public int ProceduresAnnounced;
+
+    /// <summary>The garment the pod is waiting on, which is what the WAITING line names.</summary>
+    [ViewVariables]
+    public EntityUid? BlockingGarment;
+
+    /// <summary>The inventory slot <see cref="BlockingGarment"/> is in.</summary>
+    [ViewVariables]
+    public string? BlockingSlot;
+
+    /// <summary>
+    /// <see cref="BlockingGarment"/> is something the pod cannot take off (locked, unremovable). An AUTO pod gives the
+    /// procedure up once it has waited <see cref="ClothingCutDelay"/> on it.
+    /// </summary>
+    [ViewVariables]
+    public bool GarmentStuck;
 }
 
 /// <summary>How bad the occupant is, as the pod's vital alarm reads it. Highest wins.</summary>
@@ -473,6 +505,18 @@ public sealed class AutodocQueued
     /// no fresh anaesthetic.
     /// </summary>
     public bool Continuation;
+
+    /// <summary>
+    /// Playtest 3 SAM: planned ahead of the state the pod itself will leave the part in (the lodged object out, the
+    /// deep wound tended down). Checked against the planner's own rules at its turn and dropped quietly if they fail.
+    /// </summary>
+    public bool FollowUp;
+
+    /// <summary>
+    /// Playtest 3 SAM: the follow-up came from a triage step that skips a part whose every wound the pod made, and is
+    /// dropped at its turn if that is all the part has left.
+    /// </summary>
+    public bool IgnorePodWounds;
 }
 
 /// <summary>Something the pod needs in the tray or the reservoir before a step can run.</summary>

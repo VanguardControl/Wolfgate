@@ -44,7 +44,12 @@ public sealed partial class AutodocSystem
     /// procedure the occupant's condition currently allows. It never queues anything an operator could not
     /// queue by hand, so the module only saves the scheduling.
     /// </summary>
-    public List<AutodocProcedureEntry> Plan(Entity<AutodocComponent> ent, EntityUid body)
+    /// <remarks>
+    /// Playtest 3 SAM: <paramref name="followUps"/>, when given, collects the entries planned ahead of a state the pod
+    /// itself will bring about, which <see cref="TryPlan"/> queues as follow-ups (<see cref="AutodocQueued.FollowUp"/>).
+    /// </remarks>
+    public List<AutodocProcedureEntry> Plan(Entity<AutodocComponent> ent, EntityUid body,
+        Dictionary<(string Surgery, TargetBodyPart Part), bool>? followUps = null)
     {
         var result = new List<AutodocProcedureEntry>();
         if (!_protos.TryIndex(ent.Comp.Triage, out var triage))
@@ -69,9 +74,17 @@ public sealed partial class AutodocSystem
             {
                 foreach (var entry in available)
                 {
-                    if (entry.Surgery != surgery || !entry.Known ||
+                    if (entry.Surgery != surgery)
+                        continue;
+
+                    // Playtest 3 SAM: work held back only by something lodged in the part follows its removal when
+                    // the removal is in this plan, instead of waiting for the next one.
+                    var afterRemoval = IsBlockedByEmbedded(ent, body, entry);
+                    if (afterRemoval && !result.Any(planned => planned.Surgery == RemoveEmbedded && planned.Part == entry.Part))
+                        continue;
+
+                    if (!entry.Known ||
                         ent.Comp.FailedProcedures.Contains((entry.Surgery.Id, entry.Part)) ||
-                        IsBlockedByEmbedded(ent, body, entry) ||
                         step.IgnorePodWounds && PodWoundsOnly(body, entry.Part) ||
                         step.RequiresStarted && !AlreadyStarted(body, entry) ||
                         !taken.Add((entry.Surgery.Id, entry.Part)) ||
@@ -79,7 +92,11 @@ public sealed partial class AutodocSystem
                         continue;
 
                     result.Add(entry);
+                    if (afterRemoval && followUps != null)
+                        followUps[(entry.Surgery.Id, entry.Part)] = step.IgnorePodWounds;
                 }
+
+                PlanTendFollowUps(ent, surgery, step.IgnorePodWounds, result, taken, followUps);
             }
         }
 
@@ -156,13 +173,24 @@ public sealed partial class AutodocSystem
     /// Replaces the queue with the triage plan. Returns how many procedures it wrote; zero means there was
     /// nothing the pod could do for this patient.
     /// </summary>
-    public int TryPlan(Entity<AutodocComponent> ent)
+    /// <param name="whole">
+    /// Playtest 3 SAM: the autofix module's plan, which is the whole triage even for somebody who climbed in by
+    /// themselves. FIX ME still gives self-service one procedure.
+    /// </param>
+    public int TryPlan(Entity<AutodocComponent> ent, bool whole = false)
     {
         if (GetOccupant(ent) is not { } body ||
             ent.Comp.State is not (AutodocState.Idle or AutodocState.Complete))
             return 0;
 
-        var plan = Plan(ent, body);
+        return WritePlan(ent, body, whole);
+    }
+
+    /// <summary>Writes the triage plan into the queue, whatever the pod is doing. Zero leaves the queue alone.</summary>
+    private int WritePlan(Entity<AutodocComponent> ent, EntityUid body, bool whole)
+    {
+        var followUps = new Dictionary<(string Surgery, TargetBodyPart Part), bool>();
+        var plan = Plan(ent, body, followUps);
 
         // An empty plan leaves the queue alone. It used to clear it first, so with the autofix module on
         // anything an operator queued by hand was thrown away within a few seconds and never ran.
@@ -172,8 +200,13 @@ public sealed partial class AutodocSystem
         ent.Comp.Queue.Clear();
 
         // Self-service is one procedure at a time, so the plan gives it the first thing that matters.
-        foreach (var entry in ent.Comp.SelfService ? plan.Take(1) : plan.AsEnumerable())
-            TryQueue(ent, entry.Surgery, entry.Part);
+        foreach (var entry in ent.Comp.SelfService && !whole ? plan.Take(1) : plan.AsEnumerable())
+        {
+            if (followUps.TryGetValue((entry.Surgery.Id, entry.Part), out var ignorePodWounds))
+                QueueFollowUp(ent, entry.Surgery, entry.Part, ignorePodWounds);
+            else
+                TryQueue(ent, entry.Surgery, entry.Part);
+        }
 
         return ent.Comp.Queue.Count;
     }
@@ -192,6 +225,7 @@ public sealed partial class AutodocSystem
         ent.Comp.AutoSaidNothing = false;
         ent.Comp.AutoSignature = null;
         ent.Comp.AutoReplans = 0;
+        ent.Comp.AutoSession = false; // Playtest 3 SAM
 
         if (!ent.Comp.Auto)
             Speak(ent, AutodocVoiceEvent.AutoOff);
@@ -225,33 +259,13 @@ public sealed partial class AutodocSystem
         // Somebody queued something by hand. Running it is the module's job; replacing it is not.
         if (ent.Comp.Queue.Count > 0)
         {
+            // Playtest 3 SAM: and the run goes on from there with the module's own plan.
+            ent.Comp.AutoSession = true;
             TryStart(ent, null);
             return;
         }
 
-        // A body the pod is not changing gets a bounded number of looks. Without this a procedure that
-        // lists again the moment it finishes would have the module plan, run and plan again for ever.
-        var signature = BodySignature(body);
-        if (signature != ent.Comp.AutoSignature)
-        {
-            ent.Comp.AutoSignature = signature;
-            ent.Comp.AutoReplans = 0;
-        }
-        else if (ent.Comp.AutoReplans >= ent.Comp.AutoReplanLimit)
-        {
-            if (!ent.Comp.AutoSaidNothing)
-                Speak(ent, AutodocVoiceEvent.AutoNothing);
-
-            ent.Comp.AutoSaidNothing = true;
-            UpdateUi(ent);
-            return;
-        }
-        else
-        {
-            ent.Comp.AutoReplans++;
-        }
-
-        if (TryPlan(ent) == 0)
+        if (AutoPlan(ent, body) == 0)
         {
             // Said once per patient: the pod keeps looking in case a bleed starts, but it only announces
             // the empty plan the first time.
@@ -264,8 +278,34 @@ public sealed partial class AutodocSystem
         }
 
         ent.Comp.AutoSaidNothing = false;
+        ent.Comp.AutoSession = true; // Playtest 3 SAM: said once, here; the run's later plans are silent
         Speak(ent, AutodocVoiceEvent.AutoEngaged);
         TryStart(ent, null);
+    }
+
+    /// <summary>
+    /// The module's plan, written into the queue. A body the pod is not changing gets a bounded number of looks:
+    /// without this a procedure that lists again the moment it finishes would have the module plan, run and plan
+    /// again for ever. Shared by the module's own tick and the re-plan inside a run (playtest 3 SAM).
+    /// </summary>
+    private int AutoPlan(Entity<AutodocComponent> ent, EntityUid body)
+    {
+        var signature = BodySignature(body);
+        if (signature != ent.Comp.AutoSignature)
+        {
+            ent.Comp.AutoSignature = signature;
+            ent.Comp.AutoReplans = 0;
+        }
+        else if (ent.Comp.AutoReplans >= ent.Comp.AutoReplanLimit)
+        {
+            return 0;
+        }
+        else
+        {
+            ent.Comp.AutoReplans++;
+        }
+
+        return WritePlan(ent, body, whole: true);
     }
 
     #endregion
