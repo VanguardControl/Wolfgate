@@ -86,7 +86,7 @@ public sealed partial class RopeSystem
         handled = false;
         if (HasComp<RopeAttachPointComponent>(target))
         {
-            // WOLFGATE START: let a handler veto a coil that does not belong on this point, by
+            // Let a handler veto a coil that does not belong on this point, by
             // clearing the pre-set attach point. Power cord clamps refuse plain rope and vice versa.
             var veto = new RopeCoilTargetAttemptEvent(user, coil.Owner, target, coil.Comp.RopeType)
             {
@@ -98,7 +98,6 @@ public sealed partial class RopeSystem
                 handled = veto.Handled;
                 return false;
             }
-            // WOLFGATE END
 
             point = target;
             return true;

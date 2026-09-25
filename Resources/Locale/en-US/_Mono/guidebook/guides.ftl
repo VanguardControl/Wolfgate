@@ -25,6 +25,7 @@ guide-entry-gridclaimer = Claiming Debris
 guide-entry-armorexplanation = Armor Mechanics
 
 # Rules
+# WOLFGATE: was Monolith Rules
 guide-entry-monolith-rules = Wolfgate Rules
 
 # Creatures

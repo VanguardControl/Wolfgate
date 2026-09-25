@@ -11,8 +11,8 @@ public sealed class WolfgatePopoutButton : TextureButton
 {
     public const string StyleClassWindowPopoutButton = "windowPopoutButton";
 
-    private const string PopOutTexture = "/Textures/_WF/Interface/Window/popout.png";
-    private const string DockTexture = "/Textures/_WF/Interface/Window/dock.png";
+    private const string PopOutTexture = "/Textures/_WF/UserInterface/Interface/Window/popout.png";
+    private const string DockTexture = "/Textures/_WF/UserInterface/Interface/Window/dock.png";
 
     [Dependency] private IResourceCache _cache = default!;
 

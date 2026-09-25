@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-LizardTailAquaticAnimated = Lizard Tail (Aquatic) (Animated)
 marking-LizardTailLargeAnimated = Lizard Tail (Large) (Animated)
 marking-LizardTailSnakeAnimated = Snake Tail (Animated)
@@ -38,7 +38,7 @@ marking-XenoTailSpike-xeno_spike = Tail
 marking-XenoTailSpined = Xeno Tail (Spined)
 marking-XenoTailSpined-xeno_spined = Tail
 
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-LizardTailDTigerAnimated = Lizard Tail (Dark Tiger Stripes) (Animated)
 marking-LizardTailLTigerAnimated = Lizard Tail (Light Tiger Stripes) (Animated)
 marking-LizardTailSmoothAnimated = Lizard Tail (Smooth) (Animated)

@@ -3,7 +3,7 @@ using Content.Shared._RMC14.Weapons.Ranged.Prediction;
 namespace Content.Server.Weapons.Ranged.Systems;
 
 /// <summary>
-/// Wolfgate: marks projectiles the shooter's client predicted.
+/// Marks projectiles the shooter's client predicted.
 /// </summary>
 public sealed partial class GunSystem
 {

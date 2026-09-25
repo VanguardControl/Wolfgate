@@ -1,4 +1,4 @@
-# Wolfgate: Protogen subspecies mobs, ported from HardLight.
+# WOLFGATE(Species): Protogen subspecies mobs, ported from HardLight.
 # The base Protogen mobs are NOT taken - Wolfgate has its own under _Mono, and they are
 # what existing Protogen players use.
 
@@ -61,7 +61,7 @@
   - type: ContentEye
     targetZoom: "1.125, 1.125"
     maxZoom: "1.125, 1.125"
-  - type: ActionGrant # Wolfgate: JumpAbility here does not grant its own action
+  - type: ActionGrant # WOLFGATE(Species): JumpAbility here does not grant its own action
     actions:
     - ActionGravityJump
   - type: JumpAbility
@@ -85,7 +85,7 @@
       - AnomalyHost
       - Protogen
       - Vulpkanin
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -115,7 +115,7 @@
   name: Urist McVoxster
   abstract: true
   components:
-  - type: Wagging # Wolfgate: this species has wag-capable tails but had no Wagging Tail action
+  - type: Wagging # WOLFGATE(Species): this species has wag-capable tails but had no Wagging Tail action
   - type: Icon
     sprite: _FarHorizons/Mobs/Species/Proto-Vox/parts.rsi
     state: full
@@ -157,7 +157,7 @@
   - type: Sprite # Need to redefine the whole order to draw the tail over their gas tank
     layers:
     - map: [ "enum.HumanoidVisualLayers.TailBehind" ]  # HL Modification
-    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE - anatomy anchor
+    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE(Genitals): anatomy anchor
     - map: [ "enum.HumanoidVisualLayers.Chest" ]
     - map: [ "enum.HumanoidVisualLayers.Head" ]
     - map: [ "enum.HumanoidVisualLayers.Snout" ]
@@ -177,17 +177,17 @@
     - map: [ "enum.HumanoidVisualLayers.LHand" ]
     - map: [ "enum.HumanoidVisualLayers.RHand" ]
     - map: [ "gloves" ]
-    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE - anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
+    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE(Genitals): anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
     - map: [ "shoes" ]
     - map: [ "ears" ]
     - map: [ "eyes" ]
     - map: [ "outerClothing" ]
-    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE - anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
+    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE(Genitals): anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
     - map: [ "belt" ]
     - map: [ "id" ]
     - map: [ "back" ]
     - map: [ "neck" ]
-    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # HL Modification; WOLFGATE - drawn above the neck slot so cloaks do not cover the tail
+    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # HL Modification; WOLFGATE(Genitals): drawn above the neck slot so cloaks do not cover the tail
     - map: [ "suitstorage" ]
     - map: [ "enum.HumanoidVisualLayers.FacialHair" ]
     - map: [ "enum.HumanoidVisualLayers.Hair" ]
@@ -279,7 +279,7 @@
       - AnomalyHost
       - Protogen
       - Vox
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -354,7 +354,7 @@
     sprite: _FarHorizons/Mobs/Species/Proto-Thaven/parts.rsi
     state: full
   - type: ThavenMoodsBound
-  - type: UserInterface # WOLFGATE - the moods action opens this key; it had been registered on Proto-Kin instead
+  - type: UserInterface # WOLFGATE(Species): the moods action opens this key; it had been registered on Proto-Kin instead
     interfaces:
       enum.InstrumentUiKey.Key:
         type: InstrumentBoundUserInterface
@@ -434,7 +434,7 @@
       - AnomalyHost
       - Protogen
       - Thaven
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -512,7 +512,7 @@
     requiredLegs: 2
   - type: Storage
     clickInsert: false
-    openOnActivate: false # Wolfgate: matches MobSlimePerson
+    openOnActivate: false # WOLFGATE(Species): matches MobSlimePerson
     grid:
     - 0,0,1,2
     maxItemSize: Large
@@ -599,7 +599,7 @@
       - AnomalyHost
       - Protogen
       - SlimePerson
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: MobHumanDummy
@@ -802,7 +802,7 @@
         - AnomalyHost
         - Protogen
         - Shadekin
-        - Humanoid # Wolfgate: Tag replaces rather than merges
+        - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   save: false
@@ -822,7 +822,7 @@
   id: BaseMobProtoResomi
   abstract: true
   components:
-  - type: ActionGrant # Wolfgate: JumpAbility here does not grant its own action
+  - type: ActionGrant # WOLFGATE(Species): JumpAbility here does not grant its own action
     actions:
     - ActionGravityJump
   - type: JumpAbility
@@ -836,7 +836,7 @@
   - type: Sprite # Need to redefine the whole order to draw the tail over their gas tank
     layers:
     - map: [ "enum.HumanoidVisualLayers.TailBehind" ]  # HL Modification
-    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE - anatomy anchor
+    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE(Genitals): anatomy anchor
     - map: [ "enum.HumanoidVisualLayers.Chest" ]
     - map: [ "enum.HumanoidVisualLayers.Head" ]
     - map: [ "enum.HumanoidVisualLayers.Snout" ]
@@ -856,17 +856,17 @@
     - map: [ "enum.HumanoidVisualLayers.LHand" ]
     - map: [ "enum.HumanoidVisualLayers.RHand" ]
     - map: [ "gloves" ]
-    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE - anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
+    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE(Genitals): anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
     - map: [ "shoes" ]
     - map: [ "ears" ]
     - map: [ "eyes" ]
     - map: [ "outerClothing" ]
-    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE - anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
+    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE(Genitals): anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
     - map: [ "belt" ]
     - map: [ "id" ]
     - map: [ "back" ]
     - map: [ "neck" ]
-    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # HL Modification; WOLFGATE - drawn above the neck slot so cloaks do not cover the tail
+    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # HL Modification; WOLFGATE(Genitals): drawn above the neck slot so cloaks do not cover the tail
     - map: [ "suitstorage" ]
     - map: [ "enum.HumanoidVisualLayers.FacialHair" ]
     - map: [ "enum.HumanoidVisualLayers.Hair" ]
@@ -887,7 +887,7 @@
       state: "creampie_vox" # Not default
       visible: false
   - type: DamageVisuals
-    thresholds: [ 25, 50, 75, 100 ] # Wolfgate: matches the _Moffstation sheets
+    thresholds: [ 25, 50, 75, 100 ] # WOLFGATE(Species): matches the _Moffstation sheets
     targetLayers:
     - "enum.HumanoidVisualLayers.Chest"
     - "enum.HumanoidVisualLayers.Head"
@@ -1101,9 +1101,9 @@
     - AnomalyHost
     - Resomi
     - Protogen
-    - Humanoid # Wolfgate: Tag replaces rather than merges
+    - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
   - type: NightVision
-    action: ActionToggleNightVision # WOLFGATE - night vision starts disabled, so it needs a way to turn it on
+    action: ActionToggleNightVision # WOLFGATE(Species): night vision starts disabled, so it needs a way to turn it on
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -1248,7 +1248,7 @@
   id: BaseMobProtoReptile
   abstract: true
   components:
-  - type: Wagging # Wolfgate: this species has wag-capable tails but had no Wagging Tail action
+  - type: Wagging # WOLFGATE(Species): this species has wag-capable tails but had no Wagging Tail action
   - type: HumanoidAppearance
     species: ProtoReptile
     hideLayersOnEquip:
@@ -1334,7 +1334,7 @@
       - AnomalyHost
       - Protogen
       - Reptilian
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -1452,8 +1452,8 @@
     noRot: true
     drawdepth: Mobs
     layers:
-    - map: [ "enum.HumanoidVisualLayers.TailBehind" ] # WOLFGATE - split tail layers ported from HardLight/Floof
-    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE - anatomy anchor
+    - map: [ "enum.HumanoidVisualLayers.TailBehind" ] # WOLFGATE(Genitals): split tail layers ported from HardLight/Floof
+    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE(Genitals): anatomy anchor
     - map: [ "enum.HumanoidVisualLayers.Chest" ]
     - map: [ "enum.HumanoidVisualLayers.Head" ]
     - map: [ "enum.HumanoidVisualLayers.Snout" ]
@@ -1462,23 +1462,23 @@
     - map: [ "enum.HumanoidVisualLayers.LArm" ]
     - map: [ "enum.HumanoidVisualLayers.RLeg" ]
     - map: [ "enum.HumanoidVisualLayers.LLeg" ]
-    - map: [ "enum.HumanoidVisualLayers.Genital" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.Breasts" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.UndergarmentTop" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.Penis" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.UndergarmentBottom" ] # WOLFGATE - underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.Genital" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.Breasts" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.UndergarmentTop" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.Penis" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.UndergarmentBottom" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
     - map: ["jumpsuit"]
     - map: ["enum.HumanoidVisualLayers.LFoot"]
     - map: ["enum.HumanoidVisualLayers.RFoot"]
     - map: ["enum.HumanoidVisualLayers.LHand"]
     - map: ["enum.HumanoidVisualLayers.RHand"]
     - map: [ "gloves" ]
-    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE - anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
+    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE(Genitals): anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
     - map: [ "shoes" ]
     - map: [ "ears" ]
     - map: [ "id" ] # Mono - move from between belt and back
     - map: [ "outerClothing" ] # mono - i hate you upstream
-    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE - anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
+    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE(Genitals): anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
     - map: [ "eyes" ]
     - map: [ "belt" ]
     - map: [ "back" ]
@@ -1493,8 +1493,8 @@
     - map: [ "neck" ]
     - map: [ "neck2" ]
     - map: [ "neck3" ]
-    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # WOLFGATE - drawn above the neck slots so cloaks do not cover the tail
-    - map: [ "enum.HumanoidVisualLayers.Tail" ] # WOLFGATE - drawn above the neck slots so cloaks do not cover the tail
+    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # WOLFGATE(Genitals): drawn above the neck slots so cloaks do not cover the tail
+    - map: [ "enum.HumanoidVisualLayers.Tail" ] # WOLFGATE(Genitals): drawn above the neck slots so cloaks do not cover the tail
     - map: [ "helmetcover" ]
     - map: [ "helmetattachment" ]
     - map: [ "pocket1" ]
@@ -1571,7 +1571,7 @@
       - AnomalyHost
       - Protogen
       - Moth
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -1695,7 +1695,7 @@
       - AnomalyHost
       - Protogen
       - Human
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -1757,7 +1757,7 @@
       Brute:
         sprite: Mobs/Effects/brute_damage.rsi
         color: "#7a8bf2"
-      Burn: # Wolfgate: re-added, a Brute-only dict replaces the inherited pair
+      Burn: # WOLFGATE(Species): re-added, a Brute-only dict replaces the inherited pair
         sprite: Mobs/Effects/burn_damage.rsi
   - type: MeleeWeapon
     soundHit:
@@ -1781,7 +1781,7 @@
     - AnomalyHost
     - Felionoid
     - Protogen
-    - Humanoid # Wolfgate: Tag replaces rather than merges
+    - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
   - type: Fixtures
     fixtures:
       fix1:
@@ -1950,7 +1950,7 @@
       - AnomalyHost
       - Protogen
       - Dwarf
-      - Humanoid # Wolfgate: Tag replaces rather than merges
+      - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
 
 - type: entity
   parent: BaseSpeciesDummy
@@ -1983,7 +1983,7 @@
     - AnomalyHost
     - Diona
     - Protogen
-    - Humanoid # Wolfgate: Tag replaces rather than merges
+    - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
   - type: HumanoidAppearance
     hideLayersOnEquip:
     - Hair
@@ -2115,7 +2115,7 @@
   id: BaseMobProtoAvali
   abstract: true
   components:
-    - type: Wagging # Wolfgate: this species has wag-capable tails but had no Wagging Tail action
+    - type: Wagging # WOLFGATE(Species): this species has wag-capable tails but had no Wagging Tail action
     - type: Tag
       tags:
         - CanPilot
@@ -2124,7 +2124,7 @@
         - AnomalyHost
         - Avali
         - Protogen
-        - Humanoid # Wolfgate: Tag replaces rather than merges
+        - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
     - type: HumanoidAppearance
       species: ProtoAvali
       hideLayersOnEquip:
@@ -2137,7 +2137,7 @@
     - type: Sprite
       layers:
       - map: [ "enum.HumanoidVisualLayers.TailBehind" ]  # HL Modification
-      - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE - anatomy anchor
+      - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE(Genitals): anatomy anchor
       - map: [ "enum.HumanoidVisualLayers.Chest" ]
       - map: [ "enum.HumanoidVisualLayers.Head" ]
       - map: [ "enum.HumanoidVisualLayers.Snout" ]
@@ -2157,16 +2157,16 @@
       - map: ["enum.HumanoidVisualLayers.LHand"]
       - map: ["enum.HumanoidVisualLayers.RHand"]
       - map: [ "gloves" ]
-      - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE - anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
+      - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE(Genitals): anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
       - map: [ "shoes" ]
       - map: [ "outerClothing" ]
-      - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE - anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
+      - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE(Genitals): anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
       - map: [ "belt" ]
       - map: [ "id" ]
       - map: [ "back" ]
       - map: [ "neck" ]
-      - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # HL Modification; WOLFGATE - drawn above the neck slot so cloaks do not cover the tail
-      - map: [ "enum.HumanoidVisualLayers.Tail" ] # WOLFGATE - drawn above the neck slots so cloaks do not cover the tail
+      - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # HL Modification; WOLFGATE(Genitals): drawn above the neck slot so cloaks do not cover the tail
+      - map: [ "enum.HumanoidVisualLayers.Tail" ] # WOLFGATE(Genitals): drawn above the neck slots so cloaks do not cover the tail
       - map: [ "enum.HumanoidVisualLayers.FacialHair" ]
       - map: [ "enum.HumanoidVisualLayers.Hair" ]
       - map: [ "enum.HumanoidVisualLayers.HeadSide" ]
@@ -2366,7 +2366,7 @@
     - AnomalyHost
     - Arachnid
     - Protogen
-    - Humanoid # Wolfgate: Tag replaces rather than merges
+    - Humanoid # WOLFGATE(Species): Tag replaces rather than merges
   - type: Butcherable
     butcheringType: Spike
     spawned:
@@ -2410,8 +2410,8 @@
       Unsexed: ProtoArachnidMSounds
   - type: Sprite
     layers:
-    - map: [ "enum.HumanoidVisualLayers.TailBehind" ] # WOLFGATE - split tail layers ported from HardLight/Floof
-    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE - anatomy anchor
+    - map: [ "enum.HumanoidVisualLayers.TailBehind" ] # WOLFGATE(Genitals): split tail layers ported from HardLight/Floof
+    - map: [ "enum.GenitalVisualLayers.Behind" ] # WOLFGATE(Genitals): anatomy anchor
     - map: [ "enum.HumanoidVisualLayers.Chest" ]
     - map: [ "enum.HumanoidVisualLayers.Head" ]
     - map: [ "enum.HumanoidVisualLayers.Snout" ]
@@ -2420,23 +2420,23 @@
     - map: [ "enum.HumanoidVisualLayers.LArm" ]
     - map: [ "enum.HumanoidVisualLayers.RLeg" ]
     - map: [ "enum.HumanoidVisualLayers.LLeg" ]
-    - map: [ "enum.HumanoidVisualLayers.Genital" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.Breasts" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.UndergarmentTop" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.Penis" ] # WOLFGATE - underwear/genital layers ported from HardLight
-    - map: [ "enum.HumanoidVisualLayers.UndergarmentBottom" ] # WOLFGATE - underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.Genital" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.Breasts" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.UndergarmentTop" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.Penis" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
+    - map: [ "enum.HumanoidVisualLayers.UndergarmentBottom" ] # WOLFGATE(Genitals): underwear/genital layers ported from HardLight
     - map: ["jumpsuit"]
     - map: ["enum.HumanoidVisualLayers.LFoot"]
     - map: ["enum.HumanoidVisualLayers.RFoot"]
     - map: ["enum.HumanoidVisualLayers.LHand"]
     - map: ["enum.HumanoidVisualLayers.RHand"]
     - map: [ "gloves" ]
-    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE - anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
+    - map: [ "enum.GenitalVisualLayers.Under" ] # WOLFGATE(Genitals): anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
     - map: [ "shoes" ]
     - map: [ "ears" ]
     - map: [ "id" ] # Mono - move from between belt and back
     - map: [ "outerClothing" ] # mono - i hate you upstream
-    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE - anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
+    - map: [ "enum.GenitalVisualLayers.Over" ] # WOLFGATE(Genitals): anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
     - map: [ "eyes" ]
     - map: [ "belt" ]
     - map: [ "back" ]
@@ -2451,8 +2451,8 @@
     - map: [ "neck" ]
     - map: [ "neck2" ]
     - map: [ "neck3" ]
-    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # WOLFGATE - drawn above the neck slots so cloaks do not cover the tail
-    - map: [ "enum.HumanoidVisualLayers.Tail" ] # WOLFGATE - drawn above the neck slots so cloaks do not cover the tail
+    - map: [ "enum.HumanoidVisualLayers.TailOversuit" ] # WOLFGATE(Genitals): drawn above the neck slots so cloaks do not cover the tail
+    - map: [ "enum.HumanoidVisualLayers.Tail" ] # WOLFGATE(Genitals): drawn above the neck slots so cloaks do not cover the tail
     - map: [ "helmetcover" ]
     - map: [ "helmetattachment" ]
     - map: [ "pocket1" ]

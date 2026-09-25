@@ -23,6 +23,7 @@ public sealed partial class EmotesMenu : RadialMenu
 
     public event Action<ProtoId<EmotePrototype>>? OnPlayEmote;
 
+    // WOLFGATE(Species) START: matches server ChatSystem.AllowedToUseEmote order (granted bypasses lists)
     /// <summary>
     /// Whether the player may use an emote, by the same rule the server applies in
     /// ChatSystem.AllowedToUseEmote: a granted emote bypasses both lists, otherwise the lists decide and
@@ -40,6 +41,7 @@ public sealed partial class EmotesMenu : RadialMenu
 
         return emote.Available;
     }
+    // WOLFGATE END
 
     public EmotesMenu()
     {
@@ -52,19 +54,21 @@ public sealed partial class EmotesMenu : RadialMenu
         var main = FindControl<RadialContainer>("Main");
 
         var emotes = _prototypeManager.EnumeratePrototypes<EmotePrototype>();
-        var player = _playerManager.LocalSession?.AttachedEntity;
+        var player = _playerManager.LocalSession?.AttachedEntity; // WOLFGATE(Species): hoisted out of the loop
         foreach (var emote in emotes)
         {
+            // WOLFGATE(Species) START: emote filter rewritten to match the server
             // An emote with no trigger words cannot be spoken, so it has nothing to show.
             if (emote.Category == EmoteCategory.Invalid || emote.ChatTriggers.Count == 0)
                 continue;
 
-            // WOLFGATE: was testing the whitelist before AllowedEmotes, the opposite of the server. Every
+            // Was testing the whitelist before AllowedEmotes, the opposite of the server. Every
             // emote a species is granted through its Speech component while the emote's own whitelist
             // rejects it - Synth and all fourteen Protogen chassis with Beep, Ping, Buzz, Chime, Honk,
             // Whirr - was typeable but never appeared here.
             if (player is not { Valid: true } playerUid || !CanUseEmote(playerUid, emote, whitelistSystem))
                 continue;
+            // WOLFGATE END
 
             var parent = FindControl<RadialContainer>(emote.Category.ToString());
 

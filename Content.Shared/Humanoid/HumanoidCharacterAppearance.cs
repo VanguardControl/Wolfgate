@@ -219,9 +219,9 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         var proto = IoCManager.Resolve<IPrototypeManager>();
         var markingManager = IoCManager.Resolve<MarkingManager>();
 
-        // WOLFGATE: checked against the species, not just the global list. Hair is stored outside the
-        // marking set, so switching to a species that cannot wear it used to leave it on the character
-        // with no picker to remove it.
+        // WOLFGATE(Humanoid) START: species-aware hair validation
+        // Hair is stored outside the marking set, so switching to a species that cannot wear it used to leave it
+        // on the character with no picker to remove it.
         if (!markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.Hair, species).ContainsKey(hairStyleId))
         {
             hairStyleId = HairStyles.DefaultHairStyle;
@@ -231,6 +231,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         {
             facialHairStyleId = HairStyles.DefaultFacialHairStyle;
         }
+        // WOLFGATE END
 
         var markingSet = new MarkingSet();
         var skinColor = appearance.SkinColor;
@@ -244,11 +245,12 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
                 skinColor = Humanoid.SkinColor.ValidSkinTone(speciesProto.SkinColoration, skinColor);
             }
 
-            // WOLFGATE - ported from HardLight/Starlight: constrain eye colour per species.
+            // WOLFGATE(Species) START: per-species eye colour, ported from HardLight/Starlight
             if (!Humanoid.EyeColor.VerifyEyeColor(speciesProto.EyeColoration, eyeColor))
             {
                 eyeColor = Humanoid.EyeColor.ValidEyeColor(speciesProto.EyeColoration, eyeColor);
             }
+            // WOLFGATE END
 
             markingSet.EnsureSpecies(species, skinColor, markingManager);
             markingSet.EnsureSexes(sex, markingManager);

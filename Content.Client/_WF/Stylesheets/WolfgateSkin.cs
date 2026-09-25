@@ -5,7 +5,7 @@ namespace Content.Client._WF.Stylesheets;
 /// <summary>
 /// Everything that differs between two Wolfgate looks: palette, texture set, HUD theme and type. The rules in
 /// <see cref="StyleWolfgate"/> are shared; a skin only feeds them. Keep each palette in sync with the matching
-/// entry in Tools/_WF/WolfgateUiTextures/generate_textures.py.
+/// entry in Tools/_WF/Stylesheets/WolfgateUiTextures/generate_textures.py.
 /// </summary>
 public sealed class WolfgateSkin
 {
@@ -81,8 +81,8 @@ public static class WolfgateSkins
     {
         Id = "Wolfgate",
         Name = "wf-ui-style-wolfgate",
-        TexturePath = "/Textures/_WF/Interface/Wolfgate/Style/",
-        HudTheme = "WolfgateTheme",
+        TexturePath = "/Textures/_WF/Stylesheets/Interface/Wolfgate/Style/",
+        HudTheme = "WFTheme",
         DisplayFonts = new[] { "/Fonts/Iceberg/Iceberg-Regular.ttf" }.Concat(NotoFallback).ToArray(),
         MenuFonts = new[] { "/Fonts/Iceberg/Iceberg-Regular.ttf" }.Concat(NotoFallback).ToArray(),
         MonoFonts = MonoStack,
@@ -132,8 +132,8 @@ public static class WolfgateSkins
     {
         Id = "WolfgateRetro",
         Name = "wf-ui-style-retro",
-        TexturePath = "/Textures/_WF/Interface/WolfgateRetro/Style/",
-        HudTheme = "WolfgateRetroTheme",
+        TexturePath = "/Textures/_WF/Stylesheets/Interface/WolfgateRetro/Style/",
+        HudTheme = "WFRetroTheme",
         DisplayFonts = new[] { "/Fonts/Boxfont-round/Boxfont Round.ttf" }.Concat(NotoFallback).ToArray(),
         MenuFonts = MonoStack,
         MonoFonts = MonoStack,

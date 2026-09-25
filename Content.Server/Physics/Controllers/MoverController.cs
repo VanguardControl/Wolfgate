@@ -30,8 +30,8 @@ public sealed partial class MoverController : SharedMoverController
 
     private Dictionary<EntityUid, (ShuttleComponent, List<(EntityUid, PilotComponent, InputMoverComponent, TransformComponent)>)> _shuttlePilots = new();
 
-    // WOLFGATE: Propulsion queued by the ordinary helm path this tick. Late station keeping can
-    // replace its braking after tractor recoil without doubling the same engine budget.
+    // WOLFGATE(TractorBeam): propulsion queued by the ordinary helm path this tick
+    // Late station keeping can replace its braking after tractor recoil without doubling the same engine budget.
     private readonly Dictionary<EntityUid, (Vector2 LinearInput, float AngularInput, Vector2 Force, float Torque)> _shuttlePropulsion = new();
 
     [Dependency] private EntityQuery<ActiveInputMoverComponent> _activeQuery = default!;
@@ -474,7 +474,7 @@ public sealed partial class MoverController : SharedMoverController
 
     private void HandleShuttleMovement(float frameTime)
     {
-        _shuttlePropulsion.Clear(); // WOLFGATE
+        _shuttlePropulsion.Clear(); // WOLFGATE(TractorBeam)
         var shuttleQuery = EntityQueryEnumerator<ShuttleComponent, PilotedShuttleComponent, PhysicsComponent>();
         while (shuttleQuery.MoveNext(out var uid, out var shuttle, out var piloted, out var body))
         {
@@ -516,7 +516,7 @@ public sealed partial class MoverController : SharedMoverController
             if (count == 0)
             {
                 _thruster.DisableLinearThrusters(shuttle);
-                _thruster.SetAngularThrust(shuttle, false); // WOLFGATE
+                _thruster.SetAngularThrust(shuttle, false); // WOLFGATE(TractorBeam)
                 PhysicsSystem.SetSleepingAllowed(uid, body, true);
                 shuttle.AngularMultiplier = shuttle.AccelerationMultiplier = 1f;
                 continue;
@@ -542,19 +542,19 @@ public sealed partial class MoverController : SharedMoverController
             if (setMaxVel != null)
                 setMaxVel /= count;
 
-            var linearBrakeInput = brakeInput; // WOLFGATE
-            var angularBrakeInput = brakeInput; // WOLFGATE
+            var linearBrakeInput = brakeInput; // WOLFGATE(TractorBeam)
+            var angularBrakeInput = brakeInput; // WOLFGATE(TractorBeam)
             shuttle.AngularMultiplier = angularMul;
             shuttle.AccelerationMultiplier = accelMul;
 
-            var forceBefore = body.Force; // WOLFGATE
-            var torqueBefore = body.Torque; // WOLFGATE
+            var forceBefore = body.Force; // WOLFGATE(TractorBeam)
+            var torqueBefore = body.Torque; // WOLFGATE(TractorBeam)
 
             var shuttleNorthAngle = _transform.GetWorldRotation(uid);
 
             var xform = Transform(uid);
 
-            // WOLFGATE START: Track linear/angular braking and show the correct counterthrust directions.
+            // WOLFGATE(TractorBeam) START: Track linear/angular braking and show the correct counterthrust directions.
             // handle movement: brake
             if (linearBrakeInput > 0f || angularBrakeInput > 0f)
             {
@@ -646,7 +646,7 @@ public sealed partial class MoverController : SharedMoverController
             // WOLFGATE END
             if (linearInput.Length().Equals(0f))
             {
-                if (linearBrakeInput.Equals(0f)) // WOLFGATE
+                if (linearBrakeInput.Equals(0f)) // WOLFGATE(TractorBeam)
                     _thruster.DisableLinearThrusters(shuttle);
             }
             else
@@ -704,7 +704,7 @@ public sealed partial class MoverController : SharedMoverController
 
             if (MathHelper.CloseTo(angularInput, 0f))
             {
-                if (angularBrakeInput <= 0f) // WOLFGATE
+                if (angularBrakeInput <= 0f) // WOLFGATE(TractorBeam)
                     _thruster.SetAngularThrust(shuttle, false);
             }
             else
@@ -726,11 +726,11 @@ public sealed partial class MoverController : SharedMoverController
                 }
             }
 
-            _shuttlePropulsion[uid] = (linearInput, angularInput, body.Force - forceBefore, body.Torque - torqueBefore); // WOLFGATE
+            _shuttlePropulsion[uid] = (linearInput, angularInput, body.Force - forceBefore, body.Torque - torqueBefore); // WOLFGATE(TractorBeam)
         }
     }
 
-    // WOLFGATE START: Powered station keeping after tractor recoil.
+    // WOLFGATE(TractorBeam) START: Powered station keeping after tractor recoil.
     /// <summary>
     /// Recalculate normal powered braking after tractor impulses, including forces still
     /// queued for this physics step. Manual steering retains control of each axis and any

@@ -1,6 +1,6 @@
 # 2 steel + 1 rod, welder to finish. Deconstruct: welder then wrench, returns the materials.
 - type: constructionGraph
-  id: TetherAnchorEye
+  id: WFTetherAnchorEye
   start: start
   graph:
   - node: start
@@ -15,7 +15,7 @@
         doAfter: 3
 
   - node: eye
-    entity: TetherAnchorEye
+    entity: WFTetherAnchorEye
     edges:
     - to: start
       completed:

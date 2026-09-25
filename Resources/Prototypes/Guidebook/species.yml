@@ -13,15 +13,15 @@
   - Vox
   - Goblin # Frontier
   - Vulpkanin # DeltaV
-  - Canine # Wolfgate
+  - WFCanine # WOLFGATE(Species)
   - Harpy # DeltaV
   - Felinid # DeltaV
-  - Felionoid # Wolfgate: ported from HardLight/Starlight
-  - Avali # Wolfgate: ported from HardLight/Starlight
-  - Skrell # Wolfgate: ported from HardLight
-  - Shadekin # Wolfgate: ported from HardLight/Starlight
-  - Thaven # Wolfgate: ported from HardLight/Impstation
-  - Synth # Wolfgate: ported from HardLight
+  - Felionoid # WOLFGATE(Species): ported from HardLight/Starlight
+  - Avali # WOLFGATE(Species): ported from HardLight/Starlight
+  - Skrell # WOLFGATE(Species): ported from HardLight
+  - Shadekin # WOLFGATE(Species): ported from HardLight/Starlight
+  - Thaven # WOLFGATE(Species): ported from HardLight/Impstation
+  - Synth # WOLFGATE(Species): ported from HardLight
   - Oni # DeltaV
   - Chitinid # DeltaV
   - Resomi # Floof
@@ -82,7 +82,8 @@
   id: Protogen
   name: species-name-protogen
   text: "/ServerInfo/Guidebook/Mobs/Protogen.xml"
-  children: # Wolfgate: the 14 subspecies ported from HardLight
+  # WOLFGATE(Species) START: the 14 subspecies ported from HardLight
+  children:
   - ProtoVulp
   - ProtoVox
   - ProtoThaven
@@ -97,6 +98,7 @@
   - ProtoDionae
   - ProtoAvali
   - ProtoArachnid
+  # WOLFGATE END
 
 - type: guideEntry
   id: IPC
@@ -112,34 +114,3 @@
   id: Hydrakin
   name: species-name-hydrakin
   text: "/ServerInfo/Guidebook/Mobs/Hydrakin.xml"
-
-# Wolfgate: ported from HardLight
-- type: guideEntry
-  id: Felionoid
-  name: species-name-felionoid
-  text: "/ServerInfo/_StarLight/Guidebook/Mobs/Felionoid.xml"
-
-- type: guideEntry
-  id: Avali
-  name: species-name-avali
-  text: "/ServerInfo/Guidebook/Mobs/Avali.xml"
-
-- type: guideEntry
-  id: Skrell
-  name: species-name-skrell
-  text: "/ServerInfo/Guidebook/Mobs/Skrell.xml"
-
-- type: guideEntry
-  id: Shadekin
-  name: species-name-shadekin
-  text: "/ServerInfo/Guidebook/Mobs/Shadekin.xml"
-
-- type: guideEntry
-  id: Thaven
-  name: species-name-thaven
-  text: "/ServerInfo/_Impstation/Guidebook/Mobs/Thaven.xml"
-
-- type: guideEntry
-  id: Synth
-  name: species-name-synth
-  text: "/ServerInfo/_HL/Guidebook/Mobs/Synth.xml"

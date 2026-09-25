@@ -24,16 +24,16 @@ public sealed class TetherContentTest
 {
     private static readonly string[] CoilEntities =
     {
-        "RopeHempCoil", "RopeHempCoil1",
-        "RopeSyntheticCoil", "RopeSyntheticCoil1",
-        "RopeBungeeCoil", "RopeBungeeCoil1",
-        "RopeSteelCableCoil", "RopeSteelCableCoil1",
-        "RopeTowCableCoil", "RopeTowCableCoil1",
+        "WFRopeHempCoil", "WFRopeHempCoil1",
+        "WFRopeSyntheticCoil", "WFRopeSyntheticCoil1",
+        "WFRopeBungeeCoil", "WFRopeBungeeCoil1",
+        "WFRopeSteelCableCoil", "WFRopeSteelCableCoil1",
+        "WFRopeTowCableCoil", "WFRopeTowCableCoil1",
     };
 
     private static readonly string[] RopeTypes =
     {
-        "RopeHemp", "RopeSynthetic", "RopeBungee", "RopeSteelCable", "RopeTowCable",
+        "WFRopeHemp", "WFRopeSynthetic", "WFRopeBungee", "WFRopeSteelCable", "WFRopeTowCable",
     };
 
     [Test]
@@ -61,14 +61,14 @@ public sealed class TetherContentTest
                 entities.DeleteEntity(uid);
             }
 
-            var eye = entities.SpawnEntity("TetherAnchorEye", map.GridCoords);
-            Assert.That(entities.Deleted(eye), Is.False, "TetherAnchorEye failed to spawn.");
+            var eye = entities.SpawnEntity("WFTetherAnchorEye", map.GridCoords);
+            Assert.That(entities.Deleted(eye), Is.False, "WFTetherAnchorEye failed to spawn.");
             Assert.That(entities.HasComponent<RopeAttachPointComponent>(eye), Is.True);
             Assert.That(entities.GetComponent<RopeAttachPointComponent>(eye).MaxRopes, Is.EqualTo(2));
             entities.DeleteEntity(eye);
 
-            var installer = entities.SpawnEntity("TetherInstaller", map.GridCoords);
-            Assert.That(entities.Deleted(installer), Is.False, "TetherInstaller failed to spawn.");
+            var installer = entities.SpawnEntity("WFTetherInstaller", map.GridCoords);
+            Assert.That(entities.Deleted(installer), Is.False, "WFTetherInstaller failed to spawn.");
             Assert.That(entities.HasComponent<TetherInstallerComponent>(installer), Is.True);
             Assert.That(entities.HasComponent<MaterialStorageComponent>(installer), Is.True);
             entities.DeleteEntity(installer);
@@ -99,7 +99,7 @@ public sealed class TetherContentTest
             entities.EnsureComponent<HandsComponent>(user);
             entities.EnsureComponent<DoAfterComponent>(user);
             entities.System<SharedHandsSystem>().AddHand(user, "hand", HandLocation.Right);
-            installer = entities.SpawnEntity("TetherInstaller", origin);
+            installer = entities.SpawnEntity("WFTetherInstaller", origin);
             Assert.That(materials.TryChangeMaterialAmount(installer, "Steel", 400), Is.True,
                 "Test setup must be able to load steel into the installer.");
 
@@ -122,7 +122,7 @@ public sealed class TetherContentTest
             var query = entities.EntityQueryEnumerator<RopeAttachPointComponent, TransformComponent>();
             while (query.MoveNext(out var uid, out _, out var xform))
             {
-                if (entities.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID != "TetherAnchorEye")
+                if (entities.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID != "WFTetherAnchorEye")
                     continue;
 
                 var pos = entities.System<SharedTransformSystem>().ToMapCoordinates(xform.Coordinates);
@@ -149,11 +149,11 @@ public sealed class TetherContentTest
 
         var coilByType = new Dictionary<string, string>
         {
-            ["RopeHemp"] = "RopeHempCoil",
-            ["RopeSynthetic"] = "RopeSyntheticCoil",
-            ["RopeBungee"] = "RopeBungeeCoil",
-            ["RopeSteelCable"] = "RopeSteelCableCoil",
-            ["RopeTowCable"] = "RopeTowCableCoil",
+            ["WFRopeHemp"] = "WFRopeHempCoil",
+            ["WFRopeSynthetic"] = "WFRopeSyntheticCoil",
+            ["WFRopeBungee"] = "WFRopeBungeeCoil",
+            ["WFRopeSteelCable"] = "WFRopeSteelCableCoil",
+            ["WFRopeTowCable"] = "WFRopeTowCableCoil",
         };
 
         await server.WaitAssertion(() =>
@@ -163,8 +163,8 @@ public sealed class TetherContentTest
 
             foreach (var (ropeType, coilId) in coilByType)
             {
-                var pointA = entities.SpawnEntity("TetherAnchorEye", new EntityCoordinates(grid, new Vector2(2.5f, 2.5f)));
-                var pointB = entities.SpawnEntity("TetherAnchorEye", new EntityCoordinates(grid, new Vector2(6.5f, 2.5f)));
+                var pointA = entities.SpawnEntity("WFTetherAnchorEye", new EntityCoordinates(grid, new Vector2(2.5f, 2.5f)));
+                var pointB = entities.SpawnEntity("WFTetherAnchorEye", new EntityCoordinates(grid, new Vector2(6.5f, 2.5f)));
                 var user = entities.SpawnEntity(null, new EntityCoordinates(grid, new Vector2(2.5f, 2.5f)));
                 var coil = entities.SpawnEntity(coilId, new EntityCoordinates(grid, new Vector2(2.5f, 2.5f)));
 

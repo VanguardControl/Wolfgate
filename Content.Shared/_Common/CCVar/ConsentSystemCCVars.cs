@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025 Space Wizards Federation
 // SPDX-License-Identifier: MIT
-// Wolfgate: ported from HardLight. The non-con colourblind palette CVar was left out; that
-// feature does not exist here.
+// WOLFGATE(Genitals): ported from HardLight, without the non-con colourblind palette CVar
+// That feature does not exist here.
 
 namespace Content.Shared._Common.CCVar;
 

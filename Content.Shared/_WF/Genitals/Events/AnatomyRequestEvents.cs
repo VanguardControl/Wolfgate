@@ -1,6 +1,6 @@
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._WF.Genitals;
+namespace Content.Shared._WF.Genitals.Events;
 
 // Owner requests from the Anatomy panel, sent with RaisePredictiveEvent and validated on both sides.
 

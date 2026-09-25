@@ -2,6 +2,7 @@
   id: DionaThornsHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -16,6 +17,7 @@
   id: DionaThornsBody
   bodyPart: Chest
   markingCategory: Chest
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -30,6 +32,7 @@
   id: DionaFlowersHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -44,6 +47,7 @@
   id: DionaFlowersBody
   bodyPart: Chest
   markingCategory: Chest
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -58,6 +62,7 @@
   id: DionaLeafCover
   bodyPart: Chest
   markingCategory: Chest
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -71,6 +76,7 @@
   id: DionaBloomHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -85,6 +91,7 @@
   id: DionaBracketHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -99,6 +106,7 @@
   id: DionaBrushHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -112,6 +120,7 @@
   id: DionaCornflowerHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -126,6 +135,7 @@
   id: DionaFicusHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -140,6 +150,7 @@
   id: DionaGarlandHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -154,6 +165,7 @@
   id: DionaKingHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -168,6 +180,7 @@
   id: DionaLaurelHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -182,6 +195,7 @@
   id: DionaLeafyHeadTop
   bodyPart: HeadTop
   markingCategory: HeadTop
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -196,6 +210,7 @@
   id: DionaLotusHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -210,6 +225,7 @@
   id: DionaMeadowHeadTop
   bodyPart: HeadTop
   markingCategory: HeadTop
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -224,6 +240,7 @@
   id: DionaOakHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -238,6 +255,7 @@
   id: DionaPalmHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -252,6 +270,7 @@
   id: DionaRootHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -266,6 +285,7 @@
   id: DionaRoseHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -280,6 +300,7 @@
   id: DionaRoseyHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -294,6 +315,7 @@
   id: DionaShrubHeadTop
   bodyPart: HeadTop
   markingCategory: HeadTop
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -308,6 +330,7 @@
   id: DionaSpinnerHeadSide
   bodyPart: HeadSide
   markingCategory: HeadSide
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -322,6 +345,7 @@
   id: DionaSproutHeadSide
   bodyPart: HeadSide
   markingCategory: HeadSide
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -336,6 +360,7 @@
   id: DionaVineHeadTop
   bodyPart: HeadTop
   markingCategory: HeadTop
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -350,6 +375,7 @@
   id: DionaVinelHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -364,6 +390,7 @@
   id: DionaVinesHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -378,6 +405,7 @@
   id: DionaWildflowerHead
   bodyPart: Head
   markingCategory: Head
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:
@@ -392,6 +420,7 @@
   id: DionaVineOverlay
   bodyPart: LLeg
   markingCategory: Overlay
+  # WOLFGATE(Species): added ProtoDionae
   speciesRestriction: [Diona, ProtoDionae]
   coloring:
     default:

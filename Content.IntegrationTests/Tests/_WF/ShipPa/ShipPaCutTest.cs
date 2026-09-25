@@ -22,7 +22,7 @@ public sealed class ShipPaCutTest : InteractionTest
 
         await Server.WaitPost(() =>
         {
-            var speaker = SEntMan.SpawnEntity("WallmountShipPaSpeaker",
+            var speaker = SEntMan.SpawnEntity("WFWallmountShipPaSpeaker",
                 MapData.GridCoords);
             SEntMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
         });

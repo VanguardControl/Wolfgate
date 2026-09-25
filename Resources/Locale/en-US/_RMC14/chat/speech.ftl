@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight (Skrell)
+# WOLFGATE(Species): ported from HardLight (Skrell)
 chat-speech-verb-name-skrell = Skrell
 chat-speech-verb-skrell-1 = trills
 chat-speech-verb-skrell-2 = croaks

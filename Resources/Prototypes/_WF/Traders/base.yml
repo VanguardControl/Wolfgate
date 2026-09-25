@@ -1,4 +1,4 @@
-# WOLFGATE - base prototypes for NPC traders.
+# Base prototypes for NPC traders.
 
 - type: entity
   id: WFBaseTrader

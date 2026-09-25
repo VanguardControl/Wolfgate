@@ -1,30 +1,38 @@
-<p align="center"><img alt="Wolfgate" width="800" height="266" src="Resources/Textures/_WF/Logo/logo.png" /></p>
+<!-- WOLFGATE(Branding) START: rebrand from Monolith to Wolfgate -->
+<p align="center"><img alt="Wolfgate" width="800" height="266" src="Resources/Textures/_WF/Branding/Logo/logo.png" /></p>
 
 Wolfgate is a fork of [Monolith](https://github.com/Monolith-Station/Monolith), itself a fork of [Frontier Station 14](https://github.com/new-frontiers-14/frontier-station-14), running on the [Robust Toolbox](https://github.com/space-wizards/RobustToolbox) engine written in C#.
 
 This is the primary repo for Wolfgate.
 
 If you want to host or create content for Wolfgate, this is the repo you need. It contains both RobustToolbox and the content pack.
+<!-- WOLFGATE END -->
 
 ## Links
 
+<!-- WOLFGATE: dropped Discord link -->
 [Steam](https://store.steampowered.com/app/1255460/Space_Station_14/)
 
 ## Contributing
 
+<!-- WOLFGATE(Branding) START: rebrand contributing section -->
 Contributions are welcome. Wolfgate-specific code lives in `_WF` folders, and edits to upstream files are marked with `// WOLFGATE` comments so they are easy to find when merging from Monolith.
 
 We are not accepting translations on this repository.
+<!-- WOLFGATE END -->
 
 ## Building
 
+<!-- WOLFGATE START: reworded for Wolfgate build differences -->
 Refer to [the Space Wizards' guide](https://docs.spacestation14.com/en/general-development/setup/setting-up-a-development-environment.html) for setting up a development environment. Most of it applies, but Wolfgate is not upstream Space Station 14, so some details differ.
 The scripts below make the job easier.
+<!-- WOLFGATE END -->
 
 ### Build dependencies
 
 > - Git
 > - .NET SDK 10.0
+
 
 ### Windows
 
@@ -52,6 +60,7 @@ The scripts below make the job easier.
 
 ## License
 
+<!-- WOLFGATE(Branding) START: reworded license section for Wolfgate branding -->
 See the REUSE headers for detailed licensing information for each file. The work as a whole is licensed under the GNU Affero General Public License version 3.0.
 
 Licensing inherited from Monolith and Frontier:
@@ -65,3 +74,4 @@ Licensing inherited from Monolith and Frontier:
 Most assets are licensed under [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) unless stated otherwise. Assets have their license and copyright in the metadata file. [Example](https://github.com/space-wizards/space-station-14/blob/master/Resources/Textures/Objects/Tools/crowbar.rsi/meta.json).
 
 Some assets are licensed under the non-commercial [CC-BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) or similar non-commercial licenses and will need to be removed if you wish to use this project commercially.
+<!-- WOLFGATE END -->

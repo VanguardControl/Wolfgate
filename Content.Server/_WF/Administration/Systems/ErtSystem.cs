@@ -52,7 +52,7 @@ public sealed partial class ErtSystem : EntitySystem
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
-    private const string SpawnerPrototype = "WolfgateErtSpawner";
+    private const string SpawnerPrototype = "WFErtSpawner";
 
     private static readonly SoundSpecifier CallSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
 

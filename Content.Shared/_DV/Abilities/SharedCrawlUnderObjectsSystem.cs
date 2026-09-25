@@ -1,24 +1,24 @@
-using System.Numerics;
-using Content.Shared.Climbing.Events;
-using Content.Shared.IdentityManagement;
-using Content.Shared.Movement.Systems;
+using System.Numerics; // WOLFGATE(Species)
+using Content.Shared.Climbing.Events; // WOLFGATE(Species)
+using Content.Shared.IdentityManagement; // WOLFGATE(Species)
+using Content.Shared.Movement.Systems; // WOLFGATE(Species)
 using Content.Shared.Popups;
-using Content.Shared.Standing;
-using Robust.Shared.Network;
-using Robust.Shared.Physics;
-using Robust.Shared.Physics.Collision.Shapes;
-using Robust.Shared.Physics.Systems;
-using Robust.Shared.Timing;
+using Content.Shared.Standing; // WOLFGATE(Species)
+using Robust.Shared.Network; // WOLFGATE(Species)
+using Robust.Shared.Physics; // WOLFGATE(Species)
+using Robust.Shared.Physics.Collision.Shapes; // WOLFGATE(Species)
+using Robust.Shared.Physics.Systems; // WOLFGATE(Species)
+using Robust.Shared.Timing; // WOLFGATE(Species)
 
 namespace Content.Shared._DV.Abilities;
 
+// WOLFGATE(Species) START: rewritten as a shared, predicted system with HardLight's squeeze geometry
+// The Delta-V original was server-only and stripped table bits from the collision mask instead.
 /// <summary>
 /// Sneaking slows the mob down and shrinks its circle fixtures so it can squeeze past mobs and furniture.
 /// Walking through tables stays blocked; once it has climbed onto one it is drawn underneath it.
 /// Runs predicted on the client; the server stays authoritative.
 /// </summary>
-// WOLFGATE: rewritten as a shared, predicted system with HardLight's squeeze geometry. The Delta-V original was
-// server-only and stripped table bits from the collision mask instead.
 public abstract partial class SharedCrawlUnderObjectsSystem : EntitySystem
 {
     [Dependency] private SharedAppearanceSystem _appearance = default!;
@@ -41,7 +41,19 @@ public abstract partial class SharedCrawlUnderObjectsSystem : EntitySystem
         SubscribeLocalEvent<CrawlUnderObjectsComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovespeed);
         SubscribeLocalEvent<CrawlUnderObjectsComponent, DownedEvent>(OnDowned);
         SubscribeLocalEvent<CrawlUnderObjectsComponent, StoodEvent>(OnStood);
+
+        // SubscribeLocalEvent<CrawlUnderObjectsComponent, CrawlingUpdatedEvent>(OnCrawlingUpdated);
     }
+
+    // private void OnCrawlingUpdated(EntityUid uid,
+    //     CrawlUnderObjectsComponent component,
+    //     CrawlingUpdatedEvent args)
+    // {
+    //     if (args.Enabled)
+    //         _popup.PopupEntity(Loc.GetString("crawl-under-objects-toggle-on"), uid);
+    //     else
+    //         _popup.PopupEntity(Loc.GetString("crawl-under-objects-toggle-off"), uid);
+    // }
 
     private void OnStartup(Entity<CrawlUnderObjectsComponent> ent, ref ComponentStartup args)
     {
@@ -236,3 +248,4 @@ public abstract partial class SharedCrawlUnderObjectsSystem : EntitySystem
         }
     }
 }
+// WOLFGATE END

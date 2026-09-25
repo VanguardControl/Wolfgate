@@ -1,6 +1,7 @@
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
+using Content.Shared._WF.Genitals.Profile;
 
 namespace Content.Shared._WF.Genitals.Components;
 

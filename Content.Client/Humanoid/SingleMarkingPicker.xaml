@@ -3,7 +3,8 @@
               HorizontalExpand="True"
               VerticalExpand="True"
               SeparationOverride="6">
-    <!-- WOLFGATE: compact layout with a shorter list; control names unchanged. -->
+    <!-- WOLFGATE(Humanoid) START: compact layout with a shorter list (root SeparationOverride too); control names unchanged -->
+    <!-- "Slot" selection -->
     <Label Name="CategoryName" StyleClasses="CreatorFieldLabel" />
     <BoxContainer Name="SlotSelectorContainer" HorizontalExpand="True" SeparationOverride="4">
         <OptionButton Name="SlotSelector" HorizontalExpand="True" />
@@ -12,8 +13,12 @@
     </BoxContainer>
     <LineEdit Name="Search" PlaceHolder="{Loc 'markings-search'}" HorizontalExpand="True" />
 
+    <!-- Item list -->
     <BoxContainer Name="MarkingSelectorContainer" Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" SeparationOverride="6">
         <ItemList Name="MarkingList" VerticalExpand="True" MinHeight="240" />
+
+        <!-- Color sliders -->
         <BoxContainer Name="ColorSelectorContainer" Orientation="Vertical" HorizontalExpand="True" />
     </BoxContainer>
+    <!-- WOLFGATE END -->
 </BoxContainer>

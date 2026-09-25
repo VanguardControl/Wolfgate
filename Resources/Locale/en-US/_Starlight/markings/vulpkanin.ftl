@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-FoxBelly = Fox Belly
 marking-FoxBelly-vulp_belly-torso = Fox Belly
 marking-FoxEar = Fox Ear (inner)
@@ -43,6 +43,6 @@ marking-WolfTail-wolf_tail = Wolf Tail (base)
 marking-WolfTail-wolf_tail_inner = Wolf Tail (tip)
 marking-WolfTailAnimated = Wolf Tail (tip, wag)
 
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-VulpSnoutBlaze-nose = Nose
 marking-VulpSnoutPatch-nose = Nose

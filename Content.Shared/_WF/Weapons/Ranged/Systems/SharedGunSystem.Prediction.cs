@@ -11,7 +11,7 @@ using Robust.Shared.Utility;
 namespace Content.Shared.Weapons.Ranged.Systems;
 
 /// <summary>
-/// Wolfgate: links the projectiles a shooter's client predicts to the server's copies, and seeds recoil so both
+/// Links the projectiles a shooter's client predicts to the server's copies, and seeds recoil so both
 /// sides fire the same way.
 /// </summary>
 public abstract partial class SharedGunSystem

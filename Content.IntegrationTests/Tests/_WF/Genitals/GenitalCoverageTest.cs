@@ -27,7 +27,7 @@ public sealed class GenitalCoverageTest
     private const string JumpsuitSlot = "jumpsuit";
     private const string OuterSlot = "outerClothing";
 
-    private static readonly ProtoId<GenitalShapePrototype> Udders = "GenitalShapeBreastsUdders";
+    private static readonly ProtoId<GenitalShapePrototype> Udders = "WFGenitalShapeBreastsUdders";
 
     [TestPrototypes]
     private const string Prototypes = @"

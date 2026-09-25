@@ -18,6 +18,7 @@
         layer:
         - MachineLayer
   - type: Lathe
+  - type: FabricationSiloClient # WOLFGATE(Lathe): lathes link fabrication silos
   - type: MaterialStorage
     whitelist: # Frontier
       tags: # Frontier
@@ -176,7 +177,7 @@
     - NFServiceStatic # Frontier
     - MonoRestraintsStatic # Mono
     - ReportingStatic # DeltaV
-    - TetherStatic # WOLFGATE
+    - WFTetherStatic # WOLFGATE(Tether)
   - type: EmagLatheRecipes
     emagStaticPacks:
     - StaticAmmoRecipePack

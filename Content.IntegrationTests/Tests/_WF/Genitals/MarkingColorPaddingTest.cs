@@ -22,9 +22,9 @@ public sealed class MarkingColorPaddingTest
   markingCategory: Tail
   speciesRestriction: []
   sprites:
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_FRONT
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_BEHIND
 
 - type: marking
@@ -35,11 +35,11 @@ public sealed class MarkingColorPaddingTest
   colorLinks:
     shark_tail_protogen_BEHIND: tail_protogen_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_FRONT
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: shark_tail_protogen_FRONT
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: shark_tail_protogen_BEHIND
 
 - type: marking
@@ -51,11 +51,11 @@ public sealed class MarkingColorPaddingTest
     tail_protogen_BEHIND: shark_tail_protogen_FRONT
     shark_tail_protogen_FRONT: tail_protogen_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_FRONT
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: tail_protogen_BEHIND
-  - sprite: _WF/Mobs/Customization/protogen_tails.rsi
+  - sprite: _WF/Genitals/Mobs/Customization/protogen_tails.rsi
     state: shark_tail_protogen_FRONT
 ";
 

@@ -23,7 +23,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._NF.Shipyard.Systems;
 
 /// <summary>
-/// Wolfgate: lets an NPC stand in for a shipyard console, and lets a ship be copied out of the
+/// Lets an NPC stand in for a shipyard console, and lets a ship be copied out of the
 /// world and back into it. Lives in the shipyard partial because the console and deed components
 /// are access-restricted to it.
 /// </summary>

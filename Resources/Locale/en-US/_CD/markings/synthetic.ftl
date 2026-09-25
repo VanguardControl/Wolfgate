@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-LizardSnoutSynth = Synth-Lizard Faceplate
 marking-LizardSnoutSynth-synthsnout_eyes = Eyes
 marking-LizardSnoutSynth-synthsnout_frame = Base

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight - display names for the 14 Protogen subspecies.
+# WOLFGATE(Species): ported from HardLight - display names for the 14 Protogen subspecies.
 subspecies-name-protovulp = Proto-Vulpkanin
 subspecies-name-protovox = Proto-Vox
 subspecies-name-protothaven = Proto-Thaven

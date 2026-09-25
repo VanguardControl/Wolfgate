@@ -1,11 +1,14 @@
 name: Publish
 
+# WOLFGATE(Ci) START: manual-only publishing
 # Publishing is something you ask for, never something a push does. A build lands on the Robust.Cdn, which
 # tells the watchdog, and the server restarts onto it at the end of the current round - so a push to main
 # used to replace a test merged build with a plain one while nobody was looking. Run it from the Actions tab,
 # or from the SSymphony panel, which is what its Test merges page does.
+# WOLFGATE END
 on:
   workflow_dispatch:
+    # WOLFGATE(Ci) START: test merge, request id and fork id inputs
     inputs:
       test_merges:
         description: 'Pull requests to merge on top of the branch before building, comma-separated numbers. Empty builds the branch as it is.'
@@ -19,59 +22,87 @@ on:
         description: 'CDN fork id to publish under. Empty is the fork itself; a test server tracks an id of its own, such as wolfgate-test.'
         required: false
         default: ''
+    # WOLFGATE END
+  # Frontier: re-enabled autopublish bawk
 
+# WOLFGATE(Symphony) START: run name for the SSymphony panel
 # The panel finds its run by this name; a plain push keeps the workflow's own.
 run-name: ${{ inputs.request_id != '' && format('Publish {0}{1}', inputs.test_merges != '' && 'test merge ' || '', inputs.request_id) || 'Publish' }}
+# WOLFGATE END
 
-# One publish at a time and never cancelled part-way: a killed run could leave a half-registered version.
 concurrency:
   group: publish
+  # WOLFGATE(Ci): was true; a killed run could leave a half-registered version
   cancel-in-progress: false
 
+# WOLFGATE(Ci) START: artifact and pull request access
 permissions:
   contents: read
   actions: write   # to resolve the build artifact's download URL for the CDN, and delete it afterwards
   pull-requests: read   # to name the pull requests being test merged
+# WOLFGATE END
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+    # WOLFGATE(Ci) START: paramiko/lxml no longer needed by the publish script
+    # - name: Install dependencies
+    #   run: sudo apt-get install -y python3-paramiko python3-lxml
+    # WOLFGATE END
+
     - uses: actions/checkout@v4.2.2
       with:
         submodules: 'recursive'
+        # WOLFGATE(Ci) START: full history for test merges
         # A test merge needs the history a merge base lives in; a plain build does not.
         fetch-depth: ${{ inputs.test_merges == '' && 1 || 0 }}
+        # WOLFGATE END
 
+    # WOLFGATE(Ci) START: test merge step
     # Merges the requested pull requests with a merge commit each, skipping any that conflict, and stamps the
     # build with what merged (Resources/Symphony/testmerges.json, read by the Symphony hook). The merged
     # numbers also go into the version, so the CDN and the panel can name the set.
     - name: Test merge pull requests
       id: testmerge
       if: ${{ inputs.test_merges != '' }}
-      run: python3 Tools/test_merge.py "${{ inputs.test_merges }}"
+      run: python3 Tools/_WF/Ci/test_merge.py "${{ inputs.test_merges }}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-
-    - name: Setup .NET
+    # WOLFGATE END
+    - name: Setup .NET # WOLFGATE(Ci): was Setup .NET Core
       uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 10.0.x
 
-    - name: Restore
+    # WOLFGATE(Ci) START: engine tag fetch removed
+    # - name: Get Engine Tag
+    #   run: |
+    #     cd RobustToolbox
+    #     git fetch --depth=1
+    # WOLFGATE END
+
+    - name: Restore # WOLFGATE(Ci): was Install dependencies
       run: dotnet restore
 
-    - name: Build packaging tool
+    - name: Build packaging tool # WOLFGATE(Ci): was Build Packaging
       run: dotnet build Content.Packaging --configuration Release --no-restore /m
 
-    # Only the platform the server actually runs on. Add e.g. `--platform linux-x64` if a Linux host ever joins.
     - name: Package server
+      # WOLFGATE(Ci): only the platform the server runs on. Add e.g. `--platform linux-x64` if a Linux host ever joins.
       run: dotnet run --project Content.Packaging server --platform win-x64
 
     - name: Package client
       run: dotnet run --project Content.Packaging client --no-wipe-release
+
+    # WOLFGATE(Ci) START: CDN pulls a build artifact, replacing publish_multi_request.py
+    # - name: Publish version
+    #   run: Tools/publish_multi_request.py
+    #   env:
+    #     PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+    #     GITHUB_REPOSITORY: ${{ vars.GITHUB_REPOSITORY }}
 
     # The CDN pulls the build from here (Robust.Cdn "one-shot" publish), so the 360 MB client never has to be
     # uploaded through Cloudflare's 100 MB request limit. Stored uncompressed: the zips are already compressed.
@@ -101,12 +132,19 @@ jobs:
       run: gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/${{ steps.artifact.outputs.artifact-id }}"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # WOLFGATE END
 
-    # A test merge or test fork build is not a release of main, so its changelog entries are not announced.
     - name: Publish changelog (Discord)
+      # WOLFGATE(Ci): a test merge or test fork build is not a release of main, so its entries are not announced
       if: ${{ inputs.test_merges == '' && inputs.fork_id == '' }}
       continue-on-error: true
       run: Tools/actions_changelogs_since_last_run.py
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DISCORD_WEBHOOK_URL: ${{ secrets.CHANGELOG_DISCORD_WEBHOOK }}
+
+    #- name: Publish changelog (RSS)
+    #  continue-on-error: true
+    #  run: Tools/actions_changelog_rss.py
+    #  env:
+    #    CHANGELOG_RSS_KEY: ${{ secrets.CHANGELOG_RSS_KEY }}

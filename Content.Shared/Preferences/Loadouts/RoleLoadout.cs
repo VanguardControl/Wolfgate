@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Content.Shared._WF.Roles; // WOLFGATE
+using Content.Shared._WF.Roles; // WOLFGATE(Roles)
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Random;
 using Robust.Shared.Collections;
@@ -28,11 +28,10 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
     /// </summary>
     public string? EntityName;
 
-    /// <summary>
-    /// WOLFGATE: player-written job title, for roles with a custom job title prototype.
-    /// </summary>
+    // WOLFGATE(Roles) START: player-written job title, for roles with a custom job title prototype
     [DataField]
     public string? CustomJobTitle;
+    // WOLFGATE END
 
     /*
      * Loadout-specific data used for validation.
@@ -55,7 +54,7 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         }
 
         weh.EntityName = EntityName;
-        weh.CustomJobTitle = CustomJobTitle; // WOLFGATE
+        weh.CustomJobTitle = CustomJobTitle; // WOLFGATE(Roles)
 
         return weh;
     }
@@ -71,7 +70,7 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         if (!protoManager.TryIndex(Role, out var roleProto))
         {
             EntityName = null;
-            CustomJobTitle = null; // WOLFGATE
+            CustomJobTitle = null; // WOLFGATE(Roles)
             SelectedLoadouts.Clear();
             return;
         }
@@ -99,7 +98,7 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
             }
         }
 
-        CustomJobTitle = CustomJobTitleRules.Sanitize(CustomJobTitle, Role, protoManager); // WOLFGATE
+        CustomJobTitle = CustomJobTitleRules.Sanitize(CustomJobTitle, Role, protoManager); // WOLFGATE(Roles)
 
         // In some instances we might not have picked up a new group for existing data.
         foreach (var groupProto in roleProto.Groups)
@@ -471,8 +470,8 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
         if (!Role.Equals(other.Role) ||
             SelectedLoadouts.Count != other.SelectedLoadouts.Count ||
             Points != other.Points ||
-            EntityName != other.EntityName ||
-            CustomJobTitle != other.CustomJobTitle) // WOLFGATE
+            EntityName != other.EntityName || // WOLFGATE(Roles)
+            CustomJobTitle != other.CustomJobTitle) // WOLFGATE(Roles)
         {
             return false;
         }

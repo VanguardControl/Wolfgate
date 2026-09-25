@@ -1,0 +1,16 @@
+# Ported from HardLight
+- type: speechVerb
+  id: Shadowkin
+  name: chat-speech-verb-name-shadowkin
+  speechVerbStrings:
+  - chat-speech-verb-shadowkin-1
+
+# Ported from HardLight
+- type: speechVerb
+  id: Skrell
+  name: chat-speech-verb-name-skrell
+  speechVerbStrings:
+  - chat-speech-verb-skrell-1
+  - chat-speech-verb-skrell-2
+  - chat-speech-verb-skrell-3
+  - chat-speech-verb-skrell-4

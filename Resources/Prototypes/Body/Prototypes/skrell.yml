@@ -1,5 +1,5 @@
-# Wolfgate: HardLight's OrganCrescentDummy placeholders for the cybernetic_anchor and
-# dermis slots are dropped - no Wolfgate body uses those slots.
+# WOLFGATE(Species): HardLight's OrganCrescentDummy placeholders are dropped
+# No Wolfgate body uses their cybernetic_anchor and dermis slots.
 # Skrell body prototype, based on human
 - type: body
   id: Skrell

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 - type: entity
   name: raw thaven fillet
   parent: FoodMeatBase

@@ -7,13 +7,13 @@ namespace Content.Shared.Humanoid
     public enum HumanoidVisualLayers : byte
     {
         Special, // for the cat ears
-        // WOLFGATE - ported from HardLight: underwear and genital layers.
+        // WOLFGATE(Genitals) START: underwear and genital layers, ported from HardLight
         Genital,
         Penis,
         Breasts,
         UndergarmentTop,
         UndergarmentBottom,
-        // End WOLFGATE
+        // WOLFGATE END
         TailExtras,
         Tail,
         Wings, // For IPC wings porting from SimpleStation
@@ -24,11 +24,12 @@ namespace Content.Shared.Humanoid
         Snout,
         HeadSide, // side parts (i.e., frills)
         HeadTop,  // top parts (i.e., ears)
-        // WOLFGATE - ported from HardLight/Floof: split tail layers so a tail can sit behind the
-        // mob from most angles and over the suit when facing north, instead of being cookie-cut.
+        // WOLFGATE(Genitals) START: split tail layers, ported from HardLight/Floof
+        // A tail can sit behind the mob from most angles and over the suit when facing north, instead of being
+        // cookie-cut.
         TailBehind,
         TailOversuit,
-        // End WOLFGATE
+        // WOLFGATE END
         Eyes,
         RArm,
         LArm,

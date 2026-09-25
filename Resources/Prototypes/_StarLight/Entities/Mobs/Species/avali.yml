@@ -1,4 +1,4 @@
-# Wolfgate: BurnBodyBehavior here has no popupMessage field.
+# WOLFGATE(Species): BurnBodyBehavior here has no popupMessage field.
 - type: entity
   save: false
   name: Urist McAvali
@@ -8,7 +8,7 @@
   components:
     - type: LanguageKnowledge
       speaks:
-      - TauCetiBasic # Wolfgate: HardLight's GalacticCommon is TauCetiBasic here
+      - TauCetiBasic # WOLFGATE(Species): HardLight's GalacticCommon is TauCetiBasic here
       - Scratch
       understands:
       - TauCetiBasic

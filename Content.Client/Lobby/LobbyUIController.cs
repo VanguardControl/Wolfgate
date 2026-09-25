@@ -307,11 +307,13 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
         }
     }
 
+    // WOLFGATE(Humanoid) START: onContinue, so switching and creating a character reuse this prompt
     /// <summary>
-    /// WOLFGATE: asks about unsaved changes, then runs <paramref name="onContinue"/>. Used by closing the editor,
+    /// Asks about unsaved changes, then runs <paramref name="onContinue"/>. Used by closing the editor,
     /// switching character and creating one, so none of them can drop edits silently. Cancel keeps the editor.
     /// </summary>
     private void OpenSavePanel(Action onContinue)
+    // WOLFGATE END
     {
         if (_savePanel is { IsOpen: true })
             return;
@@ -320,7 +322,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
         _savePanel.SaveButton.OnPressed += _ =>
         {
-            // WOLFGATE - the editor's anatomy confirmation guards this save too; Cancel returns to the editor unsaved.
+            // WOLFGATE(Genitals) START: the editor's anatomy confirmation guards this save too; Cancel returns to the editor unsaved.
             if (_profileEditor != null && _profileEditor.AnatomyClearedOnSave())
             {
                 _savePanel.Close();
@@ -331,23 +333,23 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
                 });
                 return;
             }
-            // End WOLFGATE
+            // WOLFGATE END
 
             SaveProfile();
 
             _savePanel.Close();
 
-            onContinue();
+            onContinue(); // WOLFGATE(Humanoid): was CloseProfileEditor()
         };
 
         _savePanel.NoSaveButton.OnPressed += _ =>
         {
             _savePanel.Close();
 
-            onContinue();
+            onContinue(); // WOLFGATE(Humanoid): was CloseProfileEditor()
         };
 
-        // WOLFGATE: Cancel goes back to the editor with the edits intact.
+        // WOLFGATE(Humanoid): Cancel goes back to the editor with the edits intact.
         _savePanel.CancelButton.OnPressed += _ => _savePanel.Close();
 
         _savePanel.OpenCentered();
@@ -384,7 +386,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
             // Open the save panel if we have unsaved changes.
             if (_profileEditor.Profile != null && _profileEditor.IsDirty)
             {
-                OpenSavePanel(CloseProfileEditor);
+                OpenSavePanel(CloseProfileEditor); // WOLFGATE(Humanoid): was OpenSavePanel()
 
                 return;
             }
@@ -395,9 +397,9 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
         _profileEditor.Save += SaveProfile;
 
+        // WOLFGATE(Humanoid) START: switching used to drop unsaved edits without asking.
         _characterSetup.SelectCharacter += args =>
         {
-            // WOLFGATE: switching used to drop unsaved edits without asking.
             void Switch()
             {
                 _preferencesManager.SelectCharacter(args);
@@ -409,8 +411,9 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
             else
                 Switch();
         };
+        // WOLFGATE END
 
-        // WOLFGATE: creating a character used to drop unsaved edits without asking.
+        // WOLFGATE(Humanoid) START: creating a character used to drop unsaved edits without asking.
         _characterSetup.NewCharacter += () =>
         {
             void Create()
@@ -424,6 +427,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
             else
                 Create();
         };
+        // WOLFGATE END
 
         _characterSetup.DeleteCharacter += args =>
         {
@@ -577,7 +581,8 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
     {
         EntityUid dummyEnt;
 
-        // WOLFGATE: a character saved on a build that has a species this one does not must not throw. The picker list
+        // WOLFGATE START: unknown species falls back to the default
+        // A character saved on a build that has a species this one does not must not throw. The picker list
         // is built in one loop that ends with the create-character button, so one bad profile used to hide every
         // character after it and the button with them.
         if (humanoid != null && !_prototypeManager.HasIndex<SpeciesPrototype>(humanoid.Species))
@@ -587,7 +592,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
 
             humanoid = humanoid.WithSpecies(SharedHumanoidAppearanceSystem.DefaultSpecies);
         }
-        // End WOLFGATE
+        // WOLFGATE END
 
         EntProtoId? previewEntity = null;
         if (humanoid != null && jobClothes)

@@ -11,8 +11,8 @@ namespace Content.Shared.Weapons.Hitscan.Systems;
 public sealed partial class HitscanBasicVisualsSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
-    [Dependency] private Robust.Shared.Network.INetManager _net = default!; // WOLFGATE
-    [Dependency] private ISharedPlayerManager _player = default!; // WOLFGATE
+    [Dependency] private Robust.Shared.Network.INetManager _net = default!; // WOLFGATE(Weapons)
+    [Dependency] private ISharedPlayerManager _player = default!; // WOLFGATE(Weapons)
 
     public override void Initialize()
     {
@@ -23,10 +23,10 @@ public sealed partial class HitscanBasicVisualsSystem : EntitySystem
 
     private void OnHitscanHit(Entity<HitscanBasicVisualsComponent> hitscan, ref HitscanRaycastFiredEvent args)
     {
-        FireEffects(args.FromCoordinates, args.DistanceTried, args.ShotDirection.ToAngle(), hitscan.Comp, args.Shooter, args.Predicted); // WOLFGATE
+        FireEffects(args.FromCoordinates, args.DistanceTried, args.ShotDirection.ToAngle(), hitscan.Comp, args.Shooter, args.Predicted); // WOLFGATE(Weapons)
     }
 
-    private void FireEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, HitscanBasicVisualsComponent hitscan, EntityUid? shooter = null, bool predicted = false) // WOLFGATE
+    private void FireEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, HitscanBasicVisualsComponent hitscan, EntityUid? shooter = null, bool predicted = false) // WOLFGATE(Weapons)
     {
         if (distance == 0)
             return;
@@ -77,6 +77,7 @@ public sealed partial class HitscanBasicVisualsSystem : EntitySystem
             sprites.Add((netCoords, shotAngle.FlipPositive(), hitscan.ImpactFlash, 1f));
         }
 
+        // WOLFGATE(Weapons) START: predicted hitscan beams
         if (sprites.Count == 0)
             return;
 
@@ -85,7 +86,7 @@ public sealed partial class HitscanBasicVisualsSystem : EntitySystem
             Sprites = sprites,
         };
 
-        // WOLFGATE: on the client this only runs for a beam the shooter is predicting, so draw it here and now
+        // WOLFGATE(Weapons): on the client this only runs for a beam the shooter is predicting, so draw it here and now
         if (_net.IsClient)
         {
             RaiseLocalEvent(ev);
@@ -94,10 +95,11 @@ public sealed partial class HitscanBasicVisualsSystem : EntitySystem
 
         var filter = Filter.Pvs(fromCoordinates, entityMan: EntityManager);
 
-        // WOLFGATE: the shooter's client already drew this beam the moment they fired
+        // WOLFGATE(Weapons): the shooter's client already drew this beam the moment they fired
         if (predicted && shooter != null && _player.TryGetSessionByEntity(shooter.Value, out var session))
             filter = filter.RemovePlayer(session);
 
         RaiseNetworkEvent(ev, filter);
+        // WOLFGATE END
     }
 }

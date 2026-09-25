@@ -6,7 +6,7 @@ using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Timing;
 using Robust.Shared.Configuration;
 using Content.Client._NF.CryoSleep; // Frontier
-using Content.Client._WF.Ghost; // WOLFGATE
+using Content.Client._WF.Ghost; // WOLFGATE(Ghost)
 
 namespace Content.Client.UserInterface.Systems.Ghost.Widgets;
 
@@ -18,7 +18,7 @@ public sealed partial class GhostGui : UIWidget
 
     private TimeSpan? _respawnTime;
 
-    public GhostOrbitWindow TargetWindow { get; } // WOLFGATE: orbit menu replaces GhostTargetWindow
+    public GhostOrbitWindow TargetWindow { get; } // WOLFGATE(Ghost): orbit menu replaces GhostTargetWindow
     public GhostRespawnRulesWindow RulesWindow { get; }
     public CryosleepWakeupWindow CryosleepWakeupWindow { get; } // Frontier
 
@@ -31,7 +31,7 @@ public sealed partial class GhostGui : UIWidget
     {
         RobustXamlLoader.Load(this);
 
-        TargetWindow = new GhostOrbitWindow(); // WOLFGATE
+        TargetWindow = new GhostOrbitWindow(); // WOLFGATE(Ghost)
         RulesWindow = new GhostRespawnRulesWindow();
         CryosleepWakeupWindow = new CryosleepWakeupWindow(); // Frontier
         RulesWindow.RespawnButton.OnPressed += _ => GhostRespawnPressed?.Invoke();

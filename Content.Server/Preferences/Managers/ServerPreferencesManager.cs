@@ -83,6 +83,9 @@ namespace Content.Server.Preferences.Managers
         {
             var userId = message.MsgChannel.UserId;
 
+            // WOLFGATE START: a failed save is logged with its slot
+            // This handler is async void, so an exception here used to vanish and the client was never told its
+            // character had not saved.
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (message.Profile == null)
             {
@@ -90,8 +93,6 @@ namespace Content.Server.Preferences.Managers
                 return;
             }
 
-            // WOLFGATE: this handler is async void, so an exception here used to vanish and the client was never told
-            // its character had not saved. Log it with the slot instead.
             try
             {
                 await SetProfile(userId, message.Slot, message.Profile, false);
@@ -100,6 +101,7 @@ namespace Content.Server.Preferences.Managers
             {
                 _sawmill.Error($"Failed to save character for user {userId} in slot {message.Slot}: {e}");
             }
+            // WOLFGATE END
         }
 
         public async Task SetProfile(NetUserId userId, int slot, ICharacterProfile profile,
@@ -119,8 +121,8 @@ namespace Content.Server.Preferences.Managers
 
             profile.EnsureValid(session, _dependencies);
 
-            // WOLFGATE - an unreadable anatomy column is kept only for the anatomy the server loaded from it, unchanged; a
-            // client's LoadFailed flag alone keeps nothing.
+            // WOLFGATE(Genitals) START: an unreadable anatomy column is kept only if the server loaded it that way
+            // It must be unchanged from the stored one; a client's LoadFailed flag alone keeps nothing.
             if (profile is HumanoidCharacterProfile { Genitals.LoadFailed: true } wfProfile
                 && !(curPrefs.Characters.TryGetValue(slot, out var wfOld)
                      && wfOld is HumanoidCharacterProfile { Genitals.LoadFailed: true } wfOldProfile
@@ -128,7 +130,7 @@ namespace Content.Server.Preferences.Managers
             {
                 profile = wfProfile.WithGenitals(wfProfile.Genitals.WithoutLoadFailed());
             }
-            // End WOLFGATE
+            // WOLFGATE END
 
             // Mono
             if (!authoritative && profile is HumanoidCharacterProfile humanoid)
@@ -344,9 +346,10 @@ namespace Content.Server.Preferences.Managers
 
                 if (prefs != null)
                 {
-                    // WOLFGATE: this path read the database straight into the client and undid the sanitizing that
-                    // FinishLoad does on login, so anything this build no longer has - a species from a branch that
-                    // is not deployed, a removed job - reached the lobby raw and threw there.
+                    // WOLFGATE: sanitized here like FinishLoad does on login
+                    // This path read the database straight into the client, so anything this build no longer has -
+                    // a species from a branch that is not deployed, a removed job - reached the lobby raw and threw
+                    // there.
                     prefs = SanitizePreferences(session, prefs, _dependencies);
 
                     prefsData.Prefs = prefs;

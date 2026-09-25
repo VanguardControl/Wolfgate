@@ -118,12 +118,12 @@ public sealed partial class GunSystem : SharedGunSystem
         var shotProjectiles = new List<EntityUid>(ammo.Count);
 
         var offset = -1f; // Mono
-        var recoilRandom = GetRecoilRandom(gunUid); // WOLFGATE: seeded so the shooter's client predicts the same spread
+        var recoilRandom = GetRecoilRandom(gunUid); // WOLFGATE(Weapons): seeded so the shooter's client predicts the same spread
         foreach (var (ent, shootable) in ammo)
         {
             offset = offset == -1f ? 0f : offset + 1f / ammo.Count;
             // Mono - move into foreach
-            var angle = GetRecoilAngle(Timing.CurTime, gunUid, gun, mapDirection.ToAngle(), ref recoilRandom); // WOLFGATE
+            var angle = GetRecoilAngle(Timing.CurTime, gunUid, gun, mapDirection.ToAngle(), ref recoilRandom); // WOLFGATE(Weapons)
             // Update shot based on the recoil
             toMap = fromMap.Position + angle.ToVec() * mapDirection.Length();
             mapDirection = toMap - fromMap.Position;
@@ -261,7 +261,7 @@ public sealed partial class GunSystem : SharedGunSystem
             return;
         }
 
-        MarkPredicted(uid, gunUid); // WOLFGATE: links to the shooter's predicted copy, see _WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs
+        MarkPredicted(uid, gunUid); // WOLFGATE(Weapons): links to the shooter's predicted copy, see _WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs
 
         projectileComp.Damage *= damageModifier.Modifier;
 
@@ -278,7 +278,7 @@ public sealed partial class GunSystem : SharedGunSystem
         }
     }
 
-    // WOLFGATE: LinearSpread and GetRecoilAngle moved to _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs so the client can predict them
+    // WOLFGATE(Weapons): LinearSpread and GetRecoilAngle moved to _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs so the client can predict them
 
     protected override void Popup(string message, EntityUid? uid, EntityUid? user) { }
 

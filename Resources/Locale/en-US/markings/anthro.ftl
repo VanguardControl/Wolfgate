@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-EarsAntennaFuzzball = Antenna, Fuzzball MkI
 marking-EarsAntennaFuzzball-m_ears_antenna_fuzzball_ADJ_secondary = Antenna, Fuzzball MkI (Primary)
 marking-EarsAntennaFuzzball-m_ears_antenna_fuzzball_ADJ_tertiary = Antenna, Fuzzball MkI (Secondary)
@@ -679,7 +679,7 @@ marking-TailZorgoia-m_tail_zorgoia_FRONT_primary = Zorgoia Asra Tail (Primary)
 marking-TailZorgoia-m_tail_zorgoia_FRONT_secondary = Zorgoia Asra Tail (Secondary)
 marking-TailZorgoia-m_tail_zorgoia_FRONT_tertiary = Zorgoia Asra Tail (tertiary)
 
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-EarsAltEars = Alt Ears
 marking-EarsAltEars-m_ears_six_ears_2_ADJ_primary = Alt Ears (Primary)
 marking-EarsAltEars-m_ears_six_ears_2_ADJ_tertiary = Alt Ears (Secondary)

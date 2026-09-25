@@ -1,11 +1,11 @@
 # Anatomy surgeries: remove or insert one genital organ through the torso incision with Shitmed's generic organ
 # steps (the brain recipe without bone sawing). SurgeryGenitalConsentCondition hides them unless the patient has
 # anatomy and adult content on; GenitalSurgery marks them for the server surgeon check and the client list filter.
-# No surgery-popup-procedure-SurgeryWF* key may exist, so bystanders only see the generic organ popups.
+# No surgery-popup-procedure-WFSurgery* key may exist, so bystanders only see the generic organ popups.
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFRemovePenis
+  id: WFSurgeryRemovePenis
   name: Remove penis
   categories: [ HideSpawnMenu ]
   components:
@@ -24,7 +24,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFInsertPenis
+  id: WFSurgeryInsertPenis
   name: Insert penis
   categories: [ HideSpawnMenu ]
   components:
@@ -47,7 +47,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFRemoveTesticles
+  id: WFSurgeryRemoveTesticles
   name: Remove testicles
   categories: [ HideSpawnMenu ]
   components:
@@ -66,7 +66,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFInsertTesticles
+  id: WFSurgeryInsertTesticles
   name: Insert testicles
   categories: [ HideSpawnMenu ]
   components:
@@ -89,7 +89,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFRemoveVagina
+  id: WFSurgeryRemoveVagina
   name: Remove vagina
   categories: [ HideSpawnMenu ]
   components:
@@ -108,7 +108,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFInsertVagina
+  id: WFSurgeryInsertVagina
   name: Insert vagina
   categories: [ HideSpawnMenu ]
   components:
@@ -131,7 +131,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFRemoveWomb
+  id: WFSurgeryRemoveWomb
   name: Remove womb
   categories: [ HideSpawnMenu ]
   components:
@@ -150,7 +150,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFInsertWomb
+  id: WFSurgeryInsertWomb
   name: Insert womb
   categories: [ HideSpawnMenu ]
   components:
@@ -173,7 +173,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFRemoveBreasts
+  id: WFSurgeryRemoveBreasts
   name: Remove breast tissue
   categories: [ HideSpawnMenu ]
   components:
@@ -192,7 +192,7 @@
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryWFInsertBreasts
+  id: WFSurgeryInsertBreasts
   name: Insert breast tissue
   categories: [ HideSpawnMenu ]
   components:

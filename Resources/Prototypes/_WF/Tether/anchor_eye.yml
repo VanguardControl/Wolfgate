@@ -1,8 +1,8 @@
 # A bolted-down towing eye ropes can be tied to. Buildable on any tile (including hull plating),
-# not just against a wall - see debug.yml's RopeAttachPointDebug for the same no-collision
+# not just against a wall - see debug.yml's WFRopeAttachPointDebug for the same no-collision
 # anchored-fixture pattern.
 - type: entity
-  id: TetherAnchorEye
+  id: WFTetherAnchorEye
   name: tether anchor eye
   description: A padeye bolted to the deck. Rope or cable can be tied off here.
   placement:
@@ -38,5 +38,5 @@
       - !type:DoActsBehavior
         acts: ["Destruction"]
   - type: Construction
-    graph: TetherAnchorEye
+    graph: WFTetherAnchorEye
     node: eye

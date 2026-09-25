@@ -1,4 +1,4 @@
-# WOLFGATE - the carton a trader packs a multi-item order into.
+# The carton a trader packs a multi-item order into.
 
 - type: entity
   id: WFTraderParcel

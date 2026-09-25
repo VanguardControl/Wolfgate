@@ -21,9 +21,10 @@ namespace Content.Server.Database
 
         public DbSet<Preference> Preference { get; set; } = null!;
         public DbSet<Profile> Profile { get; set; } = null!;
-        // WOLFGATE - consent system ported from HardLight
+        // WOLFGATE(Genitals) START: consent system ported from HardLight
         public DbSet<ConsentSettings> ConsentSettings { get; set; } = null!;
         public DbSet<ConsentFreetextReadReceipt> ConsentFreetextReadReceipt { get; set; } = null!;
+        // WOLFGATE END
         public DbSet<AssignedUserId> AssignedUserId { get; set; } = null!;
         public DbSet<Player> Player { get; set; } = default!;
         public DbSet<Admin> Admin { get; set; } = null!;
@@ -63,7 +64,7 @@ namespace Content.Server.Database
                 .HasIndex(p => new {p.Slot, PrefsId = p.PreferenceId})
                 .IsUnique();
 
-            // WOLFGATE - consent system ported from HardLight
+            // WOLFGATE(Genitals) START: consent system ported from HardLight
             modelBuilder.Entity<ConsentSettings>()
                 .HasIndex(c => new { c.UserId, c.ProfileId })
                 .IsUnique();
@@ -93,7 +94,7 @@ namespace Content.Server.Database
                 .WithMany(c => c.ReadReceipts)
                 .HasForeignKey(c => c.ReadConsentSettingsId)
                 .IsRequired();
-            // End WOLFGATE
+            // WOLFGATE END
 
             modelBuilder.Entity<Antag>()
                 .HasIndex(p => new {HumanoidProfileId = p.ProfileId, p.AntagName})
@@ -490,19 +491,19 @@ namespace Content.Server.Database
 
         public string Company { get; set; } = "None";
 
-        // WOLFGATE - player-set species name override, empty when unused.
+        // WOLFGATE(Humanoid): player-set species name override, empty when unused.
         [Column("custom_species_name")] public string CustomSpeciesName { get; set; } = "";
 
-        // WOLFGATE - creator anatomy as versioned JSON; empty until the profile is migrated or saved.
+        // WOLFGATE(Genitals): creator anatomy as versioned JSON; empty until the profile is migrated or saved.
         [Column("genitals")] public string Genitals { get; set; } = "";
 
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 
-        public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE - consent system
+        public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE(Genitals): consent system
     }
 
-    // WOLFGATE - consent system ported from HardLight
+    // WOLFGATE(Genitals) START: consent system ported from HardLight
     #region Consent Settings
 
     public class ConsentSettings
@@ -561,7 +562,7 @@ namespace Content.Server.Database
     }
 
     #endregion
-    // End WOLFGATE
+    // WOLFGATE END
 
     public class Job
     {
@@ -624,11 +625,13 @@ namespace Content.Server.Database
         [MaxLength(256)]
         public string? EntityName { get; set; }
 
+        // WOLFGATE(Roles) START: custom job title
         /// <summary>
-        /// WOLFGATE: player-written job title, for roles that allow one.
+        /// Player-written job title, for roles that allow one.
         /// </summary>
         [MaxLength(256)]
         public string? CustomJobTitle { get; set; }
+        // WOLFGATE END
 
         /// <summary>
         /// Store the saved loadout groups. These may get validated and removed when loaded at runtime.

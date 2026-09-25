@@ -25,14 +25,14 @@ public sealed partial class ThavenMoodUi : FancyWindow
 
     private void AddNewMood()
     {
-        // WOLFGATE: add the row through SetMoods so its buttons are wired and a later rebuild keeps it.
+        // WOLFGATE(Species): add the row through SetMoods so its buttons are wired and a later rebuild keeps it.
         SyncMoodsFromUi();
         _moods.Add(new ThavenMood());
         SetMoods(_moods);
     }
 
     /// <summary>
-    /// WOLFGATE: copies edited titles and text back onto the tracked moods, so rebuilding the list keeps them.
+    /// WOLFGATE(Species): copies edited titles and text back onto the tracked moods, so rebuilding the list keeps them.
     /// </summary>
     private void SyncMoodsFromUi()
     {
@@ -91,7 +91,7 @@ public sealed partial class ThavenMoodUi : FancyWindow
         if (index <= 0)
             return;
 
-        SyncMoodsFromUi(); // WOLFGATE
+        SyncMoodsFromUi(); // WOLFGATE(Species)
         (_moods[index], _moods[index - 1]) = (_moods[index - 1], _moods[index]);
         SetMoods(_moods);
     }
@@ -101,14 +101,14 @@ public sealed partial class ThavenMoodUi : FancyWindow
         if (index >= _moods.Count - 1)
             return;
 
-        SyncMoodsFromUi(); // WOLFGATE
+        SyncMoodsFromUi(); // WOLFGATE(Species)
         (_moods[index], _moods[index + 1]) = (_moods[index + 1], _moods[index]);
         SetMoods(_moods);
     }
 
     private void Delete(int index)
     {
-        SyncMoodsFromUi(); // WOLFGATE
+        SyncMoodsFromUi(); // WOLFGATE(Species)
         _moods.RemoveAt(index);
 
         SetMoods(_moods);

@@ -1,4 +1,4 @@
-# WOLFGATE - John Wolfgate, who sells everything the Wolfgate Vending Machine stocks.
+# John Wolfgate, who sells everything the Wolfgate Vending Machine stocks.
 - type: humanoidProfile
   id: WFTraderWolfgateProfile
   profile:
@@ -50,4 +50,4 @@
   - type: Trader
     dialogue: WFTraderWolfgateDialogue
   - type: TraderShop
-    vendors: [ VendingMachineWolfgate ]
+    vendors: [ WFVendingMachineWolfgate ]

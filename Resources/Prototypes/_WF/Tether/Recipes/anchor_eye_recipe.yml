@@ -1,7 +1,7 @@
 - type: construction
   name: tether anchor eye
-  id: TetherAnchorEye
-  graph: TetherAnchorEye
+  id: WFTetherAnchorEye
+  graph: WFTetherAnchorEye
   startNode: start
   targetNode: eye
   category: construction-category-utilities

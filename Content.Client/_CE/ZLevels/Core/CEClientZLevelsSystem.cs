@@ -89,8 +89,9 @@ internal sealed partial class CEClientZLevelsPreAnimSystem : EntitySystem
             var localPosition = zPhys.LocalPosition;
             _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault);
 
-            // WOLFGATE: only touch the draw depth when the entity takes off or lands. Writing it every frame
-            // silently undid every other client-side depth change (sneaking under tables, buckling, death).
+            // WOLFGATE(Species) START: only touch the draw depth when the entity takes off or lands
+            // Writing it every frame silently undid every other client-side depth change (sneaking under tables,
+            // buckling, death).
             var lifted = localPosition > 0;
             if (lifted == zPhys.DrawDepthLifted)
                 continue;
@@ -105,6 +106,7 @@ internal sealed partial class CEClientZLevelsPreAnimSystem : EntitySystem
             {
                 _sprite.SetDrawDepth((uid, sprite), zPhys.DrawDepthDefault);
             }
+            // WOLFGATE END
         }
 
         // Set parent-synced status effect offsets to the parent's current Z value each frame — prevents accumulation.

@@ -31,7 +31,7 @@
             <BoxContainer Orientation="Vertical">
                 <Button Name="BuildButton" Disabled="True" ToggleMode="True"
                         VerticalExpand="True" SizeFlagsStretchRatio="0.5"/>
-                <!-- WOLFGATE: repeat-craft row for item recipes (xmlns:wfc above) -->
+                <!-- WOLFGATE(Construction): repeat-craft row for item recipes (xmlns:wfc above) -->
                 <wfc:CraftRepeatButtons Name="CraftRepeat" Visible="False" Margin="0 4 0 4"/>
                 <BoxContainer Orientation="Horizontal" VerticalExpand="True" SizeFlagsStretchRatio="0.5">
                     <Button Name="EraseButton" ToggleMode="True"

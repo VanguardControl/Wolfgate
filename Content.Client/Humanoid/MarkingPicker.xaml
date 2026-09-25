@@ -1,5 +1,5 @@
 <Control xmlns="https://spacestation14.io">
-    <!-- WOLFGATE: available/applied cards side by side with the colour editor below; control names unchanged. -->
+    <!-- WOLFGATE(Humanoid) START: available/applied cards side by side with the colour editor below; control names unchanged. -->
     <BoxContainer Orientation="Vertical" HorizontalExpand="True" SeparationOverride="8">
         <BoxContainer Orientation="Horizontal" SeparationOverride="8" HorizontalExpand="True">
             <!-- Available markings -->
@@ -36,4 +36,5 @@
             </BoxContainer>
         </PanelContainer>
     </BoxContainer>
+    <!-- WOLFGATE END -->
 </Control>

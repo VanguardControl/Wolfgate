@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Content.Shared._WF.Genitals;
+using Content.Shared._WF.Genitals.Profile;
+using Content.Shared._WF.Prototypes;
 
 namespace Content.Server._WF.Genitals;
 
@@ -221,7 +223,7 @@ public static class GenitalProfileJson
             return null;
         }
 
-        return new PenisProfile(dto.Shape, dto.LengthCm ?? 15, sheath, dto.MatchSkin ?? true, color,
+        return new PenisProfile(CurrentShape(dto.Shape), dto.LengthCm ?? 15, sheath, dto.MatchSkin ?? true, color,
             dto.SheathMatchSkin ?? true, sheathColor, visibility);
     }
 
@@ -246,7 +248,7 @@ public static class GenitalProfileJson
             return null;
         }
 
-        return new VaginaProfile(dto.Shape, dto.MatchSkin ?? true, color, visibility);
+        return new VaginaProfile(CurrentShape(dto.Shape), dto.MatchSkin ?? true, color, visibility);
     }
 
     private static BreastsProfile? ToBreasts(BreastsDto dto)
@@ -258,7 +260,13 @@ public static class GenitalProfileJson
             return null;
         }
 
-        return new BreastsProfile(dto.Shape, dto.Cup ?? 3, dto.Lactation ?? false, dto.MatchSkin ?? true, color, visibility);
+        return new BreastsProfile(CurrentShape(dto.Shape), dto.Cup ?? 3, dto.Lactation ?? false, dto.MatchSkin ?? true, color, visibility);
+    }
+
+    /// <summary>A stored shape id, with renamed ids mapped to the current one.</summary>
+    private static string CurrentShape(string id)
+    {
+        return WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.GenitalShapes, id);
     }
 
     /// <summary>Holds nothing a player chose: what an empty column loads as. Only an edit changes a version-0 profile.</summary>

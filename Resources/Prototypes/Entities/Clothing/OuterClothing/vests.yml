@@ -5,8 +5,10 @@
   name: web vest
   description: A synthetic armor vest. This one has added webbing and ballistic plates.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: Clothing/OuterClothing/Vests/webvest.rsi
   - type: Clothing
@@ -30,8 +32,10 @@
   name: mercenary web vest
   description: A high-quality armored vest made from a hard synthetic material. It's surprisingly flexible and light, despite formidable armor plating.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: Clothing/OuterClothing/Vests/mercwebvest.rsi
   - type: Clothing
@@ -56,8 +60,10 @@
   name: detective's vest
   description: A hard-boiled private investigator's armored vest.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: Clothing/OuterClothing/Vests/detvest.rsi
   - type: Clothing
@@ -70,8 +76,10 @@
   name: hi-viz vest
   description: A high-visibility vest used in work zones.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: Clothing/OuterClothing/Vests/hazard.rsi
     layers:
@@ -96,8 +104,10 @@
   name: vest
   description: A thick vest with a rubbery, water-resistant shell.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: Clothing/OuterClothing/Vests/vest.rsi
   - type: Clothing
@@ -110,8 +120,10 @@
   name: tank harness
   description: A simple harness that can hold a gas tank.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: Clothing/OuterClothing/Vests/tankharness.rsi
   - type: Clothing

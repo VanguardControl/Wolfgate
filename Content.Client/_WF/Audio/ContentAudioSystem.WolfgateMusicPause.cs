@@ -4,7 +4,7 @@ using Robust.Shared.Audio.Components;
 namespace Content.Client.Audio;
 
 /// <summary>
-/// Wolfgate: lets internet sounds pause ambient, combat and lobby music, then resume it. A partial so the
+/// Lets internet sounds pause ambient, combat and lobby music, then resume it. A partial so the
 /// music systems stay untouched.
 /// </summary>
 public sealed partial class ContentAudioSystem
