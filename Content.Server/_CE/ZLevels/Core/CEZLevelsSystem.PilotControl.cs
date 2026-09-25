@@ -214,7 +214,7 @@ public sealed partial class CEZLevelsSystem
             var grounded = HasGroundUnderFootprint((gridUid, grid), mapUid.Value);
 
             // You can't sink through the ground, and there has to be a gap below.
-            if (down && (grounded || !TryMapDown(mapUid.Value, out _)))
+            if (down && (grounded || !TryMapDown(mapUid.Value, out var wfBelow) || WfClosedToHulls(wfBelow))) // WOLFGATE(Planets): pilots can't descend below a planet's ground.
                 continue;
 
             // Going up needs SOME adjacent gap to become airborne in.

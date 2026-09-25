@@ -167,13 +167,18 @@ public sealed partial class CEZLevelsSystem
             : 1f;
         var coveredMaps = new HashSet<EntityUid> { map.Value };
 
+        var wfAbove = map.Value; // WOLFGATE(Caverns): the level above the next eye, for the ground cap below.
         for (var i = 1; i <= MaxZLevelsBelowRendering; i++)
         {
+            if (HasComp<CEZGroundLayerComponent>(wfAbove)) // WOLFGATE(Caverns): no eyes or chunk loads under a ground layer.
+                break;
+
             if (!TryMapOffset(map.Value, -i, out var mapUidBelow))
                 break;
 
             SpawnViewerEye(eyes, actor, map.Value, mapUidBelow, globalPos, pvsScale);
             coveredMaps.Add(mapUidBelow);
+            wfAbove = mapUidBelow; // WOLFGATE(Caverns)
         }
 
         // We constantly load the upper z-level for the client so that you can quickly look up and climb stairs without PVS lag.

@@ -1,0 +1,16 @@
+using Content.Shared.Parallax.Biomes;
+using Robust.Shared.Map;
+
+namespace Content.Server.Parallax;
+
+/// <summary>Cavern access to BiomeComponent's chunk bookkeeping.</summary>
+public sealed partial class BiomeSystem
+{
+    /// <summary>Whether the biome chunk holding this tile index is loaded.</summary>
+    public bool WfIsChunkLoaded(Entity<BiomeComponent> biome, Vector2i index)
+    {
+        var chunkOrigin = SharedMapSystem.GetChunkIndices(index, ChunkSize) * ChunkSize;
+
+        return biome.Comp.LoadedChunks.Contains(chunkOrigin);
+    }
+}

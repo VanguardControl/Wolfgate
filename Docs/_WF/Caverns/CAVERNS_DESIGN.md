@@ -74,7 +74,9 @@ Checked in code on this branch. Line numbers are approximate.
    - The load area is `ceil(net.pvs_range / 8) × 8` = ±32 tiles, chunk-aligned, so up to about 40 tiles out.
    - One chunk per biome unloads every 10 s.
    - `UnloadTiles` keeps only modified tiles and tiles holding an entity anchored to *that grid*. Ground under a
-     parked hull therefore empties (`ChunkLoader.cs:~245`).
+     parked hull therefore empties (`ChunkLoader.cs:~245`), except where a biome entity the hull touched still stands:
+     it is no longer default, so `UnloadEntities` keeps it and pins its tile, and that one tile keeps the hull
+     supported (`HasGroundUnderFootprint`).
    - `LoadedChunks.Remove` runs after `UnloadTiles` has emptied the tiles (`ChunkLoader.cs:~176-190`).
    - Modified (pinned) tiles skip tile, entity and decal generation on load.
    - `ReserveTiles` works on unloaded areas (`PlanetSetup.cs:76`).
@@ -239,11 +241,12 @@ line.
   - **Cavern viewer:** has nothing below. It keeps its eye on the ground above, so the ground over it stays loaded
     and roofs it.
   - **Networks without a map below ground:** nothing changes.
-- **`Resources/ConfigPresets/Build/development.toml`** (F1b): inside the existing `[wf]` table, which sits inside the
-  `WOLFGATE(Planets)` block, add `caverns = true` with `# WOLFGATE(Caverns): caverns are on in development builds.` on
-  the line above. TOML forbids a second `[wf]` header, so the line has to live in that block. A single-line marker
-  inside a block passes `modules.py`. It lands with the hull guard and the eye cap, never before: without them a dev
-  build sinks unsupported hulls into the cavern and loads cavern chunks under every viewer.
+- **`Resources/ConfigPresets/Build/development.toml`** (F1b, landed): inside the existing `[wf]` table, which sits
+  inside the `WOLFGATE(Planets)` block, add `caverns = true` with
+  `# WOLFGATE(Caverns): caverns are on in development builds.` on the line above. TOML forbids a second `[wf]` header,
+  so the line has to live in that block. A single-line marker inside a block passes `modules.py`. It landed with the
+  hull guard and the eye cap, never before: without them a dev build sinks unsupported hulls into the cavern and loads
+  cavern chunks under every viewer. Development builds now have caverns on.
 - **`Resources/Prototypes/_NF/Guidebook/expeditions.yml`** (F6): add
   `  - WFCaverns # WOLFGATE(Caverns): cavern field guide` to `Expeditions`' children.
 
@@ -349,7 +352,9 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
     5. ask `WFCavernMouthSystem` to claim the gate (F2).
   - F1: `(WFPlanetWildlifeComponent, CEZLevelFallMapEvent)` is a free pair. Surface wildlife that falls into a cavern
     over an *unloaded* ground chunk is deleted, so it never leaks against the fauna caps as a `Protected` resident of
-    the void (2.1 item 4).
+    the void (2.1 item 4). The handler reads the ground tile above the landing position: it is deleted only when that
+    tile is empty, not pinned (`WfIsPinned`; a real hole is pinned) and its chunk is not loaded (`WfIsChunkLoaded`).
+    A mob with a mind is never deleted. The event is raised inside the z-physics pass, so the delete is a `QueueDel`.
   - F4: every 10 s it mirrors the ground's `WFPlanetEnvironmentComponent` onto the cavern, with `Weather` set to
     `wf-cavern-weather-underground`. It also sets the cavern `MapLight` to ground `MapLight` × `shaftLight`.
 - **`WFCavernMouthSystem`** (F2), with partials `.Claims.cs` and `.Holes.cs`: cells, claims, stamping, the hole queue,
@@ -360,8 +365,8 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 - **`WFCavernCommand`** (F2): `wfcavern`.
 - **`BiomeSystem.Caverns.cs`** (`Content.Server/_WF/Caverns/`, namespace `Content.Server.Parallax`) exposes two
   helpers that need the protected `ChunkSize`:
-  - `WfIsChunkLoaded(Entity<BiomeComponent>, Vector2i)`;
-  - `WfIsBiomeSpawned(Entity<BiomeComponent>, EntityUid, Vector2i)`.
+  - `WfIsChunkLoaded(Entity<BiomeComponent>, Vector2i)` (F1b; the wildlife handler is its first user);
+  - `WfIsBiomeSpawned(Entity<BiomeComponent>, EntityUid, Vector2i)` (F2).
 
   Pinning uses the existing Planets `WfPinTiles` and `WfIsPinned`. Pure evaluation uses the public
   `TryGetTile`/`TryGetEntity` with `grid: null`.
@@ -382,8 +387,9 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 ### 2.8 Settings
 
 `CavernCVars.Caverns` (`wf.caverns`, `CVar.SERVERONLY`) defaults to **false**. Production and the Planets test suite
-stay unchanged until caverns are signed off, and `development.toml` turns the CVar on from F1b, once the hull guard
-and the eye cap are in. It is read at build time, so it affects networks built after it changes.
+stay unchanged until caverns are signed off. `development.toml` turns the CVar on since F1b, which landed it together
+with the hull guard and the eye cap, so development builds have caverns on. It is read at build time, so it affects
+networks built after it changes.
 
 ### 2.9 How a cavern is generated
 
@@ -915,10 +921,11 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernRoofTest.GroundTilesRoofCavern` | `LayTiles` on the ground roofs those cavern tiles; emptying one unroofs it | F1 |
 | `CavernViewerEyeTest.GroundViewerLoadsNoCavern` | A ground viewer has no eye on the cavern, and the cavern's `LoadedChunks` stays empty for 60 ticks | F1 |
 | `CavernViewerEyeTest.CavernViewerLoadsGroundAbove` | A cavern viewer has an eye on the ground, and ground chunks load over it | F1 |
-| `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` on ground without lift, with its chunks forced out (`WfUnloadChunk`): over 10 s the hull's map is never the cavern and no transit touches the cavern | F1 |
-| `CavernHullTest.PilotCannotDescendFromGround` | `HoldDescend` over unloaded ground never leaves depth ≥ 0 | F1 |
+| `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` without lift on the ground map over chunks that were never loaded, so no tile is under it (a hull on loaded terrain can keep a tile through `WfUnloadChunk`, 2.1 item 7): sampled every tick for 10 s, the hull's map is never the cavern and no transit touches the cavern | F1 |
+| `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map | F1 |
 | `CavernHullTest.LiftoffAndLandingUnchanged` | With caverns on, a `BuildLander` lifts to air layer 1 and lands back on the ground | F1 |
-| `CavernWildlifeTest.WildlifeOverUnloadedGroundIsRemoved` | An awake wildlife mob whose ground chunk unloads falls into the cavern and is deleted, so it never lingers `Protected` | F1 |
+| `CavernWildlifeTest.WildlifeOverUnloadedGroundIsRemoved` | An awake wildlife mob whose ground chunk unloads falls into the cavern and is deleted, so it never lingers `Protected`; a non-wildlife mob beside it lands in the cavern and stays | F1 |
+| `CavernWildlifeTest.WildlifeThroughPinnedHoleIsKept` | A wildlife mob on a hand-pinned tile survives the chunk unload; emptying the tile drops it into the cavern, where it is kept | F1 |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after a cavern viewer loads it. The climb point is anchored under the climb tile | F2 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
 | `CavernMouthTest.ClaimAheadOfViewer` | A viewer at (400, 0): within 1 s every cell within 96 tiles is Claimed or Empty, and none of its sites touched a chunk that was loaded at claim time | F2 |
@@ -1010,12 +1017,12 @@ python3 Tools/_WF/Ci/modules.py --write && python3 Tools/_WF/Ci/modules.py --che
 This feature lays the generic Planets hooks, the hull guard and the eye cap, and puts one placeholder cavern under
 each of the six worlds. The caverns are roofed, dark and have their final air.
 
-**Status:** F1a has landed: the Planets hooks, `wf.caverns` (off everywhere, development builds included), the
-placeholder cavern under every world, and `CavernNetworkTest` and `CavernRoofTest`. F1b remains: the hull guard
-(`WfClosedToHulls`, `WfRefusesLevelHop` and the four marked CE lines), the eye cap in `CEZLevelsSystem.View.cs`, the
-wildlife `CEZLevelFallMapEvent` handler, `caverns = true` in `development.toml` (only together with the hull guard and
-the eye cap), and `CavernViewerEyeTest`, `CavernHullTest` (the F1 cases) and `CavernWildlifeTest`.
-`BiomeSystem.Caverns.cs` waits for F2, its first user.
+**Status:** F1 is complete. F1a landed the Planets hooks, `wf.caverns`, the placeholder cavern under every world, and
+`CavernNetworkTest` and `CavernRoofTest`. F1b landed the hull guard (`WfClosedToHulls`, `WfRefusesLevelHop` and the
+four marked CE lines), the eye cap in `CEZLevelsSystem.View.cs`, the wildlife `CEZLevelFallMapEvent` handler with
+`BiomeSystem.Caverns.cs` (`WfIsChunkLoaded` only; `WfIsBiomeSpawned` comes with F2), `caverns = true` in
+`development.toml`, so development builds now have caverns on, and `CavernViewerEyeTest`, `CavernHullTest` (the F1
+cases) and `CavernWildlifeTest`.
 
 - **Add:**
   - Planets (no marker): `Content.Server/_WF/Planets/WFPlanetLowerLayersEvent.cs`,
