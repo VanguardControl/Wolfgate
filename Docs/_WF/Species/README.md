@@ -37,6 +37,8 @@ states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
 - [`Resources/Prototypes/_WF/Species/Entities/Objects/Consumable/Food/meat.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Objects/Consumable/Food/meat.yml)
 - [`Resources/Prototypes/_WF/Species/Entities/Objects/Specific/Medical/hypospray.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Objects/Specific/Medical/hypospray.yml)
 - [`Resources/Prototypes/_WF/Species/Guidebook/species.yml`](../../../Resources/Prototypes/_WF/Species/Guidebook/species.yml)
+- [`Resources/Prototypes/_WF/Species/Loadouts/loadout_effects.yml`](../../../Resources/Prototypes/_WF/Species/Loadouts/loadout_effects.yml)
+- [`Resources/Prototypes/_WF/Species/Loadouts/survival.yml`](../../../Resources/Prototypes/_WF/Species/Loadouts/survival.yml)
 - [`Resources/Prototypes/_WF/Species/Recipes/Lathes/med_assembler.yml`](../../../Resources/Prototypes/_WF/Species/Recipes/Lathes/med_assembler.yml)
 - [`Resources/Prototypes/_WF/Species/Recipes/Reactions/medicine.yml`](../../../Resources/Prototypes/_WF/Species/Recipes/Reactions/medicine.yml)
 - [`Resources/Prototypes/_WF/Species/SoundCollections/screams.yml`](../../../Resources/Prototypes/_WF/Species/SoundCollections/screams.yml)
@@ -275,6 +277,9 @@ states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
   - uses the Slime body
   - Protogen subspecies + the six species the earlier port missed
   - Protogen subspecies (not ProtoDionae - no shoes slot) + the six the earlier port missed
+- [`Resources/Prototypes/_NF/Loadouts/species_loadout_groups.yml`](../../../Resources/Prototypes/_NF/Loadouts/species_loadout_groups.yml)
+  - one more for the Avali auto-injector
+  - Avali auto-injector, like the Vox tank
 - [`Resources/Prototypes/_RMC14/Actions/types.yml`](../../../Resources/Prototypes/_RMC14/Actions/types.yml): ported from HardLight
 - [`Resources/Prototypes/_RMC14/Datasets/skrell_names.yml`](../../../Resources/Prototypes/_RMC14/Datasets/skrell_names.yml): converted from HardLight localizedDataset - Wolfgate species use plain datasets.
 - [`Resources/Prototypes/_RMC14/Entities/Mobs/Customization/reptilian.yml`](../../../Resources/Prototypes/_RMC14/Entities/Mobs/Customization/reptilian.yml): ported from HardLight
@@ -342,6 +347,7 @@ states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
   - ported from HardLight
   - ported from HardLight/Impstation
   - the 14 subspecies ported from HardLight
+- [`Resources/Prototypes/Loadouts/loadout_groups.yml`](../../../Resources/Prototypes/Loadouts/loadout_groups.yml): Avali auto-injector, like the Vox tank
 - [`Resources/Prototypes/Loadouts/Miscellaneous/survival.yml`](../../../Resources/Prototypes/Loadouts/Miscellaneous/survival.yml): ported from HardLight/Starlight
 - [`Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/felinid.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/felinid.yml): ProtoFeline
 - [`Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/moth.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/moth.yml): was [Moth]
@@ -349,7 +355,9 @@ states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
 - [`Resources/Prototypes/Reagents/botany.yml`](../../../Resources/Prototypes/Reagents/botany.yml)
   - ammonia isn't caustic to Avali (Starlight)
   - ammonia heals Avali airloss (Starlight); kept in the Poison group so nobody else metabolises it faster
-- [`Resources/Prototypes/Reagents/elements.yml`](../../../Resources/Prototypes/Reagents/elements.yml): iron poisons Avali (Starlight)
+- [`Resources/Prototypes/Reagents/elements.yml`](../../../Resources/Prototypes/Reagents/elements.yml)
+  - iron poisons Avali (Starlight)
+  - iron doesn't build Avali blood either; it poisons them
 - [`Resources/Prototypes/Reagents/medicine.yml`](../../../Resources/Prototypes/Reagents/medicine.yml)
   - dexalin doesn't heal Avali; their blood is ammonia-based (Starlight)
   - dexalin poisons Avali (Starlight), scaled to Mono's 0.2 rate so a unit still does 3/2/2

@@ -7,6 +7,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Lathe.Prototypes;
+using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Research.Prototypes;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
@@ -16,7 +17,7 @@ namespace Content.IntegrationTests.Tests._WF.Species;
 /// <summary>
 /// The Avali reagent rules ported from HardLight: amoxla and ammonia are safe for Avali and poison humans, saline,
 /// dexalin, dexalin plus and iron poison Avali and not humans, amoxla restores Avali blood, ammonia heals their
-/// airloss, and the Avali auto-injector is loaded and assemblable.
+/// airloss, and the Avali auto-injector is loaded, assemblable and in every survival loadout group.
 /// </summary>
 [TestFixture]
 public sealed class AvaliChemistryTest
@@ -140,6 +141,16 @@ public sealed class AvaliChemistryTest
             Assert.That(pack.Recipes, Does.Contain(new ProtoId<LatheRecipePrototype>("AvaliAutoInjector")),
                 "The medical assembler can't make the Avali auto-injector.");
             Assert.That(protoMan.Index(new ProtoId<LatheRecipePrototype>("AvaliAutoInjector")).Result?.Id, Is.EqualTo("AvaliAutoInjector"));
+
+            // Avali get the pen wherever Vox get their nitrogen tank.
+            var avaliLoadout = new ProtoId<LoadoutPrototype>("WFLoadoutSpeciesAvaliAutoInjector");
+            Assert.That(protoMan.Index(avaliLoadout).Storage["back"], Does.Contain(new EntProtoId("AvaliAutoInjector")));
+            var voxLoadout = new ProtoId<LoadoutPrototype>("LoadoutSpeciesVoxNitrogen");
+            foreach (var group in protoMan.EnumeratePrototypes<LoadoutGroupPrototype>())
+            {
+                if (group.Loadouts.Contains(voxLoadout))
+                    Assert.That(group.Loadouts, Does.Contain(avaliLoadout), $"{group.ID} gives Vox a tank but Avali no auto-injector.");
+            }
         });
 
         await pair.CleanReturnAsync();
