@@ -7,7 +7,7 @@
   category: Medium
   group: Mieyo
   access: Mieyo
-  shuttlePath: /Maps/_WF/Shipyard/Shuttles/dredger.yml
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/dredger.yml
   guidebookPage: null
   class:
   - Salvage
@@ -17,7 +17,7 @@
 - type: gameMap
   id: WFDredger
   mapName: 'MMC Dredger'
-  mapPath: /Maps/_WF/Shipyard/Shuttles/dredger.yml
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/dredger.yml
   minPlayers: 0
   stations:
     WFDredger:

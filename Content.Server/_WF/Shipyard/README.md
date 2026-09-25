@@ -33,9 +33,9 @@ responder ship voucher and the MMC Dredger (`WFDredger`), a salvage ship sold at
 
 - [`Resources/Textures/_WF/Shipyard/Objects/Misc/voucher_medical.rsi/`](../../../Resources/Textures/_WF/Shipyard/Objects/Misc/voucher_medical.rsi/)
 
-### Maps
+### Shared maps
 
-- [`Resources/Maps/_WF/Shipyard/Shuttles/dredger.yml`](../../../Resources/Maps/_WF/Shipyard/Shuttles/dredger.yml)
+- [`Resources/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml)
 
 ## Non-modular edits
 

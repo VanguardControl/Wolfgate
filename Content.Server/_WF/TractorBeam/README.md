@@ -256,10 +256,10 @@ piloted thrust/braking, crowded battles and the appearance of long beams.
 - [`Resources/Audio/_WF/TractorBeam/tractorbeam_engage.ogg`](../../../Resources/Audio/_WF/TractorBeam/tractorbeam_engage.ogg)
 - [`Resources/Audio/_WF/TractorBeam/tractorbeam_loop.ogg`](../../../Resources/Audio/_WF/TractorBeam/tractorbeam_loop.ogg)
 
-### Maps
+### Shared maps
 
-- [`Resources/Maps/_WF/TractorBeam/Shuttles/roswell.yml`](../../../Resources/Maps/_WF/TractorBeam/Shuttles/roswell.yml)
-- [`Resources/Maps/_WF/TractorBeam/Shuttles/tractor_test.yml`](../../../Resources/Maps/_WF/TractorBeam/Shuttles/tractor_test.yml)
+- [`Resources/SharedMaps/_WF/TractorBeam/Shuttles/roswell.yml`](../../../Resources/SharedMaps/_WF/TractorBeam/Shuttles/roswell.yml)
+- [`Resources/SharedMaps/_WF/TractorBeam/Shuttles/tractor_test.yml`](../../../Resources/SharedMaps/_WF/TractorBeam/Shuttles/tractor_test.yml)
 
 ## Non-modular edits
 
