@@ -1,0 +1,62 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      Title="{Loc 'wf-survey-console-title'}"
+                      MinSize="560 420"
+                      SetSize="640 480">
+    <BoxContainer Orientation="Vertical" Margin="6">
+        <!-- System name, body count and the ping reminder. MapScreen only rebuilds the destination tree in PingMap. -->
+        <PanelContainer StyleClasses="AngleRect" Margin="0 0 0 4">
+            <BoxContainer Orientation="Vertical" Margin="8 6">
+                <BoxContainer Orientation="Horizontal">
+                    <Label Name="HeaderSystem" StyleClasses="LabelHeading" HorizontalExpand="True" ClipText="True" />
+                    <Label Name="HeaderCount" StyleClasses="LabelSubText" Align="Right" ClipText="True" MinWidth="96" />
+                </BoxContainer>
+                <Label Name="HeaderHint"
+                       Text="{Loc 'wf-survey-console-hint'}"
+                       StyleClasses="LabelSecondaryColor LabelSubText"
+                       ClipText="True" />
+            </BoxContainer>
+        </PanelContainer>
+
+        <!-- Column titles. Their widths come from WFSurveyPlanetRow.ApplyColumns, the same call every row makes. -->
+        <BoxContainer Name="ColumnHeader" Orientation="Horizontal">
+            <Label Name="ColBody" Text="{Loc 'wf-survey-col-body'}" StyleClasses="LabelSubText" />
+            <Label Name="ColDistance" Text="{Loc 'wf-survey-col-distance'}" StyleClasses="LabelSubText" />
+            <Label Name="ColStatus" Text="{Loc 'wf-survey-col-status'}" StyleClasses="LabelSubText" />
+            <Label Name="ColCrack" Text="{Loc 'wf-survey-col-crack'}" StyleClasses="LabelSubText" />
+            <Label Name="ColVeins" Text="{Loc 'wf-survey-col-veins'}" StyleClasses="LabelSubText" />
+        </BoxContainer>
+
+        <!-- ReserveScrollbarSpace keeps the rows the same width whether the list scrolls or not, so the column titles
+             above never shift under the values. HScrollEnabled is off so a long name clips rather than widening. -->
+        <ScrollContainer Name="PlanetScroll"
+                         HorizontalExpand="True"
+                         VerticalExpand="True"
+                         HScrollEnabled="False"
+                         ReserveScrollbarSpace="True">
+            <BoxContainer Name="Planets"
+                          Orientation="Vertical"
+                          HorizontalExpand="True"
+                          SeparationOverride="2">
+                <!-- Planet rows are added and reused here by code. -->
+            </BoxContainer>
+        </ScrollContainer>
+
+        <Label Name="EmptyLabel"
+               Text="{Loc 'wf-survey-console-empty'}"
+               StyleClasses="LabelSubText"
+               Visible="False"
+               VerticalExpand="True"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center" />
+
+        <!-- The selected row's FTL destination: the one string a pilot has to type, kept off the table rows so the
+             table stays one line per body. -->
+        <PanelContainer StyleClasses="AngleRect" Margin="0 4 0 0">
+            <BoxContainer Orientation="Vertical" Margin="8 4">
+                <Label Name="DetailName" StyleClasses="LabelKeyText" ClipText="True" />
+                <Label Name="DetailBeacon" StyleClasses="LabelSubText" ClipText="True" />
+            </BoxContainer>
+        </PanelContainer>
+    </BoxContainer>
+</controls:FancyWindow>

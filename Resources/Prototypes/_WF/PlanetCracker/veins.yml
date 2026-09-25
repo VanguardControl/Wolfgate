@@ -1,0 +1,201 @@
+# Deep veins: a hidden biome marker layer that only a survey reveals.
+
+- type: entity
+  id: WFDeepVein
+  name: deep vein
+  description: A dense seam far below the surface. Only a crack reaches it.
+  categories: [ HideSpawnMenu ]
+  components:
+  # Required: biome markers are never anchored, and an unanchored vein loses its tile on extraction.
+  - type: Transform
+    anchored: true
+  - type: Sprite
+    sprite: _WF/PlanetCracker/Decals/deep_vein.rsi
+    drawdepth: FloorObjects
+    noRot: true
+    layers:
+    - map: [ "enum.WFDeepVeinVisualLayers.Marker" ]
+      state: vein
+      visible: false
+  - type: Clickable
+  - type: WFDeepVein
+
+# Flat mode lands only on bare tiles, so the real density is below count/size^2.
+- type: biomeMarkerLayer
+  id: WFDeepVeins
+  prototype: WFDeepVein
+  size: 128
+  radius: 12
+  maxCount: 93
+  minGroupSize: 1
+  maxGroupSize: 1
+
+# Keys are OrePrototype ids; OreIron and OreQuartz are marker layer ids, not ores.
+- type: wfVeinTable
+  id: WFVeinTableAsclepiu
+  # Value is this table's own per-ore worth; OrePrototype has no price.
+  ores:
+    OreSteel: { weight: 5, value: 1 }
+    OreCoal: { weight: 4, value: 1 }
+    OreSpaceQuartz: { weight: 3, value: 2 }
+    OreSilver: { weight: 2, value: 4 }
+    OreGold: { weight: 1.5, value: 6 }
+    OrePlasma: { weight: 1, value: 7 }
+    OreUranium: { weight: 0.75, value: 9 }
+  yieldRange: 1500, 4000
+  unsanctionedMultiplier: 2
+  rate: 150
+
+# Bands are in ore-value-times-yield units, the survey score.
+- type: wfVeinRatingBands
+  id: WFVeinRatingBands
+  fair: 4000
+  rich: 8000
+  veryRich: 14000
+
+# Every other Kyphrus world rolls its own table, on its own ground tiles; yields are gameplay tuning.
+
+# Fervidus
+- type: entity
+  id: WFDeepVeinFervidus
+  parent: WFDeepVein
+  components:
+  - type: WFDeepVein
+    allowedTiles: [FloorBasalt]
+
+- type: biomeMarkerLayer
+  id: WFDeepVeinsFervidus
+  prototype: WFDeepVeinFervidus
+  size: 128
+  radius: 12
+  maxCount: 93
+  minGroupSize: 1
+  maxGroupSize: 1
+
+- type: wfVeinTable
+  id: WFVeinTableFervidus
+  ores:
+    OreSteel: { weight: 5, value: 1 }
+    OreSpaceQuartz: { weight: 2, value: 2 }
+    OreGold: { weight: 1, value: 6 }
+    OrePlasma: { weight: 4, value: 7 }
+    OreUranium: { weight: 3, value: 9 }
+  yieldRange: 2000, 4500
+  unsanctionedMultiplier: 2
+  rate: 150
+
+# Merak
+- type: entity
+  id: WFDeepVeinMerak
+  parent: WFDeepVein
+  components:
+  - type: WFDeepVein
+    allowedTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]
+
+- type: biomeMarkerLayer
+  id: WFDeepVeinsMerak
+  prototype: WFDeepVeinMerak
+  size: 128
+  radius: 12
+  maxCount: 93
+  minGroupSize: 1
+  maxGroupSize: 1
+
+- type: wfVeinTable
+  id: WFVeinTableMerak
+  ores:
+    OreSteel: { weight: 5, value: 1 }
+    OreCoal: { weight: 2, value: 1 }
+    OreSpaceQuartz: { weight: 6, value: 2 }
+    OreSilver: { weight: 2, value: 4 }
+    OreGold: { weight: 3, value: 6 }
+  yieldRange: 1500, 3500
+  unsanctionedMultiplier: 2
+  rate: 150
+
+# Aerumna
+- type: entity
+  id: WFDeepVeinAerumna
+  parent: WFDeepVein
+  components:
+  - type: WFDeepVein
+    allowedTiles: [FloorChromite]
+
+- type: biomeMarkerLayer
+  id: WFDeepVeinsAerumna
+  prototype: WFDeepVeinAerumna
+  size: 128
+  radius: 12
+  maxCount: 93
+  minGroupSize: 1
+  maxGroupSize: 1
+
+- type: wfVeinTable
+  id: WFVeinTableAerumna
+  ores:
+    OreSteel: { weight: 3, value: 1 }
+    OreCoal: { weight: 3, value: 1 }
+    OreSpaceQuartz: { weight: 2, value: 2 }
+    OreSilver: { weight: 2, value: 4 }
+    OrePlasma: { weight: 4, value: 7 }
+    OreUranium: { weight: 3, value: 9 }
+  yieldRange: 2000, 4500
+  unsanctionedMultiplier: 2
+  rate: 150
+
+# Thrascias
+- type: entity
+  id: WFDeepVeinThrascias
+  parent: WFDeepVein
+  components:
+  - type: WFDeepVein
+    allowedTiles: [FloorSnow, FloorIce]
+
+- type: biomeMarkerLayer
+  id: WFDeepVeinsThrascias
+  prototype: WFDeepVeinThrascias
+  size: 128
+  radius: 12
+  maxCount: 93
+  minGroupSize: 1
+  maxGroupSize: 1
+
+- type: wfVeinTable
+  id: WFVeinTableThrascias
+  ores:
+    OreSteel: { weight: 3, value: 1 }
+    OreSpaceQuartz: { weight: 5, value: 2 }
+    OreSilver: { weight: 4, value: 4 }
+    OreGold: { weight: 1, value: 6 }
+    OrePlasma: { weight: 3, value: 7 }
+  yieldRange: 1800, 4200
+  unsanctionedMultiplier: 2
+  rate: 150
+
+# Carcinoma
+- type: entity
+  id: WFDeepVeinCarcinoma
+  parent: WFDeepVein
+  components:
+  - type: WFDeepVein
+    allowedTiles: [WFFloorFlesh, FloorFlesh]
+
+- type: biomeMarkerLayer
+  id: WFDeepVeinsCarcinoma
+  prototype: WFDeepVeinCarcinoma
+  size: 128
+  radius: 12
+  maxCount: 93
+  minGroupSize: 1
+  maxGroupSize: 1
+
+- type: wfVeinTable
+  id: WFVeinTableCarcinoma
+  ores:
+    OreSteel: { weight: 3, value: 1 }
+    OreSpaceQuartz: { weight: 2, value: 2 }
+    OrePlasma: { weight: 4, value: 7 }
+    OreUranium: { weight: 2, value: 9 }
+  yieldRange: 2000, 4500
+  unsanctionedMultiplier: 2
+  rate: 150

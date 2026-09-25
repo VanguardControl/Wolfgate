@@ -1,0 +1,64 @@
+# Fissure decals around an armed drill, and the NPC targeting for mobs that emerge and hunt the anchor.
+
+- type: decal
+  id: WFFissure1
+  tags: [ "wfcrack" ]
+  # Must stay false, or DecalOverlay's cardinal snap defeats the per-decal rotation.
+  snapCardinals: false
+  defaultSnap: false
+  sprite: { sprite: Structures/Windows/cracks.rsi, state: DamageOverlay_5 }
+
+- type: decal
+  id: WFFissure2
+  tags: [ "wfcrack" ]
+  snapCardinals: false
+  defaultSnap: false
+  sprite: { sprite: Structures/Windows/cracks.rsi, state: DamageOverlay_10 }
+
+- type: decal
+  id: WFFissure3
+  tags: [ "wfcrack" ]
+  snapCardinals: false
+  defaultSnap: false
+  sprite: { sprite: Structures/Windows/cracks.rsi, state: DamageOverlay_20 }
+
+- type: decal
+  id: WFFissure4
+  tags: [ "wfcrack" ]
+  snapCardinals: false
+  defaultSnap: false
+  # The sheet has three stages, so stage four repeats the widest.
+  sprite: { sprite: Structures/Windows/cracks.rsi, state: DamageOverlay_20 }
+
+- type: utilityQuery
+  id: WFFissureTargets
+  query:
+  - !type:NearbyHostilesQuery
+  considerations:
+  # Not TargetIsAliveCon, which scores a structure 0 and drops it.
+  - !type:TargetIsAliveOrNACon
+    curve: !type:BoolCurve
+  - !type:TargetDistanceCon
+    curve: !type:PresetCurve
+      preset: TargetDistance
+  - !type:TargetAccessibleCon
+    curve: !type:BoolCurve
+  # No TargetHealthCon: a structure has no MobThresholds. LOS keeps the anchor from being a map-wide target.
+  - !type:TargetInLOSOrCurrentCon
+    curve: !type:BoolCurve
+
+- type: htnCompound
+  id: WFFissureThreatCompound
+  branches:
+    - tasks:
+        - !type:HTNPrimitiveTask
+          operator: !type:UtilityOperator
+            proto: WFFissureTargets
+        - !type:HTNCompoundTask
+          task: MeleeAttackTargetCompound
+    - tasks:
+        - !type:HTNCompoundTask
+          task: MeleeCombatCompound
+    - tasks:
+        - !type:HTNCompoundTask
+          task: IdleCompound

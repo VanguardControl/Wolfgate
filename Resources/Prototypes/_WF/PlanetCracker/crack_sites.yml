@@ -1,0 +1,74 @@
+# What cracking knows about each world: its deep-vein table, the fissure factions and the deep-vein marker layers.
+# The marker layers are added after the planet's own, so every other layer keeps its placement.
+# Site-threat factions are ground mobs with NavSmash, since flying carps never collide with an anchor.
+
+- type: wfCrackSite
+  id: WFCrackSiteAsclepiu
+  surface: WFSurfaceAsclepiu
+  veins: WFVeinTableAsclepiu
+  faction: Xenos
+  unsanctionedFaction: Argocytes
+  markerLayers:
+  - WFDeepVeins
+
+- type: wfCrackSite
+  id: WFCrackSiteFervidus
+  surface: WFSurfaceFervidus
+  veins: WFVeinTableFervidus
+  faction: Argocytes
+  unsanctionedFaction: Argocytes
+  markerLayers:
+  - WFDeepVeinsFervidus
+
+- type: wfCrackSite
+  id: WFCrackSiteMerak
+  surface: WFSurfaceMerak
+  veins: WFVeinTableMerak
+  faction: Argocytes
+  unsanctionedFaction: Argocytes
+  markerLayers:
+  - WFDeepVeinsMerak
+
+- type: wfCrackSite
+  id: WFCrackSiteAerumna
+  surface: WFSurfaceAerumna
+  veins: WFVeinTableAerumna
+  faction: Xenos
+  unsanctionedFaction: Argocytes
+  markerLayers:
+  - WFDeepVeinsAerumna
+
+- type: wfCrackSite
+  id: WFCrackSiteThrascias
+  surface: WFSurfaceThrascias
+  veins: WFVeinTableThrascias
+  faction: Argocytes
+  unsanctionedFaction: Argocytes
+  markerLayers:
+  - WFDeepVeinsThrascias
+
+- type: wfCrackSite
+  id: WFCrackSiteCarcinoma
+  surface: WFSurfaceCarcinoma
+  veins: WFVeinTableCarcinoma
+  faction: WFCarcinomaThreats
+  unsanctionedFaction: WFCarcinomaThreats
+  markerLayers:
+  - WFDeepVeinsCarcinoma
+
+# Direct mob entries let the existing fissure code enforce its cumulative spawn cap.
+- type: salvageFaction
+  id: WFCarcinomaThreats
+  desc: wf-planet-carcinoma-faction
+  cost: 1
+  groups:
+  - entries:
+    - id: MobLetoferolBeast
+      amount: 1
+      maxAmount: 1
+    prob: 0.9
+  - entries:
+    - id: MobLetoferolHorror
+      amount: 1
+      maxAmount: 1
+    prob: 0.1

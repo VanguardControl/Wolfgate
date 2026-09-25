@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Wolfgate placeholder, generated",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "rim-straight",
+      "directions": 4
+    },
+    {
+      "name": "rim-curve",
+      "directions": 4
+    }
+  ]
+}

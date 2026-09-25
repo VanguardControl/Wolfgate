@@ -1,0 +1,13 @@
+<PanelContainer xmlns="https://spacestation14.io"
+                HorizontalExpand="True">
+    <!-- No PanelOverride here: the row builds its StyleBoxFlat from the active skin so no colour is ever a literal.
+         The five cells are one line and their widths are set from WFSurveyPlanetRow.ApplyColumns, which the window's
+         header row calls with its own five labels, so the two can never drift apart. -->
+    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="6 3">
+        <Label Name="NameLabel" StyleClasses="LabelKeyText" />
+        <Label Name="DistanceLabel" StyleClasses="LabelSubText" />
+        <Label Name="StatusLabel" StyleClasses="LabelSubText" />
+        <Label Name="CrackLabel" StyleClasses="LabelSubText" />
+        <Label Name="VeinsLabel" StyleClasses="LabelSubText" />
+    </BoxContainer>
+</PanelContainer>

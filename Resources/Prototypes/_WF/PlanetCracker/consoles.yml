@@ -1,0 +1,105 @@
+# Cracker consoles and the mapper-placed chunk berth marker.
+
+- type: entity
+  id: WFCrackConsole
+  parent: BaseComputer
+  name: crack control console
+  description: Targets an anchor pair and runs the cut. The screen is mostly warnings.
+  components:
+  - type: Sprite
+    layers:
+    - map: [ "computerLayerBody" ]
+      state: computer
+    - map: [ "computerLayerKeyboard" ]
+      state: generic_keyboard
+    # Stock faces from BaseComputer's computers.rsi, swapped per stage below.
+    - map: [ "computerLayerScreen" ]
+      state: shuttle
+    - map: [ "computerLayerKeys" ]
+      state: generic_keys
+  - type: WFCrackConsole
+  - type: ActivatableUI
+    key: enum.WFCrackConsoleUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WFCrackConsoleUiKey.Key:
+        type: WFCrackConsoleBoundUserInterface
+  # A child `visuals` replaces the parent's wholesale, so BaseComputer's two keys are re-declared here.
+  - type: GenericVisualizer
+    visuals:
+      enum.ComputerVisuals.Powered:
+        computerLayerScreen:
+          True: { visible: true, shader: unshaded }
+          False: { visible: false }
+        computerLayerKeys:
+          True: { visible: true, shader: unshaded }
+          False: { visible: true, shader: shaded }
+      enum.WFCrackConsoleVisuals.Screen:
+        computerLayerScreen:
+          Idle:      { state: shuttle }
+          Targeting: { state: telesci }
+          Cracking:  { state: telesci_red }
+          Alert:     { state: explosive }
+      enum.WiresVisuals.MaintenancePanelState:
+        enum.WiresVisualLayers.MaintenancePanel:
+          True: { visible: false }
+          False: { visible: true }
+
+- type: entity
+  id: WFSectorSurveyConsole
+  parent: BaseComputer
+  name: sector survey console
+  description: Reads long-range density returns and lists which worlds are worth cracking.
+  components:
+  - type: Sprite
+    layers:
+    - map: [ "computerLayerBody" ]
+      state: computer
+    - map: [ "computerLayerKeyboard" ]
+      state: generic_keyboard
+    # Stock faces from BaseComputer's computers.rsi: sensors idle, mining while scanning.
+    - map: [ "computerLayerScreen" ]
+      state: sensors
+    - map: [ "computerLayerKeys" ]
+      state: generic_keys
+  - type: WFSectorSurveyConsole
+  - type: ActivatableUI
+    key: enum.WFSurveyConsoleUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WFSurveyConsoleUiKey.Key:
+        type: WFSurveyConsoleBoundUserInterface
+  # A child `visuals` replaces the parent's wholesale, so BaseComputer's two keys are re-declared here.
+  - type: GenericVisualizer
+    visuals:
+      enum.ComputerVisuals.Powered:
+        computerLayerScreen:
+          True: { visible: true, shader: unshaded }
+          False: { visible: false }
+        computerLayerKeys:
+          True: { visible: true, shader: unshaded }
+          False: { visible: true, shader: shaded }
+      enum.WFSurveyConsoleVisuals.Screen:
+        computerLayerScreen:
+          Idle:     { state: sensors }
+          Scanning: { state: mining }
+      enum.WiresVisuals.MaintenancePanelState:
+        enum.WiresVisualLayers.MaintenancePanel:
+          True: { visible: false }
+          False: { visible: true }
+
+- type: entity
+  id: WFChunkBerthMarker
+  parent: MarkerBase
+  name: chunk berth marker
+  description: Marks where the extracted chunk hangs. Face it away from the hull.
+  categories: [ Mapping ]
+  components:
+  - type: Sprite
+    sprite: _WF/PlanetCracker/Interface/icons.rsi
+    state: chunk
+    scale: 2, 2
+    noRot: false
+  - type: Rotatable
+    rotateWhileAnchored: true
+  - type: WFChunkBerth

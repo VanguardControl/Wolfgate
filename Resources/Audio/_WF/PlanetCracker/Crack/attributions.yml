@@ -1,0 +1,6 @@
+# Sourced by the maintainer (2026-09-15), converted to 44.1 kHz Vorbis on import: mono for the positional
+# sounds, stereo for the global ambience loops and the release alarm.
+- files: ["beam_fire.ogg", "beam_loop.ogg", "chunk_release_alarm_loop.ogg", "crack_complete_1.ogg", "crack_complete_2.ogg", "gravitic_generator_loop_1.ogg", "gravitic_generator_loop_2.ogg", "gravitic_generator_start_effect.ogg", "gravity_gen_warning_alarm.ogg", "grid_crash_effect.ogg", "planet_side_anchor_loop.ogg", "planet_side_crack_ambience_loop_1.ogg", "planet_side_crack_ambience_loop_2.ogg", "random_crack_effect_1.ogg", "random_crack_effect_2.ogg", "random_crack_effect_3.ogg", "ship_side_crack_ambience_loop.ogg"]
+  license: CC0-1.0
+  copyright: "Original audio by Gandalf; dedicated to the public domain under CC0."
+  source: https://github.com/VanguardControl/Wolfgate/tree/planet-cracking/Resources/Audio/_WF/PlanetCracker/Crack

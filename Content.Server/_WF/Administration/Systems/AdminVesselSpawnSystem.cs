@@ -2,10 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Server._Mono.ShipRepair;
 using Content.Server._NF.Shipyard.Systems;
+using Content.Server._WF.PlanetCracker.Cracker;
 using Content.Server.Access.Systems;
 using Content.Server.Administration.Logs;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
+using Content.Shared._WF.PlanetCracker.Cracker;
 using Content.Shared.Database;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
@@ -24,6 +26,7 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
     [Dependency] private IdCardSystem _idCard = default!;
     [Dependency] private ShipyardSystem _shipyard = default!;
     [Dependency] private ShipRepairSystem _shipRepair = default!;
+    [Dependency] private WFCrackerOwnershipSystem _ownership = default!;
 
     /// <summary>
     /// Loads the vessel's grid at a world position and applies the prototype's extra components.
@@ -52,6 +55,10 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
         // This path raises no purchase event: the shipyard's repair snapshot has to be taken here too, or an SRD has
         // nothing to rebuild the vessel from.
         _shipRepair.GenerateRepairData(gridUid.Value);
+
+        // This path raises no purchase event, so an admin- or ERT-spawned cracker would otherwise carry unbound anchors.
+        if (HasComp<WFPlanetCrackerComponent>(gridUid.Value))
+            _ownership.BindAboard(gridUid.Value);
 
         _adminLogger.Add(LogType.EntitySpawn, LogImpact.Medium,
             $"{ToPrettyString(spawner):player} spawned vessel {vessel.ID} as {ToPrettyString(gridUid.Value):grid} on map {mapId}");
