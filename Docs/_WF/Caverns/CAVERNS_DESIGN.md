@@ -239,10 +239,11 @@ line.
   - **Cavern viewer:** has nothing below. It keeps its eye on the ground above, so the ground over it stays loaded
     and roofs it.
   - **Networks without a map below ground:** nothing changes.
-- **`Resources/ConfigPresets/Build/development.toml`** (F1): inside the existing `[wf]` table, which sits inside the
+- **`Resources/ConfigPresets/Build/development.toml`** (F1b): inside the existing `[wf]` table, which sits inside the
   `WOLFGATE(Planets)` block, add `caverns = true` with `# WOLFGATE(Caverns): caverns are on in development builds.` on
   the line above. TOML forbids a second `[wf]` header, so the line has to live in that block. A single-line marker
-  inside a block passes `modules.py`.
+  inside a block passes `modules.py`. It lands with the hull guard and the eye cap, never before: without them a dev
+  build sinks unsupported hulls into the cavern and loads cavern chunks under every viewer.
 - **`Resources/Prototypes/_NF/Guidebook/expeditions.yml`** (F6): add
   `  - WFCaverns # WOLFGATE(Caverns): cavern field guide` to `Expeditions`' children.
 
@@ -381,8 +382,8 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 ### 2.8 Settings
 
 `CavernCVars.Caverns` (`wf.caverns`, `CVar.SERVERONLY`) defaults to **false**. Production and the Planets test suite
-stay unchanged until caverns are signed off, and `development.toml` turns the CVar on. It is read at build time, so it
-affects networks built after it changes.
+stay unchanged until caverns are signed off, and `development.toml` turns the CVar on from F1b, once the hull guard
+and the eye cap are in. It is read at build time, so it affects networks built after it changes.
 
 ### 2.9 How a cavern is generated
 
@@ -1009,11 +1010,12 @@ python3 Tools/_WF/Ci/modules.py --write && python3 Tools/_WF/Ci/modules.py --che
 This feature lays the generic Planets hooks, the hull guard and the eye cap, and puts one placeholder cavern under
 each of the six worlds. The caverns are roofed, dark and have their final air.
 
-**Status:** F1a has landed: the Planets hooks, `wf.caverns`, the placeholder cavern under every world, and
-`CavernNetworkTest` and `CavernRoofTest`. F1b remains: the hull guard (`WfClosedToHulls`, `WfRefusesLevelHop` and the
-four marked CE lines), the eye cap in `CEZLevelsSystem.View.cs`, the wildlife `CEZLevelFallMapEvent` handler, and
-`CavernViewerEyeTest`, `CavernHullTest` (the F1 cases) and `CavernWildlifeTest`. `BiomeSystem.Caverns.cs` waits for
-F2, its first user.
+**Status:** F1a has landed: the Planets hooks, `wf.caverns` (off everywhere, development builds included), the
+placeholder cavern under every world, and `CavernNetworkTest` and `CavernRoofTest`. F1b remains: the hull guard
+(`WfClosedToHulls`, `WfRefusesLevelHop` and the four marked CE lines), the eye cap in `CEZLevelsSystem.View.cs`, the
+wildlife `CEZLevelFallMapEvent` handler, `caverns = true` in `development.toml` (only together with the hull guard and
+the eye cap), and `CavernViewerEyeTest`, `CavernHullTest` (the F1 cases) and `CavernWildlifeTest`.
+`BiomeSystem.Caverns.cs` waits for F2, its first user.
 
 - **Add:**
   - Planets (no marker): `Content.Server/_WF/Planets/WFPlanetLowerLayersEvent.cs`,
@@ -1047,7 +1049,7 @@ F2, its first user.
     `// WOLFGATE(Planets): pilots can't descend below a planet's ground.`
 - **Marked Caverns edits outside `_WF`:**
   - `CEZLevelsSystem.View.cs`, the eye cap (section 2.3, three lines).
-  - `Resources/ConfigPresets/Build/development.toml`: `caverns = true`.
+  - `Resources/ConfigPresets/Build/development.toml`: `caverns = true` (F1b, with the hull guard and the eye cap).
 - **Tests:** every F1 row of section 6.
 - **Verify:** V-build, V-test for each F1 fixture, V-planets (caverns off), V-server, V-lint, V-modules.
 - **Accept:**
