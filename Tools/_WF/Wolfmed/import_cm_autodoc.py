@@ -1,6 +1,6 @@
 """Converts the autodoc states of CM-SS13's icons/obj/structures/machinery/cryogenics.dmi into an RSI.
 
-Usage: python Tools/_WF/wolfmed/import_cm_autodoc.py <path to cryogenics.dmi>
+Usage: python Tools/_WF/Wolfmed/import_cm_autodoc.py <path to cryogenics.dmi>
 
 DMI sheets are frame-major (frame 0 of every direction, then frame 1, ...); RSI sheets are direction-major.
 Same parser as import_nova_blood.py; only the state list and the output path differ.

@@ -1,7 +1,7 @@
 """Converts blood splatter states from NovaSector's icons/effects/blood.dmi into an RSI.
 
-Usage: python Tools/_WF/wolfmed/import_nova_blood.py <path to blood.dmi>
-       python Tools/_WF/wolfmed/import_nova_blood.py --free   (rebuild the free states from the RSI alone)
+Usage: python Tools/_WF/Wolfmed/import_nova_blood.py <path to blood.dmi>
+       python Tools/_WF/Wolfmed/import_nova_blood.py --free   (rebuild the free states from the RSI alone)
 
 DMI sheets are frame-major (frame 0 of every direction, then frame 1, ...); RSI sheets are direction-major.
 

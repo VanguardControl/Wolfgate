@@ -14,7 +14,7 @@ This document supersedes the per-area analyst reports wherever they disagree. Wh
 3. Upstream Wolfgate files get one- or two-line `// WOLFGATE` hooks only, except where this plan explicitly authorises more (there are exactly four such places: §3 GUARD D, §3 GUARD D2, §3 GUARD E3, and HOOK 7/HOOK 8's `HealingComponent`/`HealingSystem` pair).
 4. **Never** add a directed subscription for a `(Component, Event)` pair without checking §5 first. RT throws `Duplicate Subscriptions for comp=…, event=…` at `WG/RobustToolbox/Robust.Shared/GameObjects/EntityEventBus.Directed.cs:407,419` — a server-start crash. §5 now carries **answers**, not deferred questions.
 5. Every WP ends with the build checkpoint: **`dotnet build Content.Server` and `dotnet build Content.Client` must both be green (0 errors)**, plus `dotnet build Content.IntegrationTests` from WP9 onward. YAML must lint in **Release**.
-6. Record every file you touch in `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7) in the same commit.
+6. Record every file you touch in `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` (§7) in the same commit.
 
 ---
 
@@ -29,7 +29,7 @@ This document supersedes the per-area analyst reports wherever they disagree. Wh
 | **D3** | Phase 1 species: organic humanoids only. IPC / cybernetic / slime / plant profiles are later phases. | Scope control; Onyx wires IPC per-mob, not by inheritance. | `mob-wiring.md` §1.6 |
 | **D4** | Balance: Onyx defaults. Tuning later via CCVars and prototypes. | Avoids re-deriving a tuned system during a port. | — |
 | **D5** | Missing APIs get a compat layer in `Content.Shared/_WF/Wolfmed/Compat`; where a shim is impossible, a `// WOLFGATE` edit inside the vendored file. Upstream systems get one- or two-line hooks. | Keeps the vendored tree re-syncable. | `rt-api-gap.md` §3.1; this plan §2 |
-| **D6** | Layout: vendored Onyx code in `Content.{Shared,Server,Client}/_Onyx/...`, `Resources/{Prototypes,Locale/en-US,Textures}/_Onyx/...` keeping Onyx's relative paths. Wolfgate glue in `_WF/Wolfmed`. Docs and manifest in `Docs/Wolfmed/`. | A re-sync becomes a diff. | `Docs/Wolfmed/` already exists |
+| **D6** | Layout: vendored Onyx code in `Content.{Shared,Server,Client}/_Onyx/...`, `Resources/{Prototypes,Locale/en-US,Textures}/_Onyx/...` keeping Onyx's relative paths. Wolfgate glue in `_WF/Wolfmed`. Docs and manifest in `Docs/_WF/Wolfmed/`. | A re-sync becomes a diff. | `Docs/_WF/Wolfmed/` already exists |
 | **D7** | Phase 1 keeps Wolfgate's Shitmed surgery. Onyx's own surgery system is NOT ported; wound surgeries are re-expressed on Shitmed's step system in phase 4. | Onyx surgery is 25 shared files + 70 prototypes and collides on two component names. | `medical-extras.md` §7b |
 | **D8** | Stay on Wolfgate's Shitmed `BodyPartComponent`. Onyx's extra part fields go in a separate `_WF/Wolfmed` component. Onyx `_Onyx/Body` Nubody glue is not ported; only organ-damage and functional-organ pieces the wounds need. | Onyx's `BodyPartComponent.cs` *redeclares* four `Content.Shared.Body.Part` types — four `CS0101` collisions. | `body-organ.md` §0.1; `mob-wiring.md` §4.2 |
 
@@ -634,7 +634,7 @@ Keep the `// <Onyx-OrganEffects>` block (`:13-24`) verbatim.
 
 **Sandbox / IoC:** none needed. `Content` is a whitelisted namespace *prefix* (`WG/RobustToolbox/Robust.Shared/ContentPack/Sandbox.yml:24-27`), and `System.Linq` (`:634`) / `System.Numerics` (`:646`) are already allowed. Systems and components auto-register.
 
-**Hazard to document in `Docs/Wolfmed/`:** two types named `StatusEffectsSystem` now exist (`Content.Shared.StatusEffect` and `Content.Shared.StatusEffectNew`). Any file importing both namespaces gets CS0104. No ported file does.
+**Hazard to document in `Docs/_WF/Wolfmed/`:** two types named `StatusEffectsSystem` now exist (`Content.Shared.StatusEffect` and `Content.Shared.StatusEffectNew`). Any file importing both namespaces gets CS0104. No ported file does.
 
 **Checkpoint:** `dotnet build Content.Server` + `dotnet build Content.Client` green; server starts with zero `PrototypeManager` errors.
 
@@ -993,7 +993,7 @@ CCVars likewise: `targeting.enabled`, `targeting.use_anatomical_odds`, `targetin
 
 ---
 
-## 7. `Docs/Wolfmed/WOLFMED_MANIFEST.md`
+## 7. `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`
 
 ### 7.1 Format
 

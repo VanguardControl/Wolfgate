@@ -3,7 +3,7 @@
 **Basis.** This plan draws on:
 - `plan/p7/INPUT.md`: the owner's goal, the external review, the approved fixes and the standing decisions;
 - `plan/p6/DEATH-RUNDOWN.md` ("the rundown"), read at `1cdd69c7c2`;
-- `Docs/Wolfmed/DECISIONS.md`;
+- `Docs/_WF/Wolfmed/DECISIONS.md`;
 - the code on branch `Wolfmed` at `5464fb137e`. The only commit since the rundown changes the targeting UI and the analyzer window, so the rundown's line numbers still hold.
 
 I re-checked the load-bearing claims against the code: the breathing rule, `Kill`, the ghost branch, the sedation model, the defib gate, the non-wound-host species and the pod's missing return prompt. For this revision I also checked the `MobThresholdsComponent` access rule, the brainless branch of `WolfmedLifeSystem.Tick`, the sedation lines, the crit-action grant path, the autodoc alarm enum, the `ghost` command path and the species file paths.
@@ -15,7 +15,7 @@ I re-checked the load-bearing claims against the code: the breathing rule, `Kill
 - Every number I propose is a **starting value for playtesting**, written as *(start: value, `where it lives`)*. **new** marks a CVar or prototype field that does not exist yet. **existing** marks one that does.
 - "Derived" means worked out from the code's own rates, not measured.
 - "To confirm" names the file to check before building.
-- **OD1–OD22** are this plan's owner decisions (§13). **D-numbers** (D1–D35) always mean the entries in `Docs/Wolfmed/DECISIONS.md`, for example DECISIONS D27 (the accumulator).
+- **OD1–OD22** are this plan's owner decisions (§13). **D-numbers** (D1–D35) always mean the entries in `Docs/_WF/Wolfmed/DECISIONS.md`, for example DECISIONS D27 (the accumulator).
 - **[OD1 wording]** marks player-facing text that follows the terminology decision OD1 (answered (b), §13). If OD1 is ever revisited to (a), those strings say "brain death" instead. Only locale changes.
 
 ---
@@ -661,7 +661,7 @@ This is server `_WF` code reading a server component, so it needs **no hook**. T
 - Every alert, card line and transition message that names the cause adds "Still holding you down: {blockers}" while Blockers is not empty (§5.1). It lists each blocker's `blockerName`, for example "Still holding you down: blood loss".
 - No text promises waking or standing unconditionally. A `help` line that makes such a promise has a `helpBlocked` form, shown while Blockers is not empty. The pain Downed line is conditional in both forms.
 
-**Transition messages** (none today, rundown §4.7 item 5). One self popup per transition, in `_WF/wolfmed/consciousness.ftl`:
+**Transition messages** (none today, rundown §4.7 item 5). One self popup per transition, in `_WF/Wolfmed/consciousness.ftl`:
 - going down, fainting, going Unconscious, waking, standing;
 - adrenaline start and end, stim crash;
 - heart stopping;
@@ -1398,7 +1398,7 @@ Check that each screen explains itself.
 **Systems and files:**
 - `_WF`: a do-after interruption handler (to confirm whether it needs inventory #18); fracture and necrosis components (to confirm whether they live in `_Onyx` or `_WF`); `WolfmedCVars` (`wolfmed.doafter_interrupt_damage` 10 new).
 - Marked edits: inventory #17, and #18 if needed.
-- Docs: Docs/Wolfmed/DECISIONS.md.
+- Docs: Docs/_WF/Wolfmed/DECISIONS.md.
 
 **Test migration:** `WolfmedDamageBridgeTest` (routing arguments); `WolfmedBluntWoundTest` (fracture grade); `WolfmedInfectionTest` (necrosis multiplier); `WolfmedTreatmentProcedureTest` and `WolfmedWoundSurgeryTest` (do-afters may now be interrupted).
 

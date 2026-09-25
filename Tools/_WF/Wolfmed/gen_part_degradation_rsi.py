@@ -17,7 +17,7 @@ Five variants per limb:
 Deterministic: every blob comes from random.Random seeded with the state name and
 direction, so re-running the script reproduces the RSI byte for byte.
 
-Usage: python Tools/_WF/wolfmed/gen_part_degradation_rsi.py
+Usage: python Tools/_WF/Wolfmed/gen_part_degradation_rsi.py
 Reads  Resources/Textures/Mobs/Species/Human/parts.rsi/
 Writes Resources/Textures/_WF/Wolfmed/Effects/part_degradation.rsi/
 """
@@ -42,7 +42,7 @@ SRC_COPYRIGHT = ("https://github.com/tgstation/tgstation/blob/"
                  "and modified by DrSmugleaf")
 COPYRIGHT = ("Derived from Resources/Textures/Mobs/Species/Human/parts.rsi ("
              + SRC_COPYRIGHT
-             + "), masked and redrawn for Wolfgate (Wolfmed) by Tools/_WF/wolfmed/gen_part_degradation_rsi.py")
+             + "), masked and redrawn for Wolfgate (Wolfmed) by Tools/_WF/Wolfmed/gen_part_degradation_rsi.py")
 
 # HumanoidVisualLayers name -> the source sprites whose alpha is intersected for the mask.
 LAYERS = {

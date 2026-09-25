@@ -26,7 +26,7 @@ evidence, not instructions.
    `dotnet build Content.IntegrationTests` all green (0 errors), `-c DebugOpt`. YAML lints in **Release** only
    (`ErrorNode` crashes the linter elsewhere).
 6. **Packages run SEQUENTIALLY in the one worktree** and each appends its own rows directly to
-   `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7). WP11-6 *reconciles*, it does not merge. One owner per shared file
+   `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` (§7). WP11-6 *reconciles*, it does not merge. One owner per shared file
    (§4, serialisation rules).
 7. **No commits.** Work packages leave the tree uncommitted; snapshot a patch per WP under
    `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
@@ -44,7 +44,7 @@ evidence, not instructions.
 | **D2** | Entities without `WoundHostComponent` behave exactly as today. Every phase-3 change must be `HasComp<WoundHostComponent>`-scoped or structurally unreachable for non-hosts. Per-part armour satisfies this for free: the gate lives only in `WolfmedPartArmorSystem`, whose only trigger is `PartDamageModifyEvent`, which only `WoundDamageRoutingSystem` raises (`WoundDamageRoutingSystem.cs:741-749`). **A prototype edit on a shared abstract is never D2-scoped**: this is what killed the original HOOK 19 (revision notes, B3-1). `BaseHead` has **26** descendants and ten of them are not wound hosts — `_Mono/Body/Parts/protogen.yml:41`, `_Shitmed/Body/Parts/animal.yml:3`, `Animal/kobold.yml:34`, `Animal/monkey.yml:34`, `_NF/Body/Parts/goblin_parts.yml:38`, `Body/Parts/skeleton.yml:33`, `silicon.yml:88`, `_EinsteinEngines/Body/Parts/ipc.yml:53`, `_Mono/Body/Parts/chimera.yml:30` (all re-grepped here). | PLAN §1.1 |
 | **D4** | Balance = Onyx defaults. **Phase 3 ships no deliberate numeric balance deviation.** P3-D1 is now a neutral-by-construction accounting fix (it charges exactly the damage the detached vital part carried away, so the readout cannot *drop*), and the P3-D14 stump-bleed literal is a *clamp*, not a tuning choice. The one balance-visible change is P3-D6's coverage annotation, escalated as user decision 2. | PLAN §1.1 |
 | **D5** | Missing APIs get a compat shim in `Content.Shared/_WF/Wolfmed/Compat`; where impossible, a `// WOLFGATE` edit in the vendored file. **Phase 3 adds exactly one new `_WF` system and one new `_WF` partial (§2). The amputation compat layer is already complete.** | PLAN §1.1, verified §2.0 |
-| **D6** | Layout: vendored Onyx code at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/Wolfmed/`. | PLAN §1.1 |
+| **D6** | Layout: vendored Onyx code at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/_WF/Wolfmed/`. | PLAN §1.1 |
 | **D7** | Wolfgate keeps Shitmed surgery. Onyx's `_Onyx/Medical/Surgery` and `_Onyx/Surgery` are **not** ported. This is what makes B-2 (P3-D2) and the organ-healing gap (P3-D9) real, and it is what makes 2 of Onyx's 5 `AmputationConsequenceTest` tests unportable (§6.2). | PLAN §1.1 |
 | **D8** | Wolfgate stays on Shitmed's `BodyPartComponent`; Onyx's extra part fields live on `WolfmedBodyPartComponent`, read through `WolfmedBodyPartSystem.Get(EntityUid)`. Verified in the tree today: `WG/Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartSystem.cs:9` `public WolfmedBodyPartComponent Get(EntityUid part) => CompOrNull<WolfmedBodyPartComponent>(part) ?? None;` with `private static readonly WolfmedBodyPartComponent None = new();` at `:6`. **This is the single largest source of edits in phase 3** (18 sites in `AmputationSystem.cs`). | verified directly |
 | **D9** | No `BodyPartType.Chest`/`.Groin`. `WG/Content.Shared/Body/Part/BodyPartType.cs` is `{Other, Torso, Head, Arm, Hand, Leg, Foot, Tail}`. Affects `AmputationSystem.cs` (3 sites), every ported `coverage:` list, and the one Onyx `targetLayers` line that adds `HumanoidVisualLayers.Groin`. | verified directly |
@@ -423,7 +423,7 @@ WP11-6  Docs + manifest reconcile       (3 files)
 re-grep before adding, because packages land in sequence.
 
 **Serialisation rule 4 — the manifest.** Each WP appends its own `### WP11-N` rows and deviations directly to
-`Docs/Wolfmed/WOLFMED_MANIFEST.md` (ground rule 6). WP11-6 **reconciles** (amends the stale rows in §7.1,
+`Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` (ground rule 6). WP11-6 **reconciles** (amends the stale rows in §7.1,
 dedupes, and writes the two narrative docs); it does not re-append.
 
 ---
@@ -460,7 +460,7 @@ wounds land on the parent; the severed limb is thrown; decapitation is lethal.
 | 1 | `Content.Shared/_Onyx/Wounds/AmputationSystem.cs` (212 lines) | same path | **new (vendored), 18 `// WOLFGATE` sites** |
 | 2 | — | `Content.Server/_Onyx/Wounds/OrganDamageSystem.cs` | **modified**, 2 sites (4 comment lines deleted) |
 | 3 | — | `Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs` | **modified**, 1 call + 1 method — **P3-D1** (replaces the withdrawn HOOK 19) |
-| 4 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-1` |
+| 4 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-1` |
 
 **Order matters:** #1 before #2 (`OrganDamageSystem`'s `[Dependency] private AmputationSystem` is `CS0246`
 without it).
@@ -602,7 +602,7 @@ Shitmed consequences plus internal bleeding.
 | 2 | — | `Resources/Prototypes/Body/Organs/human.yml` | **modified**, 7 `parent:` lines — **PROTO A** |
 | 3 | — | `Content.Server/_WF/Wolfmed/Body/WolfmedOrganConsequenceSystem.cs` | **new** (§2.2) |
 | 4 | — | `Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs` | **modified**, 2 `// WOLFGATE` guards (P3-D23) |
-| 5 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-2` |
+| 5 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-2` |
 
 #### File 1 — `organs.yml`
 
@@ -671,7 +671,7 @@ populated round and record the number rather than assuming.
 | 3 | — | `Resources/Prototypes/_Mono/…/Head/Helmets/bulletproof_helmets.yml` | **modified** — PROTO B |
 | 4 | — | `Resources/Prototypes/_Mono/…/OuterClothing/Armor/bulletproof_vests.yml` | **modified**, 5 blocks — PROTO B |
 | 5 | `…/WoundDamageFoundationTest.cs` (3 tests + fixtures) | same | **modified** (§6.2) |
-| 6 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-3` |
+| 6 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-3` |
 
 #### File 2 — the rewritten handler (Option B, P3-D5)
 
@@ -766,7 +766,7 @@ them, because none of their fixtures declares `coverage:`.
 | 3 | *(Option B)* — | `Content.Shared/Body/Part/BodyPartComponent.cs` | **modified**, 1 word — **HOOK 21** |
 | 4 | *(Option B)* `Resources/Textures/_Onyx/Wounds/{brute,burn}_damage.rsi` | same | **new**, 156 files |
 | 5 | *(Option B)* — | `Resources/Prototypes/Entities/Mobs/Species/base.yml` | **modified**, 2 lines — **PROTO C** |
-| 6 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-4` |
+| 6 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-4` |
 
 **Option A is mandatory; Option B (files 3-5) is pre-authorised and droppable.** If Option B is dropped,
 **also drop HOOK 21** and record it as a P3-4 sub-item handed to phase 4.
@@ -809,7 +809,7 @@ this package is the first consumer of, and it is the cheapest possible bisect if
 | 2 | `Content.IntegrationTests/Tests/_Onyx/Wounds/AmputationConsequenceTest.cs` (3 of 5) | same path | **new**, adapted |
 | 3 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAmputationTest.cs` | **new** |
 | 4 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs` | **new** |
-| 5 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-5` |
+| 5 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP11-5` |
 
 Assertions and derived expected values: §6.2. New `[TestPrototypes]` ids: `WolfmedAmputationBody*`,
 `WolfmedAmputationOverflowPart`, `WolfmedOrganBody*`, `WolfmedOrganTestOrgan`, `WolfmedOrganTestProfile`,
@@ -836,9 +836,9 @@ and `_WF/Wolfmed/Body/parts.yml` (read in full) overrides it on no part. This on
 
 | # | File | Action |
 |---|---|---|
-| 1 | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | **reconcile**: amend the stale rows in §7.1, dedupe the five appended `### WP11-N` blocks, add the phase-3 deviations block |
-| 2 | `Docs/Wolfmed/WOLFMED_PLAN3.md` | **new** — this plan, as shipped |
-| 3 | `Docs/Wolfmed/WOLFMED_STATUS.md` | **modified** — amend `:85` (`PartDamageVisualsComponent` no longer deferred), `:90-91` (phase-3 items now done), and add §8's balance numbers plus the three known gaps (no organ healing, no organ readout, consequence wound inert) |
+| 1 | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | **reconcile**: amend the stale rows in §7.1, dedupe the five appended `### WP11-N` blocks, add the phase-3 deviations block |
+| 2 | `Docs/_WF/Wolfmed/WOLFMED_PLAN3.md` | **new** — this plan, as shipped |
+| 3 | `Docs/_WF/Wolfmed/WOLFMED_STATUS.md` | **modified** — amend `:85` (`PartDamageVisualsComponent` no longer deferred), `:90-91` (phase-3 items now done), and add §8's balance numbers plus the three known gaps (no organ healing, no organ readout, consequence wound inert) |
 
 **Build checkpoint:** three builds green; Release YAML lint green; full phase-1/2/3 test filter green.
 
@@ -1352,10 +1352,10 @@ Onyx's `ProtoId`-ification of `DamageOverlayGroups`/`DamageGroup`; `HumanoidVisu
 | **WP11-3** | Per-part (locational) armour — `ArmorComponent.Wolfmed.cs`, the `WolfmedPartArmorSystem` rewrite, PROTO B, 5 tests | **opus** | 5 |
 | **WP11-4** | Limb damage sprites — HOOK 20 + the `_WF` client partial (Option A); HOOK 21 + PROTO C + 156 RSI files (Option B) | **sonnet** | 2 / 5 |
 | **WP11-5** | Amputation + organ tests — 17 tests across 4 files (1 restored, 3 ported, 5 new amputation, 8 new organ) | **opus** | 4 |
-| **WP11-6** | Docs + manifest reconcile — **sole owner of `Docs/Wolfmed/`** at this stage | **sonnet** | 3 |
+| **WP11-6** | Docs + manifest reconcile — **sole owner of `Docs/_WF/Wolfmed/`** at this stage | **sonnet** | 3 |
 
 File counts cover new `_WF` files, modified vendored files, upstream hook files, prototypes and tests. They
-**exclude** `Docs/Wolfmed/WOLFMED_MANIFEST.md`, which every package appends to (ground rule 6), except in
+**exclude** `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, which every package appends to (ground rule 6), except in
 WP11-6 where the manifest *is* the work. WP11-4's `2 / 5` is Option A alone / Option A + Option B.
 
 **Model rationale.** Opus for WP11-1 (a 26-row edit table on a vendored file, two signature changes, and the

@@ -24,7 +24,7 @@ reports are evidence, not instructions.
 5. Every WP ends with the build checkpoint: `dotnet build Content.Server`, `dotnet build Content.Client` **and**
    `dotnet build Content.IntegrationTests` all green (0 errors), `-c DebugOpt`. YAML lints in **Release** only
    (`ErrorNode` crashes the linter elsewhere).
-6. Record every file you touch in `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7) in the same work package.
+6. Record every file you touch in `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` (§7) in the same work package.
 7. **No commits.** Work packages leave the tree uncommitted; snapshot a patch per WP under
    `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
 8. Before blaming Wolfmed for a test failure, run `DockTest` first (the `db.ef` sqlite warnings fail every
@@ -42,7 +42,7 @@ reports are evidence, not instructions.
 | **D2** | Entities without `WoundHostComponent` behave exactly as today. Every phase-2 upstream hook must be `HasComp<WoundHostComponent>`-scoped or behaviourally inert for non-hosts. | PLAN §1.1 |
 | **D4** | Balance = Onyx defaults. Two phase-2 numbers contradict this in spirit (P2-D13, P2-D16); both are recorded as deviations and escalated, not silently "fixed". | PLAN §1.1 |
 | **D5** | Missing APIs get a compat shim in `Content.Shared/_WF/Wolfmed/Compat`; where impossible, a `// WOLFGATE` edit in the vendored file. Phase 2 adds exactly **one** new shim (§2.1). | PLAN §1.1 |
-| **D6** | Layout: vendored Onyx code at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/Wolfmed/`. | PLAN §1.1 |
+| **D6** | Layout: vendored Onyx code at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/_WF/Wolfmed/`. | PLAN §1.1 |
 | **D8** | Wolfgate stays on Shitmed's `BodyPartComponent`. Onyx's extra part fields live on `WolfmedBodyPartComponent`, read through `WolfmedBodyPartSystem.Get(EntityUid)`. **This is the one edit `FractureAlertSystem.cs` needs.** Precedent already in the tree: `WG/Content.Shared/_Onyx/Wounds/WoundFractureSystem.cs:151` `var profileId = _wfPart.Get(part).FractureProfile; // WOLFGATE: D8, FractureProfile lives on WolfmedBodyPartComponent.` | verified directly |
 | **D9** | No `BodyPartType.Chest`/`.Groin`. `WG/Content.Shared/Body/Part/BodyPartType.cs` is `{Other, Torso, Head, Arm, Hand, Leg, Foot, Tail}`. Phase 2's only affected file is `HealthExaminableSystem.PartStatus.cs`'s `PartOrder` switch (P2-D11 / WP10-2). Neither fracture file references those members (verified by reading both Onyx files in full). | verified directly |
 | **D10** | Onyx's Targeting stack is not vendored, **including `PartStatus*`**. That is exactly what creates the one new shim phase 2 needs (§2.1). | PLAN §1.2 |
@@ -266,10 +266,10 @@ a hand at all.
 same existing `# WOLFGATE — Wolfmed phase 1 (D21/D32)` block at `:250-252`. No other WP edits that file.
 
 **Serialisation rule 2 — the docs (CRITIQUE2 M4, accepted).** Ground rule 6 tells every WP to append to
-`Docs/Wolfmed/WOLFMED_MANIFEST.md`, and §4's graph runs WP10-1/-2/-3/-4/-6a in parallel — five concurrent
+`Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, and §4's graph runs WP10-1/-2/-3/-4/-6a in parallel — five concurrent
 appends to one file, with one silently losing, exactly the hazard §8.3 item 2 already identifies for `base.yml`.
-**WP10-7 is the sole editor of `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `Docs/Wolfmed/WOLFMED_PLAN.md` and
-`Docs/Wolfmed/WOLFMED_STATUS.md`.** Every other WP writes its manifest rows and deviations to
+**WP10-7 is the sole editor of `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, `Docs/_WF/Wolfmed/WOLFMED_PLAN.md` and
+`Docs/_WF/Wolfmed/WOLFMED_STATUS.md`.** Every other WP writes its manifest rows and deviations to
 `C:/Users/jzo12/Documents/Wolfmed/plan/p2/manifest-rows-WP10-N.md` instead — same content, same format as §7's tables — and
 WP10-7 merges them. Ground rule 6 is amended accordingly for phase 2: *record every file you touch in your own
 `manifest-rows-WP10-N.md`*. A WP that produces no such file has not finished.
@@ -755,11 +755,11 @@ below pain 110, so repeat firing is bounded — but **this is the first build in
 
 | # | Path | Action |
 |---|---|---|
-| 1 | `Docs/Wolfmed/WOLFMED_PLAN2.md` | **new** (P2-5) — this document, adapted for the repo |
-| 2 | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | **modified** — §7's rows and deviations |
-| 3 | `Docs/Wolfmed/` status doc | **modified** — phase 2 marked done, phase 3/4 scope restated |
+| 1 | `Docs/_WF/Wolfmed/WOLFMED_PLAN2.md` | **new** (P2-5) — this document, adapted for the repo |
+| 2 | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | **modified** — §7's rows and deviations |
+| 3 | `Docs/_WF/Wolfmed/` status doc | **modified** — phase 2 marked done, phase 3/4 scope restated |
 
-Also correct, in `Docs/Wolfmed/WOLFMED_PLAN.md`: the stale "`FractureEffectsSystem.cs:34-35` gets a `// WOLFGATE`
+Also correct, in `Docs/_WF/Wolfmed/WOLFMED_PLAN.md`: the stale "`FractureEffectsSystem.cs:34-35` gets a `// WOLFGATE`
 using swap" note (P2-D3) and the stale GUARD E2 line number `:274` → `:280`.
 
 ---
@@ -929,7 +929,7 @@ dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c DebugOpt
 | — | `Content.Server/Chat/Systems/EmoteOnDamageSystem.cs` | new (hook) | WP10-5 | **HOOK 18**, 1 line at `:27` |
 | — | `Resources/Prototypes/Entities/Mobs/Species/base.yml` | modified | WP10-5 | P2-D7 `- type: PainShockTarget` + P2-D9 `- type: EmoteOnDamage` with the corrected key, both in the phase-1 `# WOLFGATE` block |
 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs` | new | WP10-6b | T-PAIN-OVERLAY / T-PAIN-SHOCK / T-HIGH-PAIN / T-PAIN-NUMB |
-| — | `Docs/Wolfmed/WOLFMED_PLAN2.md` | new | WP10-7 | P2-5 |
+| — | `Docs/_WF/Wolfmed/WOLFMED_PLAN2.md` | new | WP10-7 | P2-5 |
 
 **Deviations to record:**
 
@@ -1089,7 +1089,7 @@ replacements, already folded into this plan:
 | **WP10-6a** | Bridge tests — T-AP, T-PASSIVE-A, T-PASSIVE-B | F1 | **sonnet** | 1 |
 | **WP10-5** | Pain sounds (HOOK 17 / HOOK 18 + `PainSounds.cs`) + mob wiring; **owns `base.yml`** | F2 | **opus** | 4 |
 | **WP10-6b** | Fracture + pain tests | F3 | **opus** | 2 |
-| **WP10-7** | Docs + manifest merge; **sole owner of `Docs/Wolfmed/`** | F4 | **sonnet** | 3 |
+| **WP10-7** | Docs + manifest merge; **sole owner of `Docs/_WF/Wolfmed/`** | F4 | **sonnet** | 3 |
 
 File counts cover new `_WF` files, modified vendored files, upstream hook files, prototypes, locale and tests.
 They exclude `manifest-rows-WP10-N.md`, which every WP writes (serialisation rule 2).
@@ -1128,7 +1128,7 @@ before being accepted; nothing was taken on CRITIQUE2's word, and one of its num
 | **M1** | **Accepted → P2-D22.** Verified `WolfmedWoundHostExclusionSystem.cs:12,17,33` removes only `WoundHostComponent`, and that ONYX `EmoteOnDamageSystem.PainSounds.cs:19-62` never tests it. Took CRITIQUE2's fix (b), the one-line guard at the top of `HandlePainDamageEmote`: `using Content.Shared._Onyx.Wounds;` is already line 1 of that file, so it costs nothing, and it is the honest gate for a feature shipping as "Wolfmed pain sounds". P2-D7's rationale is rewritten in §4/WP10-5 and in the `base.yml` comment; `PainShockTarget` on Protogen is separately shown to be inert. |
 | **M2** | **Accepted → P2-D23.** Verified the roll at `WoundFractureSystem.cs:51-55` and the profile's `0.05 / 0.25 / 0.65 / 1` (`wounds.yml:56-76`), and verified the deterministic alternative: `OnWoundChanged:73-86` re-grades with no roll, and `severityMultiplier: 1` (`wounds.yml:39`) makes `WoundSystem.ChangeSeverity` (`:284`) an exact grade dial. Both alert tests respecified: create at 60 (Comminuted, chance 1), then walk the grade down. The new negative actually tests `alertMinimumGrade: Simple` instead of "a fracture exists". |
 | **M3** | **Accepted and extended → P2-D24.** Verified `status_effects.yml:4-10` (no `alwaysAllowed` on `Stun`/`KnockedDown`), `base.yml:125-127` (BaseMobSpecies lists them explicitly) and `SharedStunSystem.cs:244-251`. **Added a second requirement CRITIQUE2 missed:** `PainSystem.Update`'s shock loop is `EntityQueryEnumerator<PainComponent, MobStateComponent, PainShockTargetComponent>` (`PainSystem.cs:143`), so the fixture also needs `- type: MobState` or it is never visited at all. |
-| **M4** | **Accepted.** Serialisation rule 2 added to §4: WP10-7 is the sole editor of `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_PLAN.md` and `WOLFMED_STATUS.md`; every other WP emits `C:/Users/jzo12/Documents/Wolfmed/plan/p2/manifest-rows-WP10-N.md` for WP10-7 to merge. Ground rule 6 is amended for phase 2, and §8.3 carries the risk. |
+| **M4** | **Accepted.** Serialisation rule 2 added to §4: WP10-7 is the sole editor of `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_PLAN.md` and `WOLFMED_STATUS.md`; every other WP emits `C:/Users/jzo12/Documents/Wolfmed/plan/p2/manifest-rows-WP10-N.md` for WP10-7 to merge. Ground rule 6 is amended for phase 2, and §8.3 carries the risk. |
 | **M5** | **Accepted.** Verified `[Dependency] private WoundStatusEffectSystem _statusEffects` at ONYX `FractureEffectsSystem.cs:23` with calls at `:64` and `:71`, and that both methods exist in WG (`WoundStatusEffectSystem.cs:109,119`) with no caller outside the system's own `RefreshPartWounds:133`. Added to §2's "already exists" list, to WP10-1's exact-edit section, to §7's manifest row, and as §7 deviation 14 with the P2-D1 dependency stated. |
 
 ### Minors

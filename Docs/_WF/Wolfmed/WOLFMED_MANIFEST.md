@@ -1402,7 +1402,7 @@ Phase 3 is committed (`6329d204e3 Phase 3 completion`). Phase 4 = treatment and 
 | `Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml:268-299` (`Tourniquet` entity) | same path | modified — **PROTO D** | **WP12-3** | In-place swap of the existing `id: Tourniquet`'s `- type: Healing` block for `- type: Tourniquet`. Zero new ids, zero touched fill/vending/spawner files beyond PROTO E |
 | `Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml`, `MedkitAdvancedFilled` | same path | modified — **PROTO E** | **WP12-3** | One line adding `Tourniquet` to `contents:`, matching Onyx's own `<Onyx-MedkitContents>` edit. `MedkitCombatFilled` deliberately not touched (Onyx doesn't add one there) |
 | `Resources/Locale/en-US/_Onyx/medical/tourniquet.ftl` | same path | new, verbatim | **WP12-3** | 3 keys: `tourniquet-selected-part-missing`, `tourniquet-no-bleeding`, `tourniquet-applied` |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-3** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-3** | |
 
 **Every `// WOLFGATE` edit in `TourniquetSystem.cs`, with reason:**
 
@@ -1437,7 +1437,7 @@ the tourniquet test belongs to WP12-9).
 | — | `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Wolfmed.cs` | new (`_WF` partial) | **WP12-4** | HOOK 24 + HOOK 25 bodies and their two `[Dependency]` fields, so neither upstream site gains a `using` or a dependency line. Precedent: `Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs` |
 | — | `Content.Shared/_Shitmed/Surgery/Conditions/SurgeryWoundedConditionComponent.cs` | modified — **EXT 1** | **WP12-4** | 3 marked datafields (`woundGroup`, `minWoundSeverity`, `maxWoundSeverity`) + 3 marked `using`s. Purely additive; null bounds keep pre-Wolfmed behaviour exactly |
 | — | `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs` | modified — **HOOK 24** (`OnWoundedValid`) + **HOOK 25** (`OnPartRemovedConditionValid`) | **WP12-4** | +4 lines total. First Wolfmed touch of this file; it now carries two hooks |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-4** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-4** | |
 
 **Every `// WOLFGATE` edit outside `_WF`, with reason:**
 
@@ -1544,8 +1544,8 @@ not re-run; WP12-3's standing `medical_patch.yml` icon hazard is unchanged.
 | `_Onyx/Entities/Surgery/surgeries.yml:908-1200` | `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | new (`_WF`, re-authored) | **WP12-5** | 13 surgeries: `SurgeryStopBleeding`, `SurgeryStopInternalBleeding`, `SurgeryMendFracture`, `SurgeryHealAmputationConsequence`, `SurgeryTendWoundsBrute/BurnDeep`, and `SurgeryHeal{Heart,Lungs,Liver,Stomach,Kidneys,Brain,Eyes}`. Requirements reuse `SurgeryOpenIncision` / `SurgeryOpenRibcage`; terminal steps reuse `SurgeryStepSealTendWound` / `SurgeryStepSealOrganWound` |
 | — | `Resources/Prototypes/_Shitmed/Entities/Surgery/surgeries.yml` | modified — **PROTO F** | **WP12-5** | 3 marked lines on the two shipped tend surgeries (P4-D19) |
 | — | `Resources/Prototypes/_Shitmed/Entities/Surgery/surgery_steps.yml` | modified — **PROTO G** | **WP12-5** | 4 marked component additions on `:9`, `:31`, `:168`, `:359` (P4-D21). `SurgeryStepCarefulIncisionScalpel` (`:303`) deliberately **not** touched |
-| — | `Resources/Locale/en-US/_WF/wolfmed/surgery-popup.ftl` | new | **WP12-5** | 12 `surgery-popup-step-*` keys in Wolfgate's `{$user}` style (no inner spaces). Entity **names** are inline `name:` in Wolfgate YAML, so Onyx's entity-name ftl is not needed |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-5** | |
+| — | `Resources/Locale/en-US/_WF/Wolfmed/surgery-popup.ftl` | new | **WP12-5** | 12 `surgery-popup-step-*` keys in Wolfgate's `{$user}` style (no inner spaces). Entity **names** are inline `name:` in Wolfgate YAML, so Onyx's entity-name ftl is not needed |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-5** | |
 
 **Every `// WOLFGATE` edit outside `_WF`, with reason (7 marked lines in 2 upstream files):**
 
@@ -1656,7 +1656,7 @@ a single unknown-component or missing-parent error.
 | — | `Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs` | modified — **EXT 2** | **WP12-6** | 4 nullable fields + 4 appended optional ctor parameters + 2 marked `using`s. Purely additive; `CryoPodSystem.cs:206-221`'s nine positional arguments keep compiling untouched |
 | `Content.Server/Medical/HealthAnalyzerSystem.cs:316-515` (Onyx) | `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | new (`_WF` partial of the upstream `sealed partial` class) | WP12-6 / **WP13-5** | 5 `[Dependency]` fields + 4 **public** builders (P4-D26) + 2 private helpers, ~215 lines. `namespace Content.Server.Medical` so `HealthAnalyzerComponent`'s `[Access(typeof(HealthAnalyzerSystem), …)]` is satisfied and `_bodySystem`/`_solutionContainerSystem` are reachable. **WP13-5 (P5-5, U9(a)) adds a second marked site (the EXT 4 comment)**, resolving the per-wound `Name`/`StageName` locale keys through `ILocalizationManager` instead of raw prototype ids; the payload's `bool Mechanical` flag and its three consumer branches (§2.6) were **not** shipped this phase — WP13-5 ships the locale half only, WP13-6-3 records the gap and the follow-up note |
 | — | `Content.Server/Medical/HealthAnalyzerSystem.cs` | modified — **HOOK 23**, 1 line | **WP12-6** | Four builder calls appended to the `ServerSendUiMessage` argument list. No `using` and no `[Dependency]` land upstream |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-6** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-6** | |
 
 **Every `// WOLFGATE` edit outside `_WF`, with reason (1 hook line + 7 marked lines in 2 upstream files):**
 
@@ -1765,7 +1765,7 @@ specified for WP12-6; `T-AN-*` belongs to WP12-9).
 | `Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl:6-16` | same path | new, **15 keys** | **WP12-7** | Onyx's 11 live wound keys verbatim + 4 fracture keys (P4-D25). The 4 disease keys and the dead `health-analyzer-wound-pain` at Onyx `:5` are not ported |
 | `Resources/Locale/en-US/_Onyx/targeting/targeting.ftl:20-32` | same path | new, **10 keys** | **WP12-7** | `targeting-part-*`. Onyx's `chest` → `torso`, `groin` omitted (D9). WG had zero `targeting-part-*` keys |
 | — | `Resources/Locale/en-US/medical/components/health-analyzer-component.ftl` | modified — **LOC A**, 19 appended keys in one marked block | **WP12-7** | vital damage, 4 tab names, organ unavailable/health, chemicals unavailable/no-vessels, 4 solution names, solution empty/reagent, wound-diagnostics title/inactive/unavailable, blood-level-dangerous |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-7** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-7** | |
 
 **Every `// WOLFGATE` edit outside `_WF` / `_Onyx`, with reason (HOOK 26, 5 functional lines + 3 XAML marker comments across 2 upstream files, plus LOC A):**
 
@@ -1810,7 +1810,7 @@ specified for WP12-6; `T-AN-*` belongs to WP12-9).
 | — | `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs` | modified (vendored), **3 marked sites** | **WP12-8** | optional trailing `DamageableSystem.DamageOriginFlag? originFlag = null` on `TryApplyDistributedDamage` and `TryRouteDistributedDamage`, plus the `_routedModifiers` save/restore scope around the distributed body. Every pre-existing caller (`TryApplyLethalDamage:541`, `WoundDamageFoundationTest`, `WoundHealingTest`, `WolfmedAmputationTest`) keeps compiling and behaving identically — the default `null` reproduces the `GetValueOrDefault` tuple those paths already saw. The two `before: [typeof(SharedArmorPlateSystem)]` registrations at `:64`/`:66` are untouched (D23, §5.4) |
 | — | `Content.Server/_WF/Wolfmed/Explosion/WolfmedExplosionSystem.cs` | new (`_WF`), 45 lines | **WP12-8** | `TryApplyExplosionDamage(EntityUid, DamageSpecifier)`: `HasComp<WoundHostComponent>` gate, then `TryRouteDistributedDamage(TargetBodyPart.All, SplitWithVariation, ignoreResistances: true, interruptsDoAfters: false, variation, isExplosion: true, woundSeverityMultiplier, originFlag: Explosion)`. Holds both CVar reads, so **`ExplosionSystem.CVars.cs` is not touched at all** (unlike Onyx). No subscriptions — two `Subs.CVar` callbacks only |
 | — | `Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs` | modified — **HOOK 22**, 3 marked lines | **WP12-8** | 1 `using`, 1 `[Dependency]`, and the `if (!_wolfmedExplosion.TryApplyExplosionDamage(entity, damage))` guard in front of the existing `TryChangeDamage` call at `:471` |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-8** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-8** | |
 
 **Every `// WOLFGATE` edit outside `_WF` / `_Onyx`, with reason (HOOK 22, 3 marked lines in 1 upstream file):**
 
@@ -1857,7 +1857,7 @@ modified, plus one withdrawn prototype line (see the deviations below). No new C
 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | new, 8 tests | **WP12-9** | T-AN-GATE / -FINDINGS / -CLEARS / -CLOT / -PAIN / -ORGANS / -CHEM / -VITAL, all through P4-D26's public builders |
 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedExplosionTest.cs` | new, 3 tests | **WP12-9** | T-EXPLOSION-PLATE, T-EXPLOSION-WRAPPER and T-SURGERY-PROTOTYPE-SANITY (co-located; it needs no mob) |
 | — | `Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml` | **modified — PROTO E WITHDRAWN** | **WP12-9** | deviation 2; the one added `- id: Tourniquet` line becomes a 7-line `# WOLFGATE` note |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-9** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | this section | **WP12-9** | |
 
 **Test count: 33 new** (31 new methods plus the 2 restored skips), taking the wound suite from **65 to 98**.
 Filter `FullyQualifiedName~_Onyx.Wounds|FullyQualifiedName~_Onyx.Body|FullyQualifiedName~_Onyx.Medical|FullyQualifiedName~Wolfmed`
@@ -2001,10 +2001,10 @@ unowned (`WP12-9-report-lint.log`).
 | `Resources/Prototypes/_Onyx/Guidebook/medical.yml` (2 of its 5 entries) | `Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml` | new | **WP12-10** | `Wounds` and `WoundTreatment` `guideEntry` rows only - the other three (`Virology`, `BodyPartDamage`, `Surgery`) are not ported (D3, P4-D15) |
 | — | `Resources/Prototypes/Guidebook/medical.yml` | **modified — PROTO L**, 2 lines | **WP12-10** | `- Wounds` and `- WoundTreatment` inserted into `Medical`'s `children:` list after `MedicalDoctor` and before `Chemist` (`:5-12`, corrected citation per CRITIQUE4 m4) |
 | `Resources/Locale/en-US/_Onyx/guidebook/wounds.ftl` | `Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl` | new, adapted subset | **WP12-10** | 21 of Onyx's 30 keys carried forward and reworded (all under a fresh `guidebook-wolfmed-*` prefix to avoid any accidental key aliasing with Onyx's un-ported original); the 9 IPC/slime/cybernetic/material keys dropped entirely. Adds one sentence naming the Tier-A painkiller ladder (ibuprofen 0.5 -> ketorolac 0.9 -> tramadol 1.25 -> oxycodone 2.0, verified directly against `Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml`) and the tourniquet to the treatment checklist |
-| — | `Docs/Wolfmed/WOLFMED_PLAN4.md` | new (copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p4/PLAN4.md`) | **WP12-10** | |
-| — | `Docs/Wolfmed/CRITIQUE4.md`, `Docs/Wolfmed/reports/analysis/phase4/{reagents,tools,surgery,analyzer,tests}.md` | new (copies) | **WP12-10** | the five phase-4 analyst reports |
-| — | `Docs/Wolfmed/reports/work-packages/phase4/*-report.md`, `*-verify.md` | new (copies, 20 files: WP12-0..WP12-9, report+verify each) | **WP12-10** | |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP12-10** | this section plus the §7.1 row edits above and the "Phase 4 - user decisions" subsection below |
+| — | `Docs/_WF/Wolfmed/WOLFMED_PLAN4.md` | new (copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p4/PLAN4.md`) | **WP12-10** | |
+| — | `Docs/_WF/Wolfmed/CRITIQUE4.md`, `Docs/_WF/Wolfmed/reports/analysis/phase4/{reagents,tools,surgery,analyzer,tests}.md` | new (copies) | **WP12-10** | the five phase-4 analyst reports |
+| — | `Docs/_WF/Wolfmed/reports/work-packages/phase4/*-report.md`, `*-verify.md` | new (copies, 20 files: WP12-0..WP12-9, report+verify each) | **WP12-10** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP12-10** | this section plus the §7.1 row edits above and the "Phase 4 - user decisions" subsection below |
 | — | `Content.Shared/Gibbing/Systems/GibbingSystem.cs` | modified (pre-phase-4 fix, DECISIONS "Gibbing fix") | **WP12-10 records it; the fix predates this WP** | Two `.ToArray()` snapshots (`TryGibEntityWithRef`'s `Drop`/`Gib` branches, `:141` and `:155`) + `using System.Linq;`, all marked `// WOLFGATE`. Fixes the `InvalidOperationException: Collection was modified` flagged as an unfixed upstream bug in phase 3's manifest (`GibbingSystem.cs:141`, "Upstream bug found, NOT fixed") — `TryGibEntityWithRef`'s `GibContentsOption.Drop`/`Gib` branches enumerated `container.ContainedEntities` while `DropEntity`/`GibEntity` removed from it. Wolfmed made the crash more reachable because routing concentrates damage on one part (an arm holding its own hand crossing a `Destructible` gib threshold). Verified present in the working tree at the start of this WP (`git diff 6329d204e3 -- Content.Shared/Gibbing/Systems/GibbingSystem.cs`) |
 
 **Reconciliation of two stale plan-document lines, both struck as records rather than by editing the plan files (PLAN.md/PLAN2.md are not edited per the hard rules):**
@@ -2637,10 +2637,10 @@ own rows here, mirroring WP12-10's phase-4 precedent):
 
 | Onyx source | WG path | Status | WP | Notes |
 |---|---|---|---|---|
-| — | `Docs/Wolfmed/WOLFMED_PLAN5.md` | new (copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p5/PLAN5.md`) | **WP13-7** | |
-| — | `Docs/Wolfmed/reports/analysis/phase5/CRITIQUE5.md`, `.../phase5/{capabilities,circulation,numbness,species,tests}.md` | new (copies, 6 files) | **WP13-7** | the six phase-5 analyst/critique reports |
-| — | `Docs/Wolfmed/reports/work-packages/phase5/WP13-{0..6}-{report,verify}.md` | new (copies, 14 files) | **WP13-7** | |
-| — | `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP13-7** | this section plus the §7.1 row corrections above and the "Phase 5 — user decisions" subsection below |
+| — | `Docs/_WF/Wolfmed/WOLFMED_PLAN5.md` | new (copy of `C:/Users/jzo12/Documents/Wolfmed/plan/p5/PLAN5.md`) | **WP13-7** | |
+| — | `Docs/_WF/Wolfmed/reports/analysis/phase5/CRITIQUE5.md`, `.../phase5/{capabilities,circulation,numbness,species,tests}.md` | new (copies, 6 files) | **WP13-7** | the six phase-5 analyst/critique reports |
+| — | `Docs/_WF/Wolfmed/reports/work-packages/phase5/WP13-{0..6}-{report,verify}.md` | new (copies, 14 files) | **WP13-7** | |
+| — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | modified — reconcile | **WP13-7** | this section plus the §7.1 row corrections above and the "Phase 5 — user decisions" subsection below |
 
 - **P5-D18 recorded (new, never previously in any manifest):** `MobSkeletonPerson` (`Resources/Prototypes/
   _Mono/Entities/Mobs/Species/skeleton.yml` at the pin) parents `BaseMobSkeletonPerson → [MobFlammable,
@@ -2795,7 +2795,7 @@ are retuned for Wolfgate melee.
 | — | `Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs` | modified | `OnWoundHostDoAfter` and `IsWoundDamaged` read the narrowed spec. `IsWoundDamaged`'s wound branch gained `&& !healing.HealDamage`, mirroring `TryApplyHealing`'s own condition - without it a 0.15 topical reports work left after the part damage is gone and repeats over the whole stack for nothing. |
 | — | `Content.Server/Medical/HealingSystem.cs` | modified | 2 marked hooks: `TryHeal` resolves the narrowed spec, and the "nothing to do" popup uses `wolfmed-item-cant-treat-part` on a wound host. |
 | — | `Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml` | modified | marked `treatedDamageTypes: [Blunt]` on `Brutepack` and `[Slash, Piercing]` on `MedicatedSuture` (children inherit), plus a corrected suture description. `Ointment`, `RegenerativeMesh` and `Gauze` already carry only their own types and need nothing. `HealingToolbox` stays unrestricted. |
-| — | `Resources/Locale/en-US/_WF/wolfmed/healing-popup.ftl` | new | `wolfmed-item-cant-treat-part`. |
+| — | `Resources/Locale/en-US/_WF/Wolfmed/healing-popup.ftl` | new | `wolfmed-item-cant-treat-part`. |
 | — | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | per-item treatment list, the "damage removal is not wound closure" rule, and a line on repeated blows breaking bones. |
 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentRestrictionTest.cs` | new | 3 tests: bruise pack treats Blunt and neither closes a cut nor touches its bleed; sutures treat cuts and their bleeding but not bruises; every `healingMultiplier` matches the model and the refusal locale key resolves. |
 | — | `Content.IntegrationTests/Tests/_Onyx/Wounds/WoundFractureTest.cs` | modified | grade boundaries now read `WolfmedFractureProfile` (12/20/32/45) and pin the retuned chances and accumulation; Onyx's profile is still asserted at 20/35/50/60 so a re-sync that moves it is visible. Alert-gate test re-derived for the new bands. |
@@ -2853,7 +2853,7 @@ point in the vendored `WoundSystem`.
 | `_Onyx/Wounds/wounds.yml` | `Resources/Prototypes/_Onyx/Wounds/wounds.yml` | modified | four marked ids added to `OrganicBodyPartProfile.supportedWounds`; `CanCreateWound` gates on that list. |
 | — | `Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml` | modified | marked `WolfmedDamageCause: Fragment` on `Pellet12_gauge`; the spread variants inherit it. |
 | — | `Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml` | modified | marked `WolfmedDamageCause: Fragment` on `PelletClusterLethal`. |
-| — | `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | new | four wound names, three removal popups, `health-analyzer-wound-embedded-short`. |
+| — | `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | new | four wound names, three removal popups, `health-analyzer-wound-embedded-short`. |
 | — | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | four new wound entries after the puncture. |
 | — | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Embedded objects" section: a hemostat is clean, any sharp item works but cuts and hurts, self-removal is slower. |
 | — | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBallisticWoundTest.cs` | new | seven tests: damage bands, mid-band through-or-lodge, melee Piercing stays a puncture, explosion and buckshot both make shrapnel, lodged round bleeds and refuses treatment until removed, knife removal costs a cut and pain, analyzer reports the count. Drives the real damage pipeline with a real projectile entity as the tool. |
@@ -2983,7 +2983,7 @@ Onyx data edits are the `supportedWounds` list and a behavior on `BurnWound`'s c
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs` | new | Incidental cautery off `WolfmedPartDamageEvent` for Heat; deliberate cautery as a `UtilityVerb` with a hot held item plus a do-after. `TryCauterize`, `HasSealableBleed` public. |
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedCharringSystem.cs` | new | Creates the charring when a burn crosses into the stage carrying `WolfmedCharringBehavior`. `TryChar` public. |
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedElectricalBurnSystem.cs` | new | Rolls heart damage and runs the spasm (drop held, paralyse through the Onyx compat) when an internal burn lands or worsens. `TryShockOrgan`, `Spasm` public. |
-| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | Four wound names, the cautery verb and four popups, the wash popup, the wash effect's guidebook line. |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Four wound names, the cautery verb and four popups, the wash popup, the wash effect's guidebook line. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Charring, frostbite, chemical burn, internal burns and a cauterisation section. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | A burns section (wash, graft, numbness) and a cauterisation section. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs` | new | Six tests: charring off the top stage and its topical refusal, heat sealing bleeds with the arterial threshold both ways, frostbite numbness and the necrosis flag, the residue tick and the wash, internal burns with the heart and the spasm, names. |
@@ -3083,7 +3083,7 @@ Deviations from the spec:
 | `Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml` | modified | Marked W6: `WolfmedServoKit` on `CableStack`. |
 | `Resources/Prototypes/Entities/Mobs/Species/base.yml` | modified | Marked W6: `WolfmedCoolOverheating` on the existing water touch reaction (for cybernetic limbs on organic species). |
 | `Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml` | modified | Marked W6: the same effect on the silicon base's own water reaction, for IPCs. |
-| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | Five wound names, three overheating stage names, the dousing popup, the analyzer line and the effect guidebook line. |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Five wound names, three overheating stage names, the dousing popup, the analyzer line and the effect guidebook line. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | "Mechanical trauma" section: the five wounds and the wall between them and the organic set. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Mechanical repair" section: which tool for which finding, and what a chassis cannot get. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs` | new | Seven tests: the exclusion both ways (profiles and real hits), dents and breaches including the embedded round, short circuit and servo damage, overheating cooling three ways, the infection/necrosis gate, the wrench repair, and the analyzer wording. |
@@ -3139,7 +3139,7 @@ the guide and analyzer wording finished, and the status document brought up to p
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundTreatmentMatrixTest.cs` | new | 4 tests. The complete matrix: all 44 wound prototypes x 8 treatment items, declared and checked against live prototype data. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs` | new | 3 tests. Every new item is vended or printed, every new reagent has a reaction, and the touched fills hold what they declare. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | new | 2 tests. Every wound name, every stage name, and every analyzer key the panel builds by concatenation, in both the organic and the mechanical form. |
-| `Docs/Wolfmed/WOLFMED_STATUS.md` | modified | New "What phase 8 delivers" section: wounds, framework, items, CVars, tests, carried gaps. |
+| `Docs/_WF/Wolfmed/WOLFMED_STATUS.md` | modified | New "What phase 8 delivers" section: wounds, framework, items, CVars, tests, carried gaps. |
 
 Wound suite after W7: **189 passed, 0 failed, 0 skipped** (180 before; 9 new). `Guidebook`,
 `PrototypeSaveTest`, `VendingMachine` and `Lathe` filters rerun green (20 passed, 1 skipped - the
@@ -3328,7 +3328,7 @@ feature adds no new network component and no new directed subscription.
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedNecrosisSystem.cs` | modified | One `Refresh` in `MakeNecrotic`, so dead tissue shows even when the part cannot carry the necrosis wound |
 | `Resources/Prototypes/_WF/Wolfmed/Damage/degradation.yml` | new | `WolfmedDegradationDefault`: stage1 25, stage2 60 summed severity, the RSI and the five state suffixes |
 | `Resources/Textures/_WF/Wolfmed/Effects/part_degradation.rsi` | new | 50 states (10 layers x 5 variants), 4 directions each. `CC-BY-SA-3.0`; copyright records the derivation from `Mobs/Species/Human/parts.rsi` with that RSI's credit verbatim |
-| `Tools/_WF/wolfmed/gen_part_degradation_rsi.py` | new | The generator. Masks every overlay through the matching human part sprite's alpha, erodes it, then grows a deterministic jagged blob inside it |
+| `Tools/_WF/Wolfmed/gen_part_degradation_rsi.py` | new | The generator. Masks every overlay through the matching human part sprite's alpha, erodes it, then grows a deterministic jagged blob inside it |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualsTest.cs` | modified | Four new tests, see below |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | One paragraph under Examination: what the stages look like, and that clothing hides them |
 
@@ -3378,7 +3378,7 @@ directed subscription on a pair that was already owned.
 | `Content.Shared/Damage/Systems/DamageableSystem.cs` | modified (upstream) | **1 marked token** inside the existing GUARD D block: `if (damage.Empty \|\| dealt.Suppressed)` |
 | `Content.Server/_WF/Wolfmed/Commands/DamageCommand.Wolfmed.cs` | new | The body of the `damage` command's 5th argument: `WolfmedPartCompletion`, `WolfmedHurtPart`, `TryParseDamageSpecifier`. Partial of `Content.Server.Damage.Commands.DamageCommand`, uses `WoundTargetResolver.TryResolveExact` and `WoundDamageRoutingSystem.TryApplyPartDamage` |
 | `Content.Server/Damage/Commands/HurtCommand.cs` | modified (upstream) | **4 marked hook lines**, all bodies in the `_WF` partial: the completion branch, `args.Length > 5`, `args.Length >= 4` for the uid, and the dispatch to `WolfmedHurtPart` |
-| `Resources/Locale/en-US/_WF/wolfmed/damage-command.ftl` | new | `damage-command-arg-body-part`, `-error-body-part`, `-error-missing-body-part`, `-error-part-damage` |
+| `Resources/Locale/en-US/_WF/Wolfmed/damage-command.ftl` | new | `damage-command-arg-body-part`, `-error-body-part`, `-error-missing-body-part`, `-error-part-damage` |
 | `Resources/Locale/en-US/damage/damage-command.ftl` | modified (upstream) | **1 marked line**: the usage string gains `[bodyPart]` |
 | `Content.Shared/Weapons/Hitscan/Systems/HitscanBasicDamageSystem.cs` | modified (upstream) | **1 marked line**: `tool: ent`, so a beam hit carries the beam entity into the wound rules |
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs` | modified | `GetCause` derives `Hitscan` from `HitscanBasicDamageComponent` on the tool; no per-prototype data needed |
@@ -3390,7 +3390,7 @@ directed subscription on a pair that was already owned.
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageCommandTest.cs` | new | `DamageCommandHitsTheNamedPartTest`, `DamageCommandWithoutAPartStillWorksTest` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedArmorCoverageTest.cs` | new | `ShippedCoverageIsWhatTheItemIsWornOnTest`, `CoverageReachesRoutedPartDamageTest` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBallisticWoundTest.cs` | modified | `HitscanIsItsOwnCauseTest` |
-| `Docs/Wolfmed/DECISIONS.md` | modified | New `## Phase 6 — shipped` section, P6-D1 to P6-D5 |
+| `Docs/_WF/Wolfmed/DECISIONS.md` | modified | New `## Phase 6 — shipped` section, P6-D1 to P6-D5 |
 
 ### Tests
 
@@ -3434,8 +3434,8 @@ new gameplay behaviour.
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | Added `#nullable enable` — the file uses `BodyPartSymmetry?`/`TimeSpan?`/`float?` parameters without it, a CI-lint-as-error trap |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs` | modified | Added `#nullable enable` — uses `MobStateComponent?` without it |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs` | modified | Added `#nullable enable` — uses `BodyPartSymmetry?` without it |
-| `Docs/Wolfmed/WOLFMED_STATUS.md` | modified | Fixed a bare CR byte mid-line-8 (a mangled `C:\Users\jzo12\Documents\Wolfmed\plan\reports` path had eaten its own backslashes and the `r` of `reports` into a literal carriage-return byte — a CI CRLF-trap failure on a text file, not a binary asset false positive); rewrote the header/state paragraph to say phases 6, 7 and 8 plus the crit heartbeat are implemented, with the 209/209 wound-suite test count |
-| `Docs/Wolfmed/DECISIONS.md` | modified | New `## Final stages` section: the cross-package decisions the task asked to have collected (fracture thresholds, deterministic bands, no forceps, no Piercing fracture profile, mechanical `healingMultiplier: 1`, spaceacillin not in a medkit, the P6 flicker-fix approach, the heartbeat license note) plus every gap still open across H/W0-W7/V5/V124/V3/P6, as one bullet list |
+| `Docs/_WF/Wolfmed/WOLFMED_STATUS.md` | modified | Fixed a bare CR byte mid-line-8 (a mangled `C:\Users\jzo12\Documents\Wolfmed\plan\reports` path had eaten its own backslashes and the `r` of `reports` into a literal carriage-return byte — a CI CRLF-trap failure on a text file, not a binary asset false positive); rewrote the header/state paragraph to say phases 6, 7 and 8 plus the crit heartbeat are implemented, with the 209/209 wound-suite test count |
+| `Docs/_WF/Wolfmed/DECISIONS.md` | modified | New `## Final stages` section: the cross-package decisions the task asked to have collected (fracture thresholds, deterministic bands, no forceps, no Piercing fracture profile, mechanical `healingMultiplier: 1`, spaceacillin not in a medkit, the P6 flicker-fix approach, the heartbeat license note) plus every gap still open across H/W0-W7/V5/V124/V3/P6, as one bullet list |
 
 ### YAML linter (Release)
 
@@ -3553,13 +3553,13 @@ switch is unchanged. No new networked component; the payload gains one field on 
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | Charring/Frostbite/ChemicalBurn→Burn, InternalBurn→Internal (it destroys organs; deviation from the task's "chemical/electrical = Burn" list, recorded below) |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml` | modified | Necrosis→Infection |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/mechanical.yml` | modified | 5 `analyzerCategory: Mechanical` |
-| `Tools/_WF/wolfmed/gen_analyzer_icons.py` | new | Deterministic PIL generator: 21 states, each an 8x supersampled alpha mask resized once, off-white on transparent so the client tints with `Modulate` |
+| `Tools/_WF/Wolfmed/gen_analyzer_icons.py` | new | Deterministic PIL generator: 21 states, each an 8x supersampled alpha mask resized once, off-white on transparent so the client tints with `Modulate` |
 | `Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/` | new | 21 32x32 PNGs + `meta.json` (`CC-BY-SA-3.0`, "Made for Wolfgate (Wolfmed)"). 9 category states, 12 condition states (fracture, bleeding, internal_bleeding, embedded, necrosis, overheating, scar, pain, impaired, clotting, sepsis, blood_low) |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedWoundStyle.cs` | new | The whole palette in one static class, plus `Accent(diagnostic)` (necrotic/septic > bleeding > fracture > infection > neutral) and `WolfmedAnalyzerIcons`, which resolves each RSI state once and caches the `Texture` |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | new | The tab: alert banners, category chip strip with the filter, part cards, condition chips, wound rows, pain/scar footer. Partial of the existing panel |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml` | modified | `WoundAlertsContainer` (vertical) and `WoundCategoryStrip` (5-column grid so the chips wrap instead of clipping the ~470 px pane) added above the findings container |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | `_icons`, `_lastMessage` (so a chip press redraws without waiting for the next scan tick), `Clear()` drops the new containers and the filter; the old `DrawWoundDiagnostics`/`AddWoundFinding` text builder deleted |
-| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | 9 `wolfmed-wound-category-*` names, `health-analyzer-wound-category-chip`, `-no-findings`, `-no-findings-filtered` |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | 9 `wolfmed-wound-category-*` names, `health-analyzer-wound-category-chip`, `-no-findings`, `-no-findings-filtered` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs` | modified | `VisibleWoundsCarryTheirCategoryTest`, `EveryWoundCategoryIsNamedAndDrawableTest` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | modified | The three new fixed keys added to `Fixed` |
 
@@ -3712,8 +3712,8 @@ done, and re-evaluates itself from every scan without being rebuilt, so the scro
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | Chips and rows carry their part; `OpenTreatment` resolves the procedure and titles the window "finding, part"; `RefreshTreatment` re-evaluates the open window on every repopulate; `BuildProcedureState` and `ConditionPresent` read the payload; a new patient closes the window |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.xaml.cs` | modified | `DangerousBloodLevel` now aliases `WolfmedStepChecks.DangerousBloodLevel` |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/treatment_procedures.yml` | new | 68 procedures (44 wounds, 5 chassis wound variants, 16 conditions, 3 chassis condition variants), 215 steps, 31 avoid lines |
-| `Resources/Locale/en-US/_WF/wolfmed/treatment-advice.ftl` | modified | The 77 short keys, 9 category lines and 5 chrome strings are unchanged. The 68 `-steps-` blobs are replaced by 215 `wolfmed-treatment-step-<slug>-<n>` and 31 `wolfmed-treatment-avoid-<slug>-<n>` lines, plus 5 new chrome keys |
-| `Tools/_WF/wolfmed/gen_analyzer_icons.py` | modified | `PROCEDURE_STATES`: `surgery`, `reagent`, `warning`, `done`, `step`. The 21 existing glyphs regenerate byte for byte |
+| `Resources/Locale/en-US/_WF/Wolfmed/treatment-advice.ftl` | modified | The 77 short keys, 9 category lines and 5 chrome strings are unchanged. The 68 `-steps-` blobs are replaced by 215 `wolfmed-treatment-step-<slug>-<n>` and 31 `wolfmed-treatment-avoid-<slug>-<n>` lines, plus 5 new chrome keys |
+| `Tools/_WF/Wolfmed/gen_analyzer_icons.py` | modified | `PROCEDURE_STATES`: `surgery`, `reagent`, `warning`, `done`, `step`. The 21 existing glyphs regenerate byte for byte |
 | `Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi` | modified | Five new 32x32 glyphs plus `meta.json` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentProcedureTest.cs` | new | 5 tests: every wound prototype has a procedure; every condition (and chassis condition) has one; every step's text, summary, avoid line, tool and reagent resolves and no step names both; the dual-carrier set is re-derived and has both variants; the id derivation is pinned |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs` | new | 5 tests, no server: every check separates a done patient from an untreated one, the "nothing left to do" cases, the body-level checks without a part, all-checks-must-hold, and the bleeding-treatment flag map |
@@ -3752,7 +3752,7 @@ along the exact line of the hit, rather than by every wound-creating hit along o
 | `Resources/Prototypes/_WF/Wolfmed/Entities/gore.yml` | modified | `WolfmedHitSplatter` uses `hitsplatter1_free` and drops `enableOverrideDir` |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml` | modified | `hitSplatter`: the free states, `minBleedIncrease: 1`, `burstWindow: 1.5`, `burstBudget: 3`, distance bands rebased on the bleed gain (15/6/0). `organicDebris` rebased the same way, smallest tier at 0 |
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedWoundSfxSystem.cs` | modified | `OnPartDamage` snapshots `TotalBleeding` before the hit's wounds exist; `Update` resolves each hit body once, sprays when the gain clears `MinBleedIncrease`, and sizes the spray by the gain. `OnWoundLifecycle` now only spawns debris for a chassis. `TryTakeBurstBudget` gates the organic path, mist included |
-| `Tools/_WF/wolfmed/import_nova_blood.py` | modified | `free_state`/`add_free_states` crop the East row of each hitsplatter into a 1-direction 11-frame state; `--free` rebuilds them from the RSI alone |
+| `Tools/_WF/Wolfmed/import_nova_blood.py` | modified | `free_state`/`add_free_states` crop the East row of each hitsplatter into a 1-direction 11-frame state; `--free` rebuilds them from the RSI alone |
 | `Resources/Textures/_WF/Wolfmed/Effects/blood_splatter.rsi` | modified | `hitsplatter1_free.png`, `hitsplatter2_free.png`, `hitsplatter3_free.png` (352x32 each) plus `meta.json` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGoreTest.cs` | modified | Angle assertions replace the Direction ones; 2 new tests: a projectile sprays along its velocity, and a 45 degree spray lands on the wall on the diagonal and not due east |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSfxTest.cs` | modified | The `Damage` helper drains the deferred resolve; 2 new tests: a burn throws nothing and a blunt hit that raises a bleed does, and the burst budget caps and recovers |
@@ -3819,8 +3819,8 @@ visible to whom is unchanged; only the presentation is.
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedWoundStyle.cs` | modified | `Look(key)` and `LookKeys`: the analyzer's palette addressed by the key a finding carries, so examine and analyzer tint the same glyph alike |
 | `Content.Client/Examine/ExamineSystem.cs` | modified | HOOK 14, one marked line: the inspection rows first, then Onyx's part-status boxes, then the plain label |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml` | modified | A `label` on every description and a `hintLabel` on every self hint; `icon`/`colour` overrides where the category glyph would mislead (fractures, dislocation, necrosis, arterial bleed, shrapnel, lodged round, overheating, stumps, servos, incisions, scars); the profile's `classes` table and `accentPriority` |
-| `Resources/Locale/en-US/_WF/wolfmed/look.ftl` | modified | 132 `-short` row labels, one per finding the examine can draw |
-| `Tools/_WF/wolfmed/gen_analyzer_icons.py` | modified | `LOOK_STATES`: `dressing`, `splint`, `tourniquet`, plus `write_meta`/`all_states` so a new state can be added without rewriting the other 26 pngs |
+| `Resources/Locale/en-US/_WF/Wolfmed/look.ftl` | modified | 132 `-short` row labels, one per finding the examine can draw |
+| `Tools/_WF/Wolfmed/gen_analyzer_icons.py` | modified | `LOOK_STATES`: `dressing`, `splint`, `tourniquet`, plus `write_meta`/`all_states` so a new state can be added without rewriting the other 26 pngs |
 | `Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/` | modified | `dressing.png`, `splint.png`, `tourniquet.png` and their `meta.json` entries |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | One sentence under "Examination" on the rows, the pictograms and the hover |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualInspectionTest.cs` | modified | 13 tests: the ten visibility tests now read the structured report, plus every glyph/colour/label in the data being drawable, the markup round-tripping with a readable plain-text copy, and the client building one row per part with a tooltip on every chip |
@@ -3871,14 +3871,14 @@ in metal.
 | `Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml` | modified | WOLFGATE (EVISC): one line, `WolfmedBaseTorsoIpc` first in `TorsoIPC`'s parent list |
 | `Resources/Prototypes/Entities/Objects/Tools/tools.yml` | modified | WOLFGATE (EVISC): one line, `WolfmedHullPlate` on the wrench |
 | `Resources/Prototypes/Entities/Objects/Tools/welders.yml` | modified | WOLFGATE (EVISC): one line, `WolfmedHullWeld` on the welder |
-| `Resources/Locale/en-US/_WF/wolfmed/wounds.ftl` | modified | Both names and both popups |
-| `Resources/Locale/en-US/_WF/wolfmed/look.ftl` | modified | Both descriptions and row labels |
-| `Resources/Locale/en-US/_WF/wolfmed/treatment-advice.ftl` | modified | Both tooltips, ten steps, two "do not" lines |
+| `Resources/Locale/en-US/_WF/Wolfmed/wounds.ftl` | modified | Both names and both popups |
+| `Resources/Locale/en-US/_WF/Wolfmed/look.ftl` | modified | Both descriptions and row labels |
+| `Resources/Locale/en-US/_WF/Wolfmed/treatment-advice.ftl` | modified | Both tooltips, ten steps, two "do not" lines |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | An "Evisceration" section: the six-step fix, and the chassis variant |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEviscerationTest.cs` | new | 9 tests: trigger, the four negatives, one-at-a-time, explosion, items vs surgery, the incision shortcut, IPC, gib/delete |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundTreatmentMatrixTest.cs` | modified | Two rows, both `Exit.Surgery` |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs` | modified | `MissingOrgans` on the "nothing has been done" fixture, so `OrgansRestored` separates |
-| `Docs/Wolfmed/DECISIONS.md` | modified | "Evisceration (2026-09-20)" |
+| `Docs/_WF/Wolfmed/DECISIONS.md` | modified | "Evisceration (2026-09-20)" |
 
 ### Deviations from the spec
 
@@ -3930,13 +3930,13 @@ Consciousness replaces the damage thresholds on wound hosts, plus the painkiller
 | `Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml` | modified | Vendored. Marked tier blocks on Ibuprofen, Ketorolac, Tramadol, Oxycodone. |
 | `Resources/Prototypes/Reagents/narcotics.yml` | modified | Upstream. Marked tier blocks on Desoxyephedrine and Ephedrine. |
 | `Resources/Prototypes/Reagents/medicine.yml` | modified | Upstream. Marked tier block on Epinephrine. |
-| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | new | Alert, tiers, analyzer banners, the three reagents. |
+| `Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl` | new | Alert, tiers, analyzer banners, the three reagents. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | A "Consciousness" section. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | A "Painkillers" section. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | new | Ten tests: the gate, pain, Downed restrictions, the tiers, blood, legs, the pen's crash, the overdose, airloss, rejuvenate. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAvailabilityTest.cs` | modified | The three new items and three new reagents. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs` | modified | The tier family, the two banners and the Downed alert. |
-| `Docs/Wolfmed/DECISIONS.md` | modified | A "Consciousness" section. |
+| `Docs/_WF/Wolfmed/DECISIONS.md` | modified | A "Consciousness" section. |
 
 Deviations from the spec:
 
@@ -3985,15 +3985,15 @@ Deviations from the spec:
 | `Resources/Prototypes/Guidebook/medical.yml` | modified | one marked line: the guide page joins the medical index |
 | `Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml` | modified | `WolfmedAutodoc` guide entry |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Autodoc.xml` | new | the guide page |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc.ftl` | new | verbs, examine, status, requirements, window strings |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl` | new | generated: the transcript of all 71 lines |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc.ftl` | new | verbs, examine, status, requirements, window strings |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | new | generated: the transcript of all 71 lines |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/*.ogg` (71) | new | generated with eSpeak NG, mono Ogg Vorbis 32 kbps |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/attributions.yml` | new | CC-BY-SA-3.0, "Generated with eSpeak NG for Wolfgate (Wolfmed)" |
 | `Resources/Textures/_WF/Wolfmed/Structures/autodoc.rsi` | new | open/closed/operate, converted from CM-SS13 cryogenics.dmi, CC-BY-SA-3.0 |
 | `Resources/Maps/_NF/POI/medical.yml` | modified | one entity: `MachineAutodoc` at -6.5,40.5, beside the medbay's operating table |
-| `Tools/_WF/wolfmed/import_cm_autodoc.py` | new | DMI to RSI converter for the pod sprites |
-| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | new | eSpeak NG + ffmpeg; writes the oggs, the attributions and the transcript ftl |
-| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | new | writes `voice.yml` from the same line table |
+| `Tools/_WF/Wolfmed/import_cm_autodoc.py` | new | DMI to RSI converter for the pod sprites |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice.py` | new | eSpeak NG + ffmpeg; writes the oggs, the attributions and the transcript ftl |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice_protos.py` | new | writes `voice.yml` from the same line table |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocTest.cs` | new | 10 tests |
 
 Deviations from the spec, and why:
@@ -4057,7 +4057,7 @@ behind it, and the machine-body analogue. Replaces the interim `WolfmedLifeSyste
 | `Content.Client/_WF/Wolfmed/Overlays/WolfmedDeathBannerOverlay.cs` | modified | the banner's locale keys are settable |
 | `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem{,.Procedure}.cs` | modified | `TryDefibrillateOccupant`, run before the first procedure and after the queue |
 | `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `DefibCharge`, `DefibSuccess`, `DefibFailure` voice events |
-| `Tools/_WF/wolfmed/gen_autodoc_voice{,_protos}.py` | modified | three new lines in the one source-of-truth table |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice{,_protos}.py` | modified | three new lines in the one source-of-truth table |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/defib-{charge,success,failure}.ogg` | new | eSpeak NG, regenerated from the table |
 | `Resources/Audio/_WF/Wolfmed/flatline.ogg` | new | 1 kHz tone, ffmpeg lavfi, CC0, attributed |
 | `Resources/Audio/_WF/Wolfmed/attributions.yml` | modified | the flatline entry |
@@ -4069,7 +4069,7 @@ behind it, and the machine-body analogue. Replaces the interim `WolfmedLifeSyste
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/programs.yml` | modified | `SurgeryRepairBrain` on the Neuro disk |
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/{autodoc,voice}.yml` | modified | module description; regenerated voice prototype |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/treatment_procedures.yml` | modified | `CondCardiacArrest`, `CondBrainDeath` |
-| `Resources/Locale/en-US/_WF/wolfmed/{wounds,look,death,treatment-advice,autodoc-voice}.ftl` | modified | analyzer vitals, examine lines, the arrest banner, the paddles' lines, both procedures |
+| `Resources/Locale/en-US/_WF/Wolfmed/{wounds,look,death,treatment-advice,autodoc-voice}.ftl` | modified | analyzer vitals, examine lines, the arrest banner, the paddles' lines, both procedures |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | "Death and revival" |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Autodoc.xml` | modified | the module does something now |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs` | new | 10 tests |
@@ -4106,8 +4106,8 @@ Deviations from the spec, and why:
 
 | path | status | notes |
 | --- | --- | --- |
-| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | modified | priority column, `-s 165 -p 25`, the new ffmpeg filter chain, `--report` duration check |
-| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | modified | carries the priority into the prototype |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice.py` | modified | priority column, `-s 165 -p 25`, the new ffmpeg filter chain, `--report` duration check |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice_protos.py` | modified | carries the priority into the prototype |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/*.ogg` | modified | all 74 lines regenerated at the new settings |
 | `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | modified | regenerated transcripts, step lines cut to one or two words |
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | modified | regenerated, every line now carries `priority` |
@@ -4163,11 +4163,11 @@ Deviations from the spec, and why:
 | `Resources/Prototypes/_WF/Wolfmed/health_icons.yml` | new | `HealthIconWolfmedArrest` |
 | `Resources/Textures/_WF/Wolfmed/Interface/health_icons.rsi` | new | `Flatline`, derived from the stock Critical icon |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/{plan,auto-engaged,auto-nothing,auto-off,goodbye,dying}.ogg` | new | eSpeak NG, same chain as AUTODOC2 |
-| `Resources/Locale/en-US/_WF/wolfmed/{autodoc,autodoc-ui,autodoc-voice,look}.ftl` | modified | slot names, PLAN/FIX ME/AUTO, the new transcripts, the corpse lines |
+| `Resources/Locale/en-US/_WF/Wolfmed/{autodoc,autodoc-ui,autodoc-voice,look}.ftl` | modified | slot names, PLAN/FIX ME/AUTO, the new transcripts, the corpse lines |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/{Autodoc,WoundTreatment}.xml` | modified | triage and the alarm; arrest looks dead |
-| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | modified | renders only the line ids it is given |
-| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | modified | the six new events |
-| `Tools/_WF/wolfmed/gen_arrest_icon.py` | new | draws the flatline HUD icon |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice.py` | modified | renders only the line ids it is given |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice_protos.py` | modified | the six new events |
+| `Tools/_WF/Wolfmed/gen_arrest_icon.py` | new | draws the flatline HUD icon |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedArrestLooksDeadTest.cs` | new | 4 tests |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocTest.cs` | modified | 6 new tests, lid assertion inverted |
 
@@ -4227,7 +4227,7 @@ brain nobody could repair.
 | `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | modified | generated with the three new lines |
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | modified | generated |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/{stall,clothing,sedation-limit}.ogg` | new | eSpeak NG, the AUTODOC2 chain |
-| `Tools/_WF/wolfmed/gen_autodoc_voice*.py` | modified | three rows and three events |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice*.py` | modified | three rows and three events |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | new | nine tests |
 
 ### Deviations
@@ -4288,14 +4288,14 @@ promise to charge again, and airloss past 700.
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `autodoc_transfuse_below`, `autodoc_defib_attempts`, `airloss_cap` |
 | `Resources/Prototypes/_Shitmed/Entities/Surgery/surgery_steps.yml` | modified | marked: `SurgeryStepMendRibcage` renamed "Mend bone" |
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml` | modified | generated: 88 lines, 76 events |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc.ftl` | modified | waiting-clothing, transfusing, the clothing popup |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc-ui.ftl` | modified | CUT CLOTHING and its tooltip |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl` | modified | generated transcripts |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc.ftl` | modified | waiting-clothing, transfusing, the clothing popup |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc-ui.ftl` | modified | CUT CLOTHING and its tooltip |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | modified | generated transcripts |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/{transfuse,cutting,clothing-auto,defib-blocked,defib-gaveup}.ogg` | new | eSpeak NG, the AUTODOC2 chain |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/clothing.ogg` | modified | retuned line |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml` | modified | Downed drops what you hold; the dwell |
-| `Tools/_WF/wolfmed/gen_autodoc_voice.py` | modified | five new rows |
-| `Tools/_WF/wolfmed/gen_autodoc_voice_protos.py` | modified | five new events |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice.py` | modified | five new rows |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice_protos.py` | modified | five new events |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDownedTransitionTest.cs` | new | one fall on the edge, held items dropped |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocWindowLayoutTest.cs` | new | the controls row at UI scale 1 and 1.25 |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocCareTest.cs` | new | ghost damage, transfusion, CUT CLOTHING, AUTO cutting |
@@ -4333,7 +4333,7 @@ Merge-preflight review fixes (UPSTREAM, CRASH, CLIENT, DATA, GAMEPLAY, CI findin
 | `Content.Server/_WF/Wolfmed/Medical/WeldingHealableSystem.Wolfmed.cs` | modified | the reason for the wound-host ordering |
 | `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | the progress label is rebuilt once a percent, not once a frame |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedBodyDoll.cs` | modified | one preview entity reused across scans, stale layers hidden |
-| `Docs/Wolfmed/DECISIONS.md` | modified | the analyzer window's own geometry recorded against §8.4-5 |
+| `Docs/_WF/Wolfmed/DECISIONS.md` | modified | the analyzer window's own geometry recorded against §8.4-5 |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs` | modified | arrest ends on a body with no clock once its pump is back |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | stacked painkillers hit the relief cap |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs` | new | overheating burns a wound host and leaves other mobs to upstream |
@@ -4374,7 +4374,7 @@ vignette and dying view. The fault list is the analyzer payload for one body, pu
 | `Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml` | new | 15 rows: seven wounds and eight conditions, fallback included. |
 | `Resources/Prototypes/_WF/Wolfmed/Shaders/shaders.yml` | modified | the `WolfmedSynthetic` shader entry. |
 | `Resources/Textures/_WF/Wolfmed/Shaders/synthetic.swsl` | new | rim tint, slice tear, scan, standby drain. |
-| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | new | every readout string. |
+| `Resources/Locale/en-US/_WF/Wolfmed/synthetic-hud.ftl` | new | every readout string. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | new | five tests: fault building and ordering, the cap, the organic gate, the tier bands, data/locale coverage, layout at two resolutions and two scales. |
 
 Deviations from the spec:
@@ -4405,8 +4405,8 @@ Deviations from the spec:
 | `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | the reorder buttons read that bound off the pod's state instead of off each row. |
 | `Content.Client/_WF/Wolfmed/Autodoc/AutodocStyle.cs` | modified | the static font cache is keyed by the owning resource cache; one client's `Font` carries the engine glyph cache and two clients corrupted it. |
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/triage.yml` | modified | `ignorePodWounds: true` on the bleeding and tending steps. |
-| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl`, `Resources/Audio/_WF/Wolfmed/Autodoc/voice/dead-proceeding.ogg` | modified/new | `dead-proceeding` "PATIENT IS DEAD. PROCEEDING." (Info), eSpeak NG through the AUTODOC2 chain. |
-| `Tools/_WF/wolfmed/gen_autodoc_voice{,_protos}.py` | modified | the new line's row and event. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl`, `Resources/Audio/_WF/Wolfmed/Autodoc/voice/dead-proceeding.ogg` | modified/new | `dead-proceeding` "PATIENT IS DEAD. PROCEEDING." (Info), eSpeak NG through the AUTODOC2 chain. |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice{,_protos}.py` | modified | the new line's row and event. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPlaytestFixesTest.cs` | new | six tests: the hand defib on a plain arrest, the blood refusal and the pod's transfusion, autofix running once, a brain-dead occupant operated on, a death mid-run and its RESUME, queue reorder. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocWindowLayoutTest.cs` | modified | the reorder buttons' enabled state against the shared bound, idle and running. |
 
@@ -4457,8 +4457,8 @@ Files:
 | `Content.Client/_WF/Wolfmed/Audio/WolfmedCritHeartbeatSystem.cs` | modified | silent for machines and faints. |
 | `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml` | new | one cause prototype per M1a cause. |
 | `Resources/Prototypes/_WF/Wolfmed/Alerts/alerts.yml` | modified | 15 condition alerts; `WolfmedDowned` moved into the Health category with the click event. |
-| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | cause, title, help, transition and alert strings. |
-| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | modified | per-cause banner lines. |
+| `Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl` | modified | cause, title, help, transition and alert strings. |
+| `Resources/Locale/en-US/_WF/Wolfmed/synthetic-hud.ftl` | modified | per-cause banner lines. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs` | new | `PainScenarioTest`, `SustainedFireFaintTest`, `BodyPainTracksPartsTest`, `OverlappingCausesTest`, `IpcShutdownScenarioTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs` | modified | pain on the parts (P13); the unconscious cases are faints. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs` | modified | pain on the torso; OD5 readings; the adrenaline window from its CVar. |
@@ -4502,8 +4502,8 @@ Files:
 | `Resources/Prototypes/_WF/Wolfmed/Actions/dying.yml` | new | `ActionWolfmedSuccumb`, `ActionWolfmedLastWords`. |
 | `Resources/Prototypes/_WF/Wolfmed/Actions/downed.yml` | new | `ActionWolfmedCallForHelp`. |
 | `Resources/Prototypes/_WF/Wolfmed/health_icons.yml` | modified | `HealthIconWolfmedCallForHelp`. |
-| `Resources/Locale/en-US/_WF/wolfmed/death.ftl` | modified | Succumb, leave and Last Words dialog strings ([OD1 wording]). |
-| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | Call for help strings; the arrest help and alert say "You can choose to let go." |
+| `Resources/Locale/en-US/_WF/Wolfmed/death.ftl` | modified | Succumb, leave and Last Words dialog strings ([OD1 wording]). |
+| `Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl` | modified | Call for help strings; the arrest help and alert say "You can choose to let go." |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedHonestEndingTest.cs` | new | `HonestEndingScenarioTest`, `CritSuccumbNeverGrantedToWoundHostsTest`, `CriticalHearingTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | new | `DownedPickupTest`, `CallForHelpTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocFaintTest.cs` | new | `FaintedOccupantIsAnaesthetisedTest`, `FaintDoesNotSoundTheCriticalAlarmTest`, `PodRefusesRotAndHeartlessBodiesTest`. |
@@ -4539,7 +4539,7 @@ Files:
 | `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessComponent.cs` | modified | Networked `Breathing`, `BreathingSource`, `BloodBand`. |
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.arrest_shock_blood` 0, `defib_blood` 0.25, `airloss_full` 100, `post_shock_oxygenation` 0.5, `post_shock_grace_seconds` 45, `post_shock_repeat_seconds` 300, `post_shock_blood_target` 0.35, `blood_band_pale` 0.8. |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | The post-shock banner. |
-| `Resources/Locale/en-US/_WF/wolfmed/death.ftl` | modified | Refusals with numbers; post-shock lines. |
+| `Resources/Locale/en-US/_WF/Wolfmed/death.ftl` | modified | Refusals with numbers; post-shock lines. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBreathingClockTest.cs`, `WolfmedScenario.cs` | new | The seven package A tests and the scenario helper. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs`, `WolfmedArrestLooksDeadTest.cs`, `WolfmedPlaytestFixesTest.cs` | modified | Migrations: real suffocation, 0.5 after a shock, the 0.25 gate and the pulse refusal. |
 
@@ -4567,9 +4567,9 @@ Files:
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.analyzer_blood_fast` 1. |
 | `Content.Client/_WF/Wolfmed/Medical/WolfmedDiagnosticPanel.Wounds.cs` | modified | The vitals block as the panel's first banner row. |
 | `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlaySystem.cs` | modified | SENSOR and CORE rows. |
-| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl` | new | The vitals block's words. |
-| `Resources/Locale/en-US/_WF/wolfmed/look.ftl` | modified | Gasping, slow breathing, pale, weak pulse, barely palpable pulse. |
-| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | modified | SENSOR and CORE row strings. |
+| `Resources/Locale/en-US/_WF/Wolfmed/analyzer-vitals.ftl` | new | The vitals block's words. |
+| `Resources/Locale/en-US/_WF/Wolfmed/look.ftl` | modified | Gasping, slow breathing, pale, weak pulse, barely palpable pulse. |
+| `Resources/Locale/en-US/_WF/Wolfmed/synthetic-hud.ftl` | modified | SENSOR and CORE row strings. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedMedicLinesTest.cs` | new | `AnalyzerStateLinesTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesConformanceTest.cs` | new | Report mode with `KnownGaps` (98). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedScenario.cs` | modified | `Report`, `AnalyzerLines`, `Analyzer` helpers. |
@@ -4608,10 +4608,10 @@ Files:
 | `Resources/Prototypes/_WF/Wolfmed/Entities/painkillers.yml` | modified | `WolfmedAnalgesicPen`, `WolfmedOpiatePen`. |
 | `Resources/Prototypes/_WF/Catalog/VendingMachines/Inventories/wolfgate.yml` | modified | The pens. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | The pens and the onset line. |
-| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | Painkiller lines. |
+| `Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl` | modified | Painkiller lines. |
 | `Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs` | modified | `NoResponse` is the failed roll only; `NotMonitored` for the fallback. |
 | `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs`, `Medical/HealthAnalyzerSystem.Vitals.cs` | modified | Read `NotMonitored`. |
-| `Resources/Locale/en-US/_WF/wolfmed/death.ftl` | modified | "No response. Charge again."; the not-monitored refusal. |
+| `Resources/Locale/en-US/_WF/Wolfmed/death.ftl` | modified | "No response. Charge again."; the not-monitored refusal. |
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs`, `WolfmedCauteryAnnounceComponent.cs` | modified, new | The wounds-closing rate limit. |
 | `Content.Client/_WF/Wolfmed/Life/WolfmedChoiceEui.cs`, `WolfmedChoiceWindow.cs` | modified | Open and centre once the text is in; wrap; size to content. |
 | `Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs` | modified | `RestoreCell` on rejuvenate. |
@@ -4650,7 +4650,7 @@ Files:
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M1b block at the end; `body_damage_cap` doc (corpse ceiling); `pain_faint_cooldown` 30 → 50. |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | Charring weeps (from 0). |
 | `Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml` | modified | The graft step grafts the part's burns. |
-| `Resources/Locale/en-US/_WF/wolfmed/burns.ftl` | new | Crumble, fluid-loss, analyzer and examine lines. |
+| `Resources/Locale/en-US/_WF/Wolfmed/burns.ftl` | new | Crumble, fluid-loss, analyzer and examine lines. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedBurnScenarioTest.cs` | new | `FireMeasurementTest`, `BurnScenarioTest`, `SaturatedTorsoTest`, `AmbientCeilingTest`, `BurnDressingInfectionTest`, `CharCrumbleTest`, `DownedCanPatOutFireTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs`, `WolfmedEviscerationTest.cs`, `WolfmedInfectionTest.cs`, `WolfmedDamageCommandTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `WolfmedAmputationTest.cs`, `WolfmedConsciousnessTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs`, `Scenarios/WolfmedScenario.cs` | modified | Test migration (DECISIONS M1b); `KeepGrid` against Mono's grid cleanup. |
 
@@ -4677,7 +4677,7 @@ Files:
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetBodyLimbPenalty`. |
 | `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs`, `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs` | modified | "FAINTED: pain, {N} s". |
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | `wolfmed.crawl_floor` 0.35. |
-| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl`, `analyzer-vitals.ftl` | modified | Timed faint help, limb-penalty lines, timed analyzer state. |
+| `Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl`, `analyzer-vitals.ftl` | modified | Timed faint help, limb-penalty lines, timed analyzer state. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedFireHelplessnessTest.cs` | new | `FireHelplessnessTest` (the reproduction table and the assertions). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs` | new | `FaintCountdownTest`, `BurnsNeverSwitchALimbOffTest`, `CrawlFloorTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCauseScenarioTest.cs`, `WolfmedMedicLinesTest.cs` | modified | The faint's text and analyzer line now carry the seconds. |
@@ -4747,8 +4747,8 @@ Files:
 | `Resources/Prototypes/_WF/Catalog/VendingMachines/Inventories/wolfgate.yml` | modified | The naloxone pen. |
 | `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml`, `surgery_steps.yml` | modified | `SurgeryRepairCore` and its three steps. |
 | `Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml`, `Alerts/alerts.yml`, `Actions/downed.yml`, `Actions/dormant.yml` | modified / new | CORE RESTORED line; "Can't breathe" alerts; Play dead and Check yourself; Wait as a ghost. |
-| `Resources/Locale/en-US/_WF/wolfmed/revival.ftl` | new | M2 lines. |
-| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl`, `look.ftl`, `synthetic-hud.ftl`, `wounds.ftl`, `consciousness.ftl` | modified | Routes, restart, examine signs, CORE RESTORED, core repair wording, naloxone in the sedation help. |
+| `Resources/Locale/en-US/_WF/Wolfmed/revival.ftl` | new | M2 lines. |
+| `Resources/Locale/en-US/_WF/Wolfmed/analyzer-vitals.ftl`, `look.ftl`, `synthetic-hud.ftl`, `wounds.ftl`, `consciousness.ftl` | modified | Routes, restart, examine signs, CORE RESTORED, core repair wording, naloxone in the sedation help. |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml` | modified | The sedation model and naloxone. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs`, `WolfmedMedicInfoTest.cs` | new | The M2 acceptance tests. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs`, `WolfmedBrainTest.cs`, `WolfmedDyingLevelTest.cs`, `WolfmedLocaleCoverageTest.cs`, `WolfmedTreatmentRestrictionTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs`, `Scenarios/WolfmedMedicLinesTest.cs` | modified | Test migration (DECISIONS M2); locale coverage for the route and restart families; the suture test's bruise can no longer roll a bleed. |
@@ -4776,7 +4776,7 @@ Files:
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/burns.yml` | modified | The internal burn's roll fields go. |
 | `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml` | modified | `helpOutTimed` on PainFaint. |
 | `Resources/Prototypes/_WF/Wolfmed/Consciousness/organ_causes.yml`, `Alerts/organ_alerts.yml` | new | HeadBlow, Brain, Core causes and alerts. |
-| `Resources/Locale/en-US/_WF/wolfmed/organs.ftl` | new | Every M3 string. |
+| `Resources/Locale/en-US/_WF/Wolfmed/organs.ftl` | new | Every M3 string. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedConsequencesTest.cs` | new | `OrganCalibrationTest`, `LungRouteTest`, `BrainInjuryInputTest`, `IpcCoreInputTest`, `ElectricalHeartBandTest`, `CrushInternalBleedBandTest`, `StumpTest`, `BarotraumaPartTest`, `BlastHeadTest`, `HeartBandTest`. |
 | `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs`, `Content.Shared/_WF/Wolfmed/Autodoc/AutodocComponent.cs` | modified | A procedure cut short before its seal step queues `SurgeryCloseIncision` after itself (`TryQueueClosure` takes an index); the pod's own closures are `AutodocQueued.Continuation` and take no fresh anaesthetic. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedCrawlingActionsTest.cs` | modified | `CallForHelpTest` waits out the fall's stutter, in station air. |
@@ -4839,7 +4839,7 @@ Files:
 | `Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml` | modified | CORE TEMP CRITICAL line (M4 block at the end). |
 | `Resources/Prototypes/_WF/Wolfmed/Surgery/synth_core.yml` | new | `SurgeryRepairSynthCore` and its re-flash step. |
 | `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | modified | `SurgeryRepairBrain` is not offered on a synth. |
-| `Resources/Locale/en-US/_WF/wolfmed/species.ftl` | new | Every M4 string. |
+| `Resources/Locale/en-US/_WF/Wolfmed/species.ftl` | new | Every M4 string. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedIpcDeathTest.cs`, `WolfmedSpeciesTest.cs` | new | `IpcFireScenarioTest`, `ThermalShutdownSuccumbTest`, `SpeciesArrestTest`, `SynthBranchTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesConformanceTest.cs` | rewritten | Strict (`EverySpeciesConformsOrIsExcusedTest`). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs`, `WolfmedSpeciesSpawnTest.cs`, `WolfmedSyntheticHudTest.cs`, `Scenarios/WolfmedCauseScenarioTest.cs` | modified | Test migration (DECISIONS M4); the OverlappingCausesTest IPC branch. |
@@ -4862,8 +4862,8 @@ Files:
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M5 block at the end. |
 | `Resources/Prototypes/_WF/Wolfmed/Consciousness/remaining_causes.yml`, `Alerts/remaining_alerts.yml` | new | The four causes and their seven alerts. |
 | `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml` | modified | Hypoxia sources Toxin and Heat; arrest sources cold, toxin, heat. |
-| `Resources/Locale/en-US/_WF/wolfmed/remaining-causes.ftl` | new | Every M5 string. |
-| `Resources/Locale/en-US/_WF/wolfmed/treatment-advice.ftl`, `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml`, `WoundTreatment.xml` | modified | Infection no longer "takes toxin damage"; a paragraph on the four causes. |
+| `Resources/Locale/en-US/_WF/Wolfmed/remaining-causes.ftl` | new | Every M5 string. |
+| `Resources/Locale/en-US/_WF/Wolfmed/treatment-advice.ftl`, `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml`, `WoundTreatment.xml` | modified | Infection no longer "takes toxin damage"; a paragraph on the four causes. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs` | new | `ToxinScenarioTest`, `RadiationScenarioTest`, `SepsisNotToxinTest`, `AcidResidueTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs` | new | `ColdRoomMeasurementTest`, `HypothermiaScenarioTest`, `HeatStrokeScenarioTest`, `SpeciesLinesTest`, `SpaceColdSmokeTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs` | modified | Infection and sepsis deal no Poison; `SepsisPoisonsAndAntibioticsClearItTest` renamed `SepsisShowsAndAntibioticsClearItTest`. |
@@ -4901,7 +4901,7 @@ Files:
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/programs.yml`, `categories.yml`, `triage.yml`, `autodoc.yml` | modified | Core repairs on the neuro disk, in the neuro category and the organ-repair triage step, with no reagents; a multitool in the pod's tools. |
 | `Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs` | modified | M6 block at the end: `wolfmed.doafter_interrupt_damage`. |
 | `Resources/Prototypes/_WF/Wolfmed/Damage/containers.yml`, `Content.Shared/_WF/Wolfmed/Consciousness/SharedWolfmedConsciousnessSystem.cs`, `WolfmedConsciousnessComponent.cs` | modified | Comments only: rundown Appendix A corrections. |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | M6 sections; inline *[M6 correction]* notes. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | M6 sections; inline *[M6 correction]* notes. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedLeftoversTest.cs` | new | `HitInterruptsSelfTreatmentTest`, `PodRepairsACoreTest`, `PodClampProgressTest`, `SynthRunsNoToxinRouteTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageBridgeTest.cs`, `WolfmedBluntWoundTest.cs`, `WolfmedInfectionTest.cs` | modified | `RoutingPassesIgnoreResistancesTest`, `FractureGradeTest`, `NecrosisRiskTest`; the tourniquet clock migration. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs` | modified | The short-circuit and overheating hits take resistances (they had counted on P25's dropped flag). |
@@ -4918,7 +4918,7 @@ No marked upstream or Onyx edits.
 | `Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundTraitSystem.cs` | modified | `GetPartNecrosisRisk` removed (uncalled since M6). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedConsequencesTest.cs` | modified | `LungArrestRestartMemoryTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs` | modified | The frostbite test reads `GetPartNecrosisOnset`. |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The review fixes section; inline corrections for the heartbeat licence, M2's restart memory and the necrosis row. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | The review fixes section; inline corrections for the heartbeat licence, M2's restart memory and the necrosis row. |
 
 ## Synth takes no poison (2026-09-24)
 
@@ -4945,13 +4945,13 @@ No marked upstream, Onyx or vendored edits: everything is in `_WF` code and Wolf
 | `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs` | modified | `WolfmedVitalsText` rebuilt: `VitalsLine`, `DoFirstLine` (replaces `RoutesLine`), `Aid`, `Number`/`Units`/`Whole`; `BreathingLine`, `CirculationLine`, `BurnFluidLine`, `ToxinLine`, `RadiationLine`, `CoreTemperatureLine`, `OrganLine`, `TemperatureLine` removed. |
 | `Content.Shared/_WF/Wolfmed/Life/WolfmedPostShockText.cs` | modified | Strings through the rounding helpers. |
 | `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml`, `organ_causes.yml`, `species_causes.yml` | modified | `cardColour` on PainFaint, HeadBlow (amber), Arrest, CoreHeat, CirculatoryCollapse (red), Sedation (steel blue), Shutdown (grey). |
-| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl` | modified | Item, "Do first" and aid keys; breathing, pulse and trend values; circulation, hydraulics, route and routes keys removed. |
-| `Resources/Locale/en-US/_WF/wolfmed/organs.ftl`, `remaining-causes.ftl`, `species.ftl`, `burns.ftl` | modified | Organ names capitalised, effect and "Organs:" keys removed; toxin, liver, route and burn-fluid keys removed; radiation, core and machine temperature values as items; `wolfmed-vitals-breathing-none-collapse` removed. |
-| `Resources/Locale/en-US/_WF/wolfmed/revival.ftl` | modified | `wolfmed-card-countdown`, `-countdown-none`, `-breathing-*`, `-blood-*`. |
-| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | `wolfmed-downed-cant-climb`. |
+| `Resources/Locale/en-US/_WF/Wolfmed/analyzer-vitals.ftl` | modified | Item, "Do first" and aid keys; breathing, pulse and trend values; circulation, hydraulics, route and routes keys removed. |
+| `Resources/Locale/en-US/_WF/Wolfmed/organs.ftl`, `remaining-causes.ftl`, `species.ftl`, `burns.ftl` | modified | Organ names capitalised, effect and "Organs:" keys removed; toxin, liver, route and burn-fluid keys removed; radiation, core and machine temperature values as items; `wolfmed-vitals-breathing-none-collapse` removed. |
+| `Resources/Locale/en-US/_WF/Wolfmed/revival.ftl` | modified | `wolfmed-card-countdown`, `-countdown-none`, `-breathing-*`, `-blood-*`. |
+| `Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl` | modified | `wolfmed-downed-cant-climb`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeTest.cs` | new | `CardCountdownTest`, `CardLooksTest`, `DownedCannotClimbTest`, `VitalsBlockIsCompactTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedMedicLinesTest.cs`, `WolfmedMedicInfoTest.cs`, `WolfmedBreathingClockTest.cs`, `WolfmedConsequencesTest.cs`, `WolfmedIpcDeathTest.cs`, `WolfmedLeftoversTest.cs`, `WolfmedRemainingCausesTest.cs`, `WolfmedSpeciesTest.cs`, `WolfmedTemperatureTest.cs`, `Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs`, `WolfmedLocaleCoverageTest.cs` | modified | Migrated to the three-line block (DECISIONS "Playtest 3 fixes", test migration). |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3 fixes" sections. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3 fixes" sections. |
 
 ## Playtest 3, IPC round (2026-09-24)
 
@@ -4963,10 +4963,10 @@ One marked Onyx edit; everything else is in `_WF` code, Wolfmed locale and tests
 | `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudLayout.cs` | modified | `SystemPanel`/`WolfmedSystemPanel` (the SYSTEM box sized from its rows), `SystemHeight`, `SystemWidth`, `WrapAdvice`, `Visible`, `DrawnBoxes`, `Row`, `Contains`; `SystemRows` replaced by `MaxSystemGauges`, `MaxAdviceRows`, `SystemColumns`, `BarColumn`, `ValueColumns`; `CharWidth` carries the 1.4 factor its callers applied. |
 | `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlay.cs` | modified | `DrawOptics` (the centre arcs and ticks), `Tier`, the idle glyph and `GlyphAlpha` removed; `DrawSystem` rebuilt on `SystemPanel` with `SystemRow` (label, bar, right-aligned value), one text size, `TextRight`. |
 | `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlaySystem.cs` | modified | Builds `SystemRow`s, the fault label and count, the advice prefix; visibility through `WolfmedSyntheticHudLayout.Visible`; no glyph. |
-| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | modified | Row keys hold the label only; `wolfmed-synthetic-row-core` new; `wolfmed-synthetic-row-core-temp` is the value; `wolfmed-synthetic-glyph` removed. |
+| `Resources/Locale/en-US/_WF/Wolfmed/synthetic-hud.ftl` | modified | Row keys hold the label only; `wolfmed-synthetic-row-core` new; `wolfmed-synthetic-row-core-temp` is the value; `wolfmed-synthetic-glyph` removed. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedIpcFluidLossTest.cs` | new | `IpcFluidLossTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | modified | `SyntheticHudPanelFitsTest` new; the locale key list follows the row keys. |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round" sections; the "Synthetic HUD" section's Idle glyph annotated as removed. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round" sections; the "Synthetic HUD" section's Idle glyph annotated as removed. |
 
 ## Playtest 3, IPC round 2 (2026-09-24)
 
@@ -4996,13 +4996,13 @@ WOLFGATE block; everything else is `_WF` code, Wolfmed prototypes, locale and te
 | `Resources/Prototypes/_WF/Catalog/VendingMachines/Inventories/wolfgate.yml` | modified | `WolfmedHydraulicFluidPack: 4`. |
 | `Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml` | modified | One pack in the debug crate. |
 | `Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml` | modified | Comment: an IPC spills hydraulic fluid. |
-| `Resources/Locale/en-US/_WF/wolfmed/hydraulics.ftl` | new | The reagent's name and description; the pack's refusals and finish. |
-| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl`, `consciousness.ftl` | modified | "Fluid N%", "refill hydraulic fluid ≈ N u", "weld the fluid leak", "refill the hydraulic fluid" (values only; keys unchanged). |
+| `Resources/Locale/en-US/_WF/Wolfmed/hydraulics.ftl` | new | The reagent's name and description; the pack's refusals and finish. |
+| `Resources/Locale/en-US/_WF/Wolfmed/analyzer-vitals.ftl`, `consciousness.ftl` | modified | "Fluid N%", "refill hydraulic fluid ≈ N u", "weld the fluid leak", "refill the hydraulic fluid" (values only; keys unchanged). |
 | `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml`, `Autodoc.xml` | modified | A torn chassis leaks hydraulic fluid; the pack, and oil refused; the pod welds and rewires a chassis. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPodWeldsChassisTest.cs` | new | `PodWeldsChassisTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedHydraulicFluidTest.cs` | new | `HydraulicFluidTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs`, `WolfmedEviscerationTest.cs`, `Scenarios/WolfmedIpcFluidLossTest.cs` | modified | Migrated from Oil to hydraulic fluid. |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round 2" sections. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round 2" sections. |
 
 ## Playtest 3, S.A.M. round (2026-09-24)
 
@@ -5024,13 +5024,13 @@ Two marked Shitmed edits; everything else is `_WF` code, Wolfmed locale and voic
 | `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Voice.cs` | modified | Counts voice events and procedure announcements. |
 | `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | WAITING names the garment and its slot. |
 | `Content.Server/_WF/Wolfmed/Wounds/WolfmedEmbeddedRemovalSystem.cs` | modified | `WolfmedWoundReplacedEvent`, broadcast when a pulled round's wound is replaced. |
-| `Tools/_WF/wolfmed/gen_autodoc_voice.py`, `gen_autodoc_voice_protos.py` | modified | The `removing` line and the `Removing` event. |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice.py`, `gen_autodoc_voice_protos.py` | modified | The `removing` line and the `Removing` event. |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/removing.ogg`, `attributions.yml` | new, modified | Generated (eSpeak NG). |
-| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl` | modified | Generated: `removing`. |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc.ftl` | modified | `wolfmed-autodoc-no-climb`, `wolfmed-autodoc-status-waiting-garment`. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl` | modified | Generated: `removing`. |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc.ftl` | modified | `wolfmed-autodoc-no-climb`, `wolfmed-autodoc-status-waiting-garment`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeSamTest.cs` | new | `PodHoldsOneTest`, `AutoIsOneRunTest`, `NoStallWhileWorkingTest`, `PodUndressesWhatItCannotCutTest`, `PodUndressesWhatItCannotCutLockedTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | modified | `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`: the torso's other work is queued after the removal as follow-ups and has run by the end of the queue. |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, S.A.M. round" sections; two AUTODOC statements annotated inline. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, S.A.M. round" sections; two AUTODOC statements annotated inline. |
 
 ## Playtest 3, pod atmosphere (2026-09-24)
 
@@ -5049,9 +5049,9 @@ The existing pod files only gained calls (DECISIONS "Playtest 3, pod atmosphere"
 | `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | The seal label after the status readout. |
 | `Content.Client/_WF/Wolfmed/Autodoc/AutodocVisualizerSystem.cs` | modified | The breached tint. |
 | `Resources/Prototypes/_WF/Wolfmed/Autodoc/autodoc.yml` | modified | `WolfmedAutodocAtmosphere` (400 L, 101.325 kPa, 293.15 K, 21/79); a Destructible threshold at 100 acting `Breakage`; `Repairable` with Welding and Applicating, 5 s. |
-| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl`, `Resources/Audio/_WF/Wolfmed/Autodoc/voice/attributions.yml` | regenerated | The `hull-breach` line and the `HullBreach` event. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl`, `Resources/Audio/_WF/Wolfmed/Autodoc/voice/attributions.yml` | regenerated | The `hull-breach` line and the `HullBreach` event. |
 | `Resources/Audio/_WF/Wolfmed/Autodoc/voice/hull-breach.ogg` | new | "HULL BREACH. OUTSIDE ATMOSPHERE.", eSpeak NG, 2.05 s. |
-| `Tools/_WF/wolfmed/gen_autodoc_voice.py`, `gen_autodoc_voice_protos.py` | modified | The `hull-breach` row and the `HullBreach` event. |
-| `Resources/Locale/en-US/_WF/wolfmed/autodoc-atmosphere.ftl` | new | The five readout keys and four examine keys. |
+| `Tools/_WF/Wolfmed/gen_autodoc_voice.py`, `gen_autodoc_voice_protos.py` | modified | The `hull-breach` row and the `HullBreach` event. |
+| `Resources/Locale/en-US/_WF/Wolfmed/autodoc-atmosphere.ftl` | new | The five readout keys and four examine keys. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/PodAtmosphereTest.cs` | new | Six tests (DECISIONS). |
-| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, pod atmosphere" sections. |
+| `Docs/_WF/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, pod atmosphere" sections. |

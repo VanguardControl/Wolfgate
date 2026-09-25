@@ -1,6 +1,6 @@
 """Draws the medical HUD's cardiac-arrest icon from the stock critical one.
 
-Usage: python Tools/_WF/wolfmed/gen_arrest_icon.py
+Usage: python Tools/_WF/Wolfmed/gen_arrest_icon.py
 
 Same 8x8 frame and palette as Interface/Misc/health_icons.rsi Critical, with the cross replaced by a flat
 trace across the middle: a medic reads "no pulse" rather than "hurt" at a glance.

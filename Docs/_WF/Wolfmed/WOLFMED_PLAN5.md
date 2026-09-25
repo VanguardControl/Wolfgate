@@ -88,7 +88,7 @@ and three new user decisions (U15, U17, U19) exist.
 | **D3** | Phase 1 was organic humanoids only. **Phase 5 is the phase that lifts D3**: IPC, cybernetic limbs, slime and plant profiles land here. | DECISIONS §"Phase 5" P5-1 |
 | **D4** | Balance = Onyx defaults. Phase 5 ships deliberate deviations, each a user decision in §8.4. | PLAN §1.1 |
 | **D5** | Missing APIs get a `_WF/Wolfmed/Compat` shim. **Phase 5 adds no compat file.** Everything it needs already binds: `WoundableComponent.Profile`, `FractureProfilePrototype`, `WolfmedBodyPartComponent.FractureProfile`, `BloodstreamComponent.BloodReagent`. | verified §2.0 |
-| **D6** | Vendored Onyx data at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/Wolfmed/`. | PLAN §1.1 |
+| **D6** | Vendored Onyx data at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/_WF/Wolfmed/`. | PLAN §1.1 |
 | **D8** | Wolfgate stays on Shitmed's `BodyPartComponent`; Onyx's extra part fields live on `WolfmedBodyPartComponent` (`Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartComponent.cs:10-28`). **So Onyx's `- type: BodyPart / fractureProfile:` becomes `- type: WolfmedBodyPart / fractureProfile:` in every P5-1 translation.** | `WoundFractureSystem.cs:145-156` |
 | **D9** | Onyx's `Chest` + `Groin` fold into Wolfgate's single `Torso`. `BodyPartType` (`Content.Shared/Body/Part/BodyPartType.cs:10-19`) has `Other, Torso, Head, Arm, Hand, Leg, Foot, Tail` — **no `Chest`, no `Groin`**. Three of the four new profiles carry `organDamage.chances` with both keys and **must** be folded or they fail to deserialize. | re-verified |
 | **D20** | `Caustic` stays in `acceptedDamageTypes` and in `WoundHostComponent.LocalizedDamageTypes` (`Content.Shared/_Onyx/Wounds/WoundDamageComponents.cs:32-45`). | WG `wounds.yml:13` |
@@ -669,7 +669,7 @@ re-measures with `git diff 2b4a4675d0 --name-only` filtered to files outside
 ## 4. Work packages
 
 Build order — **packages run SEQUENTIALLY in the one worktree** (concurrent builds collide). Each appends
-its own rows and deviations directly to `Docs/Wolfmed/WOLFMED_MANIFEST.md`; WP13-7 reconciles rather than
+its own rows and deviations directly to `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`; WP13-7 reconciles rather than
 merges. **One owner per shared file** — named in every table.
 
 ```
@@ -801,9 +801,9 @@ No filename collision: the existing `_WF/Wolfmed` test directory holds `WolfmedA
 
 | File | Action |
 |---|---|
-| `Docs/Wolfmed/WOLFMED_PLAN5.md` | **new** — this plan, as shipped |
-| `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append §7's rows and the deviations block; reconcile WP13-0..6 |
-| `Docs/Wolfmed/WOLFMED_STATUS.md` | "What phase 5 delivers"; upstream footprint 47 → 55; **strike the "Blocked on a shared stage-based metabolizer" line**; collapse "Next phases" to phase 6 + §8.7 |
+| `Docs/_WF/Wolfmed/WOLFMED_PLAN5.md` | **new** — this plan, as shipped |
+| `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append §7's rows and the deviations block; reconcile WP13-0..6 |
+| `Docs/_WF/Wolfmed/WOLFMED_STATUS.md` | "What phase 5 delivers"; upstream footprint 47 → 55; **strike the "Blocked on a shared stage-based metabolizer" line**; collapse "Next phases" to phase 6 + §8.7 |
 
 ---
 
@@ -828,7 +828,7 @@ refuses to stack a second do-after on**.
 
 `rg` over `Resources`, `Content.Shared`, `Content.Server`, `Content.Client`, `Content.IntegrationTests`
 (RobustToolbox excluded) returned **0 code/prototype hits** for all 22 new ids; the only hits anywhere in
-the repo are prose mentions in `Docs/Wolfmed/reports/**` and `Docs/Wolfmed/WOLFMED_PLAN{,3}.md` (6 files,
+the repo are prose mentions in `Docs/_WF/Wolfmed/reports/**` and `Docs/_WF/Wolfmed/WOLFMED_PLAN{,3}.md` (6 files,
 all documentation).
 
 | Kind | Names |

@@ -585,7 +585,7 @@ public sealed class WolfmedAnalyzerTest : GameTest
                 }
 
                 // The part-level condition glyphs. The list is the second half of
-                // Tools/_WF/wolfmed/gen_analyzer_icons.py's CONDITION_STATES; the RSI is generated, so the
+                // Tools/_WF/Wolfmed/gen_analyzer_icons.py's CONDITION_STATES; the RSI is generated, so the
                 // failure this catches is a state renamed in the script and not in the panel.
                 foreach (var state in ConditionIcons)
                     AssertIcon(resources, meta, state);

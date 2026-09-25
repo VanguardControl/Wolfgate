@@ -32,7 +32,7 @@ a diagnostics readout, and (newly in scope) explosion amputation.
    `dotnet build Content.IntegrationTests` all green (0 errors), `-c DebugOpt`. YAML lints in **Release** only
    (`ErrorNode` crashes the linter elsewhere).
 6. **Packages run SEQUENTIALLY in the one worktree** and each appends its own rows directly to
-   `Docs/Wolfmed/WOLFMED_MANIFEST.md` (§7). WP12-10 *reconciles*, it does not merge. One owner per shared file
+   `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` (§7). WP12-10 *reconciles*, it does not merge. One owner per shared file
    (§4, serialisation rules).
 7. **No commits.** Work packages leave the tree uncommitted; snapshot a patch per WP under
    `C:/Users/jzo12/Documents/Wolfmed/plan/p4/snapshots/`. The user commits.
@@ -50,7 +50,7 @@ a diagnostics readout, and (newly in scope) explosion amputation.
 | **D2** | Entities without `WoundHostComponent` behave exactly as today. Every phase-4 change must be `HasComp<WoundHostComponent>`-scoped or structurally unreachable for non-hosts. **Phase 4 has four D2 pressure points**, all handled below: the tourniquet swap (P4-D11), the two shallow tend surgeries gaining a severity window (P4-D19), the incision-scar chain (P4-D21) and the explosion hook (P4-D14). A prototype edit on a shared abstract is never D2-scoped — the rule that killed HOOK 19. | PLAN §1.1, PLAN3 §1.1 |
 | **D4** | Balance = Onyx defaults; tuning later. **Phase 4 ships three deliberate numeric deviations**, each flagged as a user decision in §8.4: the organ-heal amount (P4-D23), honouring `Immediate` (P4-D5), and the reagent Tier-A scope's Oxycodone recipe re-author (P4-D2). Everything else is Onyx's number or Wolfgate's existing number. | PLAN §1.1 |
 | **D5** | Missing APIs get a compat shim in `Content.Shared/_WF/Wolfmed/Compat`; where impossible, a `// WOLFGATE` edit in the vendored file. **Phase 4 adds no new compat-layer file.** Phases 1–3 already shipped everything phase 4 needs to bind: `WolfmedDamageableSystem`, `WoundTargetResolver`, `WolfmedBodySystem`, `WolfmedBodyPartSystem`, `PartStatusSeverity`, `DamageDealtEvent` (§2.0). | verified §2.0 |
-| **D6** | Layout: vendored Onyx code at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/Wolfmed/`. | PLAN §1.1 |
+| **D6** | Layout: vendored Onyx code at its Onyx relative path under `_Onyx/`; Wolfgate glue under `_WF/Wolfmed`; docs in `Docs/_WF/Wolfmed/`. | PLAN §1.1 |
 | **D7** | Wolfgate keeps Shitmed surgery. Onyx's `_Onyx/Medical/Surgery/SharedSurgerySystem.*` and `_Onyx/Surgery` are **not** ported — 11 partial files plus 4 server files, a second BUI, a second step registry and 22 colliding component names. Phase 4 re-expresses Onyx's *wound surgeries* on Shitmed's step system instead (§2.4–§2.6). | PLAN §1.1, re-confirmed `surgery.md` §2.1 |
 | **D8** | Wolfgate stays on Shitmed's `BodyPartComponent`/`OrganComponent`; Onyx's extra fields live on `WolfmedBodyPartComponent`/`WolfmedOrganComponent`. **This is why `OrganHealthSystem.ChangeHealth` takes `Entity<WolfmedOrganComponent>`, not Onyx's `Entity<OrganComponent>`** (`WG/Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs:80`, read in full here), and why the analyzer's organ builder reads `WolfmedOrganComponent.Health` while addressing the organ through `OrganComponent.SlotId`. | verified directly |
 | **D9** | No `BodyPartType.Chest`/`.Groin`. Affects every ported Onyx surgery `part:` field (`Chest`→`Torso`, `Groin` dropped) and the analyzer's `TargetBodyPart` keys — **WG must never emit a `Groin` diagnostic row**: `SharedTargetingSystem.GetValidParts()` has 10 entries with `Groin` commented out, and `ConvertTargetBodyPart` maps Groin→Torso. | verified directly |
@@ -853,7 +853,7 @@ The save/restore (rather than a bare `Remove`) is deliberate: `_routedModifiers`
 | `Resources/Locale/en-US/_Onyx/reagents/medicine.ftl` | new | `reagent-name-*`/`reagent-desc-*` for the five Tier-A reagents. **None of these keys exists in WG today** — verified for osteogen, ibuprofen, ketorolac, tramadol, oxycodone |
 | `Resources/Locale/en-US/_Onyx/medical/tourniquet.ftl` | new | Onyx's 3 keys verbatim (`tourniquet-selected-part-missing`, `-no-bleeding`, `-applied`). No collision with WG's `medical-item-*` namespace. Skip Onyx's `ru-RU` copy |
 | `Resources/Locale/en-US/_Onyx/medical/medical_patch.ftl` | new | Onyx's 8 keys verbatim (2 `ent-*` names + 4 sticky popups) |
-| `Resources/Locale/en-US/_WF/wolfmed/surgery-popup.ftl` | new | 12 `surgery-popup-step-*` keys, in **Wolfgate's `{$user}` style** (no inner spaces), not Onyx's `{ $user }`. Popup keys resolve as `surgery-popup-procedure-{surgery}-step-{step}` then `surgery-popup-step-{step}` (`Steps.cs:481-489`). Entity **names** are inline `name:` in Wolfgate YAML, so Onyx's entity-name ftl is not needed |
+| `Resources/Locale/en-US/_WF/Wolfmed/surgery-popup.ftl` | new | 12 `surgery-popup-step-*` keys, in **Wolfgate's `{$user}` style** (no inner spaces), not Onyx's `{ $user }`. Popup keys resolve as `surgery-popup-procedure-{surgery}-step-{step}` then `surgery-popup-step-{step}` (`Steps.cs:481-489`). Entity **names** are inline `name:` in Wolfgate YAML, so Onyx's entity-name ftl is not needed |
 | `Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl` | new | the 11 live wound keys from ONYX `:6-16` (skip the 4 disease keys and the dead `health-analyzer-wound-pain` at `:5`) + the 2 new fracture keys from P4-D25 |
 | `Resources/Locale/en-US/_Onyx/targeting/targeting.ftl` | new | the 11 `targeting-part-*` keys from ONYX `:20-32`, **`chest` renamed `torso`, `groin` omitted** (D9). WG has zero `targeting-part-*` keys today |
 | `Resources/Locale/en-US/medical/components/health-analyzer-component.ftl` | **modified (upstream)** | 19 keys appended inside one `# WOLFGATE (P4-4)` block: vital-damage, body/organs tab + organ health, chemicals tab + 4 solution names + empty + reagent, whole-body + damage-part, wound-diagnostics title/inactive/unavailable, blood-level-dangerous |
@@ -948,7 +948,7 @@ WP12-8  Explosion amputation (P4-6)              4 files   [owns WoundDamageRout
    │
 WP12-9  Tests (P4-8)                             8 files   [owns every test file]
    │
-WP12-10 Guidebook + docs reconcile (P4-7/P4-9)   7 files   [sole owner of Docs/Wolfmed/ and Guidebook/medical.yml at this stage]
+WP12-10 Guidebook + docs reconcile (P4-7/P4-9)   7 files   [sole owner of Docs/_WF/Wolfmed/ and Guidebook/medical.yml at this stage]
 ```
 
 **Serialisation rule 1 — one owner per shared file.** The bracketed ownerships above are exclusive. In
@@ -972,7 +972,7 @@ they are chem-dispensable and the phase already adds one medkit item.
 `WolfmedPatch*` and `WolfmedAnalyzer*` prefixes; **re-grep before adding**, because packages land in sequence.
 
 **Serialisation rule 4 — the manifest.** Each WP appends its own `### WP12-N` rows and deviations directly to
-`Docs/Wolfmed/WOLFMED_MANIFEST.md` (ground rule 6). WP12-10 **reconciles** (amends the stale rows in §7.1,
+`Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` (ground rule 6). WP12-10 **reconciles** (amends the stale rows in §7.1,
 dedupes, writes `WOLFMED_PLAN4.md` and updates `WOLFMED_STATUS.md`); it does not re-append.
 
 ---
@@ -1018,7 +1018,7 @@ treatment-capability scope.
 | 5 | `Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl` | same path | **new** — 3 renamed keys + 4 `fracture-grade-*` + 1 new `take-stamina-damage` key (§2.12) |
 | 6 | — | `Content.Server/EntityEffects/Effects/HealthChange.cs` | **modified — HOOK 9(a)**, ~16 lines |
 | 7 | — | `Content.Server/EntityEffects/Effects/EvenHealthChange.cs` | **modified — HOOK 9(b)**, ~15 lines, **plus `using System.Linq;`** |
-| 8 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-1` |
+| 8 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-1` |
 
 **Exact edits:** §3.1 HOOK 9 rows and §2.1 for the four class bodies. Four things that will bite:
 
@@ -1052,7 +1052,7 @@ inert with one profile, which is exactly what T-REAGENT-CAP-NO in WP12-9 will pr
 | 5 | `_Onyx/Reagents/Medicine/medicine.yml` (rows 13, 16, 17, 21, 22) | `Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml` | **new** — Osteogen, Ibuprofen, Ketorolac, Tramadol, Oxycodone, ~140 lines |
 | 6 | `_Onyx/Recipes/Reactions/medicine.yml` | `Resources/Prototypes/_Onyx/Recipes/Reactions/medicine.yml` | **new** — 5 recipes, ~60 lines |
 | 7 | — | `Resources/Locale/en-US/_Onyx/reagents/medicine.ftl` | **new** — 10 keys (name + desc × 5) |
-| 8 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-2` |
+| 8 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-2` |
 | 9 | *(Tier B, optional)* | `…/medicine.yml` + recipes + locale | Probital + Mitogen, if the package is otherwise green |
 
 **Deleted in this revision — the former item 8, “list the five in the chem-dispenser inventory” (CRITIQUE4 M2).** It is not implementable as written and is not needed. `Resources/Prototypes/Catalog/ReagentDispensers/chemical.yml:1-22` is `ChemDispenserStandardInventory`, whose `inventory:` list holds **jug entity ids for base elements** (`JugAluminium`, `ReinforcedJugCarbon # Frontier`, `JugFluorine`, `JugIodine`, `JugIron`, `JugMercury`, `JugRadium`, `JugSodium`, `JugSulfur`, …), not reagent ids — `grep -c Bicaridine` on that file returns **0**, so no medicine is dispensable there at all. Listing the five would need five new `Jug*` entity prototypes plus sprites, a content change with no Onyx precedent. It is also redundant: item 6 ships five reactions whose precursors all exist in WG (re-verified in this revision — `Benzene, Acetone, Inaprovaline, Phosphorus, Milk, Charcoal, Fluorine, Epinephrine, Carbon, Ethanol, Bicaridine` 1 hit each, `Plasma` 2 (the gas and the material), `Heroin` **0** — which is why P4-D2 re-authors Oxycodone). **Record in the manifest that the five Tier-A reagents are reaction-only (chemist-craftable), matching Onyx.**
@@ -1103,7 +1103,7 @@ suite still green.
 | 3 | `Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml:261-289` | `Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml` | **modified — PROTO D**, in-place block swap on the existing `Tourniquet` entity |
 | 4 | `Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml` | same path | **modified — PROTO E**, one line on `MedkitAdvancedFilled` |
 | 5 | `Resources/Locale/en-US/_Onyx/medical/tourniquet.ftl` | same path | **new, verbatim** — 3 keys |
-| 6 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-3` |
+| 6 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-3` |
 
 **Zero new assets.** Both sound files (`/Audio/Items/Medical/brutepack_{begin,end}.ogg`) and both sprite states
 (`tourniquet`, `tourniquet-inhand-left/right` in `Textures/Objects/Specific/Medical/medical.rsi`) already exist.
@@ -1136,7 +1136,7 @@ rather than throwing**, which is P4-D11's accepted loss and not a crash.
 | 4 | — | `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Wolfmed.cs` | **new**, HOOK 24 + HOOK 25 bodies + 2 `[Dependency]`s, ~45 lines (§2.7) |
 | 5 | — | `Content.Shared/_Shitmed/Surgery/Conditions/SurgeryWoundedConditionComponent.cs` | **modified — EXT 1**, +6 lines |
 | 6 | — | `Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs` | **modified — HOOK 24 (`:127`) + HOOK 25 (`:263`)**, +4 lines |
-| 7 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-4` |
+| 7 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-4` |
 
 **Order matters:** #1 before #2/#3 (`CS0246` otherwise); #4 before #6 (the hook calls into the partial).
 
@@ -1181,8 +1181,8 @@ suite green (HOOK 24 and HOOK 25 must be provably inert until WP12-5 lands the p
 | 2 | `_Onyx/Entities/Surgery/surgeries.yml:908-1200` | `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml` | **new**, 13 surgeries, ~160 lines |
 | 3 | — | `Resources/Prototypes/_Shitmed/Entities/Surgery/surgeries.yml` | **modified — PROTO F**, +2 lines |
 | 4 | — | `Resources/Prototypes/_Shitmed/Entities/Surgery/surgery_steps.yml` | **modified — PROTO G**, 4 marked component additions on `:9`, `:31`, `:168`, `:359` (P4-D21). **`:303` `SurgeryStepCarefulIncisionScalpel` is NOT touched** |
-| 5 | — | `Resources/Locale/en-US/_WF/wolfmed/surgery-popup.ftl` | **new**, 12 keys |
-| 6 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-5` |
+| 5 | — | `Resources/Locale/en-US/_WF/Wolfmed/surgery-popup.ftl` | **new**, 12 keys |
+| 6 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-5` |
 
 **The thirteen surgeries.** Every step and surgery id was grepped free in this pass (§5.3). All reuse
 Wolfgate's existing tools (`Hemostat`, `Tending`, `BoneGel`, `BoneSetter`) and existing surgeries
@@ -1336,7 +1336,7 @@ from a headless test.
 | 4 | — | `Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs` | **modified — EXT 2** (§3.2), 4 fields + 4 optional ctor params + 2 marked `using`s, ~10 lines |
 | 5 | `Content.Server/Medical/HealthAnalyzerSystem.cs:316-515` | `Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs` | **new**, 5 `[Dependency]`s + 4 public builders, ~170 lines (§2.9) |
 | 6 | — | `Content.Server/Medical/HealthAnalyzerSystem.cs` | **modified — HOOK 23**, 1 line |
-| 7 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-6` |
+| 7 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-6` |
 
 The message edit, exactly:
 
@@ -1379,7 +1379,7 @@ renders today's window (the client ignores the four new fields until WP12-7).
 | 4 | — | `Content.Client/_WF/Wolfmed/Medical/HealthAnalyzerWindow.Wolfmed.cs` | **new**, `PopulateWolfmed` + the `GroupsContainer` swap, ~50 lines |
 | 5 | — | `Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml` + `.xaml.cs` | **modified — HOOK 26**, **5 lines total** (§3.1, revised): 3 XAML (`xmlns`, `Name="WolfmedDamageGroupsPanel"` on the `:288` panel, the panel element at `:308`) + 2 code (`PopulateWolfmed(msg);` as the **first** statement of `Populate`, and `WolfmedPanel.Visible = false;` in the early-return block) |
 | 6 | — | `Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl` + `_Onyx/targeting/targeting.ftl` + `medical/components/health-analyzer-component.ftl` | **2 new + 1 modified (LOC A)**, 13 + 11 + 19 keys |
-| 7 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-7` |
+| 7 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-7` |
 
 **Reserved-name trap.** The window derives from `FancyWindow`, whose own scope reserves `WindowTitle`,
 `HelpButton`, `CloseButton`, `ContentsContainer`; `WindowHeader`/`TitleLabel` belong to `DefaultWindow` and
@@ -1408,7 +1408,7 @@ plates keep protecting against explosions while doing it.
 | 1 | — | `Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs` | **modified**, 3 sites — the optional `originFlag` on both distributed entry points + the `_routedModifiers` save/restore (§2.11) |
 | 2 | — | `Content.Server/_WF/Wolfmed/Explosion/WolfmedExplosionSystem.cs` | **new**, ~35 lines |
 | 3 | — | `Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs` | **modified — HOOK 22**, 3 lines (1 `using`, 1 `[Dependency]`, the if/fallback at `:471`) |
-| 4 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-8` |
+| 4 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md` | append `### WP12-8` |
 
 **Order matters:** #1 before #2 (the new parameter must exist), #2 before #3.
 
@@ -1463,8 +1463,8 @@ reported as one pass/fail count in `WOLFMED_STATUS.md` as phases 1–3 did.
 | 3 | `Resources/Prototypes/_Onyx/Guidebook/medical.yml` (2 of its 5 entries) | `Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml` | **new** — `Wounds` and `WoundTreatment` guideEntry rows only |
 | 4 | — | `Resources/Prototypes/Guidebook/medical.yml` | **modified — PROTO L**, 2 lines |
 | 5 | `Resources/Locale/en-US/_Onyx/guidebook/wounds.ftl` | `Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl` | **new, adapted subset** |
-| 6 | — | `Docs/Wolfmed/WOLFMED_PLAN4.md` | **new** |
-| 7 | — | `Docs/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | **modified** — reconcile (§7) |
+| 6 | — | `Docs/_WF/Wolfmed/WOLFMED_PLAN4.md` | **new** |
+| 7 | — | `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, `WOLFMED_STATUS.md` | **modified** — reconcile (§7) |
 
 **Content edits, each a judgment call already made:**
 
@@ -2033,7 +2033,7 @@ guidebook content (P4-D15).
 | **WP12-10** | Guidebook + docs reconcile — 2 XML, 1 prototype, PROTO L, 1 locale, `WOLFMED_PLAN4.md`, manifest, status | **sonnet** | 7 |
 
 File counts cover new `_WF` files, vendored files, upstream hook files, prototypes, locale and tests. They
-**exclude** `Docs/Wolfmed/WOLFMED_MANIFEST.md`, which every package appends to (ground rule 6), except in
+**exclude** `Docs/_WF/Wolfmed/WOLFMED_MANIFEST.md`, which every package appends to (ground rule 6), except in
 WP12-10 where the docs *are* the work.
 
 **Model rationale.** Opus for WP12-1 (two upstream effect files where a discarded-modifier "fix" or a missing

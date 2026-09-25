@@ -15,7 +15,7 @@ the same reason.
 
 Deterministic: no randomness, so re-running reproduces the RSI byte for byte.
 
-Usage: python Tools/_WF/wolfmed/gen_analyzer_icons.py
+Usage: python Tools/_WF/Wolfmed/gen_analyzer_icons.py
 Writes Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/
 """
 
