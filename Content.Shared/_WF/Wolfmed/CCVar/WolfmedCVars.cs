@@ -606,9 +606,10 @@ public sealed class WolfmedCVars
     /// <summary>
     /// Core health lost a second for every 100 K the core is over wolfmed.ipc_core_heat_k. Set against the M1a/M4 IPC
     /// fire measurement: an untreated 10-stack fire destroys the core, one put out at 60 s leaves it standing.
+    /// Playtest 3: the core grew from 15 to 40 health, so the rate grew by the same 8/3 to keep that timeline.
     /// </summary>
     public static readonly CVarDef<float> IpcCoreHeatRate =
-        CVarDef.Create("wolfmed.ipc_core_heat_rate", 0.2f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.ipc_core_heat_rate", 0.5333f, CVar.SERVERONLY);
 
     /// <summary>
     /// Share of the gap to the chassis temperature the core closes each second. The core soaks the chassis's heat

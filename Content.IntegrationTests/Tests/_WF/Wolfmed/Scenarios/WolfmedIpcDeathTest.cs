@@ -50,7 +50,7 @@ public sealed class WolfmedIpcDeathTest : GameTest
         await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessHysteresis, 0.1f);
         await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatK, 500f);
         await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatWakeK, 450f);
-        await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatRate, 0.2f);
+        await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatRate, 0.5333f); // playtest 3: the core is 40 health
         await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatSoak, 0.02f);
         await OverrideCVar(Side.Server, WolfmedCVars.IpcPumpCooling, 5f);
         await OverrideCVar(Side.Server, WolfmedCVars.IpcCoreHeatWarnK, 400f);

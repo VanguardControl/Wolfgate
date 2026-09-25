@@ -1802,7 +1802,8 @@ crush internal bleed from Blunt 40; limb rungs above; limb Blunt finishing 10.
   head destroy the brain (catastrophic brain injury), and the Downed rung (under 25%) is passed over. A Blunt-30 blow
   takes 4.5 off the brain and knocks out; four such blows destroy it.
 - **IPC:** the core (54% of the chassis torso's organ weight) takes 3.08 a rifle round: under 25% (Downed, cause Core)
-  on hit 4, core failure on hit 5, with the pump at 2.5 of 15.
+  on hit 4, core failure on hit 5, with the pump at 2.5 of 15. *[Playtest 3 correction: the core is 40 health and the
+  pump 25 now; see "IPC core sizing" below.]*
 - **Lungs at 30%:** breathing level 0.40; Downed (hypoxia, source Lungs) at 206 s and Unconscious at 247 s in station
   air (derived 207 and 248).
 - **Head blow:** the patient was up again 5.8 s after a Blunt-30 blow, measured at half-second polls, with a second
@@ -2621,3 +2622,19 @@ Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt): 479 t
 - **The oxygen icon.** `WolfmedOutHypoxia` showed the generic critical icon (a figure on the floor); it now shows the
   low-oxygen icon like its Downed twin. On the card, a blocker's icon is its Downed alert's, not its critical one, so
   blood, pain and oxygen blockers each show their own picture.
+
+## IPC core sizing (playtest 3, 2026-09-24)
+
+The owner, as an IPC, died to three captain's sabre hits (Slash 32) to the torso: Critical and Dead in the same
+second. Every organ had Onyx's 15 health, but a chassis keeps its core in the torso with only the pump beside it, so
+the core took 54% of every torso split (a human heart takes about a quarter, behind lungs, liver, stomach and
+kidneys), and a heavy blade's share hit the 5-a-hit cap: 3 × 5 = 15. A human chest under the same blade loses the
+heart to arrest around hit 5, which is Dying with a rescue window; a destroyed core is death outright.
+
+- `WolfmedOrganPositronicBrain` (IPC core and, through `OrganSynthBrain`, the synth core) is 40 health; the core now
+  fails on the rifle round the human heart does (hit 13, Downed under 25% from hit 10), and a sabre needs eight hits
+  with two of warning after the Downed line.
+- `WolfmedOrganIpcPump` (IPC pump, synth heart) is 25: it fails around the round the human lungs are gone.
+- `wolfmed.ipc_core_heat_rate` 0.2 → 0.5333 (× 8/3), so the M4 fire timeline is unchanged: thermal shutdown ~41 s,
+  core failure ~102 s untreated, standing when put out at 60 s.
+- Core repair and the restart button read `MaxHealth`, so nothing else moves. Tests set the core by fraction.
