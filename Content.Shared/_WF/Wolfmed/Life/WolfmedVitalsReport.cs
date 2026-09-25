@@ -1,3 +1,4 @@
+using System.Globalization;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Robust.Shared.Serialization;
@@ -237,41 +238,21 @@ public readonly record struct WolfmedOrganReading(string Slot, WolfmedOrganBand 
 /// The words for <see cref="WolfmedVitalsReport"/>. One place, so the analyzer panel, the pod and the tests
 /// read the same lines.
 /// </summary>
+/// <remarks>
+/// Playtest 3: three lines where there were up to nine. The state; one line of what is not normal; what to do
+/// first. The after-restart memory and the two verdicts follow only when they apply.
+/// </remarks>
 public static class WolfmedVitalsText
 {
     /// <summary>Every line the block shows, top to bottom.</summary>
     public static List<string> Lines(WolfmedVitalsReport report)
     {
-        var lines = new List<string> { StateLine(report), BreathingLine(report) };
-        if (CirculationLine(report) is { } circulation)
-            lines.Add(circulation);
-
-        if (BurnFluidLine(report) is { } burns)
-            lines.Add(burns);
-
-        // M5 (plan §3.8-3.10): toxins and the liver, radiation and the marrow, the core temperature.
-        if (ToxinLine(report) is { } toxins)
-            lines.Add(toxins);
-
-        if (RadiationLine(report) is { } radiation)
-            lines.Add(radiation);
-
-        if (CoreTemperatureLine(report) is { } core)
-            lines.Add(core);
-
-        // M2 (plan §5.5): what is getting worse, and what the last arrest was.
-        if (RoutesLine(report) is { } routes)
-            lines.Add(routes);
+        var lines = new List<string> { StateLine(report), VitalsLine(report) };
+        if (DoFirstLine(report) is { } doFirst)
+            lines.Add(doFirst);
 
         if (RestartLine(report) is { } restart)
             lines.Add(restart);
-
-        if (OrganLine(report) is { } organs)
-            lines.Add(organs);
-
-        // M4 (plan §3.11): a hot machine's core and chassis.
-        if (TemperatureLine(report) is { } temperature)
-            lines.Add(temperature);
 
         if (VerdictLine(report) is { } verdict)
             lines.Add(verdict);
@@ -283,30 +264,175 @@ public static class WolfmedVitalsText
     }
 
     /// <summary>
-    /// M2: "Getting worse: bleeding (pressure, gauze, tourniquet); sepsis (antibiotics)", or "Getting worse: nothing
-    /// now" for a patient who is down but stable (§1.5's fourth priority). Not shown on the dead, nor on somebody up
-    /// with nothing running.
+    /// Playtest 3: every number the block prints goes through here. Invariant culture, at most one decimal, no
+    /// trailing zero: 1.3, not 1.2999999523162842; 2, not 2.0. Fluent gets the string, never the float.
     /// </summary>
-    public static string? RoutesLine(WolfmedVitalsReport report)
+    public static string Number(float value)
+    {
+        var rounded = MathF.Round(value, 1);
+        if (rounded == 0f)
+            rounded = 0f; // no "-0"
+
+        return rounded.ToString("0.#", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>Units to give: whole, rounded up.</summary>
+    public static string Units(float value) => Number(MathF.Ceiling(value));
+
+    /// <summary>A whole reading: a percentage, kelvin, a dose.</summary>
+    public static string Whole(float value) => Number(MathF.Round(value));
+
+    /// <summary>
+    /// Playtest 3, line 2: "Breathing laboured · Pulse weak, rapid · Blood 43% ↓ · Lungs impaired · Burn fluid loss
+    /// 1.3 u/s". Only what is not normal, each once; "Vitals normal" when nothing is.
+    /// </summary>
+    public static string VitalsLine(WolfmedVitalsReport report)
+    {
+        var items = report.Mechanical ? MachineItems(report) : FleshItems(report);
+        return items.Count == 0
+            ? Loc.GetString("wolfmed-vitals-normal")
+            : string.Join(Loc.GetString("wolfmed-vitals-separator"), items);
+    }
+
+    private static List<string> FleshItems(WolfmedVitalsReport report)
+    {
+        var items = new List<string>();
+        if (BreathingItem(report) is { } breathing)
+            items.Add(breathing);
+
+        if (report.BloodBand != WolfmedBloodBand.Normal)
+            items.Add(Loc.GetString($"wolfmed-vitals-pulse-{report.BloodBand.ToString().ToLowerInvariant()}"));
+
+        if (report.Blood >= 0f && (report.BloodBand != WolfmedBloodBand.Normal || Falling(report.Trend)))
+            items.Add(WithTrend("wolfmed-vitals-item-blood", report));
+
+        AddOrgans(report, items);
+
+        if (report.BurnFluid > 0f)
+            items.Add(Loc.GetString("wolfmed-vitals-item-burn-fluid", ("rate", Number(report.BurnFluid))));
+
+        // M5 (plan §3.8-3.10). An impaired or failed liver is already one of the organs; a missing one is not.
+        if (report.Toxin > 0f)
+        {
+            items.Add(Loc.GetString("wolfmed-vitals-item-toxins", ("load", Whole(report.Toxin)),
+                ("band", Loc.GetString($"wolfmed-vitals-toxin-band-{report.ToxinBand.ToString().ToLowerInvariant()}"))));
+
+            if (report.Liver == WolfmedLiverState.None)
+                items.Add(Loc.GetString("wolfmed-vitals-item-liver-missing"));
+        }
+
+        if (report.Radiation > 0f)
+        {
+            items.Add(Loc.GetString($"wolfmed-vitals-radiation-{report.RadiationBand.ToString().ToLowerInvariant()}",
+                ("dose", Whole(report.Radiation))));
+        }
+
+        if (report.Core >= 0f)
+        {
+            items.Add(Loc.GetString(report.CoreCold ? "wolfmed-vitals-core-cold" : "wolfmed-vitals-core-hot",
+                ("kelvin", Whole(report.Core))));
+        }
+
+        return items;
+    }
+
+    /// <summary>A chassis: cooling, oil, the organs (core, pump), and the core and chassis heat (M4).</summary>
+    private static List<string> MachineItems(WolfmedVitalsReport report)
+    {
+        var items = new List<string>();
+        if (!report.PumpRunning)
+            items.Add(Loc.GetString("wolfmed-vitals-cooling-offline"));
+
+        if (report.Blood >= 0f && (report.BloodBand != WolfmedBloodBand.Normal || Falling(report.Trend) ||
+                                   report.UnitsToLine > 0f))
+            items.Add(WithTrend("wolfmed-vitals-item-oil", report));
+
+        AddOrgans(report, items);
+
+        if (report.CoreTemperature >= 0f)
+        {
+            items.Add(Loc.GetString("wolfmed-vitals-temperature", ("core", Whole(report.CoreTemperature)),
+                ("chassis", Whole(report.ChassisTemperature))));
+        }
+
+        return items;
+    }
+
+    private static bool Falling(WolfmedBloodTrend trend) =>
+        trend is WolfmedBloodTrend.Falling or WolfmedBloodTrend.FallingFast;
+
+    /// <summary>"Blood 43% ↓": the arrow is the locale's; steady has none.</summary>
+    private static string WithTrend(string key, WolfmedVitalsReport report) =>
+        Loc.GetString(key, ("percent", Whole(MathF.Max(0f, report.Blood) * 100f)),
+            ("trend", Loc.GetString($"wolfmed-vitals-trend-{report.Trend.ToString().ToLowerInvariant()}"))).TrimEnd();
+
+    /// <summary>Only when the chest is not working normally: "Breathing laboured", "Not breathing: no air".</summary>
+    private static string? BreathingItem(WolfmedVitalsReport report)
+    {
+        return report.Breathing switch
+        {
+            WolfmedBreathing.Depressed => Loc.GetString("wolfmed-vitals-breathing-depressed",
+                ("percent", Whole(report.Sedation * 100f))),
+            WolfmedBreathing.Gasping => Loc.GetString("wolfmed-vitals-breathing-gasping"),
+            WolfmedBreathing.Laboured => Loc.GetString("wolfmed-vitals-breathing-laboured"), // M3
+            // An arrest (or M4's circulatory collapse) is on the state line already: plain "Not breathing".
+            WolfmedBreathing.None => Loc.GetString(
+                $"wolfmed-vitals-breathing-none-{report.BreathingSource.ToString().ToLowerInvariant()}"),
+            _ => null,
+        };
+    }
+
+    /// <summary>M3 (plan §8): "Lungs impaired", "Heart failed", in the organ tab's reading order. No effects here.</summary>
+    private static void AddOrgans(WolfmedVitalsReport report, List<string> items)
+    {
+        foreach (var (slot, band) in report.Organs)
+        {
+            var key = slot.ToLowerInvariant();
+            var name = Loc.TryGetString($"wolfmed-vitals-organ-{key}", out var named) ? named : slot;
+            items.Add(Loc.GetString($"wolfmed-vitals-organ-band-{band.ToString().ToLowerInvariant()}", ("organ", name)));
+        }
+    }
+
+    /// <summary>
+    /// Playtest 3, line 3: "Do first: transfuse ≈ 20 u; dress the burns and give fluids; lung surgery". Each running
+    /// route's first aid once, in the routes' order; the transfusion (or a chassis's refill) carries its units.
+    /// "Do first: nothing; stable" for a patient who is down with nothing running (§1.5's fourth priority). Not shown
+    /// on the dead, nor on somebody up with nothing to do.
+    /// </summary>
+    public static string? DoFirstLine(WolfmedVitalsReport report)
     {
         if (report.State == WolfmedVitalsState.Dead)
             return null;
 
-        if (report.Routes == WolfmedRoutes.None)
-            return report.State == WolfmedVitalsState.Up ? null : Loc.GetString("wolfmed-vitals-routes-none");
-
-        var names = new List<string>();
+        var aids = new List<string>();
+        var refill = report.UnitsToLine > 0f && report.Blood >= 0f;
         for (var bit = 0; bit < 16; bit++)
         {
             var route = (WolfmedRoutes) (1 << bit);
-            if ((report.Routes & route) == 0)
+            var circulation = route == WolfmedRoutes.Circulation;
+            if ((report.Routes & route) == 0 && !(circulation && refill))
                 continue;
 
-            var key = $"wolfmed-vitals-route-{route.ToString().ToLowerInvariant()}";
-            names.Add(report.Mechanical && Loc.TryGetString(key + "-mechanical", out var machine) ? machine : Loc.GetString(key));
+            var aid = circulation && refill
+                ? Loc.GetString(report.Mechanical ? "wolfmed-vitals-aid-refill" : "wolfmed-vitals-aid-transfuse",
+                    ("units", Units(report.UnitsToLine)))
+                : Aid(route, report.Mechanical);
+
+            if (!aids.Contains(aid))
+                aids.Add(aid);
         }
 
-        return Loc.GetString("wolfmed-vitals-routes", ("routes", string.Join("; ", names)));
+        if (aids.Count == 0)
+            return report.State == WolfmedVitalsState.Up ? null : Loc.GetString("wolfmed-vitals-do-first-none");
+
+        return Loc.GetString("wolfmed-vitals-do-first", ("aids", string.Join("; ", aids)));
+    }
+
+    /// <summary>A route's first aid, a few words: "lung surgery", "antibiotics". A chassis's own words where it has them.</summary>
+    public static string Aid(WolfmedRoutes route, bool mechanical)
+    {
+        var key = $"wolfmed-vitals-aid-{route.ToString().ToLowerInvariant()}";
+        return mechanical && Loc.TryGetString(key + "-mechanical", out var machine) ? machine : Loc.GetString(key);
     }
 
     /// <summary>
@@ -327,10 +453,10 @@ public static class WolfmedVitalsText
 
         return report.RestartGraceSeconds > 0f
             ? Loc.GetString("wolfmed-vitals-restart-transfuse", ("cause", cause),
-                ("units", MathF.Ceiling(report.RestartUnits)), ("seconds", MathF.Ceiling(report.RestartGraceSeconds)),
-                ("safe", MathF.Ceiling(report.RestartSafeUnits)), ("line", MathF.Round(report.RestartSafeLine)))
+                ("units", Units(report.RestartUnits)), ("seconds", Units(report.RestartGraceSeconds)),
+                ("safe", Units(report.RestartSafeUnits)), ("line", Whole(report.RestartSafeLine)))
             : Loc.GetString("wolfmed-vitals-restart-transfuse-late", ("cause", cause),
-                ("safe", MathF.Ceiling(report.RestartSafeUnits)), ("line", MathF.Round(report.RestartSafeLine)));
+                ("safe", Units(report.RestartSafeUnits)), ("line", Whole(report.RestartSafeLine)));
     }
 
     /// <summary>M2 (plan §7.2): "Restart: ready" or "Restart: refused: core destroyed, core repair first". Dead chassis only.</summary>
@@ -338,16 +464,6 @@ public static class WolfmedVitalsText
         report.Restart == WolfmedRestartVerdict.Hidden
             ? null
             : Loc.GetString($"wolfmed-vitals-restart-verdict-{report.Restart.ToString().ToLowerInvariant()}");
-
-    /// <summary>
-    /// M4 (plan §3.11): "Temperature: core 540 K, chassis 812 K", shown while a machine's core or chassis is past
-    /// wolfmed.ipc_core_heat_warn_k. Null otherwise.
-    /// </summary>
-    public static string? TemperatureLine(WolfmedVitalsReport report) =>
-        !report.Mechanical || report.CoreTemperature < 0f
-            ? null
-            : Loc.GetString("wolfmed-vitals-temperature", ("core", (int) MathF.Round(report.CoreTemperature)),
-                ("chassis", (int) MathF.Round(report.ChassisTemperature)));
 
     /// <summary>"DOWNED: blood loss", "FAINTED: pain", "CARDIAC ARREST: blood", "SHUTDOWN: no power".</summary>
     public static string StateLine(WolfmedVitalsReport report)
@@ -372,7 +488,8 @@ public static class WolfmedVitalsText
             // Playtest 2: a faint that nothing else holds says when it ends; a blocked one names the blocker instead.
             return report.State == WolfmedVitalsState.Faint && report.FaintSeconds >= 0
                 ? Loc.GetString("wolfmed-vitals-state-faint-timed",
-                    ("cause", CauseName(report.Cause, report.Source, report.Mechanical)), ("seconds", report.FaintSeconds))
+                    ("cause", CauseName(report.Cause, report.Source, report.Mechanical)),
+                    ("seconds", Number(report.FaintSeconds)))
                 : state;
         }
 
@@ -420,125 +537,6 @@ public static class WolfmedVitalsText
     private static string SourceName(WolfmedCauseSource source) =>
         Loc.GetString($"wolfmed-vitals-source-{source.ToString().ToLowerInvariant()}");
 
-    /// <summary>"Breathing: normal", "Breathing: depressed: sedation 72%", "Breathing: none: no air, gasping".</summary>
-    public static string BreathingLine(WolfmedVitalsReport report)
-    {
-        if (report.Mechanical)
-            return Loc.GetString(report.PumpRunning ? "wolfmed-vitals-cooling-running" : "wolfmed-vitals-cooling-offline");
-
-        return report.Breathing switch
-        {
-            WolfmedBreathing.Depressed => Loc.GetString("wolfmed-vitals-breathing-depressed",
-                ("percent", (int) MathF.Round(report.Sedation * 100f))),
-            WolfmedBreathing.Gasping => Loc.GetString("wolfmed-vitals-breathing-gasping"),
-            WolfmedBreathing.Laboured => Loc.GetString("wolfmed-vitals-breathing-laboured"), // M3
-            WolfmedBreathing.None when report.Heartless && report.BreathingSource == WolfmedBreathingSource.Arrest =>
-                Loc.GetString("wolfmed-vitals-breathing-none-collapse"), // M4
-            WolfmedBreathing.None => Loc.GetString(
-                $"wolfmed-vitals-breathing-none-{report.BreathingSource.ToString().ToLowerInvariant()}"),
-            _ => Loc.GetString("wolfmed-vitals-breathing-normal"),
-        };
-    }
-
-    /// <summary>
-    /// "Circulation: pulse weak and rapid; blood 41%, falling fast; transfuse ≈ 27 u to 50%". A chassis gets
-    /// its oil instead. Null for a machine with no oil to read.
-    /// </summary>
-    public static string? CirculationLine(WolfmedVitalsReport report)
-    {
-        var trend = Loc.GetString($"wolfmed-vitals-trend-{report.Trend.ToString().ToLowerInvariant()}");
-        var percent = (int) MathF.Round(MathF.Max(0f, report.Blood) * 100f);
-        var units = MathF.Ceiling(report.UnitsToLine);
-        var line = MathF.Round(report.Line);
-
-        if (report.Mechanical)
-        {
-            if (report.Blood < 0f)
-                return null;
-
-            return units > 0f
-                ? Loc.GetString("wolfmed-vitals-hydraulics-refill",
-                    ("percent", percent), ("trend", trend), ("units", units), ("line", line))
-                : Loc.GetString("wolfmed-vitals-hydraulics", ("percent", percent), ("trend", trend));
-        }
-
-        var pulse = Loc.GetString($"wolfmed-vitals-pulse-{report.BloodBand.ToString().ToLowerInvariant()}");
-        if (report.Blood < 0f)
-            return Loc.GetString("wolfmed-vitals-circulation-no-blood", ("pulse", pulse));
-
-        return units > 0f
-            ? Loc.GetString("wolfmed-vitals-circulation-transfuse",
-                ("pulse", pulse), ("percent", percent), ("trend", trend), ("units", units), ("line", line))
-            : Loc.GetString("wolfmed-vitals-circulation", ("pulse", pulse), ("percent", percent), ("trend", trend));
-    }
-
-    /// <summary>M1b: "Fluid loss from burns: fast (1.4 u/s)", beside the circulation line. Null while nothing weeps.</summary>
-    public static string? BurnFluidLine(WolfmedVitalsReport report)
-    {
-        if (report.Mechanical || report.BurnFluid <= 0f)
-            return null;
-
-        return Loc.GetString(report.BurnFluidFast ? "wolfmed-vitals-burn-fluid-fast" : "wolfmed-vitals-burn-fluid-slow",
-            ("rate", MathF.Round(report.BurnFluid, 1)));
-    }
-
-    /// <summary>M5 (plan §3.8): "Toxins: 72, high; liver clearing". Null while the body carries no Poison.</summary>
-    public static string? ToxinLine(WolfmedVitalsReport report)
-    {
-        if (report.Mechanical || report.Toxin <= 0f)
-            return null;
-
-        return Loc.GetString("wolfmed-vitals-toxins",
-            ("load", (int) MathF.Round(report.Toxin)),
-            ("band", Loc.GetString($"wolfmed-vitals-toxin-band-{report.ToxinBand.ToString().ToLowerInvariant()}")),
-            ("liver", Loc.GetString($"wolfmed-vitals-liver-{report.Liver.ToString().ToLowerInvariant()}")));
-    }
-
-    /// <summary>M5 (plan §3.9): "Radiation: 120, marrow failing: blood not regenerating, losing 0.1 u/s".</summary>
-    public static string? RadiationLine(WolfmedVitalsReport report)
-    {
-        if (report.Mechanical || report.Radiation <= 0f)
-            return null;
-
-        return Loc.GetString($"wolfmed-vitals-radiation-{report.RadiationBand.ToString().ToLowerInvariant()}",
-            ("dose", (int) MathF.Round(report.Radiation)), ("rate", MathF.Round(report.MarrowLoss, 2)));
-    }
-
-    /// <summary>M5 (plan §3.10): "Core temperature: 271 K, hypothermic". Null while the core is near normal.</summary>
-    public static string? CoreTemperatureLine(WolfmedVitalsReport report)
-    {
-        if (report.Mechanical || report.Core < 0f)
-            return null;
-
-        return Loc.GetString(report.CoreCold ? "wolfmed-vitals-core-cold" : "wolfmed-vitals-core-hot",
-            ("kelvin", (int) MathF.Round(report.Core)));
-    }
-
-    /// <summary>
-    /// M3 (plan §8): "Organs: lungs impaired (short of breath); heart impaired (irregular pulse)". Null while every
-    /// organ is OK.
-    /// </summary>
-    public static string? OrganLine(WolfmedVitalsReport report)
-    {
-        if (report.Organs.Count == 0)
-            return null;
-
-        var parts = new List<string>();
-        foreach (var (slot, band) in report.Organs)
-        {
-            var key = slot.ToLowerInvariant();
-            var name = Loc.TryGetString($"wolfmed-vitals-organ-{key}", out var named) ? named : key;
-            var word = Loc.GetString($"wolfmed-vitals-organ-band-{band.ToString().ToLowerInvariant()}",
-                ("organ", name));
-            parts.Add(Loc.TryGetString($"wolfmed-vitals-organ-{key}-{band.ToString().ToLowerInvariant()}",
-                out var effect)
-                ? Loc.GetString("wolfmed-vitals-organ-with-effect", ("reading", word), ("effect", effect))
-                : word);
-        }
-
-        return Loc.GetString("wolfmed-vitals-organs", ("organs", string.Join("; ", parts)));
-    }
-
     /// <summary>"Defib: shock indicated", or the refusal with what to do first. Null while hidden.</summary>
     public static string? VerdictLine(WolfmedVitalsReport report)
     {
@@ -546,13 +544,13 @@ public static class WolfmedVitalsText
         {
             WolfmedDefibVerdict.Hidden => null,
             WolfmedDefibVerdict.NoBlood => Loc.GetString("wolfmed-vitals-verdict-noblood",
-                ("percent", (int) MathF.Round(MathF.Max(0f, report.Blood) * 100f)),
-                ("units", MathF.Ceiling(report.VerdictUnits)),
-                ("safe", MathF.Ceiling(report.VerdictSafeUnits)),
-                ("line", MathF.Round(report.VerdictSafeLine))),
+                ("percent", Whole(MathF.Max(0f, report.Blood) * 100f)),
+                ("units", Units(report.VerdictUnits)),
+                ("safe", Units(report.VerdictSafeUnits)),
+                ("line", Whole(report.VerdictSafeLine))),
             WolfmedDefibVerdict.TooCold => Loc.GetString("wolfmed-vitals-verdict-toocold",
-                ("kelvin", (int) MathF.Round(report.VerdictCore)),
-                ("line", (int) MathF.Ceiling(report.VerdictRewarm))),
+                ("kelvin", Whole(report.VerdictCore)),
+                ("line", Units(report.VerdictRewarm))),
             WolfmedDefibVerdict.Unrevivable => Loc.GetString("wolfmed-vitals-verdict-unrevivable",
                 ("reason", report.VerdictReason is { } reason && Loc.TryGetString(reason, out var text)
                     ? text

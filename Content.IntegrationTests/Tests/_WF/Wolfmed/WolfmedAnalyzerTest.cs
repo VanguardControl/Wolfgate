@@ -677,7 +677,9 @@ public sealed class WolfmedAnalyzerTest : GameTest
 
             Assert.That(texts, Is.Not.Empty, "the panel drew no banner rows.");
             Assert.That(texts[0], Does.StartWith(expected), "the vitals block is not the panel's first row.");
-            Assert.That(texts[0], Does.Contain("Breathing: normal").And.Contain("pulse weak and rapid"));
+            // Playtest 3: the compact block. Normal breathing is not listed; the transfusion is on "Do first".
+            Assert.That(texts[0], Does.Contain("Pulse weak, rapid").And.Contain("Do first: transfuse ≈")
+                .And.Not.Contain("reathing"));
         });
     }
 

@@ -34,6 +34,7 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 public sealed class WolfmedConditionAlertSystem : EntitySystem
 {
     [Dependency] private readonly AlertsSystem _alerts = default!;
+    [Dependency] private readonly WolfmedCardSystem _card = default!; // playtest 3
     [Dependency] private readonly IChatManager _chat = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
@@ -138,18 +139,12 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     }
 
     /// <summary>
-    /// Playtest 2: a faint's alert ticks down to waking (M3: the head blow's too). Only while the faint is all that
-    /// holds the body under; with a blocker the text says what else keeps them out instead of a countdown.
+    /// Playtest 2: a faint's alert ticks down to waking (M3: the head blow's too). Only while faints are all that
+    /// hold the body under; with another blocker the text says what else keeps them out instead of a countdown.
+    /// Playtest 3: the same window the explanation card counts down (<see cref="WolfmedConsciousnessSystem.GetWakeWindow"/>).
     /// </summary>
-    public (TimeSpan, TimeSpan)? GetFaintCountdown(EntityUid body)
-    {
-        if (!TryComp(body, out WolfmedConsciousnessComponent? comp) ||
-            comp.State != WolfmedConsciousness.Unconscious || !WolfmedCauses.IsFaint(comp.Cause) ||
-            comp.Blockers != WolfmedCauseFlags.None || _consciousness.GetFaintWindow(body) is not { } window)
-            return null;
-
-        return (window.Start, window.End);
-    }
+    public (TimeSpan, TimeSpan)? GetFaintCountdown(EntityUid body) =>
+        _consciousness.GetWakeWindow(body) is { } window ? (window.Start, window.End) : null;
 
     /// <summary>
     /// The health doll while Up: its severity from the worst Downed-level input, not from damage, so a
@@ -341,6 +336,10 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
     private void OnChanged(Entity<WolfmedConsciousnessComponent> body, ref WolfmedConsciousnessChangedEvent args)
     {
         Refresh(body);
+
+        // Playtest 3: the card's countdown starts with the alert's, not on the card's next once-a-second pass.
+        if (args.NewState == WolfmedConsciousness.Unconscious && !_mobState.IsDead(body))
+            _card.Refresh(body);
 
         // Playtest 2: a penalty that bit while the body was out is told once it comes round, after the waking line.
         if (args.OldState == WolfmedConsciousness.Unconscious && args.NewState != WolfmedConsciousness.Unconscious)

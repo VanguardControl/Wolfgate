@@ -32,6 +32,17 @@ wolfmed-card-blockers = Also holding you down: { $blockers }.
 wolfmed-card-cpr = Someone is giving you CPR.
 wolfmed-card-examined = A medic is examining you.
 wolfmed-card-bar = Time your brain has
+# Playtest 3: the countdown row under the title, and the breath and the blood as the patient feels them. The
+# countdown's seconds are the card's only number.
+wolfmed-card-countdown = COMING ROUND IN { $seconds } S
+wolfmed-card-countdown-none = COMING ROUND: ∞
+wolfmed-card-breathing-depressed = Breathing slowed
+wolfmed-card-breathing-gasping = Gasping for air
+wolfmed-card-breathing-none = Not breathing
+wolfmed-card-breathing-laboured = Breathing laboured
+wolfmed-card-blood-low = Blood low
+wolfmed-card-blood-weak = Blood very low
+wolfmed-card-blood-critical = Blood critically low
 
 # The crawling stage (plan §5.3, OD20).
 wolfmed-play-dead-start = You lie still and play dead.

@@ -276,6 +276,13 @@ public sealed partial class WolfmedConsciousnessCausePrototype : IPrototype
     /// <summary>Short names for the sub-sources, for the titles' <c>$source</c>.</summary>
     [DataField]
     public Dictionary<WolfmedCauseSource, LocId> Sources = new();
+
+    /// <summary>
+    /// Playtest 3: the explanation card's accent stripe while this cause holds the body. Null takes the card's
+    /// default (<see cref="WolfmedExplanationCard.DefaultColour"/>).
+    /// </summary>
+    [DataField]
+    public Color? CardColour;
 }
 
 /// <summary>

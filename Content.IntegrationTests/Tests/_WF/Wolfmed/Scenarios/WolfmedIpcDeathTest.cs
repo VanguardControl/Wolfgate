@@ -141,8 +141,10 @@ public sealed class WolfmedIpcDeathTest : GameTest
                             Assert.That(HasDyingActions(untreated), Is.True, "thermal shutdown offers no Succumb and Last Words.");
                             Assert.That(SEntMan.System<WolfmedDyingActionsSystem>().IsDying(untreated), Is.True);
                             Assert.That(s.AnalyzerLines(untreated)[0], Is.EqualTo("THERMAL SHUTDOWN: core overheating"));
-                            Assert.That(s.Analyzer(untreated), Does.Contain("Temperature: core"));
-                            Assert.That(s.Analyzer(untreated), Does.Contain("Getting worse: core overheating"));
+                            // Playtest 3: the heat is a vitals item, the route's aid is on "Do first".
+                            Assert.That(s.AnalyzerLines(untreated)[1], Does.Contain("Core ").And.Contain(" K, chassis "));
+                            Assert.That(s.AnalyzerLines(untreated)[2], Does.StartWith("Do first: ")
+                                .And.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.CoreHeat, true)));
                             Assert.That(SEntMan.System<WolfmedConditionAlertSystem>().GetShownHealthAlert(untreated)?.Id,
                                 Is.EqualTo("WolfmedOutCoreHeat"));
                         });

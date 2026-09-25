@@ -133,7 +133,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
                 Assert.That(Toxin.GetLoad(downed), Is.EqualTo(60f).Within(0.01f), "the toxin load is not the systemic Poison.");
                 Assert.That(s.State(downed), Is.EqualTo(WolfmedConsciousness.Downed));
                 Assert.That(s.Vitals(downed).Cause, Is.EqualTo(WolfmedCause.Toxin));
-                Assert.That(s.Analyzer(downed), Does.Contain("DOWNED: poisoning").And.Contain("Toxins: 60, high"));
+                Assert.That(s.Analyzer(downed), Does.Contain("DOWNED: poisoning").And.Contain("Toxins 60, high"));
             });
 
             // Poison 130 with nothing to clear it: a toxic coma that breathes and drains the brain.
@@ -146,7 +146,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
                 Assert.That(s.Vitals(liverless).Cause, Is.EqualTo(WolfmedCause.Toxin));
                 Assert.That(s.Vitals(liverless).Breathing, Is.EqualTo(WolfmedBreathing.Normal), "a toxic coma stopped the chest.");
                 Assert.That(s.Breathing.BreathingSuppressed(liverless), Is.False);
-                Assert.That(s.Analyzer(liverless), Does.Contain("UNCONSCIOUS: poisoning").And.Contain("liver missing"));
+                Assert.That(s.Analyzer(liverless), Does.Contain("UNCONSCIOUS: poisoning").And.Contain("No liver"));
             });
 
             var before = s.Life.GetOxygenation(liverless);
@@ -176,7 +176,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
                                       $"{30f - Toxin.GetLoad(impaired):0.00} (impaired).");
             InBand(30f - Toxin.GetLoad(cleared), 6f, "a working liver's clearance over 60 s");
             InBand(30f - Toxin.GetLoad(impaired), 3f, "an impaired liver's clearance over 60 s");
-            Assert.That(s.Analyzer(impaired), Does.Contain("liver impaired, clearing slowly"));
+            Assert.That(s.Analyzer(impaired), Does.Contain("Liver impaired")); // playtest 3: the organ item
 
             // A coma the liver can clear: wakes under the 0.9 leave line, 108, then the Downed line clears under 54.
             Deal(coma, "Poison", 130);
@@ -308,7 +308,9 @@ public sealed class WolfmedRemainingCausesTest : GameTest
                 Assert.That(stoppedChange, Is.InRange(-0.5f, 0.5f), "radiation 40 did not stop the blood coming back.");
                 InBand(failingLoss, 6f, "the failing marrow's loss over 60 s");
                 Assert.That(Volume(ipc), Is.GreaterThanOrEqualTo(oilStart - 0.5f), "a chassis lost oil to radiation.");
-                Assert.That(s.Analyzer(failing), Does.Contain("marrow failing").And.Contain("marrow failing (anti-radiation drugs, blood)"));
+                // Playtest 3: the marrow's stage on the vitals line, its first aid on "Do first".
+                Assert.That(s.Analyzer(failing), Does.Contain("marrow failing")
+                    .And.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.Marrow, false)));
                 Assert.That(s.Analyzer(stopped), Does.Contain("marrow suppressed"));
             });
 

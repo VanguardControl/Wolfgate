@@ -13,9 +13,10 @@ public static class WolfmedPostShockText
     public static string Format(float bloodFraction, float units, float safeUnits, float graceSeconds,
         float safeLine)
     {
-        var percent = MathF.Round(bloodFraction * 100f);
-        var safe = MathF.Ceiling(safeUnits);
-        var line = MathF.Round(safeLine);
+        // Playtest 3: strings through the vitals block's rounding, never floats.
+        var percent = WolfmedVitalsText.Whole(bloodFraction * 100f);
+        var safe = WolfmedVitalsText.Units(safeUnits);
+        var line = WolfmedVitalsText.Whole(safeLine);
 
         if (graceSeconds <= 0f)
         {
@@ -25,8 +26,8 @@ public static class WolfmedPostShockText
 
         return Loc.GetString("wolfmed-analyzer-post-shock",
             ("percent", percent),
-            ("units", MathF.Ceiling(units)),
-            ("seconds", MathF.Ceiling(graceSeconds)),
+            ("units", WolfmedVitalsText.Units(units)),
+            ("seconds", WolfmedVitalsText.Units(graceSeconds)),
             ("safe", safe),
             ("line", line));
     }

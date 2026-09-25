@@ -158,7 +158,7 @@ public sealed class WolfmedConsequencesTest : GameTest
                 if (lungsImpaired == null && hp[0] < 7.5f)
                 {
                     lungsImpaired = hit;
-                    Assert.That(s.Analyzer(a), Does.Contain("lungs impaired (short of breath)"),
+                    Assert.That(s.Analyzer(a), Does.Contain("Lungs impaired"), // playtest 3: no effect in brackets
                         "the analyzer does not name the impaired lungs.");
                 }
 
@@ -231,7 +231,7 @@ public sealed class WolfmedConsequencesTest : GameTest
                 Assert.That(s.Breathing.Assess(body).Breathing, Is.EqualTo(WolfmedBreathing.Laboured));
                 Assert.That(Consc(body).Breathing, Is.EqualTo(WolfmedBreathing.Laboured), "examine does not see it.");
                 Assert.That(ExamineNotes(body, body), Does.Contain("short of breath"));
-                Assert.That(s.Analyzer(body), Does.Contain("Breathing: laboured: lungs damaged"));
+                Assert.That(s.Analyzer(body), Does.Contain("Breathing laboured")); // playtest 3
             });
 
             // Drain 0.4 / 180 per second: Downed at oxygenation 0.54 (~207 s), Unconscious at 0.45 (~248 s).
@@ -301,7 +301,7 @@ public sealed class WolfmedConsequencesTest : GameTest
             Assert.That(s.Shock(body, out var line), Is.True, line);
             var report = s.Report(body);
             var restart = WolfmedVitalsText.RestartLine(report);
-            _log.Add($"LungArrestRestartMemory: arrest at {arrested} s; {restart} | {WolfmedVitalsText.RoutesLine(report)}");
+            _log.Add($"LungArrestRestartMemory: arrest at {arrested} s; {restart} | {WolfmedVitalsText.DoFirstLine(report)}");
             Assert.Multiple(() =>
             {
                 Assert.That(s.Life.GetRestartMemory(body), Is.EqualTo((WolfmedCauseSource.ArrestOxygen, true)));
@@ -763,8 +763,9 @@ public sealed class WolfmedConsequencesTest : GameTest
                 Assert.That(s.Life.BloodRegenFactor(weak), Is.EqualTo(0.5f).Within(0.001f));
                 Assert.That(s.Life.BloodRegenFactor(healthy), Is.EqualTo(1f));
                 Assert.That(Organ(weak, "heart").Comp.Band, Is.EqualTo(WolfmedOrganBand.Impaired));
-                Assert.That(s.Analyzer(weak), Does.Contain("heart impaired"));
-                Assert.That(s.Analyzer(healthy), Does.Not.Contain("Organs:"));
+                // Playtest 3: the organs are items on the vitals line.
+                Assert.That(s.Analyzer(weak), Does.Contain("Heart impaired"));
+                Assert.That(s.Analyzer(healthy), Does.Not.Contain("impaired"));
             });
         });
 

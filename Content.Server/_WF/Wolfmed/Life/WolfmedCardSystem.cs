@@ -1,3 +1,4 @@
+using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
@@ -10,13 +11,15 @@ namespace Content.Server._WF.Wolfmed.Life;
 /// <summary>
 /// M2 (plan §5.2, §2.3): keeps the explanation card's server half current on every unconscious wound host: a coarse
 /// bar of how much of the rescue window the brain has left (tenths, never seconds), whether somebody is doing CPR,
-/// and whether an analyzer has just read the body. The client draws the card from this and the cause prototype.
+/// and whether an analyzer has just read the body. Playtest 3: and, for a timed faint, when the body comes round.
+/// The client draws the card from this and the cause prototype.
 /// </summary>
 public sealed class WolfmedCardSystem : EntitySystem
 {
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 
     [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!; // playtest 3
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly WolfmedLifeSystem _life = default!;
@@ -87,12 +90,17 @@ public sealed class WolfmedCardSystem : EntitySystem
                 reserve = (sbyte) Math.Clamp((int) MathF.Ceiling(10f * core.Comp.Fraction), 0, 10);
         }
 
-        if (card.Reserve == reserve && card.Cpr == cpr && card.Examined == examined)
+        // Playtest 3: the countdown, from the window the faint alert's cooldown uses.
+        var wake = _consciousness.GetWakeWindow(body);
+        if (card.Reserve == reserve && card.Cpr == cpr && card.Examined == examined &&
+            card.WakeStart == wake?.Start && card.WakeEnd == wake?.End)
             return;
 
         card.Reserve = reserve;
         card.Cpr = cpr;
         card.Examined = examined;
+        card.WakeStart = wake?.Start;
+        card.WakeEnd = wake?.End;
         Dirty(body, card);
     }
 

@@ -44,33 +44,27 @@ wolfmed-vitals-source-arrestother = unknown cause
 wolfmed-vitals-source-power = no power
 wolfmed-vitals-source-pump = coolant pump offline
 
-wolfmed-vitals-breathing-normal = Breathing: normal
-wolfmed-vitals-breathing-depressed = Breathing: depressed: sedation { $percent }%
-wolfmed-vitals-breathing-gasping = Breathing: none: no air, gasping
-wolfmed-vitals-breathing-none-none = Breathing: none
-wolfmed-vitals-breathing-none-noair = Breathing: none: no air
-wolfmed-vitals-breathing-none-lungs = Breathing: none: no working lungs
-wolfmed-vitals-breathing-none-sedation = Breathing: none: sedation
-wolfmed-vitals-breathing-none-arrest = Breathing: none: cardiac arrest
-wolfmed-vitals-breathing-none-nobrain = Breathing: none: no brain
-wolfmed-vitals-breathing-none-dead = Breathing: none
-wolfmed-vitals-cooling-running = Cooling: pump running
-wolfmed-vitals-cooling-offline = Cooling: pump offline
+# Playtest 3: breathing, the pulse and the blood are items on the one vitals line, shown only when not normal.
+wolfmed-vitals-breathing-depressed = Breathing depressed, sedation { $percent }%
+wolfmed-vitals-breathing-gasping = Not breathing: no air, gasping
+wolfmed-vitals-breathing-none-none = Not breathing
+wolfmed-vitals-breathing-none-noair = Not breathing: no air
+wolfmed-vitals-breathing-none-lungs = Not breathing: no working lungs
+wolfmed-vitals-breathing-none-sedation = Not breathing: sedation
+wolfmed-vitals-breathing-none-arrest = Not breathing
+wolfmed-vitals-breathing-none-nobrain = Not breathing: no brain
+wolfmed-vitals-breathing-none-dead = Not breathing
+wolfmed-vitals-cooling-offline = Cooling offline
 
-wolfmed-vitals-pulse-normal = pulse strong
-wolfmed-vitals-pulse-low = pulse normal, pale
-wolfmed-vitals-pulse-weak = pulse weak and rapid
-wolfmed-vitals-pulse-critical = pulse barely palpable
-wolfmed-vitals-pulse-none = no pulse
-wolfmed-vitals-trend-steady = steady
-wolfmed-vitals-trend-rising = rising
-wolfmed-vitals-trend-falling = falling
-wolfmed-vitals-trend-fallingfast = falling fast
-wolfmed-vitals-circulation = Circulation: { $pulse }; blood { $percent }%, { $trend }
-wolfmed-vitals-circulation-transfuse = Circulation: { $pulse }; blood { $percent }%, { $trend }; transfuse ≈ { $units } u to { $line }%
-wolfmed-vitals-circulation-no-blood = Circulation: { $pulse }
-wolfmed-vitals-hydraulics = Hydraulics: oil { $percent }%, { $trend }
-wolfmed-vitals-hydraulics-refill = Hydraulics: oil { $percent }%, { $trend }; refill ≈ { $units } u to { $line }%
+wolfmed-vitals-pulse-low = Pale
+wolfmed-vitals-pulse-weak = Pulse weak, rapid
+wolfmed-vitals-pulse-critical = Pulse barely palpable
+wolfmed-vitals-pulse-none = No pulse
+# The blood's direction, after the percentage. Steady shows nothing.
+wolfmed-vitals-trend-steady = { "" }
+wolfmed-vitals-trend-rising = ↑
+wolfmed-vitals-trend-falling = ↓
+wolfmed-vitals-trend-fallingfast = ↓↓
 
 wolfmed-vitals-verdict-indicated = Defib: shock indicated
 wolfmed-vitals-verdict-pulsepresent = Defib: refused: pulse present
@@ -81,20 +75,7 @@ wolfmed-vitals-verdict-nobrain = Defib: refused: no brain
 wolfmed-vitals-verdict-rotten = Defib: refused: body decayed
 wolfmed-vitals-verdict-unrevivable = Defib: refused: { $reason }
 
-# M2 (plan §5.5): what is getting worse, with its first aid; the last arrest; a dead chassis's restart button.
-wolfmed-vitals-routes = Getting worse: { $routes }
-wolfmed-vitals-routes-none = Getting worse: nothing now
-wolfmed-vitals-route-bleeding = bleeding (pressure, gauze, tourniquet)
-wolfmed-vitals-route-bleeding-mechanical = oil leak (weld the breach)
-wolfmed-vitals-route-internalbleeding = internal bleeding (surgery)
-wolfmed-vitals-route-burnfluid = burns weeping (dress them, give fluids)
-wolfmed-vitals-route-arrest = no pulse (CPR, then the defibrillator)
-wolfmed-vitals-route-airway = suffocating (air or internals)
-wolfmed-vitals-route-lungs = lungs failing (air, internals, lung surgery)
-wolfmed-vitals-route-circulation = too little blood for the brain (transfuse)
-wolfmed-vitals-route-sepsis = sepsis (antibiotics)
-wolfmed-vitals-route-sedation = overdose slowing the breathing (naloxone)
-wolfmed-vitals-route-tissueloss = brain tissue dying (oxygen, now)
+# M2 (plan §5.5): the last arrest; a dead chassis's restart button.
 wolfmed-vitals-yes = yes
 wolfmed-vitals-no = no
 wolfmed-vitals-restart = After a restart: arrest cause { $cause }. Still present: { $present }.
@@ -107,3 +88,35 @@ wolfmed-vitals-restart-verdict-coredestroyed = Restart: refused: core destroyed,
 wolfmed-vitals-restart-verdict-nopump = Restart: refused: no coolant pump
 wolfmed-vitals-restart-verdict-nopower = Restart: refused: no power
 wolfmed-vitals-restart-verdict-refused = Restart: refused
+
+## Playtest 3: the compact block. Line 2 is every abnormal vital joined by the separator; line 3 is what to do first.
+
+wolfmed-vitals-normal = Vitals normal
+wolfmed-vitals-separator = { " · " }
+wolfmed-vitals-item-blood = Blood { $percent }% { $trend }
+wolfmed-vitals-item-oil = Oil { $percent }% { $trend }
+wolfmed-vitals-item-burn-fluid = Burn fluid loss { $rate } u/s
+wolfmed-vitals-item-toxins = Toxins { $load }, { $band }
+wolfmed-vitals-item-liver-missing = No liver
+
+wolfmed-vitals-do-first = Do first: { $aids }
+wolfmed-vitals-do-first-none = Do first: nothing; stable
+# Each running route's first aid, a few words, in the routes' order.
+wolfmed-vitals-aid-transfuse = transfuse ≈ { $units } u
+wolfmed-vitals-aid-refill = refill oil ≈ { $units } u
+wolfmed-vitals-aid-bleeding = gauze or tourniquet the bleeding
+wolfmed-vitals-aid-bleeding-mechanical = weld the oil leak
+wolfmed-vitals-aid-internalbleeding = surgery for the internal bleeding
+wolfmed-vitals-aid-burnfluid = dress the burns and give fluids
+wolfmed-vitals-aid-arrest = CPR, then the defibrillator
+wolfmed-vitals-aid-airway = air or internals
+wolfmed-vitals-aid-lungs = lung surgery
+wolfmed-vitals-aid-circulation = transfuse
+wolfmed-vitals-aid-sepsis = antibiotics
+wolfmed-vitals-aid-sedation = naloxone
+wolfmed-vitals-aid-tissueloss = oxygen, now
+wolfmed-vitals-aid-coreheat = put the fire out, cool the chassis
+wolfmed-vitals-aid-toxin = antitoxin
+wolfmed-vitals-aid-heatstroke = cool them, now
+wolfmed-vitals-aid-marrow = anti-radiation drugs and blood
+wolfmed-vitals-aid-hypothermia = warm them

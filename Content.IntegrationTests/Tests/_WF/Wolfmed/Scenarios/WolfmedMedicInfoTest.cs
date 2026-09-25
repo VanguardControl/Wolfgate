@@ -133,9 +133,9 @@ public sealed class WolfmedMedicInfoTest : GameTest
     }
 
     /// <summary>
-    /// <c>AnalyzerVitalsTest</c> (plan §5.5): the routes line names each running route with its first aid and says
-    /// "nothing now" for a stable patient; after a restart the block says why the heart stopped and whether that is
-    /// still there, with the transfusion numbers while blood is, for 300 s and gone after; the defib verdict reads
+    /// <c>AnalyzerVitalsTest</c> (plan §5.5): the routes line (playtest 3: "Do first") names each running route's first
+    /// aid and says "nothing; stable" for a stable patient; after a restart the block says why the heart stopped and
+    /// whether that is still there, with the transfusion numbers while blood is, for 300 s and gone after; the defib verdict reads
     /// "shock indicated" and never promises.
     /// </summary>
     [Test]
@@ -171,18 +171,21 @@ public sealed class WolfmedMedicInfoTest : GameTest
             // A fresh cut now, so it is still bleeding when the analyzer reads it.
             SEntMan.System<DamageableSystem>().TryChangeDamage(bleeder, Spec("Slash", 25), ignoreResistances: true,
                 targetPart: TargetBodyPart.LeftArm);
-            var calmLine = WolfmedVitalsText.RoutesLine(s.Report(calm));
-            var bleederLine = WolfmedVitalsText.RoutesLine(s.Report(bleeder));
-            var septicLine = WolfmedVitalsText.RoutesLine(s.Report(septic));
-            var overdoseLine = WolfmedVitalsText.RoutesLine(s.Report(overdosed));
+            // Playtest 3: the routes line is "Do first:", each route's aid once; the transfusion carries its units.
+            var calmLine = WolfmedVitalsText.DoFirstLine(s.Report(calm));
+            var bleederReport = s.Report(bleeder);
+            var bleederLine = WolfmedVitalsText.DoFirstLine(bleederReport);
+            var septicLine = WolfmedVitalsText.DoFirstLine(s.Report(septic));
+            var overdoseLine = WolfmedVitalsText.DoFirstLine(s.Report(overdosed));
             TestContext.Out.WriteLine($"AnalyzerVitalsTest routes:\n  {calmLine}\n  {bleederLine}\n  {septicLine}\n  {overdoseLine}");
             Assert.Multiple(() =>
             {
                 Assert.That(calmLine, Is.Null, "somebody up with nothing running got a routes line.");
-                Assert.That(bleederLine, Does.Contain(Loc.GetString("wolfmed-vitals-route-bleeding")));
-                Assert.That(bleederLine, Does.Contain(Loc.GetString("wolfmed-vitals-route-circulation")));
-                Assert.That(septicLine, Does.Contain(Loc.GetString("wolfmed-vitals-route-sepsis")));
-                Assert.That(overdoseLine, Does.Contain(Loc.GetString("wolfmed-vitals-route-sedation")));
+                Assert.That(bleederLine, Does.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.Bleeding, false)));
+                Assert.That(bleederLine, Does.Contain(Loc.GetString("wolfmed-vitals-aid-transfuse",
+                    ("units", WolfmedVitalsText.Units(bleederReport.UnitsToLine)))));
+                Assert.That(septicLine, Does.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.Sepsis, false)));
+                Assert.That(overdoseLine, Does.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.Sedation, false)));
                 Assert.That(s.AnalyzerLines(bleeder), Does.Contain(bleederLine), "the routes line is not in the block.");
             });
 

@@ -580,6 +580,29 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         return (comp.PainFaintStart ?? now, until);
     }
 
+    /// <summary>
+    /// Playtest 3: when the body comes round by itself, the one window the faint alert's countdown and the
+    /// explanation card both read. Only while it is out in a timed faint (pain, head blow) and nothing untimed holds it
+    /// too; with both faints running, the later end. Null otherwise: blood, sedation, arrest and the rest have no clock.
+    /// </summary>
+    public (TimeSpan Start, TimeSpan End)? GetWakeWindow(EntityUid body)
+    {
+        if (!TryComp(body, out WolfmedConsciousnessComponent? comp) || _mobState.IsDead(body) ||
+            comp.State != WolfmedConsciousness.Unconscious || !WolfmedCauses.IsFaint(comp.Cause) ||
+            (comp.Blockers & ~(WolfmedCauseFlags.PainFaint | WolfmedCauseFlags.HeadBlow)) != WolfmedCauseFlags.None)
+            return null;
+
+        var now = _timing.CurTime;
+        (TimeSpan Start, TimeSpan End)? window = null;
+        if (comp.PainFaintUntil is { } pain && pain > now)
+            window = (comp.PainFaintStart ?? now, pain);
+
+        if (comp.HeadBlowUntil is { } blow && blow > now && (window is not { } running || blow > running.End))
+            window = (comp.HeadBlowStart ?? now, blow);
+
+        return window;
+    }
+
     /// <summary>Whole seconds left in the running faint (pain or head blow), rounded up; null when none runs.</summary>
     public int? GetFaintSecondsLeft(EntityUid body) =>
         GetFaintWindow(body) is { } window ? (int) Math.Ceiling((window.End - _timing.CurTime).TotalSeconds) : null;

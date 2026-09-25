@@ -4926,3 +4926,29 @@ No marked upstream or Onyx edits.
 | --- | --- | --- |
 | `Resources/Prototypes/_HL/Damage/modifier_sets.yml:5` | upstream YAML | WOLFGATE (Wolfmed): `Poison: 0` on the `Synth` modifier set (OD16, the owner's 2026-09-24 call). |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedLeftoversTest.cs` | test | `SynthRunsNoToxinRouteTest` renamed `SynthTakesNoPoisonTest`; the dose goes through resistances and the load must be zero. |
+
+## Playtest 3 fixes (2026-09-24)
+
+No marked upstream, Onyx or vendored edits: everything is in `_WF` code and Wolfmed prototypes and locale.
+
+| File | Change | Why |
+|---|---|---|
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedExplanationCard.cs` | modified | `Rows` (kinds for styling), `Countdown`, `Colour`, `CauseAlert`, `BlockerAlerts`, `DefaultColour`; the felt states (breath, blood). |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedConsciousnessCause.cs` | modified | Optional `cardColour` on `wolfmedConsciousnessCause`. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedRevivalComponents.cs` | modified | `WakeStart`/`WakeEnd` on the networked `WolfmedCardComponent`. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConsciousnessSystem.cs` | modified | `GetWakeWindow`, the one wake window. |
+| `Content.Server/_WF/Wolfmed/Consciousness/WolfmedConditionAlertSystem.cs` | modified | The faint alert's cooldown reads `GetWakeWindow`; the change handler refreshes the card. |
+| `Content.Server/_WF/Wolfmed/Life/WolfmedCardSystem.cs` | modified | Sets and clears the wake window. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedExplanationCardOverlay.cs` | modified | The new look, the countdown row, the icons; `WolfmedExplanationCardLayout`. |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedClimbSystem.cs` | new | `ClimbableComponent, AttemptClimbEvent` refusal; the tables' layer kept on a Downed body (`WolfmedDownedComponent, EndClimbEvent`). |
+| `Content.Shared/_WF/Wolfmed/Consciousness/WolfmedDownedSystem.cs` | modified | `HoldTables` on going Downed, `ReleaseTables` after. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedVitalsReport.cs` | modified | `WolfmedVitalsText` rebuilt: `VitalsLine`, `DoFirstLine` (replaces `RoutesLine`), `Aid`, `Number`/`Units`/`Whole`; `BreathingLine`, `CirculationLine`, `BurnFluidLine`, `ToxinLine`, `RadiationLine`, `CoreTemperatureLine`, `OrganLine`, `TemperatureLine` removed. |
+| `Content.Shared/_WF/Wolfmed/Life/WolfmedPostShockText.cs` | modified | Strings through the rounding helpers. |
+| `Resources/Prototypes/_WF/Wolfmed/Consciousness/causes.yml`, `organ_causes.yml`, `species_causes.yml` | modified | `cardColour` on PainFaint, HeadBlow (amber), Arrest, CoreHeat, CirculatoryCollapse (red), Sedation (steel blue), Shutdown (grey). |
+| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl` | modified | Item, "Do first" and aid keys; breathing, pulse and trend values; circulation, hydraulics, route and routes keys removed. |
+| `Resources/Locale/en-US/_WF/wolfmed/organs.ftl`, `remaining-causes.ftl`, `species.ftl`, `burns.ftl` | modified | Organ names capitalised, effect and "Organs:" keys removed; toxin, liver, route and burn-fluid keys removed; radiation, core and machine temperature values as items; `wolfmed-vitals-breathing-none-collapse` removed. |
+| `Resources/Locale/en-US/_WF/wolfmed/revival.ftl` | modified | `wolfmed-card-countdown`, `-countdown-none`, `-breathing-*`, `-blood-*`. |
+| `Resources/Locale/en-US/_WF/wolfmed/consciousness.ftl` | modified | `wolfmed-downed-cant-climb`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeTest.cs` | new | `CardCountdownTest`, `CardLooksTest`, `DownedCannotClimbTest`, `VitalsBlockIsCompactTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedMedicLinesTest.cs`, `WolfmedMedicInfoTest.cs`, `WolfmedBreathingClockTest.cs`, `WolfmedConsequencesTest.cs`, `WolfmedIpcDeathTest.cs`, `WolfmedLeftoversTest.cs`, `WolfmedRemainingCausesTest.cs`, `WolfmedSpeciesTest.cs`, `WolfmedTemperatureTest.cs`, `Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs`, `WolfmedLocaleCoverageTest.cs` | modified | Migrated to the three-line block (DECISIONS "Playtest 3 fixes", test migration). |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3 fixes" sections. |

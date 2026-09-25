@@ -34,6 +34,7 @@ public sealed class WolfmedDownedSystem : EntitySystem
 {
     [Dependency] private readonly ActionBlockerSystem _blocker = default!;
     [Dependency] private readonly WolfmedBodyPainSystem _bodyPain = default!;
+    [Dependency] private readonly WolfmedDownedClimbSystem _climb = default!; // playtest 3
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
@@ -87,6 +88,9 @@ public sealed class WolfmedDownedSystem : EntitySystem
         if (!_standing.IsDown(ent) && !HasComp<KnockedDownComponent>(ent))
             _standing.Down(ent, true, false, false);
 
+        // Playtest 3: on the floor, but not under (and so on top of) the tables.
+        _climb.HoldTables(ent);
+
         // M1a: the alert is the condition alert system's now, one per cause.
         _blocker.UpdateCanMove(ent);
 
@@ -103,6 +107,9 @@ public sealed class WolfmedDownedSystem : EntitySystem
         // still runs only burns a cancelled attempt, and standing them up to drop them again is the spam.
         if (_standing.IsDown(ent) && !HasComp<KnockedDownComponent>(ent))
             _standing.Stand(ent);
+
+        // Playtest 3: still lying for another reason, so upstream's crawl under tables again.
+        _climb.ReleaseTables(ent);
 
         _blocker.UpdateCanMove(ent);
         _movement.RefreshMovementSpeedModifiers(ent);

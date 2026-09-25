@@ -39,26 +39,20 @@ alerts-wolfmed-downed-core-desc = Core integrity critical. Core repair gets you 
 wolfmed-vitals-cause-headblow = head blow
 wolfmed-vitals-cause-brain = head injury
 wolfmed-vitals-cause-core = core damage
-wolfmed-vitals-breathing-laboured = Breathing: laboured: lungs damaged
-wolfmed-vitals-breathing-none-lungsdamaged = Breathing: none: lungs damaged
+wolfmed-vitals-breathing-laboured = Breathing laboured
+wolfmed-vitals-breathing-none-lungsdamaged = Not breathing: lungs damaged
 
-wolfmed-vitals-organs = Organs: { $organs }
-wolfmed-vitals-organ-with-effect = { $reading } ({ $effect })
 wolfmed-vitals-organ-band-impaired = { $organ } impaired
 wolfmed-vitals-organ-band-failed = { $organ } failed
-wolfmed-vitals-organ-brain = brain
-wolfmed-vitals-organ-eyes = eyes
-wolfmed-vitals-organ-lungs = lungs
-wolfmed-vitals-organ-heart = heart
-wolfmed-vitals-organ-liver = liver
-wolfmed-vitals-organ-stomach = stomach
-wolfmed-vitals-organ-kidneys = kidneys
-wolfmed-vitals-organ-posbrain = core
-wolfmed-vitals-organ-pump = pump
-wolfmed-vitals-organ-lungs-impaired = short of breath
-wolfmed-vitals-organ-heart-impaired = irregular pulse, blood slow to recover
-wolfmed-vitals-organ-brain-impaired = confused
-wolfmed-vitals-organ-posbrain-impaired = degraded
+wolfmed-vitals-organ-brain = Brain
+wolfmed-vitals-organ-eyes = Eyes
+wolfmed-vitals-organ-lungs = Lungs
+wolfmed-vitals-organ-heart = Heart
+wolfmed-vitals-organ-liver = Liver
+wolfmed-vitals-organ-stomach = Stomach
+wolfmed-vitals-organ-kidneys = Kidneys
+wolfmed-vitals-organ-posbrain = Core
+wolfmed-vitals-organ-pump = Pump
 
 # The organ tab: the band after the health.
 health-analyzer-window-organ-health-impaired = { $percent } % impaired

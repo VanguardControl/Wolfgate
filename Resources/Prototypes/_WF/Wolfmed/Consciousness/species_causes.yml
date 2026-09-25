@@ -12,6 +12,7 @@
   out: wolfmed-cause-core-heat-out
   syntheticHudLine: wolfmed-synthetic-cause-core-heat
   dying: true
+  cardColour: "#d0343c" # playtest 3: red while Dying
 
 # Circulatory collapse (OD16): a heartless species' arrest. The same state, triggers and routes as Arrest, never from a
 # heart; read in place of Arrest's prototype for a body whose consciousness says it is heartless.
@@ -24,6 +25,7 @@
   helpOut: wolfmed-cause-collapse-help-out
   out: wolfmed-cause-collapse-out
   dying: true
+  cardColour: "#d0343c" # playtest 3: red while Dying
   sources:
     ArrestBlood: wolfmed-cause-arrest-source-blood
     ArrestOxygen: wolfmed-cause-arrest-source-oxygen

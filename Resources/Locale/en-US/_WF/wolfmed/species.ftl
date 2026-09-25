@@ -21,8 +21,7 @@ wolfmed-succumb-dialog-text-core-no-decay = Your core is overheating. Let go and
 wolfmed-vitals-state-thermalshutdown = THERMAL SHUTDOWN: { $cause }
 wolfmed-vitals-cause-coreheat = core overheating
 wolfmed-vitals-cause-shutdown-mechanical = shutdown
-wolfmed-vitals-temperature = Temperature: core { $core } K, chassis { $chassis } K
-wolfmed-vitals-route-coreheat = core overheating (put the fire out, cool the chassis)
+wolfmed-vitals-temperature = Core { $core } K, chassis { $chassis } K
 wolfmed-dormant-route-coreheat = your core is overheating
 
 wolfmed-look-too-hot-self = You are smoking, too hot to touch.
@@ -45,4 +44,3 @@ wolfmed-succumb-dialog-text-collapse = Your circulation has collapsed ({ $cause 
 wolfmed-succumb-dialog-text-collapse-no-decay = Your circulation has collapsed ({ $cause }). Let go and you die now: catastrophic brain injury. Your brain stays; a medic can bring you back with brain repair and a defibrillator. You will be asked to return.
 
 wolfmed-vitals-state-collapse = CIRCULATORY COLLAPSE: { $cause }
-wolfmed-vitals-breathing-none-collapse = Breathing: none: circulatory collapse

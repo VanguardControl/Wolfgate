@@ -207,3 +207,6 @@ wolfmed-limb-penalty-hands = Your hands are hurt; everything takes longer.
 wolfmed-limb-penalty-hands-burn = Your hands are badly burned; everything takes longer.
 wolfmed-limb-penalty-legs = Your legs are hurt; moving is slow.
 wolfmed-limb-penalty-legs-burn = Your legs are badly burned; moving is slow.
+
+# Playtest 3: a body that is down trying to climb onto a table.
+wolfmed-downed-cant-climb = You can't climb while you're down.

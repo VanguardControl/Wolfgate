@@ -25,6 +25,7 @@
   helpOutBlocked: wolfmed-cause-pain-faint-help-blocked
   helpOutTimed: wolfmed-cause-pain-faint-help-timed # M3: was hard-coded in the condition alert system
   out: wolfmed-cause-pain-faint-out
+  cardColour: "#e3a33c" # playtest 3: amber, a timed faint
 
 - type: wolfmedConsciousnessCause
   id: Blood
@@ -91,6 +92,7 @@
   out: wolfmed-cause-sedation-out
   wake: wolfmed-cause-sedation-wake
   stand: wolfmed-cause-sedation-stand
+  cardColour: "#4f86b8" # playtest 3: steel blue
 
 - type: wolfmedConsciousnessCause
   id: Legs
@@ -120,6 +122,7 @@
   helpOut: wolfmed-cause-arrest-help-out
   out: wolfmed-cause-arrest-out
   dying: true
+  cardColour: "#d0343c" # playtest 3: red while Dying
   sources:
     ArrestBlood: wolfmed-cause-arrest-source-blood
     ArrestOxygen: wolfmed-cause-arrest-source-oxygen
@@ -141,6 +144,7 @@
   out: wolfmed-cause-shutdown-out
   wake: wolfmed-cause-shutdown-wake
   syntheticHudLine: wolfmed-synthetic-cause-shutdown
+  cardColour: "#8b9098" # playtest 3: grey
   sources:
     Power: wolfmed-cause-shutdown-source-power
     Pump: wolfmed-cause-shutdown-source-pump

@@ -48,6 +48,16 @@ public sealed partial class WolfmedCardComponent : Component
     [AutoNetworkedField]
     public bool Examined;
 
+    /// <summary>
+    /// Playtest 3: when the running timed faint began and when the body comes round by itself, on the game clock, so
+    /// the card counts down and drains its bar every frame. Both null while nothing times the wake.
+    /// </summary>
+    [AutoNetworkedField]
+    public TimeSpan? WakeStart;
+
+    [AutoNetworkedField]
+    public TimeSpan? WakeEnd;
+
     /// <summary>Server: when the last analyzer scan was; null before the first.</summary>
     [ViewVariables]
     public TimeSpan? LastExamined;

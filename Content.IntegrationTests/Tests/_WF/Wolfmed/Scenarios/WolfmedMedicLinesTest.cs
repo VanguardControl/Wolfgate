@@ -66,7 +66,8 @@ public sealed class WolfmedMedicLinesTest : GameTest
     /// <summary>
     /// <c>AnalyzerStateLinesTest</c> (plan §12 M1a): Up, Downed (pain, blood), Faint, Unconscious (blood,
     /// hypoxia), arrest (refused, then indicated), dead with a destroyed brain, and a shut-down IPC. Each reads
-    /// the §5.5 state-and-cause, breathing and circulation lines, and <c>BloodBand</c> matches the blood %.
+    /// the §5.5 state-and-cause line, and <c>BloodBand</c> matches the blood %. Playtest 3: breathing and circulation
+    /// are items on the one vitals line, listed only when not normal; the transfusion moved to "Do first".
     /// </summary>
     [Test]
     public async Task AnalyzerStateLinesTest()
@@ -144,9 +145,8 @@ public sealed class WolfmedMedicLinesTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(lines[0], Is.EqualTo("CONSCIOUS"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: normal"));
-                Assert.That(lines[2], Is.EqualTo("Circulation: pulse strong; blood 100%, steady"));
-                Assert.That(lines, Has.Length.EqualTo(3), "a conscious patient got a defib verdict.");
+                Assert.That(lines[1], Is.EqualTo("Vitals normal"), "a healthy patient listed a vital.");
+                Assert.That(lines, Has.Length.EqualTo(2), "a conscious patient got a defib verdict or a do-first line.");
                 Assert.That(s.Report(up).BloodBand, Is.EqualTo(WolfmedBloodBand.Normal));
             });
 
@@ -155,21 +155,20 @@ public sealed class WolfmedMedicLinesTest : GameTest
             {
                 Assert.That(s.State(pain), Is.EqualTo(WolfmedConsciousness.Downed));
                 Assert.That(lines[0], Is.EqualTo("DOWNED: pain"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: normal"));
-                Assert.That(lines[2], Does.StartWith("Circulation: pulse strong; blood 100%"));
+                Assert.That(lines[1], Is.EqualTo("Vitals normal"));
                 // M2 (plan §5.5): a patient who is down reads what is getting worse, here nothing.
-                Assert.That(lines[3], Is.EqualTo("Getting worse: nothing now"));
-                Assert.That(lines, Has.Length.EqualTo(4), "a Downed patient got a defib verdict.");
+                Assert.That(lines[2], Is.EqualTo("Do first: nothing; stable"));
+                Assert.That(lines, Has.Length.EqualTo(3), "a Downed patient got a defib verdict.");
             });
 
             lines = s.AnalyzerLines(bled);
             Assert.Multiple(() =>
             {
                 Assert.That(lines[0], Is.EqualTo("DOWNED: blood loss"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: normal"));
-                Assert.That(lines[2], Does.StartWith("Circulation: pulse weak and rapid; blood 45%, rising"));
-                Assert.That(lines[2], Does.EndWith(
-                    $"transfuse ≈ {MathF.Ceiling(s.Life.GetTransfusionGuidance(bled).ToBrainSafe)} u to 50%"));
+                Assert.That(lines[1], Is.EqualTo("Pulse weak, rapid · Blood 45% ↑"), "normal breathing is listed.");
+                Assert.That(lines[2], Does.Contain(
+                    $"transfuse ≈ {MathF.Ceiling(s.Life.GetTransfusionGuidance(bled).ToBrainSafe)} u"));
+                Assert.That(lines[1], Does.Not.Contain("transfuse"), "the units are on the vitals line too.");
                 Assert.That(s.Life.GetTransfusionGuidance(bled).ToBrainSafe,
                     Is.EqualTo(0.5f * s.Pool(bled) - s.Blood(bled) * s.Pool(bled)).Within(0.5f));
                 Assert.That(s.Report(bled).BloodBand, Is.EqualTo(WolfmedBloodBand.Weak));
@@ -178,7 +177,7 @@ public sealed class WolfmedMedicLinesTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(s.Report(pale).BloodBand, Is.EqualTo(WolfmedBloodBand.Low));
-                Assert.That(s.AnalyzerLines(pale)[2], Does.StartWith("Circulation: pulse normal, pale; blood 70%"));
+                Assert.That(s.AnalyzerLines(pale)[1], Does.StartWith("Pale · Blood 70%"));
             });
 
             lines = s.AnalyzerLines(faint);
@@ -186,7 +185,7 @@ public sealed class WolfmedMedicLinesTest : GameTest
             {
                 // Playtest 2: the faint's seconds left.
                 Assert.That(lines[0], Does.Match(@"^FAINTED: pain, \d+ s$"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: normal"), "a fainted patient is breathing (plan §4).");
+                Assert.That(lines[1], Does.Not.Contain("reathing"), "a fainted patient is breathing (plan §4).");
                 Assert.That(lines[^1], Is.EqualTo("Defib: refused: pulse present"));
             });
 
@@ -194,8 +193,7 @@ public sealed class WolfmedMedicLinesTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(lines[0], Is.EqualTo("UNCONSCIOUS: blood loss"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: normal"));
-                Assert.That(lines[2], Does.StartWith("Circulation: pulse barely palpable; blood 33%"));
+                Assert.That(lines[1], Does.StartWith("Pulse barely palpable · Blood 33%"), "normal breathing is listed.");
                 Assert.That(lines[^1], Is.EqualTo("Defib: refused: pulse present"));
                 Assert.That(s.Report(bledOut).BloodBand, Is.EqualTo(WolfmedBloodBand.Critical));
             });
@@ -204,7 +202,7 @@ public sealed class WolfmedMedicLinesTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(lines[0], Does.StartWith("UNCONSCIOUS: no oxygen"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: normal"), "the chest is working; the brain is what is short.");
+                Assert.That(lines[1], Does.Not.Contain("reathing"), "the chest is working; the brain is what is short.");
             });
 
             lines = s.AnalyzerLines(arrest);
@@ -213,8 +211,7 @@ public sealed class WolfmedMedicLinesTest : GameTest
                 Assert.That(s.Life.InArrest(arrest), Is.True, "29% blood did not stop the heart.");
                 Assert.That(lines[0], Is.EqualTo("CARDIAC ARREST: blood"),
                     "the blood that stopped the heart was named twice.");
-                Assert.That(lines[1], Is.EqualTo("Breathing: none: cardiac arrest"));
-                Assert.That(lines[2], Does.StartWith("Circulation: no pulse; blood 29%"));
+                Assert.That(lines[1], Does.StartWith("Not breathing · No pulse · Blood 29%"));
                 Assert.That(lines[^1], Is.EqualTo("Defib: shock indicated"), "29% is over the 25% gate.");
                 Assert.That(s.Report(arrest).BloodBand, Is.EqualTo(WolfmedBloodBand.None));
             });
@@ -231,18 +228,19 @@ public sealed class WolfmedMedicLinesTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(lines[0], Is.EqualTo("DEAD: catastrophic brain injury"));
-                Assert.That(lines[1], Is.EqualTo("Breathing: none"));
+                Assert.That(lines[1], Does.StartWith("Not breathing"));
                 Assert.That(lines[^1], Is.EqualTo("Defib: refused: brain destroyed, brain repair surgery first"));
             });
 
             lines = s.AnalyzerLines(ipc);
             Assert.Multiple(() =>
             {
+                // Playtest 3: the pump running and full oil are normal, so the chassis's vitals line says so.
                 Assert.That(lines[0], Is.EqualTo("SHUTDOWN: no power"));
-                Assert.That(lines[1], Is.EqualTo("Cooling: pump running"));
-                Assert.That(lines[2], Does.StartWith("Hydraulics: oil 100%"));
+                Assert.That(lines[1], Is.EqualTo("Vitals normal"));
                 Assert.That(lines.Any(line => line.StartsWith("Defib")), Is.False, "a chassis got a defib verdict.");
-                Assert.That(lines.Any(line => line.Contains("pulse") || line.Contains("Breathing")), Is.False,
+                Assert.That(lines.Any(line => line.Contains("ulse") || line.Contains("reathing") ||
+                                              line.Contains("Blood")), Is.False,
                     "a chassis read in organic words.");
             });
         });
@@ -264,10 +262,12 @@ public sealed class WolfmedMedicLinesTest : GameTest
                 "wolfmed-vitals-state-up", "wolfmed-vitals-state-up-mechanical", "wolfmed-vitals-state-dead",
                 "wolfmed-vitals-state-dead-brain", "wolfmed-vitals-state-dead-mechanical", "wolfmed-vitals-blockers",
                 "wolfmed-vitals-cause-pain-mechanical", "wolfmed-vitals-cause-with-source",
-                "wolfmed-vitals-breathing-normal", "wolfmed-vitals-breathing-depressed",
-                "wolfmed-vitals-breathing-gasping", "wolfmed-vitals-cooling-running", "wolfmed-vitals-cooling-offline",
-                "wolfmed-vitals-circulation", "wolfmed-vitals-circulation-transfuse",
-                "wolfmed-vitals-circulation-no-blood", "wolfmed-vitals-hydraulics", "wolfmed-vitals-hydraulics-refill",
+                "wolfmed-vitals-breathing-depressed", "wolfmed-vitals-breathing-gasping", "wolfmed-vitals-cooling-offline",
+                // Playtest 3: the compact block's own words.
+                "wolfmed-vitals-normal", "wolfmed-vitals-separator", "wolfmed-vitals-item-blood", "wolfmed-vitals-item-oil",
+                "wolfmed-vitals-item-burn-fluid", "wolfmed-vitals-item-toxins", "wolfmed-vitals-item-liver-missing",
+                "wolfmed-vitals-do-first", "wolfmed-vitals-do-first-none", "wolfmed-vitals-aid-transfuse",
+                "wolfmed-vitals-aid-refill",
             };
 
             foreach (var state in Enum.GetValues<WolfmedVitalsState>())
@@ -279,7 +279,9 @@ public sealed class WolfmedMedicLinesTest : GameTest
             keys.AddRange(Enum.GetValues<WolfmedCause>().Select(cause => Key("cause", cause)));
             keys.AddRange(Enum.GetValues<WolfmedCauseSource>().Select(source => Key("source", source)));
             keys.AddRange(Enum.GetValues<WolfmedBreathingSource>().Select(source => Key("breathing-none", source)));
-            keys.AddRange(Enum.GetValues<WolfmedBloodBand>().Select(band => Key("pulse", band)));
+            // A normal pulse is never listed (playtest 3).
+            keys.AddRange(Enum.GetValues<WolfmedBloodBand>().Where(band => band != WolfmedBloodBand.Normal)
+                .Select(band => Key("pulse", band)));
             keys.AddRange(Enum.GetValues<WolfmedBloodTrend>().Select(trend => Key("trend", trend)));
             keys.AddRange(Enum.GetValues<WolfmedDefibVerdict>()
                 .Where(verdict => verdict != WolfmedDefibVerdict.Hidden)

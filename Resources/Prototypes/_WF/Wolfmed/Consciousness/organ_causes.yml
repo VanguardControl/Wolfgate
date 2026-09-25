@@ -11,6 +11,7 @@
   helpOutBlocked: wolfmed-cause-head-blow-help-blocked
   helpOutTimed: wolfmed-cause-head-blow-help-timed
   out: wolfmed-cause-head-blow-out
+  cardColour: "#e3a33c" # playtest 3: amber, a timed faint
 
 # The brain under wolfmed.consc_brain_down of its health. Downed only; only surgery lifts it.
 - type: wolfmedConsciousnessCause

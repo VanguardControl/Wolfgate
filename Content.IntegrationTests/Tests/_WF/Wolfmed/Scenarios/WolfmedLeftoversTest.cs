@@ -350,7 +350,8 @@ public sealed class WolfmedLeftoversTest : GameTest
                 Assert.That(toxin.GetLoad(synth), Is.Zero, "the synth took Poison through its modifier set.");
                 Assert.That(s.Vitals(synth).Cause, Is.Not.EqualTo(WolfmedCause.Toxin), "the synth is poisoned.");
                 Assert.That(s.State(synth), Is.EqualTo(WolfmedConsciousness.Up), "the poison did something to the synth.");
-                Assert.That(s.Analyzer(synth), Does.Not.Contain("Toxins:"), "the analyzer shows a toxin load on a synth.");
+                Assert.That(s.Analyzer(synth), Does.Not.Contain("Toxins"), "the analyzer shows a toxin load on a synth.");
+                Assert.That(s.Analyzer(human), Does.Contain("Toxins "), "the control's toxin item is missing (playtest 3).");
                 Assert.That(s.State(human), Is.EqualTo(WolfmedConsciousness.Unconscious), "the human control is not in a coma.");
                 Assert.That(s.Vitals(human).Cause, Is.EqualTo(WolfmedCause.Toxin));
             });

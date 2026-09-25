@@ -2458,3 +2458,154 @@ no machine route either, and the owner has not ruled on it.
 
 `SynthRunsNoToxinRouteTest` became `SynthTakesNoPoisonTest`: the dose now goes through resistances and the load must
 stay zero; the human control still ends in a toxic coma.
+
+## Playtest 3 fixes (2026-09-24)
+
+The owner's third playtest (`plan/p7/PLAYTEST3-spec.md`) asked for three things: the explanation card should carry
+the time and what is wrong ("COMING ROUND IN 22 S in big caps, with icons … Infinity if not"), a Downed body should
+not crawl onto tables, and the analyzer's vitals block said far too much and printed `1.2999999523162842`. Branch
+`Wolfmed-fixes4`, from `a17563de1b`.
+
+**1. The explanation card counts down.**
+- **One window.** `WolfmedConsciousnessSystem.GetWakeWindow` is when the body comes round by itself: Unconscious, the
+  cause a timed faint (pain faint, head blow), and nothing untimed holding it too; with both faints running, the later
+  end. The faint alert's cooldown (`WolfmedConditionAlertSystem.GetFaintCountdown`) and the card both read it.
+  `WolfmedCardComponent` gains networked `WakeStart`/`WakeEnd` (the component's private timers stay server-only);
+  `WolfmedCardSystem.Refresh` sets or clears them. The condition alert system's change handler refreshes the card in
+  the same tick the body goes out, so the card's countdown starts with the alert's rather than on the card's
+  once-a-second pass.
+- **Timed helplessness found:** the pain faint and the head blow only. `DownedUntil` is the 2 s Downed dwell and the
+  card never shows while Downed; blood, hypoxia, sedation, toxins, cold, heat, arrest and shutdown have no clock (a
+  shutdown lasts as long as its reason: no power, no pump, low oil).
+- **The row.** `WolfmedExplanationCard.Countdown(…, now)`: "COMING ROUND IN {N} S" (N the remainder rounded up, never
+  negative) with the bar at remainder / (end − start); "COMING ROUND: ∞" with an empty bar when nothing times the wake
+  (a faint something else holds included, as its alert already showed no countdown); null while Dying, where the M2
+  brain bar takes the row, drawn exactly as before (ten cells, whole tenths, red, its label). The client computes the
+  row every frame from the networked window and its own clock; the countdown bar is the same ten cells in the accent
+  colour, draining smoothly through the cell it is in.
+- **Icons.** The cause's `alertOut` icon (its `alertDowned` for a cause that has only that) left of the title at the
+  alerts bar's size, 64 px × UI scale; each blocker's icon at half that before "Also holding you down: …". Resolved from
+  the alert prototype's sprite specifier through the resource cache, as the alerts bar's sprite view resolves it (the
+  top severity's icon for a severity alert, animated on the clock). An alert, RSI or state that cannot be found draws
+  nothing; the engine's error sprite is never used. No new textures.
+- **Look.** A dark translucent panel (#0d0f14 at 0.8) with a 3 px × UI scale accent stripe down the left from the new
+  optional `cardColour` on `wolfmedConsciousnessCause`, default #b8704e (terracotta): amber #e3a33c on PainFaint and
+  HeadBlow, red #d0343c on Arrest, CoreHeat and CirculatoryCollapse, steel blue #4f86b8 on Sedation, grey #8b9098 on
+  Shutdown. Title in caps, bold 17; countdown bold 24; rows regular 14; the help line brighter, the rescue lines green.
+  Fonts are built at the pixel size they are drawn at, so the text is sharp at any scale. The scale is the viewport's
+  height / 1000 (0.75 to 1.5) × the UI scale. Placement (`WolfmedExplanationCardLayout`): centred, at most 74% of the
+  screen wide (clear of the action buttons at 12% and the alerts column at 94%), bottom edge at 83% of the height (just
+  above the hotbar band). The fade (`Alpha`) is unchanged; padding (12 × scale) and the greedy word wrap are as before.
+- **What's wrong, fully.** Rows: title, help (under the bar), blockers, symptom, then what the patient can feel of the
+  breath and the blood, from the networked `Breathing` and `BloodBand`: "Breathing laboured / slowed", "Gasping for
+  air", "Not breathing"; "Blood low / very low / critically low". Organic bodies only (a chassis's card, when its HUD
+  is off, skips them). Then CPR and "examined". No numbers anywhere but the countdown.
+
+**2. Downed cannot climb onto tables.**
+- **What the owner hit.** `ClimbSystem.TryClimb` already refused a Downed body climbing by itself: its `CanVault`
+  asks `CanInteract(user, table)`, and Wolfmed's Downed rule cancels that `InteractionAttemptEvent` (the table is not
+  the body, carried, a reachable pod or a loose item), before `AttemptClimbEvent` is ever raised; the drag-drop outline
+  never offered the table either. The route was lying down: `StandingStateSystem.Down` takes `MidImpassable`
+  (= `TableLayer`) off every lying body's masks "to allow going under certain entities like flaps and tables", nothing
+  changes the draw depth, and a Downed body crawled through a table and lay drawn on top of it. Measured with the fix
+  switched off: pushed east at a table for 60 ticks, the body ended at x 2.75, inside the table's tile (2.0 to 3.0);
+  with it, at x 1.70, against the table's edge.
+- **`WolfmedDownedClimbSystem`** (shared, new):
+  - `ClimbableComponent, AttemptClimbEvent`: cancelled when the climber is Downed or Unconscious under Wolfmed and is
+    its own user, with "You can't climb while you're down." (`wolfmed-downed-cant-climb`, a predicted client popup). A
+    lift by somebody else (user ≠ climber) passes. Today the Downed interaction rule refuses first, with the stock
+    "can't interact" line; this is the rule itself, for any path that reaches the event.
+  - The crawl route, blocked the same way: `WolfmedDownedSystem` calls `HoldTables` as the body goes Downed (the
+    tables' layer back on the fixtures lying down changed) and `ReleaseTables` when Downed ends with the body still
+    lying (a stun, or out cold: upstream's crawl-under-tables again). Not while the body is climbing (a medic lifted it
+    onto a table): the climb owns those masks, and `WolfmedDownedComponent, EndClimbEvent` puts the layer back when it
+    comes off.
+- **Checked, nothing to block:** there is no bump-to-climb in this tree; the only other `TryClimb` caller is NPC
+  steering, through the same `CanVault` and event. `CrawlUnderObjectsSystem` (_DV, the HardLight rewrite) shrinks
+  circles and refuses climbs while sneaking, going down ends sneaking, and it never strips table bits. (Its own
+  `CrawlUnderObjectsComponent, AttemptClimbEvent` subscription can never fire, since the event is raised on the
+  climbable; not ours, left alone.) One-subscriber rule: neither new pair had a subscriber.
+- **Side effect:** a Downed body pulled by somebody now stops at tables like a standing one, where it used to slide
+  under them. Knocked-down, voluntarily lying and unconscious bodies keep upstream's behaviour.
+
+**3. The analyzer's vitals block says less, and rounds.**
+- `WolfmedVitalsText.Lines`: the state line (unchanged), one vitals line, "Do first", then only when they apply the
+  after-restart memory, the defib verdict and the restart-button verdict. The owner's state now reads:
+  - `DOWNED: blood loss (also: pain)`
+  - `Breathing laboured · Pulse weak, rapid · Blood 43% ↓ · Lungs impaired · Burn fluid loss 1.3 u/s`
+  - `Do first: dress the burns and give fluids; lung surgery; transfuse ≈ 20 u`
+- **Vitals line** (`VitalsLine`), items joined by the locale's ` · `, only what is not normal: breathing; the pulse
+  band ("Pale", "Pulse weak, rapid", "Pulse barely palpable", "No pulse"); blood % with the trend arrow when the band
+  is not normal or the blood is falling (`wolfmed-vitals-trend-*`: steady nothing, ↑, ↓, ↓↓, a locale choice);
+  impaired and failed organs ("Lungs impaired", "Heart failed"); burn fluid loss with its rate; toxins with their band
+  ("No liver" when there is none; an impaired or failed liver is already an organ item); radiation with the marrow's
+  stage; the core temperature. A chassis: "Cooling offline", oil like blood (also while under the refill line), its
+  organs, and M4's core and chassis heat. The M4 and M5 temperature lines are items now. "Vitals normal" when nothing
+  is abnormal.
+- **Do first** (`DoFirstLine`, replaces `RoutesLine`): each running route's aid (`wolfmed-vitals-aid-*`, replacing
+  `wolfmed-vitals-route-*`), a few words each, deduplicated, in the routes' bit order, the order `RoutesLine` used. The
+  circulation route's aid carries the transfusion units, which the vitals line no longer repeats; a chassis under its
+  oil line gets "refill oil ≈ N u" in the same place, route or not (the old hydraulics line's guidance). "Do first:
+  nothing; stable" for a body that is down with nothing running; no line for somebody up with nothing to do, or the
+  dead.
+- **Rounding.** `WolfmedVitalsText.Number` (invariant culture, at most one decimal, no trailing zero, never "-0"),
+  `Units` (whole, rounded up) and `Whole` (percent, kelvin, dose, load). Every Fluent argument in the block, the
+  post-shock banner (`WolfmedPostShockText`) and the card's countdown is a string. The screenshot's digits were
+  `MathF.Round` returning a float that Fluent formatted as a double. Examine formats no floats (its only number is the
+  scar count, an integer plural).
+- **The pod** mounts the same panel: the block is one banner row whose `RichTextLabel` word-wraps to the panel, so a
+  long vitals line wraps and nothing is cut; the block is shorter than before.
+
+**Differs from the spec, and why.**
+1. **"Do first" order.** The rule (the routes' order, as `RoutesLine` used) and the spec's example (transfusion first)
+   disagree; the rule is followed, so the owner's state reads burns, lungs, transfusion. A brain-first order is one
+   ordering list in `DoFirstLine` if the owner wants it.
+2. **The ⚠ "marker".** No text marker exists: the ⚠ in the screenshot is the vitals banner row's warning icon, one per
+   block, vertically centred, which is why it sat beside the fluid-loss line. It is unchanged and still heads the
+   block. No text ⚠ was added, as the spec's own example line 3 carries none.
+3. **Aid wording.** The two the example gives ("dress the burns and give fluids", "lung surgery") are used; the rest
+   are new short forms ("gauze or tourniquet the bleeding", "CPR, then the defibrillator", "air or internals", …).
+4. **Breathing words.** An arrest (or a circulatory collapse) reads plain "Not breathing": the state line names it.
+   `wolfmed-vitals-breathing-none-collapse` is gone.
+5. **Radiation** loses the marrow's loss rate (the blood's arrow shows the loss); **burn fluid** loses "fast"/"slow"
+   (the rate says it). `BurnFluidFast` and `wolfmed.analyzer_burn_fast` are left in place, now unread by the text.
+6. **The crawl route** is fixed as well as the climb event, which alone changed nothing a player could do; the spec's
+   "if one does, block it the same way and say so" covers it.
+7. **Card placement:** bottom at 83% of the screen (was 88%) and at most 74% wide, so it clears the hotbar as well as
+   the alerts column and the chat at UI scale 1 and 1.25.
+8. **A timed faint keeps its help line** ("You come round in seconds.") under the countdown, as the spec keeps help;
+   the condition text keeps its timed form.
+9. **Both faints running:** the later end, and the alert gains the countdown in that case too (before, a head blow
+   blocking a pain faint showed none).
+10. **The card title is drawn in caps**; `WolfmedExplanationCard.Lines()[0]` keeps the alert title's case, which
+    `ExplanationCardTest` compares.
+
+**Tests.** New in `Scenarios/WolfmedPlaytestThreeTest.cs`: `CardCountdownTest`, `DownedCannotClimbTest`,
+`VitalsBlockIsCompactTest`, and `CardLooksTest` (not in the spec: the layout clear of the alerts, chat, hotbar, doll and
+action buttons at UI scale 1 and 1.25 on four resolutions; every cause's icon resolves on the client; an unknown alert
+draws nothing). Measured: the countdown read "COMING ROUND IN 20 S" (20.00 s left, bar 1.000) and 3 s later "COMING
+ROUND IN 17 S" (bar 0.848).
+
+**Test migration** (each keeps what it proves; line indexes follow the new three lines):
+- `WolfmedMedicLinesTest.AnalyzerStateLinesTest`: each rung's vitals line (normal breathing unlisted, pulse and blood
+  items, "Vitals normal" for the healthy and the unpowered chassis), the transfusion on "Do first", "Do first: nothing;
+  stable" for the Downed-by-pain patient; `VitalsWordsResolveTest`: the new keys, the pulse family without Normal.
+- `WolfmedMedicInfoTest.AnalyzerVitalsTest`: `DoFirstLine` with each route's aid and the transfusion's units.
+- `WolfmedLocaleCoverageTest`: the `wolfmed-vitals-aid-` family replaces `wolfmed-vitals-route-`.
+- `WolfmedAnalyzerTest.VitalsBlockHeadsThePanelTest`: the panel's row carries "Pulse weak, rapid" and "Do first:
+  transfuse ≈", no breathing.
+- `WolfmedBreathingClockTest`: the Downed bleed reads "Pulse weak, rapid · Blood 49|50% ↓"; the suffocated body
+  "Not breathing: no air".
+- `WolfmedConsequencesTest`: "Lungs impaired", "Breathing laboured", "Heart impaired"; the healthy body lists nothing
+  impaired.
+- `WolfmedIpcDeathTest`: the core and chassis heat on the vitals line, the core-heat aid on "Do first".
+- `WolfmedRemainingCausesTest`: "Toxins 60, high", "No liver", "Liver impaired", the marrow's aid.
+- `WolfmedTemperatureTest`: "Core temperature 320 K", the heat-stroke aid.
+- `WolfmedSpeciesTest`: the collapsed Diona's vitals line starts "Not breathing" and names no heart.
+- `WolfmedLeftoversTest`: the synth shows no "Toxins"; the human control does.
+
+Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt): 479 total, 471 passed, 0 failed, 8 skipped
+(dirty-disposed: `PodClampProgressTest`, `AutofixStopsReplanningABodyItIsNotChangingTest`,
+`EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`, `SelfServiceOccupantIsTreatedTest`,
+`AutofixModuleIdlesWithNothingToDoTest`, `FixMePlansAndStartsInSelfServiceTest`,
+`DeathDuringAProcedureHoldsAndResumesTest`, `PodChargesAgainAfterAFailedShockTest`); each passed alone.

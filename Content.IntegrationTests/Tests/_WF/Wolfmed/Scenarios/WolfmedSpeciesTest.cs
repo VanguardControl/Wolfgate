@@ -129,7 +129,9 @@ public sealed class WolfmedSpeciesTest : GameTest
                 Assert.That(alerts.GetConditionText(dionaBled), Does.Not.Contain("heart"),
                     "a heartless patient was told about its heart.");
                 Assert.That(s.AnalyzerLines(dionaBled)[0], Is.EqualTo("CIRCULATORY COLLAPSE: blood"));
-                Assert.That(s.AnalyzerLines(dionaBled)[1], Is.EqualTo("Breathing: none: circulatory collapse"));
+                // Playtest 3: the collapse is named on the state line; the vitals line says only what it sees.
+                Assert.That(s.AnalyzerLines(dionaBled)[1], Does.StartWith("Not breathing").And.Not.Contain("heart")
+                    .And.Not.Contain("cardiac"));
                 Assert.That(SEntMan.HasComponent<WolfmedDyingActionsComponent>(dionaBled), Is.True,
                     "a collapse is Dying and offers Succumb.");
             });

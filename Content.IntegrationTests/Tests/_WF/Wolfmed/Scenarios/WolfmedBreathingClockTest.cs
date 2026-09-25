@@ -138,9 +138,10 @@ public sealed class WolfmedBreathingClockTest : GameTest
         Assert.Multiple(() =>
         {
             Assert.That(downedLines[0], Is.EqualTo("DOWNED: blood loss"));
-            Assert.That(downedLines[1], Is.EqualTo("Breathing: normal"));
-            Assert.That(downedLines[2], Does.Match(@"^Circulation: pulse weak and rapid; blood (49|50)%"),
-                "the circulation line does not name the blood %.");
+            // Playtest 3: normal breathing is not listed; the pulse and the blood are items on the vitals line.
+            Assert.That(downedLines[1], Does.Not.Contain("reathing"));
+            Assert.That(downedLines[1], Does.Match(@"^Pulse weak, rapid · Blood (49|50)% ↓"),
+                "the vitals line does not name the blood %.");
         });
 
         await Server.WaitAssertion(() =>
@@ -689,7 +690,7 @@ public sealed class WolfmedBreathingClockTest : GameTest
         Assert.Multiple(() =>
         {
             Assert.That(outLines[0], Does.StartWith("UNCONSCIOUS: no oxygen"));
-            Assert.That(outLines[1], Does.StartWith("Breathing: none: no air"));
+            Assert.That(outLines[1], Does.StartWith("Not breathing: no air")); // playtest 3
         });
         Assert.Multiple(() =>
         {

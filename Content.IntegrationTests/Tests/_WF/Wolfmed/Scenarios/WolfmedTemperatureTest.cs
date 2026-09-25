@@ -352,7 +352,7 @@ public sealed class WolfmedTemperatureTest : GameTest
             {
                 Assert.That(s.State(hot), Is.EqualTo(WolfmedConsciousness.Downed));
                 Assert.That(s.Vitals(hot).Cause, Is.EqualTo(WolfmedCause.Heat));
-                Assert.That(s.Analyzer(hot), Does.Contain("DOWNED: overheating").And.Contain("Core temperature: 320 K"));
+                Assert.That(s.Analyzer(hot), Does.Contain("DOWNED: overheating").And.Contain("Core temperature 320 K"));
             });
 
             Hold(s, hot, 330f, 1);
@@ -362,7 +362,9 @@ public sealed class WolfmedTemperatureTest : GameTest
                 Assert.That(s.Vitals(hot).Cause, Is.EqualTo(WolfmedCause.Heat));
                 Assert.That(s.Vitals(hot).Breathing, Is.EqualTo(WolfmedBreathing.Normal), "heat stroke stopped the chest.");
                 Assert.That(BodyTemperature.InHeatStroke(hot), Is.True);
-                Assert.That(s.Analyzer(hot), Does.Contain("UNCONSCIOUS: overheating").And.Contain("heat stroke (cool them, now)"));
+                // Playtest 3: the heat-stroke route's first aid on "Do first".
+                Assert.That(s.Analyzer(hot), Does.Contain("UNCONSCIOUS: overheating")
+                    .And.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.HeatStroke, false)));
             });
 
             var before = s.Life.GetOxygenation(hot);
