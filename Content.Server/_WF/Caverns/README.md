@@ -1,19 +1,29 @@
 # Caverns
 
-Every planet network gets a cavern at depth -1: a biome-backed map built with the network and deleted with it, roofed
-by the ground above and dark except where daylight falls through a gap in the ground. Each of the six worlds has its
-own cavern (`wfCavern`, one per `wfPlanetSurface`) with its own air and light; for now all six share a placeholder
-biome of limestone tunnels through plain rock. Caverns are behind `wf.caverns` (`CavernCVars`), which is off by
-default and on in development builds, and apply to networks built after it is set. Ships never go below ground, and
-nobody on or above the ground loads the cavern under them.
+Every planet network gets a cavern at depth -1: a biome-backed map built with the network and deleted with it,
+roofed by the ground above and dark except where daylight falls through a gap in the ground. Each of the six worlds has
+its own cavern (`wfCavern`, one per `wfPlanetSurface`) with its own air and light; for now all six share a placeholder
+biome of limestone tunnels and dirt chambers through plain rock. Caverns are behind `wf.caverns` (`CavernCVars`), which
+is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
+ground, and nobody on or above the ground loads the cavern under them.
+
+Every world has a gate mouth near its centre: a pinned hole in the ground with a solid lip, a dark pit (shade) over
+each hole tile, and in the cavern a pinned, rock-free pad with the world's landing tile under the hole and a climb
+point under the lip. Players walk in and take a small fall whose damage depends on the landing tile; examining a shade
+tells them where it goes, what the air below is like and how hard the landing is. Admins use `wfcavern` to list
+caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths and carve one by hand (`open`).
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
-`WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour) and links the
-ground to it with `WFCavernGroundComponent`. The cavern map carries `WFCavernLayerComponent`. `WFCavernSystem` also
-deletes surface wildlife that drops into a cavern because its ground chunk unloaded (`BiomeSystem.WfIsChunkLoaded`).
-Two marked CE edits keep the cavern safe to have: the Planets hull guard (`WfClosedToHulls`) and the eye cap in
-`CEZLevelsSystem.View.cs`, which stops z-level eyes at a ground layer. The design, including the features still to
-come (entrances, the six geologies, air, light, life, sound and the mining loop), is in
+`WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the
+ground to it with `WFCavernGroundComponent` and asks `WFCavernMouthSystem` to claim the gate. `WFCavernMouthSystem`
+evaluates mouth cells from pure noise (`.Claims.cs`: seeded candidates, ground and cavern checks, stamping) and keeps
+the registry of cells, mouths, shades and climb points on the ground; its API is `GetGate`, `TryClaimCell`,
+`TryOpenMouth` and `TryGetNearestMouth`. The shaft examine is `SharedWFCavernShaftSystem`, fed by the air reading
+(`WFCavernAirClassifier`) each shade stores when it spawns. `WFCavernSystem` also deletes surface wildlife that drops
+into a cavern because its ground chunk unloaded (`BiomeSystem.WfIsChunkLoaded`). Two marked CE edits keep the cavern
+safe to have: the Planets hull guard (`WfClosedToHulls`) and the eye cap in `CEZLevelsSystem.View.cs`, which stops
+z-level eyes at a ground layer. The design, including what is still to come (climbing, lazy cell claims and holes
+opened later, the six geologies, air, light, life, sound and the mining loop), is in
 `Docs/_WF/Caverns/CAVERNS_DESIGN.md`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -24,33 +34,52 @@ come (entrances, the six geologies, air, light, life, sound and the mining loop)
 ### Server
 
 - [`Content.Server/_WF/Caverns/BiomeSystem.Caverns.cs`](BiomeSystem.Caverns.cs)
+- [`Content.Server/_WF/Caverns/WFCavernCommand.cs`](WFCavernCommand.cs)
 - [`Content.Server/_WF/Caverns/WFCavernGroundComponent.cs`](WFCavernGroundComponent.cs)
+- [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Claims.cs`](WFCavernMouthSystem.Claims.cs)
+- [`Content.Server/_WF/Caverns/WFCavernMouthSystem.cs`](WFCavernMouthSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSystem.cs`](WFCavernSystem.cs)
 
 ### Shared
 
+- [`Content.Shared/_WF/Caverns/SharedWFCavernShaftSystem.cs`](../../../Content.Shared/_WF/Caverns/SharedWFCavernShaftSystem.cs)
+- [`Content.Shared/_WF/Caverns/WFCavernAir.cs`](../../../Content.Shared/_WF/Caverns/WFCavernAir.cs)
+- [`Content.Shared/_WF/Caverns/WFCavernClimbComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernClimbComponent.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernLayerComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernLayerComponent.cs)
+- [`Content.Shared/_WF/Caverns/WFCavernMouthSpec.cs`](../../../Content.Shared/_WF/Caverns/WFCavernMouthSpec.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernPrototype.cs`](../../../Content.Shared/_WF/Caverns/WFCavernPrototype.cs)
+- [`Content.Shared/_WF/Caverns/WFCavernShaftComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernShaftComponent.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernCommandTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernCommandTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernViewerEyeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernViewerEyeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernWildlifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernWildlifeTest.cs)
+
+### Unit tests
+
+- [`Content.Tests/_WF/Caverns/CavernAirTest.cs`](../../../Content.Tests/_WF/Caverns/CavernAirTest.cs)
 
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Caverns/Biomes/placeholder.yml`](../../../Resources/Prototypes/_WF/Caverns/Biomes/placeholder.yml)
 - [`Resources/Prototypes/_WF/Caverns/caverns.yml`](../../../Resources/Prototypes/_WF/Caverns/caverns.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/mouths.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/mouths.yml)
 - [`Resources/Prototypes/_WF/Caverns/levels.yml`](../../../Resources/Prototypes/_WF/Caverns/levels.yml)
 - [`Resources/Prototypes/_WF/Caverns/tiles.yml`](../../../Resources/Prototypes/_WF/Caverns/tiles.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/Caverns/caverns.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/caverns.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/commands.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/commands.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/entities.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/entities.ftl)
 
 ### Docs
 

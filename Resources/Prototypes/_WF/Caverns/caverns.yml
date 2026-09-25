@@ -1,4 +1,5 @@
 # One cavern under each world, built at depth -1 with its planet network while wf.caverns is on.
+# Mouths: avoid also lists each world's rock-outcrop spawner, so no mouth is walled in by an outcrop.
 
 - type: wfCavern
   id: WFCavernAsclepiu
@@ -8,6 +9,14 @@
   seedOffset: 7901
   roofColor: "#070a08"
   shaftLight: 0.5
+  mouths:
+    holeSize: 2
+    cellSize: 96
+    groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]
+    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]
+    landingTile: FloorWater
+    shade: WFCavernShadeAsclepiu
+    climbPoint: WFCavernClimbAsclepiu
 
 - type: wfCavern
   id: WFCavernFervidus
@@ -17,6 +26,15 @@
   seedOffset: 7919
   roofColor: "#1c0803"
   shaftLight: 0.45
+  mouths:
+    holeSize: 2
+    cellSize: 96
+    groundTiles: [FloorBasalt]
+    avoid: [FloorLavaEntity, MonoPlanetmapOreBasalt]
+    landingTile: WFCavernFloorAsh
+    shade: WFCavernShadeFervidus
+    climbPoint: WFCavernClimbFervidus
+    rim: [BasaltOne, BasaltThree]
 
 - type: wfCavern
   id: WFCavernMerak
@@ -26,6 +44,14 @@
   seedOffset: 7927
   roofColor: "#120d07"
   shaftLight: 0.55
+  mouths:
+    holeSize: 2
+    cellSize: 96
+    groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]
+    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]
+    landingTile: WFCavernFloorSandDrift
+    shade: WFCavernShadeMerak
+    climbPoint: WFCavernClimbMerak
 
 - type: wfCavern
   id: WFCavernAerumna
@@ -35,6 +61,14 @@
   seedOffset: 7933
   roofColor: "#050408"
   shaftLight: 0.3
+  mouths:
+    holeSize: 1
+    cellSize: 128
+    groundTiles: [FloorChromite]
+    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreChromite]
+    landingTile: WFCavernFloorChromiteScree
+    shade: WFCavernShadeAerumna
+    climbPoint: WFCavernClimbAerumna
 
 - type: wfCavern
   id: WFCavernThrascias
@@ -44,6 +78,15 @@
   seedOffset: 7937
   roofColor: "#060c12"
   shaftLight: 0.5
+  mouths:
+    holeSize: 1
+    cellSize: 96
+    groundTiles: [FloorSnow, FloorIce]
+    avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]
+    landingTile: WFCavernFloorSnowdrift
+    shade: WFCavernShadeThrascias
+    climbPoint: WFCavernClimbThrascias
+    rim: [CrystalCyan]
 
 - type: wfCavern
   id: WFCavernCarcinoma
@@ -53,3 +96,12 @@
   seedOffset: 7949
   roofColor: "#140306"
   shaftLight: 0.4
+  mouths:
+    holeSize: 2
+    cellSize: 80
+    groundTiles: [WFFloorFlesh]
+    avoid: [WFBloodRiver, WallMeat]
+    landingTile: WFCavernFloorGut
+    shade: WFCavernShadeCarcinoma
+    climbPoint: WFCavernClimbCarcinoma
+    rim: [WFFleshPolyp]

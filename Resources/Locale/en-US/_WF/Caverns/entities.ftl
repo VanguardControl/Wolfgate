@@ -1,0 +1,25 @@
+ent-WFCavernShadeAsclepiu = sinkhole
+    .desc = The ground has slumped into a wet limestone shaft. Water drips somewhere below.
+ent-WFCavernShadeFervidus = skylight
+    .desc = A hole in the roof of a lava tube. Heat shimmers up out of the dark.
+ent-WFCavernShadeMerak = sand funnel
+    .desc = Sand pours in a slow trickle down a funnel into the cool dark below.
+ent-WFCavernShadeAerumna = rift
+    .desc = A narrow crack in the chromite, black all the way down.
+ent-WFCavernShadeThrascias = moulin
+    .desc = Meltwater has bored a round shaft through the ice.
+ent-WFCavernShadeCarcinoma = throat
+    .desc = The flesh parts around a wet, ribbed opening that swallows the light.
+
+ent-WFCavernClimbAsclepiu = root-bound bank
+    .desc = Roots and packed earth make a rough climb back up to the surface.
+ent-WFCavernClimbFervidus = basalt steps
+    .desc = Cooled lava has set into a rough stair up the side of the shaft.
+ent-WFCavernClimbMerak = rope ladder
+    .desc = An old prospector's rope ladder, pegged into the sandstone.
+ent-WFCavernClimbAerumna = chromite steps
+    .desc = Broken ledges of chromite climb the wall of the rift.
+ent-WFCavernClimbThrascias = ice steps
+    .desc = Steps cut into the ice climb up the side of the moulin.
+ent-WFCavernClimbCarcinoma = tendril ladder
+    .desc = Knotted tendrils hang down the throat, thick enough to climb.

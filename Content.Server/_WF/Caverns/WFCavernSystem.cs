@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Content.Server._DV.Planet;
 using Content.Server._WF.Planets;
 using Content.Server.Atmos.EntitySystems;
@@ -27,6 +28,7 @@ public sealed partial class WFCavernSystem : EntitySystem
     [Dependency] private PlanetSystem _planet = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFCavernMouthSystem _mouths = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -77,9 +79,11 @@ public sealed partial class WFCavernSystem : EntitySystem
         args.Lower.Add(level);
     }
 
-    /// <summary>Gives each cavern its own air, takes away the sky and links the ground to it.</summary>
+    /// <summary>Gives each cavern its own air, takes away the sky, links the ground to it and cuts the gate.</summary>
     private void OnNetworkBuilt(ref WFPlanetNetworkBuiltEvent args)
     {
+        var centre = CompOrNull<WFPlanetNetworkComponent>(args.Network)?.Centre ?? Vector2.Zero;
+
         foreach (var map in args.Lower)
         {
             if (!TryComp<WFCavernLayerComponent>(map, out var layer) || !_proto.TryIndex(layer.Cavern, out var cavern))
@@ -100,6 +104,9 @@ public sealed partial class WFCavernSystem : EntitySystem
             var ground = EnsureComp<WFCavernGroundComponent>(args.Ground);
             ground.Cavern = map;
             ground.Prototype = cavern.ID;
+            ground.Centre = centre;
+
+            _mouths.ClaimGate((args.Ground, ground));
         }
     }
 
