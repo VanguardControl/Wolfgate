@@ -12,20 +12,11 @@
                   VerticalExpand="False">
         <BoxContainer Orientation="Horizontal"
                       HorizontalExpand="True">
-        <!-- WOLFGATE(OldVessels): ClipText on VesselName so a long name and the Classic tag can't push the buttons off the row -->
         <Label Name="VesselName"
             Access="Public"
-            ClipText="True"
             HorizontalExpand="True"
             HorizontalAlignment="Left"
             Margin="5 0 2 0" />
-        <!-- WOLFGATE(OldVessels): marks a classic ship -->
-        <Label Name="ClassicLabel"
-            Access="Public"
-            Text="{Loc 'wf-classic-vessel'}"
-            StyleClasses="LabelSubText"
-            Visible="False"
-            Margin="0 0 5 0" />
         <Label Name="Price"
             Access="Public"
             MinWidth="80"

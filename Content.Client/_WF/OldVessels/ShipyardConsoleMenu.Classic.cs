@@ -5,7 +5,7 @@ using Content.Shared._NF.Shipyard.Prototypes;
 namespace Content.Client._NF.Shipyard.UI;
 
 /// <summary>
-/// The shipyard menu's classic ships filter (all, current only, classic only) and the Classic marker on its rows.
+/// The shipyard menu's classic ships filter (all, current only, classic only) and the Classic tag on its rows.
 /// </summary>
 public sealed partial class ShipyardConsoleMenu
 {
@@ -60,8 +60,15 @@ public sealed partial class ShipyardConsoleMenu
         };
     }
 
+    /// <summary>
+    /// Leads a classic ship's description with the Classic tag; the header row has no width to spare.
+    /// </summary>
     private static void MarkClassic(VesselRow row)
     {
-        row.ClassicLabel.Visible = row.Vessel != null && ClassicVessels.IsClassic(row.Vessel);
+        if (row.Vessel == null || !ClassicVessels.IsClassic(row.Vessel))
+            return;
+
+        row.VesselDescription.Text = Loc.GetString("wf-shipyard-classic-description",
+            ("description", row.VesselDescription.Text ?? string.Empty));
     }
 }
