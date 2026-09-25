@@ -78,12 +78,18 @@ public sealed partial class SymphonyHubSystem : EntitySystem
         base.Shutdown();
     }
 
+    /// <summary>
+    /// The timer callback's state: the system it reaches weakly, and the timer itself so the callback can stop it.
+    /// </summary>
     private sealed class TimerLink
     {
         public WeakReference<SymphonyHubSystem> System = default!;
         public Timer? Timer;
     }
 
+    /// <summary>
+    /// Queues a tick on the main thread while the system is alive, and disposes the timer once it is collected.
+    /// </summary>
     private static void OnTimer(object? state)
     {
         var link = (TimerLink) state!;
