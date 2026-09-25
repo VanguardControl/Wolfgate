@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 05/05/2026 13:25:24
-  entityCount: 1241
+  entityCount: 1251
 maps: []
 grids:
 - 1
@@ -4506,6 +4506,74 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 1252
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 2.5,29.5
+      parent: 1
+  - uid: 1253
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 10.5,14.5
+      parent: 1
+  - uid: 1254
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -8.5,14.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 1255
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 6.5,-0.5
+      parent: 1
+  - uid: 1256
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -4.5,-0.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 1257
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -4.5,23.5
+      parent: 1
+  - uid: 1258
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,23.5
+      parent: 1
+  - uid: 1259
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 13.5,15.5
+      parent: 1
+  - uid: 1260
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -11.5,15.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 1261
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -0.5,29.5
+      parent: 1
 - proto: HighSecDoor
   entities:
   - uid: 560

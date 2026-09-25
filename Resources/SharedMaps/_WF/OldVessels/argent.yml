@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/13/2025 20:55:30
-  entityCount: 778
+  entityCount: 782
 maps: []
 grids:
 - 1
@@ -3872,6 +3872,32 @@ entities:
     components:
     - type: Transform
       pos: -1.5,-31.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 790
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 5.5,-11.5
+      parent: 1
+  - uid: 791
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -6.5,-11.5
+      parent: 1
+  - uid: 792
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -4.5,-34.5
+      parent: 1
+  - uid: 793
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 3.5,-34.5
       parent: 1
 - proto: KitchenMicrowave
   entities:

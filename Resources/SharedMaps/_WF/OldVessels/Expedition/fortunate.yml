@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/10/2025 13:38:28
-  entityCount: 977
+  entityCount: 985
 maps: []
 grids:
 - 1
@@ -4837,6 +4837,60 @@ entities:
     - type: Transform
       rot: 1.5707963267948966 rad
       pos: 4.5,-7.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 978
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 6.5,-0.5
+      parent: 1
+  - uid: 979
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -6.5,-0.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 980
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,9.5
+      parent: 1
+  - uid: 981
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -8.5,9.5
+      parent: 1
+  - uid: 982
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -4.5,9.5
+      parent: 1
+  - uid: 983
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 8.5,9.5
+      parent: 1
+- proto: HardpointMissileLight
+  entities:
+  - uid: 984
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -6.5,8.5
+      parent: 1
+  - uid: 985
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,8.5
       parent: 1
 - proto: JetpackBlueFilled
   entities:

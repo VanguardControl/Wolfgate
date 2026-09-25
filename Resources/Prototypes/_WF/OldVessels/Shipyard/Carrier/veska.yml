@@ -7,7 +7,6 @@
   name: RG Veska
   description: A modified Ample that tears out the mining equipment and installs a light autocannon.
   price: 11699
-  purchasable: false
   category: Micro
   group: Custom
   mapchecker_group_override: BlackMarket  # Treat this as a BlackMarket vessel for mapchecker purposes

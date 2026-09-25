@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 05/06/2026 07:00:35
-  entityCount: 1227
+  entityCount: 1237
 maps: []
 grids:
 - 1
@@ -4770,6 +4770,70 @@ entities:
     - type: Transform
       rot: 1.5707963267948966 rad
       pos: 11.5,4.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 1231
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -12.5,7.5
+      parent: 1
+  - uid: 1232
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 13.5,7.5
+      parent: 1
+  - uid: 1233
+    components:
+    - type: Transform
+      pos: -12.5,-6.5
+      parent: 1
+  - uid: 1234
+    components:
+    - type: Transform
+      pos: 13.5,-6.5
+      parent: 1
+- proto: HardpointEnergyHeavy
+  entities:
+  - uid: 1235
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -5.5,9.5
+      parent: 1
+  - uid: 1236
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -3.5,10.5
+      parent: 1
+  - uid: 1237
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,9.5
+      parent: 1
+  - uid: 1238
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,10.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 1239
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 9.5,13.5
+      parent: 1
+  - uid: 1240
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -8.5,13.5
       parent: 1
 - proto: KitchenMicrowave
   entities:

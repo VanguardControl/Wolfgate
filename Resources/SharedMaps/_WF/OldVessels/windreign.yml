@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 01/30/2026 03:59:35
-  entityCount: 2547
+  entityCount: 2555
 maps: []
 grids:
 - 1
@@ -12796,6 +12796,56 @@ entities:
       rot: 1.5707963267948966 rad
       pos: -7.5,5.5
       parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 2548
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -11.5,29.5
+      parent: 1
+  - uid: 2549
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 12.5,29.5
+      parent: 1
+  - uid: 2550
+    components:
+    - type: Transform
+      pos: 7.5,-24.5
+      parent: 1
+  - uid: 2551
+    components:
+    - type: Transform
+      pos: -6.5,-24.5
+      parent: 1
+  - uid: 2552
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 11.5,20.5
+      parent: 1
+  - uid: 2553
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -10.5,20.5
+      parent: 1
+- proto: HardpointEnergyMedium
+  entities:
+  - uid: 2554
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -13.5,9.5
+      parent: 1
+  - uid: 2555
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 14.5,9.5
+      parent: 1
 - proto: HighSecDoor
   entities:
   - uid: 1782
@@ -15678,6 +15728,17 @@ entities:
     - type: Transform
       pos: -7.5,-21.5
       parent: 1
+- proto: WFWindreignCarrierComputer
+  entities:
+  - uid: 2531
+    components:
+    - type: Transform
+      pos: 0.5,16.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
 - proto: WallPlastitanium
   entities:
   - uid: 2178
@@ -17675,15 +17736,4 @@ entities:
       rot: -1.5707963267948966 rad
       pos: 7.5,25.5
       parent: 1
-- proto: WindreignCarrierComputer
-  entities:
-  - uid: 2531
-    components:
-    - type: Transform
-      pos: 0.5,16.5
-      parent: 1
-    - type: ApcPowerReceiver
-      powerLoad: 5
-    - type: Battery
-      startingCharge: 0
 ...

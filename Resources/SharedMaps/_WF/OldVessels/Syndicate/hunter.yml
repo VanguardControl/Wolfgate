@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/22/2025 02:15:30
-  entityCount: 365
+  entityCount: 369
 maps: []
 grids:
 - 1
@@ -1806,6 +1806,32 @@ entities:
     components:
     - type: Transform
       pos: -2.5,-12.5
+      parent: 1
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 366
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -3.5,-1.5
+      parent: 1
+  - uid: 367
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,-1.5
+      parent: 1
+  - uid: 368
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 5.5,-11.5
+      parent: 1
+  - uid: 369
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -4.5,-11.5
       parent: 1
 - proto: LockerSyndicatePersonalFilled
   entities:

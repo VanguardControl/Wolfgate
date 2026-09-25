@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 02/05/2026 01:13:12
-  entityCount: 139
+  entityCount: 142
 maps: []
 grids:
 - 1
@@ -440,6 +440,26 @@ entities:
     - type: Transform
       rot: -1.5707963267948966 rad
       pos: -0.5,-0.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 140
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -2.5,-0.5
+      parent: 1
+  - uid: 141
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 0.5,2.5
+      parent: 1
+  - uid: 142
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 3.5,-0.5
       parent: 1
 - proto: PlasmaReinforcedWindowDirectional
   entities:

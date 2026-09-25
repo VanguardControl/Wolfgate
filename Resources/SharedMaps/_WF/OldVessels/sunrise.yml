@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 09/07/2025 09:03:16
-  entityCount: 484
+  entityCount: 488
 maps: []
 grids:
 - 1
@@ -1810,6 +1810,30 @@ entities:
     components:
     - type: Transform
       pos: -0.5,2.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 485
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -6.5,8.5
+      parent: 1
+  - uid: 486
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 9.5,8.5
+      parent: 1
+  - uid: 487
+    components:
+    - type: Transform
+      pos: 9.5,-1.5
+      parent: 1
+  - uid: 488
+    components:
+    - type: Transform
+      pos: -6.5,-1.5
       parent: 1
 - proto: filingCabinetDrawer
   entities:

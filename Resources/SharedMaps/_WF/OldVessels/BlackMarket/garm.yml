@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 05/22/2026 10:53:47
-  entityCount: 918
+  entityCount: 925
 maps: []
 grids:
 - 2
@@ -6869,6 +6869,54 @@ entities:
       containers:
         solution@hairball: !type:ContainerSlot
           ent: 510
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 931
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 3.5,0.5
+      parent: 2
+  - uid: 932
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 3.5,-8.5
+      parent: 2
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 933
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -9.5,-2.5
+      parent: 2
+  - uid: 934
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -10.5,-14.5
+      parent: 2
+- proto: HardpointMissileLight
+  entities:
+  - uid: 935
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -3.5,0.5
+      parent: 2
+  - uid: 936
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -5.5,-0.5
+      parent: 2
+  - uid: 937
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -7.5,-1.5
+      parent: 2
 - proto: HolopadMachineCircuitboard
   entities:
   - uid: 595

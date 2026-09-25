@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 12/27/2025 18:43:15
-  entityCount: 3107
+  entityCount: 3115
 maps: []
 grids:
 - 1
@@ -13521,6 +13521,58 @@ entities:
     components:
     - type: Transform
       pos: 5.5,-11.5
+      parent: 1
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 3108
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 5.5,27.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 3109
+    components:
+    - type: Transform
+      pos: 20.5,-19.5
+      parent: 1
+  - uid: 3110
+    components:
+    - type: Transform
+      pos: 0.5,-19.5
+      parent: 1
+  - uid: 3111
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 25.5,22.5
+      parent: 1
+  - uid: 3112
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 25.5,27.5
+      parent: 1
+- proto: HardpointEnergyHeavy
+  entities:
+  - uid: 3113
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 12.5,8.5
+      parent: 1
+  - uid: 3114
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 8.5,8.5
+      parent: 1
+  - uid: 3115
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 10.5,7.5
       parent: 1
 - proto: HeadSkeleton
   entities:

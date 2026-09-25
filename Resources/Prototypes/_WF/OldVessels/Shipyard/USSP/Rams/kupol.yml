@@ -7,7 +7,7 @@
   description: A gunnery unit made to make up for the lacking fire-power of the Ledokol.
   limit: 1
   price: 90000
-  purchasable: false
+  purchasable: false # voucher only
   category: Small
   group: Custom
   access: USSP

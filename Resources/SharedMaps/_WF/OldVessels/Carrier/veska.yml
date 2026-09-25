@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/10/2025 13:21:41
-  entityCount: 100
+  entityCount: 101
 maps: []
 grids:
 - 1
@@ -537,6 +537,14 @@ entities:
       powerLoad: 10
     - type: ApcPowerReceiverBattery
       enabled: True
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 101
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 2.5,-0.5
+      parent: 1
 - proto: PlasmaReinforcedWindowDirectional
   entities:
   - uid: 62

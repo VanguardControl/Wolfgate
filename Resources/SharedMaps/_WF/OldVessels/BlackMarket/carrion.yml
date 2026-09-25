@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 02/24/2026 03:52:20
-  entityCount: 260
+  entityCount: 267
 maps: []
 grids:
 - 2
@@ -1239,6 +1239,53 @@ entities:
     - type: Transform
       rot: 3.141592653589793 rad
       pos: 0.5,-0.5
+      parent: 2
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 261
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 2.5,13.5
+      parent: 2
+  - uid: 262
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -1.5,13.5
+      parent: 2
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 263
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -1.5,8.5
+      parent: 2
+  - uid: 264
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 2.5,8.5
+      parent: 2
+  - uid: 265
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 2.5,-0.5
+      parent: 2
+  - uid: 266
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -1.5,-0.5
+      parent: 2
+- proto: HardpointMissileLight
+  entities:
+  - uid: 267
+    components:
+    - type: Transform
+      pos: 0.5,11.5
       parent: 2
 - proto: LightFighterOrdinanceGPOItem
   entities:

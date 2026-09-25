@@ -13,7 +13,6 @@
   name: Hound
   description: A security drone equiped with a prometheus cannon.
   price: 41611
-  purchasable: false
   category: Small
   group: Custom
   access: Brig

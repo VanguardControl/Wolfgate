@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 05/13/2026 04:13:22
-  entityCount: 2231
+  entityCount: 2235
 maps: []
 grids:
 - 1
@@ -3774,18 +3774,6 @@ entities:
     - type: Transform
       pos: -13.5,-8.5
       parent: 1
-- proto: BalorCarrierComputer
-  entities:
-  - uid: 536
-    components:
-    - type: Transform
-      rot: 1.5707963267948966 rad
-      pos: -0.5,-0.5
-      parent: 1
-    - type: ApcPowerReceiver
-      powerLoad: 5
-    - type: Battery
-      startingCharge: 0
 - proto: BannerCargo
   entities:
   - uid: 537
@@ -8559,6 +8547,32 @@ entities:
       rot: -1.5707963267948966 rad
       pos: 6.5,-2.5
       parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 2232
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -8.5,9.5
+      parent: 1
+  - uid: 2233
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 10.5,-9.5
+      parent: 1
+  - uid: 2234
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -8.5,-9.5
+      parent: 1
+  - uid: 2235
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 10.5,9.5
+      parent: 1
 - proto: LockerWallColorEngineer
   entities:
   - uid: 1390
@@ -11371,6 +11385,18 @@ entities:
     - type: Transform
       pos: 6.5,-1.5
       parent: 1
+- proto: WFBalorCarrierComputer
+  entities:
+  - uid: 536
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: -0.5,-0.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
 - proto: WallPlastitanium
   entities:
   - uid: 1837

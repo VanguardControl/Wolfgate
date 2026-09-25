@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/16/2025 14:43:06
-  entityCount: 1137
+  entityCount: 1147
 maps: []
 grids:
 - 1
@@ -5216,6 +5216,74 @@ entities:
     components:
     - type: Transform
       pos: 6.5,0.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 1138
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 6.5,9.5
+      parent: 1
+  - uid: 1139
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -5.5,9.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 1140
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -8.5,22.5
+      parent: 1
+  - uid: 1141
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 9.5,22.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 1142
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 1.5,22.5
+      parent: 1
+  - uid: 1143
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -0.5,22.5
+      parent: 1
+  - uid: 1144
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -7.5,21.5
+      parent: 1
+  - uid: 1145
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 8.5,21.5
+      parent: 1
+- proto: HardpointMissileMedium
+  entities:
+  - uid: 1146
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 7.5,2.5
+      parent: 1
+  - uid: 1147
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -6.5,2.5
       parent: 1
 - proto: HighSecUSSPLocked
   entities:

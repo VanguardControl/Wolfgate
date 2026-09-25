@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/10/2025 14:13:53
-  entityCount: 867
+  entityCount: 874
 maps: []
 grids:
 - 1
@@ -4173,6 +4173,53 @@ entities:
     components:
     - type: Transform
       pos: 6.5,-4.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 868
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -4.5,-1.5
+      parent: 1
+  - uid: 869
+    components:
+    - type: Transform
+      pos: 5.5,-10.5
+      parent: 1
+  - uid: 870
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 16.5,10.5
+      parent: 1
+  - uid: 871
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 14.5,15.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 872
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 16.5,-1.5
+      parent: 1
+  - uid: 873
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 16.5,-0.5
+      parent: 1
+- proto: HardpointMissileLight
+  entities:
+  - uid: 874
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -6.5,0.5
       parent: 1
 - proto: IntercomEngineering
   entities:

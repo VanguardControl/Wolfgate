@@ -6,7 +6,6 @@
   name: Z-22 Bow-Man
   description: An assault drone with a mounted 90mm autocannon for long range fire.
   price: 23000
-  purchasable: false
   category: Micro
   group: Custom
   access: Mercenary

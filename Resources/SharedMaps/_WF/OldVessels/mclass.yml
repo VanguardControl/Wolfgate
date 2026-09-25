@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/20/2025 12:05:23
-  entityCount: 935
+  entityCount: 941
 maps: []
 grids:
 - 1
@@ -4952,6 +4952,42 @@ entities:
     - type: Transform
       pos: -1.5,-18.5
       parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 936
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -5.5,5.5
+      parent: 1
+  - uid: 937
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,5.5
+      parent: 1
+  - uid: 938
+    components:
+    - type: Transform
+      pos: -5.5,-21.5
+      parent: 1
+  - uid: 939
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,15.5
+      parent: 1
+  - uid: 940
+    components:
+    - type: Transform
+      pos: 6.5,-21.5
+      parent: 1
+  - uid: 941
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -3.5,15.5
+      parent: 1
 - proto: KitchenAssembler
   entities:
   - uid: 545
@@ -5055,18 +5091,6 @@ entities:
     - type: Transform
       pos: -1.5,-1.5
       parent: 1
-- proto: MiningCarrierComputer
-  entities:
-  - uid: 560
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -4.5,-8.5
-      parent: 1
-    - type: ApcPowerReceiver
-      powerLoad: 5
-    - type: Battery
-      startingCharge: 0
 - proto: NFHolopadShip
   entities:
   - uid: 870
@@ -5673,6 +5697,18 @@ entities:
     - type: Transform
       pos: 2.5,-16.5
       parent: 1
+- proto: WFMiningCarrierComputer
+  entities:
+  - uid: 560
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -4.5,-8.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
 - proto: WallPlastitanium
   entities:
   - uid: 384

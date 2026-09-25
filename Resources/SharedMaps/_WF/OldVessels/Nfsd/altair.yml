@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 07/06/2026 07:57:52
-  entityCount: 1920
+  entityCount: 1931
 maps: []
 grids:
 - 1
@@ -7559,6 +7559,76 @@ entities:
     - type: Transform
       rot: 3.141592653589793 rad
       pos: -5.5,14.5
+      parent: 1
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 1921
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 8.5,36.5
+      parent: 1
+  - uid: 1922
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -7.5,36.5
+      parent: 1
+  - uid: 1923
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -6.5,40.5
+      parent: 1
+  - uid: 1924
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 7.5,40.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 1925
+    components:
+    - type: Transform
+      pos: 6.5,9.5
+      parent: 1
+  - uid: 1926
+    components:
+    - type: Transform
+      pos: -5.5,9.5
+      parent: 1
+  - uid: 1927
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -8.5,25.5
+      parent: 1
+  - uid: 1928
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 9.5,25.5
+      parent: 1
+  - uid: 1929
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -5.5,46.5
+      parent: 1
+  - uid: 1930
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,46.5
+      parent: 1
+- proto: HardpointEnergySuperheavy
+  entities:
+  - uid: 1931
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 0.5,35.5
       parent: 1
 - proto: Kettle
   entities:

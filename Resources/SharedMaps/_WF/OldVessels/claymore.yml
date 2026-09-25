@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/11/2025 09:01:42
-  entityCount: 1405
+  entityCount: 1413
 maps: []
 grids:
 - 1
@@ -6224,6 +6224,60 @@ entities:
     - type: Transform
       rot: -1.5707963267948966 rad
       pos: -2.5,-21.5
+      parent: 1
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 1512
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 3.5,2.5
+      parent: 1
+  - uid: 1513
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -2.5,2.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 1514
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -6.5,4.5
+      parent: 1
+  - uid: 1515
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -0.5,3.5
+      parent: 1
+  - uid: 1516
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 1.5,3.5
+      parent: 1
+  - uid: 1517
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 7.5,4.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 1518
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 5.5,3.5
+      parent: 1
+  - uid: 1519
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -4.5,3.5
       parent: 1
 - proto: Hemostat
   entities:

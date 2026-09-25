@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 07/06/2026 07:51:05
-  entityCount: 1049
+  entityCount: 1058
 maps: []
 grids:
 - 1
@@ -4464,6 +4464,67 @@ entities:
     components:
     - type: Transform
       pos: -3.5,1.5
+      parent: 1
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 1050
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -5.5,10.5
+      parent: 1
+  - uid: 1051
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,10.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 1052
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 3.5,20.5
+      parent: 1
+  - uid: 1053
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -2.5,20.5
+      parent: 1
+- proto: HardpointBallisticSuperlight
+  entities:
+  - uid: 1054
+    components:
+    - type: Transform
+      pos: 0.5,-7.5
+      parent: 1
+- proto: HardpointEnergyLight
+  entities:
+  - uid: 1055
+    components:
+    - type: Transform
+      pos: -5.5,-5.5
+      parent: 1
+  - uid: 1056
+    components:
+    - type: Transform
+      pos: 6.5,-5.5
+      parent: 1
+- proto: HardpointMissileHeavy
+  entities:
+  - uid: 1057
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -0.5,20.5
+      parent: 1
+  - uid: 1058
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 1.5,20.5
       parent: 1
 - proto: LockerMedicineFilled
   entities:

@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 01/01/2026 12:54:48
-  entityCount: 450
+  entityCount: 459
 maps: []
 grids:
 - 661
@@ -2311,6 +2311,64 @@ entities:
     - type: Transform
       rot: 1.5707963267948966 rad
       pos: -3.5,18.5
+      parent: 661
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 1481
+    components:
+    - type: Transform
+      pos: 4.5,4.5
+      parent: 661
+  - uid: 1482
+    components:
+    - type: Transform
+      pos: -1.5,4.5
+      parent: 661
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 1483
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 1.5,14.5
+      parent: 661
+  - uid: 1484
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -3.5,21.5
+      parent: 661
+  - uid: 1485
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -1.5,21.5
+      parent: 661
+  - uid: 1486
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,21.5
+      parent: 661
+  - uid: 1487
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,21.5
+      parent: 661
+- proto: HardpointMissileLight
+  entities:
+  - uid: 1488
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -2.5,20.5
+      parent: 661
+  - uid: 1489
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 5.5,20.5
       parent: 661
 - proto: LockerEngineerFilledHardsuit
   entities:

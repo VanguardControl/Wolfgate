@@ -13,7 +13,6 @@
   name: Rook
   description: Micro-fighter equipped with two dravons and a single 30mm chaingun.
   price: 21017
-  purchasable: false
   category: Small
   group: Custom
   access: Brig

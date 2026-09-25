@@ -6,7 +6,6 @@
   name: Z-22 Rac-Man
   description: An assault drone with two forward mounted 30mm rotary autocannons.
   price: 22000
-  purchasable: false
   category: Micro
   group: Custom
   access: Mercenary

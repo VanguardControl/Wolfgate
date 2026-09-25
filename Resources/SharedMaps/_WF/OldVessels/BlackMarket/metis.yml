@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 07/02/2026 15:26:14
-  entityCount: 273
+  entityCount: 279
 maps: []
 grids:
 - 1
@@ -1314,6 +1314,47 @@ entities:
     - type: Transform
       rot: 3.141592653589793 rad
       pos: 1.5,-8.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 274
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,3.5
+      parent: 1
+  - uid: 275
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 6.5,-7.5
+      parent: 1
+  - uid: 276
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -5.5,-7.5
+      parent: 1
+- proto: HardpointBallisticSuperlight
+  entities:
+  - uid: 277
+    components:
+    - type: Transform
+      pos: -4.5,-10.5
+      parent: 1
+- proto: HardpointMissileHeavy
+  entities:
+  - uid: 278
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -0.5,-1.5
+      parent: 1
+  - uid: 279
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 1.5,-1.5
       parent: 1
 - proto: LockerWallMaterialsFuelBananiumFilled
   entities:

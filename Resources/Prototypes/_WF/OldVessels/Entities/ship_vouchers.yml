@@ -1,5 +1,5 @@
-# Carrier LPCs mapped on the restored Ravager (Taser) and Balor (Rac-Man, Bow-Man), removed upstream by Monolith#4624.
-# Without them those grids fail to load.
+# Carrier LPCs removed upstream by Monolith#4624. The Taser and Balor ones are mapped on the restored Ravager and
+# Balor, which fail to load without them; the Ledokol one is the only way to get its rams from its console.
 
 - type: entity
   parent: BaseShipLPCRenewable
@@ -48,3 +48,30 @@
     - Bow-Man
   - type: StaticPrice
     vendPrice: 30000
+
+- type: entity
+  parent: BaseShipLPCRenewable
+  id: ShipVoucherLedokolAttachment
+  name: USSP Ledokol attachment LPC [T4]
+  description: A small card that contains the data for the procurement of attachment modules for the Ledokol.
+  components:
+  - type: Sprite
+    sprite: _Mono/Objects/Misc/lpcnew.rsi
+    layers:
+    - state: icon_fighter
+    - state: screen
+      color: "#b40505"
+    - state: screen8
+      color: "#b40505"
+      shader: unshaded
+  - type: ShipyardVoucher
+    destroyOnEmpty: true
+    cooldown: 1800 # thirty minutes
+    consoleType: Custom
+    companyName: USSP
+    vessels:
+    - Kopye
+    - Molotok
+    - Kupol
+  - type: StaticPrice
+    vendPrice: 50000

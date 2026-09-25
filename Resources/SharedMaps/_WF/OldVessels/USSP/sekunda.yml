@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/16/2025 14:36:56
-  entityCount: 558
+  entityCount: 562
 maps: []
 grids:
 - 1
@@ -1841,6 +1841,34 @@ entities:
     components:
     - type: Transform
       pos: -1.5,-8.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 562
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -2.5,-4.5
+      parent: 1
+  - uid: 563
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 3.5,-4.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 564
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -3.5,-0.5
+      parent: 1
+  - uid: 565
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 4.5,-0.5
       parent: 1
 - proto: MachineThermobathFlatpack
   entities:

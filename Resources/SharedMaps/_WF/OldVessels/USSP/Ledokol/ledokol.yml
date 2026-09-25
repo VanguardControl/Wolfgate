@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 08/10/2025 14:24:56
-  entityCount: 2690
+  entityCount: 2704
 maps: []
 grids:
 - 1
@@ -7712,6 +7712,96 @@ entities:
     - type: Transform
       pos: 19.5,24.5
       parent: 1
+- proto: HardpointBallisticHeavy
+  entities:
+  - uid: 2691
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 10.5,26.5
+      parent: 1
+  - uid: 2692
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 44.5,26.5
+      parent: 1
+- proto: HardpointBallisticLight
+  entities:
+  - uid: 2693
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 51.5,3.5
+      parent: 1
+  - uid: 2694
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: 3.5,3.5
+      parent: 1
+  - uid: 2695
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: 3.5,29.5
+      parent: 1
+  - uid: 2696
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 51.5,29.5
+      parent: 1
+  - uid: 2697
+    components:
+    - type: Transform
+      pos: 23.5,4.5
+      parent: 1
+  - uid: 2698
+    components:
+    - type: Transform
+      pos: 31.5,4.5
+      parent: 1
+- proto: HardpointBallisticMedium
+  entities:
+  - uid: 2699
+    components:
+    - type: Transform
+      pos: 6.5,0.5
+      parent: 1
+  - uid: 2700
+    components:
+    - type: Transform
+      pos: 48.5,0.5
+      parent: 1
+- proto: HardpointMissileLight
+  entities:
+  - uid: 2701
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 6.5,32.5
+      parent: 1
+  - uid: 2702
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 48.5,32.5
+      parent: 1
+- proto: HardpointMissileMedium
+  entities:
+  - uid: 2703
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: 0.5,18.5
+      parent: 1
+  - uid: 2704
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: 54.5,18.5
+      parent: 1
 - proto: MachineThermobath
   entities:
   - uid: 1224
@@ -12217,17 +12307,6 @@ entities:
     - type: Transform
       pos: 48.5,17.5
       parent: 1
-- proto: LedokolAttachmentComputer
-  entities:
-  - uid: 1834
-    components:
-    - type: Transform
-      pos: 28.5,25.5
-      parent: 1
-    - type: ApcPowerReceiver
-      powerLoad: 5
-    - type: Battery
-      startingCharge: 0
 - proto: LockableButtonUSSP
   entities:
   - uid: 1835
@@ -13636,6 +13715,17 @@ entities:
     - type: Transform
       pos: 4.5,12.5
       parent: 1
+- proto: WFLedokolAttachmentComputer
+  entities:
+  - uid: 1834
+    components:
+    - type: Transform
+      pos: 28.5,25.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
 - proto: WallmountTelevisionFrame
   entities:
   - uid: 2054
