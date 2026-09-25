@@ -27,6 +27,7 @@ using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
 using Content.Shared._RMC14.Weapons.Ranged.Prediction;
+using Content.Shared._WF.Tether.Harpoon; // WOLFGATE(Tether): manned turret gun relay
 using Content.Shared.Weapons.Hitscan.Events;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -148,13 +149,15 @@ public abstract partial class SharedGunSystem : EntitySystem
 
     private void OnShootRequest(RequestShootEvent msg, EntitySessionEventArgs args)
     {
-        // WOLFGATE: one path for both sides that links predicted projectiles. ShootRequested (with the mech and
-        // Goob burst-target handling that used to live here) is in _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs.
-        // The client already fired this shot from GunSystem.Update on its first-time tick, so it only replays it here.
+        // WOLFGATE(Weapons) START: one path for both sides that links predicted projectiles
+        // ShootRequested (with the mech and Goob burst-target handling that used to live here) is in
+        // _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs. The client already fired this shot from
+        // GunSystem.Update on its first-time tick, so it only replays it here.
         if (_netManager.IsClient && Timing.IsFirstTimePredicted)
             return;
 
         ShootRequested(msg.Gun, msg.Coordinates, msg.Target, msg.Shot, args.SenderSession, msg.Predicted);
+        // WOLFGATE END
     }
 
     private void OnStopShootRequest(RequestStopShootEvent ev, EntitySessionEventArgs args)
@@ -190,6 +193,17 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         gunEntity = default;
         gunComp = null;
+
+        // WOLFGATE(Tether) START: a mounted weapon can stand in for whatever the entity is holding, e.g. a manned harpoon turret
+        var relayEv = new MannedTurretGetGunEvent();
+        RaiseLocalEvent(entity, ref relayEv);
+        if (relayEv.Gun is { } relayed && TryComp(relayed, out GunComponent? relayedGun))
+        {
+            gunEntity = relayed;
+            gunComp = relayedGun;
+            return true;
+        }
+        // WOLFGATE END
 
         if (TryComp<MechComponent>(entity, out var mech) &&
             mech.CurrentSelectedEquipment.HasValue &&
@@ -530,7 +544,7 @@ public abstract partial class SharedGunSystem : EntitySystem
             Gun = gunUid,
             Shooter = user,
             Target = target,
-            Predicted = IsPredictedHitscan(gunUid), // WOLFGATE
+            Predicted = IsPredictedHitscan(gunUid), // WOLFGATE(Weapons)
         };
         RaiseLocalEvent(uid, ref hitscanEv);
     }

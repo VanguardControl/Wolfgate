@@ -222,7 +222,7 @@ public sealed class ShipPaAudienceTest : InteractionTest
 
     private void AddSpeaker()
     {
-        var speaker = SEntMan.SpawnEntity("WallmountShipPaSpeaker", MapData.GridCoords);
+        var speaker = SEntMan.SpawnEntity("WFWallmountShipPaSpeaker", MapData.GridCoords);
         SEntMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
     }
 

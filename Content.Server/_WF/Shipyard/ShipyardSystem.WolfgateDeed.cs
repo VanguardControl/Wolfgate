@@ -22,7 +22,7 @@ using Robust.Shared.Player;
 namespace Content.Server._NF.Shipyard.Systems;
 
 /// <summary>
-/// Wolfgate: registers an already-spawned ship to an owner the way a shipyard purchase would. Lives in the
+/// Registers an already-spawned ship to an owner the way a shipyard purchase would. Lives in the
 /// shipyard partial because the deed and lock components are access-restricted to it.
 /// </summary>
 public sealed partial class ShipyardSystem

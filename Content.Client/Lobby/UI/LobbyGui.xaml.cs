@@ -18,20 +18,21 @@ namespace Content.Client.Lobby.UI
             IoCManager.InjectDependencies(this);
             SetAnchorPreset(MainContainer, LayoutPreset.Wide);
             SetAnchorPreset(Background, LayoutPreset.Wide);
-            SetAnchorPreset(SkinScanlines, LayoutPreset.Wide); // WOLFGATE: skin scanlines cover the whole screen
+            SetAnchorPreset(SkinScanlines, LayoutPreset.Wide); // WOLFGATE(Stylesheets): skin scanlines cover the whole screen
 
             LobbySong.SetMarkup(Loc.GetString("lobby-state-song-no-song-text"));
 
             LeaveButton.OnPressed += _ => _consoleHost.ExecuteCommand("disconnect");
             OptionsButton.OnPressed += _ => UserInterfaceManager.GetUIController<OptionsUIController>().ToggleWindow();
 
-            // WOLFGATE: menu entry for character setup; un-readies first like LobbyState.OnSetupPressed
+            // WOLFGATE(Stylesheets) START: menu entry for character setup; un-readies first like LobbyState.OnSetupPressed
             CustomizeButton.OnPressed += _ =>
             {
                 if (ReadyButton.ToggleMode)
                     _consoleHost.ExecuteCommand("toggleready False");
                 SwitchState(LobbyGuiState.CharacterSetup);
             };
+            // WOLFGATE END
         }
 
         public void SwitchState(LobbyGuiState state)
@@ -48,8 +49,16 @@ namespace Content.Client.Lobby.UI
                 case LobbyGuiState.CharacterSetup:
                     CharacterSetupState.Visible = true;
 
-                    // WOLFGATE: the creator takes the whole screen, so the chat dock always hides
+                    // WOLFGATE(Stylesheets) START: the creator takes the whole screen, so the chat dock always hides
+                    // var actualWidth = (float) UserInterfaceManager.RootControl.PixelWidth;
+                    // var setupWidth = (float) LeftSide.PixelWidth;
+                    //
+                    // if (1 - (setupWidth / actualWidth) > 0.30)
+                    // {
+                    //     RightSide.Visible = false;
+                    // }
                     RightSide.Visible = false;
+                    // WOLFGATE END
 
                     UserInterfaceManager.GetUIController<LobbyUIController>().ReloadCharacterSetup();
 

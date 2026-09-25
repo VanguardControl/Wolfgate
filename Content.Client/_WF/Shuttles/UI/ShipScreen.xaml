@@ -1,5 +1,6 @@
 <BoxContainer xmlns="https://spacestation14.io"
               xmlns:wf="clr-namespace:Content.Client._WF.Shuttles.UI"
+              xmlns:pa="clr-namespace:Content.Client._WF.ShipPa.UI"
               xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
               xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
               Visible="False"
@@ -119,7 +120,7 @@
                            FontColorOverride="#ff4040"
                            Margin="4 0 4 0"
                            Visible="False"/>
-                    <wf:ShipAlarmPanel Name="AlarmPanel" Margin="0 8 0 0"/>
+                    <pa:ShipAlarmPanel Name="AlarmPanel" Margin="0 8 0 0"/>
                 </BoxContainer>
             </ScrollContainer>
         </PanelContainer>

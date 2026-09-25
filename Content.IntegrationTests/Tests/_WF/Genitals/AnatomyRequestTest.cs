@@ -2,6 +2,8 @@ using Content.IntegrationTests.Pair;
 using Content.Server._WF.Genitals;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Humanoid;
 using Content.Shared.Mobs;

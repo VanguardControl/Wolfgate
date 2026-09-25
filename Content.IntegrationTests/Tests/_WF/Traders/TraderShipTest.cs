@@ -19,7 +19,6 @@ using Content.Shared._Mono.Ships.Components;
 using Content.Shared._NF.Shipyard;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
-using Content.Shared._WF.Access;
 using Content.Shared._WF.Traders;
 using Content.Shared.Access.Components;
 using Content.Shared.Mind;
@@ -69,6 +68,10 @@ public sealed class TraderShipTest
     private const string MarkerProto = "Wrench";
     private const string VesselProto = "Guppy";
     private const string BorgProto = "BorgChassisGeneric";
+    private const string RenamedShip = "Wolfgate Rename";
+    private const int RenameOption = 3;
+    private const int UnassignOption = 4;
+    private const string BorgName = "Wolfgate resale borg";
     private const string ShipName = "Test Barge";
     private const string MarkerName = "Wolfgate resale marker";
 
@@ -362,6 +365,109 @@ public sealed class TraderShipTest
     }
 
     /// <summary>
+    /// The dealer renames a ship on the customer's papers, then strikes them off the card entirely,
+    /// both through the console's own handlers.
+    /// </summary>
+    [Test]
+    public async Task DealerRenamesAndUnassigns()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+
+        var entMan = server.EntMan;
+        var protoMan = server.ResolveDependency<IPrototypeManager>();
+        var mapSys = entMan.System<SharedMapSystem>();
+        var mindSys = entMan.System<SharedMindSystem>();
+        var traderSys = entMan.System<TraderSystem>();
+        var shipyardSys = entMan.System<ShipyardSystem>();
+        var mapLoader = entMan.System<MapLoaderSystem>();
+
+        var gridUid = map.Grid.Owner;
+        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
+
+        var trader = EntityUid.Invalid;
+        var customer = EntityUid.Invalid;
+        var idCard = EntityUid.Invalid;
+
+        await server.WaitPost(() =>
+        {
+            mapSys.SetTile(gridUid, map.Grid.Comp, new Vector2i(0, -1), map.Tile.Tile);
+            mapSys.SetTile(gridUid, map.Grid.Comp, new Vector2i(1, 0), map.Tile.Tile);
+
+            // Deeds write a sector shuttle record; the host component gives it somewhere to go.
+            entMan.EnsureComponent<StationSectorServiceHostComponent>(entMan.Spawn());
+
+            trader = entMan.SpawnEntity(DealerProto, new EntityCoordinates(gridUid, 0.5f, 0.5f));
+            entMan.SpawnEntity(TableProto, new EntityCoordinates(gridUid, 0.5f, -0.5f));
+
+            mindSys.WipeMind(session.ContentData()?.Mind);
+            customer = entMan.SpawnEntity(CustomerProto, new EntityCoordinates(gridUid, 1.5f, 0.5f));
+            var mind = mindSys.CreateMind(session.UserId).Owner;
+            mindSys.TransferTo(mind, customer);
+
+            var vessel = protoMan.Index<VesselPrototype>(VesselProto);
+            Assert.That(mapLoader.TryLoadGrid(map.MapId, vessel.ShuttlePath, out var ship, offset: new Vector2(60, 0)), Is.True);
+
+            idCard = entMan.SpawnEntity(IdProto, new EntityCoordinates(gridUid, 0.5f, -0.5f));
+            entMan.EnsureComponent<IdCardOwnerComponent>(idCard).UserId = session.UserId;
+            Assert.That(shipyardSys.TryAssignDeed(ship!.Value.Owner, idCard, session, vessel), Is.True, "The card should hold a deed.");
+        });
+
+        await pair.RunTicksSync(5);
+
+        await server.WaitPost(() =>
+        {
+            var comp = entMan.GetComponent<TraderComponent>(trader);
+            traderSys.RefreshTable((trader, comp));
+            Assert.That(traderSys.TryStartConversation((trader, comp), customer), Is.True);
+            SelectOption(entMan, trader, customer, RenameOption);
+        });
+
+        await pair.RunTicksSync(40);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = entMan.GetComponent<TraderComponent>(trader);
+            Assert.That(comp.TextPrompt, Is.Not.Null, "The dealer should be asking for a name.");
+
+            entMan.EventBus.RaiseLocalEvent(trader, new TraderTextMessage(RenamedShip)
+            {
+                Actor = customer,
+                UiKey = TraderUiKey.Dialogue,
+            });
+
+            Assert.That(entMan.GetComponent<ShuttleDeedComponent>(idCard).ShuttleName, Is.EqualTo(RenamedShip),
+                "The papers should carry the new name.");
+            Assert.That(traderSys.GetZoneItems((trader, comp)), Does.Contain(idCard), "The card should be back on the table.");
+
+            SelectOption(entMan, trader, customer, UnassignOption);
+        });
+
+        await pair.RunTicksSync(40);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = entMan.GetComponent<TraderComponent>(trader);
+            Assert.That(comp.Confirming, Is.True, "The dealer should ask before striking the papers.");
+
+            entMan.EventBus.RaiseLocalEvent(trader, new TraderConfirmMessage(true)
+            {
+                Actor = customer,
+                UiKey = TraderUiKey.Dialogue,
+            });
+
+            Assert.That(entMan.HasComponent<ShuttleDeedComponent>(idCard), Is.False, "The deed should be off the card.");
+            Assert.That(traderSys.GetZoneItems((trader, comp)), Does.Contain(idCard), "The card should be back on the table.");
+            Assert.That(entMan.HasComponent<ShipyardConsoleComponent>(trader), Is.False, "The hosted console should be gone.");
+
+            traderSys.EndConversation((trader, comp), farewell: false);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
     /// Sends the dialogue message a customer's window would send, without a client behind it.
     /// </summary>
     private static void SelectOption(IEntityManager entMan, EntityUid trader, EntityUid customer, int index)
@@ -583,19 +689,15 @@ public sealed class TraderShipTest
                 "The ship should have gravity before it is sold.");
 
             var deck = entMan.GetComponent<MapGridComponent>(shuttle).LocalAABB.Center;
-            Assert.That(marketSys.GetUnsavableAboard(shuttle), Is.Empty,
-                "A stock hull, humming computers and all, should be sellable.");
-
-            var borg = entMan.SpawnEntity(BorgProto, new EntityCoordinates(shuttle, deck));
-
-            Assert.That(marketSys.GetUnsavableAboard(shuttle), Does.Contain(borg),
-                "A borg aboard should block the sale.");
-
-            entMan.DeleteEntity(borg);
-
             var leftover = marketSys.GetUnsavableAboard(shuttle);
             Assert.That(leftover, Is.Empty,
-                $"Nothing else on a stock hull should be unsavable: {string.Join(", ", leftover.Select(uid => entMan.ToPrettyString(uid).ToString()))}");
+                $"Nothing on a stock hull should need carrying: {string.Join(", ", leftover.Select(uid => entMan.ToPrettyString(uid).ToString()))}");
+
+            // A mindless borg rides along with the hull, the way it would through the console.
+            var borg = entMan.SpawnEntity(BorgProto, new EntityCoordinates(shuttle, deck));
+            metaSys.SetEntityName(borg, BorgName);
+            Assert.That(marketSys.GetUnsavableAboard(shuttle), Does.Contain(borg),
+                "The borg should be listed for carrying.");
         });
 
         // Docking settles over a few ticks; wait for it rather than assuming a count.
@@ -637,6 +739,8 @@ public sealed class TraderShipTest
                 .First(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityName == MarkerName);
             Assert.That(entMan.GetComponent<DamageableComponent>(boughtMarker).TotalDamage, Is.EqualTo(FixedPoint2.New(7)),
                 "Damage should survive the resale copy.");
+            Assert.That(Descendants(entMan, bought).Any(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityName == BorgName),
+                Is.True, "The borg should have come with the ship.");
             Assert.That(entMan.HasComponent<ShuttleDeedComponent>(bought), Is.False, "The old deed must not come back.");
 
             // The grid never map-inits again, so the nav map has to be rebuilt by hand.

@@ -46,6 +46,7 @@ public sealed class TraderBoundUserInterface : BoundUserInterface
         _dialogue.SetTrader(Owner, Name(Owner));
         _dialogue.OnOptionPressed += index => SendMessage(new TraderDialogueSelectMessage(index));
         _dialogue.OnConfirmPressed += accepted => SendMessage(new TraderConfirmMessage(accepted));
+        _dialogue.OnTextSubmitted += text => SendMessage(new TraderTextMessage(text));
     }
 
     private string Name(EntityUid uid)

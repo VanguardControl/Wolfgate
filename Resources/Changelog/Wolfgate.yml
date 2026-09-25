@@ -306,3 +306,99 @@ Entries:
   id: 100027
   time: '2026-09-22T16:23:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/59
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: Xenomorphs buffed, added Reclamation gamemode.
+  id: 100028
+  time: '2026-09-22T20:26:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/48
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Rope. Tie it between anchor eyes on two ships, or to a loose crate, and
+        tow. Hemp, synthetic, bungee, steel cable and tow cable, each with its
+        own strength and stretch.
+    - type: Add
+      message: >-
+        Tether anchor eyes, built by hand or bolted down with the tether
+        installer.
+    - type: Add
+      message: >-
+        Ship harpoon turret. Strap in, line up the shot, and put a tow cable
+        into another hull. Reel in, pay out, release.
+    - type: Add
+      message: LV, MV and HV power cords that link two ships' power nets.
+    - type: Add
+      message: All of the above is stocked in the Wolfgate Vending Machine.
+  id: 100029
+  time: '2026-09-23T02:16:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/62
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Emergency responders now get an emergency responder ship voucher for a
+        smol medical ship.
+  id: 100030
+  time: '2026-09-23T23:24:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/66
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        The crafting menu has x2, x5, x10, x20, x50 and All buttons to craft an
+        item several times in a row.
+  id: 100031
+  time: '2026-09-24T00:27:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/67
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: You should no longer get a random job on Hyperwar.
+  id: 100032
+  time: '2026-09-24T05:10:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/71
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Superheated tiles are now shown with a heat haze effect.
+  id: 100033
+  time: '2026-09-25T00:36:30.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/73
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added parts and chemical silos that can supply linked fabrication
+        machines with precursor components and recipe chemicals.
+    - type: Tweak
+      message: >-
+        Overhauled fabrication menus and added queues that wait for missing
+        supplies and start automatically when those supplies arrive.
+    - type: Tweak
+      message: >-
+        Recipe components can now be inserted directly into compatible
+        fabrication machines instead of being placed on top.
+  id: 100034
+  time: '2026-09-25T01:10:51.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/69
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: MMC Dredger, a new salvage class ship for MMC shipyards.
+    - type: Add
+      message: >-
+        Added a moth plushie resembling a certain moth from a familiar sector.
+        Made in honor of Arcana Obscura.
+  id: 100035
+  time: '2026-09-25T01:43:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/74
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Roswell now has hardpoints.
+  id: 100036
+  time: '2026-09-25T05:18:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/81

@@ -27,8 +27,8 @@ namespace Content.Client.Input
             common.AddFunction(ContentKeyFunctions.EscapeContext);
             common.AddFunction(ContentKeyFunctions.ExamineEntity);
             common.AddFunction(ContentKeyFunctions.OpenAHelp);
-            common.AddFunction(ContentKeyFunctions.OpenConsentWindow); // WOLFGATE - consent system
-            common.AddFunction(ContentKeyFunctions.OpenAnatomyPanel); // WOLFGATE - anatomy panel
+            common.AddFunction(ContentKeyFunctions.OpenConsentWindow); // WOLFGATE(Genitals): consent system
+            common.AddFunction(ContentKeyFunctions.OpenAnatomyPanel); // WOLFGATE(Genitals): anatomy panel
             common.AddFunction(ContentKeyFunctions.TakeScreenshot);
             common.AddFunction(ContentKeyFunctions.TakeScreenshotNoUI);
             common.AddFunction(ContentKeyFunctions.ToggleFullscreen);
@@ -59,6 +59,8 @@ namespace Content.Client.Input
             human.AddFunction(EngineKeyFunctions.MoveLeft);
             human.AddFunction(EngineKeyFunctions.MoveRight);
             human.AddFunction(EngineKeyFunctions.Walk);
+            human.AddFunction(ContentKeyFunctions.ShuttleAscend); // Mono / PZN
+            human.AddFunction(ContentKeyFunctions.ShuttleDescend);
             human.AddFunction(ContentKeyFunctions.SwapHands);
             human.AddFunction(ContentKeyFunctions.SwapHandsPrevious); // Frontier
             human.AddFunction(ContentKeyFunctions.Drop);

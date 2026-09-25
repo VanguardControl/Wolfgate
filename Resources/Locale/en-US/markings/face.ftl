@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-FaceBindi = Bindi
 marking-FaceBindi-bindi = Bindi
 marking-FaceCheekspotLeft = Cheek Spot (Left)

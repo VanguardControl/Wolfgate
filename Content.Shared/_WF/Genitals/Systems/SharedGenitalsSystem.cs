@@ -5,6 +5,7 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Content.Shared._WF.Genitals.Profile;
 
 namespace Content.Shared._WF.Genitals.Systems;
 
@@ -18,7 +19,7 @@ public abstract partial class SharedGenitalsSystem : EntitySystem
 
     private bool _enabled = true;
 
-    /// <summary>The Default settings prototype.</summary>
+    /// <summary>The WFDefault settings prototype.</summary>
     public GenitalSettingsPrototype Settings => GenitalProfileValidator.GetSettings(_proto);
 
     /// <summary>The replicated kill switch wf.anatomy_enabled.</summary>

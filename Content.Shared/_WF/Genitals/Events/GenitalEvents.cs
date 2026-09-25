@@ -1,6 +1,6 @@
 using Content.Shared.Preferences;
 
-namespace Content.Shared._WF.Genitals;
+namespace Content.Shared._WF.Genitals.Events;
 
 /// <summary>Raised on the body after arousal changes. Old/new values and states, plus the cause.</summary>
 [ByRefEvent]

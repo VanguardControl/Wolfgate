@@ -1,2 +1,2 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 chat-radio-trinary = Trinary

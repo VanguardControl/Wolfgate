@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024-2025 Space Wizards Federation
 // SPDX-License-Identifier: MIT
-// Wolfgate: ported from HardLight.
+// WOLFGATE(Genitals): ported from HardLight.
 
 using Content.Server.Database;
 using Content.Shared._Common.Consent;
@@ -25,7 +25,7 @@ public sealed class ServerConsentManager : IServerConsentManager
     [Dependency] private readonly IServerNetManager _netManager = default!;
     [Dependency] private readonly IServerDbManager _db = default!;
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly UserDbDataManager _userDb = default!; // WOLFGATE
+    [Dependency] private readonly UserDbDataManager _userDb = default!; // WOLFGATE(Genitals)
 
     public event Action<ICommonSession, PlayerConsentSettings>? OnConsentUpdated;
 
@@ -37,8 +37,9 @@ public sealed class ServerConsentManager : IServerConsentManager
     public void Initialize()
     {
         _netManager.RegisterNetMessage<MsgUpdateConsent>(HandleUpdateConsentMessage);
-        // WOLFGATE - HardLight calls LoadData from UserDbDataManager directly; Wolfgate's copy
-        // exposes a registration hook instead, so use that rather than editing it.
+        // WOLFGATE(Genitals): loads through the UserDbDataManager registration hook
+        // HardLight calls LoadData from UserDbDataManager directly; Wolfgate's copy exposes a hook instead, so use
+        // that rather than editing it.
         _userDb.AddOnLoadPlayer(LoadData);
     }
 
@@ -58,7 +59,7 @@ public sealed class ServerConsentManager : IServerConsentManager
         if (message.Consent.Freetext != consentSettings.ConsentFreetext)
         {
             consentSettings.ConsentFreetext = message.Consent.Freetext;
-            consentSettings.ConsentFreetextUpdatedAt = DateTime.UtcNow; // WOLFGATE: receipts are UTC; local time skewed the unread marker
+            consentSettings.ConsentFreetextUpdatedAt = DateTime.UtcNow; // WOLFGATE(Genitals): receipts are UTC; local time skewed the unread marker
         }
 
         // Log the change
@@ -70,7 +71,7 @@ public sealed class ServerConsentManager : IServerConsentManager
         // Persistence
         if (ShouldStoreInDb(message.MsgChannel.AuthType))
         {
-            // WOLFGATE: keep the row id in the cache; read receipts reference it and it is 0 until the first save.
+            // WOLFGATE(Genitals): keep the row id in the cache; read receipts reference it and it is 0 until the first save.
             consentSettings.Id = await _db.SavePlayerConsentSettingsAsync(userId, message.Consent);
         }
 
@@ -126,7 +127,7 @@ public sealed class ServerConsentManager : IServerConsentManager
             _consent[targetUserId] = consentSettings;
         }
 
-        // WOLFGATE: settings that were never saved have no row to reference, so that receipt stays in memory.
+        // WOLFGATE(Genitals): settings that were never saved have no row to reference, so that receipt stays in memory.
         var readRecipe = consentSettings.Id == 0
             ? new ConsentFreetextReadReceipt { ReaderUserId = readerUserId, ReadAt = DateTime.UtcNow }
             : await _db.UpdatePlayerConsentReadReceipt(readerUserId, consentSettings.Id);

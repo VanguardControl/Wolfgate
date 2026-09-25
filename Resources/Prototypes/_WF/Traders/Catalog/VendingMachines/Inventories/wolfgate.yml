@@ -1,0 +1,36 @@
+# Everything added through Wolfgate is stocked here; John Wolfgate sells the same list.
+- type: vendingMachineInventory
+  id: WFWolfgateVendInventory
+  startingInventory:
+    WFRopeHempCoil: 6
+    WFRopeSyntheticCoil: 6
+    WFRopeBungeeCoil: 4
+    WFRopeSteelCableCoil: 4
+    WFRopeTowCableCoil: 2
+    WFTetherInstaller: 3
+    WFPowerCordCoilLV: 4
+    WFPowerCordCoilMV: 4
+    WFPowerCordCoilHV: 4
+    WFShipHarpoonTurretFlatpack: 2
+    WFShipHarpoon: 8
+    WFPartsSiloFlatpack: 2
+    WFChemicalSiloFlatpack: 2
+    # Wolfmed field medicine.
+    WolfmedSplint: 6
+    WolfmedAntisepticSpray: 6
+    WolfmedSkinGraft: 4
+    WolfmedAnalgesicPill: 10
+    WolfmedOpiateChemistryBottle: 3
+    WolfmedStimPen: 4
+    WolfmedAnalgesicPen: 10
+    WolfmedOpiatePen: 6
+    WolfmedNaloxonePen: 4 # M2 (OD14): reverses an overdose.
+    WolfmedHydraulicFluidPack: 4 # Playtest 3 IPC 2: refills a chassis.
+    SpaceacillinChemistryBottle: 3
+    # Autodoc consumables. The pod itself and its board come from the medical lathe.
+    AutodocProgramDiskTransplant: 2
+    AutodocProgramDiskLimb: 2
+    AutodocProgramDiskNeuro: 2
+    AutodocProgramDiskCavity: 2
+    AutodocDefibModule: 2
+    AutodocAutofixModule: 2

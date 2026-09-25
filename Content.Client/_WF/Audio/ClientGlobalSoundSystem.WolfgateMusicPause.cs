@@ -4,7 +4,7 @@ using Robust.Shared.Audio.Components;
 namespace Content.Client.Audio;
 
 /// <summary>
-/// Wolfgate: lets internet sounds pause station event music (nuke countdown, round end), then resume it.
+/// Lets internet sounds pause station event music (nuke countdown, round end), then resume it.
 /// </summary>
 public sealed partial class ClientGlobalSoundSystem
 {

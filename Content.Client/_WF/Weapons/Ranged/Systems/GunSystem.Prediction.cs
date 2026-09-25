@@ -14,7 +14,7 @@ using Robust.Shared.Map;
 namespace Content.Client.Weapons.Ranged.Systems;
 
 /// <summary>
-/// Wolfgate: fires predicted copies of the server's projectiles, so shots appear the moment they're fired.
+/// Fires predicted copies of the server's projectiles, so shots appear the moment they're fired.
 /// </summary>
 public sealed partial class GunSystem
 {

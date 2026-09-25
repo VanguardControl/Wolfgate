@@ -4,21 +4,29 @@
   markingCategory: Tail
   speciesRestriction: [] # Intentional to keep it from showing in the customization menu
   forcedColoring: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
+  layering:
     tail_animated_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  # WOLFGATE END
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
+  colorLinks:
     tail_animated_BEHIND: tail_animated_FRONT
+  # WOLFGATE END
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - split art
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
+  # - sprite: Mobs/Customization/vox_parts.rsi
+  #   state: tail_animated
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_animated_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_animated_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: VoxTailShort
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vox, ProtoVox]
+  speciesRestriction: [Vox, ProtoVox] # WOLFGATE(Species): add ProtoVox
   forcedColoring: true
   sprites:
   - sprite: Mobs/Customization/vox_parts.rsi
@@ -38,7 +46,7 @@
   id: VoxTailBig
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vox, ProtoVox]
+  speciesRestriction: [Vox, ProtoVox] # WOLFGATE(Species): add ProtoVox
   forcedColoring: true
   sprites:
   - sprite: Mobs/Customization/vox_parts.rsi
@@ -51,22 +59,30 @@
   markingCategory: Tail
   speciesRestriction: []
   forcedColoring: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
+  layering:
     tail_big_animated_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  # WOLFGATE END
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
+  colorLinks:
     tail_big_animated_BEHIND: tail_big_animated_FRONT
+  # WOLFGATE END
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - split art
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
+  # - sprite: Mobs/Customization/vox_parts.rsi
+  #   state: tail_big_animated
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_big_animated_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_big_animated_BEHIND
+  # WOLFGATE END
     
 
 - type: marking
   id: VoxTailSpikes
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vox, ProtoVox]
+  speciesRestriction: [Vox, ProtoVox] # WOLFGATE(Species): add ProtoVox
   forcedColoring: true
   sprites:
   - sprite: Mobs/Customization/vox_parts.rsi
@@ -78,21 +94,29 @@
   markingCategory: Tail
   speciesRestriction: []
   forcedColoring: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
+  layering:
     tail_spikes_animated_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  # WOLFGATE END
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
+  colorLinks:
     tail_spikes_animated_BEHIND: tail_spikes_animated_FRONT
+  # WOLFGATE END
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - split art
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
+  # - sprite: Mobs/Customization/vox_parts.rsi
+  #   state: tail_spikes_animated 
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_spikes_animated_FRONT 
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_spikes_animated_BEHIND
+  # WOLFGATE END
     
 - type: marking
   id: VoxTailDocked
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vox, ProtoVox]
+  speciesRestriction: [Vox, ProtoVox] # WOLFGATE(Species): add ProtoVox
   forcedColoring: true
   sprites:
   - sprite: Mobs/Customization/vox_parts.rsi
@@ -112,7 +136,7 @@
   id: VoxTailSplit
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vox, ProtoVox]
+  speciesRestriction: [Vox, ProtoVox] # WOLFGATE(Species): add ProtoVox
   forcedColoring: true
   sprites:
   - sprite: Mobs/Customization/vox_parts.rsi
@@ -124,12 +148,20 @@
   markingCategory: Tail
   speciesRestriction: []
   forcedColoring: true
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: the south frame draws behind the body, so the tail never covers anatomy
+  layering:
     tail_split_animated_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  # WOLFGATE END
+  # WOLFGATE(Genitals) START: both halves of a tail share one colour
+  colorLinks:
     tail_split_animated_BEHIND: tail_split_animated_FRONT
+  # WOLFGATE END
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - split art
+  # WOLFGATE(Genitals) START: split art, south frame on TailBehind
+  # - sprite: Mobs/Customization/vox_parts.rsi
+  #   state: tail_split_animated 
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_split_animated_FRONT 
-  - sprite: _WF/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/Mobs/Customization/vox_parts.rsi
     state: tail_split_animated_BEHIND
+  # WOLFGATE END

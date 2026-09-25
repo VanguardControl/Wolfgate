@@ -6,8 +6,10 @@
   name: puffy vest
   description: A flashy looking puffy and somewhat elastic vest. It makes an insane amount of noise at the slighest movement, but at least they bothered making some pockets on the inside.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: _Mono/Clothing/OuterClothing/Vests/DI-puffy-vest.rsi
   - type: Clothing
@@ -20,8 +22,10 @@
   name: elite web vest
   description: A synthetic armor vest. This one has added webbing and heat resistant fibers.
   components:
-  - type: GenitalCoverage # WOLFGATE - anatomy coverage
+  # WOLFGATE(Genitals) START: anatomy coverage
+  - type: GenitalCoverage
     regions: Chest
+  # WOLFGATE END
   - type: Sprite
     sprite: _Mono/Clothing/OuterClothing/Vests/elitevest.rsi
   - type: Clothing

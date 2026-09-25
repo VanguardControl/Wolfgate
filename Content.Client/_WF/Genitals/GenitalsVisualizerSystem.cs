@@ -5,6 +5,7 @@ using Content.Shared._Common.Consent;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Clothing;

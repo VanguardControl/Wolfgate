@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Content.Server._WF.Genitals;
 using Content.Shared._WF.Genitals;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared._WF.Genitals.Systems;
 using Content.Shared.Preferences;
@@ -121,15 +122,15 @@ public sealed class GenitalLogicTest
         var notJson = GenitalProfileJson.Deserialize("{not json", log, 4);
         var notObject = GenitalProfileJson.Deserialize("[1, 2]", log, 5);
         var badOrgan = GenitalProfileJson.Deserialize(
-            "{\"v\":1,\"penis\":{\"shape\":\"GenitalShapePenisKnotted\",\"lengthCm\":\"long\"},\"vagina\":{\"shape\":\"GenitalShapeVaginaHuman\"},\"womb\":true}",
+            "{\"v\":1,\"penis\":{\"shape\":\"WFGenitalShapePenisKnotted\",\"lengthCm\":\"long\"},\"vagina\":{\"shape\":\"WFGenitalShapeVaginaHuman\"},\"womb\":true}",
             log, 6);
         var badEnum = GenitalProfileJson.Deserialize(
-            "{\"v\":1,\"breasts\":{\"shape\":\"GenitalShapeBreastsPair\",\"visibility\":\"Sideways\"},\"testicles\":{\"type\":\"External\"}}",
+            "{\"v\":1,\"breasts\":{\"shape\":\"WFGenitalShapeBreastsPair\",\"visibility\":\"Sideways\"},\"testicles\":{\"type\":\"External\"}}",
             log, 7);
         var extraProperty = GenitalProfileJson.Deserialize("{\"v\":1,\"reveal\":\"ClothingRemoval\",\"future\":{\"x\":1},\"womb\":false}", log, 8);
         var noVersion = GenitalProfileJson.Deserialize("{\"reveal\":\"UndergarmentRemoval\"}", log, 9);
         var newer = GenitalProfileJson.Deserialize(
-            "{\"v\":2,\"reveal\":\"ClothingRemoval\",\"breasts\":{\"shape\":\"GenitalShapeBreastsPair\",\"cup\":4}}", log, 11);
+            "{\"v\":2,\"reveal\":\"ClothingRemoval\",\"breasts\":{\"shape\":\"WFGenitalShapeBreastsPair\",\"cup\":4}}", log, 11);
 
         // An edited unmigrated profile is written as the current schema, so the edit is not lost.
         var editedUnmigrated = GenitalProfile.Unmigrated.WithPenis(new PenisProfile(PenisKnotted));
@@ -206,11 +207,11 @@ public sealed class GenitalLogicTest
         });
     }
 
-    private const string PenisKnotted = "GenitalShapePenisKnotted";
-    private const string PenisHemi = "GenitalShapePenisHemi";
-    private const string VaginaHuman = "GenitalShapeVaginaHuman";
-    private const string VaginaSlit = "GenitalShapeVaginaSlit";
-    private const string BreastsPair = "GenitalShapeBreastsPair";
+    private const string PenisKnotted = "WFGenitalShapePenisKnotted";
+    private const string PenisHemi = "WFGenitalShapePenisHemi";
+    private const string VaginaHuman = "WFGenitalShapeVaginaHuman";
+    private const string VaginaSlit = "WFGenitalShapeVaginaSlit";
+    private const string BreastsPair = "WFGenitalShapeBreastsPair";
 
     private static GenitalProfile FullProfile()
     {

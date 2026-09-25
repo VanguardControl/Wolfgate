@@ -1,5 +1,5 @@
-using Content.Shared._WF.Interaction;
 using Content.Shared.Interaction.Components;
+using Content.Shared.Movement.Components;
 
 namespace Content.Shared._WF.Traders;
 
@@ -20,6 +20,10 @@ public sealed class TraderReachSystem : EntitySystem
     {
         // Not networked, so the client has to drop its own copy or it predicts the hug.
         RemCompDeferred<InteractionPopupComponent>(ent);
+
+        // A trader is a wall as far as walking into it goes; mob pushing against a static body
+        // has the server and the client disagreeing every tick, which reads as rubber banding.
+        RemCompDeferred<MobCollisionComponent>(ent);
     }
 
     private void OnRangeBonus(Entity<TraderComponent> ent, ref InteractionRangeBonusEvent args)

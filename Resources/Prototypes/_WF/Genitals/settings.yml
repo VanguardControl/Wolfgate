@@ -1,7 +1,7 @@
 # Global anatomy settings, read through SharedGenitalsSystem.Settings.
 
 - type: genitalSettings
-  id: Default
+  id: WFDefault
   adultAge: 18
   excludedSpecies: [ IPC ]      # positronic chassis
   partialArousal: 30
@@ -13,13 +13,13 @@
   lengthStepMaxCm: [ 17, 24, 32, 44 ]
   defaultTesticleSize: 2
   defaultCup: 3
-  testiclesShape: GenitalShapeTesticlesPair
+  testiclesShape: WFGenitalShapeTesticlesPair
   stripDelay: 3
   stripCooldown: 30
   requestInterval: 0.1
   requestBurst: 3
-  stripConsent: UndergarmentStrip   # consent.yml; unset would refuse every undergarment removal by others
-  surgeryConsent: AnatomySurgery    # consent.yml; unset would refuse every anatomy surgery by others
+  stripConsent: WFUndergarmentStrip   # consent.yml; unset would refuse every undergarment removal by others
+  surgeryConsent: WFAnatomySurgery    # consent.yml; unset would refuse every anatomy surgery by others
   # Measured on the south-facing torso sprites against Human, in pixels (+y up). Chest follows the female torso top
   # (first row at least 5 px wide), Groin the male crotch (lowest torso row in the leg gap). Species that share a body
   # share the values. Provisional until each species is checked in the client.

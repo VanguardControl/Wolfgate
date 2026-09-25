@@ -17,6 +17,8 @@
   accessGroups:
   - GeneralAccess
   - Medical
+  access:
+  - Medical
   guides:
   - Caelestinus
   special:
@@ -44,3 +46,4 @@
     back:
     - RubberStampDoctor
     - BoxFolderMedicalDoctor
+    - WFShipVoucherMedicalResponder # WOLFGATE(Shipyard): free Triage or Stubby

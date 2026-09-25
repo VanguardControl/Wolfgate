@@ -1,11 +1,11 @@
-<Document>
+<!-- WOLFGATE: was "# Monolith Rules" --><Document>
 # Wolfgate Rules
 
 ## Foreword
 
-[italic]Wolfgate is a derivative of [bold]Monolith[/bold], and our ruleset is based on theirs.[/italic]
+<!-- WOLFGATE START: Wolfgate branding foreword -->[italic]Wolfgate is a derivative of [bold]Monolith[/bold], and our ruleset is based on theirs.[/italic]
 
-Servers are often a diluted mess of rules and restrictions that hinder players' creative abilities and freedom to craft their own experiences.
+<!-- WOLFGATE END -->Servers are often a diluted mess of rules and restrictions that hinder players' creative abilities and freedom to craft their own experiences.
 
 We do expect, at the very least, that you [bold]stay in-character, adhere to the setting, and engage in quality roleplay to the best of your abilities[/bold].
 
@@ -21,9 +21,9 @@ All of the below rules apply at all times, including between rounds, in-game, an
 [color=red][italic]These rules are expected to be read in their entirety.[/italic][/color]
 
 ## Core Rules
-These are the core rules of Wolfgate:
+<!-- WOLFGATE START: Wolfgate branding, age threshold was 16 -->These are the core rules of Wolfgate:
 - 0. [textlink="Players must be, and act, 18 or above to play Wolfgate." link="MonolithRuleCoreZeroAgeThreshold"]
-- 1. [textlink="Use common sense." link="MonolithRuleCoreOneCommonSense"]
+<!-- WOLFGATE END -->- 1. [textlink="Use common sense." link="MonolithRuleCoreOneCommonSense"]
 - 2. [textlink="Respect each other." link="MonolithRuleCoreTwoRespect"]
 - 3. [textlink="Do not engage in cheating or exploits." link="MonolithRuleCoreThreeCheatingExploits"]
 - 4. [textlink="Do not use alternative accounts." link="MonolithRuleCoreFourAlternativeAccounts"]
@@ -32,18 +32,18 @@ These are the core rules of Wolfgate:
 - 7. [textlink="Do not threaten to report a player." link="MonolithRuleCoreSevenThreatenToReport"]
 
 ## Roleplay Rules
-These are the roleplay rules of Wolfgate:
+<!-- WOLFGATE: Wolfgate branding -->These are the roleplay rules of Wolfgate:
 - 1. [textlink="Do not break character." link="MonolithRuleRoleplayOneBreakCharacter"]
 - 2. [textlink="Avoid misusing in-character text chat." link="MonolithRuleRoleplayTwoTextChat"]
 - 3. [textlink="Type with proper grammar in in-character text chat." link="MonolithRuleRoleplayThreeProperGrammar"]
 - 4. [textlink="Do not name yourself well known people or things." link="MonolithRuleRoleplayFourCharacterActions"]
-- 5. [textlink="Do not metagame." link="MonolithRuleRoleplaySixMetagame"]
+<!-- WOLFGATE START: rule 5 "Erotic roleplay is prohibited." removed, later rules renumbered (#27) -->- 5. [textlink="Do not metagame." link="MonolithRuleRoleplaySixMetagame"]
 - 6. [textlink="Safe Zones" link="MonolithRuleRoleplaySevenSafeZones"]
 - 7. [textlink="Do not abandon your faction role." link="MonolithRuleRoleplayEightFactionRoles"]
 - 8. [textlink="Commanders have higher standards." link="MonolithRuleRoleplayNineCommandingRoles"]
 
-## Conflict Rules
-These are the conflict rules of Wolfgate:
+<!-- WOLFGATE END -->## Conflict Rules
+<!-- WOLFGATE: Wolfgate branding -->These are the conflict rules of Wolfgate:
 - 1. [textlink="Avoid random deathmatch." link="MonolithRuleConflictOneRandomDeathmatch"]
 - 2. [textlink="Adhere to the new life rule." link="MonolithRuleConflictTwoNewLife"]
 - 3. [textlink="Engage in fair play when making demands." link="MonolithRuleConflictThreeFairPlay"]

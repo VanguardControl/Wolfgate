@@ -118,7 +118,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
                 Assert.That(protos.Index<ReagentPrototype>("Oil").Flammability, Is.GreaterThan(0),
                     "the control reagent no longer burns, so this test proves nothing.");
 
-                foreach (var inventory in new[] { "WolfgateVendInventory", "NanoMedInventory", "CiviMedVendInventory" })
+                foreach (var inventory in new[] { "WFWolfgateVendInventory", "NanoMedInventory", "CiviMedVendInventory" })
                 {
                     Assert.That(protos.Index<VendingMachineInventoryPrototype>(inventory).StartingInventory
                         .ContainsKey("WolfmedHydraulicFluidPack"), Is.True, $"{inventory} does not stock the pack.");

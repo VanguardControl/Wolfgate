@@ -39,6 +39,11 @@
   - CableStack
   - CableMVStack
   - CableHVStack
+  # WOLFGATE(Tether) START: power cord coils
+  - WFPowerCordCoilHV
+  - WFPowerCordCoilMV
+  - WFPowerCordCoilLV
+  # WOLFGATE END
 
 ## Dynamic
 

@@ -1,6 +1,6 @@
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
-using Content.Client._WF.UserInterface.Controls; // WOLFGATE
+using Content.Client._WF.UserInterface.Controls; // WOLFGATE(UserInterface)
 
 namespace Content.Client.Humanoid;
 
@@ -8,7 +8,7 @@ public sealed class EyeColorPicker : Control
 {
     public event Action<Color>? OnEyeColorPicked;
 
-    private readonly WolfgateColorPicker _colorSelectors; // WOLFGATE: swatches + sliders
+    private readonly WolfgateColorPicker _colorSelectors; // WOLFGATE(UserInterface): swatches + sliders
 
     private Color _lastColor;
 
@@ -27,7 +27,7 @@ public sealed class EyeColorPicker : Control
         };
         AddChild(vBox);
 
-        vBox.AddChild(_colorSelectors = new WolfgateColorPicker()); // WOLFGATE
+        vBox.AddChild(_colorSelectors = new WolfgateColorPicker()); // WOLFGATE(UserInterface)
         _colorSelectors.SelectorType = ColorSelectorSliders.ColorSelectorType.Hsv; // defaults color selector to HSV
 
         _colorSelectors.OnColorChanged += ColorValueChanged;

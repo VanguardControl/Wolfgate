@@ -251,8 +251,8 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.OpenInventoryMenu);
             AddButton(ContentKeyFunctions.OpenLanguageMenu); // Einstein Engines - Language
             AddButton(ContentKeyFunctions.OpenAHelp);
-            AddButton(ContentKeyFunctions.OpenConsentWindow); // WOLFGATE - consent system
-            AddButton(ContentKeyFunctions.OpenAnatomyPanel); // WOLFGATE - anatomy panel
+            AddButton(ContentKeyFunctions.OpenConsentWindow); // WOLFGATE(Options): consent system
+            AddButton(ContentKeyFunctions.OpenAnatomyPanel); // WOLFGATE(Genitals): anatomy panel
             AddButton(ContentKeyFunctions.OpenActionsMenu);
             AddButton(ContentKeyFunctions.OpenEmotesMenu);
             AddButton(ContentKeyFunctions.ToggleRoundEndSummaryWindow);
@@ -299,6 +299,8 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.ShuttleRotateLeft);
             AddButton(ContentKeyFunctions.ShuttleRotateRight);
             AddButton(ContentKeyFunctions.ShuttleBrake);
+            AddButton(ContentKeyFunctions.ShuttleAscend); // Mono
+            AddButton(ContentKeyFunctions.ShuttleDescend); // Mono
 
             AddHeader("ui-options-header-map-editor");
             AddButton(EngineKeyFunctions.EditorPlaceObject);

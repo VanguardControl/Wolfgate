@@ -70,8 +70,8 @@ public sealed class PrototypeSaveTest
             if (prototype.SetSuffix == "DEBUG")
                 continue;
 
-            // WOLFGATE: traders are humanoids kept savable so mappers can place them; humanoids rebuild
-            // their look, DNA and solutions on spawn, so they can never pass this check.
+            // WOLFGATE(Traders): traders are skipped; they are humanoids kept savable so mappers can place them
+            // Humanoids rebuild their look, DNA and solutions on spawn, so they can never pass this check.
             if (prototype.Components.ContainsKey("Trader"))
                 continue;
 

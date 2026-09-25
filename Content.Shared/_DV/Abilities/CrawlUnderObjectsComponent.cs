@@ -1,17 +1,21 @@
-using System.Numerics;
+using System.Numerics; // WOLFGATE(Species)
 using Content.Shared.Actions;
+// WOLFGATE(Species) START: unused after the switch to circle-based squeezing
+// using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
+// WOLFGATE END
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._DV.Abilities;
 
+// WOLFGATE(Species) START: HardLight balance. The Delta-V original dropped the mob under tables instead.
 /// <summary>
 /// Lets a mob toggle sneaking: it moves slower and its circle fixtures shrink, so it can squeeze past mobs and
 /// furniture, and it is drawn under tables it has climbed onto. Walking through tables stays blocked.
 /// See <see cref="SharedCrawlUnderObjectsSystem"/>.
 /// </summary>
-// WOLFGATE: HardLight balance. The Delta-V original dropped the mob under tables instead.
+// WOLFGATE END
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CrawlUnderObjectsComponent : Component
 {
@@ -21,6 +25,7 @@ public sealed partial class CrawlUnderObjectsComponent : Component
     [DataField]
     public EntProtoId? ActionProto;
 
+    // WOLFGATE(Species) START: HardLight circle squeeze fields
     [DataField, AutoNetworkedField]
     public bool Enabled;
 
@@ -62,6 +67,7 @@ public sealed partial class CrawlUnderObjectsComponent : Component
     /// </summary>
     [DataField]
     public int? OriginalDrawDepth;
+    // WOLFGATE END
 }
 
 [Serializable, NetSerializable]
@@ -71,3 +77,11 @@ public enum SneakMode : byte
 }
 
 public sealed partial class ToggleCrawlingStateEvent : InstantActionEvent { }
+
+// WOLFGATE(Species) START: unused once sneak state moved onto the networked component fields directly
+// [Serializable, NetSerializable]
+// public sealed partial class CrawlingUpdatedEvent(bool enabled = false) : EventArgs
+// {
+//     public readonly bool Enabled = enabled;
+// }
+// WOLFGATE END

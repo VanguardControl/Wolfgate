@@ -1,11 +1,11 @@
-# Wolfgate: ported from HardLight - Protogen subspecies.
+# WOLFGATE(Species): ported from HardLight - Protogen subspecies.
 # The base Protogen prototypes are NOT taken; Wolfgate already has its own under _Mono.
 # Reparented onto Wolfgate's protogen organs; sprites pointing at the uncopied
 # _FarHorizons protogen sheet are dropped in favour of the inherited _Mono ones.
 
 - type: entity
   id: OrganProtogenTongueForked
-  parent: OrganProtogenTongue # Wolfgate: single parent, see port notes
+  parent: OrganProtogenTongue # WOLFGATE(Species): single parent, see port notes
   name: Forked Cybernetic Tongue
   description: "A completely glowing organ commonly used for lying or self-expression. Sometimes both. Now split in two."
   components:
@@ -15,7 +15,7 @@
 
 - type: entity
   id: OrganProtoMothStomach
-  parent: OrganProtogenStomach # Wolfgate: reparented off the animal stomach
+  parent: OrganProtogenStomach # WOLFGATE(Species): reparented off the animal stomach
   name: Biological Reactor
   description: "Some call it over-engineered, but it's vital to the function of a protogen. Turns organic matter into organic and electrical energy to power the protogen's cybernetics and flesh."
   components:
@@ -82,7 +82,7 @@
 
 - type: entity
   id: OrganProtoAvaliStomach
-  name: Biological Reactor # Wolfgate: matches the other protogen stomachs
+  name: Biological Reactor # WOLFGATE(Species): matches the other protogen stomachs
   parent: OrganProtogenStomach
   categories: [ HideSpawnMenu ]
   components:
@@ -154,7 +154,7 @@
 
 - type: entity
   id: OrganProtoVoxStomach
-  name: Biological Reactor # Wolfgate: matches the other protogen stomachs
+  name: Biological Reactor # WOLFGATE(Species): matches the other protogen stomachs
   parent: OrganProtogenStomach
   categories: [ HideSpawnMenu ]
   components:

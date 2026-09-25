@@ -10,6 +10,8 @@ using Content.Shared._Common.Consent;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Events;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared._WF.Genitals.Prototypes;
 using Content.Shared.Input;
 using Content.Shared.Preferences;
@@ -271,7 +273,7 @@ public sealed partial class AnatomyUIController : UIController, IOnStateEntered<
         EntityManager.RaisePredictiveEvent(request);
     }
 
-    /// <summary>The saved UndergarmentStrip value, or null while consent has not loaded or the toggle is not configured.</summary>
+    /// <summary>The saved WFUndergarmentStrip value, or null while consent has not loaded or the toggle is not configured.</summary>
     private bool? GetStripConsent()
     {
         if (!_consentManager.HasLoaded || Settings.StripConsent is not { } strip)
@@ -280,7 +282,7 @@ public sealed partial class AnatomyUIController : UIController, IOnStateEntered<
         return _consentManager.GetConsentSettings().Toggles.TryGetValue(strip, out var state) && state == "on";
     }
 
-    /// <summary>Flips UndergarmentStrip directly, keeping every other saved consent setting. Revoking puts back removals by others (server).</summary>
+    /// <summary>Flips WFUndergarmentStrip directly, keeping every other saved consent setting. Revoking puts back removals by others (server).</summary>
     private void SetStripConsent(bool on)
     {
         if (!_consentManager.HasLoaded || Settings.StripConsent is not { } strip)

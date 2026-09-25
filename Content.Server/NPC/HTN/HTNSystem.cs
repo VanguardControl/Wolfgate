@@ -47,6 +47,7 @@ public sealed partial class HTNSystem : EntitySystem
         _loadedQuery = GetEntityQuery<LoadedChunkComponent>(); // Frontier
         SubscribeLocalEvent<HTNComponent, MobStateChangedEvent>(_npc.OnMobStateChange);
         SubscribeLocalEvent<HTNComponent, MapInitEvent>(_npc.OnNPCMapInit);
+        SubscribeLocalEvent<HTNComponent, ComponentStartup>(OnHTNStartup); // WOLFGATE(Traders)
         SubscribeLocalEvent<HTNComponent, PlayerAttachedEvent>(_npc.OnPlayerNPCAttach);
         SubscribeLocalEvent<HTNComponent, PlayerDetachedEvent>(_npc.OnPlayerNPCDetach);
         SubscribeLocalEvent<HTNComponent, ComponentShutdown>(OnHTNShutdown);
@@ -220,11 +221,17 @@ public sealed partial class HTNSystem : EntitySystem
             {
                 if (comp.PlanningJob.Exception != null)
                 {
-                    Log.Fatal($"Received exception on planning job for {uid}!");
+                    // WOLFGATE(Traders) START: log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
+                    // Log.Fatal($"Received exception on planning job for {uid}!");
+                    Log.Error($"Received exception on planning job for {ToPrettyString(uid)}, removing its HTN: {comp.PlanningJob.Exception}");
                     _npc.SleepNPC(uid);
-                    var exc = comp.PlanningJob.Exception;
+                    // var exc = comp.PlanningJob.Exception;
+                    comp.PlanningJob = null;
+                    comp.PlanningToken = null;
                     RemComp<HTNComponent>(uid);
-                    throw exc;
+                    // throw exc;
+                    continue;
+                    // WOLFGATE END
                 }
 
                 // If a new planning job has finished then handle it.
@@ -299,7 +306,18 @@ public sealed partial class HTNSystem : EntitySystem
                 comp.PlanningToken = null;
             }
 
-            Update(comp, frameTime);
+            // WOLFGATE(Traders) START: one broken NPC must not take the whole update loop down with it.
+            try
+            {
+                Update(comp, frameTime);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"NPC {ToPrettyString(uid)} threw during its update and has been put to sleep: {e}");
+                comp.Blackboard.SetValue(NPCBlackboard.Owner, uid);
+                _npc.SleepNPC(uid, comp);
+            }
+            // WOLFGATE END
             count++;
             updates++;
         }
@@ -308,6 +326,18 @@ public sealed partial class HTNSystem : EntitySystem
         // otherwise it lets us know where we left off.
         count = 0;
     }
+
+    // WOLFGATE(Traders) START: NPCs from a loaded grid need their blackboard Owner set on startup
+    /// <summary>
+    /// A grid loaded from a save is already map-initialised, so its NPCs never see MapInit
+    /// and come up with no Owner in their blackboard. The blackboard is not saved, so set it here.
+    /// </summary>
+    private void OnHTNStartup(EntityUid uid, HTNComponent component, ComponentStartup args)
+    {
+        if (!component.Blackboard.ContainsKey(NPCBlackboard.Owner))
+            component.Blackboard.SetValue(NPCBlackboard.Owner, uid);
+    }
+    // WOLFGATE END
 
     private void AppendDebugText(HTNTask task, StringBuilder text, List<int> planBtr, List<int> btr, ref int level)
     {

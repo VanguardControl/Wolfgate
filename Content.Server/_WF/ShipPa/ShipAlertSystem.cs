@@ -3,6 +3,7 @@ using Content.Server._WF.Audio.InternetSound;
 using Content.Server.Administration.Logs;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
+using Content.Shared._WF.Prototypes;
 using Content.Shared._WF.ShipPa;
 using Content.Shared.Chat;
 using Content.Shared.Database;
@@ -38,6 +39,8 @@ public sealed partial class ShipAlertSystem : EntitySystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<ShipAlertComponent, ComponentStartup>(OnAlertStartup);
+
         // ShuttleConsoleSystem owns the open/close subscriptions for these consoles; only new message
         // types may be added here.
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
@@ -49,6 +52,14 @@ public sealed partial class ShipAlertSystem : EntitySystem
             subs.Event<ShipPaInternetSoundRequestMessage>(OnInternetSoundRequest);
             subs.Event<ShipPaInternetSoundStopMessage>(OnInternetSoundStop);
         });
+    }
+
+    /// <summary>Moves a grid saved before the WF id prefix onto the renamed code.</summary>
+    private void OnAlertStartup(Entity<ShipAlertComponent> ent, ref ComponentStartup args)
+    {
+        var code = WFLegacyPrototypeIds.Resolve(WFLegacyPrototypeIds.ShipAlertCodes, ent.Comp.Code.Id);
+        if (code != ent.Comp.Code.Id)
+            ent.Comp.Code = code;
     }
 
     /// <summary>

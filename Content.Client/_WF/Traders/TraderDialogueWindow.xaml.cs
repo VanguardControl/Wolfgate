@@ -12,6 +12,9 @@ public sealed partial class TraderDialogueWindow : FancyWindow
 {
     public event Action<int>? OnOptionPressed;
     public event Action<bool>? OnConfirmPressed;
+    public event Action<string?>? OnTextSubmitted;
+
+    private int _textMaxLength;
 
     public TraderDialogueWindow()
     {
@@ -19,6 +22,14 @@ public sealed partial class TraderDialogueWindow : FancyWindow
 
         AcceptButton.OnPressed += _ => OnConfirmPressed?.Invoke(true);
         DeclineButton.OnPressed += _ => OnConfirmPressed?.Invoke(false);
+        TextSubmitButton.OnPressed += _ => SubmitText();
+        TextEntry.OnTextEntered += _ => SubmitText();
+        TextCancelButton.OnPressed += _ => OnTextSubmitted?.Invoke(null);
+        TextEntry.OnTextChanged += args =>
+        {
+            if (_textMaxLength > 0 && args.Text.Length > _textMaxLength)
+                TextEntry.Text = args.Text[.._textMaxLength];
+        };
     }
 
     /// <summary>
@@ -36,8 +47,19 @@ public sealed partial class TraderDialogueWindow : FancyWindow
 
         ConfirmBox.Visible = state.Confirming;
 
+        var asking = state.TextPrompt != null;
+        if (asking && !TextBox.Visible)
+        {
+            TextEntry.Text = string.Empty;
+            TextEntry.GrabKeyboardFocus();
+        }
+
+        TextBox.Visible = asking;
+        TextEntry.PlaceHolder = state.TextPrompt ?? string.Empty;
+        _textMaxLength = state.TextMaxLength;
+
         OptionsBox.RemoveAllChildren();
-        if (state.Confirming)
+        if (state.Confirming || asking)
             return;
 
         for (var i = 0; i < state.Options.Count; i++)
@@ -55,5 +77,14 @@ public sealed partial class TraderDialogueWindow : FancyWindow
             button.OnPressed += _ => OnOptionPressed?.Invoke(index);
             OptionsBox.AddChild(button);
         }
+    }
+
+    private void SubmitText()
+    {
+        var text = TextEntry.Text.Trim();
+        if (text.Length == 0)
+            return;
+
+        OnTextSubmitted?.Invoke(text);
     }
 }

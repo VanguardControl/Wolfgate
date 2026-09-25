@@ -169,6 +169,7 @@
   - MonoMonolithicEventsScheduler
   - ManualPortstrikeTsfPdv
   - StarSystemKyphrus
+  - MonoXenoBorgShuttleSpawnerSchedulerSlow # WOLFGATE(Xenoborgs): Monolith #4558
 
 - type: gamePreset
   id: MonoAllAtOnce
@@ -191,6 +192,7 @@
   - RoundEndRuleHour3
   - ManualPortstrikeTsfPdv
   - StarSystemKyphrus
+  - MonoXenoBorgShuttleSpawnerSchedulerSlow # WOLFGATE(Xenoborgs): Monolith #4558
 
 - type: gamePreset
   id: MonoRogueTSFHyperwar

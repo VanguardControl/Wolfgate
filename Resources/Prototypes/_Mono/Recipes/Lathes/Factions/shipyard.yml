@@ -18,14 +18,14 @@
   completetime: 50
   materialDiscountScale: 0.2
   materials:
-    Steel: 10000
-    Copper: 10000
-    Plasteel: 5000
-    Lithium: 5000
-    Glass: 5000
-    Plasma: 5000
-    Gold: 5000
-    Silver: 5000
+    Steel: 5000
+    Copper: 5000
+    Plasteel: 2500
+    Lithium: 2500
+    Glass: 2500
+    Plasma: 2500
+    Gold: 2500
+    Silver: 2500
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
@@ -115,7 +115,7 @@
   completetime: 50
   materialDiscountScale: 0.2
   materials:
-    PdvComposite: 2000
+    PdvComposite: 1000
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
@@ -124,7 +124,7 @@
   completetime: 100
   materialDiscountScale: 0.2
   materials:
-    PdvComposite: 4000
+    PdvComposite: 3000
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
@@ -133,7 +133,7 @@
   completetime: 100
   materialDiscountScale: 0.2
   materials:
-    PdvComposite: 8000
+    PdvComposite: 12000
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
@@ -142,7 +142,7 @@
   completetime: 100
   materialDiscountScale: 0.2
   materials:
-    PdvComposite: 10000
+    PdvComposite: 12000
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
@@ -152,6 +152,27 @@
   materialDiscountScale: 0.2
   materials:
     PdvComposite: 23000
+
+- type: latheRecipe
+  parent: BaseVoucherRecipe
+  id: MockVoucherRogue
+  result: ShipVoucherMock
+  materials:
+    PdvComposite: 250
+
+- type: latheRecipe
+  parent: BaseVoucherRecipe
+  id: InertiaVoucherRogue
+  result: ShipVoucherInertia
+  materials:
+    PdvComposite: 250
+
+- type: latheRecipe
+  parent: BaseVoucherRecipe
+  id: SnakeletVoucherRogue
+  result: ShipVoucherSnakelet
+  materials:
+    PdvComposite: 250
 
 #USSP
 

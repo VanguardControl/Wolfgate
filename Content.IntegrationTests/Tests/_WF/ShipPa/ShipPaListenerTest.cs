@@ -157,7 +157,7 @@ public sealed class ShipPaListenerTest
             input.CopyTo(output);
             bytes = output.ToArray();
             InternetSoundResources.For(resources).Store(id, bytes);
-            var speaker = server.EntMan.SpawnEntity("WallmountShipPaSpeaker", map.GridCoords);
+            var speaker = server.EntMan.SpawnEntity("WFWallmountShipPaSpeaker", map.GridCoords);
             server.EntMan.GetComponent<Content.Server.Power.Components.ApcPowerReceiverComponent>(speaker).NeedsPower = false;
         });
 

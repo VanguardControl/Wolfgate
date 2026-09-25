@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-ProtogenLEDFace = Default Protogen LEDs
 marking-ProtogenLEDFaceNoseless = Noseless LEDs
 marking-ProtogenLEDFaceRound = Round LEDs
@@ -6,7 +6,7 @@ marking-ProtogenLights = Circular LEDs
 marking-ProtogenMediumArmor = Standard Protogen Cybernetics
 marking-ProtogenVisorRound = Round Visor
 
-# Wolfgate: ported from HardLight - Protogen subspecies markings.
+# WOLFGATE(Species): ported from HardLight - Protogen subspecies markings.
 marking-ProtoArachnidLEDFace = Default Arachnid LEDs
 marking-ProtoArachnidVisor = Arachnid Visor
 marking-ProtoAvaliLEDFace = Default Avali LEDs
@@ -67,6 +67,6 @@ marking-ProtoVulpSnoutLong = Long Vulpine Visor
 marking-ProtoVulpVisor = Vulpine/Reptile Visor
 marking-ProtoVulpVisorFourEyes = Large Vulpine Visor
 marking-ProtoVulpVisorSideWings = Side Visor Wings
-# Wolfgate addition: per-layer names for the only two-layer marking of the 60.
+# WOLFGATE(Species): per-layer names for the only two-layer marking of the 60.
 marking-ProtoVulpLightsAngled-bodyangled = Outer
 marking-ProtoVulpLightsAngled-bodyangled_inner = Inner

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# WOLFGATE(Ci) START: docstring covers the Wolfgate and Monolith changelogs
 """
 Sends updates to Discord webhooks for new changelog entries since the last successful run of this workflow.
 
@@ -7,21 +8,34 @@ Automatically figures out the last run and changelog contents with the GitHub AP
 Wolfgate: handles two changelogs, our own (Wolfgate.yml) and upstream Monolith's (Monolith.yml).
 Each has its own webhook environment variable and is skipped when that variable is empty.
 """
+# WOLFGATE END
 # yes I just stole this from goob.
 
 import itertools
 import os
-import time
+# WOLFGATE(Ci) START: unused since the DEBUG local-testing path was removed
+# from pathlib import Path
+# WOLFGATE END
 from typing import Any, Iterable
 
 import requests
 import yaml
+import time
 
+# WOLFGATE(Ci) START: DEBUG local-testing path removed, always uses the GitHub API
+# DEBUG = False
+# WOLFGATE END
+# DEBUG_CHANGELOG_FILE_OLD = Path("Resources/Changelog/Old.yml") # not set up yet
 GITHUB_API_URL = os.environ.get("GITHUB_API_URL", "https://api.github.com")
 
 # https://discord.com/developers/docs/resources/webhook
 DISCORD_SPLIT_LIMIT = 2000
+# WOLFGATE(Ci) START: one webhook per changelog, see CHANGELOGS
+# DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+# WOLFGATE END
 
+# WOLFGATE(Ci) START: two changelogs, Wolfgate and upstream Monolith
+# CHANGELOG_FILE = "Resources/Changelog/Monolith.yml" # Monolith
 CHANGELOGS = [
     {
         "file": "Resources/Changelog/Wolfgate.yml",
@@ -34,12 +48,14 @@ CHANGELOGS = [
         "webhook_env": "DISCORD_WEBHOOK_URL_UPSTREAM",
     },
 ]
+# WOLFGATE END
 
 TYPES_TO_EMOJI = {"Fix": "🐛", "Add": "🆕", "Remove": "❌", "Tweak": "⚒️"}
 
 ChangelogEntry = dict[str, Any]
 
 
+# WOLFGATE(Ci) START: main() loops over CHANGELOGS, session/sha helpers replace get_last_changelog()
 def main():
     active = [c for c in CHANGELOGS if os.environ.get(c["webhook_env"])]
     if not active:
@@ -89,6 +105,7 @@ def get_last_run_sha(sess: requests.Session, github_repository: str, github_run:
     last_sha = most_recent["head_commit"]["id"]
     print(f"Last successful run was {most_recent['id']}: {last_sha}")
     return last_sha
+# WOLFGATE END
 
 
 def get_most_recent_workflow(
@@ -103,7 +120,7 @@ def get_most_recent_workflow(
 
         return run
 
-    return None
+    return None  # WOLFGATE(Ci): explicit fallthrough when no past runs are found
 
 
 def get_current_run(
@@ -126,6 +143,29 @@ def get_past_runs(sess: requests.Session, current_run: Any) -> Any:
     return resp.json()
 
 
+# WOLFGATE(Ci) START: replaced by make_github_session() and get_last_run_sha()
+# def get_last_changelog() -> str:
+#     github_repository = os.environ["GITHUB_REPOSITORY"]
+#     github_run = os.environ["GITHUB_RUN_ID"]
+#     github_token = os.environ["GITHUB_TOKEN"]
+#
+#     session = requests.Session()
+#     session.headers["Authorization"] = f"Bearer {github_token}"
+#     session.headers["Accept"] = "Accept: application/vnd.github+json"
+#     session.headers["X-GitHub-Api-Version"] = "2022-11-28"
+#
+#     most_recent = get_most_recent_workflow(session, github_repository, github_run)
+#     last_sha = most_recent["head_commit"]["id"]
+#     print(f"Last successful publish job was {most_recent['id']}: {last_sha}")
+#     last_changelog_stream = get_last_changelog_by_sha(
+#         session, last_sha, github_repository
+#     )
+#
+#     return last_changelog_stream
+# WOLFGATE END
+
+
+# WOLFGATE(Ci) START: per-changelog file, returns parsed YAML, missing file counts as empty
 def get_last_changelog_by_sha(
     sess: requests.Session, sha: str, github_repository: str, changelog_file: str
 ) -> dict[str, Any]:
@@ -149,8 +189,10 @@ def get_last_changelog_by_sha(
 
     resp.raise_for_status()
     return yaml.safe_load(resp.text)
+# WOLFGATE END
 
 
+# WOLFGATE(Ci) START: tolerates a missing or empty changelog
 def diff_changelog(
     old: dict[str, Any] | None, cur: dict[str, Any] | None
 ) -> Iterable[ChangelogEntry]:
@@ -161,6 +203,7 @@ def diff_changelog(
     cur_entries = (cur or {}).get("Entries") or []
     old_entry_ids = {e["id"] for e in old_entries}
     return (e for e in cur_entries if e["id"] not in old_entry_ids)
+# WOLFGATE END
 
 
 def get_discord_body(content: str):
@@ -173,14 +216,14 @@ def get_discord_body(content: str):
     }
 
 
-def send_discord_webhook(webhook_url: str, lines: list[str]):
+def send_discord_webhook(webhook_url: str, lines: list[str]):  # WOLFGATE(Ci): takes webhook_url, was the DISCORD_WEBHOOK_URL global
     content = "".join(lines)
     body = get_discord_body(content)
-
+    
     retry_attempt = 0
 
     try:
-        response = requests.post(webhook_url, json=body, timeout=10)
+        response = requests.post(webhook_url, json=body, timeout=10)  # WOLFGATE(Ci): was DISCORD_WEBHOOK_URL
         while response.status_code == 429:
             retry_attempt += 1
             if retry_attempt > 20:
@@ -189,7 +232,7 @@ def send_discord_webhook(webhook_url: str, lines: list[str]):
             retry_after = response.json().get("retry_after", 5)
             print(f"Rate limited, retrying after {retry_after} seconds")
             time.sleep(retry_after)
-            response = requests.post(webhook_url, json=body, timeout=10)
+            response = requests.post(webhook_url, json=body, timeout=10)  # WOLFGATE(Ci): was DISCORD_WEBHOOK_URL
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Failed to send message: {e}")
@@ -226,7 +269,7 @@ def changelog_entries_to_message_lines(entries: Iterable[ChangelogEntry]) -> lis
     return message_lines
 
 
-def send_message_lines(webhook_url: str, message_lines: list[str]):
+def send_message_lines(webhook_url: str, message_lines: list[str]):  # WOLFGATE(Ci): takes webhook_url, was the DISCORD_WEBHOOK_URL global
     """Join a list of message lines into chunks that are each below Discord's message length limit, and send them."""
     chunk_lines = []
     chunk_length = 0
@@ -237,7 +280,7 @@ def send_message_lines(webhook_url: str, message_lines: list[str]):
 
         if new_chunk_length > DISCORD_SPLIT_LIMIT:
             print("Split changelog and sending to discord")
-            send_discord_webhook(webhook_url, chunk_lines)
+            send_discord_webhook(webhook_url, chunk_lines)  # WOLFGATE(Ci): was send_discord_webhook(chunk_lines)
 
             new_chunk_length = line_length
             chunk_lines.clear()
@@ -247,7 +290,7 @@ def send_message_lines(webhook_url: str, message_lines: list[str]):
 
     if chunk_lines:
         print("Sending final changelog to discord")
-        send_discord_webhook(webhook_url, chunk_lines)
+        send_discord_webhook(webhook_url, chunk_lines)  # WOLFGATE(Ci): was send_discord_webhook(chunk_lines)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
   id: VulpEar
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: vulp
@@ -16,7 +16,7 @@
   id: VulpEarFade
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: vulp
@@ -27,7 +27,7 @@
   id: VulpEarSharp
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: vulp
@@ -38,7 +38,7 @@
   id: VulpEarJackal
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: jackal
@@ -49,7 +49,7 @@
   id: VulpEarTerrier
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: terrier
@@ -60,7 +60,7 @@
   id: VulpEarWolf
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: wolf
@@ -71,7 +71,7 @@
   id: VulpEarFennec
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: fennec
@@ -82,7 +82,7 @@
   id: VulpEarFox
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: fox
@@ -91,7 +91,7 @@
   id: VulpEarOtie
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: otie
@@ -102,7 +102,7 @@
   id: VulpEarTajaran
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: msai
@@ -113,7 +113,7 @@
   id: VulpEarShock
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: shock
@@ -122,7 +122,7 @@
   id: VulpEarCoyote
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: coyote
@@ -131,7 +131,7 @@
   id: VulpEarDalmatian
   bodyPart: HeadTop
   markingCategory: HeadTop
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/ear_markings.rsi
       state: dalmatian
@@ -141,7 +141,7 @@
   id: VulpSnoutAlt
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: muzzle_alt
@@ -152,7 +152,7 @@
   id: VulpSnout
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin]
+  speciesRestriction: [Vulpkanin] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: muzzle
@@ -163,7 +163,7 @@
   id: VulpSnoutSharp
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: muzzle_sharp
@@ -174,7 +174,7 @@
   id: VulpSnoutFade
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: muzzle_fade
@@ -185,7 +185,7 @@
   id: VulpSnoutNose
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: nose
@@ -194,7 +194,7 @@
   id: VulpSnoutMask
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: mask
@@ -205,7 +205,7 @@
   id: VulpSnoutVulpine
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: vulpine
@@ -216,7 +216,7 @@
   id: VulpSnoutSwift
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: vulpine-lines
@@ -225,7 +225,7 @@
   id: VulpSnoutBlaze
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: blaze
@@ -234,7 +234,7 @@
   id: VulpSnoutPatch
   bodyPart: Snout
   markingCategory: Snout
-  speciesRestriction: [Vulpkanin, ProtoVulp]
+  speciesRestriction: [Vulpkanin, ProtoVulp] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: patch
@@ -244,7 +244,7 @@
   id: VulpHeadTiger
   bodyPart: Head
   markingCategory: Head
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: tiger_head
@@ -253,7 +253,7 @@
   id: VulpHeadTigerFace
   bodyPart: Head
   markingCategory: Head
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: tiger_face
@@ -262,7 +262,7 @@
   id: VulpHeadSlash
   bodyPart: Head
   markingCategory: Head
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/head_markings.rsi
       state: slash
@@ -272,238 +272,260 @@
   id: VulpTail
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     vulp_BEHIND: TailBehind
     vulp-fade_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     vulp_BEHIND: vulp_FRONT
     vulp-fade_BEHIND: vulp-fade_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp-fade_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp-fade_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp-fade_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp-fade_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailTip
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     vulp_BEHIND: TailBehind
     vulp-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     vulp_BEHIND: vulp_FRONT
     vulp-tip_BEHIND: vulp-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailWag
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     vulp_wag_BEHIND: TailBehind
     vulp_wag-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     vulp_wag_BEHIND: vulp_wag_FRONT
     vulp_wag-tip_BEHIND: vulp_wag-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_wag_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_wag-tip_FRONT #fade
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_wag_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_wag-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_wag_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_wag-tip_FRONT #fade # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_wag_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_wag-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailWagTip
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     vulp_wag_BEHIND: TailBehind
     vulp_wag-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     vulp_wag_BEHIND: vulp_wag_FRONT
     vulp_wag-tip_BEHIND: vulp_wag-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_wag_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_wag-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_wag_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_wag-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_wag_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_wag-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_wag_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_wag-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailAlt
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     vulp_alt_BEHIND: TailBehind
     vulp_alt-fade_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     vulp_alt_BEHIND: vulp_alt_FRONT
     vulp_alt-fade_BEHIND: vulp_alt-fade_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_alt_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_alt-fade_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_alt_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_alt-fade_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_alt_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_alt-fade_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_alt_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_alt-fade_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailAltTip
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     vulp_alt_BEHIND: TailBehind
     vulp_alt-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     vulp_alt_BEHIND: vulp_alt_FRONT
     vulp_alt-tip_BEHIND: vulp_alt-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_alt_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: vulp_alt-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_alt_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: vulp_alt-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_alt_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: vulp_alt-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_alt_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: vulp_alt-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailLong
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     long_BEHIND: TailBehind
     long-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     long_BEHIND: long_FRONT
     long-tip_BEHIND: long-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: long_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: long-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: long_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: long-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: long_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: long-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: long_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: long-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFox
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fox_BEHIND: TailBehind
     fox-fade_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fox_BEHIND: fox_FRONT
     fox-fade_BEHIND: fox-fade_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox-fade_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox-fade_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox-fade_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox-fade_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFoxTip
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fox_BEHIND: TailBehind
     fox-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fox_BEHIND: fox_FRONT
     fox-tip_BEHIND: fox-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFoxWag
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fox_wag_BEHIND: TailBehind
     fox_wag-fade_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fox_wag_BEHIND: fox_wag_FRONT
     fox_wag-fade_BEHIND: fox_wag-fade_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox_wag_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox_wag-fade_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox_wag_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox_wag-fade_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox_wag_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox_wag-fade_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox_wag_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox_wag-fade_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFoxWagTip
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fox_wag_BEHIND: TailBehind
     fox_wag-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fox_wag_BEHIND: fox_wag_FRONT
     fox_wag-tip_BEHIND: fox_wag-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox_wag_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox_wag-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox_wag_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox_wag-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox_wag_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox_wag-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox_wag_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox_wag-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailBushy
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: bushfluff
@@ -512,22 +534,24 @@
   id: VulpTailBushyWag
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     bushfluff_wag_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     bushfluff_wag_BEHIND: bushfluff_wag_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: bushfluff_wag_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: bushfluff_wag_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: bushfluff_wag_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: bushfluff_wag_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailCoyote
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: coyote
@@ -536,7 +560,7 @@
   id: VulpTailCoyoteWag
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, Canine]
+  speciesRestriction: [Vulpkanin, Felinid, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: coyote_wag
@@ -545,7 +569,7 @@
   id: VulpTailCorgiWag
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: corgi_wag
@@ -554,124 +578,138 @@
   id: VulpTailHusky
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     husky-inner_BEHIND: TailBehind
     husky-outer_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     husky-inner_BEHIND: husky-inner_FRONT
     husky-outer_BEHIND: husky-outer_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: husky-inner_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: husky-outer_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: husky-inner_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: husky-outer_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: husky-inner_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: husky-outer_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: husky-inner_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: husky-outer_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailHuskyAlt
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     husky_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     husky_BEHIND: husky_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: husky_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: husky_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: husky_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: husky_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFox2
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fox2_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fox2_BEHIND: fox2_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox2_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox2_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox2_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox2_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFox3
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fox3_BEHIND: TailBehind
     fox3-tip_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fox3_BEHIND: fox3_FRONT
     fox3-tip_BEHIND: fox3-tip_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox3_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fox3-tip_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox3_BEHIND
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fox3-tip_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox3_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fox3-tip_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox3_BEHIND # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fox3-tip_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFennec
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fennec_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fennec_BEHIND: fennec_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fennec_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fennec_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fennec_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fennec_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailOtie
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: anatomy zone of the south frame draws behind the body, halves share one colour
+  layering:
     otie_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     otie_BEHIND: otie_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art, anatomy zone only
-      state: otie_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
-      state: otie_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
+      state: otie_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): anatomy zone of the south frame on TailBehind
+      state: otie_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailFluffy
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, Canine]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  speciesRestriction: [Vulpkanin, Felinid, ProtoVulp, WFCanine] # WOLFGATE(Species)
+  # WOLFGATE(Genitals) START: south frame draws behind the body, halves share one colour
+  layering:
     fluffy_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     fluffy_BEHIND: fluffy_FRONT
+  # WOLFGATE END
   sprites:
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - split art
-      state: fluffy_FRONT
-    - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE - south frame on TailBehind
-      state: fluffy_BEHIND
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): split art
+      state: fluffy_FRONT # WOLFGATE(Genitals)
+    - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi # WOLFGATE(Genitals): south frame on TailBehind
+      state: fluffy_BEHIND # WOLFGATE(Genitals)
 
 - type: marking
   id: VulpTailDalmatianWag
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: dalmatian_wag
@@ -681,7 +719,7 @@
   id: VulpBellyCrest
   bodyPart: Chest
   markingCategory: Chest
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: belly_crest
@@ -690,7 +728,7 @@
   id: VulpBellyFull
   bodyPart: Chest
   markingCategory: Chest
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: belly_full
@@ -699,7 +737,7 @@
   id: VulpBellyFox
   bodyPart: Chest
   markingCategory: Chest
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: belly_fox
@@ -710,7 +748,7 @@
 #   id: VulpBodyPointsCrest
 #   markingCategory: Overlay
 #   bodyPart: RFoot
-#   speciesRestriction: [Vulpkanin]
+#   speciesRestriction: [Vulpkanin] # WOLFGATE(Species)
 #   sprites:
 #     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
 #       state: points_crest
@@ -719,7 +757,7 @@
 #   id: VulpBodyPointsFade
 #   markingCategory: Overlay
 #   bodyPart: RFoot
-#   speciesRestriction: [Vulpkanin]
+#   speciesRestriction: [Vulpkanin] # WOLFGATE(Species)
 #   sprites:
 #     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
 #       state: points_fade
@@ -728,7 +766,7 @@
 #   id: VulpBodyPointsSharp
 #   markingCategory: Overlay
 #   bodyPart: RFoot
-#   speciesRestriction: [Vulpkanin]
+#   speciesRestriction: [Vulpkanin] # WOLFGATE(Species)
 #   sprites:
 #     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
 #       state: points_sharp
@@ -738,7 +776,7 @@
   id: VulpPointsFeet
   markingCategory: Overlay
   bodyPart: RFoot
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_feet
@@ -747,7 +785,7 @@
   id: VulpPointsCrestLegs
   markingCategory: Legs
   bodyPart: LLeg
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_crest-legs
@@ -756,7 +794,7 @@
   id: VulpPointsFadeLegs
   markingCategory: Legs
   bodyPart: LLeg
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_fade-legs
@@ -765,7 +803,7 @@
   id: VulpPointsSharpLegs
   markingCategory: Legs
   bodyPart: LLeg
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_sharp-legs
@@ -775,7 +813,7 @@
   id: VulpPointsHands
   markingCategory: Overlay
   bodyPart: RHand
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_hands
@@ -784,7 +822,7 @@
   id: VulpPointsCrestArms
   markingCategory: Arms
   bodyPart: LArm
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_crest-arms
@@ -793,7 +831,7 @@
   id: VulpPointsFadeArms
   markingCategory: Arms
   bodyPart: LArm
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_fade-arms
@@ -802,7 +840,7 @@
   id: VulpPointsSharpArms
   markingCategory: Arms
   bodyPart: LArm
-  speciesRestriction: [Vulpkanin, Canine]
+  speciesRestriction: [Vulpkanin, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/body_markings.rsi
       state: points_sharp-arms
@@ -811,7 +849,7 @@
 - type: marking
   id: VulpHairAdhara
   bodyPart: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   markingCategory: Hair
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
@@ -820,7 +858,7 @@
 - type: marking
   id: VulpHairAnita
   bodyPart: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   markingCategory: Hair
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
@@ -829,7 +867,7 @@
 - type: marking
   id: VulpHairApollo
   bodyPart: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   markingCategory: Hair
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
@@ -838,7 +876,7 @@
 - type: marking
   id: VulpHairBelle
   bodyPart: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   markingCategory: Hair
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
@@ -848,7 +886,7 @@
   id: VulpHairBraided
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: braided
@@ -857,7 +895,7 @@
   id: VulpHairBun
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: bun
@@ -866,7 +904,7 @@
   id: VulpHairCleanCut
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: clean_cut
@@ -875,7 +913,7 @@
   id: VulpHairCurl
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: curl
@@ -884,7 +922,7 @@
   id: VulpHairHawk
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: hawk
@@ -893,7 +931,7 @@
   id: VulpHairJagged
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: jagged
@@ -902,7 +940,7 @@
   id: VulpHairJeremy
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: jeremy
@@ -911,7 +949,7 @@
   id: VulpHairKajam
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: kajam
@@ -920,7 +958,7 @@
   id: VulpHairKeid
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: keid
@@ -929,7 +967,7 @@
   id: VulpHairKleeia
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: kleeia
@@ -938,7 +976,7 @@
   id: VulpHairMizar
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: mizar
@@ -947,7 +985,7 @@
   id: VulpHairPunkBraided
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: punkbraided
@@ -956,7 +994,7 @@
   id: VulpHairRaine
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: raine
@@ -965,7 +1003,7 @@
   id: VulpHairRough
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: rough
@@ -974,7 +1012,7 @@
   id: VulpHairShort
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: short
@@ -983,7 +1021,7 @@
   id: VulpHairShort2
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: short2
@@ -992,7 +1030,7 @@
   id: VulpHairSpike
   bodyPart: Hair
   markingCategory: Hair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/hair.rsi
       state: spike
@@ -1002,7 +1040,7 @@
   id: VulpFacialHairRuff
   bodyPart: FacialHair
   markingCategory: FacialHair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/facial_hair.rsi
       state: ruff
@@ -1011,7 +1049,7 @@
   id: VulpFacialHairElder
   bodyPart: FacialHair
   markingCategory: FacialHair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/facial_hair.rsi
       state: elder
@@ -1020,7 +1058,7 @@
   id: VulpFacialHairElderChin
   bodyPart: FacialHair
   markingCategory: FacialHair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/facial_hair.rsi
       state: elder_chin
@@ -1029,7 +1067,7 @@
   id: VulpFacialHairKita
   bodyPart: FacialHair
   markingCategory: FacialHair
-  speciesRestriction: [Vulpkanin, ProtoVulp, Canine]
+  speciesRestriction: [Vulpkanin, ProtoVulp, WFCanine] # WOLFGATE(Species)
   sprites:
     - sprite: _DV/Mobs/Customization/Vulpkanin/facial_hair.rsi
       state: kita

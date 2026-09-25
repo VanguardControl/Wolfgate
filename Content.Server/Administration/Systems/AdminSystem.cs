@@ -262,7 +262,7 @@ public sealed partial class AdminSystem : EntitySystem
                 Log.Error($"{ToPrettyString(mindId)} has invalid Role Type '{mindComp.RoleType}'. Displaying '{Loc.GetString(roleType.Name)}' instead");
 
             antag = _role.MindIsAntagonist(mindId);
-            startingRole = _jobs.MindGetAdminJobName(mindId); // WOLFGATE: real job plus custom title
+            startingRole = _jobs.MindGetAdminJobName(mindId); // WOLFGATE(Roles): real job plus custom title
         }
 
         var connected = session != null && session.Status is SessionStatus.Connected or SessionStatus.InGame;

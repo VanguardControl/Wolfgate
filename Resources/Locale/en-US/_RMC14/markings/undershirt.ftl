@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Genitals): ported from HardLight
 marking-RMCUndershirtClassic = Bra (Tan, Classic)
 marking-RMCUndershirtClassic-c_classic = Bra
 marking-RMCUndershirtClassicDesert = Bra (Desert, Classic)

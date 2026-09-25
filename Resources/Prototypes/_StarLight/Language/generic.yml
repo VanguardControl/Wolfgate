@@ -1,6 +1,6 @@
-# Wolfgate: Wolfgate's language system has no icons or obfuscation fonts, so those
-# fields are dropped.
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): icon and obfuscation font fields dropped
+# Wolfgate's language system has neither.
+# WOLFGATE(Species): ported from HardLight
 - type: language
   id: Machine
   speech:

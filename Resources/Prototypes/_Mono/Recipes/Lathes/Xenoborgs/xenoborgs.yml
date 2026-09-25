@@ -5,6 +5,10 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic and Glass cost
+     Plastic: 3000
+     Glass: 3000
+     # WOLFGATE END
      
 # xenoborg Modules 
 
@@ -35,6 +39,9 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
+     Plastic: 3000
+     # WOLFGATE END
 
 - type: latheRecipe
   id: XenoborgModuleHeavyLaser
@@ -42,6 +49,10 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic and Bluespace cost
+     Plastic: 3000
+     Bluespace: 100
+     # WOLFGATE END
 
 - type: latheRecipe
   id: XenoborgModuleAccessBreaker
@@ -49,6 +60,9 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
+     Plastic: 3000
+     # WOLFGATE END
 
 - type: latheRecipe
   id: XenoborgModuleDoorControl
@@ -56,6 +70,9 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
+     Plastic: 3000
+     # WOLFGATE END
 
 - type: latheRecipe
   id: XenoborgAdvancedModuleTool
@@ -63,6 +80,9 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
+     Plastic: 3000
+     # WOLFGATE END
 
 - type: latheRecipe
   id: XenoborgModuleHypo
@@ -70,6 +90,10 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic and Bluespace cost
+     Plastic: 3000
+     Bluespace: 100
+     # WOLFGATE END
      
 - type: latheRecipe
   id: XenoborgModuleChameleonProjector
@@ -77,6 +101,9 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic cost
+     Plastic: 3000
+     # WOLFGATE END
 
 - type: latheRecipe
   id: XenoborgModuleSuperCloakDevice
@@ -84,3 +111,7 @@
   completetime: 2
   materials:
      Steel: 3000
+     # WOLFGATE(Xenoborgs) START: added Plastic and Bluespace cost
+     Plastic: 3000
+     Bluespace: 100
+     # WOLFGATE END

@@ -1,7 +1,7 @@
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Array;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Array; // WOLFGATE(Species)
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Dictionary;
 
 namespace Content.Shared.Chat.Prototypes;
@@ -11,13 +11,13 @@ namespace Content.Shared.Chat.Prototypes;
 ///     Different entities may use different sounds collections.
 /// </summary>
 [Prototype, Serializable, NetSerializable]
-public sealed partial class EmoteSoundsPrototype : IPrototype, IInheritingPrototype
+public sealed partial class EmoteSoundsPrototype : IPrototype, IInheritingPrototype // WOLFGATE(Species)
 {
     [IdDataField]
     public string ID { get; private set; } = default!;
 
-    // WOLFGATE - ported from HardLight: emote sound sets can inherit, so species sets can share a
-    // common base instead of repeating every entry.
+    // WOLFGATE(Species) START: ported from HardLight, emote sound sets can inherit
+    // Species sets share a common base instead of repeating every entry.
     /// <inheritdoc/>
     [ParentDataField(typeof(AbstractPrototypeIdArraySerializer<EmoteSoundsPrototype>))]
     public string[]? Parents { get; private set; }
@@ -26,7 +26,7 @@ public sealed partial class EmoteSoundsPrototype : IPrototype, IInheritingProtot
     [AbstractDataField]
     [NeverPushInheritance]
     public bool Abstract { get; private set; }
-    // End WOLFGATE
+    // WOLFGATE END
 
     /// <summary>
     ///     Optional fallback sound that will play if collection
@@ -46,6 +46,6 @@ public sealed partial class EmoteSoundsPrototype : IPrototype, IInheritingProtot
     ///     Collection of emote prototypes and their sounds.
     /// </summary>
     [DataField("sounds", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<SoundSpecifier, EmotePrototype>))]
-    [AlwaysPushInheritance] // WOLFGATE - merge parent sounds into children
+    [AlwaysPushInheritance] // WOLFGATE(Species): merge parent sounds into children
     public Dictionary<string, SoundSpecifier> Sounds = new();
 }

@@ -1,4 +1,4 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-KitsuneEarsDefault = Kitsune Ears
 marking-KitsuneEarsDefault-kitsune_fluffy_ears = Kitsune Ears
 marking-KitsuneEarsDefault-kitsune_fluffy_fluff = Kitsune fluff

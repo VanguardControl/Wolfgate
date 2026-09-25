@@ -5,6 +5,7 @@ using Content.Server.Humanoid.Systems;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;

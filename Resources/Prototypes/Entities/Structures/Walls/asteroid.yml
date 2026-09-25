@@ -10,10 +10,12 @@
   name: asteroid rock
   description: A rocky asteroid.
   components:
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
+  - type: RangedDamageSound
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactConcrete
+        collection: WFBulletImpactConcrete
+  # WOLFGATE END
   - type: Transform
     noRot: true
   - type: IconSmooth
@@ -734,10 +736,12 @@
   name: rock
   suffix: planetmap
   components:
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  # WOLFGATE(Weapons) START: material bullet impacts
+  - type: RangedDamageSound
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactConcrete
+        collection: WFBulletImpactConcrete
+  # WOLFGATE END
   - type: Transform
     noRot: true
   - type: SoundOnGather

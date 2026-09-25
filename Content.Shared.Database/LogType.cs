@@ -491,14 +491,15 @@ public enum LogType
     /// </summary>
     Instrument = 103,
 
+    // WOLFGATE(Genitals) START: consent (ported from HardLight) and anatomy log types; high ids avoid clashing with upstream
     /// <summary>
     /// Players changing their consent settings.
     /// </summary>
-    // WOLFGATE - ported from HardLight; the high id avoids clashing with upstream additions.
     Consent = 12489,
 
     /// <summary>
     /// Anatomy organs and settings.
     /// </summary>
-    WFAnatomy = 12490, // WOLFGATE - anatomy organs and settings
+    WFAnatomy = 12490,
+    // WOLFGATE END
 }

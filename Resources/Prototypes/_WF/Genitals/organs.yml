@@ -4,7 +4,7 @@
 # Food, Extractable, a Meat tag and a price.
 
 - type: entity
-  id: BaseWFGenitalOrgan
+  id: WFBaseGenitalOrgan
   parent: BaseItem
   abstract: true
   name: organ tissue
@@ -25,8 +25,8 @@
     toolName: an organ
 
 - type: entity
-  parent: BaseWFGenitalOrgan
-  id: OrganWFPenis
+  parent: WFBaseGenitalOrgan
+  id: WFOrganPenis
   suffix: Penis
   components:
   - type: Organ
@@ -36,8 +36,8 @@
   - type: PenisOrgan
 
 - type: entity
-  parent: BaseWFGenitalOrgan
-  id: OrganWFTesticles
+  parent: WFBaseGenitalOrgan
+  id: WFOrganTesticles
   suffix: Testicles
   components:
   - type: Organ
@@ -47,8 +47,8 @@
   - type: TesticlesOrgan
 
 - type: entity
-  parent: BaseWFGenitalOrgan
-  id: OrganWFVagina
+  parent: WFBaseGenitalOrgan
+  id: WFOrganVagina
   suffix: Vagina
   components:
   - type: Organ
@@ -58,8 +58,8 @@
   - type: VaginaOrgan
 
 - type: entity
-  parent: BaseWFGenitalOrgan
-  id: OrganWFWomb
+  parent: WFBaseGenitalOrgan
+  id: WFOrganWomb
   suffix: Womb
   components:
   - type: Organ
@@ -69,8 +69,8 @@
   - type: WombOrgan
 
 - type: entity
-  parent: BaseWFGenitalOrgan
-  id: OrganWFBreasts
+  parent: WFBaseGenitalOrgan
+  id: WFOrganBreasts
   suffix: Breasts
   components:
   - type: Organ

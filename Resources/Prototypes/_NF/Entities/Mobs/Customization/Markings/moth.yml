@@ -3,7 +3,7 @@
   bodyPart: HeadTop
   markingCategory: HeadTop
   forcedColoring: true
-  speciesRestriction: [Moth, ProtoMoth]
+  speciesRestriction: [Moth, ProtoMoth] # WOLFGATE(Species): added ProtoMoth
   coloring:
     default:
       type:

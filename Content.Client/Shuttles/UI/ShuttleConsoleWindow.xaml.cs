@@ -35,7 +35,7 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
 
         // Mode switching
         NavModeButton.OnPressed += NavPressed;
-        ShipModeButton.OnPressed += ShipPressed; // WOLFGATE
+        ShipModeButton.OnPressed += ShipPressed; // WOLFGATE(Shuttles)
         MapModeButton.OnPressed += MapPressed;
         DockModeButton.OnPressed += DockPressed;
 
@@ -43,7 +43,7 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         var group = new ButtonGroup();
 
         NavModeButton.Group = group;
-        ShipModeButton.Group = group; // WOLFGATE
+        ShipModeButton.Group = group; // WOLFGATE(Shuttles)
         MapModeButton.Group = group;
         DockModeButton.Group = group;
 
@@ -87,7 +87,7 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         };
 
         NfInitialize(); // Frontier Initialization for the ShuttleConsoleWindow
-        WfInitialize(); // WOLFGATE
+        WfInitialize(); // WOLFGATE(Shuttles)
     }
 
     private void ClearModes(ShuttleConsoleMode mode)
@@ -97,11 +97,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
             NavContainer.Visible = false;
         }
 
-        // WOLFGATE
+        // WOLFGATE(Shuttles) START: ship mode
         if (mode != ShuttleConsoleMode.Ship)
         {
             WfSetShipMode(false);
         }
+        // WOLFGATE END
 
         if (mode != ShuttleConsoleMode.Map)
         {
@@ -120,11 +121,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         SwitchMode(ShuttleConsoleMode.Nav);
     }
 
-    // WOLFGATE
+    // WOLFGATE(Shuttles) START: ship mode
     private void ShipPressed(BaseButton.ButtonEventArgs obj)
     {
         SwitchMode(ShuttleConsoleMode.Ship);
     }
+    // WOLFGATE END
 
     private void MapPressed(BaseButton.ButtonEventArgs obj)
     {
@@ -143,10 +145,11 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
             case ShuttleConsoleMode.Nav:
                 NavContainer.Visible = true;
                 break;
-            // WOLFGATE
+            // WOLFGATE(Shuttles) START: ship mode
             case ShuttleConsoleMode.Ship:
                 WfSetShipMode(true);
                 break;
+            // WOLFGATE END
             case ShuttleConsoleMode.Map:
                 MapContainer.Visible = true;
                 MapContainer.Startup();
@@ -172,7 +175,7 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
     public enum ShuttleConsoleMode : byte
     {
         Nav,
-        Ship, // WOLFGATE
+        Ship, // WOLFGATE(Shuttles)
         Map,
         Dock,
     }
@@ -184,11 +187,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         NavContainer.SetConsole(owner);
         MapContainer.SetShuttle(coordinates?.EntityId);
         MapContainer.SetConsole(owner);
-        // WOLFGATE
+        // WOLFGATE(Shuttles) START: ship screen, collision and tractor state
         ShipContainer.SetShuttle(coordinates?.EntityId);
         ShipContainer.SetConsole(owner);
         CollisionBanner.SetShuttle(coordinates?.EntityId);
-        WfUpdateTractorCapture(cState.TractorSources); // WOLFGATE
+        WfUpdateTractorCapture(cState.TractorSources);
+        // WOLFGATE END
 
         NavContainer.UpdateState(cState.NavState);
         MapContainer.UpdateState(cState.MapState);

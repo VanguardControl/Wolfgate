@@ -136,17 +136,21 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [Chitinid]
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: tail back half draws behind the body, halves share one colour
+  layering:
     bee_primary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     bee_primary_BEHIND: bee_primary_FRONT
+  # WOLFGATE END
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Chitinid/chitinid_wings.rsi # WOLFGATE - split art, anatomy zone only
-    state: bee_primary_FRONT
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Chitinid/chitinid_wings.rsi # WOLFGATE(Genitals): split art, anatomy zone only
+    state: bee_primary_FRONT # WOLFGATE(Genitals): was bee_primary
   - sprite: _DV/Mobs/Customization/Chitinid/chitinid_wings.rsi
     state: bee_secondary
-  - sprite: _WF/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Chitinid/chitinid_wings.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  # WOLFGATE(Genitals) START: anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Chitinid/chitinid_wings.rsi
     state: bee_primary_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: ChitinidWingsFirefly

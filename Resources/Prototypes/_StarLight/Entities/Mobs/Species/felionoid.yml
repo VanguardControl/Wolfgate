@@ -7,7 +7,7 @@
   components:
   - type: LanguageKnowledge
     speaks:
-    - TauCetiBasic # Wolfgate: HardLight's GalacticCommon is TauCetiBasic here
+    - TauCetiBasic # WOLFGATE(Species): HardLight's GalacticCommon is TauCetiBasic here
     - Nekomimetic
     understands:
     - TauCetiBasic

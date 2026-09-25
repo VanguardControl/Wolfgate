@@ -82,7 +82,7 @@ public sealed partial class RadioSystem : EntitySystem
             if (listener != null && !_language.CanUnderstand(listener, args.Language.ID))
                 msg = args.LanguageObfuscatedChatMsg;
 
-            msg = EntityManager.System<Content.Server._WF.Ghost.GhostOrbitSystem>().AddRadioSource(uid, msg, args.MessageSource); // WOLFGATE: ghost orbit link
+            msg = EntityManager.System<Content.Server._WF.Ghost.GhostOrbitSystem>().AddRadioSource(uid, msg, args.MessageSource); // WOLFGATE(Ghost): ghost orbit link
             _netMan.ServerSendMessage(new MsgChatMessage { Message = msg }, actor.PlayerSession.Channel);
             // Einstein Engines - Languages end
 

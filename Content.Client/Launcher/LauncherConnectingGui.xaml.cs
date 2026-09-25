@@ -40,7 +40,7 @@ namespace Content.Client.Launcher
             _clipboard = clipboard;
 
             RobustXamlLoader.Load(this);
-            InitSymphony(); // Symphony: the Link Discord buttons, built in LauncherConnectingGui.Symphony.cs
+            InitSymphony(); // WOLFGATE(Symphony): Symphony, the Link Discord buttons, built in LauncherConnectingGui.Symphony.cs
 
             LayoutContainer.SetAnchorPreset(this, LayoutContainer.LayoutPreset.Wide);
 
@@ -136,7 +136,7 @@ namespace Content.Client.Launcher
 
             }
 
-            UpdateSymphonyLink(reason); // Symphony: show or hide the Link Discord buttons
+            UpdateSymphonyLink(reason); // WOLFGATE(Symphony): Symphony, show or hide the Link Discord buttons
         }
 
         private void ChangeLoginTip()

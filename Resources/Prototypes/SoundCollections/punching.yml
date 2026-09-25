@@ -1,5 +1,7 @@
 - type: soundCollection
   id: Punch
-  files: # WOLFGATE - Skyrat punches
+  # WOLFGATE(Weapons) START: Skyrat punches, was punch1-4.ogg
+  files:
     - /Audio/_WF/Weapons/Punches/punch1.ogg
     - /Audio/_WF/Weapons/Punches/punch3.ogg
+  # WOLFGATE END

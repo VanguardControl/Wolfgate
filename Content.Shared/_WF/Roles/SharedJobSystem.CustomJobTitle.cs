@@ -3,7 +3,7 @@ using Content.Shared._WF.Roles;
 
 namespace Content.Shared.Roles.Jobs;
 
-/// <summary>WOLFGATE: custom job titles in mind job lookups.</summary>
+/// <summary>Custom job titles in mind job lookups.</summary>
 public abstract partial class SharedJobSystem
 {
     /// <summary>The mind's custom title, if it has one for this job.</summary>

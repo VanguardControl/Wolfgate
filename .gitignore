@@ -313,5 +313,5 @@ Resources/MapImages
 # Link Files
 *.lnk
 
-# Written by Tools/test_merge.py in a test merge build; never committed.
+# WOLFGATE(Ci): written by Tools/_WF/Ci/test_merge.py in a test merge build; never committed
 Resources/Symphony/testmerges.json

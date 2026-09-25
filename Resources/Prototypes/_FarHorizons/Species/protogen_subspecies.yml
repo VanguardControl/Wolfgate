@@ -1,4 +1,4 @@
-# Wolfgate: the 14 Protogen subspecies, ported from HardLight.
+# WOLFGATE(Species): the 14 Protogen subspecies, ported from HardLight.
 # The 20 base-Protogen prototypes are deliberately NOT taken - Wolfgate already defines them
 # under _Mono and they are what existing Protogen characters use.
 # Adapted here: HardLight's subspecies-dropdown fields and loadout are dropped (Wolfgate shows
@@ -9,7 +9,7 @@
   id: ProtoVulp
   name: subspecies-name-protovulp
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoVulp
   sprites: MobProtoVulpSprites
   defaultSkinTone: "#ffda93"
@@ -24,7 +24,7 @@
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
     Hair: MobHumanoidAnyMarking
     Head: MobProtoVulpHead
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
     UndergarmentBottom: MobHumanoidAnyMarking #HL modifcation
@@ -176,7 +176,7 @@
   id: ProtoVox
   name: subspecies-name-protovox
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoVox
   sprites: MobProtoVoxSprites
   defaultSkinTone: "#6c741d"
@@ -196,7 +196,7 @@
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
     Hair: MobHumanoidAnyMarking
     Head: MobVoxHead
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
     UndergarmentBottom: MobHumanoidAnyMarking #HL modifcation
@@ -263,7 +263,7 @@
   id: ProtoThaven
   name: subspecies-name-protothaven
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoThaven
   sprites: MobProtoThavenSprites
   defaultSkinTone: "#ffffff"
@@ -285,7 +285,7 @@
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
     Hair: MobHumanoidAnyMarking
     Head: MobThavenHead
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Snout: MobHumanoidAnyMarking
     Genital: MobHumanoidAnyMarking #HL modifcation
     Penis: MobHumanoidAnyMarking #HL modifcation
@@ -293,8 +293,8 @@
     Chest: MobThavenTorso
     HeadTop: MobHumanoidAnyMarking
     HeadSide: MobHumanoidAnyMarking
-    UndergarmentTop: MobHumanoidAnyMarking # Wolfgate: as MobThavenSprites, so undergarment markings draw
-    UndergarmentBottom: MobHumanoidAnyMarking # Wolfgate
+    UndergarmentTop: MobHumanoidAnyMarking # WOLFGATE(Genitals): as MobThavenSprites, so undergarment markings draw
+    UndergarmentBottom: MobHumanoidAnyMarking # WOLFGATE(Genitals)
     Tail: MobHumanoidAnyMarking
     LArm: MobThavenLArm
     RArm: MobThavenRArm
@@ -347,7 +347,7 @@
   id: ProtoSlimePerson
   name: subspecies-name-protoslimeperson
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoSlimePerson
   sprites: MobProtoSlimePersonSprites
   defaultSkinTone: "#b8b8b8"
@@ -362,7 +362,7 @@
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
     Hair: MobSlimeMarkingFollowSkin
     Head: MobSlimeHead
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
     UndergarmentBottom: MobHumanoidAnyMarking #HL modifcation
@@ -423,7 +423,7 @@
   id: ProtoKin
   name: subspecies-name-protokin
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoKin
   sprites: MobProtoKinSprites
   defaultSkinTone: "#ffffff"
@@ -445,7 +445,7 @@
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
     Hair: MobHumanoidAnyMarking
     Head: MobShadekinHead
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
     UndergarmentBottom: MobHumanoidAnyMarking #HL modifcation
@@ -509,7 +509,7 @@
   id: ProtoResomi
   name: subspecies-name-protoresomi
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoResomi
   sprites: MobProtoResomiSprites
   defaultSkinTone: "#faf7f7"
@@ -534,7 +534,7 @@
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
     Hair: MobHumanoidAnyMarking
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobResomiHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -598,7 +598,7 @@
   id: ProtoReptile
   name: subspecies-name-protoreptile
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoReptile
   sprites: MobProtoReptileSprites
   defaultSkinTone: "#faf7f7"
@@ -614,7 +614,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobReptilianHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -679,7 +679,7 @@
   id: ProtoMoth
   name: subspecies-name-protomoth
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoMoth
   sprites: MobProtoMothSprites
   defaultSkinTone: "#ffda93"
@@ -695,7 +695,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobMothHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -760,7 +760,7 @@
   id: ProtoHumie
   name: subspecies-name-protohumie
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoHumie
   sprites: MobProtoHumieSprites
   defaultSkinTone: "#ffda93"
@@ -773,7 +773,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobHumanHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -836,7 +836,7 @@
   id: ProtoFeline
   name: subspecies-name-protofeline
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoFeline
   sprites: MobProtoFelineSprites
   defaultSkinTone: "#666666"
@@ -852,7 +852,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobFelionoidHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -917,7 +917,7 @@
   id: ProtoDawi
   name: subspecies-name-protodawi
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoDawi
   sprites: MobProtoHumieSprites
   markingLimits: MobProtoDawiMarkingLimits
@@ -966,7 +966,7 @@
   id: ProtoDionae
   name: subspecies-name-protodionae
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoDionae
   sprites: MobProtoDionaeSprites
   markingLimits: MobProtoDionaeMarkingLimits
@@ -983,7 +983,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobDionaHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -1050,7 +1050,7 @@
   id: ProtoAvali
   name: subspecies-name-protoavali
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoAvali
   sprites: MobProtoAvaliSprites
   markingLimits: MobProtoAvaliMarkingLimits
@@ -1071,7 +1071,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobAvaliHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation
@@ -1140,7 +1140,7 @@
   id: ProtoArachnid
   name: subspecies-name-protoarachnid
   roundStart: true
-  subspeciesOf: Protogen # Wolfgate: groups it under Protogen in the creator
+  subspeciesOf: Protogen # WOLFGATE(Species): groups it under Protogen in the creator
   prototype: MobProtoArachnid
   sprites: MobProtoArachnidSprites
   markingLimits: MobProtoArachnidMarkingLimits
@@ -1158,7 +1158,7 @@
   sprites:
     TailBehind: MobHumanoidAnyMarking #HL modifcation
     TailOversuit: MobHumanoidAnyMarking #HL modifcation
-    Eyes: MobHumanoidAnyMarking # Wolfgate: blank, LED face markings replace eyes
+    Eyes: MobHumanoidAnyMarking # WOLFGATE(Species): blank, LED face markings replace eyes
     Head: MobArachnidHead
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking #HL modifcation

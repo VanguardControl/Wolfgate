@@ -480,27 +480,29 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     mothtruebutterfly1_BEHIND: TailBehind
     mothtruebutterfly2_BEHIND: TailBehind
     mothtruebutterfly3_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     mothtruebutterfly1_BEHIND: mothtruebutterfly1_FRONT
     mothtruebutterfly2_BEHIND: mothtruebutterfly2_FRONT
     mothtruebutterfly3_BEHIND: mothtruebutterfly3_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothtruebutterfly1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothtruebutterfly2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothtruebutterfly3_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothtruebutterfly1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothtruebutterfly2_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothtruebutterfly3_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: MothRhinoBeetle
@@ -509,27 +511,29 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     rhinobeetle1_BEHIND: TailBehind
     rhinobeetle2_BEHIND: TailBehind
     rhinobeetle3_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     rhinobeetle1_BEHIND: rhinobeetle1_FRONT
     rhinobeetle2_BEHIND: rhinobeetle2_FRONT
     rhinobeetle3_BEHIND: rhinobeetle3_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: rhinobeetle1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: rhinobeetle2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: rhinobeetle3_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: rhinobeetle1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: rhinobeetle2_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: rhinobeetle3_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: MothGlasswing
@@ -538,27 +542,29 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     glasswing1_BEHIND: TailBehind
     glasswing2_BEHIND: TailBehind
     glasswing3_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     glasswing1_BEHIND: glasswing1_FRONT
     glasswing2_BEHIND: glasswing2_FRONT
     glasswing3_BEHIND: glasswing3_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: glasswing1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: glasswing2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: glasswing3_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: glasswing1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: glasswing2_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: glasswing3_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: MothBee
@@ -567,27 +573,29 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     bee1_BEHIND: TailBehind
     bee2_BEHIND: TailBehind
     bee3_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     bee1_BEHIND: bee1_FRONT
     bee2_BEHIND: bee2_FRONT
     bee3_BEHIND: bee3_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: bee1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: bee2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: bee3_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: bee1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: bee2_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: bee3_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: MothGlowAntenna
@@ -608,15 +616,17 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, south frame drawn behind the body
+  layering:
     mothfirefly1_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     mothfirefly1_BEHIND: mothfirefly1_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/animatedmarkings.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/animatedmarkings.rsi
     state: mothfirefly1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/animatedmarkings.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/animatedmarkings.rsi
     state: mothfirefly1_BEHIND
+  # WOLFGATE END
   shader: unshaded
 
 - type: marking
@@ -626,15 +636,17 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     mothfirefly2_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     mothfirefly2_BEHIND: mothfirefly2_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothfirefly2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: mothfirefly2_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: MothBeetleTail
@@ -643,27 +655,29 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     beetle1_BEHIND: TailBehind
     beetle2_BEHIND: TailBehind
     beetle3_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     beetle1_BEHIND: beetle1_FRONT
     beetle2_BEHIND: beetle2_FRONT
     beetle3_BEHIND: beetle3_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: beetle1_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: beetle2_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: beetle3_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: beetle1_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: beetle2_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: beetle3_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: MothBeetleHorn1
@@ -707,17 +721,19 @@
   speciesRestriction: [ Moth ]
   forcedColoring: false
   followSkinColor: false
-  layering: # WOLFGATE - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  # WOLFGATE(Genitals) START: split tail art, anatomy zone drawn behind the body
+  layering:
     snoth1_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks:
     snoth1_BEHIND: snoth1_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - split art, anatomy zone only
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: snoth1_FRONT
   - sprite: _Impstation/Mobs/Customization/markingsbundle1.rsi
     state: snoth2
-  - sprite: _WF/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi # WOLFGATE - anatomy zone of the south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Impstation/Mobs/Customization/markingsbundle1.rsi
     state: snoth1_BEHIND
+  # WOLFGATE END
 
 - type: marking
   id: VoxCocktail

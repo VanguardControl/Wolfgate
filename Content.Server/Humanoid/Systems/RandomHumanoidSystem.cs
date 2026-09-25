@@ -38,8 +38,10 @@ public sealed partial class RandomHumanoidSystem : EntitySystem
         if (!_prototypeManager.TryIndex<RandomHumanoidSettingsPrototype>(prototypeId, out var prototype))
             throw new ArgumentException("Could not get random humanoid settings");
 
-        // WOLFGATE: random humanoids never roll a subspecies. Those are variants picked on purpose, and the 14 Proto
-        // subspecies would otherwise be about a third of every random spawn.
+        // WOLFGATE(Species) START: random humanoids never roll a subspecies
+        // Those are variants picked on purpose, and the 14 Proto subspecies would otherwise be about a third of
+        // every random spawn.
+        // var profile = HumanoidCharacterProfile.Random(prototype.SpeciesBlacklist);
         var blacklist = new HashSet<string>(prototype.SpeciesBlacklist);
         foreach (var species in _prototypeManager.EnumeratePrototypes<SpeciesPrototype>())
         {
@@ -48,6 +50,7 @@ public sealed partial class RandomHumanoidSystem : EntitySystem
         }
 
         var profile = HumanoidCharacterProfile.Random(blacklist);
+        // WOLFGATE END
         var speciesProto = _prototypeManager.Index<SpeciesPrototype>(profile.Species);
         var humanoid = EntityManager.CreateEntityUninitialized(speciesProto.Prototype, coordinates);
 

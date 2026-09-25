@@ -12,9 +12,11 @@ concurrency:
 
 jobs:
   add_label:
+    # WOLFGATE START: default token permissions are read-only
     permissions:
       issues: write
       pull-requests: write
+    # WOLFGATE END
     runs-on: ubuntu-latest
     steps:
     - uses: actions-ecosystem/action-add-labels@v1

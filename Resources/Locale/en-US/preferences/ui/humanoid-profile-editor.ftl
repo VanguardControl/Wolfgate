@@ -32,7 +32,10 @@ humanoid-profile-editor-jobs-tab = Jobs
 humanoid-profile-editor-preference-unavailable-stay-in-lobby-button = Stay in lobby if preference unavailable.
 # Frontier: we have multiple overflow job types, so we change this message.
 # humanoid-profile-editor-preference-unavailable-spawn-as-overflow-button = Be {INDEFINITE($overflowJob)} {$overflowJob} if preference unavailable.
-humanoid-profile-editor-preference-unavailable-spawn-as-overflow-button = Start in an available job if preference unavailable.
+# WOLFGATE(Station) START: overflow is Vagrant only
+# humanoid-profile-editor-preference-unavailable-spawn-as-overflow-button = Start in an available job if preference unavailable.
+humanoid-profile-editor-preference-unavailable-spawn-as-overflow-button = Be a Vagrant if preference unavailable.
+# WOLFGATE END
 humanoid-profile-editor-preference-jumpsuit = Jumpsuit
 humanoid-profile-editor-preference-jumpskirt = Jumpskirt
 humanoid-profile-editor-preference-backpack = Backpack
@@ -67,6 +70,12 @@ humanoid-profile-editor-company-label = Company:
 humanoid-profile-editor-traits-tab = Traits
 humanoid-profile-editor-no-traits = No traits available
 humanoid-profile-editor-traits-default-category = Uncategorized
+
+# Mono
+humanoid-profile-editor-saved-items-tab = Persistence
+humanoid-profile-editor-saved-items-header = Your character has the following items saved:
+humanoid-profile-editor-saved-item-sticky = This item is sticky and will remain saved after spawning.
+humanoid-profile-editor-saved-item-round-end = This item will be saved again if you still have it at round end.
 
 humanoid-profile-editor-trait-count-hint = Points Available: [{$current}/{$max}]
 

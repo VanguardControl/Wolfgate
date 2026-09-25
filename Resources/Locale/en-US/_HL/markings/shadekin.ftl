@@ -1,10 +1,10 @@
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-ShadekinEyeL = Shadekin eye (L)
 marking-ShadekinEyeL-shadekineye_l = Eye
 marking-ShadekinEyeR = Shadekin eye (R)
 marking-ShadekinEyeR-shadekineye_r = Eye
 
-# Wolfgate: ported from HardLight
+# WOLFGATE(Species): ported from HardLight
 marking-ShadekinArachnidAppendagesHarvest = Appendages (Harvest)
 marking-ShadekinArachnidAppendagesHarvest-harvest_primary =  Appendage
 marking-ShadekinArachnidAppendagesHarvest-harvest_secondary = Stripes

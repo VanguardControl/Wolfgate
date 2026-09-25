@@ -5,6 +5,7 @@ using Content.Server.Polymorph.Systems;
 using Content.Shared._NF.Cloning;
 using Content.Shared._WF.Genitals;
 using Content.Shared._WF.Genitals.Components;
+using Content.Shared._WF.Genitals.Profile;
 using Content.Shared.Body.Systems;
 using Content.Shared.Cloning;
 using Content.Shared.Humanoid;

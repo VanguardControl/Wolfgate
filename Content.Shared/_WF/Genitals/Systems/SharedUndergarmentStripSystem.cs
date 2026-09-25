@@ -10,6 +10,7 @@ using Content.Shared.Strip;
 using Content.Shared.Verbs;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
+using Content.Shared._WF.Genitals.Events;
 
 namespace Content.Shared._WF.Genitals.Systems;
 
@@ -201,7 +202,7 @@ public sealed partial class SharedUndergarmentStripSystem : EntitySystem
             $"{ToPrettyString(user):actor} {action} the {slotName} undergarment of {ToPrettyString(target):target} ({count} this round)");
     }
 
-    /// <summary>One tick after a toggle change: master off puts back everything, UndergarmentStrip off puts back what others removed.</summary>
+    /// <summary>One tick after a toggle change: master off puts back everything, WFUndergarmentStrip off puts back what others removed.</summary>
     private void OnConsentChanged(ref GenitalConsentChangedEvent ev)
     {
         var body = ev.Body;

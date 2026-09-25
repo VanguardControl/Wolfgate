@@ -2,7 +2,7 @@ using Content.Shared._WF.Genitals.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._WF.Genitals;
+namespace Content.Shared._WF.Genitals.Profile;
 
 /// <summary>Creator-time anatomy for one character. Organs are built from this in round.</summary>
 /// <remarks>Immutable in practice (private setters, fresh factory instances, With* copies), so references can be shared.</remarks>

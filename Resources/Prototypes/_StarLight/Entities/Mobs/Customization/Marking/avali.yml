@@ -1,4 +1,4 @@
-# Wolfgate: fields with no consumer in this fork removed (see the port notes).
+# WOLFGATE(Species): fields with no consumer in this fork removed (see the port notes).
 # Base Markings
 
 - type: marking
@@ -21,14 +21,14 @@
   followSkinColor: true
   forcedColoring: true
   speciesRestriction: [ Avali, ProtoAvali ]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     tail_avalibase_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     tail_avalibase_BEHIND: tail_avalibase_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): split art
     state: tail_avalibase_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avalibase_BEHIND
 
 # Stripe one
@@ -141,26 +141,26 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [ Avali, ProtoAvali ]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     tail_avalibase_BEHIND: TailBehind
     tail_avali_primary_BEHIND: TailBehind
     tail_avali_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     tail_avalibase_BEHIND: tail_avalibase_FRONT
     tail_avali_primary_BEHIND: tail_avali_primary_FRONT
     tail_avali_secondary_BEHIND: tail_avali_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): split art
     state: tail_avalibase_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE(Genitals): split art
     state: tail_avali_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE(Genitals): split art
     state: tail_avali_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avalibase_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avali_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_stripes_one.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avali_secondary_BEHIND
 
 # Trim one
@@ -277,26 +277,26 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [ Avali, ProtoAvali ]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     tail_avalibase_BEHIND: TailBehind
     tail_avali_primary_BEHIND: TailBehind
     tail_avali_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     tail_avalibase_BEHIND: tail_avalibase_FRONT
     tail_avali_primary_BEHIND: tail_avali_primary_FRONT
     tail_avali_secondary_BEHIND: tail_avali_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): split art
     state: tail_avalibase_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE(Genitals): split art
     state: tail_avali_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE(Genitals): split art
     state: tail_avali_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avalibase_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avali_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_one.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avali_secondary_BEHIND
 
 # Trim two
@@ -391,24 +391,24 @@
   bodyPart: Tail
   markingCategory: Tail
   speciesRestriction: [ Avali, ProtoAvali ]
-  layering: # WOLFGATE - the south frame draws behind the body, so the tail never covers anatomy
+  layering: # WOLFGATE(Genitals): the south frame draws behind the body, so the tail never covers anatomy
     tail_avalibase_BEHIND: TailBehind
     tail_avali_primary_BEHIND: TailBehind
     tail_avali_secondary_BEHIND: TailBehind
-  colorLinks: # WOLFGATE - both halves of a tail share one colour
+  colorLinks: # WOLFGATE(Genitals): both halves of a tail share one colour
     tail_avalibase_BEHIND: tail_avalibase_FRONT
     tail_avali_primary_BEHIND: tail_avali_primary_FRONT
     tail_avali_secondary_BEHIND: tail_avali_secondary_FRONT
   sprites:
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): split art
     state: tail_avalibase_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE(Genitals): split art
     state: tail_avali_primary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE - split art
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE(Genitals): split art
     state: tail_avali_secondary_FRONT
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_parts.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avalibase_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avali_primary_BEHIND
-  - sprite: _WF/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE - south frame on TailBehind
+  - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Starlight/Mobs/Customization/Avali/avali_trim_two.rsi # WOLFGATE(Genitals): south frame on TailBehind
     state: tail_avali_secondary_BEHIND
