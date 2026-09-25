@@ -3239,3 +3239,6 @@ of its own, then built and run:
 Not changed, on purpose: the `Wolfmed*` prototype ids (the `WF` prefix rule; a rename touches saved data), the
 `_Onyx` folder (ported content may keep its fork's folder), and the `HealthChange` effect, whose rewritten
 argument is used by its healing test.
+
+Run 8, the audited tree, full filter: 495 tests, 485 passed, 0 failed, 10 skipped (dirty-disposed), 19.2 minutes,
+peak RSS 9.7 GB; every one of the ten passed alone. `modules.py --check` and `--pr-check origin/main` pass.
