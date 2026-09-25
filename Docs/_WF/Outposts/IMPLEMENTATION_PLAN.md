@@ -14,6 +14,8 @@ Rules for every step:
 
 Sizes: **S** under 500 lines, **M** 500 to 1,500, **L** 1,500 to 3,000 (split it if you can).
 
+Live status per step (stage, branch, PR link) is on the build board: https://claude.ai/artifact/S6S653ZoTRyqnyyK37RGDc (team access only; ask for a share if the link refuses you).
+
 ## Milestones (stop points)
 
 The plan has four places where you can stop and the feature is coherent:
