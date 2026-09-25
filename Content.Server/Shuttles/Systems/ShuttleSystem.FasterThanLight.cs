@@ -367,7 +367,7 @@ public sealed partial class ShuttleSystem
         float? hyperspaceTime = null,
         string? priorityTag = null)
     {
-        if (WfRefusesFtlDeparture(shuttleUid)) // WOLFGATE(PlanetCracker): the docking branch never calls TrySetupFTL, so it asks the same gate (F0/F10).
+        if (WfRefusesFtlDeparture(shuttleUid)) // WOLFGATE(Planets): the docking branch never calls TrySetupFTL, so it asks the same gate.
             return;
 
         // TODO: Validation
@@ -549,7 +549,7 @@ public sealed partial class ShuttleSystem
     {
         component = null;
 
-        if (WfRefusesFtlDeparture(uid)) // WOLFGATE(PlanetCracker): a planet is left from orbit, never from the surface, the air or mid-transit (F0/F10).
+        if (WfRefusesFtlDeparture(uid)) // WOLFGATE(Planets): a planet is left from orbit, never from the surface, the air or mid-transit.
             return false;
 
         if (HasComp<FTLComponent>(uid))

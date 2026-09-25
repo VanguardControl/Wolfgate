@@ -41,9 +41,9 @@ public sealed partial class CreateEntityTileReaction : ITileReaction
         IEntityManager entityManager,
         List<ReagentData>? data)
     {
-        // WOLFGATE(PlanetCracker) START: spilled chimera blood cannot seed an unbounded planetary hive.
+        // WOLFGATE(Planets) START: spilled chimera blood cannot seed an unbounded planetary hive.
         if (Entity == "ChimeraFleshKudzu" &&
-            entityManager.System<Content.Server._WF.PlanetCracker.Planets.WFPlanetBiomassSystem>().IsPlanet(tile.GridUid))
+            entityManager.System<Content.Server._WF.Planets.WFPlanetBiomassSystem>().IsPlanet(tile.GridUid))
             return FixedPoint2.Zero;
         // WOLFGATE END
 

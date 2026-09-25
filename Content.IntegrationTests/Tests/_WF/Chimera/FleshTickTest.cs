@@ -13,7 +13,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 using Content.Shared.Interaction;
 using Content.Shared.Weapons.Melee.Events;
-using Content.IntegrationTests.Tests._WF.PlanetCracker;
+using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Shared.Projectiles;
 using Content.Shared.Tag;
 using Content.Shared.Mobs;
@@ -31,8 +31,8 @@ public sealed class FleshTickTest
     public async Task PlanetLeapDoesNotKillTheTick(bool misses)
     {
         await using var pair = await PoolManager.GetServerClient();
-        await PlanetCrackerFixture.EnableFeature(pair);
-        var layers = await PlanetCrackerFixture.BuildStandalone(pair);
+        await PlanetFixture.EnableFeature(pair);
+        var layers = await PlanetFixture.BuildStandalone(pair);
         var server = pair.Server;
         var em = server.EntMan;
         EntityUid tick = default, host = default;

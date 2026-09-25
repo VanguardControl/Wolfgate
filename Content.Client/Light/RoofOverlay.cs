@@ -15,7 +15,7 @@ public sealed partial class RoofOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
     [Dependency] private IMapManager _mapManager = default!;
-    [Dependency] private ITileDefinitionManager _tileDefs = default!; // WOLFGATE(PlanetCracker): the open-grating check below reads tile definitions.
+    [Dependency] private ITileDefinitionManager _tileDefs = default!; // WOLFGATE(Planets): the open-grating check below reads tile definitions.
     [Dependency] private IOverlayManager _overlay = default!;
 
     private readonly EntityLookupSystem _lookup;
@@ -82,7 +82,7 @@ public sealed partial class RoofOverlay : Overlay
 
                     while (tileEnumerator.MoveNext(out var tileRef))
                     {
-                        // WOLFGATE(PlanetCracker) START: open grating is no roof.
+                        // WOLFGATE(Planets) START: open grating is no roof.
                         // Lattice is a space tile laid on hulls that keep their implicit roof; painted over, it
                         // blacked out the world below whenever the eye crossed it.
                         if (_tileDefs[tileRef.Tile.TypeId] is ContentTileDefinition { MapAtmosphere: true })

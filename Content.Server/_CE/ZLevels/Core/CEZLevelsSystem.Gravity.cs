@@ -65,7 +65,7 @@ public sealed partial class CEZLevelsSystem
                 if (!gravgen.GravityActive || !gravgenXform.ParentUid.IsValid())
                     continue;
 
-                if (WfGravgenIsOnPlanet(gravgenXform.ParentUid)) // WOLFGATE(PlanetCracker): over a planet only landing thrusters lift (F10).
+                if (WfGravgenIsOnPlanet(gravgenXform.ParentUid)) // WOLFGATE(Planets): over a planet only landing thrusters lift.
                     continue;
 
                 // Unrated (<= 0) = unlimited; infinity absorbs any finite additions.
@@ -82,7 +82,7 @@ public sealed partial class CEZLevelsSystem
                 _gravgenCapacity[anchorGrid] = float.PositiveInfinity;
             }
 
-            WfAddLandingThrusterCapacity(_gravgenCapacity); // WOLFGATE(PlanetCracker): landing thrusters are the planet-side lift (F10).
+            WfAddLandingThrusterCapacity(_gravgenCapacity); // WOLFGATE(Planets): landing thrusters are the planet-side lift.
 
             var levelQuery = EntityQueryEnumerator<CEZGridFallerComponent, MapGridComponent>();
             while (levelQuery.MoveNext(out var uid, out var faller, out var grid))
@@ -95,7 +95,7 @@ public sealed partial class CEZLevelsSystem
                 if (xform.MapUid is not { } mapUid || !_zMapQuery.HasComp(mapUid))
                     continue;
 
-                if (WfIsOrbitLayer(mapUid)) // WOLFGATE(PlanetCracker): grids parked on a planet orbit layer never fall.
+                if (WfIsOrbitLayer(mapUid)) // WOLFGATE(Planets): grids parked on a planet orbit layer never fall.
                     continue;
 
                 if (_physQuery.TryComp(uid, out var body) && body.BodyType == BodyType.Static)
@@ -306,10 +306,10 @@ public sealed partial class CEZLevelsSystem
             if (_timing.CurTime < faller.GravityTime)
                 return;
 
-            // WOLFGATE(PlanetCracker): partial landing-thruster lift slows the sink, and this is where lift lost begins (F10).
+            // WOLFGATE(Planets): partial landing-thruster lift slows the sink, and this is where lift lost begins.
             var wfGravity = WfSinkGravity(grid, transitSet, faller.GridGravity);
 
-            faller.Velocity = ApproachTerminal(faller.Velocity, wfGravity, faller.GridTerminalVelocity, frameTime); // WOLFGATE(PlanetCracker)
+            faller.Velocity = ApproachTerminal(faller.Velocity, wfGravity, faller.GridTerminalVelocity, frameTime); // WOLFGATE(Planets)
         }
         else
         {
@@ -403,24 +403,24 @@ public sealed partial class CEZLevelsSystem
 
         foreach (var landedUid in crashSet)
         {
-            // WOLFGATE(PlanetCracker) START: planetary landings can clear, land hard, break up or skid instead of only crashing.
+            // WOLFGATE(Planets) START: planetary landings can clear, land hard, break up or skid instead of only crashing.
             // if (TryComp<MapGridComponent>(landedUid, out var landedGrid) && TryComp<CEZGridFallerComponent>(landedUid, out var landedFaller))
             //     CrashGrid((landedUid, landedGrid, landedFaller));
             if (!TryComp<MapGridComponent>(landedUid, out var landedGrid) || !TryComp<CEZGridFallerComponent>(landedUid, out var landedFaller))
                 continue;
 
-            WfClearLandingObstacles(landedUid); // WOLFGATE(PlanetCracker): leave clearance around planetary impact wrecks.
+            WfClearLandingObstacles(landedUid); // WOLFGATE(Planets): leave clearance around planetary impact wrecks.
 
-            // WOLFGATE(PlanetCracker): a lift-lost hull that touched down slowly enough lands hard and skids instead of exploding (F10).
+            // WOLFGATE(Planets): a lift-lost hull that touched down slowly enough lands hard and skids instead of exploding.
             if (WfTryHardLanding((landedUid, landedGrid, landedFaller), impact))
                 continue;
 
-            if (WfTryStructuralCrash((landedUid, landedGrid, landedFaller), impact)) // WOLFGATE(PlanetCracker): survivable ship breakup.
+            if (WfTryStructuralCrash((landedUid, landedGrid, landedFaller), impact)) // WOLFGATE(Planets): survivable ship breakup.
                 continue;
 
             CrashGrid((landedUid, landedGrid, landedFaller));
 
-            WfSkidAfterCrash(landedUid); // WOLFGATE(PlanetCracker): a crash with planar speed left ploughs on instead of stopping dead (F10).
+            WfSkidAfterCrash(landedUid); // WOLFGATE(Planets): a crash with planar speed left ploughs on instead of stopping dead.
             // WOLFGATE END
         }
     }
@@ -430,7 +430,7 @@ public sealed partial class CEZLevelsSystem
     /// </summary>
     private void CrashGrid(Entity<MapGridComponent, CEZGridFallerComponent> ent)
     {
-        // WOLFGATE(PlanetCracker) START: one crash, one bang.
+        // WOLFGATE(Planets) START: one crash, one bang.
         // Every tile still queues its own crater, but each queued explosion plays two
         // networked audio streams, and a hull's worth of them exhausted the client's OpenAL sources and took the client
         // down mid-crash. The central blast carries the sound where there is one; a grid whose CrashIntensityPerTile is
@@ -451,8 +451,8 @@ public sealed partial class CEZLevelsSystem
                 ent.Comp2.CrashTileSlope,
                 ent.Comp2.CrashTileMaxIntensity,
                 cause: ent,
-                addLog: false, // WOLFGATE(PlanetCracker)
-                silent: soundOnCentre || tileCount > 1); // WOLFGATE(PlanetCracker): only one blast of a crash plays its sound.
+                addLog: false, // WOLFGATE(Planets)
+                silent: soundOnCentre || tileCount > 1); // WOLFGATE(Planets): only one blast of a crash plays its sound.
         }
 
         if (tileCount == 0)
@@ -485,7 +485,7 @@ public sealed partial class CEZLevelsSystem
 
             if (_physQuery.TryComp(grid, out var body))
                 mass += body.FixturesMass;
-            mass += GetWFVirtualMass(grid); // WOLFGATE(PlanetCracker): cargo virtual mass counts against pooled lift.
+            mass += GetWFVirtualMass(grid); // WOLFGATE(Planets): cargo virtual mass counts against pooled lift.
         }
 
         // capacity > 0 means at least one active generator exists; a set with no lift
@@ -642,7 +642,7 @@ public sealed partial class CEZLevelsSystem
             gridMass = body.FixturesMass;
         }
 
-        gridMass += GetWFVirtualMass(gridUid, networkGrids); // WOLFGATE(PlanetCracker): same virtual mass the lift check uses, so the readout agrees.
+        gridMass += GetWFVirtualMass(gridUid, networkGrids); // WOLFGATE(Planets): same virtual mass the lift check uses, so the readout agrees.
         return true;
     }
 

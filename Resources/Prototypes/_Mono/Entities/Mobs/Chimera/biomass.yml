@@ -8,7 +8,7 @@
     snap:
     - Wall
   components:
-  # WOLFGATE(PlanetCracker): prevent action-spawned biomass from colonizing planets, too.
+  # WOLFGATE(Planets): prevent action-spawned biomass from colonizing planets, too.
   - type: WFPlanetBiomassRestriction
   - type: MeleeSound
     soundGroups:

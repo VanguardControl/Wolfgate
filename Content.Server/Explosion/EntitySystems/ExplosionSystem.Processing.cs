@@ -942,7 +942,7 @@ public sealed class QueuedExplosion
     public bool CanCreateVacuum;
     public EntityUid? Cause; // The entity that exploded, for logging purposes.
 
-    // WOLFGATE(PlanetCracker) START: silent flag, so a crash's storm of blasts makes one bang.
+    // WOLFGATE(Planets) START: silent flag, so a crash's storm of blasts makes one bang.
     /// <summary>
     /// No sound and no camera shake for this one. For storms of explosions queued as a single event, where
     /// one bang is wanted and a hundred would exhaust the client's audio sources. Combining clears it: an explosion
