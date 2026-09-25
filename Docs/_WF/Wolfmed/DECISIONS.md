@@ -3131,3 +3131,39 @@ Run (DebugOpt): `Autodoc|PodAtmosphere` 48 total, 44 passed, 0 failed, 4 skipped
 `AutofixModuleIdlesWithNothingToDoTest`, `EjectOnlyAlarmsWhileRunningTest`, `PodMendsAFractureThroughTheRealStepsTest`,
 dirty-disposed, not rerun alone at the orchestrator's request). The full filter's one attempt ran 183 tests (176 passed,
 0 failed, 7 skipped) before its test host crashed; the orchestrator runs the full suite after the merge.
+
+## Main merged, module standards (2026-09-25)
+
+`origin/main` (44 commits, up to #81) merged into `Wolfmed` in the cloud checkout. One conflict: main moved the
+Wolfgate vendor inventory to `Resources/Prototypes/_WF/Traders/Catalog/VendingMachines/Inventories/wolfgate.yml`
+and renamed it `WFWolfgateVendInventory`; the Wolfmed stock (field medicine, autodoc disks and modules) went into
+the moved file and `WolfmedHydraulicFluidTest` reads the new id.
+
+Main's #70 and #72 brought AGENTS.md's module rules and `Tools/_WF/Ci/modules.py`, which CI runs (`--check`, and
+`--pr-check` against the PR base). The module is now laid out and marked the way they ask:
+
+- **Folders.** `Tools/_WF/wolfmed` and `Resources/Locale/en-US/_WF/wolfmed` are `Wolfmed` (PascalCase in every
+  area); the design docs moved from `Docs/Wolfmed` to `Docs/_WF/Wolfmed`. Path references in the generator
+  scripts, generated headers and the analyzer test follow.
+- **Markers.** Every Wolfmed marker outside `_WF` (upstream files and the ported `_Onyx` tree, about 700 lines)
+  is in the generator's grammar: `// WOLFGATE(Wolfmed): reason`, `// WOLFGATE(Wolfmed) START: reason` ...
+  `// WOLFGATE END`. The old tags (`(P3-D14)`, `(M1a)`, `(BRAIN)`, `(playtest 3)`, ...) are kept as the
+  first words of the reason, so a marker still points at its DECISIONS section. Ported files that carried no
+  marker (Onyx components, the vendored `StatusEffectNew` framework, four Onyx locale files) got one at the top:
+  `ported from Onyx for Wolfmed` or `StatusEffectNew framework vendored from upstream SS14`. `Resources/Textures/_Onyx/`
+  and the autodoc placed in `Resources/Maps/_NF/POI/medical.yml` are `unmarked` entries in
+  `Tools/_WF/Ci/modules.yml`, since sprites and maps cannot carry a comment. `_Onyx` stays where it is, as
+  AGENTS.md allows for content ported from another fork.
+- **README.** `Content.Server/_WF/Wolfmed/README.md`, with a hand-written overview and the generated file list
+  and non-modular edit list (251 files outside `_WF`, each with its reasons). That generated list is now the list
+  of record for the module's upstream edits; `WOLFMED_MANIFEST.md` stays as the port-time manifest and is not
+  maintained further. `Docs/_WF/NONMODULAR.md` regenerated.
+- **Style.** `[Dependency]` fields in `_WF/Wolfmed` lost their `readonly` (201 fields, AGENTS.md's form). No
+  license headers were present. Namespaces that do not follow the folder are all partials of upstream systems,
+  which keep the upstream namespace by the rule.
+- **Not done: prototype IDs.** AGENTS.md wants a `WF` prefix on Wolfgate's own prototype IDs; the module's are
+  `Wolfmed*` (268) and unprefixed autodoc, surgery and HUD ids (about 190). Renaming them touches saved data,
+  `migration.yml` and every test and locale key, on a branch three playtests deep, so it is left for a decision
+  by the owner rather than done in passing.
+
+`python Tools/_WF/Ci/modules.py --check` and `--pr-check origin/main` both pass.
