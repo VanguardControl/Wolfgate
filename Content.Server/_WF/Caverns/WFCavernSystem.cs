@@ -3,13 +3,16 @@ using Content.Server._DV.Planet;
 using Content.Server._WF.Planets;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Parallax;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._WF.Caverns;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Light.Components;
+using Content.Shared.Mind.Components;
 using Content.Shared.Parallax;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Configuration;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Caverns;
@@ -22,6 +25,8 @@ public sealed partial class WFCavernSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private PlanetSystem _planet = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -30,6 +35,7 @@ public sealed partial class WFCavernSystem : EntitySystem
 
         SubscribeLocalEvent<WFPlanetLowerLayersEvent>(OnLowerLayers);
         SubscribeLocalEvent<WFPlanetNetworkBuiltEvent>(OnNetworkBuilt);
+        SubscribeLocalEvent<WFPlanetWildlifeComponent, CEZLevelFallMapEvent>(OnWildlifeFell);
     }
 
     /// <summary>The cavern under a surface, if it has one.</summary>
@@ -95,5 +101,28 @@ public sealed partial class WFCavernSystem : EntitySystem
             ground.Cavern = map;
             ground.Prototype = cavern.ID;
         }
+    }
+
+    /// <summary>Deletes surface wildlife dropped into a cavern by an unloaded ground chunk, where it would idle forever as Protected.</summary>
+    private void OnWildlifeFell(Entity<WFPlanetWildlifeComponent> ent, ref CEZLevelFallMapEvent args)
+    {
+        var xform = Transform(ent);
+
+        if (!TryComp<WFCavernLayerComponent>(xform.MapUid, out var layer)
+            || !TryComp<BiomeComponent>(layer.Ground, out var biome)
+            || !TryComp<MapGridComponent>(layer.Ground, out var grid)
+            || TryComp<MindContainerComponent>(ent, out var mind) && mind.HasMind)
+            return;
+
+        var index = _map.WorldToTile(layer.Ground, grid, _transform.GetWorldPosition(xform));
+
+        // Solid ground above, a pinned hole or a loaded chunk: it fell through a real opening.
+        if (_map.TryGetTileRef(layer.Ground, grid, index, out var tile) && !tile.Tile.IsEmpty
+            || _biome.WfIsPinned((layer.Ground, biome), index)
+            || _biome.WfIsChunkLoaded((layer.Ground, biome), index))
+            return;
+
+        // Raised mid z-physics pass, so the delete waits for the end of the tick.
+        QueueDel(ent);
     }
 }

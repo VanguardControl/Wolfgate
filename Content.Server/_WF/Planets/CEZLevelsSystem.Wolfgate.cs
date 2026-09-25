@@ -32,8 +32,12 @@ public sealed partial class CEZLevelsSystem
             SetZPosition((grid, zPhys), 0f);
     }
 
-    /// <summary>True on an orbit layer, which is left through transit, never a direct level hop.</summary>
-    private bool WfRefusesLevelHop(EntityUid grid) => WfIsOrbitLayer(Transform(grid).MapUid ?? EntityUid.Invalid);
+    /// <summary>True for a planet layer below its ground; hulls never enter one.</summary>
+    private bool WfClosedToHulls(Entity<CEZMapComponent> map) => map.Comp.Depth < 0 && HasComp<WFPlanetLayerComponent>(map);
+
+    /// <summary>True on an orbit layer (left through transit) or when the hop would take the hull below ground.</summary>
+    private bool WfRefusesLevelHop(EntityUid grid, Entity<CEZMapComponent> target)
+        => WfIsOrbitLayer(Transform(grid).MapUid ?? EntityUid.Invalid) || WfClosedToHulls(target);
 
 
     /// <summary>Test seam: whether this grid is currently parked by the orbit hold.</summary>

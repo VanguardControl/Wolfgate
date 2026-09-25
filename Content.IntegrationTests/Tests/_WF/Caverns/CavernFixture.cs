@@ -5,9 +5,15 @@ using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.Planets;
+using Content.Server.Parallax;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
+using Content.Shared.Parallax.Biomes;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
@@ -25,6 +31,9 @@ public static class CavernFixture
         "WFSurfaceThrascias",
         "WFSurfaceCarcinoma",
     };
+
+    /// <summary>Biome chunk edge in tiles; SharedBiomeSystem.ChunkSize is protected.</summary>
+    public const int ChunkSize = 8;
 
     /// <summary>A built world: its network, its surface layers ground first, and the cavern below it.</summary>
     public sealed class World
@@ -86,5 +95,108 @@ public static class CavernFixture
     public static Task Teardown(TestPair pair, World world)
     {
         return PlanetFixture.Teardown(pair, world.Layers);
+    }
+
+    /// <summary>The map id of a layer, for the spawners that want one.</summary>
+    public static async Task<MapId> MapIdOf(TestPair pair, EntityUid layer)
+    {
+        var mapId = MapId.Nullspace;
+
+        await pair.Server.WaitPost(() => mapId = pair.Server.EntMan.GetComponent<MapComponent>(layer).MapId);
+        return mapId;
+    }
+
+    /// <summary>Origins of every biome chunk overlapping a tile rectangle, corners included.</summary>
+    public static IEnumerable<Vector2i> ChunkOrigins(Vector2i from, Vector2i to)
+    {
+        var min = SharedMapSystem.GetChunkIndices(from, ChunkSize);
+        var max = SharedMapSystem.GetChunkIndices(to, ChunkSize);
+
+        for (var x = min.X; x <= max.X; x++)
+        for (var y = min.Y; y <= max.Y; y++)
+        {
+            yield return new Vector2i(x, y) * ChunkSize;
+        }
+    }
+
+    /// <summary>Loads every biome chunk overlapping a tile rectangle, as a viewer standing there would.</summary>
+    public static async Task LoadChunks(TestPair pair, EntityUid map, Vector2i from, Vector2i to)
+    {
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+
+        await server.WaitPost(() =>
+        {
+            var biome = (map, entMan.GetComponent<BiomeComponent>(map), entMan.GetComponent<MapGridComponent>(map));
+
+            foreach (var origin in ChunkOrigins(from, to))
+            {
+                biomes.WfLoadChunk(biome, origin);
+            }
+        });
+
+        await server.WaitRunTicks(1);
+    }
+
+    /// <summary>Unloads every biome chunk overlapping a tile rectangle, as the loader does once nobody is near.</summary>
+    public static async Task UnloadChunks(TestPair pair, EntityUid map, Vector2i from, Vector2i to)
+    {
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+
+        await server.WaitPost(() =>
+        {
+            var biome = (map, entMan.GetComponent<BiomeComponent>(map), entMan.GetComponent<MapGridComponent>(map));
+
+            foreach (var origin in ChunkOrigins(from, to))
+            {
+                biomes.WfUnloadChunk(biome, origin);
+            }
+        });
+
+        await server.WaitRunTicks(1);
+    }
+
+    /// <summary>How many non-empty tiles a map has in a tile rectangle, corners included.</summary>
+    public static int SolidTiles(IEntityManager entMan, SharedMapSystem maps, EntityUid map, Vector2i from, Vector2i to)
+    {
+        var grid = entMan.GetComponent<MapGridComponent>(map);
+        var count = 0;
+
+        for (var x = from.X; x <= to.X; x++)
+        for (var y = from.Y; y <= to.Y; y++)
+        {
+            if (maps.TryGetTileRef(map, grid, new Vector2i(x, y), out var tile) && !tile.Tile.IsEmpty)
+                count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>Whether a map is the cavern or a transit gap that opens onto it.</summary>
+    public static bool TouchesCavern(IEntityManager entMan, EntityUid? map, EntityUid cavern)
+    {
+        if (map == cavern)
+            return true;
+
+        return entMan.TryGetComponent(map, out CEZTransitMapComponent? transit)
+               && (transit.LowerMap == cavern || transit.UpperMap == cavern);
+    }
+
+    /// <summary>Every transit gap that opens onto the cavern.</summary>
+    public static List<EntityUid> TransitsTouchingCavern(IEntityManager entMan, EntityUid cavern)
+    {
+        var found = new List<EntityUid>();
+        var query = entMan.AllEntityQueryEnumerator<CEZTransitMapComponent>();
+
+        while (query.MoveNext(out var uid, out var transit))
+        {
+            if (transit.LowerMap == cavern || transit.UpperMap == cavern)
+                found.Add(uid);
+        }
+
+        return found;
     }
 }

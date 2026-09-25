@@ -103,7 +103,7 @@ public sealed partial class CEZLevelsSystem
         Entity<CEZMapComponent, MapComponent> targetMap,
         int offset)
     {
-        if (WfRefusesLevelHop(grid)) // WOLFGATE(Planets): you leave orbit through transit, never by hopping a level.
+        if (WfRefusesLevelHop(grid, (targetMap.Owner, targetMap.Comp1))) // WOLFGATE(Planets): hulls leave orbit through transit and never hop below ground.
             return false;
 
         var movedGrids = CollectGridSet(grid);
@@ -430,7 +430,7 @@ public sealed partial class CEZLevelsSystem
         // the BOTTOM layer, climbing needs one above the TOP layer. Every interior
         // layer's gap is bounded by its neighbours' source maps, so only the two
         // extremes can fail.
-        var hasBelow = TryMapDown(layers[0].SourceMap, out _);
+        var hasBelow = TryMapDown(layers[0].SourceMap, out var wfBelow) && !WfClosedToHulls(wfBelow); // WOLFGATE(Planets): hulls never descend below a planet's ground.
         var hasAbove = TryMapUp(layers[^1].SourceMap, out _);
 
         var goDown = hasBelow && !(preferUpperGap && hasAbove);
@@ -719,7 +719,7 @@ public sealed partial class CEZLevelsSystem
             }
             else
             {
-                if (old.LowerMap is not { } newUpper || !TryMapDown(newUpper, out var below))
+                if (old.LowerMap is not { } newUpper || !TryMapDown(newUpper, out var below) || WfClosedToHulls(below)) // WOLFGATE(Planets): a descending convoy lands on the ground instead of hopping below it.
                     return false;
 
                 plans.Add((oldMap, below.Owner, newUpper, -1, below.Comp.Depth));

@@ -4,12 +4,16 @@ Every planet network gets a cavern at depth -1: a biome-backed map built with th
 by the ground above and dark except where daylight falls through a gap in the ground. Each of the six worlds has its
 own cavern (`wfCavern`, one per `wfPlanetSurface`) with its own air and light; for now all six share a placeholder
 biome of limestone tunnels through plain rock. Caverns are behind `wf.caverns` (`CavernCVars`), which is off by
-default, development builds included, and apply to networks built after it is set.
+default and on in development builds, and apply to networks built after it is set. Ships never go below ground, and
+nobody on or above the ground loads the cavern under them.
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour) and links the
-ground to it with `WFCavernGroundComponent`. The cavern map carries `WFCavernLayerComponent`. The design, including
-the features still to come (entrances, the six geologies, air, light, life, sound and the mining loop), is in
+ground to it with `WFCavernGroundComponent`. The cavern map carries `WFCavernLayerComponent`. `WFCavernSystem` also
+deletes surface wildlife that drops into a cavern because its ground chunk unloaded (`BiomeSystem.WfIsChunkLoaded`).
+Two marked CE edits keep the cavern safe to have: the Planets hull guard (`WfClosedToHulls`) and the eye cap in
+`CEZLevelsSystem.View.cs`, which stops z-level eyes at a ground layer. The design, including the features still to
+come (entrances, the six geologies, air, light, life, sound and the mining loop), is in
 `Docs/_WF/Caverns/CAVERNS_DESIGN.md`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -19,6 +23,7 @@ the features still to come (entrances, the six geologies, air, light, life, soun
 
 ### Server
 
+- [`Content.Server/_WF/Caverns/BiomeSystem.Caverns.cs`](BiomeSystem.Caverns.cs)
 - [`Content.Server/_WF/Caverns/WFCavernGroundComponent.cs`](WFCavernGroundComponent.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSystem.cs`](WFCavernSystem.cs)
 
@@ -30,8 +35,11 @@ the features still to come (entrances, the six geologies, air, light, life, soun
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernViewerEyeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernViewerEyeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernWildlifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernWildlifeTest.cs)
 
 ### Prototypes
 
@@ -50,6 +58,9 @@ the features still to come (entrances, the six geologies, air, light, life, soun
 
 ## Non-modular edits
 
-None.
+- [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.View.cs)
+  - the level above the next eye, for the ground cap below.
+  - no eyes or chunk loads under a ground layer.
+- [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
 
 <!-- WOLFGATE-GENERATED END -->
