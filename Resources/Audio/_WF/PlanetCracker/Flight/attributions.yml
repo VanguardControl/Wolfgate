@@ -27,3 +27,9 @@
   license: CC-BY-SA-3.0
   copyright: "Placeholder copy of hyperspace_begin.ogg from NSV-13, edited by _starch_ (discord) to fit SS14."
   source: https://github.com/BeeStation/NSV13/tree/master/nsv13/sound/effects/ship
+
+# Sourced by the maintainer (2026-09-15), converted to stereo 44.1 kHz Vorbis on import.
+- files: ["thrust_loop.ogg"]
+  license: CC0-1.0
+  copyright: "Original audio by Gandalf; dedicated to the public domain under CC0."
+  source: https://github.com/VanguardControl/Wolfgate/tree/Planets-and-cracking/Resources/Audio/_WF/PlanetCracker/Flight

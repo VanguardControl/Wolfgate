@@ -1,12 +1,11 @@
 using Content.Server._WF.PlanetCracker.Planets;
-using Content.Server._WF.PlanetCracker.Flight;
 using Content.Server.Shuttles.Components;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
 
-namespace Content.Server._WF.Shuttles;
+namespace Content.Server._WF.PlanetCracker.Flight;
 
 /// <summary>
 /// The thrust loop: while any powered linear thruster is actually firing, the hull's crew and anyone hovering over it
@@ -19,7 +18,7 @@ public sealed partial class WFThrustAmbienceSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private WFGridAudienceSystem _audience = default!;
 
-    public static readonly SoundSpecifier ThrustLoop = new SoundPathSpecifier("/Audio/_WF/Shuttle/thrust_loop.ogg");
+    public static readonly SoundSpecifier ThrustLoop = new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Flight/thrust_loop.ogg");
 
     /// <summary>Loop gain in dB; a touch under the file's own level, which read loud over the rest of the hull.</summary>
     // 60% of the previous gain: -6 dB + 20 * log10(0.6).

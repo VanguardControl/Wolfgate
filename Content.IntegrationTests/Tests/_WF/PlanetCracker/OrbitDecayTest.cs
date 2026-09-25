@@ -29,7 +29,7 @@ namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 public sealed class OrbitDecayTest
 {
     /// <summary>A selectable ship code, used as the code the warning has to borrow and hand back.</summary>
-    private const string PriorCode = "ShipCodeYellow";
+    private const string PriorCode = "WFShipCodeYellow";
 
     /// <summary>Seconds the countdown is shortened to; the sweep is 1 Hz, so anything faster is not observable.</summary>
     private const float TestGrace = 1f;

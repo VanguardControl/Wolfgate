@@ -1,13 +1,12 @@
 using System.Globalization;
 using System.Linq;
-using Content.Server._WF.Administration.Systems;
 using Content.Server.Administration;
 using Content.Shared._WF.Administration;
-using Content.Shared._WF.Administration.Planets;
+using Content.Shared._WF.PlanetCracker.Administration;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
 
-namespace Content.Server._WF.Administration.Commands;
+namespace Content.Server._WF.PlanetCracker.Administration;
 
 /// <summary>
 /// Console half of the Planet Control panel: no arguments lists the worlds, otherwise

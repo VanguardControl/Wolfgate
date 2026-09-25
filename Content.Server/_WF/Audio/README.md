@@ -39,6 +39,7 @@ the `WolfgateMusicPause` partials. The admin panel and the play command are in A
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundPopup.xaml.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundPopup.xaml.cs)
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.cs)
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.Replay.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.Replay.cs)
+- [`Content.Client/_WF/Audio/WFAudioBudgetSystem.cs`](../../../Content.Client/_WF/Audio/WFAudioBudgetSystem.cs)
 
 ### Unit tests
 

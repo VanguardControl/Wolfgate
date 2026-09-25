@@ -19,6 +19,6 @@
       angle: 4.6
 
     # WOLFGATE: quarantined biothreat world; cracking is unsanctioned.
-    - planet: PlanetCarcinoma
+    - planet: WFPlanetCarcinoma
       distance: 22000
       angle: 5.7

@@ -15,6 +15,7 @@ haze, internet sounds and explosion shockwaves.
 - [`Content.Shared/_WF/CCVar/CollisionWarningCVars.cs`](CollisionWarningCVars.cs)
 - [`Content.Shared/_WF/CCVar/HeatHazeCVars.cs`](HeatHazeCVars.cs)
 - [`Content.Shared/_WF/CCVar/InternetSoundCVars.cs`](InternetSoundCVars.cs)
+- [`Content.Shared/_WF/CCVar/PlanetCrackerCVars.cs`](PlanetCrackerCVars.cs)
 - [`Content.Shared/_WF/CCVar/ShockwaveCVars.cs`](ShockwaveCVars.cs)
 - [`Content.Shared/_WF/CCVar/WolfgateCVars.cs`](WolfgateCVars.cs)
 

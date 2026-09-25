@@ -34,7 +34,7 @@ public sealed class PlanetPopulationTest
             var proto = server.ResolveDependency<IPrototypeManager>();
             var systemId = "SystemKyphrus";
             var system = proto.Index<StarSystemPrototype>(systemId);
-            Assert.That(system.Planets.Exists(p => p.Planet.Id == "PlanetCarcinoma"), Is.True);
+            Assert.That(system.Planets.Exists(p => p.Planet.Id == "WFPlanetCarcinoma"), Is.True);
             var stopwatch = Stopwatch.StartNew();
             foreach (var name in new[] { "Asclepiu", "Fervidus", "Merak", "Aerumna", "Thrascias", "Carcinoma" })
             {

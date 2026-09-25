@@ -47,7 +47,7 @@
   - type: WFFleshPustule
 
 - type: entity
-  id: ActionPlantFleshPustule
+  id: WFActionPlantFleshPustule
   name: Plant Flesh Pustule
   description: Plant a flesh tick nest on nearby chimera biomass.
   components:

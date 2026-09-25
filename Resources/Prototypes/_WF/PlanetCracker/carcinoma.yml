@@ -7,7 +7,7 @@
   color4: '#D8ACA0'
 
 - type: planetType
-  id: PlanetCarcinoma
+  id: WFPlanetCarcinoma
   name: Carcinoma
   shader: RockyPlanet
   earthMass: 1.0
@@ -28,7 +28,7 @@
 
 - type: wfPlanetSurface
   id: WFSurfaceCarcinoma
-  planetType: PlanetCarcinoma
+  planetType: WFPlanetCarcinoma
   ground: WFCarcinomaSurface
   airLayers: 3
   cloudLayer: false

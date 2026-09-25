@@ -107,7 +107,7 @@ public sealed class SurveyConsoleTest
                     "A shipped planet surface is missing from the survey.");
                 Assert.That(Row(state, "PlanetAerumna", proto).HasSurface, Is.True,
                     "A shipped planet surface is missing from the survey.");
-                Assert.That(Row(state, "PlanetCarcinoma", proto).Sanctioned, Is.False);
+                Assert.That(Row(state, "WFPlanetCarcinoma", proto).Sanctioned, Is.False);
             }
         });
 

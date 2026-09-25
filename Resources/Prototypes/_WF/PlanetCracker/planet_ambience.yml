@@ -91,7 +91,7 @@
 
 - type: wfPlanetAmbience
   id: WFPlanetAmbienceCarcinoma
-  planetType: PlanetCarcinoma
+  planetType: WFPlanetCarcinoma
   dayLoops:
   - path: /Audio/_WF/PlanetCracker/Planets/carcinoma/carcinoma_ambience_day_loop_2.ogg
   nightLoops:

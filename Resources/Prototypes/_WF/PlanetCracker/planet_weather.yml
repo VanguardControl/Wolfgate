@@ -60,7 +60,7 @@
 
 - type: wfPlanetWeather
   id: WFPlanetWeatherCarcinoma
-  planetType: PlanetCarcinoma
+  planetType: WFPlanetCarcinoma
   storms:
   - main: WFBloodRain
   - telegraph: WFBloodRain
@@ -73,10 +73,10 @@
 - type: weather
   id: WFRainLow
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: rain_low
   sound:
-    path: /Audio/_WF/Weather/rain_start.ogg
+    path: /Audio/_WF/PlanetCracker/Weather/rain_start.ogg
     params:
       loop: true
       volume: -8
@@ -84,10 +84,10 @@
 - type: weather
   id: WFRainEnd
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: rain_low
   sound:
-    path: /Audio/_WF/Weather/rain_end.ogg
+    path: /Audio/_WF/PlanetCracker/Weather/rain_end.ogg
     params:
       loop: true
       volume: -8
@@ -95,10 +95,10 @@
 - type: weather
   id: WFRainMed
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: rain_med
   sound:
-    path: /Audio/_WF/Weather/rain_mid.ogg
+    path: /Audio/_WF/PlanetCracker/Weather/rain_mid.ogg
     params:
       loop: true
       volume: -6
@@ -106,10 +106,10 @@
 - type: weather
   id: WFRainHigh
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: rain_high
   sound:
-    path: /Audio/_WF/Weather/rain_mid.ogg
+    path: /Audio/_WF/PlanetCracker/Weather/rain_mid.ogg
     params:
       loop: true
       volume: -2
@@ -117,7 +117,7 @@
 - type: weather
   id: WFSnowLight
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: light_snow
   sound:
     path: /Audio/Effects/Weather/snowstorm_weak.ogg
@@ -128,7 +128,7 @@
 - type: weather
   id: WFSnowStorm
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: snow_storm
   sound:
     path: /Audio/Effects/Weather/snowstorm.ogg
@@ -139,7 +139,7 @@
 - type: weather
   id: WFAshLight
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: light_ash
   sound:
     path: /Audio/Effects/Weather/snowstorm_weak.ogg
@@ -150,7 +150,7 @@
 - type: weather
   id: WFAshStorm
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: ash_storm
   sound:
     path: /Audio/Effects/Weather/snowstorm.ogg
@@ -161,7 +161,7 @@
 - type: weather
   id: WFDustLow
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: dust_low
   sound:
     path: /Audio/Effects/Weather/snowstorm_weak.ogg
@@ -172,7 +172,7 @@
 - type: weather
   id: WFDustMed
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: dust_med
   sound:
     path: /Audio/Effects/Weather/snowstorm_weak.ogg
@@ -183,7 +183,7 @@
 - type: weather
   id: WFDustHigh
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: dust_high
   sound:
     path: /Audio/Effects/Weather/snowstorm.ogg
@@ -195,11 +195,11 @@
 - type: weather
   id: WFBloodRain
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: rain_low
   color: "#b83c46"
   sound:
-    path: /Audio/_WF/Weather/rain_start.ogg
+    path: /Audio/_WF/PlanetCracker/Weather/rain_start.ogg
     params:
       loop: true
       volume: -8
@@ -207,11 +207,11 @@
 - type: weather
   id: WFBloodStorm
   sprite:
-    sprite: /Textures/_WF/Effects/weather_tg.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/weather_tg.rsi
     state: rain_high
   color: "#b83c46"
   sound:
-    path: /Audio/_WF/Weather/rain_mid.ogg
+    path: /Audio/_WF/PlanetCracker/Weather/rain_mid.ogg
     params:
       loop: true
       volume: -2
@@ -223,7 +223,7 @@
   name: thunderbolt
   components:
   - type: Sprite
-    sprite: /Textures/_WF/Effects/thunderbolt.rsi
+    sprite: /Textures/_WF/PlanetCracker/Effects/thunderbolt.rsi
     state: thunderbolt
     offset: 0, 1
     drawdepth: Effects
@@ -241,5 +241,5 @@
 - type: soundCollection
   id: WFThunder
   files:
-  - /Audio/_WF/Weather/thunder_1.ogg
-  - /Audio/_WF/Weather/thunder_2.ogg
+  - /Audio/_WF/PlanetCracker/Weather/thunder_1.ogg
+  - /Audio/_WF/PlanetCracker/Weather/thunder_2.ogg

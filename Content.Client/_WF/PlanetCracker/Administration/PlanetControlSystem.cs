@@ -1,6 +1,6 @@
-using Content.Shared._WF.Administration.Planets;
+using Content.Shared._WF.PlanetCracker.Administration;
 
-namespace Content.Client._WF.Administration.Planets;
+namespace Content.Client._WF.PlanetCracker.Administration;
 
 /// <summary>Fetches the world list for the admin Planet Control window and sends its changes.</summary>
 public sealed class PlanetControlSystem : EntitySystem

@@ -7,7 +7,7 @@
   description: A packed canopy and harness. Use it on a crate or a person - or on yourself - before they go over the side; it opens on the way down and is left where they land.
   components:
   - type: Sprite
-    sprite: _WF/Objects/Specific/parachute.rsi
+    sprite: _WF/PlanetCracker/Objects/parachute.rsi
     state: icon
   - type: Item
     size: Normal

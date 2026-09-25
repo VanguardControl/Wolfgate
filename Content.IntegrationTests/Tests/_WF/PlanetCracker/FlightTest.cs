@@ -300,7 +300,7 @@ public sealed class FlightTest
         var heard = new HashSet<string>();
         var voices = new[] { "dont_sink", "sink_rate", "terrain", "too_low_terrain", "pull_up" };
 
-        await server.WaitPost(() => alerts.SetCode(hull, "ShipCodeYellow", announce: false));
+        await server.WaitPost(() => alerts.SetCode(hull, "WFShipCodeYellow", announce: false));
 
         var seen = new List<string>();
 
@@ -354,20 +354,20 @@ public sealed class FlightTest
                     seen.Add(code);
             });
 
-            if (seen.Count > 0 && seen[^1] == "ShipCodeYellow" && seen.Count > 1)
+            if (seen.Count > 0 && seen[^1] == "WFShipCodeYellow" && seen.Count > 1)
                 break;
         }
 
         var expected = new[]
         {
-            "ShipCodeYellow",
+            "WFShipCodeYellow",
             WFFlightSystem.AlertLiftLost,
             WFFlightSystem.AlertDontSink,
             WFFlightSystem.AlertSinkRate,
             WFFlightSystem.AlertTerrain,
             WFFlightSystem.AlertTooLowTerrain,
             WFFlightSystem.AlertPullUp,
-            "ShipCodeYellow",
+            "WFShipCodeYellow",
         };
 
         Assert.That(seen, Is.EqualTo(expected),

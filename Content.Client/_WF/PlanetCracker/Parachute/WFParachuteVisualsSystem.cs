@@ -9,10 +9,10 @@ namespace Content.Client._WF.PlanetCracker.Parachute;
 public sealed class WFParachuteVisualsSystem : EntitySystem
 {
     private static readonly SpriteSpecifier Canopy =
-        new SpriteSpecifier.Rsi(new ResPath("_WF/Effects/parachute_canopy.rsi"), "canopy");
+        new SpriteSpecifier.Rsi(new ResPath("_WF/PlanetCracker/Effects/parachute_canopy.rsi"), "canopy");
 
     private static readonly SpriteSpecifier Pack =
-        new SpriteSpecifier.Rsi(new ResPath("_WF/Objects/Specific/parachute.rsi"), "icon");
+        new SpriteSpecifier.Rsi(new ResPath("_WF/PlanetCracker/Objects/parachute.rsi"), "icon");
 
     /// <summary>The pack is drawn small and low, so it reads as worn rather than as an item lying on the wearer.</summary>
     private static readonly Vector2 PackScale = new(0.6f, 0.6f);

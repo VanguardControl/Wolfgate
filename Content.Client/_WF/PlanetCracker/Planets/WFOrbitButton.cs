@@ -18,7 +18,7 @@ namespace Content.Client._WF.PlanetCracker.Planets;
 /// </summary>
 public sealed partial class WFOrbitButton : BoxContainer
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
     private readonly SharedUserInterfaceSystem _ui;
 

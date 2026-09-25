@@ -2,7 +2,7 @@ using Content.Server._CE.ZLevels.Core;
 using Content.Server._WF.PlanetCracker.Planets;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
-using Content.Shared._WF.Administration.Planets;
+using Content.Shared._WF.PlanetCracker.Administration;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Administration;
 using Content.Shared.Database;
@@ -10,7 +10,7 @@ using Content.Shared.Weather;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server._WF.Administration.Systems;
+namespace Content.Server._WF.PlanetCracker.Administration;
 
 /// <summary>The admin Planet Control panel: a world's clock, weather, gravity and sanction, set live.</summary>
 public sealed partial class PlanetControlSystem : EntitySystem

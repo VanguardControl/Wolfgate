@@ -6,7 +6,7 @@
     xmlns:internet="clr-namespace:Content.Client._WF.Administration.UI.InternetSound"
     xmlns:power="clr-namespace:Content.Client._WF.Administration.UI.GridPower"
     xmlns:ert="clr-namespace:Content.Client._WF.Administration.UI.Ert"
-    xmlns:planets="clr-namespace:Content.Client._WF.Administration.UI.Planets"
+    xmlns:planets="clr-namespace:Content.Client._WF.PlanetCracker.Administration"
     Margin="4"
     MinSize="50 50">
     <BoxContainer Orientation="Vertical">

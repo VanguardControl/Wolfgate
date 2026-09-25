@@ -20,10 +20,10 @@ namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
 /// <summary>Thrust ambience follows engines that are actually firing, rather than pilot input.</summary>
 [TestFixture]
-[TestOf(typeof(Content.Server._WF.Shuttles.WFThrustAmbienceSystem))]
+[TestOf(typeof(Content.Server._WF.PlanetCracker.Flight.WFThrustAmbienceSystem))]
 public sealed class ThrustAmbienceTest
 {
-    private const string ThrustClip = "/Audio/_WF/Shuttle/thrust_loop.ogg";
+    private const string ThrustClip = "/Audio/_WF/PlanetCracker/Flight/thrust_loop.ogg";
 
     [Test]
     public async Task HeldInputDoesNotPlayForDisabledOrUnpoweredThrusters()

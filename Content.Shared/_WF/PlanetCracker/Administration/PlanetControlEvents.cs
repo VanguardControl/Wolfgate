@@ -1,6 +1,6 @@
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._WF.Administration.Planets;
+namespace Content.Shared._WF.PlanetCracker.Administration;
 
 /// <summary>One world in the admin Planet Control window.</summary>
 [Serializable, NetSerializable]
