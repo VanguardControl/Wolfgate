@@ -36,6 +36,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         SubscribeLocalEvent<EntityStorageComponent, EntParentChangedMessage>(OnStorageParentChanged);
         SubscribeLocalEvent<EntityStorageComponent, AnchorStateChangedEvent>(OnStorageAnchorChanged);
         InitializeConsole();
+        InitializeDoors();
     }
 
     private void OnShipPurchased(ShipyardShuttlePurchaseEvent args)
@@ -71,7 +72,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         return ship;
     }
 
-    /// <summary>Sets the lock and mirrors it into every ship access reader on the grid.</summary>
+    /// <summary>Sets the lock and mirrors it into every ship access reader on the grid; a door with its own rule stays enabled.</summary>
     public void SetLocked(Entity<WFShipAccessComponent> ship, bool locked)
     {
         ship.Comp.Locked = locked;
@@ -80,10 +81,14 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         var children = Transform(ship.Owner).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
-            if (!TryComp<ShipAccessReaderComponent>(child, out var reader) || reader.Enabled == locked)
+            if (!TryComp<ShipAccessReaderComponent>(child, out var reader))
                 continue;
 
-            reader.Enabled = locked;
+            var enabled = ReaderShouldBeEnabled(ship.Comp, child);
+            if (reader.Enabled == enabled)
+                continue;
+
+            reader.Enabled = enabled;
             Dirty(child, reader);
         }
     }
@@ -123,6 +128,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
 
         ship.Comp.AllowList.Remove(entry);
         Dirty(ship);
+        RemoveDoorPlayer(ship.Owner, userId);
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{entry.Name} ({userId}) was removed from the allow list of {ToPrettyString(ship.Owner):grid}");
         return true;
@@ -148,6 +154,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
 
         ship.Comp.AllowList.Clear();
         Dirty(ship);
+        ClearDoorPlayers(ship.Owner);
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"The allow list of {ToPrettyString(ship.Owner):grid} was cleared ({count} entries)");
         return count;
@@ -203,7 +210,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
             TryEnsureReader(ent);
     }
 
-    /// <summary>Gives a door or locker on a ship with access control a reader that mirrors the lock.</summary>
+    /// <summary>Gives a door or locker on a ship with access control a reader that mirrors the lock, or the door's own rule.</summary>
     private void TryEnsureReader(EntityUid uid)
     {
         if (TerminatingOrDeleted(uid))
@@ -213,10 +220,11 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
             return;
 
         var reader = EnsureComp<ShipAccessReaderComponent>(uid);
-        if (reader.Enabled == access.Locked)
+        var enabled = ReaderShouldBeEnabled(access, uid);
+        if (reader.Enabled == enabled)
             return;
 
-        reader.Enabled = access.Locked;
+        reader.Enabled = enabled;
         Dirty(uid, reader);
     }
 }

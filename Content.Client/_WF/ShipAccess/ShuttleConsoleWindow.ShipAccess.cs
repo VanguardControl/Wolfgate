@@ -1,3 +1,4 @@
+using Content.Shared._WF.ShipAccess;
 using Robust.Shared.Network;
 
 namespace Content.Client.Shuttles.UI;
@@ -19,6 +20,12 @@ public sealed partial class ShuttleConsoleWindow
     /// <summary>The viewer wants to adopt an unowned ship.</summary>
     public event Action? ShipAccessClaimRequested;
 
+    /// <summary>The owner picked a rule for a door.</summary>
+    public event Action<NetEntity, WFDoorAccessRule>? ShipAccessDoorRuleRequested;
+
+    /// <summary>The owner ticked or unticked a person on a door.</summary>
+    public event Action<NetEntity, NetUserId, bool>? ShipAccessDoorPlayerRequested;
+
     private void WfAccessInitialize()
     {
         AccessContainer.LockedChanged += locked => ShipAccessLockedRequested?.Invoke(locked);
@@ -26,6 +33,8 @@ public sealed partial class ShuttleConsoleWindow
         AccessContainer.RemoveRequested += userId => ShipAccessRemoveRequested?.Invoke(userId);
         AccessContainer.BuilderChanged += (userId, builder) => ShipAccessBuilderRequested?.Invoke(userId, builder);
         AccessContainer.ClaimRequested += () => ShipAccessClaimRequested?.Invoke();
+        AccessContainer.DoorRuleChanged += (door, rule) => ShipAccessDoorRuleRequested?.Invoke(door, rule);
+        AccessContainer.DoorPlayerChanged += (door, userId, listed) => ShipAccessDoorPlayerRequested?.Invoke(door, userId, listed);
     }
 
     private void WfSetAccessMode(bool active)

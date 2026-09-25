@@ -77,3 +77,33 @@ public sealed class WFShipAccessSetBuilderMessage : BoundUserInterfaceMessage
 public sealed class WFShipAccessClaimMessage : BoundUserInterfaceMessage
 {
 }
+
+/// <summary>The owner sets a door's rule from the door diagram.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessSetDoorRuleMessage : BoundUserInterfaceMessage
+{
+    public NetEntity Door;
+    public WFDoorAccessRule Rule;
+
+    public WFShipAccessSetDoorRuleMessage(NetEntity door, WFDoorAccessRule rule)
+    {
+        Door = door;
+        Rule = rule;
+    }
+}
+
+/// <summary>The owner ticks or unticks an allow-listed person on a door's own list.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessSetDoorPlayerMessage : BoundUserInterfaceMessage
+{
+    public NetEntity Door;
+    public NetUserId UserId;
+    public bool Listed;
+
+    public WFShipAccessSetDoorPlayerMessage(NetEntity door, NetUserId userId, bool listed)
+    {
+        Door = door;
+        UserId = userId;
+        Listed = listed;
+    }
+}

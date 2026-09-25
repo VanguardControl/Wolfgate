@@ -9,7 +9,7 @@ namespace Content.Server._WF.ShipAccess;
 
 public sealed partial class WFShipAccessServerSystem
 {
-    /// <summary>The shuttle console's access tab: claim, lock, add, remove and builder flags.</summary>
+    /// <summary>The shuttle console's access tab: claim, lock, add, remove, builder flags and door rules.</summary>
     private void InitializeConsole()
     {
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
@@ -19,6 +19,8 @@ public sealed partial class WFShipAccessServerSystem
             subs.Event<WFShipAccessRemoveMessage>(OnRemove);
             subs.Event<WFShipAccessSetBuilderMessage>(OnSetBuilder);
             subs.Event<WFShipAccessClaimMessage>(OnClaim);
+            subs.Event<WFShipAccessSetDoorRuleMessage>(OnSetDoorRule);
+            subs.Event<WFShipAccessSetDoorPlayerMessage>(OnSetDoorPlayer);
         });
     }
 

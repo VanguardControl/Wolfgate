@@ -36,8 +36,58 @@ public sealed class WFShipAccessSystem : EntitySystem
         if (!TryComp<WFShipAccessComponent>(ev.Grid, out var access))
             return;
 
-        if (!access.Locked || IsAllowed(ev.User, (ev.Grid, access)))
+        var ship = new Entity<WFShipAccessComponent>(ev.Grid, access);
+
+        // A door with its own rule decides on its own, locked ship or not.
+        if (TryComp<WFDoorAccessRuleComponent>(ev.Target, out var rule) && rule.Rule != WFDoorAccessRule.Default)
+        {
+            ev.Result = RuleAllows(ev.User, ship, rule) ? WFShipAccessResult.Allow : WFShipAccessResult.Deny;
+            return;
+        }
+
+        if (!access.Locked || IsAllowed(ev.User, ship))
             ev.Result = WFShipAccessResult.Allow;
+    }
+
+    /// <summary>
+    /// Whether a door rule admits the user at the door itself. Code and PlayersOrCode only admit the owner and
+    /// listed people here; a code opens the door through the keypad, not the reader.
+    /// </summary>
+    public bool RuleAllows(EntityUid user, Entity<WFShipAccessComponent> ship, WFDoorAccessRuleComponent rule)
+    {
+        switch (rule.Rule)
+        {
+            case WFDoorAccessRule.Public:
+                return true;
+            case WFDoorAccessRule.Sealed:
+                return false;
+            case WFDoorAccessRule.OwnerOnly:
+            case WFDoorAccessRule.Code:
+                return TryGetUserId(user, out var ownerId) && IsOwner(ship, ownerId);
+            case WFDoorAccessRule.Players:
+            case WFDoorAccessRule.PlayersOrCode:
+                return TryGetUserId(user, out var userId) && (IsOwner(ship, userId) || rule.Players.Contains(userId));
+            default:
+                return !ship.Comp.Locked || IsAllowed(user, ship);
+        }
+    }
+
+    /// <summary>Whether the rule lets a code open the door.</summary>
+    public static bool TakesCode(WFDoorAccessRule rule)
+    {
+        return rule is WFDoorAccessRule.Code or WFDoorAccessRule.PlayersOrCode;
+    }
+
+    /// <summary>Whether the rule has a per-door player list.</summary>
+    public static bool TakesPlayers(WFDoorAccessRule rule)
+    {
+        return rule is WFDoorAccessRule.Players or WFDoorAccessRule.PlayersOrCode;
+    }
+
+    /// <summary>A door's rule, Default when it has no rule component.</summary>
+    public WFDoorAccessRule GetRule(EntityUid door)
+    {
+        return TryComp<WFDoorAccessRuleComponent>(door, out var rule) ? rule.Rule : WFDoorAccessRule.Default;
     }
 
     /// <summary>Whether the user is the owner, on the allow list or, in Faction mode, carries a card of the ship's company.</summary>
