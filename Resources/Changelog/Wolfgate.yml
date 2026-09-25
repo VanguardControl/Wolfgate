@@ -395,3 +395,12 @@ Entries:
   id: 100035
   time: '2026-09-25T01:43:49.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/74
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Atmospheric jetpacks: a welding-fuel jetpack that flies in a planet's
+        atmosphere and climbs between air layers, but not above 1.5 g
+  id: 100036
+  time: '2026-09-25T21:03:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/90
