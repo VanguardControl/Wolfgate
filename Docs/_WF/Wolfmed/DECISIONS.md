@@ -3167,3 +3167,36 @@ Main's #70 and #72 brought AGENTS.md's module rules and `Tools/_WF/Ci/modules.py
   by the owner rather than done in passing.
 
 `python Tools/_WF/Ci/modules.py --check` and `--pr-check origin/main` both pass.
+
+## The full filter in 16 GB: test pairs that never died (2026-09-25)
+
+The full Wolfmed filter had never finished: the owner's run died at 183 tests, and the first cloud run died at
+exactly the same count with "Out of memory". Each test that fails inside a pair callback ("dirty-disposed",
+reported as Skipped) throws its pair away and the pool boots a new one, about 2 GB a pair, and the thrown-away
+pairs never left memory. Two probes with a full dump and `gcroot` found three holders, all fixed on the
+`Wolfmed` branch:
+
+- **`SymphonyHubSystem`'s timer** (`Content.Server/Symphony`, main's hub module). Its `System.Threading.Timer`
+  sits in the runtime's global timer queue, and the callback held the system, so a stopped server stayed
+  reachable with everything in it. The engine's test pool stops a server through `BaseServer.Cleanup()`, which
+  never runs entity-system `Shutdown()`, so the dispose in `Shutdown()` never ran. The callback now reaches the
+  system through a `WeakReference` and disposes the timer once the system is gone. This holds on main too.
+- **The fixture object.** NUnit keeps every per-test fixture object until the run ends, and `GameTest`
+  (`Content.IntegrationTests/Fixtures`) kept its pair through `Pair` and the injected sided dependencies
+  (`_serverCfg` was the chain's entry). `DoTeardown` now clears every instance field of the fixture, from the
+  test class up to `GameTest`, in a `finally` of its own, because a dirty dispose throws and a first attempt
+  placed after the dispose never ran.
+- **The autodoc font cache** (`AutodocStyle.Fonts`) was keyed by each client's `IResourceCache`, and a `Font`
+  reaches its client through the font manager's sawmill, so every client that had built the pod window or the
+  synthetic HUD stayed in memory. Both ends of the cache are weak now; a font lives as long as a control uses it.
+
+What it looks like after the fixes: RSS still climbs to about 11.5 GB, because the collector lets garbage
+accumulate up to the 12 GB hard limit (75% of the box) before a full collection, and then falls back; a dump
+at that point shows the dead pair with zero roots. Three runs were killed early on that climb before the dump
+proved it harmless. Run 6, left alone: 495 tests, 485 passed, 1 failed (`OxygenScenarioTest`, a 4 s drain
+bound measured at 5 s while a dump analysis competed for the CPU), 9 skipped (dirty-disposed), 19.9 minutes.
+The pool-reuse skips move around between runs (twenty distinct tests over six runs) and every one rerun alone
+has passed; `HonestEndingScenarioTest` failed its whisper assertion in two parallel runs and passed alone.
+Those order-dependent failures are the next thing to chase; none is a wound-system regression.
+
+Also fixed on the way: `WolfmedHydraulicFluidTest` reads main's renamed `WFWolfgateVendInventory`.
