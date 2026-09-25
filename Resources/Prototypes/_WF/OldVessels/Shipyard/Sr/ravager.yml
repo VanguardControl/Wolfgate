@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # # Author Info
 # # GitHub: NazrinNya
 # # Discord: NazrinNya
@@ -8,15 +8,14 @@
   parent: BaseVessel
   name: Ravager
   description: Capital class security mothership made for fast neutralization of civilian threats.
-  price: 875800
-  purchasable: false
+  price: 712000 # appraised at 378473 after the classic downgrade; 1.88x markup
   category: Large
-  group: Custom # was Sr; Custom keeps it off every shipyard console
+  group: Sr
   access: Security # Shouldn't be buyable with sec voucher.
   mapchecker_group_override: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/ravager.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Science

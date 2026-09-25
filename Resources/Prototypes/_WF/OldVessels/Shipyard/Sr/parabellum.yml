@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # Github: Rubeebeebee
 # Discord: rubeebee
@@ -9,14 +9,13 @@
   name: Parabellum
   description: The parabellum is a patrol boat, made for escorting and unsuprisingly; patrolling stations and depots from any malicious ships. It's equipped with EMP launchers, as well as a hybrid EMP Missile launcher for more tougher encounters.
   price: 155258
-  purchasable: false
   category: Medium
-  group: Custom # was Sr; Custom keeps it off every shipyard console
+  group: Sr
   access: Brig # Oddball, matches guard ID, specific enough to exclude cadets
   mapchecker_group_override: Security  # Treat this as a security vessel for mapchecker purposes
   shuttlePath: /SharedMaps/_WF/OldVessels/parabellum.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Civilian

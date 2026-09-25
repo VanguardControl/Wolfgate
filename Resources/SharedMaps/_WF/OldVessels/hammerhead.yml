@@ -5194,7 +5194,7 @@ entities:
     - type: Transform
       pos: 8.5,-10.5
       parent: 1
-- proto: HardpointBallisticHeavy
+- proto: HardpointBallisticLight
   entities:
   - uid: 1577
     components:
@@ -5220,8 +5220,6 @@ entities:
       rot: 3.141592653589793 rad
       pos: -9.5,10.5
       parent: 1
-- proto: HardpointBallisticLight
-  entities:
   - uid: 1581
     components:
     - type: Transform
@@ -10421,32 +10419,6 @@ entities:
     - type: Transform
       pos: 3.5,-8.5
       parent: 1
-- proto: WeaponTurretBofors
-  entities:
-  - uid: 1554
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: 8.5,10.5
-      parent: 1
-  - uid: 1555
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: 5.5,11.5
-      parent: 1
-  - uid: 1556
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: -6.5,11.5
-      parent: 1
-  - uid: 1557
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: -9.5,10.5
-      parent: 1
 - proto: WeaponTurretDravon
   entities:
   - uid: 1558
@@ -10485,6 +10457,30 @@ entities:
       parent: 1
 - proto: WeaponTurretL85Autocannon
   entities:
+  - uid: 1554
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 8.5,10.5
+      parent: 1
+  - uid: 1555
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: 5.5,11.5
+      parent: 1
+  - uid: 1556
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -6.5,11.5
+      parent: 1
+  - uid: 1557
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -9.5,10.5
+      parent: 1
   - uid: 1564
     components:
     - type: Transform

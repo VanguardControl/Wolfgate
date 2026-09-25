@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: ari771155
 # Discord: Catshley
@@ -10,15 +10,13 @@
   parent: BaseVessel
   name: VOX-Skelraak
   description: An imposing near-capital warship of Vox design - Featuring a nitrogen atmosphere. It comes equipped with a dizzying array of weaponry, centered around a spinally mounted Leviathan Siege Cannon. It struggles when used outside of fleet engagements, as Vox raiding fleets typically include countless escorts - A ship of this class is reserved for experienced Vox captains.
-  price: 396500 # felt right idk
-  purchasable: false
+  price: 418500 # appraised at 380405 with hardpoints; classic reprice
   category: large
-  group: Custom # was Scrap; Custom keeps it off every shipyard console
-  mapchecker_group_override: Scrap
+  group: Scrap
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/Scrap/skelraak.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Frigate

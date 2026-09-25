@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Redrover1760
 # Discord: GnarlySheep
@@ -9,14 +9,13 @@
   name: TSF-SVE Tarantula
   description: A durable ship built for sustained close-range engagements, equipped with 4 Cerberus plasma scattercannons and 2 Marauders to melt ships away.
   price: 157049
-  purchasable: false
+  purchasable: false # voucher only - T2
   category: Medium
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/tarantula.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

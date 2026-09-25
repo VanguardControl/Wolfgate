@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 
 - type: vessel
   id: StratoRat
@@ -11,7 +11,7 @@
   mapchecker_group_override: Shipyard  # Treat this as a Shipyard vessel for mapchecker purposes
   shuttlePath: /SharedMaps/_WF/OldVessels/Carrier/stratorat.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Atmospherics

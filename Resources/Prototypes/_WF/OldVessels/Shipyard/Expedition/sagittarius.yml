@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Primusirius on Github and Discord.
 
 - type: vessel
@@ -7,13 +7,11 @@
   name: HT Sagittarius
   description: The Sagittarius is the sirius' big brother, heavier firepower and more space while maintaing its chemistry bay.
   price: 192763
-  purchasable: false
   category: Large
-  group: Custom # was Expedition; Custom keeps it off every shipyard console
-  mapchecker_group_override: Expedition
+  group: Expedition
   shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/sagittarius.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Expedition

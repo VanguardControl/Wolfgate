@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Nelliel-ss14
 # Discord: energy0
@@ -13,13 +13,11 @@
   name: WA Intermission
   description: A large medical vessel with a lobby, bar, food, and medical care facilities, Capable of saving lives and then saving appetites all in one go.
   price: 158501
-  purchasable: false
   category: Large
-  group: Custom # was Medical; Custom keeps it off every shipyard console
-  mapchecker_group_override: Medical
+  group: Medical
   shuttlePath: /SharedMaps/_WF/OldVessels/intermission.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Medical

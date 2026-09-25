@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Rubeebeebee
 # Discord: rubeebee
@@ -11,13 +11,11 @@
   name: DFNT Promise
   description: An old Medical Ship design dating back from the fracture era. It comes equipped with everything a hospital ship would want, as well as a spacious crew accomodations for long term shifts.
   price: 142676
-  purchasable: false
   category: Medium
-  group: Custom # was Medical; Custom keeps it off every shipyard console
-  mapchecker_group_override: Medical
+  group: Medical
   shuttlePath: /SharedMaps/_WF/OldVessels/promise.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Medical

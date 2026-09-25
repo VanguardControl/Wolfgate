@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: kyres1
 # Discord: kyres1
@@ -11,13 +11,11 @@
   name: SKR Kestrel
   description: A small jump-capable science vessel meant for long-term missions. Comes with a living suite and a decent defensive armament for its size, though it is without much maneuvering performance.
   price: 78811
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/kestrel.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Science

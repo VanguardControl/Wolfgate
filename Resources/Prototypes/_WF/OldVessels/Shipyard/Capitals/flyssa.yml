@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 
 - type: vessel
   id: Flyssa
@@ -9,14 +9,13 @@
   hyperwarLimit: 3
   hyperwarTimelock: 3600
   price: 1225950
-  purchasable: false
+  purchasable: false # voucher only - T4
   category: Large
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Capitals/flyssa.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Capital

@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: tonotom1
 # Discord: rws
@@ -16,13 +16,11 @@
   name: PB Bratan
   description: A mobile nightclub, cafeteria, hydroponics, and secret drug lab and smuggling ship, all in one package! Brought to you by the Paycheck Bratva.
   price: 188480
-  purchasable: false
   category: Large
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/bratan.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Civilian

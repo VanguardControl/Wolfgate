@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: starch70
 # Discord: starch70
@@ -9,16 +9,14 @@
   id: Hammerhead
   parent: BaseVessel
   name: UI-SKR Hammerhead
-  description: A multipurpose mercenary ship with an armament of 4 225mm cannons, 4 20mm PD guns, and 6 57mm autocannons. Lacks a bit in protection compared to proper military ships of this size.
-  price: 324616 # Its a ~10k markup, it really is that expensive.
-  purchasable: false
+  description: A multipurpose mercenary ship with an armament of 8 20mm PD guns and 6 57mm autocannons. Lacks a bit in protection compared to proper military ships of this size.
+  price: 275500 # appraised at 250420 after the classic downgrade; 1.1x markup
   category: Large
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/hammerhead.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

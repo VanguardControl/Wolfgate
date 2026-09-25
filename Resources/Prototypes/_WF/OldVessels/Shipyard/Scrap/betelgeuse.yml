@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Shuttle Notes:
 - type: vessel
   id: Betelgeuse
@@ -6,13 +6,11 @@
   name: Betelgeuse
   description: Cramped salvage vessel that is ran on hopes and dreams, but includes one of the most powerful mining-grade shipguns in this sector.
   price: 62671
-  purchasable: false
   category: Small
-  group: Custom # was Scrap; Custom keeps it off every shipyard console
-  mapchecker_group_override: Scrap
+  group: Scrap
   shuttlePath: /SharedMaps/_WF/OldVessels/betelgeuse.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Salvage

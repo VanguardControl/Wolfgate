@@ -40,7 +40,8 @@ wf-vessel-spawn-category-Security = Security
 wf-vessel-spawn-category-Military = Military
 wf-vessel-spawn-category-Antagonist = Antagonist
 wf-vessel-spawn-category-Other = Other
-wf-vessel-spawn-category-OldVessels = Old vessels
+wf-vessel-spawn-category-AdminOnly = Admin only
+wf-vessel-spawn-classic = Classic
 
 # Frontier defines the other shipyard class names but not this one.
 shipyard-console-class-Mercenary = Mercenary

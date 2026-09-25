@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: UnicornOnLSD
 # Discord: unicornonlsd
@@ -10,14 +10,12 @@
   parent: BaseVessel
   name: DIS Brute
   description: What is essentially a heavy-class cargo freighter is being advertised by the DIS marketing department as a new wonder of cargo transportation. With quadruple the layer of walls to protect your precious cargo while drunk driving.
-  price: 84142
-  purchasable: false
+  price: 91500 # appraised at 82743 with hardpoints; classic reprice
   category: Medium
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/brute.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Cargo

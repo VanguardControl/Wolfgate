@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Rubeebeebee
 # Discord: rubeebee
@@ -11,13 +11,11 @@
   name: PB Piva
   description: A small yet agile cargo shuttle, sporting a sideway shutter in order to facilitate the exchange of cargo in space without docking.
   price: 36694 # its got no ftl, barely any cargo space, its THE cheapest cargo ship you can buy.
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/piva.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Cargo

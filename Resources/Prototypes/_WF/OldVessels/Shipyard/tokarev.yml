@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Leon-Krol
 # Discord: Vinny Shick
@@ -11,13 +11,11 @@
   name: VIN Tokarev
   description: A multipurpose ship that can acompany medical staff in exploring the new frontier in research while allways being ready to help those in need.
   price: 156794
-  purchasable: false
   category: Large
-  group: Custom # was Medical; Custom keeps it off every shipyard console
-  mapchecker_group_override: Medical
+  group: Medical
   shuttlePath: /SharedMaps/_WF/OldVessels/tokarev.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Science

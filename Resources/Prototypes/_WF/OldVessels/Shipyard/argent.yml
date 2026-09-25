@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: starch70
 # Discord: _starch_
@@ -11,13 +11,11 @@
   name: TSF-SKR Argent
   description: A retired frigate gutted out and refurbished for cargo transport.
   price: 97903
-  purchasable: false
   category: Medium
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/argent.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null # its guidebook page was removed upstream
   class:
   - Cargo

@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # Github: NazrinNya
 # Discord: NazrinNya
@@ -9,14 +9,13 @@
   name: Manus
   description: A claw-shaped ship with good amount of firepower. Includes 4 DRAVONs, 2 Vanyks and 1 TARNYX.
   price: 88068
-  purchasable: false
   category: Medium
-  group: Custom # was Sr; Custom keeps it off every shipyard console
+  group: Sr
   access: Brig # Oddball, matches guard ID, specific enough to exclude cadets
   mapchecker_group_override: Security  # Treat this as a security vessel for mapchecker purposes
   shuttlePath: /SharedMaps/_WF/OldVessels/manus.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Civilian

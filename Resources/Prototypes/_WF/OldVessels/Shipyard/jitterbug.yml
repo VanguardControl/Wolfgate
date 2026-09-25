@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Junerisms
 # Discord: widdershins6094
@@ -13,13 +13,11 @@
   name: SE Jitterbug
   description: A Botanical shuttle, comes with ten trays and some supplies to get you going. Comes in the unique shape of a bug, how cute.
   price: 50580
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/jitterbug.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Civilian

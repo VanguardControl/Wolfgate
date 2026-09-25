@@ -22,7 +22,7 @@ public enum VesselSpawnCategory : byte
     Military,
     Antagonist,
     Other,
-    OldVessels,
+    AdminOnly,
 }
 
 /// <summary>
@@ -37,8 +37,11 @@ public static class VesselSpawnCategories
     private static readonly VesselClass[] CargoEngineeringClasses = { VesselClass.Cargo, VesselClass.Engineering, VesselClass.Atmospherics };
     private static readonly VesselClass[] CivilianClasses = { VesselClass.Civilian, VesselClass.Kitchen, VesselClass.Botany, VesselClass.Chemistry };
 
-    /// <summary>Vessels restored from before Monolith#4624 for review, in the OldVessels module.</summary>
-    private static readonly ProtoId<TagPrototype> OldVesselTag = "WFOldVessel";
+    /// <summary>Ships Monolith#4624 removed that Wolfgate kept; stays on a ship that returns to a shipyard.</summary>
+    public static readonly ProtoId<TagPrototype> ClassicTag = "WFClassicVessel";
+
+    /// <summary>Vessels no shipyard sells; they get their own category.</summary>
+    private static readonly ProtoId<TagPrototype> AdminOnlyTag = "WFAdminOnlyVessel";
 
     /// <summary>Display order for both the grouped list and the category filter dropdown.</summary>
     public static readonly VesselSpawnCategory[] DisplayOrder =
@@ -54,20 +57,20 @@ public static class VesselSpawnCategories
         VesselSpawnCategory.Military,
         VesselSpawnCategory.Antagonist,
         VesselSpawnCategory.Other,
-        VesselSpawnCategory.OldVessels,
+        VesselSpawnCategory.AdminOnly,
     };
 
     /// <summary>
-    /// Picks the vessel's category. Old vessels go in their own bucket; otherwise rules are evaluated in order over
-    /// all of its classes plus its shipyard group, and the first match wins.
+    /// Picks the vessel's category. Admin-only vessels go in their own bucket; otherwise rules are evaluated in order
+    /// over all of its classes plus its shipyard group, and the first match wins.
     /// </summary>
     public static VesselSpawnCategory Get(VesselPrototype vessel)
     {
         var classes = vessel.Classes;
         var group = vessel.Group;
 
-        if (vessel.Tags.Contains(OldVesselTag))
-            return VesselSpawnCategory.OldVessels;
+        if (vessel.Tags.Contains(AdminOnlyTag))
+            return VesselSpawnCategory.AdminOnly;
         if (group is ShipyardConsoleUiKey.Syndicate or ShipyardConsoleUiKey.BlackMarket || classes.Any(c => AntagClasses.Contains(c)))
             return VesselSpawnCategory.Antagonist;
         if (group == ShipyardConsoleUiKey.Security || classes.Any(c => SecurityClasses.Contains(c)))

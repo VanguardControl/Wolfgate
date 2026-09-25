@@ -21,7 +21,7 @@
     shuttles:
     - QJ490
     - QJ270
-    - Zephyr
+    - ZephyrEC # the crewed Zephyr stays admin only; its EC variant flies from the Fujian too
     - QJ340
 
 - type: entity

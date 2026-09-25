@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #ship by Eldritch_Pineapple
 - type: vessel
   id: Hoplite
@@ -6,14 +6,13 @@
   name: TSF-PIN Hoplite
   description: A patrol craft meant to intercept light enemy craft with powerful engines and EMPs. It is equipped with 2 RUBICON, two plasma pulsers and two MARAUDER plasma cannons. Fast, deadly, and with some nice cargo space.
   price: 110211
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Small
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/hoplite.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

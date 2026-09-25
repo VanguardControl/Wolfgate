@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Corrupt142 on github.
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: BT-Y Metis
   description: A tiny, hit and run missile corvette armed with 2x "Vanquisher" missile swarm racks, some PD cannons and a flare launcher to ward off missiles.
   price: 111453
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Medium
-  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
-  mapchecker_group_override: BlackMarket
+  group: BlackMarket
   access: Pirate
   shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/metis.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pirate

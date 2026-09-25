@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: burrkeye on Github, burkia on Discord.
 
 - type: vessel
@@ -6,15 +6,14 @@
   parent: BaseVesselIFFDisabled
   name: BT-Y Fenrir
   description: A versalite support destroyer armed with an M381 Mass Driver, 2 Dravons, 2 Scattercannons, 4 20mm autocannons and outfitted with 2 Medium Size Mechbays capable of deploying S-2 and S-1 Mechs but does not come with Mechs. Well armored but slow.
-  price: 199385
-  purchasable: false
+  price: 219500 # appraised at 199091 with hardpoints; classic reprice
+  purchasable: false # voucher only - T1
   category: Medium
-  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
-  mapchecker_group_override: BlackMarket
+  group: BlackMarket
   access: Pirate
   shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/fenrir.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null # its guidebook page was removed upstream
   class:
   - Pirate

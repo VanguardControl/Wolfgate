@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51); admin spawn only.
 #Author: Starch(!)
 
 - type: vessel
@@ -12,7 +12,8 @@
   mapchecker_group_override: Shipyard  # Treat this as a Shipyard vessel for mapchecker purposes
   shuttlePath: /SharedMaps/_WF/OldVessels/Carrier/zephyr.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
+  - WFAdminOnlyVessel
   guidebookPage: Null
   class:
   - Pursuit

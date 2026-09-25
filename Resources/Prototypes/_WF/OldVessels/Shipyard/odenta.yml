@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Corrupt142
 # Discord: Corrupt (Theaticalsteak49)
@@ -12,13 +12,11 @@
   name: MI-COR Odenta
   description: The Odenta is a heavily armored Medical Destroyer built for high-risk rescues and medical work. Armed with dual Prometheus Laser Cannons, a 255mm Bofors,a Draupnir 30mm Chaingun, 20mm, and PD lasers to shield its onboard Chemical Bay and Cryonics suite. Has MIL IFF.
   price: 184109 # 154109 base + markup
-  purchasable: false
   category: Medium
-  group: Custom # was Medical; Custom keeps it off every shipyard console
-  mapchecker_group_override: Medical
+  group: Medical
   shuttlePath: /SharedMaps/_WF/OldVessels/odenta.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Medical

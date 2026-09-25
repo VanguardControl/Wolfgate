@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Grandalff on Github.
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: PPU Gruznyk
   description: A cramped USSP cargo shuttle, used for transporting legal or illicit goods. Comes with light arnament and armor, aswell as an FTL. Recommended crew size is 1-3 people. Produced by People's Production Union.
   price: 99050
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Medium
-  group: Custom # was Ussp; Custom keeps it off every shipyard console
-  mapchecker_group_override: Ussp
+  group: Ussp
   access: USSP
   shuttlePath: /SharedMaps/_WF/OldVessels/USSP/gruznyk.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Cargo

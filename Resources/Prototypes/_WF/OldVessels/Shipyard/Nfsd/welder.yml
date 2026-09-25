@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author:OneZerooo0 on Github, Onezero00 on Discord
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: TSF-ENG Welder
   description: A multipurpose, utilitarian but cramped vessel envisioned as an all-in-one multitool for ship repair and resource extraction. Capable of detecting cloaked vessels.
   price: 101725
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Small
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/welder.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

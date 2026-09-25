@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 
 - type: vessel
   id: Solarsail
@@ -6,14 +6,12 @@
   name: Solarsail
   description: A personal transport and mobile office for the Overseer. Part of the combined service ship.
   price: 35417
-  purchasable: false
   category: Small
-  group: Custom # was Sr; Custom keeps it off every shipyard console
-  mapchecker_group_override: Sr
+  group: Sr
   access: HeadOfPersonnel
   shuttlePath: /SharedMaps/_WF/OldVessels/solarsail.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Civilian

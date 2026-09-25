@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Rubeebeebee
 # Discord: rubeebee
@@ -12,13 +12,11 @@
   name: HES Canister
   description: An entry level gas mining ship, manufactured and fielded by Horizon Energy to send out new gas miners for their first taste of the industry.
   price: 52614
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/canister.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Atmospherics

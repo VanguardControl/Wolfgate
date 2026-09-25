@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Articular1 on Github, Articular on Discord.
 
 - type: vessel
@@ -9,15 +9,14 @@
   limit: 3
   hyperwarLimit: 5
   hyperwarTimelock: 1800
-  price: 388869
-  purchasable: false
+  price: 418500 # appraised at 380247 with hardpoints; classic reprice
+  purchasable: false # voucher only - T3
   category: Large
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Armory
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/andromeda.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Frigate

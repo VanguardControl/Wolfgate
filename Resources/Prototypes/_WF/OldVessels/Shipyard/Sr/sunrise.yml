@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # Github: Rubeebeebee
 # Discord: rubeebee
@@ -9,14 +9,13 @@
   name: Sunrise
   description: A private investigator's ship. Comes equiped with a suite of forensic tools for investigative work. Capable of subduing smugglers and CIV ships with it's EMP launchers, and running away from anything more dangerous.
   price: 84260
-  purchasable: false
   category: Small
-  group: Custom # was Sr; Custom keeps it off every shipyard console
+  group: Sr
   access: Brig # Oddball, matches guard ID, specific enough to exclude cadets
   mapchecker_group_override: Security  # Treat this as a security vessel for mapchecker purposes
   shuttlePath: /SharedMaps/_WF/OldVessels/sunrise.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Civilian

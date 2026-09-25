@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Articular1 on Github, Articular on Discord
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: TSF-SKR Syringe
   description: A small ship meant as an escort and render aid to other TSF vessels. It has a small interior and is lightly armed.
   price: 81275
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Small
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/syringe.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

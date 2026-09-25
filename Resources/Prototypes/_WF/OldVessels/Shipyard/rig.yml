@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: UnicornOnLSD
 # Discord: unicornonlsd
@@ -11,13 +11,11 @@
   name: DIS Rig
   description: A heavy-class flying refinery manufactured by Drake Industries Shipyards. Able to extract, collect and process materials then refine them into whatever the ever changing Colossean market demands.  Comes equipped with two flare launchers for missile defense and four mining pulsers, along with mining bumpers to push minerals directly onto the built in belt system.
   price: 104900 # +50% Markup from 69900 appraisegrid price. To amount for all of the QOL included in the vessel
-  purchasable: false
   category: Medium
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/rig.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Salvage

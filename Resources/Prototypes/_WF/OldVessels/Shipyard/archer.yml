@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: starch70
 # Discord: _starch_
@@ -11,14 +11,12 @@
   name: TSF-SKR Archer
   description: A combat ship outfitted with 4 plasma turrets and 6 light autocannons. This ship has a military IFF designation.
   price: 98773 # the plasma and plastitanium tax is real...
-  purchasable: false
   category: Medium
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/archer.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pursuit

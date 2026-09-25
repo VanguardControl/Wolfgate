@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 
 - type: vessel
   id: Hermes
@@ -6,14 +6,12 @@
   name: Hermes
   description: The mailing segment of the combined service ship, designed for speed above all. This one is designed and produced by The Pantheon Collective.
   price: 62899
-  purchasable: false
   category: Small
-  group: Custom # was Sr; Custom keeps it off every shipyard console
-  mapchecker_group_override: Sr
+  group: Sr
   access: Mail
   shuttlePath: /SharedMaps/_WF/OldVessels/hermes.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Cargo

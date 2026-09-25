@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: NazrinNya
 # Discord: NaztinNya
@@ -11,15 +11,13 @@
   name: IB Phantom
   description: Experimental ship with enormous thruster power. CTLA-25s included.
   price: 155146
-  purchasable: false
   category: Small
-  group: Custom # was Medical; Custom keeps it off every shipyard console
-  mapchecker_group_override: Medical
+  group: Medical
   access: Command # DoC exclusive.
   limit: 2
   shuttlePath: /SharedMaps/_WF/OldVessels/phantom.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Medical

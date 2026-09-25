@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: UnicornOnLSD
 # Discord: unicornonlsd
@@ -11,13 +11,11 @@
   name: DIS Pluto MK. II
   description: A light-weight cargo runner manufactured by DIS. The replacement of the venerable Pluto. Performing better than it's predecessor in every way. Larger cargo bay, tougher hull, faster top speed and sleeker design.
   price: 45224
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/plutomkii.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Cargo

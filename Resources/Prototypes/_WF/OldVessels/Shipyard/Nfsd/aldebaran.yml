@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: made with love and probably unhealthy care by Eldritch_Pineapple
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: TSF-PIN Aldebaran
   description: A frontal up-puncher corvette equipped with two 220mm CYREXA cannons for long range engagements and light target 'disarmement', torpedoes for heavier targets and a light 90mm artillery system for those pesky small crafts.
   price: 179964
-  purchasable: false
+  purchasable: false # voucher only - T2
   category: Medium
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/aldebaran.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

@@ -7,8 +7,8 @@ using Robust.Client.UserInterface.XAML;
 namespace Content.Client._WF.Administration.UI.VesselSpawn;
 
 /// <summary>
-/// One compact, selectable vessel entry in the grouped list: name, size and price. Toggle-style; the window
-/// keeps only one row pressed at a time via a shared <see cref="ButtonGroup"/>.
+/// One compact, selectable vessel entry in the grouped list: name, a classic marker, size and price. Toggle-style;
+/// the window keeps only one row pressed at a time via a shared <see cref="ButtonGroup"/>.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class VesselSpawnRow : ContainerButton
@@ -21,6 +21,8 @@ public sealed partial class VesselSpawnRow : ContainerButton
 
         Vessel = vessel;
         NameLabel.Text = vessel.Name;
+        ClassicLabel.Visible = vessel.Tags.Contains(VesselSpawnCategories.ClassicTag);
+        ClassicLabel.Text = Loc.GetString("wf-vessel-spawn-classic");
         SizeLabel.Text = Loc.GetString($"shipyard-console-category-{vessel.Category}");
         PriceLabel.Text = BankSystemExtensions.ToSpesoString(vessel.Price);
     }

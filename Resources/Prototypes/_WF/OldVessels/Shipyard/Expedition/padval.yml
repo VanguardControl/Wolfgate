@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Rubeebeebee
 # Discord: rubeebee
@@ -11,13 +11,11 @@
   name: PB Padval
   description: The Padval is a factory and store, all in one. This ship is dedicated to producing goods to sell to the colossus sector at large.
   price: 123700 # i think this price is fair because its only really good for making stuff in techfabs and being a mobile store
-  purchasable: false
   category: Medium
-  group: Custom # was Expedition; Custom keeps it off every shipyard console
-  mapchecker_group_override: Expedition
+  group: Expedition
   shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/padval.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Expedition

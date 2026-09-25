@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51); admin spawn only.
 #Author: Corrupt(!)
 
 - type: vessel
@@ -14,7 +14,8 @@
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/jaguar.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
+  - WFAdminOnlyVessel
   guidebookPage: Null
   class:
   - Patrol

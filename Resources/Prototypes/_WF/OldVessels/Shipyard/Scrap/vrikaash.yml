@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: ari771155
 # Discord: Catshley
@@ -11,14 +11,12 @@
   name: VOX-Vrikaash
   description: A warship produced by a Vox Arkship using debris from a battlefield. this vessel is highly unconventional, and filled with a nitrogen atmosphere. While Vox typically treat their vessels as their Kin, this one lacks any of the organic components, as it was built to be disposable. Unlike most vessels with a sensible weapons layout or doctrine, the Vrikaash places almost all of its weapons and armor on the starboard side, focusing firepower in standoff engagements.
   price: 224000 # 130~k base marked up by 80~%
-  purchasable: false
   category: medium
-  group: Custom # was Scrap; Custom keeps it off every shipyard console
-  mapchecker_group_override: Scrap
+  group: Scrap
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/Scrap/vrikaash.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Destroyer

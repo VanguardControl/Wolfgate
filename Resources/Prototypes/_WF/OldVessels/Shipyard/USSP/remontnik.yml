@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Grandalff on Github.
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: PPU Remontnik
   description: A USSP engineering and mining vessel designed by PPU. Comes with an FTL, potatoes with butter and alcohol in the fridge.
   price: 160461
-  purchasable: false
+  purchasable: false # voucher only - T2
   category: Medium
-  group: Custom # was Ussp; Custom keeps it off every shipyard console
-  mapchecker_group_override: Ussp
+  group: Ussp
   access: USSP
   shuttlePath: /SharedMaps/_WF/OldVessels/USSP/remontnik.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Engineering

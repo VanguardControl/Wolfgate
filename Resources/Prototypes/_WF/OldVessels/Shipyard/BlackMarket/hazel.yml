@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: burrkeye on Github, burkia on Discord.
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: BT-Y Hazel
   description: A small, cramped shuttle featuring a Syndicate 3 barreled 220mm Battery and 2 ASM-302s, well armored for its size. Does not have an FTL drive. A cheap option but realiability is questionable.
   price: 92764
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Small
-  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
-  mapchecker_group_override: BlackMarket
+  group: BlackMarket
   access: Pirate
   shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/hazel.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pirate

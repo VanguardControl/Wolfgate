@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Rubeebeebee
 # Discord: rubeebee
@@ -11,13 +11,11 @@
   name: PTR Leaf
   description: A retired warship, the majority of it's hull is carved out to live it's twilight years as a botany/chemistry ship.
   price: 117617
-  purchasable: false
   category: Medium
-  group: Custom # was Medical; Custom keeps it off every shipyard console
-  mapchecker_group_override: Medical
+  group: Medical
   shuttlePath: /SharedMaps/_WF/OldVessels/leaf.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Botany

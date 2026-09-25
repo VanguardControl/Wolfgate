@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Arcticular1
 # Discord: Arcticular
@@ -11,14 +11,12 @@
   name: PDW Valkyrie
   description: An ancient phaethon dynasty interceptor. It's instruments are outdated and it's hull is rusted. However the Valkyrie still contends with vessels of similar class.
   price: 136554
-  purchasable: false
   category: Medium
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/valkyrie.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pursuit

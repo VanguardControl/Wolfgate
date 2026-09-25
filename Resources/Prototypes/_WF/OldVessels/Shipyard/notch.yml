@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: UnicornOnLSD
 # Discord: unicornonlsd
@@ -11,13 +11,11 @@
   name: DIS Notch
   description: A small salvage shuttle featuring the bare minimum for any fresh aspiring scavenger in the sector. Fast and compact. A proud piece of Drake Industries' civilian spacecrafts collection.
   price: 47186
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/notch.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Salvage

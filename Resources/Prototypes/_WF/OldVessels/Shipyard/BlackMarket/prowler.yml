@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: kasature90 (github) / _starch_ (discord).
 # spacer. we are inside your Hull. we are making our way to your Cockpit. when we get to your Cockpit, it is Game Over. we are going to tear open your Softsuit and Feast on your Credits.
 
@@ -11,13 +11,12 @@
   hyperwarLimit: 1
   hyperwarTimelock: 300 # It's hilarious.
   price: 250000
-  purchasable: false
+  purchasable: false # voucher only - T0
   category: Small
-  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
-  mapchecker_group_override: BlackMarket
+  group: BlackMarket
   shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/prowler.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pirate

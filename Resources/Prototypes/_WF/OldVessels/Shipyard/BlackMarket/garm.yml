@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: lexaSvarshik on Github, zero_null_null on Discord.
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: WEN Garm
   description: Gruff hull with 3 GPOL's and long-range Bofors artillery for station bombardments and fleet support.
   price: 105200 # 86700 appraisegrid
-  purchasable: false
+  purchasable: false # voucher only - T1
   category: Medium
-  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
-  mapchecker_group_override: BlackMarket
+  group: BlackMarket
   access: Pirate
   shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/garm.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pirate

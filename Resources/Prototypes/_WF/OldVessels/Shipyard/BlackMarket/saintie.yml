@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Articular1 on Github, Articular on Discord.
 
 - type: vessel
@@ -9,14 +9,13 @@
   limit: 2
   hyperwarLimit: 4
   hyperwarTimelock: 3600
-  price: 379358
-  purchasable: false
+  price: 412000 # appraised at 374216 with hardpoints; classic reprice
+  purchasable: false # voucher only - T3
   category: Large
-  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
-  mapchecker_group_override: BlackMarket
+  group: BlackMarket
   shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/saintie.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pirate

@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Honestly101 on Github, Honestly_Nope on Discord.
 
 - type: vessel
@@ -8,14 +8,13 @@
   description: A medium sized destroyer armed with a Charon Massdriver for taking down large targets.
   limit: 2
   price: 142500
-  purchasable: false
+  purchasable: false # voucher only - T2
   category: Medium
-  group: Custom # was Ussp; Custom keeps it off every shipyard console
-  mapchecker_group_override: Ussp
+  group: Ussp
   access: USSP
   shuttlePath: /SharedMaps/_WF/OldVessels/USSP/sulak.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pursuit

@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Primusirius
 # Discord: Primusirius
@@ -8,15 +8,13 @@
   parent: BaseVessel
   name: MI Siebel
   description: The Siebel is a militia owned and designed ship, designed with Chimera combat in mind, however; many use it for expeditionary exploration and combat.
-  price: 211782
-  purchasable: false
+  price: 137000 # appraised at 110278 after the classic downgrade; 1.24x markup
   category: Medium
-  group: Custom # was Expedition; Custom keeps it off every shipyard console
-  mapchecker_group_override: Expedition
+  group: Expedition
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/siebel.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Expedition

@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 #Author: Starch(!)
 
 - type: vessel
@@ -7,14 +7,13 @@
   name: TSF-SKR Sentinel
   description: An armored and shielded corvette with 2 front facing Bofors cannons, 4 MARAUDER plasma cannons, and 2 rear L85 20mms for PD.
   price: 210200 # Appraises around 100k, but marked up since appraisegrid is too stupid to realize the true value of my creations (plastitanium walls probably has their value set really low)
-  purchasable: false
+  purchasable: false # voucher only - T2
   category: Medium
-  group: Custom # was Security; Custom keeps it off every shipyard console
-  mapchecker_group_override: Security
+  group: Security
   access: Security
   shuttlePath: /SharedMaps/_WF/OldVessels/Nfsd/sentinel.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Patrol

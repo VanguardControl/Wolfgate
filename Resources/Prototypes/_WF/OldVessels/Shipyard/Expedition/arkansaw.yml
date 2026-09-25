@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Rubeebeebee
 # Discord: rubeebee
@@ -11,13 +11,11 @@
   name: COG Arkansaw
   description: Made by a forgotten cult; it is a Capital sized mech carrier with a dedicated science and mining bay with mining pulsars. Relatively thin armor and runs on 3 bananium generators wired together.
   price: 289957 # engine is fueled with bananium, extremely radioactive engine room, thin armor, extremely vulnerable rear thrusters.
-  purchasable: false
   category: Large
-  group: Custom # was Expedition; Custom keeps it off every shipyard console
-  mapchecker_group_override: Expedition
+  group: Expedition
   shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/arkansaw.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Expedition

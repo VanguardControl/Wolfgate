@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: OneZerooo0
 # Discord: onezero00
@@ -11,13 +11,11 @@
   name: SHM Magus
   description: An armed, PMC-rated medical lighter designed for planetary expeditions.
   price: 98279
-  purchasable: false
   category: Medium
-  group: Custom # was Expedition; Custom keeps it off every shipyard console
-  mapchecker_group_override: Expedition
+  group: Expedition
   shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/magus.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: null
   class:
   - Expedition

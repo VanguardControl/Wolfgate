@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 
 - type: vessel
   id: Bucket
@@ -6,14 +6,12 @@
   name: Bucket
   description: The janitorial wing of the combined service ship.
   price: 34273
-  purchasable: false
   category: Micro
-  group: Custom # was Sr; Custom keeps it off every shipyard console
-  mapchecker_group_override: Sr
+  group: Sr
   access: Janitor
   shuttlePath: /SharedMaps/_WF/OldVessels/bucket.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Civilian

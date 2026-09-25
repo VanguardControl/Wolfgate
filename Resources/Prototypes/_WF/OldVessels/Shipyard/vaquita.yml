@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: UnicornOnLSD
 # Discord: unicornonlsd
@@ -11,13 +11,11 @@
   name: DIS Vaquita
   description: A small craft equipped with all the necessary gear for optimal lone salvaging. Including camera mounted mining pulsers and a large thrusters for those quick getaways. "Mine from the cockpit without lifting a finger !" or at least, that's how the DIS advertises it.
   price: 52014
-  purchasable: false
   category: Small
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   shuttlePath: /SharedMaps/_WF/OldVessels/vaquita.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Salvage

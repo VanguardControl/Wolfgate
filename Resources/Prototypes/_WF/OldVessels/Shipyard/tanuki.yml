@@ -1,4 +1,4 @@
-# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Classic ship: removed upstream by Monolith#4624 (Wolfgate #51) and kept by Wolfgate.
 # Author Info
 # GitHub: Corrupt142
 # Discord: Corrupt
@@ -11,14 +11,12 @@
   name: MI-COR Tanuki
   description: The Tanuki is a rugged, Militarised cargo shuttle from Militia Ironworks. Featuring an easily modifiable cargo bay and heavy-duty armor, it is designed to be the ultimate framework (and drone hunter) for Militia and Independent operators. It carries a healthy amount of laser firepower for its size, sporting 2 Prometheus Laser Cannons for long-range effective fire and 3 Cerberus Plasma Scattercannons for melting hostiles in close range. Houses a small galley and medbay, standard for militia ships, and is FTL capable.
   price: 151250 # 131250 base + 20K for medical/galley.
-  purchasable: false
   category: medium
-  group: Custom # was Shipyard; Custom keeps it off every shipyard console
-  mapchecker_group_override: Shipyard
+  group: Shipyard
   access: Mercenary
   shuttlePath: /SharedMaps/_WF/OldVessels/tanuki.yml
   tags:
-  - WFOldVessel
+  - WFClassicVessel
   guidebookPage: Null
   class:
   - Pursuit

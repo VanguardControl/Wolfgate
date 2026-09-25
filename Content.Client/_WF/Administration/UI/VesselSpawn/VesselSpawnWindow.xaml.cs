@@ -112,11 +112,13 @@ public sealed partial class VesselSpawnWindow : DefaultWindow
         }
     }
 
-    /// <summary>Lower-cased name, ID and class names, built once so search never re-lowers per keystroke.</summary>
+    /// <summary>Lower-cased name, ID, class names and classic marker, built once so search never re-lowers per keystroke.</summary>
     private static string BuildHaystack(VesselPrototype vessel)
     {
         var parts = new List<string> { vessel.Name, vessel.ID };
         parts.AddRange(vessel.Classes.Select(c => Loc.GetString($"shipyard-console-class-{c}")));
+        if (vessel.Tags.Contains(VesselSpawnCategories.ClassicTag))
+            parts.Add(Loc.GetString("wf-vessel-spawn-classic"));
         return string.Join(' ', parts).ToLowerInvariant();
     }
 
@@ -297,6 +299,8 @@ public sealed partial class VesselSpawnWindow : DefaultWindow
         SelectedName.Text = vessel.Name;
         SelectedId.Text = vessel.ID;
         SelectedCategory.Text = Loc.GetString($"wf-vessel-spawn-category-{VesselSpawnCategories.Get(vessel)}");
+        if (vessel.Tags.Contains(VesselSpawnCategories.ClassicTag))
+            SelectedCategory.Text += $" ({Loc.GetString("wf-vessel-spawn-classic")})";
         SelectedClasses.Text = vessel.Classes.Count > 0
             ? string.Join(", ", vessel.Classes.Select(c => Loc.GetString($"shipyard-console-class-{c}")))
             : none;
