@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+#Author: Corrupt142 on github.
+
+- type: vessel
+  id: Kalisto
+  parent: BaseVesselIFFDisabled
+  name: BT-Y Kalisto
+  description: A quick and mass produced corvette, armed with 2x Palladin misile launchers in its maw and 3x DRAVON 90mm autocannons on its left side, along with some PD.
+  price: 141003
+  purchasable: false
+  category: Medium
+  group: Custom # was BlackMarket; Custom keeps it off every shipyard console
+  mapchecker_group_override: BlackMarket
+  access: Pirate
+  shuttlePath: /SharedMaps/_WF/OldVessels/BlackMarket/kalisto.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Pirate
+  - Corvette
+  engine:
+  - Bananium
+
+- type: gameMap
+  id: Kalisto
+  mapName: 'PDV Kalisto'
+  mapPath: /SharedMaps/_WF/OldVessels/BlackMarket/kalisto.yml
+  minPlayers: 0
+  stations:
+    Kalisto:
+      gridComponents:
+      - type: VesselInfo
+        description: "Cramped and dirty. This can only end well..."
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Kalisto PDV{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Pirate: [ 0, 0 ]
+            PdvBorg: [ 0, 0 ]

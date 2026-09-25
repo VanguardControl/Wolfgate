@@ -1,0 +1,32 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+
+- type: vessel
+  id: Kupol
+  parent: BaseVesselIFFDisabled
+  name: BYP Kupol
+  description: A gunnery unit made to make up for the lacking fire-power of the Ledokol.
+  limit: 1
+  price: 90000
+  purchasable: false
+  category: Small
+  group: Custom
+  access: USSP
+  shuttlePath: /SharedMaps/_WF/OldVessels/USSP/Ledokol/Attachments/kupol.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+
+- type: gameMap
+  id: Kupol
+  mapName: 'Kupol'
+  mapPath: /SharedMaps/_WF/OldVessels/USSP/Ledokol/Attachments/kupol.yml
+  minPlayers: 0
+  stations:
+    Kupol:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Kupol USSP Ram{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'

@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: OneZerooo0
+# Discord: onezero00
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: Magus
+  parent: BaseVessel
+  name: SHM Magus
+  description: An armed, PMC-rated medical lighter designed for planetary expeditions.
+  price: 98279
+  purchasable: false
+  category: Medium
+  group: Custom # was Expedition; Custom keeps it off every shipyard console
+  mapchecker_group_override: Expedition
+  shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/magus.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Expedition
+  engine:
+  - AME
+
+- type: gameMap
+  id: Magus
+  mapName: 'Magus'
+  mapPath: /SharedMaps/_WF/OldVessels/Expedition/magus.yml
+  minPlayers: 0
+  stations:
+    Magus:
+      stationProto: StandardFrontierExpeditionVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Magus EXP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

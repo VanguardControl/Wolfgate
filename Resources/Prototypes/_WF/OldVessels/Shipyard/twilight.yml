@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: kyres1
+# Discord: kyres1
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: Twilight
+  parent: BaseVessel
+  name: SKR Twilight
+  description: A small, fast jump-capable cargo transport with light rear-facing defensive armament.
+  price: 73375
+  purchasable: false
+  category: Small
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  shuttlePath: /SharedMaps/_WF/OldVessels/twilight.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Cargo
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Twilight
+  mapName: 'SKR Twilight'
+  mapPath: /SharedMaps/_WF/OldVessels/twilight.yml
+  minPlayers: 0
+  stations:
+    Twilight:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Twilight CIV{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

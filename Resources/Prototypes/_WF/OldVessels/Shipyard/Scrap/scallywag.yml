@@ -1,0 +1,48 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: Corrupt142
+# Discord: Corrupt
+
+# Shuttle Notes: To hell with you plunderer! Armament uniformised to ballistics, sorry y'all, a pirate shit bucket doesn't get laser PD.
+
+- type: vessel
+  id: Scallywag
+  parent: BaseVessel
+  name: RSC-Scallywag
+  description: Emerging from the depths of Theseus, an unknown maker approximitely a century ago, Scallywag wasnt made with schematics, months of research or brainstorming of old engineers.. She was made with resources at hand, designed to be a spearhad against those who sought to rip off "honest" citizens off of their nests and establish justice and law as they liked to call it...
+  price: 139176 # 134176 base
+  purchasable: false
+  category: medium
+  group: Custom # was Scrap; Custom keeps it off every shipyard console
+  mapchecker_group_override: Scrap
+  access: Mercenary
+  shuttlePath: /SharedMaps/_WF/OldVessels/Scrap/scallywag.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - pursuit
+  - Scrapyard
+
+  engine:
+  - uranium
+
+- type: gameMap
+  id: Scallywag
+  mapName: 'RSC-Scallywag'
+  mapPath: /SharedMaps/_WF/OldVessels/Scrap/scallywag.yml
+  minPlayers: 0
+  stations:
+    Scallywag:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Scallywag MIL{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

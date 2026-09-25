@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: bluebrouny
+# Discord: half_spinning_monkey
+
+# Shuttle Notes:
+- type: vessel
+  id: McChicken
+  parent: BaseVessel
+  name: AES McChicken
+  description: A cheap, fried food ship. For those who enjoy ungodly ammounts of calories, now made on the go!.
+  price: 38485
+  purchasable: false
+  category: Medium
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  shuttlePath: /SharedMaps/_WF/OldVessels/mcchicken.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Civilian
+  - Kitchen
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: McChicken
+  mapName: 'AES McChicken'
+  mapPath: /SharedMaps/_WF/OldVessels/mcchicken.yml
+  minPlayers: 0
+  stations:
+    McChicken:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'McChicken CIV{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

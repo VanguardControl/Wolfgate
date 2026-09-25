@@ -1,0 +1,42 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+
+- type: vessel
+  id: Comet
+  parent: BaseVessel
+  name: CDM Comet
+  description: A de-militarized, jack-of-all-trades, utility vessel with expeditionary functionality.
+  price: 157261
+  purchasable: false
+  category: Large
+  group: Custom # was Expedition; Custom keeps it off every shipyard console
+  mapchecker_group_override: Expedition
+  shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/comet.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Expedition
+  - Science
+  - Salvage
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: Comet
+  mapName: 'CDM Comet'
+  mapPath: /SharedMaps/_WF/OldVessels/Expedition/comet.yml
+  minPlayers: 0
+  stations:
+    Comet:
+      stationProto: StandardFrontierExpeditionVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Comet EXP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

@@ -1,0 +1,44 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+#Author: Grandalff on Github.
+
+- type: vessel
+  id: Sekunda
+  parent: BaseVesselIFFDisabled
+  name: PPU Sekunda
+  description: A USSP corpsman and fire support ship, comes with an FTL drive, tiny medical and chemical bay, light armament and a cramped interior. Produced by People's Production Union.
+  price: 110505
+  purchasable: false
+  category: Medium
+  group: Custom # was Ussp; Custom keeps it off every shipyard console
+  mapchecker_group_override: Ussp
+  access: USSP
+  shuttlePath: /SharedMaps/_WF/OldVessels/USSP/sekunda.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Patrol
+  - Medical
+  - Chemistry
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Sekunda
+  mapName: 'Sekunda'
+  mapPath: /SharedMaps/_WF/OldVessels/USSP/sekunda.yml
+  minPlayers: 0
+  stations:
+    Sekunda:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Sekunda USSP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+           USSPSergeant: [ 0, 0 ]
+           USSPRifleman: [ 0, 0 ]
+#Idfk what im doing I will not lie at all. What am I doing? Hello? Mooooooooooooom? AAAAAAAAAAAAAAAAA! *crashes your entire game and dies*

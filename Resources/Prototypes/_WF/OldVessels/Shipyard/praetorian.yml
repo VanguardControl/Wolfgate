@@ -1,0 +1,46 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: starch70
+# Discord: _starch_
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: Praetorian
+  parent: BaseVessel
+  name: TSF-SKR Praetorian
+  description: A more compact and advanced Archer, outfitted with a shield gen, 4 AK570s, 2 L85s, and 2 MARAUDERS. This ship has a military IFF designation.
+  price: 101520
+  purchasable: false
+  category: Medium
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  access: Mercenary
+  shuttlePath: /SharedMaps/_WF/OldVessels/praetorian.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Pursuit
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Praetorian
+  mapName: 'TSF-SKR Praetorian'
+  mapPath: /SharedMaps/_WF/OldVessels/praetorian.yml
+  minPlayers: 0
+  stations:
+    Praetorian:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Praetorian MIL{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

@@ -1,0 +1,48 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+#Author: BoskiYourk on github, [I AM NOT SURE] on Discord.
+
+- type: vessel
+  id: Ledokol
+  parent: BaseVesselIFFDisabled
+  name: BYP Ledokol
+  description: A massive shuttle originally made for ramming through compact debris fields. Trades off fire-power for thrust-power.
+  limit: 1
+  price: 425000
+  purchasable: false
+  category: Large
+  group: Custom # was Ussp; Custom keeps it off every shipyard console
+  mapchecker_group_override: Ussp
+  access: USSP
+  shuttlePath: /SharedMaps/_WF/OldVessels/USSP/Ledokol/ledokol.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Capital
+  - Frigate
+  - Medical
+  - Chemistry
+  engine:
+  - AME
+
+- type: gameMap
+  id: Ledokol
+  mapName: 'Ledokol'
+  mapPath: /SharedMaps/_WF/OldVessels/USSP/Ledokol/ledokol.yml
+  minPlayers: 0
+  stations:
+    Ledokol:
+      stationProto: StandardFrontierVessel
+      gridComponents:
+      - type: VesselInfo
+        description: "Why did I come to this sector?"
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Ledokol USSP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+           USSPSergeant: [ 0, 0 ]
+           USSPRifleman: [ 0, 0 ]

@@ -1,0 +1,42 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+
+- type: vessel
+  id: Balor
+  parent: BaseVessel
+  name: Z-22 Balor
+  description: Directly translated to the common tongue, the 'Evil Eye' is a drone hunter, meant to patrol the deep periphery until its prey reveals itself, then parks and unleashes its malicious intent. EVA is required to access the core.
+  price: 188000
+  purchasable: false
+  category: Large
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  access: Mercenary
+  shuttlePath: /SharedMaps/_WF/OldVessels/balor.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Patrol
+  - Capital
+  engine:
+  - Plasma
+
+- type: gameMap
+  id: Balor
+  mapName: 'Z-22 Balor'
+  mapPath: /SharedMaps/_WF/OldVessels/balor.yml
+  minPlayers: 0
+  stations:
+    Balor:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Balor MIL{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

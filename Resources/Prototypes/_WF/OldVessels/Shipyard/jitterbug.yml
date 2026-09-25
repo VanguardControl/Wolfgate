@@ -1,0 +1,48 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: Junerisms
+# Discord: widdershins6094
+
+# Shuttle Notes:
+#
+#
+
+- type: vessel
+  id: Jitterbug
+  parent: BaseVessel
+  name: SE Jitterbug
+  description: A Botanical shuttle, comes with ten trays and some supplies to get you going. Comes in the unique shape of a bug, how cute.
+  price: 50580
+  purchasable: false
+  category: Small
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  shuttlePath: /SharedMaps/_WF/OldVessels/jitterbug.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Civilian
+  - Botany
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Jitterbug
+  mapName: 'SE Jitterbug'
+  mapPath: /SharedMaps/_WF/OldVessels/jitterbug.yml
+  minPlayers: 0
+  stations:
+    Jitterbug:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Jitterbug CIV{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

@@ -1,0 +1,41 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+#Author: Starch(!)
+
+- type: vessel
+  id: Natisk
+  parent: BaseVesselIFFDisabled
+  name: NCS Natisk
+  description: A tank with a layer of reinforced walls under its exterior hull, ensuring its able to send out obscene amounts of firepower.
+  price: 69870
+  purchasable: false
+  category: Medium
+  group: Custom # was Ussp; Custom keeps it off every shipyard console
+  mapchecker_group_override: Ussp
+  access: USSP
+  shuttlePath: /SharedMaps/_WF/OldVessels/USSP/natisk.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Pursuit
+  engine:
+  - AME
+
+- type: gameMap
+  id: Natisk
+  mapName: 'Natisk'
+  mapPath: /SharedMaps/_WF/OldVessels/USSP/natisk.yml
+  minPlayers: 0
+  stations:
+    Natisk:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Natisk USSP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+           USSPSergeant: [ 0, 0 ]
+           USSPRifleman: [ 0, 0 ]

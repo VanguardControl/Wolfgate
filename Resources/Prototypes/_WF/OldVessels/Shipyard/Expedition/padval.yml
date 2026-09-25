@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: Rubeebeebee
+# Discord: rubeebee
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: Padval
+  parent: BaseVessel
+  name: PB Padval
+  description: The Padval is a factory and store, all in one. This ship is dedicated to producing goods to sell to the colossus sector at large.
+  price: 123700 # i think this price is fair because its only really good for making stuff in techfabs and being a mobile store
+  purchasable: false
+  category: Medium
+  group: Custom # was Expedition; Custom keeps it off every shipyard console
+  mapchecker_group_override: Expedition
+  shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/padval.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Expedition
+  engine:
+  - AME
+
+- type: gameMap
+  id: Padval
+  mapName: 'PB Padval'
+  mapPath: /SharedMaps/_WF/OldVessels/Expedition/padval.yml
+  minPlayers: 0
+  stations:
+    Padval:
+      stationProto: StandardFrontierExpeditionVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Padval EXP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

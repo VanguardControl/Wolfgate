@@ -1,0 +1,47 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: Leon-Krol
+# Discord: Vinny Shick
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: Tokarev
+  parent: BaseVessel
+  name: VIN Tokarev
+  description: A multipurpose ship that can acompany medical staff in exploring the new frontier in research while allways being ready to help those in need.
+  price: 156794
+  purchasable: false
+  category: Large
+  group: Custom # was Medical; Custom keeps it off every shipyard console
+  mapchecker_group_override: Medical
+  shuttlePath: /SharedMaps/_WF/OldVessels/tokarev.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Science
+  - Medical
+  engine:
+  - AME
+
+- type: gameMap
+  id: Tokarev
+  mapName: 'VIN Tokarev'
+  mapPath: /SharedMaps/_WF/OldVessels/tokarev.yml
+  minPlayers: 0
+  stations:
+    Tokarev:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Tokarev MED{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            MdMedic: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

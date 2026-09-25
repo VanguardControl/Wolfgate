@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: kyres1
+# Discord: kyres1
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: Kestrel
+  parent: BaseVessel
+  name: SKR Kestrel
+  description: A small jump-capable science vessel meant for long-term missions. Comes with a living suite and a decent defensive armament for its size, though it is without much maneuvering performance.
+  price: 78811
+  purchasable: false
+  category: Small
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  shuttlePath: /SharedMaps/_WF/OldVessels/kestrel.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Science
+  engine:
+  - Uranium
+
+- type: gameMap
+  id: Kestrel
+  mapName: 'SKR Kestrel'
+  mapPath: /SharedMaps/_WF/OldVessels/kestrel.yml
+  minPlayers: 0
+  stations:
+    Kestrel:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Kestrel CIV{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

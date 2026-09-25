@@ -1,0 +1,3 @@
+# Marks a vessel restored from before Monolith#4624; the admin vessel spawner lists these under Old vessels.
+- type: Tag
+  id: WFOldVessel

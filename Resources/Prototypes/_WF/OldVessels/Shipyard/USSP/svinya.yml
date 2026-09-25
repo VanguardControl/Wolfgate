@@ -1,0 +1,47 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: tonotom1
+# Discord: rws
+
+# Shuttle Notes:
+# hi
+
+- type: vessel
+  id: Svinya
+  parent: BaseVessel
+  name: UW Svinya
+  description: A compact attack craft, bristling with small caliber armament.
+  price: 57633 # appraised at 50633
+  purchasable: false
+  category: Small
+  group: Custom # was Ussp; Custom keeps it off every shipyard console
+  mapchecker_group_override: Ussp
+  access: USSP
+  shuttlePath: /SharedMaps/_WF/OldVessels/USSP/svinya.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Pursuit
+  engine:
+  - Plasma
+  cloakHunter: true # Do we keep this???
+
+- type: gameMap
+  id: Svinya
+  mapName: 'Svinya'
+  mapPath: /SharedMaps/_WF/OldVessels/USSP/svinya.yml
+  minPlayers: 0
+  stations:
+    Svinya:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Svinya USSP{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+           USSPSergeant: [ 0, 0 ]
+           USSPRifleman: [ 0, 0 ]

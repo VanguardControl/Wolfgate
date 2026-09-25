@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: starch70
+# Discord: _starch_
+
+# Shuttle Notes:
+#
+- type: vessel
+  id: MClass
+  parent: BaseVessel
+  name: TSF-SKR M-Class Salvage Carrier
+  description: A large salvage carrier with space for 2 salvage microshuttles to dock.
+  price: 155000
+  purchasable: false
+  category: Large
+  group: Custom # was Shipyard; Custom keeps it off every shipyard console
+  mapchecker_group_override: Shipyard
+  shuttlePath: /SharedMaps/_WF/OldVessels/mclass.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: Null
+  class:
+  - Salvage
+  engine:
+  - AME
+
+- type: gameMap
+  id: MClass
+  mapName: 'TSF-SKR M-Class Salvage Carrier'
+  mapPath: /SharedMaps/_WF/OldVessels/mclass.yml
+  minPlayers: 0
+  stations:
+    MClass:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'M-Class CIV{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

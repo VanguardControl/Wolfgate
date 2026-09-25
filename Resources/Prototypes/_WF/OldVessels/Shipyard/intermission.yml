@@ -1,0 +1,51 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: Nelliel-ss14
+# Discord: energy0
+
+# Shuttle Notes:
+#
+#
+
+- type: vessel
+  id: Intermission
+  parent: BaseVessel
+  name: WA Intermission
+  description: A large medical vessel with a lobby, bar, food, and medical care facilities, Capable of saving lives and then saving appetites all in one go.
+  price: 158501
+  purchasable: false
+  category: Large
+  group: Custom # was Medical; Custom keeps it off every shipyard console
+  mapchecker_group_override: Medical
+  shuttlePath: /SharedMaps/_WF/OldVessels/intermission.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Medical
+  - Chemistry
+  - Kitchen
+  - Botany
+  engine:
+  - AME
+
+- type: gameMap
+  id: Intermission
+  mapName: 'WA Intermission'
+  mapPath: /SharedMaps/_WF/OldVessels/intermission.yml
+  minPlayers: 0
+  stations:
+    Intermission:
+      stationProto: StandardFrontierVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Intermission MED{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            MdMedic: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]

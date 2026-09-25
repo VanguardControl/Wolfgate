@@ -1,0 +1,45 @@
+# Removed upstream by Monolith#4624 (Wolfgate #51). Restored for review: admin spawn only, hidden from shipyards.
+# Author Info
+# GitHub: Primusirius
+# Discord: Primusirius
+
+- type: vessel
+  id: Siebel
+  parent: BaseVessel
+  name: MI Siebel
+  description: The Siebel is a militia owned and designed ship, designed with Chimera combat in mind, however; many use it for expeditionary exploration and combat.
+  price: 211782
+  purchasable: false
+  category: Medium
+  group: Custom # was Expedition; Custom keeps it off every shipyard console
+  mapchecker_group_override: Expedition
+  access: Mercenary
+  shuttlePath: /SharedMaps/_WF/OldVessels/Expedition/siebel.yml
+  tags:
+  - WFOldVessel
+  guidebookPage: null
+  class:
+  - Expedition
+  - Pursuit
+  engine:
+  - AME
+
+- type: gameMap
+  id: Siebel
+  mapName: 'MI Siebel'
+  mapPath: /SharedMaps/_WF/OldVessels/Expedition/siebel.yml
+  minPlayers: 0
+  stations:
+    Siebel:
+      stationProto: StandardFrontierExpeditionVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Siebel MIL{1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs:
+            Contractor: [ 0, 0 ]
+            # Pilot: [ 0, 0 ]
+            # Mercenary: [ 0, 0 ]
