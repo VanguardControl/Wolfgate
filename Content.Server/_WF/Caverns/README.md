@@ -61,6 +61,7 @@ come (entrances, the six geologies, air, light, life, sound and the mining loop)
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.View.cs)
   - the level above the next eye, for the ground cap below.
   - no eyes or chunk loads under a ground layer.
+  - track the level above the next eye.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
 
 <!-- WOLFGATE-GENERATED END -->

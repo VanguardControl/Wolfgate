@@ -1,8 +1,10 @@
 #nullable enable
+using System;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._CE.ZLevels.Core;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.GameObjects;
@@ -74,10 +76,30 @@ public sealed class CavernHullTest
             Assert.That(levels.WfTryGetLiftRatio(lander, out var ratio) && ratio >= 1f, Is.True,
                 "Precondition: the lander can't hover, so its pilot's descend key is never read."));
 
-        await PlanetFixture.HoldDescend(pair, lander);
+        // Counts transit gaps as they are made: an unguarded descend enters and leaves one within a tick.
+        var transits = 0;
+        Action<AddedComponentEventArgs> onAdded = args =>
+        {
+            if (args.BaseArgs.Component is CEZTransitMapComponent)
+                transits++;
+        };
 
-        // Its landing thrusters hold it up, so a refused descend leaves it where it is instead of churning.
-        await AssertNeverBelowGround(pair, world, lander, seconds: 10, stayOn: world.Ground);
+        await server.WaitPost(() => entMan.ComponentAdded += onAdded);
+
+        try
+        {
+            await PlanetFixture.HoldDescend(pair, lander);
+
+            // Its landing thrusters hold it up, so a refused descend leaves it where it is instead of churning.
+            await AssertNeverBelowGround(pair, world, lander, seconds: 10, stayOn: world.Ground);
+
+            await server.WaitAssertion(() =>
+                Assert.That(transits, Is.Zero, "A refused descend still sent the lander through a transit gap."));
+        }
+        finally
+        {
+            await server.WaitPost(() => entMan.ComponentAdded -= onAdded);
+        }
 
         await Teardown(pair, world);
         await pair.CleanReturnAsync();

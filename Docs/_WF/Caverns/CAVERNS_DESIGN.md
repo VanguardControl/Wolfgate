@@ -231,7 +231,7 @@ line.
 
       SpawnViewerEye(eyes, actor, map.Value, mapUidBelow, globalPos, pvsScale);
       coveredMaps.Add(mapUidBelow);
-      wfAbove = mapUidBelow; // WOLFGATE(Caverns)
+      wfAbove = mapUidBelow; // WOLFGATE(Caverns): track the level above the next eye.
   }
   ```
 
@@ -353,7 +353,8 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
   - F1: `(WFPlanetWildlifeComponent, CEZLevelFallMapEvent)` is a free pair. Surface wildlife that falls into a cavern
     over an *unloaded* ground chunk is deleted, so it never leaks against the fauna caps as a `Protected` resident of
     the void (2.1 item 4). The handler reads the ground tile above the landing position: it is deleted only when that
-    tile is empty, not pinned (`WfIsPinned`; a real hole is pinned) and its chunk is not loaded (`WfIsChunkLoaded`).
+    tile is empty, not pinned (`WfIsPinned`) and its chunk is not loaded (`WfIsChunkLoaded`). A hole dug or blown in a
+    loaded chunk is pinned only when that chunk unloads, so until then the loaded check is what keeps its fallers.
     A mob with a mind is never deleted. The event is raised inside the z-physics pass, so the delete is a `QueueDel`.
   - F4: every 10 s it mirrors the ground's `WFPlanetEnvironmentComponent` onto the cavern, with `Weather` set to
     `wf-cavern-weather-underground`. It also sets the cavern `MapLight` to ground `MapLight` × `shaftLight`.
@@ -922,10 +923,11 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernViewerEyeTest.GroundViewerLoadsNoCavern` | A ground viewer has no eye on the cavern, and the cavern's `LoadedChunks` stays empty for 60 ticks | F1 |
 | `CavernViewerEyeTest.CavernViewerLoadsGroundAbove` | A cavern viewer has an eye on the ground, and ground chunks load over it | F1 |
 | `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` without lift on the ground map over chunks that were never loaded, so no tile is under it (a hull on loaded terrain can keep a tile through `WfUnloadChunk`, 2.1 item 7): sampled every tick for 10 s, the hull's map is never the cavern and no transit touches the cavern | F1 |
-| `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map | F1 |
+| `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map, and no transit gap is created at all (an unguarded descend enters one and lands again within a tick) | F1 |
 | `CavernHullTest.LiftoffAndLandingUnchanged` | With caverns on, a `BuildLander` lifts to air layer 1 and lands back on the ground | F1 |
 | `CavernWildlifeTest.WildlifeOverUnloadedGroundIsRemoved` | An awake wildlife mob whose ground chunk unloads falls into the cavern and is deleted, so it never lingers `Protected`; a non-wildlife mob beside it lands in the cavern and stays | F1 |
 | `CavernWildlifeTest.WildlifeThroughPinnedHoleIsKept` | A wildlife mob on a hand-pinned tile survives the chunk unload; emptying the tile drops it into the cavern, where it is kept | F1 |
+| `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk, unpinned (a hole is pinned only when its chunk unloads), falls into the cavern and is kept; the chunk is still loaded and the tile unpinned afterwards, so the loaded check decided | F1 |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after a cavern viewer loads it. The climb point is anchored under the climb tile | F2 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
 | `CavernMouthTest.ClaimAheadOfViewer` | A viewer at (400, 0): within 1 s every cell within 96 tiles is Claimed or Empty, and none of its sites touched a chunk that was loaded at claim time | F2 |
