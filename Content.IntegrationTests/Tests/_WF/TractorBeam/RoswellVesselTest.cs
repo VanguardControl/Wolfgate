@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Server._NF.Shipyard.Components;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.Administration.Systems;
+using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._NF.Shipyard;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.TractorBeam;
@@ -56,6 +57,39 @@ public sealed class RoswellVesselTest
             Assert.That(shipyard.GetAvailableShuttles(ship, ShipyardConsoleUiKey.Security, targetId: voucher).available,
                 Does.Not.Contain("WFRoswell"));
             entities.DeleteEntity(voucher);
+            entities.DeleteEntity(ship);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task RoswellGunsMountOnHardpointsAtLoad()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var entities = pair.Server.ResolveDependency<IEntityManager>();
+        var prototypes = pair.Server.ResolveDependency<IPrototypeManager>();
+        await pair.Server.WaitAssertion(() =>
+        {
+            entities.DeleteEntity(map.Grid);
+            var vessel = prototypes.Index<VesselPrototype>("WFRoswell");
+            Assert.That(entities.System<AdminVesselSpawnSystem>()
+                .TrySpawnVessel(vessel, map.MapId, Vector2.Zero, null, out var spawned), Is.True);
+            var ship = spawned!.Value;
+            var guns = entities.EntityQueryEnumerator<HardpointAnchorableOnlyComponent, TransformComponent>();
+            var count = 0;
+            Assert.Multiple(() =>
+            {
+                while (guns.MoveNext(out var gun, out var mount, out var transform))
+                {
+                    if (transform.GridUid != ship)
+                        continue;
+                    count++;
+                    Assert.That(mount.anchoredTo, Is.Not.Null,
+                        $"{entities.ToPrettyString(gun)} has no compatible hardpoint under it, so fire control refuses it.");
+                }
+            });
+            Assert.That(count, Is.EqualTo(4), "Roswell maps two Cerberus and two Hades turrets.");
             entities.DeleteEntity(ship);
         });
         await pair.CleanReturnAsync();
