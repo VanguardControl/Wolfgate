@@ -2,7 +2,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
-/// <summary>What the gravity projector is doing, for the sprite and for F4's grace timer.</summary>
+/// <summary>What the gravity projector is doing, for the sprite and the grace timer.</summary>
 [Serializable, NetSerializable]
 public enum WFProjectorState : byte
 {

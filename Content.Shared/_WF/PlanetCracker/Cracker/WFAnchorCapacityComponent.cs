@@ -2,7 +2,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
-/// <summary>On a hull's gravity generator: how many anchors it is rated to carry, and how many are aboard (design D11).</summary>
+/// <summary>On a hull's gravity generator: how many anchors it is rated to carry, and how many are aboard.</summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFAnchorCapacityComponent : Component
 {

@@ -11,46 +11,31 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The gravitic centrifuge's own machine window: the stock power switch and charge readouts driven by
-/// <see cref="PowerChargeState"/>, plus the spin and load the crack console reads.
-/// Every number is a Label or a ProgressBar rather than a string drawn into the dial, so nothing on this window can
-/// be laid out on top of anything else; the dial is kept only as the rotor face, with its own readouts switched off.
-/// Spin and load come from the networked <see cref="WFCentrifugeComponent"/> rather than from PowerChargeState, whose
-/// Charge is quantised to a byte and only sent while the UI is open. This window's viewer is standing at the machine,
-/// so the entity is always in PVS; feeding it the same four values the crack console gets keeps the two agreeing.
-/// </summary>
+/// <summary>Centrifuge machine window: stock power controls plus spin and load read from <see cref="WFCentrifugeComponent"/>.</summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFCentrifugeWindow : FancyWindow
 {
     [Dependency] private IEntityManager _entityManager = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
-    /// <summary>Load fraction above which the load readout reads Caution; matches the dial's own band.</summary>
+    // Load bands match WFCentrifugeDial.
     private const float LoadCaution = 0.75f;
 
-    /// <summary>Load fraction above which the load readout reads Danger; matches the dial's own band.</summary>
     private const float LoadDanger = 0.95f;
 
-    /// <summary>The two power buttons behave as one switch.</summary>
     private readonly ButtonGroup _powerGroup = new();
 
-    /// <summary>The machine whose component the readouts are taken from.</summary>
     private EntityUid _owner;
 
-    /// <summary>Last switch position pushed by the server, for the status line that pairs it with the spin.</summary>
     private bool _on;
 
-    /// <summary>Whole spin percent last written to the labels, so a frame that moved nothing touches no control.</summary>
+    // Values last written to the labels.
     private int _shownSpin = -1;
 
-    /// <summary>At-full flag last written to the labels.</summary>
     private bool _shownAtFull;
 
-    /// <summary>Whole load last written to the labels.</summary>
     private int _shownLoad = -1;
 
-    /// <summary>Whole capacity last written to the labels.</summary>
     private int _shownCapacity = -1;
 
     public WFCentrifugeWindow()
@@ -114,12 +99,7 @@ public sealed partial class WFCentrifugeWindow : FancyWindow
         UpdateStatusLine();
     }
 
-    /// <summary>
-    /// Pushes one spin and load reading into the bars, the value labels and the rotor face.
-    /// Public so a headless test can drive it without an open interface, and guarded on the rounded values it
-    /// actually shows: Label.Text invalidates measure on every assignment, so writing the same string each frame
-    /// would relayout the whole window sixty times a second.
-    /// </summary>
+    /// <summary>Pushes one spin and load reading; unchanged values are skipped since every Label.Text set relayouts.</summary>
     public void UpdateReadout(float spin, bool atFull, float load, float capacity)
     {
         RotorDial.SetReadout(spin, atFull, load, capacity);

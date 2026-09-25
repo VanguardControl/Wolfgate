@@ -30,7 +30,7 @@ public sealed partial class WFAnchorCrateComponent : Component
     [DataField]
     public int FootprintRadius = 1;
 
-    /// <summary>Mass this adds to a carrying hull's gravgen load (design D11).</summary>
+    /// <summary>Mass this adds to a carrying hull's gravgen load.</summary>
     [DataField]
     public float VirtualMass = 6f;
 }

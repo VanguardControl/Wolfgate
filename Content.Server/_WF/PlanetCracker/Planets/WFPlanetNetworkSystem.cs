@@ -18,9 +18,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// Builds and tears down planet z-map networks: a biome ground layer, fall-through air layers, a cloud layer and an orbit layer.
-/// </summary>
+/// <summary>Builds and tears down planet z-map networks: ground, air, cloud and orbit layers.</summary>
 public sealed partial class WFPlanetNetworkSystem : EntitySystem
 {
     [Dependency] private AtmosphereSystem _atmos = default!;
@@ -34,7 +32,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
     [Dependency] private PlanetSystem _planet = default!;
     [Dependency] private TransformSystem _transform = default!;
 
-    /// <summary>Marker spawned at the planet centre so a hull in orbit can see where the body underneath it is.</summary>
+    // Marks the planet centre on the orbit layer.
     private const string OrbitMarkerProto = "WFOrbitBeacon";
 
     private readonly List<(Vector2i Index, Tile Tile)> _reservedTiles = new();
@@ -61,11 +59,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         args.Reason = Loc.GetString("wf-shuttle-console-in-transit");
     }
 
-    /// <summary>
-    /// Builds the network for a registered sector body and records it on the body.
-    /// </summary>
-    /// <param name="planet">The sector body carrying the surface definition.</param>
-    /// <param name="network">The z-map network entity that was built.</param>
+    /// <summary>Builds the network for a registered sector body and records it on the body.</summary>
     public bool TryBuildNetwork(Entity<WFSectorPlanetComponent> planet, out EntityUid network)
     {
         network = EntityUid.Invalid;
@@ -85,8 +79,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
             return false;
         }
 
-        // World frame only: the body is spawned with SpawnAtPosition, which runs grid traversal, so its parent
-        // is not guaranteed to be the sector map and a local-frame position could silently become grid-local.
+        // World frame: SpawnAtPosition may have parented the body to a grid.
         var centre = _transform.GetWorldPosition(planet.Owner);
         var displayName = MetaData(planet.Owner).EntityName;
 
@@ -100,13 +93,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Builds a whole planet z-stack and returns its network entity, or null when the build failed.
-    /// </summary>
-    /// <param name="surface">The surface definition describing the stack.</param>
-    /// <param name="centre">Planet centre in the world frame; the orbit marker and the console's range gate both measure here.</param>
-    /// <param name="displayName">Name substituted into the map, network and marker locale strings.</param>
-    /// <param name="planetEntity">The sector body this network belongs to, if any.</param>
+    /// <summary>Builds a planet z-stack at a world position; returns its network, or null on failure.</summary>
     public EntityUid? BuildNetwork(WFPlanetSurfacePrototype surface, Vector2 centre, string displayName, EntityUid? planetEntity)
     {
         if (!_cfg.GetCVar(PlanetCrackerCVars.PlanetNetworks))
@@ -120,9 +107,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         // Every map stays uninitialised until InitializeZNetwork, so the network registry lands on all of them at once.
         var ground = _planet.SpawnPlanet(surface.Ground, runMapInit: false);
 
-        // Fix the biome seed before any chunk or marker chunk can load, so a planet's terrain and its deep veins are
-        // identical every round. EnsurePlanet rolls _random.Next() when SpawnPlanet passes no seed
-        // (Content.Server/Parallax/BiomeSystem.PlanetSetup.cs:33).
+        // Set the seed before any chunk loads; EnsurePlanet otherwise rolls a random one.
         if (surface.Seed is { } biomeSeed && TryComp<BiomeComponent>(ground, out var groundBiome))
             _biome.SetSeed(ground, groundBiome, biomeSeed);
 
@@ -163,8 +148,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         var network = _zLevels.CreateMapNetwork(surface.NetworkComponents);
         _meta.SetEntityName(network, Loc.GetString("wf-planet-network-name", ("planet", displayName)));
 
-        // One depth per call, ascending from 0: the network's sorted cache only takes its first-element
-        // branch at depth 0, so depth 0 must be added first and the depths must expand contiguously.
+        // One depth per call from 0 upward; the network's sorted cache needs contiguous depths starting at 0.
         for (var depth = 0; depth < layers.Count; depth++)
         {
             if (_zLevels.TryAddMapsIntoNetwork(network, new Dictionary<EntityUid, int> { { layers[depth], depth } }))
@@ -183,8 +167,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
 
         _zLevels.InitializeZNetwork(network);
 
-        // Post-init fixups, last write wins: the network registry was stamped over every layer at MapInit
-        // with removeExisting defaulted to true, so anything per-layer has to be re-applied here.
+        // MapInit overwrote every layer with the network registry, so per-layer components go on after it.
         var networkNet = GetNetEntity(network);
 
         foreach (var layer in layers)
@@ -262,8 +245,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
 
         _meta.SetEntityName(orbit, Loc.GetString(surface.OrbitMapName, ("planet", displayName)));
 
-        // Deliberately NOT an FTLDestination: orbit is entered from the shuttle console's own button, which needs no
-        // drive (WFOrbitEntrySystem). The marker below is a warp point and a radar label, never a jump target.
+        // Not an FTL destination; orbit is entered from the console button. The marker is a warp point and radar label.
         var orbitMarker = SpawnAtPosition(OrbitMarkerProto, new EntityCoordinates(orbit, centre));
         _meta.SetEntityName(orbitMarker, Loc.GetString(surface.OrbitMarkerName, ("planet", displayName)));
 
@@ -283,10 +265,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         return network.Owner;
     }
 
-    /// <summary>
-    /// Queues every layer and the network entity for deletion, and clears the owning sector body's record of it.
-    /// </summary>
-    /// <param name="network">The z-map network entity.</param>
+    /// <summary>Deletes a network and its layers, and clears the owning sector body's record of it.</summary>
     public void DeleteNetwork(EntityUid network)
     {
         if (TryComp<WFPlanetNetworkComponent>(network, out var comp)

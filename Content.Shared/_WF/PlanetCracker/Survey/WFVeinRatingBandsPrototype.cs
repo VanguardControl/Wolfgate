@@ -3,13 +3,9 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.PlanetCracker.Survey;
 
 /// <summary>
-/// The score thresholds a vein table is rated against, so ratings are comparable across planets and tunable in YAML.
-/// One document ships, at <see cref="SharedWFSurveySystem.DefaultBands"/>.
+/// Score thresholds a vein table is rated against; one document ships, at <see cref="SharedWFSurveySystem.DefaultBands"/>.
 /// </summary>
-/// <remarks>
-/// The prototype kind string is declared explicitly. Robust derives an unqualified kind by lowercasing only index 0,
-/// which would register this type as "wFVeinRatingBands" and break every "- type: wfVeinRatingBands" document.
-/// </remarks>
+// Kind named explicitly: Robust would derive "wFVeinRatingBands".
 [Prototype("wfVeinRatingBands")]
 public sealed partial class WFVeinRatingBandsPrototype : IPrototype
 {

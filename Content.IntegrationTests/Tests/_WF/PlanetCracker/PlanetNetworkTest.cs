@@ -24,13 +24,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// A planet is a z-map network: a biome ground layer, fall-through air layers and a vacuum orbit layer, which is the
-/// only FTL door OUT of a planet and never a door in - entering orbit is the shuttle console's own action, covered by
-/// OrbitEntryTest. These cover the build order, the per-layer fixups, the fall exemption and both halves of the FTL
-/// gate. A crackable world carries no cloud layer, because a cloud deck ends the client's downward z-walk and paints
-/// over everything below it, which hid the crack site from the one place the crew watches it from.
-/// </summary>
+/// <summary>Planet z-map networks: build order, per-layer fixups, the orbit fall exemption and the FTL gate.</summary>
 [TestFixture]
 [TestOf(typeof(WFPlanetNetworkSystem))]
 public sealed class PlanetNetworkTest
@@ -38,7 +32,7 @@ public sealed class PlanetNetworkTest
     private const string Surface = "WFSurfaceAsclepiu";
     private const string PlanetBody = "PlanetEntity";
 
-    /// <summary>WFSurfaceAsclepiu's orbitComponents ambient light, dim enough to read as vacuum but not as black.</summary>
+    /// <summary>WFSurfaceAsclepiu's orbit ambient light, dim but not black.</summary>
     private static readonly Color OrbitAmbient = Color.FromHex("#2a3340");
 
     /// <summary>The surface mixture from WFAsclepiuSurface, re-applied after MapInit.</summary>
@@ -64,7 +58,7 @@ public sealed class PlanetNetworkTest
         public EntityUid Orbit => Layers[^1];
     }
 
-    /// <summary>Five maps at the right depths, wired both ways, with the ground solid and the orbit layer bare.</summary>
+    /// <summary>Five maps at the right depths, linked both ways, with solid ground and a bare orbit.</summary>
     [Test]
     public async Task BuildsTheFullStack()
     {
@@ -111,8 +105,7 @@ public sealed class PlanetNetworkTest
 
                 Assert.That(entMan.HasComponent<MapGridComponent>(stack.Orbit), Is.False,
                     "A mapgrid on the orbit layer disables arriving hulls and blocks climbs.");
-                // The build RemComps the inherited map light and then re-adds this one from orbitComponents. With none
-                // at all the engine falls back to sRGB black, which leaves a cut chunk and every parked hull unlit (F5).
+                // Without this light the engine falls back to black and orbit is unlit.
                 Assert.That(entMan.TryGetComponent(stack.Orbit, out MapLightComponent? orbitLight), Is.True,
                     "Orbit has no map light at all, so everything parked there renders pitch black.");
                 Assert.That(orbitLight!.AmbientLightColor, Is.EqualTo(OrbitAmbient),
@@ -121,8 +114,7 @@ public sealed class PlanetNetworkTest
                     "The top layer is not marked as orbit.");
             }
 
-            // Orbit is entered from the shuttle console's own button, which needs no FTL drive. Registering the layer
-            // as a destination would put it back behind GetFTLRange, which is exactly what the button replaces.
+            // Orbit is entered from the shuttle console, not as an FTL destination.
             Assert.That(entMan.HasComponent<FTLDestinationComponent>(stack.Orbit), Is.False,
                 "The orbit layer is an FTL destination again; it is entered from the console's orbit button.");
         });
@@ -131,10 +123,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The network registry's breathable mixture is stamped over every layer at MapInit, so the ground's own 288.15 K
-    /// surface air and the orbit layer's vacuum only exist if the post-init fixups ran.
-    /// </summary>
+    /// <summary>Each layer keeps its own atmosphere once the post-init fixups undo the registry stamp.</summary>
     [Test]
     public async Task AtmosphereIsPerLayer()
     {
@@ -151,7 +140,7 @@ public sealed class PlanetNetworkTest
             {
                 Assert.That(IsSpace(atmos, stack.Ground), Is.False, "The ground layer should not be space.");
 
-                // Layer 3 is the one the dropped cloud deck used to occupy; airLayers 3 has to give it real air.
+                // Every air layer, including depth 3, has real air.
                 for (var depth = 1; depth <= AirLayerCount; depth++)
                 {
                     Assert.That(IsSpace(atmos, stack.Layers[depth]), Is.False, $"Air layer {depth} should not be space.");
@@ -163,8 +152,7 @@ public sealed class PlanetNetworkTest
             var ground = Mixture(atmos, stack.Ground);
             Assert.That(ground, Is.Not.Null, "The ground layer has no map mixture.");
 
-            // The two mixtures differ only in temperature, so this is the one observable proof that the
-            // post-init SetMapAtmosphere fixup undid the registry stamp.
+            // The mixtures differ only in temperature, which shows the fixup ran.
             Assert.That(ground!.Temperature, Is.EqualTo(GroundTemperature).Within(0.01f),
                 $"The ground layer kept the network registry's {RegistryTemperature} K air instead of its own surface mixture.");
         });
@@ -173,11 +161,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A crackable world has no cloud deck: the client's downward z-walk stops at the first cloud layer and the cloud's
-    /// own pass then paints an opaque full-screen deck, which hid the crack circle from orbit. airLayers 3 replaces it,
-    /// so the stack is still five maps deep with orbit at depth 4 and every layer between is breathable air.
-    /// </summary>
+    /// <summary>A crackable world has air layers but no cloud deck, which would hide the ground from orbit.</summary>
     [Test]
     public async Task CrackableStackHasNoCloudLayer()
     {
@@ -201,8 +185,7 @@ public sealed class PlanetNetworkTest
                         $"Layer {entMan.GetComponent<CEZMapComponent>(layer).Depth} is a cloud deck, which blocks the view from orbit.");
                 }
 
-                // The cloud layer carried the same MapLight and inherent Gravity as an air layer, so the third air
-                // layer that replaced it has to carry both or the stack lost a level of lit, gravity-bearing fall.
+                // Every air layer carries map light and gravity.
                 for (var depth = 1; depth <= AirLayerCount; depth++)
                 {
                     var layer = stack.Layers[depth];
@@ -223,7 +206,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A hull parked in orbit stays there with a cold gravgen; this is what the fall-gate exemption is for.</summary>
+    /// <summary>A hull parked in orbit with a cold gravgen stays there.</summary>
     [Test]
     public async Task GridOnOrbitLayerDoesNotFall()
     {
@@ -261,7 +244,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The control for the orbit case: the same hull on an air layer plummets once the grace window is up.</summary>
+    /// <summary>The same hull on an air layer plummets once the grace window is up.</summary>
     [Test]
     public async Task GridOnAirLayerFallsWithoutGravgen()
     {
@@ -290,10 +273,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The inbound half of the gate: an orbit layer is never an FTL destination at any range, because entering orbit is
-    /// the shuttle console's own action. OrbitEntryTest covers the range band that action enforces instead.
-    /// </summary>
+    /// <summary>An orbit layer is never an FTL destination at any range.</summary>
     [Test]
     public async Task OrbitIsNeverAnFTLDestination()
     {
@@ -308,7 +288,7 @@ public sealed class PlanetNetworkTest
 
         var orbitMapId = entMan.GetComponent<MapComponent>(sector.Stack.Orbit).MapId;
 
-        // Parked close to the body, which is the one place the old inbound range gate used to let through.
+        // Parked close to the body.
         await MoveTo(pair, ship, sector.SectorMap, new Vector2(500f, 0f));
 
         await server.WaitAssertion(() =>
@@ -322,7 +302,7 @@ public sealed class PlanetNetworkTest
             }
         });
 
-        // Even hand-registered, the shared gate has to keep refusing it.
+        // Even hand-registered, the gate refuses it.
         await server.WaitPost(() => shuttles.TryAddFTLDestination(orbitMapId, true, false, false, out _));
 
         await server.WaitAssertion(() =>
@@ -339,7 +319,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The outbound half of the gate: you leave a planet by climbing to orbit, not by jumping off the grass.</summary>
+    /// <summary>A hull on a surface layer cannot FTL out; only orbit can.</summary>
     [Test]
     public async Task CannotFTLOffASurfaceLayer()
     {
@@ -354,7 +334,7 @@ public sealed class PlanetNetworkTest
 
         var sectorMapId = entMan.GetComponent<MapComponent>(sector.SectorMap).MapId;
 
-        // The sector map is an ordinary open destination, exactly as a station grid's map is at round start.
+        // The sector map is an ordinary open destination.
         await server.WaitPost(() => shuttles.TryAddFTLDestination(sectorMapId, true, false, false, out _));
 
         await MoveTo(pair, ship, sector.Stack.Ground, Vector2.Zero);
@@ -379,13 +359,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The destination-side check is not enough. CanFTLTo is only consulted by the console branches that pick a
-    /// destination out of a list; the beacon and free-FTL branches go straight to FTLToCoordinates, which documents
-    /// itself as taking no checks, and a landed hull left the planet through one of them on the live server. So the
-    /// refusal is asserted at the point every FTL start funnels through instead - and our own orbit hop, which starts
-    /// from orbit or the sector map, still has to get through it.
-    /// </summary>
+    /// <summary>No FTL starts from inside an atmosphere by any path, while the orbit hop still gets through.</summary>
     [Test]
     public async Task NoFTLStartsFromInsideAnAtmosphere()
     {
@@ -478,7 +452,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The admin command is the only way to exercise the feature in a dev environment, so it builds a whole stack too.</summary>
+    /// <summary>The planet spawn admin command builds a whole stack.</summary>
     [Test]
     public async Task WfPlanetSpawnCommandBuildsStack()
     {
@@ -522,11 +496,7 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Turns the feature on for this pair, through the shared fixture. BuildStandalone and Teardown below stay local:
-    /// they wrap the layers in a Stack and tear down through the network uid, so they are a different shape rather than
-    /// a copy of the fixture's.
-    /// </summary>
+    /// <summary>Turns the feature on for this pair through the shared fixture.</summary>
     private static Task EnableFeature(TestPair pair)
     {
         return PlanetCrackerFixture.EnableFeature(pair);
@@ -564,7 +534,7 @@ public sealed class PlanetNetworkTest
         public Stack Stack = new();
     }
 
-    /// <summary>Builds a stack through the registered-body path, so the FTL range gate has a planet to measure from.</summary>
+    /// <summary>Builds a stack through the registered-body path.</summary>
     private static async Task<SectorFixture> BuildForSectorBody(TestPair pair)
     {
         var server = pair.Server;
@@ -579,9 +549,7 @@ public sealed class PlanetNetworkTest
         {
             fixture.Body = entMan.SpawnEntity(PlanetBody, new MapCoordinates(Vector2.Zero, map.MapId));
 
-            // Through the one production writer rather than a hand-written EnsureComponent/Surface pair, so
-            // WFPlanetRegistrySystem.ApplySurface is the only thing in the tree that writes Surface and Sanctioned and
-            // these tests run against a body whose Sanctioned actually mirrors its surface prototype.
+            // The production writer, so Sanctioned mirrors the surface prototype.
             var sector = registry.ApplySurface(fixture.Body, proto.Index<WFPlanetSurfacePrototype>(Surface));
 
             Assert.That(networks.TryBuildNetwork(sector, out var network), Is.True,
@@ -654,7 +622,7 @@ public sealed class PlanetNetworkTest
         return atmos.IsTileSpace(null, new Entity<MapAtmosphereComponent?>(map, null), Vector2i.Zero);
     }
 
-    /// <summary>The map's own default mixture, read through the atmos API rather than the restricted component.</summary>
+    /// <summary>The map's own default mixture, read through the atmos API.</summary>
     private static GasMixture? Mixture(AtmosphereSystem atmos, EntityUid map)
     {
         return atmos.GetTileMixture(null, new Entity<MapAtmosphereComponent?>(map, null), Vector2i.Zero);

@@ -7,11 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// Server half of the handheld surveyor: the scan DoAfter's completion, which is the one place a deep vein is ever
-/// revealed. Every reveal write is server-authored and lands on the user's own <see cref="WFSurveyedComponent"/>, so
-/// one player's pulse never shows another player anything.
-/// </summary>
+/// <summary>Server half of the handheld surveyor: a finished scan reveals nearby veins to the user alone.</summary>
 public sealed partial class WFSurveyorSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
@@ -29,16 +25,10 @@ public sealed partial class WFSurveyorSystem : EntitySystem
     {
         base.Initialize();
 
-        // A DIFFERENT pair from the shared system's <WFSurveyorComponent, UseInHandEvent>, which only starts the
-        // DoAfter. It fires on cancellation too, so nothing else is needed to end a scan.
         SubscribeLocalEvent<WFSurveyorComponent, WFSurveyScanDoAfterEvent>(OnScanDoAfter);
     }
 
-    /// <summary>
-    /// The completed scan: reveal every vein inside the pulse radius to the user alone.
-    /// The surveyor has no scanning face in F2 (plan D-N), so this system takes no appearance dependency, adds no
-    /// second subscription and runs no per-frame sweep.
-    /// </summary>
+    /// <summary>The completed scan: reveal every vein inside the pulse radius to the user alone.</summary>
     private void OnScanDoAfter(Entity<WFSurveyorComponent> ent, ref WFSurveyScanDoAfterEvent args)
     {
         if (args.Cancelled || args.Handled)
@@ -47,9 +37,7 @@ public sealed partial class WFSurveyorSystem : EntitySystem
         var user = args.User;
         var xform = Transform(user);
 
-        // The canonical ground-layer test, shared with the gravity anchors: deep veins only exist on a planet's depth 0
-        // biome grid, so a scan anywhere else has nothing to find and says so rather than reading empty. The one other
-        // place is the disc cut out of that ground: its veins rode up anchored to the chunk, wherever it now hangs.
+        // Deep veins exist only on planet ground and on chunks cut from it.
         if (!_anchors.TryGetPlanetGround(xform, out _) && !(xform.GridUid is { } grid && HasComp<WFPlanetChunkComponent>(grid)))
         {
             _popup.PopupEntity(Loc.GetString("wf-surveyor-not-on-ground"), user, user);
@@ -57,21 +45,13 @@ public sealed partial class WFSurveyorSystem : EntitySystem
             return;
         }
 
-        // Server-side only: TimedDespawnComponent is explicitly not networked
-        // (RobustToolbox/Robust.Shared/Spawners/TimedDespawnComponent.cs:10), so the effect is spawned where it is seen.
+        // Spawned server-side; TimedDespawnComponent isn't networked.
         Spawn(ent.Comp.PulseEffect, xform.Coordinates);
         _audio.PlayPvs(ent.Comp.PulseSound, user);
 
         _veinBuffer.Clear();
 
-        // THE FLAG IS Uncontained, NOT StaticSundries. An anchored vein carries no PhysicsComponent, and the broadphase
-        // picks its tree with `staticBody: body?.BodyType == BodyType.Static`
-        // (RobustToolbox/Robust.Shared/GameObjects/Systems/EntityLookupSystem.cs:648-657) then
-        // `staticBody ? StaticSundriesTree : SundriesTree` (:491-496) - a null body is not Static, so a bodyless entity
-        // rides the DYNAMIC SundriesTree no matter how it is anchored. StaticSundries would still find it, but only
-        // through its Sundries bit (dispatch at EntityLookupSystem.ComponentQueries.cs:165-174); the Static bit is dead
-        // weight and the name is actively misleading. Uncontained is also the flag the chunk ride-up query uses, so the
-        // surveyor and the extraction agree by construction.
+        // Uncontained, not StaticSundries: a bodyless anchored vein sits in the dynamic sundries tree.
         _lookup.GetEntitiesInRange(xform.Coordinates, ent.Comp.PulseRadius, _veinBuffer, LookupFlags.Uncontained);
 
         var surveyed = EnsureComp<WFSurveyedComponent>(user);
@@ -79,13 +59,11 @@ public sealed partial class WFSurveyorSystem : EntitySystem
 
         foreach (var vein in _veinBuffer)
         {
-            // A planet network stacks its layers at the same XY, so a same-radius hit on the air layer above is a real
-            // possibility; the scan is the ground the scanner is standing on and nothing else.
+            // Layers share XY, so hits on other layers are skipped.
             if (Transform(vein.Owner).MapUid != xform.MapUid)
                 continue;
 
-            // The popup counts what the pulse found, not what was new: a second sweep of ground already walked should
-            // read the same number, not zero.
+            // Counts what the pulse found, not what was new, so a repeat sweep reads the same.
             surveyed.Revealed.Add(GetNetEntity(vein.Owner));
             count++;
         }

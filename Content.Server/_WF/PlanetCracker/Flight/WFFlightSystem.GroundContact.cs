@@ -73,8 +73,7 @@ public sealed partial class WFFlightSystem
             skid.TileDamage[index] = total;
             if (total >= SkidTileThreshold && floors.Count < Math.Max(0, indices.Count - SkidMinTiles))
             {
-                // Retain a solid core so long slides cannot leave a massless physics grid.
-                // Expose the frame instead of recursively splitting fragments into tiny physics grids.
+                // Expose lattice instead of removing floor, so slides never leave massless or tiny grids.
                 floors.Add((index, lattice));
                 skid.TileDamage.Remove(index);
             }
@@ -85,8 +84,7 @@ public sealed partial class WFFlightSystem
         }
         foreach (var entity in damaged)
             if (!TerminatingOrDeleted(entity))
-                // Already reduced to gentle structural wear; ordinary walls subtract ten blunt per hit,
-                // which would otherwise make these sub-three-point contacts entirely harmless.
+                // Ignores resistances: wall armour would otherwise negate these small hits entirely.
                 _crashDamage.TryChangeDamage(entity, damage, ignoreResistances: true, canSever: false);
         if (floors.Count > 0)
             _map.SetTiles(hull, hull.Comp, floors);

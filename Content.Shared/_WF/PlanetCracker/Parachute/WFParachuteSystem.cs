@@ -13,9 +13,7 @@ using Robust.Shared.Network;
 namespace Content.Shared._WF.PlanetCracker.Parachute;
 
 /// <summary>
-/// Parachutes: strap one onto a crate, an object or a person, push them off the ship, and the canopy opens on the way
-/// down and holds the fall under the speed a landing hurts at. The pack is left where they land.
-/// Shared so the wearer's own client predicts the held fall rather than fighting the server over it.
+/// Parachutes that open on a fall and hold it under the hurting speed; shared so the wearer's client predicts the fall.
 /// </summary>
 public sealed partial class WFParachuteSystem : EntitySystem
 {
@@ -156,10 +154,7 @@ public sealed partial class WFParachuteSystem : EntitySystem
         args.StunMultiplier = 0f;
     }
 
-    /// <summary>
-    /// The canopy opens on falling through a level, never on speed alone: a step down off a ledge is not a jump, and
-    /// would otherwise open the pack and hand it straight back.
-    /// </summary>
+    /// <summary>The canopy opens on falling through a level, not on speed, so stepping off a ledge does not open it.</summary>
     private void OnFallMap(Entity<WFParachutedComponent> ent, ref CEZLevelFallMapEvent args)
     {
         if (ent.Comp.Deployed)

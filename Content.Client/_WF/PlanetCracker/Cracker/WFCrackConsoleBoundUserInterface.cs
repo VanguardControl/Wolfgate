@@ -3,10 +3,7 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Hosts <see cref="WFCrackConsoleWindow"/> and carries the three crack messages. There is deliberately no abort
-/// message: once the cut has begun it cannot be called off (design D23).
-/// </summary>
+/// <summary>Hosts <see cref="WFCrackConsoleWindow"/>; there is deliberately no abort message once a cut begins.</summary>
 public sealed class WFCrackConsoleBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]

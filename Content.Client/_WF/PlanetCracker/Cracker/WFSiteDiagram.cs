@@ -7,24 +7,16 @@ using Robust.Shared.Collections;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Plan view of the crack site: the hull and its chunk berth, the anchor pair and the cut circle they carve, the
-/// alignment tolerance ring and the offset between the two, and the hull's projectors with a beam line each while
-/// firing. Every value comes out of <see cref="WFCrackConsoleState"/>; nothing is re-derived off the berth marker or
-/// the projector entities, because neither is inside net.pvs_range of a bridge console on a capital hull.
-/// </summary>
+/// <summary>Plan view of the crack site, drawn from the console state since the berth and projectors are often outside PVS.</summary>
 public sealed class WFSiteDiagram : WFDiagramControl
 {
     /// <summary>Spare room left around the framed geometry.</summary>
     private const float FitMargin = 1.10f;
 
-    /// <summary>Segments per tile of cut radius, clamped to the range below; the overlay's own recipe.</summary>
     private const float SegmentsPerTile = 8f;
 
-    /// <summary>Fewest segments a ring is drawn with.</summary>
     private const int MinSegments = 64;
 
-    /// <summary>Most segments a ring is drawn with.</summary>
     private const int MaxSegments = 256;
 
     /// <summary>Radius of an anchor mark, in control pixels.</summary>
@@ -33,7 +25,6 @@ public sealed class WFSiteDiagram : WFDiagramControl
     /// <summary>Radius of a projector mark, in control pixels.</summary>
     private const float ProjectorMarkRadius = 2.5f;
 
-    /// <summary>Alpha of the chord joining the two anchors.</summary>
     private const float ChordAlpha = 0.35f;
 
     /// <summary>Half-width of the arrow head on the offset marker, in control pixels.</summary>
@@ -44,37 +35,27 @@ public sealed class WFSiteDiagram : WFDiagramControl
 
     private WFCrackConsoleState? _state;
 
-    /// <summary>Hull outline and the projector marks, which share the hull's schematic frame.</summary>
     private ValueList<Vector2> _hullLines;
 
-    /// <summary>The one hull edge the berth opens through, drawn thicker so the plan view reads its facing.</summary>
     private ValueList<Vector2> _berthEdgeLines;
 
-    /// <summary>The berth rectangle itself.</summary>
     private ValueList<Vector2> _berthLines;
 
-    /// <summary>The chord between the two anchors.</summary>
     private ValueList<Vector2> _chordLines;
 
-    /// <summary>The offset arrow from the berth centre to the cut centre.</summary>
     private ValueList<Vector2> _offsetLines;
 
-    /// <summary>Beam lines from every firing projector to the cut centre.</summary>
     private ValueList<Vector2> _beamLines;
 
-    /// <summary>Scratch for the hull's four projected corners, reused so Draw allocates nothing.</summary>
     private readonly Vector2[] _hullCorners = new Vector2[4];
 
     private Ring _circleRing;
     private Ring _toleranceRing;
 
-    /// <summary>World-to-pixel scale the current Draw framed with.</summary>
     private float _scale = 1f;
 
-    /// <summary>World point the current Draw put in the middle of the control.</summary>
     private Vector2 _worldCentre;
 
-    /// <summary>Middle of the control, in pixels.</summary>
     private Vector2 _screenCentre;
 
     /// <summary>The state the diagram draws; null until the console has pushed one.</summary>
@@ -194,11 +175,7 @@ public sealed class WFSiteDiagram : WFDiagramControl
         return Box2.CenteredAround(bounds.Center, size);
     }
 
-    /// <summary>
-    /// The hull outline and its projectors, on the hull's own world pose. The berth sits clear of the hull rather than
-    /// around it, so drawing the outline on the berth centre would show the two concentric and misstate the one
-    /// relationship the plan view exists for. The edge facing the berth is drawn thicker so the facing reads.
-    /// </summary>
+    /// <summary>Hull outline on its own pose with the berth-facing edge doubled, plus beams from firing projectors.</summary>
     private void BuildHull(WFCrackConsoleState state)
     {
         var aabb = state.HullAabb;
@@ -211,8 +188,7 @@ public sealed class WFSiteDiagram : WFDiagramControl
             return Project(HullWorld(state, local));
         }
 
-        // A reused array, not a collection expression and not a stackalloc: `[a, b, c, d]` lowers to an InlineArray4
-        // helper with a byref span accessor, and localloc is unverifiable, so both fail the client sandbox (SandboxTest).
+        // A reused array: a collection expression or stackalloc here fails the client sandbox.
         var corners = _hullCorners;
         corners[0] = Hull(aabb.BottomLeft);
         corners[1] = Hull(aabb.BottomRight);
@@ -248,8 +224,7 @@ public sealed class WFSiteDiagram : WFDiagramControl
                 continue;
             }
 
-            // DrawPrimitives lines are one pixel wide with no width parameter, so "thicker" is the same edge laid down
-            // twice, a pixel further into the hull.
+            // Lines are one pixel wide, so the edge is drawn twice, a pixel apart.
             var inward = centre - (a + b) / 2f;
             inward = inward.LengthSquared() > float.Epsilon ? inward / inward.Length() : Vector2.Zero;
 
@@ -318,9 +293,7 @@ public sealed class WFSiteDiagram : WFDiagramControl
         AddLine(ref _offsetLines, to, to - dir * ArrowHead * 2f - side * ArrowHead);
     }
 
-    /// <summary>
-    /// The filled marks: the two anchors and every projector. Filled DrawCircle takes the RAW skin colour.
-    /// </summary>
+    /// <summary>Filled marks for the anchors and projectors, in the raw skin colour.</summary>
     private void DrawMarks(DrawingHandleScreen handle, WFCrackConsoleState state)
     {
         var aabb = state.HullAabb;
@@ -350,10 +323,7 @@ public sealed class WFSiteDiagram : WFDiagramControl
         return (state.AnchorA ?? state.CandidateA) is not null && (state.AnchorB ?? state.CandidateB) is not null;
     }
 
-    /// <summary>
-    /// Ring colour from the worse of the two halves, matching WFCrackCircleOverlay's rule exactly so the diagram and
-    /// the world overlay never disagree about what the crew is looking at.
-    /// </summary>
+    /// <summary>Ring colour from the worse of the two halves; mirrors WFCrackCircleOverlay.ColourFor.</summary>
     private Color PairColour(WFCrackConsoleState state)
     {
         if (state.AnchorAState == WFAnchorState.Broken || state.AnchorBState == WFAnchorState.Broken ||

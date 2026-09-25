@@ -43,7 +43,8 @@ public abstract partial class CESharedZLevelsSystem
 
             if (!_zMapQuery.HasComp(xform.MapUid))
             {
-                // WOLFGATE: a body riding a hull never changes parent, so OnParentChanged cannot clear what it
+                // WOLFGATE(PlanetCracker) START: z-motion carried off the z-network is cleared, not kept for the next planet.
+                // A body riding a hull never changes parent, so OnParentChanged cannot clear what it
                 // carries off the z-network. Anything left on it here would be spent on the next planet it reaches.
                 if (!HasComp<CEZTransitMapComponent>(xform.MapUid)
                     && (zPhysicsComponent.Velocity != 0f || zPhysicsComponent.LocalPosition != 0f))
@@ -53,6 +54,7 @@ public abstract partial class CESharedZLevelsSystem
                     DirtyField(uid, zPhysicsComponent, nameof(CEZPhysicsComponent.Velocity));
                     DirtyField(uid, zPhysicsComponent, nameof(CEZPhysicsComponent.LocalPosition));
                 }
+                // WOLFGATE END
 
                 _activeBodies.RemoveAt(i);
                 continue;

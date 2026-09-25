@@ -10,16 +10,7 @@ using Content.Server._WF.PlanetCracker.Planets;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The disconnect protocol: the switch-off veto, the 60 s two-anchor pairing window, the evacuation countdown and the
-/// release, all on the hull side. The chunk side reacts to the state edge and to WFCrackerReleasingEvent instead of
-/// being called, because WFPlanetChunkSystem already depends on this system and the reverse would be a cycle.
-/// Only three broadcast subscriptions are added, all in InitializeDisconnect; the only other subscribers of any of the
-/// three in the tree are the integration test recorder at GravityAnchorTest.cs:1200, :1201 and :1212, and no directed
-/// (component, event) pair is added anywhere in this file.
-/// A projector or centrifuge fault during the 60 s evacuation deliberately no longer drops the hull: the chunk is
-/// leaving regardless, so EnterDisconnecting disarms the grace countdown for good rather than carrying it over.
-/// </summary>
+/// <summary>Hull side of the disconnect protocol: switch-off veto, pairing window, evacuation and release.</summary>
 public sealed partial class WFCrackerSystem
 {
     [Dependency] private ChatSystem _chat = default!;
@@ -35,15 +26,12 @@ public sealed partial class WFCrackerSystem
     /// <summary>Short retry delay when a chunk could not enter transit at release time.</summary>
     private static readonly TimeSpan ReleaseRetryDelay = TimeSpan.FromSeconds(1);
 
-    /// <summary>Hulls already reported as stuck in Released; the sweep is 1 Hz and that state is permanent.</summary>
+    /// <summary>Hulls already reported as stuck in Released, so the error is logged once.</summary>
     private readonly HashSet<EntityUid> _releaseStuckLogged = new();
 
-    /// <summary>Registers the three disconnect events; called from the system's one Initialize override.</summary>
     private void InitializeDisconnect()
     {
-        // The attempt is a plain sealed class : CancellableEntityEventArgs (WFAnchorEvents.cs:35) and so is subscribed
-        // BY VALUE; the other two are [ByRefEvent] record structs. All three are broadcast, which is legal any number
-        // of times over - the duplicate-subscription crash is a directed (component, event) rule only.
+        // The attempt is a class event, so it is subscribed by value.
         SubscribeLocalEvent<WFAnchorSwitchOffAttemptEvent>(OnSwitchOffAttempt);
         SubscribeLocalEvent<WFAnchorSwitchedOffEvent>(OnSwitchedOff);
         SubscribeLocalEvent<WFChunkDroppedEvent>(OnChunkDropped);
@@ -52,8 +40,7 @@ public sealed partial class WFCrackerSystem
     /// <summary>Refuses a switch-off anywhere but a chunk-riding anchor of a hull that has finished its cut.</summary>
     private void OnSwitchOffAttempt(WFAnchorSwitchOffAttemptEvent args)
     {
-        // A hand-spawned anchor belongs to nobody and is nobody's business: GravityAnchorTest deploys exactly that and
-        // asserts the switch-off goes through, so this returns without cancelling rather than refusing on a null owner.
+        // An unowned anchor may always be switched off.
         if (!TryGetOwner(args.Anchor, out var cracker))
             return;
 
@@ -85,10 +72,7 @@ public sealed partial class WFCrackerSystem
         if (!TryGetOwner(args.Anchor, out var ent) || ent.Comp.State != WFCrackState.Cracked)
             return;
 
-        // The veto's identical guard is not enough: ForceSwitchOff skips the cancellable attempt entirely and
-        // `wfcracker disconnect` drives both anchors through it. Without this, an admin could enter Disconnecting
-        // mid-spin-down, where the sweep's ungated PendingAbort arm would starve every evacuation branch and
-        // FinishAbort - which has no state guard - would overwrite Disconnecting with AnchorsPlaced 30 s later.
+        // ForceSwitchOff skips the veto, so an admin can't enter Disconnecting mid-spin-down.
         if (ent.Comp.PendingAbort is not null)
             return;
 
@@ -109,8 +93,7 @@ public sealed partial class WFCrackerSystem
             return;
         }
 
-        // Unreachable in practice - SwitchOff and ForceSwitchOff both require Locked, and the held anchor is Off - but
-        // a re-raise for the same anchor must never be mistaken for the second half of the pair.
+        // A re-raise for the held anchor is never the second half of the pair.
         if (ent.Comp.DisconnectAnchor == anchor)
             return;
 
@@ -125,8 +108,7 @@ public sealed partial class WFCrackerSystem
         if (!ent.Comp.DisconnectArmed)
             return;
 
-        // Anything that moved the hull off Cracked - an abort landing, an admin state change - ends the window, and the
-        // held anchor is put back rather than stranded in Off, which has no other exit.
+        // Leaving Cracked ends the window and puts the held anchor back rather than stranding it in Off.
         if (ent.Comp.State != WFCrackState.Cracked)
         {
             DisarmWindow(ent, true);
@@ -150,21 +132,13 @@ public sealed partial class WFCrackerSystem
         PopupOnGrid(chunk, "wf-crack-disconnect-lapsed");
     }
 
-    /// <summary>
-    /// Cuts an evacuation the hull is no longer running; called unconditionally from the sweep beside
-    /// UpdateDisconnectWindow, and for the same reason. ReleaseNow and EnterReleased both guard on Disconnecting and
-    /// UpdateEvacuation is only ever reached from the sweep's Disconnecting arm, so an admin `wfcracker state` or
-    /// `wfcracker fall` out of Disconnecting would otherwise strand EvacRunning true with the looping alarm playing for
-    /// the rest of the round - PlayGlobal parents its audio in nullspace and skips TimedDespawn while looping, so it
-    /// does not even die with the grid. Idempotent: the two release paths clear EvacRunning themselves.
-    /// </summary>
+    /// <summary>Cuts an evacuation the hull left unfinished, so its looping alarm can't be stranded.</summary>
     private void UpdateStrandedEvacuation(Entity<WFPlanetCrackerComponent> ent)
     {
         if (!ent.Comp.EvacRunning || ent.Comp.State == WFCrackState.Disconnecting)
             return;
 
-        // EvacEnd is zeroed too: a hull put back into Disconnecting later would otherwise be released on its first
-        // sweep against a deadline that expired while it was somewhere else.
+        // EvacEnd too, or a later Disconnecting would release at once against the stale deadline.
         ent.Comp.EvacRunning = false;
         ent.Comp.EvacBeat = 0;
         ent.Comp.EvacEnd = TimeSpan.Zero;
@@ -195,23 +169,19 @@ public sealed partial class WFCrackerSystem
     /// <summary>Commits the disconnect: the evacuation is armed, everything Cracked owned is disarmed, then the state moves.</summary>
     private void EnterDisconnecting(Entity<WFPlanetCrackerComponent> ent)
     {
-        // Every timer is written BEFORE SetState, because SetState raises WFCrackStateChangedEvent synchronously and
-        // the chunk system's handler reads EvacEnd straight off this component to build its own countdown.
+        // Timers before SetState: the chunk system's state handler reads them synchronously.
         ent.Comp.EvacEnd = _timing.CurTime + ent.Comp.EvacDuration;
         ent.Comp.EvacRunning = true;
         ent.Comp.EvacBeat = 0;
         ent.Comp.EvacNextLoop = _timing.CurTime + ent.Comp.EvacReissue;
 
-        // UpdateGrace only ever runs in the Cracking/Cracked sweep branch and nothing else stops the klaxon it armed,
-        // so a grace still running as the hull leaves Cracked would loop for the rest of the round.
+        // Nothing else stops the grace klaxon once the hull leaves Cracked.
         StopKlaxon(ent);
         ent.Comp.GraceRunning = false;
         ent.Comp.GraceEnd = TimeSpan.Zero;
         ent.Comp.Failing = WFCrackFailure.None;
 
-        // The sweep's PendingAbort arm is first in the chain and is not gated on state, so every Disconnecting and
-        // Released branch below it is unreachable while a spin-down is pending; and FinishAbort has no state guard of
-        // its own. StartAbort early-returns outside Cracking/Cracked, so clearing it here is final.
+        // A pending abort would starve the Disconnecting and Released sweep branches; it can't restart after this.
         ent.Comp.PendingAbort = null;
         ent.Comp.AbortEnd = TimeSpan.Zero;
         Dirty(ent);
@@ -239,8 +209,7 @@ public sealed partial class WFCrackerSystem
             PopupOnGrid(ent.Owner, "wf-crack-evac-warning", ("seconds", (int)EvacBeatsAt[beat].TotalSeconds));
         }
 
-        // PlayGlobal freezes its recipient set at play time, so a latecomer boarding mid-countdown would never hear the
-        // alarm; the loop is stopped and replayed on a cadence instead.
+        // PlayGlobal freezes its recipients, so the loop is replayed on a cadence for latecomers.
         if (_timing.CurTime >= ent.Comp.EvacNextLoop)
         {
             StartHullAlarm(ent);
@@ -257,13 +226,11 @@ public sealed partial class WFCrackerSystem
         if (ent.Comp.State != WFCrackState.Disconnecting)
             return;
 
-        // The chunk system drops synchronously off this, which raises WFChunkDroppedEvent and so reaches EnterReleased
-        // below before this call returns.
+        // The chunk drops synchronously, reaching EnterReleased before this returns.
         var ev = new WFCrackerReleasingEvent(ent.Owner);
         RaiseLocalEvent(ref ev);
 
-        // A chunk that is still owned and parked failed to enter transit. Keep the disconnect alive and retry through
-        // the normal expiry path; DropChunk deliberately leaves the back-link intact on this failure.
+        // A still-parked chunk failed to enter transit; keep the disconnect alive and retry.
         if (ent.Comp.State == WFCrackState.Disconnecting)
         {
             if (TryGetOwnedParkedChunk(ent))
@@ -272,8 +239,7 @@ public sealed partial class WFCrackerSystem
                 return;
             }
 
-            // Nothing dropped: an admin deleted the chunk, or the back-link never resolved. There is no owned chunk
-            // left to retry, so the hull may still complete the release fallback.
+            // No chunk left to retry, so release anyway.
             EnterReleased(ent);
         }
     }
@@ -321,8 +287,7 @@ public sealed partial class WFCrackerSystem
 
         ReleaseLock(ent);
 
-        // ClearTarget MUST precede the chunk's deletion: it is what makes IsTargeted false, so OnAnchorBroken and
-        // OnAnchorDestroyed return at their guard as both anchors terminate with the grid and no abort is ever started.
+        // Before the chunk is deleted, so its dying anchors don't start an abort.
         ClearTarget(ent);
 
         ent.Comp.EvacRunning = false;
@@ -340,8 +305,7 @@ public sealed partial class WFCrackerSystem
         if (_timing.CurTime < ent.Comp.ReleaseEnd)
             return;
 
-        // A hull force-anchored by a mapper sticks here for good, which is the D-M failure made visible. The sweep is
-        // 1 Hz and the state is permanent, so the line is written once rather than every second for the rest of the round.
+        // A hull force-anchored by a mapper sticks here for good; logged once.
         if (ent.Comp.Locked || HasComp<ForceAnchorComponent>(ent.Owner))
         {
             if (_releaseStuckLogged.Add(ent.Owner))
@@ -359,8 +323,7 @@ public sealed partial class WFCrackerSystem
     {
         StopHullAlarm(ent);
 
-        // PlayGlobal to a grid filter, never PlayPvs on the grid: that parents the audio at the grid's local origin
-        // with a 15 tile default MaxDistance, which on a capital hull is a bridge-area klaxon and nothing more.
+        // Global to the grid, not PlayPvs, whose 15-tile range from the grid origin misses most of a large hull.
         ent.Comp.EvacStream = _audio.PlayGlobal(
             ent.Comp.EvacSound,
             _audience.Aboard(ent.Owner),

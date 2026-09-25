@@ -21,11 +21,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Commands;
 
-/// <summary>
-/// Spawns the code-built planet cracker test grids next to the calling admin, and drives one hull's crack by hand:
-/// the state field, the two completions, the anchor disconnect and the fall.
-/// Design D23 leaves no in-round way out of a running cut, so `state` is the only escape hatch there is.
-/// </summary>
+/// <summary>Spawns the code-built planet cracker test grids and drives one hull's crack by hand.</summary>
 [AdminCommand(AdminFlags.Spawn | AdminFlags.Mapping)]
 public sealed partial class WFCrackerCommand : LocalizedEntityCommands
 {
@@ -98,8 +94,7 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
             return;
         }
 
-        // The arity is per subcommand: two of the five take no argument at all, and a single blanket length check
-        // would refuse `fall` outright and let `state Cracking` fall through into the wrong error.
+        // Arity is checked per subcommand.
         switch (args[0])
         {
             case SubSpawn when args.Length == 2:
@@ -196,11 +191,7 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
         Report(shell, "cmd-wfcracker-state-set", cracker.Owner, state);
     }
 
-    /// <summary>
-    /// Starts both anchors' drills, which is the only route to WFAnchorDrillStartedEvent outside the anchor verb.
-    /// Without it there is no way to watch a site's fissure rings spread by hand: every other admin route jumps
-    /// straight to the lock.
-    /// </summary>
+    /// <summary>Starts both anchors' drills, the only admin route to WFAnchorDrillStartedEvent.</summary>
     private void ExecuteBegin(IConsoleShell shell, string target)
     {
         if (!TryGetCracker(shell, out var cracker))
@@ -315,7 +306,7 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
         }
     }
 
-    /// <summary>Switches both of the hull's anchors off, bypassing the cancellable attempt a later feature may veto.</summary>
+    /// <summary>Switches both of the hull's anchors off, bypassing any veto.</summary>
     private void ExecuteDisconnect(IConsoleShell shell)
     {
         if (!TryGetCracker(shell, out var cracker))
@@ -334,10 +325,7 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
             ("grid", EntityManager.ToPrettyString(cracker.Owner).ToString())));
     }
 
-    /// <summary>
-    /// Puts both anchors back to Locked and drops any armed pairing window with them.
-    /// Off has no player-facing exit at all, so this is the only way back from a half-finished disconnect by hand.
-    /// </summary>
+    /// <summary>Puts both anchors back to Locked and drops any armed pairing window.</summary>
     private void ExecuteReArm(IConsoleShell shell)
     {
         if (!TryGetCracker(shell, out var cracker))
@@ -382,11 +370,7 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
         Report(shell, "cmd-wfcracker-state-set", cracker.Owner, cracker.Comp.State);
     }
 
-    /// <summary>
-    /// Cuts the chunk out by hand.
-    /// Deliberately not `complete crack`: this is the escape hatch for a hull forced into Cracked with `wfcracker
-    /// state`, which never raised the extraction hook at all.
-    /// </summary>
+    /// <summary>Cuts the chunk out by hand, for a hull forced into Cracked with `state`.</summary>
     private void ExecuteExtract(IConsoleShell shell)
     {
         if (!TryGetCracker(shell, out var cracker))
@@ -394,13 +378,15 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
 
         if (!_crackers.TryGetTargetedPair(cracker, out var a, out var b))
         {
-            shell.WriteError(Loc.GetString("cmd-wfcracker-extract-failed", ("reason", "no targeted anchor pair")));
+            shell.WriteError(Loc.GetString("cmd-wfcracker-extract-failed",
+                ("reason", Loc.GetString("cmd-wfcracker-extract-no-pair"))));
             return;
         }
 
         if (!_crackers.TryGetCircle(a.Owner, b.Owner, out var centre, out var radius))
         {
-            shell.WriteError(Loc.GetString("cmd-wfcracker-extract-failed", ("reason", "the pair has no cut circle")));
+            shell.WriteError(Loc.GetString("cmd-wfcracker-extract-failed",
+                ("reason", Loc.GetString("cmd-wfcracker-extract-no-circle"))));
             return;
         }
 
@@ -408,7 +394,8 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
 
         if (!_chunks.TryExtract(cracker, a.Owner, b.Owner, centre, radius, groundMap, out var chunk))
         {
-            shell.WriteError(Loc.GetString("cmd-wfcracker-extract-failed", ("reason", "see the server log")));
+            shell.WriteError(Loc.GetString("cmd-wfcracker-extract-failed",
+                ("reason", Loc.GetString("cmd-wfcracker-extract-see-log"))));
             return;
         }
 
@@ -474,16 +461,14 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
             if (candidate.Comp.Remaining <= 0 || TileHasMiner(grid, idx))
                 continue;
 
-            // Re-resolved through the miner's own lookup rather than reported off the child walk, so the line the
-            // command prints names exactly the vein the machine will read on its first tick.
+            // Re-resolved through the miner's own lookup so the reply names the vein it will read.
             if (!_miners.TryGetVeinAt(grid, idx, out var vein))
                 continue;
 
             var coords = _map.GridTileToLocal(grid.Owner, grid.Comp, idx);
             var miner = EntityManager.SpawnAtPosition(MinerProto, coords);
 
-            // The prototype spawns UNANCHORED (Transform anchored: false), so this is doing real work rather than
-            // re-asserting a stance the spawn already had.
+            // The prototype spawns unanchored.
             _transform.AnchorEntity(
                 (miner, EntityManager.GetComponent<TransformComponent>(miner)),
                 grid,
@@ -597,11 +582,7 @@ public sealed partial class WFCrackerCommand : LocalizedEntityCommands
         return true;
     }
 
-    /// <summary>
-    /// The cracker hull the caller is standing on.
-    /// A server console has no body and so no grid, so it falls back to the only cracker in the world - which is what a
-    /// headless run or a test has. Two or more is ambiguous and is refused rather than guessed at.
-    /// </summary>
+    /// <summary>The cracker hull the caller stands on; the server console falls back to the only one.</summary>
     private bool TryGetCracker(IConsoleShell shell, out Entity<WFPlanetCrackerComponent> cracker)
     {
         cracker = default;

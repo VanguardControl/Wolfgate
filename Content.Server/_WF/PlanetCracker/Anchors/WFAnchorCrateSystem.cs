@@ -12,9 +12,7 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._WF.PlanetCracker.Anchors;
 
-/// <summary>
-/// Pries an anchor crate open on a planet ground layer and leaves one gravity anchor standing where the crate was.
-/// </summary>
+/// <summary>Pries an anchor crate open on a planet ground layer and leaves a gravity anchor in its place.</summary>
 public sealed partial class WFAnchorCrateSystem : EntitySystem
 {
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -24,7 +22,6 @@ public sealed partial class WFAnchorCrateSystem : EntitySystem
     [Dependency] private SharedToolSystem _tool = default!;
     [Dependency] private WFGravityAnchorSystem _anchors = default!;
 
-    /// <summary>Played as the crate comes apart.</summary>
     private static readonly SoundSpecifier UnpackSound = new SoundPathSpecifier("/Audio/Effects/unwrap.ogg");
 
     /// <inheritdoc/>
@@ -79,7 +76,6 @@ public sealed partial class WFAnchorCrateSystem : EntitySystem
         args.Handled = true;
     }
 
-    /// <summary>Examine: what opens it and where it may be opened.</summary>
     private void OnExamined(Entity<WFAnchorCrateComponent> ent, ref ExaminedEvent args)
     {
         args.PushMarkup(Loc.GetString("wf-anchor-crate-examine"));

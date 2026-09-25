@@ -3,11 +3,7 @@ using Robust.Server.Physics;
 
 namespace Content.Server._Mono.ShipRepair;
 
-/// <summary>
-/// A hull that breaks up - a planetary crash, a seam cut by a blast - splits into sections that keep the parent's tile
-/// indices and pose. Each section gets a copy of the parent's repair snapshot, so an SRD can rebuild the ship from
-/// whichever piece the crew is standing on.
-/// </summary>
+/// <summary>Copies the parent's repair snapshot onto each section of a split hull.</summary>
 public sealed partial class ShipRepairSystem
 {
     private void InitializeSplit()

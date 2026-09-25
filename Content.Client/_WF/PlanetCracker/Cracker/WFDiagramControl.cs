@@ -1,17 +1,3 @@
-// COLOUR SPACE, derived from the engine and identical to what WFCrackCircleOverlay already does.
-// The skin stores sRGB hex, and the two draw paths want it in different spaces, so getting this backwards draws a
-// line and its own ring a visibly different shade:
-//   * DrawPrimitives(Vector2 span)        -> RAW skin colour. PadVerticesV2 applies Color.FromSrgb internally.
-//   * DrawCircle(filled: true)            -> RAW skin colour. The filled branch does colorReal = Color.FromSrgb(color)
-//                                            itself, because it goes through DrawPrimitives.
-//   * DrawString                          -> RAW skin colour, so diagram text matches the stock Labels beside it.
-//   * DrawLine, DrawCircle(filled: false),
-//     DrawRect, DrawTextureRect           -> Color.FromSrgb(skinColour), i.e. Geom(). These write straight into
-//                                            Vertex2D.Modulate, which is linear; the unfilled circle branch is
-//                                            DrawLine per segment and converts nothing.
-// Corollary: DrawCircle takes no segment count (divisions = Math.Max(16, radius * 16)), so every ring that wants a
-// fixed vertex budget - the centrifuge face included - uses the cached line-strip DrawPrimitives recipe instead.
-
 using System.Numerics;
 using Content.Client._WF.Stylesheets;
 using Content.Client.Resources;
@@ -25,12 +11,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Shared base of the crack console's four diagrams: skin lookup, the mono face, the colour-space helper and the
-/// cached ring recipe. Control's own constructor injects nothing, so the first line here is
-/// IoCManager.InjectDependencies(this) and every derived control chains to it; without it every [Dependency] below is
-/// null and the first Draw throws.
-/// </summary>
+/// <summary>Base for the crack console diagrams: skin, mono font, colour-space helper and cached rings.</summary>
 public abstract partial class WFDiagramControl : Control
 {
     [Dependency] protected IEntityManager EntityManager = default!;
@@ -44,13 +25,12 @@ public abstract partial class WFDiagramControl : Control
     /// <summary>How far a cached ring's centre or radius may drift before it is rebuilt, in control pixels.</summary>
     private const float RingRebuildTolerance = 0.5f;
 
-    /// <summary>Skin the last <see cref="RefreshSkin"/> read; re-read every Draw so a style switch lands at once.</summary>
+    /// <summary>Skin read by the last <see cref="RefreshSkin"/>.</summary>
     protected WolfgateSkin Skin = WolfgateSkins.Futurist;
 
     /// <summary>Mono face for every readout drawn by hand rather than by a Label.</summary>
     protected Font Font = default!;
 
-    /// <summary>Skin id <see cref="Font"/> was built for, so the face is not re-resolved every frame.</summary>
     private string? _fontSkin;
 
     protected WFDiagramControl()
@@ -58,11 +38,7 @@ public abstract partial class WFDiagramControl : Control
         IoCManager.InjectDependencies(this);
     }
 
-    /// <summary>
-    /// True once IoC has filled every dependency. The fields are declared non-nullable with default!, so this reads
-    /// them through ReferenceEquals rather than a null pattern the compiler would fold away. The headless draw smoke
-    /// asserts on it, because a missing InjectDependencies call compiles clean and only shows up as a Draw-time throw.
-    /// </summary>
+    /// <summary>True once IoC has filled every dependency; the headless draw smoke asserts on it.</summary>
     public bool DependenciesInjected =>
         !ReferenceEquals(EntityManager, null) &&
         !ReferenceEquals(Timing, null) &&
@@ -93,10 +69,7 @@ public abstract partial class WFDiagramControl : Control
         _fontSkin = Skin.Id;
     }
 
-    /// <summary>
-    /// A skin colour for the linear-target calls: DrawLine, an unfilled DrawCircle, DrawRect and DrawTextureRect.
-    /// Everything that routes through DrawPrimitives, and DrawString, take the raw colour instead.
-    /// </summary>
+    /// <summary>Linear skin colour for DrawLine, unfilled DrawCircle, DrawRect and DrawTextureRect; DrawPrimitives and DrawString take it raw.</summary>
     protected static Color Geom(Color colour)
     {
         return Color.FromSrgb(colour);
@@ -118,19 +91,14 @@ public abstract partial class WFDiagramControl : Control
         AddLine(ref bucket, d, a);
     }
 
-    /// <summary>
-    /// One DrawPrimitives call per colour bucket, with the RAW skin colour: the Vector2-span overload converts.
-    /// </summary>
+    /// <summary>One DrawPrimitives call per colour bucket, with the raw skin colour.</summary>
     protected static void Flush(DrawingHandleScreen handle, ref ValueList<Vector2> bucket, Color colour)
     {
         if (bucket.Count > 0)
             handle.DrawPrimitives(DrawPrimitiveTopology.LineList, bucket.Span, colour);
     }
 
-    /// <summary>
-    /// Rebuilds a closed line strip only when the circle actually moved or resized, so a ring costs one
-    /// DrawPrimitives call rather than one GL line per segment per frame.
-    /// </summary>
+    /// <summary>Rebuilds a closed line strip only when the circle moves, resizes or changes segment count.</summary>
     protected static void EnsureRing(ref Ring ring, Vector2 centre, float radius, int segments)
     {
         if (ring.Vertices.Count > 0 &&
@@ -154,14 +122,14 @@ public abstract partial class WFDiagramControl : Control
         }
     }
 
-    /// <summary>Draws a cached ring as one line strip, with the RAW skin colour.</summary>
+    /// <summary>Draws a cached ring as one line strip, with the raw skin colour.</summary>
     protected static void DrawRing(DrawingHandleScreen handle, ref Ring ring, Color colour)
     {
         if (ring.Vertices.Count > 0)
             handle.DrawPrimitives(DrawPrimitiveTopology.LineStrip, ring.Vertices.Span, colour);
     }
 
-    /// <summary>Blink gate on real time, so a paused readout pulls the eye without depending on sim time.</summary>
+    /// <summary>Blink gate on real time rather than sim time.</summary>
     protected bool Blink(float period)
     {
         return Timing.RealTime.TotalSeconds % period > period / 2f;

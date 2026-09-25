@@ -15,28 +15,18 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// Planet drag: a world's surface streams in around whatever is over it, so flight on a planet layer is capped and
-/// heavily damped, and orbit is the tightest of the two. The damping is a loan - the grid's own value comes back the
-/// moment it is off the layer.
-/// </summary>
+/// <summary>Planet drag: flight on a planet layer is capped and damped; damping is restored off it.</summary>
 [TestFixture]
 [TestOf(typeof(WFPlanetDragSystem))]
 public sealed class PlanetDragTest
 {
-    /// <summary>
-    /// Slack allowed over the layer's cap when sampling, in m/s. The clamp runs once a tick, so a sample taken on a
-    /// tick boundary can catch a hull that physics has just accelerated and the sweep has not yet pulled back.
-    /// </summary>
+    /// <summary>Slack allowed over the layer's cap when sampling, in m/s, since the clamp runs once a tick.</summary>
     private const float SpeedSlack = 0.75f;
 
     /// <summary>A shove well past any cap, as a collision or a blast would deliver one.</summary>
     private const float Shove = 40f;
 
-    /// <summary>
-    /// A hull in orbit cannot get above the orbit cap, whether it was shoved there or is flying its thrusters into
-    /// it. The thrusters still fire - they simply never win.
-    /// </summary>
+    /// <summary>A hull in orbit stays under the orbit cap whether shoved or under thrust.</summary>
     [Test]
     public async Task ThrustingHullStaysUnderTheOrbitCap()
     {
@@ -67,7 +57,7 @@ public sealed class PlanetDragTest
 
         await HoldThrust(pair, hull);
 
-        // Sampled all the way through rather than at one moment: the cap has to hold every tick the thrusters fire.
+        // The cap has to hold on every tick the thrusters fire.
         var fastest = 0f;
 
         for (var i = 0; i < 12; i++)
@@ -86,10 +76,7 @@ public sealed class PlanetDragTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The damping is a loan against the layer, not a property of the hull: leaving the layer hands the grid's own
-    /// value back. The move stands in for the orbit hop, which is the same thing to the sweep - a change of map.
-    /// </summary>
+    /// <summary>Leaving the layer restores the grid's own damping.</summary>
     [Test]
     public async Task DampingIsRestoredWhenTheHullLeavesTheLayer()
     {

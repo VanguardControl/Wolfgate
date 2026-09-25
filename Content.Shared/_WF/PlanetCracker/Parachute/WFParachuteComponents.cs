@@ -38,5 +38,6 @@ public sealed partial class WFParachutedComponent : Component
     public SoundSpecifier DeploySound = new SoundPathSpecifier("/Audio/Effects/thudswoosh.ogg");
 }
 
+/// <summary>Do-after for strapping a parachute on.</summary>
 [Serializable, NetSerializable]
 public sealed partial class WFParachuteAttachDoAfterEvent : SimpleDoAfterEvent;

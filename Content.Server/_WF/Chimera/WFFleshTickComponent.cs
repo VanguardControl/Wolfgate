@@ -3,6 +3,7 @@ using Content.Shared.FixedPoint;
 
 namespace Content.Server._WF.Chimera;
 
+/// <summary>A flesh tick that leaps onto a host, latches to a body part and drains it.</summary>
 [RegisterComponent]
 public sealed partial class WFFleshTickComponent : Component
 {

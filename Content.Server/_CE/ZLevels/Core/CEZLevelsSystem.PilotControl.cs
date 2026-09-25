@@ -93,7 +93,7 @@ public sealed partial class CEZLevelsSystem
         _pilotVerticalInput.Clear();
 
         var query = EntityQueryEnumerator<PilotComponent>();
-        while (query.MoveNext(out var pilotUid, out var pilot))
+        while (query.MoveNext(out var pilotUid, out var pilot)) // WOLFGATE(PlanetCracker): the liftoff latch needs the pilot.
         {
             if (pilot.Console is not { } console || TerminatingOrDeleted(console))
                 continue;
@@ -110,19 +110,20 @@ public sealed partial class CEZLevelsSystem
             if (vertical == 0f)
                 continue;
 
-            // WOLFGATE: grounded planet ascent is a latched console action; airborne input keeps CE's normal control.
+            // WOLFGATE(PlanetCracker) START: grounded planet ascent is a latched console action; airborne input keeps CE's normal control.
             if (WfHandleLiftoffPilotInput(pilotUid, console, grid, vertical))
                 continue;
 
-            // WOLFGATE: an orbit layer is left through the console's enter-atmosphere button, never on the keys (F10).
+            // WOLFGATE(PlanetCracker): an orbit layer is left through the console's enter-atmosphere button, never on the keys (F10).
             if (WfRefusesOrbitInput(grid, vertical))
                 continue;
+            // WOLFGATE END
 
             _pilotVerticalInput[grid] =
                 Math.Clamp(_pilotVerticalInput.GetValueOrDefault(grid) + vertical, -1f, 1f);
         }
 
-        WfCollectLiftoffInputs(); // WOLFGATE: a console latch feeds the same CE takeoff spool and flight integrator.
+        WfCollectLiftoffInputs(); // WOLFGATE(PlanetCracker): a console latch feeds the same CE takeoff spool and flight integrator.
     }
 
     /// <summary>
@@ -179,8 +180,8 @@ public sealed partial class CEZLevelsSystem
         if (thrust <= 0f || mass <= 0f)
             return 0f;
 
-        return Math.Clamp(thrust / mass * VerticalThrustScale, 0f, MaxVerticalAccel)
-            * WfManeuveringFactor(grid); // WOLFGATE: only thrust left after hovering can climb.
+        return Math.Clamp(thrust / mass * VerticalThrustScale, 0f, MaxVerticalAccel) // WOLFGATE(PlanetCracker)
+            * WfManeuveringFactor(grid); // WOLFGATE(PlanetCracker): only thrust left after hovering can climb.
     }
 
     private void UpdateTakeoffSpool()
@@ -197,11 +198,14 @@ public sealed partial class CEZLevelsSystem
             if (mapUid == null || !HasComp<CEZMapComponent>(mapUid))
                 continue;
 
-            // WOLFGATE: planetary lift replaces, rather than supplements, the station gravgen gate.
+            // WOLFGATE(PlanetCracker) START: planetary lift replaces, rather than supplements, the station gravgen gate.
+            // No gravgen, dumbass.
+            // if (!TryComp<GravityComponent>(gridUid, out var gravity) || !gravity.Enabled)
             if (WfIsPlanetFlight(gridUid)
                     ? !WfHasVerticalLift(gridUid)
                     : !TryComp<GravityComponent>(gridUid, out var gravity) || !gravity.Enabled)
                 continue;
+            // WOLFGATE END
 
             var down = input < 0f;
 

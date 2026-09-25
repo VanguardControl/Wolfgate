@@ -27,13 +27,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The disconnect protocol end to end: the switch-off veto, the two-anchor pairing window and its automatic re-arm,
-/// the evacuation countdown, the release, the landing and the wreck cleanup.
-/// Everything about a push is read in the same server callback that makes it, for the reason CrackFallTest gives: what
-/// happens on the very next frame is currently a defect rather than a contract.
-/// Every test that lets a chunk land calls SoftenCrash first - the live crash is probabilistic over the rim.
-/// </summary>
+/// <summary>The disconnect protocol: veto, pairing window, evacuation, release, landing and cleanup.</summary>
 [TestFixture]
 [TestOf(typeof(WFCrackerSystem))]
 public sealed class ChunkDisconnectTest
@@ -74,7 +68,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>An anchor lost mid-cut spins the projectors down, and the crew may not disconnect out from under it.</summary>
+    /// <summary>An anchor lost mid-cut spins the projectors down, and the crew may not disconnect then.</summary>
     [Test]
     public async Task TheVetoRefusesASwitchOffDuringAnAbortSpinDown()
     {
@@ -91,7 +85,7 @@ public sealed class ChunkDisconnectTest
 
             Assert.That(comp.State, Is.EqualTo(WFCrackState.Cracked), "Precondition: the disc is cut free.");
 
-            // StartAbort is public exactly so the spin-down can be armed without breaking a pair to do it.
+            // Arms the spin-down without breaking the pair.
             crackers.StartAbort((site.Cracker, comp), WFCrackState.AnchorsPlaced);
 
             Assert.That(comp.PendingAbort, Is.Not.Null, "Precondition: a spin-down is pending.");
@@ -108,7 +102,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>The hull has finished its cut, but this anchor never left the surface, so it is not part of one.</summary>
+    /// <summary>An anchor still on the surface after the cut is not part of it, so it is vetoed.</summary>
     [Test]
     public async Task TheVetoRefusesAnAnchorStillOnTheSurface()
     {
@@ -118,8 +112,7 @@ public sealed class ChunkDisconnectTest
 
         var site = await BuildReadyToCut(pair);
 
-        // The stage is forced and the attempt raised in the same callback: a sweep in between would find no targeted
-        // pair on a Cracked hull and arm a spin-down, which is a different refusal entirely.
+        // One callback: a sweep in between would arm a spin-down and refuse for a different reason.
         await server.WaitAssertion(() =>
         {
             server.ConsoleHost.ExecuteCommand(null, "wfcracker state Cracked");
@@ -176,10 +169,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The guard that keeps GravityAnchorTest.SwitchOffIsGatedAndCancellable green: a hand-spawned anchor belongs to
-    /// nobody, so the veto has to return without cancelling rather than refuse on a null owner.
-    /// </summary>
+    /// <summary>An unowned anchor passes the veto uncancelled rather than refusing on a null owner.</summary>
     [Test]
     public async Task AnUnownedAnchorIsNeverVetoed()
     {
@@ -202,8 +192,7 @@ public sealed class ChunkDisconnectTest
 
             var cracked = RaiseAttempt(entMan, loose);
 
-            // And again from a state where an OWNED anchor would be refused outright, so the guard is not just an
-            // accident of which stage the hull happened to be in.
+            // Again from a stage where an owned anchor would be refused.
             server.ConsoleHost.ExecuteCommand(null, "wfcracker state Surveying");
 
             var surveying = RaiseAttempt(entMan, loose);
@@ -221,10 +210,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// WFGravityAnchorSystem.SwitchOff substitutes the reason RAW into wf-anchor-verb-off-refused, so a refusal that
-    /// handed back a locale id would put the id itself in front of the player.
-    /// </summary>
+    /// <summary>The veto reason is localised text, since SwitchOff substitutes it raw into the refusal popup.</summary>
     [Test]
     public async Task TheVetoReasonIsAlreadyLocalised()
     {
@@ -253,12 +239,7 @@ public sealed class ChunkDisconnectTest
 
     // ------------------------------------------------------------------------------------------- ABORT INTERLOCK
 
-    /// <summary>
-    /// ForceSwitchOff bypasses the cancellable attempt entirely, and `wfcracker disconnect` drives both anchors
-    /// through it, so OnSwitchedOff carries its own copy of the spin-down guard. Without it the hull would enter a
-    /// Disconnecting the sweep could never tick - the ungated PendingAbort arm is first in the chain - and FinishAbort,
-    /// which has no state guard, would overwrite the state 30 s later.
-    /// </summary>
+    /// <summary>A forced switch-off during a spin-down is ignored, since it bypasses the cancellable veto.</summary>
     [Test]
     public async Task AForcedSwitchOffDuringASpinDownIsIgnored()
     {
@@ -300,14 +281,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Entering Disconnecting wipes the abort bookkeeping, and nothing 30 s later drags the hull back to AnchorsPlaced.
-    /// DEVIATION FROM THE PLAN, and it is the one the plan itself anticipates: OnSwitchedOff refuses outright while
-    /// PendingAbort is non-null (pinned above), so there is no production path that reaches EnterDisconnecting with a
-    /// live spin-down and none can be manufactured through the anchors. What is reachable - and is what this asserts -
-    /// is that the entry clears the abort fields unconditionally, with a stale AbortEnd written by hand beforehand so
-    /// the zeroing is observable, and that the whole spin-down duration passes without the state ever being overwritten.
-    /// </summary>
+    /// <summary>Entering Disconnecting clears a stale abort deadline, and no spin-down lands afterwards.</summary>
     [Test]
     public async Task EnteringDisconnectingClearsAPendingAbort()
     {
@@ -328,7 +302,7 @@ public sealed class ChunkDisconnectTest
         {
             var comp = entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker);
 
-            // Short enough that the release lands well inside the spin-down window the assertion waits out.
+            // Short enough that the release lands inside the spin-down window.
             comp.EvacDuration = TimeSpan.FromSeconds(8);
             comp.AbortEnd = server.Timing.CurTime + comp.AbortSpinDown;
             spinDown = comp.AbortSpinDown;
@@ -356,7 +330,7 @@ public sealed class ChunkDisconnectTest
             }
         });
 
-        // Comfortably past the spin-down: if the interlock were missing, FinishAbort would land here.
+        // Past the spin-down, where a missing interlock would let FinishAbort land.
         await server.WaitRunTicks(pair.SecondsToTicks((float)spinDown.TotalSeconds + 5f));
 
         await server.WaitAssertion(() =>
@@ -431,9 +405,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Off has no player-facing exit, so a window that lapses has to put the first anchor back rather than strand it.
-    /// </summary>
+    /// <summary>A lapsed pairing window turns the first anchor back on rather than stranding it.</summary>
     [Test]
     public async Task ALateSecondSwitchOffReArmsTheFirst()
     {
@@ -449,7 +421,7 @@ public sealed class ChunkDisconnectTest
         {
             events.Clear();
 
-            // DisconnectEnd is stamped from this field at the arming edge, so it has to be shortened first.
+            // Shortened before arming, since DisconnectEnd is stamped from it.
             entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker).DisconnectWindow = TimeSpan.FromSeconds(1);
             anchors.ForceSwitchOff((site.Anchors[0], entMan.GetComponent<WFGravityAnchorComponent>(site.Anchors[0])));
         });
@@ -518,10 +490,7 @@ public sealed class ChunkDisconnectTest
 
     // ----------------------------------------------------------------------------------------------- DISCONNECTING
 
-    /// <summary>
-    /// UpdateGrace only ever runs in the Cracking/Cracked sweep branch and only StartAbort, FinishAbort and Fall stop
-    /// the klaxon it armed, so a grace still running as the hull leaves Cracked would loop for the rest of the round.
-    /// </summary>
+    /// <summary>Entering Disconnecting stops the grace countdown, whose klaxon would loop all round.</summary>
     [Test]
     public async Task DisconnectingDisarmsTheGraceCountdown()
     {
@@ -535,8 +504,7 @@ public sealed class ChunkDisconnectTest
         await FreezeCharge(pair, site.Centrifuge);
         await SetCharge(pair, site.Centrifuge, 0.5f);
 
-        // A Cracked hull sweeps at 1 Hz, not the 0.25 s a cutting one does, so SetCharge's own second is not reliably
-        // a whole sweep and the grace edge can still be one pass away.
+        // A Cracked hull sweeps at 1 Hz, so SetCharge's second may not cover a full sweep.
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
 
         await server.WaitAssertion(() =>
@@ -577,7 +545,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>Both grids get their own looping alarm; the hull's is not audible from the chunk and vice versa.</summary>
+    /// <summary>The hull and the chunk each get their own looping alarm.</summary>
     [Test]
     public async Task TheHullAlarmRunsWhileDisconnecting()
     {
@@ -607,12 +575,7 @@ public sealed class ChunkDisconnectTest
 
     // ----------------------------------------------------------------------------------------------------- RELEASE
 
-    /// <summary>
-    /// The push itself, read in the instant it happens.
-    /// DEVIATION FROM THE PLAN: the plan's test line asks for a progress below 0.9 in the same callback as the push.
-    /// DropChunk seeds transit at 0.98 by design - two grids at identical progress fail the transit order-swap guard -
-    /// so the same-callback read is 0.98 and the descent below 0.9 is asserted a second later instead.
-    /// </summary>
+    /// <summary>The evacuation expiry pushes the chunk into transit at 0.98, still descending a second later.</summary>
     [Test]
     public async Task TheEvacuationExpiryDropsTheChunk()
     {
@@ -661,10 +624,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The crash is only the per-tile blasts, and the engine's own central one is suppressed because it is centred on
-    /// the grid's origin - which for a chunk is the GROUND grid's origin, hundreds of tiles from the crater.
-    /// </summary>
+    /// <summary>The drop copies the per-tile crash tunables and suppresses the mis-centred central blast.</summary>
     [Test]
     public async Task DropWritesTheCrashTunables()
     {
@@ -677,8 +637,7 @@ public sealed class ChunkDisconnectTest
 
         await server.WaitPost(() => chunk = FindChunk(entMan));
 
-        // Values nothing else in the tree would produce, so a faller carrying them proves the copy rather than a
-        // coincidence of two identical defaults. The intensity is zero for the reason SoftenCrash exists.
+        // Non-default values, so the faller carrying them proves the copy.
         await server.WaitPost(() =>
         {
             var comp = entMan.GetComponent<WFPlanetChunkComponent>(chunk);
@@ -704,7 +663,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>The hull hands itself back: the lock comes off, the target is dropped and the settle timer runs out.</summary>
+    /// <summary>After release the lock comes off, the target is dropped and the settle timer runs out.</summary>
     [Test]
     public async Task TheHullEntersReleasedThenIdle()
     {
@@ -726,7 +685,7 @@ public sealed class ChunkDisconnectTest
 
             var comp = entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker);
 
-            // ReleaseEnd is stamped from this field at the Released edge, so it has to be shortened first.
+            // Shortened before release, since ReleaseEnd is stamped from it.
             comp.ReleaseSettle = TimeSpan.FromSeconds(1);
             crackers.ReleaseNow((site.Cracker, comp));
         });
@@ -771,10 +730,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// ClearTarget runs before the chunk (and both anchors with it) is deleted, so OnAnchorBroken and OnAnchorDestroyed
-    /// return at their IsTargeted guard and the hull does not spin down a cut that is already over.
-    /// </summary>
+    /// <summary>Deleting the chunk and its anchors after release does not spin down the finished cut.</summary>
     [Test]
     public async Task NoAbortFiresWhenTheChunkAndItsAnchorsAreDeleted()
     {
@@ -826,9 +782,7 @@ public sealed class ChunkDisconnectTest
 
     // ----------------------------------------------------------------------------------------- LANDING AND CLEANUP
 
-    /// <summary>
-    /// The wreck settles back into its own crater: the pose is re-asserted, the body is frozen and both loops stop.
-    /// </summary>
+    /// <summary>The wreck settles into its own crater: pose re-asserted, body frozen and both loops stopped.</summary>
     [Test]
     public async Task TheChunkLandsAndStopsItsDropLoop()
     {
@@ -869,13 +823,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The pre-emption proof. TryExitTransit calls Smimsh for every landing grid and Smimsh calls ReserveTiles per hard
-    /// fixture, which regenerates an EMPTY tile unconditionally - so the chunk's own landing refills the hole it lands
-    /// in, in the same tick, unless the scar re-stamps it.
-    /// The pinned-count half is the guard against the opposite mistake: pinning the whole square landing footprint
-    /// rather than only the disc would freeze the planet against regeneration for the rest of the round.
-    /// </summary>
+    /// <summary>The scar keeps the hole open through the landing and pins only the disc, not the footprint.</summary>
     [Test]
     public async Task TheHoleSurvivesTheLanding()
     {
@@ -951,10 +899,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The wreck goes and the crater stays. Deletion is the unparent-then-delete precedent rather than a bare QueueDel,
-    /// and nothing else would ever remove the grid: ParkChunk gave it CleanupImmuneComponent.
-    /// </summary>
+    /// <summary>The cleanup-immune wreck is deleted after its delay and the crater stays.</summary>
     [Test]
     public async Task TheWreckIsClearedAndTheCraterStays()
     {
@@ -963,10 +908,7 @@ public sealed class ChunkDisconnectTest
         var entMan = server.EntMan;
 
         var site = await BuildDisconnecting(pair);
-        // F8's extraction surge leaves acid-blooded Xenos standing on the rim band. The landing crushes them, their
-        // blood's PryTileReaction deconstructs the tiles under them, and TileSystem.DeconstructTile deletes every
-        // decal on a deconstructed tile: a random 0-2 of the 60 rim decals. That is upstream acid behaviour on top of
-        // F8's random placement, not the F7 cleanup this test pins, so the site threats go before the wreck comes down.
+        // Crushed acid-blooded site threats would pry up rim tiles and their decals, so clear them first.
         await ClearSiteThreats(pair, site);
         var chunk = await ArmLanding(pair, FastCleanup);
 
@@ -1008,11 +950,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The cleanup covers EVERY drop path, not just the release: a chunk that has crashed into a planet is a wreck
-    /// whichever path dropped it, and a per-path flag would leave two of the three littering permanently
-    /// cleanup-immune grids on the ground layer for the rest of the round.
-    /// </summary>
+    /// <summary>A chunk dropped by the hull's own fall is cleaned up too, not only one released.</summary>
     [Test]
     public async Task TheHullFallDropIsAlsoCleanedUp()
     {
@@ -1028,8 +966,7 @@ public sealed class ChunkDisconnectTest
         {
             crackers.Fall((site.Cracker, entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker)));
 
-            // The HULL's own crash is not this feature's and is not softened by SoftenCrash; zeroing it keeps a test
-            // that only cares about the chunk from queueing a few hundred live blasts on the way past.
+            // Zero the hull's own crash too, which SoftenCrash does not cover.
             if (entMan.TryGetComponent(site.Cracker, out CEZGridFallerComponent? faller))
             {
                 faller.CrashIntensityPerTile = 0f;
@@ -1051,7 +988,7 @@ public sealed class ChunkDisconnectTest
 
     // ---------------------------------------------------------------------------------------------------- WATCHDOG
 
-    /// <summary>Design D24, "with the evacuation alarm": an orphaned chunk gets one too, with no countdown in it.</summary>
+    /// <summary>An orphaned chunk dropped by the watchdog also gets the evacuation alarm, with no countdown.</summary>
     [Test]
     public async Task TheWatchdogDropPlaysTheEvacuationAlarm()
     {
@@ -1065,7 +1002,7 @@ public sealed class ChunkDisconnectTest
         await server.WaitPost(() => chunk = FindChunk(entMan));
         await SoftenCrash(pair, chunk);
 
-        // The watchdog's own five second grace, taken off so three seconds really is two sweeps.
+        // Drop the watchdog's five second grace so three seconds covers two sweeps.
         await server.WaitAssertion(() =>
         {
             Assert.That(chunk, Is.Not.EqualTo(EntityUid.Invalid), "Precondition: a disc was cut to abandon.");
@@ -1093,7 +1030,7 @@ public sealed class ChunkDisconnectTest
 
     // ------------------------------------------------------------------------------------------ CONSOLE AND COMMANDS
 
-    /// <summary>Both countdowns are derived from their deadlines, so a console pushed between sweeps still counts down.</summary>
+    /// <summary>Both countdowns derive from their deadlines, so they count down between sweeps.</summary>
     [Test]
     public async Task ConsoleStateCarriesBothCountdowns()
     {
@@ -1143,10 +1080,7 @@ public sealed class ChunkDisconnectTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Both new subcommands, success paths only: TestingServerConsoleHost.WriteError is an Assert.Fail, so no refusal
-    /// path may be driven through a pair at all.
-    /// </summary>
+    /// <summary>The rearm and release subcommands succeed; refusals can't be driven, as errors fail the test.</summary>
     [Test]
     public async Task TheRearmAndReleaseSubcommandsWork()
     {
@@ -1226,11 +1160,7 @@ public sealed class ChunkDisconnectTest
 
     // ------------------------------------------------------------------------------------------------------ LOCALE
 
-    /// <summary>
-    /// Every key the disconnect protocol adds resolves, and resolves with its arguments filled in. The second half is
-    /// what catches an announcement helper that handed DispatchFilteredAnnouncement a key instead of a message, or one
-    /// that dropped its arguments on the way: those ship a literal '{ $seconds }' to the whole grid.
-    /// </summary>
+    /// <summary>Every disconnect locale key resolves with its arguments filled in.</summary>
     [Test]
     public async Task EveryDisconnectLocaleKeyResolves()
     {
@@ -1256,7 +1186,7 @@ public sealed class ChunkDisconnectTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Every key the locale stage added, with a dummy for each variable it takes.</summary>
+    /// <summary>Every disconnect locale key, with a dummy for each variable it takes.</summary>
     private static readonly (string Key, (string, object)[] Args)[] DisconnectKeys =
     {
         ("wf-anchor-off-unwrench", Array.Empty<(string, object)>()),
@@ -1288,8 +1218,7 @@ public sealed class ChunkDisconnectTest
     /// <summary>Raises the broadcast switch-off attempt by hand and hands it back for inspection.</summary>
     private static WFAnchorSwitchOffAttemptEvent RaiseAttempt(IEntityManager entMan, EntityUid anchor)
     {
-        // A pure broadcast raise, which is what WFGravityAnchorSystem.SwitchOff's own RaiseLocalEvent(attempt) is: the
-        // veto takes no directed subscription, so a directed raise at the anchor would never reach it.
+        // Broadcast, as SwitchOff raises it; the veto has no directed subscription.
         var attempt = new WFAnchorSwitchOffAttemptEvent(anchor, anchor);
         entMan.EventBus.RaiseEvent(EventSource.Local, attempt);
         return attempt;
@@ -1301,12 +1230,7 @@ public sealed class ChunkDisconnectTest
         return pair.Server.ResolveDependency<ILocalizationManager>().GetString(key);
     }
 
-    /// <summary>
-    /// Deletes every F8 site threat the anchors put on the ground, so a landing crushes nothing.
-    /// Walks Spawned rather than Live: Live holds only the STAMPED mobs, and a faction entry that is not a mob -
-    /// WeaponTurretXeno out of the shipped Xenos table - is tracked in Spawned alone and would otherwise be left
-    /// standing on the rim band the landing comes down on.
-    /// </summary>
+    /// <summary>Deletes every site threat the anchors spawned, turrets too, so a landing crushes nothing.</summary>
     private static async Task ClearSiteThreats(TestPair pair, CrackerSite site)
     {
         var server = pair.Server;
@@ -1333,11 +1257,7 @@ public sealed class ChunkDisconnectTest
         await server.WaitRunTicks(1);
     }
 
-    /// <summary>
-    /// Finds the extracted chunk, softens its crash and sets a cleanup delay the test can actually wait on.
-    /// SoftenCrash is mandatory for anything that lands; the delay is the difference between a wreck that outlives the
-    /// landing assertions and one that has to be gone before the test ends.
-    /// </summary>
+    /// <summary>Finds the extracted chunk, softens its crash and sets its cleanup delay.</summary>
     private static async Task<EntityUid> ArmLanding(TestPair pair, TimeSpan cleanupDelay)
     {
         var server = pair.Server;
@@ -1372,11 +1292,7 @@ public sealed class ChunkDisconnectTest
         await server.WaitRunTicks(1);
     }
 
-    /// <summary>
-    /// Releases the chunk and reads the push back in the SAME server callback. Nothing about a push may be read a tick
-    /// later: the stale pooled-lift cache lets the hovering branch pop a grid straight back onto the layer it came from
-    /// on the very next frame (CrackFallTest.PushFall).
-    /// </summary>
+    /// <summary>Releases the chunk and reads the push back in the same callback, before a frame can undo it.</summary>
     private static async Task<ReleaseResult> PushRelease(TestPair pair, CrackerSite site, EntityUid chunk)
     {
         var server = pair.Server;
@@ -1438,10 +1354,7 @@ public sealed class ChunkDisconnectTest
         return gone;
     }
 
-    /// <summary>
-    /// Every decal id anywhere near the cut, read through the decal system's own query: DecalGridComponent is
-    /// access-locked to that system and even a dictionary lookup on its index counts as an Execute the analyzer refuses.
-    /// </summary>
+    /// <summary>Every decal id near the cut, via the decal system since DecalGridComponent is access-locked.</summary>
     private static HashSet<uint> GroundDecals(TestPair pair, EntityUid ground, Vector2 centre, float radius)
     {
         var decals = pair.Server.System<DecalSystem>();
@@ -1456,10 +1369,7 @@ public sealed class ChunkDisconnectTest
         return found;
     }
 
-    /// <summary>
-    /// A sample wide enough to cover the chunk's whole square landing footprint, which is what a scar pass that pinned
-    /// everything it walked rather than only the circle's members would have frozen.
-    /// </summary>
+    /// <summary>A sample covering the chunk's whole square landing footprint.</summary>
     private static List<Vector2i> WideIndices(IEntityManager entMan, EntityUid ground, Vector2 centre, float radius)
     {
         return DiscIndices(entMan, ground, centre, radius + 6f);
@@ -1486,7 +1396,7 @@ public sealed class ChunkDisconnectTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>What the release looked like in the instant it happened, before a single tick could react to it.</summary>
+    /// <summary>The release as read in the same tick it happened.</summary>
     private sealed class ReleaseResult
     {
         /// <summary>Whether the chunk's map was a transit map.</summary>

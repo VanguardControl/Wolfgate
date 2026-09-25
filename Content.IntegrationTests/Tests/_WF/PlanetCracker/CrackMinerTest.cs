@@ -29,25 +29,12 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// F6's crack miner end to end: where it may be wrenched down and where it may not, how fast it cuts and what it drops,
-/// how a seam runs out, what a cell buys and what happens when it empties, the two cells the slot has to refuse, and the
-/// sprite faces the whole machine is read through.
-/// Almost everything here runs on a FAKE chunk marker laid on the planet's own ground grid by
-/// <see cref="PlanetCrackerFixture.BuildMinerSite"/>, deliberately, so a break in F5's extraction cannot masquerade as a
-/// break in F6. <see cref="RidesUpAndMinesOnARealChunk"/> is the one test that goes through a real cut.
-/// </summary>
+/// <summary>The crack miner: anchoring gate, rate, output, depletion, cell power and sprite states.</summary>
 [TestFixture]
 [TestOf(typeof(WFCrackMinerSystem))]
 public sealed class CrackMinerTest
 {
-    /// <summary>
-    /// A deep vein whose whitelist is the deck plating every planet cracker fixture lays by hand.
-    /// WFDeepVein's shipped AllowedTiles are { FloorPlanetGrass, FloorPlanetDirt } and WFDeepVeinSystem.OnMapInit
-    /// QueueDels anything sitting off them, so the stock prototype cannot be hand-placed on a fixture site at all.
-    /// Everything else - the ore roll, the yield, the rate, Remaining - is inherited and is still stamped from the
-    /// ground layer's own vein table.
-    /// </summary>
+    /// <summary>A deep vein allowed on deck plating; the stock one deletes itself off planet ground.</summary>
     [TestPrototypes]
     public const string Prototypes = @"
 - type: entity
@@ -59,7 +46,7 @@ public sealed class CrackMinerTest
     allowedTiles: [ FloorSteel ]
 ";
 
-    /// <summary>A self-recharging cell, which the slot has to refuse or the miner becomes an infinite power source.</summary>
+    /// <summary>A self-recharging cell, which the slot must refuse.</summary>
     private const string SelfChargingCell = "PowerCellMicroreactor";
 
     /// <summary>The tile the fixture site's seam sits on.</summary>
@@ -84,21 +71,18 @@ public sealed class CrackMinerTest
         "mining-unshaded",
     };
 
-    /// <summary>Blunt, which StructuralMetallic passes through at a coefficient of one and a flat ten off the top.</summary>
+    /// <summary>Blunt, which StructuralMetallic takes at full rate less a flat ten.</summary>
     private const string Blunt = "Blunt";
 
-    /// <summary>Enough blunt in one blow to clear the Breakage threshold at 200 and stay well under Destruction at 400.</summary>
+    /// <summary>One blow past the Breakage threshold (200) and well under Destruction (400).</summary>
     private const float BreakingDamage = 250f;
 
-    /// <summary>The two ores the move test pins the seams to, so the switch is visible in what lands on the ground.</summary>
+    /// <summary>The two ores the move test pins the seams to, so the switch shows in the output.</summary>
     private const string FirstOre = "OreSteel";
 
     private const string SecondOre = "OreGold";
 
-    /// <summary>
-    /// The chunk half of the gate. A miner standing on a grid that is not a cut chunk - here the planet's own ground,
-    /// with no marker on it - is refused before the wrench's do-after ever starts.
-    /// </summary>
+    /// <summary>A miner on a grid that is not a cut chunk is refused before the wrench do-after starts.</summary>
     [Test]
     public async Task RefusesToAnchorOffAChunk()
     {
@@ -106,7 +90,7 @@ public sealed class CrackMinerTest
         var server = pair.Server;
         var entMan = server.EntMan;
 
-        // Deliberately NOT BuildMinerSite: this site never gets the fake chunk marker.
+        // Not BuildMinerSite, so there is no chunk marker.
         var site = await BuildCrackerInOrbit(pair);
 
         await server.WaitAssertion(() =>
@@ -127,7 +111,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The seam half of the gate: the right grid, the wrong tile.</summary>
+    /// <summary>A miner on a chunk tile with no vein is refused.</summary>
     [Test]
     public async Task RefusesToAnchorWithoutAVein()
     {
@@ -155,7 +139,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>And the case both halves exist for.</summary>
+    /// <summary>A miner on a chunk tile over a vein anchors.</summary>
     [Test]
     public async Task AnchorsOverAVein()
     {
@@ -186,11 +170,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Straight off the prototype, with no site at all. Both overrides are load-bearing and both are one line of YAML:
-    /// without `anchored: false` every spawned miner would arrive already anchored and skip the gate entirely, and
-    /// without `bodyType: Dynamic` the design's "unwrench it and move it to the next seam" would be unreachable.
-    /// </summary>
+    /// <summary>The miner prototype spawns unanchored and Dynamic, so it passes the gate and can be moved.</summary>
     [Test]
     public async Task SpawnsUnanchoredAndDynamic()
     {
@@ -216,10 +196,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The player-reachable move path. PullingSystem refuses a static body outright, so a code-driven SetCoordinates
-    /// move would hide exactly the trap this exists to catch.
-    /// </summary>
+    /// <summary>An unanchored miner can be pulled, which a static body would refuse.</summary>
     [Test]
     public async Task CanBePulledWhenUnanchored()
     {
@@ -251,11 +228,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A minute of cutting at the seam's own rate. Rate is ore per MINUTE, so a 150 seam under a one-second tick has to
-    /// give up 150 units in sixty seconds - the fractional carry is what makes that exact for any rate - and every unit
-    /// that left the seam has to be either on the ground or still in the miner's buffer.
-    /// </summary>
+    /// <summary>A minute of mining yields the seam's per-minute rate, on the ground or in the buffer.</summary>
     [Test]
     public async Task MinesAtTheVeinRate()
     {
@@ -291,7 +264,7 @@ public sealed class CrackMinerTest
 
             using (Assert.EnterMultipleScope())
             {
-                // One batch of slack: sixty seconds of ticks cannot be aligned exactly on the miner's own beat.
+                // One batch of slack, since the ticks don't align with the miner's beat.
                 Assert.That(produced, Is.EqualTo((int)rate).Within(minerComp.BatchSize),
                     $"A minute over a {rate}/min seam produced {produced} units.");
                 Assert.That(before - comp.Remaining, Is.EqualTo(produced),
@@ -304,10 +277,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// What lands on the ground is the seam's own ore, as stacks, in the single-count form. Spawning the "Full" parent
-    /// of an ore entity instead would hand out fifty units apiece, because StackComponent.Count defaults to 50 here.
-    /// </summary>
+    /// <summary>Output is the seam's own ore as single-count stacks, not the fifty-unit "Full" parent.</summary>
     [Test]
     public async Task OutputIsStacksOfTheVeinsOre()
     {
@@ -339,7 +309,7 @@ public sealed class CrackMinerTest
                         $"{entMan.ToPrettyString(uid)} holds more than its stack prototype's maximum.");
                 }
 
-                // Anything else of the miner's making would show up here as a second stackable id on the same grid.
+                // Any other output would show up as a second stackable id.
                 Assert.That(StackIds(entMan, site.Ground), Is.EquivalentTo(new[] { expected }),
                     "The miner dropped something other than the seam's own single-count ore entity.");
             }
@@ -349,10 +319,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Depletion, never deletion: the seam runs down to nothing, gives up exactly what it had left, wears the exhausted
-    /// face and is still there afterwards. Deleting it would dangle a NetEntity id in every surveyed player's set.
-    /// </summary>
+    /// <summary>A seam runs down to exhausted and stays in place rather than being deleted.</summary>
     [Test]
     public async Task ExhaustsAndStops()
     {
@@ -365,8 +332,7 @@ public sealed class CrackMinerTest
         var (site, vein) = await BuildMinerSite(pair);
         var miner = await PlaceMiner(pair, site.Ground, VeinTile);
 
-        // Remaining is a plain [DataField] with no [Access], which is the whole reason it can be pinned here. The
-        // miner's own buffer is zeroed in the same breath so the count below is exactly what this seam gave up.
+        // Zero the miner's buffer too, so the count below is exactly what the seam gave up.
         await server.WaitPost(() =>
         {
             var minerComp = entMan.GetComponent<WFCrackMinerComponent>(miner);
@@ -411,10 +377,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The cell is the whole power story (design D15): no APC, no cable, one charge taken per unit of work. Five joules
-    /// buys five ticks and the output stops on the same tick the cell empties.
-    /// </summary>
+    /// <summary>The cell pays one joule per tick, and output stops on the tick it empties.</summary>
     [Test]
     public async Task StopsWhenTheCellEmpties()
     {
@@ -465,7 +428,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The other half of D15: swap the flat cell for a live one and the machine picks up where it left off.</summary>
+    /// <summary>Swapping the flat cell for a charged one resumes mining.</summary>
     [Test]
     public async Task ResumesOnCellSwap()
     {
@@ -489,7 +452,7 @@ public sealed class CrackMinerTest
                 "Precondition: the miner stalled on a flat cell.");
         });
 
-        // The helper ejects the flat one first; a silent refusal here would read as a miner that simply never restarted.
+        // The helper ejects the flat one first.
         await SeatCell(pair, miner, 1000f);
         await server.WaitRunTicks(pair.SecondsToTicks(5f));
 
@@ -508,11 +471,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The refusal lives on the slot, not on the tick. A PowerCellMicroreactor self-recharges at twelve joules a second
-    /// against the miner's one, so a miner that accepted one could never run out of power and the whole swap loop -
-    /// and every number in the power table - would be dead.
-    /// </summary>
+    /// <summary>The cell slot refuses a self-recharging cell, which would outpace the miner's draw forever.</summary>
     [Test]
     public async Task RefusesASelfRechargingCell()
     {
@@ -553,11 +512,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// AutoGenerateComponentPause repairs the timer across a pause; it does not stop the work. The Update loop's own
-    /// Paused check is what does, and without it a miner on a paused map would burn its cell and drain its seam for the
-    /// whole pause and then stall for exactly as long afterwards.
-    /// </summary>
+    /// <summary>A miner on a paused map neither mines nor draws power, and resumes without a burst.</summary>
     [Test]
     public async Task PausedChunkDoesNotMine()
     {
@@ -569,7 +524,7 @@ public sealed class CrackMinerTest
         var (site, vein) = await BuildMinerSite(pair);
         var miner = await PlaceMiner(pair, site.Ground, VeinTile);
 
-        // Two seconds of running first, so the assertion is about the pause and not about a miner that never started.
+        // Run first, so the miner is known to have started.
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
         await server.WaitPost(() => maps.SetPaused(new Entity<MapComponent?>(site.Ground, null), true));
 
@@ -611,7 +566,7 @@ public sealed class CrackMinerTest
 
         await server.WaitPost(() => maps.SetPaused(new Entity<MapComponent?>(site.Ground, null), false));
 
-        // One Interval plus a tick of slack: the unpause hands NextTick its pause back, it does not owe a burst.
+        // One interval plus slack; the unpause shifts NextTick rather than owing a burst.
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
 
         await server.WaitAssertion(() =>
@@ -622,11 +577,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// D15's move, driven the way a player would: unwrench, drag it a few tiles, wrench it down on the next seam. The
-    /// two seams' ores are pinned apart first, so the switch is visible in what lands on the ground and not only in a
-    /// counter.
-    /// </summary>
+    /// <summary>Unwrenching, pulling and re-anchoring on a second seam switches the ore that is mined.</summary>
     [Test]
     public async Task MovesToAnotherVein()
     {
@@ -641,8 +592,7 @@ public sealed class CrackMinerTest
         var firstOre = string.Empty;
         var secondOre = string.Empty;
 
-        // The roll is deterministic from the seed and the tile index, so two tiles can legitimately land on the same
-        // ore. Ore is a plain stamp MapInit has already finished with, so it is simply written apart here.
+        // Two tiles can roll the same ore, so set them apart.
         await server.WaitAssertion(() =>
         {
             var a = entMan.GetComponent<WFDeepVeinComponent>(first);
@@ -675,7 +625,7 @@ public sealed class CrackMinerTest
         var firstLeft = 0;
         var secondLeft = 0;
 
-        // The unwrench and the reading are one post: a tick between them is a tick the miner is still cutting in.
+        // Same post, so the miner cannot cut in between.
         await server.WaitPost(() =>
         {
             transform.Unanchor(miner, entMan.GetComponent<TransformComponent>(miner));
@@ -716,11 +666,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A chunk pushed into transit is on its way to the ground with sixty seconds of evacuation alarm behind it, and F7
-    /// deletes the grid after the crash. The miner has to stop before any of that rather than spray stacks onto a
-    /// falling disc - and it has to drop the batch it is already holding on the way out.
-    /// </summary>
+    /// <summary>A miner stops when its chunk drops, and drops the batch it was holding.</summary>
     [Test]
     public async Task StopsWhenTheChunkDrops()
     {
@@ -743,7 +689,7 @@ public sealed class CrackMinerTest
             Assert.That(State(pair, miner), Is.EqualTo(WFCrackMinerState.Mining),
                 "Precondition: the miner was cutting before the chunk dropped.");
 
-            // Only the flag: a real DropChunk would take the whole grid into transit and the fixture site with it.
+            // Only the flag; a real drop would take the fixture's ground with it.
             entMan.GetComponent<WFPlanetChunkComponent>(site.Ground).Dropped = true;
 
             remaining = comp.Remaining;
@@ -771,10 +717,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Every face the sprite table names, driven through the machine rather than written onto it. Broken is reached the
-    /// only way a player can reach it, through the Destructible Breakage threshold mining.yml spells out at 200.
-    /// </summary>
+    /// <summary>Every visual state is reached by driving the machine, Broken through its damage threshold.</summary>
     [Test]
     public async Task VisualStateKeys()
     {
@@ -827,14 +770,11 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The RSI half. A state name the generated meta.json does not carry only shows up as a missing sprite at runtime,
-    /// and the GenericVisualizer table names four of these as bare strings that nothing else walks.
-    /// </summary>
+    /// <summary>Every sprite state the miner names exists in its RSI.</summary>
     [Test]
     public async Task EveryMinerStateHasAnRsiState()
     {
-        // Connected, because the sprite layers only exist on the client half.
+        // Sprite layers only exist on the client.
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -873,10 +813,7 @@ public sealed class CrackMinerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The one test that goes through F5. A seam laid inside the cut circle has to ride up still anchored and still on
-    /// the disc, and a miner wrenched onto its chunk tile has to find it there and cut it.
-    /// </summary>
+    /// <summary>A seam inside the cut rides up anchored on the real chunk, and a miner there mines it.</summary>
     [Test]
     public async Task RidesUpAndMinesOnARealChunk()
     {
@@ -884,8 +821,7 @@ public sealed class CrackMinerTest
         var server = pair.Server;
         var entMan = server.EntMan;
 
-        // The pair below goes down at x=0 and x=16, which is a circle of radius 10 about (8.5, 0.5); this tile is its
-        // centre, and DiscIndices is asserted against below rather than trusted.
+        // The centre tile of the radius-10 circle about (8.5, 0.5).
         var tile = new Vector2i(8, 0);
 
         var site = await BuildCrackerInOrbit(pair);
@@ -1033,11 +969,7 @@ public sealed class CrackMinerTest
         return new EntityCoordinates(grid, new Vector2(tile.X + 0.5f, tile.Y + 0.5f));
     }
 
-    /// <summary>
-    /// The state the miner's sprite is actually driven from, read off the appearance rather than off the component:
-    /// SetState is the only writer of either, so this pins the appearance push at the same time.
-    /// Must be called from inside a server thread callback.
-    /// </summary>
+    /// <summary>The miner's state as read off its appearance. Server thread only.</summary>
     private static WFCrackMinerState State(TestPair pair, EntityUid miner)
     {
         var appearance = pair.Server.EntMan.System<SharedAppearanceSystem>();
@@ -1056,7 +988,7 @@ public sealed class CrackMinerTest
             : 0f;
     }
 
-    /// <summary>What a seam's rolled ore actually spawns as; always the single-count form. Server thread only.</summary>
+    /// <summary>The single-count entity a seam's rolled ore spawns as. Server thread only.</summary>
     private static string OreEntity(TestPair pair, WFDeepVeinComponent vein)
     {
         var ore = pair.Server.ResolveDependency<IPrototypeManager>().Index<OrePrototype>(vein.Ore);
@@ -1073,7 +1005,7 @@ public sealed class CrackMinerTest
             .ToList();
     }
 
-    /// <summary>Every distinct stackable prototype id lying on a grid, which is what a wrong spawn would show up in.</summary>
+    /// <summary>Every distinct stackable prototype id lying on a grid.</summary>
     private static HashSet<string> StackIds(IEntityManager entMan, EntityUid grid)
     {
         var found = new HashSet<string>();

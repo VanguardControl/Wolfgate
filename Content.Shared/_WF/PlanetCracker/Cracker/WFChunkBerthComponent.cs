@@ -8,7 +8,7 @@ namespace Content.Shared._WF.PlanetCracker.Cracker;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFChunkBerthComponent : Component
 {
-    /// <summary>Berth rectangle in tiles; design section 5 wants at least 48x48 on the real hull.</summary>
+    /// <summary>Berth rectangle in tiles; at least 48x48 on a real hull.</summary>
     [DataField, AutoNetworkedField]
     public Vector2i Size = new(48, 48);
 

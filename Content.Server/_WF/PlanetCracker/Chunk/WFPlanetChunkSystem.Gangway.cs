@@ -6,25 +6,18 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Chunk;
 
-/// <summary>
-/// The gangway: a one-tile lattice catwalk the rig lays on the hull from the berth marker out to the hanging chunk,
-/// and lifts again when the chunk drops. Orbit stays deadly off the catwalk; this is the one way across.
-/// </summary>
+/// <summary>The gangway: a lattice catwalk from the berth marker to the hanging chunk, lifted on the drop.</summary>
 public sealed partial class WFPlanetChunkSystem
 {
-    /// <summary>The catwalk tile; the grate over space the game already ships.</summary>
+    /// <summary>The catwalk tile.</summary>
     public const string GangwayTile = "Lattice";
 
     /// <summary>Furthest the catwalk is walked out from the marker before the disc is declared unreachable.</summary>
     private const float GangwayMaxLength = 96f;
 
-    /// <summary>Tile writes for one gangway, pooled.</summary>
     private readonly List<(Vector2i Index, Tile Tile)> _gangwayTiles = new();
 
-    /// <summary>
-    /// Lays the catwalk along the marker's facing: from the marker's own tile, over any tile the hull does not already
-    /// have, to one tile inside the disc. Refused whole if another grid sits on the line; the hull keeps its shape.
-    /// </summary>
+    /// <summary>Lays the catwalk from the marker into the disc; refused whole if another grid is in the way.</summary>
     private void LayGangway(
         Entity<WFPlanetCrackerComponent> cracker,
         Entity<WFPlanetChunkComponent> chunk,

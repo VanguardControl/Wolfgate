@@ -13,12 +13,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// The planet approach: over the travel leg of a hop into orbit the hyperspace tunnel is painted out and the world
-/// itself is drawn in its place, starting where and as large as it stood in the sector sky and swelling until it is
-/// the whole sky; a hop out of orbit runs the same film backwards. The body is the sector's own shader, built from
-/// the same prototype, so the planet that fills the screen is the planet the pilot was just looking at.
-/// </summary>
+/// <summary>Replaces the FTL tunnel on an orbit hop with the sector's planet swelling to fill the sky, reversed on leaving.</summary>
 public sealed class WFPlanetApproachOverlay : Overlay
 {
     private readonly IEntityManager _entMan;
@@ -27,7 +22,7 @@ public sealed class WFPlanetApproachOverlay : Overlay
     private readonly SharedStarSystemMapSystem _starSystems;
     private readonly PlanetOverlay _planets;
 
-    /// <summary>The sector parallax factor the planet shaders run under; it is what set the body's place in the sky.</summary>
+    /// <summary>The sector parallax factor the planet shaders run under.</summary>
     private const float SectorParallax = 0.1f;
 
     /// <summary>How many viewport diagonals the body's radius reaches at full approach, so its limb is well off-screen.</summary>
@@ -114,6 +109,7 @@ public sealed class WFPlanetApproachOverlay : Overlay
         return true;
     }
 
+    /// <summary>Builds the sector's shader for the nearest planet, once per destination.</summary>
     private bool EnsureShader(WFPlanetApproachComponent approach)
     {
         if (_built == (approach.System, approach.PlanetPosition))

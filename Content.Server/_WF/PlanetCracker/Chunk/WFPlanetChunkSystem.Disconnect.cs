@@ -10,19 +10,10 @@ using Robust.Shared.Player;
 
 namespace Content.Server._WF.PlanetCracker.Chunk;
 
-/// <summary>
-/// The chunk's half of the disconnect protocol: the evacuation alarm, the landing and the wreck cleanup.
-/// Both subscriptions are BROADCAST and by ref. WFCrackStateChangedEvent is already subscribed broadcast at
-/// WFCrackConsoleSystem.cs:57 and GravityAnchorTest.cs:1205, and WFCrackerReleasingEvent is the hull's release hook -
-/// neither is a directed (component, event) pair, so neither can collide with the one-owner rule.
-/// The handoff is events rather than a dependency because WFPlanetChunkSystem already depends on WFCrackerSystem.
-/// </summary>
+/// <summary>The chunk's half of the disconnect protocol: evacuation alarm, landing and wreck cleanup.</summary>
 public sealed partial class WFPlanetChunkSystem
 {
-    /// <summary>
-    /// How often the chunk's alarm loop is stopped and replayed. PlayGlobal freezes its recipient set at play time, so
-    /// a latecomer boarding mid-countdown would otherwise hear nothing at all.
-    /// </summary>
+    /// <summary>Alarm loop replay interval; PlayGlobal freezes its recipients at play time.</summary>
     private static readonly TimeSpan EvacReissue = TimeSpan.FromSeconds(15);
 
     [Dependency] private ChatSystem _chat = default!;
@@ -30,20 +21,12 @@ public sealed partial class WFPlanetChunkSystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WFCrackScarSystem _scars = default!;
 
-    /// <summary>
-    /// Landed chunks the sweep decided to clean up, collected first because UnparentPlayersFromGrid deletes with a
-    /// synchronous Del (LinkedLifecycleGridSystem.cs:195), which would invalidate the query enumerator inline.
-    /// </summary>
+    /// <summary>Landed chunks to clean up after the sweep, since the cleanup deletes synchronously.</summary>
     private readonly List<Entity<WFPlanetChunkComponent>> _cleanupBuffer = new();
 
-    /// <summary>
-    /// How many pre-drop release beats each evacuating chunk has already fired, so a re-entered sweep cannot repeat one.
-    /// Kept server-side rather than on the component: the chunk's wording differs from the hull's and the hull's own
-    /// EvacBeat counter belongs to WFCrackerSystem's sweep.
-    /// </summary>
+    /// <summary>Pre-drop beats each evacuating chunk has fired, so a re-entered sweep can't repeat one.</summary>
     private readonly Dictionary<EntityUid, byte> _evacBeats = new();
 
-    /// <summary>Exactly two subscriptions, both broadcast and both by ref; no directed pair is added.</summary>
     private void InitializeDisconnect()
     {
         SubscribeLocalEvent<WFCrackStateChangedEvent>(OnCrackStateChanged);
@@ -68,11 +51,7 @@ public sealed partial class WFPlanetChunkSystem
         if (args.Old != WFCrackState.Disconnecting)
             return;
 
-        // The escape branch, and the ONLY case it covers: an admin `wfcracker state` pulling the hull out of
-        // Disconnecting before any drop happened. It cannot use TryGetChunk, because DropChunk nulls the hull's
-        // back-link at WFPlanetChunkSystem.cs:229-236 BEFORE raising the WFChunkDroppedEvent that drives
-        // Disconnecting -> Released, so on the normal path the back-link is already gone by now. The normal stop is
-        // OnLanded.
+        // An admin pulled the hull out of Disconnecting pre-drop; matched by owner, as DropChunk nulls the link.
         var query = EntityQueryEnumerator<WFPlanetChunkComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -89,7 +68,7 @@ public sealed partial class WFPlanetChunkSystem
         }
     }
 
-    /// <summary>The evacuation ran out, so the chunk goes. Exactly the shape of OnCrackerFalling.</summary>
+    /// <summary>Drops the chunk once the evacuation runs out.</summary>
     private void OnCrackerReleasing(ref WFCrackerReleasingEvent args)
     {
         if (!TryComp<WFPlanetCrackerComponent>(args.Cracker, out var cracker))
@@ -101,10 +80,7 @@ public sealed partial class WFPlanetChunkSystem
         DropChunk(chunk);
     }
 
-    /// <summary>
-    /// Starts the chunk's own alarm, announcement and popup. The announcement key is a parameter because the two
-    /// callers say different things: the disconnect edge counts down, the watchdog reports a chunk with no cracker.
-    /// </summary>
+    /// <summary>Starts the chunk's own alarm, announcement and popup.</summary>
     public void StartEvacuation(Entity<WFPlanetChunkComponent> ent, string announceKey, int seconds)
     {
         if (ent.Comp.Evacuating)
@@ -134,9 +110,7 @@ public sealed partial class WFPlanetChunkSystem
         if (!ent.Comp.Evacuating)
             return;
 
-        // The 60 s pre-drop window is the one the re-issue was written for: without this the alarm would play once on
-        // the Disconnecting edge and not again until the chunk was already falling, which is where UpdateDropped picks
-        // the cadence back up.
+        // Without this the alarm would play once and not again until the chunk falls.
         ReissueAlarm(ent);
 
         if (ent.Comp.Cracker is not { } net
@@ -167,17 +141,10 @@ public sealed partial class WFPlanetChunkSystem
             _evacBeats[ent.Owner] = fired;
     }
 
-    /// <summary>
-    /// The sweep branch for a chunk that has already been pushed into transit: re-issue the alarm, watch for the
-    /// landing and arm the cleanup. It runs for EVERY dropped chunk, the F4 hull-fall drop and the D24 watchdog drop
-    /// included: a chunk that has crashed into a planet is a wreck whichever path dropped it, and a per-path flag would
-    /// leave two of the three littering permanently cleanup-immune grids on the ground layer for the rest of the round.
-    /// </summary>
+    /// <summary>Sweep branch for any dropped chunk: re-issue the alarm, detect the landing, arm the cleanup.</summary>
     private void UpdateDropped(Entity<WFPlanetChunkComponent> ent)
     {
-        // Defensive handling for an inconsistent/admin-edited dropped state: without transit admission this is not
-        // evidence of a landing and must never trigger cleanup in the berth. Normal failed attempts now leave
-        // Dropped false and retain ownership so release can retry.
+        // Without transit admission this is no landing, so never clean up in the berth.
         if (!ent.Comp.EnteredTransit)
         {
             if (ent.Comp.Evacuating || ent.Comp.DropStream is not null)
@@ -193,8 +160,7 @@ public sealed partial class WFPlanetChunkSystem
 
         if (!ent.Comp.Landed)
         {
-            // The UpdateFall idiom (WFCrackerSystem.Crack.cs:473-482): the CE touchdown raises no event this system
-            // subscribes, but the transit map is deleted the moment the convoy lands.
+            // CE touchdown raises no event here, but the transit map is deleted the moment the convoy lands.
             if (Transform(ent.Owner).MapUid is { } map && HasComp<CEZTransitMapComponent>(map))
                 return;
 
@@ -209,19 +175,17 @@ public sealed partial class WFPlanetChunkSystem
     /// <summary>The chunk is down: cut both loops, re-assert the pose, freeze the wreck and re-open the crater.</summary>
     private void OnLanded(Entity<WFPlanetChunkComponent> ent)
     {
-        // Nothing else stops the falling-rock loop: the sweep used to skip a dropped chunk forever.
+        // Nothing else stops the falling-rock loop.
         ent.Comp.DropStream = _audio.Stop(ent.Comp.DropStream);
 
-        // The only reliable stop for the chunk alarm on the normal path; the state-change escape branch is already
-        // blind by now because the hull's back-link was nulled inside DropChunk.
+        // The only stop for the chunk alarm on the normal path.
         StopEvacuation(ent);
 
         ent.Comp.Landed = true;
         ent.Comp.LandedAt = _timing.CurTime;
         Dirty(ent);
 
-        // The chunk is a DYNAMIC body for the whole fall - TryEnterTransit's own Enable is un-forced and nothing
-        // re-disables it - so ground friction and wall collision would otherwise slide it off its own crater.
+        // The chunk is dynamic through the fall, so it may have slid off its crater.
         _transform.SetWorldPositionRotation(ent.Owner, ent.Comp.DropWorldPos, ent.Comp.DropWorldRot);
 
         // Static also stops the CE fall sweep ever looking at the wreck again: it skips static bodies.
@@ -244,18 +208,14 @@ public sealed partial class WFPlanetChunkSystem
         RaiseLocalEvent(ref ev);
     }
 
-    /// <summary>
-    /// Removes the wreck once the crash explosions have had time to drain. Called ONLY from the post-enumeration
-    /// cleanup drain: UnparentPlayersFromGrid deletes synchronously.
-    /// A bare QueueDel is not an option - it recursively deletes every rider with no body and no admin log - and
-    /// nothing else will ever remove the grid, because ParkChunk gave it CleanupImmuneComponent (Extraction.cs:433).
-    /// </summary>
+    /// <summary>Removes the wreck after the blasts drain; call after the sweep, as it deletes synchronously.</summary>
     private void Cleanup(Entity<WFPlanetChunkComponent> ent)
     {
         StopEvacuation(ent);
 
         var ground = ent.Comp.GroundMap is { } net && TryGetEntity(net, out var uid) ? uid : null;
 
+        // Not a bare QueueDel, which would delete every rider with it.
         _lifecycle.UnparentPlayersFromGrid(ent.Owner, deleteGrid: true);
 
         // Driven off the ground-grid scar, so it still works now the chunk component is gone.
@@ -263,10 +223,7 @@ public sealed partial class WFPlanetChunkSystem
             _scars.ReStamp(groundMap);
     }
 
-    /// <summary>
-    /// Replays the alarm loop once its cadence is up, for both halves of the evacuation: PlayGlobal freezes its
-    /// recipient set at play time, so anyone boarding between two issues would otherwise hear nothing at all.
-    /// </summary>
+    /// <summary>Replays the alarm loop once its cadence is up.</summary>
     private void ReissueAlarm(Entity<WFPlanetChunkComponent> ent)
     {
         if (!ent.Comp.Evacuating || _timing.CurTime < ent.Comp.EvacNextLoop)
@@ -287,10 +244,7 @@ public sealed partial class WFPlanetChunkSystem
             .PlayGlobal(ent.Comp.EvacSound, filter, true, AudioParams.Default.WithLoop(true).WithVolume(-4f))?.Entity;
     }
 
-    /// <summary>
-    /// One announcement to everyone aboard one grid. It takes arguments because DispatchFilteredAnnouncement wants a
-    /// PRE-FORMATTED string (ChatSystem.cs:388-395) and most of these keys carry a { $seconds } variable.
-    /// </summary>
+    /// <summary>One announcement to everyone aboard one grid.</summary>
     private void Announce(EntityUid grid, string key, params (string, object)[] args)
     {
         var filter = Filter.Empty().AddInGrid(grid, EntityManager);
@@ -303,10 +257,7 @@ public sealed partial class WFPlanetChunkSystem
             colorOverride: Color.Red);
     }
 
-    /// <summary>
-    /// One popup per person aboard one grid, anchored on that person's OWN entity: the client silently drops a popup
-    /// whose anchor is outside its PVS.
-    /// </summary>
+    /// <summary>One popup per person aboard a grid, anchored on each person so none is dropped outside PVS.</summary>
     private void PopupOnGrid(EntityUid grid, string key, params (string, object)[] args)
     {
         var message = Loc.GetString(key, args);

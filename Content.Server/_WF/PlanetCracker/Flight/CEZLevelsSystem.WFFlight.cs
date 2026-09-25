@@ -13,12 +13,7 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._CE.ZLevels.Core;
 
-/// <summary>
-/// Atmospheric flight (F10): what holds a hull up over a planet, how fast it comes down when nothing does, and what a
-/// touchdown at the bottom of that costs. CE's own lift is a gravity generator; on a planet layer it is
-/// thrusters (ordinary engines at reduced efficiency), so every hook here is reached from a marked line in the CE gravity, pilot and wall
-/// passes rather than duplicating them.
-/// </summary>
+/// <summary>Atmospheric flight hooks: thruster lift over a planet, sinking without it, and touchdown costs.</summary>
 public sealed partial class CEZLevelsSystem
 {
     /// <summary>Crashed hulls stop paying hover power while grounded; an ascent command restores full demand.</summary>
@@ -30,38 +25,25 @@ public sealed partial class CEZLevelsSystem
     [Dependency] private WFFlightSystem _wfFlight = default!;
     [Dependency] private ThrusterSystem _wfThrusters = default!;
 
-    /// <summary>
-    /// Lift ratio at or above which a hull flies exactly as CE flies one today. Below it the hull is in lift lost.
-    /// </summary>
+    /// <summary>Lift ratio at or above which a hull flies normally; below it the hull is lift-lost.</summary>
     public const float WFFullLiftRatio = 1f;
 
-    /// <summary>
-    /// Lift ratio under which partial lift stops helping at all and the hull falls at CE's full grid gravity. Between
-    /// this and <see cref="WFFullLiftRatio"/> the downward acceleration is scaled by (1 - ratio), so a hull just shy
-    /// of flying sinks gently and one at half lift comes down at half speed.
-    /// </summary>
+    /// <summary>Lift ratio below which partial lift stops scaling the fall by (1 - ratio).</summary>
     public const float WFPartialLiftRatio = 0.5f;
 
-    /// <summary>
-    /// Fraction of the speed a free fall actually arrives at, at or above which a touchdown is a crash rather than a
-    /// hard landing. Measured against <see cref="WfGetFreeFallSpeed(CEZGridFallerComponent)"/> and never against CE's
-    /// 1.2 terminal velocity: a plummet is stopped and restarted at every layer boundary, so it only ever reaches
-    /// about 0.47 levels/s and the old fixed 0.8 threshold made every free fall in the game a hard landing. A free
-    /// fall lands at the reference itself; the partial-lift band lands at roughly sqrt(1 - r) of it, 0.74 at the 0.5
-    /// floor, so the fraction sits above that and the whole band survives its own landing.
-    /// </summary>
+    /// <summary>Fraction of the free-fall landing speed at or above which a touchdown is a crash.</summary>
+    // Above the partial-lift band's landing speed (about 0.74 at 0.5 lift), so that band lands hard instead.
     public const float WFHardLandingFraction = 0.8f;
 
-    /// <summary>Step the reference free fall is integrated at; CE's own fall runs on the server tick.</summary>
+    // Matches the server tick CE's own fall runs on.
     private const float WFFreeFallStep = 1f / 60f;
 
-    /// <summary>Longest reference fall that is integrated, in seconds, so an unreachable gap cannot hang the loop.</summary>
+    // Seconds; stops an unreachable gap from hanging the integration loop.
     private const float WFFreeFallCeiling = 600f;
 
-    /// <summary>How often a pilot leaning on the descend key out of orbit is told where the button is.</summary>
     private static readonly TimeSpan WFOrbitRefusalCooldown = TimeSpan.FromSeconds(4);
 
-    /// <summary>Speed (m/s) a skidding hull loses for each anchored obstacle it ploughs through.</summary>
+    // m/s lost per anchored obstacle ploughed through.
     private const float WFPloughSpeedCost = 1.5f;
 
     private readonly Dictionary<EntityUid, TimeSpan> _wfNextOrbitRefusal = new();
@@ -70,11 +52,7 @@ public sealed partial class CEZLevelsSystem
 
     private readonly Dictionary<(float Gravity, float Terminal), float> _wfFreeFallSpeeds = new();
 
-    /// <summary>
-    /// Surface gravity of the planet a grid is flying over, or false when it is not over one at all. A transit map
-    /// carries no layer marker of its own, so the gap answers with the layer under it - which is the layer the hull
-    /// is falling towards, and the one whose gravity is pulling on it.
-    /// </summary>
+    /// <summary>Surface gravity of the planet a grid is over; a transit gap uses the layer below it.</summary>
     public bool WfTryGetPlanetGravity(EntityUid grid, out float gravity)
     {
         gravity = 1f;
@@ -100,10 +78,10 @@ public sealed partial class CEZLevelsSystem
         return true;
     }
 
-    /// <summary>True when this grid is flying over a planet, where the landing-thruster rule replaces the gravgen one.</summary>
+    /// <summary>True when this grid is flying over a planet, where thrusters replace the gravgen as lift.</summary>
     public bool WfIsPlanetFlight(EntityUid grid) => WfTryGetPlanetGravity(grid, out _);
 
-    /// <summary>Lift one grid's own landing thrusters are producing right now, before the planet's gravity divides it.</summary>
+    /// <summary>Current lift from one grid's landing thrusters, before dividing by planet gravity.</summary>
     public float WfGetLandingThrust(EntityUid grid)
     {
         var lift = 0f;
@@ -124,15 +102,13 @@ public sealed partial class CEZLevelsSystem
         return ratio <= 1f ? 0f : Math.Clamp(1f - 1f / ratio, 0f, 1f);
     }
 
+    /// <summary>Hover power demand for the grid's rigid set, and whether it is short of power.</summary>
     public void WfGetAtmospherePower(EntityUid grid, out float demand, out bool deficit)
     {
         _wfThrusters.WfAtmospherePower(CollectRigidSet(grid), out demand, out deficit);
     }
 
-    /// <summary>
-    /// Pooled lift over pooled weight for the whole rigid body a grid belongs to, on the planet it is over. One is
-    /// level flight; the console colours the readout off it and the sink scales off it.
-    /// </summary>
+    /// <summary>Pooled lift over pooled weight for a grid's whole rigid set; one is level flight.</summary>
     /// <param name="grid">Any member of the rigid body.</param>
     /// <param name="ratio">Lift over weight, or positive infinity for a weightless or force-anchored set.</param>
     public bool WfTryGetLiftRatio(EntityUid grid, out float ratio)
@@ -165,20 +141,13 @@ public sealed partial class CEZLevelsSystem
         return true;
     }
 
-    /// <summary>
-    /// True when a gravity generator sits on a hull that is flying over a planet, where it is no lift at all. A
-    /// gravgen still carries a CE station's whole z-network; this only takes it away on a WF planet network, which is
-    /// what makes the cracker's centrifuge stop counting as lift the moment the hull is over a world.
-    /// </summary>
+    /// <summary>True when a gravgen's hull is over a planet, where the gravgen gives no lift.</summary>
     private bool WfGravgenIsOnPlanet(EntityUid gridUid)
     {
         return _mapGridQuery.HasComp(gridUid) && WfIsPlanetFlight(gridUid);
     }
 
-    /// <summary>
-    /// Adds every hull's landing-thruster lift to the sweep's pooled capacity, already divided by the planet's
-    /// gravity so CE's own "pooled mass fits inside pooled capacity" test is exactly "lift ratio at least one".
-    /// </summary>
+    /// <summary>Adds landing-thruster lift, divided by planet gravity, to CE's pooled capacity.</summary>
     private void WfAddLandingThrusterCapacity(Dictionary<EntityUid, float> capacity)
     {
         var query = EntityQueryEnumerator<ThrusterComponent, TransformComponent>();
@@ -192,17 +161,13 @@ public sealed partial class CEZLevelsSystem
         }
     }
 
-    /// <summary>
-    /// The downward acceleration a hull with no pooled lift actually gets, and the one place lift lost begins. Off a
-    /// planet nothing changes. Over one, partial lift scales the pull by (1 - ratio) and anything short of full lift
-    /// is a lift-lost hull, whether the pilot chose the descent or a thruster just went out.
-    /// </summary>
+    /// <summary>Sink acceleration over a planet, scaled by partial lift; marks the set lift-lost.</summary>
     private float WfSinkGravity(EntityUid grid, HashSet<EntityUid> set, float gravity)
     {
         if (!WfTryGetLiftRatio(grid, out var ratio))
             return gravity;
 
-        // A set falls as one, so the whole convoy carries the state its lead grid measured.
+        // A set falls as one, so every member takes the lead grid's state.
         foreach (var member in set)
         {
             _wfFlight.EnterLiftLost(member, ratio);
@@ -214,20 +179,14 @@ public sealed partial class CEZLevelsSystem
         return ratio >= WFPartialLiftRatio ? gravity * (1f - ratio) : gravity;
     }
 
-    /// <summary>
-    /// True when a pilot's vertical input on an orbit layer must be dropped before anything reads it. The atmosphere
-    /// is entered from the shuttle console's own button, which is the only place the lift warning and its confirm
-    /// live, so the descend key is refused. The climb key is refused with it: nothing is above orbit, and CE's climb
-    /// falls back to the gap BELOW when it finds no gap above (TryEnterTransit's goDown), so from the top layer an
-    /// ascend input was a descent with no warning, no confirm and no popup - the one way a hull with lift still left
-    /// orbit on the keys. Refused where the input is collected, so no consumer of it can be the next way around.
-    /// </summary>
+    /// <summary>True when vertical input on an orbit layer is dropped; descent uses the console button.</summary>
+    // Climb is refused too: CE's climb falls back to the gap below when there is none above.
     private bool WfRefusesOrbitInput(EntityUid grid, float input)
     {
         if (input == 0f || Transform(grid).MapUid is not { } mapUid || !WfIsOrbitLayer(mapUid))
             return false;
 
-        // Only a descent has a button to be pointed at; a climb out of orbit is nowhere to go at all.
+        // Only a descent has a button to point the pilot at.
         if (input < 0f && _timing.CurTime >= _wfNextOrbitRefusal.GetValueOrDefault(grid))
         {
             _wfNextOrbitRefusal[grid] = _timing.CurTime + WFOrbitRefusalCooldown;
@@ -243,11 +202,7 @@ public sealed partial class CEZLevelsSystem
         return true;
     }
 
-    /// <summary>
-    /// True when a hull has enough landing-thruster lift to fly itself around a planet. CE gates vertical flight on
-    /// the grid's GravityComponent, which knows only about gravity generators and so reads false on every hull whose
-    /// lift is thrusters.
-    /// </summary>
+    /// <summary>True when landing thrusters give full lift; CE's gravity check only knows gravgens.</summary>
     private bool WfHasVerticalLift(EntityUid grid)
     {
         return WfTryGetLiftRatio(grid, out var ratio) && ratio >= WFFullLiftRatio;
@@ -263,12 +218,7 @@ public sealed partial class CEZLevelsSystem
                && HasGroundUnderFootprint((grid, gridComp), map);
     }
 
-    /// <summary>
-    /// The speed (levels/second) a hull that fell one whole gap under its own weight actually touches down at. CE
-    /// zeroes the fall speed at every layer boundary, so this - not GridTerminalVelocity, which the taper only ever
-    /// approaches - is the fastest a plummet ever arrives, and it is what both the hard-landing test and the fall's
-    /// own rumble are scaled against. Cached: it is the same answer for every hull over a given world.
-    /// </summary>
+    /// <summary>Touchdown speed (levels/s) after falling one full gap; CE resets fall speed at each layer.</summary>
     public float WfGetFreeFallSpeed(CEZGridFallerComponent faller)
     {
         return WfGetFreeFallSpeed(faller.GridGravity, faller.GridTerminalVelocity);
@@ -285,7 +235,7 @@ public sealed partial class CEZLevelsSystem
         if (_wfFreeFallSpeeds.TryGetValue(key, out var cached))
             return cached;
 
-        // The integrator the fall itself uses, over the one level a transit gap is worth.
+        // Same integrator as the fall itself, over one level.
         var velocity = 0f;
         var fallen = 0f;
 
@@ -299,12 +249,7 @@ public sealed partial class CEZLevelsSystem
         return velocity;
     }
 
-    /// <summary>
-    /// Whether a touchdown is a hard landing rather than a crash, and what a hard landing costs. A lift-lost hull that
-    /// arrived under <see cref="WFHardLandingFraction"/> of the speed a free fall would have brought it in at keeps
-    /// its hull: it pays in tiles, scaled by how fast it did arrive, and grinds the rest of its speed off.
-    /// The chunk drop never reaches this - a dropped chunk is nobody's lift-lost hull - so F7 keeps its own crash.
-    /// </summary>
+    /// <summary>Hard-lands a lift-lost hull arriving under the crash threshold instead of crashing it.</summary>
     public bool WfTryHardLanding(Entity<MapGridComponent, CEZGridFallerComponent> ent, float impact)
     {
         if (!HasComp<WFLiftLostComponent>(ent.Owner))
@@ -320,11 +265,7 @@ public sealed partial class CEZLevelsSystem
         return true;
     }
 
-    /// <summary>
-    /// A crash that still had somewhere to go. CE's blast leaves the hull on the tile it detonated over; one that came
-    /// in with real planar speed carries on through the wreck it just made instead of stopping dead. Lift-lost hulls
-    /// only, so the F7 chunk drop's straight-down crash is untouched.
-    /// </summary>
+    /// <summary>Starts a skid after a lift-lost hull crashes with planar speed.</summary>
     public void WfSkidAfterCrash(EntityUid grid)
     {
         if (TerminatingOrDeleted(grid) || !_mapGridQuery.HasComp(grid) || !HasComp<WFLiftLostComponent>(grid))
@@ -335,11 +276,11 @@ public sealed partial class CEZLevelsSystem
 
         var crashSpeed = body.LinearVelocity.Length();
 
-        // A NaN is not a speed worth skidding on, and it is under no threshold: the comparison alone would let it in.
+        // NaN fails every comparison, so it is rejected explicitly.
         if (!float.IsFinite(crashSpeed) || crashSpeed <= WFFlightSystem.SkidStopSpeed)
             return;
 
-        // No thud: the crash was the noise this landing made, and one crash is one bang (CrashGrid).
+        // No thud; the crash already made its sound.
         _wfFlight.BeginSkid(grid, thud: false);
     }
 
@@ -366,19 +307,13 @@ public sealed partial class CEZLevelsSystem
         WfRefreshOrbitParking(grid, Transform(grid).MapUid);
     }
 
-    /// <summary>
-    /// A hull skidding out a hard landing goes through what it hits. CE's wall pass would push it back out and bounce
-    /// it; instead every anchored obstacle inside the footprint is broken and the hull pays speed for each one, so a
-    /// long skid through a fence line ends where the fences run out rather than pinballing off the first post.
-    /// </summary>
+    /// <summary>A skidding hull breaks anchored obstacles it hits, losing speed, instead of bouncing.</summary>
     private bool WfPloughThroughWalls(EntityUid grid, PhysicsComponent body)
     {
         if (!TryComp<WFSkidComponent>(grid, out var skid) || !WfHasSkidGround(grid))
             return false;
 
-        // Breaking on the leading edge's own interval rather than every tick: a hull sitting on a fence line is in
-        // contact with it for as long as it is sliding along it, and one destruction sound per post per tick is a
-        // hull's worth of networked audio entities a second. Between intervals it passes through rather than bouncing.
+        // Rate-limited to avoid a destruction sound per obstacle per tick; between bites the hull passes through.
         if (_timing.CurTime < skid.NextPlough)
             return true;
 
@@ -388,8 +323,7 @@ public sealed partial class CEZLevelsSystem
 
         foreach (var contact in _wallContacts)
         {
-            // A broad bounding rectangle includes empty corners and gaps in irregular hulls. Only destroy
-            // obstacles which CE found touching hull tiles, once even when several tiles hit the same wall.
+            // Only obstacles CE found touching hull tiles, once each.
             var ent = contact.Wall;
             if (!TerminatingOrDeleted(ent) && _physQuery.TryComp(ent, out var obstacle) && obstacle.CanCollide && obstacle.Hard)
                 _wfPloughed.Add(ent);
@@ -411,8 +345,7 @@ public sealed partial class CEZLevelsSystem
         var speed = velocity.Length();
         var cost = MathF.Min(WFPloughSpeedCost * _wfPloughed.Count, speed * 0.03125f);
 
-        // Non-finite is neither over nor under the cost, so it has to be named: dividing it back out would write a
-        // NaN position onto the hull and onto everything parented to it.
+        // Guard non-finite speed so no NaN velocity reaches the hull.
         _physics.SetLinearVelocity(grid,
             !float.IsFinite(speed) || speed <= cost ? Vector2.Zero : velocity / speed * (speed - cost),
             body: body);

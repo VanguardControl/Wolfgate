@@ -17,12 +17,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// You do not need an FTL drive to go into orbit. The shuttle console carries its own "enter planet orbit" action,
-/// gated on being parked within the body's orbit range on the body's own sector map, and the orbit layer is no longer
-/// an FTL destination at all. The hop itself reuses the ordinary FTL transit, so undocking, the hyperspace map and the
-/// arrival sweep all still run - it simply never asks GetFTLRange, which gives a driveless hull a range of zero.
-/// </summary>
+/// <summary>The shuttle console's enter and leave orbit actions, which need no FTL drive.</summary>
 [TestFixture]
 [TestOf(typeof(WFOrbitEntrySystem))]
 public sealed class OrbitEntryTest
@@ -33,10 +28,7 @@ public sealed class OrbitEntryTest
     /// <summary>WFSurfaceAsclepiu's orbitRange, which is the band the console action is gated on.</summary>
     private const float OrbitRange = 2000f;
 
-    /// <summary>
-    /// A hop is a five second warm-up plus a five second transit. Arrival is polled rather than slept out, so a working
-    /// hop only costs what it costs; this is just the give-up point.
-    /// </summary>
+    /// <summary>Seconds to wait for a ten second hop before giving up.</summary>
     private const float HopTimeout = 20f;
 
     /// <summary>A sector body with its stack, plus a driveless hull carrying one shuttle console.</summary>
@@ -120,7 +112,7 @@ public sealed class OrbitEntryTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The whole point: in range, with no FTL drive anywhere aboard, the hull reaches the orbit layer.</summary>
+    /// <summary>In range and with no FTL drive aboard, the hull reaches the orbit layer.</summary>
     [Test]
     public async Task EntersOrbitWithoutAnFTLDrive()
     {
@@ -165,8 +157,7 @@ public sealed class OrbitEntryTest
             Assert.That(arrived, Is.True,
                 $"The hull never reached the orbit layer; it ended on {entMan.ToPrettyString(entMan.GetComponent<TransformComponent>(site.Hull).MapUid)}."));
 
-        // Four seconds is the window PlanetNetworkTest.GridOnOrbitLayerDoesNotFall uses; an arrival that immediately
-        // drops back through the stack would be an insertion in name only.
+        // Make sure the arrival doesn't drop straight back through the stack.
         await server.WaitRunTicks(pair.SecondsToTicks(4f));
 
         await server.WaitAssertion(() =>
@@ -177,7 +168,7 @@ public sealed class OrbitEntryTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Crew standing on the deck ride the hop with it: nobody is thrown a level, dropped through the floor or hurt.</summary>
+    /// <summary>Crew on the deck ride the hop unharmed, without being thrown or dropped a level.</summary>
     [Test]
     public async Task CrewRideTheHopIntoOrbitUnharmed()
     {
@@ -193,7 +184,7 @@ public sealed class OrbitEntryTest
 
         await server.WaitPost(() =>
         {
-            // Real deck under them: the hop tosses whoever stands on a spaced tile, and that is not what is under test.
+            // Real deck, since the hop tosses anyone on a spaced tile.
             var plating = server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId;
             var hullGrid = entMan.GetComponent<MapGridComponent>(site.Hull);
             var deck = new List<(Vector2i, Tile)>();
@@ -208,8 +199,7 @@ public sealed class OrbitEntryTest
 
             mob = entMan.SpawnEntity("MobHuman", entMan.GetComponent<TransformComponent>(site.Console).Coordinates);
 
-            // The regression: a throw made off any planet used to leave its arc on the body, unspent, until the
-            // ship reached a z-level - which launched the crew off the deck the moment they arrived in orbit.
+            // A throw made off-planet must not leave an unspent arc that launches the crew on arrival.
             server.System<Content.Shared.Throwing.ThrowingSystem>().TryThrow(mob, new Vector2(0.4f, 0f), 0.8f);
         });
 
@@ -220,7 +210,7 @@ public sealed class OrbitEntryTest
             Assert.That(entMan.GetComponent<Content.Shared._CE.ZLevels.Core.Components.CEZPhysicsComponent>(mob).Velocity, Is.EqualTo(0f),
                 "A throw off the z-network left vertical velocity on the body.");
 
-            // The test hull has no gravity, so the throw would carry them off it; stand them back at the console.
+            // The hull has no gravity, so put them back at the console.
             server.System<SharedTransformSystem>().SetCoordinates(mob, entMan.GetComponent<TransformComponent>(site.Console).Coordinates);
             server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(mob, Vector2.Zero);
 
@@ -260,7 +250,7 @@ public sealed class OrbitEntryTest
                 Assert.That(xform.MapUid, Is.EqualTo(site.Orbit), $"The crew member did not end on the orbit layer. {trail}");
                 Assert.That(xform.GridUid, Is.EqualTo(site.Hull), "The crew member is no longer aboard.");
                 Assert.That(worstHeight, Is.LessThan(0.2f), $"The crew member left the deck: height {worstHeight}. {trail}");
-                // Damage is no witness here: the test hull is airless, and barotrauma is blunt like a fall is.
+                // Damage can't be checked: the airless hull deals blunt barotrauma.
                 Assert.That(z.Velocity, Is.EqualTo(0f).Within(0.01f), $"The crew member is still moving vertically. {trail}");
             }
         });
@@ -336,10 +326,7 @@ public sealed class OrbitEntryTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The orbit layer is no longer offered as an FTL destination, and the outbound gate is unchanged: a hull on an air
-    /// layer still cannot jump off the planet, while a hull in orbit still can.
-    /// </summary>
+    /// <summary>Orbit is not an FTL destination; an air-layer hull still cannot jump out, an orbit one can.</summary>
     [Test]
     public async Task OrbitIsNotADestinationAndAirLayersStillCannotFTL()
     {
@@ -353,7 +340,7 @@ public sealed class OrbitEntryTest
         var orbitMapId = entMan.GetComponent<MapComponent>(site.Orbit).MapId;
         var sectorMapId = entMan.GetComponent<MapComponent>(site.SectorMap).MapId;
 
-        // The sector map is an ordinary open destination, exactly as a station grid's map is at round start.
+        // The sector map is an ordinary open destination.
         await server.WaitPost(() => shuttles.TryAddFTLDestination(sectorMapId, true, false, false, out _));
 
         await MoveTo(pair, site.Hull, site.SectorMap, new Vector2(400f, 0f));
@@ -416,8 +403,7 @@ public sealed class OrbitEntryTest
             shuttles.Enable(grid.Owner, force: true);
             site.Hull = grid.Owner;
 
-            // No cabling on a code-built hull, the same trick WFTestGridFactory uses. Deliberately no MachineFTLDrive:
-            // the whole claim under test is that orbit needs none.
+            // No cabling on a code-built hull, and no FTL drive.
             site.Console = entMan.SpawnEntity(ConsoleProto, new EntityCoordinates(grid.Owner, new Vector2(2.5f, 2.5f)));
             receiver.SetNeedsPower(site.Console, false);
         });
@@ -437,7 +423,7 @@ public sealed class OrbitEntryTest
         await server.WaitRunTicks(1);
     }
 
-    /// <summary>Runs past the orbit system's one-second readout sweep, which is what fills the console component.</summary>
+    /// <summary>Runs past the orbit system's one-second sweep that fills the console component.</summary>
     private static Task Sweep(TestPair pair)
     {
         return pair.Server.WaitRunTicks(pair.SecondsToTicks(1.2f));
@@ -455,11 +441,7 @@ public sealed class OrbitEntryTest
         return entMan.GetComponent<MetaDataComponent>(uid).EntityName;
     }
 
-    /// <summary>
-    /// Ticks in short bursts until the hull lands on the expected map, so a working hop costs only the ten seconds it
-    /// actually takes rather than a fixed sleep. Bursts are short so an arrival is seen even if something later moves
-    /// the hull off the layer again.
-    /// </summary>
+    /// <summary>Ticks in short bursts until the hull lands on the expected map, or the timeout passes.</summary>
     private static async Task<bool> WaitForMap(TestPair pair, EntityUid hull, EntityUid map)
     {
         var server = pair.Server;

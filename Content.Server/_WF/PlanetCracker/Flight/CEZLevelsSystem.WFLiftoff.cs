@@ -12,9 +12,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._CE.ZLevels.Core;
 
-/// <summary>
-/// Planet liftoff intent layered over CE's ordinary vertical-input, takeoff-spool and transit paths.
-/// </summary>
+/// <summary>Planet liftoff intent layered over CE's vertical input, takeoff spool and transit.</summary>
 public sealed partial class CEZLevelsSystem
 {
     private static readonly TimeSpan WFLiftoffInputPopupCooldown = TimeSpan.FromSeconds(4);
@@ -22,10 +20,7 @@ public sealed partial class CEZLevelsSystem
     private readonly Dictionary<EntityUid, TimeSpan> _wfNextLiftoffInputPopup = new();
     private readonly List<(EntityUid Grid, WFLiftoffComponent Liftoff)> _wfLiftoffQueue = new();
 
-    /// <summary>
-    /// Whether the console should offer liftoff. This deliberately checks only place and ground contact: a blocked
-    /// button stays usable so its authoritative request can explain the actual blocker.
-    /// </summary>
+    /// <summary>Whether the console offers liftoff; only ground contact, so a blocked press can say why.</summary>
     public bool WfCanOfferLiftoff(EntityUid grid)
     {
         return TryComp<MapGridComponent>(grid, out var gridComp)
@@ -34,10 +29,7 @@ public sealed partial class CEZLevelsSystem
                && HasGroundUnderFootprint((grid, gridComp), map);
     }
 
-    /// <summary>
-    /// Shared upward-thrust gate. The cancellable event is raised directionally on every transit-set member before
-    /// built-in checks, so a tether attached to any member can veto button, latched and manual ascent through one seam.
-    /// </summary>
+    /// <summary>Shared ascent gate; raises <see cref="WFLiftoffAttemptEvent"/> on each transit-set member.</summary>
     public bool WfCanLiftoff(EntityUid grid, [NotNullWhen(false)] out string? reason)
     {
         reason = null;
@@ -146,10 +138,7 @@ public sealed partial class CEZLevelsSystem
         RemComp<WFLiftoffComponent>(grid);
     }
 
-    /// <summary>
-    /// Handles manual vertical input before CE aggregates it. Descend cancels the latch. Upward input in atmosphere
-    /// passes the same gate; while grounded it is consumed and points the pilot to the console button.
-    /// </summary>
+    /// <summary>Descend cancels liftoff; grounded ascend input points the pilot to the console button.</summary>
     private bool WfHandleLiftoffPilotInput(EntityUid pilot, EntityUid console, EntityUid grid, float vertical)
     {
         if (vertical < 0f && HasComp<WFLiftoffComponent>(grid))
@@ -164,7 +153,7 @@ public sealed partial class CEZLevelsSystem
         var active = HasComp<WFLiftoffComponent>(grid);
         if (WfCanOfferLiftoff(grid))
         {
-            // Still raise every manual attempt for tether subscribers, but grounded R is never the launch control.
+            // Raised for tether subscribers; grounded input never launches.
             WfCanLiftoff(grid, out _);
 
             if (!active && _timing.CurTime >= _wfNextLiftoffInputPopup.GetValueOrDefault(grid))
@@ -188,7 +177,7 @@ public sealed partial class CEZLevelsSystem
         return true;
     }
 
-    /// <summary>Progress up the ground gap at which a takeoff is done; past the settle zone, so the hull drifts on up.</summary>
+    // Progress up the ground gap that counts as taken off; past the settle zone so the hull drifts on up.
     private const float WFTakeoffProgress = 0.8f;
 
     /// <summary>True once the hull is off the ground for good: high in the first gap, or anywhere above it.</summary>
@@ -227,15 +216,12 @@ public sealed partial class CEZLevelsSystem
             if (TerminatingOrDeleted(grid))
                 continue;
 
-            // Liftoff is a takeoff, not a climb to orbit: once the hull is most of the way up the first gap the latch
-            // lets go, and release-to-settle carries it the rest of the way onto the air layer, where it hovers. From
-            // there the pilot holds R to climb, or does not.
+            // Liftoff stops at the first air layer; settling carries the hull the rest of the way.
             if (Transform(grid).MapUid is { } map && WfHasTakenOff(grid, map))
             {
                 WfCancelLiftoff(grid);
 
-                // The climb's momentum would otherwise carry the hull up through every gap and out into orbit anyway;
-                // from a standstill this high in the gap, release-to-settle lifts it the last stretch onto the layer.
+                // Drop the climb's momentum so it doesn't carry the hull on into orbit.
                 if (TryComp<CEZGridFallerComponent>(grid, out var faller))
                     faller.Velocity = 0f;
 

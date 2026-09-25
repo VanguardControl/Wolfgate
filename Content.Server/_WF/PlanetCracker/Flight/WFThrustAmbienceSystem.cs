@@ -7,21 +7,17 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Flight;
 
-/// <summary>
-/// The thrust loop: while any powered linear thruster is actually firing, the hull's crew and anyone hovering over it
-/// hear the engines. One stream per hull, to the grid audience rather than a point source at the grid origin, which
-/// on a capital hull would be engines in one corridor. Re-cut on an interval so somebody who boarded mid-burn is in.
-/// </summary>
+/// <summary>Plays one engine loop per hull to its crew while any linear thruster is firing.</summary>
 public sealed partial class WFThrustAmbienceSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private WFGridAudienceSystem _audience = default!;
 
+    /// <summary>Looping engine sound.</summary>
     public static readonly SoundSpecifier ThrustLoop = new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Flight/thrust_loop.ogg");
 
-    /// <summary>Loop gain in dB; a touch under the file's own level, which read loud over the rest of the hull.</summary>
-    // 60% of the previous gain: -6 dB + 20 * log10(0.6).
+    // dB: -6 + 20 * log10(0.6).
     private const float ThrustVolume = -10.44f;
 
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(0.1);
@@ -58,7 +54,7 @@ public sealed partial class WFThrustAmbienceSystem : EntitySystem
                 _thrusting.Add(grid);
         }
 
-        // Collected first: the loop below removes components, which an enumerator will not survive.
+        // Collected first because the loop below removes components.
         _playing.Clear();
         var playing = EntityQueryEnumerator<WFThrustAmbienceComponent>();
         while (playing.MoveNext(out var uid, out var comp))

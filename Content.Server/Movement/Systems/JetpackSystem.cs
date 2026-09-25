@@ -66,12 +66,13 @@ public sealed partial class JetpackSystem : SharedJetpackSystem
             if (_timing.CurTime < active.TargetTime)
                 continue;
 
-            // WOLFGATE: a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
+            // WOLFGATE(PlanetCracker) START: a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
             if (comp.JetpackUser is { } wearer && WfInAtmosphere(wearer))
             {
                 toDisable.Add((uid, comp));
                 continue;
             }
+            // WOLFGATE END
 
             var gasTank = (uid, gasTankComp);
             active.TargetTime = _timing.CurTime + TimeSpan.FromSeconds(active.EffectCooldown);

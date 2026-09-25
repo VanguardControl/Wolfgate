@@ -1,17 +1,9 @@
-# Fissure decals and the NPC targeting pair for F8's site threats: fissures ringing an armed drill, mobs that emerge
-# from them and hunt the anchor first.
-#
-# Existing art for all four growth stages: the stock window damage overlays (Structures/Windows/cracks.rsi), which are
-# three escalating spiderweb cracks authored single-direction and near-white, so they read as splits in the ground and
-# take a decal's own colour. The sheet ships three stages and the design wants four, so stage four repeats the widest;
-# promoting a stage-three fissure to four is a no-op on screen and deliberately so - no new art was drawn for it.
+# Fissure decals around an armed drill, and the NPC targeting for mobs that emerge and hunt the anchor.
 
 - type: decal
   id: WFFissure1
   tags: [ "wfcrack" ]
-  # Must stay false: true makes DecalOverlay snap the decal to the eye's cardinal and subtract that from the per-decal
-  # Angle argument (Content.Client/Decals/Overlays/DecalOverlay.cs:103-109), which would defeat the per-ring
-  # RingTangent rotation.
+  # Must stay false, or DecalOverlay's cardinal snap defeats the per-decal rotation.
   snapCardinals: false
   defaultSnap: false
   sprite: { sprite: Structures/Windows/cracks.rsi, state: DamageOverlay_5 }
@@ -35,17 +27,15 @@
   tags: [ "wfcrack" ]
   snapCardinals: false
   defaultSnap: false
-  # The widest the sheet has, repeated: stage four is the same crack as stage three.
+  # The sheet has three stages, so stage four repeats the widest.
   sprite: { sprite: Structures/Windows/cracks.rsi, state: DamageOverlay_20 }
 
-# Modelled on Resources/Prototypes/_Mono/NPCs/Shuttle/shuttle.yml:116-131.
 - type: utilityQuery
   id: WFFissureTargets
   query:
   - !type:NearbyHostilesQuery
   considerations:
-  # Replaces the stock TargetIsAliveCon: that scores a structure 0 and the scoring loop then drops it
-  # (Content.Server/NPC/Systems/NPCUtilitySystem.cs:386-389 and :153-160).
+  # Not TargetIsAliveCon, which scores a structure 0 and drops it.
   - !type:TargetIsAliveOrNACon
     curve: !type:BoolCurve
   - !type:TargetDistanceCon
@@ -53,9 +43,7 @@
       preset: TargetDistance
   - !type:TargetAccessibleCon
     curve: !type:BoolCurve
-  # TargetHealthCon is deliberately omitted: it reads MobThresholds, which a structure has not.
-  # Deliberately confines the anchor to the mob's vision radius (NPCUtilitySystem.cs:358-374) rather
-  # than being a map-wide target.
+  # No TargetHealthCon: a structure has no MobThresholds. LOS keeps the anchor from being a map-wide target.
   - !type:TargetInLOSOrCurrentCon
     curve: !type:BoolCurve
 

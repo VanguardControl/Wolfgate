@@ -3,9 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._WF.PlanetCracker.Planets;
 
 /// <summary>
-/// What a shuttle console currently offers for planet orbit, refreshed server-side on its own sweep.
-/// It rides the console entity rather than the shuttle BUI state because the BUI state is only pushed on docking,
-/// beacon and power events, so a button keyed to it would go stale the moment the hull started moving.
+/// What a shuttle console offers for planet orbit, swept server-side; not in the BUI state, which is pushed too rarely.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, UnsavedComponent]
 public sealed partial class WFConsoleOrbitTargetComponent : Component
@@ -30,10 +28,7 @@ public sealed partial class WFConsoleOrbitTargetComponent : Component
     [DataField, AutoNetworkedField]
     public bool Busy;
 
-    /// <summary>
-    /// True while this hull is grounded on a planet layer. This is only presentation state: blockers are deliberately
-    /// not folded into it, so pressing the available button can return the authoritative refusal.
-    /// </summary>
+    /// <summary>True while this hull is grounded on a planet layer; blockers are left out so the server can explain a refusal.</summary>
     [DataField, AutoNetworkedField]
     public bool LiftoffAvailable;
 
@@ -41,11 +36,7 @@ public sealed partial class WFConsoleOrbitTargetComponent : Component
     [DataField, AutoNetworkedField]
     public bool LiftoffActive;
 
-    /// <summary>
-    /// Prospective atmosphere thrust from all working linear engines (normal: 0.5, converted: 1), divided by
-    /// hull mass, 9.81 and planetary gravity, computed server-side; 1 is level flight. Only
-    /// meaningful while <see cref="InOrbit"/>, which is the one place the descent decision is taken.
-    /// </summary>
+    /// <summary>Prospective atmosphere thrust over hull weight at this world's gravity; 1 is level flight. Only meaningful in orbit.</summary>
     [DataField, AutoNetworkedField]
     public float LiftRatio;
 
@@ -57,10 +48,7 @@ public sealed partial class WFConsoleOrbitTargetComponent : Component
     [DataField, AutoNetworkedField]
     public bool AtmospherePowerDeficit;
 
-    /// <summary>
-    /// Seconds left before this hull's orbit decays and it is dropped into the atmosphere, or -1 while it is holding
-    /// station. Only meaningful while <see cref="InOrbit"/>; nothing else in the stack can decay.
-    /// </summary>
+    /// <summary>Seconds until this hull's orbit decays into the atmosphere, or -1 while holding station; only meaningful in orbit.</summary>
     [DataField, AutoNetworkedField]
     public float DecaySeconds = -1f;
 }

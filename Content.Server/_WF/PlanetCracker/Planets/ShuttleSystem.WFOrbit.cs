@@ -10,19 +10,14 @@ namespace Content.Server.Shuttles.Systems;
 
 public sealed partial class ShuttleSystem
 {
-    /// <summary>Warm-up of an orbital insertion. Short and fixed, so it reads as a manoeuvre rather than a jump.</summary>
+    /// <summary>Warm-up of an orbital insertion, in seconds.</summary>
     public const float WfOrbitStartupTime = 5f;
 
-    /// <summary>Transit time of an orbital insertion; it must exceed nothing, the arrival phase is carved out of it.</summary>
+    /// <summary>Transit time of an orbital insertion, in seconds; includes the arrival phase.</summary>
     public const float WfOrbitTravelTime = 5f;
 
-    /// <summary>
-    /// The hard gate on leaving a planet: you climb to orbit first, and you never jump out of mid-transit. Every FTL
-    /// start funnels through <see cref="TrySetupFTL"/> or <see cref="FTLToDock"/>, so both ask this rather than trust
-    /// the destination-side checks - <see cref="SharedShuttleSystem.CanFTLTo"/>'s WfAllowFTL only ever covered the
-    /// paths that consult a destination list, and the console's beacon and free-FTL branches do not.
-    /// Our own <see cref="WfFTLToLayer"/> starts from orbit or from the sector map, so it passes.
-    /// </summary>
+    /// <summary>True when FTL departure is refused: below orbit on a planet, or mid-transit.</summary>
+    // Checked from TrySetupFTL and FTLToDock, since the console's beacon and free-FTL paths skip CanFTLTo.
     public bool WfRefusesFtlDeparture(EntityUid shuttleUid)
     {
         if (Transform(shuttleUid).MapUid is not { } mapUid)
@@ -34,23 +29,13 @@ public sealed partial class ShuttleSystem
         return HasComp<WFPlanetLayerComponent>(mapUid) && !HasComp<WFOrbitLayerComponent>(mapUid);
     }
 
-    /// <summary>
-    /// Moves a hull onto another map through the ordinary FTL transit with no drive, no beacon and no range check.
-    /// This is the one entry point planet orbit uses: <see cref="FTLToCoordinates"/> is documented as taking no checks
-    /// of its own, so undocking, the hyperspace map, the arrival sweep and the startup/arrival audio all still run,
-    /// while <see cref="SharedShuttleSystem.GetFTLRange"/> - which gives a driveless hull a range of zero - never
-    /// enters the picture. The caller owns every gate; see WFOrbitEntrySystem.
-    /// </summary>
-    /// <param name="shuttle">The hull to move.</param>
-    /// <param name="targetMap">The destination map entity.</param>
-    /// <param name="worldPos">Where on it to arrive, before the free-spot search.</param>
+    /// <summary>FTLs a hull to another map with no drive, beacon or range check; the caller owns every gate.</summary>
     public bool WfFTLToLayer(Entity<ShuttleComponent> shuttle, EntityUid targetMap, Vector2 worldPos)
     {
         if (!HasComp<MapComponent>(targetMap) || HasComp<FTLComponent>(shuttle.Owner))
             return false;
 
-        // Same pose on the far side when the spot is clear, so an insertion reads as dropping straight down onto the
-        // layer rather than being flung somewhere by the arrival scatter.
+        // Keep the same pose when the spot is clear instead of the arrival scatter.
         var coordinates = new EntityCoordinates(targetMap, worldPos);
         var angle = _transform.GetWorldRotation(shuttle.Owner);
 
@@ -65,10 +50,7 @@ public sealed partial class ShuttleSystem
         return HasComp<FTLComponent>(shuttle.Owner);
     }
 
-    /// <summary>
-    /// True when the hull's own footprint, carried over to the target map at the same pose, touches no other grid.
-    /// The hull keeps its rotation, so its world AABB there is the current one shifted by the position delta.
-    /// </summary>
+    /// <summary>True when the hull's footprint at the same pose on the target map touches no other grid.</summary>
     private bool WfLayerSpotIsClear(EntityUid shuttleUid, EntityUid targetMap, Vector2 worldPos)
     {
         if (!TryComp<MapGridComponent>(shuttleUid, out var grid) || !TryComp<MapComponent>(targetMap, out var map))

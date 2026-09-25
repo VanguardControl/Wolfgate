@@ -22,10 +22,7 @@ public enum WFCrackFailure : byte
     ProjectorBroken = 1 << 3,
 }
 
-/// <summary>
-/// Why BEGIN CRACK is refused right now. One flag per distinct fault and one locale key per flag, because the
-/// console hover list is the crew's only explanation of a greyed button (design section 263).
-/// </summary>
+/// <summary>Why BEGIN CRACK is refused right now; one flag and one locale key per fault for the console hover list.</summary>
 [Flags, Serializable, NetSerializable]
 public enum WFCrackBlocker : ushort
 {
@@ -47,7 +44,7 @@ public enum WFCrackBlocker : ushort
     /// <summary>Another grid sits over the hull's destination footprint.</summary>
     Obstructed = 1 << 4,
 
-    /// <summary>The hull is in a CE grid network of two or more grids, which would undo the snap (D-J).</summary>
+    /// <summary>The hull is in a CE grid network of two or more grids, which would undo the snap.</summary>
     InGridNetwork = 1 << 5,
 
     /// <summary>No centrifuge on the hull at all.</summary>

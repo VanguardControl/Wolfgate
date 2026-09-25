@@ -8,7 +8,6 @@ public sealed partial class WFCrackCircleOverlaySystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlay = default!;
 
-    /// <summary>The overlay this system keeps registered, held so its cache can be invalidated.</summary>
     private WFCrackCircleOverlay _circles = default!;
 
     /// <inheritdoc/>
@@ -31,12 +30,7 @@ public sealed partial class WFCrackCircleOverlaySystem : EntitySystem
         _overlay.RemoveOverlay<WFCrackCircleOverlay>();
     }
 
-    /// <summary>
-    /// A new state can move a pair, re-radius it or recolour it, so that pair's cached ring goes. Only that pair's:
-    /// CrackProgress now dirties an anchor roughly every seven seconds per cutting pair, and the blanket clear would
-    /// rebuild every ring on screen for a value the cache does not even hold. Safe because GetRing re-checks centre
-    /// and radius drift itself (WFCrackCircleOverlay.cs:145-150) and colour is never cached.
-    /// </summary>
+    /// <summary>Drops only the updated pair's cached ring; progress changes often and is not cached.</summary>
     private void OnState(Entity<WFGravityAnchorComponent> ent, ref AfterAutoHandleStateEvent args)
     {
         _circles.Invalidate(ent.Owner);

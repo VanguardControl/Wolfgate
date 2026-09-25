@@ -23,28 +23,12 @@ using PhysTransform = Robust.Shared.Physics.Transform;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// Deep veins end to end: that an anchored, bodyless vein is still found by the query the extraction lifts a chunk
-/// with, that the marker layer places them deterministically and actually generates under a real viewer, that the tile
-/// whitelist the marker layer cannot express holds, that a second pass does not double-spawn, that contents are rolled
-/// from data and not from a per-process hash, and that the rating maths buckets the way the bands document says.
-/// Generation is always proven on the grass-only test surface declared below, never on Asclepiu: Asclepiu's biome
-/// stacks MonoOcean and Snow over Grasslands (Resources/Prototypes/_WF/PlanetCracker/biomes.yml:15-32), so on a live
-/// seed the AllowedTiles self-delete can legitimately empty the result and the test would fail with no bug present.
-/// Hand-laying tiles is not a fix for that: LoadChunkMarkers skips any node already in the chunk's ModifiedTiles set
-/// (BiomeSystem.MarkerProcessor.cs:279-280) and re-sets the tile from TryGetBiomeTile before spawning (:285-289), so
-/// pinned or hand-laid ground suppresses the spawn instead of steering it.
-/// </summary>
+/// <summary>Deep veins: extraction lookup, marker generation, tile whitelist, seeding and rating maths.</summary>
 [TestFixture]
 [TestOf(typeof(WFDeepVeinSystem))]
 public sealed class DeepVeinTest
 {
-    /// <summary>
-    /// A grass-only world with its own marker layer, so vein generation is a fact about the code rather than about
-    /// which way Asclepiu's ocean noise fell this run. SurveyorTest builds on the same surface for the same reason.
-    /// planetType is PlanetTypeBarren, which SystemKyphrus does not contain, so this surface never registers itself
-    /// onto a sector body and never collides with WFSurfaceAsclepiu in WFPlanetRegistrySystem's per-type map.
-    /// </summary>
+    /// <summary>A grass-only world with its own marker layer, independent of Asclepiu's noise.</summary>
     [TestPrototypes]
     public const string Prototypes = @"
 - type: biomeTemplate
@@ -88,7 +72,7 @@ public sealed class DeepVeinTest
   maxGroupSize: 1
 ";
 
-    /// <summary>The grass-only surface every generation test builds on. Plain string: the linter skips test prototypes.</summary>
+    /// <summary>The grass-only test surface; a string, as the linter skips test prototypes.</summary>
     public const string TestSurface = "WFTestVeinSurface";
 
     /// <summary>The tighter marker layer the forcing helper drives.</summary>
@@ -109,14 +93,7 @@ public sealed class DeepVeinTest
     /// <summary>BiomeSystem's load area, which bounds where a marker pass can ever put an entity.</summary>
     private const int LoadArea = 16;
 
-    /// <summary>
-    /// RUN THIS FIRST: if it fails, every vein is silently left behind the day a chunk lifts.
-    /// A vein carries no PhysicsComponent, so the broadphase inserts it with
-    /// <c>staticBody: body?.BodyType == BodyType.Static</c> (EntityLookupSystem.cs:648-657) and then picks
-    /// <c>staticBody ? StaticSundriesTree : SundriesTree</c> (:491-496) - a null body is not Static, so the vein rides
-    /// the DYNAMIC SundriesTree no matter how it is anchored. LookupFlags.Uncontained covers it through its Sundries
-    /// bit; narrowing the flag to Static alone would return zero veins with no error anywhere.
-    /// </summary>
+    /// <summary>A bodyless anchored vein is in the dynamic sundries tree and the extraction query finds it.</summary>
     [Test]
     public async Task AnchoredVeinIsFoundByTheExtractionQuery()
     {
@@ -141,7 +118,7 @@ public sealed class DeepVeinTest
 
             var found = new HashSet<EntityUid>();
 
-            // F5 step 5's exact query, flag and all.
+            // The extraction's exact query and flags.
             entMan.System<EntityLookupSystem>().GetLocalEntitiesIntersecting(
                 ground,
                 new PhysShapeCircle(2f, centre),
@@ -157,12 +134,7 @@ public sealed class DeepVeinTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The per-layer placement maths is a pure function of its Random, so the same seed has to lay the same nodes.
-    /// No player and no ticks: this is the engine call BuildMarkerChunks makes, driven directly.
-    /// What it cannot pin is the per-layer index that goes into the marker seed, which comes from dictionary
-    /// enumeration order (BiomeSystem.MarkerProcessor.cs:30-34,:49) over a HashSet.
-    /// </summary>
+    /// <summary>The same seed lays the same marker nodes, through the engine's placement call directly.</summary>
     [Test]
     public async Task MarkerNodesAreDeterministic()
     {
@@ -203,11 +175,7 @@ public sealed class DeepVeinTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The whole generation path, driven the only way it can be driven: an attached player on the ground map, because
-    /// BiomeSystem.Update early-exits with no handled entities and only ProcessPlayerChunkRequests fills that set.
-    /// Marker entities only ever appear inside the 16-tile load area, so that is the window this asserts on.
-    /// </summary>
+    /// <summary>Veins generate inside the load area around an attached player on the ground map.</summary>
     [Test]
     public async Task MarkersGenerateUnderAnAttachedViewer()
     {
@@ -248,10 +216,7 @@ public sealed class DeepVeinTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The whitelist is the vein's own, because BiomeMarkerLayerPrototype has no tile whitelist in this fork: a flat
-    /// layer scatters veins into the sea and onto the icecap, and only the MapInit handler can throw those away.
-    /// </summary>
+    /// <summary>A vein on a tile outside its own whitelist deletes itself at map init.</summary>
     [Test]
     public async Task VeinsOffTheWhitelistDeleteThemselves()
     {
@@ -295,11 +260,7 @@ public sealed class DeepVeinTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The real guard is BuildMarkerChunks' early return for a chunk already in LoadedMarkers
-    /// (BiomeSystem.MarkerProcessor.cs:38-39), which it reads BEFORE it ever looks at ForcedMarkerLayers. So the second
-    /// pass here deliberately leaves LoadedMarkers alone; clearing it would be testing the forcing helper instead.
-    /// </summary>
+    /// <summary>A second forced pass over already-loaded marker chunks spawns no more veins.</summary>
     [Test]
     public async Task MarkersDoNotDoubleSpawn()
     {
@@ -333,12 +294,7 @@ public sealed class DeepVeinTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Contents are rolled from the biome seed and the vein's own tile index and nothing else, so the same world lays
-    /// the same vein on the same tile every time. Run across two separate pairs because HashCode.Combine and
-    /// string.GetHashCode are randomised per process: if either ever creeps into that path, a comparison inside one
-    /// pair would still pass.
-    /// </summary>
+    /// <summary>Vein contents depend only on seed and tile; two pairs catch per-process hashing.</summary>
     [Test]
     public async Task VeinContentsAreSeedDeterministic()
     {
@@ -390,11 +346,7 @@ public sealed class DeepVeinTest
         }
     }
 
-    /// <summary>
-    /// The rating maths, as the pure static calls the console and the command both go through: a table of cheap ore
-    /// rates Poor, an expensive one rates VeryRich, and the same table on an unsanctioned world always scores higher.
-    /// The bands come from the one shipped document, so this also proves the document loads.
-    /// </summary>
+    /// <summary>Cheap ore rates Poor, expensive ore VeryRich, and an unsanctioned world always scores higher.</summary>
     [Test]
     public async Task RatingMathsBucketsCorrectly()
     {
@@ -439,11 +391,7 @@ public sealed class DeepVeinTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The vein's sprite layer is the whole hiding mechanism: it ships invisible and the client flips it on per player.
-    /// This lives here rather than in PlanetCrackerPrototypeTest because WFDeepVein deliberately stays out of that
-    /// file's shared spawn array - it would delete itself on a FloorSteel grid with no planet network behind it.
-    /// </summary>
+    /// <summary>The vein's sprite layer ships hidden and names a real RSI state.</summary>
     [Test]
     public async Task VeinSpriteLayerIsHiddenAndNamesARealState()
     {
@@ -459,7 +407,7 @@ public sealed class DeepVeinTest
 
         var vein = await SpawnVein(pair, ground, new Vector2(5.5f, 0.5f));
 
-        // The client only ever receives what its own eye is near, so the session has to be standing next to it.
+        // The client only receives entities near its eye.
         await AttachViewer(pair, ground, Vector2.Zero);
         await pair.RunTicksSync(10);
 
@@ -516,7 +464,7 @@ public sealed class DeepVeinTest
         return layers;
     }
 
-    /// <summary>Lays one named tile, because the shared fixture's LayTiles only ever lays deck plating.</summary>
+    /// <summary>Lays one named tile.</summary>
     public static async Task LayTile(TestPair pair, EntityUid ground, Vector2i index, string tileId)
     {
         var server = pair.Server;
@@ -560,7 +508,7 @@ public sealed class DeepVeinTest
         return found;
     }
 
-    /// <summary>Whether a vein landed inside BiomeSystem's 16-tile load area, which is all a marker pass can reach.</summary>
+    /// <summary>Whether a vein landed inside BiomeSystem's 16-tile load area.</summary>
     private static bool InLoadArea(IEntityManager entMan, EntityUid ground, EntityUid vein)
     {
         var maps = entMan.System<SharedMapSystem>();

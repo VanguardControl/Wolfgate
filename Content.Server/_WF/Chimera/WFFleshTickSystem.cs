@@ -33,6 +33,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Chimera;
 
+/// <summary>Runs flesh tick leaping, latching, feeding and retirement.</summary>
 public sealed partial class WFFleshTickSystem : EntitySystem
 {
     private static readonly ProtoId<TagPrototype> ChimeraTag = "Chimera";

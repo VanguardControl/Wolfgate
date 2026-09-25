@@ -8,15 +8,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Server half of the crack control console: it authors the whole window state and turns its three messages into
-/// targeting, untargeting and the begin.
-/// Everything the window draws is built here (design D-N): grid membership is not a PVS exemption, the berth marker
-/// sits 26 tiles past itself on a MarkerBase prototype and berth-side projectors on a capital hull are routinely past
-/// net.pvs_range, so a client that re-derived the geometry would draw an empty diagram while the server read nominal.
-/// Open consoles are tracked in a set pruned by polling the UI rather than by claiming BoundUIClosedEvent, so nothing
-/// here competes for a subscription another system may already own.
-/// </summary>
+/// <summary>Server half of the crack console: builds the whole window state, as it's often outside PVS.</summary>
 public sealed partial class WFCrackConsoleSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -50,7 +42,6 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
     {
         base.Initialize();
 
-        // Unclaimed: nothing else in the codebase subscribes a directed event on WFCrackConsoleComponent.
         SubscribeLocalEvent<WFCrackConsoleComponent, BoundUIOpenedEvent>(OnUiOpened);
 
         // Broadcast and by ref, matching the [ByRefEvent] the cracker's SetState raises.
@@ -111,18 +102,13 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
             fast |= state.State == WFCrackState.Cracking;
         }
 
-        // Cheap even with no window open: SetData early-returns when the value has not moved, and this is what gives a
-        // console its first screen face, since the map-init reset to Idle is a no-op that raises no state-changed event.
+        // Also gives a console its first screen face; SetData skips unchanged values, so this stays cheap.
         UpdateScreens();
 
         _nextUpdate = _timing.CurTime + (fast ? FastInterval : SlowInterval);
     }
 
-    /// <summary>
-    /// Drops consoles whose window has closed.
-    /// Polled rather than subscribed: BoundUIClosedEvent on this component would be a second directed subscription on a
-    /// pair another system may claim later, and Robust allows only one server-wide.
-    /// </summary>
+    /// <summary>Drops consoles whose window closed; polled so BoundUIClosedEvent stays free.</summary>
     private void PruneListeners()
     {
         _stale.Clear();
@@ -145,10 +131,7 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
         _ui.SetUiState(console, WFCrackConsoleUiKey.Key, BuildState(console));
     }
 
-    /// <summary>
-    /// Everything the window draws, resolved off the hull the console rests on.
-    /// Public so a test may read exactly what a client would receive without standing a window up.
-    /// </summary>
+    /// <summary>Everything the window draws, resolved off the hull the console rests on.</summary>
     public WFCrackConsoleState BuildState(EntityUid console)
     {
         var state = new WFCrackConsoleState();
@@ -169,23 +152,20 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
         state.GraceRunning = comp.GraceRunning;
         state.Failing = comp.Failing;
 
-        // The timers are recomputed from the deadlines rather than read off the banked fields, so a console pushed
-        // between two sweeps still counts down smoothly. A paused cut has no live deadline, so it reads the bank.
+        // Timers come from the deadlines so they count down smoothly between sweeps; a paused cut reads the bank.
         state.CrackRemaining = comp.State == WFCrackState.Cracking && !comp.CrackPaused
             ? Remaining(comp.CrackEnd)
             : comp.CrackRemaining;
         state.GraceRemaining = comp.GraceRunning ? Remaining(comp.GraceEnd) : TimeSpan.Zero;
         state.AbortRemaining = comp.PendingAbort is null ? TimeSpan.Zero : Remaining(comp.AbortEnd);
 
-        // Same convention as the timers above: the two disconnect countdowns are derived from their deadlines, not
-        // from a banked field, so a console pushed between two sweeps still counts down smoothly.
+        // The disconnect countdowns come from their deadlines the same way.
         state.DisconnectArmed = comp.DisconnectArmed;
         state.DisconnectRemaining = comp.DisconnectArmed ? Remaining(comp.DisconnectEnd) : TimeSpan.Zero;
         state.EvacRunning = comp.EvacRunning;
         state.EvacRemaining = comp.EvacRunning ? Remaining(comp.EvacEnd) : TimeSpan.Zero;
 
-        // The owned pair is what the target button would act on. Not locked-only: a pair still drilling is what the
-        // diagram should be drawing, and the button's own preconditions are the blocker flags below.
+        // The owned pair, drilling or locked, is what the target button acts on.
         var owned = _crackers.TryGetOwnedPair(cracker, out var ownedA, out var ownedB, false);
 
         if (owned)
@@ -194,8 +174,7 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
             state.CandidateB = GetNetEntity(ownedB.Owner);
         }
 
-        // The shown pair is the targeted one where there is one, so the cut stays drawn even after the pair stops
-        // qualifying as a candidate.
+        // Show the targeted pair where there is one, so the cut stays drawn after it stops qualifying.
         var shown = _crackers.TryGetTargetedPair(cracker, out var a, out var b);
 
         if (!shown && owned)
@@ -227,7 +206,7 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
             }
         }
 
-        // One derivation, shared with the radar ghost and F5's chunk placement.
+        // Shared with the radar ghost and the chunk placement.
         if (_crackers.TryGetBerthRect(cracker, out var rect))
         {
             state.BerthCentre = rect.Center;
@@ -237,8 +216,7 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
 
         if (TryComp<MapGridComponent>(cracker.Owner, out var grid))
         {
-            // The pose travels with the AABB: without it the diagram can only draw the hull concentric with the berth,
-            // which is 26 tiles off on the shipped marker and misstates the one relationship the plan view is for.
+            // The pose goes with the AABB so the diagram places the hull relative to the berth.
             state.HullAabb = grid.LocalAABB;
             (state.HullPos, state.HullRotation) = _transform.GetWorldPositionRotation(cracker.Owner);
         }
@@ -265,8 +243,7 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
         var blockers = _crackers.ComputeBlockers(cracker);
         state.Blockers = blockers;
 
-        // Targeting cares about everything except having a target already; untargeting is legal only where the target
-        // may legally be dropped (design D23); begin needs the whole list clear.
+        // Targeting needs these clear, untargeting is legal only before the cut, begin needs every blocker clear.
         const WFCrackBlocker targeting = WFCrackBlocker.WrongState
             | WFCrackBlocker.NoPair
             | WFCrackBlocker.NotAligned
@@ -291,7 +268,7 @@ public sealed partial class WFCrackConsoleSystem : EntitySystem
         PushState(uid);
     }
 
-    /// <summary>Drops the target, which is refused once the cut has begun (design D23).</summary>
+    /// <summary>Drops the target, which is refused once the cut has begun.</summary>
     private void OnUntargetMessage(EntityUid uid, WFCrackConsoleComponent component, WFCrackUntargetMessage args)
     {
         if (!TryGetCracker(uid, out var cracker))

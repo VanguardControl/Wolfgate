@@ -198,8 +198,7 @@ public sealed class PlanetAmbiencePlaybackTest
         await server.WaitPost(() => server.System<BiomeSystem>().SetEnabled(
             (layers[0], server.EntMan.GetComponent<BiomeComponent>(layers[0])), false));
         var viewer = await AttachViewer(pair, layers[0], Vector2.Zero);
-        // The listener is a bare test mob, not a ship: suspend its z-physics so the orbit check
-        // cannot silently turn into a return-to-surface check while the fade completes.
+        // Suspend the test mob's z-physics so it stays in orbit while the fade completes.
         await server.WaitPost(() => server.EntMan.RemoveComponent<CEZPhysicsComponent>(viewer));
         var cfg = client.ResolveDependency<IConfigurationManager>();
         var oldGain = 0f;

@@ -4,9 +4,7 @@ using Content.Shared._WF.PlanetCracker.Cracker;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Stamps the anchors and crates riding on a cracker hull with that hull, so two crackers can never share a pair.
-/// </summary>
+/// <summary>Binds the anchors and crates riding on a cracker hull to it, so two crackers never share a pair.</summary>
 public sealed partial class WFCrackerOwnershipSystem : EntitySystem
 {
     /// <inheritdoc/>
@@ -14,10 +12,8 @@ public sealed partial class WFCrackerOwnershipSystem : EntitySystem
     {
         base.Initialize();
 
-        // ShipyardShuttlePurchaseEvent carries no [ByRefEvent] and both raise sites are broadcast, so match them exactly.
         SubscribeLocalEvent<ShipyardShuttlePurchaseEvent>(OnPurchased);
-        // Anything unowned that comes to rest on a cracker's deck becomes that cracker's: a crate bought from cargo
-        // and carried aboard, or an anchor brought up from another site. Owned ones keep their owner.
+        // Anything unowned that comes to rest on a cracker's deck becomes that cracker's.
         SubscribeLocalEvent<WFAnchorCrateComponent, EntParentChangedMessage>(OnCrateParentChanged);
         SubscribeLocalEvent<WFGravityAnchorComponent, EntParentChangedMessage>(OnAnchorParentChanged);
     }
@@ -70,10 +66,7 @@ public sealed partial class WFCrackerOwnershipSystem : EntitySystem
         return BindAboard(cracker, cracker);
     }
 
-    /// <summary>
-    /// Stamps the unowned anchors and crates riding on <paramref name="grid"/> as the cracker's; returns how many were
-    /// bound. The grid is the cracker itself on a purchase, or a transport docked to it.
-    /// </summary>
+    /// <summary>Stamps unowned anchors and crates on <paramref name="grid"/> as the cracker's.</summary>
     public int BindAboard(EntityUid cracker, EntityUid grid)
     {
         var owner = GetNetEntity(cracker);

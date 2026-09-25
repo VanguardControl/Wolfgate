@@ -19,31 +19,21 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// F11, orbit decay: an orbit layer holds up only what is holding itself up. A running linear thruster, a force
-/// anchor or a dock onto something that has one keeps a grid parked; anything else - a dead ship, a shot-off hull,
-/// debris - gets a minute of warning and then falls through the F10 descent like a hull that chose it.
-/// </summary>
+/// <summary>Orbit decay: only station-keeping grids stay in orbit; anything else is warned and then falls.</summary>
 [TestFixture]
 [TestOf(typeof(WFOrbitDecaySystem))]
 public sealed class OrbitDecayTest
 {
-    /// <summary>A selectable ship code, used as the code the warning has to borrow and hand back.</summary>
+    /// <summary>The ship code the warning borrows and hands back.</summary>
     private const string PriorCode = "WFShipCodeYellow";
 
-    /// <summary>Seconds the countdown is shortened to; the sweep is 1 Hz, so anything faster is not observable.</summary>
+    /// <summary>Seconds the countdown is shortened to; the sweep is 1 Hz.</summary>
     private const float TestGrace = 1f;
 
-    /// <summary>
-    /// Seconds a grid that should be stamped is given to be stamped in: the sweep gives a hull ten seconds of settle
-    /// from the moment it first appears on the layer, and then wants two sweeps running before it stamps anything.
-    /// </summary>
+    /// <summary>Seconds to wait for a stamp: ten seconds of arrival settle plus two sweeps.</summary>
     private const float StampWait = 13f;
 
-    /// <summary>
-    /// A hull with one powered landing thruster keeps station. Its lift ratio is only 0.40 - far short of flying -
-    /// which is the point: holding an orbit is not the same question as holding an altitude.
-    /// </summary>
+    /// <summary>One powered thruster keeps station, even at a lift ratio far short of flying.</summary>
     [Test]
     public async Task PoweredThrusterHoldsOrbit()
     {
@@ -60,7 +50,7 @@ public sealed class OrbitDecayTest
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 1);
 
-        // Three seconds is three sweeps; a grid that was going to be stamped is stamped on the first.
+        // Three sweeps; a stamp would land on the first.
         await server.WaitRunTicks(pair.SecondsToTicks(3f));
 
         await server.WaitAssertion(() =>
@@ -78,12 +68,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A hull that has only just arrived is not stamped, even though the sweep reads no running thruster on it. An
-    /// FTL hop lands with the shuttle's thrusters disabled and they come back on their own power event, so the sweeps
-    /// straight after an arrival are reading the hop rather than the ship - which is how a vessel a crew had only
-    /// just boarded went down the atmosphere with no warning anyone could act on.
-    /// </summary>
+    /// <summary>A fresh arrival whose thrusters are still off from the FTL hop is not stamped.</summary>
     [Test]
     public async Task FreshArrivalWithPoweredThrustersIsNotStamped()
     {
@@ -134,10 +119,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The same hull with every thruster switched off is decaying: it takes the warning code, keeps its parking for
-    /// the grace, and then goes down the F10 descent as a lift-lost hull rather than being deleted or stranded.
-    /// </summary>
+    /// <summary>A hull with all thrusters off takes the warning code, holds for the grace, then falls.</summary>
     [Test]
     public async Task LostStationKeepingDecaysAndFalls()
     {
@@ -191,10 +173,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Power back inside the grace cancels the whole thing, and the ship gets the code it was flying under back -
-    /// silently, the way F10 hands a landed hull its own code back.
-    /// </summary>
+    /// <summary>Thrust back inside the grace cancels the decay and silently restores the prior code.</summary>
     [Test]
     public async Task ThrustBackInsideGraceCancels()
     {
@@ -244,10 +223,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Debris: a bare grid with nobody aboard, no console and no thrusters. It comes down on its own and stays down -
-    /// orbit decay puts wrecks on the ground, it never cleans them up.
-    /// </summary>
+    /// <summary>Bare debris falls on its own and stays on the ground as a wreck.</summary>
     [Test]
     public async Task ThrusterlessDebrisFallsAndStaysAWreck()
     {
@@ -261,7 +237,7 @@ public sealed class OrbitDecayTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        // Ground for it to land on: the biome only generates around a player, and there is nobody here at all.
+        // Ground to land on; no player means no biome tiles.
         await LayTiles(pair, ground, new Vector2i(-16, -16), new Vector2i(16, 16));
 
         var debris = await BuildDebris(pair, orbitMap, 3);
@@ -276,7 +252,7 @@ public sealed class OrbitDecayTest
 
         await Hasten(pair, debris, TestGrace);
 
-        // Four gaps of free fall, sampled rather than guessed at; the whole stack is about fifteen seconds deep.
+        // Poll through the whole free fall.
         for (var i = 0; i < 200 && !await OnGround(pair, debris, ground); i++)
         {
             await server.WaitRunTicks(pair.SecondsToTicks(0.25f));
@@ -304,10 +280,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A dead hull welded to a live one rides its station-keeping: the rule pools over the docked set, so a tender
-    /// under tow does not drag itself out of orbit.
-    /// </summary>
+    /// <summary>A dead hull docked to a station-keeping one holds orbit with it.</summary>
     [Test]
     public async Task DockedToStationKeepingHoldsOrbit()
     {
@@ -331,7 +304,7 @@ public sealed class OrbitDecayTest
         await MapInitHull(pair, transport);
         await SetThrusters(pair, transport, false);
 
-        // Park the transport's own port where the hull's is, then weld the two together at rest (CrackConsoleTest).
+        // Align the docking ports before docking so the weld starts at rest.
         await server.WaitPost(() =>
         {
             var hullDock = FindDock(entMan, hull);
@@ -377,10 +350,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The two grids the sweep must never touch: a force-anchored grid, which is held by something other than its
-    /// own engines, and a chunk in a berth, whose fall F7 owns from end to end.
-    /// </summary>
+    /// <summary>Force-anchored grids and berthed chunks are never stamped.</summary>
     [Test]
     public async Task ForceAnchoredAndChunkNeverDecay()
     {
@@ -401,8 +371,7 @@ public sealed class OrbitDecayTest
         {
             entMan.AddComponent<ForceAnchorComponent>(anchored);
 
-            // F7's own watchdog drops an orphan chunk five seconds after extraction, which would take the grid off
-            // the layer before the decay sweep had anything to say about it.
+            // Keep the chunk watchdog from dropping this orphan chunk first.
             var comp = entMan.AddComponent<WFPlanetChunkComponent>(chunk);
             comp.ExtractedAt = timing.CurTime;
             comp.WatchdogGrace = TimeSpan.FromMinutes(5);
@@ -429,11 +398,7 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Switches every thruster on a grid on or off through ThrusterSystem, which is what a power cut or a hit ends up
-    /// doing. ThrusterComponent is [Access(typeof(ThrusterSystem))], so Enabled cannot be written from here at all;
-    /// IsOn is the flag the station-keeping rule reads anyway.
-    /// </summary>
+    /// <summary>Switches every thruster on a grid on or off through ThrusterSystem, as a power cut would.</summary>
     private static async Task SetThrusters(TestPair pair, EntityUid grid, bool enabled)
     {
         var server = pair.Server;
@@ -457,11 +422,7 @@ public sealed class OrbitDecayTest
         await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
     }
 
-    /// <summary>
-    /// Shortens a countdown that is already running. Grace is a component field precisely so a test does not sit
-    /// through the minute the crew gets; the deadline is re-stamped with it because the sweep stamps once, as the
-    /// warning goes out.
-    /// </summary>
+    /// <summary>Shortens a running countdown, re-stamping its deadline since the sweep stamps it only once.</summary>
     private static async Task Hasten(TestPair pair, EntityUid grid, float seconds)
     {
         var server = pair.Server;
@@ -512,10 +473,7 @@ public sealed class OrbitDecayTest
         return EntityUid.Invalid;
     }
 
-    /// <summary>
-    /// Every z-layer map is itself a grid. None of the flight sweeps may mistake one for a hull: the orbit map is
-    /// not an orbiter to drop, and an air layer is not a hull in flight that plays wind to everyone on it.
-    /// </summary>
+    /// <summary>Z-layer maps are grids too, but no flight sweep treats one as a hull.</summary>
     [Test]
     public async Task LayerMapsAreNeverStampedAsHulls()
     {

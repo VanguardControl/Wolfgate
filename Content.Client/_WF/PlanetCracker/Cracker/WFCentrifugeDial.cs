@@ -5,23 +5,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The gravitic centrifuge as a face dial: a static ring, a rotor that actually turns at the spin it is reading, the
-/// spin percentage, an AT FULL pip and a load-against-capacity bar.
-/// It takes spin, at-full, load and capacity as plain values so the crack console (which reads them out of
-/// WFCrackConsoleState) and the machine's own window (which reads the networked WFCentrifugeComponent) feed one dial
-/// rather than two subtly different ones.
-/// The readouts are stacked off one bottom-up cursor rather than off fractions of the box, because fractions put the
-/// AT FULL line and the load line seven pixels apart at every size - less than one line of the mono face - so the two
-/// strings drew through each other. <see cref="ShowReadouts"/> turns the whole text stack off for a host that shows
-/// the same four numbers in real Labels and wants only the rotor face.
-/// </summary>
+/// <summary>Centrifuge dial with a turning rotor, spin, AT FULL pip and load bar; shared by the console and machine windows.</summary>
 public sealed class WFCentrifugeDial : WFDiagramControl
 {
-    /// <summary>Spokes on the rotor.</summary>
     private const int Spokes = 6;
 
-    /// <summary>Vertices in the face ring; fixed, which is why it is a cached line strip and not DrawCircle.</summary>
     private const int FaceSegments = 96;
 
     /// <summary>Revolutions per second the rotor turns at full spin.</summary>
@@ -54,36 +42,31 @@ public sealed class WFCentrifugeDial : WFDiagramControl
     /// <summary>Blink period of the AT FULL pip while the rotor is still climbing, in seconds.</summary>
     private const float PipBlinkPeriod = 0.8f;
 
-    /// <summary>Smallest face the rotor still reads as a rotor, in pixels; below it the ring is skipped entirely.</summary>
+    /// <summary>Smallest face radius that is still drawn, in pixels.</summary>
     private const float MinFaceRadius = 10f;
 
-    /// <summary>Intrinsic width the control asks for, readouts or not.</summary>
     private const float DesiredWidth = 150f;
 
-    /// <summary>Intrinsic height the control asks for with the text stack drawn.</summary>
     private const float DesiredHeightWithText = 150f;
 
-    /// <summary>Intrinsic height the control asks for as a bare rotor face.</summary>
     private const float DesiredHeightBare = 90f;
 
-    /// <summary>Unit-space spoke endpoints, built once; each Draw rotates them by the accumulated phase.</summary>
     private static readonly Vector2[] SpokeUnits = BuildSpokes();
 
-    /// <summary>Rotor angle in radians, accumulated in FrameUpdate so the rotor keeps turning between states.</summary>
+    /// <summary>Rotor angle in radians, accumulated so the rotor keeps turning between states.</summary>
     private float _phase;
 
     private Ring _face;
 
-    /// <summary>Line buffer for the rotor, cleared and refilled each Draw.</summary>
     private ValueList<Vector2> _rotorLines;
 
-    /// <summary>Draws the spin, AT FULL and load readouts under the face. Off for a host that labels them itself.</summary>
+    /// <summary>Draws the spin, AT FULL and load readouts; off for a host that labels them itself.</summary>
     public bool ShowReadouts { get; set; } = true;
 
     /// <summary>Rotor spin as a fraction of full, 0 to 1.</summary>
     public float Spin { get; private set; }
 
-    /// <summary>True once the rotor counts as at full, with the design hysteresis already applied server-side.</summary>
+    /// <summary>True once the rotor counts as at full; hysteresis is applied server-side.</summary>
     public bool AtFull { get; private set; }
 
     /// <summary>Mass the hull's pooled gravgens are carrying.</summary>
@@ -92,7 +75,7 @@ public sealed class WFCentrifugeDial : WFDiagramControl
     /// <summary>Mass the hull's pooled gravgens can carry.</summary>
     public float Capacity { get; private set; }
 
-    /// <summary>Feeds the dial one reading. Both hosts call this with the same four values.</summary>
+    /// <summary>Feeds the dial one reading.</summary>
     public void SetReadout(float spin, bool atFull, float load, float capacity)
     {
         Spin = Math.Clamp(spin, 0f, 1f);
@@ -101,12 +84,7 @@ public sealed class WFCentrifugeDial : WFDiagramControl
         Capacity = capacity;
     }
 
-    /// <summary>
-    /// A size the control can actually draw at. Control's own MeasureOverride returns zero for a leaf, so without this
-    /// the dial is invisible in any parent that does not pin it with MinSize or stretch it.
-    /// Deliberately a constant rather than a measured string: MeasureOverride runs before the first Draw, and the mono
-    /// face is only resolved inside <see cref="WFDiagramControl.RefreshSkin"/> on the draw path.
-    /// </summary>
+    /// <summary>Fixed size: a leaf measures zero, and the font is only resolved on the first Draw.</summary>
     protected override Vector2 MeasureOverride(Vector2 availableSize)
     {
         return new Vector2(DesiredWidth, ShowReadouts ? DesiredHeightWithText : DesiredHeightBare);
@@ -137,8 +115,7 @@ public sealed class WFCentrifugeDial : WFDiagramControl
         // One line of the mono face, measured once: the whole stack is laid out off it.
         var line = handle.GetDimensions(Font, "0", 1f).Y;
 
-        // The face gets whatever is left between the spin line at the top and the AT FULL line at the bottom, so no
-        // two pieces of the dial can ever be given the same pixels.
+        // The face takes whatever band the spin line and the bottom readouts leave free.
         var faceTop = Pad;
         var faceBottom = box.Height - Pad;
 
@@ -176,10 +153,7 @@ public sealed class WFCentrifugeDial : WFDiagramControl
         DrawRotor(handle, centre, radius);
     }
 
-    /// <summary>
-    /// The AT FULL line, the load line and the load bar, stacked upward from the bottom edge.
-    /// Returns the y the face may draw down to.
-    /// </summary>
+    /// <summary>Stacks the AT FULL line, load line and load bar up from the bottom; returns the y the face may reach.</summary>
     private float DrawReadouts(DrawingHandleScreen handle, UIBox2i box, float line)
     {
         var barBottom = box.Height - Pad;

@@ -1,8 +1,6 @@
 namespace Content.Server._WF.PlanetCracker.Flight;
 
-/// <summary>
-/// Server-side ascent intent. Its presence feeds normal CE upward input until orbit or a cancellation gate.
-/// </summary>
+/// <summary>Latched ascent intent; feeds CE upward input until takeoff or cancellation.</summary>
 [RegisterComponent, UnsavedComponent]
 public sealed partial class WFLiftoffComponent : Component
 {

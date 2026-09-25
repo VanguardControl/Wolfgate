@@ -99,7 +99,7 @@ public sealed partial class ThrusterSystem : EntitySystem
         using (args.PushGroup(nameof(ThrusterComponent)))
         {
             args.PushMarkup(enabled);
-            WfExamineAtmosphere(uid, args); // WOLFGATE: show atmospheric rating and conversion status.
+            WfExamineAtmosphere(uid, args); // WOLFGATE(PlanetCracker): show atmospheric rating and conversion status.
 
             if (component.Type == ThrusterType.Linear &&
                 EntityManager.TryGetComponent(uid, out TransformComponent? xform) &&
@@ -480,7 +480,7 @@ public sealed partial class ThrusterSystem : EntitySystem
     {
         if (!component.Enabled)
             return false;
-        if (WfCooling(uid)) // WOLFGATE: atmospheric overload recovery must survive power-change callbacks.
+        if (WfCooling(uid)) // WOLFGATE(PlanetCracker): atmospheric overload recovery must survive power-change callbacks.
             return false;
 
         if (component.LifeStage > ComponentLifeStage.Running)
@@ -517,8 +517,8 @@ public sealed partial class ThrusterSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        WfUpdateAtmosphereThrusters(); // WOLFGATE: atmospheric efficiency and continuous power demand.
-        WfUpdateCrashThrust(); // WOLFGATE: severed engines retain their last firing command while powered.
+        WfUpdateAtmosphereThrusters(); // WOLFGATE(PlanetCracker): atmospheric efficiency and continuous power demand.
+        WfUpdateCrashThrust(); // WOLFGATE(PlanetCracker): severed engines retain their last firing command while powered.
 
         var query = EntityQueryEnumerator<ThrusterComponent>();
         var curTime = _timing.CurTime;
@@ -655,7 +655,7 @@ public sealed partial class ThrusterSystem : EntitySystem
         var thrustRating = args.PartRatings[component.MachinePartThrust];
 
         component.Thrust = component.BaseThrust * MathF.Pow(component.PartRatingThrustMultiplier, thrustRating - 1);
-        WfRefreshAtmosphereRating(uid, component); // WOLFGATE: preserve upgraded rating across atmosphere transitions.
+        WfRefreshAtmosphereRating(uid, component); // WOLFGATE(PlanetCracker): preserve upgraded rating across atmosphere transitions.
 
         if (component.Enabled && CanEnable(uid, component))
             EnableThruster(uid, component);

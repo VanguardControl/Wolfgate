@@ -4,10 +4,7 @@ using Content.Shared.Examine;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Server half of the cracker hull: it holds the crack state, resolves the mapper-placed chunk berth and owns every
-/// state transition. The geometry lives in SharedWFCrackerSystem so the client diagrams derive it the same way.
-/// </summary>
+/// <summary>Server half of the cracker hull: the crack state, the chunk berth and every state transition.</summary>
 public sealed partial class WFCrackerSystem : SharedWFCrackerSystem
 {
     /// <inheritdoc/>
@@ -19,10 +16,8 @@ public sealed partial class WFCrackerSystem : SharedWFCrackerSystem
         SubscribeLocalEvent<WFChunkBerthComponent, MapInitEvent>(OnBerthMapInit);
         SubscribeLocalEvent<WFChunkBerthComponent, ExaminedEvent>(OnBerthExamined);
 
-        // The state machine's six broadcast anchor subscriptions; a partial class may only carry one Initialize.
         InitializeStateMachine();
 
-        // The disconnect protocol's three broadcast subscriptions, for the same reason.
         InitializeDisconnect();
     }
 
@@ -71,11 +66,7 @@ public sealed partial class WFCrackerSystem : SharedWFCrackerSystem
             ("distance", MathF.Round(ent.Comp.Distance, 1))));
     }
 
-    /// <summary>
-    /// Copies the resolved berth's grid-local pose onto the grid component; public so a later sweep can refresh it.
-    /// The grid entity is force-sent to anyone who sees any chunk of it while the marker itself is routinely outside
-    /// net.pvs_range, so this is the only route the berth pose has to a client with no BUI state to read.
-    /// </summary>
+    /// <summary>Copies the berth's grid-local pose onto the hull; the marker is often outside client PVS.</summary>
     public void UpdateBerthPose(Entity<WFPlanetCrackerComponent> ent)
     {
         if (ent.Comp.Berth is not { } netBerth || !TryGetEntity(netBerth, out var berth))
@@ -87,13 +78,11 @@ public sealed partial class WFCrackerSystem : SharedWFCrackerSystem
         var (worldPos, worldRot) = TransformSystem.GetWorldPositionRotation(berth.Value);
         var invMatrix = TransformSystem.GetInvWorldMatrix(ent.Owner);
 
-        // The field is the berth CENTRE, which is Distance tiles out along the marker's own facing - the same
-        // derivation TryGetBerthCentre makes. Storing the marker pose instead would draw the radar ghost's rectangle
-        // on the marker, and Distance is not networked, so no consumer could recover the offset.
+        // The berth centre, Distance tiles along the marker's facing; Distance isn't networked, so store the centre.
         var pos = Vector2.Transform(worldPos + worldRot.ToWorldVec() * berthComp.Distance, invMatrix);
         var rot = worldRot - TransformSystem.GetWorldRotation(ent.Owner);
 
-        // The sweep re-runs this, so nothing moved means nothing on the wire: the same inputs recompute bit-identically.
+        // The sweep re-runs this; unchanged inputs recompute bit-identically and send nothing.
         if (pos == ent.Comp.BerthLocalPos && rot == ent.Comp.BerthLocalRot && berthComp.Size == ent.Comp.BerthSize)
             return;
 
@@ -113,7 +102,6 @@ public sealed partial class WFCrackerSystem : SharedWFCrackerSystem
         ent.Comp.State = state;
         Dirty(ent);
 
-        // Raised after the Dirty, and never on a no-op because of the early return above.
         var ev = new WFCrackStateChangedEvent(ent.Owner, old, state);
         RaiseLocalEvent(ref ev);
     }

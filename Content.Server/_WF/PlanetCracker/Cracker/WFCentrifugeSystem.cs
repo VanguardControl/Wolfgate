@@ -7,13 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Turns the centrifuge's raw charge into the spin, at-full and pooled-load values the rotor dial and the crack
-/// console draw, with the design D25 hysteresis applied once here rather than in each window.
-/// Declares no subscriptions on purpose: ChargedMachineActivatedEvent and ChargedMachineDeactivatedEvent are already
-/// claimed on GravityGeneratorComponent by GravityGeneratorSystem, and nothing here needs an edge - only the level.
-/// The charge read is cross-type but legal: PowerChargeComponent's [Access] leaves other types Read.
-/// </summary>
+/// <summary>Turns the centrifuge's charge into the spin, at-full and load values its dials draw.</summary>
 public sealed partial class WFCentrifugeSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -30,11 +24,7 @@ public sealed partial class WFCentrifugeSystem : EntitySystem
     /// <summary>Loop volume at a standstill, in dB; zero at full spin.</summary>
     private const float HumQuiet = -20f;
 
-    /// <summary>
-    /// Spin movement that is worth a state send. Deliberately coarse: at the shipped chargeRate of 0.00417 a sweep
-    /// moves Charge by 0.00104, so a finer epsilon would dirty the component on every sweep for the whole 240 s
-    /// spin-up, and this is still far finer than the 0.98/0.95 hysteresis band.
-    /// </summary>
+    /// <summary>Spin change worth a state send; coarse so the slow spin-up doesn't dirty every sweep.</summary>
     private const float SpinEpsilon = 0.005f;
 
     /// <summary>Next tick of the 4 Hz sweep.</summary>
@@ -59,8 +49,7 @@ public sealed partial class WFCentrifugeSystem : EntitySystem
             // A fraction of the machine's own MaxCharge, never the absolute charge: the thresholds are fractions too.
             var spin = charge.MaxCharge > 0f ? charge.Charge / charge.MaxCharge : 0f;
 
-            // Design D25: latches on at FullOn and only lets go below FullOff, so a dial hovering on the line does
-            // not arm and disarm the grace timer every sweep.
+            // Latches on at FullOn and lets go only below FullOff, so a dial on the line doesn't flap the grace timer.
             var atFull = comp.AtFull ? spin >= comp.FullOff : spin >= comp.FullOn;
 
             UpdateHum(uid, comp, spin);
@@ -68,16 +57,14 @@ public sealed partial class WFCentrifugeSystem : EntitySystem
             var load = 0f;
             var capacity = 0f;
 
-            // The pooled figure for the whole hull, which already folds in the D11 virtual mass, so the readout and
-            // the rule that drops the ship agree by construction.
+            // The pooled figure for the whole hull, so the readout matches the rule that drops the ship.
             if (_zLevels.TryGetGravgenLoad(Transform(uid).ParentUid, out var mass, out var cap))
             {
                 load = mass;
                 capacity = cap;
             }
 
-            // Compared against the last values sent, not against a value written this sweep, or the spin would creep
-            // past the epsilon a sliver at a time and never dirty at all.
+            // Compared against the last values sent, or the spin could creep past the epsilon and never dirty.
             var spinMoved = MathF.Abs(spin - comp.Spin) >= SpinEpsilon;
             var changed = atFull != comp.AtFull
                 || !comp.Load.Equals(load)
@@ -94,10 +81,7 @@ public sealed partial class WFCentrifugeSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// Runs the two spin loops: started the moment the rotor leaves a standstill, with the spool-up effect on top,
-    /// quiet at first and full at full spin, and stopped again once it is still.
-    /// </summary>
+    /// <summary>Runs the two spin loops, quiet to full by spin, with the spool-up effect as they start.</summary>
     private void UpdateHum(EntityUid uid, WFCentrifugeComponent comp, float spin)
     {
         if (spin <= 0f)

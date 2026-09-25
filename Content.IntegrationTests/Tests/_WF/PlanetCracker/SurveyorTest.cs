@@ -22,18 +22,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The handheld surveyor: what one pulse reveals and to whom, that the reveal is refused anywhere but a planet's
-/// ground layer, that the cooldown is the item's own UseDelay rather than anything this feature wrote, that the vein
-/// examine says nothing at all until the examiner has pulsed it, and that the pulse effect is the lensing ripple it
-/// claims to be and despawns on its own schedule.
-/// The scan is driven through the real interaction path - SharedInteractionSystem.UseInHandInteraction - with the
-/// scanner carrying the engine's InstantDoAfters tag, so TryStartDoAfter raises the completion inside the same call
-/// (Content.Shared/DoAfter/SharedDoAfterSystem.cs:259-263). That removes every source of flake a two-second wall-clock
-/// DoAfter would add (BreakOnMove drift, BreakOnDamage from a test map's vacuum) while still running the whole chain:
-/// the cooldown gate, ActionBlocker, the shared UseInHand handler and the server's completion handler.
-/// Generation-free ground comes from DeepVeinTest's grass-only test surface, for the same reason it does there.
-/// </summary>
+/// <summary>The handheld surveyor: reveal radius and owner, ground gate, cooldown, examine and pulse.</summary>
 [TestFixture]
 [TestOf(typeof(WFSurveyorSystem))]
 public sealed class SurveyorTest
@@ -44,7 +33,7 @@ public sealed class SurveyorTest
     /// <summary>The one-shot ground pulse the scan spawns.</summary>
     private const string PulseProto = "WFEffectSurveyPulse";
 
-    /// <summary>The pulse's own half second; it draws no sprite, so nothing else pins this number.</summary>
+    /// <summary>The pulse's lifetime in seconds.</summary>
     private const float PulseLifetime = 0.48f;
 
     /// <summary>The engine tag that makes TryStartDoAfter raise the completion in the same call.</summary>
@@ -56,10 +45,7 @@ public sealed class SurveyorTest
     /// <summary>Well outside it, and outside any rounding of it.</summary>
     private const float FarVein = 20.5f;
 
-    /// <summary>
-    /// The whole point of a radius: what the pulse touched is revealed and what it did not is not. Both veins exist,
-    /// are anchored and are on the same ground layer, so the only thing separating them is the distance.
-    /// </summary>
+    /// <summary>A pulse reveals the vein inside its radius and not the one outside it.</summary>
     [Test]
     public async Task RevealsInsideTheRadiusOnly()
     {
@@ -97,11 +83,7 @@ public sealed class SurveyorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The reveal lives on the scanning player, never on the vein, so a second body standing on the same tile learns
-    /// nothing. That is the whole reason WFSurveyedComponent is on the player: a flag on the vein would either leak to
-    /// everyone who already has it in PVS or need per-viewer state filtering.
-    /// </summary>
+    /// <summary>The reveal is recorded on the scanning player, so a bystander learns nothing.</summary>
     [Test]
     public async Task RevealIsPerPlayer()
     {
@@ -133,11 +115,7 @@ public sealed class SurveyorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Deep veins only exist on a planet's depth-zero biome grid, so the scan is gated on the same TryGetPlanetGround
-    /// the gravity anchors deploy through. A hull deck is the case that matters: it is a grid, it is solid, and it is
-    /// not ground.
-    /// </summary>
+    /// <summary>A scan on a hull deck is refused; only planet ground qualifies.</summary>
     [Test]
     public async Task ScanRefusedOffTheGroundLayer()
     {
@@ -168,11 +146,7 @@ public sealed class SurveyorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The disc cut out of the ground keeps its veins, so the surveyor keeps working on it wherever it hangs: the scan
-    /// gate accepts a chunk grid as well as the ground layer. It used to refuse with "not on ground" in the berth.
-    /// The vein is planted on the ground before the cut and rides up with the disc, as a biome-spawned one does.
-    /// </summary>
+    /// <summary>The surveyor also works on an extracted chunk, whose veins ride up with it.</summary>
     [Test]
     public async Task ScansTheExtractedChunk()
     {
@@ -182,7 +156,7 @@ public sealed class SurveyorTest
 
         var site = await BuildReadyToExtract(pair);
 
-        // The ready site's pair sits at x 0 and 16 on the zero row, so the cut circle is centred on (8.5, 0.5).
+        // The pair at x 0 and 16 centres the cut circle on (8.5, 0.5).
         var centre = new Vector2(8.5f, 0.5f);
         await DeepVeinTest.LayTile(pair, site.Ground, new Vector2i(8, 0), DeepVeinTest.GrassTile);
         var vein = await DeepVeinTest.SpawnVein(pair, site.Ground, centre);
@@ -219,11 +193,7 @@ public sealed class SurveyorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The cooldown is the prototype's UseDelay block and nothing else: SharedInteractionSystem refuses a use while
-    /// IsDelayed (:1215) and resets the delay itself once the event comes back Handled (:1230). Nothing in F2 counts
-    /// seconds, so this is what proves there is a cooldown at all.
-    /// </summary>
+    /// <summary>The scan cooldown comes from the prototype's UseDelay.</summary>
     [Test]
     public async Task CooldownIsEnforcedByUseDelay()
     {
@@ -251,7 +221,7 @@ public sealed class SurveyorTest
             Assert.That(delays.IsDelayed((surveyor, delay!)), Is.True,
                 "The first scan did not start the item's delay, so a second one would be free.");
 
-            // Wipe what the first scan found: if the second one is refused, nothing puts it back.
+            // Wipe the first scan's reveal, so only an accepted second scan restores it.
             entMan.GetComponent<WFSurveyedComponent>(user).Revealed.Clear();
         });
 
@@ -266,10 +236,7 @@ public sealed class SurveyorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Examine is the payoff and the leak at once: before a pulse it says nothing, after one it names the ore and a
-    /// BAND word. The exact tonnage never appears - that is F6's business and would turn one survey into a spreadsheet.
-    /// </summary>
+    /// <summary>Examine is silent before a pulse, then names the ore and a band word, never the tonnage.</summary>
     [Test]
     public async Task ExamineIsGatedOnTheReveal()
     {
@@ -323,14 +290,7 @@ public sealed class SurveyorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The pulse has NO art: it is a SingularityDistortion the client's own singularity overlay lenses the screen
-    /// with, so what has to hold is that the component is on it, that it reaches the client at all - the component's
-    /// ComponentStartup is what takes the global PVS override that gets it there - and that the TimedDespawn still
-    /// takes it away. A pulse that lost the component would be a completely invisible effect with nothing to say so.
-    /// This lives here rather than in PlanetCrackerPrototypeTest because it despawns faster than that file's own
-    /// 15-tick sprite sweep, and because it belongs on planet ground rather than on a FloorSteel test grid.
-    /// </summary>
+    /// <summary>The pulse carries a singularity distortion that reaches the client, and despawns on time.</summary>
     [Test]
     public async Task PulseEffectDistortsAndDespawnsOnTime()
     {
@@ -342,7 +302,7 @@ public sealed class SurveyorTest
         var layers = await DeepVeinTest.BuildTestGround(pair);
         var ground = layers[0];
 
-        // The scanner IS the attached player, so the effect it spawns is inside its own client's PVS.
+        // The scanner is the attached player, so the effect is in its client's PVS.
         var user = await AttachViewer(pair, ground, new Vector2(0.5f, 0.5f));
         var surveyor = await ArmScanner(pair, user);
 
@@ -356,8 +316,7 @@ public sealed class SurveyorTest
 
             Assert.That(pulse, Is.Not.EqualTo(EntityUid.Invalid), "The scan spawned no ground pulse.");
 
-            // The shipped number is read off the prototype: TimedDespawnSystem counts Lifetime DOWN on the live
-            // entity, so a spawned one is already short by however many ticks have gone by.
+            // Read off the prototype, since the live entity's Lifetime counts down.
             var proto = server.ResolveDependency<IPrototypeManager>().Index<EntityPrototype>(PulseProto);
 
             Assert.That(proto.TryGetComponent<TimedDespawnComponent>(out var despawn,
@@ -377,8 +336,7 @@ public sealed class SurveyorTest
         {
             var uid = pair.ToClientUid(pulse);
 
-            // SingularityOverlay.BeforeDraw walks SingularityDistortionComponent on the CLIENT, so the component
-            // reaching the client is the whole of "somebody saw it".
+            // The client overlay draws from this component.
             Assert.That(client.EntMan.TryGetComponent(uid, out SingularityDistortionComponent? distortion), Is.True,
                 "The pulse never reached the client as a distortion, so nobody saw anything at all.");
             Assert.That(distortion!.Intensity, Is.GreaterThan(0f),

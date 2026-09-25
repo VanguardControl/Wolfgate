@@ -38,13 +38,7 @@ using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The scaffolding every planet cracker fixture shares, lifted out of the three that had grown their own verbatim
-/// copies. Every fixture in this namespace pulls it in with <c>using static</c>, so the call sites read the same as
-/// the private helpers they replaced.
-/// PlanetNetworkTest keeps its own BuildStandalone and Teardown: they wrap the layers in a Stack record and tear down
-/// through the network uid rather than the ground layer, so they are a different shape rather than a fourth copy.
-/// </summary>
+/// <summary>Shared planet cracker test scaffolding, pulled in with <c>using static</c>.</summary>
 public static class PlanetCrackerFixture
 {
     /// <summary>The crackable world every fixture builds its stack from.</summary>
@@ -62,7 +56,7 @@ public static class PlanetCrackerFixture
     /// <summary>What <see cref="AttachViewer"/> attaches the session to; a mob, never a ghost.</summary>
     public const string ViewerProto = "MobHuman";
 
-    /// <summary>The crack miner as it ships, which map-inits with a free full <see cref="CellProto"/> in its bay.</summary>
+    /// <summary>The shipped crack miner, which starts with a full <see cref="CellProto"/>.</summary>
     public const string MinerProto = "WFCrackMiner";
 
     /// <summary>The cell-less crack miner; every cell-behaviour test uses this one and seats its own cell.</summary>
@@ -71,7 +65,7 @@ public static class PlanetCrackerFixture
     /// <summary>The cell <see cref="SeatCell"/> seats by default, and the one the shipped miner starts with.</summary>
     public const string CellProto = "PowerCellHigh";
 
-    /// <summary>The test vein CrackMinerTest declares; a WFDeepVein whose whitelist admits the fixture's deck plating.</summary>
+    /// <summary>CrackMinerTest's deep vein, which allows the fixture's deck plating.</summary>
     public const string VeinProto = "WFCrackMinerTestVein";
 
     /// <summary>The miner's cell slot id, as mining.yml declares it.</summary>
@@ -105,11 +99,7 @@ public static class PlanetCrackerFixture
         return layers;
     }
 
-    /// <summary>
-    /// Builds an Asclepiu stack the way the round does: a sector body on its own map, which owns the network.
-    /// BuildStandalone passes no body, so both of the extraction's planet resolution paths come back empty and the
-    /// cracked flag silently goes nowhere; anything that cares about the flag has to come through here.
-    /// </summary>
+    /// <summary>Builds an Asclepiu stack owned by a sector body on its own map, where the cracked flag lands.</summary>
     public static async Task<(List<EntityUid> Layers, EntityUid Body, EntityUid BodyMap)> BuildOwnedStack(TestPair pair)
     {
         var server = pair.Server;
@@ -123,9 +113,7 @@ public static class PlanetCrackerFixture
         {
             body = entMan.SpawnEntity(PlanetBodyProto, new MapCoordinates(Vector2.Zero, map.MapId));
 
-            // Through the one production writer rather than a hand-written EnsureComponent/Surface pair, so
-            // WFPlanetRegistrySystem.ApplySurface really is the only thing in the tree that writes Surface and
-            // Sanctioned and a fixture body's Sanctioned mirrors its surface prototype (plan D-J).
+            // The production writer, so Sanctioned mirrors the surface prototype.
             ApplySurfaceTo(pair, body, SurfaceProto);
 
             var sector = new Entity<WFSectorPlanetComponent>(body, entMan.GetComponent<WFSectorPlanetComponent>(body));
@@ -140,19 +128,7 @@ public static class PlanetCrackerFixture
         return (layers, body, map.MapUid);
     }
 
-    /// <summary>
-    /// Attaches this pair's one session to a fresh entity on a map, which is the only thing that makes a biome
-    /// generate anything at all.
-    /// BiomeSystem.Update early-exits while _handledEntities is empty (Content.Server/Parallax/BiomeSystem.cs:198-202)
-    /// and that set is filled only by ProcessPlayerChunkRequests, from attached players and from view subscriptions
-    /// (BiomeSystem.PlayerTracker.cs:25-61). From there the path is AddChunksInRange (:70, the 16-tile _loadArea at
-    /// BiomeSystem.cs:49/:65) plus AddMarkerChunksInRange (:80) -> LoadChunks (BiomeSystem.cs:248) ->
-    /// BuildMarkerChunks (BiomeSystem.MarkerProcessor.cs:24) -> LoadChunkMarkers (:259), which is the only engine path
-    /// that ever spawns a marker entity, and it only runs for chunks inside that load area. BiomeSystem.Preload
-    /// (BiomeSystem.PlanetSetup.cs:152) registers chunk indices and spawns nothing, so it is not a substitute.
-    /// A ghost is deliberately not used: CanLoad excludes GhostComponent holders that lack the AllowBiomeLoading tag
-    /// (BiomeSystem.PlayerTracker.cs:65-68), so an observer would generate nothing.
-    /// </summary>
+    /// <summary>Attaches the session to a fresh mob; biomes only generate around attached non-ghosts.</summary>
     public static async Task<EntityUid> AttachViewer(TestPair pair, EntityUid map, Vector2 pos)
     {
         var server = pair.Server;
@@ -172,16 +148,7 @@ public static class PlanetCrackerFixture
         return viewer;
     }
 
-    /// <summary>
-    /// Forces one marker layer to generate under whatever viewer is already attached, and actually forces it.
-    /// Both writes are required and the order matters: BuildMarkerChunks returns for a chunk that is already in
-    /// LoadedMarkers BEFORE it ever reads ForcedMarkerLayers (BiomeSystem.MarkerProcessor.cs:38-41), and
-    /// ForcedMarkerLayers is cleared at the end of every pass (:118), so it is a one-shot that has to be set
-    /// immediately before the ticks. The only in-repo precedent is BiomeSystem.Commands.cs:158-163, which writes the
-    /// same pair. Pass clearLoaded false to leave LoadedMarkers alone, which is what exercises the double-spawn guard.
-    /// Note that forcing also bulldozes any anchored entity already sitting on a candidate tile
-    /// (BiomeSystem.MarkerProcessor.cs:58-70): acceptable on a throwaway test stack, never in production.
-    /// </summary>
+    /// <summary>Forces a marker layer to generate; clearLoaded false exercises the double-spawn guard.</summary>
     public static async Task ForceMarkers(TestPair pair, EntityUid ground, string layer, int ticks = 40, bool clearLoaded = true)
     {
         var server = pair.Server;
@@ -191,8 +158,7 @@ public static class PlanetCrackerFixture
         {
             var biome = entMan.GetComponent<BiomeComponent>(ground);
 
-            // BiomeComponent is [Access(typeof(SharedBiomeSystem))] and nothing public forces a layer, so the three
-            // marker sets are written by reflection the same way Energise writes PowerChargeComponent's ramp.
+            // BiomeComponent is access-locked, so the marker sets are written by reflection.
             MarkerLayers(biome).Add(layer);
 
             if (clearLoaded)
@@ -204,10 +170,7 @@ public static class PlanetCrackerFixture
         await pair.RunTicksSync(ticks);
     }
 
-    /// <summary>
-    /// Stamps a surface onto a test body through the one production writer, so a hand-built body carries Sanctioned
-    /// as well as Surface. Must be called from inside a server thread callback.
-    /// </summary>
+    /// <summary>Stamps a surface onto a test body through the production writer; call on the server thread.</summary>
     public static void ApplySurfaceTo(TestPair pair, EntityUid body, string surfaceId)
     {
         var proto = pair.Server.ResolveDependency<IPrototypeManager>();
@@ -216,11 +179,7 @@ public static class PlanetCrackerFixture
             .ApplySurface(body, proto.Index<WFPlanetSurfacePrototype>(surfaceId));
     }
 
-    /// <summary>
-    /// Materialises a rectangle of ground so the footprint checks have solid tiles to find. SetTiles is deliberate:
-    /// unlike BiomeSystem.ReserveTiles it leaves BiomeComponent.ModifiedTiles alone, so a reservation test can still
-    /// tell what the anchor itself pinned.
-    /// </summary>
+    /// <summary>Lays deck plating over a rectangle without touching BiomeComponent.ModifiedTiles.</summary>
     public static async Task LayTiles(TestPair pair, EntityUid ground, Vector2i from, Vector2i to)
     {
         var server = pair.Server;
@@ -262,11 +221,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(5);
     }
 
-    /// <summary>
-    /// Tears a whole site down: the stack through its network, then the sector body's own map.
-    /// The older Teardown(pair, site.Layers) call sites keep working untouched; they simply leave the sector map to
-    /// the pool, exactly as PlanetNetworkTest's sector fixture already does.
-    /// </summary>
+    /// <summary>Tears a whole site down: the stack through its network, then the sector body's own map.</summary>
     public static async Task Teardown(TestPair pair, CrackerSite site)
     {
         var server = pair.Server;
@@ -341,10 +296,7 @@ public static class PlanetCrackerFixture
         return grid;
     }
 
-    /// <summary>
-    /// Builds a bare square grid with nothing whatsoever on it: no console, no thrusters, no shuttle component. This
-    /// is debris - a fragment split off in combat, or a wreck - which is what orbit decay is mostly about.
-    /// </summary>
+    /// <summary>Builds a bare square debris grid with no console, thrusters or shuttle component.</summary>
     public static async Task<EntityUid> BuildDebris(TestPair pair, MapId map, int size = 3, Vector2? offset = null)
     {
         var server = pair.Server;
@@ -376,13 +328,7 @@ public static class PlanetCrackerFixture
         return grid;
     }
 
-    /// <summary>
-    /// Map-initialises a code-built hull.
-    /// MapManager's grid creation deliberately leaves a new grid un-map-initialised even on a live map, and adding a
-    /// component only re-raises MapInitEvent on an entity that IS map-initialised. Without this the crack's
-    /// AddComp&lt;ForceAnchorComponent&gt; never reaches ForceAnchorSystem's handler, so the hull would never actually
-    /// go static and every lock assertion would be testing nothing.
-    /// </summary>
+    /// <summary>Map-initialises a code-built hull, or ForceAnchorComponent would never apply.</summary>
     public static async Task MapInitHull(TestPair pair, EntityUid grid)
     {
         var server = pair.Server;
@@ -392,12 +338,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(1);
     }
 
-    /// <summary>
-    /// Winds every PowerCharge machine on a hull up to full so its gravity generator activates. The shipped charge
-    /// rates are 100 s for the mini gravgen and 240 s for the centrifuge, which no integration test can tick through;
-    /// PowerChargeComponent is [Access(typeof(PowerChargeSystem))], so the rate is raised by reflection and the
-    /// machine still has to charge, activate and light the grid on its own.
-    /// </summary>
+    /// <summary>Winds every PowerCharge machine on a hull up by raising its access-locked charge rate.</summary>
     public static async Task Energise(TestPair pair, EntityUid grid)
     {
         var server = pair.Server;
@@ -415,10 +356,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
     }
 
-    /// <summary>
-    /// Pins one charging machine's ramp so a parked charge stays parked. Without it the shipped rate keeps creeping the
-    /// charge back up under every threshold assertion.
-    /// </summary>
+    /// <summary>Zeroes one charging machine's rate so a parked charge stays put.</summary>
     public static async Task FreezeCharge(TestPair pair, EntityUid uid)
     {
         var server = pair.Server;
@@ -428,11 +366,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(1);
     }
 
-    /// <summary>
-    /// Parks one charging machine at an exact charge and lets the centrifuge sweep read it. PowerChargeComponent is
-    /// [Access(typeof(PowerChargeSystem))] and the shipped ramp is 240 s, so the level is set by reflection the same
-    /// way Energise sets the rate; a full second covers the sweep's own 0.25 s gate.
-    /// </summary>
+    /// <summary>Sets one charging machine's charge by reflection and waits a second for the centrifuge sweep.</summary>
     public static async Task SetCharge(TestPair pair, EntityUid uid, float charge)
     {
         var server = pair.Server;
@@ -442,7 +376,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
     }
 
-    /// <summary>Builds a full crack site: an Asclepiu stack, laid ground, and a surveying cracker hull in orbit.</summary>
+    /// <summary>Builds a crack site: an Asclepiu stack, laid ground and a surveying hull in orbit.</summary>
     public static async Task<CrackerSite> BuildCrackerInOrbit(TestPair pair)
     {
         var server = pair.Server;
@@ -453,8 +387,7 @@ public static class PlanetCrackerFixture
         var stack = await BuildOwnedStack(pair);
         var site = new CrackerSite { Layers = stack.Layers, Planet = stack.Body, PlanetMap = stack.BodyMap };
 
-        // Wide enough that a radius-10 cut circle plus its rim ring is hand-laid deck rather than biome terrain, which
-        // is what makes the extraction's tile counts deterministic instead of seed-dependent.
+        // Covers a radius-10 cut and its rim, so tile counts don't depend on the biome seed.
         await LayTiles(pair, site.Ground, new Vector2i(-16, -16), new Vector2i(32, 16));
 
         var orbitMap = MapId.Nullspace;
@@ -467,7 +400,7 @@ public static class PlanetCrackerFixture
             orbitMap = entMan.GetComponent<MapComponent>(site.Orbit).MapId;
         });
 
-        // The hull has to sit on the orbit layer: that is the survey edge, and it is what the fall has to leave.
+        // The hull surveys from the orbit layer.
         site.Cracker = await BuildCracker(pair, orbitMap);
         await MapInitHull(pair, site.Cracker);
 
@@ -493,10 +426,7 @@ public static class PlanetCrackerFixture
         return site;
     }
 
-    /// <summary>
-    /// Spawns an owned anchor pair on the ground layer, wrenches both down and optionally finishes both drills, which
-    /// is what walks the hull Surveying to AnchorsPlaced to AnchorsLocked.
-    /// </summary>
+    /// <summary>Spawns and anchors an owned pair on the ground, optionally finishing both drills.</summary>
     public static async Task DeployPair(TestPair pair, CrackerSite site, float ax, float bx, bool drill)
     {
         var server = pair.Server;
@@ -506,7 +436,7 @@ public static class PlanetCrackerFixture
 
         await server.WaitPost(() =>
         {
-            // Hand-spawned anchors belong to nobody, and an unowned pair is invisible to the hull's state machine.
+            // An unowned pair is invisible to the hull's state machine.
             foreach (var x in new[] { ax, bx })
             {
                 var anchor = entMan.SpawnEntity(AnchorProto, new EntityCoordinates(site.Ground, new Vector2(x + 0.5f, 0.5f)));
@@ -530,7 +460,7 @@ public static class PlanetCrackerFixture
         if (!drill)
             return;
 
-        // The shipped drill is five minutes; the admin path finishes it with the same lock, thunk and event.
+        // The shipped drill takes five minutes, so finish it through the admin path.
         await server.WaitPost(() =>
         {
             foreach (var anchor in site.Anchors)
@@ -542,10 +472,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
     }
 
-    /// <summary>
-    /// A hull in orbit with a drilled, owned pair, flown onto the cut circle and a rotor wound to full: everything a
-    /// begin-crack needs, with nothing blocking.
-    /// </summary>
+    /// <summary>A hull in orbit with a drilled owned pair, aligned on the cut circle with a full rotor.</summary>
     public static async Task<CrackerSite> BuildReadyToCut(TestPair pair, Vector2? offset = null)
     {
         var site = await BuildCrackerInOrbit(pair);
@@ -555,10 +482,7 @@ public static class PlanetCrackerFixture
         return site;
     }
 
-    /// <summary>
-    /// Widens the test hull's berth. The factory shrinks it to 12x12 at Distance 8 because the hull itself is tiny
-    /// (WFTestGridFactory), and no faithfully sized disc fits in that, so any extraction test has to grow it first.
-    /// </summary>
+    /// <summary>Widens the test hull's berth, which the factory shrinks too small to hold a disc.</summary>
     public static async Task EnlargeBerth(TestPair pair, CrackerSite site, Vector2i size, float distance)
     {
         var server = pair.Server;
@@ -581,10 +505,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
     }
 
-    /// <summary>
-    /// A hull that could cut a disc free right now: a berth big enough to hold one, a drilled pair 16 tiles apart
-    /// (radius 10, inside the anchors' 16..40 band) and the hull flown onto the circle with a full rotor.
-    /// </summary>
+    /// <summary>A hull ready to cut: an enlarged berth, a drilled pair 16 tiles apart and a full rotor.</summary>
     public static async Task<CrackerSite> BuildReadyToExtract(TestPair pair)
     {
         var site = await BuildCrackerInOrbit(pair);
@@ -597,10 +518,7 @@ public static class PlanetCrackerFixture
         return site;
     }
 
-    /// <summary>
-    /// Finishes the cut through the same call the timer's expiry makes, which is what raises the extraction hook.
-    /// The shipped cut is eight minutes at this pair distance, so no test can tick one out.
-    /// </summary>
+    /// <summary>Finishes the cut through the timer's expiry call; the shipped cut is too long to tick.</summary>
     public static async Task CompleteCut(TestPair pair, CrackerSite site)
     {
         var server = pair.Server;
@@ -624,12 +542,7 @@ public static class PlanetCrackerFixture
         return site;
     }
 
-    /// <summary>
-    /// A hull whose disc is cut free and whose two anchors have both been switched off in the same tick, which is the
-    /// whole disconnect: the first switch-off arms the 60 s pairing window and the second commits it.
-    /// ForceSwitchOff is used rather than the verb because it skips the cancellable attempt entirely, which is exactly
-    /// the `wfcracker disconnect` path the protocol has to work through.
-    /// </summary>
+    /// <summary>A cut hull whose anchors were both force-switched off in one tick: disconnecting.</summary>
     public static async Task<CrackerSite> BuildDisconnecting(TestPair pair)
     {
         var server = pair.Server;
@@ -655,20 +568,7 @@ public static class PlanetCrackerFixture
         return site;
     }
 
-    /// <summary>
-    /// A crack site with one live deep vein anchored on the ground and the ground grid wearing a FAKE chunk marker, so
-    /// F6's behaviour can be driven without going anywhere near F5's extraction. Returns the site and the vein.
-    /// Two traps are worth spelling out, because both are silent.
-    /// (a) WFDeepVeinSystem.OnMapInit QueueDels any vein whose tile is not in its own AllowedTiles, and the whole
-    /// fixture lays FloorSteel, which the shipped default { FloorPlanetGrass, FloorPlanetDirt } excludes. That is what
-    /// <see cref="VeinProto"/> exists for - a child of WFDeepVein whose whitelist is the deck plating - and it is also
-    /// why the site is built on BuildCrackerInOrbit: the vein stamps itself from the ground layer's
-    /// WFPlanetLayer -> WFPlanetNetwork -> WFSurfaceAsclepiu chain, whose `veins: WFVeinTableAsclepiu` is the only
-    /// thing standing between a hand-spawned vein and a second self-delete.
-    /// (b) The chunk marker is a fake on the planet's OWN ground grid, which keeps the F6 tests independent of F5. The
-    /// hour-long WatchdogGrace is what stops WFPlanetChunkSystem's 1 Hz sweep from reading that grid as an orphaned
-    /// chunk and calling DropChunk on the planet itself.
-    /// </summary>
+    /// <summary>A crack site with one anchored deep vein and a fake chunk marker on the ground grid.</summary>
     public static async Task<(CrackerSite Site, EntityUid Vein)> BuildMinerSite(TestPair pair, Vector2i? tile = null)
     {
         var server = pair.Server;
@@ -683,8 +583,7 @@ public static class PlanetCrackerFixture
 
         var vein = EntityUid.Invalid;
 
-        // The DeployPair recipe verbatim: spawn on the tile centre, one tick for the spawn to initialise, anchor inside
-        // a WaitPost, two ticks for the snap-grid write and the physics settle.
+        // Same spawn-then-anchor sequence as DeployPair.
         await server.WaitPost(() => vein = entMan.SpawnEntity(VeinProto,
             new EntityCoordinates(site.Ground, new Vector2(index.X + 0.5f, index.Y + 0.5f))));
 
@@ -702,6 +601,7 @@ public static class PlanetCrackerFixture
         {
             var chunk = entMan.EnsureComponent<WFPlanetChunkComponent>(site.Ground);
 
+            // A long grace keeps the chunk sweep from dropping the planet's own ground as an orphan.
             chunk.WatchdogGrace = TimeSpan.FromHours(1);
             chunk.ExtractedAt = timing.CurTime;
             entMan.Dirty(site.Ground, chunk);
@@ -725,14 +625,7 @@ public static class PlanetCrackerFixture
         return (site, vein);
     }
 
-    /// <summary>
-    /// Puts a cell of a known charge in a miner's bay and hands it back.
-    /// The eject and the assertion are both mandatory. WFCrackMiner declares `startingItem: PowerCellHigh`, which
-    /// ItemSlotsSystem spawns and inserts on MapInit (ItemSlotsSystem.cs:68-80), so an insert into an occupied slot
-    /// returns false (CanInsert, :325-326) and a test that ignored the result would go on mining off the free full
-    /// 1080 J cell it never meant to use. SetCharge rather than a field write because BatteryComponent is
-    /// [Access(typeof(SharedBatterySystem))]; read the charge back with PowerCellSystem.TryGetBatteryFromSlot.
-    /// </summary>
+    /// <summary>Replaces a miner's cell with one of a known charge and returns it.</summary>
     public static async Task<EntityUid> SeatCell(TestPair pair, EntityUid miner, float charge, string cell = CellProto)
     {
         var server = pair.Server;
@@ -775,18 +668,7 @@ public static class PlanetCrackerFixture
         return total;
     }
 
-    /// <summary>
-    /// Zeroes the chunk's per-tile crash intensity, and is MANDATORY for every test that lets a chunk land.
-    /// At the production defaults (CrashTileIntensity 4, CrashTileMaxIntensity 2) the crash footprint is roughly twice
-    /// the disc's area - QueueExplosion merges same-prototype blasts within one tile by ADDING TotalIntensity while
-    /// MaxTileIntensity caps the per-tile output - so rim tiles are inside it. The Default prototype's TileBreakChance
-    /// interpolates to about 0.1 per tile at intensity 2 (tileBreakChance [0, 0.5, 1] over tileBreakIntensity
-    /// [0, 10, 30], linear at ExplosionPrototype.cs:126-139) and DecalSystem.OnTileChanged deletes any decal on a tile
-    /// that becomes space (DecalSystem.cs:165-177), so rim tiles and rim decals are probabilistic under a live crash.
-    /// Zero suppresses the per-tile blasts entirely through the totalIntensity &lt;= 0 early return
-    /// (ExplosionSystem.cs:374), which is what makes a landing deterministic enough to assert against.
-    /// Must be called BEFORE the drop: DropChunk copies the value onto CEZGridFallerComponent.
-    /// </summary>
+    /// <summary>Zeroes a chunk's per-tile crash intensity for a deterministic landing; call before the drop.</summary>
     public static async Task SoftenCrash(TestPair pair, EntityUid chunk)
     {
         var server = pair.Server;
@@ -809,10 +691,7 @@ public static class PlanetCrackerFixture
         return EntityUid.Invalid;
     }
 
-    /// <summary>
-    /// Every tile index whose CENTRE falls inside the cut circle, which is the extraction's own membership test and
-    /// therefore the only correct definition of "the disc" for an assertion.
-    /// </summary>
+    /// <summary>Every tile index whose centre is inside the cut circle, as the extraction tests it.</summary>
     public static List<Vector2i> DiscIndices(IEntityManager entMan, EntityUid ground, Vector2 centre, float radius)
     {
         return IndicesInBand(entMan, ground, centre, null, radius);
@@ -856,11 +735,7 @@ public static class PlanetCrackerFixture
         return pinned;
     }
 
-    /// <summary>
-    /// Indices whose tile centre sits in the half-open ring (inner, outer], walked over the outer box.
-    /// A null inner means no lower bound at all, which is not the same as zero: the tile sitting exactly on the circle
-    /// centre is inside the disc and a zero bound would silently drop it.
-    /// </summary>
+    /// <summary>Indices whose tile centre is in (inner, outer]; a null inner keeps the centre tile.</summary>
     private static List<Vector2i> IndicesInBand(IEntityManager entMan, EntityUid ground, Vector2 centre, float? inner, float outer)
     {
         var half = entMan.GetComponent<MapGridComponent>(ground).TileSizeHalfVector;
@@ -919,11 +794,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
     }
 
-    /// <summary>
-    /// Flies the hull so its berth centre lands exactly the given raw XY delta short of the cut circle centre, which is
-    /// what TryGetBerthOffset then reports. The berth centre is read back off the marker rather than assumed, so the
-    /// hull layout can change without every alignment test moving with it.
-    /// </summary>
+    /// <summary>Moves the hull so its berth centre sits the given offset short of the cut circle centre.</summary>
     public static async Task AlignHull(TestPair pair, CrackerSite site, Vector2 offset)
     {
         var server = pair.Server;
@@ -942,7 +813,7 @@ public static class PlanetCrackerFixture
             Assert.That(crackers.TryGetCircle(a.Owner, b.Owner, out var circle, out _), Is.True,
                 "Precondition: the pair has a cut circle.");
 
-            // The berth sits at a fixed grid-local place, so the hull pose that puts it where we want is arithmetic.
+            // The berth is fixed in grid-local space, so the hull pose follows directly.
             var local = centre.Position - transform.GetWorldPosition(site.Cracker);
             transform.SetWorldPosition(site.Cracker, circle - offset - local);
         });
@@ -950,10 +821,7 @@ public static class PlanetCrackerFixture
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
     }
 
-    /// <summary>
-    /// The exact state object a client would receive, built server-side with no window standing up.
-    /// Must be called from inside a server thread callback.
-    /// </summary>
+    /// <summary>The console state a client would receive, built server-side; call on the server thread.</summary>
     public static WFCrackConsoleState ReadConsoleState(TestPair pair, CrackerSite site)
     {
         return pair.Server.System<WFCrackConsoleSystem>().BuildState(site.Console);
@@ -971,7 +839,7 @@ public static class PlanetCrackerFixture
         return EntityUid.Invalid;
     }
 
-    /// <summary>The shuttle console resting on a hull, or Invalid; the one the orbit and flight actions come from.</summary>
+    /// <summary>The shuttle console resting on a hull, or Invalid.</summary>
     public static EntityUid FindShuttleConsole(IEntityManager entMan, EntityUid hull)
     {
         foreach (var uid in Children(entMan, hull))
@@ -983,11 +851,7 @@ public static class PlanetCrackerFixture
         return EntityUid.Invalid;
     }
 
-    /// <summary>
-    /// Seats a pilot at the hull's own shuttle console holding the descend key. CollectPilotVerticalInputs reads
-    /// nothing but the console's grid and the held buttons (CEZLevelsSystem.PilotControl.cs), so the input is written
-    /// directly rather than driven through the console UI. Returns the pilot.
-    /// </summary>
+    /// <summary>Seats a pilot at the hull's shuttle console holding the descend key, and returns the pilot.</summary>
     public static Task<EntityUid> HoldDescend(TestPair pair, EntityUid hull)
     {
         return HoldVertical(pair, hull, ShuttleButtons.DescendZ);
@@ -1017,12 +881,8 @@ public static class PlanetCrackerFixture
         return pilot;
     }
 
-    /// <summary>
-    /// Drops a hull out of orbit through the console action F10 put the decision behind, and hands back the refusal
-    /// text when the server said no. The pilot gate is bypassed deliberately: the system method is the authority and
-    /// the BUI message only forwards to it.
-    /// </summary>
-    /// <param name="settle">Seconds of ticks to run afterwards; zero leaves the hull exactly where the call put it.</param>
+    /// <summary>Drops a hull out of orbit through the console's system call and returns the refusal, if any.</summary>
+    /// <param name="settle">Seconds to tick afterwards; zero leaves the hull where the call put it.</param>
     public static async Task<string?> EnterAtmosphere(TestPair pair, EntityUid hull, bool confirmed = true, float settle = 1f)
     {
         var server = pair.Server;
@@ -1045,7 +905,7 @@ public static class PlanetCrackerFixture
         return reason;
     }
 
-    /// <summary>Bolts converted thrusters onto a hull. The legacy lift parameter is capacity; rated force is lift times 9.81.</summary>
+    /// <summary>Bolts landing thrusters onto a hull; rated force is lift times 9.81.</summary>
     public static async Task<List<EntityUid>> AddLandingThrusters(TestPair pair, EntityUid hull, int count, float lift = 50f)
     {
         var server = pair.Server;
@@ -1059,7 +919,7 @@ public static class PlanetCrackerFixture
             {
                 var uid = entMan.SpawnEntity("WFThrusterLanding", new EntityCoordinates(hull, new Vector2(1.5f + i, 1.5f)));
 
-                // No cabling on a code-built hull, exactly as WFTestGridFactory.SpawnOnHull does it.
+                // No cabling on a code-built hull.
                 receiver.SetNeedsPower(uid, false);
                 server.System<ThrusterSystem>().WfSetRatedThrust(uid, lift * 9.81f);
 
@@ -1100,7 +960,7 @@ public static class PlanetCrackerFixture
         return EntityUid.Invalid;
     }
 
-    /// <summary>Every gravity projector resting on a hull, ordered by grid-local X the way the console rows are.</summary>
+    /// <summary>Every gravity projector on a hull, ordered by grid-local X like the console rows.</summary>
     public static List<EntityUid> FindProjectors(IEntityManager entMan, EntityUid cracker)
     {
         var found = new List<EntityUid>();
@@ -1129,7 +989,7 @@ public static class PlanetCrackerFixture
         return (HashSet<ProtoId<BiomeMarkerLayerPrototype>>) ResolveField("ForcedMarkerLayers").GetValue(biome)!;
     }
 
-    /// <summary>Which marker chunks are already done, which is the guard a second forced pass has to trip over.</summary>
+    /// <summary>The marker chunks already loaded, which guard against a second spawn.</summary>
     private static Dictionary<string, HashSet<Vector2i>> LoadedMarkers(BiomeComponent biome)
     {
         return (Dictionary<string, HashSet<Vector2i>>) ResolveField("LoadedMarkers").GetValue(biome)!;
@@ -1161,7 +1021,7 @@ public static class PlanetCrackerFixture
     }
 }
 
-/// <summary>One built crack site: the planet stack, the hull in orbit and everything on it the tests reach for.</summary>
+/// <summary>One built crack site: the planet stack, the hull in orbit and its machines.</summary>
 public sealed class CrackerSite
 {
     /// <summary>The stack's layers, ground first, orbit last.</summary>

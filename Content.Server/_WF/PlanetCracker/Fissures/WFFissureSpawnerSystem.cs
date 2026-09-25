@@ -20,10 +20,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Fissures;
 
-/// <summary>
-/// Site threats: while an anchor's drill runs it spreads rings of fissures around itself and climbs mobs out of them,
-/// and the extraction cut adds one final surge on the disc's perimeter.
-/// </summary>
+/// <summary>Site threats: a drilling anchor spreads fissure rings that spawn mobs; extraction adds a surge.</summary>
 public sealed partial class WFFissureSpawnerSystem : EntitySystem
 {
     [Dependency] private AnchorableSystem _anchorable = default!;
@@ -50,9 +47,6 @@ public sealed partial class WFFissureSpawnerSystem : EntitySystem
     {
         base.Initialize();
 
-        // Seven BROADCAST subscriptions, every one by ref because all seven events are [ByRefEvent] record structs
-        // (WFAnchorEvents.cs, WFCrackEvents.cs). The one-owner-per-(component, event) rule binds DIRECTED pairs only,
-        // so none of these contend with WFGravityAnchorSystem or WFCrackerSystem.
         SubscribeLocalEvent<WFAnchorDrillStartedEvent>(OnDrillStarted);
         SubscribeLocalEvent<WFAnchorDrillFinishedEvent>(OnDrillFinished);
         SubscribeLocalEvent<WFAnchorSwitchedOffEvent>(OnSwitchedOff);
@@ -60,12 +54,10 @@ public sealed partial class WFFissureSpawnerSystem : EntitySystem
         SubscribeLocalEvent<WFAnchorDestroyedEvent>(OnDestroyed);
         SubscribeLocalEvent<WFAnchorPairDissolvedEvent>(OnPairDissolved);
 
-        // WFPlanetChunkSystem.OnCrackCompleted (WFPlanetChunkSystem.cs:68) calls TryExtract synchronously, which stamps
-        // the whole disc Tile.Empty; without this ordering constraint the surge would run over a hole.
+        // Before the extraction empties the disc, or the surge would run over a hole.
         SubscribeLocalEvent<WFCrackCompletedEvent>(OnCrackCompleted, before: new[] { typeof(WFPlanetChunkSystem) });
 
-        // The ONE directed pair this system adds. Deliberately not <WFGravityAnchorComponent, ExaminedEvent>, which
-        // WFGravityAnchorSystem.cs:59 already owns; a duplicate directed pair crashes the server at start.
+        // On the spawner component: WFGravityAnchorSystem already owns the anchor's ExaminedEvent.
         SubscribeLocalEvent<WFFissureSpawnerComponent, ExaminedEvent>(OnExamined);
     }
 
@@ -100,46 +92,36 @@ public sealed partial class WFFissureSpawnerSystem : EntitySystem
         comp.Armed = true;
         comp.RingsDone = 0;
 
-        // CurTime, never CurTime + interval: seeding the deadline forward puts ring five exactly on DrillEnd, and both
-        // sweeps run at 1 Hz with the same phase - WFGravityAnchorSystem.cs:46-47/:292-302 locks the anchor at DrillEnd
-        // and this system's own Update disarms on State != Drilling BEFORE it looks at NextRing, so which of the two
-        // won would be decided by system registration order. Seeded to now, the five rings land at 0/20/40/60/80% of
-        // the drill and a freshly armed anchor is immediately dangerous.
+        // Now, not now + interval, so the last ring lands before DrillEnd instead of racing the lock.
         comp.NextRing = _timing.CurTime;
     }
 
-    /// <summary>The drill finished and the anchor locked; no more rings.</summary>
     private void OnDrillFinished(ref WFAnchorDrillFinishedEvent args)
     {
         Disarm(args.Anchor);
     }
 
-    /// <summary>A locked anchor was switched off.</summary>
     private void OnSwitchedOff(ref WFAnchorSwitchedOffEvent args)
     {
         Disarm(args.Anchor);
     }
 
-    /// <summary>The anchor broke and has to be repaired before it does anything again.</summary>
     private void OnBroken(ref WFAnchorBrokenEvent args)
     {
         Disarm(args.Anchor);
     }
 
-    /// <summary>The anchor entity is terminating.</summary>
     private void OnDestroyed(ref WFAnchorDestroyedEvent args)
     {
         Disarm(args.Anchor);
     }
 
-    /// <summary>The pair stopped being a pair, which cancels any drill on either half.</summary>
     private void OnPairDissolved(ref WFAnchorPairDissolvedEvent args)
     {
         Disarm(args.A);
         Disarm(args.B);
     }
 
-    /// <summary>Examine: how much of the ground this anchor has already split open.</summary>
     private void OnExamined(Entity<WFFissureSpawnerComponent> ent, ref ExaminedEvent args)
     {
         if (ent.Comp.Fissures.Count == 0)
@@ -164,18 +146,14 @@ public sealed partial class WFFissureSpawnerSystem : EntitySystem
             if (!spawner.Armed)
                 continue;
 
-            // THE CANCEL WITH NO EVENT. Demote (WFGravityAnchorSystem.Pairing.cs:98-110) drops Drilling -> Deployed and
-            // zeroes DrillEnd while raising only WFAnchorPairDissolvedEvent, and Dissolve is reached from unanchoring
-            // (WFGravityAnchorSystem.cs:121), breakage (:249) and shutdown (:274). Re-checking the state every tick is
-            // the only robust stop.
+            // A drill can end with no event of its own, so the state is re-checked every tick.
             if (anchor.State != WFAnchorState.Drilling)
             {
                 spawner.Armed = false;
                 continue;
             }
 
-            // Extraction unanchors and re-anchors a deployed anchor onto the chunk grid (ChunkRide.cs:32); that churn
-            // is not a cancel, so the ring schedule is paused rather than torn down.
+            // Riding onto the chunk isn't a cancel; the schedule just pauses.
             if (_anchors.IsRidingChunk(uid))
                 continue;
 
@@ -191,7 +169,7 @@ public sealed partial class WFFissureSpawnerSystem : EntitySystem
         }
     }
 
-    /// <summary>Stops the ring schedule; decals, pins and live mobs are deliberately left where they are (D19).</summary>
+    /// <summary>Stops the ring schedule; decals, pins and live mobs stay where they are.</summary>
     private void Disarm(EntityUid anchor)
     {
         if (!TryComp<WFFissureSpawnerComponent>(anchor, out var comp))
@@ -200,22 +178,13 @@ public sealed partial class WFFissureSpawnerSystem : EntitySystem
         comp.Armed = false;
     }
 
-    /// <summary>
-    /// One ring per DrillDuration / RingCount, read live off the anchor every tick.
-    /// Never derived from DrillEnd: CompleteDrill rewrites it to CurTime (WFGravityAnchorSystem.Control.cs:20) and
-    /// Demote zeroes it (WFGravityAnchorSystem.Pairing.cs:108), so it is not a usable drill-start source.
-    /// </summary>
+    /// <summary>One ring per DrillDuration / RingCount; never from DrillEnd, which other paths rewrite.</summary>
     private static TimeSpan RingInterval(WFFissureSpawnerComponent comp, WFGravityAnchorComponent anchor)
     {
         return anchor.DrillDuration / Math.Max(1, comp.RingCount);
     }
 
-    /// <summary>
-    /// The world's salvage faction and whether cracking it is legal, walked off the ground grid.
-    /// The three hops are WFDeepVeinSystem.TryGetVeinTable's (WFDeepVeinSystem.cs:110-130): the layer's network, the
-    /// network's surface prototype, then the prototype itself. Shared by the arm handler and the surge, and a null
-    /// faction on a successful walk is not an error - that world simply has no fissure mobs.
-    /// </summary>
+    /// <summary>The world's salvage faction and whether cracking it is legal; a null faction spawns no mobs.</summary>
     private bool TryGetFaction(EntityUid ground, out ProtoId<SalvageFactionPrototype>? faction, out bool sanctioned)
     {
         faction = null;

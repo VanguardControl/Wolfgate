@@ -8,6 +8,7 @@ public static class WFCrashFractures
 {
     private static readonly Vector2i[] Neighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
+    /// <summary>Returns the tiles to remove so the hull splits into 2 to 4 large sections.</summary>
     public static HashSet<Vector2i> Plan(HashSet<Vector2i> original, int targetParts, int seed = 0)
     {
         var random = new Random(seed);
@@ -35,8 +36,7 @@ public static class WFCrashFractures
                 foreach (var fraction in new[] { 0.15f, 0.25f, 0.4f, 0.5f, 0.65f, 0.8f, 0.9f })
                 {
                     var coordinate = min + (int) MathF.Round((max - min) * fraction);
-                    // Remove the high-side boundary of a slightly wandering dividing line.
-                    // Boundary adjacency closes the gaps that a diagonal zig-zag otherwise leaves at its turns.
+                    // Cut the high side of a zig-zag line; the adjacency test closes the gaps at its turns.
                     bool LowSide(Vector2i tile) => Projection(tile, axis) <= coordinate + ZigZag(axis == 0 ? tile.Y : tile.X, phase);
                     var band = largest.Where(t => !LowSide(t) &&
                         Neighbours.Any(offset => largest.Contains(t + offset) && LowSide(t + offset))).ToHashSet();
@@ -69,6 +69,7 @@ public static class WFCrashFractures
     private static int Projection(Vector2i tile, int axis) =>
         axis switch { 0 => tile.X, 1 => tile.Y, 2 => tile.X + tile.Y, _ => tile.X - tile.Y };
 
+    /// <summary>Splits tiles into 4-connected sections.</summary>
     public static List<HashSet<Vector2i>> Sections(HashSet<Vector2i> tiles)
     {
         var unseen = new HashSet<Vector2i>(tiles);

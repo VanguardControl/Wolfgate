@@ -8,18 +8,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// One row per gravity projector on the hull, ordered by grid-local X so the rows keep the same order between
-/// updates: the projector icon, a power pip, a broken pip, the state name and a beam pip while firing.
-/// Rows come from <see cref="WFCrackConsoleState"/>, never from the projector entities, which are routinely outside
-/// net.pvs_range of the console on a capital hull.
-/// </summary>
+/// <summary>One row per hull projector, from the console state since the projectors are often outside PVS.</summary>
 public sealed class WFProjectorPanel : WFDiagramControl
 {
-    /// <summary>Placeholder icon set the panel draws from.</summary>
     private static readonly ResPath IconsRsi = new("/Textures/_WF/PlanetCracker/Interface/icons.rsi");
 
-    /// <summary>Side of an icon, in pixels; the RSI ships at 16x16.</summary>
+    /// <summary>Side of an icon, in pixels.</summary>
     private const float IconSize = 16f;
 
     /// <summary>Height of one row, in pixels.</summary>
@@ -137,7 +131,7 @@ public sealed class WFProjectorPanel : WFDiagramControl
             Geom(Skin.Accent));
     }
 
-    /// <summary>Loads the three icons once; done here rather than in the constructor so a headless host never needs them.</summary>
+    /// <summary>Loads the icons on first draw, so a headless host never needs them.</summary>
     private void EnsureIcons()
     {
         if (_projectorIcon is not null)
@@ -167,7 +161,7 @@ public sealed class WFProjectorPanel : WFDiagramControl
         };
     }
 
-    /// <summary>Locale key naming one projector state; the panel never shows a server-sent string.</summary>
+    /// <summary>Locale key naming one projector state.</summary>
     private static string StateKey(WFProjectorState state)
     {
         return state switch

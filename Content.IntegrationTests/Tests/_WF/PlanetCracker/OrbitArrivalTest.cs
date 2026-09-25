@@ -17,27 +17,17 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The orbit layer holds a hull up no matter how it got there. The fall gate's own exemption
-/// (CEZLevelsSystem.Gravity.cs:93) only covers the plummet path; the generic z-physics integrator in
-/// CESharedZLevelsSystem.Update.cs:113 walks a woken grid down one map per level with a direct parent change
-/// (CESharedZLevelsSystem.Movement.cs:452 -> CEZLevelsSystem.Transit.cs:101), skipping transit and the crash entirely.
-/// These cover both arrival paths and the only way down that is supposed to work.
-/// </summary>
+/// <summary>The orbit layer holds a hull up however it arrived, and the console descent is the only way down.</summary>
 [TestFixture]
 [TestOf(typeof(CEZLevelsSystem))]
 public sealed class OrbitArrivalTest
 {
-    /// <summary>Real FTL travel time for the arrival test; long enough to pass through the FTL map, short enough to tick.</summary>
+    /// <summary>FTL travel time for the arrival test, in seconds.</summary>
     private const float FtlStartup = 0.2f;
 
     private const float FtlTravel = 0.5f;
 
-    /// <summary>
-    /// The live defect: a hull that arrives in orbit through the real FTL travel path, with no gravgen at all, is still
-    /// on the orbit layer ten seconds later. Before the fix it walked straight down to the ground map through direct
-    /// parent changes, one per layer, with no transit map and no crash.
-    /// </summary>
+    /// <summary>A gravgen-less hull arriving in orbit by FTL is still on the orbit layer ten seconds later.</summary>
     [Test]
     public async Task FtlArrivalStaysInOrbit()
     {
@@ -81,11 +71,7 @@ public sealed class OrbitArrivalTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The same hull placed straight onto the orbit layer with no gravgen, woken by its own map-init, stays put. This is
-    /// the spawn path rather than the arrival path, and it breaks the same way: the z-physics integrator needs no FTL to
-    /// start walking a grid down.
-    /// </summary>
+    /// <summary>A gravgen-less hull spawned onto the orbit layer and woken stays put.</summary>
     [Test]
     public async Task SpawnedHullStaysInOrbit()
     {
@@ -139,12 +125,7 @@ public sealed class OrbitArrivalTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The deliberate way down: the console's enter-atmosphere action puts the hull into the gap between orbit and the
-    /// layer below, never straight onto a lower layer and never onto the ground. A hull with no lift still gets to
-    /// fall - otherwise a cold ship parked in orbit by the fix above would be stranded there for the rest of the
-    /// round - it just has to confirm first (F10; the raw descend input out of orbit is refused, see FlightTest).
-    /// </summary>
+    /// <summary>The console descent puts the hull into transit below orbit; with no lift it must confirm.</summary>
     [Test]
     public async Task DescendFromOrbitEntersTransit()
     {
@@ -200,13 +181,7 @@ public sealed class OrbitArrivalTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Clears the hull tile the grid origin sits on. Orbit is bare vacuum, so the shared ground-height walk finds a
-    /// floor under a parked hull only when the hull's own origin happens to land on one of its own tiles - which is
-    /// where the code-built test hull starts and where a mapped ship usually does not. With the origin over open space
-    /// the walk reports -1, which is the state the whole defect lives in: every hull that reads it sinks a level per
-    /// crossing. Without this the test passes on unfixed code, for the wrong reason.
-    /// </summary>
+    /// <summary>Clears the tile under the grid origin, so the ground-height walk finds no floor.</summary>
     private static async Task OpenOriginTile(TestPair pair, EntityUid hull)
     {
         var server = pair.Server;
@@ -233,10 +208,7 @@ public sealed class OrbitArrivalTest
         return mapId;
     }
 
-    /// <summary>
-    /// Flies a hull to a layer through the real FTL machinery, so the arrival carries everything a live jump does: the
-    /// stop on the FTL map, the parent changes, and the velocity an arriving hull still has.
-    /// </summary>
+    /// <summary>Flies a hull to a layer through the real FTL machinery.</summary>
     private static async Task FtlTo(TestPair pair, EntityUid hull, EntityUid layer)
     {
         var server = pair.Server;
@@ -254,8 +226,7 @@ public sealed class OrbitArrivalTest
                 FtlTravel);
         });
 
-        // The arrival phase runs on the server's own ftl.arrival_time, which no argument here overrides, so the jump is
-        // waited out rather than timed.
+        // Arrival time is a server cvar, so wait for it rather than timing it.
         var arrived = false;
         for (var i = 0; i < 60 && !arrived; i++)
         {
@@ -265,10 +236,7 @@ public sealed class OrbitArrivalTest
         }
     }
 
-    /// <summary>
-    /// Shoves a hull a hair so the z-physics body is awake. A grid that never moves is never added to the active body
-    /// list (CESharedZLevelsSystem.Activation.cs:138), which would make the spawn case pass for the wrong reason.
-    /// </summary>
+    /// <summary>Nudges a hull so its z-physics body is awake; a grid that never moves is never active.</summary>
     private static async Task Nudge(TestPair pair, EntityUid hull)
     {
         var server = pair.Server;

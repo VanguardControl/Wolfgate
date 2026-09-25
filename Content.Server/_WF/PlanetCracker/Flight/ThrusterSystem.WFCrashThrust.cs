@@ -14,6 +14,7 @@ public sealed partial class ThrusterSystem
     [Dependency] private SharedPhysicsSystem _wfCrashPhysics = default!;
     [Dependency] private SharedTransformSystem _wfCrashTransform = default!;
 
+    /// <summary>Remembers which linear engines were firing at impact, for one second.</summary>
     public void WfCaptureCrashThrust(EntityUid grid)
     {
         var children = Transform(grid).ChildEnumerator;
@@ -23,12 +24,12 @@ public sealed partial class ThrusterSystem
                 EnsureComp<WFCrashThrustComponent>(uid).ExpiresAt = _timing.CurTime + TimeSpan.FromSeconds(1);
     }
 
+    /// <summary>Rebinds engines after a breakup; engines cut off from every console keep their last command.</summary>
     public void WfDetachCrashThrust(EntityUid original, EntityUid[] fragments)
     {
         var pieces = new HashSet<EntityUid>(fragments) { original };
         var consoles = WfConsoleGrids();
-        // The engine split moves children before fragments gain shuttle components.
-        // Remove transferred engines from the original controller, so it cannot command remote wreckage.
+        // Engines moved to fragments must leave the original's banks so it can't steer the wreckage.
         if (TryComp<ShuttleComponent>(original, out var oldShuttle))
         {
             for (var direction = 0; direction < oldShuttle.LinearThrusters.Length; direction++)

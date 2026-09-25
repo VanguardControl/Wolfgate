@@ -21,19 +21,11 @@ public sealed partial class WFSectorPlanetComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? OrbitMap;
 
-    /// <summary>
-    /// True once a disc has been cut out of this body. It lives here rather than on the z-network because the network
-    /// can be torn down and rebuilt, and this is what the sector survey console enumerates.
-    /// </summary>
+    /// <summary>True once a disc has been cut out of this body; kept here because the z-network can be rebuilt.</summary>
     [DataField, AutoNetworkedField]
     public bool Cracked;
 
-    /// <summary>
-    /// Whether cracking this world is legal, mirrored off the surface prototype by WFPlanetRegistrySystem.ApplySurface
-    /// so a console reads it without indexing a prototype. It lives here rather than on WFPlanetNetworkComponent
-    /// because that one is server-only, [UnsavedComponent] and destroyed by DeleteNetwork while the body lives on
-    /// (WFPlanetNetworkSystem.cs:252-263).
-    /// </summary>
+    /// <summary>Whether cracking this world is legal, mirrored off the surface prototype.</summary>
     [DataField, AutoNetworkedField]
     public bool Sanctioned = true;
 }

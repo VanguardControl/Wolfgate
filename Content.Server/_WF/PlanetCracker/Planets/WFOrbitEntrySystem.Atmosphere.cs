@@ -10,39 +10,22 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// Entering the atmosphere: the one place a hull leaves orbit downward, and therefore the one place the lift warning
-/// can be shown and confirmed. The raw pilot descend input out of orbit is refused for exactly this reason
-/// (CEZLevelsSystem.WFFlight.cs), so there is no way past the confirm.
-/// </summary>
+/// <summary>Console descent from orbit into the atmosphere, with the lift warning and confirm.</summary>
 public sealed partial class WFOrbitEntrySystem
 {
     [Dependency] private CEZLevelsSystem _zLevels = default!;
     [Dependency] private WFFlightSystem _flight = default!;
 
-    /// <summary>Lift ratio change under which the console readout is not re-sent; it is a two-decimal display.</summary>
+    // The readout shows two decimals.
     private const float LiftRatioEpsilon = 0.01f;
 
-    /// <summary>
-    /// Where in the gap below orbit a hull is placed when it drops out. Below CE's own settle zone (0.25 of the gap
-    /// from either plane), because a hull WITH lift and no pilot input inside that band drifts back onto the plane it
-    /// came from - which would pop it straight back into orbit. A hull without lift keeps falling from here anyway.
-    /// </summary>
+    // Below CE's 0.25 settle zone, or a hull with lift would drift straight back into orbit.
     private const float AtmosphereEntryProgress = 0.7f;
 
-    /// <summary>
-    /// Downward speed the hull is seeded with, in levels per second. Above CE's ExitTransitMaxSpeed (0.1) so the
-    /// first settle check does not read the hull as already touched down and put it back where it started.
-    /// </summary>
+    // Levels/s; above CE's ExitTransitMaxSpeed (0.1) so the first settle check doesn't count it as landed.
     private const float AtmosphereEntrySeed = 0.15f;
 
-    /// <summary>
-    /// Drops the console's hull out of orbit into the gap below it. A hull that cannot hold itself up is refused
-    /// unless <paramref name="confirmed"/>, which is the client's answer to the lift warning.
-    /// </summary>
-    /// <param name="console">The shuttle console the request came from.</param>
-    /// <param name="confirmed">Whether the pilot has already answered the lift warning.</param>
-    /// <param name="reason">Why the descent was refused, already localised.</param>
+    /// <summary>Drops the console's hull out of orbit; low lift or power needs <paramref name="confirmed"/>.</summary>
     public bool TryEnterAtmosphere(EntityUid console, bool confirmed, [NotNullWhen(false)] out string? reason)
     {
         if (!TryGetHull(console, out var hull, out reason))
@@ -74,13 +57,7 @@ public sealed partial class WFOrbitEntrySystem
         return TryDropFromOrbit(grid, out reason);
     }
 
-    /// <summary>
-    /// Puts one grid into the gap below the orbit layer and, when it cannot hold itself up there, into lift lost.
-    /// The pilot's confirmed descent and the orbit-decay countdown (F11) both end here, so an unmanned wreck falls
-    /// through the same seed, the same transit and the same GPWS sequence a piloted hull gets.
-    /// </summary>
-    /// <param name="grid">The grid leaving orbit; it needs no console, no pilot and no shuttle component.</param>
-    /// <param name="reason">Why the descent was refused, already localised.</param>
+    /// <summary>Moves a grid into the gap below orbit, entering lift-lost if it can't hold itself up.</summary>
     public bool TryDropFromOrbit(EntityUid grid, [NotNullWhen(false)] out string? reason)
     {
         if (Transform(grid).MapUid is not { } mapUid || !HasComp<WFOrbitLayerComponent>(mapUid))
@@ -103,8 +80,7 @@ public sealed partial class WFOrbitEntrySystem
 
         var hasRatio = _zLevels.WfTryGetLiftRatio(grid, out var ratio);
 
-        // The sweep's pooled-lift memo is up to half a second stale and would otherwise decide the first tick of the
-        // descent, which is the tick that settles a hull straight back onto the layer it just left.
+        // The pooled-lift cache can be stale and would settle the hull straight back into orbit.
         _zLevels.WfInvalidateGravgenCapacity();
 
         var faller = EnsureComp<CEZGridFallerComponent>(grid);
@@ -117,7 +93,7 @@ public sealed partial class WFOrbitEntrySystem
             return false;
         }
 
-        // Orbit parks a grid by switching its z-gravity off; off the orbit layer it has to be handed back.
+        // Orbit parking disabled z-gravity.
         _zLevels.WfRearmZGravity(grid);
 
         if (hasRatio && ratio < CEZLevelsSystem.WFFullLiftRatio)
@@ -128,7 +104,7 @@ public sealed partial class WFOrbitEntrySystem
         return true;
     }
 
-    /// <summary>Console request to enter the atmosphere; the actor has to be the pilot of this very console.</summary>
+    /// <summary>Console request to enter the atmosphere; the actor must pilot this console.</summary>
     private void OnEnterAtmosphereMessage(EntityUid uid, ShuttleConsoleComponent component, WFEnterAtmosphereMessage args)
     {
         if (GetEntity(args.Console) != uid || !IsPilot(args.Actor, uid))

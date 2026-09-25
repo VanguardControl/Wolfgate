@@ -7,9 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Counts the anchors each hull is carrying: the rating examine and overload popup, and the virtual mass the lift check reads (design D11).
-/// </summary>
+/// <summary>Counts the anchors each hull carries: rating examine, overload popup and lift virtual mass.</summary>
 public sealed partial class WFAnchorCapacitySystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;

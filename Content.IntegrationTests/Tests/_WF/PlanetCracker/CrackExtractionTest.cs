@@ -33,18 +33,12 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// F5's extraction end to end on a real owned Asclepiu stack: what the disc takes with it and what it leaves behind,
-/// the hole and its pinned rim, where the chunk ends up and what it is made of, the cracked flag and the refusal it
-/// earns, and the two things a cut broadcasts while it runs.
-/// The site is deliberately hand-laid deck over the whole cut circle plus its rim, so every tile count here is
-/// arithmetic rather than a function of the biome seed.
-/// </summary>
+/// <summary>Disc extraction: what rides up, the pinned hole and rim, the parked chunk and the cracked flag.</summary>
 [TestFixture]
 [TestOf(typeof(WFPlanetChunkSystem))]
 public sealed class CrackExtractionTest
 {
-    /// <summary>A loose container, which is what most of a mining camp actually is.</summary>
+    /// <summary>A loose container.</summary>
     private const string Crate = "WFAnchorCrate";
 
     /// <summary>A walking mob, the case the disc filter exists for.</summary>
@@ -53,11 +47,7 @@ public sealed class CrackExtractionTest
     /// <summary>A second tile type, so the struct copy has a TypeId change to carry as well as a variant.</summary>
     private const string SampleTile = "Plating";
 
-    /// <summary>
-    /// The tile set is the set of tiles whose CENTRE is inside the circle, no more and no less. A radius test done
-    /// against anything else - a fixture AABB, a corner, the enclosing box - shows up here as a count that is out by
-    /// the whole rim.
-    /// </summary>
+    /// <summary>Exactly the tiles whose centre is inside the circle are copied.</summary>
     [Test]
     public async Task ExtractionCopiesEveryDiscTile()
     {
@@ -93,10 +83,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The whole Tile struct rides across, not just its type. A rebuild from TypeId alone passes any type assertion
-    /// while silently flattening the biome's variant and rotation, which is the entire look of a planet's ground.
-    /// </summary>
+    /// <summary>The whole Tile struct is copied, keeping variant and rotation, not just its type.</summary>
     [Test]
     public async Task ExtractionCopiesTheWholeTileStruct()
     {
@@ -110,8 +97,7 @@ public sealed class CrackExtractionTest
         var site = await BuildReadyToExtract(pair);
         var samples = new List<(Vector2i Index, Tile Tile)>();
 
-        // Stamped after the pair is down, so the sample indices are known to be inside the circle, and before the cut,
-        // so the reserve has to leave them alone the way it leaves any existing non-empty tile alone.
+        // Stamped after the pair is down, so the circle is known, and before the cut.
         await server.WaitPost(() =>
         {
             var pair2 = entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker);
@@ -125,7 +111,7 @@ public sealed class CrackExtractionTest
             var typeId = tileDefs[SampleTile].TileId;
             var disc = DiscIndices(entMan, site.Ground, centre, radius);
 
-            // Spread across the disc rather than clustered, so a partial copy cannot pass by luck.
+            // Spread across the disc so a partial copy cannot pass by luck.
             for (var i = 0; i < disc.Count; i += Math.Max(1, disc.Count / 8))
             {
                 samples.Add((disc[i], new Tile(typeId, 0, (byte)(3 + i % 5), (byte)(1 + i % 7))));
@@ -165,11 +151,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The E-E regression guard. Moving an anchor onto the chunk is an unanchor and a re-anchor, and without the ride
-    /// suppression the anchor handler dissolves the pair on the way out and fails the planet-ground test on the way
-    /// back in - after which the hull's own sweep sees no targeted pair and quietly aborts a finished cut.
-    /// </summary>
+    /// <summary>Both anchors ride up still paired and locked, so the finished cut is not aborted.</summary>
     [Test]
     public async Task BothAnchorsRideUpStillPairedAndLocked()
     {
@@ -204,8 +186,7 @@ public sealed class CrackExtractionTest
             }
         });
 
-        // The abort spin-down is thirty seconds, but StartAbort fires on the very first sweep that sees no pair, so
-        // five seconds of sweeps is enough to catch a dissolved pair.
+        // StartAbort fires on the first sweep that sees no pair, so five seconds is enough.
         await server.WaitRunTicks(pair.SecondsToTicks(5f));
 
         await server.WaitAssertion(() =>
@@ -237,7 +218,7 @@ public sealed class CrackExtractionTest
         var outsideCrate = EntityUid.Invalid;
         var outsideMob = EntityUid.Invalid;
 
-        // The circle is radius 10 about (8.5, 0.5): two of these are well inside it and two are well outside.
+        // The circle is radius 10 about (8.5, 0.5): two inside, two outside.
         await server.WaitPost(() =>
         {
             insideCrate = entMan.SpawnEntity(Crate, new EntityCoordinates(site.Ground, new Vector2(8.5f, 2.5f)));
@@ -271,11 +252,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// E-L: the lookup is a fixture-overlap query and is only a prefilter. A mob whose centre sits just past the radius
-    /// on a tile that was never copied must stay behind, or it rides up onto vacuum and falls straight through the
-    /// chunk's own floor the moment it reaches orbit.
-    /// </summary>
+    /// <summary>A mob overlapping the circle but standing on an uncopied tile stays behind.</summary>
     [Test]
     public async Task ARimStraddlingMobIsLeftBehind()
     {
@@ -287,8 +264,7 @@ public sealed class CrackExtractionTest
 
         var site = await BuildReadyToExtract(pair);
 
-        // 10.1 tiles from the circle centre, on the tile whose own centre is 10.63 out: inside the query shape, outside
-        // the disc. The tile is (16, 7) for the radius-10 circle about (8.5, 0.5).
+        // 10.1 tiles out on tile (16, 7), whose centre is 10.63 out: inside the query shape, outside the disc.
         var position = new Vector2(16.1325f, 7.1148f);
         var straddler = EntityUid.Invalid;
 
@@ -313,7 +289,7 @@ public sealed class CrackExtractionTest
             var disc = DiscIndices(entMan, site.Ground, cut.Centre, cut.Radius);
             var chunkGrid = entMan.GetComponent<MapGridComponent>(cut.Chunk);
 
-            // The prefilter really would have taken it: the same shape the extraction queries with still finds it.
+            // The extraction's query shape does find it.
             var overlapping = new HashSet<EntityUid>();
             lookup.GetLocalEntitiesIntersecting(
                 site.Ground,
@@ -337,10 +313,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The hole is Tile.Empty and nothing but the biome pin keeps it: a fully emptied map chunk is deleted outright,
-    /// after which GetTileRef fabricates Tile.Empty and ModifiedTiles is the only record that the hole was deliberate.
-    /// </summary>
+    /// <summary>The hole is empty and pinned in the biome, which is the only record that it is deliberate.</summary>
     [Test]
     public async Task TheHoleIsEmptyAndPinned()
     {
@@ -367,10 +340,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The destructive half: an unload empties every UNPINNED index and the decal system then wipes the decals on it,
-    /// so an unload followed by a reload is the only thing that proves a pin actually holds.
-    /// </summary>
+    /// <summary>The pinned hole and rim decals survive a biome unload and reload.</summary>
     [Test]
     public async Task TheHoleAndRimSurviveAnUnloadAndReload()
     {
@@ -382,7 +352,7 @@ public sealed class CrackExtractionTest
         var site = await BuildExtracted(pair);
         var cut = await ReadCut(pair);
 
-        // One callback for all three passes: nothing may tick in between or the biome's own loader joins in.
+        // One callback, so the biome's own loader cannot run in between.
         await server.WaitPost(() =>
         {
             var biome = new Entity<BiomeComponent, MapGridComponent>(
@@ -419,10 +389,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The ring lies OUTSIDE the circle, on pinned biome ground: a decal is refused on a space tile and wiped when its
-    /// tile becomes one, so a ring drawn on the hole itself would be gone the instant it was stamped.
-    /// </summary>
+    /// <summary>The rim decals sit on pinned ground outside the circle; decals cannot live on space.</summary>
     [Test]
     public async Task TheRimIsDecalled()
     {
@@ -466,11 +433,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// A berth marked too close to the deck still hangs the disc clear of it. The test hull's own eight-tile berth is
-    /// inside every radius the pairing band allows (10 to 22), and the disc used to be hung straight through the hull,
-    /// where the two grids' contacts welded them together.
-    /// </summary>
+    /// <summary>A berth marked too close to the deck still hangs the disc clear of the hull.</summary>
     [Test]
     public async Task TheChunkClearsTheHullWhenTheBerthIsTooClose()
     {
@@ -486,8 +449,7 @@ public sealed class CrackExtractionTest
         await Energise(pair, site.Cracker);
         await BeginCut(pair, site);
 
-        // The hull's own footprint, after the snap and before the gangway is laid on it: the gangway overlaps the
-        // disc by one tile on purpose, so it is not what the disc has to clear.
+        // The hull footprint before the gangway, which overlaps the disc by design.
         var hull = Box2.Empty;
         await server.WaitPost(() => hull = lookup.GetWorldAABB(site.Cracker));
 
@@ -531,10 +493,7 @@ public sealed class CrackExtractionTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Placement is a translation with the ground grid's own rotation, so the chunk's tile indices stay pixel-perfect
-    /// over the hole, and the parked chunk is a static, airless, self-lit body the berth can hold.
-    /// </summary>
+    /// <summary>The chunk keeps the ground's rotation and parks as a static, airless, self-lit body.</summary>
     [Test]
     public async Task TheChunkHangsInTheBerth()
     {
@@ -582,10 +541,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The proof that the chunk was built on the ground map and re-parented exactly once. A grid created straight onto
-    /// the orbit map raises its GridAddEvent in nullspace and gets neither of these, and nothing ever re-sweeps it.
-    /// </summary>
+    /// <summary>The chunk was built on the ground map and re-parented, so it has its z-physics components.</summary>
     [Test]
     public async Task TheChunkIsZPhysicsAttached()
     {
@@ -610,10 +566,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// A chunk is a grid on a layer, never a layer: a planet-layer marker on it would make the anchor capacity sweep
-    /// skip it and would change what the FTL gate thinks it is looking at.
-    /// </summary>
+    /// <summary>A chunk is a grid on a layer and never carries a planet-layer marker.</summary>
     [Test]
     public async Task TheChunkNeverCarriesPlanetLayer()
     {
@@ -638,10 +591,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The flag lives on the sector body, which outlives the z-network the way the z-network does not outlive a
-    /// rebuild. A site with no body at all is the fixture defect this stack exists to rule out.
-    /// </summary>
+    /// <summary>Extraction sets the cracked flag on the sector body, which outlives the z-network.</summary>
     [Test]
     public async Task ExtractionFlagsThePlanet()
     {
@@ -671,11 +621,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// A cracked planet refuses a second cut whatever state the anchors are in, and it says so FIRST: it is the only
-    /// permanent fault in the blocker list, so naming anything else would send the crew to fix something that cannot
-    /// help.
-    /// </summary>
+    /// <summary>A cracked planet refuses a second cut, and names that first as the only permanent fault.</summary>
     [Test]
     public async Task ASecondCrackIsRefused()
     {
@@ -706,11 +652,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The growing ring's value, read where a surface viewer actually reads it. The anchors carry a global PVS override
-    /// and the hull grid four layers up does not, which is why the progress lives on the anchors and why this is the
-    /// only client-side assertion F5 can make at all.
-    /// </summary>
+    /// <summary>Ring progress reaches the client on the anchors, which carry a global PVS override.</summary>
     [Test]
     public async Task RingProgressIsNetworkedZeroToOne()
     {
@@ -723,9 +665,7 @@ public sealed class CrackExtractionTest
 
         var site = await BuildReadyToExtract(pair);
 
-        // Five minutes rather than the shipped eight: long enough that the third of a second it takes the begin to
-        // reach the client is well inside the anchor's own 0.01 dirty epsilon, so the fresh value really is nothing,
-        // and short enough that eight seconds of cutting is past that epsilon and has therefore been sent.
+        // Five minutes keeps the begin under the 0.01 dirty epsilon and eight seconds of cutting above it.
         await server.WaitPost(() =>
         {
             var comp = entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker);
@@ -779,10 +719,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The beams are reconciled every sweep rather than written on edges, and they are asserted on the SERVER: only
-    /// anchors carry a PVS override, so a projector's beam component never reaches a test client.
-    /// </summary>
+    /// <summary>Beams are reconciled every sweep; checked server-side, as projectors have no PVS override.</summary>
     [Test]
     public async Task BeamStateIsReconciledServerSide()
     {
@@ -851,14 +788,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The mounts swing onto their own anchor for the cut and are handed back the facing the mapper gave them when it
-    /// ends. The rotation is what aims the beam art at the tile it is cutting; without it the barrels stay wherever
-    /// they were bolted and the beam leaves the side of the housing.
-    /// Asserted on the SERVER for the same reason the beam component is: a projector carries no PVS override.
-    /// The anchor is several z-levels down and CE keeps world XY across a stack, so the expected angle is the plain
-    /// world-space bearing from the mount to the anchor.
-    /// </summary>
+    /// <summary>Projectors face their anchor for the cut and return to their mapped facing afterwards.</summary>
     [Test]
     public async Task ProjectorsFaceTheirAnchorForTheCutAndGoBackAfterwards()
     {
@@ -883,7 +813,7 @@ public sealed class CrackExtractionTest
 
         await BeginCut(pair, site);
 
-        // The sweep runs every 0.25 s while a hull is cutting, and the facing is written by the same pass as the beam.
+        // The sweep runs every 0.25 s while cutting.
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
 
         await server.WaitAssertion(() =>
@@ -929,10 +859,7 @@ public sealed class CrackExtractionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The hook fires once per disc, and a repeated completion - which the sweep can produce, because the completion
-    /// silently returns on a failed lookup and repeats forever - must not cut a second one out of the same hull.
-    /// </summary>
+    /// <summary>The extraction hook fires once per disc, and a repeated completion cuts no second disc.</summary>
     [Test]
     public async Task ExtractionRaisesItsHookOnce()
     {
@@ -956,7 +883,7 @@ public sealed class CrackExtractionTest
             }
         });
 
-        // The same entry point again, with the same targeted pair: the back-link has to refuse it.
+        // Same entry point and pair again; the back-link must refuse it.
         await CompleteCut(pair, site);
 
         await server.WaitAssertion(() =>
@@ -1002,11 +929,7 @@ public sealed class CrackExtractionTest
         return values;
     }
 
-    /// <summary>
-    /// Every decal on the ground anywhere near the cut, by id.
-    /// Read through the decal system's own query: DecalGridComponent is access-locked to that system, and even a
-    /// dictionary lookup on its index counts as an Execute the analyzer refuses.
-    /// </summary>
+    /// <summary>Every decal near the cut by id, via the decal system since DecalGridComponent is locked.</summary>
     private static Dictionary<uint, Decal> RimDecals(TestPair pair, EntityUid ground, Vector2 centre, float radius)
     {
         var decals = pair.Server.System<DecalSystem>();
@@ -1024,13 +947,10 @@ public sealed class CrackExtractionTest
     /// <summary>How far off a mount the anchor's copy of its position may sit, in tiles.</summary>
     private const float MountTolerance = 0.5f;
 
-    /// <summary>
-    /// How far off a mount's facing may be, in radians. Generous on purpose: the assertion is that it turned to the
-    /// anchor at all, not that it landed on a particular float.
-    /// </summary>
+    /// <summary>How far off a mount's facing may be, in radians.</summary>
     private const double FacingTolerance = 0.01;
 
-    /// <summary>Every biome chunk origin the disc and its rim touch; the biome's own chunks are 8 tiles, not 16.</summary>
+    /// <summary>Every 8-tile biome chunk origin the disc and its rim touch.</summary>
     private static HashSet<Vector2i> BiomeChunkOrigins(IEntityManager entMan, EntityUid ground, Vector2 centre, float radius)
     {
         var origins = new HashSet<Vector2i>();

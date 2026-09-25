@@ -6,7 +6,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._WF.PlanetCracker.Chunk;
 
-/// <summary>Marks a grid as a disc cut out of a planet and hung in its cracker's berth (design D24).</summary>
+/// <summary>Marks a grid as a disc cut out of a planet and hung in its cracker's berth.</summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true), AutoGenerateComponentPause]
 public sealed partial class WFPlanetChunkComponent : Component
 {
@@ -18,10 +18,7 @@ public sealed partial class WFPlanetChunkComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? GroundMap;
 
-    /// <summary>
-    /// The berth's map, captured at extraction so the watchdog compares map IDENTITY rather than kind: the orbit layer
-    /// is an FTL destination and every planet has one, so a hull that jumps to another planet's orbit must still drop.
-    /// </summary>
+    /// <summary>The berth's map at extraction; the watchdog compares identity so a jump to another planet's orbit still drops.</summary>
     [DataField, AutoNetworkedField]
     public NetEntity? OrbitMap;
 
@@ -41,18 +38,11 @@ public sealed partial class WFPlanetChunkComponent : Component
     [DataField, AutoNetworkedField]
     public bool Dropped;
 
-    /// <summary>
-    /// True only when the drop's TryEnterTransit actually took: <see cref="Dropped"/> is set either way, and the
-    /// landing test is "my map is no longer a transit map", which a chunk still sitting in its berth passes on the very
-    /// first sweep. Without this a failed push would be read as a landing and the grid deleted after CleanupDelay.
-    /// </summary>
+    /// <summary>True only when the drop's TryEnterTransit took, so a failed push is not read as a landing.</summary>
     [DataField]
     public bool EnteredTransit;
 
-    /// <summary>
-    /// When the chunk was cut. Paused with its map, because a plain TimeSpan would burn the whole watchdog grace the
-    /// instant a paused map unpaused and drop the chunk out from under a perfectly healthy hull.
-    /// </summary>
+    /// <summary>When the chunk was cut; paused with its map so an unpause does not burn the watchdog grace.</summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan ExtractedAt;
 
@@ -68,17 +58,11 @@ public sealed partial class WFPlanetChunkComponent : Component
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan LandedAt;
 
-    /// <summary>
-    /// How long the wreck is left alone after landing before it is cleaned up. It must outlast the crash explosion
-    /// drain: those blasts are anchored to coordinates parented to this grid, so deleting it early voids them.
-    /// </summary>
+    /// <summary>How long a landed wreck is kept; must outlast the crash explosions, which are parented to this grid.</summary>
     [DataField]
     public TimeSpan CleanupDelay = TimeSpan.FromSeconds(10);
 
-    /// <summary>
-    /// World pose snapshotted at drop time and re-asserted once at landing; the chunk is a dynamic body for the whole
-    /// fall and nothing re-disables it, so ground friction and wall collision would otherwise slide it off the crater.
-    /// </summary>
+    /// <summary>World position snapshotted at drop and re-asserted at landing, so the dynamic body does not slide off the crater.</summary>
     [DataField]
     public Vector2 DropWorldPos;
 
@@ -94,13 +78,7 @@ public sealed partial class WFPlanetChunkComponent : Component
     [DataField]
     public NetEntity? GangwayHull;
 
-    /// <summary>
-    /// Per-tile crash blast intensity, copied onto CEZGridFallerComponent at drop time. The engine's own central blast
-    /// is suppressed there by writing CrashIntensityPerTile = 0, because it is centred on the grid origin - which for a
-    /// chunk is the GROUND grid's origin, hundreds of tiles from the cut circle on a real biome planet. No replacement
-    /// central blast is queued: ExplosionSystem.QueueExplosion merges same-prototype explosions within one tile by
-    /// adding intensity only, so a second blast at the crater is arithmetically identical to raising this field.
-    /// </summary>
+    /// <summary>Per-tile crash intensity copied onto CEZGridFallerComponent at drop; its central blast is zeroed (it would hit the ground origin).</summary>
     [DataField]
     public float CrashTileIntensity = 4f;
 

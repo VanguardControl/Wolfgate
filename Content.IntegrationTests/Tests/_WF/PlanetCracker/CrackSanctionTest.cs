@@ -9,35 +9,21 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// F9's sanction notices: the one a hull earns when it starts cutting a world with no licence on file, and the one the
-/// chunk earns when it finally comes clear. Nothing in Content.IntegrationTests captures chat, so every assertion here
-/// runs against the system's own post-dispatch counters (which prove the DispatchGlobalAnnouncement call was made) and
-/// against its public BuildNotice, which is the exact builder production dispatches. The counters are per-server and
-/// PoolManager reuses servers between tests, so every count is read as a DELTA against a baseline captured immediately
-/// before the acting call.
-/// </summary>
+/// <summary>Unsanctioned-crack notices, checked via dispatch counter deltas and BuildNotice.</summary>
 [TestFixture]
 [TestOf(typeof(WFCrackSanctionSystem))]
 public sealed class CrackSanctionTest
 {
-    /// <summary>
-    /// The unsanctioned test surface, owned by SurveyConsoleTest. [TestPrototypes] fields are discovered assembly-wide
-    /// and loaded into every pair, so F9 ships no prototype of its own rather than adding a second surface that would
-    /// have to dodge the planet types DeepVeinTest and SurveyConsoleTest already claim.
-    /// </summary>
+    /// <summary>The unsanctioned test surface declared by SurveyConsoleTest.</summary>
     private const string BareSurface = "WFTestBareSurface";
 
-    /// <summary>A world name no prototype would produce, so finding it in a notice proves the builder read this body.</summary>
+    /// <summary>A world name no prototype produces, so the notice must have read it off this body.</summary>
     private const string PlanetName = "Qorvath Reach";
 
     /// <summary>The same for the hull, and deliberately not a substring of the planet name.</summary>
     private const string ShipName = "ISV Loudmouth";
 
-    /// <summary>
-    /// An unsanctioned body announces exactly once as the cut begins, latches, absorbs a re-entry into Cracking that
-    /// skipped AnchorsLocked, and announces again on a real AnchorsLocked -> Cracking re-begin.
-    /// </summary>
+    /// <summary>An unsanctioned cut announces once per begin from AnchorsLocked, and stays latched otherwise.</summary>
     [Test]
     public async Task UnsanctionedCrackAnnouncesOnce()
     {
@@ -49,9 +35,7 @@ public sealed class CrackSanctionTest
 
         var site = await BuildReadyToCut(pair);
 
-        // Rewrites only the BODY copy of Sanctioned, which is the copy F9 reads (F2 D-J). The frozen
-        // WFPlanetNetworkComponent.Surface stays Asclepiu, so terrain, veins and the built stack are untouched and
-        // nothing needs rebuilding.
+        // Only the body's Sanctioned changes; the built stack keeps its Asclepiu surface.
         await server.WaitPost(() => ApplySurfaceTo(pair, site.Planet, BareSurface));
 
         await server.WaitAssertion(() =>
@@ -75,8 +59,7 @@ public sealed class CrackSanctionTest
             }
         });
 
-        // The admin seam: a pull back to AnchorsPlaced and straight into Cracking skips AnchorsLocked, so the latch is
-        // never re-armed and the second entry is silent.
+        // AnchorsPlaced straight to Cracking skips AnchorsLocked, so the latch stays set and this entry is silent.
         await server.WaitPost(() =>
         {
             var cracker = (site.Cracker, entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker));
@@ -89,8 +72,7 @@ public sealed class CrackSanctionTest
             Assert.That(sanction.CrackingNotices - before, Is.EqualTo(1),
                 "A re-entry into Cracking that skipped AnchorsLocked raised a second notice; the latch is not holding."));
 
-        // The abort-then-re-begin shape: FinishAbort drops the hull back and the crew re-drills, so the next begin
-        // crosses AnchorsLocked. D7 wants that retry to summon players again, which a permanent latch would silence.
+        // Abort then re-begin crosses AnchorsLocked, so the retry announces again.
         await server.WaitPost(() =>
         {
             var cracker = (site.Cracker, entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker));
@@ -139,7 +121,7 @@ public sealed class CrackSanctionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>Both notices name the world and the hull by their own entity names, with no placeholder left unresolved.</summary>
+    /// <summary>Both notices name the world and the hull, with no placeholder left unresolved.</summary>
     [Test]
     public async Task NoticesNameThePlanetAndTheShip()
     {
@@ -175,7 +157,7 @@ public sealed class CrackSanctionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>A completed cut on an unsanctioned world raises the second, sound-free notice on top of the begin one.</summary>
+    /// <summary>A completed unsanctioned cut raises a second, silent notice after the begin one.</summary>
     [Test]
     public async Task ExtractionAnnouncesForAnUnsanctionedPlanet()
     {
@@ -186,7 +168,7 @@ public sealed class CrackSanctionTest
 
         var site = await BuildReadyToExtract(pair);
 
-        // Body copy only, as above: the network keeps the Asclepiu surface it was built from.
+        // Body copy only, as above.
         await server.WaitPost(() => ApplySurfaceTo(pair, site.Planet, BareSurface));
 
         await server.WaitAssertion(() =>
@@ -217,7 +199,7 @@ public sealed class CrackSanctionTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>The chunk goes before the stack it is hanging over; a test that never cut one pays a no-op FindChunk.</summary>
+    /// <summary>The chunk, if any, goes before the stack it is hanging over.</summary>
     private static async Task Cleanup(TestPair pair, CrackerSite site)
     {
         var server = pair.Server;

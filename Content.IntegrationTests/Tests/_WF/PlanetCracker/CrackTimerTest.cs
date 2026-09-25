@@ -21,12 +21,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The three timers on a cutting hull and everything that moves them: the crack duration formula and its part
-/// multiplier, the damage pause and its banked remainder, the abort spin-down after an anchor is lost, the grace
-/// countdown with the design D25 hysteresis, the projector state reconciliation, and the stage walk the anchor events
-/// drive.
-/// </summary>
+/// <summary>Cutting timers: crack duration, damage pause, abort spin-down, grace countdown and stage walk.</summary>
 [TestFixture]
 [TestOf(typeof(WFCrackerSystem))]
 public sealed class CrackTimerTest
@@ -46,11 +41,7 @@ public sealed class CrackTimerTest
     /// <summary>Grace window the expiry test shortens the shipped five minutes to.</summary>
     private static readonly TimeSpan ShortGrace = TimeSpan.FromSeconds(2);
 
-    /// <summary>
-    /// The design's own endpoints, straight off the static formula: twelve minutes at the reference distance, scaled
-    /// linearly with the pair distance and then by the part multiplier. d=16 with two tier-4 projectors is the stated
-    /// 5.6 minute floor and d=40 at tier 1 the stated twenty minute ceiling.
-    /// </summary>
+    /// <summary>Duration spans 5.6 minutes (d=16, tier 4) to twenty minutes (d=40, tier 1).</summary>
     [Test]
     public void CrackDurationFollowsTheFormula()
     {
@@ -70,11 +61,7 @@ public sealed class CrackTimerTest
         }
     }
 
-    /// <summary>
-    /// The part multiplier is the arithmetic MEAN of both projectors, not the minimum and not the product. Mean and
-    /// minimum agree at every uniform part tier and differ only on a mixed pair, which is this test; the product would
-    /// undershoot the design's floor outright.
-    /// </summary>
+    /// <summary>The part multiplier is the mean of both projectors, checked on a mixed pair.</summary>
     [Test]
     public async Task PartMultiplierIsTheMeanOfBothProjectors()
     {
@@ -87,7 +74,7 @@ public sealed class CrackTimerTest
 
         await server.WaitPost(() =>
         {
-            // Tier 4 is PartScaling cubed, the design's 0.70 floor; tier 1 is 1.0.
+            // Tier 4 is 0.70, tier 1 is 1.0.
             entMan.GetComponent<WFGravityProjectorComponent>(site.Projectors[0]).CrackTimeMultiplier = 0.7f;
             entMan.GetComponent<WFGravityProjectorComponent>(site.Projectors[1]).CrackTimeMultiplier = 1f;
         });
@@ -109,11 +96,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A damaged targeted anchor holds the cut and the remainder is BANKED rather than the deadline moved, so a repair
-    /// resumes from where it stopped instead of from the original deadline. Two fields, not one, because the map pause
-    /// and this pause are different mechanisms that have to coexist.
-    /// </summary>
+    /// <summary>A damaged anchor pauses the cut and banks the remainder, so a repair resumes from there.</summary>
     [Test]
     public async Task DamagePausesAndResumesTheCrack()
     {
@@ -135,7 +118,7 @@ public sealed class CrackTimerTest
 
             var anchorComp = entMan.GetComponent<WFGravityAnchorComponent>(anchor);
 
-            // Past the damaged line but nowhere near the Breakage trigger, which would abort instead of pause.
+            // Past the damaged line but below Breakage, which would abort instead.
             damageable.TryChangeDamage(anchor,
                 Damage(proto, anchorComp.BreakDamage * anchorComp.DamageFraction + 10f), true);
         });
@@ -190,7 +173,7 @@ public sealed class CrackTimerTest
                 Assert.That(comp.CrackRemaining, Is.LessThanOrEqualTo(banked),
                     "The remainder went up across the resume.");
 
-                // Had the deadline been left alone instead of banked, the three paused seconds would have been eaten.
+                // An unbanked deadline would have lost the paused seconds.
                 Assert.That(comp.CrackRemaining, Is.GreaterThan(banked - TimeSpan.FromSeconds(2.5)),
                     "The cut resumed from its original deadline rather than the banked remainder.");
             }
@@ -200,11 +183,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The projector's own power and repair handlers overwrite WFProjectorState with no crack awareness, which would
-    /// strand it at Idle for the rest of the cut - blanking the emitter sprite layer, the console beam pip and the
-    /// diagram's beam lines while the timer ran on. The sweep reconciles it instead of writing it on edges.
-    /// </summary>
+    /// <summary>A projector returns to Firing after a power blip, as the sweep reconciles its state.</summary>
     [Test]
     public async Task ProjectorReturnsToFiringAfterAPowerBlip()
     {
@@ -232,7 +211,7 @@ public sealed class CrackTimerTest
             }
         });
 
-        // A hull machine runs uncabled because the factory clears NeedsPower; putting it back is exactly a brownout.
+        // Restoring NeedsPower on an uncabled hull is a brownout.
         await server.WaitPost(() => receiver.SetNeedsPower(projector, true));
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
 
@@ -308,11 +287,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A broken targeted anchor is repairable, so the spin-down lands back on anchors-placed. The hull keeps its lock
-    /// for the whole spin-down and only then goes Dynamic again - the post-condition ReleaseLock reads back, because
-    /// ShuttleSystem.Enable and Disable are not symmetric.
-    /// </summary>
+    /// <summary>A broken anchor spins down to AnchorsPlaced, keeping the lock until the spin-down ends.</summary>
     [Test]
     public async Task BrokenAnchorAbortsToAnchorsPlacedAfterTheSpinDown()
     {
@@ -331,7 +306,7 @@ public sealed class CrackTimerTest
         {
             var comp = entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker);
 
-            // AbortEnd is stamped from this field at the moment of the loss, so it has to be shortened first.
+            // Shortened before the loss, since AbortEnd is stamped from it.
             comp.AbortSpinDown = ShortSpinDown;
             anchor = entMan.GetEntity(comp.AnchorA!.Value);
 
@@ -363,8 +338,7 @@ public sealed class CrackTimerTest
             }
         });
 
-        // Repaired mid-spin-down, so the pair is back and anchors-placed is where the hull legitimately settles; the
-        // spin-down itself is unaffected, since only its own expiry clears PendingAbort.
+        // Repaired mid-spin-down; only the spin-down's own expiry clears PendingAbort.
         await server.WaitPost(() =>
         {
             damageable.SetAllDamage(anchor, entMan.GetComponent<DamageableComponent>(anchor), 0);
@@ -400,7 +374,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A destroyed targeted anchor is gone for good, so the same spin-down lands back on surveying instead.</summary>
+    /// <summary>A destroyed anchor is gone for good, so the spin-down lands on Surveying instead.</summary>
     [Test]
     public async Task DestroyedAnchorAbortsToSurveying()
     {
@@ -455,10 +429,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Design D25: the at-full latch closes at FullOn and only lets go below FullOff, so the grace countdown does not
-    /// chatter on a rotor hovering around the line.
-    /// </summary>
+    /// <summary>The at-full latch closes at FullOn and opens below FullOff, so the grace does not chatter.</summary>
     [Test]
     public async Task GraceArmsOnCentrifugeLossAndResetsWithHysteresis()
     {
@@ -537,7 +508,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The grace countdown running out drops the hull; that is the whole point of the countdown.</summary>
+    /// <summary>The grace countdown running out drops the hull.</summary>
     [Test]
     public async Task GraceExpiryEntersFalling()
     {
@@ -549,7 +520,7 @@ public sealed class CrackTimerTest
         await BeginCut(pair, site);
         await FreezeCharge(pair, site.Centrifuge);
 
-        // GraceEnd is stamped from this field at the arming edge, so it has to be shortened before anything fails.
+        // Shortened before arming, since GraceEnd is stamped from it.
         await server.WaitPost(() =>
             entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker).GraceDuration = ShortGrace);
 
@@ -581,16 +552,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The stage walk, driven only by the anchor events and the survey sweep: a pair forms, both drills finish, one
-    /// anchor switching off drops the hull back a stage with the pair intact, the pair dissolving drops it further, and
-    /// leaving the orbit layer puts it back to idle.
-    /// DEVIATION FROM THE PLAN: the plan's tests line says "pair dissolved from AnchorsLocked gives AnchorsPlaced". The
-    /// transition table's own row says "AnchorsPlaced or Surveying", and the code is the table: ReconcilePair needs a
-    /// surviving owned pair to sit at anchors-placed, and a dissolve leaves neither half with a partner. Both halves of
-    /// that row are asserted here - the switch-off keeps the pair and lands on anchors-placed, the dissolve does not and
-    /// lands on surveying.
-    /// </summary>
+    /// <summary>The stage walk driven by anchor events: pair, drill, switch-off, dissolve and leaving orbit.</summary>
     [Test]
     public async Task StateTransitionsFromAnchorEvents()
     {
@@ -638,7 +600,7 @@ public sealed class CrackTimerTest
             Assert.That(entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker).State,
                 Is.EqualTo(WFCrackState.AnchorsLocked), "Both drills finished and the pair is not targetable."));
 
-        // Switched off, not unpaired: the pair survives, so the hull drops exactly one stage.
+        // Switched off, not unpaired, so the hull drops one stage.
         await server.WaitPost(() => anchors.ForceSwitchOff(
             (site.Anchors[0], entMan.GetComponent<WFGravityAnchorComponent>(site.Anchors[0]))));
 
@@ -687,7 +649,7 @@ public sealed class CrackTimerTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Structural damage that the modifier sets cannot soak, so the numbers land where they are aimed.</summary>
+    /// <summary>Structural damage that the modifier sets cannot soak.</summary>
     private static DamageSpecifier Damage(IPrototypeManager proto, float amount)
     {
         return new DamageSpecifier(proto.Index<DamageTypePrototype>(Blunt), FixedPoint2.New(amount));

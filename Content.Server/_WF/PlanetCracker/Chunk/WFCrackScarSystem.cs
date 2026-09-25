@@ -10,24 +10,16 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Chunk;
 
-/// <summary>
-/// Keeps the holes cut out of a ground layer open for the rest of the round.
-/// BiomeSystem.ReserveTiles regenerates an EMPTY tile unconditionally, with no ModifiedTiles guard, and every grid
-/// landing over the site reaches it through ShuttleSystem.Smimsh - the chunk's own landing included - so the hole is
-/// re-stamped from a scar recorded on the GROUND grid, which outlives the chunk that made it.
-/// Both subscriptions are BROADCAST and by ref: WFChunkExtractedEvent is otherwise subscribed only by the test
-/// recorder at GravityAnchorTest.cs:1211 and ShuttleFlattenEvent only by BiomeSystem.cs:85, which is itself the proof
-/// that several broadcast subscribers are legal - the duplicate-subscription crash is a directed-pair rule.
-/// </summary>
+/// <summary>Keeps holes cut into a ground layer open all round, from scars recorded on the ground grid.</summary>
 public sealed partial class WFCrackScarSystem : EntitySystem
 {
     [Dependency] private BiomeSystem _biome = default!;
     [Dependency] private SharedMapSystem _map = default!;
 
-    /// <summary>Per-event dedupe across overlapping AABBs; holds EVERY index walked, scar member or not.</summary>
+    /// <summary>Per-event dedupe of every index walked, scar member or not.</summary>
     private readonly HashSet<Vector2i> _seen = new();
 
-    /// <summary>Only the indices that passed the membership test; the one collection ever handed to WfPinTiles.</summary>
+    /// <summary>Indices inside a scar; the only set handed to WfPinTiles.</summary>
     private readonly List<Vector2i> _matched = new();
 
     /// <summary>The SetTiles payload built alongside <see cref="_matched"/>.</summary>
@@ -42,7 +34,6 @@ public sealed partial class WFCrackScarSystem : EntitySystem
         SubscribeLocalEvent<ShuttleFlattenEvent>(OnShuttleFlatten);
     }
 
-    /// <summary>A disc was cut, so the ground grid remembers the circle it lost.</summary>
     private void OnChunkExtracted(ref WFChunkExtractedEvent args)
     {
         RecordScar(args.GroundMap, args.HoleCentre, args.Radius);
@@ -63,10 +54,7 @@ public sealed partial class WFCrackScarSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// Undoes the refill Smimsh's ReserveTiles just performed, in the same tick and before the crash gate is reached.
-    /// The first statement is the early-out: this runs on every FTL arrival anywhere in the round.
-    /// </summary>
+    /// <summary>Undoes the refill Smimsh's ReserveTiles just made; runs on every FTL arrival.</summary>
     private void OnShuttleFlatten(ref ShuttleFlattenEvent ev)
     {
         if (!TryComp<WFCrackScarComponent>(ev.MapUid, out var scar)
@@ -94,10 +82,7 @@ public sealed partial class WFCrackScarSystem : EntitySystem
         Stamp(ev.MapUid, grid, biome);
     }
 
-    /// <summary>
-    /// Re-stamps every scar on a ground grid with no AABB filter: the landing pass and the post-cleanup pass.
-    /// Driven off the ground grid rather than a chunk, so it still works once the chunk has been deleted.
-    /// </summary>
+    /// <summary>Re-stamps every scar on a ground grid; works after the chunk is gone.</summary>
     public void ReStamp(EntityUid groundMap)
     {
         if (!TryComp<WFCrackScarComponent>(groundMap, out var scar)
@@ -127,11 +112,7 @@ public sealed partial class WFCrackScarSystem : EntitySystem
         Stamp(groundMap, grid, biome);
     }
 
-    /// <summary>
-    /// Dedupes one index and, on a membership hit only, pushes it into both payloads.
-    /// Membership is recomputed from Centre/Radius with the extraction's own test verbatim
-    /// (WFPlanetChunkSystem.Extraction.cs:126-131), so the two sets are identical by construction.
-    /// </summary>
+    /// <summary>Dedupes one index and queues it if it lies inside a scar (the extraction's own test).</summary>
     private void Collect(Vector2i index, WFCrackScarComponent scar, MapGridComponent grid)
     {
         if (!_seen.Add(index))
@@ -150,12 +131,7 @@ public sealed partial class WFCrackScarSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// One SetTiles and one pin pass.
-    /// Only _matched is pinned: WfPinTiles adds everything it is given to BiomeComponent.ModifiedTiles unconditionally
-    /// and nothing ever un-pins (BiomeSystem.WFChunkPin.cs:22-29), so passing _seen would permanently freeze the whole
-    /// square footprint of every grid that ever lands on the planet.
-    /// </summary>
+    /// <summary>One SetTiles and one pin pass; only matched tiles are pinned, since pins are permanent.</summary>
     private void Stamp(EntityUid groundMap, MapGridComponent grid, BiomeComponent biome)
     {
         if (_buffer.Count == 0)

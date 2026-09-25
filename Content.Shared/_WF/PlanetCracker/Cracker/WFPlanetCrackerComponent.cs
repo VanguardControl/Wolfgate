@@ -11,14 +11,11 @@ namespace Content.Shared._WF.PlanetCracker.Cracker;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true), AutoGenerateComponentPause]
 public sealed partial class WFPlanetCrackerComponent : Component
 {
-    /// <summary>Current stage of the crack, per design section 3.</summary>
+    /// <summary>Current stage of the crack.</summary>
     [DataField, AutoNetworkedField]
     public WFCrackState State = WFCrackState.Idle;
 
-    /// <summary>
-    /// Grid file holding the anchor transport that ships with this hull; loaded and docked when the vessel is bought.
-    /// Null on the code-built test hull, which has no map file to load and builds its transport in code instead.
-    /// </summary>
+    /// <summary>Grid file of the anchor transport docked when the vessel is bought; null on the code-built test hull.</summary>
     [DataField]
     public ResPath? TransportMap;
 
@@ -38,12 +35,7 @@ public sealed partial class WFPlanetCrackerComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? AnchorB;
 
-    /// <summary>
-    /// Berth centre in grid-local coordinates, rewritten whenever the berth resolves.
-    /// The grid entity is force-sent to any client who sees any chunk of it, while the berth marker 26 tiles out on a
-    /// MarkerBase prototype routinely falls outside net.pvs_range, so this is how the berth pose reaches a client that
-    /// has no BUI state to read - the radar ghost.
-    /// </summary>
+    /// <summary>Berth centre in grid-local coordinates, networked for the radar ghost since the marker is often outside PVS.</summary>
     [DataField, AutoNetworkedField]
     public Vector2 BerthLocalPos;
 
@@ -55,11 +47,7 @@ public sealed partial class WFPlanetCrackerComponent : Component
     [DataField, AutoNetworkedField]
     public Vector2i BerthSize;
 
-    /// <summary>
-    /// When the running crack finishes; authoritative while the crack is not damage-paused.
-    /// Two fields rather than one deadline: the map pause and the damage pause are different mechanisms and coexist,
-    /// so the remainder is banked in <see cref="CrackRemaining"/> while a damaged anchor holds the cut.
-    /// </summary>
+    /// <summary>When the running crack finishes; while damage-paused the remainder is banked in <see cref="CrackRemaining"/>.</summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan CrackEnd;
 
@@ -167,10 +155,7 @@ public sealed partial class WFPlanetCrackerComponent : Component
     [DataField]
     public TimeSpan EvacDuration = TimeSpan.FromSeconds(60);
 
-    /// <summary>
-    /// How often the evacuation alarm loop is stopped and replayed. A filtered PlayGlobal freezes its recipient set at
-    /// play time, so without the re-issue a latecomer boarding mid-countdown would hear nothing.
-    /// </summary>
+    /// <summary>How often the evacuation alarm is replayed, since a filtered PlayGlobal misses anyone who boards later.</summary>
     [DataField]
     public TimeSpan EvacReissue = TimeSpan.FromSeconds(15);
 
@@ -222,10 +207,7 @@ public sealed partial class WFPlanetCrackerComponent : Component
     [DataField]
     public SoundSpecifier EvacSound = new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Crack/chunk_release_alarm_loop.ogg");
 
-    /// <summary>
-    /// Looped on the ground layer at the cut circle while the cut runs. The hull's own rumble is replicated to orbit
-    /// but the client zeroes gain across maps, so the site needs a source of its own or it is silent.
-    /// </summary>
+    /// <summary>Looped at the cut circle on the ground layer while the cut runs; the hull's rumble is inaudible across maps.</summary>
     [DataField]
     public SoundSpecifier GroundRumbleSound = new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Crack/planet_side_crack_ambience_loop_1.ogg");
 

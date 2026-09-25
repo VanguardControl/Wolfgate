@@ -13,13 +13,7 @@ namespace Content.Shared._WF.PlanetCracker.Fissures;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class WFFissureSpawnerComponent : Component
 {
-    /// <summary>
-    /// When the next ring is due. The cadence is WFGravityAnchorComponent.DrillDuration / <see cref="RingCount"/>,
-    /// read live off the anchor, and this field is seeded to CurTime at arm so ring 1 fires immediately and the last
-    /// of five rings is due at 80% of the drill instead of racing the anchor's own 1 Hz lock sweep
-    /// (WFGravityAnchorSystem.cs:292-302). DrillEnd is NOT a usable drill-start source: WFGravityAnchorSystem.Control.cs:20
-    /// rewrites it to CurTime on completion and WFGravityAnchorSystem.Pairing.cs:108 zeroes it on demote.
-    /// </summary>
+    /// <summary>When the next ring is due, every DrillDuration / <see cref="RingCount"/>; the first ring fires at arm.</summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan NextRing;
 
@@ -63,11 +57,7 @@ public sealed partial class WFFissureSpawnerComponent : Component
     [DataField]
     public float UnsanctionedMultiplier = 1.5f;
 
-    /// <summary>
-    /// Most mobs this anchor may ever spawn. <see cref="SpawnedTotal"/> is CUMULATIVE and is never decremented on
-    /// death: a live count would let players re-open the budget by killing what is already out, which would make a
-    /// five minute drill unbounded.
-    /// </summary>
+    /// <summary>Most mobs this anchor may ever spawn, counted cumulatively so kills do not reopen the budget.</summary>
     [DataField]
     public int Cap = 15;
 
@@ -83,22 +73,11 @@ public sealed partial class WFFissureSpawnerComponent : Component
     [ViewVariables]
     public int SurgeSpawned;
 
-    /// <summary>
-    /// How many times a granted mob slot may re-roll its group before the slot is abandoned.
-    /// EntitySpawnCollection.GetSpawns can legitimately return an EMPTY list:
-    /// Resources/Prototypes/Procedural/salvage_factions.yml:17-21 is a Xenos group whose only entry is
-    /// `NFMobXenoDrone amount: 0 maxAmount: 2`, and EntitySpawnEntry.GetAmount
-    /// (Content.Shared/Storage/EntitySpawnEntry.cs:252-265) returns random.Next(0, 2), so it comes back empty about
-    /// half the time that group is drawn. A granted slot must re-roll rather than be silently lost.
-    /// </summary>
+    /// <summary>How many times a mob slot may re-roll a group that spawned nothing before the slot is abandoned.</summary>
     [DataField]
     public int MobRollRetries = 5;
 
-    /// <summary>
-    /// The planet ground layer this anchor is drilling into, resolved at arm.
-    /// Runtime only, never a DataField: a raw EntityUid does not survive a map save and reload, and the same is true of
-    /// every other live field below (the WFPlanetChunkComponent.RimDecals/DropStream precedent).
-    /// </summary>
+    /// <summary>The planet ground layer this anchor is drilling into, resolved at arm; runtime only, as a raw EntityUid does not survive a save.</summary>
     [ViewVariables]
     public EntityUid? Ground;
 
@@ -114,10 +93,7 @@ public sealed partial class WFFissureSpawnerComponent : Component
     [DataField]
     public bool Sanctioned = true;
 
-    /// <summary>
-    /// Every fissure decal this anchor has stamped. Parallel to <see cref="DecalStages"/> (same index is the same
-    /// decal) so the ring promoter can raise a decal one growth stage instead of stamping a second decal on the tile.
-    /// </summary>
+    /// <summary>Every fissure decal this anchor has stamped, parallel to <see cref="DecalStages"/>.</summary>
     [ViewVariables]
     public List<uint> Decals = new();
 
@@ -129,24 +105,15 @@ public sealed partial class WFFissureSpawnerComponent : Component
     [ViewVariables]
     public List<Vector2i> Fissures = new();
 
-    /// <summary>
-    /// Every entity this anchor's fissures put on the ground, stamped or not. <see cref="Live"/> is the stamped
-    /// subset, so anything that is not a mob - WeaponTurretXeno, salvage_factions.yml:22-25 - is tracked only here.
-    /// </summary>
+    /// <summary>Every entity this anchor's fissures put on the ground; non-mobs such as turrets are tracked only here.</summary>
     [ViewVariables]
     public List<EntityUid> Spawned = new();
 
-    /// <summary>
-    /// The threats this anchor has spawned and STAMPED as site threats. Only a mob joins it: an entry with no
-    /// MobStateComponent is left on its own root task and stays in <see cref="Spawned"/> alone.
-    /// </summary>
+    /// <summary>The mobs this anchor has spawned and stamped as site threats; a subset of <see cref="Spawned"/>.</summary>
     [ViewVariables]
     public List<EntityUid> Live = new();
 
-    /// <summary>
-    /// The one-shot effect played on a tile as its fissure opens. The stock spark burst, which is already the
-    /// half-second one-shot the rest of the tree spawns for exactly this; no fissure effect art of our own exists.
-    /// </summary>
+    /// <summary>The one-shot effect played on a tile as its fissure opens.</summary>
     [DataField]
     public EntProtoId BurstEffect = "EffectSparks";
 

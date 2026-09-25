@@ -3,8 +3,7 @@ using Robust.Shared.Map;
 namespace Content.Shared._WF.PlanetCracker.Planets;
 
 /// <summary>
-/// The terrain a crew has built over on a planet layer: lattice goes straight onto natural ground there, and this is
-/// what comes back when it is cut away again, instead of the hole a lattice's own base turf would leave.
+/// Natural terrain built over on a planet layer, restored when the build is cut away instead of leaving a hole.
 /// </summary>
 [RegisterComponent, UnsavedComponent]
 public sealed partial class WFPlanetBuiltTilesComponent : Component

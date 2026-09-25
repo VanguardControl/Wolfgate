@@ -9,7 +9,7 @@ public sealed partial class WFOrbitEntrySystem
 {
     private readonly List<EntityUid> _approachDone = new();
 
-    /// <summary>Stamps the hop's travel leg on the hull. A body outside a star system has no planet to draw, and gets none.</summary>
+    /// <summary>Records the hop's travel leg on the hull; skipped for bodies outside a star system.</summary>
     public void MarkApproach(EntityUid grid, EntityUid body, bool arriving)
     {
         if (!TryComp<StarSystemMapComponent>(Transform(body).MapUid, out var starMap) || starMap.System is not { } system)

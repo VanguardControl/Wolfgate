@@ -12,10 +12,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// Phased storms and their thunder, after SS13's weather: a light overlay telegraphs the storm, the storm runs, and a
-/// light overlay winds it down. Thunder is a real bolt on real open ground near somebody, not a sound effect.
-/// </summary>
+/// <summary>Phased storms (telegraph, main, end) and lightning strikes near players on the surface.</summary>
 public sealed partial class WFPlanetWeatherSystem
 {
     [Dependency] private ElectrocutionSystem _electrocution = default!;
@@ -25,20 +22,18 @@ public sealed partial class WFPlanetWeatherSystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
+    /// <summary>Lightning bolt entity spawned at a strike.</summary>
     public static readonly EntProtoId Thunderbolt = "WFThunderbolt";
 
-    /// <summary>
-    /// The thunder: one of two, at the strike, for everyone on the surface. Thunder carries for miles, so it is sent
-    /// to the whole map and left to fall off with distance rather than cut at PVS range.
-    /// </summary>
+    /// <summary>Thunder at the strike, sent to the whole map and left to fall off with distance.</summary>
     public static readonly SoundSpecifier ThunderSound = new SoundCollectionSpecifier("WFThunder",
         AudioParams.Default.WithMaxDistance(120f).WithRolloffFactor(0.4f).WithVariation(0.05f));
 
-    /// <summary>Seconds between bolts while a thunderstorm's main phase runs.</summary>
+    // Seconds between bolts in a thunderstorm's main phase.
     private const float ThunderMinSeconds = 6f;
     private const float ThunderMaxSeconds = 22f;
 
-    /// <summary>How far from a visitor a bolt lands, in tiles: near enough to see, rarely on top of them.</summary>
+    // Tiles from a player a bolt lands.
     private const float ThunderMinRange = 4f;
     private const float ThunderMaxRange = 20f;
 
@@ -95,7 +90,7 @@ public sealed partial class WFPlanetWeatherSystem
         state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(seconds);
     }
 
-    /// <summary>Drops a bolt when one is due. Nobody on the surface means nobody to see it, so nothing is struck.</summary>
+    /// <summary>Strikes a bolt when one is due.</summary>
     private void UpdateThunder(WFPlanetNetworkComponent network, WFPlanetWeatherComponent state, WFPlanetWeatherPrototype profile)
     {
         if (state.Phase != WFStormPhase.Main
@@ -129,7 +124,7 @@ public sealed partial class WFPlanetWeatherSystem
 
         var origin = _transform.GetWorldPosition(_random.Pick(_thunderTargets));
 
-        // A few tries: a roofed or built-over tile takes no lightning, exactly as it takes no rain.
+        // A few tries: roofed tiles take no lightning, as they take no rain.
         for (var attempt = 0; attempt < 8; attempt++)
         {
             var offset = _random.NextAngle().ToVec() * _random.NextFloat(ThunderMinRange, ThunderMaxRange);

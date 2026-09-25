@@ -8,10 +8,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Gives a cracker its anchor transport: loaded beside the hull and docked onto it, so the pair never has to be
-/// spawned separately. Shared by the shipyard purchase and the admin-built test hull.
-/// </summary>
+/// <summary>Gives a cracker its anchor transport, loaded beside the hull and docked onto it.</summary>
 public sealed partial class WFCrackerOwnershipSystem
 {
     [Dependency] private MapLoaderSystem _mapLoader = default!;
@@ -21,10 +18,7 @@ public sealed partial class WFCrackerOwnershipSystem
     /// <summary>Tiles of clearance left between the hull's own footprint and where the transport is parked.</summary>
     private const float TransportGap = 12f;
 
-    /// <summary>
-    /// Loads this hull's transport beside it and docks it on. Returns the transport grid, or null when the hull ships
-    /// without one or the file could not be loaded.
-    /// </summary>
+    /// <summary>Loads this hull's transport beside it and docks it; null if it has none or loading failed.</summary>
     public EntityUid? TrySpawnTransport(Entity<WFPlanetCrackerComponent> cracker)
     {
         if (cracker.Comp.TransportSpawned || cracker.Comp.TransportMap is not { } path)
@@ -53,10 +47,7 @@ public sealed partial class WFCrackerOwnershipSystem
         return transport.Value.Owner;
     }
 
-    /// <summary>
-    /// Docks a transport onto a cracker's airlock and stamps its anchors and crates with that cracker. A hull with no
-    /// free matching airlock leaves the transport parked alongside instead, which TryFTLDock handles for us.
-    /// </summary>
+    /// <summary>Docks a transport onto a cracker, or parks it alongside, and binds its anchors and crates.</summary>
     public bool DockTransport(EntityUid cracker, EntityUid transport)
     {
         var shuttle = EnsureComp<ShuttleComponent>(transport);
@@ -65,8 +56,7 @@ public sealed partial class WFCrackerOwnershipSystem
         if (!docked)
             Log.Warning($"No airlock pair lined up for {ToPrettyString(transport)}; it is parked beside {ToPrettyString(cracker)} instead.");
 
-        // Docked or merely parked, the transport's crate belongs to this cracker: BindAboard walks the cracker's own
-        // deck only, so the transport grid needs its own pass.
+        // Docked or parked, the transport grid needs its own binding pass.
         BindAboard(cracker, transport);
 
         return docked;

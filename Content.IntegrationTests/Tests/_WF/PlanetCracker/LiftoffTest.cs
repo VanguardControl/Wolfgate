@@ -65,7 +65,7 @@ public sealed class LiftoffTest
             Assert.That(entMan.HasComponent<WFLiftoffComponent>(hull), Is.False,
                 "The liftoff latch remained engaged once the hull was airborne."));
 
-        // A takeoff, not a climb: with nobody holding the key the hull stays in the air layer rather than going on up.
+        // With nobody holding the key, the hull stays in the air layer.
         await server.WaitRunTicks(pair.SecondsToTicks(8f));
         await server.WaitAssertion(() =>
             Assert.That(entMan.GetComponent<TransformComponent>(hull).MapUid, Is.Not.EqualTo(orbit),

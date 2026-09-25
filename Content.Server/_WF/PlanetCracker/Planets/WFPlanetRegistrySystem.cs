@@ -10,9 +10,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// The round-scoped registry of sector bodies that have a Wolfgate surface, and the round-start build hook.
-/// </summary>
+/// <summary>Registers sector bodies that have a Wolfgate surface and builds round-start networks.</summary>
 public sealed partial class WFPlanetRegistrySystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -40,12 +38,7 @@ public sealed partial class WFPlanetRegistrySystem : EntitySystem
         SubscribeLocalEvent<WFSectorPlanetComponent, ComponentShutdown>(OnSectorPlanetShutdown);
     }
 
-    /// <summary>
-    /// Registers a freshly spawned sector body, and builds its network when the surface asks for it at round start.
-    /// </summary>
-    /// <param name="map">The sector map the body was spawned on.</param>
-    /// <param name="planetEntity">The spawned body.</param>
-    /// <param name="planet">The runtime helper the body was spawned from.</param>
+    /// <summary>Registers a freshly spawned sector body and builds its network if the surface asks for it.</summary>
     public void RegisterPlanet(Entity<StarSystemMapComponent> map, EntityUid planetEntity, Planet planet)
     {
         if (!_cfg.GetCVar(PlanetCrackerCVars.PlanetNetworks))
@@ -54,8 +47,7 @@ public sealed partial class WFPlanetRegistrySystem : EntitySystem
         if (map.Comp.System is not { } systemId || !_proto.TryIndex(systemId, out var systemProto))
             return;
 
-        // The body carries no prototype id, so match it back to its star-system entry by recomputing the
-        // spawn position with the identical expression the system builder uses. The maths is bit-exact.
+        // The body has no prototype id; match its entry by recomputing the builder's exact spawn position.
         StarSystemPlanet? entry = null;
 
         foreach (var candidate in systemProto.Planets)
@@ -97,13 +89,7 @@ public sealed partial class WFPlanetRegistrySystem : EntitySystem
             _networks.TryBuildNetwork(body, out _);
     }
 
-    /// <summary>
-    /// Mirrors a surface definition onto a sector body. This is the single writer of Surface and Sanctioned in
-    /// production code, so a console never has to index the prototype to learn whether cracking the world is legal;
-    /// the one test-side writer (PlanetNetworkTest.BuildForSectorBody) is converted to it by F2's test stage.
-    /// </summary>
-    /// <param name="body">The sector body to stamp.</param>
-    /// <param name="surface">The surface definition to mirror.</param>
+    /// <summary>Copies a surface's id and sanctioned flag onto a sector body.</summary>
     public Entity<WFSectorPlanetComponent> ApplySurface(EntityUid body, WFPlanetSurfacePrototype surface)
     {
         var comp = EnsureComp<WFSectorPlanetComponent>(body);
@@ -129,8 +115,6 @@ public sealed partial class WFPlanetRegistrySystem : EntitySystem
     }
 
     /// <summary>Finds a registered sector body by its display name, case-insensitively.</summary>
-    /// <param name="name">Display name of the body.</param>
-    /// <param name="planet">The matching body.</param>
     public bool TryGetPlanetByName(string name, out Entity<WFSectorPlanetComponent> planet)
     {
         var query = AllEntityQuery<WFSectorPlanetComponent>();
@@ -149,14 +133,12 @@ public sealed partial class WFPlanetRegistrySystem : EntitySystem
     }
 
     /// <summary>Finds the surface definition registered for a sector body type, if there is one.</summary>
-    /// <param name="planetType">The body type to look up.</param>
-    /// <param name="surface">The surface definition for that type.</param>
     public bool TryGetSurface(ProtoId<PlanetTypePrototype> planetType, [NotNullWhen(true)] out WFPlanetSurfacePrototype? surface)
     {
         return _surfaces.TryGetValue(planetType, out surface);
     }
 
-    /// <summary>Tears the body's network down with it, so nothing outlives the sector map.</summary>
+    /// <summary>Deletes the body's network along with it.</summary>
     private void OnSectorPlanetShutdown(Entity<WFSectorPlanetComponent> ent, ref ComponentShutdown args)
     {
         if (ent.Comp.Network is not { } network || !TryGetEntity(network, out var networkUid))

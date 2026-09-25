@@ -4,33 +4,19 @@
   id: WFSurfaceAsclepiu
   planetType: PlanetAsclepiu
   ground: WFAsclepiuSurface
-  # No cloud layer on a crackable world, and a third air layer in its place.
-  # ScalingViewport.RenderZLevels breaks its downward walk at the first CEZCloudLayerComponent
-  # (ScalingViewport.CEZLevels.cs:185-190) and the cloud's own pass then paints an opaque full-screen
-  # deck at :377, so from orbit the crack site was invisible and WFCrackCircleOverlay never got a pass
-  # to draw into. Dropping the cloud is the whole fix and costs no code.
-  # airLayers goes 2 -> 3 in the same edit because cloudComponents was never only a cloud: it carried
-  # the same MapLight and inherent Gravity as airComponents (see cloudComponents below), so it was a
-  # third gravity-bearing air layer. Raising airLayers keeps the stack five maps deep with orbit still
-  # at depth 4, which preserves every fall duration and touchdown number keyed to that shape.
+  # No cloud layer: its opaque deck hides the crack site from orbit. A third air layer keeps orbit at depth 4.
   airLayers: 3
   cloudLayer: false
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
   veins: WFVeinTableAsclepiu
-  # salvageFaction ids (Resources/Prototypes/Procedural/salvage_factions.yml:2 and :226) for F8's site
-  # threats. Both are ground mobs carrying NavSmash, which is what lets them chew a deployed anchor;
-  # Carps is deliberately not used because carps fly on FlyingMobMask and never collide with the
-  # anchor's MidImpassable/LowImpassable fixture.
+  # Site-threat salvage factions: ground mobs with NavSmash, since flying carps never collide with an anchor.
   faction: Xenos
   unsanctionedFaction: Argocytes
-  # Fixes the ground biome seed so the same planet yields the same terrain and the same deep veins every round.
-  # Without it PlanetSystem.SpawnPlanet passes no seed and EnsurePlanet rolls _random.Next() (BiomeSystem.PlanetSetup.cs:33).
+  # Fixed biome seed, so terrain and deep veins are the same every round.
   seed: 20260913
-  # Stamped on every member map at MapInit with removeExisting true, and onto every transit map.
-  # Only the atmosphere belongs here: anything else would clobber what the ground layer already has,
-  # and moving the atmosphere out would make every transit gap vacuum.
+  # Stamped over every member and transit map, so only the shared atmosphere belongs here.
   networkComponents:
   - type: MapAtmosphere
     space: False
@@ -50,7 +36,7 @@
   - type: Gravity
     enabled: true
     inherent: true
-  # Left in place for planets that still want a deck; WFSurfaceAsclepiu no longer asks for one.
+  # Unused while cloudLayer is false.
   cloudComponents:
   - type: CEZCloudLayer
   - type: MapLight
@@ -58,9 +44,7 @@
   - type: Gravity
     enabled: true
     inherent: true
-  # WFPlanetNetworkSystem RemComps MapLightComponent from the orbit map (WFPlanetNetworkSystem.cs:215),
-  # and the engine falls back to sRGB black with none present, so the chunk and every parked hull would
-  # otherwise be unlit. No Gravity here: per-grid inherent gravity is the chunk's own (F5).
+  # Lights the chunk and parked hulls; no Gravity, since the chunk carries its own.
   orbitComponents:
   - type: MapLight
     ambientLightColor: "#2a3340"

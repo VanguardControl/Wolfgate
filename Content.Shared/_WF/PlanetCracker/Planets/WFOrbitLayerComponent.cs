@@ -36,7 +36,7 @@ public sealed partial class WFOrbitLayerComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? Network;
 
-    /// <summary>Speed cap (m/s) for a grid parked here; tighter than an air layer's, because orbit is where hulls sit.</summary>
+    /// <summary>Speed cap (m/s) for a grid parked here; tighter than an air layer's.</summary>
     [DataField, AutoNetworkedField]
     public float MaxSpeed = 6f;
 

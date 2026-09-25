@@ -1,4 +1,4 @@
-# Machine boards for the cracker hull machines. F1.
+# Machine boards for the cracker hull machines.
 
 - type: entity
   id: WFCentrifugeCircuitboard

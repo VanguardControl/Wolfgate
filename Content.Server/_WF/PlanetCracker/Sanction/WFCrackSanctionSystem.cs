@@ -8,29 +8,18 @@ using Robust.Shared.Configuration;
 
 namespace Content.Server._WF.PlanetCracker.Sanction;
 
-/// <summary>
-/// Raises the two unsanctioned-crack notices: one as a hull enters Cracking over a world with no licence on file, and
-/// one as that world's chunk is finally lifted clear. Both hang off broadcast events the cracker and chunk systems
-/// already raise; F9 adds no event of its own. The necromorph/marker hook is WFPlanetCrackedEvent itself
-/// (Content.Shared/_WF/PlanetCracker/Chunk/WFChunkEvents.cs), and F9 adds nothing for it beyond this note - D7's
-/// "no automated response" is deliberate, so there is no TSF NPC, no war-level change and no radio echo. The notice is
-/// global rather than sector-scoped because ChatSystem.DispatchFilteredAnnouncement (Content.Server/Chat/Systems/
-/// ChatSystem.cs) exists but nothing in the fork can build an "everyone in this sector" Filter; wf.planet_cracker.announce
-/// is the escape hatch.
-/// </summary>
+/// <summary>Round-wide notices when a hull starts cracking an unsanctioned world and when its chunk lifts.</summary>
 public sealed partial class WFCrackSanctionSystem : EntitySystem
 {
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private SharedWFCrackerSystem _crackers = default!;
 
-    /// <summary>Announcement sender for every sanction notice; NOT wf-crack-announce-sender, which is the hull's own "Crack control".</summary>
+    /// <summary>Sender for every sanction notice, distinct from the hull's own crack-control sender.</summary>
     private const string SenderKey = "wf-crack-sanction-sender";
 
-    /// <summary>Locale key of the begin-crack notice.</summary>
     private const string CrackingKey = "wf-crack-sanction-cracking";
 
-    /// <summary>Locale key of the extraction notice.</summary>
     private const string ExtractedKey = "wf-crack-sanction-extracted";
 
     /// <summary>Alert tone for the begin notice; the extraction notice is text only.</summary>
@@ -39,7 +28,7 @@ public sealed partial class WFCrackSanctionSystem : EntitySystem
     /// <summary>Notice colour, distinct from a routine Central Command line.</summary>
     private static readonly Color NoticeColour = Color.FromHex("#D7443E");
 
-    /// <summary>How many begin-crack notices have been dispatched; incremented only after the chat call returns.</summary>
+    /// <summary>How many begin-crack notices have been dispatched.</summary>
     public int CrackingNotices { get; private set; }
 
     /// <summary>How many extraction notices have been dispatched.</summary>
@@ -57,19 +46,14 @@ public sealed partial class WFCrackSanctionSystem : EntitySystem
     /// <summary>Re-arms the latch at AnchorsLocked, then raises the begin notice on the Cracking edge of an unsanctioned world.</summary>
     private void OnCrackStateChanged(ref WFCrackStateChangedEvent args)
     {
-        // D9-D: the latch is per-cut, not per-planet-forever, and the clear comes before every other check including
-        // the CVar so muting neither burns nor strands a latch. TryBegin refuses unless the hull is in AnchorsLocked
-        // (WFCrackerSystem.Lock.cs, ComputeBlockers), so every legitimate begin - including a re-begin after
-        // FinishAbort drops the hull back at WFCrackerSystem.Crack.cs - crosses this edge. A permanent latch would
-        // silence exactly the retry D7's notice exists to summon players to.
+        // The latch is per cut and cleared before the CVar check, so a re-begin after an abort is announced too.
         if (args.New == WFCrackState.AnchorsLocked)
         {
             ClearCrackingLatch(args.Cracker);
             return;
         }
 
-        // Positive filter only: never test args.Old, so F7's Cracked -> Disconnecting -> Released -> Idle chain
-        // cannot reach this path.
+        // Positive filter only, so the post-cut state chain can't reach this path.
         if (args.New != WFCrackState.Cracking)
             return;
 
@@ -112,14 +96,14 @@ public sealed partial class WFCrackSanctionSystem : EntitySystem
         ExtractionNotices++;
     }
 
-    /// <summary>The sector body this hull is orbiting, or false when it is anywhere else; the only resolution F9 does.</summary>
+    /// <summary>The sector body this hull is orbiting, or false when it is anywhere else.</summary>
     private bool TryGetOrbitedPlanet(EntityUid cracker, out Entity<WFSectorPlanetComponent> planet)
     {
         planet = default;
         return Transform(cracker).MapUid is { } mapUid && _crackers.TryGetPlanetFromOrbit(mapUid, out planet);
     }
 
-    /// <summary>Re-arms the begin notice for the next cut. AnchorsLocked is the one state TryBegin demands, so every real re-begin - including one after an abort - passes through here.</summary>
+    /// <summary>Re-arms the begin notice for the next cut; every real begin passes through AnchorsLocked.</summary>
     private void ClearCrackingLatch(EntityUid cracker)
     {
         if (TryGetOrbitedPlanet(cracker, out var planet)
@@ -129,11 +113,11 @@ public sealed partial class WFCrackSanctionSystem : EntitySystem
         }
     }
 
-    /// <summary>The notice text as production sends it; public so a test can assert the text without capturing chat.</summary>
+    /// <summary>The notice text as it is sent.</summary>
     public string BuildNotice(string key, EntityUid planet, EntityUid cracker)
         => Loc.GetString(key, ("planet", Name(planet)), ("ship", Name(cracker)));
 
-    /// <summary>Dispatches one notice round-wide, every optional argument by name so a ChatSystem signature change breaks the build.</summary>
+    /// <summary>Dispatches one notice round-wide.</summary>
     private void Announce(string key, EntityUid planet, EntityUid cracker, bool sound)
     {
         _chat.DispatchGlobalAnnouncement(

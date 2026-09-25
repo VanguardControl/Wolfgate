@@ -35,6 +35,7 @@ public sealed partial class WFCarcinomaInfestationSystem : EntitySystem
     private static readonly ProtoId<TagPrototype> WallTag = "Wall";
     private static readonly EntProtoId MeatWall = "WallMeat";
     [Dependency] private SharedAudioSystem _audio = default!;
+    /// <summary>Most tendrils one hull can carry.</summary>
     public const int MaxTendrils = 4;
     private static readonly EntProtoId Tendril = "WFCarcinomaHullTendril";
     private static readonly EntProtoId Flesh = "ChimeraFleshKudzu";
@@ -78,6 +79,7 @@ public sealed partial class WFCarcinomaInfestationSystem : EntitySystem
         state.NextGrowth = _timing.CurTime + TimeSpan.FromSeconds(45);
     }
 
+    /// <summary>Whether the hull rests on the carcinoma world's ground layer.</summary>
     private bool IsLandedHere(EntityUid hull)
     {
         var map = Transform(hull).MapUid;
@@ -122,6 +124,7 @@ public sealed partial class WFCarcinomaInfestationSystem : EntitySystem
         }
     }
 
+    /// <summary>Forgets tendrils that died or left the hull, releasing it once none remain.</summary>
     private void Prune(EntityUid hull, WFCarcinomaInfestationComponent state)
     {
         foreach (var tendril in state.Tendrils.ToArray())
@@ -133,6 +136,7 @@ public sealed partial class WFCarcinomaInfestationSystem : EntitySystem
         if (state.Tendrils.Count == 0) Release(hull, state);
     }
 
+    /// <summary>Restores the hull's body type if the tendrils had pinned it.</summary>
     private void Release(EntityUid hull, WFCarcinomaInfestationComponent state)
     {
         if (!state.Held || TerminatingOrDeleted(hull)) return;
@@ -165,6 +169,7 @@ public sealed partial class WFCarcinomaInfestationSystem : EntitySystem
         }
     }
 
+    /// <summary>Grows one tendril on the exposed perimeter, pins the hull and seeds one flesh tile.</summary>
     private void Grow(EntityUid hull, MapGridComponent grid, WFCarcinomaInfestationComponent state)
     {
         var perimeter = _map.GetAllTiles(hull, grid).Where(tile => !tile.Tile.IsEmpty

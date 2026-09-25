@@ -10,34 +10,20 @@ using Robust.Shared.Configuration;
 
 namespace Content.Client._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// The sector survey console: one table line per star-system body, with its distance, legal status, crack state and
-/// vein rating, and the destination name a pilot types into the shuttle console shown for whichever line is selected.
-/// Everything comes out of one <see cref="WFSurveyConsoleState"/>, and the only strings that are not locale keys are
-/// entity names that already exist in the world. Nothing on this window sends a message; selection is a client-local
-/// highlight.
-/// The rows are reused rather than rebuilt: the server pushes a state once a second, and dropping every control each
-/// time threw away the scroll position and reallocated the whole list for values that had usually not moved.
-/// </summary>
+/// <summary>Sector survey console: one reused row per star-system body, with a client-local selection and detail line.</summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFSurveyConsoleWindow : FancyWindow
 {
     [Dependency] private IConfigurationManager _cfg = default!;
 
-    /// <summary>
-    /// Right gutter on the column titles, matching the vertical scrollbar the rows lose width to once the list is
-    /// long enough to scroll. ScrollContainer only subtracts the bar when it is actually needed, so with a short list
-    /// the titles sit this far inboard of their columns; that is the whole of the residual error.
-    /// </summary>
+    /// <summary>Right gutter on the column titles, matching the scrollbar a long list takes from the rows.</summary>
     private const float ScrollGutter = StyleBase.DefaultGrabberSize;
 
-    /// <summary>The rows on screen, in state order; index i draws state.Planets[i].</summary>
     private readonly List<WFSurveyPlanetRow> _rows = new();
 
-    /// <summary>The highlighted row, kept purely client-side; the server is never told which row anyone is reading.</summary>
     private NetEntity? _selected;
 
-    /// <summary>The row controls currently on screen. For the headless window test, which asserts they are reused.</summary>
+    /// <summary>The row controls on screen; exposed for the headless window test.</summary>
     public IReadOnlyList<WFSurveyPlanetRow> Rows => _rows;
 
     public WFSurveyConsoleWindow()

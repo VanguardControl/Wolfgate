@@ -147,9 +147,9 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
 
     public void SetMatrix(EntityCoordinates? coordinates, Angle? angle)
     {
-        _wfRadarOrigin = coordinates; // WOLFGATE: retain the moving origin while panned.
-        // WOLFGATE: a map-pinned radar must follow travel to another map. Otherwise panning in
-        // space permanently hides orbit terrain (and contacts) by retaining the old map.
+        _wfRadarOrigin = coordinates; // WOLFGATE(PlanetCracker): retain the moving origin while panned.
+        // WOLFGATE(PlanetCracker) START: a map-pinned radar must follow travel to another map.
+        // Otherwise panning in space permanently hides orbit terrain (and contacts) by retaining the old map.
         if (_wasPanned && coordinates is { } next && _coordinates is { } previous &&
             EntManager.TryGetComponent<TransformComponent>(next.EntityId, out var nextTransform) &&
             (!EntManager.TryGetComponent<TransformComponent>(previous.EntityId, out var previousTransform) ||
@@ -158,6 +158,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             _wasPanned = false;
             Offset = TargetOffset = Vector2.Zero;
         }
+        // WOLFGATE END
 
         if (_wasPanned) // Mono hack
             return;
@@ -297,7 +298,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         _radarModeButtons.AddChild(_radarResetButton);
 
         parent.AddChild(_radarModeButtons);
-        AddWfTerrainButton(parent); // WOLFGATE: terrain toggle overlays the radar, not the settings column.
+        AddWfTerrainButton(parent); // WOLFGATE(PlanetCracker): terrain toggle overlays the radar, not the settings column.
         LayoutContainer.SetAnchorAndMarginPreset(_radarModeButtons, LayoutContainer.LayoutPreset.BottomLeft, margin: 10);
     }
 
@@ -572,9 +573,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
 
         DrawBacking(handle);
 
-        // WOLFGATE: a grid's map can change between BUI updates (FTL / planet layer travel).
+        // WOLFGATE(PlanetCracker) START: a grid's map can change between BUI updates (FTL / planet layer travel).
         if (_wasPanned && _wfRadarOrigin is { } radarOrigin)
             SetMatrix(radarOrigin, _rotation);
+        // WOLFGATE END
 
         // No data
         if (_coordinates == null || _rotation == null)
@@ -613,7 +615,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         var worldToView = worldToShuttle * shuttleToView;
 
         DrawStarSystem(handle, worldToShuttle, shuttleToView, xform.MapUid); // Far Horizons
-        DrawWfTerrain(handle, worldToView, xform.MapUid); // WOLFGATE: cached planetary terrain beneath radar contacts.
+        DrawWfTerrain(handle, worldToView, xform.MapUid); // WOLFGATE(PlanetCracker): cached planetary terrain beneath radar contacts.
 
         _grids.Clear();
         _mapManager.FindGridsIntersecting(xform.MapID, new Box2(mapPos.Position - MaxRadarRangeVector, mapPos.Position + MaxRadarRangeVector), ref _grids, approx: true, includeMap: false);
@@ -636,7 +638,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         DrawCircles(handle);
 
         DrawIFFBeacons(handle, worldToView, mapPos, xform.MapUid); // Far Horizons
-        DrawWfBerth(handle, worldToView, xform.GridUid); // WOLFGATE: chunk berth ghost on the radar (design D20).
+        DrawWfBerth(handle, worldToView, xform.GridUid); // WOLFGATE(PlanetCracker): chunk berth ghost on the radar (design D20).
 
         // Draw shields
         DrawShields(handle, xform, worldToShuttle);

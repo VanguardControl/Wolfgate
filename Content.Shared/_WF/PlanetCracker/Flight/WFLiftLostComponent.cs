@@ -6,8 +6,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.PlanetCracker.Flight;
 
 /// <summary>
-/// A hull below orbit whose landing thrusters no longer hold it up: it is coming down whatever the pilot does. Drives
-/// the PA callouts and the glide, and is dropped again the moment the lift comes back or the hull is on the ground.
+/// A hull below orbit that has lost lift; drives the PA callouts and the glide until lift returns or it lands.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, UnsavedComponent]
 public sealed partial class WFLiftLostComponent : Component

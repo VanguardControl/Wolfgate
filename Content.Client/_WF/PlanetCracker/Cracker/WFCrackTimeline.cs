@@ -6,14 +6,7 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The nine crack stages as one strip: one fixed-width cell per stage, the stage the hull is in lit, the ones behind
-/// it dimmed and the ones ahead in glass, with the active countdown and the cut's fill bar under them.
-/// Every cell is a real PanelContainer and Label rather than a hand-placed DrawString, because the strip this replaced
-/// drew nine stage names at fixed pixel offsets: they overlapped each other, shrank against the rest of the window at
-/// UIScale > 1, and the control measured as a bare bar the window's MinSize then clipped. Nothing here is rebuilt per
-/// frame - <see cref="SetState"/> writes text and colours into the controls built once in the constructor.
-/// </summary>
+/// <summary>The crack stages as a strip of cells, with the active countdown and the cut's progress bar.</summary>
 public sealed class WFCrackTimeline : WFDiagramControl
 {
     /// <summary>The nine stages, in order; one cell each.</summary>
@@ -30,18 +23,14 @@ public sealed class WFCrackTimeline : WFDiagramControl
         WFCrackState.Falling,
     };
 
-    /// <summary>Width of one stage cell, in virtual pixels; fixed, so the strip never reflows under a long name.</summary>
-
     /// <summary>Gap between stage cells, in virtual pixels.</summary>
     private const float CellGap = 2f;
 
     /// <summary>Height of the crack progress bar, in virtual pixels.</summary>
     private const float BarHeight = 10f;
 
-    /// <summary>One background box per stage cell, recoloured in place on every state push.</summary>
     private readonly StyleBoxFlat[] _cellBoxes = new StyleBoxFlat[Stages.Length];
 
-    /// <summary>One label per stage cell; the text is set once, only the colour moves.</summary>
     private readonly Label[] _cellLabels = new Label[Stages.Length];
 
     private readonly Label _countdown;
@@ -72,7 +61,7 @@ public sealed class WFCrackTimeline : WFDiagramControl
 
             var label = new Label
             {
-                // The short form: nine full names do not fit a window-wide strip at any sane width.
+                // Short names; nine full ones do not fit the strip.
                 Text = Loc.GetString(StageKey(Stages[i]).Replace("-state-", "-stage-short-")),
                 Align = Label.AlignMode.Center,
                 ClipText = true,
@@ -93,7 +82,7 @@ public sealed class WFCrackTimeline : WFDiagramControl
             {
                 PanelOverride = box,
                 HorizontalExpand = true,
-                // The full name, because a long stage clips inside a fixed cell.
+                // Full name, since the cell may clip it.
                 ToolTip = name,
                 Margin = new Thickness(0f, 0f, i == Stages.Length - 1 ? 0f : CellGap, 0f),
             };
@@ -137,7 +126,7 @@ public sealed class WFCrackTimeline : WFDiagramControl
         Apply(state);
     }
 
-    /// <summary>Writes one state into the cells, the countdown line and the fill bar. No control is rebuilt.</summary>
+    /// <summary>Writes one state into the cells, the countdown line and the fill bar.</summary>
     private void Apply(WFCrackConsoleState? state)
     {
         RefreshSkin();
@@ -220,13 +209,13 @@ public sealed class WFCrackTimeline : WFDiagramControl
         return pushed.State == WFCrackState.Cracking ? Skin.Text : Skin.TextMuted;
     }
 
-    /// <summary>Minutes and seconds, the only shape any of the countdowns needs.</summary>
+    /// <summary>Formats a timer as m:ss.</summary>
     private static string Format(TimeSpan time)
     {
         return time <= TimeSpan.Zero ? "0:00" : $"{(int)time.TotalMinutes}:{time.Seconds:D2}";
     }
 
-    /// <summary>Locale key naming one stage; the strip never shows a server-sent string.</summary>
+    /// <summary>Locale key naming one stage.</summary>
     private static string StageKey(WFCrackState state)
     {
         return state switch

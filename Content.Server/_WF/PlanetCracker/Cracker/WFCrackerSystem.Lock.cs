@@ -11,10 +11,7 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// Targeting, the clear-area check, the berth snap and the force-anchor lock. Every refusal here is a locale key the
-/// caller shows: the checks must precede the state transition, because design D23 means there is no way back out.
-/// </summary>
+/// <summary>Targeting, the clear-area check, the berth snap and the lock; every refusal is a locale key.</summary>
 public sealed partial class WFCrackerSystem
 {
     /// <summary>Targets the hull's locked pair so the cut has something to aim at.</summary>
@@ -53,10 +50,7 @@ public sealed partial class WFCrackerSystem
         return true;
     }
 
-    /// <summary>
-    /// Drops the target. Legal only in AnchorsLocked (design D23): once the cut has begun there is no abort, which is
-    /// also why no abort message exists in the shared vocabulary at all.
-    /// </summary>
+    /// <summary>Drops the target; legal only in AnchorsLocked, as a begun cut can't be aborted.</summary>
     public bool TryUntarget(Entity<WFPlanetCrackerComponent> ent, out string? reason)
     {
         reason = null;
@@ -98,8 +92,7 @@ public sealed partial class WFCrackerSystem
             return false;
         }
 
-        // Trap (b): the snap comes first. A force-anchored hull is a static body, and a static body makes its own CE
-        // grid network static-anchored, at which point the sync system pins every move straight back.
+        // Snap before locking: a static hull's grid network pins every move straight back.
         if (!TrySnapToCircle(ent, out reason))
             return false;
 
@@ -133,8 +126,7 @@ public sealed partial class WFCrackerSystem
                 blockers |= WFCrackBlocker.Obstructed;
         }
 
-        // Trap (a): a network of two or more grids cannot be moved at all, so it blocks the button rather than
-        // failing halfway through the snap.
+        // A network of two or more grids can't be moved, so it blocks rather than failing mid-snap.
         if (_zLevels.TryGetGridNetwork(ent.Owner, out var network) && network.Comp.Grids.Count >= 2)
             blockers |= WFCrackBlocker.InGridNetwork;
 
@@ -150,8 +142,7 @@ public sealed partial class WFCrackerSystem
 
         foreach (var projector in _projectorBuffer)
         {
-            // Read from Broken and the power receiver, never from WFProjectorState, which is a display value the
-            // projector's own power and repair handlers overwrite without any crack awareness.
+            // Read from the machine, never the display-only WFProjectorState.
             if (projector.Comp.Broken)
                 blockers |= WFCrackBlocker.ProjectorsBroken;
 
@@ -159,8 +150,7 @@ public sealed partial class WFCrackerSystem
                 blockers |= WFCrackBlocker.ProjectorsUnpowered;
         }
 
-        // Deliberately outside the owned-pair branch: a planet that has already been cut refuses whatever state the
-        // anchors are in, and the flag lives on the sector body so it outlives the z-network.
+        // A planet already cut refuses whatever state the anchors are in.
         if (IsPlanetCracked(ent))
             blockers |= WFCrackBlocker.PlanetCracked;
 
@@ -170,8 +160,7 @@ public sealed partial class WFCrackerSystem
     /// <summary>The locale key for the first blocker worth naming, so a refusal popup says what is actually wrong.</summary>
     public static string GetBlockerReason(WFCrackBlocker blockers)
     {
-        // First of all of them: it is the only permanent fault in the list, so naming anything else would send the
-        // crew off to fix something that cannot help.
+        // First: the only permanent fault, so nothing else is worth naming.
         if ((blockers & WFCrackBlocker.PlanetCracked) != 0)
             return "wf-crack-console-blocker-planet-cracked";
 
@@ -211,11 +200,7 @@ public sealed partial class WFCrackerSystem
         return "wf-crack-console-blocker-wrong-state";
     }
 
-    /// <summary>
-    /// Whether the hull's footprint at its snapped destination is free of everything but itself and what it is docked
-    /// to. Refused hard rather than searched around: the snap is at most AlignTolerance tiles and a pilot already flew
-    /// the hull there.
-    /// </summary>
+    /// <summary>Whether the hull's snapped footprint is free of everything but itself and its docked set.</summary>
     public bool IsDestinationClear(Entity<WFPlanetCrackerComponent> ent, Vector2 offset)
     {
         if (!TryComp<MapGridComponent>(ent.Owner, out var grid))
@@ -250,17 +235,12 @@ public sealed partial class WFCrackerSystem
         return true;
     }
 
-    /// <summary>
-    /// Slides the hull the last few tiles so its berth centre sits over the cut circle, taking its docked set with it.
-    /// Refuses instead of half-moving: every check here has to pass before the state machine advances.
-    /// </summary>
+    /// <summary>Slides the hull and its docked set so the berth is over the circle; never half-moves.</summary>
     public bool TrySnapToCircle(Entity<WFPlanetCrackerComponent> ent, out string? reason)
     {
         reason = null;
 
-        // Trap (a): CEZGridSyncSystem intercepts any transform move of a networked grid and its only escape is a
-        // network of fewer than two grids. With a static anchor it re-applies the old pose while the state machine
-        // would have advanced anyway, so a linked hull is refused rather than nudged.
+        // CEZGridSyncSystem reverts moves of a networked grid, so a linked hull is refused rather than nudged.
         if (_zLevels.TryGetGridNetwork(ent.Owner, out var network) && network.Comp.Grids.Count >= 2)
         {
             reason = "wf-crack-console-refuse-network";
@@ -279,7 +259,7 @@ public sealed partial class WFCrackerSystem
             return false;
         }
 
-        // Trap (e): locking a hull we could never release is worse than refusing to lock it. See EngageLock.
+        // Locking a hull we could never release is worse than refusing; see EngageLock.
         if (!HasComp<ShuttleComponent>(ent.Owner))
         {
             reason = "wf-crack-console-refuse-no-shuttle";
@@ -289,8 +269,7 @@ public sealed partial class WFCrackerSystem
         var xform = Transform(ent.Owner);
         var (worldPos, worldRot) = TransformSystem.GetWorldPositionRotation(xform);
 
-        // Trap (c): capture every docked grid's pose relative to ours before the move. The dock joint is a soft weld,
-        // so a docked transport left where it was gets dragged across the map over about a second.
+        // Docked grids move with the hull; the soft dock weld would otherwise drag them across over a second.
         _docked.Clear();
         _shuttle.GetAllDockedShuttles(ent.Owner, _docked);
         _dockedPoses.Clear();
@@ -312,8 +291,6 @@ public sealed partial class WFCrackerSystem
             _physics.SetAngularVelocity(ent.Owner, 0f, body: body);
         }
 
-        // A grid never re-parents on a world move (the re-parent branch is guarded on GridUid != uid), and the grid
-        // enrols itself in MovedGrids, so physics and PVS need nothing by hand.
         TransformSystem.SetWorldPosition(ent.Owner, worldPos + offset);
 
         var newPos = TransformSystem.GetWorldPosition(ent.Owner);
@@ -336,8 +313,7 @@ public sealed partial class WFCrackerSystem
             _dock.RedockDocks(docked);
         }
 
-        // The connector resolves its links by world position and subscribes map init, anchoring, tiles, splits and
-        // termination - but never MoveEvent - so a moved grid has to ask for the recalculation itself.
+        // The connector never subscribes MoveEvent, so a moved grid asks for the recalculation itself.
         _connectors.MarkDirty();
 
         // StartGridShake needs a GravityComponent and silently does nothing without one.
@@ -348,12 +324,7 @@ public sealed partial class WFCrackerSystem
         return true;
     }
 
-    /// <summary>
-    /// Force-anchors the hull for the cut.
-    /// Trap (e): ShuttleSystem.Enable resolves ShuttleComponent as a required dependency and returns silently without
-    /// one, while Disable does not, so a hull with no ShuttleComponent would anchor and never release - no log, a dead
-    /// abort path and a fall that never starts. It is refused instead.
-    /// </summary>
+    /// <summary>Force-anchors the hull; refused without a ShuttleComponent, as it could never be released.</summary>
     public bool EngageLock(Entity<WFPlanetCrackerComponent> ent, out string? reason)
     {
         reason = null;
@@ -365,17 +336,14 @@ public sealed partial class WFCrackerSystem
             return false;
         }
 
-        // A mapper's own ForceAnchor is external ownership. Refuse rather than leaving Locked clear and later
-        // releasing the mapper's anchor as though this system owned it.
+        // A mapper's own ForceAnchor isn't ours to release later.
         if (HasComp<ForceAnchorComponent>(ent.Owner))
         {
             reason = "wf-crack-console-refuse-external-lock";
             return false;
         }
 
-        // Adding the component re-raises MapInitEvent on a map-initialised entity, which runs ForceAnchorSystem's
-        // Disable(force: true) plus PreventGridAnchorChanges. A grid that never map-initialised gets no such event, so
-        // the same pin is applied here by hand; both are idempotent.
+        // ForceAnchorSystem only pins map-initialised grids, so pin by hand as well; both are idempotent.
         AddComp<ForceAnchorComponent>(ent.Owner);
         PinStatic(ent.Owner);
         ent.Comp.Locked = true;
@@ -390,10 +358,7 @@ public sealed partial class WFCrackerSystem
         EnsureComp<PreventGridAnchorChangesComponent>(uid);
     }
 
-    /// <summary>
-    /// Re-asserts a lock this system applied. Nothing is supposed to re-enable a pinned hull, so a hull found moving
-    /// again is pinned back and logged loudly: the log line is the only evidence of whichever path let it go.
-    /// </summary>
+    /// <summary>Re-pins a locked hull found moving again, and logs it.</summary>
     public void ReassertLock(Entity<WFPlanetCrackerComponent> ent)
     {
         if (!ent.Comp.Locked || !TryComp<PhysicsComponent>(ent.Owner, out var body))
@@ -406,10 +371,7 @@ public sealed partial class WFCrackerSystem
         PinStatic(ent.Owner);
     }
 
-    /// <summary>
-    /// Releases a lock this system applied. ForceAnchorSystem has no release path of its own, so this is it, including
-    /// the trap (e) post-condition: the body must actually be Dynamic afterwards or the fall would never move.
-    /// </summary>
+    /// <summary>Releases a lock this system applied, and logs if the body is still static afterwards.</summary>
     public void ReleaseLock(Entity<WFPlanetCrackerComponent> ent)
     {
         if (ent.Comp.Locked)

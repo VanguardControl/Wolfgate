@@ -4,15 +4,8 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._WF.PlanetCracker.Mining;
 
-/// <summary>A machine that turns the deep vein anchored under its own tile into ore stacks while its cell holds out. F6.</summary>
-/// <remarks>
-/// (a) Deliberately NOT [NetworkedComponent]: nothing on the client reads this component - the sprite is Appearance
-/// + GenericVisualizer and examine is server-side - so networking it would be dead weight. WFGravityAnchorComponent
-/// networks its State only because the client's crack-circle overlay reads it.
-/// (b) AutoGenerateComponentPause only repairs NextTick across a pause - the generator emits nothing but an
-/// EntityUnpausedEvent handler that adds args.PausedTime (RobustToolbox/Robust.Serialization.Generator/ComponentPauseGenerator.cs:160-200)
-/// - so it is WFCrackMinerSystem.Update's own Paused(uid) check that actually stops a paused miner working.
-/// </remarks>
+/// <summary>A machine that turns the deep vein anchored under its own tile into ore stacks while its cell holds out.</summary>
+// Not networked: the client only reads its appearance data.
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class WFCrackMinerComponent : Component
 {

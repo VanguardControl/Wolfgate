@@ -18,9 +18,7 @@ public sealed partial class WFCrackMinerSystem
         chunk = default;
         grid = default;
 
-        // This is the INVERSE of WFGravityAnchorSystem.TryGetPlanetGround, which demands xform.MapUid == grid because a
-        // planet ground layer's map entity IS its grid. A chunk is a grid ON a map and never the map itself - which
-        // CrackExtractionTest.TheChunkNeverCarriesPlanetLayer pins - so there is deliberately no MapUid test here.
+        // A chunk is a grid on a map, never the map itself, so unlike TryGetPlanetGround there's no MapUid test.
         if (xform.GridUid is not { } gridUid)
             return false;
 
@@ -40,8 +38,7 @@ public sealed partial class WFCrackMinerSystem
     {
         vein = default;
 
-        // The lookup has to be tile-index based rather than an area query: F5 re-anchors a vein at the SAME tile index
-        // on the chunk grid, and the vein carries no fixture at all, so only snap-cell membership finds it.
+        // Snap-cell lookup, not an area query: the vein has no fixture.
         var enumerator = _map.GetAnchoredEntitiesEnumerator(grid.Owner, grid.Comp, idx);
 
         while (enumerator.MoveNext(out var other))
@@ -57,7 +54,6 @@ public sealed partial class WFCrackMinerSystem
     }
 
     /// <summary>The chunk and the vein under an entity's own tile; the whole of the miner's placement rule.</summary>
-    /// <remarks>Public for the same reason TryGetPlanetGround is: the admin command and the tests both call it.</remarks>
     public bool TryGetVein(
         TransformComponent xform,
         out Entity<WFPlanetChunkComponent> chunk,
@@ -91,9 +87,7 @@ public sealed partial class WFCrackMinerSystem
 
         var idx = _map.TileIndicesFor(grid.Owner, grid.Comp, xform.Coordinates);
 
-        // There is deliberately no third "a miner is already here" refusal: AnchorableSystem.OnAnchorComplete already
-        // calls TileFree and pops "anchorable-occupied", and TileFree tests CanCollide and Hard rather than BodyType, so
-        // the dynamic body this prototype uses does not weaken it.
+        // No "occupied" check: AnchorableSystem already refuses an occupied tile.
         if (!TryGetVeinAt(grid, idx, out _))
         {
             _popup.PopupEntity(Loc.GetString("wf-crack-miner-no-vein"), ent.Owner, args.User);
@@ -104,18 +98,7 @@ public sealed partial class WFCrackMinerSystem
     /// <summary>Anchor and unanchor alike: flush what was cut and re-read the state. It never unanchors anything.</summary>
     private void OnAnchorStateChanged(Entity<WFCrackMinerComponent> ent, ref AnchorStateChangedEvent args)
     {
-        // Detaching means the entity is being sent to null-space as part of its own deletion, and spawning ore out of a
-        // terminating machine is the same call already made for ComponentShutdown - the buffer is deliberately lost.
-        // The in-content precedent for testing the flag is ArtifactAnchorTriggerSystem.
-        //
-        // The flag alone is NOT enough, and the termination test beside it is not belt and braces. DetachEntityInternal
-        // only raises the detaching form of this event while the GRID is at most MapInitialized
-        // (RobustToolbox/Robust.Shared/GameObjects/Systems/SharedTransformSystem.Component.cs:1598-1606). When the grid
-        // itself is being deleted, EntityManager has already flagged the whole subtree Terminating, that branch is
-        // skipped with _anchored still true, and the SetCoordinates at :1610 unanchors through Unanchor (:143-168) -
-        // which builds a PLAIN AnchorStateChangedEvent with Detaching false. So a grid delete does reach this handler,
-        // and flushing there spawns ore onto a terminating parent and Log.Errors out of SetCoordinates (:506). Pinned by
-        // CrackMinerTest.MinesAtTheVeinRate and four others, all of which end mid-batch.
+        // Deleting: the buffer is lost. A grid delete unanchors with Detaching false, hence the termination check too.
         if (args.Detaching || TerminatingOrDeleted(ent.Owner))
             return;
 
@@ -126,11 +109,5 @@ public sealed partial class WFCrackMinerSystem
 
         if (ent.Comp.State != WFCrackMinerState.Broken)
             SetState(ent, WFCrackMinerState.Idle);
-
-        // There is no post-hoc re-verify-and-Unanchor here, unlike WFGravityAnchorSystem's: that exists because the
-        // anchor's nine-tile footprint is not what the engine validates and because its eight-second do-after gives the
-        // world time to change. The miner's gate is exactly the one tile the engine registers, a vein cannot move and a
-        // grid cannot stop carrying WFPlanetChunkComponent, so the Update gate is authoritative - and a mapper may leave
-        // a miner anchored on a hull as scenery, where it simply refuses to mine.
     }
 }

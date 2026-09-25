@@ -7,15 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// The shuttle console's orbit control: enter orbit, leave orbit, or - once in orbit - enter the planet's atmosphere,
-/// with the hull's lift ratio under it. It needs no FTL drive and never touches the destination list: the server
-/// answers a BUI message with the ordinary FTL transit.
-/// It reads <see cref="WFConsoleOrbitTargetComponent"/> off the console entity every frame rather than the shuttle BUI
-/// state, because that state is only pushed on docking, beacon and power events and would be stale while the hull flies.
-/// It is a container rather than a bare button because the descent decision needs the lift readout beside it; the nav
-/// screen's settings column is a single narrow stack, so the readout sits under the buttons rather than next to them.
-/// </summary>
+/// <summary>Shuttle console orbit, liftoff and atmosphere controls, read each frame from <see cref="WFConsoleOrbitTargetComponent"/>.</summary>
 public sealed partial class WFOrbitButton : BoxContainer
 {
     [Dependency] private IEntityManager _entMan = default!;
@@ -49,8 +41,7 @@ public sealed partial class WFOrbitButton : BoxContainer
         _ui = _entMan.System<SharedUserInterfaceSystem>();
 
         Orientation = LayoutOrientation.Vertical;
-        // Stays visible: Control.DoFrameUpdateRecursive skips hidden controls, so a container that hid itself here
-        // would never get the FrameUpdate that shows it again. The children hide instead; an empty box takes no space.
+        // Never hide this container: hidden controls get no FrameUpdate, so only the children hide.
 
         _liftoffButton = new Button
         {
@@ -159,7 +150,7 @@ public sealed partial class WFOrbitButton : BoxContainer
         if (!target.InOrbit)
             return;
 
-        // F11: station-keeping, read off the same server sweep. -1 is a hull that is holding its own orbit.
+        // -1 means the hull is holding its own orbit.
         var decaying = target.DecaySeconds >= 0f;
 
         _decayLabel.Text = decaying
@@ -246,10 +237,7 @@ public sealed partial class WFOrbitButton : BoxContainer
             () => _ui.ClientSendUiMessage(console, ShuttleConsoleUiKey.Key, new WFEnterPlanetOrbitMessage(netConsole, planet, true)));
     }
 
-    /// <summary>
-    /// Drops out of orbit. Low lift or a prospective power deficit asks for confirmation first; the server refuses an unconfirmed
-    /// descent on its own account, so the dialog is the explanation rather than the gate.
-    /// </summary>
+    /// <summary>Drops out of orbit, confirming first on low lift or a power deficit; the server enforces the same gate.</summary>
     private void OnAtmospherePressed(BaseButton.ButtonEventArgs args)
     {
         if (_console is not { } console

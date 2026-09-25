@@ -21,7 +21,7 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using Robust.Shared.Timing; // WOLFGATE: the destruction-sound budget needs the tick
+using Robust.Shared.Timing; // WOLFGATE(Audio): the destruction-sound budget needs the tick
 using System.Linq;
 
 namespace Content.Server.Destructible
@@ -48,7 +48,7 @@ namespace Content.Server.Destructible
         // Mono
         private EntityQuery<DestructibleComponent> _destructibleQuery;
 
-        // WOLFGATE: destruction-sound budget, see WfDestructionSoundAllowed.
+        // WOLFGATE(Audio) START: destruction-sound budget, see WfDestructionSoundAllowed.
         [Dependency] private IGameTiming _wfTiming = default!;
         private const int WfDestructionSoundsPerWindow = 8;
 
@@ -58,7 +58,7 @@ namespace Content.Server.Destructible
         private TimeSpan _wfSoundWindowEnd;
         private int _wfSoundsThisWindow;
 
-        /// <summary>WOLFGATE: allows at most a handful of destruction sounds at a time; nothing about the destruction itself is throttled, only the sound.</summary>
+        /// <summary>Allows at most a handful of destruction sounds at a time; nothing about the destruction itself is throttled, only the sound.</summary>
         public bool WfDestructionSoundAllowed()
         {
             if (_wfTiming.CurTime >= _wfSoundWindowEnd)
@@ -69,6 +69,7 @@ namespace Content.Server.Destructible
 
             return ++_wfSoundsThisWindow <= WfDestructionSoundsPerWindow;
         }
+        // WOLFGATE END
 
         public override void Initialize()
         {

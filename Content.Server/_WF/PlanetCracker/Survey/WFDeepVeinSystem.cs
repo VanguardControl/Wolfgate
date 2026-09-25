@@ -9,10 +9,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// Stamps a marker-spawned deep vein at MapInit: the tile whitelist the marker layer cannot express, then a
-/// deterministic ore and yield rolled from the biome seed and the vein's own tile index.
-/// </summary>
+/// <summary>Filters a marker-spawned deep vein by tile, then rolls its ore and yield from seed and tile.</summary>
 public sealed partial class WFDeepVeinSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
@@ -47,12 +44,7 @@ public sealed partial class WFDeepVeinSystem : EntitySystem
             return;
         }
 
-        // The only tile filter there is: BiomeMarkerLayerPrototype has no whitelist in this fork, so a flat marker layer
-        // scatters veins across every template the biome stacks, sea and icecap included. The cost is a few hundred
-        // create/delete pairs per marker chunk, once. A deleted vein leaves nothing pinned behind it: LoadChunkMarkers
-        // never writes its local `modified` set back into BiomeComponent.ModifiedTiles (it takes the set at
-        // BiomeSystem.MarkerProcessor.cs:272-273 and its only dictionary write is the Remove at :313-317), so the
-        // abandoned tile regenerates normally.
+        // Biome marker layers have no tile whitelist, so veins are filtered here.
         if (!IsAllowedTile(ent.Comp, _tileDefs[tile.TypeId].ID))
         {
             QueueDel(ent.Owner);
@@ -65,18 +57,14 @@ public sealed partial class WFDeepVeinSystem : EntitySystem
             return;
         }
 
-        // Deterministic from data alone. NEVER HashCode.Combine or string.GetHashCode here: both are randomised per
-        // process in .NET, so a vein would silently roll different contents on every server start even with a fixed
-        // biome seed.
+        // Deterministic; never HashCode.Combine or string.GetHashCode, which are randomised per process.
         var seed = TryComp<BiomeComponent>(grid, out var biome) ? biome.Seed : 0;
         var mix = unchecked(seed * 397 ^ idx.X * 73856093 ^ idx.Y * 19349663);
         var rand = new Random(mix);
 
         ent.Comp.Ore = PickOre(table, rand);
 
-        // The multiplier scales the whole band, not just the roll, so the stamped range is what the rich flag and the
-        // examine band are measured against. Against the raw table ceiling every vein on an unsanctioned world would
-        // be rich, because the smallest doubled roll already clears it.
+        // The multiplier scales the whole band, so "rich" is measured against the scaled range.
         var multiplier = sanctioned ? 1f : table.UnsanctionedMultiplier;
         var rolled = rand.Next((int) table.YieldRange.X, (int) table.YieldRange.Y + 1);
         ent.Comp.YieldRange = table.YieldRange * multiplier;
@@ -86,10 +74,7 @@ public sealed partial class WFDeepVeinSystem : EntitySystem
         ent.Comp.Remaining = ent.Comp.TotalYield;
         Dirty(ent.Owner, ent.Comp);
 
-        // BiomeSystem.LoadChunkMarkers spawns markers with CreateEntityUninitialized and never anchors them
-        // (BiomeSystem.MarkerProcessor.cs:305-308), unlike LoadEntities. The prototype's `- type: Transform /
-        // anchored: true` is the only thing that makes the cross-grid chunk ride-up work AND the only thing that pins
-        // the vein's tile against regeneration at unload (BiomeSystem.ChunkLoader.cs:278-283, written back at :196-198).
+        // The biome never anchors markers; the prototype's `anchored: true` lets the vein ride the chunk.
         if (!xform.Anchored)
             Log.Error($"Deep vein {ToPrettyString(ent.Owner)} spawned unanchored; its prototype is missing `anchored: true`.");
     }

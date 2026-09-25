@@ -22,9 +22,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Anchors;
 
-/// <summary>
-/// Server half of the gravity anchor: placement on a planet ground layer, pairing, the unattended drill and the lock.
-/// </summary>
+/// <summary>Server half of the gravity anchor: placement on planet ground, pairing, the drill and the lock.</summary>
 public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
 {
     [Dependency] private AnchorableSystem _anchorable = default!;
@@ -37,7 +35,6 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
-    /// <summary>Played once as a drill bites home and the anchor locks.</summary>
     private static readonly SoundSpecifier LockSound = new SoundCollectionSpecifier("MetalThud");
 
     /// <summary>Accumulator BiomeSystem.ReserveTiles fills; cleared before every call.</summary>
@@ -103,8 +100,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
         if (args.Cancelled || !IsArmed(ent.Comp.State))
             return;
 
-        // An Off anchor is still drilled in but has nothing left to switch off, so it gets its own wording rather than
-        // being told to do something it cannot: there is no player-facing re-arm either.
+        // An Off anchor is still drilled in but has nothing left to switch off, so it gets its own wording.
         _popup.PopupEntity(
             Loc.GetString(ent.Comp.State == WFAnchorState.Off ? "wf-anchor-off-unwrench" : "wf-anchor-locked-unwrench"),
             ent.Owner,
@@ -116,8 +112,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
     /// <summary>The one anchor/unanchor handler: covers the wrench, explosions and grid destruction alike.</summary>
     private void OnAnchorStateChanged(Entity<WFGravityAnchorComponent> ent, ref AnchorStateChangedEvent args)
     {
-        // F5 moves a deployed anchor onto the chunk grid, which is an unanchor and a re-anchor: dissolving the pair here
-        // would abort the cut 30 s after a successful extraction, and re-anchoring can never satisfy TryGetPlanetGround.
+        // Extraction moves the anchor onto the chunk grid; dissolving the pair here would abort the cut.
         if (IsRidingChunk(ent.Owner))
             return;
 
@@ -134,8 +129,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
 
         var xform = Transform(ent);
 
-        // AnchorAttemptEvent fires before the eight-second do-after, and the engine only re-checks the one tile it
-        // registers, so the other eight are re-verified here. BeforeAnchoredEvent is not cancellable, so this is post-hoc.
+        // The attempt check ran before the do-after and the engine re-checks only one tile, so re-verify the footprint.
         if (!TryGetPlanetGround(xform, out var ground) || !TryComp<PhysicsComponent>(ent.Owner, out var body))
         {
             _popup.PopupEntity(Loc.GetString("wf-anchor-lost-room"), ent.Owner);
@@ -238,7 +232,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
             args.PushMarkup(Loc.GetString("wf-anchor-examine-damaged"));
     }
 
-    /// <summary>Maintains the networked damage flag. It gates nothing in F3; F4 decides what it pauses.</summary>
+    /// <summary>Maintains the networked damage flag.</summary>
     private void OnDamageChanged(Entity<WFGravityAnchorComponent> ent, ref DamageChangedEvent args)
     {
         var damaged = args.Damageable.TotalDamage.Float() >= ent.Comp.BreakDamage * ent.Comp.DamageFraction;
@@ -296,7 +290,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
         var query = EntityQueryEnumerator<WFGravityAnchorComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
-            // The damage flag deliberately does not pause the drill; the 50% pause belongs to F4's crack timer.
+            // The damage flag doesn't pause the drill; only the crack timer pauses on it.
             if (comp.State != WFAnchorState.Drilling || _timing.CurTime < comp.DrillEnd)
                 continue;
 
@@ -321,13 +315,13 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
         RaiseLocalEvent(ref ev);
     }
 
-    /// <summary>Switches a locked anchor off, unless a later feature vetoes it.</summary>
+    /// <summary>Switches a locked anchor off unless a subscriber vetoes it.</summary>
     private void SwitchOff(Entity<WFGravityAnchorComponent> ent, EntityUid user)
     {
         if (ent.Comp.State != WFAnchorState.Locked)
             return;
 
-        // Broadcast and by value so any number of later systems (F7) may veto and supply a reason.
+        // Broadcast by value so any number of systems may veto with a reason.
         var attempt = new WFAnchorSwitchOffAttemptEvent(ent.Owner, user);
         RaiseLocalEvent(attempt);
 
@@ -385,10 +379,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
                 if (!_map.TryGetTileRef(grid.Owner, grid.Comp, idx, out var tile) || tile.Tile.IsEmpty)
                     return false;
 
-                // Once the anchor is down it sits in its own centre snap cell, so it has to be excluded from that
-                // cell rather than the cell being skipped: AnchorableSystem.TryAnchorEntity is the only other
-                // validator of it, and routes that bypass it (admin VV, a future ForceAnchor helper, a map load)
-                // would otherwise let a second hard body share the tile unchallenged.
+                // A placed anchor sits in its own centre cell; exclude it there rather than skip the cell.
                 if (ignore.IsValid() && idx == origin)
                 {
                     if (!TileFreeIgnoring(grid, idx, body, ignore))
@@ -405,7 +396,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
         return true;
     }
 
-    /// <summary>AnchorableSystem.TileFree with one entity - the anchor doing the checking - excluded from the cell.</summary>
+    /// <summary>AnchorableSystem.TileFree with one entity excluded from the cell.</summary>
     private bool TileFreeIgnoring(Entity<MapGridComponent> grid, Vector2i idx, PhysicsComponent body, EntityUid ignore)
     {
         var enumerator = _map.GetAnchoredEntitiesEnumerator(grid.Owner, grid.Comp, idx);
@@ -439,9 +430,7 @@ public sealed partial class WFGravityAnchorSystem : SharedWFGravityAnchorSystem
             origin.X + radius + 1,
             origin.Y + radius + 1);
 
-        // GridUid == MapUid on a ground layer, so the reserved map and the checked grid are one entity. The box stays
-        // tile-exact: the tile enumerator floors the minimum and ceils the maximum (SharedMapSystem.Grid.cs:1682-1690),
-        // so padding it would pin the ring beyond the footprint - 25 tiles per anchor instead of 9.
+        // Keep the box tile-exact: the enumerator floors min and ceils max, so padding pins 25 tiles, not 9.
         _biome.ReserveTiles(ground.Owner, bounds, _reservedTiles, mapGrid: ground.Comp);
     }
 

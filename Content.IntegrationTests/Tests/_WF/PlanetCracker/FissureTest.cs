@@ -26,28 +26,12 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// Site threats end to end: that an armed drill spreads its rings on the schedule the drill's own length sets, that
-/// every fissure tile is pinned so its decal outlives a biome unload, that the cumulative per-anchor cap really is
-/// cumulative, that an unsanctioned world gets the 1.5x of both counts, that a locked or dissolved pair goes quiet,
-/// that the extraction surge lands on the disc's perimeter on the unarmed path production actually takes, and that
-/// every mob that climbs out is re-rooted onto the anchor.
-/// </summary>
+/// <summary>Site threats: ring schedule, pinning, spawn caps, the extraction surge and threat stamping.</summary>
 [TestFixture]
 [TestOf(typeof(WFFissureSpawnerSystem))]
 public sealed class FissureTest
 {
-    /// <summary>
-    /// A faction that cannot roll a surprise. The shipped Xenos table has a group whose only entry is
-    /// `NFMobXenoDrone amount: 0 maxAmount: 2` (Resources/Prototypes/Procedural/salvage_factions.yml:17-21), which
-    /// EntitySpawnEntry.GetAmount resolves to random.Next(0, 2) and therefore rolls NOTHING about half the time it is
-    /// drawn, and another whose only entity (WeaponTurretXeno) is a structure with no MobStateComponent and so is never
-    /// stamped and never joins Live. One group, one entry, one fixed amount makes every exact-count assertion below
-    /// deterministic.
-    /// It lives here and NOT in Resources on purpose: Content.Shared/Salvage/SharedSalvageSystem.cs:102 picks an
-    /// expedition's faction with GetMod, which enumerates EVERY salvageFaction prototype, so a shipped test faction
-    /// would quietly pollute real expedition generation for the whole round.
-    /// </summary>
+    /// <summary>A deterministic faction for exact counts; kept out of Resources so expeditions never roll it.</summary>
     [TestPrototypes]
     public const string Prototypes = @"
 - type: salvageFaction
@@ -63,7 +47,7 @@ public sealed class FissureTest
     /// <summary>The deterministic faction the exact-count tests drive.</summary>
     private const string TestFaction = "WFTestFissureFaction";
 
-    /// <summary>What WFSurfaceAsclepiu names as its sanctioned faction; the resolution assertion's expected value.</summary>
+    /// <summary>WFSurfaceAsclepiu's sanctioned faction.</summary>
     private const string AsclepiuFaction = "Xenos";
 
     /// <summary>The compound every stamped threat is re-rooted onto.</summary>
@@ -75,22 +59,13 @@ public sealed class FissureTest
     /// <summary>SharedBiomeSystem.ChunkSize, which is protected and therefore mirrored here.</summary>
     private const byte BiomeChunkSize = 8;
 
-    /// <summary>
-    /// A biome chunk origin far outside the fixture's hand-laid deck rectangle of (-16,-16)..(32,16), so the tiles in
-    /// it are genuine generated terrain and an unload really does empty them.
-    /// </summary>
+    /// <summary>A biome chunk origin outside the laid deck, so its tiles are real generated terrain.</summary>
     private static readonly Vector2i ControlChunk = new(64, 64);
 
     /// <summary>Drill length every armed test shortens the shipped five minutes to.</summary>
     private static readonly TimeSpan ShortDrill = TimeSpan.FromSeconds(10);
 
-    /// <summary>
-    /// The rings walk on the drill's own clock: RingCount of them over DrillDuration, the first due the moment the
-    /// drill starts. At a ten second drill the cadence is two seconds against the system's 1 Hz sweep, so the five
-    /// rings are due at arm+0/2/4/6/8 and the anchor's own lock sweep lands at arm+10.
-    /// No tune, so this is also the resolution test: nothing but the arm handler's walk off the ground layer can put
-    /// Xenos into the component.
-    /// </summary>
+    /// <summary>Rings spread evenly over the drill from arm, and the faction resolves off the ground.</summary>
     [Test]
     public async Task RingsFollowTheDrillSchedule()
     {
@@ -135,9 +110,7 @@ public sealed class FissureTest
                 Assert.That(comp.Decals, Has.Count.GreaterThanOrEqualTo(comp.RingCount),
                     "Five rings stamped fewer than five decals between them.");
 
-                // Bounded, never exact: this test runs against the SHIPPED Xenos table, two of whose groups can
-                // legitimately roll an empty spawn list, so any exact or lower-bounded mob count here would be a
-                // coin flip. The deterministic [TestPrototypes] faction is what the counting tests use instead.
+                // Bounded, not exact: the shipped Xenos table can roll empty groups.
                 Assert.That(comp.SpawnedTotal, Is.GreaterThan(0),
                     "Five rings over a faction-bearing world sent up nothing at all.");
                 Assert.That(comp.SpawnedTotal, Is.LessThanOrEqualTo(comp.Cap),
@@ -148,15 +121,7 @@ public sealed class FissureTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// D19's real precondition: every fissure tile is pinned against the biome, so the decal on it is never wiped.
-    /// PinnedCount is the PRIMARY assertion. The unload/reload cycle on its own proves nothing here and the negative
-    /// control is what makes it honest: the fixture lays hand-made deck over (-16,-16)..(32,16), which covers every
-    /// tile inside the maximum ring radius of eight, and UnloadTiles only empties an index whose grid tile EQUALS the
-    /// biome tile for it (Content.Server/Parallax/BiomeSystem.ChunkLoader.cs:287-294) while LoadTiles skips any
-    /// non-empty index (:85-86) - so a laid floor lands in `modified` and survives whether or not the pin ever ran.
-    /// A decal stamped on genuine, UNPINNED biome ground dying in the same harness is the other half of the proof.
-    /// </summary>
+    /// <summary>Pinned fissure decals survive an unload, while an unpinned control does not.</summary>
     [Test]
     public async Task FissureDecalsArePinnedAndSurviveAnUnload()
     {
@@ -199,11 +164,7 @@ public sealed class FissureTest
             var biome = BiomeOf(entMan, site.Ground);
             var candidates = new List<Vector2i>();
 
-            // Generated by hand, because nothing on this map has a viewer and the biome loader never runs on its own.
-            // The load/unload pre-flight is what makes the control honest: an index is only a usable control if the
-            // unloader really does empty it, and several do not - UnloadEntities pins the tile under any biome entity
-            // it could not cleanly delete (BiomeSystem.ChunkLoader.cs:233-274) and UnloadTiles pins anything still
-            // carrying an anchored entity, so picking the first generated tile would be a coin flip.
+            // Loaded by hand (no viewer); the pre-flight unload finds an index the unloader really empties.
             biomes.WfLoadChunk(biome, ControlChunk);
             biomes.WfUnloadChunk(biome, ControlChunk);
 
@@ -219,7 +180,7 @@ public sealed class FissureTest
                     candidates.Add(index);
             }
 
-            // Regenerated identically: the biome tile of an index is a pure function of the index and the seed.
+            // Regenerates identically from index and seed.
             biomes.WfLoadChunk(biome, ControlChunk);
 
             foreach (var index in candidates)
@@ -239,7 +200,7 @@ public sealed class FissureTest
                 "The control decal could not be stamped on genuine unpinned biome ground, so the test proves nothing.");
         });
 
-        // One callback for all three passes over every touched chunk: nothing may tick in between.
+        // One callback, so nothing ticks in between.
         await server.WaitPost(() =>
         {
             var biome = BiomeOf(entMan, site.Ground);
@@ -274,10 +235,7 @@ public sealed class FissureTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The cap is CUMULATIVE and per anchor: once an anchor has spawned its budget the rings keep splitting the ground
-    /// cosmetically but send nothing else up, and killing what is already out cannot re-open it.
-    /// </summary>
+    /// <summary>The spawn cap is cumulative per anchor; killing what is out does not re-open it.</summary>
     [Test]
     public async Task SpawnsAreCappedPerAnchor()
     {
@@ -317,10 +275,7 @@ public sealed class FissureTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// An unsanctioned crack takes the 1.5x ceiling on BOTH counts: more ground split open and more of what lives
-    /// under it. One ring apiece so the arithmetic is exact rather than a sum over five rolls.
-    /// </summary>
+    /// <summary>An unsanctioned crack takes 1.5x on both fissure and mob counts.</summary>
     [Test]
     public async Task UnsanctionedPlanetsSpawnMore()
     {
@@ -386,10 +341,7 @@ public sealed class FissureTest
         }
     }
 
-    /// <summary>
-    /// Only a RUNNING drill spreads rings. An anchor walked straight to Locked never arms at all, and one whose drill
-    /// is finished early stops where it stood: the sweep re-checks the anchor's state before it looks at the schedule.
-    /// </summary>
+    /// <summary>Only a running drill spreads rings; a locked or early-finished anchor stays quiet.</summary>
     [Test]
     public async Task ALockedAnchorIsQuiet()
     {
@@ -455,11 +407,7 @@ public sealed class FissureTest
         await Cleanup(pair, drilling);
     }
 
-    /// <summary>
-    /// The cancel with no cancel event: unanchoring one half runs Dissolve -> Demote, which drops Drilling back to
-    /// Deployed and zeroes DrillEnd while raising only WFAnchorPairDissolvedEvent. Both the event handler and the
-    /// sweep's own state re-check have to stop the rings.
-    /// </summary>
+    /// <summary>Dissolving the pair mid-drill stops the rings, though no drill-cancel event is raised.</summary>
     [Test]
     public async Task ADissolvedPairStopsTheRings()
     {
@@ -504,14 +452,7 @@ public sealed class FissureTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The surge, on both paths.
-    /// Part A is the one production actually takes: nothing that reaches extraction raises WFAnchorDrillStartedEvent,
-    /// because BuildReadyToExtract and `wfcracker complete drill` both go Paired -> Locked through CompleteDrill. A
-    /// surge that read its ground, centre and faction off the arm handler's cache would spawn NOTHING here and would
-    /// sort the rim by distance to the grid origin for both anchors.
-    /// Part B drives the cached fast path and the unsanctioned budget.
-    /// </summary>
+    /// <summary>The extraction surge spawns on the disc perimeter, on both the unarmed and the armed path.</summary>
     [Test]
     public async Task TheExtractionSurgeSpawnsOnThePerimeter()
     {
@@ -549,11 +490,7 @@ public sealed class FissureTest
                         "An anchor that was never armed surged nothing; the surge is reading the arm handler's cache.");
                     Assert.That(comp.Fissures, Is.Not.Empty, "The surge stamped no fissures at all.");
 
-                    // Asserted over the tiles the surge CHOSE, not over where its mobs are standing now. A freshly
-                    // spawned HTN NPC is awake until NPCSystem's own sweep gets round to sleeping it, and these are
-                    // stamped hostile to the anchor, so within the first second some of them have already walked a
-                    // tile or two off the ring they came out of. The chosen set is what MoveRiders sees at extraction
-                    // and is therefore the honest subject of "outside the disc".
+                    // Asserted over the chosen tiles, since freshly spawned mobs may already have walked off them.
                     foreach (var index in comp.Fissures)
                     {
                         Assert.That(rim, Does.Contain(index),
@@ -607,18 +544,7 @@ public sealed class FissureTest
         await Cleanup(pair, cached);
     }
 
-    /// <summary>
-    /// Every mob that climbs out is a SITE threat, not just another hostile: it is re-rooted onto the fissure compound
-    /// and the anchor is written into its faction exceptions, which are the two halves the targeting needs.
-    /// Asserted over Live rather than SpawnedTotal because an entry that is not a mob (WeaponTurretXeno,
-    /// salvage_factions.yml:22-25 - it has an HTNComponent but no MobStateComponent, so the stamp deliberately leaves
-    /// its TurretCompound alone) increments the latter without ever joining the former.
-    /// There is deliberately NO "the anchor takes damage" test here. NPCSystem.CheckPlayerDistancesAndPauseNPCs
-    /// (Content.Server/NPC/Systems/NPCSystem.cs:174-230) sleeps every HTN NPC with no live player within
-    /// npc.player_pause_distance, measured with EntityCoordinates.TryDistance, which fails across maps - and a headless
-    /// fixture has nobody standing on the ground layer at all, so every fissure mob is asleep and such a test would
-    /// fail deterministically with no bug present.
-    /// </summary>
+    /// <summary>Every live fissure mob is re-rooted onto the threat compound and targets the anchor.</summary>
     [Test]
     public async Task FissureMobsAreStampedAsSiteThreats()
     {
@@ -653,8 +579,7 @@ public sealed class FissureTest
                     Assert.That(htn!.RootTask.Task, Is.EqualTo(ThreatCompound),
                         "A fissure threat kept its stock root task, so it never goes for the anchor.");
 
-                    // Reading Hostiles is legal from here: FactionExceptionComponent's [Access] leaves
-                    // OtherDefaultPermissions at Read.
+                    // FactionExceptionComponent allows outside reads.
                     Assert.That(entMan.TryGetComponent(mob, out FactionExceptionComponent? exception), Is.True,
                         "A fissure threat carries no faction exception, so the anchor is not a target at all.");
                     Assert.That(exception!.Hostiles, Does.Contain(anchor),
@@ -666,12 +591,7 @@ public sealed class FissureTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Arms both halves of a deployed pair on a shortened drill and only THEN applies the tune.
-    /// The order is load-bearing: OnDrillStarted writes Faction and Sanctioned at arm, so a tune applied first would be
-    /// silently overwritten by whatever the world resolves to. The site must have been deployed with drill: false, or
-    /// the anchors are already Locked and BeginDrill refuses them.
-    /// </summary>
+    /// <summary>Arms an undrilled pair on a short drill, then applies the tune, which arming would overwrite.</summary>
     private static async Task ArmDrill(
         TestPair pair,
         CrackerSite site,
@@ -723,7 +643,7 @@ public sealed class FissureTest
             entMan.GetComponent<MapGridComponent>(ground));
     }
 
-    /// <summary>Every biome chunk origin a set of indices touches; the biome's own chunks are 8 tiles, not 16.</summary>
+    /// <summary>Every 8-tile biome chunk origin a set of indices touches.</summary>
     private static HashSet<Vector2i> ChunkOrigins(IEnumerable<Vector2i> indices)
     {
         var origins = new HashSet<Vector2i>();
@@ -736,11 +656,7 @@ public sealed class FissureTest
         return origins;
     }
 
-    /// <summary>
-    /// Every decal on the ground near a point, by id.
-    /// Read through the decal system's own query: DecalGridComponent is access-locked to that system, and even a
-    /// dictionary lookup on its index counts as an Execute the analyzer refuses.
-    /// </summary>
+    /// <summary>Every decal near a point by id, via the decal system since DecalGridComponent is locked.</summary>
     private static Dictionary<uint, Decal> DecalsNear(TestPair pair, EntityUid ground, Vector2 centre, float span)
     {
         var decals = pair.Server.System<DecalSystem>();
@@ -754,11 +670,7 @@ public sealed class FissureTest
         return found;
     }
 
-    /// <summary>
-    /// Deletes the cut chunk if there is one and tears the site down, WITHOUT returning the pair.
-    /// A test that builds a second site has to use this for the first one: CleanReturnAsync ends the pair's test
-    /// context, and the next BuildCrackerInOrbit then dies on the first line the server logs.
-    /// </summary>
+    /// <summary>Deletes any chunk and tears the site down without returning the pair, for a second site.</summary>
     private static async Task ReleaseSite(TestPair pair, CrackerSite site)
     {
         var server = pair.Server;

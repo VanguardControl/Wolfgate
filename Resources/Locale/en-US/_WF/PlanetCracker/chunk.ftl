@@ -13,3 +13,6 @@ cmd-wfcracker-extracted = Extracted { $grid }.
 cmd-wfcracker-dropped = Dropped { $grid } back into transit.
 cmd-wfcracker-no-chunk = That cracker has no extracted chunk.
 cmd-wfcracker-extract-failed = Extraction failed: { $reason }
+cmd-wfcracker-extract-no-pair = no targeted anchor pair
+cmd-wfcracker-extract-no-circle = the pair has no cut circle
+cmd-wfcracker-extract-see-log = see the server log

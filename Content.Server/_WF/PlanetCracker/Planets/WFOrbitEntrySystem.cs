@@ -13,11 +13,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// Entering and leaving planet orbit from the shuttle console, which needs no FTL drive: the orbit layer is not an FTL
-/// destination at all any more. This system owns both gates and both hops; the transit itself is the ordinary FTL
-/// machinery, reached through <see cref="ShuttleSystem.WfFTLToLayer"/>.
-/// </summary>
+/// <summary>Driveless shuttle-console hops into and out of planet orbit, and the console's orbit readout.</summary>
 public sealed partial class WFOrbitEntrySystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -26,13 +22,12 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ShuttleSystem _shuttle = default!;
 
-    /// <summary>How often a console's orbit readout is recomputed; a hull crosses the range band over minutes.</summary>
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(1);
 
-    /// <summary>Decay countdown change under which the readout is not re-sent; it is displayed in whole seconds.</summary>
+    // The countdown shows whole seconds.
     private const float DecaySecondsEpsilon = 0.5f;
 
-    /// <summary>Sector bodies with a live orbit layer, rebuilt once per sweep rather than per console.</summary>
+    // Sector bodies with a live orbit layer, rebuilt each sweep.
     private readonly List<(EntityUid Body, EntityUid Orbit, float Range)> _bodies = new();
 
     private TimeSpan _nextRefresh;
@@ -64,7 +59,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         SweepApproaches();
     }
 
-    /// <summary>Recomputes what every shuttle console offers, so the button tracks the hull instead of the BUI state.</summary>
+    /// <summary>Recomputes every shuttle console's orbit readout.</summary>
     private void Refresh()
     {
         _bodies.Clear();
@@ -94,7 +89,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         }
     }
 
-    /// <summary>Writes one console's offer, adding or dropping the component so idle hulls carry nothing networked.</summary>
+    /// <summary>Writes one console's readout, removing the component when there is nothing to offer.</summary>
     private void RefreshConsole(EntityUid console, TransformComponent xform)
     {
         NetEntity? planet = null;
@@ -124,7 +119,6 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
                     planet = netPlanet;
                     planetName = Name(body.Value);
 
-                    // F11: the countdown is the decay system's, and this is the only sweep a console reads from.
                     if (TryComp<WFOrbitDecayComponent>(grid, out var decay) && decay.Announced)
                         decaySeconds = MathF.Max(0f, (float) (decay.DecayAt - _timing.CurTime).TotalSeconds);
                 }
@@ -142,7 +136,6 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
 
             if (inOrbit || liftoffAvailable || liftoffActive)
             {
-                // Both atmosphere entry and liftoff make their decision against this server-side reading.
                 _zLevels.WfTryGetLiftRatio(grid, out liftRatio);
                 _zLevels.WfGetAtmospherePower(grid, out atmospherePower, out powerDeficit);
             }
@@ -189,13 +182,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         Dirty(console, comp);
     }
 
-    /// <summary>
-    /// The closest registered sector body on this map whose orbit the hull is inside range of. A hull already on a
-    /// planet layer or riding a transit map is offered nothing: it climbs, or it leaves orbit.
-    /// </summary>
-    /// <param name="grid">The hull.</param>
-    /// <param name="mapUid">The map the hull is on.</param>
-    /// <param name="body">The nearest body in range.</param>
+    /// <summary>The nearest sector body whose orbit range holds the hull; none on planet or transit maps.</summary>
     private bool TryGetNearestBody(EntityUid grid, EntityUid mapUid, [NotNullWhen(true)] out EntityUid? body)
     {
         body = null;
@@ -225,13 +212,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         return body != null;
     }
 
-    /// <summary>
-    /// Drops the console's hull onto a sector body's orbit layer, at the same world spot it occupied in the sector.
-    /// Every condition is re-checked here: the client's button is a readout, never the authority.
-    /// </summary>
-    /// <param name="console">The shuttle console the request came from.</param>
-    /// <param name="planetUid">The sector body to orbit.</param>
-    /// <param name="reason">Why the hop was refused, already localised.</param>
+    /// <summary>Moves the console's hull onto a body's orbit layer at the same spot, re-checking every gate.</summary>
     public bool TryEnterOrbit(EntityUid console, EntityUid planetUid, [NotNullWhen(false)] out string? reason)
     {
         if (!TryGetHull(console, out var hull, out reason))
@@ -280,12 +261,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Climbs the console's hull out of orbit onto the sector map, at the same world spot - which is beside the body,
-    /// because an orbit layer shares the sector's frame with the body at its centre.
-    /// </summary>
-    /// <param name="console">The shuttle console the request came from.</param>
-    /// <param name="reason">Why the hop was refused, already localised.</param>
+    /// <summary>Moves the console's hull from orbit back to the sector map at the same world spot.</summary>
     public bool TryLeaveOrbit(EntityUid console, [NotNullWhen(false)] out string? reason)
     {
         if (!TryGetHull(console, out var hull, out reason))
@@ -336,13 +312,13 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         return true;
     }
 
-    /// <summary>Console request to enter orbit; the actor has to be the pilot of this very console.</summary>
+    /// <summary>Console request to enter orbit; the actor must pilot this console.</summary>
     private void OnEnterOrbitMessage(EntityUid uid, ShuttleConsoleComponent component, WFEnterPlanetOrbitMessage args)
     {
         if (GetEntity(args.Console) != uid || !IsPilot(args.Actor, uid) || !TryGetEntity(args.Planet, out var planet))
             return;
 
-        // The dialog is the explanation, this is the gate: an unsanctioned world is only entered on a confirmed request.
+        // Unsanctioned worlds need a confirmed request.
         if (!args.Confirmed && TryComp<WFSectorPlanetComponent>(planet, out var sector) && !sector.Sanctioned)
         {
             _popup.PopupEntity(Loc.GetString("wf-orbit-unsanctioned-unconfirmed", ("planet", Name(planet.Value))), uid, args.Actor);
@@ -353,7 +329,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             _popup.PopupEntity(reason, uid, args.Actor);
     }
 
-    /// <summary>Console request to leave orbit; the actor has to be the pilot of this very console.</summary>
+    /// <summary>Console request to leave orbit; the actor must pilot this console.</summary>
     private void OnLeaveOrbitMessage(EntityUid uid, ShuttleConsoleComponent component, WFLeavePlanetOrbitMessage args)
     {
         if (GetEntity(args.Console) != uid || !IsPilot(args.Actor, uid))
@@ -363,7 +339,6 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             _popup.PopupEntity(reason, uid, args.Actor);
     }
 
-    /// <summary>True when this actor is currently piloting this console.</summary>
     private bool IsPilot(EntityUid actor, EntityUid console)
     {
         return TryComp<PilotComponent>(actor, out var pilot) && pilot.Console == console;

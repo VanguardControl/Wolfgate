@@ -10,10 +10,7 @@ namespace Content.Shared._WF.PlanetCracker.Planets;
 /// <summary>
 /// Describes the whole z-stack of one sector planet: its ground biome, how many air layers sit above it, and its orbit layer.
 /// </summary>
-/// <remarks>
-/// The prototype kind string is declared explicitly. Robust derives an unqualified kind by lowercasing only index 0,
-/// which would register this type as "wFPlanetSurface" and break every "- type: wfPlanetSurface" document.
-/// </remarks>
+// Kind named explicitly: Robust would derive "wFPlanetSurface".
 [Prototype("wfPlanetSurface")]
 public sealed partial class WFPlanetSurfacePrototype : IPrototype
 {
@@ -41,10 +38,7 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public bool CloudLayer = true;
 
-    /// <summary>
-    /// Surface gravity in gees, stamped onto every layer of the stack. A hull's landing-thruster lift is divided by
-    /// it, so doubling this halves the lift ratio of everything that tries to fly here.
-    /// </summary>
+    /// <summary>Surface gravity in gees, stamped onto every layer; divides a hull's landing-thruster lift.</summary>
     [DataField]
     public float Gravity = 1f;
 
@@ -52,10 +46,7 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public float OrbitRange = 2000f;
 
-    /// <summary>
-    /// Speed cap (m/s) for a grid on this world's orbit layer, stamped onto <see cref="WFOrbitLayerComponent"/>.
-    /// Orbit is where the surface streams in under a hull, so it is the tightest cap in the stack.
-    /// </summary>
+    /// <summary>Speed cap (m/s) on this world's orbit layer, stamped onto <see cref="WFOrbitLayerComponent"/>.</summary>
     [DataField]
     public float OrbitMaxSpeed = 6f;
 
@@ -75,7 +66,7 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public bool BuildAtRoundStart;
 
-    /// <summary>Whether cracking this world is legal; F9 announces the unsanctioned case, F2 only stores and displays it.</summary>
+    /// <summary>Whether cracking this world is legal.</summary>
     [DataField]
     public bool Sanctioned = true;
 
@@ -91,11 +82,7 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public ProtoId<SalvageFactionPrototype>? UnsanctionedFaction;
 
-    /// <summary>
-    /// Fixes the ground biome seed so a planet's terrain AND its deep veins are identical every round; null keeps the
-    /// engine's random seed. PlanetSystem.SpawnPlanet passes no seed, so EnsurePlanet rolls _random.Next()
-    /// (Content.Server/Parallax/BiomeSystem.PlanetSetup.cs:33) and the world re-rolls on every server start.
-    /// </summary>
+    /// <summary>Fixed ground biome seed so terrain and deep veins repeat every round; null rolls a new seed each start.</summary>
     [DataField]
     public int? Seed;
 

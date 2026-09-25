@@ -54,3 +54,29 @@ wf-orbit-unsanctioned-unconfirmed = { $planet } is unsanctioned. Confirm the ent
 
 # Gravity well
 wf-gravity-well-warning = Warning: { $ship } is adrift inside the gravity well of { $planet }. Restore thrust or be pulled into orbit.
+
+## Planet Control admin panel and command
+wf-planet-control-title = Planet Control
+wf-planet-control-refresh = Refresh
+wf-planet-control-none = No worlds in this sector
+wf-planet-control-not-built = Not built yet: nobody has visited. Only the sanction can be set.
+wf-planet-control-status = { $time } local, { $weather } ({ $seconds } s to next change), { $gravity } g
+wf-planet-control-time = Time
+wf-planet-control-set = Set
+wf-planet-control-dawn = Dawn
+wf-planet-control-noon = Noon
+wf-planet-control-dusk = Dusk
+wf-planet-control-midnight = Midnight
+wf-planet-control-weather = Weather
+wf-planet-control-weather-clear = Clear
+wf-planet-control-weather-seconds = Seconds the weather holds before the planet's own cycle resumes
+wf-planet-control-gravity = Gravity
+wf-planet-control-sanctioned = Sanctioned world
+cmd-planetcontrol-desc = Lists the sector's worlds, or sets one's time, weather, gravity or sanction.
+cmd-planetcontrol-help = Usage: planetcontrol [<planet> time <HH:MM> | weather <id|clear> [seconds] | gravity <g> | sanctioned <true|false>]
+cmd-planetcontrol-invalid-args = Unknown planet, field or value.
+cmd-planetcontrol-no-change = Nothing changed.
+cmd-planetcontrol-row = { $planet }: { $time }, { $weather }, { $gravity }g, sanctioned={ $sanctioned }
+cmd-planetcontrol-row-unbuilt = { $planet }: not built, sanctioned={ $sanctioned }
+cmd-planetcontrol-weather-clear = clear
+cmd-planetcontrol-applied = { $planet }: { $changes }

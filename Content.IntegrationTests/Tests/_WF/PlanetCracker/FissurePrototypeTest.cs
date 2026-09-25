@@ -18,15 +18,7 @@ using Robust.Shared.Utility;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// Everything F8's data promises that only a loaded server can check: that the four growth-stage decals index and name
-/// real states of the crack sheet they borrow, that the burst effect the spawner component actually names is a
-/// spawnable one-shot, that the NPC targeting pair indexes, and that Asclepiu's two salvage factions and every mob
-/// they can roll resolve.
-/// A mistyped decal id here is not a load failure: DecalSystem.SetDecalId THROWS ArgumentOutOfRangeException on an
-/// unknown prototype (Content.Server/Decals/DecalSystem.cs:427-430), so the growth promoter would surface it as a
-/// server exception in the middle of a drill instead. That is why all four are asserted.
-/// </summary>
+/// <summary>Fissure data a loaded server must check: decals, burst effect, NPC targeting and factions.</summary>
 [TestFixture]
 public sealed class FissurePrototypeTest
 {
@@ -39,32 +31,22 @@ public sealed class FissurePrototypeTest
         "WFFissure4",
     };
 
-    /// <summary>
-    /// The sheet all four stages borrow: the stock window damage overlays, which are the only escalating ground-crack
-    /// art the tree ships. See Resources/Prototypes/_WF/PlanetCracker/fissures.yml.
-    /// </summary>
+    /// <summary>The stock window crack sheet all four stages borrow.</summary>
     private const string FissureRsi = "/Textures/Structures/Windows/cracks.rsi";
 
-    /// <summary>The longest a fissure burst may live; the stock spark effect it now names is half a second.</summary>
+    /// <summary>The longest a fissure burst may live, in seconds.</summary>
     private const float MaxBurstLifetime = 2f;
 
     /// <summary>The crackable world whose faction table the fissures roll from.</summary>
     private const string Surface = "WFSurfaceAsclepiu";
 
-    /// <summary>
-    /// The utility query the stamped threats score the anchor with. A const rather than a literal for RA0033, and
-    /// deliberately not a static ProtoId: UtilityQueryPrototype is server-only, and Content.YAMLLinter's
-    /// ValidateStaticFields runs over this assembly on the CLIENT instance too, where that kind does not exist.
-    /// </summary>
+    /// <summary>The threats' anchor-scoring query; a string, as the linter's client pass lacks the kind.</summary>
     private const string TargetQuery = "WFFissureTargets";
 
-    /// <summary>The compound every stamped threat is re-rooted onto; a const for the same two reasons as TargetQuery.</summary>
+    /// <summary>The compound every stamped threat is re-rooted onto; a string, as for TargetQuery.</summary>
     private const string ThreatCompound = "WFFissureThreatCompound";
 
-    /// <summary>
-    /// A decal prototype names its state as a bare SpriteSpecifier and DecalOverlay only ever draws frame zero, so a
-    /// renamed or mistyped state is a silently missing fissure and nothing else in the tree would notice.
-    /// </summary>
+    /// <summary>Every fissure decal resolves and names a real state of the crack sheet.</summary>
     [Test]
     public async Task FissureDecalsResolve()
     {
@@ -91,9 +73,7 @@ public sealed class FissurePrototypeTest
                     Assert.That(rsi.TryGetState(state, out _), Is.True,
                         $"{id} names state '{state}', which the crack sheet does not have.");
 
-                    // True makes DecalOverlay snap the decal to the eye's cardinal and SUBTRACT that from the
-                    // per-decal Angle (Content.Client/Decals/Overlays/DecalOverlay.cs:103-109), which would throw
-                    // away the ring tangent the stamp computes.
+                    // Snapping would discard the ring tangent the stamp computes.
                     Assert.That(decal.SnapCardinals, Is.False,
                         $"{id} snaps to cardinals, which cancels the per-instance ring rotation.");
                 }
@@ -103,13 +83,7 @@ public sealed class FissurePrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The burst the ring stamp spawns per tile, read off the COMPONENT rather than off a literal: the id now points
-    /// at an existing stock effect, and the only thing that keeps the spawner honest is that whatever it names still
-    /// spawns and still takes itself away. Spawned and read INSIDE one callback, because a one-shot effect is gone
-    /// within a handful of ticks and anything that runs ticks first is reading a corpse.
-    /// There is deliberately no emerge effect any more: a mob simply appears on its fissure tile.
-    /// </summary>
+    /// <summary>The burst the spawner component names spawns and times itself out; read in one callback.</summary>
     [Test]
     public async Task TheBurstEffectIsASpawnableOneShot()
     {
@@ -139,10 +113,7 @@ public sealed class FissurePrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The targeting pair the site threats are re-rooted onto. A missing compound would leave every stamped mob with a
-    /// RootTask pointing at nothing, which surfaces as an HTN plan failure per mob rather than as a load error.
-    /// </summary>
+    /// <summary>The targeting query and compound the site threats are re-rooted onto both resolve.</summary>
     [Test]
     public async Task FissureTargetingPrototypesResolve()
     {
@@ -163,10 +134,7 @@ public sealed class FissurePrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Asclepiu's two faction ids and everything they can roll. A faction whose entries do not resolve is not a load
-    /// error either: the roll simply comes back with a prototype CreateEntityUninitialized then throws on, mid-drill.
-    /// </summary>
+    /// <summary>Asclepiu's two factions and every mob they can roll resolve.</summary>
     [Test]
     public async Task TheSurfaceFactionsAndTheirMobsResolve()
     {

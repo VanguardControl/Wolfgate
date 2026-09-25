@@ -75,10 +75,7 @@ public static class WFPlanetAmbience
     public const float SilentVolume = -60f;
     public const float HighestAirVolumeOffset = -24f;
 
-    /// <summary>
-    /// Ground is full level, intermediate layers fade linearly, and orbit is silent. The explicit orbit endpoint keeps
-    /// worlds with different air-layer counts consistent.
-    /// </summary>
+    /// <summary>Volume offset for a layer: full at ground, fading linearly with depth, silent in orbit.</summary>
     public static float LayerVolumeOffset(int depth, int orbitDepth)
     {
         if (depth <= 0)

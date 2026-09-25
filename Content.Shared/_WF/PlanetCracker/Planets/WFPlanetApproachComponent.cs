@@ -7,9 +7,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 namespace Content.Shared._WF.PlanetCracker.Planets;
 
 /// <summary>
-/// Rides a hull through the hop into or out of a world's orbit, so its crew's clients can draw the approach - the
-/// planet swelling until it fills the sky, or falling away again - in place of the hyperspace tunnel.
-/// It carries the star system rather than the planet: a client builds the very same body from the prototype.
+/// Rides a hull through the hop into or out of orbit so its crew's clients draw the planet approach instead of hyperspace.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause, UnsavedComponent]
 public sealed partial class WFPlanetApproachComponent : Component

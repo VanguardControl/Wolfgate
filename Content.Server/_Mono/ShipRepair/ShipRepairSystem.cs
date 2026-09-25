@@ -19,7 +19,7 @@ public sealed partial class ShipRepairSystem : SharedShipRepairSystem
 
         InitCommands();
         InitGhosts();
-        InitializeSplit(); // WOLFGATE
+        InitializeSplit(); // WOLFGATE(ShipRepair): split hulls keep a copy of the repair snapshot.
     }
 
     private void OnShipBought(Entity<ShuttleComponent> ent, ref ShipBoughtEvent ev)

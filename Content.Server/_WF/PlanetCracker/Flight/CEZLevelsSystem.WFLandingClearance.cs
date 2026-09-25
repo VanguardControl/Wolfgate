@@ -11,6 +11,7 @@ namespace Content.Server._CE.ZLevels.Core;
 public sealed partial class CEZLevelsSystem
 {
     [Dependency] private BiomeSystem _wfLandingBiome = default!;
+    /// <summary>Clearance, in metres, broken around an impacting hull's tiles.</summary>
     public const float WFLandingClearance = 1f;
 
     /// <summary>Clear a tile of breathing room around an impacting hull, without touching other grids or occupants.</summary>

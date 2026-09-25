@@ -3,8 +3,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._WF.PlanetCracker.Survey;
 
 /// <summary>
-/// How good a world's deep-vein table is. This is the ONLY vein information the survey console's state ever carries:
-/// never a weight, never an ore id and never a yield number.
+/// How good a world's deep-vein table is; the only vein information the survey console state carries.
 /// </summary>
 [Serializable, NetSerializable]
 public enum WFVeinRating : byte

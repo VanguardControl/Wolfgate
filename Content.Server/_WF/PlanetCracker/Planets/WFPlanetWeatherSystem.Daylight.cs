@@ -12,6 +12,7 @@ public sealed partial class WFPlanetWeatherSystem
     [Dependency] private SharedLightCycleSystem _lightCycles = default!;
     [Dependency] private MetaDataSystem _metadata = default!;
 
+    /// <summary>Drives a layer's light cycle from the world's clock.</summary>
     private void SynchronizeDaylight(EntityUid map, WFPlanetWeatherComponent state,
         WFPlanetWeatherPrototype profile, EntityUid? lowerMap = null)
     {
@@ -20,8 +21,7 @@ public sealed partial class WFPlanetWeatherSystem
         var light = EnsureComp<MapLightComponent>(map);
         var cycle = EnsureComp<LightCycleComponent>(map);
         var duration = TimeSpan.FromSeconds(Math.Max(1, profile.DaySeconds));
-        // Stock lighting evaluates CurTime + Offset - RoundStart - map pause time.
-        // The watch evaluates CurTime - Epoch + InitialHour; express precisely that same clock.
+        // Express the watch's clock (CurTime - Epoch + InitialHour) in stock lighting's offset terms.
         var offset = _ticker.RoundStartTimeSpan - state.Epoch + _metadata.GetPauseTime(map) +
             TimeSpan.FromSeconds(duration.TotalSeconds * profile.InitialHour / 24);
         var original = cycle.OriginalColor == Color.Transparent ? light.AmbientLightColor : cycle.OriginalColor;

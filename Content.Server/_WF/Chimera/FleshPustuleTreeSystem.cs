@@ -15,6 +15,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Chimera;
 
+/// <summary>Harvests pustule items from flesh trees and plants or bursts them.</summary>
 public sealed partial class WFFleshPustuleTreeSystem : EntitySystem
 {
     private static readonly EntProtoId Item = "WFFleshPustuleItem";

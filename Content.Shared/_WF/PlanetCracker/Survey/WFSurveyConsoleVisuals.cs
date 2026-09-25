@@ -10,7 +10,7 @@ public enum WFSurveyConsoleVisuals : byte
     Screen,
 }
 
-/// <summary>Screen faces survey_console.rsi ships - exactly these two, nothing else.</summary>
+/// <summary>Screen faces survey_console.rsi ships.</summary>
 [Serializable, NetSerializable]
 public enum WFSurveyConsoleScreen : byte
 {

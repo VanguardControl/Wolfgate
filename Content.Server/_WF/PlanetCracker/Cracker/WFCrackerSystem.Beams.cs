@@ -8,11 +8,7 @@ using Robust.Shared.Player;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The cutting beams and the site's own shaking, reconciled every sweep rather than written on edges. No subscriptions.
-/// A projector's beam is a networked target the client overlay draws; the surface half of the beam is the same overlay
-/// reading the projector's world XY off the anchor, because the projector itself is never in a surface viewer's PVS.
-/// </summary>
+/// <summary>The cutting beams and the site's shaking, reconciled every sweep.</summary>
 public sealed partial class WFCrackerSystem
 {
     [Dependency] private IPlayerManager _playerManager = default!;
@@ -30,12 +26,7 @@ public sealed partial class WFCrackerSystem
     /// <summary>Beam anchors this pass decided to drop; collected first so the set is not edited mid-walk.</summary>
     private readonly List<EntityUid> _staleBeams = new();
 
-    /// <summary>
-    /// Points every projector at one half of the pair and stamps the far end of the beam on each anchor, or takes both
-    /// away.
-    /// Beams exist only while the cut is actually running: WFProjectorState is a display value the projector's own
-    /// power and repair handlers overwrite, so it is never read as "this hull is holding a chunk".
-    /// </summary>
+    /// <summary>Aims each projector at one anchor and stamps the beam's far end on both while cutting.</summary>
     private void ReconcileBeams(Entity<WFPlanetCrackerComponent> ent)
     {
         var cutting = ent.Comp.State == WFCrackState.Cracking && ent.Comp.PendingAbort is null;
@@ -44,8 +35,7 @@ public sealed partial class WFCrackerSystem
 
         GetProjectors(ent.Owner, _projectorBuffer);
 
-        // The mount each half's surface beam climbs to: the first one pointed at it, so the far end is stable from one
-        // sweep to the next.
+        // The first mount pointed at each anchor, so the surface beam's far end is stable.
         Vector2? aMount = null;
         Vector2? bMount = null;
 
@@ -95,14 +85,7 @@ public sealed partial class WFCrackerSystem
         PruneBeamTargets(ent, firing, a.Owner, b.Owner);
     }
 
-    /// <summary>
-    /// Swings one projector onto the anchor it is cutting with, remembering the facing the mapper gave it the first
-    /// time a cut moves it.
-    /// The anchor is several layers below and CE keeps world XY across a stack, so the anchor's own world position is
-    /// what the mount points at; the beam overlay projects that same point into the viewer's pass. Rotating an
-    /// anchored entity is safe here: the projector's fixture is the inherited square, so no pose of it can straddle a
-    /// different set of tiles.
-    /// </summary>
+    /// <summary>Swings one projector toward its anchor, remembering the mapped facing the first time.</summary>
     private void AimAt(Entity<WFGravityProjectorComponent> projector, EntityUid anchor)
     {
         var xform = Transform(projector.Owner);
@@ -128,10 +111,7 @@ public sealed partial class WFCrackerSystem
         TransformSystem.SetLocalRotation(projector.Owner, placed);
     }
 
-    /// <summary>
-    /// Hands one anchor the world XY of the mount firing at it, which is all a surface viewer needs to draw the same
-    /// beam climbing to the hull. Resent only when the mount has actually moved: the sweep runs four times a second.
-    /// </summary>
+    /// <summary>Gives an anchor the world XY of the mount firing at it, so surface viewers can draw the beam.</summary>
     private void EnsureBeamTarget(EntityUid anchor, Vector2 mount)
     {
         _beamAnchors.Add(anchor);
@@ -162,9 +142,7 @@ public sealed partial class WFCrackerSystem
             if (firing && (anchor == a || anchor == b))
                 continue;
 
-            // An anchor whose hull no longer resolves belongs to nobody's sweep, so leaving it here would light its
-            // beam for the rest of the round: a deleted or gibbed hull is exactly what makes TryGetOwner fail while
-            // the anchor itself lives on as a separate entity.
+            // An anchor whose hull is gone belongs to no sweep; left here, its beam would stay lit.
             if (!TryGetOwner(anchor, out var owner))
             {
                 _staleBeams.Add(anchor);
@@ -187,11 +165,7 @@ public sealed partial class WFCrackerSystem
         }
     }
 
-    /// <summary>
-    /// Kicks the cameras of anyone standing near the cut, every SiteKickInterval seconds.
-    /// This is the only shaking mechanism with a falloff: the engine's grid shake has no radius at all, which is why
-    /// the site is never shaken and the hull is.
-    /// </summary>
+    /// <summary>Kicks the cameras of anyone near the cut every SiteKickInterval; grid shake has no falloff.</summary>
     private void UpdateSiteEffects(Entity<WFPlanetCrackerComponent> ent)
     {
         if (ent.Comp.State != WFCrackState.Cracking || ent.Comp.PendingAbort is not null)
@@ -214,10 +188,7 @@ public sealed partial class WFCrackerSystem
             1f);
     }
 
-    /// <summary>
-    /// The explosion system's camera shake, copied rather than called: its own is private.
-    /// Public because the chunk extraction throws one hard kick of its own at the same site.
-    /// </summary>
+    /// <summary>The explosion system's camera shake with falloff, copied because its own is private.</summary>
     public void KickCamerasInRange(MapCoordinates epicentre, float range, float strength)
     {
         if (range <= 0f)

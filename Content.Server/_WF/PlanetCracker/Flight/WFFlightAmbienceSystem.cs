@@ -13,12 +13,7 @@ using Content.Server._WF.PlanetCracker.Planets;
 
 namespace Content.Server._WF.PlanetCracker.Flight;
 
-/// <summary>
-/// The noise of being inside a planet's atmosphere. Every hull below orbit and off the ground carries a looping wind
-/// stream whose volume and pitch follow its planar speed, and a falling one carries a second stream of airframe rumble
-/// that rises as the fall approaches the speed a free fall lands at. Both are grid-filtered, so only the people aboard
-/// hear them, and both are stopped by the component's own shutdown - landing, orbit and deletion all go through it.
-/// </summary>
+/// <summary>Plays speed-scaled wind and fall rumble to everyone aboard a hull flying in atmosphere.</summary>
 public sealed partial class WFFlightAmbienceSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -26,38 +21,36 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
     [Dependency] private WFGridAudienceSystem _audience = default!;
     [Dependency] private CEZLevelsSystem _zLevels = default!;
 
-    /// <summary>Volume (dB) of the wind on a hull that is barely moving.</summary>
+    /// <summary>Wind volume (dB) on a hull that is barely moving.</summary>
     public const float WindMinVolume = -9f;
 
-    /// <summary>Volume (dB) of the wind at <see cref="WindMaxSpeed"/> and above.</summary>
+    /// <summary>Wind volume (dB) at <see cref="WindMaxSpeed"/> and above.</summary>
     public const float WindMaxVolume = 1f;
 
-    /// <summary>Planar speed (m/s) at which the wind is as loud and as high as it gets.</summary>
+    /// <summary>Planar speed (m/s) at which the wind is loudest and highest.</summary>
     public const float WindMaxSpeed = 14f;
 
-    /// <summary>Volume (dB) of the airframe rumble at the speed a free fall lands at.</summary>
+    /// <summary>Rumble volume (dB) at free-fall landing speed.</summary>
     public const float RumbleMaxVolume = -3f;
 
-    /// <summary>Volume (dB) the rumble fades in from, at the moment the lift goes.</summary>
+    // dB, at the moment lift is lost.
     private const float RumbleMinVolume = -20f;
 
     private const float WindMinPitch = 0.8f;
     private const float WindMaxPitch = 1.25f;
 
-    /// <summary>Pitch step the wind is quantised to, so a hull under thrust is not re-cutting its loop every sweep.</summary>
+    // Quantised so a hull under thrust isn't restarting its loop every sweep.
     private const float WindPitchStep = 0.05f;
 
-    /// <summary>How often every grid's flight state is looked at; this is ambience, not physics.</summary>
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(1);
 
-    /// <summary>How often both loops are re-cut for latecomers, exactly as the evacuation alarm re-issues its own.</summary>
     private static readonly TimeSpan ReissueInterval = TimeSpan.FromSeconds(30);
 
-    /// <summary>The airstream itself, the loud part of flying with an atmosphere outside.</summary>
+    /// <summary>Looping wind heard while flying in atmosphere.</summary>
     public static readonly SoundSpecifier WindSound =
         new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Flight/atmo_wind.ogg");
 
-    /// <summary>The hull's own structure complaining, under the wind and only while the hull is coming down.</summary>
+    /// <summary>Looping airframe rumble heard while falling.</summary>
     public static readonly SoundSpecifier RumbleSound =
         new SoundPathSpecifier("/Audio/_WF/PlanetCracker/Flight/fall_rumble.ogg");
 
@@ -70,7 +63,6 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
     {
         base.Initialize();
 
-        // The one directed subscription on this component; nothing else subscribes the pair.
         SubscribeLocalEvent<WFFlightAmbienceComponent, ComponentShutdown>(OnShutdown);
     }
 
@@ -89,7 +81,7 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
         var grids = EntityQueryEnumerator<MapGridComponent>();
         while (grids.MoveNext(out var uid, out _))
         {
-            // A z-layer map is itself a grid; it is never a hull in flight, and must not sing to everyone on the layer.
+            // A z-layer map is itself a grid, never a hull in flight.
             if (HasComp<MapComponent>(uid))
                 continue;
 
@@ -108,10 +100,7 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// True for a grid that is actually flying through a planet's air: any layer or gap below the orbit layer, down to
-    /// but not including the ground it lands on. Orbit is vacuum and the ground is not flight.
-    /// </summary>
+    /// <summary>True for a grid on any layer or gap below orbit, excluding the ground layer.</summary>
     public bool InAtmosphere(EntityUid grid)
     {
         if (Transform(grid).MapUid is not { } map)
@@ -120,21 +109,20 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
         if (HasComp<WFOrbitLayerComponent>(map))
             return false;
 
-        // A gap is always flight, whichever two layers it hangs between.
+        // A gap is always flight.
         if (!HasComp<CEZTransitMapComponent>(map) && IsGroundLayer(map))
             return false;
 
         return _zLevels.WfIsPlanetFlight(grid);
     }
 
-    /// <summary>The bottom of a planet stack, which is where flying stops.</summary>
     private bool IsGroundLayer(EntityUid map)
     {
         return HasComp<CEZGroundLayerComponent>(map)
                || (TryComp<CEZMapComponent>(map, out var zMap) && zMap.Depth == 0);
     }
 
-    /// <summary>Brings one hull's two loops in line with how fast it is going and how hard it is falling.</summary>
+    /// <summary>Updates one hull's wind and rumble to its speed and fall.</summary>
     private void UpdateAmbience(EntityUid grid)
     {
         var comp = EnsureComp<WFFlightAmbienceComponent>(grid);
@@ -183,25 +171,21 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
             _audio.SetVolume(comp.Rumble, rumble);
     }
 
-    /// <summary>Cuts both loops and lets the grid be an ordinary grid again; the shutdown handler does the stopping.</summary>
+    /// <summary>Stops both loops by removing the component.</summary>
     public void StopAmbience(EntityUid grid)
     {
         if (HasComp<WFFlightAmbienceComponent>(grid))
             RemComp<WFFlightAmbienceComponent>(grid);
     }
 
-    /// <summary>The only place a stream dies: landing, orbit and the grid going away all reach it.</summary>
     private void OnShutdown(Entity<WFFlightAmbienceComponent> ent, ref ComponentShutdown args)
     {
         ent.Comp.Wind = _audio.Stop(ent.Comp.Wind);
         ent.Comp.Rumble = _audio.Stop(ent.Comp.Rumble);
     }
 
-    /// <summary>
-    /// Stops whatever was playing and starts the same loop again for everyone aboard now. PlayGlobal to a grid filter
-    /// rather than PlayPvs on the grid: that parents the audio at the grid's local origin with a 15 tile default
-    /// range, which on a capital hull is wind in one corridor (WFCrackerSystem.Disconnect.cs).
-    /// </summary>
+    /// <summary>Restarts a loop for everyone aboard now.</summary>
+    // PlayGlobal to the crew, not PlayPvs: PVS audio sits at the grid origin with a 15-tile range.
     private EntityUid? Replay(EntityUid? stream, SoundSpecifier sound, EntityUid grid, float volume, float pitch)
     {
         _audio.Stop(stream);
@@ -213,7 +197,6 @@ public sealed partial class WFFlightAmbienceSystem : EntitySystem
             AudioParams.Default.WithLoop(true).WithVolume(volume).WithPitchScale(pitch))?.Entity;
     }
 
-    /// <summary>True when a remembered stream is still a thing that can be adjusted rather than replaced.</summary>
     private bool Alive(EntityUid? stream)
     {
         return stream is { } uid && !TerminatingOrDeleted(uid);

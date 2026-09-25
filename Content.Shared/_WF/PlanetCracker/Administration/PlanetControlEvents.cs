@@ -29,6 +29,7 @@ public sealed class PlanetControlInfo
 [Serializable, NetSerializable]
 public sealed class PlanetControlListRequestEvent : EntityEventArgs;
 
+/// <summary>Server reply carrying the world list.</summary>
 [Serializable, NetSerializable]
 public sealed class PlanetControlListEvent : EntityEventArgs
 {

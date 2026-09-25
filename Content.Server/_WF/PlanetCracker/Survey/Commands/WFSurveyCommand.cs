@@ -9,12 +9,7 @@ using Robust.Shared.Console;
 
 namespace Content.Server._WF.PlanetCracker.Survey.Commands;
 
-/// <summary>
-/// Reads the survey instruments from the console: the sector list exactly as a survey console would draw it, the deep
-/// veins around the caller, and a reveal that stands in for walking the ground with a surveyor.
-/// A command name of its own rather than another wfplanet subcommand, so that command's blanket two-argument gate, its
-/// subcommand list and its three enumerating locale keys all stay untouched.
-/// </summary>
+/// <summary>Survey instruments from the console: the sector list, nearby deep veins and a reveal.</summary>
 [AdminCommand(AdminFlags.Server | AdminFlags.Mapping)]
 public sealed partial class WFSurveyCommand : LocalizedEntityCommands
 {
@@ -43,8 +38,7 @@ public sealed partial class WFSurveyCommand : LocalizedEntityCommands
             return;
         }
 
-        // The arity is per subcommand: `list` takes nothing and the two vein sweeps take an optional radius, so a
-        // blanket length check would refuse two of the three outright.
+        // Arity is checked per subcommand.
         switch (args[0])
         {
             case SubList when args.Length == 1:
@@ -62,10 +56,7 @@ public sealed partial class WFSurveyCommand : LocalizedEntityCommands
         }
     }
 
-    /// <summary>
-    /// Writes one row per star-system body, read from the same BuildState a console window would receive, so the
-    /// command can never drift from what the crew is looking at.
-    /// </summary>
+    /// <summary>One row per star-system body, from the same state a survey console window receives.</summary>
     private void ExecuteList(IConsoleShell shell)
     {
         if (!TryGetConsole(shell, out var console))
@@ -194,11 +185,7 @@ public sealed partial class WFSurveyCommand : LocalizedEntityCommands
         return true;
     }
 
-    /// <summary>
-    /// A survey console to read the sector list off.
-    /// The one the caller is standing on if there is one; otherwise the only one in the world, which is what a headless
-    /// run or a test has. Two or more is ambiguous and is refused rather than guessed at.
-    /// </summary>
+    /// <summary>A survey console to read: the one on the caller's grid, else the world's only one.</summary>
     private bool TryGetConsole(IConsoleShell shell, out EntityUid console)
     {
         console = default;

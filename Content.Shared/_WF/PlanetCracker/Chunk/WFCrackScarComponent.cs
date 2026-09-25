@@ -3,9 +3,7 @@ using System.Numerics;
 namespace Content.Shared._WF.PlanetCracker.Chunk;
 
 /// <summary>
-/// Every hole cut out of this ground layer, kept on the ground grid rather than on a chunk so it outlives the chunk.
-/// BiomeSystem.ReserveTiles regenerates any empty tile in its bounds with no ModifiedTiles guard, and every grid
-/// landing over the site calls it through ShuttleSystem.Smimsh, so the holes must be re-stamped from here.
+/// Every hole cut out of this ground layer, kept to re-stamp holes that grid landings refill via BiomeSystem.ReserveTiles.
 /// </summary>
 [RegisterComponent]
 public sealed partial class WFCrackScarComponent : Component

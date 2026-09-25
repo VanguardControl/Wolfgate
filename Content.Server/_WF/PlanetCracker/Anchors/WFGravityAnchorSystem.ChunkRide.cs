@@ -2,18 +2,13 @@ using Content.Shared._WF.PlanetCracker.Anchors;
 
 namespace Content.Server._WF.PlanetCracker.Anchors;
 
-/// <summary>
-/// The chunk-ride suppression set and the crack ring's progress value. No subscriptions.
-/// Extraction moves a deployed anchor onto the chunk grid, which is an unanchor and a re-anchor; without the set the
-/// anchor handler would dissolve the pair on the way out and fail TryGetPlanetGround on the way back in, aborting the
-/// cut thirty seconds after a successful extraction.
-/// </summary>
+/// <summary>Chunk-ride suppression and the crack ring's progress value.</summary>
 public sealed partial class WFGravityAnchorSystem
 {
     /// <summary>Ring movement worth a state send; below this a twelve minute cut would dirty an anchor every tick.</summary>
     private const float ProgressEpsilon = 0.01f;
 
-    /// <summary>Anchors currently being moved onto a chunk grid; the anchor state handler ignores them.</summary>
+    /// <summary>Anchors riding onto a chunk grid; the anchor handler ignores them so the pair survives.</summary>
     private readonly HashSet<EntityUid> _riding = new();
 
     /// <summary>Suppresses the anchor handler for one anchor about to be moved onto a chunk grid.</summary>
@@ -34,12 +29,7 @@ public sealed partial class WFGravityAnchorSystem
         return _riding.Contains(anchor);
     }
 
-    /// <summary>
-    /// Writes the cut's progress onto an anchor, which is where the growing ring reads it: the anchors carry a global
-    /// PVS override and the hull grid does not, so this is the only crack value a surface viewer ever receives.
-    /// The endpoints always land exactly, so an idle pair reads 1 and a fresh cut reads 0 no matter how coarse the
-    /// epsilon in between is.
-    /// </summary>
+    /// <summary>Writes the cut's progress onto an anchor, the only crack value surface viewers receive.</summary>
     public void SetCrackProgress(Entity<WFGravityAnchorComponent> ent, float progress)
     {
         var clamped = Math.Clamp(progress, 0f, 1f);
@@ -47,6 +37,7 @@ public sealed partial class WFGravityAnchorSystem
         if (clamped == ent.Comp.CrackProgress)
             return;
 
+        // The endpoints always land exactly; only the steps between are throttled.
         if (clamped is > 0f and < 1f && MathF.Abs(clamped - ent.Comp.CrackProgress) < ProgressEpsilon)
             return;
 

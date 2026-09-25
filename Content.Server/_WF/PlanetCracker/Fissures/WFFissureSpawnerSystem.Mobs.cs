@@ -11,9 +11,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._WF.PlanetCracker.Fissures;
 
-/// <summary>
-/// What climbs out of a fissure: the cumulative cap, the faction roll and the site-threat stamp. No subscriptions.
-/// </summary>
+/// <summary>What climbs out of a fissure: the cumulative cap, the faction roll and the site-threat stamp.</summary>
 public sealed partial class WFFissureSpawnerSystem
 {
     /// <summary>The HTN compound a stamped threat is re-rooted on, so it goes for the anchor before it goes for people.</summary>
@@ -39,7 +37,7 @@ public sealed partial class WFFissureSpawnerSystem
 
         want = Math.Min(want, chosen.Count);
 
-        // CUMULATIVE: SpawnedTotal never comes back down, so killing what is already out cannot re-open the budget.
+        // Cumulative: SpawnedTotal never comes down, so killing mobs doesn't re-open the budget.
         want = Math.Min(want, comp.Cap - comp.SpawnedTotal);
 
         if (want <= 0)
@@ -65,12 +63,7 @@ public sealed partial class WFFissureSpawnerSystem
 
         string? proto = null;
 
-        // BOUNDED RE-ROLL. EntitySpawnCollection.GetSpawns can legitimately come back EMPTY:
-        // Resources/Prototypes/Procedural/salvage_factions.yml:17-21 is a Xenos group whose only entry is
-        // `NFMobXenoDrone amount: 0 maxAmount: 2`, and GetAmount (Content.Shared/Storage/EntitySpawnEntry.cs:252-265)
-        // returns random.Next(0, 2), so it yields nothing about half the time that group is drawn. A granted slot
-        // re-rolls rather than being silently lost, and SpawnedTotal only counts an actual spawn, so an abandoned slot
-        // never consumes the cap either.
+        // Bounded re-roll: a group can legitimately spawn nothing (amount: 0 entries).
         for (var attempt = 0; attempt < ent.Comp.MobRollRetries && proto is null; attempt++)
         {
             var group = RollGroup(faction);
@@ -79,7 +72,7 @@ public sealed partial class WFFissureSpawnerSystem
             if (spawns.Count == 0)
                 continue;
 
-            // ONE prototype per fissure: the design counts MOBS, not groups.
+            // One prototype per fissure: the cap counts mobs, not groups.
             proto = _random.Pick(spawns);
         }
 
@@ -88,32 +81,23 @@ public sealed partial class WFFissureSpawnerSystem
 
         var coords = new EntityCoordinates(ground.Owner, (Vector2)index + ground.Comp.TileSizeHalfVector);
 
-        // WHAT WAS ALREADY STANDING HERE, taken BEFORE the spawn. Without it the stamp pass below cannot tell the
-        // entity this call created from one that was already on the tile, and re-roots any passing HTN NPC - including
-        // the partner anchor's own threats, because at the shipped numbers both fifth rings reach radius 8.0 and a pair
-        // sixteen tiles apart shares its midpoint tiles.
+        // What was already here, so the stamp pass only touches what this spawn created.
         _preSpawnBuffer.Clear();
         _lookup.GetEntitiesInRange(coords, 1.0f, _preSpawnBuffer, LookupFlags.Uncontained);
 
-        // The SpawnSalvageMissionJob.cs:525-530 sequence. The ghost-role strip is mandatory: several faction entries
-        // ship GhostRole blocks and would otherwise flood the ghost-role panel every ring.
+        // Ghost roles stripped, or faction mobs would flood the ghost-role panel every ring.
         var uid = EntityManager.CreateEntityUninitialized(proto, coords);
         RemComp<GhostTakeoverAvailableComponent>(uid);
         RemComp<GhostRoleComponent>(uid);
         EntityManager.InitializeAndStartEntity(uid);
 
-        // STAMP BY LOOKUP, never by assuming `uid` is the mob. Argocytes, Flesh and Dinosaurs list RandomSpawner MARKER
-        // entities (Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/mobs_hostile_argocyte.yml:4-16), and
-        // ConditionalSpawnerSystem.OnRandSpawnMapInit (Content.Server/Spawners/EntitySystems/ConditionalSpawnerSystem.cs:34-39)
-        // fires synchronously inside InitializeAndStartEntity and QueueDels the marker, leaving the real mob within
-        // RandomSpawnerComponent.Offset of the tile centre.
+        // Stamp by lookup: some factions spawn RandomSpawner markers that replace themselves with the real mob.
         _lookupBuffer.Clear();
         _lookup.GetEntitiesInRange(coords, 1.0f, _lookupBuffer, LookupFlags.Uncontained);
 
         foreach (var candidate in _lookupBuffer)
         {
-            // Only what this call put here, and only once. The consumed RandomSpawner marker is still in the lookup for
-            // the rest of the tick, so a terminating candidate is skipped rather than recorded as a live threat.
+            // Only what this call put here, once; the consumed marker is still terminating in the lookup.
             if (_preSpawnBuffer.Contains(candidate) ||
                 TerminatingOrDeleted(candidate) ||
                 ent.Comp.Spawned.Contains(candidate))
@@ -123,10 +107,7 @@ public sealed partial class WFFissureSpawnerSystem
 
             ent.Comp.Spawned.Add(candidate);
 
-            // MOBS ONLY. WeaponTurretXeno (salvage_factions.yml:22-25) DOES carry an HTNComponent, rooted on
-            // TurretCompound (Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml:109-111),
-            // so an HTN test alone would re-root a gun turret onto a compound whose every branch is melee or idle and
-            // silently disable it. MobStateComponent is the same predicate TargetIsAliveOrNACon distinguishes on.
+            // Mobs only: turrets carry an HTNComponent too, and re-rooting one would disable it.
             if (!HasComp<MobStateComponent>(candidate) || !TryComp<HTNComponent>(candidate, out var htn))
                 continue;
 
@@ -136,21 +117,12 @@ public sealed partial class WFFissureSpawnerSystem
         return true;
     }
 
-    /// <summary>
-    /// Makes one spawned mob a site threat: the anchor-first HTN root, the faction exception against the anchor and the
-    /// emerge sound. A faction entry that is not a mob is left unstamped - WeaponTurretXeno
-    /// (salvage_factions.yml:22-25) carries an HTNComponent but no MobStateComponent, so it keeps TurretCompound and
-    /// goes on shooting; it still counts toward <see cref="WFFissureSpawnerComponent.SpawnedTotal"/> and is tracked in
-    /// <see cref="WFFissureSpawnerComponent.Spawned"/>, it just never joins <see cref="WFFissureSpawnerComponent.Live"/>.
-    /// </summary>
+    /// <summary>Makes a spawned mob a site threat: anchor-first HTN root, aggro on the anchor, emerge sound.</summary>
     private void StampThreat(Entity<WFFissureSpawnerComponent> ent, EntityUid mob, HTNComponent htn, EntityUid anchor)
     {
         htn.RootTask = new HTNCompoundTask { Task = ThreatCompound };
 
-        // Force an immediate replan THROUGH HTNSystem rather than by nulling Plan by hand: a live plan's current
-        // operator has to be shut down or an IHtnConditionalShutdown such as MoveToOperator never unregisters its
-        // steering (HTNSystem.cs:430/:441, the SetHTNEnabled sequence at :169-178). A mob spawned this tick has no plan
-        // yet, so this is the defensive half of the stamp.
+        // Replan through HTNSystem so a live operator's steering is shut down properly.
         if (htn.Plan is { } plan)
         {
             _htn.ShutdownTask(plan.CurrentOperator, htn.Blackboard, HTNOperatorStatus.Failed);
@@ -160,24 +132,15 @@ public sealed partial class WFFissureSpawnerSystem
 
         _htn.Replan(htn);
 
-        // Half one of the aggro: the anchor joins FactionExceptionComponent.Hostiles, which GetNearbyHostiles unions in
-        // unfiltered by range. Half two is WFFissureTargets' TargetIsAliveOrNACon; either half alone is inert.
-        // Do NOT widen the blackboard MeleeRange or MeleeWeaponComponent.Range to "reach" the 3x3 anchor - the damage
-        // lands through NPCSteeringSystem's NavSmash obstacle branch (Obstacles.cs:162-194), which has no range check,
-        // and widening either would break these mobs against players.
+        // Half of the aggro; WFFissureTargets' TargetIsAliveOrNACon is the other, and either alone is inert.
         _npcFaction.AggroEntity(mob, anchor);
 
-        // No emerge effect: the threat simply appears on its fissure tile. The stone-door sound is the whole cue.
         _audio.PlayPvs(ent.Comp.EmergeSound, mob);
 
         ent.Comp.Live.Add(mob);
     }
 
-    /// <summary>
-    /// One cumulative weighted draw over the faction's mob groups.
-    /// Deliberately NOT the upstream shape at Content.Server/Salvage/SpawnSalvageMissionJob.cs:496-504, which walks the
-    /// cumulative sum and then throws the result away with a flat random.Next over the group list.
-    /// </summary>
+    /// <summary>One weighted draw over the faction's mob groups (upstream's version ignores the weights).</summary>
     private SalvageMobGroup RollGroup(SalvageFactionPrototype faction)
     {
         var sum = 0f;

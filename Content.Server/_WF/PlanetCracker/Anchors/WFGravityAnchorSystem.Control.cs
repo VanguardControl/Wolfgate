@@ -2,18 +2,10 @@ using Content.Shared._WF.PlanetCracker.Anchors;
 
 namespace Content.Server._WF.PlanetCracker.Anchors;
 
-/// <summary>
-/// The public surface the admin command drives the anchors through, so it reaches the private state writer without
-/// duplicating its guards or its side effects. No subscriptions.
-/// </summary>
+/// <summary>Admin entry points into the anchor state writer, with its guards and side effects.</summary>
 public sealed partial class WFGravityAnchorSystem
 {
-    /// <summary>
-    /// Arms the unattended drill on a paired anchor: StartDrill without the verb's unused user.
-    /// It exists because NO admin or test path raises WFAnchorDrillStartedEvent at all today - the verb is the only
-    /// caller of StartDrill, and both `wfcracker complete drill` and the fixture's DeployPair go straight to
-    /// <see cref="CompleteDrill"/>, which raises only WFAnchorDrillFinishedEvent.
-    /// </summary>
+    /// <summary>Arms the drill on a paired anchor without a user and raises WFAnchorDrillStartedEvent.</summary>
     public bool BeginDrill(Entity<WFGravityAnchorComponent> ent)
     {
         if (ent.Comp.State != WFAnchorState.Paired)
@@ -27,9 +19,7 @@ public sealed partial class WFGravityAnchorSystem
         return true;
     }
 
-    /// <summary>
-    /// Finishes a drill at once: the same lock, thunk and event the 1 Hz sweep would have raised when the timer ran out.
-    /// </summary>
+    /// <summary>Finishes a drill at once, as the 1 Hz sweep would when the timer runs out.</summary>
     public bool CompleteDrill(Entity<WFGravityAnchorComponent> ent)
     {
         if (ent.Comp.State != WFAnchorState.Drilling && ent.Comp.State != WFAnchorState.Paired)
@@ -46,9 +36,7 @@ public sealed partial class WFGravityAnchorSystem
         return true;
     }
 
-    /// <summary>
-    /// Switches a locked anchor off without raising the cancellable attempt, so a later veto cannot refuse an admin.
-    /// </summary>
+    /// <summary>Switches a locked anchor off without the cancellable attempt, so no veto can refuse an admin.</summary>
     public bool ForceSwitchOff(Entity<WFGravityAnchorComponent> ent)
     {
         if (ent.Comp.State != WFAnchorState.Locked)
@@ -61,17 +49,13 @@ public sealed partial class WFGravityAnchorSystem
         return true;
     }
 
-    /// <summary>
-    /// Puts a switched-off anchor back to Locked; the only exit from Off other than the pair dissolving.
-    /// A lapsed disconnect pairing window and the admin command are the only callers: there is no player-facing re-arm.
-    /// </summary>
+    /// <summary>Puts a switched-off anchor back to Locked, for a lapsed disconnect window or an admin.</summary>
     public bool ReArm(Entity<WFGravityAnchorComponent> ent)
     {
         if (ent.Comp.State != WFAnchorState.Off)
             return false;
 
-        // Locked without a partner is not a state the pairing code can recover from, and Demote would have taken this
-        // anchor out of Off already had the pair gone.
+        // Locked without a partner can't be recovered; Demote would already have left Off had the pair gone.
         if (ent.Comp.Partner is null)
             return false;
 

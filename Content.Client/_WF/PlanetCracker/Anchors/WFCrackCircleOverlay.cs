@@ -10,9 +10,7 @@ using Robust.Shared.Enums;
 
 namespace Content.Client._WF.PlanetCracker.Anchors;
 
-/// <summary>
-/// Draws the cut circle a paired anchor rig would carve: one ring per pair, plus the chord and the two anchor marks.
-/// </summary>
+/// <summary>Draws each anchor pair's cut circle, the chord between them and a mark on each half.</summary>
 public sealed partial class WFCrackCircleOverlay : Overlay
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -21,28 +19,23 @@ public sealed partial class WFCrackCircleOverlay : Overlay
     private readonly SharedTransformSystem _transform;
     private readonly EntityQuery<TransformComponent> _xformQuery;
 
-    /// <summary>One cached ring per pair, keyed by the lower-uid half that draws it.</summary>
+    // Keyed by the lower-uid half, which is the one that draws the pair.
     private readonly Dictionary<EntityUid, Ring> _rings = new();
 
-    /// <summary>Rings whose owning anchor is gone, collected so the sweep does not remove mid-enumeration.</summary>
     private readonly List<EntityUid> _stale = new();
 
     /// <summary>How far the centre or radius may drift before the ring is rebuilt, in tiles.</summary>
     private const float RebuildTolerance = 0.01f;
 
-    /// <summary>Segments per tile of radius, clamped to the range below.</summary>
     private const float SegmentsPerTile = 8f;
 
-    /// <summary>Fewest segments any ring is drawn with.</summary>
     private const int MinSegments = 64;
 
-    /// <summary>Most segments any ring is drawn with; a 22-tile cut sits well inside this.</summary>
     private const int MaxSegments = 256;
 
     /// <summary>Radius of the mark drawn on each half of the pair, in tiles.</summary>
     private const float AnchorMarkRadius = 0.6f;
 
-    /// <summary>Alpha of the chord joining the two halves.</summary>
     private const float ChordAlpha = 0.35f;
 
     /// <inheritdoc/>
@@ -81,14 +74,14 @@ public sealed partial class WFCrackCircleOverlay : Overlay
         var query = _entityManager.EntityQueryEnumerator<WFGravityAnchorComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var comp, out var xform))
         {
-            // During a z-pass args.MapId is the map being rendered, so this is the whole layer filter needed.
+            // During a z-pass args.MapId is the layer being rendered.
             if (xform.MapID != args.MapId)
                 continue;
 
             if (comp.Partner is not { } netPartner)
                 continue;
 
-            // A 40-tile pair can have its far half outside PVS; that is expected, not an error.
+            // The far half of a long pair may be outside PVS.
             if (!_entityManager.TryGetEntity(netPartner, out var partner))
                 continue;
 
@@ -102,8 +95,7 @@ public sealed partial class WFCrackCircleOverlay : Overlay
             if (!_entityManager.TryGetComponent<WFGravityAnchorComponent>(partner, out var otherComp))
                 continue;
 
-            // Once the anchors ride up on an extracted chunk the pair is still intact, so the ring would keep drawing
-            // itself around them on the ORBIT layer. The hole's permanent mark on the ground is the rim decal ring.
+            // Anchors riding an extracted chunk stay paired; the ground keeps the rim decal instead.
             if (OnChunk(xform) || OnChunk(otherXform))
                 continue;
 
@@ -113,15 +105,10 @@ public sealed partial class WFCrackCircleOverlay : Overlay
             var radius = SharedWFGravityAnchorSystem.GetCutRadius((a - b).Length(), comp.CutPadding);
             var colour = ColourFor(skin, comp, otherComp);
 
-            // The two paths want the colour in different spaces, and the skin stores sRGB hex. The Vector2-span
-            // DrawPrimitives overload converts for us (DrawingHandleBase.PadVerticesV2 calls Color.FromSrgb), so the
-            // ring takes the raw skin colour; DrawLine and an unfilled DrawCircle (which is DrawLine per segment)
-            // write straight into Vertex2D.Modulate, which is linear, so those take the converted colour. Getting
-            // this wrong draws the chord and the marks a visibly different shade from their own ring.
+            // DrawPrimitives converts sRGB itself; DrawLine and unfilled DrawCircle write linear Modulate directly.
             var linear = Color.FromSrgb(colour);
 
-            // The ring grows with the cut, from the worse-informed half of the pair. Progress is read live off the
-            // components and the cache stays keyed on centre and radius only, so a growing ring rebuilds nothing.
+            // The ring grows with the slower half's progress, read live; the cache only tracks centre and radius.
             var ring = GetRing(uid, centre, radius);
             var span = ring.Vertices.Span;
             var progress = Math.Clamp(MathF.Min(comp.CrackProgress, otherComp.CrackProgress), 0f, 1f);
@@ -148,10 +135,7 @@ public sealed partial class WFCrackCircleOverlay : Overlay
         handle.SetTransform(Matrix3x2.Identity);
     }
 
-    /// <summary>
-    /// The cached vertices for one pair's ring, rebuilt only when the pair actually moved or resized. DrawCircle would
-    /// emit one GL line per segment every frame; this is one DrawPrimitives call instead.
-    /// </summary>
+    /// <summary>Cached vertices for one pair's ring, rebuilt only when the pair moves or resizes.</summary>
     private Ring GetRing(EntityUid uid, Vector2 centre, float radius)
     {
         if (_rings.TryGetValue(uid, out var ring) &&
@@ -182,10 +166,7 @@ public sealed partial class WFCrackCircleOverlay : Overlay
         return xform.GridUid is { } grid && _entityManager.HasComponent<WFPlanetChunkComponent>(grid);
     }
 
-    /// <summary>
-    /// Ring colour from the worse of the two halves, taken from the active skin rather than a literal. Internal so the
-    /// beam overlay tints from exactly this function instead of a second copy that could drift.
-    /// </summary>
+    /// <summary>Skin colour for the worse of the two halves; the beam overlay tints from this too.</summary>
     internal static Color ColourFor(WolfgateSkin skin, WFGravityAnchorComponent a, WFGravityAnchorComponent b)
     {
         if (a.State == WFAnchorState.Broken || b.State == WFAnchorState.Broken || a.Damaged || b.Damaged)

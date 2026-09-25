@@ -10,20 +10,14 @@ using RowData = Content.Shared._WF.PlanetCracker.Survey.BUI.WFSurveyPlanetRow;
 
 namespace Content.Client._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// One star-system body on the survey console, as one line of a table: name, distance, legal status, crack state and
-/// vein rating. The row carries no button and sends nothing anywhere - clicking it only moves the window's
-/// client-local highlight, which is what the detail line at the foot of the window reads.
-/// The row is built empty and refilled through <see cref="SetData"/> so the window can keep its rows across the
-/// once-a-second state push instead of rebuilding every control each time.
-/// </summary>
+/// <summary>One star-system body as a survey table row; clicking it only moves the window's local highlight.</summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFSurveyPlanetRow : PanelContainer
 {
     /// <summary>Width of the distance cell, in unscaled pixels.</summary>
     public const float DistanceWidth = 88f;
 
-    /// <summary>Width of the sanctioned cell; sized for the longest of its strings, "no crackable ground".</summary>
+    /// <summary>Width of the status cell, sized for its longest string.</summary>
     public const float StatusWidth = 128f;
 
     /// <summary>Width of the cracked cell.</summary>
@@ -41,19 +35,15 @@ public sealed partial class WFSurveyPlanetRow : PanelContainer
     /// <summary>Distance from the row's own left edge to the first cell: the panel border plus the cell margin.</summary>
     public const float RowInset = 8f;
 
-    /// <summary>The row's own panel box, rebuilt from the skin so selection can swap its background.</summary>
     private readonly StyleBoxFlat _panel = new();
 
-    /// <summary>Background of an unselected row, from the last skin <see cref="SetData"/> was given.</summary>
     private Color _idleBackground;
 
-    /// <summary>Background of the selected row, from the last skin <see cref="SetData"/> was given.</summary>
     private Color _selectedBackground;
 
-    /// <summary>Whether the row is currently drawn selected, so a data refresh keeps the highlight.</summary>
     private bool _selected;
 
-    /// <summary>Raised when the crew clicks a row that resolves to a real body, for the client-local highlight only.</summary>
+    /// <summary>Raised when a row with a real body is clicked.</summary>
     public event Action<NetEntity>? OnClicked;
 
     /// <summary>The body this row points at, or null when the star-system entry has no registered body.</summary>
@@ -77,15 +67,10 @@ public sealed partial class WFSurveyPlanetRow : PanelContainer
         ApplyColumns(NameLabel, DistanceLabel, StatusLabel, CrackLabel, VeinsLabel);
     }
 
-    /// <summary>
-    /// Gives five labels the table's column widths, alignment and gaps.
-    /// The window's header row runs this over its own five labels, which is the only reason the header and the rows
-    /// line up: there is one set of widths and both callers take it from here.
-    /// </summary>
+    /// <summary>Applies the table's column widths and alignment; the header row uses it too, so the two line up.</summary>
     public static void ApplyColumns(Label name, Label distance, Label status, Label crack, Label veins)
     {
-        // The name cell absorbs every spare pixel and clips instead of forcing the window wider. ClipText makes a
-        // Label measure as zero wide, so MinWidth is what keeps a row from collapsing the column to nothing.
+        // ClipText measures zero wide, so MinWidth keeps the expanding name column open.
         name.ClipText = true;
         name.HorizontalExpand = true;
         name.MinWidth = NameMinWidth;
@@ -105,7 +90,7 @@ public sealed partial class WFSurveyPlanetRow : PanelContainer
         label.Margin = new Thickness(CellGap, 0f, 0f, 0f);
     }
 
-    /// <summary>Refills the row from one state row. Called on every push, on a row that may already be on screen.</summary>
+    /// <summary>Refills the row from one state row.</summary>
     public void SetData(RowData data, WolfgateSkin skin)
     {
         Planet = data.Planet;
@@ -172,7 +157,7 @@ public sealed partial class WFSurveyPlanetRow : PanelContainer
         args.Handle();
     }
 
-    /// <summary>Locale key of a vein rating. The rating enum is the only vein information the state carries.</summary>
+    /// <summary>Locale key of a vein rating.</summary>
     private static string RatingKey(WFVeinRating rating)
     {
         return rating switch

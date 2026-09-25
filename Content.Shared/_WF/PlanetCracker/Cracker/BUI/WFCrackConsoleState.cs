@@ -5,12 +5,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._WF.PlanetCracker.Cracker.BUI;
 
 /// <summary>
-/// Everything the crack console window draws, authored server-side.
-/// Grid membership is not a PVS exemption (D-N): the berth marker sits 26 tiles past itself on a MarkerBase prototype
-/// and berth-side projectors on a capital hull are routinely past net.pvs_range, so nothing here may be re-derived
-/// client-side off those entities. Spin/AtFull/Load/Capacity are also on WFCentrifugeComponent on purpose (D-D2) -
-/// that channel feeds the machine's own window, whose viewer is standing at the machine; this one feeds a console
-/// that may be nowhere near it. Both are written by the same system in the same place.
+/// Everything the crack console window draws, built server-side because the berth and projectors are often outside PVS.
 /// </summary>
 [Serializable, NetSerializable]
 public sealed class WFCrackConsoleState : BoundUserInterfaceState
@@ -72,10 +67,10 @@ public sealed class WFCrackConsoleState : BoundUserInterfaceState
     /// <summary>World XY centre of the cut circle, on the ground map.</summary>
     public Vector2 CircleCentre;
 
-    /// <summary>Cut radius in tiles, per design D21.</summary>
+    /// <summary>Cut radius in tiles.</summary>
     public float CircleRadius;
 
-    /// <summary>Raw XY delta from the berth centre to the circle centre; the two sit on different maps (D-H).</summary>
+    /// <summary>Raw XY delta from the berth centre to the circle centre; the two sit on different maps.</summary>
     public Vector2 BerthOffset;
 
     /// <summary>Tiles of offset the targeting precondition allows.</summary>
@@ -123,7 +118,7 @@ public sealed class WFCrackConsoleState : BoundUserInterfaceState
     /// <summary>Centrifuge spin as a fraction of full, 0 to 1.</summary>
     public float Spin;
 
-    /// <summary>True once the rotor is at full, with the design D25 hysteresis applied.</summary>
+    /// <summary>True once the rotor is at full, with hysteresis applied.</summary>
     public bool AtFull;
 
     /// <summary>Mass the hull's pooled gravgens are carrying.</summary>

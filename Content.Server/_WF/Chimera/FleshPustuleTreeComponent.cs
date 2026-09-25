@@ -7,6 +7,7 @@ public sealed partial class WFFleshPustuleTreeComponent : Component
     [DataField] public bool Harvested;
 }
 
+/// <summary>A harvested pustule that can be planted or thrown to burst.</summary>
 [RegisterComponent]
 public sealed partial class WFFleshPustuleItemComponent : Component
 {

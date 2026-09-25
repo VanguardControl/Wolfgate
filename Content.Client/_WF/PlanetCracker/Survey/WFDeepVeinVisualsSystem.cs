@@ -8,23 +8,14 @@ using Robust.Shared.GameStates;
 
 namespace Content.Client._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// Flips a deep vein's <see cref="WFDeepVeinVisualLayers.Marker"/> sprite layer on for veins the LOCAL player has
-/// pulsed, and sets its state and ore tint. This is what makes a revealed vein drawable and therefore clickable and
-/// examinable, and it is per-player for free because it is a client-local sprite write and never an Appearance key.
-/// It also does not collide with the _CE ZLevels draw-depth trap: those systems overwrite DrawDepth every frame, and
-/// nothing here touches DrawDepth - only layer visibility, state and colour, on a state-change event.
-/// </summary>
+/// <summary>Shows a deep vein's marker layer, with state and ore tint, only for veins the local player has pulsed.</summary>
 public sealed partial class WFDeepVeinVisualsSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
-    /// <summary>
-    /// Which skin colour each ore tints its vein with. Keyed by the verified OrePrototype ids the Asclepiu table
-    /// rolls from; anything else falls back to the skin's accent, so a new ore is dull rather than invisible.
-    /// </summary>
+    // Skin colour per ore id; unknown ores fall back to the accent.
     private static readonly Dictionary<string, Func<WolfgateSkin, Color>> OreTints = new()
     {
         ["OreSteel"] = skin => skin.TextMuted,
@@ -41,9 +32,7 @@ public sealed partial class WFDeepVeinVisualsSystem : EntitySystem
     {
         base.Initialize();
 
-        // This system owns EXACTLY these two pairs. WFDeepVeinOverlaySystem owns ComponentInit, ComponentShutdown,
-        // LocalPlayerAttachedEvent and LocalPlayerDetachedEvent on WFSurveyedComponent; a second directed
-        // subscription on any of those pairs crashes the client at start.
+        // WFDeepVeinOverlaySystem owns the other WFSurveyedComponent subscriptions; a duplicate crashes the client.
         SubscribeLocalEvent<WFSurveyedComponent, AfterAutoHandleStateEvent>(OnSurveyedState);
         SubscribeLocalEvent<WFDeepVeinComponent, ComponentStartup>(OnVeinStartup);
     }
@@ -112,7 +101,7 @@ public sealed partial class WFDeepVeinVisualsSystem : EntitySystem
         return WolfgateSkins.Get(_cfg.GetCVar(WolfgateCVars.UiStyle));
     }
 
-    /// <summary>Skin colour for an ore id; never a bare colour literal.</summary>
+    /// <summary>Skin colour for an ore id.</summary>
     private static Color Tint(string ore, WolfgateSkin skin)
     {
         return OreTints.TryGetValue(ore, out var pick) ? pick(skin) : skin.Accent;

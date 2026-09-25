@@ -4,9 +4,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// Records what a z-map network is, on the network entity itself. Server-only: nothing client-side needs it.
-/// </summary>
+/// <summary>Describes a planet's z-map network, stored on the network entity.</summary>
 [RegisterComponent, UnsavedComponent]
 public sealed partial class WFPlanetNetworkComponent : Component
 {

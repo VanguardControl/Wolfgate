@@ -15,7 +15,7 @@ namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 [TestFixture]
 public sealed class ParachuteTest
 {
-    /// <summary>The same drop that maims an unprotected mob is walked away from under a canopy, and the pack is handed back.</summary>
+    /// <summary>A drop that maims an unprotected mob is survived under a canopy, and the pack is returned.</summary>
     [Test]
     public async Task AParachutedMobLandsUnhurtFromOrbit()
     {

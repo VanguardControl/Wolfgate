@@ -12,18 +12,11 @@ public sealed partial class WFPlanetLayerComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? Network;
 
-    /// <summary>
-    /// Surface gravity of the world this layer belongs to, in gees, copied off its wfPlanetSurface at build time. It
-    /// divides a hull's landing-thruster lift, so a heavy world needs proportionally more of it to fly at all.
-    /// </summary>
+    /// <summary>Surface gravity of this world in gees, from its wfPlanetSurface; divides a hull's landing-thruster lift.</summary>
     [DataField, AutoNetworkedField]
     public float Gravity = 1f;
 
-    /// <summary>
-    /// Speed cap (m/s) for a grid flying this layer, copied off the world's wfPlanetSurface at build time. A planet's
-    /// surface streams in around whatever is over it, so a fast hull outruns its own terrain; the cap is what stops
-    /// that. <see cref="WFOrbitLayerComponent"/> carries its own, tighter pair for the orbit layer.
-    /// </summary>
+    /// <summary>Speed cap (m/s) for a grid flying this layer, so it cannot outrun the terrain streaming in below.</summary>
     [DataField, AutoNetworkedField]
     public float MaxSpeed = 12f;
 

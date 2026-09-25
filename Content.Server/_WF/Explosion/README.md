@@ -39,6 +39,6 @@ ring, `shockwave.swsl`).
 
 ## Non-modular edits
 
-- [`Content.Server/Explosion/EntitySystems/ExplosionSystem.cs`](../../Explosion/EntitySystems/ExplosionSystem.cs): lets the shockwave push shove entities out from the epicentre. A silent blast does not.
+- [`Content.Server/Explosion/EntitySystems/ExplosionSystem.cs`](../../Explosion/EntitySystems/ExplosionSystem.cs): lets the shockwave push shove entities out from the epicentre.
 
 <!-- WOLFGATE-GENERATED END -->

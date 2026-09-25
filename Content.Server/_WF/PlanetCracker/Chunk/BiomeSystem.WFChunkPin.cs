@@ -5,20 +5,13 @@ using Robust.Shared.Utility;
 
 namespace Content.Server.Parallax;
 
-/// <summary>
-/// The chunk extraction's only legal route into BiomeComponent: the component is [Access(typeof(SharedBiomeSystem))]
-/// and both the chunk loader and the pin set are private, so a partial of this class is the one writer F5 may be.
-/// Declares no subscriptions and re-declares no dependency.
-/// </summary>
+/// <summary>Chunk extraction's access to BiomeComponent's private chunk loader and pin set.</summary>
 public sealed partial class BiomeSystem
 {
     /// <summary>Tile accumulator for <see cref="WfUnloadChunk"/>; the private unloader writes into the caller's list.</summary>
     private readonly List<(Vector2i, Tile)> _wfUnloadBuffer = new();
 
-    /// <summary>
-    /// Pins tiles so the biome never regenerates or unloads them again: the hole stays a hole and the rim decal ring
-    /// keeps its ground. ForEachTileInChunk skips anything in this set, which is what makes the pin stick.
-    /// </summary>
+    /// <summary>Pins tiles so the biome never regenerates or unloads them again.</summary>
     public void WfPinTiles(Entity<BiomeComponent> biome, IReadOnlyCollection<Vector2i> indices)
     {
         foreach (var index in indices)
@@ -36,11 +29,7 @@ public sealed partial class BiomeSystem
         return biome.Comp.ModifiedTiles.TryGetValue(chunkOrigin, out var modified) && modified.Contains(index);
     }
 
-    /// <summary>
-    /// Forgets a biome-spawned entity that has been moved off this grid, and pins the tile it vacated.
-    /// Without it the entry leaks: OnEntityTerminating can no longer find the entity once the chunk unloads, and the
-    /// tile it stood on would be regenerated with a fresh copy of the prop.
-    /// </summary>
+    /// <summary>Forgets a biome entity moved off this grid and pins its tile so the prop isn't regenerated.</summary>
     public void WfForgetLoadedEntity(Entity<BiomeComponent> biome, EntityUid moved, Vector2i index)
     {
         var chunkOrigin = SharedMapSystem.GetChunkIndices(index, ChunkSize) * ChunkSize;
@@ -64,11 +53,7 @@ public sealed partial class BiomeSystem
         biome.Comp.ModifiedTiles.GetOrNew(chunkOrigin).Add(index);
     }
 
-    /// <summary>
-    /// Loads one biome chunk by hand, with the production caller's own guard.
-    /// LoadChunk is NOT idempotent - LoadEntities and LoadDecals both Add into a dictionary keyed by chunk and throw on
-    /// a second call - so the LoadedChunks set has to be claimed first, exactly as LoadChunks does.
-    /// </summary>
+    /// <summary>Loads one biome chunk by hand; claims LoadedChunks first as LoadChunk throws on a repeat.</summary>
     public bool WfLoadChunk(Entity<BiomeComponent, MapGridComponent> biome, Vector2i chunkOrigin)
     {
         if (!biome.Comp1.LoadedChunks.Add(chunkOrigin))
@@ -78,10 +63,7 @@ public sealed partial class BiomeSystem
         return true;
     }
 
-    /// <summary>
-    /// Unloads one biome chunk by hand. This is the destructive half: UnloadTiles empties every UNPINNED index and the
-    /// decal system then wipes the decals on it, so an unload is the only proof a pin actually holds.
-    /// </summary>
+    /// <summary>Unloads one biome chunk by hand, emptying every unpinned tile and its decals.</summary>
     public bool WfUnloadChunk(Entity<BiomeComponent, MapGridComponent> biome, Vector2i chunkOrigin)
     {
         if (!biome.Comp1.LoadedChunks.Contains(chunkOrigin))

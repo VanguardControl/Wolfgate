@@ -35,9 +35,7 @@ public sealed partial class WFGravityAnchorSystem
             if (otherXform.GridUid != grid)
                 continue;
 
-            // Two owned anchors must share a cracker. An unowned anchor (a hand-spawned dev one, or one from the
-            // transport's own crate, which is never aboard the cracker to be bound) pairs with anything and adopts
-            // its partner's owner below, so the crack console still finds the pair.
+            // Owned anchors must share a cracker; an unowned one pairs with anything and adopts its owner.
             if (other.Cracker != null && anchor.Comp.Cracker != null && other.Cracker != anchor.Comp.Cracker)
                 continue;
 
@@ -94,8 +92,7 @@ public sealed partial class WFGravityAnchorSystem
         if (touchSelf)
             Demote(anchor);
 
-        // Both halves can terminate in the same tick, so the second shutdown finds the first already deleted; the
-        // event still fires with B = EntityUid.Invalid so subscribers can clean up A, and its summary says so.
+        // Both halves can shut down in the same tick; the second still raises, with B = EntityUid.Invalid.
         var ev = new WFAnchorPairDissolvedEvent(anchor.Owner, partnerUid);
         RaiseLocalEvent(ref ev);
     }

@@ -9,6 +9,7 @@ namespace Content.Server._WF.PlanetCracker.Planets;
 [RegisterComponent]
 public sealed partial class WFPlanetBiomassRestrictionComponent : Component;
 
+/// <summary>Keeps chimera biomass growth on hulls and caps it per hull.</summary>
 public sealed partial class WFPlanetBiomassSystem : EntitySystem
 {
     public const int MaxHullBiomass = 256;
@@ -23,6 +24,7 @@ public sealed partial class WFPlanetBiomassSystem : EntitySystem
         SubscribeLocalEvent<WFPlanetBiomassRestrictionComponent, SpreadNeighborsEvent>(OnSpread, before: new[] { typeof(KudzuSystem) });
     }
 
+    /// <summary>True when the entity is on planet terrain or an extracted chunk rather than a hull.</summary>
     public bool IsPlanet(EntityUid uid)
     {
         if (!TryComp(uid, out TransformComponent? xform))
@@ -80,8 +82,7 @@ public sealed partial class WFPlanetBiomassSystem : EntitySystem
             return;
         }
         var room = Math.Max(0, MaxHullBiomass - HullCount(grid));
-        // Native kudzu supplies closed-door/wall checks. Keep its candidates on this hull,
-        // so growth cannot escape through docking connections onto terrain or another grid.
+        // Keep candidates on this hull so growth can't spread through docks onto terrain or other grids.
         args.NeighborFreeTiles.RemoveAll(tile => tile.Tile.GridUid != grid || tile.Tile.Tile.IsEmpty);
         if (args.NeighborFreeTiles.Count > room)
             args.NeighborFreeTiles.RemoveRange(room, args.NeighborFreeTiles.Count - room);

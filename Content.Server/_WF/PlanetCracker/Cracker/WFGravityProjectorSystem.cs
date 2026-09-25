@@ -8,12 +8,7 @@ using Content.Shared.Repairable;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The hull's gravity projector: its part tier sets the crack-time multiplier, and power and damage set what it shows.
-/// </summary>
-/// <remarks>
-/// Server-only because RefreshPartsEvent and UpgradeExamineEvent are declared in Content.Server/_NF/Construction.
-/// </remarks>
+/// <summary>Gravity projector: part tier sets the crack-time multiplier; server-only like the part events.</summary>
 public sealed partial class WFGravityProjectorSystem : EntitySystem
 {
     [Dependency] private SharedAppearanceSystem _appearance = default!;
@@ -39,7 +34,7 @@ public sealed partial class WFGravityProjectorSystem : EntitySystem
         _appearance.SetData(ent.Owner, WFProjectorVisuals.State, ent.Comp.State);
     }
 
-    /// <summary>Machine parts drive the crack time: tier 1 is 1.0 and tier 4 is PartScaling cubed, the design's 0.70 floor.</summary>
+    /// <summary>Machine parts drive the crack time: tier 1 is 1.0 and tier 4 is PartScaling cubed.</summary>
     private void OnRefreshParts(Entity<WFGravityProjectorComponent> ent, ref RefreshPartsEvent args)
     {
         // GetPartsRatings fills an entry for every MachinePartPrototype and defaults an absent part to 1.0.

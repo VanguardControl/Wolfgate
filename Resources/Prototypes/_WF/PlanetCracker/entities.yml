@@ -1,5 +1,4 @@
-# Centre marker of an orbit layer, spawned at the planet centre. A warp point and a radar label only:
-# orbit is not an FTL destination, so this deliberately carries no FTLBeacon.
+# Orbit layer centre marker: a warp point and radar label, deliberately without an FTLBeacon.
 
 - type: entity
   id: WFOrbitBeacon

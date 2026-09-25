@@ -25,11 +25,7 @@ using Robust.Shared.Physics.Systems;
 
 namespace Content.Server._WF.PlanetCracker.Chunk;
 
-/// <summary>
-/// The cut disc: the two crack hooks that create and drop one, the watchdog that drops an orphan and the drop itself.
-/// Every subscription here is BROADCAST and by ref; the chunk component carries no directed subscription of its own,
-/// which is what keeps the watchdog a sweep rather than a second owner of a (component, event) pair.
-/// </summary>
+/// <summary>The cut disc: extracting and dropping a chunk, and the watchdog that drops an orphan.</summary>
 public sealed partial class WFPlanetChunkSystem : EntitySystem
 {
     [Dependency] private BiomeSystem _biome = default!;
@@ -115,10 +111,7 @@ public sealed partial class WFPlanetChunkSystem : EntitySystem
         TryExtract(ent, args.AnchorA, args.AnchorB, args.CentreXY, args.Radius, args.GroundMap, out _);
     }
 
-    /// <summary>
-    /// The hull is falling, so its chunk joins the same descent - at a DISTINCT progress. Two grids at identical
-    /// progress fail the transit order-swap guard and are AABB-tested into an explosion every tick.
-    /// </summary>
+    /// <summary>Drops the chunk along with its falling hull.</summary>
     private void OnCrackerFalling(ref WFCrackerFallingEvent args)
     {
         if (!TryComp<WFPlanetCrackerComponent>(args.Cracker, out var cracker))
@@ -171,7 +164,7 @@ public sealed partial class WFPlanetChunkSystem : EntitySystem
 
         foreach (var chunk in _dropBuffer)
         {
-            // Design D24, "with the evacuation alarm": the orphan wording, which carries no countdown.
+            // The orphan wording carries no countdown.
             StartEvacuation(chunk, "wf-chunk-evac-orphan", 0);
             DropChunk(chunk);
         }
@@ -183,11 +176,7 @@ public sealed partial class WFPlanetChunkSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// Design D24, read literally: the chunk drops when its cracker is gone or is no longer on the SAME orbit layer.
-    /// The identity test is the point - every planet has an orbit layer and the orbit layer is an FTL destination, so a
-    /// hull that jumps to another planet's orbit passes a kind test while abandoning its chunk.
-    /// </summary>
+    /// <summary>Whether the chunk's cracker is gone or not on the same orbit layer (by identity, not kind).</summary>
     private bool ShouldDrop(Entity<WFPlanetChunkComponent> ent, EntityUid? chunkMap)
     {
         if (ent.Comp.Cracker is not { } netCracker || !TryGetEntity(netCracker, out var cracker))
@@ -212,25 +201,17 @@ public sealed partial class WFPlanetChunkSystem : EntitySystem
         return false;
     }
 
-    /// <summary>
-    /// Pushes the chunk down the planet's z-stack: F4's hull fall order minus the gravity generator step, which a chunk
-    /// does not have. The default start progress is deliberately below the hull's 1.0.
-    /// </summary>
+    /// <summary>Pushes the chunk down the z-stack, starting below the hull: equal progress breaks transit.</summary>
     public bool DropChunk(Entity<WFPlanetChunkComponent> ent, float startProgress = 0.98f)
     {
         if (ent.Comp.Dropped)
             return false;
 
-        // The force-anchor goes, but PreventGridAnchorChanges STAYS: TryEnterTransit's own per-grid Enable is
-        // un-forced and that component is what makes it skip the chunk. Let through, it would unfix the chunk's
-        // rotation, and ResetMassData then asserts the server down on any site away from the planet origin (the
-        // same negative inertia the extraction guards against). The body is made dynamic by hand just below instead.
+        // PreventGridAnchorChanges stays so TryEnterTransit's Enable skips the chunk and can't unfix its rotation.
         RemComp<ForceAnchorComponent>(ent.Owner);
         EnsureComp<PreventGridAnchorChangesComponent>(ent.Owner);
         EnsureComp<ShuttleComponent>(ent.Owner);
-        // ShuttleSystem.Enable minus its SetFixedRotation(false): the chunk keeps fixed rotation for life (see the
-        // extraction's note on ResetMassData), because unfixing it recomputes an inertia that goes negative on any
-        // site away from the planet origin and asserts the server down. A falling disc has no use for spin anyway.
+        // ShuttleSystem.Enable minus SetFixedRotation(false): unfixing gives a negative inertia off-origin and asserts.
         if (TryComp<PhysicsComponent>(ent.Owner, out var dropBody))
         {
             _physics.SetBodyType(ent.Owner, BodyType.Dynamic, body: dropBody);
@@ -240,32 +221,19 @@ public sealed partial class WFPlanetChunkSystem : EntitySystem
         if (TryComp<PhysicsComponent>(ent.Owner, out var body) && body.BodyType == BodyType.Static)
             Log.Error($"{ToPrettyString(ent.Owner)} is still a static body after its chunk lock was released; it will not fall.");
 
-        // The sweep rebuilds its pooled-lift cache only twice a second, and the hover branch exits transit at
-        // progress >= 0.99 with |velocity| <= 0.1, so a stale cache would settle the chunk straight back up.
+        // A stale pooled-lift cache would hover the chunk straight back out of transit.
         _zLevels.WfInvalidateGravgenCapacity();
 
         var faller = EnsureComp<CEZGridFallerComponent>(ent.Owner);
         faller.Velocity = SharedWFCrackerSystem.FallSeedVelocity;
         faller.GravityTime = _timing.CurTime;
 
-        // The engine's own central blast, suppressed. CEZLevelsSystem.Gravity.cs:426-430 queues it through the
-        // EntityUid overload, which resolves the epicentre as the grid's OWN coordinates (ExplosionSystem.cs:295-320),
-        // and TryExtract set this grid's origin to the GROUND grid's origin so the tile indices would match
-        // (Extraction.cs:141-142) - so on a real biome planet it detonates hundreds of tiles from the crater. Zero
-        // makes it a no-op through the totalIntensity <= 0 early return at ExplosionSystem.cs:374.
-        // No replacement blast is queued at the crater either: QueueExplosion merges a same-prototype explosion within
-        // MaxCombineDistance (1f for Default) of a still-queued one by ADDING TotalIntensity and discarding the
-        // incoming slope and maxTileIntensity (ExplosionSystem.cs:386-400), and the per-tile crash blasts stay queued
-        // for many seconds under the processing throttle (ExplosionSystem.Processing.cs:95-107), so a second blast at
-        // the crater would simply be absorbed - arithmetically identical to raising CrashTileIntensity.
+        // The central blast would land at the grid origin, far from the crater; the tile blasts do the work.
         faller.CrashIntensityPerTile = 0f;
         faller.CrashTileIntensity = ent.Comp.CrashTileIntensity;
         faller.CrashTileMaxIntensity = ent.Comp.CrashTileMaxIntensity;
 
-        // The chunk falls from exactly where it hangs - clear of the hull, turned to its heading - and lands wherever
-        // that is, hole or not: where the rig carried it is where it comes down (playtest decision). Snapshotted
-        // before the grid moves; the chunk is dynamic for the whole fall, so the pose is re-asserted once at landing
-        // rather than trusted to survive it.
+        // The chunk lands where it hangs; the pose is snapshotted now and re-asserted at landing.
         var (dropPos, dropRot) = _transform.GetWorldPositionRotation(ent.Owner);
         ent.Comp.DropWorldPos = dropPos;
         ent.Comp.DropWorldRot = dropRot;
@@ -292,8 +260,7 @@ public sealed partial class WFPlanetChunkSystem : EntitySystem
         _transitFailureLogged.Remove(ent.Owner);
         ent.Comp.EnteredTransit = true;
 
-        // The gangway goes after transit admission succeeds: a failed admission must leave the berth and its retry
-        // path intact.
+        // Only after admission succeeds, so a failure leaves the berth and its retry path intact.
         LiftGangway(ent);
 
         ent.Comp.Dropped = true;

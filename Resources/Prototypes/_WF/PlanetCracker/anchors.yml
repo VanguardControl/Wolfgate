@@ -1,4 +1,4 @@
-# Gravity anchors and their crates. F3.
+# Gravity anchors and their crates.
 
 - type: entity
   id: WFGravityAnchor
@@ -58,8 +58,8 @@
         density: 50          # 9 m2 x 50 = 450 mass, matching the stock 3x3 gravity generator
         mask:
         - MachineMask
-        layer:               # deliberately NOT Impassable: CE IsWall only counts Impassable,
-        - MidImpassable      # so a deployed anchor does not bounce a passing hull.
+        layer:               # not Impassable, so a deployed anchor does not bounce a passing hull
+        - MidImpassable
         - LowImpassable
   - type: Anchorable
     delay: 8
@@ -87,8 +87,7 @@
         sound:
           collection: MetalBreak
   - type: Repairable
-    # BaseStructure narrows this to Applicating only (base_structure.yml:32-34, the Mono nanite
-    # change), so the welder D9 asks for has to be spelled out again here.
+    # BaseStructure narrows this to Applicating, so Welding is re-added.
     qualities:
     - Welding
     - Applicating
@@ -111,10 +110,7 @@
   name: gravity anchor crate
   description: A reinforced shipping crate with lift points. Pry it open on a planet surface.
   components:
-  # Existing art: the engineering secure crate, which already reads as a heavy shipping container with lift points.
-  # It is a 32x32 crate on a 2x2 fixture, so the whole sprite is scaled by exactly 2 to fill the footprint.
-  # Crate RSIs split the body (`base`) from the lid (`closed`/`open`), so the mapped layer is the LID: that is the one
-  # WFCrateVisuals.Open swaps, and the body has to sit under it unmapped.
+  # A 32x32 crate scaled 2x for the 2x2 fixture; the mapped layer is the lid, over the unmapped body.
   - type: Sprite
     sprite: Structures/Storage/Crates/engicrate_secure.rsi
     noRot: true
@@ -126,8 +122,7 @@
   - type: Appearance
   - type: GenericVisualizer
     visuals:
-      # Reserved scaffolding: nothing writes WFCrateVisuals.Open in F1/F3, because uncrating deletes the crate in
-      # the same call. A later feature that opens a crate without consuming it is what turns this block on.
+      # Unused for now: uncrating deletes the crate.
       enum.WFCrateVisuals.Open:
         enum.WFCrateVisualLayers.Base:
           True:  { state: open }
@@ -157,8 +152,7 @@
     tool: Prying
     delay: 6
   - type: StaticPrice
-    price: 0                 # the crates that ship with the hull must not inflate its appraisal;
-                             # the 400,000 of design section 5 lives on the Replacement variant.
+    price: 0                 # hull-shipped crates must not inflate its appraisal
 
 - type: entity
   id: WFAnchorCrateReplacement
@@ -166,8 +160,7 @@
   name: replacement gravity anchor crate
   suffix: Replacement
   components:
-  # Same crate, plus the secure crate's own lock light as the variant marking: no stencil art exists and none is
-  # wanted, so the bought replacement is the one that reads as sealed and the two that ship with the hull do not.
+  # The lock light marks the bought replacement.
   - type: Sprite
     sprite: Structures/Storage/Crates/engicrate_secure.rsi
     noRot: true
@@ -179,4 +172,4 @@
     - map: [ "enum.WFCrateVisualLayers.Stencil" ]
       state: locked
   - type: StaticPrice
-    price: 400000            # design section 5 / D17: the cargo-purchasable replacement
+    price: 400000            # the cargo-purchasable replacement

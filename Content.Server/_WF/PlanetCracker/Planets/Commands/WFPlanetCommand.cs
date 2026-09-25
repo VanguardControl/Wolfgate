@@ -18,9 +18,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.PlanetCracker.Planets.Commands;
 
-/// <summary>
-/// Builds, inspects and tears down Wolfgate planet networks, and seeds a star system so dev environments have planets at all.
-/// </summary>
+/// <summary>Builds, lists and deletes planet networks, and seeds a star system for dev environments.</summary>
 [AdminCommand(AdminFlags.Server | AdminFlags.Mapping)]
 public sealed partial class WFPlanetCommand : LocalizedEntityCommands
 {

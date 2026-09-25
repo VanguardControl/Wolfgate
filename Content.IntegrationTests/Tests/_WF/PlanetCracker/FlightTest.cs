@@ -29,11 +29,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// F10, atmospheric flight: what lifts a hull over a planet, what happens when it stops lifting, and what it costs to
-/// hit the ground. Everything here runs on the standalone Asclepiu stack, which is the only place a planet layer and
-/// its gravity exist at all.
-/// </summary>
+/// <summary>Atmospheric flight on the Asclepiu stack: lift over a planet, losing it, and hitting the ground.</summary>
 [TestFixture]
 [TestOf(typeof(WFFlightSystem))]
 public sealed class FlightTest
@@ -56,17 +52,10 @@ public sealed class FlightTest
     /// <summary>WFAnchorCrateComponent.VirtualMass, times the cracker's two crates.</summary>
     private const float CrackerCargoMass = 12f;
 
-    /// <summary>
-    /// Every sound two hulls are allowed to make grinding out a hard landing over three seconds. As built it is five:
-    /// a thud and a scrape loop each, and the atmosphere's own wind. The floor under the number is that none of the
-    /// skid's damage - the crush, the plough, the craters - is allowed to be a sound per victim per tick.
-    /// </summary>
+    /// <summary>Sounds two hulls may make in a hard landing; skid damage is not a sound per victim.</summary>
     private const int AudioBudget = 24;
 
-    /// <summary>
-    /// A gravity generator lifts nothing over a planet and landing thrusters lift everything. The cracker's own
-    /// centrifuge is rated at 3000 against a 124.5 load, so without the exclusion the hull would read as flying.
-    /// </summary>
+    /// <summary>Skid scars stay behind, do not stack, and leave holes and rivers alone.</summary>
     [Test]
     public async Task SkidScarsStayBehindAndDoNotStackOrFillHolesAndRivers()
     {
@@ -179,6 +168,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A gravity generator lifts nothing over a planet; landing thrusters do.</summary>
     [Test]
     public async Task ThrustersLiftAndGravgensDoNotOnAPlanet()
     {
@@ -218,10 +208,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A hull below orbit whose lift is short sinks and is in lift lost. One thruster on the cracker is a ratio of
-    /// 0.40 - under the half-lift floor - so it falls at the full rate and the alarms take the ship over.
-    /// </summary>
+    /// <summary>A hull below orbit with too little lift sinks and enters lift lost.</summary>
     [Test]
     public async Task PartialLiftSinksAndEntersLiftLost()
     {
@@ -261,10 +248,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The callouts escalate orbit-to-ground in order and the ship's own situation code comes back afterwards. The
-    /// hull starts on yellow, so a restore to green would be the state machine forgetting rather than restoring.
-    /// </summary>
+    /// <summary>The callouts escalate in order and the prior situation code (yellow) is restored after.</summary>
     [TestCase(-1)] // No PA installed.
     [TestCase(0)] // PA lost power.
     [TestCase(1)] // Working PA must not get a duplicate global callout.
@@ -306,13 +290,13 @@ public sealed class FlightTest
 
         await server.WaitPost(() => seen.Add(entMan.GetComponent<ShipAlertComponent>(hull).Code.Id));
 
-        // No settle: the caution chime is set inside the call, and one tick of the flight sweep is already past it.
+        // No settle, so the caution chime inside the call is observed.
         var refusal = await EnterAtmosphere(pair, hull, settle: 0f);
         Assert.That(refusal, Is.Null, $"The confirmed descent was refused: {refusal}");
 
         await server.WaitPost(() => seen.Add(entMan.GetComponent<ShipAlertComponent>(hull).Code.Id));
 
-        // A full plummet is four gaps at CE's 0.15 levels/s² up to a 1.2 terminal; sample the code as it goes.
+        // Sample the code through a full plummet.
         for (var i = 0; i < 120; i++)
         {
             await server.WaitRunTicks(pair.SecondsToTicks(0.25f));
@@ -322,7 +306,7 @@ public sealed class FlightTest
                 if (!entMan.TryGetComponent<ShipAlertComponent>(hull, out var alert))
                     return;
 
-                // Working PA now replicates a timeline for client-side playback instead of server audio entities.
+                // A working PA replicates a timeline for client-side playback rather than server audio entities.
                 if (speakerPower == 1 && entMan.TryGetComponent<ShipPaBroadcastComponent>(hull, out var broadcasts))
                 {
                     foreach (var broadcast in broadcasts.Broadcasts)
@@ -435,8 +419,7 @@ public sealed class FlightTest
         {
             Assert.That(crossed, Is.GreaterThanOrEqualTo(2), "The hull never fell through two layers.");
 
-            // Two 25% boosts are 1.5625x, and the hull's ordinary airborne damping eats into that over the seconds
-            // the fall takes; without the glide the same seconds would have left it BELOW the speed it started at.
+            // Two 25% boosts less airborne damping; without the glide it would end below its start speed.
             Assert.That(speed, Is.GreaterThan(start * 1.15f),
                 $"Two layers of a 25% glide gain left {start} at {speed}, which is not a per-layer gain at all.");
         }
@@ -445,13 +428,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The landing decision is relative to the speed a free fall actually arrives at. CE zeroes the fall speed at
-    /// every layer boundary, so a plummet tops out near 0.47 levels/s and never approaches the 1.2 terminal velocity:
-    /// the old fixed 0.8 levels/s threshold called every free fall in the game a hard landing, which is exactly what
-    /// the playtest saw. A free fall is a crash, a partial-lift sink lands under the threshold, and landing at all
-    /// costs the hull damage.
-    /// </summary>
+    /// <summary>A free fall crashes and a partial-lift sink hard-lands, judged against real free-fall speed.</summary>
     [Test]
     public async Task FreeFallCrashesAndAPartialLiftSinkHardLands()
     {
@@ -470,8 +447,7 @@ public sealed class FlightTest
         var hull = await BuildCracker(pair, groundMapId);
         await MapInitHull(pair, hull);
 
-        // The landing decision is taken purely on the state and the touchdown speed, so both are set by hand rather
-        // than flown: flying each branch for real is four gaps of ticks for one boolean.
+        // The decision reads only state and touchdown speed, so both are set by hand.
         await server.WaitPost(() =>
         {
             entMan.EnsureComponent<CEZGridFallerComponent>(hull);
@@ -537,10 +513,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A hard landing with planar speed puts the impact into the leading edge and then keeps going, which is what a
-    /// hull coming out of the sky is supposed to look like: it grinds its nose off and slides, it does not stop dead.
-    /// </summary>
+    /// <summary>A hard landing with planar speed tears off the leading edge and keeps sliding.</summary>
     [Test]
     public async Task HardLandingWithSpeedTearsTheLeadingEdgeAndSlides()
     {
@@ -622,11 +595,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Flying inside an atmosphere makes noise: one looping wind stream aboard every hull below orbit, a second stream
-    /// of airframe rumble once the lift goes, the lift-lost caution alarm looping under the callouts for the whole
-    /// emergency, and nothing at all left playing once the hull is down.
-    /// </summary>
+    /// <summary>Wind loops below orbit, a fall adds rumble and the lift-lost alarm, and all stop once landed.</summary>
     [Test]
     public async Task AtmosphereLoopsWindAndAFallAddsRumble()
     {
@@ -673,8 +642,7 @@ public sealed class FlightTest
             }
         });
 
-        // The fall gate sweeps at 2 Hz, the ambience behind it at 1 Hz, and the gap itself is only about four seconds
-        // of fall, so the state is sampled all the way down rather than at one guessed moment.
+        // The fall is short, so sample all the way down.
         var alarm = EntityUid.Invalid;
         var rumbled = false;
         var wind = 0;
@@ -712,7 +680,7 @@ public sealed class FlightTest
                 $"The falling hull stacked up {wind} wind streams; a re-cut loop must replace the old one, not join it.");
         }
 
-        // A landing is not instant: the skid has to stop and the ambience sweep has to come round again.
+        // Let the skid stop and the ambience sweep run again.
         await server.WaitRunTicks(pair.SecondsToTicks(3f));
 
         await server.WaitAssertion(() =>
@@ -785,10 +753,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The confirm gate: an under-lifted hull is refused the descent until it says yes, and a raw descend input out
-    /// of orbit is refused outright so the gate cannot be walked around.
-    /// </summary>
+    /// <summary>An under-lifted hull must confirm to descend, and raw descend input from orbit is refused.</summary>
     [Test]
     public async Task DescentNeedsConfirmAndRawInputIsRefused()
     {
@@ -804,7 +769,7 @@ public sealed class FlightTest
         var hull = await BuildCracker(pair, orbitMapId);
         await MapInitHull(pair, hull);
 
-        // A held descend key is the old way down; it now does nothing at all from orbit.
+        // A held descend key does nothing from orbit.
         await HoldDescend(pair, hull);
         await server.WaitRunTicks(pair.SecondsToTicks(3f));
 
@@ -842,12 +807,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The refusal is about the layer, not about what holds the hull up. A hull with a working gravity generator
-    /// passes CE's own lift gate, which is what put the raw keys back in play: the descend key is ignored, and so is
-    /// the climb key, because nothing is above orbit and CE's climb falls back to the gap below when it finds no gap
-    /// above - a descent with no lift warning, no confirm and no popup.
-    /// </summary>
+    /// <summary>A gravgen hull in orbit ignores both vertical keys; climbing there falls back to descending.</summary>
     [Test]
     public async Task GravgenHullRidesNeitherVerticalKeyOutOfOrbit()
     {
@@ -864,8 +824,7 @@ public sealed class FlightTest
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
 
-        // A charged gravity generator's whole effect on the pilot gate is the grid's own gravity; Inherent pins it on
-        // the way a working generator holds it, with no charge-up to sit through.
+        // Inherent gravity stands in for a charged generator.
         await server.WaitPost(() =>
         {
             var gravity = entMan.EnsureComponent<GravityComponent>(hull);
@@ -896,10 +855,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A hull that has landed on the ground and lifted off again still answers its planar thrusters: a relaunched
-    /// shuttle that climbed but could not move sideways is what this guards against.
-    /// </summary>
+    /// <summary>A hull that landed and lifted off again still answers its planar thrusters.</summary>
     [Test]
     public async Task RelaunchedHullStillSteers()
     {
@@ -914,8 +870,7 @@ public sealed class FlightTest
         var ground = layers[0];
         var orbitMapId = await MapIdOf(pair, layers[^1]);
 
-        // The transport, the way it is flown: from orbit through the console's own descent, on its own landing
-        // thrusters, onto terrain. CE only eases a descent onto ground it can see; a bare test layer is a crash.
+        // Flown down from orbit on its landing thrusters onto laid terrain, or CE treats it as a crash.
         var hull = await BuildTransport(pair, orbitMapId, Vector2.Zero);
         await MapInitHull(pair, hull);
         await LayTiles(pair, ground, new Vector2i(-8, -8), new Vector2i(24, 24));
@@ -965,15 +920,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The map id of a z-layer, for the spawners that want one.</summary>
-    /// <summary>
-    /// A big hull grinding out a hard landing never writes a non-finite number into itself, whether it arrived with
-    /// planar speed or came straight down onto its own footprint, and the whole grind is worth a bounded number of
-    /// sounds. Neither half is a server-side nicety: a NaN on the grid is a NaN world position for every sound played
-    /// on it, which the client's echo pass hands to MathF.Sign and dies on
-    /// (AudioEchoSystem.TryProcessAreaSpaceMagnitude), and a sound per crushed thing per tick is the same OpenAL
-    /// source exhaustion that already killed a client once (CrashAudioTest).
-    /// </summary>
+    /// <summary>Skidding hulls never go non-finite, which crashes client audio, and stay in the audio budget.</summary>
     [Test]
     public async Task SkiddingHullsStayFiniteAndBounded()
     {
@@ -991,7 +938,7 @@ public sealed class FlightTest
 
         await LayTiles(pair, ground, new Vector2i(-40, -40), new Vector2i(120, 40));
 
-        // Two 15x15 hulls, far enough apart that neither ploughs into the other: one parked, one sliding away.
+        // Two hulls far enough apart not to collide: one parked, one sliding away.
         var parked = await BuildCracker(pair, groundMapId);
         var sliding = await BuildCracker(pair, groundMapId, new Vector2(60f, 0f));
         var hulls = new[] { parked, sliding };
@@ -1037,8 +984,7 @@ public sealed class FlightTest
         var bad = new HashSet<string>();
         var skidded = false;
 
-        // Several seconds of grinding: many bites of the leading edge for the hull that is moving, and the first tick
-        // is already enough for the one that is not to be let go of.
+        // Several seconds of grinding.
         for (var i = 0; i < 90; i++)
         {
             await server.WaitRunTicks(2);
@@ -1112,6 +1058,7 @@ public sealed class FlightTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>The map id of a z-layer, for the spawners that want one.</summary>
     private static async Task<MapId> MapIdOf(TestPair pair, EntityUid layer)
     {
         var server = pair.Server;
@@ -1136,7 +1083,7 @@ public sealed class FlightTest
         return count;
     }
 
-    /// <summary>How many audio entities are playing one clip right now; a leaked loop shows up as a second one.</summary>
+    /// <summary>How many audio entities are playing one clip right now.</summary>
     private static int Streams(IEntityManager entMan, string clip)
     {
         var count = 0;

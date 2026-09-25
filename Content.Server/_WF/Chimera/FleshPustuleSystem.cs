@@ -20,6 +20,7 @@ using Robust.Shared.Physics.Events;
 
 namespace Content.Server._WF.Chimera;
 
+/// <summary>Bursts flesh pustules into ticks on contact and handles planting them.</summary>
 public sealed partial class WFFleshPustuleSystem : EntitySystem
 {
     public const int TicksPerBurst = 3;

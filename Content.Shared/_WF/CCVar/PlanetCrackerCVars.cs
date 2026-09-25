@@ -15,7 +15,7 @@ public sealed class PlanetCrackerCVars
         CVarDef.Create("wf.planet_networks", false, CVar.SERVERONLY);
 
     /// <summary>
-    /// Whether an unsanctioned crack raises sector notices (F9 D7); false mutes both the begin and the extraction line.
+    /// Whether an unsanctioned crack raises sector notices; false mutes both the begin and the extraction line.
     /// </summary>
     public static readonly CVarDef<bool> Announce =
         CVarDef.Create("wf.planet_cracker.announce", true, CVar.SERVERONLY);

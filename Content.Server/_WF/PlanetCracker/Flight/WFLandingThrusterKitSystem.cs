@@ -8,9 +8,7 @@ using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._WF.PlanetCracker.Flight;
 
-/// <summary>
-/// Adds an atmospheric conversion to an existing linear engine without replacing its ratings or parts.
-/// </summary>
+/// <summary>Converts an existing linear engine for atmospheric flight, keeping its ratings and parts.</summary>
 public sealed partial class WFLandingThrusterKitSystem : EntitySystem
 {
     [Dependency] private SharedPopupSystem _popup = default!;

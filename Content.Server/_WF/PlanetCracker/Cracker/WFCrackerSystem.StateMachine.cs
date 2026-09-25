@@ -16,12 +16,7 @@ using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The crack state machine: every transition of <see cref="WFPlanetCrackerComponent.State"/> other than the map-init
-/// reset, driven by the six broadcast anchor events and by the one sweep in the Crack partial.
-/// Only broadcast subscriptions are added here, all by ref to match the [ByRefEvent] anchor events; the hull's own
-/// directed MapInitEvent pair stays the single one declared in WFCrackerSystem.cs.
-/// </summary>
+/// <summary>The crack state machine, driven by the anchor events and the sweep in the Crack partial.</summary>
 public sealed partial class WFCrackerSystem
 {
     [Dependency] private CEZGridConnectorSystem _connectors = default!;
@@ -51,11 +46,8 @@ public sealed partial class WFCrackerSystem
     /// <summary>Projectors on one hull, rebuilt per call.</summary>
     private readonly List<Entity<WFGravityProjectorComponent>> _projectorBuffer = new();
 
-    /// <summary>Registers the six anchor events; called from the system's one Initialize override.</summary>
     private void InitializeStateMachine()
     {
-        // All six are broadcast [ByRefEvent] record structs raised by WFGravityAnchorSystem, so they are subscribed by
-        // ref and add no directed (component, event) pair that another system could already own.
         SubscribeLocalEvent<WFAnchorPairFormedEvent>(OnPairFormed);
         SubscribeLocalEvent<WFAnchorPairDissolvedEvent>(OnPairDissolved);
         SubscribeLocalEvent<WFAnchorDrillFinishedEvent>(OnDrillFinished);
@@ -102,10 +94,7 @@ public sealed partial class WFCrackerSystem
         SetState(cracker, WFCrackState.AnchorsLocked);
     }
 
-    /// <summary>
-    /// A damaged targeted anchor holds the cut. The sweep re-checks the same condition, so a missed event cannot strand
-    /// the timer either way; this handler only makes the reaction immediate.
-    /// </summary>
+    /// <summary>A damaged targeted anchor holds the cut at once; the sweep re-checks the same condition.</summary>
     private void OnAnchorDamaged(ref WFAnchorDamagedEvent args)
     {
         if (!TryGetOwner(args.Anchor, out var cracker) || !IsTargeted(cracker, args.Anchor))
@@ -149,11 +138,7 @@ public sealed partial class WFCrackerSystem
         }
     }
 
-    /// <summary>
-    /// Puts a setup-stage hull back where its anchors say it belongs. Surveying is included because a valid pair may
-    /// already exist when the hull enters the orbit layer; in that case there is no new pair event to drive the edge.
-    /// Once the cut is running the abort spin-down owns the fallback instead.
-    /// </summary>
+    /// <summary>Puts a setup-stage hull back where its anchors say, even for a pair that predates Surveying.</summary>
     private void ReconcilePair(Entity<WFPlanetCrackerComponent> ent)
     {
         if (ent.Comp.State is not (WFCrackState.Surveying or WFCrackState.AnchorsPlaced or WFCrackState.AnchorsLocked))
@@ -247,10 +232,7 @@ public sealed partial class WFCrackerSystem
         return a.Comp.Partner == GetNetEntity(b.Owner) && b.Comp.Partner == GetNetEntity(a.Owner);
     }
 
-    /// <summary>
-    /// The pair this hull owns and could target, found by query rather than stored: the links are a handful of
-    /// entities and a stored copy would need invalidating on every anchor edge.
-    /// </summary>
+    /// <summary>The pair this hull owns and could target, found by query rather than stored.</summary>
     public bool TryGetOwnedPair(
         Entity<WFPlanetCrackerComponent> ent,
         out Entity<WFGravityAnchorComponent> a,

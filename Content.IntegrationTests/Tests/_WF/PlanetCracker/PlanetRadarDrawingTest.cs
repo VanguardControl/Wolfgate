@@ -73,8 +73,7 @@ public sealed class PlanetRadarDrawingTest
                 Assert.That(descendedHandle.VisibleVertices, Is.GreaterThan(0), $"No terrain on layer {netMap}.");
                 Assert.That(descendedHandle.Colours.Count, Is.GreaterThan(1));
             }
-            // Exercise a transit map's replicated endpoint references without the server
-            // deleting an intentionally empty gap before the client can render it.
+            // A client-side transit map, so the server cannot delete the empty gap before it renders.
             var gap = pair.Client.EntMan.GetEntity(netAir);
             var transit = pair.Client.EntMan.AddComponent<CEZTransitMapComponent>(gap);
             transit.LowerMap = pair.Client.EntMan.GetEntity(netLayers[0]);

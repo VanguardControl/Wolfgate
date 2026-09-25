@@ -27,10 +27,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The two code-built test hulls: their exact contents and layout, the masses the pooled gravgen check weighs them
-/// with, the D11 virtual mass a carried anchor adds, and the ownership stamp both spawn paths have to apply.
-/// </summary>
+/// <summary>The two code-built test hulls: contents, layout, lift masses, anchor virtual mass and ownership.</summary>
 [TestFixture]
 [TestOf(typeof(WFTestGridFactory))]
 public sealed class CrackerTestGridTest
@@ -39,7 +36,7 @@ public sealed class CrackerTestGridTest
     private const string Anchor = "WFGravityAnchor";
     private const string Gravgen = "WFTransportGravgen";
 
-    /// <summary>Plan F.1 plus the FTL drive: fifteen entities on the tiny cracker.</summary>
+    /// <summary>The fifteen entities on the tiny cracker.</summary>
     private static readonly Dictionary<string, int> CrackerContents = new()
     {
         ["ComputerShuttle"] = 1,
@@ -54,10 +51,7 @@ public sealed class CrackerTestGridTest
         ["DebugThruster"] = 4,
     };
 
-    /// <summary>
-    /// Plan F.2, as F10 leaves it: the gravity generator is gone - the transport flies over a planet on landing
-    /// thrusters, which is the only lift there is over one - so nine entities rather than eight.
-    /// </summary>
+    /// <summary>The nine entities on the micro transport, which lifts on landing thrusters.</summary>
     private static readonly Dictionary<string, int> TransportContents = new()
     {
         ["ComputerShuttle"] = 1,
@@ -74,7 +68,7 @@ public sealed class CrackerTestGridTest
     /// <summary>Tiles in the micro transport hull, 7x9.</summary>
     private const int TransportTiles = 63;
 
-    /// <summary>ShuttleSystem.TileDensityMultiplier; the tests read it back rather than trusting the constant.</summary>
+    /// <summary>ShuttleSystem.TileDensityMultiplier, which the tests also read back.</summary>
     private const float TileDensity = 0.5f;
 
     /// <summary>WFTransportGravgen.maxHandledMass.</summary>
@@ -121,7 +115,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The layout-typo guard: a tile index off the hull would leave an entity over empty space.</summary>
+    /// <summary>Every entity sits on a solid hull tile.</summary>
     [Test]
     public async Task EverythingSitsOnASolidTile()
     {
@@ -157,10 +151,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Anchored per role, not across the board: the crates carry Anchorable flags: None, which AnchorableSystem
-    /// refuses outright, so a blanket assertion would be asserting something the prototype cannot do.
-    /// </summary>
+    /// <summary>Only the machines are anchored; the crates cannot be.</summary>
     [Test]
     public async Task OnlyTheMachinesAreAnchored()
     {
@@ -232,11 +223,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Both hulls have to actually fly. A thruster only adds to ShuttleComponent.LinearThrust if the grid already
-    /// carries that component when the thruster initialises (ThrusterSystem.EnableThruster returns early otherwise,
-    /// and its IsOn guard means nothing re-registers it later), so this is the guard on the build order.
-    /// </summary>
+    /// <summary>Both hulls register thrust, which needs ShuttleComponent before thrusters initialise.</summary>
     [Test]
     public async Task BothHullsRegisterTheirThrust()
     {
@@ -257,7 +244,7 @@ public sealed class CrackerTestGridTest
 
             using (Assert.EnterMultipleScope())
             {
-                // Thruster facing picks the index: South 0, East 1, North 2, West 3 (ThrusterSystem.cs:342).
+                // Thruster facing picks the index: South 0, East 1, North 2, West 3.
                 for (var dir = 0; dir < 4; dir++)
                 {
                     Assert.That(crackerShuttle.LinearThrust[dir], Is.GreaterThan(0f),
@@ -292,10 +279,7 @@ public sealed class CrackerTestGridTest
         {
             using (Assert.EnterMultipleScope())
             {
-                // Not exact: grid chunk fixtures are polygons with a physics skin, so a hull measures fractionally
-                // UNDER tile count times the density multiplier - the 15x15 cracker reads 112.2002 against 112.5.
-                // Hence a half-open band exactly one tile's 0.5 contribution wide instead of a tolerance: a hull
-                // one tile too small falls below it and one tile too large rises above the exact figure.
+                // Physics skin makes a hull read slightly under the exact figure, so assert a one-tile-wide band.
                 Assert.That(entMan.GetComponent<PhysicsComponent>(cracker).FixturesMass,
                     Is.GreaterThan(CrackerTiles * TileDensity - TileDensity)
                         .And.LessThanOrEqualTo(CrackerTiles * TileDensity),
@@ -311,7 +295,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Hull 31.5 plus one crated anchor's 6 virtual mass is 37.5, inside the 40 the mini gravgen is rated for.</summary>
+    /// <summary>Hull 31.5 plus one crated anchor's 6 is 37.5, inside the mini gravgen's 40.</summary>
     [Test]
     public async Task TransportGravgenIsRatedForTheHullPlusOneAnchor()
     {
@@ -347,10 +331,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The test that proves D11 bites: without the two marked lines in CEZLevelsSystem.Gravity.cs the reported mass
-    /// would sit at the bare hull's 31.5 however much cargo was aboard.
-    /// </summary>
+    /// <summary>A second carried anchor's virtual mass pushes the transport past its gravgen rating.</summary>
     [Test]
     public async Task SecondAnchorOverloadsTheTransport()
     {
@@ -392,10 +373,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Both exclusions in the capacity sweep at once: a planet ground layer is itself a grid, and a wrenched-down
-    /// anchor is terrain. Either one leaking would put cargo mass on a whole planet network's pooled lift.
-    /// </summary>
+    /// <summary>Anchors deployed on a planet ground layer add no cargo mass to it.</summary>
     [Test]
     public async Task DeployedAnchorsDoNotLoadAPlanetLayer()
     {
@@ -455,7 +433,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The player-facing half of D11: the rating stays at one while the count climbs past it.</summary>
+    /// <summary>The anchor capacity rating stays at one while the aboard count climbs past it.</summary>
     [Test]
     public async Task AnchorCapacityCountsWhatIsAboard()
     {
@@ -487,7 +465,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The centrifuge's placeholder rating has to clear the hull and must never read as the infinite-lift zero.</summary>
+    /// <summary>The centrifuge's rating clears the hull and is never the infinite-lift zero.</summary>
     [Test]
     public async Task CentrifugeIsRatedAboveTheHull()
     {
@@ -522,7 +500,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Proves the factory's SetNeedsPower(false) route gets the centrifuge all the way to gravity on the grid.</summary>
+    /// <summary>The uncabled centrifuge still charges up and turns on the grid's gravity.</summary>
     [Test]
     public async Task CentrifugeActivatesWithoutCabling()
     {
@@ -544,11 +522,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The centrifuge sweep's readout: it climbs from a cold start with the charge, and the at-full latch closes only
-    /// at FullOn and then holds until the spin falls below FullOff (design D25). Stands in for the headless vv check,
-    /// which no automated run can perform.
-    /// </summary>
+    /// <summary>The spin readout tracks charge; the at-full latch closes at FullOn and holds until FullOff.</summary>
     [Test]
     public async Task CentrifugeSpinReadoutTracksChargeWithHysteresis()
     {
@@ -682,8 +656,7 @@ public sealed class CrackerTestGridTest
         var map = await pair.CreateTestMap();
         var cracker = await BuildCracker(pair, map.MapId);
 
-        // The factory sizes the berth after spawning its marker, so the pose the radar ghost reads is only final once
-        // the cracker sweep has refreshed it.
+        // The berth pose is only final after the cracker sweep refreshes it.
         await server.WaitRunTicks(pair.SecondsToTicks(1.1f));
 
         await server.WaitAssertion(() =>
@@ -708,8 +681,7 @@ public sealed class CrackerTestGridTest
                 Assert.That(rect.Box.Height, Is.EqualTo((float) berth.Size.Y).Within(0.01f),
                     "The berth rectangle is not the marker's height.");
 
-                // The radar ghost draws the rectangle straight off this field, so it has to be the berth CENTRE, not
-                // the marker: nothing on the client can recover the marker-to-centre distance, which is not networked.
+                // The radar ghost draws from this field, so it must be the berth centre, not the marker.
                 var localCentre = maps.WorldToLocal(cracker, entMan.GetComponent<MapGridComponent>(cracker),
                     centre.Position);
 
@@ -723,7 +695,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Ownership is what keeps two crackers from sharing a pair, so an unowned crate must stay unowned.</summary>
+    /// <summary>Crates aboard a cracker are bound to it; a crate elsewhere stays unowned.</summary>
     [Test]
     public async Task CratesAreBoundToTheCracker()
     {
@@ -763,10 +735,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The admin and ERT path raises no ShipyardShuttlePurchaseEvent, so it calls BindAboard directly; this is that
-    /// call, on a hand-built hull the shipyard never touched.
-    /// </summary>
+    /// <summary>BindAboard, the admin spawn path, binds the crates on a hand-built hull.</summary>
     [Test]
     public async Task AdminSpawnBindsAnchorsToo()
     {
@@ -813,8 +782,7 @@ public sealed class CrackerTestGridTest
 
             using (Assert.EnterMultipleScope())
             {
-                // Crates bind the moment they land on the deck (EntParentChangedMessage), so the explicit sweep finds
-                // nothing left to stamp; what matters is that both crates end up owned, asserted below.
+                // Crates bind as they land on the deck, so the sweep finds nothing left to stamp.
                 Assert.That(bound, Is.EqualTo(0), "BindAboard found crates the deck landing had not already bound.");
 
                 foreach (var crate in crates)
@@ -829,13 +797,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The combined spawn the admin command and the shipyard purchase both end in: the transport arrives docked to the
-    /// cracker's airlock with its crate already stamped, so nobody has to spawn and fly it over.
-    /// Nothing in the test pair can fire ShipyardShuttlePurchaseEvent cheaply - it comes out of the shipyard console
-    /// against a mapped vessel, and no cracker vessel is mapped yet - so this exercises the routine both paths share,
-    /// WFCrackerOwnershipSystem.DockTransport.
-    /// </summary>
+    /// <summary>DockTransport, used by admin and shipyard spawns, docks the transport with its crate bound.</summary>
     [Test]
     public async Task CombinedSpawnArrivesDocked()
     {
@@ -894,12 +856,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Every wfcracker subcommand the crack control added, run through the console host against a spawned hull.
-    /// The arity is per subcommand rather than a blanket length check, so this pins both halves: the one-argument forms
-    /// dispatch and move the hull, and a one-argument form handed a second argument is refused instead. Stands in for
-    /// the by-hand console pass, which no automated run can perform.
-    /// </summary>
+    /// <summary>Every wfcracker subcommand dispatches through the console host with its own arity.</summary>
     [Test]
     public async Task WfCrackerCommandSubcommandsDispatch()
     {
@@ -925,7 +882,7 @@ public sealed class CrackerTestGridTest
 
         await LayTiles(pair, ground, new Vector2i(-4, -4), new Vector2i(28, 8));
 
-        // The hull has to be on the orbit layer for the survey edge and for the fall to have somewhere to go.
+        // The hull surveys and falls from the orbit layer.
         var cracker = await BuildCracker(pair, orbitMap);
         var anchors = new List<EntityUid>();
 
@@ -934,7 +891,7 @@ public sealed class CrackerTestGridTest
             anchors.Add(entMan.SpawnEntity(Anchor, new EntityCoordinates(ground, new Vector2(0.5f, 0.5f))));
             anchors.Add(entMan.SpawnEntity(Anchor, new EntityCoordinates(ground, new Vector2(24.5f, 0.5f))));
 
-            // Hand-spawned anchors belong to nobody, and an unowned pair is invisible to the hull's state machine.
+            // An unowned pair is invisible to the hull's state machine.
             foreach (var anchor in anchors)
             {
                 entMan.GetComponent<WFGravityAnchorComponent>(anchor).Cracker = entMan.GetNetEntity(cracker);
@@ -976,7 +933,7 @@ public sealed class CrackerTestGridTest
             }
         });
 
-        // One argument, which the old blanket two-argument gate would have refused outright.
+        // One argument.
         await server.WaitPost(() => server.ConsoleHost.ExecuteCommand(null, "wfcracker disconnect"));
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
 
@@ -993,7 +950,7 @@ public sealed class CrackerTestGridTest
             }
         });
 
-        // Two arguments again: the stage is forced straight to a cut, which is the only escape hatch design D23 leaves.
+        // Two arguments: force the stage straight to a cut.
         await server.WaitPost(() => server.ConsoleHost.ExecuteCommand(null, "wfcracker state Cracking"));
         await server.WaitRunTicks(1);
 
@@ -1001,10 +958,7 @@ public sealed class CrackerTestGridTest
             Assert.That(entMan.GetComponent<WFPlanetCrackerComponent>(cracker).State, Is.EqualTo(WFCrackState.Cracking),
                 "state <stage> did not move the hull's stage."));
 
-        // The refusal paths (`state NotAStage`, `fall now`) are deliberately NOT driven here: every one of them ends in
-        // shell.WriteError, and TestingServerConsoleHost.WriteError is an Assert.Fail, so a pair cannot watch a console
-        // command refuse anything. What the per-subcommand arity buys is covered positively instead - `disconnect` above
-        // and `fall` below are one-argument forms the old blanket two-argument gate would have rejected outright.
+        // Refusal paths aren't driven: the test console host fails on WriteError.
 
         await server.WaitPost(() => server.ConsoleHost.ExecuteCommand(null, "wfcracker fall"));
         await server.WaitRunTicks(1);
@@ -1028,11 +982,7 @@ public sealed class CrackerTestGridTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Bolts the old transport gravity generator back onto a hull. F10 took it out of the factory layout - the
-    /// transport flies on landing thrusters now - but it is still the fixture that carries WFAnchorCapacity and the
-    /// rating the D11 tests are about, so those tests bring their own.
-    /// </summary>
+    /// <summary>Bolts a transport gravity generator onto a hull for the anchor capacity tests.</summary>
     private static async Task<EntityUid> AddGravgen(TestPair pair, EntityUid transport)
     {
         var server = pair.Server;
@@ -1044,7 +994,7 @@ public sealed class CrackerTestGridTest
         {
             uid = entMan.SpawnEntity(Gravgen, new EntityCoordinates(transport, new Vector2(3.5f, 4.5f)));
 
-            // No cabling on a code-built hull, exactly as WFTestGridFactory.SpawnOnHull does it.
+            // No cabling on a code-built hull.
             receiver.SetNeedsPower(uid, false);
         });
 

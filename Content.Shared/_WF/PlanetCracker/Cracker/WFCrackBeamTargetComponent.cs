@@ -4,8 +4,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
 /// <summary>
-/// The anchor's half of a running cut's beam (design D4): the firing projector is on the orbit map and is never in a
-/// surface viewer's PVS, so the anchor — which always is — carries the far end itself. Present only while the beam is.
+/// The anchor's half of a running beam, since surface viewers never have the orbiting projector in PVS.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WFCrackBeamTargetComponent : Component

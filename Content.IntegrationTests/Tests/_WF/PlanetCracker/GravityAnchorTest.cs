@@ -37,11 +37,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// F3 end to end on a real Asclepiu stack: where an anchor may be wrenched down, the nine-tile footprint at both the
-/// attempt and the completion, the reservation that keeps the ground under it, the pairing band and its owner and grid
-/// rules, the unattended drill, the damage flag, breakage and repair, and the two verbs.
-/// </summary>
+/// <summary>Gravity anchors: placement, footprint, reservation, pairing, drill, damage, repair and verbs.</summary>
 [TestFixture]
 [TestOf(typeof(WFGravityAnchorSystem))]
 public sealed class GravityAnchorTest
@@ -72,10 +68,7 @@ public sealed class GravityAnchorTest
     /// <summary>Reads the percentage out of the drill examine line.</summary>
     private static readonly Regex DrillPercent = new(@"(\d+)%");
 
-    /// <summary>
-    /// An anchor may only grip the biome-backed ground layer itself. The parked-shuttle case is the one a MapUid-only
-    /// gate would wrongly allow, and it is exactly the transport cargo bay the rule exists to forbid.
-    /// </summary>
+    /// <summary>An anchor only grips the ground layer itself, not a hull parked on it.</summary>
     [Test]
     public async Task AnchoringIsRefusedOffAPlanetGround()
     {
@@ -127,7 +120,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>AnchorableSystem checks the one tile it registers; the other eight are this feature's own check.</summary>
+    /// <summary>Anchoring is refused unless all nine footprint tiles are clear.</summary>
     [Test]
     public async Task AnchoringIsRefusedWithoutAClearFootprint()
     {
@@ -168,10 +161,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// AnchorAttemptEvent fires before the eight-second do-after and OnAnchorComplete only re-checks the single tile
-    /// the engine registers, so anything moved into the other eight during the delay has to be caught post-hoc.
-    /// </summary>
+    /// <summary>The footprint is rechecked when the wrench finishes, catching anything moved in meanwhile.</summary>
     [Test]
     public async Task FootprintIsRecheckedWhenTheWrenchFinishes()
     {
@@ -184,8 +174,7 @@ public sealed class GravityAnchorTest
         var stack = await BuildStandalone(pair);
         await LayTiles(pair, stack[0], new Vector2i(-4, -4), new Vector2i(8, 8));
 
-        // One tick throughout: the anchor is still a dynamic body here, and letting physics run while a wall overlaps
-        // its three-by-three fixture would shove it off the tile the test is about.
+        // One callback, so physics cannot shove the still-dynamic anchor off the overlapping wall.
         await server.WaitAssertion(() =>
         {
             var tool = SpawnTool(entMan, WrenchProto, new EntityCoordinates(stack[0], new Vector2(0.5f, 0.5f)));
@@ -196,7 +185,7 @@ public sealed class GravityAnchorTest
 
             Assert.That(attempt.Cancelled, Is.False, "Precondition: the footprint was clear when the wrench started.");
 
-            // The obstruction arrives while the tool timer would still be running; WallSolid anchors as it initialises.
+            // The wall arrives mid do-after and anchors as it initialises.
             var wall = entMan.SpawnEntity(Wall, new EntityCoordinates(stack[0], new Vector2(1.5f, 1.5f)));
             Assert.That(entMan.GetComponent<TransformComponent>(wall).Anchored, Is.True,
                 "Precondition: the obstruction is anchored, or TileFree would not see it.");
@@ -216,7 +205,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Biome chunks unload roughly ten seconds after the last viewer leaves; a deployed anchor pins its own ground.</summary>
+    /// <summary>A deployed anchor pins its own footprint against biome unloading.</summary>
     [Test]
     public async Task DeployedAnchorReservesItsFootprint()
     {
@@ -234,8 +223,7 @@ public sealed class GravityAnchorTest
         {
             var biome = entMan.GetComponent<BiomeComponent>(stack[0]);
 
-            // Laying the tiles with SetTiles deliberately leaves ModifiedTiles alone, so anything found below was
-            // pinned by the anchor rather than by the fixture.
+            // LayTiles leaves ModifiedTiles alone, so any pin found below is the anchor's.
             Assert.That(biome.ModifiedTiles.Values.Any(set => set.Contains(Vector2i.Zero)), Is.False,
                 "Precondition: the ground under the anchor is not reserved yet.");
 
@@ -259,8 +247,7 @@ public sealed class GravityAnchorTest
                         $"Tile {index} of the footprint is empty.");
                 }
 
-                // The bound has to be exact: a padded reserve box pins the ring at radius 2 as well, which is 25
-                // tiles of biome per anchor instead of the nine the rig actually stands on.
+                // Exactly the nine tiles; a padded box would also pin the radius-2 ring.
                 for (var dx = -2; dx <= 2; dx++)
                 for (var dy = -2; dy <= 2; dy++)
                 {
@@ -279,7 +266,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The band is what sets the cut radius, so both ends of it are load-bearing.</summary>
+    /// <summary>Pairing only forms inside the distance band at both ends.</summary>
     [Test]
     public async Task PairingRespectsTheBand()
     {
@@ -348,7 +335,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Two crackers must never share a pair, and hand-spawned dev anchors with no owner must still work.</summary>
+    /// <summary>Two crackers never share a pair, and unowned dev anchors still pair.</summary>
     [Test]
     public async Task PairingRespectsOwnership()
     {
@@ -512,14 +499,11 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// F3 only reports the damage condition. The design puts the fifty-percent pause on F4's crack timer, so the drill
-    /// here has to finish on the deadline it was given.
-    /// </summary>
+    /// <summary>Damage sets the networked flag and raises the event, but does not delay the drill.</summary>
     [Test]
     public async Task DamageSetsTheFlagAndRaisesTheEvent()
     {
-        // Connected, because the networked damage flag has to be read back off the client half.
+        // The networked damage flag is read back on the client.
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -549,7 +533,7 @@ public sealed class GravityAnchorTest
 
             Assert.That(TryVerb(entMan, a, user, "wf-anchor-verb-drill"), Is.True, "Precondition: the drill started.");
 
-            // Half of the 300 Breakage threshold is the design's damaged line.
+            // Just past the damaged line, half the Breakage threshold.
             damageable.TryChangeDamage(a, Damage(proto, comp.BreakDamage * comp.DamageFraction + 10f), true);
 
             using (Assert.EnterMultipleScope())
@@ -597,10 +581,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// DamageChangedEvent carries only the total, so the component mirrors the prototype's Breakage threshold by hand.
-    /// This is the guard on that mirror.
-    /// </summary>
+    /// <summary>The component's hand-mirrored break damage matches the prototype's Breakage threshold.</summary>
     [Test]
     public async Task BreakDamageMatchesThePrototype()
     {
@@ -632,7 +613,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Breaking one half drops the pair; only a repair puts it back, and the repair has to be one D9 allows.</summary>
+    /// <summary>Breaking one half drops the pair; only a repair and relock puts it back.</summary>
     [Test]
     public async Task BreakingDissolvesThePairAndNeedsARelock()
     {
@@ -679,7 +660,7 @@ public sealed class GravityAnchorTest
             Assert.That(repairable.Qualities, Does.Contain("Welding"),
                 "The anchor cannot be repaired with a welder; it kept BaseStructure's Applicating-only narrowing.");
 
-            // The welder's do-after is RepairableSystem's; what F3 owns is what happens once it finishes.
+            // Skip the welder do-after; only its result matters here.
             damageable.SetAllDamage(a, entMan.GetComponent<DamageableComponent>(a), 0);
             var repaired = new RepairedEvent((a, repairable), user);
             entMan.EventBus.RaiseLocalEvent(a, ref repaired);
@@ -756,10 +737,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Only a drilled-in anchor is refused. A paired one has to come back up, because pairing is automatic and the
-    /// distance between the two is what sets the cut radius.
-    /// </summary>
+    /// <summary>Only a drilled-in anchor refuses unwrenching; a paired one can be re-sited.</summary>
     [Test]
     public async Task UnwrenchingIsRefusedOnlyWhenArmed()
     {
@@ -831,7 +809,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The verb only offers itself on a locked anchor, and F7 gets to veto it through the broadcast attempt.</summary>
+    /// <summary>The switch-off verb shows only on a locked anchor and can be vetoed by the broadcast.</summary>
     [Test]
     public async Task SwitchOffIsGatedAndCancellable()
     {
@@ -873,7 +851,7 @@ public sealed class GravityAnchorTest
             var comp = entMan.GetComponent<WFGravityAnchorComponent>(a);
             Assert.That(comp.State, Is.EqualTo(WFAnchorState.Locked), "Precondition: the anchor locked.");
 
-            // The F7 veto hook: the attempt is broadcast and cancellable, so any later system may refuse.
+            // The attempt is broadcast and cancellable, so any system may refuse.
             log.VetoSwitchOff = true;
 
             Assert.That(TryVerb(entMan, a, user, "wf-anchor-verb-off"), Is.True, "The switch-off verb was not offered.");
@@ -899,7 +877,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The crate obeys the same ground rule as the anchor it holds, and hands its owner on to what it spawns.</summary>
+    /// <summary>The crate follows the anchor's ground rule and passes its owner to what it spawns.</summary>
     [Test]
     public async Task CrateUnpacksOnlyOnAGroundLayer()
     {
@@ -975,7 +953,7 @@ public sealed class GravityAnchorTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Design D21 and the 20-to-44 tile cut diameter of design section 5.</summary>
+    /// <summary>The cut radius follows the pair distance, giving a 20 to 44 tile diameter.</summary>
     [Test]
     public void CutRadiusFollowsD21()
     {
@@ -991,12 +969,7 @@ public sealed class GravityAnchorTest
         }
     }
 
-    /// <summary>
-    /// The wrench path with the tool timer taken out: AnchorableSystem.Valid raises AnchorAttemptEvent, and if nothing
-    /// cancels it OnAnchorComplete calls SharedTransformSystem.AnchorEntity. Both halves run here. The do-after itself is
-    /// skipped because AnchorableComponent.Delay is [Access]-locked to AnchorableSystem and an eight-second timer per
-    /// anchoring would dominate the fixture.
-    /// </summary>
+    /// <summary>The wrench path minus its do-after: raise the anchor attempt, then anchor if not cancelled.</summary>
     private static bool Wrench(IEntityManager entMan, SharedTransformSystem transform, EntityUid anchor, EntityUid tool)
     {
         var attempt = new AnchorAttemptEvent(tool, tool);
@@ -1065,10 +1038,7 @@ public sealed class GravityAnchorTest
         return FindVerb(entMan, target, user, locId) is { Disabled: false };
     }
 
-    /// <summary>
-    /// The alternative verb whose text matches the given locale id, if the anchor offered one. force is on because the
-    /// user here is the tool itself rather than a mob that passes the action blocker's complex-interaction check.
-    /// </summary>
+    /// <summary>The alternative verb matching a locale id, forced since the user is a tool rather than a mob.</summary>
     private static Verb? FindVerb(IEntityManager entMan, EntityUid target, EntityUid user, string locId)
     {
         var verbs = entMan.System<SharedVerbSystem>().GetLocalVerbs(target, user, typeof(AlternativeVerb), true);
@@ -1076,10 +1046,7 @@ public sealed class GravityAnchorTest
         return verbs.FirstOrDefault(v => v.Text == text);
     }
 
-    /// <summary>
-    /// Spawns a tool that is also its own do-after user. SharedToolSystem only demands a hand when the tool and the
-    /// user differ, so this needs no mob and no session - only the DoAfterComponent the user side looks up.
-    /// </summary>
+    /// <summary>Spawns a tool that is its own do-after user, so no mob or hand is needed.</summary>
     private static EntityUid SpawnTool(IEntityManager entMan, string proto, EntityCoordinates coords)
     {
         var tool = entMan.SpawnEntity(proto, coords);
@@ -1087,7 +1054,7 @@ public sealed class GravityAnchorTest
         return tool;
     }
 
-    /// <summary>Structural damage that the anchor's modifier set cannot soak, so the numbers land where they are aimed.</summary>
+    /// <summary>Structural damage that the anchor's modifier set cannot soak.</summary>
     private static DamageSpecifier Damage(IPrototypeManager proto, float amount)
     {
         return new DamageSpecifier(proto.Index<DamageTypePrototype>(Blunt), FixedPoint2.New(amount));
@@ -1134,10 +1101,7 @@ public sealed class GravityAnchorTest
     }
 }
 
-/// <summary>
-/// Records every broadcast event the gravity anchor announces, and stands in for F7's switch-off veto. The event bus
-/// locks its subscriptions once the server has started, so a test that wants these has to be a registered system.
-/// </summary>
+/// <summary>Records the planet cracker's broadcast events and can veto anchor switch-offs.</summary>
 public sealed class WFAnchorTestEventSystem : EntitySystem
 {
     /// <summary>Every pair that formed since the last Clear.</summary>
@@ -1167,31 +1131,31 @@ public sealed class WFAnchorTestEventSystem : EntitySystem
     /// <summary>Every crack stage change since the last Clear.</summary>
     public readonly List<WFCrackStateChangedEvent> StateChanges = new();
 
-    /// <summary>Every crack that finished cutting since the last Clear; the F5 extraction hook.</summary>
+    /// <summary>Every crack that finished cutting since the last Clear.</summary>
     public readonly List<WFCrackCompletedEvent> CracksCompleted = new();
 
-    /// <summary>Every hull pushed into a fall since the last Clear; the F5 chunk hook.</summary>
+    /// <summary>Every hull pushed into a fall since the last Clear.</summary>
     public readonly List<WFCrackerFallingEvent> Falling = new();
 
-    /// <summary>Every disc cut free since the last Clear; the F6 hook.</summary>
+    /// <summary>Every disc cut free since the last Clear.</summary>
     public readonly List<WFChunkExtractedEvent> ChunksExtracted = new();
 
-    /// <summary>Every chunk pushed into transit since the last Clear; the F7 hook.</summary>
+    /// <summary>Every chunk pushed into transit since the last Clear.</summary>
     public readonly List<WFChunkDroppedEvent> ChunksDropped = new();
 
-    /// <summary>Every planet flagged cracked since the last Clear; the F9 hook.</summary>
+    /// <summary>Every planet flagged cracked since the last Clear.</summary>
     public readonly List<WFPlanetCrackedEvent> PlanetsCracked = new();
 
-    /// <summary>Every switched-off anchor put back to Locked since the last Clear; the F7 lapsed-window edge.</summary>
+    /// <summary>Every switched-off anchor put back to Locked since the last Clear.</summary>
     public readonly List<WFAnchorReArmedEvent> ReArmed = new();
 
-    /// <summary>Every hull whose evacuation ran out since the last Clear; the F7 release hook.</summary>
+    /// <summary>Every hull whose evacuation ran out since the last Clear.</summary>
     public readonly List<WFCrackerReleasingEvent> Releasing = new();
 
-    /// <summary>Every chunk that settled on the ground layer since the last Clear; the F7 landing hook.</summary>
+    /// <summary>Every chunk that settled on the ground layer since the last Clear.</summary>
     public readonly List<WFChunkLandedEvent> ChunksLanded = new();
 
-    /// <summary>While true, every switch-off attempt is refused, exactly as a later feature's own veto would.</summary>
+    /// <summary>While true, every switch-off attempt is refused.</summary>
     public bool VetoSwitchOff;
 
     /// <inheritdoc/>
@@ -1209,20 +1173,14 @@ public sealed class WFAnchorTestEventSystem : EntitySystem
         SubscribeLocalEvent<WFAnchorSwitchedOffEvent>((ref WFAnchorSwitchedOffEvent ev) => SwitchedOff.Add(ev));
         SubscribeLocalEvent<WFAnchorSwitchOffAttemptEvent>(OnSwitchOffAttempt);
 
-        // F4's three are broadcast [ByRefEvent] record structs too, so they belong on this recorder rather than on a
-        // second system competing for the same broadcast subscriptions.
         SubscribeLocalEvent<WFCrackStateChangedEvent>((ref WFCrackStateChangedEvent ev) => StateChanges.Add(ev));
         SubscribeLocalEvent<WFCrackCompletedEvent>((ref WFCrackCompletedEvent ev) => CracksCompleted.Add(ev));
         SubscribeLocalEvent<WFCrackerFallingEvent>((ref WFCrackerFallingEvent ev) => Falling.Add(ev));
 
-        // F5's three are the same shape again, and the bus locks its subscriptions once the server has started, so a
-        // second recorder system competing for these broadcasts is not an option.
         SubscribeLocalEvent<WFChunkExtractedEvent>((ref WFChunkExtractedEvent ev) => ChunksExtracted.Add(ev));
         SubscribeLocalEvent<WFChunkDroppedEvent>((ref WFChunkDroppedEvent ev) => ChunksDropped.Add(ev));
         SubscribeLocalEvent<WFPlanetCrackedEvent>((ref WFPlanetCrackedEvent ev) => PlanetsCracked.Add(ev));
 
-        // F7's three, on the same recorder for the same reason: the bus locks its subscriptions once the server has
-        // started, so a second system competing for these broadcasts is not an option.
         SubscribeLocalEvent<WFAnchorReArmedEvent>((ref WFAnchorReArmedEvent ev) => ReArmed.Add(ev));
         SubscribeLocalEvent<WFCrackerReleasingEvent>((ref WFCrackerReleasingEvent ev) => Releasing.Add(ev));
         SubscribeLocalEvent<WFChunkLandedEvent>((ref WFChunkLandedEvent ev) => ChunksLanded.Add(ev));
@@ -1251,7 +1209,7 @@ public sealed class WFAnchorTestEventSystem : EntitySystem
         VetoSwitchOff = false;
     }
 
-    /// <summary>The stand-in for F7's disconnect window.</summary>
+    /// <summary>Cancels the switch-off attempt while <see cref="VetoSwitchOff"/> is set.</summary>
     private void OnSwitchOffAttempt(WFAnchorSwitchOffAttemptEvent args)
     {
         if (!VetoSwitchOff)

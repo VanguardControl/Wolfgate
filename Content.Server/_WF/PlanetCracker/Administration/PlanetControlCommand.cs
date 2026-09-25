@@ -8,10 +8,7 @@ using Robust.Shared.Console;
 
 namespace Content.Server._WF.PlanetCracker.Administration;
 
-/// <summary>
-/// Console half of the Planet Control panel: no arguments lists the worlds, otherwise
-/// <c>planetcontrol &lt;planet&gt; time HH:MM | weather &lt;id|clear&gt; [seconds] | gravity &lt;g&gt; | sanctioned &lt;bool&gt;</c>.
-/// </summary>
+/// <summary>Console half of Planet Control: lists worlds or sets one's time, weather, gravity or sanction.</summary>
 [AdminCommand(AdminFlags.Admin)]
 public sealed partial class PlanetControlCommand : LocalizedEntityCommands
 {
@@ -30,8 +27,17 @@ public sealed partial class PlanetControlCommand : LocalizedEntityCommands
             foreach (var info in list)
             {
                 shell.WriteLine(info.Built
-                    ? $"{info.Name}: {info.MinuteOfDay / 60:00}:{info.MinuteOfDay % 60:00}, {(info.Weather.Length == 0 ? "clear" : info.Weather)}, {info.Gravity:F2}g, sanctioned={info.Sanctioned}"
-                    : $"{info.Name}: not built, sanctioned={info.Sanctioned}");
+                    ? Loc.GetString("cmd-planetcontrol-row",
+                        ("planet", info.Name),
+                        ("time", $"{info.MinuteOfDay / 60:00}:{info.MinuteOfDay % 60:00}"),
+                        ("weather", info.Weather.Length == 0
+                            ? Loc.GetString("cmd-planetcontrol-weather-clear")
+                            : info.Weather),
+                        ("gravity", $"{info.Gravity:F2}"),
+                        ("sanctioned", info.Sanctioned.ToString()))
+                    : Loc.GetString("cmd-planetcontrol-row-unbuilt",
+                        ("planet", info.Name),
+                        ("sanctioned", info.Sanctioned.ToString())));
             }
 
             return;
@@ -47,7 +53,9 @@ public sealed partial class PlanetControlCommand : LocalizedEntityCommands
         }
 
         var summary = _planets.Apply(EntityManager.GetEntity(target.Planet), request, shell.Player);
-        shell.WriteLine(summary.Length == 0 ? Loc.GetString("cmd-planetcontrol-no-change") : $"{target.Name}: {summary}");
+        shell.WriteLine(summary.Length == 0
+            ? Loc.GetString("cmd-planetcontrol-no-change")
+            : Loc.GetString("cmd-planetcontrol-applied", ("planet", target.Name), ("changes", summary)));
     }
 
     private static bool TryBuild(PlanetControlInfo target, string[] args, out PlanetControlSetEvent request)

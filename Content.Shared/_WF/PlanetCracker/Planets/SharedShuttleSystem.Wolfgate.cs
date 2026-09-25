@@ -6,8 +6,7 @@ namespace Content.Shared.Shuttles.Systems;
 public abstract partial class SharedShuttleSystem
 {
     /// <summary>
-    /// An orbit layer is never an FTL destination - entering orbit is the shuttle console's own action and needs no
-    /// drive - and a planet network is never left from a surface, air or cloud layer: you climb to orbit first.
+    /// Blocks FTL into an orbit layer (the console's orbit button handles that) and out of any planet layer but orbit.
     /// </summary>
     protected bool WfAllowFTL(EntityUid shuttleUid, EntityUid targetMapUid)
     {

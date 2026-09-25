@@ -12,11 +12,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// Draws the Marker layer of every revealed vein inside the last pulse a second time, fading out over the surveyor's
-/// ping window. The sprite itself is already visible thanks to <see cref="WFDeepVeinVisualsSystem"/>; this is the
-/// cosmetic sweep that tells the crew which veins the pulse they just fired actually touched.
-/// </summary>
+/// <summary>Highlights the revealed veins the last survey pulse touched, fading over the ping window.</summary>
 public sealed partial class WFDeepVeinOverlay : Overlay
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -31,7 +27,6 @@ public sealed partial class WFDeepVeinOverlay : Overlay
     private readonly EntityQuery<SpriteComponent> _spriteQuery;
     private readonly EntityQuery<TransformComponent> _xformQuery;
 
-    /// <summary>Reused hit buffer, so a per-frame draw does not allocate a new set each pass.</summary>
     private readonly HashSet<Entity<WFDeepVeinComponent>> _veins = new();
 
     /// <inheritdoc/>
@@ -70,8 +65,7 @@ public sealed partial class WFDeepVeinOverlay : Overlay
 
         var alpha = Math.Clamp(remaining / window, 0f, 1f);
 
-        // The skin stores sRGB hex and DrawTexture writes straight into Vertex2D.Modulate, which is linear, so any
-        // skin colour used as a modulate goes through Color.FromSrgb (WFDiagramControl.cs:1-13 is authoritative).
+        // DrawTexture writes linear Modulate directly, so convert the sRGB skin colour.
         var skin = WolfgateSkins.Get(_cfg.GetCVar(WolfgateCVars.UiStyle));
         var modulate = Color.FromSrgb(skin.Accent).WithAlpha(alpha);
 
@@ -80,8 +74,7 @@ public sealed partial class WFDeepVeinOverlay : Overlay
 
         _veins.Clear();
 
-        // Uncontained matches the server's scan: an anchored bodyless vein rides the DYNAMIC SundriesTree, so the
-        // Sundries bit is the one that finds it and the Static bit contributes nothing.
+        // Matches the server scan: anchored bodyless veins live in the Sundries tree, not the static one.
         _lookup.GetEntitiesInRange(coordinates, surveyed.LastPulseRadius, _veins, LookupFlags.Uncontained);
 
         foreach (var vein in _veins)
@@ -93,7 +86,7 @@ public sealed partial class WFDeepVeinOverlay : Overlay
                 !_spriteQuery.TryComp(vein.Owner, out var sprite))
                 continue;
 
-            // During a z-pass args.MapId is the map being rendered, so this is the whole layer filter needed.
+            // During a z-pass args.MapId is the layer being rendered.
             if (xform.MapID != args.MapId)
                 continue;
 

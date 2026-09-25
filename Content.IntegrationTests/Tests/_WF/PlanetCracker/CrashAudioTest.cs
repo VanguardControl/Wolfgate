@@ -13,31 +13,21 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// How loud one hull crash is allowed to be. CEZLevelsSystem.CrashGrid queues an explosion per hull tile and every
-/// explosion that spawns plays two networked audio streams, so a 15x15 test hull was worth over a hundred of them at
-/// once - which is what exhausted the live client's OpenAL sources and killed it as a fallen ship hit the surface.
-/// </summary>
+/// <summary>A hull crash stays within an audio budget, so it cannot exhaust the client's OpenAL sources.</summary>
 [TestFixture]
 [TestOf(typeof(CEZLevelsSystem))]
 public sealed class CrashAudioTest
 {
-    /// <summary>The whole point: a crash is one bang, not a hull's worth of them.</summary>
+    /// <summary>Explosion clips one crash may play.</summary>
     private const int ExplosionBudget = 4;
 
     /// <summary>Every sound the whole crash is allowed to make, wreckage included.</summary>
     private const int TotalBudget = 30;
 
-    /// <summary>The folder every explosion clip lives in; the client died on /Audio/Effects/explosion4.ogg.</summary>
+    /// <summary>The path prefix every explosion clip shares.</summary>
     private const string ExplosionClips = "/Audio/Effects/explosion";
 
-    /// <summary>
-    /// A code-built hull dropped onto prepared terrain crashes, and the whole crash is worth a single-digit number of
-    /// audio entities.
-    /// The hull is started on the air layer directly above the ground rather than in orbit: the fall itself is the same
-    /// plummet through the same transit machinery either way (CEZGridFallerComponent's gravity is 0.15 levels/s², so
-    /// each extra layer is another four seconds of ticks), and what is being counted here is the landing.
-    /// </summary>
+    /// <summary>A hull dropped from the air layer onto laid ground crashes with one bang and few sounds.</summary>
     [Test]
     public async Task OneHullCrashIsOneBang()
     {
@@ -51,8 +41,7 @@ public sealed class CrashAudioTest
         var lowAir = layers[1];
         var lowAirMapId = await MapIdOf(pair, lowAir);
 
-        // A biome only generates under a viewer, and the crash test needs solid tiles under the footprint for the
-        // landing to count as a crash at all (CEZLevelsSystem.Gravity.cs HasGroundUnderFootprint).
+        // A landing only counts as a crash over solid ground, and no viewer means no biome tiles.
         await LayTiles(pair, ground, new Vector2i(-4, -4), new Vector2i(20, 20));
 
         var hull = await BuildCracker(pair, lowAirMapId);
@@ -63,9 +52,7 @@ public sealed class CrashAudioTest
         var crashed = false;
         var peakAudio = 0;
 
-        // The fall gate holds a fresh grid for its three second grace, then plummets it; a full gap at 0.15 levels/s²
-        // is another three and a half. Sampling every other tick catches every audio entity: the shortest explosion
-        // clip outlives two ticks by an order of magnitude.
+        // Covers the fall grace and the drop; every other tick is enough, as every clip far outlives two ticks.
         for (var i = 0; i < 450; i++)
         {
             await server.WaitRunTicks(2);
@@ -103,8 +90,7 @@ public sealed class CrashAudioTest
             {
                 Assert.That(crashed, Is.True,
                     "The hull never reached the ground layer, so no crash was measured at all.");
-                // A free fall arrives above the hard-landing threshold, so this really is the crash path; without the
-                // bang there would be nothing here to keep a budget on (FlightTest.FreeFallCrashes...).
+                // A free fall lands above the hard-landing threshold, so this is the crash path.
                 Assert.That(clips.Where(c => c.Key.StartsWith("/Audio/_WF/PlanetCracker/Flight/crash")).Sum(c => c.Value), Is.EqualTo(1),
                     "Structural breakup must play one impact sound, not a ship-wide explosion.");
                 Assert.That(bangs, Is.LessThanOrEqualTo(ExplosionBudget),

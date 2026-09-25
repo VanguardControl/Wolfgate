@@ -15,12 +15,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>
-/// A sector body's gravity well: a hull adrift in open space inside a world's orbit range, with nothing holding it on
-/// station, is drawn in - slowly at the rim, faster near the body - and, once deep enough, captured onto the orbit
-/// layer, where orbit decay (F11) takes over. "Adrift" is the decay system's own reading, so a ship that would keep
-/// its orbit is a ship the well cannot move.
-/// </summary>
+/// <summary>Pulls adrift hulls in a planet's orbit range toward it and captures deep ones into orbit.</summary>
 public sealed partial class WFGravityWellSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -43,10 +38,8 @@ public sealed partial class WFGravityWellSystem : EntitySystem
     /// <summary>Fraction of the orbit range inside which an adrift hull is captured onto the orbit layer.</summary>
     public const float CaptureFraction = 0.35f;
 
-    /// <summary>
-    /// How long a hull must have been adrift inside a well before it is pulled at all, and before it can be captured.
-    /// A breaker tripping, a brownout or an FTL arrival all read as "no thrust" for a moment; none of them is a wreck.
-    /// </summary>
+    /// <summary>How long a hull must be adrift before it is pulled, and before it can be captured.</summary>
+    // Delays ride out brief thrust loss from a tripped breaker, brownout or FTL arrival.
     public static readonly TimeSpan PullDelay = TimeSpan.FromSeconds(10);
     public static readonly TimeSpan CaptureDelay = TimeSpan.FromSeconds(30);
 
@@ -54,16 +47,13 @@ public sealed partial class WFGravityWellSystem : EntitySystem
 
     private TimeSpan _nextSweep;
 
-    /// <summary>Hulls in a well this sweep, with the body pulling them and its orbit layer.</summary>
     private readonly Dictionary<EntityUid, (EntityUid Body, EntityUid Orbit, float Range)> _pulled = new();
 
-    /// <summary>When each hull in a well was first seen adrift there; dropped the sweep it is not.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _adriftSince = new();
 
-    /// <summary>Hulls adrift in a well this sweep, pulled yet or not.</summary>
     private readonly HashSet<EntityUid> _adrift = new();
 
-    /// <summary>Hulls already warned, so the PA speaks once per fall rather than once per sweep.</summary>
+    // So the PA warns once per fall.
     private readonly HashSet<EntityUid> _warned = new();
 
     private readonly List<EntityUid> _scratch = new();
@@ -85,7 +75,7 @@ public sealed partial class WFGravityWellSystem : EntitySystem
         }
     }
 
-    /// <summary>Rebuilds the set of adrift hulls inside a well, and captures the ones that have fallen deep enough.</summary>
+    /// <summary>Rebuilds the set of adrift hulls in wells and captures those deep enough.</summary>
     private void Sweep()
     {
         _pulled.Clear();
@@ -185,7 +175,7 @@ public sealed partial class WFGravityWellSystem : EntitySystem
         }
     }
 
-    /// <summary>Hands a hull to the orbit layer at the spot it occupies, through the same hop the console uses.</summary>
+    /// <summary>Moves a hull onto the orbit layer at its current spot, via the console's hop.</summary>
     private bool TryCapture(EntityUid grid, EntityUid body, EntityUid orbit)
     {
         if (!TryComp<ShuttleComponent>(grid, out var shuttle) || !_shuttle.CanFTL(grid, out _))
@@ -198,7 +188,7 @@ public sealed partial class WFGravityWellSystem : EntitySystem
         return true;
     }
 
-    /// <summary>One frame of pull: infall is topped up towards the local limit, never pushed past it.</summary>
+    /// <summary>Tops up infall speed toward the local limit for one frame.</summary>
     private void Pull(EntityUid grid, EntityUid body, float range, float frameTime)
     {
         if (TerminatingOrDeleted(grid) || TerminatingOrDeleted(body) || !TryComp<PhysicsComponent>(grid, out var physics))

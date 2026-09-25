@@ -7,11 +7,7 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._WF.PlanetCracker.Flight;
 
-/// <summary>
-/// The ground-out of a hard landing. The scrape itself is CE's ground friction, which already stops a hull in finite
-/// time; what this adds is the price of arriving fast - the leading edge grinds itself off, anything under the hull is
-/// crushed, and the obstacles CE would have bounced off are flattened instead (CEZLevelsSystem.WFFlight.cs).
-/// </summary>
+/// <summary>Hard-landing skids: the leading edge grinds off and anything under the hull is crushed.</summary>
 public sealed partial class WFFlightSystem
 {
     [Dependency] private ExplosionSystem _explosion = default!;
@@ -31,45 +27,28 @@ public sealed partial class WFFlightSystem
     /// <summary>Accumulated damage at which a leading-edge tile is torn off the hull.</summary>
     public const float SkidTileThreshold = 40f;
 
-    /// <summary>
-    /// Damage every tile of the hull takes at touchdown, at the speed a free fall would have arrived at. Under
-    /// <see cref="SkidTileThreshold"/> on its own: a hard landing rattles the whole hull but tears nothing off it.
-    /// </summary>
+    /// <summary>Damage every hull tile takes at free-fall touchdown speed; not enough alone to tear one off.</summary>
     public const float ImpactTileDamage = 12f;
 
-    /// <summary>
-    /// Extra damage the leading-edge tiles take at touchdown when the hull came in with planar speed. With the
-    /// hull-wide share this passes <see cref="SkidTileThreshold"/> on a fast hard landing and not on a gentle one, so
-    /// the expected price of arriving badly is the machinery along the nose.
-    /// </summary>
+    /// <summary>Extra touchdown damage on leading-edge tiles when the hull lands with planar speed.</summary>
     public const float ImpactEdgeDamage = 45f;
 
-    /// <summary>How wide the leading edge is, in tiles of projection behind the foremost one.</summary>
+    // Leading-edge depth, in tiles of projection behind the foremost tile.
     private const float SkidEdgeDepth = 1.5f;
 
-    /// <summary>Blast left where a leading-edge tile tears off; small, and silent so one skid is not a hundred bangs.</summary>
+    // Small silent blast where a tile tears off.
     private const float SkidTileIntensity = 2f;
 
     private const float SkidTileSlope = 2f;
     private const float SkidTileMaxIntensity = 2f;
 
-    /// <summary>
-    /// How often the leading edge is chewed on. The footprint walk is not a per-tick job, and neither is anything else
-    /// a skid does that makes a noise: the crush and the plough both run on this interval so a capital hull grinding
-    /// across a populated deck is one round of damage sounds every quarter second rather than one per victim per tick.
-    /// </summary>
+    /// <summary>Interval for skid damage, crushing and ploughing, so their sounds don't fire every tick.</summary>
     public static readonly TimeSpan SkidBiteInterval = TimeSpan.FromSeconds(0.25);
 
-    /// <summary>
-    /// Tiles a hull is never ground below. A grid with nothing left is not a hull that can be repaired, and a massless
-    /// grid is a physics body whose solve divides by its own mass.
-    /// </summary>
+    // Never grind below this; a massless grid breaks the physics solve.
     private const int SkidMinTiles = 4;
 
-    /// <summary>
-    /// Tiles one bite may tear off. Everything over the budget keeps the damage it has and comes off at the next bite,
-    /// so a capital hull does not queue a hundred craters into one frame the way a crash used to (CrashAudioTest).
-    /// </summary>
+    // Per-bite tear-off cap; damage over it stays on the tile for the next bite.
     private const int SkidMaxBiteTiles = 24;
 
     private readonly List<Vector2i> _skidEdge = new();
@@ -97,10 +76,7 @@ public sealed partial class WFFlightSystem
                 continue;
             }
 
-            // A non-finite velocity defeats every comparison it appears in - NaN is neither over nor under a
-            // threshold - so it would slide past the stop test, be divided into a NaN heading and written straight
-            // back into the hull, and from there into every child transform and every sound played on it. The hull
-            // is stopped instead, which is what a skid ends in anyway.
+            // A non-finite velocity would pass every comparison and spread NaN to the hull, so zero it.
             TryHeading(body.LinearVelocity, out var heading, out var speed);
             if (!float.IsFinite(body.LinearVelocity.LengthSquared()))
                 _physics.SetLinearVelocity(grid, Vector2.Zero, body: body);
@@ -126,9 +102,7 @@ public sealed partial class WFFlightSystem
             var elapsed = (float) SkidBiteInterval.TotalSeconds;
             skid.NextBite = _timing.CurTime + SkidBiteInterval;
 
-            // Anything standing where the hull is going gets the same treatment an FTL arrival gives it. On the bite
-            // interval rather than every tick: the crush gibs and deletes everything under the footprint, each of
-            // which is its own networked sound, and a capital hull's footprint is a lot of them.
+            // Anything under the footprint is crushed as by an FTL arrival.
             _zLevels.WfClearLandingObstacles(grid, reportImpacts: true);
             ScarSkidGround((grid, gridComp), skid);
             WearSlidingHull((grid, gridComp), skid, Math.Clamp(speed * SkidTileDamageRate * elapsed, 0f, 0.5f), heading);
@@ -140,11 +114,7 @@ public sealed partial class WFFlightSystem
         }
     }
 
-    /// <summary>
-    /// A touchdown the hull walks away from: the thud, the scrape, and the tiles it pays for arriving at the speed it
-    /// did. <paramref name="severity"/> is the touchdown speed over the speed a free fall would have brought it in at,
-    /// so a hull that nearly held itself up barely marks the deck and one that nearly crashed loses its nose.
-    /// </summary>
+    /// <summary>Survivable touchdown; <paramref name="severity"/> is touchdown speed over free-fall speed.</summary>
     public void HardLanding(Entity<MapGridComponent> grid, float severity)
     {
         if (!ImpactCrew(grid.Owner, severity))
@@ -154,8 +124,7 @@ public sealed partial class WFFlightSystem
         if (!TryComp<WFSkidComponent>(grid.Owner, out var skid))
             return;
 
-        // Math.Clamp hands a NaN back out unchanged, and a NaN damage is over every threshold there is: it would tear
-        // the whole footprint off in one frame on a landing nobody could have measured.
+        // Math.Clamp passes NaN through unchanged.
         severity = float.IsFinite(severity) ? Math.Clamp(severity, 0f, 1f) : 0f;
 
         // The whole hull takes the landing; nothing comes off from this alone.
@@ -164,18 +133,14 @@ public sealed partial class WFFlightSystem
         if (!TryComp<PhysicsComponent>(grid.Owner, out var body))
             return;
 
-        // Straight down onto its own footprint has no leading edge to concentrate the impact on.
+        // Straight down has no leading edge.
         if (!TryHeading(body.LinearVelocity, out var heading, out var speed) || speed <= SkidStopSpeed)
             return;
 
         BiteTiles(grid, skid, ImpactEdgeDamage * severity, heading);
     }
 
-    /// <summary>
-    /// A hull's direction of travel and how fast it is going, or false when it has no direction to have. The one place
-    /// a velocity is turned into a heading: a zero vector normalises to NaN and a non-finite one stays non-finite, and
-    /// either of those written back into a grid is a NaN world position for everything aboard it.
-    /// </summary>
+    /// <summary>Normalises a velocity into heading and speed; false for zero or non-finite velocity.</summary>
     private static bool TryHeading(Vector2 velocity, out Vector2 heading, out float speed)
     {
         heading = Vector2.Zero;
@@ -191,18 +156,13 @@ public sealed partial class WFFlightSystem
         return true;
     }
 
-    /// <summary>
-    /// Puts damage on a hull's own tiles and tears off the ones that have had enough, leaving a small silent blast
-    /// where each one was. With a world heading only the leading edge is touched; without one the whole footprint is,
-    /// which is what an impact straight down does. Returns how many tiles went.
-    /// </summary>
+    /// <summary>Damages the leading edge, or the whole hull without a heading; returns tiles torn off.</summary>
     private int BiteTiles(Entity<MapGridComponent> grid, WFSkidComponent skid, float damage, Vector2? heading)
     {
-        // A NaN is under no threshold and over every one at the same time; it is not a landing this hull took.
         if (!float.IsFinite(damage) || damage <= 0f)
             return 0;
 
-        // The hull's own frame: the footprint is indexed in it, and the hull may be sliding sideways or spinning.
+        // Heading in the hull's local frame, where tiles are indexed.
         var local = heading is { } world ? (-_transform.GetWorldRotation(grid.Owner)).RotateVec(world) : Vector2.Zero;
 
         _skidEdge.Clear();
@@ -221,8 +181,7 @@ public sealed partial class WFFlightSystem
 
         var lost = 0;
 
-        // What this bite is allowed to take: never past the floor the hull has to keep, and never more of it in one
-        // frame than the explosion queue and the client's audio can carry. Damage over the budget stays on the tile.
+        // Capped per bite and by the minimum hull size; excess damage stays on the tile.
         var budget = Math.Min(SkidMaxBiteTiles, _skidEdge.Count - SkidMinTiles);
 
         foreach (var indices in _skidEdge)
@@ -257,13 +216,12 @@ public sealed partial class WFFlightSystem
         return lost;
     }
 
-    /// <summary>How far along the direction of travel a tile sits; the leading edge is the highest of these.</summary>
+    /// <summary>How far along the heading a tile's centre sits.</summary>
     private static float Projection(Vector2i indices, Vector2 heading)
     {
         return Vector2.Dot(new Vector2(indices.X + 0.5f, indices.Y + 0.5f), heading);
     }
 
-    /// <summary>Stops the scrape and lets the hull be an ordinary grid again.</summary>
     private void EndSkid(EntityUid grid, WFSkidComponent skid)
     {
         StopGroundSounds(skid);

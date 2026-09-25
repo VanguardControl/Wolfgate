@@ -2,8 +2,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.PlanetCracker.Mining;
 
-/// <summary>What a crack miner is doing; the one axis its sprite is driven from.</summary>
-/// <remarks>There is no Off member on purpose: crack_miner.rsi ships idle/mining/exhausted/broken and no off state, so idle doubles as off (ASSET_REQUIREMENTS.md:26 says otherwise and is stale).</remarks>
+/// <summary>What a crack miner is doing, which drives its sprite; Idle doubles as off since the sprite has no off state.</summary>
 [Serializable, NetSerializable]
 public enum WFCrackMinerState : byte
 {

@@ -2,7 +2,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
-/// <summary>On a grid: the virtual mass its cargo anchors add to the pooled gravgen lift check (design D11).</summary>
+/// <summary>On a grid: the virtual mass its cargo anchors add to the pooled gravgen lift check.</summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFGridAnchorLoadComponent : Component
 {

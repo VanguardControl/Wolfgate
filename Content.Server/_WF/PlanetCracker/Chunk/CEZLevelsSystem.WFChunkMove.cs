@@ -6,12 +6,7 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._CE.ZLevels.Core;
 
-/// <summary>
-/// MoveGridSetToMap for one grid and a DESTINATION position, which the private original cannot take.
-/// A partial rather than a helper because RaiseZMoveEventOnPassengers is private: without it the chunk's riders keep
-/// their old CurrentZLevel and ground-height caches and read the ground layer from orbit.
-/// Declares no subscriptions and re-declares no dependency.
-/// </summary>
+/// <summary>MoveGridSetToMap for one grid to a given position; RaiseZMoveEventOnPassengers is private.</summary>
 public sealed partial class CEZLevelsSystem
 {
     /// <summary>Moves one grid onto another z-layer at a given world pose, raising the same events a convoy move does.</summary>

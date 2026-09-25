@@ -2,7 +2,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
-/// <summary>Stage of one planet crack, per design section 3.</summary>
+/// <summary>Stage of one planet crack.</summary>
 [Serializable, NetSerializable]
 public enum WFCrackState : byte
 {

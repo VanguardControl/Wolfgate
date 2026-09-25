@@ -20,6 +20,7 @@ public sealed partial class ContentAudioSystem
         return HasComp<WFPlanetLayerComponent>(map) && !HasComp<WFOrbitLayerComponent>(map);
     }
 
+    /// <summary>Silences ambient music on a planet surface and restarts it on the way back out.</summary>
     private void WfUpdatePlanetMusic()
     {
         var suppress = WfOnPlanet();

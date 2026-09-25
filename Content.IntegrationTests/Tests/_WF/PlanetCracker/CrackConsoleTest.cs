@@ -33,31 +33,22 @@ using ClientCrackerSystem = Content.Client._WF.PlanetCracker.Cracker.WFCrackerSy
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The crack console end to end: the geometry that has to resolve identically on both sides, the berth offset measured
-/// across two maps, every targeting and begin-crack precondition, the snap and its refusals, and the state object the
-/// window draws - read straight off the server's own builder rather than through a client window.
-/// </summary>
+/// <summary>The crack console: shared geometry, targeting, begin preconditions, the snap and its state.</summary>
 [TestFixture]
 [TestOf(typeof(WFCrackConsoleWindow))]
 public sealed class CrackConsoleTest
 {
-    /// <summary>Structural damage the projector's modifier set cannot soak, so the numbers land where they are aimed.</summary>
+    /// <summary>Structural damage the projector's modifier set cannot soak.</summary>
     private const string Blunt = "Blunt";
 
     /// <summary>Damage that clears the projector's 250 Breakage trigger.</summary>
     private const float ProjectorBreakingDamage = 280f;
 
-    /// <summary>
-    /// The abstract shared geometry base must be resolvable in both assemblies, and give the same answer in both.
-    /// ReflectionManager skips abstract types and EntitySystemManager maps a base type only from a concrete subclass, so
-    /// this passes only while a concrete WFCrackerSystem exists on the server AND on the client. Without the client one
-    /// the throw is an UnregisteredTypeException inside Draw, which no other headless gate reaches.
-    /// </summary>
+    /// <summary>The shared geometry resolves and agrees on both sides, which needs a concrete system on each.</summary>
     [Test]
     public async Task SharedGeometryResolvesOnBothSides()
     {
-        // Connected, because a pooled client that is not in game has no entity systems registered at all.
+        // A pooled client that is not in game has no entity systems.
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
         var client = pair.Client;
@@ -113,14 +104,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Draw smoke for the four diagrams and the window. A real DrawingHandleScreen cannot be obtained in a headless
-    /// pair - ClydeHeadless.RenderNow is an empty body and RenderNow itself lives on the internal IClydeInternal, so
-    /// no content assembly can reach a handle - therefore this drives every non-draw path instead: construction,
-    /// dependency injection, state assignment, FrameUpdate and a Measure/Arrange pass, and asserts no throw. Each
-    /// control's [Dependency] fields are checked through WFDiagramControl.DependenciesInjected, which is the specific
-    /// failure the missing IoCManager.InjectDependencies call would cause.
-    /// </summary>
+    /// <summary>The diagrams and window survive injection, state, FrameUpdate and layout (no headless draw).</summary>
     [Test]
     public async Task DiagramControlsSurviveAStateAndAFrame()
     {
@@ -184,14 +168,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The centrifuge's own machine window, driven headlessly through every readout shape it has to survive: running,
-    /// switched off, and overloaded past its rated capacity. A real DrawingHandleScreen cannot be obtained in a pooled
-    /// pair, so this drives construction, both state paths and a Measure/Arrange pass instead.
-    /// The dial is measured on its own in the same breath. Control's MeasureOverride returns zero for a leaf, so a
-    /// custom-drawn control with no MeasureOverride of its own is invisible in any parent that does not pin it with a
-    /// MinSize - which is exactly what this window's bottom slot is.
-    /// </summary>
+    /// <summary>The centrifuge window takes running, off and overloaded readouts; its dial measures non-zero.</summary>
     [Test]
     public async Task CentrifugeWindowAndDialSurviveEveryReadout()
     {
@@ -208,7 +185,7 @@ public sealed class CrackConsoleTest
                 Push(window, size, false, PowerChargePowerStatus.Off, -1, 0f, false, 0f, 0f);
                 Push(window, size, true, PowerChargePowerStatus.FullyCharged, -1, 1f, true, 2100f, 2000f);
 
-                // No rated capacity at all: the load bar has to divide by nothing without throwing.
+                // Zero rated capacity: the load bar must not throw.
                 Push(window, size, true, PowerChargePowerStatus.Discharging, 5, 0.4f, false, 300f, 0f);
             }, "The centrifuge window should take every state and readout shape without throwing.");
 
@@ -258,11 +235,7 @@ public sealed class CrackConsoleTest
         window.Arrange(new UIBox2(Vector2.Zero, size));
     }
 
-    /// <summary>
-    /// The berth carries the orbit map's id and the cut circle the ground map's, so the offset between them can only be
-    /// a raw XY subtraction. MapCoordinates.InRange is asserted false in the same breath to pin why: it refuses
-    /// differing MapIds before doing any distance maths at all.
-    /// </summary>
+    /// <summary>The berth and cut circle sit on different maps, so their offset is a raw XY subtraction.</summary>
     [Test]
     public async Task BerthOffsetIsMeasuredAcrossMaps()
     {
@@ -305,7 +278,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Twelve tiles of offset is refused and writes no target; six is accepted and writes both anchors.</summary>
+    /// <summary>A twelve-tile offset is refused with no target written; six is accepted for both anchors.</summary>
     [Test]
     public async Task TargetingRefusesOutsideTolerance()
     {
@@ -360,11 +333,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The whole begin path with every precondition met: the hull slides the last six tiles so its berth centre lands on
-    /// the cut circle, then force-anchors itself static. Snap BEFORE lock, or a static body makes its own CE grid network
-    /// static-anchored and the sync system pins the move straight back.
-    /// </summary>
+    /// <summary>Begin snaps the hull's berth onto the cut circle and then locks it; the snap must come first.</summary>
     [Test]
     public async Task BeginCrackSnapsTheHullOntoTheCircle()
     {
@@ -447,11 +416,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A docked transport has to arrive with the hull. The dock joint is a soft weld, so a grid left where it was is
-    /// dragged across the map over about a second instead of being placed - which is the bug the reapply-and-redock step
-    /// exists to avoid.
-    /// </summary>
+    /// <summary>A docked transport is placed with the hull rather than dragged along by the soft dock weld.</summary>
     [Test]
     public async Task SnapCarriesTheDockedTransport()
     {
@@ -473,8 +438,7 @@ public sealed class CrackConsoleTest
 
         var transport = await BuildTransport(pair, orbitMap, new Vector2(400f, 400f));
 
-        // Park the transport so its own airlock sits where the hull's does, then weld the two ports together: the dock
-        // is created at whatever relative pose the grids are in, so an aligned pair leaves the weld at rest.
+        // Align the airlocks before docking so the weld starts at rest.
         await server.WaitPost(() =>
         {
             var crackerDock = FindDock(entMan, site.Cracker);
@@ -548,11 +512,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A hull in a CE grid network of two or more grids cannot be moved at all: the sync system intercepts every
-    /// transform move and re-applies the old pose, while the state machine would have advanced anyway. It is refused
-    /// rather than nudged.
-    /// </summary>
+    /// <summary>A hull in a multi-grid CE network cannot be moved, so the snap is refused.</summary>
     [Test]
     public async Task SnapIsRefusedInAGridNetwork()
     {
@@ -575,9 +535,7 @@ public sealed class CrackConsoleTest
 
         var before = Vector2.Zero;
 
-        // The network is built and used inside ONE server callback on purpose. CEZGridConnectorSystem reconciles live
-        // membership against the connectors it can actually see, and two grids with no connector between them are
-        // removed again on its very next Update - so a hand-built network does not survive a tick boundary.
+        // One callback: a network without connectors is dissolved on the next update.
         await server.WaitAssertion(() =>
         {
             Assert.That(zLevels.TryGetGridNetwork(site.Cracker, out _), Is.False,
@@ -669,7 +627,7 @@ public sealed class CrackConsoleTest
             maps.SetTiles(grid.Owner, grid.Comp, tiles);
             blocker = grid.Owner;
 
-            // Straight over the middle of where the hull is about to be, six tiles east of where it is now.
+            // Over the middle of the hull's destination.
             transform.SetWorldPosition(blocker, transform.GetWorldPosition(site.Cracker) + new Vector2(17f, 7f));
         });
 
@@ -703,11 +661,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// ShuttleSystem.Enable resolves ShuttleComponent as a required dependency and returns silently without one, while
-    /// Disable does not, so a hull with no ShuttleComponent would force-anchor and never be releasable - no log, a dead
-    /// abort path and a fall that never starts. It is refused instead.
-    /// </summary>
+    /// <summary>A hull without ShuttleComponent is refused the lock, since it could never be released again.</summary>
     [Test]
     public async Task LockIsRefusedWithoutShuttleComponent()
     {
@@ -748,10 +702,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// One flag per fault, and BEGIN CRACK only when the whole list is clear: a rotor below full, a projector without
-    /// power and a broken projector each block it on their own and each name themselves.
-    /// </summary>
+    /// <summary>A slow rotor, an unpowered projector and a broken one each block begin and name themselves.</summary>
     [Test]
     public async Task BeginRequiresCentrifugeAtFullAndBothProjectors()
     {
@@ -767,7 +718,7 @@ public sealed class CrackConsoleTest
         await DeployPair(pair, site, 0f, 24f, true);
         await AlignHull(pair, site, new Vector2(6f, 0f));
 
-        // A cold rotor is the shipped state: charge: 0 in the prototype, so this needs no arranging.
+        // The rotor ships cold.
         await server.WaitAssertion(() =>
         {
             var cracker = (site.Cracker, entMan.GetComponent<WFPlanetCrackerComponent>(site.Cracker));
@@ -796,8 +747,7 @@ public sealed class CrackConsoleTest
 
         await SetCharge(pair, site.Centrifuge, 1f);
 
-        // A hull machine runs without cabling because the factory clears NeedsPower; putting it back leaves the
-        // projector on an ungenerated net, which is exactly a brownout.
+        // Restoring NeedsPower leaves the projector on an unpowered net.
         await server.WaitPost(() => receiver.SetNeedsPower(site.Projectors[0], true));
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
 
@@ -873,10 +823,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Design D23: once the cut has begun there is no way back. Untargeting is refused and leaves both anchors and the
-    /// stage alone, and no abort message exists in the shared vocabulary at all for anything else to send.
-    /// </summary>
+    /// <summary>Once the cut begins, untargeting is refused and no abort message exists.</summary>
     [Test]
     public async Task ThereIsNoAbortAfterBegin()
     {
@@ -918,7 +865,7 @@ public sealed class CrackConsoleTest
                 Assert.That(comp.State, Is.EqualTo(WFCrackState.Cracking), "The refused untarget moved the stage.");
             }
 
-            // The vocabulary itself: only the three messages exist, so nothing a client can send could abort.
+            // Only the three messages exist, so no client message can abort.
             var messages = typeof(WFCrackTargetMessage).Assembly.GetTypes()
                 .Where(type => type.Namespace == typeof(WFCrackTargetMessage).Namespace
                                && typeof(BoundUserInterfaceMessage).IsAssignableFrom(type))
@@ -938,10 +885,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Every field of the state object against the components it was built from, read straight off the server's builder
-    /// with no client window standing up.
-    /// </summary>
+    /// <summary>Every field of the console state matches the components it was built from.</summary>
     [Test]
     public async Task StateObjectMatchesTheServer()
     {
@@ -1056,16 +1000,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Grid membership is not a PVS exemption: net.pvs_range is 25 tiles and the berth marker sits well past that on a
-    /// MarkerBase prototype nobody stands near, so the state has to carry the derived geometry rather than let the client
-    /// re-derive it. With the marker moved past that range the state still names a real berth rectangle and a row for
-    /// every projector.
-    /// DEVIATION FROM THE PLAN: the other half of the plan's test - "assert the client entity set does NOT contain those
-    /// entities" - cannot be asserted here, because the integration pool disables PVS outright
-    /// (Robust.UnitTesting/Pool/PoolManager.cs sets net.pvs false), so a pooled client holds every entity regardless of
-    /// range. The distance precondition below stands in for it.
-    /// </summary>
+    /// <summary>The state carries the berth and projector rows itself, as the marker can be outside PVS.</summary>
     [Test]
     public async Task StateIsSelfSufficientForAFarConsole()
     {
@@ -1079,8 +1014,7 @@ public sealed class CrackConsoleTest
         var site = await BuildCrackerInOrbit(pair);
         await DeployPair(pair, site, 0f, 24f, true);
 
-        // A long spur of deck so the marker can be wrenched down well past the PVS range from the console. It has to
-        // stay on real plating and stay anchored: an unanchored entity over empty deck is a faller on a z-network.
+        // A deck spur past PVS range; the marker must stay anchored on plating or it falls.
         await LayTiles(pair, site.Cracker, new Vector2i(0, 15), new Vector2i(14, 50));
 
         var berth = EntityUid.Invalid;
@@ -1124,9 +1058,7 @@ public sealed class CrackConsoleTest
                     "The state's berth centre does not match the server's own derivation.");
                 Assert.That(state.Projectors, Has.Count.EqualTo(site.Projectors.Count),
                     "The state dropped a projector row, so the console panel would be short.");
-                // The radar ghost has no BUI state, so it draws the rectangle straight off this field: it has to be the
-                // berth CENTRE in grid-local terms, not the marker pose, and the marker-to-centre distance is not
-                // networked for anyone to add back.
+                // The radar ghost draws from this, so it must be the grid-local berth centre, not the marker.
                 var ghostCentre = Vector2.Transform(comp.BerthLocalPos, transform.GetWorldMatrix(site.Cracker));
 
                 Assert.That(ghostCentre.X, Is.EqualTo(rect.Center.X).Within(0.01f),
@@ -1152,16 +1084,7 @@ public sealed class CrackConsoleTest
         return EntityUid.Invalid;
     }
 
-    /// <summary>
-    /// A console state with non-trivial geometry: a rotated berth, a cut circle offset from it across two maps, a
-    /// locked pair, a running cut and two projectors, one of them firing.
-    /// </summary>
-    /// <summary>
-    /// Every crack stage through the console window and its stage strip. The strip used to place nine stage names by
-    /// hand at fixed pixel offsets, so they drew through each other and through the bar under them; it is a strip of
-    /// real controls now, and this drives all nine stages plus each countdown shape that rides on them, asserts no
-    /// throw, and asserts the strip measures itself rather than relying on the window's MinSize.
-    /// </summary>
+    /// <summary>The console window and its stage strip take every crack stage, and the strip measures itself.</summary>
     [Test]
     public async Task CrackConsoleWindowSurvivesEveryStage()
     {
@@ -1197,7 +1120,7 @@ public sealed class CrackConsoleTest
                     timeline.Arrange(new UIBox2(0f, 0f, size.X, size.Y));
                 }
 
-                // No state at all: the strip is built and laid out before the console has pushed one.
+                // No state yet.
                 timeline.SetState(null);
                 timeline.Measure(size);
             }, "The crack console window should take every crack stage without throwing.");
@@ -1223,6 +1146,7 @@ public sealed class CrackConsoleTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A console state with non-trivial geometry, a locked pair, a running cut and two projectors.</summary>
     private static WFCrackConsoleState SyntheticState()
     {
         return new WFCrackConsoleState

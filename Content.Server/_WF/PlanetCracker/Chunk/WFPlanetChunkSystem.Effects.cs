@@ -6,16 +6,12 @@ using Robust.Shared.Player;
 
 namespace Content.Server._WF.PlanetCracker.Chunk;
 
-/// <summary>
-/// The moment the disc tears free, on both layers at once. Nothing here is load-bearing: every call is guarded so a
-/// missing gravity component or a gridless map costs the effect and not the extraction.
-/// </summary>
+/// <summary>Extraction effects on both layers; every call is guarded so a failure costs only the effect.</summary>
 public sealed partial class WFPlanetChunkSystem
 {
-    /// <summary>The burst sprite spawned at the hole and at the chunk.</summary>
     private const string BurstEffect = "WFEffectChunkBurst";
 
-    /// <summary>The extraction kick is twice the site kick the cut has been throwing every couple of seconds.</summary>
+    /// <summary>Twice the cut's periodic site kick.</summary>
     private const float ExtractKickStrength = 2f;
 
     /// <summary>Shakes, the boom on both layers, the burst sprites and one hard camera kick over the site.</summary>
@@ -27,8 +23,7 @@ public sealed partial class WFPlanetChunkSystem
         Vector2 centre,
         float radius)
     {
-        // StartGridShake needs a GravityComponent and silently does nothing without one. Never on the orbit map: the
-        // client's own guard means a player parented to a gridless map is never kicked, and the orbit map has no grid.
+        // StartGridShake needs a GravityComponent; the gridless orbit map can't shake.
         if (TryComp<GravityComponent>(cracker.Owner, out var hullGravity))
             _gravity.StartGridShake(cracker.Owner, hullGravity);
 
@@ -38,8 +33,7 @@ public sealed partial class WFPlanetChunkSystem
         var groundMapId = Transform(groundMap).MapID;
         var orbitMapId = Transform(orbitMap).MapID;
 
-        // One audio entity heard on two layers: a positional sound is replicated across the z-eyes but the client
-        // zeroes its gain across maps, so the boom is global and the positional copies are extra.
+        // The client zeroes positional gain across maps, so the boom is global and the positional copies are extra.
         _audio.PlayGlobal(
             cracker.Comp.ExtractSound,
             Filter.Empty().AddInMap(orbitMapId, EntityManager).AddInMap(groundMapId, EntityManager),

@@ -153,10 +153,7 @@ public sealed class AtmosphereThrusterTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The real directional bank and APC demand must follow the engine, including idle hover.
-    /// Repeated refreshes and re-entry must always use the original rating, never compound it.
-    /// </summary>
+    /// <summary>Thrust and APC demand track the engine, hover and re-entry included, without compounding.</summary>
     [Test]
     public async Task GroundedWreckStopsHoverDrawAndAscentRestoresIt()
     {

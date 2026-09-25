@@ -46,6 +46,7 @@ public sealed partial class ThrusterSystem
             args.PushText(Loc.GetString("wf-thruster-atmosphere-mode"));
     }
 
+    /// <summary>True when a grid is on a planet layer below orbit or in a gap above one.</summary>
     public bool WfInAtmosphere(EntityUid grid)
     {
         var map = Transform(grid).MapUid;
@@ -71,6 +72,7 @@ public sealed partial class ThrusterSystem
         }
     }
 
+    /// <summary>Applies or lifts the atmosphere thrust and power penalty on one linear thruster.</summary>
     public void WfRefreshAtmosphereThruster(EntityUid uid, ThrusterComponent thruster)
     {
         if (thruster.Type != ThrusterType.Linear)

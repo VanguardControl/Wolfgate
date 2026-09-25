@@ -18,10 +18,10 @@ public enum WFAnchorState : byte
     /// <summary>Unattended drill running.</summary>
     Drilling,
 
-    /// <summary>Drill finished; the pair is targetable by F4.</summary>
+    /// <summary>Drill finished; the pair is targetable by the crack console.</summary>
     Locked,
 
-    /// <summary>Switched off after locking (F7 disconnect).</summary>
+    /// <summary>Switched off after locking, to disconnect the chunk.</summary>
     Off,
 
     /// <summary>Destructible Breakage threshold crossed; repairable.</summary>

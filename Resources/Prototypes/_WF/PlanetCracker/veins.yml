@@ -1,4 +1,4 @@
-# Deep veins: a hidden biome marker layer that only a survey reveals. See F2_IMPLEMENTATION_PLAN.md section 1.
+# Deep veins: a hidden biome marker layer that only a survey reveals.
 
 - type: entity
   id: WFDeepVein
@@ -6,10 +6,7 @@
   description: A dense seam far below the surface. Only a crack reaches it.
   categories: [ HideSpawnMenu ]
   components:
-  # MANDATORY. BiomeSystem.LoadChunkMarkers spawns markers with CreateEntityUninitialized and never anchors them
-  # (BiomeSystem.MarkerProcessor.cs:305-308), unlike LoadEntities. Without this the vein is unanchored: F5's
-  # extraction would move it by SetParent and lose its tile index, and UnloadTiles would stop pinning its tile
-  # (BiomeSystem.ChunkLoader.cs:278-283), letting the biome regenerate the ground under it.
+  # Required: biome markers are never anchored, and an unanchored vein loses its tile on extraction.
   - type: Transform
     anchored: true
   - type: Sprite
@@ -23,10 +20,7 @@
   - type: Clickable
   - type: WFDeepVein
 
-# Flat mode (prototype:, not entityMask:). An entityMask layer substitutes an existing rock, which is the
-# opposite of a hidden underground seam. Flat mode lands only on tiles the biome left bare
-# (BiomeSystem.MarkerProcessor.cs:176-179), so the effective density is lower than count/size^2.
-# BiomeMarkerLayerPrototype has exactly eight fields; there is no tile whitelist and no CheckTile in this fork.
+# Flat mode lands only on bare tiles, so the real density is below count/size^2.
 - type: biomeMarkerLayer
   id: WFDeepVeins
   prototype: WFDeepVein
@@ -36,16 +30,10 @@
   minGroupSize: 1
   maxGroupSize: 1
 
-# USE THESE IDS EXACTLY — verified OrePrototype ids from Resources/Prototypes/ore.yml
-# (OreSteel :6, OreSpaceQuartz :12, OreCoal :18, OreGold :25, OreSilver :31, OrePlasma :44, OreUranium :50).
-# DO NOT write OreIron or OreQuartz: those are biomeMarkerLayer ids from
-# Resources/Prototypes/Procedural/biome_ore_templates.yml:3 and :17 (which is why they appear in
-# planet_surfaces.yml's biomeMarkerLayers list) and no ore prototype of either name exists anywhere in the
-# tree; `ores:` keys here are ProtoId<OrePrototype> and a wrong id fails prototype validation.
+# Keys are OrePrototype ids; OreIron and OreQuartz are marker layer ids, not ores.
 - type: wfVeinTable
   id: WFVeinTableAsclepiu
-  # Weights and values are balance placeholders. Value is this table's own per-ore worth: OrePrototype carries no
-  # price field and ore entities are priced by material composition.
+  # Value is this table's own per-ore worth; OrePrototype has no price.
   ores:
     OreSteel: { weight: 5, value: 1 }
     OreCoal: { weight: 4, value: 1 }
@@ -58,8 +46,7 @@
   unsanctionedMultiplier: 2
   rate: 150
 
-# The score is weighted mean ore value times mean yield times the unsanctioned multiplier, so the bands
-# are in ore-value-times-yield units.
+# Bands are in ore-value-times-yield units, the survey score.
 - type: wfVeinRatingBands
   id: WFVeinRatingBands
   fair: 4000

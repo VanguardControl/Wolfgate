@@ -6,10 +6,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Fissures;
 
-/// <summary>
-/// The public admin and test surface, on the WFGravityAnchorSystem.Control.cs pattern: it reaches the private ring and
-/// surge writers without duplicating their guards. No subscriptions.
-/// </summary>
+/// <summary>Admin entry points into the private ring and surge writers.</summary>
 public sealed partial class WFFissureSpawnerSystem
 {
     /// <summary>Spreads the next ring now, ignoring the schedule, and pushes the following one a full interval out.</summary>
@@ -21,9 +18,7 @@ public sealed partial class WFFissureSpawnerSystem
             return false;
         }
 
-        // The sweep's own stopping condition (WFFissureSpawnerSystem.cs Update). Without it an admin ring past the
-        // count would push RingsDone beyond RingCount, which silently ends the scheduled spread for the rest of the
-        // drill and keeps growing the forced radius past the intended eight tiles.
+        // The sweep's own stopping condition, so forced rings can't overrun the count.
         if (ent.Comp.RingsDone >= ent.Comp.RingCount)
             return false;
 

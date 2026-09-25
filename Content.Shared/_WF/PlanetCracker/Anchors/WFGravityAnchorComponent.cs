@@ -25,11 +25,11 @@ public sealed partial class WFGravityAnchorComponent : Component
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan DrillEnd;
 
-    /// <summary>How long the drill takes, per design section 5.</summary>
+    /// <summary>How long the drill takes.</summary>
     [DataField]
     public TimeSpan DrillDuration = TimeSpan.FromMinutes(5);
 
-    /// <summary>True past the damage threshold; networked now, consumed by F4's crack pause. Gates nothing in F3.</summary>
+    /// <summary>True past the damage threshold, which pauses the crack.</summary>
     [DataField, AutoNetworkedField]
     public bool Damaged;
 
@@ -41,7 +41,7 @@ public sealed partial class WFGravityAnchorComponent : Component
     [DataField]
     public float MaxDistance = 40f;
 
-    /// <summary>Tiles added to half the pair distance to get the cut radius (design D21).</summary>
+    /// <summary>Tiles added to half the pair distance to get the cut radius.</summary>
     [DataField]
     public float CutPadding = 2f;
 
@@ -49,7 +49,7 @@ public sealed partial class WFGravityAnchorComponent : Component
     [DataField]
     public float BreakDamage = 300f;
 
-    /// <summary>Fraction of BreakDamage at which the anchor counts as damaged (design section 5: 50%).</summary>
+    /// <summary>Fraction of BreakDamage at which the anchor counts as damaged.</summary>
     [DataField]
     public float DamageFraction = 0.5f;
 
@@ -57,16 +57,11 @@ public sealed partial class WFGravityAnchorComponent : Component
     [DataField]
     public int FootprintRadius = 1;
 
-    /// <summary>Mass this adds to a carrying hull's gravgen load while it rides as cargo (design D11).</summary>
+    /// <summary>Mass this adds to a carrying hull's gravgen load while it rides as cargo.</summary>
     [DataField]
     public float VirtualMass = 6f;
 
-    /// <summary>
-    /// How far the running cut has got, 0 to 1; what the cut circle overlay draws its growing arc from.
-    /// It lives on the anchor rather than on the hull because the anchors carry CEPvsOverrideComponent and so replicate
-    /// to every viewer on every layer, while the hull grid is four layers above a surface viewer and not in their PVS.
-    /// Defaults to 1 so an idle pair still previews the whole circle.
-    /// </summary>
+    /// <summary>Cut progress 0 to 1 for the circle overlay (1 when idle); on the anchor since it, unlike the hull, reaches every layer's PVS.</summary>
     [DataField, AutoNetworkedField]
     public float CrackProgress = 1f;
 }

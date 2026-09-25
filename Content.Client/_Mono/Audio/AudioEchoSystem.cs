@@ -229,13 +229,15 @@ public sealed partial class AreaEchoSystem : EntitySystem
         var originTileIndices = tileRef.GridIndices;
         var worldPosition = _transformSystem.GetWorldPosition(transformComponent);
 
-        // WOLFGATE: one non-finite position anywhere under this - a hull whose velocity went NaN, an infinite
+        // WOLFGATE(PlanetCracker) START: a ray from a non-finite position is not cast, since a NaN crashes the client.
+        // One non-finite position anywhere under this - a hull whose velocity went NaN, an infinite
         // coordinate mid-teleport - reaches the MathF.Sign in GetNormalVector below, which throws ArithmeticException
         // on NaN and takes the entire client down on a single audio entity. No echo is worth that, so a ray that
         // cannot be measured is simply not cast. The same check guards the reflection delta, where two infinities
         // subtract into a NaN that was finite on the way in.
         if (!float.IsFinite(worldPosition.X) || !float.IsFinite(worldPosition.Y))
             return false;
+        // WOLFGATE END
 
         // At this point, we are ready for war against the client's pc.
         foreach (var direction in _calculatedDirections)
@@ -288,7 +290,7 @@ public sealed partial class AreaEchoSystem : EntitySystem
                 var currentOriginLocalPosition = Vector2.Transform(currentOriginWorldPosition, worldMatrix);
 
                 var delta = currentOriginLocalPosition - previousRayOriginLocalPosition;
-                if (!float.IsFinite(delta.X) || !float.IsFinite(delta.Y) || // WOLFGATE: never hand MathF.Sign a NaN.
+                if (!float.IsFinite(delta.X) || !float.IsFinite(delta.Y) || // WOLFGATE(PlanetCracker): never hand MathF.Sign a NaN.
                     delta.LengthSquared() <= float.Epsilon + float.Epsilon)
                 {
                     break;

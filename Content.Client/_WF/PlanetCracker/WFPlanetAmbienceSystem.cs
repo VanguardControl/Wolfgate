@@ -16,10 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.PlanetCracker;
 
-/// <summary>
-/// Plays the local listener's planet soundscape. Playback is deliberately global and client-only: at most two crossfading beds and
-/// one environmental accent, with no per-tile sources or server audio entities.
-/// </summary>
+/// <summary>Client-only planet soundscape: at most two crossfading beds and one accent, played globally.</summary>
 public sealed partial class WFPlanetAmbienceSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -96,6 +93,7 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         UpdateOneShot(profile, night, oneShotTarget, frameTime);
     }
 
+    /// <summary>The ambience profile, layer offset and night flag for the local player's map.</summary>
     private bool TryGetContext(out WFPlanetAmbiencePrototype profile, out float layerOffset, out bool night)
     {
         profile = default!;
@@ -127,13 +125,13 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         if (_player.LocalEntity is not { } player || !TryComp(player, out TransformComponent? xform))
             return false;
 
-        // Procedural ground uses its map as its grid. A detached planet chunk is also exposed terrain; every other
-        // separate grid is a hull and gets the quieter indoor mix.
+        // Map-grid ground and detached chunks are exposed terrain; any other grid is a hull with the indoor mix.
         return xform.GridUid is { } grid &&
                grid != xform.MapUid &&
                !HasComp<WFPlanetChunkComponent>(grid);
     }
 
+    /// <summary>Starts, rotates and crossfades the looping bed.</summary>
     private void UpdateLoop(WFPlanetAmbiencePrototype profile, bool night, float target, float frameTime)
     {
         var playlist = profile.GetLoops(night);
@@ -180,6 +178,7 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         }
     }
 
+    /// <summary>Fades the playing accent, or plays and schedules the next one.</summary>
     private void UpdateOneShot(WFPlanetAmbiencePrototype profile, bool night, float target, float frameTime)
     {
         var sounds = profile.GetOneShots(night);
@@ -273,9 +272,7 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
     {
         if (stream is { } uid && TryComp<AudioComponent>(uid, out var audio))
         {
-            // These streams are client-owned. SharedAudioSystem.Stop refuses to stop during
-            // state application, exactly when local-player detach/ghost changes can arrive.
-            // Do not lose the handle while leaving an untracked global loop behind.
+            // Stop refuses during state application, when detach can arrive, so silence and delete instead.
             _audio.SetGain(uid, 0f, audio);
             QueueDel(uid);
         }

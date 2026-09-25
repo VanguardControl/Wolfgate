@@ -10,9 +10,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.PlanetCracker.Testing;
 
-/// <summary>
-/// Builds the two code-only planet cracker test hulls, so the feature can be exercised long before a mapper draws one.
-/// </summary>
+/// <summary>Builds the two code-only planet cracker test hulls.</summary>
 public sealed partial class WFTestGridFactory : EntitySystem
 {
     [Dependency] private IMapManager _mapMan = default!;
@@ -43,17 +41,14 @@ public sealed partial class WFTestGridFactory : EntitySystem
     {
         var grid = CreateHull(map, offset, CrackerSize, CrackerSize);
 
-        // Before the berth marker, not after: MapManager.CreateGrid deliberately leaves a code-built grid
-        // un-map-initialised (MapManager.GridCollection.cs:127), so adding this component raises no MapInitEvent and the
-        // cracker never scans for its berth. Adding it first lets the marker's own map-init back-link do the work.
+        // Before the berth marker: a code-built grid isn't map-initialised, so the marker's map-init links the berth.
         EnsureComp<WFPlanetCrackerComponent>(grid.Owner);
 
-        // Layout is plan section F.1 plus the FTL drive; the Stage 6 tests assert every one of these fifteen.
+        // The tests assert every one of these fifteen.
         SpawnOnHull(grid, "ComputerShuttle", 2, 2);
         SpawnOnHull(grid, "WFCrackConsole", 4, 2);
         SpawnOnHull(grid, "DebugGyroscope", 7, 2);
-        // Monolith's FTL rework gives a hull no range at all without a powered drive (SharedShuttleSystem.GetFTLRange),
-        // so the test cracker could never jump to a planet. SpawnOnHull switches it to !NeedsPower like the rest.
+        // A hull has no FTL range without a powered drive.
         SpawnOnHull(grid, "MachineFTLDrive", 11, 2);
         SpawnOnHull(grid, "WFCentrifuge", 7, 7);
         SpawnOnHull(grid, "WFGravityProjector", 5, 14, 180);
@@ -85,10 +80,7 @@ public sealed partial class WFTestGridFactory : EntitySystem
         return grid.Owner;
     }
 
-    /// <summary>
-    /// Builds the tiny cracker with its anchor transport already docked to the port airlock, which is how a bought
-    /// cracker arrives; returns both grids.
-    /// </summary>
+    /// <summary>Builds the tiny cracker with its transport docked, as a bought one arrives; returns both.</summary>
     public (EntityUid Cracker, EntityUid Transport) BuildCrackerWithTransport(MapId map, Vector2 offset)
     {
         var cracker = BuildCracker(map, offset);
@@ -105,10 +97,8 @@ public sealed partial class WFTestGridFactory : EntitySystem
     {
         var grid = CreateHull(map, offset, TransportWidth, TransportHeight);
 
-        // Layout is plan section F.2 verbatim; eight entities, one crate.
         SpawnOnHull(grid, "ComputerShuttle", 3, 1);
-        // F10: the transport flies over planets on landing thrusters, so its gravgen is gone. Anything that wants the
-        // D11 anchor-capacity machinery back spawns one on the hull itself (CrackerTestGridTest).
+        // Landing thrusters, no gravgen; tests that need anchor capacity spawn one themselves.
         SpawnOnHull(grid, "WFThrusterLanding", 2, 4);
         SpawnOnHull(grid, "WFThrusterLanding", 4, 4);
         // Without one the hull can strafe but never turn.
@@ -167,10 +157,7 @@ public sealed partial class WFTestGridFactory : EntitySystem
         EnsureComp<ShuttleComponent>(grid.Owner);
         _shuttle.Enable(grid.Owner, force: true);
 
-        // MapManager leaves a code-built grid un-map-initialised even on a live map, and a component added later only
-        // gets MapInitEvent on an entity that is. The crack lock's ForceAnchor handler is one such: a hull spawned by
-        // the command flew freely through its whole cut until this ran. Idempotent, so the test fixture's own call
-        // after building is harmless.
+        // Code-built grids aren't map-initialised, so later components (the ForceAnchor lock) get no MapInit.
         EntityManager.RunMapInit(grid.Owner, MetaData(grid.Owner));
     }
 }

@@ -24,22 +24,12 @@ using ClientSurveyWindow = Content.Client._WF.PlanetCracker.Survey.WFSurveyConso
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The sector survey console's state object, read straight off the server's own builder with no window standing up -
-/// the CrackConsoleTest recipe. What it has to get right: one row per star-system body whether or not that body has a
-/// Wolfgate surface, a distance that is a raw Vector2 length or nothing at all, the sanctioned and cracked flags read
-/// off the body rather than off a prototype, a vein RATING with no contents behind it, and the body's own FTL beacon
-/// name as the "go here".
-/// </summary>
+/// <summary>The survey console's state and window: rows, distance, flags, vein rating and beacon names.</summary>
 [TestFixture]
 [TestOf(typeof(WFSurveyConsoleSystem))]
 public sealed class SurveyConsoleTest
 {
-    /// <summary>
-    /// A second surface, so the console has a world that is unsanctioned and rolls no veins to show beside Asclepiu.
-    /// The test surface is explicitly applied to Thrascias after registry initialization; it does not replace
-    /// the registry entry or change the shipped planet definition.
-    /// </summary>
+    /// <summary>An unsanctioned, veinless test surface, stamped onto Thrascias after registry initialisation.</summary>
     [TestPrototypes]
     public const string Prototypes = @"
 - type: wfPlanetSurface
@@ -64,19 +54,16 @@ public sealed class SurveyConsoleTest
     /// <summary>The body the test-only bare surface is stamped onto.</summary>
     private const string BareType = "PlanetThrascias";
 
-    /// <summary>The unsanctioned, veinless surface declared above. Plain string: the linter skips test prototypes.</summary>
+    /// <summary>The bare surface above; a string, as the linter skips test prototypes.</summary>
     private const string BareSurface = "WFTestBareSurface";
 
-    /// <summary>The shipped vein table Asclepiu rolls from; a const rather than a literal, which Index forbids.</summary>
+    /// <summary>The shipped vein table Asclepiu rolls from.</summary>
     private const string AsclepiuVeins = "WFVeinTableAsclepiu";
 
-    /// <summary>Well away from the test map's own grid, so the console's own world position is what gets measured.</summary>
+    /// <summary>The console's position, well away from the test map's own grid.</summary>
     private static readonly Vector2 ConsolePos = new(100f, 0f);
 
-    /// <summary>
-    /// Every body in the system gets a row, not just the registered ones: WFSurfaceAsclepiu is the only shipped
-    /// surface against five bodies, so a registry-only list would be one row on a live server and zero on a stock one.
-    /// </summary>
+    /// <summary>Every body in the star system gets a row, not just those with a registered surface.</summary>
     [Test]
     public async Task StateListsEveryStarSystemBody()
     {
@@ -115,11 +102,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The distance is a raw Vector2 length in the sector frame and nothing else - never MapCoordinates.InRange, which
-    /// returns false across MapIds before it does any maths. A console that cannot resolve its own sector position
-    /// reports that, rather than measuring from the origin and handing the pilot a number that means nothing.
-    /// </summary>
+    /// <summary>Distance is a raw sector-frame length, unknown when the console cannot resolve its position.</summary>
     [Test]
     public async Task DistanceIsRawVectorAndKnownOnlyWhenResolvable()
     {
@@ -132,8 +115,7 @@ public sealed class SurveyConsoleTest
         var elsewhere = await pair.CreateTestMap();
         var stranded = EntityUid.Invalid;
 
-        // Off the test map's own grid: a computer ships anchored, and anchoring onto a grid it is not parented to is
-        // an engine-level error rather than a survey console problem.
+        // Off the test map's grid, since a computer spawns anchored.
         await server.WaitPost(() =>
             stranded = entMan.SpawnEntity(ConsoleProto, new EntityCoordinates(elsewhere.MapUid, ConsolePos)));
 
@@ -146,7 +128,7 @@ public sealed class SurveyConsoleTest
             var system = proto.Index<StarSystemPrototype>(System);
             var entry = system.Planets.First(planet => planet.Planet == AsclepiuType);
 
-            // The same expression SharedStarSystemMapSystem and WFPlanetRegistrySystem both use, bit for bit.
+            // The same expression the star system map uses.
             var pos = new Vector2(MathF.Cos(entry.Angle), MathF.Sin(entry.Angle)) * entry.Distance;
             var row = Row(state, AsclepiuType, proto);
 
@@ -182,11 +164,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Sanctioned is mirrored onto the body by WFPlanetRegistrySystem.ApplySurface, the single writer, so a console
-    /// reads it off one component that outlives the z-network instead of indexing a prototype. The test-only bare
-    /// surface ships sanctioned: false precisely so this cannot pass on the component default.
-    /// </summary>
+    /// <summary>The row's sanctioned flag is read off the body, which mirrors the surface prototype.</summary>
     [Test]
     public async Task SanctionedMirrorsTheSurfacePrototype()
     {
@@ -219,7 +197,7 @@ public sealed class SurveyConsoleTest
                 Assert.That(Row(state, BareType, proto).Sanctioned, Is.False, "The unsanctioned row does not read unsanctioned.");
             }
 
-            // The row follows the COMPONENT, not the prototype: F9 has to be able to flip a world mid-round.
+            // The row follows the component, so a world can be flipped mid-round.
             entMan.GetComponent<WFSectorPlanetComponent>(asclepiu).Sanctioned = false;
 
             Assert.That(consoles.BuildState(console).Planets.First(row => row.HasSurface && row.Name == proto.Index<PlanetTypePrototype>(AsclepiuType).Name).Sanctioned,
@@ -230,7 +208,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Cracked is F5's flag on the same body, and the console is the one thing that enumerates it.</summary>
+    /// <summary>The row's cracked flag is read off the sector body.</summary>
     [Test]
     public async Task CrackedIsReadFromTheSectorBody()
     {
@@ -259,13 +237,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// THE WHOLE "GO HERE" CONTRACT. F2 spawns and renames nothing to give the pilot a destination: every sector body
-    /// already ships `- type: FTLBeacon` (star_system.yml:20) and StarSystemMapSystem renames each spawn to the
-    /// planet's name (:60-65), which is exactly the string ShuttleConsoleSystem.GetBeacons puts in the destination tree
-    /// (ShuttleConsoleSystem.FTL.cs:99-108). If either of those ever stops being true, this is the alarm.
-    /// It also pins the name itself, because WFPlanetRegistrySystem.TryGetPlanetByName still resolves bodies by it.
-    /// </summary>
+    /// <summary>Each row names the body's own FTL beacon, as it appears in the pilot's destination list.</summary>
     [Test]
     public async Task RowReportsTheBodysOwnFtlBeacon()
     {
@@ -294,7 +266,7 @@ public sealed class SurveyConsoleTest
                 Assert.That(row.Planet, Is.EqualTo(entMan.GetNetEntity(body)), "The row does not point at the body.");
             }
 
-            // What the pilot's own destination list is built from: every beacon-carrying body, by its MetaData name.
+            // Every beacon-carrying body by name, as the destination list builds it.
             var beacons = new List<string>();
             var query = entMan.AllEntityQueryEnumerator<FTLBeaconComponent, MetaDataComponent>();
 
@@ -311,11 +283,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// Design section 4's "without revealing exact contents": the RATING travels and nothing behind it does. Sanctioned
-    /// and cracked are explicitly NOT secrets - WFSectorPlanetComponent is networked and every sector body carries a
-    /// PVS global override (StarSystemMapSystem.cs:65) - so the derivation is the only thing that stays server-side.
-    /// </summary>
+    /// <summary>The vein rating reaches the client but the ore contents behind it do not.</summary>
     [Test]
     public async Task RatingTravelsAndContentsDoNot()
     {
@@ -345,7 +313,7 @@ public sealed class SurveyConsoleTest
                 Assert.That(bare.Veins, Is.EqualTo(WFVeinRating.Poor), "An unrated world does not fall back to the default.");
             }
 
-            // Structural: nothing on the wire is even SHAPED like an ore, a weight or a yield.
+            // No row member is shaped like an ore, a weight or a yield.
             var members = typeof(WFSurveyPlanetRow).GetMembers(BindingFlags.Public | BindingFlags.Instance)
                 .Concat(typeof(WFSurveyConsoleState).GetMembers(BindingFlags.Public | BindingFlags.Instance))
                 .Select(member => member.Name)
@@ -360,7 +328,7 @@ public sealed class SurveyConsoleTest
                 }
             }
 
-            // And nothing in the values either: a row prints every member it has.
+            // Nor any printed value.
             var printed = string.Join("\n", state.Planets.Select(row => row.ToString()));
 
             using (Assert.EnterMultipleScope())
@@ -376,11 +344,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The default server: wf.planet_networks is SERVERONLY and defaults false, so registration returns before it ever
-    /// adds a component. The star-system enumeration is what keeps the window from being empty, and every row has to
-    /// say "no crackable ground" rather than throw.
-    /// </summary>
+    /// <summary>With the feature off, every body still gets a row reporting no crackable ground.</summary>
     [Test]
     public async Task EmptyRegistryProducesUnsurfacedRows()
     {
@@ -411,15 +375,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The window itself, driven headlessly: construction, three pushes of a state that grows, shrinks and empties,
-    /// and a Measure/Arrange pass after each. A real DrawingHandleScreen cannot be obtained in a pooled pair, so this
-    /// asserts on layout and on the row list instead.
-    /// What it pins: the rows are REUSED rather than rebuilt - the server pushes once a second, so a window that drops
-    /// every control per push reallocates the list sixty times a minute and throws the scroll position away - and the
-    /// window never widens past its own SetSize no matter how long a body name is, which is what a clipped, fixed-width
-    /// name column buys.
-    /// </summary>
+    /// <summary>The window survives growing, shrinking and empty states, reusing rows and keeping width.</summary>
     [Test]
     public async Task WindowTakesEveryStateShapeWithoutThrowing()
     {
@@ -462,11 +418,7 @@ public sealed class SurveyConsoleTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A body name far longer than its column may not widen the row: the name cell clips, so the row's desired width
-    /// is the fixed columns plus the name column's floor whatever the string is. Without the clip a long entity name
-    /// pushes the table off the side of the window, which is the whole reason the column has a fixed width.
-    /// </summary>
+    /// <summary>A very long body name clips in its column rather than widening the row.</summary>
     [Test]
     public async Task LongBodyNameDoesNotWidenTheRow()
     {
@@ -477,7 +429,7 @@ public sealed class SurveyConsoleTest
             var skin = WolfgateSkins.Futurist;
             var unbounded = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
 
-            // The window is only here for the width its own XAML asks for, so the ceiling cannot drift from it.
+            // The width ceiling comes from the window's own XAML.
             var window = new ClientSurveyWindow();
             var shortRow = new ClientSurveyRow();
             var longRow = new ClientSurveyRow();
@@ -514,7 +466,7 @@ public sealed class SurveyConsoleTest
         }, "Laying the survey window out should not throw.");
     }
 
-    /// <summary>A state with the shapes the window has to survive: no surface, no distance, no beacon, no rating.</summary>
+    /// <summary>A state with rows lacking a surface, distance, beacon or rating.</summary>
     private static WFSurveyConsoleState SyntheticState(int count, string? firstName = null)
     {
         var state = new WFSurveyConsoleState { SystemName = System, ConsolePositionKnown = true };
@@ -539,16 +491,7 @@ public sealed class SurveyConsoleTest
         return state;
     }
 
-    /// <summary>
-    /// Stands a star system up on a throwaway map the way a round does - StarSystemMapSystem.SetSystem is the same call
-    /// the post-map-load hook makes - and puts a survey console on it at a known offset. With the feature on, this is
-    /// also what registers Asclepiu and builds its z-stack.
-    /// The bare surface is stamped by hand through the same production writer the registry uses, because the registry
-    /// builds its planet-type map once in Initialize (WFPlanetRegistrySystem.cs:29-38) and the test harness loads
-    /// [TestPrototypes] AFTER the server has started (Robust.UnitTesting/Pool/TestPair.cs:90-91), so a test-only
-    /// surface can never be in that map. Nothing about the shipped path is being skipped: ApplySurface is exactly what
-    /// RegisterPlanet calls.
-    /// </summary>
+    /// <summary>Stands up the star system and a survey console, then stamps the bare surface by hand.</summary>
     private static async Task<EntityUid> BuildSector(TestPair pair, bool feature)
     {
         var server = pair.Server;
@@ -596,15 +539,7 @@ public sealed class SurveyConsoleTest
         return EntityUid.Invalid;
     }
 
-    /// <summary>
-    /// Tears down every planet network the sector build left standing AND the sector map itself.
-    /// The sector map has to go explicitly rather than ride the pool's own cleanup: TestPair.Cleanup deletes only the
-    /// single most recent TestMap (Robust.UnitTesting/Pool/TestPair.Recycle.cs:48-55), so a test that calls
-    /// CreateTestMap a second time would leave the star system - and the WFSectorPlanetComponent bodies on it - alive
-    /// in a recycled pair, where BuildState's server-wide AllEntityQuery would join them into the next test's rows.
-    /// Deleting a map the pool later deletes again is a no-op: DeleteEntity(EntityUid?) returns when the uid has no
-    /// MetaDataComponent (RobustToolbox/Robust.Shared/GameObjects/EntityManager.cs:537-538).
-    /// </summary>
+    /// <summary>Tears down every planet network and the sector map, which pool cleanup can miss.</summary>
     private static async Task TeardownSector(TestPair pair)
     {
         var server = pair.Server;

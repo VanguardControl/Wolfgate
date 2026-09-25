@@ -7,10 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.Audio;
 
-/// <summary>
-/// Bounds network sound allocation before engine audio startup. Large impacts may deliver hundreds
-/// of different clips in one state, so a per-file concurrency limit is insufficient.
-/// </summary>
+/// <summary>Caps how many network sounds start at once; a large impact can send hundreds of clips in one state.</summary>
 public sealed partial class WFAudioBudgetSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -32,16 +29,14 @@ public sealed partial class WFAudioBudgetSystem : EntitySystem
         while (_retiring.TryPeek(out var until) && until <= _timing.RealTime)
             _retiring.Dequeue();
 
-        // Local streams are already allocated before ComponentInit. Count them against the network
-        // budget; leave headroom for UI/music and other engine audio that does not use AudioComponent.
+        // Local streams are already allocated, so they are always admitted but still count.
         if (IsClientSide(uid) || Reserved < MaxStreams)
         {
             _admitted.Add(uid);
             return;
         }
 
-        // WOLFGATE: use the engine's existing silent source and Loaded startup guard. This is local
-        // admission only: never alter the server's audio state or despawn a network-owned entity.
+        // Loaded makes the engine skip startup and keep its silent source; never touch the networked entity.
 #pragma warning disable RA0002 // Deliberate content-side allocation guard; no engine changes.
         component.Loaded = true;
 #pragma warning restore RA0002
@@ -51,8 +46,7 @@ public sealed partial class WFAudioBudgetSystem : EntitySystem
     private void OnRemove(EntityUid uid, AudioComponent component, ComponentRemove args)
     {
         if (_admitted.Remove(uid))
-            // OpenAL disposal is deferred. A state batch can delete and create many sounds before
-            // the next audio frame, so do not immediately reuse all of those reservations.
+            // OpenAL disposal is deferred to the next audio frame, so hold the freed slot briefly.
             _retiring.Enqueue(_timing.RealTime + TimeSpan.FromSeconds(0.25));
     }
 

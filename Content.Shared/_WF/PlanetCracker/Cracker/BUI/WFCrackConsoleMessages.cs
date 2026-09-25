@@ -6,10 +6,10 @@ namespace Content.Shared._WF.PlanetCracker.Cracker.BUI;
 [Serializable, NetSerializable]
 public sealed class WFCrackTargetMessage : BoundUserInterfaceMessage;
 
-/// <summary>Drop the targeted pair; refused outside AnchorsLocked (design D23).</summary>
+/// <summary>Drop the targeted pair; refused outside AnchorsLocked.</summary>
 [Serializable, NetSerializable]
 public sealed class WFCrackUntargetMessage : BoundUserInterfaceMessage;
 
-/// <summary>Begin the crack. There is deliberately no abort counterpart (design D23).</summary>
+/// <summary>Begin the crack. There is deliberately no abort counterpart.</summary>
 [Serializable, NetSerializable]
 public sealed class WFCrackBeginMessage : BoundUserInterfaceMessage;

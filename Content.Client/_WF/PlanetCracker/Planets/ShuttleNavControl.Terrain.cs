@@ -15,6 +15,7 @@ public partial class ShuttleNavControl
     [Dependency] private ITileDefinitionManager _wfRadarTiles = default!;
     [Dependency] private IGameTiming _wfRadarTime = default!;
 
+    /// <summary>Whether the radar draws planet terrain.</summary>
     public bool ShowPlanetTerrain { get; set; } = true;
     // Keep the server's grid-relative origin even while the user pans onto map coordinates.
     private EntityCoordinates? _wfRadarOrigin;
@@ -67,6 +68,7 @@ public partial class ShuttleNavControl
         Color.FromHex("#9A5963"), // flesh walls
     };
 
+    /// <summary>The orbit layer carrying a map's radar terrain recipe, resolved through transit maps and the world's network.</summary>
     private WFOrbitLayerComponent? GetWfTerrainRecipe(EntityUid? map)
     {
         if (EntManager.TryGetComponent<WFOrbitLayerComponent>(map, out var orbit))
@@ -89,6 +91,7 @@ public partial class ShuttleNavControl
         return null;
     }
 
+    /// <summary>Draws sampled planet terrain under the radar, resampled every half second.</summary>
     private void DrawWfTerrain(DrawingHandleScreen handle, Matrix3x2 worldToView, EntityUid? map)
     {
         if (!ShowPlanetTerrain)
@@ -122,8 +125,7 @@ public partial class ShuttleNavControl
             if (!float.IsFinite(extent) || extent <= 0)
                 return;
 
-            // At most about 50x50 samples regardless of zoom. Align to world coordinates to avoid
-            // terrain swimming as the hull moves. The extra cell covers movement between refreshes.
+            // About 50x50 world-aligned samples at any zoom; the extra cell covers movement between refreshes.
             var step = MathF.Max(1, MathF.Pow(2, MathF.Ceiling(MathF.Log2(extent / 48))));
             min = new Vector2(MathF.Floor(min.X / step) - 1, MathF.Floor(min.Y / step) - 1) * step;
             max += new Vector2(step);
@@ -154,8 +156,7 @@ public partial class ShuttleNavControl
             ReportWfTerrain($"Terrain ready: map={map}, layers={orbit.RadarLayers.Count}.");
         }
 
-        // Use the same filled-rectangle path as the radar backing. Clyde batches these quads;
-        // applying the view transform once also keeps panning and rotation smooth between samples.
+        // Batched filled rects under one view transform, so panning stays smooth between samples.
         var previousTransform = handle.GetTransform();
         var terrainTransform = worldToView * previousTransform;
         handle.SetTransform(terrainTransform);

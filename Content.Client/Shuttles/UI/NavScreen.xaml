@@ -141,7 +141,7 @@
                             TextAlign="Center"
                             StyleClasses="ButtonSquare"
                             ToggleMode="True"/>
-                    <!-- WOLFGATE: enter/leave planet orbit, which needs no FTL drive. -->
+                    <!-- WOLFGATE(PlanetCracker): enter/leave planet orbit, which needs no FTL drive (xmlns:wf above). -->
                     <wf:WFOrbitButton Name="WfOrbitButton"/>
                         </controls:BoxContainer>
                     </controls:PanelContainer>

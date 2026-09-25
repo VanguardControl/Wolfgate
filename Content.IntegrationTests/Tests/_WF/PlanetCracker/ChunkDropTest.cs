@@ -20,20 +20,12 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// What happens to a cut disc once nothing is holding it: the watchdog's three abandonment cases, the pause its grace
-/// has to survive, the push itself and the offset that keeps it out of the hull's way on the way down.
-/// Everything about a push is read in the same server callback that makes it, for the reason CrackFallTest gives: the
-/// very next frame is currently a defect rather than a contract.
-/// </summary>
+/// <summary>A cut disc once nothing holds it: the watchdog's cases, its paused grace and the push.</summary>
 [TestFixture]
 [TestOf(typeof(WFPlanetChunkSystem))]
 public sealed class ChunkDropTest
 {
-    /// <summary>
-    /// Design D24's first case. A hull that stops existing is not holding anything, and the disc it was holding has to
-    /// go down rather than hang in a berth that is no longer there.
-    /// </summary>
+    /// <summary>A deleted hull's disc is dropped rather than left hanging in a berth that no longer exists.</summary>
     [Test]
     public async Task WatchdogDropsTheChunkWhenTheCrackerIsDeleted()
     {
@@ -49,7 +41,7 @@ public sealed class ChunkDropTest
 
         await server.WaitPost(() => entMan.DeleteEntity(site.Cracker));
 
-        // Two sweeps of the 1 Hz watchdog, which is what the design allows it.
+        // Two sweeps of the 1 Hz watchdog.
         await server.WaitRunTicks(pair.SecondsToTicks(3f));
 
         await server.WaitAssertion(() =>
@@ -69,7 +61,7 @@ public sealed class ChunkDropTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>The hull is still alive but has left the layer, which is the same abandonment by another route.</summary>
+    /// <summary>A hull that leaves the orbit layer abandons its disc.</summary>
     [Test]
     public async Task WatchdogDropsTheChunkWhenTheCrackerLeavesOrbit()
     {
@@ -100,11 +92,7 @@ public sealed class ChunkDropTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The case design D24 exists for and the reason the test is an IDENTITY test: every planet has an orbit layer and
-    /// the orbit layer is an FTL destination, so a hull that jumps to ANOTHER planet's orbit passes any kind test while
-    /// abandoning its chunk just as completely.
-    /// </summary>
+    /// <summary>A hull that jumps to another planet's orbit abandons its disc; the check is by identity.</summary>
     [Test]
     public async Task WatchdogDropsTheChunkWhenTheCrackerMovesToAnotherPlanetsOrbit()
     {
@@ -134,11 +122,7 @@ public sealed class ChunkDropTest
         await Teardown(pair, second.Layers);
     }
 
-    /// <summary>
-    /// The AutoPausedField proof. ExtractedAt is paused with its map, so a berth that sat paused for longer than the
-    /// whole grace window must still be inside it the moment the map comes back; a plain TimeSpan would burn the lot
-    /// and drop the disc out from under a perfectly healthy hull on the first sweep after the unpause.
-    /// </summary>
+    /// <summary>The watchdog grace pauses with its map, so a long pause does not use it up.</summary>
     [Test]
     public async Task TheWatchdogGraceSurvivesAPause()
     {
@@ -164,7 +148,7 @@ public sealed class ChunkDropTest
             Assert.That(grace, Is.GreaterThan(TimeSpan.Zero), "Precondition: the watchdog has a grace window to shift.");
         });
 
-        // Paused for comfortably longer than the whole grace, with the sweep still running the entire time.
+        // Paused for longer than the whole grace.
         await server.WaitPost(() => maps.SetPaused(new Entity<MapComponent?>(site.Orbit, null), true));
         await server.WaitRunTicks(pair.SecondsToTicks((float)grace.TotalSeconds + 4f));
         await server.WaitPost(() => maps.SetPaused(new Entity<MapComponent?>(site.Orbit, null), false));
@@ -181,7 +165,7 @@ public sealed class ChunkDropTest
             }
         });
 
-        // And the grace is genuinely still running: an abandonment right now is not acted on until it expires.
+        // The grace still runs: an abandonment now waits for it to expire.
         await server.WaitPost(() => entMan.DeleteEntity(site.Cracker));
         await server.WaitRunTicks(pair.SecondsToTicks(1.5f));
 
@@ -198,11 +182,7 @@ public sealed class ChunkDropTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The push itself, read in the instant it happens, then its aftermath. Without the fall seed the hover branch
-    /// sees progress above the touchdown threshold and a velocity inside the exit band and puts the chunk straight
-    /// back on the layer it came from, which presents as "the drop did nothing" a frame later.
-    /// </summary>
+    /// <summary>DropChunk pushes the disc into transit with a fall seed so it keeps descending.</summary>
     [Test]
     public async Task DropChunkPushesIntoTransitAndKeepsDescending()
     {
@@ -234,8 +214,7 @@ public sealed class ChunkDropTest
             velocity = faller?.Velocity ?? 0f;
             progress = entMan.TryGetComponent(chunk, out CEZPhysicsComponent? zPhys) ? zPhys.LocalPosition : -1f;
             bodyType = entMan.TryGetComponent(chunk, out PhysicsComponent? body) ? body.BodyType : BodyType.Static;
-            // PreventGridAnchorChanges deliberately stays on: it is what keeps CE's un-forced Enable from unfixing
-            // the chunk's rotation mid-push. The pin that matters is the force-anchor and the static body.
+            // PreventGridAnchorChanges stays on to hold the rotation; the force-anchor and static body are the pin.
             stillPinned = entMan.HasComponent<ForceAnchorComponent>(chunk);
         });
 
@@ -268,12 +247,7 @@ public sealed class ChunkDropTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Two grids at identical progress give prevDelta * curDelta == 0, which is not greater than zero, so the transit
-    /// collision check AABB-tests them every tick and explodes them both on contact. The chunk therefore joins the
-    /// hull's fall one notch below it, and both values are captured in the SAME callback that makes the push because
-    /// the faller advances on every tick afterwards.
-    /// </summary>
+    /// <summary>The disc joins the hull's fall just below it, as equal progress trips the collision check.</summary>
     [Test]
     public async Task TheChunkJoinsTheHullsFallAtADistinctProgress()
     {
@@ -348,10 +322,7 @@ public sealed class ChunkDropTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Finds the extracted chunk and takes the watchdog's grace off it, so a three second wait really is two sweeps
-    /// rather than two sweeps plus the design's five second window.
-    /// </summary>
+    /// <summary>Finds the extracted chunk and removes its watchdog grace, so three seconds is two sweeps.</summary>
     private static async Task<EntityUid> ArmWatchdog(TestPair pair)
     {
         var server = pair.Server;

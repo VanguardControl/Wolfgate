@@ -28,23 +28,11 @@ using Robust.Shared.Utility;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// Everything the planet cracker prototypes promise that only a loaded server can check: that each one indexes and
-/// spawns, that every sprite layer names a state its RSI actually has - borrowed sheets included - and the handful
-/// of numbers the C# mirrors.
-/// </summary>
+/// <summary>Planet cracker prototypes: each spawns, every sprite state exists, mirrored numbers match.</summary>
 [TestFixture]
 public sealed class PlanetCrackerPrototypeTest
 {
-    /// <summary>
-    /// Every prototype this feature adds, in the order the plan lists them.
-    /// WFDeepVein and WFEffectSurveyPulse are deliberately NOT here. SpawnAll lays a FloorSteel grid on a
-    /// map-initialised test map, so WFDeepVein's MapInit handler deletes itself twice over - the tile is not in its
-    /// AllowedTiles and the grid resolves no WFPlanetLayer -> WFPlanetNetwork -> surface -> veins chain - and
-    /// EveryPrototypeSpawns' EntityExists assert would fail. WFEffectSurveyPulse despawns after 0.48 s, which is
-    /// shorter than EverySpriteStateExists' 15 ticks at net.tickrate 30 (0.50 s), and draws no sprite at all. Both are
-    /// covered instead by DeepVeinTest and SurveyorTest, which spawn them where they survive long enough to read.
-    /// </summary>
+    /// <summary>Every spawnable prototype added; the deep vein and survey pulse are tested elsewhere.</summary>
     private static readonly string[] Prototypes =
     {
         "WFGravityAnchor",
@@ -62,13 +50,12 @@ public sealed class PlanetCrackerPrototypeTest
         "WFGravityProjectorCircuitboard",
         "WFEffectChunkBurst",
         "WFSurveyor",
-        // Both miners are safely spawnable on the FloorSteel test grid, unlike WFDeepVein: nothing on a crack miner
-        // deletes itself at MapInit, and an unanchored miner off a chunk simply never leaves Idle.
+        // Unlike the deep vein, miners survive the test grid; off a chunk they just stay Idle.
         "WFCrackMiner",
         "WFCrackMinerEmpty",
     };
 
-    /// <summary>The rim ring's two decals, which F5 stamps by hand rather than through a tile prototype.</summary>
+    /// <summary>The rim ring's two decals.</summary>
     private static readonly string[] RimDecals =
     {
         "WFCrackRimStraight",
@@ -78,7 +65,7 @@ public sealed class PlanetCrackerPrototypeTest
     /// <summary>The rim ring's own RSI, as both decal prototypes name it.</summary>
     private const string RimRsi = "/Textures/_WF/PlanetCracker/Decals/crack_rim.rsi";
 
-    /// <summary>The prototypes that carry a Repairable block design D9's welder loop has to work on.</summary>
+    /// <summary>The prototypes whose Repairable block must accept a welder.</summary>
     private static readonly string[] Repairables =
     {
         "WFGravityAnchor",
@@ -93,19 +80,16 @@ public sealed class PlanetCrackerPrototypeTest
     /// <summary>The sprite layer key every computer screen visualiser drives.</summary>
     private const string ScreenLayer = "computerLayerScreen";
 
-    /// <summary>
-    /// The screen RSI both consoles now name, which is the shared computer sheet: the screen layers dropped their own
-    /// `sprite:` and inherit BaseComputer's, so every face has to be a state stock computers.rsi already ships.
-    /// </summary>
+    /// <summary>The shared computer sheet both consoles' screen layers inherit from BaseComputer.</summary>
     private const string ScreenRsi = "/Textures/Structures/Machines/computers.rsi";
 
-    /// <summary>The sector survey console, which F2 gives a UserInterface block and a second screen visualiser.</summary>
+    /// <summary>The sector survey console.</summary>
     private const string SurveyConsole = "WFSectorSurveyConsole";
 
-    /// <summary>The handheld surveyor's RSI: the stock anomaly locator, borrowed for its icon and both in-hands.</summary>
+    /// <summary>The handheld surveyor's borrowed RSI, the stock anomaly locator.</summary>
     private const string SurveyorRsi = "/Textures/Objects/Specific/Research/anomalylocator.rsi";
 
-    /// <summary>The one state the surveyor prototype names; the locator's `screen` ships unused (plan D-N).</summary>
+    /// <summary>The one state the surveyor prototype names.</summary>
     private const string SurveyorState = "icon";
 
     /// <summary>UserInterfaceComponent.Interfaces, which the engine keeps internal.</summary>
@@ -116,7 +100,7 @@ public sealed class PlanetCrackerPrototypeTest
     private const string CrateReplacement = "WFAnchorCrateReplacement";
     private const string HullTile = "FloorSteel";
 
-    /// <summary>Design section 5 / D17: the cargo-purchasable replacement crate.</summary>
+    /// <summary>The price of the cargo-purchasable replacement crate.</summary>
     private const float ReplacementPrice = 400000f;
 
     [Test]
@@ -144,11 +128,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The regression guard on "the prototypes reference their RSIs verbatim". A state name that is not in the
-    /// meta.json only shows up as a missing sprite at runtime, and half of these sheets are now other people's art
-    /// that this feature does not own and cannot stop from being renamed.
-    /// </summary>
+    /// <summary>Every sprite layer names a state its RSI actually has, borrowed sheets included.</summary>
     [Test]
     public async Task EverySpriteStateExists()
     {
@@ -194,10 +174,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The client's gravity visualiser does an unconditional layer lookup for Core whenever the charge changes, so a
-    /// centrifuge missing that layer throws on every client the moment it starts spinning up.
-    /// </summary>
+    /// <summary>The centrifuge maps both gravgen layers, which the client visualiser always looks up.</summary>
     [Test]
     public async Task CentrifugeMapsBothGravgenLayers()
     {
@@ -227,16 +204,11 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// A child `visuals` mapping REPLACES its parent's wholesale instead of merging into it, so the crack console has to
-    /// re-declare BaseComputer's two visualiser keys beside its own screen key. Trim either and the powered screen and
-    /// the maintenance panel silently stop reacting, with no error anywhere. Three keys is the whole assertion.
-    /// </summary>
+    /// <summary>The crack console re-declares BaseComputer's visualiser keys; child `visuals` replace them.</summary>
     [Test]
     public async Task CrackConsoleKeepsInheritedVisualizerKeys()
     {
-        // Read from the CLIENT's prototypes: the server registers GenericVisualizer as ignored
-        // (ServerComponentFactory.cs:15), so the composed server-side prototype never carries the component.
+        // Read on the client; the server ignores GenericVisualizer.
         await using var pair = await PoolManager.GetServerClient();
         var client = pair.Client;
         var protoMan = client.ResolveDependency<IPrototypeManager>();
@@ -263,8 +235,7 @@ public sealed class PlanetCrackerPrototypeTest
                     $"Expected exactly the three visualiser keys; got {string.Join(", ", keys)}.");
             }
 
-            // The Powered block must still drive the screen layer specifically: an entry that no longer names
-            // computerLayerScreen would pass a key count while leaving the screen lit on a dead console.
+            // Powered must still drive the screen layer specifically.
             Assert.That(visualizer.Visuals.First(entry => entry.Key.ToString() == nameof(ComputerVisuals.Powered)).Value.Keys,
                 Does.Contain(ScreenLayer),
                 "The inherited Powered block no longer drives the screen layer.");
@@ -273,10 +244,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// An ActivatableUI is only as good as the window behind it: the interface block names its BoundUserInterface as a
-    /// bare string, so a renamed or moved class is a runtime miss on the client with nothing to catch it at load.
-    /// </summary>
+    /// <summary>Every ActivatableUI's BoundUserInterface type name resolves on the client.</summary>
     [Test]
     public async Task EveryActivatableUiResolvesItsInterface()
     {
@@ -304,8 +272,7 @@ public sealed class PlanetCrackerPrototypeTest
                     Assert.That(proto.TryGetComponent<UserInterfaceComponent>(out var ui, compFactory), Is.True,
                         $"{id} has an ActivatableUI but no UserInterface block to open.");
 
-                    // The interface map is internal to the engine component, so the composed prototype is read through
-                    // the same field the engine itself resolves the client type from.
+                    // The interface map is engine-internal, so read it by reflection.
                     var interfaces = (Dictionary<Enum, InterfaceData>) InterfacesField.GetValue(ui)!;
 
                     Assert.That(interfaces.ContainsKey(activatable.Key!), Is.True,
@@ -331,10 +298,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The screen visualiser names its states as bare strings and EverySpriteStateExists only walks Sprite layers, so
-    /// nothing else would notice a state the console's RSI does not have.
-    /// </summary>
+    /// <summary>Every state the crack console's screen visualiser names exists in its RSI.</summary>
     [Test]
     public async Task CrackConsoleScreenStatesExist()
     {
@@ -378,11 +342,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The survey console's half of the same trap, one document further down the same file: its own screen key beside
-    /// the two it has to re-declare, and two faces that have to name states computers.rsi actually ships.
-    /// Its new UserInterface block is covered by EveryActivatableUiResolvesItsInterface, which walks the same array.
-    /// </summary>
+    /// <summary>The survey console keeps the inherited visualiser keys and its screen states exist.</summary>
     [Test]
     public async Task SurveyConsoleScreenStatesExist()
     {
@@ -440,10 +400,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The surveyor names one state and leans on its BaseRSI for the in-hands, so a borrowed RSI that has no `icon`,
-    /// or has no in-hands to fall back on, is a missing sprite in every hand and nothing in the item block would say so.
-    /// </summary>
+    /// <summary>The surveyor's borrowed RSI has its icon state and in-hand states.</summary>
     [Test]
     public async Task SurveyorSpriteResolves()
     {
@@ -477,11 +434,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The rim ring is decals on ordinary pinned ground rather than a tile prototype, so a renamed or mistyped state
-    /// here is a silently missing ring on every cut circle and nothing else would notice: a decal prototype names its
-    /// state as a bare SpriteSpecifier and the overlay only ever draws frame zero.
-    /// </summary>
+    /// <summary>Both rim decals resolve and name real states of the rim RSI.</summary>
     [Test]
     public async Task CrackRimDecalsResolve()
     {
@@ -514,10 +467,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// BaseStructure narrows the Repairable default to Applicating only, so every one of these has to spell the welder
-    /// out again or design D9's repair loop silently does nothing.
-    /// </summary>
+    /// <summary>Every repairable prototype re-declares the welder, which BaseStructure's default drops.</summary>
     [Test]
     public async Task EveryRepairableAcceptsAWelder()
     {
@@ -544,7 +494,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A spawned machine is stocked with tier-one parts at map init, which is the multiplier's 1.0 baseline.</summary>
+    /// <summary>A spawned projector starts with tier-one parts, the multiplier's 1.0 baseline.</summary>
     [Test]
     public async Task ProjectorStartsAtTierOne()
     {
@@ -570,10 +520,7 @@ public sealed class PlanetCrackerPrototypeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>
-    /// The crates that ship with a hull must not inflate the appraisal the shipyard test measures; only the cargo
-    /// replacement carries design section 5's price.
-    /// </summary>
+    /// <summary>Crates that ship with a hull are free; only the cargo replacement carries a price.</summary>
     [Test]
     public async Task ShippedCratesAreFree()
     {
@@ -614,7 +561,7 @@ public sealed class PlanetCrackerPrototypeTest
             var floor = new Tile(tileDefs[HullTile].TileId);
             var tiles = new List<(Vector2i GridIndices, Tile Tile)>();
 
-            // Three tiles apart, so nothing lands inside a neighbour's footprint or snap cell.
+            // Three tiles apart, clear of each neighbour's footprint.
             for (var x = 0; x < Prototypes.Length * 3; x++)
             for (var y = 0; y < 3; y++)
             {

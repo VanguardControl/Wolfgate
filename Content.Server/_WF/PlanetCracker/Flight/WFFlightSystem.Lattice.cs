@@ -19,8 +19,7 @@ public sealed partial class WFFlightSystem
             return;
         var sourceMatrix = _transform.GetWorldMatrix(original);
         var lattice = new Tile(_scarTiles["Lattice"].TileId);
-        // The surviving original grid is the largest section. Consistent priority leaves a seam on one side,
-        // rather than alternating ownership tile-by-tile and making interlocking teeth.
+        // Fixed priority, original first, keeps the seam on one side instead of interlocking teeth.
         var pieces = new[] { original }.Concat(fragments).Where(HasComp<MapGridComponent>).ToArray();
         var occupied = new Dictionary<EntityUid, HashSet<Vector2i>>();
         var additions = new Dictionary<EntityUid, List<(Vector2i, Tile)>>();

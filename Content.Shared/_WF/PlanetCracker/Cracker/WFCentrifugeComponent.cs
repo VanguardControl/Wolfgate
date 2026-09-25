@@ -3,13 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
 /// <summary>
-/// Marks the ship's gravitic centrifuge so F4 finds it without a gravity generator query, and carries the spin and
-/// load readout the dial draws.
-/// These four values travel on two channels on purpose. The machine's own window is opened by a player standing at the
-/// machine, which guarantees the entity is in PVS, so that window reads these networked fields; the crack console may
-/// sit far away on a capital hull, so it takes the same four values out of WFCrackConsoleState instead. The same system
-/// writes both in the same place, and using the same source in both windows keeps one dial rather than two.
-/// The fields are fractions of PowerChargeComponent.MaxCharge, never absolute charge.
+/// Marks the ship's gravitic centrifuge and carries the spin and load readout its own window draws.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFCentrifugeComponent : Component
@@ -18,11 +12,11 @@ public sealed partial class WFCentrifugeComponent : Component
     [DataField, AutoNetworkedField]
     public float Spin;
 
-    /// <summary>True once the rotor counts as at full, with the design D25 hysteresis applied.</summary>
+    /// <summary>True once the rotor counts as at full, with hysteresis applied.</summary>
     [DataField, AutoNetworkedField]
     public bool AtFull;
 
-    /// <summary>Mass the hull's pooled gravgens are currently carrying, including the D11 virtual mass.</summary>
+    /// <summary>Mass the hull's pooled gravgens are currently carrying, including anchor virtual mass.</summary>
     [DataField, AutoNetworkedField]
     public float Load;
 
@@ -30,11 +24,11 @@ public sealed partial class WFCentrifugeComponent : Component
     [DataField, AutoNetworkedField]
     public float Capacity;
 
-    /// <summary>Spin fraction at which the rotor starts counting as at full (design D25).</summary>
+    /// <summary>Spin fraction at which the rotor starts counting as at full.</summary>
     [DataField]
     public float FullOn = 0.98f;
 
-    /// <summary>Spin fraction it must fall below to stop counting as at full (design D25).</summary>
+    /// <summary>Spin fraction it must fall below to stop counting as at full.</summary>
     [DataField]
     public float FullOff = 0.95f;
 

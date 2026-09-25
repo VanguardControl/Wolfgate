@@ -8,10 +8,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.PlanetCracker.Survey;
 
 /// <summary>
-/// The one derivation of survey vocabulary, shared so the server's console state, the client's window and the vein
-/// examine all rate a world the same way. Owns exactly two directed subscriptions, both on brand-new components:
-/// the surveyor's use-in-hand, which only starts the DoAfter, and the deep vein's examine, which only reads.
-/// Every write that reveals a vein is server-authored and lives in the server half.
+/// Survey ratings shared by the console, its window and the vein examine; revealing veins is server-side.
 /// </summary>
 public sealed partial class SharedWFSurveySystem : EntitySystem
 {
@@ -39,12 +36,7 @@ public sealed partial class SharedWFSurveySystem : EntitySystem
         if (args.Handled)
             return;
 
-        // The surveyor deliberately carries no ItemToggleComponent: ItemToggleSystem.OnUseInHand sets args.Handled
-        // unconditionally when ItemToggleComponent.OnUse is true (Content.Shared/Item/ItemToggle/ItemToggleSystem.cs:63),
-        // so one of the two handlers would silently never fire.
-        // No ActionBlocker call either: SharedInteractionSystem.UseInHandInteraction already ran CanInteract (:1218) and
-        // CanUseHeldEntity (:1221), and setting Handled is what makes it call _useDelay.TryResetDelay (:1230) - which IS
-        // the cooldown, configured by the prototype's UseDelay block.
+        // No ItemToggle on the surveyor, as it would swallow this event; setting Handled starts the UseDelay cooldown.
         var doAfter = new DoAfterArgs(EntityManager,
             args.User,
             ent.Comp.ScanDuration,
@@ -75,10 +67,7 @@ public sealed partial class SharedWFSurveySystem : EntitySystem
 
         args.PushMarkup(Loc.GetString("wf-vein-examine-ore", ("ore", GetOreName(ent.Comp.Ore))));
 
-        // A band word, never the number: the exact tonnage is F6's business and is not a survey readout.
-        // Banded against the range the vein itself was stamped with, not the table default: the server scales that
-        // range by the world's unsanctioned multiplier, so a fixed range would read every unsanctioned vein as
-        // exceptional. An unstamped vein still falls back to the default range through the component's own default.
+        // A band word, never the number, measured against the vein's own stamped range.
         args.PushMarkup(Loc.GetString("wf-vein-examine-yield",
             ("band", Loc.GetString(YieldBandKey(ent.Comp.TotalYield, ent.Comp.YieldRange)))));
     }
@@ -99,8 +88,7 @@ public sealed partial class SharedWFSurveySystem : EntitySystem
     }
 
     /// <summary>
-    /// How good a table is, in the same units the bands document is written in: the weight-averaged per-ore value
-    /// times the mean vein yield, doubled up by the unsanctioned multiplier on a world it is illegal to crack.
+    /// A table's score: weighted ore value times mean yield, scaled by the unsanctioned multiplier where applicable.
     /// </summary>
     public static float Score(WFVeinTablePrototype table, bool sanctioned)
     {

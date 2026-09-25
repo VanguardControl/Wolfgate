@@ -7,10 +7,7 @@ namespace Content.Shared._WF.PlanetCracker.Survey;
 /// <summary>
 /// The deep-vein loot table one world rolls every vein from, and the numbers the survey console's rating is derived from.
 /// </summary>
-/// <remarks>
-/// The prototype kind string is declared explicitly. Robust derives an unqualified kind by lowercasing only index 0,
-/// which would register this type as "wFVeinTable" and break every "- type: wfVeinTable" document.
-/// </remarks>
+// Kind named explicitly: Robust would derive "wFVeinTable".
 [Prototype("wfVeinTable")]
 public sealed partial class WFVeinTablePrototype : IPrototype
 {
@@ -25,7 +22,7 @@ public sealed partial class WFVeinTablePrototype : IPrototype
     [DataField(required: true)]
     public Dictionary<ProtoId<OrePrototype>, WFVeinEntry> Ores = new();
 
-    /// <summary>Min and max total yield of a single vein, per design section 5.</summary>
+    /// <summary>Min and max total yield of a single vein.</summary>
     [DataField]
     public Vector2 YieldRange = DefaultYieldRange;
 
@@ -46,10 +43,7 @@ public sealed partial class WFVeinEntry
     [DataField]
     public float Weight = 1f;
 
-    /// <summary>
-    /// The table's own per-ore worth. It lives here because OrePrototype (Content.Shared/Mining/OrePrototype.cs:10-26)
-    /// has no value or price field at all - ore entities are priced by their material composition instead.
-    /// </summary>
+    /// <summary>The table's own per-ore worth, since OrePrototype has no price field.</summary>
     [DataField]
     public float Value = 1f;
 }

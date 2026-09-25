@@ -1,7 +1,5 @@
-# Remaining Kyphrus worlds. Terrain uses existing art and biome templates.
-# Gravity, temperatures and yields are initial gameplay tuning, not conversions of sector-sprite mass.
-# All worlds initially permit cracking; legality can be balanced independently later.
-# Thrascias deliberately has a fictional solid frozen surface despite its ice-giant sector sprite.
+# Remaining Kyphrus worlds, on existing art and biome templates; gravity, temperature and yields are gameplay tuning.
+# Thrascias deliberately has a solid frozen surface despite its ice-giant sector sprite.
 
 - type: wfPlanetSurface
   id: WFSurfaceFervidus

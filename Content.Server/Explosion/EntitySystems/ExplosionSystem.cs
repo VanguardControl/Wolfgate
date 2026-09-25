@@ -370,8 +370,10 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         float tileBreakScale = 1f,
         int maxTileBreak = int.MaxValue,
         bool canCreateVacuum = true,
+        // WOLFGATE(PlanetCracker) START: silent parameter, see QueuedExplosion.Silent.
         bool addLog = true,
-        bool silent = false) // WOLFGATE: see QueuedExplosion.Silent.
+        bool silent = false)
+        // WOLFGATE END
     {
         if (totalIntensity <= 0 || slope <= 0)
             return;
@@ -398,7 +400,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
             // they are close enough to combine so just add total intensity and prevent queuing another one
             queued.TotalIntensity += totalIntensity;
-            queued.Silent &= silent; // WOLFGATE: one audible contributor is enough to make the merged blast audible.
+            queued.Silent &= silent; // WOLFGATE(PlanetCracker): one audible contributor is enough to make the merged blast audible.
             return;
         }
 
@@ -412,8 +414,10 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
             TileBreakScale = tileBreakScale,
             MaxTileBreak = maxTileBreak,
             CanCreateVacuum = canCreateVacuum,
+            // WOLFGATE(PlanetCracker) START: carries the silent flag into the queued explosion.
             Cause = cause,
-            Silent = silent // WOLFGATE
+            Silent = silent
+            // WOLFGATE END
         };
         _explosionQueue.Enqueue(boom);
         _queuedExplosions.Add(boom);
@@ -449,17 +453,20 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
         var visualEnt = CreateExplosionVisualEntity(pos, queued.Proto.ID, spaceMatrix, spaceData, gridData.Values, iterationIntensity);
 
-        // WOLFGATE: a silent blast still carves its crater, it just does not shake or sound. See QueuedExplosion.Silent.
+        // WOLFGATE(PlanetCracker) START: a silent blast still carves its crater, it just does not shake, push or sound.
+        // See QueuedExplosion.Silent. The upstream shake, shockwave and sound are only re-indented under this guard.
         if (!queued.Silent)
         {
             // camera shake
             CameraShake(iterationIntensity.Count * 4f, pos, queued.TotalIntensity);
+            // WOLFGATE END
 
-            // WOLFGATE(Explosion) START: lets the shockwave push shove entities out from the epicentre. A silent blast does not.
+            // WOLFGATE(Explosion) START: lets the shockwave push shove entities out from the epicentre.
             var shockwave = new ExplosionShockwaveEvent(pos, iterationIntensity.Count, queued.Cause);
             RaiseLocalEvent(ref shockwave);
             // WOLFGATE END
 
+            // WOLFGATE(PlanetCracker) START: upstream sound, re-indented under the silent guard above.
             // play sound.
             // for the normal audio, we want everyone in pvs range
             // + if the bomb is big enough, people outside of it too
@@ -487,7 +494,8 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
                 : queued.Proto.SoundFar;
 
             _audio.PlayGlobal(farSound, farFilter, true, farSound.Params);
-        } // WOLFGATE
+        }
+        // WOLFGATE END
 
         return new Explosion(this,
             queued.Proto,

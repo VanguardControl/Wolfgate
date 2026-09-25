@@ -11,6 +11,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._WF.PlanetCracker.Flight;
 
+/// <summary>Crash-damaged APCs flicker their output until repaired with a multitool.</summary>
 public sealed partial class WFCrashApcFaultSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
@@ -28,6 +29,7 @@ public sealed partial class WFCrashApcFaultSystem : EntitySystem
         SubscribeLocalEvent<WFCrashApcFaultComponent, ComponentShutdown>(OnShutdown);
     }
 
+    /// <summary>Faults every APC on the grid that feeds a power-limited engine.</summary>
     public void DamageOverloadedApcs(EntityUid grid)
     {
         var circuits = new HashSet<Content.Server.Power.Pow3r.PowerState.Network>();

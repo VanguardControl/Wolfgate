@@ -15,23 +15,12 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// The falling push, in the exact order it has to happen: the lock comes off and the body is actually Dynamic BEFORE the
-/// transit call, the centrifuge stops counting as lift, and the hull leaves the orbit layer onto a transit map at a
-/// start progress the chunk can be offset from.
-/// Everything about the push itself is read in the same server callback that makes it, because what happens on the very
-/// next frame is currently a defect rather than a contract - see PushResult.
-/// </summary>
+/// <summary>The cracker's fall: lock release, centrifuge lift cleared, and the push into transit.</summary>
 [TestFixture]
 [TestOf(typeof(WFCrackerSystem))]
 public sealed class CrackFallTest
 {
-    /// <summary>
-    /// TryEnterTransit's own per-grid Enable is un-forced, so a grid still carrying PreventGridAnchorChanges would stay
-    /// static for the whole fall with nothing logged. The release has to come first, and the body has to be readable as
-    /// Dynamic afterwards - the post-condition ReleaseLock reads back, because ShuttleSystem.Enable resolves
-    /// ShuttleComponent as required while Disable does not.
-    /// </summary>
+    /// <summary>The fall releases the lock and leaves the body Dynamic before entering transit.</summary>
     [Test]
     public async Task FallReleasesTheLockBeforeEnteringTransit()
     {
@@ -77,11 +66,7 @@ public sealed class CrackFallTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The centrifuge stops counting as lift the moment the push happens. A zero rating would read as INFINITE lift, and
-    /// cutting the machine's power would take the whole discharge, so the generator's own active flag is the only lever
-    /// that bites at once.
-    /// </summary>
+    /// <summary>The centrifuge stops counting as lift the moment the push happens.</summary>
     [Test]
     public async Task FallClearsTheCentrifugeLift()
     {
@@ -121,18 +106,7 @@ public sealed class CrackFallTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The push itself: at the instant Fall returns, the hull is off the orbit layer and on a transit map, with a faller
-    /// carrying the crash threshold its landing will be measured against.
-    /// DEVIATION FROM THE PLAN, AND A DEFECT THIS PINS THE EDGE OF: the plan's test is FallPushesIntoTransitAndCrashes
-    /// and asks for the landing too. The hull does not currently reach one. CEZLevelsSystem rebuilds its
-    /// _gravgenCapacity cache on a 0.5 s throttle but consults it every frame, so for up to half a second after the push
-    /// the hull still reads as having pooled lift; the hovering branch then sees progress 1.0 (>= 1 - TouchdownProgress,
-    /// which is 0.99) and velocity 0 (&lt;= ExitTransitMaxSpeed 0.1) and calls TryExitTransit, which sets the hull back
-    /// down on the layer it came from. With the orbit layer exempt from the automatic fall gate, nothing pushes it
-    /// again. The push now invalidates that cache and seeds a downward speed above the exit band, so this asserts both
-    /// the push and the aftermath: two seconds later the hull is still descending through transit.
-    /// </summary>
+    /// <summary>Fall puts the hull on a transit map with a faller, still descending two seconds later.</summary>
     [Test]
     public async Task FallPushesIntoTransit()
     {
@@ -160,9 +134,7 @@ public sealed class CrackFallTest
                 "The hull has no crash velocity threshold for its landing to be measured against.");
         }
 
-        // The aftermath: two seconds later the hull must still be falling, not settled back onto the orbit layer.
-        // The push invalidates the sweep's pooled-lift cache and seeds a downward speed above the exit band; without
-        // either the stale cache lets the hover branch pop the hull straight back up on the next frame.
+        // Without the lift-cache reset and fall seed, the hull would settle straight back onto the orbit layer.
         await server.WaitRunTicks(pair.SecondsToTicks(2f));
 
         await server.WaitAssertion(() =>
@@ -184,11 +156,7 @@ public sealed class CrackFallTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// The cracker takes start progress 1.0 exactly, which is the contract F5's chunk offsets from: two grids at the
-    /// same progress give prevDelta * curDelta == 0, which is not greater than zero, so the transit collision check
-    /// AABB-tests them every tick and explodes them both on contact.
-    /// </summary>
+    /// <summary>The cracker starts its fall at progress 1.0 exactly, which the chunk offsets from.</summary>
     [Test]
     public async Task FallUsesADistinctStartProgress()
     {
@@ -205,11 +173,7 @@ public sealed class CrackFallTest
         await Cleanup(pair, site);
     }
 
-    /// <summary>
-    /// Pushes the hull off its layer through the same entry point the grace expiry uses, and reads the result back in the
-    /// same server callback. Nothing about the push may be read a tick later: the stale pooled-lift cache lets the
-    /// hovering branch pop the hull straight back onto the layer it came from on the very next frame.
-    /// </summary>
+    /// <summary>Pushes the hull off its layer via the grace expiry path and reads the result in one callback.</summary>
     private static async Task<PushResult> PushFall(TestPair pair, CrackerSite site)
     {
         var server = pair.Server;
@@ -269,7 +233,7 @@ public sealed class CrackFallTest
         /// <summary>Altitude within the transit level, 1 at the top and 0 at the bottom.</summary>
         public float Progress;
 
-        /// <summary>The hull's body type, which has to be Dynamic before the transit call or the fall never moves.</summary>
+        /// <summary>The hull's body type, which must be Dynamic before the transit call.</summary>
         public BodyType BodyType;
     }
 }

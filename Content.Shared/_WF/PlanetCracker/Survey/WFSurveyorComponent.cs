@@ -5,18 +5,12 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.PlanetCracker.Survey;
 
 /// <summary>
-/// The handheld deep-vein surveyor: used in hand it runs a short DoAfter and, on the server, reveals every vein inside
-/// <see cref="PulseRadius"/> to the user alone. It deliberately carries no ItemToggleComponent (see the shared system)
-/// and no appearance data of any kind - F2 ships no scanning face.
+/// Handheld deep-vein surveyor: a short DoAfter that reveals every vein within <see cref="PulseRadius"/> to the user alone.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WFSurveyorComponent : Component
 {
-    /// <summary>
-    /// Reveal radius in tiles. Deliberately well inside net.pvs_range (25 tiles,
-    /// RobustToolbox/Robust.Shared/CVars.cs:232) because veins carry no PVS override: a vein outside PVS is not on the
-    /// client at all, so revealing it would draw nothing.
-    /// </summary>
+    /// <summary>Reveal radius in tiles; keep inside net.pvs_range, as veins outside PVS are not on the client.</summary>
     [DataField]
     public float PulseRadius = 12f;
 

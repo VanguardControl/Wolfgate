@@ -27,6 +27,7 @@ public sealed partial class WFPlanetWeatherComponent : Component
     public TimeSpan NextThunder;
 }
 
+/// <summary>Phases of a scheduled storm.</summary>
 public enum WFStormPhase : byte
 {
     None,

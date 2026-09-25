@@ -3,8 +3,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._WF.PlanetCracker.Flight;
 
 /// <summary>
-/// Sent by the shuttle console when the pilot asks to drop out of orbit into the planet's atmosphere. A hull that
-/// cannot hold itself up has to send this twice: the first is refused with the lift ratio, the second is the confirm.
+/// Sent by the shuttle console to drop out of orbit into the atmosphere; a hull without enough lift must confirm.
 /// </summary>
 [Serializable, NetSerializable]
 public sealed class WFEnterAtmosphereMessage : BoundUserInterfaceMessage

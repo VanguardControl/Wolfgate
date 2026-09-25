@@ -74,7 +74,7 @@ public sealed class StructuralCrashTest
         }
     }
 
-    // Three sizes of hull still in the shipyard; the maps this ran on before were removed by the shipyard refactor.
+    // Three sizes of shipyard hull.
     [TestCase("/SharedMaps/_Mono/Shuttles/Civilian/autumn.yml")]
     [TestCase("/SharedMaps/_Mono/Shuttles/CivilianExp/pelican.yml")]
     [TestCase("/SharedMaps/_Mono/Shuttles/Scrapyard/mudskipper.yml")]
@@ -183,7 +183,7 @@ public sealed class StructuralCrashTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Every section of a broken hull carries the parent's repair snapshot, so an SRD can rebuild from any piece.</summary>
+    /// <summary>Every broken hull section carries the parent's repair snapshot for an SRD rebuild.</summary>
     [Test]
     public async Task BreakupSectionsKeepTheRepairSnapshot()
     {

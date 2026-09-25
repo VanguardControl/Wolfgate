@@ -19,7 +19,7 @@ public readonly record struct WFAnchorDrillStartedEvent(EntityUid Anchor);
 [ByRefEvent]
 public readonly record struct WFAnchorDrillFinishedEvent(EntityUid Anchor);
 
-/// <summary>Raised when an anchor crosses (either way) the damage threshold F4 uses to pause the crack.</summary>
+/// <summary>Raised when an anchor crosses (either way) the damage threshold that pauses the crack.</summary>
 [ByRefEvent]
 public readonly record struct WFAnchorDamagedEvent(EntityUid Anchor, bool Damaged);
 
@@ -31,7 +31,7 @@ public readonly record struct WFAnchorBrokenEvent(EntityUid Anchor);
 [ByRefEvent]
 public readonly record struct WFAnchorDestroyedEvent(EntityUid Anchor);
 
-/// <summary>Cancellable: later features (F7) veto switching an anchor off outside the disconnect window.</summary>
+/// <summary>Cancellable check before an anchor is switched off.</summary>
 public sealed class WFAnchorSwitchOffAttemptEvent(EntityUid anchor, EntityUid user) : CancellableEntityEventArgs
 {
     /// <summary>The anchor being switched off.</summary>
@@ -48,10 +48,7 @@ public sealed class WFAnchorSwitchOffAttemptEvent(EntityUid anchor, EntityUid us
 [ByRefEvent]
 public readonly record struct WFAnchorSwitchedOffEvent(EntityUid Anchor);
 
-/// <summary>
-/// Raised after a switched-off anchor is put back to Locked. Only a lapsed disconnect pairing window and the admin
-/// command do this; there is no player-facing re-arm.
-/// </summary>
+/// <summary>Raised after a switched-off anchor is put back to Locked by a lapsed disconnect window or the admin command.</summary>
 [ByRefEvent]
 public readonly record struct WFAnchorReArmedEvent(EntityUid Anchor);
 

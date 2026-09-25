@@ -6,19 +6,14 @@ using Robust.Shared.Map;
 namespace Content.Shared._WF.PlanetCracker.Cracker;
 
 /// <summary>
-/// The one derivation of cracker geometry, shared so the server state builder, the client diagrams, the radar ghost
-/// and F5's chunk placement all agree. Declares no subscriptions; the server half owns the behaviour.
-/// This type is abstract, so ReflectionManager.GetAllChildren skips it and it is resolvable only through a concrete
-/// subclass in each assembly - hence a WFCrackerSystem on the server AND on the client.
+/// Cracker geometry shared by server, client and radar; abstract, so each assembly needs a concrete WFCrackerSystem.
 /// </summary>
 public abstract partial class SharedWFCrackerSystem : EntitySystem
 {
     [Dependency] protected SharedTransformSystem TransformSystem = default!;
 
     /// <summary>
-    /// Initial downward speed of a crack fall, in levels per second; above the transit exit band of 0.1.
-    /// Shared so the hull's fall and the chunk's drop cannot drift apart: two grids entering transit at different
-    /// speeds swap order mid-descent and are AABB-tested into an explosion.
+    /// Initial crack fall speed in levels per second (above the 0.1 transit exit band); shared so hull and chunk fall in step.
     /// </summary>
     public const float FallSeedVelocity = 0.3f;
 
@@ -65,7 +60,7 @@ public abstract partial class SharedWFCrackerSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Cut circle of a pair: the midpoint as a raw world XY and the design D21 radius.</summary>
+    /// <summary>Cut circle of a pair: the midpoint as a raw world XY and the cut radius.</summary>
     public bool TryGetCircle(EntityUid a, EntityUid b, out Vector2 centreXY, out float radius)
     {
         centreXY = Vector2.Zero;
@@ -83,10 +78,7 @@ public abstract partial class SharedWFCrackerSystem : EntitySystem
     }
 
     /// <summary>
-    /// How far the berth centre is from the cut circle centre, as a raw XY delta.
-    /// The berth carries the orbit map id and the circle the ground one, and MapCoordinates.InRange returns false for
-    /// differing MapIds before any distance maths, so plain subtraction of the positions is the only correct route.
-    /// CE z-layers share world XY, which is what makes it correct.
+    /// Raw XY delta from the berth centre to the cut circle centre; plain subtraction, as the two maps share world XY.
     /// </summary>
     public bool TryGetBerthOffset(Entity<WFPlanetCrackerComponent> ent, EntityUid a, EntityUid b, out Vector2 offset)
     {
@@ -130,10 +122,7 @@ public abstract partial class SharedWFCrackerSystem : EntitySystem
     }
 
     /// <summary>
-    /// Crack duration: the base time scaled by pair distance against the reference distance, then by the part
-    /// multiplier. The multiplier is the arithmetic MEAN of both projectors' CrackTimeMultiplier, not the minimum
-    /// (which would make a single-projector upgrade worth nothing) and not the product (which undershoots the design's
-    /// 5.6 minute floor). Mean and minimum agree at every uniform part tier and differ only on a mixed pair.
+    /// Crack duration: base time scaled by pair distance over the reference distance, then by the part multiplier.
     /// </summary>
     public static TimeSpan GetCrackDuration(float distance, float partMultiplier, TimeSpan baseTime, float referenceDistance)
     {

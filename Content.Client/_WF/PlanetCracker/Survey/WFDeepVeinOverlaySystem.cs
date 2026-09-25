@@ -5,13 +5,7 @@ using Robust.Shared.Player;
 
 namespace Content.Client._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// Owns the lifetime of <see cref="WFDeepVeinOverlay"/>, keyed to the local player's
-/// <see cref="WFSurveyedComponent"/>. This system owns ComponentInit, ComponentShutdown, LocalPlayerAttachedEvent and
-/// LocalPlayerDetachedEvent on that component and no other system may claim any of them - a second directed
-/// subscription on the same pair crashes the client at start. Each of them also refreshes the sprite visuals, so a
-/// vein's layer visibility and the ping overlay never disagree about who has revealed what.
-/// </summary>
+/// <summary>Shows <see cref="WFDeepVeinOverlay"/> while the local player has <see cref="WFSurveyedComponent"/>.</summary>
 public sealed partial class WFDeepVeinOverlaySystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayMan = default!;

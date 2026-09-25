@@ -60,8 +60,7 @@ public sealed partial class ThrusterSystem
         }
     }
 
-    // Destruction frees electrical nodes before the next half-second reconnect pass removes their IDs.
-    // Until then, treat the forecast as unavailable and let the real network still govern actual power.
+    // Destroyed nodes linger until the next reconnect pass, so a missing network means no forecast.
     private bool WfTryGetPowerStatistics(PowerState.Network network, out NetworkPowerStatistics statistics)
     {
         try
@@ -76,6 +75,7 @@ public sealed partial class ThrusterSystem
         }
     }
 
+    /// <summary>Cycles an overloaded engine between resting and bursting; clears it once power is sufficient.</summary>
     public void WfSetPowerPulse(WFAtmosphereThrusterComponent state, bool overloaded)
     {
         if (!overloaded)

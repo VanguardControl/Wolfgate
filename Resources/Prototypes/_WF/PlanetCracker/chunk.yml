@@ -1,5 +1,4 @@
-# Rim decals and extraction-moment effect entities for the cut disc (F5). No tile prototype:
-# the hole is Tile.Empty and the rim decals sit on ordinary pinned biome ground.
+# Rim decals and the extraction effect for the cut disc; the hole itself is Tile.Empty.
 
 - type: decal
   id: WFCrackRimStraight

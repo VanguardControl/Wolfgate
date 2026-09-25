@@ -11,11 +11,7 @@ using Robust.Shared.Configuration;
 
 namespace Content.Client._WF.PlanetCracker.Cracker;
 
-/// <summary>
-/// The crack control console: stage readout, the site plan, the centrifuge dial, the projector rows, the stage strip
-/// and the three buttons. Everything it shows comes out of one <see cref="WFCrackConsoleState"/>, and every failing
-/// condition and blocker is named from a locale key rather than a server-sent string.
-/// </summary>
+/// <summary>Crack control console, drawn entirely from one <see cref="WFCrackConsoleState"/>.</summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFCrackConsoleWindow : FancyWindow
 {
@@ -30,7 +26,6 @@ public sealed partial class WFCrackConsoleWindow : FancyWindow
     /// <summary>Raised when the crew presses BEGIN CRACK.</summary>
     public event Action? OnBeginPressed;
 
-    /// <summary>Scratch buffer for the blocker hover list, so a 0.25 s update does not allocate a new one each pass.</summary>
     private readonly StringBuilder _blockers = new();
 
     public WFCrackConsoleWindow()
@@ -59,9 +54,7 @@ public sealed partial class WFCrackConsoleWindow : FancyWindow
         HeaderCrack.Text = CrackText(state);
         HeaderCrack.FontColorOverride = state.CrackPaused ? skin.Caution : skin.Text;
 
-        // One label, three countdowns, most urgent first: the evacuation outranks the pairing window, which outranks
-        // the hull-loss grace. Only the last of the three ever reads nominal.
-        // Neither header line is shown while it only reads nominal: the strip's own countdown line already says so.
+        // Most urgent countdown first; both header lines hide while nominal, since the strip already says so.
         GraceLabel.Text = GraceText(state);
         GraceLabel.Visible = state.EvacRunning || state.DisconnectArmed || state.GraceRunning;
         GraceLabel.FontColorOverride = state.EvacRunning || state.DisconnectArmed || state.GraceRunning
@@ -76,7 +69,7 @@ public sealed partial class WFCrackConsoleWindow : FancyWindow
         UntargetButton.Disabled = !state.CanUntarget;
         BeginButton.Disabled = !state.CanBegin;
 
-        // A greyed BEGIN CRACK has to say why, one line per flag, or the crew has nothing to act on.
+        // A greyed BEGIN CRACK lists why, one line per flag.
         BeginButton.ToolTip = BlockerText(state);
     }
 
@@ -165,7 +158,7 @@ public sealed partial class WFCrackConsoleWindow : FancyWindow
         (WFCrackFailure.ProjectorBroken, "wf-crack-console-fail-projector-broken"),
     };
 
-    /// <summary>One locale key per <see cref="WFCrackBlocker"/> flag; all twelve, so the hover names the real fault.</summary>
+    /// <summary>One locale key per <see cref="WFCrackBlocker"/> flag.</summary>
     private static readonly (WFCrackBlocker Flag, string Key)[] BlockerKeys =
     {
         (WFCrackBlocker.WrongState, "wf-crack-console-blocker-wrong-state"),
@@ -200,7 +193,7 @@ public sealed partial class WFCrackConsoleWindow : FancyWindow
         };
     }
 
-    /// <summary>Minutes and seconds, the only shape any of the three timers needs.</summary>
+    /// <summary>Formats a timer as m:ss.</summary>
     private static string Format(TimeSpan time)
     {
         return time <= TimeSpan.Zero ? "0:00" : $"{(int)time.TotalMinutes}:{time.Seconds:D2}";

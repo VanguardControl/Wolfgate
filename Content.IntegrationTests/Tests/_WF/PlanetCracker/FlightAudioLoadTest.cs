@@ -15,12 +15,7 @@ using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixtu
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 
-/// <summary>
-/// How many audio streams a populated hull is worth on the way down. The crash budgets measure a bare code-built
-/// cracker, which carries no PA speakers and no air alarms; a real shipyard vessel carries dozens of air alarms, and
-/// every one of them is a fallback PA speaker, so every flight callout and every ship alarm is one networked stream
-/// per alarm. That is what filled the live client's OpenAL pool and killed it at touchdown.
-/// </summary>
+/// <summary>A hull full of air alarms, each a fallback PA speaker, stays in an audio budget falling.</summary>
 [TestFixture]
 [TestOf(typeof(WFFlightSystem))]
 public sealed class FlightAudioLoadTest
@@ -37,10 +32,7 @@ public sealed class FlightAudioLoadTest
     /// <summary>Most audio entities allowed to still exist five seconds after the hull is down.</summary>
     private const int SettledBudget = 8;
 
-    /// <summary>
-    /// A hull covered in air alarms falls out of orbit under lift lost and grounds itself; the number of audio
-    /// entities alive at once never approaches the client's source pool, and almost nothing survives the landing.
-    /// </summary>
+    /// <summary>A hull covered in air alarms falls and lands within the peak and settled audio budgets.</summary>
     [Test]
     public async Task PopulatedHullFallDoesNotFloodTheAudioPool()
     {
@@ -57,13 +49,13 @@ public sealed class FlightAudioLoadTest
         var orbit = layers[^1];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        // Solid tiles under the footprint, or the landing is not a landing at all.
+        // Solid tiles under the footprint, so it lands.
         await LayTiles(pair, ground, new Vector2i(-24, -24), new Vector2i(48, 48));
 
         var hull = await BuildCracker(pair, orbitMapId);
         await MapInitHull(pair, hull);
 
-        // Rows 4 and 5 of the 15x15 hull are clear of everything the factory spawns, which is exactly thirty tiles.
+        // Rows 4 and 5 of the hull are clear: thirty tiles.
         await server.WaitPost(() =>
         {
             var placed = 0;
@@ -73,10 +65,10 @@ public sealed class FlightAudioLoadTest
             {
                 var uid = entMan.SpawnEntity("AirAlarm", new EntityCoordinates(hull, new Vector2(x + 0.5f, y + 0.5f)));
 
-                // No cabling on a code-built hull, exactly as WFTestGridFactory.SpawnOnHull does it.
+                // No cabling on a code-built hull.
                 receiver.SetNeedsPower(uid, false);
 
-                // A wallmount spawns anchored already; anchoring it twice trips the snap grid's own assert.
+                // Wallmounts spawn anchored; anchoring twice trips the snap grid assert.
                 if (!entMan.GetComponent<TransformComponent>(uid).Anchored)
                     transform.AnchorEntity(uid);
 
@@ -106,7 +98,7 @@ public sealed class FlightAudioLoadTest
         var baseline = 0;
         await server.WaitPost(() => baseline = CountAudio(entMan, null));
 
-        // No settle: the caution chime goes out inside the call and the first flight sweep is already past it.
+        // No settle, so the caution chime inside the call is counted.
         var refusal = await EnterAtmosphere(pair, hull, settle: 0f);
         Assert.That(refusal, Is.Null, $"The confirmed descent was refused: {refusal}");
 
@@ -117,7 +109,7 @@ public sealed class FlightAudioLoadTest
         var landed = false;
         var settle = 0;
 
-        // A full plummet out of orbit is four gaps at CE's 0.15 levels/s^2; ninety seconds covers it with room.
+        // Ninety seconds covers a full plummet out of orbit.
         for (var second = 0; second < 90; second++)
         {
             await server.WaitRunTicks(pair.SecondsToTicks(1f));

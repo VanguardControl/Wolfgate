@@ -10,17 +10,8 @@ public sealed partial class CEZLevelsSystem
     /// <summary>True when this map is a planet orbit layer, where parked grids never fall.</summary>
     private bool WfIsOrbitLayer(EntityUid mapUid) => HasComp<WFOrbitLayerComponent>(mapUid);
 
-    /// <summary>
-    /// Holds a grid up on a planet orbit layer, and hands its z-gravity back when it leaves.
-    /// The fall gate's own orbit exemption only covers the plummet path. Orbit is bare vacuum with no terrain anywhere
-    /// on it, so a grid parked there reads a ground height of -1 (the shared height walk finds no tile on the orbit map
-    /// and none on the layer below either), the shared z-physics integrator sees its local height cross zero on the very
-    /// first tick and calls TryMoveDown, and that walks the grid down one map per level with a direct parent change -
-    /// past every air layer and onto the terrain, with no transit map and no crash. The only thing that ever kept a hull
-    /// up there was standing on one of its own tiles, which is pure luck about where its grid origin happens to fall.
-    /// Orbit is above the atmosphere: nothing is pulling on a hull parked there, so it keeps its height without
-    /// integrating gravity at all.
-    /// </summary>
+    /// <summary>Disables z-gravity on an orbit layer and restores it when the grid leaves.</summary>
+    // Orbit has no terrain, so CE z-physics would otherwise walk a parked grid down every layer to the ground.
     private void WfRefreshOrbitParking(EntityUid grid, EntityUid? mapUid)
     {
         if (!ZPhysicsQuery.TryComp(grid, out var zPhys))
@@ -33,7 +24,7 @@ public sealed partial class CEZLevelsSystem
         if (!parked)
             return;
 
-        // Whatever speed and height the arrival left behind is spent: a hull in orbit is at rest on its own level.
+        // A hull in orbit rests at its layer's height.
         if (zPhys.Velocity != 0f)
             SetZVelocity((grid, zPhys), 0f);
 
@@ -41,12 +32,7 @@ public sealed partial class CEZLevelsSystem
             SetZPosition((grid, zPhys), 0f);
     }
 
-    /// <summary>
-    /// True when a grid must not be handed straight to the layer below by the shared level-hop path. Orbit is the one
-    /// layer you leave deliberately: a descent from it goes through the transit machinery like every other flight, under
-    /// power if the hull has lift and as a real fall if it does not. The backstop matters even with the parking above,
-    /// because a level hop is the only way a grid ever changes z-map without a transit map in between.
-    /// </summary>
+    /// <summary>True on an orbit layer, which is left through transit, never a direct level hop.</summary>
     private bool WfRefusesLevelHop(EntityUid grid) => WfIsOrbitLayer(Transform(grid).MapUid ?? EntityUid.Invalid);
 
 
@@ -58,12 +44,8 @@ public sealed partial class CEZLevelsSystem
                && !zPhys.VelocityGravity;
     }
 
-    /// <summary>
-    /// Destroys every contact held by the grid's own children before the grid changes map. A grid move only
-    /// re-homes the grid's broadphase; a child anchored on it that was touching something on the old map (a gravity
-    /// anchor against a fissure mob, say) keeps that contact, and the broadphase asserts "already in contact" the
-    /// moment the grid comes back within reach of it.
-    /// </summary>
+    /// <summary>Destroys contacts held by the grid's children before a map change.</summary>
+    // Children keep old-map contacts across a grid move, and the broadphase then asserts "already in contact".
     public void WfDestroyRiderContacts(EntityUid grid)
     {
         var children = Transform(grid).ChildEnumerator;

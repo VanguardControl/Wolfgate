@@ -3,15 +3,7 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client._WF.PlanetCracker.Survey;
 
-/// <summary>
-/// Hosts <see cref="WFSurveyConsoleWindow"/>. It sends NOTHING: the survey console is a read-only instrument, because
-/// the "go here" is each body's own pre-existing FTL beacon name - StarSystemMapSystem spawns one FTLBeacon-carrying
-/// PlanetEntity per star-system entry and renames it to the planet's name
-/// (Content.Server/_FarHorizons/StarSystem/StarSystemMapSystem.cs:57-66), and that is exactly the label
-/// ShuttleConsoleSystem.GetBeacons puts in the pilot's destination tree
-/// (Content.Server/Shuttles/Systems/ShuttleConsoleSystem.FTL.cs:93-109) - so there is nothing for the client to ask
-/// the server to do. Row selection is a client-local highlight and stays in the window.
-/// </summary>
+/// <summary>Hosts <see cref="WFSurveyConsoleWindow"/>; read-only, since each planet's FTL beacon already carries its name.</summary>
 public sealed class WFSurveyConsoleBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]
