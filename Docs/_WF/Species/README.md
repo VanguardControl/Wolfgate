@@ -5,7 +5,8 @@ beyond the upstream species pipeline: markings (including scars and tattoos any 
 emotes, languages, metabolizer types, the Skrell damage modifier set, typing indicators, silicon screams, meat, the
 Rodentia squeeze under tables, Avali chemistry (amoxla, its auto-injector and the reagent rules that make saline,
 dexalin and iron poison Avali while ammonia heals their airloss), and guidebook pages. Its marked edits add the
-species to upstream marking, clothing and species prototypes. The creator UI is in Humanoid.
+species to upstream marking, clothing and species prototypes, and make explicit clothing layers pick their species
+states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
 
 `ShadekinNightVisionTest` covers Shadekin night vision.
 
@@ -17,6 +18,7 @@ species to upstream marking, clothing and species prototypes. The creator UI is 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Species/AvaliChemistryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/AvaliChemistryTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Species/AvaliClothingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/AvaliClothingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs)
 
 ### Prototypes
@@ -88,6 +90,9 @@ species to upstream marking, clothing and species prototypes. The creator UI is 
   - matches server ChatSystem.AllowedToUseEmote order (granted bypasses lists)
   - hoisted out of the loop
   - emote filter rewritten to match the server
+- [`Content.Client/Clothing/ClientClothingSystem.cs`](../../../Content.Client/Clothing/ClientClothingSystem.cs)
+  - explicit clothingVisuals layers pick their species state too, as in HardLight
+  - check the state actually drawn, which may now be the species one
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs): ported from HardLight, unrestricted skin colour
 - [`Content.Server/_DV/Abilities/CrawlUnderObjectsSystem.cs`](../../../Content.Server/_DV/Abilities/CrawlUnderObjectsSystem.cs)
   - sneak logic moved to SharedCrawlUnderObjectsSystem, its usings with it
