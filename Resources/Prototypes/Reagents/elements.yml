@@ -193,6 +193,11 @@
         - !type:OrganType
           type: Arachnid
           shouldHave: false
+        # WOLFGATE(Species) START: iron doesn't build Avali blood either; it poisons them
+        - !type:OrganType
+          type: Avali
+          shouldHave: false
+        # WOLFGATE END
         amount: 0.4
 
 - type: reagent
