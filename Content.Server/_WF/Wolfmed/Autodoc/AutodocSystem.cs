@@ -119,6 +119,7 @@ public sealed partial class AutodocSystem : EntitySystem
 
         InitializeUi();
         InitializeTriage();
+        InitializeAtmosphere(); // Playtest 3: the pod's own air
     }
 
     private void OnMapInit(Entity<AutodocComponent> ent, ref MapInitEvent args)
@@ -266,6 +267,7 @@ public sealed partial class AutodocSystem : EntitySystem
         if (args.Container.ID == AutodocComponent.BodyContainerId)
         {
             SetOccupantLying(args.Entity, true);
+            AtmosphereOccupantEntered(ent, args.Entity); // Playtest 3: breathes the pod's air while sealed
             ent.Comp.DefibWarned = false;
             ent.Comp.DefibAttempt = 0;
             ent.Comp.DefibBlocked = null;
@@ -304,6 +306,7 @@ public sealed partial class AutodocSystem : EntitySystem
         if (args.Container.ID == AutodocComponent.BodyContainerId)
         {
             SetOccupantLying(args.Entity, false);
+            AtmosphereOccupantLeft(ent, args.Entity); // Playtest 3: back to the room's air
             WakeOccupant(ent, args.Entity);
             ent.Comp.FailedProcedures.Clear();
             ent.Comp.AutoSignature = null;
@@ -337,6 +340,7 @@ public sealed partial class AutodocSystem : EntitySystem
             args.PushMarkup(Loc.GetString($"wolfmed-autodoc-examine-{ent.Comp.State.ToString().ToLowerInvariant()}"));
             if (ent.Comp.EmagRevealed)
                 args.PushMarkup(Loc.GetString("wolfmed-autodoc-examine-emagged"));
+            ExamineAtmosphere(ent, args); // Playtest 3: whether the patient's air is protected
         }
     }
 

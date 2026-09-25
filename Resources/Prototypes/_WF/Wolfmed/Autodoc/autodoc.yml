@@ -52,6 +52,14 @@
     - WolfmedAutodocProgramBase
   # The pod scrubs its own tools: without this every step would poison the patient for unsterile surgery.
   - type: Sanitized
+  # Playtest 3: the pod's own air. While sealed (an occupant under the lid, power, an intact hull, not emagged) the
+  # patient breathes and feels this mix, put back to these figures every time it is read; otherwise the room's.
+  - type: WolfmedAutodocAtmosphere
+    volume: 400
+    pressure: 101.325
+    temperature: 293.15
+    oxygen: 0.21
+    nitrogen: 0.79
   # Crawling into a surgical pod is exactly what a Downed player needs to be able to do.
   - type: WolfmedDownedReachable
   - type: ContainerContainer
@@ -124,6 +132,14 @@
     damageModifierSet: StructuralMetallic
   - type: Destructible
     thresholds:
+    # Playtest 3: the hull is breached past this, between the fault line (faultDamage 60) and destruction, and outside
+    # air gets in until a welder brings the damage back under it (WolfmedAutodocAtmosphere).
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Breakage" ]
     - trigger:
         !type:DamageTrigger
         damage: 150
@@ -136,6 +152,13 @@
         node: machineFrame
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+  # Playtest 3: a welder repairs the pod, which closes a breached hull. BaseStructure's Repairable takes only Mono's
+  # nanite applicator; the pod takes a welder as well, the way windows do.
+  - type: Repairable
+    doAfterDelay: 5
+    qualities:
+    - Welding
+    - Applicating
   - type: ApcPowerReceiver
     powerLoad: 2500
   - type: ExtensionCableReceiver

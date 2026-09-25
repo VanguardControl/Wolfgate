@@ -5031,3 +5031,27 @@ Two marked Shitmed edits; everything else is `_WF` code, Wolfmed locale and voic
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeSamTest.cs` | new | `PodHoldsOneTest`, `AutoIsOneRunTest`, `NoStallWhileWorkingTest`, `PodUndressesWhatItCannotCutTest`, `PodUndressesWhatItCannotCutLockedTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAutodocLoopTest.cs` | modified | `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`: the torso's other work is queued after the removal as follow-ups and has run by the end of the queue. |
 | `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, S.A.M. round" sections; two AUTODOC statements annotated inline. |
+
+## Playtest 3, pod atmosphere (2026-09-24)
+
+No upstream or Onyx file is touched; everything is `_WF` code, Wolfmed YAML and locale, the voice generator and tests.
+The existing pod files only gained calls (DECISIONS "Playtest 3, pod atmosphere").
+
+| File | Kind | Change |
+| --- | --- | --- |
+| `Content.Shared/_WF/Wolfmed/Autodoc/WolfmedAutodocAtmosphereComponent.cs` | new | `WolfmedAutodocAtmosphereComponent` (the pod's mix and `Broken`), `WolfmedAutodocSeal`, `WolfmedAutodocAtmosphereVisuals`, `WolfmedAutodocSealText`. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/WolfmedAutodocOccupantComponent.cs` | new | The occupant marker. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Atmosphere.cs` | new | `WolfmedAutodocOccupantComponent` + `InhaleLocationEvent` / `ExhaleLocationEvent` / `AtmosExposedGetAirEvent` (by ref), `WolfmedAutodocAtmosphereComponent` + `BreakageEventArgs` / `DamageChangedEvent`; `GetSeal`, `IsSealedIn`, the regenerated mix, the examine line. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.cs` | modified | Four added calls: `InitializeAtmosphere` in `Initialize`, `AtmosphereOccupantEntered` in `OnInserted`, `AtmosphereOccupantLeft` in `OnRemoved`, `ExamineAtmosphere` in `OnExamined`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs` | modified | `Seal = GetSeal(ent)` in the BUI state. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocUi.cs` | modified | `AutodocBuiState.Seal`. |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `AutodocVoiceEvent.HullBreach`, appended. |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocWindow.cs` | modified | The seal label after the status readout. |
+| `Content.Client/_WF/Wolfmed/Autodoc/AutodocVisualizerSystem.cs` | modified | The breached tint. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/autodoc.yml` | modified | `WolfmedAutodocAtmosphere` (400 L, 101.325 kPa, 293.15 K, 21/79); a Destructible threshold at 100 acting `Breakage`; `Repairable` with Welding and Applicating, 5 s. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/voice.yml`, `Resources/Locale/en-US/_WF/wolfmed/autodoc-voice.ftl`, `Resources/Audio/_WF/Wolfmed/Autodoc/voice/attributions.yml` | regenerated | The `hull-breach` line and the `HullBreach` event. |
+| `Resources/Audio/_WF/Wolfmed/Autodoc/voice/hull-breach.ogg` | new | "HULL BREACH. OUTSIDE ATMOSPHERE.", eSpeak NG, 2.05 s. |
+| `Tools/_WF/wolfmed/gen_autodoc_voice.py`, `gen_autodoc_voice_protos.py` | modified | The `hull-breach` row and the `HullBreach` event. |
+| `Resources/Locale/en-US/_WF/wolfmed/autodoc-atmosphere.ftl` | new | The five readout keys and four examine keys. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/PodAtmosphereTest.cs` | new | Six tests (DECISIONS). |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, pod atmosphere" sections. |

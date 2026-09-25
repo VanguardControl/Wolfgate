@@ -218,6 +218,7 @@ public sealed partial class AutodocSystem
             TrayItem = _slots.GetItemOrNull(ent.Owner, AutodocComponent.TraySlotId) is { } tray ? Name(tray) : null,
             Reservoir = BuildReservoir(ent),
             LastLine = ent.Comp.LastLine,
+            Seal = GetSeal(ent), // Playtest 3: the pod's own air
         };
 
         if (occupant is { } body)

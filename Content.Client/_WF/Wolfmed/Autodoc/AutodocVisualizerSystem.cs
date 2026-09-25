@@ -21,6 +21,9 @@ public sealed class AutodocVisualizerSystem : VisualizerSystem<AutodocComponent>
     /// <summary>Colour of the base layer with no power. Every other state draws the art as it was authored.</summary>
     private static readonly Color Unpowered = Color.FromHex("#555555");
 
+    /// <summary>Playtest 3: the scorched tint of a breached hull, over whatever the power state would draw.</summary>
+    private static readonly Color Breached = Color.FromHex("#b0605a");
+
     protected override void OnAppearanceChange(EntityUid uid, AutodocComponent component, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null ||
@@ -41,6 +44,13 @@ public sealed class AutodocVisualizerSystem : VisualizerSystem<AutodocComponent>
         else
             SpriteSystem.LayerSetColor(sprite, AutodocVisualLayers.Base,
                 state == AutodocVisualState.Unpowered ? Unpowered : Color.White);
+
+        // Playtest 3: a breached hull is drawn scorched on whichever layer shows, until it is welded.
+        var breached = AppearanceSystem.TryGetData<bool>(uid, WolfmedAutodocAtmosphereVisuals.Breached, out var hull,
+            args.Component) && hull;
+        SpriteSystem.LayerSetColor(sprite, AutodocVisualLayers.Lid, breached ? Breached : Color.White);
+        if (breached && !lidClosed)
+            SpriteSystem.LayerSetColor(sprite, AutodocVisualLayers.Base, Breached);
 
         // Open: the bed draws under the occupant lying in it. Closed: the lid is over them and they are not
         // drawn at all, so nothing taller than the pod can poke out of it.

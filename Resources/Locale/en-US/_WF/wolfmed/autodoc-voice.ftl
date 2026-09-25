@@ -54,6 +54,7 @@ wolfmed-autodoc-voice-goodbye = GOODBYE.
 wolfmed-autodoc-voice-power-lost = POWER LOST. DO NOT MOVE.
 wolfmed-autodoc-voice-power-restored = POWER RESTORED. WHERE WAS I.
 wolfmed-autodoc-voice-lid-forced = THE LID HAS BEEN FORCED. NOTED.
+wolfmed-autodoc-voice-hull-breach = HULL BREACH. OUTSIDE ATMOSPHERE.
 wolfmed-autodoc-voice-stall = THIS IS NOT WORKING.
 wolfmed-autodoc-voice-clothing = REMOVE YOUR CLOTHING OR PRESS CUT.
 wolfmed-autodoc-voice-clothing-auto = NOBODY IS UNDRESSING YOU. I WILL CUT.

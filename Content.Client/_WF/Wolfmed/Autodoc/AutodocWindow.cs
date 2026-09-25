@@ -29,6 +29,7 @@ public sealed class AutodocWindow : DefaultWindow
     private readonly WolfmedDiagnosticPanel _diagnostics = new();
 
     private readonly Label _readout;
+    private readonly Label _seal; // Playtest 3: SEALED / UNSEALED beside the status
     private readonly Label _stepLine;
     private readonly Label _speech;
     private readonly PanelContainer _cursor;
@@ -104,6 +105,9 @@ public sealed class AutodocWindow : DefaultWindow
         _readout.HorizontalExpand = true;
         _readout.Align = Label.AlignMode.Right;
         titleRow.AddChild(_readout);
+        _seal = Text(string.Empty, 13, Good, true);
+        _seal.Margin = new Thickness(12, 0, 0, 0);
+        titleRow.AddChild(_seal);
         headerRows.AddChild(titleRow);
 
         var progressRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 8 };
@@ -332,6 +336,14 @@ public sealed class AutodocWindow : DefaultWindow
             AutodocState.Faulted => Alert,
             AutodocState.Complete => Good,
             _ => Amber,
+        };
+
+        _seal.Text = Loc.GetString(WolfmedAutodocSealText.Readout(state.Seal));
+        _seal.FontColorOverride = state.Seal switch
+        {
+            WolfmedAutodocSeal.Sealed => Good,
+            WolfmedAutodocSeal.Open => AmberDim,
+            _ => Alert,
         };
 
         _stepLine.Text = state.CurrentStep is { } step

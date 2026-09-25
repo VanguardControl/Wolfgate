@@ -63,6 +63,7 @@ EVENTS = [
     ("PowerLost", ["power-lost"]),
     ("PowerRestored", ["power-restored"]),
     ("LidForced", ["lid-forced"]),
+    ("HullBreach", ["hull-breach"]),
     ("Slip", ["slip"]),
     ("SlipFix", ["slip-fix"]),
     ("Unconscious", ["unconscious"]),

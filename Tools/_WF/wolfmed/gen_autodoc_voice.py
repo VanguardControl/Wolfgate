@@ -95,6 +95,8 @@ LINES = [
     ("power-lost", "POWER LOST. DO NOT MOVE.", None, "Urgent"),
     ("power-restored", "POWER RESTORED. WHERE WAS I.", None, "Info"),
     ("lid-forced", "THE LID HAS BEEN FORCED. NOTED.", None, "Urgent"),
+    # Playtest 3: the pod's own air is lost to a breached hull with somebody inside.
+    ("hull-breach", "HULL BREACH. OUTSIDE ATMOSPHERE.", None, "Urgent"),
 
     ("stall", "THIS IS NOT WORKING.", None, "Urgent"),
     ("clothing", "REMOVE YOUR CLOTHING OR PRESS CUT.", None, "Urgent"),

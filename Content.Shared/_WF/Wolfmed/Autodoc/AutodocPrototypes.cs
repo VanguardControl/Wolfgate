@@ -151,6 +151,9 @@ public enum AutodocVoiceEvent : byte
     DeadProceeding,
     /// <summary>Playtest 3 SAM: something the pod does not cut is coming off the patient into the tray.</summary>
     Removing,
+
+    /// <summary>Playtest 3: the hull was breached with somebody inside, so outside air is getting in.</summary>
+    HullBreach,
 }
 
 /// <summary>

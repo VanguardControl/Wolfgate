@@ -3057,3 +3057,77 @@ Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt, final 
 5 skipped (dirty-disposed: `AutofixModuleIdlesWithNothingToDoTest`, `DeathDuringAProcedureHoldsAndResumesTest`,
 `FixMePlansAndStartsInSelfServiceTest`, `QueueMoveReordersTest`, `SelfServiceOccupantIsTreatedTest`); each passed alone.
 
+## Playtest 3, pod atmosphere (2026-09-24)
+
+The owner: "Autodoc needs to have its own safe atmosphere for the patient; outside atmosphere gets in when the pod is
+broken." The occupant sat in a plain container, so breathing, pressure and temperature all fell through to the pod's
+tile: a patient in a pod standing in vacuum, plasma or a fire got exactly what the room had.
+
+- **Sealed means** an occupant under the lid, the pod powered, the hull intact and the pod not emagged
+  (`AutodocSystem.GetSeal`, which answers with the worst reason: Breached, then Open for an empty pod, Unpowered,
+  Vented, and otherwise Sealed). It is built the way sealed entity storage is: `WolfmedAutodocOccupantComponent` goes
+  on the body on insertion and comes off on eject, and answers `InhaleLocationEvent`, `ExhaleLocationEvent` and
+  `AtmosExposedGetAirEvent` with the pod's own mix while the pod is sealed. Unsealed, the three events fall through to
+  the tile exactly as before. A patient breathing from their own tank keeps it.
+- **The mix.** `WolfmedAutodocAtmosphereComponent` on the pod: 400 L (a coffin's worth) at 101.325 kPa and 293.15 K,
+  21% oxygen and 79% nitrogen, all prototype fields. It is put back to those figures every time the sealed pod hands it
+  out (every breath, every exposure update, every pressure check), which scrubs what the occupant breathed into it and
+  keeps a hot or cold room off them. It is server state and is not networked.
+- **The temperature hold is the exposure itself.** The surface temperature M5's core follows is exchanged with the
+  pod's 293.15 K air, so the pod sets no `ParentColdDamageThreshold`: that would also replace the occupant's own
+  temperature damage thresholds and move every M5 line for as long as they lay in the pod. Measured over 60 s, sealed:
+  in vacuum the surface stayed at 310.4 K and the core at 310.2 K while a body outside fell to 16 K; in 400 K air the
+  same 310.4 / 310.2 K while the body outside reached 385 K and took 70 Heat.
+- **Unsealed**: no power (fans off and the seals slack; power loss already pauses a run and says "POWER LOST. DO NOT
+  MOVE."), the lid open or forced (forcing it ejects the patient anyway), the hull breached, or the pod emagged. The
+  emag rules already make an emagged pod hostile ("Emag is a threat, not a tool"), so an emagged pod vents its patient
+  to the room on purpose. Measured in vacuum: suffocating 8 to 9 s after the seal goes (the respirator's 2 s cycle and
+  its three short cycles), breathing normally again 3 to 6 s after it comes back.
+- **The broken state.** The pod had none: `faultDamage` (60) only stops a running procedure, and the Destructible
+  threshold at 150 turns the pod into a machine frame. A new threshold at 100 acts `Breakage`;
+  `WolfmedAutodocAtmosphereComponent.Broken` is set on `BreakageEventArgs` and cleared by any damage change that takes
+  the total back under that line (`DestructibleSystem.DestroyedAt`, which is the lowest breakage or destruction
+  threshold). With somebody inside, the pod says "HULL BREACH. OUTSIDE ATMOSPHERE." (a new Urgent line, 2.05 s, one ogg
+  and one transcript from the generator's table). The sprite takes a scorched tint on whichever layer shows
+  (`WolfmedAutodocAtmosphereVisuals.Breached`), and examine says so whether or not anybody is inside.
+- **Repair** is a welder: 5 s and 5 fuel through the stock `Repairable`, which takes all the damage off. Mono's
+  `BaseStructure` gives every structure a `Repairable` that only accepts the nanite applicator, so the pod lists both
+  Welding and Applicating, the way windows do.
+- **The readout** is a label after the status in the window's header: SEALED (green), LID OPEN (dim), UNSEALED: NO
+  POWER, HULL BREACH: OUTSIDE ATMOSPHERE and UNSEALED: VENTING (red), sent in the BUI state as `Seal`. The window
+  closes without power (`ActivatableUIRequiresPower`), so UNSEALED: NO POWER is in the state and on examine but a player
+  never sees it in the window. Examine of the pod says in one line whether the patient's air is protected.
+- **The voice.** A breach with an occupant says the new line once, whatever the pod was doing. Power loss mid-run keeps
+  its existing line. The emag keeps its own.
+
+**Differs from the spec, and why.**
+1. **Regenerated on every read, not on the atmos tick.** The partial cannot have an `Update` of its own and the pod's
+   only one is in `AutodocSystem.Procedure.cs`, which another branch is rewriting. The occupant never sees the pod's
+   air except through those reads, so what they breathe and feel is the same.
+2. **No `ParentColdDamageThreshold`** (above): the sealed air is the hold, and it covers heat as well as cold.
+3. **The breach line is spoken on any breach with an occupant**, not only mid-run: a patient lying in an idle pod loses
+   their air all the same.
+4. **The in-window readout never shows NO POWER** because the window closes without power; the state carries it and
+   examine says it.
+
+**Found on the way.**
+- Upstream `EntityStorageSystem`, `CryoPodSystem` and `MechSystem` subscribe to the by-ref `InhaleLocationEvent` and
+  `ExhaleLocationEvent` with by-value handlers, so the gas they set lands on a copy: a welded locker, a cryo pod and a
+  mech never change what their occupant breathes (their `AtmosExposedGetAirEvent` handlers are by ref and work). Not
+  touched here; the pod's handlers take the events by ref.
+- In this fixture an assertion that fails inside a pair callback can come back as Skipped ("dirty-disposed"), not
+  Failed. The rerun-alone rule is what tells a real failure from an ordering skip.
+- The power net writes `Powered` every 0.5 s (Mono), so a test that waits ten ticks for a fresh pod's power can miss
+  the first update. The new tests wait on `IsPowered`.
+
+**Tests.** New `PodAtmosphereTest`: `SealedPodInVacuumTest` (60 s in vacuum: no suffocation, no damage, normal
+temperature, a control outside suffocating and frozen, exhaled gas scrubbed on the next read, the marker gone after
+the eject), `PowerCutUnsealsThePodTest`, `BrokenPodUnsealsUntilWeldedTest` (the breach, its line, readout, sprite key
+and examine; suffocation; a real welder repair through `InteractUsingEvent`; breathing again),
+`SealedPodInHotAirTest` (400 K air), `OrganicQueueCompletesInsideTheSealedPodTest` (a fracture mend runs to
+Complete in a sealed pod in vacuum), `EmaggedPodVentsItsPatientTest`.
+
+Run (DebugOpt): `Autodoc|PodAtmosphere` 48 total, 44 passed, 0 failed, 4 skipped (`LongQueueDosesOnceAndWakesThePatientTest`,
+`AutofixModuleIdlesWithNothingToDoTest`, `EjectOnlyAlarmsWhileRunningTest`, `PodMendsAFractureThroughTheRealStepsTest`,
+dirty-disposed, not rerun alone at the orchestrator's request). The full filter's one attempt ran 183 tests (176 passed,
+0 failed, 7 skipped) before its test host crashed; the orchestrator runs the full suite after the merge.

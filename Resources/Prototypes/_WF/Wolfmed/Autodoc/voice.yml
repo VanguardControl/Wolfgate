@@ -267,6 +267,11 @@
         path: /Audio/_WF/Wolfmed/Autodoc/voice/lid-forced.ogg
       message: wolfmed-autodoc-voice-lid-forced
       priority: Urgent
+    hull-breach:
+      sound:
+        path: /Audio/_WF/Wolfmed/Autodoc/voice/hull-breach.ogg
+      message: wolfmed-autodoc-voice-hull-breach
+      priority: Urgent
     stall:
       sound:
         path: /Audio/_WF/Wolfmed/Autodoc/voice/stall.ogg
@@ -499,6 +504,7 @@
     PowerLost: [power-lost]
     PowerRestored: [power-restored]
     LidForced: [lid-forced]
+    HullBreach: [hull-breach]
     Slip: [slip]
     SlipFix: [slip-fix]
     Unconscious: [unconscious]

@@ -44,6 +44,8 @@ public sealed class AutodocBuiState : BoundUserInterfaceState
     public bool ClothingBlocked;
     /// <summary>The pod is topping the occupant's blood up out of the reservoir.</summary>
     public bool Transfusing;
+    /// <summary>Playtest 3: whether the occupant breathes the pod's own air, and if not why not.</summary>
+    public WolfmedAutodocSeal Seal;
 }
 
 /// <summary>A procedure the occupant's current condition allows on one part.</summary>
