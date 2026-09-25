@@ -718,3 +718,8 @@ WolfmedSplint: WFWolfmedSplint
 WolfmedSplintImprovised: WFWolfmedSplintImprovised
 WolfmedStimPen: WFWolfmedStimPen
 # WOLFGATE END
+
+# WOLFGATE(OldVessels) START: the classic Windreign gave way to the one Monolith brought back
+# 2026-09-25
+WFWindreignCarrierComputer: null
+# WOLFGATE END
