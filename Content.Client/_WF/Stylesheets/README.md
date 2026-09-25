@@ -215,7 +215,6 @@ Entry points: `StyleWolfgate` (the shared rule set, with `.Creator`, `.Lobby` an
 - [`Content.Client/Lobby/LobbyState.cs`](../../Lobby/LobbyState.cs)
   - rich label so long names wrap in the menu column; unformatted so brackets in names survive
   - the game-menu lobby keeps the chat as a dock, at most 30% of the window
-  - the game-menu lobby has no server info panel
 - [`Content.Client/Lobby/UI/CharacterPickerButton.xaml`](../../Lobby/UI/CharacterPickerButton.xaml): slot card look (root StyleClasses too); control names unchanged
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml`](../../Lobby/UI/CharacterSetupGui.xaml)
   - creator header laid out like a game-menu sub-screen; control names unchanged

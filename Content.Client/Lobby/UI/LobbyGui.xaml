@@ -184,6 +184,8 @@
                             <Button Name="LeaveButton" Access="Public" TextAlign="Left"
                                     Text="{Loc 'ui-lobby-leave-nav-button'}" StyleClasses="LobbyNav" />
                             <Control VerticalExpand="True" />
+                            <!-- Round info from the server: round number, player and ready counts, game mode -->
+                            <info:ServerInfo Name="ServerInfo" Access="Public" StyleClasses="LobbyInfo" SetWidth="440" />
                         </BoxContainer>
                         <!-- Votes and character hero -->
                         <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True"

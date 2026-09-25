@@ -204,8 +204,7 @@ namespace Content.Client.Lobby
 
             if (_gameTicker.ServerInfoBlob != null)
             {
-                // WOLFGATE(Stylesheets): the game-menu lobby has no server info panel
-                //Lobby!.ServerInfo.SetInfoBlob(_gameTicker.ServerInfoBlob);
+                Lobby!.ServerInfo.SetInfoBlob(_gameTicker.ServerInfoBlob);
             }
         }
 
