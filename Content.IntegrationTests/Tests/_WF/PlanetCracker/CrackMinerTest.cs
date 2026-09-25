@@ -992,9 +992,9 @@ public sealed class CrackMinerTest
     /// <summary>The single-count entity a seam's rolled ore spawns as. Server thread only.</summary>
     private static string OreEntity(TestPair pair, WFDeepVeinComponent vein)
     {
-        var ore = pair.Server.ResolveDependency<IPrototypeManager>().Index<OrePrototype>(vein.Ore);
+        var ore = pair.Server.ResolveDependency<IPrototypeManager>().Index<OrePrototype>(vein.Ore!.Value);
 
-        Assert.That(ore.OreEntity, Is.Not.Null, $"{vein.Ore.Id} names no ore entity to spawn.");
+        Assert.That(ore.OreEntity, Is.Not.Null, $"{vein.Ore} names no ore entity to spawn.");
         return ore.OreEntity!.Value.Id;
     }
 

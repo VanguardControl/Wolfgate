@@ -37,6 +37,7 @@ wf-surveyor-found = Found { $count } dense returns.
 wf-surveyor-found-none = No dense returns nearby.
 
 ## Deep vein
+wf-vein-ore-unstamped = unknown ore
 wf-vein-examine-unknown = It is unremarkable, as far as you can tell.
 wf-vein-examine-ore = A seam of { $ore } runs through the rock.
 wf-vein-examine-yield = The seam looks { $band }.

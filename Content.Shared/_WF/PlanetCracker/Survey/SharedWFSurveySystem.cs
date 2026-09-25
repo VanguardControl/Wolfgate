@@ -79,8 +79,11 @@ public sealed partial class SharedWFSurveySystem : EntitySystem
     }
 
     /// <summary>The display name of an ore's dropped entity, falling back to the ore id when either lookup fails.</summary>
-    public string GetOreName(ProtoId<OrePrototype> ore)
+    public string GetOreName(ProtoId<OrePrototype>? oreId)
     {
+        if (oreId is not { } ore)
+            return Loc.GetString("wf-vein-ore-unstamped");
+
         if (!_proto.TryIndex(ore, out var orePrototype))
             return ore.Id;
 
