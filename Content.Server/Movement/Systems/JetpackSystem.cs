@@ -1,6 +1,7 @@
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server._Mono.Radar;
+using Content.Shared._WF.Planets.Jetpack; // WOLFGATE(Planets)
 using Content.Shared.Atmos.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
@@ -14,6 +15,7 @@ public sealed partial class JetpackSystem : SharedJetpackSystem
     [Dependency] private GasTankSystem _gasTank = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private EntityManager _entityManager = default!;
+    [Dependency] private WFAtmosphericJetpackSystem _wfAtmosphericJetpack = default!; // WOLFGATE(Planets)
 
     public override void Initialize()
     {
@@ -26,6 +28,11 @@ public sealed partial class JetpackSystem : SharedJetpackSystem
 
     protected override bool CanEnable(EntityUid uid, EntityUid user, JetpackComponent component)
     {
+        // WOLFGATE(Planets) START: an atmospheric pack burns welding fuel from a solution, not gas from a tank.
+        if (TryComp<WFAtmosphericJetpackComponent>(uid, out var wfAtmospheric))
+            return base.CanEnable(uid, user, component) && _wfAtmosphericJetpack.CanFly((uid, wfAtmospheric), user);
+        // WOLFGATE END
+
         return base.CanEnable(uid, user, component) &&
                TryComp<GasTankComponent>(uid, out var gasTank) &&
                !(gasTank.Air.TotalMoles < component.MoleUsage);
@@ -67,7 +74,8 @@ public sealed partial class JetpackSystem : SharedJetpackSystem
                 continue;
 
             // WOLFGATE(Planets) START: a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
-            if (comp.JetpackUser is { } wearer && WfInAtmosphere(wearer))
+            // An atmospheric pack has no gas tank, so it never reaches this loop; WFAtmosphericJetpackFuelSystem burns it.
+            if (comp.JetpackUser is { } wearer && WfInAtmosphere(wearer, uid))
             {
                 toDisable.Add((uid, comp));
                 continue;

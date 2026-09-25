@@ -4,6 +4,7 @@
   startingInventory:
     WFPlanetTimepiece: 5
     WFParachute: 10
+    WFJetpackAtmospheric: 3
     WFLandingThrusterKit: 4
     WFRopeHempCoil: 6
     WFRopeSyntheticCoil: 6
