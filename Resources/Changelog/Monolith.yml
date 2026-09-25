@@ -25324,3 +25324,20 @@ Entries:
   id: 2756
   time: '2026-09-24T23:40:14.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4686
+- author: kasature90
+  changes:
+    - type: Add
+      message: >-
+        The status panel actually like, shows gamemode and stuff now. So does
+        lobby screen.
+    - type: Fix
+      message: Fixed birthday holiday still using Frontier's birthday.
+    - type: Fix
+      message: Fixed lathes on CC coming with busted stats roundstart.
+    - type: Fix
+      message: Fixed ERs not being able to access their door. I think.
+    - type: Fix
+      message: Fixed the Kresta and Kynda not having lights.
+  id: 2757
+  time: '2026-09-25T01:05:38.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4764
