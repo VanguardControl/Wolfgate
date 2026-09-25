@@ -321,12 +321,14 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
   - landing thrusters are the planet-side lift.
   - grids parked on a planet orbit layer never fall.
   - partial landing-thruster lift slows the sink, and this is where lift lost begins.
+  - the sink uses the lift-adjusted gravity.
   - planetary landings can clear, land hard, break up or skid instead of only crashing.
   - leave clearance around planetary impact wrecks.
   - a lift-lost hull that touched down slowly enough lands hard and skids instead of exploding.
   - survivable ship breakup.
   - a crash with planar speed left ploughs on instead of stopping dead.
   - one crash, one bang.
+  - a comma for the added silent argument.
   - only one blast of a crash plays its sound.
   - cargo virtual mass counts against pooled lift.
   - same virtual mass the lift check uses, so the readout agrees.
@@ -336,6 +338,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
   - grounded planet ascent is a latched console action; airborne input keeps CE's normal control.
   - an orbit layer is left through the console's enter-atmosphere button, never on the keys.
   - a console latch feeds the same CE takeoff spool and flight integrator.
+  - the climb is scaled by the maneuvering factor below.
   - only thrust left after hovering can climb.
   - planetary lift replaces, rather than supplements, the station gravgen gate.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.Transit.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.Transit.cs)
@@ -370,6 +373,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): defaults to MonoStandard (was nfpirate), whose round start spawns the star system.
 - [`Content.Shared/Maps/TileSystem.cs`](../../../Content.Shared/Maps/TileSystem.cs): lattice laid on a planet's ground gives the ground back, not a hole through the world.
 - [`Content.Shared/Movement/Systems/SharedJetpackSystem.cs`](../../../Content.Shared/Movement/Systems/SharedJetpackSystem.cs)
+  - the condition continues on the next line.
   - a jetpack cuts out below a planet's orbit layer.
   - an atmosphere refusal is said plainly, rather than the gravity line, which is not why it failed.
   - jetpacks fly on a planet's orbit layer but not in its atmosphere.
@@ -377,6 +381,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.Shared/Movement/Systems/SharedMoverController.Input.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.Input.cs): a planet surface is a map that is also a grid, and its tiles are ground, not space.
 - [`Content.Shared/Shuttles/Systems/SharedShuttleSystem.cs`](../../../Content.Shared/Shuttles/Systems/SharedShuttleSystem.cs): you only FTL out of a planet network from orbit, and never FTL into an orbit layer.
 - [`Content.Shared/Tiles/FloorTileSystem.cs`](../../../Content.Shared/Tiles/FloorTileSystem.cs)
+  - reads the planet ground under a tile.
   - a planet's natural ground takes lattice directly, and remembers what is under it.
   - lattice also goes straight onto planet ground.
   - the ground under lattice is kept so cutting it gives the ground back.

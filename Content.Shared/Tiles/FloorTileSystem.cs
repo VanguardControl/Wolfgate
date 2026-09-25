@@ -40,7 +40,7 @@ public sealed partial class FloorTileSystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
-    [Dependency] private SharedBiomeSystem _biome = default!; // WOLFGATE(Planets)
+    [Dependency] private SharedBiomeSystem _biome = default!; // WOLFGATE(Planets): reads the planet ground under a tile.
 
     private static readonly Vector2 CheckRange = new(1f, 1f);
 

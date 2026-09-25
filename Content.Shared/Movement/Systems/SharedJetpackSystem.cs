@@ -197,7 +197,7 @@ public abstract partial class SharedJetpackSystem : EntitySystem
         if (TryComp<JetpackComponent>(component.Jetpack, out var jetpack)
             && (!CanEnableOnGrid(args.Transform.GridUid)
                 || !UserNotParented(uid, jetpack) // EE
-                || !IsWeightlessOrPlanet(uid) // Mono/CE: planets (grid or open map) keep it on; WOLFGATE(Planets)
+                || !IsWeightlessOrPlanet(uid) // Mono/CE: planets (grid or open map) keep it on; WOLFGATE(Planets): the condition continues on the next line.
                 || WfInAtmosphere(uid))) // WOLFGATE(Planets): a jetpack cuts out below a planet's orbit layer.
         {
             SetEnabled(component.Jetpack, jetpack, false, uid);
