@@ -261,7 +261,7 @@ What buys time: [bold]CPR[/bold] quarters the drain and stands in for breathing,
 Nothing Wolfmed does makes a body permanently unrevivable. [bold]Rot[/bold] is still the one hard stop, so get a corpse cold.
   <Box>
     <GuideEntityEmbed Entity="Defibrillator"/>
-    <GuideEntityEmbed Entity="Saline"/>
+    <GuideReagentEmbed Reagent="Saline"/>
     <GuideEntityEmbed Entity="Hemostat"/>
   </Box>
 
