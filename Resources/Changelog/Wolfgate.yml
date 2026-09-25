@@ -384,3 +384,14 @@ Entries:
   id: 100034
   time: '2026-09-25T01:10:51.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/69
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: MMC Dredger, a new salvage class ship for MMC shipyards.
+    - type: Add
+      message: >-
+        Added a moth plushie resembling a certain moth from a familiar sector.
+        Made in honor of Arcana Obscura.
+  id: 100035
+  time: '2026-09-25T01:43:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/74
