@@ -51,6 +51,7 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<ShipHarpoonTurretComponent, MoveEvent>(OnTurretMove);
         SubscribeLocalEvent<ShipHarpoonTurretComponent, GunShotEvent>(OnGunShot);
         SubscribeLocalEvent<ShipHarpoonTurretComponent, RopeDetachedEvent>(OnRopeDetached);
 
@@ -161,6 +162,19 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
         return true;
     }
 
+    /// <summary>
+    /// Turning an unmanned turret turns its mount with it: unpacking, building or rotating it all set the rotation
+    /// after map init. A manned turret's rotation is only its aim.
+    /// </summary>
+    private void OnTurretMove(Entity<ShipHarpoonTurretComponent> turret, ref MoveEvent args)
+    {
+        if (turret.Comp.Operator != null || args.NewRotation.EqualsApprox(turret.Comp.MountRotation))
+            return;
+
+        turret.Comp.MountRotation = args.NewRotation;
+        Dirty(turret);
+    }
+
     #endregion
 
     #region Firing
@@ -174,6 +188,7 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
                 continue;
 
             ClearHarpoon(turret);
+            Rearm(harpoon);
             Launch(harpoon);
             comp.Turret = GetNetEntity(turret);
             Dirty(harpoon, comp);
@@ -262,16 +277,49 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
     private void OnHarpoonCollide(Entity<ShipHarpoonComponent> harpoon, ref StartCollideEvent args)
     {
         if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture || !args.OtherFixture.Hard ||
-            harpoon.Comp.Embedded || !HasComp<EmbeddableProjectileComponent>(harpoon))
+            harpoon.Comp.Embedded || !TryComp<ProjectileComponent>(harpoon, out var projectile) ||
+            projectile.Weapon == null || projectile.ProjectileSpent)
             return;
 
         var velocity = _physics.GetMapLinearVelocity(harpoon) - _physics.GetMapLinearVelocity(args.OtherEntity);
         var speed = velocity.Length();
-        if (speed >= harpoon.Comp.MinEmbedSpeed && CanHold(args.OtherEntity) &&
-            Incidence(harpoon, args.OtherEntity, velocity / speed) <= harpoon.Comp.MaxIncidence.Theta)
+        if (speed < harpoon.Comp.MinEmbedSpeed)
+        {
+            // Out of flight, it is a loose item again and hurts nothing it bumps into.
+            Disarm(harpoon, projectile);
+            Glance(harpoon);
+            return;
+        }
+
+        if (!HasComp<EmbeddableProjectileComponent>(harpoon) || (CanHold(args.OtherEntity) &&
+            Incidence(harpoon, args.OtherEntity, velocity / speed) <= harpoon.Comp.MaxIncidence.Theta))
             return;
 
         Glance(harpoon);
+    }
+
+    /// <summary>Clears the shot, so the projectile code treats the harpoon as never fired.</summary>
+    private void Disarm(EntityUid harpoon, ProjectileComponent projectile)
+    {
+        projectile.Shooter = null;
+        projectile.Weapon = null;
+        Dirty(harpoon, projectile);
+    }
+
+    /// <summary>Readies a recovered harpoon to hit and bite again after a glance or an earlier hit.</summary>
+    private void Rearm(EntityUid harpoon)
+    {
+        if (TryComp<ProjectileComponent>(harpoon, out var projectile) && projectile.ProjectileSpent)
+        {
+            projectile.ProjectileSpent = false;
+            Dirty(harpoon, projectile);
+        }
+
+        if (HasComp<EmbeddableProjectileComponent>(harpoon) || Prototype(harpoon) is not { } proto ||
+            !proto.Components.TryGetValue(Factory.GetComponentName<EmbeddableProjectileComponent>(), out var embed))
+            return;
+
+        EntityManager.AddComponent(harpoon, embed);
     }
 
     /// <summary>Angle between the flight path and the struck surface's normal, in radians.</summary>

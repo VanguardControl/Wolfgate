@@ -97,7 +97,11 @@ public abstract class SharedShipHarpoonTurretSystem : EntitySystem
 
         turret.Comp.Operator = null;
         if (!TerminatingOrDeleted(turret))
+        {
+            // Back to rest, so a later rotate turns the mount and not the last aim.
+            Transforms.SetLocalRotation(turret, turret.Comp.MountRotation);
             Dirty(turret);
+        }
 
         if (!TryGetEntity(net, out var user) || !TryComp<MannedTurretOperatorComponent>(user, out var operatorComp))
             return;
