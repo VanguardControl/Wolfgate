@@ -17,12 +17,12 @@ namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 [TestFixture]
 public sealed class KyphrusPlanetsTest
 {
-    [TestCase("Fervidus", "FloorBasalt")]
-    [TestCase("Merak", "FloorDesertPlanet")]
-    [TestCase("Aerumna", "FloorChromite")]
-    [TestCase("Thrascias", "FloorSnow")]
-    [TestCase("Carcinoma", "WFFloorFlesh")]
-    public async Task NewWorldBuildsAndItsVeinsSurvive(string name, string floor)
+    [TestCase("PlanetFervidus", "Fervidus", "FloorBasalt")]
+    [TestCase("PlanetMerak", "Merak", "FloorDesertPlanet")]
+    [TestCase("PlanetAerumna", "Aerumna", "FloorChromite")]
+    [TestCase("PlanetThrascias", "Thrascias", "FloorSnow")]
+    [TestCase("WFPlanetCarcinoma", "Carcinoma", "WFFloorFlesh")]
+    public async Task NewWorldBuildsAndItsVeinsSurvive(string planet, string name, string floor)
     {
         await using var pair = await PoolManager.GetServerClient();
         await EnableFeature(pair);
@@ -34,7 +34,7 @@ public sealed class KyphrusPlanetsTest
         await server.WaitAssertion(() =>
         {
             var registry = server.System<WFPlanetRegistrySystem>();
-            Assert.That(registry.TryGetSurface("Planet" + name, out var surface), Is.True,
+            Assert.That(registry.TryGetSurface(planet, out var surface), Is.True,
                 "The sector body must automatically resolve its surface.");
             Assert.That(surface!.BuildAtRoundStart, Is.True);
             Assert.That(surface.CloudLayer, Is.False, "A cloud deck would hide the surface from orbit.");

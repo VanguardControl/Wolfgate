@@ -61,6 +61,10 @@ public sealed partial class WFFleshTickComponent : Component
     [ViewVariables]
     public bool Leaping;
 
+    /// <summary>Until when the tick's own leap can still bring it down; that landing does no fall damage.</summary>
+    [ViewVariables]
+    public TimeSpan LeapLandsBy;
+
     [ViewVariables]
     public bool ProtectedFromRetirement;
 

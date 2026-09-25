@@ -117,7 +117,6 @@ public sealed partial class WFFleshPustuleSystem : EntitySystem
             return false;
 
         ent.Comp.Bursted = true;
-        Dirty(ent);
         _appearance.SetData(ent, WFFleshPustuleVisuals.Bursted, true);
         PinPoppedBiomeTile(ent);
 

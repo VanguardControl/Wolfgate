@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Shared._CE.ZLevels.Damage;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Shared._Shitmed.Targeting;
@@ -56,6 +57,7 @@ public sealed partial class WFFleshTickSystem : EntitySystem
     };
 
     private static readonly TimeSpan UpdateInterval = TimeSpan.FromSeconds(0.2);
+    private static readonly TimeSpan LeapLandingGrace = TimeSpan.FromSeconds(0.5);
 
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private DamageableSystem _damageable = default!;
@@ -87,6 +89,7 @@ public sealed partial class WFFleshTickSystem : EntitySystem
         SubscribeLocalEvent<WFFleshTickComponent, EntityTerminatingEvent>(OnTerminating);
         SubscribeLocalEvent<WFFleshTickComponent, ThrowDoHitEvent>(OnThrowHit);
         SubscribeLocalEvent<WFFleshTickComponent, LandEvent>(OnLand);
+        SubscribeLocalEvent<WFFleshTickComponent, CEZFallingDamageCalculateEvent>(OnFallDamage);
         SubscribeLocalEvent<WFFleshTickComponent, InteractHandEvent>(OnInteractHand);
         SubscribeLocalEvent<WFFleshTickComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<WFFleshTickComponent, MobStateChangedEvent>(OnMobStateChanged);
@@ -142,6 +145,16 @@ public sealed partial class WFFleshTickSystem : EntitySystem
     private void OnLand(Entity<WFFleshTickComponent> ent, ref LandEvent args)
     {
         ent.Comp.Leaping = false;
+    }
+
+    // A throw arcs through the z-level, so a missed leap comes down fast enough to count as a fall.
+    private void OnFallDamage(Entity<WFFleshTickComponent> ent, ref CEZFallingDamageCalculateEvent args)
+    {
+        if (args.Fallen != ent.Owner || _timing.CurTime > ent.Comp.LeapLandsBy)
+            return;
+
+        args.DamageMultiplier = 0f;
+        args.StunMultiplier = 0f;
     }
 
     private void OnInteractHand(Entity<WFFleshTickComponent> ent, ref InteractHandEvent args)
@@ -359,8 +372,13 @@ public sealed partial class WFFleshTickSystem : EntitySystem
             playSound: false,
             doSpin: false);
 
-        if (!HasComp<ThrownItemComponent>(tick.Owner))
+        if (!TryComp<ThrownItemComponent>(tick.Owner, out var thrown))
+        {
             tick.Comp.Leaping = false;
+            return;
+        }
+
+        tick.Comp.LeapLandsBy = (thrown.LandTime ?? _timing.CurTime) + LeapLandingGrace;
     }
 
     private EntityUid? FindLeapTarget(EntityUid tick, WFFleshTickComponent component)
