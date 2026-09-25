@@ -22,21 +22,26 @@ public static class AutodocStyle
     private const string MonoPath = "/Fonts/RobotoMono/RobotoMono-Regular.ttf";
     private const string MonoBoldPath = "/Fonts/RobotoMono/RobotoMono-Bold.ttf";
 
-    private static readonly Dictionary<(IResourceCache Cache, bool Bold, int Size), Font> Fonts = new();
+    // A Font carries the engine's glyph cache of the client it was made on, so fonts are cached per resource
+    // cache and two clients (a test pair, a replay) never share one. The owner is held weakly: a client that is
+    // gone must not stay in memory for its fonts, which is what a strong key did to every disposed test client.
+    private static readonly List<(WeakReference<IResourceCache> Owner, bool Bold, int Size, Font Font)> Fonts = new();
 
     public static Font Mono(int size, bool bold = false)
     {
-        // The cache is static, and two clients can build a window at once. The dictionary is locked, and the
-        // owning resource cache is part of the key: a Font carries the engine's glyph cache with it, so
-        // handing one client's font to another client's UI thread corrupts that cache rather than this one.
         var cache = IoCManager.Resolve<IResourceCache>();
         lock (Fonts)
         {
-            if (Fonts.TryGetValue((cache, bold, size), out var font))
-                return font;
+            Fonts.RemoveAll(entry => !entry.Owner.TryGetTarget(out _));
+            foreach (var entry in Fonts)
+            {
+                if (entry.Bold == bold && entry.Size == size && entry.Owner.TryGetTarget(out var owner)
+                    && ReferenceEquals(owner, cache))
+                    return entry.Font;
+            }
 
-            font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
-            Fonts[(cache, bold, size)] = font;
+            var font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
+            Fonts.Add((new WeakReference<IResourceCache>(cache), bold, size, font));
             return font;
         }
     }
