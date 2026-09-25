@@ -78,6 +78,8 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("health-analyzer-wound-banner-blood-low", [""]),
         ("health-analyzer-wound-banner-brain-death", [""]),
         ("health-analyzer-wound-banner-cardiac-arrest", [""]),
+        ("health-analyzer-wound-banner-shutdown", [""]),
+        ("health-analyzer-wound-banner-core-failure", [""]),
         ("health-analyzer-wound-count", [""]),
         ("wolfmed-treatment-guidebook-button", [""]),
         // CONSC: the two body-level banners and the Downed alert.

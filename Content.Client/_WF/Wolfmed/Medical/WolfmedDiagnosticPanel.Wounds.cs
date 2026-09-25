@@ -180,7 +180,10 @@ public sealed partial class WolfmedDiagnosticPanel
                 WolfmedWoundStyle.Necrosis,
                 // M2 (OD10): a positronic core (no oxygenation clock, -1) names core repair and the restart.
                 Loc.GetString(deadBrain.Oxygenation < 0f ? "health-analyzer-wound-brain-dead-core" : "health-analyzer-wound-brain-dead"),
-                "brain-death"));
+                "brain-death",
+                // A positronic core is not a brain: its banner and window are titled "Core failure".
+                label: deadBrain.Oxygenation < 0f ? "core-failure" : null,
+                mechanical: deadBrain.Oxygenation < 0f));
         else if (msg.WoundDiagnostics is { CardiacArrest: true } stopped)
         {
             WoundAlertsContainer.AddChild(CreateAlertRow(
@@ -197,7 +200,10 @@ public sealed partial class WolfmedDiagnosticPanel
                 "warning",
                 WolfmedWoundStyle.Necrosis,
                 Loc.GetString("health-analyzer-wound-shutdown"),
-                "cardiac-arrest"));
+                "cardiac-arrest",
+                // A chassis shutdown shares cardiac arrest's treatment but not its name.
+                label: "shutdown",
+                mechanical: true));
 
         // M1a: a restarted heart with the blood still low. The units that keep it going, and the units that
         // stop the brain injury, kept apart (plan §7.1).
@@ -601,11 +607,13 @@ public sealed partial class WolfmedDiagnosticPanel
             DrawWoundDiagnostics(message);
     }
 
-    private Control CreateAlertRow(string icon, Color colour, string text, string condition) =>
-        CreateAlertRow(icon, colour, text, condition, out _);
-
     private Control CreateAlertRow(string icon, Color colour, string text, string condition,
-        out RichTextLabel body)
+        string? label = null, bool mechanical = false) =>
+        CreateAlertRow(icon, colour, text, condition, out _, label, mechanical);
+
+    /// <summary>A banner row; <paramref name="label"/> names it when the condition's own name does not fit.</summary>
+    private Control CreateAlertRow(string icon, Color colour, string text, string condition,
+        out RichTextLabel body, string? label = null, bool mechanical = false)
     {
         var panel = new PanelContainer
         {
@@ -628,16 +636,15 @@ public sealed partial class WolfmedDiagnosticPanel
         };
         row.AddChild(Icon(icon, colour, IconSize));
 
-        var label = new RichTextLabel { HorizontalExpand = true };
-        label.SetMessage(FormattedMessage.FromMarkupPermissive(text));
-        row.AddChild(label);
-        body = label;
+        body = new RichTextLabel { HorizontalExpand = true };
+        body.SetMessage(FormattedMessage.FromMarkupPermissive(text));
+        row.AddChild(body);
 
         panel.AddChild(row);
         // UI3: a banner is a finding like any other, so it opens the same procedure window. The tooltip uses
         // the plain title rather than the banner text, which carries colour markup a tooltip cannot render.
-        var title = Loc.GetString($"health-analyzer-wound-banner-{condition}");
-        return Clickable(panel, null, title, condition, false, title);
+        var title = Loc.GetString($"health-analyzer-wound-banner-{label ?? condition}");
+        return Clickable(panel, null, title, condition, mechanical, title);
     }
 
     private Control CreatePartCard(TargetBodyPart part, HealthAnalyzerWoundDiagnostic diagnostic)

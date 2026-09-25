@@ -3284,3 +3284,9 @@ defined under the module's prototypes, against the map, found them; all are rena
 
 Locale keys built from an id leave the prefix out. `WolfmedTreatmentAdvice.Slug` kebab-cases a wound id into the tail of its advice key, and a blind slug of `WFWolfmedGrazeWound` is `w-f-wolfmed-graze-wound`; the slug now skips a leading `WF`, so the 80-odd `wolfmed-treatment-short-*` keys keep their names and `WolfmedTreatmentAdviceTest`, which pins the derived key, keeps passing. The surgery step popups go the other way: `surgery-popup-step-{id}` is built from the raw id in `_Shitmed`, so those keys were renamed with the ids.
 
+**The chassis banners.** A chassis shutdown row and a positronic core failure row reused the `cardiac-arrest` and
+`brain-death` conditions, so their tooltip and treatment window read "Cardiac arrest" and "Brain death". A banner
+row can now carry a label apart from its condition: the two read "Shutdown" and "Core failure"
+(`health-analyzer-wound-banner-shutdown`, `-core-failure`), and they open the treatment window as mechanical, so a
+`...Mechanical` procedure is used where one exists and the generic one otherwise. The condition itself is unchanged,
+so the window's defibrillator and brain-repair advice still applies.
