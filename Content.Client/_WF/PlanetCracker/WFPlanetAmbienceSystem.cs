@@ -1,4 +1,3 @@
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Audio;
@@ -125,10 +124,10 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         if (_player.LocalEntity is not { } player || !TryComp(player, out TransformComponent? xform))
             return false;
 
-        // Map-grid ground and detached chunks are exposed terrain; any other grid is a hull with the indoor mix.
+        // Map-grid ground and detached terrain are exposed; any other grid is a hull with the indoor mix.
         return xform.GridUid is { } grid &&
                grid != xform.MapUid &&
-               !HasComp<WFPlanetChunkComponent>(grid);
+               !HasComp<WFDetachedTerrainComponent>(grid);
     }
 
     /// <summary>Starts, rotates and crossfades the looping bed.</summary>

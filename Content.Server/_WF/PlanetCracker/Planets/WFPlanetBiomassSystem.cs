@@ -1,11 +1,10 @@
 using Content.Server.Spreader;
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>Allow chimera biomass on hulls, never streamed terrain or extracted chunks.</summary>
+/// <summary>Allow chimera biomass on hulls, never on streamed or detached terrain.</summary>
 [RegisterComponent]
 public sealed partial class WFPlanetBiomassRestrictionComponent : Component;
 
@@ -24,12 +23,12 @@ public sealed partial class WFPlanetBiomassSystem : EntitySystem
         SubscribeLocalEvent<WFPlanetBiomassRestrictionComponent, SpreadNeighborsEvent>(OnSpread, before: new[] { typeof(KudzuSystem) });
     }
 
-    /// <summary>True when the entity is on planet terrain or an extracted chunk rather than a hull.</summary>
+    /// <summary>True when the entity is on streamed or detached planet terrain rather than a hull.</summary>
     public bool IsPlanet(EntityUid uid)
     {
         if (!TryComp(uid, out TransformComponent? xform))
             return false;
-        if (HasComp<WFPlanetChunkComponent>(uid) || HasComp<WFPlanetChunkComponent>(xform.GridUid))
+        if (HasComp<WFDetachedTerrainComponent>(uid) || HasComp<WFDetachedTerrainComponent>(xform.GridUid))
             return true;
         if (HasComp<MapGridComponent>(uid) && !HasComp<MapComponent>(uid))
             return false;

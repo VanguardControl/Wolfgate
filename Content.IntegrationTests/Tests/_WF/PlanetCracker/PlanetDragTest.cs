@@ -40,7 +40,7 @@ public sealed class PlanetDragTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
 
         var cap = 0f;
@@ -90,7 +90,7 @@ public sealed class PlanetDragTest
         var orbit = layers[^1];
 
         var origin = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, origin.MapId);
+        var hull = await BuildHull(pair, origin.MapId);
         await MapInitHull(pair, hull);
 
         var own = 0f;

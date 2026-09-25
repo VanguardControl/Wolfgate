@@ -107,7 +107,7 @@ public sealed class PlanetPopulationTest
             var carcinomaId = "WFSurfaceCarcinoma";
             var registered = server.System<WFPlanetRegistrySystem>().ApplySurface(body,
                 proto.Index<WFPlanetSurfacePrototype>(carcinomaId));
-            Assert.That(registered.Comp.Sanctioned, Is.False, "Survey and sanction notices read this flag.");
+            Assert.That(registered.Comp.Sanctioned, Is.False, "The unsanctioned-orbit confirm reads this flag.");
         });
         await Teardown(pair, allLayers);
         await pair.CleanReturnAsync();

@@ -52,7 +52,7 @@ public sealed class FlightAudioLoadTest
         // Solid tiles under the footprint, so it lands.
         await LayTiles(pair, ground, new Vector2i(-24, -24), new Vector2i(48, 48));
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await MapInitHull(pair, hull);
 
         // Rows 4 and 5 of the hull are clear: thirty tiles.

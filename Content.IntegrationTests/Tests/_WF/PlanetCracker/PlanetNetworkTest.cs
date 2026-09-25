@@ -161,9 +161,9 @@ public sealed class PlanetNetworkTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A crackable world has air layers but no cloud deck, which would hide the ground from orbit.</summary>
+    /// <summary>Asclepiu has air layers but no cloud deck, which would hide the ground from orbit.</summary>
     [Test]
-    public async Task CrackableStackHasNoCloudLayer()
+    public async Task AsclepiuHasNoCloudLayer()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;

@@ -23,5 +23,3 @@
   - OreSilver
   - OrePlasma
   - OreUranium
-  # Adding or removing any marker layer re-rolls every layer's placement.
-  - WFDeepVeins

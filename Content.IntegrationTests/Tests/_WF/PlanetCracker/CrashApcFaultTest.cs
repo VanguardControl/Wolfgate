@@ -24,7 +24,7 @@ public sealed class CrashApcFaultTest
         var server = pair.Server;
         var em = server.EntMan;
         var map = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, map.MapId);
+        var hull = await BuildHull(pair, map.MapId);
         await MapInitHull(pair, hull);
         var apc = EntityUid.Invalid;
         var user = EntityUid.Invalid;

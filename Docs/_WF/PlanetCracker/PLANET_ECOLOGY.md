@@ -16,11 +16,11 @@ map's automatic DesertWorld are unchanged.
   Cold-tolerant argocytes and occasional space bears inhabit this fictional frozen surface.
 
 - Carcinoma: flesh ground, static meat-wall outcrops and flesh clumps. Chimera beasts
-  roam with rarer large horrors. The sector body is red/pink, the survey marks it
-  unsanctioned, and existing TSF notices apply when a crack starts and completes.
+  roam with rarer large horrors. The sector body is red/pink and the world is
+  unsanctioned, so entering its orbit asks for confirmation.
   No self-spreading kudzu is generated.
 
-Ambient animals are separate from anchor/fissure attack waves. Biome markers
+Ambient animals are separate from any scripted attack waves. Biome markers
 register candidate sites, coalesced into 8-tile cells with a global 2,048-site FIFO
 limit. Discovery from orbit does not immediately consume the animal budget. Every
 five seconds a bounded pass considers up to 64 candidate sites and admits at most
@@ -33,12 +33,12 @@ Ambient spawning remains capped at 32 living animals per origin planet and 128
 across all planets. Dead/deleted animals release slots; captured animals still count.
 Untouched wildlife on its original ground retires after two minutes more than 96
 tiles from all observers. Any damage, player possession, or reparenting to a ship,
-container or extracted chunk protects that animal from retirement permanently.
-Corpses, items and shipwrecks are never removed by this system. Fissure threats,
-admin spawns and infection transformations have their separate existing behavior.
+container or detached terrain protects that animal from retirement permanently.
+Corpses, items and shipwrecks are never removed by this system. Admin spawns and
+infection transformations have their separate existing behavior.
 
-Chimera blood's biomass tile reaction is suppressed on planet layers and extracted
-chunks. Action-spawned hive biomass is also queued for deletion there before a
+Chimera blood's biomass tile reaction is suppressed on planet layers and detached
+terrain. Action-spawned hive biomass is also queued for deletion there before a
 spread tick. This does not alter chimera biomass on ordinary station/space maps.
 
 Carcinoma includes static flesh trees (tinted existing shadow-tree art), flesh
@@ -47,7 +47,7 @@ Blood reagent. They do not spread. Asclepiu/Aerumna have inland water channels;
 Merak has sparse desert channels, Fervidus lava, Thrascias plasma, Carcinoma blood.
 Orbital-marker WarpPoints are admin-only; radar/navigation markers are unaffected.
 
-Deep-vein markers, yield tables, planet atmospheres and flight rules are unchanged.
+Ore markers, planet atmospheres and flight rules are unchanged.
 These recipes use the existing generation system and existing art. No engine edits
 or new outpost maps are required.
 

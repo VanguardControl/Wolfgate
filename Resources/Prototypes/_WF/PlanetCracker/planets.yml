@@ -4,17 +4,13 @@
   id: WFSurfaceAsclepiu
   planetType: PlanetAsclepiu
   ground: WFAsclepiuSurface
-  # No cloud layer: its opaque deck hides the crack site from orbit. A third air layer keeps orbit at depth 4.
+  # No cloud layer: its opaque deck hides the ground from orbit. A third air layer keeps orbit at depth 4.
   airLayers: 3
   cloudLayer: false
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
-  veins: WFVeinTableAsclepiu
-  # Site-threat salvage factions: ground mobs with NavSmash, since flying carps never collide with an anchor.
-  faction: Xenos
-  unsanctionedFaction: Argocytes
-  # Fixed biome seed, so terrain and deep veins are the same every round.
+  # Fixed biome seed, so terrain is the same every round.
   seed: 20260913
   # Stamped over every member and transit map, so only the shared atmosphere belongs here.
   networkComponents:
@@ -44,7 +40,7 @@
   - type: Gravity
     enabled: true
     inherent: true
-  # Lights the chunk and parked hulls; no Gravity, since the chunk carries its own.
+  # Lights parked hulls; no Gravity, since nothing on orbit falls.
   orbitComponents:
   - type: MapLight
     ambientLightColor: "#2a3340"

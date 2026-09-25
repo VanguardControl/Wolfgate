@@ -1,7 +1,5 @@
 using Content.Shared._DV.Planet;
 using Content.Shared._FarHorizons.StarSystem.Prototypes;
-using Content.Shared._WF.PlanetCracker.Survey;
-using Content.Shared.Salvage.Expeditions;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -66,23 +64,11 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public bool BuildAtRoundStart;
 
-    /// <summary>Whether cracking this world is legal.</summary>
+    /// <summary>Whether this world is sanctioned; entering an unsanctioned world's orbit asks for confirmation.</summary>
     [DataField]
     public bool Sanctioned = true;
 
-    /// <summary>The deep-vein table this world rolls every vein from; null means no deep veins and no rating.</summary>
-    [DataField]
-    public ProtoId<WFVeinTablePrototype>? Veins;
-
-    /// <summary>The salvage faction fissure mobs are rolled from on a sanctioned world; null means no fissure mobs.</summary>
-    [DataField]
-    public ProtoId<SalvageFactionPrototype>? Faction;
-
-    /// <summary>The nastier table an unsanctioned crack rolls from; falls back to Faction when unset.</summary>
-    [DataField]
-    public ProtoId<SalvageFactionPrototype>? UnsanctionedFaction;
-
-    /// <summary>Fixed ground biome seed so terrain and deep veins repeat every round; null rolls a new seed each start.</summary>
+    /// <summary>Fixed ground biome seed so terrain repeats every round; null rolls a new seed each start.</summary>
     [DataField]
     public int? Seed;
 
@@ -106,7 +92,7 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public ComponentRegistry? OrbitComponents;
 
-    /// <summary>Name given to the orbit map entity; the console's orbit button and the survey rows read it.</summary>
+    /// <summary>Name given to the orbit map entity; the console's orbit button reads it.</summary>
     [DataField]
     public LocId OrbitMapName = "wf-planet-orbit-map-name";
 

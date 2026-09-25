@@ -32,7 +32,7 @@ public sealed class CrashThrustTest
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
         await LayTiles(pair, layers[0], new Vector2i(-32, -32), new Vector2i(64, 64));
-        var hull = await BuildCracker(pair, em.GetComponent<MapComponent>(layers[0]).MapId);
+        var hull = await BuildHull(pair, em.GetComponent<MapComponent>(layers[0]).MapId);
         await MapInitHull(pair, hull);
         await server.WaitPost(() =>
         {

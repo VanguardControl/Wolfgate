@@ -35,7 +35,7 @@ public sealed class FlightSafetyTest
         var layers = await BuildStandalone(pair);
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-8, -8), new Vector2i(24, 24));
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, landingThrusters);
         await server.WaitPost(() =>
@@ -79,7 +79,7 @@ public sealed class FlightSafetyTest
         var layers = await BuildStandalone(pair);
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-8, -8), new Vector2i(24, 24));
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 3);
         var count = 0;

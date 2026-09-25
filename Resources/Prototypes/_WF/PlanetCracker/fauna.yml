@@ -1,4 +1,4 @@
-# Sparse ambient wildlife, independent of drilling/fissure threats.
+# Sparse ambient wildlife.
 # Table spawners produce mobile animals; placing mobs directly in a biome layer would anchor them.
 
 - type: entityTable

@@ -4,7 +4,6 @@ using Content.Server._CE.ZLevels.Core;
 using Content.Server._NF.Shuttles.Components;
 using Content.Server.Atmos.Components;
 using Content.Server._WF.PlanetCracker.Planets;
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Flight;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Damage;
@@ -97,7 +96,7 @@ public sealed partial class WFCarcinomaInfestationSystem : EntitySystem
         var query = EntityQueryEnumerator<MapGridComponent, PhysicsComponent>();
         while (query.MoveNext(out var hull, out var grid, out var body))
         {
-            if (HasComp<MapComponent>(hull) || HasComp<WFPlanetChunkComponent>(hull)) continue;
+            if (HasComp<MapComponent>(hull) || HasComp<WFDetachedTerrainComponent>(hull)) continue;
             var hasState = TryComp<WFCarcinomaInfestationComponent>(hull, out var state);
             if (!IsLandedHere(hull))
             {

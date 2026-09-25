@@ -37,9 +37,6 @@
   sanctioned: false
   gravity: 1
   seed: 20260918
-  veins: WFVeinTableCarcinoma
-  faction: WFCarcinomaThreats
-  unsanctionedFaction: WFCarcinomaThreats
   networkComponents:
   - type: MapAtmosphere
     space: false
@@ -71,8 +68,6 @@
     immutable: true
     temperature: 310.15
     moles: [21.824879, 82.10312]
-  biomeMarkerLayers:
-  - WFDeepVeinsCarcinoma
 
 - type: biomeTemplate
   id: WFBiomeCarcinoma
@@ -238,49 +233,6 @@
   - type: WFPlanetFaunaSpawner
     table: WFFaunaCarcinoma
 
-# Direct mob entries let the existing fissure code enforce its cumulative spawn cap.
-- type: salvageFaction
-  id: WFCarcinomaThreats
-  desc: wf-planet-carcinoma-faction
-  cost: 1
-  groups:
-  - entries:
-    - id: MobLetoferolBeast
-      amount: 1
-      maxAmount: 1
-    prob: 0.9
-  - entries:
-    - id: MobLetoferolHorror
-      amount: 1
-      maxAmount: 1
-    prob: 0.1
-
-- type: entity
-  id: WFDeepVeinCarcinoma
-  parent: WFDeepVein
-  components:
-  - type: WFDeepVein
-    allowedTiles: [WFFloorFlesh, FloorFlesh]
-
-- type: biomeMarkerLayer
-  id: WFDeepVeinsCarcinoma
-  prototype: WFDeepVeinCarcinoma
-  size: 128
-  radius: 12
-  maxCount: 93
-  minGroupSize: 1
-  maxGroupSize: 1
-
-- type: wfVeinTable
-  id: WFVeinTableCarcinoma
-  ores:
-    OreSteel: { weight: 3, value: 1 }
-    OreSpaceQuartz: { weight: 2, value: 2 }
-    OrePlasma: { weight: 4, value: 7 }
-    OreUranium: { weight: 2, value: 9 }
-  yieldRange: 2000, 4500
-  unsanctionedMultiplier: 2
-  rate: 150
 # Exterior flesh terrain accepts weather without exposing indoor station flesh floors.
 - type: tile
   id: WFFloorFlesh

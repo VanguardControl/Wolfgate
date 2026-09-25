@@ -433,8 +433,8 @@ public sealed partial class CEZLevelsSystem
         // WOLFGATE(PlanetCracker) START: one crash, one bang.
         // Every tile still queues its own crater, but each queued explosion plays two
         // networked audio streams, and a hull's worth of them exhausted the client's OpenAL sources and took the client
-        // down mid-crash. The central blast carries the sound where there is one; a dropped planet chunk zeroes it
-        // (WFPlanetChunkSystem.cs:242), so there the first tile carries it instead. Combining folds an audible blast
+        // down mid-crash. The central blast carries the sound where there is one; a grid whose CrashIntensityPerTile is
+        // zero has none, so there the first tile carries it instead. Combining folds an audible blast
         // into whatever it merges with (ExplosionSystem.cs), so exactly one bang survives either way.
         var soundOnCentre = ent.Comp2.CrashIntensityPerTile > 0f;
         // WOLFGATE END
@@ -485,7 +485,7 @@ public sealed partial class CEZLevelsSystem
 
             if (_physQuery.TryComp(grid, out var body))
                 mass += body.FixturesMass;
-            mass += GetWFVirtualMass(grid); // WOLFGATE(PlanetCracker): crated anchors aboard count against pooled lift (D11).
+            mass += GetWFVirtualMass(grid); // WOLFGATE(PlanetCracker): cargo virtual mass counts against pooled lift.
         }
 
         // capacity > 0 means at least one active generator exists; a set with no lift

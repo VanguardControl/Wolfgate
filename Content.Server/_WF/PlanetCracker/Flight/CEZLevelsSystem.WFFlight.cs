@@ -284,11 +284,11 @@ public sealed partial class CEZLevelsSystem
         _wfFlight.BeginSkid(grid, thud: false);
     }
 
-    /// <summary>Planetary ship crashes use structural breakup; extracted chunks retain their original drop.</summary>
+    /// <summary>Planetary ship crashes use structural breakup; detached terrain keeps the plain crash.</summary>
     public bool WfTryStructuralCrash(Entity<MapGridComponent, CEZGridFallerComponent> ent, float impact)
     {
         if (!WfHasSkidGround(ent.Owner)
-            || HasComp<Content.Shared._WF.PlanetCracker.Chunk.WFPlanetChunkComponent>(ent.Owner))
+            || HasComp<WFDetachedTerrainComponent>(ent.Owner))
             return false;
         var reference = WfGetFreeFallSpeed(ent.Comp2);
         _wfFlight.StructuralCrash((ent.Owner, ent.Comp1), reference > 0f ? impact / reference : 1f);

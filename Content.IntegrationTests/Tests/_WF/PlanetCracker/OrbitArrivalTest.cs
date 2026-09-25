@@ -40,7 +40,7 @@ public sealed class OrbitArrivalTest
         var orbit = layers[^1];
 
         var origin = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, origin.MapId);
+        var hull = await BuildHull(pair, origin.MapId);
         await OpenOriginTile(pair, hull);
         await MapInitHull(pair, hull);
 
@@ -85,7 +85,7 @@ public sealed class OrbitArrivalTest
         var orbit = layers[^1];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await OpenOriginTile(pair, hull);
         await MapInitHull(pair, hull);
         await Nudge(pair, hull);
@@ -140,7 +140,7 @@ public sealed class OrbitArrivalTest
         var topAir = layers[^2];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await OpenOriginTile(pair, hull);
         await MapInitHull(pair, hull);
 

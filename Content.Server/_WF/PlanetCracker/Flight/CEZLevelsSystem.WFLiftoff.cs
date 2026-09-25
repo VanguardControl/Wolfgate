@@ -4,7 +4,6 @@ using Content.Server._NF.Shuttles.Components;
 using Content.Server._WF.PlanetCracker.Flight;
 using Content.Server.Shuttles.Components;
 using Content.Shared._CE.ZLevels.Core.Components;
-using Content.Shared._WF.PlanetCracker.Cracker;
 using Content.Shared._WF.PlanetCracker.Flight;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Shuttles.Components;
@@ -72,12 +71,6 @@ public sealed partial class CEZLevelsSystem
 
         foreach (var member in transitSet)
         {
-            if (TryComp<WFPlanetCrackerComponent>(member, out var cracker) && cracker.Locked)
-            {
-                reason = Loc.GetString("wf-liftoff-cracker-locked");
-                return false;
-            }
-
             if (HasComp<ForceAnchorComponent>(member))
             {
                 reason = Loc.GetString("wf-liftoff-force-anchored");

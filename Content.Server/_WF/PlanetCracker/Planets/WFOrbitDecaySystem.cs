@@ -2,7 +2,6 @@ using Content.Server._NF.Shuttles.Components;
 using Content.Server._WF.ShipPa;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared._WF.ShipPa;
 using Robust.Shared.Map.Components;
@@ -77,8 +76,8 @@ public sealed partial class WFOrbitDecaySystem : EntitySystem
 
             _settleAt.TryAdd(grid, _timing.CurTime + SettleDelay);
 
-            // Clear rather than skip, so a grid that became a chunk loses an existing countdown.
-            if (HasComp<WFPlanetChunkComponent>(grid) || HasStationKeeping(grid))
+            // Clear rather than skip, so a grid that became detached terrain loses an existing countdown.
+            if (HasComp<WFDetachedTerrainComponent>(grid) || HasStationKeeping(grid))
             {
                 ClearDecay(grid);
                 continue;

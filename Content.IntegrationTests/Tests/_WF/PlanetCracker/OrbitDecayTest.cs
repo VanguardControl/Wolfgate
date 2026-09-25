@@ -7,8 +7,8 @@ using Content.Server._WF.PlanetCracker.Planets;
 using Content.Server._WF.ShipPa;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Flight;
+using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared._WF.ShipPa;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -46,7 +46,7 @@ public sealed class OrbitDecayTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 1);
 
@@ -81,7 +81,7 @@ public sealed class OrbitDecayTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
         var thrusters = await AddLandingThrusters(pair, hull, 1);
 
@@ -132,7 +132,7 @@ public sealed class OrbitDecayTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 1);
 
@@ -187,7 +187,7 @@ public sealed class OrbitDecayTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 1);
 
@@ -296,25 +296,25 @@ public sealed class OrbitDecayTest
         var orbit = layers[^1];
         var orbitMap = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 1);
 
-        var transport = await BuildTransport(pair, orbitMap, new Vector2(400f, 0f));
-        await MapInitHull(pair, transport);
-        await SetThrusters(pair, transport, false);
+        var lander = await BuildLander(pair, orbitMap, new Vector2(400f, 0f));
+        await MapInitHull(pair, lander);
+        await SetThrusters(pair, lander, false);
 
         // Align the docking ports before docking so the weld starts at rest.
         await server.WaitPost(() =>
         {
             var hullDock = FindDock(entMan, hull);
-            var transportDock = FindDock(entMan, transport);
+            var landerDock = FindDock(entMan, lander);
 
-            Assert.That(hullDock, Is.Not.EqualTo(EntityUid.Invalid), "The cracker hull has no docking port.");
-            Assert.That(transportDock, Is.Not.EqualTo(EntityUid.Invalid), "The transport has no docking port.");
+            Assert.That(hullDock, Is.Not.EqualTo(EntityUid.Invalid), "The hull has no docking port.");
+            Assert.That(landerDock, Is.Not.EqualTo(EntityUid.Invalid), "The lander has no docking port.");
 
-            var wanted = transform.GetWorldPosition(hullDock) - transform.GetWorldPosition(transportDock);
-            transform.SetWorldPosition(transport, transform.GetWorldPosition(transport) + wanted);
+            var wanted = transform.GetWorldPosition(hullDock) - transform.GetWorldPosition(landerDock);
+            transform.SetWorldPosition(lander, transform.GetWorldPosition(lander) + wanted);
         });
 
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
@@ -322,11 +322,11 @@ public sealed class OrbitDecayTest
         await server.WaitPost(() =>
         {
             var hullDock = FindDock(entMan, hull);
-            var transportDock = FindDock(entMan, transport);
+            var landerDock = FindDock(entMan, lander);
 
             docking.Dock(
                 (hullDock, entMan.GetComponent<DockingComponent>(hullDock)),
-                (transportDock, entMan.GetComponent<DockingComponent>(transportDock)));
+                (landerDock, entMan.GetComponent<DockingComponent>(landerDock)));
         });
 
         await server.WaitRunTicks(pair.SecondsToTicks(3f));
@@ -338,8 +338,8 @@ public sealed class OrbitDecayTest
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(docked, Does.Contain(transport), "Precondition: the transport is docked to the hull.");
-                Assert.That(entMan.HasComponent<WFOrbitDecayComponent>(transport), Is.False,
+                Assert.That(docked, Does.Contain(lander), "Precondition: the lander is docked to the hull.");
+                Assert.That(entMan.HasComponent<WFOrbitDecayComponent>(lander), Is.False,
                     "A thrusterless grid docked to a hull that is keeping station is decaying anyway.");
                 Assert.That(entMan.HasComponent<WFOrbitDecayComponent>(hull), Is.False,
                     "The hull that is keeping station is decaying.");
@@ -350,14 +350,13 @@ public sealed class OrbitDecayTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Force-anchored grids and berthed chunks are never stamped.</summary>
+    /// <summary>Force-anchored grids and detached terrain are never stamped.</summary>
     [Test]
-    public async Task ForceAnchoredAndChunkNeverDecay()
+    public async Task ForceAnchoredAndDetachedTerrainNeverDecay()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
-        var timing = server.ResolveDependency<IGameTiming>();
 
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
@@ -365,16 +364,12 @@ public sealed class OrbitDecayTest
         var orbitMap = await MapIdOf(pair, orbit);
 
         var anchored = await BuildDebris(pair, orbitMap, 3, new Vector2(30f, 0f));
-        var chunk = await BuildDebris(pair, orbitMap, 3, new Vector2(60f, 0f));
+        var terrain = await BuildDebris(pair, orbitMap, 3, new Vector2(60f, 0f));
 
         await server.WaitPost(() =>
         {
             entMan.AddComponent<ForceAnchorComponent>(anchored);
-
-            // Keep the chunk watchdog from dropping this orphan chunk first.
-            var comp = entMan.AddComponent<WFPlanetChunkComponent>(chunk);
-            comp.ExtractedAt = timing.CurTime;
-            comp.WatchdogGrace = TimeSpan.FromMinutes(5);
+            entMan.AddComponent<WFDetachedTerrainComponent>(terrain);
         });
 
         await server.WaitRunTicks(pair.SecondsToTicks(StampWait));
@@ -385,12 +380,12 @@ public sealed class OrbitDecayTest
             {
                 Assert.That(entMan.HasComponent<WFOrbitDecayComponent>(anchored), Is.False,
                     "A force-anchored grid is decaying.");
-                Assert.That(entMan.HasComponent<WFOrbitDecayComponent>(chunk), Is.False,
-                    "A chunk in the berth is decaying.");
+                Assert.That(entMan.HasComponent<WFOrbitDecayComponent>(terrain), Is.False,
+                    "Detached terrain is decaying.");
                 Assert.That(entMan.GetComponent<TransformComponent>(anchored).MapUid, Is.EqualTo(orbit),
                     "The force-anchored grid left the orbit layer.");
-                Assert.That(entMan.GetComponent<TransformComponent>(chunk).MapUid, Is.EqualTo(orbit),
-                    "The chunk left the orbit layer.");
+                Assert.That(entMan.GetComponent<TransformComponent>(terrain).MapUid, Is.EqualTo(orbit),
+                    "The detached terrain left the orbit layer.");
             }
         });
 

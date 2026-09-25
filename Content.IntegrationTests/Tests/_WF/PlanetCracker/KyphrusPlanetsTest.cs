@@ -3,13 +3,7 @@ using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._WF.PlanetCracker.Planets;
 using Content.Shared._WF.PlanetCracker.Planets;
-using Content.Shared._WF.PlanetCracker.Survey;
-using Content.Shared.Maps;
 using Robust.Shared.GameObjects;
-using Robust.Shared.Map;
-using Robust.Shared.Map.Components;
-using Robust.Shared.Maths;
-using Robust.Shared.Prototypes;
 using static Content.IntegrationTests.Tests._WF.PlanetCracker.PlanetCrackerFixture;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
@@ -17,20 +11,18 @@ namespace Content.IntegrationTests.Tests._WF.PlanetCracker;
 [TestFixture]
 public sealed class KyphrusPlanetsTest
 {
-    [TestCase("PlanetFervidus", "Fervidus", "FloorBasalt")]
-    [TestCase("PlanetMerak", "Merak", "FloorDesertPlanet")]
-    [TestCase("PlanetAerumna", "Aerumna", "FloorChromite")]
-    [TestCase("PlanetThrascias", "Thrascias", "FloorSnow")]
-    [TestCase("WFPlanetCarcinoma", "Carcinoma", "WFFloorFlesh")]
-    public async Task NewWorldBuildsAndItsVeinsSurvive(string planet, string name, string floor)
+    [TestCase("PlanetFervidus", "Fervidus")]
+    [TestCase("PlanetMerak", "Merak")]
+    [TestCase("PlanetAerumna", "Aerumna")]
+    [TestCase("PlanetThrascias", "Thrascias")]
+    [TestCase("WFPlanetCarcinoma", "Carcinoma")]
+    public async Task NewWorldBuilds(string planet, string name)
     {
         await using var pair = await PoolManager.GetServerClient();
         await EnableFeature(pair);
         var server = pair.Server;
         var em = server.EntMan;
-        var proto = server.ResolveDependency<IPrototypeManager>();
         var layers = new List<EntityUid>();
-        var vein = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
             var registry = server.System<WFPlanetRegistrySystem>();
@@ -50,24 +42,6 @@ public sealed class KyphrusPlanetsTest
             for (var y = -100; y <= 100; y += 25)
                 Assert.That(radar.Sample(orbit, new Vector2(x, y)), Is.Not.Null,
                     "The natural surface must not have noise gaps.");
-
-            var tiles = server.ResolveDependency<ITileDefinitionManager>();
-            var grid = em.GetComponent<MapGridComponent>(layers[0]);
-            server.System<SharedMapSystem>().SetTile(layers[0], grid, Vector2i.Zero,
-                new Tile(tiles[floor].TileId));
-            vein = em.SpawnEntity("WFDeepVein" + name,
-                new EntityCoordinates(layers[0], new Vector2(0.5f, 0.5f)));
-        });
-        await server.WaitRunTicks(2);
-        await server.WaitAssertion(() =>
-        {
-            Assert.That(em.EntityExists(vein), Is.True, "The world's vein rejected its own terrain.");
-            var seam = em.GetComponent<WFDeepVeinComponent>(vein);
-            var table = proto.Index<WFVeinTablePrototype>("WFVeinTable" + name);
-            Assert.That(seam.TotalYield, Is.GreaterThan(0));
-            Assert.That(seam.Remaining, Is.EqualTo(seam.TotalYield));
-            Assert.That(table.Ores.ContainsKey(seam.Ore), Is.True);
-            Assert.That(em.GetComponent<TransformComponent>(vein).Anchored, Is.True);
         });
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();

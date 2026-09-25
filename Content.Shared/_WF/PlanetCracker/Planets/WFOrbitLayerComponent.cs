@@ -20,7 +20,7 @@ public sealed partial class WFOrbitLayerComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? RadarGround;
 
-    /// <summary>World-space cut circles (XY centre, Z radius); these override procedural terrain.</summary>
+    /// <summary>Holes cut into the ground (centre xy, radius z) that the radar draws as empty; other modules add them.</summary>
     [DataField, AutoNetworkedField]
     public List<Vector3> RadarScars = new();
 

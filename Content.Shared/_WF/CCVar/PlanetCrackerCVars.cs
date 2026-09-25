@@ -3,7 +3,7 @@ using Robust.Shared.Configuration;
 namespace Content.Shared._WF.CCVar;
 
 /// <summary>
-/// Settings for Wolfgate planet cracking.
+/// Settings for Wolfgate planets.
 /// </summary>
 [CVarDefs]
 public sealed class PlanetCrackerCVars
@@ -13,10 +13,4 @@ public sealed class PlanetCrackerCVars
     /// </summary>
     public static readonly CVarDef<bool> PlanetNetworks =
         CVarDef.Create("wf.planet_networks", false, CVar.SERVERONLY);
-
-    /// <summary>
-    /// Whether an unsanctioned crack raises sector notices; false mutes both the begin and the extraction line.
-    /// </summary>
-    public static readonly CVarDef<bool> Announce =
-        CVarDef.Create("wf.planet_cracker.announce", true, CVar.SERVERONLY);
 }

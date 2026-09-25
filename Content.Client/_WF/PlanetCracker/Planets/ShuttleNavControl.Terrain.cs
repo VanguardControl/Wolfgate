@@ -59,7 +59,7 @@ public partial class ShuttleNavControl
         Color.FromHex("#49422F"), // sand / soil
         Color.FromHex("#424B50"), // snow / ice
         Color.FromHex("#303438"), // rock / artificial tile
-        Color.FromHex("#080D12"), // extracted ground
+        Color.FromHex("#080D12"), // scarred ground
         Color.FromHex("#B35B32"), // lava
         Color.FromHex("#67737B"), // rock formations / crystals
         Color.FromHex("#365942"), // vegetation

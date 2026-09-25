@@ -9,7 +9,6 @@ wf-liftoff-not-grounded = Liftoff can only engage while the hull is landed on a 
 wf-liftoff-not-planet = This hull is not flying over a planet.
 wf-liftoff-pilot-lost = Take control of this shuttle console before engaging liftoff.
 wf-liftoff-force-anchored = The hull is force-anchored and cannot lift off.
-wf-liftoff-cracker-locked = Release the planet cracker's ground lock before liftoff.
 wf-liftoff-power-deficit = The hull does not have enough power for atmospheric lift.
 wf-liftoff-insufficient-lift = Atmospheric lift is only { $ratio } : 1; at least 1.00 : 1 is required.
 wf-liftoff-blocked = Something is holding the hull down.

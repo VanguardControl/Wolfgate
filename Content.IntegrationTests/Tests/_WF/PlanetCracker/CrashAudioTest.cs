@@ -44,7 +44,7 @@ public sealed class CrashAudioTest
         // A landing only counts as a crash over solid ground, and no viewer means no biome tiles.
         await LayTiles(pair, ground, new Vector2i(-4, -4), new Vector2i(20, 20));
 
-        var hull = await BuildCracker(pair, lowAirMapId);
+        var hull = await BuildHull(pair, lowAirMapId);
         await MapInitHull(pair, hull);
 
         var seen = new HashSet<EntityUid>();

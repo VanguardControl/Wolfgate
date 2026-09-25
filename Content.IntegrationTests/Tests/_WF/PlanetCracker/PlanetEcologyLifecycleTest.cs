@@ -3,7 +3,6 @@ using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._WF.PlanetCracker.Planets;
 using Content.Server.Chemistry.TileReactions;
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
@@ -136,7 +135,7 @@ public sealed class PlanetEcologyLifecycleTest
     }
 
     [Test]
-    public async Task ChimeraBloodCannotSeedPlanetsOrChunksButStillWorksElsewhere()
+    public async Task ChimeraBloodCannotSeedPlanetsOrDetachedTerrainButStillWorksElsewhere()
     {
         await using var pair = await PoolManager.GetServerClient();
         await EnableFeature(pair);
@@ -164,10 +163,10 @@ public sealed class PlanetEcologyLifecycleTest
             var ordinaryMap = map.CreateMap();
             layers.Add(ordinaryMap);
             ordinary = em.SpawnEntity("ChimeraFleshKudzu", new EntityCoordinates(ordinaryMap, Vector2.Zero));
-            var chunk = em.SpawnEntity(null, new EntityCoordinates(ordinaryMap, Vector2.Zero));
-            em.AddComponent<WFPlanetChunkComponent>(chunk);
-            Assert.That(server.System<WFPlanetBiomassSystem>().IsPlanet(chunk), Is.True);
-            em.DeleteEntity(chunk);
+            var terrain = em.SpawnEntity(null, new EntityCoordinates(ordinaryMap, Vector2.Zero));
+            em.AddComponent<WFDetachedTerrainComponent>(terrain);
+            Assert.That(server.System<WFPlanetBiomassSystem>().IsPlanet(terrain), Is.True);
+            em.DeleteEntity(terrain);
         });
         await server.WaitRunTicks(2);
         await server.WaitAssertion(() =>

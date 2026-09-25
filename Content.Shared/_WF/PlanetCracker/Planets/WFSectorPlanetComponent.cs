@@ -21,11 +21,7 @@ public sealed partial class WFSectorPlanetComponent : Component
     [DataField, AutoNetworkedField]
     public NetEntity? OrbitMap;
 
-    /// <summary>True once a disc has been cut out of this body; kept here because the z-network can be rebuilt.</summary>
-    [DataField, AutoNetworkedField]
-    public bool Cracked;
-
-    /// <summary>Whether cracking this world is legal, mirrored off the surface prototype.</summary>
+    /// <summary>Whether this world is sanctioned, mirrored off the surface prototype; Planet Control can flip it.</summary>
     [DataField, AutoNetworkedField]
     public bool Sanctioned = true;
 }

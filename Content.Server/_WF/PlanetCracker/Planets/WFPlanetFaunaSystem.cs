@@ -17,7 +17,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.PlanetCracker.Planets;
 
-/// <summary>Bounded, player-local wildlife encounters, independent of drilling/fissure threats.</summary>
+/// <summary>Bounded, player-local wildlife encounters.</summary>
 public sealed partial class WFPlanetFaunaSystem : EntitySystem
 {
     public const int MaxPerPlanet = 32;

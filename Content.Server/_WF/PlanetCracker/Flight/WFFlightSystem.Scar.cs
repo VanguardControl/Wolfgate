@@ -41,7 +41,7 @@ public sealed partial class WFFlightSystem
                 || !_map.TryGetTileRef(ground, groundGrid, index, out var original) || original.Tile.IsEmpty)
                 continue;
             var definition = (ContentTileDefinition) _scarTiles[original.Tile.TypeId];
-            // Never fill extraction holes, water, blood rivers or lava with a strip of new land.
+            // Never fill holes, water, blood rivers or lava with a strip of new land.
             if (definition.Reagent != null || definition.Friction <= 0f)
                 continue;
 

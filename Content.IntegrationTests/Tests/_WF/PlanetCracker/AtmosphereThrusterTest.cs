@@ -34,7 +34,7 @@ public sealed class AtmosphereThrusterTest
         var em = server.EntMan;
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var engine = await AddPaidEngine(pair, hull, 981f);
@@ -87,7 +87,7 @@ public sealed class AtmosphereThrusterTest
         var em = server.EntMan;
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var engine = await AddPaidEngine(pair, hull, 981f);
@@ -163,7 +163,7 @@ public sealed class AtmosphereThrusterTest
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
         await LayTiles(pair, layers[0], new Vector2i(-8, -8), new Vector2i(32, 32));
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var engine = await AddPaidEngine(pair, hull, 4000f);
@@ -205,7 +205,7 @@ public sealed class AtmosphereThrusterTest
         var layers = await BuildStandalone(pair);
         var space = await pair.CreateTestMap();
         var transit = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, space.MapId);
+        var hull = await BuildHull(pair, space.MapId);
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var engine = await AddPaidEngine(pair, hull, 4000f);
@@ -300,7 +300,7 @@ public sealed class AtmosphereThrusterTest
         var zLevels = server.System<CEZLevelsSystem>();
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         var converted = await AddLandingThrusters(pair, hull, 2);
 
@@ -340,7 +340,7 @@ public sealed class AtmosphereThrusterTest
         var zLevels = server.System<CEZLevelsSystem>();
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var engine = await AddPaidEngine(pair, hull, 981f);
@@ -400,7 +400,7 @@ public sealed class AtmosphereThrusterTest
         var transform = server.System<SharedTransformSystem>();
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[^1]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[^1]));
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var engine = await AddPaidEngine(pair, hull, 981f);
@@ -466,7 +466,7 @@ public sealed class AtmosphereThrusterTest
         var server = pair.Server;
         var em = server.EntMan;
         var map = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, map.MapId);
+        var hull = await BuildHull(pair, map.MapId);
         await MapInitHull(pair, hull);
         var engine = EntityUid.Invalid;
         var kit = EntityUid.Invalid;
@@ -503,7 +503,7 @@ public sealed class AtmosphereThrusterTest
         var zLevels = server.System<CEZLevelsSystem>();
         var receiver = server.System<SharedPowerReceiverSystem>();
         var map = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, map.MapId);
+        var hull = await BuildHull(pair, map.MapId);
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         var ordinary = await AddPaidEngine(pair, hull, 4000f);
@@ -554,11 +554,11 @@ public sealed class AtmosphereThrusterTest
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
         var space = await pair.CreateTestMap();
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
-        // 225 half-mass hull tiles plus two 6-unit crates; ordinary engines retain half their rated force.
-        await AddPaidEngine(pair, hull, 2f * (112.5f + 12f) * Gravity * liftRatio);
+        // 225 half-mass hull tiles; ordinary engines retain half their rated force.
+        await AddPaidEngine(pair, hull, 2f * 112.5f * Gravity * liftRatio);
 
         await server.WaitAssertion(() =>
         {

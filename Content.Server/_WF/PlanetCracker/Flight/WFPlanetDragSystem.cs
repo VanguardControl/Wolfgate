@@ -1,6 +1,5 @@
 using Content.Server._NF.Shuttles.Components;
 using Content.Shared._CE.ZLevels.Core.Components;
-using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Flight;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Robust.Shared.Map.Components;
@@ -56,7 +55,7 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
         if (HasComp<CEZGroundLayerComponent>(mapUid) || (TryComp<CEZMapComponent>(mapUid, out var zMap) && zMap.Depth == 0))
             return false;
 
-        if (HasComp<WFPlanetChunkComponent>(grid) || HasComp<ForceAnchorComponent>(grid))
+        if (HasComp<WFDetachedTerrainComponent>(grid) || HasComp<ForceAnchorComponent>(grid))
             return false;
 
         if (TryComp<WFOrbitLayerComponent>(mapUid, out var orbit))

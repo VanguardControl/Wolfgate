@@ -111,6 +111,10 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         if (surface.Seed is { } biomeSeed && TryComp<BiomeComponent>(ground, out var groundBiome))
             _biome.SetSeed(ground, groundBiome, biomeSeed);
 
+        // Before the ground grid or any chunk loads, so marker layers other modules add keep a stable order.
+        var spawned = new WFPlanetGroundSpawnedEvent(ground, surface);
+        RaiseLocalEvent(ref spawned);
+
         if (surface.GroundGrid is { } gridPath)
         {
             var groundMapId = Comp<MapComponent>(ground).MapId;

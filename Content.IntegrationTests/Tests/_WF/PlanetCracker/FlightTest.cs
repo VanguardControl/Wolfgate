@@ -46,11 +46,8 @@ public sealed class FlightTest
     /// <summary>The fall rumble, as the audio entity reports it.</summary>
     private const string RumbleClip = "/Audio/_WF/PlanetCracker/Flight/fall_rumble.ogg";
 
-    /// <summary>The tiny cracker's hull mass: 225 tiles at TileDensityMultiplier 0.5.</summary>
-    private const float CrackerHullMass = 112.5f;
-
-    /// <summary>WFAnchorCrateComponent.VirtualMass, times the cracker's two crates.</summary>
-    private const float CrackerCargoMass = 12f;
+    /// <summary>The test hull's mass: 225 tiles at TileDensityMultiplier 0.5.</summary>
+    private const float HullMass = 112.5f;
 
     /// <summary>Sounds two hulls may make in a hard landing; skid damage is not a sound per victim.</summary>
     private const int AudioBudget = 24;
@@ -66,7 +63,7 @@ public sealed class FlightTest
         var layers = await BuildStandalone(pair);
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-8, -8), new Vector2i(64, 64));
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         await server.WaitAssertion(() =>
         {
@@ -112,7 +109,7 @@ public sealed class FlightTest
         var em = server.EntMan;
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
-        var hull = await BuildCracker(pair, await MapIdOf(pair, layers[0]));
+        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
         await MapInitHull(pair, hull);
         await server.WaitAssertion(() =>
         {
@@ -140,7 +137,7 @@ public sealed class FlightTest
         var layers = await BuildStandalone(pair);
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-32, -32), new Vector2i(64, 64));
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         var near = EntityUid.Invalid;
         var far = EntityUid.Invalid;
@@ -181,7 +178,7 @@ public sealed class FlightTest
         var topAir = layers[^2];
         var airMapId = await MapIdOf(pair, topAir);
 
-        var hull = await BuildCracker(pair, airMapId);
+        var hull = await BuildHull(pair, airMapId);
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         await Energise(pair, hull);
@@ -191,7 +188,7 @@ public sealed class FlightTest
             Assert.That(zLevels.WfTryGetLiftRatio(hull, out var ratio), Is.True,
                 "A hull on a planet air layer reports no lift ratio at all.");
             Assert.That(ratio, Is.EqualTo(0f).Within(0.001f),
-                "The powered centrifuge is still counting as lift on a planet layer.");
+                "The powered gravity generator is still counting as lift on a planet layer.");
         });
 
         await AddLandingThrusters(pair, hull, 2);
@@ -200,8 +197,8 @@ public sealed class FlightTest
         {
             zLevels.WfTryGetLiftRatio(hull, out var ratio);
 
-            Assert.That(ratio, Is.EqualTo(100f / (CrackerHullMass + CrackerCargoMass)).Within(0.01f),
-                "Two 50-rated landing thrusters do not give the cracker the lift their ratings add up to.");
+            Assert.That(ratio, Is.EqualTo(100f / HullMass).Within(0.01f),
+                "Two 50-rated landing thrusters do not give the hull the lift their ratings add up to.");
         });
 
         await Teardown(pair, layers);
@@ -221,7 +218,7 @@ public sealed class FlightTest
         var topAir = layers[^2];
         var airMapId = await MapIdOf(pair, topAir);
 
-        var hull = await BuildCracker(pair, airMapId);
+        var hull = await BuildHull(pair, airMapId);
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
         await AddLandingThrusters(pair, hull, 1);
@@ -264,7 +261,7 @@ public sealed class FlightTest
         var orbit = layers[^1];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await MapInitHull(pair, hull);
 
         if (speakerPower >= 0)
@@ -377,7 +374,7 @@ public sealed class FlightTest
         var orbit = layers[^1];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await MapInitHull(pair, hull);
 
         var refusal = await EnterAtmosphere(pair, hull);
@@ -444,7 +441,7 @@ public sealed class FlightTest
 
         await LayTiles(pair, ground, new Vector2i(-24, -24), new Vector2i(48, 48));
 
-        var hull = await BuildCracker(pair, groundMapId);
+        var hull = await BuildHull(pair, groundMapId);
         await MapInitHull(pair, hull);
 
         // The decision reads only state and touchdown speed, so both are set by hand.
@@ -531,7 +528,7 @@ public sealed class FlightTest
 
         await LayTiles(pair, ground, new Vector2i(-24, -24), new Vector2i(48, 48));
 
-        var hull = await BuildCracker(pair, groundMapId);
+        var hull = await BuildHull(pair, groundMapId);
         await MapInitHull(pair, hull);
 
         var before = 0;
@@ -611,7 +608,7 @@ public sealed class FlightTest
 
         await LayTiles(pair, ground, new Vector2i(-24, -24), new Vector2i(48, 48));
 
-        var hull = await BuildCracker(pair, lowAirMapId);
+        var hull = await BuildHull(pair, lowAirMapId);
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
 
@@ -710,7 +707,7 @@ public sealed class FlightTest
         var entMan = server.EntMan;
         var interaction = server.System<SharedInteractionSystem>();
         var map = await pair.CreateTestMap();
-        var transport = await BuildTransport(pair, map.MapId);
+        var lander = await BuildLander(pair, map.MapId);
         var thruster = EntityUid.Invalid;
         var user = EntityUid.Invalid;
         var kit = EntityUid.Invalid;
@@ -719,7 +716,7 @@ public sealed class FlightTest
 
         await server.WaitPost(() =>
         {
-            foreach (var child in Children(entMan, transport))
+            foreach (var child in Children(entMan, lander))
             {
                 if (entMan.GetComponent<MetaDataComponent>(child).EntityPrototype?.ID == PlainThruster)
                     thruster = child;
@@ -728,8 +725,8 @@ public sealed class FlightTest
             Assert.That(thruster, Is.Not.EqualTo(EntityUid.Invalid));
             original = entMan.GetComponent<ThrusterComponent>(thruster);
             coords = entMan.GetComponent<TransformComponent>(thruster).Coordinates;
-            user = entMan.SpawnEntity(ViewerProto, new EntityCoordinates(transport, coords.Position + Vector2.UnitX));
-            kit = entMan.SpawnEntity(Kit, new EntityCoordinates(transport, coords.Position + Vector2.UnitX));
+            user = entMan.SpawnEntity(ViewerProto, new EntityCoordinates(lander, coords.Position + Vector2.UnitX));
+            kit = entMan.SpawnEntity(Kit, new EntityCoordinates(lander, coords.Position + Vector2.UnitX));
         });
 
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
@@ -766,7 +763,7 @@ public sealed class FlightTest
         var orbit = layers[^1];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await MapInitHull(pair, hull);
 
         // A held descend key does nothing from orbit.
@@ -820,7 +817,7 @@ public sealed class FlightTest
         var orbit = layers[^1];
         var orbitMapId = await MapIdOf(pair, orbit);
 
-        var hull = await BuildCracker(pair, orbitMapId);
+        var hull = await BuildHull(pair, orbitMapId);
         await MapInitHull(pair, hull);
         await RemoveOrdinaryThrusters(pair, hull);
 
@@ -871,7 +868,7 @@ public sealed class FlightTest
         var orbitMapId = await MapIdOf(pair, layers[^1]);
 
         // Flown down from orbit on its landing thrusters onto laid terrain, or CE treats it as a crash.
-        var hull = await BuildTransport(pair, orbitMapId, Vector2.Zero);
+        var hull = await BuildLander(pair, orbitMapId, Vector2.Zero);
         await MapInitHull(pair, hull);
         await LayTiles(pair, ground, new Vector2i(-8, -8), new Vector2i(24, 24));
 
@@ -939,8 +936,8 @@ public sealed class FlightTest
         await LayTiles(pair, ground, new Vector2i(-40, -40), new Vector2i(120, 40));
 
         // Two hulls far enough apart not to collide: one parked, one sliding away.
-        var parked = await BuildCracker(pair, groundMapId);
-        var sliding = await BuildCracker(pair, groundMapId, new Vector2(60f, 0f));
+        var parked = await BuildHull(pair, groundMapId);
+        var sliding = await BuildHull(pair, groundMapId, new Vector2(60f, 0f));
         var hulls = new[] { parked, sliding };
 
         await MapInitHull(pair, parked);

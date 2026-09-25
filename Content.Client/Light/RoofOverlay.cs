@@ -83,8 +83,8 @@ public sealed partial class RoofOverlay : Overlay
                     while (tileEnumerator.MoveNext(out var tileRef))
                     {
                         // WOLFGATE(PlanetCracker) START: open grating is no roof.
-                        // Lattice is a space tile, and the planet cracker's gangway is laid in it on a hull that keeps
-                        // its implicit roof; painted over, it blacked out the world below whenever the eye crossed it.
+                        // Lattice is a space tile laid on hulls that keep their implicit roof; painted over, it
+                        // blacked out the world below whenever the eye crossed it.
                         if (_tileDefs[tileRef.Tile.TypeId] is ContentTileDefinition { MapAtmosphere: true })
                             continue;
                         // WOLFGATE END

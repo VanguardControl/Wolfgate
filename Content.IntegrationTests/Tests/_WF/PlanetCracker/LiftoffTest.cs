@@ -35,7 +35,7 @@ public sealed class LiftoffTest
         var orbit = layers[^1];
         await LayTiles(pair, ground, new Vector2i(-2, -2), new Vector2i(18, 18));
 
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 3);
         var pilot = await HoldVertical(pair, hull, ShuttleButtons.None);
@@ -88,7 +88,7 @@ public sealed class LiftoffTest
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-2, -2), new Vector2i(18, 18));
 
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 3);
         await HoldVertical(pair, hull, ShuttleButtons.AscendZ);
@@ -123,7 +123,7 @@ public sealed class LiftoffTest
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-2, -2), new Vector2i(18, 18));
 
-        var hull = await BuildCracker(pair, await MapIdOf(pair, ground));
+        var hull = await BuildHull(pair, await MapIdOf(pair, ground));
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 3);
         var pilot = await HoldVertical(pair, hull, ShuttleButtons.None);

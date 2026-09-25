@@ -1,6 +1,5 @@
 using System.Numerics;
 using Content.IntegrationTests.Pair;
-using Content.Server._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Map;
@@ -81,7 +80,7 @@ public sealed class PlanetRadarTest
     }
 
     [Test]
-    public async Task LoadedTilesAndExtractionHolesOverrideRecipe()
+    public async Task LoadedTilesAndRadarScarsOverrideRecipe()
     {
         await using var pair = await PoolManager.GetServerClient();
         await EnableFeature(pair);
@@ -95,7 +94,8 @@ public sealed class PlanetRadarTest
             var grid = em.GetComponent<MapGridComponent>(layers[0]);
             var tile = pair.Server.System<SharedMapSystem>().GetTileRef(layers[0], grid, Vector2i.Zero).Tile;
             Assert.That(radar.Sample(orbit, Vector2.Zero), Is.EqualTo(tile));
-            pair.Server.System<WFCrackScarSystem>().RecordScar(layers[0], Vector2.Zero, 3);
+            orbit.RadarScars.Add(new Vector3(0, 0, 3));
+            em.Dirty(layers[^1], orbit);
             Assert.That(orbit.RadarScars, Has.Count.EqualTo(1));
             Assert.That(radar.Sample(orbit, Vector2.Zero)!.Value.IsEmpty, Is.True);
             Assert.That(radar.Sample(orbit, new Vector2(20, 20))!.Value.IsEmpty, Is.False);

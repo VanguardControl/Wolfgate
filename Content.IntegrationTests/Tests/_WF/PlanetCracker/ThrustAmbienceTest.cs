@@ -40,7 +40,7 @@ public sealed class ThrustAmbienceTest
         var orbitMap = MapId.Nullspace;
         await server.WaitPost(() => orbitMap = entMan.GetComponent<MapComponent>(orbit).MapId);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
 
         await server.WaitPost(() =>
@@ -103,7 +103,7 @@ public sealed class ThrustAmbienceTest
         var orbitMap = MapId.Nullspace;
         await server.WaitPost(() => orbitMap = entMan.GetComponent<MapComponent>(orbit).MapId);
 
-        var hull = await BuildCracker(pair, orbitMap);
+        var hull = await BuildHull(pair, orbitMap);
         await MapInitHull(pair, hull);
 
         await server.WaitPost(() =>

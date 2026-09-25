@@ -67,7 +67,7 @@ public sealed class GroundContactTest
         var layers = await BuildStandalone(pair);
         var ground = layers[0];
         await LayTiles(pair, ground, new Vector2i(-32, -32), new Vector2i(64, 64));
-        var hull = await BuildCracker(pair, em.GetComponent<MapComponent>(ground).MapId);
+        var hull = await BuildHull(pair, em.GetComponent<MapComponent>(ground).MapId);
         await MapInitHull(pair, hull);
         var wall = EntityUid.Invalid;
         var rock = EntityUid.Invalid;

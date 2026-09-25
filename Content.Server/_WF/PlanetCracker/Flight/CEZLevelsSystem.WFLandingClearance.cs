@@ -1,6 +1,6 @@
 using System.Numerics;
 using Content.Server.Parallax;
-using Content.Shared._WF.PlanetCracker.Chunk;
+using Content.Shared._WF.PlanetCracker.Planets;
 using Content.Shared.Physics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -17,7 +17,7 @@ public sealed partial class CEZLevelsSystem
     /// <summary>Clear a tile of breathing room around an impacting hull, without touching other grids or occupants.</summary>
     public void WfClearLandingObstacles(EntityUid hull, bool reportImpacts = false)
     {
-        if (HasComp<WFPlanetChunkComponent>(hull) || !WfHasSkidGround(hull)
+        if (HasComp<WFDetachedTerrainComponent>(hull) || !WfHasSkidGround(hull)
             || !TryComp<MapGridComponent>(hull, out var hullGrid)
             || Transform(hull).MapUid is not { } ground
             || !TryComp<MapGridComponent>(ground, out var groundGrid))
