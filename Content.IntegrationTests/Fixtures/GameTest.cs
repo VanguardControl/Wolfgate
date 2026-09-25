@@ -256,10 +256,39 @@ public abstract partial class GameTest
         {
             PreFinalizeHook?.Invoke();
 
-            if (!_pairDestroyed)
-                await Pair.CleanReturnAsync();
-            else
-                await Pair.DisposeAsync();
+            // WOLFGATE START: a fixture object outlives its test, so it must not keep its pair.
+            // NUnit holds every per-test fixture object until the run ends. A fixture that still pointed at a
+            // disposed pair, directly or through an injected manager, kept that pair's server and client (about
+            // 2 GB) alive, and a run with a few dirty-disposed pairs went out of memory. A dirty dispose throws,
+            // so the clearing sits in its own finally. Nothing reads these fields after teardown.
+            try
+            {
+                if (!_pairDestroyed)
+                    await Pair.CleanReturnAsync();
+                else
+                    await Pair.DisposeAsync();
+            }
+            finally
+            {
+                ClearReferences();
+            }
+            // WOLFGATE END
         }
     }
+
+    // WOLFGATE START: resets every instance field of the fixture, from its own class up to this one.
+    // References go to null and structs (an Entity<T> carries its component) to their default. A subclass's own
+    // [TearDown] has already run by the time this base teardown does, so nothing reads them.
+    private void ClearReferences()
+    {
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        for (var type = GetType(); type != null && typeof(GameTest).IsAssignableFrom(type); type = type.BaseType)
+        {
+            foreach (var field in type.GetFields(flags))
+            {
+                field.SetValue(this, field.FieldType.IsValueType ? Activator.CreateInstance(field.FieldType) : null);
+            }
+        }
+    }
+    // WOLFGATE END
 }
