@@ -157,7 +157,8 @@ public static class WolfmedExplanationCard
         var alerts = new List<ProtoId<AlertPrototype>>();
         foreach (var cause in WolfmedCauses.Each(consciousness.Blockers))
         {
-            if (Alert(Cause(prototypes, cause)) is { } alert && !alerts.Contains(alert))
+            // Playtest 3: a blocker's own Downed icon (the oxygen, blood or pain one), not the shared critical icon.
+            if (BlockerAlert(Cause(prototypes, cause)) is { } alert && !alerts.Contains(alert))
                 alerts.Add(alert);
         }
 
@@ -167,6 +168,10 @@ public static class WolfmedExplanationCard
     /// <summary>The card shows while the body is out, so the Critical alert first; a Downed-only cause has only its own.</summary>
     private static ProtoId<AlertPrototype>? Alert(WolfmedConsciousnessCausePrototype? proto) =>
         proto?.AlertOut ?? proto?.AlertDowned;
+
+    /// <summary>A blocker is what holds you down, so its Downed alert's icon says what it is.</summary>
+    private static ProtoId<AlertPrototype>? BlockerAlert(WolfmedConsciousnessCausePrototype? proto) =>
+        proto?.AlertDowned ?? proto?.AlertOut;
 
     private static WolfmedConsciousnessCausePrototype? Cause(IPrototypeManager prototypes, WolfmedCause cause,
         bool heartless = false) =>

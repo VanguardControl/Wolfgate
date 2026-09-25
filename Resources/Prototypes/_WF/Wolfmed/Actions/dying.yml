@@ -18,7 +18,7 @@
 - type: entity
   id: ActionWolfmedLastWords
   name: Last words
-  description: Whisper your last words to anyone nearby, then choose whether to let go.
+  description: Choose whether to let go; if you do, whisper your last words to anyone nearby first.
   components:
   - type: InstantAction
     itemIconStyle: NoItem

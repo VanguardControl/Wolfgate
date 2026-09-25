@@ -2609,3 +2609,15 @@ Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt): 479 t
 `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`, `SelfServiceOccupantIsTreatedTest`,
 `AutofixModuleIdlesWithNothingToDoTest`, `FixMePlansAndStartsInSelfServiceTest`,
 `DeathDuringAProcedureHoldsAndResumesTest`, `PodChargesAgainAfterAFailedShockTest`); each passed alone.
+
+## Playtest 3, round 2 (2026-09-24)
+
+- **Let go before last words.** The Last Words action used to take the whisper first and open "Let go?" after it, so
+  a player could whisper their last words and then keep fighting. Now the action opens "Let go?" first; a yes opens
+  the whisper prompt (optional: cancel or an empty line still lets go), and the whisper is followed by Succumb. A body
+  revived while the prompt is open says nothing and stays. `WolfmedDyingActionsSystem.OpenSuccumbDialog(body, wordsMax)`
+  carries the request; `SayLastWords` now whispers and lets go. `HonestEndingScenarioTest` reads the whisper through
+  the defib shock's stutter.
+- **The oxygen icon.** `WolfmedOutHypoxia` showed the generic critical icon (a figure on the floor); it now shows the
+  low-oxygen icon like its Downed twin. On the card, a blocker's icon is its Downed alert's, not its critical one, so
+  blood, pain and oxygen blockers each show their own picture.

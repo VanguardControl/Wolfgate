@@ -110,8 +110,8 @@
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
-  - sprite: /Textures/_Crescent/Interface/Alerts/human_critical.rsi
-    state: critical
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi # Playtest 3: the oxygen icon, not the generic critical one
+    state: not_enough_oxy
   name: alerts-wolfmed-out-hypoxia-name
   description: alerts-wolfmed-out-hypoxia-desc
 

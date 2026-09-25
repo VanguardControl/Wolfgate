@@ -32,5 +32,5 @@ wolfmed-leave-dialog-text = Your body is left alive and empty. No coming back.
 wolfmed-leave-dialog-accept = Leave
 wolfmed-leave-dialog-deny = Stay
 wolfmed-last-words-title = Last words
-wolfmed-last-words-prompt = Whisper (max { $max } chars)
+wolfmed-last-words-prompt = Whisper, if you want to (max { $max } chars)
 wolfmed-last-words-whisper = { $words }...

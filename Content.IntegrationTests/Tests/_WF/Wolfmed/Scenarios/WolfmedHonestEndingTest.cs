@@ -268,11 +268,13 @@ public sealed class WolfmedHonestEndingTest : GameTest
             Assert.That(s.Life.StartArrest(body, "oxygen"), Is.True);
             asphyxiation = s.Damage(body, "Asphyxiation");
 
-            Assert.That(dying.SayLastWords(body, "Remember me to the crew of the Wolfgate", 30), Is.True);
+            // Playtest 3: Last Words opens "Let go?" first; nothing is whispered until the player says yes.
+            dying.OpenSuccumbDialog(body, 30);
             Assert.That(dying.GetPendingChoice(body), Is.EqualTo(WolfmedEndingChoice.Succumb),
-                "Last Words did not end in the Succumb dialog.");
+                "Last Words did not open the Let go dialog first.");
             dying.Decline(body);
             Assert.That(dying.GetPendingChoice(body), Is.EqualTo(WolfmedEndingChoice.None));
+            Assert.That(mobState.IsDead(body), Is.False, "declining Let go after Last Words killed.");
         });
         await RunTicksSync(10);
 
@@ -280,10 +282,10 @@ public sealed class WolfmedHonestEndingTest : GameTest
         await Client.WaitPost(() =>
         {
             var chat = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>();
-            heard = chat.History.Any(h => h.Msg.Channel == ChatChannel.Whisper && h.Msg.Message.Contains("crew of the") &&
-                                          !h.Msg.Message.Contains("Wolfgate"));
+            heard = chat.History.Any(h => h.Msg.Channel == ChatChannel.Whisper && Unstutter(h.Msg.Message).Contains("crew of the") &&
+                                          !Unstutter(h.Msg.Message).Contains("Wolfgate"));
         });
-        Assert.That(heard, Is.True, "the last words were not whispered, or not cut to 30 characters.");
+        Assert.That(heard, Is.False, "last words were whispered before Let go was answered.");
 
         await Server.WaitAssertion(() =>
         {
@@ -346,9 +348,19 @@ public sealed class WolfmedHonestEndingTest : GameTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(s.Life.StartArrest(body, "oxygen"), Is.True);
-            Assert.That(dying.Succumb(body), Is.True);
+            // Playtest 3: the whisper prompt's answer whispers, cut to the limit, and then lets go.
+            Assert.That(dying.SayLastWords(body, "Remember me to the crew of the Wolfgate", 30), Is.True);
+            Assert.That(mobState.IsDead(body), Is.True, "last words did not let go.");
             s.Life.RepairBrain(body);
         });
+        await RunTicksSync(10);
+        await Client.WaitPost(() =>
+        {
+            var chat = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>();
+            heard = chat.History.Any(h => h.Msg.Channel == ChatChannel.Whisper && Unstutter(h.Msg.Message).Contains("crew of the") &&
+                                          !Unstutter(h.Msg.Message).Contains("Wolfgate"));
+        });
+        Assert.That(heard, Is.True, "the last words were not whispered, or not cut to 30 characters.");
         returnPrompts = await ClientWindows<ReturnToBodyMenu>();
 
         await Server.WaitAssertion(() =>
@@ -439,4 +451,8 @@ public sealed class WolfmedHonestEndingTest : GameTest
         });
         Assert.That(heard, Is.True, "a Critical player did not hear speech next to them.");
     }
+
+    /// <summary>The defib shock leaves a stutter ("crew-w of-f t-t-th-he"); read the words through it.</summary>
+    private static string Unstutter(string text) =>
+        System.Text.RegularExpressions.Regex.Replace(text.Replace("-", ""), @"(.)\1+", "$1");
 }

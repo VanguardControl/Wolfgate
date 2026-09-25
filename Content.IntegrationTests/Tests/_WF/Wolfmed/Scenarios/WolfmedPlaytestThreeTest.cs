@@ -191,7 +191,7 @@ public sealed class WolfmedPlaytestThreeTest : GameTest
                 Assert.That(WolfmedExplanationCard.Colour(SProtoMan, Consc(bled)), Is.EqualTo(WolfmedExplanationCard.DefaultColour));
                 Assert.That(WolfmedExplanationCard.CauseAlert(SProtoMan, comp)?.Id, Is.EqualTo("WolfmedFaintPain"));
                 Assert.That(WolfmedExplanationCard.BlockerAlerts(SProtoMan, Consc(blocked)).Select(alert => alert.Id),
-                    Does.Contain("WolfmedOutBlood"));
+                    Does.Contain("WolfmedDownedBlood"));
                 foreach (var body in new[] { faint, blocked, bled, arrest })
                 {
                     Assert.That(WolfmedExplanationCard.Lines(SProtoMan, Consc(body), Card(body)).Any(line => line.Any(char.IsDigit)),

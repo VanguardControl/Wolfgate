@@ -10,7 +10,7 @@ namespace Content.Shared._WF.Wolfmed.Life;
 /// </summary>
 public sealed partial class WolfmedSuccumbActionEvent : InstantActionEvent;
 
-/// <summary>Wolfmed's Last Words: a whisper, then the same Succumb dialog.</summary>
+/// <summary>Wolfmed's Last Words: the Succumb dialog first, then a whisper after a yes (playtest 3).</summary>
 public sealed partial class WolfmedLastWordsActionEvent : InstantActionEvent
 {
     /// <summary>Longest whisper, in characters; the upstream limit.</summary>

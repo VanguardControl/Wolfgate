@@ -68,7 +68,8 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
     [Dependency] private readonly WolfmedLifeSystem _life = default!;
     [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
 
-    private readonly Dictionary<EntityUid, (WolfmedEndingChoice Choice, WolfmedChoiceEui? Eui)> _pending = new();
+    /// <summary>The open dialog per body. WordsMax is set when Last Words asked: the whisper comes after a yes.</summary>
+    private readonly Dictionary<EntityUid, (WolfmedEndingChoice Choice, WolfmedChoiceEui? Eui, int? WordsMax)> _pending = new();
 
     public override void Initialize()
     {
@@ -181,20 +182,40 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         if (args.Handled || !IsDying(ent) || !TryComp(ent, out ActorComponent? actor))
             return;
 
+        // Playtest 3: "Let go?" comes first; the whisper is asked for only after a yes, so nobody whispers their
+        // last words and then keeps fighting.
         args.Handled = true;
-        var body = ent.Owner;
+        OpenSuccumbDialog(ent, args.MaxLength);
+    }
+
+    /// <summary>The whisper prompt after a yes to Let go. The words are optional: cancel or empty still lets go.</summary>
+    private void OpenLastWordsPrompt(EntityUid body, int maxLength)
+    {
+        if (!TryComp(body, out ActorComponent? actor))
+        {
+            Succumb(body);
+            return;
+        }
+
         var session = actor.PlayerSession;
-        var maxLength = args.MaxLength;
         _quickDialog.OpenDialog(session, Loc.GetString("wolfmed-last-words-title"),
             Loc.GetString("wolfmed-last-words-prompt", ("max", maxLength)),
             (string words) =>
             {
                 if (session.AttachedEntity == body)
                     SayLastWords(body, words, maxLength);
+            },
+            () =>
+            {
+                if (session.AttachedEntity == body)
+                    Succumb(body);
             });
     }
 
-    /// <summary>Whispers the words, cut to the limit, then opens the Succumb dialog. Dying only.</summary>
+    /// <summary>
+    /// Whispers the words, cut to the limit, then lets go (Succumb). Dying only: a body revived while the prompt
+    /// was open says nothing and stays. Public so a test can answer the prompt.
+    /// </summary>
     public bool SayLastWords(EntityUid body, string words, int maxLength)
     {
         if (!IsDying(body))
@@ -211,8 +232,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
                 ignoreActionBlocker: true);
         }
 
-        OpenSuccumbDialog(body);
-        return true;
+        return Succumb(body);
     }
 
     #endregion
@@ -237,8 +257,11 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         return true;
     }
 
-    /// <summary>"Let go?": the exact consequences (OD1 wording), then a revivable death on yes.</summary>
-    public void OpenSuccumbDialog(EntityUid body)
+    /// <summary>
+    /// "Let go?": the exact consequences (OD1 wording), then a revivable death on yes. With <paramref name="wordsMax"/>
+    /// (Last Words), a yes asks for the whisper first.
+    /// </summary>
+    public void OpenSuccumbDialog(EntityUid body, int? wordsMax = null)
     {
         if (!IsDying(body))
             return;
@@ -268,7 +291,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
 
         Open(body, WolfmedEndingChoice.Succumb, new WolfmedChoiceEuiState(
             Loc.GetString("wolfmed-succumb-dialog-title"), text,
-            Loc.GetString("wolfmed-succumb-dialog-accept"), Loc.GetString("wolfmed-succumb-dialog-deny")));
+            Loc.GetString("wolfmed-succumb-dialog-accept"), Loc.GetString("wolfmed-succumb-dialog-deny")), wordsMax);
     }
 
     /// <summary>The <c>ghost</c> command while not Dying: the body stays alive, the player cannot return.</summary>
@@ -279,7 +302,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
             Loc.GetString("wolfmed-leave-dialog-accept"), Loc.GetString("wolfmed-leave-dialog-deny")));
     }
 
-    private void Open(EntityUid body, WolfmedEndingChoice choice, WolfmedChoiceEuiState state)
+    private void Open(EntityUid body, WolfmedEndingChoice choice, WolfmedChoiceEuiState state, int? wordsMax = null)
     {
         Withdraw(body);
 
@@ -295,7 +318,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
             });
         }
 
-        _pending[body] = (choice, eui);
+        _pending[body] = (choice, eui, wordsMax);
         if (eui != null)
             _eui.OpenEui(eui, actor!.PlayerSession);
     }
@@ -314,6 +337,15 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
     {
         if (!_pending.Remove(body, out var pending))
             return false;
+
+        if (pending is { Choice: WolfmedEndingChoice.Succumb, WordsMax: { } max })
+        {
+            if (!IsDying(body))
+                return false;
+
+            OpenLastWordsPrompt(body, max);
+            return true;
+        }
 
         return pending.Choice switch
         {
