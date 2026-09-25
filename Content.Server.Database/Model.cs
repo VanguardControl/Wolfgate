@@ -64,6 +64,7 @@ namespace Content.Server.Database
                 .HasIndex(p => new {p.Slot, PrefsId = p.PreferenceId})
                 .IsUnique();
 
+<<<<<<< HEAD
             // WOLFGATE(Genitals) START: consent system ported from HardLight
             modelBuilder.Entity<ConsentSettings>()
                 .HasIndex(c => new { c.UserId, c.ProfileId })
@@ -114,6 +115,8 @@ namespace Content.Server.Database
                 .IsRequired();
             // Mono end
 
+=======
+>>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
             modelBuilder.Entity<Antag>()
                 .HasIndex(p => new {HumanoidProfileId = p.ProfileId, p.AntagName})
                 .IsUnique();
@@ -509,6 +512,7 @@ namespace Content.Server.Database
 
         public string Company { get; set; } = "None";
 
+<<<<<<< HEAD
         // WOLFGATE(Humanoid): player-set species name override, empty when unused.
         [Column("custom_species_name")] public string CustomSpeciesName { get; set; } = "";
 
@@ -521,12 +525,15 @@ namespace Content.Server.Database
         public List<ProfileItem> Items { get; } = [];
         // Mono end
 
+=======
+>>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 
         public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE(Genitals): consent system
     }
 
+<<<<<<< HEAD
     // WOLFGATE(Genitals) START: consent system ported from HardLight
     #region Consent Settings
 
@@ -608,6 +615,8 @@ namespace Content.Server.Database
     }
     // Mono end
 
+=======
+>>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
     public class Job
     {
         public int Id { get; set; }
