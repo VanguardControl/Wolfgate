@@ -97,7 +97,7 @@ public sealed class WoundHealingTest : GameTest
             var pain = entityManager.System<PainSystem>();
             var head = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
-            // WOLFGATE(Wolfmed): W0: 11 rather than Onyx's 15. WolfmedFractureProfile's Hairline threshold is 12 at
+            // WOLFGATE(Wolfmed): W0: 11 rather than Onyx's 15. WFWolfmedFractureProfile's Hairline threshold is 12 at
             // a 25 % roll, so a 15 Blunt hit would silently grow a bone fracture in one run out of four and
             // take the pain figures with it. 11 keeps the whole test deterministic.
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 11)));

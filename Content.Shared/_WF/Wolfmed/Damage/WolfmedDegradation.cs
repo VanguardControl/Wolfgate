@@ -90,7 +90,7 @@ public sealed partial class WolfmedDegradationProfilePrototype : IPrototype
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WolfmedDegradationVisualsComponent : Component
 {
-    public const string DefaultProfile = "WolfmedDegradationDefault";
+    public const string DefaultProfile = "WFWolfmedDegradationDefault";
 
     /// <summary>Set false on a species whose silhouette the human-derived overlays do not fit.</summary>
     [DataField, AutoNetworkedField]

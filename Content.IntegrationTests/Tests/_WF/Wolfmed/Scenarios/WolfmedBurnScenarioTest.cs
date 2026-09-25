@@ -79,7 +79,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
         foreach (var wound in SEntMan.System<WoundSystem>().GetWounds(part))
         {
             var id = wound.Comp.Prototype.Id;
-            if (id == "BurnWound" || id == "WolfmedCharringWound")
+            if (id == "BurnWound" || id == "WFWolfmedCharringWound")
                 total += wound.Comp.Severity.Float();
         }
 
@@ -366,7 +366,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
                 Assert.That(s.Blood(b), Is.GreaterThanOrEqualTo(bloodB540 - 0.005f), "the treated patient's blood is still falling.");
             });
 
-            SEntMan.System<BloodstreamSystem>().TryAddToChemicals(b, new Solution("WolfmedOpiate", FixedPoint2.New(5)));
+            SEntMan.System<BloodstreamSystem>().TryAddToChemicals(b, new Solution("WFWolfmedOpiate", FixedPoint2.New(5)));
         });
 
         var stood = false;

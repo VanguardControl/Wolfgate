@@ -24,7 +24,7 @@ public sealed class WolfmedHealingTargetTest : GameTest
 
     // WOLFGATE (W0): Blunt rather than Slash - a bruise pack's `treatedDamageTypes: [Blunt]` means a Slash
     // wound is no longer something it can treat at all, and the do-after this test needs would never start.
-    // 6 also stays under WolfmedFractureProfile's Hairline threshold (12), so no stray bone fracture.
+    // 6 also stays under WFWolfmedFractureProfile's Hairline threshold (12), so no stray bone fracture.
     [TestCase("Brutepack", "Blunt", false)]
     [TestCase("Brutepack", "Blunt", true)]
     [TestCase("CableApcStack", "Heat", false)]

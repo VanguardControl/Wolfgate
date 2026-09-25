@@ -1,12 +1,12 @@
 # EVISC: the torso opened up. D9 never severs a torso, so the tear-off pressure that takes a limb off
 # (WoundableComponent.AmputationOverflow, past the 250 cap in Body/parts.yml) buys this instead.
 #
-# One profile, named by WolfmedBaseTorso's `eviscerationProfile`. Nothing else in the game names it, so a
+# One profile, named by WFWolfmedBaseTorso's `eviscerationProfile`. Nothing else in the game names it, so a
 # part that should never be opened simply does not carry the field. Both wounds are `ruleOnly` AND created
 # by no wolfmedWoundRule at all: WolfmedEviscerationSystem is the only thing that makes either of them.
 
 - type: wolfmedEviscerationProfile
-  id: WolfmedEviscerationDefault
+  id: WFWolfmedEviscerationDefault
   # Per damage type, the overflow ONE hit has to carry. Slash only: a blade or a claw opens a belly, and
   # Blunt, Piercing and Heat are absent from the table so they can never do it however hard they land.
   # 35 is the torso's finishing bar, roughly a two-handed swing with something sharp.
@@ -20,7 +20,7 @@
     Blunt: 45
 
   organic:
-    wound: WolfmedEviscerationWound
+    wound: WFWolfmedEviscerationWound
     severity: 70
     # The abdomen. Ordered as a surgeon would find them; all four always come out.
     organs:
@@ -38,7 +38,7 @@
     spillVolume: 30
 
   mechanical:
-    wound: WolfmedChassisBreachWound
+    wound: WFWolfmedChassisBreachWound
     severity: 70
     # Whatever the chassis actually keeps in its torso. The positronic brain is deliberately absent: it is
     # the brain, and the brain never comes out (an organic one is in the head, which is why this list can
@@ -49,7 +49,7 @@
     spillVolume: 15
     # A chassis shears rather than tears; the hiss is the line that says something is leaking.
     sound:
-      collection: WolfmedLeakHiss
+      collection: WFWolfmedLeakHiss
       params:
         volume: -1
         variation: 0.12
@@ -57,10 +57,10 @@
 
 # The abdomen laid open. Everything about it says "this is not treated with an item": healingMultiplier 0
 # keeps every topical out, the arterial behavior means a dressing only slows the flow and refuses to close
-# anything while it is still running, and the exit is SurgeryCloseEvisceration. `damageTypes` carries Slash
+# anything while it is still running, and the exit is WFSurgeryCloseEvisceration. `damageTypes` carries Slash
 # anyway so that a suture's healing spec still resolves the torso as a part worth walking up to.
 - type: wound
-  id: WolfmedEviscerationWound
+  id: WFWolfmedEviscerationWound
   name: wolfmed-wound-name-evisceration
   analyzerCategory: Cut
   ruleOnly: true
@@ -103,9 +103,9 @@
 
 # The chassis equivalent: plating opened far enough to spill what was behind it. Coolant does not clot and
 # a welder swung at a hole this size is not a repair, so healingMultiplier is 0 here too and the exit is
-# SurgeryWeldChassisBreach.
+# WFSurgeryWeldChassisBreach.
 - type: wound
-  id: WolfmedChassisBreachWound
+  id: WFWolfmedChassisBreachWound
   name: wolfmed-wound-name-chassis-breach
   analyzerCategory: Mechanical
   ruleOnly: true
@@ -129,5 +129,5 @@
     clottingMultiplier: 0
   # Welded shut leaves the ordinary hole in the casing, which a welder CAN close.
   - !type:WolfmedClearedWoundBehavior
-    wound: WolfmedBreachWound
+    wound: WFWolfmedBreachWound
     severity: 25

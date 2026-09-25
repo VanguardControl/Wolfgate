@@ -58,17 +58,17 @@ public sealed class WolfmedBallisticWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, grazed), Is.EquivalentTo(new[] { "WolfmedGrazeWound" }),
+                Assert.That(Prototypes(entities, wounds, grazed), Is.EquivalentTo(new[] { "WFWolfmedGrazeWound" }),
                     "a 5 point hit grazes, and replaces the default puncture rather than adding to it.");
-                Assert.That(Prototypes(entities, wounds, shot), Is.EquivalentTo(new[] { "WolfmedLodgedRoundWound" }));
+                Assert.That(Prototypes(entities, wounds, shot), Is.EquivalentTo(new[] { "WFWolfmedLodgedRoundWound" }));
             });
 
-            var lodged = FindWound(entities, wounds, shot, "WolfmedLodgedRoundWound");
+            var lodged = FindWound(entities, wounds, shot, "WFWolfmedLodgedRoundWound");
             Assert.That(entities.TryGetComponent(lodged, out WolfmedEmbeddedObjectComponent? embedded));
             Assert.Multiple(() =>
             {
                 Assert.That(embedded!.Count, Is.EqualTo(1));
-                Assert.That(embedded.Item.Id, Is.EqualTo("WolfmedSpentRound"));
+                Assert.That(embedded.Item.Id, Is.EqualTo("WFWolfmedSpentRound"));
             });
         });
         await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
@@ -101,10 +101,10 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             var found = Prototypes(entities, wounds, torso);
             Assert.Multiple(() =>
             {
-                Assert.That(found, Does.Contain("WolfmedGunshotWound"));
+                Assert.That(found, Does.Contain("WFWolfmedGunshotWound"));
                 Assert.That(found, Does.Not.Contain("PiercingWound"));
                 Assert.That(found.All(id =>
-                        id is "WolfmedGunshotWound" or "WolfmedLodgedRoundWound" or "InternalBleedingWound"),
+                        id is "WFWolfmedGunshotWound" or "WFWolfmedLodgedRoundWound" or "InternalBleedingWound"),
                     Is.True, $"unexpected wounds: {string.Join(", ", found)}");
             });
         });
@@ -137,7 +137,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
             Assert.That(Prototypes(entities, wounds, leg), Does.Contain("PiercingWound"));
             Assert.That(Prototypes(entities, wounds, leg),
-                Does.Not.Contain("WolfmedLodgedRoundWound").And.Not.Contain("WolfmedGunshotWound"));
+                Does.Not.Contain("WFWolfmedLodgedRoundWound").And.Not.Contain("WFWolfmedGunshotWound"));
         });
     }
 
@@ -168,7 +168,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                 Assert.That(rules.GetCause(gun, beam, false), Is.EqualTo(WolfmedWoundCause.Hitscan));
             });
 
-            // 25 Piercing is well past WolfmedRuleLodgedRoundHeavy's 18 floor; only the Projectile causes
+            // 25 Piercing is well past WFWolfmedRuleLodgedRoundHeavy's 18 floor; only the Projectile causes
             // reach that rule, so the hit must come out as a clean through-and-through.
             Hit(entities, body, TargetBodyPart.LeftArm, slug, 25);
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
@@ -179,9 +179,9 @@ public sealed class WolfmedBallisticWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, arm), Does.Contain("WolfmedGunshotWound"));
-                Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WolfmedLodgedRoundWound"));
-                Assert.That(Prototypes(entities, wounds, burned), Does.Not.Contain("WolfmedGunshotWound"));
+                Assert.That(Prototypes(entities, wounds, arm), Does.Contain("WFWolfmedGunshotWound"));
+                Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WFWolfmedLodgedRoundWound"));
+                Assert.That(Prototypes(entities, wounds, burned), Does.Not.Contain("WFWolfmedGunshotWound"));
             });
         });
     }
@@ -208,7 +208,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             var torso = Part(entities, blasted, BodyPartType.Torso, BodyPartSymmetry.None);
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedShrapnelWound"));
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedShrapnelWound"));
                 Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("PiercingWound"));
                 Assert.That(embedded.GetPartCount(torso), Is.GreaterThan(0));
             });
@@ -219,7 +219,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Hit(entities, shot, TargetBodyPart.RightLeg, pellet, 11);
 
             var leg = Part(entities, shot, BodyPartType.Leg, BodyPartSymmetry.Right);
-            Assert.That(Prototypes(entities, wounds, leg), Is.EquivalentTo(new[] { "WolfmedShrapnelWound" }));
+            Assert.That(Prototypes(entities, wounds, leg), Is.EquivalentTo(new[] { "WFWolfmedShrapnelWound" }));
         });
     }
 
@@ -248,7 +248,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Hit(entities, body, TargetBodyPart.LeftArm, bullet, 25);
 
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            var wound = FindWound(entities, wounds, arm, "WolfmedLodgedRoundWound");
+            var wound = FindWound(entities, wounds, arm, "WFWolfmedLodgedRoundWound");
             var severity = entities.GetComponent<WoundComponent>(wound).Severity;
 
             Assert.Multiple(() =>
@@ -267,7 +267,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(entities.GetComponent<MetaDataComponent>(item!.Value).EntityPrototype?.ID,
-                    Is.EqualTo("WolfmedSpentRound"));
+                    Is.EqualTo("WFWolfmedSpentRound"));
                 Assert.That(entities.HasComponent<WolfmedEmbeddedObjectComponent>(wound), Is.False,
                     "an empty wound drops the component, so it stops blocking anything.");
                 Assert.That(wounds.TreatWound(wound, FixedPoint2.New(5)), Is.True);
@@ -313,7 +313,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Hit(entities, body, TargetBodyPart.LeftArm, bullet, 25);
 
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            var wound = FindWound(entities, wounds, arm, "WolfmedLodgedRoundWound");
+            var wound = FindWound(entities, wounds, arm, "WFWolfmedLodgedRoundWound");
             var painBefore = pain.GetPain(arm);
 
             var host = (body, entities.GetComponent<WoundHostComponent>(body));
@@ -353,7 +353,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Hit(entities, body, TargetBodyPart.LeftArm, bullet, 25);
 
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            var wound = FindWound(entities, wounds, arm, "WolfmedLodgedRoundWound");
+            var wound = FindWound(entities, wounds, arm, "WFWolfmedLodgedRoundWound");
             var host = (body, entities.GetComponent<WoundHostComponent>(body));
             var embedded = entities.GetComponent<WolfmedEmbeddedObjectComponent>(wound);
             var count = embedded.Count;
@@ -364,7 +364,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
             Assert.That(entities.GetComponent<WolfmedEmbeddedObjectComponent>(wound).Count, Is.EqualTo(count),
                 "a bad id is refused before the fragment is consumed.");
 
-            embedded.Item = "WolfmedSpentRound";
+            embedded.Item = "WFWolfmedSpentRound";
             var painBefore = pain.GetPain(arm);
             Assert.That(entities.System<WolfmedBodySystem>().TryDetachPart(arm), Is.True);
 
@@ -441,15 +441,15 @@ public sealed class WolfmedBallisticWoundTest : GameTest
                 var lucky = entities.SpawnEntity("MobHuman", map.GridCoords);
                 Hit(entities, lucky, TargetBodyPart.LeftArm, entities.SpawnEntity("BulletMinigun", map.GridCoords), 25);
                 var luckyArm = Part(entities, lucky, BodyPartType.Arm, BodyPartSymmetry.Left);
-                Assert.That(Prototypes(entities, wounds, luckyArm), Does.Contain("WolfmedGunshotWound"));
-                Assert.That(Prototypes(entities, wounds, luckyArm), Does.Not.Contain("WolfmedLodgedRoundWound"));
+                Assert.That(Prototypes(entities, wounds, luckyArm), Does.Contain("WFWolfmedGunshotWound"));
+                Assert.That(Prototypes(entities, wounds, luckyArm), Does.Not.Contain("WFWolfmedLodgedRoundWound"));
 
                 // The roll lands: it stays in.
                 rules.ForcedRoll = 0f;
                 var body = entities.SpawnEntity("MobHuman", map.GridCoords);
                 Hit(entities, body, TargetBodyPart.LeftArm, entities.SpawnEntity("BulletMinigun", map.GridCoords), 25);
                 var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-                var wound = FindWound(entities, wounds, arm, "WolfmedLodgedRoundWound");
+                var wound = FindWound(entities, wounds, arm, "WFWolfmedLodgedRoundWound");
                 var severity = entities.GetComponent<WoundComponent>(wound).Severity;
 
                 var host = (body, entities.GetComponent<WoundHostComponent>(body));
@@ -457,10 +457,10 @@ public sealed class WolfmedBallisticWoundTest : GameTest
 
                 Assert.Multiple(() =>
                 {
-                    Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WolfmedLodgedRoundWound"),
+                    Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WFWolfmedLodgedRoundWound"),
                         "nothing is lodged any more.");
-                    Assert.That(Prototypes(entities, wounds, arm), Does.Contain("WolfmedGunshotWound"));
-                    Assert.That(entities.GetComponent<WoundComponent>(FindWound(entities, wounds, arm, "WolfmedGunshotWound")).Severity,
+                    Assert.That(Prototypes(entities, wounds, arm), Does.Contain("WFWolfmedGunshotWound"));
+                    Assert.That(entities.GetComponent<WoundComponent>(FindWound(entities, wounds, arm, "WFWolfmedGunshotWound")).Severity,
                         Is.EqualTo(severity), "the hole is as bad as it was.");
                 });
             }
@@ -493,7 +493,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
 
             // The wound alone, with no damage left on the part: the state a patient is in once the damage has been
             // treated and only the hole remains.
-            Assert.That(wounds.CreateOrMergeWound(torso, "WolfmedGunshotWound", 100), Is.Not.Null);
+            Assert.That(wounds.CreateOrMergeWound(torso, "WFWolfmedGunshotWound", 100), Is.Not.Null);
 
             var suture = entities.SpawnEntity("MedicatedSuture", map.GridCoords);
             var item = (suture, entities.GetComponent<Content.Server.Medical.Components.HealingComponent>(suture));
@@ -503,7 +503,7 @@ public sealed class WolfmedBallisticWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WolfmedGunshotWound"));
+                Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WFWolfmedGunshotWound"));
                 Assert.That(uses, Is.LessThanOrEqualTo(8), "a critical wound is a handful of sutures, not a box of them.");
             });
         });

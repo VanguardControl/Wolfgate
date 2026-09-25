@@ -2,7 +2,7 @@
 # what tells the difference, so it gets its own icon instead of the ordinary critical one.
 
 - type: healthIcon
-  id: HealthIconWolfmedArrest
+  id: WFHealthIconWolfmedArrest
   parent: HealthIcon
   icon:
     sprite: /Textures/_WF/Wolfmed/Interface/health_icons.rsi
@@ -11,7 +11,7 @@
 # M1a (plan §5.3): a Downed patient who called for help, shown on medical HUDs for a minute. Placeholder art:
 # the stock critical icon on the other side of the sprite.
 - type: healthIcon
-  id: HealthIconWolfmedCallForHelp
+  id: WFHealthIconWolfmedCallForHelp
   parent: HealthIcon
   locationPreference: Right
   icon:

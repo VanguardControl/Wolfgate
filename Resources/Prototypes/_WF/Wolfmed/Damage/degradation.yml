@@ -10,7 +10,7 @@
 # `- type: WolfmedDegradationVisuals` / `enabled: false` on its mob prototype.
 
 - type: wolfmedDegradationProfile
-  id: WolfmedDegradationDefault
+  id: WFWolfmedDegradationDefault
   rsi: _WF/Wolfmed/Effects/part_degradation.rsi
   stage1: 25
   stage2: 60

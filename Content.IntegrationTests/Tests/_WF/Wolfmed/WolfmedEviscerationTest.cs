@@ -84,7 +84,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             Cut(entities, body, BigSlash);
 
             var wounds = entities.System<WoundSystem>();
-            var wound = FindWound(entities, wounds, torso, "WolfmedEviscerationWound");
+            var wound = FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound");
             Assert.That(wound, Is.Not.Null, "a big cut on a capped torso opens it.");
 
             var after = Organs(entities, torso);
@@ -120,7 +120,7 @@ public sealed class WolfmedEviscerationTest : GameTest
 
             // V3: the torso shows its worst degradation while the wound is there, and nothing whittles it down.
             var degradation = entities.System<WolfmedDegradationVisualsSystem>();
-            var visuals = prototypes.Index<WolfmedDegradationProfilePrototype>("WolfmedDegradationDefault");
+            var visuals = prototypes.Index<WolfmedDegradationProfilePrototype>("WFWolfmedDegradationDefault");
             Assert.That(degradation.GetStage(torso, visuals), Is.EqualTo(WolfmedPartDegradation.Bone),
                 "severity 70 is past the degradation profile's stage 2, so the overlay sits at its worst.");
         });
@@ -153,7 +153,7 @@ public sealed class WolfmedEviscerationTest : GameTest
                 hits.Observer = (part, hit) =>
                 {
                     if (part == torso)
-                        seen.Add((hit, FindWound(entities, wounds, torso, "WolfmedEviscerationWound") != null));
+                        seen.Add((hit, FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound") != null));
                 };
 
                 Cut(entities, body, BigSlash);
@@ -196,7 +196,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             var small = Patient(entities, map.GridCoords, out var smallTorso);
             Cut(entities, small, Cap);
             Cut(entities, small, 20);
-            Assert.That(FindWound(entities, wounds, smallTorso, "WolfmedEviscerationWound"), Is.Null,
+            Assert.That(FindWound(entities, wounds, smallTorso, "WFWolfmedEviscerationWound"), Is.Null,
                 "20 Slash is under the profile's 35 bar.");
 
             // A capped torso, hit hard with everything the table leaves out.
@@ -205,7 +205,7 @@ public sealed class WolfmedEviscerationTest : GameTest
                 var body = Patient(entities, map.GridCoords, out var torso);
                 Cut(entities, body, Cap);
                 Hit(entities, body, type, 120);
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedEviscerationWound"), Is.Null,
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound"), Is.Null,
                     $"{type} is not in finishingDamage, so it can never open a belly.");
             }
 
@@ -216,7 +216,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             {
                 Assert.That(entities.GetComponent<WoundableComponent>(freshTorso).AmputationOverflow,
                     Is.EqualTo(FixedPoint2.Zero));
-                Assert.That(FindWound(entities, wounds, freshTorso, "WolfmedEviscerationWound"), Is.Null,
+                Assert.That(FindWound(entities, wounds, freshTorso, "WFWolfmedEviscerationWound"), Is.Null,
                     "the cap has to be reached first.");
             });
         });
@@ -239,7 +239,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             Cut(entities, body, Cap);
             Cut(entities, body, BigSlash);
 
-            var first = FindWound(entities, wounds, torso, "WolfmedEviscerationWound");
+            var first = FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound");
             Assert.That(first, Is.Not.Null);
             var severity = entities.GetComponent<WoundComponent>(first!.Value).Severity;
 
@@ -247,7 +247,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             Cut(entities, body, BigSlash);
 
             var all = wounds.GetWounds((torso, entities.GetComponent<WoundableComponent>(torso)))
-                .Count(wound => wound.Comp.Prototype == new ProtoId<WoundPrototype>("WolfmedEviscerationWound"));
+                .Count(wound => wound.Comp.Prototype == new ProtoId<WoundPrototype>("WFWolfmedEviscerationWound"));
 
             Assert.Multiple(() =>
             {
@@ -284,7 +284,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             var after = Organs(entities, torso);
             Assert.Multiple(() =>
             {
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedEviscerationWound"), Is.Not.Null);
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound"), Is.Not.Null);
                 foreach (var slot in Vital)
                     Assert.That(after.ContainsKey(slot), Is.False, $"a blast takes the {slot} as well.");
                 foreach (var slot in Abdominal)
@@ -314,7 +314,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             Cut(entities, body, Cap);
             Cut(entities, body, BigSlash);
 
-            var wound = FindWound(entities, wounds, torso, "WolfmedEviscerationWound");
+            var wound = FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound");
             Assert.That(wound, Is.Not.Null);
             var bleeding = entities.GetComponent<WoundBleedingComponent>(wound!.Value);
             var openRate = bleeding.CurrentRate;
@@ -328,7 +328,7 @@ public sealed class WolfmedEviscerationTest : GameTest
             {
                 Assert.That(bleeding.Treatment, Is.EqualTo(BleedingTreatment.Bandaged), "gauze dresses it,");
                 Assert.That(bleeding.CurrentRate, Is.GreaterThan(0f).And.LessThan(openRate), "and only slows it.");
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedEviscerationWound"), Is.Not.Null);
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound"), Is.Not.Null);
             });
 
             foreach (var item in new[] { "MedicatedSuture", "BrutepackAdvanced1" })
@@ -342,8 +342,8 @@ public sealed class WolfmedEviscerationTest : GameTest
                 "healingMultiplier 0 keeps every item out of it.");
 
             // The surgery: clamp, then close. The clamp is what makes the close possible at all.
-            Step(entities, "SurgeryStepClampEvisceration", body, torso);
-            Step(entities, "SurgeryStepCloseEvisceration", body, torso);
+            Step(entities, "WFSurgeryStepClampEvisceration", body, torso);
+            Step(entities, "WFSurgeryStepCloseEvisceration", body, torso);
 
             var left = wounds.GetWounds((torso, entities.GetComponent<WoundableComponent>(torso)))
                 .Where(found => found.Comp.Prototype == new ProtoId<WoundPrototype>("SlashWound"))
@@ -351,7 +351,7 @@ public sealed class WolfmedEviscerationTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedEviscerationWound"), Is.Null,
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound"), Is.Null,
                     "closing it removes the tear,");
                 Assert.That(left, Is.Not.Empty, "and leaves an ordinary cut behind.");
                 Assert.That(entities.GetComponent<WoundBleedingComponent>(left[0].Owner).Treatment,
@@ -405,12 +405,12 @@ public sealed class WolfmedEviscerationTest : GameTest
             Assert.That(Organs(entities, torso).ContainsKey("liver"), Is.True,
                 "the existing organ insertion works on an eviscerated torso.");
 
-            Step(entities, "SurgeryStepClampEvisceration", body, torso);
-            Step(entities, "SurgeryStepCloseEvisceration", body, torso);
+            Step(entities, "WFSurgeryStepClampEvisceration", body, torso);
+            Step(entities, "WFSurgeryStepCloseEvisceration", body, torso);
 
             Assert.Multiple(() =>
             {
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedEviscerationWound"), Is.Null);
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound"), Is.Null);
                 Assert.That(entities.HasComponent<IncisionOpenComponent>(torso), Is.False,
                     "the open-belly state was this system's, so it goes with the wound.");
                 Assert.That(entities.HasComponent<SkinRetractedComponent>(torso), Is.False);
@@ -442,26 +442,26 @@ public sealed class WolfmedEviscerationTest : GameTest
             var after = Organs(entities, torso);
             Assert.Multiple(() =>
             {
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedChassisBreachWound"), Is.Not.Null,
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedChassisBreachWound"), Is.Not.Null,
                     "a chassis gets the mechanical wound,");
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedEviscerationWound"), Is.Null,
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedEviscerationWound"), Is.Null,
                     "and never the organic one.");
                 Assert.That(before.ContainsKey("pump"), Is.True, "the fixture had a pump to lose.");
                 Assert.That(after.ContainsKey("pump"), Is.False, "which is now on the deck.");
                 Assert.That(after.ContainsKey("posbrain"), Is.True,
                     "the brain never comes out, positronic or otherwise.");
-                Assert.That(entities.GetComponent<BloodstreamComponent>(body).BloodReagent, Is.EqualTo("WolfmedHydraulicFluid"),
+                Assert.That(entities.GetComponent<BloodstreamComponent>(body).BloodReagent, Is.EqualTo("WFWolfmedHydraulicFluid"),
                     "so what it leaks is hydraulic fluid, not blood: the spill is the body's own reagent.");
             });
 
             // The mechanical repair: seat the plating, then weld the seam.
-            Step(entities, "SurgeryStepSeatChassisPlating", body, torso);
-            Step(entities, "SurgeryStepWeldChassisBreach", body, torso);
+            Step(entities, "WFSurgeryStepSeatChassisPlating", body, torso);
+            Step(entities, "WFSurgeryStepWeldChassisBreach", body, torso);
 
             Assert.Multiple(() =>
             {
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedChassisBreachWound"), Is.Null);
-                Assert.That(FindWound(entities, wounds, torso, "WolfmedBreachWound"), Is.Not.Null,
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedChassisBreachWound"), Is.Null);
+                Assert.That(FindWound(entities, wounds, torso, "WFWolfmedBreachWound"), Is.Not.Null,
                     "welded shut leaves the ordinary hole in the casing.");
             });
         });
@@ -510,9 +510,9 @@ public sealed class WolfmedEviscerationTest : GameTest
                 Assert.That(locale.HasString("wolfmed-wound-name-chassis-breach"));
                 Assert.That(locale.HasString("wolfmed-evisceration-popup"));
                 Assert.That(locale.HasString("wolfmed-chassis-breach-popup"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryCloseEvisceration"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryWeldChassisBreach"));
-                Assert.That(prototypes.HasIndex<WolfmedEviscerationProfilePrototype>("WolfmedEviscerationDefault"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryCloseEvisceration"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryWeldChassisBreach"));
+                Assert.That(prototypes.HasIndex<WolfmedEviscerationProfilePrototype>("WFWolfmedEviscerationDefault"));
             });
         });
     }

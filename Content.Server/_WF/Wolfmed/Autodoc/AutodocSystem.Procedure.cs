@@ -43,18 +43,18 @@ public sealed partial class AutodocSystem
         ["SurgeryStepCloseIncision"] = AutodocVoiceEvent.StepClose,
         ["SurgeryStepSealWounds"] = AutodocVoiceEvent.StepClose,
         ["SurgeryStepSealTendWound"] = AutodocVoiceEvent.StepClose,
-        ["SurgeryStepCloseEvisceration"] = AutodocVoiceEvent.StepEvisceration,
-        ["SurgeryStepClampEvisceration"] = AutodocVoiceEvent.StepEvisceration,
+        ["WFSurgeryStepCloseEvisceration"] = AutodocVoiceEvent.StepEvisceration,
+        ["WFSurgeryStepClampEvisceration"] = AutodocVoiceEvent.StepEvisceration,
         // Both are hemostat steps, which would otherwise announce themselves as clamping.
-        ["SurgeryStepExtractEmbedded"] = AutodocVoiceEvent.StepEmbedded,
-        ["SurgeryStepRelocateJoint"] = AutodocVoiceEvent.StepRelocate,
+        ["WFSurgeryStepExtractEmbedded"] = AutodocVoiceEvent.StepEmbedded,
+        ["WFSurgeryStepRelocateJoint"] = AutodocVoiceEvent.StepRelocate,
     };
 
     /// <summary>The surgery that puts a patient back together after an abandoned procedure.</summary>
     private static readonly EntProtoId CloseIncision = "SurgeryCloseIncision";
 
     /// <summary>The one procedure that may be planned on a part that still has something stuck in it.</summary>
-    public static readonly EntProtoId RemoveEmbedded = "SurgeryRemoveEmbeddedObjects";
+    public static readonly EntProtoId RemoveEmbedded = "WFSurgeryRemoveEmbeddedObjects";
 
     /// <summary>The defibrillator refusal the pod can do something about on its own.</summary>
     private const string NoBlood = "wolfmed-defib-no-blood";

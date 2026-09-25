@@ -5,16 +5,16 @@
     Brutepack: 4294967295 # Infinite
     Ointment: 4294967295 # Infinite
     Bloodpack: 4294967295 # Infinite
-    WolfmedHydraulicFluidPack: 4294967295 # WOLFGATE(Wolfmed): playtest 3 IPC 2: Infinite, a chassis's refill beside the blood packs.
+    WFWolfmedHydraulicFluidPack: 4294967295 # WOLFGATE(Wolfmed): playtest 3 IPC 2: Infinite, a chassis's refill beside the blood packs.
     Gauze: 4294967295 # Infinite
     EmergencyMedipen: 4294967295 # Infinite
-    WolfmedSplint: 4294967295 # WOLFGATE(Wolfmed): V5: Infinite
-    WolfmedAntisepticSpray: 4294967295 # WOLFGATE(Wolfmed): W5: Infinite
-    WolfmedAnalgesicPill: 4294967295 # WOLFGATE(Wolfmed): CONSC: Infinite
-    WolfmedStimPen: 20 # WOLFGATE(Wolfmed): CONSC: limited, it is the emergency rung.
-    WolfmedAnalgesicPen: 4294967295 # WOLFGATE(Wolfmed): playtest 1: Infinite
-    WolfmedOpiatePen: 40 # WOLFGATE(Wolfmed): playtest 1: limited, it sedates.
-    WolfmedNaloxonePen: 40 # WOLFGATE(Wolfmed): M2: OD14, reverses an overdose.
+    WFWolfmedSplint: 4294967295 # WOLFGATE(Wolfmed): V5: Infinite
+    WFWolfmedAntisepticSpray: 4294967295 # WOLFGATE(Wolfmed): W5: Infinite
+    WFWolfmedAnalgesicPill: 4294967295 # WOLFGATE(Wolfmed): CONSC: Infinite
+    WFWolfmedStimPen: 20 # WOLFGATE(Wolfmed): CONSC: limited, it is the emergency rung.
+    WFWolfmedAnalgesicPen: 4294967295 # WOLFGATE(Wolfmed): playtest 1: Infinite
+    WFWolfmedOpiatePen: 40 # WOLFGATE(Wolfmed): playtest 1: limited, it sedates.
+    WFWolfmedNaloxonePen: 40 # WOLFGATE(Wolfmed): M2: OD14, reverses an overdose.
     PillCanisterTricordrazine: 4294967295 # Infinite - Mono
     HypoMini: 4294967295 # Infinite - Mono
     HypoMiniLimitedEdition: 10 # Limited because its a direct upgrade, and can be found on expeds 

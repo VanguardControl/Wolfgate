@@ -36,7 +36,7 @@ public sealed class WolfmedAutodocFaintTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedFaintTestAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: faint test
   components:
   - type: Autodoc
@@ -57,7 +57,7 @@ public sealed class WolfmedAutodocFaintTest : GameTest
       beaker:
         maxVol: 200
         reagents:
-        - ReagentId: WolfmedOpiate
+        - ReagentId: WFWolfmedOpiate
           Quantity: 100
 ";
 
@@ -114,7 +114,7 @@ public sealed class WolfmedAutodocFaintTest : GameTest
                 "the fixture needs a fainted patient.");
 
             foreach (var target in new[] { TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg })
-                autodoc.TryQueue(pod, "SurgeryMendFracture", target);
+                autodoc.TryQueue(pod, "WFSurgeryMendFracture", target);
 
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
@@ -187,7 +187,7 @@ public sealed class WolfmedAutodocFaintTest : GameTest
             SEntMan.EnsureComponent<RottingComponent>(rotten);
             var first = Pod(map);
             Assert.That(slots.TryInsert(first.Owner, AutodocComponent.ModuleSlotId,
-                SEntMan.SpawnEntity("AutodocDefibModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocDefibModule", map.GridCoords), null), Is.True);
             Assert.That(autodoc.TryInsert(first, rotten), Is.True);
             Assert.That(autodoc.TryDefibrillateOccupant(first, rotten), Is.False);
             Assert.Multiple(() =>
@@ -206,7 +206,7 @@ public sealed class WolfmedAutodocFaintTest : GameTest
 
             var second = Pod(map);
             Assert.That(slots.TryInsert(second.Owner, AutodocComponent.ModuleSlotId,
-                SEntMan.SpawnEntity("AutodocDefibModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocDefibModule", map.GridCoords), null), Is.True);
             Assert.That(autodoc.TryInsert(second, heartless), Is.True);
             Assert.That(autodoc.TryDefibrillateOccupant(second, heartless), Is.False);
             Assert.Multiple(() =>

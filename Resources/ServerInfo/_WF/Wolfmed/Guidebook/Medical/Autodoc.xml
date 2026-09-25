@@ -5,7 +5,7 @@
 A one-tile surgical pod running S.A.M., the Surgical Automation Module. It does not heal anybody. It performs the same surgeries a doctor performs, with the same steps, the same tools and the same consequences, and it will keep going whether or not you gave it anaesthetic.
 
   <Box>
-    <GuideEntityEmbed Entity="MachineAutodoc"/>
+    <GuideEntityEmbed Entity="WFMachineAutodoc"/>
   </Box>
 
 ## What it can and cannot do
@@ -21,10 +21,10 @@ Climb in from the verb menu, or drag a patient onto it. A crewman who is down bu
 ## Running it
 
   <Box>
-    <GuideEntityEmbed Entity="AutodocProgramDiskTransplant"/>
-    <GuideEntityEmbed Entity="AutodocProgramDiskLimb"/>
-    <GuideEntityEmbed Entity="AutodocProgramDiskNeuro"/>
-    <GuideEntityEmbed Entity="AutodocProgramDiskCavity"/>
+    <GuideEntityEmbed Entity="WFAutodocProgramDiskTransplant"/>
+    <GuideEntityEmbed Entity="WFAutodocProgramDiskLimb"/>
+    <GuideEntityEmbed Entity="WFAutodocProgramDiskNeuro"/>
+    <GuideEntityEmbed Entity="WFAutodocProgramDiskCavity"/>
   </Box>
 
 The window shows the patient's body doll and wound findings on the left, exactly as a health analyzer would. Clicking a limb filters the procedure list on the right to that limb. Add procedures to the queue, reorder them, and press Start.
@@ -38,7 +38,7 @@ An occupant with nobody at the console gets a cut-down window: one procedure, an
 [bold]PLAN[/bold] fills the queue with what S.A.M. would do, in the order it would do it: a shock first if the heart has stopped and the cardiac module is fitted, then arterial and internal bleeding, then the rest of the bleeding, an open abdomen, organ repair, bones, deep wounds, shallow ones, chassis repair, and finally closing anything somebody else left open. It skips whatever needs a limb or an organ handing to it, unless the right one is already in the tray, and whatever its disks do not unlock. You still press Start. In self-service the two collapse into one [bold]FIX ME[/bold] button.
 
   <Box>
-    <GuideEntityEmbed Entity="AutodocAutofixModule"/>
+    <GuideEntityEmbed Entity="WFAutodocAutofixModule"/>
   </Box>
 
 The [bold]autofix module[/bold] adds an [bold]AUTO[/bold] toggle. With it on, the pod plans and starts by itself whenever somebody is lying in it, re-plans when the queue runs out in case something started bleeding on the table, and says so when there is nothing left it can do. It never queues anything you could not have queued yourself; it only saves the scheduling. An emagged pod in AUTO plans amputations.

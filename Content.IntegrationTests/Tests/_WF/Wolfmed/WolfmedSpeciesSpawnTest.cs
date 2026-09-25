@@ -77,14 +77,14 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
                     Assert.That(entities.GetComponent<WoundableComponent>(part).Profile,
                         Is.EqualTo(new ProtoId<BodyPartProfilePrototype>("IpcBodyPartProfile")),
                         $"every IPC slot takes the chassis profile, including {component.PartType}.");
-                    // fractureProfile: null on WolfmedPartIpc - no IPC slot can ever fracture.
+                    // fractureProfile: null on WFWolfmedPartIpc - no IPC slot can ever fracture.
                     Assert.That(entities.System<WolfmedBodyPartSystem>().Get(part).FractureProfile, Is.Null);
                 }
 
                 // PROTO Q's Bloodstream block, field by field. Onyx's `bloodReferenceSolution: Oil 250` has no
                 // Wolfgate equivalent, so it maps onto the classic bloodReagent + bloodMaxVolume pair (P5-D4).
                 // Playtest 3 IPC 2: the pool is hydraulic fluid now, not Oil (lamp oil a lit welder set alight).
-                Assert.That(bloodstream.BloodReagent, Is.EqualTo(new ProtoId<ReagentPrototype>("WolfmedHydraulicFluid")));
+                Assert.That(bloodstream.BloodReagent, Is.EqualTo(new ProtoId<ReagentPrototype>("WFWolfmedHydraulicFluid")));
                 Assert.That(bloodstream.BloodMaxVolume, Is.EqualTo(FixedPoint2.New(250)));
                 // U16: an IPC has no metabolizer (OrganIPCPump's Metabolizer block is commented out), so a
                 // 250u chemical solution would be a trap. InjectableSolution is deliberately absent with it.
@@ -124,7 +124,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             var solutions = entities.System<SharedSolutionContainerSystem>();
 
             Assert.That(entities.GetComponent<DamageableComponent>(body).DamageContainerID,
-                Is.EqualTo("SiliconWolfmed"),
+                Is.EqualTo("WFSiliconWolfmed"),
                 "PROTO Q moves the IPC mob off the stock Silicon container.");
 
             Assert.That(Routing(entities).TryApplyPartDamage(body, arm, Spec("Slash", 30), null,
@@ -141,7 +141,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             // it was Oil, flammability 2 with a FlammableTileReaction, and a welder set the trail alight.
             Assert.That(solutions.TryGetSolution(body, bloodstream.BloodSolutionName, out var solution, out _));
             Assert.That(solution!.Value.Comp.Solution.Contents.Select(reagent => reagent.Reagent.Prototype),
-                Does.Contain("WolfmedHydraulicFluid"));
+                Does.Contain("WFWolfmedHydraulicFluid"));
 
             var before = blood.GetBloodLevelPercentage(body);
             Assert.That(blood.TryModifyBloodLevel(body, FixedPoint2.New(-50)));
@@ -237,7 +237,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         {
             var routing = Routing(entities);
 
-            // (i) 140 pure Slash. The IPC arm inherits WolfmedBaseLeftArm's organic amputation set - Slash 130
+            // (i) 140 pure Slash. The IPC arm inherits WFWolfmedBaseLeftArm's organic amputation set - Slash 130
             // (P5-D7: Onyx's own 270/400/600 are NOT ported, they sit on a different part chain) - and
             // PartIPCBase's Slash rung is 210, so the limb survives and AmputationSystem arms it.
             var first = entities.SpawnEntity("MobIPC", map.GridCoords);
@@ -399,7 +399,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
             arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
 
             Assert.That(entities.System<WolfmedBodyPartSystem>().Get(arm).AmputationThresholds, Is.Empty);
-            // 215 Slash clears MajorLimb's Slash rung of 210. WolfmedPartDiona declares no Destructible of its
+            // 215 Slash clears MajorLimb's Slash rung of 210. WFWolfmedPartDiona declares no Destructible of its
             // own, so the limb keeps the trigger every organic arm and leg carries (Body/Parts/base.yml).
             // M1b: somebody deals it; damage with no origin stops at the limb's ambient ceiling.
             // M3 (P19): the Blunt rung this used (190) is 400 now, above every limb's Blunt sever threshold; the

@@ -6,7 +6,7 @@
 # a dressing only slows the rate, a dressing cannot take its severity, and nothing closes it while it is
 # still pumping. A tourniquet on a limb stops it while it is on; the surgery clamps then sutures it.
 - type: wound
-  id: WolfmedArterialBleedWound
+  id: WFWolfmedArterialBleedWound
   name: wolfmed-wound-name-arterial-bleed
   analyzerCategory: Cut
   ruleOnly: true
@@ -44,7 +44,7 @@
 # is deliberately not used: wounds.body_part_functionality_enabled ships false (P2-3).
 # healingMultiplier 0 keeps gauze, sutures and damage removal out of it: a tendon is repaired in surgery.
 - type: wound
-  id: WolfmedTendonCutWound
+  id: WFWolfmedTendonCutWound
   name: wolfmed-wound-name-tendon-cut
   analyzerCategory: Cut
   ruleOnly: true
@@ -70,7 +70,7 @@
 
 # Tissue torn away by a bite. Scars from almost nothing, and carries the infection-risk flag W5 reads.
 - type: wound
-  id: WolfmedAvulsionWound
+  id: WFWolfmedAvulsionWound
   name: wolfmed-wound-name-avulsion
   analyzerCategory: Cut
   ruleOnly: true

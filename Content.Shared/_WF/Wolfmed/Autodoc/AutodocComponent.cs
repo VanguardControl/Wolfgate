@@ -33,15 +33,15 @@ public sealed partial class AutodocComponent : Component
 
     /// <summary>The voice lines the pod speaks with.</summary>
     [DataField]
-    public ProtoId<AutodocVoicePrototype> Voice = "WolfmedAutodocVoiceSam";
+    public ProtoId<AutodocVoicePrototype> Voice = "WFWolfmedAutodocVoiceSam";
 
     /// <summary>The reagents the pod will draw from its reservoir, and what each is for.</summary>
     [DataField]
-    public ProtoId<AutodocReagentsPrototype> Reagents = "WolfmedAutodocReagents";
+    public ProtoId<AutodocReagentsPrototype> Reagents = "WFWolfmedAutodocReagents";
 
     /// <summary>The order the pod treats a patient in when it plans for itself.</summary>
     [DataField]
-    public ProtoId<AutodocTriagePrototype> Triage = "WolfmedAutodocTriage";
+    public ProtoId<AutodocTriagePrototype> Triage = "WFWolfmedAutodocTriage";
 
     /// <summary>Programs the pod knows without any disk in the slot.</summary>
     [DataField]

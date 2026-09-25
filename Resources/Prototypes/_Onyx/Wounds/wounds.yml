@@ -28,28 +28,28 @@
     - MedicalScarWound
     - SystemicBleedingWound
     # WOLFGATE(Wolfmed): W1: ballistic wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds).
-    - WolfmedGrazeWound
-    - WolfmedGunshotWound
-    - WolfmedLodgedRoundWound
-    - WolfmedShrapnelWound
+    - WFWolfmedGrazeWound
+    - WFWolfmedGunshotWound
+    - WFWolfmedLodgedRoundWound
+    - WFWolfmedShrapnelWound
     # WOLFGATE(Wolfmed): W2: slash and bite wounds, also created only by wolfmedWoundRule.
-    - WolfmedArterialBleedWound
-    - WolfmedTendonCutWound
-    - WolfmedAvulsionWound
+    - WFWolfmedArterialBleedWound
+    - WFWolfmedTendonCutWound
+    - WFWolfmedAvulsionWound
     # WOLFGATE(Wolfmed): W3: blunt trauma wounds, also created only by wolfmedWoundRule.
-    - WolfmedCrushInjuryWound
-    - WolfmedConcussionWound
-    - WolfmedDislocationWound
-    - WolfmedOrganContusionWound
+    - WFWolfmedCrushInjuryWound
+    - WFWolfmedConcussionWound
+    - WFWolfmedDislocationWound
+    - WFWolfmedOrganContusionWound
     # WOLFGATE(Wolfmed): W4: burn wounds. Charring comes from WolfmedCharringSystem, the other three from rules.
-    - WolfmedCharringWound
-    - WolfmedFrostbiteWound
-    - WolfmedChemicalBurnWound
-    - WolfmedInternalBurnWound
+    - WFWolfmedCharringWound
+    - WFWolfmedFrostbiteWound
+    - WFWolfmedChemicalBurnWound
+    - WFWolfmedInternalBurnWound
     # WOLFGATE(Wolfmed): W5: dead tissue, left by WolfmedNecrosisSystem rather than by a hit.
-    - WolfmedNecrosisWound
+    - WFWolfmedNecrosisWound
     # WOLFGATE(Wolfmed): EVISC: the torso laid open. Created only by WolfmedEviscerationSystem, never by a rule.
-    - WolfmedEviscerationWound
+    - WFWolfmedEviscerationWound
   organDamage:
     chances:
       Head: 0.05
@@ -75,7 +75,7 @@
     - Slash
     - Piercing
     - Heat
-    - Cold    # WOLFGATE(Wolfmed): P5-1/P5-D20, corrected M6: live. U13'(b) shipped: the parts' InorganicWolfmed
+    - Cold    # WOLFGATE(Wolfmed): P5-1/P5-D20, corrected M6: live. U13'(b) shipped: the parts' WFInorganicWolfmed
     - Shock   #   container (_WF/Wolfmed/Damage/containers.yml) takes the whole Burn group, as Onyx's SiliconIpc does.
     - Caustic # WOLFGATE(Wolfmed): P5-1/P5-D20, corrected M6: as above, live.
   supportedWounds:
@@ -87,13 +87,13 @@
     - SystemicBleedingWound
     # WOLFGATE(Wolfmed): W6: mechanical wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds). None of
     # them appears in OrganicBodyPartProfile, and none of that profile's Wolfmed wounds appears here.
-    - WolfmedDentWound
-    - WolfmedBreachWound
-    - WolfmedShortCircuitWound
-    - WolfmedServoDamageWound
-    - WolfmedOverheatingWound
+    - WFWolfmedDentWound
+    - WFWolfmedBreachWound
+    - WFWolfmedShortCircuitWound
+    - WFWolfmedServoDamageWound
+    - WFWolfmedOverheatingWound
     # WOLFGATE(Wolfmed): EVISC: the chassis torso opened up. Created only by WolfmedEviscerationSystem.
-    - WolfmedChassisBreachWound
+    - WFWolfmedChassisBreachWound
   organDamage:
     # WOLFGATE(Wolfmed): P5-1/P5-D13, corrected M6: live. The core and the pump carry OrganDamage since BRAIN, and the
     # IPC torso's organReach (M3) replaces this roll there. Do NOT add maxAffected - Onyx sets it only on
@@ -165,11 +165,11 @@
     - AmputationConsequenceWound
     # WOLFGATE(Wolfmed): W6: as on IpcBodyPartProfile above - a cybernetic limb dents, breaches, shorts, loses a
     # servo and overheats exactly as an IPC chassis does.
-    - WolfmedDentWound
-    - WolfmedBreachWound
-    - WolfmedShortCircuitWound
-    - WolfmedServoDamageWound
-    - WolfmedOverheatingWound
+    - WFWolfmedDentWound
+    - WFWolfmedBreachWound
+    - WFWolfmedShortCircuitWound
+    - WFWolfmedServoDamageWound
+    - WFWolfmedOverheatingWound
   # WOLFGATE(Wolfmed): no organDamage block on Onyx's original either - nothing to fold.
 
 - type: bodyPartProfile
@@ -350,7 +350,7 @@
   analyzerCategory: Blunt # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   maximumSeverity: 200
-  # WOLFGATE(Wolfmed): W0 balance: stage thresholds track WolfmedFractureProfile's grades
+  # WOLFGATE(Wolfmed): W0 balance: stage thresholds track WFWolfmedFractureProfile's grades
   # (_WF/Wolfmed/Body/fractures.yml), 20/35/50/60 -> 12/20/32/45. A fresh Hairline fracture would otherwise
   # sit below its own lowest stage and carry no pain or functionality effect at all. Hairline's pain
   # minSeverity follows its threshold down for the same reason. CyberneticFrameFractureWound is untouched:
@@ -617,7 +617,7 @@
       # WOLFGATE(Wolfmed): W4: tissue burned this far is dead. Crossing into this stage leaves charring, which no
       # topical reaches - a skin graft is the only exit. See WolfmedCharringSystem.
       - !type:WolfmedCharringBehavior
-        wound: WolfmedCharringWound
+        wound: WFWolfmedCharringWound
         severity: 20
 
 - type: wound

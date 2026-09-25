@@ -38,7 +38,7 @@ public sealed class WolfmedAmputationTest : GameTest
     // off the parent stump (PLAN3 §8.7 hazard 7).
     //
     // WolfmedAmputationOverflowPart is the only part in these tests with a nonzero maxDamage. Every
-    // shipped limb has maxDamage 0 (only WolfmedBaseTorso sets one, and the torso is excluded from
+    // shipped limb has maxDamage 0 (only WFWolfmedBaseTorso sets one, and the torso is excluded from
     // amputation outright), which is exactly what T-AMP-OVERFLOW measures.
     [TestPrototypes]
     private const string Prototypes = @"
@@ -131,7 +131,7 @@ public sealed class WolfmedAmputationTest : GameTest
             var head = graph.GetBodyChildren(body)
                 .Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
-            // HeadHuman's Slash threshold is 200 (parts.yml/WolfmedBaseHead): this arms the head.
+            // HeadHuman's Slash threshold is 200 (parts.yml/WFWolfmedBaseHead): this arms the head.
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Slash", 200)));
 
             // CheckVitalDamage sums the ATTACHED Head + Torso part damage plus SystemicDamageComponent
@@ -179,7 +179,7 @@ public sealed class WolfmedAmputationTest : GameTest
                 .Single(part => part.Component.PartType == BodyPartType.Head).Id;
             Assert.That(entities.System<WolfmedBodySystem>().TryDetachPart(monkeyHead));
 
-            // HeadMonkey inherits BaseHead -> WolfmedBaseHead, so it carries Wolfmed part data, but
+            // HeadMonkey inherits BaseHead -> WFWolfmedBaseHead, so it carries Wolfmed part data, but
             // ChargeVitalPartLoss is only reachable through <WoundHostComponent, BodyPartRemovedEvent>.
             // Only Shitmed's flat VitalDamage 100 is charged, exactly as before phase 3.
             Assert.That(entities.GetComponent<DamageableComponent>(monkey).Damage

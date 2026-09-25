@@ -33,12 +33,12 @@ None of it touches blood, and none of it touches air. A patient who has bled out
 
 The analyzer names the tier and the time left at the top of the wounds tab, with the sedation beside it. The patient feels a dose take hold and feels it wear off. Swallowed, a painkiller takes a few seconds to reach the blood; a pen works at once, and you can use one on yourself while you are down. The [bold]analgesic pen[/bold] is the weak rung, the [bold]opiate pen[/bold] the strong one, dosed to stay under the breathing line if you take one at a time.
   <Box>
-    <GuideEntityEmbed Entity="WolfmedAnalgesicPill"/>
-    <GuideEntityEmbed Entity="WolfmedOpiateChemistryBottle"/>
-    <GuideEntityEmbed Entity="WolfmedAnalgesicPen"/>
-    <GuideEntityEmbed Entity="WolfmedOpiatePen"/>
-    <GuideEntityEmbed Entity="WolfmedStimPen"/>
-    <GuideEntityEmbed Entity="WolfmedNaloxonePen"/>
+    <GuideEntityEmbed Entity="WFWolfmedAnalgesicPill"/>
+    <GuideEntityEmbed Entity="WFWolfmedOpiateChemistryBottle"/>
+    <GuideEntityEmbed Entity="WFWolfmedAnalgesicPen"/>
+    <GuideEntityEmbed Entity="WFWolfmedOpiatePen"/>
+    <GuideEntityEmbed Entity="WFWolfmedStimPen"/>
+    <GuideEntityEmbed Entity="WFWolfmedNaloxonePen"/>
   </Box>
 
 ## Biological tissue
@@ -122,7 +122,7 @@ A [bold]chemical burn[/bold] keeps working while the acid is still on the skin. 
 Skin grafts are in the burn kit and the surgical crate, come out of the medical vendor, and print on a medical lathe.
   <Box>
     <GuideEntityEmbed Entity="RegenerativeMesh"/>
-    <GuideEntityEmbed Entity="WolfmedSkinGraft"/>
+    <GuideEntityEmbed Entity="WFWolfmedSkinGraft"/>
   </Box>
 
 ## Cauterisation
@@ -152,8 +152,8 @@ Away from a table, a [bold]splint[/bold] does the first step on its own. Select 
 
 Splints are in the brute kit and the medical vendor. An [bold]improvised splint[/bold] - two metal rods and two cloth, crafted anywhere - does the same job more slowly.
   <Box>
-    <GuideEntityEmbed Entity="WolfmedSplint"/>
-    <GuideEntityEmbed Entity="WolfmedSplintImprovised"/>
+    <GuideEntityEmbed Entity="WFWolfmedSplint"/>
+    <GuideEntityEmbed Entity="WFWolfmedSplintImprovised"/>
     <GuideEntityEmbed Entity="Bonesetter"/>
     <GuideEntityEmbed Entity="BoneGel"/>
   </Box>

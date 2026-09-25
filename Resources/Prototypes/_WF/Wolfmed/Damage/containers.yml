@@ -10,7 +10,7 @@
 # localized type, so the routing puts it in the body's systemic pool, which this container (no Airloss) drops on
 # an IPC. An IPC dies of its core, not of a projected total.
 - type: damageContainer
-  id: SiliconWolfmed
+  id: WFSiliconWolfmed
   supportedGroups:
   - Brute
   supportedTypes:
@@ -35,7 +35,7 @@
 # Radiation is kept although it is not in WoundHostComponent.LocalizedDamageTypes and therefore never
 # routes - a directly-targeted part can still take it.
 - type: damageContainer
-  id: InorganicWolfmed
+  id: WFInorganicWolfmed
   supportedGroups:
   - Brute
   - Burn

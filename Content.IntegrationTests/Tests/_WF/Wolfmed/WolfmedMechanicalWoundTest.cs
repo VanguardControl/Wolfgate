@@ -42,30 +42,30 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
     /// <summary>Wounds that belong to flesh and must never appear on a chassis.</summary>
     private static readonly string[] OrganicOnly =
     [
-        "WolfmedCrushInjuryWound",
-        "WolfmedConcussionWound",
-        "WolfmedDislocationWound",
-        "WolfmedArterialBleedWound",
-        "WolfmedTendonCutWound",
-        "WolfmedAvulsionWound",
-        "WolfmedFrostbiteWound",
-        "WolfmedChemicalBurnWound",
-        "WolfmedCharringWound",
-        "WolfmedInternalBurnWound",
-        "WolfmedNecrosisWound",
-        "WolfmedGunshotWound",
-        "WolfmedLodgedRoundWound",
-        "WolfmedShrapnelWound",
+        "WFWolfmedCrushInjuryWound",
+        "WFWolfmedConcussionWound",
+        "WFWolfmedDislocationWound",
+        "WFWolfmedArterialBleedWound",
+        "WFWolfmedTendonCutWound",
+        "WFWolfmedAvulsionWound",
+        "WFWolfmedFrostbiteWound",
+        "WFWolfmedChemicalBurnWound",
+        "WFWolfmedCharringWound",
+        "WFWolfmedInternalBurnWound",
+        "WFWolfmedNecrosisWound",
+        "WFWolfmedGunshotWound",
+        "WFWolfmedLodgedRoundWound",
+        "WFWolfmedShrapnelWound",
     ];
 
     /// <summary>Wounds that belong to a chassis and must never appear on flesh.</summary>
     private static readonly string[] MechanicalOnly =
     [
-        "WolfmedDentWound",
-        "WolfmedBreachWound",
-        "WolfmedShortCircuitWound",
-        "WolfmedServoDamageWound",
-        "WolfmedOverheatingWound",
+        "WFWolfmedDentWound",
+        "WFWolfmedBreachWound",
+        "WFWolfmedShortCircuitWound",
+        "WFWolfmedServoDamageWound",
+        "WFWolfmedOverheatingWound",
     ];
 
     /// <summary>
@@ -126,8 +126,8 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
                 foreach (var id in OrganicOnly)
                     Assert.That(found, Does.Not.Contain(id));
 
-                Assert.That(found, Does.Contain("WolfmedDentWound").And.Contain("WolfmedBreachWound")
-                        .And.Contain("WolfmedShortCircuitWound"),
+                Assert.That(found, Does.Contain("WFWolfmedDentWound").And.Contain("WFWolfmedBreachWound")
+                        .And.Contain("WFWolfmedShortCircuitWound"),
                     "a chassis gets the mechanical answers to the same four hits.");
                 Assert.That(found, Does.Contain("IpcMechanicalDamageWound"),
                     "and the generic chassis wound is still the total, because W6 adds rather than replaces.");
@@ -169,12 +169,12 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
 
             // severityMultiplier 0.9: 20 Blunt is an 18-severity dent, short of the 30 the penalty starts at.
             Damage(entities, body, TargetBodyPart.Torso, "Blunt", 20);
-            var dent = FindWound(entities, wounds, chassis, "WolfmedDentWound");
+            var dent = FindWound(entities, wounds, chassis, "WFWolfmedDentWound");
             Assert.That(entities.GetComponent<WoundComponent>(dent).Severity, Is.EqualTo(FixedPoint2.New(18)));
 
             // A breach leaks and never clots, which is the whole difference from an organic cut.
             Damage(entities, body, TargetBodyPart.Torso, "Slash", 20);
-            var breach = FindWound(entities, wounds, chassis, "WolfmedBreachWound");
+            var breach = FindWound(entities, wounds, chassis, "WFWolfmedBreachWound");
             Assert.Multiple(() =>
             {
                 Assert.That(entities.GetComponent<WoundComponent>(breach).Severity, Is.EqualTo(FixedPoint2.New(16)));
@@ -189,7 +189,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             Assert.That(routing.TryApplyPartDamage(body, chassis, Spec("Slash", -40), null,
                 ignoreResistances: true, healWounds: true), Is.True);
             Assert.That(Prototypes(entities, wounds, chassis),
-                Does.Not.Contain("WolfmedDentWound").And.Not.Contain("WolfmedBreachWound"));
+                Does.Not.Contain("WFWolfmedDentWound").And.Not.Contain("WFWolfmedBreachWound"));
 
             // A round keeps the chassis shut: W1's embedded machinery on an ordinary breach, so the repair
             // is refused until the object is out rather than needing a mechanical lodged-round wound.
@@ -199,7 +199,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             entities.System<DamageableSystem>().TryChangeDamage(shot, Spec("Piercing", 20),
                 origin: null, targetPart: TargetBodyPart.Torso, tool: round);
 
-            var pierced = FindWound(entities, wounds, shotChassis, "WolfmedBreachWound");
+            var pierced = FindWound(entities, wounds, shotChassis, "WFWolfmedBreachWound");
             Assert.Multiple(() =>
             {
                 Assert.That(embedded.GetPartCount(shotChassis), Is.GreaterThan(0),
@@ -240,7 +240,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             // helper ignores resistances, which the routing now honours, so this hit takes the resistances.
             entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Shock", 12), origin: null,
                 targetPart: TargetBodyPart.Torso);
-            var short_ = FindWound(entities, wounds, chassis, "WolfmedShortCircuitWound");
+            var short_ = FindWound(entities, wounds, chassis, "WFWolfmedShortCircuitWound");
 
             Assert.Multiple(() =>
             {
@@ -256,7 +256,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             // A cut actuator: the mechanical severed tendon, on a limb only.
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
             Damage(entities, body, TargetBodyPart.LeftLeg, "Slash", 30);
-            var servo = FindWound(entities, wounds, leg, "WolfmedServoDamageWound");
+            var servo = FindWound(entities, wounds, leg, "WFWolfmedServoDamageWound");
 
             Assert.Multiple(() =>
             {
@@ -264,7 +264,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
                 Assert.That(traits.TryGetLimbPenalty(leg, mobility: true, out var limp), Is.True);
                 Assert.That(limp, Is.LessThan(1f), "the limb it is on is lame until it is rewired.");
                 Assert.That(Prototypes(entities, wounds, Part(entities, body, BodyPartType.Torso)),
-                    Does.Not.Contain("WolfmedServoDamageWound"),
+                    Does.Not.Contain("WFWolfmedServoDamageWound"),
                     "there is no servo in a torso to sever.");
             });
 
@@ -279,9 +279,9 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             // The exit is the procedure: open the limb, replace the run with a cable coil, seal it.
             Assert.Multiple(() =>
             {
-                Assert.That(prototypes.Index<WoundPrototype>("WolfmedServoDamageWound").DamageTypes, Is.Empty);
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryReplaceServo"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryStepReplaceServo"));
+                Assert.That(prototypes.Index<WoundPrototype>("WFWolfmedServoDamageWound").DamageTypes, Is.Empty);
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryReplaceServo"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryStepReplaceServo"));
                 Assert.That(entities.HasComponent<WolfmedServoKitComponent>(
                     entities.SpawnEntity("CableApcStack", map.GridCoords)), Is.True,
                     "and the coil a mechanic already carries is the step's tool.");
@@ -289,7 +289,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
 
             // Which is what the step's effect does.
             wounds.TreatWound(servo, FixedPoint2.MaxValue);
-            Assert.That(Prototypes(entities, wounds, leg), Does.Not.Contain("WolfmedServoDamageWound"));
+            Assert.That(Prototypes(entities, wounds, leg), Does.Not.Contain("WFWolfmedServoDamageWound"));
         });
     }
 
@@ -320,13 +320,13 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             // helper ignores resistances, which the routing now honours, so this hit takes the resistances.
             entities.System<DamageableSystem>().TryChangeDamage(body, Spec("Heat", 40), origin: null,
                 targetPart: TargetBodyPart.LeftArm);
-            var wound = FindWound(entities, wounds, arm, "WolfmedOverheatingWound");
+            var wound = FindWound(entities, wounds, arm, "WFWolfmedOverheatingWound");
 
             Assert.Multiple(() =>
             {
                 Assert.That(entities.GetComponent<WoundComponent>(wound).Severity, Is.EqualTo(FixedPoint2.New(48)));
                 Assert.That(overheating.IsOverheating(arm), Is.True);
-                Assert.That(prototypes.Index<WoundPrototype>("WolfmedOverheatingWound").DamageTypes, Is.Empty,
+                Assert.That(prototypes.Index<WoundPrototype>("WFWolfmedOverheatingWound").DamageTypes, Is.Empty,
                     "no damage type means no tool and no damage removal reaches it.");
                 Assert.That(traits.TryGetLimbPenalty(arm, mobility: false, out var slow), Is.True);
                 Assert.That(slow, Is.GreaterThan(1f), "a hot part works slowly.");
@@ -349,7 +349,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             overheating.Update(600f);
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WolfmedOverheatingWound"),
+                Assert.That(Prototypes(entities, wounds, arm), Does.Not.Contain("WFWolfmedOverheatingWound"),
                     "left alone long enough, the part is simply cool again.");
                 Assert.That(overheating.IsOverheating(arm), Is.False);
                 Assert.That(overheating.Douse(body), Is.Zero);
@@ -443,7 +443,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             part = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
             Damage(entities, body, TargetBodyPart.LeftLeg, "Blunt", 12);
             Assert.That(Prototypes(entities, entities.System<WoundSystem>(), part),
-                Does.Contain("WolfmedDentWound"));
+                Does.Contain("WFWolfmedDentWound"));
 
             var tool = entities.SpawnEntity("Wrench", map.GridCoords);
             Assert.That(entities.System<SharedHandsSystem>().TryPickupAnyHand(user, tool), Is.True);
@@ -462,7 +462,7 @@ public sealed class WolfmedMechanicalWoundTest : GameTest
             Assert.That(repair!.Cancelled, Is.False);
             Assert.That(repair.Completed, Is.True);
             Assert.That(Prototypes(entities, entities.System<WoundSystem>(), part),
-                Does.Not.Contain("WolfmedDentWound"), "the panel comes back out.");
+                Does.Not.Contain("WFWolfmedDentWound"), "the panel comes back out.");
         });
     }
 

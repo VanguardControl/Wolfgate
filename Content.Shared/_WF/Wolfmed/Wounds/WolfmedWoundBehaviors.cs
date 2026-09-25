@@ -147,11 +147,11 @@ public sealed partial class WolfmedDislocationBehavior : WoundBehavior
 
     /// <summary>Played at the patient when someone takes hold of the joint.</summary>
     [DataField]
-    public SoundSpecifier? BeginSound = new SoundCollectionSpecifier("WolfmedJointStrain");
+    public SoundSpecifier? BeginSound = new SoundCollectionSpecifier("WFWolfmedJointStrain");
 
     /// <summary>Played when the joint goes back in.</summary>
     [DataField]
-    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WolfmedWoundBone");
+    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WFWolfmedWoundBone");
 }
 
 /// <summary>
@@ -184,7 +184,7 @@ public sealed partial class WolfmedCharringBehavior : WoundBehavior
 {
     /// <summary>The wound the dead tissue becomes.</summary>
     [DataField]
-    public ProtoId<WoundPrototype> Wound = "WolfmedCharringWound";
+    public ProtoId<WoundPrototype> Wound = "WFWolfmedCharringWound";
 
     /// <summary>Severity of the charring left each time the burn crosses into this stage.</summary>
     [DataField]

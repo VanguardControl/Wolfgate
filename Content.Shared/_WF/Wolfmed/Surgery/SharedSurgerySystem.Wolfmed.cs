@@ -25,7 +25,7 @@ public abstract partial class SharedSurgerySystem
     /// <summary>Whether a tend surgery should stay off this wound host's part (HOOK 24).</summary>
     // Upstream lists it wherever the body has any damage. On a wound host the part must carry something tending could
     // close, inside the surgery's severity window; non-hosts are unchanged. Never on a machine part, which is welded
-    // and rewired instead (SurgeryWeldChassis, SurgeryRewireChassis).
+    // and rewired instead (WFSurgeryWeldChassis, WFSurgeryRewireChassis).
     private bool WolfmedWoundWindowFails(Entity<SurgeryWoundedConditionComponent> ent, EntityUid body, EntityUid part)
     {
         if (!HasComp<WoundHostComponent>(body))

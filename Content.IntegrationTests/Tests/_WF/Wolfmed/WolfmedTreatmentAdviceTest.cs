@@ -192,7 +192,7 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
                 part.Component.Symmetry == BodyPartSymmetry.Left).Id;
 
             Assert.That(entities.System<WoundSystem>()
-                .CreateOrMergeWound(arm, "WolfmedGunshotWound", 20), Is.Not.Null);
+                .CreateOrMergeWound(arm, "WFWolfmedGunshotWound", 20), Is.Not.Null);
 
             var diagnostics = entities.System<HealthAnalyzerSystem>().BuildWoundDiagnostics(body);
             Assert.That(diagnostics, Is.Not.Null);
@@ -200,12 +200,12 @@ public sealed class WolfmedTreatmentAdviceTest : GameTest
             var row = diagnostics!.Parts[TargetBodyPart.LeftArm].VisibleWounds.Single();
             Assert.Multiple(() =>
             {
-                Assert.That(row.Prototype, Is.EqualTo("WolfmedGunshotWound"),
+                Assert.That(row.Prototype, Is.EqualTo("WFWolfmedGunshotWound"),
                     "the row has to name its prototype or the panel cannot find its advice.");
                 Assert.That(WolfmedTreatmentAdvice.ShortKey(row.Prototype),
                     Is.EqualTo("wolfmed-treatment-short-wolfmed-gunshot-wound"));
                 Assert.That(WolfmedTreatmentAdvice.ProcedureId(row.Prototype, false),
-                    Is.EqualTo("WolfmedGunshotWound"));
+                    Is.EqualTo("WFWolfmedGunshotWound"));
             });
         });
     }

@@ -71,8 +71,8 @@ A round that stayed in. It is a matter of luck: about one rifle-weight hit in th
 Fragments from a blast or from buckshot, several at a time. It behaves like a lodged round: each fragment has to come out before the wound can be closed.
   <Box>
     <GuideEntityEmbed Entity="Hemostat"/>
-    <GuideEntityEmbed Entity="WolfmedSpentRound"/>
-    <GuideEntityEmbed Entity="WolfmedShrapnelFragment"/>
+    <GuideEntityEmbed Entity="WFWolfmedSpentRound"/>
+    <GuideEntityEmbed Entity="WFWolfmedShrapnelFragment"/>
   </Box>
 
 ## Arterial bleed

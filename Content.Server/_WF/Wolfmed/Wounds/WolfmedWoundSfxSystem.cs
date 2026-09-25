@@ -28,7 +28,7 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 public sealed class WolfmedWoundSfxSystem : EntitySystem
 {
     /// <summary>The shipped profile. Retuning the feedback layer is an edit to that prototype.</summary>
-    public const string DefaultProfile = "WolfmedSfxDefault";
+    public const string DefaultProfile = "WFWolfmedSfxDefault";
 
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IConfigurationManager _config = default!;

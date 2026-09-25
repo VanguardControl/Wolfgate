@@ -1,6 +1,6 @@
 - type: entity
   abstract: true
-  parent: [ WolfmedPartIpc, BasePartInorganic ] # WOLFGATE(Wolfmed): P5-1: IPC chassis wound profile; WolfmedPartIpc must stay FIRST (RT first-parent-wins)
+  parent: [ WFWolfmedPartIpc, BasePartInorganic ] # WOLFGATE(Wolfmed): P5-1: IPC chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
   id: PartIPCBase
   name: "ipc body part"
   components:
@@ -11,10 +11,10 @@
   # WOLFGATE(Wolfmed): P5-2/P5-D20, U13'b: Onyx's SiliconIpc container takes the whole Burn group
   # (Heat, Shock, Cold, Caustic); the stock Inorganic container inherited from BasePartInorganic
   # (Brute + Heat/Shock) drops Cold and Caustic, killing 2 of the 7 acceptedDamageTypes on
-  # IpcBodyPartProfile and 2 of the 6 damageTypes on IpcMechanicalDamageWound. InorganicWolfmed is a
+  # IpcBodyPartProfile and 2 of the 6 damageTypes on IpcMechanicalDamageWound. WFInorganicWolfmed is a
   # superset of Inorganic, so no type is lost. Only this abstract and CyberneticPartBase use it (D2).
   - type: Damageable
-    damageContainer: InorganicWolfmed
+    damageContainer: WFInorganicWolfmed
   # WOLFGATE(Wolfmed): P5-D8, U3'b: dormant until P5-1 routes damage to IPC parts. Raised to parity with Mono's
   # MajorLimb, the trigger every organic arm and leg actually carries (Body/Parts/base.yml:276-307:
   # Blunt 190 / Slash 210). No Heat rung is added - EE's own "# no ashing trigger" stands, so an IPC
@@ -36,7 +36,7 @@
       - !type:GibPartBehavior { }
 
 - type: entity
-  parent: [ WolfmedBaseTorsoIpc, PartIPCBase, BaseTorsoInorganic ] # WOLFGATE(Wolfmed): EVISC: torso damage cap, see _WF/Wolfmed/Body/species_parts.yml
+  parent: [ WFWolfmedBaseTorsoIpc, PartIPCBase, BaseTorsoInorganic ] # WOLFGATE(Wolfmed): EVISC: torso damage cap, see _WF/Wolfmed/Body/species_parts.yml
   id: TorsoIPC
   name: "ipc torso"
   components:

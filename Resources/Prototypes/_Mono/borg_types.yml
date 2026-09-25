@@ -43,7 +43,7 @@
     damageContainers:
     - Inorganic
     - Silicon
-    - SiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
   inventoryTemplateId: borgShort
   spriteBodyState: engineer
   spriteHasMindState: engineer_l
@@ -126,7 +126,7 @@
     damageContainers:
     - Inorganic
     - Silicon
-    - SiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
   inventoryTemplateId: borgShort
   spriteBodyState: engineer
   spriteHasMindState: engineer_l
@@ -190,7 +190,7 @@
     - Biological
     - Inorganic
     - Silicon
-    - SiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
   - type: FootstepModifier
     footstepSoundCollection:
       path: /Audio/_Mono/Effects/Footsteps/borgwalk3.ogg
@@ -226,7 +226,7 @@
     - Biological
     - Inorganic
     - Silicon
-    - SiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
   - type: FootstepModifier
     footstepSoundCollection:
       path: /Audio/_Mono/Effects/Footsteps/borgwalk3.ogg
@@ -260,7 +260,7 @@
     - Biological
     - Inorganic
     - Silicon
-    - SiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
   - type: FootstepModifier
     footstepSoundCollection:
       path: /Audio/_Mono/Effects/Footsteps/borgwalk4.ogg
@@ -296,7 +296,7 @@
     - Biological
     - Inorganic
     - Silicon
-    - SiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
+    - WFSiliconWolfmed # WOLFGATE(Wolfmed): playtest 3: the IPC's container, so its bar shows
   - type: FootstepModifier
     footstepSoundCollection:
       path: /Audio/_Mono/Effects/Footsteps/borgwalk4.ogg

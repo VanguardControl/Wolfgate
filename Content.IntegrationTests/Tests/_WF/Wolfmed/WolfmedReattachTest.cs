@@ -86,7 +86,7 @@ public sealed class WolfmedReattachTest : GameTest
             Assert.That(entities.HasComponent<DamageableComponent>(arm), Is.True);
 
             // Prototype data is never mutated at runtime, so the thresholds must read exactly as parts.yml
-            // defines them for WolfmedBaseLeftArm (P3-D13), regardless of the detach/reattach round trip.
+            // defines them for WFWolfmedBaseLeftArm (P3-D13), regardless of the detach/reattach round trip.
             var thresholds = wfPart.Get(arm).AmputationThresholds;
             Assert.Multiple(() =>
             {
@@ -153,7 +153,7 @@ public sealed class WolfmedReattachTest : GameTest
 
             // WolfmedWoundSurgeryTest's bare `WolfmedSurgeryTreatWoundEffect { woundPrototype:
             // AmputationConsequenceWound }` step - the same component WP12-5 puts on
-            // SurgeryStepHealAmputationConsequence.
+            // WFSurgeryStepHealAmputationConsequence.
             var step = entities.SpawnEntity("WolfmedStepHealAmputation", map.GridCoords);
             var ev = new SurgeryStepEvent(body, body, torso, new List<EntityUid>(), step);
             entities.EventBus.RaiseLocalEvent(step, ref ev);

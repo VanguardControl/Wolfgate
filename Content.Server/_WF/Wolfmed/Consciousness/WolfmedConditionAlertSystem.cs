@@ -99,7 +99,7 @@ public sealed class WolfmedConditionAlertSystem : EntitySystem
                     return mechanical;
 
                 return cause?.AlertDowned ?? CompOrNull<WolfmedDownedComponent>(body)?.Alert ??
-                    new ProtoId<AlertPrototype>("WolfmedDowned");
+                    new ProtoId<AlertPrototype>("WFWolfmedDowned");
             case WolfmedConsciousness.Unconscious:
                 return cause?.AlertOut ?? thresholds.StateAlertDict.GetValueOrDefault(MobState.Critical);
             default:

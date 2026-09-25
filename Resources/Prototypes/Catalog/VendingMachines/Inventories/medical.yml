@@ -8,13 +8,13 @@
     Gauze: 5 # Frontier
     EpinephrineChemistryBottle: 3
     SpaceacillinChemistryBottle: 3 # WOLFGATE(Wolfmed): W7: the only cure for a spread infection (W5).
-    WolfmedSkinGraft: 2 # WOLFGATE(Wolfmed): W7: the only treatment for charring (W4).
-    WolfmedAntisepticSpray: 3 # WOLFGATE(Wolfmed): the topical way to clean a wound (W5 antiseptics work by touch).
-    WolfmedAnalgesicPill: 6 # WOLFGATE(Wolfmed): CONSC: the weak rung of the painkiller ladder.
-    WolfmedOpiateChemistryBottle: 2 # WOLFGATE(Wolfmed): CONSC: the strong rung.
-    WolfmedStimPen: 2 # WOLFGATE(Wolfmed): CONSC: thirty seconds on your feet, then the crash.
-    WolfmedNaloxonePen: 2 # WOLFGATE(Wolfmed): M2: OD14, the opioid antagonist that reverses an overdose.
-    WolfmedSplint: 4 # WOLFGATE(Wolfmed): V5: field treatment for a fracture, short of the table.
+    WFWolfmedSkinGraft: 2 # WOLFGATE(Wolfmed): W7: the only treatment for charring (W4).
+    WFWolfmedAntisepticSpray: 3 # WOLFGATE(Wolfmed): the topical way to clean a wound (W5 antiseptics work by touch).
+    WFWolfmedAnalgesicPill: 6 # WOLFGATE(Wolfmed): CONSC: the weak rung of the painkiller ladder.
+    WFWolfmedOpiateChemistryBottle: 2 # WOLFGATE(Wolfmed): CONSC: the strong rung.
+    WFWolfmedStimPen: 2 # WOLFGATE(Wolfmed): CONSC: thirty seconds on your feet, then the crash.
+    WFWolfmedNaloxonePen: 2 # WOLFGATE(Wolfmed): M2: OD14, the opioid antagonist that reverses an overdose.
+    WFWolfmedSplint: 4 # WOLFGATE(Wolfmed): V5: field treatment for a fracture, short of the table.
     PillCanisterTricordrazine: 3 # Mono
     Syringe: 5
     BoxBottle: 3

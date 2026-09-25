@@ -20,7 +20,7 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 /// </summary>
 public sealed class WolfmedCallForHelpSystem : EntitySystem
 {
-    public static readonly EntProtoId CallAction = "ActionWolfmedCallForHelp";
+    public static readonly EntProtoId CallAction = "WFActionWolfmedCallForHelp";
 
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

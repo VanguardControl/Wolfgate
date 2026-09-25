@@ -16,7 +16,7 @@ using Robust.Shared.Timing;
 namespace Content.Server._WF.Wolfmed.Wounds;
 
 /// <summary>Tissue death from a forgotten tourniquet, a deep burn or freeze, or a limb reattached late.</summary>
-// All three accumulate on WolfmedNecrosisComponent on the part and end the same way: a WolfmedNecrosisWound that
+// All three accumulate on WolfmedNecrosisComponent on the part and end the same way: a WFWolfmedNecrosisWound that
 // nothing treats, a limb that no longer works properly and a standing source of sepsis, until the part is amputated
 // and replaced.
 /// <remarks>

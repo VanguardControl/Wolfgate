@@ -16,7 +16,7 @@
 # on something that does not bruise. The welder's Blunt repair closes it; so does a wrench, which is the
 # one repair tool that needs no fuel and does nothing else.
 - type: wound
-  id: WolfmedDentWound
+  id: WFWolfmedDentWound
   name: wolfmed-wound-name-dent
   analyzerCategory: Mechanical
   ruleOnly: true
@@ -54,7 +54,7 @@
 # clot, because nothing in a chassis is trying to. `clottingMultiplier: 0` is what says so - the leak runs
 # until somebody welds it shut.
 - type: wound
-  id: WolfmedBreachWound
+  id: WFWolfmedBreachWound
   name: wolfmed-wound-name-breach
   analyzerCategory: Mechanical
   ruleOnly: true
@@ -103,7 +103,7 @@
 # Current where it should not be. Each time it lands or worsens the frame locks up for a moment and the
 # part throws sparks (WolfmedShortCircuitSystem). Listed under Shock so the cable coil is what repairs it.
 - type: wound
-  id: WolfmedShortCircuitWound
+  id: WFWolfmedShortCircuitWound
   name: wolfmed-wound-name-short-circuit
   analyzerCategory: Mechanical
   ruleOnly: true
@@ -141,10 +141,10 @@
 
 # A cut actuator. The mechanical answer to a severed tendon, and it carries no damage type for the same
 # reason that one carries healingMultiplier 0: the damage the hit did is on the panel, and closing the
-# panel does nothing for the run behind it. The exit is SurgeryReplaceServo, whose one step wants a cable
+# panel does nothing for the run behind it. The exit is WFSurgeryReplaceServo, whose one step wants a cable
 # coil - which is why the coil carries WolfmedServoKit.
 - type: wound
-  id: WolfmedServoDamageWound
+  id: WFWolfmedServoDamageWound
   name: wolfmed-wound-name-servo-damage
   analyzerCategory: Mechanical
   ruleOnly: true
@@ -174,7 +174,7 @@
 # no damage type at all, so no tool and no damage removal reaches it, and WolfmedOverheatingSystem sheds
 # its severity on a tick - faster when Cold reaches the part, and in one step when the body is doused.
 - type: wound
-  id: WolfmedOverheatingWound
+  id: WFWolfmedOverheatingWound
   name: wolfmed-wound-name-overheating
   analyzerCategory: Mechanical
   ruleOnly: true

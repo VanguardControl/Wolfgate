@@ -15,7 +15,7 @@ public sealed class WolfmedSyntheticScreenOverlay : Overlay
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
-    private static readonly ProtoId<ShaderPrototype> Shader = "WolfmedSynthetic";
+    private static readonly ProtoId<ShaderPrototype> Shader = "WFWolfmedSynthetic";
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
     public override bool RequestScreenTexture => true;

@@ -54,7 +54,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: WolfmedSurgeryTreatWoundEffect
-    woundPrototype: WolfmedDislocationWound
+    woundPrototype: WFWolfmedDislocationWound
     amount: 0
 
 - type: entity
@@ -71,7 +71,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: WolfmedSurgeryTreatWoundEffect
-    woundPrototype: WolfmedCharringWound
+    woundPrototype: WFWolfmedCharringWound
     amount: 0
 
 - type: entity
@@ -84,7 +84,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
     steps:
     - WolfmedSeamStallStep
   - type: WolfmedSurgeryWoundCondition
-    woundPrototype: WolfmedDislocationWound
+    woundPrototype: WFWolfmedDislocationWound
 
 - type: entity
   parent: SurgeryBase
@@ -96,7 +96,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
     steps:
     - WolfmedSeamLoopStep
   - type: WolfmedSurgeryWoundCondition
-    woundPrototype: WolfmedDislocationWound
+    woundPrototype: WFWolfmedDislocationWound
 
 - type: autodocProgram
   id: WolfmedSeamProgram
@@ -110,7 +110,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
   steps:
   - surgeries:
     - WolfmedSeamStallSurgery
-    - SurgeryMendFracture
+    - WFSurgeryMendFracture
 
 - type: autodocTriage
   id: WolfmedSeamTriageLoop
@@ -120,7 +120,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
 - type: entity
   id: WolfmedSeamAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: seam
   components:
   - type: Autodoc
@@ -129,7 +129,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
     malfunctionChance: 0
     autoPlanInterval: 0.2
     basePrograms:
-    - WolfmedAutodocProgramBase
+    - WFWolfmedAutodocProgramBase
     - WolfmedSeamProgram
     triage: WolfmedSeamTriageStall
   - type: ApcPowerReceiver
@@ -145,7 +145,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
 - type: entity
   id: WolfmedLoopTestAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: loop test
   components:
   - type: Autodoc
@@ -166,7 +166,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
       beaker:
         maxVol: 200
         reagents:
-        - ReagentId: WolfmedOpiate
+        - ReagentId: WFWolfmedOpiate
           Quantity: 100
 ";
 
@@ -213,7 +213,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var planned = pod.Comp.Queue.Select(queued => queued.Surgery.Id).ToList();
             Assert.Multiple(() =>
             {
-                Assert.That(planned[0], Is.EqualTo("SurgeryRemoveEmbeddedObjects"),
+                Assert.That(planned[0], Is.EqualTo("WFSurgeryRemoveEmbeddedObjects"),
                     $"the removal is not first in the plan: {string.Join(", ", planned)}");
                 // Playtest 3 SAM: the rest of the part follows the removal in the same plan, as follow-ups the pod
                 // drops at their turn if the round is still in. Nothing on the part runs ahead of the removal.
@@ -232,7 +232,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             {
                 Assert.That(entities.System<WolfmedEmbeddedObjectSystem>().GetPartCount(torso), Is.Zero,
                     $"the round is still in the torso (state {pod.Comp.State}, step {pod.Comp.CurrentStep}).");
-                Assert.That(Count(entities, "WolfmedSpentRound"), Is.GreaterThan(0),
+                Assert.That(Count(entities, "WFWolfmedSpentRound"), Is.GreaterThan(0),
                     "the round never became an item outside the patient.");
                 Assert.That(pod.Comp.StepRuns.Values.DefaultIfEmpty(0).Max(), Is.LessThanOrEqualTo(3),
                     $"a step repeated too often: {string.Join(", ", pod.Comp.StepRuns.Select(pair => $"{pair.Key}={pair.Value}"))}");
@@ -246,7 +246,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(autodoc.GetOccupant(pod), Is.Not.Null);
             Assert.That(autodoc.Plan(pod, autodoc.GetOccupant(pod)!.Value)
-                    .Any(entry => entry.Part == TargetBodyPart.Torso && entry.Surgery.Id.StartsWith("SurgeryTendWounds")),
+                    .Any(entry => entry.Part == TargetBodyPart.Torso && entry.Surgery.Id.Contains("SurgeryTendWounds")),
                 Is.False, $"the torso's tend did not follow the removal (state {pod.Comp.State}).");
         });
 
@@ -276,7 +276,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
 
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            entities.System<WoundSystem>().CreateOrMergeWound(arm, "WolfmedDislocationWound", FixedPoint2.New(20));
+            entities.System<WoundSystem>().CreateOrMergeWound(arm, "WFWolfmedDislocationWound", FixedPoint2.New(20));
 
             pod = Pod(entities, map, "WolfmedSeamAutodoc");
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
@@ -332,7 +332,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            entities.System<WoundSystem>().CreateOrMergeWound(arm, "WolfmedDislocationWound", FixedPoint2.New(20));
+            entities.System<WoundSystem>().CreateOrMergeWound(arm, "WFWolfmedDislocationWound", FixedPoint2.New(20));
 
             pod = Pod(entities, map, "WolfmedLoopTestAutodoc");
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
@@ -343,7 +343,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(pod, "SurgeryRelocateJoint", TargetBodyPart.LeftArm), Is.True,
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryRelocateJoint", TargetBodyPart.LeftArm), Is.True,
                 "relocating a joint is in the base library.");
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
@@ -354,7 +354,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         {
             var wounds = entities.System<WoundSystem>();
             var left = wounds.GetWounds((arm, entities.GetComponent<WoundableComponent>(arm)))
-                .Count(wound => wound.Comp.Prototype == new ProtoId<WoundPrototype>("WolfmedDislocationWound"));
+                .Count(wound => wound.Comp.Prototype == new ProtoId<WoundPrototype>("WFWolfmedDislocationWound"));
 
             Assert.That(left, Is.Zero, $"the joint is still out (state {pod.Comp.State}).");
         });
@@ -379,11 +379,11 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var slots = entities.System<ItemSlotsSystem>();
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            entities.System<WoundSystem>().CreateOrMergeWound(arm, "WolfmedDislocationWound", FixedPoint2.New(20));
+            entities.System<WoundSystem>().CreateOrMergeWound(arm, "WFWolfmedDislocationWound", FixedPoint2.New(20));
 
             pod = Pod(entities, map, "WolfmedSeamAutodocLoop");
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                entities.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                entities.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             autodoc.SetAuto(pod, true);
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
         });
@@ -520,7 +520,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
                 "the fixture needs a conscious patient: the pod does not anaesthetise one who is already out.");
 
             foreach (var target in new[] { TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg })
-                autodoc.TryQueue(pod, "SurgeryMendFracture", target);
+                autodoc.TryQueue(pod, "WFSurgeryMendFracture", target);
 
             Assert.That(pod.Comp.Queue, Has.Count.GreaterThan(1), "the fixture needs a queue to run.");
             Assert.That(autodoc.TryStart(pod, null), Is.True);
@@ -608,7 +608,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True,
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True,
                 $"the occupant could not queue their own fracture (state {pod.Comp.State}).");
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
@@ -644,7 +644,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
             pod = Pod(entities, map, "WolfmedLoopTestAutodoc");
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                entities.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                entities.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             autodoc.SetAuto(pod, true);
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
         });
@@ -654,7 +654,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
         });
 
         await Pair.RunTicksSync(400);
@@ -695,12 +695,12 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
             var head = Part(entities, body, BodyPartType.Head, BodyPartSymmetry.None);
             Assert.That(entities.System<Content.Shared._Shitmed.Medical.Surgery.SharedSurgerySystem>()
-                    .WolfmedSurgeryValid(body, head, "SurgeryRepairBrain"), Is.True,
+                    .WolfmedSurgeryValid(body, head, "WFSurgeryRepairBrain"), Is.True,
                 "a brain at three per cent has no repair listed.");
 
             pod = Pod(entities, map, "WolfmedLoopTestAutodoc");
             slots.TryInsert(pod.Owner, AutodocComponent.DiskSlotId,
-                entities.SpawnEntity("AutodocProgramDiskNeuro", map.GridCoords), null);
+                entities.SpawnEntity("WFAutodocProgramDiskNeuro", map.GridCoords), null);
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
         });
 
@@ -709,7 +709,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(pod, "SurgeryRepairBrain", TargetBodyPart.Head), Is.True,
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryRepairBrain", TargetBodyPart.Head), Is.True,
                 "the neuro disk does not unlock the repair.");
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });

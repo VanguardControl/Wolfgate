@@ -17,7 +17,7 @@ public sealed partial class WolfmedEmbeddedObjectComponent : Component
 
     /// <summary>Spawned at the patient when one object is pulled out.</summary>
     [DataField, AutoNetworkedField]
-    public EntProtoId Item = "WolfmedShrapnelFragment";
+    public EntProtoId Item = "WFWolfmedShrapnelFragment";
 
     /// <summary>Cap for later hits merging into this wound.</summary>
     [DataField]
@@ -52,9 +52,9 @@ public sealed partial class WolfmedEmbeddedObjectComponent : Component
 
     /// <summary>Played at the patient when the tool goes in.</summary>
     [DataField]
-    public SoundSpecifier? BeginSound = new SoundCollectionSpecifier("WolfmedToolProbe");
+    public SoundSpecifier? BeginSound = new SoundCollectionSpecifier("WFWolfmedToolProbe");
 
     /// <summary>Played when the object comes out.</summary>
     [DataField]
-    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WolfmedToolExtract");
+    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WFWolfmedToolExtract");
 }

@@ -11,7 +11,7 @@
 # BoneFractureWound's stage thresholds in _Onyx/Wounds/wounds.yml track these grades, or a fresh Hairline
 # fracture would sit below its own lowest stage and carry no pain or functionality effect at all.
 - type: fractureProfile
-  id: WolfmedFractureProfile
+  id: WFWolfmedFractureProfile
   damageType: Blunt
   wound: BoneFractureWound
   severityMultiplier: 1

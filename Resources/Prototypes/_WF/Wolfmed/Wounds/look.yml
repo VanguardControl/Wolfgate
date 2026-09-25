@@ -16,7 +16,7 @@
 # at the top and names only the stages that show.
 
 - type: wolfmedLookProfile
-  id: WolfmedLookDefault
+  id: WFWolfmedLookDefault
   # Slot defaults for clothing with no armour `coverage:`. An armour that declares coverage uses its own.
   coverage:
   - slots: [ INNERCLOTHING ]
@@ -76,7 +76,7 @@
 # Onyx's generic wounds.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookBlunt
+  id: WFWolfmedLookBlunt
   wound: BluntWound
   stages:
     Minor: { description: wolfmed-look-bruise-minor, label: wolfmed-look-bruise-minor-short }
@@ -85,7 +85,7 @@
     Critical: { description: wolfmed-look-bruise-critical, label: wolfmed-look-bruise-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookSlash
+  id: WFWolfmedLookSlash
   wound: SlashWound
   stages:
     Minor: { description: wolfmed-look-cut-minor, label: wolfmed-look-cut-minor-short }
@@ -94,7 +94,7 @@
     Critical: { description: wolfmed-look-cut-critical, label: wolfmed-look-cut-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookPiercing
+  id: WFWolfmedLookPiercing
   wound: PiercingWound
   stages:
     Minor: { description: wolfmed-look-puncture-minor, label: wolfmed-look-puncture-minor-short }
@@ -103,7 +103,7 @@
     Critical: { description: wolfmed-look-puncture-critical, label: wolfmed-look-puncture-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookBurn
+  id: WFWolfmedLookBurn
   wound: BurnWound
   stages:
     Minor: { description: wolfmed-look-burn-minor, label: wolfmed-look-burn-minor-short }
@@ -112,7 +112,7 @@
     Critical: { description: wolfmed-look-burn-critical, label: wolfmed-look-burn-critical-short, distant: true }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookElectrical
+  id: WFWolfmedLookElectrical
   wound: ElectricalWound
   stages:
     Minor: { description: wolfmed-look-electrical-minor, label: wolfmed-look-electrical-minor-short }
@@ -123,7 +123,7 @@
 # A fracture is felt long before it is seen. Only a bone out of line or through the skin shows, and that
 # shows through a jumpsuit; below that the patient gets an ache and nobody else gets anything.
 - type: wolfmedWoundLook
-  id: WolfmedLookBoneFracture
+  id: WFWolfmedLookBoneFracture
   wound: BoneFractureWound
   visibility: None
   selfHint: wolfmed-look-fracture-ache
@@ -145,7 +145,7 @@
       distant: true
 
 - type: wolfmedWoundLook
-  id: WolfmedLookFrameFracture
+  id: WFWolfmedLookFrameFracture
   wound: CyberneticFrameFractureWound
   visibility: None
   icon: fracture
@@ -164,17 +164,17 @@
 
 # The blood is the finding, not the record behind it: the bleeding band on the part speaks for both.
 - type: wolfmedWoundLook
-  id: WolfmedLookSystemicBleeding
+  id: WFWolfmedLookSystemicBleeding
   wound: SystemicBleedingWound
   visibility: None
 
 - type: wolfmedWoundLook
-  id: WolfmedLookInternalBleeding
+  id: WFWolfmedLookInternalBleeding
   wound: InternalBleedingWound
   visibility: None
 
 - type: wolfmedWoundLook
-  id: WolfmedLookSurgicalIncision
+  id: WFWolfmedLookSurgicalIncision
   wound: SurgicalIncisionWound
   description: wolfmed-look-incision
   label: wolfmed-look-incision-short
@@ -182,7 +182,7 @@
   colour: cut
 
 - type: wolfmedWoundLook
-  id: WolfmedLookDismemberment
+  id: WFWolfmedLookDismemberment
   wound: DismembermentWound
   description: wolfmed-look-dismemberment
   label: wolfmed-look-dismemberment-short
@@ -192,7 +192,7 @@
   colour: necrosis
 
 - type: wolfmedWoundLook
-  id: WolfmedLookAmputationConsequence
+  id: WFWolfmedLookAmputationConsequence
   wound: AmputationConsequenceWound
   description: wolfmed-look-stump
   label: wolfmed-look-stump-short
@@ -202,7 +202,7 @@
   colour: necrosis
 
 - type: wolfmedWoundLook
-  id: WolfmedLookMedicalScar
+  id: WFWolfmedLookMedicalScar
   wound: MedicalScarWound
   description: wolfmed-look-surgical-scar
   label: wolfmed-look-surgical-scar-short
@@ -213,7 +213,7 @@
 # through whatever the chassis is wearing.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookIpcMechanical
+  id: WFWolfmedLookIpcMechanical
   wound: IpcMechanicalDamageWound
   stages:
     Minor: { description: wolfmed-look-chassis-minor, label: wolfmed-look-chassis-minor-short }
@@ -222,7 +222,7 @@
     Critical: { description: wolfmed-look-chassis-critical, label: wolfmed-look-chassis-critical-short, distant: true }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookCyberneticMechanical
+  id: WFWolfmedLookCyberneticMechanical
   wound: CyberneticMechanicalDamageWound
   stages:
     Minor: { description: wolfmed-look-chassis-minor, label: wolfmed-look-chassis-minor-short }
@@ -231,16 +231,16 @@
     Critical: { description: wolfmed-look-chassis-critical, label: wolfmed-look-chassis-critical-short, distant: true }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookDent
-  wound: WolfmedDentWound
+  id: WFWolfmedLookDent
+  wound: WFWolfmedDentWound
   stages:
     Minor: { description: wolfmed-look-dent-minor, label: wolfmed-look-dent-minor-short }
     Moderate: { description: wolfmed-look-dent-moderate, label: wolfmed-look-dent-moderate-short }
     Severe: { description: wolfmed-look-dent-severe, label: wolfmed-look-dent-severe-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookBreach
-  wound: WolfmedBreachWound
+  id: WFWolfmedLookBreach
+  wound: WFWolfmedBreachWound
   visibility: Clothed
   stages:
     Minor: { description: wolfmed-look-breach-minor, label: wolfmed-look-breach-minor-short }
@@ -248,8 +248,8 @@
     Severe: { description: wolfmed-look-breach-severe, label: wolfmed-look-breach-severe-short, distant: true }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookShortCircuit
-  wound: WolfmedShortCircuitWound
+  id: WFWolfmedLookShortCircuit
+  wound: WFWolfmedShortCircuitWound
   icon: mechanical
   colour: mechanical
   stages:
@@ -262,8 +262,8 @@
       distant: true
 
 - type: wolfmedWoundLook
-  id: WolfmedLookServoDamage
-  wound: WolfmedServoDamageWound
+  id: WFWolfmedLookServoDamage
+  wound: WFWolfmedServoDamageWound
   visibility: None
   selfHint: wolfmed-look-servo-slack
   hintLabel: wolfmed-look-servo-slack-short
@@ -273,8 +273,8 @@
     Severe: { description: wolfmed-look-servo-severe, label: wolfmed-look-servo-severe-short, visibility: Skin }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookOverheating
-  wound: WolfmedOverheatingWound
+  id: WFWolfmedLookOverheating
+  wound: WFWolfmedOverheatingWound
   visibility: None
   selfHint: wolfmed-look-overheat-self
   hintLabel: wolfmed-look-overheat-self-short
@@ -291,14 +291,14 @@
 # leaves anything standing proud of the skin.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookGraze
-  wound: WolfmedGrazeWound
+  id: WFWolfmedLookGraze
+  wound: WFWolfmedGrazeWound
   description: wolfmed-look-graze
   label: wolfmed-look-graze-short
 
 - type: wolfmedWoundLook
-  id: WolfmedLookGunshot
-  wound: WolfmedGunshotWound
+  id: WFWolfmedLookGunshot
+  wound: WFWolfmedGunshotWound
   stages:
     Minor: { description: wolfmed-look-gunshot-minor, label: wolfmed-look-gunshot-minor-short }
     Moderate: { description: wolfmed-look-gunshot-moderate, label: wolfmed-look-gunshot-moderate-short }
@@ -306,16 +306,16 @@
     Critical: { description: wolfmed-look-gunshot-critical, label: wolfmed-look-gunshot-critical-short, distant: true }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookLodgedRound
-  wound: WolfmedLodgedRoundWound
+  id: WFWolfmedLookLodgedRound
+  wound: WFWolfmedLodgedRoundWound
   description: wolfmed-look-lodged-round
   label: wolfmed-look-lodged-round-short
   icon: embedded
   colour: ballistic
 
 - type: wolfmedWoundLook
-  id: WolfmedLookShrapnel
-  wound: WolfmedShrapnelWound
+  id: WFWolfmedLookShrapnel
+  wound: WFWolfmedShrapnelWound
   icon: embedded
   colour: embedded
   stages:
@@ -326,8 +326,8 @@
 # Slash and bite wounds (W2). A cut tendon is under the skin; what shows is the limb not answering.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookArterialBleed
-  wound: WolfmedArterialBleedWound
+  id: WFWolfmedLookArterialBleed
+  wound: WFWolfmedArterialBleedWound
   description: wolfmed-look-arterial
   label: wolfmed-look-arterial-short
   distant: true
@@ -335,15 +335,15 @@
   colour: bleeding
 
 - type: wolfmedWoundLook
-  id: WolfmedLookTendonCut
-  wound: WolfmedTendonCutWound
+  id: WFWolfmedLookTendonCut
+  wound: WFWolfmedTendonCutWound
   visibility: None
   selfHint: wolfmed-look-tendon-self
   hintLabel: wolfmed-look-tendon-self-short
 
 - type: wolfmedWoundLook
-  id: WolfmedLookAvulsion
-  wound: WolfmedAvulsionWound
+  id: WFWolfmedLookAvulsion
+  wound: WFWolfmedAvulsionWound
   stages:
     Minor: { description: wolfmed-look-avulsion-minor, label: wolfmed-look-avulsion-minor-short }
     Moderate: { description: wolfmed-look-avulsion-moderate, label: wolfmed-look-avulsion-moderate-short }
@@ -352,15 +352,15 @@
 # Blunt trauma wounds (W3). A rattled brain shows only in the eyes, and only once it is bad.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookCrushInjury
-  wound: WolfmedCrushInjuryWound
+  id: WFWolfmedLookCrushInjury
+  wound: WFWolfmedCrushInjuryWound
   stages:
     Moderate: { description: wolfmed-look-crush-moderate, label: wolfmed-look-crush-moderate-short }
     Severe: { description: wolfmed-look-crush-severe, label: wolfmed-look-crush-severe-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookConcussion
-  wound: WolfmedConcussionWound
+  id: WFWolfmedLookConcussion
+  wound: WFWolfmedConcussionWound
   visibility: None
   selfHint: wolfmed-look-concussion-self
   hintLabel: wolfmed-look-concussion-self-short
@@ -371,8 +371,8 @@
       visibility: Skin
 
 - type: wolfmedWoundLook
-  id: WolfmedLookDislocation
-  wound: WolfmedDislocationWound
+  id: WFWolfmedLookDislocation
+  wound: WFWolfmedDislocationWound
   description: wolfmed-look-dislocation
   label: wolfmed-look-dislocation-short
   visibility: Clothed
@@ -381,15 +381,15 @@
   colour: fracture
 
 - type: wolfmedWoundLook
-  id: WolfmedLookOrganContusion
-  wound: WolfmedOrganContusionWound
+  id: WFWolfmedLookOrganContusion
+  wound: WFWolfmedOrganContusionWound
   visibility: None
 
 # Burn wounds (W4).
 
 - type: wolfmedWoundLook
-  id: WolfmedLookCharring
-  wound: WolfmedCharringWound
+  id: WFWolfmedLookCharring
+  wound: WFWolfmedCharringWound
   distant: true
   stages:
     Moderate: { description: wolfmed-look-charring-moderate, label: wolfmed-look-charring-moderate-short, distant: false }
@@ -397,8 +397,8 @@
     Critical: { description: wolfmed-look-charring-critical, label: wolfmed-look-charring-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookFrostbite
-  wound: WolfmedFrostbiteWound
+  id: WFWolfmedLookFrostbite
+  wound: WFWolfmedFrostbiteWound
   stages:
     Minor: { description: wolfmed-look-frostbite-minor, label: wolfmed-look-frostbite-minor-short }
     Moderate: { description: wolfmed-look-frostbite-moderate, label: wolfmed-look-frostbite-moderate-short }
@@ -406,16 +406,16 @@
     Critical: { description: wolfmed-look-frostbite-critical, label: wolfmed-look-frostbite-critical-short, distant: true }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookChemicalBurn
-  wound: WolfmedChemicalBurnWound
+  id: WFWolfmedLookChemicalBurn
+  wound: WFWolfmedChemicalBurnWound
   stages:
     Minor: { description: wolfmed-look-chemical-minor, label: wolfmed-look-chemical-minor-short }
     Moderate: { description: wolfmed-look-chemical-moderate, label: wolfmed-look-chemical-moderate-short }
     Severe: { description: wolfmed-look-chemical-severe, label: wolfmed-look-chemical-severe-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookInternalBurn
-  wound: WolfmedInternalBurnWound
+  id: WFWolfmedLookInternalBurn
+  wound: WFWolfmedInternalBurnWound
   visibility: None
   selfHint: wolfmed-look-internal-burn-self
   hintLabel: wolfmed-look-internal-burn-self-short
@@ -423,8 +423,8 @@
 # Dead tissue (W5).
 
 - type: wolfmedWoundLook
-  id: WolfmedLookNecrosis
-  wound: WolfmedNecrosisWound
+  id: WFWolfmedLookNecrosis
+  wound: WFWolfmedNecrosisWound
   description: wolfmed-look-necrosis
   label: wolfmed-look-necrosis-short
   distant: true
@@ -434,7 +434,7 @@
 # Species wound sets. Same injuries, different flesh.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookSlimeBlunt
+  id: WFWolfmedLookSlimeBlunt
   wound: SlimeBluntWound
   stages:
     Minor: { description: wolfmed-look-slime-blunt-minor, label: wolfmed-look-slime-blunt-minor-short }
@@ -443,7 +443,7 @@
     Critical: { description: wolfmed-look-slime-blunt-critical, label: wolfmed-look-slime-blunt-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookSlimeSlash
+  id: WFWolfmedLookSlimeSlash
   wound: SlimeSlashWound
   stages:
     Minor: { description: wolfmed-look-slime-slash-minor, label: wolfmed-look-slime-slash-minor-short }
@@ -452,7 +452,7 @@
     Critical: { description: wolfmed-look-slime-slash-critical, label: wolfmed-look-slime-slash-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookSlimePiercing
+  id: WFWolfmedLookSlimePiercing
   wound: SlimePiercingWound
   stages:
     Minor: { description: wolfmed-look-slime-piercing-minor, label: wolfmed-look-slime-piercing-minor-short }
@@ -461,7 +461,7 @@
     Critical: { description: wolfmed-look-slime-piercing-critical, label: wolfmed-look-slime-piercing-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookSlimeBurn
+  id: WFWolfmedLookSlimeBurn
   wound: SlimeBurnWound
   stages:
     Minor: { description: wolfmed-look-slime-burn-minor, label: wolfmed-look-slime-burn-minor-short }
@@ -470,7 +470,7 @@
     Critical: { description: wolfmed-look-slime-burn-critical, label: wolfmed-look-slime-burn-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookPlantBlunt
+  id: WFWolfmedLookPlantBlunt
   wound: PlantBluntWound
   stages:
     Minor: { description: wolfmed-look-plant-blunt-minor, label: wolfmed-look-plant-blunt-minor-short }
@@ -479,7 +479,7 @@
     Critical: { description: wolfmed-look-plant-blunt-critical, label: wolfmed-look-plant-blunt-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookPlantSlash
+  id: WFWolfmedLookPlantSlash
   wound: PlantSlashWound
   stages:
     Minor: { description: wolfmed-look-plant-slash-minor, label: wolfmed-look-plant-slash-minor-short }
@@ -488,7 +488,7 @@
     Critical: { description: wolfmed-look-plant-slash-critical, label: wolfmed-look-plant-slash-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookPlantPiercing
+  id: WFWolfmedLookPlantPiercing
   wound: PlantPiercingWound
   stages:
     Minor: { description: wolfmed-look-plant-piercing-minor, label: wolfmed-look-plant-piercing-minor-short }
@@ -497,7 +497,7 @@
     Critical: { description: wolfmed-look-plant-piercing-critical, label: wolfmed-look-plant-piercing-critical-short }
 
 - type: wolfmedWoundLook
-  id: WolfmedLookPlantBurn
+  id: WFWolfmedLookPlantBurn
   wound: PlantBurnWound
   stages:
     Minor: { description: wolfmed-look-plant-burn-minor, label: wolfmed-look-plant-burn-minor-short }
@@ -509,8 +509,8 @@
 # that is no longer closed, and it reads from across the room.
 
 - type: wolfmedWoundLook
-  id: WolfmedLookEvisceration
-  wound: WolfmedEviscerationWound
+  id: WFWolfmedLookEvisceration
+  wound: WFWolfmedEviscerationWound
   description: wolfmed-look-evisceration
   label: wolfmed-look-evisceration-short
   visibility: Clothed
@@ -519,8 +519,8 @@
   colour: bleeding
 
 - type: wolfmedWoundLook
-  id: WolfmedLookChassisBreach
-  wound: WolfmedChassisBreachWound
+  id: WFWolfmedLookChassisBreach
+  wound: WFWolfmedChassisBreachWound
   description: wolfmed-look-chassis-breach
   label: wolfmed-look-chassis-breach-short
   visibility: Clothed

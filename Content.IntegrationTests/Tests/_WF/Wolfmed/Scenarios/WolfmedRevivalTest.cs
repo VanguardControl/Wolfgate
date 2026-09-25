@@ -161,7 +161,7 @@ public sealed class WolfmedRevivalTest : GameTest
 
     /// <summary>
     /// <c>CoreRepairTest</c> (plan §7.2, OD10): a positronic core at 0 is core failure; the analyzer names core repair;
-    /// SurgeryRepairCore (wrench, multitool, welder) puts it back; the restart brings back the same mind, with no
+    /// WFSurgeryRepairCore (wrench, multitool, welder) puts it back; the restart brings back the same mind, with no
     /// brain trauma on the chassis and "CORE RESTORED" on its readout instead.
     /// </summary>
     [Test]
@@ -208,9 +208,9 @@ public sealed class WolfmedRevivalTest : GameTest
             var torso = Part(ipc, BodyPartType.Torso);
             Assert.Multiple(() =>
             {
-                Assert.That(surgery.WolfmedSurgeryValid(ipc, torso, "SurgeryRepairCore"), Is.True,
+                Assert.That(surgery.WolfmedSurgeryValid(ipc, torso, "WFSurgeryRepairCore"), Is.True,
                     "core repair is not offered on a chassis with a destroyed core.");
-                Assert.That(surgery.WolfmedSurgeryValid(human, Part(human, BodyPartType.Torso), "SurgeryRepairCore"), Is.False,
+                Assert.That(surgery.WolfmedSurgeryValid(human, Part(human, BodyPartType.Torso), "WFSurgeryRepairCore"), Is.False,
                     "core repair is offered on flesh.");
                 Assert.That(SProtoMan.Index<EntityPrototype>("Multitool").HasComponent<WolfmedCoreProbeComponent>(), Is.True,
                     "the multitool is not the core repair tool.");
@@ -223,10 +223,10 @@ public sealed class WolfmedRevivalTest : GameTest
                 SEntMan.SpawnEntity("Welder", map.GridCoords),
             };
 
-            Step("SurgeryStepUnseatCore", ipc, torso, tools);
+            Step("WFSurgeryStepUnseatCore", ipc, torso, tools);
             Assert.That(SEntMan.HasComponent<WolfmedCoreHousingOpenComponent>(torso), Is.True, "the wrench did not open the housing.");
-            Step("SurgeryStepRepairCore", ipc, torso, tools);
-            Step("SurgeryStepReseatCore", ipc, torso, tools);
+            Step("WFSurgeryStepRepairCore", ipc, torso, tools);
+            Step("WFSurgeryStepReseatCore", ipc, torso, tools);
 
             var core = life.GetBrainOrgan(ipc)!.Value;
             Assert.Multiple(() =>
@@ -235,7 +235,7 @@ public sealed class WolfmedRevivalTest : GameTest
                 Assert.That(SEntMan.HasComponent<WolfmedCoreHousingOpenComponent>(torso), Is.False, "the housing was left open.");
                 Assert.That(SEntMan.HasComponent<WolfmedBrainTraumaComponent>(ipc), Is.False, "a repaired core carries brain trauma.");
                 Assert.That(SEntMan.HasComponent<WolfmedCoreRestoredComponent>(ipc), Is.True);
-                Assert.That(surgery.WolfmedSurgeryValid(ipc, torso, "SurgeryRepairCore"), Is.False,
+                Assert.That(surgery.WolfmedSurgeryValid(ipc, torso, "WFSurgeryRepairCore"), Is.False,
                     "core repair is still offered on a whole core.");
             });
 

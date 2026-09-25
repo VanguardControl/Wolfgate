@@ -11,7 +11,7 @@
 # leg suffixes at them rather than changing any code.
 
 - type: wolfmedTreatmentOverlayProfile
-  id: WolfmedTreatmentOverlayDefault
+  id: WFWolfmedTreatmentOverlayDefault
   rsi: _WF/Wolfmed/Mobs/treatment_overlays.rsi
 
   prefixes:

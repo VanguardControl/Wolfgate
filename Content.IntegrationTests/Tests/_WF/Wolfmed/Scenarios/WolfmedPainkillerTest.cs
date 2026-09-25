@@ -109,8 +109,8 @@ public sealed class WolfmedPainkillerTest : GameTest
             Assert.That(Consc(pill).Cause, Is.EqualTo(WolfmedCause.Pain));
             Assert.That(Consc(swig).Cause, Is.EqualTo(WolfmedCause.PainFaint));
 
-            Swallow(pill, "WolfmedAnalgesic", 15);
-            Swallow(swig, "WolfmedOpiate", 5);
+            Swallow(pill, "WFWolfmedAnalgesic", 15);
+            Swallow(swig, "WFWolfmedOpiate", 5);
         });
 
         var pillTier = await WaitFor(() => Tier(pill) >= WolfmedPainReliefTier.Weak, 15f);
@@ -141,8 +141,8 @@ public sealed class WolfmedPainkillerTest : GameTest
     /// lifts a blood-Downed one. The patient hears the dose take hold and wear off. The opiate pen stays under
     /// the sedation line that depresses breathing.
     /// </summary>
-    [TestCase("WolfmedAnalgesicPen", WolfmedPainReliefTier.Weak)]
-    [TestCase("WolfmedOpiatePen", WolfmedPainReliefTier.Strong)]
+    [TestCase("WFWolfmedAnalgesicPen", WolfmedPainReliefTier.Weak)]
+    [TestCase("WFWolfmedOpiatePen", WolfmedPainReliefTier.Strong)]
     public async Task PainkillerPenTest(string pen, WolfmedPainReliefTier tier)
     {
         await Pin();

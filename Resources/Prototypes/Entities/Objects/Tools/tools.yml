@@ -160,8 +160,8 @@
     fuelCost: 0
     doAfterDelay: 4
     damageContainers:
-    - SiliconWolfmed
-    - InorganicWolfmed
+    - WFSiliconWolfmed
+    - WFInorganicWolfmed
     damage:
       types:
         Blunt: -15

@@ -291,7 +291,7 @@ public sealed class WolfmedWoundSurgeryTest : GameTest
             // P4-D20 regression. A Hairline fracture can NEVER reach Reduced (CanTreat gates it on
             // Grade >= Simple), so a naive "wait until Treatment == Reduced" check would stall the surgery
             // forever on the commonest grade. Drive a fresh Comminuted fracture down into the Hairline band
-            // (WolfmedFractureProfile: Hairline 12, Simple starts at 20) and assert the set-bone step reports
+            // (WFWolfmedFractureProfile: Hairline 12, Simple starts at 20) and assert the set-bone step reports
             // itself complete anyway.
             // M6 (P30): the new fracture starts at the arm's whole trauma (75 + the 75 already stored x 0.8 = 135), not
             // at the hit alone, so it is driven down to 15 from wherever it starts.
@@ -305,7 +305,7 @@ public sealed class WolfmedWoundSurgeryTest : GameTest
                 Assert.That(second.Comp1.Severity, Is.EqualTo(FixedPoint2.New(15)));
                 Assert.That(second.Comp2.Grade, Is.EqualTo(FractureGrade.Hairline));
                 Assert.That(StepIncomplete(entities, setBone, body, arm), Is.False,
-                    "an unreachable treatment target must count as reached, or SurgeryMendFracture stalls (P4-D20).");
+                    "an unreachable treatment target must count as reached, or WFSurgeryMendFracture stalls (P4-D20).");
                 // The gel half is still reachable: CanTreat(Mended) only requires Treatment != Mended.
                 Assert.That(StepIncomplete(entities, mendBone, body, arm), Is.True);
             });
@@ -524,7 +524,7 @@ public sealed class WolfmedWoundSurgeryTest : GameTest
         {
             var surgeries = entities.System<SurgerySystem>();
             var shallow = surgeries.GetSingleton("SurgeryTendWoundsBrute")!.Value;
-            var deep = surgeries.GetSingleton("SurgeryTendWoundsBruteDeep")!.Value;
+            var deep = surgeries.GetSingleton("WFSurgeryTendWoundsBruteDeep")!.Value;
             var routing = entities.System<WoundDamageRoutingSystem>();
 
             // 60 Blunt -> one BluntWound at severity 60 (`severityMultiplier: 1`). The Brute damage group is

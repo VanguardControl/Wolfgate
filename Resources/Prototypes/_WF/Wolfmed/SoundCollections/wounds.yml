@@ -6,7 +6,7 @@
 
 # Something tears flesh: slashes, bites, avulsions.
 - type: soundCollection
-  id: WolfmedWoundFlesh
+  id: WFWolfmedWoundFlesh
   files:
   - /Audio/Weapons/bladeslice.ogg
   - /Audio/Weapons/Xeno/alien_claw_flesh1.ogg
@@ -18,7 +18,7 @@
 
 # Something punches through it: gunshots, shrapnel, stabs.
 - type: soundCollection
-  id: WolfmedWoundPierce
+  id: WFWolfmedWoundPierce
   files:
   - /Audio/Weapons/Guns/Hits/bullet_meat1.ogg
   - /Audio/Weapons/Guns/Hits/bullet_meat2.ogg
@@ -27,7 +27,7 @@
 
 # A heavy dull hit: bruises, crush injuries, contusions.
 - type: soundCollection
-  id: WolfmedWoundBlunt
+  id: WFWolfmedWoundBlunt
   files:
   - /Audio/Effects/hit_kick.ogg
   - /Audio/Weapons/genhit1.ogg
@@ -36,7 +36,7 @@
 
 # A bone going. Fractures and dislocations.
 - type: soundCollection
-  id: WolfmedWoundBone
+  id: WFWolfmedWoundBone
   files:
   - /Audio/Effects/snap.ogg
   - /Audio/Effects/chopstickbreak.ogg
@@ -44,14 +44,14 @@
 
 # Heat on skin: burns, charring, cauterisation, chemical burns.
 - type: soundCollection
-  id: WolfmedWoundBurn
+  id: WFWolfmedWoundBurn
   files:
   - /Audio/Effects/sizzle.ogg
   - /Audio/Effects/lightburn.ogg
 
 # Current going somewhere it should not.
 - type: soundCollection
-  id: WolfmedWoundShock
+  id: WFWolfmedWoundShock
   files:
   - /Audio/Effects/sparks1.ogg
   - /Audio/Effects/sparks2.ogg
@@ -60,7 +60,7 @@
 
 # A chassis taking a hit. Dents, breaches, servo damage.
 - type: soundCollection
-  id: WolfmedWoundChassis
+  id: WFWolfmedWoundChassis
   files:
   - /Audio/_WF/Weapons/Impacts/impact_metal_03.ogg
   - /Audio/_WF/Weapons/Impacts/impact_metal_07.ogg
@@ -69,7 +69,7 @@
 
 # A structural member in a chassis giving way: the mechanical fracture.
 - type: soundCollection
-  id: WolfmedWoundFrame
+  id: WFWolfmedWoundFrame
   files:
   - /Audio/Effects/metal_crunch.ogg
   - /Audio/Effects/metal_break1.ogg
@@ -78,14 +78,14 @@
 # --- Dismemberment (V2) -----------------------------------------------------------------------------
 
 - type: soundCollection
-  id: WolfmedDismemberOrganic
+  id: WFWolfmedDismemberOrganic
   files:
   - /Audio/Effects/gib1.ogg
   - /Audio/Effects/gib2.ogg
   - /Audio/Effects/gib3.ogg
 
 - type: soundCollection
-  id: WolfmedDismemberMechanical
+  id: WFWolfmedDismemberMechanical
   files:
   - /Audio/Effects/metal_break2.ogg
   - /Audio/Effects/metal_break4.ogg
@@ -95,35 +95,35 @@
 # --- Interactions (the five do-afters phase 8 left silent) ------------------------------------------
 
 - type: soundCollection
-  id: WolfmedToolProbe
+  id: WFWolfmedToolProbe
   files:
   - /Audio/_Shitmed/Medical/Surgery/hemostat1.ogg
   - /Audio/_Shitmed/Medical/Surgery/retractor1.ogg
 
 - type: soundCollection
-  id: WolfmedToolExtract
+  id: WFWolfmedToolExtract
   files:
   - /Audio/Effects/Fluids/splat.ogg
 
 - type: soundCollection
-  id: WolfmedJointStrain
+  id: WFWolfmedJointStrain
   files:
   - /Audio/Effects/thudswoosh.ogg
 
 - type: soundCollection
-  id: WolfmedCauteryBegin
+  id: WFWolfmedCauteryBegin
   files:
   - /Audio/_Shitmed/Medical/Surgery/cautery1.ogg
   - /Audio/_Shitmed/Medical/Surgery/cautery2.ogg
 
 - type: soundCollection
-  id: WolfmedClothUnwrap
+  id: WFWolfmedClothUnwrap
   files:
   - /Audio/Effects/unwrap.ogg
   - /Audio/Items/Handcuffs/rope_takeoff.ogg
 
 - type: soundCollection
-  id: WolfmedPanelBeat
+  id: WFWolfmedPanelBeat
   files:
   - /Audio/Effects/metal_thud1.ogg
   - /Audio/Effects/metal_thud2.ogg
@@ -133,15 +133,15 @@
 
 # A wound throwing blood through the skin. New files, imported with the splatter art.
 - type: soundCollection
-  id: WolfmedBleedSpurt
+  id: WFWolfmedBleedSpurt
   files:
   # Wet sounds only. NovaSector's blood1-3 are its slash-wound sounds and read as a blade, so they moved to
-  # WolfmedWoundFlesh.
+  # WFWolfmedWoundFlesh.
   - /Audio/_WF/Wolfmed/Bleeding/splatter.ogg
 
 # An open stump, which is wetter and comes with the bone.
 - type: soundCollection
-  id: WolfmedBleedStump
+  id: WFWolfmedBleedStump
   files:
   - /Audio/_WF/Wolfmed/Bleeding/splatter.ogg
   - /Audio/_WF/Wolfmed/Bleeding/crackandbleed.ogg
@@ -149,7 +149,7 @@
 
 # A chassis losing fluid: pressure escaping, nothing wet.
 - type: soundCollection
-  id: WolfmedLeakHiss
+  id: WFWolfmedLeakHiss
   files:
   - /Audio/Items/hiss.ogg
   - /Audio/Effects/spray.ogg

@@ -64,16 +64,16 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
             {
                 Assert.That(Prototypes(entities, wounds, deep), Is.EquivalentTo(new[]
                 {
-                    "SlashWound", "WolfmedArterialBleedWound", "WolfmedTendonCutWound",
+                    "SlashWound", "WFWolfmedArterialBleedWound", "WFWolfmedTendonCutWound",
                 }), "the rules add to the cut rather than replacing it, so one bad swing does all three.");
                 Assert.That(Prototypes(entities, wounds, shallow), Is.EquivalentTo(new[] { "SlashWound" }));
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedArterialBleedWound")
-                    .And.Not.Contain("WolfmedTendonCutWound"),
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedArterialBleedWound")
+                    .And.Not.Contain("WFWolfmedTendonCutWound"),
                     "the tendon rule is limbs only.");
             });
 
             // severityMultiplier 0.5 on both rules, with a floor under it.
-            var artery = FindWound(entities, wounds, deep, "WolfmedArterialBleedWound");
+            var artery = FindWound(entities, wounds, deep, "WFWolfmedArterialBleedWound");
             Assert.That(entities.GetComponent<WoundComponent>(artery).Severity, Is.EqualTo(FixedPoint2.New(12.5)));
         });
     }
@@ -101,7 +101,7 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
             Slash(entities, body, TargetBodyPart.LeftLeg, 25);
 
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
-            var artery = FindWound(entities, wounds, leg, "WolfmedArterialBleedWound");
+            var artery = FindWound(entities, wounds, leg, "WFWolfmedArterialBleedWound");
             var bleed = entities.GetComponent<WoundBleedingComponent>(artery);
             var openRate = bleed.CurrentRate;
             var severity = entities.GetComponent<WoundComponent>(artery).Severity;
@@ -162,8 +162,8 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
 
             var torso = Part(entities, body, BodyPartType.Torso, BodyPartSymmetry.None);
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            var torsoArtery = FindWound(entities, wounds, torso, "WolfmedArterialBleedWound");
-            var armArtery = FindWound(entities, wounds, arm, "WolfmedArterialBleedWound");
+            var torsoArtery = FindWound(entities, wounds, torso, "WFWolfmedArterialBleedWound");
+            var armArtery = FindWound(entities, wounds, arm, "WFWolfmedArterialBleedWound");
 
             Assert.Multiple(() =>
             {
@@ -211,7 +211,7 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
 
             Slash(entities, body, TargetBodyPart.LeftLeg, 25);
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
-            var legTendon = FindWound(entities, wounds, leg, "WolfmedTendonCutWound");
+            var legTendon = FindWound(entities, wounds, leg, "WFWolfmedTendonCutWound");
 
             Assert.Multiple(() =>
             {
@@ -224,7 +224,7 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
             var walkWithLeg = speed.WalkSpeedModifier;
             Slash(entities, body, TargetBodyPart.RightArm, 25);
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Right);
-            var armTendon = FindWound(entities, wounds, arm, "WolfmedTendonCutWound");
+            var armTendon = FindWound(entities, wounds, arm, "WFWolfmedTendonCutWound");
 
             Assert.Multiple(() =>
             {
@@ -268,7 +268,7 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
             Slash(entities, body, TargetBodyPart.LeftLeg, 25);
 
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
-            var tendon = FindWound(entities, wounds, leg, "WolfmedTendonCutWound");
+            var tendon = FindWound(entities, wounds, leg, "WFWolfmedTendonCutWound");
             var severity = entities.GetComponent<WoundComponent>(tendon).Severity;
 
             foreach (var item in new[] { "Gauze1", "BrutepackAdvanced1" })
@@ -309,10 +309,10 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
                 origin: animal, targetPart: TargetBodyPart.RightArm, tool: animal);
 
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Right);
-            Assert.That(Prototypes(entities, wounds, arm), Is.EquivalentTo(new[] { "WolfmedAvulsionWound" }),
+            Assert.That(Prototypes(entities, wounds, arm), Is.EquivalentTo(new[] { "WFWolfmedAvulsionWound" }),
                 "a bite replaces the cut rather than adding to it.");
 
-            var avulsion = FindWound(entities, wounds, arm, "WolfmedAvulsionWound");
+            var avulsion = FindWound(entities, wounds, arm, "WFWolfmedAvulsionWound");
             Assert.Multiple(() =>
             {
                 Assert.That(traits.GetInfectionRisk(avulsion), Is.EqualTo(2.5f),
@@ -358,8 +358,8 @@ public sealed class WolfmedSlashBiteWoundTest : GameTest
                 Assert.That(locale.HasString("wolfmed-wound-name-tendon-cut"));
                 Assert.That(locale.HasString("wolfmed-wound-name-avulsion"));
                 Assert.That(locale.HasString("wolfmed-tourniquet-nowhere-to-tie"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryRepairArtery"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryRepairTendon"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryRepairArtery"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryRepairTendon"));
             });
         });
     }

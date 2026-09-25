@@ -31,31 +31,31 @@ public sealed class WolfmedAvailabilityTest : GameTest
     /// <summary>Items Wolfmed added that a player has to be able to get hold of.</summary>
     private static readonly string[] ObtainableItems =
     [
-        "WolfmedSkinGraft",
+        "WFWolfmedSkinGraft",
         "SpaceacillinChemistryBottle",
-        "WolfmedAntisepticSpray",
-        "WolfmedSplint", // V5
-        "WolfmedAnalgesicPill", // CONSC
-        "WolfmedOpiateChemistryBottle", // CONSC
-        "WolfmedStimPen", // CONSC
-        "WolfmedAnalgesicPen", // playtest 1
-        "WolfmedOpiatePen", // playtest 1
+        "WFWolfmedAntisepticSpray",
+        "WFWolfmedSplint", // V5
+        "WFWolfmedAnalgesicPill", // CONSC
+        "WFWolfmedOpiateChemistryBottle", // CONSC
+        "WFWolfmedStimPen", // CONSC
+        "WFWolfmedAnalgesicPen", // playtest 1
+        "WFWolfmedOpiatePen", // playtest 1
     ];
 
     /// <summary>Items reached by crafting rather than by a vendor or a lathe.</summary>
-    private static readonly string[] CraftedItems = ["WolfmedSplintImprovised"]; // V5
+    private static readonly string[] CraftedItems = ["WFWolfmedSplintImprovised"]; // V5
 
     /// <summary>Reagents Wolfmed added. Each needs a reaction chemistry can run.</summary>
     private static readonly string[] ObtainableReagents =
-        ["Spaceacillin", "WolfmedAnalgesic", "WolfmedOpiate", "WolfmedStim"]; // CONSC
+        ["Spaceacillin", "WFWolfmedAnalgesic", "WFWolfmedOpiate", "WFWolfmedStim"]; // CONSC
 
     /// <summary>Fills W7 changed or relies on, spawned so an overflow fails here.</summary>
     private static readonly (string Entity, string Content)[] Fills =
     [
-        ("MedkitBurnFilled", "WolfmedSkinGraft"),
-        ("CrateMedicalSurgery", "WolfmedSkinGraft"),
+        ("MedkitBurnFilled", "WFWolfmedSkinGraft"),
+        ("CrateMedicalSurgery", "WFWolfmedSkinGraft"),
         ("CrateMedicalSupplies", "SpaceacillinChemistryBottle"),
-        ("MedkitBruteFilled", "WolfmedSplint"), // V5
+        ("MedkitBruteFilled", "WFWolfmedSplint"), // V5
     ];
 
     /// <summary>Reachability: some vending inventory or lathe recipe names every new item.</summary>

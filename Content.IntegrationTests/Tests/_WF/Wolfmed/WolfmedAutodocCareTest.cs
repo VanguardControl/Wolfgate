@@ -34,7 +34,7 @@ public sealed class WolfmedAutodocCareTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedCareTestAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: care test
   components:
   - type: Autodoc

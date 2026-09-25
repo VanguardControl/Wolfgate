@@ -2,26 +2,26 @@
 # does not depend on a lathe being up: one crate, one cargo row, beside the other medical products.
 
 - type: entity
-  id: CrateAutodocPrograms
+  id: WFCrateAutodocPrograms
   parent: CrateMedical
   name: autodoc program crate
   description: A full set of surgical programs for an autodoc, plus the cardiac module.
   components:
   - type: StorageFill
     contents:
-    - id: AutodocProgramDiskTransplant
-    - id: AutodocProgramDiskLimb
-    - id: AutodocProgramDiskNeuro
-    - id: AutodocProgramDiskCavity
-    - id: AutodocDefibModule
-    - id: AutodocAutofixModule
+    - id: WFAutodocProgramDiskTransplant
+    - id: WFAutodocProgramDiskLimb
+    - id: WFAutodocProgramDiskNeuro
+    - id: WFAutodocProgramDiskCavity
+    - id: WFAutodocDefibModule
+    - id: WFAutodocAutofixModule
 
 - type: cargoProduct
-  id: WolfmedAutodocPrograms
+  id: WFWolfmedAutodocPrograms
   icon:
     sprite: Objects/Specific/Research/researchdisk.rsi
     state: icon
-  product: CrateAutodocPrograms
+  product: WFCrateAutodocPrograms
   cost: 2200
   category: cargoproduct-category-name-medical
   group: market
@@ -30,12 +30,12 @@
 
 - type: latheRecipe
   parent: BaseCircuitboardRecipe
-  id: AutodocMachineCircuitboard
-  result: AutodocMachineCircuitboard
+  id: WFAutodocMachineCircuitboard
+  result: WFAutodocMachineCircuitboard
 
 - type: latheRecipe
-  id: AutodocProgramDiskTransplant
-  result: AutodocProgramDiskTransplant
+  id: WFAutodocProgramDiskTransplant
+  result: WFAutodocProgramDiskTransplant
   completetime: 4
   materials:
     Steel: 100
@@ -43,8 +43,8 @@
     Gold: 20
 
 - type: latheRecipe
-  id: AutodocProgramDiskLimb
-  result: AutodocProgramDiskLimb
+  id: WFAutodocProgramDiskLimb
+  result: WFAutodocProgramDiskLimb
   completetime: 4
   materials:
     Steel: 100
@@ -52,8 +52,8 @@
     Gold: 20
 
 - type: latheRecipe
-  id: AutodocProgramDiskNeuro
-  result: AutodocProgramDiskNeuro
+  id: WFAutodocProgramDiskNeuro
+  result: WFAutodocProgramDiskNeuro
   completetime: 4
   materials:
     Steel: 100
@@ -61,8 +61,8 @@
     Gold: 40
 
 - type: latheRecipe
-  id: AutodocProgramDiskCavity
-  result: AutodocProgramDiskCavity
+  id: WFAutodocProgramDiskCavity
+  result: WFAutodocProgramDiskCavity
   completetime: 4
   materials:
     Steel: 100
@@ -70,8 +70,8 @@
     Gold: 20
 
 - type: latheRecipe
-  id: AutodocDefibModule
-  result: AutodocDefibModule
+  id: WFAutodocDefibModule
+  result: WFAutodocDefibModule
   completetime: 4
   materials:
     Steel: 150
@@ -79,8 +79,8 @@
     Gold: 40
 
 - type: latheRecipe
-  id: AutodocAutofixModule
-  result: AutodocAutofixModule
+  id: WFAutodocAutofixModule
+  result: WFAutodocAutofixModule
   completetime: 4
   materials:
     Steel: 150
@@ -88,11 +88,11 @@
     Gold: 40
 
 - type: latheRecipePack
-  id: WolfmedAutodocPrograms
+  id: WFWolfmedAutodocPrograms
   recipes:
-  - AutodocProgramDiskTransplant
-  - AutodocProgramDiskLimb
-  - AutodocProgramDiskNeuro
-  - AutodocProgramDiskCavity
-  - AutodocDefibModule
-  - AutodocAutofixModule
+  - WFAutodocProgramDiskTransplant
+  - WFAutodocProgramDiskLimb
+  - WFAutodocProgramDiskNeuro
+  - WFAutodocProgramDiskCavity
+  - WFAutodocDefibModule
+  - WFAutodocAutofixModule

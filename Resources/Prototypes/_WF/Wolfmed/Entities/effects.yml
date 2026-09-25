@@ -6,7 +6,7 @@
 # makes it read as blood rather than water.
 
 - type: entity
-  id: WolfmedBloodMistSmall
+  id: WFWolfmedBloodMistSmall
   categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
@@ -23,8 +23,8 @@
     - HideContextMenu
 
 - type: entity
-  parent: WolfmedBloodMistSmall
-  id: WolfmedBloodMistMedium
+  parent: WFWolfmedBloodMistSmall
+  id: WFWolfmedBloodMistMedium
   components:
   - type: TimedDespawn
     lifetime: 0.5
@@ -33,8 +33,8 @@
     state: splatter-4
 
 - type: entity
-  parent: WolfmedBloodMistSmall
-  id: WolfmedBloodMistLarge
+  parent: WFWolfmedBloodMistSmall
+  id: WFWolfmedBloodMistLarge
   components:
   - type: TimedDespawn
     lifetime: 0.6
@@ -46,7 +46,7 @@
 
 - type: entity
   parent: EffectSparks
-  id: WolfmedSparkBurstSmall
+  id: WFWolfmedSparkBurstSmall
   categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
@@ -56,7 +56,7 @@
 
 - type: entity
   parent: EffectSparks
-  id: WolfmedSparkBurstMedium
+  id: WFWolfmedSparkBurstMedium
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
@@ -64,7 +64,7 @@
 
 - type: entity
   parent: EffectSparks
-  id: WolfmedSparkBurstLarge
+  id: WFWolfmedSparkBurstLarge
   categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn

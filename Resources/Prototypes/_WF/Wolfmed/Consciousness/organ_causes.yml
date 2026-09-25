@@ -3,7 +3,7 @@
 # A heavy blow to the head: a faint of wolfmed.head_knockout_seconds that nothing extends.
 - type: wolfmedConsciousnessCause
   id: HeadBlow
-  alertOut: WolfmedFaintHeadBlow
+  alertOut: WFWolfmedFaintHeadBlow
   blockerName: wolfmed-cause-head-blow
   titleOut: wolfmed-cause-head-blow-title
   symptom: wolfmed-cause-head-blow-symptom
@@ -16,7 +16,7 @@
 # The brain under wolfmed.consc_brain_down of its health. Downed only; only surgery lifts it.
 - type: wolfmedConsciousnessCause
   id: Brain
-  alertDowned: WolfmedDownedBrain
+  alertDowned: WFWolfmedDownedBrain
   blockerName: wolfmed-cause-brain
   titleDowned: wolfmed-cause-brain-title
   symptom: wolfmed-cause-brain-symptom
@@ -29,7 +29,7 @@
 # A chassis's positronic core under wolfmed.consc_core_down. Downed only; never a shutdown by itself.
 - type: wolfmedConsciousnessCause
   id: Core
-  alertDowned: WolfmedDownedCore
+  alertDowned: WFWolfmedDownedCore
   blockerName: wolfmed-cause-core
   titleDowned: wolfmed-cause-core-title
   symptom: wolfmed-cause-core-symptom

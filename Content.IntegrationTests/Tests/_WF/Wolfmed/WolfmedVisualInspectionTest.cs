@@ -202,9 +202,9 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
 
             Wound(entities, torso, "InternalBleedingWound", 30);
-            Wound(entities, torso, "WolfmedOrganContusionWound", 20);
-            Wound(entities, head, "WolfmedConcussionWound", 5);
-            Wound(entities, arm, "WolfmedTendonCutWound", 20);
+            Wound(entities, torso, "WFWolfmedOrganContusionWound", 20);
+            Wound(entities, head, "WFWolfmedConcussionWound", 5);
+            Wound(entities, arm, "WFWolfmedTendonCutWound", 20);
 
             var seen = Look(entities, body, medic);
             var known = Look(entities, body, body);
@@ -251,7 +251,7 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             // Comminuted at 60 Blunt, which is what the splint needs before it will go on.
             entities.System<DamageableSystem>()
                 .TryChangeDamage(body, Blunt(60), origin: null, targetPart: TargetBodyPart.LeftLeg);
-            var splint = entities.SpawnEntity("WolfmedSplint", map.GridCoords);
+            var splint = entities.SpawnEntity("WFWolfmedSplint", map.GridCoords);
             Assert.That(entities.System<WolfmedSplintSystem>()
                 .TryApply((splint, entities.GetComponent<WolfmedSplintComponent>(splint)), body, leg, medic), Is.True);
 
@@ -284,9 +284,9 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             var medic = entities.SpawnEntity("MobHuman", map.GridCoords);
             Wound(entities, Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left),
-                "WolfmedLodgedRoundWound", 10);
+                "WFWolfmedLodgedRoundWound", 10);
             Wound(entities, Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Right),
-                "WolfmedShrapnelWound", 10);
+                "WFWolfmedShrapnelWound", 10);
 
             var seen = Look(entities, body, medic);
 
@@ -345,7 +345,7 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             var machine = entities.SpawnEntity("MobIPC", map.GridCoords);
             var medic = entities.SpawnEntity("MobHuman", map.GridCoords);
             var arm = Part(entities, machine, BodyPartType.Arm, BodyPartSymmetry.Left);
-            Bleed(entities, Wound(entities, arm, "WolfmedBreachWound", 10), 2f);
+            Bleed(entities, Wound(entities, arm, "WFWolfmedBreachWound", 10), 2f);
 
             var seen = Look(entities, machine, medic);
 
@@ -376,7 +376,7 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             var medic = entities.SpawnEntity("MobHuman", map.GridCoords);
             Wound(entities, Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left), "SlashWound", 30);
             Wound(entities, Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Right),
-                "WolfmedDislocationWound", 10);
+                "WFWolfmedDislocationWound", 10);
 
             var far = Look(entities, body, medic, false);
 
@@ -608,9 +608,9 @@ public sealed class WolfmedVisualInspectionTest : GameTest
             var medic = entities.SpawnEntity("MobHuman", map.GridCoords);
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
             Bleed(entities, Wound(entities, arm, "SlashWound", 40), 2f);
-            Wound(entities, arm, "WolfmedShrapnelWound", 10);
+            Wound(entities, arm, "WFWolfmedShrapnelWound", 10);
             Wound(entities, Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Right),
-                "WolfmedDislocationWound", 10);
+                "WFWolfmedDislocationWound", 10);
             entities.EnsureComponent<WolfmedTourniquetComponent>(arm);
 
             var report = Report(entities, body, medic);

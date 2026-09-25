@@ -14,8 +14,8 @@ namespace Content.Server._WF.Wolfmed.Life;
 // Everything else keeps the stock alert.
 public sealed class WolfmedBreathingAlertSystem : EntitySystem
 {
-    public static readonly ProtoId<AlertPrototype> NoAir = "WolfmedCantBreatheAir";
-    public static readonly ProtoId<AlertPrototype> NoLungs = "WolfmedCantBreatheLungs";
+    public static readonly ProtoId<AlertPrototype> NoAir = "WFWolfmedCantBreatheAir";
+    public static readonly ProtoId<AlertPrototype> NoLungs = "WFWolfmedCantBreatheLungs";
 
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 

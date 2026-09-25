@@ -3,8 +3,8 @@
 
 - type: construction
   name: improvised splint
-  id: WolfmedSplintImprovised
-  graph: WolfmedSplintImprovised
+  id: WFWolfmedSplintImprovised
+  graph: WFWolfmedSplintImprovised
   startNode: start
   targetNode: splint
   category: construction-category-tools

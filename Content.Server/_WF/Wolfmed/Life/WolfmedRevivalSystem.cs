@@ -122,7 +122,7 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         if (!_life.HasBrain(body))
             return NoBrain;
 
-        // A destroyed brain has to be put back together first; see SurgeryRepairBrain.
+        // A destroyed brain has to be put back together first; see WFSurgeryRepairBrain.
         if (_life.GetBrainOrgan(body) is not { } organ || organ.Comp.Health <= FixedPoint2.Zero)
             return BrainDead;
 

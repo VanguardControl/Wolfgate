@@ -78,7 +78,7 @@ public sealed partial class WolfmedTreatmentOverlayProfilePrototype : IPrototype
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WolfmedTreatmentVisualsComponent : Component
 {
-    public const string DefaultProfile = "WolfmedTreatmentOverlayDefault";
+    public const string DefaultProfile = "WFWolfmedTreatmentOverlayDefault";
 
     [DataField, AutoNetworkedField]
     public bool Enabled = true;

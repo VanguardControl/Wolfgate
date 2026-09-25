@@ -68,7 +68,7 @@
     tool: Ointment
     done: [ SubjectGone ]
   - text: wolfmed-treatment-step-burn-wound-4
-    tool: WolfmedSkinGraft
+    tool: WFWolfmedSkinGraft
     surgery: true
   avoid:
   - wolfmed-treatment-avoid-burn-wound-1
@@ -106,7 +106,7 @@
   - text: wolfmed-treatment-step-bone-fracture-wound-1
     done: [ PartTargeted ]
   - text: wolfmed-treatment-step-bone-fracture-wound-2
-    tool: WolfmedSplint
+    tool: WFWolfmedSplint
     done: [ FractureReduced ]
   - text: wolfmed-treatment-step-bone-fracture-wound-3
   - text: wolfmed-treatment-step-bone-fracture-wound-4
@@ -398,7 +398,7 @@
     done: [ SubjectGone ]
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedGrazeWound
+  id: WFWolfmedGrazeWound
   summary: wolfmed-treatment-short-wolfmed-graze-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-graze-wound-1
@@ -411,7 +411,7 @@
     done: [ Cleaned ]
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedGunshotWound
+  id: WFWolfmedGunshotWound
   summary: wolfmed-treatment-short-wolfmed-gunshot-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-gunshot-wound-1
@@ -430,7 +430,7 @@
   - wolfmed-treatment-avoid-wolfmed-gunshot-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedLodgedRoundWound
+  id: WFWolfmedLodgedRoundWound
   summary: wolfmed-treatment-short-wolfmed-lodged-round-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-lodged-round-wound-1
@@ -448,7 +448,7 @@
   - wolfmed-treatment-avoid-wolfmed-lodged-round-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedShrapnelWound
+  id: WFWolfmedShrapnelWound
   summary: wolfmed-treatment-short-wolfmed-shrapnel-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-shrapnel-wound-1
@@ -464,7 +464,7 @@
   - wolfmed-treatment-avoid-wolfmed-shrapnel-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedArterialBleedWound
+  id: WFWolfmedArterialBleedWound
   summary: wolfmed-treatment-short-wolfmed-arterial-bleed-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-arterial-bleed-wound-1
@@ -485,7 +485,7 @@
   - wolfmed-treatment-avoid-wolfmed-arterial-bleed-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedTendonCutWound
+  id: WFWolfmedTendonCutWound
   summary: wolfmed-treatment-short-wolfmed-tendon-cut-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-tendon-cut-wound-1
@@ -502,7 +502,7 @@
   - wolfmed-treatment-avoid-wolfmed-tendon-cut-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedAvulsionWound
+  id: WFWolfmedAvulsionWound
   summary: wolfmed-treatment-short-wolfmed-avulsion-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-avulsion-wound-1
@@ -517,7 +517,7 @@
   - text: wolfmed-treatment-step-wolfmed-avulsion-wound-4
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedCrushInjuryWound
+  id: WFWolfmedCrushInjuryWound
   summary: wolfmed-treatment-short-wolfmed-crush-injury-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-crush-injury-wound-1
@@ -527,7 +527,7 @@
     tool: HandheldHealthAnalyzer
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedConcussionWound
+  id: WFWolfmedConcussionWound
   summary: wolfmed-treatment-short-wolfmed-concussion-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-concussion-wound-1
@@ -539,7 +539,7 @@
   - wolfmed-treatment-avoid-wolfmed-concussion-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedDislocationWound
+  id: WFWolfmedDislocationWound
   summary: wolfmed-treatment-short-wolfmed-dislocation-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-dislocation-wound-1
@@ -552,7 +552,7 @@
   - wolfmed-treatment-avoid-wolfmed-dislocation-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedOrganContusionWound
+  id: WFWolfmedOrganContusionWound
   summary: wolfmed-treatment-short-wolfmed-organ-contusion-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-organ-contusion-wound-1
@@ -565,14 +565,14 @@
     surgery: true
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedCharringWound
+  id: WFWolfmedCharringWound
   summary: wolfmed-treatment-short-wolfmed-charring-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-charring-wound-1
     tool: Scalpel
     surgery: true
   - text: wolfmed-treatment-step-wolfmed-charring-wound-2
-    tool: WolfmedSkinGraft
+    tool: WFWolfmedSkinGraft
     surgery: true
     done: [ SubjectGone ]
   - text: wolfmed-treatment-step-wolfmed-charring-wound-3
@@ -585,7 +585,7 @@
   - wolfmed-treatment-avoid-wolfmed-charring-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedFrostbiteWound
+  id: WFWolfmedFrostbiteWound
   summary: wolfmed-treatment-short-wolfmed-frostbite-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-frostbite-wound-1
@@ -599,7 +599,7 @@
     done: [ NecrosisRiskCleared ]
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedChemicalBurnWound
+  id: WFWolfmedChemicalBurnWound
   summary: wolfmed-treatment-short-wolfmed-chemical-burn-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-chemical-burn-wound-1
@@ -611,7 +611,7 @@
   - wolfmed-treatment-avoid-wolfmed-chemical-burn-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedInternalBurnWound
+  id: WFWolfmedInternalBurnWound
   summary: wolfmed-treatment-short-wolfmed-internal-burn-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-internal-burn-wound-1
@@ -623,7 +623,7 @@
     surgery: true
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedNecrosisWound
+  id: WFWolfmedNecrosisWound
   summary: wolfmed-treatment-short-wolfmed-necrosis-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-necrosis-wound-1
@@ -638,7 +638,7 @@
   - wolfmed-treatment-avoid-wolfmed-necrosis-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedDentWound
+  id: WFWolfmedDentWound
   summary: wolfmed-treatment-short-wolfmed-dent-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-dent-wound-1
@@ -651,7 +651,7 @@
     done: [ SubjectGone ]
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedBreachWound
+  id: WFWolfmedBreachWound
   summary: wolfmed-treatment-short-wolfmed-breach-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-breach-wound-1
@@ -667,7 +667,7 @@
   - wolfmed-treatment-avoid-wolfmed-breach-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedShortCircuitWound
+  id: WFWolfmedShortCircuitWound
   summary: wolfmed-treatment-short-wolfmed-short-circuit-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-short-circuit-wound-1
@@ -680,7 +680,7 @@
   - wolfmed-treatment-avoid-wolfmed-short-circuit-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedServoDamageWound
+  id: WFWolfmedServoDamageWound
   summary: wolfmed-treatment-short-wolfmed-servo-damage-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-servo-damage-wound-1
@@ -697,7 +697,7 @@
   - wolfmed-treatment-avoid-wolfmed-servo-damage-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedOverheatingWound
+  id: WFWolfmedOverheatingWound
   summary: wolfmed-treatment-short-wolfmed-overheating-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-overheating-wound-1
@@ -758,7 +758,7 @@
   summary: wolfmed-treatment-short-cond-fracture
   steps:
   - text: wolfmed-treatment-step-cond-fracture-1
-    tool: WolfmedSplint
+    tool: WFWolfmedSplint
     done: [ FractureReduced ]
   - text: wolfmed-treatment-step-cond-fracture-2
   - text: wolfmed-treatment-step-cond-fracture-3
@@ -892,7 +892,7 @@
   - text: wolfmed-treatment-step-cond-necrosis-risk-1
     tool: Tourniquet
   - text: wolfmed-treatment-step-cond-necrosis-risk-2
-    tool: WolfmedSkinGraft
+    tool: WFWolfmedSkinGraft
   - text: wolfmed-treatment-step-cond-necrosis-risk-3
     surgery: true
   - text: wolfmed-treatment-step-cond-necrosis-risk-4
@@ -978,7 +978,7 @@
     done: [ BloodRestored ]
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedEviscerationWound
+  id: WFWolfmedEviscerationWound
   summary: wolfmed-treatment-short-wolfmed-evisceration-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-evisceration-wound-1
@@ -1005,7 +1005,7 @@
   - wolfmed-treatment-avoid-wolfmed-evisceration-wound-1
 
 - type: wolfmedTreatmentProcedure
-  id: WolfmedChassisBreachWound
+  id: WFWolfmedChassisBreachWound
   summary: wolfmed-treatment-short-wolfmed-chassis-breach-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-chassis-breach-wound-1

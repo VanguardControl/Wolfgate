@@ -354,7 +354,7 @@ public sealed class WolfmedConsequencesTest : GameTest
                 Assert.That(Consc(injured).State, Is.EqualTo(WolfmedConsciousness.Downed));
                 Assert.That(Consc(injured).Cause, Is.EqualTo(WolfmedCause.Brain));
                 Assert.That(Consc(injured).Breathing, Is.EqualTo(WolfmedBreathing.Normal));
-                Assert.That(alerts.GetShownHealthAlert(injured)?.Id, Is.EqualTo("WolfmedDownedBrain"));
+                Assert.That(alerts.GetShownHealthAlert(injured)?.Id, Is.EqualTo("WFWolfmedDownedBrain"));
                 Assert.That(alerts.GetTitle(injured), Is.EqualTo("Downed: head injury"));
                 Assert.That(s.AnalyzerLines(injured)[0], Is.EqualTo("DOWNED: head injury"));
                 Assert.That(ExamineNotes(injured, bruised), Does.Contain("unequal pupils"));
@@ -384,7 +384,7 @@ public sealed class WolfmedConsequencesTest : GameTest
                 Assert.That(Consc(struck).Cause, Is.EqualTo(WolfmedCause.HeadBlow));
                 Assert.That(Consc(struck).Breathing, Is.Not.EqualTo(WolfmedBreathing.None));
                 Assert.That(s.Consciousness.InFaint(struck), Is.True, "the pod would treat the knockout as an emergency.");
-                Assert.That(alerts.GetShownHealthAlert(struck)?.Id, Is.EqualTo("WolfmedFaintHeadBlow"));
+                Assert.That(alerts.GetShownHealthAlert(struck)?.Id, Is.EqualTo("WFWolfmedFaintHeadBlow"));
                 Assert.That(s.Consciousness.GetFaintSecondsLeft(struck), Is.LessThanOrEqualTo((int) KnockoutSeconds));
                 Assert.That(s.AnalyzerLines(struck)[0], Does.StartWith("FAINTED: head blow"));
                 Assert.That(Consc(glancing).State, Is.Not.EqualTo(WolfmedConsciousness.Unconscious),

@@ -2,7 +2,7 @@
 # TODO BODY: Part damage
 - type: entity
   id: PartSynth
-  parent: [WolfmedPartIpc, BaseItem, BasePart] # WOLFGATE(Wolfmed): M4: OD16 Synth is mechanical, chassis wound profile; WolfmedPartIpc must stay FIRST (RT first-parent-wins)
+  parent: [WFWolfmedPartIpc, BaseItem, BasePart] # WOLFGATE(Wolfmed): M4: OD16 Synth is mechanical, chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
   name: "synth body part"
   abstract: true
   components:

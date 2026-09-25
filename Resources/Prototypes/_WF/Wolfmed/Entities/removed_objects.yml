@@ -3,7 +3,7 @@
 
 - type: entity
   parent: BaseItem
-  id: WolfmedSpentRound
+  id: WFWolfmedSpentRound
   name: spent round
   description: A deformed bullet, dug out of someone. Still warm.
   components:
@@ -23,7 +23,7 @@
 # that clears charring. Sprite and item data come from the regenerative mesh it sits beside in a medkit.
 - type: entity
   parent: BaseItem
-  id: WolfmedSkinGraft
+  id: WFWolfmedSkinGraft
   name: skin graft
   description: A sheet of vat-grown skin in sterile backing. Laid over dead tissue, in surgery.
   components:
@@ -40,7 +40,7 @@
 
 - type: entity
   parent: BaseItem
-  id: WolfmedShrapnelFragment
+  id: WFWolfmedShrapnelFragment
   name: shrapnel
   description: A jagged sliver of metal. It was somewhere it should not have been.
   components:

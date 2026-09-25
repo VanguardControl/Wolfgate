@@ -11,5 +11,5 @@ namespace Content.Shared._WF.Wolfmed.Wounds;
 public sealed partial class WolfmedRepairSoundComponent : Component
 {
     [DataField]
-    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WolfmedPanelBeat");
+    public SoundSpecifier? EndSound = new SoundCollectionSpecifier("WFWolfmedPanelBeat");
 }

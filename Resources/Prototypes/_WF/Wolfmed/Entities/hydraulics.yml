@@ -4,7 +4,7 @@
 
 - type: entity
   parent: BaseHealingItem
-  id: WolfmedHydraulicFluidPack
+  id: WFWolfmedHydraulicFluidPack
   name: hydraulic fluid pack
   suffix: Full
   description: Two hundred units of non-flammable hydraulic fluid for a synthetic chassis. Use it on the chassis, or load it into an autodoc.
@@ -23,7 +23,7 @@
       pack:
         maxVol: 200
         reagents:
-        - ReagentId: WolfmedHydraulicFluid
+        - ReagentId: WFWolfmedHydraulicFluid
           Quantity: 200
   - type: DrainableSolution
     solution: pack

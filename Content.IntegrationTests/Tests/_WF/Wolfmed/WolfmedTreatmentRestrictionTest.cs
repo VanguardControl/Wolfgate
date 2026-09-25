@@ -55,7 +55,7 @@ public sealed class WolfmedTreatmentRestrictionTest : GameTest
                 "the pack's `Brute` group carries Slash and Piercing too; both must be dropped before any " +
                 "wound path sees the spec.");
 
-            // 10 stays under WolfmedFractureProfile's Hairline threshold (12), so no stray bone fracture.
+            // 10 stays under WFWolfmedFractureProfile's Hairline threshold (12), so no stray bone fracture.
             Assert.That(routing.TryApplyPartDamage(body, cutArm, Spec("Slash", 10), null, ignoreResistances: true));
             Assert.That(routing.TryApplyPartDamage(body, bruisedArm, Spec("Blunt", 10), null, ignoreResistances: true));
             var cut = FindWound(entities, wounds, cutArm, "SlashWound");

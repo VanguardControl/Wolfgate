@@ -4,8 +4,8 @@
 # breathing and drains the brain). The liver clears it slowly; antitoxin clears it fast.
 - type: wolfmedConsciousnessCause
   id: Toxin
-  alertDowned: WolfmedDownedToxin
-  alertOut: WolfmedOutToxin
+  alertDowned: WFWolfmedDownedToxin
+  alertOut: WFWolfmedOutToxin
   blockerName: wolfmed-cause-toxin
   titleDowned: wolfmed-cause-toxin-title
   titleOut: wolfmed-cause-toxin-title-out
@@ -22,7 +22,7 @@
 # Radiation sickness: Downed past wolfmed.consc_rad_down. It never knocks out; it kills through the blood.
 - type: wolfmedConsciousnessCause
   id: Radiation
-  alertDowned: WolfmedDownedRadiation
+  alertDowned: WFWolfmedDownedRadiation
   blockerName: wolfmed-cause-radiation
   titleDowned: wolfmed-cause-radiation-title
   symptom: wolfmed-cause-radiation-symptom
@@ -36,8 +36,8 @@
 # cold is the Arrest cause with its own source.
 - type: wolfmedConsciousnessCause
   id: Cold
-  alertDowned: WolfmedDownedCold
-  alertOut: WolfmedOutCold
+  alertDowned: WFWolfmedDownedCold
+  alertOut: WFWolfmedOutCold
   blockerName: wolfmed-cause-cold
   titleDowned: wolfmed-cause-cold-title
   titleOut: wolfmed-cause-cold-title-out
@@ -54,8 +54,8 @@
 # Heat exhaustion (Downed) and heat stroke (Unconscious, with its own brain drain). A fire's grace only delays it.
 - type: wolfmedConsciousnessCause
   id: Heat
-  alertDowned: WolfmedDownedHeat
-  alertOut: WolfmedOutHeat
+  alertDowned: WFWolfmedDownedHeat
+  alertOut: WFWolfmedOutHeat
   blockerName: wolfmed-cause-heat
   titleDowned: wolfmed-cause-heat-title
   titleOut: wolfmed-cause-heat-title-out

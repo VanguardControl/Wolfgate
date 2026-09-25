@@ -228,7 +228,7 @@ public sealed class WoundBleedingTest : GameTest
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
             var bloodstream = entityManager.GetComponent<BloodstreamComponent>(body);
 
-            // WOLFGATE(Wolfmed): HeadHuman inherits WolfmedBaseHead, so its Slash amputation threshold is 200
+            // WOLFGATE(Wolfmed): HeadHuman inherits WFWolfmedBaseHead, so its Slash amputation threshold is 200
             // (_WF/Wolfmed/Body/parts.yml). progress = 200/200 = 1.0 -> Severable, and the threshold hit
             // itself never detaches (AmputationSystem.HandlePartDamageApplied's first branch returns).
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Slash", 200)));

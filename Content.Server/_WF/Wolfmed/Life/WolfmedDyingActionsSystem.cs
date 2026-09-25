@@ -51,8 +51,8 @@ public sealed partial class WolfmedDyingActionsComponent : Component
 // alive but empty" one with no way back in any other living state.
 public sealed class WolfmedDyingActionsSystem : EntitySystem
 {
-    public static readonly EntProtoId SuccumbAction = "ActionWolfmedSuccumb";
-    public static readonly EntProtoId LastWordsAction = "ActionWolfmedLastWords";
+    public static readonly EntProtoId SuccumbAction = "WFActionWolfmedSuccumb";
+    public static readonly EntProtoId LastWordsAction = "WFActionWolfmedLastWords";
 
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private EuiManager _eui = default!;

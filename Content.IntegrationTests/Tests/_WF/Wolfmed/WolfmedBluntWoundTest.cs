@@ -41,7 +41,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedConcussionSystem))]
 public sealed class WolfmedBluntWoundTest : GameTest
 {
-    // M6: WolfmedFractureProfile with every grade's creation chance at 1, so FractureGradeTest is not a roll.
+    // M6: WFWolfmedFractureProfile with every grade's creation chance at 1, so FractureGradeTest is not a roll.
     [TestPrototypes]
     private const string TestProtos = @"
 - type: fractureProfile
@@ -178,20 +178,20 @@ public sealed class WolfmedBluntWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, crushed), Does.Contain("WolfmedCrushInjuryWound")
+                Assert.That(Prototypes(entities, wounds, crushed), Does.Contain("WFWolfmedCrushInjuryWound")
                         .And.Not.Contain("BluntWound"),
                     "at this size the bruise IS the crush injury, so the rule replaces it.");
-                Assert.That(Prototypes(entities, wounds, crushed), Does.Contain("WolfmedDislocationWound"),
+                Assert.That(Prototypes(entities, wounds, crushed), Does.Contain("WFWolfmedDislocationWound"),
                     "`continue` lets the same swing pop the joint.");
                 Assert.That(Prototypes(entities, wounds, bruised), Does.Contain("BluntWound")
-                        .And.Not.Contain("WolfmedCrushInjuryWound")
-                        .And.Not.Contain("WolfmedDislocationWound"),
+                        .And.Not.Contain("WFWolfmedCrushInjuryWound")
+                        .And.Not.Contain("WFWolfmedDislocationWound"),
                     "a light hit is still just a bruise.");
                 Assert.That(traits.TryGetLimbPenalty(crushed, true, out _), Is.True,
                     "a crushed limb costs its use, through the same modifier a fracture uses.");
             });
 
-            var crush = FindWound(entities, wounds, crushed, "WolfmedCrushInjuryWound");
+            var crush = FindWound(entities, wounds, crushed, "WFWolfmedCrushInjuryWound");
             Assert.That(entities.GetComponent<WoundComponent>(crush).Severity, Is.EqualTo(FixedPoint2.New(35)));
         });
     }
@@ -223,9 +223,9 @@ public sealed class WolfmedBluntWoundTest : GameTest
                 var lightTorso = Part(entities, light, BodyPartType.Torso, BodyPartSymmetry.None);
                 Assert.Multiple(() =>
                 {
-                    Assert.That(Prototypes(entities, wounds, heavyTorso), Does.Contain("WolfmedCrushInjuryWound")
+                    Assert.That(Prototypes(entities, wounds, heavyTorso), Does.Contain("WFWolfmedCrushInjuryWound")
                         .And.Contain("InternalBleedingWound"), $"run {i}: a Blunt 40 blow did not bleed inside.");
-                    Assert.That(Prototypes(entities, wounds, lightTorso), Does.Contain("WolfmedCrushInjuryWound")
+                    Assert.That(Prototypes(entities, wounds, lightTorso), Does.Contain("WFWolfmedCrushInjuryWound")
                         .And.Not.Contain("InternalBleedingWound"), $"run {i}: a Blunt 35 crush bled inside.");
                 });
             }
@@ -260,7 +260,7 @@ public sealed class WolfmedBluntWoundTest : GameTest
             entities.System<Content.Shared._Onyx.Body.Systems.OrganHealthSystem>().SetHealth(brain, brain.Comp.MaxHealth);
 
             var head = Part(entities, body, BodyPartType.Head, BodyPartSymmetry.None);
-            var concussion = FindWound(entities, wounds, head, "WolfmedConcussionWound");
+            var concussion = FindWound(entities, wounds, head, "WFWolfmedConcussionWound");
 
             Assert.Multiple(() =>
             {
@@ -304,7 +304,7 @@ public sealed class WolfmedBluntWoundTest : GameTest
             concussions.Recover(body, 600f);
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, head), Does.Not.Contain("WolfmedConcussionWound"),
+                Assert.That(Prototypes(entities, wounds, head), Does.Not.Contain("WFWolfmedConcussionWound"),
                     "it heals all the way out.");
                 Assert.That(entities.HasComponent<WolfmedConcussionComponent>(body), Is.False);
             });
@@ -337,7 +337,7 @@ public sealed class WolfmedBluntWoundTest : GameTest
             Blunt(entities, body, TargetBodyPart.LeftLeg, 25);
 
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
-            var dislocation = FindWound(entities, wounds, leg, "WolfmedDislocationWound");
+            var dislocation = FindWound(entities, wounds, leg, "WFWolfmedDislocationWound");
 
             Assert.Multiple(() =>
             {
@@ -364,13 +364,13 @@ public sealed class WolfmedBluntWoundTest : GameTest
             Assert.That(joints.TryRelocate(body, dislocation, medic), Is.True);
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, leg), Does.Not.Contain("WolfmedDislocationWound"));
+                Assert.That(Prototypes(entities, wounds, leg), Does.Not.Contain("WFWolfmedDislocationWound"));
                 Assert.That(traits.TryGetLimbPenalty(leg, true, out _), Is.False, "and the limp goes with it.");
                 Assert.That(joints.FindDislocation(body, medic), Is.Null);
             });
 
             // Doing it to yourself is the same procedure, slower and twice as painful.
-            var prototype = prototypes.Index<WoundPrototype>("WolfmedDislocationWound");
+            var prototype = prototypes.Index<WoundPrototype>("WFWolfmedDislocationWound");
             Assert.That(prototype.TryGetBehavior(FixedPoint2.New(10), out WolfmedDislocationBehavior behavior));
             Assert.Multiple(() =>
             {
@@ -403,7 +403,7 @@ public sealed class WolfmedBluntWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedOrganContusionWound"));
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedOrganContusionWound"));
                 Assert.That(OrganHealth(entities, torso), Is.LessThan(before),
                     "the blow reached something inside the chest.");
                 Assert.That(Organs(entities, torso).All(organ => organ.Comp.Health > FixedPoint2.Zero), Is.True,

@@ -39,7 +39,7 @@ public sealed class WolfmedPodWeldsChassisTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedWeldTestAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: weld test
   components:
   - type: Autodoc
@@ -54,8 +54,8 @@ public sealed class WolfmedPodWeldsChassisTest : GameTest
     /// <summary>Every wound the two chassis procedures are for.</summary>
     private static readonly string[] ChassisWounds =
     [
-        "IpcMechanicalDamageWound", "WolfmedDentWound", "WolfmedBreachWound", "CyberneticMechanicalDamageWound",
-        "WolfmedShortCircuitWound", "ElectricalWound",
+        "IpcMechanicalDamageWound", "WFWolfmedDentWound", "WFWolfmedBreachWound", "CyberneticMechanicalDamageWound",
+        "WFWolfmedShortCircuitWound", "ElectricalWound",
     ];
 
     /// <summary>The HUD rows those wounds put on the readout.</summary>
@@ -108,10 +108,10 @@ public sealed class WolfmedPodWeldsChassisTest : GameTest
 
             // The spec's chassis, wound by wound.
             wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Torso), "IpcMechanicalDamageWound", FixedPoint2.New(90));
-            wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Arm, BodyPartSymmetry.Left), "WolfmedDentWound", FixedPoint2.New(40));
-            var breach = wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Leg, BodyPartSymmetry.Left), "WolfmedBreachWound",
+            wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Arm, BodyPartSymmetry.Left), "WFWolfmedDentWound", FixedPoint2.New(40));
+            var breach = wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Leg, BodyPartSymmetry.Left), "WFWolfmedBreachWound",
                 FixedPoint2.New(30));
-            wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Arm, BodyPartSymmetry.Right), "WolfmedShortCircuitWound",
+            wounds.CreateOrMergeWound(s.Part(ipc, BodyPartType.Arm, BodyPartSymmetry.Right), "WFWolfmedShortCircuitWound",
                 FixedPoint2.New(30));
             Assert.That(breach, Is.Not.Null);
             Assert.That(SEntMan.TryGetComponent<WoundBleedingComponent>(breach!.Value, out var bleed) && bleed.CurrentRate > 0f,
@@ -156,23 +156,23 @@ public sealed class WolfmedPodWeldsChassisTest : GameTest
                        " || human plan: " + Format(humanPlan));
             Assert.Multiple(() =>
             {
-                Assert.That(plan.Any(e => e.Surgery == "SurgeryWeldChassis" && e.Part == TargetBodyPart.Torso), Is.True);
-                Assert.That(plan.Any(e => e.Surgery == "SurgeryWeldChassis" && e.Part == TargetBodyPart.LeftArm), Is.True);
-                Assert.That(plan.Any(e => e.Surgery == "SurgeryWeldChassis" && e.Part == TargetBodyPart.LeftLeg), Is.True);
-                Assert.That(plan.Any(e => e.Surgery == "SurgeryRewireChassis" && e.Part == TargetBodyPart.RightArm), Is.True);
-                Assert.That(plan.Any(e => e.Surgery.Id.StartsWith("SurgeryTendWounds")), Is.False,
+                Assert.That(plan.Any(e => e.Surgery == "WFSurgeryWeldChassis" && e.Part == TargetBodyPart.Torso), Is.True);
+                Assert.That(plan.Any(e => e.Surgery == "WFSurgeryWeldChassis" && e.Part == TargetBodyPart.LeftArm), Is.True);
+                Assert.That(plan.Any(e => e.Surgery == "WFSurgeryWeldChassis" && e.Part == TargetBodyPart.LeftLeg), Is.True);
+                Assert.That(plan.Any(e => e.Surgery == "WFSurgeryRewireChassis" && e.Part == TargetBodyPart.RightArm), Is.True);
+                Assert.That(plan.Any(e => e.Surgery.Id.Contains("SurgeryTendWounds")), Is.False,
                     "an organic tend was planned on a chassis.");
 
-                Assert.That(humanPlan.Any(e => e.Surgery == "SurgeryWeldChassis" || e.Surgery == "SurgeryRewireChassis"), Is.False,
+                Assert.That(humanPlan.Any(e => e.Surgery == "WFSurgeryWeldChassis" || e.Surgery == "WFSurgeryRewireChassis"), Is.False,
                     "machine work was planned on flesh.");
-                Assert.That(humanPlan.Any(e => e.Surgery.Id.StartsWith("SurgeryTendWounds") && e.Part == TargetBodyPart.LeftArm),
+                Assert.That(humanPlan.Any(e => e.Surgery.Id.Contains("SurgeryTendWounds") && e.Part == TargetBodyPart.LeftArm),
                     Is.True, "the human's bruised arm lost its tend.");
             });
 
             foreach (var ent in new[] { pod, batteredPod })
             {
                 Assert.That(SEntMan.System<ItemSlotsSystem>().TryInsert(ent.Owner, AutodocComponent.AutofixSlotId,
-                    SEntMan.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                    SEntMan.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
                 autodoc.SetAuto(ent, true);
             }
         });

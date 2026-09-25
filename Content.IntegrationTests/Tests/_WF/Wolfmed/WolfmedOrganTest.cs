@@ -312,7 +312,7 @@ public sealed class WolfmedOrganTest : GameTest
             {
                 Assert.That(entities.Deleted(lungs), Is.True, "a destroyed organ is deleted, not disabled.");
                 Assert.That(graph.GetPartOrgans(torso).Any(organ => organ.Id == lungs), Is.False);
-                // WolfmedOrganLungs: destructionWound InternalBleedingWound, destructionWoundSeverity 35
+                // WFWolfmedOrganLungs: destructionWound InternalBleedingWound, destructionWoundSeverity 35
                 // (_WF/Wolfmed/Body/organs.yml, Onyx's base_organs.yml value).
                 Assert.That(wounds, Has.Count.EqualTo(1));
                 Assert.That(wounds[0].Comp.Severity, Is.EqualTo(FixedPoint2.New(35)));

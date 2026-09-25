@@ -11,7 +11,7 @@ public sealed partial class ShowHealthIconsSystem
     /// A medical HUD is what tells the two apart, so an arrested patient wears a flatline instead of the
     /// ordinary critical icon.
     /// </summary>
-    private static readonly ProtoId<HealthIconPrototype> ArrestIcon = "HealthIconWolfmedArrest";
+    private static readonly ProtoId<HealthIconPrototype> ArrestIcon = "WFHealthIconWolfmedArrest";
 
     /// <summary>M1a: whether the local player sees health icons, for the Call for help flag.</summary>
     public bool WolfmedHudActive => IsActive;

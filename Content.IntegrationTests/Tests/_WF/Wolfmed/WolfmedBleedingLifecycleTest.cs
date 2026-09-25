@@ -127,7 +127,7 @@ public sealed class WolfmedBleedingLifecycleTest : GameTest
             var torso = entities.System<SharedBodySystem>().GetBodyChildren(body)
                 .Single(part => part.Component.PartType == BodyPartType.Torso).Id;
 
-            Assert.That(wounds.CreateOrMergeWound(torso, "WolfmedArterialBleedWound", 30), Is.Not.Null);
+            Assert.That(wounds.CreateOrMergeWound(torso, "WFWolfmedArterialBleedWound", 30), Is.Not.Null);
             Assert.That(bleeding.CanDressBleeding(torso), Is.True, "an undressed artery is work for gauze.");
 
             Assert.That(bleeding.BandageArterialBleeds(torso), Is.True);
@@ -159,7 +159,7 @@ public sealed class WolfmedBleedingLifecycleTest : GameTest
             var visuals = entities.System<Content.Server._WF.Wolfmed.Damage.WolfmedTreatmentVisualsSystem>();
             var necrosis = entities.System<Content.Server._WF.Wolfmed.Wounds.WolfmedNecrosisSystem>();
             var profile = server.ProtoMan.Index<Content.Shared._WF.Wolfmed.Damage.WolfmedTreatmentOverlayProfilePrototype>(
-                "WolfmedTreatmentOverlayDefault");
+                "WFWolfmedTreatmentOverlayDefault");
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             var arm = entities.System<SharedBodySystem>().GetBodyChildren(body)
                 .First(part => part.Component.PartType == BodyPartType.Arm).Id;

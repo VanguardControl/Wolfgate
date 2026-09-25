@@ -56,7 +56,7 @@ public sealed class WolfmedHonestEndingTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedEndingAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: honest ending
   components:
   - type: Autodoc
@@ -378,7 +378,7 @@ public sealed class WolfmedHonestEndingTest : GameTest
             var pod = SEntMan.SpawnEntity("WolfmedEndingAutodoc", map.GridCoords);
             var podEnt = new Entity<AutodocComponent>(pod, SEntMan.GetComponent<AutodocComponent>(pod));
             Assert.That(SEntMan.System<ItemSlotsSystem>().TryInsert(pod, AutodocComponent.ModuleSlotId,
-                SEntMan.SpawnEntity("AutodocDefibModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocDefibModule", map.GridCoords), null), Is.True);
             Assert.That(autodoc.TryInsert(podEnt, body), Is.True);
 
             s.Revival.ForcedRoll = 0f;

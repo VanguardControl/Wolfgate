@@ -31,7 +31,7 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 public sealed class WolfmedCauterySystem : EntitySystem
 {
     /// <summary>The shipped profile. Retuning searing is an edit to that prototype, not to this file.</summary>
-    public const string DefaultProfile = "WolfmedCauteryDefault";
+    public const string DefaultProfile = "WFWolfmedCauteryDefault";
 
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

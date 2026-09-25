@@ -6,7 +6,7 @@
 # showMenu is off: these are meant to be left by bleeding, not painted by a mapper.
 
 - type: decal
-  id: WolfmedBloodFloor1
+  id: WFWolfmedBloodFloor1
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true
@@ -16,7 +16,7 @@
     state: floor1
 
 - type: decal
-  id: WolfmedBloodFloor2
+  id: WFWolfmedBloodFloor2
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true
@@ -26,7 +26,7 @@
     state: floor2
 
 - type: decal
-  id: WolfmedBloodFloor3
+  id: WFWolfmedBloodFloor3
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true
@@ -36,7 +36,7 @@
     state: floor3
 
 - type: decal
-  id: WolfmedBloodFloor4
+  id: WFWolfmedBloodFloor4
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true
@@ -46,7 +46,7 @@
     state: floor4
 
 - type: decal
-  id: WolfmedBloodFloor5
+  id: WFWolfmedBloodFloor5
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true
@@ -56,7 +56,7 @@
     state: floor5
 
 - type: decal
-  id: WolfmedBloodFloor6
+  id: WFWolfmedBloodFloor6
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true
@@ -66,7 +66,7 @@
     state: floor6
 
 - type: decal
-  id: WolfmedBloodFloor7
+  id: WFWolfmedBloodFloor7
   tags: [ "station", "dirty" ]
   defaultCleanable: true
   defaultCustomColor: true

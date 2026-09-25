@@ -3249,3 +3249,38 @@ of the time per consonant, so "crew of the" lost a letter in roughly one run in 
 undid repeats but not a dropped letter. The test now removes the stutter in the same server step as the whisper
 and reads only the chat its own section adds, since a pooled pair's client keeps its history; thirty repeats
 passed. `CriticalHearingTest` reads the shared history the same way and could pass falsely, never fail; left as is.
+
+## The WF prefix, and the chassis banners (2026-09-25)
+
+**Prototype ids.** AGENTS.md gives Wolfgate's own prototype ids a `WF` prefix. The module's 333 own ids now carry it,
+mechanically: `WolfmedSplint` is `WFWolfmedSplint`, `MachineAutodoc` is `WFMachineAutodoc`, `SurgeryMendFracture` is
+`WFSurgeryMendFracture`, `SyntheticHudDent` is `WFSyntheticHudDent`. A mechanical prefix keeps the module's name in
+the id and cannot collide with anything upstream; the 98 concrete entity ids have `migration.yml` entries (inside the
+`WOLFGATE(Prototypes)` block) so saved ships and maps keep loading, and the medical POI's pod is renamed in place.
+The 26 abstract ones (base parts, organs, the disk and organ-step bases) get no entry: nothing abstract is ever on a
+map, and `MapMigrationSystem` asserts that every target is an indexed entity prototype, which an abstract one is not.
+No renamed kind is saved in profiles, loadouts or consent rows, so `WFLegacyPrototypeIds` needs nothing.
+
+Kept as they were, on purpose, because their ids are keys into another prototype's namespace or come from code:
+- `wolfmedTreatmentProcedure`: the id is the wound's id (`BluntWound`, `WFWolfmedGrazeWound`), or `Cond` plus the
+  condition (`CondInternalBleeding`), with `Mechanical` appended, built by `WolfmedTreatmentAdvice.ProcedureId`.
+  The ones that mirror a Wolfmed wound followed that wound's new id.
+- `autodocProcedure`: the id is the surgery's id, looked up by it; the ones for Wolfmed's surgeries followed them.
+- `wolfmedConsciousnessCause`: the enum member's name (`Blood`, `Hypoxia`, `CoreHeat`).
+- `wolfmedSpeciesException`: the species id (`IPC`, `Synth`, `Diona`).
+- `Spaceacillin` and `SpaceacillinChemistryBottle`: upstream ids put back after upstream dropped them.
+- The three guide entries (`WFWounds`, `WFWoundTreatment`, `WFWolfmedAutodoc`) were renamed by hand: `Wounds` is
+  a word, and a mechanical replace would have hit the `_Onyx.Wounds` namespace.
+Onyx's ported prototypes (`_Onyx`) keep their ids, as AGENTS.md allows. The Docs folder was left as history.
+
+A blind replace also renames every other word that equals an id. Five component names do (`WolfmedSplint`, `WolfmedSkinGraft`, `WolfmedHitSplatter`, `AutodocDefibModule`, `AutodocAutofixModule`: the entity and the component that marks it share a name), so their `- type:` lines and the pod's module-slot whitelist were put back; the YAML linter caught the first, a YAML walk over every changed file the rest. Component names stay unprefixed: they come from the class name, and AGENTS.md's rule is about prototype ids. The autodoc's voice picks a line by the tool's
+component name too (`case "WolfmedSkinGraft"`), so that string went back as well.
+
+The id list was built one kind per id, so an id that names two prototypes kept only the kind seen last. Ten fell
+through that way: six chassis surgeries (`SurgeryRepairCore`, `SurgeryWeldChassis`, ...) whose `autodocProcedure`
+shares the id, and four burn wounds (`WolfmedCharringWound`, ...) whose treatment procedure does; nine entities that
+are also a lathe recipe or a construction graph got no migration entry for the same reason. A walk over every id
+defined under the module's prototypes, against the map, found them; all are renamed and listed now.
+
+Locale keys built from an id leave the prefix out. `WolfmedTreatmentAdvice.Slug` kebab-cases a wound id into the tail of its advice key, and a blind slug of `WFWolfmedGrazeWound` is `w-f-wolfmed-graze-wound`; the slug now skips a leading `WF`, so the 80-odd `wolfmed-treatment-short-*` keys keep their names and `WolfmedTreatmentAdviceTest`, which pins the derived key, keeps passing. The surgery step popups go the other way: `surgery-popup-step-{id}` is built from the raw id in `_Shitmed`, so those keys were renamed with the ids.
+

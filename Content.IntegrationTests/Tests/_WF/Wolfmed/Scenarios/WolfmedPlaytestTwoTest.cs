@@ -105,7 +105,7 @@ public sealed class WolfmedPlaytestTwoTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.PainFaint));
-                Assert.That(alert.Type.Id, Is.EqualTo("WolfmedFaintPain"));
+                Assert.That(alert.Type.Id, Is.EqualTo("WFWolfmedFaintPain"));
                 Assert.That(alert.Cooldown, Is.Not.Null, "the faint alert has no countdown.");
                 Assert.That(alert.Cooldown!.Value.Item2, Is.EqualTo(comp.PainFaintUntil), "the countdown does not end with the faint.");
                 Assert.That((alert.Cooldown.Value.Item2 - alert.Cooldown.Value.Item1).TotalSeconds,
@@ -135,7 +135,7 @@ public sealed class WolfmedPlaytestTwoTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(Consc(a).State, Is.Not.EqualTo(WolfmedConsciousness.Unconscious), "the opiate did not end the faint.");
-                Assert.That(alert.Type.Id, Is.Not.EqualTo("WolfmedFaintPain"));
+                Assert.That(alert.Type.Id, Is.Not.EqualTo("WFWolfmedFaintPain"));
                 Assert.That(alert.Cooldown, Is.Null, "the countdown outlived the faint.");
                 Assert.That(s.Consciousness.GetFaintWindow(a), Is.Null);
             });
@@ -155,7 +155,7 @@ public sealed class WolfmedPlaytestTwoTest : GameTest
             {
                 Assert.That(comp.Cause, Is.EqualTo(WolfmedCause.PainFaint));
                 Assert.That(comp.Blockers, Is.EqualTo(WolfmedCauseFlags.Blood));
-                Assert.That(alert.Type.Id, Is.EqualTo("WolfmedFaintPain"));
+                Assert.That(alert.Type.Id, Is.EqualTo("WFWolfmedFaintPain"));
                 Assert.That(alert.Cooldown, Is.Null, "a blocked faint promised waking with a countdown.");
                 Assert.That(text, Does.Contain(Loc.GetString("wolfmed-cause-pain-faint-help-blocked")));
                 Assert.That(text, Does.Not.Contain("Coming round in"));
@@ -185,7 +185,7 @@ public sealed class WolfmedPlaytestTwoTest : GameTest
         {
             body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             attacker = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
-            item = SEntMan.SpawnEntity("WolfmedAnalgesicPen", map.GridCoords);
+            item = SEntMan.SpawnEntity("WFWolfmedAnalgesicPen", map.GridCoords);
         });
         await RunSeconds(2);
 

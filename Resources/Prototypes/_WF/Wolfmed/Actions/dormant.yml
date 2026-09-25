@@ -2,7 +2,7 @@
 # worse. It opens a dialog with the exact terms; the ghost can always return.
 
 - type: entity
-  id: ActionWolfmedWaitAsGhost
+  id: WFActionWolfmedWaitAsGhost
   name: Wait as a ghost
   description: Your body is stable for now. Leave it as a ghost that can come back; you are told if it gets worse.
   components:

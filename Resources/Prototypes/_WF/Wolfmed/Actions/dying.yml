@@ -2,7 +2,7 @@
 # their dialog says. Their own event types: upstream's CritSuccumbEvent runs the upstream ghost path.
 
 - type: entity
-  id: ActionWolfmedSuccumb
+  id: WFActionWolfmedSuccumb
   name: Let go
   description: Your heart has stopped. Choose to let go; a dialog tells you exactly what happens first.
   components:
@@ -16,7 +16,7 @@
     event: !type:WolfmedSuccumbActionEvent
 
 - type: entity
-  id: ActionWolfmedLastWords
+  id: WFActionWolfmedLastWords
   name: Last words
   description: Choose whether to let go; if you do, whisper your last words to anyone nearby first.
   components:

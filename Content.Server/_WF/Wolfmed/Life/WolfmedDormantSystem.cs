@@ -30,7 +30,7 @@ namespace Content.Server._WF.Wolfmed.Life;
 // wakes the ghost is offered the way back.
 public sealed class WolfmedDormantSystem : EntitySystem
 {
-    public static readonly EntProtoId WaitAction = "ActionWolfmedWaitAsGhost";
+    public static readonly EntProtoId WaitAction = "WFActionWolfmedWaitAsGhost";
 
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 

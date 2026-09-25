@@ -228,7 +228,7 @@ public sealed class WolfmedReagentTreatmentTest : GameTest
             var pain = entities.System<PainSystem>();
             var painComp = entities.GetComponent<PainComponent>(body);
 
-            // WOLFGATE (W0): 10 rather than 15 - WolfmedFractureProfile's Hairline threshold is 12 at a 25 %
+            // WOLFGATE (W0): 10 rather than 15 - WFWolfmedFractureProfile's Hairline threshold is 12 at a 25 %
             // roll, and a stray bone fracture's own pain behaviour would push `before` past the 20 this test
             // needs it to stay under.
             Assert.That(entities.System<WoundDamageRoutingSystem>()
@@ -305,7 +305,7 @@ public sealed class WolfmedReagentTreatmentTest : GameTest
             var routing = entities.System<WoundDamageRoutingSystem>();
             var fractures = entities.System<WoundFractureSystem>();
 
-            // P2-D23 / W0: 75 Blunt clears WolfmedFractureProfile's Comminuted threshold (45), whose
+            // P2-D23 / W0: 75 Blunt clears WFWolfmedFractureProfile's Comminuted threshold (45), whose
             // creationChance is 1 - the only deterministic fracture grade.
             Assert.That(routing.TryApplyPartDamage(body, arm, Spec("Blunt", 75)));
             var fracture = fractures.GetFracture(arm)!.Value;

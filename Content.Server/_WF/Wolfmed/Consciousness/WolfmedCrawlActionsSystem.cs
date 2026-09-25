@@ -23,8 +23,8 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 /// </summary>
 public sealed class WolfmedCrawlActionsSystem : EntitySystem
 {
-    public static readonly EntProtoId PlayDeadAction = "ActionWolfmedPlayDead";
-    public static readonly EntProtoId CheckYourselfAction = "ActionWolfmedCheckYourself";
+    public static readonly EntProtoId PlayDeadAction = "WFActionWolfmedPlayDead";
+    public static readonly EntProtoId CheckYourselfAction = "WFActionWolfmedCheckYourself";
 
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private MobStateSystem _mobState = default!;

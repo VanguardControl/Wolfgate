@@ -13,7 +13,7 @@ namespace Content.Client._WF.Wolfmed.Overlays;
 /// </summary>
 public sealed class WolfmedCallForHelpIconSystem : EntitySystem
 {
-    private static readonly ProtoId<HealthIconPrototype> Icon = "HealthIconWolfmedCallForHelp";
+    private static readonly ProtoId<HealthIconPrototype> Icon = "WFHealthIconWolfmedCallForHelp";
 
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;

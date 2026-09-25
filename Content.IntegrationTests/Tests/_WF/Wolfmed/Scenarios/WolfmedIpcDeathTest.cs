@@ -146,7 +146,7 @@ public sealed class WolfmedIpcDeathTest : GameTest
                             Assert.That(s.AnalyzerLines(untreated)[2], Does.StartWith("Do first: ")
                                 .And.Contain(WolfmedVitalsText.Aid(WolfmedRoutes.CoreHeat, true)));
                             Assert.That(SEntMan.System<WolfmedConditionAlertSystem>().GetShownHealthAlert(untreated)?.Id,
-                                Is.EqualTo("WolfmedOutCoreHeat"));
+                                Is.EqualTo("WFWolfmedOutCoreHeat"));
                         });
                     }
                 }

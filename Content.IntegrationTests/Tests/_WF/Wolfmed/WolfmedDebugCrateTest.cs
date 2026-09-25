@@ -18,7 +18,7 @@ public sealed class WolfmedDebugCrateTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var crate = entities.SpawnEntity("CrateWolfmedDebug", map.GridCoords);
+            var crate = entities.SpawnEntity("WFCrateWolfmedDebug", map.GridCoords);
             var storage = entities.GetComponent<EntityStorageComponent>(crate);
             Assert.That(storage.Contents.ContainedEntities, Has.Count.GreaterThanOrEqualTo(50));
         });

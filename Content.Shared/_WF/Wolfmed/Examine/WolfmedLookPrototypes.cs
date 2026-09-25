@@ -201,7 +201,7 @@ public sealed partial class WolfmedLookCoverage
 [Prototype("wolfmedLookProfile")]
 public sealed partial class WolfmedLookProfilePrototype : IPrototype
 {
-    public const string Default = "WolfmedLookDefault";
+    public const string Default = "WFWolfmedLookDefault";
 
     [IdDataField]
     public string ID { get; private set; } = default!;

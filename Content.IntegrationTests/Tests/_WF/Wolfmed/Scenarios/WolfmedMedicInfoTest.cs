@@ -333,7 +333,7 @@ public sealed class WolfmedMedicInfoTest : GameTest
         var map = await Pair.CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         var relief = SEntMan.System<WolfmedPainReliefSystem>();
-        var doses = new (string Reagent, float Units)[] { ("WolfmedOpiate", 3f), ("Tramadol", 5f), ("Oxycodone", 5f) };
+        var doses = new (string Reagent, float Units)[] { ("WFWolfmedOpiate", 3f), ("Tramadol", 5f), ("Oxycodone", 5f) };
         var single = new EntityUid[doses.Length];
         var twice = new EntityUid[doses.Length];
         EntityUid climb = default, reversed = default;
@@ -424,7 +424,7 @@ public sealed class WolfmedMedicInfoTest : GameTest
 
             // Full overdose: out. Naloxone brings the sedation down and holds it there.
             Assert.That(Consc(reversed).State, Is.EqualTo(WolfmedConsciousness.Unconscious), "the overdose did not knock out.");
-            SEntMan.System<BloodstreamSystem>().TryAddToChemicals(reversed, new Solution("WolfmedNaloxone", FixedPoint2.New(5)));
+            SEntMan.System<BloodstreamSystem>().TryAddToChemicals(reversed, new Solution("WFWolfmedNaloxone", FixedPoint2.New(5)));
         });
 
         // The 5 u pen metabolises over about ten seconds, 0.3 off the sedation per unit.

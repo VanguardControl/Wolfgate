@@ -48,7 +48,7 @@ public sealed class PodAtmosphereTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedTestAirPod
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: test air
   components:
   - type: Autodoc
@@ -430,7 +430,7 @@ public sealed class PodAtmosphereTest : GameTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(Autodoc.GetSeal(pod), Is.EqualTo(WolfmedAutodocSeal.Sealed));
-            Assert.That(Autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True,
+            Assert.That(Autodoc.TryQueue(pod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True,
                 "the fixture needs a fracture to mend.");
             Assert.That(Autodoc.TryStart(pod, null), Is.True);
         });

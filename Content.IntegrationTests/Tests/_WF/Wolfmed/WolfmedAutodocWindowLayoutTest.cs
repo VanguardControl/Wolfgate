@@ -103,9 +103,9 @@ public sealed class WolfmedAutodocWindowLayoutTest : GameTest
 
         var queue = new List<AutodocQueueEntry>
         {
-            new("SurgeryMendFracture", TargetBodyPart.LeftLeg, new List<string>()),
-            new("SurgeryMendFracture", TargetBodyPart.RightLeg, new List<string>()),
-            new("SurgeryMendFracture", TargetBodyPart.LeftArm, new List<string>()),
+            new("WFSurgeryMendFracture", TargetBodyPart.LeftLeg, new List<string>()),
+            new("WFSurgeryMendFracture", TargetBodyPart.RightLeg, new List<string>()),
+            new("WFSurgeryMendFracture", TargetBodyPart.LeftArm, new List<string>()),
         };
 
         // The window is built and filled but never opened: this measures what DrawQueue decided, and laying

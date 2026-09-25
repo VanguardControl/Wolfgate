@@ -3,7 +3,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepSutureBleeding
+  id: WFSurgeryStepSutureBleeding
   name: Suture the bleeding wound
   categories: [ HideSpawnMenu ]
   components:
@@ -22,7 +22,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepStopInternalBleeding
+  id: WFSurgeryStepStopInternalBleeding
   name: Stop the internal bleeding
   categories: [ HideSpawnMenu ]
   components:
@@ -41,7 +41,7 @@
 # Fracture ladder: BoneSetter reduces, BoneGel mends (P4-D20).
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepSetBone
+  id: WFSurgeryStepSetBone
   name: Set the bone
   categories: [ HideSpawnMenu ]
   components:
@@ -60,7 +60,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepMendFracture
+  id: WFSurgeryStepMendFracture
   name: Mend the fracture
   categories: [ HideSpawnMenu ]
   components:
@@ -79,7 +79,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepHealAmputationConsequence
+  id: WFSurgeryStepHealAmputationConsequence
   name: Repair the amputation damage
   categories: [ HideSpawnMenu ]
   components:
@@ -101,7 +101,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepHealOrganBase
+  id: WFSurgeryStepHealOrganBase
   name: Heal the organ
   abstract: true
   categories: [ HideSpawnMenu ]
@@ -120,8 +120,8 @@
   - type: SurgeryStepEmoteEffect
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealBrain
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealBrain
   name: Heal the brain
   categories: [ HideSpawnMenu ]
   components:
@@ -130,8 +130,8 @@
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealEyes
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealEyes
   name: Heal the eyes
   categories: [ HideSpawnMenu ]
   components:
@@ -140,8 +140,8 @@
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealHeart
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealHeart
   name: Heal the heart
   categories: [ HideSpawnMenu ]
   components:
@@ -150,8 +150,8 @@
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealLungs
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealLungs
   name: Heal the lungs
   categories: [ HideSpawnMenu ]
   components:
@@ -160,8 +160,8 @@
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealLiver
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealLiver
   name: Heal the liver
   categories: [ HideSpawnMenu ]
   components:
@@ -170,8 +170,8 @@
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealStomach
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealStomach
   name: Heal the stomach
   categories: [ HideSpawnMenu ]
   components:
@@ -180,8 +180,8 @@
     amount: 3 # WOLFGATE (P4 balance): Onyx ships 1; 15 repeats of a 2 s step is dead time. Revert by editing this line.
 
 - type: entity
-  parent: SurgeryStepHealOrganBase
-  id: SurgeryStepHealKidneys
+  parent: WFSurgeryStepHealOrganBase
+  id: WFSurgeryStepHealKidneys
   name: Heal the kidneys
   categories: [ HideSpawnMenu ]
   components:
@@ -195,7 +195,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepClampArtery
+  id: WFSurgeryStepClampArtery
   name: Clamp the severed artery
   categories: [ HideSpawnMenu ]
   components:
@@ -207,7 +207,7 @@
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: WolfmedSurgeryIncisionTreatmentEffect
-    wound: WolfmedArterialBleedWound
+    wound: WFWolfmedArterialBleedWound
     treatment: Clamp
   - type: WolfmedSurgeryPainEffect
     amount: 8
@@ -215,7 +215,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRepairArtery
+  id: WFSurgeryStepRepairArtery
   name: Suture the artery
   categories: [ HideSpawnMenu ]
   components:
@@ -227,7 +227,7 @@
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: WolfmedSurgeryTreatWoundEffect
-    woundPrototype: WolfmedArterialBleedWound
+    woundPrototype: WFWolfmedArterialBleedWound
   - type: WolfmedSurgeryPainEffect
     amount: 8
   - type: SurgeryStepEmoteEffect
@@ -238,7 +238,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepGraftSkin
+  id: WFSurgeryStepGraftSkin
   name: Graft the burned tissue
   categories: [ HideSpawnMenu ]
   components:
@@ -250,7 +250,7 @@
     sprite: _DV/Objects/Specific/medical.rsi
     state: regenerative-mesh
   - type: WolfmedSurgeryTreatWoundEffect
-    woundPrototype: WolfmedCharringWound
+    woundPrototype: WFWolfmedCharringWound
   # M1b: the graft closes the part's weeping burns too; their fluid loss stops.
   - type: WolfmedSurgeryGraftBurnsEffect
   - type: WolfmedSurgeryPainEffect
@@ -259,7 +259,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRepairTendon
+  id: WFSurgeryStepRepairTendon
   name: Repair the tendon
   categories: [ HideSpawnMenu ]
   components:
@@ -271,7 +271,7 @@
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: WolfmedSurgeryTreatWoundEffect
-    woundPrototype: WolfmedTendonCutWound
+    woundPrototype: WFWolfmedTendonCutWound
   - type: WolfmedSurgeryPainEffect
     amount: 10
   - type: SurgeryStepEmoteEffect
@@ -280,7 +280,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepReplaceServo
+  id: WFSurgeryStepReplaceServo
   name: Replace the servo run
   categories: [ HideSpawnMenu ]
   components:
@@ -292,7 +292,7 @@
     sprite: Objects/Tools/cable-coils.rsi
     state: coillv-30
   - type: WolfmedSurgeryTreatWoundEffect
-    woundPrototype: WolfmedServoDamageWound
+    woundPrototype: WFWolfmedServoDamageWound
   - type: WolfmedSurgeryPainEffect
     amount: 6
   - type: SurgeryStepEmoteEffect
@@ -304,7 +304,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepClampEvisceration
+  id: WFSurgeryStepClampEvisceration
   name: Clamp the torn vessels
   categories: [ HideSpawnMenu ]
   components:
@@ -316,7 +316,7 @@
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: WolfmedSurgeryIncisionTreatmentEffect
-    wound: WolfmedEviscerationWound
+    wound: WFWolfmedEviscerationWound
     treatment: Clamp
   - type: WolfmedSurgeryPainEffect
     amount: 12
@@ -324,7 +324,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepCloseEvisceration
+  id: WFSurgeryStepCloseEvisceration
   name: Close the abdomen
   categories: [ HideSpawnMenu ]
   components:
@@ -336,14 +336,14 @@
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/cautery.rsi
     state: cautery
   - type: WolfmedSurgeryCloseEviscerationEffect
-    woundPrototype: WolfmedEviscerationWound
+    woundPrototype: WFWolfmedEviscerationWound
   - type: WolfmedSurgeryPainEffect
     amount: 20
   - type: SurgeryStepEmoteEffect
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepSeatChassisPlating
+  id: WFSurgeryStepSeatChassisPlating
   name: Seat the torn plating
   categories: [ HideSpawnMenu ]
   components:
@@ -355,7 +355,7 @@
     sprite: Objects/Tools/wrench.rsi
     state: icon
   - type: WolfmedSurgeryIncisionTreatmentEffect
-    wound: WolfmedChassisBreachWound
+    wound: WFWolfmedChassisBreachWound
     treatment: Clamp
   - type: WolfmedSurgeryPainEffect
     amount: 4
@@ -363,7 +363,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepWeldChassisBreach
+  id: WFSurgeryStepWeldChassisBreach
   name: Weld the breach shut
   categories: [ HideSpawnMenu ]
   components:
@@ -375,7 +375,7 @@
     sprite: Objects/Tools/welder.rsi
     state: icon
   - type: WolfmedSurgeryCloseEviscerationEffect
-    woundPrototype: WolfmedChassisBreachWound
+    woundPrototype: WFWolfmedChassisBreachWound
   - type: WolfmedSurgeryPainEffect
     amount: 6
   - type: SurgeryStepEmoteEffect
@@ -387,7 +387,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepWeldChassis
+  id: WFSurgeryStepWeldChassis
   name: Weld the chassis
   categories: [ HideSpawnMenu ]
   components:
@@ -401,14 +401,14 @@
   - type: WolfmedSurgeryWeldChassisEffect
     wounds:
     - IpcMechanicalDamageWound
-    - WolfmedDentWound
-    - WolfmedBreachWound
+    - WFWolfmedDentWound
+    - WFWolfmedBreachWound
     - CyberneticMechanicalDamageWound
   - type: SurgeryRepeatableStep
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRewireChassis
+  id: WFSurgeryStepRewireChassis
   name: Rewire the chassis
   categories: [ HideSpawnMenu ]
   components:
@@ -422,7 +422,7 @@
   - type: WolfmedSurgeryRewireChassisEffect
     uses: 5
     wounds:
-    - WolfmedShortCircuitWound
+    - WFWolfmedShortCircuitWound
     - ElectricalWound
   - type: SurgeryRepeatableStep
 
@@ -432,7 +432,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRepairBrain
+  id: WFSurgeryStepRepairBrain
   name: Repair the brain
   categories: [ HideSpawnMenu ]
   components:
@@ -456,7 +456,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepExtractEmbedded
+  id: WFSurgeryStepExtractEmbedded
   name: Extract the foreign objects
   categories: [ HideSpawnMenu ]
   components:
@@ -476,7 +476,7 @@
 # The pain the wrench costs is the dislocation behavior's own, charged by the relocate code.
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRelocateJoint
+  id: WFSurgeryStepRelocateJoint
   name: Relocate the joint
   categories: [ HideSpawnMenu ]
   components:
@@ -493,7 +493,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepUnseatCore
+  id: WFSurgeryStepUnseatCore
   name: Unbolt the core housing
   categories: [ HideSpawnMenu ]
   components:
@@ -510,7 +510,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRepairCore
+  id: WFSurgeryStepRepairCore
   name: Re-flash the positronic core
   categories: [ HideSpawnMenu ]
   components:
@@ -527,7 +527,7 @@
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepReseatCore
+  id: WFSurgeryStepReseatCore
   name: Weld the core housing shut
   categories: [ HideSpawnMenu ]
   components:

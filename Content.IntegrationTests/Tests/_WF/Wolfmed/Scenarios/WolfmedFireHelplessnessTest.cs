@@ -124,7 +124,7 @@ public sealed class WolfmedFireHelplessnessTest : GameTest
                 _ => "U",
             };
             limbs.Append($"{name}:{(bodyPart.Enabled ? "on" : "OFF")}/{state} {stored:0} " +
-                         $"b{Severity(part, "BurnWound"):0} c{Severity(part, "WolfmedCharringWound"):0} ");
+                         $"b{Severity(part, "BurnWound"):0} c{Severity(part, "WFWolfmedCharringWound"):0} ");
         }
 
         return new Sample(second, consc.State, consc.Cause, move.CurrentWalkSpeed, blocker.CanMove(body),
@@ -174,7 +174,7 @@ public sealed class WolfmedFireHelplessnessTest : GameTest
                 if (now != 60)
                     return;
 
-                pen = SEntMan.SpawnEntity("WolfmedAnalgesicPen", SEntMan.GetComponent<TransformComponent>(body).Coordinates);
+                pen = SEntMan.SpawnEntity("WFWolfmedAnalgesicPen", SEntMan.GetComponent<TransformComponent>(body).Coordinates);
                 penPicked = SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(body, pen);
                 if (penPicked == true)
                     SEntMan.System<SharedInteractionSystem>().UseInHandInteraction(body, pen);

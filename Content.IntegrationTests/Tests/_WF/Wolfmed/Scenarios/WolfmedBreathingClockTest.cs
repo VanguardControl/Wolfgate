@@ -409,7 +409,7 @@ public sealed class WolfmedBreathingClockTest : GameTest
 
             var arm = s.Part(artery, BodyPartType.Arm, BodyPartSymmetry.Left);
             Assert.That(SEntMan.System<WoundSystem>().GetWounds(arm)
-                .Any(w => w.Comp.Prototype == "WolfmedArterialBleedWound"), Is.True, "Slash 25 did not cut the artery.");
+                .Any(w => w.Comp.Prototype == "WFWolfmedArterialBleedWound"), Is.True, "Slash 25 did not cut the artery.");
             arteryRate = s.Life.GetBleedRate(artery);
             cutRate = s.Life.GetBleedRate(cut);
         });

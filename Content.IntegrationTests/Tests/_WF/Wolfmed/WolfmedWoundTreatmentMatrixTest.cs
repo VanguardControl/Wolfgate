@@ -28,7 +28,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// <see cref="TreatmentCapability"/> set overlaps that of some body-part profile listing the wound.
 /// </para>
 /// <para>
-/// Both halves matter. <c>damageTypes</c> alone decides nothing: <c>WolfmedTendonCutWound</c> carries
+/// Both halves matter. <c>damageTypes</c> alone decides nothing: <c>WFWolfmedTendonCutWound</c> carries
 /// Slash so that a suture's spec resolves a part at all, and <c>healingMultiplier: 0</c> is what makes
 /// the suture land nothing. A row of all-false items with a declared <see cref="Exit"/> is the normal
 /// shape of a wound that only a procedure clears.
@@ -119,19 +119,19 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
             "a strong shock", "one-time pain, then loss of limb use"),
         ["BoneFractureWound"] = new(Nothing, Exit.Surgery,
             "repeated or heavy blunt force", "slower movement and slower hand work",
-            "SurgeryMendFracture"),
+            "WFSurgeryMendFracture"),
         ["SystemicBleedingWound"] = new(Nothing, Exit.Surgery,
-            "bleeding with no part to blame", "blood loss", "SurgeryStopBleeding"),
+            "bleeding with no part to blame", "blood loss", "WFSurgeryStopBleeding"),
         ["InternalBleedingWound"] = new(Nothing, Exit.Surgery,
             "a destroyed organ, or a crushing blow", "invisible blood loss; no dressing reaches it",
-            "SurgeryStopInternalBleeding"),
+            "WFSurgeryStopInternalBleeding"),
         ["SurgicalIncisionWound"] = new(Nothing, Exit.Surgery,
-            "an opened incision", "bleeding while open, and an infection risk", "SurgeryStopBleeding"),
+            "an opened incision", "bleeding while open, and an infection risk", "WFSurgeryStopBleeding"),
         ["DismembermentWound"] = new(Nothing, Exit.Surgery,
-            "a lost limb", "fast bleeding from the stump", "SurgeryStopBleeding"),
+            "a lost limb", "fast bleeding from the stump", "WFSurgeryStopBleeding"),
         ["AmputationConsequenceWound"] = new(Nothing, Exit.Surgery,
             "an untreated stump", "hides the surgeries that would attach a new part",
-            "SurgeryHealAmputationConsequence"),
+            "WFSurgeryHealAmputationConsequence"),
         ["MedicalScarWound"] = new(Nothing, Exit.Permanent,
             "treatment that finished", "none; it is a record"),
 
@@ -142,7 +142,7 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
             "any hit on a cybernetic limb", "the total limb damage the analyzer reports"),
         ["CyberneticFrameFractureWound"] = new(Nothing, Exit.Surgery,
             "heavy blunt force on a frame", "slower movement and slower hand work",
-            "SurgeryMendFracture"),
+            "WFSurgeryMendFracture"),
 
         // Onyx's non-human tissue. Same treatments as flesh, different wound records.
         ["SlimeBluntWound"] = new(Brute, Exit.Items, "a blunt hit on slime", "pain and bleeding"),
@@ -155,71 +155,71 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
         ["PlantBurnWound"] = new(Burns, Exit.Items, "heat, cold or acid on plant tissue", "mounting pain"),
 
         // W1, ballistic.
-        ["WolfmedGrazeWound"] = new(Cuts, Exit.Items,
+        ["WFWolfmedGrazeWound"] = new(Cuts, Exit.Items,
             "a round that only caught the limb", "a brief bleed that stops on its own"),
-        ["WolfmedGunshotWound"] = new(Cuts, Exit.Items,
+        ["WFWolfmedGunshotWound"] = new(Cuts, Exit.Items,
             "a round that went through", "good bleeding, real pain and a high infection risk"),
-        ["WolfmedLodgedRoundWound"] = new(Nothing, Exit.Verb,
+        ["WFWolfmedLodgedRoundWound"] = new(Nothing, Exit.Verb,
             "a heavy round that stayed in", "never clots, never closes and refuses every treatment"),
-        ["WolfmedShrapnelWound"] = new(Nothing, Exit.Verb,
+        ["WFWolfmedShrapnelWound"] = new(Nothing, Exit.Verb,
             "a blast, or buckshot", "several fragments, each of which blocks treatment"),
 
         // W2, slash and bite.
-        ["WolfmedArterialBleedWound"] = new(Cuts, Exit.Surgery,
+        ["WFWolfmedArterialBleedWound"] = new(Cuts, Exit.Surgery,
             "a very deep cut or puncture", "bleeds several times faster than anything else, never clots",
-            "SurgeryRepairArtery"),
-        ["WolfmedTendonCutWound"] = new(Nothing, Exit.Surgery,
-            "a deep cut to a limb", "slow hand work, or a limp", "SurgeryRepairTendon"),
-        ["WolfmedAvulsionWound"] = new(Cuts, Exit.Items,
+            "WFSurgeryRepairArtery"),
+        ["WFWolfmedTendonCutWound"] = new(Nothing, Exit.Surgery,
+            "a deep cut to a limb", "slow hand work, or a limp", "WFSurgeryRepairTendon"),
+        ["WFWolfmedAvulsionWound"] = new(Cuts, Exit.Items,
             "a bite that tore tissue away", "bleeding, near-certain scarring and a high infection risk"),
 
         // W3, blunt trauma.
-        ["WolfmedCrushInjuryWound"] = new(Brute, Exit.Items,
+        ["WFWolfmedCrushInjuryWound"] = new(Brute, Exit.Items,
             "a heavy blunt hit", "slows the limb, seeps at its worst, may start internal bleeding"),
-        ["WolfmedConcussionWound"] = new(Nothing, Exit.Time,
+        ["WFWolfmedConcussionWound"] = new(Nothing, Exit.Time,
             "a hard knock to the head", "knockdown, blurred sight and slurred speech"),
-        ["WolfmedDislocationWound"] = new(Nothing, Exit.Verb,
+        ["WFWolfmedDislocationWound"] = new(Nothing, Exit.Verb,
             "a heavy swing, a throw or a bad landing", "costs the limb its use, exactly as a fracture does"),
-        ["WolfmedOrganContusionWound"] = new(Brute, Exit.Items,
+        ["WFWolfmedOrganContusionWound"] = new(Brute, Exit.Items,
             "a blow to the chest", "takes condition off an organ without destroying it"),
 
         // W4, burns.
-        ["WolfmedCharringWound"] = new(Nothing, Exit.Surgery,
+        ["WFWolfmedCharringWound"] = new(Nothing, Exit.Surgery,
             "a burn that reached its critical stage", "dead tissue: no limb use, and it risks rotting",
-            "SurgeryGraftSkin"),
-        ["WolfmedFrostbiteWound"] = new(Burns, Exit.Items,
+            "WFSurgeryGraftSkin"),
+        ["WFWolfmedFrostbiteWound"] = new(Burns, Exit.Items,
             "cold", "numbs the part, so the patient under-reports it; risks rotting when deep"),
-        ["WolfmedChemicalBurnWound"] = new(Burns, Exit.Verb,
+        ["WFWolfmedChemicalBurnWound"] = new(Burns, Exit.Verb,
             "acid", "keeps eating the part until the patient is washed"),
-        ["WolfmedInternalBurnWound"] = new(Burns, Exit.Items,
+        ["WFWolfmedInternalBurnWound"] = new(Burns, Exit.Items,
             "a strong shock", "heart damage, and locked muscles for a moment"),
 
         // W5, time.
-        ["WolfmedNecrosisWound"] = new(Nothing, Exit.Permanent,
+        ["WFWolfmedNecrosisWound"] = new(Nothing, Exit.Permanent,
             "a tourniquet left on, a frozen or charred limb, a late reattachment",
             "dead tissue: permanent, and it keeps the patient septic"),
 
         // W6, mechanical.
-        ["WolfmedDentWound"] = new(Panel, Exit.Items,
+        ["WFWolfmedDentWound"] = new(Panel, Exit.Items,
             "blunt force on a chassis", "cosmetic until deep, then it slows the limb"),
-        ["WolfmedBreachWound"] = new(Welding, Exit.Items,
+        ["WFWolfmedBreachWound"] = new(Welding, Exit.Items,
             "a cut or a puncture in a chassis", "the mechanical bleed; it never clots"),
-        ["WolfmedShortCircuitWound"] = new(Coil, Exit.Items,
+        ["WFWolfmedShortCircuitWound"] = new(Coil, Exit.Items,
             "a shock to a chassis", "the frame locks up and throws sparks each time it worsens"),
-        ["WolfmedServoDamageWound"] = new(Nothing, Exit.Surgery,
-            "a deep cut to a chassis limb", "slow hand work, or a limp", "SurgeryReplaceServo"),
-        ["WolfmedOverheatingWound"] = new(Nothing, Exit.Time,
+        ["WFWolfmedServoDamageWound"] = new(Nothing, Exit.Surgery,
+            "a deep cut to a chassis limb", "slow hand work, or a limp", "WFSurgeryReplaceServo"),
+        ["WFWolfmedOverheatingWound"] = new(Nothing, Exit.Time,
             "heat on a chassis", "the part runs too hot to work properly"),
 
         // EVISC, a torso opened by damage its cap could not absorb.
-        ["WolfmedEviscerationWound"] = new(Nothing, Exit.Surgery,
+        ["WFWolfmedEviscerationWound"] = new(Nothing, Exit.Surgery,
             "a heavy cut or a blast on a torso already at its cap",
             "the organs end up on the floor, and only the table closes it",
-            "SurgeryCloseEvisceration"),
-        ["WolfmedChassisBreachWound"] = new(Nothing, Exit.Surgery,
+            "WFSurgeryCloseEvisceration"),
+        ["WFWolfmedChassisBreachWound"] = new(Nothing, Exit.Surgery,
             "the same hit on a chassis",
             "coolant that never clots, and the components on the deck",
-            "SurgeryWeldChassisBreach"),
+            "WFSurgeryWeldChassisBreach"),
     };
 
     /// <summary>
@@ -386,8 +386,8 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
                 {
                     var item = entities.SpawnEntity(id, map.GridCoords);
                     var welding = entities.GetComponent<WeldingHealingComponent>(item);
-                    Assert.That(welding.DamageContainers, Does.Contain("SiliconWolfmed"), $"{id}");
-                    Assert.That(welding.DamageContainers, Does.Contain("InorganicWolfmed"), $"{id}");
+                    Assert.That(welding.DamageContainers, Does.Contain("WFSiliconWolfmed"), $"{id}");
+                    Assert.That(welding.DamageContainers, Does.Contain("WFInorganicWolfmed"), $"{id}");
                     Assert.That(welding.DamageContainers.Any(container =>
                             container.Contains("Biological", StringComparison.Ordinal)), Is.False,
                         $"{id} must never repair flesh.");

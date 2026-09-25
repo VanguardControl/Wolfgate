@@ -6,7 +6,7 @@
 # what incidental heat cannot at four times the burn and a good deal of pain.
 
 - type: wolfmedCauteryProfile
-  id: WolfmedCauteryDefault
+  id: WFWolfmedCauteryDefault
   minIncidentalHeat: 8
   burnWound: BurnWound
   incidentalBurn: 5

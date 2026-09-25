@@ -56,7 +56,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedHydraulicTestAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: hydraulic test
   components:
   - type: Autodoc
@@ -68,7 +68,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
 
 - type: entity
   id: WolfmedHydraulicTestOilPack
-  parent: WolfmedHydraulicFluidPack
+  parent: WFWolfmedHydraulicFluidPack
   suffix: oil
   components:
   - type: SolutionContainerManager
@@ -80,7 +80,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
           Quantity: 200
 ";
 
-    private const string Fluid = "WolfmedHydraulicFluid";
+    private const string Fluid = "WFWolfmedHydraulicFluid";
 
     /// <summary>A 3x3 steel room with a breathable mix: a grid with real atmospherics, so a hotspot can form.</summary>
     private static readonly ResPath Room = new("Maps/Test/Breathing/3by3-20oxy-80nit.yml");
@@ -121,10 +121,10 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
                 foreach (var inventory in new[] { "WFWolfgateVendInventory", "NanoMedInventory", "CiviMedVendInventory" })
                 {
                     Assert.That(protos.Index<VendingMachineInventoryPrototype>(inventory).StartingInventory
-                        .ContainsKey("WolfmedHydraulicFluidPack"), Is.True, $"{inventory} does not stock the pack.");
+                        .ContainsKey("WFWolfmedHydraulicFluidPack"), Is.True, $"{inventory} does not stock the pack.");
                 }
 
-                var list = protos.Index<AutodocReagentsPrototype>("WolfmedAutodocReagents").Reagents;
+                var list = protos.Index<AutodocReagentsPrototype>("WFWolfmedAutodocReagents").Reagents;
                 Assert.That(list.Any(e => e.Reagent == Fluid && e.Role == AutodocReagentRole.Fluid && e.Machine), Is.True,
                     "the pod does not list hydraulic fluid as a machine fluid.");
                 Assert.That(list.Any(e => e.Reagent == "Oil"), Is.False, "the pod lists oil.");
@@ -172,7 +172,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
         {
             var s = new WolfmedScenario(SEntMan);
             torso = s.Part(ipc, BodyPartType.Torso);
-            Assert.That(SEntMan.System<WolfmedSurgeryConditionSystem>().FindWound(torso, "WolfmedBreachWound"), Is.Not.Null,
+            Assert.That(SEntMan.System<WolfmedSurgeryConditionSystem>().FindWound(torso, "WFWolfmedBreachWound"), Is.Not.Null,
                 "the fixture has no breach to weld.");
 
             var puddle = PuddleOn(grid, tile);
@@ -215,13 +215,13 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var conditions = SEntMan.System<WolfmedSurgeryConditionSystem>();
-            _notes.Add($"after the weld: breach {conditions.FindWound(torso, "WolfmedBreachWound")?.Comp.Severity}, " +
+            _notes.Add($"after the weld: breach {conditions.FindWound(torso, "WFWolfmedBreachWound")?.Comp.Severity}, " +
                        $"frame {conditions.FindWound(torso, "IpcMechanicalDamageWound")?.Comp.Severity}, hotspot {hotspot}, burning {burning}");
             Assert.Multiple(() =>
             {
                 Assert.That(hotspot, Is.False, "the welder lit the chassis's puddle.");
                 Assert.That(burning, Is.False, "somebody caught fire.");
-                Assert.That(conditions.FindWound(torso, "WolfmedBreachWound"), Is.Null, "the repair did not close the breach.");
+                Assert.That(conditions.FindWound(torso, "WFWolfmedBreachWound"), Is.Null, "the repair did not close the breach.");
                 Assert.That(conditions.FindWound(torso, "IpcMechanicalDamageWound"), Is.Null, "the repair did not finish.");
             });
 
@@ -256,7 +256,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
             var s = new WolfmedScenario(SEntMan);
             var packs = SEntMan.System<WolfmedFluidPackSystem>();
             refiller = SEntMan.SpawnEntity("MobHuman", center);
-            pack = SEntMan.SpawnEntity("WolfmedHydraulicFluidPack", center);
+            pack = SEntMan.SpawnEntity("WFWolfmedHydraulicFluidPack", center);
             Assert.That(SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(refiller, pack), Is.True);
             before = s.Blood(ipc);
             Assert.That(before, Is.LessThan(0.9f), "the chassis is not short of fluid.");
@@ -310,7 +310,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
             s.SetBlood(ipc, 0.5f);
             level = s.Blood(ipc);
             SEntMan.System<WoundSystem>().CreateOrMergeWound(s.Part(ipc, BodyPartType.Arm, BodyPartSymmetry.Left),
-                "WolfmedDentWound", FixedPoint2.New(20));
+                "WFWolfmedDentWound", FixedPoint2.New(20));
 
             var uid = SEntMan.SpawnEntity("WolfmedHydraulicTestAutodoc", map.GridCoords);
             pod = (uid, SEntMan.GetComponent<AutodocComponent>(uid));
@@ -323,7 +323,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
             var humanUid = SEntMan.SpawnEntity("WolfmedHydraulicTestAutodoc", map.GridCoords);
             humanPod = (humanUid, SEntMan.GetComponent<AutodocComponent>(humanUid));
             Assert.That(slots.TryInsert(humanUid, AutodocComponent.ReservoirSlotIds[0],
-                SEntMan.SpawnEntity("WolfmedHydraulicFluidPack", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFWolfmedHydraulicFluidPack", map.GridCoords), null), Is.True);
             Assert.That(autodoc.TryInsert(humanPod, human), Is.True);
         });
         await Pair.RunTicksSync(10);
@@ -343,7 +343,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
                 Assert.That(s.Blood(human), Is.EqualTo(0.5f).Within(0.01f), "a human was topped up with hydraulic fluid.");
             });
 
-            Assert.That(autodoc.TryQueue(pod, "SurgeryWeldChassis", TargetBodyPart.LeftArm), Is.True);
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryWeldChassis", TargetBodyPart.LeftArm), Is.True);
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
         await Pair.RunTicksSync(2);
@@ -358,7 +358,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
             Assert.That(s.Blood(ipc), Is.EqualTo(level).Within(0.001f), "the pod's run pumped the oil.");
 
             // A hydraulic pack beside it is what the pod uses, and the oil stays where it is.
-            var fresh = SEntMan.SpawnEntity("WolfmedHydraulicFluidPack", map.GridCoords);
+            var fresh = SEntMan.SpawnEntity("WFWolfmedHydraulicFluidPack", map.GridCoords);
             Assert.That(SEntMan.System<ItemSlotsSystem>().TryInsert(pod.Owner, AutodocComponent.ReservoirSlotIds[1], fresh, null), Is.True);
             Assert.That(autodoc.TryTransfuse(pod, ipc), Is.True, "the pod would not use a hydraulic pack on a chassis.");
             _notes.Add($"pod: chassis {level:P0} -> {s.Blood(ipc):P0}, hydraulic pack 200 -> {PackVolume(fresh)}, oil {PackReagent(oilPack, "Oil")}");

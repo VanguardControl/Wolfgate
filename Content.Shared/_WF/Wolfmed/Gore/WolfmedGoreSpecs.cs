@@ -20,7 +20,7 @@ public sealed partial class WolfmedHitSplatterSpec
 
     /// <summary>The travelling spray.</summary>
     [DataField]
-    public EntProtoId Effect = "WolfmedHitSplatter";
+    public EntProtoId Effect = "WFWolfmedHitSplatter";
 
     /// <summary>
     /// RSI states the spray picks from. Each is one of the sprite sheet's spray variants, and each must be
@@ -58,7 +58,7 @@ public sealed partial class WolfmedHitSplatterSpec
 
     /// <summary>Blood on a wall. One of these per state in <see cref="WallStates"/>.</summary>
     [DataField]
-    public EntProtoId WallSplat = "WolfmedBloodSplatWall";
+    public EntProtoId WallSplat = "WFWolfmedBloodSplatWall";
 
     /// <summary>RSI states a wall splatter picks from.</summary>
     [DataField]
@@ -168,7 +168,7 @@ public sealed partial class WolfmedMachineSparkSpec
     public TimeSpan Jitter = TimeSpan.FromSeconds(3);
 
     [DataField]
-    public EntProtoId Effect = "WolfmedSparkBurstSmall";
+    public EntProtoId Effect = "WFWolfmedSparkBurstSmall";
 
     [DataField]
     public SoundSpecifier? Sound;

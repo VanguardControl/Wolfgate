@@ -23,7 +23,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// table, at a quarter of the penalty, and is used up doing it.
 /// </summary>
 /// <remarks>
-/// Every fracture here is made with 60 Blunt, which clears WolfmedFractureProfile's Comminuted threshold
+/// Every fracture here is made with 60 Blunt, which clears WFWolfmedFractureProfile's Comminuted threshold
 /// (45) at creationChance 1, so no assertion depends on a roll. Effects are measured off
 /// <c>WalkSpeedModifier</c>: with a fracture present <see cref="FractureEffectSystem"/> answers from the
 /// fracture branch and shadows the crush injury and dislocation the same hit leaves behind, so the number
@@ -62,7 +62,7 @@ public sealed class WolfmedSplintTest : GameTest
             // ordinary damage slowdown that splinting does not touch.
             var untreated = Speed(entities, body);
 
-            var splint = Splint(entities, map, "WolfmedSplint");
+            var splint = Splint(entities, map, "WFWolfmedSplint");
             Assert.That(splints.CanApply(splint, leg), Is.EqualTo(WolfmedSplintRefusal.None));
             Assert.That(splints.TryApply(splint, body, leg, medic), Is.True);
 
@@ -81,7 +81,7 @@ public sealed class WolfmedSplintTest : GameTest
             });
 
             // A second splint has nothing to do: Reduced is not None, and mending stays surgical.
-            var second = Splint(entities, map, "WolfmedSplint");
+            var second = Splint(entities, map, "WFWolfmedSplint");
             Assert.That(splints.CanApply(second, leg), Is.EqualTo(WolfmedSplintRefusal.AlreadyTreated));
             Assert.That(splints.TryApply(second, body, leg, medic), Is.False);
         });
@@ -104,7 +104,7 @@ public sealed class WolfmedSplintTest : GameTest
         {
             var splints = entities.System<WolfmedSplintSystem>();
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
-            var splint = Splint(entities, map, "WolfmedSplint");
+            var splint = Splint(entities, map, "WFWolfmedSplint");
 
             // The torso is broken on purpose: ribs fracture too, and a splint takes them.
             Blunt(entities, body, TargetBodyPart.Torso, 60);
@@ -123,7 +123,7 @@ public sealed class WolfmedSplintTest : GameTest
                 Assert.That(splints.CanApply(splint, head), Is.EqualTo(WolfmedSplintRefusal.NoFracture));
 
                 // The floor is the profile's own: the same grade a bonesetter refuses below.
-                var profile = prototypes.Index<FractureProfilePrototype>("WolfmedFractureProfile");
+                var profile = prototypes.Index<FractureProfilePrototype>("WFWolfmedFractureProfile");
                 Assert.That(profile.ReductionMinimumGrade, Is.EqualTo(FractureGrade.Simple));
 
                 foreach (var key in new[]
@@ -164,7 +164,7 @@ public sealed class WolfmedSplintTest : GameTest
             Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
 
-            Assert.That(splints.TryApply(Splint(entities, map, "WolfmedSplintImprovised"), body, leg, body), Is.True,
+            Assert.That(splints.TryApply(Splint(entities, map, "WFWolfmedSplintImprovised"), body, leg, body), Is.True,
                 "the improvised splint does the same job.");
             Assert.That(fractures.GetFracture(leg)!.Value.Comp2.Treatment, Is.EqualTo(FractureTreatment.Reduced));
             var braced = Speed(entities, body);
@@ -180,7 +180,7 @@ public sealed class WolfmedSplintTest : GameTest
             });
 
             // And the limb takes a fresh splint, because the treatment is back to None.
-            Assert.That(splints.TryApply(Splint(entities, map, "WolfmedSplint"), body, leg, body), Is.True);
+            Assert.That(splints.TryApply(Splint(entities, map, "WFWolfmedSplint"), body, leg, body), Is.True);
             Assert.That(fractures.GetFracture(leg)!.Value.Comp2.Treatment, Is.EqualTo(FractureTreatment.Reduced));
         });
     }
@@ -205,7 +205,7 @@ public sealed class WolfmedSplintTest : GameTest
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             Blunt(entities, body, TargetBodyPart.LeftLeg, 60);
             var leg = Part(entities, body, BodyPartType.Leg, BodyPartSymmetry.Left);
-            var splint = Splint(entities, map, "WolfmedSplint");
+            var splint = Splint(entities, map, "WFWolfmedSplint");
 
             Assert.That(entities.System<WolfmedBodySystem>().TryDetachPart(leg), Is.True);
             Assert.That(splints.CanApply(splint, leg), Is.EqualTo(WolfmedSplintRefusal.None),

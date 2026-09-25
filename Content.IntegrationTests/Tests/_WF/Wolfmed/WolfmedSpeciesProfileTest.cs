@@ -76,7 +76,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
                 "PROTO Q puts `- type: WoundHost` on MobIPC; without it nothing below can route.");
             Assert.That(entities.GetComponent<WoundableComponent>(arm).Profile,
                 Is.EqualTo(new ProtoId<BodyPartProfilePrototype>("IpcBodyPartProfile")),
-                "R1: WolfmedPartIpc must be FIRST in PartIPCBase's parent list (PLAN5 P5-D1).");
+                "R1: WFWolfmedPartIpc must be FIRST in PartIPCBase's parent list (PLAN5 P5-D1).");
 
             Assert.That(Routing(entities).TryApplyPartDamage(body, arm, Spec("Slash", 20), null,
                 ignoreResistances: true));
@@ -102,8 +102,8 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
                 Assert.That(entities.System<WoundScarSystem>().CreateScar(wound.Owner), Is.Null,
                     "scarrable: false - an IPC never scars.");
 
-                // fractureProfile: null on WolfmedPartIpc - an IPC can never carry a fracture at all, so it
-                // never gets the BrokenBones alert or SurgeryMendFracture.
+                // fractureProfile: null on WFWolfmedPartIpc - an IPC can never carry a fracture at all, so it
+                // never gets the BrokenBones alert or WFSurgeryMendFracture.
                 Assert.That(entities.System<WolfmedBodyPartSystem>().Get(arm).FractureProfile, Is.Null);
             });
         });
@@ -113,7 +113,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
     /// PLAN5 §6.2 T-P5-21 (U13′(b) shipped, so this replaces T-P5-13). Onyx's <c>SiliconIpc</c> container
     /// takes the whole <c>Burn</c> group; Wolfgate's stock <c>Inorganic</c>/<c>Silicon</c> do not, which left
     /// <c>Cold</c> and <c>Caustic</c> dead — two of the seven <c>acceptedDamageTypes</c> and two of the six
-    /// <c>damageTypes</c> on both mechanical wounds. <c>InorganicWolfmed</c> (WP13-0, wired in WP13-1)
+    /// <c>damageTypes</c> on both mechanical wounds. <c>WFInorganicWolfmed</c> (WP13-0, wired in WP13-1)
     /// restores them on the part.
     /// </summary>
     [Test]
@@ -135,9 +135,9 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(entities.GetComponent<DamageableComponent>(arm).DamageContainerID,
-                    Is.EqualTo("InorganicWolfmed"), "PROTO O(b): PartIPCBase moved off the stock Inorganic.");
+                    Is.EqualTo("WFInorganicWolfmed"), "PROTO O(b): PartIPCBase moved off the stock Inorganic.");
                 Assert.That(entities.GetComponent<DamageableComponent>(cyberArm).DamageContainerID,
-                    Is.EqualTo("InorganicWolfmed"), "PROTO P(b): CyberneticPartBase moved off stock Silicon.");
+                    Is.EqualTo("WFInorganicWolfmed"), "PROTO P(b): CyberneticPartBase moved off stock Silicon.");
             });
 
             var routing = Routing(entities);
@@ -147,7 +147,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
             var dict = entities.GetComponent<DamageableComponent>(arm).Damage.DamageDict;
             Assert.Multiple(() =>
             {
-                // InorganicWolfmed = supportedGroups [Brute, Burn] + supportedTypes [Radiation], and Burn is
+                // WFInorganicWolfmed = supportedGroups [Brute, Burn] + supportedTypes [Radiation], and Burn is
                 // {Heat, Shock, Cold, Caustic} (Resources/Prototypes/Damage/groups.yml).
                 Assert.That(dict.GetValueOrDefault(new ProtoId<DamageTypePrototype>("Caustic")),
                     Is.EqualTo(FixedPoint2.New(15)));
@@ -162,7 +162,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
             });
 
             // WOLFGATE (WP13-6, correcting WP13-2's finding WP13-2-1): WP13-2 recorded that the MOB container
-            // SiliconWolfmed supports neither Cold nor Caustic (it is stock Silicon plus the Bloodloss type),
+            // WFSiliconWolfmed supports neither Cold nor Caustic (it is stock Silicon plus the Bloodloss type),
             // and therefore that acid and cryo would wound, hurt and leak an IPC without ever moving the
             // number MobThresholds and SlowOnDamage read. MEASURED, THAT IS NOT WHAT HAPPENS.
             // WoundDamageProjectionSystem.RefreshBodyDamage projects the part total with
@@ -272,7 +272,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
     }
 
     /// <summary>
-    /// PLAN5 §6.2 T-P5-8. Resolves <c>species.md</c> T3 empirically: phase 4's <c>SurgeryMendFracture</c>
+    /// PLAN5 §6.2 T-P5-8. Resolves <c>species.md</c> T3 empirically: phase 4's <c>WFSurgeryMendFracture</c>
     /// chain is profile-agnostic, so the bone-setter/bone-gel ladder mends a steel frame with no capability
     /// gate anywhere — thematically odd, mechanically correct.
     /// </summary>
@@ -359,7 +359,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
                     "a steel prosthetic must no longer burn to Ash with a flesh sound (PLAN5 R12).");
             });
 
-            // (i) 140 pure Slash: under the 210 rung, and over WolfmedBaseLeftArm's Slash amputation threshold
+            // (i) 140 pure Slash: under the 210 rung, and over WFWolfmedBaseLeftArm's Slash amputation threshold
             // of 130 (_WF/Wolfmed/Body/parts.yml - P5-D7 keeps cybernetic limbs on the organic set), so the
             // limb survives and AmputationSystem arms it. Trap 7: arming takes only the crossing hit; severing
             // needs a second, finishing one.
@@ -409,7 +409,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
             var wounds = entities.System<WoundSystem>();
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
 
-            // R1: WolfmedPartSlime must be FIRST in PartSlime's parent list, or Base<Slot>'s organic block wins
+            // R1: WFWolfmedPartSlime must be FIRST in PartSlime's parent list, or Base<Slot>'s organic block wins
             // and slimes get bones.
             Assert.That(entities.GetComponent<WoundableComponent>(arm).Profile,
                 Is.EqualTo(new ProtoId<BodyPartProfilePrototype>("SlimeBodyPartProfile")));
@@ -441,7 +441,7 @@ public sealed class WolfmedSpeciesProfileTest : GameTest
                 // scarrable: false, and SlimeBodyPartProfile does not even list MedicalScarWound among its
                 // supportedWounds - a slime never scars, including from surgery.
                 Assert.That(entities.System<WoundScarSystem>().CreateScar(wound.Owner), Is.Null);
-                // fractureProfile: null on WolfmedPartSlime.
+                // fractureProfile: null on WFWolfmedPartSlime.
                 Assert.That(entities.System<WolfmedBodyPartSystem>().Get(arm).FractureProfile, Is.Null);
             });
 

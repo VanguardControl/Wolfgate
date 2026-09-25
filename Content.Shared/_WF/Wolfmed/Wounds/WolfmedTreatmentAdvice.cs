@@ -96,14 +96,18 @@ public static class WolfmedTreatmentAdvice
     public static string InfectionCondition(WolfmedInfectionStage stage) =>
         "infection-" + stage.ToString().ToLowerInvariant();
 
-    /// <summary>A PascalCase prototype id as the kebab-case tail of a locale key.</summary>
+    /// <summary>
+    /// A PascalCase prototype id as the kebab-case tail of a locale key. The module's <c>WF</c> id prefix is left
+    /// out: it is a namespace rather than a word, so <c>WFWolfmedGrazeWound</c> keys <c>wolfmed-graze-wound</c>.
+    /// </summary>
     public static string Slug(string id)
     {
+        var start = id.Length > 2 && id[0] == 'W' && id[1] == 'F' && char.IsUpper(id[2]) ? 2 : 0;
         // StringBuilder, not string += char: that compiles to a ReadOnlySpan<char> concat the client sandbox rejects.
         var result = new System.Text.StringBuilder(id.Length + 8);
-        for (var i = 0; i < id.Length; i++)
+        for (var i = start; i < id.Length; i++)
         {
-            if (i > 0 && char.IsUpper(id[i]))
+            if (i > start && char.IsUpper(id[i]))
                 result.Append('-');
 
             result.Append(char.ToLowerInvariant(id[i]));

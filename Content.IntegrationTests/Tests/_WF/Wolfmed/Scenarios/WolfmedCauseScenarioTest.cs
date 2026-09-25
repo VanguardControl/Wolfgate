@@ -158,7 +158,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                 Assert.That(comp.Blockers, Is.EqualTo(WolfmedCauseFlags.None));
                 Assert.That(SEntMan.System<MobStateSystem>().IsCritical(a), Is.True, "a faint is Critical.");
                 Assert.That(s.Breathing.BreathingSuppressed(a), Is.False, "a fainted patient stopped breathing.");
-                Assert.That(alerts.GetShownHealthAlert(a)?.Id, Is.EqualTo("WolfmedFaintPain"));
+                Assert.That(alerts.GetShownHealthAlert(a)?.Id, Is.EqualTo("WFWolfmedFaintPain"));
                 // Playtest 2: the seconds, counted from the faint's start.
                 Assert.That(alerts.GetConditionText(a),
                     Does.Contain(Loc.GetString("wolfmed-cause-pain-faint-help-timed", ("seconds", (int) FaintSeconds))),
@@ -231,7 +231,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
             SetPain(b, BodyPartType.Torso, 100);
             SetPain(b, BodyPartType.Head, 100);
             Assert.That(Consc(b).Cause, Is.EqualTo(WolfmedCause.PainFaint));
-            SEntMan.System<BloodstreamSystem>().TryAddToChemicals(b, new Solution("WolfmedOpiate", FixedPoint2.New(5)));
+            SEntMan.System<BloodstreamSystem>().TryAddToChemicals(b, new Solution("WFWolfmedOpiate", FixedPoint2.New(5)));
         });
 
         var stood = await WaitFor(() => Consc(b).State == WolfmedConsciousness.Up, 8f);
@@ -319,7 +319,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
-            Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WolfmedDownedFrame"));
+            Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WFWolfmedDownedFrame"));
             Assert.That(SEntMan.GetComponent<WolfmedSyntheticHudComponent>(ipc).CauseLine,
                 Is.EqualTo("wolfmed-synthetic-cause-pain"), "the HUD did not say MOBILITY LOST: FRAME DAMAGE.");
         });
@@ -787,7 +787,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
                     Is.EqualTo("wolfmed-synthetic-cause-shutdown"));
                 Assert.That(Loc.GetString("wolfmed-synthetic-cause-shutdown", ("source", comp.CauseSource.ToString())),
                     Does.Contain("CELL EMPTY"));
-                Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WolfmedOutShutdown"));
+                Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WFWolfmedOutShutdown"));
                 Assert.That(alerts.GetTitle(ipc), Is.EqualTo("Shutdown: no power"));
                 Assert.That(s.AnalyzerLines(ipc)[0], Is.EqualTo("SHUTDOWN: no power"), "M1a D: the analyzer line.");
                 Assert.That(SEntMan.HasComponent<WolfmedSyntheticHudComponent>(ipc), Is.True,
@@ -847,7 +847,7 @@ public sealed class WolfmedCauseScenarioTest : GameTest
             s.SetBlood(ipc, 0.45f);
             Assert.That(Consc(ipc).State, Is.EqualTo(WolfmedConsciousness.Downed));
             Assert.That(Consc(ipc).Cause, Is.EqualTo(WolfmedCause.Oil));
-            Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WolfmedDownedOil"));
+            Assert.That(alerts.GetShownHealthAlert(ipc)?.Id, Is.EqualTo("WFWolfmedDownedOil"));
             s.SetBlood(ipc, 1f);
         });
 

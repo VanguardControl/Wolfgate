@@ -9,7 +9,7 @@
 # reaches it: it comes off in surgery and is replaced with a graft. Created by WolfmedCharringSystem when
 # a burn crosses into its critical stage, so the threshold is that stage's severity, not a number here.
 - type: wound
-  id: WolfmedCharringWound
+  id: WFWolfmedCharringWound
   name: wolfmed-wound-name-charring
   analyzerCategory: Burn
   ruleOnly: true
@@ -56,7 +56,7 @@
 # not. Each stage takes more feeling out of the part (WolfmedFrostbiteSystem pins the suppression there),
 # and the deepest one flags the part for W5's necrosis timer.
 - type: wound
-  id: WolfmedFrostbiteWound
+  id: WFWolfmedFrostbiteWound
   name: wolfmed-wound-name-frostbite
   analyzerCategory: Burn
   ruleOnly: true
@@ -118,7 +118,7 @@
 # it different from every other wound in the system: it keeps taking damage on a tick of its own until the
 # patient is rinsed off, and healing the burn does nothing about that.
 - type: wound
-  id: WolfmedChemicalBurnWound
+  id: WFWolfmedChemicalBurnWound
   name: wolfmed-wound-name-chemical-burn
   analyzerCategory: Burn
   ruleOnly: true
@@ -172,7 +172,7 @@
 # locks the patient's muscles each time this lands or worsens. M3 (OD15): the heart takes a band on each hit's
 # Shock (wolfmed.electric_heart_factor over wolfmed.electric_heart_from) instead of a roll per stage.
 - type: wound
-  id: WolfmedInternalBurnWound
+  id: WFWolfmedInternalBurnWound
   name: wolfmed-wound-name-internal-burn
   analyzerCategory: Internal
   ruleOnly: true

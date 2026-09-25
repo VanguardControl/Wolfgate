@@ -4,7 +4,7 @@
 
 - type: entity
   parent: Pill
-  id: WolfmedAnalgesicPill
+  id: WFWolfmedAnalgesicPill
   name: analgesic pill
   suffix: Wolfmed
   description: A chalky painkiller. Takes the edge off a bad limb; heals nothing at all.
@@ -17,12 +17,12 @@
       food:
         maxVol: 20
         reagents:
-        - ReagentId: WolfmedAnalgesic
+        - ReagentId: WFWolfmedAnalgesic
           Quantity: 15
 
 - type: entity
   parent: BaseChemistryBottleFilled
-  id: WolfmedOpiateChemistryBottle
+  id: WFWolfmedOpiateChemistryBottle
   suffix: opiate
   components:
   - type: Label
@@ -32,12 +32,12 @@
       drink: # This solution name and target volume is hard-coded in ChemMasterComponent
         maxVol: 30
         reagents:
-        - ReagentId: WolfmedOpiate
+        - ReagentId: WFWolfmedOpiate
           Quantity: 30
 
 - type: entity
   parent: ChemicalMedipen
-  id: WolfmedStimPen
+  id: WFWolfmedStimPen
   name: stim pen
   description: Thirty seconds on your feet, and then the bill. For walking out of somewhere, not for staying.
   components:
@@ -56,7 +56,7 @@
       pen:
         maxVol: 15
         reagents:
-        - ReagentId: WolfmedStim
+        - ReagentId: WFWolfmedStim
           Quantity: 10
 
 # Playtest 1: the two lower rungs as pens too. A pill waits in the stomach; a pen is in the blood at once and a
@@ -64,7 +64,7 @@
 # stay under the sedation line that depresses breathing on its own.
 - type: entity
   parent: ChemicalMedipen
-  id: WolfmedAnalgesicPen
+  id: WFWolfmedAnalgesicPen
   name: analgesic pen
   description: A quick shot of plain painkiller. Gets you off the floor if pain is all that keeps you there; heals nothing, and does nothing for blood loss.
   components:
@@ -83,14 +83,14 @@
       pen:
         maxVol: 15
         reagents:
-        - ReagentId: WolfmedAnalgesic
+        - ReagentId: WFWolfmedAnalgesic
           Quantity: 10
   - type: StaticPrice
     price: 10
 
 - type: entity
   parent: ChemicalMedipen
-  id: WolfmedOpiatePen
+  id: WFWolfmedOpiatePen
   name: opiate pen
   description: A measured shot of opiate. Lifts even a pain faint for about half a minute and slows you down while it works. Do not stack them.
   components:
@@ -109,7 +109,7 @@
       pen:
         maxVol: 15
         reagents:
-        - ReagentId: WolfmedOpiate
+        - ReagentId: WFWolfmedOpiate
           Quantity: 3
   - type: StaticPrice
     price: 20
@@ -118,7 +118,7 @@
 # spot. 5 u takes up to 1.5 off the sedation over about ten seconds.
 - type: entity
   parent: ChemicalMedipen
-  id: WolfmedNaloxonePen
+  id: WFWolfmedNaloxonePen
   name: naloxone pen
   description: Reverses a painkiller overdose. Takes the sedation off and gets the patient breathing; the pain comes back with it.
   components:
@@ -137,7 +137,7 @@
       pen:
         maxVol: 15
         reagents:
-        - ReagentId: WolfmedNaloxone
+        - ReagentId: WFWolfmedNaloxone
           Quantity: 5
   - type: StaticPrice
     price: 15

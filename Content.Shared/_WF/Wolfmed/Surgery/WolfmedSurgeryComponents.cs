@@ -134,7 +134,7 @@ public sealed partial class WolfmedSurgeryIncisionTreatmentEffectComponent : Com
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedSurgeryCloseEviscerationEffectComponent : Component
 {
-    [DataField] public ProtoId<WoundPrototype> WoundPrototype = "WolfmedEviscerationWound";
+    [DataField] public ProtoId<WoundPrototype> WoundPrototype = "WFWolfmedEviscerationWound";
 }
 
 /// <summary>Which half of the incision chain an incision treatment step runs.</summary>
@@ -170,7 +170,7 @@ public sealed partial class WolfmedSurgeryExtractEmbeddedEffectComponent : Compo
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedSurgeryRelocateJointEffectComponent : Component
 {
-    [DataField] public ProtoId<WoundPrototype> Wound = "WolfmedDislocationWound";
+    [DataField] public ProtoId<WoundPrototype> Wound = "WFWolfmedDislocationWound";
 }
 
 /// <summary>

@@ -125,7 +125,7 @@ public sealed class WolfmedSpeciesTest : GameTest
                 Assert.That(Consc(dionaBled).Heartless, Is.True);
                 Assert.That(Consc(dionaBled).Cause, Is.EqualTo(WolfmedCause.Arrest));
                 Assert.That(alerts.GetTitle(dionaBled), Is.EqualTo("Circulatory collapse: blood loss"));
-                Assert.That(alerts.GetShownHealthAlert(dionaBled)?.Id, Is.EqualTo("WolfmedOutCollapse"));
+                Assert.That(alerts.GetShownHealthAlert(dionaBled)?.Id, Is.EqualTo("WFWolfmedOutCollapse"));
                 Assert.That(alerts.GetConditionText(dionaBled), Does.Not.Contain("heart"),
                     "a heartless patient was told about its heart.");
                 Assert.That(s.AnalyzerLines(dionaBled)[0], Is.EqualTo("CIRCULATORY COLLAPSE: blood"));
@@ -270,9 +270,9 @@ public sealed class WolfmedSpeciesTest : GameTest
             var head = Part(broken, BodyPartType.Head);
             Assert.Multiple(() =>
             {
-                Assert.That(surgery.WolfmedSurgeryValid(broken, head, "SurgeryRepairSynthCore"), Is.True,
+                Assert.That(surgery.WolfmedSurgeryValid(broken, head, "WFSurgeryRepairSynthCore"), Is.True,
                     "no core repair on a synth's head.");
-                Assert.That(surgery.WolfmedSurgeryValid(broken, head, "SurgeryRepairBrain"), Is.False,
+                Assert.That(surgery.WolfmedSurgeryValid(broken, head, "WFSurgeryRepairBrain"), Is.False,
                     "organic brain repair is offered on a synth's core.");
                 Assert.That(SEntMan.System<WolfmedRevivalSystem>().GetRestartRefusal(broken),
                     Is.EqualTo(WolfmedRevivalSystem.RestartCoreDestroyed));
@@ -284,7 +284,7 @@ public sealed class WolfmedSpeciesTest : GameTest
                 SEntMan.SpawnEntity("Multitool", map.GridCoords),
                 SEntMan.SpawnEntity("Welder", map.GridCoords),
             };
-            foreach (var step in new[] { "SurgeryStepUnseatCore", "SurgeryStepRepairSynthCore", "SurgeryStepReseatCore" })
+            foreach (var step in new[] { "WFSurgeryStepUnseatCore", "WFSurgeryStepRepairSynthCore", "WFSurgeryStepReseatCore" })
             {
                 var singleton = surgery.GetSingleton(step);
                 Assert.That(singleton, Is.Not.Null, $"{step} has no singleton.");

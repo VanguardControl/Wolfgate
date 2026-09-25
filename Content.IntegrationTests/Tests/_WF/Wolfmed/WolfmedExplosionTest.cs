@@ -225,18 +225,18 @@ public sealed class WolfmedExplosionTest : GameTest
         // WP12-5's shipped set: six wound surgeries plus seven organ heals.
         string[] surgeryIds =
         [
-            "SurgeryStopBleeding", "SurgeryStopInternalBleeding", "SurgeryMendFracture",
-            "SurgeryHealAmputationConsequence", "SurgeryTendWoundsBruteDeep", "SurgeryTendWoundsBurnDeep",
-            "SurgeryHealHeart", "SurgeryHealLungs", "SurgeryHealLiver", "SurgeryHealStomach",
-            "SurgeryHealKidneys", "SurgeryHealBrain", "SurgeryHealEyes",
+            "WFSurgeryStopBleeding", "WFSurgeryStopInternalBleeding", "WFSurgeryMendFracture",
+            "WFSurgeryHealAmputationConsequence", "WFSurgeryTendWoundsBruteDeep", "WFSurgeryTendWoundsBurnDeep",
+            "WFSurgeryHealHeart", "WFSurgeryHealLungs", "WFSurgeryHealLiver", "WFSurgeryHealStomach",
+            "WFSurgeryHealKidneys", "WFSurgeryHealBrain", "WFSurgeryHealEyes",
         ];
 
         string[] stepIds =
         [
-            "SurgeryStepSutureBleeding", "SurgeryStepStopInternalBleeding", "SurgeryStepSetBone",
-            "SurgeryStepMendFracture", "SurgeryStepHealAmputationConsequence", "SurgeryStepHealBrain",
-            "SurgeryStepHealEyes", "SurgeryStepHealHeart", "SurgeryStepHealLungs", "SurgeryStepHealLiver",
-            "SurgeryStepHealStomach", "SurgeryStepHealKidneys",
+            "WFSurgeryStepSutureBleeding", "WFSurgeryStepStopInternalBleeding", "WFSurgeryStepSetBone",
+            "WFSurgeryStepMendFracture", "WFSurgeryStepHealAmputationConsequence", "WFSurgeryStepHealBrain",
+            "WFSurgeryStepHealEyes", "WFSurgeryStepHealHeart", "WFSurgeryStepHealLungs", "WFSurgeryStepHealLiver",
+            "WFSurgeryStepHealStomach", "WFSurgeryStepHealKidneys",
         ];
 
         await server.WaitAssertion(() =>
@@ -356,8 +356,8 @@ public sealed class WolfmedExplosionTest : GameTest
 
                 foreach (var id in new[]
                          {
-                             "SurgeryStopInternalBleeding", "SurgeryMendFracture", "SurgeryHealAmputationConsequence",
-                             "SurgeryTendWoundsBruteDeep", "SurgeryTendWoundsBurnDeep",
+                             "WFSurgeryStopInternalBleeding", "WFSurgeryMendFracture", "WFSurgeryHealAmputationConsequence",
+                             "WFSurgeryTendWoundsBruteDeep", "WFSurgeryTendWoundsBurnDeep",
                          })
                 {
                     Assert.That(Reachable(prototypes.Index<EntityPrototype>(id)).Any(closing.Contains), Is.True,

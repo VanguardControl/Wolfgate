@@ -3,7 +3,7 @@
 # and the pod's disks unlock. Nothing here is a procedure an operator could not queue by hand.
 
 - type: autodocTriage
-  id: WolfmedAutodocTriage
+  id: WFWolfmedAutodocTriage
   steps:
   # 1. A heart that is not beating comes before every surgery, and the module is the only thing that helps.
   - defibrillate: true
@@ -12,63 +12,63 @@
   # 2. Anything still lodged in a part. WolfmedEmbeddedObjectComponent refuses every treatment on the wound
   # it is in, so a round left in the torso makes every other procedure on that torso hopeless.
   - surgeries:
-    - SurgeryRemoveEmbeddedObjects
+    - WFSurgeryRemoveEmbeddedObjects
 
   # 3. What is emptying the patient fastest.
   - ignorePodWounds: true
     surgeries:
-    - SurgeryRepairArtery
-    - SurgeryStopInternalBleeding
+    - WFSurgeryRepairArtery
+    - WFSurgeryStopInternalBleeding
 
   # 4. Then the rest of the bleeding. A part whose only wounds the pod made is skipped: surgery leaves an
   # incision and a sutured slash of its own, and treating those would have the pod re-plan after every run.
   - ignorePodWounds: true
     surgeries:
-    - SurgeryStopBleeding
+    - WFSurgeryStopBleeding
 
   # 5. An open abdomen: not fatal this second, but everything after it is worse with the organs out.
   - surgeries:
-    - SurgeryCloseEvisceration
+    - WFSurgeryCloseEvisceration
 
   # 6. Organ repair in place. Removal and insertion need a hand at the tray, so the planner skips them.
   - surgeries:
-    - SurgeryHealHeart
-    - SurgeryHealLungs
-    - SurgeryHealLiver
-    - SurgeryHealStomach
-    - SurgeryHealKidneys
-    - SurgeryRepairBrain
-    - SurgeryHealBrain
-    - SurgeryHealEyes
-    - SurgeryRepairCore
-    - SurgeryRepairSynthCore
+    - WFSurgeryHealHeart
+    - WFSurgeryHealLungs
+    - WFSurgeryHealLiver
+    - WFSurgeryHealStomach
+    - WFSurgeryHealKidneys
+    - WFSurgeryRepairBrain
+    - WFSurgeryHealBrain
+    - WFSurgeryHealEyes
+    - WFSurgeryRepairCore
+    - WFSurgeryRepairSynthCore
 
   # 7. Joints back in their sockets before the bones under them are opened.
   - surgeries:
-    - SurgeryRelocateJoint
+    - WFSurgeryRelocateJoint
 
   # 8. Bones.
   - surgeries:
-    - SurgeryMendFracture
-    - SurgeryHealAmputationConsequence
+    - WFSurgeryMendFracture
+    - WFSurgeryHealAmputationConsequence
 
   # 9. Deep tissue before shallow: the deep surgeries are the ones gauze cannot reach.
   - ignorePodWounds: true
     surgeries:
-    - SurgeryTendWoundsBruteDeep
-    - SurgeryTendWoundsBurnDeep
+    - WFSurgeryTendWoundsBruteDeep
+    - WFSurgeryTendWoundsBurnDeep
 
   # 10. Everything else on the surface.
   - ignorePodWounds: true
     surgeries:
     - SurgeryTendWoundsBrute
     - SurgeryTendWoundsBurn
-    - SurgeryGraftSkin
-    - SurgeryRepairTendon
+    - WFSurgeryGraftSkin
+    - WFSurgeryRepairTendon
 
   # 11. Synthetic bodies.
   - categories:
-    - WolfmedAutodocCategoryMechanical
+    - WFWolfmedAutodocCategoryMechanical
 
   # 12. Putting parts and organs back. The planner skips every one of these unless the delivery tray
   # already holds something that fits, so it never queues a procedure it cannot finish alone.

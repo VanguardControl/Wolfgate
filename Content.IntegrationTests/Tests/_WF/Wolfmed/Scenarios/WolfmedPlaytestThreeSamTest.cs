@@ -41,7 +41,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedSamTestAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: playtest 3 sam
   components:
   - type: Autodoc
@@ -63,7 +63,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
       beaker:
         maxVol: 200
         reagents:
-        - ReagentId: WolfmedOpiate
+        - ReagentId: WFWolfmedOpiate
           Quantity: 200
 ";
 
@@ -184,16 +184,16 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
             SEntMan.EnsureComponent<Content.Shared.Traits.Assorted.PainNumbnessComponent>(patient);
 
             torso = Part(patient, BodyPartType.Torso, BodyPartSymmetry.None);
-            var round = SEntMan.System<WoundSystem>().CreateOrMergeWound(torso, "WolfmedLodgedRoundWound", FixedPoint2.New(110));
+            var round = SEntMan.System<WoundSystem>().CreateOrMergeWound(torso, "WFWolfmedLodgedRoundWound", FixedPoint2.New(110));
             Assert.That(round, Is.Not.Null, "the fixture could not open the wound.");
-            SEntMan.System<WolfmedEmbeddedObjectSystem>().Add(round!.Value, "WolfmedSpentRound", 1, 6);
+            SEntMan.System<WolfmedEmbeddedObjectSystem>().Add(round!.Value, "WFWolfmedSpentRound", 1, 6);
             // The damage the round did, on the part, as a real hit leaves it: the tend surgeries only list on a hurt body.
             SEntMan.System<DamageableSystem>().SetDamage(torso, SEntMan.GetComponent<DamageableComponent>(torso),
                 Spec("Piercing", 110));
 
             pod = Pod(map.GridCoords);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                SEntMan.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.ReservoirSlotIds[0],
                 SEntMan.SpawnEntity("WolfmedSamTestOpiateJug", map.GridCoords), null), Is.True);
             autodoc.SetAuto(pod, true);
@@ -286,7 +286,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
 
             pod = Pod(map.GridCoords);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                SEntMan.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.ReservoirSlotIds[0],
                 SEntMan.SpawnEntity("WolfmedSamTestOpiateJug", map.GridCoords), null), Is.True);
             autodoc.SetAuto(pod, true);
@@ -377,7 +377,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
 
             pod = Pod(new EntityCoordinates(map.Grid, 0.5f, 0.5f));
             Assert.That(SEntMan.System<ItemSlotsSystem>().TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                SEntMan.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             SEntMan.System<AutodocSystem>().SetAuto(pod, true);
             Assert.That(SEntMan.System<AutodocSystem>().TryInsert(pod, patient), Is.True);
         });
@@ -475,7 +475,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
 
             pod = Pod(map.GridCoords);
             Assert.That(SEntMan.System<ItemSlotsSystem>().TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                SEntMan.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                SEntMan.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             SEntMan.System<AutodocSystem>().SetAuto(pod, true);
             Assert.That(SEntMan.System<AutodocSystem>().TryInsert(pod, patient), Is.True);
         });

@@ -666,7 +666,7 @@ Skipped ("dirty-disposed").
   - D9, Onyx targets BodyPartType.Chest here.
   - Apply is called directly (PLAN4 §6.1 trap 9). The do-after and the
   - a check Onyx's own test never made. CanApply requires GetPartRate(part) > 0, so a
-  - HeadHuman inherits WolfmedBaseHead, so its Slash amputation threshold is 200
+  - HeadHuman inherits WFWolfmedBaseHead, so its Slash amputation threshold is 200
   - post-hit 215 -> progress 1.075 >= SeverableResetRatio 0.8; damageBeforeHit is
   - the severed head is a live entity that left the body's container tree, not a
   - WoundHostComponent.DismembermentSeverities[Head] = 200.
@@ -717,16 +717,16 @@ Skipped ("dirty-disposed").
   - P2-D21, WP10-1: `WoundFractureBody` gains a `left hand` slot and `- type: Hands`.
   - WP10-6b: AlertsSystem.ShowAlert silently returns without AlertsComponent, so the BrokenBones
   - WP10-6b: T-FRACT-HANDS needs something to hold; FractureEffectSystem.TryGetUsedHandSymmetry's
-  - W0 balance: every organic part points at WolfmedFractureProfile
+  - W0 balance: every organic part points at WFWolfmedFractureProfile
   - Onyx's SharedBodySystem.TryDetachPart lives here (§2.7).
   - P2-D21: guard first. FractureEffectSystem.OnGetMultiplier returns before touching a
-  - P2-D23, W0: 75 >= WolfmedFractureProfile's Comminuted threshold (45), whose
+  - P2-D23, W0: 75 >= WFWolfmedFractureProfile's Comminuted threshold (45), whose
   - P2-D16, measured: Onyx's literal is 0.4f, stale against its own shipped profile.
   - P2-D16 + DECISIONS §8.2-1, measured: Onyx's literal is 2f — written against the C#
   - W3, re-derived in W4: mending no longer leaves a clean arm. 75 Blunt is over the
   - P2-D21: the hands must actually exist, or IsHolding never resolves and every
   - OnGetMultiplier filters GetBodyChildren by ManipulationParts AND
-  - P2-D23, W0: 60 clears WolfmedFractureProfile's Comminuted threshold (45), whose
+  - P2-D23, W0: 60 clears WFWolfmedFractureProfile's Comminuted threshold (45), whose
   - P2-D23, W0: WoundFractureSystem.OnWoundChanged re-grades with no random roll, so
 - [`Content.IntegrationTests/Tests/_Onyx/Wounds/WoundHealingTest.cs`](../../../Content.IntegrationTests/Tests/_Onyx/Wounds/WoundHealingTest.cs)
   - D13 moves the healing/bleeding systems to Content.Server but keeps their Onyx namespace.
@@ -735,7 +735,7 @@ Skipped ("dirty-disposed").
   - D12 damage facade.
   - D10 resolver.
   - Shitmed body graph instead of Onyx's Nubody `InitialBody`; `Injurable` (D19), `Repairable` and
-  - W0: 11 rather than Onyx's 15. WolfmedFractureProfile's Hairline threshold is 12 at
+  - W0: 11 rather than Onyx's 15. WFWolfmedFractureProfile's Hairline threshold is 12 at
   - W0: BluntWound now carries Onyx's intended `healingMultiplier: 0.15`, so removing the
   - D9
   - D10
@@ -1283,7 +1283,7 @@ Skipped ("dirty-disposed").
   - playtest 3 IPC 2: the chassis's own fluid, not Oil
   - BRAIN: organ health, so the pump can be broken
 - [`Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml)
-  - P5-1: IPC chassis wound profile; WolfmedPartIpc must stay FIRST (RT first-parent-wins)
+  - P5-1: IPC chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
   - P5-2/P5-D20, U13'b: Onyx's SiliconIpc container takes the whole Burn group
   - P5-D8, U3'b: dormant until P5-1 routes damage to IPC parts. Raised to parity with Mono's
   - P5-D8: 110 -> 190, MajorLimb parity
@@ -1295,7 +1295,7 @@ Skipped ("dirty-disposed").
   - P5-2/P5-D4/U16: an IPC's bloodstream carries its own fluid.
   - playtest 3 IPC 2: was Oil, lamp oil a lit welder set alight in its own puddle
   - fluid loss deals an IPC no damage.
-  - P5-D5/P5-D5b: IPCs use the SiliconWolfmed damage container.
+  - P5-D5/P5-D5b: IPCs use the WFSiliconWolfmed damage container.
   - HUD/BRAIN: Critical is back.
   - D22/P5-D11: the Blunt gib moves from 400 to 1500.
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml): W6: water takes heat out of an overheated chassis.
@@ -1311,7 +1311,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_HL/Body/Organs/synth.yml`](../../../Resources/Prototypes/_HL/Body/Organs/synth.yml)
   - M4: OD16 Synth is mechanical, the ccu is its positronic core
   - M4: OD16 Synth is mechanical, the heart is its coolant pump
-- [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml): M4: OD16 Synth is mechanical, chassis wound profile; WolfmedPartIpc must stay FIRST (RT first-parent-wins)
+- [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml): M4: OD16 Synth is mechanical, chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): Wolfmed: OD16, a Synth is mechanical and takes no poison, like the IPC set
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml)
   - M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
@@ -1344,7 +1344,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/Armor/bulletproof_vests.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/Armor/bulletproof_vests.yml): WP11-3, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/Vests/vests.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/OuterClothing/Vests/vests.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Mobs/Species/protogen.yml`](../../../Resources/Prototypes/_Mono/Entities/Mobs/Species/protogen.yml): D21/D32 -> P5-D9: the exclusion was lifted in phase 5. BaseMobProtogen is biologically organic
-- [`Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml): P5-D5, PROTO T: as welders.yml - MobIPC moves to SiliconWolfmed in WP13-2 and
+- [`Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml): P5-D5, PROTO T: as welders.yml - MobIPC moves to WFSiliconWolfmed in WP13-2 and
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml): W1: buckshot leaves fragments, not a clean channel.
 - [`Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml`](../../../Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml`](../../../Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml)
@@ -1394,7 +1394,7 @@ Skipped ("dirty-disposed").
   - EVISC: the torso laid open. Created only by WolfmedEviscerationSystem, never by a rule.
   - D9: Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent per-part rolls, one torso).
   - playtest 3 IPC: 1 -> 0.4. A sealed hydraulic system leaks, it does not spurt: seven spear hits bled
-  - P5-1/P5-D20, corrected M6: live. U13'(b) shipped: the parts' InorganicWolfmed
+  - P5-1/P5-D20, corrected M6: live. U13'(b) shipped: the parts' WFInorganicWolfmed
   - P5-1/P5-D20, corrected M6: as above, live.
   - W6: mechanical wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds). None of
   - EVISC: the chassis torso opened up. Created only by WolfmedEviscerationSystem.
@@ -1411,7 +1411,7 @@ Skipped ("dirty-disposed").
   - DECISIONS Sec 8.2-1: same inversion fix as OrganicFractureProfile above (wounds.yml) -
   - W0: Onyx's intended value. Damage removal barely closes a wound.
   - UI2
-  - W0 balance: stage thresholds track WolfmedFractureProfile's grades
+  - W0 balance: stage thresholds track WFWolfmedFractureProfile's grades
   - W5: an open cut is the baseline infection risk the whole model is scaled against.
   - W0: a bleed never closes from damage removal, only gauze, sutures or surgery.
   - W5: a puncture closes over whatever went in with it.
@@ -1426,13 +1426,13 @@ Skipped ("dirty-disposed").
   - playtest 1: halved with wolfmed.bleed_rate, which this bleed does not read
 - [`Resources/Prototypes/_Shitmed/Body/Parts/base.yml`](../../../Resources/Prototypes/_Shitmed/Body/Parts/base.yml): WP7, D8: adds Wolfmed fracture/maxDamage data
 - [`Resources/Prototypes/_Shitmed/Body/Parts/cybernetic.yml`](../../../Resources/Prototypes/_Shitmed/Body/Parts/cybernetic.yml)
-  - P5-1: cybernetic wound + frame-fracture profile; WolfmedPartCybernetic must stay FIRST (RT first-parent-wins)
+  - P5-1: cybernetic wound + frame-fracture profile; WFWolfmedPartCybernetic must stay FIRST (RT first-parent-wins)
   - P5-2/P5-D20, U13'b: restores Cold and Caustic, which Onyx's SiliconIpc supports and
   - P5-D8b, U15a: CyberneticPartBase declared no Destructible, so every concrete limb took its
 - [`Resources/Prototypes/_Shitmed/Entities/Surgery/surgeries.yml`](../../../Resources/Prototypes/_Shitmed/Entities/Surgery/surgeries.yml)
-  - PROTO F, P4-D19: deep wounds get SurgeryTendWoundsBruteDeep instead
+  - PROTO F, P4-D19: deep wounds get WFSurgeryTendWoundsBruteDeep instead
   - PROTO F, P4-D19: GetGroupSeverity must read the Burn group here
-  - PROTO F, P4-D19: deep wounds get SurgeryTendWoundsBurnDeep instead
+  - PROTO F, P4-D19: deep wounds get WFSurgeryTendWoundsBurnDeep instead
 - [`Resources/Prototypes/_Shitmed/Entities/Surgery/surgery_steps.yml`](../../../Resources/Prototypes/_Shitmed/Entities/Surgery/surgery_steps.yml)
   - PROTO G, P4-D21: a real incision wound beside the flat charge, so it can bleed, be clamped and scar
   - PROTO G, P4-D21: clamps the incision wound this operation opened
@@ -1462,9 +1462,9 @@ Skipped ("dirty-disposed").
   - M3: 250->350, above the Heat sever 250 (P19)
   - M3: 150->270, above the foot's Blunt sever 170 (P19)
   - M3: 230->320, above the foot's Heat sever 220 (P19)
-- [`Resources/Prototypes/Body/Parts/diona.yml`](../../../Resources/Prototypes/Body/Parts/diona.yml): P5-1: plant wound profile, limbs cannot be severed (still destructible - see PLAN5 8.1); WolfmedPartDiona must stay FIRST
+- [`Resources/Prototypes/Body/Parts/diona.yml`](../../../Resources/Prototypes/Body/Parts/diona.yml): P5-1: plant wound profile, limbs cannot be severed (still destructible - see PLAN5 8.1); WFWolfmedPartDiona must stay FIRST
 - [`Resources/Prototypes/Body/Parts/slime.yml`](../../../Resources/Prototypes/Body/Parts/slime.yml)
-  - P5-1: slime wound profile, no bone fractures; WolfmedPartSlime must stay FIRST (RT first-parent-wins)
+  - P5-1: slime wound profile, no bone fractures; WFWolfmedPartSlime must stay FIRST (RT first-parent-wins)
   - M4, plan 9.3: a slime's core, its brain, is in the torso, so losing the head is not death.
 - [`Resources/Prototypes/borg_types.yml`](../../../Resources/Prototypes/borg_types.yml): playtest 3: the IPC's container, so its bar shows
 - [`Resources/Prototypes/Catalog/Fills/Backpacks/duffelbag.yml`](../../../Resources/Prototypes/Catalog/Fills/Backpacks/duffelbag.yml): W4: the graft step's tool, beside the bone gel it mirrors.
@@ -1533,7 +1533,7 @@ Skipped ("dirty-disposed").
   - M2: OD10, the core repair step that re-flashes a positronic core
 - [`Resources/Prototypes/Entities/Objects/Tools/welders.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/welders.yml)
   - EVISC: the surgery step that welds a chassis breach shut
-  - P5-D5, PROTO S: MobIPC moves to the SiliconWolfmed container in WP13-2;
+  - P5-D5, PROTO S: MobIPC moves to the WFSiliconWolfmed container in WP13-2;
   - V124: the welder loop covers the pass; this is the seam cooling at the end of it.
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml): W1: cluster pellets leave fragments behind.
 - [`Resources/Prototypes/Entities/StatusEffects/misc.yml`](../../../Resources/Prototypes/Entities/StatusEffects/misc.yml): Onyx's status effect bases, ported without its standing base or concrete effects.

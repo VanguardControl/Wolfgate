@@ -4,7 +4,7 @@
 # A spill is slippery, the way fuel is, and mops up like any other. Nothing metabolises it, as nothing metabolises Oil.
 
 - type: reagent
-  id: WolfmedHydraulicFluid
+  id: WFWolfmedHydraulicFluid
   name: reagent-name-wolfmed-hydraulic-fluid
   group: Biological
   desc: reagent-desc-wolfmed-hydraulic-fluid

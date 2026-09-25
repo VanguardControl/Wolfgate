@@ -10,7 +10,7 @@
 # stage in the same tick something hit the body, so infection, necrosis and healing stay silent.
 
 - type: wolfmedSfxProfile
-  id: WolfmedSfxDefault
+  id: WFWolfmedSfxDefault
   minSeverity: 5
   soundInterval: 0.4
   debrisInterval: 0.25
@@ -19,14 +19,14 @@
   # Bone. The one wound whose sound is the whole point of it.
   - wounds: [ BoneFractureWound ]
     sound:
-      collection: WolfmedWoundBone
+      collection: WFWolfmedWoundBone
       params:
         volume: 1
         variation: 0.12
 
-  - wounds: [ WolfmedDislocationWound ]
+  - wounds: [ WFWolfmedDislocationWound ]
     sound:
-      collection: WolfmedWoundBone
+      collection: WFWolfmedWoundBone
       params:
         volume: -2
         variation: 0.12
@@ -34,7 +34,7 @@
   # A structural member in a chassis giving way.
   - wounds: [ CyberneticFrameFractureWound ]
     sound:
-      collection: WolfmedWoundFrame
+      collection: WFWolfmedWoundFrame
       params:
         variation: 0.12
 
@@ -42,14 +42,14 @@
   - tissue: Mechanical
     damageTypes: [ Shock ]
     sound:
-      collection: WolfmedWoundShock
+      collection: WFWolfmedWoundShock
       params:
         volume: -3
         variation: 0.12
 
   - tissue: Mechanical
     sound:
-      collection: WolfmedWoundChassis
+      collection: WFWolfmedWoundChassis
       params:
         volume: -4
         variation: 0.15
@@ -58,7 +58,7 @@
   - tissue: Organic
     damageTypes: [ Shock ]
     sound:
-      collection: WolfmedWoundShock
+      collection: WFWolfmedWoundShock
       params:
         volume: -3
         variation: 0.12
@@ -66,7 +66,7 @@
   - tissue: Organic
     damageTypes: [ Heat, Cold, Caustic ]
     sound:
-      collection: WolfmedWoundBurn
+      collection: WFWolfmedWoundBurn
       params:
         volume: -2
         variation: 0.12
@@ -74,7 +74,7 @@
   - tissue: Organic
     damageTypes: [ Piercing ]
     sound:
-      collection: WolfmedWoundPierce
+      collection: WFWolfmedWoundPierce
       params:
         volume: -4
         variation: 0.15
@@ -82,7 +82,7 @@
   - tissue: Organic
     damageTypes: [ Slash ]
     sound:
-      collection: WolfmedWoundFlesh
+      collection: WFWolfmedWoundFlesh
       params:
         volume: -4
         variation: 0.15
@@ -92,7 +92,7 @@
     damageTypes: [ Blunt ]
     minSeverity: 10
     sound:
-      collection: WolfmedWoundBlunt
+      collection: WFWolfmedWoundBlunt
       params:
         volume: -6
         variation: 0.15
@@ -100,37 +100,37 @@
   # A limb coming off. The spill is the body's own reagent, so an IPC puts hydraulic fluid on the deck.
   organicDismemberment:
     sound:
-      collection: WolfmedDismemberOrganic
+      collection: WFWolfmedDismemberOrganic
       params:
         variation: 0.1
-    effect: WolfmedBloodMistLarge
+    effect: WFWolfmedBloodMistLarge
     spillVolume: 25
 
   mechanicalDismemberment:
     sound:
-      collection: WolfmedDismemberMechanical
+      collection: WFWolfmedDismemberMechanical
       params:
         variation: 0.1
-    effect: WolfmedSparkBurstLarge
+    effect: WFWolfmedSparkBurstLarge
     spillVolume: 10
 
   # Debris tiers, largest first: the first tier the hit clears is the one spawned.
   # FIX1: the organic tiers are read with the bleeding a hit opened, not with the wound's severity, and
   # hitSplatter.minBleedIncrease is the floor now, so the smallest tier starts at nothing.
   organicDebris:
-  - effect: WolfmedBloodMistLarge
+  - effect: WFWolfmedBloodMistLarge
     minSeverity: 15
-  - effect: WolfmedBloodMistMedium
+  - effect: WFWolfmedBloodMistMedium
     minSeverity: 6
-  - effect: WolfmedBloodMistSmall
+  - effect: WFWolfmedBloodMistSmall
     minSeverity: 0
 
   mechanicalDebris:
-  - effect: WolfmedSparkBurstLarge
+  - effect: WFWolfmedSparkBurstLarge
     minSeverity: 25
-  - effect: WolfmedSparkBurstMedium
+  - effect: WFWolfmedSparkBurstMedium
     minSeverity: 12
-  - effect: WolfmedSparkBurstSmall
+  - effect: WFWolfmedSparkBurstSmall
     minSeverity: 4
 
   # G1. Flesh throws this instead of the mist above; the mist stays as the fallback for a body with no
@@ -141,7 +141,7 @@
   # and the distance bands read the same figure, so a bleed a gunshot opens travels further than a knick.
   # The burst budget is what keeps automatic fire to a few sprays a second.
   hitSplatter:
-    effect: WolfmedHitSplatter
+    effect: WFWolfmedHitSplatter
     travel: 1.1
     states: [ hitsplatter1_free, hitsplatter2_free, hitsplatter3_free ]
     minBleedIncrease: 1
@@ -154,16 +154,16 @@
       tiles: 2
     - minSeverity: 0
       tiles: 1
-    wallSplat: WolfmedBloodSplatWall
+    wallSplat: WFWolfmedBloodSplatWall
     wallStates: [ splatter1, splatter2, splatter3, splatter4, splatter5, splatter6 ]
     floorDecals:
-    - WolfmedBloodFloor1
-    - WolfmedBloodFloor2
-    - WolfmedBloodFloor3
-    - WolfmedBloodFloor4
-    - WolfmedBloodFloor5
-    - WolfmedBloodFloor6
-    - WolfmedBloodFloor7
+    - WFWolfmedBloodFloor1
+    - WFWolfmedBloodFloor2
+    - WFWolfmedBloodFloor3
+    - WFWolfmedBloodFloor4
+    - WFWolfmedBloodFloor5
+    - WFWolfmedBloodFloor6
+    - WFWolfmedBloodFloor7
     maxPerTile: 3
 
   # G2. An arterial bleed or an open stump throws blood every few seconds on its own. majorRate is what an
@@ -178,17 +178,17 @@
     severity: 14
     spillVolume: 2
     sound:
-      collection: WolfmedBleedSpurt
+      collection: WFWolfmedBleedSpurt
       params:
         volume: -4
         variation: 0.12
     stumpSound:
-      collection: WolfmedBleedStump
+      collection: WFWolfmedBleedStump
       params:
         volume: -2
         variation: 0.12
     mechanicalSound:
-      collection: WolfmedLeakHiss
+      collection: WFWolfmedLeakHiss
       params:
         volume: -3
         variation: 0.15
@@ -198,7 +198,7 @@
     minDamage: 10
     interval: 5
     jitter: 3
-    effect: WolfmedSparkBurstSmall
+    effect: WFWolfmedSparkBurstSmall
     sound:
       collection: sparks
       params:

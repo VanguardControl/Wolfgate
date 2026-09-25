@@ -1,18 +1,18 @@
 # M4 (OD16): Synth is mechanical, and its core (the ccu) sits in the head's brain slot rather than the torso's posbrain
-# slot the IPC's does. The same chassis surgery as SurgeryRepairCore, on the head: unbolt the housing, re-flash the
+# slot the IPC's does. The same chassis surgery as WFSurgeryRepairCore, on the head: unbolt the housing, re-flash the
 # core, weld it shut; then the restart button. No trauma follows on a machine.
 
 - type: entity
   parent: SurgeryBase
-  id: SurgeryRepairSynthCore
+  id: WFSurgeryRepairSynthCore
   name: Repair Synth Core
   categories: [ HideSpawnMenu ]
   components:
   - type: Surgery
     steps:
-    - SurgeryStepUnseatCore
-    - SurgeryStepRepairSynthCore
-    - SurgeryStepReseatCore
+    - WFSurgeryStepUnseatCore
+    - WFSurgeryStepRepairSynthCore
+    - WFSurgeryStepReseatCore
   - type: SurgeryPartCondition
     part: Head
   - type: SurgeryBodyComponentCondition
@@ -21,13 +21,13 @@
   - type: WolfmedSurgeryOrganDamagedCondition
     slot: brain
     anyDamage: true
-    # M6: as SurgeryRepairCore, the housing weld stays reachable once the core is whole.
+    # M6: as WFSurgeryRepairCore, the housing weld stays reachable once the core is whole.
     validWhile:
     - type: WolfmedCoreHousingOpen
 
 - type: entity
   parent: SurgeryStepBase
-  id: SurgeryStepRepairSynthCore
+  id: WFSurgeryStepRepairSynthCore
   name: Re-flash the synth core
   categories: [ HideSpawnMenu ]
   components:

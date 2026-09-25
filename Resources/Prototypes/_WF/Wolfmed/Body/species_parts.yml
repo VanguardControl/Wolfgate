@@ -25,7 +25,7 @@
 # now the FIRST entry of PartSlime's, PartDiona's, PartIPCBase's and CyberneticPartBase's parent list.
 
 - type: entity
-  id: WolfmedPartSlime
+  id: WFWolfmedPartSlime
   abstract: true
   components:
   # WOLFGATE (WP13-1): the `wounds` container is declared statically because these abstracts declare
@@ -48,10 +48,10 @@
     fractureProfile: null   # slime has no bones, as Onyx's slime does
 
 - type: entity
-  id: WolfmedPartDiona
+  id: WFWolfmedPartDiona
   abstract: true
   components:
-  # WOLFGATE (WP13-1): declared `wounds` container - see WolfmedPartSlime above for why.
+  # WOLFGATE (WP13-1): declared `wounds` container - see WFWolfmedPartSlime above for why.
   - type: ContainerContainer
     containers:
       bodypart: !type:Container
@@ -71,10 +71,10 @@
     amputationThresholds: {}
 
 - type: entity
-  id: WolfmedPartIpc
+  id: WFWolfmedPartIpc
   abstract: true
   components:
-  # WOLFGATE (WP13-1): declared `wounds` container - see WolfmedPartSlime above for why.
+  # WOLFGATE (WP13-1): declared `wounds` container - see WFWolfmedPartSlime above for why.
   - type: ContainerContainer
     containers:
       bodypart: !type:Container
@@ -91,10 +91,10 @@
     # Corvax/Body/Species/ipc.yml:365-372) sit on a different part chain; see PLAN5 P5-D7/P5-D8.
 
 - type: entity
-  id: WolfmedPartCybernetic
+  id: WFWolfmedPartCybernetic
   abstract: true
   components:
-  # WOLFGATE (WP13-1): declared `wounds` container - see WolfmedPartSlime above for why.
+  # WOLFGATE (WP13-1): declared `wounds` container - see WFWolfmedPartSlime above for why.
   - type: ContainerContainer
     containers:
       bodypart: !type:Container
@@ -110,20 +110,20 @@
     # BaseLeftArm/BaseLeftHand/... which parent Mono's MajorLimb (Blunt 190 / Slash 210 / Heat 250 + Ash)
     # or MinorLimb (150/180/230). See PLAN5 P5-D8b / U15.
 
-# WOLFGATE (EVISC): an organic torso gets its damage cap and evisceration profile from WolfmedBaseTorso by
+# WOLFGATE (EVISC): an organic torso gets its damage cap and evisceration profile from WFWolfmedBaseTorso by
 # way of BaseTorso. An IPC torso parents BaseTorsoInorganic instead and inherits neither, so without this
 # it has no cap, no overflow and could never be breached. Must stay FIRST in TorsoIPC's parent list (RT
-# first-parent-wins), which is why it restates WolfmedPartIpc's null fracture profile.
+# first-parent-wins), which is why it restates WFWolfmedPartIpc's null fracture profile.
 - type: entity
-  id: WolfmedBaseTorsoIpc
+  id: WFWolfmedBaseTorsoIpc
   abstract: true
   components:
   - type: WolfmedBodyPart
     fractureProfile: null
     maxDamage: 250
-    eviscerationProfile: WolfmedEviscerationDefault
+    eviscerationProfile: WFWolfmedEviscerationDefault
     # M3 (plan §8, OD10): penetrating torso hits reach the positronic core and the pump, on the same lines as
-    # an organic torso (_WF/Wolfmed/Body/parts.yml), restated because this torso never inherits WolfmedBaseTorso.
+    # an organic torso (_WF/Wolfmed/Body/parts.yml), restated because this torso never inherits WFWolfmedBaseTorso.
     organReach:
       Piercing: 10
       Slash: 18

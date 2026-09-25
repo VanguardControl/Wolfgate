@@ -4,7 +4,7 @@
 
 - type: entity
   parent: BaseItem
-  id: WolfmedSplint
+  id: WFWolfmedSplint
   name: splint
   description: A moulded polymer brace with two straps. Holds a broken limb still so it stops grinding itself apart.
   components:
@@ -31,8 +31,8 @@
 # The thing you make when medbay is out. A rod and a bandage do the same job, more slowly and with less
 # left of the bandage.
 - type: entity
-  parent: WolfmedSplint
-  id: WolfmedSplintImprovised
+  parent: WFWolfmedSplint
+  id: WFWolfmedSplintImprovised
   name: improvised splint
   description: A metal rod bound to a limb with torn cloth. Crude, and better than a bone moving on its own.
   components:

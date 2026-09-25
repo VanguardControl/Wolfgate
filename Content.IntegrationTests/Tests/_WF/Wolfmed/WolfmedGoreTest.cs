@@ -670,8 +670,8 @@ public sealed class WolfmedGoreTest : GameTest
             Assert.That(Overlay(entities, body, HumanoidVisualLayers.LLeg),
                 Is.EqualTo(WolfmedPartTreatment.None), "an untreated break shows no splint.");
 
-            var splint = entities.SpawnEntity("WolfmedSplint", map.GridCoords);
-            var improvised = entities.SpawnEntity("WolfmedSplintImprovised", map.GridCoords);
+            var splint = entities.SpawnEntity("WFWolfmedSplint", map.GridCoords);
+            var improvised = entities.SpawnEntity("WFWolfmedSplintImprovised", map.GridCoords);
             Assert.That(splints.TryApply((splint, entities.GetComponent<WolfmedSplintComponent>(splint)),
                 body, leg, body), Is.True);
             Assert.That(splints.TryApply(

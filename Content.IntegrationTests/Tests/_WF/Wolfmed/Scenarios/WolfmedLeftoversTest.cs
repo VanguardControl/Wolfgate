@@ -42,7 +42,7 @@ public sealed class WolfmedLeftoversTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedLeftoversAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: leftovers test
   components:
   - type: Autodoc
@@ -117,7 +117,7 @@ public sealed class WolfmedLeftoversTest : GameTest
         {
             var damage = SEntMan.System<DamageableSystem>();
             var bandage = Start(patient, patient, new HealingDoAfterEvent());
-            var surgery = Start(surgeon, patient, new SurgeryDoAfterEvent("SurgeryStopBleeding", "SurgeryStepSutureBleeding"));
+            var surgery = Start(surgeon, patient, new SurgeryDoAfterEvent("WFSurgeryStopBleeding", "WFSurgeryStepSutureBleeding"));
 
             // A bleed tick, the bloodstream's shape: systemic, never a part hit.
             damage.TryChangeDamage(patient, WolfmedScenario.Spec("Bloodloss", 15), ignoreResistances: true,
@@ -152,8 +152,8 @@ public sealed class WolfmedLeftoversTest : GameTest
     }
 
     /// <summary>
-    /// M4's leftover: the pod could not repair a machine's core. With the neuro disk it now runs SurgeryRepairCore on an
-    /// IPC's chassis and SurgeryRepairSynthCore on a synth's head, with its own wrench, multitool and welder, and the
+    /// M4's leftover: the pod could not repair a machine's core. With the neuro disk it now runs WFSurgeryRepairCore on an
+    /// IPC's chassis and WFSurgeryRepairSynthCore on a synth's head, with its own wrench, multitool and welder, and the
     /// restart button brings each back.
     /// </summary>
     [Test]
@@ -195,7 +195,7 @@ public sealed class WolfmedLeftoversTest : GameTest
                 var uid = SEntMan.SpawnEntity("WolfmedLeftoversAutodoc", map.GridCoords);
                 var pod = (uid, SEntMan.GetComponent<AutodocComponent>(uid));
                 Assert.That(slots.TryInsert(uid, AutodocComponent.DiskSlotId,
-                    SEntMan.SpawnEntity("AutodocProgramDiskNeuro", map.GridCoords), null), Is.True);
+                    SEntMan.SpawnEntity("WFAutodocProgramDiskNeuro", map.GridCoords), null), Is.True);
                 Assert.That(autodoc.TryInsert(pod, occupant), Is.True);
                 return pod;
             }
@@ -208,9 +208,9 @@ public sealed class WolfmedLeftoversTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var autodoc = SEntMan.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(ipcPod, "SurgeryRepairCore", TargetBodyPart.Torso), Is.True,
+            Assert.That(autodoc.TryQueue(ipcPod, "WFSurgeryRepairCore", TargetBodyPart.Torso), Is.True,
                 "the neuro disk does not unlock the IPC core repair.");
-            Assert.That(autodoc.TryQueue(synthPod, "SurgeryRepairSynthCore", TargetBodyPart.Head), Is.True,
+            Assert.That(autodoc.TryQueue(synthPod, "WFSurgeryRepairSynthCore", TargetBodyPart.Head), Is.True,
                 "the neuro disk does not unlock the synth core repair.");
             Assert.That(autodoc.TryStart(ipcPod, null), Is.True);
             Assert.That(autodoc.TryStart(synthPod, null), Is.True);
@@ -245,7 +245,7 @@ public sealed class WolfmedLeftoversTest : GameTest
 
     /// <summary>
     /// M3's leftover: the pod's progress check compared severities, so a clamp that was closing a bleed read as no
-    /// progress and SurgeryStopBleeding was abandoned after three clamps. The part's signature now carries each wound's
+    /// progress and WFSurgeryStopBleeding was abandoned after three clamps. The part's signature now carries each wound's
     /// bleeding severity, and a bleed that needs five clamps is closed in one procedure.
     /// </summary>
     [Test]
@@ -293,7 +293,7 @@ public sealed class WolfmedLeftoversTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var autodoc = SEntMan.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(pod, "SurgeryStopBleeding", TargetBodyPart.LeftArm), Is.True);
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryStopBleeding", TargetBodyPart.LeftArm), Is.True);
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
         await Pair.RunTicksSync(300);
@@ -304,7 +304,7 @@ public sealed class WolfmedLeftoversTest : GameTest
             Note($"PodClampProgressTest: pod {pod.Comp.State}, failed [{string.Join(", ", pod.Comp.FailedProcedures)}], bleed rate {rate}");
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.FailedProcedures.Contains(("SurgeryStopBleeding", TargetBodyPart.LeftArm)), Is.False,
+                Assert.That(pod.Comp.FailedProcedures.Contains(("WFSurgeryStopBleeding", TargetBodyPart.LeftArm)), Is.False,
                     "the pod abandoned a clamp that was working.");
                 Assert.That(rate, Is.Zero, "the bleed was not closed.");
             });

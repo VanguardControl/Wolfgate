@@ -344,7 +344,7 @@ public sealed class WolfmedInfectionTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(necrosis.IsNecrotic(arm), Is.True);
-                Assert.That(Prototypes(entities, arm), Does.Contain("WolfmedNecrosisWound"));
+                Assert.That(Prototypes(entities, arm), Does.Contain("WFWolfmedNecrosisWound"));
                 Assert.That(entities.HasComponent<WolfmedTourniquetComponent>(arm), Is.False,
                     "there is nothing left for the tourniquet to save.");
             });
@@ -430,7 +430,7 @@ public sealed class WolfmedInfectionTest : GameTest
                 Assert.That(entities.HasComponent<WolfmedSepsisComponent>(body), Is.False);
                 Assert.That(entities.HasComponent<WolfmedNecrosisComponent>(arm), Is.False);
                 Assert.That(entities.HasComponent<WolfmedTourniquetComponent>(arm), Is.False);
-                Assert.That(Prototypes(entities, arm), Does.Not.Contain("WolfmedNecrosisWound"));
+                Assert.That(Prototypes(entities, arm), Does.Not.Contain("WFWolfmedNecrosisWound"));
             });
 
             // And it stays gone: the dead limb was the source that used to drive sepsis straight back up.
@@ -483,7 +483,7 @@ public sealed class WolfmedInfectionTest : GameTest
                     Is.EqualTo(200d).Within(0.01d));
             });
 
-            wounds.RemoveWound(FindWound(entities, arm, "WolfmedFrostbiteWound"));
+            wounds.RemoveWound(FindWound(entities, arm, "WFWolfmedFrostbiteWound"));
 
             var clock = entities.GetComponent<WolfmedNecrosisComponent>(arm);
             Assert.Multiple(() =>
@@ -520,8 +520,8 @@ public sealed class WolfmedInfectionTest : GameTest
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);
             var frozen = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
             var charred = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Right);
-            Assert.That(wounds.CreateOrMergeWound(frozen, "WolfmedFrostbiteWound", FixedPoint2.New(90)), Is.Not.Null);
-            Assert.That(wounds.CreateOrMergeWound(charred, "WolfmedCharringWound", FixedPoint2.New(100)), Is.Not.Null);
+            Assert.That(wounds.CreateOrMergeWound(frozen, "WFWolfmedFrostbiteWound", FixedPoint2.New(90)), Is.Not.Null);
+            Assert.That(wounds.CreateOrMergeWound(charred, "WFWolfmedCharringWound", FixedPoint2.New(100)), Is.Not.Null);
 
             var frozenClock = entities.GetComponent<WolfmedNecrosisComponent>(frozen);
             var charredClock = entities.GetComponent<WolfmedNecrosisComponent>(charred);
@@ -578,7 +578,7 @@ public sealed class WolfmedInfectionTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(necrosis.IsNecrotic(arm), Is.True);
-                Assert.That(Prototypes(entities, arm), Does.Contain("WolfmedNecrosisWound"));
+                Assert.That(Prototypes(entities, arm), Does.Contain("WFWolfmedNecrosisWound"));
             });
         });
     }
@@ -668,7 +668,7 @@ public sealed class WolfmedInfectionTest : GameTest
                 Assert.That(prototypes.HasIndex<AlertPrototype>(WolfmedInfectionSystem.SepsisAlert));
                 Assert.That(prototypes.HasIndex<ReagentPrototype>("Spaceacillin"));
                 Assert.That(prototypes.HasIndex<ReactionPrototype>("Spaceacillin"));
-                Assert.That(prototypes.HasIndex<WoundPrototype>("WolfmedNecrosisWound"));
+                Assert.That(prototypes.HasIndex<WoundPrototype>("WFWolfmedNecrosisWound"));
                 Assert.That(prototypes.HasIndex<WolfmedInfectionProfilePrototype>(WolfmedInfectionSystem.DefaultProfile));
 
                 Assert.That(locale.HasString("wolfmed-wound-name-necrosis"));

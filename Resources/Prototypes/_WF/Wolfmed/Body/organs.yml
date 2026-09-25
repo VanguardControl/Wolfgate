@@ -19,7 +19,7 @@
 # Brain: no destruction wound - OrganHealthSystem kills the mob instead of destroying the organ.
 # WolfmedBrain is BRAIN's oxygenation clock; only an organ that carries it runs one.
 - type: entity
-  id: WolfmedOrganBrain
+  id: WFWolfmedOrganBrain
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -37,7 +37,7 @@
 
 # Eyes: paired organ, no internal bleeding on destruction (Onyx base_organs.yml:547).
 - type: entity
-  id: WolfmedOrganEyes
+  id: WFWolfmedOrganEyes
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -53,7 +53,7 @@
       Shock: 0.25
 
 - type: entity
-  id: WolfmedOrganHeart
+  id: WFWolfmedOrganHeart
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -73,7 +73,7 @@
       Shock: 0.3375
 
 - type: entity
-  id: WolfmedOrganLungs
+  id: WFWolfmedOrganLungs
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -90,7 +90,7 @@
       Shock: 0.25
 
 - type: entity
-  id: WolfmedOrganLiver
+  id: WFWolfmedOrganLiver
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -109,7 +109,7 @@
       Shock: 0.25
 
 - type: entity
-  id: WolfmedOrganStomach
+  id: WFWolfmedOrganStomach
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -127,7 +127,7 @@
       Shock: 0.25
 
 - type: entity
-  id: WolfmedOrganKidneys
+  id: WFWolfmedOrganKidneys
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -147,7 +147,7 @@
 # Machine organs (BRAIN). A positronic brain is a brain: destroying it kills the chassis through the same
 # OrganHealthSystem path a fleshy one uses. It carries no WolfmedBrain, so it runs no oxygenation clock.
 - type: entity
-  id: WolfmedOrganPositronicBrain
+  id: WFWolfmedOrganPositronicBrain
   abstract: true
   components:
   - type: WolfmedOrgan
@@ -169,7 +169,7 @@
 
 # The micro pump is the chassis's heart: destroying it shuts the machine down rather than killing it.
 - type: entity
-  id: WolfmedOrganIpcPump
+  id: WFWolfmedOrganIpcPump
   abstract: true
   components:
   - type: WolfmedOrgan

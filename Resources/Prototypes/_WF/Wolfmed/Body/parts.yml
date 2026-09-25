@@ -22,14 +22,14 @@
 # before a finishing shot lands.
 
 - type: entity
-  id: WolfmedBaseTorso
+  id: WFWolfmedBaseTorso
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     maxDamage: 250
     # WOLFGATE (EVISC): what the overflow past that cap buys, now that D9 spends it on nothing else.
-    eviscerationProfile: WolfmedEviscerationDefault
+    eviscerationProfile: WFWolfmedEviscerationDefault
     # M3 (plan §8): what one hit, after armour, has to exceed to reach the organs; the excess is split across
     # them by weight. Read on the whole hit, so a saturated torso behaves exactly like a fresh one.
     organReach:
@@ -40,11 +40,11 @@
       Shock: 15
 
 - type: entity
-  id: WolfmedBaseHead
+  id: WFWolfmedBaseHead
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds:
       Slash: 200
       Piercing: 200
@@ -63,11 +63,11 @@
       Shock: 15
 
 - type: entity
-  id: WolfmedBaseLeftArm
+  id: WFWolfmedBaseLeftArm
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: &wolfmedArmThresholds
       Slash: 130
       Piercing: 250
@@ -82,20 +82,20 @@
       Blunt: 10
 
 - type: entity
-  id: WolfmedBaseRightArm
+  id: WFWolfmedBaseRightArm
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedArmThresholds
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
-  id: WolfmedBaseLeftHand
+  id: WFWolfmedBaseLeftHand
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: &wolfmedHandThresholds
       Slash: 70
       Piercing: 200
@@ -104,20 +104,20 @@
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
-  id: WolfmedBaseRightHand
+  id: WFWolfmedBaseRightHand
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedHandThresholds
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
-  id: WolfmedBaseLeftLeg
+  id: WFWolfmedBaseLeftLeg
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: &wolfmedLegThresholds
       Slash: 150
       Piercing: 250
@@ -126,20 +126,20 @@
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
-  id: WolfmedBaseRightLeg
+  id: WFWolfmedBaseRightLeg
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedLegThresholds
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
-  id: WolfmedBaseLeftFoot
+  id: WFWolfmedBaseLeftFoot
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: &wolfmedFootThresholds
       Slash: 80
       Piercing: 220
@@ -148,10 +148,10 @@
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)
 
 - type: entity
-  id: WolfmedBaseRightFoot
+  id: WFWolfmedBaseRightFoot
   abstract: true
   components:
   - type: WolfmedBodyPart
-    fractureProfile: WolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
+    fractureProfile: WFWolfmedFractureProfile # WOLFGATE (W0 balance): Wolfgate thresholds, see fractures.yml
     amputationThresholds: *wolfmedFootThresholds
     dismembermentFinishingDamage: *wolfmedLimbFinishingDamage # WOLFGATE (P3 balance, M3)

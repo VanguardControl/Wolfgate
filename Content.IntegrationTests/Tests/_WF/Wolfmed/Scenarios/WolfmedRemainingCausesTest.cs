@@ -416,7 +416,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
             var scaldedTorso = s.Part(scalded, BodyPartType.Torso);
             var splashedTorso = s.Part(splashed, BodyPartType.Torso);
             var plainBefore = Severity(scaldedTorso, "BurnWound");
-            var acidBefore = Severity(scaldedTorso, "WolfmedChemicalBurnWound");
+            var acidBefore = Severity(scaldedTorso, "WFWolfmedChemicalBurnWound");
             Assert.Multiple(() =>
             {
                 Assert.That(plainBefore, Is.GreaterThan(0f), "the heat left no plain burn to watch.");
@@ -427,7 +427,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
             for (var tick = 0; tick < 10; tick++)
                 residue.Update(5f);
 
-            var acidAfter = Severity(scaldedTorso, "WolfmedChemicalBurnWound");
+            var acidAfter = Severity(scaldedTorso, "WFWolfmedChemicalBurnWound");
             Note($"AcidResidueTest: ten residue ticks: chemical burn {acidBefore:0.0} -> {acidAfter:0.0}, " +
                                       $"plain burn {plainBefore:0.0} -> {Severity(scaldedTorso, "BurnWound"):0.0}.");
             Assert.Multiple(() =>
@@ -435,7 +435,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
                 Assert.That(acidAfter, Is.GreaterThan(acidBefore), "the residue did not deepen its own burn.");
                 Assert.That(Severity(scaldedTorso, "BurnWound"), Is.EqualTo(plainBefore), "the residue grew the plain burn.");
                 Assert.That(Severity(splashedTorso, "BurnWound"), Is.Zero, "the residue made a plain burn.");
-                Assert.That(Severity(splashedTorso, "WolfmedChemicalBurnWound"), Is.GreaterThan(20f));
+                Assert.That(Severity(splashedTorso, "WFWolfmedChemicalBurnWound"), Is.GreaterThan(20f));
             });
         });
     }

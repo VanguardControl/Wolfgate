@@ -37,7 +37,7 @@ public readonly record struct WolfmedTreatmentSubject(
 /// </remarks>
 public sealed class WolfmedTreatmentWindow : FancyWindow
 {
-    private const string TreatmentGuide = "WoundTreatment";
+    private const string TreatmentGuide = "WFWoundTreatment";
     private const float StepIconSize = 32f;
     private const float MarkIconSize = 14f;
 

@@ -4,7 +4,7 @@
 # so Succumb and Last Words are offered (OD3 (b)). Ends under wolfmed.ipc_core_heat_wake_k.
 - type: wolfmedConsciousnessCause
   id: CoreHeat
-  alertOut: WolfmedOutCoreHeat
+  alertOut: WFWolfmedOutCoreHeat
   blockerName: wolfmed-cause-core-heat
   titleOut: wolfmed-cause-core-heat-title
   symptom: wolfmed-cause-core-heat-symptom
@@ -18,7 +18,7 @@
 # heart; read in place of Arrest's prototype for a body whose consciousness says it is heartless.
 - type: wolfmedConsciousnessCause
   id: CirculatoryCollapse
-  alertOut: WolfmedOutCollapse
+  alertOut: WFWolfmedOutCollapse
   blockerName: wolfmed-cause-collapse
   titleOut: wolfmed-cause-collapse-title
   symptom: wolfmed-cause-collapse-symptom

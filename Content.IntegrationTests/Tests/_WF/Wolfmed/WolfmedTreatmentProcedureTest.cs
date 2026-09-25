@@ -184,8 +184,8 @@ public sealed class WolfmedTreatmentProcedureTest : GameTest
     {
         Assert.Multiple(() =>
         {
-            Assert.That(WolfmedTreatmentAdvice.ProcedureId("WolfmedGunshotWound", false),
-                Is.EqualTo("WolfmedGunshotWound"));
+            Assert.That(WolfmedTreatmentAdvice.ProcedureId("WFWolfmedGunshotWound", false),
+                Is.EqualTo("WFWolfmedGunshotWound"));
             Assert.That(WolfmedTreatmentAdvice.ProcedureId("ElectricalWound", true),
                 Is.EqualTo("ElectricalWoundMechanical"));
             Assert.That(WolfmedTreatmentAdvice.ConditionProcedureId("internal-bleeding", false),

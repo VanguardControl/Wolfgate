@@ -15,54 +15,54 @@
 # reachable from the dispenser on a shift with no cargo.
 
 - type: reaction
-  id: WolfmedAnalgesic
+  id: WFWolfmedAnalgesic
   reactants:
     Ibuprofen:
       amount: 1
     Sugar:
       amount: 1
   products:
-    WolfmedAnalgesic: 2
+    WFWolfmedAnalgesic: 2
 
 - type: reaction
-  id: WolfmedOpiate
+  id: WFWolfmedOpiate
   reactants:
     Tramadol:
       amount: 1
     Ethanol:
       amount: 1
   products:
-    WolfmedOpiate: 2
+    WFWolfmedOpiate: 2
 
 - type: reaction
-  id: WolfmedStim
+  id: WFWolfmedStim
   reactants:
     Ephedrine:
       amount: 1
     Epinephrine:
       amount: 1
   products:
-    WolfmedStim: 2
+    WFWolfmedStim: 2
 
 # M2 (OD14): naloxone, the overdose's definitive fix, from two things chemistry makes from its own dispenser.
 - type: reaction
-  id: WolfmedNaloxone
+  id: WFWolfmedNaloxone
   reactants:
     Inaprovaline:
       amount: 1
     Ammonia:
       amount: 1
   products:
-    WolfmedNaloxone: 2
+    WFWolfmedNaloxone: 2
 
 # Playtest 3 IPC 2: hydraulic fluid, a silicone oil that does not burn, from oil and silicon off the dispenser. A chassis
 # runs on it now, so chemistry can make a refill without cargo.
 - type: reaction
-  id: WolfmedHydraulicFluid
+  id: WFWolfmedHydraulicFluid
   reactants:
     Oil:
       amount: 1
     Silicon:
       amount: 1
   products:
-    WolfmedHydraulicFluid: 2
+    WFWolfmedHydraulicFluid: 2

@@ -1,47 +1,47 @@
 # The autodoc's library. The base program ships on the machine; the other four need their disk in the slot.
 
 - type: autodocProgram
-  id: WolfmedAutodocProgramBase
+  id: WFWolfmedAutodocProgramBase
   name: wolfmed-autodoc-program-base
   surgeries:
   # Getting in and out.
   - SurgeryOpenIncision
   - SurgeryOpenRibcage
   - SurgeryCloseIncision
-  - SurgeryCloseEvisceration
+  - WFSurgeryCloseEvisceration
   # Tending.
   - SurgeryTendWoundsBrute
   - SurgeryTendWoundsBurn
-  - SurgeryTendWoundsBruteDeep
-  - SurgeryTendWoundsBurnDeep
-  - SurgeryGraftSkin
+  - WFSurgeryTendWoundsBruteDeep
+  - WFSurgeryTendWoundsBurnDeep
+  - WFSurgeryGraftSkin
   # Bleeding.
-  - SurgeryStopBleeding
-  - SurgeryStopInternalBleeding
-  - SurgeryRepairArtery
-  - SurgeryRepairTendon
+  - WFSurgeryStopBleeding
+  - WFSurgeryStopInternalBleeding
+  - WFSurgeryRepairArtery
+  - WFSurgeryRepairTendon
   # Bone and joints.
-  - SurgeryMendFracture
-  - SurgeryHealAmputationConsequence
-  - SurgeryRelocateJoint
+  - WFSurgeryMendFracture
+  - WFSurgeryHealAmputationConsequence
+  - WFSurgeryRelocateJoint
   # What is still stuck in the patient. Blocks every other treatment on its part until it is out.
-  - SurgeryRemoveEmbeddedObjects
+  - WFSurgeryRemoveEmbeddedObjects
   # Organ repair in place. Removal and insertion need the transplant disk.
-  - SurgeryHealHeart
-  - SurgeryHealLungs
-  - SurgeryHealLiver
-  - SurgeryHealStomach
-  - SurgeryHealKidneys
+  - WFSurgeryHealHeart
+  - WFSurgeryHealLungs
+  - WFSurgeryHealLiver
+  - WFSurgeryHealStomach
+  - WFSurgeryHealKidneys
   # Mechanical.
-  - SurgeryWeldChassisBreach
-  - SurgeryWeldChassis
-  - SurgeryRewireChassis
-  - SurgeryReplaceServo
+  - WFSurgeryWeldChassisBreach
+  - WFSurgeryWeldChassis
+  - WFSurgeryRewireChassis
+  - WFSurgeryReplaceServo
   # Last resort.
   - SurgeryRemovePart
 
 - type: autodocProgram
-  id: WolfmedAutodocProgramTransplant
+  id: WFWolfmedAutodocProgramTransplant
   name: wolfmed-autodoc-program-transplant
   surgeries:
   - SurgeryRemoveHeart
@@ -55,7 +55,7 @@
   - SurgeryInsertPump
 
 - type: autodocProgram
-  id: WolfmedAutodocProgramLimb
+  id: WFWolfmedAutodocProgramLimb
   name: wolfmed-autodoc-program-limb
   surgeries:
   - SurgeryAttachLeftArm
@@ -69,7 +69,7 @@
   - SurgeryAttachHands
 
 - type: autodocProgram
-  id: WolfmedAutodocProgramNeuro
+  id: WFWolfmedAutodocProgramNeuro
   name: wolfmed-autodoc-program-neuro
   surgeries:
   - SurgeryAttachHead
@@ -79,15 +79,15 @@
   - SurgeryInsertBorgBrain
   - SurgeryRemoveEyes
   - SurgeryInsertEyes
-  - SurgeryHealBrain
-  - SurgeryRepairBrain
-  - SurgeryHealEyes
+  - WFSurgeryHealBrain
+  - WFSurgeryRepairBrain
+  - WFSurgeryHealEyes
   # M6: a machine's core, the positronic brain's repair (OD10). The IPC's is in the chassis, a synth's in the head.
-  - SurgeryRepairCore
-  - SurgeryRepairSynthCore
+  - WFSurgeryRepairCore
+  - WFSurgeryRepairSynthCore
 
 - type: autodocProgram
-  id: WolfmedAutodocProgramCavity
+  id: WFWolfmedAutodocProgramCavity
   name: wolfmed-autodoc-program-cavity
   surgeries:
   - SurgeryInsertItem
@@ -116,47 +116,47 @@
   antibiotic: 15
 
 - type: autodocProcedure
-  id: SurgeryWeldChassisBreach
+  id: WFSurgeryWeldChassisBreach
   anaesthetic: 0
   antibiotic: 0
 
 - type: autodocProcedure
-  id: SurgeryReplaceServo
+  id: WFSurgeryReplaceServo
   anaesthetic: 0
   antibiotic: 0
 
 # Playtest 3 IPC 2: a welder and a coil from the outside. Nothing is opened, so nothing is dosed.
 - type: autodocProcedure
-  id: SurgeryWeldChassis
+  id: WFSurgeryWeldChassis
   anaesthetic: 0
   antibiotic: 0
 
 - type: autodocProcedure
-  id: SurgeryRewireChassis
+  id: WFSurgeryRewireChassis
   anaesthetic: 0
   antibiotic: 0
 
 # M6: a chassis has no blood to dose.
 - type: autodocProcedure
-  id: SurgeryRepairCore
+  id: WFSurgeryRepairCore
   anaesthetic: 0
   antibiotic: 0
 
 - type: autodocProcedure
-  id: SurgeryRepairSynthCore
+  id: WFSurgeryRepairSynthCore
   anaesthetic: 0
   antibiotic: 0
 
 # The whole administrable list. A reagent that is not here is left in the beaker, whatever it is.
 
 - type: autodocReagents
-  id: WolfmedAutodocReagents
+  id: WFWolfmedAutodocReagents
   reagents:
-  - reagent: WolfmedOpiate
+  - reagent: WFWolfmedOpiate
     role: Anaesthetic
-  - reagent: WolfmedAnalgesic
+  - reagent: WFWolfmedAnalgesic
     role: Anaesthetic
-  - reagent: WolfmedStim
+  - reagent: WFWolfmedStim
     role: Fluid
   - reagent: Spaceacillin
     role: Antibiotic
@@ -167,7 +167,7 @@
   - reagent: Blood
     role: Fluid
   # Playtest 3 IPC 2: a chassis's own fluid, and only a chassis's. Oil is not on the list, so an oil pack stays put.
-  - reagent: WolfmedHydraulicFluid
+  - reagent: WFWolfmedHydraulicFluid
     role: Fluid
     machine: true
   - reagent: Dexalin

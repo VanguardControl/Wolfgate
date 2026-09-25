@@ -112,5 +112,5 @@ public sealed partial class WolfmedTourniquetComponent : Component
 {
     /// <summary>Played at the patient when the strap comes off.</summary>
     [DataField]
-    public SoundSpecifier? LoosenSound = new SoundCollectionSpecifier("WolfmedClothUnwrap");
+    public SoundSpecifier? LoosenSound = new SoundCollectionSpecifier("WFWolfmedClothUnwrap");
 }

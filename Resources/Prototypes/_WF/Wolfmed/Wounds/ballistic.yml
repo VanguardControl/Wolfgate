@@ -7,7 +7,7 @@
 # WolfmedEmbeddedObject, and from that moment they heal and clot like any other puncture.
 
 - type: wound
-  id: WolfmedGrazeWound
+  id: WFWolfmedGrazeWound
   name: wolfmed-wound-name-graze
   analyzerCategory: Ballistic
   ruleOnly: true
@@ -35,7 +35,7 @@
         clottingMultiplier: 0.4
 
 - type: wound
-  id: WolfmedGunshotWound
+  id: WFWolfmedGunshotWound
   name: wolfmed-wound-name-gunshot
   analyzerCategory: Ballistic
   ruleOnly: true
@@ -90,7 +90,7 @@
         minimumSeverity: 5
 
 - type: wound
-  id: WolfmedLodgedRoundWound
+  id: WFWolfmedLodgedRoundWound
   name: wolfmed-wound-name-lodged-round
   analyzerCategory: Ballistic
   ruleOnly: true
@@ -103,7 +103,7 @@
   behaviors:
   # With the round out it is an ordinary gunshot wound, and is treated as one.
   - !type:WolfmedClearedWoundBehavior
-    wound: WolfmedGunshotWound
+    wound: WFWolfmedGunshotWound
   # W5: infection risk. A round still in the wound is a source of contamination, not just an object.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 2.2
@@ -142,7 +142,7 @@
         clottingMultiplier: 0
 
 - type: wound
-  id: WolfmedShrapnelWound
+  id: WFWolfmedShrapnelWound
   name: wolfmed-wound-name-shrapnel
   analyzerCategory: Ballistic
   ruleOnly: true

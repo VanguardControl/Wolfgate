@@ -54,30 +54,30 @@ public sealed class WolfmedWoundSfxTest : GameTest
             {
                 // Bone first: a fracture is a Blunt wound and must not answer with the bruise sound.
                 Assert.That(Collection(profile, prototypes, "BoneFractureWound", organic: true, 40),
-                    Is.EqualTo("WolfmedWoundBone"));
-                Assert.That(Collection(profile, prototypes, "WolfmedDislocationWound", organic: true, 40),
-                    Is.EqualTo("WolfmedWoundBone"));
+                    Is.EqualTo("WFWolfmedWoundBone"));
+                Assert.That(Collection(profile, prototypes, "WFWolfmedDislocationWound", organic: true, 40),
+                    Is.EqualTo("WFWolfmedWoundBone"));
                 Assert.That(Collection(profile, prototypes, "CyberneticFrameFractureWound", organic: false, 40),
-                    Is.EqualTo("WolfmedWoundFrame"));
+                    Is.EqualTo("WFWolfmedWoundFrame"));
 
                 // Flesh, by cause.
                 Assert.That(Collection(profile, prototypes, "SlashWound", organic: true, 30),
-                    Is.EqualTo("WolfmedWoundFlesh"));
-                Assert.That(Collection(profile, prototypes, "WolfmedGunshotWound", organic: true, 30),
-                    Is.EqualTo("WolfmedWoundPierce"));
+                    Is.EqualTo("WFWolfmedWoundFlesh"));
+                Assert.That(Collection(profile, prototypes, "WFWolfmedGunshotWound", organic: true, 30),
+                    Is.EqualTo("WFWolfmedWoundPierce"));
                 Assert.That(Collection(profile, prototypes, "BurnWound", organic: true, 30),
-                    Is.EqualTo("WolfmedWoundBurn"));
+                    Is.EqualTo("WFWolfmedWoundBurn"));
                 Assert.That(Collection(profile, prototypes, "BluntWound", organic: true, 30),
-                    Is.EqualTo("WolfmedWoundBlunt"));
+                    Is.EqualTo("WFWolfmedWoundBlunt"));
 
                 // The same wound ids never reach a chassis, but the tissue filter is what proves the
                 // selector is reading the part and not the wound: a chassis answers with metal.
-                Assert.That(Collection(profile, prototypes, "WolfmedDentWound", organic: false, 30),
-                    Is.EqualTo("WolfmedWoundChassis"));
-                Assert.That(Collection(profile, prototypes, "WolfmedShortCircuitWound", organic: false, 30),
-                    Is.EqualTo("WolfmedWoundShock"));
-                Assert.That(Collection(profile, prototypes, "WolfmedBreachWound", organic: false, 30),
-                    Is.EqualTo("WolfmedWoundChassis"));
+                Assert.That(Collection(profile, prototypes, "WFWolfmedDentWound", organic: false, 30),
+                    Is.EqualTo("WFWolfmedWoundChassis"));
+                Assert.That(Collection(profile, prototypes, "WFWolfmedShortCircuitWound", organic: false, 30),
+                    Is.EqualTo("WFWolfmedWoundShock"));
+                Assert.That(Collection(profile, prototypes, "WFWolfmedBreachWound", organic: false, 30),
+                    Is.EqualTo("WFWolfmedWoundChassis"));
 
                 // A bruise below the entry's own floor says nothing at all.
                 Assert.That(profile.GetWoundSound("BluntWound", prototypes.Index<WoundPrototype>("BluntWound"),
@@ -125,13 +125,13 @@ public sealed class WolfmedWoundSfxTest : GameTest
             {
                 // Organic tiers are keyed on the bleed increase now, and hitSplatter.minBleedIncrease is the floor,
                 // so the smallest tier starts at nothing.
-                Assert.That(profile.GetDebris(true, FixedPoint2.New(1))?.Id, Is.EqualTo("WolfmedBloodMistSmall"));
-                Assert.That(profile.GetDebris(true, FixedPoint2.New(8))?.Id, Is.EqualTo("WolfmedBloodMistMedium"));
-                Assert.That(profile.GetDebris(true, FixedPoint2.New(60))?.Id, Is.EqualTo("WolfmedBloodMistLarge"));
+                Assert.That(profile.GetDebris(true, FixedPoint2.New(1))?.Id, Is.EqualTo("WFWolfmedBloodMistSmall"));
+                Assert.That(profile.GetDebris(true, FixedPoint2.New(8))?.Id, Is.EqualTo("WFWolfmedBloodMistMedium"));
+                Assert.That(profile.GetDebris(true, FixedPoint2.New(60))?.Id, Is.EqualTo("WFWolfmedBloodMistLarge"));
 
                 Assert.That(profile.GetDebris(false, FixedPoint2.New(1)), Is.Null);
-                Assert.That(profile.GetDebris(false, FixedPoint2.New(5))?.Id, Is.EqualTo("WolfmedSparkBurstSmall"));
-                Assert.That(profile.GetDebris(false, FixedPoint2.New(60))?.Id, Is.EqualTo("WolfmedSparkBurstLarge"));
+                Assert.That(profile.GetDebris(false, FixedPoint2.New(5))?.Id, Is.EqualTo("WFWolfmedSparkBurstSmall"));
+                Assert.That(profile.GetDebris(false, FixedPoint2.New(60))?.Id, Is.EqualTo("WFWolfmedSparkBurstLarge"));
 
                 // Every debris entity is cheap: a sprite and a clock, nothing that ticks.
                 foreach (var tier in profile.OrganicDebris.Concat(profile.MechanicalDebris))
@@ -338,11 +338,11 @@ public sealed class WolfmedWoundSfxTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Id(profile.OrganicDismemberment.Sound!), Is.EqualTo("WolfmedDismemberOrganic"),
+                Assert.That(Id(profile.OrganicDismemberment.Sound!), Is.EqualTo("WFWolfmedDismemberOrganic"),
                     "flesh tears.");
-                Assert.That(Id(profile.MechanicalDismemberment.Sound!), Is.EqualTo("WolfmedDismemberMechanical"),
+                Assert.That(Id(profile.MechanicalDismemberment.Sound!), Is.EqualTo("WFWolfmedDismemberMechanical"),
                     "a chassis shears.");
-                Assert.That(profile.MechanicalDismemberment.Effect?.Id, Does.StartWith("WolfmedSparkBurst"));
+                Assert.That(profile.MechanicalDismemberment.Effect?.Id, Does.StartWith("WFWolfmedSparkBurst"));
             });
 
             // The spill is the body's own reagent. Asserted through the public helper so the puddle is
@@ -384,7 +384,7 @@ public sealed class WolfmedWoundSfxTest : GameTest
         await server.WaitAssertion(() =>
         {
             var cautery = prototypes.Index<WolfmedCauteryProfilePrototype>(WolfmedCauterySystem.DefaultProfile);
-            var dislocation = prototypes.Index<WoundPrototype>("WolfmedDislocationWound");
+            var dislocation = prototypes.Index<WoundPrototype>("WFWolfmedDislocationWound");
             Assert.That(dislocation.TryGetBehavior(FixedPoint2.New(40), out WolfmedDislocationBehavior relocate),
                 Is.True);
 
@@ -494,9 +494,9 @@ public sealed class WolfmedWoundSfxTest : GameTest
         var query = entities.EntityQueryEnumerator<TimedDespawnComponent, MetaDataComponent>();
         while (query.MoveNext(out var uid, out _, out var meta))
         {
-            if (meta.EntityPrototype?.ID.StartsWith("WolfmedBloodMist") == true ||
-                meta.EntityPrototype?.ID.StartsWith("WolfmedHitSplatter") == true ||
-                meta.EntityPrototype?.ID.StartsWith("WolfmedSparkBurst") == true)
+            if (meta.EntityPrototype?.ID.StartsWith("WFWolfmedBloodMist") == true ||
+                meta.EntityPrototype?.ID.StartsWith("WFWolfmedHitSplatter") == true ||
+                meta.EntityPrototype?.ID.StartsWith("WFWolfmedSparkBurst") == true)
                 found.Add(uid);
         }
 

@@ -4,8 +4,8 @@
 
 - type: wolfmedConsciousnessCause
   id: Pain
-  alertDowned: WolfmedDownedPain
-  alertDownedMechanical: WolfmedDownedFrame
+  alertDowned: WFWolfmedDownedPain
+  alertDownedMechanical: WFWolfmedDownedFrame
   blockerName: wolfmed-cause-pain
   symptom: wolfmed-cause-pain-symptom
   help: wolfmed-cause-pain-help
@@ -17,7 +17,7 @@
 
 - type: wolfmedConsciousnessCause
   id: PainFaint
-  alertOut: WolfmedFaintPain
+  alertOut: WFWolfmedFaintPain
   blockerName: wolfmed-cause-pain-faint
   titleOut: wolfmed-cause-pain-faint-title
   symptom: wolfmed-cause-pain-faint-symptom
@@ -29,8 +29,8 @@
 
 - type: wolfmedConsciousnessCause
   id: Blood
-  alertDowned: WolfmedDownedBlood
-  alertOut: WolfmedOutBlood
+  alertDowned: WFWolfmedDownedBlood
+  alertOut: WFWolfmedOutBlood
   blockerName: wolfmed-cause-blood
   symptom: wolfmed-cause-blood-symptom
   help: wolfmed-cause-blood-help
@@ -43,8 +43,8 @@
 
 - type: wolfmedConsciousnessCause
   id: Oil
-  alertDowned: WolfmedDownedOil
-  alertOut: WolfmedOutOil
+  alertDowned: WFWolfmedDownedOil
+  alertOut: WFWolfmedOutOil
   blockerName: wolfmed-cause-oil
   titleOut: wolfmed-cause-oil-title-out
   symptom: wolfmed-cause-oil-symptom
@@ -59,8 +59,8 @@
 
 - type: wolfmedConsciousnessCause
   id: Hypoxia
-  alertDowned: WolfmedDownedHypoxia
-  alertOut: WolfmedOutHypoxia
+  alertDowned: WFWolfmedDownedHypoxia
+  alertOut: WFWolfmedOutHypoxia
   blockerName: wolfmed-cause-hypoxia
   titleDowned: wolfmed-cause-hypoxia-title-downed
   symptom: wolfmed-cause-hypoxia-symptom
@@ -81,8 +81,8 @@
 
 - type: wolfmedConsciousnessCause
   id: Sedation
-  alertDowned: WolfmedDownedSedation
-  alertOut: WolfmedOutSedation
+  alertDowned: WFWolfmedDownedSedation
+  alertOut: WFWolfmedOutSedation
   blockerName: wolfmed-cause-sedation
   titleDowned: wolfmed-cause-sedation-title-downed
   symptom: wolfmed-cause-sedation-symptom
@@ -96,7 +96,7 @@
 
 - type: wolfmedConsciousnessCause
   id: Legs
-  alertDowned: WolfmedDownedLegs
+  alertDowned: WFWolfmedDownedLegs
   blockerName: wolfmed-cause-legs
   symptom: wolfmed-cause-legs-symptom
   help: wolfmed-cause-legs-help
@@ -106,7 +106,7 @@
 
 - type: wolfmedConsciousnessCause
   id: Crash
-  alertDowned: WolfmedDownedCrash
+  alertDowned: WFWolfmedDownedCrash
   blockerName: wolfmed-cause-crash
   symptom: wolfmed-cause-crash-symptom
   help: wolfmed-cause-crash-help
@@ -115,7 +115,7 @@
 
 - type: wolfmedConsciousnessCause
   id: Arrest
-  alertOut: WolfmedOutArrest
+  alertOut: WFWolfmedOutArrest
   blockerName: wolfmed-cause-arrest
   titleOut: wolfmed-cause-arrest-title
   symptom: wolfmed-cause-arrest-symptom
@@ -136,7 +136,7 @@
 
 - type: wolfmedConsciousnessCause
   id: Shutdown
-  alertOut: WolfmedOutShutdown
+  alertOut: WFWolfmedOutShutdown
   blockerName: wolfmed-cause-shutdown
   titleOut: wolfmed-cause-shutdown-title
   symptom: wolfmed-cause-shutdown-symptom

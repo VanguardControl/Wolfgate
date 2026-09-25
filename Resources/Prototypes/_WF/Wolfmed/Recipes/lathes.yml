@@ -2,8 +2,8 @@
 # to make more than the two the surgical crate ships. Costed beside Ointment and Gauze in the same pack.
 
 - type: latheRecipe
-  id: WolfmedSkinGraft
-  result: WolfmedSkinGraft
+  id: WFWolfmedSkinGraft
+  result: WFWolfmedSkinGraft
   completetime: 2
   materials:
     Plastic: 50

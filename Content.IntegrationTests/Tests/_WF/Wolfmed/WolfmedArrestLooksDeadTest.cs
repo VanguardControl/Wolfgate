@@ -165,7 +165,7 @@ public sealed class WolfmedArrestLooksDeadTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(protos.TryIndex<HealthIconPrototype>("HealthIconWolfmedArrest", out var icon), Is.True,
+            Assert.That(protos.TryIndex<HealthIconPrototype>("WFHealthIconWolfmedArrest", out var icon), Is.True,
                 "the arrest HUD icon prototype is missing.");
 
             Assert.That(icon!.Icon, Is.InstanceOf<SpriteSpecifier.Rsi>());

@@ -27,7 +27,7 @@ namespace Content.IntegrationTests.Tests._Onyx.Wounds;
 /// <list type="bullet">
 /// <item>SurgicalHealRemovesConsequenceAndUnblocksTest - RESTORED. Phase 3's skip was correct only while
 /// D7 left Onyx's surgery out and nothing could clear the wound; WP12-4/WP12-5 re-expressed the cure on
-/// Shitmed's step system (WolfmedSurgeryTreatWoundEffect + SurgeryHealAmputationConsequence) and HOOK 25
+/// Shitmed's step system (WolfmedSurgeryTreatWoundEffect + WFSurgeryHealAmputationConsequence) and HOOK 25
 /// made the block real. Onyx's `graph.TryAttachPart(torso, spare) Is.False` half is asserted through
 /// SurgeryValidEvent instead, because P4-D18 deliberately leaves SharedBodySystem.CanAttachPart
 /// ungated - see WolfmedReattachTest for the full block/unblock pair.</item>
@@ -259,7 +259,7 @@ public sealed class AmputationConsequenceTest : GameTest
             });
 
             // WolfmedWoundSurgeryTest's bare step carrying the same WolfmedSurgeryTreatWoundEffect that
-            // SurgeryStepHealAmputationConsequence ships with (WP12-5).
+            // WFSurgeryStepHealAmputationConsequence ships with (WP12-5).
             var step = entities.SpawnEntity("WolfmedStepHealAmputation", map.GridCoords);
             var ev = new SurgeryStepEvent(body, body, torso, new List<EntityUid>(), step);
             entities.EventBus.RaiseLocalEvent(step, ref ev);

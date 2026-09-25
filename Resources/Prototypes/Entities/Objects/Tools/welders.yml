@@ -118,11 +118,11 @@
   - type: WeldingHealing # EE IPCs
     damageContainers:
       - Silicon
-      # WOLFGATE(Wolfmed): P5-D5, PROTO S: MobIPC moves to the SiliconWolfmed container in WP13-2;
+      # WOLFGATE(Wolfmed): P5-D5, PROTO S: MobIPC moves to the WFSiliconWolfmed container in WP13-2;
       # WeldingHealableSystem gates on this list (WeldingHealableSystem.cs:33-35) and would otherwise
       # stop repairing IPCs entirely. Landed here with the other container wiring (WP13-1).
-      - SiliconWolfmed
-      - InorganicWolfmed # Attached cybernetic limbs and IPC parts.
+      - WFSiliconWolfmed
+      - WFInorganicWolfmed # Attached cybernetic limbs and IPC parts.
     fuelCost: 5
     damage:
       types:
@@ -132,7 +132,7 @@
   # WOLFGATE(Wolfmed): V124: the welder loop covers the pass; this is the seam cooling at the end of it.
   - type: WolfmedRepairSound
     endSound:
-      collection: WolfmedWoundBurn
+      collection: WFWolfmedWoundBurn
   - type: Cautery # Shitmed
     speed: 0.7
   - type: SurgeryTool # Shitmed

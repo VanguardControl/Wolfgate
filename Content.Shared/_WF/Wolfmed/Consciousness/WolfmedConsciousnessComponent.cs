@@ -188,7 +188,7 @@ public sealed partial class WolfmedDownedComponent : Component
 
     /// <summary>The Downed alert when the cause names none of its own (M1a: the condition alert system shows it).</summary>
     [DataField]
-    public ProtoId<AlertPrototype> Alert = "WolfmedDowned";
+    public ProtoId<AlertPrototype> Alert = "WFWolfmedDowned";
 
     /// <summary>The hands have already let go for this spell on the floor. One drop per Downed, not per tick.</summary>
     [ViewVariables]

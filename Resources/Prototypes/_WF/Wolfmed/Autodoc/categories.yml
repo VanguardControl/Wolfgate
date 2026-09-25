@@ -2,49 +2,49 @@
 # grouped on screen. A surgery listed nowhere lands under the fallback heading.
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryBleeding
+  id: WFWolfmedAutodocCategoryBleeding
   name: wolfmed-autodoc-category-bleeding
   note: wolfmed-autodoc-category-bleeding-note
   order: 10
   surgeries:
-  - SurgeryStopBleeding
-  - SurgeryStopInternalBleeding
-  - SurgeryRepairArtery
+  - WFSurgeryStopBleeding
+  - WFSurgeryStopInternalBleeding
+  - WFSurgeryRepairArtery
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryWounds
+  id: WFWolfmedAutodocCategoryWounds
   name: wolfmed-autodoc-category-wounds
   note: wolfmed-autodoc-category-wounds-note
   order: 20
   surgeries:
   - SurgeryTendWoundsBrute
   - SurgeryTendWoundsBurn
-  - SurgeryTendWoundsBruteDeep
-  - SurgeryTendWoundsBurnDeep
-  - SurgeryGraftSkin
-  - SurgeryRepairTendon
-  - SurgeryCloseEvisceration
+  - WFSurgeryTendWoundsBruteDeep
+  - WFSurgeryTendWoundsBurnDeep
+  - WFSurgeryGraftSkin
+  - WFSurgeryRepairTendon
+  - WFSurgeryCloseEvisceration
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryBones
+  id: WFWolfmedAutodocCategoryBones
   name: wolfmed-autodoc-category-bones
   note: wolfmed-autodoc-category-bones-note
   order: 30
   surgeries:
-  - SurgeryMendFracture
-  - SurgeryHealAmputationConsequence
+  - WFSurgeryMendFracture
+  - WFSurgeryHealAmputationConsequence
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryOrgans
+  id: WFWolfmedAutodocCategoryOrgans
   name: wolfmed-autodoc-category-organs
   note: wolfmed-autodoc-category-organs-note
   order: 40
   surgeries:
-  - SurgeryHealHeart
-  - SurgeryHealLungs
-  - SurgeryHealLiver
-  - SurgeryHealStomach
-  - SurgeryHealKidneys
+  - WFSurgeryHealHeart
+  - WFSurgeryHealLungs
+  - WFSurgeryHealLiver
+  - WFSurgeryHealStomach
+  - WFSurgeryHealKidneys
   - SurgeryRemoveHeart
   - SurgeryInsertHeart
   - SurgeryRemoveLungs
@@ -56,7 +56,7 @@
   - SurgeryInsertPump
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryNeuro
+  id: WFWolfmedAutodocCategoryNeuro
   name: wolfmed-autodoc-category-neuro
   note: wolfmed-autodoc-category-neuro-note
   order: 50
@@ -68,14 +68,14 @@
   - SurgeryInsertBorgBrain
   - SurgeryRemoveEyes
   - SurgeryInsertEyes
-  - SurgeryHealBrain
-  - SurgeryRepairBrain
-  - SurgeryHealEyes
-  - SurgeryRepairCore
-  - SurgeryRepairSynthCore
+  - WFSurgeryHealBrain
+  - WFSurgeryRepairBrain
+  - WFSurgeryHealEyes
+  - WFSurgeryRepairCore
+  - WFSurgeryRepairSynthCore
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryLimbs
+  id: WFWolfmedAutodocCategoryLimbs
   name: wolfmed-autodoc-category-limbs
   note: wolfmed-autodoc-category-limbs-note
   order: 60
@@ -92,18 +92,18 @@
   - SurgeryRemovePart
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryMechanical
+  id: WFWolfmedAutodocCategoryMechanical
   name: wolfmed-autodoc-category-mechanical
   note: wolfmed-autodoc-category-mechanical-note
   order: 70
   surgeries:
-  - SurgeryWeldChassisBreach
-  - SurgeryWeldChassis # Playtest 3 IPC 2: the hand welder's repair
-  - SurgeryRewireChassis # Playtest 3 IPC 2: the hand coil's repair
-  - SurgeryReplaceServo
+  - WFSurgeryWeldChassisBreach
+  - WFSurgeryWeldChassis # Playtest 3 IPC 2: the hand welder's repair
+  - WFSurgeryRewireChassis # Playtest 3 IPC 2: the hand coil's repair
+  - WFSurgeryReplaceServo
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryCavity
+  id: WFWolfmedAutodocCategoryCavity
   name: wolfmed-autodoc-category-cavity
   note: wolfmed-autodoc-category-cavity-note
   order: 80
@@ -111,7 +111,7 @@
   - SurgeryInsertItem
 
 - type: autodocCategory
-  id: WolfmedAutodocCategoryAccess
+  id: WFWolfmedAutodocCategoryAccess
   name: wolfmed-autodoc-category-access
   note: wolfmed-autodoc-category-access-note
   order: 90

@@ -1,7 +1,7 @@
 # Sepsis (W5). Shown while WolfmedSepsisComponent is on the body, cleared when it leaves.
 
 - type: alert
-  id: WolfmedSepsis
+  id: WFWolfmedSepsis
   icons:
   - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/sepsis.rsi
     state: sepsis
@@ -12,7 +12,7 @@
 # category: on a wound host the condition alerts replace the stock health alerts (plan §5.2).
 
 - type: alert
-  id: WolfmedDowned
+  id: WFWolfmedDowned
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -26,7 +26,7 @@
 # downed for every Downed alert, the stock critical, bleed and breathing icons for the rest.
 
 - type: alert
-  id: WolfmedDownedPain
+  id: WFWolfmedDownedPain
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -36,7 +36,7 @@
   description: alerts-wolfmed-downed-pain-desc
 
 - type: alert
-  id: WolfmedDownedFrame
+  id: WFWolfmedDownedFrame
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -46,7 +46,7 @@
   description: alerts-wolfmed-downed-frame-desc
 
 - type: alert
-  id: WolfmedFaintPain
+  id: WFWolfmedFaintPain
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -56,7 +56,7 @@
   description: alerts-wolfmed-faint-pain-desc
 
 - type: alert
-  id: WolfmedDownedBlood
+  id: WFWolfmedDownedBlood
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -66,7 +66,7 @@
   description: alerts-wolfmed-downed-blood-desc
 
 - type: alert
-  id: WolfmedOutBlood
+  id: WFWolfmedOutBlood
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -76,7 +76,7 @@
   description: alerts-wolfmed-out-blood-desc
 
 - type: alert
-  id: WolfmedDownedOil
+  id: WFWolfmedDownedOil
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -86,7 +86,7 @@
   description: alerts-wolfmed-downed-oil-desc
 
 - type: alert
-  id: WolfmedOutOil
+  id: WFWolfmedOutOil
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -96,7 +96,7 @@
   description: alerts-wolfmed-out-oil-desc
 
 - type: alert
-  id: WolfmedDownedHypoxia
+  id: WFWolfmedDownedHypoxia
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -106,7 +106,7 @@
   description: alerts-wolfmed-downed-hypoxia-desc
 
 - type: alert
-  id: WolfmedOutHypoxia
+  id: WFWolfmedOutHypoxia
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -116,7 +116,7 @@
   description: alerts-wolfmed-out-hypoxia-desc
 
 - type: alert
-  id: WolfmedDownedSedation
+  id: WFWolfmedDownedSedation
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -126,7 +126,7 @@
   description: alerts-wolfmed-downed-sedation-desc
 
 - type: alert
-  id: WolfmedOutSedation
+  id: WFWolfmedOutSedation
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -136,7 +136,7 @@
   description: alerts-wolfmed-out-sedation-desc
 
 - type: alert
-  id: WolfmedDownedLegs
+  id: WFWolfmedDownedLegs
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -146,7 +146,7 @@
   description: alerts-wolfmed-downed-legs-desc
 
 - type: alert
-  id: WolfmedDownedCrash
+  id: WFWolfmedDownedCrash
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -156,7 +156,7 @@
   description: alerts-wolfmed-downed-crash-desc
 
 - type: alert
-  id: WolfmedOutArrest
+  id: WFWolfmedOutArrest
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -166,7 +166,7 @@
   description: alerts-wolfmed-out-arrest-desc
 
 - type: alert
-  id: WolfmedOutShutdown
+  id: WFWolfmedOutShutdown
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -180,7 +180,7 @@
 # takes it off.
 
 - type: alert
-  id: WolfmedCantBreatheAir
+  id: WFWolfmedCantBreatheAir
   category: Breathing
   icons:
   - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
@@ -189,7 +189,7 @@
   description: alerts-wolfmed-cant-breathe-air-desc
 
 - type: alert
-  id: WolfmedCantBreatheLungs
+  id: WFWolfmedCantBreatheLungs
   category: Breathing
   icons:
   - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi

@@ -124,7 +124,7 @@ public sealed partial class WolfmedInfectionProfilePrototype : IPrototype
 
     /// <summary>The wound dead tissue leaves on the part.</summary>
     [DataField]
-    public ProtoId<WoundPrototype> NecrosisWound = "WolfmedNecrosisWound";
+    public ProtoId<WoundPrototype> NecrosisWound = "WFWolfmedNecrosisWound";
 
     /// <summary>Severity of that wound.</summary>
     [DataField]

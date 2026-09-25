@@ -138,7 +138,7 @@ public sealed class WolfmedVitalLimitsTest : GameTest
             body = entities.SpawnEntity("MobHuman", map.GridCoords);
             pod = Pod(entities, map);
             entities.System<Content.Shared.Containers.ItemSlots.ItemSlotsSystem>().TryInsert(pod.Owner,
-                AutodocComponent.ModuleSlotId, entities.SpawnEntity("AutodocDefibModule", map.GridCoords), null);
+                AutodocComponent.ModuleSlotId, entities.SpawnEntity("WFAutodocDefibModule", map.GridCoords), null);
             Assert.That(entities.System<AutodocSystem>().TryInsert(pod, body), Is.True);
             entities.System<MobStateSystem>().ChangeMobState(body, MobState.Dead);
         });

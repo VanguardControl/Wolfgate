@@ -32,10 +32,10 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 public sealed class WolfmedInfectionSystem : EntitySystem
 {
     /// <summary>The shipped profile. A downstream server retunes the prototype, not this file.</summary>
-    public const string DefaultProfile = "WolfmedDefaultInfection";
+    public const string DefaultProfile = "WFWolfmedDefaultInfection";
 
     /// <summary>Alert shown while the patient is septic.</summary>
-    public static readonly ProtoId<AlertPrototype> SepsisAlert = "WolfmedSepsis";
+    public static readonly ProtoId<AlertPrototype> SepsisAlert = "WFWolfmedSepsis";
 
     /// <summary>Seconds between batches. Nothing in the model needs finer resolution than this.</summary>
     private const float TickSeconds = 5f;

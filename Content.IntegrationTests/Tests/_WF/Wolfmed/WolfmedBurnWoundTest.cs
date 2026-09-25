@@ -60,14 +60,14 @@ public sealed class WolfmedBurnWoundTest : GameTest
             // Two moderate burns: 60 severity is short of the critical stage at 80.
             Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
             Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
-            Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WolfmedCharringWound"),
+            Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WFWolfmedCharringWound"),
                 "a burn short of its top stage has not killed anything yet.");
 
             // The third crosses it.
             Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
-            Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedCharringWound"));
+            Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedCharringWound"));
 
-            var charring = FindWound(entities, wounds, torso, "WolfmedCharringWound");
+            var charring = FindWound(entities, wounds, torso, "WFWolfmedCharringWound");
             var severity = entities.GetComponent<WoundComponent>(charring).Severity;
 
             // Staying in the top stage does not char again; the crossing is what counts.
@@ -87,14 +87,14 @@ public sealed class WolfmedBurnWoundTest : GameTest
             // The graft step treats it outright, which is the whole of the surgery's effect.
             Assert.Multiple(() =>
             {
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WolfmedSkinGraft"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryStepGraftSkin"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("SurgeryGraftSkin"));
-                Assert.That(prototypes.Index<WoundPrototype>("WolfmedCharringWound").DamageTypes, Is.Empty);
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFWolfmedSkinGraft"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryStepGraftSkin"));
+                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryGraftSkin"));
+                Assert.That(prototypes.Index<WoundPrototype>("WFWolfmedCharringWound").DamageTypes, Is.Empty);
             });
 
             wounds.TreatWound(charring, FixedPoint2.MaxValue);
-            Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WolfmedCharringWound"));
+            Assert.That(Prototypes(entities, wounds, torso), Does.Not.Contain("WFWolfmedCharringWound"));
         });
     }
 
@@ -120,7 +120,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
                 Damage(entities, body, TargetBodyPart.Torso, "Heat", 30);
 
             var burn = FindWound(entities, wounds, torso, "BurnWound");
-            var charring = FindWound(entities, wounds, torso, "WolfmedCharringWound");
+            var charring = FindWound(entities, wounds, torso, "WFWolfmedCharringWound");
             Assert.That(entities.GetComponent<WoundComponent>(burn).Severity, Is.EqualTo(FixedPoint2.New(200)),
                 "the burn is not at its maximum, so the test proves nothing.");
             var before = entities.GetComponent<WoundComponent>(charring).Severity;
@@ -160,7 +160,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
             Damage(entities, nicked, TargetBodyPart.Torso, "Slash", 24);
 
             var nickedTorso = Part(entities, nicked, BodyPartType.Torso);
-            var nick = FindWound(entities, wounds, nickedTorso, "WolfmedArterialBleedWound");
+            var nick = FindWound(entities, wounds, nickedTorso, "WFWolfmedArterialBleedWound");
             Assert.Multiple(() =>
             {
                 Assert.That(entities.GetComponent<WoundComponent>(nick).Severity, Is.EqualTo(FixedPoint2.New(12)));
@@ -186,7 +186,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
             Damage(entities, severed, TargetBodyPart.Torso, "Slash", 30);
 
             var severedTorso = Part(entities, severed, BodyPartType.Torso);
-            var artery = FindWound(entities, wounds, severedTorso, "WolfmedArterialBleedWound");
+            var artery = FindWound(entities, wounds, severedTorso, "WFWolfmedArterialBleedWound");
             Assert.That(entities.GetComponent<WoundComponent>(artery).Severity, Is.EqualTo(FixedPoint2.New(15)));
 
             Damage(entities, severed, TargetBodyPart.Torso, "Heat", 20);
@@ -229,7 +229,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedFrostbiteWound")
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedFrostbiteWound")
                         .And.Not.Contain("BurnWound"),
                     "cold freezes; the frostbite takes the burn wound's place.");
                 Assert.That(entities.HasComponent<WolfmedFrostbiteComponent>(torso), Is.True);
@@ -257,7 +257,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
             });
 
             // Thawed out: the wound goes, the flag goes with it, and the numbness is left to fade.
-            var wound = FindWound(entities, wounds, torso, "WolfmedFrostbiteWound");
+            var wound = FindWound(entities, wounds, torso, "WFWolfmedFrostbiteWound");
             wounds.RemoveWound(wound);
             Assert.Multiple(() =>
             {
@@ -291,7 +291,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedChemicalBurnWound")
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedChemicalBurnWound")
                         .And.Not.Contain("BurnWound"),
                     "acid that is still working is its own wound.");
                 Assert.That(entities.HasComponent<WolfmedChemicalBurnComponent>(torso), Is.True);
@@ -312,7 +312,7 @@ public sealed class WolfmedBurnWoundTest : GameTest
             {
                 Assert.That(Damage(entities, torso, "Caustic"), Is.EqualTo(washed),
                     "and stops once the patient is rinsed.");
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedChemicalBurnWound"),
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedChemicalBurnWound"),
                     "the burn itself stays and heals like any other.");
                 Assert.That(residue.Wash(body), Is.Zero);
             });
@@ -344,12 +344,12 @@ public sealed class WolfmedBurnWoundTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WolfmedInternalBurnWound")
+                Assert.That(Prototypes(entities, wounds, torso), Does.Contain("WFWolfmedInternalBurnWound")
                         .And.Contain("ElectricalWound"),
                     "the mark on the skin and the damage along the path are two findings.");
                 // severityMultiplier 0.6: 40 Shock is a moderate internal burn.
                 Assert.That(entities.GetComponent<WoundComponent>(
-                        FindWound(entities, wounds, torso, "WolfmedInternalBurnWound")).Severity,
+                        FindWound(entities, wounds, torso, "WFWolfmedInternalBurnWound")).Severity,
                     Is.EqualTo(FixedPoint2.New(24)));
             });
 

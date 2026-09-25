@@ -38,7 +38,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
     private const string Prototypes = @"
 - type: entity
   id: WolfmedFixesAutodoc
-  parent: MachineAutodoc
+  parent: WFMachineAutodoc
   suffix: playtest fixes
   components:
   - type: Autodoc
@@ -134,7 +134,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
 
             var pod = Pod(entities, map);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.ModuleSlotId,
-                entities.SpawnEntity("AutodocDefibModule", map.GridCoords), null), Is.True);
+                entities.SpawnEntity("WFAutodocDefibModule", map.GridCoords), null), Is.True);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.ReservoirSlotIds[0],
                 entities.SpawnEntity("WolfmedFixesBloodJug", map.GridCoords), null), Is.True);
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
@@ -176,7 +176,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
 
             pod = Pod(entities, map);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.AutofixSlotId,
-                entities.SpawnEntity("AutodocAutofixModule", map.GridCoords), null), Is.True);
+                entities.SpawnEntity("WFAutodocAutofixModule", map.GridCoords), null), Is.True);
             autodoc.SetAuto(pod, true);
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
         });
@@ -248,8 +248,8 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
 
     /// <summary>A procedure whose only reason to run is a wound, which is what the pod leaves behind it.</summary>
     private static bool IsWoundWork(EntProtoId surgery) =>
-        surgery.Id.StartsWith("SurgeryTendWounds") || surgery.Id == "SurgeryStopBleeding" ||
-        surgery.Id == "SurgeryGraftSkin";
+        surgery.Id.Contains("SurgeryTendWounds") || surgery.Id == "WFSurgeryStopBleeding" ||
+        surgery.Id == "WFSurgeryGraftSkin";
 
     /// <summary>
     /// Repairing a brain means operating on a corpse, which is the whole point of the procedure. The pod
@@ -278,7 +278,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
 
             pod = Pod(entities, map);
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.DiskSlotId,
-                entities.SpawnEntity("AutodocProgramDiskNeuro", map.GridCoords), null), Is.True);
+                entities.SpawnEntity("WFAutodocProgramDiskNeuro", map.GridCoords), null), Is.True);
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
         });
 
@@ -289,7 +289,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(entities.System<MobStateSystem>().IsDead(body), Is.True,
                 "the fixture needs a brain-dead patient.");
-            Assert.That(autodoc.TryQueue(pod, "SurgeryRepairBrain", TargetBodyPart.Head), Is.True);
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryRepairBrain", TargetBodyPart.Head), Is.True);
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
 
@@ -338,7 +338,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
+            Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
             Assert.That(autodoc.TryStart(pod, null), Is.True);
             Assert.That(pod.Comp.OccupantWasDead, Is.False, "the fixture needs a living patient.");
         });
@@ -401,7 +401,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         {
             var autodoc = entities.System<AutodocSystem>();
             foreach (var target in new[] { TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg, TargetBodyPart.LeftArm })
-                Assert.That(autodoc.TryQueue(pod, "SurgeryMendFracture", target), Is.True);
+                Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", target), Is.True);
 
             var order = pod.Comp.Queue.Select(queued => queued.Part).ToList();
             Assert.That(autodoc.TryMoveQueued(pod, 1, true), Is.True, "an idle queue refused a swap.");

@@ -527,7 +527,7 @@ public sealed class WolfmedAnalyzerTest : GameTest
             // `ruleOnly` gates only the default per-damage-type pass; a direct create is still allowed,
             // which is what lets this assert the ballistic wound without firing a gun.
             Assert.That(wounds.CreateOrMergeWound(
-                Part(human, BodyPartType.Arm, BodyPartSymmetry.Left), "WolfmedGunshotWound", 20), Is.Not.Null);
+                Part(human, BodyPartType.Arm, BodyPartSymmetry.Left), "WFWolfmedGunshotWound", 20), Is.Not.Null);
             // BurnWound declares no analyzerCategory at all: Heat in its damageTypes is what makes it a burn.
             Assert.That(wounds.CreateOrMergeWound(Part(human, BodyPartType.Head), "BurnWound", 20), Is.Not.Null);
 

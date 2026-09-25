@@ -25,7 +25,7 @@
       - id: PillCanisterDermaline
       # WOLFGATE(Wolfmed): W7: charring is a burn and nothing else in this kit reaches it. Five entries in an
       # eight-cell grid - WolfmedAvailabilityTest spawns the kit so an overflow fails a test, not a round.
-      - id: WolfmedSkinGraft
+      - id: WFWolfmedSkinGraft
 
 - type: entity
   id: MedkitBruteFilled
@@ -40,7 +40,7 @@
       - id: PillCanisterCopper
       # WOLFGATE(Wolfmed): V5: bones break from blunt force, which is what this kit is for. Five entries in an
       # eight-cell grid - WolfmedAvailabilityTest spawns the kit so an overflow fails a test, not a round.
-      - id: WolfmedSplint
+      - id: WFWolfmedSplint
 
 - type: entity
   id: MedkitToxinFilled

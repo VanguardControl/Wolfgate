@@ -2,7 +2,7 @@
 
 - type: entity
   parent: CrateMedical
-  id: CrateWolfmedDebug
+  id: WFCrateWolfmedDebug
   name: wolfmed debug crate
   suffix: DEBUG
   description: Every item, tool and drug that treats a wound. For testing.
@@ -25,11 +25,11 @@
       amount: 3
     - id: MedicalPatchMakeshift
       amount: 3
-    - id: WolfmedSplint
+    - id: WFWolfmedSplint
       amount: 3
-    - id: WolfmedSplintImprovised
+    - id: WFWolfmedSplintImprovised
       amount: 2
-    - id: WolfmedSkinGraft
+    - id: WFWolfmedSkinGraft
       amount: 3
     # Surgery
     - id: Scalpel
@@ -47,9 +47,9 @@
     - id: CableApcStack
     - id: Wrench
     - id: NaniteApplicator
-    - id: WolfmedHydraulicFluidPack
+    - id: WFWolfmedHydraulicFluidPack
     # Washing and cleaning
-    - id: WolfmedAntisepticSpray
+    - id: WFWolfmedAntisepticSpray
       amount: 2
     - id: SprayBottleWater
     - id: SprayBottleSpaceCleaner
@@ -60,20 +60,20 @@
     - id: SpaceacillinChemistryBottle
       amount: 2
     - id: EthanolChemistryBottle
-    - id: WolfmedDebugBottleOsteogen
-    - id: WolfmedDebugBottleIbuprofen
-    - id: WolfmedDebugBottleTramadol
-    - id: WolfmedDebugBottleKetorolac
-    - id: WolfmedDebugBottleOxycodone
-    - id: WolfmedAnalgesicPill
+    - id: WFWolfmedDebugBottleOsteogen
+    - id: WFWolfmedDebugBottleIbuprofen
+    - id: WFWolfmedDebugBottleTramadol
+    - id: WFWolfmedDebugBottleKetorolac
+    - id: WFWolfmedDebugBottleOxycodone
+    - id: WFWolfmedAnalgesicPill
       amount: 3
-    - id: WolfmedOpiateChemistryBottle
-    - id: WolfmedStimPen
+    - id: WFWolfmedOpiateChemistryBottle
+    - id: WFWolfmedStimPen
       amount: 2
 
 - type: entity
   parent: BaseChemistryBottleFilled
-  id: WolfmedDebugBottleOsteogen
+  id: WFWolfmedDebugBottleOsteogen
   suffix: DEBUG, osteogen
   categories: [ HideSpawnMenu ]
   components:
@@ -89,7 +89,7 @@
 
 - type: entity
   parent: BaseChemistryBottleFilled
-  id: WolfmedDebugBottleIbuprofen
+  id: WFWolfmedDebugBottleIbuprofen
   suffix: DEBUG, ibuprofen
   categories: [ HideSpawnMenu ]
   components:
@@ -105,7 +105,7 @@
 
 - type: entity
   parent: BaseChemistryBottleFilled
-  id: WolfmedDebugBottleTramadol
+  id: WFWolfmedDebugBottleTramadol
   suffix: DEBUG, tramadol
   categories: [ HideSpawnMenu ]
   components:
@@ -121,7 +121,7 @@
 
 - type: entity
   parent: BaseChemistryBottleFilled
-  id: WolfmedDebugBottleKetorolac
+  id: WFWolfmedDebugBottleKetorolac
   suffix: DEBUG, ketorolac
   categories: [ HideSpawnMenu ]
   components:
@@ -137,7 +137,7 @@
 
 - type: entity
   parent: BaseChemistryBottleFilled
-  id: WolfmedDebugBottleOxycodone
+  id: WFWolfmedDebugBottleOxycodone
   suffix: DEBUG, oxycodone
   categories: [ HideSpawnMenu ]
   components:

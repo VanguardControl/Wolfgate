@@ -2,7 +2,7 @@
 # each replaces the last. Placeholder icons (art debt), as the M1a ones are.
 
 - type: alert
-  id: WolfmedFaintHeadBlow
+  id: WFWolfmedFaintHeadBlow
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -12,7 +12,7 @@
   description: alerts-wolfmed-faint-head-blow-desc
 
 - type: alert
-  id: WolfmedDownedBrain
+  id: WFWolfmedDownedBrain
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:
@@ -22,7 +22,7 @@
   description: alerts-wolfmed-downed-brain-desc
 
 - type: alert
-  id: WolfmedDownedCore
+  id: WFWolfmedDownedCore
   category: Health
   clickEvent: !type:WolfmedConditionAlertEvent
   icons:

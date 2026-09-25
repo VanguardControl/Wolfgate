@@ -7,7 +7,7 @@
 # washes it off or its clock runs out.
 
 - type: entity
-  id: WolfmedHitSplatter
+  id: WFWolfmedHitSplatter
   categories: [ HideSpawnMenu ]
   components:
   - type: WolfmedHitSplatter
@@ -29,7 +29,7 @@
 # Where the spray hits a wall or a window. An entity and not a decal: decals draw on the floor layer,
 # under walls, so a decal on a wall tile would be invisible.
 - type: entity
-  id: WolfmedBloodSplatWall
+  id: WFWolfmedBloodSplatWall
   name: blood
   description: Someone was standing in the wrong place.
   categories: [ HideSpawnMenu ]

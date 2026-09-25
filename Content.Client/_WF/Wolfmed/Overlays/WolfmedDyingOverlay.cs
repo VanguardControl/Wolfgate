@@ -12,7 +12,7 @@ public sealed class WolfmedDyingOverlay : Overlay
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
-    private static readonly ProtoId<ShaderPrototype> Shader = "WolfmedDying";
+    private static readonly ProtoId<ShaderPrototype> Shader = "WFWolfmedDying";
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
     public override bool RequestScreenTexture => true;

@@ -46,9 +46,9 @@ public sealed partial class WolfmedCauteryProfilePrototype : IPrototype
 
     /// <summary>Played at the patient when the hot tool is put against the wound.</summary>
     [DataField]
-    public SoundSpecifier? DeliberateBeginSound = new SoundCollectionSpecifier("WolfmedCauteryBegin");
+    public SoundSpecifier? DeliberateBeginSound = new SoundCollectionSpecifier("WFWolfmedCauteryBegin");
 
     /// <summary>Played when the bleed seals. Incidental heat gets nothing: the hit already made a noise.</summary>
     [DataField]
-    public SoundSpecifier? DeliberateEndSound = new SoundCollectionSpecifier("WolfmedWoundBurn");
+    public SoundSpecifier? DeliberateEndSound = new SoundCollectionSpecifier("WFWolfmedWoundBurn");
 }

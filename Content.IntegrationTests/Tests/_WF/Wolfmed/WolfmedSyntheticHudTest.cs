@@ -58,8 +58,8 @@ public sealed class WolfmedSyntheticHudTest : GameTest
 
             var torso = Part(entities, body, BodyPartType.Torso);
             var arm = Part(entities, body, BodyPartType.Arm, BodyPartSymmetry.Left);
-            wounds.CreateOrMergeWound(torso, "WolfmedBreachWound", FixedPoint2.New(20));
-            wounds.CreateOrMergeWound(arm, "WolfmedServoDamageWound", FixedPoint2.New(20));
+            wounds.CreateOrMergeWound(torso, "WFWolfmedBreachWound", FixedPoint2.New(20));
+            wounds.CreateOrMergeWound(arm, "WFWolfmedServoDamageWound", FixedPoint2.New(20));
 
             var hud = entities.EnsureComponent<WolfmedSyntheticHudComponent>(body);
             hudSystem.Refresh((body, hud));
@@ -80,7 +80,7 @@ public sealed class WolfmedSyntheticHudTest : GameTest
 
             // Newest first: a fault the readout did not have last time goes above everything already on it.
             var head = Part(entities, body, BodyPartType.Head);
-            wounds.CreateOrMergeWound(head, "WolfmedOverheatingWound", FixedPoint2.New(50));
+            wounds.CreateOrMergeWound(head, "WFWolfmedOverheatingWound", FixedPoint2.New(50));
             hudSystem.Refresh((body, hud));
 
             Assert.That(hud.Faults, Has.Count.EqualTo(3));
@@ -96,11 +96,11 @@ public sealed class WolfmedSyntheticHudTest : GameTest
             // A breach on every part it will take is more lines than the wire carries.
             foreach (var (part, _) in entities.System<SharedBodySystem>().GetBodyChildren(body))
             {
-                if (wounds.CanCreateWound(part, "WolfmedBreachWound"))
-                    wounds.CreateOrMergeWound(part, "WolfmedBreachWound", FixedPoint2.New(20));
+                if (wounds.CanCreateWound(part, "WFWolfmedBreachWound"))
+                    wounds.CreateOrMergeWound(part, "WFWolfmedBreachWound", FixedPoint2.New(20));
 
-                if (wounds.CanCreateWound(part, "WolfmedDentWound"))
-                    wounds.CreateOrMergeWound(part, "WolfmedDentWound", FixedPoint2.New(20));
+                if (wounds.CanCreateWound(part, "WFWolfmedDentWound"))
+                    wounds.CreateOrMergeWound(part, "WFWolfmedDentWound", FixedPoint2.New(20));
             }
 
             hudSystem.Refresh((body, hud));
@@ -123,7 +123,7 @@ public sealed class WolfmedSyntheticHudTest : GameTest
             var hudSystem = entities.System<WolfmedSyntheticHudSystem>();
             var human = entities.SpawnEntity("MobHuman", map.GridCoords);
             var torso = Part(entities, human, BodyPartType.Torso);
-            entities.System<WoundSystem>().CreateOrMergeWound(torso, "WolfmedGunshotWound", FixedPoint2.New(30));
+            entities.System<WoundSystem>().CreateOrMergeWound(torso, "WFWolfmedGunshotWound", FixedPoint2.New(30));
 
             Assert.Multiple(() =>
             {
