@@ -259,7 +259,7 @@ Edits inside other `_WF` modules need no marker:
 | `surface` | `ProtoId<WFPlanetSurfacePrototype>`, required | The lookup key; a test enforces exactly one per surface |
 | `name` | `LocId`, required | Shown in examines: `wf-cavern-<world>-name` |
 | `level` | `ProtoId<PlanetPrototype>`, required | The existing DV `planet` kind (biome, `mapName`, `mapLight`, `atmosphere`), spawned with `PlanetSystem.SpawnPlanet(runMapInit: false)` |
-| `seedOffset` | `int` | Cavern seed = `surface.Seed + seedOffset` (unchecked) |
+| `seedOffset` | `int` | Cavern seed = `surface.Seed + seedOffset` (unchecked); the ground's rolled seed stands in for a surface without one |
 | `roofColor` | `Color` | `RoofComponent.Color`, the ambient under solid ground |
 | `shaftLight` | `float`, default 0.5 | Cavern `MapLight` = the ground's current `MapLight` × this (F4), so shafts dim at night |
 | `arrival` | `LocId` | Popup shown on entering the cavern (F4) |
@@ -909,7 +909,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | Test | Asserts | Feature |
 |---|---|---|
 | `CavernNetworkTest.CavernsOffLeavesNetworkUntouched` | CVar off: `LowerLayers` is empty, no negative `ZLevels` key, `Layers.Count == 5` | F1 |
-| `CavernNetworkTest.EveryWorldGetsOneCavern` [6] | Depth −1; `TryMapDown(ground)`/`TryMapUp(cavern)` link; `Layers` unchanged. The cavern has `WFPlanetLayer` (right network and gravity), `WFCavernLayer`, the right biome and seed, and no `LightCycle`, `SunShadow`, `Parallax` or `CEZGroundLayer`. Its `MapAtmosphere` equals the level's. The ground has `WFCavernGround` | F1 |
+| `CavernNetworkTest.EveryWorldGetsOneCavern` [6] | Each world built and torn down in turn on one pair. Depth −1; `TryMapDown(ground)`/`TryMapUp(cavern)` link; `Layers` unchanged. The cavern has `WFPlanetLayer` (right network and gravity), `WFCavernLayer`, the right biome and seed, and no `LightCycle`, `SunShadow`, `Parallax` or `CEZGroundLayer`. Its `MapAtmosphere` equals the level's. The ground has `WFCavernGround` | F1 |
 | `CavernNetworkTest.DeleteRemovesCavernAndTransits` | A stub transit whose `LowerMap` is the cavern is deleted with the network | F1 |
 | `CavernRoofTest.GroundTilesRoofCavern` | `LayTiles` on the ground roofs those cavern tiles; emptying one unroofs it | F1 |
 | `CavernViewerEyeTest.GroundViewerLoadsNoCavern` | A ground viewer has no eye on the cavern, and the cavern's `LoadedChunks` stays empty for 60 ticks | F1 |
@@ -990,8 +990,10 @@ dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c DebugOpt
 |FullyQualifiedName~Tests._WF.Planets.PlanetWeatherTest|FullyQualifiedName~Tests._WF.Planets.PlanetEcologyTest"
 # V-unit: pure logic
 dotnet test Content.Tests/Content.Tests.csproj -c DebugOpt --filter "FullyQualifiedName~_WF.Caverns"
-# V-server: headless boot, prototypes and systems load cleanly
-timeout 240 dotnet run --project Content.Server -c DebugOpt --no-build -- \
+# V-server: headless boot, prototypes and systems load cleanly. The dev map has no star system, so the worlds are
+# built from stdin; a container without IPv6 also needs --cvar net.bindto=0.0.0.0 --cvar status.bind=127.0.0.1:1212.
+(sleep 120; for w in Asclepiu Fervidus Merak Aerumna Thrascias Carcinoma; do echo "wfplanet spawn WFSurface$w"; \
+  sleep 3; done; sleep 60) | timeout 240 dotnet run --project Content.Server -c DebugOpt --no-build -- \
   --cvar wf.planet_networks=true --cvar wf.caverns=true > server.log 2>&1; grep -E "\[(ERRO|FATL)\]" server.log
 # V-client: with V-server running in the background
 timeout 180 dotnet run --project Content.Client -c DebugOpt --no-build -- --headless --connect \
@@ -1006,6 +1008,12 @@ python3 Tools/_WF/Ci/modules.py --write && python3 Tools/_WF/Ci/modules.py --che
 
 This feature lays the generic Planets hooks, the hull guard and the eye cap, and puts one placeholder cavern under
 each of the six worlds. The caverns are roofed, dark and have their final air.
+
+**Status:** F1a has landed: the Planets hooks, `wf.caverns`, the placeholder cavern under every world, and
+`CavernNetworkTest` and `CavernRoofTest`. F1b remains: the hull guard (`WfClosedToHulls`, `WfRefusesLevelHop` and the
+four marked CE lines), the eye cap in `CEZLevelsSystem.View.cs`, the wildlife `CEZLevelFallMapEvent` handler, and
+`CavernViewerEyeTest`, `CavernHullTest` (the F1 cases) and `CavernWildlifeTest`. `BiomeSystem.Caverns.cs` waits for
+F2, its first user.
 
 - **Add:**
   - Planets (no marker): `Content.Server/_WF/Planets/WFPlanetLowerLayersEvent.cs`,

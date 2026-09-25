@@ -15,7 +15,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._WF.Caverns;
 
 /// <summary>Puts a cavern below every planet whose surface has one, and fits it out once the network is built.</summary>
-public sealed class WFCavernSystem : EntitySystem
+public sealed partial class WFCavernSystem : EntitySystem
 {
     [Dependency] private AtmosphereSystem _atmos = default!;
     [Dependency] private BiomeSystem _biome = default!;
