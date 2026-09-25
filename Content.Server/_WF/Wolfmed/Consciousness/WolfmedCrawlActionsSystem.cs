@@ -26,12 +26,12 @@ public sealed class WolfmedCrawlActionsSystem : EntitySystem
     public static readonly EntProtoId PlayDeadAction = "ActionWolfmedPlayDead";
     public static readonly EntProtoId CheckYourselfAction = "ActionWolfmedCheckYourself";
 
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
-    [Dependency] private readonly WolfmedVisualInspectionSystem _inspection = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private WolfmedVisualInspectionSystem _inspection = default!;
 
     public override void Initialize()
     {

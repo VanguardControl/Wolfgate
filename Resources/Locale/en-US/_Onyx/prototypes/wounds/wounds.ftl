@@ -1,3 +1,4 @@
+# WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 wound-name-blunt = contusion
 wound-name-bone-fracture = fracture
 wound-name-cybernetic-frame-fracture = frame fracture

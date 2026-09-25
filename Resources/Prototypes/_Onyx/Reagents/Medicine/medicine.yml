@@ -1,8 +1,8 @@
-# WOLFGATE: vendored from ONYX Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml (pin 2f5bab9),
+# WOLFGATE(Wolfmed): vendored from ONYX Resources/Prototypes/_Onyx/Reagents/Medicine/medicine.yml (pin 2f5bab9),
 # Tier A only (PLAN4 P4-D2): the painkiller ladder plus the dedicated fracture medicine.
-# WOLFGATE: every `Bloodstream:` metabolism group header is translated to `Medicine:` — Wolfgate has no
+# WOLFGATE(Wolfmed): every `Bloodstream:` metabolism group header is translated to `Medicine:` — Wolfgate has no
 # Bloodstream group, and all five reagents are `group: Medicine` so their effects belong in the liver pass.
-# WOLFGATE: `ReagentCondition` -> `ReagentThreshold`, `ModifyBleed` -> `ModifyBleedAmount`,
+# WOLFGATE(Wolfmed): `ReagentCondition` -> `ReagentThreshold`, `ModifyBleed` -> `ModifyBleedAmount`,
 # `TemperatureCondition` -> `Temperature` (PLAN4 WP12-2 translation table).
 
 - type: reagent
@@ -14,7 +14,7 @@
   flavor: medicine
   color: "#d9e6c3"
   metabolisms:
-    Medicine: # WOLFGATE: Onyx `Bloodstream`
+    Medicine: # WOLFGATE(Wolfmed): Onyx `Bloodstream`
       effects:
       - !type:MendFractures
         amount: 1
@@ -35,7 +35,7 @@
   - !type:PlantAdjustHealth
     amount: -10
   metabolisms:
-    Medicine: # WOLFGATE: Onyx `Bloodstream`
+    Medicine: # WOLFGATE(Wolfmed): Onyx `Bloodstream`
       metabolismRate: 0.15
       effects:
       - !type:SuppressPain
@@ -43,7 +43,7 @@
         decayDuration: 27
         identifier: Ibuprofen
         recoveryMultiplier: 2.5
-      # WOLFGATE (CONSC): painkiller tier. Weak, so it can pick a patient up off the floor but never
+      # WOLFGATE(Wolfmed): CONSC: painkiller tier. Weak, so it can pick a patient up off the floor but never
       # keeps one awake.
       - !type:WolfmedPainRelief
         tier: Weak
@@ -54,12 +54,12 @@
             Brute: -1
       - !type:AdjustTemperature
         conditions:
-        - !type:Temperature # WOLFGATE: Onyx `TemperatureCondition`
+        - !type:Temperature # WOLFGATE(Wolfmed): Onyx `TemperatureCondition`
           max: 293.15
         amount: 10000
       - !type:AdjustTemperature
         conditions:
-        - !type:Temperature # WOLFGATE: Onyx `TemperatureCondition`
+        - !type:Temperature # WOLFGATE(Wolfmed): Onyx `TemperatureCondition`
           min: 293.15
         amount: -1000
       - !type:HealthChange
@@ -67,12 +67,12 @@
           types:
             Poison: 0.2
         conditions:
-        - !type:ReagentThreshold # WOLFGATE: Onyx `ReagentCondition`
+        - !type:ReagentThreshold # WOLFGATE(Wolfmed): Onyx `ReagentCondition`
           reagent: Ibuprofen
           min: 20
       - !type:TakeStaminaDamage
         conditions:
-        - !type:ReagentThreshold # WOLFGATE: Onyx `ReagentCondition`
+        - !type:ReagentThreshold # WOLFGATE(Wolfmed): Onyx `ReagentCondition`
           reagent: Ibuprofen
           min: 10
         amount: 2.4
@@ -87,7 +87,7 @@
   flavor: medicine
   color: "#d6b75a"
   metabolisms:
-    Medicine: # WOLFGATE: Onyx `Bloodstream`
+    Medicine: # WOLFGATE(Wolfmed): Onyx `Bloodstream`
       metabolismRate: 0.12
       effects:
       - !type:SuppressPain
@@ -95,7 +95,7 @@
         decayDuration: 50
         identifier: Ketorolac
         recoveryMultiplier: 3
-      # WOLFGATE (CONSC): painkiller tier. The strongest of the weak rung.
+      # WOLFGATE(Wolfmed): CONSC: painkiller tier. The strongest of the weak rung.
       - !type:WolfmedPainRelief
         tier: Weak
         strength: 26
@@ -103,15 +103,15 @@
         damage:
           groups:
             Brute: -0.5
-      - !type:ModifyBleedAmount # WOLFGATE: Onyx `ModifyBleed`
+      - !type:ModifyBleedAmount # WOLFGATE(Wolfmed): Onyx `ModifyBleed`
         conditions:
-        - !type:ReagentThreshold # WOLFGATE: Onyx `ReagentCondition`
+        - !type:ReagentThreshold # WOLFGATE(Wolfmed): Onyx `ReagentCondition`
           reagent: Ketorolac
           min: 12
         amount: 0.15
       - !type:HealthChange
         conditions:
-        - !type:ReagentThreshold # WOLFGATE: Onyx `ReagentCondition`
+        - !type:ReagentThreshold # WOLFGATE(Wolfmed): Onyx `ReagentCondition`
           reagent: Ketorolac
           min: 18
         damage:
@@ -127,7 +127,7 @@
   flavor: medicine
   color: "#ad2cfa"
   metabolisms:
-    Medicine: # WOLFGATE: Onyx `Bloodstream`
+    Medicine: # WOLFGATE(Wolfmed): Onyx `Bloodstream`
       metabolismRate: 0.1
       effects:
       - !type:SuppressPain
@@ -135,19 +135,19 @@
         decayDuration: 45
         identifier: Tramadol
         recoveryMultiplier: 3.5
-      # WOLFGATE (CONSC): painkiller tier. Strong: lifts unconsciousness when pain was the only cause,
+      # WOLFGATE(Wolfmed): CONSC: painkiller tier. Strong: lifts unconsciousness when pain was the only cause,
       # masks the wound slowdowns, and sedates.
       - !type:WolfmedPainRelief
         tier: Strong
         strength: 45
-        sedationPerUnit: 0.11 # WOLFGATE (M2): sedation aims for this per unit in the blood (plan §3.4); a 5 u dose stays under 0.6
+        sedationPerUnit: 0.11 # WOLFGATE(Wolfmed): M2: sedation aims for this per unit in the blood (plan §3.4); a 5 u dose stays under 0.6
       - !type:GenericStatusEffect
         key: Adrenaline
         component: IgnoreSlowOnDamage
         time: 2
       - !type:HealthChange
         conditions:
-        - !type:ReagentThreshold # WOLFGATE: Onyx `ReagentCondition`
+        - !type:ReagentThreshold # WOLFGATE(Wolfmed): Onyx `ReagentCondition`
           reagent: Tramadol
           min: 15.5
         damage:
@@ -163,7 +163,7 @@
   flavor: medicine
   color: "#2cfa76"
   metabolisms:
-    Medicine: # WOLFGATE: Onyx `Bloodstream`
+    Medicine: # WOLFGATE(Wolfmed): Onyx `Bloodstream`
       metabolismRate: 0.1
       effects:
       - !type:SuppressPain
@@ -171,19 +171,19 @@
         decayDuration: 60
         identifier: Oxycodone
         recoveryMultiplier: 4.5
-      # WOLFGATE (CONSC): painkiller tier. The strongest thing medbay stocks, and the easiest to stop a
+      # WOLFGATE(Wolfmed): CONSC: painkiller tier. The strongest thing medbay stocks, and the easiest to stop a
       # patient breathing with.
       - !type:WolfmedPainRelief
         tier: Strong
         strength: 80
-        sedationPerUnit: 0.12 # WOLFGATE (M2): sedation aims for this per unit in the blood (plan §3.4); a 5 u dose stays under 0.6
+        sedationPerUnit: 0.12 # WOLFGATE(Wolfmed): M2: sedation aims for this per unit in the blood (plan §3.4); a 5 u dose stays under 0.6
       - !type:GenericStatusEffect
         key: Adrenaline
         component: IgnoreSlowOnDamage
         time: 5
       - !type:HealthChange
         conditions:
-        - !type:ReagentThreshold # WOLFGATE: Onyx `ReagentCondition`
+        - !type:ReagentThreshold # WOLFGATE(Wolfmed): Onyx `ReagentCondition`
           reagent: Oxycodone
           min: 10.5
         damage:

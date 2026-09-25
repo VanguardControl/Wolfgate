@@ -82,10 +82,10 @@
     - "enum.HumanoidVisualLayers.RLeg"
     damageOverlayGroups:
       Brute:
-        sprite: _Onyx/Wounds/brute_damage.rsi # WOLFGATE (WP11-4, P3-4 Option B): severed parts render Onyx's wound art too; same 6 states + attribution as the stock rsi.
+        sprite: _Onyx/Wounds/brute_damage.rsi # WOLFGATE(Wolfmed): WP11-4, P3-4 Option B: severed parts render Onyx's wound art too; same 6 states + attribution as the stock rsi.
         color: "#FF0000"
       Burn:
-        sprite: _Onyx/Wounds/burn_damage.rsi # WOLFGATE (WP11-4, P3-4 Option B)
+        sprite: _Onyx/Wounds/burn_damage.rsi # WOLFGATE(Wolfmed): WP11-4, P3-4 Option B
   - type: GenericVisualizer
     visuals:
       enum.CreamPiedVisuals.Creamed:
@@ -136,9 +136,9 @@
       methods: [Touch]
       effects:
       - !type:WashCreamPieReaction
-      - !type:WashChemicalBurns # WOLFGATE (W4): rinses caustic residue off a wound host.
-      - !type:WolfmedCoolOverheating # WOLFGATE (W6): cools a cybernetic limb running hot.
-    # WOLFGATE (W5): antiseptics. Swabbing an open wound before it festers is most of the prevention in
+      - !type:WashChemicalBurns # WOLFGATE(Wolfmed): W4: rinses caustic residue off a wound host.
+      - !type:WolfmedCoolOverheating # WOLFGATE(Wolfmed): W6: cools a cybernetic limb running hot.
+    # WOLFGATE(Wolfmed): W5: antiseptics. Swabbing an open wound before it festers is most of the prevention in
     # the infection model; water alone does not sterilise anything, so it is a separate reaction.
     - reagents: [Ethanol, Bleach, Spaceacillin]
       methods: [Touch]
@@ -269,14 +269,14 @@
   id: BaseMobSpeciesOrganic
   abstract: true
   components:
-  # WOLFGATE - Wolfmed phase 1 (D21/D32). Non-organic descendants (protogen) have WoundHost stripped by
+  # WOLFGATE(Wolfmed): Wolfmed phase 1 (D21/D32). Non-organic descendants (protogen) have WoundHost stripped by
   # Content.Shared/_WF/Wolfmed/Body/WolfmedWoundHostExclusionSystem.cs; see the manifest for the full list.
   - type: WoundHost # D20: localizedDamageTypes left at Onyx's default, Caustic included
-  # WOLFGATE - Wolfmed phase 2 (P2-D7). ONYX Resources/Prototypes/Body/species_base.yml:54 (<Onyx-PainShock>);
+  # WOLFGATE(Wolfmed): Wolfmed phase 2 (P2-D7). ONYX Resources/Prototypes/Body/species_base.yml:54 (<Onyx-PainShock>);
   # placed here rather than on BaseMobSpecies so only organic profiles carry it. Inert on D32-excluded
   # protogen: PainComponent is only ever ensured on wound hosts.
   - type: PainShockTarget
-  # WOLFGATE - Wolfmed phase 2 (P2-D9). ONYX Resources/Prototypes/Body/species_base.yml:124-133
+  # WOLFGATE(Wolfmed): Wolfmed phase 2 (P2-D9). ONYX Resources/Prototypes/Body/species_base.yml:124-133
   # (<Onyx-PainSounds>). Key corrected from Onyx's `emotes:` to `emotesThreshold:` - Onyx's own YAML never
   # bound (the field is EmotesThreshold; RT drops unknown mapping keys). `emotes:` is left empty so
   # EmoteOnDamageSystem.OnDamage still returns at its Emotes.Count == 0 check - no double emote.
@@ -306,7 +306,7 @@
     allowedStates:
     - Alive
     damageCap: 20
-    damage: {} # WOLFGATE (D29): neutralised - Onyx's per-part-profile recovery is the only passive heal on wound hosts
+    damage: {} # WOLFGATE(Wolfmed): D29: neutralised - Onyx's per-part-profile recovery is the only passive heal on wound hosts
   - type: Fingerprint
   - type: Blindable
   # Other

@@ -1,7 +1,7 @@
 # Shitmed Change: Removed components from each part, instead using composition for sprites
 - type: entity
   id: PartSlime
-  parent: [WolfmedPartSlime, BaseItem, BasePart] # WOLFGATE (P5-1): slime wound profile, no bone fractures; WolfmedPartSlime must stay FIRST (RT first-parent-wins)
+  parent: [WolfmedPartSlime, BaseItem, BasePart] # WOLFGATE(Wolfmed): P5-1: slime wound profile, no bone fractures; WolfmedPartSlime must stay FIRST (RT first-parent-wins)
   name: "slime body part"
   abstract: true
   components: # Shitmed Change
@@ -37,7 +37,7 @@
   name: "slime head"
   parent: [PartSlime, BaseHead]
   components:
-  # WOLFGATE (M4, plan 9.3): a slime's core, its brain, is in the torso, so losing the head is not death.
+  # WOLFGATE(Wolfmed): M4, plan 9.3: a slime's core, its brain, is in the torso, so losing the head is not death.
   - type: BodyPart
     vital: false
   - type: Extractable # Mono Shitmed

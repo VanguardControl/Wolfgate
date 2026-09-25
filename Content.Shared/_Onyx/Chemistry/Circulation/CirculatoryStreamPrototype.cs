@@ -1,7 +1,7 @@
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
-// using Content.Shared.Metabolism; // WOLFGATE (D15/WP3#2): MetabolismStagePrototype does not exist in Wolfgate
+// using Content.Shared.Metabolism; // WOLFGATE(Wolfmed): D15/WP3#2: MetabolismStagePrototype does not exist in Wolfgate
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Onyx.Chemistry.Circulation;
@@ -23,7 +23,7 @@ public sealed partial class CirculatoryStreamPrototype : IPrototype
     [DataField]
     public string TemporarySolutionName = "bloodstreamTemporary";
 
-    // WOLFGATE (D15/WP3#2): MetabolismStagePrototype does not exist in Wolfgate; nothing in the phase-1 path reads these
+    // WOLFGATE(Wolfmed): D15/WP3#2: MetabolismStagePrototype does not exist in Wolfgate; nothing in the phase-1 path reads these
     // [DataField]
     // public ProtoId<MetabolismStagePrototype> MetabolismStage = "Bloodstream";
 

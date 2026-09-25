@@ -50,19 +50,19 @@ public sealed class WolfmedOverheatSystem : EntitySystem
     /// <summary>The temperature a pump cools the core toward, and never below.</summary>
     private const float CoolingFloor = Atmospherics.T0C + Atmospherics.NormalBodyTemperature;
 
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly OrganHealthSystem _organs = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!;
-    [Dependency] private readonly WolfmedDamageableSystem _damageable = default!;
-    [Dependency] private readonly WolfmedDyingActionsSystem _dyingActions = default!;
-    [Dependency] private readonly WolfmedLifeSystem _life = default!;
-    [Dependency] private readonly WolfmedOrganThresholdSystem _organReach = default!;
-    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private OrganHealthSystem _organs = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private WolfmedDamageableSystem _damageable = default!;
+    [Dependency] private WolfmedDyingActionsSystem _dyingActions = default!;
+    [Dependency] private WolfmedLifeSystem _life = default!;
+    [Dependency] private WolfmedOrganThresholdSystem _organReach = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
 
     private readonly List<EntityUid> _due = new();
     private TimeSpan _nextTick;

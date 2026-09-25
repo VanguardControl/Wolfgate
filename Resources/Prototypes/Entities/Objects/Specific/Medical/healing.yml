@@ -139,7 +139,7 @@
     damage:
       groups:
         Brute: -45 # was 5 for each, Buffed due to limb damage changes (Goobstation)
-    # WOLFGATE (W0): a bruise pack is for bruises. It never closes a cut or a puncture, so it never stops
+    # WOLFGATE(Wolfmed): W0: a bruise pack is for bruises. It never closes a cut or a puncture, so it never stops
     # their bleeding either; gauze and sutures do that.
     treatedDamageTypes: [ Blunt ]
     healingBeginSound:
@@ -178,7 +178,7 @@
 
 - type: entity
   name: medicated suture
-  description: A suture soaked in medicine. Closes cuts and punctures and stops their bleeding. # WOLFGATE (W0): it no longer treats bruises.
+  description: A suture soaked in medicine. Closes cuts and punctures and stops their bleeding. # WOLFGATE(Wolfmed): W0: it no longer treats bruises.
   parent: BaseHealingItem
   id: MedicatedSuture
   suffix: Full
@@ -191,14 +191,14 @@
   - type: Item
     heldPrefix: medicated-suture
     storedRotation: -90
-  - type: WolfmedSuture # WOLFGATE (M2): P20, what it closes infects at the Sutured rate
+  - type: WolfmedSuture # WOLFGATE(Wolfmed): M2: P20, what it closes infects at the Sutured rate
   - type: Healing
     damageContainers:
     - Biological
     damage:
       groups:
         Brute: -60 # was 10 for each, now 20 for each type in the group, Buffed due to surgery changes (Goobstation)
-    treatedDamageTypes: [ Slash, Piercing ] # WOLFGATE (W0): a suture closes open wounds, not bruises.
+    treatedDamageTypes: [ Slash, Piercing ] # WOLFGATE(Wolfmed): W0: a suture closes open wounds, not bruises.
     bloodlossModifier: -10 # a suture should stop ongoing bleeding
     healingBeginSound:
       path: "/Audio/Items/Medical/brutepack_begin.ogg"
@@ -281,7 +281,7 @@
       state: tourniquet
     - type: Item
       heldPrefix: tourniquet
-    # WOLFGATE (PROTO D, P4-D9): Healing block replaced in place with the real Tourniquet system — same id, Onyx patches this same upstream entity. Tourniquet tag deliberately not added (no such tag prototype in WG).
+    # WOLFGATE(Wolfmed): PROTO D, P4-D9: Healing block replaced in place with the real Tourniquet system — same id, Onyx patches this same upstream entity. Tourniquet tag deliberately not added (no such tag prototype in WG).
     - type: Tourniquet
       damage:
         types:

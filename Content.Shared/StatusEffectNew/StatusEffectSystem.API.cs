@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;

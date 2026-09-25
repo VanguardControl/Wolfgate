@@ -627,7 +627,7 @@
   id: BaseMobProtoKin
   abstract: true
   components:
-    # WOLFGATE (M4, OD16): a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
+    # WOLFGATE(Wolfmed): M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
     # BaseMobSpeciesOrganic: that would add a respirator to a species with no lungs. LayingDown for the crawl.
     - type: WoundHost
     - type: PainShockTarget
@@ -726,8 +726,8 @@
       allowedStates:
         - Alive
       damageCap: 20
-      damage: {} # WOLFGATE (M4, D29): neutralised on a wound host, as BaseMobSpeciesOrganic's is
-    # WOLFGATE (M4, D22, OD12): Blunt 400 -> 1500 and no Heat body ash, as for the Shadekin (shadekin.yml).
+      damage: {} # WOLFGATE(Wolfmed): M4, D29: neutralised on a wound host, as BaseMobSpeciesOrganic's is
+    # WOLFGATE(Wolfmed): M4, D22, OD12: Blunt 400 -> 1500 and no Heat body ash, as for the Shadekin (shadekin.yml).
     - type: Destructible
       thresholds:
         - trigger: !type:DamageTypeTrigger

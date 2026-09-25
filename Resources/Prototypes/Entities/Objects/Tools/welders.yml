@@ -4,7 +4,7 @@
   id: Welder
   description: "Melts anything as long as it's fueled, don't forget your eye protection!"
   components:
-  - type: WolfmedHullWeld # WOLFGATE (EVISC): the surgery step that welds a chassis breach shut
+  - type: WolfmedHullWeld # WOLFGATE(Wolfmed): EVISC: the surgery step that welds a chassis breach shut
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:
@@ -118,7 +118,7 @@
   - type: WeldingHealing # EE IPCs
     damageContainers:
       - Silicon
-      # WOLFGATE (P5-D5, PROTO S): MobIPC moves to the SiliconWolfmed container in WP13-2;
+      # WOLFGATE(Wolfmed): P5-D5, PROTO S: MobIPC moves to the SiliconWolfmed container in WP13-2;
       # WeldingHealableSystem gates on this list (WeldingHealableSystem.cs:33-35) and would otherwise
       # stop repairing IPCs entirely. Landed here with the other container wiring (WP13-1).
       - SiliconWolfmed
@@ -129,7 +129,7 @@
         Blunt: -25
         Piercing: -25
         Slash: -25
-  # WOLFGATE (V124): the welder loop covers the pass; this is the seam cooling at the end of it.
+  # WOLFGATE(Wolfmed): V124: the welder loop covers the pass; this is the seam cooling at the end of it.
   - type: WolfmedRepairSound
     endSound:
       collection: WolfmedWoundBurn

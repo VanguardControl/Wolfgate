@@ -46,7 +46,7 @@
   id: HandheldHealthAnalyzer
   parent: [ HandheldHealthAnalyzerUnpowered, PowerCellSlotSmallItem]
   suffix: Powered
-  # WOLFGATE: health analyzers no longer need a power cell. The slot stays so existing fills and maps load;
+  # WOLFGATE(Wolfmed): health analyzers no longer need a power cell. The slot stays so existing fills and maps load;
   # the draw and the UI power gate are gone.
   # components:
   # - type: PowerCellDraw

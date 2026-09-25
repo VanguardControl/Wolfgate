@@ -453,11 +453,11 @@ public partial class SharedGunSystem
 
                 if (!_netManager.IsClient)
                 {
-                    // WOLFGATE (playtest 1): a spent casing gets its despawn timer on the floor, not in the cylinder.
+                    // WOLFGATE(Wolfmed): playtest 1: a spent casing gets its despawn timer on the floor, not in the cylinder.
                     if (TryComp<CartridgeAmmoComponent>(slot, out var spentCase) && spentCase.Spent)
                         SetCartridgeSpent(slot.Value, spentCase, true);
                     EjectCartridge(slot.Value);
-                } // WOLFGATE (playtest 1)
+                } // WOLFGATE(Wolfmed): playtest 1
 
                 anyEmpty = true;
             }
@@ -531,7 +531,7 @@ public partial class SharedGunSystem
                 if (ent == null)
                     continue;
 
-                // WOLFGATE: a slot can hold a round that is already gone; treating it as live crashed the server.
+                // WOLFGATE(Wolfmed): a slot can hold a round that is already gone; treating it as live crashed the server.
                 if (Deleted(ent.Value))
                 {
                     component.AmmoSlots[index] = null;
@@ -545,7 +545,7 @@ public partial class SharedGunSystem
                         continue;
 
                     // Mark cartridge as spent and if it's caseless delete from the chamber slot.
-                    // WOLFGATE (playtest 1): the casing stays in the cylinder, so Mono's casing despawn waits for the
+                    // WOLFGATE(Wolfmed): playtest 1: the casing stays in the cylinder, so Mono's casing despawn waits for the
                     // floor. Deleted in its slot, it left a stale entity that every state send tripped over.
                     SetCartridgeSpent(ent.Value, cartridge, true, despawn: false);
                     var spawned = Spawn(cartridge.Prototype, args.Coordinates);

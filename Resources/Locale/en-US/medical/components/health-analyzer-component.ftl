@@ -26,7 +26,7 @@ health-analyzer-popup-scan-target = {CAPITALIZE(THE($user))} is trying to scan y
 ## Shitmed Change
 health-analyzer-window-return-button-text = < Return
 
-# WOLFGATE (P4-4): keys for the Wolfmed diagnostic panel (LOC A). The panel itself lives in
+# WOLFGATE(Wolfmed): P4-4: keys for the Wolfmed diagnostic panel (LOC A). The panel itself lives in
 # Content.Client/_WF/Wolfmed/Medical; these keys are shared with Shitmed's window only through it.
 health-analyzer-window-entity-vital-damage-text = Vital Damage:
 health-analyzer-window-damage-tab = Damage

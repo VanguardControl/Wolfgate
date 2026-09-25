@@ -18,7 +18,7 @@ namespace Content.Server._WF.Wolfmed.Autodoc;
 /// </summary>
 public sealed partial class AutodocSystem
 {
-    [Dependency] private readonly DestructibleSystem _destructible = default!;
+    [Dependency] private DestructibleSystem _destructible = default!;
 
     private void InitializeAtmosphere()
     {

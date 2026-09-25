@@ -273,7 +273,7 @@ public abstract partial class SharedSurgerySystem
         {
             if ((!TryComp(args.Body, out BuckleComponent? buckle) ||
                 !HasComp<OperatingTableComponent>(buckle.BuckledTo)) &&
-                !WolfmedOnOperatingPlatform(args.Body)) // WOLFGATE (AUTODOC): the pod is an operating platform.
+                !WolfmedOnOperatingPlatform(args.Body)) // WOLFGATE(Wolfmed): AUTODOC: the pod is an operating platform.
             {
                 args.Invalid = StepInvalidReason.NeedsOperatingTable;
                 return;
@@ -345,7 +345,7 @@ public abstract partial class SharedSurgerySystem
     {
         var group = ent.Comp.MainGroup == "Brute" ? BruteDamageTypes : BurnDamageTypes;
 
-        if (WolfmedTendUndamaged(args.Body, args.Part, ent.Comp.MainGroup, group)) // WOLFGATE (playtest 3 SAM): wounds with no damage left still close
+        if (WolfmedTendUndamaged(args.Body, args.Part, ent.Comp.MainGroup, group)) // WOLFGATE(Wolfmed): playtest 3 SAM: wounds with no damage left still close
             return;
 
         if (!HasDamageGroup(args.Body, group, out var damageable)
@@ -366,14 +366,14 @@ public abstract partial class SharedSurgerySystem
 
         var ev = new SurgeryStepDamageEvent(args.User, args.Body, args.Part, args.Surgery, adjustedDamage, 2.5f); // 0.5 -> 2.5f part damage, buffed wound surgery tending - Mono
         RaiseLocalEvent(args.Body, ref ev);
-        WolfmedTendWounds(args.Body, args.Part, ent.Comp.MainGroup); // WOLFGATE (AUTODOC4): HOOK 27 - close the part's own wounds too
+        WolfmedTendWounds(args.Body, args.Part, ent.Comp.MainGroup); // WOLFGATE(Wolfmed): AUTODOC4: HOOK 27 - close the part's own wounds too
     }
 
     private void OnTendWoundsCheck(Entity<SurgeryTendWoundsEffectComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
         var group = ent.Comp.MainGroup == "Brute" ? BruteDamageTypes : BurnDamageTypes;
 
-        if (WolfmedTendPending(args.Body, args.Part, ent.Comp.MainGroup, group) is { } pending) // WOLFGATE (AUTODOC4): HOOK 26
+        if (WolfmedTendPending(args.Body, args.Part, ent.Comp.MainGroup, group) is { } pending) // WOLFGATE(Wolfmed): AUTODOC4: HOOK 26
         {
             args.Cancelled = pending;
             return;

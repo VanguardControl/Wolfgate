@@ -16,7 +16,7 @@
     - type: Hunger
     - type: Thirst
     - type: LayingDown
-    # WOLFGATE (M4, OD16): a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
+    # WOLFGATE(Wolfmed): M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
     # BaseMobSpeciesOrganic: that would add a respirator to a species with no lungs. Its organs carry Wolfmed data.
     - type: WoundHost
     - type: PainShockTarget
@@ -91,8 +91,8 @@
       allowedStates:
         - Alive
       damageCap: 20
-      damage: {} # WOLFGATE (M4, D29): neutralised on a wound host, as BaseMobSpeciesOrganic's is
-    # WOLFGATE (M4, D22, OD12): a wound host's body damage is the sum of its parts, so Blunt 400 was reachable from
+      damage: {} # WOLFGATE(Wolfmed): M4, D29: neutralised on a wound host, as BaseMobSpeciesOrganic's is
+    # WOLFGATE(Wolfmed): M4, D22, OD12: a wound host's body damage is the sum of its parts, so Blunt 400 was reachable from
     # routine limb damage; 1500 as BaseMobSpeciesOrganic. The Heat 1500 body ash is gone: the living per-part
     # ceilings sum past it, so a long fire would have ashed the body, which OD12 rules out.
     - type: Destructible

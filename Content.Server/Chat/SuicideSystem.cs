@@ -28,7 +28,7 @@ public sealed partial class SuicideSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private GhostSystem _ghostSystem = default!;
     [Dependency] private SharedSuicideSystem _suicide = default!;
-    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedDyingActionsSystem _wolfmedEndings = default!; // WOLFGATE (M2): OD17
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedDyingActionsSystem _wolfmedEndings = default!; // WOLFGATE(Wolfmed): M2: OD17
 
     private static readonly ProtoId<TagPrototype> CannotSuicideTag = "CannotSuicide";
 
@@ -71,7 +71,7 @@ public sealed partial class SuicideSystem : EntitySystem
         var suicideEvent = new SuicideEvent(victim);
         RaiseLocalEvent(victim, suicideEvent);
 
-        // WOLFGATE (M2): OD17, damage totals do not kill a wound host; its suicide is brain 0 then death.
+        // WOLFGATE(Wolfmed): M2: OD17, damage totals do not kill a wound host; its suicide is brain 0 then death.
         _wolfmedEndings.EndDeliberately(victim);
 
         // Since the player is already dead the log will not contain their username.

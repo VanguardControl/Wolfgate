@@ -44,7 +44,7 @@
     damage:
       types:
         Piercing: 11
-  # WOLFGATE (W1): buckshot leaves fragments, not a clean channel.
+  # WOLFGATE(Wolfmed): W1: buckshot leaves fragments, not a clean channel.
   - type: WolfmedDamageCause
     cause: Fragment
 

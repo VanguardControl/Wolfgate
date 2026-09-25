@@ -37,22 +37,22 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
 
-    [Dependency] private readonly BloodstreamSystem _blood = default!;
-    [Dependency] private readonly BodyPartFunctionalitySystem _functionality = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly SiliconChargeSystem _charge = default!;
-    [Dependency] private readonly WolfmedBodyPartSystem _wfPart = default!;
-    [Dependency] private readonly WolfmedConditionAlertSystem _conditions = default!;
-    [Dependency] private readonly WolfmedEmbeddedObjectSystem _embedded = default!;
-    [Dependency] private readonly WolfmedLifeSystem _life = default!;
-    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
-    [Dependency] private readonly WolfmedSyntheticHudLineSystem _lines = default!;
-    [Dependency] private readonly WolfmedWoundTraitSystem _traits = default!;
-    [Dependency] private readonly WoundSystem _wounds = default!;
-    [Dependency] private readonly Content.Server._HL.Silicons.Synths.Battery.SynthBatterySystem _synthBattery = default!; // M4
+    [Dependency] private BloodstreamSystem _blood = default!;
+    [Dependency] private BodyPartFunctionalitySystem _functionality = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private SiliconChargeSystem _charge = default!;
+    [Dependency] private WolfmedBodyPartSystem _wfPart = default!;
+    [Dependency] private WolfmedConditionAlertSystem _conditions = default!;
+    [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
+    [Dependency] private WolfmedLifeSystem _life = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private WolfmedSyntheticHudLineSystem _lines = default!;
+    [Dependency] private WolfmedWoundTraitSystem _traits = default!;
+    [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private Content.Server._HL.Silicons.Synths.Battery.SynthBatterySystem _synthBattery = default!; // M4
 
     private TimeSpan _next;
 

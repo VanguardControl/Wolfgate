@@ -53,13 +53,13 @@ public readonly record struct PartDamageAppliedEvent(
     bool IsExplosion = false,
     bool ExplosionAmputationCandidate = false,
     float WoundSeverityMultiplier = 1f,
-    // WOLFGATE (W1): the projectile or weapon that dealt the hit. Wolfmed's wound rules read it to tell a
+    // WOLFGATE(Wolfmed): W1: the projectile or weapon that dealt the hit. Wolfmed's wound rules read it to tell a
     // gunshot from a knife; routing already carries it for armour penetration.
     EntityUid? Tool = null,
-    // WOLFGATE (M1b): what a ceiling (the torso's cap, the ambient per-part ceiling) discarded from this hit.
+    // WOLFGATE(Wolfmed): M1b: what a ceiling (the torso's cap, the ambient per-part ceiling) discarded from this hit.
     // Damage is what was stored (Applied); wounds and organs read Total, fractures and amputation Applied.
     DamageSpecifier? Overflow = null,
-    // WOLFGATE (M6): OD18, whether this hit may interrupt a do-after. Fire, bleeding and other ticks pass false.
+    // WOLFGATE(Wolfmed): M6: OD18, whether this hit may interrupt a do-after. Fire, bleeding and other ticks pass false.
     bool InterruptsDoAfters = true)
 {
     /// <summary>WOLFGATE (M1b): the whole hit, stored or not.</summary>
@@ -153,7 +153,7 @@ public sealed class PartDamageModifyEvent(
     BodyPartType partType,
     BodyPartSymmetry symmetry,
     DamageSpecifier damage,
-    float armorPenetration = 0f) : EntityEventArgs, IInventoryRelayEvent // WOLFGATE: D23, carry the caller's AP to the part pass.
+    float armorPenetration = 0f) : EntityEventArgs, IInventoryRelayEvent // WOLFGATE(Wolfmed): D23, carry the caller's AP to the part pass.
 {
     public readonly EntityUid Body = body;
     public readonly EntityUid Part = part;
@@ -162,7 +162,7 @@ public sealed class PartDamageModifyEvent(
     public DamageSpecifier Damage = damage;
     public SlotFlags TargetSlots => SlotFlags.WITHOUT_POCKET;
 
-    // WOLFGATE: D23/HOOK 10. Localized damage is armoured here rather than in DamageModifyEvent, so the armour
+    // WOLFGATE(Wolfmed): D23/HOOK 10. Localized damage is armoured here rather than in DamageModifyEvent, so the armour
     // penetration the original TryChangeDamage call carried has to reach this event or every AP weapon loses its AP.
     public readonly float ArmorPenetration = armorPenetration;
 }

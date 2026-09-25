@@ -22,9 +22,9 @@ namespace Content.Client._WF.Wolfmed.Audio;
 [UsedImplicitly]
 public sealed class WolfmedCritHeartbeatSystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     private const string HeartbeatSound = "/Audio/_WF/Wolfmed/heartbeat_loop.ogg";
 

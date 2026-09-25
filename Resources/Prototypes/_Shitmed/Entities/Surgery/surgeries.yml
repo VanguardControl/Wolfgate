@@ -292,7 +292,7 @@
     - SurgeryStepRepairBruteTissue
     - SurgeryStepSealTendWound
   - type: SurgeryWoundedCondition
-    maxWoundSeverity: 99.99 # WOLFGATE (PROTO F, P4-D19): deep wounds get SurgeryTendWoundsBruteDeep instead
+    maxWoundSeverity: 99.99 # WOLFGATE(Wolfmed): PROTO F, P4-D19: deep wounds get SurgeryTendWoundsBruteDeep instead
 
 - type: entity
   parent: SurgeryBase
@@ -306,8 +306,8 @@
     - SurgeryStepRepairBurnTissue
     - SurgeryStepSealTendWound
   - type: SurgeryWoundedCondition
-    woundGroup: Burn # WOLFGATE (PROTO F, P4-D19): GetGroupSeverity must read the Burn group here
-    maxWoundSeverity: 99.99 # WOLFGATE (PROTO F, P4-D19): deep wounds get SurgeryTendWoundsBurnDeep instead
+    woundGroup: Burn # WOLFGATE(Wolfmed): PROTO F, P4-D19: GetGroupSeverity must read the Burn group here
+    maxWoundSeverity: 99.99 # WOLFGATE(Wolfmed): PROTO F, P4-D19: deep wounds get SurgeryTendWoundsBurnDeep instead
 
 - type: entity
   parent: SurgeryBase

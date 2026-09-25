@@ -10,22 +10,22 @@ using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Content.Shared.Throwing;
-using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8, Onyx's amputation part fields live on WolfmedBodyPartComponent.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 facade + the TryDetachPart shim.
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE: V124, the dismemberment feedback event.
+using Content.Shared._WF.Wolfmed.Body; // WOLFGATE(Wolfmed): D8, Onyx's amputation part fields live on WolfmedBodyPartComponent.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 facade + the TryDetachPart shim.
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): V124, the dismemberment feedback event.
 
 namespace Content.Shared._Onyx.Wounds;
 
 public sealed partial class AmputationSystem : EntitySystem
 {
     [Dependency] private SharedBodySystem _body = default!;
-    [Dependency] private WolfmedDamageableSystem _damageable = default!; // WOLFGATE: D12, GetAllDamage lives on the compat facade.
+    [Dependency] private WolfmedDamageableSystem _damageable = default!; // WOLFGATE(Wolfmed): D12, GetAllDamage lives on the compat facade.
     [Dependency] private INetManager _net = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
-    [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE: D8
-    [Dependency] private WolfmedBodySystem _wfBody = default!; // WOLFGATE: Onyx's SharedBodySystem.TryDetachPart
+    [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE(Wolfmed): D8
+    [Dependency] private WolfmedBodySystem _wfBody = default!; // WOLFGATE(Wolfmed): Onyx's SharedBodySystem.TryDetachPart
 
     public override void Initialize()
     {
@@ -37,10 +37,10 @@ public sealed partial class AmputationSystem : EntitySystem
     {
         if (!_net.IsServer ||
             !TryComp(part, out BodyPartComponent? bodyPart) || bodyPart.Body == null ||
-            _wfPart.Get(part).MaxDamage <= FixedPoint2.Zero) // WOLFGATE: D8
+            _wfPart.Get(part).MaxDamage <= FixedPoint2.Zero) // WOLFGATE(Wolfmed): D8
             return;
 
-        // WOLFGATE (EVISC): D9 never severs a torso, so its overflow is offered to evisceration instead.
+        // WOLFGATE(Wolfmed): EVISC: D9 never severs a torso, so its overflow is offered to evisceration instead.
         if (bodyPart.PartType == BodyPartType.Torso)
         {
             var torso = new WolfmedTorsoOverflowEvent(args.Body, part.Owner, args.Damage, args.IsExplosion);
@@ -48,19 +48,19 @@ public sealed partial class AmputationSystem : EntitySystem
             return;
         }
 
-        if (args.ExplosionAmputationCandidate && TryExplosionAmputate(args.Body, part, args.Damage)) // WOLFGATE: P3-D15
+        if (args.ExplosionAmputationCandidate && TryExplosionAmputate(args.Body, part, args.Damage)) // WOLFGATE(Wolfmed): P3-D15
             return;
 
         if (!part.Comp.Severable)
         {
-            if (part.Comp.AmputationOverflow >= _wfPart.Get(part).MaxDamage) // WOLFGATE: D8
+            if (part.Comp.AmputationOverflow >= _wfPart.Get(part).MaxDamage) // WOLFGATE(Wolfmed): D8
             {
                 SetSeverable(part, true);
             }
             return;
         }
 
-        if (IsFinishingHit(args.Body, part.Owner, args.Damage)) // WOLFGATE: P3-D15
+        if (IsFinishingHit(args.Body, part.Owner, args.Damage)) // WOLFGATE(Wolfmed): P3-D15
             TryAmputate(args.Body, part.Owner);
     }
 
@@ -73,7 +73,7 @@ public sealed partial class AmputationSystem : EntitySystem
         if (!TryComp(body, out WoundHostComponent? host))
             return;
 
-        // WOLFGATE: D8. The severity comes off the PARENT the stump is left on, not off the severed part.
+        // WOLFGATE(Wolfmed): D8. The severity comes off the PARENT the stump is left on, not off the severed part.
         _wounds.CreateOrMergeWound(parent, host.AmputationConsequenceWound, _wfPart.Get(parent).AmputationConsequenceSeverity);
     }
 
@@ -83,30 +83,30 @@ public sealed partial class AmputationSystem : EntitySystem
             return;
 
         if (!TryComp(part, out BodyPartComponent? bodyPart) || bodyPart.Body == null ||
-            bodyPart.PartType is BodyPartType.Torso || // WOLFGATE: D9
-            _body.GetParentPartOrNull(part) is null || // WOLFGATE: Shitmed's BodyPartComponent has no Parent field.
-            _wfPart.Get(part).AmputationThresholds.Count == 0 || // WOLFGATE: D8
+            bodyPart.PartType is BodyPartType.Torso || // WOLFGATE(Wolfmed): D9
+            _body.GetParentPartOrNull(part) is null || // WOLFGATE(Wolfmed): Shitmed's BodyPartComponent has no Parent field.
+            _wfPart.Get(part).AmputationThresholds.Count == 0 || // WOLFGATE(Wolfmed): D8
             !TryComp(part, out DamageableComponent? damageable))
             return;
 
-        // WOLFGATE (M3): P27, a blast never takes the head unless wolfmed.blast_dismember_head is on.
+        // WOLFGATE(Wolfmed): M3: P27, a blast never takes the head unless wolfmed.blast_dismember_head is on.
         if (args.IsExplosion && !_wfPart.BlastMaySever(part))
             return;
 
         var damage = _damageable.GetAllDamage((part.Owner, damageable));
-        if (args.ExplosionAmputationCandidate && TryExplosionAmputate(args.Body, part, args.Damage, damage)) // WOLFGATE: P3-D15
+        if (args.ExplosionAmputationCandidate && TryExplosionAmputate(args.Body, part, args.Damage, damage)) // WOLFGATE(Wolfmed): P3-D15
             return;
 
         if (!part.Comp.Severable)
         {
-            if (ReachedThreshold(damage, _wfPart.Get(part).AmputationThresholds)) // WOLFGATE: D8
+            if (ReachedThreshold(damage, _wfPart.Get(part).AmputationThresholds)) // WOLFGATE(Wolfmed): D8
             {
                 SetSeverable(part, true);
             }
             return;
         }
 
-        if (GetThresholdProgress(damage, _wfPart.Get(part).AmputationThresholds) < GetResetRatio(args.Body)) // WOLFGATE: D8
+        if (GetThresholdProgress(damage, _wfPart.Get(part).AmputationThresholds) < GetResetRatio(args.Body)) // WOLFGATE(Wolfmed): D8
         {
             SetSeverable(part, false);
             return;
@@ -118,8 +118,8 @@ public sealed partial class AmputationSystem : EntitySystem
                 damageBeforeHit.DamageDict[type] = FixedPoint2.Max(FixedPoint2.Zero,
                     damageBeforeHit.DamageDict.GetValueOrDefault(type) - amount);
 
-        if (ReachedThreshold(damageBeforeHit, _wfPart.Get(part).AmputationThresholds) && // WOLFGATE: D8
-            IsFinishingHit(args.Body, part.Owner, args.Damage)) // WOLFGATE: P3-D15
+        if (ReachedThreshold(damageBeforeHit, _wfPart.Get(part).AmputationThresholds) && // WOLFGATE(Wolfmed): D8
+            IsFinishingHit(args.Body, part.Owner, args.Damage)) // WOLFGATE(Wolfmed): P3-D15
             TryAmputate(args.Body, part.Owner);
     }
 
@@ -129,20 +129,20 @@ public sealed partial class AmputationSystem : EntitySystem
     public bool TryAmputate(EntityUid body, EntityUid part)
     {
         if (!_net.IsServer || !TryComp(part, out BodyPartComponent? bodyPart) || bodyPart.Body == null ||
-            bodyPart.PartType == BodyPartType.Torso) // WOLFGATE: D9
+            bodyPart.PartType == BodyPartType.Torso) // WOLFGATE(Wolfmed): D9
             return false;
 
-        var parent = _body.GetParentPartOrNull(part) ?? part; // WOLFGATE: Shitmed has no BodyPartComponent.Parent.
-        if (!_wfBody.TryDetachPart(part)) // WOLFGATE: compat shim
+        var parent = _body.GetParentPartOrNull(part) ?? part; // WOLFGATE(Wolfmed): Shitmed has no BodyPartComponent.Parent.
+        if (!_wfBody.TryDetachPart(part)) // WOLFGATE(Wolfmed): compat shim
             return false;
 
         if (TryComp(body, out WoundHostComponent? host))
             _wounds.CreateOrMergeWound(parent, host.DismembermentWound,
-                _wfPart.Get(part).DismembermentSeverity ?? GetDismembermentSeverity(host, bodyPart.PartType)); // WOLFGATE: D8
+                _wfPart.Get(part).DismembermentSeverity ?? GetDismembermentSeverity(host, bodyPart.PartType)); // WOLFGATE(Wolfmed): D8
         ApplyAmputationConsequences(body, parent);
         _throwing.TryThrow(part, Vector2.UnitY, baseThrowSpeed: 3f,
             pushbackRatio: 0f, doSpin: true);
-        // WOLFGATE (V124): the one damage-driven detach path, so the dismemberment feedback hangs here
+        // WOLFGATE(Wolfmed): V124: the one damage-driven detach path, so the dismemberment feedback hangs here
         // rather than on TryDetachPart, which surgery also uses.
         var amputated = new WolfmedPartAmputatedEvent(body, part, parent);
         RaiseLocalEvent(ref amputated);
@@ -170,9 +170,9 @@ public sealed partial class AmputationSystem : EntitySystem
         return progress;
     }
 
-    private bool IsFinishingHit(EntityUid body, EntityUid part, DamageSpecifier damage) // WOLFGATE: D8/P3-D15
+    private bool IsFinishingHit(EntityUid body, EntityUid part, DamageSpecifier damage) // WOLFGATE(Wolfmed): D8/P3-D15
     {
-        var wf = _wfPart.Get(part); // WOLFGATE: D8
+        var wf = _wfPart.Get(part); // WOLFGATE(Wolfmed): D8
         if (!TryComp(body, out WoundHostComponent? host))
             return false;
 
@@ -193,11 +193,11 @@ public sealed partial class AmputationSystem : EntitySystem
     private bool TryExplosionAmputate(
         EntityUid body,
         Entity<WoundableComponent> part,
-        // WOLFGATE: P3-D15 drops Onyx's BodyPartComponent parameter; the data it read is on WolfmedBodyPartComponent.
+        // WOLFGATE(Wolfmed): P3-D15 drops Onyx's BodyPartComponent parameter; the data it read is on WolfmedBodyPartComponent.
         DamageSpecifier hit,
         DamageSpecifier? totalDamage = null)
     {
-        if (!IsFinishingHit(body, part.Owner, hit)) // WOLFGATE: P3-D15
+        if (!IsFinishingHit(body, part.Owner, hit)) // WOLFGATE(Wolfmed): P3-D15
             return false;
 
         if (totalDamage == null)
@@ -208,7 +208,7 @@ public sealed partial class AmputationSystem : EntitySystem
                     totalDamage.DamageDict[type] = totalDamage.DamageDict.GetValueOrDefault(type) + amount;
         }
 
-        var chance = Math.Clamp(GetThresholdProgress(totalDamage, _wfPart.Get(part.Owner).AmputationThresholds) * 0.5f, 0f, 1f); // WOLFGATE: D8
+        var chance = Math.Clamp(GetThresholdProgress(totalDamage, _wfPart.Get(part.Owner).AmputationThresholds) * 0.5f, 0f, 1f); // WOLFGATE(Wolfmed): D8
         return chance > 0f && _random.Prob(chance) && TryAmputate(body, part.Owner);
     }
 

@@ -1,6 +1,6 @@
 using System.Linq;
-using Content.Shared.Body.Organ; // WOLFGATE: Wolfgate keeps OrganComponent in Content.Shared.Body.Organ.
-using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8, organ health lives on WolfmedOrganComponent.
+using Content.Shared.Body.Organ; // WOLFGATE(Wolfmed): Wolfgate keeps OrganComponent in Content.Shared.Body.Organ.
+using Content.Shared._WF.Wolfmed.Body; // WOLFGATE(Wolfmed): D8, organ health lives on WolfmedOrganComponent.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared._Onyx.Body.Systems;
@@ -22,10 +22,10 @@ public sealed partial class OrganDamageSystem : EntitySystem
     [Dependency] private WoundFractureSystem _fractures = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
-    [Dependency] private AmputationSystem _amputation = default!; // WOLFGATE: D26 lifted in phase 3 (WP11-1); AmputationSystem is now vendored.
+    [Dependency] private AmputationSystem _amputation = default!; // WOLFGATE(Wolfmed): D26 lifted in phase 3 (WP11-1); AmputationSystem is now vendored.
     [Dependency] private OrganHealthSystem _organHealth = default!;
-    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedPartHitSystem _wfHits = default!; // WOLFGATE (M1b)
-    [Dependency] private Content.Server._WF.Wolfmed.Body.WolfmedOrganThresholdSystem _wfOrgans = default!; // WOLFGATE (M3)
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedPartHitSystem _wfHits = default!; // WOLFGATE(Wolfmed): M1b
+    [Dependency] private Content.Server._WF.Wolfmed.Body.WolfmedOrganThresholdSystem _wfOrgans = default!; // WOLFGATE(Wolfmed): M3
 
     public override void Initialize()
     {
@@ -34,16 +34,16 @@ public sealed partial class OrganDamageSystem : EntitySystem
 
     private void OnPartDamageApplied(Entity<WoundableComponent> part, ref PartDamageAppliedEvent args)
     {
-        // WOLFGATE (M1b): wounds, bleeding and organs read the whole hit (Total); fractures and amputation read
+        // WOLFGATE(Wolfmed): M1b: wounds, bleeding and organs read the whole hit (Total); fractures and amputation read
         // only what was stored (Applied). One event per hit, so nothing is counted twice.
         var total = args with { Damage = args.Total, Overflow = null };
         _wfHits.OnHit(part, args);
         _wounds.HandlePartDamageApplied(part, ref total);
         _fractures.HandlePartDamageApplied(part, ref args);
-        _amputation.HandlePartDamageApplied(part, ref args); // WOLFGATE: D26 lifted in phase 3 (WP11-1); order wounds -> fractures -> amputation -> bleeding is load-bearing.
-        _bleeding.HandlePartDamageApplied(part, ref total); // WOLFGATE (M1b): Total
+        _amputation.HandlePartDamageApplied(part, ref args); // WOLFGATE(Wolfmed): D26 lifted in phase 3 (WP11-1); order wounds -> fractures -> amputation -> bleeding is load-bearing.
+        _bleeding.HandlePartDamageApplied(part, ref total); // WOLFGATE(Wolfmed): M1b: Total
 
-        // WOLFGATE (M3): a part with reach lines takes organ damage by the size of the whole hit (plan §8), and
+        // WOLFGATE(Wolfmed): M3: a part with reach lines takes organ damage by the size of the whole hit (plan §8), and
         // checks the head blow there; the roll below stays for parts without them.
         if (_net.IsServer && _wfOrgans.HandleHit(part, total.Damage))
             return;
@@ -57,7 +57,7 @@ public sealed partial class OrganDamageSystem : EntitySystem
         if (chance <= 0f || !_random.Prob(Math.Clamp(chance, 0f, 1f)))
             return;
 
-        // WOLFGATE: D8, organ health is on WolfmedOrganComponent; Wolfgate's OrganComponent carries none.
+        // WOLFGATE(Wolfmed): D8, organ health is on WolfmedOrganComponent; Wolfgate's OrganComponent carries none.
         var organs = _body.GetPartOrgans(part)
             .Select(organ => (organ.Id, Component: CompOrNull<WolfmedOrganComponent>(organ.Id)))
             .Where(organ => organ.Component != null && organ.Component.Health > FixedPoint2.Zero &&
@@ -77,7 +77,7 @@ public sealed partial class OrganDamageSystem : EntitySystem
             if (!_random.Prob(Math.Clamp(policy.HitChance, 0f, 1f)))
                 continue;
 
-            var applied = GetOrganDamage(total.Damage, policy); // WOLFGATE (M1b): Total, once per hit
+            var applied = GetOrganDamage(total.Damage, policy); // WOLFGATE(Wolfmed): M1b: Total, once per hit
             if (applied <= FixedPoint2.Zero)
                 continue;
 
@@ -100,7 +100,7 @@ public sealed partial class OrganDamageSystem : EntitySystem
         return result;
     }
 
-    // WOLFGATE: D8, the organ list carries WolfmedOrganComponent instead of Onyx's health-bearing OrganComponent.
+    // WOLFGATE(Wolfmed): D8, the organ list carries WolfmedOrganComponent instead of Onyx's health-bearing OrganComponent.
     private (EntityUid Id, WolfmedOrganComponent Component) PickOrgan(
         List<(EntityUid Id, WolfmedOrganComponent Component)> organs)
     {

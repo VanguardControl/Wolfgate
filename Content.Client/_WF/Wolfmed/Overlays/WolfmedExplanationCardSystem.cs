@@ -15,10 +15,10 @@ namespace Content.Client._WF.Wolfmed.Overlays;
 /// </summary>
 public sealed class WolfmedExplanationCardSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IOverlayManager _overlays = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly WolfmedSyntheticHudOverlaySystem _synthetic = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private WolfmedSyntheticHudOverlaySystem _synthetic = default!;
 
     private const float FaintWhite = 0.7f;
 

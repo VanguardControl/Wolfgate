@@ -3,8 +3,8 @@ using Content.Shared._Onyx.Targeting;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
-using Content.Shared.Damage; // WOLFGATE: DamageableComponent lives here in Wolfgate, not in .Damage.Components.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade.
+using Content.Shared.Damage; // WOLFGATE(Wolfmed): DamageableComponent lives here in Wolfgate, not in .Damage.Components.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade.
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.IdentityManagement;
 using Robust.Shared.Prototypes;
@@ -12,7 +12,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.HealthExaminable;
 
-// WOLFGATE (LOOK): the health examine no longer routes here. Onyx's readout lists damage types, wound
+// WOLFGATE(Wolfmed): LOOK: the health examine no longer routes here. Onyx's readout lists damage types, wound
 // states and severities, which is analyzer information rather than something an examiner can see, so
 // HealthExaminableSystem.CreateMarkup calls WolfmedVisualInspectionSystem instead. The readout below is
 // kept verbatim for a fork that wants it back; the analyzer's wounds tab carries the same data in-game.
@@ -20,7 +20,7 @@ public sealed partial class HealthExaminableSystem
 {
     private static readonly ProtoId<WoundPrototype> SurgicalIncision = "SurgicalIncisionWound";
 
-    [Dependency] private WolfmedDamageableSystem _damageable = default!; // WOLFGATE: D12, Onyx-shaped damage API.
+    [Dependency] private WolfmedDamageableSystem _damageable = default!; // WOLFGATE(Wolfmed): D12, Onyx-shaped damage API.
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
@@ -48,13 +48,13 @@ public sealed partial class HealthExaminableSystem
             if (TryComp(part, out DamageableComponent? damageable))
             {
                 foreach (var (type, amount) in _damageable.GetPositiveDamage((part, damageable)).DamageDict
-                             .OrderBy(entry => entry.Key)) // WOLFGATE: DamageSpecifier.DamageDict is keyed by string here, not ProtoId<DamageTypePrototype>.
+                             .OrderBy(entry => entry.Key)) // WOLFGATE(Wolfmed): DamageSpecifier.DamageDict is keyed by string here, not ProtoId<DamageTypePrototype>.
                 {
                     if (!_prototypes.TryIndex<DamageTypePrototype>(type, out var damageType))
                         continue;
 
                     totalDamage += amount.Float();
-                    // WOLFGATE: string key, so no .Id — see the OrderBy above.
+                    // WOLFGATE(Wolfmed): string key, so no .Id — see the OrderBy above.
                     var injury = Loc.GetString($"health-examinable-part-damage-{type.ToLowerInvariant()}");
                     injuries.Add(injury.StartsWith("health-examinable-part-damage-")
                         ? damageType.LocalizedName
@@ -139,7 +139,7 @@ public sealed partial class HealthExaminableSystem
     private static int PartOrder(BodyPartType type) => type switch
     {
         BodyPartType.Head => 0,
-        BodyPartType.Torso => 1, // WOLFGATE (D9): Chest and Groin folded to Torso; Wolfgate's enum has neither.
+        BodyPartType.Torso => 1, // WOLFGATE(Wolfmed): D9: Chest and Groin folded to Torso; Wolfgate's enum has neither.
         BodyPartType.Arm => 3,
         BodyPartType.Hand => 4,
         BodyPartType.Leg => 5,

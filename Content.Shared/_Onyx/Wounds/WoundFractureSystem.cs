@@ -1,7 +1,7 @@
 using Content.Shared.Body.Part;
-using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8 keeps Onyx's part fields on WolfmedBodyPartComponent.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade.
-using Content.Shared.Damage; // WOLFGATE: DamageableSystem/DamageableComponent live here, not in .Components/.Systems.
+using Content.Shared._WF.Wolfmed.Body; // WOLFGATE(Wolfmed): D8 keeps Onyx's part fields on WolfmedBodyPartComponent.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade.
+using Content.Shared.Damage; // WOLFGATE(Wolfmed): DamageableSystem/DamageableComponent live here, not in .Components/.Systems.
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
@@ -14,16 +14,16 @@ namespace Content.Shared._Onyx.Wounds;
 public sealed partial class WoundFractureSystem : EntitySystem
 {
     [Dependency] private INetManager _net = default!;
-    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE: D12, Onyx-shaped damage API; see _WF/Wolfmed/Compat
+    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE(Wolfmed): D12, Onyx-shaped damage API; see _WF/Wolfmed/Compat
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private WoundSystem _wounds = default!;
-    [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE: D8, Onyx's extra part fields.
+    [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE(Wolfmed): D8, Onyx's extra part fields.
 
     public override void Initialize() =>
         SubscribeLocalEvent<WoundFractureComponent, WoundChangedEvent>(OnWoundChanged);
 
-    // WOLFGATE: D13 puts OrganDamageSystem (the sole caller) in Content.Server, so internal no longer reaches it.
+    // WOLFGATE(Wolfmed): D13 puts OrganDamageSystem (the sole caller) in Content.Server, so internal no longer reaches it.
     public void HandlePartDamageApplied(Entity<WoundableComponent> part, ref PartDamageAppliedEvent args)
     {
         if (!_net.IsServer || !TryGetProfile(part.Owner, out var profile) ||
@@ -54,7 +54,7 @@ public sealed partial class WoundFractureSystem : EntitySystem
             !_random.Prob(Math.Clamp(gradeSettings.CreationChance, 0f, 1f)))
             return;
 
-        // WOLFGATE (M6): P30, the fracture starts at the trauma that graded it. Created at the hit alone, a fracture
+        // WOLFGATE(Wolfmed): M6: P30, the fracture starts at the trauma that graded it. Created at the hit alone, a fracture
         // made from accumulated damage sat under its own lowest grade: no grade, no penalty, no treatment.
         if (_wounds.CreateOrMergeWound(part.Owner, profile.Wound, effectiveTrauma * profile.SeverityMultiplier) is not { } wound ||
             !TryComp(wound, out WoundComponent? core))
@@ -150,7 +150,7 @@ public sealed partial class WoundFractureSystem : EntitySystem
         if (!Resolve(part, ref part.Comp, false) || !TryComp(part, out BodyPartComponent? bodyPart))
             return false;
 
-        var profileId = _wfPart.Get(part).FractureProfile; // WOLFGATE: D8, FractureProfile lives on WolfmedBodyPartComponent.
+        var profileId = _wfPart.Get(part).FractureProfile; // WOLFGATE(Wolfmed): D8, FractureProfile lives on WolfmedBodyPartComponent.
         if (profileId is not { } id || !_prototypes.TryIndex(id, out var indexed))
             return false;
         profile = indexed;

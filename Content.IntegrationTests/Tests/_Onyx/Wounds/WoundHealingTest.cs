@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
-// WOLFGATE: D13 moves the healing/bleeding systems to Content.Server but keeps their Onyx namespace.
-using Content.Server.Medical.Components; // WOLFGATE: D14, HealingComponent stays server-only.
+// WOLFGATE(Wolfmed): D13 moves the healing/bleeding systems to Content.Server but keeps their Onyx namespace.
+using Content.Server.Medical.Components; // WOLFGATE(Wolfmed): D14, HealingComponent stays server-only.
 using Content.Shared._Onyx.Targeting;
 using Content.Shared._Onyx.Wounds;
-using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade.
-using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE: D10 resolver.
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade.
+using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE(Wolfmed): D10 resolver.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.CCVar;
@@ -24,7 +24,7 @@ namespace Content.IntegrationTests.Tests._Onyx.Wounds;
 [TestOf(typeof(WoundHealingSystem))]
 public sealed class WoundHealingTest : GameTest
 {
-    // WOLFGATE: Shitmed body graph instead of Onyx's Nubody `InitialBody`; `Injurable` (D19), `Repairable` and
+    // WOLFGATE(Wolfmed): Shitmed body graph instead of Onyx's Nubody `InitialBody`; `Injurable` (D19), `Repairable` and
     // `TransplantCompatibility` (Onyx-only, D7/D8) dropped; Chest → Torso (D9).
     [TestPrototypes]
     private const string Prototypes = @"
@@ -93,11 +93,11 @@ public sealed class WoundHealingTest : GameTest
             var routing = entityManager.System<WoundDamageRoutingSystem>();
             var healing = entityManager.System<WoundHealingSystem>();
             var wounds = entityManager.System<WoundSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var pain = entityManager.System<PainSystem>();
             var head = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
-            // WOLFGATE (W0): 11 rather than Onyx's 15. WolfmedFractureProfile's Hairline threshold is 12 at
+            // WOLFGATE(Wolfmed): W0: 11 rather than Onyx's 15. WolfmedFractureProfile's Hairline threshold is 12 at
             // a 25 % roll, so a 15 Blunt hit would silently grow a bone fracture in one run out of four and
             // take the pain figures with it. 11 keeps the whole test deterministic.
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 11)));
@@ -107,7 +107,7 @@ public sealed class WoundHealingTest : GameTest
             Assert.That(healing.TryApplyHealing(body, head, (item, entityManager.GetComponent<HealingComponent>(item)),
                 body, out _, out _));
             Assert.That(damage.GetAllDamage(head).GetTotal(), Is.EqualTo(FixedPoint2.New(1)));
-            // WOLFGATE (W0): BluntWound now carries Onyx's intended `healingMultiplier: 0.15`, so removing the
+            // WOLFGATE(Wolfmed): W0: BluntWound now carries Onyx's intended `healingMultiplier: 0.15`, so removing the
             // 10 points of Blunt the part still had takes only 1.5 off the wound. This is the whole point of
             // the setting: damage removal is not wound closure.
             Assert.That(wound.Comp.Severity, Is.EqualTo(FixedPoint2.New(9.5)));
@@ -135,10 +135,10 @@ public sealed class WoundHealingTest : GameTest
             var routing = entityManager.System<WoundDamageRoutingSystem>();
             var healing = entityManager.System<WoundHealingSystem>();
             var bleeding = entityManager.System<WoundBleedingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
-            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9
             var foreignPart = graph.GetBodyChildren(otherBody).First().Id;
 
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Slash", 10)));
@@ -175,7 +175,7 @@ public sealed class WoundHealingTest : GameTest
             var body = entities.SpawnEntity("WoundHealingBody", map.GridCoords);
             var graph = entities.System<SharedBodySystem>();
             var routing = entities.System<WoundDamageRoutingSystem>();
-            var damage = entities.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entities.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var head = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Head).Id;
             var torso = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Torso).Id;
 
@@ -208,13 +208,13 @@ public sealed class WoundHealingTest : GameTest
             configuration.SetCVar(CCVars.TargetingEnabled, true);
             var body = entities.SpawnEntity("WoundHealingBody", map.GridCoords);
             var graph = entities.System<SharedBodySystem>();
-            var resolver = entities.System<WoundTargetResolver>(); // WOLFGATE: D10
+            var resolver = entities.System<WoundTargetResolver>(); // WOLFGATE(Wolfmed): D10
             var torso = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Torso).Id;
             var head = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
             Assert.That(resolver.TryResolveExact(body, TargetBodyPart.Head, out var selected), Is.True);
             Assert.That(selected, Is.EqualTo(head));
-            // WOLFGATE (D9): TargetBodyPart.Groin survives and folds to the torso part.
+            // WOLFGATE(Wolfmed): D9: TargetBodyPart.Groin survives and folds to the torso part.
             Assert.That(resolver.TryResolveExact(body, TargetBodyPart.Groin, out selected), Is.True);
             Assert.That(selected, Is.EqualTo(torso));
             Assert.That(resolver.TryResolveExact(body, TargetBodyPart.LeftHand, out _), Is.False);
@@ -224,7 +224,7 @@ public sealed class WoundHealingTest : GameTest
             configuration.SetCVar(CCVars.TargetingEnabled, CCVars.TargetingEnabled.DefaultValue));
     }
 
-    // WOLFGATE: Onyx's RepairSelectionAndSnapshotValidationTest is not ported — ResolveRepairPartEvent /
+    // WOLFGATE(Wolfmed): Onyx's RepairSelectionAndSnapshotValidationTest is not ported — ResolveRepairPartEvent /
     // ValidateRepairPartEvent live in Content.Shared._Onyx.Repairable, which is outside the port (PLAN §6.1).
 
     private static DamageSpecifier Spec(string type, int amount) => new()

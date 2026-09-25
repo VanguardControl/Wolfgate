@@ -15,8 +15,8 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Forensics;
 using Content.Shared.Forensics.Components;
 using Content.Shared.HealthExaminable;
-using Content.Shared._Onyx.Wounds; // WOLFGATE: Wolfmed wound hosts own their own bleeding.
-using Content.Server._WF.Wolfmed.Consciousness; // WOLFGATE (CONSC)
+using Content.Shared._Onyx.Wounds; // WOLFGATE(Wolfmed): Wolfmed wound hosts own their own bleeding.
+using Content.Server._WF.Wolfmed.Consciousness; // WOLFGATE(Wolfmed): CONSC
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Rejuvenate;
@@ -43,8 +43,8 @@ public sealed partial class BloodstreamSystem : EntitySystem
     [Dependency] private SharedStutteringSystem _stutteringSystem = default!;
     [Dependency] private AlertsSystem _alertsSystem = default!;
     [Dependency] private ForensicsSystem _forensicsSystem = default!;
-    [Dependency] private WolfmedConsciousnessSystem _wolfmedConsciousness = default!; // WOLFGATE (CONSC)
-    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem _wolfmedLife = default!; // WOLFGATE (M3)
+    [Dependency] private WolfmedConsciousnessSystem _wolfmedConsciousness = default!; // WOLFGATE(Wolfmed): CONSC
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem _wolfmedLife = default!; // WOLFGATE(Wolfmed): M3
 
     public override void Initialize()
     {
@@ -128,7 +128,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
             // Adds blood to their blood level if it is below the maximum; Blood regeneration. Must be alive.
             if (bloodSolution.Volume < bloodSolution.MaxVolume && !_mobStateSystem.IsDead(uid))
             {
-                // WOLFGATE (M3): an impaired heart regenerates at its band's factor (plan §8); 1 everywhere else.
+                // WOLFGATE(Wolfmed): M3: an impaired heart regenerates at its band's factor (plan §8); 1 everywhere else.
                 TryModifyBloodLevel(uid, bloodstream.BloodRefreshAmount * _wolfmedLife.BloodRegenFactor(uid), bloodstream);
             }
 
@@ -145,7 +145,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
             // deal bloodloss damage if their blood level is below a threshold.
             var bloodPercentage = GetBloodLevelPercentage(uid, bloodstream);
 
-            // WOLFGATE (CONSC): blood volume is a consciousness input and the bloodstream raises no event
+            // WOLFGATE(Wolfmed): CONSC: blood volume is a consciousness input and the bloodstream raises no event
             // when it changes. This is the tick where the level is already known.
             _wolfmedConsciousness.OnBloodLevelChanged(uid, bloodPercentage);
             if (bloodPercentage < bloodstream.BloodlossThreshold && !_mobStateSystem.IsDead(uid))
@@ -218,7 +218,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
 
     private void OnDamageChanged(Entity<BloodstreamComponent> ent, ref DamageChangedEvent args)
     {
-        // WOLFGATE: GUARD E, wound hosts get their bleeding from WoundBleedingSystem instead.
+        // WOLFGATE(Wolfmed): GUARD E, wound hosts get their bleeding from WoundBleedingSystem instead.
         if (HasComp<WoundHostComponent>(ent))
             return;
 
@@ -285,7 +285,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
         }
 
         // If the mob's blood level is below the damage threshhold, the pale message is added.
-        if (!HasComp<WoundHostComponent>(ent) && GetBloodLevelPercentage(ent, ent) < ent.Comp.BloodlossThreshold) // WOLFGATE: GUARD E2 — Onyx's HealthExaminable covers pallor per-part for wound hosts
+        if (!HasComp<WoundHostComponent>(ent) && GetBloodLevelPercentage(ent, ent) < ent.Comp.BloodlossThreshold) // WOLFGATE(Wolfmed): GUARD E2 — Onyx's HealthExaminable covers pallor per-part for wound hosts
         {
             args.Message.PushNewline();
             args.Message.AddMarkupOrThrow(Loc.GetString("bloodstream-component-looks-pale", ("target", ent.Owner)));
@@ -418,21 +418,21 @@ public sealed partial class BloodstreamSystem : EntitySystem
     /// </summary>
     public bool TryModifyBleedAmount(EntityUid uid, float amount, BloodstreamComponent? component = null)
     {
-        return TryModifyBleedAmount(uid, amount, component, woundProjection: false); // WOLFGATE: GUARD E3
+        return TryModifyBleedAmount(uid, amount, component, woundProjection: false); // WOLFGATE(Wolfmed): GUARD E3
     }
 
-    // WOLFGATE: GUARD E3, sole write path for Wolfmed's WoundBleedingSystem once wounds own bleeding.
+    // WOLFGATE(Wolfmed): GUARD E3, sole write path for Wolfmed's WoundBleedingSystem once wounds own bleeding.
     internal bool TryModifyWoundBleedProjection(EntityUid uid, float amount, BloodstreamComponent? component = null)
     {
         return TryModifyBleedAmount(uid, amount, component, woundProjection: true);
     }
 
-    private bool TryModifyBleedAmount(EntityUid uid, float amount, BloodstreamComponent? component, bool woundProjection) // WOLFGATE: GUARD E3
+    private bool TryModifyBleedAmount(EntityUid uid, float amount, BloodstreamComponent? component, bool woundProjection) // WOLFGATE(Wolfmed): GUARD E3
     {
         if (!Resolve(uid, ref component, logMissing: false))
             return false;
 
-        // WOLFGATE: GUARD E3. This also silently no-ops the passive-decay call in Update(); that is deliberate.
+        // WOLFGATE(Wolfmed): GUARD E3. This also silently no-ops the passive-decay call in Update(); that is deliberate.
         if (HasComp<WoundHostComponent>(uid) && !woundProjection)
             return false;
 

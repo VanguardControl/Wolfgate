@@ -152,7 +152,7 @@
   - type: Tag
     tags:
     - Wrench
-  # WOLFGATE (W6): panel-beating. WeldingHealableSystem gates on this component, not on being a welder;
+  # WOLFGATE(Wolfmed): W6: panel-beating. WeldingHealableSystem gates on this component, not on being a welder;
   # fuelCost 0 is what tells its Wolfmed half to skip the fuel check and the fuel spend. Blunt only, so a
   # wrench takes dents out of a chassis and never seals a breach.
   - type: WeldingHealing
@@ -165,8 +165,8 @@
     damage:
       types:
         Blunt: -15
-  - type: WolfmedHullPlate # WOLFGATE (EVISC): the surgery step that seats a torn chassis panel
-  # WOLFGATE (V124): the ratchet plays when the pass starts; this is the panel going back into shape.
+  - type: WolfmedHullPlate # WOLFGATE(Wolfmed): EVISC: the surgery step that seats a torn chassis panel
+  # WOLFGATE(Wolfmed): V124: the ratchet plays when the pass starts; this is the panel going back into shape.
   - type: WolfmedRepairSound
   - type: Sprite
     sprite: _NF/Objects/Tools/wrench.rsi # Frontier: separate sprites (add _NF folder)
@@ -231,7 +231,7 @@
   - type: Tool
     qualities:
     - Pulsing
-  - type: WolfmedCoreProbe # WOLFGATE (M2): OD10, the core repair step that re-flashes a positronic core
+  - type: WolfmedCoreProbe # WOLFGATE(Wolfmed): M2: OD10, the core repair step that re-flashes a positronic core
   - type: NetworkConfigurator
   - type: ActivatableUI
     key: enum.NetworkConfiguratorUiKey.List

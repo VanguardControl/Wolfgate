@@ -20,14 +20,14 @@ namespace Content.Shared._WF.Wolfmed.Reagents;
 /// </summary>
 public sealed class WolfmedPainReliefSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly PainSystem _pain = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly SharedWolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private PainSystem _pain = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private SharedWolfmedConsciousnessSystem _consciousness = default!;
 
     /// <summary>Pressure key for an overdose that has stopped the patient breathing.</summary>
     public const string SedationPressure = "sedation";

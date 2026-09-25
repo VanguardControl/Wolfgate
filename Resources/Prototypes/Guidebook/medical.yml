@@ -5,10 +5,10 @@
   children:
   - DirectorOfCare # Frontier
   - MedicalDoctor
-  # WOLFGATE: PROTO L (WP12-10) - wounds guidebook entries
+  # WOLFGATE(Wolfmed): PROTO L (WP12-10) - wounds guidebook entries
   - Wounds
   - WoundTreatment
-  - WolfmedAutodoc # WOLFGATE (AUTODOC)
+  - WolfmedAutodoc # WOLFGATE(Wolfmed): AUTODOC
   - Chemist
   - Cloning
   - Cryogenics # Note: Frontier changes inside

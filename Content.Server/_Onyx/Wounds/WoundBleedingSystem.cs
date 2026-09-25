@@ -1,10 +1,10 @@
 using System.Linq;
 using Content.Shared.CCVar;
 using Content.Shared.Body;
-using Content.Server.Body.Components; // WOLFGATE: D13, BloodstreamComponent is server-only in Wolfgate.
+using Content.Server.Body.Components; // WOLFGATE(Wolfmed): D13, BloodstreamComponent is server-only in Wolfgate.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
-using Content.Server.Body.Systems; // WOLFGATE: D13, BloodstreamSystem is server-only in Wolfgate.
+using Content.Server.Body.Systems; // WOLFGATE(Wolfmed): D13, BloodstreamSystem is server-only in Wolfgate.
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -22,8 +22,8 @@ public sealed partial class WoundBleedingSystem : EntitySystem
 {
     private static readonly ProtoId<WoundPrototype> SystemicBleedingWound = "SystemicBleedingWound";
 
-    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem _wfInfection = default!; // WOLFGATE
-    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedCauterySystem _wfCautery = default!; // WOLFGATE (playtest 1)
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem _wfInfection = default!; // WOLFGATE(Wolfmed)
+    [Dependency] private Content.Server._WF.Wolfmed.Wounds.WolfmedCauterySystem _wfCautery = default!; // WOLFGATE(Wolfmed): playtest 1
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -60,7 +60,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
     private void OnWoundCreated(Entity<WoundBleedingComponent> wound, ref WoundCreatedEvent args) => RestartAutomaticClotting(wound);
     private void OnWoundChanged(Entity<WoundBleedingComponent> wound, ref WoundChangedEvent args)
     {
-        if (args.Severity > args.OldSeverity && !_wfInfection.ApplyingCreep) // WOLFGATE: infection creep is not a new injury, it must not strip the dressing
+        if (args.Severity > args.OldSeverity && !_wfInfection.ApplyingCreep) // WOLFGATE(Wolfmed): infection creep is not a new injury, it must not strip the dressing
         {
             wound.Comp.BleedingSeverity += args.Severity - args.OldSeverity;
             wound.Comp.Treatment = BleedingTreatment.None;
@@ -106,7 +106,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
             return;
 
         if (-reduction.Float() <= bloodstream.BloodHealedSoundThreshold &&
-            _wfCautery.TryAnnounceWoundsClosing(args.Body)) // WOLFGATE (playtest 1): once per cooldown, not every vacuum tick
+            _wfCautery.TryAnnounceWoundsClosing(args.Body)) // WOLFGATE(Wolfmed): playtest 1: once per cooldown, not every vacuum tick
         {
             _popup.PopupEntity(Loc.GetString("bloodstream-component-wounds-cauterized"), args.Body, args.Body,
                 PopupType.Medium);
@@ -145,14 +145,14 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         return true;
     }
 
-    public bool ReduceBleeding(Entity<WoundComponent?> wound, FixedPoint2 amount, bool dressing = false) // WOLFGATE: dressing
+    public bool ReduceBleeding(Entity<WoundComponent?> wound, FixedPoint2 amount, bool dressing = false) // WOLFGATE(Wolfmed): dressing
     {
         if (!_net.IsServer || amount <= FixedPoint2.Zero || !Resolve(wound, ref wound.Comp, false) ||
             !TryComp(wound, out WoundBleedingComponent? bleeding))
             return false;
 
         bleeding.BleedingSeverity = FixedPoint2.Max(FixedPoint2.Zero, bleeding.BleedingSeverity - amount);
-        // WOLFGATE: gauze that stops a bleed stays on the wound as a dressing. Removing the component here let the
+        // WOLFGATE(Wolfmed): gauze that stops a bleed stays on the wound as a dressing. Removing the component here let the
         // next severity change re-roll the bleed at full strength, and left nothing for the limb overlay to show.
         if (dressing)
         {
@@ -238,14 +238,14 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         return modified;
     }
 
-    public bool ReducePartBleeding(Entity<WoundableComponent?> part, FixedPoint2 amount, bool dressing = false) // WOLFGATE: dressing
+    public bool ReducePartBleeding(Entity<WoundableComponent?> part, FixedPoint2 amount, bool dressing = false) // WOLFGATE(Wolfmed): dressing
     {
         if (!_net.IsServer || amount <= FixedPoint2.Zero || !Resolve(part, ref part.Comp, false))
             return false;
 
         var wounds = _wounds.GetWounds(part)
             .Select(wound => (Wound: wound, Bleeding: CompOrNull<WoundBleedingComponent>(wound)))
-            // WOLFGATE (W2): an arterial bleed does not give up severity to a dressing.
+            // WOLFGATE(Wolfmed): W2: an arterial bleed does not give up severity to a dressing.
             .Where(entry => entry.Bleeding is { CurrentRate: > 0f } && AllowsTopicalBleedReduction(entry.Wound))
             .OrderByDescending(entry => entry.Bleeding!.CurrentRate)
             .ToArray();
@@ -258,7 +258,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
                 ? bleeding.BleedingSeverity
                 : bleeding.BleedingSeverity * remaining /
                   FixedPoint2.New(bleeding.CurrentRate + bleeding.NaturalClotting);
-            if (reduction <= FixedPoint2.Zero || !ReduceBleeding(wound.Owner, reduction, dressing)) // WOLFGATE: dressing
+            if (reduction <= FixedPoint2.Zero || !ReduceBleeding(wound.Owner, reduction, dressing)) // WOLFGATE(Wolfmed): dressing
                 continue;
 
             modified = true;
@@ -337,7 +337,7 @@ public sealed partial class WoundBleedingSystem : EntitySystem
                 }
         }
 
-        // WOLFGATE (BRAIN): cardiac arrest drops passive bleeding to a trickle. Applied to the body's
+        // WOLFGATE(Wolfmed): BRAIN: cardiac arrest drops passive bleeding to a trickle. Applied to the body's
         // cached rates rather than to each wound, so the arrest never has to re-derive every wound.
         if (HasComp<Content.Shared._WF.Wolfmed.Life.WolfmedCardiacArrestComponent>(body))
         {
@@ -381,11 +381,11 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         }
 
         wound.Comp.BaseRate = wound.Comp.BleedingSeverity.Float() * behavior.Rate * bleedingMultiplier *
-                              _configuration.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate); // WOLFGATE: one knob for every bleed
+                              _configuration.GetCVar(Content.Shared._WF.Wolfmed.CCVar.WolfmedCVars.BleedRate); // WOLFGATE(Wolfmed): one knob for every bleed
         if (behavior.AwakeMultiplier > 1f && TryGetBody(core.HoldingPart, out var patient) &&
             !HasComp<SleepingComponent>(patient))
             wound.Comp.BaseRate *= behavior.AwakeMultiplier;
-        // WOLFGATE (W2): an arterial bleed answers to its own treatment table; see WoundBleedingSystem.Wolfmed.
+        // WOLFGATE(Wolfmed): W2: an arterial bleed answers to its own treatment table; see WoundBleedingSystem.Wolfmed.
         var multiplier = core.State == WoundState.Open ? GetTreatmentMultiplier(wound.Owner, wound.Comp.Treatment) : 0f;
         wound.Comp.CurrentRate = Math.Max(0f, wound.Comp.BaseRate * multiplier - wound.Comp.NaturalClotting);
         Dirty(wound);

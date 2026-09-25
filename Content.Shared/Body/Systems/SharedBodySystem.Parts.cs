@@ -813,14 +813,14 @@ public partial class SharedBodySystem
         sprintSpeed /= body.RequiredLegs;
         acceleration /= body.RequiredLegs;
 
-        // WOLFGATE (playtest 2): a wound host with no working leg drags itself on its arms. It keeps a base to
+        // WOLFGATE(Wolfmed): playtest 2: a wound host with no working leg drags itself on its arms. It keeps a base to
         // move from, WolfmedCrawlSystem sets how fast, and the modifiers are refreshed against the new base.
         var woundHost = _queryWoundHost.HasComp(bodyId);
         if (woundHost && walkSpeed <= 0f)
             (walkSpeed, sprintSpeed, acceleration) = Content.Shared._WF.Wolfmed.Consciousness.WolfmedCrawlSystem.LeglessBase;
 
         Movement.ChangeBaseSpeed(bodyId, walkSpeed, sprintSpeed, acceleration, movement);
-        if (woundHost) // WOLFGATE (playtest 2)
+        if (woundHost) // WOLFGATE(Wolfmed): playtest 2
             Movement.RefreshMovementSpeedModifiers(bodyId, movement);
     }
 

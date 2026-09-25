@@ -23,7 +23,7 @@
         amount: 2
       - id: PillCanisterKelotane
       - id: PillCanisterDermaline
-      # WOLFGATE (W7): charring is a burn and nothing else in this kit reaches it. Five entries in an
+      # WOLFGATE(Wolfmed): W7: charring is a burn and nothing else in this kit reaches it. Five entries in an
       # eight-cell grid - WolfmedAvailabilityTest spawns the kit so an overflow fails a test, not a round.
       - id: WolfmedSkinGraft
 
@@ -38,7 +38,7 @@
       - id: Gauze
       - id: PillCanisterIron
       - id: PillCanisterCopper
-      # WOLFGATE (V5): bones break from blunt force, which is what this kit is for. Five entries in an
+      # WOLFGATE(Wolfmed): V5: bones break from blunt force, which is what this kit is for. Five entries in an
       # eight-cell grid - WolfmedAvailabilityTest spawns the kit so an overflow fails a test, not a round.
       - id: WolfmedSplint
 
@@ -91,7 +91,7 @@
       - id: RegenerativeMesh
       - id: Bloodpack
         amount: 2
-      # WOLFGATE (PROTO E, P4-2, WITHDRAWN in WP12-9): `- id: Tourniquet` here overflows the kit.
+      # WOLFGATE(Wolfmed): PROTO E, P4-2, WITHDRAWN in WP12-9: `- id: Tourniquet` here overflows the kit.
       # MedkitAdvanced inherits Medkit's `grid: [0,0,3,1]` (8 cells, maxItemSize Small) and the four
       # entries above already fill it, so StorageFill logged `[ERRO] system.storage: ... but can't.
       # reason: No room!` on every spawn and failed EntityTest. The `Tourniquet` id is unchanged and

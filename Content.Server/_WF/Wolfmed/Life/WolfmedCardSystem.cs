@@ -18,12 +18,12 @@ public sealed class WolfmedCardSystem : EntitySystem
 {
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!; // playtest 3
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly WolfmedLifeSystem _life = default!;
-    [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!; // playtest 3
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private WolfmedLifeSystem _life = default!;
+    [Dependency] private WolfmedOverheatSystem _overheat = default!; // M4
 
     private TimeSpan _next;
     private readonly List<EntityUid> _stale = new();

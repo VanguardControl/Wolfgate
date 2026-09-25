@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 using System.Text;
 using Content.Client._Onyx.HealthExaminable;
 using Robust.Client.Graphics;

@@ -48,7 +48,7 @@
     qualityNeeded: Applicating
     damageContainers:
       - Silicon
-      # WOLFGATE (P5-D5, PROTO T): as welders.yml - MobIPC moves to SiliconWolfmed in WP13-2 and
+      # WOLFGATE(Wolfmed): P5-D5, PROTO T: as welders.yml - MobIPC moves to SiliconWolfmed in WP13-2 and
       # WeldingHealableSystem gates on this list, so the applicator must accept the new container.
       - SiliconWolfmed
     fuelCost: 5

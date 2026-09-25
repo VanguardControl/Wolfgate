@@ -125,10 +125,10 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             || damageable.TotalDamage <= 0
             && partDamageable.TotalDamage <= 0
             && !HasComp<IncisionOpenComponent>(args.Part)
-            && !WolfmedJudgedByWounds(args.Body)) // WOLFGATE (playtest 3 SAM): a wound host lists by its wounds (HOOK 24)
+            && !WolfmedJudgedByWounds(args.Body)) // WOLFGATE(Wolfmed): playtest 3 SAM: a wound host lists by its wounds (HOOK 24)
             args.Cancelled = true;
 
-        if (WolfmedWoundWindowFails(ent, args.Body, args.Part)) // WOLFGATE: HOOK 24 - P4-D19 wound-severity window
+        if (WolfmedWoundWindowFails(ent, args.Body, args.Part)) // WOLFGATE(Wolfmed): HOOK 24 - P4-D19 wound-severity window
             args.Cancelled = true;
     }
 
@@ -266,7 +266,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
-        if (WolfmedStumpBlocksAttachment(args.Part)) // WOLFGATE: HOOK 25 - P4-D18 untreated amputation consequence
+        if (WolfmedStumpBlocksAttachment(args.Part)) // WOLFGATE(Wolfmed): HOOK 25 - P4-D18 untreated amputation consequence
             { args.Cancelled = true; return; }
 
         // Get any existing body parts of the specified type/symmetry
@@ -380,7 +380,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private List<EntityUid> GetTools(EntityUid surgeon)
     {
-        if (WolfmedInternalTools(surgeon) is { } internalTools) // WOLFGATE (AUTODOC): a pod has no hands.
+        if (WolfmedInternalTools(surgeon) is { } internalTools) // WOLFGATE(Wolfmed): AUTODOC: a pod has no hands.
             return internalTools;
 
         return _hands.EnumerateHeld(surgeon).ToList();
@@ -391,7 +391,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         if (_standing.IsDown(entity))
             return true;
 
-        if (WolfmedOnOperatingPlatform(entity)) // WOLFGATE (AUTODOC): an occupant lies down inside the pod.
+        if (WolfmedOnOperatingPlatform(entity)) // WOLFGATE(Wolfmed): AUTODOC: an occupant lies down inside the pod.
             return true;
 
         if (TryComp(entity, out BuckleComponent? buckle) &&

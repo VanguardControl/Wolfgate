@@ -10,7 +10,7 @@ public sealed partial class PermanentStatusEffectsSystem : EntitySystem
 {
     [Dependency] private StatusEffectsSystem _statusEffects = default!;
 
-    // WOLFGATE: RT 277 has no [SubscribeLocalEvent] source generator; subscribe explicitly.
+    // WOLFGATE(Wolfmed): RT 277 has no [SubscribeLocalEvent] source generator; subscribe explicitly.
     public override void Initialize()
     {
         base.Initialize();

@@ -16,7 +16,7 @@ namespace Content.Shared._WF.Wolfmed.Life;
 /// </remarks>
 public sealed class WolfmedCritActionsSystem : EntitySystem
 {
-    [Dependency] private readonly SharedWolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private SharedWolfmedConsciousnessSystem _consciousness = default!;
 
     public override void Initialize()
     {

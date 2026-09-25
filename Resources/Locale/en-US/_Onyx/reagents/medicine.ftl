@@ -1,4 +1,4 @@
-# WOLFGATE: the ten Tier-A keys from ONYX Resources/Locale/en-US/_Onyx/reagents/medicine.ftl (pin 2f5bab9).
+# WOLFGATE(Wolfmed): the ten Tier-A keys from ONYX Resources/Locale/en-US/_Onyx/reagents/medicine.ftl (pin 2f5bab9).
 # Bodies are Onyx's verbatim; the keys for reagents Wolfgate did not port are omitted.
 
 reagent-name-osteogen = osteogen

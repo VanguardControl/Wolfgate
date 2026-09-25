@@ -1,8 +1,8 @@
 using System.Linq;
-using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 — Onyx's TargetingComponent registers as "Targeting", colliding with Shitmed's; use Shitmed's identical field instead
-using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE: D10 — WoundTargetResolver replaces the absent TargetResolverSystem
-using Content.Server._WF.Wolfmed.Wounds; // WOLFGATE: W5 — the necrosis clock a tourniquet starts
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE: W2 — arterial bleeds decide where a tourniquet helps
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10 — Onyx's TargetingComponent registers as "Targeting", colliding with Shitmed's; use Shitmed's identical field instead
+using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE(Wolfmed): D10 — WoundTargetResolver replaces the absent TargetResolverSystem
+using Content.Server._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): W5 — the necrosis clock a tourniquet starts
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): W2 — arterial bleeds decide where a tourniquet helps
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body.Systems;
 using Content.Shared.DoAfter;
@@ -19,10 +19,10 @@ public sealed partial class TourniquetSystem : EntitySystem
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private WoundTargetResolver _targeting = default!; // WOLFGATE: D10 — TargetResolverSystem is absent; signature-exact TryResolveExact replacement
+    [Dependency] private WoundTargetResolver _targeting = default!; // WOLFGATE(Wolfmed): D10 — TargetResolverSystem is absent; signature-exact TryResolveExact replacement
     [Dependency] private WoundBleedingSystem _bleeding = default!;
-    [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W2): which bleeds can be tied off
-    [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE (W5): a tourniquet left on kills the limb
+    [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE(Wolfmed): W2: which bleeds can be tied off
+    [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE(Wolfmed): W5: a tourniquet left on kills the limb
     [Dependency] private WoundDamageRoutingSystem _damage = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
@@ -61,7 +61,7 @@ public sealed partial class TourniquetSystem : EntitySystem
 
         if (!CanApply(body, part))
         {
-            // WOLFGATE (W2): an arterial bleed away from the limbs has nowhere to tie off; say so.
+            // WOLFGATE(Wolfmed): W2: an arterial bleed away from the limbs has nowhere to tie off; say so.
             _popup.PopupEntity(Loc.GetString(_bleeding.GetPartRate(part) > 0f
                 ? "wolfmed-tourniquet-nowhere-to-tie"
                 : "tourniquet-no-bleeding"), body, user);
@@ -96,31 +96,31 @@ public sealed partial class TourniquetSystem : EntitySystem
             _damage.TryApplyPartDamage(body, part, tourniquet.Comp.Damage, args.Args.User);
         _audio.PlayPredicted(tourniquet.Comp.EndSound, body, args.Args.User);
         _popup.PopupEntity(Loc.GetString("tourniquet-applied"), body, args.Args.User);
-        QueueDel(tourniquet); // WOLFGATE: D13 — class is now Content.Server-only, so Onyx's "if (_net.IsServer)" guard is always true; dropped with the INetManager dependency
+        QueueDel(tourniquet); // WOLFGATE(Wolfmed): D13 — class is now Content.Server-only, so Onyx's "if (_net.IsServer)" guard is always true; dropped with the INetManager dependency
     }
 
     public bool Apply(EntityUid body, EntityUid part)
     {
-        if (!CanApply(body, part)) // WOLFGATE: D13 — class is now Content.Server-only, so Onyx's "!_net.IsServer ||" half of this guard is always false; dropped with the INetManager dependency
+        if (!CanApply(body, part)) // WOLFGATE(Wolfmed): D13 — class is now Content.Server-only, so Onyx's "!_net.IsServer ||" half of this guard is always false; dropped with the INetManager dependency
             return false;
 
         var applied = false;
         foreach (var wound in _wounds.GetWounds((part, Comp<WoundableComponent>(part))).ToArray())
         {
             if (!TryComp(wound, out WoundBleedingComponent? bleeding) || bleeding.CurrentRate <= 0f ||
-                !_traits.CanTourniquet(wound.Owner, part)) // WOLFGATE (W2): a torso or head artery cannot be tied off.
+                !_traits.CanTourniquet(wound.Owner, part)) // WOLFGATE(Wolfmed): W2: a torso or head artery cannot be tied off.
                 continue;
 
             applied |= _bleeding.SetTreatment(wound.Owner, BleedingTreatment.Clamped);
         }
 
         if (applied)
-            _necrosis.OnTourniquetApplied(part); // WOLFGATE (W5): the item is consumed, so the part carries the clock.
+            _necrosis.OnTourniquetApplied(part); // WOLFGATE(Wolfmed): W5: the item is consumed, so the part carries the clock.
 
         return applied;
     }
 
     private bool CanApply(EntityUid body, EntityUid part) =>
         _body.BodyHasChild(body, part) && HasComp<WoundableComponent>(part) && _bleeding.GetPartRate(part) > 0f &&
-        _traits.CanTourniquetPart(part); // WOLFGATE (W2): nothing to do if every bleed here is untieable.
+        _traits.CanTourniquetPart(part); // WOLFGATE(Wolfmed): W2: nothing to do if every bleed here is untieable.
 }

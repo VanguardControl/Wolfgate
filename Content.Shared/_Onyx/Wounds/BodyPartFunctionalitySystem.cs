@@ -2,7 +2,7 @@ using Content.Shared.Body;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.CCVar;
-using Content.Shared._Shitmed.Cybernetics; // WOLFGATE: Wolfgate keeps CyberneticsComponent under _Shitmed.
+using Content.Shared._Shitmed.Cybernetics; // WOLFGATE(Wolfmed): Wolfgate keeps CyberneticsComponent under _Shitmed.
 using Robust.Shared.Configuration;
 using Robust.Shared.Network;
 

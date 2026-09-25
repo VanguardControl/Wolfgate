@@ -1,6 +1,6 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: §2.7, Onyx's SharedBodySystem.TryDetachPart lives here.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): §2.7, Onyx's SharedBodySystem.TryDetachPart lives here.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Standing;
@@ -9,7 +9,7 @@ using Robust.Shared.GameObjects;
 namespace Content.IntegrationTests.Tests._Onyx.Body;
 
 /// <remarks>
-/// WOLFGATE: Onyx's version asserts Nubody behaviour Wolfgate does not have. Its `Groin` part does not exist
+/// WOLFGATE(Wolfmed): Onyx's version asserts Nubody behaviour Wolfgate does not have. Its `Groin` part does not exist
 /// here (D9) and no Wolfgate system couples inventory slots to body parts (grep: nothing in
 /// Content.{Shared,Server}/Inventory subscribes BodyPartRemovedEvent/BodyPartDroppedEvent), so the shoes /
 /// socks / underwear assertions are dropped. `StandUpAttemptEvent` does not exist either (PLAN §6.1). What
@@ -59,7 +59,7 @@ public sealed class BodyConsequencesTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var wfBody = entityManager.System<WolfmedBodySystem>();
 
-            // WOLFGATE: Wolfgate goes down at zero legs, not at one (SharedBodySystem.Parts.cs:390).
+            // WOLFGATE(Wolfmed): Wolfgate goes down at zero legs, not at one (SharedBodySystem.Parts.cs:390).
             foreach (var leg in graph.GetBodyChildrenOfType(body, BodyPartType.Leg).ToArray())
                 Assert.That(wfBody.TryDetachPart(leg.Id), Is.True);
 

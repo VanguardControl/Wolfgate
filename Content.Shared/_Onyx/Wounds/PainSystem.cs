@@ -27,9 +27,9 @@ public sealed partial class PainSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
-    [Dependency] private Content.Shared._WF.Wolfmed.Consciousness.WolfmedBodyPainSystem _wolfmedPain = default!; // WOLFGATE (M1a)
+    [Dependency] private Content.Shared._WF.Wolfmed.Consciousness.WolfmedBodyPainSystem _wolfmedPain = default!; // WOLFGATE(Wolfmed): M1a
 
-    // WOLFGATE (M1a): the shock's threshold, re-arm and adrenaline length are CVars now
+    // WOLFGATE(Wolfmed): M1a: the shock's threshold, re-arm and adrenaline length are CVars now
     // (WolfmedBodyPainSystem), and adrenaline no longer multiplies pain by 0.7 (OD5).
     private static readonly TimeSpan PainShockStunTime = TimeSpan.FromSeconds(2f);
     private float _recoveryAccumulator;
@@ -107,7 +107,7 @@ public sealed partial class PainSystem : EntitySystem
 
         if (TryComp(part.Owner, out BodyPartComponent? bodyPart) && bodyPart.Body is { } body)
         {
-            // WOLFGATE: `new ModifyPainGainEvent()` binds to the record struct's implicit parameterless
+            // WOLFGATE(Wolfmed): `new ModifyPainGainEvent()` binds to the record struct's implicit parameterless
             // constructor, which zeroes Multiplier instead of taking the primary constructor's `= 1f`
             // default - every pain gain was being multiplied by zero. Pass the default explicitly.
             var ev = new ModifyPainGainEvent(1f);
@@ -146,7 +146,7 @@ public sealed partial class PainSystem : EntitySystem
             {
                 shockTarget.AdrenalineEnds = null;
                 Dirty(bodyUid, shockTarget);
-                _wolfmedPain.AdrenalineChanged(bodyUid, false); // WOLFGATE (M1a): OD5, pain never moved
+                _wolfmedPain.AdrenalineChanged(bodyUid, false); // WOLFGATE(Wolfmed): M1a: OD5, pain never moved
             }
 
             UpdatePainShock((bodyUid, bodyPain), mobState, shockTarget);
@@ -165,7 +165,7 @@ public sealed partial class PainSystem : EntitySystem
         if (!Resolve(entity, ref entity.Comp, false))
             return FixedPoint2.Zero;
 
-        // WOLFGATE (M1a): OD5, adrenaline no longer takes 30% off every reading; it no longer stands anyone up.
+        // WOLFGATE(Wolfmed): M1a: OD5, adrenaline no longer takes 30% off every reading; it no longer stands anyone up.
         return GetPainBeforeAdrenaline((entity.Owner, entity.Comp));
     }
 
@@ -178,7 +178,7 @@ public sealed partial class PainSystem : EntitySystem
         if (TryComp(entity, out BodyPartComponent? part) && part.Body is { } body &&
             TryComp(body, out PainComponent? bodyPain) && bodyPain.Value > FixedPoint2.Zero)
         {
-            // WOLFGATE (M1a): P13, the share is of the sum of the parts, not of the capped body value, so the
+            // WOLFGATE(Wolfmed): M1a: P13, the share is of the sum of the parts, not of the capped body value, so the
             // body's suppression is taken off once in total rather than once per part.
             var share = _wolfmedPain.SuppressionShare((entity.Owner, entity.Comp), body);
             suppression += bodyPain.Suppression * share;
@@ -197,7 +197,7 @@ public sealed partial class PainSystem : EntitySystem
         if (!_net.IsServer || !Resolve(entity, ref entity.Comp, false))
             return false;
 
-        // WOLFGATE (M1a): P13, a body's pain is min(soft cap, sum of its parts) after every change, direct
+        // WOLFGATE(Wolfmed): M1a: P13, a body's pain is min(soft cap, sum of its parts) after every change, direct
         // sets included. The part branch below still calls this for the body; the value is rederived.
         if (_wolfmedPain.TryGetDerivedPain(entity.Owner, out var derived))
             value = derived;
@@ -230,7 +230,7 @@ public sealed partial class PainSystem : EntitySystem
             if (TryComp(entity, out BodyPartComponent? part) && part.Body is { } body)
                 target = body;
 
-            // WOLFGATE: `new ModifyPainGainEvent()` binds to the record struct's implicit parameterless
+            // WOLFGATE(Wolfmed): `new ModifyPainGainEvent()` binds to the record struct's implicit parameterless
             // constructor, which zeroes Multiplier instead of taking the primary constructor's `= 1f`
             // default - every pain gain was being multiplied by zero. Pass the default explicitly.
             var ev = new ModifyPainGainEvent(1f);
@@ -278,7 +278,7 @@ public sealed partial class PainSystem : EntitySystem
         var pain = GetPain((entity.Owner, entity.Comp));
         var rearmPain = GetPainBeforeAdrenaline(entity);
 
-        if (rearmPain < _wolfmedPain.ShockRearm) // WOLFGATE (M1a): CVar
+        if (rearmPain < _wolfmedPain.ShockRearm) // WOLFGATE(Wolfmed): M1a: CVar
         {
             if (!shockTarget.Armed)
             {
@@ -288,7 +288,7 @@ public sealed partial class PainSystem : EntitySystem
             return;
         }
 
-        if (!shockTarget.Armed || pain < _wolfmedPain.ShockThreshold) // WOLFGATE (M1a): CVar
+        if (!shockTarget.Armed || pain < _wolfmedPain.ShockThreshold) // WOLFGATE(Wolfmed): M1a: CVar
             return;
 
         if (!_stun.TryUpdateParalyzeDuration(entity, PainShockStunTime))
@@ -301,7 +301,7 @@ public sealed partial class PainSystem : EntitySystem
             ignoreActionBlocker: true, forceEmote: true);
         _jitter.DoJitter(entity, PainShockStunTime, true, 20f, 7f);
         ApplyPainShockAdrenaline(entity);
-        // WOLFGATE (BRAIN): a shock on a body that has already bled out stops the heart.
+        // WOLFGATE(Wolfmed): BRAIN: a shock on a body that has already bled out stops the heart.
         var shocked = new Content.Shared._WF.Wolfmed.Life.WolfmedPainShockEvent(entity.Owner);
         RaiseLocalEvent(ref shocked);
     }
@@ -326,7 +326,7 @@ public sealed partial class PainSystem : EntitySystem
         if (TryComp(entity, out BodyPartComponent? part) && part.Body is { } body)
             entity = body;
 
-        // WOLFGATE (P2-D8): Wolfgate's PainNumbness trait grants the legacy PainNumbnessComponent
+        // WOLFGATE(Wolfmed): P2-D8: Wolfgate's PainNumbness trait grants the legacy PainNumbnessComponent
         // (Content.Shared/Traits/Assorted/PainNumbnessComponent.cs); Onyx's status-effect form
         // (StatusEffectPainNumbness) has no applier here — TraitPrototype has no `specials:`, and the
         // narcotics that apply it are phase 4. Honour both.
@@ -455,7 +455,7 @@ public sealed partial class PainSystem : EntitySystem
         if (!TryComp(entity, out PainShockTargetComponent? shockTarget))
             return;
 
-        // WOLFGATE (M1a): OD5, adrenaline leaves pain alone; it speeds the crawl instead (WolfmedBodyPainSystem).
+        // WOLFGATE(Wolfmed): M1a: OD5, adrenaline leaves pain alone; it speeds the crawl instead (WolfmedBodyPainSystem).
         shockTarget.AdrenalineEnds = _timing.CurTime + _wolfmedPain.AdrenalineTime;
         Dirty(entity.Owner, shockTarget);
         _wolfmedPain.AdrenalineChanged(entity.Owner, true);

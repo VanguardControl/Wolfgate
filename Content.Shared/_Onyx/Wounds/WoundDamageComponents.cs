@@ -3,8 +3,8 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.Body.Part;
 using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
-using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 skips Onyx's Targeting stack; TargetBodyPart comes from Shitmed.
-using Content.Shared._WF.Wolfmed.Damage; // WOLFGATE (V3): PartDamageVisualsComponent.Degradation.
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10 skips Onyx's Targeting stack; TargetBodyPart comes from Shitmed.
+using Content.Shared._WF.Wolfmed.Damage; // WOLFGATE(Wolfmed): V3: PartDamageVisualsComponent.Degradation.
 using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -18,7 +18,7 @@ public sealed partial class WoundHostComponent : Component
     [DataField]
     public Dictionary<BodyPartType, float> TargetWeights = new()
     {
-        // WOLFGATE: D9 folds Onyx's Chest 2.5 + Groin 1.5 into Wolfgate's single Torso, keeping the 4/13 share.
+        // WOLFGATE(Wolfmed): D9 folds Onyx's Chest 2.5 + Groin 1.5 into Wolfgate's single Torso, keeping the 4/13 share.
         [BodyPartType.Torso] = 4f,
         [BodyPartType.Head] = 1f,
         [BodyPartType.Arm] = 2f,
@@ -45,13 +45,13 @@ public sealed partial class WoundHostComponent : Component
     ];
 
     [DataField]
-    public TargetBodyPart SystemicPainTarget = TargetBodyPart.Torso; // WOLFGATE: D9, Wolfgate has no TargetBodyPart.Chest.
+    public TargetBodyPart SystemicPainTarget = TargetBodyPart.Torso; // WOLFGATE(Wolfmed): D9, Wolfgate has no TargetBodyPart.Chest.
 
     [DataField]
     public Dictionary<BodyPartType, FixedPoint2> DismembermentSeverities = new()
     {
         [BodyPartType.Head] = 200,
-        // WOLFGATE: D9 deletes the Groin row; Wolfgate's BodyPartType has no Groin.
+        // WOLFGATE(Wolfmed): D9 deletes the Groin row; Wolfgate's BodyPartType has no Groin.
         [BodyPartType.Arm] = 120,
         [BodyPartType.Leg] = 120,
         [BodyPartType.Hand] = 80,
@@ -99,13 +99,13 @@ public sealed partial class PartDamageVisualsComponent : Component
     [AutoNetworkedField]
     public Dictionary<HumanoidVisualLayers, DamageSpecifier> Damage = new();
 
-    // WOLFGATE (V3): degradation stage per layer, written by WolfmedDegradationVisualsSystem. It rides this
+    // WOLFGATE(Wolfmed): V3: degradation stage per layer, written by WolfmedDegradationVisualsSystem. It rides this
     // component rather than a second one so it reuses the AfterAutoHandleState hook the client already has.
     // Damage cannot stand in for it: it says nothing about wound severity, material or dead tissue.
     [AutoNetworkedField]
     public Dictionary<HumanoidVisualLayers, WolfmedPartDegradation> Degradation = new();
 
-    // WOLFGATE (GORE/G3): the dressing or splint each limb is wearing, written by
+    // WOLFGATE(Wolfmed): GORE/G3: the dressing or splint each limb is wearing, written by
     // WolfmedTreatmentVisualsSystem. Rides here for the same reason the degradation stage does.
     [AutoNetworkedField]
     public Dictionary<HumanoidVisualLayers, WolfmedPartTreatment> Treatments = new();
@@ -192,7 +192,7 @@ public sealed partial class BodyPartFunctionalityComponent : Component
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WoundComponent : Component
 {
-    // WOLFGATE: severity at the last runtime-component sync. A wound only rolls for bleeding when it has grown
+    // WOLFGATE(Wolfmed): severity at the last runtime-component sync. A wound only rolls for bleeding when it has grown
     // since then (a new injury), so healing, closing or re-dressing it never restarts a bleed that was stopped.
     [ViewVariables]
     public FixedPoint2 LastSyncSeverity = FixedPoint2.Zero;

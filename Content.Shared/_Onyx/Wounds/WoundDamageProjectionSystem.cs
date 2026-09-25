@@ -9,8 +9,8 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
 using Content.Shared.Rejuvenate;
 using Content.Shared._Onyx.Chemistry.Circulation;
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade.
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W5): the rejuvenate relay.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade.
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): W5: the rejuvenate relay.
 using Robust.Shared.Network;
 
 namespace Content.Shared._Onyx.Wounds;
@@ -18,22 +18,22 @@ namespace Content.Shared._Onyx.Wounds;
 public sealed partial class WoundDamageProjectionSystem : EntitySystem
 {
     [Dependency] private SharedBodySystem _body = default!;
-    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE: D12, Onyx-shaped damage API; see _WF/Wolfmed/Compat
+    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE(Wolfmed): D12, Onyx-shaped damage API; see _WF/Wolfmed/Compat
     [Dependency] private INetManager _net = default!;
     [Dependency] private PainSystem _pain = default!;
-    // WOLFGATE: D15 drops the CirculatoryStreamSystem dependency. Organic is the primary stream in phase 1, so
+    // WOLFGATE(Wolfmed): D15 drops the CirculatoryStreamSystem dependency. Organic is the primary stream in phase 1, so
     // SynchronizeStreams never attaches a CirculatoryStreamComponent to an organic body.
-    [Dependency] private WoundSystem _wounds = default!; // WOLFGATE: D17, OnRejuvenate now drives WoundSystem.ClearBodyWounds.
+    [Dependency] private WoundSystem _wounds = default!; // WOLFGATE(Wolfmed): D17, OnRejuvenate now drives WoundSystem.ClearBodyWounds.
 
     private readonly HashSet<EntityUid> _projecting = new();
 
     public override void Initialize()
     {
         base.Initialize();
-        // WOLFGATE: InitialBodySystem is Nubody glue that does not exist here; Shitmed's SharedBodySystem builds the body.
+        // WOLFGATE(Wolfmed): InitialBodySystem is Nubody glue that does not exist here; Shitmed's SharedBodySystem builds the body.
         SubscribeLocalEvent<WoundHostComponent, MapInitEvent>(OnMapInit, after: [typeof(SharedBodySystem)]);
         SubscribeLocalEvent<WoundHostComponent, RejuvenateEvent>(OnRejuvenate);
-        // WOLFGATE: D11 - Wolfgate writes damage inline instead of subscribing, so one raise point cannot serve both
+        // WOLFGATE(Wolfmed): D11 - Wolfgate writes damage inline instead of subscribing, so one raise point cannot serve both
         // orderings. Routing keeps the pre-write DamageDealtEvent; the projection re-points to the post-write
         // DamageChangedEvent Wolfgate already raises.
         SubscribeLocalEvent<WoundableComponent, DamageChangedEvent>(OnPartDamageDealt);
@@ -42,7 +42,7 @@ public sealed partial class WoundDamageProjectionSystem : EntitySystem
     private void OnMapInit(Entity<WoundHostComponent> body, ref MapInitEvent args)
     {
         SetupBody(body);
-        // WOLFGATE: D15 - _circulation.SynchronizeStreams(body) is dead in phase 1 (Organic is the primary stream).
+        // WOLFGATE(Wolfmed): D15 - _circulation.SynchronizeStreams(body) is dead in phase 1 (Organic is the primary stream).
     }
 
     private void OnRejuvenate(Entity<WoundHostComponent> body, ref RejuvenateEvent args)
@@ -50,7 +50,7 @@ public sealed partial class WoundDamageProjectionSystem : EntitySystem
         if (!_net.IsServer || !_projecting.Add(body))
             return;
 
-        // WOLFGATE: D17 - WoundSystem cannot own <BodyComponent, RejuvenateEvent> here, so its handler runs from this one.
+        // WOLFGATE(Wolfmed): D17 - WoundSystem cannot own <BodyComponent, RejuvenateEvent> here, so its handler runs from this one.
         _wounds.ClearBodyWounds(body);
 
         try
@@ -89,20 +89,20 @@ public sealed partial class WoundDamageProjectionSystem : EntitySystem
 
         RefreshBodyDamage(body);
 
-        // WOLFGATE (W5): sepsis, dead tissue and tourniquets are not wounds, so clearing the wounds leaves
+        // WOLFGATE(Wolfmed): W5: sepsis, dead tissue and tourniquets are not wounds, so clearing the wounds leaves
         // them behind. The Wolfmed handler is server-side and both RejuvenateEvent pairs here are taken.
         var rejuvenated = new WolfmedRejuvenateEvent(body);
         RaiseLocalEvent(ref rejuvenated);
     }
 
-    // WOLFGATE: D11 - was (Entity<WoundableComponent>, ref DamageDealtEvent).
+    // WOLFGATE(Wolfmed): D11 - was (Entity<WoundableComponent>, ref DamageDealtEvent).
     private void OnPartDamageDealt(Entity<WoundableComponent> part, ref DamageChangedEvent args)
     {
         if (!_net.IsServer || args.DamageDelta is not { } delta ||
             !TryComp(part, out BodyPartComponent? component))
             return;
 
-        _pain.ApplyDamage(part, delta, component); // WOLFGATE: D11, the post-write event carries the delta.
+        _pain.ApplyDamage(part, delta, component); // WOLFGATE(Wolfmed): D11, the post-write event carries the delta.
 
         if (component.Body is { } body)
             RefreshBodyDamage(body);
@@ -130,7 +130,7 @@ public sealed partial class WoundDamageProjectionSystem : EntitySystem
     private EntityUid GetDetachedRoot(EntityUid part)
     {
         var root = part;
-        // WOLFGATE: Shitmed's BodyPartComponent has no Parent field; walk the slot containers instead.
+        // WOLFGATE(Wolfmed): Shitmed's BodyPartComponent has no Parent field; walk the slot containers instead.
         while (_body.GetParentPartOrNull(root) is { } parent)
             root = parent;
 
@@ -231,7 +231,7 @@ private void SetupPart(EntityUid part)
         else
             RemComp<PainComponent>(part);
         EnsureComp<BodyPartFunctionalityComponent>(part);
-        // WOLFGATE: D19 - InjurableComponent is not ported. Wolfgate parts already carry
+        // WOLFGATE(Wolfmed): D19 - InjurableComponent is not ported. Wolfgate parts already carry
         // Damageable(damageContainer: OrganicPart) statically from _Shitmed/Body/Parts/base.yml.
     }
 
@@ -243,7 +243,7 @@ private void SetupPart(EntityUid part)
         _pain.SetPain((body, EnsureComp<PainComponent>(body)), value);
     }
 
-    // WOLFGATE (V3): public so the degradation overlay maps parts to layers the same way instead of forking it.
+    // WOLFGATE(Wolfmed): V3: public so the degradation overlay maps parts to layers the same way instead of forking it.
     public bool TryGetVisualLayer(EntityUid part, out HumanoidVisualLayers layer)
     {
         layer = default;
@@ -252,8 +252,8 @@ private void SetupPart(EntityUid part)
 
         switch (component.PartType, component.Symmetry)
         {
-            case (BodyPartType.Torso, _): layer = HumanoidVisualLayers.Chest; return true; // WOLFGATE: D9
-            // WOLFGATE: D9 - no BodyPartType.Groin and no HumanoidVisualLayers.Groin in Wolfgate.
+            case (BodyPartType.Torso, _): layer = HumanoidVisualLayers.Chest; return true; // WOLFGATE(Wolfmed): D9
+            // WOLFGATE(Wolfmed): D9 - no BodyPartType.Groin and no HumanoidVisualLayers.Groin in Wolfgate.
             case (BodyPartType.Head, _): layer = HumanoidVisualLayers.Head; return true;
             case (BodyPartType.Arm, BodyPartSymmetry.Left): layer = HumanoidVisualLayers.LArm; return true;
             case (BodyPartType.Arm, BodyPartSymmetry.Right): layer = HumanoidVisualLayers.RArm; return true;

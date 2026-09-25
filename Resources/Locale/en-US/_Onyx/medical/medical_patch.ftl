@@ -1,3 +1,4 @@
+# WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 ent-MedicalPatchMakeshift = makeshift patch
     .desc = This doesn't look hygienic. Hopefully it does the job.
 ent-UsedMedicalPatchMakeshift = used patch

@@ -1,13 +1,13 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Body;
-using Content.Shared.Body.Components; // WOLFGATE: Wolfgate keeps BodyComponent in Content.Shared.Body.Components.
+using Content.Shared.Body.Components; // WOLFGATE(Wolfmed): Wolfgate keeps BodyComponent in Content.Shared.Body.Components.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade.
 using Content.Shared.FixedPoint;
 
 namespace Content.Shared.Mobs.Systems;
@@ -15,7 +15,7 @@ namespace Content.Shared.Mobs.Systems;
 public sealed partial class MobThresholdSystem
 {
     [Dependency] private SharedBodySystem _body = default!;
-    [Dependency] private WolfmedDamageableSystem _damageable = default!; // WOLFGATE: D12; Wolfgate's own partial has no _damageable to swap.
+    [Dependency] private WolfmedDamageableSystem _damageable = default!; // WOLFGATE(Wolfmed): D12; Wolfgate's own partial has no _damageable to swap.
 
     /// <summary>
     /// Calculates the total damage from vital body parts (Head, Torso), for complex bodies,
@@ -32,7 +32,7 @@ public sealed partial class MobThresholdSystem
         var criticalParts = new[]
         {
             BodyPartType.Head,
-            BodyPartType.Torso, // WOLFGATE: D9 folds Onyx's Chest and Groin into Wolfgate's single Torso.
+            BodyPartType.Torso, // WOLFGATE(Wolfmed): D9 folds Onyx's Chest and Groin into Wolfgate's single Torso.
         };
 
         var result = FixedPoint2.Zero;

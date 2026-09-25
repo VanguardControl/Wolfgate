@@ -11,7 +11,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# WOLFGATE (WP7): only BrokenBones is ported; ModsuitPower/Centered/HierophantBeat/DragonPower/SneakAttack/LossOfSurprise are unrelated features.
+# WOLFGATE(Wolfmed): WP7: only BrokenBones is ported; ModsuitPower/Centered/HierophantBeat/DragonPower/SneakAttack/LossOfSurprise are unrelated features.
 - type: alert
   id: BrokenBones
   icons:

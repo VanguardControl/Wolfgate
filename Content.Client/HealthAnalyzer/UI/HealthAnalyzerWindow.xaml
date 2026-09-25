@@ -1,4 +1,4 @@
-<!-- WOLFGATE: HOOK 26 - the Wolfmed diagnostic panel's namespace (P4-D25, parallel panel). -->
+<!-- WOLFGATE(Wolfmed): HOOK 26 - the Wolfmed diagnostic panel's namespace (P4-D25, parallel panel). -->
 <controls:FancyWindow
     xmlns="https://spacestation14.io"
     xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
@@ -7,7 +7,7 @@
     SetHeight="600"
     SetWidth="900"
     MinSize="660 470"
-    Resizable="True"> <!-- WOLFGATE: HOOK 26 - was a fixed 350x650 column; the two-pane split needs width and a user resize. -->
+    Resizable="True"> <!-- WOLFGATE(Wolfmed): HOOK 26 - was a fixed 350x650 column; the two-pane split needs width and a user resize. -->
     <PanelContainer VerticalExpand="True" HorizontalExpand="True" Margin="4 4 4 4">
         <PanelContainer.PanelOverride>
             <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#525252" BackgroundColor="#3d474d"/>
@@ -24,7 +24,7 @@
             <Label
                 Name="NoPatientDataText"
                 Text="{Loc health-analyzer-window-no-patient-data-text}"/>
-            <!-- WOLFGATE: HOOK 26 - two-pane split; the static overview on the left, the Wolfmed tabs on the right. -->
+            <!-- WOLFGATE(Wolfmed): HOOK 26 - two-pane split; the static overview on the left, the Wolfmed tabs on the right. -->
             <BoxContainer
                 Name="WolfmedPaneSplit"
                 Orientation="Horizontal"
@@ -36,7 +36,7 @@
                 VerticalExpand="True"
                 MinWidth="330">
             <!-- Shitmed Change Start -->
-            <!-- WOLFGATE: UI3 - the return button and its frame are gone; the doll no longer switches to a
+            <!-- WOLFGATE(Wolfmed): UI3 - the return button and its frame are gone; the doll no longer switches to a
                  per-part scan, it sets the player's targeted body part. -->
             <!-- Shitmed Change End -->
             <BoxContainer
@@ -58,7 +58,7 @@
                             <PanelContainer.PanelOverride>
                                 <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#151515" BackgroundColor="#050505"/>
                             </PanelContainer.PanelOverride>
-                    <!-- WOLFGATE: one fixed 96x96 frame for the doll AND its buttons. Unsized, this panel stretched to the
+                    <!-- WOLFGATE(Wolfmed): one fixed 96x96 frame for the doll AND its buttons. Unsized, this panel stretched to the
                          row height: the SpriteView stayed centred in it while PartView sat at its bottom-left, so every
                          hover and selection highlight landed below and left of the limb. -->
                     <PanelContainer SetSize="96 96" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -73,7 +73,7 @@
                                     Name="SpriteView"
                                     Access="Public"
                                     SetSize="96 96"/>
-<!-- WOLFGATE: every button is placed from its limb's pixel bounds in the status doll art
+<!-- WOLFGATE(Wolfmed): every button is placed from its limb's pixel bounds in the status doll art
                              (_Shitmed/Interface/Targeting/Status/<part>.rsi, 32 px drawn at 3x): one art pixel of
                              margin all round, which is the hover texture's outline. Shitmed's nested 2.5x layout and
                              the HUD doll's layout both belong to different art and sat off these limbs.
@@ -218,7 +218,7 @@
                             Visible="False"
                             StyleClasses="LowDivider"/>
 
-            <!-- WOLFGATE: HOOK 26 - named so the alert box no longer eats 62px of the overview pane when there is nothing to warn about. -->
+            <!-- WOLFGATE(Wolfmed): HOOK 26 - named so the alert box no longer eats 62px of the overview pane when there is nothing to warn about. -->
             <PanelContainer Name="WolfmedAlertsPanel" Visible="False" VerticalExpand="False" HorizontalExpand="True" Margin="4 4 4 4" SetHeight="62">
                 <PanelContainer.PanelOverride>
                     <graphics:StyleBoxFlat BorderThickness="4" BorderColor="#333333" BackgroundColor="#141414"/>
@@ -265,13 +265,13 @@
                 </PanelContainer>
             </PanelContainer>
             </BoxContainer>
-            <!-- WOLFGATE: HOOK 26 - the parallel Wolfmed diagnostic panel (P4-D25); the right pane, hidden for non-wound-hosts. -->
+            <!-- WOLFGATE(Wolfmed): HOOK 26 - the parallel Wolfmed diagnostic panel (P4-D25); the right pane, hidden for non-wound-hosts. -->
             <wolfmed:WolfmedDiagnosticPanel Name="WolfmedPanel"
                                             Visible="False"
                                             HorizontalExpand="True"
                                             VerticalExpand="True"/>
             </BoxContainer>
-            <!-- WOLFGATE: HOOK 26 - two-pane split end. -->
+            <!-- WOLFGATE(Wolfmed): HOOK 26 - two-pane split end. -->
 
         </BoxContainer>
         </PanelContainer>

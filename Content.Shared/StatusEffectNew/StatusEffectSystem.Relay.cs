@@ -1,12 +1,12 @@
 using Content.Shared.Body.Events;
-// WOLFGATE: Onyx's _Onyx.MartialArts is not ported; the melee target modifier relay below is dropped.
+// WOLFGATE(Wolfmed): Onyx's _Onyx.MartialArts is not ported; the melee target modifier relay below is dropped.
 using Content.Shared.Atmos;
 using Content.Shared.Chat;
 using Content.Shared.Chemistry.Events;
 using Content.Shared.Climbing.Events;
 using Content.Shared.Damage.Events;
 using Content.Shared.Damage.Systems;
-using Content.Shared.Damage; // WOLFGATE: Wolfgate keeps DamageModifyEvent and ModifySlowOnDamageSpeedEvent in Content.Shared.Damage.
+using Content.Shared.Damage; // WOLFGATE(Wolfmed): Wolfgate keeps DamageModifyEvent and ModifySlowOnDamageSpeedEvent in Content.Shared.Damage.
 using Content.Shared.Examine;
 using Content.Shared.Eye.Blinding.Systems;
 using Content.Shared.Flash;
@@ -45,10 +45,10 @@ public sealed partial class StatusEffectsSystem
         SubscribeLocalEvent<StatusEffectContainerComponent, RefreshFrictionModifiersEvent>(RefRelayStatusEffectEvent);
         SubscribeLocalEvent<StatusEffectContainerComponent, TileFrictionEvent>(RefRelayStatusEffectEvent);
 
-        // WOLFGATE: StandUpAttemptEvent, StunEndAttemptEvent and RefreshStaminaCritThresholdEvent do not exist in Wolfgate.
+        // WOLFGATE(Wolfmed): StandUpAttemptEvent, StunEndAttemptEvent and RefreshStaminaCritThresholdEvent do not exist in Wolfgate.
         SubscribeLocalEvent<StatusEffectContainerComponent, CanSeeAttemptEvent>(RelayStatusEffectEvent);
         SubscribeLocalEvent<StatusEffectContainerComponent, GetBlurEvent>(RelayStatusEffectEvent); // <Onyx-MartialArts>
-        // WOLFGATE: the melee target modifier relay belongs to Onyx's MartialArts, which is not ported.
+        // WOLFGATE(Wolfmed): the melee target modifier relay belongs to Onyx's MartialArts, which is not ported.
         SubscribeLocalEvent<StatusEffectContainerComponent, FlashAttemptEvent>(RefRelayStatusEffectEvent);
         SubscribeLocalEvent<StatusEffectContainerComponent, SelfBeforeClimbEvent>(RelayStatusEffectEvent);
 
@@ -57,15 +57,15 @@ public sealed partial class StatusEffectsSystem
         SubscribeLocalEvent<StatusEffectContainerComponent, SpeakAttemptEvent>(RelayStatusEffectEvent);
         SubscribeLocalEvent<StatusEffectContainerComponent, ExaminedEvent>(RelayStatusEffectEvent);
 
-        // WOLFGATE: EmoteActionEvent does not exist; EmoteEvent, AccentGetEvent, VocalSystem and MumbleAccentSystem are server-side in Wolfgate.
+        // WOLFGATE(Wolfmed): EmoteActionEvent does not exist; EmoteEvent, AccentGetEvent, VocalSystem and MumbleAccentSystem are server-side in Wolfgate.
 
-        // WOLFGATE: BleedModifierEvent does not exist; Wolfgate bleeding is a server-side BleedAmount.
+        // WOLFGATE(Wolfmed): BleedModifierEvent does not exist; Wolfgate bleeding is a server-side BleedAmount.
         SubscribeLocalEvent<StatusEffectContainerComponent, DamageModifyEvent>(RelayStatusEffectEvent);
-        // WOLFGATE: RefreshPressureImmunityEvent does not exist in Wolfgate.
+        // WOLFGATE(Wolfmed): RefreshPressureImmunityEvent does not exist in Wolfgate.
         SubscribeLocalEvent<StatusEffectContainerComponent, SelfBeforeDefibrillatorZapsEvent>(RelayStatusEffectEvent);
-        // WOLFGATE: SelfBeforeInjectEvent does not exist in Wolfgate.
+        // WOLFGATE(Wolfmed): SelfBeforeInjectEvent does not exist in Wolfgate.
 
-        // WOLFGATE: CatchAttemptEvent does not exist in Wolfgate.
+        // WOLFGATE(Wolfmed): CatchAttemptEvent does not exist in Wolfgate.
         SubscribeLocalEvent<StatusEffectContainerComponent, SelfBeforeGunShotEvent>(RelayStatusEffectEvent);
     }
 

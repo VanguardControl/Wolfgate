@@ -19,9 +19,9 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 /// </summary>
 public sealed class WolfmedDownedClimbSystem : EntitySystem
 {
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly StandingStateSystem _standing = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
 
     /// <summary>The layer lying down takes off a body's masks (StandingStateSystem's standing layer): the tables' own.</summary>
     private const int TableLayer = (int) CollisionGroup.TableLayer;

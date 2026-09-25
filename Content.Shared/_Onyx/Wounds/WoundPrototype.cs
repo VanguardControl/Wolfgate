@@ -6,7 +6,7 @@ using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Content.Shared._Onyx.Chemistry.Circulation;
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (UI2)
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): UI2
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -36,7 +36,7 @@ public sealed partial class WoundPrototype : IPrototype
     public float HealingMultiplier = 1f;
 
     /// <summary>
-    /// WOLFGATE (W1): the wound is created only by a Wolfmed wound rule, never by the default per-damage-type
+    /// WOLFGATE(Wolfmed): W1: the wound is created only by a Wolfmed wound rule, never by the default per-damage-type
     /// pass. <see cref="DamageTypes"/> still governs how treatment and damage removal heal it.
     /// </summary>
     [DataField]
@@ -46,7 +46,7 @@ public sealed partial class WoundPrototype : IPrototype
     public WoundVisibility Visibility = WoundVisibility.Visible;
 
     /// <summary>
-    /// WOLFGATE (UI2): which bucket the analyzer's wounds tab files this wound under. Null lets
+    /// WOLFGATE(Wolfmed): UI2: which bucket the analyzer's wounds tab files this wound under. Null lets
     /// <see cref="Content.Shared._WF.Wolfmed.Wounds.WolfmedWoundCategories.Resolve"/> derive one from
     /// <see cref="DamageTypes"/>; set it wherever the damage type would mislead.
     /// </summary>

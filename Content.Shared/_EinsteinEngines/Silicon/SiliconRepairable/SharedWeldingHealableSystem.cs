@@ -11,6 +11,7 @@ public abstract partial class SharedWeldingHealableSystem : EntitySystem
         public float Delay;
     }
 
+    // WOLFGATE(Wolfmed) START: the do-after event for welding a chassis wound.
     [Serializable, NetSerializable]
     protected sealed partial class WoundRepairFinishedEvent : SimpleDoAfterEvent
     {
@@ -19,4 +20,5 @@ public abstract partial class SharedWeldingHealableSystem : EntitySystem
 
         public override DoAfterEvent Clone() => new WoundRepairFinishedEvent { Part = Part, Delay = Delay };
     }
+    // WOLFGATE END
 }

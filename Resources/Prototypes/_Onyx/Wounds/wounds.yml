@@ -1,4 +1,4 @@
-# WOLFGATE (WP7 -> P5-1): Onyx's Ipc/Slime/Plant/Cybernetic profiles and their wound sets were dropped
+# WOLFGATE(Wolfmed): WP7 -> P5-1: Onyx's Ipc/Slime/Plant/Cybernetic profiles and their wound sets were dropped
 # for phase 1 (D3) and restored verbatim in phase 5 (14 of 30 -> 30 of 30). Only two classes of marked
 # fold exist below: D9 (Chest+Groin -> Torso) and DECISIONS Sec 8.2-1 (manipulationModifier inversion,
 # CyberneticFractureProfile).
@@ -13,7 +13,7 @@
     - Heat
     - Cold
     - Shock
-    - Caustic # WOLFGATE: D20 reversed - OrganicPart supports the whole Burn group, which includes Caustic
+    - Caustic # WOLFGATE(Wolfmed): D20 reversed - OrganicPart supports the whole Burn group, which includes Caustic
   supportedWounds:
     - BluntWound
     - SlashWound
@@ -27,33 +27,33 @@
     - InternalBleedingWound
     - MedicalScarWound
     - SystemicBleedingWound
-    # WOLFGATE (W1): ballistic wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds).
+    # WOLFGATE(Wolfmed): W1: ballistic wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds).
     - WolfmedGrazeWound
     - WolfmedGunshotWound
     - WolfmedLodgedRoundWound
     - WolfmedShrapnelWound
-    # WOLFGATE (W2): slash and bite wounds, also created only by wolfmedWoundRule.
+    # WOLFGATE(Wolfmed): W2: slash and bite wounds, also created only by wolfmedWoundRule.
     - WolfmedArterialBleedWound
     - WolfmedTendonCutWound
     - WolfmedAvulsionWound
-    # WOLFGATE (W3): blunt trauma wounds, also created only by wolfmedWoundRule.
+    # WOLFGATE(Wolfmed): W3: blunt trauma wounds, also created only by wolfmedWoundRule.
     - WolfmedCrushInjuryWound
     - WolfmedConcussionWound
     - WolfmedDislocationWound
     - WolfmedOrganContusionWound
-    # WOLFGATE (W4): burn wounds. Charring comes from WolfmedCharringSystem, the other three from rules.
+    # WOLFGATE(Wolfmed): W4: burn wounds. Charring comes from WolfmedCharringSystem, the other three from rules.
     - WolfmedCharringWound
     - WolfmedFrostbiteWound
     - WolfmedChemicalBurnWound
     - WolfmedInternalBurnWound
-    # WOLFGATE (W5): dead tissue, left by WolfmedNecrosisSystem rather than by a hit.
+    # WOLFGATE(Wolfmed): W5: dead tissue, left by WolfmedNecrosisSystem rather than by a hit.
     - WolfmedNecrosisWound
-    # WOLFGATE (EVISC): the torso laid open. Created only by WolfmedEviscerationSystem, never by a rule.
+    # WOLFGATE(Wolfmed): EVISC: the torso laid open. Created only by WolfmedEviscerationSystem, never by a rule.
     - WolfmedEviscerationWound
   organDamage:
     chances:
       Head: 0.05
-      # WOLFGATE (D9): Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent per-part rolls, one torso).
+      # WOLFGATE(Wolfmed): D9: Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent per-part rolls, one torso).
       Torso: 0.04
       Arm: 0.02
       Hand: 0.01
@@ -66,7 +66,7 @@
   treatmentCapabilities: [Mechanical, Electrical]
   passiveRecoveryMultiplier: 0
   bedRecoveryMultiplier: 0
-  # WOLFGATE (playtest 3 IPC): 1 -> 0.4. A sealed hydraulic system leaks, it does not spurt: seven spear hits bled
+  # WOLFGATE(Wolfmed): playtest 3 IPC: 1 -> 0.4. A sealed hydraulic system leaks, it does not spurt: seven spear hits bled
   # a chassis at the bloodstream's 10 u per tick cap, as fast as a human. Now it takes about twice as long.
   bleedingMultiplier: 0.4
   scarrable: false
@@ -75,9 +75,9 @@
     - Slash
     - Piercing
     - Heat
-    - Cold    # WOLFGATE (P5-1/P5-D20, corrected M6): live. U13'(b) shipped: the parts' InorganicWolfmed
+    - Cold    # WOLFGATE(Wolfmed): P5-1/P5-D20, corrected M6: live. U13'(b) shipped: the parts' InorganicWolfmed
     - Shock   #   container (_WF/Wolfmed/Damage/containers.yml) takes the whole Burn group, as Onyx's SiliconIpc does.
-    - Caustic # WOLFGATE (P5-1/P5-D20, corrected M6): as above, live.
+    - Caustic # WOLFGATE(Wolfmed): P5-1/P5-D20, corrected M6: as above, live.
   supportedWounds:
     - IpcMechanicalDamageWound
     - ElectricalWound
@@ -85,22 +85,22 @@
     - DismembermentWound
     - AmputationConsequenceWound
     - SystemicBleedingWound
-    # WOLFGATE (W6): mechanical wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds). None of
+    # WOLFGATE(Wolfmed): W6: mechanical wounds, created only by wolfmedWoundRule (see _WF/Wolfmed/Wounds). None of
     # them appears in OrganicBodyPartProfile, and none of that profile's Wolfmed wounds appears here.
     - WolfmedDentWound
     - WolfmedBreachWound
     - WolfmedShortCircuitWound
     - WolfmedServoDamageWound
     - WolfmedOverheatingWound
-    # WOLFGATE (EVISC): the chassis torso opened up. Created only by WolfmedEviscerationSystem.
+    # WOLFGATE(Wolfmed): EVISC: the chassis torso opened up. Created only by WolfmedEviscerationSystem.
     - WolfmedChassisBreachWound
   organDamage:
-    # WOLFGATE (P5-1/P5-D13, corrected M6): live. The core and the pump carry OrganDamage since BRAIN, and the
+    # WOLFGATE(Wolfmed): P5-1/P5-D13, corrected M6: live. The core and the pump carry OrganDamage since BRAIN, and the
     # IPC torso's organReach (M3) replaces this roll there. Do NOT add maxAffected - Onyx sets it only on
     # OrganicBodyPartProfile.
     chances:
       Head: 0.05
-      # WOLFGATE (D9): Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent
+      # WOLFGATE(Wolfmed): D9: Onyx's Chest 0.04 and Groin 0.04 fold into Torso 0.04 (not summed - independent
       # per-part rolls, and Wolfgate has one torso).
       Torso: 0.04
       Arm: 0.02
@@ -133,11 +133,11 @@
     - InternalBleedingWound
     - SystemicBleedingWound
   organDamage:
-    # WOLFGATE (P5-1/P5-D13): inert - see IpcBodyPartProfile above. Do NOT add maxAffected or limb rows -
+    # WOLFGATE(Wolfmed): P5-1/P5-D13: inert - see IpcBodyPartProfile above. Do NOT add maxAffected or limb rows -
     # Onyx lists only Head/Chest/Groin here.
     chances:
       Head: 0.05
-      # WOLFGATE (D9): Chest 0.04 + Groin 0.04 -> Torso 0.04 (see IpcBodyPartProfile above).
+      # WOLFGATE(Wolfmed): D9: Chest 0.04 + Groin 0.04 -> Torso 0.04 (see IpcBodyPartProfile above).
       Torso: 0.04
 
 - type: bodyPartProfile
@@ -153,9 +153,9 @@
     - Slash
     - Piercing
     - Heat
-    - Cold    # WOLFGATE (P5-1/P5-D20): inert unless U13'(b) ships - see IpcBodyPartProfile above.
+    - Cold    # WOLFGATE(Wolfmed): P5-1/P5-D20: inert unless U13'(b) ships - see IpcBodyPartProfile above.
     - Shock
-    - Caustic # WOLFGATE (P5-1/P5-D20): as above.
+    - Caustic # WOLFGATE(Wolfmed): P5-1/P5-D20: as above.
   supportedWounds:
     - CyberneticMechanicalDamageWound
     - ElectricalWound
@@ -163,14 +163,14 @@
     - SurgicalIncisionWound
     - DismembermentWound
     - AmputationConsequenceWound
-    # WOLFGATE (W6): as on IpcBodyPartProfile above - a cybernetic limb dents, breaches, shorts, loses a
+    # WOLFGATE(Wolfmed): W6: as on IpcBodyPartProfile above - a cybernetic limb dents, breaches, shorts, loses a
     # servo and overheats exactly as an IPC chassis does.
     - WolfmedDentWound
     - WolfmedBreachWound
     - WolfmedShortCircuitWound
     - WolfmedServoDamageWound
     - WolfmedOverheatingWound
-  # WOLFGATE: no organDamage block on Onyx's original either - nothing to fold.
+  # WOLFGATE(Wolfmed): no organDamage block on Onyx's original either - nothing to fold.
 
 - type: bodyPartProfile
   id: PlantBodyPartProfile
@@ -197,10 +197,10 @@
     - MedicalScarWound
     - SystemicBleedingWound
   organDamage:
-    # WOLFGATE (P5-1/P5-D13): inert - see IpcBodyPartProfile above. Do NOT add maxAffected or limb rows.
+    # WOLFGATE(Wolfmed): P5-1/P5-D13: inert - see IpcBodyPartProfile above. Do NOT add maxAffected or limb rows.
     chances:
       Head: 0.05
-      # WOLFGATE (D9): Chest 0.04 + Groin 0.04 -> Torso 0.04 (see IpcBodyPartProfile above).
+      # WOLFGATE(Wolfmed): D9: Chest 0.04 + Groin 0.04 -> Torso 0.04 (see IpcBodyPartProfile above).
       Torso: 0.04
 
 - type: fractureProfile
@@ -221,7 +221,7 @@
     None: 1
     Reduced: 0.25
     Mended: 0
-  # WOLFGATE (DECISIONS §8.2-1): Onyx's manipulationModifier values are all below 1, but the formula is
+  # WOLFGATE(Wolfmed): DECISIONS §8.2-1: Onyx's manipulationModifier values are all below 1, but the formula is
   # `multiplier *= 1 + (modifier - 1) * partScale * treatmentScale`, so below 1 means FASTER — a shattered arm
   # made every do-after 25% quicker. Restored to the C# defaults in WoundPrototype.cs (1.1/1.25/1.5/2.0) so a
   # fractured arm slows hand work. movementModifier is untouched (correctly below 1, and read that way).
@@ -265,7 +265,7 @@
     None: 1
     Reduced: 0.25
     Mended: 0
-  # WOLFGATE (DECISIONS Sec 8.2-1): same inversion fix as OrganicFractureProfile above (wounds.yml) -
+  # WOLFGATE(Wolfmed): DECISIONS Sec 8.2-1: same inversion fix as OrganicFractureProfile above (wounds.yml) -
   # Onyx's 0.92/0.84/0.75/0.75 would make a shattered cybernetic arm do-afters 25% FASTER. Restored to the
   # C# defaults in WoundPrototype.cs. movementModifier is untouched (correctly below 1).
   grades:
@@ -298,7 +298,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.87
@@ -347,10 +347,10 @@
 - type: wound
   id: BoneFractureWound
   name: wound-name-bone-fracture
-  analyzerCategory: Blunt # WOLFGATE (UI2)
+  analyzerCategory: Blunt # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   maximumSeverity: 200
-  # WOLFGATE (W0 balance): stage thresholds track WolfmedFractureProfile's grades
+  # WOLFGATE(Wolfmed): W0 balance: stage thresholds track WolfmedFractureProfile's grades
   # (_WF/Wolfmed/Body/fractures.yml), 20/35/50/60 -> 12/20/32/45. A fresh Hairline fracture would otherwise
   # sit below its own lowest stage and carry no pain or functionality effect at all. Hairline's pain
   # minSeverity follows its threshold down for the same reason. CyberneticFrameFractureWound is untouched:
@@ -404,7 +404,7 @@
 - type: wound
   id: CyberneticFrameFractureWound
   name: wound-name-cybernetic-frame-fracture
-  analyzerCategory: Mechanical # WOLFGATE (UI2)
+  analyzerCategory: Mechanical # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   maximumSeverity: 200
   stages:
@@ -445,9 +445,9 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
-  # WOLFGATE (W5): an open cut is the baseline infection risk the whole model is scaled against.
+  # WOLFGATE(Wolfmed): W5: an open cut is the baseline infection risk the whole model is scaled against.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 1
   - !type:WoundPainBehavior
@@ -493,10 +493,10 @@
 - type: wound
   id: SystemicBleedingWound
   name: wound-name-systemic-bleeding
-  analyzerCategory: Internal # WOLFGATE (UI2)
+  analyzerCategory: Internal # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   maximumSeverity: 200
-  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
+  healingMultiplier: 0 # WOLFGATE(Wolfmed): W0: a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 1
@@ -509,9 +509,9 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
-  # WOLFGATE (W5): a puncture closes over whatever went in with it.
+  # WOLFGATE(Wolfmed): W5: a puncture closes over whatever went in with it.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 1.4
   - !type:WoundPainBehavior
@@ -563,19 +563,19 @@
     Cold:
       reopenMinimumDamage: 18
       severityMultiplier: 1
-    Caustic: # WOLFGATE: D20 reversed - Caustic stays routed and creates burn wounds
+    Caustic: # WOLFGATE(Wolfmed): D20 reversed - Caustic stays routed and creates burn wounds
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
-  # WOLFGATE (W5): burned skin is no longer a barrier.
+  # WOLFGATE(Wolfmed): W5: burned skin is no longer a barrier.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 1.2
   - !type:WoundScarBehavior
     threshold: 20
     chance: 1
-  # WOLFGATE (M1b): burns weep into blood volume (OD11), set against the measured fire. WolfmedFluidLossSystem.
+  # WOLFGATE(Wolfmed): M1b: burns weep into blood volume (OD11), set against the measured fire. WolfmedFluidLossSystem.
   - !type:WolfmedFluidLossBehavior
     from: 20
     perSeverity: 0.0008
@@ -601,7 +601,7 @@
       - !type:WoundPainBehavior
         painPerSeverity: 0.8
         minSeverity: 10
-      # WOLFGATE (playtest 2): burned hands are slow, never switched off (WolfmedLimbIntegrity).
+      # WOLFGATE(Wolfmed): playtest 2: burned hands are slow, never switched off (WolfmedLimbIntegrity).
       - !type:WolfmedLimbPenaltyBehavior
         manipulationModifier: 1.25
     Critical:
@@ -611,10 +611,10 @@
       - !type:WoundPainBehavior
         painPerSeverity: 0.8
         minSeverity: 10
-      # WOLFGATE (playtest 2): burned hands are slow, never switched off (WolfmedLimbIntegrity).
+      # WOLFGATE(Wolfmed): playtest 2: burned hands are slow, never switched off (WolfmedLimbIntegrity).
       - !type:WolfmedLimbPenaltyBehavior
         manipulationModifier: 1.5
-      # WOLFGATE (W4): tissue burned this far is dead. Crossing into this stage leaves charring, which no
+      # WOLFGATE(Wolfmed): W4: tissue burned this far is dead. Crossing into this stage leaves charring, which no
       # topical reaches - a skin graft is the only exit. See WolfmedCharringSystem.
       - !type:WolfmedCharringBehavior
         wound: WolfmedCharringWound
@@ -628,7 +628,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.7
@@ -657,13 +657,13 @@
 - type: wound
   id: SurgicalIncisionWound
   name: wound-name-surgical-incision
-  analyzerCategory: Cut # WOLFGATE (UI2)
+  analyzerCategory: Cut # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
-  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
+  healingMultiplier: 0 # WOLFGATE(Wolfmed): W0: a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
-  # WOLFGATE (W5): a patient left open on the table is the classic surgical site infection.
+  # WOLFGATE(Wolfmed): W5: a patient left open on the table is the classic surgical site infection.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 1.5
   - !type:WoundBleedingBehavior
@@ -673,13 +673,13 @@
 - type: wound
   id: DismembermentWound
   name: wound-name-dismemberment
-  analyzerCategory: Other # WOLFGATE (UI2)
+  analyzerCategory: Other # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
-  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
+  healingMultiplier: 0 # WOLFGATE(Wolfmed): W0: a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
-  # WOLFGATE (W5): an open stump is the worst thing in the model short of dead tissue.
+  # WOLFGATE(Wolfmed): W5: an open stump is the worst thing in the model short of dead tissue.
   - !type:WolfmedInfectionRiskBehavior
     riskMultiplier: 2.5
   - !type:WoundBleedingBehavior
@@ -691,7 +691,7 @@
 - type: wound
   id: IpcMechanicalDamageWound
   name: wound-name-ipc-mechanical-damage
-  analyzerCategory: Mechanical # WOLFGATE (UI2)
+  analyzerCategory: Mechanical # WOLFGATE(Wolfmed): UI2
   damageTypes:
     Blunt:
       reopenMinimumDamage: 18
@@ -710,7 +710,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 1 # WOLFGATE (W0): exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
+  healingMultiplier: 1 # WOLFGATE(Wolfmed): W0: exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 0.08
@@ -744,7 +744,7 @@
 - type: wound
   id: CyberneticMechanicalDamageWound
   name: wound-name-cybernetic-mechanical-damage
-  analyzerCategory: Mechanical # WOLFGATE (UI2)
+  analyzerCategory: Mechanical # WOLFGATE(Wolfmed): UI2
   damageTypes:
     Blunt:
       reopenMinimumDamage: 18
@@ -763,7 +763,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 1 # WOLFGATE (W0): exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
+  healingMultiplier: 1 # WOLFGATE(Wolfmed): W0: exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
   behaviors:
   - !type:WoundBleedingBehavior
     rate: 0.08
@@ -799,7 +799,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.7
@@ -846,7 +846,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -889,7 +889,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -937,7 +937,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   stages:
     Minor:
       name: wound-stage-minor
@@ -976,7 +976,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.87
@@ -1026,7 +1026,7 @@
       reopenMinimumDamage: 15
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -1072,7 +1072,7 @@
       reopenMinimumDamage: 18
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundPainBehavior
     painPerSeverity: 0.67
@@ -1123,7 +1123,7 @@
       reopenMinimumDamage: 12
       severityMultiplier: 1
   maximumSeverity: 200
-  healingMultiplier: 0.15 # WOLFGATE (W0): Onyx's intended value. Damage removal barely closes a wound.
+  healingMultiplier: 0.15 # WOLFGATE(Wolfmed): W0: Onyx's intended value. Damage removal barely closes a wound.
   behaviors:
   - !type:WoundScarBehavior
     threshold: 20
@@ -1161,7 +1161,7 @@
 - type: wound
   id: AmputationConsequenceWound
   name: wound-name-amputation-consequence
-  analyzerCategory: Other # WOLFGATE (UI2)
+  analyzerCategory: Other # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
@@ -1169,20 +1169,20 @@
 - type: wound
   id: InternalBleedingWound
   name: wound-name-internal-bleeding
-  analyzerCategory: Internal # WOLFGATE (UI2)
+  analyzerCategory: Internal # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 200
-  healingMultiplier: 0 # WOLFGATE (W0): a bleed never closes from damage removal, only gauze, sutures or surgery.
+  healingMultiplier: 0 # WOLFGATE(Wolfmed): W0: a bleed never closes from damage removal, only gauze, sutures or surgery.
   behaviors:
   - !type:WoundInternalBleedingBehavior
-    rate: 0.01 # WOLFGATE (playtest 1): halved with wolfmed.bleed_rate, which this bleed does not read
+    rate: 0.01 # WOLFGATE(Wolfmed): playtest 1: halved with wolfmed.bleed_rate, which this bleed does not read
     chance: 1
 
 - type: wound
   id: MedicalScarWound
   name: wound-name-medical-scar
-  analyzerCategory: Other # WOLFGATE (UI2)
+  analyzerCategory: Other # WOLFGATE(Wolfmed): UI2
   damageTypes: {}
   mergeMode: SeparateInstances
   maximumSeverity: 1

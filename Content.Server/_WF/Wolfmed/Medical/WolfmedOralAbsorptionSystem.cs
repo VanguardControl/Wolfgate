@@ -14,8 +14,8 @@ namespace Content.Server._WF.Wolfmed.Medical;
 /// </summary>
 public sealed class WolfmedOralAbsorptionSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private readonly Dictionary<string, bool> _painkillers = new();
 

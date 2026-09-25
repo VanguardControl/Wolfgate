@@ -2,7 +2,7 @@ namespace Content.Server.Chat;
 
 using Content.Server.Chat.Systems;
 using Content.Shared.Chat.Prototypes;
-using Robust.Shared.Prototypes; // WOLFGATE: HOOK 17, ProtoId<> for the Wolfmed pain-sound thresholds.
+using Robust.Shared.Prototypes; // WOLFGATE(Wolfmed): HOOK 17, ProtoId<> for the Wolfmed pain-sound thresholds.
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Set;
 
@@ -51,7 +51,7 @@ public sealed partial class EmoteOnDamageComponent : Component
     [DataField("emoteCooldown"), ViewVariables(VVAccess.ReadWrite)]
     public TimeSpan EmoteCooldown = TimeSpan.FromSeconds(2);
 
-    // WOLFGATE: HOOK 17 - Wolfmed pain sounds (ONYX Content.Server/Chat/EmoteOnDamageComponent.cs
+    // WOLFGATE(Wolfmed): HOOK 17 - Wolfmed pain sounds (ONYX Content.Server/Chat/EmoteOnDamageComponent.cs
     // <Onyx-PainSounds>). Purely additive: Onyx replaces Emotes with EmotesThreshold, we keep both so
     // ZombieSystem's AddEmote(uid, "Scream") call sites are untouched (P2-D9).
 

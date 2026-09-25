@@ -284,7 +284,7 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
             // Shitmed Change
             body,
             part != null ? GetNetEntity(part) : null,
-            BuildWoundDiagnostics(target), BuildOrganInfo(target), BuildChemicalInfo(target, bloodstream), BuildVitalDamage(target) // WOLFGATE: HOOK 23
+            BuildWoundDiagnostics(target), BuildOrganInfo(target), BuildChemicalInfo(target, bloodstream), BuildVitalDamage(target) // WOLFGATE(Wolfmed): HOOK 23
         ));
     }
 }

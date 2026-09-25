@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Onyx.Targeting;
-using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10, Onyx's own Targeting stack is not vendored.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade + §2.7 TryDetachPart.
-using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE: D10 resolver.
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10, Onyx's own Targeting stack is not vendored.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade + §2.7 TryDetachPart.
+using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE(Wolfmed): D10 resolver.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.CCVar;
@@ -28,7 +28,7 @@ namespace Content.IntegrationTests.Tests._Onyx.Wounds;
 [TestOf(typeof(WoundDamageRoutingSystem))]
 public sealed class WoundDamageFoundationTest : GameTest
 {
-    // WOLFGATE: Onyx's Nubody `InitialBody` + `organs:` becomes a Shitmed `body` prototype; `Injurable` is dropped
+    // WOLFGATE(Wolfmed): Onyx's Nubody `InitialBody` + `organs:` becomes a Shitmed `body` prototype; `Injurable` is dropped
     // (D19); `partType: Chest` becomes `Torso` (D9); armour has no `coverage`/`partModifiers` in Wolfgate.
     [TestPrototypes]
     private const string Prototypes = @"
@@ -67,7 +67,7 @@ public sealed class WoundDamageFoundationTest : GameTest
   - type: MobState
   - type: PainShockTarget
   - type: WoundHost
-  # WOLFGATE: pain shock paralyses through Wolfgate's *old* status-effect system, which refuses any entity
+  # WOLFGATE(Wolfmed): pain shock paralyses through Wolfgate's *old* status-effect system, which refuses any entity
   # without StatusEffectsComponent. Onyx's stun goes through StatusEffectNew and needs no such component.
   - type: StatusEffects
     allowed:
@@ -84,7 +84,7 @@ public sealed class WoundDamageFoundationTest : GameTest
       coefficients:
         Blunt: 0.5
 
-# WOLFGATE (WP11-3, P3-D5): Onyx's four locational-armour fixtures. `coverage: [Chest]` becomes `[Torso]` (D9 —
+# WOLFGATE(Wolfmed): WP11-3, P3-D5: Onyx's four locational-armour fixtures. `coverage: [Chest]` becomes `[Torso]` (D9 —
 # Wolfgate's BodyPartType has no Chest member and the Release lint rejects it), and Onyx's `WoundFoundationArmorAll`
 # is renamed `WoundFoundationArmorAllHead` because it is worn in the *head* slot while protecting everything.
 - type: entity
@@ -162,7 +162,7 @@ public sealed class WoundDamageFoundationTest : GameTest
     [Test]
     public async Task TargetingContractAndRoutingTest()
     {
-        // WOLFGATE: Onyx's SharedTargetingSystem.TryConvert and TargetingComponent.DefaultOdds() are part of the
+        // WOLFGATE(Wolfmed): Onyx's SharedTargetingSystem.TryConvert and TargetingComponent.DefaultOdds() are part of the
         // Targeting stack D10 declines to vendor. Wolfgate folds Groin onto the torso (D9) and phase 1 resolves
         // the requested part exactly, with no anatomical-odds scatter (§2.13), so only IsSelectable survives here.
         Assert.Multiple(() =>
@@ -185,10 +185,10 @@ public sealed class WoundDamageFoundationTest : GameTest
             var body = entityManager.SpawnEntity("WoundFoundationBody", map.GridCoords);
             var attacker = entityManager.SpawnEntity("WoundFoundationAttacker", map.GridCoords);
             var targeting = entityManager.GetComponent<TargetingComponent>(attacker);
-            var resolver = entityManager.System<WoundTargetResolver>(); // WOLFGATE
+            var resolver = entityManager.System<WoundTargetResolver>(); // WOLFGATE(Wolfmed)
             var graph = entityManager.System<SharedBodySystem>();
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
@@ -199,7 +199,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(resolver.TryResolve(body, attacker, out var resolvedHead), Is.True);
             Assert.That(resolvedHead, Is.EqualTo(head));
 
-            // WOLFGATE (D9): Groin folds onto the torso instead of being its own part.
+            // WOLFGATE(Wolfmed): D9: Groin folds onto the torso instead of being its own part.
             targeting.Target = TargetBodyPart.Groin;
             Assert.That(resolver.TryResolve(body, attacker, out var resolvedGroin), Is.True);
             Assert.That(resolvedGroin, Is.EqualTo(torso));
@@ -237,7 +237,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             var snapshots = entityManager.System<TargetingSnapshotSystem>();
             var routing = entityManager.System<WoundDamageRoutingSystem>();
             var graph = entityManager.System<SharedBodySystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
             var leftArm = parts.Single(part => part.Component.PartType == BodyPartType.Arm &&
@@ -279,9 +279,9 @@ public sealed class WoundDamageFoundationTest : GameTest
         {
             var body = entityManager.SpawnEntity("WoundFoundationBody", map.GridCoords);
             var graph = entityManager.System<SharedBodySystem>();
-            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE
+            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE(Wolfmed)
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
@@ -304,12 +304,12 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(entityManager.GetComponent<SystemicDamageComponent>(body).Damage.GetTotal(), Is.EqualTo(FixedPoint2.New(4)));
             Assert.That(damage.GetAllDamage(body).GetTotal(), Is.EqualTo(FixedPoint2.New(19)));
 
-            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE
-            // WOLFGATE: the head's 13 leaves the projection (Onyx's 19 - 13 = 6), but Wolfgate's `HeadHuman`
+            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE(Wolfmed)
+            // WOLFGATE(Wolfmed): the head's 13 leaves the projection (Onyx's 19 - 13 = 6), but Wolfgate's `HeadHuman`
             // is a vital part, so Shitmed's PartRemoveDamage (SharedBodySystem.Parts.cs:405) adds 100
             // Bloodloss on removal — systemic damage that the projection then includes. Onyx's bare test
             // part had no vitality, hence its flat 6.
-            // WOLFGATE (WP11-1, PLAN3 P3-D1): WolfmedBodyPartLifecycleSystem.ChargeVitalPartLoss now also
+            // WOLFGATE(Wolfmed): WP11-1, PLAN3 P3-D1: WolfmedBodyPartLifecycleSystem.ChargeVitalPartLoss now also
             // charges the lost vital part's own damage as systemic Bloodloss, so CheckVitalDamage cannot
             // drop when a head comes off. The head carried Blunt 10 + Caustic 3 = 13, and
             // BodyPartRemovedEvent (Parts.cs:357) fires before PartRemoveDamage (:362), so the systemic
@@ -336,7 +336,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             var body = entityManager.SpawnEntity("WoundFoundationBody", map.GridCoords);
             var source = entityManager.SpawnEntity(null, map.GridCoords);
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = entityManager.System<SharedBodySystem>().GetBodyChildren(body).ToList();
 
             Assert.That(routing.TryApplyDamage(body, Spec("Blunt", 10), source), Is.True);
@@ -361,10 +361,10 @@ public sealed class WoundDamageFoundationTest : GameTest
             var attacker = entityManager.SpawnEntity("WoundFoundationAttacker", map.GridCoords);
             entityManager.GetComponent<TargetingComponent>(attacker).Target = TargetBodyPart.Head;
             var graph = entityManager.System<SharedBodySystem>();
-            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE
-            var resolver = entityManager.System<WoundTargetResolver>(); // WOLFGATE
+            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE(Wolfmed)
+            var resolver = entityManager.System<WoundTargetResolver>(); // WOLFGATE(Wolfmed)
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = graph.GetBodyChildren(body).ToList();
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
@@ -373,10 +373,10 @@ public sealed class WoundDamageFoundationTest : GameTest
             var rightArm = parts.Single(part => part.Component.PartType == BodyPartType.Arm &&
                                                 part.Component.Symmetry == BodyPartSymmetry.Right).Id;
 
-            // WOLFGATE (D9): Groin resolves onto the torso, so the Torso|Groin mask still matches exactly one part.
+            // WOLFGATE(Wolfmed): D9: Groin resolves onto the torso, so the Torso|Groin mask still matches exactly one part.
             Assert.That(resolver.GetMatchingParts(body, TargetBodyPart.Torso | TargetBodyPart.Groin), Is.EqualTo(new[] { torso }));
-            // WOLFGATE: Wolfgate's TargetBodyPart has `Arms`, not Onyx's `FullArms`.
-            // WOLFGATE: Is.EqualTo compares HashSets positionally; the contract is set equality.
+            // WOLFGATE(Wolfmed): Wolfgate's TargetBodyPart has `Arms`, not Onyx's `FullArms`.
+            // WOLFGATE(Wolfmed): Is.EqualTo compares HashSets positionally; the contract is set equality.
             Assert.That(resolver.GetMatchingParts(body, TargetBodyPart.Arms),
                 Is.EquivalentTo(new[] { leftArm, rightArm }));
             Assert.That(resolver.GetMatchingParts(body, TargetBodyPart.All).Count, Is.EqualTo(4));
@@ -398,8 +398,8 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(entityManager.GetComponent<SystemicDamageComponent>(body).Damage.DamageDict[new ProtoId<DamageTypePrototype>("Asphyxiation")],
                 Is.EqualTo(FixedPoint2.New(4)));
 
-            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE
-            // WOLFGATE: Wolfgate has no TargetBodyPart.Vital; Head|Torso is the same set Onyx's Vital names.
+            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE(Wolfmed)
+            // WOLFGATE(Wolfmed): Wolfgate has no TargetBodyPart.Vital; Head|Torso is the same set Onyx's Vital names.
             Assert.That(resolver.GetMatchingParts(body, TargetBodyPart.Head | TargetBodyPart.Torso), Is.EqualTo(new[] { torso }));
             Assert.That(routing.TryApplyDistributedDamage(body,
                 Spec("Slash", 1),
@@ -422,7 +422,7 @@ public sealed class WoundDamageFoundationTest : GameTest
         {
             var body = entityManager.SpawnEntity("WoundFoundationBody", map.GridCoords);
             var graph = entityManager.System<SharedBodySystem>();
-            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE
+            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE(Wolfmed)
             var routing = entityManager.System<WoundDamageRoutingSystem>();
             var wounds = entityManager.System<WoundSystem>();
             var head = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Head).Id;
@@ -437,11 +437,11 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(wound.Comp.PeakSeverity, Is.EqualTo(FixedPoint2.New(15)));
             Assert.That(wound.Comp.HoldingPart, Is.EqualTo(head));
 
-            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE
+            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE(Wolfmed)
             Assert.That(wounds.GetWounds((head, entityManager.GetComponent<WoundableComponent>(head)))
                 .Single(candidate => candidate.Comp.Prototype == new ProtoId<WoundPrototype>("BluntWound")).Owner, Is.EqualTo(wound.Owner));
             var torso = graph.GetBodyChildren(body).Single(part => part.Component.PartType == BodyPartType.Torso).Id;
-            Assert.That(graph.AttachPart(torso, "head", head)); // WOLFGATE
+            Assert.That(graph.AttachPart(torso, "head", head)); // WOLFGATE(Wolfmed)
             Assert.That(wounds.GetWounds((head, entityManager.GetComponent<WoundableComponent>(head)))
                 .Single(candidate => candidate.Comp.Prototype == new ProtoId<WoundPrototype>("BluntWound")).Owner, Is.EqualTo(wound.Owner));
 
@@ -471,13 +471,13 @@ public sealed class WoundDamageFoundationTest : GameTest
             woundable.Profile = "WoundFoundationRestrictedProfile";
 
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var wounds = entityManager.System<WoundSystem>();
 
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Slash", 10)), Is.False);
             Assert.That(routing.TryRoutePartDamage(body, head, Spec("Slash", 10), null, out var dealt), Is.True);
             Assert.That(dealt.Empty, Is.True);
-            // WOLFGATE: DamageableInit seeds every supported type to zero here (D30, §8.3 trap 1), so the
+            // WOLFGATE(Wolfmed): DamageableInit seeds every supported type to zero here (D30, §8.3 trap 1), so the
             // part's DamageSpecifier is never `Empty` — the contract is that nothing landed, not that the
             // dictionary is bare.
             Assert.That(damage.GetAllDamage(head).GetTotal(), Is.EqualTo(FixedPoint2.Zero));
@@ -491,7 +491,7 @@ public sealed class WoundDamageFoundationTest : GameTest
     [Test]
     public async Task AppliesArmorExactlyOnceTest()
     {
-        // WOLFGATE: the contract here is that armour applies exactly once per routed hit, never twice.
+        // WOLFGATE(Wolfmed): the contract here is that armour applies exactly once per routed hit, never twice.
         // WoundFoundationArmor declares no `coverage`, so WP11-3's locational gate (P3-D5, Option B) is a verified
         // no-op for it and both parts still take 5 — this test is the regression guard that says so. The
         // coverage/symmetry/partModifiers behaviour itself is covered by the four locational tests below.
@@ -507,7 +507,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var inventory = entityManager.System<InventorySystem>();
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
@@ -557,16 +557,16 @@ public sealed class WoundDamageFoundationTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var inventory = entityManager.System<InventorySystem>();
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE: D12 facade, as at :440.
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12 facade, as at :440.
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
-            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9.
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9.
 
             Assert.That(inventory.TryEquip(body, armor, "outerClothing"), Is.True);
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 10)));
             Assert.That(routing.TryApplyPartDamage(body, torso, Spec("Blunt", 10)));
 
-            // WOLFGATE (P3-D5): derivation — head is in `coverage`, so the global Blunt 0.5 applies: 10 -> 5.
+            // WOLFGATE(Wolfmed): P3-D5: derivation — head is in `coverage`, so the global Blunt 0.5 applies: 10 -> 5.
             // The torso is not, so Covers() returns false before any modifier maths: 10 -> 10. This assertion is
             // RED against Onyx's own shipped code, whose <Onyx-ArmorGlobalProtection-edited> block never consults
             // `coverage` at all and would give the torso 5; Option B is what makes coverage load-bearing.
@@ -594,15 +594,15 @@ public sealed class WoundDamageFoundationTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var inventory = entityManager.System<InventorySystem>();
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE: D12 facade.
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12 facade.
             var parts = graph.GetBodyChildren(body).ToList();
-            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9.
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9.
             var leftArm = parts.Single(part => part.Component.PartType == BodyPartType.Arm &&
                                                part.Component.Symmetry == BodyPartSymmetry.Left).Id;
             var rightArm = parts.Single(part => part.Component.PartType == BodyPartType.Arm &&
                                                 part.Component.Symmetry == BodyPartSymmetry.Right).Id;
 
-            // WOLFGATE (P3-D5): null/empty coverage means "protects everything", and the worn slot is
+            // WOLFGATE(Wolfmed): P3-D5: null/empty coverage means "protects everything", and the worn slot is
             // deliberately irrelevant — a head-slot armour still protects the torso. Getting the empty case
             // backwards would invert every one of the game's 272 unannotated `- type: Armor` entries, and no
             // slot-derived default (Option C) may creep in: 10 -> 5 on the torso.
@@ -616,7 +616,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Blunt", 10)));
             Assert.That(routing.TryApplyPartDamage(body, rightArm, Spec("Blunt", 10)));
 
-            // WOLFGATE (P3-D5): `coverage: [Arm]` + `coverageSymmetry: [Left]` — the left arm matches both sets
+            // WOLFGATE(Wolfmed): P3-D5: `coverage: [Arm]` + `coverageSymmetry: [Left]` — the left arm matches both sets
             // (10 -> 5), the right arm fails the symmetry set (10 -> 10). Symmetry is checked independently of
             // Parts, so a bare `symmetry: [Left]` would mean "any left part". RED against Onyx's shipped code.
             Assert.Multiple(() =>
@@ -643,10 +643,10 @@ public sealed class WoundDamageFoundationTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var inventory = entityManager.System<InventorySystem>();
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE: D12 facade.
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12 facade.
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
-            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9.
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9.
             var leftArm = parts.Single(part => part.Component.PartType == BodyPartType.Arm &&
                                                part.Component.Symmetry == BodyPartSymmetry.Left).Id;
             var rightArm = parts.Single(part => part.Component.PartType == BodyPartType.Arm &&
@@ -658,7 +658,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(routing.TryApplyPartDamage(body, leftArm, Spec("Blunt", 20)));
             Assert.That(routing.TryApplyPartDamage(body, rightArm, Spec("Blunt", 20)));
 
-            // WOLFGATE (P3-D5): derivation from WoundFoundationArmorLocational — head matches the first
+            // WOLFGATE(Wolfmed): P3-D5: derivation from WoundFoundationArmorLocational — head matches the first
             // partModifiers entry (0.25) and takes 5 *despite* `coverage: [Torso]`, which is precisely why the
             // coverage gate must sit AFTER the loop; the torso matches no entry and falls back through the gate
             // to the global 0.8 -> 16; left arm 0.5 -> 10; right arm 0.75 -> 15. Green under both options.
@@ -686,7 +686,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var inventory = entityManager.System<InventorySystem>();
             var damage = entityManager.System<DamageableSystem>();
-            var facade = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE: D12 facade.
+            var facade = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12 facade.
 
             EntityUid Head(EntityUid body) => graph.GetBodyChildren(body)
                 .Single(part => part.Component.PartType == BodyPartType.Head).Id;
@@ -705,7 +705,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(damage.TryChangeDamage(unpenetrated, Spec("Blunt", 20),
                 targetPart: TargetBodyPart.Head, armorPenetration: 0f), Is.Not.Null);
 
-            // WOLFGATE (D23): derivation — the head is armoured by the partModifiers Blunt 0.25 entry, and that
+            // WOLFGATE(Wolfmed): D23: derivation — the head is armoured by the partModifiers Blunt 0.25 entry, and that
             // set must be wrapped in DamageSpecifier.PenetrateArmor exactly as the global fallback is.
             // PenetrateArmor returns a new EMPTY set at penetration >= 1 (DamageSpecifier.cs:306-330) and an
             // empty set leaves every type untouched (:157), so AP 1 gives the full 20 and AP 0 gives 5.
@@ -733,10 +733,10 @@ public sealed class WoundDamageFoundationTest : GameTest
             var graph = entityManager.System<SharedBodySystem>();
             var inventory = entityManager.System<InventorySystem>();
             var damage = entityManager.System<DamageableSystem>();
-            var facade = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE: D12 facade.
+            var facade = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12 facade.
 
             EntityUid Torso(EntityUid body) => graph.GetBodyChildren(body)
-                .Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9.
+                .Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9.
 
             var penetrated = entityManager.SpawnEntity("WoundFoundationBody", map.GridCoords);
             var armorA = entityManager.SpawnEntity("WoundFoundationArmorHead", map.GridCoords);
@@ -750,7 +750,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(damage.TryChangeDamage(unpenetrated, Spec("Blunt", 10),
                 targetPart: TargetBodyPart.Torso, armorPenetration: 0f), Is.Not.Null);
 
-            // WOLFGATE (P3-D5): the coverage gate returns before any modifier maths, so an uncovered part takes
+            // WOLFGATE(Wolfmed): P3-D5: the coverage gate returns before any modifier maths, so an uncovered part takes
             // the full hit at every penetration value. 10 in both cases — an AP-dependent number here would mean
             // the gate had been moved below the modifier application.
             Assert.Multiple(() =>
@@ -764,7 +764,7 @@ public sealed class WoundDamageFoundationTest : GameTest
     [Test]
     public async Task PainApiAndProjectionTest()
     {
-        // WOLFGATE: canary for the language trap that made the whole pain system inert. On a record struct
+        // WOLFGATE(Wolfmed): canary for the language trap that made the whole pain system inert. On a record struct
         // with a primary constructor, `new T()` binds to the implicit parameterless struct constructor and
         // zeroes the field rather than taking the primary constructor's `= 1f` default, so Onyx's
         // `new ModifyPainGainEvent()` multiplied every pain gain by zero. PainSystem now passes `1f`
@@ -781,15 +781,15 @@ public sealed class WoundDamageFoundationTest : GameTest
         {
             var body = entityManager.SpawnEntity("WoundFoundationBody", map.GridCoords);
             var graph = entityManager.System<SharedBodySystem>();
-            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE
+            var wfBody = entityManager.System<WolfmedBodySystem>(); // WOLFGATE(Wolfmed)
             var routing = entityManager.System<WoundDamageRoutingSystem>();
-            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE
+            var damage = entityManager.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed)
             var pain = entityManager.System<PainSystem>();
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
             Assert.That(routing.TryApplyPartDamage(body, head, Spec("Blunt", 10)));
-            // WOLFGATE: pinpoint diagnostics — pain reaching zero here has three distinct causes (no routed
+            // WOLFGATE(Wolfmed): pinpoint diagnostics — pain reaching zero here has three distinct causes (no routed
             // damage, no PainComponent on the part, or a zeroed gain multiplier) and the bare total hides them.
             Assert.That(damage.GetAllDamage(head).GetTotal(), Is.EqualTo(FixedPoint2.New(10)),
                 "the routed hit did not land on the head");
@@ -821,7 +821,7 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(pain.GetRawPain(healingHead), Is.EqualTo(FixedPoint2.New(8.7)));
             Assert.That(pain.GetRawPain(healingBody), Is.EqualTo(FixedPoint2.New(8.7)));
 
-            // WOLFGATE (D16): Onyx's SuppressPain entity effect is phase 4; PainSystem.SuppressPain is the same
+            // WOLFGATE(Wolfmed): D16: Onyx's SuppressPain entity effect is phase 4; PainSystem.SuppressPain is the same
             // code path the effect calls, and the identifier accumulation reproduces Onyx's numbers exactly.
             Assert.That(pain.SuppressPain(body, "Suppressant", 2, TimeSpan.FromSeconds(10)));
             Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(6.7)));
@@ -839,20 +839,20 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(pain.RecoverPain(head, 1f), Is.False);
             Assert.That(pain.GetRawPain(head), Is.EqualTo(FixedPoint2.New(8.7)));
             Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(8.7)));
-            // WOLFGATE: Onyx expects 8.62 (a 0.08/s recovery); `PainComponent.RecoveryPerSecond` is
+            // WOLFGATE(Wolfmed): Onyx expects 8.62 (a 0.08/s recovery); `PainComponent.RecoveryPerSecond` is
             // `FixedPoint2.New(1f / 9f)` in both trees, which is 0.11 at FixedPoint2's two decimals here,
             // so one second of recovery takes 8.70 to 8.59. A precision/rounding difference, not a port edit.
             Assert.That(pain.RecoverPain(healingHead, 1f));
             Assert.That(pain.GetRawPain(healingHead), Is.EqualTo(FixedPoint2.New(8.59)));
             Assert.That(pain.GetRawPain(healingBody), Is.EqualTo(FixedPoint2.New(8.59)));
 
-            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE
-            // WOLFGATE (BRAIN): losing the head is death on a wound host now. This test is about pain
+            Assert.That(wfBody.TryDetachPart(head)); // WOLFGATE(Wolfmed)
+            // WOLFGATE(Wolfmed): BRAIN: losing the head is death on a wound host now. This test is about pain
             // bookkeeping on a living body, so the body is put back on its feet, and re-armed, for the pain-shock checks.
             entityManager.System<MobStateSystem>().ChangeMobState(body, MobState.Alive);
             entityManager.GetComponent<PainShockTargetComponent>(body).Armed = true; // death disarms it
             Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.Zero));
-            // WOLFGATE: Onyx's 13.05 assumes the detached head takes the full 5 Blunt. Wolfgate's Shitmed
+            // WOLFGATE(Wolfmed): Onyx's 13.05 assumes the detached head takes the full 5 Blunt. Wolfgate's Shitmed
             // `OnPartDamageModify` (<BodyPartComponent, DamageModifyEvent>) still runs on a loose limb and
             // applies the `PartDamage` modifier set plus `GetPartDamageModifier(Head) = 0.5`, so 5 lands as
             // 2 and pain goes 8.70 -> 10.44. Routed hits on an attached part bypass this (ignoreResistances).
@@ -866,27 +866,27 @@ public sealed class WoundDamageFoundationTest : GameTest
             Assert.That(pain.ChangePain(head, FixedPoint2.New(-3)), Is.True);
             Assert.That(pain.GetPain(head), Is.EqualTo(FixedPoint2.Zero));
 
-            // WOLFGATE: Onyx's pain-shock numbers below assume no residual suppression, but the decay block
+            // WOLFGATE(Wolfmed): Onyx's pain-shock numbers below assume no residual suppression, but the decay block
             // above deliberately leaves 4.5 on the body and nothing in between clears it, so every figure
             // would be off by 4.5 * the adrenaline multiplier. Clear it explicitly instead of re-deriving them.
             Assert.That(pain.ClearPainSuppression(body));
-            // WOLFGATE (M1a): P13, the body's pain is min(135, sum of the parts), so the 200 goes on a part (it
+            // WOLFGATE(Wolfmed): M1a: P13, the body's pain is min(135, sum of the parts), so the 200 goes on a part (it
             // clamps at the part's own 135) and a direct set on the body would be rederived. OD5: adrenaline no
             // longer takes 30% off the reading, so every 94.5 below is 135 and 73.5 is 105.
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
             Assert.That(pain.SetPain(torso, FixedPoint2.New(200)), Is.True);
             Assert.That(pain.GetRawPain(body), Is.EqualTo(FixedPoint2.New(135)));
             Assert.That(entityManager.HasComponent<StunnedComponent>(body), Is.True);
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135))); // WOLFGATE (M1a)
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135))); // WOLFGATE(Wolfmed): M1a
             Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.False);
 
             Assert.That(pain.SuppressPain(body, "PainShockTest", 30, TimeSpan.FromSeconds(10)));
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(105))); // WOLFGATE (M1a)
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(105))); // WOLFGATE(Wolfmed): M1a
             Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.True);
             Assert.That(pain.ClearPainSuppression(body));
             Assert.That(entityManager.HasComponent<StunnedComponent>(body), Is.True);
-            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135))); // WOLFGATE (M1a)
-            // WOLFGATE (M1a): back at 135 with no adrenaline discount, the re-armed shock fires again at once.
+            Assert.That(pain.GetPain(body), Is.EqualTo(FixedPoint2.New(135))); // WOLFGATE(Wolfmed): M1a
+            // WOLFGATE(Wolfmed): M1a: back at 135 with no adrenaline discount, the re-armed shock fires again at once.
             Assert.That(entityManager.GetComponent<PainShockTargetComponent>(body).Armed, Is.False);
 
             entityManager.EventBus.RaiseLocalEvent(body, new RejuvenateEvent());

@@ -9,7 +9,7 @@ namespace Content.Shared.StatusEffectNew;
 /// </summary>
 public sealed partial class ExaminableStatusEffectSystem : EntitySystem
 {
-    // WOLFGATE: RT 277 has no [SubscribeLocalEvent] source generator; subscribe explicitly.
+    // WOLFGATE(Wolfmed): RT 277 has no [SubscribeLocalEvent] source generator; subscribe explicitly.
     public override void Initialize()
     {
         base.Initialize();

@@ -78,14 +78,14 @@ namespace Content.Client.HealthAnalyzer.UI
                 bodyPartButton.Value.MouseFilter = MouseFilterMode.Stop;
                 bodyPartButton.Value.OnPressed += _ => SetActiveBodyPart(bodyPartButton.Key, bodyPartButton.Value);
             }
-            InitWolfmedTargeting(); // WOLFGATE: UI3 - was ReturnButton.OnPressed; the button is gone and the doll drives targeting.
+            InitWolfmedTargeting(); // WOLFGATE(Wolfmed): UI3 - was ReturnButton.OnPressed; the button is gone and the doll drives targeting.
             // Shitmed Change End
         }
 
         // Shitmed Change Start
         public void SetActiveBodyPart(TargetBodyPart part, TextureButton button)
         {
-            // WOLFGATE: UI3 - was OnBodyPartSelected (a per-part rescan). The doll now sets the local player's
+            // WOLFGATE(Wolfmed): UI3 - was OnBodyPartSelected (a per-part rescan). The doll now sets the local player's
             // targeted part, exactly as the HUD doll and the targeting hotkeys do.
             SelectWolfmedTargetPart(part);
         }
@@ -107,7 +107,7 @@ namespace Content.Client.HealthAnalyzer.UI
         // Not all of this function got messed with, but it was spread enough to warrant being covered entirely by a Shitmed Change
         public void Populate(HealthAnalyzerScannedUserMessage msg)
         {
-            PopulateWolfmed(msg); // WOLFGATE: HOOK 26 - first statement; Populate early-returns below and a trailing call would leave the previous patient's rows on screen.
+            PopulateWolfmed(msg); // WOLFGATE(Wolfmed): HOOK 26 - first statement; Populate early-returns below and a trailing call would leave the previous patient's rows on screen.
             // Start-Shitmed
             _target = _entityManager.GetEntity(msg.TargetEntity);
             EntityUid? part = msg.Part != null ? _entityManager.GetEntity(msg.Part.Value) : null;
@@ -117,13 +117,13 @@ namespace Content.Client.HealthAnalyzer.UI
                 || !_entityManager.TryGetComponent<DamageableComponent>(isPart ? part : _target, out var damageable))
             {
                 NoPatientDataText.Visible = true;
-                HideWolfmed(); // WOLFGATE: HOOK 26 - a target outside client PVS can still carry non-null diagnostics.
+                HideWolfmed(); // WOLFGATE(Wolfmed): HOOK 26 - a target outside client PVS can still carry non-null diagnostics.
                 return;
             }
 
             SetActiveButtons(_entityManager.HasComponent<TargetingComponent>(_target.Value));
 
-            // WOLFGATE: UI3 - the return button and its frame are gone with the part-view path.
+            // WOLFGATE(Wolfmed): UI3 - the return button and its frame are gone with the part-view path.
             PartNameLabel.Visible = isPart;
 
             if (part != null)
@@ -188,7 +188,7 @@ namespace Content.Client.HealthAnalyzer.UI
 
             AlertsDivider.Visible = showAlerts;
             AlertsContainer.Visible = showAlerts;
-            WolfmedAlertsPanel.Visible = showAlerts; // WOLFGATE: HOOK 26 - the framed box around the alerts, so an empty one costs the overview pane no height.
+            WolfmedAlertsPanel.Visible = showAlerts; // WOLFGATE(Wolfmed): HOOK 26 - the framed box around the alerts, so an empty one costs the overview pane no height.
 
             if (showAlerts)
                 AlertsContainer.DisposeAllChildren();

@@ -40,7 +40,7 @@ public sealed partial class CPRSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!; // Mono
     [Dependency] private EuiManager _euiManager = default!; // Mono
     [Dependency] private ISharedPlayerManager _player = default!; // Mono
-    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedRevivalSystem _wolfmedRevival = default!; // WOLFGATE (BRAIN)
+    [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedRevivalSystem _wolfmedRevival = default!; // WOLFGATE(Wolfmed): BRAIN
 
     public override void Initialize()
     {
@@ -125,7 +125,7 @@ public sealed partial class CPRSystem : EntitySystem
             _rottingSystem.ReduceAccumulator(
                 (EntityUid)args.Target, performer.Comp.DoAfterDuration * performer.Comp.RotReductionMultiplier);
 
-        // WOLFGATE (BRAIN): on a wound host, CPR marks the chest as being worked on for the do-after's
+        // WOLFGATE(Wolfmed): BRAIN: on a wound host, CPR marks the chest as being worked on for the do-after's
         // length. That slows the brain's oxygenation clock and moves a little blood; it never restarts the
         // heart and it never revives anybody, so the damage-threshold resuscitation below is skipped.
         if (!_wolfmedRevival.StartCpr(target, performer.Comp.DoAfterDuration) &&

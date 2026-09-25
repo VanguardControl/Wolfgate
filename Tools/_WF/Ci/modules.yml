@@ -186,3 +186,9 @@ unmarked:
   - path: Resources/Textures/Tiles/exoborg.png
     module: Xenoborgs
     reason: Exoborg floor tile redrawn.
+  - path: Resources/Textures/_Onyx/
+    module: Wolfmed
+    reason: Space Onyx wound-system sprites (wound and fracture states, alerts, medical items) ported with Wolfmed.
+  - path: Resources/Maps/_NF/POI/medical.yml
+    module: Wolfmed
+    reason: An autodoc pod placed in the medical POI.

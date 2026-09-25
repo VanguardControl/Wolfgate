@@ -10,7 +10,7 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 /// </summary>
 public abstract class SharedWolfmedConsciousnessSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _configuration = default!;
+    [Dependency] private IConfigurationManager _configuration = default!;
 
     private bool _enabled;
 

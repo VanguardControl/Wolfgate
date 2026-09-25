@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
-// WOLFGATE: D7, Onyx's Content.Shared._Onyx.Medical.Surgery is not ported; phase 4 re-expressed its wound
+// WOLFGATE(Wolfmed): D7, Onyx's Content.Shared._Onyx.Medical.Surgery is not ported; phase 4 re-expressed its wound
 // surgeries on Shitmed's step system, which is what SurgeryStepEvent below belongs to.
-using Content.Server._Shitmed.Medical.Surgery; // WOLFGATE: GetSingleton lives on the concrete server system.
+using Content.Server._Shitmed.Medical.Surgery; // WOLFGATE(Wolfmed): GetSingleton lives on the concrete server system.
 using Content.Shared._Onyx.Wounds;
-using Content.Shared._Shitmed.Medical.Surgery; // WOLFGATE: SurgeryStepEvent.
-using Content.Shared._Shitmed.Medical.Surgery.Conditions; // WOLFGATE: SurgeryValidEvent, the HOOK 25 seam.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12, GetAllDamage/SetDamage live on the compat facade.
+using Content.Shared._Shitmed.Medical.Surgery; // WOLFGATE(Wolfmed): SurgeryStepEvent.
+using Content.Shared._Shitmed.Medical.Surgery.Conditions; // WOLFGATE(Wolfmed): SurgeryValidEvent, the HOOK 25 seam.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12, GetAllDamage/SetDamage live on the compat facade.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
@@ -42,7 +42,7 @@ namespace Content.IntegrationTests.Tests._Onyx.Wounds;
 [TestOf(typeof(AmputationSystem))]
 public sealed class AmputationConsequenceTest : GameTest
 {
-    // WOLFGATE: Onyx's fixture is Nubody-shaped (`InitialBody`, `TransplantCompatibility`, a bespoke
+    // WOLFGATE(Wolfmed): Onyx's fixture is Nubody-shaped (`InitialBody`, `TransplantCompatibility`, a bespoke
     // `bodyPartProfile`, `partType: Chest`). Rebuilt on a Shitmed body graph like WoundBleedingTest's, with
     // the two Onyx part-level datafields moved onto `- type: WolfmedBodyPart` (D8). Both parts inherit the
     // real human parts so they pick up Woundable/Damageable/vital exactly as a live limb does.
@@ -106,10 +106,10 @@ public sealed class AmputationConsequenceTest : GameTest
             var body = entities.SpawnEntity("AmputationConsequenceTestBody", map.GridCoords);
             var graph = entities.System<SharedBodySystem>();
             var routing = entities.System<WoundDamageRoutingSystem>();
-            var damage = entities.System<WolfmedDamageableSystem>(); // WOLFGATE: D12
+            var damage = entities.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
-            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9
 
             // The fixture head's Slash threshold is 70, so progress = 70/70 = 1.0 arms the limb without
             // detaching it (AmputationSystem.HandlePartDamageApplied's `!Severable` branch returns).
@@ -133,11 +133,11 @@ public sealed class AmputationConsequenceTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(graph.BodyHasChild(body, head), Is.False);
-                // WOLFGATE: 50 comes from the fixture TORSO's amputationConsequenceSeverity, i.e. the
+                // WOLFGATE(Wolfmed): 50 comes from the fixture TORSO's amputationConsequenceSeverity, i.e. the
                 // parent the stump is left on - not from the severed head, which carries the 35 default.
                 Assert.That(consequence.Comp.Severity, Is.EqualTo(FixedPoint2.New(50)),
                     "the consequence severity must be read off the parent stump, not the severed part.");
-                // WOLFGATE: DismembermentSeverities[Head] = 200; also lands on the parent.
+                // WOLFGATE(Wolfmed): DismembermentSeverities[Head] = 200; also lands on the parent.
                 Assert.That(wounds.Count(wound =>
                         wound.Comp.Prototype == new ProtoId<WoundPrototype>("DismembermentWound")),
                     Is.EqualTo(1));
@@ -162,7 +162,7 @@ public sealed class AmputationConsequenceTest : GameTest
             var body = entities.SpawnEntity("AmputationConsequenceTestBody", map.GridCoords);
             var graph = entities.System<SharedBodySystem>();
             var routing = entities.System<WoundDamageRoutingSystem>();
-            var damage = entities.System<WolfmedDamageableSystem>(); // WOLFGATE: D12
+            var damage = entities.System<WolfmedDamageableSystem>(); // WOLFGATE(Wolfmed): D12
             var head = graph.GetBodyChildren(body)
                 .Single(part => part.Component.PartType == BodyPartType.Head).Id;
 
@@ -239,7 +239,7 @@ public sealed class AmputationConsequenceTest : GameTest
             var routing = entities.System<WoundDamageRoutingSystem>();
             var parts = graph.GetBodyChildren(body).ToList();
             var head = parts.Single(part => part.Component.PartType == BodyPartType.Head).Id;
-            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9
+            var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9
             var attach = entities.System<SurgerySystem>().GetSingleton("SurgeryAttachHead")!.Value;
 
             // The fixture head's Slash threshold is 70, and Slash 15 is the host finishing minimum.
@@ -253,7 +253,7 @@ public sealed class AmputationConsequenceTest : GameTest
             {
                 Assert.That(wounds.GetWounds((torso, woundable)).Count(w => w.Comp.Prototype == consequence),
                     Is.EqualTo(1));
-                // WOLFGATE: Onyx asserts `TryAttachPart Is.False` here. P4-D18 moves the block to the surgery
+                // WOLFGATE(Wolfmed): Onyx asserts `TryAttachPart Is.False` here. P4-D18 moves the block to the surgery
                 // layer, so the equivalent assertion is that the attach surgery is not listable.
                 Assert.That(AttachCancelled(entities, attach, body, torso), Is.True);
             });

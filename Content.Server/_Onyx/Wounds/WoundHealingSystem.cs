@@ -8,8 +8,8 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
-using Content.Server.Medical.Components; // WOLFGATE: D14, Wolfgate keeps HealingComponent server-side.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12, Onyx-shaped damage API facade.
+using Content.Server.Medical.Components; // WOLFGATE(Wolfmed): D14, Wolfgate keeps HealingComponent server-side.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12, Onyx-shaped damage API facade.
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
@@ -18,7 +18,7 @@ namespace Content.Shared._Onyx.Wounds;
 public sealed partial class WoundHealingSystem : EntitySystem
 {
     [Dependency] private SharedBodySystem _body = default!;
-    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE: Onyx-shaped damage API; see _WF/Wolfmed/Compat
+    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE(Wolfmed): Onyx-shaped damage API; see _WF/Wolfmed/Compat
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WoundDamageRoutingSystem _routing = default!;
     [Dependency] private WoundSystem _wounds = default!;
@@ -104,7 +104,7 @@ public sealed partial class WoundHealingSystem : EntitySystem
         return selected;
     }
 
-    public bool CanTreatBleeding(EntityUid part) => _bleeding.CanDressBleeding(part); // WOLFGATE: a dressed arterial bleed still has a rate, but nothing a topical can do about it
+    public bool CanTreatBleeding(EntityUid part) => _bleeding.CanDressBleeding(part); // WOLFGATE(Wolfmed): a dressed arterial bleed still has a rate, but nothing a topical can do about it
 
     public bool HasTreatableWounds(EntityUid part, DamageSpecifier healing, IReadOnlySet<string>? allowedStages) =>
         _wounds.GetHealingPotential(part, healing, allowedStages) > FixedPoint2.Zero;
@@ -125,9 +125,9 @@ public sealed partial class WoundHealingSystem : EntitySystem
             !TryComp(body, out DamageableComponent? bodyDamageable))
             return false;
 
-        var treatable = GetTreatableDamage(healing.Comp); // WOLFGATE: W0, TreatedDamageTypes narrows the spec.
-        var resolve = new ResolveHealingPartEvent(body, treatable, // WOLFGATE: W0
-            // WOLFGATE: D31, Wolfgate's HealingComponent.DamageContainers is List<string>.
+        var treatable = GetTreatableDamage(healing.Comp); // WOLFGATE(Wolfmed): W0, TreatedDamageTypes narrows the spec.
+        var resolve = new ResolveHealingPartEvent(body, treatable, // WOLFGATE(Wolfmed): W0
+            // WOLFGATE(Wolfmed): D31, Wolfgate's HealingComponent.DamageContainers is List<string>.
             healing.Comp.DamageContainers?.Select(x => new ProtoId<DamageContainerPrototype>(x)).ToList(),
             healing.Comp.TreatmentCapabilities, healing.Comp.AllowedWoundStages,
             healing.Comp.BloodlossModifier, requestedPart, healing.Comp.HealWounds);
@@ -135,7 +135,7 @@ public sealed partial class WoundHealingSystem : EntitySystem
         if (!resolve.Accepted)
             return false;
 
-        var change = treatable * _damage.UniversalTopicalsHealModifier; // WOLFGATE: W0
+        var change = treatable * _damage.UniversalTopicalsHealModifier; // WOLFGATE(Wolfmed): W0
         var before = _damage.GetPositiveDamage((body, bodyDamageable));
         var applied = false;
         if (resolve.Part is { } part)
@@ -144,7 +144,7 @@ public sealed partial class WoundHealingSystem : EntitySystem
                 applied = _routing.TryApplyPartDamage(body, part, change, origin, healWounds: healing.Comp.HealWounds);
             if (healing.Comp.HealWounds && !healing.Comp.HealDamage)
                 applied |= _wounds.TryHealWounds(part, change, healing.Comp.AllowedWoundStages);
-            // WOLFGATE: a topical that removes damage only shrinks the wound by healingMultiplier of it, so the
+            // WOLFGATE(Wolfmed): a topical that removes damage only shrinks the wound by healingMultiplier of it, so the
             // damage runs out first and the wound was left standing with nothing able to touch it. Once there is
             // no damage left for the item to remove, it works on the wound itself.
             else if (healing.Comp.HealWounds && !applied)
@@ -171,8 +171,8 @@ public sealed partial class WoundHealingSystem : EntitySystem
 
     private bool TreatBleeding(EntityUid part, float amount)
     {
-        var reduced = _bleeding.ReducePartBleeding(part, FixedPoint2.New(amount), dressing: true); // WOLFGATE: gauze stays on
-        // WOLFGATE (W2): a dressing cannot take an arterial bleed's severity, only slow its rate.
+        var reduced = _bleeding.ReducePartBleeding(part, FixedPoint2.New(amount), dressing: true); // WOLFGATE(Wolfmed): gauze stays on
+        // WOLFGATE(Wolfmed): W2: a dressing cannot take an arterial bleed's severity, only slow its rate.
         return _bleeding.BandageArterialBleeds(part) | reduced;
     }
 

@@ -11,7 +11,7 @@ namespace Content.Shared._WF.Wolfmed.Hud;
 /// </summary>
 public sealed class WolfmedSyntheticHudLineSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private readonly Dictionary<string, WolfmedSyntheticHudLinePrototype> _byWound = new();
     private readonly Dictionary<WolfmedSyntheticCondition, WolfmedSyntheticHudLinePrototype> _byCondition = new();

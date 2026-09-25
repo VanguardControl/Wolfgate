@@ -21,11 +21,11 @@ public sealed class WolfmedBreathingAlertSystem : EntitySystem
 
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 
-    [Dependency] private readonly AlertsSystem _alerts = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly WolfmedBreathingSystem _breathing = default!;
-    [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private WolfmedBreathingSystem _breathing = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
 
     /// <summary>Bodies this system has put the no-lungs alert on.</summary>
     private readonly HashSet<EntityUid> _noLungs = new();

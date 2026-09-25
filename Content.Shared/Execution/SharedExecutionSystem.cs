@@ -216,14 +216,14 @@ public sealed partial class SharedExecutionSystem : EntitySystem
             var suicideGhostEvent = new SuicideGhostEvent(victim);
             RaiseLocalEvent(victim, suicideGhostEvent);
 
-            // WOLFGATE (M2): OD17, on a wound host a suicide is brain 0 then death; the ghost above cannot return.
+            // WOLFGATE(Wolfmed): M2: OD17, on a wound host a suicide is brain 0 then death; the ghost above cannot return.
             var suicided = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Suicide);
             RaiseLocalEvent(victim, ref suicided);
         }
         else
         {
             _melee.AttemptLightAttack(attacker, weapon, meleeWeaponComp, victim);
-            // WOLFGATE (M2): HOOK 13 rewritten (OD17). A wound host's execution is a catastrophic brain injury, brain 0
+            // WOLFGATE(Wolfmed): M2: HOOK 13 rewritten (OD17). A wound host's execution is a catastrophic brain injury, brain 0
             // then death, revivable. The old torso top-up (TryApplyLethalDamage) no longer killed anybody.
             var executed = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Execution);
             RaiseLocalEvent(victim, ref executed);

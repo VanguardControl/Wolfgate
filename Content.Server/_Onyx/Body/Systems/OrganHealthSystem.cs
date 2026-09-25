@@ -1,10 +1,10 @@
-using Content.Server.Body.Components; // WOLFGATE: D13, Wolfgate's BrainComponent is server-only.
-using Content.Shared.Body.Organ; // WOLFGATE: Wolfgate keeps OrganComponent in Content.Shared.Body.Organ.
+using Content.Server.Body.Components; // WOLFGATE(Wolfmed): D13, Wolfgate's BrainComponent is server-only.
+using Content.Shared.Body.Organ; // WOLFGATE(Wolfmed): Wolfgate keeps OrganComponent in Content.Shared.Body.Organ.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared._Onyx.Body;
-using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8, organ health lives on WolfmedOrganComponent.
+using Content.Shared._WF.Wolfmed.Body; // WOLFGATE(Wolfmed): D8, organ health lives on WolfmedOrganComponent.
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared._Onyx.Wounds;
@@ -16,7 +16,7 @@ namespace Content.Shared._Onyx.Body
     /// <summary>
     /// Raised after an organ crosses the functional health threshold.
     /// </summary>
-    // WOLFGATE: relocated from _Onyx/Body/FunctionalOrganComponent.cs; that file is Nubody glue and is not ported (D8).
+    // WOLFGATE(Wolfmed): relocated from _Onyx/Body/FunctionalOrganComponent.cs; that file is Nubody glue and is not ported (D8).
     [ByRefEvent]
     public readonly record struct OrganFunctionChangedEvent(EntityUid Body, bool Functional);
 }
@@ -35,7 +35,7 @@ namespace Content.Shared._Onyx.Body.Systems
             if (!_net.IsServer)
                 return;
 
-            // WOLFGATE: organ health is on WolfmedOrganComponent, so the query pairs it with Wolfgate's OrganComponent.
+            // WOLFGATE(Wolfmed): organ health is on WolfmedOrganComponent, so the query pairs it with Wolfgate's OrganComponent.
             var query = EntityQueryEnumerator<WolfmedOrganComponent, OrganComponent>();
             while (query.MoveNext(out var uid, out var organ, out var slotted))
             {
@@ -53,7 +53,7 @@ namespace Content.Shared._Onyx.Body.Systems
                     continue;
                 }
 
-                // WOLFGATE: P3-D23, DestroyOrgan detaches and wounds; RecursiveDeleteEntity reaches here while a
+                // WOLFGATE(Wolfmed): P3-D23, DestroyOrgan detaches and wounds; RecursiveDeleteEntity reaches here while a
                 // mob terminates, which is the DebugAssertException WP9 fixed in WolfmedBodyPartLifecycleSystem.
                 if (TerminatingOrDeleted(uid))
                     continue;
@@ -69,7 +69,7 @@ namespace Content.Shared._Onyx.Body.Systems
             Dirty(organ);
 
             var functional = organ.Comp.Health > FixedPoint2.Zero;
-            // WOLFGATE: the owning body is on Wolfgate's OrganComponent, not on the health component.
+            // WOLFGATE(Wolfmed): the owning body is on Wolfgate's OrganComponent, not on the health component.
             if (wasFunctional == functional || CompOrNull<OrganComponent>(organ)?.Body is not { } body)
                 return;
 
@@ -83,11 +83,11 @@ namespace Content.Shared._Onyx.Body.Systems
         private void DestroyOrgan(Entity<WolfmedOrganComponent, OrganComponent> organ)
         {
             var parent = Transform(organ).ParentUid;
-            // WOLFGATE: Wolfgate's SharedBodySystem has no TryGetOrganInSlot/TryRemoveOrgan; RemoveOrgan locates the
+            // WOLFGATE(Wolfmed): Wolfgate's SharedBodySystem has no TryGetOrganInSlot/TryRemoveOrgan; RemoveOrgan locates the
             // containing part itself, so Onyx's per-slot walk is unnecessary.
             if (HasComp<BodyPartComponent>(parent) && _body.RemoveOrgan(organ.Owner, organ.Comp2))
             {
-                // WOLFGATE: P3-D23, never wound a part that is already terminating (see the Update guard).
+                // WOLFGATE(Wolfmed): P3-D23, never wound a part that is already terminating (see the Update guard).
                 if (organ.Comp1.DestructionWound is { } wound &&
                     organ.Comp1.DestructionWoundSeverity > FixedPoint2.Zero &&
                     !TerminatingOrDeleted(parent) &&

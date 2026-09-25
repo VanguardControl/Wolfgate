@@ -1,5 +1,5 @@
 # Part names for the Wolfmed diagnostic panel's per-part findings.
-# WOLFGATE (D9): Onyx's `chest` is Wolfgate's `torso`, and `groin` is omitted - GetValidParts() has it
+# WOLFGATE(Wolfmed): D9: Onyx's `chest` is Wolfgate's `torso`, and `groin` is omitted - GetValidParts() has it
 # commented out and ConvertTargetBodyPart folds it into Torso, so no diagnostic row can ever key on it.
 targeting-part-head = Head
 targeting-part-torso = Torso

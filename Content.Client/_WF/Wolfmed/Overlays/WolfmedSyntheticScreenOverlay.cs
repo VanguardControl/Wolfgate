@@ -11,9 +11,9 @@ namespace Content.Client._WF.Wolfmed.Overlays;
 /// </summary>
 public sealed class WolfmedSyntheticScreenOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entities = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private IEntityManager _entities = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly ProtoId<ShaderPrototype> Shader = "WolfmedSynthetic";
 

@@ -1,4 +1,4 @@
-# WOLFGATE: only the StatusEffects entityCategory from Onyx's Resources/Prototypes/Entities/categories.yml.
+# WOLFGATE(Wolfmed): only the StatusEffects entityCategory from Onyx's Resources/Prototypes/Entities/categories.yml.
 - type: entityCategory
   id: StatusEffects
   name: entity-category-name-status-effects

@@ -17,10 +17,10 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 /// </summary>
 public sealed class WolfmedBodyPainSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedBodySystem _body = default!;
 
     public FixedPoint2 ShockThreshold => FixedPoint2.New(_cfg.GetCVar(WolfmedCVars.PainShockThreshold));
 

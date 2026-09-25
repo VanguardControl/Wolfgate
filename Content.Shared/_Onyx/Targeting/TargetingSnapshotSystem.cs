@@ -1,4 +1,4 @@
-using Content.Shared._Shitmed.Targeting; // WOLFGATE (D10/WP3#8): Onyx's own Targeting stack is not vendored; use Shitmed's TargetingComponent/TargetBodyPart and HOOK 5's IsSelectable
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10/WP3#8: Onyx's own Targeting stack is not vendored; use Shitmed's TargetingComponent/TargetBodyPart and HOOK 5's IsSelectable
 using Content.Shared.Throwing;
 
 namespace Content.Shared._Onyx.Targeting;

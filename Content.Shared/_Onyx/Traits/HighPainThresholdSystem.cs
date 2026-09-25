@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 // Space Onyx
 // Copyright (C) 2026 Space Onyx contributors
 //

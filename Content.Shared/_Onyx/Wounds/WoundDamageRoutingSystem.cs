@@ -1,8 +1,8 @@
 using System.Linq;
 using Content.Shared.Body.Systems;
-using Content.Shared._WF.Wolfmed.Body; // WOLFGATE: D8, Onyx's extra part fields live on WolfmedBodyPartComponent.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: D12 damage facade + shared bed-heal marker (HealOnBuckleComponent is server-only here).
-using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE: D10, Onyx's TargetResolverSystem is replaced by WoundTargetResolver.
+using Content.Shared._WF.Wolfmed.Body; // WOLFGATE(Wolfmed): D8, Onyx's extra part fields live on WolfmedBodyPartComponent.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade + shared bed-heal marker (HealOnBuckleComponent is server-only here).
+using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE(Wolfmed): D10, Onyx's TargetResolverSystem is replaced by WoundTargetResolver.
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
@@ -17,8 +17,8 @@ using Content.Shared.Medical;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared._Onyx.Targeting;
-using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10, TargetBodyPart comes from Shitmed.
-using Content.Shared._Mono.ArmorPlate; // WOLFGATE: subscription ordering, PLAN 8.3 trap 4.
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10, TargetBodyPart comes from Shitmed.
+using Content.Shared._Mono.ArmorPlate; // WOLFGATE(Wolfmed): subscription ordering, PLAN 8.3 trap 4.
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -27,18 +27,18 @@ namespace Content.Shared._Onyx.Wounds;
 
 public sealed partial class WoundDamageRoutingSystem : EntitySystem
 {
-    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE: D12, Onyx-shaped damage API; see _WF/Wolfmed/Compat
+    [Dependency] private WolfmedDamageableSystem _damage = default!; // WOLFGATE(Wolfmed): D12, Onyx-shaped damage API; see _WF/Wolfmed/Compat
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private WoundDamageProjectionSystem _projection = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private InventorySystem _inventory = default!;
-    [Dependency] private WoundTargetResolver _targetResolver = default!; // WOLFGATE: D10, Shitmed-backed replacement.
-    [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE: D8, Onyx's extra part fields.
-    [Dependency] private WolfmedAimScatterSystem _wfAim = default!; // WOLFGATE: bullets can stray off the aimed part.
+    [Dependency] private WoundTargetResolver _targetResolver = default!; // WOLFGATE(Wolfmed): D10, Shitmed-backed replacement.
+    [Dependency] private WolfmedBodyPartSystem _wfPart = default!; // WOLFGATE(Wolfmed): D8, Onyx's extra part fields.
+    [Dependency] private WolfmedAimScatterSystem _wfAim = default!; // WOLFGATE(Wolfmed): bullets can stray off the aimed part.
     [Dependency] private PainSystem _pain = default!;
-    // WOLFGATE (M6): the MobThresholdSystem dependency went with TryApplyLethalDamage, its only reader.
+    // WOLFGATE(Wolfmed): M6: the MobThresholdSystem dependency went with TryApplyLethalDamage, its only reader.
     [Dependency] private IPrototypeManager _prototypes = default!;
 
     private readonly HashSet<EntityUid> _routing = new();
@@ -50,21 +50,21 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
     private readonly Dictionary<EntityUid, float> _woundSeverityMultipliers = new();
     private readonly Dictionary<EntityUid, IReadOnlySet<TreatmentCapability>> _treatmentCapabilities = new();
 
-    // WOLFGATE: D23 - routing cancels BeforeDamageChangedEvent before DamageableSystem's resistance block, so armour
+    // WOLFGATE(Wolfmed): D23 - routing cancels BeforeDamageChangedEvent before DamageableSystem's resistance block, so armour
     // penetration, the tool and Mono's origin flag only reach the re-entrant routed pass through this side table.
     private readonly Dictionary<EntityUid, (float ArmorPenetration, EntityUid? Tool, DamageableSystem.DamageOriginFlag? OriginFlag)> _routedModifiers = new();
 
-    // WOLFGATE: D27 - what the routed pass actually applied, so TryChangeDamage can report it instead of null.
+    // WOLFGATE(Wolfmed): D27 - what the routed pass actually applied, so TryChangeDamage can report it instead of null.
     private readonly Dictionary<EntityUid, DamageSpecifier> _appliedDelta = new();
 
-    // WOLFGATE (M6): P25 - the caller's ignoreResistances and Shitmed part multiplier, for the part step of the pass.
+    // WOLFGATE(Wolfmed): M6: P25 - the caller's ignoreResistances and Shitmed part multiplier, for the part step of the pass.
     private readonly HashSet<EntityUid> _ignoreResistances = new();
     private readonly Dictionary<EntityUid, float> _partMultipliers = new();
 
     public override void Initialize()
     {
         base.Initialize();
-        // WOLFGATE: PLAN 8.3 trap 4 - SharedArmorPlateSystem.OnBeforeDamageChanged mutates args.Damage in place and
+        // WOLFGATE(Wolfmed): PLAN 8.3 trap 4 - SharedArmorPlateSystem.OnBeforeDamageChanged mutates args.Damage in place and
         // would absorb twice per hit. RT demands identical before/after sets when one system takes the same event twice.
         SubscribeLocalEvent<WoundHostComponent, BeforeDamageChangedEvent>(OnBeforeDamageChanged, before: [typeof(SharedArmorPlateSystem)]);
         SubscribeLocalEvent<WoundHostComponent, DamageDealtEvent>(OnDamageDealt, before: [typeof(DamageableSystem)]);
@@ -73,21 +73,21 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
 
     private void OnBeforeDamageChanged(Entity<WoundHostComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        // WOLFGATE: godmode and stasis already refused the hit, and ordering against them is impossible from
+        // WOLFGATE(Wolfmed): godmode and stasis already refused the hit, and ordering against them is impossible from
         // shared code (both concrete systems are abstract), so test the flag instead.
         if (!_net.IsServer || args.Cancelled || _routing.Contains(ent))
             return;
 
         args.Cancelled = true;
 
-        // WOLFGATE: D23 - stash the caller's armour penetration, tool and origin flag for the routed pass.
+        // WOLFGATE(Wolfmed): D23 - stash the caller's armour penetration, tool and origin flag for the routed pass.
         _routedModifiers[ent.Owner] = (args.ArmorPenetration, args.Tool, args.OriginFlag);
 
-        // WOLFGATE: D27 - accumulate whatever the routed pass lands so TryChangeDamage can return it.
+        // WOLFGATE(Wolfmed): D27 - accumulate whatever the routed pass lands so TryChangeDamage can return it.
         var applied = new DamageSpecifier();
         _appliedDelta[ent.Owner] = applied;
 
-        // WOLFGATE: Wolfgate's TryChangeDamage carries an explicit Shitmed targetPart; honour it when it names one
+        // WOLFGATE(Wolfmed): Wolfgate's TryChangeDamage carries an explicit Shitmed targetPart; honour it when it names one
         // part. Composite masks (TargetBodyPart.All, Torso | <random>) deliberately leave the request unset.
         var requested = false;
         if (args.TargetPart is { } requestedTarget && SharedTargetingSystem.IsSelectable(requestedTarget) &&
@@ -98,12 +98,12 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
             requested = true;
         }
 
-        if (args.PartMultiplier != 1f) // WOLFGATE (M6): P25
+        if (args.PartMultiplier != 1f) // WOLFGATE(Wolfmed): M6: P25
             _partMultipliers[ent.Owner] = args.PartMultiplier;
 
         try
         {
-            RouteThroughBodyModifiers(ent, args.Damage, args.Origin, args.IgnoreResistances, args.InterruptsDoAfters); // WOLFGATE (M6): P25
+            RouteThroughBodyModifiers(ent, args.Damage, args.Origin, args.IgnoreResistances, args.InterruptsDoAfters); // WOLFGATE(Wolfmed): M6: P25
         }
         finally
         {
@@ -111,17 +111,17 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 _requestedParts.Remove(ent.Owner);
             _appliedDelta.Remove(ent.Owner);
             _routedModifiers.Remove(ent.Owner);
-            _partMultipliers.Remove(ent.Owner); // WOLFGATE (M6)
+            _partMultipliers.Remove(ent.Owner); // WOLFGATE(Wolfmed): M6
         }
 
-        // WOLFGATE: D27 - a non-null result keeps every caller that reads TryChangeDamage's return working
+        // WOLFGATE(Wolfmed): D27 - a non-null result keeps every caller that reads TryChangeDamage's return working
         // (pierce-through, blunt stamina, hit logs, damage popups) now that routing cancels the original pass.
         applied.TrimZeros();
         args.Applied = applied;
     }
 
     /// <summary>
-    /// WOLFGATE (D27): folds one applied delta into the routed pass's running total, if a pass is open.
+    /// WOLFGATE(Wolfmed): D27: folds one applied delta into the routed pass's running total, if a pass is open.
     /// </summary>
     private void AccumulateApplied(EntityUid body, DamageSpecifier applied)
     {
@@ -257,7 +257,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         return TryApplyDamage(body, damage, origin, part, ignoreResistances, healWounds);
     }
 
-    // WOLFGATE (P4-D14): the distributed entry points bypass OnBeforeDamageChanged, the only other writer of
+    // WOLFGATE(Wolfmed): P4-D14: the distributed entry points bypass OnBeforeDamageChanged, the only other writer of
     // _routedModifiers, so without this the re-entrant routed pass reaches SharedArmorPlateSystem with
     // OriginFlag == null and its gate (Origin == null && OriginFlag != Explosion) refuses plate protection
     // against explosions outright. The entry is saved and restored rather than removed because the dictionary has
@@ -273,10 +273,10 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         float variation = 0f,
         bool isExplosion = false,
         float woundSeverityMultiplier = 1f,
-        DamageableSystem.DamageOriginFlag? originFlag = null) // WOLFGATE (P4-D14): optional, so existing callers are unchanged.
+        DamageableSystem.DamageOriginFlag? originFlag = null) // WOLFGATE(Wolfmed): P4-D14: optional, so existing callers are unchanged.
     {
-        var hadModifiers = _routedModifiers.TryGetValue(body, out var previousModifiers); // WOLFGATE (P4-D14)
-        _routedModifiers[body] = (0f, null, originFlag); // WOLFGATE (P4-D14)
+        var hadModifiers = _routedModifiers.TryGetValue(body, out var previousModifiers); // WOLFGATE(Wolfmed): P4-D14
+        _routedModifiers[body] = (0f, null, originFlag); // WOLFGATE(Wolfmed): P4-D14
         try
         {
             return ApplyDistributedDamageCore(body, damage, mask, mode, origin, ignoreResistances,
@@ -284,14 +284,14 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         }
         finally
         {
-            if (hadModifiers) // WOLFGATE (P4-D14)
+            if (hadModifiers) // WOLFGATE(Wolfmed): P4-D14
                 _routedModifiers[body] = previousModifiers;
             else
                 _routedModifiers.Remove(body);
         }
     }
 
-    // WOLFGATE (P4-D14): Onyx's body verbatim, made private so the public entry point can wrap it in the
+    // WOLFGATE(Wolfmed): P4-D14: Onyx's body verbatim, made private so the public entry point can wrap it in the
     // _routedModifiers scope above without re-indenting the whole method.
     private bool ApplyDistributedDamageCore(
         EntityUid body,
@@ -554,7 +554,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         return candidates[^1].Part;
     }
 
-    // WOLFGATE (M6): Onyx's TryApplyLethalDamage is removed. Its one caller, the execution hook (HOOK 13), went in M2
+    // WOLFGATE(Wolfmed): M6: Onyx's TryApplyLethalDamage is removed. Its one caller, the execution hook (HOOK 13), went in M2
     // (an execution is catastrophic brain injury now, OD17), and a torso top-up no longer kills a wound host.
 
     public bool TryApplyPartDamage(
@@ -618,7 +618,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
     public bool TryGetActiveHandPart(EntityUid body, out EntityUid handPart)
     {
         handPart = EntityUid.Invalid;
-        // WOLFGATE: Wolfgate's GetActiveHand returns the Hand itself (a class), and HandLocation has no
+        // WOLFGATE(Wolfmed): Wolfgate's GetActiveHand returns the Hand itself (a class), and HandLocation has no
         // Functional* members.
         if (!TryComp(body, out HandsComponent? hands) ||
             _hands.GetActiveHand((body, hands)) is not { } hand)
@@ -655,7 +655,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         if (!_routing.Add(body))
             return false;
 
-        if (ignoreResistances) // WOLFGATE (M6): P25, the part's armour is a resistance too
+        if (ignoreResistances) // WOLFGATE(Wolfmed): M6: P25, the part's armour is a resistance too
             _ignoreResistances.Add(body);
 
         var hadRequestedPart = _requestedParts.ContainsKey(body);
@@ -685,9 +685,9 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                              TryGetActiveHandPart(body, out var handPart))
                         _requestedParts[body] = handPart;
                     else if (origin is { } targetingSource && _targetResolver.TryResolve(body, targetingSource, out var targetedPart))
-                        _requestedParts[body] = _wfAim.Scatter(body, targetingSource, _routedModifiers.GetValueOrDefault(body.Owner).Tool, targetedPart); // WOLFGATE
+                        _requestedParts[body] = _wfAim.Scatter(body, targetingSource, _routedModifiers.GetValueOrDefault(body.Owner).Tool, targetedPart); // WOLFGATE(Wolfmed)
                     else if (origin is { } defibrillator && HasComp<DefibrillatorComponent>(defibrillator) &&
-                             _targetResolver.TryResolveAvailable(body, TargetBodyPart.Torso, out var chestPart)) // WOLFGATE: D9
+                             _targetResolver.TryResolveAvailable(body, TargetBodyPart.Torso, out var chestPart)) // WOLFGATE(Wolfmed): D9
                         _requestedParts[body] = chestPart;
                     else if (ResolveDamagePart(body, null) is { } randomPart)
                         _requestedParts[body] = randomPart;
@@ -695,7 +695,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
             }
 
             _applied.Remove(body);
-            // WOLFGATE: D23 - the routed pass is the only one that reaches DamageableSystem's resistance block, so it
+            // WOLFGATE(Wolfmed): D23 - the routed pass is the only one that reaches DamageableSystem's resistance block, so it
             // has to carry the original call's armour penetration, tool and origin flag or every AP weapon loses its AP.
             var modifiers = _routedModifiers.GetValueOrDefault(body.Owner);
             _damage.ChangeDamage(body.Owner, damage, ignoreResistances, interruptsDoAfters, origin,
@@ -707,7 +707,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
             if (!hadRequestedPart)
                 _requestedParts.Remove(body);
             _routing.Remove(body);
-            _ignoreResistances.Remove(body); // WOLFGATE (M6)
+            _ignoreResistances.Remove(body); // WOLFGATE(Wolfmed): M6
         }
     }
 
@@ -747,7 +747,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 return;
 
             localized = FilterPartDamage(target, localized);
-            // WOLFGATE (M6): P25 - Shitmed's part multiplier (a heavy swing's 0.5) scales what reaches the part, once.
+            // WOLFGATE(Wolfmed): M6: P25 - Shitmed's part multiplier (a heavy swing's 0.5) scales what reaches the part, once.
             if (_partMultipliers.TryGetValue(body, out var partMultiplier))
             {
                 localized = localized * partMultiplier;
@@ -766,8 +766,8 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 partComponent.PartType,
                 partComponent.Symmetry,
                 localized,
-                _routedModifiers.GetValueOrDefault(body).ArmorPenetration); // WOLFGATE: D23, HOOK 10 armours the part here.
-            if (!_ignoreResistances.Contains(body) && // WOLFGATE (M6): P25, ignoreResistances skips the part's armour too
+                _routedModifiers.GetValueOrDefault(body).ArmorPenetration); // WOLFGATE(Wolfmed): D23, HOOK 10 armours the part here.
+            if (!_ignoreResistances.Contains(body) && // WOLFGATE(Wolfmed): M6: P25, ignoreResistances skips the part's armour too
                 TryComp(body, out InventoryComponent? inventory))
                 _inventory.RelayEvent((body, inventory), modify);
 
@@ -778,10 +778,10 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 return;
             }
 
-            // WOLFGATE: body-wide damage ceiling, for damage nobody dealt (fire, cold, atmosphere, an EMP). A corpse
+            // WOLFGATE(Wolfmed): body-wide damage ceiling, for damage nobody dealt (fire, cold, atmosphere, an EMP). A corpse
             // drifts up to the ceiling on its own, and a ceiling that also stopped attacks meant a dead body could
             // no longer be wounded or dismembered at all.
-            // WOLFGATE (M1b): per-part ceiling for damage nobody dealt (fire, cold, atmosphere, an EMP), plus the
+            // WOLFGATE(Wolfmed): M1b: per-part ceiling for damage nobody dealt (fire, cold, atmosphere, an EMP), plus the
             // corpse ceiling. What it trims is not lost: it rides on the hit's event as Overflow.
             var discarded = origin == null && !_explosionDamage.Contains(body)
                 ? _wfPart.ClampToBodyCap(body, target, localized)
@@ -794,14 +794,14 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 RaiseLocalEvent(target, ref overflowed);
             }
 
-            discarded += overflow; // WOLFGATE (M1b)
-            if ((localized.Empty && discarded.Empty) || !_body.BodyHasChild(body, target)) // WOLFGATE (M1b)
+            discarded += overflow; // WOLFGATE(Wolfmed): M1b
+            if ((localized.Empty && discarded.Empty) || !_body.BodyHasChild(body, target)) // WOLFGATE(Wolfmed): M1b
             {
                 _projection.RefreshBodyDamage(body);
                 return;
             }
 
-            // WOLFGATE (M1b): one event per hit, raised even when the ceiling stored nothing.
+            // WOLFGATE(Wolfmed): M1b: one event per hit, raised even when the ceiling stored nothing.
             var stored = !localized.Empty && _damage.TryChangeDamage(target,
                     localized,
                     out var appliedDamage,
@@ -811,23 +811,23 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                     ignoreGlobalModifiers: true)
                 ? appliedDamage
                 : null;
-            if (stored != null || !discarded.Empty) // WOLFGATE (M1b)
+            if (stored != null || !discarded.Empty) // WOLFGATE(Wolfmed): M1b
             {
-                if (stored != null) // WOLFGATE (M1b)
+                if (stored != null) // WOLFGATE(Wolfmed): M1b
                 {
                     _applied.Add(body);
-                    AccumulateApplied(body, stored); // WOLFGATE: D27, Applied only (M1b)
+                    AccumulateApplied(body, stored); // WOLFGATE(Wolfmed): D27, Applied only (M1b)
                 }
 
-                var applied = new PartDamageAppliedEvent(body, target, stored ?? new DamageSpecifier(), // WOLFGATE (M1b)
+                var applied = new PartDamageAppliedEvent(body, target, stored ?? new DamageSpecifier(), // WOLFGATE(Wolfmed): M1b
                     !_skipWoundHealing.Contains(body), origin, _explosionDamage.Contains(body),
                     overflow.Empty && _explosionAmputationCandidates.GetValueOrDefault(body) == target,
                     _woundSeverityMultipliers.GetValueOrDefault(body, 1f),
-                    _routedModifiers.GetValueOrDefault(body).Tool, // WOLFGATE (W1): carry the weapon to the wound rules.
-                    discarded.Empty ? null : discarded, // WOLFGATE (M1b)
-                    interruptsDoAfters); // WOLFGATE (M6): OD18
+                    _routedModifiers.GetValueOrDefault(body).Tool, // WOLFGATE(Wolfmed): W1: carry the weapon to the wound rules.
+                    discarded.Empty ? null : discarded, // WOLFGATE(Wolfmed): M1b
+                    interruptsDoAfters); // WOLFGATE(Wolfmed): M6: OD18
                 RaiseLocalEvent(target, ref applied);
-                if (stored == null) // WOLFGATE (M1b): nothing stored, so nothing re-projected the body.
+                if (stored == null) // WOLFGATE(Wolfmed): M1b: nothing stored, so nothing re-projected the body.
                     _projection.RefreshBodyDamage(body);
                 return;
             }
@@ -841,12 +841,12 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         var overflow = new DamageSpecifier();
         if (!TryComp(part, out WoundableComponent? woundable) ||
             !TryComp(part, out BodyPartComponent? bodyPart) ||
-            _wfPart.Get(part).MaxDamage <= FixedPoint2.Zero || // WOLFGATE: D8
+            _wfPart.Get(part).MaxDamage <= FixedPoint2.Zero || // WOLFGATE(Wolfmed): D8
             !TryComp(part, out DamageableComponent? damageable))
             return overflow;
 
         var current = _damage.GetPositiveDamage((part, damageable)).GetTotal();
-        var remaining = _wfPart.Get(part).MaxDamage - current; // WOLFGATE: D8
+        var remaining = _wfPart.Get(part).MaxDamage - current; // WOLFGATE(Wolfmed): D8
 
         if (remaining > FixedPoint2.Zero && woundable.AmputationOverflow != FixedPoint2.Zero)
         {
@@ -957,7 +957,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         float variation = 0f,
         bool isExplosion = false,
         float woundSeverityMultiplier = 1f,
-        DamageableSystem.DamageOriginFlag? originFlag = null) // WOLFGATE (P4-D14): optional, so existing callers are unchanged.
+        DamageableSystem.DamageOriginFlag? originFlag = null) // WOLFGATE(Wolfmed): P4-D14: optional, so existing callers are unchanged.
     {
         if (!TryComp<WoundHostComponent>(body, out _) || !_net.IsServer || _routing.Contains(body) ||
             mode is not DamageDistribution.SplitEvenly and not DamageDistribution.SplitByPartWeight and not DamageDistribution.SplitWithVariation)
@@ -973,7 +973,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
             variation,
             isExplosion,
             woundSeverityMultiplier,
-            originFlag); // WOLFGATE (P4-D14): carry Mono's plate-protection flag into the routed pass.
+            originFlag); // WOLFGATE(Wolfmed): P4-D14: carry Mono's plate-protection flag into the routed pass.
         return true;
     }
 
@@ -996,9 +996,9 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         for (var i = 0; i < parts.Count; i++)
         {
             if (!TryComp(parts[i], out BodyPartComponent? part) ||
-                part.PartType == BodyPartType.Torso || // WOLFGATE: D9
-                _body.GetParentPartOrNull(parts[i]) is null || // WOLFGATE: Shitmed's BodyPartComponent has no Parent field.
-                _wfPart.Get(parts[i]).AmputationThresholds.Count == 0) // WOLFGATE: D8
+                part.PartType == BodyPartType.Torso || // WOLFGATE(Wolfmed): D9
+                _body.GetParentPartOrNull(parts[i]) is null || // WOLFGATE(Wolfmed): Shitmed's BodyPartComponent has no Parent field.
+                _wfPart.Get(parts[i]).AmputationThresholds.Count == 0) // WOLFGATE(Wolfmed): D8
                 continue;
 
             var weight = Math.Max(0f, shares[i].GetTotal().Float());
@@ -1044,7 +1044,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
                 originFlag: _routedModifiers.GetValueOrDefault(body.Owner).OriginFlag))
             return false;
 
-        AccumulateApplied(body, appliedDamage); // WOLFGATE: D27
+        AccumulateApplied(body, appliedDamage); // WOLFGATE(Wolfmed): D27
         var applied = new PartDamageAppliedEvent(body, part, appliedDamage,
             !_skipWoundHealing.Contains(body), origin);
         RaiseLocalEvent(part, ref applied);
@@ -1070,7 +1070,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         // treatment passive regeneration (which mechanical profiles deliberately disable).
         if (originFlag == DamageableSystem.DamageOriginFlag.PassiveRecovery)
             recoveryMultiplier = profile.PassiveRecoveryMultiplier;
-        else if (origin is { } bed && HasComp<WolfmedBedHealMarkerComponent>(bed)) // WOLFGATE: HealOnBuckleComponent is server-only here.
+        else if (origin is { } bed && HasComp<WolfmedBedHealMarkerComponent>(bed)) // WOLFGATE(Wolfmed): HealOnBuckleComponent is server-only here.
             recoveryMultiplier = profile.BedRecoveryMultiplier;
 
         if (!float.IsFinite(recoveryMultiplier))
@@ -1109,7 +1109,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
             var oldValue = systemic.Damage.DamageDict.GetValueOrDefault(type);
             var value = FixedPoint2.Max(FixedPoint2.Zero, systemic.Damage.DamageDict.GetValueOrDefault(type) + amount);
 
-            // WOLFGATE (AUTODOC5): the body damage cap only ever saw localized (part) damage, so airloss
+            // WOLFGATE(Wolfmed): AUTODOC5: the body damage cap only ever saw localized (part) damage, so airloss
             // counted without limit on a body that cannot die of the number. BRAIN's hypoxia clock carries
             // the lethality; the reading stops at the old death line.
             if (_wfPart.AirlossCeiling(type) is { } ceiling && value > ceiling)
@@ -1128,7 +1128,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
         if (!changed)
             return false;
 
-        AccumulateApplied(body, applied); // WOLFGATE: D27
+        AccumulateApplied(body, applied); // WOLFGATE(Wolfmed): D27
         Dirty(body, systemic);
         if (TryComp(body, out WoundHostComponent? host) &&
             _targetResolver.TryResolveExact(body, host.SystemicPainTarget, out var painTarget))

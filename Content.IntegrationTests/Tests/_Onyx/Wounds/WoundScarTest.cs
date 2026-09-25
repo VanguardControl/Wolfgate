@@ -1,7 +1,7 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._Onyx.Wounds;
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE: Onyx's SharedBodySystem.TryDetachPart lives on WolfmedBodySystem here.
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): Onyx's SharedBodySystem.TryDetachPart lives on WolfmedBodySystem here.
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.CCVar;
@@ -17,7 +17,7 @@ namespace Content.IntegrationTests.Tests._Onyx.Wounds;
 [TestOf(typeof(WoundScarSystem))]
 public sealed class WoundScarTest : GameTest
 {
-    // WOLFGATE: Onyx's `InitialBody` + `organs:` is Nubody. Wolfgate uses Shitmed's `Body` + a `body` prototype,
+    // WOLFGATE(Wolfmed): Onyx's `InitialBody` + `organs:` is Nubody. Wolfgate uses Shitmed's `Body` + a `body` prototype,
     // and BodyPartType.Chest does not exist here (D9), so every part is Torso-rooted with Wolfgate part entities.
     [TestPrototypes]
     private const string Prototypes = @"
@@ -55,16 +55,16 @@ public sealed class WoundScarTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            // WOLFGATE: WoundScarSystem multiplies the wound's own scar chance by CCVars.SurgeryScarChance,
+            // WOLFGATE(Wolfmed): WoundScarSystem multiplies the wound's own scar chance by CCVars.SurgeryScarChance,
             // which ships at 0.35, so Onyx's test only passes about a third of the time. Pin it to 1 so the
             // threshold behaviour under test is deterministic.
             configuration.SetCVar(CCVars.SurgeryScarChance, 1f);
             var body = entities.SpawnEntity("WoundScarBody", map.GridCoords);
             var graph = entities.System<SharedBodySystem>();
-            var wfBody = entities.System<WolfmedBodySystem>(); // WOLFGATE
+            var wfBody = entities.System<WolfmedBodySystem>(); // WOLFGATE(Wolfmed)
             var wounds = entities.System<WoundSystem>();
             var parts = graph.GetBodyChildren(body).ToList();
-            var torso = parts.Single(candidate => candidate.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE: D9
+            var torso = parts.Single(candidate => candidate.Component.PartType == BodyPartType.Torso).Id; // WOLFGATE(Wolfmed): D9
             var part = parts.Single(candidate => candidate.Component.PartType == BodyPartType.Head).Id;
             var woundable = entities.GetComponent<WoundableComponent>(part);
 
@@ -80,9 +80,9 @@ public sealed class WoundScarTest : GameTest
             Assert.That(wounds.TreatWound(scar.Owner, FixedPoint2.New(1)), Is.False);
             Assert.That(wounds.RemoveWound(scar.Owner), Is.False);
 
-            Assert.That(wfBody.TryDetachPart(part)); // WOLFGATE: §2.7
+            Assert.That(wfBody.TryDetachPart(part)); // WOLFGATE(Wolfmed): §2.7
             Assert.That(wounds.GetWounds((part, woundable)).Count(HasScar), Is.EqualTo(1));
-            Assert.That(graph.AttachPart(torso, "head", part)); // WOLFGATE: Shitmed's attach takes a slot id
+            Assert.That(graph.AttachPart(torso, "head", part)); // WOLFGATE(Wolfmed): Shitmed's attach takes a slot id
             Assert.That(wounds.GetWounds((part, woundable)).Count(HasScar), Is.EqualTo(1));
 
             entities.EventBus.RaiseLocalEvent(body, new RejuvenateEvent());

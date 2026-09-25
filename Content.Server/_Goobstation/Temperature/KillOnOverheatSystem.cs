@@ -1,4 +1,4 @@
-using Content.Server._WF.Wolfmed.Life; // WOLFGATE (GAMEPLAY): wound-host overheating below.
+using Content.Server._WF.Wolfmed.Life; // WOLFGATE(Wolfmed): GAMEPLAY: wound-host overheating below.
 using Content.Server.Temperature.Components;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
@@ -13,7 +13,7 @@ public sealed partial class KillOnOverheatSystem : EntitySystem
 {
     [Dependency] private MobStateSystem _mob = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private WolfmedOverheatSystem _wolfmedOverheat = default!; // WOLFGATE (GAMEPLAY)
+    [Dependency] private WolfmedOverheatSystem _wolfmedOverheat = default!; // WOLFGATE(Wolfmed): GAMEPLAY
 
     public override void Update(float frameTime)
     {
@@ -27,7 +27,7 @@ public sealed partial class KillOnOverheatSystem : EntitySystem
                 || HasComp<GodmodeComponent>(uid))
                 continue;
 
-            // WOLFGATE (GAMEPLAY): a wound host cannot die of a damage total, so overheating burns it
+            // WOLFGATE(Wolfmed): GAMEPLAY: a wound host cannot die of a damage total, so overheating burns it
             // through the wound model instead of setting MobState.Dead here.
             if (_wolfmedOverheat.TryOverheat(uid, comp.OverheatPopup))
                 continue;

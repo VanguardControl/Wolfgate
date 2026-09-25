@@ -33,16 +33,16 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 /// </remarks>
 public sealed class WolfmedConditionAlertSystem : EntitySystem
 {
-    [Dependency] private readonly AlertsSystem _alerts = default!;
-    [Dependency] private readonly WolfmedCardSystem _card = default!; // playtest 3
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly WolfmedConsciousnessSystem _consciousness = default!;
-    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
-    [Dependency] private readonly WolfmedWoundTraitSystem _woundTraits = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
+    [Dependency] private WolfmedCardSystem _card = default!; // playtest 3
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private WolfmedWoundTraitSystem _woundTraits = default!;
 
     /// <summary>Bodies whose limb-penalty wounds changed this tick; checked once in the update.</summary>
     private readonly HashSet<EntityUid> _limbChecks = new();

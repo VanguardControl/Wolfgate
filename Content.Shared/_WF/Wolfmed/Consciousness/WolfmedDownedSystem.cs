@@ -32,17 +32,17 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 /// </remarks>
 public sealed class WolfmedDownedSystem : EntitySystem
 {
-    [Dependency] private readonly ActionBlockerSystem _blocker = default!;
-    [Dependency] private readonly WolfmedBodyPainSystem _bodyPain = default!;
-    [Dependency] private readonly WolfmedDownedClimbSystem _climb = default!; // playtest 3
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly StandingStateSystem _standing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TagSystem _tags = default!; // M2
+    [Dependency] private ActionBlockerSystem _blocker = default!;
+    [Dependency] private WolfmedBodyPainSystem _bodyPain = default!;
+    [Dependency] private WolfmedDownedClimbSystem _climb = default!; // playtest 3
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TagSystem _tags = default!; // M2
 
     public override void Initialize()
     {

@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 using Content.Shared.Damage;
 using Content.Shared.DoAfter;
 using Robust.Shared.Audio;

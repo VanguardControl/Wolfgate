@@ -4,7 +4,7 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W1): the wound rule extension point.
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): W1: the wound rule extension point.
 using Content.Shared.FixedPoint;
 using Content.Shared.Rejuvenate;
 using Robust.Shared.Containers;
@@ -32,7 +32,7 @@ public sealed partial class WoundSystem : EntitySystem
         RebuildDamageTypeCache();
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnPrototypesReloaded);
         SubscribeLocalEvent<WoundableComponent, ComponentInit>(OnWoundableInit);
-        // WOLFGATE: D17 - <BodyComponent, RejuvenateEvent> is owned by _Mono/Body/Systems/BodyRejuvenateSystem.cs:28.
+        // WOLFGATE(Wolfmed): D17 - <BodyComponent, RejuvenateEvent> is owned by _Mono/Body/Systems/BodyRejuvenateSystem.cs:28.
         // The handler body below is exposed as ClearBodyWounds and called from WoundDamageProjectionSystem.OnRejuvenate.
         SubscribeLocalEvent<WoundableComponent, RejuvenateEvent>(OnPartRejuvenate);
     }
@@ -63,7 +63,7 @@ public sealed partial class WoundSystem : EntitySystem
         part.Comp.WoundsContainer = _containers.EnsureContainer<Container>(part, WoundableComponent.ContainerId);
     }
 
-    // WOLFGATE: D13 puts OrganDamageSystem (the sole caller) in Content.Server, so internal no longer reaches it.
+    // WOLFGATE(Wolfmed): D13 puts OrganDamageSystem (the sole caller) in Content.Server, so internal no longer reaches it.
     public void HandlePartDamageApplied(Entity<WoundableComponent> part, ref PartDamageAppliedEvent args)
     {
         if (!_net.IsServer)
@@ -74,7 +74,7 @@ public sealed partial class WoundSystem : EntitySystem
             if (amount == FixedPoint2.Zero || !_woundsByDamageType.TryGetValue(type, out var wounds))
                 continue;
 
-            // WOLFGATE (W1): Wolfmed's wound rules answer here and may create a cause-specific wound
+            // WOLFGATE(Wolfmed): W1: Wolfmed's wound rules answer here and may create a cause-specific wound
             // (gunshot, lodged round, shrapnel) in place of the default one for this damage type.
             if (amount > FixedPoint2.Zero)
             {
@@ -98,7 +98,7 @@ public sealed partial class WoundSystem : EntitySystem
 
                 if (amount > FixedPoint2.Zero)
                 {
-                    // WOLFGATE (W1): rule-only wounds are created by WolfmedWoundRuleSystem, not by damage type.
+                    // WOLFGATE(Wolfmed): W1: rule-only wounds are created by WolfmedWoundRuleSystem, not by damage type.
                     if (prototype.RuleOnly || !CanCreateWound(part.AsNullable(), prototype.ID, type))
                         continue;
 
@@ -134,7 +134,7 @@ public sealed partial class WoundSystem : EntitySystem
         return profile.SupportedWounds.Count == 0 || profile.SupportedWounds.Contains(prototype);
     }
 
-    // WOLFGATE: D17 - was OnRejuvenate(Entity<BodyComponent>, ref RejuvenateEvent); now a public entry point.
+    // WOLFGATE(Wolfmed): D17 - was OnRejuvenate(Entity<BodyComponent>, ref RejuvenateEvent); now a public entry point.
     /// <summary>Clears every wound and severable flag on a wound host's parts.</summary>
     public void ClearBodyWounds(EntityUid body)
     {
@@ -163,7 +163,7 @@ public sealed partial class WoundSystem : EntitySystem
             part.Comp.AmputationOverflow = FixedPoint2.Zero;
             Dirty(part);
 
-            // WOLFGATE (W5): a part healed on its own keeps its dead tissue and its tourniquet otherwise.
+            // WOLFGATE(Wolfmed): W5: a part healed on its own keeps its dead tissue and its tourniquet otherwise.
             var rejuvenated = new WolfmedRejuvenateEvent(part.Owner);
             RaiseLocalEvent(ref rejuvenated);
         }
@@ -239,21 +239,21 @@ public sealed partial class WoundSystem : EntitySystem
 
     private void SyncRuntimeComponents(Entity<WoundComponent> wound, WoundPrototype prototype)
     {
-        var previousSeverity = wound.Comp.LastSyncSeverity; // WOLFGATE
-        wound.Comp.LastSyncSeverity = wound.Comp.Severity; // WOLFGATE
+        var previousSeverity = wound.Comp.LastSyncSeverity; // WOLFGATE(Wolfmed)
+        wound.Comp.LastSyncSeverity = wound.Comp.Severity; // WOLFGATE(Wolfmed)
 
         if (CanBleed(wound.Comp.HoldingPart) &&
             prototype.TryGetBehavior(wound.Comp.Severity, out WoundBleedingBehavior bleedingBehavior) &&
             bleedingBehavior.Rate > 0f && wound.Comp.Severity >= bleedingBehavior.MinimumSeverity)
         {
             if (!TryComp(wound, out WoundBleedingComponent? bleeding) &&
-                wound.Comp.Severity > previousSeverity) // WOLFGATE: only a wound that just grew rolls, see LastSyncSeverity
+                wound.Comp.Severity > previousSeverity) // WOLFGATE(Wolfmed): only a wound that just grew rolls, see LastSyncSeverity
             {
                 var chance = Math.Clamp(bleedingBehavior.Chance, 0f, 1f);
                 if (chance > 0f && _random.Prob(chance))
                 {
                     bleeding = AddComp<WoundBleedingComponent>(wound);
-                    // WOLFGATE: a grown wound gets its WoundChangedEvent next, and the bleeding system adds the growth
+                    // WOLFGATE(Wolfmed): a grown wound gets its WoundChangedEvent next, and the bleeding system adds the growth
                     // there. Starting from the old severity keeps that from being counted twice.
                     bleeding.BleedingSeverity = previousSeverity > FixedPoint2.Zero ? previousSeverity : wound.Comp.Severity;
                     Dirty(wound, bleeding);
@@ -415,7 +415,7 @@ public sealed partial class WoundSystem : EntitySystem
                 continue;
 
             var healed = FixedPoint2.Min(remaining, wound.Comp.Severity);
-            // WOLFGATE (W2): damage removal is a treatment too, so a wound that refuses treatment (an
+            // WOLFGATE(Wolfmed): W2: damage removal is a treatment too, so a wound that refuses treatment (an
             // embedded object, an arterial bleed that is still pumping) refuses this path as well.
             // Without this the attempt event only covered TreatWound and the damage side walked past it.
             var attempt = new WoundTreatmentAttemptEvent(part.Owner, wound.Owner, healed);
@@ -446,7 +446,7 @@ public sealed partial class WoundSystem : EntitySystem
                 if (settings.SeverityMultiplier <= 0f)
                     continue;
 
-                // WOLFGATE: an item working on the wound itself closes it at full strength. HealingMultiplier is how much
+                // WOLFGATE(Wolfmed): an item working on the wound itself closes it at full strength. HealingMultiplier is how much
                 // of REMOVED DAMAGE comes off a wound (HandlePartDamageApplied); applied here as well it left a suture
                 // closing three severity a use, and a critical gunshot wound outlasting twenty of them. Zero still means
                 // "no topical closes this" (charring, a cut tendon, a lodged round).

@@ -4,8 +4,8 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Movement.Systems;
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W2)
-using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE (CONSC)
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): W2
+using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE(Wolfmed): CONSC
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -24,8 +24,8 @@ public sealed partial class FractureEffectSystem : EntitySystem
     [Dependency] private BodyPartFunctionalitySystem _functionality = default!;
     [Dependency] private WoundStatusEffectSystem _statusEffects = default!;
     [Dependency] private FractureAlertSystem _fractureAlerts = default!;
-    [Dependency] private WolfmedWoundTraitSystem _wolfmed = default!; // WOLFGATE (W2): limb penalties from wounds
-    [Dependency] private WolfmedPainReliefSystem _wolfmedPainRelief = default!; // WOLFGATE (CONSC)
+    [Dependency] private WolfmedWoundTraitSystem _wolfmed = default!; // WOLFGATE(Wolfmed): W2: limb penalties from wounds
+    [Dependency] private WolfmedPainReliefSystem _wolfmedPainRelief = default!; // WOLFGATE(Wolfmed): CONSC
 
     public override void Initialize()
     {
@@ -99,7 +99,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
 
     private void OnRefreshSpeed(Entity<WoundHostComponent> body, ref RefreshMovementSpeedModifiersEvent args)
     {
-        // WOLFGATE (CONSC): a strong painkiller masks the wound slowdowns, so a player walks on a broken leg
+        // WOLFGATE(Wolfmed): CONSC: a strong painkiller masks the wound slowdowns, so a player walks on a broken leg
         // while it keeps worsening underneath.
         if (_wolfmedPainRelief.MasksSlowdown(body))
             return;
@@ -132,7 +132,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
         }
     }
 
-    // WOLFGATE: Wolfgate's hands API hands back Hand objects, not hand-id strings (GetActiveHand returns
+    // WOLFGATE(Wolfmed): Wolfgate's hands API hands back Hand objects, not hand-id strings (GetActiveHand returns
     // Hand?, IsHolding's out param is Hand?), Hand is a class so there is no .Value, and HandLocation has no
     // Functional* members. Same rewrite as WoundDamageRoutingSystem.TryGetActiveHandPart (:606-633).
     private bool TryGetUsedHandSymmetry(EntityUid body, EntityUid? used, out BodyPartSymmetry symmetry)
@@ -182,7 +182,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
             return (modifier, partScale, GetTreatmentScale(profile, fracture.Comp2.Treatment));
         }
 
-        // WOLFGATE (W2): Wolfmed's mechanical wounds (a severed tendon) answer here rather than through
+        // WOLFGATE(Wolfmed): W2: Wolfmed's mechanical wounds (a severed tendon) answer here rather than through
         // the functionality fallback below, which is inert while wounds.body_part_functionality_enabled
         // stays false (P2-3). A fracture shadows them, as it already shadows the fallback.
         if (_wolfmed.TryGetLimbPenalty(part, kind == EffectKind.Mobility, out var wolfmed))

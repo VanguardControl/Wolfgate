@@ -36,11 +36,11 @@ public record struct WolfmedSpeedFloorEvent(float BaseWalk, float BaseSprint, fl
 /// </remarks>
 public sealed class WolfmedCrawlSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly BodyPartFunctionalitySystem _functionality = default!;
-    [Dependency] private readonly WolfmedBodyPainSystem _bodyPain = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private BodyPartFunctionalitySystem _functionality = default!;
+    [Dependency] private WolfmedBodyPainSystem _bodyPain = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     /// <summary>The base a legless wound host gets in place of Shitmed's 0: a healthy body's.</summary>
     public static (float Walk, float Sprint, float Acceleration) LeglessBase =>

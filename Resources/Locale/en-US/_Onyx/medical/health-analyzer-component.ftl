@@ -12,14 +12,14 @@ health-analyzer-wound-clotting-inprogress = clotting in progress
 health-analyzer-wound-clotting-complete = bleeding stopped
 health-analyzer-wound-clotting-mixed = partial hemostasis
 
-# WOLFGATE (P4-D25): Onyx carries the fracture grade and treatment in the payload and never renders them.
+# WOLFGATE(Wolfmed): P4-D25: Onyx carries the fracture grade and treatment in the payload and never renders them.
 # The grade word itself comes from the fracture-grade-* keys the reagent guidebook already ships.
 health-analyzer-wound-fracture-short = fracture: { $grade }
 health-analyzer-wound-fracture-treated-short = fracture: { $grade } ({ $treatment })
 health-analyzer-wound-fracture-treatment-reduced = reduced
 health-analyzer-wound-fracture-treatment-mended = mended
 
-# WOLFGATE (P5-5): mechanical-species variants of the three generic short labels above. Onyx has no
+# WOLFGATE(Wolfmed): P5-5: mechanical-species variants of the three generic short labels above. Onyx has no
 # equivalent (its IPCs read as "bruises"/"fracture") - these are a Wolfgate improvement, unconsumed
 # until a later package adds the HealthAnalyzerWoundDiagnostic.Mechanical flag and branches on it
 # (PLAN5 P5-D17/§2.6; deferred out of this package per its "No new C#" scope).
@@ -27,7 +27,7 @@ health-analyzer-wound-bleeding-short-mechanical = fluid leak
 health-analyzer-wound-fracture-short-frame = frame damage: { $grade }
 health-analyzer-wound-fracture-treated-short-frame = frame damage: { $grade } ({ $treatment })
 
-# WOLFGATE (W7): the rest of the mechanical column. A chassis reports the same pain figure and the same
+# WOLFGATE(Wolfmed): W7: the rest of the mechanical column. A chassis reports the same pain figure and the same
 # clotting phases, and neither word means anything on a frame.
 health-analyzer-wound-pain-short-mechanical = fault signal: { $pain }
 health-analyzer-wound-clotting-inprogress-mechanical = sealant setting

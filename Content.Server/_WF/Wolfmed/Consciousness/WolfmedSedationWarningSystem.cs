@@ -12,9 +12,9 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 /// </summary>
 public sealed class WolfmedSedationWarningSystem : EntitySystem
 {
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
-    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
 
     public override void Initialize()
     {

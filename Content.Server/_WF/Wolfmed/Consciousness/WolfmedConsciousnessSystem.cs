@@ -36,20 +36,20 @@ namespace Content.Server._WF.Wolfmed.Consciousness;
 /// </remarks>
 public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSystem
 {
-    [Dependency] private readonly IConfigurationManager _configuration = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly PainSystem _pain = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly WolfmedCallForHelpSystem _callForHelp = default!;
-    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
-    [Dependency] private readonly WolfmedDyingActionsSystem _dyingActions = default!;
-    [Dependency] private readonly WolfmedPainReliefSystem _relief = default!;
-    [Dependency] private readonly WolfmedShutdownSystem _shutdown = default!;
-    [Dependency] private readonly WolfmedCrawlActionsSystem _crawlActions = default!; // M2
-    [Dependency] private readonly WolfmedToxinSystem _toxin = default!; // M5
-    [Dependency] private readonly WolfmedRadiationSystem _radiation = default!;
-    [Dependency] private readonly WolfmedBodyTemperatureSystem _temperature = default!;
+    [Dependency] private IConfigurationManager _configuration = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private PainSystem _pain = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private WolfmedCallForHelpSystem _callForHelp = default!;
+    [Dependency] private WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private WolfmedDyingActionsSystem _dyingActions = default!;
+    [Dependency] private WolfmedPainReliefSystem _relief = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
+    [Dependency] private WolfmedCrawlActionsSystem _crawlActions = default!; // M2
+    [Dependency] private WolfmedToxinSystem _toxin = default!; // M5
+    [Dependency] private WolfmedRadiationSystem _radiation = default!;
+    [Dependency] private WolfmedBodyTemperatureSystem _temperature = default!;
 
     /// <summary>
     /// How much of an external pressure is enough to put a body on the floor. 1 is unconscious, so anything

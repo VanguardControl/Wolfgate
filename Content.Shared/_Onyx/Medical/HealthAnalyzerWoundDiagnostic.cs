@@ -1,8 +1,8 @@
-using Content.Shared._Shitmed.Targeting; // WOLFGATE: D10 keeps TargetBodyPart under _Shitmed; Onyx's _Onyx.Targeting copy is not ported.
+using Content.Shared._Shitmed.Targeting; // WOLFGATE(Wolfmed): D10 keeps TargetBodyPart under _Shitmed; Onyx's _Onyx.Targeting copy is not ported.
 using Content.Shared._Onyx.Wounds;
-using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE (W5)
-using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE (CONSC)
-using Content.Shared._WF.Wolfmed.Life; // WOLFGATE (M1a): the vitals block
+using Content.Shared._WF.Wolfmed.Wounds; // WOLFGATE(Wolfmed): W5
+using Content.Shared._WF.Wolfmed.Reagents; // WOLFGATE(Wolfmed): CONSC
+using Content.Shared._WF.Wolfmed.Life; // WOLFGATE(Wolfmed): M1a: the vitals block
 using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
@@ -20,25 +20,25 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     BodyPartFunctionalityState Functionality,
     float InternalBleedingRate,
     HealthAnalyzerClottingPhase ClottingPhase,
-    ushort EmbeddedObjects = 0, // WOLFGATE (W1): rounds and shrapnel still in the part.
-    WolfmedInfectionStage Infection = WolfmedInfectionStage.None, // WOLFGATE (W5): worst stage on the part.
-    bool Necrotic = false, // WOLFGATE (W5): the part is dead tissue.
-    bool NecrosisRisk = false, // WOLFGATE (W5): a tourniquet or a deep burn is killing it.
-    bool Mechanical = false, // WOLFGATE (W6): a chassis, so the generic labels get their -mechanical variants.
-    bool Overheating = false, // WOLFGATE (W6): the part is running too hot to work properly.
-    // WOLFGATE (UI4): what has already been done here. A clamped, sutured or cauterised wound bleeds at
+    ushort EmbeddedObjects = 0, // WOLFGATE(Wolfmed): W1: rounds and shrapnel still in the part.
+    WolfmedInfectionStage Infection = WolfmedInfectionStage.None, // WOLFGATE(Wolfmed): W5: worst stage on the part.
+    bool Necrotic = false, // WOLFGATE(Wolfmed): W5: the part is dead tissue.
+    bool NecrosisRisk = false, // WOLFGATE(Wolfmed): W5: a tourniquet or a deep burn is killing it.
+    bool Mechanical = false, // WOLFGATE(Wolfmed): W6: a chassis, so the generic labels get their -mechanical variants.
+    bool Overheating = false, // WOLFGATE(Wolfmed): W6: the part is running too hot to work properly.
+    // WOLFGATE(Wolfmed): UI4: what has already been done here. A clamped, sutured or cauterised wound bleeds at
     // zero, so nothing else in this payload can tell a treated part from an untouched one.
     WolfmedPartTreatments Treatments = WolfmedPartTreatments.None,
-    // WOLFGATE (EVISC): organ slots this part carries that nothing is in, which is how the procedure
+    // WOLFGATE(Wolfmed): EVISC: organ slots this part carries that nothing is in, which is how the procedure
     // window can tell a patient whose organs are back in from one still waiting for them.
     ushort MissingOrgans = 0)
 {
     public bool HasFindings =>
         Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||
         VisibleWounds.Count > 0 || Functionality != BodyPartFunctionalityState.Functional ||
-        InternalBleedingRate > 0f || EmbeddedObjects > 0 || // WOLFGATE (W1)
-        Infection != WolfmedInfectionStage.None || Necrotic || NecrosisRisk || // WOLFGATE (W5)
-        Overheating; // WOLFGATE (W6)
+        InternalBleedingRate > 0f || EmbeddedObjects > 0 || // WOLFGATE(Wolfmed): W1
+        Infection != WolfmedInfectionStage.None || Necrotic || NecrosisRisk || // WOLFGATE(Wolfmed): W5
+        Overheating; // WOLFGATE(Wolfmed): W6
 }
 
 [Serializable, NetSerializable]
@@ -46,9 +46,9 @@ public readonly record struct HealthAnalyzerVisibleWound(
     LocId Name,
     LocId? StageName,
     int Count,
-    // WOLFGATE (UI2): the analyzer groups and tints its wound rows by this; resolved from the prototype.
+    // WOLFGATE(Wolfmed): UI2: the analyzer groups and tints its wound rows by this; resolved from the prototype.
     WolfmedWoundCategory Category = WolfmedWoundCategory.Other,
-    // WOLFGATE (UI3): the wound prototype id, which is what the treatment advice keys are derived from.
+    // WOLFGATE(Wolfmed): UI3: the wound prototype id, which is what the treatment advice keys are derived from.
     string Prototype = "");
 
 [Serializable, NetSerializable]
@@ -97,7 +97,7 @@ public sealed class HealthAnalyzerWoundDiagnostics
     public readonly bool Shutdown;
 
     /// <summary>
-    /// WOLFGATE (M1a): after a successful shock, units to transfuse inside the grace to keep the heart
+    /// WOLFGATE(Wolfmed): M1a: after a successful shock, units to transfuse inside the grace to keep the heart
     /// going (plan §7.1), or -1 when there is no post-shock advice to show.
     /// </summary>
     public readonly float PostShockUnits;
@@ -116,37 +116,37 @@ public sealed class HealthAnalyzerWoundDiagnostics
 
     public HealthAnalyzerWoundDiagnostics(
         Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts,
-        float sepsis = 0f, // WOLFGATE (W5)
-        WolfmedPainReliefTier painRelief = WolfmedPainReliefTier.None, // WOLFGATE (CONSC)
-        float painReliefSeconds = 0f, // WOLFGATE (CONSC)
-        float sedation = 0f, // WOLFGATE (CONSC)
-        bool cardiacArrest = false, // WOLFGATE (BRAIN)
-        bool brainDead = false, // WOLFGATE (BRAIN)
-        float brainActivity = -1f, // WOLFGATE (BRAIN)
-        float oxygenation = -1f, // WOLFGATE (BRAIN)
-        float brainDeathSeconds = -1f, // WOLFGATE (BRAIN)
-        bool shutdown = false, // WOLFGATE (BRAIN)
-        float postShockUnits = -1f, // WOLFGATE (M1a)
-        float postShockSafeUnits = 0f, // WOLFGATE (M1a)
-        float postShockGraceSeconds = 0f, // WOLFGATE (M1a)
-        float postShockSafeLine = 0f, // WOLFGATE (M1a)
-        WolfmedVitalsReport? vitals = null) // WOLFGATE (M1a): package D's vitals block
+        float sepsis = 0f, // WOLFGATE(Wolfmed): W5
+        WolfmedPainReliefTier painRelief = WolfmedPainReliefTier.None, // WOLFGATE(Wolfmed): CONSC
+        float painReliefSeconds = 0f, // WOLFGATE(Wolfmed): CONSC
+        float sedation = 0f, // WOLFGATE(Wolfmed): CONSC
+        bool cardiacArrest = false, // WOLFGATE(Wolfmed): BRAIN
+        bool brainDead = false, // WOLFGATE(Wolfmed): BRAIN
+        float brainActivity = -1f, // WOLFGATE(Wolfmed): BRAIN
+        float oxygenation = -1f, // WOLFGATE(Wolfmed): BRAIN
+        float brainDeathSeconds = -1f, // WOLFGATE(Wolfmed): BRAIN
+        bool shutdown = false, // WOLFGATE(Wolfmed): BRAIN
+        float postShockUnits = -1f, // WOLFGATE(Wolfmed): M1a
+        float postShockSafeUnits = 0f, // WOLFGATE(Wolfmed): M1a
+        float postShockGraceSeconds = 0f, // WOLFGATE(Wolfmed): M1a
+        float postShockSafeLine = 0f, // WOLFGATE(Wolfmed): M1a
+        WolfmedVitalsReport? vitals = null) // WOLFGATE(Wolfmed): M1a: package D's vitals block
     {
         Parts = parts;
-        Sepsis = sepsis; // WOLFGATE (W5)
-        PainRelief = painRelief; // WOLFGATE (CONSC)
-        PainReliefSeconds = painReliefSeconds; // WOLFGATE (CONSC)
-        Sedation = sedation; // WOLFGATE (CONSC)
-        CardiacArrest = cardiacArrest; // WOLFGATE (BRAIN)
-        BrainDead = brainDead; // WOLFGATE (BRAIN)
-        BrainActivity = brainActivity; // WOLFGATE (BRAIN)
-        Oxygenation = oxygenation; // WOLFGATE (BRAIN)
-        BrainDeathSeconds = brainDeathSeconds; // WOLFGATE (BRAIN)
-        Shutdown = shutdown; // WOLFGATE (BRAIN)
-        PostShockUnits = postShockUnits; // WOLFGATE (M1a)
-        PostShockSafeUnits = postShockSafeUnits; // WOLFGATE (M1a)
-        PostShockGraceSeconds = postShockGraceSeconds; // WOLFGATE (M1a)
-        PostShockSafeLine = postShockSafeLine; // WOLFGATE (M1a)
-        Vitals = vitals; // WOLFGATE (M1a)
+        Sepsis = sepsis; // WOLFGATE(Wolfmed): W5
+        PainRelief = painRelief; // WOLFGATE(Wolfmed): CONSC
+        PainReliefSeconds = painReliefSeconds; // WOLFGATE(Wolfmed): CONSC
+        Sedation = sedation; // WOLFGATE(Wolfmed): CONSC
+        CardiacArrest = cardiacArrest; // WOLFGATE(Wolfmed): BRAIN
+        BrainDead = brainDead; // WOLFGATE(Wolfmed): BRAIN
+        BrainActivity = brainActivity; // WOLFGATE(Wolfmed): BRAIN
+        Oxygenation = oxygenation; // WOLFGATE(Wolfmed): BRAIN
+        BrainDeathSeconds = brainDeathSeconds; // WOLFGATE(Wolfmed): BRAIN
+        Shutdown = shutdown; // WOLFGATE(Wolfmed): BRAIN
+        PostShockUnits = postShockUnits; // WOLFGATE(Wolfmed): M1a
+        PostShockSafeUnits = postShockSafeUnits; // WOLFGATE(Wolfmed): M1a
+        PostShockGraceSeconds = postShockGraceSeconds; // WOLFGATE(Wolfmed): M1a
+        PostShockSafeLine = postShockSafeLine; // WOLFGATE(Wolfmed): M1a
+        Vitals = vitals; // WOLFGATE(Wolfmed): M1a
     }
 }

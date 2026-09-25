@@ -15,7 +15,7 @@
     - id: BoxLatexGloves
     - id: BoxSterileMask
     - id: BoxMouthSwab
-    - id: SpaceacillinChemistryBottle # WOLFGATE (W7): infection cure, orderable without chemistry.
+    - id: SpaceacillinChemistryBottle # WOLFGATE(Wolfmed): W7: infection cure, orderable without chemistry.
       amount: 2
 
 - type: entity
@@ -75,7 +75,7 @@
     - id: SawElectric # Frontier
     # Shitmed Change
     - id: BoneGel
-    - id: WolfmedSkinGraft # WOLFGATE (W4): the graft step's tool, beside the bone gel it mirrors.
+    - id: WolfmedSkinGraft # WOLFGATE(Wolfmed): W4: the graft step's tool, beside the bone gel it mirrors.
     - id: BoxLatexGloves
     - id: BoxSterileMask
 

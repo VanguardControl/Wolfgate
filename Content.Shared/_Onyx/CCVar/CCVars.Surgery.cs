@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 using Robust.Shared.Configuration;
 
 namespace Content.Shared.CCVar;

@@ -88,7 +88,7 @@
 - type: construction
   id: MedicalPatchMakeshift
   graph: MedicalPatchMakeshift
-  icon: # WOLFGATE: Wolfgate's construction prototype requires an icon; Onyx's linter did not
+  icon: # WOLFGATE(Wolfmed): Wolfgate's construction prototype requires an icon; Onyx's linter did not
     sprite: _Onyx/Objects/Medical/medical_patch.rsi
     state: MakeshiftPatch
   startNode: start
@@ -113,7 +113,7 @@
 - type: construction
   id: SilkPatchMakeshift
   graph: SilkPatchMakeshift
-  icon: # WOLFGATE: Wolfgate's construction prototype requires an icon; Onyx's linter did not
+  icon: # WOLFGATE(Wolfmed): Wolfgate's construction prototype requires an icon; Onyx's linter did not
     sprite: _Onyx/Objects/Medical/medical_patch.rsi
     state: MakeshiftPatch
   startNode: start

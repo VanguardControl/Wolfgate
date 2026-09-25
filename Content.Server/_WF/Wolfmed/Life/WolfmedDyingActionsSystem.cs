@@ -56,17 +56,17 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
     public static readonly EntProtoId SuccumbAction = "ActionWolfmedSuccumb";
     public static readonly EntProtoId LastWordsAction = "ActionWolfmedLastWords";
 
-    [Dependency] private readonly ChatSystem _chat = default!;
-    [Dependency] private readonly EuiManager _eui = default!;
-    [Dependency] private readonly GhostSystem _ghost = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly OrganHealthSystem _organs = default!;
-    [Dependency] private readonly QuickDialogSystem _quickDialog = default!;
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
-    [Dependency] private readonly WolfmedLifeSystem _life = default!;
-    [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
+    [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private EuiManager _eui = default!;
+    [Dependency] private GhostSystem _ghost = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private OrganHealthSystem _organs = default!;
+    [Dependency] private QuickDialogSystem _quickDialog = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private WolfmedLifeSystem _life = default!;
+    [Dependency] private WolfmedOverheatSystem _overheat = default!; // M4
 
     /// <summary>The open dialog per body. WordsMax is set when Last Words asked: the whisper comes after a yes.</summary>
     private readonly Dictionary<EntityUid, (WolfmedEndingChoice Choice, WolfmedChoiceEui? Eui, int? WordsMax)> _pending = new();

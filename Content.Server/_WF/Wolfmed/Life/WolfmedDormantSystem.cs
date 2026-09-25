@@ -36,19 +36,19 @@ public sealed class WolfmedDormantSystem : EntitySystem
 
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly EuiManager _eui = default!;
-    [Dependency] private readonly GhostSystem _ghost = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly WolfmedConditionAlertSystem _conditionAlerts = default!;
-    [Dependency] private readonly WolfmedLifeSystem _life = default!;
-    [Dependency] private readonly WolfmedRevivalSystem _revival = default!;
-    [Dependency] private readonly WolfmedOverheatSystem _overheat = default!; // M4
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private EuiManager _eui = default!;
+    [Dependency] private GhostSystem _ghost = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private WolfmedLifeSystem _life = default!;
+    [Dependency] private WolfmedRevivalSystem _revival = default!;
+    [Dependency] private WolfmedOverheatSystem _overheat = default!; // M4
 
     private readonly Dictionary<EntityUid, WolfmedChoiceEui> _open = new();
     private readonly List<EntityUid> _due = new();

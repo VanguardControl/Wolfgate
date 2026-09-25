@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): ported from Onyx for Wolfmed.
 using Content.Shared.FixedPoint;
 using Content.Shared.StatusEffectNew.Components;
 using Robust.Shared.Prototypes;

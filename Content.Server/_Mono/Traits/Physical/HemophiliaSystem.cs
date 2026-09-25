@@ -2,7 +2,7 @@ using Content.Server.Body.Components;
 using Content.Shared._Mono.Traits.Physical;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
-using Content.Shared._Onyx.Wounds; // WOLFGATE: Wolfmed wound hosts own their own bleeding.
+using Content.Shared._Onyx.Wounds; // WOLFGATE(Wolfmed): Wolfmed wound hosts own their own bleeding.
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._Mono.Traits.Physical;
@@ -36,7 +36,7 @@ public sealed partial class HemophiliaSystem : EntitySystem
 
     private void OnDamageChanged(Entity<HemophiliaComponent> ent, ref DamageChangedEvent args)
     {
-        // WOLFGATE: GUARD E4, wound hosts bleed through WoundBleedingSystem; re-express hemophilia as a
+        // WOLFGATE(Wolfmed): GUARD E4, wound hosts bleed through WoundBleedingSystem; re-express hemophilia as a
         // wound bleeding multiplier in _WF/Wolfmed later.
         if (HasComp<WoundHostComponent>(ent))
             return;

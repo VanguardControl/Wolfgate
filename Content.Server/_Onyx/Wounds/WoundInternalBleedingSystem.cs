@@ -1,9 +1,9 @@
-using Content.Server.Body.Components; // WOLFGATE: D13, BloodstreamComponent is server-only in Wolfgate.
+using Content.Server.Body.Components; // WOLFGATE(Wolfmed): D13, BloodstreamComponent is server-only in Wolfgate.
 using Content.Shared.Body.Part;
-using Content.Server.Body.Systems; // WOLFGATE: D13, BloodstreamSystem is server-only in Wolfgate.
+using Content.Server.Body.Systems; // WOLFGATE(Wolfmed): D13, BloodstreamSystem is server-only in Wolfgate.
 using Content.Shared.FixedPoint;
 using Robust.Shared.Network;
-using Robust.Shared.Timing; // WOLFGATE (M1a)
+using Robust.Shared.Timing; // WOLFGATE(Wolfmed): M1a
 
 namespace Content.Shared._Onyx.Wounds;
 
@@ -15,9 +15,9 @@ public sealed partial class WoundInternalBleedingSystem : EntitySystem
 {
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private INetManager _net = default!;
-    [Dependency] private IGameTiming _timing = default!; // WOLFGATE (M1a)
+    [Dependency] private IGameTiming _timing = default!; // WOLFGATE(Wolfmed): M1a
 
-    // WOLFGATE (M1a): P22. A per-frame amount (0.2 u/s is 0.0067 u at 30 Hz) rounds to nothing in FixedPoint2,
+    // WOLFGATE(Wolfmed): M1a: P22. A per-frame amount (0.2 u/s is 0.0067 u at 30 Hz) rounds to nothing in FixedPoint2,
     // so the bleed ticks once a second instead and every amount clears the 0.01 u step.
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
     private TimeSpan _nextTick;
@@ -61,7 +61,7 @@ public sealed partial class WoundInternalBleedingSystem : EntitySystem
         if (!_net.IsServer)
             return;
 
-        // WOLFGATE (M1a): P22, once a second; see TickInterval.
+        // WOLFGATE(Wolfmed): M1a: P22, once a second; see TickInterval.
         if (_timing.CurTime < _nextTick)
             return;
 
@@ -76,9 +76,9 @@ public sealed partial class WoundInternalBleedingSystem : EntitySystem
 
             if (TryGetBody(core.HoldingPart, out var body) && TryComp(body, out BloodstreamComponent? bloodstream))
             {
-                var amount = FixedPoint2.New(internalBleeding.Rate * internalBleeding.Severity.Float() * seconds); // WOLFGATE (M1a)
+                var amount = FixedPoint2.New(internalBleeding.Rate * internalBleeding.Severity.Float() * seconds); // WOLFGATE(Wolfmed): M1a
                 if (amount > FixedPoint2.Zero)
-                    // WOLFGATE: Wolfgate's TryModifyBloodLevel takes (EntityUid, amount, component?); the tuple
+                    // WOLFGATE(Wolfmed): Wolfgate's TryModifyBloodLevel takes (EntityUid, amount, component?); the tuple
                     // literal would need two chained user-defined conversions, which C# does not do.
                     _bloodstream.TryModifyBloodLevel(body, -amount, bloodstream);
             }

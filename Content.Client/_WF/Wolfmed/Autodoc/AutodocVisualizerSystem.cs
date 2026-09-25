@@ -16,7 +16,7 @@ namespace Content.Client._WF.Wolfmed.Autodoc;
 /// </summary>
 public sealed class AutodocVisualizerSystem : VisualizerSystem<AutodocComponent>
 {
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
 
     /// <summary>Colour of the base layer with no power. Every other state draws the art as it was authored.</summary>
     private static readonly Color Unpowered = Color.FromHex("#555555");

@@ -75,14 +75,14 @@
         key: Adrenaline
         component: IgnoreSlowOnDamage
         time: 5
-      # WOLFGATE (PROTO J): Onyx's <Onyx-PartPain> block on Desoxyephedrine. Group is Narcotic, not Onyx's
+      # WOLFGATE(Wolfmed): PROTO J: Onyx's <Onyx-PartPain> block on Desoxyephedrine. Group is Narcotic, not Onyx's
       # Bloodstream - Wolfgate splits this reagent across Poison/Narcotic/Medicine and the drug effects live here.
       - !type:SuppressPain
         amount: 0.75
         decayDuration: 9
         identifier: Desoxyephedrine
         recoveryMultiplier: 1.75
-      # WOLFGATE (CONSC): painkiller tier. Stimulant: keeps a body on its feet however bad the pain is,
+      # WOLFGATE(Wolfmed): CONSC: painkiller tier. Stimulant: keeps a body on its feet however bad the pain is,
       # and does nothing at all about blood or air.
       - !type:WolfmedPainRelief
         tier: Stimulant
@@ -122,7 +122,7 @@
       - !type:MovespeedModifier
         walkSpeedModifier: 1.15
         sprintSpeedModifier: 1.15
-      # WOLFGATE (CONSC): painkiller tier. Stimulant: holds a body upright however bad the pain is, and
+      # WOLFGATE(Wolfmed): CONSC: painkiller tier. Stimulant: holds a body upright however bad the pain is, and
       # does nothing at all about blood or air.
       - !type:WolfmedPainRelief
         tier: Stimulant
@@ -590,7 +590,7 @@
   metabolisms:
     Narcotic:
       effects:
-      # WOLFGATE (PROTO J): Onyx's <Onyx-PartPain> block on Happiness. Group is Narcotic, not Onyx's
+      # WOLFGATE(Wolfmed): PROTO J: Onyx's <Onyx-PartPain> block on Happiness. Group is Narcotic, not Onyx's
       # Bloodstream - Narcotic is Happiness's only metabolism group in Wolfgate.
       - !type:SuppressPain
         amount: 0.4

@@ -78,7 +78,7 @@
 
 - type: entity
   abstract: true
-  parent: WolfmedBaseHead # WOLFGATE (WP7, D8): adds Wolfmed fracture/amputation data
+  parent: WolfmedBaseHead # WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseHead
   name: "head"
   description: "Doesn't make sense not to live for fun, your brain gets smart but your head gets dumb."

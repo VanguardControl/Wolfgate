@@ -1,4 +1,4 @@
-# WOLFGATE: keys renamed from Onyx's `entity-effect-guidebook-*` to Wolfgate's `reagent-effect-guidebook-*`
+# WOLFGATE(Wolfmed): keys renamed from Onyx's `entity-effect-guidebook-*` to Wolfgate's `reagent-effect-guidebook-*`
 # convention (D16 — the effects are old-style EntityEffect classes here, not Onyx's ECS entity effects).
 reagent-effect-guidebook-suppress-pain =
     { $chance ->
@@ -14,7 +14,7 @@ reagent-effect-guidebook-mend-fractures =
 
 reagent-effect-guidebook-all-fractures = all fractures
 
-# WOLFGATE: no Onyx source — Onyx's TakeStaminaDamage overrides no guidebook text, but Wolfgate's
+# WOLFGATE(Wolfmed): no Onyx source — Onyx's TakeStaminaDamage overrides no guidebook text, but Wolfgate's
 # ReagentEffectGuidebookText is abstract and returning null would hide the effect from the guidebook.
 reagent-effect-guidebook-take-stamina-damage =
     { $chance ->

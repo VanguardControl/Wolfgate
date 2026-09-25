@@ -15,9 +15,9 @@ public sealed class WolfmedCallForHelpIconSystem : EntitySystem
 {
     private static readonly ProtoId<HealthIconPrototype> Icon = "HealthIconWolfmedCallForHelp";
 
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly ShowHealthIconsSystem _healthIcons = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private ShowHealthIconsSystem _healthIcons = default!;
 
     public override void Initialize()
     {

@@ -23,11 +23,11 @@ namespace Content.Shared._WF.Wolfmed.Wounds;
 /// </remarks>
 public sealed class WolfmedWoundDamageSyncSystem : EntitySystem
 {
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly IPrototypeManager _protos = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly WolfmedDamageableSystem _damage = default!;
-    [Dependency] private readonly WoundSystem _wounds = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private IPrototypeManager _protos = default!;
+    [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private WolfmedDamageableSystem _damage = default!;
+    [Dependency] private WoundSystem _wounds = default!;
 
     /// <summary>Every damage type any wound prototype is made from, rebuilt when prototypes reload.</summary>
     private HashSet<ProtoId<DamageTypePrototype>>? _woundBacked;

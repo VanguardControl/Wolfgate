@@ -199,7 +199,7 @@ namespace Content.Client.Examine
             }
 
             // Actually open the tooltip.
-            _examineTooltipOpen = new Popup { MaxWidth = 560 }; // WOLFGATE: HOOK 14 — was 400; Onyx's part-status boxes are 520 wide
+            _examineTooltipOpen = new Popup { MaxWidth = 560 }; // WOLFGATE(Wolfmed): HOOK 14 — was 400; Onyx's part-status boxes are 520 wide
             _userInterfaceManager.ModalRoot.AddChild(_examineTooltipOpen);
             var panel = new PanelContainer() { Name = "ExaminePopupPanel" };
             panel.AddStyleClass(StyleClassEntityTooltip);
@@ -276,7 +276,7 @@ namespace Content.Client.Examine
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
 
-                if (!TryAddWolfmedLookMessage(vBox, message) && !TryAddPartStatusMessage(vBox, message)) // WOLFGATE: HOOK 14 — LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
+                if (!TryAddWolfmedLookMessage(vBox, message) && !TryAddPartStatusMessage(vBox, message)) // WOLFGATE(Wolfmed): HOOK 14 — LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
                 {
                     var richLabel = new RichTextLabel() { Margin = new Thickness(4, 4, 0, 4)};
                     richLabel.SetMessage(message);

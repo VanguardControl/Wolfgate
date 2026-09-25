@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.StatusEffectNew.Components;
