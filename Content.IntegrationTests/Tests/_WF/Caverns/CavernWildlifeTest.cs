@@ -118,6 +118,55 @@ public sealed class CavernWildlifeTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>An animal that falls through an unpinned hole opened in a loaded chunk is kept.</summary>
+    // A hole dug or blown on a loaded chunk is only pinned when the chunk unloads, so the loaded check alone keeps it.
+    [Test]
+    public async Task WildlifeThroughLoadedHoleIsKept()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var maps = server.System<SharedMapSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
+        await LoadChunks(pair, world.Ground, From, To);
+
+        var animal = await SpawnMob(pair, world, Spot, wildlife: true);
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<TransformComponent>(animal).MapUid, Is.EqualTo(world.Ground),
+                "Precondition: the animal is not standing on the ground."));
+
+        await server.WaitPost(() =>
+            maps.SetTile(world.Ground, entMan.GetComponent<MapGridComponent>(world.Ground), Spot, Tile.Empty));
+        await Wake(pair, animal);
+        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+
+        await server.WaitAssertion(() =>
+        {
+            var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(biomes.WfIsChunkLoaded(biome, Spot), Is.True,
+                    "Precondition: the hole's chunk unloaded.");
+                Assert.That(biomes.WfIsPinned(biome, Spot), Is.False,
+                    "Precondition: the hole is pinned, so the pinned check decides instead of the loaded one.");
+                Assert.That(entMan.Deleted(animal) || entMan.IsQueuedForDeletion(animal), Is.False,
+                    "Wildlife that fell through a hole in a loaded chunk was deleted.");
+            }
+
+            Assert.That(entMan.GetComponent<TransformComponent>(animal).MapUid, Is.EqualTo(world.Cavern),
+                "Precondition: the animal did not fall through the hole into the cavern.");
+        });
+
+        await Teardown(pair, world);
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Spawns a mob on a ground tile's centre, marked as the ground's wildlife if asked.</summary>
     private static async Task<EntityUid> SpawnMob(TestPair pair, World world, Vector2i tile, bool wildlife)
     {

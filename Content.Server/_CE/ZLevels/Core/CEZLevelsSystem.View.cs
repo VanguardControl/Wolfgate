@@ -178,7 +178,7 @@ public sealed partial class CEZLevelsSystem
 
             SpawnViewerEye(eyes, actor, map.Value, mapUidBelow, globalPos, pvsScale);
             coveredMaps.Add(mapUidBelow);
-            wfAbove = mapUidBelow; // WOLFGATE(Caverns)
+            wfAbove = mapUidBelow; // WOLFGATE(Caverns): track the level above the next eye.
         }
 
         // We constantly load the upper z-level for the client so that you can quickly look up and climb stairs without PVS lag.
