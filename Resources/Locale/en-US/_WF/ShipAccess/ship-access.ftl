@@ -58,3 +58,27 @@ ship-access-rule-players-or-code-desc = The owner, the people ticked below, or a
 ship-access-rule-public-desc = Anyone opens this door, even while the ship is locked.
 ship-access-rule-sealed-desc = Bolted shut for everyone, the owner included. Pick another rule to unseal it.
 ship-access-door-not-on-ship = That door is not on this ship.
+
+# Codes and the keypad
+ship-access-ship-code = Ship code
+ship-access-door-code = Door code
+ship-access-code-none = Not set
+ship-access-code-masked = ****
+ship-access-code-placeholder = 4 digits
+ship-access-code-set = Set
+ship-access-code-clear = Clear
+ship-access-code-reveal = Show
+ship-access-ship-code-hint = Opens every code door on the ship. Only you can see it here.
+ship-access-door-code-hint = A door without its own code takes the ship code; a door with one takes either.
+ship-access-code-alert = { $misses } failed code attempts, { $locked } locked out.
+ship-access-keypad-verb = Enter Code
+ship-access-keypad-title = Door keypad
+ship-access-keypad-clear = C
+ship-access-keypad-enter = OK
+ship-access-code-invalid = A code is exactly 4 digits.
+ship-access-code-wrong = Wrong code.
+ship-access-code-locked-out = Too many wrong codes. Try again later.
+ship-access-code-out-of-range = Stand closer to the door.
+ship-access-code-bolted = The door is bolted.
+ship-access-code-not-closed = The door is not closed.
+ship-access-code-no-keypad = This door has no keypad.

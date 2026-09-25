@@ -26,6 +26,15 @@ public sealed partial class ShuttleConsoleWindow
     /// <summary>The owner ticked or unticked a person on a door.</summary>
     public event Action<NetEntity, NetUserId, bool>? ShipAccessDoorPlayerRequested;
 
+    /// <summary>The owner opened the access tab and wants the codes.</summary>
+    public event Action? ShipAccessCodesRequested;
+
+    /// <summary>The owner set or cleared the ship code.</summary>
+    public event Action<string?>? ShipAccessShipCodeRequested;
+
+    /// <summary>The owner set or cleared a door's code.</summary>
+    public event Action<NetEntity, string?>? ShipAccessDoorCodeRequested;
+
     private void WfAccessInitialize()
     {
         AccessContainer.LockedChanged += locked => ShipAccessLockedRequested?.Invoke(locked);
@@ -35,6 +44,9 @@ public sealed partial class ShuttleConsoleWindow
         AccessContainer.ClaimRequested += () => ShipAccessClaimRequested?.Invoke();
         AccessContainer.DoorRuleChanged += (door, rule) => ShipAccessDoorRuleRequested?.Invoke(door, rule);
         AccessContainer.DoorPlayerChanged += (door, userId, listed) => ShipAccessDoorPlayerRequested?.Invoke(door, userId, listed);
+        AccessContainer.CodesRequested += () => ShipAccessCodesRequested?.Invoke();
+        AccessContainer.ShipCodeChanged += code => ShipAccessShipCodeRequested?.Invoke(code);
+        AccessContainer.DoorCodeChanged += (door, code) => ShipAccessDoorCodeRequested?.Invoke(door, code);
     }
 
     private void WfSetAccessMode(bool active)

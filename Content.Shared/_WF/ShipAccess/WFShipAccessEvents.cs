@@ -107,3 +107,97 @@ public sealed class WFShipAccessSetDoorPlayerMessage : BoundUserInterfaceMessage
         Listed = listed;
     }
 }
+
+/// <summary>The owner asks the console for the ship and door codes; the server answers with <see cref="WFShipAccessCodesEvent"/>.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessRequestCodesMessage : BoundUserInterfaceMessage
+{
+}
+
+/// <summary>The owner sets (4 digits) or clears (null) the ship code.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessSetShipCodeMessage : BoundUserInterfaceMessage
+{
+    public string? Code;
+
+    public WFShipAccessSetShipCodeMessage(string? code)
+    {
+        Code = code;
+    }
+}
+
+/// <summary>The owner sets (4 digits) or clears (null) a door's own code.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessSetDoorCodeMessage : BoundUserInterfaceMessage
+{
+    public NetEntity Door;
+    public string? Code;
+
+    public WFShipAccessSetDoorCodeMessage(NetEntity door, string? code)
+    {
+        Door = door;
+        Code = code;
+    }
+}
+
+/// <summary>Sent to the owner's client only: the ship's codes and the keypad alert counts. Never broadcast.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessCodesEvent : EntityEventArgs
+{
+    public NetEntity Grid;
+    public string? ShipCode;
+    public Dictionary<NetEntity, string> DoorCodes;
+    public int Misses;
+    public int LockedOut;
+
+    public WFShipAccessCodesEvent(NetEntity grid, string? shipCode, Dictionary<NetEntity, string> doorCodes, int misses, int lockedOut)
+    {
+        Grid = grid;
+        ShipCode = shipCode;
+        DoorCodes = doorCodes;
+        Misses = misses;
+        LockedOut = lockedOut;
+    }
+}
+
+/// <summary>Sent to the owner's client after a keypad miss: failed attempts this round and people locked out now.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessCodeAlertEvent : EntityEventArgs
+{
+    public NetEntity Grid;
+    public int Misses;
+    public int LockedOut;
+
+    public WFShipAccessCodeAlertEvent(NetEntity grid, int misses, int lockedOut)
+    {
+        Grid = grid;
+        Misses = misses;
+        LockedOut = lockedOut;
+    }
+}
+
+/// <summary>The server tells one client to open the keypad for a door, after its Enter Code verb.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessOpenKeypadEvent : EntityEventArgs
+{
+    public NetEntity Door;
+
+    public WFShipAccessOpenKeypadEvent(NetEntity door)
+    {
+        Door = door;
+    }
+}
+
+/// <summary>A client submits a keypad code for a door.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipAccessSubmitCodeMessage : EntityEventArgs
+{
+    public NetEntity Door;
+    public string Code;
+
+    public WFShipAccessSubmitCodeMessage(NetEntity door, string code)
+    {
+        Door = door;
+        Code = code;
+    }
+}

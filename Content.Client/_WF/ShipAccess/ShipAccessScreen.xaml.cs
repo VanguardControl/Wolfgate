@@ -16,8 +16,9 @@ namespace Content.Client._WF.ShipAccess;
 
 /// <summary>
 /// Shuttle console tab where the owner sees and edits who may board: lock, allow list, nearby people to add,
-/// and each door's rule on the door diagram. Reads the networked grid and door components straight; every
-/// change goes to the server as a message.
+/// each door's rule on the door diagram, and the ship and door codes. Reads the networked grid and door
+/// components straight; codes arrive by a directed event for the owner only and are forgotten when the tab
+/// closes. Every change goes to the server as a message.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class ShipAccessScreen : BoxContainer
@@ -41,6 +42,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
     };
 
     private readonly WFShipAccessSystem _access;
+    private readonly WFShipAccessClientSystem _client;
     private readonly EntityLookupSystem _lookup;
     private readonly SharedTransformSystem _transform;
 
@@ -54,6 +56,17 @@ public sealed partial class ShipAccessScreen : BoxContainer
     private readonly Dictionary<NetUserId, CheckBox> _doorPlayerChecks = new();
     private readonly Dictionary<EntityUid, Button> _doorButtons = new();
     private readonly ButtonGroup _doorGroup = new();
+
+    /// <summary>The XAML hides the root while it loads, before the named controls exist.</summary>
+    private readonly bool _loaded;
+
+    // Codes, known only while the owner has the tab open.
+    private bool _codesRequested;
+    private bool _codesKnown;
+    private string? _shipCode;
+    private readonly Dictionary<NetEntity, string> _doorCodes = new();
+    private int _misses;
+    private int _lockedOut;
 
     /// <summary>The owner flipped the lock checkbox.</summary>
     public event Action<bool>? LockedChanged;
@@ -76,12 +89,23 @@ public sealed partial class ShipAccessScreen : BoxContainer
     /// <summary>The owner ticked or unticked a person on the selected door.</summary>
     public event Action<NetEntity, NetUserId, bool>? DoorPlayerChanged;
 
+    /// <summary>The owner opened the tab and wants the codes.</summary>
+    public event Action? CodesRequested;
+
+    /// <summary>The owner set (4 digits) or cleared (null) the ship code.</summary>
+    public event Action<string?>? ShipCodeChanged;
+
+    /// <summary>The owner set (4 digits) or cleared (null) the selected door's code.</summary>
+    public event Action<NetEntity, string?>? DoorCodeChanged;
+
     public ShipAccessScreen()
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
+        _loaded = true;
 
         _access = _entManager.System<WFShipAccessSystem>();
+        _client = _entManager.System<WFShipAccessClientSystem>();
         _lookup = _entManager.System<EntityLookupSystem>();
         _transform = _entManager.System<SharedTransformSystem>();
 
@@ -100,13 +124,53 @@ public sealed partial class ShipAccessScreen : BoxContainer
         };
 
         BuildLegend();
+
+        _client.CodesReceived += OnCodes;
+        _client.AlertReceived += OnAlert;
+        ShipCodeEdit.IsValid = IsCodeInput;
+        DoorCodeEdit.IsValid = IsCodeInput;
+        ShipCodeEdit.OnTextChanged += args => ShipCodeSetButton.Disabled = !WFShipAccessSystem.IsValidCode(args.Text);
+        DoorCodeEdit.OnTextChanged += args => DoorCodeSetButton.Disabled = !WFShipAccessSystem.IsValidCode(args.Text);
+        ShipCodeEdit.OnTextEntered += _ => SetShipCode();
+        DoorCodeEdit.OnTextEntered += _ => SetDoorCode();
+        ShipCodeSetButton.OnPressed += _ => SetShipCode();
+        DoorCodeSetButton.OnPressed += _ => SetDoorCode();
+        ShipCodeClearButton.OnPressed += _ => ShipCodeChanged?.Invoke(null);
+        DoorCodeClearButton.OnPressed += _ =>
+        {
+            if (DoorMap.Selected is { } door)
+                DoorCodeChanged?.Invoke(_entManager.GetNetEntity(door), null);
+        };
+        ShipCodeRevealButton.OnToggled += _ => RefreshCodes();
+        DoorCodeRevealButton.OnToggled += _ => RefreshCodes();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (!disposing)
+            return;
+
+        _client.CodesReceived -= OnCodes;
+        _client.AlertReceived -= OnAlert;
+    }
+
+    /// <summary>Codes are only held while the tab is open.</summary>
+    protected override void VisibilityChanged(bool newVisible)
+    {
+        base.VisibilityChanged(newVisible);
+        if (_loaded && !newVisible)
+            ForgetCodes();
     }
 
     /// <summary>The grid whose access is shown; null blanks the tab.</summary>
     public void SetShuttle(EntityUid? grid)
     {
         if (_grid != grid)
+        {
             DoorMap.SetGrid(grid);
+            ForgetCodes();
+        }
 
         _grid = grid;
         _listSnapshot = null;
@@ -214,6 +278,106 @@ public sealed partial class ShipAccessScreen : BoxContainer
         }
 
         SyncChecks(comp, rule);
+
+        if (isOwner && !_codesRequested)
+        {
+            _codesRequested = true;
+            CodesRequested?.Invoke();
+        }
+
+        RefreshCodes();
+    }
+
+    /// <summary>The codes and alert line, from what the server last sent. Labels only, so no rebuild.</summary>
+    private void RefreshCodes()
+    {
+        var masked = Loc.GetString("ship-access-code-masked");
+        var none = Loc.GetString("ship-access-code-none");
+        ShipCodeLabel.Text = !_codesKnown ? "-" : _shipCode == null ? none : ShipCodeRevealButton.Pressed ? _shipCode : masked;
+        ShipCodeClearButton.Disabled = _shipCode == null;
+
+        var doorCode = DoorMap.Selected is { } door && _doorCodes.TryGetValue(_entManager.GetNetEntity(door), out var code) ? code : null;
+        DoorCodeLabel.Text = !_codesKnown ? "-" : doorCode == null ? none : DoorCodeRevealButton.Pressed ? doorCode : masked;
+        DoorCodeClearButton.Disabled = doorCode == null;
+
+        CodeAlertLabel.Visible = _codesKnown && _misses > 0;
+        CodeAlertLabel.Text = Loc.GetString("ship-access-code-alert", ("misses", _misses), ("locked", _lockedOut));
+    }
+
+    private void OnCodes(WFShipAccessCodesEvent ev)
+    {
+        if (_grid == null || _entManager.GetEntity(ev.Grid) != _grid)
+            return;
+
+        _codesKnown = true;
+        _shipCode = ev.ShipCode;
+        _doorCodes.Clear();
+        foreach (var (door, code) in ev.DoorCodes)
+            _doorCodes[door] = code;
+
+        _misses = ev.Misses;
+        _lockedOut = ev.LockedOut;
+        RefreshCodes();
+    }
+
+    private void OnAlert(WFShipAccessCodeAlertEvent ev)
+    {
+        if (_grid == null || _entManager.GetEntity(ev.Grid) != _grid)
+            return;
+
+        _misses = ev.Misses;
+        _lockedOut = ev.LockedOut;
+        RefreshCodes();
+    }
+
+    private void ForgetCodes()
+    {
+        _codesRequested = false;
+        _codesKnown = false;
+        _shipCode = null;
+        _doorCodes.Clear();
+        _misses = 0;
+        _lockedOut = 0;
+        ShipCodeRevealButton.Pressed = false;
+        DoorCodeRevealButton.Pressed = false;
+        ShipCodeEdit.Text = string.Empty;
+        DoorCodeEdit.Text = string.Empty;
+        RefreshCodes();
+    }
+
+    private void SetShipCode()
+    {
+        var code = ShipCodeEdit.Text;
+        if (!WFShipAccessSystem.IsValidCode(code))
+            return;
+
+        ShipCodeChanged?.Invoke(code);
+        ShipCodeEdit.Text = string.Empty;
+    }
+
+    private void SetDoorCode()
+    {
+        var code = DoorCodeEdit.Text;
+        if (DoorMap.Selected is not { } door || !WFShipAccessSystem.IsValidCode(code))
+            return;
+
+        DoorCodeChanged?.Invoke(_entManager.GetNetEntity(door), code);
+        DoorCodeEdit.Text = string.Empty;
+    }
+
+    /// <summary>Up to four digits while typing.</summary>
+    private static bool IsCodeInput(string text)
+    {
+        if (text.Length > WFShipAccessSystem.CodeLength)
+            return false;
+
+        foreach (var c in text)
+        {
+            if (c < '0' || c > '9')
+                return false;
+        }
+
+        return true;
     }
 
     private void RebuildList(WFShipAccessComponent? comp, bool isOwner, bool claimable, bool canClaim)
@@ -223,6 +387,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         ClaimButton.Disabled = !canClaim;
         LockedCheck.Visible = isOwner;
         LockedLabel.Visible = !isOwner;
+        CodeBox.Visible = isOwner;
 
         OwnerLabel.Text = comp != null && comp.HasOwner ? comp.OwnerName : Loc.GetString("ship-access-owner-none");
         var faction = comp != null ? comp.Mode == WFShipAccessMode.Faction : _grid != null && _access.IsFactionGrid(_grid.Value, out _);
@@ -275,6 +440,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         DoorRuleButton.SelectId((int) selected.Rule);
         DoorRuleHint.Text = Loc.GetString(RuleKey(selected.Rule, "desc"));
 
+        DoorCodeBox.Visible = isOwner && WFShipAccessSystem.TakesCode(selected.Rule);
         var takesPlayers = WFShipAccessSystem.TakesPlayers(selected.Rule);
         DoorPlayersBox.Visible = takesPlayers;
         if (!takesPlayers)

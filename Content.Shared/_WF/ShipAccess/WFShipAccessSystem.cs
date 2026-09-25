@@ -20,6 +20,9 @@ public sealed class WFShipAccessSystem : EntitySystem
     /// <summary>Tiles from the console within which a player can be added to the allow list.</summary>
     public const float AddRange = 3f;
 
+    /// <summary>Digits in a ship or door code.</summary>
+    public const int CodeLength = 4;
+
     [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private InventorySystem _inventory = default!;
@@ -82,6 +85,21 @@ public sealed class WFShipAccessSystem : EntitySystem
     public static bool TakesPlayers(WFDoorAccessRule rule)
     {
         return rule is WFDoorAccessRule.Players or WFDoorAccessRule.PlayersOrCode;
+    }
+
+    /// <summary>Whether a code is exactly four digits.</summary>
+    public static bool IsValidCode(string code)
+    {
+        if (code.Length != CodeLength)
+            return false;
+
+        foreach (var c in code)
+        {
+            if (c < '0' || c > '9')
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>A door's rule, Default when it has no rule component.</summary>

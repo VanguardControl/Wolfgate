@@ -37,6 +37,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         SubscribeLocalEvent<EntityStorageComponent, AnchorStateChangedEvent>(OnStorageAnchorChanged);
         InitializeConsole();
         InitializeDoors();
+        InitializeCodes();
     }
 
     private void OnShipPurchased(ShipyardShuttlePurchaseEvent args)
