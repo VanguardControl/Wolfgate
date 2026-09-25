@@ -12,8 +12,10 @@
                   VerticalExpand="False">
         <BoxContainer Orientation="Horizontal"
                       HorizontalExpand="True">
+        <!-- WOLFGATE(OldVessels): ClipText on VesselName so a long name and the Classic tag can't push the buttons off the row -->
         <Label Name="VesselName"
             Access="Public"
+            ClipText="True"
             HorizontalExpand="True"
             HorizontalAlignment="Left"
             Margin="5 0 2 0" />

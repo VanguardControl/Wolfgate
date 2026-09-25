@@ -295,7 +295,9 @@ Sentinel; the hardpoints under the swapped guns shrank with them.
 - [`Content.Client/_NF/Shipyard/UI/ShipyardConsoleMenu.xaml.cs`](../../_NF/Shipyard/UI/ShipyardConsoleMenu.xaml.cs)
   - classic ships filter
   - marks a classic ship
-- [`Content.Client/_NF/Shipyard/UI/VesselRow.xaml`](../../_NF/Shipyard/UI/VesselRow.xaml): marks a classic ship
+- [`Content.Client/_NF/Shipyard/UI/VesselRow.xaml`](../../_NF/Shipyard/UI/VesselRow.xaml)
+  - ClipText on VesselName so a long name and the Classic tag can't push the buttons off the row
+  - marks a classic ship
 - [`Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Devices/ship_vouchers.yml): classic ships returned at this tier
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/tsfmc.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/tsfmc.yml): classic ship LPCs
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/ussp.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/ussp.yml): classic ship LPCs
