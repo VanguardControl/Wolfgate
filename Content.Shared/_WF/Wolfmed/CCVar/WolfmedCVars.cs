@@ -703,10 +703,22 @@ public sealed class WolfmedCVars
     /// <summary>
     /// Seconds for the core to close about two thirds of the gap to a colder body surface. The surface is what the
     /// atmosphere moves, and in space it reaches about 16 K within a minute; the core lags it, so cold takes minutes.
-    /// Warming, and anything above the normal body temperature, follows the surface at once.
+    /// Warming back up toward normal follows the surface at once.
     /// </summary>
     public static readonly CVarDef<float> CoreCoolingSeconds =
         CVarDef.Create("wolfmed.core_cooling_seconds", 900f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Playtest 3: seconds for the core to close about two thirds of the gap to a hotter body surface, so heat stroke
+    /// is a timed limit in hot air rather than the moment the air is hot. A protogen (heat lines 318 and 325 K) in a
+    /// 330 K room is Downed after about two minutes and in heat stroke after five, instead of within seconds.
+    /// </summary>
+    public static readonly CVarDef<float> CoreHeatingSeconds =
+        CVarDef.Create("wolfmed.core_heating_seconds", 240f, CVar.SERVERONLY);
+
+    /// <summary>Seconds for an overheated core to close about two thirds of the way back toward normal once the air is cooler.</summary>
+    public static readonly CVarDef<float> CoreRecoverySeconds =
+        CVarDef.Create("wolfmed.core_recovery_seconds", 60f, CVar.SERVERONLY);
 
     /// <summary>
     /// The furthest a hypothermia or heat exhaustion line may sit from the damage threshold, as a share of the gap

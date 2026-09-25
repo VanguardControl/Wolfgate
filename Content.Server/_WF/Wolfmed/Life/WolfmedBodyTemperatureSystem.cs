@@ -21,7 +21,7 @@ namespace Content.Server._WF.Wolfmed.Life;
 /// The lines read a core temperature, not the surface one the atmosphere moves. In space the surface reaches about
 /// 16 K within a minute and in a 235 K freezer it settles near 256 K within one (the M5 measurement), so read
 /// directly every exposure would be a cold arrest within seconds. The core closes the gap to a colder surface over
-/// wolfmed.core_cooling_seconds; it follows a warmer surface, and anything over the normal temperature, at once.
+/// wolfmed.core_cooling_seconds, and a hotter one over wolfmed.core_heating_seconds; it hurries back toward normal.
 /// A container that protects its occupant from cold damage (a cryo pod) holds the core where it is.
 /// </remarks>
 public sealed class WolfmedBodyTemperatureSystem : EntitySystem
@@ -123,24 +123,46 @@ public sealed class WolfmedBodyTemperatureSystem : EntitySystem
     }
 
     /// <summary>
-    /// The core moves to a warmer surface at once, and above the normal temperature it follows the surface down at
-    /// once too; below normal it closes the gap to a colder surface over wolfmed.core_cooling_seconds. Held still in a
-    /// container that protects from cold damage.
+    /// The core lags the surface away from normal and hurries back toward it. Above normal it closes the gap to a
+    /// hotter surface over wolfmed.core_heating_seconds (playtest 3: heat stroke is a timed thing, not the moment the
+    /// air is hot) and comes back down toward normal over wolfmed.core_recovery_seconds; warming up from below normal
+    /// is at once. Below normal it closes the gap to a colder surface over wolfmed.core_cooling_seconds. Held still in
+    /// a container that protects from cold damage.
     /// </summary>
     private float NextCore(float core, float surface, float normal, float seconds, bool held)
     {
-        if (surface >= core)
-            return surface;
+        if (core < normal && surface > core)
+        {
+            // Warming back toward normal is at once; anything past normal is chased over the heating time.
+            core = MathF.Min(surface, normal);
+            if (surface <= normal)
+                return core;
+        }
 
+        // Over normal and the air is hotter still: the timed limit before overheating.
+        if (surface > core)
+            return core + (surface - core) * Fraction(seconds, WolfmedCVars.CoreHeatingSeconds);
+
+        // Over normal and the air is cooler: back toward normal quickly, never below it on this branch.
         if (core > normal)
-            core = MathF.Max(surface, normal);
+        {
+            var target = MathF.Max(surface, normal);
+            return core - (core - target) * Fraction(seconds, WolfmedCVars.CoreRecoverySeconds);
+        }
 
         if (held || surface >= core)
             return core;
 
-        var tau = _cfg.GetCVar(WolfmedCVars.CoreCoolingSeconds);
-        return tau <= 0f ? surface : core - (core - surface) * (1f - MathF.Exp(-seconds / tau));
+        return core - (core - surface) * Fraction(seconds, WolfmedCVars.CoreCoolingSeconds);
     }
+
+    /// <summary>The share of a gap closed in <paramref name="seconds"/> with the time constant the cvar holds.</summary>
+    private float Fraction(float seconds, CVarDef<float> tauCvar)
+    {
+        var tau = _cfg.GetCVar(tauCvar);
+        return tau <= 0f ? 1f : 1f - MathF.Exp(-seconds / tau);
+    }
+
 
     /// <summary>
     /// The fire grace (plan §3.10): granted on catching fire, unless the body is already in a heat cause; it lasts

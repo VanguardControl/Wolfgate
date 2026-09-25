@@ -2724,3 +2724,17 @@ Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt): 481 t
 (all autodoc fixtures: `AutoCutsClothingOffAHelplessPatientTest`, `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`,
 `PodRelocatesADislocatedJointTest`, `EjectOnlyAlarmsWhileRunningTest`, `PowerLossPausesAndRestoreResumesTest`,
 `SlipOpensOneSmallWoundTest`, `VisualStateFollowsTheLidTest`, `DeathDuringAProcedureHoldsAndResumesTest`); each passed alone.
+
+## Heat stroke is timed (playtest 3, 2026-09-24)
+
+The owner, in a hot room: "I existed for like 4 seconds." M5 had the core follow a hotter surface at once, and the
+atmosphere moves the surface fast, so the heat exhaustion line (the heat damage threshold less 7 K; 318 K for a body
+with the 325 K threshold) was crossed within seconds of the air being hot. "It should act like normal heatstroke, a
+timed limit before you overheat."
+
+- Above normal the core now chases a hotter surface over `wolfmed.core_heating_seconds` (240) and comes back toward
+  normal over `wolfmed.core_recovery_seconds` (60) when the air is cooler; warming up from below normal is still at once,
+  so rewarming stays responsive, and cooling below normal keeps `wolfmed.core_cooling_seconds` (900).
+- Measured (`HeatStrokeIsTimedTest`, 330 K air, 318/325 K lines): Downed after about 2 min, heat stroke after about
+  5.5 min, back out of heat stroke within a minute of the air cooling to 300 K. The fire grace is unchanged.
+- The M5 scenario tests hold a surface and expect the core there at once; they now pin both new cvars to 0.

@@ -62,6 +62,10 @@ public sealed class WolfmedTemperatureTest : GameTest
         await OverrideCVar(Side.Server, WolfmedCVars.HyperthermiaBrainSeconds, 300f);
         await OverrideCVar(Side.Server, WolfmedCVars.HeatFireGraceSeconds, (float) GraceSeconds);
         await OverrideCVar(Side.Server, WolfmedCVars.CoreCoolingSeconds, 900f);
+        // Playtest 3: the core chases hot air over time. The scenarios below hold a surface and expect the core there
+        // at once, so they run with no lag; HeatStrokeIsTimedTest measures the shipped lag on its own.
+        await OverrideCVar(Side.Server, WolfmedCVars.CoreHeatingSeconds, 0f);
+        await OverrideCVar(Side.Server, WolfmedCVars.CoreRecoverySeconds, 0f);
         await OverrideCVar(Side.Server, WolfmedCVars.TemperatureLineMaxShare, 0.6f);
         await OverrideCVar(Side.Server, WolfmedCVars.TemperatureInputFloor, 0.5f);
         await OverrideCVar(Side.Server, WolfmedCVars.ArrestOxygenation, 0.15f);
@@ -553,5 +557,58 @@ public sealed class WolfmedTemperatureTest : GameTest
                 InBand(arrest!.Value, derivedArrest!.Value, "cold arrest in space");
             });
         });
+    }
+
+    /// <summary>
+    /// Playtest 3: "I existed for like 4 seconds in a hot room." The core chases hot air over
+    /// wolfmed.core_heating_seconds, so heat exhaustion and heat stroke are a timed limit: in 330 K air a body with the
+    /// 318 / 325 K lines is Downed after about two minutes and in heat stroke after five and a half, not within
+    /// seconds; cooler air brings it back over wolfmed.core_recovery_seconds.
+    /// </summary>
+    [Test]
+    public async Task HeatStrokeIsTimedTest()
+    {
+        await Pin();
+        await OverrideCVar(Side.Server, WolfmedCVars.CoreHeatingSeconds, 240f);
+        await OverrideCVar(Side.Server, WolfmedCVars.CoreRecoverySeconds, 60f);
+        try
+        {
+            var map = await Pair.CreateTestMap();
+            var s = new WolfmedScenario(SEntMan);
+            EntityUid body = default;
+            await Server.WaitPost(() =>
+            {
+                s.SetAir(map.MapUid, true);
+                s.KeepGrid(map.Grid);
+                body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            });
+            await RunSeconds(3);
+
+            await Server.WaitAssertion(() =>
+            {
+                Hold(s, body, 330f, 4);
+                Assert.That(s.State(body), Is.EqualTo(WolfmedConsciousness.Up), "hot air knocked the body down within seconds.");
+
+                var downed = 4 + Hold(s, body, 330f, 600, _ => s.State(body) == WolfmedConsciousness.Downed);
+                var stroke = downed + Hold(s, body, 330f, 900, _ => BodyTemperature.InHeatStroke(body));
+                Note($"HeatStrokeIsTimedTest: in 330 K air, Downed at {downed} s (derived 121), heat stroke at {stroke} s (derived 331).");
+                Assert.Multiple(() =>
+                {
+                    Assert.That(s.Vitals(body).Cause, Is.EqualTo(WolfmedCause.Heat));
+                    // From 310.15 K with a 240 s time constant: 318 K is 39.5% of the 19.85 K gap, 325 K is 74.8%.
+                    InBand(downed, 121f, "heat exhaustion in 330 K air");
+                    InBand(stroke, 331f, "heat stroke in 330 K air");
+                });
+
+                var woke = Hold(s, body, 300f, 120, _ => !BodyTemperature.InHeatStroke(body));
+                Note($"HeatStrokeIsTimedTest: out of heat stroke {woke} s after the air cooled to 300 K.");
+                Assert.That(woke, Is.LessThan(60), "cooler air did not bring the core back down in time.");
+            });
+        }
+        finally
+        {
+            await OverrideCVar(Side.Server, WolfmedCVars.CoreHeatingSeconds, 0f);
+            await OverrideCVar(Side.Server, WolfmedCVars.CoreRecoverySeconds, 0f);
+        }
     }
 }
