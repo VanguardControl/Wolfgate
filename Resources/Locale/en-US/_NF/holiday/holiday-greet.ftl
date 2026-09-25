@@ -1,7 +1,9 @@
 ## Holiday Names
 
-holiday-name-frontier-birthday = Birthday of Monolith
+# WOLFGATE(Branding) START: Wolfgate's birthday instead of Monolith's
+holiday-name-frontier-birthday = Birthday of Wolfgate
 
 holiday-custom-frontier-birthday =
-    It's Monolith's birthday!
-    Thanks for helping make Monolith what it is.
+    It's Wolfgate's birthday!
+    Thanks for helping make Wolfgate what it is.
+# WOLFGATE END
