@@ -716,6 +716,20 @@ Bounding a world [NEW]:
 | Orbit | Orbit entry stays as is; Enter Atmosphere and pad descents are refused unless the hull's XY is inside the bounds |
 | Radar | `WFPlanetRadarSystem.Sample` returns empty outside the bounds |
 
+### Undergrounds (coming)
+
+Planets are getting underground layers: the Mine POI becomes a surface entrance and ops area with linked pre-mined tunnels below, and the occasional underground safehouse. What that means for outposts, given how the stack is built:
+
+- CE keys a z-network's maps by depth in a dictionary with a sorted min/max cache, so depths below 0 work at the CE level; the "contiguous from 0" rule is only in `WFPlanetNetworkSystem`, which adds ground, air layers and orbit as 0..N. Adding depth -1, -2 under the ground is a change in that builder, not in CE. [EXISTS]
+- Moving between depths already exists: CE ladders (with a ladder cache), falling through open tiles, and grid connectors, which bind grids on adjacent depths into one grid network (that is how multi-deck ships work). Roofs come from the tiles on the layer above, so an outpost grid is the ceiling of whatever is under it. [EXISTS]
+- **An outpost claims its column** [NEW]:
+  - Underground chunks under a claim zone generate as unmineable foundation rock: no tunnels, no safehouses, no fauna spawns. This is a generator rule on the underground biome, the same reservation the surface carve already makes, one layer down.
+  - Tunnels that already exist under a spot when an outpost is founded or loaded there stay as they are. Nothing can dig up through the outpost's tiles (CE has no dig-up), so a tunnel below is only reachable if the owner opens a hatch in their own floor.
+  - Load clearance and the placement rule look at depth 0 only; what is below never blocks a load.
+  - Claiming a Mine POI claims its surface grid. The tunnels stay world terrain, shared with everyone, rerolled each round, and never saved. Ore underneath is not reserved for the owner (see Q28).
+  - Nothing below depth 0 is saved in the first version. Basements (an outpost as a set of grids, one per depth, bound by grid connectors and saved together) are a later phase, once the save format carries a depth per grid.
+  - Raids get a "tunneller" arrival later: they surface at the claim edge, never inside the outpost, since the foundation rock rule means there is no tunnel to surface from under the base.
+
 ### Story-gen
 
 - At network build, after pending outpost footprints are reserved, each world rolls its POIs from a per-planet table (`wfPlanetPoiTable`, weighted by planet type). Default 8 to 14 POIs per world. [NEW]
@@ -980,19 +994,22 @@ Integration tests under `Content.IntegrationTests/Tests/_WF/<Module>`, never `De
 
 ### Phase plan
 
+The coarse phases. The step-by-step order, one pull request per step, with sizes, tests and the four stop points, is in `IMPLEMENTATION_PLAN.md`; its step numbers (F1.3, F2.4...) refer to these phases.
+
 | Phase | Scope | Depends on |
 |---|---|---|
-| F0 | Planets branch merged; outpost grid: console, foundation plates, ground carving, roofs and the outdoors rule, anchoring, claim zone, cleanup and Carcinoma exemptions, landing guard; spikes: raiders breaching a separate-grid outpost, save/load benchmark | Planets |
-| F1 | Save/load: DB, Save tab, autosave, staging + clearance + overlay, pricing and predicates, lineage, previewer overload, editor tab, admin tools; sale: Sell tab, sale predicate, sell at round end, sell to a player, `wf_outpost_payout` | F0 |
+| F0 | Spikes: raiders breaching a separate-grid outpost, save/load benchmark, roofs on a ground grid, client YAML load in the sandbox | Planets |
+| F1 (grid) | Outpost grid: console, foundation plates, ground carving, roofs and the outdoors rule, anchoring, claim zone, cleanup and Carcinoma exemptions | F0 |
+| F1 (save) | Save/load: DB, Save tab, autosave, staging + clearance + overlay, pricing and predicates, lineage, previewer overload, editor tab, admin tools; sale: Sell tab, sale predicate, sell at round end, sell to a player, `wf_outpost_payout` | F1 (grid) |
 | F2 | Outpost Kit, fabricator, deploy/repack, gizmo pack 1 (power, construction, tools, atmos, kitchen, comms/logistics), time/weather console and its forecast API, trade panel, UTH parachute drops | F1 |
 | F3 | Ship Access Overhaul (ships and outposts) | F0 |
 | F4 | Outpost Spawn: spawn menu, Outpost Job, cryopods, joinable positions, presets | F1, F3 |
 | F5 | Play groups, Shuttle Crash start | F4 |
-| F6 | Landing pads | F0 |
-| F7 | Bounded worlds, story-gen POIs, beacons, claiming | F1 |
+| F6 | Landing guard, landing pads | F1 |
+| F7 | Bounded worlds, story-gen POIs, beacons, claiming, undergrounds interplay | F1 |
 | F8 | Outpost attacks: Active state, raid director, EWS, turrets | F2 |
 | F9 | Farming | F2 |
-| F10 | Orbital defense, atmospheric jetpacks, mining bots, late gizmos | F6, F8 |
+| F10 | Orbital defense, atmospheric jetpacks, mining bots, late gizmos, basements | F6, F8 |
 
 ## Decisions
 
@@ -1079,6 +1096,7 @@ Integration tests under `Content.IntegrationTests/Tests/_WF/<Module>`, never `De
 - D81: Admins get outpost and save commands, restore, refund and raid controls, and admin log types from F1.
 - D82: Price bands A to E as defined at the top; all numbers are tuning defaults.
 - D83: Only Nova art/sound under CC-BY-SA gets ported, with Nova Sector credited in each RSI; Pixabay and unattributed sounds get replaced.
+- D84: An outpost claims its column: underground chunks under its claim zone generate as unmineable foundation rock, nothing below depth 0 is saved, a Mine POI claim covers the surface grid only; basements are a later phase.
 
 ## Open questions
 
@@ -1109,3 +1127,4 @@ Integration tests under `Content.IntegrationTests/Tests/_WF/<Module>`, never `De
 - Q25: After playtests, is the split of players between planets and space healthy, and how should the population-scaled outpost cap be tuned?
 - Q26: Do Crescent shield bubbles and Mono artillery behave on planet maps and CE layers?
 - Q27: Should the livestock record approach be extended to pets and tamed wildlife that are not in pens?
+- Q28: Undergrounds: are they negative depths in the same network or does the ground shift up; are tunnels that already exist under a newly loaded outpost left or backfilled; and should the ore under a claimed Mine POI be reserved for its owner?
