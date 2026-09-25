@@ -83,80 +83,86 @@ public sealed class CavernNetworkTest
         {
             var world = await BuildWorld(pair, surfaceId);
 
-            await server.WaitAssertion(() =>
+            // Tear down even on a failed assertion, so the pair goes back to the pool without planet maps.
+            try
             {
-                var surface = proto.Index<WFPlanetSurfacePrototype>(surfaceId);
-
-                Assert.That(caverns.TryGetCavern(surfaceId, out var cavernProto), Is.True, $"{surfaceId} has no wfCavern.");
-                Assert.That(world.LowerLayers, Has.Count.EqualTo(1), $"{surfaceId} should have exactly one map below ground.");
-
-                var level = proto.Index<PlanetPrototype>(cavernProto!.Level);
-                var cavern = world.Cavern;
-                var expectedLayers = surface.AirLayers + (surface.CloudLayer ? 1 : 0) + 2;
-
-                using (Assert.EnterMultipleScope())
+                await server.WaitAssertion(() =>
                 {
-                    Assert.That(world.Layers, Has.Count.EqualTo(expectedLayers), $"{surfaceId}: Layers changed shape.");
-                    Assert.That(world.Layers, Does.Not.Contain(cavern), $"{surfaceId}: the cavern leaked into Layers.");
-                    if (surfaceId == "WFSurfaceAsclepiu")
+                    var surface = proto.Index<WFPlanetSurfacePrototype>(surfaceId);
+
+                    Assert.That(caverns.TryGetCavern(surfaceId, out var cavernProto), Is.True, $"{surfaceId} has no wfCavern.");
+                    Assert.That(world.LowerLayers, Has.Count.EqualTo(1), $"{surfaceId} should have exactly one map below ground.");
+
+                    var level = proto.Index<PlanetPrototype>(cavernProto!.Level);
+                    var cavern = world.Cavern;
+                    var expectedLayers = surface.AirLayers + (surface.CloudLayer ? 1 : 0) + 2;
+
+                    using (Assert.EnterMultipleScope())
                     {
-                        Assert.That(world.Layers, Has.Count.EqualTo(AsclepiuLayerCount),
-                            "PlanetNetworkTest's five-layer Asclepiu stack changed with caverns on.");
+                        Assert.That(world.Layers, Has.Count.EqualTo(expectedLayers), $"{surfaceId}: Layers changed shape.");
+                        Assert.That(world.Layers, Does.Not.Contain(cavern), $"{surfaceId}: the cavern leaked into Layers.");
+                        if (surfaceId == "WFSurfaceAsclepiu")
+                        {
+                            Assert.That(world.Layers, Has.Count.EqualTo(AsclepiuLayerCount),
+                                "PlanetNetworkTest's five-layer Asclepiu stack changed with caverns on.");
+                        }
+
+                        var zMap = entMan.GetComponent<CEZMapComponent>(cavern);
+                        Assert.That(zMap.Depth, Is.EqualTo(-1), $"{surfaceId}: the cavern is at the wrong depth.");
+                        Assert.That(zMap.NetworkUid, Is.EqualTo(world.Network), $"{surfaceId}: the cavern is in another network.");
+
+                        Assert.That(zLevels.TryMapDown(world.Ground, out var below), Is.True, $"{surfaceId}: nothing below the ground.");
+                        Assert.That(below.Owner, Is.EqualTo(cavern), $"{surfaceId}: the map below the ground is not the cavern.");
+                        Assert.That(zLevels.TryMapUp(cavern, out var above), Is.True, $"{surfaceId}: nothing above the cavern.");
+                        Assert.That(above.Owner, Is.EqualTo(world.Ground), $"{surfaceId}: the map above the cavern is not the ground.");
+
+                        var planetLayer = entMan.GetComponent<WFPlanetLayerComponent>(cavern);
+                        Assert.That(planetLayer.Network, Is.EqualTo(entMan.GetNetEntity(world.Network)),
+                            $"{surfaceId}: the cavern's planet layer points at another network.");
+                        Assert.That(planetLayer.Gravity, Is.EqualTo(surface.Gravity), $"{surfaceId}: the cavern has the wrong gravity.");
+
+                        var cavernLayer = entMan.GetComponent<WFCavernLayerComponent>(cavern);
+                        Assert.That(cavernLayer.Cavern.Id, Is.EqualTo(cavernProto.ID), $"{surfaceId}: the cavern layer names the wrong cavern.");
+                        Assert.That(cavernLayer.Ground, Is.EqualTo(world.Ground), $"{surfaceId}: the cavern layer names the wrong ground.");
+
+                        var biome = entMan.GetComponent<BiomeComponent>(cavern);
+                        Assert.That(biome.Template?.Id, Is.EqualTo(level.Biome.Id), $"{surfaceId}: the cavern has the wrong biome.");
+                        Assert.That(biome.Seed, Is.EqualTo(unchecked(surface.Seed!.Value + cavernProto.SeedOffset)),
+                            $"{surfaceId}: the cavern has the wrong seed.");
+
+                        Assert.That(entMan.HasComponent<LightCycleComponent>(cavern), Is.False, $"{surfaceId}: the cavern has a day cycle.");
+                        Assert.That(entMan.HasComponent<SunShadowComponent>(cavern), Is.False, $"{surfaceId}: the cavern has sun shadows.");
+                        Assert.That(entMan.HasComponent<SunShadowCycleComponent>(cavern), Is.False,
+                            $"{surfaceId}: the cavern has a sun shadow cycle.");
+                        Assert.That(entMan.HasComponent<ParallaxComponent>(cavern), Is.False, $"{surfaceId}: the cavern has parallax.");
+                        Assert.That(entMan.HasComponent<CEZGroundLayerComponent>(cavern), Is.False,
+                            $"{surfaceId}: the cavern is marked as a ground layer.");
+                        Assert.That(entMan.GetComponent<RoofComponent>(cavern).Color, Is.EqualTo(cavernProto.RoofColor),
+                            $"{surfaceId}: the cavern has the wrong roof colour.");
+
+                        var mixture = atmos.GetTileMixture(null, new Entity<MapAtmosphereComponent?>(cavern, null), Vector2i.Zero);
+                        Assert.That(mixture, Is.Not.Null, $"{surfaceId}: the cavern has no map atmosphere.");
+                        Assert.That(atmos.IsTileSpace(null, new Entity<MapAtmosphereComponent?>(cavern, null), Vector2i.Zero), Is.False,
+                            $"{surfaceId}: the cavern is space.");
+                        Assert.That(mixture!.Temperature, Is.EqualTo(level.Atmosphere.Temperature).Within(0.01f),
+                            $"{surfaceId}: the cavern kept the network's air instead of its level's.");
+                        for (var gas = 0; gas < Atmospherics.AdjustedNumberOfGases; gas++)
+                        {
+                            Assert.That(mixture.GetMoles(gas), Is.EqualTo(level.Atmosphere.GetMoles(gas)).Within(0.001f),
+                                $"{surfaceId}: the cavern's air has the wrong amount of gas {gas}.");
+                        }
+
+                        Assert.That(entMan.TryGetComponent(world.Ground, out WFCavernGroundComponent? ground), Is.True,
+                            $"{surfaceId}: the ground has no link to its cavern.");
+                        Assert.That(ground!.Cavern, Is.EqualTo(cavern), $"{surfaceId}: the ground links the wrong cavern.");
+                        Assert.That(ground.Prototype.Id, Is.EqualTo(cavernProto.ID), $"{surfaceId}: the ground names the wrong cavern.");
                     }
-
-                    var zMap = entMan.GetComponent<CEZMapComponent>(cavern);
-                    Assert.That(zMap.Depth, Is.EqualTo(-1), $"{surfaceId}: the cavern is at the wrong depth.");
-                    Assert.That(zMap.NetworkUid, Is.EqualTo(world.Network), $"{surfaceId}: the cavern is in another network.");
-
-                    Assert.That(zLevels.TryMapDown(world.Ground, out var below), Is.True, $"{surfaceId}: nothing below the ground.");
-                    Assert.That(below.Owner, Is.EqualTo(cavern), $"{surfaceId}: the map below the ground is not the cavern.");
-                    Assert.That(zLevels.TryMapUp(cavern, out var above), Is.True, $"{surfaceId}: nothing above the cavern.");
-                    Assert.That(above.Owner, Is.EqualTo(world.Ground), $"{surfaceId}: the map above the cavern is not the ground.");
-
-                    var planetLayer = entMan.GetComponent<WFPlanetLayerComponent>(cavern);
-                    Assert.That(planetLayer.Network, Is.EqualTo(entMan.GetNetEntity(world.Network)),
-                        $"{surfaceId}: the cavern's planet layer points at another network.");
-                    Assert.That(planetLayer.Gravity, Is.EqualTo(surface.Gravity), $"{surfaceId}: the cavern has the wrong gravity.");
-
-                    var cavernLayer = entMan.GetComponent<WFCavernLayerComponent>(cavern);
-                    Assert.That(cavernLayer.Cavern.Id, Is.EqualTo(cavernProto.ID), $"{surfaceId}: the cavern layer names the wrong cavern.");
-                    Assert.That(cavernLayer.Ground, Is.EqualTo(world.Ground), $"{surfaceId}: the cavern layer names the wrong ground.");
-
-                    var biome = entMan.GetComponent<BiomeComponent>(cavern);
-                    Assert.That(biome.Template?.Id, Is.EqualTo(level.Biome.Id), $"{surfaceId}: the cavern has the wrong biome.");
-                    Assert.That(biome.Seed, Is.EqualTo(unchecked(surface.Seed!.Value + cavernProto.SeedOffset)),
-                        $"{surfaceId}: the cavern has the wrong seed.");
-
-                    Assert.That(entMan.HasComponent<LightCycleComponent>(cavern), Is.False, $"{surfaceId}: the cavern has a day cycle.");
-                    Assert.That(entMan.HasComponent<SunShadowComponent>(cavern), Is.False, $"{surfaceId}: the cavern has sun shadows.");
-                    Assert.That(entMan.HasComponent<SunShadowCycleComponent>(cavern), Is.False,
-                        $"{surfaceId}: the cavern has a sun shadow cycle.");
-                    Assert.That(entMan.HasComponent<ParallaxComponent>(cavern), Is.False, $"{surfaceId}: the cavern has parallax.");
-                    Assert.That(entMan.HasComponent<CEZGroundLayerComponent>(cavern), Is.False,
-                        $"{surfaceId}: the cavern is marked as a ground layer.");
-                    Assert.That(entMan.GetComponent<RoofComponent>(cavern).Color, Is.EqualTo(cavernProto.RoofColor),
-                        $"{surfaceId}: the cavern has the wrong roof colour.");
-
-                    var mixture = atmos.GetTileMixture(null, new Entity<MapAtmosphereComponent?>(cavern, null), Vector2i.Zero);
-                    Assert.That(mixture, Is.Not.Null, $"{surfaceId}: the cavern has no map atmosphere.");
-                    Assert.That(atmos.IsTileSpace(null, new Entity<MapAtmosphereComponent?>(cavern, null), Vector2i.Zero), Is.False,
-                        $"{surfaceId}: the cavern is space.");
-                    Assert.That(mixture!.Temperature, Is.EqualTo(level.Atmosphere.Temperature).Within(0.01f),
-                        $"{surfaceId}: the cavern kept the network's air instead of its level's.");
-                    for (var gas = 0; gas < Atmospherics.AdjustedNumberOfGases; gas++)
-                    {
-                        Assert.That(mixture.GetMoles(gas), Is.EqualTo(level.Atmosphere.GetMoles(gas)).Within(0.001f),
-                            $"{surfaceId}: the cavern's air has the wrong amount of gas {gas}.");
-                    }
-
-                    Assert.That(entMan.TryGetComponent(world.Ground, out WFCavernGroundComponent? ground), Is.True,
-                        $"{surfaceId}: the ground has no link to its cavern.");
-                    Assert.That(ground!.Cavern, Is.EqualTo(cavern), $"{surfaceId}: the ground links the wrong cavern.");
-                    Assert.That(ground.Prototype.Id, Is.EqualTo(cavernProto.ID), $"{surfaceId}: the ground names the wrong cavern.");
-                }
-            });
-
-            await Teardown(pair, world);
+                });
+            }
+            finally
+            {
+                await Teardown(pair, world);
+            }
         }
 
         await pair.CleanReturnAsync();

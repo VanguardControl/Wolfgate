@@ -4,7 +4,7 @@ Every planet network gets a cavern at depth -1: a biome-backed map built with th
 by the ground above and dark except where daylight falls through a gap in the ground. Each of the six worlds has its
 own cavern (`wfCavern`, one per `wfPlanetSurface`) with its own air and light; for now all six share a placeholder
 biome of limestone tunnels through plain rock. Caverns are behind `wf.caverns` (`CavernCVars`), which is off by
-default and on in development builds, and apply to networks built after it is set.
+default, development builds included, and apply to networks built after it is set.
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour) and links the
@@ -50,6 +50,6 @@ the features still to come (entrances, the six geologies, air, light, life, soun
 
 ## Non-modular edits
 
-- [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
+None.
 
 <!-- WOLFGATE-GENERATED END -->

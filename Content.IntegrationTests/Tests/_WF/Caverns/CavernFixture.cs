@@ -29,13 +29,19 @@ public static class CavernFixture
     /// <summary>A built world: its network, its surface layers ground first, and the cavern below it.</summary>
     public sealed class World
     {
+        /// <summary>The planet network entity.</summary>
         public EntityUid Network;
+
+        /// <summary>The network's surface layers, ground first and orbit last.</summary>
         public List<EntityUid> Layers = new();
+
+        /// <summary>The network's maps below ground, nearest first.</summary>
         public List<EntityUid> LowerLayers = new();
 
         /// <summary>The cavern map, or Invalid when the world was built with caverns off.</summary>
         public EntityUid Cavern;
 
+        /// <summary>The ground map.</summary>
         public EntityUid Ground => Layers[0];
     }
 
