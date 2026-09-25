@@ -33,7 +33,7 @@ public sealed class CavernViewerEyeTest
         await EnableCaverns(pair);
         var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
 
-        // Solid ground under the viewer before it spawns, or it falls through unloaded terrain into the cavern.
+        // Terrain under the viewer before it spawns, so it stands on ground from its first tick.
         var tile = new Vector2i((int) ViewerPos.X, (int) ViewerPos.Y);
         await LoadChunks(pair, world.Ground, tile - new Vector2i(ChunkSize, ChunkSize), tile + new Vector2i(ChunkSize, ChunkSize));
 

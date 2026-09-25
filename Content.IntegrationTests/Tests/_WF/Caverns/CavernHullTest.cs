@@ -96,7 +96,7 @@ public sealed class CavernHullTest
         var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
         var air = world.Layers[1];
 
-        // A laid pad the loader never touches, so the hull lands on terrain rather than crashing through it.
+        // A laid pad to lift off from and land back on; with nobody near, no biome chunk loads under it.
         await PlanetFixture.LayTiles(pair, world.Ground, new Vector2i(-4, -4), new Vector2i(12, 14));
 
         var lander = await PlanetFixture.BuildLander(pair, await MapIdOf(pair, world.Ground), Vector2.Zero);
