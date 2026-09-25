@@ -3200,3 +3200,42 @@ has passed; `HonestEndingScenarioTest` failed its whisper assertion in two paral
 Those order-dependent failures are the next thing to chase; none is a wound-system regression.
 
 Also fixed on the way: `WolfmedHydraulicFluidTest` reads main's renamed `WFWolfgateVendInventory`.
+
+## AGENTS.md audit (2026-09-25)
+
+After the module layout, an audit of the whole module against AGENTS.md: eight Opus auditors, one per rule family
+(markers, layout and generated docs, code style, Fluent, engine traps, one-subscriber-per-pair, upstream edits,
+docs and tests), each finding then judged by two more auditors told to refute it. 123 findings, 97 confirmed,
+26 refuted, 0 duplicate-subscription problems. Everything confirmed was applied, in six agent passes on a branch
+of its own, then built and run:
+
+- **Markers, made precise.** A single-line marker had been standing in for whole blocks: a braced `if`, a new
+  method, a rewritten `DoAfterArgs`, an added enum member, a re-indented upstream line. About forty files outside
+  `_WF` now have `START`/`END` blocks where the edit spans lines, a marker on every added `using` and brace,
+  one-clause reasons with the notes below them, and every rewritten or deleted upstream line kept as a comment
+  inside its block (the PassiveDamage blocks of the organic base, the shadekin and the protogen subspecies, the
+  tourniquet's Healing keys, the analyzer window's doll and buttons, `SetActiveBodyPart`'s body, the surgeries'
+  conditions, the threshold system's lines). A pseudo-block written as `start`/`end` reasons is a real block.
+- **New types in upstream namespaces.** `DamageDealtEvent`, `OrganGotInsertedEvent`/`OrganGotRemovedEvent`, the
+  stun and entity-prototype compat extensions and `PartStatusSystem`/`PartDamageSeverity` were Wolfgate's own
+  types declared in `Content.Shared.Damage.Systems`, `Content.Shared.Body`, `Content.Shared.Stunnable`,
+  `Content.Shared.StatusEffectNew` and `Content.Shared._Onyx.Targeting`, which the rule allows only for a partial
+  of an upstream type. They live in `Content.Shared._WF.Wolfmed.Compat` now, with marked usings at their callers;
+  `ArmorPartModifier` has its own file in `_WF/Wolfmed/Armor`.
+- **A sandbox violation.** `PartModifiers = [];` on the armour component, a collection expression assigned to a
+  `List<T>` in Shared, which the client's sandbox check rejects and the compiler does not. It is `new()`.
+- **Fluent.** Nineteen analyzer-panel keys had been appended to the upstream analyzer locale file, and eleven
+  Wolfgate-authored keys sat in `_Onyx` locale files; they are in `_WF/Wolfmed` (`analyzer-panel.ftl` and
+  friends) and the upstream file is main's again. Missing keys defined (the brain-death and cardiac-arrest
+  banners, the targeting popups), hard-coded strings localised (the chassis tool names, the pod's "S.A.M.", the
+  reservoir units, the wound count, the organ a procedure requires), and the locale coverage test guards the
+  new keys.
+- **Summaries.** 49 public types, enums and methods got their one-line `/// <summary>`; 71 summaries of four
+  lines or more were cut to one line with the design notes kept as `//` lines below.
+- **A test bound.** `OxygenScenarioTest` asserted that the drain stops within 4 s of the internals going on;
+  the respirator breathes every 2 s and a pooled pair's respirator is mid-cycle, so the documented 3 to 6 s is
+  the bound now.
+
+Not changed, on purpose: the `Wolfmed*` prototype ids (the `WF` prefix rule; a rename touches saved data), the
+`_Onyx` folder (ported content may keep its fork's folder), and the `HealthChange` effect, whose rewritten
+argument is used by its healing test.
