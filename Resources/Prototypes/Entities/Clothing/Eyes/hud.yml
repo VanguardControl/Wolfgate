@@ -29,6 +29,7 @@
     damageContainers:
     - Inorganic
     - Silicon
+    - SiliconWolfmed # WOLFGATE (playtest 3): the IPC's container, so its bar shows
   - type: Tag
     tags:
     - PetWearable
@@ -203,6 +204,7 @@
     damageContainers:
     - Biological
     - Inorganic
+    - SiliconWolfmed # WOLFGATE (playtest 3): the IPC's container, so its bar shows
   - type: ShowSyndicateIcons
   - type: Tag
     tags:
@@ -222,6 +224,7 @@
     damageContainers:
     - Biological
     - Inorganic
+    - SiliconWolfmed # WOLFGATE (playtest 3): the IPC's container, so its bar shows
   - type: ShowHungerIcons
   - type: ShowThirstIcons
   - type: ShowSyndicateIcons
