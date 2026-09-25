@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Server._CE.ZLevels.Core;
 using Content.Server._DV.Planet;
@@ -149,6 +150,10 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         var orbit = _map.CreateMap(out _, runMapInit: false);
         layers.Add(orbit);
 
+        var lower = new List<EntityUid>();
+        var lowerEv = new WFPlanetLowerLayersEvent(ground, surface, centre, lower);
+        RaiseLocalEvent(ref lowerEv);
+
         var network = _zLevels.CreateMapNetwork(surface.NetworkComponents);
         _meta.SetEntityName(network, Loc.GetString("wf-planet-network-name", ("planet", displayName)));
 
@@ -159,13 +164,19 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
                 continue;
 
             Log.Error($"Failed to add depth {depth} to the planet network for \"{surface.ID}\"; unwinding.");
-            _zLevels.DeleteMapNetwork(network);
+            UnwindBuild(network, layers, lower);
+            return null;
+        }
 
-            foreach (var layer in layers)
-            {
-                QueueDel(layer);
-            }
+        // Below ground only once depth 0 exists: QuickApiCache indexes past its list if -1 arrives before 0.
+        for (var i = 0; i < lower.Count; i++)
+        {
+            var depth = -(i + 1);
+            if (_zLevels.TryAddMapsIntoNetwork(network, new Dictionary<EntityUid, int> { { lower[i], depth } }))
+                continue;
 
+            Log.Error($"Failed to add depth {depth} to the planet network for \"{surface.ID}\"; unwinding.");
+            UnwindBuild(network, layers, lower);
             return null;
         }
 
@@ -174,7 +185,7 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         // MapInit overwrote every layer with the network registry, so per-layer components go on after it.
         var networkNet = GetNetEntity(network);
 
-        foreach (var layer in layers)
+        foreach (var layer in layers.Concat(lower))
         {
             var marker = EnsureComp<WFPlanetLayerComponent>(layer);
             marker.Network = networkNet;
@@ -262,11 +273,26 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         comp.GroundMap = ground;
         comp.OrbitMap = orbit;
         comp.Layers = layers;
+        comp.LowerLayers = lower;
         comp.Surface = surface.ID;
         comp.Centre = centre;
         EntityManager.System<WFPlanetWeatherSystem>().Configure(network, surface, displayName);
 
+        var built = new WFPlanetNetworkBuiltEvent(network, ground, surface, lower);
+        RaiseLocalEvent(ref built);
+
         return network.Owner;
+    }
+
+    /// <summary>Deletes a half-built network and every map spawned for it.</summary>
+    private void UnwindBuild(EntityUid network, List<EntityUid> layers, List<EntityUid> lower)
+    {
+        _zLevels.DeleteMapNetwork(network);
+
+        foreach (var layer in layers.Concat(lower))
+        {
+            QueueDel(layer);
+        }
     }
 
     /// <summary>Deletes a network, its layers and the transit maps between them; clears the body's record.</summary>
@@ -287,8 +313,8 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
             var transits = EntityQueryEnumerator<CEZTransitMapComponent>();
             while (transits.MoveNext(out var uid, out var transit))
             {
-                if (transit.LowerMap is { } lower && comp.Layers.Contains(lower)
-                    || transit.UpperMap is { } upper && comp.Layers.Contains(upper))
+                if (transit.LowerMap is { } lower && (comp.Layers.Contains(lower) || comp.LowerLayers.Contains(lower))
+                    || transit.UpperMap is { } upper && (comp.Layers.Contains(upper) || comp.LowerLayers.Contains(upper)))
                 {
                     QueueDel(uid);
                 }

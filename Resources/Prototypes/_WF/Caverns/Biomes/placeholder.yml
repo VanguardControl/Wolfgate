@@ -1,0 +1,31 @@
+# Stand-in cavern under every world until each gets its own geology: limestone tunnels through plain rock.
+# Layers run last to first and the first match wins.
+
+- type: biomeTemplate
+  id: WFCavernBiomePlaceholder
+  layers:
+  # Substrate and tunnel floor.
+  - !type:BiomeTileLayer
+    tile: WFCavernFloorLimestone
+    threshold: -1
+  # Rock wherever ridged noise is at most 0.5; the tunnels are the ridges.
+  - !type:BiomeMetaLayer
+    template: WFCavernRockPlaceholder
+    invert: true
+    threshold: -0.5
+    noise:
+      seed: 7
+      noiseType: OpenSimplex2
+      fractalType: Ridged
+      octaves: 1
+      frequency: 0.035
+
+- type: biomeTemplate
+  id: WFCavernRockPlaceholder
+  layers:
+  - !type:BiomeEntityLayer
+    threshold: -1
+    allowedTiles:
+    - WFCavernFloorLimestone
+    entities:
+    - WallRock
