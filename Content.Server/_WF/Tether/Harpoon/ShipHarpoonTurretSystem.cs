@@ -54,6 +54,8 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
         SubscribeLocalEvent<ShipHarpoonTurretComponent, MoveEvent>(OnTurretMove);
         SubscribeLocalEvent<ShipHarpoonTurretComponent, GunShotEvent>(OnGunShot);
         SubscribeLocalEvent<ShipHarpoonTurretComponent, RopeDetachedEvent>(OnRopeDetached);
+        SubscribeLocalEvent<ShipHarpoonTurretComponent, RopeCoilTargetAttemptEvent>(OnTurretCoilAttempt);
+        SubscribeLocalEvent<ShipHarpoonTurretComponent, ExaminedEvent>(OnTurretExamined);
 
         // Runs ahead of the projectile code so a glancing hit can drop the embed before it happens.
         SubscribeLocalEvent<ShipHarpoonComponent, StartCollideEvent>(OnHarpoonCollide,
@@ -76,6 +78,34 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
         _actions.AddAction(user, ref component.ReelInAction, ReelInAction);
         _actions.AddAction(user, ref component.PayOutAction, PayOutAction);
         _actions.AddAction(user, ref component.ReleaseAction, ReleaseAction);
+        _popup.PopupEntity(Loc.GetString("wf-harpoon-turret-manned"), turret, user);
+    }
+
+    protected override void RefuseUnpowered(EntityUid turret, EntityUid user)
+    {
+        _popup.PopupEntity(Loc.GetString("wf-harpoon-turret-unpowered"), turret, user);
+    }
+
+    /// <summary>The tow cable comes with the drum; a hand coil tied here would only block the turret from firing.</summary>
+    private void OnTurretCoilAttempt(Entity<ShipHarpoonTurretComponent> turret, ref RopeCoilTargetAttemptEvent args)
+    {
+        if (args.AttachPoint != turret.Owner)
+            return;
+
+        args.AttachPoint = null;
+        args.Handled = true;
+        _popup.PopupEntity(Loc.GetString("wf-harpoon-turret-coil-refused"), turret, args.User);
+    }
+
+    private void OnTurretExamined(Entity<ShipHarpoonTurretComponent> turret, ref ExaminedEvent args)
+    {
+        if (!args.IsInDetailsRange)
+            return;
+
+        args.PushMarkup(Loc.GetString(IsPowered(turret) ? "wf-harpoon-turret-examine-powered" : "wf-harpoon-turret-examine-unpowered"));
+        args.PushMarkup(Loc.GetString("wf-harpoon-turret-examine-cable"));
+        args.PushMarkup(Loc.GetString("wf-harpoon-turret-examine-fire"));
+        args.PushMarkup(Loc.GetString("wf-harpoon-examine-shields"));
     }
 
     protected override void RevokeControls(EntityUid user, MannedTurretOperatorComponent component)
@@ -430,7 +460,13 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
     private void OnHarpoonExamined(EntityUid uid, ShipHarpoonComponent component, ExaminedEvent args)
     {
         if (component.Embedded)
+        {
             args.PushMarkup(Loc.GetString("wf-harpoon-examine-embedded"));
+            return;
+        }
+
+        args.PushMarkup(Loc.GetString("wf-harpoon-examine-load"));
+        args.PushMarkup(Loc.GetString("wf-harpoon-examine-shields"));
     }
 
     /// <summary>The crowbar is the tool; the verb just makes it discoverable from the other hull.</summary>

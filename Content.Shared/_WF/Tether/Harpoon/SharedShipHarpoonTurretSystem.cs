@@ -57,6 +57,7 @@ public abstract class SharedShipHarpoonTurretSystem : EntitySystem
         if (!IsPowered(turret))
         {
             _buckle.Unbuckle(args.Buckle.Owner, null);
+            RefuseUnpowered(turret, args.Buckle.Owner);
             return;
         }
 
@@ -116,6 +117,11 @@ public abstract class SharedShipHarpoonTurretSystem : EntitySystem
     }
 
     protected virtual void RevokeControls(EntityUid user, MannedTurretOperatorComponent component)
+    {
+    }
+
+    /// <summary>Server only: tells someone who tried to strap into a dead turret why they were let go.</summary>
+    protected virtual void RefuseUnpowered(EntityUid turret, EntityUid user)
     {
     }
 

@@ -446,6 +446,39 @@ public sealed class HarpoonTest
         await pair.CleanReturnAsync();
     }
 
+    [Test]
+    public async Task TurretRefusesHandCoils()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var maps = server.ResolveDependency<IMapManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            entities.DeleteEntity(map.Grid);
+            var grid = MakeGrid(entities, maps, map.MapId, Vector2.Zero, 3);
+            var (turret, user) = MakeTurret(entities, grid);
+            var coil = entities.SpawnEntity("WFRopeTowCableCoil", entities.GetComponent<TransformComponent>(user).Coordinates);
+
+            // A tow cable coil tied to the drum would take the turret's only rope slot and stop it firing.
+            var click = new AfterInteractEvent(user, coil, turret, entities.GetComponent<TransformComponent>(turret).Coordinates, true);
+            entities.EventBus.RaiseLocalEvent(coil, click);
+            Assert.Multiple(() =>
+            {
+                Assert.That(click.Handled, Is.True, "The refusal still consumes the click.");
+                Assert.That(entities.HasComponent<RopeCarrierComponent>(user), Is.False,
+                    "No loose end is taken off the coil at a harpoon turret.");
+            });
+
+            entities.DeleteEntity(user);
+            entities.DeleteEntity(grid);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>A turret bolted to the east edge of a hull, facing east, with an operator standing on it.</summary>
     private static (EntityUid Turret, EntityUid User) MakeTurret(IEntityManager entities, EntityUid grid)
     {
