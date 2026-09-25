@@ -121,7 +121,7 @@ public abstract partial class CESharedZLevelsSystem
             var shipAabb = new Box2(worldCentre - tileHalf, worldCentre + tileHalf);
 
             if (shipAabb.Intersects(wallAabb))
-                contacts.Add(new CEWallContact(shipAabb, wallAabb, wall)); // WOLFGATE(Planets)
+                contacts.Add(new CEWallContact(shipAabb, wallAabb, wall)); // WOLFGATE(Planets): retain the contacted obstacle for crash ploughing.
         }
     }
 

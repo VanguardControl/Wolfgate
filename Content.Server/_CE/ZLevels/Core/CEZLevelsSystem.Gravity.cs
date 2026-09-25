@@ -309,7 +309,7 @@ public sealed partial class CEZLevelsSystem
             // WOLFGATE(Planets): partial landing-thruster lift slows the sink, and this is where lift lost begins.
             var wfGravity = WfSinkGravity(grid, transitSet, faller.GridGravity);
 
-            faller.Velocity = ApproachTerminal(faller.Velocity, wfGravity, faller.GridTerminalVelocity, frameTime); // WOLFGATE(Planets)
+            faller.Velocity = ApproachTerminal(faller.Velocity, wfGravity, faller.GridTerminalVelocity, frameTime); // WOLFGATE(Planets): the sink uses the lift-adjusted gravity.
         }
         else
         {
@@ -451,7 +451,7 @@ public sealed partial class CEZLevelsSystem
                 ent.Comp2.CrashTileSlope,
                 ent.Comp2.CrashTileMaxIntensity,
                 cause: ent,
-                addLog: false, // WOLFGATE(Planets)
+                addLog: false, // WOLFGATE(Planets): a comma for the added silent argument.
                 silent: soundOnCentre || tileCount > 1); // WOLFGATE(Planets): only one blast of a crash plays its sound.
         }
 
