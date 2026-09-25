@@ -205,7 +205,7 @@ public sealed class WolfmedIpcDeathTest : GameTest
         {
             Assert.That(downedAt, Is.Not.Null, "the fire never put the chassis down.");
             Assert.That(shutdownAt, Is.Not.Null, "an untreated 10-stack fire never reached thermal shutdown.");
-            Assert.That(downedAt, Is.LessThan(shutdownAt), "the chassis was not Downed and conscious first.");
+            Assert.That(downedAt, Is.LessThan(shutdownAt!), "the chassis was not Downed and conscious first.");
             Assert.That(shutdownAt, Is.InRange(ShutdownAt * (1 - Band), ShutdownAt * (1 + Band)));
             Assert.That(warned, Is.True, "the readout never said CORE TEMP CRITICAL before thermal shutdown.");
 

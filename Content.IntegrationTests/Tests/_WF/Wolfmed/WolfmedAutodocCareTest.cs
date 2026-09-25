@@ -141,7 +141,7 @@ public sealed class WolfmedAutodocCareTest : GameTest
         {
             var autodoc = entities.System<AutodocSystem>();
             var blood = entities.System<BloodstreamSystem>();
-            Assert.That(pod.Comp.Transfusing || autodoc.NeedsTransfusion(body), Is.True,
+            Assert.That(pod.Comp!.Transfusing || autodoc.NeedsTransfusion(body), Is.True,
                 "the pod does not think the patient needs blood.");
             Assert.That(autodoc.TryTransfuse(pod, body), Is.True, "the pod refused to transfuse.");
             Assert.That(blood.GetBloodLevelPercentage(body), Is.GreaterThanOrEqualTo(0.89f),
@@ -192,7 +192,7 @@ public sealed class WolfmedAutodocCareTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(pod.Comp.BlockedReason, Is.Not.Null,
+            Assert.That(pod.Comp!.BlockedReason, Is.Not.Null,
                 $"the clothing never blocked the pod (state {pod.Comp.State}).");
             entities.System<AutodocSystem>().Control(pod, AutodocControl.CutClothing, null);
         });
@@ -204,7 +204,7 @@ public sealed class WolfmedAutodocCareTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(entities.Deleted(suit), Is.True, "the jumpsuit survived being cut off.");
-                Assert.That(pod.Comp.BlockedReason, Is.Null, "the pod is still blocked on clothing.");
+                Assert.That(pod.Comp!.BlockedReason, Is.Null, "the pod is still blocked on clothing.");
             });
         });
     }
@@ -252,7 +252,7 @@ public sealed class WolfmedAutodocCareTest : GameTest
 
         await server.WaitAssertion(() =>
             Assert.That(entities.Deleted(suit), Is.True,
-                $"AUTO never cut the jumpsuit off (state {pod.Comp.State}, blocked {pod.Comp.BlockedReason})."));
+                $"AUTO never cut the jumpsuit off (state {pod.Comp!.State}, blocked {pod.Comp.BlockedReason})."));
     }
 
     private static Entity<AutodocComponent> Pod(IEntityManager entities, TestMapData map, string prototype)

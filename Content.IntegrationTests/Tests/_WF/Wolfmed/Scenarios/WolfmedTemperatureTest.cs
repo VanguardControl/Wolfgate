@@ -282,8 +282,8 @@ public sealed class WolfmedTemperatureTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(downed, Is.Not.Null);
-                Assert.That(unconscious, Is.GreaterThan(downed));
-                Assert.That(arrest, Is.GreaterThan(unconscious));
+                Assert.That(unconscious, Is.GreaterThan(downed!));
+                Assert.That(arrest, Is.GreaterThan(unconscious!));
                 Assert.That(s.Life.InArrest(frozen), Is.True, "the cold never stopped the heart.");
                 InBand(downed!.Value, Derived(290f), "hypothermic Downed");
                 InBand(unconscious!.Value, Derived(275f), "hypothermic Unconscious");
@@ -549,8 +549,8 @@ public sealed class WolfmedTemperatureTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(downed, Is.Not.Null, "space never made the patient hypothermic.");
-                Assert.That(unconscious, Is.GreaterThan(downed));
-                Assert.That(arrest, Is.GreaterThan(unconscious));
+                Assert.That(unconscious, Is.GreaterThan(downed!));
+                Assert.That(arrest, Is.GreaterThan(unconscious!));
                 Assert.That(SEntMan.GetComponent<WolfmedCardiacArrestComponent>(body).Cause, Is.EqualTo("cold"));
                 InBand(downed!.Value, derivedDowned!.Value, "hypothermic in space");
                 InBand(unconscious!.Value, derivedOut!.Value, "unconscious from cold in space");

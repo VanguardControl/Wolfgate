@@ -230,7 +230,7 @@ public sealed class WolfmedRemainingCausesTest : GameTest
             Assert.That(wokeLoad, Is.LessThan(108f));
             Assert.That(stood, Is.Not.Null, "dylovene never stood the patient up.");
             Assert.That(stoodLoad, Is.LessThan(54f));
-            Assert.That(stood, Is.GreaterThan(woke));
+            Assert.That(stood, Is.GreaterThan(woke!));
         });
     }
 

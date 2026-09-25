@@ -152,7 +152,7 @@ public sealed class WolfmedVitalLimitsTest : GameTest
 
             // A roll the chance can never beat: the shock happens and fails.
             revival.ForcedRoll = 0.999f;
-            pod.Comp.DefibNext = TimeSpan.Zero;
+            pod.Comp!.DefibNext = TimeSpan.Zero;
             Assert.That(autodoc.TryDefibrillateOccupant(pod, body), Is.False, "a hopeless roll revived the patient.");
             Assert.That(pod.Comp.DefibAttempt, Is.EqualTo(1), "the pod did not count its first shock.");
             Assert.That(Said(pod, "defib-failure"), Is.True,

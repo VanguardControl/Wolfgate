@@ -196,7 +196,7 @@ public sealed class WolfmedPodWeldsChassisTest : GameTest
                     welderLit |= PodWelderLit(ent);
                 }
 
-                done = pod.Comp.AutoSaidNothing && batteredPod.Comp.AutoSaidNothing;
+                done = pod.Comp!.AutoSaidNothing && batteredPod.Comp!.AutoSaidNothing;
             });
 
             if (done)
@@ -213,7 +213,7 @@ public sealed class WolfmedPodWeldsChassisTest : GameTest
 
             _notes.Add($"after: {Describe(ipc)} || battered: {Describe(battered)}");
             _notes.Add($"completions {completions[pod.Owner]}/{completions[batteredPod.Owner]}, failed " +
-                       $"[{string.Join(", ", pod.Comp.FailedProcedures)}] [{string.Join(", ", batteredPod.Comp.FailedProcedures)}], " +
+                       $"[{string.Join(", ", pod.Comp!.FailedProcedures)}] [{string.Join(", ", batteredPod.Comp!.FailedProcedures)}], " +
                        $"states {pod.Comp.State}/{batteredPod.Comp.State}");
 
             Assert.Multiple(() =>

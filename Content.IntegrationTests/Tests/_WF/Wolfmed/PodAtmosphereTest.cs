@@ -441,7 +441,7 @@ public sealed class PodAtmosphereTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.Queue, Is.Empty, $"the queue did not empty (state {pod.Comp.State}).");
+                Assert.That(pod.Comp!.Queue, Is.Empty, $"the queue did not empty (state {pod.Comp.State}).");
                 Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Complete));
                 Assert.That(Autodoc.GetSeal(pod), Is.EqualTo(WolfmedAutodocSeal.Sealed), "the run broke the seal.");
                 Assert.That(Autodoc.IsSealedIn(body), Is.True);

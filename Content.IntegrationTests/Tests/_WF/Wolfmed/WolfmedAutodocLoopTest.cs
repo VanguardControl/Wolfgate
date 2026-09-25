@@ -210,7 +210,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(autodoc.TryPlan(pod), Is.GreaterThan(0), "nothing was planned for a shot patient.");
 
-            var planned = pod.Comp.Queue.Select(queued => queued.Surgery.Id).ToList();
+            var planned = pod.Comp!.Queue.Select(queued => queued.Surgery.Id).ToList();
             Assert.Multiple(() =>
             {
                 Assert.That(planned[0], Is.EqualTo("WFSurgeryRemoveEmbeddedObjects"),
@@ -231,7 +231,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(entities.System<WolfmedEmbeddedObjectSystem>().GetPartCount(torso), Is.Zero,
-                    $"the round is still in the torso (state {pod.Comp.State}, step {pod.Comp.CurrentStep}).");
+                    $"the round is still in the torso (state {pod.Comp!.State}, step {pod.Comp.CurrentStep}).");
                 Assert.That(Count(entities, "WFWolfmedSpentRound"), Is.GreaterThan(0),
                     "the round never became an item outside the patient.");
                 Assert.That(pod.Comp.StepRuns.Values.DefaultIfEmpty(0).Max(), Is.LessThanOrEqualTo(3),
@@ -247,7 +247,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             Assert.That(autodoc.GetOccupant(pod), Is.Not.Null);
             Assert.That(autodoc.Plan(pod, autodoc.GetOccupant(pod)!.Value)
                     .Any(entry => entry.Part == TargetBodyPart.Torso && entry.Surgery.Id.Contains("SurgeryTendWounds")),
-                Is.False, $"the torso's tend did not follow the removal (state {pod.Comp.State}).");
+                Is.False, $"the torso's tend did not follow the removal (state {pod.Comp!.State}).");
         });
 
         await server.WaitPost(() => server.System<WolfmedWoundRuleSystem>().ForcedRoll = null);
@@ -289,7 +289,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(autodoc.TryPlan(pod), Is.GreaterThanOrEqualTo(2),
                 "the seam triage plans the stall and the fracture.");
-            Assert.That(pod.Comp.Queue[0].Surgery.Id, Is.EqualTo("WolfmedSeamStallSurgery"));
+            Assert.That(pod.Comp!.Queue[0].Surgery.Id, Is.EqualTo("WolfmedSeamStallSurgery"));
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
 
@@ -300,7 +300,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var fractures = entities.System<WoundFractureSystem>();
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.FailedProcedures.Any(failed => failed.Surgery == "WolfmedSeamStallSurgery"),
+                Assert.That(pod.Comp!.FailedProcedures.Any(failed => failed.Surgery == "WolfmedSeamStallSurgery"),
                     Is.True, "the pod never gave up on a procedure it could not finish.");
                 Assert.That(pod.Comp.Queue, Is.Empty, $"the queue did not drain (state {pod.Comp.State}).");
 
@@ -311,7 +311,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
             // And the planner will not hand it back.
             entities.System<AutodocSystem>().TryPlan(pod);
-            Assert.That(pod.Comp.Queue.Select(queued => queued.Surgery.Id),
+            Assert.That(pod.Comp!.Queue.Select(queued => queued.Surgery.Id),
                 Does.Not.Contain("WolfmedSeamStallSurgery"), "the planner re-queued a procedure it had given up on.");
         });
     }
@@ -356,7 +356,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var left = wounds.GetWounds((arm, entities.GetComponent<WoundableComponent>(arm)))
                 .Count(wound => wound.Comp.Prototype == new ProtoId<WoundPrototype>("WFWolfmedDislocationWound"));
 
-            Assert.That(left, Is.Zero, $"the joint is still out (state {pod.Comp.State}).");
+            Assert.That(left, Is.Zero, $"the joint is still out (state {pod.Comp!.State}).");
         });
     }
 
@@ -396,7 +396,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.AutoReplans, Is.LessThanOrEqualTo(pod.Comp.AutoReplanLimit),
+                Assert.That(pod.Comp!.AutoReplans, Is.LessThanOrEqualTo(pod.Comp.AutoReplanLimit),
                     "the module kept re-planning a body nothing was changing.");
                 Assert.That(pod.Comp.AutoSaidNothing, Is.True, "it never said it had nothing left to do.");
                 Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Complete).Or.EqualTo(AutodocState.Idle));
@@ -452,7 +452,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             var conditions = entities.System<Content.Shared._WF.Wolfmed.Surgery.WolfmedSurgeryConditionSystem>();
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Complete),
+                Assert.That(pod.Comp!.State, Is.EqualTo(AutodocState.Complete),
                     $"tending never finished (step {pod.Comp.CurrentStep}).");
                 // The cut itself is closed. What is left on the torso is the surgery's own trauma and the
                 // severed artery, which no amount of tending closes while it is still pumping.
@@ -522,7 +522,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
             foreach (var target in new[] { TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg })
                 autodoc.TryQueue(pod, "WFSurgeryMendFracture", target);
 
-            Assert.That(pod.Comp.Queue, Has.Count.GreaterThan(1), "the fixture needs a queue to run.");
+            Assert.That(pod.Comp!.Queue, Has.Count.GreaterThan(1), "the fixture needs a queue to run.");
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
 
@@ -544,7 +544,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Complete),
+                Assert.That(pod.Comp!.State, Is.EqualTo(AutodocState.Complete),
                     $"the queue never finished (step {pod.Comp.CurrentStep}).");
                 Assert.That((start - solution!.Volume).Float(), Is.LessThanOrEqualTo(30f),
                     "the pod dosed more than once plus a top-up over one queue.");
@@ -597,7 +597,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.Queue, Has.Count.EqualTo(1), "FIX ME planned nothing for the occupant.");
+                Assert.That(pod.Comp!.Queue, Has.Count.EqualTo(1), "FIX ME planned nothing for the occupant.");
                 Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Idle), "and it did not start.");
             });
         });
@@ -609,7 +609,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         {
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True,
-                $"the occupant could not queue their own fracture (state {pod.Comp.State}).");
+                $"the occupant could not queue their own fracture (state {pod.Comp!.State}).");
             Assert.That(autodoc.TryStart(pod, null), Is.True);
         });
 
@@ -619,7 +619,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         {
             var fracture = entities.System<WoundFractureSystem>().GetFracture(leg);
             Assert.That(fracture == null || fracture.Value.Comp2.Treatment == FractureTreatment.Mended, Is.True,
-                $"the occupant's own procedure never ran (state {pod.Comp.State}).");
+                $"the occupant's own procedure never ran (state {pod.Comp!.State}).");
         });
     }
 
@@ -663,7 +663,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         {
             var fracture = entities.System<WoundFractureSystem>().GetFracture(leg);
             Assert.That(fracture == null || fracture.Value.Comp2.Treatment == FractureTreatment.Mended, Is.True,
-                $"the hand-written queue never ran (state {pod.Comp.State}, queue {pod.Comp.Queue.Count}).");
+                $"the hand-written queue never ran (state {pod.Comp!.State}, queue {pod.Comp.Queue.Count}).");
         });
     }
 
@@ -720,7 +720,7 @@ public sealed class WolfmedAutodocLoopTest : GameTest
         {
             var life = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem>();
             Assert.That(life.GetBrainActivity(body), Is.GreaterThan(0.9f),
-                $"the brain was not repaired (state {pod.Comp.State}, step {pod.Comp.CurrentStep}).");
+                $"the brain was not repaired (state {pod.Comp!.State}, step {pod.Comp.CurrentStep}).");
         });
     }
 

@@ -124,7 +124,7 @@ public sealed class WolfmedAutodocFaintTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.AnaestheticGiven, Is.True, "the pod gave a fainted patient no anaesthetic.");
+                Assert.That(pod.Comp!.AnaestheticGiven, Is.True, "the pod gave a fainted patient no anaesthetic.");
                 Assert.That(SEntMan.HasComponent<ForcedSleepingComponent>(body), Is.True,
                     "a fainted patient was left to wake up on the table.");
             });

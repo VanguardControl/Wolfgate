@@ -206,7 +206,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
             await Pair.RunTicksSync(10);
             await Server.WaitPost(() =>
             {
-                if (pod.Comp.Queue.Count > 0)
+                if (pod.Comp!.Queue.Count > 0)
                 {
                     var head = $"{pod.Comp.Queue[0].Surgery}{(pod.Comp.Queue[0].Continuation ? " (closure)" : "")}";
                     if (heads.Count == 0 || heads[^1] != head)
@@ -219,7 +219,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
-            var events = pod.Comp.VoiceEvents;
+            var events = pod.Comp!.VoiceEvents;
             int Said(AutodocVoiceEvent voice) => events.GetValueOrDefault(voice);
             var procedures = heads.Count(head => !head.EndsWith("(closure)"));
             Out.WriteLine($"AutoIsOneRunTest: procedures in order: {string.Join(" > ", heads)}");
@@ -297,7 +297,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
         for (var i = 0; i < 80 && !done; i++)
         {
             await Pair.RunTicksSync(10);
-            await Server.WaitPost(() => done = pod.Comp.State == AutodocState.Complete && pod.Comp.AutoSaidNothing);
+            await Server.WaitPost(() => done = pod.Comp!.State == AutodocState.Complete && pod.Comp.AutoSaidNothing);
         }
 
         await Server.WaitAssertion(() =>
@@ -312,7 +312,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
                 }
             }
 
-            Out.WriteLine($"NoStallWhileWorkingTest: voice events: {string.Join(", ", pod.Comp.VoiceEvents.Select(pair => $"{pair.Key}={pair.Value}"))}");
+            Out.WriteLine($"NoStallWhileWorkingTest: voice events: {string.Join(", ", pod.Comp!.VoiceEvents.Select(pair => $"{pair.Key}={pair.Value}"))}");
             Assert.Multiple(() =>
             {
                 Assert.That(done, Is.True, $"the run never ended (state {pod.Comp.State}).");
@@ -389,7 +389,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
             await Pair.RunTicksSync(10);
             await Server.WaitPost(() =>
             {
-                sawGarment |= pod.Comp.BlockingGarment is { } garment &&
+                sawGarment |= pod.Comp!.BlockingGarment is { } garment &&
                               (garment == kit["gloves"] || garment == kit["shoes"]);
                 done = pod.Comp.State == AutodocState.Complete && pod.Comp.AutoSaidNothing;
             });
@@ -399,7 +399,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
         {
             var inventory = SEntMan.System<InventorySystem>();
             var tray = SEntMan.System<ItemSlotsSystem>().GetItemOrNull(pod.Owner, AutodocComponent.TraySlotId);
-            Out.WriteLine($"PodUndressesWhatItCannotCutTest: voice events: {string.Join(", ", pod.Comp.VoiceEvents.Select(pair => $"{pair.Key}={pair.Value}"))}");
+            Out.WriteLine($"PodUndressesWhatItCannotCutTest: voice events: {string.Join(", ", pod.Comp!.VoiceEvents.Select(pair => $"{pair.Key}={pair.Value}"))}");
             Out.WriteLine($"PodUndressesWhatItCannotCutTest: tray holds {(tray is { } held ? SEntMan.ToPrettyString(held) : "nothing")}");
 
             Assert.Multiple(() =>
@@ -486,7 +486,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
             await Pair.RunTicksSync(10);
             await Server.WaitPost(() =>
             {
-                if (pod.Comp.GarmentStuck && status == null)
+                if (pod.Comp!.GarmentStuck && status == null)
                 {
                     SEntMan.System<AutodocSystem>().UpdateUi(pod);
                     if (SEntMan.System<UserInterfaceSystem>().TryGetUiState<AutodocBuiState>(pod.Owner, AutodocUiKey.Key, out var state))
@@ -499,7 +499,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
-            var said = pod.Comp.VoiceEvents;
+            var said = pod.Comp!.VoiceEvents;
             var clothingLines = said.GetValueOrDefault(AutodocVoiceEvent.Clothing) + said.GetValueOrDefault(AutodocVoiceEvent.ClothingAuto);
             var head = Part(patient, BodyPartType.Head, BodyPartSymmetry.None);
             var torso = Part(patient, BodyPartType.Torso, BodyPartSymmetry.None);

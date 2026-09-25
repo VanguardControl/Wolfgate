@@ -187,13 +187,13 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         for (var attempt = 0; attempt < 14 && state != AutodocState.Complete; attempt++)
         {
             await Pair.RunTicksSync(50);
-            await server.WaitPost(() => state = pod.Comp.State);
+            await server.WaitPost(() => state = pod.Comp!.State);
         }
 
         await server.WaitAssertion(() =>
         {
             Assert.That(state, Is.EqualTo(AutodocState.Complete),
-                $"the first run never finished (step {pod.Comp.CurrentStep}, {Describe(entities, pod, body)}).");
+                $"the first run never finished (step {pod.Comp!.CurrentStep}, {Describe(entities, pod, body)}).");
 
             // The pod cauterises, and a cautery burns whatever part the damage lands on. Every one of those
             // is its own doing, and none of them is a reason to operate again.
@@ -215,7 +215,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.Queue.Any(queued => queued.Part == TargetBodyPart.LeftArm), Is.False,
+                Assert.That(pod.Comp!.Queue.Any(queued => queued.Part == TargetBodyPart.LeftArm), Is.False,
                     $"the pod queued the arm again: {Describe(entities, pod, body)}");
                 Assert.That(pod.Comp.Queue.Any(queued => IsWoundWork(queued.Surgery)), Is.False,
                     $"the pod queued itself a tend out of its own sutures: {Describe(entities, pod, body)}");
@@ -230,7 +230,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         {
             await Pair.RunTicksSync(20);
             await server.WaitPost(() => ready =
-                pod.Comp.State is AutodocState.Idle or AutodocState.Complete &&
+                pod.Comp!.State is AutodocState.Idle or AutodocState.Complete &&
                 server.ResolveDependency<IGameTiming>().CurTime >= pod.Comp.PodWoundUntil);
         }
 
@@ -299,7 +299,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Paused),
+                Assert.That(pod.Comp!.State, Is.Not.EqualTo(AutodocState.Paused),
                     "the pod held for a patient it was asked to operate on because they were dead.");
                 Assert.That(entities.System<WolfmedLifeSystem>().GetBrainActivity(body), Is.GreaterThan(0.9f),
                     $"the brain was never repaired (state {pod.Comp.State}, step {pod.Comp.CurrentStep}).");
@@ -340,7 +340,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
             Assert.That(autodoc.TryStart(pod, null), Is.True);
-            Assert.That(pod.Comp.OccupantWasDead, Is.False, "the fixture needs a living patient.");
+            Assert.That(pod.Comp!.OccupantWasDead, Is.False, "the fixture needs a living patient.");
         });
 
         await Pair.RunTicksSync(5);
@@ -349,7 +349,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Paused),
+            Assert.That(pod.Comp!.State, Is.EqualTo(AutodocState.Paused),
                 "the pod carried on operating on a patient who died under it.");
         });
 
@@ -362,7 +362,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
             var fracture = entities.System<WoundFractureSystem>().GetFracture(leg);
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Paused),
+                Assert.That(pod.Comp!.State, Is.Not.EqualTo(AutodocState.Paused),
                     "RESUME did not send the pod on again.");
                 Assert.That(fracture == null ||
                             fracture.Value.Comp2.Treatment == FractureTreatment.Mended,
@@ -403,7 +403,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
             foreach (var target in new[] { TargetBodyPart.LeftLeg, TargetBodyPart.RightLeg, TargetBodyPart.LeftArm })
                 Assert.That(autodoc.TryQueue(pod, "WFSurgeryMendFracture", target), Is.True);
 
-            var order = pod.Comp.Queue.Select(queued => queued.Part).ToList();
+            var order = pod.Comp!.Queue.Select(queued => queued.Part).ToList();
             Assert.That(autodoc.TryMoveQueued(pod, 1, true), Is.True, "an idle queue refused a swap.");
             Assert.That(pod.Comp.Queue.Select(queued => queued.Part),
                 Is.EqualTo(new[] { order[1], order[0], order[2] }), "the swap did not happen.");
@@ -417,7 +417,7 @@ public sealed class WolfmedPlaytestFixesTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            var order = pod.Comp.Queue.Select(queued => queued.Part).ToList();
+            var order = pod.Comp!.Queue.Select(queued => queued.Part).ToList();
             Assert.That(order, Has.Count.EqualTo(3), "the fixture needs the whole queue still waiting.");
 
             Assert.Multiple(() =>

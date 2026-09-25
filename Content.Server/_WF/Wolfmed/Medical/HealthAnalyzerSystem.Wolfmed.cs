@@ -36,7 +36,6 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W6)
     [Dependency] private WolfmedOverheatingSystem _overheating = default!; // WOLFGATE (W6)
     [Dependency] private WolfmedPainReliefSystem _painRelief = default!; // WOLFGATE (CONSC)
-    [Dependency] private IGameTiming _analyzerTiming = default!; // WOLFGATE (CONSC)
     [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem _life = default!; // WOLFGATE (BRAIN)
     [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedShutdownSystem _shutdown = default!; // WOLFGATE (BRAIN)
 
@@ -171,7 +170,7 @@ public sealed partial class HealthAnalyzerSystem
         // WOLFGATE (CONSC): what is masking the patient's pain, and how sedated it has left them.
         var relief = CompOrNull<WolfmedPainReliefComponent>(body);
         var reliefLeft = relief?.Ends is { } ends
-            ? MathF.Max(0f, (float) (ends - _analyzerTiming.CurTime).TotalSeconds)
+            ? MathF.Max(0f, (float) (ends - _timing.CurTime).TotalSeconds)
             : 0f;
 
         // WOLFGATE (BRAIN): the two vitals that actually decide whether this patient lives.

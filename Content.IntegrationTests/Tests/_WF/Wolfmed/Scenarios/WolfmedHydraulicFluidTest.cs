@@ -353,7 +353,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
             var s = new WolfmedScenario(SEntMan);
             var autodoc = SEntMan.System<AutodocSystem>();
             var ignored = Loc.GetString("wolfmed-autodoc-voice-reagent-ignored");
-            Assert.That(pod.Comp.LastLine == ignored || pod.Comp.VoiceQueue.Any(r => r.Line == "reagent-ignored"), Is.True,
+            Assert.That(pod.Comp!.LastLine == ignored || pod.Comp.VoiceQueue.Any(r => r.Line == "reagent-ignored"), Is.True,
                 "the pod did not say it was ignoring the oil.");
             Assert.That(s.Blood(ipc), Is.EqualTo(level).Within(0.001f), "the pod's run pumped the oil.");
 

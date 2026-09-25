@@ -137,7 +137,7 @@ public sealed class WolfmedAutodocTest : GameTest
                 var fracture = fractures.GetFracture(leg);
                 Assert.That(fracture == null || fracture.Value.Comp2.Treatment == FractureTreatment.Mended, Is.True,
                     "the pod drove set bone and mend fracture, so the bone is no longer broken.");
-                Assert.That(pod.Comp.Queue, Is.Empty, $"and the queue emptied (state {pod.Comp.State}, step {pod.Comp.CurrentStep}).");
+                Assert.That(pod.Comp!.Queue, Is.Empty, $"and the queue emptied (state {pod.Comp.State}, step {pod.Comp.CurrentStep}).");
                 Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Complete));
 
                 // Every tool is still inside the pod: nothing was dropped on the floor to be picked up.
@@ -197,7 +197,7 @@ public sealed class WolfmedAutodocTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             var slots = entities.System<ItemSlotsSystem>();
 
-            Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Waiting),
+            Assert.That(pod.Comp!.State, Is.EqualTo(AutodocState.Waiting),
                 "the insert step has no limb, so the pod is waiting with its tray open.");
             Assert.That(pod.Comp.Pending?.Kind, Is.EqualTo(AutodocRequirementKind.Part));
             Assert.That(autodoc.Matches(pod.Comp.Pending, entities.SpawnEntity("Scalpel", map.GridCoords)), Is.False,
@@ -216,7 +216,7 @@ public sealed class WolfmedAutodocTest : GameTest
                                part.Component.Symmetry == BodyPartSymmetry.Left);
 
             Assert.That(parts.Any(), Is.True, "the arm is back on the body.");
-            Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Waiting));
+            Assert.That(pod.Comp!.State, Is.Not.EqualTo(AutodocState.Waiting));
         });
     }
 
@@ -377,7 +377,7 @@ public sealed class WolfmedAutodocTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Paused), "the pod stops where it stands.");
+                Assert.That(pod.Comp!.State, Is.EqualTo(AutodocState.Paused), "the pod stops where it stands.");
                 Assert.That(pod.Comp.PowerPaused, Is.True);
             });
         });
@@ -386,7 +386,7 @@ public sealed class WolfmedAutodocTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Paused), "and stays stopped.");
+            Assert.That(pod.Comp!.State, Is.EqualTo(AutodocState.Paused), "and stays stopped.");
 
             var restored = new PowerChangedEvent(true, 1000f);
             entities.EventBus.RaiseLocalEvent(pod.Owner, ref restored);
@@ -474,7 +474,7 @@ public sealed class WolfmedAutodocTest : GameTest
         {
             var autodoc = entities.System<AutodocSystem>();
             Assert.That(autodoc.TryQueue(slipPod, "WFSurgeryMendFracture", TargetBodyPart.LeftLeg), Is.True);
-            slipPod.Comp.ForceMalfunction = true;
+            slipPod.Comp!.ForceMalfunction = true;
             Assert.That(autodoc.TryStart(slipPod, null), Is.True);
         });
 
@@ -757,7 +757,7 @@ public sealed class WolfmedAutodocTest : GameTest
             var order = TriageOrder(protos);
 
             Assert.That(autodoc.TryPlan(pod), Is.GreaterThan(0), "a broken and bleeding body planned nothing.");
-            Assert.That(pod.Comp.Queue.Select(queued => queued.Surgery.Id),
+            Assert.That(pod.Comp!.Queue.Select(queued => queued.Surgery.Id),
                 Does.Contain("WFSurgeryMendFracture"), "the plan skipped the fracture.");
 
             var ranks = pod.Comp.Queue.Select(queued => order[queued.Surgery.Id]).ToList();
@@ -846,7 +846,7 @@ public sealed class WolfmedAutodocTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.Queue, Has.Count.EqualTo(1), "self-service takes one procedure at a time.");
+                Assert.That(pod.Comp!.Queue, Has.Count.EqualTo(1), "self-service takes one procedure at a time.");
                 Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Idle), "FIX ME did not start anything.");
             });
         });
@@ -894,7 +894,7 @@ public sealed class WolfmedAutodocTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.State, Is.Not.EqualTo(AutodocState.Idle),
+                Assert.That(pod.Comp!.State, Is.Not.EqualTo(AutodocState.Idle),
                     "nobody pressed anything and the pod did nothing.");
                 Assert.That(pod.Comp.Queue, Is.Not.Empty, "the module started with an empty queue.");
             });
@@ -936,7 +936,7 @@ public sealed class WolfmedAutodocTest : GameTest
         {
             Assert.Multiple(() =>
             {
-                Assert.That(pod.Comp.AutoSaidNothing, Is.True, "the module never said it had nothing to do.");
+                Assert.That(pod.Comp!.AutoSaidNothing, Is.True, "the module never said it had nothing to do.");
                 Assert.That(pod.Comp.State, Is.EqualTo(AutodocState.Idle), "and it operated anyway.");
                 Assert.That(pod.Comp.Queue, Is.Empty);
             });
@@ -971,7 +971,7 @@ public sealed class WolfmedAutodocTest : GameTest
             var consciousness = entities.System<Content.Server._WF.Wolfmed.Consciousness.WolfmedConsciousnessSystem>();
 
             Assert.That(autodoc.GetAlarm(body), Is.EqualTo(AutodocAlarm.None), "a healthy patient set the alarm off.");
-            Assert.That(pod.Comp.AlarmLevel, Is.EqualTo(AutodocAlarm.None));
+            Assert.That(pod.Comp!.AlarmLevel, Is.EqualTo(AutodocAlarm.None));
 
             consciousness.SetExternalPressure(body, "test", 1f);
             Assert.That(autodoc.GetAlarm(body), Is.EqualTo(AutodocAlarm.Critical));
@@ -986,7 +986,7 @@ public sealed class WolfmedAutodocTest : GameTest
         await server.WaitAssertion(() =>
         {
             var autodoc = entities.System<AutodocSystem>();
-            Assert.That(pod.Comp.AlarmLevel, Is.EqualTo(AutodocAlarm.Arrest), "the pod is not beeping.");
+            Assert.That(pod.Comp!.AlarmLevel, Is.EqualTo(AutodocAlarm.Arrest), "the pod is not beeping.");
 
             var brain = entities.System<Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem>().GetBrainOrgan(body);
             Assert.That(brain, Is.Not.Null);
@@ -1001,7 +1001,7 @@ public sealed class WolfmedAutodocTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(pod.Comp.AlarmLevel, Is.EqualTo(AutodocAlarm.Flatline),
+            Assert.That(pod.Comp!.AlarmLevel, Is.EqualTo(AutodocAlarm.Flatline),
                 "the beeping did not stop when there was nothing left to beep about.");
         });
     }
@@ -1035,7 +1035,7 @@ public sealed class WolfmedAutodocTest : GameTest
             Silence(pod);
             autodoc.Control(pod, AutodocControl.Eject, null);
 
-            Assert.That(pod.Comp.LastLine, Is.EqualTo(locale.GetString("wolfmed-autodoc-voice-goodbye")),
+            Assert.That(pod.Comp!.LastLine, Is.EqualTo(locale.GetString("wolfmed-autodoc-voice-goodbye")),
                 "an eject from an idle pod raised the alarm.");
 
             var body = entities.SpawnEntity("MobHuman", map.GridCoords);

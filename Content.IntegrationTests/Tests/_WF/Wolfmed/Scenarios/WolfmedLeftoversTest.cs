@@ -222,8 +222,8 @@ public sealed class WolfmedLeftoversTest : GameTest
             var revival = SEntMan.System<WolfmedRevivalSystem>();
             var ipcCore = life.GetBrainOrgan(ipc)!.Value;
             var synthCore = life.GetBrainOrgan(synth)!.Value;
-            Note($"PodRepairsACoreTest: IPC core {ipcCore.Comp.Health}/{ipcCore.Comp.MaxHealth} (pod {ipcPod.Comp.State}), " +
-                 $"synth core {synthCore.Comp.Health}/{synthCore.Comp.MaxHealth} (pod {synthPod.Comp.State})");
+            Note($"PodRepairsACoreTest: IPC core {ipcCore.Comp.Health}/{ipcCore.Comp.MaxHealth} (pod {ipcPod.Comp!.State}), " +
+                 $"synth core {synthCore.Comp.Health}/{synthCore.Comp.MaxHealth} (pod {synthPod.Comp!.State})");
             Assert.Multiple(() =>
             {
                 Assert.That(ipcCore.Comp.Health, Is.EqualTo(ipcCore.Comp.MaxHealth),
@@ -301,7 +301,7 @@ public sealed class WolfmedLeftoversTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var rate = SEntMan.TryGetComponent<WoundBleedingComponent>(wound, out var bleed) ? bleed.CurrentRate : 0f;
-            Note($"PodClampProgressTest: pod {pod.Comp.State}, failed [{string.Join(", ", pod.Comp.FailedProcedures)}], bleed rate {rate}");
+            Note($"PodClampProgressTest: pod {pod.Comp!.State}, failed [{string.Join(", ", pod.Comp.FailedProcedures)}], bleed rate {rate}");
             Assert.Multiple(() =>
             {
                 Assert.That(pod.Comp.FailedProcedures.Contains(("WFSurgeryStopBleeding", TargetBodyPart.LeftArm)), Is.False,
