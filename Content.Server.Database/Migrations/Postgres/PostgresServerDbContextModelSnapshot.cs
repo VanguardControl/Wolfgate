@@ -997,8 +997,8 @@ namespace Content.Server.Database.Migrations.Postgres
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text[]")
-                        .HasDefaultValue(new List<string>())
-                        .HasColumnName("flags");
+                        .HasColumnName("flags")
+                        .HasDefaultValueSql("ARRAY[]::text[]");
 
                     b.Property<string>("FlavorText")
                         .IsRequired()
