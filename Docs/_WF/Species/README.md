@@ -16,6 +16,7 @@ species to upstream marking, clothing and species prototypes. The creator UI is 
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Species/AvaliChemistryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/AvaliChemistryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs)
 
 ### Prototypes
