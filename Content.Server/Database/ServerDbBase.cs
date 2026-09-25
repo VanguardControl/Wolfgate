@@ -306,10 +306,8 @@ namespace Content.Server.Database
                 traits.ToHashSet(),
                 loadouts,
                 company,
-<<<<<<< HEAD
                 profile.CustomSpeciesName ?? string.Empty, // WOLFGATE(Humanoid)
-                genitals); // WOLFGATE(Genitals)
-=======
+                genitals, // WOLFGATE(Genitals)
                 // Mono start
                 profile.Flags,
                 profile.Components.Select(component => new PersistentProfileComponent(
@@ -318,7 +316,6 @@ namespace Content.Server.Database
                 profile.Items.Select(item => new PersistentProfileItem(
                     item.Data,
                     item.Sticky))); // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
         }
 
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
@@ -353,14 +350,13 @@ namespace Content.Server.Database
             profile.Slot = slot;
             profile.PreferenceUnavailable = (DbPreferenceUnavailableMode) humanoid.PreferenceUnavailable;
             profile.Company = humanoid.Company;
-<<<<<<< HEAD
             profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE(Humanoid)
 
             // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))
                 profile.Genitals = GenitalProfileJson.Serialize(humanoid.Genitals);
             // WOLFGATE END
-=======
+
             // Mono start
             profile.Flags = [..humanoid.Flags];
             profile.Components.Clear();
@@ -376,7 +372,6 @@ namespace Content.Server.Database
                 Sticky = item.Sticky,
             }));
             // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 
             profile.Jobs.Clear();
             profile.Jobs.AddRange(

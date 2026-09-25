@@ -2480,13 +2480,11 @@ namespace Content.Server.Database.Migrations.Postgres
                 {
                     b.Navigation("Antags");
 
-<<<<<<< HEAD
-                    b.Navigation("ConsentSettings");
-=======
                     b.Navigation("Components");
 
+                    b.Navigation("ConsentSettings");
+
                     b.Navigation("Items");
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 
                     b.Navigation("Jobs");
 

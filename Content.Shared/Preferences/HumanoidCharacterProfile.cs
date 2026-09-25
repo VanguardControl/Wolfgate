@@ -146,7 +146,6 @@ namespace Content.Shared.Preferences
         [DataField]
         public string Company { get; private set; } = "None";
 
-<<<<<<< HEAD
         // WOLFGATE(Humanoid) START: custom species display name
         /// <summary>
         /// Shown instead of the species name wherever the species is displayed. Empty means
@@ -165,7 +164,7 @@ namespace Content.Shared.Preferences
         [DataField]
         public GenitalProfile Genitals { get; private set; } = GenitalProfile.Unmigrated;
         // WOLFGATE END
-=======
+
         // Mono start
         [DataField]
         public List<string> Flags { get; private set; } = [];
@@ -176,7 +175,6 @@ namespace Content.Shared.Preferences
         [DataField]
         public List<PersistentProfileItem> Items { get; private set; } = [];
         // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 
         public HumanoidCharacterProfile(
             string name,
@@ -193,16 +191,12 @@ namespace Content.Shared.Preferences
             HashSet<ProtoId<AntagPrototype>> antagPreferences,
             HashSet<ProtoId<TraitPrototype>> traitPreferences,
             Dictionary<string, RoleLoadout> loadouts,
-<<<<<<< HEAD
             string company = "None", // WOLFGATE: the company is passed through the constructor
             string customSpeciesName = "", // WOLFGATE(Humanoid)
-            GenitalProfile? genitals = null) // WOLFGATE(Genitals)
-=======
-            string company = "None",
+            GenitalProfile? genitals = null, // WOLFGATE(Genitals)
             IEnumerable<string>? flags = null, // Mono
             IEnumerable<PersistentProfileComponent>? components = null, // Mono
             IEnumerable<PersistentProfileItem>? items = null) // Mono
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
         {
             Name = name;
             FlavorText = flavortext;
@@ -219,16 +213,13 @@ namespace Content.Shared.Preferences
             _traitPreferences = traitPreferences;
             _loadouts = loadouts;
             Company = company;
-<<<<<<< HEAD
             CustomSpeciesName = customSpeciesName; // WOLFGATE(Humanoid)
             Genitals = genitals ?? GenitalProfile.Unmigrated; // WOLFGATE(Genitals)
-=======
             // Mono start
             Flags = flags is null ? [] : [..flags];
             Components = components is null ? [] : [..components];
             Items = items is null ? [] : [..items];
             // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
         }
 
         /// <summary>Copy constructor but with overridable references (to prevent useless copies)</summary>
@@ -239,13 +230,9 @@ namespace Content.Shared.Preferences
             HashSet<ProtoId<TraitPrototype>> traitPreferences,
             Dictionary<string, RoleLoadout> loadouts)
             : this(other.Name, other.FlavorText, other.Species, other.Age, other.Sex, other.Gender, other.BankBalance, other.Appearance, other.SpawnPriority,
-<<<<<<< HEAD
                 jobPriorities, other.PreferenceUnavailable, antagPreferences, traitPreferences, loadouts, other.Company, other.CustomSpeciesName, // WOLFGATE(Humanoid)
-                other.Genitals) // WOLFGATE(Genitals): GenitalProfile is immutable, so copies share it
-=======
-                jobPriorities, other.PreferenceUnavailable, antagPreferences, traitPreferences, loadouts, other.Company,
+                other.Genitals, // WOLFGATE(Genitals): GenitalProfile is immutable, so copies share it
                 other.Flags, other.Components, other.Items) // Mono
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
         {
         }
 
@@ -265,16 +252,12 @@ namespace Content.Shared.Preferences
                 new HashSet<ProtoId<AntagPrototype>>(other.AntagPreferences),
                 new HashSet<ProtoId<TraitPrototype>>(other.TraitPreferences),
                 new Dictionary<string, RoleLoadout>(other.Loadouts),
-<<<<<<< HEAD
                 other.Company, // WOLFGATE: copies keep the company
                 other.CustomSpeciesName, // WOLFGATE(Humanoid)
-                other.Genitals.Clone()) // WOLFGATE(Genitals)
-=======
-                other.Company,
+                other.Genitals.Clone(), // WOLFGATE(Genitals)
                 other.Flags, // Mono
                 other.Components, // Mono
                 other.Items) // Mono
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
         {
         }
 
@@ -610,14 +593,11 @@ namespace Content.Shared.Preferences
             if (SpawnPriority != other.SpawnPriority) return false;
             if (Species != other.Species) return false;
             if (Company != other.Company) return false;
-<<<<<<< HEAD
             if (CustomSpeciesName != other.CustomSpeciesName) return false; // WOLFGATE(Humanoid)
             if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE(Genitals)
-=======
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
             if (!Items.SequenceEqual(other.Items)) return false; // Mono
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
             if (!_jobPriorities.SequenceEqual(other._jobPriorities)) return false;
             if (!_antagPreferences.SequenceEqual(other._antagPreferences)) return false;
             if (!_traitPreferences.SequenceEqual(other._traitPreferences)) return false;

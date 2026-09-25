@@ -64,7 +64,6 @@ namespace Content.Server.Database
                 .HasIndex(p => new {p.Slot, PrefsId = p.PreferenceId})
                 .IsUnique();
 
-<<<<<<< HEAD
             // WOLFGATE(Genitals) START: consent system ported from HardLight
             modelBuilder.Entity<ConsentSettings>()
                 .HasIndex(c => new { c.UserId, c.ProfileId })
@@ -96,7 +95,7 @@ namespace Content.Server.Database
                 .HasForeignKey(c => c.ReadConsentSettingsId)
                 .IsRequired();
             // WOLFGATE END
-=======
+
             // Mono start
             modelBuilder.Entity<Profile>()
                 .Property(p => p.Flags)
@@ -114,7 +113,6 @@ namespace Content.Server.Database
                 .HasForeignKey(e => e.ProfileId)
                 .IsRequired();
             // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 
             modelBuilder.Entity<Antag>()
                 .HasIndex(p => new {HumanoidProfileId = p.ProfileId, p.AntagName})
@@ -511,19 +509,17 @@ namespace Content.Server.Database
 
         public string Company { get; set; } = "None";
 
-<<<<<<< HEAD
         // WOLFGATE(Humanoid): player-set species name override, empty when unused.
         [Column("custom_species_name")] public string CustomSpeciesName { get; set; } = "";
 
         // WOLFGATE(Genitals): creator anatomy as versioned JSON; empty until the profile is migrated or saved.
         [Column("genitals")] public string Genitals { get; set; } = "";
-=======
+
         // Mono start
         public List<string> Flags { get; set; } = [];
         public List<ProfileComponent> Components { get; } = [];
         public List<ProfileItem> Items { get; } = [];
         // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
@@ -531,7 +527,6 @@ namespace Content.Server.Database
         public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE(Genitals): consent system
     }
 
-<<<<<<< HEAD
     // WOLFGATE(Genitals) START: consent system ported from HardLight
     #region Consent Settings
 
@@ -592,7 +587,7 @@ namespace Content.Server.Database
 
     #endregion
     // WOLFGATE END
-=======
+
     // Mono start
     public class ProfileComponent
     {
@@ -612,7 +607,6 @@ namespace Content.Server.Database
         public bool Sticky { get; set; }
     }
     // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 
     public class Job
     {

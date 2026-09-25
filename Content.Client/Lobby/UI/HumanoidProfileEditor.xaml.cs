@@ -14,11 +14,8 @@ using Content.Client.Players.PlayTimeTracking;
 using Content.Client.Sprite;
 using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Client.UserInterface.Controls;
-<<<<<<< HEAD
 using Content.Client._WF.UserInterface.Controls; // WOLFGATE(UserInterface)
-=======
 using Content.Shared._Mono.Persistence; // Mono
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
 using Content.Shared._Mono.Company;
 using Content.Shared.CCVar;
 using Content.Shared.Clothing;
@@ -1855,13 +1852,11 @@ namespace Content.Client.Lobby.UI
 
             _loadoutWindow?.Dispose();
             _loadoutWindow = null;
-<<<<<<< HEAD
             // WOLFGATE(Genitals) START: also close the job title and anatomy confirm windows
             CloseCustomJobTitle();
             _anatomySaveConfirm?.Close();
             _anatomySaveConfirm = null;
             // WOLFGATE END
-=======
 
             // Mono start
             foreach (var entity in _savedItemEntities)
@@ -1869,7 +1864,6 @@ namespace Content.Client.Lobby.UI
 
             _savedItemEntities.Clear();
             // Mono end
->>>>>>> 06cebada9b (Persistence: Atempt 2 (#4743))
         }
 
         protected override void EnteredTree()
