@@ -25341,3 +25341,10 @@ Entries:
   id: 2757
   time: '2026-09-25T01:05:38.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4764
+- author: Mrrpip
+  changes:
+    - type: Fix
+      message: Fixed cosmetic details on the Triage.
+  id: 2758
+  time: '2026-09-25T01:35:39.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4753
