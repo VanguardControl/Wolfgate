@@ -31,6 +31,8 @@ using Content.Shared.Mind;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Players;
+using Content.Shared.Speech.EntitySystems;
+using Content.Shared.StatusEffect;
 using NUnit.Framework;
 using Robust.Client.UserInterface;
 using Robust.Shared.Containers;
@@ -262,6 +264,10 @@ public sealed class WolfmedHonestEndingTest : GameTest
 
         // --- Arrest: Last Words, the ghost command, then Succumb. ---
         var (body, mindId) = await Possess("MobHuman", map);
+        // A pooled pair's client keeps its chat history from earlier tests: read only what this one adds.
+        var historyStart = 0;
+        await Client.WaitPost(() => historyStart = Client.ResolveDependency<IUserInterfaceManager>()
+            .GetUIController<ChatUIController>().History.Count);
         FixedPoint2 asphyxiation = default;
         await Server.WaitAssertion(() =>
         {
@@ -282,8 +288,8 @@ public sealed class WolfmedHonestEndingTest : GameTest
         await Client.WaitPost(() =>
         {
             var chat = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>();
-            heard = chat.History.Any(h => h.Msg.Channel == ChatChannel.Whisper && Unstutter(h.Msg.Message).Contains("crew of the") &&
-                                          !Unstutter(h.Msg.Message).Contains("Wolfgate"));
+            heard = chat.History.Skip(historyStart).Any(h => h.Msg.Channel == ChatChannel.Whisper &&
+                                                             h.Msg.Message.Contains("crew of the"));
         });
         Assert.That(heard, Is.False, "last words were whispered before Let go was answered.");
 
@@ -348,6 +354,8 @@ public sealed class WolfmedHonestEndingTest : GameTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(s.Life.StartArrest(body, "oxygen"), Is.True);
+            // The shock and the repaired brain stutter, and a stutter drops letters at random: whisper without it.
+            SEntMan.System<StatusEffectsSystem>().TryRemoveStatusEffect(body, SharedStutteringSystem.StutterKey);
             // Playtest 3: the whisper prompt's answer whispers, cut to the limit, and then lets go.
             Assert.That(dying.SayLastWords(body, "Remember me to the crew of the Wolfgate", 30), Is.True);
             Assert.That(mobState.IsDead(body), Is.True, "last words did not let go.");
@@ -357,8 +365,9 @@ public sealed class WolfmedHonestEndingTest : GameTest
         await Client.WaitPost(() =>
         {
             var chat = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>();
-            heard = chat.History.Any(h => h.Msg.Channel == ChatChannel.Whisper && Unstutter(h.Msg.Message).Contains("crew of the") &&
-                                          !Unstutter(h.Msg.Message).Contains("Wolfgate"));
+            heard = chat.History.Skip(historyStart).Any(h => h.Msg.Channel == ChatChannel.Whisper &&
+                                                             h.Msg.Message.Contains("crew of the") &&
+                                                             !h.Msg.Message.Contains("Wolfgate"));
         });
         Assert.That(heard, Is.True, "the last words were not whispered, or not cut to 30 characters.");
         returnPrompts = await ClientWindows<ReturnToBodyMenu>();
@@ -451,8 +460,4 @@ public sealed class WolfmedHonestEndingTest : GameTest
         });
         Assert.That(heard, Is.True, "a Critical player did not hear speech next to them.");
     }
-
-    /// <summary>The defib shock leaves a stutter ("crew-w of-f t-t-th-he"); read the words through it.</summary>
-    private static string Unstutter(string text) =>
-        System.Text.RegularExpressions.Regex.Replace(text.Replace("-", ""), @"(.)\1+", "$1");
 }

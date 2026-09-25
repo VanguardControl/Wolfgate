@@ -3242,3 +3242,10 @@ argument is used by its healing test.
 
 Run 8, the audited tree, full filter: 495 tests, 485 passed, 0 failed, 10 skipped (dirty-disposed), 19.2 minutes,
 peak RSS 9.7 GB; every one of the ten passed alone. `modules.py --check` and `--pr-check origin/main` pass.
+
+**`HonestEndingScenarioTest`, found.** Not order-dependent after all: the body still stutters from the defibrillator
+shock and the repaired brain when it whispers its last words, and the engine's stutter drops a consonant about 3%
+of the time per consonant, so "crew of the" lost a letter in roughly one run in six. The old `Unstutter` helper
+undid repeats but not a dropped letter. The test now removes the stutter in the same server step as the whisper
+and reads only the chat its own section adds, since a pooled pair's client keeps its history; thirty repeats
+passed. `CriticalHearingTest` reads the shared history the same way and could pass falsely, never fail; left as is.
