@@ -3,8 +3,9 @@
 Playable species ported from HardLight and Starlight, plus Wolfgate's own Canine. The module holds what they need
 beyond the upstream species pipeline: markings (including scars and tattoos any species can use), voices and speech
 emotes, languages, metabolizer types, the Skrell damage modifier set, typing indicators, silicon screams, meat, the
-Rodentia squeeze under tables, and guidebook pages. Its marked edits add the species to upstream marking, clothing and
-species prototypes. The creator UI is in Humanoid.
+Rodentia squeeze under tables, Avali chemistry (amoxla, its auto-injector and the reagent rules that make saline,
+dexalin and iron poison Avali while ammonia heals their airloss), and guidebook pages. Its marked edits add the
+species to upstream marking, clothing and species prototypes. The creator UI is in Humanoid.
 
 `ShadekinNightVisionTest` covers Shadekin night vision.
 
@@ -20,6 +21,7 @@ species prototypes. The creator UI is in Humanoid.
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Species/canine.yml`](../../../Resources/Prototypes/_WF/Species/canine.yml)
+- [`Resources/Prototypes/_WF/Species/Chemistry/medicine.yml`](../../../Resources/Prototypes/_WF/Species/Chemistry/medicine.yml)
 - [`Resources/Prototypes/_WF/Species/Chemistry/metabolizer_types.yml`](../../../Resources/Prototypes/_WF/Species/Chemistry/metabolizer_types.yml)
 - [`Resources/Prototypes/_WF/Species/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_WF/Species/Damage/modifier_sets.yml)
 - [`Resources/Prototypes/_WF/Species/Entities/Mobs/Customization/Markings/felinid.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Mobs/Customization/Markings/felinid.yml)
@@ -30,7 +32,10 @@ species prototypes. The creator UI is in Humanoid.
 - [`Resources/Prototypes/_WF/Species/Entities/Mobs/Customization/Markings/tattoos.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Mobs/Customization/Markings/tattoos.yml)
 - [`Resources/Prototypes/_WF/Species/Entities/Mobs/Species/canine.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Mobs/Species/canine.yml)
 - [`Resources/Prototypes/_WF/Species/Entities/Objects/Consumable/Food/meat.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Objects/Consumable/Food/meat.yml)
+- [`Resources/Prototypes/_WF/Species/Entities/Objects/Specific/Medical/hypospray.yml`](../../../Resources/Prototypes/_WF/Species/Entities/Objects/Specific/Medical/hypospray.yml)
 - [`Resources/Prototypes/_WF/Species/Guidebook/species.yml`](../../../Resources/Prototypes/_WF/Species/Guidebook/species.yml)
+- [`Resources/Prototypes/_WF/Species/Recipes/Lathes/med_assembler.yml`](../../../Resources/Prototypes/_WF/Species/Recipes/Lathes/med_assembler.yml)
+- [`Resources/Prototypes/_WF/Species/Recipes/Reactions/medicine.yml`](../../../Resources/Prototypes/_WF/Species/Recipes/Reactions/medicine.yml)
 - [`Resources/Prototypes/_WF/Species/SoundCollections/screams.yml`](../../../Resources/Prototypes/_WF/Species/SoundCollections/screams.yml)
 - [`Resources/Prototypes/_WF/Species/tags.yml`](../../../Resources/Prototypes/_WF/Species/tags.yml)
 - [`Resources/Prototypes/_WF/Species/typing_indicator.yml`](../../../Resources/Prototypes/_WF/Species/typing_indicator.yml)
@@ -52,6 +57,7 @@ species prototypes. The creator UI is in Humanoid.
 - [`Resources/Locale/en-US/_WF/Species/markings/vox.ftl`](../../../Resources/Locale/en-US/_WF/Species/markings/vox.ftl)
 - [`Resources/Locale/en-US/_WF/Species/markings/vulpkanin.ftl`](../../../Resources/Locale/en-US/_WF/Species/markings/vulpkanin.ftl)
 - [`Resources/Locale/en-US/_WF/Species/metabolism/metabolizer-types.ftl`](../../../Resources/Locale/en-US/_WF/Species/metabolism/metabolizer-types.ftl)
+- [`Resources/Locale/en-US/_WF/Species/reagents/meta/medicine.ftl`](../../../Resources/Locale/en-US/_WF/Species/reagents/meta/medicine.ftl)
 - [`Resources/Locale/en-US/_WF/Species/reagents/meta/physical-desc.ftl`](../../../Resources/Locale/en-US/_WF/Species/reagents/meta/physical-desc.ftl)
 - [`Resources/Locale/en-US/_WF/Species/shitmed-species.ftl`](../../../Resources/Locale/en-US/_WF/Species/shitmed-species.ftl)
 - [`Resources/Locale/en-US/_WF/Species/species.ftl`](../../../Resources/Locale/en-US/_WF/Species/species.ftl)
@@ -59,6 +65,7 @@ species prototypes. The creator UI is in Humanoid.
 ### Textures
 
 - [`Resources/Textures/_WF/Species/Mobs/Species/Canine/parts.rsi/`](../../../Resources/Textures/_WF/Species/Mobs/Species/Canine/parts.rsi/)
+- [`Resources/Textures/_WF/Species/Objects/Specific/Medical/avalipen.rsi/`](../../../Resources/Textures/_WF/Species/Objects/Specific/Medical/avalipen.rsi/)
 
 ### Guidebook
 
@@ -253,6 +260,7 @@ species prototypes. The creator UI is in Humanoid.
 - [`Resources/Prototypes/_Moffstation/Entities/Mobs/Customization/Markings/resomi_hair.yml`](../../../Resources/Prototypes/_Moffstation/Entities/Mobs/Customization/Markings/resomi_hair.yml): was [Resomi]
 - [`Resources/Prototypes/_Moffstation/Entities/Mobs/Customization/Markings/resomi_tail.yml`](../../../Resources/Prototypes/_Moffstation/Entities/Mobs/Customization/Markings/resomi_tail.yml): was [Resomi]
 - [`Resources/Prototypes/_Mono/Entities/Mobs/Customization/Markings/protogen.yml`](../../../Resources/Prototypes/_Mono/Entities/Mobs/Customization/Markings/protogen.yml): was [Protogen]
+- [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/med_assembler.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/med_assembler.yml): Avali auto-injector (amoxla and tranexamic acid)
 - [`Resources/Prototypes/_Mono/Species/protogen.yml`](../../../Resources/Prototypes/_Mono/Species/protogen.yml): was false, so only the subspecies were playable
 - [`Resources/Prototypes/_Mono/Traits/physical.yml`](../../../Resources/Prototypes/_Mono/Traits/physical.yml): Canine is a Vulpkanin copy
 - [`Resources/Prototypes/_NF/Entities/Mobs/Customization/Markings/human_hair.yml`](../../../Resources/Prototypes/_NF/Entities/Mobs/Customization/Markings/human_hair.yml): ported from HardLight
@@ -332,6 +340,16 @@ species prototypes. The creator UI is in Humanoid.
 - [`Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/felinid.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/felinid.yml): ProtoFeline
 - [`Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/moth.yml`](../../../Resources/Prototypes/Nyanotrasen/Entities/Mobs/Customization/Markings/moth.yml): was [Moth]
 - [`Resources/Prototypes/Nyanotrasen/Voice/speech_emotes.yml`](../../../Resources/Prototypes/Nyanotrasen/Voice/speech_emotes.yml): was the default scream icon
+- [`Resources/Prototypes/Reagents/botany.yml`](../../../Resources/Prototypes/Reagents/botany.yml)
+  - ammonia isn't caustic to Avali (Starlight)
+  - ammonia heals Avali airloss (Starlight); kept in the Poison group so nobody else metabolises it faster
+- [`Resources/Prototypes/Reagents/elements.yml`](../../../Resources/Prototypes/Reagents/elements.yml): iron poisons Avali (Starlight)
+- [`Resources/Prototypes/Reagents/medicine.yml`](../../../Resources/Prototypes/Reagents/medicine.yml)
+  - dexalin doesn't heal Avali; their blood is ammonia-based (Starlight)
+  - dexalin poisons Avali (Starlight), scaled to Mono's 0.2 rate so a unit still does 3/2/2
+  - dexalin plus doesn't heal Avali; their blood is ammonia-based (Starlight)
+  - dexalin plus poisons Avali harder than dexalin (Starlight; lethal dose 15u)
+  - saline is lethal to Avali (Starlight); the heart pass doubles the blood restore for everyone else
 - [`Resources/Prototypes/Species/slime.yml`](../../../Resources/Prototypes/Species/slime.yml): ported from HardLight, slimes take the head and tail marking slots of other species
 - [`Resources/Prototypes/Species/species_weights.yml`](../../../Resources/Prototypes/Species/species_weights.yml)
   - ported from HardLight/Starlight
