@@ -144,13 +144,17 @@ public sealed partial class WFFleshTickSystem : EntitySystem
 
     private void OnLand(Entity<WFFleshTickComponent> ent, ref LandEvent args)
     {
+        if (ent.Comp.Leaping)
+            ent.Comp.LeapLandsBy = _timing.CurTime + LeapLandingGrace;
+
         ent.Comp.Leaping = false;
     }
 
     // A throw arcs through the z-level, so a missed leap comes down fast enough to count as a fall.
     private void OnFallDamage(Entity<WFFleshTickComponent> ent, ref CEZFallingDamageCalculateEvent args)
     {
-        if (args.Fallen != ent.Owner || _timing.CurTime > ent.Comp.LeapLandsBy)
+        var now = _timing.CurTime;
+        if (args.Fallen != ent.Owner || !(ent.Comp.Leaping && now < ent.Comp.NextLeap || now <= ent.Comp.LeapLandsBy))
             return;
 
         args.DamageMultiplier = 0f;
@@ -372,13 +376,8 @@ public sealed partial class WFFleshTickSystem : EntitySystem
             playSound: false,
             doSpin: false);
 
-        if (!TryComp<ThrownItemComponent>(tick.Owner, out var thrown))
-        {
+        if (!HasComp<ThrownItemComponent>(tick.Owner))
             tick.Comp.Leaping = false;
-            return;
-        }
-
-        tick.Comp.LeapLandsBy = (thrown.LandTime ?? _timing.CurTime) + LeapLandingGrace;
     }
 
     private EntityUid? FindLeapTarget(EntityUid tick, WFFleshTickComponent component)

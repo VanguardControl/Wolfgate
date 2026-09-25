@@ -6,6 +6,7 @@ using Content.Shared._WF.PlanetCracker.Chunk;
 using Content.Shared._WF.PlanetCracker.Cracker;
 using Content.Shared.Popups;
 using Robust.Shared.Audio;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 
 namespace Content.Server._WF.PlanetCracker.Chunk;
@@ -19,10 +20,14 @@ public sealed partial class WFPlanetChunkSystem
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private LinkedLifecycleGridSystem _lifecycle = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedGridTraversalSystem _traversal = default!;
     [Dependency] private WFCrackScarSystem _scars = default!;
 
     /// <summary>Landed chunks to clean up after the sweep, since the cleanup deletes synchronously.</summary>
     private readonly List<Entity<WFPlanetChunkComponent>> _cleanupBuffer = new();
+
+    /// <summary>Map-level entities under a chunk that has just been snapped back onto its crater.</summary>
+    private readonly HashSet<EntityUid> _snapCovered = new();
 
     /// <summary>Pre-drop beats each evacuating chunk has fired, so a re-entered sweep can't repeat one.</summary>
     private readonly Dictionary<EntityUid, byte> _evacBeats = new();
@@ -187,6 +192,7 @@ public sealed partial class WFPlanetChunkSystem
 
         // The chunk is dynamic through the fall, so it may have slid off its crater.
         _transform.SetWorldPositionRotation(ent.Owner, ent.Comp.DropWorldPos, ent.Comp.DropWorldRot);
+        TraverseSnapCovered(ent.Owner);
 
         // Static also stops the CE fall sweep ever looking at the wreck again: it skips static bodies.
         _shuttle.Disable(ent.Owner, force: true);
@@ -206,6 +212,35 @@ public sealed partial class WFPlanetChunkSystem
 
         var ev = new WFChunkLandedEvent(ent.Owner, cracker, ground);
         RaiseLocalEvent(ref ev);
+    }
+
+    /// <summary>Grid-traverses whatever the landing snap put the chunk over, before the physics step can.</summary>
+    // In FindGridContacts the traversal of a mob's first proxy destroys all its proxies and the loop re-adds the
+    // rest; the chunk frame equals the ground's, so that stale proxy repeats the live one's pairs and AddPair asserts.
+    private void TraverseSnapCovered(EntityUid chunk)
+    {
+        if (!_traversal.Enabled
+            || Transform(chunk).MapUid is not { } map
+            || !TryComp<MapGridComponent>(chunk, out var grid))
+            return;
+
+        // A map sits at the world origin, so the chunk's world AABB is also the map-local one.
+        var aabb = _transform.GetWorldMatrix(chunk).TransformBox(grid.LocalAABB);
+
+        _snapCovered.Clear();
+        _lookup.GetLocalEntitiesIntersecting(map, aabb, _snapCovered,
+            LookupFlags.Dynamic | LookupFlags.Static | LookupFlags.Sensors | LookupFlags.Approximate);
+
+        foreach (var uid in _snapCovered)
+        {
+            var xform = Transform(uid);
+
+            // The engine traversal's own filter: loose, map-parented, not a grid.
+            if (xform.ParentUid != map || xform.Anchored || !xform.GridTraversal || HasComp<MapGridComponent>(uid))
+                continue;
+
+            _traversal.CheckTraversal(uid, xform, map);
+        }
     }
 
     /// <summary>Removes the wreck after the blasts drain; call after the sweep, as it deletes synchronously.</summary>

@@ -287,6 +287,9 @@ public sealed partial class WFCrackerSystem
 
         ReleaseLock(ent);
 
+        // The cut pair went down with the chunk; left owned, the next survey would snap straight back to AnchorsPlaced.
+        DisownTargetedPair(ent);
+
         // Before the chunk is deleted, so its dying anchors don't start an abort.
         ClearTarget(ent);
 
@@ -297,6 +300,19 @@ public sealed partial class WFCrackerSystem
 
         SetState(ent, WFCrackState.Released);
         Announce(ent.Owner, "wf-crack-released");
+    }
+
+    /// <summary>Releases the targeted anchors from this hull's ownership.</summary>
+    private void DisownTargetedPair(Entity<WFPlanetCrackerComponent> ent)
+    {
+        foreach (var net in new[] { ent.Comp.AnchorA, ent.Comp.AnchorB })
+        {
+            if (!TryGetAnchor(net, out var anchor) || anchor.Comp.Cracker != GetNetEntity(ent.Owner))
+                continue;
+
+            anchor.Comp.Cracker = null;
+            Dirty(anchor);
+        }
     }
 
     /// <summary>The Released sweep branch: the hull settles back to Idle, and the survey edge takes it from there.</summary>

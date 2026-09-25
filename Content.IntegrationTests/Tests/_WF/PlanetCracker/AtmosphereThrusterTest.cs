@@ -285,6 +285,8 @@ public sealed class AtmosphereThrusterTest
             AssertSingleEngineBank(em, hull, engine, 4000f);
         });
 
+        // The pool only deletes the last test map, so the first one (and the hull on it) goes here.
+        await server.WaitPost(() => em.DeleteEntity(space.MapUid));
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }

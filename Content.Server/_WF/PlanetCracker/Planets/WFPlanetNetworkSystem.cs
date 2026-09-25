@@ -265,18 +265,30 @@ public sealed partial class WFPlanetNetworkSystem : EntitySystem
         return network.Owner;
     }
 
-    /// <summary>Deletes a network and its layers, and clears the owning sector body's record of it.</summary>
+    /// <summary>Deletes a network, its layers and the transit maps between them; clears the body's record.</summary>
     public void DeleteNetwork(EntityUid network)
     {
-        if (TryComp<WFPlanetNetworkComponent>(network, out var comp)
-            && comp.Planet is { } planetUid
-            && TryComp<WFSectorPlanetComponent>(planetUid, out var sector))
+        if (TryComp<WFPlanetNetworkComponent>(network, out var comp))
         {
-            sector.Network = null;
-            sector.OrbitMap = null;
+            if (comp.Planet is { } planetUid && TryComp<WFSectorPlanetComponent>(planetUid, out var sector))
+            {
+                sector.Network = null;
+                sector.OrbitMap = null;
 
-            if (!TerminatingOrDeleted(planetUid))
-                Dirty(planetUid, sector);
+                if (!TerminatingOrDeleted(planetUid))
+                    Dirty(planetUid, sector);
+            }
+
+            // CE only deletes the layers, so a hull caught mid-fall would outlive the planet on its transit map.
+            var transits = EntityQueryEnumerator<CEZTransitMapComponent>();
+            while (transits.MoveNext(out var uid, out var transit))
+            {
+                if (transit.LowerMap is { } lower && comp.Layers.Contains(lower)
+                    || transit.UpperMap is { } upper && comp.Layers.Contains(upper))
+                {
+                    QueueDel(uid);
+                }
+            }
         }
 
         _zLevels.DeleteMapNetwork(network);
