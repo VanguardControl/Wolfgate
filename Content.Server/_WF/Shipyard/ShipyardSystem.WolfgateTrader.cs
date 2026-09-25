@@ -8,6 +8,7 @@ using Content.Server.StationEvents.Components;
 using Content.Shared._Mono.Company;
 using Content.Shared._Mono.Shipyard;
 using Content.Shared._Mono.Ships.Components;
+using Content.Shared._WF.ShipAccess;
 using Content.Shared._WF.ShipPa;
 using Content.Shared._NF.Shipyard;
 using Content.Shared._NF.Shipyard.Components;
@@ -236,8 +237,9 @@ public sealed partial class ShipyardSystem
         RemComp<CompanyComponent>(grid);
         RemComp<FTLComponent>(grid);
 
-        // Guests the seller waved aboard, by card and by borg.
+        // Guests the seller waved aboard, by card and by borg, and the seller's owner record and allow list.
         RemComp<ShipGuestAccessComponent>(grid);
+        RemComp<WFShipAccessComponent>(grid);
 
         // Job slots and the station they were counted against; the console saves them again on power loss.
         RemComp<ShuttleConsoleJobSlotsComponent>(grid);

@@ -13,6 +13,7 @@ using Content.Shared._Mono.Company;
 using Content.Shared.Ghost;
 using Content.Shared.Silicons.StationAi;
 using Robust.Shared.Map;
+using Content.Shared._WF.ShipAccess; // WOLFGATE(ShipAccess)
 
 namespace Content.Shared._Mono.Shipyard;
 
@@ -111,6 +112,19 @@ public sealed partial class ShipAccessReaderSystem : EntitySystem
         }
 
         var gridUid = targetTransform.GridUid.Value;
+
+        // WOLFGATE(ShipAccess) START: per-person access (owner, allow list, faction) is decided before the deed rules
+        var wfAccess = new WFShipAccessCheckEvent(user, target, gridUid);
+        RaiseLocalEvent(ref wfAccess);
+        if (wfAccess.Result == WFShipAccessResult.Allow)
+            return true;
+        if (wfAccess.Result == WFShipAccessResult.Deny)
+        {
+            if (!silent && component.ShowDeniedPopup)
+                _popup.PopupClient(Loc.GetString(component.DeniedMessage), target, user);
+            return false;
+        }
+        // WOLFGATE END
 
         // Check if the grid has a ship deed (is a purchased ship)
         if (!TryComp<ShuttleDeedComponent>(gridUid, out var shipDeed))

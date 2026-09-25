@@ -1,0 +1,82 @@
+<BoxContainer xmlns="https://spacestation14.io"
+              xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+              xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
+              Visible="False"
+              HorizontalExpand="True">
+    <PanelContainer VerticalExpand="True" HorizontalExpand="True" Margin="4 4 4 4">
+        <PanelContainer.PanelOverride>
+            <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#525252" BackgroundColor="#3d474d"/>
+        </PanelContainer.PanelOverride>
+        <PanelContainer VerticalExpand="True" HorizontalExpand="True" Margin="2 2 2 2">
+            <PanelContainer.PanelOverride>
+                <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#333333" BackgroundColor="#181818"/>
+            </PanelContainer.PanelOverride>
+            <ScrollContainer VerticalExpand="True"
+                             HorizontalExpand="True"
+                             VScrollEnabled="True"
+                             HScrollEnabled="False">
+                <BoxContainer Orientation="Vertical"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Center"
+                              MinWidth="520"
+                              MaxWidth="520"
+                              Margin="5 5 5 5">
+                    <controls:StripeBack MinSize="48 48">
+                        <Label Text="{Loc 'ship-access-title'}" VerticalExpand="True" HorizontalAlignment="Center"/>
+                    </controls:StripeBack>
+                    <Label Name="ReadOnlyLabel"
+                           Text="{Loc 'ship-access-read-only'}"
+                           StyleClasses="LabelSecondaryColor"
+                           HorizontalAlignment="Center"
+                           Margin="4 4 4 4"/>
+                    <PanelContainer HorizontalExpand="True" Margin="4 4 4 4">
+                        <PanelContainer.PanelOverride>
+                            <graphics:StyleBoxFlat BorderThickness="2" BorderColor="#151515" BackgroundColor="#050505"/>
+                        </PanelContainer.PanelOverride>
+                        <GridContainer Columns="2" HorizontalExpand="True" Margin="6 6 6 6">
+                            <Label Text="{Loc 'ship-access-owner'}" FontColorOverride="#00ff2a"/>
+                            <Label Name="OwnerLabel" Text="-" HorizontalExpand="True" Align="Right" FontColorOverride="#00ff2a"/>
+                            <Label Text="{Loc 'ship-access-mode'}" FontColorOverride="#00ff2a"/>
+                            <Label Name="ModeLabel" Text="-" HorizontalExpand="True" Align="Right" FontColorOverride="#00ff2a"/>
+                            <Label Text="{Loc 'ship-access-lock'}" FontColorOverride="#00ff2a"/>
+                            <Label Name="LockedLabel" Text="-" HorizontalExpand="True" Align="Right" FontColorOverride="#00ff2a"/>
+                            <CheckBox Name="LockedCheck"
+                                      Text="{Loc 'ship-access-locked-check'}"
+                                      HorizontalExpand="True"
+                                      HorizontalAlignment="Right"
+                                      Visible="False"/>
+                        </GridContainer>
+                    </PanelContainer>
+                    <BoxContainer Name="ClaimBox" Orientation="Vertical" Margin="8 4 8 4" Visible="False">
+                        <Label Text="{Loc 'ship-access-unowned'}" StyleClasses="LabelSecondaryColor" HorizontalAlignment="Center"/>
+                        <Button Name="ClaimButton"
+                                Text="{Loc 'ship-access-claim'}"
+                                StyleClasses="ButtonSquare"
+                                MinSize="0 40"
+                                Margin="0 4 0 0"/>
+                    </BoxContainer>
+                    <controls:StripeBack MinSize="48 48" Margin="0 8 0 0">
+                        <Label Text="{Loc 'ship-access-allow-list'}" VerticalExpand="True" HorizontalAlignment="Center"/>
+                    </controls:StripeBack>
+                    <BoxContainer Name="AllowListContainer" Orientation="Vertical" Margin="8 4 8 4" SeparationOverride="2"/>
+                    <Label Name="AllowListEmptyLabel"
+                           Text="{Loc 'ship-access-allow-list-empty'}"
+                           StyleClasses="LabelSecondaryColor"
+                           HorizontalAlignment="Center"
+                           Margin="4 4 4 4"/>
+                    <BoxContainer Name="NearbyBox" Orientation="Vertical" Visible="False">
+                        <controls:StripeBack MinSize="48 48" Margin="0 8 0 0">
+                            <Label Text="{Loc 'ship-access-nearby'}" VerticalExpand="True" HorizontalAlignment="Center"/>
+                        </controls:StripeBack>
+                        <BoxContainer Name="NearbyContainer" Orientation="Vertical" Margin="8 4 8 4" SeparationOverride="2"/>
+                        <Label Name="NearbyEmptyLabel"
+                               Text="{Loc 'ship-access-nearby-empty'}"
+                               StyleClasses="LabelSecondaryColor"
+                               HorizontalAlignment="Center"
+                               Margin="4 4 4 4"/>
+                    </BoxContainer>
+                </BoxContainer>
+            </ScrollContainer>
+        </PanelContainer>
+    </PanelContainer>
+</BoxContainer>
