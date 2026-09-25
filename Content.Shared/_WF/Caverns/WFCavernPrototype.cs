@@ -4,7 +4,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Caverns;
 
-/// <summary>The cavern under one planet surface: the map it is built from, its seed and its light.</summary>
+/// <summary>The cavern under one planet surface: the map it is built from, its seed, its light and its mouths.</summary>
 // Kind named explicitly: Robust would derive "wFCavern".
 [Prototype("wfCavern")]
 public sealed partial class WFCavernPrototype : IPrototype
@@ -36,4 +36,8 @@ public sealed partial class WFCavernPrototype : IPrototype
     /// <summary>The share of the ground's map light that reaches the cavern through its shafts.</summary>
     [DataField]
     public float ShaftLight = 0.5f;
+
+    /// <summary>Where the ways down are cut and how each one is fitted out.</summary>
+    [DataField(required: true)]
+    public WFCavernMouthSpec Mouths = default!;
 }

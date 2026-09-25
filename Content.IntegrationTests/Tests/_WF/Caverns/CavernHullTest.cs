@@ -13,7 +13,7 @@ using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
-/// <summary>The hull guard: with a cavern below, every hull path still stops at the ground.</summary>
+/// <summary>The hull guard: with a cavern below, every hull path still stops at the ground, over a mouth too.</summary>
 [TestFixture]
 [TestOf(typeof(CEZLevelsSystem))]
 public sealed class CavernHullTest
@@ -139,6 +139,82 @@ public sealed class CavernHullTest
         Assert.That(landed, Is.True, "The lander never landed back on the ground with caverns on.");
 
         await Teardown(pair, world);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A 3x3 hull parked over the gate stands on its pinned lip and never leaves the ground.</summary>
+    [Test]
+    public async Task HullOverMouthStaysOnGround()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
+
+        try
+        {
+            var gate = await Gate(pair, world);
+
+            // Over the hole and the lip's bottom-left corner: the lip is the only ground under it.
+            var from = gate.Origin - Vector2i.One;
+            var hull = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), size: 3,
+                offset: new Vector2(from.X, from.Y));
+
+            await server.WaitAssertion(() =>
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(entMan.GetComponent<TransformComponent>(hull).MapUid, Is.EqualTo(world.Ground),
+                        "Precondition: the hull is not on the ground map.");
+                    Assert.That(SolidTiles(entMan, maps, world.Ground, from, from + new Vector2i(2, 2)),
+                        Is.EqualTo(9 - gate.Size * gate.Size), "Precondition: the ground under the hull is not just the lip.");
+                }
+            });
+
+            // Past the three-second grace, so gravity has had its say.
+            await AssertNeverBelowGround(pair, world, hull, seconds: 5, stayOn: world.Ground);
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A 1x1 debris grid inside the gate's hole may churn, but never enters the cavern.</summary>
+    [Test]
+    public async Task SmallDebrisOverMouthNeverEntersCavern()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
+
+        try
+        {
+            var gate = await Gate(pair, world);
+
+            // Centred in the 2x2 hole, clear of the lip on every side.
+            var debris = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), size: 1,
+                offset: new Vector2(gate.Origin.X + 0.5f, gate.Origin.Y + 0.5f));
+
+            await server.WaitAssertion(() =>
+                Assert.That(entMan.GetComponent<TransformComponent>(debris).MapUid, Is.EqualTo(world.Ground),
+                    "Precondition: the debris is not on the ground map."));
+
+            await AssertNeverBelowGround(pair, world, debris, seconds: 10);
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
         await pair.CleanReturnAsync();
     }
 

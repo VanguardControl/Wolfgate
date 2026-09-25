@@ -4,9 +4,11 @@ using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
+using Content.Server._WF.Caverns;
 using Content.Server._WF.Planets;
 using Content.Server.Parallax;
 using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._WF.Caverns;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Parallax.Biomes;
@@ -64,7 +66,7 @@ public static class CavernFixture
         });
     }
 
-    /// <summary>Builds an unowned stack of one surface at the origin.</summary>
+    /// <summary>Builds an unowned stack of one surface at the origin; with caverns on, its gate is claimed as it builds.</summary>
     public static async Task<World> BuildWorld(TestPair pair, string surfaceId)
     {
         var server = pair.Server;
@@ -173,6 +175,50 @@ public static class CavernFixture
         }
 
         return count;
+    }
+
+    /// <summary>The world's gate mouth; fails the test when it has none.</summary>
+    public static async Task<WFCavernMouth> Gate(TestPair pair, World world)
+    {
+        var server = pair.Server;
+        var mouths = server.System<WFCavernMouthSystem>();
+        WFCavernMouth? gate = null;
+
+        await server.WaitPost(() =>
+        {
+            if (server.EntMan.TryGetComponent(world.Ground, out WFCavernGroundComponent? ground))
+                gate = mouths.GetGate((world.Ground, ground));
+        });
+
+        Assert.That(gate, Is.Not.Null, $"{server.EntMan.ToPrettyString(world.Ground)} has no gate mouth.");
+        return gate!.Value;
+    }
+
+    /// <summary>The lip tile over a mouth's climb point, the same index on the ground and in the cavern.</summary>
+    public static Vector2i ClimbTile(WFCavernMouth mouth)
+    {
+        return mouth.ClimbTile;
+    }
+
+    /// <summary>The cavern tile a faller through the mouth's bottom-left hole tile lands on.</summary>
+    public static Vector2i LandingIndex(WFCavernMouth mouth)
+    {
+        return mouth.Origin;
+    }
+
+    /// <summary>The centre of a tile in map-local coordinates.</summary>
+    public static Vector2 TileCentre(Vector2i tile)
+    {
+        return new Vector2(tile.X + 0.5f, tile.Y + 0.5f);
+    }
+
+    /// <summary>The cavern prototype under a surface.</summary>
+    public static WFCavernPrototype CavernOf(TestPair pair, string surfaceId)
+    {
+        var caverns = pair.Server.System<WFCavernSystem>();
+
+        Assert.That(caverns.TryGetCavern(surfaceId, out var cavern), Is.True, $"{surfaceId} has no wfCavern.");
+        return cavern!;
     }
 
     /// <summary>Whether a map is the cavern or a transit gap that opens onto it.</summary>

@@ -1,4 +1,5 @@
-# Stand-in cavern under every world until each gets its own geology: limestone tunnels through plain rock.
+# Stand-in cavern under every world until each gets its own geology: limestone tunnels and dirt chambers through
+# plain rock.
 # Layers run last to first and the first match wins.
 
 - type: biomeTemplate
@@ -19,6 +20,17 @@
       fractalType: Ridged
       octaves: 1
       frequency: 0.035
+  # Chambers on the web: a dirt floor, so the limestone-only rock layer leaves them open. Mouth pads need them:
+  # the tunnels alone are too narrow for the openness check anywhere but at junctions.
+  - !type:BiomeMetaLayer
+    template: WFCavernChamberPlaceholder
+    threshold: 0.35
+    noise:
+      seed: 101
+      noiseType: OpenSimplex2
+      fractalType: FBm
+      octaves: 2
+      frequency: 0.025
 
 - type: biomeTemplate
   id: WFCavernRockPlaceholder
@@ -29,3 +41,10 @@
     - WFCavernFloorLimestone
     entities:
     - WallRock
+
+- type: biomeTemplate
+  id: WFCavernChamberPlaceholder
+  layers:
+  - !type:BiomeTileLayer
+    tile: FloorPlanetDirt
+    threshold: -1

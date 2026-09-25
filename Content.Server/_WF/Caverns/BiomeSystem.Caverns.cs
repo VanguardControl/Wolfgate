@@ -13,4 +13,14 @@ public sealed partial class BiomeSystem
 
         return biome.Comp.LoadedChunks.Contains(chunkOrigin);
     }
+
+    /// <summary>Whether an entity is one the biome spawned on this tile and still tracks, so it would unload with its chunk.</summary>
+    public bool WfIsBiomeSpawned(Entity<BiomeComponent> biome, EntityUid uid, Vector2i index)
+    {
+        var chunkOrigin = SharedMapSystem.GetChunkIndices(index, ChunkSize) * ChunkSize;
+
+        return biome.Comp.LoadedEntities.TryGetValue(chunkOrigin, out var loaded)
+               && loaded.TryGetValue(uid, out var tile)
+               && tile == index;
+    }
 }
