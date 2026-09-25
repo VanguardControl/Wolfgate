@@ -1,0 +1,8 @@
+# Cavern floors inherit their parent's look and name. Each is indestructible and can't be dug, so the bottom layer
+# never opens to void.
+
+- type: tile
+  id: WFCavernFloorLimestone
+  parent: FloorCave
+  indestructible: true
+  deconstructTools: []

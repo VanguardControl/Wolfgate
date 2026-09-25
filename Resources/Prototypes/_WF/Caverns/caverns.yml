@@ -1,0 +1,55 @@
+# One cavern under each world, built at depth -1 with its planet network while wf.caverns is on.
+
+- type: wfCavern
+  id: WFCavernAsclepiu
+  surface: WFSurfaceAsclepiu
+  name: wf-cavern-asclepiu-name
+  level: WFCavernAsclepiuLevel
+  seedOffset: 7901
+  roofColor: "#070a08"
+  shaftLight: 0.5
+
+- type: wfCavern
+  id: WFCavernFervidus
+  surface: WFSurfaceFervidus
+  name: wf-cavern-fervidus-name
+  level: WFCavernFervidusLevel
+  seedOffset: 7919
+  roofColor: "#1c0803"
+  shaftLight: 0.45
+
+- type: wfCavern
+  id: WFCavernMerak
+  surface: WFSurfaceMerak
+  name: wf-cavern-merak-name
+  level: WFCavernMerakLevel
+  seedOffset: 7927
+  roofColor: "#120d07"
+  shaftLight: 0.55
+
+- type: wfCavern
+  id: WFCavernAerumna
+  surface: WFSurfaceAerumna
+  name: wf-cavern-aerumna-name
+  level: WFCavernAerumnaLevel
+  seedOffset: 7933
+  roofColor: "#050408"
+  shaftLight: 0.3
+
+- type: wfCavern
+  id: WFCavernThrascias
+  surface: WFSurfaceThrascias
+  name: wf-cavern-thrascias-name
+  level: WFCavernThrasciasLevel
+  seedOffset: 7937
+  roofColor: "#060c12"
+  shaftLight: 0.5
+
+- type: wfCavern
+  id: WFCavernCarcinoma
+  surface: WFSurfaceCarcinoma
+  name: wf-cavern-carcinoma-name
+  level: WFCavernCarcinomaLevel
+  seedOffset: 7949
+  roofColor: "#140306"
+  shaftLight: 0.4

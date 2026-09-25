@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server._CE.ZLevels.Core;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
@@ -118,7 +119,7 @@ public sealed partial class PlanetControlSystem : EntitySystem
             {
                 gravity = Math.Clamp(gravity, MinGravity, MaxGravity);
 
-                foreach (var map in network.Layers)
+                foreach (var map in network.Layers.Concat(network.LowerLayers))
                 {
                     if (!TryComp<WFPlanetLayerComponent>(map, out var layer))
                         continue;
