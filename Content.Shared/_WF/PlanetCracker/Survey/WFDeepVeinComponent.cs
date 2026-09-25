@@ -12,9 +12,9 @@ namespace Content.Shared._WF.PlanetCracker.Survey;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, UnsavedComponent]
 public sealed partial class WFDeepVeinComponent : Component
 {
-    /// <summary>The ore this vein rolled, picked by weight from the world's vein table.</summary>
+    /// <summary>The ore this vein rolled, picked by weight from the world's vein table; null until stamped.</summary>
     [DataField, AutoNetworkedField]
-    public ProtoId<OrePrototype> Ore;
+    public ProtoId<OrePrototype>? Ore;
 
     /// <summary>Total units in the vein when it was stamped, before any extraction.</summary>
     [DataField, AutoNetworkedField]

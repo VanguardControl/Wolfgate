@@ -67,7 +67,7 @@ public sealed class KyphrusVeinsTest
             {
                 Assert.That(seam.TotalYield, Is.GreaterThan(0));
                 Assert.That(seam.Remaining, Is.EqualTo(seam.TotalYield));
-                Assert.That(table.Ores.ContainsKey(seam.Ore), Is.True);
+                Assert.That(seam.Ore is { } ore && table.Ores.ContainsKey(ore), Is.True);
                 Assert.That(em.GetComponent<TransformComponent>(vein).Anchored, Is.True);
             }
         });

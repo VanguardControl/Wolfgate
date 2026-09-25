@@ -253,7 +253,7 @@ public sealed class DeepVeinTest
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(string.IsNullOrEmpty(comp.Ore.Id), Is.False, "The surviving vein was never stamped with an ore.");
+                Assert.That(comp.Ore, Is.Not.Null, "The surviving vein was never stamped with an ore.");
                 Assert.That(comp.TotalYield, Is.GreaterThanOrEqualTo(1500),
                     "The surviving vein's yield is below WFVeinTableAsclepiu's range.");
                 Assert.That(comp.TotalYield, Is.LessThanOrEqualTo(4000),
@@ -342,7 +342,7 @@ public sealed class DeepVeinTest
                     Assert.That(entMan.EntityExists(vein), Is.True, "A hand-spawned vein did not survive its MapInit.");
 
                     var comp = entMan.GetComponent<WFDeepVeinComponent>(vein);
-                    stamps.Add((comp.Ore.Id, comp.TotalYield));
+                    stamps.Add((comp.Ore?.Id ?? string.Empty, comp.TotalYield));
                 }
             });
 

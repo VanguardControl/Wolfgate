@@ -83,7 +83,7 @@ public sealed partial class WFDeepVeinVisualsSystem : EntitySystem
 
         // deep_vein.rsi ships exactly two states; name no others.
         _sprite.LayerSetRsiState((uid, sprite), index, vein.Rich ? "vein-rich" : "vein");
-        _sprite.LayerSetColor((uid, sprite), index, Tint(vein.Ore.Id, skin));
+        _sprite.LayerSetColor((uid, sprite), index, Tint(vein.Ore?.Id ?? string.Empty, skin));
     }
 
     /// <summary>The local player's revealed set, or null when there is no local player or it has never pulsed.</summary>
