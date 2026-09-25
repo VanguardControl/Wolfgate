@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.Client._WF.Wolfmed.Overlays;
@@ -218,9 +219,11 @@ public sealed class WolfmedSyntheticHudTest : GameTest
 
                 foreach (var key in new[]
                          {
-                             "wolfmed-synthetic-system", "wolfmed-synthetic-diagnostics", "wolfmed-synthetic-glyph",
+                             "wolfmed-synthetic-system", "wolfmed-synthetic-diagnostics",
                              "wolfmed-synthetic-row-integrity", "wolfmed-synthetic-row-power",
                              "wolfmed-synthetic-row-fluid", "wolfmed-synthetic-row-servo",
+                             "wolfmed-synthetic-row-sensor", "wolfmed-synthetic-row-core",
+                             "wolfmed-synthetic-row-core-temp",
                              "wolfmed-synthetic-row-faults", "wolfmed-synthetic-advice",
                              "wolfmed-synthetic-banner-integrity", "wolfmed-synthetic-banner-downed",
                              "wolfmed-synthetic-banner-standby", "wolfmed-synthetic-banner-reboot",
@@ -481,6 +484,155 @@ public sealed class WolfmedSyntheticHudTest : GameTest
                 Assert.That(hud.CoreTemperature, Is.EqualTo(450f).Within(0.5f));
                 Assert.That(Loc.GetString("wolfmed-synthetic-row-core-temp", ("value", 450)), Does.Contain("450 K"));
             });
+        });
+    }
+
+    /// <summary>
+    /// Playtest 3 (IPC): the SYSTEM panel is sized from what it holds. At UI scale 1 and 1.25, with 0, 1 and 6 faults
+    /// and the longest advice in the locale, every row is one line high and inside the padding, no two rows overlap,
+    /// the advice sits on its own rows under FAULTS and wraps whole into at most two, and the panel stays inside its
+    /// largest size. Nothing the readout draws touches the viewport's origin, a healthy chassis draws nothing (the
+    /// idle glyph was the four stray dots), and the centre of the screen stays clear.
+    /// </summary>
+    [Test]
+    public async Task SyntheticHudPanelFitsTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        var locale = server.ResolveDependency<ILocalizationManager>();
+
+        var statuses = new List<(string Text, int Prefix)>();
+        await server.WaitPost(() =>
+        {
+            // The longest advice any fault line can put on the status row, as the overlay composes it.
+            var longest = prototypes.EnumeratePrototypes<WolfmedSyntheticHudLinePrototype>()
+                .Select(line => locale.GetString(line.Advice.Id))
+                .OrderByDescending(text => text.Length)
+                .First();
+            var composed = locale.GetString("wolfmed-synthetic-advice", ("advice", longest));
+            statuses.Add((composed, composed.Length - longest.Length));
+            var fluid = locale.GetString("wolfmed-synthetic-advice-low-fluid");
+            var owner = locale.GetString("wolfmed-synthetic-advice", ("advice", fluid));
+            statuses.Add((owner, owner.Length - fluid.Length));
+            statuses.Add((locale.GetString("wolfmed-synthetic-idle-6"), 0));
+        });
+
+        var longestAdvice = statuses[0].Text;
+        TestContext.Out.WriteLine($"longest advice: \"{longestAdvice}\" ({longestAdvice.Length} characters)");
+
+        // The gauge row's columns fit the panel: label, the fixed-width bar, a gap, the right-aligned value.
+        Assert.That(WolfmedSyntheticHudLayout.BarColumn + "[######]".Length + 1 + WolfmedSyntheticHudLayout.ValueColumns,
+            Is.LessThanOrEqualTo(WolfmedSyntheticHudLayout.SystemColumns), "a gauge row is wider than the panel.");
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (x, y, width, height) in new[]
+                     {
+                         (0, 0, 1920, 1080), (0, 0, 1280, 720), (0, 0, 2560, 1351), (96, 40, 1600, 900),
+                     })
+            {
+                var screen = WolfmedSyntheticHudLayout.Screen(new UIBox2i(x, y, x + width, y + height), new Vector2(x, y));
+
+                foreach (var ui in new[] { 1f, 1.25f })
+                {
+                    var scale = WolfmedSyntheticHudLayout.FitScale(screen, WolfmedSyntheticHudLayout.Scale(1f, ui));
+                    var line = WolfmedSyntheticHudLayout.LineHeight(scale);
+                    var largest = WolfmedSyntheticHudLayout.System(screen, scale);
+
+                    foreach (var (status, prefix) in statuses)
+                    {
+                        var advice = WolfmedSyntheticHudLayout.WrapAdvice(status, prefix);
+                        Assert.That(advice, Has.Count.InRange(1, WolfmedSyntheticHudLayout.MaxAdviceRows));
+                        Assert.That(string.Join(" ", advice.Select(row => row.Trim())), Is.EqualTo(status),
+                            $"\"{status}\" did not wrap whole.");
+                        foreach (var row in advice)
+                        {
+                            Assert.That(row.Length, Is.LessThanOrEqualTo(WolfmedSyntheticHudLayout.SystemColumns),
+                                $"advice row \"{row}\" is wider than the panel.");
+                        }
+
+                        foreach (var gauges in new[] { 5, 6 })
+                        {
+                            foreach (var faults in new[] { 0, 1, 6 })
+                            {
+                                var where = $"{width}x{height}+{x}+{y}, ui {ui}, {gauges} gauges, {faults} faults, \"{status}\"";
+                                var panel = WolfmedSyntheticHudLayout.SystemPanel(screen, scale, gauges, advice.Count);
+                                var inner = new UIBox2(panel.Box.Left + WolfmedSyntheticHudLayout.Padding,
+                                    panel.Box.Top + WolfmedSyntheticHudLayout.Padding,
+                                    panel.Box.Right - WolfmedSyntheticHudLayout.Padding,
+                                    panel.Box.Bottom - WolfmedSyntheticHudLayout.Padding);
+                                var rows = panel.Rows().ToList();
+
+                                Assert.That(panel.Gauges, Has.Length.EqualTo(gauges), where);
+                                Assert.That(panel.Advice, Has.Length.EqualTo(advice.Count), where);
+                                Assert.That(WolfmedSyntheticHudLayout.Contains(largest, panel.Box), Is.True,
+                                    $"{where}: the panel outgrew its largest size.");
+
+                                foreach (var (name, row) in rows)
+                                {
+                                    Assert.That(WolfmedSyntheticHudLayout.Contains(inner, row), Is.True,
+                                        $"{where}: the {name} row is outside the panel's padding.");
+                                    Assert.That(row.Height, Is.EqualTo(line).Within(0.01f),
+                                        $"{where}: the {name} row is not one line high.");
+                                    Assert.That(row.Width, Is.GreaterThanOrEqualTo(
+                                            WolfmedSyntheticHudLayout.SystemColumns * WolfmedSyntheticHudLayout.CharWidth(scale) - 0.01f),
+                                        $"{where}: the {name} row is narrower than the panel's columns.");
+                                }
+
+                                for (var i = 0; i < rows.Count; i++)
+                                {
+                                    for (var j = i + 1; j < rows.Count; j++)
+                                    {
+                                        Assert.That(WolfmedSyntheticHudLayout.Overlaps(rows[i].Box, rows[j].Box), Is.False,
+                                            $"{where}: the {rows[i].Name} and {rows[j].Name} rows overlap.");
+                                    }
+                                }
+
+                                // The blank half-row, then FAULTS, then the advice on its own rows.
+                                Assert.That(panel.Faults.Top - panel.Gauges[^1].Bottom, Is.EqualTo(line / 2f).Within(0.01f), where);
+                                Assert.That(panel.Advice[0].Top, Is.GreaterThanOrEqualTo(panel.Faults.Bottom), where);
+                                Assert.That(panel.Box.Bottom - panel.Advice[^1].Bottom,
+                                    Is.EqualTo(WolfmedSyntheticHudLayout.Padding).Within(0.01f),
+                                    $"{where}: the panel is not sized from its rows.");
+
+                                // Nothing is drawn at the origin: every box starts clear of the viewport's top-left corner.
+                                foreach (var (name, box) in WolfmedSyntheticHudLayout.DrawnBoxes(screen, scale, gauges,
+                                             advice.Count, faults))
+                                {
+                                    Assert.That(box.Left >= screen.Left + WolfmedSyntheticHudLayout.Margin &&
+                                                box.Top >= screen.Top + WolfmedSyntheticHudLayout.Margin, Is.True,
+                                        $"{where}: {name} touches the screen origin at {box}.");
+                                    Assert.That(WolfmedSyntheticHudLayout.Contains(screen, box), Is.True,
+                                        $"{where}: {name} is off the viewport.");
+                                }
+                            }
+                        }
+                    }
+
+                    // FAULTS is one row whatever the count, so the panel is the same height for 0, 1 and 6 faults.
+                    Assert.That(WolfmedSyntheticHudLayout.SystemHeight(scale, 6, 2),
+                        Is.EqualTo(WolfmedSyntheticHudLayout.SystemPanel(screen, scale, 6, 2).Box.Height).Within(0.01f));
+                }
+            }
+
+            // A healthy chassis draws nothing at all; a light one only its SYSTEM panel.
+            foreach (var faults in new[] { 0, 1, 6 })
+            {
+                Assert.That(WolfmedSyntheticHudLayout.Visible(WolfmedSyntheticTier.Idle, false, false, faults),
+                    Is.EqualTo((false, false)), "a healthy chassis draws something.");
+            }
+
+            Assert.That(WolfmedSyntheticHudLayout.Visible(WolfmedSyntheticTier.Light, false, false, 6), Is.EqualTo((true, false)));
+            Assert.That(WolfmedSyntheticHudLayout.Visible(WolfmedSyntheticTier.Heavy, false, false, 6), Is.EqualTo((true, true)));
+            Assert.That(WolfmedSyntheticHudLayout.Visible(WolfmedSyntheticTier.Heavy, true, false, 6), Is.EqualTo((false, false)));
+
+            // An advice too long for two rows ends in an ellipsis instead of running past the panel.
+            var wrapped = WolfmedSyntheticHudLayout.WrapAdvice(
+                "ADVICE: " + string.Join(" ", Enumerable.Repeat("REPLACE SERVO", 8)), 8);
+            Assert.That(wrapped, Has.Count.EqualTo(WolfmedSyntheticHudLayout.MaxAdviceRows));
+            Assert.That(wrapped[^1], Does.EndWith("..."));
+            Assert.That(wrapped.All(row => row.Length <= WolfmedSyntheticHudLayout.SystemColumns), Is.True);
         });
     }
 

@@ -115,17 +115,16 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
         var strain = WolfmedSyntheticHudLineSystem.Strain(depth, hud.Integrity);
 
         _hud.Scale = _scale;
-        _hud.Tier = tier;
         BuildRows(hud, frameTime);
         BuildSystem(hud, tier);
         UpdateBanner(hud, tier, dead, standby, downed, consciousness);
         UpdateDeath(hud, dead, frameTime);
         UpdateMotion(tier, strain, standby, frameTime);
 
-        Approach(ref _hud.GlyphAlpha, tier == WolfmedSyntheticTier.Idle && !standby && !dead ? 0.9f : 0f, frameTime);
-        Approach(ref _hud.SystemAlpha, tier >= WolfmedSyntheticTier.Light && !standby && !dead ? 1f : 0f, frameTime);
-        Approach(ref _hud.DiagnosticsAlpha,
-            tier >= WolfmedSyntheticTier.Moderate && _hud.Rows.Count > 0 && !standby && !dead ? 1f : 0f, frameTime);
+        // Playtest 3 (IPC): a healthy chassis sees nothing; the idle "::" glyph read as four stray dots.
+        var (system, diagnostics) = WolfmedSyntheticHudLayout.Visible(tier, standby, dead, _hud.Rows.Count);
+        Approach(ref _hud.SystemAlpha, system ? 1f : 0f, frameTime);
+        Approach(ref _hud.DiagnosticsAlpha, diagnostics ? 1f : 0f, frameTime);
         Approach(ref _hud.StandbyAlpha, standby ? 1f : 0f, frameTime);
         Approach(ref _screen.Standby, standby ? 0.85f : 0f, frameTime);
 
@@ -186,26 +185,41 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
             _spinner += 1f;
 
         _hud.Spinner = SpinnerFrames[(int) _spinner % SpinnerFrames.Length];
-        _hud.Glyph = Loc.GetString("wolfmed-synthetic-glyph");
 
+        // Playtest 3 (IPC): label, fixed-width bar and value apart, so the overlay can line the values up.
         _hud.SystemRows.Clear();
-        _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-integrity", ("value", Gauge(hud.Integrity))));
+        _hud.SystemRows.Add(GaugeRow("wolfmed-synthetic-row-integrity", hud.Integrity));
         if (hud.Power >= 0f)
-            _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-power", ("value", Gauge(hud.Power))));
+            _hud.SystemRows.Add(GaugeRow("wolfmed-synthetic-row-power", hud.Power));
 
-        _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-fluid", ("value", Gauge(hud.Fluid))));
-        _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-servo", ("value", Gauge(hud.Servos))));
+        _hud.SystemRows.Add(GaugeRow("wolfmed-synthetic-row-fluid", hud.Fluid));
+        _hud.SystemRows.Add(GaugeRow("wolfmed-synthetic-row-servo", hud.Servos));
         // M1a D (plan §5.6): what the damage sensors are reporting, and how hot the chassis is running.
-        _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-sensor", ("value", Gauge(hud.Sensors))));
+        _hud.SystemRows.Add(GaugeRow("wolfmed-synthetic-row-sensor", hud.Sensors));
         if (hud.CoreTemperature >= 0f)
-            _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-core-temp",
-                ("value", (int) MathF.Round(hud.CoreTemperature))));
-        _hud.SystemRows.Add(Loc.GetString("wolfmed-synthetic-row-faults", ("count", hud.Faults.Count)));
+        {
+            _hud.SystemRows.Add(new WolfmedSyntheticHudOverlay.SystemRow(Loc.GetString("wolfmed-synthetic-row-core"),
+                null, Loc.GetString("wolfmed-synthetic-row-core-temp", ("value", (int) MathF.Round(hud.CoreTemperature)))));
+        }
 
-        _hud.Status = hud.Advice.Length > 0
-            ? Loc.GetString("wolfmed-synthetic-advice", ("advice", Loc.GetString(hud.Advice)))
-            : Loc.GetString($"wolfmed-synthetic-idle-{(int) (_time / 6f) % IdleLines + 1}");
+        _hud.FaultsLabel = Loc.GetString("wolfmed-synthetic-row-faults");
+        _hud.FaultCount = hud.Faults.Count;
+
+        if (hud.Advice.Length > 0)
+        {
+            var advice = Loc.GetString(hud.Advice);
+            _hud.Status = Loc.GetString("wolfmed-synthetic-advice", ("advice", advice));
+            _hud.StatusPrefix = Math.Max(0, _hud.Status.Length - advice.Length);
+        }
+        else
+        {
+            _hud.Status = Loc.GetString($"wolfmed-synthetic-idle-{(int) (_time / 6f) % IdleLines + 1}");
+            _hud.StatusPrefix = 0;
+        }
     }
+
+    private WolfmedSyntheticHudOverlay.SystemRow GaugeRow(string label, float fraction) =>
+        new(Loc.GetString(label), AutodocStyle.Gauge(fraction, 6), Percent(fraction));
 
     private void UpdateBanner(
         WolfmedSyntheticHudComponent hud,
@@ -327,7 +341,6 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
 
     private void Fade(float frameTime, out bool idle)
     {
-        Approach(ref _hud.GlyphAlpha, 0f, frameTime);
         Approach(ref _hud.SystemAlpha, 0f, frameTime);
         Approach(ref _hud.DiagnosticsAlpha, 0f, frameTime);
         Approach(ref _hud.StandbyAlpha, 0f, frameTime);
@@ -339,7 +352,7 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
         _screen.Glitch = 0f;
         _hud.Jitter = 0f;
 
-        idle = _hud.GlyphAlpha <= 0f && _hud.SystemAlpha <= 0f && _hud.DiagnosticsAlpha <= 0f &&
+        idle = _hud.SystemAlpha <= 0f && _hud.DiagnosticsAlpha <= 0f &&
                _hud.StandbyAlpha <= 0f && _hud.BannerAlpha <= 0f && _hud.PanicAlpha <= 0f &&
                _hud.DeathAlpha <= 0f && _screen.Tint <= 0f && _screen.Standby <= 0f;
     }
@@ -350,8 +363,6 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
         if (MathF.Abs(target - value) < 0.004f)
             value = target;
     }
-
-    private static string Gauge(float fraction) => $"{AutodocStyle.Gauge(fraction, 6)} {Percent(fraction)}";
 
     private static string Percent(float fraction) => $"{(int) MathF.Round(Math.Clamp(fraction, 0f, 1f) * 100f)}%";
 

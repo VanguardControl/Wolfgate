@@ -2,19 +2,20 @@
 # string is drawn in a monospace face in ALL CAPS, so they are written that way here: the overlay does not
 # transform them. Fault lines are kept to about sixteen characters so the right-hand column stays aligned.
 
-# Block headings and the corner glyph.
+# Block headings.
 wolfmed-synthetic-system = SYSTEM
 wolfmed-synthetic-diagnostics = DIAGNOSTICS
-wolfmed-synthetic-glyph = ::
 
-# SYSTEM block rows. { $value } is already formatted as a percentage by the overlay.
-wolfmed-synthetic-row-integrity = CHASSIS { $value }
-wolfmed-synthetic-row-power = POWER   { $value }
-wolfmed-synthetic-row-fluid = FLUID   { $value }
-wolfmed-synthetic-row-servo = SERVO   { $value }
-wolfmed-synthetic-row-sensor = SENSOR  { $value }
-wolfmed-synthetic-row-core-temp = CORE    { $value } K
-wolfmed-synthetic-row-faults = FAULTS  { $count }
+# SYSTEM block row labels. The overlay draws each gauge's bar at a fixed column and its value right-aligned, so a
+# label is only the name (at most eight characters).
+wolfmed-synthetic-row-integrity = CHASSIS
+wolfmed-synthetic-row-power = POWER
+wolfmed-synthetic-row-fluid = FLUID
+wolfmed-synthetic-row-servo = SERVO
+wolfmed-synthetic-row-sensor = SENSOR
+wolfmed-synthetic-row-core = CORE
+wolfmed-synthetic-row-core-temp = { $value } K
+wolfmed-synthetic-row-faults = FAULTS
 
 # The idle status line, cycled slowly while nothing is wrong.
 wolfmed-synthetic-idle-1 = THERMAL NOMINAL

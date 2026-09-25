@@ -730,7 +730,7 @@ off for it (`WolfmedSyntheticHudOverlaySystem.OwnsView`, checked in `DamageOverl
 - **Newest first.** A fault the readout did not carry last tick goes to the top, worst tag leading;
   everything already on screen keeps its order. The advice line is always the top fault's.
 - **Four tiers off one number.** `Strain` is the worse of CONSC's `Depth` and lost chassis integrity;
-  0.08 / 0.25 / 0.55 separate Idle (a corner glyph), Light (SYSTEM block), Moderate (DIAGNOSTICS and a
+  0.08 / 0.25 / 0.55 separate Idle (a corner glyph; *[playtest 3 IPC: removed, it read as four stray dots]*), Light (SYSTEM block), Moderate (DIAGNOSTICS and a
   still cyan rim) and Heavy (pulsing rim, one-pixel jitter, an occasional torn slice, and the integrity
   banner). Downed, shutdown/unconscious and dead override the banner with crawl mode, standby and a kernel
   panic into `CORE OFFLINE`.
@@ -2638,3 +2638,89 @@ heart to arrest around hit 5, which is Dying with a rescue window; a destroyed c
 - `wolfmed.ipc_core_heat_rate` 0.2 → 0.5333 (× 8/3), so the M4 fire timeline is unchanged: thermal shutdown ~41 s,
   core failure ~102 s untreated, standing when put out at 60 s.
 - Core repair and the restart button read `MaxHealth`, so nothing else moves. Tests set the core by fraction.
+
+## Playtest 3, IPC round (2026-09-24)
+
+The owner played an IPC (`plan/p7/PLAYTEST3-IPC-spec.md`) and asked for three things: no circle diagram in the middle of
+the screen, a SYSTEM panel that does not clip, no stray dots, and a slower death to fluid loss. Branch `Wolfmed-fixes5`,
+from `ed7a0575b3`.
+
+**1. The synthetic HUD.**
+- **The centre diagram is gone.** `DrawOptics` (the broken concentric arcs and their calibration ticks) and the overlay's
+  `Tier` field, which only fed it, are removed. Nothing is drawn over the player.
+- **Why the SYSTEM panel clipped.** Its height was a constant, `SystemRows` 7 (heading, four gauges, fault count, status),
+  from the first HUD. M1a D added SENSOR and M4 CORE to the list without the box growing, and the status line was still
+  drawn at the fixed seventh row: the advice printed over whichever row landed there (FAULTS, or CORE when it shows), and
+  the rows after it ran under the frame's bottom edge.
+- **Sized from its rows now.** `WolfmedSyntheticHudLayout.SystemPanel(screen, scale, gauges, adviceRows)` returns the box
+  and every row's rectangle (`WolfmedSystemPanel`): the title, one row per system, a blank half-row, `FAULTS n`, then the
+  advice on its own row, a second when it is long. Every row is one line high inside the padding the title uses, and the
+  box is the rows plus that padding, anchored where the old one was, so it grows downwards. Width: 28 monospace columns
+  (`SystemColumns`), in which the longest advice in the locale ("ADVICE: DIAGNOSTICS RUNNING. NO ACTION NEEDED", 45
+  characters) wraps whole into two rows. `WrapAdvice` breaks at words, indents the continuation under the text after
+  "ADVICE: ", and ends a third row's worth in "...". `FitScale` reserves the largest panel (six gauges, two advice rows).
+- **Tidy.** One text size for every row; the label at the left, the fixed-width bar `[######]` at column 9, the value
+  (`98%`, `450 K`, the fault count) right-aligned to the panel's padding, so the percentages line up; the spinner
+  right-aligned on the title row; the advice in the accent amber, the idle flavour line dim. The amber-and-red mono
+  readout and the bracket frame are unchanged. The row locale keys hold the label only now
+  (`wolfmed-synthetic-row-core` is new, `wolfmed-synthetic-row-core-temp` is the value, `-row-faults` lost `$count`).
+- **The four stray dots were the idle glyph.** A chassis at the Idle tier (undamaged, up) drew
+  `wolfmed-synthetic-glyph`, "::", left-aligned in the warning banner's box (32% across, 25% down the viewport) at half
+  alpha, with no frame or label: two colons in the mono face are four dots in a square, in the upper left of the play area.
+  The "Synthetic HUD" section above called it "a corner glyph"; it was never laid out in a corner. It went away within a
+  second of the first damage (the tier rises and it fades), which is why it looked like a stray artefact. Every other draw
+  call was checked for a zero or unlaid-out box: all of them take their boxes from the viewport `Screen()` gives (the
+  panels, the banner, the compact strip, the standby, panic and death screens), none can reach the origin, and the removed
+  arcs were centred on the screen. The glyph and its locale key are removed: a healthy chassis sees a clean screen, as a
+  healthy body does. `WolfmedSyntheticHudLayout.Visible` is the one rule for which blocks show.
+
+**2. Fluid pressure loss.**
+- **Measured first** (`IpcFluidLossTest`, the owner's hits: seven Piercing 15 to the torso over 8 s, then untreated, an
+  IPC and a human side by side; seconds from the first hit):
+
+  | | IPC before | human | IPC after |
+  |---|---|---|---|
+  | pool | 250 u oil | 300 u blood | 250 u oil |
+  | torso wounds after the hits | breach 84 (10.1 u/tick), chassis 105 (2.5) | piercing 105 (11.0) | breach 84 (4.0), chassis 105 (1.0) |
+  | drain | 10 u/tick cap (3.33 u/s) | 10 u/tick cap + 0.35 u/s internal | 5.0 u/tick (1.68 u/s) |
+  | fluid at 20 / 40 / 61 / 92 / 123 s | 81 / 55 / 30 / 0 / 0% | 82 / 58 / 37 / 20 / 9% | 92 / 80 / 69 / 53 / 37% |
+  | Downed line (50%) | 46.4 s | 49.5 s | **97.1 s** (1.96×) |
+  | shutdown / Unconscious (35%) | 57.8 s (Oil, Critical) | 61.9 s (Blood); arrest ~70 s | **127.0 s** (2.05×, Oil, Critical) |
+
+  The owner was Critical 59 s after the first hit; the "before" run gives 57.8 s. Both bodies are Downed by pain from the
+  hits at once, so the lines are the fluid and blood crossings.
+- **What it was.** Not the pool: 250 u against 300 u is 17%. The bloodstream takes at most `MaxBleedAmount` 10 u a 3 s
+  tick and puts 1 u a tick back; the IPC's wounds asked 12.6 u a tick and the human's 11, so both bled at the cap and the
+  chassis died about as fast as a human. A profile multiplier does nothing until it brings the chassis under the cap
+  (below about 0.8), and the tick's 1 u of regeneration eats any leak under it: at 0.11 (tried) the chassis lost 13% in ten
+  minutes and never went down.
+- **Set.** `IpcBodyPartProfile.bleedingMultiplier` 1 → **0.4** (a marked Onyx YAML line). One lever, data only; no CVar was
+  needed. It is the IPC chassis and, through `WolfmedPartIpc`, the synth's parts; cybernetic limbs on flesh keep their own
+  profile (0.5). The pool stays 250 u, so refills, the pod's transfusion and the analyzer's "refill oil ≈ N u" are
+  unchanged in units, and the analyzer's hydraulic numbers read the same fraction (asserted). Refilled above the Downed
+  line, a shut-down chassis comes back (Downed by its pain, not shut down, not Critical).
+- **What a small hit does.** One spear hit leaks under the tick's regeneration, before and after (about 1.1 and 0.4 u a
+  tick against 1): an IPC never went down from a single wound's leak and still does not.
+
+**Differs from the spec, and why.**
+1. **The dots' cause** is the idle glyph, not a zero box (above). The fix removes the glyph rather than moving it.
+2. **Fluid:** the multiplier, not the pool: the pool explains 17%, the cap the rest. 0.4 lands on the spec's "about twice"
+   for both lines.
+3. **"Downed" and "Unconscious" in the fluid test are the line crossings,** each checked against the state and cause at
+   that moment (Unconscious for the oil or the blood), because both bodies are Downed by pain from the first hits.
+4. **The advice's second row is indented** under the advice text, so it reads as one item.
+5. **Panel width** is 28 columns (the old box was about 31); the bars, values and advice all fit in it.
+
+**Tests.** New `Scenarios/WolfmedIpcFluidLossTest.IpcFluidLossTest` (order with a 1.5× margin, ±20% bands on the four
+measured times, the out causes Oil and Blood, the chassis Critical, the analyzer's fraction and "refill oil", the refill
+bringing it back). New `WolfmedSyntheticHudTest.SyntheticHudPanelFitsTest` (four viewports, UI scale 1 and 1.25, five and
+six gauges, 0, 1 and 6 faults, the longest advice, the owner's advice and an idle line: every row inside the padding and
+one line high, no two rows overlapping, the half-row gap, the advice under FAULTS, the box ending one padding under the
+last row, the panel inside its largest size, no drawn box within the margin of the viewport's origin or off it; a healthy
+chassis draws nothing; an over-long advice ends in "..."). `EveryMechanicalWoundHasALineTest`: the key list loses the
+glyph and gains the sensor and core keys.
+
+Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt): 481 total, 473 passed, 0 failed, 8 skipped
+(all autodoc fixtures: `AutoCutsClothingOffAHelplessPatientTest`, `EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`,
+`PodRelocatesADislocatedJointTest`, `EjectOnlyAlarmsWhileRunningTest`, `PowerLossPausesAndRestoreResumesTest`,
+`SlipOpensOneSmallWoundTest`, `VisualStateFollowsTheLidTest`, `DeathDuringAProcedureHoldsAndResumesTest`); each passed alone.

@@ -4952,3 +4952,18 @@ No marked upstream, Onyx or vendored edits: everything is in `_WF` code and Wolf
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestThreeTest.cs` | new | `CardCountdownTest`, `CardLooksTest`, `DownedCannotClimbTest`, `VitalsBlockIsCompactTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedMedicLinesTest.cs`, `WolfmedMedicInfoTest.cs`, `WolfmedBreathingClockTest.cs`, `WolfmedConsequencesTest.cs`, `WolfmedIpcDeathTest.cs`, `WolfmedLeftoversTest.cs`, `WolfmedRemainingCausesTest.cs`, `WolfmedSpeciesTest.cs`, `WolfmedTemperatureTest.cs`, `Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs`, `WolfmedLocaleCoverageTest.cs` | modified | Migrated to the three-line block (DECISIONS "Playtest 3 fixes", test migration). |
 | `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3 fixes" sections. |
+
+## Playtest 3, IPC round (2026-09-24)
+
+One marked Onyx edit; everything else is in `_WF` code, Wolfmed locale and tests.
+
+| File | Kind | Change |
+| --- | --- | --- |
+| `Resources/Prototypes/_Onyx/Wounds/wounds.yml:69-71` | Onyx YAML | WOLFGATE (playtest 3 IPC): `IpcBodyPartProfile.bleedingMultiplier` 1 → 0.4. Seven spear hits bled a chassis at the bloodstream's 10 u a tick cap, as fast as a human; now it reaches its lines about twice as late (DECISIONS "Playtest 3, IPC round"). |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudLayout.cs` | modified | `SystemPanel`/`WolfmedSystemPanel` (the SYSTEM box sized from its rows), `SystemHeight`, `SystemWidth`, `WrapAdvice`, `Visible`, `DrawnBoxes`, `Row`, `Contains`; `SystemRows` replaced by `MaxSystemGauges`, `MaxAdviceRows`, `SystemColumns`, `BarColumn`, `ValueColumns`; `CharWidth` carries the 1.4 factor its callers applied. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlay.cs` | modified | `DrawOptics` (the centre arcs and ticks), `Tier`, the idle glyph and `GlyphAlpha` removed; `DrawSystem` rebuilt on `SystemPanel` with `SystemRow` (label, bar, right-aligned value), one text size, `TextRight`. |
+| `Content.Client/_WF/Wolfmed/Overlays/WolfmedSyntheticHudOverlaySystem.cs` | modified | Builds `SystemRow`s, the fault label and count, the advice prefix; visibility through `WolfmedSyntheticHudLayout.Visible`; no glyph. |
+| `Resources/Locale/en-US/_WF/wolfmed/synthetic-hud.ftl` | modified | Row keys hold the label only; `wolfmed-synthetic-row-core` new; `wolfmed-synthetic-row-core-temp` is the value; `wolfmed-synthetic-glyph` removed. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedIpcFluidLossTest.cs` | new | `IpcFluidLossTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | modified | `SyntheticHudPanelFitsTest` new; the locale key list follows the row keys. |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round" sections; the "Synthetic HUD" section's Idle glyph annotated as removed. |
