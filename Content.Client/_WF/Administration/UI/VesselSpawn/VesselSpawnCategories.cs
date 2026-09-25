@@ -1,8 +1,7 @@
 using System.Linq;
+using Content.Client._WF.OldVessels;
 using Content.Shared._NF.Shipyard;
 using Content.Shared._NF.Shipyard.Prototypes;
-using Content.Shared.Tag;
-using Robust.Shared.Prototypes;
 
 namespace Content.Client._WF.Administration.UI.VesselSpawn;
 
@@ -37,12 +36,6 @@ public static class VesselSpawnCategories
     private static readonly VesselClass[] CargoEngineeringClasses = { VesselClass.Cargo, VesselClass.Engineering, VesselClass.Atmospherics };
     private static readonly VesselClass[] CivilianClasses = { VesselClass.Civilian, VesselClass.Kitchen, VesselClass.Botany, VesselClass.Chemistry };
 
-    /// <summary>Ships Monolith#4624 removed that Wolfgate kept; stays on a ship that returns to a shipyard.</summary>
-    public static readonly ProtoId<TagPrototype> ClassicTag = "WFClassicVessel";
-
-    /// <summary>Vessels no shipyard sells; they get their own category.</summary>
-    private static readonly ProtoId<TagPrototype> AdminOnlyTag = "WFAdminOnlyVessel";
-
     /// <summary>Display order for both the grouped list and the category filter dropdown.</summary>
     public static readonly VesselSpawnCategory[] DisplayOrder =
     {
@@ -69,7 +62,7 @@ public static class VesselSpawnCategories
         var classes = vessel.Classes;
         var group = vessel.Group;
 
-        if (vessel.Tags.Contains(AdminOnlyTag))
+        if (ClassicVessels.IsAdminOnly(vessel))
             return VesselSpawnCategory.AdminOnly;
         if (group is ShipyardConsoleUiKey.Syndicate or ShipyardConsoleUiKey.BlackMarket || classes.Any(c => AntagClasses.Contains(c)))
             return VesselSpawnCategory.Antagonist;

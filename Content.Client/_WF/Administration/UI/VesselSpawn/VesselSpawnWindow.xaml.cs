@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Client.Administration.Managers;
+using Content.Client._WF.OldVessels;
 using Content.Shared._NF.Bank;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Administration;
@@ -117,8 +118,8 @@ public sealed partial class VesselSpawnWindow : DefaultWindow
     {
         var parts = new List<string> { vessel.Name, vessel.ID };
         parts.AddRange(vessel.Classes.Select(c => Loc.GetString($"shipyard-console-class-{c}")));
-        if (vessel.Tags.Contains(VesselSpawnCategories.ClassicTag))
-            parts.Add(Loc.GetString("wf-vessel-spawn-classic"));
+        if (ClassicVessels.IsClassic(vessel))
+            parts.Add(Loc.GetString("wf-classic-vessel"));
         return string.Join(' ', parts).ToLowerInvariant();
     }
 
@@ -299,8 +300,8 @@ public sealed partial class VesselSpawnWindow : DefaultWindow
         SelectedName.Text = vessel.Name;
         SelectedId.Text = vessel.ID;
         SelectedCategory.Text = Loc.GetString($"wf-vessel-spawn-category-{VesselSpawnCategories.Get(vessel)}");
-        if (vessel.Tags.Contains(VesselSpawnCategories.ClassicTag))
-            SelectedCategory.Text += $" ({Loc.GetString("wf-vessel-spawn-classic")})";
+        if (ClassicVessels.IsClassic(vessel))
+            SelectedCategory.Text += $" ({Loc.GetString("wf-classic-vessel")})";
         SelectedClasses.Text = vessel.Classes.Count > 0
             ? string.Join(", ", vessel.Classes.Select(c => Loc.GetString($"shipyard-console-class-{c}")))
             : none;
