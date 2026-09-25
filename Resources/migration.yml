@@ -634,6 +634,7 @@ AutodocProgramDiskTransplant: WFAutodocProgramDiskTransplant
 CrateAutodocPrograms: WFCrateAutodocPrograms
 CrateWolfmedDebug: WFCrateWolfmedDebug
 MachineAutodoc: WFMachineAutodoc
+SpaceacillinChemistryBottle: WFSpaceacillinChemistryBottle
 SurgeryCloseEvisceration: WFSurgeryCloseEvisceration
 SurgeryGraftSkin: WFSurgeryGraftSkin
 SurgeryHealAmputationConsequence: WFSurgeryHealAmputationConsequence

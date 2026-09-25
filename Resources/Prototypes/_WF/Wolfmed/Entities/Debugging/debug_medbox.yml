@@ -57,7 +57,7 @@
     # Drugs
     - id: Syringe
       amount: 4
-    - id: SpaceacillinChemistryBottle
+    - id: WFSpaceacillinChemistryBottle
       amount: 2
     - id: EthanolChemistryBottle
     - id: WFWolfmedDebugBottleOsteogen

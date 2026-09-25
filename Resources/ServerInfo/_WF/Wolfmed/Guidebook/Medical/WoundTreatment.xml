@@ -171,7 +171,7 @@ Once it has, the answer is [bold]spaceacillin[/bold] in the bloodstream. It clea
 Bottles come out of the medical vendor and the medical supplies crate. Chemistry can also make it from cryptobiolin and inaprovaline in equal parts.
   <Box>
     <GuideEntityEmbed Entity="Gauze"/>
-    <GuideEntityEmbed Entity="SpaceacillinChemistryBottle"/>
+    <GuideEntityEmbed Entity="WFSpaceacillinChemistryBottle"/>
     <GuideEntityEmbed Entity="Syringe"/>
   </Box>
 

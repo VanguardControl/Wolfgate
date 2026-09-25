@@ -3,7 +3,7 @@
 # catches up, on the same base and the same 30u fill as every other shipped reagent bottle.
 
 - type: entity
-  id: SpaceacillinChemistryBottle
+  id: WFSpaceacillinChemistryBottle
   suffix: spaceacillin
   parent: BaseChemistryBottleFilled
   components:

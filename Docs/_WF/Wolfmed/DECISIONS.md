@@ -3252,10 +3252,10 @@ passed. `CriticalHearingTest` reads the shared history the same way and could pa
 
 ## The WF prefix, and the chassis banners (2026-09-25)
 
-**Prototype ids.** AGENTS.md gives Wolfgate's own prototype ids a `WF` prefix. The module's 333 own ids now carry it,
+**Prototype ids.** AGENTS.md gives Wolfgate's own prototype ids a `WF` prefix. The module's 334 own ids now carry it,
 mechanically: `WolfmedSplint` is `WFWolfmedSplint`, `MachineAutodoc` is `WFMachineAutodoc`, `SurgeryMendFracture` is
 `WFSurgeryMendFracture`, `SyntheticHudDent` is `WFSyntheticHudDent`. A mechanical prefix keeps the module's name in
-the id and cannot collide with anything upstream; the 98 concrete entity ids have `migration.yml` entries (inside the
+the id and cannot collide with anything upstream; the 99 concrete entity ids have `migration.yml` entries (inside the
 `WOLFGATE(Prototypes)` block) so saved ships and maps keep loading, and the medical POI's pod is renamed in place.
 The 26 abstract ones (base parts, organs, the disk and organ-step bases) get no entry: nothing abstract is ever on a
 map, and `MapMigrationSystem` asserts that every target is an indexed entity prototype, which an abstract one is not.
@@ -3268,7 +3268,8 @@ Kept as they were, on purpose, because their ids are keys into another prototype
 - `autodocProcedure`: the id is the surgery's id, looked up by it; the ones for Wolfmed's surgeries followed them.
 - `wolfmedConsciousnessCause`: the enum member's name (`Blood`, `Hypoxia`, `CoreHeat`).
 - `wolfmedSpeciesException`: the species id (`IPC`, `Synth`, `Diona`).
-- `Spaceacillin` and `SpaceacillinChemistryBottle`: upstream ids put back after upstream dropped them.
+- `Spaceacillin`: the upstream reagent id, put back after upstream dropped it, so old solutions still hold it. Its
+  bottle is the module's own entity and is `WFSpaceacillinChemistryBottle`.
 - The three guide entries (`WFWounds`, `WFWoundTreatment`, `WFWolfmedAutodoc`) were renamed by hand: `Wounds` is
   a word, and a mechanical replace would have hit the `_Onyx.Wounds` namespace.
 Onyx's ported prototypes (`_Onyx`) keep their ids, as AGENTS.md allows. The Docs folder was left as history.

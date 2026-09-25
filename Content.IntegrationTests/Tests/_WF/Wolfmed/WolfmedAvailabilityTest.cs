@@ -32,7 +32,7 @@ public sealed class WolfmedAvailabilityTest : GameTest
     private static readonly string[] ObtainableItems =
     [
         "WFWolfmedSkinGraft",
-        "SpaceacillinChemistryBottle",
+        "WFSpaceacillinChemistryBottle",
         "WFWolfmedAntisepticSpray",
         "WFWolfmedSplint", // V5
         "WFWolfmedAnalgesicPill", // CONSC
@@ -54,7 +54,7 @@ public sealed class WolfmedAvailabilityTest : GameTest
     [
         ("MedkitBurnFilled", "WFWolfmedSkinGraft"),
         ("CrateMedicalSurgery", "WFWolfmedSkinGraft"),
-        ("CrateMedicalSupplies", "SpaceacillinChemistryBottle"),
+        ("CrateMedicalSupplies", "WFSpaceacillinChemistryBottle"),
         ("MedkitBruteFilled", "WFWolfmedSplint"), // V5
     ];
 

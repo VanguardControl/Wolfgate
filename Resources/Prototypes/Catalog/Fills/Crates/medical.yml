@@ -15,7 +15,7 @@
     - id: BoxLatexGloves
     - id: BoxSterileMask
     - id: BoxMouthSwab
-    - id: SpaceacillinChemistryBottle # WOLFGATE(Wolfmed): W7: infection cure, orderable without chemistry.
+    - id: WFSpaceacillinChemistryBottle # WOLFGATE(Wolfmed): W7: infection cure, orderable without chemistry.
       amount: 2
 
 - type: entity
