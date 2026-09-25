@@ -1,6 +1,7 @@
 using Content.Shared.Actions;
 using Content.Shared._CE.ZLevels.Core.Components; // Mono/CE: planet (z-level map) detection
 using Content.Shared._WF.Planets; // WOLFGATE(Planets)
+using Content.Shared._WF.Planets.Jetpack; // WOLFGATE(Planets)
 using Content.Shared._EE.CCVar; // EE
 using Content.Shared.Gravity;
 using Content.Shared.Input; // Mono/CE
@@ -31,6 +32,7 @@ public abstract partial class SharedJetpackSystem : EntitySystem
     [Dependency] private ActionContainerSystem _actionContainer = default!;
     [Dependency] private IConfigurationManager _config = default!; // EE
     [Dependency] private SharedGravitySystem _gravity = default!; // Mono
+    [Dependency] private WFAtmosphericJetpackSystem _wfAtmosphericJetpack = default!; // WOLFGATE(Planets)
 
     public override void Initialize()
     {
@@ -198,7 +200,7 @@ public abstract partial class SharedJetpackSystem : EntitySystem
             && (!CanEnableOnGrid(args.Transform.GridUid)
                 || !UserNotParented(uid, jetpack) // EE
                 || !IsWeightlessOrPlanet(uid) // Mono/CE: planets (grid or open map) keep it on; WOLFGATE(Planets): the condition continues on the next line.
-                || WfInAtmosphere(uid))) // WOLFGATE(Planets): a jetpack cuts out below a planet's orbit layer.
+                || WfInAtmosphere(uid, component.Jetpack))) // WOLFGATE(Planets): a jetpack cuts out below a planet's orbit layer.
         {
             SetEnabled(component.Jetpack, jetpack, false, uid);
 
@@ -246,9 +248,17 @@ public abstract partial class SharedJetpackSystem : EntitySystem
             return;
 
         // WOLFGATE(Planets) START: an atmosphere refusal is said plainly, rather than the gravity line, which is not why it failed.
-        if (!IsEnabled(uid) && WfInAtmosphere(args.Performer))
+        if (!IsEnabled(uid) && WfInAtmosphere(args.Performer, uid))
         {
             _popup.PopupClient(Loc.GetString("wf-jetpack-atmosphere"), uid, args.Performer);
+            return;
+        }
+
+        // An atmospheric pack has its own reasons: no air to burn, too much gravity or an empty tank.
+        if (!IsEnabled(uid) && TryComp<WFAtmosphericJetpackComponent>(uid, out var wfAtmospheric)
+            && _wfAtmosphericJetpack.GetRefusal((uid, wfAtmospheric), args.Performer) is { } wfRefusal)
+        {
+            _popup.PopupClient(Loc.GetString(wfRefusal), uid, args.Performer);
             return;
         }
         // WOLFGATE END
@@ -354,6 +364,15 @@ public abstract partial class SharedJetpackSystem : EntitySystem
             && HasComp<WFPlanetLayerComponent>(xform.MapUid)
             && !HasComp<WFOrbitLayerComponent>(xform.MapUid);
     }
+
+    /// <summary>
+    /// The same gate for a given pack: an atmospheric jetpack is built for that air, so it is never cut by it and
+    /// answers to <see cref="WFAtmosphericJetpackSystem"/> instead.
+    /// </summary>
+    protected bool WfInAtmosphere(EntityUid user, EntityUid pack)
+    {
+        return !HasComp<WFAtmosphericJetpackComponent>(pack) && WfInAtmosphere(user);
+    }
     // WOLFGATE END
 
     private bool IsWeightlessOrPlanet(EntityUid user)
@@ -363,7 +382,7 @@ public abstract partial class SharedJetpackSystem : EntitySystem
 
     protected virtual bool CanEnable(EntityUid uid, EntityUid user, JetpackComponent component)
     {
-        return IsWeightlessOrPlanet(user) && !WfInAtmosphere(user); // Mono/CE, WOLFGATE(Planets): no jetpack below a planet's orbit layer.
+        return IsWeightlessOrPlanet(user) && !WfInAtmosphere(user, uid); // Mono/CE, WOLFGATE(Planets): no jetpack below a planet's orbit layer.
     }
 
     // EE: check parent
