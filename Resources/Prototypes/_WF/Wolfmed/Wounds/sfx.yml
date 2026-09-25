@@ -97,7 +97,7 @@
         volume: -6
         variation: 0.15
 
-  # A limb coming off. The spill is the body's own reagent, so an IPC puts oil on the deck.
+  # A limb coming off. The spill is the body's own reagent, so an IPC puts hydraulic fluid on the deck.
   organicDismemberment:
     sound:
       collection: WolfmedDismemberOrganic

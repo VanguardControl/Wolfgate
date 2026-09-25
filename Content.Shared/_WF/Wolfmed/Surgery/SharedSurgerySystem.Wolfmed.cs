@@ -20,17 +20,24 @@ public abstract partial class SharedSurgerySystem
     [Dependency] private WolfmedSurgeryConditionSystem _wolfmedConditions = default!; // WOLFGATE: HOOK 24
     [Dependency] private IConfigurationManager _wolfmedCfg = default!; // WOLFGATE: HOOK 27
     [Dependency] private WolfmedWoundDamageSyncSystem _wolfmedDamageSync = default!; // WOLFGATE (AUTODOC5): HOOK 27
+    [Dependency] private WolfmedWoundTraitSystem _wolfmedTraits = default!; // WOLFGATE (playtest 3 IPC 2): HOOK 24
 
     /// <summary>
     /// HOOK 24 body: whether a tend surgery should stay off this part. Upstream lists it wherever the BODY
     /// carries any damage at all, so one cut had the pod's planner queueing a tend on every limb; on a wound
     /// host the part has to carry something tending could actually close, and then be inside whatever
     /// severity window the surgery declares (P4-D19). Non-hosts are provably unchanged (D2).
+    /// Playtest 3 IPC 2: never on a machine part. The generic chassis wound lists both groups' damage types, so a
+    /// tend listed there and then stalled on whichever group the chassis had no damage of. A chassis is welded and
+    /// rewired instead (SurgeryWeldChassis, SurgeryRewireChassis).
     /// </summary>
     private bool WolfmedWoundWindowFails(Entity<SurgeryWoundedConditionComponent> ent, EntityUid body, EntityUid part)
     {
         if (!HasComp<WoundHostComponent>(body))
             return false;
+
+        if (_wolfmedTraits.IsMechanical(part))
+            return true;
 
         var severity = _wolfmedConditions.GetTreatableGroupSeverity(part, ent.Comp.WoundGroup);
         if (severity <= FixedPoint2.Zero)

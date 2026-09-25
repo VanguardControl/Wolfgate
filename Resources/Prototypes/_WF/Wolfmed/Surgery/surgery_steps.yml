@@ -380,6 +380,52 @@
     amount: 6
   - type: SurgeryStepEmoteEffect
 
+# Chassis repair (playtest 3 IPC round 2) -------------------------------------
+# One pass each of what a welder and a cable coil do in a hand, three seconds like the hand welder's. The tools carry
+# WolfmedHullWeld and WolfmedServoKit, so the pod says WELDING and REWIRING. No pain and no scream: neither tool costs
+# any by hand.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepWeldChassis
+  name: Weld the chassis
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedHullWeld
+    duration: 3
+  - type: Sprite
+    sprite: Objects/Tools/welder.rsi
+    state: icon
+  - type: WolfmedSurgeryWeldChassisEffect
+    wounds:
+    - IpcMechanicalDamageWound
+    - WolfmedDentWound
+    - WolfmedBreachWound
+    - CyberneticMechanicalDamageWound
+  - type: SurgeryRepeatableStep
+
+- type: entity
+  parent: SurgeryStepBase
+  id: SurgeryStepRewireChassis
+  name: Rewire the chassis
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: WolfmedServoKit
+    duration: 3
+  - type: Sprite
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coillv-30
+  - type: WolfmedSurgeryRewireChassisEffect
+    uses: 5
+    wounds:
+    - WolfmedShortCircuitWound
+    - ElectricalWound
+  - type: SurgeryRepeatableStep
+
 # Brain repair (BRAIN) --------------------------------------------------------
 # Unlike the heal steps above this one works on a DESTROYED organ, which is the only reason a brain-dead
 # body can ever be defibrillated again. One pass restores the whole organ and leaves the trauma behind.

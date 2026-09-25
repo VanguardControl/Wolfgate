@@ -47,6 +47,7 @@
     - id: CableApcStack
     - id: Wrench
     - id: NaniteApplicator
+    - id: WolfmedHydraulicFluidPack
     # Washing and cleaning
     - id: WolfmedAntisepticSpray
       amount: 2

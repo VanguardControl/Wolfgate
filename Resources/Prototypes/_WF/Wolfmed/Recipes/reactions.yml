@@ -54,3 +54,15 @@
       amount: 1
   products:
     WolfmedNaloxone: 2
+
+# Playtest 3 IPC 2: hydraulic fluid, a silicone oil that does not burn, from oil and silicon off the dispenser. A chassis
+# runs on it now, so chemistry can make a refill without cargo.
+- type: reaction
+  id: WolfmedHydraulicFluid
+  reactants:
+    Oil:
+      amount: 1
+    Silicon:
+      amount: 1
+  products:
+    WolfmedHydraulicFluid: 2

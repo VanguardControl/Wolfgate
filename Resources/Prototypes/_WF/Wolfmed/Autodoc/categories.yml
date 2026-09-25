@@ -98,6 +98,8 @@
   order: 70
   surgeries:
   - SurgeryWeldChassisBreach
+  - SurgeryWeldChassis # Playtest 3 IPC 2: the hand welder's repair
+  - SurgeryRewireChassis # Playtest 3 IPC 2: the hand coil's repair
   - SurgeryReplaceServo
 
 - type: autodocCategory

@@ -10,6 +10,12 @@ namespace Content.Shared._WF.Wolfmed.Surgery;
 public sealed partial class WolfmedSurgeryWoundConditionComponent : Component
 {
     [DataField] public ProtoId<WoundPrototype>? WoundPrototype;
+
+    /// <summary>Playtest 3 IPC 2: any one of these present is a match, alongside <see cref="WoundPrototype"/>.</summary>
+    [DataField] public List<ProtoId<WoundPrototype>>? WoundPrototypes;
+
+    /// <summary>Playtest 3 IPC 2: only on a machine part (an IPC chassis, a cybernetic limb).</summary>
+    [DataField] public bool Mechanical;
     [DataField] public WoundVisibility? Visibility;
     [DataField] public WoundState? State;
     [DataField] public bool Bleeding;
@@ -165,4 +171,27 @@ public sealed partial class WolfmedSurgeryExtractEmbeddedEffectComponent : Compo
 public sealed partial class WolfmedSurgeryRelocateJointEffectComponent : Component
 {
     [DataField] public ProtoId<WoundPrototype> Wound = "WolfmedDislocationWound";
+}
+
+/// <summary>
+/// Playtest 3 IPC 2: one pass of a hand welder on a chassis part, by the step's own welder. Repeats until the part
+/// carries none of <see cref="Wounds"/>.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryWeldChassisEffectComponent : Component
+{
+    [DataField(required: true)] public List<ProtoId<WoundPrototype>> Wounds = new();
+}
+
+/// <summary>
+/// Playtest 3 IPC 2: a run of cable coil uses on a chassis part, by the step's own coil. Repeats until the part
+/// carries none of <see cref="Wounds"/>.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryRewireChassisEffectComponent : Component
+{
+    [DataField(required: true)] public List<ProtoId<WoundPrototype>> Wounds = new();
+
+    /// <summary>Coil uses in one pass: a hand coil takes 0.6 s a use, the step a few seconds.</summary>
+    [DataField] public int Uses = 5;
 }

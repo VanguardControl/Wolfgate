@@ -16,7 +16,7 @@
   # WOLFGATE (P5-2/P5-D4/U16): Onyx's bloodReferenceSolution (Oil 250) maps onto Wolfgate's classic
   # bloodReagent + bloodMaxVolume; WG's BloodstreamComponent has no bloodReferenceSolution field.
   # Wound bleeding writes BleedAmount through BloodstreamSystem.TryModifyWoundBleedProjection (GUARD E3)
-  # and TryModifyBloodLevel spills BloodReagent - so an IPC leaks oil, not blood. SolutionContainerManager
+  # and TryModifyBloodLevel spills BloodReagent - so an IPC leaks its fluid, not blood. SolutionContainerManager
   # is not declared: BloodstreamSystem's EnsureSolution EnsureComp's it. No circulatoryStream:
   # IpcBodyPartProfile stays on the primary Organic stream, exactly as Onyx's does (P5-D3).
   # chemicalMaxVolume: 0 (U16) because an IPC has no metabolizer - OrganIPCPump's Metabolizer block is
@@ -27,11 +27,11 @@
   # so it would be routed to a part, create IpcMechanicalDamageWound severity and bleed at chance 1 - a
   # self-reinforcing leak loop. Bloodloss stays systemic and self-limits via bloodlossHealDamage.
   - type: Bloodstream
-    bloodReagent: Oil
+    bloodReagent: WolfmedHydraulicFluid # WOLFGATE (playtest 3 IPC 2): was Oil, lamp oil a lit welder set alight in its own puddle
     bloodMaxVolume: 250
     chemicalMaxVolume: 0
     # WOLFGATE: an IPC never takes Airloss-group damage (Bloodloss reads as oxygen loss on the analyzer and
-    # it does not breathe). Oil loss deals no damage; SiliconWolfmed no longer accepts Bloodloss either.
+    # it does not breathe). Fluid loss deals no damage; SiliconWolfmed no longer accepts Bloodloss either.
     bloodlossDamage:
       types: {}
     bloodlossHealDamage:

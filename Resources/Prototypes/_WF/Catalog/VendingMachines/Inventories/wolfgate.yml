@@ -12,6 +12,7 @@
     WolfmedAnalgesicPen: 10
     WolfmedOpiatePen: 6
     WolfmedNaloxonePen: 4 # M2 (OD14): reverses an overdose.
+    WolfmedHydraulicFluidPack: 4 # Playtest 3 IPC 2: refills a chassis.
     SpaceacillinChemistryBottle: 3
     # Autodoc consumables. The pod itself and its board come from the medical lathe.
     AutodocProgramDiskTransplant: 2

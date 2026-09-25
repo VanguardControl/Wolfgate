@@ -4967,3 +4967,39 @@ One marked Onyx edit; everything else is in `_WF` code, Wolfmed locale and tests
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedIpcFluidLossTest.cs` | new | `IpcFluidLossTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs` | modified | `SyntheticHudPanelFitsTest` new; the locale key list follows the row keys. |
 | `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round" sections; the "Synthetic HUD" section's Idle glyph annotated as removed. |
+
+## Playtest 3, IPC round 2 (2026-09-24)
+
+Four marked upstream lines (two Einstein Engines, one stock, one Frontier) and two reworded comments inside an existing
+WOLFGATE block; everything else is `_WF` code, Wolfmed prototypes, locale and tests.
+
+| File | Kind | Change |
+| --- | --- | --- |
+| `Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml:30` | EE YAML | WOLFGATE (playtest 3 IPC 2): `MobIPC` `bloodReagent` Oil → `WolfmedHydraulicFluid`. Oil is lamp oil (flammability 2, a FlammableTileReaction) and a lit welder lit the chassis's own puddle. Lines 19 and 34, in the existing P5-2 WOLFGATE comments, say "its fluid" / "Fluid loss" instead of oil. |
+| `Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml:17` | EE YAML | WOLFGATE (playtest 3 IPC 2): `BaseIPCOrgan`'s 10 u organ solution is hydraulic fluid, not Oil. |
+| `Resources/Prototypes/Catalog/VendingMachines/Inventories/wallmed.yml:7` | stock YAML | WOLFGATE (playtest 3 IPC 2): `WolfmedHydraulicFluidPack: 2` beside the blood packs. |
+| `Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml:8` | Frontier YAML | WOLFGATE (playtest 3 IPC 2): `WolfmedHydraulicFluidPack` infinite, beside the blood packs. |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryComponents.cs` | modified | `WolfmedSurgeryWoundCondition.woundPrototypes` and `mechanical`; `WolfmedSurgeryWeldChassisEffect`, `WolfmedSurgeryRewireChassisEffect` new. |
+| `Content.Shared/_WF/Wolfmed/Surgery/WolfmedSurgeryConditionSystem.cs` | modified | The wound list and the machine filter in `OnWoundValid`; the weld and rewire completion checks; `HasAnyWound`. |
+| `Content.Shared/_WF/Wolfmed/Surgery/SharedSurgerySystem.Wolfmed.cs` | modified | HOOK 24 body: a tend never lists on a machine part. |
+| `Content.Server/_WF/Wolfmed/Surgery/WolfmedChassisRepairSurgerySystem.cs` | new | The weld pass (the hand welder's call, then the topical rule) and the rewire pass (the coil's own heal, five uses). |
+| `Content.Shared/_WF/Wolfmed/Autodoc/AutodocPrototypes.cs` | modified | `AutodocReagentEntry.Machine`. |
+| `Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Procedure.cs` | modified | `DrawFluid`: a machine fluid only to a body that runs on it, and nothing else to such a body. |
+| `Content.Shared/_WF/Wolfmed/Reagents/WolfmedFluidPackComponent.cs` | new | `WolfmedFluidPackComponent`, `WolfmedFluidPackDoAfterEvent`. |
+| `Content.Server/_WF/Wolfmed/Medical/WolfmedFluidPackSystem.cs` | new | The hand refill; `GetRefusal`, `TryStart`, `TryTransfer`. |
+| `Content.Shared/_WF/Wolfmed/Wounds/WolfmedSfxProfilePrototype.cs` | modified | Comment: an IPC spills hydraulic fluid. |
+| `Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml`, `surgery_steps.yml` | modified | `SurgeryWeldChassis`, `SurgeryRewireChassis`, `SurgeryStepWeldChassis`, `SurgeryStepRewireChassis`. |
+| `Resources/Prototypes/_WF/Wolfmed/Autodoc/categories.yml`, `programs.yml` | modified | Both on the Mechanical category and the base program; `autodocProcedure` 0/0; `WolfmedHydraulicFluid` on `WolfmedAutodocReagents` with `machine: true`. |
+| `Resources/Prototypes/_WF/Wolfmed/Reagents/hydraulics.yml` | new | `WolfmedHydraulicFluid`. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/hydraulics.yml` | new | `WolfmedHydraulicFluidPack`. |
+| `Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml` | modified | `WolfmedHydraulicFluid`: Oil + Silicon → 2. |
+| `Resources/Prototypes/_WF/Catalog/VendingMachines/Inventories/wolfgate.yml` | modified | `WolfmedHydraulicFluidPack: 4`. |
+| `Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml` | modified | One pack in the debug crate. |
+| `Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml` | modified | Comment: an IPC spills hydraulic fluid. |
+| `Resources/Locale/en-US/_WF/wolfmed/hydraulics.ftl` | new | The reagent's name and description; the pack's refusals and finish. |
+| `Resources/Locale/en-US/_WF/wolfmed/analyzer-vitals.ftl`, `consciousness.ftl` | modified | "Fluid N%", "refill hydraulic fluid ≈ N u", "weld the fluid leak", "refill the hydraulic fluid" (values only; keys unchanged). |
+| `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/WoundTreatment.xml`, `Autodoc.xml` | modified | A torn chassis leaks hydraulic fluid; the pack, and oil refused; the pod welds and rewires a chassis. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPodWeldsChassisTest.cs` | new | `PodWeldsChassisTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedHydraulicFluidTest.cs` | new | `HydraulicFluidTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs`, `WolfmedEviscerationTest.cs`, `Scenarios/WolfmedIpcFluidLossTest.cs` | modified | Migrated from Oil to hydraulic fluid. |
+| `Docs/Wolfmed/DECISIONS.md`, this file | modified | The "Playtest 3, IPC round 2" sections. |

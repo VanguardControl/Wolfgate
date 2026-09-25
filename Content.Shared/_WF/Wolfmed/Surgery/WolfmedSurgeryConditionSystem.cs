@@ -26,6 +26,7 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private WoundFractureSystem _fractures = default!;
     [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private WolfmedWoundTraitSystem _traits = default!; // Playtest 3 IPC 2
 
     public override void Initialize()
     {
@@ -44,7 +45,29 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryEmbeddedConditionComponent, SurgeryValidEvent>(OnEmbeddedValid);
         SubscribeLocalEvent<WolfmedSurgeryExtractEmbeddedEffectComponent, SurgeryStepCompleteCheckEvent>(OnExtractCheck);
         SubscribeLocalEvent<WolfmedSurgeryRelocateJointEffectComponent, SurgeryStepCompleteCheckEvent>(OnRelocateCheck);
+        SubscribeLocalEvent<WolfmedSurgeryWeldChassisEffectComponent, SurgeryStepCompleteCheckEvent>(OnWeldChassisCheck);
+        SubscribeLocalEvent<WolfmedSurgeryRewireChassisEffectComponent, SurgeryStepCompleteCheckEvent>(OnRewireChassisCheck);
     }
+
+    /// <summary>Playtest 3 IPC 2: the weld repeats until the part carries none of its wounds.</summary>
+    private void OnWeldChassisCheck(Entity<WolfmedSurgeryWeldChassisEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (HasAnyWound(args.Part, ent.Comp.Wounds))
+            args.Cancelled = true;
+    }
+
+    /// <summary>Playtest 3 IPC 2: the rewire repeats until the part carries none of its wounds.</summary>
+    private void OnRewireChassisCheck(Entity<WolfmedSurgeryRewireChassisEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (HasAnyWound(args.Part, ent.Comp.Wounds))
+            args.Cancelled = true;
+    }
+
+    /// <summary>True while the part carries any one of the named wounds, scars aside.</summary>
+    public bool HasAnyWound(EntityUid part, IEnumerable<ProtoId<WoundPrototype>> prototypes) =>
+        prototypes.Any(prototype => FindWound(part, prototype) != null);
 
     private void OnEmbeddedValid(Entity<WolfmedSurgeryEmbeddedConditionComponent> ent, ref SurgeryValidEvent args)
     {
@@ -69,8 +92,20 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
 
     private void OnWoundValid(Entity<WolfmedSurgeryWoundConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        var found = FindWound(args.Part, ent.Comp.WoundPrototype, ent.Comp.State, ent.Comp.Visibility,
+        var part = args.Part;
+        var found = FindWound(part, ent.Comp.WoundPrototype, ent.Comp.State, ent.Comp.Visibility,
             ent.Comp.Bleeding, ent.Comp.InternalBleeding) != null;
+
+        // Playtest 3 IPC 2: a list of wounds, any one of which lists the surgery. The single field still works.
+        if (ent.Comp.WoundPrototypes is { Count: > 0 } prototypes)
+        {
+            found = ent.Comp.WoundPrototype != null && found ||
+                    prototypes.Any(prototype => FindWound(part, prototype, ent.Comp.State, ent.Comp.Visibility,
+                        ent.Comp.Bleeding, ent.Comp.InternalBleeding) != null);
+        }
+
+        if (ent.Comp.Mechanical && !_traits.IsMechanical(part))
+            found = false;
 
         if (found == ent.Comp.Inverse)
             args.Cancelled = true;

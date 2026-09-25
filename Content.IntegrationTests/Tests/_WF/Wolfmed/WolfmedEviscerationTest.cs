@@ -418,7 +418,7 @@ public sealed class WolfmedEviscerationTest : GameTest
         });
     }
 
-    /// <summary>A chassis breaches rather than eviscerates: its own wound, its own contents, and oil.</summary>
+    /// <summary>A chassis breaches rather than eviscerates: its own wound, its own contents, and its own fluid.</summary>
     [Test]
     public async Task ChassisBreachesInsteadTest()
     {
@@ -450,8 +450,8 @@ public sealed class WolfmedEviscerationTest : GameTest
                 Assert.That(after.ContainsKey("pump"), Is.False, "which is now on the deck.");
                 Assert.That(after.ContainsKey("posbrain"), Is.True,
                     "the brain never comes out, positronic or otherwise.");
-                Assert.That(entities.GetComponent<BloodstreamComponent>(body).BloodReagent, Is.EqualTo("Oil"),
-                    "so what it leaks is oil, not blood: the spill is the body's own reagent.");
+                Assert.That(entities.GetComponent<BloodstreamComponent>(body).BloodReagent, Is.EqualTo("WolfmedHydraulicFluid"),
+                    "so what it leaks is hydraulic fluid, not blood: the spill is the body's own reagent.");
             });
 
             // The mechanical repair: seat the plating, then weld the seam.

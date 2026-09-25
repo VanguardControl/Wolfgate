@@ -178,7 +178,7 @@ public sealed partial class WolfmedDismembermentSpec
     public EntProtoId? Effect;
 
     /// <summary>
-    /// Units of the body's own blood reagent spilled where the limb was. Oil for an IPC, because the
+    /// Units of the body's own blood reagent spilled where the limb was. Hydraulic fluid for an IPC, because the
     /// reagent is read off the bloodstream rather than named here.
     /// </summary>
     [DataField]

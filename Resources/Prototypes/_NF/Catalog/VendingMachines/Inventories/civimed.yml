@@ -5,6 +5,7 @@
     Brutepack: 4294967295 # Infinite
     Ointment: 4294967295 # Infinite
     Bloodpack: 4294967295 # Infinite
+    WolfmedHydraulicFluidPack: 4294967295 # WOLFGATE (playtest 3 IPC 2): Infinite, a chassis's refill beside the blood packs.
     Gauze: 4294967295 # Infinite
     EmergencyMedipen: 4294967295 # Infinite
     WolfmedSplint: 4294967295 # WOLFGATE (V5): Infinite

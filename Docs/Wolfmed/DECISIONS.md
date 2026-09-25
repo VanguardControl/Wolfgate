@@ -2738,3 +2738,160 @@ timed limit before you overheat."
 - Measured (`HeatStrokeIsTimedTest`, 330 K air, 318/325 K lines): Downed after about 2 min, heat stroke after about
   5.5 min, back out of heat stroke within a minute of the air cooling to 300 K. The fire grace is unchanged.
 - The M5 scenario tests hold a surface and expect the core there at once; they now pin both new cvars to 0.
+
+## Playtest 3, IPC round 2 (2026-09-24)
+
+The owner, playing an IPC, hit two things (`plan/p7/PLAYTEST3-IPC2-spec.md`): after a pod run the synthetic HUD's torso row
+still read 89.8, and a welder set the IPC's own spilled oil on fire. Branch `Wolfmed-fixes6`, from `36ed230814`.
+
+**1. Why the tend surgeries left the chassis wound.** Measured on this branch before the change, with a throwaway fixture
+(an IPC in a pod, torso hit, the planner's own queue run to the end).
+- **Not the treatment capabilities.** HOOK 27's `WoundSystem.TryHealWounds` and the step's `SurgeryStepDamageEvent` run with
+  no capability scope; `WoundDamageRoutingSystem.WithTreatmentCapabilities` only scopes the hand welder and reagent effects.
+  A tend that ran did close the generic wound: one deep brute tend took a Blunt 60 torso's `IpcMechanicalDamageWound` from
+  60 to 9.1 and its dent from 54 to 33.1.
+- **Three reads of one wound that disagree.** `IpcMechanicalDamageWound` lists Blunt, Slash and Piercing (Brute) and Heat,
+  Cold and Caustic (Burn). HOOK 24 (listing) and HOOK 26 (completion) read wounds, so the one wound counts under both
+  groups on the same part. The upstream step, `OnTendWoundsStep`, returns before HOOK 27 unless the body or the part
+  carries damage of its own group. Measured:
+  - Blunt only (60 or 90 on the torso): the burn tend lists, does nothing three times, "THIS IS NOT WORKING.", and goes
+    into `FailedProcedures` for that occupant.
+  - Heat only (90, 135 after the IPC's ×1.5; a chassis that burned): the deep and the normal brute tend both list, stall
+    and fail the same way; only the burn tend works.
+  - Piercing 60 + Heat 30: the brute tend closed the whole generic wound through its brute entries, whatever made it; the
+    burn tend queued behind it found no wound, its first step was not performed, and the pod **faulted**
+    (`FinishStep`: not performed with no step done is a fault), which stops the queue.
+  - The deep tends' window (100 and up) ends the procedure as the group falls under 100 and leaves the rest to a re-plan.
+- So whether a chassis came out clean depended on which damage made its wounds and on the queue order, and a fault or a
+  failed-procedure mark leaves the generic wound standing with nothing planning for it: the owner's 89.8. The owner's exact
+  state was not reproduced (the damage history is unknown); these are the three ways found.
+
+**2. The pod welds and rewires a chassis.**
+- **`SurgeryWeldChassis`** ("Weld Chassis"): no requirement, one repeatable step, `SurgeryStepWeldChassis` (tool
+  `WolfmedHullWeld`, the welder the pod already carries; 3 s, the hand welder's `DoAfterDelay`; the welder sprite; WELDING
+  from the tool). A pass is the hand welder's own call: the tool's `WeldingHealing` spec (Blunt, Piercing, Slash −25)
+  through `WoundDamageRoutingSystem.TryApplyPartDamage` inside `WithTreatmentCapabilities({Mechanical})`, ignoring
+  resistances, healing wounds. When that removes no damage (the part has none of the welder's types left, or the wound
+  was never backed by damage), the pass works on the wounds themselves with the same spec, the rule hand topicals already
+  follow (`WoundHealingSystem.TryApplyHealing`). Then `WolfmedWoundDamageSyncSystem.SyncPart`. It repeats until the part
+  carries none of `IpcMechanicalDamageWound`, `WolfmedDentWound`, `WolfmedBreachWound` or `CyberneticMechanicalDamageWound`;
+  a breach at severity 0 is removed, so its bleed goes with it. No pain, no scream, no fuel: the hand welder costs neither
+  of the first two, and the pod cannot refuel its welder.
+- **`SurgeryRewireChassis`** ("Rewire"): `SurgeryStepRewireChassis` (tool `WolfmedServoKit`, the cable coil the pod already
+  carries; REWIRING). A 3 s pass is five uses of the coil's own `Healing` block through `WoundHealingSystem.TryApplyHealing`,
+  exactly a hand coil's use (0.6 s each). It repeats until the part carries no `WolfmedShortCircuitWound` and no
+  `ElectricalWound`, and on the way it takes Heat and Shock damage and the generic wound's Heat share, as the coil does.
+- **Gating.** `WolfmedSurgeryWoundCondition` gains `woundPrototypes` (any one of them lists the surgery; `woundPrototype`
+  still works) and `mechanical` (a machine part only, `WolfmedWoundTraitSystem.IsMechanical`). The weld lists on its four
+  wounds; the rewire on its two, machine parts only, since `ElectricalWound` is flesh's too.
+- **The organic tends stay off machine parts.** HOOK 24's body (`WolfmedWoundWindowFails`, a `_WF` partial) fails on a
+  machine part, so neither the planner nor a surgeon lists a tend on a chassis or a cybernetic limb.
+- **The pod.** Both on the Mechanical category (breach, weld, rewire, servo), so the planner's triage keeps them at step
+  11; both in the base program; `autodocProcedure` entries with no anaesthetic and no antibiotic. A leaking chassis still
+  gets `SurgeryStopBleeding` at step 4 first.
+- **The stall guard.** The M6 part signature carries every wound's severity (whole numbers) and the part's damage total.
+  A weld pass moves the wound by 25 to 75 or the damage by 25 a type, a rewire pass by 2 or more, so every pass reads as
+  progress; `PodWeldsChassisTest` ends with nothing in `FailedProcedures`, including a 75 `ElectricalWound` the coil closes
+  over several passes.
+- **The pod's welding never lights anything.** Confirmed in the code: the pod's tools are spawned into its own container
+  and nothing in the autodoc toggles them; a welder's `IgnitionSource.Ignited` is set only by its item toggle
+  (`ItemToggleHot`) or by being on fire. The test samples the pod's welder every tick of the run: never lit.
+
+**3. Hydraulic fluid.**
+- **`WolfmedHydraulicFluid`** (`_WF/Wolfmed/Reagents/hydraulics.yml`): "hydraulic fluid", dark amber (`#8a5a14`), oily, no
+  flammability, no tile reaction, no metabolism (Oil has none either, so drinking it does what drinking oil does:
+  nothing), group Biological as `SynthBlood` is. A spill has WeldingFuel's slip values (`requiredSlipSpeed` 3.5, friction
+  0.4), mops up like any spill and does not evaporate, as Oil does not.
+- **Every place it replaced oil.**
+  1. `MobIPC`'s `bloodReagent` (marked). The pool stays 250 u, so every refill number is unchanged.
+  2. `BaseIPCOrgan`'s organ solution, 10 u (marked): a chassis's components hold its own fluid.
+  3. The pod: `WolfmedAutodocReagents` lists it as a Fluid with the new `machine: true`. `DrawFluid` gives a machine fluid
+     only to a body that runs on it, and gives such a body nothing else. Before, nothing on the list was an IPC's
+     (`Oil` never was), so the pod "refilled" a chassis from saline or blood: `TryModifyBloodLevel` adds the body's own
+     reagent whatever was drawn. That was the only way oil went back into an IPC.
+  4. By hand: nothing refilled a chassis (there is no oil can, and a blood pack's `Healing` block is for `Biological`
+     containers only). New `WolfmedHydraulicFluidPack`: the blood pack's bag (`bloodpack-empty`) with its greyscale
+     `bloodpack-liquid-1..5` fill tinted by the contents, 200 u, drainable and refillable. `WolfmedFluidPackSystem`: used on
+     a body (or in hand, on yourself) it moves up to 25 u of the body's own fluid every 2 s until the body is full or the
+     pack is empty; a pack holding anything the body does not run on is refused whole.
+  5. Chemistry: a new reaction, Oil + Silicon → 2 hydraulic fluid (a silicone fluid). Oil's own sources are untouched.
+  6. Stock: the Wolfgate vendor (4, in its Wolfmed block: it sells no blood packs), the NanoMed wall vendor (2, beside its
+     blood packs, marked), CiviMed (infinite, beside its blood packs, marked); the debug crate.
+  7. Words: the analyzer's "Oil 43%" is "Fluid 43%" (the HUD's FLUID row); "refill oil ≈ N u" is "refill hydraulic fluid
+     ≈ N u"; "weld the oil leak" is "weld the fluid leak"; the hydraulic cause's help lines and Downed alert say "refill the
+     hydraulic fluid". Every "hydraulic pressure" line and the HUD's FLUID row are unchanged, and so are the locale keys and
+     the cause's code name (`WolfmedCause.Oil`).
+  8. The guidebook: a torn chassis leaks hydraulic fluid (it said oil), a line on the pack and on oil being refused, and
+     the autodoc page names welding and rewiring a chassis.
+- **Left on oil:** Frontier's Arcadia robots (Shredder, Hijacked Hologuardian, Mobile Blaster Unit) still bleed `Oil`:
+  hostile drones, not wound hosts, nobody repairs them, and lighting their trail is part of fighting them. The synth keeps
+  `SynthBlood`. `PlayerSiliconHumanoidBase`'s commented-out Oil bloodstream is untouched.
+- **Oil in a chassis is foreign.** The pack refuses it ("The hydraulic fluid pack holds something Urist McPositronic does not run on."); the pod leaves it
+  in the beaker (it is not on the list) and says its reagent-ignored line, "THAT IS NOT MEDICINE. I WILL NOT USE IT.", when a
+  run starts; neither pumps it. **What the analyzer reads:** the fluid figure is the fill of the whole pool
+  (`WolfmedLifeSystem.GetBlood` → `GetBloodLevelPercentage`), so oil that got in some other way (an admin solution edit)
+  would read as fluid and nothing would flag it; nothing in play puts it there, and the bloodstream regenerates hydraulic
+  fluid only.
+- **Why nothing burns now.** A puddle writes its reagents' flammability to its tile (`PuddleSolutionFlammability`), and a
+  lit welder's hotspot ignites a tile with no plasma only through that. Measured (`HydraulicFluidTest`, in a 3×3 room with
+  real atmospherics): the chassis's puddle, 61.5 u of hydraulic fluid, left the tile at 0; a lit welder repaired the breach
+  standing in it for 20 s with no hotspot and nobody on fire; the same welder over 60 u of Oil in the same room lit a
+  hotspot within 5 s.
+
+**Differs from the spec, and why.**
+1. **The organic tends are kept off machine parts** (not asked). Without it they still list on a chassis, stall or fault as
+   above, and AUTO could not finish in one clean run with one QUEUE COMPLETE.
+2. **`mechanical` on the condition**, beside the asked-for `woundPrototypes`: the rewire's `ElectricalWound` is also an
+   organic wound.
+3. **The rewire also clears `ElectricalWound`**, which a Shock hit puts on a chassis beside the short circuit, so a rewired
+   arm is not left with a wiring wound the pod will not touch.
+4. **A weld pass heals by the tool's own numbers** (25 a type), not a fixed 15, and works on the wounds directly once no
+   damage is left, as a hand topical does; the hand welder has no such fallback (below).
+5. **No fuel and no flame for the procedure,** by hand as well as in the pod, as the existing breach and core welds.
+6. **Oil in this tree is not slippery** (no `slipData`), so "slippery like oil" is taken as the intent: the fluid is a slip
+   hazard. A leaking chassis's puddle was not one before.
+7. **"refill oil" and "Oil N%" now name the fluid.** The spec kept the "hydraulic pressure" and "refill" wording; telling a
+   medic to refill oil the pack and the pod both refuse would be wrong.
+8. **Names in the file's title case:** "Weld Chassis", "Rewire".
+
+**Found, not changed.**
+- **A hand welder on a chassis wound with none of its damage types behind it loops** (read from the code, not run): its
+  `CanRepairPart` accepts the wound (the generic wound lists Blunt), the pass removes nothing, and the do-after repeats,
+  spending 5 fuel a pass until the tank is empty. A generic wound built from Heat alone is one. The pod's weld does not,
+  because of its topical fallback.
+- **A queued procedure whose problem an earlier one already solved faults the pod** when its first step cannot be
+  performed. On a chassis the tends were the case and are gone; on flesh it is unchanged and worth a follow-up.
+- **`SurgeryStopBleeding` still sutures a leaking chassis** at step 4 (the organic step on a breach). Left: it stops the leak
+  first, and the weld closes the breach after.
+- **Outside the filter, red but not from this change** (run once for the new prototypes; each failure is in code or data this
+  change does not touch; not rerun on the base commit):
+  `TryAllReactionsTest.TryAllTest` stops at `Oxycodone` (Onyx: Tramadol + Ethanol + Epinephrine, Plasma catalyst), whose
+  reactants `WolfmedOpiate` (Tramadol + Ethanol) takes first; `CargoTest.NoCargoOrderArbitrage` finds the
+  `WolfmedAutodocPrograms` crate selling for 2880 against a 2200 cost; `EntityTest.AllComponentsOneToOneDeleteTest` logs
+  `AutodocSystem.OnMapInit` locking an item slot on an entity with no `ItemSlots`; `GuideEntryPrototypeTests` logs
+  `<GuideEntityEmbed Entity="Saline"/>` in `WoundTreatment.xml` (a reagent, not an entity). The rest of that run (cargo, vending,
+  fill-level and item sprites, prototype save, chemistry, localization, fluids, entity spawns) passed, the new pack and
+  reagent included. `TryAllTest` stops at its first failure, so the new reaction is checked in `HydraulicFluidTest` instead
+  (10 oil and 10 silicon make 20).
+
+**Tests.** New: `Scenarios/WolfmedPodWeldsChassisTest.PodWeldsChassisTest` (the spec's four wounds made directly, and a
+second IPC hurt by Blunt 60, Piercing 30 and Shock 30; both clear, their FRAME DAMAGE, PANEL DEFORMED, FLUID LEAK and WIRING
+SHORTED rows gone, QUEUE COMPLETE once each counted tick by tick, nothing in `FailedProcedures`, the pod's welder never lit,
+no tend planned on a chassis, and the human's plan keeps its tends and has no machine work).
+`Scenarios/WolfmedHydraulicFluidTest.HydraulicFluidTest` (the reagent, the reaction and the stock; the puddle, its tile, slippery; the lit
+welder's repair with no fire and the oil control that lights; the pack refilling 78% → 100% with what left the pack
+arriving; the oil pack refused by hand and by the pod, with the line; the hydraulic pack refilling in the pod, 50% → 90%;
+no hydraulic fluid into a human).
+Migrated: `WolfmedSpeciesSpawnTest` (the IPC's reagent and its spill are hydraulic fluid), `WolfmedEviscerationTest` (the
+breach leaks hydraulic fluid), `Scenarios/WolfmedIpcFluidLossTest` ("refill hydraulic fluid"). No test pumped Oil into an IPC:
+the scenario's `Transfuse` adds the body's own reagent.
+
+Full filter (`_Onyx.Wounds|Wolfmed|GibTest|Tests.Body|Autodoc`, DebugOpt), final run on the final code: 483 total, 474
+passed, 0 failed, 9 skipped (dirty-disposed autodoc fixtures: `PodRepairsACoreTest`,
+`EmbeddedObjectIsRemovedBeforeAnythingElseOnThePartTest`, `SelfServiceOccupantIsTreatedTest`,
+`AutofixModuleIdlesWithNothingToDoTest`, `FixMePlansAndStartsInSelfServiceTest`,
+`RequirementFlowWaitsForTheLimbAndRefusesTheWrongOneTest`, `BrainDeadOccupantIsOperatedOnWithoutHoldingTest`,
+`QueueMoveReordersTest`, `PodChargesAgainAfterAFailedShockTest`); each passed alone. Two earlier full runs: 479 passed,
+0 failed, 4 skipped (before the reaction check and the guidebook lines); and 474 passed, 1 failed, 8 skipped, the failure
+`HonestEndingScenarioTest` ("the last words were not whispered", a client chat-history read ten ticks after the whisper, in a
+run slowed to 23 minutes against 5), which passed in the other two runs and alone; every skip passed alone.

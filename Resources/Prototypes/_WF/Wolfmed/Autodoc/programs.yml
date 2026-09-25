@@ -34,6 +34,8 @@
   - SurgeryHealKidneys
   # Mechanical.
   - SurgeryWeldChassisBreach
+  - SurgeryWeldChassis
+  - SurgeryRewireChassis
   - SurgeryReplaceServo
   # Last resort.
   - SurgeryRemovePart
@@ -123,6 +125,17 @@
   anaesthetic: 0
   antibiotic: 0
 
+# Playtest 3 IPC 2: a welder and a coil from the outside. Nothing is opened, so nothing is dosed.
+- type: autodocProcedure
+  id: SurgeryWeldChassis
+  anaesthetic: 0
+  antibiotic: 0
+
+- type: autodocProcedure
+  id: SurgeryRewireChassis
+  anaesthetic: 0
+  antibiotic: 0
+
 # M6: a chassis has no blood to dose.
 - type: autodocProcedure
   id: SurgeryRepairCore
@@ -153,6 +166,10 @@
     role: Fluid
   - reagent: Blood
     role: Fluid
+  # Playtest 3 IPC 2: a chassis's own fluid, and only a chassis's. Oil is not on the list, so an oil pack stays put.
+  - reagent: WolfmedHydraulicFluid
+    role: Fluid
+    machine: true
   - reagent: Dexalin
     role: Oxygen
   - reagent: DexalinPlus

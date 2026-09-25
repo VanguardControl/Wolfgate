@@ -307,6 +307,43 @@
   - type: WolfmedSurgeryWoundCondition
     woundPrototype: WolfmedChassisBreachWound
 
+# Chassis repair (playtest 3 IPC round 2) -------------------------------------
+# A hand welder and a cable coil, as procedures. Neither opens anything: both tools work from the outside. The weld
+# runs until the part carries none of the four damage wounds, the rewire until its wiring faults are gone.
+
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryWeldChassis
+  name: Weld Chassis
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    steps:
+    - SurgeryStepWeldChassis
+  - type: WolfmedSurgeryWoundCondition
+    mechanical: true
+    woundPrototypes:
+    - IpcMechanicalDamageWound
+    - WolfmedDentWound
+    - WolfmedBreachWound
+    - CyberneticMechanicalDamageWound
+
+# ElectricalWound is flesh's too, so this one lists only on a machine part.
+- type: entity
+  parent: SurgeryBase
+  id: SurgeryRewireChassis
+  name: Rewire
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Surgery
+    steps:
+    - SurgeryStepRewireChassis
+  - type: WolfmedSurgeryWoundCondition
+    mechanical: true
+    woundPrototypes:
+    - WolfmedShortCircuitWound
+    - ElectricalWound
+
 # Brain repair (BRAIN) --------------------------------------------------------
 
 - type: entity

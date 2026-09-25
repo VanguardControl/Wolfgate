@@ -211,7 +211,7 @@ It is visible through clothing and from across the room, so you will not need th
 
 You can close the patient with organs still missing, and sometimes you should - a closed patient who needs a transplant is in far better shape than an open one who does not. Holding something hot against the wound stops the bleeding without closing it, which is the field answer when there is no table.
 
-A chassis tears the same way and is called a [bold]torn chassis[/bold]: the torso plating peels back, the components inside it end up on the deck, and what runs out is oil. Put the components back with their own insertion surgery, then run [bold]Weld Chassis Breach[/bold] - a wrench seats the torn plating and a welder runs the seam. That leaves the ordinary hole in the casing, which a welder closes normally.
+A chassis tears the same way and is called a [bold]torn chassis[/bold]: the torso plating peels back, the components inside it end up on the deck, and what runs out is hydraulic fluid. Put the components back with their own insertion surgery, then run [bold]Weld Chassis Breach[/bold] - a wrench seats the torn plating and a welder runs the seam. That leaves the ordinary hole in the casing, which a welder closes normally.
   <Box>
     <GuideEntityEmbed Entity="Gauze"/>
     <GuideEntityEmbed Entity="Hemostat"/>
@@ -226,7 +226,7 @@ An IPC and a cybernetic limb are not treated, they are repaired. No medicine, to
 
 A [bold]dent[/bold] is blunt force on something that does not bruise. A welder takes it out, and so does a plain [bold]wrench[/bold], which needs no fuel and does nothing else.
 
-A [bold]chassis breach[/bold] is the mechanical bleed: coolant and hydraulic fluid running out of a hole. It never clots, so it runs until a welder seals it. A breach opened by a round or by shrapnel keeps the object, and nothing - welder included - closes it until that has been pulled out with a hemostat or tweezers.
+A [bold]chassis breach[/bold] is the mechanical bleed: coolant and hydraulic fluid running out of a hole. It never clots, so it runs until a welder seals it. A breach opened by a round or by shrapnel keeps the object, and nothing - welder included - closes it until that has been pulled out with a hemostat or tweezers. What leaks is hydraulic fluid, which does not burn, so a lit welder in the puddle is safe. A [bold]hydraulic fluid pack[/bold] puts it back, used on the chassis or loaded into an autodoc; oil is not what a chassis runs on, and neither will use it.
 
 A [bold]short circuit[/bold] locks the frame up for a moment and throws sparks each time it lands. A [bold]cable coil[/bold] repairs it.
 

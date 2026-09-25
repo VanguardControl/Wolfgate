@@ -29,7 +29,7 @@ Climb in from the verb menu, or drag a patient onto it. A crewman who is down bu
 
 The window shows the patient's body doll and wound findings on the left, exactly as a health analyzer would. Clicking a limb filters the procedure list on the right to that limb. Add procedures to the queue, reorder them, and press Start.
 
-The base library covers tending, bleeding and arterial repair, internal bleeding, fractures, closing an incision, closing an evisceration, chassis and servo repair for machine bodies, and amputating a limb that is past saving. Four program disks unlock the rest: [bold]transplant[/bold] for organ removal and insertion, [bold]limb[/bold] for attaching limbs, [bold]neuro[/bold] for brain, eye and head surgery, and [bold]cavity[/bold] for cavity implants. Without the disk S.A.M. says so and refuses.
+The base library covers tending, bleeding and arterial repair, internal bleeding, fractures, closing an incision, closing an evisceration, welding and rewiring a chassis and repairing its breaches and servos, and amputating a limb that is past saving. Four program disks unlock the rest: [bold]transplant[/bold] for organ removal and insertion, [bold]limb[/bold] for attaching limbs, [bold]neuro[/bold] for brain, eye and head surgery, and [bold]cavity[/bold] for cavity implants. Without the disk S.A.M. says so and refuses.
 
 An occupant with nobody at the console gets a cut-down window: one procedure, an anaesthesia toggle, and no queue.
 

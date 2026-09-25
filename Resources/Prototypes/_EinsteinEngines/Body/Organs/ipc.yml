@@ -14,7 +14,7 @@
     solutions:
       organ:
         reagents:
-        - ReagentId: Oil
+        - ReagentId: WolfmedHydraulicFluid # WOLFGATE (playtest 3 IPC 2): the chassis's own fluid, not Oil
           Quantity: 10
 
 - type: entity

@@ -1455,18 +1455,25 @@ public sealed partial class AutodocSystem
         TryComp(body, out BloodstreamComponent? blood) &&
         _bloodstream.GetBloodLevelPercentage(body, blood) < _transfuseBelow;
 
-    /// <summary>Takes up to a dose of the patient's own blood reagent, then of any other loaded fluid.</summary>
+    /// <summary>
+    /// Takes up to a dose of the patient's own blood reagent, then of any other loaded fluid. Playtest 3 IPC 2: a machine
+    /// fluid goes only to a body that runs on it, and such a body takes nothing else, so a chassis is never topped up with
+    /// saline or blood (which the bloodstream would have turned into its own fluid) and flesh never with hydraulic fluid.
+    /// </summary>
     private FixedPoint2 DrawFluid(Entity<AutodocComponent> ent, string bloodReagent, float units)
     {
         if (!_protos.TryIndex(ent.Comp.Reagents, out var list))
             return FixedPoint2.Zero;
 
-        var fluids = list.Reagents
+        var entries = list.Reagents
             .Where(entry => entry.AutodocAdministrable && entry.Role == AutodocReagentRole.Fluid)
-            .Select(entry => entry.Reagent.Id)
             .ToArray();
 
-        var matching = fluids.Where(id => id == bloodReagent).ToArray();
+        var matching = entries.Where(entry => entry.Reagent.Id == bloodReagent).Select(entry => entry.Reagent.Id).ToArray();
+        var fluids = entries.Any(entry => entry.Machine && entry.Reagent.Id == bloodReagent)
+            ? Array.Empty<string>()
+            : entries.Where(entry => !entry.Machine).Select(entry => entry.Reagent.Id).ToArray();
+
         foreach (var wanted in new[] { matching, fluids })
         {
             if (wanted.Length == 0)

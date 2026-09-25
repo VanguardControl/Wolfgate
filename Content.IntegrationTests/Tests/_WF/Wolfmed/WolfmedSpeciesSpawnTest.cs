@@ -83,7 +83,8 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
 
                 // PROTO Q's Bloodstream block, field by field. Onyx's `bloodReferenceSolution: Oil 250` has no
                 // Wolfgate equivalent, so it maps onto the classic bloodReagent + bloodMaxVolume pair (P5-D4).
-                Assert.That(bloodstream.BloodReagent, Is.EqualTo(new ProtoId<ReagentPrototype>("Oil")));
+                // Playtest 3 IPC 2: the pool is hydraulic fluid now, not Oil (lamp oil a lit welder set alight).
+                Assert.That(bloodstream.BloodReagent, Is.EqualTo(new ProtoId<ReagentPrototype>("WolfmedHydraulicFluid")));
                 Assert.That(bloodstream.BloodMaxVolume, Is.EqualTo(FixedPoint2.New(250)));
                 // U16: an IPC has no metabolizer (OrganIPCPump's Metabolizer block is commented out), so a
                 // 250u chemical solution would be a trap. InjectableSolution is deliberately absent with it.
@@ -103,7 +104,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
     }
 
     /// <summary>
-    /// An IPC leaks oil and the leak registers on the bleed total, but it takes no Airloss-group damage from
+    /// An IPC leaks its hydraulic fluid and the leak registers on the bleed total, but it takes no Airloss-group damage from
     /// it or from anything else: it does not breathe (owner decision, 2026-09-19, reversing P5-D5).
     /// </summary>
     [Test]
@@ -136,11 +137,11 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
                 "a wounded chassis must register on the body's bleed total, or the analyzer and the " +
                 "tourniquet have nothing to act on.");
 
-            // The spilled fluid is Oil, not Blood - and Oil is flammability: 2 with a FlammableTileReaction,
-            // so an IPC's trail can be set alight.
+            // The spilled fluid is the chassis's own, not Blood. Playtest 3 IPC 2: hydraulic fluid, which does not burn;
+            // it was Oil, flammability 2 with a FlammableTileReaction, and a welder set the trail alight.
             Assert.That(solutions.TryGetSolution(body, bloodstream.BloodSolutionName, out var solution, out _));
             Assert.That(solution!.Value.Comp.Solution.Contents.Select(reagent => reagent.Reagent.Prototype),
-                Does.Contain("Oil"));
+                Does.Contain("WolfmedHydraulicFluid"));
 
             var before = blood.GetBloodLevelPercentage(body);
             Assert.That(blood.TryModifyBloodLevel(body, FixedPoint2.New(-50)));

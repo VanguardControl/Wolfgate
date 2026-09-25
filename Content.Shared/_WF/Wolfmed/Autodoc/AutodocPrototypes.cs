@@ -268,6 +268,13 @@ public sealed partial class AutodocReagentEntry
     /// <summary>False parks a reagent in the list without letting the pod use it.</summary>
     [DataField]
     public bool AutodocAdministrable = true;
+
+    /// <summary>
+    /// Playtest 3 IPC 2: a machine's own fluid. Given only to a body that runs on it, and a body that runs on one is
+    /// given nothing else: saline is not hydraulic fluid.
+    /// </summary>
+    [DataField]
+    public bool Machine;
 }
 
 public enum AutodocReagentRole : byte

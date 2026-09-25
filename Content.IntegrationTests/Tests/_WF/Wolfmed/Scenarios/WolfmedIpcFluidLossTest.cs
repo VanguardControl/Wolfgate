@@ -193,12 +193,13 @@ public sealed class WolfmedIpcFluidLossTest : GameTest
             Assert.That(downAt[0], Is.InRange(IpcDownedAt * (1f - Band), IpcDownedAt * (1f + Band)));
             Assert.That(outAt[0], Is.InRange(IpcOutAt * (1f - Band), IpcOutAt * (1f + Band)));
 
-            // The IPC's shutdown is the fluid's; the analyzer reads the same fraction and asks for oil.
+            // The IPC's shutdown is the fluid's; the analyzer reads the same fraction and asks for hydraulic fluid
+            // (playtest 3 IPC 2: it asked for oil, which is now a foreign reagent the pod and the pack refuse).
             Assert.That(outCause[0], Is.EqualTo(WolfmedCause.Oil));
             Assert.That(outCause[1], Is.EqualTo(WolfmedCause.Blood));
             Assert.That(ipcCritical, Is.True, "a shut-down chassis is not Critical.");
             Assert.That(ipcAnalyzerBlood, Is.EqualTo(ipcBloodAtOut).Within(0.01f), "the analyzer's fluid is not the body's.");
-            Assert.That(ipcDoFirst, Does.Contain("refill oil"), "the analyzer does not ask for oil.");
+            Assert.That(ipcDoFirst, Does.Contain("refill hydraulic fluid"), "the analyzer does not ask for hydraulic fluid.");
         });
 
         // Refilled above the Downed line, the chassis comes back: no longer shut down, and not for the oil.
