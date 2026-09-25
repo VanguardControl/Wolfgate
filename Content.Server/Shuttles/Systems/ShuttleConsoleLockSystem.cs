@@ -16,6 +16,7 @@ using Content.Shared.Interaction;
 using Content.Shared.PDA;
 using Robust.Shared.Audio;
 using Robust.Shared.Map.Components;
+using Content.Server._WF.ShipAccess; // WOLFGATE(ShipAccess)
 
 namespace Content.Server.Shuttles.Systems;
 
@@ -28,6 +29,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private HandsSystem _handsSystem = default!;
     [Dependency] private ShuttleSystem _shuttleSystem = default!;
+    [Dependency] private WFShipAccessServerSystem _wfShipAccess = default!; // WOLFGATE(ShipAccess)
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -817,6 +819,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
             // Log.Debug("TryGrantGuestAccess: Granted guest access to ID card {0}", cardUid);
         }
         Dirty(gridUid, guestAccess);
+        _wfShipAccess.OnGuestAccessGranted(gridUid, user); // WOLFGATE(ShipAccess): a guest is also a person on the allow list
 
         // Log.Debug("TryGrantGuestAccess: Successfully granted guest access to user {0} on grid {1}", user, gridUid);
 
@@ -847,6 +850,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         // Grant guest access to the cyborg
         guestAccess.GuestCyborgs.Add(cyborg);
         Dirty(gridUid, guestAccess);
+        _wfShipAccess.OnGuestAccessGranted(gridUid, cyborg); // WOLFGATE(ShipAccess): a guest is also a person on the allow list
 
         // Log.Debug("TryGrantCyborgGuestAccess: Successfully granted guest access to cyborg {0} on grid {1}", cyborg, gridUid);
 
@@ -909,6 +913,16 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
             Popup.PopupEntity(Loc.GetString("shuttle-console-reset-guest-access-denied"), console, user);
             return;
         }
+
+        // WOLFGATE(ShipAccess) START: resetting guests also empties the allow list, and that alone counts as a reset
+        var wfCleared = _wfShipAccess.ClearAllowList(gridUid);
+        if (wfCleared > 0 && (!TryComp<ShipGuestAccessComponent>(gridUid, out var wfGuests) || wfGuests.GuestIdCards.Count + wfGuests.GuestCyborgs.Count == 0))
+        {
+            _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/id_swipe.ogg"), console);
+            Popup.PopupEntity(Loc.GetString("ship-access-allow-list-cleared", ("count", wfCleared)), console, user);
+            return;
+        }
+        // WOLFGATE END
 
         // Check if there's a guest access component
         if (!TryComp<ShipGuestAccessComponent>(gridUid, out var guestAccess))
@@ -999,6 +1013,9 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         }
 
         // Toggle ship access
+        // WOLFGATE(ShipAccess) START: Locked on the grid is the source of truth and flips the readers itself
+        if (!_wfShipAccess.TrySetLocked(Transform(consoleUid).GridUid, enable))
+        // WOLFGATE END
         ToggleShipAccess(consoleUid, enable);
 
         // Play sound and show popup
