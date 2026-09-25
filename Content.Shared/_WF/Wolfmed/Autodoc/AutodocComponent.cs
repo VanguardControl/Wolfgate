@@ -31,9 +31,11 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public List<EntProtoId> Tools = new();
 
+    /// <summary>The voice lines the pod speaks with.</summary>
     [DataField]
     public ProtoId<AutodocVoicePrototype> Voice = "WolfmedAutodocVoiceSam";
 
+    /// <summary>The reagents the pod will draw from its reservoir, and what each is for.</summary>
     [DataField]
     public ProtoId<AutodocReagentsPrototype> Reagents = "WolfmedAutodocReagents";
 
@@ -61,6 +63,7 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public ProtoId<Content.Shared._Onyx.Wounds.WoundPrototype> SlipWound = "SlashWound";
 
+    /// <summary>Severity of the <see cref="SlipWound"/>.</summary>
     [DataField]
     public float SlipSeverity = 8f;
 
@@ -98,9 +101,11 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public ProtoId<MachinePartPrototype> MachinePartMatterBin = "MatterBin";
 
+    /// <summary>Shortest random gap, in seconds, between idle chatter lines.</summary>
     [DataField]
     public float IdleChatterMin = 90f;
 
+    /// <summary>Longest random gap, in seconds, between idle chatter lines.</summary>
     [DataField]
     public float IdleChatterMax = 180f;
 
@@ -120,6 +125,7 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public float AlarmArrestInterval = 2f;
 
+    /// <summary>Volume of the alarm and flatline sounds, in dB.</summary>
     [DataField]
     public float AlarmGain = -4f;
 
@@ -183,6 +189,7 @@ public sealed partial class AutodocComponent : Component
 
     // Runtime state, written on the server only.
 
+    /// <summary>Where the pod is in a run.</summary>
     [ViewVariables]
     public AutodocState State = AutodocState.Idle;
 
@@ -202,9 +209,11 @@ public sealed partial class AutodocComponent : Component
     [ViewVariables]
     public bool PowerPaused;
 
+    /// <summary>Pause at the next step boundary, rather than mid-step.</summary>
     [ViewVariables]
     public bool PauseRequested;
 
+    /// <summary>Abort requested; a running step finishes first.</summary>
     [ViewVariables]
     public bool AbortRequested;
 
@@ -541,6 +550,7 @@ public sealed class AutodocRequirement
     public bool Satisfied;
 }
 
+/// <summary>What kind of thing a requirement asks for.</summary>
 public enum AutodocRequirementKind : byte
 {
     Part,
@@ -549,6 +559,7 @@ public enum AutodocRequirementKind : byte
     Reagent,
 }
 
+/// <summary>Where the pod is in a run.</summary>
 [Serializable, NetSerializable]
 public enum AutodocState : byte
 {
@@ -561,12 +572,14 @@ public enum AutodocState : byte
     Faulted,
 }
 
+/// <summary>Appearance keys for the pod.</summary>
 [Serializable, NetSerializable]
 public enum AutodocVisuals : byte
 {
     State,
 }
 
+/// <summary>What the pod's sprite shows: lid open or closed, operating, or unpowered.</summary>
 [Serializable, NetSerializable]
 public enum AutodocVisualState : byte
 {

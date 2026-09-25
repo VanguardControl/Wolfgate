@@ -30,16 +30,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// LIFE. Damage totals decide nothing on a wound host (CONSC) and neither does any total here: the heart
-/// either beats or it does not, and the brain either has oxygen or it is running out of it. Death is the
-/// brain organ being destroyed, which is ordinary <see cref="MobState.Dead"/> with nothing permanent
-/// attached to it.
-/// </summary>
+/// <summary>Heartbeat, brain oxygenation and death on a wound host, with no damage totals involved.</summary>
 /// <remarks>
 /// Brain-missing is event driven on purpose. A poll for "this body has no brain" kills every brainless
 /// fixture the test suite spawns, which is what the interim system did.
 /// </remarks>
+// The heart either beats or it does not, and the brain either has oxygen or is running out of it. Death is the brain
+// organ being destroyed, which is ordinary MobState.Dead with nothing permanent attached.
 public sealed class WolfmedLifeSystem : EntitySystem
 {
     /// <summary>Pressure key for a stopped heart. Full, so an arrested body is always unconscious.</summary>
@@ -159,6 +156,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Whether the body has a brain organ in it.</summary>
     public bool HasBrain(EntityUid body)
     {
         foreach (var (organ, _) in _body.GetBodyOrgans(body))
@@ -931,6 +929,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
     #region State changes
 
+    /// <summary>Sets the brain's oxygenation, clamped to 0..1.</summary>
     public void SetOxygenation(Entity<WolfmedBrainComponent> brain, float value)
     {
         var clamped = Math.Clamp(value, 0f, 1f);
@@ -941,6 +940,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         Dirty(brain);
     }
 
+    /// <summary>Sets the oxygenation of the body's brain, if it has one.</summary>
     public void SetOxygenation(EntityUid body, float value)
     {
         if (GetBrain(body) is { } brain)
@@ -976,6 +976,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Ends a cardiac arrest and lifts its pressure; false when the body was not in arrest.</summary>
     public bool EndArrest(EntityUid body)
     {
         if (!TryComp(body, out WolfmedCardiacArrestComponent? stopped))
@@ -1103,13 +1104,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
             Kill(body);
     }
 
-    /// <summary>
-    /// The body lost its last part of a type it cannot do without. A chassis keeps its positronic brain in
-    /// the torso, so decapitating an IPC carries no brain off and the rule above never fires. The prototype
-    /// already calls a head vital and upstream only ever turned that into bloodloss damage, which an
-    /// inorganic damage container does not carry at all; death on a wound host is ours, so the flag is read
-    /// here instead.
-    /// </summary>
+    /// <summary>Whether the body just lost its last part of a type it cannot do without.</summary>
+    // A chassis keeps its positronic brain in the torso, so decapitating an IPC carries no brain off. The prototype
+    // already calls a head vital, but upstream only turned that into bloodloss damage, which an inorganic damage
+    // container does not carry; death on a wound host is ours, so the flag is read here.
     private bool LostVitalPart(EntityUid body, EntityUid part)
     {
         return TryComp(part, out BodyPartComponent? bodyPart) && bodyPart.IsVital &&

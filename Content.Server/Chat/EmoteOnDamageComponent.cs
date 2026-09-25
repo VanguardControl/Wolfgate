@@ -51,9 +51,10 @@ public sealed partial class EmoteOnDamageComponent : Component
     [DataField("emoteCooldown"), ViewVariables(VVAccess.ReadWrite)]
     public TimeSpan EmoteCooldown = TimeSpan.FromSeconds(2);
 
-    // WOLFGATE(Wolfmed): HOOK 17 - Wolfmed pain sounds (ONYX Content.Server/Chat/EmoteOnDamageComponent.cs
-    // <Onyx-PainSounds>). Purely additive: Onyx replaces Emotes with EmotesThreshold, we keep both so
-    // ZombieSystem's AddEmote(uid, "Scream") call sites are untouched (P2-D9).
+    // WOLFGATE(Wolfmed) START: HOOK 17, Wolfmed pain-sound fields.
+    // Ported from ONYX Content.Server/Chat/EmoteOnDamageComponent.cs <Onyx-PainSounds>. Purely additive: Onyx
+    // replaces Emotes with EmotesThreshold, we keep both so ZombieSystem's AddEmote(uid, "Scream") call sites are
+    // untouched (P2-D9).
 
     /// <summary>
     /// Emotes keyed by the total damage at which they unlock; the highest matching threshold wins.
@@ -79,4 +80,5 @@ public sealed partial class EmoteOnDamageComponent : Component
     /// </summary>
     [ViewVariables]
     public float LastTotalDamage;
+    // WOLFGATE END
 }

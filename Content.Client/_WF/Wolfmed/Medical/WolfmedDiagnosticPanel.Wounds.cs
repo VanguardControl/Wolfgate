@@ -17,13 +17,9 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._WF.Wolfmed.Medical;
 
-/// <summary>
-/// UI2: the wounds tab. One card per body part, with the part's conditions as icon chips and its wounds
-/// grouped by <see cref="WolfmedWoundCategory"/>, replacing the single joined line per part that phase 5
-/// shipped. Every string the old line printed is still here, on the row or in its tooltip.
-/// UI3: the card of the targeted part is marked and scrolled to, its header moves the target, and every
-/// row, chip and banner carries treatment advice on hover and a procedure window on click.
-/// </summary>
+/// <summary>The wounds tab: a card per body part with its condition chips and its wounds by category.</summary>
+// The targeted part's card is marked and scrolled to, its header moves the target, and every row, chip and banner
+// carries treatment advice on hover and a procedure window on click.
 public sealed partial class WolfmedDiagnosticPanel
 {
     private const float IconSize = 18f;
@@ -877,7 +873,7 @@ public sealed partial class WolfmedDiagnosticPanel
             {
                 row.AddChild(new Label
                 {
-                    Text = "x" + wound.Count,
+                    Text = Loc.GetString("health-analyzer-wound-count", ("count", wound.Count)),
                     FontColorOverride = colour,
                     VerticalAlignment = VAlignment.Center,
                 });

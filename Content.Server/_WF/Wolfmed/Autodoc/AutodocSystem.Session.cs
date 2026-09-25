@@ -106,12 +106,10 @@ public sealed partial class AutodocSystem
             : null;
     }
 
-    /// <summary>
-    /// Drops follow-ups at the head of the queue that the planner would not queue now: the surgery no longer lists,
-    /// the pod has given up on it, the part still has something lodged in it, or (for a step that skips the pod's own
-    /// handiwork) every wound left on the part is one the pod made. Quietly, with no antibiotic and no
-    /// line: nothing was done. True when that emptied the queue and the run was handed to <see cref="FinishQueue"/>.
-    /// </summary>
+    /// <summary>Drops stale follow-ups at the head of the queue; true when that emptied it and ended the run.</summary>
+    // Stale: the surgery no longer lists, the pod has given up on it, the part still has something lodged in it, or
+    // (for a step that skips the pod's own handiwork) every wound left on the part is the pod's. No antibiotic and no
+    // line, since nothing was done.
     private bool DropStaleFollowUps(Entity<AutodocComponent> ent, EntityUid body)
     {
         var dropped = false;

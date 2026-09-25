@@ -23,12 +23,9 @@ namespace Content.Shared._WF.Wolfmed.Consciousness;
 [ByRefEvent]
 public record struct WolfmedSpeedFloorEvent(float BaseWalk, float BaseSprint, float Walk, float Sprint);
 
-/// <summary>
-/// Playtest 2 (plan §2.2): a Downed body can always crawl, however burned, until it is Unconscious or its limbs are
-/// actually gone. While Downed the crawl never falls under <c>wolfmed.crawl_floor</c> of the normal Downed crawl;
-/// with no working leg the body drags itself on its arms at exactly that; with no working arm and no working leg it
-/// cannot move.
-/// </summary>
+/// <summary>Lets a Downed body always crawl, however hurt, until it is Unconscious or has no working limbs.</summary>
+// While Downed the crawl never falls under wolfmed.crawl_floor of the normal Downed crawl; with no working leg the
+// body drags itself on its arms at exactly that; with no working arm and no working leg it cannot move.
 /// <remarks>
 /// Shitmed sets a body's base speed from its enabled legs, so a body with none has a base of 0 and no modifier can
 /// move it. The marked line in <c>SharedBodySystem.UpdateMovementSpeed</c> gives a wound host

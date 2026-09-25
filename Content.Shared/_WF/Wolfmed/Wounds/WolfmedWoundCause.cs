@@ -2,12 +2,10 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// What dealt the damage a wound is about to be created from. Flags, because one hit can be several
-/// (a buckshot pellet is Projectile and Fragment; an animal's swipe is Unarmed and Bite).
-/// Derived by <see cref="WolfmedWoundRuleSystem.GetCause"/> from the hit's origin, its tool and the
-/// explosion flag, and overridden per entity by <see cref="WolfmedDamageCauseComponent"/>.
-/// </summary>
+/// <summary>What dealt the damage a wound is about to be created from; flags, since one hit can be several.</summary>
+// A buckshot pellet is Projectile and Fragment; an animal's swipe is Unarmed and Bite. Derived by
+// WolfmedWoundRuleSystem.GetCause from the hit's origin, tool and explosion flag, and overridden per entity by
+// WolfmedDamageCauseComponent.
 [Flags, Serializable, NetSerializable]
 public enum WolfmedWoundCause : ushort
 {

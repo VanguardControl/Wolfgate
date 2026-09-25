@@ -14,13 +14,16 @@ public sealed partial class AutodocVoicePrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
+    /// <summary>Every line of this voice, by line id.</summary>
     [DataField(required: true)]
     public Dictionary<string, AutodocVoiceLine> Lines = new();
 
+    /// <summary>The line ids each event picks one of at random.</summary>
     [DataField(required: true)]
     public Dictionary<AutodocVoiceEvent, List<string>> Events = new();
 }
 
+/// <summary>One voice line: its sound, its transcript and its queue priority.</summary>
 [DataDefinition]
 public sealed partial class AutodocVoiceLine
 {
@@ -167,10 +170,12 @@ public sealed partial class AutodocTriagePrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
+    /// <summary>The triage steps, walked in order.</summary>
     [DataField(required: true)]
     public List<AutodocTriageStep> Steps = new();
 }
 
+/// <summary>One step of a triage plan: the surgeries or the shock it queues, and when it applies.</summary>
 [DataDefinition]
 public sealed partial class AutodocTriageStep
 {
@@ -205,6 +210,7 @@ public sealed partial class AutodocTriageStep
     public bool IgnorePodWounds;
 }
 
+/// <summary>The occupant's condition a triage step needs before it contributes.</summary>
 public enum AutodocTriageCondition : byte
 {
     Always,
@@ -261,6 +267,7 @@ public sealed partial class AutodocReagentsPrototype : IPrototype
     public List<AutodocReagentEntry> Reagents = new();
 }
 
+/// <summary>A reagent the pod may draw from its reservoir, with the role it fills.</summary>
 [DataDefinition]
 public sealed partial class AutodocReagentEntry
 {
@@ -282,6 +289,7 @@ public sealed partial class AutodocReagentEntry
     public bool Machine;
 }
 
+/// <summary>What the pod uses a reagent for.</summary>
 public enum AutodocReagentRole : byte
 {
     Anaesthetic,

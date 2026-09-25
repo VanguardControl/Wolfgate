@@ -365,13 +365,14 @@ public sealed partial class DamageVisualsSystem : VisualizerSystem<DamageVisuals
         if (damageVisComp.TargetLayers != null && damageVisComp.DamageOverlayGroups != null)
             UpdateDisabledLayers(uid, spriteComponent, component, damageVisComp);
 
-        // WOLFGATE(Wolfmed): HOOK 20 — per-limb accuracy for wound hosts; body in _WF/Wolfmed/Damage/DamageVisualsSystem.Wolfmed.cs
+        // WOLFGATE(Wolfmed) START: HOOK 20 — per-limb accuracy for wound hosts; body in _WF/Wolfmed/Damage/DamageVisualsSystem.Wolfmed.cs
         if (damageVisComp.TargetLayers != null && damageVisComp.DamageOverlayGroups != null &&
             TryComp(uid, out PartDamageVisualsComponent? partDamage))
         {
             UpdatePartDamageVisuals(uid, spriteComponent, damageVisComp, partDamage);
             return;
         }
+        // WOLFGATE END
 
         if (damageVisComp.Overlay && damageVisComp.DamageOverlayGroups != null && damageVisComp.TargetLayers == null)
             CheckOverlayOrdering(spriteComponent, damageVisComp);

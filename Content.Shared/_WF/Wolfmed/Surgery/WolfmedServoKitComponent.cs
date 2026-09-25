@@ -13,7 +13,7 @@ namespace Content.Shared._WF.Wolfmed.Surgery;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedServoKitComponent : Component, ISurgeryToolComponent
 {
-    public string ToolName => "a cable coil";
+    public string ToolName => Loc.GetString("wolfmed-surgery-tool-cable-coil");
 
     public bool? Used { get; set; }
 

@@ -11,13 +11,10 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Examine;
 
-/// <summary>
-/// LOOK2: draws a visual inspection inside the examine tooltip. The server sends one
-/// <see cref="WolfmedLookTag"/> node per damaged part with its findings; this builds a row per part, with the
-/// findings as chips carrying the analyzer's own pictograms and the full sentence on hover. The whole-body
-/// lines around the rows stay as text, and the plain-text copy of each part is skipped here because the row
-/// already says it.
-/// </summary>
+/// <summary>Draws a visual inspection in the examine tooltip: a row of finding chips per damaged part.</summary>
+// The server sends one WolfmedLookTag node per damaged part. Chips carry the analyzer's pictograms with the full
+// sentence on hover; the whole-body lines stay as text, and each part's plain-text copy is skipped since the row
+// already says it.
 public sealed partial class ExamineSystem
 {
     private const float LookMaxWidth = 520f;

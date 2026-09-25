@@ -105,8 +105,11 @@ public partial class SharedBodySystem
             if (part.HealingTimer >= part.HealingTime)
             {
                 part.HealingTimer = 0;
-                if (!_queryWoundHost.HasComp(part.Body)) // WOLFGATE(Wolfmed): GUARD C, do not burn the job queue on wound hosts.
-                    _integrityJobQueue.EnqueueJob(new IntegrityJob(this, (ent, part), IntegrityJobTime));
+                // WOLFGATE(Wolfmed) START: GUARD C, do not burn the job queue on wound hosts.
+                if (_queryWoundHost.HasComp(part.Body))
+                    continue;
+                // WOLFGATE END
+                _integrityJobQueue.EnqueueJob(new IntegrityJob(this, (ent, part), IntegrityJobTime));
             }
         }
     }

@@ -10,12 +10,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// M5 (plan §3.9): radiation's marrow route. Past wolfmed.rad_marrow_stop no blood regenerates; past
-/// wolfmed.rad_marrow_bleed the body also loses wolfmed.rad_marrow_rate a second, so it kills through the blood route
-/// medics already know. Past wolfmed.consc_rad_down the patient is Downed, cause Radiation. Machines have no marrow:
-/// radiation stays their slowdown and pain.
-/// </summary>
+/// <summary>Radiation's marrow route: stops blood regeneration, then drains blood, and downs the patient.</summary>
+// Past wolfmed.rad_marrow_stop no blood regenerates; past wolfmed.rad_marrow_bleed the body also loses
+// wolfmed.rad_marrow_rate a second, so it kills through the blood route medics already know. Past
+// wolfmed.consc_rad_down the patient is Downed, cause Radiation. Machines have no marrow: radiation stays their
+// slowdown and pain.
 public sealed class WolfmedRadiationSystem : EntitySystem
 {
     public static readonly ProtoId<DamageTypePrototype> Radiation = "Radiation";

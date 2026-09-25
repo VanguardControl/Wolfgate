@@ -33,13 +33,10 @@ public readonly record struct WolfmedCardRow(WolfmedCardRowKind Kind, string Tex
 /// </summary>
 public readonly record struct WolfmedCardCountdown(string Text, float Fraction, bool Timed);
 
-/// <summary>
-/// M2 (plan §5.2): the explanation card on the unconscious screen, as lines of text, drawn from the cause prototype
-/// with no numbers. The cause; what else holds you down; what is happening, as a symptom; what will wake you, in its
-/// conditional form while something else holds you (a faint says "shortly" only while nothing does); while Dying, the
-/// brain's time as a coarse bar; and the rescue line when somebody is doing CPR or reading you with an analyzer.
-/// Shared, so the client draws it and the tests read the same text.
-/// </summary>
+/// <summary>Builds the unconscious screen's explanation card as lines of text from the cause prototype.</summary>
+// Lines: the cause; what else holds you down; what is happening, as a symptom; what will wake you, conditional while
+// something else holds you; while Dying, the brain's time as a coarse bar; the rescue line when somebody is doing CPR
+// or reading you with an analyzer. Shared so the client draws it and the tests read the same text.
 /// <remarks>
 /// Playtest 3: a countdown row under the title while a timed faint runs (∞ otherwise; the brain bar takes the row
 /// while Dying), the cause's and the blockers' alert icons, an accent colour from the cause prototype, and the states

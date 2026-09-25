@@ -215,6 +215,7 @@ public sealed partial class AutodocSystem
 
     #region Automatic mode
 
+    /// <summary>Switches automatic mode (on only with the autofix module) and resets its planning state.</summary>
     public void SetAuto(Entity<AutodocComponent> ent, bool auto)
     {
         if (ent.Comp.Auto == auto)

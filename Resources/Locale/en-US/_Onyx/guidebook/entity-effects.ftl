@@ -14,14 +14,6 @@ reagent-effect-guidebook-mend-fractures =
 
 reagent-effect-guidebook-all-fractures = all fractures
 
-# WOLFGATE(Wolfmed): no Onyx source — Onyx's TakeStaminaDamage overrides no guidebook text, but Wolfgate's
-# ReagentEffectGuidebookText is abstract and returning null would hide the effect from the guidebook.
-reagent-effect-guidebook-take-stamina-damage =
-    { $chance ->
-        [1] Causes
-        *[other] cause
-    } { NATURALFIXED($amount, 2) } stamina damage.
-
 fracture-grade-hairline = hairline
 fracture-grade-simple = simple
 fracture-grade-displaced = displaced

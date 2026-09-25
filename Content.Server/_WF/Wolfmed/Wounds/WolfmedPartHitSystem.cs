@@ -11,12 +11,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Wolfmed's hand-off from Onyx's one-event-per-hit dispatcher (M1b, plan §6.2). It sees each hit's Total once,
-/// before the wounds do. A burn already at its maximum escalates into charring (plan §6.3), and a charred hand,
-/// foot, arm or leg that keeps cooking crumbles to ash (OD12). The head and torso never crumble. A big enough hit
-/// interrupts what the body is doing (OD18, <see cref="WolfmedDoAfterInterruptSystem"/>).
-/// </summary>
+/// <summary>Reacts to each part hit before the wounds do: charring, crumbling to ash, do-after interrupts.</summary>
+// Called from Onyx's one-event-per-hit dispatcher. A burn already at its maximum escalates into charring, and a
+// charred hand, foot, arm or leg that keeps cooking crumbles to ash; the head and torso never crumble. A big enough
+// hit interrupts what the body is doing (WolfmedDoAfterInterruptSystem).
 public sealed class WolfmedPartHitSystem : EntitySystem
 {
     [Dependency] private BodySystem _body = default!;

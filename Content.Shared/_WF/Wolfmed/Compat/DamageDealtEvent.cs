@@ -1,4 +1,6 @@
-namespace Content.Shared.Damage.Systems;
+using Content.Shared.Damage;
+
+namespace Content.Shared._WF.Wolfmed.Compat;
 
 /// <summary>Raised after modifiers and before damage is written. Clearing the dict suppresses the write.</summary>
 /// <remarks>

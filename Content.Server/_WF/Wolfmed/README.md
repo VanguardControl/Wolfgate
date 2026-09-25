@@ -114,6 +114,7 @@ Skipped ("dirty-disposed").
 ### Shared
 
 - [`Content.Shared/_WF/Wolfmed/Armor/ArmorComponent.Wolfmed.cs`](../../../Content.Shared/_WF/Wolfmed/Armor/ArmorComponent.Wolfmed.cs)
+- [`Content.Shared/_WF/Wolfmed/Armor/ArmorPartModifier.cs`](../../../Content.Shared/_WF/Wolfmed/Armor/ArmorPartModifier.cs)
 - [`Content.Shared/_WF/Wolfmed/Armor/SharedArmorSystem.Wolfmed.cs`](../../../Content.Shared/_WF/Wolfmed/Armor/SharedArmorSystem.Wolfmed.cs)
 - [`Content.Shared/_WF/Wolfmed/Armor/WolfmedPartArmorSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Armor/WolfmedPartArmorSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Autodoc/AutodocCategoryPrototype.cs`](../../../Content.Shared/_WF/Wolfmed/Autodoc/AutodocCategoryPrototype.cs)
@@ -426,6 +427,7 @@ Skipped ("dirty-disposed").
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/Wolfmed/analyzer-panel.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/analyzer-panel.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/analyzer-vitals.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/analyzer-vitals.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/autodoc-atmosphere.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/autodoc-atmosphere.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/autodoc-ui.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/autodoc-ui.ftl)
@@ -435,6 +437,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/consciousness.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/damage-command.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/damage-command.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/death.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/death.ftl)
+- [`Resources/Locale/en-US/_WF/Wolfmed/entity-effects.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/entity-effects.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/guidebook/wounds.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/healing-popup.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/healing-popup.ftl)
 - [`Resources/Locale/en-US/_WF/Wolfmed/hydraulics.ftl`](../../../Resources/Locale/en-US/_WF/Wolfmed/hydraulics.ftl)
@@ -608,20 +611,20 @@ Skipped ("dirty-disposed").
   - HOOK 20 — per-limb accuracy for wound hosts; body in _WF/Wolfmed/Damage/DamageVisualsSystem.Wolfmed.cs
 - [`Content.Client/Examine/ExamineSystem.cs`](../../../Content.Client/Examine/ExamineSystem.cs)
   - HOOK 14 — was 400; Onyx's part-status boxes are 520 wide
-  - HOOK 14 — LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
+  - HOOK 14, LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
+  - HOOK 14
 - [`Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml`](../../../Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml)
-  - HOOK 26 - the Wolfmed diagnostic panel's namespace (P4-D25, parallel panel).
-  - HOOK 26 - was a fixed 350x650 column; the two-pane split needs width and a user resize.
-  - HOOK 26 - two-pane split; the static overview on the left, the Wolfmed tabs on the right.
-  - UI3 - the return button and its frame are gone; the doll no longer switches to a per-part scan, it sets the player's targeted body part.
-  - one fixed 96x96 frame for the doll AND its buttons. Unsized, this panel stretched to the row height: the SpriteView stayed centred in it while PartView sat at its bottom-left, so every hover and selection highlight landed below and left of the limb.
-  - every button is placed from its limb's pixel bounds in the status doll art (_Shitmed/Interface/Targeting/Status/\<part>.rsi, 32 px drawn at 3x): one art pixel of margin all round, which is the hover texture's outline. Shitmed's nested 2.5x layout and the HUD doll's layout both belong to different art and sat off these limbs. WolfmedAnalyzerDollLayoutTest measures this.
-  - HOOK 26 - named so the alert box no longer eats 62px of the overview pane when there is nothing to warn about.
+  - HOOK 26, the window takes the Wolfmed panel's xmlns and grows for the two-pane split.
+  - HOOK 26 - two-pane split, the static overview on the left and the Wolfmed tabs on the right.
+  - UI3 - the return button and its frame are removed.
+  - HOOK 26 - VerticalExpand was True; the damage list takes the vertical slack.
+  - one fixed 96x96 frame for the doll and its buttons (SetSize and alignments added).
+  - each doll button is placed from its limb's pixel bounds in the status doll art.
+  - HOOK 26 - Name and Visible added, so an empty alert box costs the overview pane no height.
   - HOOK 26 - the parallel Wolfmed diagnostic panel (P4-D25); the right pane, hidden for non-wound-hosts.
-  - HOOK 26 - two-pane split end.
 - [`Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml.cs`](../../../Content.Client/HealthAnalyzer/UI/HealthAnalyzerWindow.xaml.cs)
-  - UI3 - was ReturnButton.OnPressed; the button is gone and the doll drives targeting.
-  - UI3 - was OnBodyPartSelected (a per-part rescan). The doll now sets the local player's
+  - UI3 - the return button is gone and the doll drives targeting.
+  - UI3 - the doll sets the local player's targeted part instead of rescanning one part.
   - HOOK 26 - first statement; Populate early-returns below and a trailing call would leave the previous patient's rows on screen.
   - HOOK 26 - a target outside client PVS can still carry non-null diagnostics.
   - UI3 - the return button and its frame are gone with the part-view path.
@@ -754,7 +757,9 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_EinsteinEngines/Silicon/DeadStartupButton/DeadStartupButtonSystem.cs`](../../_EinsteinEngines/Silicon/DeadStartupButton/DeadStartupButtonSystem.cs)
   - M2
   - M2: a wound host restarts on Wolfmed's refusal (core, head, power, pump), not on a damage total.
-- [`Content.Server/_EinsteinEngines/Silicon/WeldingHealable/WeldingHealableSystem.cs`](../../_EinsteinEngines/Silicon/WeldingHealable/WeldingHealableSystem.cs): W6: the wound-host repair in the _WF partial must beat FlammableSystem to the welder,
+- [`Content.Server/_EinsteinEngines/Silicon/WeldingHealable/WeldingHealableSystem.cs`](../../_EinsteinEngines/Silicon/WeldingHealable/WeldingHealableSystem.cs)
+  - W6, wound hosts repair through the _WF partial, ahead of FlammableSystem.
+  - W6, wound hosts are repaired by the _WF partial.
 - [`Content.Server/_Goobstation/Temperature/KillOnOverheatSystem.cs`](../../_Goobstation/Temperature/KillOnOverheatSystem.cs)
   - GAMEPLAY: wound-host overheating below.
   - GAMEPLAY
@@ -859,6 +864,7 @@ Skipped ("dirty-disposed").
   - CONSC: blood volume is a consciousness input and the bloodstream raises no event
   - GUARD E, wound hosts get their bleeding from WoundBleedingSystem instead.
   - GUARD E2 — Onyx's HealthExaminable covers pallor per-part for wound hosts
+  - GUARD E3, a wound host's bleed amount is written only through the wound projection.
   - GUARD E3
   - GUARD E3, sole write path for Wolfmed's WoundBleedingSystem once wounds own bleeding.
   - GUARD E3. This also silently no-ops the passive-decay call in Update(); that is deliberate.
@@ -873,7 +879,7 @@ Skipped ("dirty-disposed").
   - playtest 1: painkillers absorb fast
 - [`Content.Server/Chat/EmoteOnDamageComponent.cs`](../../Chat/EmoteOnDamageComponent.cs)
   - HOOK 17, ProtoId\<> for the Wolfmed pain-sound thresholds.
-  - HOOK 17 - Wolfmed pain sounds (ONYX Content.Server/Chat/EmoteOnDamageComponent.cs
+  - HOOK 17, Wolfmed pain-sound fields.
 - [`Content.Server/Chat/SuicideSystem.cs`](../../Chat/SuicideSystem.cs)
   - M2: OD17
   - M2: OD17, damage totals do not kill a wound host; its suicide is brain 0 then death.
@@ -888,12 +894,12 @@ Skipped ("dirty-disposed").
   - HOOK 9 - treatment-capability scope
   - HOOK 9 - Any() on the healing test
   - HOOK 9 - which body-part materials this healing can treat on a wound host.
-  - HOOK 9 - the call becomes a delegate so healing can run inside a treatment-capability scope.
+  - HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
   - HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
 - [`Content.Server/EntityEffects/Effects/HealthChange.cs`](../../EntityEffects/Effects/HealthChange.cs)
   - HOOK 9 - treatment-capability scope
   - HOOK 9 - which body-part materials this healing can treat on a wound host.
-  - HOOK 9 - the call becomes a delegate so healing can run inside a treatment-capability scope.
+  - HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
   - HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs)
   - HOOK 22
@@ -905,23 +911,25 @@ Skipped ("dirty-disposed").
 - [`Content.Server/Medical/Components/HealingComponent.cs`](../../Medical/Components/HealingComponent.cs)
   - HOOK 7, TreatmentCapability.
   - W0, ProtoId for TreatedDamageTypes.
-  - HOOK 7 / D14 start - Wolfmed wound treatment data. The two collection types are load-bearing:
-  - HOOK 7 / D14 end
+  - HOOK 7 / D14, Wolfmed wound treatment data.
 - [`Content.Server/Medical/DefibrillatorSystem.cs`](../../Medical/DefibrillatorSystem.cs)
   - BRAIN
-  - BRAIN: a wound host's damage total decides nothing. The brain and the heart do, so
+  - BRAIN, the Wolfmed rule replaces the threshold gate for a wound host.
   - M1a: the refusal carries the patient's numbers (blood %, units to transfuse).
   - M1a
-  - HOOK 12 - revival has to agree with whatever decides death (HOOK 11).
+  - HOOK 12, revival has to agree with whatever decides death (HOOK 11).
 - [`Content.Server/Medical/HealingSystem.cs`](../../Medical/HealingSystem.cs)
+  - ordering before CableSystem
   - HOOK 8, wound-host call sites below
-  - HOOK 8, a cable coil is both a healing item for a chassis and a cable placer, so the
+  - HOOK 8, the heal is offered before a cable coil places cable.
   - HOOK 8, wound hosts heal through WoundHealingSystem, never the flat DamageableComponent path.
   - HOOK 8, wound-host healing body moved to HealingSystem.Wolfmed.cs (OnWoundHostDoAfter,
   - HOOK 8, a wound host resolves a body part, so the body's own damage container does not gate it.
-  - HOOK 8
+  - HOOK 8, a wound host is treated on the part the heal resolves.
   - W0, TreatedDamageTypes narrows the spec.
+  - HOOK 8
   - W0, on a wound host the refusal is about the selected part, not the whole patient.
+  - HOOK 8, the do-after carries the part the heal resolved.
 - [`Content.Server/Medical/HealthAnalyzerSystem.cs`](../../Medical/HealthAnalyzerSystem.cs): HOOK 23
 - [`Content.Shared/_EinsteinEngines/Silicon/Components/SiliconComponent.cs`](../../../Content.Shared/_EinsteinEngines/Silicon/Components/SiliconComponent.cs)
   - playtest 1: ChargeState networked
@@ -938,7 +946,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.Pain.cs`](../../../Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.Pain.cs): LOOK: unused with the readout above it; the same pain bands and the same
 - [`Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.PartStatus.cs`](../../../Content.Shared/_Onyx/HealthExaminable/HealthExaminableSystem.PartStatus.cs)
   - DamageableComponent lives here in Wolfgate, not in .Damage.Components.
-  - D12 damage facade.
+  - D12 damage facade and the PartStatusSystem severity shim.
   - LOOK: the health examine no longer routes here. Onyx's readout lists damage types, wound
   - D12, Onyx-shaped damage API.
   - DamageSpecifier.DamageDict is keyed by string here, not ProtoId\<DamageTypePrototype>.
@@ -951,6 +959,7 @@ Skipped ("dirty-disposed").
   - W5
   - CONSC
   - M1a: the vitals block
+  - Onyx's last parameter, the additions follow it.
   - W1: rounds and shrapnel still in the part.
   - W5: worst stage on the part.
   - W5: the part is dead tissue.
@@ -959,11 +968,11 @@ Skipped ("dirty-disposed").
   - W6: the part is running too hot to work properly.
   - UI4: what has already been done here. A clamped, sutured or cauterised wound bleeds at
   - EVISC: organ slots this part carries that nothing is in, which is how the procedure
-  - W1
-  - W6
-  - UI2: the analyzer groups and tints its wound rows by this; resolved from the prototype.
-  - UI3: the wound prototype id, which is what the treatment advice keys are derived from.
-  - M1a: after a successful shock, units to transfuse inside the grace to keep the heart
+  - the W1, W5 and W6 findings count as findings too.
+  - UI2 and UI3 add the category and the prototype id to Onyx's visible wound.
+  - W5, CONSC, BRAIN and M1a body-level readouts beside the parts.
+  - M1a: units to transfuse after a successful shock.
+  - W5, CONSC, BRAIN and M1a append optional parameters to the Onyx constructor.
   - BRAIN
   - M1a
   - M1a: package D's vitals block
@@ -1006,11 +1015,13 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs`](../../../Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs)
   - W2
   - CONSC
+  - Onyx's OrganGotInserted/RemovedEvent are compat shims here.
   - W2: limb penalties from wounds
   - CONSC: a strong painkiller masks the wound slowdowns, so a player walks on a broken leg
   - Wolfgate's hands API hands back Hand objects, not hand-id strings (GetActiveHand returns
   - W2: Wolfmed's mechanical wounds (a severed tendon) answer here rather than through
 - [`Content.Shared/_Onyx/Wounds/PainSystem.cs`](../../../Content.Shared/_Onyx/Wounds/PainSystem.cs)
+  - Onyx's TryUpdateParalyzeDuration is a compat extension here.
   - M1a
   - M1a: the shock's threshold, re-arm and adrenaline length are CVars now
   - `new ModifyPainGainEvent()` binds to the record struct's implicit parameterless
@@ -1052,7 +1063,7 @@ Skipped ("dirty-disposed").
   - D9 - no BodyPartType.Groin and no HumanoidVisualLayers.Groin in Wolfgate.
 - [`Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs)
   - D8, Onyx's extra part fields live on WolfmedBodyPartComponent.
-  - D12 damage facade + shared bed-heal marker (HealOnBuckleComponent is server-only here).
+  - D12 damage facade, DamageDealtEvent + shared bed-heal marker (HealOnBuckleComponent is server-only here).
   - D10, Onyx's TargetResolverSystem is replaced by WoundTargetResolver.
   - D10, TargetBodyPart comes from Shitmed.
   - subscription ordering, PLAN 8.3 trap 4.
@@ -1100,9 +1111,11 @@ Skipped ("dirty-disposed").
   - HealOnBuckleComponent is server-only here.
   - AUTODOC5: the body damage cap only ever saw localized (part) damage, so airloss
 - [`Content.Shared/_Onyx/Wounds/WoundEvents.cs`](../../../Content.Shared/_Onyx/Wounds/WoundEvents.cs)
+  - W1, M1b and M6 append parameters after the last Onyx one.
   - W1: the projectile or weapon that dealt the hit. Wolfmed's wound rules read it to tell a
   - M1b: what a ceiling (the torso's cap, the ambient per-part ceiling) discarded from this hit.
   - M6: OD18, whether this hit may interrupt a do-after. Fire, bleeding and other ticks pass false.
+  - M1b, the whole hit, stored or not.
   - D23, carry the caller's AP to the part pass.
   - D23/HOOK 10. Localized damage is armoured here rather than in DamageModifyEvent, so the armour
 - [`Content.Shared/_Onyx/Wounds/WoundFractureSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundFractureSystem.cs)
@@ -1132,7 +1145,7 @@ Skipped ("dirty-disposed").
   - a grown wound gets its WoundChangedEvent next, and the bleeding system adds the growth
   - W2: damage removal is a treatment too, so a wound that refuses treatment (an
   - an item working on the wound itself closes it at full strength. HealingMultiplier is how much
-- [`Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs`](../../../Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs): only this layer's markings. The category (Arms, Legs) spans both sides, and IPC limbs
+- [`Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs`](../../../Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs): only this layer's markings go on the part.
 - [`Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.Targeting.cs`](../../../Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.Targeting.cs)
   - Wolfmed owns part damage for wound hosts (D2/D18).
   - GUARD C, Wolfmed's WoundHealingSystem owns part recovery.
@@ -1143,6 +1156,7 @@ Skipped ("dirty-disposed").
   - playtest 2
 - [`Content.Shared/_Shitmed/Surgery/Conditions/SurgeryWoundedConditionComponent.cs`](../../../Content.Shared/_Shitmed/Surgery/Conditions/SurgeryWoundedConditionComponent.cs)
   - EXT 1
+  - EXT 1, the P4-D19 wound-severity window a surgery lists in.
   - EXT 1 - P4-D19
 - [`Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs`](../../../Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs)
   - playtest 3 SAM: a wound host lists by its wounds (HOOK 24)
@@ -1154,21 +1168,24 @@ Skipped ("dirty-disposed").
   - AUTODOC: the pod is an operating platform.
   - playtest 3 SAM: wounds with no damage left still close
   - AUTODOC4: HOOK 27 - close the part's own wounds too
-  - AUTODOC4: HOOK 26
+  - AUTODOC4: HOOK 26, a wound host's tend step runs until the part's wounds are closed.
 - [`Content.Shared/_Shitmed/Targeting/SharedTargetingSystem.cs`](../../../Content.Shared/_Shitmed/Targeting/SharedTargetingSystem.cs): Wolfmed snapshot/targeting needs a single-bit check; copied from Onyx's SharedTargetingSystem.
 - [`Content.Shared/Armor/SharedArmorSystem.cs`](../../../Content.Shared/Armor/SharedArmorSystem.cs): HOOK 10
 - [`Content.Shared/Body/Part/BodyPartComponent.cs`](../../../Content.Shared/Body/Part/BodyPartComponent.cs): HOOK 21 - P3-4 Option B needs AfterAutoHandleStateEvent on detached parts.
 - [`Content.Shared/Body/Systems/SharedBodySystem.Parts.cs`](../../../Content.Shared/Body/Systems/SharedBodySystem.Parts.cs)
-  - playtest 2: a wound host with no working leg drags itself on its arms. It keeps a base to
+  - playtest 2, a wound host with no working leg drags itself on its arms.
   - playtest 2
 - [`Content.Shared/Damage/Systems/DamageableSystem.cs`](../../../Content.Shared/Damage/Systems/DamageableSystem.cs)
   - Wolfmed routing seam event (DamageDealtEvent).
   - Wolfmed routing seam gate (WoundHostComponent).
+  - passive recovery origin flag for the wound rules.
+  - D23 and M6, the routed pass gets the caller's arguments.
   - D23, Wolfmed routing cancels before the resistance block, so the routed pass needs these. Mono: tool also serves shield-breaking ammunition.
   - M6: P25, the routed pass re-applies the caller's arguments.
-  - D27, Wolfmed routing applies the damage itself and reports it here; everything else leaves Applied null.
-  - Wolfmed routing seam. A handler that clears the dict keeps the damage off this entity's own
+  - D27, Wolfmed routing applies the damage itself and reports it here.
+  - Wolfmed routing seam.
   - P6, Suppressed skips the write but still reports the damage.
+  - D23, D27 and M6 arguments for a handler that re-applies the damage itself.
   - D23, armour penetration for a handler that re-applies the damage itself.
   - D23, the tool that dealt it, same reason. Mono: early shield interception reads it too.
   - D27, what a cancelling handler actually applied; TryChangeDamage returns it.
@@ -1176,7 +1193,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/Damage/Systems/PassiveDamageSystem.cs`](../../../Content.Shared/Damage/Systems/PassiveDamageSystem.cs): passive recovery is tagged so the wound rules can tell it from a hit.
 - [`Content.Shared/Execution/SharedExecutionSystem.cs`](../../../Content.Shared/Execution/SharedExecutionSystem.cs)
   - M2: OD17, on a wound host a suicide is brain 0 then death; the ghost above cannot return.
-  - M2: HOOK 13 rewritten (OD17). A wound host's execution is a catastrophic brain injury, brain 0
+  - M2: HOOK 13 rewritten (OD17), a wound host's execution is a catastrophic brain injury.
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - let subscribers veto containers (Wolfmed keeps wounds with the part)
   - snapshot, DropEntity/GibEntity mutate the container
@@ -1184,11 +1201,11 @@ Skipped ("dirty-disposed").
   - GUARD F
   - LOOK
   - LOOK, a body can be looked over from across the room; only the detail changes.
-  - a wound host's look is the server's to build. The verb is predicted, so the client ran
+  - the server builds a wound host's look.
   - GUARD F, examiner param for self-vs-other pain visibility; LOOK, examine range
   - GUARD F; LOOK adds detailed
-  - GUARD F — legacy threshold text is for non-wound-hosts only; body left un-reindented to keep the upstream diff minimal.
-  - GUARD F — wound hosts only (P2-D20/D2); LOOK replaces Onyx's AddPartStatusMarkup readout with a visual inspection.
+  - GUARD F, legacy threshold text is for non-wound-hosts only.
+  - GUARD F, a wound host gets a visual inspection instead (P2-D20/D2).
 - [`Content.Shared/Medical/HealingDoAfterEvent.cs`](../../../Content.Shared/Medical/HealingDoAfterEvent.cs): the wound-host limb chosen when treatment started, kept across repeats.
 - [`Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs`](../../../Content.Shared/MedicalScanner/HealthAnalyzerScannedUserMessage.cs)
   - EXT 2 — Wolfmed diagnostic payload types.
@@ -1197,16 +1214,15 @@ Skipped ("dirty-disposed").
   - EXT 2 — organ health rows, null for non-wound-hosts.
   - EXT 2 — bloodstream/chemical/stomach/lung contents.
   - EXT 2 — the damage figure that decides crit on a wound host.
-  - EXT 2 — four appended optional parameters.
-  - EXT 2 start
-  - EXT 2 end
+  - EXT 2, the constructor takes four appended optional parameters.
+  - EXT 2, assigns the Wolfmed diagnostics payload.
 - [`Content.Shared/Mobs/Components/MobStateComponent.cs`](../../../Content.Shared/Mobs/Components/MobStateComponent.cs): crit heartbeat needs a client-side signal for a server-only MobState change
 - [`Content.Shared/Mobs/Systems/MobThresholdSystem.cs`](../../../Content.Shared/Mobs/Systems/MobThresholdSystem.cs)
   - CONSC
-  - M1a: the one way _WF code can hand a wound host's health alerts to Wolfmed's condition
+  - M1a, lets _WF code hand a wound host's health alerts to Wolfmed's condition alerts.
   - CONSC: a wound host's mob state belongs to consciousness, not to a damage total.
-  - HOOK 11 - wound hosts cross mob-state thresholds on vital-part plus systemic damage;
-  - HOOK 11 - the health alert's severity must lerp off the same number the thresholds use.
+  - HOOK 11, wound hosts cross mob-state thresholds on vital-part plus systemic damage.
+  - HOOK 11, the health alert's severity lerps off the same number the thresholds use.
 - [`Content.Shared/Movement/Systems/MovementSpeedModifierSystem.cs`](../../../Content.Shared/Movement/Systems/MovementSpeedModifierSystem.cs)
   - playtest 2: Wolfmed's crawl floor goes on after every other modifier (WolfmedCrawlSystem).
   - playtest 2: floor.* not ev.*
@@ -1221,7 +1237,9 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/StatusEffectNew/ExaminableStatusEffectSystem.cs`](../../../Content.Shared/StatusEffectNew/ExaminableStatusEffectSystem.cs): RT 277 has no [SubscribeLocalEvent] source generator; subscribe explicitly.
 - [`Content.Shared/StatusEffectNew/PermanentStatusEffectsSystem.cs`](../../../Content.Shared/StatusEffectNew/PermanentStatusEffectsSystem.cs): RT 277 has no [SubscribeLocalEvent] source generator; subscribe explicitly.
 - [`Content.Shared/StatusEffectNew/StatusEffectAlertSystem.cs`](../../../Content.Shared/StatusEffectNew/StatusEffectAlertSystem.cs): StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
-- [`Content.Shared/StatusEffectNew/StatusEffectsSystem.cs`](../../../Content.Shared/StatusEffectNew/StatusEffectsSystem.cs): StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
+- [`Content.Shared/StatusEffectNew/StatusEffectsSystem.cs`](../../../Content.Shared/StatusEffectNew/StatusEffectsSystem.cs)
+  - StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
+  - EntityPrototype.TryComp is a compat extension on RT 277.
 - [`Content.Shared/StatusEffectNew/StatusEffectSystem.API.cs`](../../../Content.Shared/StatusEffectNew/StatusEffectSystem.API.cs): StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
 - [`Content.Shared/StatusEffectNew/StatusEffectSystem.Relay.cs`](../../../Content.Shared/StatusEffectNew/StatusEffectSystem.Relay.cs)
   - Onyx's _Onyx.MartialArts is not ported; the melee target modifier relay below is dropped.
@@ -1242,20 +1260,14 @@ Skipped ("dirty-disposed").
   - playtest 1: despawn
   - playtest 1: not for a casing left in a revolver's cylinder
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs)
-  - playtest 1: a spent casing gets its despawn timer on the floor, not in the cylinder.
-  - playtest 1
+  - playtest 1, a spent casing gets its despawn timer on the floor, not in the cylinder.
   - a slot can hold a round that is already gone; treating it as live crashed the server.
-  - playtest 1: the casing stays in the cylinder, so Mono's casing despawn waits for the
+  - playtest 1, the casing stays in the cylinder, so Mono's casing despawn waits for the floor.
 - [`Resources/Locale/en-US/_Onyx/entity-categories.ftl`](../../../Resources/Locale/en-US/_Onyx/entity-categories.ftl)
-- [`Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl`](../../../Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl)
-  - keys renamed from Onyx's `entity-effect-guidebook-*` to Wolfgate's `reagent-effect-guidebook-*`
-  - no Onyx source — Onyx's TakeStaminaDamage overrides no guidebook text, but Wolfgate's
+- [`Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl`](../../../Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl): keys renamed from Onyx's `entity-effect-guidebook-*` to Wolfgate's `reagent-effect-guidebook-*`
 - [`Resources/Locale/en-US/_Onyx/medical/fractures.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/fractures.ftl): ported from Onyx for Wolfmed.
-- [`Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl)
-  - P4-D25: Onyx carries the fracture grade and treatment in the payload and never renders them.
-  - P5-5: mechanical-species variants of the three generic short labels above. Onyx has no
-  - W7: the rest of the mechanical column. A chassis reports the same pain figure and the same
-- [`Resources/Locale/en-US/_Onyx/medical/health-examinable.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/health-examinable.ftl): P5-5: mechanical-species variant of the label above; unconsumed until a later package
+- [`Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/health-analyzer-component.ftl): ported from Onyx for Wolfmed.
+- [`Resources/Locale/en-US/_Onyx/medical/health-examinable.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/health-examinable.ftl): ported from Onyx for Wolfmed.
 - [`Resources/Locale/en-US/_Onyx/medical/medical_patch.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/medical_patch.ftl): ported from Onyx for Wolfmed.
 - [`Resources/Locale/en-US/_Onyx/medical/tourniquet.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/tourniquet.ftl): ported from Onyx for Wolfmed.
 - [`Resources/Locale/en-US/_Onyx/prototypes/wounds/wounds.ftl`](../../../Resources/Locale/en-US/_Onyx/prototypes/wounds/wounds.ftl): ported from Onyx for Wolfmed.
@@ -1263,7 +1275,6 @@ Skipped ("dirty-disposed").
 - [`Resources/Locale/en-US/_Onyx/targeting/targeting.ftl`](../../../Resources/Locale/en-US/_Onyx/targeting/targeting.ftl): D9: Onyx's `chest` is Wolfgate's `torso`, and `groin` is omitted - GetValidParts() has it
 - [`Resources/Locale/en-US/_Onyx/traits/quirks.ftl`](../../../Resources/Locale/en-US/_Onyx/traits/quirks.ftl): WP10-3: only the HighPainThreshold keys are ported; the rest of Onyx's quirks.ftl belongs to traits not in scope.
 - [`Resources/Locale/en-US/damage/damage-command.ftl`](../../../Resources/Locale/en-US/damage/damage-command.ftl): P6, optional body part.
-- [`Resources/Locale/en-US/medical/components/health-analyzer-component.ftl`](../../../Resources/Locale/en-US/medical/components/health-analyzer-component.ftl): P4-4: keys for the Wolfmed diagnostic panel (LOC A). The panel itself lives in
 - [`Resources/Maps/_NF/POI/medical.yml`](../../../Resources/Maps/_NF/POI/medical.yml): An autodoc pod placed in the medical POI.
 - [`Resources/Prototypes/_DV/Body/Organs/feroxi.yml`](../../../Resources/Prototypes/_DV/Body/Organs/feroxi.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_DV/Body/Organs/harpy.yml`](../../../Resources/Prototypes/_DV/Body/Organs/harpy.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
@@ -1279,14 +1290,14 @@ Skipped ("dirty-disposed").
   - P5-D8: 150 -> 210, MajorLimb parity
   - EVISC: torso damage cap, see _WF/Wolfmed/Body/species_parts.yml
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml)
-  - P5-1/P5-2, PROTO Q: IPCs become wound hosts. Onyx does the same on its own MobIpc
-  - P5-D10/U1: Onyx puts PainShockTarget on BaseSpeciesMob (ONYX Body/species_base.yml:54),
-  - P5-2/P5-D4/U16: Onyx's bloodReferenceSolution (Oil 250) maps onto Wolfgate's classic
+  - P5-1/P5-2, PROTO Q: IPCs become wound hosts.
+  - P5-D10/U1: IPCs get pain shock, as Onyx's do.
+  - P5-2/P5-D4/U16: an IPC's bloodstream carries its own fluid.
   - playtest 3 IPC 2: was Oil, lamp oil a lit welder set alight in its own puddle
-  - an IPC never takes Airloss-group damage (Bloodloss reads as oxygen loss on the analyzer and
-  - P5-D5/P5-D5b: Silicon + the Bloodloss TYPE (not the Airloss group) so oil loss and phase 3's
-  - HUD/BRAIN: Critical is back. On a wound host CONSC owns the mob state and writes Critical
-  - D22/P5-D11: body damage on a wound host is the sum of every part's positive damage
+  - fluid loss deals an IPC no damage.
+  - P5-D5/P5-D5b: IPCs use the SiliconWolfmed damage container.
+  - HUD/BRAIN: Critical is back.
+  - D22/P5-D11: the Blunt gib moves from 400 to 1500.
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml): W6: water takes heat out of an overheated chassis.
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml): playtest 3: the IPC's container, so its bar shows
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/hardsuit-helmets.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/hardsuit-helmets.yml): P6, P3-D6: locational armour coverage
@@ -1304,8 +1315,8 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): Wolfmed: OD16, a Synth is mechanical and takes no poison, like the IPC set
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml)
   - M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
-  - M4, D29: neutralised on a wound host, as BaseMobSpeciesOrganic's is
-  - M4, D22, OD12: Blunt 400 -> 1500 and no Heat body ash, as for the Shadekin (shadekin.yml).
+  - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
+  - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml): M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
 - [`Resources/Prototypes/_Mono/Body/Organs/hydra.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/hydra.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_Mono/Body/Organs/protogen.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/protogen.yml)
@@ -1429,9 +1440,9 @@ Skipped ("dirty-disposed").
   - PROTO G, P4-D21: cauterise, close and roll surgery.scar_chance on the incision wound
   - PROTO G, P4-D21: the wound surgeries end here, so this closes the incision they opened
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml)
-  - M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
-  - M4, D29: neutralised on a wound host, as BaseMobSpeciesOrganic's is
-  - M4, D22, OD12: a wound host's body damage is the sum of its parts, so Blunt 400 was reachable from
+  - M4, OD16: shadekin is a wound host, so Wolfmed decides its state.
+  - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
+  - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
 - [`Resources/Prototypes/Body/Organs/Animal/animal.yml`](../../../Resources/Prototypes/Body/Organs/Animal/animal.yml)
   - M4: OD16 parity, Wolfmed lung data (plan 9.2 group B, arachnid)
   - M4: OD16 parity, the heart can arrest (plan 9.2 group B; balance change)
@@ -1445,7 +1456,12 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Body/Organs/slime.yml`](../../../Resources/Prototypes/Body/Organs/slime.yml)
   - M4: OD16 parity, the core is the brain clock (plan 9.2 group C)
   - M4: OD16 parity, Wolfmed lung data (plan 9.2 group C)
-- [`Resources/Prototypes/Body/Parts/base.yml`](../../../Resources/Prototypes/Body/Parts/base.yml): WP7, D8: adds Wolfmed fracture/amputation data
+- [`Resources/Prototypes/Body/Parts/base.yml`](../../../Resources/Prototypes/Body/Parts/base.yml)
+  - WP7, D8: adds Wolfmed fracture/amputation data
+  - M3: 190->400, above the leg's Blunt sever 300 so a beaten limb comes off with a stump first (P19)
+  - M3: 250->350, above the Heat sever 250 (P19)
+  - M3: 150->270, above the foot's Blunt sever 170 (P19)
+  - M3: 230->320, above the foot's Heat sever 220 (P19)
 - [`Resources/Prototypes/Body/Parts/diona.yml`](../../../Resources/Prototypes/Body/Parts/diona.yml): P5-1: plant wound profile, limbs cannot be severed (still destructible - see PLAN5 8.1); WolfmedPartDiona must stay FIRST
 - [`Resources/Prototypes/Body/Parts/slime.yml`](../../../Resources/Prototypes/Body/Parts/slime.yml)
   - P5-1: slime wound profile, no bone fractures; WolfmedPartSlime must stay FIRST (RT first-parent-wins)
@@ -1493,21 +1509,18 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml): W2: an animal's unarmed attack is a bite, which Wolfmed's wound rules turn into an avulsion.
 - [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml): playtest 3: the IPC's container, so its bar shows
 - [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml)
-  - WP11-4, P3-4 Option B: severed parts render Onyx's wound art too; same 6 states + attribution as the stock rsi.
-  - WP11-4, P3-4 Option B
+  - WP11-4, P3-4 Option B: the damage overlays use Onyx's wound art, severed parts included.
   - W4: rinses caustic residue off a wound host.
   - W6: cools a cybernetic limb running hot.
-  - W5: antiseptics. Swabbing an open wound before it festers is most of the prevention in
-  - Wolfmed phase 1 (D21/D32). Non-organic descendants (protogen) have WoundHost stripped by
-  - Wolfmed phase 2 (P2-D7). ONYX Resources/Prototypes/Body/species_base.yml:54 (\<Onyx-PainShock>);
-  - Wolfmed phase 2 (P2-D9). ONYX Resources/Prototypes/Body/species_base.yml:124-133
-  - D29: neutralised - Onyx's per-part-profile recovery is the only passive heal on wound hosts
+  - W5: antiseptics clean open wounds on touch.
+  - D20-D22, P2-D7, P2-D9: organic species get wound hosting, pain and a Blunt gib threshold.
+  - D29: passive regen is neutralised on wound hosts.
 - [`Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Medical/healing.yml)
-  - W0: a bruise pack is for bruises. It never closes a cut or a puncture, so it never stops
-  - W0: it no longer treats bruises.
+  - W0: a bruise pack treats only Blunt damage.
+  - W0: the medicated suture no longer treats bruises.
   - M2: P20, what it closes infects at the Sutured rate
   - W0: a suture closes open wounds, not bruises.
-  - PROTO D, P4-D9: Healing block replaced in place with the real Tourniquet system — same id, Onyx patches this same upstream entity. Tourniquet tag deliberately not added (no such tag prototype in WG).
+  - PROTO D, P4-D9: the Healing block is replaced in place by the Tourniquet system.
 - [`Resources/Prototypes/Entities/Objects/Specific/Medical/healthanalyzer.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Medical/healthanalyzer.yml): health analyzers no longer need a power cell. The slot stays so existing fills and maps load;
 - [`Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml): BRAIN: organ health, so a chassis can be killed
 - [`Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml)
@@ -1523,7 +1536,7 @@ Skipped ("dirty-disposed").
   - P5-D5, PROTO S: MobIPC moves to the SiliconWolfmed container in WP13-2;
   - V124: the welder loop covers the pass; this is the seam cooling at the end of it.
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml): W1: cluster pellets leave fragments behind.
-- [`Resources/Prototypes/Entities/StatusEffects/misc.yml`](../../../Resources/Prototypes/Entities/StatusEffects/misc.yml): MobStandStatusEffectBase and every concrete status effect entity in Onyx's file are
+- [`Resources/Prototypes/Entities/StatusEffects/misc.yml`](../../../Resources/Prototypes/Entities/StatusEffects/misc.yml): Onyx's status effect bases, ported without its standing base or concrete effects.
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): AUTODOC: the four program disks, behind the same research as the rest of medbay.
 - [`Resources/Prototypes/Guidebook/medical.yml`](../../../Resources/Prototypes/Guidebook/medical.yml)
   - PROTO L (WP12-10) - wounds guidebook entries

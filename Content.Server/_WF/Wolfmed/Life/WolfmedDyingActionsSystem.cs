@@ -41,16 +41,14 @@ public sealed partial class WolfmedDyingActionsComponent : Component
     public EntityUid? LastWords;
 }
 
-/// <summary>
-/// Every way a wound host leaves its body is honest (M1a, plan §5.4, OD2, OD3). Succumb and Last Words exist
-/// only while Dying and do exactly what their dialog says: the brain organ goes to 0 in place, the body dies,
-/// and the ghost can return after brain repair and a defibrillator. The <c>ghost</c> command reaches the same
-/// dialog in arrest, and a "left alive but empty" one, with no way back, in any other living state.
-/// </summary>
+/// <summary>Succumb, Last Words and the ghost command on a wound host, each doing what its dialog says.</summary>
 /// <remarks>
 /// Granted and revoked by direct calls from <see cref="WolfmedLifeSystem.StartArrest"/>,
 /// <see cref="WolfmedLifeSystem.EndArrest"/> and consciousness's death handler, never by new subscriptions.
 /// </remarks>
+// Succumb and Last Words exist only while Dying: the brain organ goes to 0 in place, the body dies, and the ghost can
+// return after brain repair and a defibrillator. The ghost command reaches the same dialog in arrest, and a "left
+// alive but empty" one with no way back in any other living state.
 public sealed class WolfmedDyingActionsSystem : EntitySystem
 {
     public static readonly EntProtoId SuccumbAction = "ActionWolfmedSuccumb";
@@ -89,12 +87,10 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
         args.Handled = EndDeliberately(ent);
     }
 
-    /// <summary>
-    /// M2 (OD17, P10, P29): an execution or a suicide on a wound host. The brain (or positronic core) goes to 0 where
-    /// it sits, then the body dies, then an arrest in progress ends on the corpse: catastrophic brain injury, the
-    /// order Succumb uses, so brain repair and a shock (or core repair and a restart) bring the body back. Who the
-    /// ghost is and whether it can return is the caller's; a suicide has already ghosted for good.
-    /// </summary>
+    /// <summary>Kills a wound host by an execution or a suicide, through its brain, so it stays revivable.</summary>
+    // Same order as Succumb: the brain (or positronic core) goes to 0 in place, the body dies, then an arrest in
+    // progress ends on the corpse, so brain repair and a shock (or core repair and a restart) bring it back. The ghost
+    // and whether it can return are the caller's; a suicide has already ghosted for good.
     public bool EndDeliberately(EntityUid body)
     {
         if (TerminatingOrDeleted(body) || !_life.OwnsDeath(body) || _mobState.IsDead(body))

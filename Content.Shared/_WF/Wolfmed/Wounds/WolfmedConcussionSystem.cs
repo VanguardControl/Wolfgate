@@ -17,12 +17,9 @@ using Robust.Shared.Random;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Concussions: what a hard knock to the head does to the patient rather than to the part. While any
-/// concussion wound is open the body carries <see cref="WolfmedConcussionComponent"/>, which blurs sight
-/// and slurs speech; the blow itself puts them on the floor for a moment. Nothing treats it, it fades with
-/// time, and it fades several times faster while the patient sleeps or lies in a medical bed.
-/// </summary>
+/// <summary>Concussion: blurred sight and slurred speech while a concussion wound is open.</summary>
+// The body carries WolfmedConcussionComponent while any concussion wound is open; the blow itself floors the patient
+// for a moment. Nothing treats it; it fades with time, several times faster while asleep or in a medical bed.
 /// <remarks>
 /// Shared rather than server-only because the blur is contributed through <see cref="GetBlurEvent"/>, which
 /// the client re-raises whenever eyewear changes; the state changes themselves are server-gated.

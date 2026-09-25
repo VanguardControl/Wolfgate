@@ -20,17 +20,14 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Wolfmed.Consciousness;
 
-/// <summary>
-/// What a wound host is told about its own condition (M1a, plan §5.2): one alert per cause and state in
-/// place of the stock health alerts, and one line per transition (down, out, waking, standing, the heart).
-/// Every line that names the cause also names whatever else is holding the body, and none of them promises
-/// waking or standing while something else is.
-/// </summary>
+/// <summary>Tells a wound host its condition: an alert per cause and state, and a line per transition.</summary>
 /// <remarks>
 /// The stock alerts read damage totals, which say nothing on a wound host, so they are switched off per
 /// body through the marked <c>MobThresholdSystem.SetTriggersAlerts</c>. This system then owns the whole
 /// Health category on that body, Dead included. Bodies that are not wound hosts keep the stock alerts.
 /// </remarks>
+// Transitions are down, out, waking, standing and the heart. Every line that names the cause also names whatever
+// else is holding the body, and none promises waking or standing while something else is.
 public sealed class WolfmedConditionAlertSystem : EntitySystem
 {
     [Dependency] private AlertsSystem _alerts = default!;

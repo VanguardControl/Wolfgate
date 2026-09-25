@@ -1,5 +1,5 @@
+using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared.Damage;
-using Content.Shared.Damage.Systems;
 
 namespace Content.Client._WF.Wolfmed.Damage;
 

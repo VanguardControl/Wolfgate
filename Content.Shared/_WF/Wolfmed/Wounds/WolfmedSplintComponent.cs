@@ -69,6 +69,7 @@ public enum WolfmedSplintRefusal : byte
     AlreadyTreated,
 }
 
+/// <summary>Raised when strapping a splint onto <see cref="Part"/> finishes.</summary>
 [Serializable, NetSerializable]
 public sealed partial class WolfmedSplintDoAfterEvent : SimpleDoAfterEvent
 {

@@ -187,6 +187,7 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
+    /// <summary>Builds and sends the window state, if the pod has a UI.</summary>
     public void UpdateUi(Entity<AutodocComponent> ent)
     {
         if (!_ui.HasUi(ent.Owner, AutodocUiKey.Key))

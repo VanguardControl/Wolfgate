@@ -13,7 +13,7 @@ namespace Content.Shared._WF.Wolfmed.Surgery;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedHullPlateComponent : Component, ISurgeryToolComponent
 {
-    public string ToolName => "a wrench";
+    public string ToolName => Loc.GetString("wolfmed-surgery-tool-wrench");
 
     public bool? Used { get; set; }
 
@@ -28,7 +28,7 @@ public sealed partial class WolfmedHullPlateComponent : Component, ISurgeryToolC
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedCoreProbeComponent : Component, ISurgeryToolComponent
 {
-    public string ToolName => "a multitool";
+    public string ToolName => Loc.GetString("wolfmed-surgery-tool-multitool");
 
     public bool? Used { get; set; }
 
@@ -51,7 +51,7 @@ public sealed partial class WolfmedCoreHousingOpenComponent : Component;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedHullWeldComponent : Component, ISurgeryToolComponent
 {
-    public string ToolName => "a welding tool";
+    public string ToolName => Loc.GetString("wolfmed-surgery-tool-welding-tool");
 
     public bool? Used { get; set; }
 

@@ -1,5 +1,4 @@
-namespace Content.Shared._Onyx.Targeting; // deliberate: HealthExaminableSystem.PartStatus.cs's `using` and its
-                                          // unqualified PartStatusSystem.GetSeverity(...) call resolve unmodified.
+namespace Content.Shared._WF.Wolfmed.Compat;
 
 /// <summary>Severity classification from Onyx's Targeting PartStatusSystem, without the Targeting-doll types D10 excludes.</summary>
 public static class PartStatusSystem

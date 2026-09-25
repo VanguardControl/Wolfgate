@@ -51,12 +51,9 @@ public enum WolfmedWoundLifecycle : byte
     Removed,
 }
 
-/// <summary>
-/// Broadcast by <see cref="WolfmedWoundTraitSystem"/> whenever a wound is created, changed or removed.
-/// The directed <c>WoundComponent</c> and <c>WoundableComponent</c> subscriptions for those three events
-/// are already held (by the trait system and by Onyx's WoundStatusEffectSystem), and a component/event
-/// pair can only have one owner, so Wolfmed systems that need wound lifecycle answer here instead.
-/// </summary>
+/// <summary>Broadcast by <see cref="WolfmedWoundTraitSystem"/> when a wound is created, changed or removed.</summary>
+// The directed WoundComponent and WoundableComponent subscriptions for those events are held by the trait system and
+// Onyx's WoundStatusEffectSystem, so Wolfmed systems that need the wound lifecycle answer here instead.
 [ByRefEvent]
 public readonly record struct WolfmedWoundLifecycleEvent(
     WolfmedWoundLifecycle Kind,
@@ -78,12 +75,9 @@ public readonly record struct WolfmedWoundLifecycleEvent(
 [ByRefEvent]
 public readonly record struct WolfmedPartAmputatedEvent(EntityUid Body, EntityUid Part, EntityUid Parent);
 
-/// <summary>
-/// Antiseptic has reached this body's skin. Raised directed on the body by the
-/// <c>WolfmedCleanWounds</c> entity effect, which sits in Shared while
-/// <see cref="Content.Server._WF.Wolfmed.Wounds.WolfmedInfectionSystem"/> does not; handlers report how
-/// many wounds they cleaned so the effect knows whether to say anything.
-/// </summary>
+/// <summary>Raised on a body when antiseptic reaches its skin; handlers report how many wounds they cleaned.</summary>
+// Raised by the Shared WolfmedCleanWounds entity effect so the server-only WolfmedInfectionSystem can answer; the
+// count tells the effect whether to say anything.
 [ByRefEvent]
 public record struct WolfmedCleanWoundsEvent(int Cleaned = 0);
 

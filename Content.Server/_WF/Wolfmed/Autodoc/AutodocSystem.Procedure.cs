@@ -143,6 +143,7 @@ public sealed partial class AutodocSystem
 
     #region Queue
 
+    /// <summary>Queues a surgery on a part if the pod knows it and the occupant's body allows it now.</summary>
     public bool TryQueue(Entity<AutodocComponent> ent, EntProtoId surgery, TargetBodyPart part)
     {
         if (GetOccupant(ent) is not { } body || ResolvePart(body, part) is not { } partEnt)
@@ -251,6 +252,7 @@ public sealed partial class AutodocSystem
 
     #region State machine
 
+    /// <summary>Starts the queued run on the occupant, or resumes a paused one; false when it can't.</summary>
     public bool TryStart(Entity<AutodocComponent> ent, EntityUid? user)
     {
         if (ent.Comp.State is not (AutodocState.Idle or AutodocState.Complete or AutodocState.Paused))
@@ -340,12 +342,10 @@ public sealed partial class AutodocSystem
         BeginStep(ent);
     }
 
-    /// <summary>
-    /// One anaesthetic for the whole queue, topped up only as it runs out and never past the sedation cap.
-    /// The pod used to push its full dose at every procedure, so a twenty-item plan walked the patient from
-    /// a fifth sedated to completely under and then stopped their breathing. While the anaesthetic is in
-    /// them they are asleep: Shitmed's step emote is the scream, and it only looks at ForcedSleeping.
-    /// </summary>
+    /// <summary>Keeps one anaesthetic dose in the occupant for the whole queue, topped up as it runs out.</summary>
+    // Never past the sedation cap: a full dose per procedure took a long plan to a stopped breath. While the
+    // anaesthetic is in them they are asleep, since Shitmed's step emote is the scream and only reads
+    // ForcedSleeping.
     private void MaintainAnaesthesia(Entity<AutodocComponent> ent, EntityUid body)
     {
         if (!ent.Comp.Anaesthesia)
@@ -706,14 +706,11 @@ public sealed partial class AutodocSystem
         ent.Comp.BlockedReason = null;
     }
 
-    /// <summary>
-    /// What the pod can see of a part, discrete enough that ordinary drift does not read as progress:
-    /// wound prototypes, severities, states and embedded counts, each wound's bleeding severity, the fracture,
-    /// organ health and the part's own damage. Pain and bleed rates are deliberately left out - both move on
-    /// their own every tick, which would hide a step achieving nothing behind a number that always changes.
-    /// The bleeding severity does not drift: only a treatment lowers it and only a new injury raises it, so a
-    /// clamp that is closing a bleed reads as progress (M6; it used to read as a stall after three clamps).
-    /// </summary>
+    /// <summary>A signature of what the pod can see of a part, used to tell whether a step made progress.</summary>
+    // Covers wound prototypes, severities, states and embedded counts, each wound's bleeding severity, the fracture,
+    // organ health and the part's own damage. Pain and bleed rates are left out because they drift every tick and
+    // would hide a step achieving nothing. Bleeding severity doesn't drift, so a clamp closing a bleed reads as
+    // progress.
     public string PartSignature(EntityUid part)
     {
         var signature = new StringBuilder();
@@ -744,12 +741,9 @@ public sealed partial class AutodocSystem
         return signature.ToString();
     }
 
-    /// <summary>
-    /// The whole occupant as the PLANNER sees them: which wounds exist and what state they are in, not how
-    /// severe they are. Severity drifts by a fraction every second as a wound heals, and a signature that
-    /// moved with it would have read as progress for ever and defeated the re-plan bound. A new wound, a
-    /// wound closing, a fracture being set or an object coming out all change this.
-    /// </summary>
+    /// <summary>A signature of the occupant as the planner sees them: which wounds exist and their states.</summary>
+    // Severity is left out because it drifts as a wound heals and would read as progress for ever, defeating the
+    // re-plan bound. A new wound, a wound closing, a fracture being set or an object coming out all change this.
     public string BodySignature(EntityUid body)
     {
         var signature = new StringBuilder();
@@ -797,12 +791,9 @@ public sealed partial class AutodocSystem
         }
     }
 
-    /// <summary>
-    /// Claims what the pod has just made. Runs every tick while a procedure is under way and for a grace
-    /// period after the last one: a cautery's burn and a scalpel's incision land through the damage path a
-    /// tick or two behind the step, so marking only at the procedure boundaries let one through each run,
-    /// and one is enough for the planner to find work and start again.
-    /// </summary>
+    /// <summary>Marks the wounds the pod has just made as its own.</summary>
+    // Runs every tick during a procedure and for a grace period after: a cautery's burn or an incision lands a tick or
+    // two behind the step, and a single unmarked one is enough for the planner to find work and start again.
     private void TickPodWounds(Entity<AutodocComponent> ent)
     {
         if (IsRunning(ent))
@@ -891,12 +882,9 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
-    /// <summary>
-    /// Puts the patient back together after an abandoned or cut-short procedure, but only when they are already
-    /// open: closing an incision lists on an intact body too, because the pod would cut one to close it. The
-    /// closure goes in at <paramref name="index"/>: first for an abandoned procedure, which has already left the
-    /// queue, and straight after the current one for a procedure about to complete.
-    /// </summary>
+    /// <summary>Queues a closure after an abandoned or cut-short procedure if the patient is open.</summary>
+    // Only when already open, since closing an incision lists on an intact body too. The index is 0 for an abandoned
+    // procedure, which has already left the queue, and straight after the current one for one about to complete.
     private void TryQueueClosure(Entity<AutodocComponent> ent, EntityUid body, AutodocQueued abandoned, int index = 0)
     {
         if (abandoned.Surgery == CloseIncision ||
@@ -957,16 +945,14 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
-    /// <summary>
-    /// BRAIN: with the module installed the pod shocks an occupant whose heart has stopped, on the same rule
-    /// a medic's paddles follow. It happens before the first procedure and again once the queue is done.
-    /// </summary>
     // The same set a hand defibrillator plays, so a pod shock sounds like one.
     private static readonly SoundPathSpecifier DefibChargeSound = new("/Audio/Items/Defib/defib_charge.ogg");
     private static readonly SoundPathSpecifier DefibZapSound = new("/Audio/Items/Defib/defib_zap.ogg");
     private static readonly SoundPathSpecifier DefibSuccessSound = new("/Audio/Items/Defib/defib_success.ogg");
     private static readonly SoundPathSpecifier DefibFailureSound = new("/Audio/Items/Defib/defib_failed.ogg");
 
+    /// <summary>Shocks an arrested or dead occupant on the paddles' rules; true when the heart restarted.</summary>
+    // Needs the cardiac module. Runs before the first procedure, between procedures and once the queue is done.
     public bool TryDefibrillateOccupant(Entity<AutodocComponent> ent, EntityUid body)
     {
         if (!_life.InArrest(body) && !_mobState.IsDead(body))
@@ -1083,6 +1069,7 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
+    /// <summary>Abandons the run: clears the queue, wakes the occupant and returns the pod to idle.</summary>
     public void Abort(Entity<AutodocComponent> ent)
     {
         if (GetOccupant(ent) is { } aborted)
@@ -1101,12 +1088,9 @@ public sealed partial class AutodocSystem
         UpdateUi(ent);
     }
 
-    /// <summary>
-    /// Pauses and calls for help when the patient crashes UNDER the knife. True when the pod stopped. A body
-    /// that was already dead or arrested when the run started is not a crash: the pod was asked to operate
-    /// on a corpse, which is how a brain is repaired and a heart restarted. The flag is also set by the hold
-    /// itself, so the operator's RESUME carries on instead of stopping again on the same death.
-    /// </summary>
+    /// <summary>Pauses and calls for help if the patient crashes under the knife; true when the pod stopped.</summary>
+    // A body already dead or arrested at the start is not a crash: operating on a corpse is how a brain is repaired and
+    // a heart restarted. The hold sets the flag too, so RESUME carries on instead of stopping on the same death.
     private bool WatchOccupant(Entity<AutodocComponent> ent, EntityUid body)
     {
         if (_mobState.IsDead(body) && !ent.Comp.OccupantWasDead)
@@ -1364,6 +1348,7 @@ public sealed partial class AutodocSystem
         }
     }
 
+    /// <summary>The localized line for a requirement; a generic item when there is none.</summary>
     public string DescribeRequirement(AutodocRequirement? requirement)
     {
         if (requirement == null)
@@ -1375,7 +1360,7 @@ public sealed partial class AutodocSystem
                 ("side", Loc.GetString($"wolfmed-autodoc-symmetry-{(requirement.Symmetry?.ToString() ?? "None").ToLowerInvariant()}")),
                 ("part", Loc.GetString($"wolfmed-autodoc-parttype-{requirement.PartType.ToString().ToLowerInvariant()}"))),
             AutodocRequirementKind.Organ => Loc.GetString("wolfmed-autodoc-requirement-organ",
-                ("organ", requirement.Component ?? string.Empty)),
+                ("organ", Loc.GetString($"wolfmed-autodoc-organ-{requirement.Component?.ToLowerInvariant()}"))),
             AutodocRequirementKind.Reagent => Loc.GetString("wolfmed-autodoc-requirement-reagent",
                 ("role", Loc.GetString($"wolfmed-autodoc-reagent-{(requirement.Reagent ?? "fluid").ToLowerInvariant()}")),
                 ("units", requirement.Units)),

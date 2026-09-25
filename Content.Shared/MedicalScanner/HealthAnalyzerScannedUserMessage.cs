@@ -25,7 +25,10 @@ public sealed class HealthAnalyzerScannedUserMessage : BoundUserInterfaceMessage
     public List<HealthAnalyzerChemicalInfo>? Chemicals; // WOLFGATE(Wolfmed): EXT 2 — bloodstream/chemical/stomach/lung contents.
     public FixedPoint2? VitalDamage; // WOLFGATE(Wolfmed): EXT 2 — the damage figure that decides crit on a wound host.
 
-    public HealthAnalyzerScannedUserMessage(NetEntity? targetEntity, float temperature, float bloodLevel, bool? scanMode, bool? bleeding, bool? unrevivable, bool? uncloneable, Dictionary<TargetBodyPart, TargetIntegrity>? body, NetEntity? part = null, HealthAnalyzerWoundDiagnostics? woundDiagnostics = null, List<HealthAnalyzerOrganInfo>? organs = null, List<HealthAnalyzerChemicalInfo>? chemicals = null, FixedPoint2? vitalDamage = null) // Shitmed Change // WOLFGATE(Wolfmed): EXT 2 — four appended optional parameters.
+    // WOLFGATE(Wolfmed) START: EXT 2, the constructor takes four appended optional parameters.
+    // public HealthAnalyzerScannedUserMessage(NetEntity? targetEntity, float temperature, float bloodLevel, bool? scanMode, bool? bleeding, bool? unrevivable, bool? uncloneable, Dictionary<TargetBodyPart, TargetIntegrity>? body, NetEntity? part = null) // Shitmed Change
+    public HealthAnalyzerScannedUserMessage(NetEntity? targetEntity, float temperature, float bloodLevel, bool? scanMode, bool? bleeding, bool? unrevivable, bool? uncloneable, Dictionary<TargetBodyPart, TargetIntegrity>? body, NetEntity? part = null, HealthAnalyzerWoundDiagnostics? woundDiagnostics = null, List<HealthAnalyzerOrganInfo>? organs = null, List<HealthAnalyzerChemicalInfo>? chemicals = null, FixedPoint2? vitalDamage = null) // Shitmed Change
+    // WOLFGATE END
     {
         TargetEntity = targetEntity;
         Temperature = temperature;
@@ -36,12 +39,12 @@ public sealed class HealthAnalyzerScannedUserMessage : BoundUserInterfaceMessage
         Part = part; // Shitmed Change
         Unrevivable = unrevivable;
         Uncloneable = uncloneable; // Frontier
-        // WOLFGATE(Wolfmed): EXT 2 start
+        // WOLFGATE(Wolfmed) START: EXT 2, assigns the Wolfmed diagnostics payload.
         WoundDiagnostics = woundDiagnostics;
         Organs = organs;
         Chemicals = chemicals;
         VitalDamage = vitalDamage;
-        // WOLFGATE(Wolfmed): EXT 2 end
+        // WOLFGATE END
     }
 }
 

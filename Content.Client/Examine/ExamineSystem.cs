@@ -276,12 +276,15 @@ namespace Content.Client.Examine
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
 
-                if (!TryAddWolfmedLookMessage(vBox, message) && !TryAddPartStatusMessage(vBox, message)) // WOLFGATE(Wolfmed): HOOK 14 — LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
+                // WOLFGATE(Wolfmed) START: HOOK 14, LOOK2's inspection rows, else Onyx's part-status boxes, replace the plain label when the markup carries them.
+                // The upstream body is left un-reindented to keep the diff minimal.
+                if (!TryAddWolfmedLookMessage(vBox, message) && !TryAddPartStatusMessage(vBox, message))
                 {
-                    var richLabel = new RichTextLabel() { Margin = new Thickness(4, 4, 0, 4)};
-                    richLabel.SetMessage(message);
-                    vBox.AddChild(richLabel);
-                }
+                // WOLFGATE END
+                var richLabel = new RichTextLabel() { Margin = new Thickness(4, 4, 0, 4)};
+                richLabel.SetMessage(message);
+                vBox.AddChild(richLabel);
+                } // WOLFGATE(Wolfmed): HOOK 14
                 break;
             }
 

@@ -1,4 +1,6 @@
-namespace Content.Shared.Stunnable;
+using Content.Shared.Stunnable;
+
+namespace Content.Shared._WF.Wolfmed.Compat;
 
 /// <summary>Onyx-shaped paralyse call mapped onto Wolfgate's TryParalyze.</summary>
 public static class StunSystemOnyxCompat

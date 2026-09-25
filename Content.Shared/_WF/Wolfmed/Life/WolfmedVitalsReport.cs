@@ -393,12 +393,10 @@ public static class WolfmedVitalsText
         }
     }
 
-    /// <summary>
-    /// Playtest 3, line 3: "Do first: transfuse ≈ 20 u; dress the burns and give fluids; lung surgery". Each running
-    /// route's first aid once, in the routes' order; the transfusion (or a chassis's refill) carries its units.
-    /// "Do first: nothing; stable" for a patient who is down with nothing running (§1.5's fourth priority). Not shown
-    /// on the dead, nor on somebody up with nothing to do.
-    /// </summary>
+    /// <summary>The "Do first:" line listing each running route's first aid, or null when it isn't shown.</summary>
+    // E.g. "Do first: transfuse ≈ 20 u; dress the burns and give fluids; lung surgery", in the routes' order; the
+    // transfusion (or a chassis's refill) carries its units. "Do first: nothing; stable" for a patient down with
+    // nothing running. Not shown on the dead, nor on somebody up with nothing to do.
     public static string? DoFirstLine(WolfmedVitalsReport report)
     {
         if (report.State == WolfmedVitalsState.Dead)

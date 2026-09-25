@@ -10,6 +10,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Rejuvenate;
 using Content.Shared.StatusEffectNew;
 using Content.Shared.Stunnable;
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): Onyx's TryUpdateParalyzeDuration is a compat extension here.
 using Content.Shared.Traits.Assorted;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;

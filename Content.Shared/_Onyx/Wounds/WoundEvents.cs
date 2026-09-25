@@ -52,7 +52,10 @@ public readonly record struct PartDamageAppliedEvent(
     EntityUid? Origin = null,
     bool IsExplosion = false,
     bool ExplosionAmputationCandidate = false,
+    // WOLFGATE(Wolfmed) START: W1, M1b and M6 append parameters after the last Onyx one.
+    // float WoundSeverityMultiplier = 1f);
     float WoundSeverityMultiplier = 1f,
+    // WOLFGATE END
     // WOLFGATE(Wolfmed): W1: the projectile or weapon that dealt the hit. Wolfmed's wound rules read it to tell a
     // gunshot from a knife; routing already carries it for armour penetration.
     EntityUid? Tool = null,
@@ -61,10 +64,12 @@ public readonly record struct PartDamageAppliedEvent(
     DamageSpecifier? Overflow = null,
     // WOLFGATE(Wolfmed): M6: OD18, whether this hit may interrupt a do-after. Fire, bleeding and other ticks pass false.
     bool InterruptsDoAfters = true)
+// WOLFGATE(Wolfmed) START: M1b, the whole hit, stored or not.
 {
     /// <summary>WOLFGATE (M1b): the whole hit, stored or not.</summary>
     public DamageSpecifier Total => Overflow is not { Empty: false } overflow ? Damage : Damage + overflow;
 }
+// WOLFGATE END
 
 /// <summary>
 /// Raised when damage is dealt to a part that is already at (or pushed past) its

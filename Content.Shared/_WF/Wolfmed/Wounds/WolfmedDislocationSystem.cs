@@ -11,12 +11,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Putting a dislocated joint back. The penalty a dislocation carries is ordinary
-/// <see cref="WolfmedLimbPenaltyBehavior"/> data; what is special is that nothing heals it. No dressing,
-/// no suture, no bone gel and no amount of time: someone has to wrench the joint back into place, which
-/// hurts, and hurts twice as much when the patient does it to themselves.
-/// </summary>
+/// <summary>Wrenching a dislocated joint back into place, the only thing that fixes a dislocation.</summary>
+// The penalty is ordinary WolfmedLimbPenaltyBehavior data; no dressing, suture, bone gel or time heals it. It hurts,
+// twice as much when the patient does it to themselves.
 public sealed class WolfmedDislocationSystem : EntitySystem
 {
     [Dependency] private INetManager _net = default!;

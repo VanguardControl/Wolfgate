@@ -6,12 +6,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Maps one hit to a wound other than the default Onyx wound for its damage type. Rules are evaluated in
-/// descending <see cref="Priority"/>; the first whose filters and chance roll pass wins, and evaluation
-/// stops there unless it sets <see cref="Continue"/>. A rule that matches nothing is inert.
-/// Every filter left empty matches everything.
-/// </summary>
+/// <summary>Maps a hit to a wound other than the default Onyx wound for its damage type.</summary>
+// Rules run in descending Priority; the first whose filters and chance roll pass wins, and evaluation stops there
+// unless it sets Continue. An empty filter matches everything.
 [Prototype("wolfmedWoundRule")]
 public sealed partial class WolfmedWoundRulePrototype : IPrototype
 {

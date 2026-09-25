@@ -28,5 +28,6 @@
   components:
   - type: RejuvenateRemovedStatusEffect
 
-# WOLFGATE(Wolfmed): MobStandStatusEffectBase and every concrete status effect entity in Onyx's file are
-# dropped: they need the KnockdownImmune tag and status-effect components Wolfgate does not have.
+# WOLFGATE(Wolfmed): Onyx's status effect bases, ported without its standing base or concrete effects.
+# MobStandStatusEffectBase and every concrete status effect entity in Onyx's file are dropped: they need the
+# KnockdownImmune tag and status-effect components Wolfgate does not have.

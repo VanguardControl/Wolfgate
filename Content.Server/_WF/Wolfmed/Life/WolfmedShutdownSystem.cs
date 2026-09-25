@@ -17,12 +17,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// A mechanical body's cardiac arrest. No blood and no breathing means no oxygenation clock, so a machine
-/// that loses its power or its pump simply stops: unconscious, indefinitely, until somebody fixes it, and
-/// with nothing running out in the meantime. Death is still the brain, which for a chassis is the
-/// positronic one, and that goes through the same organ path a fleshy brain does.
-/// </summary>
+/// <summary>A mechanical body's cardiac arrest: without power or its pump it shuts down until repaired.</summary>
+// No blood and no breathing means no oxygenation clock, so a shut-down machine stays unconscious indefinitely with
+// nothing running out. Death is still the brain, the positronic one for a chassis, through the ordinary organ path.
 public sealed class WolfmedShutdownSystem : EntitySystem
 {
     /// <summary>Pressure key for a machine with nothing running.</summary>
@@ -51,12 +48,9 @@ public sealed class WolfmedShutdownSystem : EntitySystem
         SubscribeLocalEvent<WolfmedRejuvenateEvent>(OnRejuvenate);
     }
 
-    /// <summary>
-    /// Mechanical: a wound host that is a machine and runs no oxygenation clock. Both halves matter. A body
-    /// that simply has no brain organ is a test fixture or a species Wolfmed does not model, not a chassis,
-    /// and shutting one of those down would be the brainless-poll bug in a different costume. M4 (OD16): a synth,
-    /// powered by its <see cref="SynthBatteryComponent"/>, is a machine too.
-    /// </summary>
+    /// <summary>Whether the body is a machine wound host that runs no oxygenation clock.</summary>
+    // Both halves matter: a body with no brain organ is a test fixture or an unmodelled species, not a chassis, and
+    // shutting it down would be the brainless-poll bug again. A synth powered by its SynthBatteryComponent counts too.
     public bool IsMechanical(EntityUid body)
     {
         if (!_consciousness.OwnsMobState(body) ||
@@ -74,12 +68,9 @@ public sealed class WolfmedShutdownSystem : EntitySystem
 
     public bool IsShutDown(EntityUid body) => HasComp<WolfmedShutdownComponent>(body);
 
-    /// <summary>
-    /// Only bodies that are already down are polled, which is normally none of them. A shutdown is written
-    /// as an external pressure, and anything that resets a body wholesale (a rejuvenate clears every
-    /// pressure it finds) can leave the flag on a chassis that is walking around: the readout would then
-    /// show STANDBY over a machine in a firefight. The cause is re-read here instead of trusted.
-    /// </summary>
+    /// <summary>Re-checks the cause of every shut-down body, which is normally none of them.</summary>
+    // A shutdown is written as an external pressure, and a wholesale reset (a rejuvenate clears every pressure it
+    // finds) can leave the flag on a walking chassis, whose readout would show STANDBY. So the cause is re-read here.
     public override void Update(float frameTime)
     {
         base.Update(frameTime);

@@ -99,7 +99,7 @@ public sealed class AutodocWindow : DefaultWindow
         var headerRows = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 2 };
         header.AddChild(headerRows);
         var titleRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true };
-        titleRow.AddChild(Text("S.A.M.", 20, Amber, true));
+        titleRow.AddChild(Text(Loc.GetString("wolfmed-autodoc-ui-name"), 20, Amber, true));
         titleRow.AddChild(Text("  " + Loc.GetString("wolfmed-autodoc-ui-subtitle"), 11, AmberDim) );
         _readout = Text(string.Empty, 13, Amber, true);
         _readout.HorizontalExpand = true;
@@ -310,6 +310,7 @@ public sealed class AutodocWindow : DefaultWindow
             DrawProcedures(_state);
     }
 
+    /// <summary>Redraws the window from the server's state.</summary>
     public void Update(AutodocBuiState state)
     {
         _state = state;
@@ -556,7 +557,8 @@ public sealed class AutodocWindow : DefaultWindow
             var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 6 };
             row.AddChild(Text($"{slot++}", 11, AmberDim));
             row.AddChild(Text(Gauge(fraction, 12), 11, colour));
-            row.AddChild(Text($"{(int) entry.Volume,3}u", 11, colour));
+            // Passed as a padded string, not a number, so the column stays aligned.
+            row.AddChild(Text(Loc.GetString("wolfmed-autodoc-ui-reservoir-volume", ("units", $"{(int) entry.Volume,3}")), 11, colour));
             var name = Text(entry.Name, 11, colour);
             name.HorizontalExpand = true;
             name.ClipText = true;

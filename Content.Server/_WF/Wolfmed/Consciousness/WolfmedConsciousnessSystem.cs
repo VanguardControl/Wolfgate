@@ -275,12 +275,10 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         _inputs[cause] = (down, outOf);
     }
 
-    /// <summary>
-    /// The cause is the input that meets the state's line, first in the tie order; an input only inside its
-    /// leave band names the state only when nothing crosses the line. Every other input at or past its leave
-    /// line still blocks leaving, so it is a blocker. Critical states read the Unconscious line, Downed the
-    /// Downed line (plan §5.1).
-    /// </summary>
+    /// <summary>Picks the cause of a consciousness state and the other inputs that block leaving it.</summary>
+    // The cause is the input that meets the state's line, first in the tie order; an input only inside its leave band
+    // names it only when nothing crosses the line. Every other input at or past its leave line is a blocker. Critical
+    // states read the Unconscious line, Downed the Downed line.
     private (WolfmedCause Cause, WolfmedCauseFlags Blockers) PickCause(Entity<WolfmedConsciousnessComponent> body,
         WolfmedConsciousness state, float leaving)
     {
@@ -465,12 +463,10 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         return (down, faint);
     }
 
-    /// <summary>
-    /// Runs the pain faint (plan §3.1) and says whether one is running now. A faint lasts a fixed time that
-    /// nothing extends. It re-arms only when summed pain falls under the leave line or rises by
-    /// <c>wolfmed.pain_faint_rise</c> over the pain at waking, and never inside the cooldown after waking. A
-    /// strong or emergency painkiller ends it and blocks the next; a mechanical body never faints.
-    /// </summary>
+    /// <summary>Runs the pain faint and returns whether one is running now.</summary>
+    // A faint lasts a fixed time that nothing extends. It re-arms only when summed pain falls under the leave line or
+    // rises by wolfmed.pain_faint_rise over the pain at waking, never inside the cooldown after waking. A strong or
+    // emergency painkiller ends it and blocks the next; a mechanical body never faints.
     private bool UpdatePainFaint(Entity<WolfmedConsciousnessComponent> body, bool mechanical)
     {
         var comp = body.Comp;

@@ -22,15 +22,10 @@ public abstract partial class SharedSurgerySystem
     [Dependency] private WolfmedWoundDamageSyncSystem _wolfmedDamageSync = default!; // WOLFGATE (AUTODOC5): HOOK 27
     [Dependency] private WolfmedWoundTraitSystem _wolfmedTraits = default!; // WOLFGATE (playtest 3 IPC 2): HOOK 24
 
-    /// <summary>
-    /// HOOK 24 body: whether a tend surgery should stay off this part. Upstream lists it wherever the BODY
-    /// carries any damage at all, so one cut had the pod's planner queueing a tend on every limb; on a wound
-    /// host the part has to carry something tending could actually close, and then be inside whatever
-    /// severity window the surgery declares (P4-D19). Non-hosts are provably unchanged (D2).
-    /// Playtest 3 IPC 2: never on a machine part. The generic chassis wound lists both groups' damage types, so a
-    /// tend listed there and then stalled on whichever group the chassis had no damage of. A chassis is welded and
-    /// rewired instead (SurgeryWeldChassis, SurgeryRewireChassis).
-    /// </summary>
+    /// <summary>Whether a tend surgery should stay off this wound host's part (HOOK 24).</summary>
+    // Upstream lists it wherever the body has any damage. On a wound host the part must carry something tending could
+    // close, inside the surgery's severity window; non-hosts are unchanged. Never on a machine part, which is welded
+    // and rewired instead (SurgeryWeldChassis, SurgeryRewireChassis).
     private bool WolfmedWoundWindowFails(Entity<SurgeryWoundedConditionComponent> ent, EntityUid body, EntityUid part)
     {
         if (!HasComp<WoundHostComponent>(body))
@@ -55,14 +50,9 @@ public abstract partial class SharedSurgerySystem
                _wolfmedWounds.GetWounds(parent).Any(wound => wound.Comp.Prototype == host.AmputationConsequenceWound);
     }
 
-    /// <summary>
-    /// HOOK 26 body: whether a tend step still has work to do, for a wound host. Upstream reads the whole
-    /// BODY's damage of the group, so tending a torso could never finish while a hand still had a scratch
-    /// and the step repeated for ever. On a wound host the answer is the part the surgeon is holding open,
-    /// and what is wrong with a Wolfmed part is its wounds: the step runs until they are closed and stops,
-    /// whatever the routing's damage bookkeeping still says. Null for everything else, which leaves the
-    /// shipped behaviour exactly as it was (D2).
-    /// </summary>
+    /// <summary>Whether a tend step has wounds left to close on a host's part; null for a non-host (HOOK 26).</summary>
+    // Upstream reads the whole body's damage of the group, so a torso tend never finished while a hand had a scratch.
+    // On a wound host the step runs until the open part's wounds are closed, whatever the damage bookkeeping says.
     private bool? WolfmedTendPending(EntityUid body, EntityUid part, string mainGroup, string[] types)
     {
         if (!HasComp<WoundHostComponent>(body))
@@ -71,13 +61,10 @@ public abstract partial class SharedSurgerySystem
         return _wolfmedConditions.GetTreatableGroupSeverity(part, mainGroup) > FixedPoint2.Zero;
     }
 
-    /// <summary>
-    /// HOOK 27 body: a tend pass closes the part's own wounds at the strength a suture does. The damage the
-    /// step removes reaches a wound through the routing's HealingMultiplier, a tenth of what came off, which
-    /// left a surgeon picking at one cut for twenty passes; tending is meant to be the surgical way to close
-    /// cuts and bruises (D7, W7). Wounds nothing closes and wounds refusing treatment are untouched, because
-    /// TreatWound raises the same attempt event a dressing does.
-    /// </summary>
+    /// <summary>Closes the part's own wounds at a suture's strength on each tend pass (HOOK 27).</summary>
+    // Damage the step removes reaches a wound only through the routing's HealingMultiplier, a tenth of it, which is
+    // too slow for the surgical way to close cuts and bruises. Wounds nothing closes and wounds refusing treatment are
+    // untouched, because TreatWound raises the same attempt event a dressing does.
     private void WolfmedTendWounds(EntityUid body, EntityUid part, string mainGroup)
     {
         if (!HasComp<WoundHostComponent>(body))

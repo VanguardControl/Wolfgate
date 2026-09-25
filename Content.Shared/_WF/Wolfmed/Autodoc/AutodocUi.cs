@@ -5,6 +5,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Wolfmed.Autodoc;
 
+/// <summary>The autodoc window's UI key.</summary>
 [Serializable, NetSerializable]
 public enum AutodocUiKey : byte
 {
@@ -56,6 +57,7 @@ public readonly record struct AutodocProcedureEntry(EntProtoId Surgery, TargetBo
 [Serializable, NetSerializable]
 public readonly record struct AutodocQueueEntry(EntProtoId Surgery, TargetBodyPart Part, List<string> Requirements);
 
+/// <summary>One reservoir beaker slot: name, fill, capacity, and whether it holds anything usable.</summary>
 [Serializable, NetSerializable]
 public readonly record struct AutodocReservoirEntry(string Name, float Volume, float Max, bool Usable);
 
@@ -70,6 +72,7 @@ public static class AutodocQueueRules
         state is AutodocState.Idle or AutodocState.Complete ? 0 : 1;
 }
 
+/// <summary>Queues a surgery on a body part.</summary>
 [Serializable, NetSerializable]
 public sealed class AutodocQueueAddMessage(EntProtoId surgery, TargetBodyPart part) : BoundUserInterfaceMessage
 {
@@ -77,12 +80,14 @@ public sealed class AutodocQueueAddMessage(EntProtoId surgery, TargetBodyPart pa
     public readonly TargetBodyPart Part = part;
 }
 
+/// <summary>Removes the queue entry at an index.</summary>
 [Serializable, NetSerializable]
 public sealed class AutodocQueueRemoveMessage(int index) : BoundUserInterfaceMessage
 {
     public readonly int Index = index;
 }
 
+/// <summary>Moves the queue entry at an index one place up or down.</summary>
 [Serializable, NetSerializable]
 public sealed class AutodocQueueMoveMessage(int index, bool up) : BoundUserInterfaceMessage
 {
@@ -90,6 +95,7 @@ public sealed class AutodocQueueMoveMessage(int index, bool up) : BoundUserInter
     public readonly bool Up = up;
 }
 
+/// <summary>The window's control buttons.</summary>
 public enum AutodocControl : byte
 {
     Start,
@@ -107,12 +113,14 @@ public enum AutodocControl : byte
     CutClothing,
 }
 
+/// <summary>A press of one of the window's control buttons.</summary>
 [Serializable, NetSerializable]
 public sealed class AutodocControlMessage(AutodocControl control) : BoundUserInterfaceMessage
 {
     public readonly AutodocControl Control = control;
 }
 
+/// <summary>Switches self-service anaesthesia on or off.</summary>
 [Serializable, NetSerializable]
 public sealed class AutodocAnaesthesiaMessage(bool enabled) : BoundUserInterfaceMessage
 {

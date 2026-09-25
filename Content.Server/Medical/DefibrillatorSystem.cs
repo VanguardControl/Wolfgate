@@ -204,8 +204,9 @@ public sealed partial class DefibrillatorSystem : EntitySystem
         }
         else
         {
-            // WOLFGATE(Wolfmed): BRAIN: a wound host's damage total decides nothing. The brain and the heart do, so
-            // the whole threshold gate is replaced by the Wolfmed rule; the body lives in _WF.
+            // WOLFGATE(Wolfmed) START: BRAIN, the Wolfmed rule replaces the threshold gate for a wound host.
+            // A wound host's damage total decides nothing. The brain and the heart do, so the whole threshold gate is
+            // replaced by the Wolfmed rule; the body lives in _WF.
             if (_wolfmedRevival.OwnsRevival(target))
             {
                 if (_wolfmedRevival.TryDefibrillate(target, out var wolfmedLine))
@@ -227,13 +228,16 @@ public sealed partial class DefibrillatorSystem : EntitySystem
             }
             else
             {
+            // WOLFGATE END
             if (_mobState.IsDead(target, mob))
                 _damageable.TryChangeDamage(target, component.ZapHeal, true, origin: uid);
 
             if (_mobThreshold.TryGetThresholdForState(target, MobState.Dead, out var threshold) &&
                 TryComp<DamageableComponent>(target, out var damageableComponent) &&
-                // WOLFGATE(Wolfmed): HOOK 12 - revival has to agree with whatever decides death (HOOK 11).
+                // WOLFGATE(Wolfmed) START: HOOK 12, revival has to agree with whatever decides death (HOOK 11).
+                // damageableComponent.TotalDamage < threshold)
                 _mobThreshold.CheckVitalDamage(target, damageableComponent) < threshold)
+                // WOLFGATE END
             {
                 _mobState.ChangeMobState(target, MobState.Critical, mob, uid);
                 dead = false;

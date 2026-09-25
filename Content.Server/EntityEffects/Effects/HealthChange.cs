@@ -169,7 +169,10 @@ namespace Content.Server.EntityEffects.Effects
                 }
             }
 
-            // WOLFGATE(Wolfmed): HOOK 9 - the call becomes a delegate so healing can run inside a treatment-capability scope.
+            // WOLFGATE(Wolfmed) START: HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
+            // args.EntityManager.System<DamageableSystem>().TryChangeDamage(
+            //     args.TargetEntity,
+            //     Damage * scale,
             var change = Damage * scale;
             void Apply() => args.EntityManager.System<DamageableSystem>().TryChangeDamage(
                 args.TargetEntity,
@@ -189,6 +192,7 @@ namespace Content.Server.EntityEffects.Effects
                     .WithTreatmentCapabilities(args.TargetEntity, TreatmentCapabilities, Apply);
             else
                 Apply();
+            // WOLFGATE END
         }
     }
 }

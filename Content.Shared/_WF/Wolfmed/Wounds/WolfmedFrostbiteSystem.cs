@@ -6,13 +6,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Frostbite: cold takes the feeling out of a part before it takes the part. While a frostbite wound is
-/// open the part carries <see cref="WolfmedFrostbiteComponent"/>, which pins pain suppression on it - the
-/// same mechanism phase 5's painkillers use, so a numb limb reads quiet on an analyzer and the patient
-/// stops noticing what else is wrong with it. At the deepest stage the component also carries the
-/// necrosis-risk flag W5 reads.
-/// </summary>
+/// <summary>Frostbite numbs a part while the wound is open and flags necrosis risk at its deepest stage.</summary>
+// The part carries WolfmedFrostbiteComponent, which pins pain suppression the way painkillers do, so a numb limb
+// reads quiet on an analyzer and the patient stops noticing what else is wrong with it.
 /// <remarks>
 /// Shared so the component and its flag are networked; every write is server-gated, because pain
 /// suppression is.

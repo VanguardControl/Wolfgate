@@ -138,11 +138,11 @@ public sealed partial class EvenHealthChange : EntityEffect
             }
         }
 
-        // WOLFGATE(Wolfmed): HOOK 9 - the call becomes a delegate so healing can run inside a treatment-capability scope.
-        var final = dspec * scale;
+        // WOLFGATE(Wolfmed) START: HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
+        // damagableSystem.TryChangeDamage(
         void Apply() => damagableSystem.TryChangeDamage(
             args.TargetEntity,
-            final,
+            dspec * scale,
             IgnoreResistances,
             interruptsDoAfters: false);
 
@@ -153,5 +153,6 @@ public sealed partial class EvenHealthChange : EntityEffect
                 .WithTreatmentCapabilities(args.TargetEntity, TreatmentCapabilities, Apply);
         else
             Apply();
+        // WOLFGATE END
     }
 }

@@ -43,12 +43,9 @@ public static class WolfmedSyntheticHudLayout
 
     public const float MaxScale = 2.5f;
 
-    /// <summary>
-    /// The viewport in the coordinates a screen-space overlay actually draws in.
-    /// <c>OverlayDrawArgs.ViewportBounds</c> is the viewport control's draw box in GLOBAL physical pixels,
-    /// while the handle handed to that control's Draw is already translated to its own top-left, so the
-    /// global origin has to come back off or every block lands a viewport away from the corner it wants.
-    /// </summary>
+    /// <summary>The viewport in the coordinates a screen-space overlay actually draws in.</summary>
+    // ViewportBounds is in global physical pixels but the draw handle is already translated to the viewport's
+    // top-left, so the global origin has to come back off or every block lands a viewport away from its corner.
     public static UIBox2 Screen(UIBox2i bounds, Vector2 origin) => new(
         bounds.Left - origin.X,
         bounds.Top - origin.Y,

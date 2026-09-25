@@ -48,6 +48,15 @@ wolfmed-autodoc-parttype-leg = leg
 wolfmed-autodoc-parttype-foot = foot
 wolfmed-autodoc-parttype-tail = tail
 
+# The organ an insert surgery asks for, keyed by the organ component the surgery's condition names.
+wolfmed-autodoc-organ-brain = brain
+wolfmed-autodoc-organ-borgbrain = positronic brain
+wolfmed-autodoc-organ-heart = heart
+wolfmed-autodoc-organ-lung = lungs
+wolfmed-autodoc-organ-liver = liver
+wolfmed-autodoc-organ-stomach = stomach
+wolfmed-autodoc-organ-eyes = eyes
+
 wolfmed-autodoc-reagent-anaesthetic = anaesthetic
 wolfmed-autodoc-reagent-antibiotic = antibiotic
 wolfmed-autodoc-reagent-antiseptic = antiseptic
@@ -103,3 +112,8 @@ guide-entry-wolfmed-autodoc = Autodoc
 # Playtest 3, S.A.M. round
 wolfmed-autodoc-no-climb = The pod is for lying in, not on.
 wolfmed-autodoc-status-waiting-garment = WAITING: { $item } ON { $slot }
+wolfmed-autodoc-organ-breastsorgan = breasts
+wolfmed-autodoc-organ-penisorgan = penis
+wolfmed-autodoc-organ-testiclesorgan = testicles
+wolfmed-autodoc-organ-vaginaorgan = vagina
+wolfmed-autodoc-organ-womborgan = womb

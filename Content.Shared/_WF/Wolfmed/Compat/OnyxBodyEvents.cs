@@ -1,4 +1,4 @@
-namespace Content.Shared.Body;
+namespace Content.Shared._WF.Wolfmed.Compat;
 
 /// <summary>Raised on a part when it gains a body. Onyx shape.</summary>
 [ByRefEvent]

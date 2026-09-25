@@ -2,13 +2,10 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared._WF.Wolfmed.Examine;
 
-/// <summary>
-/// LOOK2: how a visual inspection travels inside an examine message. The server writes one
-/// <c>wolfmedlook</c> node per part followed by a <c>wolfmedlookfinding</c> node per finding, then the
-/// part's plain-text line, then <c>wolfmedlookend</c>. The client builds rows from the nodes and skips the
-/// plain line; everything else that renders the message (the chat copy, any log) keeps the plain line and
-/// drops the nodes, so neither side is ever left with tag soup.
-/// </summary>
+/// <summary>The markup tags that carry a visual inspection inside an examine message.</summary>
+// Per part: a wolfmedlook node, a wolfmedlookfinding node per finding, the part's plain-text line, then
+// wolfmedlookend. The client builds rows from the nodes and skips the plain line; anything else that renders the
+// message (the chat copy, a log) keeps the plain line and drops the nodes.
 /// <remarks>
 /// Written in the same shape as Onyx's <c>partstatus</c>, which is the control this replaces. Attribute
 /// values are plain text: the label and the tooltip have their markup removed before they are escaped, so

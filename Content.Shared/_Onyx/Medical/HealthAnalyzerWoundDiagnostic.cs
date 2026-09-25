@@ -19,7 +19,7 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     List<HealthAnalyzerVisibleWound> VisibleWounds,
     BodyPartFunctionalityState Functionality,
     float InternalBleedingRate,
-    HealthAnalyzerClottingPhase ClottingPhase,
+    HealthAnalyzerClottingPhase ClottingPhase, // WOLFGATE(Wolfmed): Onyx's last parameter, the additions follow it.
     ushort EmbeddedObjects = 0, // WOLFGATE(Wolfmed): W1: rounds and shrapnel still in the part.
     WolfmedInfectionStage Infection = WolfmedInfectionStage.None, // WOLFGATE(Wolfmed): W5: worst stage on the part.
     bool Necrotic = false, // WOLFGATE(Wolfmed): W5: the part is dead tissue.
@@ -33,23 +33,31 @@ public readonly record struct HealthAnalyzerWoundDiagnostic(
     // window can tell a patient whose organs are back in from one still waiting for them.
     ushort MissingOrgans = 0)
 {
+    // WOLFGATE(Wolfmed) START: the W1, W5 and W6 findings count as findings too.
+    // public bool HasFindings =>
+    //     Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||
+    //     VisibleWounds.Count > 0 || Functionality != BodyPartFunctionalityState.Functional || InternalBleedingRate > 0f;
     public bool HasFindings =>
         Fracture != FractureGrade.None || BleedingRate > 0f || ScarCount > 0 || Pain > FixedPoint2.Zero ||
         VisibleWounds.Count > 0 || Functionality != BodyPartFunctionalityState.Functional ||
-        InternalBleedingRate > 0f || EmbeddedObjects > 0 || // WOLFGATE(Wolfmed): W1
-        Infection != WolfmedInfectionStage.None || Necrotic || NecrosisRisk || // WOLFGATE(Wolfmed): W5
-        Overheating; // WOLFGATE(Wolfmed): W6
+        InternalBleedingRate > 0f || EmbeddedObjects > 0 ||
+        Infection != WolfmedInfectionStage.None || Necrotic || NecrosisRisk ||
+        Overheating;
+    // WOLFGATE END
 }
 
 [Serializable, NetSerializable]
+// WOLFGATE(Wolfmed) START: UI2 and UI3 add the category and the prototype id to Onyx's visible wound.
+// public readonly record struct HealthAnalyzerVisibleWound(LocId Name, LocId? StageName, int Count);
 public readonly record struct HealthAnalyzerVisibleWound(
     LocId Name,
     LocId? StageName,
     int Count,
-    // WOLFGATE(Wolfmed): UI2: the analyzer groups and tints its wound rows by this; resolved from the prototype.
+    // UI2: the analyzer groups and tints its wound rows by this; resolved from the prototype.
     WolfmedWoundCategory Category = WolfmedWoundCategory.Other,
-    // WOLFGATE(Wolfmed): UI3: the wound prototype id, which is what the treatment advice keys are derived from.
+    // UI3: the wound prototype id, which is what the treatment advice keys are derived from.
     string Prototype = "");
+// WOLFGATE END
 
 [Serializable, NetSerializable]
 public enum HealthAnalyzerClottingPhase : byte
@@ -66,6 +74,7 @@ public sealed class HealthAnalyzerWoundDiagnostics
 {
     public readonly Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> Parts;
 
+    // WOLFGATE(Wolfmed) START: W5, CONSC, BRAIN and M1a body-level readouts beside the parts.
     /// <summary>WOLFGATE (W5): systemic infection, 0 to 100. Body-level, so it sits beside the parts.</summary>
     public readonly float Sepsis;
 
@@ -97,8 +106,8 @@ public sealed class HealthAnalyzerWoundDiagnostics
     public readonly bool Shutdown;
 
     /// <summary>
-    /// WOLFGATE(Wolfmed): M1a: after a successful shock, units to transfuse inside the grace to keep the heart
-    /// going (plan §7.1), or -1 when there is no post-shock advice to show.
+    /// WOLFGATE(Wolfmed): M1a: units to transfuse after a successful shock.
+    /// Given inside the grace, they keep the heart going (plan §7.1); -1 when there is no post-shock advice to show.
     /// </summary>
     public readonly float PostShockUnits;
 
@@ -113,9 +122,13 @@ public sealed class HealthAnalyzerWoundDiagnostics
 
     /// <summary>WOLFGATE (M1a): the vitals block: state and cause, breathing, circulation, defib verdict (plan §5.5).</summary>
     public readonly WolfmedVitalsReport? Vitals;
+    // WOLFGATE END
 
+    // WOLFGATE(Wolfmed) START: W5, CONSC, BRAIN and M1a append optional parameters to the Onyx constructor.
+    // public HealthAnalyzerWoundDiagnostics(Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts)
     public HealthAnalyzerWoundDiagnostics(
         Dictionary<TargetBodyPart, HealthAnalyzerWoundDiagnostic> parts,
+    // WOLFGATE END
         float sepsis = 0f, // WOLFGATE(Wolfmed): W5
         WolfmedPainReliefTier painRelief = WolfmedPainReliefTier.None, // WOLFGATE(Wolfmed): CONSC
         float painReliefSeconds = 0f, // WOLFGATE(Wolfmed): CONSC

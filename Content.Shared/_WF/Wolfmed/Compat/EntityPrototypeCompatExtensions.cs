@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared.StatusEffectNew;
+namespace Content.Shared._WF.Wolfmed.Compat;
 
 /// <summary>Onyx's RT names this TryComp; RT 277 still calls it TryGetComponent.</summary>
 public static class EntityPrototypeCompatExtensions

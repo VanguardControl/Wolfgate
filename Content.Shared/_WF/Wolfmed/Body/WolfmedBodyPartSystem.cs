@@ -80,12 +80,10 @@ public sealed class WolfmedBodyPartSystem : EntitySystem
         return ev.Threshold is { } threshold ? threshold * fraction : null;
     }
 
-    /// <summary>
-    /// Trims AMBIENT part damage (the caller only sends damage with no attacker behind it) and returns what it
-    /// trimmed, which the hit still carries as overflow (M1b, plan §6). Two ceilings: the part's own (a fire
-    /// cannot store enough to destroy a limb or the head, OD12), and on a dead body the corpse ceiling on the
-    /// body's total. Attacks and explosions never reach here.
-    /// </summary>
+    /// <summary>Trims ambient part damage to the part and corpse ceilings and returns what it trimmed.</summary>
+    // The caller only sends damage with no attacker behind it; attacks and explosions never reach here. The hit still
+    // carries the trimmed amount as overflow. The part's own ceiling keeps a fire from destroying a limb or the head;
+    // on a dead body the corpse ceiling caps the body's total.
     public DamageSpecifier ClampToBodyCap(EntityUid body, EntityUid part, DamageSpecifier damage)
     {
         var trimmed = new DamageSpecifier();

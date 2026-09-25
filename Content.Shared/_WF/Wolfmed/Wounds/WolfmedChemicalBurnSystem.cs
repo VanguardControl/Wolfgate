@@ -8,12 +8,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Chemical burns: caustic that is still on the skin keeps working. A part with an open chemical burn
-/// carries <see cref="WolfmedChemicalBurnComponent"/> and takes a little more damage every few seconds
-/// until the patient is washed off - a splash of water, a spray bottle, an extinguisher, a puddle, or
-/// anything else that puts water on them.
-/// </summary>
+/// <summary>Damages a part with an open chemical burn every few seconds until the patient is washed off.</summary>
+// The part carries WolfmedChemicalBurnComponent while the burn is open. Anything that puts water on the patient
+// washes it off: a splash, a spray bottle, an extinguisher, a puddle.
 /// <remarks>
 /// The wash hook is <see cref="Content.Shared._WF.Wolfmed.EntityEffects.WashChemicalBurns"/>, an entity
 /// effect on the humanoid base's existing water touch reaction, so every way water already reaches a mob

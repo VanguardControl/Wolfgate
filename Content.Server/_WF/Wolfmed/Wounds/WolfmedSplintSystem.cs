@@ -12,12 +12,10 @@ using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// V5: strapping a splint over a broken limb. Field treatment for a fracture, reaching the same
-/// <see cref="FractureTreatment.Reduced"/> state a bonesetter reaches on the table, so the penalty drops to
-/// a quarter without anyone opening the limb. Mending is still surgery or a bone-knitting reagent, and a
-/// fresh hard hit resets the treatment through the profile's own <c>resetTreatmentOnDamage</c>.
-/// </summary>
+/// <summary>Straps a splint over a broken limb, reducing the fracture in the field without surgery.</summary>
+// Reaches the same FractureTreatment.Reduced a bonesetter reaches on the table, so the penalty drops to a quarter.
+// Mending is still surgery or a bone-knitting reagent, and a fresh hard hit resets the treatment through the
+// profile's own resetTreatmentOnDamage.
 /// <remarks>
 /// Server-side for the same reason TourniquetSystem is (D13):
 /// <see cref="WoundFractureSystem.TrySetTreatment"/> is a no-op off the server, so a client copy would only

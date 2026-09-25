@@ -49,12 +49,9 @@ using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
 
 namespace Content.Server._WF.Wolfmed.Autodoc;
 
-/// <summary>
-/// S.A.M., the surgical pod. Holds an occupant, offers the surgeries their body currently allows, and runs
-/// them one real Shitmed step at a time with an internal toolset, so every wound, condition and side effect
-/// of a hand-performed surgery still applies. It can only perform surgeries and push reagents from its
-/// reservoir; it never bandages, heals by fiat or applies a topical.
-/// </summary>
+/// <summary>S.A.M., the surgical pod: runs real Shitmed surgery steps on its occupant with built-in tools.</summary>
+// Every wound, condition and side effect of a hand-performed surgery still applies. It can only perform surgeries
+// and push reagents from its reservoir; it never bandages, heals by fiat or applies a topical.
 public sealed partial class AutodocSystem : EntitySystem
 {
     /// <summary>The status effect key every sleep chem in the game uses, so the pod stacks with them.</summary>
@@ -145,6 +142,7 @@ public sealed partial class AutodocSystem : EntitySystem
             ? container.ContainedEntities[0]
             : null;
 
+    /// <summary>Puts a body in the empty pod and closes the lid.</summary>
     public bool TryInsert(Entity<AutodocComponent> ent, EntityUid body)
     {
         if (GetOccupant(ent) != null ||
@@ -157,6 +155,7 @@ public sealed partial class AutodocSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Slides the occupant off the pod unless it is locked or <paramref name="force"/> is set.</summary>
     public bool TryEject(Entity<AutodocComponent> ent, bool force = false)
     {
         if (ent.Comp.Locked && !force)

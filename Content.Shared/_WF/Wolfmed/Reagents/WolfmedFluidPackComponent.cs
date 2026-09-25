@@ -29,5 +29,6 @@ public sealed partial class WolfmedFluidPackComponent : Component
     public SoundSpecifier? UseSound = new SoundPathSpecifier("/Audio/Items/Medical/brutepack_end.ogg");
 }
 
+/// <summary>Raised when one use of a fluid pack finishes.</summary>
 [Serializable, NetSerializable]
 public sealed partial class WolfmedFluidPackDoAfterEvent : SimpleDoAfterEvent;

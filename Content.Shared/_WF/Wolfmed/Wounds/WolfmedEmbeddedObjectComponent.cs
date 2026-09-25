@@ -6,12 +6,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Objects left inside a wound: a lodged round, shrapnel. Sits on the wound entity, blocks the wound from
-/// being treated while anything is still in there, and names the item each removal spawns.
-/// Bleeding and pain upkeep are the wound prototype's own behaviors (a <c>clottingMultiplier: 0</c>
-/// bleed never stops on its own), so a new embedded wound only has to set them there.
-/// </summary>
+/// <summary>Objects lodged in a wound: blocks its treatment and names the item each removal spawns.</summary>
+// Bleeding and pain upkeep are the wound prototype's own behaviors (a clottingMultiplier: 0 bleed never stops on its
+// own), so a new embedded wound only has to set them there.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WolfmedEmbeddedObjectComponent : Component
 {

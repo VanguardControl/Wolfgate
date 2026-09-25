@@ -11,18 +11,15 @@ using Robust.Shared.Configuration;
 
 namespace Content.Server._WF.Wolfmed.Body;
 
-/// <summary>
-/// M3 (plan §8): organ damage by the size of the hit, not by a roll. A hit whose damage after armour exceeds its
-/// part's reach line for a type reaches the organs inside, and the excess is split across the working organs by
-/// weight: (hit - line) × the organ's multiplier for the type × its weight share × <c>wolfmed.organ_damage_scale</c>,
-/// capped per organ per hit. A destroyed organ leaves the split, so the organs left take more. Also the heavy
-/// head blow (plan §3.6).
-/// </summary>
+/// <summary>Damages organs by the size of a hit rather than a roll, and knocks out on a heavy head blow.</summary>
 /// <remarks>
 /// Called once per hit, with the hit's Total, from the one marked line in Onyx's
 /// <c>OrganDamageSystem.OnPartDamageApplied</c>; a part without reach lines keeps Onyx's roll. No subscription of
 /// its own.
 /// </remarks>
+// A hit whose damage after armour exceeds its part's reach line for a type reaches the organs inside. The excess is
+// split across the working organs: (hit - line) x the organ's multiplier for the type x its weight share x
+// wolfmed.organ_damage_scale, capped per organ per hit. A destroyed organ leaves the split, so the rest take more.
 public sealed class WolfmedOrganThresholdSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _config = default!;

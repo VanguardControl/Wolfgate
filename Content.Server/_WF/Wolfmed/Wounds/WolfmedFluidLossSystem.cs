@@ -13,13 +13,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Burns weep (M1b, plan §3.7, OD11): every wound whose prototype declares <see cref="WolfmedFluidLossBehavior"/>
-/// takes blood volume out of the bloodstream once a second, so a badly burned body dies of fluid loss through the
-/// blood route medics already know. The volume is discarded, never spilled: burns weep, they do not bleed. A
-/// dressing cuts it to wolfmed.burn_dressed_fluid_factor, a graft stops it. Dead bodies lose nothing, and arrest
-/// does not slow it.
-/// </summary>
+/// <summary>Drains blood volume once a second from every wound with <see cref="WolfmedFluidLossBehavior"/>.</summary>
+// A badly burned body dies of fluid loss through the blood route medics already know. The volume is discarded, never
+// spilled: burns weep, they do not bleed. A dressing cuts it to wolfmed.burn_dressed_fluid_factor, a graft stops it.
+// Dead bodies lose nothing, and arrest does not slow it.
 public sealed class WolfmedFluidLossSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _config = default!;

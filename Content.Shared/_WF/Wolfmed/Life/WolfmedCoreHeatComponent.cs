@@ -2,12 +2,10 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Wolfmed.Life;
 
-/// <summary>
-/// M4 (plan §3.11): a machine's positronic core temperature. The core soaks up the chassis's heat and the coolant
-/// pump takes it off; over wolfmed.ipc_core_heat_k the core loses health and the chassis is in thermal shutdown,
-/// Dying with cause CoreHeat, until the core is back under wolfmed.ipc_core_heat_wake_k. Ensured on every
-/// mechanical wound host by the server's overheat system, which also makes it the machine marker shared code reads.
-/// </summary>
+/// <summary>A machine's positronic core temperature; also the machine marker shared code reads.</summary>
+// Ensured on every mechanical wound host by the server's overheat system. Over wolfmed.ipc_core_heat_k the core
+// loses health and the chassis is in thermal shutdown, Dying with cause CoreHeat, until the core is back under
+// wolfmed.ipc_core_heat_wake_k.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WolfmedCoreHeatComponent : Component
 {

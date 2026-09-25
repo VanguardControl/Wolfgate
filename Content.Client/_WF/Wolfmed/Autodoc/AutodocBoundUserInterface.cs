@@ -3,6 +3,7 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client._WF.Wolfmed.Autodoc;
 
+/// <summary>Opens the autodoc window and relays its buttons to the server as messages.</summary>
 public sealed class AutodocBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]

@@ -127,6 +127,7 @@ public enum WolfmedCauseSource : byte
     Pump = 41,
 }
 
+/// <summary>Helpers for <see cref="WolfmedCause"/>: tie order, flags and prototype ids.</summary>
 public static class WolfmedCauses
 {
     /// <summary>

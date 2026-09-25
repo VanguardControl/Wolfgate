@@ -8,12 +8,9 @@ using Robust.Shared.Enums;
 
 namespace Content.Client._WF.Wolfmed.Overlays;
 
-/// <summary>
-/// The helmet readout itself: two inset diagnostic blocks, a warning strip, and the standby and kernel-panic
-/// screens. Pure screen-space drawing, no controls, so it can never take a click. Nothing is drawn over the player.
-/// Every value is owned by <see cref="WolfmedSyntheticHudSystem"/>; every box comes from
-/// <see cref="WolfmedSyntheticHudLayout"/>, off the viewport <see cref="WolfmedSyntheticHudLayout.Screen"/> gives.
-/// </summary>
+/// <summary>Draws the synthetic helmet readout: diagnostics, warnings, standby and kernel-panic screens.</summary>
+// Pure screen-space drawing with no controls, so it never takes a click, and nothing is drawn over the player.
+// Values come from WolfmedSyntheticHudSystem and every box from WolfmedSyntheticHudLayout.
 public sealed class WolfmedSyntheticHudOverlay : Overlay
 {
     public static readonly Color Phosphor = Color.FromHex("#ff5148");

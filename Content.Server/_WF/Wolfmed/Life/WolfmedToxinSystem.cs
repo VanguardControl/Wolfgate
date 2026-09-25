@@ -14,12 +14,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// M5 (plan §3.8, OD13): toxins. The load is the body's systemic Poison, never wound damage. Past
-/// wolfmed.consc_toxin_down the patient is Downed, past wolfmed.consc_toxin_out in a toxic coma that keeps breathing
-/// and drains the brain on its own clock; the heart stops through the oxygen trigger, named "toxin". A working liver
-/// clears wolfmed.toxin_clearance a second, the one passive healing a wound host gets. Machines take no Poison.
-/// </summary>
+/// <summary>Toxin load from the body's systemic Poison: downs, then a toxic coma, cleared by a working liver.</summary>
+// Past wolfmed.consc_toxin_down the patient is Downed, past wolfmed.consc_toxin_out in a toxic coma that keeps
+// breathing and drains the brain on its own clock; the heart stops through the oxygen trigger, named "toxin". A
+// working liver clears wolfmed.toxin_clearance a second, the one passive healing a wound host gets. Machines take
+// no Poison.
 public sealed class WolfmedToxinSystem : EntitySystem
 {
     public static readonly ProtoId<DamageTypePrototype> Poison = "Poison";

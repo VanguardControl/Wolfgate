@@ -3,7 +3,7 @@ using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server.Medical.Components;
 using Content.Server.Popups;
-using Content.Server.Power.EntitySystems;
+using Content.Server.Power.EntitySystems; // WOLFGATE(Wolfmed): ordering before CableSystem
 using Content.Server.Stack;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
@@ -52,11 +52,13 @@ public sealed partial class HealingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<HealingComponent, UseInHandEvent>(OnHealingUse);
-        // WOLFGATE(Wolfmed): HOOK 8, a cable coil is both a healing item for a chassis and a cable placer, so the
-        // heal has to be offered first. Only a heal that actually happens sets Handled, so a coil used on
-        // anything that is not a wounded machine still places cable exactly as it did before.
+        // WOLFGATE(Wolfmed) START: HOOK 8, the heal is offered before a cable coil places cable.
+        // A cable coil is both a healing item for a chassis and a cable placer. Only a heal that actually happens
+        // sets Handled, so a coil used on anything that is not a wounded machine still places cable as before.
+        // SubscribeLocalEvent<HealingComponent, AfterInteractEvent>(OnHealingAfterInteract);
         SubscribeLocalEvent<HealingComponent, AfterInteractEvent>(OnHealingAfterInteract,
             before: [typeof(CableSystem)]);
+        // WOLFGATE END
         SubscribeLocalEvent<DamageableComponent, HealingDoAfterEvent>(OnDoAfter);
     }
 
@@ -70,12 +72,13 @@ public sealed partial class HealingSystem : EntitySystem
         if (args.Handled || args.Cancelled)
             return;
 
-        // WOLFGATE(Wolfmed): HOOK 8, wound hosts heal through WoundHealingSystem, never the flat DamageableComponent path.
+        // WOLFGATE(Wolfmed) START: HOOK 8, wound hosts heal through WoundHealingSystem, never the flat DamageableComponent path.
         if (HasComp<WoundHostComponent>(entity))
         {
             OnWoundHostDoAfter(entity, ref args, healing);
             return;
         }
+        // WOLFGATE END
 
         if (healing.DamageContainers is not null &&
             entity.Comp.DamageContainerID is not null &&
@@ -203,11 +206,13 @@ public sealed partial class HealingSystem : EntitySystem
         if (!TryComp<DamageableComponent>(target, out var targetDamage))
             return false;
 
-        // WOLFGATE(Wolfmed): HOOK 8, a wound host resolves a body part, so the body's own damage container does not gate it.
+        // WOLFGATE(Wolfmed) START: HOOK 8, a wound host resolves a body part, so the body's own damage container does not gate it.
         var woundHost = HasComp<WoundHostComponent>(target);
 
-        if (!woundHost && // WOLFGATE(Wolfmed): HOOK 8
+        // if (component.DamageContainers is not null &&
+        if (!woundHost &&
             component.DamageContainers is not null &&
+        // WOLFGATE END
             targetDamage.DamageContainerID is not null &&
             !component.DamageContainers.Contains(targetDamage.DamageContainerID))
         {
@@ -220,6 +225,7 @@ public sealed partial class HealingSystem : EntitySystem
         if (TryComp<StackComponent>(uid, out var stack) && stack.Count < 1)
             return false;
 
+        // WOLFGATE(Wolfmed) START: HOOK 8, a wound host is treated on the part the heal resolves.
         EntityUid? requestedPart = null;
         if (woundHost)
         {
@@ -242,9 +248,12 @@ public sealed partial class HealingSystem : EntitySystem
             requestedPart = resolved;
         }
 
+        // var anythingToDo =
+        //     HasDamage(targetDamage, component) ||
         var anythingToDo = woundHost // WOLFGATE(Wolfmed): HOOK 8
             ? IsWoundDamaged((target, targetDamage), component, requestedPart)
             : HasDamage(targetDamage, component) ||
+        // WOLFGATE END
             IsPartDamaged(user, target) || // Shitmed Change
             component.ModifyBloodLevel > 0 // Special case if healing item can restore lost blood...
                 && TryComp<BloodstreamComponent>(target, out var bloodstream)
@@ -253,9 +262,11 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (!anythingToDo)
         {
-            // WOLFGATE(Wolfmed): W0, on a wound host the refusal is about the selected part, not the whole patient.
+            // WOLFGATE(Wolfmed) START: W0, on a wound host the refusal is about the selected part, not the whole patient.
+            // _popupSystem.PopupEntity(Loc.GetString("medical-item-cant-use", ("item", uid)), uid, user);
             _popupSystem.PopupEntity(Loc.GetString(woundHost ? "wolfmed-item-cant-treat-part" : "medical-item-cant-use",
                 ("item", uid)), uid, user);
+            // WOLFGATE END
             return false;
         }
 
@@ -274,8 +285,11 @@ public sealed partial class HealingSystem : EntitySystem
             : component.Delay * GetScaledHealingPenalty(user, component);
 
         var doAfterEventArgs =
+            // WOLFGATE(Wolfmed) START: HOOK 8, the do-after carries the part the heal resolved.
+            // new DoAfterArgs(EntityManager, user, delay, new HealingDoAfterEvent(), target, target: target, used: uid)
             new DoAfterArgs(EntityManager, user, delay,
                 new HealingDoAfterEvent { RequestedPart = GetNetEntity(requestedPart) }, target, target: target, used: uid)
+            // WOLFGATE END
             {
                 // Didn't break on damage as they may be trying to prevent it and
                 // not being able to heal your own ticking damage would be frustrating.

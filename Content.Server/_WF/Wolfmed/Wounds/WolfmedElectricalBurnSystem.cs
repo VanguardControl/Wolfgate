@@ -3,6 +3,7 @@ using Content.Shared._Onyx.Body.Systems;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;

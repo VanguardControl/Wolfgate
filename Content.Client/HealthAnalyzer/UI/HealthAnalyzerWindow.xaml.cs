@@ -78,16 +78,25 @@ namespace Content.Client.HealthAnalyzer.UI
                 bodyPartButton.Value.MouseFilter = MouseFilterMode.Stop;
                 bodyPartButton.Value.OnPressed += _ => SetActiveBodyPart(bodyPartButton.Key, bodyPartButton.Value);
             }
-            InitWolfmedTargeting(); // WOLFGATE(Wolfmed): UI3 - was ReturnButton.OnPressed; the button is gone and the doll drives targeting.
+            // WOLFGATE(Wolfmed) START: UI3 - the return button is gone and the doll drives targeting.
+            // ReturnButton.OnPressed += _ => ResetBodyPart();
+            InitWolfmedTargeting();
+            // WOLFGATE END
             // Shitmed Change End
         }
 
         // Shitmed Change Start
         public void SetActiveBodyPart(TargetBodyPart part, TextureButton button)
         {
-            // WOLFGATE(Wolfmed): UI3 - was OnBodyPartSelected (a per-part rescan). The doll now sets the local player's
-            // targeted part, exactly as the HUD doll and the targeting hotkeys do.
+            // WOLFGATE(Wolfmed) START: UI3 - the doll sets the local player's targeted part instead of rescanning one part.
+            // It now works exactly as the HUD doll and the targeting hotkeys do.
+            // if (_target == null)
+            //     return;
+            //
+            // // Bit of the ole shitcode until we have Groins in the prototypes.
+            // OnBodyPartSelected?.Invoke(part == TargetBodyPart.Groin ? TargetBodyPart.Torso : part, _target.Value);
             SelectWolfmedTargetPart(part);
+            // WOLFGATE END
         }
 
         public void ResetBodyPart()
@@ -123,7 +132,7 @@ namespace Content.Client.HealthAnalyzer.UI
 
             SetActiveButtons(_entityManager.HasComponent<TargetingComponent>(_target.Value));
 
-            // WOLFGATE(Wolfmed): UI3 - the return button and its frame are gone with the part-view path.
+            // ReturnButton.Visible = isPart; // WOLFGATE(Wolfmed): UI3 - the return button and its frame are gone with the part-view path.
             PartNameLabel.Visible = isPart;
 
             if (part != null)

@@ -9,13 +9,11 @@ using Content.Shared.Examine;
 
 namespace Content.Server._WF.Wolfmed.Autodoc;
 
-/// <summary>
-/// Playtest 3: the pod's own atmosphere. Built the way sealed entity storage is: a marker on the occupant answers the
-/// respirator's inhale and exhale and the atmosphere's exposure query with the pod's own mix, but only while the pod
-/// is sealed (an occupant under the lid, power, an intact hull, not emagged). Otherwise the three events fall through
-/// to the tile exactly as they did before. The mix is put back to breathable air every time it is handed out, which
-/// is what scrubs the occupant's own breath and keeps a burning or freezing room off them.
-/// </summary>
+/// <summary>The pod's own breathable atmosphere for its occupant while it is sealed.</summary>
+// Built like sealed entity storage: a marker on the occupant answers the respirator's inhale and exhale and the
+// atmosphere's exposure query with the pod's mix while sealed (occupant under the lid, power, intact hull, not
+// emagged); otherwise the events fall through to the tile. The mix is reset to breathable air every time it is
+// handed out, which scrubs the occupant's breath and keeps a burning or freezing room off them.
 public sealed partial class AutodocSystem
 {
     [Dependency] private DestructibleSystem _destructible = default!;

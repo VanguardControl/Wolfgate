@@ -8,12 +8,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// M2 (plan §5.2, §2.3): keeps the explanation card's server half current on every unconscious wound host: a coarse
-/// bar of how much of the rescue window the brain has left (tenths, never seconds), whether somebody is doing CPR,
-/// and whether an analyzer has just read the body. Playtest 3: and, for a timed faint, when the body comes round.
-/// The client draws the card from this and the cause prototype.
-/// </summary>
+/// <summary>Keeps the server half of the explanation card current on every unconscious wound host.</summary>
+// It holds a coarse bar of the brain's remaining rescue window (tenths, never seconds), whether somebody is doing
+// CPR, whether an analyzer just read the body, and when a timed faint ends. The client draws the card from this and
+// the cause prototype.
 public sealed class WolfmedCardSystem : EntitySystem
 {
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);

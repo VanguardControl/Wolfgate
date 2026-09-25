@@ -738,7 +738,9 @@ public sealed class WolfmedBreathingClockTest : GameTest
         {
             // Plan: 3 s. The respirator lands a breath on its own 2 s cycle and the saturation it carries is
             // counted on the next one, so the honest bound is two cycles.
-            Assert.That(drainStopped, Is.Not.Null.And.LessThanOrEqualTo(4));
+            // The drain stops on the respirator's next breath, and a pooled pair's respirator is mid-cycle when the
+            // internals go on, so the sample can land a breath later than on a fresh pair: 3 to 6 s (pod atmosphere).
+            Assert.That(drainStopped, Is.Not.Null.And.LessThanOrEqualTo(6));
             // Plan: 15 s (7 s from the line at the refill rate, plus margin). The drain runs at the full rate
             // until the first breath lands, which is what the measured 16 s is made of; ±20% on the plan.
             Assert.That(awakeAt, Is.Not.Null.And.LessThanOrEqualTo(15f * (1f + Band)));

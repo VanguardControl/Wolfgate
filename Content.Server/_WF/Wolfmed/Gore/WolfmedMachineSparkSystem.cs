@@ -13,12 +13,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Gore;
 
-/// <summary>
-/// A machine body part that is badly damaged, or knocked out by an EMP, throws sparks every few seconds until it
-/// is repaired. The mechanical counterpart of <see cref="WolfmedBleedSpurtSystem"/>, built the same way:
-/// <see cref="WolfmedMachineSparkComponent"/> sits on a body only while it has a sparking part, so the tick walks
-/// a handful of entities, and the condition is re-asked on every wound change and on every spark.
-/// </summary>
+/// <summary>Makes a badly damaged or EMP-struck machine part throw sparks every few seconds until repaired.</summary>
+// Built like WolfmedBleedSpurtSystem: WolfmedMachineSparkComponent sits on a body only while it has a sparking part,
+// so the tick walks a handful of entities, and the condition is re-asked on every wound change and every spark.
 public sealed class WolfmedMachineSparkSystem : EntitySystem
 {
     [Dependency] private AudioSystem _audio = default!;

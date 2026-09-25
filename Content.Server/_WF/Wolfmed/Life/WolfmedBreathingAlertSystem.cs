@@ -8,12 +8,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// M2 (plan §3.3): on a wound host the suffocation alert says why: "Can't breathe: no air" in place of the stock
-/// low-gas alert the respirator raises (one marked line in <c>RespiratorSystem</c> asks <see cref="SuffocationAlert"/>),
-/// and "Can't breathe: no lungs" for a body with no working lungs, which the respirator never alerts at all because it
-/// raises its alert once per lung. Everything else keeps the stock alert.
-/// </summary>
+/// <summary>Makes a wound host's suffocation alert say why it can't breathe: no air, or no lungs.</summary>
+// "No air" replaces the stock low-gas alert (one marked line in RespiratorSystem asks SuffocationAlert). "No lungs"
+// covers a body with no working lungs, which the respirator never alerts because it raises its alert per lung.
+// Everything else keeps the stock alert.
 public sealed class WolfmedBreathingAlertSystem : EntitySystem
 {
     public static readonly ProtoId<AlertPrototype> NoAir = "WolfmedCantBreatheAir";

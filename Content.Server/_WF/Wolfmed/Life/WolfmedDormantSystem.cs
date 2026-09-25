@@ -19,17 +19,15 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// M2 (OD8 (b), plan §5.4): long helplessness that is not dying. A body Unconscious or shut down, not in arrest, not in
-/// a faint, with no drain on its brain and no route running, is stable. After <c>wolfmed.dormant_offer_seconds</c> of
-/// that without a break it is flagged in distress on medical HUDs and its player may wait as a ghost that can always
-/// return. The moment anything gets worse both are withdrawn, an open dialog included, and a waiting ghost is told.
-/// When the body wakes the ghost is offered the way back.
-/// </summary>
+/// <summary>Flags a long-helpless but stable body, and lets its player wait as a ghost that can return.</summary>
 /// <remarks>
 /// The ghost is made by the ghost system's own spawn with <c>canReturn</c> set, which visits from the living body, not
 /// through <c>OnGhostAttempt</c>, so the marked ghost hook does not turn it into "left alive but empty".
 /// </remarks>
+// Stable: Unconscious or shut down, not in arrest or a faint, with no brain drain and no route running. After
+// wolfmed.dormant_offer_seconds of that it is flagged in distress on medical HUDs and the ghost offer opens. The
+// moment anything gets worse both are withdrawn, an open dialog included, and a waiting ghost is told; when the body
+// wakes the ghost is offered the way back.
 public sealed class WolfmedDormantSystem : EntitySystem
 {
     public static readonly EntProtoId WaitAction = "ActionWolfmedWaitAsGhost";

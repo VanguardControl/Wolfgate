@@ -13,12 +13,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// The noise and the mess a wound makes (V1/V4). A wound that lands, or jumps a stage, plays a sound keyed
-/// by what it is and what it is in; a hit throws blood or sparks off the body. Both are read from
-/// <see cref="WolfmedSfxProfilePrototype"/>, both are throttled per body, and both are silent unless the
-/// wound moved because something hit the body.
-/// </summary>
+/// <summary>Plays a wound's sound when it lands or worsens, and throws blood or sparks off the hit body.</summary>
+// The sound is keyed by what the wound is and what it is in. Both effects are read from WolfmedSfxProfilePrototype,
+// throttled per body, and silent unless the wound moved because something hit the body.
 /// <remarks>
 /// Server-side because wound creation is. Sounds play at the BODY: a wound lives in the part's container
 /// and a part lives in nullspace, so neither has a position to play from. The damage gate is what keeps

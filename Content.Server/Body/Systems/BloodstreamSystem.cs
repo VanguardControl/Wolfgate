@@ -417,6 +417,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
     ///     Tries to make an entity bleed more or less
     /// </summary>
     public bool TryModifyBleedAmount(EntityUid uid, float amount, BloodstreamComponent? component = null)
+    // WOLFGATE(Wolfmed) START: GUARD E3, a wound host's bleed amount is written only through the wound projection.
     {
         return TryModifyBleedAmount(uid, amount, component, woundProjection: false); // WOLFGATE(Wolfmed): GUARD E3
     }
@@ -435,6 +436,7 @@ public sealed partial class BloodstreamSystem : EntitySystem
         // WOLFGATE(Wolfmed): GUARD E3. This also silently no-ops the passive-decay call in Update(); that is deliberate.
         if (HasComp<WoundHostComponent>(uid) && !woundProjection)
             return false;
+        // WOLFGATE END
 
         component.BleedAmount += amount;
         component.BleedAmount = Math.Clamp(component.BleedAmount, 0, component.MaxBleedAmount);

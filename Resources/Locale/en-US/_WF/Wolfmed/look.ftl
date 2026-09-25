@@ -388,3 +388,6 @@ wolfmed-look-pupils-pinpoint = { CAPITALIZE(POSS-ADJ($target)) } pupils are pinp
 wolfmed-look-pupils-unequal = { CAPITALIZE(POSS-ADJ($target)) } pupils are unequal, and { SUBJECT($target) } { CONJUGATE-BE($target) } confused.
 # M2 (plan §5.3, OD20): Play dead, seen from a distance.
 wolfmed-look-lifeless-other = { CAPITALIZE(THE($target)) } appears lifeless.
+
+# P5-5: the chassis form of Onyx's health-examinable-part-bleeding. Nothing reads it yet.
+health-examinable-part-bleeding-mechanical = leaking fluid

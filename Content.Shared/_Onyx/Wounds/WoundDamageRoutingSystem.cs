@@ -1,7 +1,7 @@
 using System.Linq;
 using Content.Shared.Body.Systems;
 using Content.Shared._WF.Wolfmed.Body; // WOLFGATE(Wolfmed): D8, Onyx's extra part fields live on WolfmedBodyPartComponent.
-using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade + shared bed-heal marker (HealOnBuckleComponent is server-only here).
+using Content.Shared._WF.Wolfmed.Compat; // WOLFGATE(Wolfmed): D12 damage facade, DamageDealtEvent + shared bed-heal marker (HealOnBuckleComponent is server-only here).
 using Content.Shared._WF.Wolfmed.Targeting; // WOLFGATE(Wolfmed): D10, Onyx's TargetResolverSystem is replaced by WoundTargetResolver.
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;

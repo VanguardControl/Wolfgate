@@ -283,13 +283,11 @@ public sealed class WolfmedVisualInspectionSystem : EntitySystem
         return report;
     }
 
-    /// <summary>
-    /// M2 (plan §5.5): the medic's close-up signs, from networked values only. AVPU from the state and cause (no new
-    /// numbers): alert while Downed, responds to voice when sedated past wolfmed.sedation_warn, to pain in a faint,
-    /// unresponsive when out or dying; nothing for somebody up and clear-headed. Blue lips under
-    /// wolfmed.examine_cyanosis_oxygenation, pinpoint pupils with the sedation, unequal pupils with a concussion. A
-    /// Downed body playing dead reads "appears lifeless" from anywhere (plan §5.3, OD20). Returns the lines added.
-    /// </summary>
+    /// <summary>Adds the medic's close-up signs from networked values only; returns the lines added.</summary>
+    // AVPU from the state and cause: alert while Downed, voice when sedated past wolfmed.sedation_warn, pain in a
+    // faint, unresponsive when out or dying; nothing for somebody up and clear-headed. Blue lips under
+    // wolfmed.examine_cyanosis_oxygenation, pinpoint pupils with sedation, unequal pupils with a concussion. A Downed
+    // body playing dead reads "appears lifeless" from anywhere.
     private int AddM2Signs(EntityUid examined, WolfmedLookReport report, EntityUid identity, bool self, bool detailed,
         bool machine, bool arrested, WolfmedConsciousnessComponent? vitals)
     {

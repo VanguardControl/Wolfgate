@@ -50,8 +50,10 @@ namespace Content.Server.Damage.Commands
                 return CompletionResult.FromHint(Loc.GetString("damage-command-arg-target"));
             }
 
+            // WOLFGATE(Wolfmed) START: P6, optional 5th arg is a body part.
             if (args.Length == 5)
-                return WolfmedPartCompletion(args); // WOLFGATE(Wolfmed): P6, optional 5th arg is a body part.
+                return WolfmedPartCompletion(args);
+            // WOLFGATE END
 
             return CompletionResult.Empty;
         }
@@ -127,11 +129,13 @@ namespace Content.Server.Damage.Commands
                 return;
             }
 
-            if (args.Length == 5) // WOLFGATE(Wolfmed): P6, the body-part form routes through Wolfmed, not the flat path.
+            // WOLFGATE(Wolfmed) START: P6, the body-part form routes through Wolfmed, not the flat path.
+            if (args.Length == 5)
             {
                 WolfmedHurtPart(shell, target.Value, args);
                 return;
             }
+            // WOLFGATE END
 
             if (!TryParseDamageArgs(shell, target.Value, args, out var damageFunc))
                 return;

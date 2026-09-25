@@ -8,15 +8,10 @@ using Robust.Shared.Physics.Systems;
 
 namespace Content.Shared._WF.Wolfmed.Consciousness;
 
-/// <summary>
-/// Playtest 3: a body that is down cannot get itself onto a table.
-/// <list type="bullet">
-/// <item>A climb is refused when the body is Downed or out and is the one climbing; a medic lifting it on still works.</item>
-/// <item>Lying down strips the tables' layer from a body's masks so it can crawl under tables
-/// (<see cref="StandingStateSystem"/>), and a Downed body crawled straight through one and lay drawn on top of it.
-/// While Downed the layer stays; a body lifted onto a table by somebody else keeps the climb's own masks.</item>
-/// </list>
-/// </summary>
+/// <summary>Stops a body that is down from getting itself onto or through a table.</summary>
+// A climb is refused when the body is Downed or out and is the one climbing; a medic lifting it on still works.
+// Lying down strips the tables' layer from a body's masks (StandingStateSystem); while Downed the layer stays, and
+// a body lifted onto a table by somebody else keeps the climb's own masks.
 public sealed class WolfmedDownedClimbSystem : EntitySystem
 {
     [Dependency] private SharedPhysicsSystem _physics = default!;

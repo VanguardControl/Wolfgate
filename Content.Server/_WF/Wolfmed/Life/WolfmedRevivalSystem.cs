@@ -105,12 +105,9 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Why the paddles will not even charge, or null when they will. The one refusal the hand defibrillator
-    /// and the pod share (plan §7.2): rot, <see cref="UnrevivableComponent"/>, no brain, a destroyed brain,
-    /// no heart, a pulse, then the blood gate. Returned as a locale key; <see cref="LocalizeLine"/> fills in
-    /// the numbers.
-    /// </summary>
+    /// <summary>The locale key for why the paddles will not charge, or null when they will.</summary>
+    // Shared by the hand defibrillator and the pod. Checked in order: rot, UnrevivableComponent, no brain, a destroyed
+    // brain, no heart, a pulse, then the blood gate. LocalizeLine fills in the numbers.
     public string? GetRefusal(EntityUid body)
     {
         if (TerminatingOrDeleted(body) || !OwnsRevival(body))
@@ -193,13 +190,10 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         return false;
     }
 
-    /// <summary>
-    /// The paddles' odds. On a body still on the arrest clock they are scaled by how much oxygen is left in
-    /// the brain, which is what makes speed matter. A corpse has no circulation and therefore no way to
-    /// raise that number, so once its brain has been repaired and its blood put back it gets the flat base
-    /// chance: the surgery was the work, and a medic who has done it should not be told "no response"
-    /// eight times in a row for a reason nothing on the body shows.
-    /// </summary>
+    /// <summary>The paddles' chance to restart the heart.</summary>
+    // On the arrest clock it scales with the oxygen left in the brain, which is what makes speed matter. A corpse has
+    // no circulation to raise that number, so once its brain is repaired and its blood put back it gets the flat base
+    // chance: the surgery was the work.
     public float GetChance(EntityUid body)
     {
         if (_life.GetBrainOrgan(body) is not { } organ || organ.Comp.Health <= FixedPoint2.Zero)
@@ -214,13 +208,11 @@ public sealed class WolfmedRevivalSystem : EntitySystem
         return Math.Clamp(chance * (floor + (1f - floor) * oxygen), 0f, 1f);
     }
 
-    /// <summary>
-    /// The post-shock course (plan §7.1). The heart starts; the first shock of an arrest episode also lifts
-    /// oxygenation to <see cref="WolfmedCVars.PostShockOxygenation"/> and opens the grace in which the blood
-    /// and oxygen triggers wait. Another success inside <see cref="WolfmedCVars.PostShockRepeatSeconds"/> of
-    /// that one only restarts the heart, unless the patient recovered in between. Consciousness decides the rest: with blood above the Downed line the
-    /// patient comes round Downed at once.
-    /// </summary>
+    /// <summary>Restarts the heart after a successful shock and runs the post-shock course.</summary>
+    // The first shock of an arrest episode also lifts oxygenation to PostShockOxygenation and opens the grace in which
+    // the blood and oxygen triggers wait. Another success within PostShockRepeatSeconds only restarts the heart, unless
+    // the patient recovered in between. Consciousness decides the rest: with blood above the Downed line the patient
+    // comes round Downed at once.
     public void Revive(EntityUid body)
     {
         var wasDead = _mobState.IsDead(body);

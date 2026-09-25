@@ -6,14 +6,10 @@ using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client._WF.Wolfmed.Autodoc;
 
-/// <summary>
-/// Draws the pod. Three things a GenericVisualizer cannot do: a layer colour it sets is sticky, so the dim
-/// unpowered colour stayed on the sprite for the rest of the round once the pod had ever been unpowered
-/// (which it always is for the tick between map init and the power net's first update); exactly one of the
-/// two layers may be drawn at a time, because the open bed and the closed lid are both whole pod sprites and
-/// drawing them together showed the bed through the lid; and the occupant has to be visible on the open bed
-/// and gone the moment the lid comes down.
-/// </summary>
+/// <summary>Draws the autodoc pod: open bed or closed lid, the unpowered tint, and the occupant.</summary>
+// A GenericVisualizer can't: a layer colour it sets is sticky, so the unpowered dim stayed for the round (every pod
+// is unpowered for the tick before the power net's first update); the bed and lid are both whole pod sprites, so
+// exactly one may be drawn; and the occupant shows on the open bed and is gone the moment the lid comes down.
 public sealed class AutodocVisualizerSystem : VisualizerSystem<AutodocComponent>
 {
     [Dependency] private SharedContainerSystem _containers = default!;
@@ -76,6 +72,7 @@ public sealed class AutodocVisualizerSystem : VisualizerSystem<AutodocComponent>
     }
 }
 
+/// <summary>The pod's sprite layers: the open bed and the closed lid.</summary>
 public enum AutodocVisualLayers : byte
 {
     Base,

@@ -330,8 +330,8 @@ public sealed partial class MobThresholdSystem : EntitySystem
         VerifyThresholds(uid, component);
     }
 
-    // WOLFGATE(Wolfmed): M1a: the one way _WF code can hand a wound host's health alerts to Wolfmed's condition
-    // alerts (plan §5.2); the component's access rule keeps TriggersAlerts to this system.
+    // WOLFGATE(Wolfmed) START: M1a, lets _WF code hand a wound host's health alerts to Wolfmed's condition alerts.
+    // This is the one way to do it (plan §5.2); the component's access rule keeps TriggersAlerts to this system.
     public void SetTriggersAlerts(EntityUid uid, bool value, MobThresholdsComponent? component = null)
     {
         if (!Resolve(uid, ref component, false) || component.TriggersAlerts == value)
@@ -340,6 +340,7 @@ public sealed partial class MobThresholdSystem : EntitySystem
         component.TriggersAlerts = value;
         Dirty(uid, component);
     }
+    // WOLFGATE END
 
     #endregion
 
@@ -352,14 +353,16 @@ public sealed partial class MobThresholdSystem : EntitySystem
         if (_wolfmedConsciousness.OwnsMobState(target))
             return;
 
-        // WOLFGATE(Wolfmed): HOOK 11 - wound hosts cross mob-state thresholds on vital-part plus systemic damage;
+        // WOLFGATE(Wolfmed) START: HOOK 11, wound hosts cross mob-state thresholds on vital-part plus systemic damage.
         // CheckVitalDamage falls back to TotalDamage for everything else. Hoisted out of the loop because it
         // walks the body; Onyx calls it per threshold, which is the same answer for more work.
         var vitalDamage = CheckVitalDamage(target, damageableComponent);
         foreach (var (threshold, mobState) in thresholdsComponent.Thresholds.Reverse())
         {
+            // if (damageableComponent.TotalDamage < threshold)
             if (vitalDamage < threshold)
                 continue;
+            // WOLFGATE END
 
             TriggerThreshold(target, mobState, mobStateComponent, thresholdsComponent, origin);
             break;
@@ -424,8 +427,10 @@ public sealed partial class MobThresholdSystem : EntitySystem
             }
 
             if (TryGetNextState(target, currentMobState, out var nextState, threshold) &&
-                // WOLFGATE(Wolfmed): HOOK 11 - the health alert's severity must lerp off the same number the thresholds use.
+                // WOLFGATE(Wolfmed) START: HOOK 11, the health alert's severity lerps off the same number the thresholds use.
+                // TryGetPercentageForState(target, nextState.Value, damageable.TotalDamage, out var percentage))
                 TryGetPercentageForState(target, nextState.Value, CheckVitalDamage(target, damageable), out var percentage))
+                // WOLFGATE END
             {
                 percentage = FixedPoint2.Clamp(percentage.Value, 0, 1);
 

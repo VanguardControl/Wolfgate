@@ -71,11 +71,14 @@ public sealed class WolfmedLocaleCoverageTest : GameTest
         ("health-analyzer-wound-category-chip", [""]),
         ("health-analyzer-wound-no-findings", [""]),
         ("health-analyzer-wound-no-findings-filtered", [""]),
-        // UI3: the targeting marks and the two banner titles the procedure window uses.
+        // UI3: the targeting marks and the banner titles the procedure window uses.
         ("health-analyzer-wound-targeted-tag", [""]),
         ("health-analyzer-wound-target-part-hint", [""]),
         ("health-analyzer-wound-banner-sepsis", [""]),
         ("health-analyzer-wound-banner-blood-low", [""]),
+        ("health-analyzer-wound-banner-brain-death", [""]),
+        ("health-analyzer-wound-banner-cardiac-arrest", [""]),
+        ("health-analyzer-wound-count", [""]),
         ("wolfmed-treatment-guidebook-button", [""]),
         // CONSC: the two body-level banners and the Downed alert.
         ("health-analyzer-wound-pain-relief", [""]),

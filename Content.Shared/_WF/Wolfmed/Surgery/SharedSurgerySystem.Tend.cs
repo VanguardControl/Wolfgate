@@ -13,12 +13,9 @@ public abstract partial class SharedSurgerySystem
     /// </summary>
     private bool WolfmedJudgedByWounds(EntityUid body) => HasComp<WoundHostComponent>(body);
 
-    /// <summary>
-    /// The tend step returns before HOOK 27 unless the body or the part still carries damage of its group. On a wound
-    /// host that damage is not what the step is for: chems, packs and the pod's own damage sync take it off while the
-    /// wounds stay, and the completion check (HOOK 26) reads the wounds. The pod then ran a pass that did nothing, three
-    /// times, and said "THIS IS NOT WORKING." Here the wounds are tended anyway. True when this answered the step.
-    /// </summary>
+    /// <summary>Tends a wound host's wounds with no group damage left; true when this answered the step.</summary>
+    // The tend step returns before HOOK 27 unless there is damage of its group, but on a wound host chems, packs and
+    // the pod's damage sync take that off while the wounds stay, and the completion check (HOOK 26) reads the wounds.
     private bool WolfmedTendUndamaged(EntityUid body, EntityUid part, string mainGroup, string[] types)
     {
         if (!HasComp<WoundHostComponent>(body) ||

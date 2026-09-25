@@ -11,12 +11,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// M5 (plan §3.10): cold and heat. The lines are offsets from each species' own temperature damage thresholds:
-/// hypothermic (Downed), then Unconscious and breathing, then the heart stops ("cold", the existing cold protection
-/// on the brain); heat exhaustion (Downed), then heat stroke (Unconscious) with its own brain drain. A fire grants a
-/// grace that only delays entering a heat cause.
-/// </summary>
+/// <summary>Hypothermia and heat illness on a wound host, staged from the species' temperature thresholds.</summary>
+// Cold: hypothermic (Downed), then Unconscious and breathing, then the heart stops (cause "cold", the existing cold
+// protection on the brain). Heat: heat exhaustion (Downed), then heat stroke (Unconscious) with its own brain drain.
+// A fire grants a grace that only delays entering a heat cause.
 /// <remarks>
 /// The lines read a core temperature, not the surface one the atmosphere moves. In space the surface reaches about
 /// 16 K within a minute and in a 235 K freezer it settles near 256 K within one (the M5 measurement), so read
@@ -122,13 +120,10 @@ public sealed class WolfmedBodyTemperatureSystem : EntitySystem
         SetLevels(body, comp, coldDown, coldOut, heatDown, heatOut);
     }
 
-    /// <summary>
-    /// The core lags the surface away from normal and hurries back toward it. Above normal it closes the gap to a
-    /// hotter surface over wolfmed.core_heating_seconds (playtest 3: heat stroke is a timed thing, not the moment the
-    /// air is hot) and comes back down toward normal over wolfmed.core_recovery_seconds; warming up from below normal
-    /// is at once. Below normal it closes the gap to a colder surface over wolfmed.core_cooling_seconds. Held still in
-    /// a container that protects from cold damage.
-    /// </summary>
+    /// <summary>The next core temperature: it lags the surface away from normal and hurries back toward it.</summary>
+    // Above normal it closes on a hotter surface over wolfmed.core_heating_seconds, so heat stroke takes time, and
+    // falls back over wolfmed.core_recovery_seconds; warming from below normal is instant. Below normal it closes on
+    // a colder surface over wolfmed.core_cooling_seconds. Held still in a container that protects from cold damage.
     private float NextCore(float core, float surface, float normal, float seconds, bool held)
     {
         if (core < normal && surface > core)
@@ -164,12 +159,10 @@ public sealed class WolfmedBodyTemperatureSystem : EntitySystem
     }
 
 
-    /// <summary>
-    /// The fire grace (plan §3.10): granted on catching fire, unless the body is already in a heat cause; it lasts
-    /// while burning and wolfmed.heat_fire_grace_seconds after the first time the fire goes out, which re-ignition
-    /// never moves. A new one comes only once the grace is over and the core is back under the heat exhaustion line.
-    /// Returns whether it holds now.
-    /// </summary>
+    /// <summary>Updates the fire grace that delays entering a heat cause and returns whether it holds now.</summary>
+    // Granted on catching fire unless already in a heat cause; lasts while burning and wolfmed.heat_fire_grace_seconds
+    // after the fire first goes out, which re-ignition never moves. A new one comes only once the grace is over and
+    // the core is back under the heat exhaustion line.
     private bool UpdateGrace(EntityUid body, WolfmedBodyTemperatureComponent comp, Lines lines, float seconds)
     {
         var onFire = TryComp(body, out FlammableComponent? flammable) && flammable.OnFire;

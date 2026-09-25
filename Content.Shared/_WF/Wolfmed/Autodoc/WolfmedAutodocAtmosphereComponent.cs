@@ -63,6 +63,7 @@ public enum WolfmedAutodocSeal : byte
     Vented,
 }
 
+/// <summary>Appearance keys for the pod's atmosphere.</summary>
 [Serializable, NetSerializable]
 public enum WolfmedAutodocAtmosphereVisuals : byte
 {

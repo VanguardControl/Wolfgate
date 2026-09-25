@@ -11,12 +11,10 @@ using Robust.Shared.Configuration;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// OD18 (P17): one part hit of wolfmed.doafter_interrupt_damage or more, after armour, cancels the do-afters the hit
-/// body is performing. Treatment and surgery break although upstream never breaks them on damage; anything that asks
-/// to break on damage breaks too, which a wound host's damage never reached before (D34). Ticks that pass
-/// interruptsDoAfters false (fire, bleeding, temperature, the overheat pulse) and systemic damage never count.
-/// </summary>
+/// <summary>Cancels a body's do-afters on a part hit of wolfmed.doafter_interrupt_damage or more.</summary>
+// Measured after armour. Treatment and surgery break although upstream never breaks them on damage, and anything
+// that asks to break on damage breaks too. Ticks that pass interruptsDoAfters false (fire, bleeding, temperature,
+// the overheat pulse) and systemic damage never count.
 public sealed class WolfmedDoAfterInterruptSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _config = default!;

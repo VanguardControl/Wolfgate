@@ -10,7 +10,7 @@ namespace Content.Shared._WF.Wolfmed.Surgery;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedSkinGraftComponent : Component, ISurgeryToolComponent
 {
-    public string ToolName => "a skin graft";
+    public string ToolName => Loc.GetString("wolfmed-surgery-tool-skin-graft");
 
     public bool? Used { get; set; }
 

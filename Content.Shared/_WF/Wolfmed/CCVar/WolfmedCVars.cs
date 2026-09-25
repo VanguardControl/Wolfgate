@@ -285,12 +285,10 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<int> AutodocDefibAttempts =
         CVarDef.Create("wolfmed.autodoc_defib_attempts", 5, CVar.SERVERONLY);
 
-    /// <summary>
-    /// Ceiling on a wound host's Asphyxiation. The localized body cap only ever saw part damage, so
-    /// suffocation counted past 700 on a body that cannot die of the number; BRAIN's hypoxia clock carries
-    /// the lethality, and this is the old death line. Bloodloss is not capped: the vital losses (decapitation)
-    /// deal a fixed lethal figure through it.
-    /// </summary>
+    /// <summary>Ceiling on a wound host's Asphyxiation damage.</summary>
+    // Uncapped, suffocation counted past 700 on a body that cannot die of the number, since the brain's hypoxia clock
+    // carries the lethality; this is the old death line. Bloodloss is not capped: the vital losses (decapitation) deal
+    // a fixed lethal figure through it.
     public static readonly CVarDef<float> AirlossCap =
         CVarDef.Create("wolfmed.airloss_cap", 200f, CVar.SERVERONLY);
 

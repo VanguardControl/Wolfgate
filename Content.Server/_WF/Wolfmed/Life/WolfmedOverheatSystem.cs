@@ -23,19 +23,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>
-/// Overheating for a mechanical wound host (plan §3.11). Two parts, one per consequence:
-/// <list type="bullet">
-/// <item>The pulse. Upstream kills a chassis the moment it crosses its overheat threshold; here it takes Heat on
-/// its parts instead, through the wound pipeline, which is what puts a burning IPC on the floor from pain. The
-/// pulse never reaches the organs.</item>
-/// <item>The core-heat route (M4). The positronic core soaks up the chassis's heat and a working, powered coolant
-/// pump takes it off again. Past <c>wolfmed.ipc_core_heat_k</c> the core loses health, faster the hotter it is,
-/// and the chassis is in thermal shutdown: Dying, cause CoreHeat, with Succumb and Last Words. Under
-/// <c>wolfmed.ipc_core_heat_wake_k</c> it comes back online. A core at 0 is core failure, the ordinary organ
-/// death path.</item>
-/// </list>
-/// </summary>
+/// <summary>Overheating on a mechanical wound host: Heat on its parts, and core heat that shuts it down.</summary>
+// The pulse replaces upstream's instant overheat kill with Heat on the parts, through the wound pipeline, so a
+// burning IPC goes down from pain. It never reaches the organs.
+// The positronic core soaks up the chassis's heat and a working, powered coolant pump takes it off. Past
+// wolfmed.ipc_core_heat_k the core loses health, faster the hotter it is, and the chassis is in thermal shutdown
+// (Dying, cause CoreHeat, with Succumb and Last Words); under wolfmed.ipc_core_heat_wake_k it comes back online.
+// A core at 0 is core failure, the ordinary organ death path.
 public sealed class WolfmedOverheatSystem : EntitySystem
 {
     /// <summary>Pressure key for thermal shutdown. Full, so the chassis is out while the core cooks.</summary>

@@ -17,20 +17,18 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Infection, from a contaminated cut to a body dying of sepsis. A wound whose prototype declares
-/// <see cref="WolfmedInfectionRiskBehavior"/> carries <see cref="WolfmedInfectionComponent"/> and gains
-/// progress on a slow batched tick, scaled by that risk, by what has been done to the wound and by
-/// whether something dirty has been in it. Past the profile's thresholds it hurts and widens (local),
-/// then feverish (spreading), then it feeds <see cref="WolfmedSepsisComponent"/> on the body, which is the
-/// stage that kills. M5 (OD13): neither stage deals Poison; the toxin load is its own route.
-/// </summary>
+/// <summary>Wound infection, from a contaminated cut through spreading infection to a body dying of sepsis.</summary>
 /// <remarks>
 /// One tick walks only wounds that are already contaminated and bodies that are already septic, so the
 /// cost is in injuries rather than in players. Everything here is server-side: wound creation, damage,
 /// temperature and pain all are. <see cref="Update"/> advances by whatever time has accumulated, so a
 /// test can hand it ten minutes in one call.
 /// </remarks>
+// A wound with WolfmedInfectionRiskBehavior carries WolfmedInfectionComponent and gains progress on a slow batched
+// tick, scaled by that risk, by what has been done to the wound and by whether something dirty has been in it. Past
+// the profile's thresholds it goes local (hurts and widens), then spreading (feverish), then feeds
+// WolfmedSepsisComponent on the body, the stage that kills. Neither stage deals Poison; the toxin load is its own
+// route.
 public sealed class WolfmedInfectionSystem : EntitySystem
 {
     /// <summary>The shipped profile. A downstream server retunes the prototype, not this file.</summary>

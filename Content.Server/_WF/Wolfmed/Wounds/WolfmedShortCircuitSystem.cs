@@ -1,3 +1,4 @@
+using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Stunnable;
@@ -6,16 +7,13 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// A short circuit inside a chassis: the frame locks up for a moment and the part throws sparks. The
-/// mechanical counterpart of <see cref="WolfmedElectricalBurnSystem"/>, which has an organ to reach and
-/// hands to open; a chassis has neither, so what a short costs is the moment and the noise that tells
-/// everyone nearby what just happened.
-/// </summary>
+/// <summary>A short circuit in a chassis: the frame locks up for a moment and the part throws sparks.</summary>
 /// <remarks>
 /// Server-side for the sound and the effect spawn. Answers <see cref="WolfmedWoundLifecycleEvent"/>
 /// because the directed wound-lifecycle subscriptions are taken.
 /// </remarks>
+// The mechanical counterpart of WolfmedElectricalBurnSystem; a chassis has no organ to reach or hands to open, so a
+// short costs the moment and the noise that tells everyone nearby what happened.
 public sealed class WolfmedShortCircuitSystem : EntitySystem
 {
     [Dependency] private AudioSystem _audio = default!;

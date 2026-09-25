@@ -29,12 +29,9 @@ public enum WolfmedPartTreatment : byte
     SplintTribal,
 }
 
-/// <summary>
-/// Art and mapping for the treatment overlays. One shipped profile
-/// (<see cref="WolfmedTreatmentVisualsComponent.DefaultProfile"/>). Which bleeding states count as a
-/// dressing is data here rather than a switch in the system, and so are the per-limb state suffixes, so a
-/// species with a different leg shape ships a second profile instead of new code.
-/// </summary>
+/// <summary>Art and state mapping for the treatment overlays.</summary>
+// Which bleeding states count as a dressing and the per-limb state suffixes are data here, so a species with a
+// different leg shape ships a second profile instead of new code. One profile ships, the component's DefaultProfile.
 [Prototype("wolfmedTreatmentOverlayProfile")]
 public sealed partial class WolfmedTreatmentOverlayProfilePrototype : IPrototype
 {

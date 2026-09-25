@@ -1,4 +1,5 @@
 # S.A.M.'s terminal window.
+wolfmed-autodoc-ui-name = S.A.M.
 wolfmed-autodoc-ui-subtitle = SURGICAL AUTOMATION MODULE v1.0
 wolfmed-autodoc-ui-patient = PATIENT
 wolfmed-autodoc-ui-patient-present = SUBJECT ON TABLE. CLICK A PART TO FILTER PROCEDURES.
@@ -17,6 +18,7 @@ wolfmed-autodoc-ui-queue-count = { $count } QUEUED, IN ORDER
 wolfmed-autodoc-ui-queue-add = ADD
 wolfmed-autodoc-ui-reservoir = RESERVOIR
 wolfmed-autodoc-ui-reservoir-unusable = NOT MEDICINE. I WILL NOT USE IT.
+wolfmed-autodoc-ui-reservoir-volume = { $units }u
 wolfmed-autodoc-ui-hardware = HARDWARE
 wolfmed-autodoc-ui-disk = PROGRAM DISK ... { $disk }
 wolfmed-autodoc-ui-module-installed = DEFIB MODULE .... INSTALLED

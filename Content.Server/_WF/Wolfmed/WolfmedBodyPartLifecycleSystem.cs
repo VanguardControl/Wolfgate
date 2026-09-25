@@ -1,7 +1,6 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Compat;
-using Content.Shared.Body;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;

@@ -53,8 +53,9 @@ namespace Content.Server.Medical.Components
         [DataField("selfHealPenaltyMultiplier")]
         public float SelfHealPenaltyMultiplier = 2f; //Was 3f, changed due to Surgery Changes (Goobstation)
 
-        // WOLFGATE(Wolfmed): HOOK 7 / D14 start - Wolfmed wound treatment data. The two collection types are load-bearing:
-        // ResolveHealingPartEvent takes IReadOnlySet<>, which List<> does not implement (D31).
+        // WOLFGATE(Wolfmed) START: HOOK 7 / D14, Wolfmed wound treatment data.
+        // The two collection types are load-bearing: ResolveHealingPartEvent takes IReadOnlySet<>, which List<> does
+        // not implement (D31).
         /// <summary>
         ///     Whether this item heals flat damage on the resolved body part.
         /// </summary>
@@ -85,7 +86,7 @@ namespace Content.Server.Medical.Components
         /// </summary>
         [DataField]
         public HashSet<ProtoId<DamageTypePrototype>>? TreatedDamageTypes;
-        // WOLFGATE(Wolfmed): HOOK 7 / D14 end
+        // WOLFGATE END
 
         /// <summary>
         ///     Sound played on healing begin

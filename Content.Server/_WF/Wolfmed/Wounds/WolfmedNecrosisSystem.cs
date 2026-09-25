@@ -15,13 +15,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>
-/// Tissue death. Three things start the clock: a tourniquet nobody took off, a burn or a freeze deep
-/// enough to carry <see cref="WolfmedNecrosisRiskBehavior"/>, and a limb put back on long after it came
-/// off. All three accumulate on <see cref="WolfmedNecrosisComponent"/> on the part, and all three end the
-/// same way - a <c>WolfmedNecrosisWound</c> that nothing treats, a limb that no longer works properly and
-/// a standing source of sepsis, until the part is amputated and replaced.
-/// </summary>
+/// <summary>Tissue death from a forgotten tourniquet, a deep burn or freeze, or a limb reattached late.</summary>
+// All three accumulate on WolfmedNecrosisComponent on the part and end the same way: a WolfmedNecrosisWound that
+// nothing treats, a limb that no longer works properly and a standing source of sepsis, until the part is amputated
+// and replaced.
 /// <remarks>
 /// The patient gets one warning popup before it happens, and the analyzer flags the part from the moment
 /// the clock starts. <see cref="Update"/> advances by whatever time has accumulated so a test can hand it
@@ -204,12 +201,9 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         Dirty(part, necrosis);
     }
 
-    /// <summary>
-    /// Takes one source off the clock. <see cref="WolfmedNecrosisComponent.Source"/> and its progress are a
-    /// single slot, so a part still at risk from the other source keeps the component and the time it has
-    /// already accumulated; without this, treating a frostbite reset a tourniquet's ten minutes to zero and
-    /// the strap could be left on forever.
-    /// </summary>
+    /// <summary>Takes one source off the necrosis clock, keeping the progress if the other still applies.</summary>
+    // Source and its progress are a single slot; otherwise treating a frostbite would reset a tourniquet's ten minutes
+    // to zero and the strap could be left on forever.
     private void ClearSource(EntityUid part, WolfmedNecrosisSource source)
     {
         if (!TryComp(part, out WolfmedNecrosisComponent? necrosis) || necrosis.Necrotic ||
