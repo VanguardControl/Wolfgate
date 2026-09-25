@@ -22,21 +22,27 @@ public static class AutodocStyle
     private const string MonoPath = "/Fonts/RobotoMono/RobotoMono-Regular.ttf";
     private const string MonoBoldPath = "/Fonts/RobotoMono/RobotoMono-Bold.ttf";
 
-    private static readonly Dictionary<(IResourceCache Cache, bool Bold, int Size), Font> Fonts = new();
+    // A Font carries the engine's glyph cache of the client it was made on, so fonts are cached per resource
+    // cache and two clients (a test pair, a replay) never share one. Both ends are held weakly: a font reaches
+    // its client's font manager and through it the whole client, so a static strong reference to either would
+    // keep every disposed test client in memory. A font stays cached for as long as a control still uses it.
+    private static readonly List<(WeakReference<IResourceCache> Owner, bool Bold, int Size, WeakReference<Font> Font)> Fonts = new();
 
     public static Font Mono(int size, bool bold = false)
     {
-        // The cache is static, and two clients can build a window at once. The dictionary is locked, and the
-        // owning resource cache is part of the key: a Font carries the engine's glyph cache with it, so
-        // handing one client's font to another client's UI thread corrupts that cache rather than this one.
         var cache = IoCManager.Resolve<IResourceCache>();
         lock (Fonts)
         {
-            if (Fonts.TryGetValue((cache, bold, size), out var font))
-                return font;
+            Fonts.RemoveAll(entry => !entry.Owner.TryGetTarget(out _) || !entry.Font.TryGetTarget(out _));
+            foreach (var entry in Fonts)
+            {
+                if (entry.Bold == bold && entry.Size == size && entry.Owner.TryGetTarget(out var owner)
+                    && ReferenceEquals(owner, cache) && entry.Font.TryGetTarget(out var cached))
+                    return cached;
+            }
 
-            font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
-            Fonts[(cache, bold, size)] = font;
+            var font = new VectorFont(cache.GetResource<FontResource>(bold ? MonoBoldPath : MonoPath), size);
+            Fonts.Add((new WeakReference<IResourceCache>(cache), bold, size, new WeakReference<Font>(font)));
             return font;
         }
     }
