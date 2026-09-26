@@ -16,8 +16,21 @@ jobs:
   build:
     if: github.event.pull_request.draft == false
     strategy:
+      fail-fast: false # WOLFGATE(Wolfmed): one red job must not cancel the others; each part's result is wanted
       matrix:
         os: [ubuntu-latest]
+        # WOLFGATE(Wolfmed) START: the integration tests run as three jobs, so each part of the suite gets a runner to
+        # itself: the module's tests, the spawn-all entity tests (about six gigabytes each, on top of a pool that has
+        # grown for an hour they no longer fit beside the rest), and everything else.
+        suite: [core, wolfmed, entity]
+        include:
+          - suite: core
+            filter: "FullyQualifiedName!~ShipyardTest&FullyQualifiedName!~Tests._WF.Wolfmed&FullyQualifiedName!~Tests._Onyx&FullyQualifiedName!~Tests.EntityTest"
+          - suite: wolfmed
+            filter: "FullyQualifiedName~Tests._WF.Wolfmed|FullyQualifiedName~Tests._Onyx"
+          - suite: entity
+            filter: "FullyQualifiedName~Tests.EntityTest"
+        # WOLFGATE END
 
     runs-on: ${{ matrix.os }}
 
@@ -49,20 +62,24 @@ jobs:
       run: dotnet build --configuration DebugOpt --no-restore /p:WarningsAsErrors=nullable /m
 
     - name: Run Content.Tests
+      if: matrix.suite == 'core' # WOLFGATE(Wolfmed): the unit tests run once, with the core half
       shell: pwsh
       run: dotnet test --no-build --configuration DebugOpt Content.Tests/Content.Tests.csproj -- NUnit.ConsoleOut=0 NUnit.TestOutputXml="logs" NUnit.WorkDirectory="$(pwd)/test_results"
 
+    # WOLFGATE(Wolfmed) START: one part of the suite per job, and a heap limit so server GC collects before the runner is killed
     - name: Run Content.IntegrationTests
       shell: pwsh
       run: |
         $env:DOTNET_gcServer=1
-        dotnet test --no-build --configuration DebugOpt Content.IntegrationTests/Content.IntegrationTests.csproj --filter "FullyQualifiedName!~ShipyardTest" -- NUnit.ConsoleOut=0 NUnit.MapWarningTo=Failed NUnit.TestOutputXml="logs" NUnit.WorkDirectory="$(pwd)/test_results"
+        $env:DOTNET_GCHeapHardLimit="0x300000000"
+        dotnet test --no-build --configuration DebugOpt Content.IntegrationTests/Content.IntegrationTests.csproj --filter "${{ matrix.filter }}" -- NUnit.ConsoleOut=0 NUnit.MapWarningTo=Failed NUnit.TestOutputXml="logs" NUnit.WorkDirectory="$(pwd)/test_results"
+    # WOLFGATE END
 
     - name: Archive NUnit3 test results.
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: nunit3-results-${{ matrix.os }}
+        name: nunit3-results-${{ matrix.os }}-${{ matrix.suite }} # WOLFGATE(Wolfmed): one artifact per job
         path: test_results/*
         retention-days: 7
         compression-level: 9

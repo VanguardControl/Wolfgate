@@ -1,0 +1,198 @@
+# Sepsis (W5). Shown while WolfmedSepsisComponent is on the body, cleared when it leaves.
+
+- type: alert
+  id: WFWolfmedSepsis
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/sepsis.rsi
+    state: sepsis
+  name: alerts-wolfmed-sepsis-name
+  description: alerts-wolfmed-sepsis-desc
+
+# Downed (CONSC). The Downed alert when the cause names none of its own. M1a moved it into the Health
+# category: on a wound host the condition alerts replace the stock health alerts (plan §5.2).
+
+- type: alert
+  id: WFWolfmedDowned
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-name
+  description: alerts-wolfmed-downed-desc
+
+# M1a: one alert per cause and state (plan §5.2), all in the Health category so each replaces the last.
+# Clicking one tells the patient everything holding them down. The icons are reused placeholders (art debt):
+# downed for every Downed alert, the stock critical, bleed and breathing icons for the rest.
+
+- type: alert
+  id: WFWolfmedDownedPain
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-pain-name
+  description: alerts-wolfmed-downed-pain-desc
+
+- type: alert
+  id: WFWolfmedDownedFrame
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-frame-name
+  description: alerts-wolfmed-downed-frame-desc
+
+- type: alert
+  id: WFWolfmedFaintPain
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_critical.rsi
+    state: critical
+  name: alerts-wolfmed-faint-pain-name
+  description: alerts-wolfmed-faint-pain-desc
+
+- type: alert
+  id: WFWolfmedDownedBlood
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/bleed.rsi
+    state: bleed3
+  name: alerts-wolfmed-downed-blood-name
+  description: alerts-wolfmed-downed-blood-desc
+
+- type: alert
+  id: WFWolfmedOutBlood
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/bleed.rsi
+    state: bleed6
+  name: alerts-wolfmed-out-blood-name
+  description: alerts-wolfmed-out-blood-desc
+
+- type: alert
+  id: WFWolfmedDownedOil
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-oil-name
+  description: alerts-wolfmed-downed-oil-desc
+
+- type: alert
+  id: WFWolfmedOutOil
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/Interface/Alerts/borg_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-oil-name
+  description: alerts-wolfmed-out-oil-desc
+
+- type: alert
+  id: WFWolfmedDownedHypoxia
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
+    state: not_enough_oxy
+  name: alerts-wolfmed-downed-hypoxia-name
+  description: alerts-wolfmed-downed-hypoxia-desc
+
+- type: alert
+  id: WFWolfmedOutHypoxia
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi # Playtest 3: the oxygen icon, not the generic critical one
+    state: not_enough_oxy
+  name: alerts-wolfmed-out-hypoxia-name
+  description: alerts-wolfmed-out-hypoxia-desc
+
+- type: alert
+  id: WFWolfmedDownedSedation
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-sedation-name
+  description: alerts-wolfmed-downed-sedation-desc
+
+- type: alert
+  id: WFWolfmedOutSedation
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-sedation-name
+  description: alerts-wolfmed-out-sedation-desc
+
+- type: alert
+  id: WFWolfmedDownedLegs
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-legs-name
+  description: alerts-wolfmed-downed-legs-desc
+
+- type: alert
+  id: WFWolfmedDownedCrash
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_WF/Wolfmed/Interface/Alerts/downed.rsi
+    state: downed
+  name: alerts-wolfmed-downed-crash-name
+  description: alerts-wolfmed-downed-crash-desc
+
+- type: alert
+  id: WFWolfmedOutArrest
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/human_dead.rsi
+    state: dead
+  name: alerts-wolfmed-out-arrest-name
+  description: alerts-wolfmed-out-arrest-desc
+
+- type: alert
+  id: WFWolfmedOutShutdown
+  category: Health
+  clickEvent: !type:WolfmedConditionAlertEvent
+  icons:
+  - sprite: /Textures/Interface/Alerts/borg_critical.rsi
+    state: critical
+  name: alerts-wolfmed-out-shutdown-name
+  description: alerts-wolfmed-out-shutdown-desc
+
+# M2 (plan §3.3): the respirator's suffocation alert on a wound host names its source instead of always blaming
+# the air. Same category as the stock breathing alerts, so each replaces the other and the respirator's own clear
+# takes it off.
+
+- type: alert
+  id: WFWolfmedCantBreatheAir
+  category: Breathing
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
+    state: not_enough_oxy
+  name: alerts-wolfmed-cant-breathe-air-name
+  description: alerts-wolfmed-cant-breathe-air-desc
+
+- type: alert
+  id: WFWolfmedCantBreatheLungs
+  category: Breathing
+  icons:
+  - sprite: /Textures/_Crescent/Interface/Alerts/breathing.rsi
+    state: not_enough_oxy
+  name: alerts-wolfmed-cant-breathe-lungs-name
+  description: alerts-wolfmed-cant-breathe-lungs-desc

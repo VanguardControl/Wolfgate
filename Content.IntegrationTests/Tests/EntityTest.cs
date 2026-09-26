@@ -16,6 +16,8 @@ namespace Content.IntegrationTests.Tests
 {
     [TestFixture]
     [TestOf(typeof(EntityUid))]
+    // WOLFGATE(Wolfmed): the spawn-all tests need about six gigabytes each; two at once go past the runner's heap limit
+    [NonParallelizable]
     public sealed class EntityTest
     {
         private static readonly ProtoId<EntityCategoryPrototype> SpawnerCategory = "Spawner";

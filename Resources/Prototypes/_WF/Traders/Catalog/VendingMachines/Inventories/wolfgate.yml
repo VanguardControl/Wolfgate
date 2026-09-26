@@ -15,3 +15,22 @@
     WFShipHarpoon: 8
     WFPartsSiloFlatpack: 2
     WFChemicalSiloFlatpack: 2
+    # Wolfmed field medicine.
+    WFWolfmedSplint: 6
+    WFWolfmedAntisepticSpray: 6
+    WFWolfmedSkinGraft: 4
+    WFWolfmedAnalgesicPill: 10
+    WFWolfmedOpiateChemistryBottle: 3
+    WFWolfmedStimPen: 4
+    WFWolfmedAnalgesicPen: 10
+    WFWolfmedOpiatePen: 6
+    WFWolfmedNaloxonePen: 4 # M2 (OD14): reverses an overdose.
+    WFWolfmedHydraulicFluidPack: 4 # Playtest 3 IPC 2: refills a chassis.
+    WFSpaceacillinChemistryBottle: 3
+    # Autodoc consumables. The pod itself and its board come from the medical lathe.
+    WFAutodocProgramDiskTransplant: 2
+    WFAutodocProgramDiskLimb: 2
+    WFAutodocProgramDiskNeuro: 2
+    WFAutodocProgramDiskCavity: 2
+    WFAutodocDefibModule: 2
+    WFAutodocAutofixModule: 2
