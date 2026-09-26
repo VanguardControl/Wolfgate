@@ -14,6 +14,8 @@ using Content.Shared.Ghost;
 using Content.Shared.Silicons.StationAi;
 using Robust.Shared.Map;
 using Content.Shared._WF.ShipAccess; // WOLFGATE(ShipAccess)
+using Content.Shared.Doors.Components; // WOLFGATE(ShipAccess)
+using Content.Shared.Doors.Systems; // WOLFGATE(ShipAccess)
 
 namespace Content.Shared._Mono.Shipyard;
 
@@ -28,6 +30,7 @@ public sealed partial class ShipAccessReaderSystem : EntitySystem
     [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedIdCardSystem _idCardSystem = default!;
+    [Dependency] private SharedDoorSystem _door = default!; // WOLFGATE(ShipAccess)
 
     public override void Initialize()
     {
@@ -62,10 +65,23 @@ public sealed partial class ShipAccessReaderSystem : EntitySystem
         if (args.User == null)
             return;
 
+        // WOLFGATE(ShipAccess) START: a door whose own access reader is hacked, or on emergency access, skips the ship check, and a refusal plays the door's deny state as a normal airlock does
+        // if (!HasShipAccess(args.User.Value, uid, component, false))
+        // {
+        //     args.Cancel();
+        // }
+        if (TryComp<AccessReaderComponent>(uid, out var accessReader) && !accessReader.Enabled)
+            return;
+
+        if (TryComp<AirlockComponent>(uid, out var airlock) && airlock.EmergencyAccess)
+            return;
+
         if (!HasShipAccess(args.User.Value, uid, component, false))
         {
             args.Cancel();
+            _door.Deny(uid, user: args.User, predicted: true);
         }
+        // WOLFGATE END
     }
 
     private void OnLockToggleAttempt(EntityUid uid, ShipAccessReaderComponent component, ref LockToggleAttemptEvent args)

@@ -1,5 +1,4 @@
 using Content.Shared._WF.ShipAccess;
-using Robust.Shared.Network;
 
 namespace Content.Client.Shuttles.UI;
 
@@ -11,20 +10,17 @@ public sealed partial class ShuttleConsoleWindow
     /// <summary>The owner wants a nearby person on the allow list.</summary>
     public event Action<NetEntity>? ShipAccessAddRequested;
 
-    /// <summary>The owner wants a person off the allow list.</summary>
-    public event Action<NetUserId>? ShipAccessRemoveRequested;
+    /// <summary>The owner wants a card off the allow list.</summary>
+    public event Action<NetEntity>? ShipAccessRemoveRequested;
 
-    /// <summary>The owner marked or unmarked a listed person as a builder.</summary>
-    public event Action<NetUserId, bool>? ShipAccessBuilderRequested;
-
-    /// <summary>The viewer wants to adopt an unowned ship.</summary>
-    public event Action? ShipAccessClaimRequested;
+    /// <summary>The owner marked or unmarked a listed card as a builder's.</summary>
+    public event Action<NetEntity, bool>? ShipAccessBuilderRequested;
 
     /// <summary>The owner picked a rule for a door.</summary>
     public event Action<NetEntity, WFDoorAccessRule>? ShipAccessDoorRuleRequested;
 
-    /// <summary>The owner ticked or unticked a person on a door.</summary>
-    public event Action<NetEntity, NetUserId, bool>? ShipAccessDoorPlayerRequested;
+    /// <summary>The owner ticked or unticked a card on a door.</summary>
+    public event Action<NetEntity, NetEntity, bool>? ShipAccessDoorPlayerRequested;
 
     /// <summary>The owner opened the access tab and wants the codes.</summary>
     public event Action? ShipAccessCodesRequested;
@@ -39,11 +35,10 @@ public sealed partial class ShuttleConsoleWindow
     {
         AccessContainer.LockedChanged += locked => ShipAccessLockedRequested?.Invoke(locked);
         AccessContainer.AddRequested += target => ShipAccessAddRequested?.Invoke(target);
-        AccessContainer.RemoveRequested += userId => ShipAccessRemoveRequested?.Invoke(userId);
-        AccessContainer.BuilderChanged += (userId, builder) => ShipAccessBuilderRequested?.Invoke(userId, builder);
-        AccessContainer.ClaimRequested += () => ShipAccessClaimRequested?.Invoke();
+        AccessContainer.RemoveRequested += card => ShipAccessRemoveRequested?.Invoke(card);
+        AccessContainer.BuilderChanged += (card, builder) => ShipAccessBuilderRequested?.Invoke(card, builder);
         AccessContainer.DoorRuleChanged += (door, rule) => ShipAccessDoorRuleRequested?.Invoke(door, rule);
-        AccessContainer.DoorPlayerChanged += (door, userId, listed) => ShipAccessDoorPlayerRequested?.Invoke(door, userId, listed);
+        AccessContainer.DoorPlayerChanged += (door, card, listed) => ShipAccessDoorPlayerRequested?.Invoke(door, card, listed);
         AccessContainer.CodesRequested += () => ShipAccessCodesRequested?.Invoke();
         AccessContainer.ShipCodeChanged += code => ShipAccessShipCodeRequested?.Invoke(code);
         AccessContainer.DoorCodeChanged += (door, code) => ShipAccessDoorCodeRequested?.Invoke(door, code);

@@ -4,18 +4,23 @@ using Content.Shared._WF.ShipAccess;
 using Content.Shared.Doors.Components;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Input;
 
 namespace Content.Client._WF.ShipAccess;
 
 /// <summary>
-/// The access tab's door diagram: the hull from the ship view, with every door the client can see drawn
-/// as a node in its rule's colour. Clicking near a node selects it.
+/// The access tab's door diagram: the hull from the ship view with every door the client can see drawn as a
+/// node in its rule's colour. Unlike the nav map it fills whatever the tab gives it, and a left click on a
+/// node selects that door. Firelocks are left out; they answer to the atmosphere, not the owner.
 /// </summary>
 public sealed class ShipAccessDoorMapControl : ShipViewControl
 {
-    /// <summary>How close to a node, in pixels, a click has to land.</summary>
-    private const float SelectRadius = 8f;
+    /// <summary>Pixels past a node's edge that still count as a click on it.</summary>
+    private const float SelectSlack = 6f;
+
+    private static readonly Color SelectedRing = Color.White;
+    private static readonly Color HoverRing = Color.FromHex("#a9bcc7");
 
     /// <summary>Node colours by rule, in enum order.</summary>
     private static readonly Color[] RuleColors =
@@ -31,6 +36,10 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
 
     private readonly List<ShipAccessDoorNode> _doors = new();
     private EntityUid? _grid;
+    private EntityUid? _hovered;
+
+    /// <summary>Where the left button went down, so a drag that ends on a node doesn't pick it.</summary>
+    private Vector2? _pressPosition;
 
     /// <summary>Doors on the grid the client knows about, top row first. Doors outside the client's view are missing.</summary>
     public IReadOnlyList<ShipAccessDoorNode> Doors => _doors;
@@ -43,10 +52,19 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
 
     public ShipAccessDoorMapControl()
     {
+        // The nav map fixes itself to a square; here the layout sets the size and the drawing follows it.
+        SetSize = new Vector2(float.NaN, float.NaN);
+        HideNavMapPanel();
         PostWallDrawingAction += DrawDoors;
     }
 
-    /// <summary>The colour a rule is drawn in, on the diagram, the legend and the list.</summary>
+    /// <summary>Drawing centres on the control rather than on the nav map's fixed square.</summary>
+    protected override Vector2 MidPointVector => new Vector2(PixelWidth, PixelHeight) / 2f;
+
+    /// <summary>The hull is fitted to the shorter side.</summary>
+    protected override int ScaledMinimapRadius => (int) (MathF.Min(PixelWidth, PixelHeight) / 2f - MinimapMargin * UIScale);
+
+    /// <summary>The colour a rule is drawn in, on the diagram and in the legend.</summary>
     public static Color ColorFor(WFDoorAccessRule rule)
     {
         var i = (int) rule;
@@ -57,6 +75,7 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
     {
         _grid = grid;
         Selected = null;
+        _hovered = null;
         _doors.Clear();
         base.SetGrid(grid);
     }
@@ -72,7 +91,7 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
         while (query.MoveNext(out var uid, out _, out var xform, out var meta))
         {
             // The node sits at the door's grid-local position, so only doors parented straight to the grid count.
-            if (xform.ParentUid != _grid)
+            if (xform.ParentUid != _grid || EntManager.HasComponent<FirelockComponent>(uid))
                 continue;
 
             var rule = EntManager.TryGetComponent<WFDoorAccessRuleComponent>(uid, out var comp) ? comp.Rule : WFDoorAccessRule.Default;
@@ -87,6 +106,9 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
 
         if (Selected != null && !Contains(Selected.Value))
             Selected = null;
+
+        if (_hovered != null && !Contains(_hovered.Value))
+            _hovered = null;
     }
 
     private bool Contains(EntityUid uid)
@@ -100,38 +122,91 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
         return false;
     }
 
+    /// <summary>The nav map's zoom readout, beacon toggle and recentre button mean nothing on a door diagram.</summary>
+    private void HideNavMapPanel()
+    {
+        foreach (var child in Children)
+        {
+            if (child is not BoxContainer column)
+                continue;
+
+            foreach (var row in column.Children)
+            {
+                if (row is PanelContainer panel)
+                    panel.Visible = false;
+            }
+        }
+    }
+
+    protected override void KeyBindDown(GUIBoundKeyEventArgs args)
+    {
+        base.KeyBindDown(args);
+
+        if (args.Function == EngineKeyFunctions.UIClick)
+            _pressPosition = args.RelativePixelPosition;
+    }
+
     protected override void KeyBindUp(GUIBoundKeyEventArgs args)
     {
         base.KeyBindUp(args);
 
-        if (args.Function != EngineKeyFunctions.UIClick || _doors.Count == 0)
+        if (args.Function != EngineKeyFunctions.UIClick)
             return;
 
-        // A drag pans the map; only a click picks.
-        if ((StartDragPosition - args.PointerLocation.Position).Length() > MinDragDistance)
+        var pressed = _pressPosition;
+        _pressPosition = null;
+        if (pressed == null || (pressed.Value - args.RelativePixelPosition).Length() > MinDragDistance)
             return;
 
-        var local = args.PointerLocation.Position - GlobalPixelPosition;
-        var unscaled = (local - MidPointVector) / MinimapScale;
-        var gridPos = new Vector2(unscaled.X, -unscaled.Y) + GetOffset();
+        if (DoorAt(args.RelativePixelPosition) is not { } door)
+            return;
 
+        Selected = door.Uid;
+        DoorSelected?.Invoke(door.Uid);
+        args.Handle();
+    }
+
+    protected override void MouseMove(GUIMouseMoveEventArgs args)
+    {
+        base.MouseMove(args);
+        _hovered = DoorAt(args.RelativePixelPosition)?.Uid;
+    }
+
+    protected override void MouseExited()
+    {
+        base.MouseExited();
+        _hovered = null;
+    }
+
+    /// <summary>The door whose node is under a point on the control, the nearest when nodes overlap.</summary>
+    private ShipAccessDoorNode? DoorAt(Vector2 pixel)
+    {
+        if (_doors.Count == 0)
+            return null;
+
+        var offset = GetOffset();
+        var reach = NodeRadius + SelectSlack;
         ShipAccessDoorNode? closest = null;
         var closestDistance = float.PositiveInfinity;
         foreach (var door in _doors)
         {
-            var distance = (door.Position - gridPos).Length() * MinimapScale;
-            if (distance > SelectRadius || distance >= closestDistance)
+            var distance = (NodePosition(door, offset) - pixel).Length();
+            if (distance > reach || distance >= closestDistance)
                 continue;
 
             closest = door;
             closestDistance = distance;
         }
 
-        if (closest == null)
-            return;
+        return closest;
+    }
 
-        Selected = closest.Uid;
-        DoorSelected?.Invoke(closest.Uid);
+    private float NodeRadius => MathF.Max(3f, MinimapScale * 0.35f);
+
+    private Vector2 NodePosition(ShipAccessDoorNode door, Vector2 offset)
+    {
+        var p = door.Position - offset;
+        return ScalePosition(new Vector2(p.X, -p.Y));
     }
 
     private void DrawDoors(DrawingHandleScreen handle)
@@ -140,14 +215,15 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
             return;
 
         var offset = GetOffset();
-        var radius = MathF.Max(3f, MinimapScale * 0.35f);
+        var radius = NodeRadius;
 
         foreach (var door in _doors)
         {
-            var p = door.Position - offset;
-            var pos = ScalePosition(new Vector2(p.X, -p.Y));
+            var pos = NodePosition(door, offset);
             if (door.Uid == Selected)
-                handle.DrawCircle(pos, radius + 3f, Color.White);
+                handle.DrawCircle(pos, radius + 3f, SelectedRing);
+            else if (door.Uid == _hovered)
+                handle.DrawCircle(pos, radius + 2f, HoverRing);
 
             handle.DrawCircle(pos, radius, ColorFor(door.Rule));
         }

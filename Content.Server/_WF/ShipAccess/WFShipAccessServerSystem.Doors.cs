@@ -4,7 +4,6 @@ using Content.Shared.Database;
 using Content.Shared.Doors.Components;
 using Content.Shared.Doors.Systems;
 using Content.Shared.Power;
-using Robust.Shared.Network;
 
 namespace Content.Server._WF.ShipAccess;
 
@@ -56,36 +55,34 @@ public sealed partial class WFShipAccessServerSystem
         return true;
     }
 
-    /// <summary>Adds or removes an allow-listed person on a door's own list; false when they are not on the ship's list or nothing changed.</summary>
-    public bool SetDoorPlayer(Entity<WFShipAccessComponent> ship, EntityUid door, NetUserId userId, bool listed)
+    /// <summary>Adds or removes an allow-listed card on a door's own list; false when it is not on the ship's list or nothing changed.</summary>
+    public bool SetDoorPlayer(Entity<WFShipAccessComponent> ship, EntityUid door, EntityUid card, bool listed)
     {
-        if (listed && !_access.TryGetEntry(ship.Comp, userId, out _))
+        if (listed && !_access.TryGetEntry(ship.Comp, card, out _))
             return false;
 
         var comp = EnsureComp<WFDoorAccessRuleComponent>(door);
-        var changed = listed ? !comp.Players.Contains(userId) && Add(comp.Players, userId) : comp.Players.Remove(userId);
-        if (!changed)
+        if (listed == comp.Players.Contains(card))
             return false;
+
+        if (listed)
+            comp.Players.Add(card);
+        else
+            comp.Players.Remove(card);
 
         Dirty(door, comp);
         _adminLog.Add(LogType.Action, LogImpact.Low,
-            $"{userId} was {(listed ? "added to" : "removed from")} door {ToPrettyString(door):door} on {ToPrettyString(ship.Owner):grid}");
+            $"Card {ToPrettyString(card):card} was {(listed ? "added to" : "removed from")} door {ToPrettyString(door):door} on {ToPrettyString(ship.Owner):grid}");
         return true;
-
-        static bool Add(List<NetUserId> list, NetUserId id)
-        {
-            list.Add(id);
-            return true;
-        }
     }
 
-    /// <summary>Takes a person off every door list on the ship, after they left the allow list.</summary>
-    private void RemoveDoorPlayer(EntityUid grid, NetUserId userId)
+    /// <summary>Takes a card off every door list on the ship, after it left the allow list.</summary>
+    private void RemoveDoorPlayer(EntityUid grid, EntityUid card)
     {
         var children = Transform(grid).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
-            if (TryComp<WFDoorAccessRuleComponent>(child, out var rule) && rule.Players.Remove(userId))
+            if (TryComp<WFDoorAccessRuleComponent>(child, out var rule) && rule.Players.Remove(card))
                 Dirty(child, rule);
         }
     }
@@ -147,14 +144,14 @@ public sealed partial class WFShipAccessServerSystem
 
     private void OnSetDoorPlayer(Entity<ShuttleConsoleComponent> console, ref WFShipAccessSetDoorPlayerMessage args)
     {
-        if (TryGetEditableShip(console, args.Actor, out var ship) && TryGetShipDoor(console, ship, args.Door, args.Actor, out var door))
-            SetDoorPlayer(ship, door, args.UserId, args.Listed);
+        if (TryGetEditableShip(console, args.Actor, out var ship) && TryGetShipDoor(console, ship, args.Door, args.Actor, out var door) && TryGetEntity(args.Card, out var card))
+            SetDoorPlayer(ship, door, card.Value, args.Listed);
     }
 
-    /// <summary>Resolves a console message's door and checks it is a door on the console's own grid.</summary>
+    /// <summary>Resolves a console message's door and checks it is a door on the console's own grid. Firelocks take no rule.</summary>
     private bool TryGetShipDoor(Entity<ShuttleConsoleComponent> console, Entity<WFShipAccessComponent> ship, NetEntity netDoor, EntityUid actor, out EntityUid door)
     {
-        if (TryGetEntity(netDoor, out var uid) && HasComp<DoorComponent>(uid) && Transform(uid.Value).GridUid == ship.Owner)
+        if (TryGetEntity(netDoor, out var uid) && HasComp<DoorComponent>(uid) && !HasComp<FirelockComponent>(uid) && Transform(uid.Value).GridUid == ship.Owner)
         {
             door = uid.Value;
             return true;

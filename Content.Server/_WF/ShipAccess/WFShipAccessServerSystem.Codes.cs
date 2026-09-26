@@ -3,7 +3,6 @@ using Content.Shared._WF.ShipAccess;
 using Content.Shared.Database;
 using Content.Shared.Doors.Components;
 using Content.Shared.Verbs;
-using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -94,14 +93,15 @@ public sealed partial class WFShipAccessServerSystem
 
         var ship = new Entity<WFShipAccessComponent>(grid, access);
         var codes = EnsureComp<WFShipAccessCodeComponent>(grid);
-        _player.TryGetSessionByEntity(user, out var session);
-        if (session != null && IsLockedOut(codes, session.UserId))
+        // Misses are counted per character name, so a nameless thing never locks out.
+        var name = MetaData(user).EntityName is { Length: > 0 } known ? known : null;
+        if (name != null && IsLockedOut(codes, name))
             return WFShipAccessCodeResult.LockedOut;
 
         var ownCode = TryComp<WFDoorCodeComponent>(door, out var doorCode) ? doorCode.Code : null;
         if (code != ownCode && (codes.ShipCode == null || code != codes.ShipCode))
         {
-            RecordMiss(ship, codes, session, user, door);
+            RecordMiss(ship, codes, name, user, door);
             return WFShipAccessCodeResult.Wrong;
         }
 
@@ -111,26 +111,26 @@ public sealed partial class WFShipAccessServerSystem
         return WFShipAccessCodeResult.Opened;
     }
 
-    /// <summary>Whether the person's keypad lockout on this ship is still running.</summary>
-    public bool IsLockedOut(WFShipAccessCodeComponent codes, NetUserId userId)
+    /// <summary>Whether the character's keypad lockout on this ship is still running.</summary>
+    public bool IsLockedOut(WFShipAccessCodeComponent codes, string name)
     {
-        return codes.Lockouts.TryGetValue(userId, out var lockout) && lockout.LockedUntil > _timing.CurTime;
+        return codes.Lockouts.TryGetValue(name, out var lockout) && lockout.LockedUntil > _timing.CurTime;
     }
 
-    private void RecordMiss(Entity<WFShipAccessComponent> ship, WFShipAccessCodeComponent codes, ICommonSession? session, EntityUid user, EntityUid door)
+    private void RecordMiss(Entity<WFShipAccessComponent> ship, WFShipAccessCodeComponent codes, string? name, EntityUid user, EntityUid door)
     {
         codes.Misses++;
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{ToPrettyString(user):user} entered a wrong code at {ToPrettyString(door):door} on {ToPrettyString(ship.Owner):grid}");
 
-        // Misses are per person, so an NPC or anything else without an account never locks out.
-        if (session != null)
+        // Misses are per character, so something without a name never locks out.
+        if (name != null)
         {
             var now = _timing.CurTime;
-            if (!codes.Lockouts.TryGetValue(session.UserId, out var lockout))
+            if (!codes.Lockouts.TryGetValue(name, out var lockout))
             {
                 lockout = new WFShipAccessLockout { WindowStart = now };
-                codes.Lockouts[session.UserId] = lockout;
+                codes.Lockouts[name] = lockout;
             }
 
             if (now - lockout.WindowStart > MissWindow)
@@ -140,7 +140,6 @@ public sealed partial class WFShipAccessServerSystem
             }
 
             lockout.Misses++;
-            lockout.Name = Name(user);
             if (lockout.Misses >= MaxMisses)
             {
                 lockout.LockedUntil = now + LockoutDuration;
@@ -150,8 +149,17 @@ public sealed partial class WFShipAccessServerSystem
             }
         }
 
-        if (ship.Comp.HasOwner && _player.TryGetSessionById(ship.Comp.OwnerUserId, out var owner))
-            RaiseNetworkEvent(new WFShipAccessCodeAlertEvent(GetNetEntity(ship.Owner), codes.Misses, CountLockedOut(codes)), owner.Channel);
+        NotifyOwner(ship, new WFShipAccessCodeAlertEvent(GetNetEntity(ship.Owner), codes.Misses, CountLockedOut(codes)));
+    }
+
+    /// <summary>Sends an event to whoever carries the ship's deed right now, if anyone.</summary>
+    private void NotifyOwner(Entity<WFShipAccessComponent> ship, EntityEventArgs ev)
+    {
+        foreach (var session in _player.Sessions)
+        {
+            if (session.AttachedEntity is { } body && _access.HasDeedFor(body, ship.Owner))
+                RaiseNetworkEvent(ev, session.Channel);
+        }
     }
 
     private int CountLockedOut(WFShipAccessCodeComponent codes)
@@ -167,7 +175,7 @@ public sealed partial class WFShipAccessServerSystem
         return count;
     }
 
-    /// <summary>Answers an owner's console with the codes. Callers have checked the session owns the ship.</summary>
+    /// <summary>Answers an owner's console with the codes. Callers have checked the session's character owns the ship.</summary>
     private void SendCodes(Entity<WFShipAccessComponent> ship, ICommonSession session)
     {
         var codes = EnsureComp<WFShipAccessCodeComponent>(ship);

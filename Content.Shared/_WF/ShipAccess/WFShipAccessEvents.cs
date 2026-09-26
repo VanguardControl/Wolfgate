@@ -1,4 +1,3 @@
-using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.ShipAccess;
@@ -34,7 +33,7 @@ public sealed class WFShipAccessSetLockedMessage : BoundUserInterfaceMessage
     }
 }
 
-/// <summary>The owner adds a humanoid standing near the console to the allow list.</summary>
+/// <summary>The owner adds the card of a humanoid standing near the console to the allow list.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipAccessAddPlayerMessage : BoundUserInterfaceMessage
 {
@@ -46,36 +45,30 @@ public sealed class WFShipAccessAddPlayerMessage : BoundUserInterfaceMessage
     }
 }
 
-/// <summary>The owner removes a person from the allow list.</summary>
+/// <summary>The owner removes a card from the allow list.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipAccessRemoveMessage : BoundUserInterfaceMessage
 {
-    public NetUserId UserId;
+    public NetEntity Card;
 
-    public WFShipAccessRemoveMessage(NetUserId userId)
+    public WFShipAccessRemoveMessage(NetEntity card)
     {
-        UserId = userId;
+        Card = card;
     }
 }
 
-/// <summary>The owner marks or unmarks a listed person as a builder.</summary>
+/// <summary>The owner marks or unmarks a listed card as a builder's.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipAccessSetBuilderMessage : BoundUserInterfaceMessage
 {
-    public NetUserId UserId;
+    public NetEntity Card;
     public bool Builder;
 
-    public WFShipAccessSetBuilderMessage(NetUserId userId, bool builder)
+    public WFShipAccessSetBuilderMessage(NetEntity card, bool builder)
     {
-        UserId = userId;
+        Card = card;
         Builder = builder;
     }
-}
-
-/// <summary>A deed holder adopts ownership of a ship that has no owner yet.</summary>
-[Serializable, NetSerializable]
-public sealed class WFShipAccessClaimMessage : BoundUserInterfaceMessage
-{
 }
 
 /// <summary>The owner sets a door's rule from the door diagram.</summary>
@@ -92,18 +85,18 @@ public sealed class WFShipAccessSetDoorRuleMessage : BoundUserInterfaceMessage
     }
 }
 
-/// <summary>The owner ticks or unticks an allow-listed person on a door's own list.</summary>
+/// <summary>The owner ticks or unticks an allow-listed card on a door's own list.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipAccessSetDoorPlayerMessage : BoundUserInterfaceMessage
 {
     public NetEntity Door;
-    public NetUserId UserId;
+    public NetEntity Card;
     public bool Listed;
 
-    public WFShipAccessSetDoorPlayerMessage(NetEntity door, NetUserId userId, bool listed)
+    public WFShipAccessSetDoorPlayerMessage(NetEntity door, NetEntity card, bool listed)
     {
         Door = door;
-        UserId = userId;
+        Card = card;
         Listed = listed;
     }
 }

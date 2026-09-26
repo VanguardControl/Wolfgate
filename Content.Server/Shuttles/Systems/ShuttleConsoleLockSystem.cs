@@ -819,7 +819,7 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
             // Log.Debug("TryGrantGuestAccess: Granted guest access to ID card {0}", cardUid);
         }
         Dirty(gridUid, guestAccess);
-        _wfShipAccess.OnGuestAccessGranted(gridUid, user); // WOLFGATE(ShipAccess): a guest is also a person on the allow list
+        _wfShipAccess.OnGuestAccessGranted(gridUid, user); // WOLFGATE(ShipAccess): a guest's card also joins the allow list
 
         // Log.Debug("TryGrantGuestAccess: Successfully granted guest access to user {0} on grid {1}", user, gridUid);
 
@@ -850,7 +850,6 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
         // Grant guest access to the cyborg
         guestAccess.GuestCyborgs.Add(cyborg);
         Dirty(gridUid, guestAccess);
-        _wfShipAccess.OnGuestAccessGranted(gridUid, cyborg); // WOLFGATE(ShipAccess): a guest is also a person on the allow list
 
         // Log.Debug("TryGrantCyborgGuestAccess: Successfully granted guest access to cyborg {0} on grid {1}", cyborg, gridUid);
 

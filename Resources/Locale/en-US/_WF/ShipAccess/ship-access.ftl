@@ -1,7 +1,7 @@
 # Shuttle console access tab
 ship-access-mode-button = ACCESS
 ship-access-title = Ship access
-ship-access-owner = Owner
+ship-access-owner = Registered to
 ship-access-owner-none = None
 ship-access-mode = Mode
 ship-access-mode-private = Private
@@ -10,53 +10,48 @@ ship-access-lock = Lock
 ship-access-locked-check = Locked
 ship-access-locked-yes = Locked
 ship-access-locked-no = Unlocked
-ship-access-read-only = Only the owner can change who may board.
-ship-access-unowned = This ship has no registered owner. The deed holder can claim it.
-ship-access-claim = Claim ownership
-ship-access-allow-list = Allowed people
-ship-access-allow-list-empty = Nobody has been added yet.
+ship-access-read-only = Only the deed holder can change who may board.
+ship-access-allow-list = Allowed ID cards
+ship-access-allow-list-empty = No ID cards have been added yet.
 ship-access-builder = Builder
 ship-access-remove = Remove
 ship-access-nearby = Nearby
 ship-access-nearby-empty = Nobody is standing near the console.
 ship-access-add = Add
+ship-access-no-card = no ID
 ship-access-label-guest = Guest
 
 # Server popups
-ship-access-not-owner = Only the ship's owner can change its access.
-ship-access-claimed = You are now the registered owner of this ship.
-ship-access-claim-denied = Only the deed holder can claim this ship.
-ship-access-claim-owned = This ship already has an owner.
-ship-access-added = { $name } may now board the ship.
-ship-access-add-no-player = That is not a player.
+ship-access-not-owner = Only the deed holder can change the ship's access.
+ship-access-added = { $name }'s ID card may now open the ship.
+ship-access-add-no-card = They carry no ID card.
 ship-access-add-out-of-range = They must stand closer to the console.
-ship-access-add-already = They are already allowed aboard.
+ship-access-add-already = That ID card is already allowed aboard.
 ship-access-allow-list-cleared = Allow list cleared: { $count } removed.
 
 # Door diagram and rules
 ship-access-door = Selected door
-ship-access-door-none = Pick a door on the diagram or in the list.
+ship-access-door-none = Click a door on the diagram.
 ship-access-door-name = Door
 ship-access-door-rule = Rule
 ship-access-door-label = { $name } ({ $x }, { $y })
-ship-access-door-row = { $door }: { $rule }
-ship-access-door-list-empty = No doors in view. Doors far from the console show up once you have been near them.
-ship-access-door-players = People for this door
-ship-access-door-players-empty = Add people to the allowed list first.
+ship-access-doors-empty = No doors in view. Doors far from the console show up once you have been near them. Firelocks are not listed.
+ship-access-door-players = ID cards for this door
+ship-access-door-players-empty = Add ID cards to the allowed list first.
 ship-access-rule-default-name = Ship default
-ship-access-rule-owner-only-name = Owner only
-ship-access-rule-players-name = Chosen people
+ship-access-rule-owner-only-name = Deed only
+ship-access-rule-players-name = Chosen IDs
 ship-access-rule-code-name = Code
-ship-access-rule-players-or-code-name = Chosen people or code
+ship-access-rule-players-or-code-name = Chosen IDs or code
 ship-access-rule-public-name = Public
 ship-access-rule-sealed-name = Sealed
-ship-access-rule-default-desc = Follows the ship: the owner, the allowed people and, on a faction ship, its ID cards, while the ship is locked.
-ship-access-rule-owner-only-desc = Only the owner opens this door, locked ship or not.
-ship-access-rule-players-desc = The owner and the people ticked below.
-ship-access-rule-code-desc = The owner, or anyone who enters this door's code or the ship code at its keypad.
-ship-access-rule-players-or-code-desc = The owner, the people ticked below, or a code at the keypad.
+ship-access-rule-default-desc = Follows the ship: the deed, the allowed ID cards and, on a faction ship, its company's cards, while the ship is locked.
+ship-access-rule-owner-only-desc = Only the deed opens this door, locked ship or not.
+ship-access-rule-players-desc = The deed and the ID cards ticked below.
+ship-access-rule-code-desc = The deed, or anyone who enters this door's code or the ship code at its keypad.
+ship-access-rule-players-or-code-desc = The deed, the ID cards ticked below, or a code at the keypad.
 ship-access-rule-public-desc = Anyone opens this door, even while the ship is locked.
-ship-access-rule-sealed-desc = Bolted shut for everyone, the owner included. Pick another rule to unseal it.
+ship-access-rule-sealed-desc = Bolted shut for everyone, the deed holder included. Pick another rule to unseal it.
 ship-access-door-not-on-ship = That door is not on this ship.
 
 # Codes and the keypad

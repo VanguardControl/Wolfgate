@@ -6,19 +6,16 @@ using Content.Server._WF.ShipAccess;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Doors.Components;
-using Content.Shared.Mind;
-using Content.Shared.Players;
 using Robust.Shared.GameObjects;
 using Robust.Shared.GameStates;
-using Robust.Shared.Network;
-using Robust.Shared.Player;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.ShipAccess;
 
 /// <summary>
 /// Codes: a door code or the ship code opens a code door from the keypad path for anyone, wrong codes count
-/// misses and lock a person out, and no code ever sits on a networked component.
+/// misses and lock a character out, and no code ever sits on a networked component.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WFShipAccessCodeComponent))]
@@ -26,29 +23,30 @@ public sealed class ShipAccessCodeTest
 {
     private const string DoorProto = "AirlockShuttle";
     private const string HumanProto = "MobHuman";
+    private const string Visitor = "Ada Vance";
+    private const string Stranger = "Random Stranger";
 
     [Test]
     public async Task DoorCodeOpensAndMissesLockOut()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
         var timing = server.ResolveDependency<IGameTiming>();
         var access = entMan.System<WFShipAccessServerSystem>();
         var map = await pair.CreateTestMap();
         var grid = map.Grid.Owner;
-        var (session, player) = await AttachPlayer(pair, map);
 
-        EntityUid doorA = default, doorB = default, npc = default;
+        EntityUid doorA = default, doorB = default, visitor = default, npc = default;
         Entity<WFShipAccessComponent> ship = default;
         await server.WaitPost(() =>
         {
             doorA = entMan.SpawnEntity(DoorProto, map.GridCoords);
             doorB = entMan.SpawnEntity(DoorProto, map.GridCoords);
-            npc = entMan.SpawnEntity(HumanProto, map.GridCoords);
+            visitor = SpawnPerson(entMan, map.GridCoords, Visitor);
+            npc = SpawnPerson(entMan, map.GridCoords, Stranger);
             entMan.EnsureComponent<ShuttleDeedComponent>(grid);
             var comp = entMan.EnsureComponent<WFShipAccessComponent>(grid);
-            comp.OwnerUserId = new NetUserId(Guid.NewGuid());
             comp.Locked = true;
             ship = (grid, comp);
         });
@@ -69,7 +67,7 @@ public sealed class ShipAccessCodeTest
                 Assert.That(entMan.GetComponent<WFDoorCodeComponent>(doorA).Code, Is.EqualTo("1234"));
             });
 
-            Assert.That(access.TrySubmitCode(npc, doorA, "1234"), Is.EqualTo(WFShipAccessCodeResult.Opened), "The door code opens the door for an NPC.");
+            Assert.That(access.TrySubmitCode(npc, doorA, "1234"), Is.EqualTo(WFShipAccessCodeResult.Opened), "The door code opens the door for a stranger.");
             Assert.That(State(doorA), Is.EqualTo(DoorState.Opening), "A correct code starts the door opening.");
 
             Assert.That(access.SetDoorCode(ship, doorA, null), Is.True);
@@ -79,25 +77,26 @@ public sealed class ShipAccessCodeTest
                 Assert.That(entMan.HasComponent<WFDoorCodeComponent>(doorA), Is.False, "Clearing a door code removes it.");
             });
 
-            // Misses and the lockout, for a person with an account.
+            // Misses and the lockout, per character.
             access.SetDoorRule(ship, doorB, WFDoorAccessRule.Code);
             access.SetDoorCode(ship, doorB, "1234");
             var codes = entMan.GetComponent<WFShipAccessCodeComponent>(grid);
             for (var i = 1; i < WFShipAccessServerSystem.MaxMisses; i++)
             {
-                Assert.That(access.TrySubmitCode(player, doorB, "0000"), Is.EqualTo(WFShipAccessCodeResult.Wrong), $"Miss {i} is a wrong code.");
-                Assert.That(access.IsLockedOut(codes, session.UserId), Is.False, $"Miss {i} does not lock out yet.");
+                Assert.That(access.TrySubmitCode(visitor, doorB, "0000"), Is.EqualTo(WFShipAccessCodeResult.Wrong), $"Miss {i} is a wrong code.");
+                Assert.That(access.IsLockedOut(codes, Visitor), Is.False, $"Miss {i} does not lock out yet.");
             }
 
             Assert.That(codes.Misses, Is.EqualTo(WFShipAccessServerSystem.MaxMisses - 1), "Every miss is counted for the ship.");
-            Assert.That(access.TrySubmitCode(player, doorB, "0000"), Is.EqualTo(WFShipAccessCodeResult.Wrong));
-            Assert.That(access.IsLockedOut(codes, session.UserId), Is.True, "The fifth miss locks the person out.");
-            Assert.That(access.TrySubmitCode(player, doorB, "1234"), Is.EqualTo(WFShipAccessCodeResult.LockedOut), "A locked-out person is refused even with the right code.");
+            Assert.That(access.TrySubmitCode(visitor, doorB, "0000"), Is.EqualTo(WFShipAccessCodeResult.Wrong));
+            Assert.That(access.IsLockedOut(codes, Visitor), Is.True, "The fifth miss locks the character out.");
+            Assert.That(access.IsLockedOut(codes, Stranger), Is.False, "Only the character who missed is locked out.");
+            Assert.That(access.TrySubmitCode(visitor, doorB, "1234"), Is.EqualTo(WFShipAccessCodeResult.LockedOut), "A locked-out character is refused even with the right code.");
             Assert.That(State(doorB), Is.EqualTo(DoorState.Closed), "The door stayed closed through it all.");
 
-            codes.Lockouts[session.UserId].LockedUntil = timing.CurTime - TimeSpan.FromSeconds(1);
-            Assert.That(access.IsLockedOut(codes, session.UserId), Is.False, "The lockout ends.");
-            Assert.That(access.TrySubmitCode(player, doorB, "1234"), Is.EqualTo(WFShipAccessCodeResult.Opened), "After the lockout the right code opens the door.");
+            codes.Lockouts[Visitor].LockedUntil = timing.CurTime - TimeSpan.FromSeconds(1);
+            Assert.That(access.IsLockedOut(codes, Visitor), Is.False, "The lockout ends.");
+            Assert.That(access.TrySubmitCode(visitor, doorB, "1234"), Is.EqualTo(WFShipAccessCodeResult.Opened), "After the lockout the right code opens the door.");
             Assert.That(State(doorB), Is.EqualTo(DoorState.Opening));
         });
 
@@ -121,7 +120,7 @@ public sealed class ShipAccessCodeTest
             codeDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
             eitherDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
             ownDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
-            npc = entMan.SpawnEntity(HumanProto, map.GridCoords);
+            npc = SpawnPerson(entMan, map.GridCoords, Stranger);
             ship = (grid, entMan.EnsureComponent<WFShipAccessComponent>(grid));
         });
 
@@ -178,26 +177,11 @@ public sealed class ShipAccessCodeTest
         });
     }
 
-    /// <summary>Moves the client's player, with a new mind, into a MobHuman on the map.</summary>
-    private static async Task<(ICommonSession Session, EntityUid Body)> AttachPlayer(TestPair pair, TestMapData map)
+    /// <summary>A human with a fixed name, since misses are counted by name. Server thread only.</summary>
+    private static EntityUid SpawnPerson(IEntityManager entMan, EntityCoordinates coords, string name)
     {
-        var server = pair.Server;
-        var entMan = server.EntMan;
-        var mindSys = entMan.System<SharedMindSystem>();
-        Assert.That(pair.Client.Session, Is.Not.Null, "This test needs a connected pair.");
-        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
-
-        EntityUid body = default;
-        await server.WaitPost(() =>
-        {
-            mindSys.WipeMind(session.ContentData()?.Mind);
-            body = entMan.SpawnEntity(HumanProto, map.GridCoords);
-            var mind = mindSys.CreateMind(session.UserId).Owner;
-            mindSys.TransferTo(mind, body);
-        });
-
-        await pair.RunTicksSync(5);
-        Assert.That(session.AttachedEntity, Is.EqualTo(body), "The player did not attach to the body.");
-        return (session, body);
+        var uid = entMan.SpawnEntity(HumanProto, coords);
+        entMan.System<MetaDataSystem>().SetEntityName(uid, name);
+        return uid;
     }
 }

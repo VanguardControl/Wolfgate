@@ -1,5 +1,3 @@
-using Robust.Shared.Network;
-
 namespace Content.Server._WF.ShipAccess;
 
 /// <summary>
@@ -13,9 +11,9 @@ public sealed partial class WFShipAccessCodeComponent : Component
     [DataField]
     public string? ShipCode;
 
-    /// <summary>Keypad misses and lockouts per account, this round only.</summary>
+    /// <summary>Keypad misses and lockouts per character name, this round only.</summary>
     [ViewVariables]
-    public Dictionary<NetUserId, WFShipAccessLockout> Lockouts = new();
+    public Dictionary<string, WFShipAccessLockout> Lockouts = new();
 
     /// <summary>Failed keypad attempts on this ship this round.</summary>
     [ViewVariables]
@@ -33,9 +31,6 @@ public sealed class WFShipAccessLockout
 
     /// <summary>Keypads refuse this person until then.</summary>
     public TimeSpan LockedUntil;
-
-    /// <summary>Character name at the last miss, for the admin log.</summary>
-    public string Name = string.Empty;
 }
 
 /// <summary>A door's own four-digit code. Server only, saved with the grid; the door's rule component only carries HasOwnCode.</summary>

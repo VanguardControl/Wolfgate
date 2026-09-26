@@ -4,18 +4,19 @@ using Content.Shared._Mono.Shipyard;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared.Access.Components;
 using Content.Shared.Database;
 using Content.Shared.Doors.Components;
 using Content.Shared.Popups;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
-using Robust.Shared.Network;
 
 namespace Content.Server._WF.ShipAccess;
 
 /// <summary>
-/// Owns every edit to <see cref="WFShipAccessComponent"/>: registers the buyer at purchase, keeps each ship
-/// access reader on the grid in step with the lock, and applies the console's access tab and verbs.
+/// Owns every edit to <see cref="WFShipAccessComponent"/>: sets a ship up at purchase, keeps each ship access
+/// reader on the grid in step with the lock, and applies the console's access tab and verbs. The allow list
+/// holds ID cards; ownership is the deed card and is never recorded here.
 /// </summary>
 public sealed partial class WFShipAccessServerSystem : EntitySystem
 {
@@ -46,30 +47,23 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
     }
 
     /// <summary>
-    /// Registers a bought ship: the owner from the purchaser's session or the ownership record, the mode
-    /// from the grid's company and the lock from the cvar.
+    /// Sets a bought ship up: the buyer's name for display, the mode from the grid's company and the lock from
+    /// the cvar. Ownership itself is the deed card the shipyard hands out.
     /// </summary>
     public Entity<WFShipAccessComponent> SetupShip(EntityUid grid, EntityUid? purchaser)
     {
         var comp = EnsureComp<WFShipAccessComponent>(grid);
         var ship = new Entity<WFShipAccessComponent>(grid, comp);
 
-        if (purchaser is { } buyer && _player.TryGetSessionByEntity(buyer, out var session))
-        {
-            comp.OwnerUserId = session.UserId;
+        if (purchaser is { } buyer)
             comp.OwnerName = Name(buyer);
-        }
-        else if (TryComp<ShipOwnershipComponent>(grid, out var ownership))
-        {
-            comp.OwnerUserId = ownership.OwnerUserId;
-            if (_player.TryGetSessionById(ownership.OwnerUserId, out var owner))
-                comp.OwnerName = owner.AttachedEntity is { } body ? Name(body) : owner.Name;
-        }
+        else if (TryComp<ShuttleDeedComponent>(grid, out var deed) && !string.IsNullOrEmpty(deed.ShuttleOwner))
+            comp.OwnerName = deed.ShuttleOwner;
 
         comp.Mode = _access.IsFactionGrid(grid, out _) ? WFShipAccessMode.Faction : WFShipAccessMode.Private;
         SetLocked(ship, _cfg.GetCVar(ShipAccessCVars.LockNewShips));
         _adminLog.Add(LogType.Action, LogImpact.Low,
-            $"Ship access set up on {ToPrettyString(grid):grid}: owner {comp.OwnerName} ({comp.OwnerUserId}), mode {comp.Mode}, locked {comp.Locked}");
+            $"Ship access set up on {ToPrettyString(grid):grid}: registered to {comp.OwnerName}, mode {comp.Mode}, locked {comp.Locked}");
         return ship;
     }
 
@@ -104,41 +98,46 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Adds a player to the allow list. Fails for NPCs, the owner and people already listed.</summary>
+    /// <summary>Adds the card a person carries to the allow list. Fails when they carry none, it is the deed, or it is listed already.</summary>
     public bool TryAddPerson(Entity<WFShipAccessComponent> ship, EntityUid person, string label = "")
     {
-        if (!_player.TryGetSessionByEntity(person, out var session))
+        return _access.TryGetCard(person, out var card) && TryAddCard(ship, card, Name(person), label);
+    }
+
+    /// <summary>Adds an ID card to the allow list under the name on it, or the holder's name when the card is blank.</summary>
+    public bool TryAddCard(Entity<WFShipAccessComponent> ship, EntityUid card, string holderName, string label = "")
+    {
+        if (_access.IsDeedFor(card, ship.Owner) || _access.TryGetEntry(ship.Comp, card, out _))
             return false;
 
-        var userId = session.UserId;
-        if (_access.IsOwner(ship, userId) || _access.TryGetEntry(ship.Comp, userId, out _))
-            return false;
-
-        ship.Comp.AllowList.Add(new WFShipAccessEntry { UserId = userId, Name = Name(person), Label = label });
+        var name = TryComp<IdCardComponent>(card, out var idCard) && !string.IsNullOrEmpty(idCard.FullName) ? idCard.FullName : holderName;
+        ship.Comp.AllowList.Add(new WFShipAccessEntry { Card = GetNetEntity(card), Name = name, Label = label });
         Dirty(ship);
         _adminLog.Add(LogType.Action, LogImpact.Low,
-            $"{ToPrettyString(person):person} was added to the allow list of {ToPrettyString(ship.Owner):grid}");
+            $"Card {ToPrettyString(card):card} ({name}) was added to the allow list of {ToPrettyString(ship.Owner):grid}");
         return true;
     }
 
-    /// <summary>Takes a person off the allow list; false when they were not on it.</summary>
-    public bool RemoveEntry(Entity<WFShipAccessComponent> ship, NetUserId userId)
+    /// <summary>Takes a card off the allow list; false when it was not on it.</summary>
+    public bool RemoveEntry(Entity<WFShipAccessComponent> ship, NetEntity card)
     {
-        if (!_access.TryGetEntry(ship.Comp, userId, out var entry))
+        if (!_access.TryGetEntry(ship.Comp, card, out var entry))
             return false;
 
         ship.Comp.AllowList.Remove(entry);
         Dirty(ship);
-        RemoveDoorPlayer(ship.Owner, userId);
+        if (TryGetEntity(card, out var uid))
+            RemoveDoorPlayer(ship.Owner, uid.Value);
+
         _adminLog.Add(LogType.Action, LogImpact.Low,
-            $"{entry.Name} ({userId}) was removed from the allow list of {ToPrettyString(ship.Owner):grid}");
+            $"Card {card} ({entry.Name}) was removed from the allow list of {ToPrettyString(ship.Owner):grid}");
         return true;
     }
 
-    /// <summary>Sets a listed person's builder flag; false when they are not listed.</summary>
-    public bool SetBuilder(Entity<WFShipAccessComponent> ship, NetUserId userId, bool builder)
+    /// <summary>Sets a listed card's builder flag; false when it is not listed.</summary>
+    public bool SetBuilder(Entity<WFShipAccessComponent> ship, NetEntity card, bool builder)
     {
-        if (!_access.TryGetEntry(ship.Comp, userId, out var entry))
+        if (!_access.TryGetEntry(ship.Comp, card, out var entry))
             return false;
 
         entry.Builder = builder;
@@ -146,7 +145,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Empties the allow list and returns how many people were on it.</summary>
+    /// <summary>Empties the allow list and returns how many cards were on it.</summary>
     public int ClearAllowList(Entity<WFShipAccessComponent> ship)
     {
         var count = ship.Comp.AllowList.Count;
@@ -167,26 +166,11 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         return TryComp<WFShipAccessComponent>(grid, out var comp) ? ClearAllowList((grid, comp)) : 0;
     }
 
-    /// <summary>Records the owner's account and display name.</summary>
-    public void SetOwner(Entity<WFShipAccessComponent> ship, NetUserId userId, string name)
-    {
-        ship.Comp.OwnerUserId = userId;
-        ship.Comp.OwnerName = name;
-        Dirty(ship);
-    }
-
     /// <summary>Console verb bridge: a guest swiped in at the console also joins the allow list.</summary>
     public void OnGuestAccessGranted(EntityUid grid, EntityUid user)
     {
         if (TryComp<WFShipAccessComponent>(grid, out var comp))
             TryAddPerson((grid, comp), user, Loc.GetString("ship-access-label-guest"));
-    }
-
-    /// <summary>Whether the actor may adopt an unowned ship: they hold its deed or the ownership record names them.</summary>
-    public bool CanClaim(EntityUid grid, EntityUid actor, NetUserId userId)
-    {
-        return _access.HasDeedFor(actor, grid)
-            || (TryComp<ShipOwnershipComponent>(grid, out var ownership) && ownership.OwnerUserId == userId);
     }
 
     private void OnDoorParentChanged(Entity<DoorComponent> ent, ref EntParentChangedMessage args)

@@ -1,5 +1,4 @@
 using Robust.Shared.GameStates;
-using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.ShipAccess;
@@ -16,11 +15,12 @@ public sealed partial class WFDoorAccessRuleComponent : Component
     public WFDoorAccessRule Rule = WFDoorAccessRule.Default;
 
     /// <summary>
-    /// Accounts picked for this door under Players and PlayersOrCode. Each is on the ship's allow list when
-    /// added and is dropped from here when it leaves that list. Networked so the client predicts its own opens.
+    /// ID cards picked for this door under Players and PlayersOrCode. Each is on the ship's allow list when
+    /// added and is dropped from here when it leaves that list. Round state like the allow list, so not saved
+    /// with the grid. Networked so the client predicts its own opens.
     /// </summary>
-    [DataField, AutoNetworkedField]
-    public List<NetUserId> Players = new();
+    [ViewVariables, AutoNetworkedField]
+    public HashSet<EntityUid> Players = new();
 
     /// <summary>True while the server holds a code for this door, so the console can show that without the code.</summary>
     [DataField, AutoNetworkedField]
@@ -35,24 +35,24 @@ public sealed partial class WFDoorAccessRuleComponent : Component
 [Serializable, NetSerializable]
 public enum WFDoorAccessRule : byte
 {
-    /// <summary>Follows the ship: owner, allow list and faction cards, and only while the ship is locked.</summary>
+    /// <summary>Follows the ship: deed, allow list and faction cards, and only while the ship is locked.</summary>
     Default,
 
-    /// <summary>Owner only.</summary>
+    /// <summary>The deed holder only.</summary>
     OwnerOnly,
 
-    /// <summary>Owner and the accounts picked for this door.</summary>
+    /// <summary>The deed holder and the cards picked for this door.</summary>
     Players,
 
-    /// <summary>Owner, and anyone who enters the door's code or the ship code at the keypad.</summary>
+    /// <summary>The deed holder, and anyone who enters the door's code or the ship code at the keypad.</summary>
     Code,
 
-    /// <summary>Owner, the accounts picked for this door, or a code.</summary>
+    /// <summary>The deed holder, the cards picked for this door, or a code.</summary>
     PlayersOrCode,
 
     /// <summary>Everyone.</summary>
     Public,
 
-    /// <summary>Nobody, bolted shut; the owner unseals it from the console.</summary>
+    /// <summary>Nobody, bolted shut; the deed holder unseals it from the console.</summary>
     Sealed,
 }

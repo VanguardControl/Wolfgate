@@ -5,25 +5,23 @@ using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
-using Robust.Shared.Network;
-using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.ShipAccess;
 
 /// <summary>
-/// Decides per-person ship access (owner, allow list, faction cards) for the ship access readers on
-/// client and server. It never mutates; the server system does the edits.
+/// Decides per-card ship access (the deed, the allow list, faction cards) for the ship access readers on
+/// client and server, the way a normal airlock reads the ID cards a person carries. It never mutates; the
+/// server system does the edits.
 /// </summary>
 public sealed class WFShipAccessSystem : EntitySystem
 {
-    /// <summary>Tiles from the console within which a player can be added to the allow list.</summary>
+    /// <summary>Tiles from the console within which a person's card can be added to the allow list.</summary>
     public const float AddRange = 3f;
 
     /// <summary>Digits in a ship or door code.</summary>
     public const int CodeLength = 4;
 
-    [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SharedIdCardSystem _idCard = default!;
@@ -53,8 +51,8 @@ public sealed class WFShipAccessSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether a door rule admits the user at the door itself. Code and PlayersOrCode only admit the owner and
-    /// listed people here; a code opens the door through the keypad, not the reader.
+    /// Whether a door rule admits the user at the door itself. Code and PlayersOrCode only admit the deed and
+    /// listed cards here; a code opens the door through the keypad, not the reader.
     /// </summary>
     public bool RuleAllows(EntityUid user, Entity<WFShipAccessComponent> ship, WFDoorAccessRuleComponent rule)
     {
@@ -66,10 +64,16 @@ public sealed class WFShipAccessSystem : EntitySystem
                 return false;
             case WFDoorAccessRule.OwnerOnly:
             case WFDoorAccessRule.Code:
-                return TryGetUserId(user, out var ownerId) && IsOwner(ship, ownerId);
+                return HasDeedFor(user, ship.Owner);
             case WFDoorAccessRule.Players:
             case WFDoorAccessRule.PlayersOrCode:
-                return TryGetUserId(user, out var userId) && (IsOwner(ship, userId) || rule.Players.Contains(userId));
+                foreach (var card in FindAccessibleIdCards(user))
+                {
+                    if (IsDeedFor(card, ship.Owner) || rule.Players.Contains(card))
+                        return true;
+                }
+
+                return false;
             default:
                 return !ship.Comp.Locked || IsAllowed(user, ship);
         }
@@ -81,7 +85,7 @@ public sealed class WFShipAccessSystem : EntitySystem
         return rule is WFDoorAccessRule.Code or WFDoorAccessRule.PlayersOrCode;
     }
 
-    /// <summary>Whether the rule has a per-door player list.</summary>
+    /// <summary>Whether the rule has a per-door card list.</summary>
     public static bool TakesPlayers(WFDoorAccessRule rule)
     {
         return rule is WFDoorAccessRule.Players or WFDoorAccessRule.PlayersOrCode;
@@ -108,16 +112,20 @@ public sealed class WFShipAccessSystem : EntitySystem
         return TryComp<WFDoorAccessRuleComponent>(door, out var rule) ? rule.Rule : WFDoorAccessRule.Default;
     }
 
-    /// <summary>Whether the user is the owner, on the allow list or, in Faction mode, carries a card of the ship's company.</summary>
+    /// <summary>Whether the user carries the deed, a listed card or, in Faction mode, a card of the ship's company.</summary>
     public bool IsAllowed(EntityUid user, Entity<WFShipAccessComponent> ship)
     {
-        if (TryGetUserId(user, out var userId) && (IsOwner(ship, userId) || TryGetEntry(ship.Comp, userId, out _)))
-            return true;
+        var cards = FindAccessibleIdCards(user);
+        foreach (var card in cards)
+        {
+            if (IsDeedFor(card, ship.Owner) || TryGetEntry(ship.Comp, card, out _))
+                return true;
+        }
 
         if (ship.Comp.Mode != WFShipAccessMode.Faction || !IsFactionGrid(ship, out var company))
             return false;
 
-        foreach (var card in FindAccessibleIdCards(user))
+        foreach (var card in cards)
         {
             if (TryComp<IdCardComponent>(card, out var idCard) && idCard.CompanyName == company)
                 return true;
@@ -126,31 +134,31 @@ public sealed class WFShipAccessSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Account behind a player entity. NPCs have none; the client only resolves its own.</summary>
-    public bool TryGetUserId(EntityUid user, out NetUserId userId)
+    /// <summary>The card a person would swipe: the one in their active hand, else the one they wear. False when they carry none.</summary>
+    public bool TryGetCard(EntityUid user, out EntityUid card)
     {
-        if (_player.TryGetSessionByEntity(user, out var session))
+        if (_idCard.TryFindIdCard(user, out var idCard))
         {
-            userId = session.UserId;
+            card = idCard.Owner;
             return true;
         }
 
-        userId = default;
+        card = default;
         return false;
     }
 
-    /// <summary>Whether the account is the ship's recorded owner.</summary>
-    public bool IsOwner(Entity<WFShipAccessComponent> ship, NetUserId userId)
+    /// <summary>Finds the allow list entry for a card.</summary>
+    public bool TryGetEntry(WFShipAccessComponent comp, EntityUid card, [NotNullWhen(true)] out WFShipAccessEntry? entry)
     {
-        return ship.Comp.HasOwner && ship.Comp.OwnerUserId == userId;
+        return TryGetEntry(comp, GetNetEntity(card), out entry);
     }
 
-    /// <summary>Finds the allow list entry for an account.</summary>
-    public bool TryGetEntry(WFShipAccessComponent comp, NetUserId userId, [NotNullWhen(true)] out WFShipAccessEntry? entry)
+    /// <summary>Finds the allow list entry for a card by its network id.</summary>
+    public bool TryGetEntry(WFShipAccessComponent comp, NetEntity card, [NotNullWhen(true)] out WFShipAccessEntry? entry)
     {
         foreach (var e in comp.AllowList)
         {
-            if (e.UserId != userId)
+            if (e.Card != card)
                 continue;
 
             entry = e;
@@ -197,12 +205,18 @@ public sealed class WFShipAccessSystem : EntitySystem
             cards.Add(idCard.Owner);
     }
 
-    /// <summary>Whether any accessible card holds the deed for this grid.</summary>
+    /// <summary>Whether the card holds the deed for this grid.</summary>
+    public bool IsDeedFor(EntityUid card, EntityUid grid)
+    {
+        return TryComp<ShuttleDeedComponent>(card, out var deed) && deed.ShuttleUid == grid;
+    }
+
+    /// <summary>Whether any accessible card holds the deed for this grid: the ship's owner, as far as its doors know.</summary>
     public bool HasDeedFor(EntityUid user, EntityUid grid)
     {
         foreach (var card in FindAccessibleIdCards(user))
         {
-            if (TryComp<ShuttleDeedComponent>(card, out var deed) && deed.ShuttleUid == grid)
+            if (IsDeedFor(card, grid))
                 return true;
         }
 
