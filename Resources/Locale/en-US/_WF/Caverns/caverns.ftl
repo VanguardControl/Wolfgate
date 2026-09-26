@@ -32,3 +32,4 @@ wf-cavern-climb-up-start-others = { CAPITALIZE(THE($user)) } starts climbing up.
 wf-cavern-climb-down-start-others = { CAPITALIZE(THE($user)) } starts climbing down.
 wf-cavern-climb-blocked = Something blocks the way up.
 wf-cavern-climb-blocked-hull = A ship is parked over the exit.
+wf-cavern-climb-down-blocked = Something blocks the way down.

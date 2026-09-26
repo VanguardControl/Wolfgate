@@ -4,11 +4,13 @@ using System.Linq;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.Caverns;
+using Content.Server._WF.Planets;
 using Content.Server.Parallax;
 using Content.Shared._WF.Administration;
 using Content.Shared.Parallax.Biomes;
 using Robust.Client.Console;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
@@ -16,7 +18,7 @@ using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
-/// <summary>The wfcavern admin command: list, tp, mouths and open.</summary>
+/// <summary>The wfcavern admin command: list, tp, mouths and open, planet names and open's refusal when the cavern is gone.</summary>
 [TestFixture]
 [TestOf(typeof(WFCavernCommand))]
 public sealed class CavernCommandTest
@@ -24,7 +26,13 @@ public sealed class CavernCommandTest
     /// <summary>How far east of the gate the admin carves a mouth by hand.</summary>
     private static readonly Vector2i OpenOffset = new(16, 0);
 
-    /// <summary>list shows every world, tp lands on the gate pad, mouths lists the gate and open carves a mouth.</summary>
+    /// <summary>A sector body's name, given to the Asclepiu network to check that planets match by it.</summary>
+    private const string BodyName = "Wfcavernbody";
+
+    /// <summary>A build name unlike the surface id, to check that planets match by the name they were built under.</summary>
+    private const string BuiltName = "Wfcavernbuilt";
+
+    /// <summary>list shows every world, tp lands on the gate pad, mouths lists the gate under every planet name, and open carves a mouth or refuses without a cavern.</summary>
     [Test]
     public async Task ListTpMouthsOpen()
     {
@@ -46,6 +54,7 @@ public sealed class CavernCommandTest
         await EnableCaverns(pair);
 
         var worlds = new List<World>();
+        var body = EntityUid.Invalid;
         await pair.Client.WaitPost(() => console.AddString += capture);
 
         try
@@ -79,6 +88,22 @@ public sealed class CavernCommandTest
             var mouths = await Run(pair, output, "mouths Asclepiu");
             Assert.That(mouths.Any(line => line.Contains("Gate") && line.Contains(gate.Origin.ToString())), Is.True,
                 $"mouths does not list the gate at {gate.Origin}:\n{string.Join('\n', mouths)}");
+
+            // A planet answers to its sector body's name, the name it was built under and its surface id, ignoring case.
+            await server.WaitPost(() =>
+            {
+                body = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+                server.System<MetaDataSystem>().SetEntityName(body, BodyName);
+                entMan.GetComponent<WFPlanetNetworkComponent>(world.Network).Planet = body;
+                entMan.GetComponent<WFPlanetWeatherComponent>(world.Network).PlanetName = BuiltName;
+            });
+
+            foreach (var name in new[] { BodyName, BuiltName.ToLowerInvariant(), "WFSurfaceAsclepiu", "asclepiu" })
+            {
+                var named = await Run(pair, output, $"mouths {name}");
+                Assert.That(named.Any(line => line.Contains("Gate") && line.Contains(gate.Origin.ToString())), Is.True,
+                    $"mouths {name} does not list the Asclepiu gate:\n{string.Join('\n', named)}");
+            }
 
             await Run(pair, output, "tp Asclepiu mouth");
             await server.WaitAssertion(() =>
@@ -127,10 +152,42 @@ public sealed class CavernCommandTest
             var after = await Run(pair, output, "mouths Asclepiu");
             Assert.That(after.Count(line => line.Contains("Admin")), Is.EqualTo(1),
                 $"mouths does not list the carved mouth:\n{string.Join('\n', after)}");
+
+            // With the cavern gone, open refuses with its own reason, which has its own Fluent variant.
+            await server.WaitAssertion(() =>
+            {
+                var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
+                var cavern = ground.Cavern;
+                var loc = server.ResolveDependency<ILocalizationManager>();
+
+                ground.Cavern = EntityUid.Invalid;
+                var opened = server.System<WFCavernMouthSystem>().TryOpenMouth((world.Ground, ground), spot + OpenOffset, out var refusal);
+                ground.Cavern = cavern;
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(opened, Is.False, "open carved a mouth over a missing cavern.");
+                    Assert.That(refusal, Is.EqualTo("cavern"), "open gave the wrong reason for a missing cavern.");
+                    Assert.That(loc.GetString("cmd-wfcavern-open-refused", ("reason", "cavern")),
+                        Is.Not.EqualTo(loc.GetString("cmd-wfcavern-open-refused", ("reason", "mouth"))),
+                        "The cavern refusal falls through to the default Fluent variant.");
+                }
+            });
         }
         finally
         {
             await pair.Client.WaitPost(() => console.AddString -= capture);
+
+            if (body.IsValid())
+            {
+                await server.WaitPost(() =>
+                {
+                    if (entMan.TryGetComponent<WFPlanetNetworkComponent>(worlds[0].Network, out var network))
+                        network.Planet = null;
+
+                    entMan.DeleteEntity(body);
+                });
+            }
 
             foreach (var world in worlds)
             {

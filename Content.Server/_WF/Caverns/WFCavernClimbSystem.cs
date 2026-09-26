@@ -9,7 +9,7 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Server._WF.Caverns;
 
-/// <summary>Moves a climber between a cavern and its ground when the climb finishes: down beside the climb point, up onto safe ground.</summary>
+/// <summary>Moves a climber between a cavern and its ground when the climb finishes: down onto the pad at the climb point, up onto safe ground.</summary>
 public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
 {
     [Dependency] private CESharedZLevelsSystem _zLevels = default!;
@@ -18,10 +18,10 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
-    /// <summary>How far, in tiles, the exit may lie from the climb point in either axis: a 5x5 square.</summary>
+    /// <summary>How far, in tiles, the exit or landing may lie from the climb point in either axis: a 5x5 square.</summary>
     public const int ExitReach = 2;
 
-    /// <summary>Exit offsets from the climb point, nearest first.</summary>
+    /// <summary>Exit and landing offsets from the climb point, nearest first.</summary>
     private static readonly Vector2i[] ExitOffsets = BuildExitOffsets();
 
     /// <inheritdoc/>
@@ -54,7 +54,9 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
             return;
 
         args.Handled = true;
-        ClimbDown(args.User, ent);
+
+        if (!ClimbDown(args.User, ent))
+            _popup.PopupEntity(Loc.GetString("wf-cavern-climb-down-blocked"), args.User, args.User);
     }
 
     /// <summary>Moves a climber at a climb point up onto the nearest safe ground tile, or reports what blocks the way.</summary>
@@ -84,7 +86,7 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
         return WFCavernClimbResult.Climbed;
     }
 
-    /// <summary>Moves a climber at a shade down to the cavern, onto the pad under its mouth's climb tile.</summary>
+    /// <summary>Moves a climber at a shade down to the cavern, onto the pad at its mouth's climb point, or the nearest free tile to it.</summary>
     // A hole outside any mouth has no climb tile, so the climber goes down the hole itself.
     public bool ClimbDown(EntityUid user, EntityUid shade)
     {
@@ -95,7 +97,8 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
             || !TryComp<MapGridComponent>(groundUid, out var grid)
             || Transform(user).MapUid != groundUid
             || !_zLevels.TryMapDown(groundUid, out var below)
-            || below.Owner != ground.Cavern)
+            || below.Owner != ground.Cavern
+            || !TryComp<MapGridComponent>(ground.Cavern, out var cavernGrid))
             return false;
 
         var hole = _map.TileIndicesFor(groundUid, grid, xform.Coordinates);
@@ -110,14 +113,35 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
             break;
         }
 
-        _transform.SetCoordinates(user, _map.GridTileToLocal(groundUid, grid, start));
-
-        if (!_zLevels.TryMoveDown(user))
+        if (!TryFindLanding((ground.Cavern, cavernGrid), start, out var landing)
+            || !_zLevels.TryMoveDown(user)
+            || Transform(user).MapUid != ground.Cavern)
             return false;
 
+        _transform.SetCoordinates(user, _map.GridTileToLocal(ground.Cavern, cavernGrid, landing));
         _zLevels.SetZPosition(user, 0f);
         _zLevels.SetZVelocity(user, 0f);
         return true;
+    }
+
+    /// <summary>The nearest cavern tile to a climb point that is solid and free of hard anchored entities, such as something built on the pad.</summary>
+    public bool TryFindLanding(Entity<MapGridComponent> cavern, Vector2i from, out Vector2i landing)
+    {
+        foreach (var offset in ExitOffsets)
+        {
+            var index = from + offset;
+
+            if (!_map.TryGetTileRef(cavern, cavern.Comp, index, out var tile)
+                || tile.Tile.IsEmpty
+                || HasHardAnchored(cavern, index))
+                continue;
+
+            landing = index;
+            return true;
+        }
+
+        landing = from;
+        return false;
     }
 
     /// <summary>The nearest ground tile to a climb point that is solid, not a hole, under no hull and free of hard anchored entities.</summary>
@@ -142,7 +166,7 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
                 continue;
             }
 
-            if (HasHardAnchored(ground, index))
+            if (HasHardAnchored((ground.Owner, ground.Comp2), index))
                 continue;
 
             exit = index;
@@ -164,10 +188,10 @@ public sealed partial class WFCavernClimbSystem : SharedWFCavernClimbSystem
         return grids.Count > 0;
     }
 
-    /// <summary>Whether anything anchored on a ground tile would stop a mob standing there.</summary>
-    private bool HasHardAnchored(Entity<WFCavernGroundComponent, MapGridComponent> ground, Vector2i index)
+    /// <summary>Whether anything anchored on a tile would stop a mob standing there.</summary>
+    private bool HasHardAnchored(Entity<MapGridComponent> grid, Vector2i index)
     {
-        var anchored = _map.GetAnchoredEntitiesEnumerator(ground, ground.Comp2, index);
+        var anchored = _map.GetAnchoredEntitiesEnumerator(grid, grid.Comp, index);
 
         while (anchored.MoveNext(out var uid))
         {

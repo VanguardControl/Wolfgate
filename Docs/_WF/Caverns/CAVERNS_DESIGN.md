@@ -111,8 +111,12 @@ Checked in code on this branch. Line numbers are approximate.
     - Pilots descend at `PilotControl.cs:217`.
     - Today every one of these fails at the ground, because nothing exists below it. With a cavern, a parked hull
       whose ground chunk unloads would sink into it.
-12. **Orbital falls.** `WFOrbitalMobFallSystem.IsSurfaceImpact` only accepts `MapUid == Ground`. An orbital faller who
-    drops through a mouth takes the full accumulated fall, up to 20² × 0.75 = 300 Blunt.
+12. **Orbital falls.** `WFOrbitalMobFallSystem.IsSurfaceImpact` only accepts `MapUid == Ground`, so an orbital faller who
+    drops through a mouth skips the orbital rule (one arm and one leg severed, left critical) and lands as an ordinary
+    fall. Orbit is depth 4 (three air layers), so the fall is five levels and hits at about 10 m/s, far below the
+    20 m/s cap (which needs about 20 levels): `(int)(v² × 0.75 × tile multiplier)`, about 75 Blunt on a ×1 tile.
+    F2b measured it with the fix reverted: 58 Blunt on Fervidus ash (×0.75), alive and unmaimed; 116 on Aerumna scree
+    (×1.5), critical and unmaimed. Asclepiu's water (×0) would make a mouth a free way down from orbit.
 13. **Planet control.** `PlanetControlSystem`'s gravity loop covers `network.Layers` only
     (`PlanetControlSystem.cs:121`).
 14. **Tiles.**
@@ -180,7 +184,8 @@ never in `Layers`". `Layers` stays ground-first and orbit-last, so `PlanetNetwor
 **`PlanetControlSystem`**: the gravity loop covers `network.Layers.Concat(network.LowerLayers)`.
 
 **`WFOrbitalMobFallSystem.IsSurfaceImpact`** (F2): also accept a map with `CEZMapComponent.Depth < 0` and
-`WFPlanetLayerComponent`. An orbital faller who lands in a cavern is then maimed, not killed.
+`WFPlanetLayerComponent`. An orbital faller who lands in a cavern is then maimed and left critical exactly as on the
+ground, instead of taking an ordinary fall scaled by the landing tile (2.1 item 12).
 
 **Hull guard** (F1). Add these to `Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`:
 
@@ -367,7 +372,7 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
   `.Holes.cs` (F2c) adds the hole queue.
 - **`WFCavernClimbSystem : SharedWFCavernClimbSystem`** (F2b): the move itself, server only, on
   `(WFCavernClimbComponent, WFCavernClimbDoAfterEvent)` (up) and `(WFCavernShaftComponent, WFCavernClimbDoAfterEvent)`
-  (down). Test API: `ClimbUp`, `ClimbDown` and `FindExit` (3.6). Hauling is F5.
+  (down). Test API: `ClimbUp`, `ClimbDown`, `FindExit` (3.6) and `TryFindLanding` (3.5). Hauling is F5.
 - **`WFCavernHazardSystem`** (F5): cave-ins, vents and disturbance.
 - **`WFCavernCommand`** (F2): `wfcavern`.
 - **`BiomeSystem.Caverns.cs`** (`Content.Server/_WF/Caverns/`, namespace `Content.Server.Parallax`) exposes two
@@ -622,17 +627,22 @@ and damage is 13 Blunt × the tile multiplier (table below). It never kills. Kno
 F2a measured these exactly in `CavernFallTest.MobFallsAndIsHurtALittle`: 0, 10, 6, 20, 3 and 5 Blunt.
 
 **Climb down.** Use the *Climb down* verb on a shade, standing on the ground itself (not on a hull deck). It is a 3 s
-DoAfter that breaks on move or damage. The server then does the following in one tick, and the climber arrives
-standing, unhurt, on the pad at the climb point:
-1. moves the user to the mouth's climb tile on the ground (for a bare hole, the hole tile);
-2. `TryMoveDown`;
+DoAfter that breaks on move or damage (3.6 says which damage). The server then does the following in one tick, and the
+climber arrives standing, unhurt, on the pad at the climb point:
+1. picks the landing (`TryFindLanding`): the cavern tile under the mouth's climb tile (for a bare hole, the hole tile)
+   or, if something hard is anchored there (a wall a player built over the climb point), the nearest solid, free
+   cavern tile within 2 tiles in either axis. If there is none, the climb fails with `wf-cavern-climb-down-blocked` and
+   the climber stays where they were;
+2. `TryMoveDown`, then sets the coordinates to the landing tile's centre;
 3. `SetZPosition(0)` and `SetZVelocity(0)`.
+
+Nothing moves until the landing is found, so a refused climb leaves the climber where they stood.
 
 **Other ways down:**
 - **Parachutes:** a deployed parachute cancels the landing damage.
 - **Moths and harpies** (`CEZFlyer`) can fly down a mouth and back up it.
-- **Orbital fallers** who pass through a mouth are maimed rather than killed, through the `IsSurfaceImpact` fix
-  (2.2).
+- **Orbital fallers** who pass through a mouth are maimed and left critical, exactly as on the ground, through the
+  `IsSurfaceImpact` fix (2.2). Without it they would take an ordinary five-level fall scaled by the landing tile.
 
 ### 3.6 Coming back up
 
@@ -645,6 +655,13 @@ Use *Climb up* on a climb point, by verb or by activating it. It needs no equipm
   - Aerumna: 10 s.
 
   The hands' DoAfter multiplier does not apply (2.7). Hauling multiplies it by 1.5 (F5). It breaks on move or damage.
+- **Which damage breaks it.** The DoAfter keeps the default `DamageThreshold` of 1, but `SharedDoAfterSystem` only
+  counts damage raised with `interruptsDoAfters`. Air, heat, cold, suffocation, pressure and poison from metabolism
+  (`RespiratorSystem`, `TemperatureSystem`, `BarotraumaSystem`, `HealthChange`) all pass `false`, so a player who fell
+  into hostile air unprepared can always climb out. Blows, bites, falling rock and falls do break it.
+  `CavernClimbTest.UnequippedClimberEscapesHostileAir` proves it on Aerumna, Fervidus and Thrascias, whose air hurt an
+  unequipped human within a minute. Carcinoma's ammonia did not hurt one within a minute at F2b, so nothing there can
+  break the climb either.
 - **Exit tile.** When the climb finishes, the server (`FindExit`) takes the ground tiles within 2 tiles of the climb
   point in either axis (a 5×5 square), nearest first, and picks the first that meets all of these:
   - it is non-empty and not a hole in the registry;
@@ -698,7 +715,7 @@ The tests below are the gates.
 | `CavernHullTest.UnsupportedHullNeverDescends`, `PilotCannotDescendFromGround`, `LiftoffAndLandingUnchanged` | caverns are switched on anywhere (F1) |
 | `CavernViewerEyeTest.GroundViewerLoadsNoCavern` | F1 ends; later features assume ground viewers cost nothing below |
 | `CavernFallTest.MobFallsAndIsHurtALittle` [6] | the guidebook, the examine texts and the gate rely on walking in |
-| `CavernClimbTest.ClimbUpLandsOnSolidExitAndStays` | anything calls the caverns accessible without equipment |
+| `CavernClimbTest.ClimbUpLandsOnSolidExitAndStays`, `UnequippedClimberEscapesHostileAir` | anything calls the caverns accessible without equipment |
 | `CavernMouthTest.GateSurvivesUnloadReload`, `ClaimDeferredWhileChunkLoaded`, `ClaimAheadOfViewer` | lazy claims replace any build-time stamping |
 | `CavernHoleTest.UnloadDoesNotOpenHoles`, `DugHoleGetsLandingShadeAndClimb` | the hole queue is trusted with real holes |
 | `CavernRampTest` (every case) | any ramp prototype is merged |
@@ -884,6 +901,7 @@ keys.
 | `wf-cavern-climb-up-start-others` / `-down-start-others` | { CAPITALIZE(THE($user)) } starts climbing up. / … down. | F2 |
 | `wf-cavern-climb-blocked` | Something blocks the way up. | F2 |
 | `wf-cavern-climb-blocked-hull` | A ship is parked over the exit. | F2 |
+| `wf-cavern-climb-down-blocked` | Something blocks the way down. | F2 |
 | `wf-cavern-<world>-arrival` ×6 | e.g. Fervidus: "The heat presses in. Far below, rock glows red." | F4 |
 | `wf-cavern-weather-underground` | Underground | F4 |
 | `wf-cavern-climb-haul` | You haul { THE($thing) } up behind you. | F5 |
@@ -980,12 +998,14 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernHoleTest.CoveredHoleLosesShade` | A tile laid over a hole removes its shade, and removing it again restores the shade | F2 |
 | `CavernClimbTest.ClimbUpLandsOnSolidExitAndStays` | Asclepiu, by the *Climb up* verb from the pad: after the DoAfter the mob is on the ground, on the solid lip over the climb point (not a hole), at `LocalPosition < 0.1`, and stays there for 120 ticks | F2 |
 | `CavernClimbTest.ClimbDownIsHarmless` | By the *Climb down* verb from the lip: 0 damage, no knockdown, on a pinned pad tile at or next to the climb point, and still there unhurt 120 ticks later | F2 |
+| `CavernClimbTest.ClimbDownAvoidsBuiltPad` | With a `WallSolid` anchored on the pad over the climb point, *Climb down* lands on a pad tile beside it, unhurt, and stays there for 120 ticks | F2 |
+| `CavernClimbTest.UnequippedClimberEscapesHostileAir` [3] | Aerumna, Fervidus, Thrascias: an unequipped human waits in the cavern until the air hurts it, then climbs out by verb; it keeps taking damage during the climb, the DoAfter is not cancelled, and it reaches the ground | F2 |
 | `CavernClimbTest.ClimbRefusedUnderHull` | A static 5×5 `BuildDebris` over every exit tile (a dynamic one is shoved off the outcrops the viewer loads): the climb finishes, the mob stays below, and the connected client receives the hull popup | F2 |
-| `CavernClimbTest.DelayScalesWithGravity` | The stamped delay is Asclepiu 4 s and Aerumna 10 s (±1 tick). On Aerumna (godmode, as its air would break the climb) the DoAfter's delay is 10 s ±1 tick, and by the game clock the climb lands on the first tick at or past it | F2 |
+| `CavernClimbTest.DelayScalesWithGravity` | The stamped delay is Asclepiu 4 s and Aerumna 10 s (±1 tick). On Aerumna, unequipped, the DoAfter's delay is 10 s ±1 tick, and by the game clock the climb lands on the first tick at or past it | F2 |
 | `CavernHullTest.HullOverMouthStaysOnGround` | A 3×3 grid (`BuildDebris`; `BuildHull` is a fixed 15×15) over the hole and one lip corner stays on the ground with no transit for 5 s | F2 |
 | `CavernHullTest.SmallDebrisOverMouthNeverEntersCavern` | A 1×1 debris grid inside the hole never has the cavern as its map (it may churn) | F2 |
-| `CavernOrbitalFallTest.OrbitalFallIntoMouthMaimsNotKills` | Fervidus (a ×0.75 ash landing; Asclepiu's water would spare anyone). Dropped from orbit over the gate: critical, not dead, one arm and one leg severed, on the cavern. Without the `IsSurfaceImpact` fix it fails: the faller lands alive and unmaimed | F2 |
-| `CavernCommandTest.ListTpMouthsOpen` | `list` prints six rows, `tp` lands on the gate pad, `open` creates a mouth, `mouths` lists the gate (output read from the client console: a content test can't implement `IConsoleShell`) | F2 |
+| `CavernOrbitalFallTest.OrbitalFallIntoMouthMaimsLikeGround` | Fervidus (a ×0.75 ash landing). Dropped from orbit over the gate, at rest on the cavern: critical, one arm and one leg severed. Without the `IsSurfaceImpact` fix it fails, because the faller lands alive and unmaimed with 58 Blunt (2.1 item 12) | F2 |
+| `CavernCommandTest.ListTpMouthsOpen` | `list` prints six rows, `tp` lands on the gate pad, `open` creates a mouth, `mouths` lists the gate by the sector body's name, the build name and the surface id with and without its prefix, ignoring case, and `TryOpenMouth` over a missing cavern refuses with `cavern`, whose Fluent variant is its own (output read from the client console: a content test can't implement `IConsoleShell`) | F2 |
 | `Content.Tests: CavernAirTest.ClassifiesEachWorld` | The six level atmospheres classify as in section 4.8, and the thresholds are exact at their edges | F2 |
 | `CavernPrototypeTest.OneCavernPerSurface` | One `wfCavern` per `wfPlanetSurface`, and every reference resolves (level, biome, tiles, entities, sounds) | F3 |
 | `CavernPrototypeTest.FloorsIndestructibleAndUndiggable` | Every tile a cavern template or mouth can place is `Indestructible`, and neither `CanShovel` nor `CanCrowbar`. This also proves tile `parent` inheritance | F3 |
@@ -1142,7 +1162,11 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   `WFCavernClimbSystem` (2.7); climbing down lands on the pad tile of the climb point itself (3.5); the exit search is
   the 5×5 square, nearest first, and the hull popup wins when a hull covered any solid, non-hole tile (3.6);
   `ClimbRefusedUnderHull` parks a static debris grid, and `DelayScalesWithGravity` times the climb by the game clock
-  (6).
+  (6). After review: climbing down checks its landing the same way (`TryFindLanding`) and moves nobody until it is
+  found, with its own `wf-cavern-climb-down-blocked` popup (3.5, 5); ambient damage never breaks a climb, which
+  `UnequippedClimberEscapesHostileAir` proves (3.6); 2.1 item 12's 300 Blunt was wrong, an unfixed orbital fall into
+  a mouth being an ordinary five-level landing, so the orbital test is now `OrbitalFallIntoMouthMaimsLikeGround` (2.1,
+  2.2, 3.5, 6).
 
 - **Add:**
   - Shared: `WFCavernShaftComponent.cs`, `WFCavernClimbComponent.cs`, `WFCavernClimbDoAfterEvent.cs`,
@@ -1272,3 +1296,4 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | 14 | The eye cap and hull guard touch CE files that change upstream | Single-line marked edits that keep the upstream expression. Recheck on every CE merge |
 | 15 | `Nocturine` spore pockets in Aerumna's dark with xenos may be too punishing | Small spread (≤ 6 tiles) and the hiss warns first. Tune after the F5 playtest |
 | 16 | `MobWatcherMagmawing` and `MobWatcherIcewing` are flying lavaland mobs | `FaunaSurvivesItsCavern` checks them, and no cavern mob has `CEZFlyer` |
+| 17 | The climb breaks on damage, so hostile air could trap an unprepared player below if ambient damage ever interrupted DoAfters | It doesn't today: air, heat, cold, suffocation, pressure and metabolism damage pass `interruptsDoAfters: false` (3.6). `UnequippedClimberEscapesHostileAir` fails if an upstream merge changes that; the fallback is to stop breaking the climb on damage without an origin |
