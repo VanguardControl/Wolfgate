@@ -290,19 +290,10 @@
   name: glass table
   description: A square piece of glass, standing on four metal legs.
   components:
-<<<<<<< HEAD
-  # WOLFGATE(Weapons) START: material bullet impacts
-  - type: RangedDamageSound
-    soundGroups:
-      Brute:
-        collection: WFBulletImpactGlass
-  # WOLFGATE END
-=======
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
         collection: WolfgateBulletImpactGlass
->>>>>>> ec70ea6ee8 (Impact Sound Things (#4774))
   - type: Sprite
     sprite: Structures/Furniture/Tables/glass.rsi
   - type: Icon
@@ -357,19 +348,10 @@
   name: reinforced glass table
   description: A square piece of glass, standing on four metal legs. Extra robust.
   components:
-<<<<<<< HEAD
-  # WOLFGATE(Weapons) START: material bullet impacts
-  - type: RangedDamageSound
-    soundGroups:
-      Brute:
-        collection: WFBulletImpactGlass
-  # WOLFGATE END
-=======
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
         collection: WolfgateBulletImpactGlass
->>>>>>> ec70ea6ee8 (Impact Sound Things (#4774))
   - type: Sprite
     sprite: Structures/Furniture/Tables/r_glass.rsi
   - type: Icon
@@ -446,19 +428,10 @@
   name: plasma glass table
   description: A square piece of plasma glass, standing on four metal legs. Pretty!
   components:
-<<<<<<< HEAD
-  # WOLFGATE(Weapons) START: material bullet impacts
-  - type: RangedDamageSound
-    soundGroups:
-      Brute:
-        collection: WFBulletImpactGlass
-  # WOLFGATE END
-=======
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
         collection: WolfgateBulletImpactGlass
->>>>>>> ec70ea6ee8 (Impact Sound Things (#4774))
   - type: Sprite
     sprite: Structures/Furniture/Tables/plasma.rsi
   - type: Icon
@@ -559,19 +532,10 @@
   name: wood table
   description: Do not apply fire to this. Rumour says it burns easily.
   components:
-<<<<<<< HEAD
-  # WOLFGATE(Weapons) START: material bullet impacts
-  - type: RangedDamageSound
-    soundGroups:
-      Brute:
-        collection: WFBulletImpactWood
-  # WOLFGATE END
-=======
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
         collection: WolfgateBulletImpactWood
->>>>>>> ec70ea6ee8 (Impact Sound Things (#4774))
   - type: Sprite
     sprite: Structures/Furniture/Tables/wood.rsi
   - type: Icon
@@ -951,19 +915,10 @@
   name: wood counter
   description: Do not apply fire to this. Rumour says it burns easily.
   components:
-<<<<<<< HEAD
-  # WOLFGATE(Weapons) START: material bullet impacts
-  - type: RangedDamageSound
-    soundGroups:
-      Brute:
-        collection: WFBulletImpactWood
-  # WOLFGATE END
-=======
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
         collection: WolfgateBulletImpactWood
->>>>>>> ec70ea6ee8 (Impact Sound Things (#4774))
   - type: Sprite
     sprite: Structures/Furniture/Tables/counterwood.rsi
   - type: Icon
