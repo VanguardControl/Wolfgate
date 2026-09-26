@@ -132,6 +132,8 @@ keypad).
 - [`Content.Client/UserInterface/Controls/MapGridControl.xaml.cs`](../../../Content.Client/UserInterface/Controls/MapGridControl.xaml.cs)
   - virtual, so the door map can centre its drawing in a control of any size
   - virtual, so the door map can fit the hull to its own shorter side
+- [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs): the ship link is networked, and this card may already have held a deed
+- [`Content.Server/_NF/ShuttleRecords/ShuttleRecordsSystem.Console.cs`](../../_NF/ShuttleRecords/ShuttleRecordsSystem.Console.cs): the ship link is networked, and this card may already have held a deed
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleLockSystem.cs`](../../Shuttles/Systems/ShuttleConsoleLockSystem.cs)
   - a guest's card also joins the allow list
   - resetting guests also empties the allow list, and that alone counts as a reset
@@ -139,5 +141,8 @@ keypad).
 - [`Content.Shared/_Mono/Shipyard/ShipAccessReaderSystem.cs`](../../../Content.Shared/_Mono/Shipyard/ShipAccessReaderSystem.cs)
   - a door whose own access reader is hacked, or on emergency access, skips the ship check, and a refusal plays the door's deny state as a normal airlock does
   - per-person access (owner, allow list, faction) is decided before the deed rules
+- [`Content.Shared/_NF/Shipyard/Components/ShuttleDeedComponent.cs`](../../../Content.Shared/_NF/Shipyard/Components/ShuttleDeedComponent.cs)
+  - AutoGenerateComponentState, so the client knows which ship a deed is for
+  - the access tab and door prediction read it on the client
 
 <!-- WOLFGATE-GENERATED END -->

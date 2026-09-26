@@ -12,11 +12,14 @@ using Content.Shared.Access.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared.Doors.Systems;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Mind;
+using Content.Shared.Players;
 using Content.Shared.Power;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 
 namespace Content.IntegrationTests.Tests._WF.ShipAccess;
 
@@ -278,6 +281,77 @@ public sealed class ShipAccessTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// The deed's ship link reaches the client, so the player carrying the deed gets the editable tab and
+    /// predicts their own door opens. Without it every client saw an empty deed and the tab stayed read-only.
+    /// </summary>
+    [Test]
+    public async Task ClientSeesTheDeedAndGetsTheEditableTab()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var hands = entMan.System<SharedHandsSystem>();
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+        var (_, body) = await AttachPlayer(pair, map, "Ada Vance");
+
+        await server.WaitPost(() =>
+        {
+            var card = entMan.SpawnEntity(CardProto, map.GridCoords);
+            Assert.That(hands.TryPickupAnyHand(body, card), Is.True, "Precondition: the player picks up their card.");
+            GiveDeed(entMan, card, grid);
+            var comp = entMan.EnsureComponent<WFShipAccessComponent>(grid);
+            comp.Locked = true;
+            entMan.Dirty(grid, comp);
+        });
+        await pair.RunTicksSync(10);
+
+        var clientGrid = pair.ToClientUid(grid);
+        await pair.Client.WaitAssertion(() =>
+        {
+            var clientEnt = pair.Client.EntMan;
+            var local = pair.Client.Session!.AttachedEntity;
+            Assert.That(local, Is.Not.Null, "Precondition: the client has its body.");
+            Assert.That(clientEnt.System<WFShipAccessSystem>().HasDeedFor(local!.Value, clientGrid), Is.True, "The client knows its card holds this ship's deed.");
+
+            using var screen = new ShipAccessScreen();
+            screen.SetShuttle(clientGrid);
+            screen.Refresh();
+            Assert.Multiple(() =>
+            {
+                Assert.That(Find<Label>(screen, "ReadOnlyLabel").Visible, Is.False, "The deed holder's tab is not read-only.");
+                Assert.That(Find<CheckBox>(screen, "LockedCheck").Visible, Is.True, "The deed holder can flip the lock.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Moves the client's player, with a new mind, into a named MobHuman on the map.</summary>
+    private static async Task<(ICommonSession Session, EntityUid Body)> AttachPlayer(TestPair pair, TestMapData map, string name)
+    {
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var mindSys = entMan.System<SharedMindSystem>();
+        Assert.That(pair.Client.Session, Is.Not.Null, "This test needs a connected pair.");
+        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
+
+        EntityUid body = default;
+        await server.WaitPost(() =>
+        {
+            mindSys.WipeMind(session.ContentData()?.Mind);
+            body = entMan.SpawnEntity(HumanProto, map.GridCoords);
+            entMan.System<MetaDataSystem>().SetEntityName(body, name);
+            var mind = mindSys.CreateMind(session.UserId).Owner;
+            mindSys.TransferTo(mind, body);
+        });
+
+        await pair.RunTicksSync(5);
+        Assert.That(session.AttachedEntity, Is.EqualTo(body), "The player did not attach to the body.");
+        return (session, body);
+    }
+
     /// <summary>A human with a fixed name holding a blank ID card in the active hand. Server thread only.</summary>
     private static (EntityUid Person, EntityUid Card) SpawnPersonWithCard(IEntityManager entMan, SharedHandsSystem hands, EntityCoordinates coords, string name)
     {
@@ -296,6 +370,7 @@ public sealed class ShipAccessTest
     {
         var deed = entMan.EnsureComponent<ShuttleDeedComponent>(card);
         typeof(ShuttleDeedComponent).GetField(nameof(ShuttleDeedComponent.ShuttleUid))!.SetValue(deed, grid);
+        entMan.Dirty(card, deed);
     }
 
     /// <summary>A shuttle airlock with a ship access reader in the given state. Server thread only.</summary>
