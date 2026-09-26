@@ -64,6 +64,7 @@ namespace Content.Server.Database
                 .HasIndex(p => new {p.Slot, PrefsId = p.PreferenceId})
                 .IsUnique();
 
+<<<<<<< HEAD
             // WOLFGATE(Genitals) START: consent system ported from HardLight
             modelBuilder.Entity<ConsentSettings>()
                 .HasIndex(c => new { c.UserId, c.ProfileId })
@@ -95,6 +96,21 @@ namespace Content.Server.Database
                 .HasForeignKey(c => c.ReadConsentSettingsId)
                 .IsRequired();
             // WOLFGATE END
+=======
+            // Mono start
+            modelBuilder.Entity<ProfileComponent>()
+                .HasOne(e => e.Profile)
+                .WithMany(e => e.Components)
+                .HasForeignKey(e => e.ProfileId)
+                .IsRequired();
+
+            modelBuilder.Entity<ProfileItem>()
+                .HasOne(e => e.Profile)
+                .WithMany(e => e.Items)
+                .HasForeignKey(e => e.ProfileId)
+                .IsRequired();
+            // Mono end
+>>>>>>> 84b2578ee5 (ATEMPT 3!!! (#4771))
 
             modelBuilder.Entity<Antag>()
                 .HasIndex(p => new {HumanoidProfileId = p.ProfileId, p.AntagName})
@@ -491,11 +507,19 @@ namespace Content.Server.Database
 
         public string Company { get; set; } = "None";
 
+<<<<<<< HEAD
         // WOLFGATE(Humanoid): player-set species name override, empty when unused.
         [Column("custom_species_name")] public string CustomSpeciesName { get; set; } = "";
 
         // WOLFGATE(Genitals): creator anatomy as versioned JSON; empty until the profile is migrated or saved.
         [Column("genitals")] public string Genitals { get; set; } = "";
+=======
+        // Mono start
+        public string[] Flags { get; set; } = [];
+        public List<ProfileComponent> Components { get; } = [];
+        public List<ProfileItem> Items { get; } = [];
+        // Mono end
+>>>>>>> 84b2578ee5 (ATEMPT 3!!! (#4771))
 
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
@@ -503,6 +527,7 @@ namespace Content.Server.Database
         public ConsentSettings? ConsentSettings { get; set; } // WOLFGATE(Genitals): consent system
     }
 
+<<<<<<< HEAD
     // WOLFGATE(Genitals) START: consent system ported from HardLight
     #region Consent Settings
 
@@ -563,6 +588,27 @@ namespace Content.Server.Database
 
     #endregion
     // WOLFGATE END
+=======
+    // Mono start
+    public class ProfileComponent
+    {
+        public int Id { get; set; }
+        public int ProfileId { get; set; }
+        public Profile Profile { get; set; } = null!;
+        public string Data { get; set; } = null!;
+        public bool Sticky { get; set; }
+    }
+
+    public class ProfileItem
+    {
+        public int Id { get; set; }
+        public int ProfileId { get; set; }
+        public Profile Profile { get; set; } = null!;
+        public string Data { get; set; } = null!;
+        public bool Sticky { get; set; }
+    }
+    // Mono end
+>>>>>>> 84b2578ee5 (ATEMPT 3!!! (#4771))
 
     public class Job
     {
