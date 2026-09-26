@@ -22,7 +22,7 @@
     sprite: Objects/Specific/Research/researchdisk.rsi
     state: icon
   product: WFCrateAutodocPrograms
-  cost: 2200
+  cost: 3000 # above the 2880 its contents sell for, or cargo can be milked
   category: cargoproduct-category-name-medical
   group: market
 

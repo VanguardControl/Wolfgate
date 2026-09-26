@@ -129,8 +129,10 @@ public sealed partial class AutodocSystem : EntitySystem
                 QueueDel(tool);
         }
 
-        // Nothing in the tray until a step asks for something.
-        _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true);
+        // Nothing in the tray until a step asks for something. A bare component (a test adds each one alone)
+        // has no slots to lock.
+        if (TryComp<ItemSlotsComponent>(ent, out var slots))
+            _slots.SetLock(ent.Owner, AutodocComponent.TraySlotId, true, slots);
         UpdateAppearance(ent);
     }
 

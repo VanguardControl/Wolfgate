@@ -24,12 +24,14 @@
   products:
     WFWolfmedAnalgesic: 2
 
+# Tramadol and sugar rather than tramadol and ethanol: Onyx's oxycodone is tramadol, ethanol and epinephrine, and a
+# recipe that is a subset of another fires as soon as its part is poured (TryAllReactionsTest adds one reagent at a time).
 - type: reaction
   id: WFWolfmedOpiate
   reactants:
     Tramadol:
       amount: 1
-    Ethanol:
+    Sugar:
       amount: 1
   products:
     WFWolfmedOpiate: 2

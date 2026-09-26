@@ -1,3 +1,4 @@
+using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Wounds;
@@ -130,8 +131,9 @@ public sealed class WolfmedBleedSpurtSystem : EntitySystem
     {
         stump = false;
         mechanical = false;
-        if (!HasComp<WoundHostComponent>(body) ||
-            _bloodstream.GetBloodLevelPercentage(body) < spec.MinBloodLevel)
+        // A wound host without a bloodstream (a trader NPC) has nothing to throw.
+        if (!HasComp<WoundHostComponent>(body) || !TryComp<BloodstreamComponent>(body, out var blood) ||
+            _bloodstream.GetBloodLevelPercentage(body, blood) < spec.MinBloodLevel)
             return false;
 
         var major = false;
