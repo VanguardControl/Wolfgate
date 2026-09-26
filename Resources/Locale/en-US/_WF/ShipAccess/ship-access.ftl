@@ -75,5 +75,6 @@ ship-access-code-wrong = Wrong code.
 ship-access-code-locked-out = Too many wrong codes. Try again later.
 ship-access-code-out-of-range = Stand closer to the door.
 ship-access-code-bolted = The door is bolted.
+ship-access-code-no-response = The keypad takes the code, but the door doesn't respond.
 ship-access-code-not-closed = The door is not closed.
 ship-access-code-no-keypad = This door has no keypad.

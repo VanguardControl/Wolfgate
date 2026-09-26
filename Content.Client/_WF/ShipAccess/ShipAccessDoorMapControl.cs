@@ -73,6 +73,9 @@ public sealed class ShipAccessDoorMapControl : ShipViewControl
 
     public override void SetGrid(EntityUid? grid)
     {
+        if (_grid == grid)
+            return;
+
         _grid = grid;
         Selected = null;
         _hovered = null;

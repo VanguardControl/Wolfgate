@@ -1,7 +1,9 @@
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared.ActionBlocker;
 using Content.Shared.Database;
 using Content.Shared.Doors.Components;
+using Content.Shared.Interaction;
 using Content.Shared.Verbs;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -11,6 +13,8 @@ namespace Content.Server._WF.ShipAccess;
 public sealed partial class WFShipAccessServerSystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ActionBlockerSystem _actionBlocker = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
 
     /// <summary>Wrong codes inside <see cref="MissWindow"/> that lock a person out of the ship's keypads.</summary>
     public const int MaxMisses = 5;
@@ -73,8 +77,9 @@ public sealed partial class WFShipAccessServerSystem
     }
 
     /// <summary>
-    /// Takes a keypad code at a door: the door's own code or the ship code opens it, skipping the reader. A
-    /// wrong code counts a miss for the person; a locked-out person is refused before the code is looked at.
+    /// Takes a keypad code at a door: the door's own code or the ship code stands in for the ship check, and the
+    /// door then opens through the normal path, so power, welding and its own ID access still apply. A wrong code
+    /// counts a miss for the person; a locked-out person is refused before the code is looked at.
     /// </summary>
     public WFShipAccessCodeResult TrySubmitCode(EntityUid user, EntityUid door, string code)
     {
@@ -82,7 +87,11 @@ public sealed partial class WFShipAccessServerSystem
             || Transform(door).GridUid is not { } grid || !TryComp<WFShipAccessComponent>(grid, out var access))
             return WFShipAccessCodeResult.NoKeypad;
 
-        if (!_transform.InRange(Transform(user).Coordinates, Transform(door).Coordinates, KeypadRange))
+        // A client can send a code without ever being offered the verb, so its checks are repeated here.
+        if (!_actionBlocker.CanInteract(user, door))
+            return WFShipAccessCodeResult.CannotInteract;
+
+        if (!_interaction.InRangeUnobstructed(user, door, KeypadRange))
             return WFShipAccessCodeResult.OutOfRange;
 
         if (_door.IsBolted(door))
@@ -105,7 +114,9 @@ public sealed partial class WFShipAccessServerSystem
             return WFShipAccessCodeResult.Wrong;
         }
 
-        _door.StartOpening(door, doorComp, user);
+        if (!_access.TryOpenByCode(user, (door, doorComp)))
+            return WFShipAccessCodeResult.NoResponse;
+
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{ToPrettyString(user):user} opened {ToPrettyString(door):door} on {ToPrettyString(grid):grid} with a code");
         return WFShipAccessCodeResult.Opened;
@@ -222,6 +233,8 @@ public sealed partial class WFShipAccessServerSystem
         var key = TrySubmitCode(user, door.Value, msg.Code) switch
         {
             WFShipAccessCodeResult.Opened => null,
+            WFShipAccessCodeResult.CannotInteract => null,
+            WFShipAccessCodeResult.NoResponse => "ship-access-code-no-response",
             WFShipAccessCodeResult.Wrong => "ship-access-code-wrong",
             WFShipAccessCodeResult.LockedOut => "ship-access-code-locked-out",
             WFShipAccessCodeResult.OutOfRange => "ship-access-code-out-of-range",
@@ -283,4 +296,10 @@ public enum WFShipAccessCodeResult : byte
     Bolted,
     NotClosed,
     NoKeypad,
+
+    /// <summary>The person can't act right now: crit, cuffed, a ghost and the like.</summary>
+    CannotInteract,
+
+    /// <summary>The code was right but the door wouldn't open, for example without power.</summary>
+    NoResponse,
 }

@@ -115,9 +115,9 @@ public sealed partial class ShipAccessScreen : BoxContainer
         foreach (var rule in Rules)
             DoorRuleButton.AddItem(RuleName(rule), (int) rule);
 
+        // The dropdown moves when the server's door state arrives, so a refused rule never shows.
         DoorRuleButton.OnItemSelected += args =>
         {
-            DoorRuleButton.SelectId(args.Id);
             if (DoorMap.Selected is { } door)
                 DoorRuleChanged?.Invoke(_entManager.GetNetEntity(door), (WFDoorAccessRule) args.Id);
         };

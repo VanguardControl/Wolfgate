@@ -26,11 +26,16 @@ public sealed partial class WFShipAccessServerSystem
             Seal(door);
     }
 
-    /// <summary>Bolts need power, so a sealed door that was unpowered bolts as soon as it is powered again.</summary>
+    /// <summary>Bolts need power, so a sealed door bolts, and an unsealed one unbolts, as soon as it is powered again.</summary>
     private void OnRulePowerChanged(Entity<WFDoorAccessRuleComponent> door, ref PowerChangedEvent args)
     {
-        if (args.Powered && door.Comp.Rule == WFDoorAccessRule.Sealed)
+        if (!args.Powered)
+            return;
+
+        if (door.Comp.Rule == WFDoorAccessRule.Sealed)
             Seal(door);
+        else if (door.Comp.UnboltWhenPowered)
+            Unseal(door);
     }
 
     /// <summary>Sets a door's rule. Sealing bolts and closes it; leaving Sealed unbolts it. False when nothing changed.</summary>
@@ -110,6 +115,7 @@ public sealed partial class WFShipAccessServerSystem
     /// <summary>Closes and bolts a sealed door, adding bolts to a door that has none.</summary>
     private void Seal(Entity<WFDoorAccessRuleComponent> door)
     {
+        door.Comp.UnboltWhenPowered = false;
         if (!TryComp<DoorBoltComponent>(door, out var bolt))
         {
             bolt = AddComp<DoorBoltComponent>(door);
@@ -122,18 +128,57 @@ public sealed partial class WFShipAccessServerSystem
         _door.SetBoltsDown((door, bolt), true);
     }
 
-    /// <summary>Unbolts a door that leaves Sealed, and takes the bolts away again if sealing added them.</summary>
+    /// <summary>
+    /// Unbolts a door that leaves Sealed and takes the bolts away again if sealing added them. Bolts the door
+    /// already had need power to come up, so without it the door is flagged to unbolt when power returns.
+    /// </summary>
     private void Unseal(Entity<WFDoorAccessRuleComponent> door)
     {
+        door.Comp.UnboltWhenPowered = false;
         if (!TryComp<DoorBoltComponent>(door, out var bolt))
             return;
 
         _door.SetBoltsDown((door, bolt), false);
-        if (!door.Comp.AddedBolt)
+        if (door.Comp.AddedBolt)
+        {
+            RemComp<DoorBoltComponent>(door);
+            door.Comp.AddedBolt = false;
             return;
+        }
 
-        RemComp<DoorBoltComponent>(door);
-        door.Comp.AddedBolt = false;
+        door.Comp.UnboltWhenPowered = _door.IsBolted(door, bolt);
+    }
+
+    /// <summary>
+    /// Wipes what a seller set before a used ship goes to its next buyer: the access record, the ship code, and
+    /// every door's code, rule and seal. A seal lifted without power keeps a bare rule until the bolts come up.
+    /// </summary>
+    public void ClearForResale(EntityUid grid)
+    {
+        RemComp<WFShipAccessComponent>(grid);
+        RemComp<WFShipAccessCodeComponent>(grid);
+
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            RemComp<WFDoorCodeComponent>(child);
+            if (!TryComp<WFDoorAccessRuleComponent>(child, out var rule))
+                continue;
+
+            if (rule.Rule == WFDoorAccessRule.Sealed)
+                Unseal((child, rule));
+
+            if (!rule.UnboltWhenPowered)
+            {
+                RemComp<WFDoorAccessRuleComponent>(child);
+                continue;
+            }
+
+            rule.Rule = WFDoorAccessRule.Default;
+            rule.Players.Clear();
+            rule.HasOwnCode = false;
+            Dirty(child, rule);
+        }
     }
 
     private void OnSetDoorRule(Entity<ShuttleConsoleComponent> console, ref WFShipAccessSetDoorRuleMessage args)

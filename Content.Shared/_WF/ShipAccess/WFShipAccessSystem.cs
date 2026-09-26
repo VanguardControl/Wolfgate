@@ -3,6 +3,8 @@ using Content.Shared._Mono.Company;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
+using Content.Shared.Doors.Components;
+using Content.Shared.Doors.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Robust.Shared.Prototypes;
@@ -11,8 +13,8 @@ namespace Content.Shared._WF.ShipAccess;
 
 /// <summary>
 /// Decides per-card ship access (the deed, the allow list, faction cards) for the ship access readers on
-/// client and server, the way a normal airlock reads the ID cards a person carries. It never mutates; the
-/// server system does the edits.
+/// client and server, the way a normal airlock reads the ID cards a person carries. It never edits access
+/// state; the server system does.
 /// </summary>
 public sealed class WFShipAccessSystem : EntitySystem
 {
@@ -25,6 +27,10 @@ public sealed class WFShipAccessSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SharedIdCardSystem _idCard = default!;
+    [Dependency] private SharedDoorSystem _door = default!;
+
+    /// <summary>The person and door a correct keypad code is opening right now; the ship check waves exactly that through.</summary>
+    private (EntityUid User, EntityUid Door)? _codeOpening;
 
     public override void Initialize()
     {
@@ -32,8 +38,31 @@ public sealed class WFShipAccessSystem : EntitySystem
         SubscribeLocalEvent<WFShipAccessCheckEvent>(OnAccessCheck);
     }
 
+    /// <summary>
+    /// Opens a door through the normal door path with only the ship check waived for this person, as a correct
+    /// code does: power, welding, bolts and the door's own ID access still decide. Called by the server.
+    /// </summary>
+    public bool TryOpenByCode(EntityUid user, Entity<DoorComponent> door)
+    {
+        _codeOpening = (user, door.Owner);
+        try
+        {
+            return _door.TryOpen(door, door.Comp, user);
+        }
+        finally
+        {
+            _codeOpening = null;
+        }
+    }
+
     private void OnAccessCheck(ref WFShipAccessCheckEvent ev)
     {
+        if (_codeOpening is { } opening && opening.User == ev.User && opening.Door == ev.Target)
+        {
+            ev.Result = WFShipAccessResult.Allow;
+            return;
+        }
+
         if (!TryComp<WFShipAccessComponent>(ev.Grid, out var access))
             return;
 

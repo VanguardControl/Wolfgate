@@ -50,11 +50,16 @@ fit.
 
 The deed holder can set a four-digit ship code and, on any Code or Chosen-IDs-or-code door, a code of the
 door's own; both open such a door. Someone the door's rule does not admit right-clicks it and picks Enter Code, which
-opens a keypad; the server checks they stand within two tiles, the door still has a code rule, is closed and
-unbolted, and that the code matches, then opens the door past the reader. Wrong codes count per person per
+opens a keypad. The server repeats the verb's checks, since a client can send a code without it: the person
+must be able to act and reach the door within two and a half tiles with nothing solid in between, and the door
+must still have a code rule and be closed and unbolted. A matching code stands in for the ship check only; the
+door then opens through the normal door path, so it still needs power, must not be welded, and keeps its own
+ID access. Wrong codes count per person per
 ship: five inside ten minutes lock that person out of every keypad on that ship for fifteen minutes. Every
 miss and lockout is admin-logged, and the owner's Access tab shows an alert line with the failed attempts and
-the people locked out. Changing a code never affects anyone already inside.
+the people locked out. Changing a code never affects anyone already inside. Reselling a ship on the used market
+clears the ship code, every door code and rule, and lifts any seal; a seal lifted without power unbolts when
+power returns.
 
 Codes never travel on a networked component. The ship code and the lockout table live in the server-only
 `WFShipAccessCodeComponent` on the grid; a door's own code is a server-only `WFDoorCodeComponent` on the door,

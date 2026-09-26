@@ -1,6 +1,7 @@
 #nullable enable
 using System.IO;
 using Content.IntegrationTests.Pair;
+using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.ShipAccess;
 using Content.Server.Power.Components;
 using Content.Shared._Mono.Shipyard;
@@ -9,6 +10,7 @@ using Content.Shared._WF.ShipAccess;
 using Content.Shared.Doors.Components;
 using Content.Shared.Doors.Systems;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Power;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -17,7 +19,8 @@ namespace Content.IntegrationTests.Tests._WF.ShipAccess;
 
 /// <summary>
 /// Per-door rules: each rule's decision at the reader, sealing, the reader staying on for a ruled door on
-/// an unlocked ship, door card lists following the allow list, and rules surviving a grid save and load.
+/// an unlocked ship, door card lists following the allow list, rules surviving a grid save and load, and a
+/// resale wiping the seller's codes, rules and seals.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WFDoorAccessRuleComponent))]
@@ -209,6 +212,82 @@ public sealed class ShipAccessDoorRuleTest
         });
 
         await server.WaitPost(() => maps.DeleteMap(loadedMap));
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A used ship comes to its buyer without the seller's codes, rules or seals. A seal lifted without power
+    /// leaves a bare rule that unbolts the door once power returns.
+    /// </summary>
+    [Test]
+    public async Task ResaleClearsCodesRulesAndSeals()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var access = entMan.System<WFShipAccessServerSystem>();
+        var doors = entMan.System<SharedDoorSystem>();
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+
+        EntityUid codeDoor = default, sealedDoor = default, darkDoor = default;
+        await server.WaitPost(() =>
+        {
+            codeDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            sealedDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            darkDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            // Without a receiver the bolt system treats a door as powered, so these seal at once.
+            foreach (var door in new[] { codeDoor, sealedDoor, darkDoor })
+                entMan.RemoveComponent<ApcPowerReceiverComponent>(door);
+
+            var ship = new Entity<WFShipAccessComponent>(grid, entMan.EnsureComponent<WFShipAccessComponent>(grid));
+            access.SetShipCode(ship, "4321");
+            access.SetDoorRule(ship, codeDoor, WFDoorAccessRule.Code);
+            access.SetDoorCode(ship, codeDoor, "1234");
+            access.SetDoorRule(ship, sealedDoor, WFDoorAccessRule.Sealed);
+            access.SetDoorRule(ship, darkDoor, WFDoorAccessRule.Sealed);
+            // The last door loses power after sealing, so its bolts can't come up at the sale.
+            entMan.AddComponent<ApcPowerReceiverComponent>(darkDoor);
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(doors.IsBolted(sealedDoor), Is.True, "Precondition: the sealed door is bolted.");
+                Assert.That(doors.IsBolted(darkDoor), Is.True, "Precondition: the unpowered sealed door is bolted.");
+            });
+
+            entMan.System<ShipyardSystem>().StripForResale(grid);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(entMan.HasComponent<WFShipAccessComponent>(grid), Is.False, "The seller's access record is gone.");
+                Assert.That(entMan.HasComponent<WFShipAccessCodeComponent>(grid), Is.False, "The seller's ship code is gone.");
+                Assert.That(entMan.HasComponent<WFDoorCodeComponent>(codeDoor), Is.False, "The seller's door code is gone.");
+                Assert.That(entMan.HasComponent<WFDoorAccessRuleComponent>(codeDoor), Is.False, "The seller's door rule is gone.");
+                Assert.That(entMan.HasComponent<WFDoorAccessRuleComponent>(sealedDoor), Is.False, "The seal's rule is gone.");
+                Assert.That(doors.IsBolted(sealedDoor), Is.False, "The seal's bolts are up.");
+            });
+
+            var dark = entMan.GetComponent<WFDoorAccessRuleComponent>(darkDoor);
+            Assert.Multiple(() =>
+            {
+                Assert.That(dark.Rule, Is.EqualTo(WFDoorAccessRule.Default), "An unpowered seal is lifted as a rule.");
+                Assert.That(dark.UnboltWhenPowered, Is.True, "Its bolts wait for power.");
+                Assert.That(doors.IsBolted(darkDoor), Is.True, "Bolts can't come up without power.");
+            });
+
+            entMan.GetComponent<ApcPowerReceiverComponent>(darkDoor).Powered = true;
+            var powered = new PowerChangedEvent(true, 0f);
+            entMan.EventBus.RaiseLocalEvent(darkDoor, ref powered);
+            Assert.Multiple(() =>
+            {
+                Assert.That(doors.IsBolted(darkDoor), Is.False, "Power brings the bolts up.");
+                Assert.That(dark.UnboltWhenPowered, Is.False);
+            });
+        });
+
         await pair.CleanReturnAsync();
     }
 

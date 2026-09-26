@@ -6,16 +6,19 @@ using Content.Server._WF.ShipAccess;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Doors.Components;
+using Content.Shared.Power;
 using Robust.Shared.GameObjects;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.ShipAccess;
 
 /// <summary>
-/// Codes: a door code or the ship code opens a code door from the keypad path for anyone, wrong codes count
-/// misses and lock a character out, and no code ever sits on a networked component.
+/// Codes: a door code or the ship code opens a code door from the keypad path for anyone who can reach it,
+/// through the normal door checks; wrong codes count misses and lock a character out; and no code ever sits on
+/// a networked component.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WFShipAccessCodeComponent))]
@@ -23,6 +26,8 @@ public sealed class ShipAccessCodeTest
 {
     private const string DoorProto = "AirlockShuttle";
     private const string HumanProto = "MobHuman";
+    private const string GhostProto = "MobObserver";
+    private const string WallProto = "WallSolid";
     private const string Visitor = "Ada Vance";
     private const string Stranger = "Random Stranger";
 
@@ -41,8 +46,8 @@ public sealed class ShipAccessCodeTest
         Entity<WFShipAccessComponent> ship = default;
         await server.WaitPost(() =>
         {
-            doorA = entMan.SpawnEntity(DoorProto, map.GridCoords);
-            doorB = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            doorA = SpawnPoweredDoor(entMan, map.GridCoords);
+            doorB = SpawnPoweredDoor(entMan, map.GridCoords);
             visitor = SpawnPerson(entMan, map.GridCoords, Visitor);
             npc = SpawnPerson(entMan, map.GridCoords, Stranger);
             entMan.EnsureComponent<ShuttleDeedComponent>(grid);
@@ -117,9 +122,9 @@ public sealed class ShipAccessCodeTest
         Entity<WFShipAccessComponent> ship = default;
         await server.WaitPost(() =>
         {
-            codeDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
-            eitherDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
-            ownDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            codeDoor = SpawnPoweredDoor(entMan, map.GridCoords);
+            eitherDoor = SpawnPoweredDoor(entMan, map.GridCoords);
+            ownDoor = SpawnPoweredDoor(entMan, map.GridCoords);
             npc = SpawnPerson(entMan, map.GridCoords, Stranger);
             ship = (grid, entMan.EnsureComponent<WFShipAccessComponent>(grid));
         });
@@ -157,6 +162,61 @@ public sealed class ShipAccessCodeTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A client can send a code without the verb, so the server repeats its checks: a ghost can't use a keypad,
+    /// a wall in the way blocks it, and a right code still can't open an unpowered airlock.
+    /// </summary>
+    [Test]
+    public async Task CodeKeepsTheNormalDoorChecks()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var access = entMan.System<WFShipAccessServerSystem>();
+        var mapSys = entMan.System<SharedMapSystem>();
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+
+        EntityUid door = default, ghost = default, near = default, walled = default, wall = default;
+        Entity<WFShipAccessComponent> ship = default;
+        await server.WaitPost(() =>
+        {
+            // Two more floor tiles east of the door, for a wall and a person behind it.
+            for (var x = 1; x <= 2; x++)
+                mapSys.SetTile(map.Grid, new Vector2i(x, 0), map.Tile.Tile);
+
+            door = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            ghost = entMan.SpawnEntity(GhostProto, map.GridCoords);
+            near = SpawnPerson(entMan, map.GridCoords, Visitor);
+            wall = entMan.SpawnEntity(WallProto, new EntityCoordinates(grid, 1.5f, 0.5f));
+            walled = SpawnPerson(entMan, new EntityCoordinates(grid, 2.5f, 0.5f), Stranger);
+            ship = (grid, entMan.EnsureComponent<WFShipAccessComponent>(grid));
+            access.SetDoorRule(ship, door, WFDoorAccessRule.Code);
+            access.SetDoorCode(ship, door, "1234");
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            DoorState State() => entMan.GetComponent<DoorComponent>(door).State;
+            var codes = EnsureCodes(entMan, grid);
+
+            Assert.That(access.TrySubmitCode(ghost, door, "1234"), Is.EqualTo(WFShipAccessCodeResult.CannotInteract), "A ghost can't use a keypad.");
+            Assert.That(access.TrySubmitCode(walled, door, "1234"), Is.EqualTo(WFShipAccessCodeResult.OutOfRange), "A wall between the person and the door blocks the keypad.");
+            entMan.DeleteEntity(wall);
+            Assert.That(access.TrySubmitCode(walled, door, "1234"), Is.Not.EqualTo(WFShipAccessCodeResult.OutOfRange), "Without the wall the same person reaches it.");
+
+            Assert.That(access.TrySubmitCode(near, door, "1234"), Is.EqualTo(WFShipAccessCodeResult.NoResponse), "A right code can't open an unpowered airlock.");
+            Assert.That(State(), Is.EqualTo(DoorState.Closed));
+            Assert.That(codes.Misses, Is.Zero, "A right code is never a miss.");
+
+            Power(entMan, door);
+            Assert.That(access.TrySubmitCode(near, door, "1234"), Is.EqualTo(WFShipAccessCodeResult.Opened), "Powered, the same code opens it.");
+            Assert.That(State(), Is.EqualTo(DoorState.Opening));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Codes live on server-only components; the networked rule component carries no string at all.</summary>
     [Test]
     public void CodesAreNeverNetworked()
@@ -176,6 +236,24 @@ public sealed class ShipAccessCodeTest
             Assert.That(accessStrings, Is.Empty, "The networked grid component must not carry a code string.");
         });
     }
+
+    /// <summary>A shuttle airlock that counts as powered. Server thread only.</summary>
+    private static EntityUid SpawnPoweredDoor(IEntityManager entMan, EntityCoordinates coords)
+    {
+        var door = entMan.SpawnEntity(DoorProto, coords);
+        Power(entMan, door);
+        return door;
+    }
+
+    /// <summary>The test map has no power grid, so a powered-up event stands in for one.</summary>
+    private static void Power(IEntityManager entMan, EntityUid door)
+    {
+        var powered = new PowerChangedEvent(true, 0f);
+        entMan.EventBus.RaiseLocalEvent(door, ref powered);
+    }
+
+    private static WFShipAccessCodeComponent EnsureCodes(IEntityManager entMan, EntityUid grid) =>
+        entMan.EnsureComponent<WFShipAccessCodeComponent>(grid);
 
     /// <summary>A human with a fixed name, since misses are counted by name. Server thread only.</summary>
     private static EntityUid SpawnPerson(IEntityManager entMan, EntityCoordinates coords, string name)

@@ -29,6 +29,10 @@ public sealed partial class WFDoorAccessRuleComponent : Component
     /// <summary>Whether sealing added the door's bolt component, so unsealing can take it away again.</summary>
     [DataField]
     public bool AddedBolt;
+
+    /// <summary>Set when a seal was lifted while the door had no power; bolts need power, so they come up once it returns.</summary>
+    [DataField]
+    public bool UnboltWhenPowered;
 }
 
 /// <summary>The seven per-door rules from the design table. Every rule but Default applies whether or not the ship is locked.</summary>
