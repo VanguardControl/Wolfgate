@@ -1562,6 +1562,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Recipes/Lathes/Packs/medical.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/medical.yml)
   - W7: charring has no other exit, so the graft must be printable.
   - AUTODOC
+- [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): AUTODOC: the program disks and modules the medical lathe lists, behind the same research as the rest of surgery.
 - [`Resources/Textures/_Onyx/`](../../../Resources/Textures/_Onyx/): Space Onyx wound-system sprites (wound and fracture states, alerts, medical items) ported with Wolfmed.
 
 <!-- WOLFGATE-GENERATED END -->
