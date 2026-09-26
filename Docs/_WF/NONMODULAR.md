@@ -40,10 +40,16 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - spawn the actor instead of using the session's entity
 - [`Content.IntegrationTests/Utility/GameDataScrounger.Files.cs`](../../Content.IntegrationTests/Utility/GameDataScrounger.Files.cs): Resource paths require forward slashes, including on Windows.
 - [`Content.Server/Body/Systems/RespiratorSystem.cs`](../../Content.Server/Body/Systems/RespiratorSystem.cs): entities without a respirator cannot metabolize inhaled gases; absence is valid.
+- [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
+  - a freed tile is never scheduled earlier than the current iteration.
+  - a blocker never clears earlier than the current iteration.
 - [`Content.Server/Preferences/Managers/ServerPreferencesManager.cs`](../../Content.Server/Preferences/Managers/ServerPreferencesManager.cs)
   - a failed save is logged with its slot
   - sanitized here like FinishLoad does on login
 - [`Content.Shared/_RMC14/Random/Xoroshiro64S.cs`](../../Content.Shared/_RMC14/Random/Xoroshiro64S.cs): Math.Abs(int.MinValue) throws, and folding negatives biased the low half of the range
+- [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
+  - bodiless giblets are skipped when flung.
+  - bodiless dropped contents are skipped instead of flung.
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the company is passed through the constructor
   - copies keep the company
@@ -60,6 +66,11 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
   - erotic roleplay rule removed, PR #27
   - erotic roleplay rule entry removed, PR #27
+- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
+  - parented to BaseWeaponTurret instead of BaseWeaponBallisticTurret so it has one ammo provider.
+  - ammo container copied from BaseWeaponBallisticTurret.
+  - gun tuning copied from BaseWeaponBallisticTurret (the angles are Mono's).
+  - fire modes copied from BaseWeaponBallisticTurret.
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml): fixed broken link, was MonolithRuleRoleplayEightSafeZones
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml)
   - was "# Monolith Rules"

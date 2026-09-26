@@ -2,6 +2,9 @@
 - type: vendingMachineInventory
   id: WFWolfgateVendInventory
   startingInventory:
+    WFPlanetTimepiece: 5
+    WFParachute: 10
+    WFLandingThrusterKit: 4
     WFRopeHempCoil: 6
     WFRopeSyntheticCoil: 6
     WFRopeBungeeCoil: 4

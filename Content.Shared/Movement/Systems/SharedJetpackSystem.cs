@@ -1,5 +1,6 @@
 using Content.Shared.Actions;
 using Content.Shared._CE.ZLevels.Core.Components; // Mono/CE: planet (z-level map) detection
+using Content.Shared._WF.Planets; // WOLFGATE(Planets)
 using Content.Shared._EE.CCVar; // EE
 using Content.Shared.Gravity;
 using Content.Shared.Input; // Mono/CE
@@ -196,7 +197,8 @@ public abstract partial class SharedJetpackSystem : EntitySystem
         if (TryComp<JetpackComponent>(component.Jetpack, out var jetpack)
             && (!CanEnableOnGrid(args.Transform.GridUid)
                 || !UserNotParented(uid, jetpack) // EE
-                || !IsWeightlessOrPlanet(uid))) // Mono/CE: planets (grid or open map) keep it on
+                || !IsWeightlessOrPlanet(uid) // Mono/CE: planets (grid or open map) keep it on; WOLFGATE(Planets): the condition continues on the next line.
+                || WfInAtmosphere(uid))) // WOLFGATE(Planets): a jetpack cuts out below a planet's orbit layer.
         {
             SetEnabled(component.Jetpack, jetpack, false, uid);
 
@@ -242,6 +244,14 @@ public abstract partial class SharedJetpackSystem : EntitySystem
     {
         if (args.Handled)
             return;
+
+        // WOLFGATE(Planets) START: an atmosphere refusal is said plainly, rather than the gravity line, which is not why it failed.
+        if (!IsEnabled(uid) && WfInAtmosphere(args.Performer))
+        {
+            _popup.PopupClient(Loc.GetString("wf-jetpack-atmosphere"), uid, args.Performer);
+            return;
+        }
+        // WOLFGATE END
 
         if (TryComp(uid, out TransformComponent? xform) && !CanEnableOnGrid(xform.GridUid)
         || !IsWeightlessOrPlanet(args.Performer)) // Mono/CE
@@ -333,6 +343,19 @@ public abstract partial class SharedJetpackSystem : EntitySystem
         return TryComp(user, out TransformComponent? xform) && HasComp<CEZMapComponent>(xform.MapUid);
     }
 
+    // WOLFGATE(Planets) START: jetpacks fly on a planet's orbit layer but not in its atmosphere.
+    /// <summary>
+    /// Below a planet's orbit layer the air is too thick and the pull too strong for a jetpack. Orbit itself
+    /// still flies, so a pack is what keeps somebody off a hull from falling, for as long as its tank lasts.
+    /// </summary>
+    protected bool WfInAtmosphere(EntityUid user)
+    {
+        return TryComp(user, out TransformComponent? xform)
+            && HasComp<WFPlanetLayerComponent>(xform.MapUid)
+            && !HasComp<WFOrbitLayerComponent>(xform.MapUid);
+    }
+    // WOLFGATE END
+
     private bool IsWeightlessOrPlanet(EntityUid user)
     {
         return _gravity.IsWeightless(user) || OverPlanet(user);
@@ -340,7 +363,7 @@ public abstract partial class SharedJetpackSystem : EntitySystem
 
     protected virtual bool CanEnable(EntityUid uid, EntityUid user, JetpackComponent component)
     {
-        return IsWeightlessOrPlanet(user); // Mono/CE
+        return IsWeightlessOrPlanet(user) && !WfInAtmosphere(user); // Mono/CE, WOLFGATE(Planets): no jetpack below a planet's orbit layer.
     }
 
     // EE: check parent

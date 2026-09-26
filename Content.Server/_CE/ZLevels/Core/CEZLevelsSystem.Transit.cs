@@ -89,6 +89,7 @@ public sealed partial class CEZLevelsSystem
         }
 
         EnsureComp<CEZPhysicsComponent>(grid);
+        WfRefreshOrbitParking(grid, mapUid); // WOLFGATE(Planets): a grid on a planet orbit layer holds its height instead of sinking.
 
         if (!HasComp<CEZGridFallerComponent>(grid))
         {
@@ -102,6 +103,9 @@ public sealed partial class CEZLevelsSystem
         Entity<CEZMapComponent, MapComponent> targetMap,
         int offset)
     {
+        if (WfRefusesLevelHop(grid)) // WOLFGATE(Planets): you leave orbit through transit, never by hopping a level.
+            return false;
+
         var movedGrids = CollectGridSet(grid);
         MoveGridSetToMap(movedGrids, targetMap.Owner, offset, targetMap.Comp1.Depth);
 
@@ -352,6 +356,7 @@ public sealed partial class CEZLevelsSystem
             var worldPos = _transform.GetWorldPosition(xform);
             var worldRot = _transform.GetWorldRotation(xform);
 
+            WfDestroyRiderContacts(gridUid); // WOLFGATE(Planets): riders' contacts with the old map must not survive the move.
             // The map change wipes joints and can reset momentum, so save and restore it.
             var linVel = Vector2.Zero;
             var angVel = 0f;
@@ -541,6 +546,14 @@ public sealed partial class CEZLevelsSystem
 
             if (!TryMapUp(topUpper, out _))
             {
+                // WOLFGATE(Planets) START: a held climb pops out into a planet's orbit layer instead of pinning under it.
+                // Orbit tops a planet stack and is somewhere to arrive, not a ceiling to hang under: a held
+                // climb pops out into it instead of pinning the hull at the top of the last gap until the key is let
+                // go.
+                if (WfIsOrbitLayer(topUpper) && TryExitTransit(grid))
+                    return true;
+                // WOLFGATE END
+
                 // Top of the network: give on-demand generation a chance to extend it
                 // upward before clamping.
                 RaiseExpandEvent(topUpper, up: true);

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Content.Server._Mono.ShipRepair;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server.Access.Systems;
 using Content.Server.Administration.Logs;
@@ -22,6 +23,7 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IdCardSystem _idCard = default!;
     [Dependency] private ShipyardSystem _shipyard = default!;
+    [Dependency] private ShipRepairSystem _shipRepair = default!;
 
     /// <summary>
     /// Loads the vessel's grid at a world position and applies the prototype's extra components.
@@ -46,6 +48,10 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
         // Same post-load steps the shipyard applies, minus deeds and ownership.
         EntityManager.AddComponents(gridUid.Value, vessel.AddComponents);
         _metaData.SetEntityName(gridUid.Value, vessel.Name);
+
+        // This path raises no purchase event: the shipyard's repair snapshot has to be taken here too, or an SRD has
+        // nothing to rebuild the vessel from.
+        _shipRepair.GenerateRepairData(gridUid.Value);
 
         _adminLogger.Add(LogType.EntitySpawn, LogImpact.Medium,
             $"{ToPrettyString(spawner):player} spawned vessel {vessel.ID} as {ToPrettyString(gridUid.Value):grid} on map {mapId}");
