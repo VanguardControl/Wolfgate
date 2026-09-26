@@ -10,7 +10,6 @@ using Content.Server.Parallax;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Caverns;
 using Content.Shared.Damage;
-using Content.Shared.Damage.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
@@ -46,6 +45,12 @@ public sealed class CavernClimbTest
 
     /// <summary>How long a climber must stay put on the exit after arriving.</summary>
     private const int StayTicks = 120;
+
+    /// <summary>How long a hostile cavern may take to start hurting an unequipped human.</summary>
+    private const float HurtWithinSeconds = 60f;
+
+    /// <summary>A hard wall a player could build on the pad.</summary>
+    private const string BuiltWall = "WallSolid";
 
     /// <summary>Climbs up from beside the gate's climb point: lands on the solid lip, at rest, and stays there.</summary>
     [Test]
@@ -100,7 +105,7 @@ public sealed class CavernClimbTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Climbs down the gate from its lip: no damage, no knockdown, standing on the pad beside the climb point.</summary>
+    /// <summary>Climbs down the gate from its lip: no damage, no knockdown, standing on the pad at the climb point.</summary>
     [Test]
     public async Task ClimbDownIsHarmless()
     {
@@ -141,7 +146,7 @@ public sealed class CavernClimbTest
                     Assert.That(entMan.GetComponent<MobStateComponent>(mob).CurrentState, Is.EqualTo(MobState.Alive));
                     Assert.That(entMan.HasComponent<KnockedDownComponent>(mob), Is.False, "Climbing down knocked the climber down.");
                     Assert.That(Math.Max(Math.Abs(fromClimb.X), Math.Abs(fromClimb.Y)), Is.LessThanOrEqualTo(1),
-                        $"The climber arrived at {index}, not beside the climb point at {ClimbTile(gate)}.");
+                        $"The climber arrived at {index}, not at or next to the climb point at {ClimbTile(gate)}.");
                     Assert.That(maps.TryGetTileRef(world.Cavern, grid, index, out var tile) && !tile.Tile.IsEmpty, Is.True,
                         "The climber arrived over empty cavern floor.");
                     Assert.That(biomes.WfIsPinned(biome, index), Is.True, "The climber arrived off the pinned pad.");
@@ -156,6 +161,79 @@ public sealed class CavernClimbTest
             await server.WaitAssertion(() =>
                 Assert.That(entMan.GetComponent<DamageableComponent>(mob).TotalDamage, Is.EqualTo(FixedPoint2.Zero),
                     "The climber was hurt after arriving."));
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>With a wall built on the pad over the climb point, climbing down lands on the nearest free pad tile, not inside the wall.</summary>
+    [Test]
+    public async Task ClimbDownAvoidsBuiltPad()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, Surface);
+
+        try
+        {
+            var gate = await Gate(pair, world);
+            var shade = EntityUid.Invalid;
+            var wall = EntityUid.Invalid;
+
+            await server.WaitPost(() =>
+            {
+                shade = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades[gate.Origin];
+                wall = entMan.SpawnEntity(BuiltWall, new EntityCoordinates(world.Cavern, TileCentre(ClimbTile(gate))));
+            });
+
+            await server.WaitAssertion(() =>
+                Assert.That(entMan.GetComponent<TransformComponent>(wall).Anchored, Is.True, "Precondition: the wall is not anchored on the pad."));
+
+            var mob = await SpawnSettled(pair, world.Ground, ClimbTile(gate));
+
+            await StartVerb(pair, shade, mob, "wf-cavern-verb-climb-down");
+
+            // The tile on the tick of arrival, before physics can shove a climber out of a wall it was put inside.
+            Vector2i? arrival = null;
+            for (var tick = 0; tick < pair.SecondsToTicks(SharedWFCavernClimbSystem.ClimbDownSeconds) + 10 && arrival == null; tick++)
+            {
+                await server.WaitRunTicks(1);
+                await server.WaitPost(() =>
+                {
+                    if (entMan.GetComponent<TransformComponent>(mob).MapUid == world.Cavern)
+                        arrival = TileOf(pair, world.Cavern, mob);
+                });
+            }
+
+            Assert.That(arrival, Is.Not.Null, "The climber never reached the cavern.");
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Cavern);
+                var index = arrival!.Value;
+                var fromClimb = index - ClimbTile(gate);
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(index, Is.Not.EqualTo(ClimbTile(gate)), "The climber landed inside the wall built over the climb point.");
+                    Assert.That(Math.Abs(fromClimb.X) + Math.Abs(fromClimb.Y), Is.EqualTo(1),
+                        $"The climber arrived at {index}, not on a pad tile beside the blocked climb point at {ClimbTile(gate)}.");
+                    Assert.That(maps.GetAnchoredEntities(world.Cavern, grid, index), Does.Not.Contain(wall));
+                    Assert.That(entMan.GetComponent<DamageableComponent>(mob).TotalDamage, Is.EqualTo(FixedPoint2.Zero),
+                        "Climbing down beside the wall hurt the climber.");
+                }
+            });
+
+            var slip = await FirstTickOff(pair, mob, world.Cavern, StayTicks);
+            Assert.That(slip, Is.Null, $"The climber did not stay on the pad: {slip}");
         }
         finally
         {
@@ -215,7 +293,7 @@ public sealed class CavernClimbTest
             });
 
             var delay = await DelayOf(pair, climb);
-            await pair.Client.WaitPost(probe.Received.Clear);
+            await pair.Client.WaitPost(probe.Start);
             var doAfter = await StartVerb(pair, climb, mob, "wf-cavern-verb-climb-up");
             await pair.RunTicksSync(pair.SecondsToTicks(delay) + 10);
 
@@ -233,6 +311,65 @@ public sealed class CavernClimbTest
             await pair.Client.WaitAssertion(() =>
                 Assert.That(probe.Received, Does.Contain(hullText),
                     $"The refused climb did not show the hull popup. Received: {string.Join(" | ", probe.Received)}"));
+        }
+        finally
+        {
+            await pair.Client.WaitPost(probe.Stop);
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>An unequipped human already hurt by a hostile cavern's air, heat or cold still climbs out: ambient damage never breaks the climb.</summary>
+    // Carcinoma is left out: its ammonia did not hurt an unequipped human within HurtWithinSeconds, so nothing there can break the climb.
+    [TestCase("WFSurfaceAerumna")]
+    [TestCase("WFSurfaceFervidus")]
+    [TestCase("WFSurfaceThrascias")]
+    public async Task UnequippedClimberEscapesHostileAir(string surfaceId)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var gate = await Gate(pair, world);
+            var climb = await ClimbPointOf(pair, world, gate);
+            var mob = await SpawnSettled(pair, world.Cavern, Beside(gate));
+            var delay = await DelayOf(pair, climb);
+
+            // Wait for the air to start hurting, so its damage ticks land during the climb.
+            var hurtAt = FixedPoint2.Zero;
+            for (var tick = 0; tick < pair.SecondsToTicks(HurtWithinSeconds) && hurtAt == FixedPoint2.Zero; tick++)
+            {
+                await server.WaitRunTicks(1);
+                await server.WaitPost(() => hurtAt = entMan.GetComponent<DamageableComponent>(mob).TotalDamage);
+            }
+
+            Assert.That(hurtAt, Is.GreaterThan(FixedPoint2.Zero),
+                $"Precondition: {surfaceId}'s cavern did not hurt an unequipped human within {HurtWithinSeconds} s.");
+
+            var doAfter = await StartVerb(pair, climb, mob, "wf-cavern-verb-climb-up");
+            await server.WaitRunTicks(pair.SecondsToTicks(delay) + 10);
+
+            await server.WaitAssertion(() =>
+            {
+                var damage = entMan.GetComponent<DamageableComponent>(mob);
+                var taken = string.Join(", ", damage.Damage.DamageDict.Where(d => d.Value > 0).Select(d => $"{d.Key} {d.Value}"));
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(damage.TotalDamage, Is.GreaterThan(hurtAt),
+                        $"Precondition: {surfaceId}'s air did not hurt the climber during the climb ({taken}).");
+                    Assert.That(doAfter.Cancelled, Is.False, $"{surfaceId}: the climb was broken ({taken}).");
+                    Assert.That(entMan.GetComponent<TransformComponent>(mob).MapUid, Is.EqualTo(world.Ground),
+                        $"{surfaceId}: the unequipped climber never reached the ground ({taken}).");
+                }
+            });
         }
         finally
         {
@@ -268,9 +405,7 @@ public sealed class CavernClimbTest
                 if (surfaceId != HeavySurface)
                     continue;
 
-                // Aerumna's air is toxic, and the first point of damage would break the climb.
                 var mob = await SpawnSettled(pair, world.Cavern, Beside(gate));
-                await server.WaitPost(() => server.System<SharedGodmodeSystem>().EnableGodmode(mob));
 
                 var doAfter = await StartVerb(pair, climb, mob, "wf-cavern-verb-climb-up");
                 Assert.That(doAfter.Args.Delay.TotalSeconds, Is.EqualTo(expected).Within(tick),
@@ -411,12 +546,15 @@ public sealed class CavernClimbTest
     }
 }
 
-/// <summary>Records the entity popups a connected test client receives from the server.</summary>
+/// <summary>Records the entity popups a connected test client receives from the server, only while a test asks it to.</summary>
 public sealed partial class WFCavernPopupProbeSystem : EntitySystem
 {
     [Dependency] private INetManager _net = default!;
 
-    /// <summary>Every popup message received, oldest first.</summary>
+    /// <summary>Whether popups are being recorded; off except between <see cref="Start"/> and <see cref="Stop"/>.</summary>
+    public bool Recording { get; private set; }
+
+    /// <summary>Every popup message received while recording, oldest first.</summary>
     public readonly List<string> Received = new();
 
     /// <inheritdoc/>
@@ -427,6 +565,26 @@ public sealed partial class WFCavernPopupProbeSystem : EntitySystem
         if (!_net.IsClient)
             return;
 
-        SubscribeNetworkEvent<PopupEntityEvent>(ev => Received.Add(ev.Message));
+        SubscribeNetworkEvent<PopupEntityEvent>(OnPopup);
+    }
+
+    /// <summary>Clears what was recorded and starts recording.</summary>
+    public void Start()
+    {
+        Received.Clear();
+        Recording = true;
+    }
+
+    /// <summary>Stops recording and drops what was recorded.</summary>
+    public void Stop()
+    {
+        Recording = false;
+        Received.Clear();
+    }
+
+    private void OnPopup(PopupEntityEvent ev)
+    {
+        if (Recording)
+            Received.Add(ev.Message);
     }
 }
