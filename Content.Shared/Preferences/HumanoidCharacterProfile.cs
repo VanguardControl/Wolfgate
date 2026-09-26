@@ -234,6 +234,7 @@ namespace Content.Shared.Preferences
                 other.Genitals, // WOLFGATE(Genitals): GenitalProfile is immutable, so copies share it
                 other.Flags, other.Components, other.Items) // Mono
         {
+            HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
         }
 
         /// <summary>Copy constructor</summary>
@@ -259,6 +260,7 @@ namespace Content.Shared.Preferences
                 other.Components, // Mono
                 other.Items) // Mono
         {
+            HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
         }
 
         /// <summary>
@@ -595,6 +597,7 @@ namespace Content.Shared.Preferences
             if (Company != other.Company) return false;
             if (CustomSpeciesName != other.CustomSpeciesName) return false; // WOLFGATE(Humanoid)
             if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE(Genitals)
+            if (HeadshotUrl != other.HeadshotUrl) return false; // WOLFGATE(Headshot)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
             if (!Items.SequenceEqual(other.Items)) return false; // Mono
@@ -797,6 +800,8 @@ namespace Content.Shared.Preferences
                 .Trim();
             // WOLFGATE END
 
+            EnsureHeadshotValid(); // WOLFGATE(Headshot)
+
             // Check if the company exists, if not set to "None"
             if (!string.IsNullOrEmpty(Company) &&
                 Company != "None" &&
@@ -932,6 +937,7 @@ namespace Content.Shared.Preferences
             hashCode.Add((int)PreferenceUnavailable);
             hashCode.Add(Company); // WOLFGATE: the company is part of the hash
             hashCode.Add(CustomSpeciesName); // WOLFGATE(Humanoid)
+            hashCode.Add(HeadshotUrl); // WOLFGATE(Headshot)
             return hashCode.ToHashCode();
         }
 

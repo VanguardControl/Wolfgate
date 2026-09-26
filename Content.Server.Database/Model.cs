@@ -517,6 +517,9 @@ namespace Content.Server.Database
         public List<ProfileItem> Items { get; } = [];
         // Mono end
 
+        // WOLFGATE(Headshot): image URL shown on examine, empty when unused.
+        [Column("headshot_url")] public string HeadshotUrl { get; set; } = "";
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

@@ -315,7 +315,10 @@ namespace Content.Server.Database
                     component.Sticky)),
                 profile.Items.Select(item => new PersistentProfileItem(
                     item.Data,
-                    item.Sticky))); // Mono end
+                    item.Sticky))) // Mono end
+            {
+                HeadshotUrl = profile.HeadshotUrl ?? string.Empty, // WOLFGATE(Headshot)
+            };
         }
 
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
@@ -351,6 +354,7 @@ namespace Content.Server.Database
             profile.PreferenceUnavailable = (DbPreferenceUnavailableMode) humanoid.PreferenceUnavailable;
             profile.Company = humanoid.Company;
             profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE(Humanoid)
+            profile.HeadshotUrl = humanoid.HeadshotUrl; // WOLFGATE(Headshot)
 
             // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))

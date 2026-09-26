@@ -591,6 +591,7 @@ namespace Content.Client.Lobby.UI
             // WOLFGATE END
 
             RefreshFlavorText();
+            InitializeHeadshot(); // WOLFGATE(Headshot)
 
             #region Dummy
 
@@ -1248,6 +1249,7 @@ namespace Content.Client.Lobby.UI
 
             UpdateNameEdit();
             UpdateFlavorTextEdit();
+            UpdateHeadshot(); // WOLFGATE(Headshot)
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();
@@ -1857,6 +1859,7 @@ namespace Content.Client.Lobby.UI
             _anatomySaveConfirm?.Close();
             _anatomySaveConfirm = null;
             // WOLFGATE END
+            CloseHeadshotWindow(); // WOLFGATE(Headshot)
 
             // Mono start
             foreach (var entity in _savedItemEntities)
