@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Content.Tests._WF.Caverns;
 
+/// <summary>The shaft air readings: each world's level classifies as section 4.8 says, and every threshold is exact.</summary>
 [TestFixture]
 [TestOf(typeof(WFCavernAirClassifier))]
 public sealed class CavernAirTest

@@ -28,7 +28,9 @@ public sealed class CavernOrbitalFallTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
-        var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
+
+        // Fervidus lands on ash (x0.75), where the full orbital fall would kill; Asclepiu's water landing hurts nobody.
+        var world = await BuildWorld(pair, "WFSurfaceFervidus");
 
         try
         {
@@ -68,8 +70,10 @@ public sealed class CavernOrbitalFallTest
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(map, Is.EqualTo(world.Cavern), "The orbital faller is not in the cavern.");
+                    Assert.That(entMan.GetComponent<MobStateComponent>(mob).CurrentState, Is.Not.EqualTo(MobState.Dead),
+                        "A fall from orbit through a mouth killed the faller.");
                     Assert.That(entMan.GetComponent<MobStateComponent>(mob).CurrentState, Is.EqualTo(MobState.Critical),
-                        "A fall from orbit through a mouth should maim, not kill.");
+                        "A fall from orbit through a mouth should leave the faller critical.");
                     Assert.That(body.GetBodyChildrenOfType(mob, BodyPartType.Arm).Count(), Is.EqualTo(1),
                         "The orbital faller should have lost exactly one arm.");
                     Assert.That(body.GetBodyChildrenOfType(mob, BodyPartType.Leg).Count(), Is.EqualTo(1),

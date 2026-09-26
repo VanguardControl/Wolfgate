@@ -169,7 +169,7 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
         foreach (var mouth in ground.Comp.Mouths)
         {
             shell.WriteLine(Loc.GetString("cmd-wfcavern-mouth-row",
-                ("kind", mouth.Kind.ToString()),
+                ("kind", Loc.GetString("cmd-wfcavern-mouth-kind", ("kind", mouth.Kind.ToString().ToLowerInvariant()))),
                 ("origin", mouth.Origin.ToString()),
                 ("size", mouth.Size),
                 ("climb", mouth.ClimbTile.ToString())));
@@ -228,18 +228,14 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
         return true;
     }
 
-    /// <summary>Finds a built network by its planet's name or its surface id, with or without the WFSurface prefix.</summary>
+    /// <summary>Finds a built network by its sector body's name, the name it was built under, or its surface id with or without the WFSurface prefix.</summary>
     private bool TryFindNetwork(string name, out Entity<WFPlanetNetworkComponent> network)
     {
         var query = EntityManager.EntityQueryEnumerator<WFPlanetNetworkComponent>();
 
         while (query.MoveNext(out var uid, out var comp))
         {
-            var surface = comp.Surface.Id;
-
-            if (!string.Equals(PlanetName(uid, comp), name, StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(surface, name, StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(ShortSurface(surface), name, StringComparison.OrdinalIgnoreCase))
+            if (!Names(uid, comp).Any(candidate => string.Equals(candidate, name, StringComparison.OrdinalIgnoreCase)))
                 continue;
 
             network = (uid, comp);
@@ -248,6 +244,20 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
 
         network = default;
         return false;
+    }
+
+    /// <summary>Every name a network answers to: its sector body's, the one it was built under, and its surface id with and without the prefix.</summary>
+    private IEnumerable<string> Names(EntityUid network, WFPlanetNetworkComponent comp)
+    {
+        if (comp.Planet is { } body && EntityManager.EntityExists(body))
+            yield return EntityManager.GetComponent<MetaDataComponent>(body).EntityName;
+
+        if (EntityManager.TryGetComponent<WFPlanetWeatherComponent>(network, out var weather)
+            && !string.IsNullOrEmpty(weather.PlanetName))
+            yield return weather.PlanetName;
+
+        yield return comp.Surface.Id;
+        yield return ShortSurface(comp.Surface.Id);
     }
 
     /// <summary>The name a network goes by: its sector body's, the name it was built under, or its surface.</summary>

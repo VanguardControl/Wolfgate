@@ -4,7 +4,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.Caverns;
 
 /// <summary>Tells an examiner where a shaft goes, what its air is like and how hard the landing is.</summary>
-public sealed class SharedWFCavernShaftSystem : EntitySystem
+public sealed partial class SharedWFCavernShaftSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
 

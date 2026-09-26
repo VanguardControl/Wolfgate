@@ -100,7 +100,7 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
     }
 
     /// <summary>Carves an admin mouth with its hole's bottom-left at a ground tile, clearing biome entities from loaded terrain.</summary>
-    /// <param name="refusal">Why it was refused: grid, built, mob or mouth.</param>
+    /// <param name="refusal">Why it was refused: cavern (either map is gone), grid, built, mob or mouth.</param>
     /// <param name="ignore">A mob allowed to stand in the hole, such as the admin carving it.</param>
     public bool TryOpenMouth(
         Entity<WFCavernGroundComponent> ground,
@@ -112,7 +112,7 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
 
         if (!TryGetContext(ground, out var context))
         {
-            refusal = "mouth";
+            refusal = "cavern";
             return false;
         }
 
