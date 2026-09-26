@@ -95,8 +95,10 @@ public sealed class FlightAudioLoadTest
             }
         });
 
+        // Streams an earlier test on this pair left playing are not this flight's.
+        var existing = new HashSet<EntityUid>();
         var baseline = 0;
-        await server.WaitPost(() => baseline = CountAudio(entMan, null));
+        await server.WaitPost(() => baseline = CountAudio(entMan, null, existing));
 
         // No settle, so the caution chime inside the call is counted.
         var refusal = await EnterAtmosphere(pair, hull, settle: 0f);
@@ -118,7 +120,7 @@ public sealed class FlightAudioLoadTest
 
             await server.WaitPost(() =>
             {
-                CountAudio(entMan, clips);
+                CountAudio(entMan, clips, existing);
 
                 if (!entMan.Deleted(hull) && entMan.GetComponent<TransformComponent>(hull).MapUid == ground)
                     landed = true;
@@ -171,13 +173,20 @@ public sealed class FlightAudioLoadTest
     }
 
     /// <summary>Audio entities alive right now, tallied by clip into the given map when there is one.</summary>
-    private static int CountAudio(IEntityManager entMan, Dictionary<string, int>? clips)
+    /// <summary>Counts live audio streams; the first call fills <paramref name="existing"/>, later calls skip them.</summary>
+    private static int CountAudio(IEntityManager entMan, Dictionary<string, int>? clips, HashSet<EntityUid> existing)
     {
         var count = 0;
+        var fill = existing.Count == 0 && clips == null;
         var query = entMan.EntityQueryEnumerator<AudioComponent>();
 
-        while (query.MoveNext(out var audio))
+        while (query.MoveNext(out var uid, out var audio))
         {
+            if (fill)
+                existing.Add(uid);
+            else if (existing.Contains(uid))
+                continue;
+
             count++;
 
             if (clips != null)

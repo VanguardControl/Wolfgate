@@ -115,6 +115,9 @@ public sealed partial class ThrusterSystem
             state.RecoverAt = _timing.CurTime + WfPowerRecoveryDelay;
         if (inAtmosphere && !thruster.IsOn && state.RecoverAt > TimeSpan.Zero)
             state.RecoverAt = _timing.CurTime + WfPowerRecoveryDelay;
+        // Power can return between sweeps, so the hold restarts from the first sweep that sees the engine back on.
+        if (inAtmosphere && thruster.IsOn && !state.WasPowered && state.RecoverAt > TimeSpan.Zero)
+            state.RecoverAt = _timing.CurTime + WfPowerRecoveryDelay;
         if (!inAtmosphere)
             state.RecoverAt = TimeSpan.Zero;
         state.WasPowered = thruster.IsOn;
