@@ -992,16 +992,6 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("text")
                         .HasColumnName("facial_hair_name");
 
-<<<<<<< HEAD
-                    b.PrimitiveCollection<List<string>>("Flags")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text[]")
-                        .HasColumnName("flags")
-                        .HasDefaultValueSql("ARRAY[]::text[]");
-
-=======
->>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
                     b.Property<string>("FlavorText")
                         .IsRequired()
                         .HasColumnType("text")
@@ -2398,15 +2388,8 @@ namespace Content.Server.Database.Migrations.Postgres
                 {
                     b.Navigation("Antags");
 
-<<<<<<< HEAD
-                    b.Navigation("Components");
-
                     b.Navigation("ConsentSettings");
 
-                    b.Navigation("Items");
-
-=======
->>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
                     b.Navigation("Jobs");
 
                     b.Navigation("Loadouts");

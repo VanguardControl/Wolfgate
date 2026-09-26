@@ -301,21 +301,9 @@ namespace Content.Server.Database
                 antags.ToHashSet(),
                 traits.ToHashSet(),
                 loadouts,
-<<<<<<< HEAD
                 company,
                 profile.CustomSpeciesName ?? string.Empty, // WOLFGATE(Humanoid)
-                genitals, // WOLFGATE(Genitals)
-                // Mono start
-                profile.Flags,
-                profile.Components.Select(component => new PersistentProfileComponent(
-                    component.Data,
-                    component.Sticky)),
-                profile.Items.Select(item => new PersistentProfileItem(
-                    item.Data,
-                    item.Sticky))); // Mono end
-=======
-                company);
->>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
+                genitals); // WOLFGATE(Genitals)
         }
 
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
@@ -350,31 +338,12 @@ namespace Content.Server.Database
             profile.Slot = slot;
             profile.PreferenceUnavailable = (DbPreferenceUnavailableMode) humanoid.PreferenceUnavailable;
             profile.Company = humanoid.Company;
-<<<<<<< HEAD
             profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE(Humanoid)
 
             // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))
                 profile.Genitals = GenitalProfileJson.Serialize(humanoid.Genitals);
             // WOLFGATE END
-
-            // Mono start
-            profile.Flags = [..humanoid.Flags];
-            profile.Components.Clear();
-            profile.Components.AddRange(humanoid.Components.Select(component => new ProfileComponent
-            {
-                Data = component.Data,
-                Sticky = component.Sticky,
-            }));
-            profile.Items.Clear();
-            profile.Items.AddRange(humanoid.Items.Select(item => new ProfileItem
-            {
-                Data = item.Data,
-                Sticky = item.Sticky,
-            }));
-            // Mono end
-=======
->>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
 
             profile.Jobs.Clear();
             profile.Jobs.AddRange(

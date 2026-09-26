@@ -2302,15 +2302,8 @@ namespace Content.Server.Database.Migrations.Sqlite
                 {
                     b.Navigation("Antags");
 
-<<<<<<< HEAD
-                    b.Navigation("Components");
-
                     b.Navigation("ConsentSettings");
 
-                    b.Navigation("Items");
-
-=======
->>>>>>> 0813441066 (Revert "Persistence: Atempt 2" (#4770))
                     b.Navigation("Jobs");
 
                     b.Navigation("Loadouts");
