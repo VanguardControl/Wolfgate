@@ -4,6 +4,7 @@ using Content.Server.Body.Systems;
 using Content.Server.Chat.Systems;
 using Content.Server.Medical;
 using Content.Server.Popups;
+using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Radio.EntitySystems;
 using Content.Server._Shitmed.Medical.Surgery;
@@ -359,7 +360,12 @@ public sealed partial class AutodocSystem : EntitySystem
 
     #region Power and emag
 
-    public bool IsPowered(EntityUid uid) => _power.IsPowered(uid);
+    /// <summary>
+    /// A receiver that needs no power counts as powered at once: the power net only refreshes its flag on its own
+    /// interval, so a freshly built pod would otherwise refuse to start for up to a second.
+    /// </summary>
+    public bool IsPowered(EntityUid uid) =>
+        !TryComp<ApcPowerReceiverComponent>(uid, out var receiver) || !receiver.NeedsPower || receiver.Powered;
 
     private void OnPowerChanged(Entity<AutodocComponent> ent, ref PowerChangedEvent args)
     {

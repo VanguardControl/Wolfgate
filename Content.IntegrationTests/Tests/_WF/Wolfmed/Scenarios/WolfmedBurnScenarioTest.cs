@@ -786,14 +786,16 @@ public sealed class WolfmedBurnScenarioTest : GameTest
         await Server.WaitPost(() => SEntMan.System<FlammableSystem>().SetFireStacks(a, 10, ignite: true));
 
         var downed = false;
-        for (var i = 0; i < 30 && !downed; i++)
+        for (var i = 0; i < 150 && !downed; i++)
         {
-            await RunSeconds(1);
+            await RunSeconds(0.2f);
             await Server.WaitPost(() => downed = s.State(a) == WolfmedConsciousness.Downed);
         }
 
         Assert.That(downed, Is.True, "the fire never put the patient down, so the test proves nothing.");
-        // Past the fall's own short stun, which cancels every action.
+        // Still burning, but slowly: at ten stacks the pain climbs from the Downed line to a faint within the
+        // wait below. Past the fall's own short stun, which cancels every action.
+        await Server.WaitPost(() => SEntMan.System<FlammableSystem>().SetFireStacks(a, 1, ignite: true));
         await RunSeconds(3);
         await Server.WaitAssertion(() =>
         {

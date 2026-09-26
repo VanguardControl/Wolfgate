@@ -140,6 +140,11 @@ public sealed class WolfmedVitalLimitsTest : GameTest
             entities.System<Content.Shared.Containers.ItemSlots.ItemSlotsSystem>().TryInsert(pod.Owner,
                 AutodocComponent.ModuleSlotId, entities.SpawnEntity("WFAutodocDefibModule", map.GridCoords), null);
             Assert.That(entities.System<AutodocSystem>().TryInsert(pod, body), Is.True);
+
+            // The pod shocks a dead occupant on its own tick, on whatever roll is set. A roll the chance can never
+            // beat is set before the death, so the ticks below leave the patient dead and the count untouched.
+            entities.System<WolfmedRevivalSystem>().ForcedRoll = 0.999f;
+            pod.Comp!.DefibNext = TimeSpan.MaxValue;
             entities.System<MobStateSystem>().ChangeMobState(body, MobState.Dead);
         });
 
@@ -150,8 +155,7 @@ public sealed class WolfmedVitalLimitsTest : GameTest
             var autodoc = entities.System<AutodocSystem>();
             var revival = entities.System<WolfmedRevivalSystem>();
 
-            // A roll the chance can never beat: the shock happens and fails.
-            revival.ForcedRoll = 0.999f;
+            // The shock happens and fails.
             pod.Comp!.DefibNext = TimeSpan.Zero;
             Assert.That(autodoc.TryDefibrillateOccupant(pod, body), Is.False, "a hopeless roll revived the patient.");
             Assert.That(pod.Comp.DefibAttempt, Is.EqualTo(1), "the pod did not count its first shock.");

@@ -132,23 +132,32 @@ public sealed class WolfmedCritHeartbeatTest
     }
 
     /// <summary>
-    /// Holds the body in a state until the client's copy agrees and reports the expected heartbeat.
+    /// Puts the body in a state through its consciousness and waits until the client's copy agrees and the
+    /// heartbeat reads as expected.
     /// </summary>
     /// <remarks>
-    /// The state has to be held rather than set once: this mob carries no damage, so its thresholds pull
-    /// it straight back to Alive, and on a recycled pair the client can lose that race and read as a
-    /// failure of the heartbeat instead of one of the wait.
+    /// Consciousness owns a wound host's mob state and writes it on every evaluation, so a state set on the
+    /// component directly is undone by the next evaluation, on the same tick when one lands there, before the
+    /// client ever sees it. An outside pressure of 1 is Unconscious, and so Critical, for as long as it is set.
     /// </remarks>
     private static async Task AssertHeartbeat(TestPair pair, EntityUid body, MobState state, bool active, string because)
     {
         var mobState = pair.Server.EntMan.System<MobStateSystem>();
+        var consciousness = pair.Server.EntMan.System<SharedWolfmedConsciousnessSystem>();
         var heartbeat = pair.Client.System<WolfmedCritHeartbeatSystem>();
         var clientState = MobState.Invalid;
         var heard = !active;
 
+        await pair.Server.WaitPost(() =>
+        {
+            if (state == MobState.Dead)
+                mobState.ChangeMobState(body, MobState.Dead);
+            else
+                consciousness.SetExternalPressure(body, "test", state == MobState.Critical ? 1f : 0f);
+        });
+
         for (var attempt = 0; attempt < 20; attempt++)
         {
-            await pair.Server.WaitPost(() => mobState.ChangeMobState(body, state));
             await pair.RunTicksSync(10);
             await pair.Client.WaitPost(() =>
             {
