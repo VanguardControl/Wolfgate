@@ -364,7 +364,9 @@ public sealed class WolfmedAutodocTest : GameTest
             Assert.That(autodoc.TryInsert(pod, body), Is.True);
         });
 
-        await Pair.RunTicksSync(10);
+        // Past the power net's first half-second refresh, which raises a real "powered" event for the new pod; the
+        // fake loss below must come after it, or that event resumes the pod.
+        await Pair.RunTicksSync(30);
 
         await server.WaitAssertion(() =>
         {
