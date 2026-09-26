@@ -65,12 +65,19 @@
   id: MobDamageable
   abstract: true
   components:
+<<<<<<< HEAD
   # WOLFGATE(Weapons) START: material bullet impacts
   - type: RangedDamageSound
     soundGroups:
       Brute:
         collection: MeatBulletImpact
   # WOLFGATE END
+=======
+  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+    soundGroups:
+      Brute:
+        collection: MeatBulletImpact
+>>>>>>> ec70ea6ee8 (Impact Sound Things (#4774))
   - type: Damageable
     damageContainer: Biological
   - type: Destructible
