@@ -16,6 +16,7 @@ jobs:
   build:
     if: github.event.pull_request.draft == false
     strategy:
+      fail-fast: false # WOLFGATE(Wolfmed): one red job must not cancel the others; each part's result is wanted
       matrix:
         os: [ubuntu-latest]
         # WOLFGATE(Wolfmed) START: the integration tests run as three jobs, so each part of the suite gets a runner to

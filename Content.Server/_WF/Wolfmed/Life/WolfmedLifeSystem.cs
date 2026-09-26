@@ -2,6 +2,7 @@ using System.Linq;
 using Content.Server.Body.Components;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server.Body.Systems;
+using Content.Shared.Chemistry.EntitySystems;
 using Content.Server.Temperature.Components;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._Onyx.Body.Systems;
@@ -60,6 +61,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
 
     [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
@@ -225,8 +227,12 @@ public sealed class WolfmedLifeSystem : EntitySystem
     /// <summary>Passive bleeding multiplier. A stopped heart is not pushing anything out of a wound.</summary>
     public float BleedFactor(EntityUid body) => InArrest(body) ? ArrestBleedFactor : 1f;
 
+    // The solution check comes first: a body being torn down (a spawn-all test deletes its blood before its heart)
+    // still raises organ events, and the bloodstream asserts on a cached solution that is gone.
     public float GetBlood(EntityUid body) =>
-        HasComp<BloodstreamComponent>(body) ? _bloodstream.GetBloodLevelPercentage(body) : 1f;
+        TryComp(body, out BloodstreamComponent? blood) && _solutions.TryGetSolution(body, blood.BloodSolutionName, out _)
+            ? _bloodstream.GetBloodLevelPercentage(body, blood)
+            : 1f;
 
     /// <summary>Somebody's hands are on the chest right now.</summary>
     public bool InCpr(EntityUid body) =>

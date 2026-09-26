@@ -123,6 +123,11 @@ public sealed partial class GibbingSystem : EntitySystem
 
         foreach (var container in _containerSystem.GetAllContainers(gibbable))
         {
+            // WOLFGATE(Wolfmed) START: a solution entity is not a thing to drop: it has no physics to fling and goes with its owner.
+            var id = container.ID;
+            if (id.StartsWith("solution@"))
+                continue;
+            // WOLFGATE END
             var valid = true;
             if (allowedContainers != null)
                 valid = allowedContainers.Contains(container.ID);

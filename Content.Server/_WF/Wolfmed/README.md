@@ -601,6 +601,7 @@ Skipped ("dirty-disposed").
 ## Non-modular edits
 
 - [`.github/workflows/build-test-debug.yml`](../../../.github/workflows/build-test-debug.yml)
+  - one red job must not cancel the others; each part's result is wanted
   - the integration tests run as three jobs, so each part of the suite gets a runner to
   - the unit tests run once, with the core half
   - one part of the suite per job, and a heap limit so server GC collects before the runner is killed
@@ -1202,6 +1203,7 @@ Skipped ("dirty-disposed").
   - M2: HOOK 13 rewritten (OD17), a wound host's execution is a catastrophic brain injury.
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - let subscribers veto containers (Wolfmed keeps wounds with the part)
+  - a solution entity is not a thing to drop: it has no physics to fling and goes with its owner.
   - snapshot, DropEntity/GibEntity mutate the container
 - [`Content.Shared/HealthExaminable/HealthExaminableSystem.cs`](../../../Content.Shared/HealthExaminable/HealthExaminableSystem.cs)
   - GUARD F
