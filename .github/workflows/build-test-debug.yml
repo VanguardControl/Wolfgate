@@ -52,11 +52,14 @@ jobs:
       shell: pwsh
       run: dotnet test --no-build --configuration DebugOpt Content.Tests/Content.Tests.csproj -- NUnit.ConsoleOut=0 NUnit.TestOutputXml="logs" NUnit.WorkDirectory="$(pwd)/test_results"
 
+    # WOLFGATE(Wolfmed) START: a heap limit, so server GC collects before the 16 GB runner is killed and the log lost
     - name: Run Content.IntegrationTests
       shell: pwsh
       run: |
         $env:DOTNET_gcServer=1
+        $env:DOTNET_GCHeapHardLimit="0x300000000"
         dotnet test --no-build --configuration DebugOpt Content.IntegrationTests/Content.IntegrationTests.csproj --filter "FullyQualifiedName!~ShipyardTest" -- NUnit.ConsoleOut=0 NUnit.MapWarningTo=Failed NUnit.TestOutputXml="logs" NUnit.WorkDirectory="$(pwd)/test_results"
+    # WOLFGATE END
 
     - name: Archive NUnit3 test results.
       if: always()
