@@ -13,6 +13,9 @@ using Content.Shared._Mono.Company;
 using Content.Shared.Ghost;
 using Content.Shared.Silicons.StationAi;
 using Robust.Shared.Map;
+using Content.Shared._WF.ShipAccess; // WOLFGATE(ShipAccess)
+using Content.Shared.Doors.Components; // WOLFGATE(ShipAccess)
+using Content.Shared.Doors.Systems; // WOLFGATE(ShipAccess)
 
 namespace Content.Shared._Mono.Shipyard;
 
@@ -27,6 +30,7 @@ public sealed partial class ShipAccessReaderSystem : EntitySystem
     [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedIdCardSystem _idCardSystem = default!;
+    [Dependency] private SharedDoorSystem _door = default!; // WOLFGATE(ShipAccess)
 
     public override void Initialize()
     {
@@ -61,10 +65,23 @@ public sealed partial class ShipAccessReaderSystem : EntitySystem
         if (args.User == null)
             return;
 
+        // WOLFGATE(ShipAccess) START: a door whose own access reader is hacked, or on emergency access, skips the ship check, and a refusal plays the door's deny state as a normal airlock does
+        // if (!HasShipAccess(args.User.Value, uid, component, false))
+        // {
+        //     args.Cancel();
+        // }
+        if (TryComp<AccessReaderComponent>(uid, out var accessReader) && !accessReader.Enabled)
+            return;
+
+        if (TryComp<AirlockComponent>(uid, out var airlock) && airlock.EmergencyAccess)
+            return;
+
         if (!HasShipAccess(args.User.Value, uid, component, false))
         {
             args.Cancel();
+            _door.Deny(uid, user: args.User, predicted: true);
         }
+        // WOLFGATE END
     }
 
     private void OnLockToggleAttempt(EntityUid uid, ShipAccessReaderComponent component, ref LockToggleAttemptEvent args)
@@ -111,6 +128,19 @@ public sealed partial class ShipAccessReaderSystem : EntitySystem
         }
 
         var gridUid = targetTransform.GridUid.Value;
+
+        // WOLFGATE(ShipAccess) START: per-person access (owner, allow list, faction) is decided before the deed rules
+        var wfAccess = new WFShipAccessCheckEvent(user, target, gridUid);
+        RaiseLocalEvent(ref wfAccess);
+        if (wfAccess.Result == WFShipAccessResult.Allow)
+            return true;
+        if (wfAccess.Result == WFShipAccessResult.Deny)
+        {
+            if (!silent && component.ShowDeniedPopup)
+                _popup.PopupClient(Loc.GetString(component.DeniedMessage), target, user);
+            return false;
+        }
+        // WOLFGATE END
 
         // Check if the grid has a ship deed (is a purchased ship)
         if (!TryComp<ShuttleDeedComponent>(gridUid, out var shipDeed))
