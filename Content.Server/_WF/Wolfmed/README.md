@@ -601,10 +601,10 @@ Skipped ("dirty-disposed").
 ## Non-modular edits
 
 - [`.github/workflows/build-test-debug.yml`](../../../.github/workflows/build-test-debug.yml)
-  - the module's integration tests run as their own job, so each half of the suite
+  - the integration tests run as three jobs, so each part of the suite gets a runner to
   - the unit tests run once, with the core half
-  - one half of the suite per job, and a heap limit so server GC collects before the runner is killed
-  - one artifact per half
+  - one part of the suite per job, and a heap limit so server GC collects before the runner is killed
+  - one artifact per job
 - [`Content.Client/_Onyx/HealthExaminable/ExamineSystem.PartStatus.cs`](../../../Content.Client/_Onyx/HealthExaminable/ExamineSystem.PartStatus.cs): ported from Onyx for Wolfmed.
 - [`Content.Client/_Onyx/HealthExaminable/PartStatusTag.cs`](../../../Content.Client/_Onyx/HealthExaminable/PartStatusTag.cs): ported from Onyx for Wolfmed.
 - [`Content.Client/_Onyx/Medical/HealthAnalyzer/EllipsisLabel.cs`](../../../Content.Client/_Onyx/Medical/HealthAnalyzer/EllipsisLabel.cs): ported from Onyx for Wolfmed.
