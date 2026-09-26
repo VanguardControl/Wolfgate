@@ -2387,13 +2387,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                 {
                     b.Navigation("Antags");
 
-<<<<<<< HEAD
-                    b.Navigation("ConsentSettings");
-=======
                     b.Navigation("Components");
 
+                    b.Navigation("ConsentSettings");
+
                     b.Navigation("Items");
->>>>>>> 84b2578ee5 (ATEMPT 3!!! (#4771))
 
                     b.Navigation("Jobs");
 
