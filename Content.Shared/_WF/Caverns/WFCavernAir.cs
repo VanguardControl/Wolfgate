@@ -7,11 +7,22 @@ namespace Content.Shared._WF.Caverns;
 [Serializable, NetSerializable]
 public enum WFCavernAir : byte
 {
+    /// <summary>Safe to breathe.</summary>
     Breathable,
+
+    /// <summary>Breathable, but with ammonia or nitrous oxide in it.</summary>
     Foul,
+
+    /// <summary>Too little oxygen to breathe.</summary>
     Thin,
+
+    /// <summary>Carbon dioxide, plasma or tritium enough to poison.</summary>
     Toxic,
+
+    /// <summary>Hot enough to burn.</summary>
     Scalding,
+
+    /// <summary>Cold enough to freeze.</summary>
     Freezing,
 }
 

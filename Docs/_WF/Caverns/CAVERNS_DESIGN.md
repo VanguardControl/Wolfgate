@@ -365,7 +365,9 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
   what `WFCavernSystem` calls from the built event. F2a landed the main file and `.Claims.cs` (candidates, pure
   checks, state checks, stamping); the polling loop that claims ahead of viewers (F2c) calls `TryClaimCell`, and
   `.Holes.cs` (F2c) adds the hole queue.
-- **`WFCavernClimbSystem : SharedWFCavernClimbSystem`** (F2): the move itself, server only. Hauling is F5.
+- **`WFCavernClimbSystem : SharedWFCavernClimbSystem`** (F2b): the move itself, server only, on
+  `(WFCavernClimbComponent, WFCavernClimbDoAfterEvent)` (up) and `(WFCavernShaftComponent, WFCavernClimbDoAfterEvent)`
+  (down). Test API: `ClimbUp`, `ClimbDown` and `FindExit` (3.6). Hauling is F5.
 - **`WFCavernHazardSystem`** (F5): cave-ins, vents and disturbance.
 - **`WFCavernCommand`** (F2): `wfcavern`.
 - **`BiomeSystem.Caverns.cs`** (`Content.Server/_WF/Caverns/`, namespace `Content.Server.Parallax`) exposes two
@@ -378,9 +380,13 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 
 ### 2.7 Client
 
-- **`SharedWFCavernClimbSystem`** (shared, F2b): the verbs *Climb up* and *Climb down*, *activate in world* on climb
-  points, the DoAfter (`BreakOnMove`, `BreakOnDamage`, `NeedHand = false`, `BlockDuplicate`), predicted popups and the
-  climb-point examine. Verbs require `CanAccess && CanInteract`.
+- **`SharedWFCavernClimbSystem`** (shared, abstract, F2b): the verbs *Climb up* and *Climb down* (`AlternativeVerb`s),
+  *activate in world* on climb points, the DoAfter (`BreakOnMove`, `BreakOnDamage`, `NeedHand = false`,
+  `BlockDuplicate`, `MultiplyDelay = false`), predicted start popups and the climb-point examine. Verbs require
+  `CanAccess && CanInteract`, and the climber must stand on the climb point's or shade's own grid, so nobody climbs
+  down through the deck of a hull parked over a hole. `MultiplyDelay` is off because climbing needs no hands: the
+  hands' DoAfter multiplier (0.9 per human hand) would otherwise cut Aerumna's 10 s to 8.1 s. The client registers
+  it through an empty `WFCavernClimbSystem` in `Content.Client/_WF/Caverns`, so the verbs and popups are predicted.
 - **`SharedWFCavernShaftSystem`** (shared, F2a): the shaft examine on shades (`(WFCavernShaftComponent,
   ExaminedEvent)`). It landed before the climb system, so it is a system of its own; the climb system subscribes other
   events on the same components.
@@ -615,8 +621,9 @@ and damage is 13 Blunt × the tile multiplier (table below). It never kills. Kno
 
 F2a measured these exactly in `CavernFallTest.MobFallsAndIsHurtALittle`: 0, 10, 6, 20, 3 and 5 Blunt.
 
-**Climb down.** Use the *Climb down* verb on a shade. It is a 3 s DoAfter that breaks on move or damage. The server then
-does the following in one tick, and the climber arrives standing, unhurt, beside the climb point:
+**Climb down.** Use the *Climb down* verb on a shade, standing on the ground itself (not on a hull deck). It is a 3 s
+DoAfter that breaks on move or damage. The server then does the following in one tick, and the climber arrives
+standing, unhurt, on the pad at the climb point:
 1. moves the user to the mouth's climb tile on the ground (for a bare hole, the hole tile);
 2. `TryMoveDown`;
 3. `SetZPosition(0)` and `SetZVelocity(0)`.
@@ -630,21 +637,25 @@ does the following in one tick, and the climber arrives standing, unhurt, beside
 ### 3.6 Coming back up
 
 Use *Climb up* on a climb point, by verb or by activating it. It needs no equipment and no hands.
-- **Duration.** The DoAfter lasts `climbSeconds × clamp(surface gravity, 1, 2.5)`:
+- **Duration.** The DoAfter lasts `climbSeconds × clamp(surface gravity, 1, 2.5)`, stamped on the climb point as
+  `WFCavernClimbComponent.Delay` when the mouth is cut:
   - Asclepiu, Fervidus and Carcinoma: 4 s;
   - Merak: 4.6 s;
   - Thrascias: 5 s;
   - Aerumna: 10 s.
 
-  Hauling multiplies it by 1.5 (F5). It breaks on move or damage.
-- **Exit tile.** The server picks the nearest ground tile within 2 tiles of the climb point that meets all of these:
+  The hands' DoAfter multiplier does not apply (2.7). Hauling multiplies it by 1.5 (F5). It breaks on move or damage.
+- **Exit tile.** When the climb finishes, the server (`FindExit`) takes the ground tiles within 2 tiles of the climb
+  point in either axis (a 5×5 square), nearest first, and picks the first that meets all of these:
   - it is non-empty and not a hole in the registry;
-  - no grid other than the map covers it (a hull there gives `wf-cavern-climb-blocked-hull`);
+  - no grid other than the map covers it;
   - no hard anchored entity stands on it.
 
-  If no tile qualifies, the climb gives `wf-cavern-climb-blocked`.
+  If none qualifies, the climb fails with `wf-cavern-climb-blocked-hull` when a hull covered any solid tile that is
+  not a hole, and with `wf-cavern-climb-blocked` otherwise. The climber stays below.
 - **Move.** In one tick: `TryMoveUp`, set the coordinates to the exit tile's centre on the ground, `SetZPosition(0)`,
-  `SetZVelocity(0)`. The exit is solid, so the climber stands and does not fall back.
+  `SetZVelocity(0)`. The exit is solid and the move recaches the ground height under the new tile, so the climber
+  stands and does not fall back or bounce.
 - **Robustness.** A lip dug away by a shovel only moves the exit to the next solid tile. Climbing never teleports anyone
   into a hull.
 
@@ -908,13 +919,13 @@ unnamed.
 | `list` | One row per built network: planet, cavern map, claimed mouths, players below | F2 |
 | `tp <planet> [pad\|mouth]` | Moves the caller to the gate's climb tile: on the cavern pad beside the climb point (default) or on the lip on the ground | F2 |
 | `mouths <planet>` | Lists claimed mouths: kind, origin, size, climb tile | F2 |
-| `open` | Carves a mouth (`Kind = Admin`) with its hole's bottom-left at the caller's ground tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or the footprint overlaps a mouth. Walls from self-deleting outcrop spawners are no longer tracked by the biome, so they count as built | F2 |
+| `open` | Carves a mouth (`Kind = Admin`) with its hole's bottom-left at the caller's ground tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or the footprint overlaps a mouth; it also refuses (`cavern`) when either map is gone. Walls from self-deleting outcrop spawners are no longer tracked by the biome, so they count as built | F2 |
 | `stats <planet>` | Open fraction and largest-component share of a 192² pure-noise sample around the caller (the same sampler as the tests) | F3 |
 | `awaken <planet>` | Forces the deep-table spawn near the caller | F5 |
 
 Keys: `cmd-wfcavern-desc`, `-help`, `-disabled`, `-invalid-args`, `-unknown-planet`, `-no-cavern`, `-empty`, `-row`,
-`-row-none`, `-mouth-row`, `-tp-done`, `-no-map`, `-not-ground`, `-open-done`, `-open-refused` (a `$reason` selector:
-grid, built, mob, mouth), `-stats`, `-awakened`, `-hint-sub`, `-hint-planet`, `-hint-target`. `-stats` and `-awakened`
+`-row-none`, `-mouth-row`, `-mouth-kind` (a `$kind` selector: gate, cell, hole, admin), `-tp-done`, `-no-map`,
+`-not-ground`, `-open-done`, `-open-refused` (a `$reason` selector: cavern, grid, built, mob, mouth), `-stats`, `-awakened`, `-hint-sub`, `-hint-planet`, `-hint-target`. `-stats` and `-awakened`
 come with their subcommands.
 
 `<planet>` matches, ignoring case, the sector body's name, the name the network was built under (`wfplanet spawn`
@@ -956,7 +967,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernWildlifeTest.WildlifeOverUnloadedGroundIsRemoved` | An awake wildlife mob whose ground chunk unloads falls into the cavern and is deleted, so it never lingers `Protected`; a non-wildlife mob beside it lands in the cavern and stays | F1 |
 | `CavernWildlifeTest.WildlifeThroughPinnedHoleIsKept` | A wildlife mob on a hand-pinned tile survives the chunk unload; emptying the tile drops it into the cavern, where it is kept | F1 |
 | `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk, unpinned (a hole is pinned only when its chunk unloads), falls into the cavern and is kept; the chunk is still loaded and the tile unpinned afterwards, so the loaded check decided | F1 |
-| `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after a cavern viewer loads it. The climb point is anchored under the climb tile | F2 |
+| `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after its chunks load; the test loads them with `WfLoadChunk`, as a cavern viewer's loader would, rather than attaching a viewer. The climb point is anchored under the climb tile, with the section 3.6 delay | F2 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
 | `CavernMouthTest.ClaimAheadOfViewer` | A viewer at (400, 0): within 1 s every cell within 96 tiles is Claimed or Empty, and none of its sites touched a chunk that was loaded at claim time | F2 |
 | `CavernMouthTest.ClaimDeferredWhileChunkLoaded` | After `WfLoadChunk` on a cell's first valid site, `TryClaimCell` returns Deferred. After `WfUnloadChunk` it returns Claimed at the same site | F2 |
@@ -967,13 +978,13 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernHoleTest.ExplosionHolesAllGetLandings` | Aerumna: after an explosion over chromite, every ground tile that became empty has a pinned cavern floor | F2 |
 | `CavernHoleTest.UnloadDoesNotOpenHoles` | `WfUnloadChunk` on the ground creates no shade and pins no cavern tile | F2 |
 | `CavernHoleTest.CoveredHoleLosesShade` | A tile laid over a hole removes its shade, and removing it again restores the shade | F2 |
-| `CavernClimbTest.ClimbUpLandsOnSolidExitAndStays` | After the DoAfter the mob is on the ground, on a solid exit, at `LocalPosition < 0.1`, and stays for 120 ticks | F2 |
-| `CavernClimbTest.ClimbDownIsHarmless` | 0 damage; the mob stands on the pad beside the climb point | F2 |
-| `CavernClimbTest.ClimbRefusedUnderHull` | A hull over the exit tiles refuses the climb with the hull popup, and the mob stays below | F2 |
-| `CavernClimbTest.DelayScalesWithGravity` | Asclepiu 4 s, Aerumna 10 s (±1 tick) | F2 |
+| `CavernClimbTest.ClimbUpLandsOnSolidExitAndStays` | Asclepiu, by the *Climb up* verb from the pad: after the DoAfter the mob is on the ground, on the solid lip over the climb point (not a hole), at `LocalPosition < 0.1`, and stays there for 120 ticks | F2 |
+| `CavernClimbTest.ClimbDownIsHarmless` | By the *Climb down* verb from the lip: 0 damage, no knockdown, on a pinned pad tile at or next to the climb point, and still there unhurt 120 ticks later | F2 |
+| `CavernClimbTest.ClimbRefusedUnderHull` | A static 5×5 `BuildDebris` over every exit tile (a dynamic one is shoved off the outcrops the viewer loads): the climb finishes, the mob stays below, and the connected client receives the hull popup | F2 |
+| `CavernClimbTest.DelayScalesWithGravity` | The stamped delay is Asclepiu 4 s and Aerumna 10 s (±1 tick). On Aerumna (godmode, as its air would break the climb) the DoAfter's delay is 10 s ±1 tick, and by the game clock the climb lands on the first tick at or past it | F2 |
 | `CavernHullTest.HullOverMouthStaysOnGround` | A 3×3 grid (`BuildDebris`; `BuildHull` is a fixed 15×15) over the hole and one lip corner stays on the ground with no transit for 5 s | F2 |
 | `CavernHullTest.SmallDebrisOverMouthNeverEntersCavern` | A 1×1 debris grid inside the hole never has the cavern as its map (it may churn) | F2 |
-| `CavernOrbitalFallTest.OrbitalFallIntoMouthMaimsNotKills` | Dropped from orbit over the gate: critical, not dead, one arm and one leg severed, on the cavern | F2 |
+| `CavernOrbitalFallTest.OrbitalFallIntoMouthMaimsNotKills` | Fervidus (a ×0.75 ash landing; Asclepiu's water would spare anyone). Dropped from orbit over the gate: critical, not dead, one arm and one leg severed, on the cavern. Without the `IsSurfaceImpact` fix it fails: the faller lands alive and unmaimed | F2 |
 | `CavernCommandTest.ListTpMouthsOpen` | `list` prints six rows, `tp` lands on the gate pad, `open` creates a mouth, `mouths` lists the gate (output read from the client console: a content test can't implement `IConsoleShell`) | F2 |
 | `Content.Tests: CavernAirTest.ClassifiesEachWorld` | The six level atmospheres classify as in section 4.8, and the thresholds are exact at their edges | F2 |
 | `CavernPrototypeTest.OneCavernPerSurface` | One `wfCavern` per `wfPlanetSurface`, and every reference resolves (level, biome, tiles, entities, sounds) | F3 |
@@ -1102,7 +1113,7 @@ cases) and `CavernWildlifeTest`. F2a added the section 2.9 chamber layer to the 
 This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbing, the orbital-fall fix and
 `wfcavern`, on all six worlds, still over the placeholder biome.
 
-**Status:** F2 ships in three parts; F2a has landed.
+**Status:** F2 ships in three parts; F2a and F2b have landed, F2c remains.
 - **F2a (landed):** the gate mouth on every world, claimed at build; falling in; the shades, their examine and the
   landing tiles; the climb points (placed, no verbs yet); the orbital-fall fix; and `wfcavern list|tp|mouths|open`.
   Code: the mouth spec, `WFCavernAir.cs` (`WFCavernAirClassifier`), `WFCavernShaftComponent`, `WFCavernClimbComponent`,
@@ -1110,9 +1121,12 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   `WFCavernGroundComponent`, `WfIsBiomeSpawned`, `WFCavernCommand`, `Entities/mouths.yml`, the five new landing tiles
   and the `mouths:` blocks. Tests: `CavernMouthTest.GateExists` and `.GateSurvivesUnloadReload`, `CavernFallTest`,
   `CavernOrbitalFallTest`, `CavernCommandTest`, the two F2 `CavernHullTest` cases and `CavernAirTest`.
-- **F2b (remaining): climbing.** `SharedWFCavernClimbSystem` (verbs, DoAfter, popups, the climb-point examine),
-  `WFCavernClimbDoAfterEvent`, `WFCavernClimbSystem`, the verb and popup keys in `caverns.ftl`, and `CavernClimbTest`.
-  The climb points and their `Delay` are already in place.
+- **F2b (landed): climbing.** `SharedWFCavernClimbSystem` (verbs, activation, DoAfter, predicted popups, the
+  climb-point examine) with its empty client subclass, `WFCavernClimbDoAfterEvent`, `WFCavernClimbSystem` (the
+  moves and `FindExit`, 3.5 and 3.6), the verb, popup and examine keys in `caverns.ftl`, and `CavernClimbTest`. The
+  climb points' `Delay` was already stamped by F2a. It also carried the F2a review fixes: `CavernOrbitalFallTest` on
+  Fervidus, `open`'s own `cavern` refusal, `mouths` printing its kind through `-mouth-kind`, `wfcavern` matching a
+  planet by every name section 5 lists, and summaries on `WFCavernAir` and `CavernAirTest`.
 - **F2c (remaining): lazy claims and the hole queue.** The 0.5 s polling that claims cells ahead of viewers through
   `TryClaimCell`, `WFCavernMouthSystem.Holes.cs` (`(WFCavernGroundComponent, TileChangedEvent)`, `EnsureHole`,
   `EnsureClimbNear`), `CavernHoleTest`, and `CavernMouthTest.ClaimAheadOfViewer`, `.ClaimDeferredWhileChunkLoaded`
@@ -1123,6 +1137,12 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   `avoid` adds its outcrop spawner, and Thrascias' rim uses the two north corners (4); `open` ignores the caller and
   treats spawner-made outcrop walls as built, and `-row-none` was added (5); `HullOverMouthStaysOnGround` uses a 3×3
   `BuildDebris` grid (6). No section 4 id needed substituting.
+- **F2b deviations** (each recorded where it applies): the climb DoAfter sets `MultiplyDelay = false`, and the verbs
+  need the climber on the target's own grid (2.7); the client registers the shared system through an empty
+  `WFCavernClimbSystem` (2.7); climbing down lands on the pad tile of the climb point itself (3.5); the exit search is
+  the 5×5 square, nearest first, and the hull popup wins when a hull covered any solid, non-hole tile (3.6);
+  `ClimbRefusedUnderHull` parks a static debris grid, and `DelayScalesWithGravity` times the climb by the game clock
+  (6).
 
 - **Add:**
   - Shared: `WFCavernShaftComponent.cs`, `WFCavernClimbComponent.cs`, `WFCavernClimbDoAfterEvent.cs`,
@@ -1130,6 +1150,7 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
     spec is added to `WFCavernPrototype`.
   - Server: `WFCavernMouthSystem.cs`, `WFCavernMouthSystem.Claims.cs`, `WFCavernMouthSystem.Holes.cs`,
     `WFCavernClimbSystem.cs`, `WFCavernCommand.cs`. `WFCavernGroundComponent` gains the registry.
+  - Client: `Content.Client/_WF/Caverns/WFCavernClimbSystem.cs`, the empty subclass that predicts the climb verbs.
   - Prototypes:
     - `Entities/mouths.yml`: `WFCavernShadeBase`, `WFCavernClimbBase`, and six of each;
     - `tiles.yml`: the six landing tiles;
