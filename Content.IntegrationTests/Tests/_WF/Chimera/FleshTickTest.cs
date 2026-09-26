@@ -60,6 +60,7 @@ public sealed class FleshTickTest
             Assert.That(damage.TotalDamage.Float(), Is.Zero,
                 $"Jump damaged tick: {string.Join(", ", damage.Damage.DamageDict)}");
         });
+        await PlanetFixture.Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
 

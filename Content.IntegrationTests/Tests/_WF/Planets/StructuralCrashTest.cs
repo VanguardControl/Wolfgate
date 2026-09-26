@@ -225,6 +225,7 @@ public sealed class StructuralCrashTest
             }
             Assert.That(sections, Is.InRange(2, 4));
         });
+        await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
 }
