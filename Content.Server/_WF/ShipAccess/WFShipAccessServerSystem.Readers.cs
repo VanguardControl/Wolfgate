@@ -43,10 +43,12 @@ public sealed partial class WFShipAccessServerSystem
         {
             var pending = new List<EntityUid>(_pendingReaders);
             _pendingReaders.Clear();
+            // A ship loaded or built in one go queues many readers; its owner keys are looked up once.
+            var owners = new Dictionary<EntityUid, HashSet<StationRecordKey>>();
             foreach (var uid in pending)
             {
                 if (!TerminatingOrDeleted(uid))
-                    RefreshReader(uid);
+                    RefreshReader(uid, owners);
             }
         }
 
@@ -97,9 +99,21 @@ public sealed partial class WFShipAccessServerSystem
     /// </summary>
     public void RefreshReader(EntityUid uid)
     {
+        RefreshReader(uid, null);
+    }
+
+    private void RefreshReader(EntityUid uid, Dictionary<EntityUid, HashSet<StationRecordKey>>? ownerCache)
+    {
         if (Transform(uid).GridUid is { } grid && TryComp<WFShipAccessComponent>(grid, out var access))
         {
-            RefreshReader((grid, access), uid, OwnerKeys((grid, access)));
+            if (ownerCache == null || !ownerCache.TryGetValue(grid, out var owners))
+            {
+                owners = OwnerKeys((grid, access));
+                if (ownerCache != null)
+                    ownerCache[grid] = owners;
+            }
+
+            RefreshReader((grid, access), uid, owners);
             return;
         }
 

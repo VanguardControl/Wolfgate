@@ -360,10 +360,14 @@ public sealed class ShipAccessTest
         await server.WaitAssertion(() =>
         {
             var comp = entMan.GetComponent<WFShipAccessComponent>(grid);
+            var access = entMan.System<WFShipAccessServerSystem>();
             Assert.Multiple(() =>
             {
                 Assert.That(comp.Locked, Is.False, "A ship no card can own is left unlocked.");
-                Assert.That(entMan.System<WFShipAccessServerSystem>().CanLock((grid, comp)), Is.False);
+                Assert.That(access.CanLock((grid, comp)), Is.False);
+                Assert.That(access.TrySetLocked(grid, true, out var refused), Is.True, "The console verb is handled here.");
+                Assert.That(refused, Is.True, "The verb is told the lock was refused, so it doesn't report a lock.");
+                Assert.That(comp.Locked, Is.False);
             });
         });
 

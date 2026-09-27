@@ -179,6 +179,8 @@ and `ShipAccessKeypadWindow` (the keypad). The `WFShipLocked` access level is in
   - virtual, so the door map can fit the hull to its own shorter side
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs): the ship link is networked, and this card may already have held a deed
 - [`Content.Server/_NF/ShuttleRecords/ShuttleRecordsSystem.Console.cs`](../../_NF/ShuttleRecords/ShuttleRecordsSystem.Console.cs): the ship link is networked, and this card may already have held a deed
+- [`Content.Server/Administration/Systems/AdminVerbSystem.Tools.cs`](../../Administration/Systems/AdminVerbSystem.Tools.cs): all access is not a key to every locked ship
+- [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs): all access is not a key to every locked ship
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleLockSystem.cs`](../../Shuttles/Systems/ShuttleConsoleLockSystem.cs)
   - a guest's card also joins the allow list
   - a held voucher with the deed, or a player the ship is registered to, holds deed access too

@@ -134,14 +134,16 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
 
     /// <summary>
     /// Console verb bridge: false when the grid has no ship access, so the caller keeps its old sweep. A lock that
-    /// would shut the owner out (no owner key) is refused but still counts as handled.
+    /// would shut the owner out (no owner key) is refused, which counts as handled and sets <paramref name="refused"/>.
     /// </summary>
-    public bool TrySetLocked(EntityUid? grid, bool locked)
+    public bool TrySetLocked(EntityUid? grid, bool locked, out bool refused)
     {
+        refused = false;
         if (grid is not { } uid || !TryComp<WFShipAccessComponent>(uid, out var comp))
             return false;
 
-        if (!locked || CanLock((uid, comp)))
+        refused = locked && !CanLock((uid, comp));
+        if (!refused)
             SetLocked((uid, comp), locked);
 
         return true;

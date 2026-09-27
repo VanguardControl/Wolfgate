@@ -1023,7 +1023,14 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
 
         // Toggle ship access
         // WOLFGATE(ShipAccess) START: Locked on the grid is the source of truth and flips the readers itself
-        if (!_wfShipAccess.TrySetLocked(Transform(consoleUid).GridUid, enable))
+        var wfHandled = _wfShipAccess.TrySetLocked(Transform(consoleUid).GridUid, enable, out var wfRefused);
+        if (wfRefused)
+        {
+            Popup.PopupEntity(Loc.GetString("ship-access-no-owner-key"), consoleUid, user);
+            return;
+        }
+
+        if (!wfHandled)
         // WOLFGATE END
         ToggleShipAccess(consoleUid, enable);
 
