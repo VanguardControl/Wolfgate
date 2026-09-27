@@ -86,10 +86,11 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
                 if (TryComp<WFPlanetAmbienceComponent>(lower, out var source))
                 {
                     var target = EnsureComp<WFPlanetAmbienceComponent>(uid);
-                    if (target.Profile != source.Profile || target.VolumeOffset != source.VolumeOffset)
+                    if (target.Profile != source.Profile || target.VolumeOffset != source.VolumeOffset || target.Occlusion != source.Occlusion)
                     {
                         target.Profile = source.Profile;
                         target.VolumeOffset = source.VolumeOffset;
+                        target.Occlusion = source.Occlusion;
                         Dirty(uid, target);
                     }
                 }
