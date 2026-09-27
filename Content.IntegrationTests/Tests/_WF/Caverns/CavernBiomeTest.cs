@@ -92,11 +92,14 @@ public sealed class CavernBiomeTest
     /// <summary>Samples a side of the window a dense stretch is looked for in (10 tiles at the signature step).</summary>
     private const int StretchWindow = 5;
 
-    /// <summary>Straight-line tiles within which a walkable tile counts as lit.</summary>
-    private const float GlowReach = WFCavernCommand.StatsGlowReach;
+    /// <summary>The walk to a light, in tiles, within which a tunnel tile counts as lit.</summary>
+    private const int GlowWalk = WFCavernCommand.StatsGlowWalk;
 
-    /// <summary>The share of walkable tiles in 128² around each gate that must lie within reach of a light.</summary>
-    private const float MinGlowCoverage = 0.7f;
+    /// <summary>The share of the web's tunnel floor in 128² around each gate that must lie within that walk of a light.</summary>
+    private const float MinGlowShare = 0.9f;
+
+    /// <summary>Samples left around the 128² whose tunnels are measured, so a light just outside it still counts.</summary>
+    private const int GlowMargin = WFCavernCommand.StatsGlowMargin;
 
     /// <summary>Edge of the square a viewer on the gate pad loads, 81 chunks.</summary>
     private const int ViewerSize = 72;
@@ -233,31 +236,36 @@ public sealed class CavernBiomeTest
     }
 
     /// <summary>
-    /// In 128² around each gate, most walkable tiles lie within reach of some glow, and the square a viewer loads holds
-    /// a bounded number of lights.
+    /// In 128² around each gate, most of the connected web's tunnel floor lies within a short walk of some glow, with
+    /// rock and hazards lengthening the way, and the square a viewer loads holds a bounded number of lights.
     /// </summary>
     [Test]
     public async Task GlowReachesTunnels()
     {
-        var samples = await SampleEveryWorld(ConnectSize, 1);
+        var samples = await SampleEveryWorld(ConnectSize + 2 * GlowMargin, 1);
 
         using (Assert.EnterMultipleScope())
         {
             foreach (var world in samples)
             {
                 var sample = world.Sample;
-                var coverage = sample.LightCoverage(GlowReach);
-                var margin = (ConnectSize - ViewerSize) / 2;
+                Assert.That(world.TunnelFloor, Is.Not.Null, $"{world.Surface}: the cavern biome lays no tunnel floor first.");
+
+                var share = sample.LightWalkShare(GlowWalk, world.TunnelFloor, GlowMargin);
+                var walks = sample.LightWalksOn(world.TunnelFloor, GlowMargin).OrderBy(walk => walk).ToList();
+                var margin = (sample.Width - ViewerSize) / 2;
                 var viewer = Enumerable.Range(0, sample.Count).Count(i =>
                 {
                     var x = i % sample.Width;
                     var y = i / sample.Width;
                     return sample.Light[i] && x >= margin && y >= margin && x < margin + ViewerSize && y < margin + ViewerSize;
                 });
-                TestContext.Out.WriteLine($"{world.Surface}: {coverage:P1} of the walkable tiles within {GlowReach} tiles of a light; {sample.LightCount()} lights in {ConnectSize}², {viewer} in the {ViewerSize}² a viewer loads.");
+                var half = walks.Count > 0 ? walks[walks.Count / 2] : 0;
+                var most = walks.Count > 0 ? walks[(int) (walks.Count * 0.9f)] : 0;
+                TestContext.Out.WriteLine($"{world.Surface}: {share:P1} of the tunnel floor within a {GlowWalk}-tile walk of a light (half within {half}, 90% within {most}); {viewer} lights in the {ViewerSize}² a viewer loads.");
 
-                Assert.That(coverage, Is.GreaterThanOrEqualTo(MinGlowCoverage),
-                    $"{world.Surface}: only {coverage:P1} of the walkable tiles lie within {GlowReach} tiles of a light.");
+                Assert.That(share, Is.GreaterThanOrEqualTo(MinGlowShare),
+                    $"{world.Surface}: only {share:P1} of the tunnel floor lies within a {GlowWalk}-tile walk of a light.");
                 Assert.That(viewer, Is.InRange(1, MaxViewerLights),
                     $"{world.Surface}: {viewer} lights in the {ViewerSize}² a viewer loads, outside 1-{MaxViewerLights}.");
             }
@@ -298,7 +306,7 @@ public sealed class CavernBiomeTest
                         }
                     }
 
-                    samples.Add(new WorldSample(surfaceId, sampler.Sample(biome, centre, size, step), alone));
+                    samples.Add(new WorldSample(surfaceId, sampler.Sample(biome, centre, size, step), alone, WFCavernSampler.TunnelFloor(biome.Layers)));
                 });
             }
             finally
@@ -311,8 +319,8 @@ public sealed class CavernBiomeTest
         return samples;
     }
 
-    /// <summary>A world's cavern sample and, by template id, its signature templates sampled alone.</summary>
-    private sealed record WorldSample(string Surface, WFCavernSample Sample, Dictionary<string, WFCavernSample> Templates);
+    /// <summary>A world's cavern sample, by template id its signature templates sampled alone, and its tunnel floor.</summary>
+    private sealed record WorldSample(string Surface, WFCavernSample Sample, Dictionary<string, WFCavernSample> Templates, string? TunnelFloor);
 
     /// <summary>A feature that comes in dense stretches: what it is, its entity, and the share of a window it must fill.</summary>
     private sealed record Stretch(string What, string Entity, float MinShare)

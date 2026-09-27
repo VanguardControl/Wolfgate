@@ -35,7 +35,8 @@ PLANTS = {
 
 COPYRIGHT_ACID = ("lava.rsi from https://github.com/tgstation/tgstation/tree/f116442e34fe3e941a1df474bb57bb410dd177a3/"
                   "icons/turf, hue-shifted for Wolfgate by Tools/_WF/Caverns/gen_flavour.py")
-COPYRIGHT_FLORA = ("Recoloured for Wolfgate by Tools/_WF/Caverns/gen_flavour.py from chanterelle (vgstation13), "
+COPYRIGHT_FLORA = ("Recoloured for Wolfgate by Tools/_WF/Caverns/gen_flavour.py from chanterelle (vgstation13 commit "
+                   "1dbcf389b0ec6b2c51b002df5fef8dd1519f8068), "
                    "lingzhi, aloe, spacemans_trumpet and glasstle (tgstation commit 40d89d11ea4a5cb81d61dc1018b46f4e7d32c62a) "
                    "and the flora anomaly bulb by TheShuEd (CC0-1.0)")
 

@@ -46,8 +46,11 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
     /// <summary>Edge of the square stats samples, the same as the open-fraction test.</summary>
     public const int StatsSize = 192;
 
-    /// <summary>Tiles from a light that stats counts as lit, the same as the glow coverage test.</summary>
-    public const float StatsGlowReach = 12f;
+    /// <summary>The walk to a light, in tiles, within which stats counts a tunnel tile as lit, the same as the glow test.</summary>
+    public const int StatsGlowWalk = 35;
+
+    /// <summary>Tiles stats leaves around the middle of its square when it measures the glow, so lights just outside count.</summary>
+    public const int StatsGlowMargin = 32;
 
     /// <inheritdoc/>
     public override string Command => WolfgateAdminCommands.Cavern;
@@ -267,6 +270,10 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             return;
         }
 
+        var floor = EntityManager.TryGetComponent<BiomeComponent>(cavern, out var biome)
+            ? WFCavernSampler.TunnelFloor(biome.Layers)
+            : null;
+
         shell.WriteLine(Loc.GetString("cmd-wfcavern-stats",
             ("planet", name),
             ("size", StatsSize),
@@ -275,8 +282,9 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             ("largest", Percent(sample.LargestRegionShare())),
             ("veins", Percent(sample.VeinFraction())),
             ("lights", sample.LightCount()),
-            ("glow", Percent(sample.LightCoverage(StatsGlowReach))),
-            ("reach", StatsGlowReach)));
+            ("glow", Percent(sample.LightWalkShare(StatsGlowWalk, floor, StatsGlowMargin))),
+            ("inner", StatsSize - 2 * StatsGlowMargin),
+            ("walk", StatsGlowWalk)));
     }
 
     /// <summary>A fraction as a percentage to one decimal place.</summary>

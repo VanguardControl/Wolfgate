@@ -462,10 +462,11 @@ Each vein layer uses `allowedTiles: [T]`.
 - **Chambers** sit on the web. A chamber that misses it is a sealed geode that miners can open.
 - **Signatures** win over everything else. They can carry a bank tile, a nested core template on the same noise (lava,
   plasma), or entities placed straight on T, like the Gut's blood channels.
-- **Decals** in a nested template only show when that template also places a tile, because `TryGetDecals` reads the
-  tile again from each template's own layers. A template holding decal layers therefore repeats its parent's floor, and
-  a template that places an entity on the same tiles has to repeat it too, or the decals show through under the
-  entity (the Gut's pool edge and pool, 4.7). Decals cost no entities.
+- **Decals** in a nested template are looked up against the floor already on the grid, since `LoadDecals` runs after
+  `LoadTiles`, so in game a decal template needs no tile layer. Without a grid (a sampler or a preview) `TryGetDecals`
+  reads the tile from each template's own layers instead, so a decal template repeats its parent's floor to show there
+  (the Gut's pool edge, 4.7). No decal lands on a tile that holds an anchored entity (`BiomeSystem.LoadDecals`), which
+  keeps the bile out from under the acid. Decals cost no entities.
 
 All cavern floors are indestructible and cannot be dug, so the bottom layer never opens to void. New tiles set
 `parent` and inherit the parent's name, so they need no tile loc keys:
@@ -761,8 +762,8 @@ The tests below are the gates.
   walls, pillars and ice columns don't (`WFCavernSampler`). The noise numbers below started as the design's values; F3
   tuned the rows that say "from" and left the rest.
 - **Walkable** is what `TunnelsConnect` counts: open, and not a tile that hurts whoever stands in it
-  (`WFCavernSampler.IsHazard`: lava and liquid plasma, which set you alight, and the Gut's digestive acid, which has
-  `DamageContacts`). A lava or plasma line is a wall to someone on foot, so a liquid core that runs unbroken
+  (`WFCavernSampler.IsHazard`: lava and liquid plasma, which set you alight, and the Gut's digestive acid
+  (`WFDigestiveAcid`), which digests you). A lava or plasma line is a wall to someone on foot, so a liquid core that runs unbroken
   along a tube or gallery would cut the cavern into cells; both cores therefore run in stretches (4.3, 4.6).
 - **Glow.** Each world's glowing plant is its main light below ground (`Entities/flora.yml`, `WFCavernGlowFloraBase`):
   anchored, no fixtures, cut down with 15 damage, drawn shaded with an unshaded glow layer on top so it reads before
@@ -770,17 +771,20 @@ The tests below are the gates.
   existing plants recoloured onto the world's palette by `Tools/_WF/Caverns/gen_flavour.py` (`_WF/Caverns/glow_flora.rsi`).
   The plant stands in the tunnels (an entity layer on T just above the litter, OpenSimplex2 frequency 1, seed 32) and in
   the chambers (on C, seed 317); Fervidus also lines its lava-tube banks and Aerumna gathers them under its shadow
-  trees. Fewer, stronger lights rather than many weak ones: a viewer loads 24–54 lights (existing crystals and glow-worms
-  included), and 81–95% of the walkable tiles in 128² around the gate lie within 12 tiles of one in a straight line
-  (`GlowReachesTunnels`, which counts through walls, so the walk to the next glow is sometimes longer). Aerumna keeps the
-  dimmest plant (radius 4, energy 0.9), so it stays the darkest cavern; Thrascias, whose galleries were already full of
-  crystals, is the brightest.
+  trees. Fewer, stronger lights rather than many weak ones: a viewer loads 24–53 lights (existing crystals and glow-worms
+  included). `GlowReachesTunnels` walks from each tile of the tunnel floor (the biome's first tile) in the connected web
+  to the nearest light, around rock and hazards: in 128² around the gate 94–100% of it lies within a 35-tile walk of
+  one, half within 8–12 tiles and 90% within 19–30. Aerumna is the far end of each range: its blooms are the dimmest
+  plant (radius 4, energy 0.9) under the darkest roof, so it stays the darkest cavern, but its crawls hold enough of
+  them to find the way from one to the next (4.5). Thrascias, whose galleries were already full of crystals, is the
+  brightest.
 - **Measured (F3).** Around each gate: open 42% Asclepiu, 39% Fervidus, 50% Merak, 38% Aerumna, 51% Thrascias, 51%
   Carcinoma; the largest walkable region holds 83–99% of the walkable tiles in 128², and 96–100% of the walkable tiles
   in 384² are reachable from the gate. Veins (walls with a set ore) are 21–26% of the rock rather than 15%, and 1.5% on
   Carcinoma, where only the calcified nodes carry ore; the thresholds are this section's, so the richer rock is a
-  balance call left open. After the glow and Gut pass a viewer on the gate pad loads about 2,860 (Merak) to 3,610
-  (Fervidus) entities, varying a little from run to run with the wildlife, and 24 (Carcinoma) to 54 (Thrascias) lights.
+  balance call left open. After the glow and Gut pass a viewer on the gate pad loads about 2,870 (Merak) to 3,490
+  (Aerumna and Fervidus) entities, varying a little from run to run with the wildlife, and 24 (Carcinoma) to 53
+  (Thrascias) lights.
 
 ### 4.2 Asclepiu: the Underkarst
 
@@ -849,7 +853,7 @@ The darkest cavern: chromite, 3 g, toxic air, xenos, and the only anomaly rock.
 | Tiles | T `WFCavernFloorChromite`; C `WFCavernFloorBedrock`; landing `WFCavernFloorChromiteScree` |
 | Skeleton | Tight crawls: ridged frequency 0.05, ≤ 0.58 (tuned in F3 from 0.62, which left the crawls in pieces: 43% of the open tiles connected). Chambers are cathedral galleries: FBm frequency 0.012, ≥ 0.34 (from 0.30, to stay in the band). Signatures in galleries: shadow groves (meta FBm frequency 0.02, ≥ 0.3, placing `ShadowTree`, `ShadowBasaltOne`, `ShadowBasaltTwo` on C at ≥ 0.5, frequency 2; tuned in F3 from 0.5 and 0.65, which grew about one tree in 2,000 tiles) and pink geodes (meta OpenSimplex2 frequency 0.08, seed 56, ≥ 0.75, placing `CrystalPink` on C at ≥ 0.5, frequency 1). Open band 0.25–0.40 |
 | Rock and ore | `WallRockChromite`. Common: `…Tin`, `…Plasma`. Uncommon: `…Quartz`, `…Uranium`. Rare: `…Silver`, `…Gold`. Very rare: `…Diamond`, `WallRockChromiteBluespace`, `WallRockChromiteArtifactAnomaly` |
-| Light | Roof `#050408`, `shaftLight` 0.3. The geodes, and `WFCavernShadowBloom` (spaceman's trumpet recoloured violet, `#b65cff`, radius 4, energy 0.9): a few in the crawls and galleries (≥ 0.97 each) and more under the shadow trees (in the grove template, seed 321, ≥ 0.93). Still the darkest cavern |
+| Light | Roof `#050408`, `shaftLight` 0.3. The geodes, and `WFCavernShadowBloom` (spaceman's trumpet recoloured violet, `#b65cff`, radius 4, energy 0.9): along the crawls (≥ 0.92, spaced so you can walk from one to the next; at 0.97 only 0.4% of the crawl floor had one and 90% of it lay within a 56-tile walk of a light), a few in the galleries (≥ 0.97) and more under the shadow trees (in the grove template, seed 321, ≥ 0.93). The dimmest glow under the darkest roof, so still the darkest cavern |
 | Hazards | Darkness. CO₂. Xenos. A 10 s climb out at 3 g (clear the pad first). Spore pockets `WFCavernVentAerumna` (`Nocturine` smoke, F5). Cave-ins 0.25 |
 | Fauna | `MobXenoRunner` 3, `MobXenoDrone` 2, `MobArgocyteSlurva` 3, `MobXenoSpitter` 1, `MobXenoPraetorian` 0.5 |
 | Deep (F5) | `MobXenoPraetorian` + 2 `MobXenoRunner` |
@@ -885,10 +889,10 @@ and some throats are choked with tendons.
 |---|---|
 | Level | `WFCavernCarcinomaLevel`: `mapLight: "#5a1a22"`, atmosphere `[21.824879, 76, 0, 0, 0, 0, 1]` at 310.15 K (Foul: breathable, with ammonia) |
 | Tiles | T `WFCavernFloorFlesh`; C `WFCavernFloorGut`; landing `WFCavernFloorGut`; acid pools `WFCavernDigestiveAcid` on C |
-| Skeleton | Throats: ridged, 2 octaves with gain 0.3 for wiggle, frequency 0.06, ≤ 0.40 (tuned in F3 from 0.62: two octaves at the default gain 0.5 compress the ridged range, so 0.62 left 32% open and 7% of it connected, and 0.30 kept them connected only by widening them into broad ground; the lower gain keeps them narrow and joined). Stomachs: FBm frequency 0.03, ≥ 0.25 (from 0.35, making up the open share the narrower throats give up). Signature: digestive channels, `WFBloodRiver` placed straight on T (ridged frequency 0.012, ≥ 0.94, highest priority). Stomachs hold `WFCarcinomaAssimilationSack` (≥ 0.985), `WFFleshPustule` (≥ 0.985), `WFFleshPolyp` (≥ 0.98) and `WFCavernGutGlow` (≥ 0.975). Acid pools: a meta layer in the stomach template, highest there (`WFCavernAcidCarcinoma`, FBm 2 octaves, frequency 0.06, seed 60, ≥ 0.48), placing `WFCavernDigestiveAcid` on C, ringed on the same noise at ≥ 0.3 by `WFCavernPoolEdgeCarcinoma`: bile (`WFCavernBile1`–`4`, decals of `Fluids/vomit_toxin.rsi`, ≥ 0.2) and bones (the `Remains` decal, ≥ 0.8). Choked throats: `WFCavernOvergrowthCarcinoma` (OpenSimplex2 frequency 0.03, seed 61, ≥ 0.3), the lowest-priority layer on T, fills its stretches with `WFCavernTendons` (frequency 0.6, ≥ −0.45, about three tiles in four). Around the gate the pools take about 4% of the ground and 96% of the walkable tiles in 128² stay connected. Open band 0.35–0.55 |
+| Skeleton | Throats: ridged, 2 octaves with gain 0.3 for wiggle, frequency 0.06, ≤ 0.40 (tuned in F3 from 0.62: two octaves at the default gain 0.5 compress the ridged range, so 0.62 left 32% open and 7% of it connected, and 0.30 kept them connected only by widening them into broad ground; the lower gain keeps them narrow and joined). Stomachs: FBm frequency 0.03, ≥ 0.25 (from 0.35, making up the open share the narrower throats give up). Signature: digestive channels, `WFBloodRiver` placed straight on T (ridged frequency 0.012, ≥ 0.94, highest priority). Stomachs hold `WFCarcinomaAssimilationSack` (≥ 0.985), `WFFleshPustule` (≥ 0.985), `WFFleshPolyp` (≥ 0.98) and `WFCavernGutGlow` (≥ 0.975). Acid pools: a meta layer in the stomach template, highest there (`WFCavernAcidCarcinoma`, FBm 2 octaves, frequency 0.06, seed 60, ≥ 0.48), placing `WFCavernDigestiveAcid` on C, ringed on the same noise at ≥ 0.3 by `WFCavernPoolEdgeCarcinoma`: bile (`WFCavernBile1`–`4`, decals of `Fluids/vomit_toxin.rsi`, ≥ 0.2) and bones (the `Remains` decal, ≥ 0.8). Choked throats: `WFCavernOvergrowthCarcinoma` (OpenSimplex2 frequency 0.03, seed 61, ≥ 0.3), the lowest-priority layer on T, fills its stretches with `WFCavernTendons` (frequency 0.6, ≥ −0.45, about three tiles in four). In 192² around the gate the pools cover 4.4% of all tiles, 8.6% of the open floor and 14% of the stomach floor, the tendons 18% of the open throat floor, and 96% of the walkable tiles in 128² stay connected. Open band 0.35–0.55 |
 | Rock and ore | `WallMeat`, as on the surface. It can't be mined: cut it down like any wall. The rock template has a calcified-node meta layer (FBm frequency 0.05, ≥ 0.6) of `WallRockAndesite`, with `…Salt`, `…Silver`, `…Gold`, `…Plasma` and `…Uranium` veins (F3 tiers: common salt and plasma, uncommon silver and uranium, rare gold). The flesh grew over a mineral world |
 | Light | Roof `#140306`, `shaftLight` 0.4. `WFCavernNerveCluster` (the flora anomaly's bulb recoloured red, `#ff4d72`) along the throats (≥ 0.93) and in the stomachs (≥ 0.95). `WFCavernGutGlow`: no sprite, `PointLight` `#ff4a5a`, radius 3 |
-| Hazards | Digestive acid: 5 Caustic a second through `DamageContacts` to any mob wading in except the Gut's own `Flesh`-tagged creatures, with no fire or air needed, and wading at 0.6 speed. It holds no reagent, so it spills nothing and leaves the floor whole. Choked throats slow you to 0.65 (`WFCavernTendons`: `WFCarcinomaTendons`, the surface forest's non-hard tendons and the art of the climb point, with `SpeedModifierContacts`; cut them down at 40 damage). Ammonia (masks). Ticks. Pustules. Bile pockets `WFCavernVentCarcinoma` (`Ammonia` smoke, F5). No cave-ins: flesh doesn't collapse |
+| Hazards | Digestive acid (`WFDigestiveAcid`, `Content.Shared/_WF/Caverns`): 5 Caustic a second to any mob wading in, with no fire or air needed, through the contact damage `DamageContactsSystem` ticks, and wading at 0.6 speed. It spares the Gut's own creatures by faction, since they share no tag: `AberrantFleshExpeditionNF` (the aberrant flesh, their newborns and the assimilated miners) and `Chimera` (the ticks and the Letoferol). Like lava it spares anyone on a catwalk over it. It digests the dead too, so a body left in it is soon past saving, and leaves items alone. It holds no reagent, so it spills nothing and leaves the floor whole. Choked throats slow you to 0.65 (`WFCavernTendons`: `WFCarcinomaTendons`, the surface forest's non-hard tendons and the art of the climb point, drawn at `FloorObjects` under the mobs so a click on someone standing in them reaches them, with `SpeedModifierContacts`; cut them down at 40 damage). Ammonia (masks). Ticks. Pustules. Bile pockets `WFCavernVentCarcinoma` (`Ammonia` smoke, F5). No cave-ins: flesh doesn't collapse |
 | Decor | Bile and bones around the acid pools, as decals |
 | Fauna | `WFCavernFaunaCarcinoma`: nested `WFFaunaCarcinoma` 3, `WFMobFleshTick` 4, `MobFleshAssimilatedMiner` 1 |
 | Deep (F5) | `MobLetoferolHorror` |
@@ -1047,8 +1051,8 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernBiomeTest.TunnelsConnect` [6] | In 128², the largest 4-connected walkable component holds at least 60% of the walkable tiles; lava, liquid plasma and digestive acid block (4.1) | F3 |
 | `CavernBiomeTest.OreOnlyInRock` [6] | Every sampled vein entity stands on T | F3 |
 | `CavernBiomeTest.SignaturePresent` [6] | Over 512², sampled every 2nd tile: `FloorWater`, pillars, fossils and camp corpses, pink geodes and shadow trees, `FloorIce` and `WallIce`, `WFBloodRiver`, each world's glow plant, and Carcinoma's acid pools on C and nerve clusters. Lava tubes and plasma lakes are checked through their templates: sampled alone, `WFCavernSignatureFervidus` and `WFCavernSignatureThrascias` must place lava or plasma, and every tile where they do must carry it in the cavern, so magma lakes can't stand in for the tubes. Carcinoma must have a choked throat: some 5×5-sample window (10 tiles) where `WFCavernTendons` fill at least half of the open ground | F3 |
-| `CavernBiomeTest.GlowReachesTunnels` [6] | In 128², at least 70% of the walkable tiles lie within 12 tiles of a light (straight line), and the central 72² a viewer loads holds 1–80 lights | F3 |
-| `CavernGutTest.AcidBurnsWithoutAirAndSparesFloor` | On a bare airless grid of `WFCavernFloorGut`: a `MobHuman` standing in `WFCavernDigestiveAcid` for 3 s takes at least 10 Caustic, a `MobFleshJared` beside it takes none, both floors under the acid are unchanged and no puddle appears | F3 |
+| `CavernBiomeTest.GlowReachesTunnels` [6] | Sampled over 192² around the gate: of the tunnel floor (the biome's first tile) in the largest walkable region within the middle 128², at least 90% lies within a 35-tile walk of a light, stepping around rock and hazards (`WFCavernSample.LightWalks`); the central 72² a viewer loads holds 1–80 lights | F3 |
+| `CavernGutTest.AcidDigestsIntrudersAndSparesNatives` | On a bare airless grid of `WFCavernFloorGut`, each mob in its own pool of `WFCavernDigestiveAcid` for 3 s: a `MobHuman` takes at least 10 Caustic, while a `MobHuman` on a `Catwalk` over its pool and every creature the `WFCavernFaunaCarcinoma` and `WFCarcinomaAssimilationSack` tables can spawn (20, put to sleep so they stay in the acid) touch the acid but take none; the floors under the pools are unchanged and no puddle appears | F3 |
 | `CavernGutTest.TendonsSlowWalkers` | A `MobHuman` in `WFCavernTendons` walks at under 80% of the speed of one on bare floor | F3 |
 | `CavernGutTest.SamplerClassifiesGutFeatures` | The sampler counts acid as a barrier and not rock, tendons as neither, and nerve clusters as lights | F3 |
 | `CavernGenerationTest.PadClearAndWorldFloors` [6] | A viewer on the gate pad: nothing but the climb point is anchored on the pad, the world's T and C tiles are present within 24 tiles, the cavern holds at most 4,000 entities and 5–100 `PointLight`s, and a wildlife pass beside one of the world's fauna markers in the loaded chunks spawns wildlife on the cavern map. F3 raised the planned 2,500: a viewer loads 81 chunks (5,184 tiles) and 45–70% of a cavern is rock, so 2,700–3,590 entities load (risk 2) | F3 |
@@ -1259,8 +1263,12 @@ ambience and arrival popups (F4).
   `Entities/flora.yml`), and the Gut got digestive acid pools with bile and bones around them and tendon-choked
   throats (4.7, `Entities/gut.yml`, `WFCavernBile1`–`4`). The art is existing sprites recoloured by
   `Tools/_WF/Caverns/gen_flavour.py` (`digestive_acid.rsi` is `lava.rsi` hue-shifted; `glow_flora.rsi` holds the six
-  plants); names are in `decor.ftl`. `WFCavernSampler` counts acid as a hazard and reports lights, `wfcavern stats`
-  prints the glow coverage, and `CavernGutTest` and `CavernBiomeTest.GlowReachesTunnels` are new. This settles the
+  plants); names are in `entities.ftl`. `WFCavernSampler` counts acid as a hazard and walks from the tunnels to the
+  nearest light, `wfcavern stats` prints how much of the tunnel floor is within a 35-tile walk of one, and
+  `CavernGutTest` and `CavernBiomeTest.GlowReachesTunnels` are new. A review then gave the acid its own
+  `WFDigestiveAcid`, as `DamageContacts` could spare none of the Gut's creatures (none carries the `Flesh` tag it
+  checked), replaced the glow test's straight-line reach through walls with the walk, and filled Aerumna's crawls,
+  which the old measure passed while they were nearly unlit. This settles the
   sparse glow the F3 visual pass was to check. Not yet seen on a client: how the unshaded glow layers and the
   hue-shifted acid read in game, and whether the tendons show against the flesh floor.
 - **Needs the user:** the visual pass on a client (each world against section 4, with the Aerumna and Carcinoma

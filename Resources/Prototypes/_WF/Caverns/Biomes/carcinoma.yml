@@ -134,8 +134,9 @@
     threshold: -0.45
     noise: { seed: 62, noiseType: OpenSimplex2, frequency: 0.6 }
 
-# Decal layers only read a template that places its own tile, so the pool edge and the pool both repeat the stomach
-# floor; the pool's then blocks bile under the acid.
+# In game a decal lookup reads the floor already laid, and no decal lands under an anchored entity, so the acid keeps
+# the bile out from under itself. The pool edge repeats the stomach floor only so a lookup with no grid, as a preview
+# takes, finds its decals.
 - type: biomeTemplate
   id: WFCavernPoolEdgeCarcinoma
   layers:
@@ -156,9 +157,6 @@
 - type: biomeTemplate
   id: WFCavernAcidCarcinoma
   layers:
-  - !type:BiomeTileLayer
-    tile: WFCavernFloorGut
-    threshold: -1
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorGut]
     entities: [WFCavernDigestiveAcid]

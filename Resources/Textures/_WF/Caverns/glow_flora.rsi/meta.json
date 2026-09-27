@@ -1,7 +1,7 @@
 {
   "version": 1,
   "license": "CC-BY-SA-3.0",
-  "copyright": "Recoloured for Wolfgate by Tools/_WF/Caverns/gen_flavour.py from chanterelle (vgstation13), lingzhi, aloe, spacemans_trumpet and glasstle (tgstation commit 40d89d11ea4a5cb81d61dc1018b46f4e7d32c62a) and the flora anomaly bulb by TheShuEd (CC0-1.0)",
+  "copyright": "Recoloured for Wolfgate by Tools/_WF/Caverns/gen_flavour.py from chanterelle (vgstation13 commit 1dbcf389b0ec6b2c51b002df5fef8dd1519f8068), lingzhi, aloe, spacemans_trumpet and glasstle (tgstation commit 40d89d11ea4a5cb81d61dc1018b46f4e7d32c62a) and the flora anomaly bulb by TheShuEd (CC0-1.0)",
   "size": {
     "x": 32,
     "y": 32

@@ -1,7 +1,8 @@
 # The Gut's own hazards: pools of digestive acid in the stomachs and tendons choking some of the throats.
 
-# Burns whoever wades in through contact damage, which needs no air or fire. It holds no reagent, so nothing spills
-# onto the floor and the flesh it pools on is left whole. The Gut's own flesh creatures are left alone.
+# Digests whoever wades in, a second at a time, with no air or fire needed. It spares the Gut's own creatures (the
+# aberrant flesh and the chimera) and anyone on a catwalk over it. It digests the dead too, so a body left in it is soon
+# past saving. It holds no reagent, so nothing spills onto the floor and the flesh it pools on is left whole.
 - type: entity
   id: WFCavernDigestiveAcid
   placement:
@@ -41,16 +42,19 @@
         - ItemMask
         density: 1000
         hard: false
-  - type: DamageContacts
+  - type: WFDigestiveAcid
     damage:
       types:
         Caustic: 5
     whitelist:
       components:
       - MobState
-    ignoreWhitelist:
+    ignoreFactions:
+    - AberrantFleshExpeditionNF
+    - Chimera
+    coveredBy:
       tags:
-      - Flesh
+      - Catwalk
   - type: SpeedModifierContacts
     walkSpeedModifier: 0.6
     sprintSpeedModifier: 0.6
@@ -63,11 +67,14 @@
     tags:
     - HideContextMenu
 
-# The surface forest's dormant tendons, grown so thick in the throats that they drag at whoever pushes through.
+# The surface forest's dormant tendons, grown so thick in the throats that they drag at whoever pushes through. They
+# lie under the mobs, so a click on someone standing in them reaches that someone.
 - type: entity
   id: WFCavernTendons
   parent: WFCarcinomaTendons
   components:
+  - type: Sprite
+    drawdepth: FloorObjects
   - type: SpeedModifierContacts
     walkSpeedModifier: 0.65
     sprintSpeedModifier: 0.65

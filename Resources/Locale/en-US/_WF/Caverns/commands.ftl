@@ -27,6 +27,6 @@ cmd-wfcavern-open-refused = Can't carve a mouth here: { $reason ->
 }
 cmd-wfcavern-hint-sub = <list|tp|mouths|open|stats>
 cmd-wfcavern-stats-started = Sampling { $size }x{ $size } cavern tiles around { $centre }...
-cmd-wfcavern-stats = { $planet }: { $size }x{ $size } tiles around { $centre } are { $open }% open; the largest region you can walk without crossing lava, plasma or acid holds { $largest }% of the walkable ground, and { $veins }% of the rock is ore. { $lights } lights leave { $glow }% of the walkable ground within { $reach } tiles of a glow.
+cmd-wfcavern-stats = { $planet }: { $size }x{ $size } tiles around { $centre } are { $open }% open; the largest region you can walk without crossing lava, plasma or acid holds { $largest }% of the walkable ground, and { $veins }% of the rock is ore. The square holds { $lights } lights, and { $glow }% of the tunnel floor in its middle { $inner }x{ $inner } is within a { $walk }-tile walk of one.
 cmd-wfcavern-hint-planet = <planet name>
 cmd-wfcavern-hint-target = <pad|mouth>

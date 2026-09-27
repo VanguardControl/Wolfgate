@@ -1,5 +1,5 @@
 # Aerumna: the Umbral Deeps. Tight chromite crawls opening into vast bedrock galleries, lit only by pink geodes and
-# a few faint shadow blooms, with shadow groves in the dark.
+# faint shadow blooms, with shadow groves in the dark.
 # Layers run last to first and the first match wins. Walls only stand on chromite, so any other floor is open ground.
 
 - type: biomeTemplate
@@ -9,11 +9,11 @@
   - !type:BiomeTileLayer
     tile: WFCavernFloorChromite
     threshold: -1
-  # A few shadow blooms in the crawls, lowest priority.
+  # Shadow blooms along the crawls, lowest priority: dim, but close enough to find your way from one to the next.
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorChromite]
     entities: [WFCavernShadowBloom]
-    threshold: 0.97
+    threshold: 0.92
     noise: { seed: 32, noiseType: OpenSimplex2, frequency: 1 }
   # Rock wherever ridged noise is at most the crawl threshold; the crawls are the ridges.
   - !type:BiomeMetaLayer

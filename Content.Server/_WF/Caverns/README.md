@@ -9,7 +9,8 @@ ice halls and plasma lakes, and the Gut's flesh throats, stomachs and blood chan
 world's ores, chambers hold its decor and wildlife (`WFCavernFauna<World>`, under the planet fauna caps). Each world's
 glowing plant (`Entities/flora.yml`: glowcaps, ember lichen, lamp agaves, shadow blooms, rime thistles, nerve clusters)
 lines its tunnels and chambers as the main light below ground. The Gut also pools digestive acid in its stomachs, which
-burns whoever wades in without needing air, and chokes some throats with tendons that slow you (`Entities/gut.yml`).
+digests whoever wades in, air or not, but spares its own creatures and anyone on a catwalk (`WFDigestiveAcidSystem`),
+and chokes some throats with tendons that slow you (`Entities/gut.yml`).
 Caverns are behind `wf.caverns` (`CavernCVars`), which
 is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
 ground, and nobody on or above the ground loads the cavern under them.
@@ -21,8 +22,9 @@ tells them where it goes, what the air below is like and how hard the landing is
 them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in high gravity, up to
 10 s on Aerumna) brings them out onto the nearest solid ground beside the hole, refused while a ship is parked over it.
 Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths, carve one by hand
-(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot, ore share and glow
-coverage of a 192-tile square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
+(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot, ore share and how
+much of the tunnel floor is within a short walk of a light, over a 192-tile square, read from noise by
+`WFCavernSampler`, the same sampler the cavern tests use).
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the
@@ -65,6 +67,8 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 - [`Content.Shared/_WF/Caverns/WFCavernMouthSpec.cs`](../../../Content.Shared/_WF/Caverns/WFCavernMouthSpec.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernPrototype.cs`](../../../Content.Shared/_WF/Caverns/WFCavernPrototype.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernShaftComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernShaftComponent.cs)
+- [`Content.Shared/_WF/Caverns/WFDigestiveAcidComponent.cs`](../../../Content.Shared/_WF/Caverns/WFDigestiveAcidComponent.cs)
+- [`Content.Shared/_WF/Caverns/WFDigestiveAcidSystem.cs`](../../../Content.Shared/_WF/Caverns/WFDigestiveAcidSystem.cs)
 
 ### Client
 
@@ -114,7 +118,6 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 
 - [`Resources/Locale/en-US/_WF/Caverns/caverns.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/caverns.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/commands.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/commands.ftl)
-- [`Resources/Locale/en-US/_WF/Caverns/decor.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/decor.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/entities.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/entities.ftl)
 
 ### Textures

@@ -1,7 +1,13 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
 using Content.Server._WF.Caverns;
+using Content.Server._WF.Planets;
+using Content.Server.NPC.HTN;
+using Content.Shared._WF.Caverns;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
+using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.FixedPoint;
 using Content.Shared.Fluids.Components;
 using Content.Shared.Maps;
@@ -10,17 +16,21 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Systems;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
 /// <summary>The Gut's digestive acid and choked throats, on a bare airless grid.</summary>
 [TestFixture]
-[TestOf(typeof(WFCavernSampler))]
 public sealed class CavernGutTest
 {
     private const string Acid = "WFCavernDigestiveAcid";
     private const string Tendons = "WFCavernTendons";
     private const string Floor = "WFCavernFloorGut";
+
+    /// <summary>What spawns the Gut's own creatures: its wildlife markers and its assimilation sacks.</summary>
+    private static readonly string[] NativeSpawners = { "WFCavernFaunaCarcinoma", "WFCarcinomaAssimilationSack" };
 
     /// <summary>Seconds the mobs stand still before they are checked.</summary>
     private const float StandSeconds = 3f;
@@ -29,29 +39,62 @@ public sealed class CavernGutTest
     private const int MinCaustic = 10;
 
     /// <summary>
-    /// With no air to burn in, a human standing in acid takes Caustic damage while a flesh creature beside it takes
-    /// none, and the stomach floor under the pool is still there with nothing spilled on it.
+    /// With no air to burn in, a human standing in acid takes Caustic damage, while a human on a catwalk over the acid
+    /// and every creature the Gut's wildlife markers and assimilation sacks can spawn, each standing in its own pool,
+    /// take none; the stomach floor under the pools is still there with nothing spilled on it.
     /// </summary>
     [Test]
-    public async Task AcidBurnsWithoutAirAndSparesFloor()
+    [TestOf(typeof(WFDigestiveAcidSystem))]
+    public async Task AcidDigestsIntrudersAndSparesNatives()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
+        var protoMan = server.ProtoMan;
+        var factory = server.ResolveDependency<IComponentFactory>();
         var map = await pair.CreateTestMap(true, Floor);
         var maps = server.System<SharedMapSystem>();
+        var physics = server.System<SharedPhysicsSystem>();
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        var natives = new SortedSet<string>();
+
+        await server.WaitAssertion(() =>
+        {
+            foreach (var spawnerId in NativeSpawners)
+            {
+                Assert.That(protoMan.Index<EntityPrototype>(spawnerId).TryGetComponent<WFPlanetFaunaSpawnerComponent>(out var spawner, factory), Is.True,
+                    $"{spawnerId} spawns no wildlife.");
+                CollectSpawns(protoMan, protoMan.Index(spawner!.Table).Table, natives);
+            }
+        });
+
+        var pools = new List<Vector2i> { Vector2i.Zero, new(2, 0) };
         var human = EntityUid.Invalid;
-        var flesh = EntityUid.Invalid;
-        var fleshTile = new Vector2i(3, 0);
+        var covered = EntityUid.Invalid;
+        var catwalk = EntityUid.Invalid;
+        var spared = new Dictionary<string, EntityUid>();
 
         await server.WaitPost(() =>
         {
-            LayFloor(maps, tileDefs, map.Grid, fleshTile.X);
-            entMan.SpawnEntity(Acid, new EntityCoordinates(map.Grid, 0.5f, 0.5f));
-            entMan.SpawnEntity(Acid, new EntityCoordinates(map.Grid, 3.5f, 0.5f));
+            LayFloor(maps, tileDefs, map.Grid, 4 + 2 * natives.Count);
+            catwalk = entMan.SpawnEntity("Catwalk", new EntityCoordinates(map.Grid, 2.5f, 0.5f));
             human = entMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 0.5f, 0.5f));
-            flesh = entMan.SpawnEntity("MobFleshJared", new EntityCoordinates(map.Grid, 3.5f, 0.5f));
+            covered = entMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 2.5f, 0.5f));
+
+            foreach (var native in natives)
+            {
+                var tile = new Vector2i(4 + 2 * spared.Count, 0);
+                pools.Add(tile);
+                var mob = entMan.SpawnEntity(native, new EntityCoordinates(map.Grid, tile.X + 0.5f, 0.5f));
+                // Asleep, so it stands in its pool instead of wandering out.
+                entMan.RemoveComponent<HTNComponent>(mob);
+                spared[native] = mob;
+            }
+
+            foreach (var pool in pools)
+            {
+                entMan.SpawnEntity(Acid, new EntityCoordinates(map.Grid, pool.X + 0.5f, 0.5f));
+            }
         });
 
         await pair.RunSeconds(StandSeconds);
@@ -59,15 +102,23 @@ public sealed class CavernGutTest
         await server.WaitAssertion(() =>
         {
             var burned = Caustic(entMan, human);
-            var spared = Caustic(entMan, flesh);
-            TestContext.Out.WriteLine($"Human {burned} Caustic, flesh creature {spared} Caustic after {StandSeconds} s in acid.");
+            TestContext.Out.WriteLine($"Human {burned} Caustic after {StandSeconds} s in acid; {natives.Count} natives: {string.Join(", ", natives)}.");
 
             using (Assert.EnterMultipleScope())
             {
+                Assert.That(natives, Has.Count.GreaterThanOrEqualTo(10), "The Gut's spawners name too few creatures; the table walk missed some.");
                 Assert.That(burned, Is.GreaterThanOrEqualTo(MinCaustic), $"A human in acid for {StandSeconds} s took only {burned} Caustic.");
-                Assert.That(spared, Is.Zero, $"A flesh creature in the Gut's acid took {spared} Caustic.");
+                Assert.That(entMan.GetComponent<TransformComponent>(catwalk).Anchored, Is.True, "Precondition: the catwalk is not anchored over the acid.");
 
-                foreach (var index in new[] { Vector2i.Zero, fleshTile })
+                foreach (var (name, mob) in spared.Append(new KeyValuePair<string, EntityUid>("a human on a catwalk", covered)))
+                {
+                    Assert.That(physics.GetContactingEntities(mob).Any(contact => entMan.HasComponent<WFDigestiveAcidComponent>(contact)), Is.True,
+                        $"Precondition: {name} is not standing in its pool.");
+                    Assert.That(entMan.HasComponent<DamagedByContactComponent>(mob), Is.False, $"The acid latched onto {name}.");
+                    Assert.That(Caustic(entMan, mob), Is.Zero, $"{name} took {Caustic(entMan, mob)} Caustic in the Gut's acid.");
+                }
+
+                foreach (var index in pools)
                 {
                     Assert.That(maps.TryGetTileRef(map.Grid, map.Grid.Comp, index, out var tile) && !tile.Tile.IsEmpty, Is.True,
                         $"The floor under the acid at {index} is gone.");
@@ -119,6 +170,7 @@ public sealed class CavernGutTest
 
     /// <summary>The sampler counts acid as a barrier like lava, and tendons and glow flora as open ground.</summary>
     [Test]
+    [TestOf(typeof(WFCavernSampler))]
     public async Task SamplerClassifiesGutFeatures()
     {
         await using var pair = await PoolManager.GetServerClient();
@@ -139,6 +191,37 @@ public sealed class CavernGutTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Every entity a table can spawn, through nested tables and groups.</summary>
+    private static void CollectSpawns(IPrototypeManager protoMan, EntityTableSelector selector, ISet<string> ids)
+    {
+        switch (selector)
+        {
+            case EntSelector ent:
+                ids.Add(ent.Id);
+                break;
+            case NestedSelector nested:
+                CollectSpawns(protoMan, protoMan.Index(nested.TableId).Table, ids);
+                break;
+            case GroupSelector group:
+                foreach (var child in group.Children)
+                {
+                    CollectSpawns(protoMan, child, ids);
+                }
+
+                break;
+            case AllSelector all:
+                foreach (var child in all.Children)
+                {
+                    CollectSpawns(protoMan, child, ids);
+                }
+
+                break;
+            default:
+                Assert.Fail($"The Gut's wildlife tables use a {selector.GetType().Name}, which this test can't list.");
+                break;
+        }
     }
 
     /// <summary>Lays the stomach floor from the test tile east to <paramref name="toX"/>, unbroken so the grid doesn't split.</summary>
