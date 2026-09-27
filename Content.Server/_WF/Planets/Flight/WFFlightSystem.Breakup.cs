@@ -9,6 +9,8 @@ using Content.Shared.Destructible;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Stunnable;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
@@ -24,6 +26,7 @@ public sealed partial class WFFlightSystem
     [Dependency] private DamageableSystem _crashDamage = default!;
     [Dependency] private SharedStunSystem _crashStun = default!;
     [Dependency] private SharedDestructibleSystem _crashDestructible = default!;
+    [Dependency] private IConfigurationManager _crashCfg = default!;
 
     /// <summary>Small mass-balanced outward impulses separate sections without launching wreckage.</summary>
     private void SeparateCrashSections(EntityUid original, EntityUid[] fragments)
@@ -159,13 +162,31 @@ public sealed partial class WFFlightSystem
                 QueueDel(uid);
         }
         Comp<WFCrashImpactComponent>(hull).LatticeSeam = cut;
-        _map.SetTiles(hull, hull.Comp, cut.Select(index => (index, Tile.Empty)).ToList());
+        CutSeam(hull, cut);
         foreach (var position in bursts)
         {
             // Explicit above-deck animation remains visible when the explosion flood selects the terrain grid below.
             Spawn("WFCrashBurst", new EntityCoordinates(ground, position));
             _explosion.QueueExplosion(new EntityCoordinates(ground, position), ExplosionSystem.DefaultExplosionPrototypeId,
                 15f, 3f, 3.5f, cause: hull, maxTileBreak: 0, canCreateVacuum: false, addLog: false, silent: true);
+        }
+    }
+
+    /// <summary>Removes the seam with grid splitting forced on; the development config preset turns it off for mapping.</summary>
+    private void CutSeam(Entity<MapGridComponent> hull, HashSet<Vector2i> cut)
+    {
+        // The engine splits inside SetTiles, so the override only has to cover this call.
+        var splitting = _crashCfg.GetCVar(CVars.GridSplitting);
+        if (!splitting)
+            _crashCfg.SetCVar(CVars.GridSplitting, true);
+        try
+        {
+            _map.SetTiles(hull, hull.Comp, cut.Select(index => (index, Tile.Empty)).ToList());
+        }
+        finally
+        {
+            if (!splitting)
+                _crashCfg.SetCVar(CVars.GridSplitting, false);
         }
     }
 }
