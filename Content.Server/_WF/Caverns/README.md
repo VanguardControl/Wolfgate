@@ -11,8 +11,9 @@ Caverns are behind `wf.caverns` (`CavernCVars`), which
 is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
 ground, and nobody on or above the ground loads the cavern under them.
 
-Every world has a gate mouth near its centre: a pinned hole in the ground with a solid lip, a dark pit (shade) over
-each hole tile, and in the cavern a pinned, rock-free pad with the world's landing tile under the hole and a climb
+Every world has a gate mouth near its centre: a pinned hole in the ground, grown from its own seed to the world's
+shape and size (`WFCavernMouthShape`: a sinkhole, a skylight, a sand funnel, a rift, a moulin or a throat), with a
+solid, crumbling lip and some rim decor, a dark pit (shade) over each hole tile, and in the cavern a pinned, rock-free pad with the world's landing tile under the hole and a climb
 point under the lip. Players walk in and take a small fall whose damage depends on the landing tile; examining a shade
 tells them where it goes, what the air below is like and how hard the landing is. *Climb down* on a shade (3 s) lowers
 them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in high gravity, up to
@@ -46,6 +47,7 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 - [`Content.Server/_WF/Caverns/WFCavernClimbSystem.cs`](WFCavernClimbSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernCommand.cs`](WFCavernCommand.cs)
 - [`Content.Server/_WF/Caverns/WFCavernGroundComponent.cs`](WFCavernGroundComponent.cs)
+- [`Content.Server/_WF/Caverns/WFCavernMouthShape.cs`](WFCavernMouthShape.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Claims.cs`](WFCavernMouthSystem.Claims.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.cs`](WFCavernMouthSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSampler.cs`](WFCavernSampler.cs)
