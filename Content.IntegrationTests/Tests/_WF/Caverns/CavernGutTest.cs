@@ -12,6 +12,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Fluids.Components;
 using Content.Shared.Maps;
 using Content.Shared.Movement.Components;
+using Robust.Shared.Audio.Components;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -38,10 +39,13 @@ public sealed class CavernGutTest
     /// <summary>The Caustic a human must take in that time; the acid deals 5 a second.</summary>
     private const int MinCaustic = 10;
 
+    /// <summary>The loop digestive acid hisses on whoever it burns.</summary>
+    private const string Hiss = "/Audio/Nyanotrasen/Ambience/Objects/deepfryer_sizzling.ogg";
+
     /// <summary>
     /// With no air to burn in, a human standing in acid takes Caustic damage, while a human on a catwalk over the acid
     /// and every creature the Gut's wildlife markers and assimilation sacks can spawn, each standing in its own pool,
-    /// take none; the stomach floor under the pools is still there with nothing spilled on it.
+    /// take none; only the burned human hisses; the stomach floor under the pools is still there with nothing spilled on it.
     /// </summary>
     [Test]
     [TestOf(typeof(WFDigestiveAcidSystem))]
@@ -108,6 +112,7 @@ public sealed class CavernGutTest
             {
                 Assert.That(natives, Has.Count.GreaterThanOrEqualTo(10), "The Gut's spawners name too few creatures; the table walk missed some.");
                 Assert.That(burned, Is.GreaterThanOrEqualTo(MinCaustic), $"A human in acid for {StandSeconds} s took only {burned} Caustic.");
+                AssertHissing(entMan, human);
                 Assert.That(entMan.GetComponent<TransformComponent>(catwalk).Anchored, Is.True, "Precondition: the catwalk is not anchored over the acid.");
 
                 foreach (var (name, mob) in spared.Append(new KeyValuePair<string, EntityUid>("a human on a catwalk", covered)))
@@ -116,6 +121,7 @@ public sealed class CavernGutTest
                         $"Precondition: {name} is not standing in its pool.");
                     Assert.That(entMan.HasComponent<DamagedByContactComponent>(mob), Is.False, $"The acid latched onto {name}.");
                     Assert.That(Caustic(entMan, mob), Is.Zero, $"{name} took {Caustic(entMan, mob)} Caustic in the Gut's acid.");
+                    Assert.That(entMan.HasComponent<WFDigestiveAcidHissComponent>(mob), Is.False, $"{name} hisses in the Gut's acid.");
                 }
 
                 foreach (var index in pools)
@@ -127,6 +133,57 @@ public sealed class CavernGutTest
 
                 var puddles = entMan.EntityQueryEnumerator<PuddleComponent>();
                 Assert.That(puddles.MoveNext(out _), Is.False, "The acid spilled a puddle.");
+            }
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A human burning in acid hisses; once it walks out onto bare floor the hiss stops and its stream is gone.</summary>
+    [Test]
+    [TestOf(typeof(WFDigestiveAcidHissSystem))]
+    public async Task HissStopsOutOfTheAcid()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap(true, Floor);
+        var maps = server.System<SharedMapSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        var human = EntityUid.Invalid;
+        EntityUid? stream = null;
+
+        await server.WaitPost(() =>
+        {
+            LayFloor(maps, tileDefs, map.Grid, 3);
+            entMan.SpawnEntity(Acid, new EntityCoordinates(map.Grid, 0.5f, 0.5f));
+            human = entMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 0.5f, 0.5f));
+        });
+
+        await pair.RunSeconds(1f);
+
+        await server.WaitAssertion(() =>
+        {
+            AssertHissing(entMan, human);
+            stream = entMan.GetComponent<WFDigestiveAcidHissComponent>(human).Stream;
+        });
+
+        await server.WaitPost(() =>
+        {
+            xforms.SetCoordinates(human, new EntityCoordinates(map.Grid, 3.5f, 0.5f));
+            // A teleport leaves the body asleep, and a sleeping body keeps its stale contacts; walking out wakes it.
+            server.System<SharedPhysicsSystem>().WakeBody(human);
+        });
+        await pair.RunSeconds(1f);
+
+        await server.WaitAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(entMan.HasComponent<DamagedByContactComponent>(human), Is.False, "Precondition: the acid still burns the human out of it.");
+                Assert.That(entMan.HasComponent<WFDigestiveAcidHissComponent>(human), Is.False, "The human still hisses out of the acid.");
+                Assert.That(entMan.EntityExists(stream!.Value), Is.False, "The hiss stream outlived the burning.");
             }
         });
 
@@ -231,6 +288,18 @@ public sealed class CavernGutTest
         {
             maps.SetTile(grid, new Vector2i(x, 0), new Tile(tileDefs[Floor].TileId));
         }
+    }
+
+    /// <summary>The mob carries a live, looping acid hiss attached to it.</summary>
+    private static void AssertHissing(IEntityManager entMan, EntityUid mob)
+    {
+        Assert.That(entMan.TryGetComponent<WFDigestiveAcidHissComponent>(mob, out var hiss), Is.True, "The burning mob does not hiss.");
+        Assert.That(hiss!.Stream is { } stream && entMan.EntityExists(stream), Is.True, "The hiss has no stream.");
+
+        var audio = entMan.GetComponent<AudioComponent>(hiss.Stream!.Value);
+        Assert.That(audio.FileName, Is.EqualTo(Hiss), "The hiss plays the wrong sound.");
+        Assert.That(audio.Params.Loop, Is.True, "The hiss does not loop.");
+        Assert.That(entMan.GetComponent<TransformComponent>(hiss.Stream.Value).ParentUid, Is.EqualTo(mob), "The hiss is not attached to the mob.");
     }
 
     private static int Caustic(IEntityManager entMan, EntityUid mob)

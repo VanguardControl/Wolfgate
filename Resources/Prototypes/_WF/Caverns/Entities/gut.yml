@@ -55,6 +55,11 @@
     coveredBy:
       tags:
       - Catwalk
+    burnSound:
+      path: /Audio/Nyanotrasen/Ambience/Objects/deepfryer_sizzling.ogg
+      params:
+        volume: -4
+        maxDistance: 8
   - type: SpeedModifierContacts
     walkSpeedModifier: 0.6
     sprintSpeedModifier: 0.6

@@ -9,7 +9,8 @@ ice halls and plasma lakes, and the Gut's flesh throats, stomachs and blood chan
 world's ores, chambers hold its decor and wildlife (`WFCavernFauna<World>`, under the planet fauna caps). Each world's
 glowing plant (`Entities/flora.yml`: glowcaps, ember lichen, lamp agaves, shadow blooms, rime thistles, nerve clusters)
 lines its tunnels and chambers as the main light below ground. The Gut also pools digestive acid in its stomachs, which
-digests whoever wades in, air or not, but spares its own creatures and anyone on a catwalk (`WFDigestiveAcidSystem`),
+digests whoever wades in, air or not, but spares its own creatures and anyone on a catwalk (`WFDigestiveAcidSystem`);
+whoever it burns hisses with a looping sizzle until they leave it or die (`WFDigestiveAcidHissSystem`),
 and chokes some throats with tendons that slow you (`Entities/gut.yml`).
 Caverns are behind `wf.caverns` (`CavernCVars`), which
 is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
@@ -59,6 +60,8 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.cs`](WFCavernMouthSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSampler.cs`](WFCavernSampler.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSystem.cs`](WFCavernSystem.cs)
+- [`Content.Server/_WF/Caverns/WFDigestiveAcidHissComponent.cs`](WFDigestiveAcidHissComponent.cs)
+- [`Content.Server/_WF/Caverns/WFDigestiveAcidHissSystem.cs`](WFDigestiveAcidHissSystem.cs)
 
 ### Shared
 
