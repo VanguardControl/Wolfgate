@@ -66,7 +66,10 @@ Checked in code on this branch. Line numbers are approximate.
    - Anyone standing on the landing spot takes `v² × 0.4`, about 7 Blunt.
    - Planet gravity does not scale falls: `GravityMultiplier` comes only from the jetpack and flyer
      `CECheckGravityEvent` handlers.
-   - `FloorWater` already has `fallDamageMultiplier: 0`.
+   - `FloorWater` already has `fallDamageMultiplier: 0`, but its `WaterOverlay` shader draws white foam wherever it
+     meets another tile, which reads as a white border on a cave floor. Asclepiu's pools therefore use the surface's
+     water (`MonoFloorWaterEntity` on dirt), and its landing is `WFCavernFloorPoolbed` (dirt, fall ×0) under that
+     entity.
 6. **Anchoring onto an empty tile is refused** (`SharedMapSystem.Grid.cs:1285`, `AddToSnapGridCell`). Anything that
    marks a hole is therefore unanchored.
 7. **Chunk loading** (`Content.Server/Parallax/BiomeSystem*.cs`):
@@ -273,7 +276,9 @@ Edits inside other `_WF` modules need no marker:
 | `shaftLight` | `float`, default 0.5 | Cavern `MapLight` = the ground's current `MapLight` × this (F4), so shafts dim at night |
 | `arrival` | `LocId` | Popup shown on entering the cavern (F4) |
 | `mouths` | `WFCavernMouthSpec` (F2) | See below |
-| `ambience` | `WFCavernAmbienceSpec` (F4) | `loops`, `oneShots` (`SoundSpecifier` lists), `loopVolume` (−16), `oneShotVolume` (−10), `minInterval` (25), `maxInterval` (70), `crossfadeSeconds` (4) |
+| `ambience` | `ProtoId<WFPlanetAmbiencePrototype>?` (F4) | A soundscape played underground instead of the surface's, clear. Unset on all six: the cavern plays the surface's |
+| `surfaceAmbienceVolume` | `float`, default −6 | dB taken off the surface soundscape heard below (F4) |
+| `surfaceAmbienceOcclusion` | `float`, default 2.5 | Audio occlusion on the surface soundscape heard below: the engine's low-pass (F4) |
 | `hazards` | `WFCavernHazardSpec?` (F5) | `caveInChance`, `caveInDamage` (`DamageSpecifier`), `rubble`, `disturbanceThreshold` (60), `disturbanceDecay` (3/min), `awakeningCooldown` (1200 s), `deepTable` (`ProtoId<EntityTablePrototype>`) |
 
 `WFCavernMouthSpec`:
@@ -290,6 +295,7 @@ Edits inside other `_WF` modules need no marker:
 | `groundTiles` | required | Natural ground tiles a mouth may cut |
 | `avoid` | empty | Natural ground entities a footprint must not touch (liquids, boulders) |
 | `landingTile` | required | Cavern tile under the hole |
+| `landingEntity` | none | Anchored on every pad tile that is the landing tile, since pinned tiles grow no biome entities: Asclepiu's water |
 | `padRadius` | 3 | Pinned, rock-free pad around the hole in the cavern |
 | `climbSide` | South | Side of the hole whose lip holds the climb point |
 | `shade` | required | Unanchored pit entity over each hole tile |
@@ -298,8 +304,9 @@ Edits inside other `_WF` modules need no marker:
 | `rimCount` | 3 | About how many rim decor entities a hole at the top of the size range gets; a smaller one gets proportionally fewer, at least one |
 | `climbSeconds` | 4 | Base climb-up time, × `clamp(surface gravity, 1, 2.5)` |
 
-The ambience is not a `wfPlanetAmbience`, because `PlanetAmbiencePrototypeTest` asserts exactly six of those. There is
-no `levels` list: v1 is −1 only, and the Planets event list already supports a −2 later ("the Heart" under
+A cavern's own `ambience` is a `wfPlanetAmbience` with no `planetType`: the network picks a surface's soundscape by
+planet type, so one without is never picked for a surface, and `PlanetAmbiencePrototypeTest` counts only those with
+one. There is no `levels` list: v1 is −1 only, and the Planets event list already supports a −2 later ("the Heart" under
 Carcinoma is the natural candidate).
 
 Example (F2 shape):
@@ -371,8 +378,11 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
     tile is empty, not pinned (`WfIsPinned`) and its chunk is not loaded (`WfIsChunkLoaded`). A hole dug or blown in a
     loaded chunk is pinned only when that chunk unloads, so until then the loaded check is what keeps its fallers.
     A mob with a mind is never deleted. The event is raised inside the z-physics pass, so the delete is a `QueueDel`.
-  - F4: every 10 s it mirrors the ground's `WFPlanetEnvironmentComponent` onto the cavern, with `Weather` set to
-    `wf-cavern-weather-underground`. It also sets the cavern `MapLight` to ground `MapLight` × `shaftLight`.
+  - F4 (built): every second it mirrors the ground's `WFPlanetEnvironmentComponent` onto the cavern, with `Weather`
+    set to `wf-cavern-weather-underground`, and gives the cavern a `WFPlanetAmbienceComponent`: the cavern's own
+    `ambience` at no offset and no occlusion, or else the ground's profile at the ground's offset plus
+    `surfaceAmbienceVolume`, with `Occlusion = surfaceAmbienceOcclusion`. Still to come: the cavern `MapLight` =
+    ground `MapLight` × `shaftLight`.
 - **`WFCavernMouthSystem`** (F2), with partials `.Claims.cs` and `.Holes.cs`: cells, claims, stamping, the hole queue,
   shades, climb points and the registry. Test and admin API: `GetGate`, `TryClaimCell` (returns
   Claimed/Deferred/Empty), `TryOpenMouth(ground, origin, out refusal, ignore)`, `TryGetNearestMouth`; `ClaimGate` is
@@ -404,13 +414,21 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 - **`SharedWFCavernShaftSystem`** (shared, F2a): the shaft examine on shades (`(WFCavernShaftComponent,
   ExaminedEvent)`). It landed before the climb system, so it is a system of its own; the climb system subscribes other
   events on the same components.
-- **`WFCavernAmbienceSystem`** (F4, `Content.Client/_WF/Caverns`): a trimmed copy of the planet player, about 150
-  lines.
-  - It plays one looping bed with crossfades and random one-shots while the local player's map has
-    `WFCavernLayerComponent`.
-  - On entering a cavern map it shows the `arrival` popup once.
-  - The planet ambience stops by itself underground, because caverns carry no `WFPlanetAmbienceComponent`. No
-    surface bed plays below, which avoids double ambience.
+- **Ambience** (F4, built differently from the plan): no cavern player. By default the underground hears the
+  surface: the Planets `WFPlanetAmbienceSystem` plays whatever `WFPlanetAmbienceComponent` the listener's map carries,
+  and the cavern's copy (2.6) names the surface's profile with a lower `VolumeOffset` and an `Occlusion`.
+  - The player eases its own occlusion toward the map's at 3 a second and writes it to its bed, outgoing bed and
+    accent. `Occlusion` drives the engine's EFX low-pass, and the engine leaves it alone on global streams.
+  - The cavern's clock is the ground's, so the day and night beds change below as above, muffled.
+  - Within one world (the same `WFPlanetLayerComponent.Network`) a profile change crossfades instead of cutting, so
+    a cavern with its own `ambience` fades the surface bed out; going down with the default keeps the same stream and
+    only its volume and muffle ease, over about a second. Crossing to another world is still a hard stop.
+  - Ghosts and observers hear what their map carries, like anyone else. Music stays suppressed below, as on the
+    surface (caverns carry `WFPlanetLayerComponent`).
+  - Weather and thunder stay on the surface: the cavern gets no `WeatherComponent` (the weather system applies only to
+    `Layers`), and thunder is a positional `PlayStatic` on the ground map. A muffled rumble below would need a new
+    cross-map channel, which the roofed caverns don't call for.
+  - The `arrival` popup is not built yet.
 
 ### 2.8 Settings
 
@@ -492,9 +510,11 @@ All cavern floors are indestructible and cannot be dug, so the bottom layer neve
 | `WFCavernFloorBedrock` | `FloorBedrock` | indestructible, no tools |
 | `WFCavernFloorSnowdrift` | `FloorSnow` | no tools, fall 0.25 / stun 0.25 (already indestructible) |
 | `WFCavernFloorFlesh` | `FloorFlesh` | indestructible, no tools |
+| `WFCavernFloorPoolbed` | `FloorPlanetDirt` | no tools, fall 0 / stun 0.1 (already indestructible); Asclepiu's landing, under `MonoFloorWaterEntity` |
 | `WFCavernFloorGut` | `FloorAsteroidIronsand` | indestructible, no tools, fall 0.4 / stun 0.4 |
 
-`FloorBasalt`, `FloorIce`, `FloorSnowDug`, `FloorPlanetDirt` and `FloorWater` are used as they are.
+`FloorBasalt`, `FloorIce`, `FloorSnowDug` and `FloorPlanetDirt` are used as they are. `FloorWater` is not used: its
+overlay foams white against any other tile, so cavern water is the surface's `MonoFloorWaterEntity`.
 
 ## 3. Entrances and exits
 
@@ -618,6 +638,8 @@ Each map gets one `SetTiles` call per site. All of it works on unloaded chunks.
 3. **Entities.**
    - One `shade` spawns on each hole tile that has none (F2c's `EnsureHole` reuses this). It stores the cavern, the
      level's air (`WFCavernAirClassifier.Classify`) and the landing tile's `fallDamageMultiplier`.
+   - `landingEntity`, when set, is anchored on every pad tile that is the landing tile, hole or not, unless one is
+     already there: pinned tiles grow no biome entities, so this is how Asclepiu's landing pool gets its water.
    - `rim` decor goes on the shape's rim spots (3.1), cycling through the `rim` list.
    - The `climbPoint` is anchored on the pad under the climb tile (3.1), with `Delay = climbSeconds × clamp(gravity, 1,
      2.5)`.
@@ -664,7 +686,7 @@ and damage is 13 Blunt × the tile multiplier (table below). It never kills. Kno
 
 | World | Landing tile | Multiplier | Blunt |
 |---|---|---|---|
-| Asclepiu | `FloorWater` | ×0 | 0 |
+| Asclepiu | `WFCavernFloorPoolbed` under `MonoFloorWaterEntity` | ×0 | 0 |
 | Fervidus | `WFCavernFloorAsh` | ×0.75 | 10 |
 | Merak | `WFCavernFloorSandDrift` | ×0.5 | 6 |
 | Aerumna | `WFCavernFloorChromiteScree` | ×1.5 | 20 |
@@ -856,16 +878,16 @@ The beginner cavern: wet limestone, breathable air and a water landing.
 | | |
 |---|---|
 | Level | `WFCavernAsclepiuLevel`: `mapName: wf-cavern-asclepiu-map`, `mapLight: "#6f8f86"`, atmosphere `[21.824879, 82.10312]` at 285.15 K (Breathable) |
-| Tiles | T `WFCavernFloorLimestone`; C `FloorPlanetDirt`; pools `FloorWater` |
-| Skeleton | Tunnels: ridged frequency 0.035, rock where ridged ≤ 0.50. Chambers: FBm frequency 0.025, threshold ≥ 0.35. Both use their own seeds (17, 117), since the placeholder had these numbers at seeds 7 and 101 and the Underkarst would otherwise keep its old layout. Signature (in the chamber template): karst pools, a `FloorWater` tile layer at OpenSimplex2 frequency 0.06, threshold ≥ 0.45. Open band 0.35–0.55 |
+| Tiles | T `WFCavernFloorLimestone`; C `FloorPlanetDirt`; pools `MonoFloorWaterEntity` on C, the surface's water |
+| Skeleton | Tunnels: ridged frequency 0.035, rock where ridged ≤ 0.50. Chambers: FBm frequency 0.025, threshold ≥ 0.35. Both use their own seeds (17, 117), since the placeholder had these numbers at seeds 7 and 101 and the Underkarst would otherwise keep its old layout. Signature (in the chamber template): karst pools, `MonoFloorWaterEntity` on `FloorPlanetDirt` at OpenSimplex2 frequency 0.06, threshold ≥ 0.45 (a `FloorWater` tile layer until its foam edges showed as white borders). Open band 0.35–0.55 |
 | Rock and ore | `WallRockAndesite`. Common: `…Coal`, `…Tin`. Uncommon: `…Quartz`, `…Salt`, `…Copper`. Rare: `…Silver`, `…Gold`. Very rare: `…ArtifactFragment`. Hazard: `WallRockAndesiteQuartzGolem` (0.97) |
 | Light | Roof `#070a08`, `shaftLight` 0.5. `WFCavernGlowcaps` (chanterelles recoloured cyan-green, `#6dffc8`) in tunnels (≥ 0.925) and chambers (≥ 0.95). `WFCavernGlowworms` in chambers (≥ 0.97): no sprite, `PointLight` `#7dffb4`, radius 4, energy 0.7. `CrystalGreen`/`CrystalCyan` (≥ 0.99) |
 | Hazards | Pools slow you. `SpiderWeb` choke points in chambers (≥ 0.985). Golems. Cave-ins 0.15 (F5). No vents |
 | Fauna | `MobBat` 5, `MobFrog` 3, `MobMouse` 2, `MobSnake` 2, `MobGiantSpider` 1 |
 | Decor | Litter `FloraStalagmite`, `FloraGreyStalagmite`. Chambers `Cobweb1`, `Cobweb2` |
 | Deep (F5) | `MobRatKing` + 3 `MobRatServant` |
-| Ambience | Loop `/Audio/Ambience/ambicave.ogg`. One-shots `/Audio/Effects/waterswirl.ogg`, `/Audio/Effects/drop.ogg` |
-| Mouth | Sinkhole: a blob of 14–30 tiles, elongation 1.6, roughness 0.35; cell 96. `groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]`. Shade `asclepiu_pit`. Climb point `dirt_cliff.rsi` (roots). Rim `FloraRockSolid`, 1–2 by size. Lands in a plunge pool for 0 Blunt |
+| Ambience | The surface's day and night soundscape, muffled (no `ambience`). A candidate own soundscape: Loop `/Audio/Ambience/ambicave.ogg`. One-shots `/Audio/Effects/waterswirl.ogg`, `/Audio/Effects/drop.ogg` |
+| Mouth | Sinkhole: a blob of 14–30 tiles, elongation 1.6, roughness 0.35; cell 96. `groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]`. Shade `asclepiu_pit`. Climb point `dirt_cliff.rsi` (roots). Rim `FloraRockSolid`, 1–2 by size. Lands in a plunge pool for 0 Blunt: `WFCavernFloorPoolbed` with `landingEntity: MonoFloorWaterEntity` |
 | Only below | Continuous salt and silver veins, artifact fragments |
 
 ### 4.3 Fervidus: the Cinder Vaults
@@ -883,7 +905,7 @@ Basalt cut by lava tubes, with magma chambers and diamonds.
 | Fauna | `WFMobArgocyteSlurvaBasalt` 4, `WFMobArgocyteCrawlerBasalt` 4, `WFMobArgocyteSwiperBasalt` 2, `MobWatcherMagmawing` 1 |
 | Decor | Litter `BasaltOne`–`BasaltFive`. Chambers `FloraGreyStalagmite` |
 | Deep (F5) | `MobArgocyteLeviathing` |
-| Ambience | Loops `/Audio/Ambience/ambilava1.ogg`, `…ambilava2.ogg`, `…ambilava3.ogg`. One-shots `/Audio/Effects/sizzle.ogg`, `/Audio/Magic/rumble.ogg` |
+| Ambience | The surface's day and night soundscape, muffled (no `ambience`). A candidate own soundscape: Loops `/Audio/Ambience/ambilava1.ogg`, `…ambilava2.ogg`, `…ambilava3.ogg`. One-shots `/Audio/Effects/sizzle.ogg`, `/Audio/Magic/rumble.ogg` |
 | Mouth | Skylight: a blob of 8–18 tiles, elongation 1.8, roughness 0.3; cell 96. `groundTiles: [FloorBasalt]`, `avoid: [FloorLavaEntity, MonoPlanetmapOreBasalt]`. Shade `fervidus_pit`. Climb point `stone.rsi` tinted `#5a4a44`. Rim `BasaltOne`, `BasaltThree`. Lands for 10 Blunt |
 | Only below | Diamonds and bluespace in basalt |
 
@@ -902,7 +924,7 @@ Cool pillared halls under a 45 °C desert, with the richest gold and the most co
 | Fauna | `MobLizard` 3, `MobSnake` 3, `MobPurpleSnake` 1, `MobGiantSpider` 1 |
 | Decor | Litter `FloraRockSolid` |
 | Deep (F5) | 2 `MobGiantSpiderAngry` |
-| Ambience | Loop `/Audio/Ambience/ambimine.ogg`. One-shots `/Audio/Effects/break_stone.ogg`, `/Audio/Effects/rustle4.ogg` |
+| Ambience | The surface's day and night soundscape, muffled (no `ambience`). A candidate own soundscape: Loop `/Audio/Ambience/ambimine.ogg`. One-shots `/Audio/Effects/break_stone.ogg`, `/Audio/Effects/rustle4.ogg` |
 | Mouth | Sand funnel: round, 12–28 tiles, elongation 1.25, roughness 0.1; cell 96. `groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]`. Shade `merak_pit`. Climb point `wooden.rsi` (rope ladder). Rim `FloraRockSolidPlanet`, 1–2 by size. Lands for 6 Blunt. A shovel opens a way down anywhere (3.4) |
 | Only below | Gold-rich veins, fossils, lost prospectors' gear |
 
@@ -920,7 +942,7 @@ The darkest cavern: chromite, 3 g, toxic air, xenos, and the only anomaly rock.
 | Hazards | Darkness. CO₂. Xenos. A 10 s climb out at 3 g (clear the pad first). Spore pockets `WFCavernVentAerumna` (`Nocturine` smoke, F5). Cave-ins 0.25 |
 | Fauna | `MobXenoRunner` 3, `MobXenoDrone` 2, `MobArgocyteSlurva` 3, `MobXenoSpitter` 1, `MobXenoPraetorian` 0.5 |
 | Deep (F5) | `MobXenoPraetorian` + 2 `MobXenoRunner` |
-| Ambience | Loop `/Audio/Ambience/ambimystery.ogg`. One-shots `/Audio/Effects/glass_crack1.ogg`, `/Audio/Magic/rumble.ogg` |
+| Ambience | The surface's day and night soundscape, muffled (no `ambience`). A candidate own soundscape: Loop `/Audio/Ambience/ambimystery.ogg`. One-shots `/Audio/Effects/glass_crack1.ogg`, `/Audio/Magic/rumble.ogg` |
 | Mouth | Rift: a crack of 9–22 tiles, 1–2 wide; cell 128. `groundTiles: [FloorChromite]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreChromite]`. Shade `aerumna_pit`. Climb point `stone.rsi` tinted `#3a3342`. Rim `ShadowBasaltOne`, `ShadowBasaltThree`, `CrystalPink`. Lands for 20 Blunt, the hard landing of a 3 g world. Explosions open ways down (3.4) |
 | Only below | Artifact anomalies, bluespace, diamonds |
 
@@ -939,7 +961,7 @@ Ice halls with plasma lakes, milder than the 180 K surface but still lethal.
 | Fauna | `MobArgocyteSlurva` 4, `MobArgocyteBarrier` 2, `MobPenguin` 2, `MobWatcherIcewing` 1, `MobBearSpace` 1 |
 | Loot | `SalvageSpawnerTreasureValuable` in chambers (frequency 1, ≥ 0.997): frozen caches |
 | Deep (F5) | 2 `MobBearSpace` |
-| Ambience | Loop `/Audio/Ambience/ambiatmos2.ogg`. One-shots `/Audio/Effects/glass_crack2.ogg`, `/Audio/Effects/glass_crack1.ogg` |
+| Ambience | The surface's day and night soundscape, muffled (no `ambience`). A candidate own soundscape: Loop `/Audio/Ambience/ambiatmos2.ogg`. One-shots `/Audio/Effects/glass_crack2.ogg`, `/Audio/Effects/glass_crack1.ogg` |
 | Mouth | Moulin: round, 7–14 tiles, elongation 1.5, roughness 0.3; cell 96 (a round hole needs 7 tiles to be anything but a rectangle, and the longer, rougher edge gives about 100 different moulins in 400 seeds rather than 36). `groundTiles: [FloorSnow, FloorIce]`, `avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]`. Shade `thrascias_pit`. Climb point `stone.rsi` tinted `#bfe6ff`. Rim `CrystalCyan`, 1–3 by size, so the glow marks the mouth at night. Lands for 3 Blunt |
 | Only below | Diamonds, bluespace, preserved caches |
 
@@ -955,11 +977,11 @@ and some throats are choked with tendons.
 | Skeleton | Throats: ridged, 2 octaves with gain 0.3 for wiggle, frequency 0.06, ≤ 0.40 (tuned in F3 from 0.62: two octaves at the default gain 0.5 compress the ridged range, so 0.62 left 32% open and 7% of it connected, and 0.30 kept them connected only by widening them into broad ground; the lower gain keeps them narrow and joined). Stomachs: FBm frequency 0.03, ≥ 0.25 (from 0.35, making up the open share the narrower throats give up). Signature: digestive channels, `WFBloodRiver` placed straight on T (ridged frequency 0.012, ≥ 0.94, highest priority). Stomachs hold `WFCarcinomaAssimilationSack` (≥ 0.985), `WFFleshPustule` (≥ 0.985), `WFFleshPolyp` (≥ 0.98) and `WFCavernGutGlow` (≥ 0.975). Acid pools: a meta layer in the stomach template, highest there (`WFCavernAcidCarcinoma`, FBm 2 octaves, frequency 0.06, seed 60, ≥ 0.48), placing `WFCavernDigestiveAcid` on C, ringed on the same noise at ≥ 0.3 by `WFCavernPoolEdgeCarcinoma`: bile (`WFCavernBile1`–`4`, decals of `Fluids/vomit_toxin.rsi`, ≥ 0.2) and bones (the `Remains` decal, ≥ 0.8). Choked throats: `WFCavernOvergrowthCarcinoma` (OpenSimplex2 frequency 0.03, seed 61, ≥ 0.3), the lowest-priority layer on T, fills its stretches with `WFCavernTendons` (frequency 0.6, ≥ −0.45, about three tiles in four). In 192² around the gate the pools cover 4.4% of all tiles, 8.6% of the open floor and 14% of the stomach floor, the tendons 18% of the open throat floor, and 96% of the walkable tiles in 128² stay connected. Open band 0.35–0.55 |
 | Rock and ore | `WallMeat`, as on the surface. It can't be mined: cut it down like any wall. The rock template has a calcified-node meta layer (FBm frequency 0.05, ≥ 0.6) of `WallRockAndesite`, with `…Salt`, `…Silver`, `…Gold`, `…Plasma` and `…Uranium` veins (F3 tiers: common salt and plasma, uncommon silver and uranium, rare gold). The flesh grew over a mineral world |
 | Light | Roof `#140306`, `shaftLight` 0.4. `WFCavernNerveCluster` (the flora anomaly's bulb recoloured red, `#ff4d72`) along the throats (≥ 0.93) and in the stomachs (≥ 0.95). `WFCavernGutGlow`: no sprite, `PointLight` `#ff4a5a`, radius 3 |
-| Hazards | Digestive acid (`WFDigestiveAcid`, `Content.Shared/_WF/Caverns`): 5 Caustic a second to any mob wading in, with no fire or air needed, through the contact damage `DamageContactsSystem` ticks, and wading at 0.6 speed. It spares the Gut's own creatures by faction, since they share no tag: `AberrantFleshExpeditionNF` (the aberrant flesh, their newborns and the assimilated miners) and `Chimera` (the ticks and the Letoferol). Like lava it spares anyone on a catwalk over it. It digests the dead too, so a body left in it is soon past saving, and leaves items alone. It holds no reagent, so it spills nothing and leaves the floor whole. Choked throats slow you to 0.65 (`WFCavernTendons`: `WFCarcinomaTendons`, the surface forest's non-hard tendons and the art of the climb point, drawn at `FloorObjects` under the mobs so a click on someone standing in them reaches them, with `SpeedModifierContacts`; cut them down at 40 damage). Ammonia (masks). Ticks. Pustules. Bile pockets `WFCavernVentCarcinoma` (`Ammonia` smoke, F5). No cave-ins: flesh doesn't collapse |
+| Hazards | Digestive acid (`WFDigestiveAcid`, `Content.Shared/_WF/Caverns`): 5 Caustic a second to any mob wading in, with no fire or air needed, through the contact damage `DamageContactsSystem` ticks, and wading at 0.6 speed. It spares the Gut's own creatures by faction, since they share no tag: `AberrantFleshExpeditionNF` (the aberrant flesh, their newborns and the assimilated miners) and `Chimera` (the ticks and the Letoferol). Like lava it spares anyone on a catwalk over it. It digests the dead too, so a body left in it is soon past saving, and leaves items alone. Whoever it burns hisses: `WFDigestiveAcidHissSystem` loops the pool's `burnSound` (the deep fryer sizzle, `/Audio/Nyanotrasen/Ambience/Objects/deepfryer_sizzling.ogg`, −4 dB, 8 tiles) on them, positional, while they take its damage and are alive; leaving, dying or a catwalk stops it, and spared natives never start one. One stream per burning mob keeps the client's audio budget (`WFAudioBudgetSystem`, 96 network streams) safe, and a body in the acid falls silent. It holds no reagent, so it spills nothing and leaves the floor whole. Choked throats slow you to 0.65 (`WFCavernTendons`: `WFCarcinomaTendons`, the surface forest's non-hard tendons and the art of the climb point, drawn at `FloorObjects` under the mobs so a click on someone standing in them reaches them, with `SpeedModifierContacts`; cut them down at 40 damage). Ammonia (masks). Ticks. Pustules. Bile pockets `WFCavernVentCarcinoma` (`Ammonia` smoke, F5). No cave-ins: flesh doesn't collapse |
 | Decor | Bile and bones around the acid pools, as decals |
 | Fauna | `WFCavernFaunaCarcinoma`: nested `WFFaunaCarcinoma` 3, `WFMobFleshTick` 4, `MobFleshAssimilatedMiner` 1 |
 | Deep (F5) | `MobLetoferolHorror` |
-| Ambience | Loop `/Audio/Ambience/anomaly_scary.ogg`. One-shots `/Audio/Effects/gib1.ogg`, `/Audio/Effects/Fluids/blood1.ogg`, `/Audio/Ambience/Objects/drain.ogg` |
+| Ambience | The surface's day and night soundscape, muffled (no `ambience`). A candidate own soundscape: Loop `/Audio/Ambience/anomaly_scary.ogg`. One-shots `/Audio/Effects/gib1.ogg`, `/Audio/Effects/Fluids/blood1.ogg`, `/Audio/Ambience/Objects/drain.ogg` |
 | Mouth | Throat: a blob of 8–20 tiles, elongation 1.5, roughness 0.45; cell 80. `groundTiles: [WFFloorFlesh]`, `avoid: [WFBloodRiver, WallMeat]`. Shade `carcinoma_pit`. Climb point the tendons (`fleshkudzu.rsi`, `kudzu_11`). Rim `WFFleshPolyp`. Lands for 5 Blunt. Prying and cutting the flesh opens ways down (3.4) |
 | Only below | Uranium and plasma in calcified nodes, assimilated miners' gear |
 
@@ -1116,17 +1138,20 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernBiomeTest.OpenFractionInBand` [6] | 192² pure sample around the gate candidate (centre plus `gateOffset`) falls inside the section 4 band | F3 |
 | `CavernBiomeTest.TunnelsConnect` [6] | In 128², the largest 4-connected walkable component holds at least 60% of the walkable tiles; lava, liquid plasma and digestive acid block (4.1) | F3 |
 | `CavernBiomeTest.OreOnlyInRock` [6] | Every sampled vein entity stands on T | F3 |
-| `CavernBiomeTest.SignaturePresent` [6] | Over 512², sampled every 2nd tile: `FloorWater`, pillars, fossils and camp corpses, pink geodes and shadow trees, `FloorIce` and `WallIce`, `WFBloodRiver`, each world's glow plant, and Carcinoma's acid pools on C and nerve clusters. Lava tubes and plasma lakes are checked through their templates: sampled alone, `WFCavernSignatureFervidus` and `WFCavernSignatureThrascias` must place lava or plasma, and every tile where they do must carry it in the cavern, so magma lakes can't stand in for the tubes. Carcinoma must have a choked throat: some 5×5-sample window (10 tiles) where `WFCavernTendons` fill at least half of the open ground | F3 |
+| `CavernBiomeTest.SignaturePresent` [6] | Over 512², sampled every 2nd tile: `MonoFloorWaterEntity` (the plunge pools), pillars, fossils and camp corpses, pink geodes and shadow trees, `FloorIce` and `WallIce`, `WFBloodRiver`, each world's glow plant, and Carcinoma's acid pools on C and nerve clusters. Lava tubes and plasma lakes are checked through their templates: sampled alone, `WFCavernSignatureFervidus` and `WFCavernSignatureThrascias` must place lava or plasma, and every tile where they do must carry it in the cavern, so magma lakes can't stand in for the tubes. Carcinoma must have a choked throat: some 5×5-sample window (10 tiles) where `WFCavernTendons` fill at least half of the open ground | F3 |
 | `CavernBiomeTest.GlowReachesTunnels` [6] | Sampled over 192² around the gate: of the tunnel floor (the biome's first tile) in the largest walkable region within the middle 128², at least 90% lies within a 35-tile walk of a light, stepping around rock and hazards (`WFCavernSample.LightWalks`); the central 72² a viewer loads holds 1–100 lights, the bound `CavernGenerationTest` puts on a live viewer | F3 |
 | `CavernGutTest.AcidDigestsIntrudersAndSparesNatives` | On a bare airless grid of `WFCavernFloorGut`, each mob in its own pool of `WFCavernDigestiveAcid` for 3 s: a `MobHuman` takes at least 10 Caustic, while a `MobHuman` on a `Catwalk` over its pool and every creature the `WFCavernFaunaCarcinoma` and `WFCarcinomaAssimilationSack` tables can spawn (20, put to sleep so they stay in the acid) touch the acid but take none; the floors under the pools are unchanged and no puddle appears | F3 |
+| `CavernGutTest.HissStopsOutOfTheAcid` | A `MobHuman` burning in acid carries a looping `burnSound` stream attached to it (also checked in `AcidDigestsIntrudersAndSparesNatives`, where the catwalk walker and the natives carry none); walked onto bare floor, it stops burning and the stream is deleted | F4 |
+| `CavernBiomeTest.SamplerCountsWaterAsOpen` | The sampler counts `MonoFloorWaterEntity` as neither rock nor a hazard | F4 |
 | `CavernGutTest.TendonsSlowWalkers` | A `MobHuman` in `WFCavernTendons` walks at under 80% of the speed of one on bare floor | F3 |
 | `CavernGutTest.SamplerClassifiesGutFeatures` | The sampler counts acid as a barrier and not rock, tendons as neither, and nerve clusters as lights | F3 |
 | `CavernGenerationTest.PadClearAndWorldFloors` [6] | A viewer on the gate pad: nothing but the climb point is anchored on the pad, the world's T and C tiles are present within 24 tiles, the cavern holds at most 4,000 entities and 5–100 `PointLight`s, and a wildlife pass beside one of the world's fauna markers in the loaded chunks spawns wildlife on the cavern map. F3 raised the planned 2,500: a viewer loads 81 chunks (5,184 tiles) and 45–70% of a cavern is rock, so 2,700–3,590 entities load (risk 2) | F3 |
 | `CavernAtmosphereTest.HumanOutcomePerWorld` [6] | An unequipped `MobHuman` for 60 s: Asclepiu and Merak take no damage; Carcinoma takes some Poison but is not critical; the others take air, heat or cold damage | F4 |
 | `CavernAtmosphereTest.FaunaSurvivesItsCavern` [6] | Every fauna and deep-table mob, on a test map with that cavern's atmosphere, is alive and not critical after 30 s | F4 |
+| `CavernAmbienceTest.CavernHearsTheSurfaceMuffled` (client pair) | Asclepiu: a listener on the ground hears the day bed; walked into the cavern, the same stream plays at least 3 dB quieter with the player's occlusion at `surfaceAmbienceOcclusion`, and the cavern's environment has the ground's minute and planet; at night the muffled night bed plays; back on the ground it is clear; with `ambience` set, the cavern plays that bed alone, clear. A headless client shares one dummy audio source, so the occlusion is read from the player | F4 |
 | `CavernEnvironmentTest.MirrorsClockAndShaftLight` | Within 10 s the cavern's environment has the ground's `PlanetName` and `MinuteOfDay` with weather "Underground", and its `MapLight` equals ground × `shaftLight` | F4 |
 | `CavernAmbiencePrototypeTest.SoundsResolve` | Every loop and one-shot exists | F4 |
-| `CavernAmbiencePlaybackTest` (client pair) | Entering the cavern starts the bed and shows the arrival popup once; climbing out stops the bed | F4 |
+| `CavernAmbiencePlaybackTest` (client pair) | Superseded by `CavernAmbienceTest` for the bed; still to test: the arrival popup shows once | F4 |
 | `CavernHazardTest.VentHissesAndReleasesSmoke` [5] | A vent wall has `AmbientSound`; gathering it spawns an entity with `SmokeComponent` that spreads past one tile | F5 |
 | `CavernHazardTest.UnstableRockWarnsThenCavesIn` | With the chance forced to 1, gathering shows the warning popup, then 1.5 s later drops 1–3 rubble within 2 tiles, never on a tile holding a mob, and damages mobs in the radius | F5 |
 | `CavernHazardTest.DisturbanceWarnsThenAwakensOnce` | Warning at 75%; one deep group at 100%, 12–20 tiles away; none during the cooldown | F5 |
@@ -1364,10 +1389,13 @@ ambience and arrival popups (F4).
 
 ### F4: Air, light, life and sound
 
-- **Add:** `Content.Client/_WF/Caverns/WFCavernAmbienceSystem.cs`; the ambience spec in `WFCavernPrototype` and its
-  `ambience:` blocks; the environment and shaft-light mirror in `WFCavernSystem`; arrival keys; and the tests
-  `CavernAtmosphereTest.cs`, `CavernEnvironmentTest.cs`, `CavernAmbiencePrototypeTest.cs`,
-  `CavernAmbiencePlaybackTest.cs`.
+- **Built early** (after a walk through the caverns): the environment and soundscape mirror in `WFCavernSystem`;
+  `ambience`, `surfaceAmbienceVolume` and `surfaceAmbienceOcclusion` on `WFCavernPrototype`; the muffle and
+  same-world crossfade in the Planets `WFPlanetAmbienceSystem` (2.7); `wf-cavern-weather-underground`; the acid hiss
+  (`WFDigestiveAcidHissSystem`); Asclepiu's water as the surface's entity; and `CavernAmbienceTest.cs`. The default
+  underground soundscape is the surface's, muffled; a cavern names its own only when it wants one.
+- **Add:** the shaft-light mirror; arrival keys; and the tests `CavernAtmosphereTest.cs`,
+  `CavernEnvironmentTest.cs` and an arrival-popup test.
 - **Edit:** the `WFCavernFauna<World>` tables and the atmospheres in `levels.yml`, where the tests demand. A mob
   that fails `FaunaSurvivesItsCavern` is dropped or gets a `WF` variant with `Temperature` overrides, as the basalt
   argocytes do.
