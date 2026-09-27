@@ -735,8 +735,11 @@ The tests below are the gates.
     `WFCavernVent<World>`, ore `WFCavernOreGas<World>` and smoke `WFCavernGasPocket<World>` (F5).
 - **Shades** (`WFCavernShadeBase`): unanchored, no physics and no `CEZPhysics`, so they never fall. They use the
   world's `_WF/Caverns/Mouths/<world>_pit.rsi` (the landing floor below, darkened a level), draw depth `LowFloors`,
-  drawn lit so the ground's daylight falls on it, and have `Clickable` and `WFCavernShaft`. A hole therefore reads as
-  an opening onto the floor below rather than void or parallax, and it can be seen from low flight.
+  drawn lit so the ground's daylight falls on it, and have `Clickable` and `WFCavernShaft`. The client's
+  `WFCavernShadeVisualsSystem` draws each tile as four corners (`ne`, `nw`, `se`, `sw` with a 0-7 neighbour mask, cut by
+  `Tools/_WF/Caverns/gen_pits.py`), so a hole of any shape gets a dark rim, a shaft wall under its north edge and inner
+  shadow on the other sides. A hole therefore reads as an opening onto the floor below rather than void or parallax,
+  and it can be seen from low flight.
 - **Climb points** (`WFCavernClimbBase`): anchored, no fixtures, and `Clickable`/`InteractionOutline`. The sprite is a
   CE ladder RSI (`_CE/Structures/Architecture/Ladders/<rsi>`, state `straight`) with a tint, carrying
   `WFCavernClimb`.

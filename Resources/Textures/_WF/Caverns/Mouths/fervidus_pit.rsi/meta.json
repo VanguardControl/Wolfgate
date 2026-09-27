@@ -1,7 +1,7 @@
 {
   "version": 1,
   "license": "CC-BY-NC-SA-3.0",
-  "copyright": "Cropped from Textures/Tiles/cavedrought.png (Mojave-Sun) and darkened for Wolfgate cavern mouths.",
+  "copyright": "Cut from Textures/Tiles/cavedrought.png (Mojave-Sun) and shaded into a pit for Wolfgate cavern mouths by Tools/_WF/Caverns/gen_pits.py.",
   "size": {
     "x": 32,
     "y": 32
@@ -9,6 +9,102 @@
   "states": [
     {
       "name": "pit"
+    },
+    {
+      "name": "ne0"
+    },
+    {
+      "name": "ne1"
+    },
+    {
+      "name": "ne2"
+    },
+    {
+      "name": "ne3"
+    },
+    {
+      "name": "ne4"
+    },
+    {
+      "name": "ne5"
+    },
+    {
+      "name": "ne6"
+    },
+    {
+      "name": "ne7"
+    },
+    {
+      "name": "nw0"
+    },
+    {
+      "name": "nw1"
+    },
+    {
+      "name": "nw2"
+    },
+    {
+      "name": "nw3"
+    },
+    {
+      "name": "nw4"
+    },
+    {
+      "name": "nw5"
+    },
+    {
+      "name": "nw6"
+    },
+    {
+      "name": "nw7"
+    },
+    {
+      "name": "se0"
+    },
+    {
+      "name": "se1"
+    },
+    {
+      "name": "se2"
+    },
+    {
+      "name": "se3"
+    },
+    {
+      "name": "se4"
+    },
+    {
+      "name": "se5"
+    },
+    {
+      "name": "se6"
+    },
+    {
+      "name": "se7"
+    },
+    {
+      "name": "sw0"
+    },
+    {
+      "name": "sw1"
+    },
+    {
+      "name": "sw2"
+    },
+    {
+      "name": "sw3"
+    },
+    {
+      "name": "sw4"
+    },
+    {
+      "name": "sw5"
+    },
+    {
+      "name": "sw6"
+    },
+    {
+      "name": "sw7"
     }
   ]
 }
