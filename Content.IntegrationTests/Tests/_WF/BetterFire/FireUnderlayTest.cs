@@ -64,12 +64,12 @@ public sealed class FireUnderlayTest
         });
         await pair.RunTicksSync(2);
 
-        (bool Visible, string? State) Layer(EntityUid uid, Enum key)
+        (bool Visible, string State) Layer(EntityUid uid, Enum key)
         {
             var sprite = entMan.GetComponent<SpriteComponent>(uid);
             if (!sprites.LayerMapTryGet((uid, sprite), key, out var index, false)
                 || !sprites.TryGetLayer((uid, sprite), index, out var layer, false))
-                return (false, null);
+                return (false, string.Empty);
 
             return (layer.Visible, sprites.LayerGetRsiState((uid, sprite), index).Name);
         }
