@@ -95,8 +95,12 @@ Checked in code on this branch. Line numbers are approximate.
      microseconds per layer per tile.
 9. **Eyes load chunks.** `UpdateViewer` (`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs:147-199`) spawns a
    `CEZLevelEye` on every map below the viewer, up to 10 of them, and one above. The eye has no `GhostComponent`, so
-   biome chunks load around it. Without a change, every ground, air and orbit viewer, ghosts included, would generate
-   the cavern under them. The client already refuses to render below a `CEZGroundLayer` map.
+   biome chunks load around it: item 7's fixed area, whatever the eye's PVS scale. Without a change, every ground, air
+   and orbit viewer, ghosts included, would generate the cavern under them. `UpdateViewer` runs only when a viewer is
+   dirtied (attached, moved to another map, or queued); every second `UpdateView` just moves and rescales the eyes. On
+   its own, CE's client renders nothing below a `CEZGroundLayer` map; the cavern view opens it at a mouth (2.7). Map
+   entities themselves are force-sent to every client (RT's `PvsOverrideSystem.OnMapCreated`), so a client always
+   has the cavern map; what stands on it arrives only through an eye.
 10. **Roof** (`Content.Shared/_CE/ZLevels/Roof/CESharedZLevelsRoofSystem.cs:56-93`):
     - Ground tile changes propagate a roof bit to every map below. `Space` is `transparent`, so a hole is an unroofed
       shaft.
@@ -224,14 +228,14 @@ line.
 
 ### 2.3 Other edits outside `_WF`
 
-- **Eye cap** (F1), in `Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`, `UpdateViewer`. It is required, not
-  optional (verified in 2.1 item 9). There are three marked lines:
+- **Eye cap** (F1, opened at mouths by the cavern view), in `Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`,
+  `UpdateViewer`. It is required, not optional (verified in 2.1 item 9). There are three marked lines:
 
   ```csharp
   var wfAbove = map.Value; // WOLFGATE(Caverns): the level above the next eye, for the ground cap below.
   for (var i = 1; i <= MaxZLevelsBelowRendering; i++)
   {
-      if (HasComp<CEZGroundLayerComponent>(wfAbove)) // WOLFGATE(Caverns): no eyes or chunk loads under a ground layer.
+      if (WfEyesStopUnder(ent, map.Value, wfAbove, globalPos, pvsScale)) // WOLFGATE(Caverns): under a ground layer, eyes only on its cavern and only while a hole is in view.
           break;
 
       if (!TryMapOffset(map.Value, -i, out var mapUidBelow))
@@ -243,12 +247,37 @@ line.
   }
   ```
 
+  `WfEyesStopUnder` (`Content.Server/_WF/Caverns/CEZLevelsSystem.Caverns.cs`) stops the walk under a ground layer
+  unless `WFCavernEyeSystem.SeesCavern` finds one of its holes in the viewer's view, and always under a cavern looked
+  into from above, so only that one level opens. The rule:
+  - A hole is an open hole tile: an entry in `WFCavernGroundComponent.Shades`. A hole with no shade doesn't count;
+    the F2c hole queue gives dug and blown holes theirs.
+  - A viewer sees a hole when one lies within a square of half-size `net.pvs_range` times the PVS scale an eye on the
+    ground gets (the viewer's own scale and zoom, widened for each level it is above the ground, as
+    `GetZEyePvsScale` does), plus 4 tiles (`EnterMargin`). A viewer that has the cavern keeps it until every hole is
+    more than 12 tiles past that range (`LeaveMargin`); `WFCavernViewerComponent` records which ground it sees into,
+    so eyes don't churn at the edge.
+  - `WFCavernEyeSystem` measures every viewer against the holes twice a second and, when the answer changes, queues
+    the viewer for `UpdateViewer` (`WfQueueViewerUpdate`), which asks again and records the answer.
+    `WfGroundInView` repeats the walk to find the ground. A check compares the viewer with each shade on that ground,
+    stopping at the first in range.
+
   How this affects each kind of viewer:
-  - **Ground viewer:** gets no eye below.
-  - **Air viewer:** keeps its eye on the ground and stops there.
+  - **Ground viewer:** gets an eye on the cavern while a hole is in view, and none otherwise.
+  - **Air and orbit viewers:** keep their eyes down to the ground, and get one on the cavern on the same rule, over
+    the wider range their height gives them. It falls out of the walk; nothing tells them apart.
   - **Cavern viewer:** has nothing below. It keeps its eye on the ground above, so the ground over it stays loaded
     and roofs it.
   - **Networks without a map below ground:** nothing changes.
+
+  Cost: a cavern eye loads the same 81 cavern chunks a cavern viewer does. `GroundViewerNearMouthLoadsCavern`
+  measured 3,744 entities on the Asclepiu cavern around the gate, and all of them reached the client within 90 ticks,
+  through the PVS entity budget it shares with the ground.
+- **Cavern pass**, in `Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`, `RenderZLevels`: two marked
+  lines, where the view stops at a ground layer (the observer's own, and one the downward walk reaches), call
+  `WfAddCavernPass` (`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`). See 2.7.
+- **Sky**, in `Content.Client/Parallax/ParallaxOverlay.cs`, `BeforeDraw`: one marked line (and its `using`) draws no
+  parallax on a map `WFCavernViewSystem.HidesSky` names. See 2.7.
 - **`Resources/ConfigPresets/Build/development.toml`** (F1b, landed): inside the existing `[wf]` table, which sits
   inside the `WOLFGATE(Planets)` block, add `caverns = true` with
   `# WOLFGATE(Caverns): caverns are on in development builds.` on the line above. TOML forbids a second `[wf]` header,
@@ -414,6 +443,29 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 - **`SharedWFCavernShaftSystem`** (shared, F2a): the shaft examine on shades (`(WFCavernShaftComponent,
   ExaminedEvent)`). It landed before the climb system, so it is a system of its own; the climb system subscribes other
   events on the same components.
+- **Cavern view** (after the shaped mouths): a hole shows the cavern under it, drawn by CE's z-level renderer.
+  - `WfAddCavernPass` adds the cavern as a pass one level below a ground layer, and moves the floor of the view down
+    to it, when this client has the cavern's map (`WFCavernViewSystem.TryGetCavernBelow`) and a shade lies in its view
+    of the ground (`WFCavernShadeVisualsSystem.AnyPitWithin`, over the observer's view widened and shifted as the
+    ground's pass is). `WFCavernViewSystem.CavernPassDepth` is the decision, a pure function. A mouth opens it, not
+    any empty tile, so unloaded ground at the edge of a far view from the air keeps the sky it had.
+  - The painter's order does the rest: the cavern pass draws first and clears to black, the ground's empty tiles draw
+    nothing, and the cavern shows only through its holes, shrunk and offset like any level below
+    (`ZLevelViewShrink`, `ZLevelOffset`).
+  - Lighting: RT lights each tile and sprite from its own pass's light map, so the ground's light never falls on the
+    cavern twice or darkens it. The cavern lights itself: its `MapLight` where the roof is open (a hole's `Space` is
+    transparent, so the cavern under it is unroofed, 2.1 item 10), its roof colour under the ground, its own glowing
+    plants. It has no sun shadows. `CEZLevelShadowOverlay` leaves out the ground map-grid itself (`includeMap:
+    false`), so only hulls above shadow it; `CEZLevelBlurOverlay` blurs it and tints it towards its ambient like any
+    level below. Lower passes never draw FOV; the observer's own pass still blacks out what its FOV hides, the cavern
+    included.
+  - Sky: `WFCavernViewSystem.HidesSky` keeps the parallax off a cavern (whose fallback would be space) and off a
+    ground while one of its mouths is in view, so a hole never shows sky, even before the cavern's contents stream
+    in. Elsewhere nothing changes: a ground player never had parallax over a cavern (`TryMapDown` finds it), and a
+    ground seen from the air with no mouth in view keeps its sky.
+  - Cost: one more render pass while a mouth is on screen; the decision each frame walks the shades the client knows.
+  - Clicking: the shades' `Clickable` bounds cover the whole tile (`ClickableSystem` tries them before the click map),
+    so a hole's clear middle still examines and offers *Climb down*.
 - **Ambience** (F4, built differently from the plan): no cavern player. By default the underground hears the
   surface: the Planets `WFPlanetAmbienceSystem` plays whatever `WFPlanetAmbienceComponent` the listener's map carries,
   and the cavern's copy (2.6) names the surface's profile with a lower `VolumeOffset` and an `Occlusion`.
@@ -571,8 +623,8 @@ give the same hole in every process, so a site never depends on when its cell is
   of them for a hole at the top of the size range, proportionally fewer for a smaller one, less one at random, and
   at least one, so a small moulin isn't ringed with crystals.
 
-The pit art rounds what the tiles can't (4.1): it is drawn on the dual grid, so its rim cuts into the lip tiles and a
-hole shows none of the tile grid's square corners.
+The pit art rounds what the tiles can't (4.1): it is drawn on the dual grid, so the lip overhangs the hole's own tiles
+and a hole shows none of the tile grid's square corners.
 
 ### 3.2 Cells and claims
 
@@ -807,36 +859,41 @@ The tests below are the gates.
   - deep table `WFCavernDeep<World>` (F5), unstable rock `WFCavernUnstable<World>` (F5), vent wall
     `WFCavernVent<World>`, ore `WFCavernOreGas<World>` and smoke `WFCavernGasPocket<World>` (F5).
 - **Shades** (`WFCavernShadeBase`): unanchored, no physics and no `CEZPhysics`, so they never fall. They use the
-  world's `_WF/Caverns/Mouths/<world>_pit.rsi` (the landing floor below, darkened a level), draw depth `LowFloors`,
-  drawn lit so the ground's daylight falls on it, and have `Clickable` and `WFCavernShaft`. The client's
-  `WFCavernShadeVisualsSystem` draws a hole on the dual grid: one 32-pixel piece per tile corner, centred on it and
-  drawn by the lowest pit tile around it as a layer offset from that tile's shade. A piece's state is
-  `v<mask>_<labels>_<variant>`: which of its four tiles are pit, whether the rim crosses each piece border deep or
-  shallow (a tile edge's label is a stable hash of the edge, so both pieces on it agree), and a drawing picked by a
-  hash of the corner (two, three for the full pit, one for a diagonal pair). `Tools/_WF/Caverns/gen_pits.py` cuts
-  them:
-  - the rim bites 3.5–11 pixels into the lip tiles and wanders in and out between borders; a hole corner is rounded
-    to about 20 pixels and a ground corner poking in is filleted, so no square corner shows;
-  - on the lip only the pit is drawn, and the ground under it shows through a dark broken edge, a lit lip (strongest
-    on Aerumna, whose dark chromite needs it) and a fading shadow, so every allowed ground tile works;
-  - under a north rim a shaft wall with strata and cracks, and each world's touch: roots (Asclepiu), glowing cracks
-    and embers (Fervidus), sand spilling down (Merak), crystal glints (Aerumna), icicles and frost (Thrascias), sinew
-    and wet sheen (Carcinoma), each in about one piece in three so an edge doesn't repeat; a sliver of side wall
-    inside east and west rims, inner shadow, pebbles and rubble on the others;
-  - the floor darkened to 0.26–0.43 of the ground's brightness (measured around sample mouths), and over pieces with
-    pit all round a `deep<nw><ne><sw><se>` shadow blended between the four tiles' depths (0 at the rim, 1, then 2
-    and deeper), so a big hole darkens towards its middle.
+  world's `_WF/Caverns/Mouths/<world>_pit.rsi`, draw depth `LowFloors`, drawn lit so the ground's light falls on the
+  lip, and have `Clickable` (bounds over the whole tile) and `WFCavernShaft`. A hole's tiles are empty, so the cavern
+  pass (2.7) shows the cavern through them; a shade only frames that view, and paints only its hole's own tiles, since
+  the lip tiles are solid ground the cavern never shows through. The client's `WFCavernShadeVisualsSystem` draws a
+  hole on the dual grid: one 32-pixel piece per tile corner, centred on it and drawn by the lowest hole tile around it
+  as a layer offset from that tile's shade; a corner with hole all round draws nothing. A piece's state is
+  `v<mask>_<labels>_<variant>`: which of its four tiles are hole (1 to 14), whether the lip overhangs deep or shallow
+  where the rim crosses each piece border (a tile edge's label is a stable hash of the edge, so both pieces on it
+  agree), and a drawing picked by a hash of the corner (two, one for a diagonal pair). `Tools/_WF/Caverns/gen_pits.py`
+  draws them:
+  - the lip overhangs the hole by 3–10 pixels in the ground's own texture, so it continues the lip tile: Asclepiu
+    grass, Fervidus basalt, Merak asteroid sand, Aerumna chromite, Thrascias snow, Carcinoma flesh. It wanders in and
+    out between borders; a hole corner is rounded to a 10-pixel radius and a ground corner poking in gets a 9-pixel
+    bulge of lip round it, so no square corner shows;
+  - the lip ends in a dark broken edge with a lit rim behind it (strongest on Aerumna, whose dark chromite needs it);
+  - inside the opening: a suggestion of shaft wall under a north rim (strata, opaque at the top of the cut and faded
+    out 8 pixels down), a sliver of side wall inside east and west rims and a soft shadow along every rim, all gone
+    16 pixels from the lip, so the middle of a hole tile stays clear;
+  - each world's touch hangs off the lip in about one piece in three: roots (Asclepiu), glowing cracks and embers
+    (Fervidus), sand pouring in (Merak), crystal glints (Aerumna), icicles and frost (Thrascias), sinew (Carcinoma);
+    elsewhere pebbles on the lip and clods at its edge;
+  - the depth comes from the renderer (shrink, offset, blur) and the cavern's own dark, so nothing shades a big hole's
+    middle.
 
   Near a piece's borders nothing depends on the tiles beyond its own four: across every border two pieces can share,
-  the generator's rim field steps by at most a pixel, so pieces join seamlessly. `PitStatesExist` ties the client's
-  state names to the RSIs. A hole therefore reads as an opening onto the floor below rather than void or parallax,
-  and it can be seen from low flight.
+  the rim sits on the same label and every shadow has faded out, so pieces join seamlessly. `PitStatesExist` ties the
+  client's state names to the RSIs. Ground tiles with edge sprites (grass, snow, sand) also draw their fringe onto a
+  hole's empty tiles, since RT draws a neighbour's edge onto an empty tile; the lip covers its first few pixels, and
+  grass blades reach further in.
 - **Climb points** (`WFCavernClimbBase`): anchored, no fixtures, and `Clickable`/`InteractionOutline`. The sprite is a
   CE ladder RSI (`_CE/Structures/Architecture/Ladders/<rsi>`, state `straight`) with a tint, carrying
   `WFCavernClimb`.
 - **Fauna** comes from `WFPlanetFaunaSpawner` markers on the chamber tile C (OpenSimplex2, frequency 3, threshold
   0.95), so the existing caps apply: 32 per map, 128 in total. Cavern fauna retires once no cavern player is near,
-  because the eye cap means surface viewers never observe it.
+  because the eye cap means surface viewers observe it only near a mouth.
 - **Why go down.** Surface ore is sparse boulders (`MonoPlanetmapOre*`). Every cavern rock tile is a wall, and veins
   fill about 15% of the rock. The ores the surface lacks are listed per world.
 - **Mouth ids.** Every tile and entity a mouth row names exists on this branch (checked in F2a), so none was
@@ -1103,8 +1160,14 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernNetworkTest.EveryWorldGetsOneCavern` [6] | Each world built and torn down in turn on one pair. Depth −1; `TryMapDown(ground)`/`TryMapUp(cavern)` link; `Layers` unchanged. The cavern has `WFPlanetLayer` (right network and gravity), `WFCavernLayer`, the right biome and seed, and no `LightCycle`, `SunShadow`, `Parallax` or `CEZGroundLayer`. Its `MapAtmosphere` equals the level's. The ground has `WFCavernGround` | F1 |
 | `CavernNetworkTest.DeleteRemovesCavernAndTransits` | A stub transit whose `LowerMap` is the cavern is deleted with the network | F1 |
 | `CavernRoofTest.GroundTilesRoofCavern` | `LayTiles` on the ground roofs those cavern tiles; emptying one unroofs it | F1 |
-| `CavernViewerEyeTest.GroundViewerLoadsNoCavern` | A ground viewer has no eye on the cavern, and the cavern's `LoadedChunks` stays empty for 60 ticks | F1 |
+| `CavernViewerEyeTest.GroundViewerFarFromMouthsLoadsNoCavern` | A ground viewer 160 tiles east of the gate has no eye on the cavern and isn't recorded as seeing it, and the cavern's `LoadedChunks` stays empty for 60 ticks | F1, cavern view |
+| `CavernViewerEyeTest.GroundViewerNearMouthLoadsCavern` | A ground viewer on the gate's climb tile has one eye on the cavern, the cavern chunk under the hole and one three chunks aside load, and cavern entities reach the client; logs the cost | cavern view |
+| `CavernViewerEyeTest.CavernEyeKeepsAMarginBeforeLeaving` | Moved east of the gate: the eye stays between the enter and leave margins after the viewer had it, goes past the leave margin, stays gone between the margins, and comes back inside the enter margin | cavern view |
+| `CavernViewerEyeTest.AirViewerOverMouthLoadsCavern` | A viewer on air layer 1 over the gate has one eye on the ground and one on the cavern; moved 160 tiles away it keeps the first and loses the second | cavern view |
 | `CavernViewerEyeTest.CavernViewerLoadsGroundAbove` | A cavern viewer has an eye on the ground, and ground chunks load over it | F1 |
+| `CavernViewTest.ClientSeesCavernUnderMouth` (client pair) | Beside the gate, the client finds the cavern under the ground; the cavern and the ground around the hole hide the sky, and ground 200 tiles away doesn't | cavern view |
+| `CavernViewTest.ShadeClicksAcrossItsTile` (client pair) | The shade of a gate tile with hole all round, whose art is clear, takes clicks at its centre and near its corner, and not 1.6 tiles away | cavern view |
+| `Content.Tests: CavernPassTest` | `CavernPassDepth` is one level under the ground at any ground depth with the cavern known and a mouth in view, and null otherwise | cavern view |
 | `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` without lift on the ground map over chunks that were never loaded, so no tile is under it (a hull on loaded terrain can keep a tile through `WfUnloadChunk`, 2.1 item 7): sampled every tick for 10 s, the hull's map is never the cavern and no transit touches the cavern | F1 |
 | `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map, and no transit gap is created at all (an unguarded descend enters one and lands again within a tick) | F1 |
 | `CavernHullTest.LiftoffAndLandingUnchanged` | With caverns on, a `BuildLander` lifts to air layer 1 and lands back on the ground | F1 |
@@ -1113,7 +1176,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk, unpinned (a hole is pinned only when its chunk unloads), falls into the cavern and is kept; the chunk is still loaded and the tile unpinned afterwards, so the loaded check decided | F1 |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after its chunks load; the test loads them with `WfLoadChunk`, as a cavern viewer's loader would, rather than attaching a viewer. The climb point is anchored under the climb tile, with the section 3.6 delay. The hole is inside the world's size range, the climb tile is on the lip beside the hole, each rim spot has its decor and nothing stands on the climb tile | F2 |
 | `CavernMouthTest.ShapesStayInRange` | Over 400 seeds per world: the hole is inside its size range, holds the anchor, is joined edge to edge, has no tile hanging on by one edge (a rift may have its two ends), no two tiles touching only at a corner and no enclosed ground; the ring is every tile touching it; the climb tile is on the ring, beside a hole tile on `climbSide` and past the whole hole on that side; rim spots are on the ring, clear of the climb tile and no more than `rimCount` scaled by the hole's size; the same seed gives the same hole and rim. At most 5% of non-rift holes are plain rectangles and at most 5% fall back, the holes take at least half the sizes in range, and the seeds give at least 80 different holes. The specs are the worlds' prototypes, so it runs on a pair | F2 |
-| `CavernMouthTest.PitStatesExist` | On the client, every world's pit RSI holds every state `WFCavernShadeVisualsSystem.AllStates` lists, and no other | F2 |
+| `CavernMouthTest.PitStatesExist` | On the client, every world's pit RSI holds every state `WFCavernShadeVisualsSystem.AllStates` lists (`pit` and the pieces for masks 1 to 14), and no other | F2, cavern view |
 | `CavernMouthTest.PinnedSiteIsEmpty` | Merak: with the cavern pinned under a whole cell, a cell that has a site claims Empty, and stays Empty | F2 |
 | `CavernMouthTest.PadKeepsPools` | Asclepiu: of admin mouths cut 3 tiles from a pool's edge, one whose pad crosses the pool holds exactly one `MonoFloorWaterEntity` on every pad tile off the hole where the cavern grows one; `GateExists` checks the same on every gate | F4 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
@@ -1163,8 +1226,9 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernClimbTest.ClimbHaulsPulledOreBox` | A pulled `OreBox` arrives on the ground next to the climber, is being pulled again, and the climb took 1.5× | F5 |
 
 **Manual playtest** (`Docs/_WF/Caverns/PLAYTEST_CHECKLIST.md`, F6, in the Planets checklist's Do/See/Report format):
-1. `wfplanet spawn WFSurfaceAsclepiu`, fly down and find the gate. The shade reads as a pit and the examine text
-   gives the air.
+1. `wfplanet spawn WFSurfaceAsclepiu`, fly down and find the gate. Through the hole you see the plunge pool, the pad
+   and the climb point below, lit where the daylight falls in; clicking anywhere on the hole examines it, and the
+   examine text gives the air.
 2. Walk in: the plunge pool does no damage. Watch the light shaft and the darkness away from it. Use *Look up*
    through the mouth.
 3. Climb out and climb back down. Park a lander across the mouth, then check from below that the climb is refused.
@@ -1312,6 +1376,13 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   review: a pinned site is Empty rather than Deferred (3.2), `open` refuses a shared pad (5), the open-fraction
   sample centres on the gate candidate (4.1), Thrascias moulins are 7–14 tiles (4.6), and debris wholly over a hole
   is tested (3.7).
+
+- **Cavern view** (after the shaped mouths): a hole shows the cavern under it. The eye cap opens for a viewer with a
+  hole in view (2.3, `WFCavernEyeSystem`), the client draws the cavern as a pass under the ground and keeps the sky
+  out (2.7), and the pit art became a lip over the hole's own tiles with a clear middle, clickable across the whole
+  tile (4.1). Tests: the new `CavernViewerEyeTest` rows, `CavernViewTest` and `CavernPassTest` (6). Not yet seen on a
+  client. The cavern's `MapLight` is still its level's, not the ground's × `shaftLight` (F4), so at night the floor
+  under a hole stays lit.
 
 - **Add:**
   - Shared: `WFCavernShaftComponent.cs`, `WFCavernClimbComponent.cs`, `WFCavernClimbDoAfterEvent.cs`,
@@ -1462,7 +1533,7 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 
 | # | Risk | Check / mitigation |
 |---|---|---|
-| 1 | The client has never seen the cavern map before its first fall, so predicted z-physics may stutter until PVS arrives (`Update.cs:22`, `_clientSimulation`) | Real-client check in F2. Fallback: `CEPvsOverride` on the cavern map entity, after measuring `BiomeComponent`'s state size |
+| 1 | The client has never seen the cavern map before its first fall, so predicted z-physics may stutter until PVS arrives (`Update.cs:22`, `_clientSimulation`) | Real-client check in F2. Fallback: `CEPvsOverride` on the cavern map entity, after measuring `BiomeComponent`'s state size. Since the cavern view, a player next to a mouth already has the cavern around it streamed in |
 | 2 | Cavern chunk loads are dense: F3 measured 2,700–3,590 entities around one cavern viewer (81 chunks), not the 1,300 walls first estimated | `CavernGenerationTest` bounds it at 4,000. F3 profiled one viewer per world (Debug integration server, server time only): arriving in a cavern costs one tick of 0.6–0.8 s while its chunks load, against 0.3–5.7 s arriving on the same world's surface, and a cavern tick then costs 0.8–1.1 ms against 0.7–1.2 ms on the surface |
 | 3 | FTL preloads or admin teleports load a cell before its claim | That cell stays Deferred until the chunk unloads. Accepted: a mouth may appear late, never cut into loaded terrain |
 | 4 | An awake item over a ground chunk that unloads falls into the cavern void (2.1 item 4) | Wildlife is handled (F1). Items are rare, because sleeping bodies don't fall. Accepted |
@@ -1473,9 +1544,9 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | 9 | `SmokeOnTrigger` may not spread on a map grid without `GridAtmosphere` | `VentHissesAndReleasesSmoke` decides. Fallback: vents spawn a puddle of the reagent instead |
 | 10 | Restarting a pull across a map change may be refused | `ClimbHaulsPulledOreBox` decides. Fallback: move the hauled entity without restarting the pull |
 | 11 | `GetNoise` allocates on every call, so claims cost about 1 ms per candidate and sampled tests take seconds per world | Claims are spread over time and logged above 20 ms. If tests are too slow, add a cached sampler to `BiomeSystem.Caverns.cs` and assert it agrees with `TryGetTile` |
-| 12 | Six more maps share the 128 fauna cap | Cavern fauna retires without cavern observers, thanks to the eye cap. Watch `PlanetPopulationTest` |
+| 12 | Six more maps share the 128 fauna cap | Cavern fauna retires without observers, and the eye cap keeps surface viewers' eyes out of the cavern except near a mouth. Watch `PlanetPopulationTest` |
 | 13 | For the first 0.1 s after a load, a cavern chunk can show shaft light before the ground above it loads | Cosmetic. Both load in the same `BiomeSystem` pass |
-| 14 | The eye cap and hull guard touch CE files that change upstream | Single-line marked edits that keep the upstream expression. Recheck on every CE merge |
+| 14 | The eye cap, the cavern pass and the hull guard touch CE files that change upstream | Single-line marked edits that call into `_WF`. Recheck on every CE merge |
 | 15 | `Nocturine` spore pockets in Aerumna's dark with xenos may be too punishing | Small spread (≤ 6 tiles) and the hiss warns first. Tune after the F5 playtest |
 | 16 | `MobWatcherMagmawing` and `MobWatcherIcewing` are flying lavaland mobs | `FaunaSurvivesItsCavern` checks them, and no cavern mob has `CEZFlyer` |
 | 17 | Lava and liquid plasma hurt by setting you alight, and `FlammableSystem` puts a fire out below 1 mol of oxygen, so in the oxygen-free Fervidus and Thrascias caverns they do nothing (measured in the F3 review) | F4 gives the cavern liquids harm that needs no oxygen and checks it in `CavernAtmosphereTest` |
