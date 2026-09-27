@@ -35,6 +35,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.IntegrationTests/Fixtures/GameTest.cs`](../../Content.IntegrationTests/Fixtures/GameTest.cs)
   - a fixture object outlives its test, so it must not keep its pair.
   - resets every instance field of the fixture, from its own class up to this one.
+- [`Content.IntegrationTests/Pair/TestPair.cs`](../../Content.IntegrationTests/Pair/TestPair.cs)
+  - AsyncLocal for the returned-pair guard
+  - dispose skips a pair the test already returned
+  - a returned pair can be borrowed by another test before this test's `await using` disposes it
 - [`Content.IntegrationTests/Tests/Hands/HandTests.cs`](../../Content.IntegrationTests/Tests/Hands/HandTests.cs)
   - unused, the actor is spawned instead of read from the session
   - spawn the actor instead of using the session's entity
