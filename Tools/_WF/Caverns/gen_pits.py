@@ -20,8 +20,8 @@ States (WFCavernShadeVisualsSystem picks them; the names must match its own):
 - `pit`: a lone hole tile over black, the placement icon.
 
 Nothing a piece draws near its borders depends on the tiles beyond its own four, so pieces join seamlessly: the rim is
-pinned to its label there, every shadow and wall fades out before the middle of a tile, and details keep clear of the
-borders.
+pinned to its label there, every shadow and wall fades out before the middle of a tile, a shaft wall gives way to the
+side ledge above a piece's bottom border, and details keep clear of the borders.
 Run from the repo root: python Tools/_WF/Caverns/gen_pits.py
 """
 import json
@@ -50,6 +50,7 @@ CRUMBLE = 0.9  # pixel jitter on the rim line
 EDGE = 1.3  # the broken edge of the lip
 FACE = 8  # how far the shaft wall shows under a north rim
 LEDGE = 2.0  # a sliver of side wall inside the east and west rims
+SEAM = 4.0  # over this much above a piece's bottom border the shaft wall gives way to the side ledge, as below it
 SHADOW = {"north": 9.0, "side": 6.0, "south": 3.5}  # how far each rim's shadow reaches into the opening
 SHADOW_ALPHA = 0.6
 REACH = (12.0, 16.0)  # everything in the opening fades out between these distances from the lip tiles
@@ -296,6 +297,7 @@ def draw_piece(world, look, ground, mask, labels, variant):
                 kinds[(x, y)] = "edge" if f <= EDGE else "overhang"
                 continue
 
+            px, py = local(x, y)
             depth = -smooth[(x, y)]
             side = facing(smooth, x, y)
             u = wall_depth(smooth, x, y, FACE + 2)
@@ -308,9 +310,11 @@ def draw_piece(world, look, ground, mask, labels, variant):
                 wall = wall_colour(look, x, u, n, piece)
                 # Opaque at the top of the cut, fading into the dark as it goes down.
                 wall_alpha = 1.0 - smoothstep((u - FACE * 0.35) / (FACE * 0.65))
+                # The piece below can't see this rim, so the wall is gone by the bottom border.
+                wall_alpha *= smoothstep((py + HALF - 0.5) / SEAM)
                 colour, alpha = over(wall, wall_alpha, colour, alpha)
                 kinds[(x, y)] = "wall"
-            elif u is None and side == "side" and depth < LEDGE:
+            if (u is None or py + HALF < SEAM) and side == "side" and depth < LEDGE:
                 ledge = scale(mix(look["wall"], look["deep"], 0.55), lerp(0.8, 0.5, depth / LEDGE) * (1.0 + 0.1 * n))
                 colour, alpha = over(ledge, 0.85, colour, alpha)
                 kinds[(x, y)] = "wall"

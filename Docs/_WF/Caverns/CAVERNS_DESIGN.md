@@ -252,11 +252,15 @@ line.
   into from above, so only that one level opens. The rule:
   - A hole is an open hole tile: an entry in `WFCavernGroundComponent.Shades`. A hole with no shade doesn't count;
     the F2c hole queue gives dug and blown holes theirs.
-  - A viewer sees a hole when one lies within a square of half-size `net.pvs_range` times the PVS scale an eye on the
-    ground gets (the viewer's own scale and zoom, widened for each level it is above the ground, as
-    `GetZEyePvsScale` does), plus 4 tiles (`EnterMargin`). A viewer that has the cavern keeps it until every hole is
-    more than 12 tiles past that range (`LeaveMargin`); `WFCavernViewerComponent` records which ground it sees into,
-    so eyes don't churn at the edge.
+  - A viewer sees a hole when one lies within the square an eye on the ground sees, plus 4 tiles (`EnterMargin`).
+    That square's half-size is half of `net.pvs_range` (RT's cvar is the side, `PvsSystem.CalcViewBounds` halves it)
+    times the PVS scale the ground eye gets: the viewer's own scale and zoom, widened for each level it is above the
+    ground, as `GetZEyePvsScale` does. A ground viewer at zoom 1 gets the cavern with a hole 16.5 tiles away. A viewer
+    that has the cavern keeps it until every hole is more than 12 tiles past that square (`LeaveMargin`, 24.5 tiles
+    on the ground); `WFCavernViewerComponent` records which ground it sees into, so eyes don't churn at the edge.
+  - A ghost that may not load terrain (`BiomeSystem.CanLoad`, through `WfCanLoad`: a ghost without the
+    `AllowBiomeLoading` tag) never gets the cavern. Its eye has no `GhostComponent`, so it would generate the cavern
+    at every mouth the ghost passes while the ground under the ghost stays unloaded. An admin ghost has the tag.
   - `WFCavernEyeSystem` measures every viewer against the holes twice a second and, when the answer changes, queues
     the viewer for `UpdateViewer` (`WfQueueViewerUpdate`), which asks again and records the answer.
     `WfGroundInView` repeats the walk to find the ground. A check compares the viewer with each shade on that ground,
@@ -264,6 +268,7 @@ line.
 
   How this affects each kind of viewer:
   - **Ground viewer:** gets an eye on the cavern while a hole is in view, and none otherwise.
+  - **Ghosts:** an observer gets none, as it loads no ground either; an admin ghost gets one like a player.
   - **Air and orbit viewers:** keep their eyes down to the ground, and get one on the cavern on the same rule, over
     the wider range their height gives them. It falls out of the walk; nothing tells them apart.
   - **Cavern viewer:** has nothing below. It keeps its eye on the ground above, so the ground over it stays loaded
@@ -271,8 +276,10 @@ line.
   - **Networks without a map below ground:** nothing changes.
 
   Cost: a cavern eye loads the same 81 cavern chunks a cavern viewer does. `GroundViewerNearMouthLoadsCavern`
-  measured 3,744 entities on the Asclepiu cavern around the gate, and all of them reached the client within 90 ticks,
-  through the PVS entity budget it shares with the ground.
+  measured 3,744 entities on the Asclepiu cavern around the gate. With PVS on (test pairs run without it, so the test
+  turns it on), 1,129 of them reached the client within 90 ticks: those in the cavern eye's square, 29 tiles across
+  for a ground viewer (38 for PVS priority entities such as lights), sent within the 50-new-entities-a-tick budget it
+  shares with the ground. A ground viewer far from every mouth is sent none.
 - **Cavern pass**, in `Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`, `RenderZLevels`: two marked
   lines, where the view stops at a ground layer (the observer's own, and one the downward walk reaches), call
   `WfAddCavernPass` (`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`). See 2.7.
@@ -446,9 +453,11 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 - **Cavern view** (after the shaped mouths): a hole shows the cavern under it, drawn by CE's z-level renderer.
   - `WfAddCavernPass` adds the cavern as a pass one level below a ground layer, and moves the floor of the view down
     to it, when this client has the cavern's map (`WFCavernViewSystem.TryGetCavernBelow`) and a shade lies in its view
-    of the ground (`WFCavernShadeVisualsSystem.AnyPitWithin`, over the observer's view widened and shifted as the
-    ground's pass is). `WFCavernViewSystem.CavernPassDepth` is the decision, a pure function. A mouth opens it, not
-    any empty tile, so unloaded ground at the edge of a far view from the air keeps the sky it had.
+    of the ground (`WFCavernShadeVisualsSystem.AnyPitWithin`, over the observer's view plus a tile, widened and
+    shifted as the ground's pass is: `WFCavernViewSystem.LevelViewBox` widens by the pass's absolute depth and shifts
+    by its depth below the observer, as the pass eye is built). `CavernPassDepth` and `LevelViewBox` are pure
+    functions. A mouth opens it, not any empty tile, so unloaded ground at the edge of a far view from the air keeps
+    the sky it had.
   - The painter's order does the rest: the cavern pass draws first and clears to black, the ground's empty tiles draw
     nothing, and the cavern shows only through its holes, shrunk and offset like any level below
     (`ZLevelViewShrink`, `ZLevelOffset`).
@@ -884,7 +893,10 @@ The tests below are the gates.
     middle.
 
   Near a piece's borders nothing depends on the tiles beyond its own four: across every border two pieces can share,
-  the rim sits on the same label and every shadow has faded out, so pieces join seamlessly. `PitStatesExist` ties the
+  the rim sits on the same label and every shadow has faded out, so pieces join seamlessly. The piece below a rim
+  can't see it, so over the 4 pixels above a piece's bottom border the shaft wall fades out and the side ledge the
+  piece below draws takes over (`SEAM`); without that, narrow arms showed a notch at the middle of each hole tile,
+  alpha jumping by up to 159 across the border. `PitStatesExist` ties the
   client's state names to the RSIs. Ground tiles with edge sprites (grass, snow, sand) also draw their fringe onto a
   hole's empty tiles, since RT draws a neighbour's edge onto an empty tile; the lip covers its first few pixels, and
   grass blades reach further in.
@@ -1160,14 +1172,15 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernNetworkTest.EveryWorldGetsOneCavern` [6] | Each world built and torn down in turn on one pair. Depth −1; `TryMapDown(ground)`/`TryMapUp(cavern)` link; `Layers` unchanged. The cavern has `WFPlanetLayer` (right network and gravity), `WFCavernLayer`, the right biome and seed, and no `LightCycle`, `SunShadow`, `Parallax` or `CEZGroundLayer`. Its `MapAtmosphere` equals the level's. The ground has `WFCavernGround` | F1 |
 | `CavernNetworkTest.DeleteRemovesCavernAndTransits` | A stub transit whose `LowerMap` is the cavern is deleted with the network | F1 |
 | `CavernRoofTest.GroundTilesRoofCavern` | `LayTiles` on the ground roofs those cavern tiles; emptying one unroofs it | F1 |
-| `CavernViewerEyeTest.GroundViewerFarFromMouthsLoadsNoCavern` | A ground viewer 160 tiles east of the gate has no eye on the cavern and isn't recorded as seeing it, and the cavern's `LoadedChunks` stays empty for 60 ticks | F1, cavern view |
-| `CavernViewerEyeTest.GroundViewerNearMouthLoadsCavern` | A ground viewer on the gate's climb tile has one eye on the cavern, the cavern chunk under the hole and one three chunks aside load, and cavern entities reach the client; logs the cost | cavern view |
-| `CavernViewerEyeTest.CavernEyeKeepsAMarginBeforeLeaving` | Moved east of the gate: the eye stays between the enter and leave margins after the viewer had it, goes past the leave margin, stays gone between the margins, and comes back inside the enter margin | cavern view |
+| `CavernViewerEyeTest.GroundViewerFarFromMouthsLoadsNoCavern` | A ground viewer 160 tiles east of the gate has no eye on the cavern and isn't recorded as seeing it, the cavern's `LoadedChunks` stays empty for 60 ticks, and with PVS on no cavern entity reaches the client | F1, cavern view |
+| `CavernViewerEyeTest.GroundViewerNearMouthLoadsCavern` | A ground viewer on the gate's climb tile has one eye on the cavern, the cavern chunk under the hole and one three chunks aside load, and with PVS on cavern entities reach the client; logs the cost | cavern view |
+| `CavernViewerEyeTest.CavernEyeKeepsAMarginBeforeLeaving` | Moved east of the gate, measured from half of `net.pvs_range`: the eye stays between the enter and leave margins after the viewer had it, goes past the leave margin, stays gone between the margins, and comes back inside the enter margin | cavern view |
+| `CavernViewerEyeTest.GhostSeesCavernOnlyIfItMayLoadTerrain` [2] | On the gate's climb tile, a `MobObserver` has no eye on the cavern and loads no cavern chunk; an `AdminObserver` has one and loads it | cavern view |
 | `CavernViewerEyeTest.AirViewerOverMouthLoadsCavern` | A viewer on air layer 1 over the gate has one eye on the ground and one on the cavern; moved 160 tiles away it keeps the first and loses the second | cavern view |
 | `CavernViewerEyeTest.CavernViewerLoadsGroundAbove` | A cavern viewer has an eye on the ground, and ground chunks load over it | F1 |
 | `CavernViewTest.ClientSeesCavernUnderMouth` (client pair) | Beside the gate, the client finds the cavern under the ground; the cavern and the ground around the hole hide the sky, and ground 200 tiles away doesn't | cavern view |
 | `CavernViewTest.ShadeClicksAcrossItsTile` (client pair) | The shade of a gate tile with hole all round, whose art is clear, takes clicks at its centre and near its corner, and not 1.6 tiles away | cavern view |
-| `Content.Tests: CavernPassTest` | `CavernPassDepth` is one level under the ground at any ground depth with the cavern known and a mouth in view, and null otherwise | cavern view |
+| `Content.Tests: CavernPassTest` | `CavernPassDepth` is one level under the ground at any ground depth with the cavern known and a mouth in view, and null otherwise; `LevelViewBox` is the box an RT `Eye` built as the renderer builds a pass eye shows, from a jumping observer, three levels up and with a turned eye | cavern view |
 | `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` without lift on the ground map over chunks that were never loaded, so no tile is under it (a hull on loaded terrain can keep a tile through `WfUnloadChunk`, 2.1 item 7): sampled every tick for 10 s, the hull's map is never the cavern and no transit touches the cavern | F1 |
 | `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map, and no transit gap is created at all (an unguarded descend enters one and lands again within a tick) | F1 |
 | `CavernHullTest.LiftoffAndLandingUnchanged` | With caverns on, a `BuildLander` lifts to air layer 1 and lands back on the ground | F1 |
@@ -1382,7 +1395,10 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   out (2.7), and the pit art became a lip over the hole's own tiles with a clear middle, clickable across the whole
   tile (4.1). Tests: the new `CavernViewerEyeTest` rows, `CavernViewTest` and `CavernPassTest` (6). Not yet seen on a
   client. The cavern's `MapLight` is still its level's, not the ground's × `shaftLight` (F4), so at night the floor
-  under a hole stays lit.
+  under a hole stays lit. After review: the eye's range is half of `net.pvs_range` (it was the whole side, so the
+  cavern opened about twice as far out as meant), ghosts that load no terrain get no cavern eye, the pass box widens
+  by the ground's absolute depth (a jumping observer's box was up to 15% too narrow), the shaft wall no longer breaks
+  at a piece's bottom border, and the cost test runs with PVS on.
 
 - **Add:**
   - Shared: `WFCavernShaftComponent.cs`, `WFCavernClimbComponent.cs`, `WFCavernClimbDoAfterEvent.cs`,

@@ -6,6 +6,12 @@ namespace Content.Server.Parallax;
 /// <summary>Cavern access to BiomeComponent's chunk bookkeeping.</summary>
 public sealed partial class BiomeSystem
 {
+    /// <summary>Whether an entity's view may generate terrain: anything but a ghost without the loading tag.</summary>
+    public bool WfCanLoad(EntityUid uid)
+    {
+        return CanLoad(uid);
+    }
+
     /// <summary>Whether the biome chunk holding this tile index is loaded.</summary>
     public bool WfIsChunkLoaded(Entity<BiomeComponent> biome, Vector2i index)
     {

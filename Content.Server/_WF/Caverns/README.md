@@ -48,7 +48,7 @@ quieter and muffled through the rock (`surfaceAmbienceVolume`, `surfaceAmbienceO
 eases in as you go down, or the cavern's own `ambience` played clear when it names one. Marked CE edits keep the
 cavern safe to have and show it: the Planets hull guard (`WfClosedToHulls`); the eye cap in `CEZLevelsSystem.View.cs`,
 which stops z-level eyes at a ground layer unless `WFCavernEyeSystem` finds one of its holes in the viewer's view (with
-a wider margin to lose it than to gain it); on the client, `WfAddCavernPass` in CE's z-level renderer, which draws the
+a wider margin to lose it than to gain it, and never for a ghost that loads no terrain); on the client, `WfAddCavernPass` in CE's z-level renderer, which draws the
 cavern under the ground while a mouth is in view (`WFCavernViewSystem`); and a check in `ParallaxOverlay` that keeps
 the sky out of caverns and mouths. The design, including what is still to come (lazy cell claims and holes opened later,
 the rest of F4 and the mining loop), is in `Docs/_WF/Caverns/CAVERNS_DESIGN.md`.

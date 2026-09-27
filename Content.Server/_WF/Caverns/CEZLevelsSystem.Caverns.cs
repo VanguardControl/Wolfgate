@@ -9,10 +9,8 @@ public sealed partial class CEZLevelsSystem
 {
     [Dependency] private WFCavernEyeSystem _wfCavernEyes = default!;
 
-    /// <summary>
-    /// Whether the downward eye walk stops under a level: under a ground layer unless the viewer can see one of its
-    /// holes, and under a cavern looked into from above, so only that one level opens.
-    /// </summary>
+    /// <summary>Whether the downward eye walk stops under a level: a ground with no hole in view or a cavern.</summary>
+    // Only the one cavern under the ground opens, never what lies below it.
     private bool WfEyesStopUnder(EntityUid viewer, EntityUid viewerMap, EntityUid level, Vector2 position, float pvsScale)
     {
         if (HasComp<WFCavernLayerComponent>(level))

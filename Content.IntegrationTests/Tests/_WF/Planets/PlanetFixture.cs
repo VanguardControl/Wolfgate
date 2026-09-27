@@ -54,7 +54,7 @@ public static class PlanetFixture
     /// <summary>Deck plating, used for both hull decks and hand-laid ground.</summary>
     public const string FloorTile = "FloorSteel";
 
-    /// <summary>What <see cref="AttachViewer"/> attaches the session to; a mob, never a ghost.</summary>
+    /// <summary>What <see cref="AttachViewer"/> attaches the session to by default: a mob, not a ghost.</summary>
     public const string ViewerProto = "MobHuman";
 
     /// <summary>Turns the feature on for this pair; TestPair reverts the change when the pair is returned.</summary>
@@ -114,8 +114,8 @@ public static class PlanetFixture
         return (layers, body, map.MapUid);
     }
 
-    /// <summary>Attaches the session to a fresh mob; biomes only generate around attached non-ghosts.</summary>
-    public static async Task<EntityUid> AttachViewer(TestPair pair, EntityUid map, Vector2 pos)
+    /// <summary>Attaches the session to a fresh mob, or another prototype; biomes only generate around non-ghosts.</summary>
+    public static async Task<EntityUid> AttachViewer(TestPair pair, EntityUid map, Vector2 pos, string proto = ViewerProto)
     {
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -126,7 +126,7 @@ public static class PlanetFixture
 
         await server.WaitPost(() =>
         {
-            viewer = entMan.SpawnEntity(ViewerProto, new EntityCoordinates(map, pos));
+            viewer = entMan.SpawnEntity(proto, new EntityCoordinates(map, pos));
             server.PlayerMan.SetAttachedEntity(pair.Player!, viewer);
         });
 

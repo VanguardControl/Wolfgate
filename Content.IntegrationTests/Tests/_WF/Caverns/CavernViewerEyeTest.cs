@@ -4,6 +4,7 @@ using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.Caverns;
+using Content.Shared.Ghost;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
@@ -34,7 +35,7 @@ public sealed class CavernViewerEyeTest
     /// <summary>How far east of the gate's hole the far viewer stands, well past any view range.</summary>
     private const int FarAway = 160;
 
-    /// <summary>A ground viewer far from every hole has no eye on the cavern, and no cavern chunk loads for 60 ticks.</summary>
+    /// <summary>A ground viewer far from every hole has no eye on the cavern, loads none of it and is sent none.</summary>
     [Test]
     public async Task GroundViewerFarFromMouthsLoadsNoCavern()
     {
@@ -43,6 +44,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await EnablePvs(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
         var tile = new Vector2i(gate.Max.X + FarAway, gate.Origin.Y);
@@ -79,23 +81,27 @@ public sealed class CavernViewerEyeTest
             }
         });
 
+        var (serverEntities, clientEntities) = await CavernEntities(pair, world);
+        TestContext.Out.WriteLine($"Far viewer: {serverEntities} entities on the cavern, {clientEntities} sent to the client.");
+        Assert.That(clientEntities, Is.Zero, "A ground viewer far from every hole was sent cavern entities.");
+
         await Teardown(pair, world);
         await pair.CleanReturnAsync();
     }
 
     /// <summary>
     /// A ground viewer on a mouth's lip has one eye on the cavern, the cavern chunks under the hole and around it load,
-    /// and the cavern reaches the client. Logs what that costs.
+    /// and PVS sends it the cavern around it. Logs what that costs.
     /// </summary>
     [Test]
     public async Task GroundViewerNearMouthLoadsCavern()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
-        var client = pair.Client;
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await EnablePvs(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 
@@ -128,27 +134,13 @@ public sealed class CavernViewerEyeTest
             }
         });
 
-        // What the cavern view costs: chunks generated and entities on the cavern, and how many reach the client.
+        // What the cavern view costs: chunks generated, entities on the cavern, and how many PVS sends.
         var chunks = 0;
-        var serverEntities = 0;
-        var cavernNet = NetEntity.Invalid;
-        await server.WaitPost(() =>
-        {
-            chunks = entMan.GetComponent<BiomeComponent>(world.Cavern).LoadedChunks.Count;
-            serverEntities = CountOn(entMan, world.Cavern);
-            cavernNet = entMan.GetNetEntity(world.Cavern);
-        });
-
-        await pair.RunTicksSync(30);
-        var clientEntities = 0;
-        await client.WaitPost(() =>
-        {
-            var clientCavern = client.EntMan.GetEntity(cavernNet);
-            clientEntities = CountOn(client.EntMan, clientCavern);
-        });
+        await server.WaitPost(() => chunks = entMan.GetComponent<BiomeComponent>(world.Cavern).LoadedChunks.Count);
+        var (serverEntities, clientEntities) = await CavernEntities(pair, world);
 
         TestContext.Out.WriteLine($"Cavern view cost: {chunks} cavern chunks loaded, {serverEntities} entities on the cavern, " +
-                                  $"{clientEntities} of them on the client.");
+                                  $"{clientEntities} of them sent to the client.");
         Assert.That(clientEntities, Is.GreaterThan(0), "No cavern entity reached the client.");
 
         await Teardown(pair, world);
@@ -169,7 +161,8 @@ public sealed class CavernViewerEyeTest
         await EnableCaverns(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
-        var range = server.ResolveDependency<IConfigurationManager>().GetCVar(CVars.NetMaxUpdateRange);
+        // An eye sees a square whose side is net.pvs_range.
+        var range = server.ResolveDependency<IConfigurationManager>().GetCVar(CVars.NetMaxUpdateRange) / 2f;
         var between = (WFCavernEyeSystem.EnterMargin + WFCavernEyeSystem.LeaveMargin) / 2f;
 
         var viewer = await PlanetFixture.AttachViewer(pair, world.Ground, TileCentre(gate.ClimbTile));
@@ -190,6 +183,45 @@ public sealed class CavernViewerEyeTest
 
         await MoveEastOfHole(pair, gate, viewer, range + WFCavernEyeSystem.EnterMargin / 2f);
         await AssertCavernEye(pair, world, true, "inside the enter margin");
+
+        await Teardown(pair, world);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A ghost that may not generate terrain gets no eye on the cavern beside a mouth, so it never generates it; an admin
+    /// ghost, which may, does.
+    /// </summary>
+    [TestCase("MobObserver", false)]
+    [TestCase("AdminObserver", true)]
+    public async Task GhostSeesCavernOnlyIfItMayLoadTerrain(string ghost, bool sees)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, Surface);
+        var gate = await Gate(pair, world);
+
+        var viewer = await PlanetFixture.AttachViewer(pair, world.Ground, TileCentre(gate.ClimbTile), ghost);
+        await pair.RunTicksSync(60);
+
+        await server.WaitAssertion(() =>
+        {
+            var cavernBiome = entMan.GetComponent<BiomeComponent>(world.Cavern);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(entMan.HasComponent<GhostComponent>(viewer), Is.True, $"Precondition: {ghost} is no ghost.");
+                Assert.That(entMan.GetComponent<TransformComponent>(viewer).MapUid, Is.EqualTo(world.Ground),
+                    "Precondition: the ghost left the ground.");
+                Assert.That(EyesOn(entMan, world.Cavern), sees ? Has.Count.EqualTo(1) : Is.Empty,
+                    sees ? "An admin ghost beside a mouth has no eye on the cavern." : "A ghost has an eye on the cavern.");
+                Assert.That(cavernBiome.LoadedChunks, sees ? Is.Not.Empty : Is.Empty,
+                    sees ? "An admin ghost beside a mouth loaded no cavern." : "A ghost loaded cavern chunks.");
+            }
+        });
 
         await Teardown(pair, world);
         await pair.CleanReturnAsync();
@@ -312,6 +344,33 @@ public sealed class CavernViewerEyeTest
         }
 
         return found;
+    }
+
+    /// <summary>Turns PVS on, which test pairs run without, so the client gets only what its eyes see.</summary>
+    // TestPair reverts it when the pair is returned.
+    private static Task EnablePvs(TestPair pair)
+    {
+        return pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(CVars.NetPVS, true));
+    }
+
+    /// <summary>How many entities stand on the cavern on the server, and on the client once PVS has sent them.</summary>
+    private static async Task<(int Server, int Client)> CavernEntities(TestPair pair, World world)
+    {
+        var serverCount = 0;
+        var clientCount = 0;
+        var cavernNet = NetEntity.Invalid;
+
+        // At PVS's budget of 50 new entities a tick, 90 ticks covers the cavern eye's square several times over.
+        await pair.RunTicksSync(90);
+        await pair.Server.WaitPost(() =>
+        {
+            serverCount = CountOn(pair.Server.EntMan, world.Cavern);
+            cavernNet = pair.Server.EntMan.GetNetEntity(world.Cavern);
+        });
+        await pair.Client.WaitPost(() =>
+            clientCount = CountOn(pair.Client.EntMan, pair.Client.EntMan.GetEntity(cavernNet)));
+
+        return (serverCount, clientCount);
     }
 
     /// <summary>How many entities stand on a map, the map itself aside.</summary>

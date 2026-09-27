@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Server._CE.ZLevels.Core;
+using Content.Server.Parallax;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Robust.Shared;
 using Robust.Shared.Configuration;
@@ -8,16 +9,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Caverns;
 
-/// <summary>
-/// Opens the ground's eye cap for viewers who can see one of its holes: their z-level eyes reach the cavern under it, so
-/// the cavern streams in and shows through the hole. Everyone else stays capped at the ground.
-/// </summary>
+/// <summary>Gives a viewer who can see one of the ground's holes a z-level eye on the cavern under it.</summary>
+// Everyone else stays capped at the ground, so the cavern only generates and streams where a hole shows it.
 public sealed partial class WFCavernEyeSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private CEZLevelsSystem _zLevels = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private BiomeSystem _biome = default!;
 
     /// <summary>Tiles past the viewer's view of the ground at which a hole brings the cavern in.</summary>
     public const float EnterMargin = 4f;
@@ -28,7 +28,8 @@ public sealed partial class WFCavernEyeSystem : EntitySystem
     /// <summary>How often viewers are measured against the holes.</summary>
     public static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(0.5);
 
-    private float _viewRange;
+    /// <summary>Half the side of the square an eye sees at view scale 1; net.pvs_range is the whole side.</summary>
+    private float _viewHalf;
     private TimeSpan _nextCheck;
 
     /// <inheritdoc/>
@@ -36,7 +37,7 @@ public sealed partial class WFCavernEyeSystem : EntitySystem
     {
         base.Initialize();
 
-        Subs.CVar(_cfg, CVars.NetMaxUpdateRange, range => _viewRange = range, true);
+        Subs.CVar(_cfg, CVars.NetMaxUpdateRange, size => _viewHalf = size / 2f, true);
     }
 
     /// <inheritdoc/>
@@ -68,10 +69,8 @@ public sealed partial class WFCavernEyeSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// Whether a viewer whose eyes reach this ground, seeing it at this view scale, gets an eye on the cavern under it.
-    /// Records the answer: a viewer who has the cavern keeps it out to <see cref="LeaveMargin"/>.
-    /// </summary>
+    /// <summary>Whether a viewer whose eyes reach this ground gets an eye on its cavern; records the answer.</summary>
+    // A viewer who has the cavern keeps it out to LeaveMargin.
     public bool SeesCavern(EntityUid viewer, EntityUid ground, Vector2 position, float viewScale)
     {
         if (!Sees(viewer, ground, position, viewScale))
@@ -86,11 +85,15 @@ public sealed partial class WFCavernEyeSystem : EntitySystem
 
     private bool Sees(EntityUid viewer, EntityUid ground, Vector2 position, float viewScale)
     {
+        // A ghost that may not generate terrain would generate the cavern through its eye.
+        if (!_biome.WfCanLoad(viewer))
+            return false;
+
         if (!TryComp<WFCavernGroundComponent>(ground, out var comp) || TerminatingOrDeleted(comp.Cavern))
             return false;
 
         var seeing = CompOrNull<WFCavernViewerComponent>(viewer)?.Ground == ground;
-        var reach = _viewRange * viewScale + (seeing ? LeaveMargin : EnterMargin);
+        var reach = _viewHalf * viewScale + (seeing ? LeaveMargin : EnterMargin);
         return AnyHoleWithin(comp, position, reach);
     }
 
