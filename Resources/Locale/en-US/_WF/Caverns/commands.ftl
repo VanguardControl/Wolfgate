@@ -1,7 +1,7 @@
-cmd-wfcavern-desc = Inspect caverns, visit their gates and carve mouths by hand.
-cmd-wfcavern-help = Usage: { $command } <list | tp <planet> [pad|mouth] | mouths <planet> | open>
+cmd-wfcavern-desc = Inspect caverns, visit their gates, carve mouths by hand and sample cavern terrain.
+cmd-wfcavern-help = Usage: { $command } <list | tp <planet> [pad|mouth] | mouths <planet> | open | stats <planet>>
 cmd-wfcavern-disabled = Caverns are off. Set wf.caverns to true.
-cmd-wfcavern-invalid-args = Expected one of: list, tp <planet> [pad|mouth], mouths <planet>, open.
+cmd-wfcavern-invalid-args = Expected one of: list, tp <planet> [pad|mouth], mouths <planet>, open, stats <planet>.
 cmd-wfcavern-unknown-planet = No built planet network named "{ $planet }".
 cmd-wfcavern-no-cavern = { $planet } has no cavern, or its cavern has no gate.
 cmd-wfcavern-empty = Nothing to list.
@@ -25,6 +25,7 @@ cmd-wfcavern-open-refused = Can't carve a mouth here: { $reason ->
     [cavern] this planet's cavern is missing.
    *[mouth] there is a mouth there already.
 }
-cmd-wfcavern-hint-sub = <list|tp|mouths|open>
+cmd-wfcavern-hint-sub = <list|tp|mouths|open|stats>
+cmd-wfcavern-stats = { $planet }: { $size }x{ $size } tiles around { $centre } are { $open }% open; the largest open region holds { $largest }% of it, and { $veins }% of the rock is ore.
 cmd-wfcavern-hint-planet = <planet name>
 cmd-wfcavern-hint-target = <pad|mouth>

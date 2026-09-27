@@ -9,6 +9,7 @@ using Content.Shared._WF.Administration;
 using Content.Shared._WF.CCVar;
 using Content.Shared.Administration;
 using Content.Shared.Database;
+using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
@@ -17,7 +18,7 @@ using Robust.Shared.Player;
 
 namespace Content.Server._WF.Caverns;
 
-/// <summary>Lists caverns and their mouths, teleports to a gate and carves mouths by hand.</summary>
+/// <summary>Lists caverns and their mouths, teleports to a gate, carves mouths by hand and samples cavern terrain.</summary>
 [AdminCommand(AdminFlags.Server | AdminFlags.Mapping)]
 public sealed partial class WFCavernCommand : LocalizedEntityCommands
 {
@@ -27,17 +28,22 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WFCavernMouthSystem _mouths = default!;
+    [Dependency] private WFCavernSampler _sampler = default!;
 
     private const string SubList = "list";
     private const string SubTp = "tp";
     private const string SubMouths = "mouths";
     private const string SubOpen = "open";
+    private const string SubStats = "stats";
 
     private const string TargetPad = "pad";
     private const string TargetMouth = "mouth";
 
-    private static readonly string[] Subcommands = { SubList, SubTp, SubMouths, SubOpen };
+    private static readonly string[] Subcommands = { SubList, SubTp, SubMouths, SubOpen, SubStats };
     private static readonly string[] Targets = { TargetPad, TargetMouth };
+
+    /// <summary>Edge of the square stats samples, the same as the open-fraction test.</summary>
+    public const int StatsSize = 192;
 
     /// <inheritdoc/>
     public override string Command => WolfgateAdminCommands.Cavern;
@@ -73,6 +79,9 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             case SubOpen:
                 ExecuteOpen(shell);
                 break;
+            case SubStats:
+                ExecuteStats(shell, args[1]);
+                break;
         }
     }
 
@@ -82,7 +91,7 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
         return args[0] switch
         {
             SubTp => args.Length is 2 or 3 && (args.Length == 2 || Targets.Contains(args[2])),
-            SubMouths => args.Length == 2,
+            SubMouths or SubStats => args.Length == 2,
             _ => args.Length == 1,
         };
     }
@@ -207,6 +216,51 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             $"{shell.Player?.Name ?? "Server"} carved a cavern mouth at {origin} on {EntityManager.ToPrettyString(mapUid)}");
     }
 
+    /// <summary>Samples the natural cavern around the caller, or around the gate from the server console.</summary>
+    private void ExecuteStats(IConsoleShell shell, string name)
+    {
+        if (!TryGetGround(shell, name, out var ground))
+            return;
+
+        if (!EntityManager.TryGetComponent<BiomeComponent>(ground.Comp.Cavern, out var biome))
+        {
+            shell.WriteError(Loc.GetString("cmd-wfcavern-no-cavern", ("planet", name)));
+            return;
+        }
+
+        Vector2i centre;
+        if (shell.Player?.AttachedEntity is { } attached)
+        {
+            var position = _transform.GetMapCoordinates(attached).Position;
+            centre = new Vector2i((int) MathF.Floor(position.X), (int) MathF.Floor(position.Y));
+        }
+        else if (_mouths.GetGate(ground) is { } gate)
+        {
+            centre = gate.Origin;
+        }
+        else
+        {
+            shell.WriteError(Loc.GetString("cmd-wfcavern-no-map"));
+            return;
+        }
+
+        var sample = _sampler.Sample(biome, centre, StatsSize);
+
+        shell.WriteLine(Loc.GetString("cmd-wfcavern-stats",
+            ("planet", name),
+            ("size", StatsSize),
+            ("centre", centre.ToString()),
+            ("open", Percent(sample.OpenFraction())),
+            ("largest", Percent(sample.LargestRegionShare())),
+            ("veins", Percent(sample.VeinFraction()))));
+    }
+
+    /// <summary>A fraction as a percentage to one decimal place.</summary>
+    private static double Percent(float fraction)
+    {
+        return Math.Round(fraction * 100.0, 1);
+    }
+
     /// <summary>Resolves a planet name to its ground, writing the error if it has no network or no cavern.</summary>
     private bool TryGetGround(IConsoleShell shell, string name, out Entity<WFCavernGroundComponent> ground)
     {
@@ -302,7 +356,7 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
         {
             case 1:
                 return CompletionResult.FromHintOptions(Subcommands, Loc.GetString("cmd-wfcavern-hint-sub"));
-            case 2 when args[0] is SubTp or SubMouths:
+            case 2 when args[0] is SubTp or SubMouths or SubStats:
                 var names = new List<string>();
                 var query = EntityManager.EntityQueryEnumerator<WFPlanetNetworkComponent>();
                 while (query.MoveNext(out var uid, out var comp))
