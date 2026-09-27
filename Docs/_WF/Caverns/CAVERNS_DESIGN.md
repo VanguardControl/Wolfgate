@@ -749,8 +749,13 @@ The tests below are the gates.
   substituted. Besides liquids, each world's `avoid` lists its surface rock-outcrop spawner (`MonoPlanetmapOre*`, and
   `WallMeat` on Carcinoma): a footprint is pinned before its chunk loads, so without it a mouth could sit walled in by
   an outcrop, reachable only by mining.
-- **Open band** is the fraction of open tiles `CavernBiomeTest.OpenFractionInBand` expects over a 192² sample. The
-  noise numbers below are starting values; tune them until the band holds.
+- **Open band** is the fraction of open tiles `CavernBiomeTest.OpenFractionInBand` expects over a 192² sample around
+  the gate. A tile is open when it has a floor and no airtight entity, so liquids, decor and crystals count as open and
+  walls, pillars and ice columns don't (`WFCavernSampler`). The noise numbers below started as the design's values; F3
+  tuned Fervidus, Aerumna and Carcinoma (their rows say from what) and left the others.
+- **Measured (F3).** Around each gate: open 42% Asclepiu, 39% Fervidus, 50% Merak, 36% Aerumna, 48% Thrascias, 48%
+  Carcinoma; the largest open region holds 89–100% of the open tiles in 128². Veins (walls with a set ore) are 21–26%
+  of the rock rather than 15%, and 1.5% on Carcinoma, where only the calcified nodes carry ore.
 
 ### 4.2 Asclepiu: the Underkarst
 
@@ -779,7 +784,7 @@ Basalt cut by lava tubes, with magma chambers and diamonds.
 |---|---|
 | Level | `WFCavernFervidusLevel`: `mapLight: "#c48b71"`, atmosphere `[0, 60, 40]` at 413.15 K (Scalding; the surface is 373 K) |
 | Tiles | T `FloorBasalt`; C `WFCavernFloorAsh`; landing `WFCavernFloorAsh` |
-| Skeleton | Tunnels: frequency 0.04, ≤ 0.60. Chambers: frequency 0.028, ≥ 0.38, with magma lakes (`FloorLavaEntity` on C, FBm frequency 0.05, ≥ 0.55). Signature `WFCavernSignatureFervidus`: lava tubes, ridged frequency 0.009, ≥ 0.86. It has an ash bank (tile C) and a nested core template on the same noise at ≥ 0.95 placing `FloorLavaEntity`. Open band 0.30–0.45 |
+| Skeleton | Tunnels: frequency 0.04, ≤ 0.64 (tuned in F3 from 0.60). Chambers: frequency 0.028, ≥ 0.42 (from 0.38), with magma lakes (`FloorLavaEntity` on C, FBm frequency 0.05, ≥ 0.55). Signature `WFCavernSignatureFervidus`: lava tubes, ridged frequency 0.009, ≥ 0.86. It has an ash bank (tile C) and a nested core template on the same noise at ≥ 0.95 placing `FloorLavaEntity`. Open band 0.30–0.45 |
 | Rock and ore | `WallRockBasalt`. Common: `…Coal`, `…Plasma`. Uncommon: `…Tin`, `…Uranium`. Rare: `…Gold`, `…Silver`, `…Diamond` (0.90). Very rare: `WallRockBasaltBluespace`. Hazard: `WallRockBasaltPlasmaGolem` (0.97) |
 | Light | Roof `#1c0803`, `shaftLight` 0.45. Lava tile emission. `CrystalOrange` (≥ 0.99) |
 | Hazards | Lava. Heat. Sulphur vents `WFCavernVentFervidus` (`SulfuricAcid` smoke, F5). Cave-ins 0.2 |
@@ -817,7 +822,7 @@ The darkest cavern: chromite, 3 g, toxic air, xenos, and the only anomaly rock.
 |---|---|
 | Level | `WFCavernAerumnaLevel`: `mapLight: "#2a1f3a"`, atmosphere `[4, 72, 24]` at 277.15 K (Toxic from CO₂) |
 | Tiles | T `WFCavernFloorChromite`; C `WFCavernFloorBedrock`; landing `WFCavernFloorChromiteScree` |
-| Skeleton | Tight crawls: ridged frequency 0.05, ≤ 0.62. Chambers are cathedral galleries: FBm frequency 0.012, ≥ 0.30. Signatures in galleries: shadow groves (meta FBm frequency 0.02, ≥ 0.5, placing `ShadowTree`, `ShadowBasaltOne`, `ShadowBasaltTwo` on C at ≥ 0.65) and pink geodes (meta OpenSimplex2 frequency 0.08, ≥ 0.75, placing `CrystalPink` on C at ≥ 0.5). Open band 0.25–0.40 |
+| Skeleton | Tight crawls: ridged frequency 0.05, ≤ 0.55 (tuned in F3 from 0.62, which left the crawls in pieces: 43% of the open tiles connected). Chambers are cathedral galleries: FBm frequency 0.012, ≥ 0.40 (from 0.30). Signatures in galleries: shadow groves (meta FBm frequency 0.02, ≥ 0.5, placing `ShadowTree`, `ShadowBasaltOne`, `ShadowBasaltTwo` on C at ≥ 0.65) and pink geodes (meta OpenSimplex2 frequency 0.08, ≥ 0.75, placing `CrystalPink` on C at ≥ 0.5). Open band 0.25–0.40 |
 | Rock and ore | `WallRockChromite`. Common: `…Tin`, `…Plasma`. Uncommon: `…Quartz`, `…Uranium`. Rare: `…Silver`, `…Gold`. Very rare: `…Diamond`, `WallRockChromiteBluespace`, `WallRockChromiteArtifactAnomaly` |
 | Light | Roof `#050408`, `shaftLight` 0.3. Geodes are the only glow |
 | Hazards | Darkness. CO₂. Xenos. A 10 s climb out at 3 g (clear the pad first). Spore pockets `WFCavernVentAerumna` (`Nocturine` smoke, F5). Cave-ins 0.25 |
@@ -854,8 +859,8 @@ Flesh throats and stomachs grown over a mineral world, where the infestation beg
 |---|---|
 | Level | `WFCavernCarcinomaLevel`: `mapLight: "#5a1a22"`, atmosphere `[21.824879, 76, 0, 0, 0, 0, 1]` at 310.15 K (Foul: breathable, with ammonia) |
 | Tiles | T `WFCavernFloorFlesh`; C `WFCavernFloorGut`; landing `WFCavernFloorGut` |
-| Skeleton | Throats: ridged, 2 octaves for wiggle, frequency 0.06, ≤ 0.62. Stomachs: FBm frequency 0.03, ≥ 0.35. Signature: digestive channels, `WFBloodRiver` placed straight on T (ridged frequency 0.012, ≥ 0.94, highest priority). Stomachs hold `WFCarcinomaAssimilationSack` (≥ 0.985), `WFFleshPustule` (≥ 0.985), `WFFleshPolyp` (≥ 0.98) and `WFCavernGutGlow` (≥ 0.975). Open band 0.35–0.55 |
-| Rock and ore | `WallMeat`, as on the surface. It can't be mined: cut it down like any wall. The rock template has a calcified-node meta layer (FBm frequency 0.05, ≥ 0.6) of `WallRockAndesite`, with `…Salt`, `…Silver`, `…Gold`, `…Plasma` and `…Uranium` veins. The flesh grew over a mineral world |
+| Skeleton | Throats: ridged, 2 octaves for wiggle, frequency 0.06, ≤ 0.30 (tuned in F3 from 0.62: two octaves compress the ridged range, so 0.62 left 32% open and 7% of it connected). Stomachs: FBm frequency 0.03, ≥ 0.35. Signature: digestive channels, `WFBloodRiver` placed straight on T (ridged frequency 0.012, ≥ 0.94, highest priority). Stomachs hold `WFCarcinomaAssimilationSack` (≥ 0.985), `WFFleshPustule` (≥ 0.985), `WFFleshPolyp` (≥ 0.98) and `WFCavernGutGlow` (≥ 0.975). Open band 0.35–0.55 |
+| Rock and ore | `WallMeat`, as on the surface. It can't be mined: cut it down like any wall. The rock template has a calcified-node meta layer (FBm frequency 0.05, ≥ 0.6) of `WallRockAndesite`, with `…Salt`, `…Silver`, `…Gold`, `…Plasma` and `…Uranium` veins (F3 tiers: common salt and plasma, uncommon silver and uranium, rare gold). The flesh grew over a mineral world |
 | Light | Roof `#140306`, `shaftLight` 0.4. `WFCavernGutGlow`: no sprite, `PointLight` `#ff4a5a`, radius 3 |
 | Hazards | Ammonia (masks). Ticks. Pustules. Bile pockets `WFCavernVentCarcinoma` (`Ammonia` smoke, F5). No cave-ins: flesh doesn't collapse |
 | Fauna | `WFCavernFaunaCarcinoma`: nested `WFFaunaCarcinoma` 3, `WFMobFleshTick` 4, `MobFleshAssimilatedMiner` 1 |
@@ -939,7 +944,7 @@ unnamed.
 | `tp <planet> [pad\|mouth]` | Moves the caller to the gate's climb tile: on the cavern pad beside the climb point (default) or on the lip on the ground | F2 |
 | `mouths <planet>` | Lists claimed mouths: kind, origin, size, climb tile | F2 |
 | `open` | Carves a mouth (`Kind = Admin`) with its hole's bottom-left at the caller's ground tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or the footprint overlaps a mouth; it also refuses (`cavern`) when either map is gone. Walls from self-deleting outcrop spawners are no longer tracked by the biome, so they count as built | F2 |
-| `stats <planet>` | Open fraction and largest-component share of a 192² pure-noise sample around the caller (the same sampler as the tests) | F3 |
+| `stats <planet>` | Open fraction, largest-component share and ore share of a 192² pure-noise sample around the caller, or around the gate from the server console (the same sampler as the tests) | F3 |
 | `awaken <planet>` | Forces the deep-table spawn near the caller | F5 |
 
 Keys: `cmd-wfcavern-desc`, `-help`, `-disabled`, `-invalid-args`, `-unknown-planet`, `-no-cavern`, `-empty`, `-row`,
@@ -1015,7 +1020,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernBiomeTest.TunnelsConnect` [6] | In 128², the largest 4-connected open component holds at least 60% of open tiles | F3 |
 | `CavernBiomeTest.OreOnlyInRock` [6] | Every sampled vein entity stands on T | F3 |
 | `CavernBiomeTest.SignaturePresent` [6] | Over 512², sampled every 2nd tile: lava, `FloorWater`, pillars and fossils, pink geodes and shadow trees, `FloorIce` and `WallIce`, `WFBloodRiver` | F3 |
-| `CavernGenerationTest.PadClearAndWorldFloors` [6] | A viewer on the gate pad: the pad has no hard entity, the world's T and C tiles are present, and there are 2,500 entities or fewer in the load area | F3 |
+| `CavernGenerationTest.PadClearAndWorldFloors` [6] | A viewer on the gate pad: nothing but the climb point is anchored on the pad, the world's T and C tiles are present within 24 tiles, and the cavern holds at most 0.75 entities per loaded tile. F3 replaced the planned 2,500: a viewer loads 81 chunks (5,184 tiles) and 45–70% of a cavern is rock, so 2,802–3,652 entities load (Fervidus most) | F3 |
 | `CavernAtmosphereTest.HumanOutcomePerWorld` [6] | An unequipped `MobHuman` for 60 s: Asclepiu and Merak take no damage; Carcinoma takes some Poison but is not critical; the others take air, heat or cold damage | F4 |
 | `CavernAtmosphereTest.FaunaSurvivesItsCavern` [6] | Every fauna and deep-table mob, on a test map with that cavern's atmosphere, is alive and not critical after 30 s | F4 |
 | `CavernEnvironmentTest.MirrorsClockAndShaftLight` | Within 10 s the cavern's environment has the ground's `PlanetName` and `MinuteOfDay` with weather "Underground", and its `MapLight` equals ground × `shaftLight` | F4 |
@@ -1201,6 +1206,22 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
 
 This feature replaces the placeholder biome with each world's biome from section 4.
 
+**Status:** F3 has landed. Each world has its biome file (biome, rock, chamber and signature templates, with named
+sub-templates for the tube core, the lake, the groves, the geodes and the calcified nodes), the five remaining tiles,
+`WFCavernGlowworms` and `WFCavernGutGlow` in `Entities/decor.yml`, the six `WFCavernFauna<World>` markers and tables in
+`Entities/fauna.yml`, `WFCavernSampler` (an entity system returning a `WFCavernSample`), `wfcavern stats`, and
+`CavernPrototypeTest`, `CavernBiomeTest` and `CavernGenerationTest`. Every id section 4 names exists on this branch, so
+none was substituted. Left for later, as planned: vents, unstable rock, gas pockets, cave-ins and deep tables (F5), and
+ambience and arrival popups (F4).
+- **F3 deviations** (each recorded where it applies): Fervidus, Aerumna and Carcinoma skeleton thresholds were tuned
+  (4.3, 4.5, 4.7); open means no airtight entity, and veins run above the 15% estimate (4.1); the generation bound is
+  per loaded tile instead of 2,500 (6, risk 2); `stats` also prints the ore share and, from the server console,
+  samples around the gate (5); Carcinoma's node ores got tiers (4.7). Values section 4 leaves open were chosen as
+  follows: chamber decor, webs and glow at OpenSimplex2 frequency 1; golem and crab walls at frequency 0.2; grove trees
+  at frequency 2; geode crystals at frequency 1; the Asclepiu pools, Merak camps and Aerumna groves and geodes sit in
+  the chamber template as `WFCavernSignature<World>`; Aerumna and Thrascias have no tunnel litter, as their tables list
+  none. The fauna markers are named in `entities.ftl`.
+
 - **Add:** `Resources/Prototypes/_WF/Caverns/Biomes/<world>.yml` ×6 (biome, rock, chamber and signature templates);
   the remaining WF tiles; `Entities/decor.yml` (`WFCavernGlowworms`, `WFCavernGutGlow`); `WFCavernFauna<World>`
   markers and tables; the `wfcavern stats` subcommand; the shared `WFCavernSampler` (server) that tests and `stats`
@@ -1282,7 +1303,7 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | # | Risk | Check / mitigation |
 |---|---|---|
 | 1 | The client has never seen the cavern map before its first fall, so predicted z-physics may stutter until PVS arrives (`Update.cs:22`, `_clientSimulation`) | Real-client check in F2. Fallback: `CEPvsOverride` on the cavern map entity, after measuring `BiomeComponent`'s state size |
-| 2 | Cavern chunk loads are dense, about 1,300 walls around one cavern viewer | `CavernGenerationTest` bounds it at 2,500. Profile one viewer per world in F3 |
+| 2 | Cavern chunk loads are dense: F3 measured 2,802–3,652 entities around one cavern viewer (81 chunks), not the 1,300 walls first estimated | `CavernGenerationTest` bounds it at 0.75 entities per loaded tile |
 | 3 | FTL preloads or admin teleports load a cell before its claim | That cell stays Deferred until the chunk unloads. Accepted: a mouth may appear late, never cut into loaded terrain |
 | 4 | An awake item over a ground chunk that unloads falls into the cavern void (2.1 item 4) | Wildlife is handled (F1). Items are rare, because sleeping bodies don't fall. Accepted |
 | 5 | A player floor laid on a pad and deconstructed down to space opens the bottom layer, because pads aren't natural terrain for `WfIsPlanetTerrain` | Needs deliberate multi-step work, and the result is "stuck in the floor", not death. Accepted |
