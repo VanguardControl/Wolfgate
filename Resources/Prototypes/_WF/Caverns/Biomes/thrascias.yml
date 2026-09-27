@@ -1,5 +1,5 @@
-# Thrascias: the Rime Galleries. Dug-snow tunnels and snowdrift chambers crossed by long ice galleries with ice
-# columns, blue crystals and plasma lakes at their cores.
+# Thrascias: the Rime Galleries. Dug-snow tunnels and snowdrift chambers lit by rime thistles, crossed by long ice
+# galleries with ice columns, blue crystals and plasma lakes at their cores.
 # Layers run last to first and the first match wins. Walls only stand on dug snow, so any other floor is open ground.
 
 - type: biomeTemplate
@@ -9,6 +9,12 @@
   - !type:BiomeTileLayer
     tile: FloorSnowDug
     threshold: -1
+  # Rime thistles along the tunnels, lowest priority.
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorSnowDug]
+    entities: [WFCavernRimeThistle]
+    threshold: 0.945
+    noise: { seed: 32, noiseType: OpenSimplex2, frequency: 1 }
   # Rock wherever ridged noise is at most the tunnel threshold; the tunnels are the ridges.
   - !type:BiomeMetaLayer
     template: WFCavernRockThrascias
@@ -69,6 +75,11 @@
     entities: [WFCavernFaunaThrascias]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorSnowdrift]
+    entities: [WFCavernRimeThistle]
+    threshold: 0.96
+    noise: { seed: 317, noiseType: OpenSimplex2, frequency: 1 }
   # Frozen caches.
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorSnowdrift]

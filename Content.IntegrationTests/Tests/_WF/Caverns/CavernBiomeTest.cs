@@ -8,7 +8,7 @@ using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
-/// <summary>Each world's cavern noise, sampled around its gate: open enough, connected, ore only in rock, signature present.</summary>
+/// <summary>Each world's cavern noise, sampled around its gate: open enough, connected, ore only in rock, signature present, lit.</summary>
 [TestFixture]
 [TestOf(typeof(WFCavernSampler))]
 public sealed class CavernBiomeTest
@@ -30,14 +30,27 @@ public sealed class CavernBiomeTest
     /// </summary>
     private static readonly Dictionary<string, Signature[]> Signatures = new()
     {
-        { "WFSurfaceAsclepiu", new[] { new Signature("plunge pools", "FloorWater") } },
-        { "WFSurfaceFervidus", new[] { new Signature("lava tubes", null, "FloorLavaEntity", "WFCavernSignatureFervidus") } },
+        {
+            "WFSurfaceAsclepiu", new[]
+            {
+                new Signature("plunge pools", "FloorWater"),
+                new Signature("glowcaps", null, "WFCavernGlowcaps"),
+            }
+        },
+        {
+            "WFSurfaceFervidus", new[]
+            {
+                new Signature("lava tubes", null, "FloorLavaEntity", "WFCavernSignatureFervidus"),
+                new Signature("ember lichen", null, "WFCavernEmberLichen"),
+            }
+        },
         {
             "WFSurfaceMerak", new[]
             {
                 new Signature("hall pillars", "WFCavernFloorSandstone", "WallRockSand"),
                 new Signature("fossils", null, "WallRockSandArtifactFragment"),
                 new Signature("buried camps", null, "SalvageHumanCorpseSpawner"),
+                new Signature("lamp agaves", null, "WFCavernLampAgave"),
             }
         },
         {
@@ -45,6 +58,7 @@ public sealed class CavernBiomeTest
             {
                 new Signature("pink geodes", null, "CrystalPink"),
                 new Signature("shadow trees", null, "ShadowTree"),
+                new Signature("shadow blooms", null, "WFCavernShadowBloom"),
             }
         },
         {
@@ -53,10 +67,29 @@ public sealed class CavernBiomeTest
                 new Signature("ice galleries", "FloorIce"),
                 new Signature("ice columns", null, "WallIce"),
                 new Signature("plasma lakes", "FloorIce", "FloorLiquidPlasmaEntity", "WFCavernSignatureThrascias"),
+                new Signature("rime thistles", null, "WFCavernRimeThistle"),
             }
         },
-        { "WFSurfaceCarcinoma", new[] { new Signature("blood channels", null, "WFBloodRiver") } },
+        {
+            "WFSurfaceCarcinoma", new[]
+            {
+                new Signature("blood channels", null, "WFBloodRiver"),
+                new Signature("nerve clusters", null, "WFCavernNerveCluster"),
+            }
+        },
     };
+
+    /// <summary>Straight-line tiles within which a walkable tile counts as lit.</summary>
+    private const float GlowReach = WFCavernCommand.StatsGlowReach;
+
+    /// <summary>The share of walkable tiles in 128² around each gate that must lie within reach of a light.</summary>
+    private const float MinGlowCoverage = 0.7f;
+
+    /// <summary>Edge of the square a viewer on the gate pad loads, 81 chunks.</summary>
+    private const int ViewerSize = 72;
+
+    /// <summary>Most lights the natural terrain may put in that square.</summary>
+    private const int MaxViewerLights = 80;
 
     /// <summary>Edge of the open-fraction sample.</summary>
     private const int OpenSize = 192;
@@ -90,7 +123,7 @@ public sealed class CavernBiomeTest
         }
     }
 
-    /// <summary>In 128² around each gate, the largest 4-connected walkable region holds most of the walkable tiles; lava and plasma count as barriers.</summary>
+    /// <summary>In 128² around each gate, the largest 4-connected walkable region holds most of the walkable tiles; lava, plasma and acid count as barriers.</summary>
     [Test]
     public async Task TunnelsConnect()
     {
@@ -170,6 +203,38 @@ public sealed class CavernBiomeTest
                     Assert.That(missing, Is.Empty,
                         $"{world.Surface}: {missing.Count} of the {placed.Count} tiles where {template} places {signature.What} lack it in the cavern, the first at {(missing.Count > 0 ? sample.IndexOf(missing[0]) : default)}.");
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// In 128² around each gate, most walkable tiles lie within reach of some glow, and the square a viewer loads holds
+    /// a bounded number of lights.
+    /// </summary>
+    [Test]
+    public async Task GlowReachesTunnels()
+    {
+        var samples = await SampleEveryWorld(ConnectSize, 1);
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var world in samples)
+            {
+                var sample = world.Sample;
+                var coverage = sample.LightCoverage(GlowReach);
+                var margin = (ConnectSize - ViewerSize) / 2;
+                var viewer = Enumerable.Range(0, sample.Count).Count(i =>
+                {
+                    var x = i % sample.Width;
+                    var y = i / sample.Width;
+                    return sample.Light[i] && x >= margin && y >= margin && x < margin + ViewerSize && y < margin + ViewerSize;
+                });
+                TestContext.Out.WriteLine($"{world.Surface}: {coverage:P1} of the walkable tiles within {GlowReach} tiles of a light; {sample.LightCount()} lights in {ConnectSize}², {viewer} in the {ViewerSize}² a viewer loads.");
+
+                Assert.That(coverage, Is.GreaterThanOrEqualTo(MinGlowCoverage),
+                    $"{world.Surface}: only {coverage:P1} of the walkable tiles lie within {GlowReach} tiles of a light.");
+                Assert.That(viewer, Is.InRange(1, MaxViewerLights),
+                    $"{world.Surface}: {viewer} lights in the {ViewerSize}² a viewer loads, outside 1-{MaxViewerLights}.");
             }
         }
     }

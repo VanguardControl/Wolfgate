@@ -7,6 +7,7 @@ using Content.Server._WF.Caverns;
 using Content.Server._WF.Planets;
 using Content.Server.Parallax;
 using Content.Shared.Parallax.Biomes;
+using Robust.Server.GameObjects;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -23,6 +24,10 @@ public sealed class CavernGenerationTest
     /// <summary>Entities one cavern viewer may cause (risk 2); F3 measured 2,700-3,600 over the 81 chunks a viewer loads.</summary>
     private const int MaxEntities = 4000;
 
+    /// <summary>Lights one cavern viewer may load: enough glow to find your way, not a light on every tile.</summary>
+    private const int MinLights = 5;
+    private const int MaxLights = 100;
+
     /// <summary>How far each way from the viewer the loaded floors are checked; chunks load at least this far.</summary>
     private const int LoadReach = 24;
 
@@ -35,7 +40,7 @@ public sealed class CavernGenerationTest
     /// <summary>Ticks the viewer stands still before the load is checked.</summary>
     private const int SettleTicks = 90;
 
-    /// <summary>A viewer on each gate pad: the pad stays clear, the world's own floors load around it, the load stays bounded and the world's wildlife spawns.</summary>
+    /// <summary>A viewer on each gate pad: the pad stays clear, the world's own floors load around it, the load and its lights stay bounded and the world's wildlife spawns.</summary>
     [Test]
     public async Task PadClearAndWorldFloors()
     {
@@ -63,6 +68,7 @@ public sealed class CavernGenerationTest
 
                 var floors = new HashSet<string>();
                 var entities = 0;
+                var lights = 0;
                 var loadedTiles = 0;
 
                 await server.WaitAssertion(() =>
@@ -88,6 +94,13 @@ public sealed class CavernGenerationTest
                             entities++;
                     }
 
+                    var lightQuery = entMan.AllEntityQueryEnumerator<PointLightComponent, TransformComponent>();
+                    while (lightQuery.MoveNext(out _, out _, out var xform))
+                    {
+                        if (xform.MapUid == world.Cavern)
+                            lights++;
+                    }
+
                     loadedTiles = biomeComp.LoadedChunks.Count * ChunkSize * ChunkSize;
 
                     using (Assert.EnterMultipleScope())
@@ -110,10 +123,12 @@ public sealed class CavernGenerationTest
                         Assert.That(floors, Does.Contain(chamber), $"{surfaceId}: no {chamber} chamber floor loaded around the pad.");
                         Assert.That(entities, Is.LessThanOrEqualTo(MaxEntities),
                             $"{surfaceId}: {entities} entities loaded over {loadedTiles} tiles around one viewer.");
+                        Assert.That(lights, Is.InRange(MinLights, MaxLights),
+                            $"{surfaceId}: {lights} lights loaded over {loadedTiles} tiles around one viewer, outside {MinLights}-{MaxLights}.");
                     }
                 });
 
-                TestContext.Out.WriteLine($"{surfaceId}: {entities} entities over {loadedTiles} loaded tiles; floors {string.Join(", ", floors)}.");
+                TestContext.Out.WriteLine($"{surfaceId}: {entities} entities and {lights} lights over {loadedTiles} loaded tiles; floors {string.Join(", ", floors)}.");
 
                 // A wildlife pass from beside one of the world's fauna markers in the loaded area.
                 var marker = $"WFCavernFauna{surfaceId["WFSurface".Length..]}";

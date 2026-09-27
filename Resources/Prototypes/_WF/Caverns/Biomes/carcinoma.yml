@@ -1,5 +1,6 @@
 # Carcinoma: the Gut. Winding flesh throats open into stomachs of pustules, polyps and assimilation sacks, with
-# blood channels cut through the flesh and calcified nodes of the mineral world it grew over.
+# blood channels cut through the flesh and calcified nodes of the mineral world it grew over. Nerve clusters light the
+# way.
 # Layers run last to first and the first match wins. Walls only stand on flesh, so any other floor is open ground.
 
 - type: biomeTemplate
@@ -9,6 +10,12 @@
   - !type:BiomeTileLayer
     tile: WFCavernFloorFlesh
     threshold: -1
+  # Nerve clusters along the throats.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorFlesh]
+    entities: [WFCavernNerveCluster]
+    threshold: 0.93
+    noise: { seed: 32, noiseType: OpenSimplex2, frequency: 1 }
   # Flesh wherever ridged noise is at most the throat threshold; a weak second octave makes the throats wiggle
   # without breaking them.
   - !type:BiomeMetaLayer
@@ -97,6 +104,11 @@
     entities: [WFCavernFaunaCarcinoma]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorGut]
+    entities: [WFCavernNerveCluster]
+    threshold: 0.95
+    noise: { seed: 317, noiseType: OpenSimplex2, frequency: 1 }
 
 - type: biomeTemplate
   id: WFCavernSignatureCarcinoma

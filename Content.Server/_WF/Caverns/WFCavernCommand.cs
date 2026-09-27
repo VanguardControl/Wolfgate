@@ -46,6 +46,9 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
     /// <summary>Edge of the square stats samples, the same as the open-fraction test.</summary>
     public const int StatsSize = 192;
 
+    /// <summary>Tiles from a light that stats counts as lit, the same as the glow coverage test.</summary>
+    public const float StatsGlowReach = 12f;
+
     /// <inheritdoc/>
     public override string Command => WolfgateAdminCommands.Cavern;
 
@@ -270,7 +273,10 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             ("centre", centre.ToString()),
             ("open", Percent(sample.OpenFraction())),
             ("largest", Percent(sample.LargestRegionShare())),
-            ("veins", Percent(sample.VeinFraction()))));
+            ("veins", Percent(sample.VeinFraction())),
+            ("lights", sample.LightCount()),
+            ("glow", Percent(sample.LightCoverage(StatsGlowReach))),
+            ("reach", StatsGlowReach)));
     }
 
     /// <summary>A fraction as a percentage to one decimal place.</summary>

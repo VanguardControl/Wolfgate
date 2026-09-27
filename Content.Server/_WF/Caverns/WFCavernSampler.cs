@@ -4,9 +4,11 @@ using Content.Server.Atmos.Components;
 using Content.Server.EntityEffects.Effects;
 using Content.Server.Parallax;
 using Content.Server.Tiles;
+using Content.Shared.Damage.Components;
 using Content.Shared.Mining.Components;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared.Parallax.Biomes.Layers;
+using Robust.Server.GameObjects;
 using Robust.Shared.CPUJob.JobQueues;
 using Robust.Shared.CPUJob.JobQueues.Queues;
 using Robust.Shared.Map;
@@ -34,6 +36,7 @@ public sealed partial class WFCavernSampler : EntitySystem
     private readonly Dictionary<string, bool> _solid = new();
     private readonly Dictionary<string, bool> _veins = new();
     private readonly Dictionary<string, bool> _hazards = new();
+    private readonly Dictionary<string, bool> _lights = new();
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -59,6 +62,7 @@ public sealed partial class WFCavernSampler : EntitySystem
         _solid.Clear();
         _veins.Clear();
         _hazards.Clear();
+        _lights.Clear();
     }
 
     /// <summary>Samples a square of <paramref name="size"/> tiles centred on a tile, taking every <paramref name="step"/>th tile on each axis.</summary>
@@ -123,6 +127,7 @@ public sealed partial class WFCavernSampler : EntitySystem
             sample.Solid[i] = IsSolid(entity);
             sample.Vein[i] = IsVein(entity);
             sample.Hazard[i] = IsHazard(entity);
+            sample.Light[i] = IsLight(entity);
         }
     }
 
@@ -151,17 +156,31 @@ public sealed partial class WFCavernSampler : EntitySystem
         return vein;
     }
 
-    /// <summary>Whether an entity sets whoever steps on it alight, as lava and liquid plasma do.</summary>
+    /// <summary>Whether an entity hurts whoever stands in it: lava and liquid plasma set you alight, digestive acid burns.</summary>
     public bool IsHazard(string entity)
     {
         if (!_hazards.TryGetValue(entity, out var hazard))
         {
-            hazard = _proto.Index<EntityPrototype>(entity).TryGetComponent<TileEntityEffectComponent>(out var effects, _factory)
-                     && effects.Effects.Any(effect => effect is Ignite);
+            var proto = _proto.Index<EntityPrototype>(entity);
+            hazard = proto.TryGetComponent<TileEntityEffectComponent>(out var effects, _factory)
+                     && effects.Effects.Any(effect => effect is Ignite)
+                     || proto.TryGetComponent<DamageContactsComponent>(out _, _factory);
             _hazards[entity] = hazard;
         }
 
         return hazard;
+    }
+
+    /// <summary>Whether an entity gives off light: glow flora, crystals, glow-worms.</summary>
+    public bool IsLight(string entity)
+    {
+        if (!_lights.TryGetValue(entity, out var light))
+        {
+            light = _proto.Index<EntityPrototype>(entity).TryGetComponent<PointLightComponent>(out _, _factory);
+            _lights[entity] = light;
+        }
+
+        return light;
     }
 
     /// <summary>Fills a sample a row at a time within the job budget.</summary>
@@ -218,8 +237,11 @@ public sealed class WFCavernSample
     /// <summary>Whether each sample's entity is an ore vein.</summary>
     public readonly bool[] Vein;
 
-    /// <summary>Whether each sample's entity sets whoever steps on it alight (lava, liquid plasma).</summary>
+    /// <summary>Whether each sample's entity hurts whoever stands in it (lava, liquid plasma, digestive acid).</summary>
     public readonly bool[] Hazard;
+
+    /// <summary>Whether each sample's entity gives off light.</summary>
+    public readonly bool[] Light;
 
     /// <summary>An empty sample of a square.</summary>
     public WFCavernSample(Vector2i origin, int width, int step)
@@ -232,6 +254,7 @@ public sealed class WFCavernSample
         Solid = new bool[width * width];
         Vein = new bool[width * width];
         Hazard = new bool[width * width];
+        Light = new bool[width * width];
     }
 
     /// <summary>How many samples there are.</summary>
@@ -249,7 +272,7 @@ public sealed class WFCavernSample
         return Tiles[sample] != null && !Solid[sample];
     }
 
-    /// <summary>Whether a sample can be crossed on foot: open, and not lava or liquid plasma.</summary>
+    /// <summary>Whether a sample can be crossed on foot: open, and not lava, liquid plasma or acid.</summary>
     public bool IsWalkable(int sample)
     {
         return IsOpen(sample) && !Hazard[sample];
@@ -276,7 +299,48 @@ public sealed class WFCavernSample
         return rock == 0 ? 0f : (float) veins / rock;
     }
 
-    /// <summary>The share of walkable samples in the largest 4-connected walkable region; lava and plasma divide regions.</summary>
+    /// <summary>How many samples give off light.</summary>
+    public int LightCount()
+    {
+        return Light.Count(light => light);
+    }
+
+    /// <summary>The share of walkable samples within <paramref name="reach"/> tiles of a light, straight-line.</summary>
+    public float LightCoverage(float reach)
+    {
+        var lights = new List<Vector2i>();
+        for (var i = 0; i < Count; i++)
+        {
+            if (Light[i])
+                lights.Add(IndexOf(i));
+        }
+
+        var reachSquared = reach * reach;
+        var walkable = 0;
+        var lit = 0;
+
+        for (var i = 0; i < Count; i++)
+        {
+            if (!IsWalkable(i))
+                continue;
+
+            walkable++;
+            var index = IndexOf(i);
+
+            foreach (var light in lights)
+            {
+                if ((light - index).LengthSquared > reachSquared)
+                    continue;
+
+                lit++;
+                break;
+            }
+        }
+
+        return walkable == 0 ? 0f : (float) lit / walkable;
+    }
+
+    /// <summary>The share of walkable samples in the largest 4-connected walkable region; lava, plasma and acid divide regions.</summary>
     public float LargestRegionShare()
     {
         var seen = new bool[Count];
