@@ -170,7 +170,7 @@ public sealed partial class CEZLevelsSystem
         var wfAbove = map.Value; // WOLFGATE(Caverns): the level above the next eye, for the ground cap below.
         for (var i = 1; i <= MaxZLevelsBelowRendering; i++)
         {
-            if (HasComp<CEZGroundLayerComponent>(wfAbove)) // WOLFGATE(Caverns): no eyes or chunk loads under a ground layer.
+            if (WfEyesStopUnder(ent, map.Value, wfAbove, globalPos, pvsScale)) // WOLFGATE(Caverns): under a ground layer, eyes only on its cavern and only while a hole is in view.
                 break;
 
             if (!TryMapOffset(map.Value, -i, out var mapUidBelow))
