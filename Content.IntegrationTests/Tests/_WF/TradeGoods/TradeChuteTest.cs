@@ -77,6 +77,8 @@ public sealed class TradeChuteTest
             var otherVendor = entMan.SpawnEntity(VendorProto, new EntityCoordinates(otherGrid.Owner, 0.5f, 0.5f));
             imported = entMan.SpawnEntity(CrateProto, coords);
             purchase.MarkAsPurchased(imported, otherVendor, 1000);
+            Assert.That(purchase.WasPurchasedOnGrid(imported, otherGrid.Owner), Is.True,
+                "The imported crate wasn't stamped with the other grid, so it can't test goods bought elsewhere.");
 
             Assert.That(interaction.InteractUsing(user, local, chute, coords, false, false), Is.True,
                 "The chute should handle a crate it trades, even when refusing it.");
