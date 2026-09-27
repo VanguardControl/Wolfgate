@@ -244,6 +244,8 @@ namespace Content.Client.Lobby.UI
             DescriptionExpand.OnPressed += _ => OpenDescriptionWindow();
             // WOLFGATE END
 
+            InitializeEmoteVoices(); // WOLFGATE(EmoteVoices)
+
             #endregion Sex
 
             #region Age
@@ -1256,6 +1258,7 @@ namespace Content.Client.Lobby.UI
             UpdateWidthControls();
             UpdateAgeEdit();
             UpdateEyePickers();
+            UpdateEmoteVoiceControls(); // WOLFGATE(EmoteVoices)
             UpdateSaveButton();
             UpdateMarkings();
             // WOLFGATE(Genitals) START: sync the anatomy tab and doll with the loaded profile
