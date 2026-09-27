@@ -1,7 +1,7 @@
 {
   "version": 1,
   "license": "CC-BY-NC-SA-3.0",
-  "copyright": "Cut from Textures/Tiles/chromite.png (Mojave-Sun, recoloured by TheShuEd) and shaded into a pit, with its rim, shaft wall and rubble drawn over it, for Wolfgate cavern mouths by Tools/_WF/Caverns/gen_pits.py.",
+  "copyright": "Lip cut from Textures/Tiles/chromite.png (Mojave-Sun, recoloured by TheShuEd), with its broken edge, shaft wall, shadows and rubble drawn over it, for Wolfgate cavern mouths by Tools/_WF/Caverns/gen_pits.py.",
   "size": {
     "x": 32,
     "y": 32
@@ -393,105 +393,6 @@
     },
     {
       "name": "v14_9_1"
-    },
-    {
-      "name": "v15_0_0"
-    },
-    {
-      "name": "v15_0_1"
-    },
-    {
-      "name": "v15_0_2"
-    },
-    {
-      "name": "deep0001"
-    },
-    {
-      "name": "deep0010"
-    },
-    {
-      "name": "deep0011"
-    },
-    {
-      "name": "deep0100"
-    },
-    {
-      "name": "deep0101"
-    },
-    {
-      "name": "deep0110"
-    },
-    {
-      "name": "deep0111"
-    },
-    {
-      "name": "deep1000"
-    },
-    {
-      "name": "deep1001"
-    },
-    {
-      "name": "deep1010"
-    },
-    {
-      "name": "deep1011"
-    },
-    {
-      "name": "deep1100"
-    },
-    {
-      "name": "deep1101"
-    },
-    {
-      "name": "deep1110"
-    },
-    {
-      "name": "deep1111"
-    },
-    {
-      "name": "deep1112"
-    },
-    {
-      "name": "deep1121"
-    },
-    {
-      "name": "deep1122"
-    },
-    {
-      "name": "deep1211"
-    },
-    {
-      "name": "deep1212"
-    },
-    {
-      "name": "deep1221"
-    },
-    {
-      "name": "deep1222"
-    },
-    {
-      "name": "deep2111"
-    },
-    {
-      "name": "deep2112"
-    },
-    {
-      "name": "deep2121"
-    },
-    {
-      "name": "deep2122"
-    },
-    {
-      "name": "deep2211"
-    },
-    {
-      "name": "deep2212"
-    },
-    {
-      "name": "deep2221"
-    },
-    {
-      "name": "deep2222"
     }
   ]
 }

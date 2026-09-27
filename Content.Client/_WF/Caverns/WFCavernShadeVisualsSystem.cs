@@ -6,20 +6,21 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._WF.Caverns;
 
 /// <summary>
-/// Draws each pit on the dual grid: one piece per tile corner, centred on it, so the rim can cut into the lip and
-/// round the hole's corners, and a shadow that deepens towards a big hole's middle.
+/// Draws each hole's crumbling edge on the dual grid: one piece per tile corner, centred on it, so the lip can overhang
+/// the hole and round its corners while the hole's middle stays clear for the cavern below to show through.
 /// </summary>
-// Each corner piece is drawn once, by the lowest pit tile around it, as a layer offset from that tile's shade.
+// Each corner piece is drawn once, by the lowest pit tile around it, as a layer offset from that tile's shade. A corner
+// with pit all round has no edge to draw.
 public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
 {
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
-    /// <summary>How far a pit change reaches: a tile's depth looks two tiles out, and its corners one more.</summary>
-    private const int RefreshReach = 3;
+    /// <summary>How far a pit change reaches: the owners of its corners are its neighbours.</summary>
+    private const int RefreshReach = 1;
 
-    /// <summary>The deepest depth a tile's shadow tells apart.</summary>
-    private const int MaxDepth = 2;
+    /// <summary>The mask of a corner with pit all round, which draws nothing.</summary>
+    private const int FullMask = 15;
 
     /// <summary>How many labels a tile edge the rim crosses can take: shallow or deep.</summary>
     private const int Labels = 2;
@@ -110,32 +111,17 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
         {
             var corner = tile + offset;
             var piece = _sprite.LayerMapReserve(ent, $"wf-pit-{key}");
-            var deep = _sprite.LayerMapReserve(ent, $"wf-pit-{key}-deep");
+            var mask = Mask(pits, corner);
 
-            if (Owner(pits, corner) != tile)
+            if (mask == FullMask || Owner(pits, corner) != tile)
             {
                 _sprite.LayerSetVisible(ent, piece, false);
-                _sprite.LayerSetVisible(ent, deep, false);
                 continue;
             }
 
-            var mask = Mask(pits, corner);
-            var shift = new Vector2(offset.X - 0.5f, offset.Y - 0.5f);
-
             _sprite.LayerSetRsiState(ent, piece, PieceState(corner, mask));
-            _sprite.LayerSetOffset(ent, piece, shift);
+            _sprite.LayerSetOffset(ent, piece, new Vector2(offset.X - 0.5f, offset.Y - 0.5f));
             _sprite.LayerSetVisible(ent, piece, true);
-
-            if (mask == 15 && DeepState(pits, corner) is { } shadow)
-            {
-                _sprite.LayerSetRsiState(ent, deep, shadow);
-                _sprite.LayerSetOffset(ent, deep, shift);
-                _sprite.LayerSetVisible(ent, deep, true);
-            }
-            else
-            {
-                _sprite.LayerSetVisible(ent, deep, false);
-            }
         }
     }
 
@@ -183,15 +169,10 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
         return $"v{mask}_{labels}_{Hash(corner, 0) % (uint) Variants(mask)}";
     }
 
-    /// <summary>How many drawings a mask's pieces have: the full pit three, a diagonal pair one, the rest two.</summary>
+    /// <summary>How many drawings a mask's pieces have: a diagonal pair one, the rest two.</summary>
     public static int Variants(int mask)
     {
-        return mask switch
-        {
-            15 => 3,
-            6 or 9 => 1,
-            _ => 2,
-        };
+        return mask is 6 or 9 ? 1 : 2;
     }
 
     /// <summary>Every state a pit RSI must hold for this system.</summary>
@@ -199,7 +180,7 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
     {
         yield return "pit";
 
-        for (var mask = 1; mask < 16; mask++)
+        for (var mask = 1; mask < FullMask; mask++)
         {
             var crossed = 0;
             if (((mask & 1) != 0) != ((mask & 2) != 0))
@@ -222,50 +203,22 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
                 }
             }
         }
+    }
 
-        // Four mutually touching tiles differ in depth by at most one; each is at depth low or low + 1, not all at low.
-        for (var low = 0; low < MaxDepth; low++)
+    /// <summary>Whether a grid has a pit tile inside a world box.</summary>
+    // Pits only lie on a planet's ground, whose grid is its own map, so its tiles are world tiles.
+    public bool AnyPitWithin(EntityUid grid, Box2 worldBox)
+    {
+        if (!_pits.TryGetValue(grid, out var pits))
+            return false;
+
+        foreach (var tile in pits.Keys)
         {
-            for (var code = 1; code < 16; code++)
-            {
-                yield return DeepName(low + (code >> 3 & 1), low + (code >> 2 & 1), low + (code >> 1 & 1), low + (code & 1));
-            }
-        }
-    }
-
-    /// <summary>The shadow over a corner with pit all round, from its four tiles' depths; null when all are at the rim.</summary>
-    private static string? DeepState(Dictionary<Vector2i, EntityUid> pits, Vector2i corner)
-    {
-        var nw = Depth(pits, corner + Block[0]);
-        var ne = Depth(pits, corner + Block[1]);
-        var sw = Depth(pits, corner + Block[2]);
-        var se = Depth(pits, corner + Block[3]);
-
-        return nw + ne + sw + se > 0 ? DeepName(nw, ne, sw, se) : null;
-    }
-
-    /// <summary>A shadow state's name from its four tiles' depths, NW, NE, SW, SE.</summary>
-    private static string DeepName(int nw, int ne, int sw, int se)
-    {
-        return $"deep{nw}{ne}{sw}{se}";
-    }
-
-    /// <summary>How many rings of pit lie between a pit tile and the nearest ground, up to <see cref="MaxDepth"/>.</summary>
-    private static int Depth(Dictionary<Vector2i, EntityUid> pits, Vector2i tile)
-    {
-        for (var reach = 1; reach <= MaxDepth; reach++)
-        {
-            for (var dx = -reach; dx <= reach; dx++)
-            {
-                for (var dy = -reach; dy <= reach; dy++)
-                {
-                    if (!pits.ContainsKey(tile + new Vector2i(dx, dy)))
-                        return reach - 1;
-                }
-            }
+            if (worldBox.Intersects(new Box2(tile, tile + Vector2i.One)))
+                return true;
         }
 
-        return MaxDepth;
+        return false;
     }
 
     /// <summary>A tile edge's label: a vertical edge runs up from a point, a horizontal one right.</summary>

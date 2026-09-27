@@ -1,5 +1,5 @@
-# The pit over each hole tile of a mouth, and the climb point in the cavern under its lip.
-# A pit shows the landing floor below, darkened a level and lit by the ground's daylight like the real opening.
+# The shade over each hole tile of a mouth, and the climb point in the cavern under its lip.
+# A shade draws the hole's crumbling lip and leaves its middle clear, so the cavern below shows through.
 
 # Unanchored with no physics, so it never falls into the hole it marks.
 - type: entity
@@ -10,7 +10,10 @@
   components:
   - type: Transform
     anchored: false
+  # The whole tile, so the clear middle still examines and climbs.
   - type: Clickable
+    bounds:
+      all: "-0.5,-0.5,0.5,0.5"
   - type: Sprite
     drawdepth: LowFloors
     sprite: _WF/Caverns/Mouths/merak_pit.rsi
