@@ -1,4 +1,5 @@
-# Fervidus: the Cinder Vaults. Basalt cut by lava tubes with ash banks, and ash chambers holding magma lakes.
+# Fervidus: the Cinder Vaults. Basalt cut by lava tubes with ash banks, and ash chambers holding magma lakes, all lit
+# by ember lichen.
 # Layers run last to first and the first match wins. Walls only stand on basalt, so any other floor is open ground.
 
 - type: biomeTemplate
@@ -14,6 +15,12 @@
     entities: [BasaltOne, BasaltTwo, BasaltThree, BasaltFour, BasaltFive]
     threshold: 0.985
     noise: { seed: 31, noiseType: OpenSimplex2, frequency: 1 }
+  # Ember lichen along the tunnels.
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt]
+    entities: [WFCavernEmberLichen]
+    threshold: 0.92
+    noise: { seed: 32, noiseType: OpenSimplex2, frequency: 1 }
   # Rock wherever ridged noise is at most the tunnel threshold; the tunnels are the ridges.
   - !type:BiomeMetaLayer
     template: WFCavernRockFervidus
@@ -96,6 +103,11 @@
     entities: [WFCavernFaunaFervidus]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorAsh]
+    entities: [WFCavernEmberLichen]
+    threshold: 0.94
+    noise: { seed: 317, noiseType: OpenSimplex2, frequency: 1 }
   # Magma lakes.
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorAsh]
@@ -110,6 +122,12 @@
   - !type:BiomeTileLayer
     tile: WFCavernFloorAsh
     threshold: -1
+  # Ember lichen on the banks.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorAsh]
+    entities: [WFCavernEmberLichen]
+    threshold: 0.93
+    noise: { seed: 320, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeMetaLayer
     template: WFCavernTubeCoreFervidus
     threshold: 0.95

@@ -4,9 +4,12 @@ using Content.Server.Atmos.Components;
 using Content.Server.EntityEffects.Effects;
 using Content.Server.Parallax;
 using Content.Server.Tiles;
+using Content.Shared._WF.Caverns;
+using Content.Shared.Damage.Components;
 using Content.Shared.Mining.Components;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared.Parallax.Biomes.Layers;
+using Robust.Server.GameObjects;
 using Robust.Shared.CPUJob.JobQueues;
 using Robust.Shared.CPUJob.JobQueues.Queues;
 using Robust.Shared.Map;
@@ -34,6 +37,7 @@ public sealed partial class WFCavernSampler : EntitySystem
     private readonly Dictionary<string, bool> _solid = new();
     private readonly Dictionary<string, bool> _veins = new();
     private readonly Dictionary<string, bool> _hazards = new();
+    private readonly Dictionary<string, bool> _lights = new();
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -59,6 +63,7 @@ public sealed partial class WFCavernSampler : EntitySystem
         _solid.Clear();
         _veins.Clear();
         _hazards.Clear();
+        _lights.Clear();
     }
 
     /// <summary>Samples a square of <paramref name="size"/> tiles centred on a tile, taking every <paramref name="step"/>th tile on each axis.</summary>
@@ -123,6 +128,7 @@ public sealed partial class WFCavernSampler : EntitySystem
             sample.Solid[i] = IsSolid(entity);
             sample.Vein[i] = IsVein(entity);
             sample.Hazard[i] = IsHazard(entity);
+            sample.Light[i] = IsLight(entity);
         }
     }
 
@@ -151,17 +157,38 @@ public sealed partial class WFCavernSampler : EntitySystem
         return vein;
     }
 
-    /// <summary>Whether an entity sets whoever steps on it alight, as lava and liquid plasma do.</summary>
+    /// <summary>Whether an entity hurts whoever stands in it: lava and liquid plasma set you alight, digestive acid burns.</summary>
     public bool IsHazard(string entity)
     {
         if (!_hazards.TryGetValue(entity, out var hazard))
         {
-            hazard = _proto.Index<EntityPrototype>(entity).TryGetComponent<TileEntityEffectComponent>(out var effects, _factory)
-                     && effects.Effects.Any(effect => effect is Ignite);
+            var proto = _proto.Index<EntityPrototype>(entity);
+            hazard = proto.TryGetComponent<TileEntityEffectComponent>(out var effects, _factory)
+                     && effects.Effects.Any(effect => effect is Ignite)
+                     || proto.TryGetComponent<DamageContactsComponent>(out _, _factory)
+                     || proto.TryGetComponent<WFDigestiveAcidComponent>(out _, _factory);
             _hazards[entity] = hazard;
         }
 
         return hazard;
+    }
+
+    /// <summary>The floor a biome lays first, under everything else: the one its tunnels run on.</summary>
+    public static string? TunnelFloor(List<IBiomeLayer> layers)
+    {
+        return layers.Count > 0 && layers[0] is BiomeTileLayer substrate ? substrate.Tile.Id : null;
+    }
+
+    /// <summary>Whether an entity gives off light: glow flora, crystals, glow-worms.</summary>
+    public bool IsLight(string entity)
+    {
+        if (!_lights.TryGetValue(entity, out var light))
+        {
+            light = _proto.Index<EntityPrototype>(entity).TryGetComponent<PointLightComponent>(out _, _factory);
+            _lights[entity] = light;
+        }
+
+        return light;
     }
 
     /// <summary>Fills a sample a row at a time within the job budget.</summary>
@@ -218,8 +245,11 @@ public sealed class WFCavernSample
     /// <summary>Whether each sample's entity is an ore vein.</summary>
     public readonly bool[] Vein;
 
-    /// <summary>Whether each sample's entity sets whoever steps on it alight (lava, liquid plasma).</summary>
+    /// <summary>Whether each sample's entity hurts whoever stands in it (lava, liquid plasma, digestive acid).</summary>
     public readonly bool[] Hazard;
+
+    /// <summary>Whether each sample's entity gives off light.</summary>
+    public readonly bool[] Light;
 
     /// <summary>An empty sample of a square.</summary>
     public WFCavernSample(Vector2i origin, int width, int step)
@@ -232,6 +262,7 @@ public sealed class WFCavernSample
         Solid = new bool[width * width];
         Vein = new bool[width * width];
         Hazard = new bool[width * width];
+        Light = new bool[width * width];
     }
 
     /// <summary>How many samples there are.</summary>
@@ -249,7 +280,7 @@ public sealed class WFCavernSample
         return Tiles[sample] != null && !Solid[sample];
     }
 
-    /// <summary>Whether a sample can be crossed on foot: open, and not lava or liquid plasma.</summary>
+    /// <summary>Whether a sample can be crossed on foot: open, and not lava, liquid plasma or acid.</summary>
     public bool IsWalkable(int sample)
     {
         return IsOpen(sample) && !Hazard[sample];
@@ -276,26 +307,136 @@ public sealed class WFCavernSample
         return rock == 0 ? 0f : (float) veins / rock;
     }
 
-    /// <summary>The share of walkable samples in the largest 4-connected walkable region; lava and plasma divide regions.</summary>
+    /// <summary>How many samples give off light.</summary>
+    public int LightCount()
+    {
+        return Light.Count(light => light);
+    }
+
+    /// <summary>
+    /// The walk in tiles from each walkable sample to the nearest light, stepping between 4-connected walkable samples,
+    /// so rock and hazards lengthen the way; -1 where no light in the sample can be reached, and on unwalkable samples.
+    /// </summary>
+    public int[] LightWalks()
+    {
+        var walks = new int[Count];
+        Array.Fill(walks, -1);
+        var queue = new Queue<int>();
+
+        for (var i = 0; i < Count; i++)
+        {
+            if (!Light[i])
+                continue;
+
+            walks[i] = 0;
+            queue.Enqueue(i);
+        }
+
+        while (queue.TryDequeue(out var current))
+        {
+            var x = current % Width;
+            var y = current / Width;
+
+            Visit(x - 1, y);
+            Visit(x + 1, y);
+            Visit(x, y - 1);
+            Visit(x, y + 1);
+
+            void Visit(int nx, int ny)
+            {
+                if (nx < 0 || ny < 0 || nx >= Width || ny >= Width)
+                    return;
+
+                var next = ny * Width + nx;
+                if (walks[next] >= 0 || !IsWalkable(next))
+                    return;
+
+                walks[next] = walks[current] + Step;
+                queue.Enqueue(next);
+            }
+        }
+
+        for (var i = 0; i < Count; i++)
+        {
+            if (!IsWalkable(i))
+                walks[i] = -1;
+        }
+
+        return walks;
+    }
+
+    /// <summary>
+    /// The walk to the nearest light (<see cref="LightWalks"/>) from each sample of the largest walkable region on
+    /// <paramref name="floor"/> (any floor when null), leaving out pockets sealed in rock and the samples within
+    /// <paramref name="margin"/> of the edge, whose nearest light may lie outside the sample; int.MaxValue where none
+    /// can be reached.
+    /// </summary>
+    public List<int> LightWalksOn(string? floor, int margin = 0)
+    {
+        var walks = LightWalks();
+        var web = LargestRegion();
+        var result = new List<int>();
+
+        for (var i = 0; i < Count; i++)
+        {
+            var x = i % Width;
+            var y = i / Width;
+
+            if (!web[i]
+                || floor != null && Tiles[i] != floor
+                || x < margin || y < margin || x >= Width - margin || y >= Width - margin)
+                continue;
+
+            result.Add(walks[i] < 0 ? int.MaxValue : walks[i]);
+        }
+
+        return result;
+    }
+
+    /// <summary>The share of <see cref="LightWalksOn"/> that reach a light within a walk of <paramref name="walk"/> tiles.</summary>
+    public float LightWalkShare(int walk, string? floor = null, int margin = 0)
+    {
+        var walks = LightWalksOn(floor, margin);
+        return walks.Count == 0 ? 0f : (float) walks.Count(w => w <= walk) / walks.Count;
+    }
+
+    /// <summary>The share of walkable samples in the largest 4-connected walkable region; lava, plasma and acid divide regions.</summary>
     public float LargestRegionShare()
     {
-        var seen = new bool[Count];
-        var queue = new Queue<int>();
+        var web = LargestRegion();
         var walkable = 0;
         var largest = 0;
 
+        for (var i = 0; i < Count; i++)
+        {
+            if (IsWalkable(i))
+                walkable++;
+
+            if (web[i])
+                largest++;
+        }
+
+        return walkable == 0 ? 0f : (float) largest / walkable;
+    }
+
+    /// <summary>Whether each sample lies in the largest 4-connected walkable region; lava, plasma and acid divide regions.</summary>
+    public bool[] LargestRegion()
+    {
+        var region = new int[Count];
+        Array.Fill(region, -1);
+        var queue = new Queue<int>();
+        var regions = 0;
+        var largest = -1;
+        var largestSize = 0;
+
         for (var start = 0; start < Count; start++)
         {
-            if (!IsWalkable(start))
+            if (!IsWalkable(start) || region[start] >= 0)
                 continue;
 
-            walkable++;
-
-            if (seen[start])
-                continue;
-
+            var id = regions++;
             var size = 0;
-            seen[start] = true;
+            region[start] = id;
             queue.Enqueue(start);
 
             while (queue.TryDequeue(out var current))
@@ -304,27 +445,37 @@ public sealed class WFCavernSample
                 var x = current % Width;
                 var y = current / Width;
 
-                Visit(x - 1, y);
-                Visit(x + 1, y);
-                Visit(x, y - 1);
-                Visit(x, y + 1);
+                Visit(x - 1, y, id);
+                Visit(x + 1, y, id);
+                Visit(x, y - 1, id);
+                Visit(x, y + 1, id);
             }
 
-            largest = Math.Max(largest, size);
+            if (size <= largestSize)
+                continue;
+
+            largestSize = size;
+            largest = id;
         }
 
-        return walkable == 0 ? 0f : (float) largest / walkable;
+        var web = new bool[Count];
+        for (var i = 0; i < Count; i++)
+        {
+            web[i] = largest >= 0 && region[i] == largest;
+        }
 
-        void Visit(int x, int y)
+        return web;
+
+        void Visit(int x, int y, int id)
         {
             if (x < 0 || y < 0 || x >= Width || y >= Width)
                 return;
 
             var next = y * Width + x;
-            if (seen[next] || !IsWalkable(next))
+            if (region[next] >= 0 || !IsWalkable(next))
                 return;
 
-            seen[next] = true;
+            region[next] = id;
             queue.Enqueue(next);
         }
     }
