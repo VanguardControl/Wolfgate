@@ -6,7 +6,10 @@ its own cavern (`wfCavern`, one per `wfPlanetSurface`) with its own air, light a
 the Underkarst's wet limestone and plunge pools, the Cinder Vaults' basalt and lava tubes, the Sandstone Galleries'
 pillared halls and fossil beds, the Umbral Deeps' chromite crawls, shadow groves and pink geodes, the Rime Galleries'
 ice halls and plasma lakes, and the Gut's flesh throats, stomachs and blood channels. Rock is solid and veined with the
-world's ores, chambers hold its decor, glow and wildlife (`WFCavernFauna<World>`, under the planet fauna caps).
+world's ores, chambers hold its decor and wildlife (`WFCavernFauna<World>`, under the planet fauna caps). Each world's
+glowing plant (`Entities/flora.yml`: glowcaps, ember lichen, lamp agaves, shadow blooms, rime thistles, nerve clusters)
+lines its tunnels and chambers as the main light below ground. The Gut also pools digestive acid in its stomachs, which
+burns whoever wades in without needing air, and chokes some throats with tendons that slow you (`Entities/gut.yml`).
 Caverns are behind `wf.caverns` (`CavernCVars`), which
 is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
 ground, and nobody on or above the ground loads the cavern under them.
@@ -18,8 +21,8 @@ tells them where it goes, what the air below is like and how hard the landing is
 them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in high gravity, up to
 10 s on Aerumna) brings them out onto the nearest solid ground beside the hole, refused while a ship is parked over it.
 Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths, carve one by hand
-(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot and ore share of a
-192-tile square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
+(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot, ore share and glow
+coverage of a 192-tile square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the
@@ -76,6 +79,7 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernGenerationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernGenerationTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
@@ -100,6 +104,8 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 - [`Resources/Prototypes/_WF/Caverns/caverns.yml`](../../../Resources/Prototypes/_WF/Caverns/caverns.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/decor.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/decor.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/fauna.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/fauna.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/flora.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/flora.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/gut.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/gut.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/mouths.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/mouths.yml)
 - [`Resources/Prototypes/_WF/Caverns/levels.yml`](../../../Resources/Prototypes/_WF/Caverns/levels.yml)
 - [`Resources/Prototypes/_WF/Caverns/tiles.yml`](../../../Resources/Prototypes/_WF/Caverns/tiles.yml)
@@ -108,10 +114,13 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 
 - [`Resources/Locale/en-US/_WF/Caverns/caverns.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/caverns.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/commands.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/commands.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/decor.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/decor.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/entities.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/entities.ftl)
 
 ### Textures
 
+- [`Resources/Textures/_WF/Caverns/digestive_acid.rsi/`](../../../Resources/Textures/_WF/Caverns/digestive_acid.rsi/)
+- [`Resources/Textures/_WF/Caverns/glow_flora.rsi/`](../../../Resources/Textures/_WF/Caverns/glow_flora.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/)
@@ -121,6 +130,7 @@ ambience and the environment mirror, and the mining loop), is in `Docs/_WF/Caver
 
 ### Tools
 
+- [`Tools/_WF/Caverns/gen_flavour.py`](../../../Tools/_WF/Caverns/gen_flavour.py)
 - [`Tools/_WF/Caverns/gen_pits.py`](../../../Tools/_WF/Caverns/gen_pits.py)
 
 ### Docs
