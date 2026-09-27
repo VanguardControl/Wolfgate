@@ -12,6 +12,9 @@ wf-cavern-aerumna-map = Aerumna Umbral Deeps
 wf-cavern-thrascias-map = Thrascias Rime Galleries
 wf-cavern-carcinoma-map = Carcinoma Gut
 
+# The weather a watch reads below ground.
+wf-cavern-weather-underground = Underground
+
 wf-cavern-shaft-examine = A shaft drops into { $cavern }.
 wf-cavern-shaft-air-breathable = The air rising from it smells clean.
 wf-cavern-shaft-air-foul = The air rising from it is breathable, but it stinks.

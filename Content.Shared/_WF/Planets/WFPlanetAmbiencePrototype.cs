@@ -12,9 +12,9 @@ public sealed partial class WFPlanetAmbiencePrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
-    /// <summary>The surface type this soundscape belongs to.</summary>
-    [DataField(required: true)]
-    public ProtoId<PlanetTypePrototype> PlanetType;
+    /// <summary>The surface type this soundscape belongs to; none for one played only where something names it, such as a cavern.</summary>
+    [DataField]
+    public ProtoId<PlanetTypePrototype>? PlanetType;
 
     /// <summary>Numbered all-day beds, played in order with crossfades.</summary>
     [DataField] public List<SoundSpecifier> Loops = new();
@@ -67,6 +67,10 @@ public sealed partial class WFPlanetAmbienceComponent : Component
     /// <summary>Decibel offset applied to both the bed and accents at this layer.</summary>
     [DataField, AutoNetworkedField]
     public float VolumeOffset;
+
+    /// <summary>Audio occlusion on the bed and accents at this layer, a low-pass that muffles them; 0 is clear.</summary>
+    [DataField, AutoNetworkedField]
+    public float Occlusion;
 }
 
 /// <summary>Shared constants and pure calculations used by network construction and tests.</summary>

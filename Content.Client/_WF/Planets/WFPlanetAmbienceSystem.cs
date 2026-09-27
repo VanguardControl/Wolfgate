@@ -28,6 +28,9 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
     private const float FadeRate = 12f;
     private const float AudibleMargin = 2f;
 
+    /// <summary>Occlusion per second the muffle eases in or out by, so a way down fades rather than cuts.</summary>
+    private const float OcclusionRate = 3f;
+
     private EntityUid? _loop;
     private EntityUid? _outgoingLoop;
     private string? _playlistKey;
@@ -37,12 +40,17 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
     private TimeSpan _nextLoop;
     private EntityUid? _oneShot;
     private string? _profileId;
+    private NetEntity? _world;
+    private float _occlusion;
     private string? _accentKey;
     private float _loopVolume = WFPlanetAmbience.SilentVolume;
     private float _oneShotVolume = WFPlanetAmbience.SilentVolume;
     private float _sliderVolume;
     private TimeSpan _nextOneShot;
     private bool _awaitingFirstAccent = true;
+
+    /// <summary>The occlusion the ambience streams are held at, easing toward the listener's layer.</summary>
+    public float Occlusion => _occlusion;
 
     public override void Initialize()
     {
@@ -67,7 +75,7 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         if (!_timing.IsFirstTimePredicted)
             return;
 
-        if (!TryGetContext(out var profile, out var layerOffset, out var night))
+        if (!TryGetContext(out var profile, out var layerOffset, out var night, out var occlusion, out var world))
         {
             StopAll();
             return;
@@ -75,11 +83,15 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
 
         if (_profileId != profile.ID)
         {
-            // Planet boundaries are a hard stop; crossfades belong within one world's playlist.
-            StopAll();
+            // Planet boundaries are a hard stop; within one world, such as into its cavern, the beds crossfade.
+            if (world == null || world != _world)
+                StopAll();
+
             _profileId = profile.ID;
             _awaitingFirstAccent = true;
         }
+
+        _world = world;
 
         CullFinishedStreams();
 
@@ -90,14 +102,18 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
 
         UpdateLoop(profile, night, loopTarget, frameTime);
         UpdateOneShot(profile, night, oneShotTarget, frameTime);
+        UpdateOcclusion(occlusion, frameTime);
     }
 
-    /// <summary>The ambience profile, layer offset and night flag for the local player's map.</summary>
-    private bool TryGetContext(out WFPlanetAmbiencePrototype profile, out float layerOffset, out bool night)
+    /// <summary>The ambience profile, layer offset, night flag, muffle and world for the local player's map.</summary>
+    private bool TryGetContext(out WFPlanetAmbiencePrototype profile, out float layerOffset, out bool night,
+        out float occlusion, out NetEntity? world)
     {
         profile = default!;
         night = false;
         layerOffset = WFPlanetAmbience.SilentVolume;
+        occlusion = 0f;
+        world = null;
 
         if (_player.LocalEntity is not { } player ||
             !TryComp(player, out TransformComponent? xform) ||
@@ -116,7 +132,25 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         profile = resolved;
         night = environment.IsNight;
         layerOffset = ambience.VolumeOffset;
+        occlusion = MathF.Max(0f, ambience.Occlusion);
+        world = CompOrNull<WFPlanetLayerComponent>(map)?.Network;
         return true;
+    }
+
+    /// <summary>Eases the muffle toward the layer's and holds every playing stream at it; global streams keep what is set.</summary>
+    private void UpdateOcclusion(float target, float frameTime)
+    {
+        _occlusion = Approach(_occlusion, target, OcclusionRate * frameTime);
+        SetOcclusion(_loop);
+        SetOcclusion(_outgoingLoop);
+        SetOcclusion(_oneShot);
+    }
+
+    private void SetOcclusion(EntityUid? stream)
+    {
+        // Each write resets the source's EFX filter, so only a change is written.
+        if (TryComp<AudioComponent>(stream, out var audio) && !audio.Occlusion.Equals(_occlusion))
+            audio.Occlusion = _occlusion;
     }
 
     private bool IsAboardHull()
@@ -288,6 +322,8 @@ public sealed partial class WFPlanetAmbienceSystem : EntitySystem
         _nextLoop = TimeSpan.Zero;
         _oneShot = StopStream(_oneShot);
         _profileId = null;
+        _world = null;
+        _occlusion = 0f;
         _accentKey = null;
         _loopVolume = WFPlanetAmbience.SilentVolume;
         _oneShotVolume = WFPlanetAmbience.SilentVolume;

@@ -37,6 +37,18 @@ public sealed partial class WFCavernPrototype : IPrototype
     [DataField]
     public float ShaftLight = 0.5f;
 
+    /// <summary>A soundscape played underground instead of the surface's; unset, the surface's day and night ambience plays muffled.</summary>
+    [DataField]
+    public ProtoId<WFPlanetAmbiencePrototype>? Ambience;
+
+    /// <summary>Decibels taken off the surface ambience heard underground.</summary>
+    [DataField]
+    public float SurfaceAmbienceVolume = -6f;
+
+    /// <summary>Audio occlusion on the surface ambience heard underground: the low-pass that muffles it through the rock.</summary>
+    [DataField]
+    public float SurfaceAmbienceOcclusion = 2.5f;
+
     /// <summary>Where the ways down are cut and how each one is fitted out.</summary>
     [DataField(required: true)]
     public WFCavernMouthSpec Mouths = default!;

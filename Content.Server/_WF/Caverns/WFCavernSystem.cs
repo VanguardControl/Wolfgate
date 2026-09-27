@@ -15,6 +15,7 @@ using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Caverns;
 
@@ -27,8 +28,14 @@ public sealed partial class WFCavernSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private PlanetSystem _planet = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WFCavernMouthSystem _mouths = default!;
+
+    /// <summary>How often each cavern takes the ground's clock and soundscape.</summary>
+    private static readonly TimeSpan MirrorInterval = TimeSpan.FromSeconds(1);
+
+    private TimeSpan _nextMirror;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -38,6 +45,73 @@ public sealed partial class WFCavernSystem : EntitySystem
         SubscribeLocalEvent<WFPlanetLowerLayersEvent>(OnLowerLayers);
         SubscribeLocalEvent<WFPlanetNetworkBuiltEvent>(OnNetworkBuilt);
         SubscribeLocalEvent<WFPlanetWildlifeComponent, CEZLevelFallMapEvent>(OnWildlifeFell);
+    }
+
+    /// <inheritdoc/>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_timing.CurTime < _nextMirror)
+            return;
+
+        _nextMirror = _timing.CurTime + MirrorInterval;
+
+        var caverns = EntityQueryEnumerator<WFCavernLayerComponent>();
+        while (caverns.MoveNext(out var uid, out var layer))
+        {
+            if (!TerminatingOrDeleted(layer.Ground) && _proto.TryIndex(layer.Cavern, out var cavern))
+                Mirror(uid, layer.Ground, cavern);
+        }
+    }
+
+    /// <summary>
+    /// Gives a cavern the ground's clock, with the weather read as underground, and its soundscape: the cavern's own
+    /// when it names one, otherwise the ground's day and night ambience, quieter and muffled through the rock.
+    /// </summary>
+    private void Mirror(EntityUid map, EntityUid ground, WFCavernPrototype cavern)
+    {
+        if (TryComp<WFPlanetEnvironmentComponent>(ground, out var above))
+        {
+            var environment = EnsureComp<WFPlanetEnvironmentComponent>(map);
+            var weather = Loc.GetString("wf-cavern-weather-underground");
+
+            if (environment.PlanetName != above.PlanetName || environment.MinuteOfDay != above.MinuteOfDay || environment.Weather != weather)
+            {
+                environment.PlanetName = above.PlanetName;
+                environment.MinuteOfDay = above.MinuteOfDay;
+                environment.Weather = weather;
+                Dirty(map, environment);
+            }
+        }
+
+        ProtoId<WFPlanetAmbiencePrototype> profile;
+        float volume = 0f, occlusion = 0f;
+
+        if (cavern.Ambience is { } own)
+        {
+            profile = own;
+        }
+        else if (TryComp<WFPlanetAmbienceComponent>(ground, out var surface))
+        {
+            profile = surface.Profile;
+            volume = surface.VolumeOffset + cavern.SurfaceAmbienceVolume;
+            occlusion = cavern.SurfaceAmbienceOcclusion;
+        }
+        else
+        {
+            RemComp<WFPlanetAmbienceComponent>(map);
+            return;
+        }
+
+        var ambience = EnsureComp<WFPlanetAmbienceComponent>(map);
+        if (ambience.Profile == profile && ambience.VolumeOffset.Equals(volume) && ambience.Occlusion.Equals(occlusion))
+            return;
+
+        ambience.Profile = profile;
+        ambience.VolumeOffset = volume;
+        ambience.Occlusion = occlusion;
+        Dirty(map, ambience);
     }
 
     /// <summary>The cavern under a surface, if it has one.</summary>

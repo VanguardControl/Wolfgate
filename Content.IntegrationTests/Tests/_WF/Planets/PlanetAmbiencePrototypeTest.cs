@@ -33,7 +33,8 @@ public sealed class PlanetAmbiencePrototypeTest
         {
             var prototypes = server.ResolveDependency<IPrototypeManager>();
             var resources = server.ResolveDependency<IResourceManager>();
-            var profiles = prototypes.EnumeratePrototypes<WFPlanetAmbiencePrototype>().ToList();
+            // A profile without a planet type belongs to no surface, only to whatever names it.
+            var profiles = prototypes.EnumeratePrototypes<WFPlanetAmbiencePrototype>().Where(p => p.PlanetType != null).ToList();
             Assert.That(profiles, Has.Count.EqualTo(Worlds.Length));
             var imported = new HashSet<string>();
             foreach (var sound in profiles.SelectMany(p => p.Loops.Concat(p.DayLoops).Concat(p.NightLoops).Concat(p.OneShots).Concat(p.DayOneShots).Concat(p.NightOneShots)))
