@@ -53,10 +53,14 @@ public sealed partial class WFOrbitalMobFallSystem : EntitySystem
         _chat.TryEmoteWithChat(ent, "Scream");
     }
 
+    /// <summary>A downward impact on the ground, or on a planet layer below it that the faller dropped into.</summary>
     private bool IsSurfaceImpact(EntityUid uid, WFOrbitalMobFallComponent fall)
     {
-        return Transform(uid).MapUid == fall.Ground
-            && TryComp<CEZPhysicsComponent>(uid, out var physics) && physics.Velocity < 0;
+        var map = Transform(uid).MapUid;
+        var onSurface = map == fall.Ground
+            || TryComp<CEZMapComponent>(map, out var zMap) && zMap.Depth < 0 && HasComp<WFPlanetLayerComponent>(map);
+
+        return onSurface && TryComp<CEZPhysicsComponent>(uid, out var physics) && physics.Velocity < 0;
     }
 
     private void OnCalculate(Entity<WFOrbitalMobFallComponent> ent, ref CEZFallingDamageCalculateEvent args)

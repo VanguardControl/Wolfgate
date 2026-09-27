@@ -17,6 +17,7 @@ public static class WolfgateAdminCommands
     public const string ErtBuilderUi = "ertbuilderui";
     public const string Planet = "wfplanet";
     public const string PlanetControl = "planetcontrol";
+    public const string Cavern = "wfcavern";
     public const string Cracker = "wfcracker";
     public const string Survey = "wfsurvey";
 }

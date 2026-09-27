@@ -20,7 +20,10 @@ crashes), `WFOrbitDecaySystem`, `WFGravityWellSystem`, `WFPlanetWeatherSystem`, 
 landing notes and the playtest checklist are in `Docs/_WF/Planets`.
 
 Other modules build on it through `WFDetachedTerrainComponent` (a grid that is ground, not a hull),
-`WFLiftoffAttemptEvent`, `WFGridLiftLoadEvent`, `WFPlanetGroundSpawnedEvent` and `WFOrbitLayerComponent.RadarScars`.
+`WFLiftoffAttemptEvent`, `WFGridLiftLoadEvent`, `WFPlanetGroundSpawnedEvent`, `WFPlanetLowerLayersEvent` and
+`WFPlanetNetworkBuiltEvent` (maps below the ground, kept in `WFPlanetNetworkComponent.LowerLayers`, which
+`CEZLevelsSystem.WfClosedToHulls` keeps every hull out of and where an orbital faller is maimed as on the ground) and
+`WFOrbitLayerComponent.RadarScars`.
 
 Jetpacks in the atmosphere: a gas jetpack refuses below a world's orbit layer and cuts out if carried down. The
 atmospheric jetpack (`WFJetpackAtmospheric`, `WFAtmosphericJetpackComponent`) is the reverse: it burns welding fuel,
@@ -92,6 +95,8 @@ takes it from there. `WFAtmosphericJetpackSystem` (shared) decides where it ligh
 - [`Content.Server/_WF/Planets/WFPlanetFaunaSpawnerComponent.cs`](WFPlanetFaunaSpawnerComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetFaunaSystem.cs`](WFPlanetFaunaSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetGroundSpawnedEvent.cs`](WFPlanetGroundSpawnedEvent.cs)
+- [`Content.Server/_WF/Planets/WFPlanetLowerLayersEvent.cs`](WFPlanetLowerLayersEvent.cs)
+- [`Content.Server/_WF/Planets/WFPlanetNetworkBuiltEvent.cs`](WFPlanetNetworkBuiltEvent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkComponent.cs`](WFPlanetNetworkComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkSystem.cs`](WFPlanetNetworkSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.cs`](WFPlanetRegistrySystem.cs)
@@ -356,11 +361,14 @@ takes it from there. `WFAtmosphericJetpackSystem` (shared) decides where it ligh
   - the climb is scaled by the maneuvering factor below.
   - only thrust left after hovering can climb.
   - planetary lift replaces, rather than supplements, the station gravgen gate.
+  - pilots can't descend below a planet's ground.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.Transit.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.Transit.cs)
   - a grid on a planet orbit layer holds its height instead of sinking.
-  - you leave orbit through transit, never by hopping a level.
+  - hulls leave orbit through transit and never hop below ground.
   - riders' contacts with the old map must not survive the move.
+  - hulls never descend below a planet's ground.
   - a held climb pops out into a planet's orbit layer instead of pinning under it.
+  - a descending convoy lands on the ground instead of hopping below it.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs): a skidding hull flattens obstacles instead of bouncing.
 - [`Content.Server/_FarHorizons/StarSystem/StarSystemMapSystem.cs`](../../_FarHorizons/StarSystem/StarSystemMapSystem.cs): register sector bodies that have a Wolfgate surface.
 - [`Content.Server/Chemistry/TileReactions/CreateEntityTileReaction.cs`](../../Chemistry/TileReactions/CreateEntityTileReaction.cs): spilled chimera blood cannot seed an unbounded planetary hive.

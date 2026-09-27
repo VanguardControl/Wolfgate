@@ -24,6 +24,10 @@ public sealed partial class WFPlanetNetworkComponent : Component
     [DataField]
     public List<EntityUid> Layers = new();
 
+    /// <summary>Member maps below ground, nearest first; never in <see cref="Layers"/>.</summary>
+    [DataField]
+    public List<EntityUid> LowerLayers = new();
+
     /// <summary>The surface definition this network was built from.</summary>
     [DataField]
     public ProtoId<WFPlanetSurfacePrototype> Surface;
