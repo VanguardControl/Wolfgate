@@ -115,9 +115,14 @@
     threshold: 0.45
     noise: { seed: 55, noiseType: OpenSimplex2, frequency: 0.06 }
 
+# The surface's water: its entity on dirt, as Asclepiu's own pools are, not the foam-edged FloorWater tile.
 - type: biomeTemplate
   id: WFCavernSignatureAsclepiu
   layers:
   - !type:BiomeTileLayer
-    tile: FloorWater
+    tile: FloorPlanetDirt
+    threshold: -1
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorPlanetDirt]
+    entities: [MonoFloorWaterEntity]
     threshold: -1

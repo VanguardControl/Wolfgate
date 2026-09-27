@@ -110,6 +110,12 @@ public static class CavernFixture
         return PlanetFixture.Teardown(pair, world.Layers);
     }
 
+    /// <summary>Whether an entity is the one the mouth lays on its landing tiles, the only thing besides the climb point a pad may hold.</summary>
+    public static bool IsLandingEntity(IEntityManager entMan, EntityUid uid, WFCavernMouthSpec spec)
+    {
+        return spec.LandingEntity is { } landing && entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == landing.Id;
+    }
+
     /// <summary>The map id of a layer, for the spawners that want one.</summary>
     public static async Task<MapId> MapIdOf(TestPair pair, EntityUid layer)
     {

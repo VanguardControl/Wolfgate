@@ -19,7 +19,8 @@
     cellSize: 96
     groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]
     avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]
-    landingTile: FloorWater
+    landingTile: WFCavernFloorPoolbed
+    landingEntity: MonoFloorWaterEntity
     shade: WFCavernShadeAsclepiu
     climbPoint: WFCavernClimbAsclepiu
     rim: [FloraRockSolid]

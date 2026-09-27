@@ -436,6 +436,13 @@ public sealed class CavernMouthTest
                     var landing = TileAt(maps, world.Cavern, levelGrid, index);
                     Assert.That(tileDefs[landing.TypeId].ID, Is.EqualTo(spec.LandingTile.Id),
                         $"{surfaceId}: cavern tile {index} under the hole is not the landing tile.");
+
+                    if (spec.LandingEntity is { } landingEntity)
+                    {
+                        Assert.That(maps.GetAnchoredEntities(world.Cavern, levelGrid, index)
+                                .Count(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == landingEntity.Id), Is.EqualTo(1),
+                            $"{surfaceId}: cavern tile {index} under the hole does not hold exactly one {landingEntity}.");
+                    }
                 }
 
                 foreach (var index in gate.Ring)
@@ -504,7 +511,7 @@ public sealed class CavernMouthTest
             {
                 foreach (var anchored in maps.GetAnchoredEntities(world.Cavern, levelGrid, index))
                 {
-                    if (anchored == climb)
+                    if (anchored == climb || IsLandingEntity(entMan, anchored, cavern.Mouths))
                         continue;
 
                     Assert.Fail($"{surfaceId}: {entMan.ToPrettyString(anchored)} stands on pad tile {index}.");

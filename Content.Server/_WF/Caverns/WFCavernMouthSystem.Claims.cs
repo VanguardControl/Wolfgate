@@ -302,6 +302,16 @@ public sealed partial class WFCavernMouthSystem
         _map.SetTiles(context.Level.Owner, context.Level.Comp2, padTiles);
         _biome.WfPinTiles((context.Level.Owner, levelBiome), pad.ToList());
 
+        // Pinned tiles grow no biome entities, so the landing's own entity is laid here.
+        if (spec.LandingEntity is { } landingEntity)
+        {
+            foreach (var (index, tile) in padTiles)
+            {
+                if (tile.TypeId == landing.TypeId && !HasAnchored(levelGrid, index, landingEntity))
+                    SpawnAnchored(landingEntity, levelGrid, index);
+            }
+        }
+
         var air = WFCavernAirClassifier.Classify(_proto.Index(context.Cavern.Level).Atmosphere);
         var landingMultiplier = ((ContentTileDefinition) _tileDefs[spec.LandingTile]).FallDamageMultiplier;
 
@@ -361,6 +371,20 @@ public sealed partial class WFCavernMouthSystem
         {
             Del(uid);
         }
+    }
+
+    /// <summary>Whether an entity of this prototype is already anchored on a tile.</summary>
+    private bool HasAnchored(Entity<MapGridComponent> grid, Vector2i index, EntProtoId proto)
+    {
+        var anchored = _map.GetAnchoredEntitiesEnumerator(grid, grid.Comp, index);
+
+        while (anchored.MoveNext(out var uid))
+        {
+            if (MetaData(uid.Value).EntityPrototype?.ID == proto.Id)
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Spawns an entity on a tile and anchors it there.</summary>

@@ -71,6 +71,15 @@
   fallDamageMultiplier: 0.25
   fallStunMultiplier: 0.25
 
+# The dirt under a landing pool, which the mouth covers with the surface's water entity. FloorPlanetDirt is already
+# indestructible.
+- type: tile
+  id: WFCavernFloorPoolbed
+  parent: FloorPlanetDirt
+  deconstructTools: []
+  fallDamageMultiplier: 0
+  fallStunMultiplier: 0.1
+
 - type: tile
   id: WFCavernFloorGut
   parent: FloorAsteroidIronsand

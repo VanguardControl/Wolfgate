@@ -114,7 +114,7 @@ public sealed class CavernGenerationTest
                         {
                             foreach (var anchored in maps.GetAnchoredEntities(world.Cavern, grid, index))
                             {
-                                if (anchored != climb)
+                                if (anchored != climb && !IsLandingEntity(entMan, anchored, cavern.Mouths))
                                     Assert.Fail($"{surfaceId}: {entMan.ToPrettyString(anchored)} stands on pad tile {index}.");
                             }
                         }

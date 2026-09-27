@@ -35,7 +35,7 @@ public sealed class CavernBiomeTest
         {
             "WFSurfaceAsclepiu", new[]
             {
-                new Signature("plunge pools", "FloorWater"),
+                new Signature("plunge pools", null, "MonoFloorWaterEntity"),
                 new Signature("glowcaps", null, "WFCavernGlowcaps"),
             }
         },
@@ -235,6 +235,26 @@ public sealed class CavernBiomeTest
                 }
             }
         }
+    }
+
+    /// <summary>The sampler counts the surface's water, which Asclepiu's plunge pools use, as open ground and no hazard.</summary>
+    [Test]
+    public async Task SamplerCountsWaterAsOpen()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var sampler = server.System<WFCavernSampler>();
+
+        await server.WaitAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(sampler.IsSolid("MonoFloorWaterEntity"), Is.False, "Water counts as rock.");
+                Assert.That(sampler.IsHazard("MonoFloorWaterEntity"), Is.False, "Water counts as a walkability barrier.");
+            }
+        });
+
+        await pair.CleanReturnAsync();
     }
 
     /// <summary>

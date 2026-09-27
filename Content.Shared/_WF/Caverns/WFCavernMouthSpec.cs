@@ -51,6 +51,10 @@ public sealed partial class WFCavernMouthSpec
     [DataField(required: true)]
     public ProtoId<ContentTileDefinition> LandingTile;
 
+    /// <summary>Anchored on every pad tile that is the landing tile, such as a plunge pool's water.</summary>
+    [DataField]
+    public EntProtoId? LandingEntity;
+
     /// <summary>How far the pinned, rock-free pad reaches around the hole in the cavern.</summary>
     [DataField]
     public int PadRadius = 3;
