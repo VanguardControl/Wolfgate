@@ -50,7 +50,7 @@ public enum WFCavernClaim : byte
     /// <summary>A site exists but can't be stamped yet: loaded terrain, a grid or something built is in the way.</summary>
     Deferred,
 
-    /// <summary>No candidate passed the pure checks; this cell never gets a mouth.</summary>
+    /// <summary>No candidate passed the pure checks, or the site's footprint or pad is pinned: this cell never gets a mouth.</summary>
     Empty,
 }
 
@@ -110,6 +110,7 @@ public sealed class WFCavernMouth
     /// <summary>The lip: every ground tile touching the hole, diagonals included, that is not hole.</summary>
     public readonly HashSet<Vector2i> Ring = new();
 
+    /// <summary>Places a grown shape at its anchor tile.</summary>
     public WFCavernMouth(Vector2i origin, WFCavernMouthShape shape, WFCavernMouthKind kind)
     {
         Origin = origin;
@@ -133,9 +134,6 @@ public sealed class WFCavernMouth
 
     /// <summary>The hole's centroid in ground-local coordinates.</summary>
     public Vector2 Centre => new Vector2(Origin.X, Origin.Y) + Shape.Centroid;
-
-    /// <summary>The hole tile nearest its centroid, the same as <see cref="Origin"/>.</summary>
-    public Vector2i CentreTile => Origin;
 
     /// <summary>The hole's lowest corner tile.</summary>
     public Vector2i Min => Origin + Shape.Min;

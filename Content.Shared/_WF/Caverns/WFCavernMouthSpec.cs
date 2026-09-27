@@ -71,7 +71,7 @@ public sealed partial class WFCavernMouthSpec
     [DataField]
     public List<EntProtoId> Rim = new();
 
-    /// <summary>About how many rim decor entities a mouth gets, give or take one.</summary>
+    /// <summary>About how many rim decor entities a hole at the top of the size range gets; smaller ones get fewer, at least one.</summary>
     [DataField]
     public int RimCount = 3;
 

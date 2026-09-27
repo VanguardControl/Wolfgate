@@ -98,8 +98,8 @@ public sealed class CavernCommandTest
 
             var fervidusGate = await Gate(pair, worlds[1]);
             var there = await RunUntil(pair, output, "stats Fervidus", StatsDone);
-            Assert.That(there.Any(line => line.Contains(StatsDone) && line.Contains(fervidusGate.CentreTile.ToString())), Is.True,
-                $"stats Fervidus, called from Asclepiu, did not sample around the Fervidus gate at {fervidusGate.CentreTile}:\n{string.Join('\n', there)}");
+            Assert.That(there.Any(line => line.Contains(StatsDone) && line.Contains(fervidusGate.Origin.ToString())), Is.True,
+                $"stats Fervidus, called from Asclepiu, did not sample around the Fervidus gate at {fervidusGate.Origin}:\n{string.Join('\n', there)}");
 
             var mouths = await Run(pair, output, "mouths Asclepiu");
             Assert.That(mouths.Any(line => line.Contains("Gate") && line.Contains(gate.Origin.ToString())), Is.True,
@@ -174,6 +174,40 @@ public sealed class CavernCommandTest
             Assert.That(after.Count(line => line.Contains("Admin")), Is.EqualTo(1),
                 $"mouths does not list the carved mouth:\n{string.Join('\n', after)}");
 
+            // A second mouth clear of the first one's hole and climb point, but whose pad would overwrite its landing, is refused.
+            await server.WaitAssertion(() =>
+            {
+                var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
+                var mouths = server.System<WFCavernMouthSystem>();
+                var radius = server.System<WFCavernSystem>().TryGetCavern("WFSurfaceAsclepiu", out var cavern) ? cavern!.Mouths.PadRadius : 0;
+                var carved = ground.Mouths.First(mouth => mouth.Kind == WFCavernMouthKind.Admin);
+                var pad = carved.Pad(radius);
+                Vector2i? beside = null;
+
+                for (var dx = 1; dx <= 2 * radius + 8 && beside == null; dx++)
+                {
+                    var origin = new Vector2i(carved.Max.X + dx, carved.Origin.Y);
+                    var shape = mouths.AdminShape((world.Ground, ground), origin)!;
+                    if (shape.Hole.Concat(shape.Ring).Select(offset => origin + offset).Any(index => carved.Contains(index) || index == carved.ClimbTile))
+                        continue;
+
+                    if (shape.Pad(radius).Any(offset => pad.Contains(origin + offset)))
+                        beside = origin;
+                }
+
+                Assert.That(beside, Is.Not.Null, "Precondition: no spot beside the carved mouth shares its pad.");
+
+                var count = ground.Mouths.Count;
+                var opened = mouths.TryOpenMouth((world.Ground, ground), beside!.Value, out var refusal);
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(opened, Is.False, $"open carved a mouth at {beside} over the pad of the one at {carved.Origin}.");
+                    Assert.That(refusal, Is.EqualTo("mouth"), "open gave the wrong reason for a shared pad.");
+                    Assert.That(ground.Mouths, Has.Count.EqualTo(count), "The refused mouth was registered anyway.");
+                }
+            });
+
             // With the cavern gone, open refuses with its own reason, which has its own Fluent variant.
             await server.WaitAssertion(() =>
             {
@@ -219,7 +253,7 @@ public sealed class CavernCommandTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The first admin mouth footprint of solid ground where everything anchored is the biome's own, scanning east from a tile.</summary>
+    /// <summary>The first admin mouth footprint of solid ground where everything anchored is the biome's own and whose pad is free, scanning east from a tile.</summary>
     private static Vector2i FindClearPatch(TestPair pair, World world, Vector2i from)
     {
         var entMan = pair.Server.EntMan;
@@ -228,7 +262,9 @@ public sealed class CavernCommandTest
         var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
         var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
         var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+        var level = (world.Cavern, entMan.GetComponent<BiomeComponent>(world.Cavern));
         var mouths = pair.Server.System<WFCavernMouthSystem>();
+        var radius = pair.Server.System<WFCavernSystem>().TryGetCavern("WFSurfaceAsclepiu", out var cavern) ? cavern!.Mouths.PadRadius : 0;
 
         for (var dx = 0; dx < 16; dx++)
         for (var dy = -4; dy <= 4; dy++)
@@ -239,7 +275,8 @@ public sealed class CavernCommandTest
 
             var clear = shape!.Hole.Concat(shape.Ring).Select(offset => origin + offset).All(index =>
                 maps.TryGetTileRef(world.Ground, grid, index, out var tile) && !tile.Tile.IsEmpty
-                && maps.GetAnchoredEntities(world.Ground, grid, index).All(uid => biomes.WfIsBiomeSpawned(biome, uid, index)));
+                && maps.GetAnchoredEntities(world.Ground, grid, index).All(uid => biomes.WfIsBiomeSpawned(biome, uid, index)))
+                && !shape.Pad(radius).Any(offset => biomes.WfIsPinned(level, origin + offset));
 
             if (clear)
                 return origin;

@@ -2,16 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client._WF.Caverns;
 using Content.IntegrationTests.Pair;
 using Content.Server._WF.Caverns;
 using Content.Server.Parallax;
 using Content.Shared._WF.Caverns;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
+using Robust.Client.GameObjects;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
@@ -150,11 +153,18 @@ public sealed class CavernMouthTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Across many seeds, every world's holes stay in their size range, joined edge to edge without spurs, pinches or islands, with the climb tile south of the hole and rim spots clear of it.</summary>
+    /// <summary>
+    /// Across many seeds, every world's holes stay in their size range, joined edge to edge without spurs, pinches or
+    /// islands, with the climb tile past the hole on the climb side and rim spots clear of it. They also vary: few plain
+    /// rectangles (a rift aside) or fallbacks, most of the size range used and few repeats.
+    /// </summary>
+    // The shape is a pure function, but its specs are the worlds' prototypes, which only a server loads.
     [Test]
     public async Task ShapesStayInRange()
     {
         const int seeds = 400;
+        const float maxRectangles = 0.05f;
+        const float maxFallbacks = 0.05f;
 
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -165,6 +175,9 @@ public sealed class CavernMouthTest
             {
                 var spec = CavernOf(pair, surfaceId).Mouths;
                 var distinct = new HashSet<string>();
+                var sizes = new HashSet<int>();
+                var rectangles = 0;
+                var fallbacks = 0;
 
                 using (Assert.EnterMultipleScope())
                 {
@@ -177,19 +190,134 @@ public sealed class CavernMouthTest
                         Assert.That(shape.Hole, Is.EquivalentTo(again.Hole), $"{name}: the same seed grew another hole.");
                         Assert.That(shape.Rim, Is.EqualTo(again.Rim), $"{name}: the same seed picked other rim spots.");
                         distinct.Add(string.Join(';', shape.Hole.OrderBy(t => t.X).ThenBy(t => t.Y)));
+                        sizes.Add(shape.Hole.Count);
+
+                        if (shape.Hole.Count == (shape.Max.X - shape.Min.X + 1) * (shape.Max.Y - shape.Min.Y + 1))
+                            rectangles++;
+                        if (shape.Fallback)
+                            fallbacks++;
 
                         AssertShape(spec, shape, name);
                     }
-                }
 
-                Assert.That(distinct.Count, Is.AtLeast(6), $"{surfaceId}: the seeds grew only {distinct.Count} different holes.");
+                    if (spec.Style != WFCavernMouthStyle.Rift)
+                    {
+                        Assert.That(rectangles, Is.AtMost(seeds * maxRectangles),
+                            $"{surfaceId}: {rectangles} of {seeds} holes are plain rectangles.");
+                    }
+
+                    Assert.That(fallbacks, Is.AtMost(seeds * maxFallbacks),
+                        $"{surfaceId}: {fallbacks} of {seeds} seeds missed every attempt and fell back.");
+                    Assert.That(sizes.Count, Is.AtLeast((spec.MaxTiles - spec.MinTiles + 1) / 2),
+                        $"{surfaceId}: the holes take only {sizes.Count} sizes of {spec.MinTiles}-{spec.MaxTiles}.");
+                    Assert.That(distinct.Count, Is.AtLeast(seeds / 5),
+                        $"{surfaceId}: the seeds grew only {distinct.Count} different holes.");
+                }
             }
         });
 
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Fails on a hole out of range, split, pinched at a corner, spurred or enclosing ground, or on a bad lip, climb tile or rim spot.</summary>
+    /// <summary>Every world's pit RSI holds every state the client's shade visuals can ask for, and nothing else.</summary>
+    [Test]
+    public async Task PitStatesExist()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var client = pair.Client;
+        var protoMan = client.ResolveDependency<IPrototypeManager>();
+        var factory = client.ResolveDependency<IComponentFactory>();
+        var states = WFCavernShadeVisualsSystem.AllStates().ToHashSet();
+
+        await client.WaitAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                foreach (var surfaceId in Surfaces)
+                {
+                    var shade = protoMan.Index<EntityPrototype>(CavernOf(pair, surfaceId).Mouths.Shade.Id);
+                    Assert.That(shade.TryGetComponent<SpriteComponent>(out var sprite, factory), Is.True,
+                        $"{shade.ID} has no sprite.");
+
+                    Assert.That(sprite?.BaseRSI, Is.Not.Null, $"{shade.ID} has no RSI.");
+                    if (sprite?.BaseRSI is not { } rsi)
+                        continue;
+
+                    var missing = states.Where(state => !rsi.TryGetState(state, out _)).ToList();
+                    var stray = rsi.Select(state => state.StateId.Name ?? string.Empty).Where(name => !states.Contains(name)).ToList();
+
+                    Assert.That(missing, Is.Empty, $"{rsi.Path} lacks {missing.Count} states, such as {missing.FirstOrDefault()}.");
+                    Assert.That(stray, Is.Empty, $"{rsi.Path} has {stray.Count} states the client never asks for, such as {stray.FirstOrDefault()}.");
+                }
+            }
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A cell whose site lands on pinned tiles, such as another mouth's pad, is Empty for good rather than Deferred.</summary>
+    [Test]
+    public async Task PinnedSiteIsEmpty()
+    {
+        const string surfaceId = "WFSurfaceMerak";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var spec = CavernOf(pair, surfaceId).Mouths;
+            var gate = await Gate(pair, world);
+
+            await server.WaitAssertion(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                var levelBiome = (world.Cavern, entMan.GetComponent<BiomeComponent>(world.Cavern));
+                var first = WFCavernMouthSystem.CellOf(spec, gate.Origin);
+                var tried = 0;
+
+                // Cells three over from the gate's, far from anything loaded; the first with a site decides.
+                foreach (var cell in new[] { new Vector2i(3, 0), new Vector2i(-3, 0), new Vector2i(0, 3), new Vector2i(0, -3) })
+                {
+                    var target = first + cell;
+                    var tiles = new List<Vector2i>(spec.CellSize * spec.CellSize);
+                    for (var x = 0; x < spec.CellSize; x++)
+                    for (var y = 0; y < spec.CellSize; y++)
+                    {
+                        tiles.Add(target * spec.CellSize + new Vector2i(x, y));
+                    }
+
+                    biomes.WfPinTiles(levelBiome, tiles);
+                    var claim = mouths.TryClaimCell(ground, target);
+                    tried++;
+
+                    if (ground.Item2.Cells[target].Site == null)
+                        continue;
+
+                    Assert.That(claim, Is.EqualTo(WFCavernClaim.Empty), $"{surfaceId}: a site on a pinned pad came out {claim}.");
+                    Assert.That(mouths.TryClaimCell(ground, target), Is.EqualTo(WFCavernClaim.Empty),
+                        $"{surfaceId}: the pinned cell did not stay Empty.");
+                    return;
+                }
+
+                Assert.Fail($"Precondition: none of the {tried} cells tried around the {surfaceId} gate has a site.");
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Fails on a hole out of range, split, pinched at a corner, spurred or enclosing ground, or on a bad lip, climb tile, rim spot or rim count.</summary>
     private static void AssertShape(WFCavernMouthSpec spec, WFCavernMouthShape shape, string name)
     {
         var hole = shape.Hole;
@@ -238,10 +366,17 @@ public sealed class CavernMouthTest
             }
         }
 
+        var step = spec.ClimbSide.ToIntVec();
+        var climbReach = shape.Climb.X * step.X + shape.Climb.Y * step.Y;
         Assert.That(shape.Ring, Is.EquivalentTo(ring), $"{name}: the lip is not every tile touching the hole.");
         Assert.That(ring, Does.Contain(shape.Climb), $"{name}: the climb tile is off the lip.");
-        Assert.That(hole, Does.Contain(shape.Climb + new Vector2i(0, 1)), $"{name}: the climb tile is not just south of the hole.");
-        Assert.That(shape.Climb.Y, Is.LessThan(shape.Min.Y), $"{name}: the climb tile is not south of the whole hole.");
+        Assert.That(hole, Does.Contain(shape.Climb - step), $"{name}: the climb tile is not beside the hole on the climb side.");
+        Assert.That(hole.All(tile => tile.X * step.X + tile.Y * step.Y < climbReach), Is.True,
+            $"{name}: the climb tile is not past the whole hole on the climb side.");
+
+        var scaled = Math.Max(1, (int) MathF.Round(spec.RimCount * hole.Count / (float) spec.MaxTiles));
+        Assert.That(shape.Rim, Has.Count.InRange(spec.RimCount > 0 ? 1 : 0, scaled),
+            $"{name}: {shape.Rim.Count} rim spots for a hole of {hole.Count}.");
 
         foreach (var spot in shape.Rim)
         {

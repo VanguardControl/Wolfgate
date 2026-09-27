@@ -36,6 +36,14 @@ public sealed partial class WFCavernMouthSystem
     /// <summary>One candidate before its shape is grown: the shape's seed and where in the cell it goes, as fractions.</summary>
     private readonly record struct Candidate(int Seed, double X, double Y, Vector2i? Fixed);
 
+    /// <summary>What stops a site being stamped: nothing, something that may clear, or a pin, which never does.</summary>
+    private enum Block : byte
+    {
+        None,
+        Waiting,
+        Pinned,
+    }
+
     /// <summary>Claims a cell: its site is found once and cached, then stamped as soon as nothing blocks it.</summary>
     private WFCavernClaim ClaimCell(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell, WFCavernMouthKind kind)
     {
@@ -64,10 +72,14 @@ public sealed partial class WFCavernMouthSystem
             return state.State;
         }
 
-        if (!CanStamp(ground, context, site))
+        switch (Blocked(context, site))
         {
-            state.State = WFCavernClaim.Deferred;
-            return state.State;
+            case Block.Pinned:
+                state.State = WFCavernClaim.Empty;
+                return state.State;
+            case Block.Waiting:
+                state.State = WFCavernClaim.Deferred;
+                return state.State;
         }
 
         Stamp(ground, context, site, kind);
@@ -201,34 +213,38 @@ public sealed partial class WFCavernMouthSystem
                && !_biome.TryGetEntity(index, biome.Layers, tile.Value, biome.Seed, NoGrid, out _);
     }
 
-    /// <summary>Nothing pinned, anchored or loaded under the footprint or pad, and no grid nearby: a stamp can't cut into anything, nor into another mouth's pad.</summary>
-    private bool CanStamp(Entity<WFCavernGroundComponent> ground, MouthContext context, WFCavernSite site)
+    /// <summary>
+    /// Whether a stamp would cut into something. A pinned footprint or pad tile (another mouth, or ground something
+    /// else changed for good) blocks it for ever; loaded terrain, something anchored or a grid nearby only for now.
+    /// </summary>
+    private Block Blocked(MouthContext context, WFCavernSite site)
     {
         var groundBiome = (context.Ground.Owner, context.Ground.Comp1);
         var levelBiome = (context.Level.Owner, context.Level.Comp1);
+        var pad = site.Shape.Pad(context.Spec.PadRadius);
+
+        if (site.Shape.Hole.Concat(site.Shape.Ring).Any(offset => _biome.WfIsPinned(groundBiome, site.Origin + offset))
+            || pad.Any(offset => _biome.WfIsPinned(levelBiome, site.Origin + offset)))
+            return Block.Pinned;
 
         foreach (var offset in site.Shape.Hole.Concat(site.Shape.Ring))
         {
             var index = site.Origin + offset;
 
-            if (_biome.WfIsPinned(groundBiome, index)
-                || _biome.WfIsChunkLoaded(groundBiome, index)
+            if (_biome.WfIsChunkLoaded(groundBiome, index)
                 || _map.GetAnchoredEntitiesEnumerator(context.Ground.Owner, context.Ground.Comp2, index).MoveNext(out _))
-                return false;
+                return Block.Waiting;
         }
 
-        foreach (var offset in site.Shape.Pad(context.Spec.PadRadius))
-        {
-            if (_biome.WfIsChunkLoaded(levelBiome, site.Origin + offset) || _biome.WfIsPinned(levelBiome, site.Origin + offset))
-                return false;
-        }
+        if (pad.Any(offset => _biome.WfIsChunkLoaded(levelBiome, site.Origin + offset)))
+            return Block.Waiting;
 
         var footprint = new Box2(site.Origin + site.Shape.Min - Vector2i.One, site.Origin + site.Shape.Max + new Vector2i(2, 2));
         var grids = new List<Entity<MapGridComponent>>();
-        _mapManager.FindGridsIntersecting(Comp<MapComponent>(ground).MapId, footprint.Enlarged(GridClearance), ref grids,
+        _mapManager.FindGridsIntersecting(Comp<MapComponent>(context.Ground).MapId, footprint.Enlarged(GridClearance), ref grids,
             approx: true, includeMap: false);
 
-        return grids.Count == 0;
+        return grids.Count == 0 ? Block.None : Block.Waiting;
     }
 
     /// <summary>Cuts the mouth: ring and hole on the ground, the pad in the cavern, then shades, rim and climb point.</summary>

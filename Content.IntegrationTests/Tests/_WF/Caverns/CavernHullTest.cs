@@ -195,13 +195,17 @@ public sealed class CavernHullTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A 1x1 debris grid inside the gate's hole may churn, but never enters the cavern.</summary>
+    /// <summary>
+    /// A debris grid as big as the largest square of hole in the Asclepiu gate (holes reach 30 tiles, so a pod fits
+    /// wholly inside one) may churn with no ground under it, but never enters the cavern.
+    /// </summary>
     [Test]
-    public async Task SmallDebrisOverMouthNeverEntersCavern()
+    public async Task DebrisInsideMouthNeverEntersCavern()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
 
         await EnableCaverns(pair);
         var world = await BuildWorld(pair, "WFSurfaceAsclepiu");
@@ -210,23 +214,41 @@ public sealed class CavernHullTest
         {
             var gate = await Gate(pair, world);
 
-            // Centred on a 2x2 block of hole tiles, clear of the lip on every side.
-            var block = gate.Hole
-                .Where(tile => gate.Contains(tile + new Vector2i(1, 0)) && gate.Contains(tile + new Vector2i(0, 1))
-                               && gate.Contains(tile + Vector2i.One))
-                .OrderBy(tile => (tile - gate.Origin).LengthSquared)
-                .ThenBy(tile => tile.X)
-                .ThenBy(tile => tile.Y)
-                .DefaultIfEmpty(gate.Origin)
-                .First();
-            Assert.That(gate.Contains(block + Vector2i.One), Is.True, "Precondition: the Asclepiu gate has no 2x2 block of hole.");
+            // The largest square of hole tiles, up to 4x4, and its lowest corner.
+            var size = 0;
+            var corner = gate.Origin;
+            for (var edge = 4; edge >= 2 && size == 0; edge--)
+            {
+                foreach (var tile in gate.Hole.OrderBy(t => t.Y).ThenBy(t => t.X))
+                {
+                    var fits = true;
+                    for (var x = 0; x < edge && fits; x++)
+                    for (var y = 0; y < edge && fits; y++)
+                    {
+                        fits = gate.Contains(tile + new Vector2i(x, y));
+                    }
 
-            var debris = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), size: 1,
-                offset: new Vector2(block.X + 0.5f, block.Y + 0.5f));
+                    if (!fits)
+                        continue;
+
+                    size = edge;
+                    corner = tile;
+                    break;
+                }
+            }
+
+            Assert.That(size, Is.AtLeast(2), "Precondition: the Asclepiu gate has no 2x2 square of hole.");
+
+            var debris = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), size: size,
+                offset: new Vector2(corner.X, corner.Y));
 
             await server.WaitAssertion(() =>
+            {
                 Assert.That(entMan.GetComponent<TransformComponent>(debris).MapUid, Is.EqualTo(world.Ground),
-                    "Precondition: the debris is not on the ground map."));
+                    "Precondition: the debris is not on the ground map.");
+                Assert.That(SolidTiles(entMan, maps, world.Ground, corner, corner + new Vector2i(size - 1, size - 1)), Is.Zero,
+                    $"Precondition: the {size}x{size} debris has ground under it.");
+            });
 
             await AssertNeverBelowGround(pair, world, debris, seconds: 10);
         }

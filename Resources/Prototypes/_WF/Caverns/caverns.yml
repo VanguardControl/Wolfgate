@@ -101,10 +101,10 @@
   shaftLight: 0.5
   mouths:
     style: Round
-    minTiles: 5
-    maxTiles: 12
-    elongation: 1.3
-    roughness: 0.05
+    minTiles: 7
+    maxTiles: 14
+    elongation: 1.5
+    roughness: 0.3
     cellSize: 96
     groundTiles: [FloorSnow, FloorIce]
     avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]

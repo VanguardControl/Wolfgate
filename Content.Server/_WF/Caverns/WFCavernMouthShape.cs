@@ -8,10 +8,15 @@ namespace Content.Server._WF.Caverns;
 // Pure: the same spec and seed give the same shape in every process, so a cell's site never depends on claim timing.
 public sealed class WFCavernMouthShape
 {
-    /// <summary>Holes grown before one inside the spec's size range is given up on for a plain rectangle.</summary>
+    /// <summary>Holes grown before the fallback disc or staircase stands in for one that fits the spec.</summary>
     public const int Attempts = 16;
 
+    /// <summary>How many tiles the fallback disc reaches from its centre, at most.</summary>
+    private const int FallbackReach = 8;
+
     private static readonly Vector2i[] Cardinals = { new(0, 1), new(1, 0), new(0, -1), new(-1, 0) };
+
+    private static readonly Vector2i[] Diagonals = { new(1, 1), new(-1, 1) };
 
     /// <summary>The hole's tiles. The anchor, (0, 0), is the one nearest its centroid.</summary>
     public readonly HashSet<Vector2i> Hole = new();
@@ -34,17 +39,21 @@ public sealed class WFCavernMouthShape
     /// <summary>The mean of the hole's tile centres, relative to the anchor tile's bottom-left corner.</summary>
     public Vector2 Centroid;
 
+    /// <summary>Whether every attempt missed the spec and the fallback shape stands in.</summary>
+    public bool Fallback;
+
     /// <summary>Grows the hole a spec describes from a seed, then finds its lip, climb tile and rim spots.</summary>
     public static WFCavernMouthShape Generate(WFCavernMouthSpec spec, int seed)
     {
         var random = new System.Random(seed);
         var tiles = new HashSet<Vector2i>();
+        var ends = new HashSet<Vector2i>();
         var grown = false;
 
         for (var attempt = 0; attempt < Attempts && !grown; attempt++)
         {
             tiles.Clear();
-            var ends = new HashSet<Vector2i>();
+            ends.Clear();
 
             if (spec.Style == WFCavernMouthStyle.Rift)
                 GrowRift(spec, random, tiles, ends);
@@ -55,13 +64,13 @@ public sealed class WFCavernMouthShape
             }
 
             Tidy(tiles, ends);
-            grown = tiles.Count >= spec.MinTiles && tiles.Count <= spec.MaxTiles;
+            grown = Fits(spec, tiles);
         }
 
         if (!grown)
-            Rectangle(spec, tiles);
+            FallbackShape(spec, tiles);
 
-        var shape = new WFCavernMouthShape();
+        var shape = new WFCavernMouthShape { Fallback = !grown };
         shape.Place(tiles);
         shape.FindClimb(spec.ClimbSide);
         shape.PickRim(spec, random);
@@ -204,19 +213,101 @@ public sealed class WFCavernMouthShape
         ends.Add(current);
     }
 
-    /// <summary>A plain rectangle of at least the minimum size, for a seed whose every attempt missed the range.</summary>
-    private static void Rectangle(WFCavernMouthSpec spec, HashSet<Vector2i> tiles)
+    /// <summary>
+    /// Whether a grown hole is usable: in the size range, not a plain rectangle, joined edge to edge, with no tile
+    /// hanging on by one edge (but a rift's two ends), no two tiles touching only at a corner and no enclosed ground.
+    /// </summary>
+    // Tidy stops after a few passes, so its rules are checked again here rather than trusted.
+    private static bool Fits(WFCavernMouthSpec spec, IReadOnlySet<Vector2i> tiles)
+    {
+        if (tiles.Count < spec.MinTiles || tiles.Count > spec.MaxTiles || tiles.Count == 0 || IsRectangle(tiles))
+            return false;
+
+        var start = tiles.OrderBy(t => t.Y).ThenBy(t => t.X).First();
+        if (Flood(tiles, start, new HashSet<Vector2i>()).Count != tiles.Count)
+            return false;
+
+        var ends = tiles.Count(tile => Neighbours(tiles, tile) < 2);
+        if (ends > (spec.Style == WFCavernMouthStyle.Rift ? 2 : 0))
+            return false;
+
+        foreach (var tile in tiles)
+        {
+            foreach (var diagonal in Diagonals)
+            {
+                if (tiles.Contains(tile + diagonal) && !tiles.Contains(tile + new Vector2i(diagonal.X, 0))
+                    && !tiles.Contains(tile + new Vector2i(0, 1)))
+                    return false;
+            }
+        }
+
+        Bounds(tiles, out var min, out var max);
+        min -= Vector2i.One;
+        max += Vector2i.One;
+
+        var ground = new HashSet<Vector2i>();
+        for (var x = min.X; x <= max.X; x++)
+        for (var y = min.Y; y <= max.Y; y++)
+        {
+            if (!tiles.Contains(new Vector2i(x, y)))
+                ground.Add(new Vector2i(x, y));
+        }
+
+        return Flood(ground, min, new HashSet<Vector2i>()).Count == ground.Count;
+    }
+
+    /// <summary>Whether a tile set fills its bounding box exactly.</summary>
+    private static bool IsRectangle(IReadOnlyCollection<Vector2i> tiles)
+    {
+        if (tiles.Count == 0)
+            return false;
+
+        Bounds(tiles, out var min, out var max);
+        return tiles.Count == (max.X - min.X + 1) * (max.Y - min.Y + 1);
+    }
+
+    /// <summary>
+    /// The shape for a seed whose every attempt missed: a rift's diagonal staircase of the minimum length, or the
+    /// smallest digital disc that holds the minimum and is not a square.
+    /// </summary>
+    private static void FallbackShape(WFCavernMouthSpec spec, HashSet<Vector2i> tiles)
     {
         tiles.Clear();
-
         var min = Math.Max(1, spec.MinTiles);
-        var width = spec.Style == WFCavernMouthStyle.Rift ? min : Math.Max(2, (int) MathF.Ceiling(MathF.Sqrt(min)));
-        var height = Math.Max(1, (int) MathF.Ceiling(min / (float) width));
 
-        for (var x = 0; x < width; x++)
-        for (var y = 0; y < height; y++)
+        if (spec.Style == WFCavernMouthStyle.Rift)
         {
-            tiles.Add(new Vector2i(x, y));
+            var step = Vector2i.Zero;
+            for (var i = 0; i < min; i++)
+            {
+                tiles.Add(step);
+                step += i % 2 == 0 ? new Vector2i(1, 0) : new Vector2i(0, 1);
+            }
+
+            return;
+        }
+
+        // Tile centres within a growing radius of the corner the four middle tiles share.
+        var limits = new SortedSet<float>();
+        for (var i = 0; i < FallbackReach; i++)
+        for (var j = 0; j < FallbackReach; j++)
+        {
+            limits.Add((i + 0.5f) * (i + 0.5f) + (j + 0.5f) * (j + 0.5f));
+        }
+
+        foreach (var limit in limits)
+        {
+            tiles.Clear();
+
+            for (var x = -FallbackReach; x < FallbackReach; x++)
+            for (var y = -FallbackReach; y < FallbackReach; y++)
+            {
+                if ((x + 0.5f) * (x + 0.5f) + (y + 0.5f) * (y + 0.5f) <= limit)
+                    tiles.Add(new Vector2i(x, y));
+            }
+
+            if (tiles.Count >= min && !IsRectangle(tiles))
+                return;
         }
     }
 
@@ -283,7 +374,7 @@ public sealed class WFCavernMouthShape
 
         foreach (var tile in tiles.OrderBy(t => t.Y).ThenBy(t => t.X).ToList())
         {
-            foreach (var diagonal in new[] { new Vector2i(1, 1), new Vector2i(-1, 1) })
+            foreach (var diagonal in Diagonals)
             {
                 var other = tile + diagonal;
                 var side = tile + new Vector2i(diagonal.X, 0);
@@ -449,9 +540,14 @@ public sealed class WFCavernMouthShape
     }
 
     /// <summary>Picks the rim decor spots at random among lip tiles clear of the climb tile and of each other.</summary>
+    // A hole at the top of the size range gets about rimCount; a smaller one proportionally fewer, but at least one.
     private void PickRim(WFCavernMouthSpec spec, System.Random random)
     {
-        var count = Math.Max(1, spec.RimCount - 1 + random.Next(3));
+        if (spec.RimCount <= 0)
+            return;
+
+        var scaled = (int) MathF.Round(spec.RimCount * Hole.Count / (float) Math.Max(1, spec.MaxTiles));
+        var count = Math.Max(1, scaled - random.Next(2));
         var free = Ring
             .Where(tile => Math.Max(Math.Abs(tile.X - Climb.X), Math.Abs(tile.Y - Climb.Y)) > 1)
             .OrderBy(tile => tile.Y)

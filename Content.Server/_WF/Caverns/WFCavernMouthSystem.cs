@@ -121,11 +121,12 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
         var mapId = Comp<MapComponent>(ground).MapId;
         var hole = Offset(origin, shape.Hole);
 
-        foreach (var index in Offset(origin, shape.Hole.Concat(shape.Ring)))
+        // Another mouth's hole or climb point in the footprint, or its pinned pad under ours, which the stamp would overwrite.
+        var levelBiome = (context.Level.Owner, context.Level.Comp1);
+        if (Offset(origin, shape.Hole.Concat(shape.Ring))
+                .Any(index => ground.Comp.Shades.ContainsKey(index) || ground.Comp.ClimbPoints.ContainsKey(index))
+            || Offset(origin, shape.Pad(context.Spec.PadRadius)).Any(index => _biome.WfIsPinned(levelBiome, index)))
         {
-            if (!ground.Comp.Shades.ContainsKey(index) && !ground.Comp.ClimbPoints.ContainsKey(index))
-                continue;
-
             refusal = "mouth";
             return false;
         }

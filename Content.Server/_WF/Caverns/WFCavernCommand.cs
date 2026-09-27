@@ -241,7 +241,7 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
         }
         else if (_mouths.GetGate(ground) is { } gate)
         {
-            centre = gate.CentreTile;
+            centre = gate.Origin;
         }
         else
         {

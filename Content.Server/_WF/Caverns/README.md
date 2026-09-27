@@ -11,16 +11,18 @@ Caverns are behind `wf.caverns` (`CavernCVars`), which
 is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
 ground, and nobody on or above the ground loads the cavern under them.
 
-Every world has a gate mouth near its centre: a pinned hole in the ground, grown from its own seed to the world's
-shape and size (`WFCavernMouthShape`: a sinkhole, a skylight, a sand funnel, a rift, a moulin or a throat), with a
-solid, crumbling lip and some rim decor, a dark pit (shade) over each hole tile, and in the cavern a pinned, rock-free pad with the world's landing tile under the hole and a climb
-point under the lip. Players walk in and take a small fall whose damage depends on the landing tile; examining a shade
-tells them where it goes, what the air below is like and how hard the landing is. *Climb down* on a shade (3 s) lowers
-them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in high gravity, up to
-10 s on Aerumna) brings them out onto the nearest solid ground beside the hole, refused while a ship is parked over it.
-Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths, carve one by hand
-(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot and ore share of a
-192-tile square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
+Every world has a gate mouth near its centre: a pinned hole in the ground, grown from its own seed to the world's shape
+and size (`WFCavernMouthShape`: a sinkhole, a skylight, a sand funnel, a rift, a moulin or a throat, never a plain
+rectangle), with a solid lip, rim decor in proportion to its size and a dark pit (shade) over each hole tile, drawn on
+the dual grid so it cuts into the lip and shows no square corner (`WFCavernShadeVisualsSystem`, art from
+`Tools/_WF/Caverns/gen_pits.py`). In the cavern a pinned, rock-free pad holds the world's landing tile under the hole
+and a climb point under the lip. Players walk in and take a small fall whose damage depends on the landing tile;
+examining a shade tells them where it goes, what the air below is like and how hard the landing is. *Climb down* on a
+shade (3 s) lowers them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in
+high gravity, up to 10 s on Aerumna) brings them out onto the nearest solid ground beside the hole, refused while a ship
+is parked over it. Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths,
+carve one by hand (`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot and
+ore share of a 192-tile square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the

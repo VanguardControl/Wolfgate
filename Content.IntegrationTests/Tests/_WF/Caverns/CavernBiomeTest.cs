@@ -1,8 +1,10 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Content.Server._WF.Caverns;
 using Content.Shared.Parallax.Biomes;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
@@ -19,7 +21,7 @@ public sealed class CavernBiomeTest
         { "WFSurfaceAsclepiu", (0.35f, 0.55f) },
         { "WFSurfaceFervidus", (0.30f, 0.45f) },
         { "WFSurfaceMerak", (0.40f, 0.60f) },
-        { "WFSurfaceAerumna", (0.25f, 0.45f) },
+        { "WFSurfaceAerumna", (0.25f, 0.42f) },
         { "WFSurfaceThrascias", (0.35f, 0.55f) },
         { "WFSurfaceCarcinoma", (0.35f, 0.55f) },
     };
@@ -174,7 +176,11 @@ public sealed class CavernBiomeTest
         }
     }
 
-    /// <summary>Builds each world in turn on one pair and samples its cavern noise around the gate, and optionally its signature templates alone.</summary>
+    /// <summary>
+    /// Builds each world in turn on one pair and samples its cavern noise around the gate candidate (the planet centre
+    /// plus the gate offset), and optionally its signature templates alone. The candidate, not the gate, so the sample
+    /// doesn't move with the shape the gate's seed grows.
+    /// </summary>
     private static async Task<List<WorldSample>> SampleEveryWorld(int size, int step, bool templates = false)
     {
         await using var pair = await PoolManager.GetServerClient();
@@ -191,12 +197,13 @@ public sealed class CavernBiomeTest
 
             try
             {
-                var gate = await Gate(pair, world);
+                var spec = CavernOf(pair, surfaceId).Mouths;
 
                 await server.WaitPost(() =>
                 {
                     var biome = server.EntMan.GetComponent<BiomeComponent>(world.Cavern);
-                    var centre = gate.CentreTile;
+                    var planet = server.EntMan.GetComponent<WFCavernGroundComponent>(world.Ground).Centre;
+                    var centre = new Vector2i((int) MathF.Floor(planet.X), (int) MathF.Floor(planet.Y)) + spec.GateOffset;
                     var alone = new Dictionary<string, WFCavernSample>();
 
                     if (templates)

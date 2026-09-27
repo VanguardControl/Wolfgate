@@ -295,7 +295,7 @@ Edits inside other `_WF` modules need no marker:
 | `shade` | required | Unanchored pit entity over each hole tile |
 | `climbPoint` | required | Anchored climb entity in the cavern under the lip |
 | `rim` | empty | Decor anchored on random lip tiles, never on or beside the climb tile |
-| `rimCount` | 3 | About how many rim decor entities a mouth gets, give or take one |
+| `rimCount` | 3 | About how many rim decor entities a hole at the top of the size range gets; a smaller one gets proportionally fewer, at least one |
 | `climbSeconds` | 4 | Base climb-up time, × `clamp(surface gravity, 1, 2.5)` |
 
 The ambience is not a `wfPlanetAmbience`, because `PlanetAmbiencePrototypeTest` asserts exactly six of those. There is
@@ -532,17 +532,22 @@ give the same hole in every process, so a site never depends on when its cell is
   direction, so it never turns back; a diagonal step gets an elbow tile, and stretches widen to 2 tiles at random when
   `riftWidth` is 2.
 - **Tidy:** enclosed ground is filled, two tiles touching only at a corner get a tile between them, tiles hanging on by
-  one edge are trimmed (a rift keeps its two ends), and the largest edge-connected piece is kept. A hole outside the size
-  range is grown again, up to 16 times, before a plain rectangle stands in. Small round holes (Thrascias) often come
-  out rectangular anyway; the pit art rounds their corners.
+  one edge are trimmed (a rift keeps its two ends), and the largest edge-connected piece is kept.
+- **Fit:** `Fits` checks the tidied hole again rather than trusting Tidy's few passes: inside the size range, not a
+  plain rectangle (straight sides read as a dug square whatever the art does), joined, with no spur, pinch or enclosed
+  ground. A hole that fails is grown again, up to 16 times. Only then does the fallback stand in (`Fallback` is set):
+  the smallest digital disc that holds `minTiles` and is not a square, or for a rift a one-tile staircase. No seed in
+  2,000 per world needed it. A hole with every tile on two sides can't have 5 or 6 tiles without being a rectangle, so
+  the smallest round hole is 7 tiles (Thrascias).
 - **Anchor:** the hole tile nearest its centroid becomes `(0, 0)`. The **ring** is every tile touching the hole,
   diagonals included, that is not hole. The **climb tile** is the ring tile farthest out on `climbSide` with a hole tile
   beside it, nearest the centroid across that side, so with the climb side south it lies south of the whole hole.
-  **Rim spots** are about `rimCount` ring tiles picked at random, never on or beside the climb tile, nor beside each
-  other.
+  **Rim spots** are ring tiles picked at random, never on or beside the climb tile, nor beside each other: `rimCount`
+  of them for a hole at the top of the size range, proportionally fewer for a smaller one, less one at random, and
+  at least one, so a small moulin isn't ringed with crystals.
 
-The pit art matches: `Tools/_WF/Caverns/gen_pits.py` draws each shade tile as four corners, each in three drawings
-picked by a stable hash of the tile (4.1).
+The pit art rounds what the tiles can't (4.1): it is drawn on the dual grid, so its rim cuts into the lip tiles and a
+hole shows none of the tile grid's square corners.
 
 ### 3.2 Cells and claims
 
@@ -573,13 +578,15 @@ picked by a stable hash of the tile (4.1).
      in rock. The cavern check runs first, as it is five lookups. F2a found the F1
      placeholder's tunnels alone passed about 1 candidate in 9, and none of 81 around Aerumna's centre, so the
      placeholder biome gained the section 2.9 chamber layer (see F1).
-- **Stamp or wait.** The site is stamped (3.3) and the cell becomes **Claimed** only when both of these hold.
-  Otherwise the cell is **Deferred** and retried on the next poll:
-  - no footprint tile is pinned or holds an anchored entity, no pad tile is pinned (another mouth's pad), and no grid
-    other than the map lies within 4 tiles of the footprint's bounds;
-  - no ground chunk under the footprint and no cavern chunk under the pad is in `LoadedChunks`.
-- **Empty cells.** If none of the 8 candidates passes the pure checks, the cell is **Empty** for good: a sea cell has
-  no mouth. A cell whose site stays blocked by something players built simply stays Deferred.
+- **Stamp, wait or give up.** The site is stamped (3.3) and the cell becomes **Claimed** when nothing blocks it.
+  - A pinned footprint or pad tile blocks it for good, since pins are never lifted: another mouth's lip or pad, or
+    ground something else changed. The cell becomes **Empty**. The gate is placed where its candidate lies, so near its
+    cell's edge its hole and pad can reach into the next cell, whose site would otherwise wait on them for ever.
+  - Otherwise the cell is **Deferred** and retried on the next poll while a footprint tile holds an anchored entity, a
+    grid other than the map lies within 4 tiles of the footprint's bounds, or a ground chunk under the footprint or a
+    cavern chunk under the pad is in `LoadedChunks`.
+- **Empty cells.** If none of the 8 candidates passes the pure checks, the cell is **Empty** for good too: a sea cell
+  has no mouth. A cell whose site stays blocked by something players built simply stays Deferred.
 - **Instant arrivals.** FTL preloads and admin teleports load chunks with no warning. They only delay a mouth; they
   never make a mouth cut into loaded terrain.
 - **Gate.** At build, from the built event, cells are claimed outward from the gate cell (its own, then its edge
@@ -723,8 +730,10 @@ NPCs never use verbs, and no cavern mob has `CEZFlyer`, so fauna stays below.
 - **A parked hull whose ground chunk unloads keeps today's behaviour.** Its tiles empty (2.1 item 7) and it loses
   support. `WfClosedToHulls` refuses every downward route, so it churns up and back instead of sinking into the
   cavern.
-- **Debris.** A grid small enough to sit entirely inside a hole churns the same way. That is existing behaviour
-  over unloaded terrain, and it is accepted.
+- **Debris and pods.** Holes reach 30 tiles on Asclepiu, about 6×6, so a pod or a piece of debris up to about 4×4 can
+  sit wholly over one. With no ground under it, it churns the same way and never enters the cavern
+  (`DebrisInsideMouthNeverEntersCavern`, over the largest square of hole in the Asclepiu gate). That is existing
+  behaviour over unloaded terrain, and it is accepted.
 - **Transit maps.** No transit map ever has a cavern as `LowerMap`, so the weather system's transit sweep never
   reaches one.
 
@@ -771,15 +780,27 @@ The tests below are the gates.
 - **Shades** (`WFCavernShadeBase`): unanchored, no physics and no `CEZPhysics`, so they never fall. They use the
   world's `_WF/Caverns/Mouths/<world>_pit.rsi` (the landing floor below, darkened a level), draw depth `LowFloors`,
   drawn lit so the ground's daylight falls on it, and have `Clickable` and `WFCavernShaft`. The client's
-  `WFCavernShadeVisualsSystem` draws each tile as four corners (`ne`, `nw`, `se`, `sw` with a 0-7 neighbour mask,
-  `<corner><mask>_<variant>`, cut by `Tools/_WF/Caverns/gen_pits.py`), each in three drawings picked by a stable hash of
-  the tile so long edges don't repeat. A hole of any shape gets a crumbling lip whose dark rim wanders in and out under
-  bits of overhanging ground, rounded corners where two sides meet ground, pebbles on the lip and rubble below it, a
-  shaft wall with strata and cracks under its north edge, and inner shadow on the other sides. Each world adds its
-  touch: roots (Asclepiu), glowing cracks and embers (Fervidus), sand spilling down the wall (Merak), crystal glints
-  (Aerumna), icicles and frost (Thrascias), sinew and wet sheen (Carcinoma). Every drawing follows one rule over the
-  tile and its three neighbours, reaches at most 15 pixels from a tile edge, and pins what varies to the base drawing
-  at a corner's borders, so corners join seamlessly. A hole therefore reads as an opening onto the floor below rather than void or parallax,
+  `WFCavernShadeVisualsSystem` draws a hole on the dual grid: one 32-pixel piece per tile corner, centred on it and
+  drawn by the lowest pit tile around it as a layer offset from that tile's shade. A piece's state is
+  `v<mask>_<labels>_<variant>`: which of its four tiles are pit, whether the rim crosses each piece border deep or
+  shallow (a tile edge's label is a stable hash of the edge, so both pieces on it agree), and a drawing picked by a
+  hash of the corner (two, three for the full pit, one for a diagonal pair). `Tools/_WF/Caverns/gen_pits.py` cuts
+  them:
+  - the rim bites 3.5–11 pixels into the lip tiles and wanders in and out between borders; a hole corner is rounded
+    to about 20 pixels and a ground corner poking in is filleted, so no square corner shows;
+  - on the lip only the pit is drawn, and the ground under it shows through a dark broken edge, a lit lip (strongest
+    on Aerumna, whose dark chromite needs it) and a fading shadow, so every allowed ground tile works;
+  - under a north rim a shaft wall with strata and cracks, and each world's touch: roots (Asclepiu), glowing cracks
+    and embers (Fervidus), sand spilling down (Merak), crystal glints (Aerumna), icicles and frost (Thrascias), sinew
+    and wet sheen (Carcinoma), each in about one piece in three so an edge doesn't repeat; a sliver of side wall
+    inside east and west rims, inner shadow, pebbles and rubble on the others;
+  - the floor darkened to 0.26–0.43 of the ground's brightness (measured around sample mouths), and over pieces with
+    pit all round a `deep<nw><ne><sw><se>` shadow blended between the four tiles' depths (0 at the rim, 1, then 2
+    and deeper), so a big hole darkens towards its middle.
+
+  Near a piece's borders nothing depends on the tiles beyond its own four: across every border two pieces can share,
+  the generator's rim field steps by at most a pixel, so pieces join seamlessly. `PitStatesExist` ties the client's
+  state names to the RSIs. A hole therefore reads as an opening onto the floor below rather than void or parallax,
   and it can be seen from low flight.
 - **Climb points** (`WFCavernClimbBase`): anchored, no fixtures, and `Clickable`/`InteractionOutline`. The sprite is a
   CE ladder RSI (`_CE/Structures/Architecture/Ladders/<rsi>`, state `straight`) with a tint, carrying
@@ -793,19 +814,20 @@ The tests below are the gates.
   substituted. Besides liquids, each world's `avoid` lists its surface rock-outcrop spawner (`MonoPlanetmapOre*`, and
   `WallMeat` on Carcinoma): a footprint is pinned before its chunk loads, so without it a mouth could sit walled in by
   an outcrop, reachable only by mining.
-- **Open band** is the fraction of open tiles `CavernBiomeTest.OpenFractionInBand` expects over a 192² sample around
-  the gate. A tile is open when it has a floor and no airtight entity, so liquids, decor and crystals count as open and
-  walls, pillars and ice columns don't (`WFCavernSampler`). The noise numbers below started as the design's values; F3
-  tuned the rows that say "from" and left the rest.
+- **Open band** is the fraction of open tiles `CavernBiomeTest.OpenFractionInBand` expects over a 192² sample around the
+  gate candidate. A tile is open when it has a floor and no airtight entity, so liquids, decor and crystals count as
+  open and walls, pillars and ice columns don't (`WFCavernSampler`). The noise numbers below started as the design's
+  values; F3 tuned the rows that say "from" and left the rest.
 - **Walkable** is what `TunnelsConnect` counts: open, and not a tile that sets you alight (`WFCavernSampler.IsHazard`:
   lava and liquid plasma). A lava or plasma line is a wall to someone on foot, so a liquid core that runs unbroken
   along a tube or gallery would cut the cavern into cells; both cores therefore run in stretches (4.3, 4.6).
 - **Measured (F3).** Around each gate: open 42% Asclepiu, 39% Fervidus, 50% Merak, 38% Aerumna, 51% Thrascias, 51%
-  Carcinoma (the shaped mouths moved some gates: 43%, 38%, 50%, 42.5%, 51% and 51%, which widened Aerumna's band to
-  0.45); the largest walkable region holds 83–99% of the walkable tiles in 128², and 96–100% of the walkable tiles
-  in 384² are reachable from the gate. Veins (walls with a set ore) are 21–26% of the rock rather than 15%, and 1.5% on
-  Carcinoma, where only the calcified nodes carry ore; the thresholds are this section's, so the richer rock is a
-  balance call left open.
+  Carcinoma. The shaped mouths moved some gates, so the sample now centres on the gate candidate (centre plus
+  `gateOffset`), which no seed moves: 42.8%, 37.5%, 50.0%, 40.3%, 48.9% and 50.7%, and Aerumna's band is 0.25–0.42 to
+  hold its 40.3%. The largest walkable region holds 83–99% of the walkable tiles in 128², and 96–100% of the walkable
+  tiles in 384² are reachable from the gate. Veins (walls with a set ore) are 21–26% of the rock rather than 15%, and
+  1.5% on Carcinoma, where only the calcified nodes carry ore; the thresholds are this section's, so the richer rock is
+  a balance call left open.
 
 ### 4.2 Asclepiu: the Underkarst
 
@@ -823,7 +845,7 @@ The beginner cavern: wet limestone, breathable air and a water landing.
 | Decor | Litter `FloraStalagmite`, `FloraGreyStalagmite`. Chambers `Cobweb1`, `Cobweb2` |
 | Deep (F5) | `MobRatKing` + 3 `MobRatServant` |
 | Ambience | Loop `/Audio/Ambience/ambicave.ogg`. One-shots `/Audio/Effects/waterswirl.ogg`, `/Audio/Effects/drop.ogg` |
-| Mouth | Sinkhole: a blob of 14–30 tiles, elongation 1.6, roughness 0.35; cell 96. `groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]`. Shade `asclepiu_pit`. Climb point `dirt_cliff.rsi` (roots). Rim `FloraRockSolid`, about 2. Lands in a plunge pool for 0 Blunt |
+| Mouth | Sinkhole: a blob of 14–30 tiles, elongation 1.6, roughness 0.35; cell 96. `groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]`. Shade `asclepiu_pit`. Climb point `dirt_cliff.rsi` (roots). Rim `FloraRockSolid`, 1–2 by size. Lands in a plunge pool for 0 Blunt |
 | Only below | Continuous salt and silver veins, artifact fragments |
 
 ### 4.3 Fervidus: the Cinder Vaults
@@ -861,7 +883,7 @@ Cool pillared halls under a 45 °C desert, with the richest gold and the most co
 | Decor | Litter `FloraRockSolid` |
 | Deep (F5) | 2 `MobGiantSpiderAngry` |
 | Ambience | Loop `/Audio/Ambience/ambimine.ogg`. One-shots `/Audio/Effects/break_stone.ogg`, `/Audio/Effects/rustle4.ogg` |
-| Mouth | Sand funnel: round, 12–28 tiles, elongation 1.25, roughness 0.1; cell 96. `groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]`. Shade `merak_pit`. Climb point `wooden.rsi` (rope ladder). Rim `FloraRockSolidPlanet`, about 2. Lands for 6 Blunt. A shovel opens a way down anywhere (3.4) |
+| Mouth | Sand funnel: round, 12–28 tiles, elongation 1.25, roughness 0.1; cell 96. `groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]`. Shade `merak_pit`. Climb point `wooden.rsi` (rope ladder). Rim `FloraRockSolidPlanet`, 1–2 by size. Lands for 6 Blunt. A shovel opens a way down anywhere (3.4) |
 | Only below | Gold-rich veins, fossils, lost prospectors' gear |
 
 ### 4.5 Aerumna: the Umbral Deeps
@@ -872,7 +894,7 @@ The darkest cavern: chromite, 3 g, toxic air, xenos, and the only anomaly rock.
 |---|---|
 | Level | `WFCavernAerumnaLevel`: `mapLight: "#2a1f3a"`, atmosphere `[4, 72, 24]` at 277.15 K (Toxic from CO₂) |
 | Tiles | T `WFCavernFloorChromite`; C `WFCavernFloorBedrock`; landing `WFCavernFloorChromiteScree` |
-| Skeleton | Tight crawls: ridged frequency 0.05, ≤ 0.58 (tuned in F3 from 0.62, which left the crawls in pieces: 43% of the open tiles connected). Chambers are cathedral galleries: FBm frequency 0.012, ≥ 0.34 (from 0.30, to stay in the band). Signatures in galleries: shadow groves (meta FBm frequency 0.02, ≥ 0.3, placing `ShadowTree`, `ShadowBasaltOne`, `ShadowBasaltTwo` on C at ≥ 0.5, frequency 2; tuned in F3 from 0.5 and 0.65, which grew about one tree in 2,000 tiles) and pink geodes (meta OpenSimplex2 frequency 0.08, seed 56, ≥ 0.75, placing `CrystalPink` on C at ≥ 0.5, frequency 1). Open band 0.25–0.45 (0.40 until the shaped mouths moved the gate, 4.1) |
+| Skeleton | Tight crawls: ridged frequency 0.05, ≤ 0.58 (tuned in F3 from 0.62, which left the crawls in pieces: 43% of the open tiles connected). Chambers are cathedral galleries: FBm frequency 0.012, ≥ 0.34 (from 0.30, to stay in the band). Signatures in galleries: shadow groves (meta FBm frequency 0.02, ≥ 0.3, placing `ShadowTree`, `ShadowBasaltOne`, `ShadowBasaltTwo` on C at ≥ 0.5, frequency 2; tuned in F3 from 0.5 and 0.65, which grew about one tree in 2,000 tiles) and pink geodes (meta OpenSimplex2 frequency 0.08, seed 56, ≥ 0.75, placing `CrystalPink` on C at ≥ 0.5, frequency 1). Open band 0.25–0.42, sampled at the gate candidate (4.1) |
 | Rock and ore | `WallRockChromite`. Common: `…Tin`, `…Plasma`. Uncommon: `…Quartz`, `…Uranium`. Rare: `…Silver`, `…Gold`. Very rare: `…Diamond`, `WallRockChromiteBluespace`, `WallRockChromiteArtifactAnomaly` |
 | Light | Roof `#050408`, `shaftLight` 0.3. Geodes are the only glow |
 | Hazards | Darkness. CO₂. Xenos. A 10 s climb out at 3 g (clear the pad first). Spore pockets `WFCavernVentAerumna` (`Nocturine` smoke, F5). Cave-ins 0.25 |
@@ -898,7 +920,7 @@ Ice halls with plasma lakes, milder than the 180 K surface but still lethal.
 | Loot | `SalvageSpawnerTreasureValuable` in chambers (frequency 1, ≥ 0.997): frozen caches |
 | Deep (F5) | 2 `MobBearSpace` |
 | Ambience | Loop `/Audio/Ambience/ambiatmos2.ogg`. One-shots `/Audio/Effects/glass_crack2.ogg`, `/Audio/Effects/glass_crack1.ogg` |
-| Mouth | Moulin: round, 5–12 tiles, elongation 1.3, roughness 0.05; cell 96. `groundTiles: [FloorSnow, FloorIce]`, `avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]`. Shade `thrascias_pit`. Climb point `stone.rsi` tinted `#bfe6ff`. Rim `CrystalCyan`, about 3, so the glow marks the mouth at night. Lands for 3 Blunt |
+| Mouth | Moulin: round, 7–14 tiles, elongation 1.5, roughness 0.3; cell 96 (a round hole needs 7 tiles to be anything but a rectangle, and the longer, rougher edge gives about 100 different moulins in 400 seeds rather than 36). `groundTiles: [FloorSnow, FloorIce]`, `avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]`. Shade `thrascias_pit`. Climb point `stone.rsi` tinted `#bfe6ff`. Rim `CrystalCyan`, 1–3 by size, so the glow marks the mouth at night. Lands for 3 Blunt |
 | Only below | Diamonds, bluespace, preserved caches |
 
 ### 4.7 Carcinoma: the Gut
@@ -993,7 +1015,7 @@ unnamed.
 | `list` | One row per built network: planet, cavern map, claimed mouths, players below | F2 |
 | `tp <planet> [pad\|mouth]` | Moves the caller to the gate's climb tile: on the cavern pad beside the climb point (default) or on the lip on the ground | F2 |
 | `mouths <planet>` | Lists claimed mouths: kind, anchor, hole size in tiles, climb tile | F2 |
-| `open` | Carves a mouth (`Kind = Admin`) anchored at the caller's ground tile, its shape seeded by that tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or the footprint overlaps a mouth; it also refuses (`cavern`) when either map is gone. Walls from self-deleting outcrop spawners are no longer tracked by the biome, so they count as built | F2 |
+| `open` | Carves a mouth (`Kind = Admin`) anchored at the caller's ground tile, its shape seeded by that tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or (`mouth`) the footprint overlaps another mouth's hole or climb point, or its pad a pinned pad tile, which the stamp would overwrite with natural floor; it also refuses (`cavern`) when either map is gone. Walls from self-deleting outcrop spawners are no longer tracked by the biome, so they count as built | F2 |
 | `stats <planet>` | Open fraction, largest walkable region share and ore share of a 192² pure-noise sample (the same sampler as the tests): around the caller when they stand on that planet's ground or cavern, otherwise around the gate's centre tile. It says it has started, reads a few rows a tick as a job (2 ms a tick) and prints when done; while the game is paused, as an empty server is, it reads the square at once | F3 |
 | `awaken <planet>` | Forces the deep-table spawn near the caller | F5 |
 
@@ -1042,7 +1064,9 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernWildlifeTest.WildlifeThroughPinnedHoleIsKept` | A wildlife mob on a hand-pinned tile survives the chunk unload; emptying the tile drops it into the cavern, where it is kept | F1 |
 | `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk, unpinned (a hole is pinned only when its chunk unloads), falls into the cavern and is kept; the chunk is still loaded and the tile unpinned afterwards, so the loaded check decided | F1 |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after its chunks load; the test loads them with `WfLoadChunk`, as a cavern viewer's loader would, rather than attaching a viewer. The climb point is anchored under the climb tile, with the section 3.6 delay. The hole is inside the world's size range, the climb tile is on the lip beside the hole, each rim spot has its decor and nothing stands on the climb tile | F2 |
-| `CavernMouthTest.ShapesStayInRange` | Over 400 seeds per world: the hole is inside its size range, holds the anchor, is joined edge to edge, has no tile hanging on by one edge (a rift may have its two ends), no two tiles touching only at a corner and no enclosed ground; the ring is every tile touching it; the climb tile is on the ring, just south of a hole tile and south of the whole hole; rim spots are on the ring and clear of the climb tile; the same seed gives the same hole and rim, and the seeds give at least 6 different holes | F2 |
+| `CavernMouthTest.ShapesStayInRange` | Over 400 seeds per world: the hole is inside its size range, holds the anchor, is joined edge to edge, has no tile hanging on by one edge (a rift may have its two ends), no two tiles touching only at a corner and no enclosed ground; the ring is every tile touching it; the climb tile is on the ring, beside a hole tile on `climbSide` and past the whole hole on that side; rim spots are on the ring, clear of the climb tile and no more than `rimCount` scaled by the hole's size; the same seed gives the same hole and rim. At most 5% of non-rift holes are plain rectangles and at most 5% fall back, the holes take at least half the sizes in range, and the seeds give at least 80 different holes. The specs are the worlds' prototypes, so it runs on a pair | F2 |
+| `CavernMouthTest.PitStatesExist` | On the client, every world's pit RSI holds every state `WFCavernShadeVisualsSystem.AllStates` lists, and no other | F2 |
+| `CavernMouthTest.PinnedSiteIsEmpty` | Merak: with the cavern pinned under a whole cell, a cell that has a site claims Empty, and stays Empty | F2 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
 | `CavernMouthTest.ClaimAheadOfViewer` | A viewer at (400, 0): within 1 s every cell within 96 tiles is Claimed or Empty, and none of its sites touched a chunk that was loaded at claim time | F2 |
 | `CavernMouthTest.ClaimDeferredWhileChunkLoaded` | After `WfLoadChunk` on a cell's first valid site, `TryClaimCell` returns Deferred. After `WfUnloadChunk` it returns Claimed at the same site | F2 |
@@ -1060,14 +1084,14 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernClimbTest.ClimbRefusedUnderHull` | A static 5×5 `BuildDebris` over every exit tile (a dynamic one is shoved off the outcrops the viewer loads): the climb finishes, the mob stays below, and the connected client receives the hull popup | F2 |
 | `CavernClimbTest.DelayScalesWithGravity` | The stamped delay is Asclepiu 4 s and Aerumna 10 s (±1 tick). On Aerumna, unequipped, the DoAfter's delay is 10 s ±1 tick, and by the game clock the climb lands on the first tick at or past it | F2 |
 | `CavernHullTest.HullOverMouthStaysOnGround` | A 3×3 grid (`BuildDebris`; `BuildHull` is a fixed 15×15) centred on the hole tile over the climb tile, so over hole and lip, stays on the ground with no transit for 5 s | F2 |
-| `CavernHullTest.SmallDebrisOverMouthNeverEntersCavern` | A 1×1 debris grid centred on a 2×2 block of hole tiles never has the cavern as its map (it may churn) | F2 |
+| `CavernHullTest.DebrisInsideMouthNeverEntersCavern` | A debris grid as big as the largest square of hole in the Asclepiu gate (2×2 to 4×4), with no ground under it, never has the cavern as its map (it may churn) | F2 |
 | `CavernOrbitalFallTest.OrbitalFallIntoMouthMaimsLikeGround` | Fervidus (a ×0.75 ash landing). Dropped from orbit over the gate, at rest on the cavern: critical, one arm and one leg severed. Without the `IsSurfaceImpact` fix it fails, because the faller lands alive and unmaimed with 58 Blunt (2.1 item 12) | F2 |
-| `CavernCommandTest.ListTpMouthsOpen` | `list` prints six rows, `tp` lands on the gate pad, `stats` samples around a caller on that planet and around the gate for a caller elsewhere (F3), `open` creates a mouth, `mouths` lists the gate by the sector body's name, the build name and the surface id with and without its prefix, ignoring case, and `TryOpenMouth` over a missing cavern refuses with `cavern`, whose Fluent variant is its own (output read from the client console: a content test can't implement `IConsoleShell`) | F2 |
+| `CavernCommandTest.ListTpMouthsOpen` | `list` prints six rows, `tp` lands on the gate pad, `stats` samples around a caller on that planet and around the gate for a caller elsewhere (F3), `open` creates a mouth, `mouths` lists the gate by the sector body's name, the build name and the surface id with and without its prefix, ignoring case, and a second `TryOpenMouth` beside the carved mouth, clear of its hole and climb point but sharing its pad, refuses with `mouth`, `TryOpenMouth` over a missing cavern refuses with `cavern`, whose Fluent variant is its own (output read from the client console: a content test can't implement `IConsoleShell`) | F2 |
 | `Content.Tests: CavernAirTest.ClassifiesEachWorld` | The six level atmospheres classify as in section 4.8, and the thresholds are exact at their edges | F2 |
 | `CavernPrototypeTest.OneCavernPerSurface` | One `wfCavern` per `wfPlanetSurface`, and every reference resolves (level, biome, tiles, entities, sounds) | F3 |
 | `CavernPrototypeTest.FloorsIndestructibleAndUndiggable` | Every tile a cavern template or mouth can place is `Indestructible`, and neither `CanShovel` nor `CanCrowbar`. This also proves tile `parent` inheritance | F3 |
 | `CavernPrototypeTest.NoLeakingWallSpawners` | No cavern template entity layer names a self-deleting spawner other than the allow-listed fauna and loot markers (no `MonoPlanetmap*`) | F3 |
-| `CavernBiomeTest.OpenFractionInBand` [6] | 192² pure sample around the gate falls inside the section 4 band | F3 |
+| `CavernBiomeTest.OpenFractionInBand` [6] | 192² pure sample around the gate candidate (centre plus `gateOffset`) falls inside the section 4 band | F3 |
 | `CavernBiomeTest.TunnelsConnect` [6] | In 128², the largest 4-connected walkable component holds at least 60% of the walkable tiles; lava and liquid plasma block (4.1) | F3 |
 | `CavernBiomeTest.OreOnlyInRock` [6] | Every sampled vein entity stands on T | F3 |
 | `CavernBiomeTest.SignaturePresent` [6] | Over 512², sampled every 2nd tile: `FloorWater`, pillars, fossils and camp corpses, pink geodes and shadow trees, `FloorIce` and `WallIce`, `WFBloodRiver`. Lava tubes and plasma lakes are checked through their templates: sampled alone, `WFCavernSignatureFervidus` and `WFCavernSignatureThrascias` must place lava or plasma, and every tile where they do must carry it in the cavern, so magma lakes can't stand in for the tubes | F3 |
@@ -1225,9 +1249,13 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   a mouth being an ordinary five-level landing, so the orbital test is now `OrbitalFallIntoMouthMaimsLikeGround` (2.1,
   2.2, 3.5, 6).
 
-- **Shaped mouths** (after F2b): holes grown per seed to each world's style and size (3.1, 4), rim decor on random lip
-  tiles, a crumbling, world-specific pit edge in three drawings per corner (4.1), `ShapesStayInRange` (6). The climb
-  tests climb down from the hole tile over the climb tile, which is in reach; Aerumna's open band widened (4.5).
+- **Shaped mouths** (after F2b): holes grown per seed to each world's style and size, never a plain rectangle (3.1,
+  4), rim decor on random lip tiles in proportion to the hole, and pit art on the dual grid that cuts into the lip,
+  rounds the corners, darkens towards the middle and carries a world-specific edge (4.1); `ShapesStayInRange` and
+  `PitStatesExist` (6). The climb tests climb down from the hole tile over the climb tile, which is in reach. After
+  review: a pinned site is Empty rather than Deferred (3.2), `open` refuses a shared pad (5), the open-fraction
+  sample centres on the gate candidate (4.1), Thrascias moulins are 7–14 tiles (4.6), and debris wholly over a hole
+  is tested (3.7).
 
 - **Add:**
   - Shared: `WFCavernShaftComponent.cs`, `WFCavernClimbComponent.cs`, `WFCavernClimbDoAfterEvent.cs`,
@@ -1370,7 +1398,7 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | 4 | An awake item over a ground chunk that unloads falls into the cavern void (2.1 item 4) | Wildlife is handled (F1). Items are rare, because sleeping bodies don't fall. Accepted |
 | 5 | A player floor laid on a pad and deconstructed down to space opens the bottom layer, because pads aren't natural terrain for `WfIsPlanetTerrain` | Needs deliberate multi-step work, and the result is "stuck in the floor", not death. Accepted |
 | 6 | A hole opened over a player-built cavern structure lands the faller inside it (the queue only clears biome walls) | Rare. Accepted |
-| 7 | Debris of 2×2 or less inside a hole churns up and back | This is today's behaviour over unloaded terrain. Covered by `SmallDebrisOverMouthNeverEntersCavern` |
+| 7 | A pod or debris up to about 4×4 wholly over a hole churns up and back | This is today's behaviour over unloaded terrain. Covered by `DebrisInsideMouthNeverEntersCavern` |
 | 8 | Fauna may not survive CO₂, ammonia, heat or cold | `FaunaSurvivesItsCavern` decides the tables in F4 |
 | 9 | `SmokeOnTrigger` may not spread on a map grid without `GridAtmosphere` | `VentHissesAndReleasesSmoke` decides. Fallback: vents spawn a puddle of the reagent instead |
 | 10 | Restarting a pull across a map change may be refused | `ClimbHaulsPulledOreBox` decides. Fallback: move the hauled entity without restarting the pull |
