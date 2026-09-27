@@ -74,10 +74,23 @@ public sealed class CavernBiomeTest
             "WFSurfaceCarcinoma", new[]
             {
                 new Signature("blood channels", null, "WFBloodRiver"),
+                new Signature("acid pools", "WFCavernFloorGut", "WFCavernDigestiveAcid"),
                 new Signature("nerve clusters", null, "WFCavernNerveCluster"),
             }
         },
     };
+
+    /// <summary>
+    /// Features that must come in dense stretches somewhere around the gate: the entity must fill at least the given
+    /// share of the open samples in some window of <see cref="StretchWindow"/> samples a side.
+    /// </summary>
+    private static readonly Dictionary<string, Stretch[]> Stretches = new()
+    {
+        { "WFSurfaceCarcinoma", new[] { new Stretch("choked throats", "WFCavernTendons", 0.5f) } },
+    };
+
+    /// <summary>Samples a side of the window a dense stretch is looked for in (10 tiles at the signature step).</summary>
+    private const int StretchWindow = 5;
 
     /// <summary>Straight-line tiles within which a walkable tile counts as lit.</summary>
     private const float GlowReach = WFCavernCommand.StatsGlowReach;
@@ -203,6 +216,18 @@ public sealed class CavernBiomeTest
                     Assert.That(missing, Is.Empty,
                         $"{world.Surface}: {missing.Count} of the {placed.Count} tiles where {template} places {signature.What} lack it in the cavern, the first at {(missing.Count > 0 ? sample.IndexOf(missing[0]) : default)}.");
                 }
+
+                if (!Stretches.TryGetValue(world.Surface, out var stretches))
+                    continue;
+
+                foreach (var stretch in stretches)
+                {
+                    var densest = stretch.Densest(sample, StretchWindow);
+                    TestContext.Out.WriteLine($"{world.Surface}: {stretch.What} fill at most {densest:P0} of a {StretchWindow}-sample window.");
+
+                    Assert.That(densest, Is.GreaterThanOrEqualTo(stretch.MinShare),
+                        $"{world.Surface}: {stretch.Entity} fills at most {densest:P0} of the open ground in any {StretchWindow}-sample window; no {stretch.What}.");
+                }
             }
         }
     }
@@ -288,6 +313,40 @@ public sealed class CavernBiomeTest
 
     /// <summary>A world's cavern sample and, by template id, its signature templates sampled alone.</summary>
     private sealed record WorldSample(string Surface, WFCavernSample Sample, Dictionary<string, WFCavernSample> Templates);
+
+    /// <summary>A feature that comes in dense stretches: what it is, its entity, and the share of a window it must fill.</summary>
+    private sealed record Stretch(string What, string Entity, float MinShare)
+    {
+        /// <summary>The largest share of open samples the entity fills in any square window of the sample.</summary>
+        public float Densest(WFCavernSample sample, int window)
+        {
+            var best = 0f;
+
+            for (var y0 = 0; y0 + window <= sample.Width; y0++)
+            for (var x0 = 0; x0 + window <= sample.Width; x0++)
+            {
+                var open = 0;
+                var filled = 0;
+
+                for (var y = y0; y < y0 + window; y++)
+                for (var x = x0; x < x0 + window; x++)
+                {
+                    var i = y * sample.Width + x;
+                    if (!sample.IsOpen(i))
+                        continue;
+
+                    open++;
+                    if (sample.Entities[i] == Entity)
+                        filled++;
+                }
+
+                if (open >= window * window / 4)
+                    best = Math.Max(best, (float) filled / open);
+            }
+
+            return best;
+        }
+    }
 
     /// <summary>A signature: what it is, the tile and entity it leaves (null for any), and the template that places it.</summary>
     private sealed record Signature(string What, string? Tile, string? Entity = null, string? Template = null)

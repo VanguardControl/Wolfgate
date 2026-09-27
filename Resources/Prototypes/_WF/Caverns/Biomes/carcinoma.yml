@@ -1,6 +1,6 @@
-# Carcinoma: the Gut. Winding flesh throats open into stomachs of pustules, polyps and assimilation sacks, with
-# blood channels cut through the flesh and calcified nodes of the mineral world it grew over. Nerve clusters light the
-# way.
+# Carcinoma: the Gut. Winding flesh throats, some choked with tendons, open into stomachs of pustules, polyps,
+# assimilation sacks and pools of digestive acid, with blood channels cut through the flesh and calcified nodes of the
+# mineral world it grew over. Nerve clusters light the way.
 # Layers run last to first and the first match wins. Walls only stand on flesh, so any other floor is open ground.
 
 - type: biomeTemplate
@@ -10,6 +10,11 @@
   - !type:BiomeTileLayer
     tile: WFCavernFloorFlesh
     threshold: -1
+  # Overgrown stretches of throat, lowest priority.
+  - !type:BiomeMetaLayer
+    template: WFCavernOvergrowthCarcinoma
+    threshold: 0.3
+    noise: { seed: 61, noiseType: OpenSimplex2, frequency: 0.03 }
   # Nerve clusters along the throats.
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorFlesh]
@@ -109,6 +114,55 @@
     entities: [WFCavernNerveCluster]
     threshold: 0.95
     noise: { seed: 317, noiseType: OpenSimplex2, frequency: 1 }
+  # Bile and undigested remains around the acid pools, and the pools inside them, on the same noise.
+  - !type:BiomeMetaLayer
+    template: WFCavernPoolEdgeCarcinoma
+    threshold: 0.3
+    noise: { seed: 60, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.06 }
+  - !type:BiomeMetaLayer
+    template: WFCavernAcidCarcinoma
+    threshold: 0.48
+    noise: { seed: 60, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.06 }
+
+# A stretch of throat grown thick with tendons.
+- type: biomeTemplate
+  id: WFCavernOvergrowthCarcinoma
+  layers:
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorFlesh]
+    entities: [WFCavernTendons]
+    threshold: -0.45
+    noise: { seed: 62, noiseType: OpenSimplex2, frequency: 0.6 }
+
+# Decal layers only read a template that places its own tile, so the pool edge and the pool both repeat the stomach
+# floor; the pool's then blocks bile under the acid.
+- type: biomeTemplate
+  id: WFCavernPoolEdgeCarcinoma
+  layers:
+  - !type:BiomeTileLayer
+    tile: WFCavernFloorGut
+    threshold: -1
+  - !type:BiomeDecalLayer
+    allowedTiles: [WFCavernFloorGut]
+    decals: [WFCavernBile1, WFCavernBile2, WFCavernBile3, WFCavernBile4]
+    threshold: 0.2
+    noise: { seed: 318, noiseType: OpenSimplex2, frequency: 1 }
+  - !type:BiomeDecalLayer
+    allowedTiles: [WFCavernFloorGut]
+    decals: [Remains]
+    threshold: 0.8
+    noise: { seed: 319, noiseType: OpenSimplex2, frequency: 1 }
+
+- type: biomeTemplate
+  id: WFCavernAcidCarcinoma
+  layers:
+  - !type:BiomeTileLayer
+    tile: WFCavernFloorGut
+    threshold: -1
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorGut]
+    entities: [WFCavernDigestiveAcid]
+    threshold: -1
 
 - type: biomeTemplate
   id: WFCavernSignatureCarcinoma
