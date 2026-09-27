@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server._WF.Planets;
 using Content.Server.Administration;
 using Content.Server.Administration.Logs;
@@ -216,35 +217,52 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             $"{shell.Player?.Name ?? "Server"} carved a cavern mouth at {origin} on {EntityManager.ToPrettyString(mapUid)}");
     }
 
-    /// <summary>Samples the natural cavern around the caller, or around the gate from the server console.</summary>
+    /// <summary>Samples the natural cavern around the caller when they are on that planet's ground or cavern, otherwise around the gate.</summary>
     private void ExecuteStats(IConsoleShell shell, string name)
     {
         if (!TryGetGround(shell, name, out var ground))
             return;
 
-        if (!EntityManager.TryGetComponent<BiomeComponent>(ground.Comp.Cavern, out var biome))
+        var cavern = ground.Comp.Cavern;
+        if (!EntityManager.HasComponent<BiomeComponent>(cavern))
         {
             shell.WriteError(Loc.GetString("cmd-wfcavern-no-cavern", ("planet", name)));
             return;
         }
 
         Vector2i centre;
-        if (shell.Player?.AttachedEntity is { } attached)
+        if (shell.Player?.AttachedEntity is { } attached
+            && EntityManager.GetComponent<TransformComponent>(attached).MapUid is { } map
+            && (map == cavern || map == ground.Owner))
         {
+            // The ground and the cavern share tile indices, so either one samples the cavern under the caller.
             var position = _transform.GetMapCoordinates(attached).Position;
             centre = new Vector2i((int) MathF.Floor(position.X), (int) MathF.Floor(position.Y));
         }
         else if (_mouths.GetGate(ground) is { } gate)
         {
-            centre = gate.Origin;
+            centre = gate.CentreTile;
         }
         else
         {
-            shell.WriteError(Loc.GetString("cmd-wfcavern-no-map"));
+            shell.WriteError(Loc.GetString("cmd-wfcavern-no-cavern", ("planet", name)));
             return;
         }
 
-        var sample = _sampler.Sample(biome, centre, StatsSize);
+        shell.WriteLine(Loc.GetString("cmd-wfcavern-stats-started", ("size", StatsSize), ("centre", centre.ToString())));
+        _ = WriteStats(shell, name, cavern, centre);
+    }
+
+    /// <summary>Writes the stats once the sampler's job has read the square, a few rows a tick.</summary>
+    private async Task WriteStats(IConsoleShell shell, string name, EntityUid cavern, Vector2i centre)
+    {
+        var sample = await _sampler.SampleLater(cavern, centre, StatsSize);
+
+        if (sample == null)
+        {
+            shell.WriteError(Loc.GetString("cmd-wfcavern-no-cavern", ("planet", name)));
+            return;
+        }
 
         shell.WriteLine(Loc.GetString("cmd-wfcavern-stats",
             ("planet", name),

@@ -26,6 +26,7 @@ cmd-wfcavern-open-refused = Can't carve a mouth here: { $reason ->
    *[mouth] there is a mouth there already.
 }
 cmd-wfcavern-hint-sub = <list|tp|mouths|open|stats>
-cmd-wfcavern-stats = { $planet }: { $size }x{ $size } tiles around { $centre } are { $open }% open; the largest open region holds { $largest }% of it, and { $veins }% of the rock is ore.
+cmd-wfcavern-stats-started = Sampling { $size }x{ $size } cavern tiles around { $centre }...
+cmd-wfcavern-stats = { $planet }: { $size }x{ $size } tiles around { $centre } are { $open }% open; the largest region you can walk without crossing lava or plasma holds { $largest }% of the walkable ground, and { $veins }% of the rock is ore.
 cmd-wfcavern-hint-planet = <planet name>
 cmd-wfcavern-hint-target = <pad|mouth>

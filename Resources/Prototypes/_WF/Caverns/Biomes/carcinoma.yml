@@ -9,16 +9,17 @@
   - !type:BiomeTileLayer
     tile: WFCavernFloorFlesh
     threshold: -1
-  # Flesh wherever ridged noise is at most the throat threshold; two octaves make the throats wiggle.
+  # Flesh wherever ridged noise is at most the throat threshold; a weak second octave makes the throats wiggle
+  # without breaking them.
   - !type:BiomeMetaLayer
     template: WFCavernRockCarcinoma
     invert: true
-    threshold: -0.3
-    noise: { seed: 7, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 2, frequency: 0.06 }
+    threshold: -0.4
+    noise: { seed: 7, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 2, gain: 0.3, frequency: 0.06 }
   # Stomachs on the web.
   - !type:BiomeMetaLayer
     template: WFCavernChamberCarcinoma
-    threshold: 0.35
+    threshold: 0.25
     noise: { seed: 101, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.03 }
   # Digestive channels, highest priority: blood placed straight on the flesh, through walls and throats alike.
   - !type:BiomeMetaLayer

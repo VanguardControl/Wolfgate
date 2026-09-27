@@ -23,7 +23,7 @@
   # Ice galleries, highest priority.
   - !type:BiomeMetaLayer
     template: WFCavernSignatureThrascias
-    threshold: 0.75
+    threshold: 0.65
     noise: { seed: 55, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.018 }
 
 - type: biomeTemplate
@@ -86,7 +86,7 @@
   - !type:BiomeEntityLayer
     allowedTiles: [FloorIce]
     entities: [CrystalBlue, CrystalCyan]
-    threshold: 0.97
+    threshold: 0.88
     noise: { seed: 312, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
     allowedTiles: [FloorIce]
@@ -95,13 +95,15 @@
     noise: { seed: 313, noiseType: OpenSimplex2, frequency: 0.4 }
   - !type:BiomeMetaLayer
     template: WFCavernLakeThrascias
-    threshold: 0.93
+    threshold: 0.8
     noise: { seed: 55, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.018 }
 
+# The plasma pools in stretches down the middle of the hall, with ice to walk on either side and between them.
 - type: biomeTemplate
   id: WFCavernLakeThrascias
   layers:
   - !type:BiomeEntityLayer
     allowedTiles: [FloorIce]
     entities: [FloorLiquidPlasmaEntity]
-    threshold: -1
+    threshold: 0.25
+    noise: { seed: 59, noiseType: OpenSimplex2, frequency: 0.05 }

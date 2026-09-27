@@ -18,8 +18,8 @@ tells them where it goes, what the air below is like and how hard the landing is
 them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in high gravity, up to
 10 s on Aerumna) brings them out onto the nearest solid ground beside the hole, refused while a ship is parked over it.
 Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths, carve one by hand
-(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity and ore share of a 192-tile
-square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
+(`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot and ore share of a
+192-tile square, read from noise by `WFCavernSampler`, the same sampler the cavern tests use).
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the

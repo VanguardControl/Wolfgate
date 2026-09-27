@@ -1,10 +1,9 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
-using Content.IntegrationTests.Pair;
 using Content.Server._WF.Caverns;
 using Content.Shared.Parallax.Biomes;
-using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
@@ -25,33 +24,38 @@ public sealed class CavernBiomeTest
         { "WFSurfaceCarcinoma", (0.35f, 0.55f) },
     };
 
-    /// <summary>Section 6: what each world's signature feature leaves in the noise, as (what, tile or null, entity or null).</summary>
-    private static readonly Dictionary<string, (string What, string? Tile, string? Entity)[]> Signatures = new()
+    /// <summary>
+    /// Section 6: what each world's signature feature leaves in the noise. A named template must place the entity by
+    /// itself, and every tile where it does must carry it in the cavern too, so another layer can't stand in for it.
+    /// </summary>
+    private static readonly Dictionary<string, Signature[]> Signatures = new()
     {
-        { "WFSurfaceAsclepiu", new (string, string?, string?)[] { ("plunge pools", "FloorWater", null) } },
-        { "WFSurfaceFervidus", new (string, string?, string?)[] { ("lava", null, "FloorLavaEntity") } },
+        { "WFSurfaceAsclepiu", new[] { new Signature("plunge pools", "FloorWater") } },
+        { "WFSurfaceFervidus", new[] { new Signature("lava tubes", null, "FloorLavaEntity", "WFCavernSignatureFervidus") } },
         {
-            "WFSurfaceMerak", new (string, string?, string?)[]
+            "WFSurfaceMerak", new[]
             {
-                ("hall pillars", "WFCavernFloorSandstone", "WallRockSand"),
-                ("fossils", null, "WallRockSandArtifactFragment"),
+                new Signature("hall pillars", "WFCavernFloorSandstone", "WallRockSand"),
+                new Signature("fossils", null, "WallRockSandArtifactFragment"),
+                new Signature("buried camps", null, "SalvageHumanCorpseSpawner"),
             }
         },
         {
-            "WFSurfaceAerumna", new (string, string?, string?)[]
+            "WFSurfaceAerumna", new[]
             {
-                ("pink geodes", null, "CrystalPink"),
-                ("shadow trees", null, "ShadowTree"),
+                new Signature("pink geodes", null, "CrystalPink"),
+                new Signature("shadow trees", null, "ShadowTree"),
             }
         },
         {
-            "WFSurfaceThrascias", new (string, string?, string?)[]
+            "WFSurfaceThrascias", new[]
             {
-                ("ice galleries", "FloorIce", null),
-                ("ice columns", null, "WallIce"),
+                new Signature("ice galleries", "FloorIce"),
+                new Signature("ice columns", null, "WallIce"),
+                new Signature("plasma lakes", "FloorIce", "FloorLiquidPlasmaEntity", "WFCavernSignatureThrascias"),
             }
         },
-        { "WFSurfaceCarcinoma", new (string, string?, string?)[] { ("blood channels", null, "WFBloodRiver") } },
+        { "WFSurfaceCarcinoma", new[] { new Signature("blood channels", null, "WFBloodRiver") } },
     };
 
     /// <summary>Edge of the open-fraction sample.</summary>
@@ -60,7 +64,7 @@ public sealed class CavernBiomeTest
     /// <summary>Edge of the connectivity sample.</summary>
     private const int ConnectSize = 128;
 
-    /// <summary>The largest open region must hold at least this share of the open tiles.</summary>
+    /// <summary>The largest walkable region must hold at least this share of the walkable tiles.</summary>
     private const float MinLargestShare = 0.6f;
 
     /// <summary>Edge of the signature sample, taken every other tile.</summary>
@@ -74,18 +78,19 @@ public sealed class CavernBiomeTest
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var (surfaceId, sample) in samples)
+            foreach (var world in samples)
             {
+                var sample = world.Sample;
                 var open = sample.OpenFraction();
-                var (min, max) = OpenBands[surfaceId];
-                TestContext.Out.WriteLine($"{surfaceId}: open {open:P1}, largest region {sample.LargestRegionShare():P1}, veins {sample.VeinFraction():P1} of rock.");
+                var (min, max) = OpenBands[world.Surface];
+                TestContext.Out.WriteLine($"{world.Surface}: open {open:P1}, largest region {sample.LargestRegionShare():P1}, veins {sample.VeinFraction():P1} of rock.");
 
-                Assert.That(open, Is.InRange(min, max), $"{surfaceId}: {open:P1} of the tiles around the gate are open, outside {min:P0}-{max:P0}.");
+                Assert.That(open, Is.InRange(min, max), $"{world.Surface}: {open:P1} of the tiles around the gate are open, outside {min:P0}-{max:P0}.");
             }
         }
     }
 
-    /// <summary>In 128² around each gate, the largest 4-connected open region holds most of the open tiles.</summary>
+    /// <summary>In 128² around each gate, the largest 4-connected walkable region holds most of the walkable tiles; lava and plasma count as barriers.</summary>
     [Test]
     public async Task TunnelsConnect()
     {
@@ -93,13 +98,13 @@ public sealed class CavernBiomeTest
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var (surfaceId, sample) in samples)
+            foreach (var world in samples)
             {
-                var largest = sample.LargestRegionShare();
-                TestContext.Out.WriteLine($"{surfaceId}: largest region {largest:P1} of the open tiles.");
+                var largest = world.Sample.LargestRegionShare();
+                TestContext.Out.WriteLine($"{world.Surface}: largest walkable region {largest:P1} of the walkable tiles.");
 
                 Assert.That(largest, Is.GreaterThanOrEqualTo(MinLargestShare),
-                    $"{surfaceId}: the largest open region holds only {largest:P1} of the open tiles.");
+                    $"{world.Surface}: the largest walkable region holds only {largest:P1} of the walkable tiles.");
             }
         }
     }
@@ -112,9 +117,10 @@ public sealed class CavernBiomeTest
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var (surfaceId, sample) in samples)
+            foreach (var world in samples)
             {
-                var substrate = Floors[surfaceId].Substrate;
+                var sample = world.Sample;
+                var substrate = Floors[world.Surface].Substrate;
                 var veins = 0;
 
                 for (var i = 0; i < sample.Count; i++)
@@ -124,43 +130,58 @@ public sealed class CavernBiomeTest
 
                     veins++;
                     Assert.That(sample.Tiles[i], Is.EqualTo(substrate),
-                        $"{surfaceId}: {sample.Entities[i]} at {sample.IndexOf(i)} stands on {sample.Tiles[i]}, not the rock substrate.");
+                        $"{world.Surface}: {sample.Entities[i]} at {sample.IndexOf(i)} stands on {sample.Tiles[i]}, not the rock substrate.");
                 }
 
-                Assert.That(veins, Is.Positive, $"{surfaceId}: no ore vein near the gate.");
+                Assert.That(veins, Is.Positive, $"{world.Surface}: no ore vein near the gate.");
             }
         }
     }
 
-    /// <summary>Each world's signature feature turns up in 512² around its gate.</summary>
+    /// <summary>Each world's signature feature turns up in 512² around its gate, placed by its own template where one is named.</summary>
     [Test]
     public async Task SignaturePresent()
     {
-        var samples = await SampleEveryWorld(SignatureSize, 2);
+        var samples = await SampleEveryWorld(SignatureSize, 2, true);
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var (surfaceId, sample) in samples)
+            foreach (var world in samples)
             {
-                foreach (var (what, tile, entity) in Signatures[surfaceId])
-                {
-                    var found = Enumerable.Range(0, sample.Count).Count(i =>
-                        (tile == null || sample.Tiles[i] == tile) && (entity == null || sample.Entities[i] == entity));
-                    TestContext.Out.WriteLine($"{surfaceId}: {found} samples of {what}.");
+                var sample = world.Sample;
 
-                    Assert.That(found, Is.Positive, $"{surfaceId}: no {what} in {SignatureSize}² around the gate.");
+                foreach (var signature in Signatures[world.Surface])
+                {
+                    if (signature.Template is not { } template)
+                    {
+                        var found = Enumerable.Range(0, sample.Count).Count(i => signature.Matches(sample, i));
+                        TestContext.Out.WriteLine($"{world.Surface}: {found} samples of {signature.What}.");
+
+                        Assert.That(found, Is.Positive, $"{world.Surface}: no {signature.What} in {SignatureSize}² around the gate.");
+                        continue;
+                    }
+
+                    var alone = world.Templates[template];
+                    var placed = Enumerable.Range(0, alone.Count).Where(i => signature.Matches(alone, i)).ToList();
+                    var missing = placed.Where(i => !signature.Matches(sample, i)).ToList();
+                    TestContext.Out.WriteLine($"{world.Surface}: {placed.Count} samples of {signature.What} from {template}, {missing.Count} missing in the cavern.");
+
+                    Assert.That(placed, Is.Not.Empty, $"{world.Surface}: {template} places no {signature.What} in {SignatureSize}² around the gate.");
+                    Assert.That(missing, Is.Empty,
+                        $"{world.Surface}: {missing.Count} of the {placed.Count} tiles where {template} places {signature.What} lack it in the cavern, the first at {(missing.Count > 0 ? sample.IndexOf(missing[0]) : default)}.");
                 }
             }
         }
     }
 
-    /// <summary>Builds each world in turn on one pair and samples its cavern noise around the gate.</summary>
-    private static async Task<List<(string Surface, WFCavernSample Sample)>> SampleEveryWorld(int size, int step)
+    /// <summary>Builds each world in turn on one pair and samples its cavern noise around the gate, and optionally its signature templates alone.</summary>
+    private static async Task<List<WorldSample>> SampleEveryWorld(int size, int step, bool templates = false)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var sampler = server.System<WFCavernSampler>();
-        var samples = new List<(string, WFCavernSample)>();
+        var proto = server.ResolveDependency<IPrototypeManager>();
+        var samples = new List<WorldSample>();
 
         await EnableCaverns(pair);
 
@@ -175,7 +196,19 @@ public sealed class CavernBiomeTest
                 await server.WaitPost(() =>
                 {
                     var biome = server.EntMan.GetComponent<BiomeComponent>(world.Cavern);
-                    samples.Add((surfaceId, sampler.Sample(biome, GateCentre(gate), size, step)));
+                    var centre = gate.CentreTile;
+                    var alone = new Dictionary<string, WFCavernSample>();
+
+                    if (templates)
+                    {
+                        foreach (var signature in Signatures[surfaceId])
+                        {
+                            if (signature.Template is { } template && !alone.ContainsKey(template))
+                                alone[template] = sampler.Sample(proto.Index<BiomeTemplatePrototype>(template).Layers, biome.Seed, centre, size, step);
+                        }
+                    }
+
+                    samples.Add(new WorldSample(surfaceId, sampler.Sample(biome, centre, size, step), alone));
                 });
             }
             finally
@@ -188,9 +221,16 @@ public sealed class CavernBiomeTest
         return samples;
     }
 
-    /// <summary>The tile at the middle of a gate's hole.</summary>
-    private static Vector2i GateCentre(WFCavernMouth gate)
+    /// <summary>A world's cavern sample and, by template id, its signature templates sampled alone.</summary>
+    private sealed record WorldSample(string Surface, WFCavernSample Sample, Dictionary<string, WFCavernSample> Templates);
+
+    /// <summary>A signature: what it is, the tile and entity it leaves (null for any), and the template that places it.</summary>
+    private sealed record Signature(string What, string? Tile, string? Entity = null, string? Template = null)
     {
-        return gate.Origin + new Vector2i(gate.Size / 2, gate.Size / 2);
+        /// <summary>Whether a sample carries this signature.</summary>
+        public bool Matches(WFCavernSample sample, int i)
+        {
+            return (Tile == null || sample.Tiles[i] == Tile) && (Entity == null || sample.Entities[i] == Entity);
+        }
     }
 }

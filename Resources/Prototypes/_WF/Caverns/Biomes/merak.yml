@@ -100,10 +100,11 @@
     entities: [WallRockSand]
     threshold: 0.84
     noise: { seed: 306, noiseType: OpenSimplex2, frequency: 0.35 }
-  # Buried camps.
+  # Buried camps, a few tiles across.
   - !type:BiomeMetaLayer
     template: WFCavernSignatureMerak
-    threshold: -1
+    threshold: 0.9
+    noise: { seed: 57, noiseType: OpenSimplex2, frequency: 0.05 }
 
 # What is left of lost prospectors.
 - type: biomeTemplate
@@ -112,10 +113,10 @@
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorSandstone]
     entities: [SalvageSpawnerScrapValuable]
-    threshold: 0.995
+    threshold: 0.6
     noise: { seed: 307, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorSandstone]
     entities: [SalvageHumanCorpseSpawner]
-    threshold: 0.997
+    threshold: 0.75
     noise: { seed: 308, noiseType: OpenSimplex2, frequency: 1 }

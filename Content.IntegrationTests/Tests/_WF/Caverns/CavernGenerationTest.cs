@@ -1,7 +1,10 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.Caverns;
+using Content.Server._WF.Planets;
 using Content.Server.Parallax;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.GameObjects;
@@ -17,16 +20,22 @@ namespace Content.IntegrationTests.Tests._WF.Caverns;
 [TestOf(typeof(BiomeSystem))]
 public sealed class CavernGenerationTest
 {
-    /// <summary>Entities per loaded tile a cavern viewer may cause (risk 2): rock is 45-70% of a cavern, so a runaway layer shows above this.</summary>
-    private const float MaxEntitiesPerTile = 0.75f;
+    /// <summary>Entities one cavern viewer may cause (risk 2); F3 measured 2,700-3,600 over the 81 chunks a viewer loads.</summary>
+    private const int MaxEntities = 4000;
 
     /// <summary>How far each way from the viewer the loaded floors are checked; chunks load at least this far.</summary>
     private const int LoadReach = 24;
 
+    /// <summary>Edge of the square searched for a fauna marker; a viewer loads 81 chunks, 72 tiles across.</summary>
+    private const int MarkerSearch = 72;
+
+    /// <summary>How far from a fauna site the wildlife pass stands: past the 24-tile no-spawn ring, inside the 64-tile reach.</summary>
+    private const float SiteDistance = 30f;
+
     /// <summary>Ticks the viewer stands still before the load is checked.</summary>
     private const int SettleTicks = 90;
 
-    /// <summary>A viewer on each gate pad: the pad stays clear, the world's own floors load around it, and the load stays bounded.</summary>
+    /// <summary>A viewer on each gate pad: the pad stays clear, the world's own floors load around it, the load stays bounded and the world's wildlife spawns.</summary>
     [Test]
     public async Task PadClearAndWorldFloors()
     {
@@ -35,6 +44,8 @@ public sealed class CavernGenerationTest
         var entMan = server.EntMan;
         var maps = server.System<SharedMapSystem>();
         var biomes = server.System<BiomeSystem>();
+        var sampler = server.System<WFCavernSampler>();
+        var ecology = server.System<WFPlanetFaunaSystem>();
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
 
         await EnableCaverns(pair);
@@ -50,6 +61,10 @@ public sealed class CavernGenerationTest
                 var viewer = await PlanetFixture.AttachViewer(pair, world.Cavern, TileCentre(gate.ClimbTile));
                 await pair.RunTicksSync(SettleTicks);
 
+                var floors = new HashSet<string>();
+                var entities = 0;
+                var loadedTiles = 0;
+
                 await server.WaitAssertion(() =>
                 {
                     var grid = entMan.GetComponent<MapGridComponent>(world.Cavern);
@@ -58,9 +73,6 @@ public sealed class CavernGenerationTest
                     var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
                     var climb = ground.ClimbPoints[gate.ClimbTile];
                     var (substrate, chamber) = Floors[surfaceId];
-                    var floors = new HashSet<string>();
-                    var entities = 0;
-                    var anchoredCount = 0;
 
                     for (var x = -LoadReach; x <= LoadReach; x++)
                     for (var y = -LoadReach; y <= LoadReach; y++)
@@ -74,12 +86,9 @@ public sealed class CavernGenerationTest
                     {
                         if (xform.MapUid == world.Cavern && uid != world.Cavern)
                             entities++;
-                        if (xform.MapUid == world.Cavern && xform.Anchored)
-                            anchoredCount++;
                     }
 
-                    var loadedTiles = biomeComp.LoadedChunks.Count * ChunkSize * ChunkSize;
-                    TestContext.Out.WriteLine($"{surfaceId}: {entities} entities ({anchoredCount} anchored) over {loadedTiles} loaded tiles; floors {string.Join(", ", floors)}.");
+                    loadedTiles = biomeComp.LoadedChunks.Count * ChunkSize * ChunkSize;
 
                     using (Assert.EnterMultipleScope())
                     {
@@ -99,10 +108,47 @@ public sealed class CavernGenerationTest
 
                         Assert.That(floors, Does.Contain(substrate), $"{surfaceId}: no {substrate} rock floor loaded around the pad.");
                         Assert.That(floors, Does.Contain(chamber), $"{surfaceId}: no {chamber} chamber floor loaded around the pad.");
-                        Assert.That(entities, Is.LessThanOrEqualTo(loadedTiles * MaxEntitiesPerTile),
+                        Assert.That(entities, Is.LessThanOrEqualTo(MaxEntities),
                             $"{surfaceId}: {entities} entities loaded over {loadedTiles} tiles around one viewer.");
                     }
                 });
+
+                TestContext.Out.WriteLine($"{surfaceId}: {entities} entities over {loadedTiles} loaded tiles; floors {string.Join(", ", floors)}.");
+
+                // A wildlife pass from beside one of the world's fauna markers in the loaded area.
+                var marker = $"WFCavernFauna{surfaceId["WFSurface".Length..]}";
+                await server.WaitAssertion(() =>
+                {
+                    var biomeComp = entMan.GetComponent<BiomeComponent>(world.Cavern);
+                    var biome = (world.Cavern, biomeComp);
+                    var sample = sampler.Sample(biomeComp, gate.ClimbTile, MarkerSearch);
+                    var site = Enumerable.Range(0, sample.Count)
+                        .Where(i => sample.Entities[i] == marker)
+                        .Select(sample.IndexOf)
+                        .Where(index => biomes.WfIsChunkLoaded(biome, index))
+                        .Select(index => (Vector2i?) index)
+                        .FirstOrDefault();
+
+                    Assert.That(site, Is.Not.Null, $"Precondition: no {marker} marker in the chunks {surfaceId}'s viewer loaded.");
+                    ecology.RefreshPopulation(new[] { new EntityCoordinates(world.Cavern, TileCentre(site!.Value) + new Vector2(SiteDistance, 0)) });
+                });
+
+                await server.WaitRunTicks(1);
+
+                var wildlife = new List<string>();
+                await server.WaitAssertion(() =>
+                {
+                    var query = entMan.EntityQueryEnumerator<WFPlanetWildlifeComponent, TransformComponent, MetaDataComponent>();
+                    while (query.MoveNext(out _, out var wild, out var xform, out var meta))
+                    {
+                        if (wild.Ground == world.Cavern && xform.MapUid == world.Cavern)
+                            wildlife.Add(meta.EntityPrototype?.ID ?? meta.EntityName);
+                    }
+
+                    Assert.That(wildlife, Is.Not.Empty, $"{surfaceId}: no wildlife spawned from the cavern's {marker} markers.");
+                });
+
+                TestContext.Out.WriteLine($"{surfaceId}: wildlife {string.Join(", ", wildlife)}.");
             }
             finally
             {

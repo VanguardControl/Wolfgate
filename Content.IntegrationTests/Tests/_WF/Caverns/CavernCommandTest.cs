@@ -18,7 +18,7 @@ using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
-/// <summary>The wfcavern admin command: list, tp, mouths and open, planet names and open's refusal when the cavern is gone.</summary>
+/// <summary>The wfcavern admin command: list, tp, stats, mouths and open, planet names and open's refusal when the cavern is gone.</summary>
 [TestFixture]
 [TestOf(typeof(WFCavernCommand))]
 public sealed class CavernCommandTest
@@ -32,7 +32,13 @@ public sealed class CavernCommandTest
     /// <summary>A build name unlike the surface id, to check that planets match by the name they were built under.</summary>
     private const string BuiltName = "Wfcavernbuilt";
 
-    /// <summary>list shows every world, tp lands on the gate pad, mouths lists the gate under every planet name, and open carves a mouth or refuses without a cavern.</summary>
+    /// <summary>Text only the finished stats line holds.</summary>
+    private const string StatsDone = "% open";
+
+    /// <summary>Ticks stats may take to sample its square a few rows a tick.</summary>
+    private const int MaxStatsTicks = 3000;
+
+    /// <summary>list shows every world, tp lands on the gate pad, stats samples around the caller or the gate, mouths lists the gate under every planet name, and open carves a mouth or refuses without a cavern.</summary>
     [Test]
     public async Task ListTpMouthsOpen()
     {
@@ -84,6 +90,16 @@ public sealed class CavernCommandTest
                 Assert.That(maps.TileIndicesFor(world.Cavern, grid, xform.Coordinates), Is.EqualTo(ClimbTile(gate)),
                     "tp did not land the caller on the gate pad beside the climb point.");
             });
+
+            // stats samples the cavern under a caller on that planet, and around the gate from anywhere else.
+            var here = await RunUntil(pair, output, "stats Asclepiu", StatsDone);
+            Assert.That(here.Any(line => line.Contains(StatsDone) && line.Contains(ClimbTile(gate).ToString())), Is.True,
+                $"stats Asclepiu did not sample around the caller at {ClimbTile(gate)}:\n{string.Join('\n', here)}");
+
+            var fervidusGate = await Gate(pair, worlds[1]);
+            var there = await RunUntil(pair, output, "stats Fervidus", StatsDone);
+            Assert.That(there.Any(line => line.Contains(StatsDone) && line.Contains(fervidusGate.CentreTile.ToString())), Is.True,
+                $"stats Fervidus, called from Asclepiu, did not sample around the Fervidus gate at {fervidusGate.CentreTile}:\n{string.Join('\n', there)}");
 
             var mouths = await Run(pair, output, "mouths Asclepiu");
             Assert.That(mouths.Any(line => line.Contains("Gate") && line.Contains(gate.Origin.ToString())), Is.True,
@@ -221,6 +237,24 @@ public sealed class CavernCommandTest
 
         Assert.Fail($"Precondition: no clear patch of ground east of {from} to carve a mouth in.");
         return from;
+    }
+
+    /// <summary>Runs one wfcavern subcommand as the test player and ticks until the server writes a line holding <paramref name="until"/>.</summary>
+    private static async Task<List<string>> RunUntil(TestPair pair, List<string> output, string args, string until)
+    {
+        await pair.Client.WaitPost(output.Clear);
+        await pair.Server.WaitPost(() =>
+            pair.Server.ConsoleHost.ExecuteCommand(pair.Player, $"{WolfgateAdminCommands.Cavern} {args}"));
+
+        var lines = new List<string>();
+        for (var ticks = 0; ticks < MaxStatsTicks && !lines.Any(line => line.Contains(until)); ticks += 10)
+        {
+            await pair.RunTicksSync(10);
+            lines.Clear();
+            await pair.Client.WaitPost(() => lines.AddRange(output));
+        }
+
+        return lines;
     }
 
     /// <summary>Runs one wfcavern subcommand as the test player and returns what the server wrote back.</summary>

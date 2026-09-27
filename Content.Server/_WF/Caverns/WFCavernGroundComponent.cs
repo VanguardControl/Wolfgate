@@ -95,6 +95,9 @@ public readonly record struct WFCavernMouth(Vector2i Origin, int Size, Vector2i 
     /// <summary>The hole's centre in ground-local coordinates.</summary>
     public Vector2 Centre => new(Origin.X + Size / 2f, Origin.Y + Size / 2f);
 
+    /// <summary>The tile holding the hole's centre, or the one up and right of it for an even hole.</summary>
+    public Vector2i CentreTile => Origin + new Vector2i(Size / 2, Size / 2);
+
     /// <summary>Whether a ground tile lies inside the hole.</summary>
     public bool Contains(Vector2i tile)
     {

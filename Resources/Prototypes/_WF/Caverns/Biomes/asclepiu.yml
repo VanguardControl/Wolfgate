@@ -20,12 +20,12 @@
     template: WFCavernRockAsclepiu
     invert: true
     threshold: -0.5
-    noise: { seed: 7, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.035 }
+    noise: { seed: 17, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.035 }
   # Chambers on the web.
   - !type:BiomeMetaLayer
     template: WFCavernChamberAsclepiu
     threshold: 0.35
-    noise: { seed: 101, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.025 }
+    noise: { seed: 117, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.025 }
 
 - type: biomeTemplate
   id: WFCavernRockAsclepiu

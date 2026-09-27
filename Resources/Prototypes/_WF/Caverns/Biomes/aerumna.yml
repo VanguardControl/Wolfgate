@@ -13,12 +13,12 @@
   - !type:BiomeMetaLayer
     template: WFCavernRockAerumna
     invert: true
-    threshold: -0.55
+    threshold: -0.58
     noise: { seed: 7, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.05 }
   # Cathedral galleries on the web.
   - !type:BiomeMetaLayer
     template: WFCavernChamberAerumna
-    threshold: 0.4
+    threshold: 0.34
     noise: { seed: 101, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.012 }
 
 - type: biomeTemplate
@@ -74,7 +74,7 @@
   layers:
   - !type:BiomeMetaLayer
     template: WFCavernGroveAerumna
-    threshold: 0.5
+    threshold: 0.3
     noise: { seed: 55, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.02 }
   - !type:BiomeMetaLayer
     template: WFCavernGeodeAerumna
@@ -87,7 +87,7 @@
   - !type:BiomeEntityLayer
     allowedTiles: [WFCavernFloorBedrock]
     entities: [ShadowTree, ShadowBasaltOne, ShadowBasaltTwo]
-    threshold: 0.65
+    threshold: 0.5
     noise: { seed: 309, noiseType: OpenSimplex2, frequency: 2 }
 
 - type: biomeTemplate
