@@ -150,6 +150,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/CrashBreakupFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashBreakupFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashThrustTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashThrustTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/FlightAudioLoadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/FlightAudioLoadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/FlightSafetyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/FlightSafetyTest.cs)
