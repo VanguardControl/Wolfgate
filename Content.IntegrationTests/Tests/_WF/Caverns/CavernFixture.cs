@@ -34,6 +34,17 @@ public static class CavernFixture
         "WFSurfaceCarcinoma",
     };
 
+    /// <summary>Section 4: each world's rock substrate T, the floor of its tunnels, and its chamber floor C.</summary>
+    public static readonly Dictionary<string, (string Substrate, string Chamber)> Floors = new()
+    {
+        { "WFSurfaceAsclepiu", ("WFCavernFloorLimestone", "FloorPlanetDirt") },
+        { "WFSurfaceFervidus", ("FloorBasalt", "WFCavernFloorAsh") },
+        { "WFSurfaceMerak", ("WFCavernFloorSand", "WFCavernFloorSandstone") },
+        { "WFSurfaceAerumna", ("WFCavernFloorChromite", "WFCavernFloorBedrock") },
+        { "WFSurfaceThrascias", ("FloorSnowDug", "WFCavernFloorSnowdrift") },
+        { "WFSurfaceCarcinoma", ("WFCavernFloorFlesh", "WFCavernFloorGut") },
+    };
+
     /// <summary>Biome chunk edge in tiles; SharedBiomeSystem.ChunkSize is protected.</summary>
     public const int ChunkSize = 8;
 
