@@ -35,6 +35,15 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.IntegrationTests/Fixtures/GameTest.cs`](../../Content.IntegrationTests/Fixtures/GameTest.cs)
   - a fixture object outlives its test, so it must not keep its pair.
   - resets every instance field of the fixture, from its own class up to this one.
+- [`Content.IntegrationTests/Tests/_NF/ShipyardTests.cs`](../../Content.IntegrationTests/Tests/_NF/ShipyardTests.cs)
+  - expected-value appraisal
+  - seeded so the appraisal is reproducible
+  - scratch map where fill items are spawned to be priced
+  - same rolls on every run
+  - mapped fill contents are recorded before map init
+  - random container fills count at their expected value, not this load's roll
+  - drop the scratch map and unseed the pooled server
+  - appraisal that counts random container fills at their expected value
 - [`Content.IntegrationTests/Tests/Hands/HandTests.cs`](../../Content.IntegrationTests/Tests/Hands/HandTests.cs)
   - unused, the actor is spawned instead of read from the session
   - spawn the actor instead of using the session's entity
