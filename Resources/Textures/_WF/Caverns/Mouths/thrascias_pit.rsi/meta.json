@@ -1,7 +1,7 @@
 {
   "version": 1,
   "license": "CC-BY-SA-3.0",
-  "copyright": "Cut from Textures/Tiles/Planet/Snow/snow.png (tgstation) and shaded into a pit for Wolfgate cavern mouths by Tools/_WF/Caverns/gen_pits.py.",
+  "copyright": "Cut from Textures/Tiles/Planet/Snow/snow.png (tgstation) and shaded into a pit, with its lip, shaft wall and rubble drawn over it, for Wolfgate cavern mouths by Tools/_WF/Caverns/gen_pits.py.",
   "size": {
     "x": 32,
     "y": 32
@@ -11,100 +11,292 @@
       "name": "pit"
     },
     {
-      "name": "ne0"
+      "name": "ne0_0"
     },
     {
-      "name": "ne1"
+      "name": "ne0_1"
     },
     {
-      "name": "ne2"
+      "name": "ne0_2"
     },
     {
-      "name": "ne3"
+      "name": "ne1_0"
     },
     {
-      "name": "ne4"
+      "name": "ne1_1"
     },
     {
-      "name": "ne5"
+      "name": "ne1_2"
     },
     {
-      "name": "ne6"
+      "name": "ne2_0"
     },
     {
-      "name": "ne7"
+      "name": "ne2_1"
     },
     {
-      "name": "nw0"
+      "name": "ne2_2"
     },
     {
-      "name": "nw1"
+      "name": "ne3_0"
     },
     {
-      "name": "nw2"
+      "name": "ne3_1"
     },
     {
-      "name": "nw3"
+      "name": "ne3_2"
     },
     {
-      "name": "nw4"
+      "name": "ne4_0"
     },
     {
-      "name": "nw5"
+      "name": "ne4_1"
     },
     {
-      "name": "nw6"
+      "name": "ne4_2"
     },
     {
-      "name": "nw7"
+      "name": "ne5_0"
     },
     {
-      "name": "se0"
+      "name": "ne5_1"
     },
     {
-      "name": "se1"
+      "name": "ne5_2"
     },
     {
-      "name": "se2"
+      "name": "ne6_0"
     },
     {
-      "name": "se3"
+      "name": "ne6_1"
     },
     {
-      "name": "se4"
+      "name": "ne6_2"
     },
     {
-      "name": "se5"
+      "name": "ne7_0"
     },
     {
-      "name": "se6"
+      "name": "ne7_1"
     },
     {
-      "name": "se7"
+      "name": "ne7_2"
     },
     {
-      "name": "sw0"
+      "name": "nw0_0"
     },
     {
-      "name": "sw1"
+      "name": "nw0_1"
     },
     {
-      "name": "sw2"
+      "name": "nw0_2"
     },
     {
-      "name": "sw3"
+      "name": "nw1_0"
     },
     {
-      "name": "sw4"
+      "name": "nw1_1"
     },
     {
-      "name": "sw5"
+      "name": "nw1_2"
     },
     {
-      "name": "sw6"
+      "name": "nw2_0"
     },
     {
-      "name": "sw7"
+      "name": "nw2_1"
+    },
+    {
+      "name": "nw2_2"
+    },
+    {
+      "name": "nw3_0"
+    },
+    {
+      "name": "nw3_1"
+    },
+    {
+      "name": "nw3_2"
+    },
+    {
+      "name": "nw4_0"
+    },
+    {
+      "name": "nw4_1"
+    },
+    {
+      "name": "nw4_2"
+    },
+    {
+      "name": "nw5_0"
+    },
+    {
+      "name": "nw5_1"
+    },
+    {
+      "name": "nw5_2"
+    },
+    {
+      "name": "nw6_0"
+    },
+    {
+      "name": "nw6_1"
+    },
+    {
+      "name": "nw6_2"
+    },
+    {
+      "name": "nw7_0"
+    },
+    {
+      "name": "nw7_1"
+    },
+    {
+      "name": "nw7_2"
+    },
+    {
+      "name": "se0_0"
+    },
+    {
+      "name": "se0_1"
+    },
+    {
+      "name": "se0_2"
+    },
+    {
+      "name": "se1_0"
+    },
+    {
+      "name": "se1_1"
+    },
+    {
+      "name": "se1_2"
+    },
+    {
+      "name": "se2_0"
+    },
+    {
+      "name": "se2_1"
+    },
+    {
+      "name": "se2_2"
+    },
+    {
+      "name": "se3_0"
+    },
+    {
+      "name": "se3_1"
+    },
+    {
+      "name": "se3_2"
+    },
+    {
+      "name": "se4_0"
+    },
+    {
+      "name": "se4_1"
+    },
+    {
+      "name": "se4_2"
+    },
+    {
+      "name": "se5_0"
+    },
+    {
+      "name": "se5_1"
+    },
+    {
+      "name": "se5_2"
+    },
+    {
+      "name": "se6_0"
+    },
+    {
+      "name": "se6_1"
+    },
+    {
+      "name": "se6_2"
+    },
+    {
+      "name": "se7_0"
+    },
+    {
+      "name": "se7_1"
+    },
+    {
+      "name": "se7_2"
+    },
+    {
+      "name": "sw0_0"
+    },
+    {
+      "name": "sw0_1"
+    },
+    {
+      "name": "sw0_2"
+    },
+    {
+      "name": "sw1_0"
+    },
+    {
+      "name": "sw1_1"
+    },
+    {
+      "name": "sw1_2"
+    },
+    {
+      "name": "sw2_0"
+    },
+    {
+      "name": "sw2_1"
+    },
+    {
+      "name": "sw2_2"
+    },
+    {
+      "name": "sw3_0"
+    },
+    {
+      "name": "sw3_1"
+    },
+    {
+      "name": "sw3_2"
+    },
+    {
+      "name": "sw4_0"
+    },
+    {
+      "name": "sw4_1"
+    },
+    {
+      "name": "sw4_2"
+    },
+    {
+      "name": "sw5_0"
+    },
+    {
+      "name": "sw5_1"
+    },
+    {
+      "name": "sw5_2"
+    },
+    {
+      "name": "sw6_0"
+    },
+    {
+      "name": "sw6_1"
+    },
+    {
+      "name": "sw6_2"
+    },
+    {
+      "name": "sw7_0"
+    },
+    {
+      "name": "sw7_1"
+    },
+    {
+      "name": "sw7_2"
     }
   ]
 }

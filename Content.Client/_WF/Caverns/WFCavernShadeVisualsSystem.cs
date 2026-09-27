@@ -5,10 +5,14 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._WF.Caverns;
 
 /// <summary>Draws each pit tile as four corners, with a rim and shaft wall wherever the pit meets solid ground.</summary>
+// Each corner state comes in several drawings; a stable hash of the tile picks one, so long edges don't repeat.
 public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
 {
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+
+    /// <summary>How many drawings of each corner state the pit RSIs hold.</summary>
+    public const int Variants = 3;
 
     /// <summary>Each corner's state prefix, the neighbour above or below it and the neighbour beside it.</summary>
     private static readonly (string Name, Vector2i Vertical, Vector2i Side)[] Corners =
@@ -86,14 +90,24 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
         // The prototype's whole-tile layer is only the placement icon.
         _sprite.LayerSetVisible(ent, 0, false);
 
-        foreach (var (name, vertical, side) in Corners)
+        for (var i = 0; i < Corners.Length; i++)
         {
+            var (name, vertical, side) = Corners[i];
             var mask = (pits.ContainsKey(tile + vertical) ? 1 : 0)
                        | (pits.ContainsKey(tile + side) ? 2 : 0)
                        | (pits.ContainsKey(tile + vertical + side) ? 4 : 0);
 
             var layer = _sprite.LayerMapReserve(ent, $"wf-pit-{name}");
-            _sprite.LayerSetRsiState(ent, layer, $"{name}{mask}");
+            _sprite.LayerSetRsiState(ent, layer, $"{name}{mask}_{Variant(tile, i)}");
         }
+    }
+
+    /// <summary>Which drawing of a corner state a tile uses: plain arithmetic, so it never changes between sessions.</summary>
+    public static int Variant(Vector2i tile, int corner)
+    {
+        var hash = unchecked((uint) (tile.X * 374761393 + tile.Y * 668265263 + corner * 1274126177));
+        hash = unchecked((hash ^ (hash >> 13)) * 1274126177u);
+        hash ^= hash >> 16;
+        return (int) (hash % Variants);
     }
 }
