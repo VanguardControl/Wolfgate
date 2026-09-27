@@ -23,8 +23,10 @@ public sealed partial class HumanoidProfileEditor
         EmoteVoiceContainer.AddChild(_emoteVoicePicker);
     }
 
+    /// <summary>Shows the loaded profile's voices; a preview of the previous profile stops.</summary>
     private void UpdateEmoteVoiceControls()
     {
+        StopEmoteVoicePreview();
         _emoteVoicePicker.SetVoice(EmoteVoiceRules.Scream, Profile?.ScreamVoice);
         _emoteVoicePicker.SetVoice(EmoteVoiceRules.Laugh, Profile?.LaughVoice);
     }
@@ -55,13 +57,22 @@ public sealed partial class HumanoidProfileEditor
             : emote == EmoteVoiceRules.Laugh ? Profile.LaughVoice
             : null;
 
-        var audio = _entManager.System<SharedAudioSystem>();
-        _emoteVoicePreview = audio.Stop(_emoteVoicePreview);
+        StopEmoteVoicePreview();
 
         if (!EmoteVoiceRules.TryGetEmoteSound(Profile.Species, Profile.Sex, emote, voice,
                 _prototypeManager, _entManager.ComponentFactory, out var sound, out var audioParams))
             return;
 
-        _emoteVoicePreview = audio.PlayGlobal(sound, Filter.Local(), false, audioParams)?.Entity;
+        _emoteVoicePreview = _entManager.System<SharedAudioSystem>()
+            .PlayGlobal(sound, Filter.Local(), false, audioParams)?.Entity;
+    }
+
+    private void StopEmoteVoicePreview()
+    {
+        // The editor can leave the tree while the client shuts down, after its systems are gone.
+        if (_emoteVoicePreview == null || !_entManager.TrySystem<SharedAudioSystem>(out var audio))
+            return;
+
+        _emoteVoicePreview = audio.Stop(_emoteVoicePreview);
     }
 }

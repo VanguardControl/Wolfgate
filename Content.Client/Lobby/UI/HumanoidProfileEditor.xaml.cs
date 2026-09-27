@@ -1881,6 +1881,7 @@ namespace Content.Client.Lobby.UI
             _entManager.DeleteEntity(PreviewDummy);
             PreviewDummy = EntityUid.Invalid;
             _anatomySaveConfirm?.Close(); // WOLFGATE(Genitals): the editor left the lobby, so there is nothing left to save
+            StopEmoteVoicePreview(); // WOLFGATE(EmoteVoices): a closed editor stops its voice preview
         }
 
         private void SetAge(int newAge)

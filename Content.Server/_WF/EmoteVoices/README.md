@@ -100,7 +100,7 @@ cloning and polymorphs that keep the appearance keep the voices. A voice plays w
 ## Non-modular edits
 
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): Voice card, filled in by HumanoidProfileEditor.EmoteVoices.cs
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs): a closed editor stops its voice preview
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): scream and laugh chosen in the creator; empty keeps the species' own.
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs): the chosen voices follow the Mono data
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)

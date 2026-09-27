@@ -102,7 +102,8 @@ public static class EmoteVoiceRules
         sound = null;
         audioParams = AudioParams.Default;
 
-        if (voice is { } voiceId && protoManager.TryIndex(voiceId, out var voiceProto))
+        // A voice for another emote counts as unset, as in Sanitize.
+        if (voice is { } voiceId && protoManager.TryIndex(voiceId, out var voiceProto) && voiceProto.Emote == emote)
         {
             sound = voiceProto.GetSound(sex);
             audioParams = voiceProto.Params;

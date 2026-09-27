@@ -233,17 +233,24 @@ public sealed class EmoteVoiceTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>EnsureValid drops unknown voices and voices for the other emote.</summary>
+    /// <summary>EnsureValid drops unknown voices and voices for the other emote, and the preview ignores the latter.</summary>
     [Test]
     public async Task ValidationTest()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
         var collection = server.ResolveDependency<IDependencyCollection>();
+        var proto = server.ProtoMan;
+        var factory = server.ResolveDependency<IComponentFactory>();
 
         await server.WaitAssertion(() =>
         {
             var session = server.PlayerMan.Sessions.First();
+
+            // A laugh passed for the scream plays the species' own scream.
+            Assert.That(EmoteVoiceRules.TryGetEmoteSound("Human", Sex.Male, EmoteVoiceRules.Scream, ClownLaugh, proto, factory,
+                out var scream, out _), Is.True);
+            Assert.That(Describe(scream!), Is.EqualTo(Describe(proto.Index<EmoteSoundsPrototype>(MaleHuman).Sounds["Scream"])));
 
             var kept = HumanoidCharacterProfile.DefaultWithSpecies("Human")
                 .WithScreamVoice(ClassicScream)
