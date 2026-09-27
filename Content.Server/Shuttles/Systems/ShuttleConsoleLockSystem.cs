@@ -870,6 +870,11 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
 
         var gridUid = consoleTransform.GridUid.Value;
 
+        // WOLFGATE(ShipAccess) START: a held voucher with the deed, or a player the ship is registered to, holds deed access too
+        if (_wfShipAccess.IsOwner(user, gridUid))
+            return true;
+        // WOLFGATE END
+
         // Check if this is a ship with a deed
         if (!TryComp<ShuttleDeedComponent>(gridUid, out var shipDeed))
             return false;
@@ -959,6 +964,11 @@ public sealed partial class ShuttleConsoleLockSystem : SharedShuttleConsoleLockS
             return false;
 
         var gridUid = consoleTransform.GridUid.Value;
+
+        // WOLFGATE(ShipAccess) START: a ship with Wolfgate access keeps its lock on the grid, not in Mono's readers
+        if (_wfShipAccess.TryGetLocked(gridUid, out var wfLocked))
+            return wfLocked;
+        // WOLFGATE END
 
         // Get all entities on the grid using transform children
         var gridTransform = Transform(gridUid);

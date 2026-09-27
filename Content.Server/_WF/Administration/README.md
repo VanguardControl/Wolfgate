@@ -4,6 +4,10 @@ The Wolfgate tab in the admin menu and the tools behind it: spawn a vessel, spaw
 outfit, build and call an ERT, power or unpower grids, and play internet sounds. Admins can also drag a ghost onto a
 body to put its player in it, and ctrl+click a ghost to spawn that player as their character in an outfit.
 
+A vessel spawned for an owner, and an ERT's ship, are registered to the players' accounts through ShipAccess, so
+their access stays with the player in any body, a ghost included. The owner's living body's ID card also gets
+the deed when it has none; ERT responders aboard a ship get a crew record so their cards can key its doors.
+
 Entry points: `WolfgateTab` (the admin menu tab), `WolfgateAdminVerbSystem` (right-click verbs under Admin), the
 console commands in `Commands/` (names in `WolfgateAdminCommands`), and the server systems `AdminVesselSpawnSystem`,
 `ErtSystem`, `GridPowerSystem` and `GhostPossessSystem`. Internet sound playback itself is in Audio.

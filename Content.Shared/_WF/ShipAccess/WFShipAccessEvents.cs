@@ -2,25 +2,6 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.ShipAccess;
 
-/// <summary>
-/// Raised by ShipAccessReaderSystem.HasShipAccess before Mono's deed rules. Allow short-circuits to true,
-/// Deny to the denied popup and false, None continues.
-/// </summary>
-[ByRefEvent]
-public record struct WFShipAccessCheckEvent(EntityUid User, EntityUid Target, EntityUid Grid)
-{
-    /// <summary>Set by the subscriber; None leaves the decision to the deed rules.</summary>
-    public WFShipAccessResult Result;
-}
-
-/// <summary>Outcome of the per-person check; None leaves the decision to the deed rules.</summary>
-public enum WFShipAccessResult : byte
-{
-    None,
-    Allow,
-    Deny,
-}
-
 /// <summary>The owner flips the ship lock from the console's access tab.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipAccessSetLockedMessage : BoundUserInterfaceMessage
@@ -49,11 +30,11 @@ public sealed class WFShipAccessAddPlayerMessage : BoundUserInterfaceMessage
 [Serializable, NetSerializable]
 public sealed class WFShipAccessRemoveMessage : BoundUserInterfaceMessage
 {
-    public NetEntity Card;
+    public WFShipAccessKey Key;
 
-    public WFShipAccessRemoveMessage(NetEntity card)
+    public WFShipAccessRemoveMessage(WFShipAccessKey key)
     {
-        Card = card;
+        Key = key;
     }
 }
 
@@ -61,12 +42,12 @@ public sealed class WFShipAccessRemoveMessage : BoundUserInterfaceMessage
 [Serializable, NetSerializable]
 public sealed class WFShipAccessSetBuilderMessage : BoundUserInterfaceMessage
 {
-    public NetEntity Card;
+    public WFShipAccessKey Key;
     public bool Builder;
 
-    public WFShipAccessSetBuilderMessage(NetEntity card, bool builder)
+    public WFShipAccessSetBuilderMessage(WFShipAccessKey key, bool builder)
     {
-        Card = card;
+        Key = key;
         Builder = builder;
     }
 }
@@ -90,13 +71,13 @@ public sealed class WFShipAccessSetDoorRuleMessage : BoundUserInterfaceMessage
 public sealed class WFShipAccessSetDoorPlayerMessage : BoundUserInterfaceMessage
 {
     public NetEntity Door;
-    public NetEntity Card;
+    public WFShipAccessKey Key;
     public bool Listed;
 
-    public WFShipAccessSetDoorPlayerMessage(NetEntity door, NetEntity card, bool listed)
+    public WFShipAccessSetDoorPlayerMessage(NetEntity door, WFShipAccessKey key, bool listed)
     {
         Door = door;
-        Card = card;
+        Key = key;
         Listed = listed;
     }
 }

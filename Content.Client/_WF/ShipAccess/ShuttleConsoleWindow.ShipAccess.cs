@@ -11,16 +11,16 @@ public sealed partial class ShuttleConsoleWindow
     public event Action<NetEntity>? ShipAccessAddRequested;
 
     /// <summary>The owner wants a card off the allow list.</summary>
-    public event Action<NetEntity>? ShipAccessRemoveRequested;
+    public event Action<WFShipAccessKey>? ShipAccessRemoveRequested;
 
     /// <summary>The owner marked or unmarked a listed card as a builder's.</summary>
-    public event Action<NetEntity, bool>? ShipAccessBuilderRequested;
+    public event Action<WFShipAccessKey, bool>? ShipAccessBuilderRequested;
 
     /// <summary>The owner picked a rule for a door.</summary>
     public event Action<NetEntity, WFDoorAccessRule>? ShipAccessDoorRuleRequested;
 
     /// <summary>The owner ticked or unticked a card on a door.</summary>
-    public event Action<NetEntity, NetEntity, bool>? ShipAccessDoorPlayerRequested;
+    public event Action<NetEntity, WFShipAccessKey, bool>? ShipAccessDoorPlayerRequested;
 
     /// <summary>The owner opened the access tab and wants the codes.</summary>
     public event Action? ShipAccessCodesRequested;
@@ -35,10 +35,10 @@ public sealed partial class ShuttleConsoleWindow
     {
         AccessContainer.LockedChanged += locked => ShipAccessLockedRequested?.Invoke(locked);
         AccessContainer.AddRequested += target => ShipAccessAddRequested?.Invoke(target);
-        AccessContainer.RemoveRequested += card => ShipAccessRemoveRequested?.Invoke(card);
-        AccessContainer.BuilderChanged += (card, builder) => ShipAccessBuilderRequested?.Invoke(card, builder);
+        AccessContainer.RemoveRequested += key => ShipAccessRemoveRequested?.Invoke(key);
+        AccessContainer.BuilderChanged += (key, builder) => ShipAccessBuilderRequested?.Invoke(key, builder);
         AccessContainer.DoorRuleChanged += (door, rule) => ShipAccessDoorRuleRequested?.Invoke(door, rule);
-        AccessContainer.DoorPlayerChanged += (door, card, listed) => ShipAccessDoorPlayerRequested?.Invoke(door, card, listed);
+        AccessContainer.DoorPlayerChanged += (door, key, listed) => ShipAccessDoorPlayerRequested?.Invoke(door, key, listed);
         AccessContainer.CodesRequested += () => ShipAccessCodesRequested?.Invoke();
         AccessContainer.ShipCodeChanged += code => ShipAccessShipCodeRequested?.Invoke(code);
         AccessContainer.DoorCodeChanged += (door, code) => ShipAccessDoorCodeRequested?.Invoke(door, code);

@@ -1,3 +1,6 @@
+# Access level a locked ship's doors require; no ID card can carry it
+id-card-access-level-wf-ship-locked = Locked ship
+
 # Shuttle console access tab
 ship-access-mode-button = ACCESS
 ship-access-title = Ship access
@@ -19,12 +22,14 @@ ship-access-nearby = Nearby
 ship-access-nearby-empty = Nobody is standing near the console.
 ship-access-add = Add
 ship-access-no-card = no ID
+ship-access-no-record = no record
 ship-access-label-guest = Guest
 
 # Server popups
 ship-access-not-owner = Only the deed holder can change the ship's access.
 ship-access-added = { $name }'s ID card may now open the ship.
 ship-access-add-no-card = They carry no ID card.
+ship-access-add-no-record = Their ID card has no crew record, so no door can be keyed to it.
 ship-access-add-out-of-range = They must stand closer to the console.
 ship-access-add-already = That ID card is already allowed aboard.
 ship-access-allow-list-cleared = Allow list cleared: { $count } removed.
@@ -45,14 +50,16 @@ ship-access-rule-code-name = Code
 ship-access-rule-players-or-code-name = Chosen IDs or code
 ship-access-rule-public-name = Public
 ship-access-rule-sealed-name = Sealed
-ship-access-rule-default-desc = Follows the ship: the deed, the allowed ID cards and, on a faction ship, its company's cards, while the ship is locked.
+ship-access-rule-default-desc = Follows the ship: while it is locked, the deed, the allowed ID cards and, on a faction ship, its company's access. Unlocked, the door keeps its own access.
 ship-access-rule-owner-only-desc = Only the deed opens this door, locked ship or not.
 ship-access-rule-players-desc = The deed and the ID cards ticked below.
 ship-access-rule-code-desc = The deed, or anyone who enters this door's code or the ship code at its keypad.
 ship-access-rule-players-or-code-desc = The deed, the ID cards ticked below, or a code at the keypad.
-ship-access-rule-public-desc = Anyone opens this door, even while the ship is locked.
+ship-access-rule-public-desc = Anyone opens this door, even while the ship is locked, whatever access its electronics ask for.
 ship-access-rule-sealed-desc = Bolted shut for everyone, the deed holder included. Pick another rule to unseal it.
 ship-access-door-not-on-ship = That door is not on this ship.
+ship-access-seal-pending = The door will bolt as soon as it is shut and powered.
+ship-access-no-owner-key = Neither the deed nor your ID card has a crew record, so no door can be keyed to you. Locking would shut you out.
 
 # Codes and the keypad
 ship-access-ship-code = Ship code

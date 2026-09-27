@@ -1,6 +1,7 @@
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Database;
+using Content.Shared.Doors;
 using Content.Shared.Doors.Components;
 using Content.Shared.Doors.Systems;
 using Content.Shared.Power;
@@ -16,12 +17,20 @@ public sealed partial class WFShipAccessServerSystem
     {
         SubscribeLocalEvent<WFDoorAccessRuleComponent, MapInitEvent>(OnRuleMapInit);
         SubscribeLocalEvent<WFDoorAccessRuleComponent, PowerChangedEvent>(OnRulePowerChanged);
+        SubscribeLocalEvent<WFDoorAccessRuleComponent, DoorStateChangedEvent>(OnRuleDoorStateChanged);
+        SubscribeLocalEvent<WFDoorAccessRuleComponent, DoorBoltsChangedEvent>(OnRuleBoltsChanged);
     }
+
+    /// <summary>
+    /// How long a door sealed while open stays open before it is closed: the airlock's own auto-close pace, so
+    /// the close never lands on someone stepping through, and the door's usual one-second retries follow.
+    /// </summary>
+    private static readonly TimeSpan SealCloseDelay = TimeSpan.FromSeconds(2);
 
     /// <summary>A loaded door re-asserts its reader and bolts, since neither follows from the rule on its own.</summary>
     private void OnRuleMapInit(Entity<WFDoorAccessRuleComponent> door, ref MapInitEvent args)
     {
-        TryEnsureReader(door);
+        QueueReader(door);
         if (door.Comp.Rule == WFDoorAccessRule.Sealed)
             Seal(door);
     }
@@ -36,6 +45,32 @@ public sealed partial class WFShipAccessServerSystem
             Seal(door);
         else if (door.Comp.UnboltWhenPowered)
             Unseal(door);
+    }
+
+    /// <summary>
+    /// A door sealed while not shut is bolted once it shuts: bolts dropped mid-close cancel the close and leave it
+    /// bolted open. Until then it is scheduled to close whenever it comes to rest open. Only the seal itself waits
+    /// like this; afterwards the door's bolts can be hacked, emagged and remoted like any airlock's.
+    /// </summary>
+    private void OnRuleDoorStateChanged(Entity<WFDoorAccessRuleComponent> door, ref DoorStateChangedEvent args)
+    {
+        if (!door.Comp.SealPending || door.Comp.Rule != WFDoorAccessRule.Sealed)
+            return;
+
+        if (args.State == DoorState.Closed)
+            Seal(door);
+        else if (args.State == DoorState.Open)
+            _door.SetNextStateChange(door, SealCloseDelay);
+    }
+
+    /// <summary>
+    /// Undocking and FTL arrivals lift a dock airlock's bolts on their own, and the next dock would open it, so a
+    /// sealed dock airlock is bolted again. Other doors keep whatever a wire or remote does to their bolts.
+    /// </summary>
+    private void OnRuleBoltsChanged(Entity<WFDoorAccessRuleComponent> door, ref DoorBoltsChangedEvent args)
+    {
+        if (!args.BoltsDown && door.Comp.Rule == WFDoorAccessRule.Sealed && HasComp<DockingComponent>(door))
+            Seal(door);
     }
 
     /// <summary>Sets a door's rule. Sealing bolts and closes it; leaving Sealed unbolts it. False when nothing changed.</summary>
@@ -54,40 +89,41 @@ public sealed partial class WFShipAccessServerSystem
         else if (old == WFDoorAccessRule.Sealed)
             Unseal((door, comp));
 
-        TryEnsureReader(door);
+        RefreshReader(door);
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"Door {ToPrettyString(door):door} on {ToPrettyString(ship.Owner):grid} was set to rule {rule} (was {old})");
         return true;
     }
 
-    /// <summary>Adds or removes an allow-listed card on a door's own list; false when it is not on the ship's list or nothing changed.</summary>
-    public bool SetDoorPlayer(Entity<WFShipAccessComponent> ship, EntityUid door, EntityUid card, bool listed)
+    /// <summary>Adds or removes an allow-listed card's key on a door's own list; false when it is not on the ship's list or nothing changed.</summary>
+    public bool SetDoorPlayer(Entity<WFShipAccessComponent> ship, EntityUid door, WFShipAccessKey key, bool listed)
     {
-        if (listed && !_access.TryGetEntry(ship.Comp, card, out _))
+        if (!_access.TryGetEntry(ship.Comp, key, out var entry) && listed)
             return false;
 
         var comp = EnsureComp<WFDoorAccessRuleComponent>(door);
-        if (listed == comp.Players.Contains(card))
+        if (listed == comp.Players.Contains(key))
             return false;
 
         if (listed)
-            comp.Players.Add(card);
+            comp.Players.Add(key);
         else
-            comp.Players.Remove(card);
+            comp.Players.Remove(key);
 
         Dirty(door, comp);
+        RefreshReader(door);
         _adminLog.Add(LogType.Action, LogImpact.Low,
-            $"Card {ToPrettyString(card):card} was {(listed ? "added to" : "removed from")} door {ToPrettyString(door):door} on {ToPrettyString(ship.Owner):grid}");
+            $"{entry?.Name ?? "A card"} was {(listed ? "added to" : "removed from")} door {ToPrettyString(door):door} on {ToPrettyString(ship.Owner):grid}");
         return true;
     }
 
-    /// <summary>Takes a card off every door list on the ship, after it left the allow list.</summary>
-    private void RemoveDoorPlayer(EntityUid grid, EntityUid card)
+    /// <summary>Takes a key off every door list on the ship, after it left the allow list.</summary>
+    private void RemoveDoorPlayer(EntityUid grid, WFShipAccessKey key)
     {
         var children = Transform(grid).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
-            if (TryComp<WFDoorAccessRuleComponent>(child, out var rule) && rule.Players.Remove(card))
+            if (TryComp<WFDoorAccessRuleComponent>(child, out var rule) && rule.Players.Remove(key))
                 Dirty(child, rule);
         }
     }
@@ -106,14 +142,11 @@ public sealed partial class WFShipAccessServerSystem
         }
     }
 
-    /// <summary>Whether a door's rule needs its reader on even while the ship is unlocked.</summary>
-    private bool ReaderShouldBeEnabled(WFShipAccessComponent access, EntityUid uid)
-    {
-        return access.Locked || (TryComp<WFDoorAccessRuleComponent>(uid, out var rule) && rule.Rule != WFDoorAccessRule.Default);
-    }
-
-    /// <summary>Closes and bolts a sealed door, adding bolts to a door that has none.</summary>
-    private void Seal(Entity<WFDoorAccessRuleComponent> door)
+    /// <summary>
+    /// Closes and bolts a sealed door, adding bolts to a door that has none. A door that is not shut yet is asked
+    /// to close and is bolted when it does; an unpowered one is bolted when power returns. True when bolted now.
+    /// </summary>
+    private bool Seal(Entity<WFDoorAccessRuleComponent> door)
     {
         door.Comp.UnboltWhenPowered = false;
         if (!TryComp<DoorBoltComponent>(door, out var bolt))
@@ -122,10 +155,17 @@ public sealed partial class WFShipAccessServerSystem
             door.Comp.AddedBolt = true;
         }
 
-        if (TryComp<DoorComponent>(door, out var doorComp) && doorComp.State == DoorState.Open && !_door.TryClose(door, doorComp))
-            _door.StartClosing(door, doorComp);
+        if (TryComp<DoorComponent>(door, out var doorComp) && doorComp.State is not (DoorState.Closed or DoorState.Welded))
+        {
+            door.Comp.SealPending = true;
+            if (doorComp.State == DoorState.Open)
+                _door.SetNextStateChange(door, SealCloseDelay, doorComp);
 
-        _door.SetBoltsDown((door, bolt), true);
+            return false;
+        }
+
+        door.Comp.SealPending = false;
+        return _door.TrySetBoltDown((door, bolt), true) || bolt.BoltsDown;
     }
 
     /// <summary>
@@ -135,6 +175,7 @@ public sealed partial class WFShipAccessServerSystem
     private void Unseal(Entity<WFDoorAccessRuleComponent> door)
     {
         door.Comp.UnboltWhenPowered = false;
+        door.Comp.SealPending = false;
         if (!TryComp<DoorBoltComponent>(door, out var bolt))
             return;
 
@@ -150,8 +191,9 @@ public sealed partial class WFShipAccessServerSystem
     }
 
     /// <summary>
-    /// Wipes what a seller set before a used ship goes to its next buyer: the access record, the ship code, and
-    /// every door's code, rule and seal. A seal lifted without power keeps a bare rule until the bolts come up.
+    /// Wipes what a seller set before a used ship goes to its next buyer: the access record, the ship code, every
+    /// door's code, rule and seal, and the readers' own access comes back. A seal lifted without power keeps a
+    /// bare rule until the bolts come up.
     /// </summary>
     public void ClearForResale(EntityUid grid)
     {
@@ -161,12 +203,19 @@ public sealed partial class WFShipAccessServerSystem
         var children = Transform(grid).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
+            if (_accessReader.GetMainAccessReader(child, out var reader))
+                RestoreReader(reader.Value);
+
             RemComp<WFDoorCodeComponent>(child);
             if (!TryComp<WFDoorAccessRuleComponent>(child, out var rule))
                 continue;
 
+            // The rule goes first, so nothing still reads the door as sealed while its bolts come up.
             if (rule.Rule == WFDoorAccessRule.Sealed)
+            {
+                rule.Rule = WFDoorAccessRule.Default;
                 Unseal((child, rule));
+            }
 
             if (!rule.UnboltWhenPowered)
             {
@@ -183,14 +232,19 @@ public sealed partial class WFShipAccessServerSystem
 
     private void OnSetDoorRule(Entity<ShuttleConsoleComponent> console, ref WFShipAccessSetDoorRuleMessage args)
     {
-        if (TryGetEditableShip(console, args.Actor, out var ship) && TryGetShipDoor(console, ship, args.Door, args.Actor, out var door))
-            SetDoorRule(ship, door, args.Rule);
+        if (!TryGetEditableShip(console, args.Actor, out var ship) || !TryGetShipDoor(console, ship, args.Door, args.Actor, out var door))
+            return;
+
+        // Sealing an open or unpowered door is deferred, so say so rather than leave the owner guessing.
+        if (SetDoorRule(ship, door, args.Rule) && args.Rule == WFDoorAccessRule.Sealed
+            && (!_door.IsBolted(door) || Comp<WFDoorAccessRuleComponent>(door).SealPending))
+            Popup(console, args.Actor, "ship-access-seal-pending");
     }
 
     private void OnSetDoorPlayer(Entity<ShuttleConsoleComponent> console, ref WFShipAccessSetDoorPlayerMessage args)
     {
-        if (TryGetEditableShip(console, args.Actor, out var ship) && TryGetShipDoor(console, ship, args.Door, args.Actor, out var door) && TryGetEntity(args.Card, out var card))
-            SetDoorPlayer(ship, door, card.Value, args.Listed);
+        if (TryGetEditableShip(console, args.Actor, out var ship) && TryGetShipDoor(console, ship, args.Door, args.Actor, out var door))
+            SetDoorPlayer(ship, door, args.Key, args.Listed);
     }
 
     /// <summary>Resolves a console message's door and checks it is a door on the console's own grid. Firelocks take no rule.</summary>

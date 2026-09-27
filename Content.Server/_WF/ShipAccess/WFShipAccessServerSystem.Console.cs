@@ -26,20 +26,28 @@ public sealed partial class WFShipAccessServerSystem
 
     private void OnSetLocked(Entity<ShuttleConsoleComponent> console, ref WFShipAccessSetLockedMessage args)
     {
-        if (TryGetEditableShip(console, args.Actor, out var ship))
-            SetLocked(ship, args.Locked);
+        if (!TryGetEditableShip(console, args.Actor, out var ship))
+            return;
+
+        if (args.Locked && !CanLock(ship))
+        {
+            Popup(console, args.Actor, "ship-access-no-owner-key");
+            return;
+        }
+
+        SetLocked(ship, args.Locked);
     }
 
     private void OnRemove(Entity<ShuttleConsoleComponent> console, ref WFShipAccessRemoveMessage args)
     {
         if (TryGetEditableShip(console, args.Actor, out var ship))
-            RemoveEntry(ship, args.Card);
+            RemoveEntry(ship, args.Key);
     }
 
     private void OnSetBuilder(Entity<ShuttleConsoleComponent> console, ref WFShipAccessSetBuilderMessage args)
     {
         if (TryGetEditableShip(console, args.Actor, out var ship))
-            SetBuilder(ship, args.Card, args.Builder);
+            SetBuilder(ship, args.Key, args.Builder);
     }
 
     private void OnAddPlayer(Entity<ShuttleConsoleComponent> console, ref WFShipAccessAddPlayerMessage args)
@@ -54,9 +62,15 @@ public sealed partial class WFShipAccessServerSystem
             return;
         }
 
-        if (!_access.TryGetCard(target.Value, out _))
+        if (!_access.TryGetCard(target.Value, out var card))
         {
             Popup(console, actor, "ship-access-add-no-card");
+            return;
+        }
+
+        if (!_access.TryGetKey(card, out _))
+        {
+            Popup(console, actor, "ship-access-add-no-record");
             return;
         }
 
@@ -70,8 +84,9 @@ public sealed partial class WFShipAccessServerSystem
     }
 
     /// <summary>
-    /// The ship behind a console when the actor carries its deed. A ship bought before this module existed gets
-    /// its component on the first edit; anyone without the deed gets the not-owner popup.
+    /// The ship behind a console when the actor owns it: carries its deed, or is a player it is registered to. A ship
+    /// bought before this module existed gets its component, and its readers, on the first edit; anyone else gets
+    /// the not-owner popup.
     /// </summary>
     private bool TryGetEditableShip(Entity<ShuttleConsoleComponent> console, EntityUid actor, out Entity<WFShipAccessComponent> ship)
     {
@@ -79,7 +94,7 @@ public sealed partial class WFShipAccessServerSystem
         if (Transform(console.Owner).GridUid is not { } grid)
             return false;
 
-        if (!_access.HasDeedFor(actor, grid))
+        if (!_access.IsOwner(actor, grid))
         {
             Popup(console, actor, "ship-access-not-owner");
             return false;
@@ -99,6 +114,8 @@ public sealed partial class WFShipAccessServerSystem
         comp.Mode = _access.IsFactionGrid(grid, out _) ? WFShipAccessMode.Faction : WFShipAccessMode.Private;
         comp.Locked = AnyReaderEnabled(grid);
         Dirty(grid, comp);
+        MarkShipStorage(grid);
+        RefreshShip((grid, comp));
         return (grid, comp);
     }
 

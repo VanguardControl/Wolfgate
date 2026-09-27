@@ -4,8 +4,9 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._WF.ShipAccess;
 
 /// <summary>
-/// A door's own access rule, overriding the ship-wide one. Serialises with the grid. Doors only; lockers
-/// keep the ship rule. Codes never live here: <see cref="HasOwnCode"/> only says the server holds one.
+/// A door's own access rule, overriding the ship-wide one; the server writes it into the door's airlock access
+/// reader. Serialises with the grid. Doors only; lockers keep the ship rule. Codes never live here:
+/// <see cref="HasOwnCode"/> only says the server holds one.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WFDoorAccessRuleComponent : Component
@@ -15,12 +16,11 @@ public sealed partial class WFDoorAccessRuleComponent : Component
     public WFDoorAccessRule Rule = WFDoorAccessRule.Default;
 
     /// <summary>
-    /// ID cards picked for this door under Players and PlayersOrCode. Each is on the ship's allow list when
-    /// added and is dropped from here when it leaves that list. Round state like the allow list, so not saved
-    /// with the grid. Networked so the client predicts its own opens.
+    /// Record keys of the allow-listed cards picked for this door under Players and PlayersOrCode. Each is
+    /// dropped from here when it leaves the allow list. Round state like the allow list, so not saved.
     /// </summary>
     [ViewVariables, AutoNetworkedField]
-    public HashSet<EntityUid> Players = new();
+    public List<WFShipAccessKey> Players = new();
 
     /// <summary>True while the server holds a code for this door, so the console can show that without the code.</summary>
     [DataField, AutoNetworkedField]
@@ -33,6 +33,10 @@ public sealed partial class WFDoorAccessRuleComponent : Component
     /// <summary>Set when a seal was lifted while the door had no power; bolts need power, so they come up once it returns.</summary>
     [DataField]
     public bool UnboltWhenPowered;
+
+    /// <summary>Set while a door sealed when not shut waits to shut, so its bolts drop then instead of mid-close.</summary>
+    [DataField]
+    public bool SealPending;
 }
 
 /// <summary>The seven per-door rules from the design table. Every rule but Default applies whether or not the ship is locked.</summary>

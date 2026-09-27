@@ -17,8 +17,9 @@ namespace Content.Client._WF.ShipAccess;
 /// <summary>
 /// Shuttle console tab where the deed holder sees and edits which ID cards may board: lock, allow list, nearby
 /// people whose card can be added, each door's rule by clicking it on the door diagram, and the ship and door
-/// codes. Reads the networked grid and door components straight; codes arrive by a directed event for the
-/// deed holder only and are forgotten when the tab closes. Every change goes to the server as a message.
+/// codes. The server writes all of it into the doors' own access readers. Reads the networked grid and door
+/// components straight; codes arrive by a directed event for the deed holder only and are forgotten when the tab
+/// closes. Every change goes to the server as a message.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class ShipAccessScreen : BoxContainer
@@ -53,8 +54,8 @@ public sealed partial class ShipAccessScreen : BoxContainer
     private string? _listSnapshot;
     private string? _nearbySnapshot;
     private string? _doorSnapshot;
-    private readonly Dictionary<NetEntity, CheckBox> _builderChecks = new();
-    private readonly Dictionary<NetEntity, CheckBox> _doorPlayerChecks = new();
+    private readonly Dictionary<WFShipAccessKey, CheckBox> _builderChecks = new();
+    private readonly Dictionary<WFShipAccessKey, CheckBox> _doorPlayerChecks = new();
 
     /// <summary>The XAML hides the root while it loads, before the named controls exist.</summary>
     private readonly bool _loaded;
@@ -74,16 +75,16 @@ public sealed partial class ShipAccessScreen : BoxContainer
     public event Action<NetEntity>? AddRequested;
 
     /// <summary>The deed holder pressed Remove on a listed card.</summary>
-    public event Action<NetEntity>? RemoveRequested;
+    public event Action<WFShipAccessKey>? RemoveRequested;
 
     /// <summary>The deed holder flipped a listed card's Builder checkbox.</summary>
-    public event Action<NetEntity, bool>? BuilderChanged;
+    public event Action<WFShipAccessKey, bool>? BuilderChanged;
 
     /// <summary>The deed holder picked a rule for the selected door.</summary>
     public event Action<NetEntity, WFDoorAccessRule>? DoorRuleChanged;
 
     /// <summary>The deed holder ticked or unticked a card on the selected door.</summary>
-    public event Action<NetEntity, NetEntity, bool>? DoorPlayerChanged;
+    public event Action<NetEntity, WFShipAccessKey, bool>? DoorPlayerChanged;
 
     /// <summary>The deed holder opened the tab and wants the codes.</summary>
     public event Action? CodesRequested;
@@ -219,8 +220,9 @@ public sealed partial class ShipAccessScreen : BoxContainer
     {
         _entManager.TryGetComponent<WFShipAccessComponent>(_grid, out var comp);
         var local = _player.LocalEntity;
-        // The deed decides who edits; a ship without the component yet still lets its deed holder open the tab.
-        var isOwner = _grid != null && local != null && _access.HasDeedFor(local.Value, _grid.Value);
+        // The deed, or the ship being registered to this player, decides who edits; a ship without the component yet
+        // still lets its deed holder open the tab.
+        var isOwner = _grid != null && local != null && _access.IsOwner(local.Value, _grid.Value);
 
         var sb = new StringBuilder();
         sb.Append(isOwner).Append('|');
@@ -228,7 +230,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         {
             sb.Append(comp.OwnerName).Append('|').Append(comp.Mode.ToString()).Append('|').Append(comp.Locked).Append('|');
             foreach (var entry in comp.AllowList)
-                sb.Append(entry.Card).Append(',').Append(entry.Name).Append(',').Append(entry.Label).Append(',').Append(entry.Builder).Append(';');
+                sb.Append(entry.Key).Append(',').Append(entry.Name).Append(',').Append(entry.Label).Append(',').Append(entry.Builder).Append(';');
         }
         else if (_grid != null)
             sb.Append(_access.IsFactionGrid(_grid.Value, out _));
@@ -244,7 +246,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         sb.Clear();
         sb.Append(isOwner).Append('|');
         foreach (var person in nearby)
-            sb.Append(person.Uid.Id).Append(',').Append(person.Name).Append(',').Append(person.Card?.Id ?? 0).Append(';');
+            sb.Append(person.Uid.Id).Append(',').Append(person.Name).Append(',').Append(person.HasCard).Append(',').Append(person.HasRecord).Append(';');
 
         var nearbySnapshot = sb.ToString();
         if (nearbySnapshot != _nearbySnapshot)
@@ -263,8 +265,8 @@ public sealed partial class ShipAccessScreen : BoxContainer
             sb.Append(selected.Name).Append('|').Append(selected.Rule).Append('|').Append(selected.HasOwnCode).Append('|');
         if (rule != null)
         {
-            foreach (var card in rule.Players)
-                sb.Append(card.Id).Append(';');
+            foreach (var key in rule.Players)
+                sb.Append(key).Append(';');
         }
 
         var doorSnapshot = sb.ToString();
@@ -438,16 +440,16 @@ public sealed partial class ShipAccessScreen : BoxContainer
         {
             foreach (var entry in comp.AllowList)
             {
-                var card = entry.Card;
+                var key = entry.Key;
                 var check = new CheckBox
                 {
                     Text = entry.Name,
-                    Pressed = Picked(rule, card),
+                    Pressed = Picked(rule, key),
                     Disabled = !isOwner,
                     Margin = new Thickness(4, 0),
                 };
-                check.OnToggled += args => DoorPlayerChanged?.Invoke(netDoor, card, args.Pressed);
-                _doorPlayerChecks[card] = check;
+                check.OnToggled += args => DoorPlayerChanged?.Invoke(netDoor, key, args.Pressed);
+                _doorPlayerChecks[key] = check;
                 DoorPlayersContainer.AddChild(check);
             }
         }
@@ -455,10 +457,10 @@ public sealed partial class ShipAccessScreen : BoxContainer
         DoorPlayersEmptyLabel.Visible = DoorPlayersContainer.ChildCount == 0;
     }
 
-    /// <summary>Whether a listed card is on the door's own list.</summary>
-    private bool Picked(WFDoorAccessRuleComponent? rule, NetEntity card)
+    /// <summary>Whether a listed card's key is on the door's own list.</summary>
+    private static bool Picked(WFDoorAccessRuleComponent? rule, WFShipAccessKey key)
     {
-        return rule != null && _entManager.TryGetEntity(card, out var uid) && rule.Players.Contains(uid.Value);
+        return rule != null && rule.Players.Contains(key);
     }
 
     /// <summary>Server state wins over a click the server refused.</summary>
@@ -470,11 +472,11 @@ public sealed partial class ShipAccessScreen : BoxContainer
         LockedCheck.Pressed = comp.Locked;
         foreach (var entry in comp.AllowList)
         {
-            if (_builderChecks.TryGetValue(entry.Card, out var check))
+            if (_builderChecks.TryGetValue(entry.Key, out var check))
                 check.Pressed = entry.Builder;
 
-            if (_doorPlayerChecks.TryGetValue(entry.Card, out var doorCheck))
-                doorCheck.Pressed = Picked(rule, entry.Card);
+            if (_doorPlayerChecks.TryGetValue(entry.Key, out var doorCheck))
+                doorCheck.Pressed = Picked(rule, entry.Key);
         }
     }
 
@@ -525,7 +527,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         if (!editable)
             return row;
 
-        var card = entry.Card;
+        var key = entry.Key;
         var builder = new CheckBox
         {
             Text = Loc.GetString("ship-access-builder"),
@@ -533,13 +535,13 @@ public sealed partial class ShipAccessScreen : BoxContainer
             VerticalAlignment = VAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
         };
-        builder.OnToggled += args => BuilderChanged?.Invoke(card, args.Pressed);
-        _builderChecks[card] = builder;
+        builder.OnToggled += args => BuilderChanged?.Invoke(key, args.Pressed);
+        _builderChecks[key] = builder;
         row.AddChild(builder);
 
         var remove = new Button { Text = Loc.GetString("ship-access-remove"), MinWidth = 80 };
         remove.AddStyleClass("ButtonSquare");
-        remove.OnPressed += _ => RemoveRequested?.Invoke(card);
+        remove.OnPressed += _ => RemoveRequested?.Invoke(key);
         row.AddChild(remove);
         return row;
     }
@@ -549,18 +551,18 @@ public sealed partial class ShipAccessScreen : BoxContainer
         var row = Row();
         row.AddChild(new Label { Text = person.Name, HorizontalExpand = true, VerticalAlignment = VAlignment.Center, FontColorOverride = Readout });
 
-        if (person.Card == null)
+        if (!person.HasRecord)
         {
             row.AddChild(new Label
             {
-                Text = Loc.GetString("ship-access-no-card"),
+                Text = Loc.GetString(person.HasCard ? "ship-access-no-record" : "ship-access-no-card"),
                 StyleClasses = { "LabelSecondaryColor" },
                 VerticalAlignment = VAlignment.Center,
                 Margin = new Thickness(0, 0, 8, 0),
             });
         }
 
-        var add = new Button { Text = Loc.GetString("ship-access-add"), MinWidth = 80, Disabled = person.Card == null };
+        var add = new Button { Text = Loc.GetString("ship-access-add"), MinWidth = 80, Disabled = !person.HasRecord };
         add.AddStyleClass("ButtonSquare");
         var netEntity = _entManager.GetNetEntity(person.Uid);
         add.OnPressed += _ => AddRequested?.Invoke(netEntity);
@@ -610,7 +612,8 @@ public sealed partial class ShipAccessScreen : BoxContainer
 
     /// <summary>
     /// Humanoids within adding range of the console, minus the viewer, anyone carrying this ship's deed and
-    /// anyone whose card is listed already. People without a card are shown but cannot be added.
+    /// anyone whose card is listed already. People without a card, or with a card that has no crew record, are
+    /// shown but cannot be added: a door reader can only be given a record key.
     /// </summary>
     private List<NearbyPerson> FindNearby(WFShipAccessComponent? comp)
     {
@@ -626,20 +629,22 @@ public sealed partial class ShipAccessScreen : BoxContainer
             if (uid == local || !_transform.InRange(xform.Coordinates, _entManager.GetComponent<TransformComponent>(uid).Coordinates, WFShipAccessSystem.AddRange))
                 continue;
 
-            if (_access.HasDeedFor(uid, _grid.Value))
+            if (_access.IsOwner(uid, _grid.Value))
                 continue;
 
-            EntityUid? card = _access.TryGetCard(uid, out var found) ? found : null;
-            if (card != null && comp != null && _access.TryGetEntry(comp, card.Value, out _))
+            var hasCard = _access.TryGetCard(uid, out var card);
+            WFShipAccessKey key = default;
+            var hasRecord = hasCard && _access.TryGetKey(card, out key);
+            if (hasRecord && comp != null && _access.TryGetEntry(comp, key, out _))
                 continue;
 
-            result.Add(new NearbyPerson(uid, _entManager.GetComponent<MetaDataComponent>(uid).EntityName, card));
+            result.Add(new NearbyPerson(uid, _entManager.GetComponent<MetaDataComponent>(uid).EntityName, hasCard, hasRecord));
         }
 
         result.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
         return result;
     }
 
-    /// <summary>Someone near the console and the card they would swipe, if any.</summary>
-    private sealed record NearbyPerson(EntityUid Uid, string Name, EntityUid? Card);
+    /// <summary>Someone near the console, and whether they carry a card and whether it has a crew record.</summary>
+    private sealed record NearbyPerson(EntityUid Uid, string Name, bool HasCard, bool HasRecord);
 }

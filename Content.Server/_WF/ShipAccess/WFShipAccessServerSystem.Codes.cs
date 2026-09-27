@@ -1,5 +1,6 @@
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared.Access.Components;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Database;
 using Content.Shared.Doors.Components;
@@ -77,9 +78,9 @@ public sealed partial class WFShipAccessServerSystem
     }
 
     /// <summary>
-    /// Takes a keypad code at a door: the door's own code or the ship code stands in for the ship check, and the
-    /// door then opens through the normal path, so power, welding and its own ID access still apply. A wrong code
-    /// counts a miss for the person; a locked-out person is refused before the code is looked at.
+    /// Takes a keypad code at a door: the door's own code or the ship code stands in for the card the door's
+    /// reader wants, and every other door check (power, welding, bolts) still applies. A wrong code counts a miss
+    /// for the person; a locked-out person is refused before the code is looked at.
     /// </summary>
     public WFShipAccessCodeResult TrySubmitCode(EntityUid user, EntityUid door, string code)
     {
@@ -114,8 +115,11 @@ public sealed partial class WFShipAccessServerSystem
             return WFShipAccessCodeResult.Wrong;
         }
 
-        if (!_access.TryOpenByCode(user, (door, doorComp)))
+        // A null user skips the access reader and nothing else: power, welding and bolts still decide.
+        if (!_door.CanOpen(door, doorComp, user: null))
             return WFShipAccessCodeResult.NoResponse;
+
+        _door.StartOpening(door, doorComp, user);
 
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{ToPrettyString(user):user} opened {ToPrettyString(door):door} on {ToPrettyString(grid):grid} with a code");
@@ -163,12 +167,12 @@ public sealed partial class WFShipAccessServerSystem
         NotifyOwner(ship, new WFShipAccessCodeAlertEvent(GetNetEntity(ship.Owner), codes.Misses, CountLockedOut(codes)));
     }
 
-    /// <summary>Sends an event to whoever carries the ship's deed right now, if anyone.</summary>
+    /// <summary>Sends an event to the ship's owners in the game right now: whoever carries its deed and the players it is registered to.</summary>
     private void NotifyOwner(Entity<WFShipAccessComponent> ship, EntityEventArgs ev)
     {
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is { } body && _access.HasDeedFor(body, ship.Owner))
+            if (session.AttachedEntity is { } body && (_access.HasDeedFor(body, ship.Owner) || ship.Comp.OwnerUsers.Contains(session.UserId)))
                 RaiseNetworkEvent(ev, session.Channel);
         }
     }
@@ -207,10 +211,10 @@ public sealed partial class WFShipAccessServerSystem
         if (!args.CanAccess || !args.CanInteract || !WFShipAccessSystem.TakesCode(door.Comp.Rule))
             return;
 
-        if (Transform(door).GridUid is not { } grid || !TryComp<WFShipAccessComponent>(grid, out var access))
+        if (Transform(door).GridUid is not { } grid || !HasComp<WFShipAccessComponent>(grid))
             return;
 
-        if (_access.RuleAllows(args.User, (grid, access), door.Comp) || _door.IsBolted(door))
+        if (ReaderAdmits(args.User, door) || _door.IsBolted(door))
             return;
 
         if (!_player.TryGetSessionByEntity(args.User, out var session))
@@ -223,6 +227,18 @@ public sealed partial class WFShipAccessServerSystem
             Text = Loc.GetString("ship-access-keypad-verb"),
             Act = () => RaiseNetworkEvent(new WFShipAccessOpenKeypadEvent(netDoor), channel),
         });
+    }
+
+    /// <summary>Whether the door's reader already lets the user through, checked without writing its access log.</summary>
+    private bool ReaderAdmits(EntityUid user, EntityUid door)
+    {
+        if (!TryComp<AccessReaderComponent>(door, out var reader))
+            return true;
+
+        var items = _accessReader.FindPotentialAccessItems(user);
+        var tags = _accessReader.FindAccessTags(user, items);
+        _accessReader.FindStationRecordKeys(user, out var keys, items);
+        return _accessReader.IsAllowed(tags, keys, door, reader);
     }
 
     private void OnSubmitCode(WFShipAccessSubmitCodeMessage msg, EntitySessionEventArgs args)
