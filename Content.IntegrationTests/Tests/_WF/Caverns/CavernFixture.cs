@@ -202,7 +202,7 @@ public static class CavernFixture
         });
 
         Assert.That(gate, Is.Not.Null, $"{server.EntMan.ToPrettyString(world.Ground)} has no gate mouth.");
-        return gate!.Value;
+        return gate!;
     }
 
     /// <summary>The lip tile over a mouth's climb point, the same index on the ground and in the cavern.</summary>
@@ -211,7 +211,7 @@ public static class CavernFixture
         return mouth.ClimbTile;
     }
 
-    /// <summary>The cavern tile a faller through the mouth's bottom-left hole tile lands on.</summary>
+    /// <summary>The cavern tile a faller through the mouth's anchor, the hole tile nearest its centre, lands on.</summary>
     public static Vector2i LandingIndex(WFCavernMouth mouth)
     {
         return mouth.Origin;

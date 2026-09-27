@@ -7,7 +7,7 @@ cmd-wfcavern-no-cavern = { $planet } has no cavern, or its cavern has no gate.
 cmd-wfcavern-empty = Nothing to list.
 cmd-wfcavern-row = { $planet } | cavern: { $cavern } | mouths: { $mouths } | below: { $players }
 cmd-wfcavern-row-none = none
-cmd-wfcavern-mouth-row = { $kind } | origin: { $origin } | size: { $size } | climb tile: { $climb }
+cmd-wfcavern-mouth-row = { $kind } | anchor: { $origin } | tiles: { $tiles } | climb tile: { $climb }
 cmd-wfcavern-mouth-kind = { $kind ->
     [gate] Gate
     [cell] Cell
@@ -17,7 +17,7 @@ cmd-wfcavern-mouth-kind = { $kind ->
 cmd-wfcavern-tp-done = Moved to the gate { $target } of { $planet }.
 cmd-wfcavern-no-map = Attach to an entity first.
 cmd-wfcavern-not-ground = Stand on a planet's ground above a cavern first.
-cmd-wfcavern-open-done = Carved a mouth with its hole at { $origin }.
+cmd-wfcavern-open-done = Carved a mouth around { $origin }.
 cmd-wfcavern-open-refused = Can't carve a mouth here: { $reason ->
     [grid] a ship or debris is over it.
     [built] something built stands in the hole.

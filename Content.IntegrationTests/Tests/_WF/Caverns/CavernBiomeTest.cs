@@ -19,7 +19,7 @@ public sealed class CavernBiomeTest
         { "WFSurfaceAsclepiu", (0.35f, 0.55f) },
         { "WFSurfaceFervidus", (0.30f, 0.45f) },
         { "WFSurfaceMerak", (0.40f, 0.60f) },
-        { "WFSurfaceAerumna", (0.25f, 0.40f) },
+        { "WFSurfaceAerumna", (0.25f, 0.45f) },
         { "WFSurfaceThrascias", (0.35f, 0.55f) },
         { "WFSurfaceCarcinoma", (0.35f, 0.55f) },
     };

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using Content.Shared._WF.Caverns;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
@@ -13,11 +14,11 @@ public sealed partial class WFCavernMouthSystem
     /// <summary>Random candidates each cell tries after the gate candidate, if it has one.</summary>
     public const int CandidatesPerCell = 8;
 
-    /// <summary>Candidates keep this many tiles from the cell's edges, so a pad never crosses into the next cell.</summary>
-    public const int CellInset = 8;
+    /// <summary>A candidate's pad keeps this many tiles from its cell's edges, so it never crosses into the next cell.</summary>
+    public const int CellMargin = 4;
 
-    /// <summary>How far out from the hole's centre the cavern check samples the tunnel.</summary>
-    public const int OpennessReach = 3;
+    /// <summary>How far past the hole's extent, along each axis from its anchor, the cavern check samples the tunnel.</summary>
+    public const int OpennessMargin = 2;
 
     /// <summary>How many of the four samples must be open for the pad to sit in the tunnel web.</summary>
     public const int OpennessNeeded = 3;
@@ -31,6 +32,9 @@ public sealed partial class WFCavernMouthSystem
     private static readonly Vector2i[] Cardinals = { new(0, 1), new(1, 0), new(0, -1), new(-1, 0) };
 
     private static readonly Entity<MapGridComponent>? NoGrid = null;
+
+    /// <summary>One candidate before its shape is grown: the shape's seed and where in the cell it goes, as fractions.</summary>
+    private readonly record struct Candidate(int Seed, double X, double Y, Vector2i? Fixed);
 
     /// <summary>Claims a cell: its site is found once and cached, then stamped as soon as nothing blocks it.</summary>
     private WFCavernClaim ClaimCell(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell, WFCavernMouthKind kind)
@@ -79,47 +83,77 @@ public sealed partial class WFCavernMouthSystem
     }
 
     /// <summary>A cell's candidates in order: the gate candidate if it lies in the cell, then eight seeded ones.</summary>
-    private List<Vector2i> Candidates(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell)
+    private List<Candidate> Candidates(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell)
     {
         var spec = context.Spec;
-        var candidates = new List<Vector2i>(CandidatesPerCell + 1);
+        var seed = context.Ground.Comp1.Seed;
+        var candidates = new List<Candidate>(CandidatesPerCell + 1);
         var gate = GateCandidate(ground, spec);
 
         if (CellOf(spec, gate) == cell)
-            candidates.Add(gate);
+            candidates.Add(new Candidate(WFCavernMouthShape.SeedAt(seed, gate), 0, 0, gate));
 
         // Plain arithmetic, never HashCode.Combine: that is randomised per process.
-        var random = new System.Random(unchecked(context.Ground.Comp1.Seed * 7919 + cell.X * 73856093 + cell.Y * 19349663));
-        var min = cell * spec.CellSize + new Vector2i(CellInset, CellInset);
-        var span = Math.Max(1, spec.CellSize - 2 * CellInset - spec.HoleSize + 1);
+        var random = new System.Random(unchecked(seed * 7919 + cell.X * 73856093 + cell.Y * 19349663));
 
         for (var i = 0; i < CandidatesPerCell; i++)
         {
-            candidates.Add(new Vector2i(min.X + random.Next(span), min.Y + random.Next(span)));
+            candidates.Add(new Candidate(random.Next(), random.NextDouble(), random.NextDouble(), null));
         }
 
         return candidates;
     }
 
-    /// <summary>The first candidate that passes both pure checks, or null. Reads only noise, so it never depends on timing.</summary>
-    private Vector2i? FindSite(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell)
+    /// <summary>The first candidate whose grown shape fits the cell and passes both pure checks, or null. Reads only noise, so it never depends on timing.</summary>
+    private WFCavernSite? FindSite(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell)
     {
         foreach (var candidate in Candidates(ground, context, cell))
         {
-            if (GroundAllows(context, candidate) && CavernAllows(context, candidate))
-                return candidate;
+            var shape = WFCavernMouthShape.Generate(context.Spec, candidate.Seed);
+            if (!TryPlace(context.Spec, cell, shape, candidate, out var origin))
+                continue;
+
+            var site = new WFCavernSite(origin, shape);
+            if (CavernAllows(context, site) && GroundAllows(context, site))
+                return site;
         }
 
         return null;
     }
 
+    /// <summary>Anchors a candidate: the gate candidate where it is, the others spread by their fractions over the spots whose whole pad stays <see cref="CellMargin"/> inside the cell.</summary>
+    private static bool TryPlace(WFCavernMouthSpec spec, Vector2i cell, WFCavernMouthShape shape, Candidate candidate, out Vector2i origin)
+    {
+        if (candidate.Fixed is { } fixedAt)
+        {
+            origin = fixedAt;
+            return true;
+        }
+
+        var reach = spec.PadRadius + CellMargin;
+        var cellMin = cell * spec.CellSize;
+        var low = cellMin - shape.Min + new Vector2i(reach, reach);
+        var high = cellMin + new Vector2i(spec.CellSize - 1, spec.CellSize - 1) - shape.Max - new Vector2i(reach, reach);
+
+        origin = low;
+        if (high.X < low.X || high.Y < low.Y)
+            return false;
+
+        origin = new Vector2i(
+            low.X + Math.Min((int) (candidate.X * (high.X - low.X + 1)), high.X - low.X),
+            low.Y + Math.Min((int) (candidate.Y * (high.Y - low.Y + 1)), high.Y - low.Y));
+        return true;
+    }
+
     /// <summary>Every footprint tile's natural tile is in the allowlist and its natural entity is not one to avoid.</summary>
-    private bool GroundAllows(MouthContext context, Vector2i origin)
+    private bool GroundAllows(MouthContext context, WFCavernSite site)
     {
         var biome = context.Ground.Comp1;
 
-        foreach (var index in Footprint(origin, context.Spec.HoleSize))
+        foreach (var offset in site.Shape.Hole.Concat(site.Shape.Ring))
         {
+            var index = site.Origin + offset;
+
             if (!_biome.TryGetTile(index, biome.Layers, biome.Seed, NoGrid, out var tile)
                 || !context.GroundTiles.Contains(_tileDefs[tile.Value.TypeId].ID))
                 return false;
@@ -132,19 +166,26 @@ public sealed partial class WFCavernMouthSystem
         return true;
     }
 
-    /// <summary>The cavern is open under the hole's centre and at three of the four points a few tiles out.</summary>
-    private bool CavernAllows(MouthContext context, Vector2i origin)
+    /// <summary>The cavern is open under the anchor and at three of the four points just past the hole's extent along each axis.</summary>
+    private bool CavernAllows(MouthContext context, WFCavernSite site)
     {
-        var half = context.Spec.HoleSize / 2;
-        var centre = origin + new Vector2i(half, half);
+        var shape = site.Shape;
 
-        if (!IsCavernOpen(context, centre))
+        if (!IsCavernOpen(context, site.Origin))
             return false;
 
-        var open = 0;
-        foreach (var direction in Cardinals)
+        var reaches = new[]
         {
-            if (IsCavernOpen(context, centre + direction * OpennessReach))
+            shape.Max.Y + OpennessMargin,
+            shape.Max.X + OpennessMargin,
+            -shape.Min.Y + OpennessMargin,
+            -shape.Min.X + OpennessMargin,
+        };
+
+        var open = 0;
+        for (var i = 0; i < Cardinals.Length; i++)
+        {
+            if (IsCavernOpen(context, site.Origin + Cardinals[i] * reaches[i]))
                 open++;
         }
 
@@ -160,28 +201,29 @@ public sealed partial class WFCavernMouthSystem
                && !_biome.TryGetEntity(index, biome.Layers, tile.Value, biome.Seed, NoGrid, out _);
     }
 
-    /// <summary>Nothing pinned, anchored or loaded under the footprint or pad, and no grid nearby: a stamp can't cut into anything.</summary>
-    private bool CanStamp(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i origin)
+    /// <summary>Nothing pinned, anchored or loaded under the footprint or pad, and no grid nearby: a stamp can't cut into anything, nor into another mouth's pad.</summary>
+    private bool CanStamp(Entity<WFCavernGroundComponent> ground, MouthContext context, WFCavernSite site)
     {
-        var size = context.Spec.HoleSize;
         var groundBiome = (context.Ground.Owner, context.Ground.Comp1);
         var levelBiome = (context.Level.Owner, context.Level.Comp1);
 
-        foreach (var index in Footprint(origin, size))
+        foreach (var offset in site.Shape.Hole.Concat(site.Shape.Ring))
         {
+            var index = site.Origin + offset;
+
             if (_biome.WfIsPinned(groundBiome, index)
                 || _biome.WfIsChunkLoaded(groundBiome, index)
                 || _map.GetAnchoredEntitiesEnumerator(context.Ground.Owner, context.Ground.Comp2, index).MoveNext(out _))
                 return false;
         }
 
-        foreach (var index in Pad(origin, size, context.Spec.PadRadius))
+        foreach (var offset in site.Shape.Pad(context.Spec.PadRadius))
         {
-            if (_biome.WfIsChunkLoaded(levelBiome, index))
+            if (_biome.WfIsChunkLoaded(levelBiome, site.Origin + offset) || _biome.WfIsPinned(levelBiome, site.Origin + offset))
                 return false;
         }
 
-        var footprint = new Box2(origin - Vector2i.One, origin + new Vector2i(size + 1, size + 1));
+        var footprint = new Box2(site.Origin + site.Shape.Min - Vector2i.One, site.Origin + site.Shape.Max + new Vector2i(2, 2));
         var grids = new List<Entity<MapGridComponent>>();
         _mapManager.FindGridsIntersecting(Comp<MapComponent>(ground).MapId, footprint.Enlarged(GridClearance), ref grids,
             approx: true, includeMap: false);
@@ -191,22 +233,23 @@ public sealed partial class WFCavernMouthSystem
 
     /// <summary>Cuts the mouth: ring and hole on the ground, the pad in the cavern, then shades, rim and climb point.</summary>
     // One SetTiles per map. Pinned tiles skip tile, entity and decal generation, so this holds on unloaded chunks too.
-    private WFCavernMouth Stamp(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i origin, WFCavernMouthKind kind)
+    private WFCavernMouth Stamp(Entity<WFCavernGroundComponent> ground, MouthContext context, WFCavernSite site, WFCavernMouthKind kind)
     {
         var spec = context.Spec;
-        var size = spec.HoleSize;
+        var mouth = new WFCavernMouth(site.Origin, site.Shape, kind);
         var groundGrid = (context.Ground.Owner, context.Ground.Comp2);
         var levelGrid = (context.Level.Owner, context.Level.Comp2);
         var groundBiome = context.Ground.Comp1;
         var levelBiome = context.Level.Comp1;
+        var pad = mouth.Pad(spec.PadRadius);
 
-        ClearBiomeEntities(context.Ground, Footprint(origin, size));
-        ClearBiomeEntities(context.Level, Pad(origin, size, spec.PadRadius));
+        ClearBiomeEntities(context.Ground, mouth.Footprint);
+        ClearBiomeEntities(context.Level, pad);
 
         var groundTiles = new List<(Vector2i, Tile)>();
         var pinned = new List<Vector2i>();
 
-        foreach (var index in Ring(origin, size))
+        foreach (var index in mouth.Ring)
         {
             pinned.Add(index);
 
@@ -217,7 +260,7 @@ public sealed partial class WFCavernMouthSystem
                 groundTiles.Add((index, natural.Value));
         }
 
-        foreach (var index in Hole(origin, size))
+        foreach (var index in mouth.Hole)
         {
             pinned.Add(index);
 
@@ -231,26 +274,22 @@ public sealed partial class WFCavernMouthSystem
 
         var landing = new Tile(_tileDefs[spec.LandingTile].TileId);
         var padTiles = new List<(Vector2i, Tile)>();
-        var pad = new List<Vector2i>();
-        var outline = new WFCavernMouth(origin, size, origin, kind);
 
-        foreach (var index in Pad(origin, size, spec.PadRadius))
+        foreach (var index in pad)
         {
-            pad.Add(index);
-
-            if (outline.Contains(index) || !_biome.TryGetTile(index, levelBiome.Layers, levelBiome.Seed, NoGrid, out var natural))
+            if (mouth.Contains(index) || !_biome.TryGetTile(index, levelBiome.Layers, levelBiome.Seed, NoGrid, out var natural))
                 padTiles.Add((index, landing));
             else
                 padTiles.Add((index, natural.Value));
         }
 
         _map.SetTiles(context.Level.Owner, context.Level.Comp2, padTiles);
-        _biome.WfPinTiles((context.Level.Owner, levelBiome), pad);
+        _biome.WfPinTiles((context.Level.Owner, levelBiome), pad.ToList());
 
         var air = WFCavernAirClassifier.Classify(_proto.Index(context.Cavern.Level).Atmosphere);
         var landingMultiplier = ((ContentTileDefinition) _tileDefs[spec.LandingTile]).FallDamageMultiplier;
 
-        foreach (var index in Hole(origin, size))
+        foreach (var index in mouth.Hole)
         {
             if (ground.Comp.Shades.ContainsKey(index))
                 continue;
@@ -264,27 +303,23 @@ public sealed partial class WFCavernMouthSystem
             ground.Comp.Shades[index] = shade;
         }
 
-        var climbTile = ClimbTile(origin, size, spec.ClimbSide);
-
         if (spec.Rim.Count > 0)
         {
-            var corners = RimCorners(origin, size, climbTile);
-            for (var i = 0; i < corners.Count; i++)
+            for (var i = 0; i < site.Shape.Rim.Count; i++)
             {
-                SpawnAnchored(spec.Rim[i % spec.Rim.Count], groundGrid, corners[i]);
+                SpawnAnchored(spec.Rim[i % spec.Rim.Count], groundGrid, site.Origin + site.Shape.Rim[i]);
             }
         }
 
-        if (!ground.Comp.ClimbPoints.ContainsKey(climbTile))
+        if (!ground.Comp.ClimbPoints.ContainsKey(mouth.ClimbTile))
         {
-            var climb = SpawnAnchored(spec.ClimbPoint, levelGrid, climbTile);
+            var climb = SpawnAnchored(spec.ClimbPoint, levelGrid, mouth.ClimbTile);
             var climbComp = EnsureComp<WFCavernClimbComponent>(climb);
             climbComp.Delay = spec.ClimbSeconds * Math.Clamp(context.Surface.Gravity, 1f, 2.5f);
             Dirty(climb, climbComp);
-            ground.Comp.ClimbPoints[climbTile] = climb;
+            ground.Comp.ClimbPoints[mouth.ClimbTile] = climb;
         }
 
-        var mouth = new WFCavernMouth(origin, size, climbTile, kind);
         ground.Comp.Mouths.Add(mouth);
         return mouth;
     }
@@ -322,75 +357,5 @@ public sealed partial class WFCavernMouthSystem
             Log.Error($"Could not anchor {ToPrettyString(uid)} on {ToPrettyString(grid)} at {index}.");
 
         return uid;
-    }
-
-    /// <summary>The lip tile beside the hole's bottom-left on the climb side: the tile over the climb point.</summary>
-    public static Vector2i ClimbTile(Vector2i origin, int size, Direction side)
-    {
-        var step = side.ToIntVec();
-        return origin + new Vector2i(step.X > 0 ? size : step.X, step.Y > 0 ? size : step.Y);
-    }
-
-    /// <summary>Up to two ring corners that don't touch the climb tile, farthest from it first.</summary>
-    private static List<Vector2i> RimCorners(Vector2i origin, int size, Vector2i climbTile)
-    {
-        var corners = new List<Vector2i>
-        {
-            origin + new Vector2i(-1, -1),
-            origin + new Vector2i(size, -1),
-            origin + new Vector2i(-1, size),
-            origin + new Vector2i(size, size),
-        };
-
-        corners.RemoveAll(corner => Math.Abs(corner.X - climbTile.X) <= 1 && Math.Abs(corner.Y - climbTile.Y) <= 1);
-        corners.Sort((a, b) => (b - climbTile).LengthSquared.CompareTo((a - climbTile).LengthSquared));
-
-        if (corners.Count > 2)
-            corners.RemoveRange(2, corners.Count - 2);
-
-        return corners;
-    }
-
-    /// <summary>The hole's tiles.</summary>
-    public static IEnumerable<Vector2i> Hole(Vector2i origin, int size)
-    {
-        for (var x = 0; x < size; x++)
-        for (var y = 0; y < size; y++)
-        {
-            yield return origin + new Vector2i(x, y);
-        }
-    }
-
-    /// <summary>The one-tile lip around the hole.</summary>
-    public static IEnumerable<Vector2i> Ring(Vector2i origin, int size)
-    {
-        for (var x = -1; x <= size; x++)
-        for (var y = -1; y <= size; y++)
-        {
-            if (x >= 0 && x < size && y >= 0 && y < size)
-                continue;
-
-            yield return origin + new Vector2i(x, y);
-        }
-    }
-
-    /// <summary>The hole and its lip.</summary>
-    public static IEnumerable<Vector2i> Footprint(Vector2i origin, int size)
-    {
-        for (var x = -1; x <= size; x++)
-        for (var y = -1; y <= size; y++)
-        {
-            yield return origin + new Vector2i(x, y);
-        }
-    }
-
-    /// <summary>The cavern pad: the tiles under the hole and <paramref name="radius"/> tiles around them.</summary>
-    public static IEnumerable<Vector2i> Pad(Vector2i origin, int size, int radius)
-    {
-        for (var x = -radius; x < size + radius; x++)
-        for (var y = -radius; y < size + radius; y++)
-        {
-            yield return origin + new Vector2i(x, y);
-        }
     }
 }

@@ -97,7 +97,7 @@ public sealed class CavernGenerationTest
                         Assert.That(biomes.WfIsChunkLoaded(biome, gate.ClimbTile + new Vector2i(LoadReach, LoadReach)), Is.True,
                             $"Precondition: {surfaceId}'s viewer never loaded the cavern around it.");
 
-                        foreach (var index in WFCavernMouthSystem.Pad(gate.Origin, gate.Size, cavern.Mouths.PadRadius))
+                        foreach (var index in gate.Pad(cavern.Mouths.PadRadius))
                         {
                             foreach (var anchored in maps.GetAnchoredEntities(world.Cavern, grid, index))
                             {

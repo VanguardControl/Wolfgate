@@ -130,7 +130,7 @@ public sealed class CavernCommandTest
             // from self-deleting spawners the biome no longer tracks, so open treats them as built: pick a clear patch.
             await pair.RunTicksSync(10);
             var spot = gate.Origin + OpenOffset;
-            await server.WaitPost(() => spot = FindClearPatch(pair, world, gate.Origin + OpenOffset, gate.Size));
+            await server.WaitPost(() => spot = FindClearPatch(pair, world, gate.Origin + OpenOffset));
             await server.WaitPost(() =>
                 server.System<SharedTransformSystem>().SetCoordinates(viewer, new EntityCoordinates(world.Ground, TileCentre(spot))));
             await pair.RunTicksSync(2);
@@ -144,12 +144,12 @@ public sealed class CavernCommandTest
 
                 Assert.That(biomes.WfIsChunkLoaded(groundBiome, spot), Is.True,
                     "Precondition: the ground under the carve was not loaded.");
-                Assert.That(ground.Mouths.Any(mouth => mouth.Kind == WFCavernMouthKind.Admin && mouth.Origin == spot), Is.True,
-                    $"open made no admin mouth at {spot}:\n{string.Join('\n', open)}");
+                var carved = ground.Mouths.FirstOrDefault(mouth => mouth.Kind == WFCavernMouthKind.Admin && mouth.Origin == spot);
+                Assert.That(carved, Is.Not.Null, $"open made no admin mouth at {spot}:\n{string.Join('\n', open)}");
 
                 using (Assert.EnterMultipleScope())
                 {
-                    foreach (var index in WFCavernMouthSystem.Hole(spot, gate.Size))
+                    foreach (var index in carved!.Hole)
                     {
                         Assert.That(maps.TryGetTileRef(world.Ground, grid, index, out var tile) && !tile.Tile.IsEmpty, Is.False,
                             $"open left hole tile {index} solid.");
@@ -157,8 +157,13 @@ public sealed class CavernCommandTest
                         Assert.That(ground.Shades.ContainsKey(index), Is.True, $"open left hole tile {index} without a shade.");
                     }
 
-                    foreach (var index in WFCavernMouthSystem.Footprint(spot, gate.Size))
+                    // Only the mouth's own rim decor may stand on its footprint.
+                    var rim = carved.Shape.Rim.Select(offset => carved.Origin + offset).ToHashSet();
+                    foreach (var index in carved.Footprint)
                     {
+                        if (rim.Contains(index))
+                            continue;
+
                         Assert.That(maps.GetAnchoredEntities(world.Ground, grid, index), Is.Empty,
                             $"open left the biome's entities on footprint tile {index}.");
                     }
@@ -214,20 +219,25 @@ public sealed class CavernCommandTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The first footprint of solid ground where everything anchored is the biome's own, scanning east from a tile.</summary>
-    private static Vector2i FindClearPatch(TestPair pair, World world, Vector2i from, int size)
+    /// <summary>The first admin mouth footprint of solid ground where everything anchored is the biome's own, scanning east from a tile.</summary>
+    private static Vector2i FindClearPatch(TestPair pair, World world, Vector2i from)
     {
         var entMan = pair.Server.EntMan;
         var maps = pair.Server.System<SharedMapSystem>();
         var biomes = pair.Server.System<BiomeSystem>();
         var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
         var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+        var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+        var mouths = pair.Server.System<WFCavernMouthSystem>();
 
         for (var dx = 0; dx < 16; dx++)
         for (var dy = -4; dy <= 4; dy++)
         {
             var origin = from + new Vector2i(dx, dy);
-            var clear = WFCavernMouthSystem.Footprint(origin, size).All(index =>
+            var shape = mouths.AdminShape(ground, origin);
+            Assert.That(shape, Is.Not.Null, "Precondition: the Asclepiu cavern is gone.");
+
+            var clear = shape!.Hole.Concat(shape.Ring).Select(offset => origin + offset).All(index =>
                 maps.TryGetTileRef(world.Ground, grid, index, out var tile) && !tile.Tile.IsEmpty
                 && maps.GetAnchoredEntities(world.Ground, grid, index).All(uid => biomes.WfIsBiomeSpawned(biome, uid, index)));
 

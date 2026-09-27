@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Shared._WF.Caverns;
 using Robust.Shared.Prototypes;
@@ -80,27 +81,86 @@ public sealed class WFCavernCell
     [ViewVariables]
     public bool Evaluated;
 
-    /// <summary>The hole's bottom-left tile, or null when no candidate passed.</summary>
+    /// <summary>The site's anchor and shape, or null when no candidate passed.</summary>
     [ViewVariables]
-    public Vector2i? Site;
+    public WFCavernSite? Site;
 }
 
-/// <summary>A stamped way down: a square hole, its lip and the climb tile beside it.</summary>
-/// <param name="Origin">The hole's bottom-left ground tile.</param>
-/// <param name="Size">The hole's edge in tiles.</param>
-/// <param name="ClimbTile">The lip tile over the climb point.</param>
-/// <param name="Kind">Why the mouth exists.</param>
-public readonly record struct WFCavernMouth(Vector2i Origin, int Size, Vector2i ClimbTile, WFCavernMouthKind Kind)
-{
-    /// <summary>The hole's centre in ground-local coordinates.</summary>
-    public Vector2 Centre => new(Origin.X + Size / 2f, Origin.Y + Size / 2f);
+/// <summary>Where a cell's mouth goes: the anchor tile and the shape grown around it.</summary>
+public readonly record struct WFCavernSite(Vector2i Origin, WFCavernMouthShape Shape);
 
-    /// <summary>The tile holding the hole's centre, or the one up and right of it for an even hole.</summary>
-    public Vector2i CentreTile => Origin + new Vector2i(Size / 2, Size / 2);
+/// <summary>A stamped way down: a shaped hole, the lip around it and the climb tile on that lip.</summary>
+public sealed class WFCavernMouth
+{
+    /// <summary>The anchor: the hole tile nearest the hole's centroid.</summary>
+    public readonly Vector2i Origin;
+
+    /// <summary>The lip tile over the climb point.</summary>
+    public readonly Vector2i ClimbTile;
+
+    /// <summary>Why the mouth exists.</summary>
+    public readonly WFCavernMouthKind Kind;
+
+    /// <summary>The shape it was cut from, as offsets from <see cref="Origin"/>.</summary>
+    public readonly WFCavernMouthShape Shape;
+
+    /// <summary>The hole's ground tiles.</summary>
+    public readonly HashSet<Vector2i> Hole = new();
+
+    /// <summary>The lip: every ground tile touching the hole, diagonals included, that is not hole.</summary>
+    public readonly HashSet<Vector2i> Ring = new();
+
+    public WFCavernMouth(Vector2i origin, WFCavernMouthShape shape, WFCavernMouthKind kind)
+    {
+        Origin = origin;
+        Shape = shape;
+        Kind = kind;
+        ClimbTile = origin + shape.Climb;
+
+        foreach (var tile in shape.Hole)
+        {
+            Hole.Add(origin + tile);
+        }
+
+        foreach (var tile in shape.Ring)
+        {
+            Ring.Add(origin + tile);
+        }
+    }
+
+    /// <summary>How many tiles the hole has.</summary>
+    public int Size => Hole.Count;
+
+    /// <summary>The hole's centroid in ground-local coordinates.</summary>
+    public Vector2 Centre => new Vector2(Origin.X, Origin.Y) + Shape.Centroid;
+
+    /// <summary>The hole tile nearest its centroid, the same as <see cref="Origin"/>.</summary>
+    public Vector2i CentreTile => Origin;
+
+    /// <summary>The hole's lowest corner tile.</summary>
+    public Vector2i Min => Origin + Shape.Min;
+
+    /// <summary>The hole's highest corner tile.</summary>
+    public Vector2i Max => Origin + Shape.Max;
+
+    /// <summary>The hole and its lip.</summary>
+    public IEnumerable<Vector2i> Footprint => Hole.Concat(Ring);
 
     /// <summary>Whether a ground tile lies inside the hole.</summary>
     public bool Contains(Vector2i tile)
     {
-        return tile.X >= Origin.X && tile.X < Origin.X + Size && tile.Y >= Origin.Y && tile.Y < Origin.Y + Size;
+        return Hole.Contains(tile);
+    }
+
+    /// <summary>The cavern pad: every tile within <paramref name="radius"/> of a hole tile in either axis.</summary>
+    public HashSet<Vector2i> Pad(int radius)
+    {
+        var pad = new HashSet<Vector2i>();
+        foreach (var tile in Shape.Pad(radius))
+        {
+            pad.Add(Origin + tile);
+        }
+
+        return pad;
     }
 }

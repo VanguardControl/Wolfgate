@@ -164,7 +164,7 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             $"{shell.Player?.Name ?? "Server"} teleported to the {target} of the cavern gate on {EntityManager.ToPrettyString(ground.Owner)}");
     }
 
-    /// <summary>Lists a planet's claimed mouths: kind, origin and climb tile.</summary>
+    /// <summary>Lists a planet's claimed mouths: kind, anchor, hole size and climb tile.</summary>
     private void ExecuteMouths(IConsoleShell shell, string name)
     {
         if (!TryGetGround(shell, name, out var ground))
@@ -181,7 +181,7 @@ public sealed partial class WFCavernCommand : LocalizedEntityCommands
             shell.WriteLine(Loc.GetString("cmd-wfcavern-mouth-row",
                 ("kind", Loc.GetString("cmd-wfcavern-mouth-kind", ("kind", mouth.Kind.ToString().ToLowerInvariant()))),
                 ("origin", mouth.Origin.ToString()),
-                ("size", mouth.Size),
+                ("tiles", mouth.Size),
                 ("climb", mouth.ClimbTile.ToString())));
         }
     }

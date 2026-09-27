@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
@@ -158,8 +159,16 @@ public sealed class CavernHullTest
         {
             var gate = await Gate(pair, world);
 
-            // Over the hole and the lip's bottom-left corner: the lip is the only ground under it.
-            var from = gate.Origin - Vector2i.One;
+            // Centred on the hole tile over the climb tile, so it spans the hole's south edge and the lip: the lip is the only ground under it.
+            var from = gate.ClimbTile - new Vector2i(1, 0);
+            var covered = 0;
+            for (var x = 0; x < 3; x++)
+            for (var y = 0; y < 3; y++)
+            {
+                if (gate.Contains(from + new Vector2i(x, y)))
+                    covered++;
+            }
+
             var hull = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), size: 3,
                 offset: new Vector2(from.X, from.Y));
 
@@ -169,8 +178,9 @@ public sealed class CavernHullTest
                 {
                     Assert.That(entMan.GetComponent<TransformComponent>(hull).MapUid, Is.EqualTo(world.Ground),
                         "Precondition: the hull is not on the ground map.");
+                    Assert.That(covered, Is.GreaterThan(0), "Precondition: the hull covers none of the hole.");
                     Assert.That(SolidTiles(entMan, maps, world.Ground, from, from + new Vector2i(2, 2)),
-                        Is.EqualTo(9 - gate.Size * gate.Size), "Precondition: the ground under the hull is not just the lip.");
+                        Is.EqualTo(9 - covered), "Precondition: the ground under the hull is not just the lip.");
                 }
             });
 
@@ -200,9 +210,19 @@ public sealed class CavernHullTest
         {
             var gate = await Gate(pair, world);
 
-            // Centred in the 2x2 hole, clear of the lip on every side.
+            // Centred on a 2x2 block of hole tiles, clear of the lip on every side.
+            var block = gate.Hole
+                .Where(tile => gate.Contains(tile + new Vector2i(1, 0)) && gate.Contains(tile + new Vector2i(0, 1))
+                               && gate.Contains(tile + Vector2i.One))
+                .OrderBy(tile => (tile - gate.Origin).LengthSquared)
+                .ThenBy(tile => tile.X)
+                .ThenBy(tile => tile.Y)
+                .DefaultIfEmpty(gate.Origin)
+                .First();
+            Assert.That(gate.Contains(block + Vector2i.One), Is.True, "Precondition: the Asclepiu gate has no 2x2 block of hole.");
+
             var debris = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), size: 1,
-                offset: new Vector2(gate.Origin.X + 0.5f, gate.Origin.Y + 0.5f));
+                offset: new Vector2(block.X + 0.5f, block.Y + 0.5f));
 
             await server.WaitAssertion(() =>
                 Assert.That(entMan.GetComponent<TransformComponent>(debris).MapUid, Is.EqualTo(world.Ground),

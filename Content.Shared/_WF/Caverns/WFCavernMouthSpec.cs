@@ -3,7 +3,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Caverns;
 
-/// <summary>How a cavern's mouths are placed and fitted out: the hole, its lip, the pad below and the climb point.</summary>
+/// <summary>How a cavern's mouths are placed, shaped and fitted out: the hole, its lip, the pad below and the climb point.</summary>
 [DataDefinition]
 public sealed partial class WFCavernMouthSpec
 {
@@ -11,9 +11,29 @@ public sealed partial class WFCavernMouthSpec
     [DataField]
     public int CellSize = 96;
 
-    /// <summary>Edge of the square hole in tiles, 1 or 2.</summary>
+    /// <summary>How the hole is grown from its seed.</summary>
     [DataField]
-    public int HoleSize = 2;
+    public WFCavernMouthStyle Style = WFCavernMouthStyle.Round;
+
+    /// <summary>Fewest tiles a hole may have.</summary>
+    [DataField]
+    public int MinTiles = 4;
+
+    /// <summary>Most tiles a hole may have.</summary>
+    [DataField]
+    public int MaxTiles = 9;
+
+    /// <summary>Largest ratio of a round or blob hole's long axis to its short one; the axis turns at random.</summary>
+    [DataField]
+    public float Elongation = 1.2f;
+
+    /// <summary>How far a round or blob hole's edge wanders in and out, as a fraction of its radius.</summary>
+    [DataField]
+    public float Roughness = 0.1f;
+
+    /// <summary>A rift's widest stretch in tiles, 1 or 2.</summary>
+    [DataField]
+    public int RiftWidth = 2;
 
     /// <summary>The gate's first candidate, relative to the planet centre.</summary>
     [DataField]
@@ -47,11 +67,28 @@ public sealed partial class WFCavernMouthSpec
     [DataField(required: true)]
     public EntProtoId ClimbPoint;
 
-    /// <summary>Decor anchored on up to two of the lip's corner tiles.</summary>
+    /// <summary>Decor anchored on random lip tiles, never on or beside the climb tile.</summary>
     [DataField]
     public List<EntProtoId> Rim = new();
+
+    /// <summary>About how many rim decor entities a mouth gets, give or take one.</summary>
+    [DataField]
+    public int RimCount = 3;
 
     /// <summary>Base climb-up time in seconds, before surface gravity scales it.</summary>
     [DataField]
     public float ClimbSeconds = 4f;
+}
+
+/// <summary>How a mouth's hole is grown.</summary>
+public enum WFCavernMouthStyle : byte
+{
+    /// <summary>A smooth ellipse: a moulin or a funnel.</summary>
+    Round,
+
+    /// <summary>An ellipse whose edge wanders in and out: a sinkhole or a skylight.</summary>
+    Blob,
+
+    /// <summary>A wandering crack one or two tiles wide.</summary>
+    Rift,
 }

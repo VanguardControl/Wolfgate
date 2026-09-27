@@ -122,7 +122,7 @@ public sealed class CavernClimbTest
         {
             var gate = await Gate(pair, world);
             var shade = EntityUid.Invalid;
-            await server.WaitPost(() => shade = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades[gate.Origin]);
+            await server.WaitPost(() => shade = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades[ShadeBeside(gate)]);
 
             var mob = await SpawnSettled(pair, world.Ground, ClimbTile(gate));
 
@@ -190,7 +190,7 @@ public sealed class CavernClimbTest
 
             await server.WaitPost(() =>
             {
-                shade = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades[gate.Origin];
+                shade = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades[ShadeBeside(gate)];
                 wall = entMan.SpawnEntity(BuiltWall, new EntityCoordinates(world.Cavern, TileCentre(ClimbTile(gate))));
             });
 
@@ -447,6 +447,12 @@ public sealed class CavernClimbTest
     private static Vector2i Beside(WFCavernMouth gate)
     {
         return ClimbTile(gate) + new Vector2i(0, -1);
+    }
+
+    /// <summary>The hole tile just north of the climb tile, in reach of a climber standing on it.</summary>
+    private static Vector2i ShadeBeside(WFCavernMouth gate)
+    {
+        return ClimbTile(gate) + new Vector2i(0, 1);
     }
 
     /// <summary>The gate's climb point in the cavern.</summary>

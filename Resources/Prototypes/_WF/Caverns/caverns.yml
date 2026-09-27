@@ -1,5 +1,6 @@
 # One cavern under each world, built at depth -1 with its planet network while wf.caverns is on.
-# Mouths: avoid also lists each world's rock-outcrop spawner, so no mouth is walled in by an outcrop.
+# Mouths: each hole is grown from its own seed to the world's style and size range (CAVERNS_DESIGN.md 3.3).
+# Avoid also lists each world's rock-outcrop spawner, so no mouth is walled in by an outcrop.
 
 - type: wfCavern
   id: WFCavernAsclepiu
@@ -10,13 +11,19 @@
   roofColor: "#070a08"
   shaftLight: 0.5
   mouths:
-    holeSize: 2
+    style: Blob
+    minTiles: 14
+    maxTiles: 30
+    elongation: 1.6
+    roughness: 0.35
     cellSize: 96
     groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]
     avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]
     landingTile: FloorWater
     shade: WFCavernShadeAsclepiu
     climbPoint: WFCavernClimbAsclepiu
+    rim: [FloraRockSolid]
+    rimCount: 2
 
 - type: wfCavern
   id: WFCavernFervidus
@@ -27,7 +34,11 @@
   roofColor: "#1c0803"
   shaftLight: 0.45
   mouths:
-    holeSize: 2
+    style: Blob
+    minTiles: 8
+    maxTiles: 18
+    elongation: 1.8
+    roughness: 0.3
     cellSize: 96
     groundTiles: [FloorBasalt]
     avoid: [FloorLavaEntity, MonoPlanetmapOreBasalt]
@@ -45,13 +56,19 @@
   roofColor: "#120d07"
   shaftLight: 0.55
   mouths:
-    holeSize: 2
+    style: Round
+    minTiles: 12
+    maxTiles: 28
+    elongation: 1.25
+    roughness: 0.1
     cellSize: 96
     groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]
     avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]
     landingTile: WFCavernFloorSandDrift
     shade: WFCavernShadeMerak
     climbPoint: WFCavernClimbMerak
+    rim: [FloraRockSolidPlanet]
+    rimCount: 2
 
 - type: wfCavern
   id: WFCavernAerumna
@@ -62,13 +79,17 @@
   roofColor: "#050408"
   shaftLight: 0.3
   mouths:
-    holeSize: 1
+    style: Rift
+    minTiles: 9
+    maxTiles: 22
+    riftWidth: 2
     cellSize: 128
     groundTiles: [FloorChromite]
     avoid: [MonoFloorWaterEntity, MonoPlanetmapOreChromite]
     landingTile: WFCavernFloorChromiteScree
     shade: WFCavernShadeAerumna
     climbPoint: WFCavernClimbAerumna
+    rim: [ShadowBasaltOne, ShadowBasaltThree, CrystalPink]
 
 - type: wfCavern
   id: WFCavernThrascias
@@ -79,7 +100,11 @@
   roofColor: "#060c12"
   shaftLight: 0.5
   mouths:
-    holeSize: 1
+    style: Round
+    minTiles: 5
+    maxTiles: 12
+    elongation: 1.3
+    roughness: 0.05
     cellSize: 96
     groundTiles: [FloorSnow, FloorIce]
     avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]
@@ -97,7 +122,11 @@
   roofColor: "#140306"
   shaftLight: 0.4
   mouths:
-    holeSize: 2
+    style: Blob
+    minTiles: 8
+    maxTiles: 20
+    elongation: 1.5
+    roughness: 0.45
     cellSize: 80
     groundTiles: [WFFloorFlesh]
     avoid: [WFBloodRiver, WallMeat]

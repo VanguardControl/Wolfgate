@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using Content.Server.Parallax;
 using Content.Shared._WF.Caverns;
@@ -40,9 +41,9 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
     }
 
     /// <summary>The mouth whose hole centre is nearest a ground-local position.</summary>
-    public bool TryGetNearestMouth(Entity<WFCavernGroundComponent> ground, Vector2 position, out WFCavernMouth mouth)
+    public bool TryGetNearestMouth(Entity<WFCavernGroundComponent> ground, Vector2 position, [NotNullWhen(true)] out WFCavernMouth? mouth)
     {
-        mouth = default;
+        mouth = null;
         var best = float.MaxValue;
 
         foreach (var candidate in ground.Comp.Mouths)
@@ -55,7 +56,7 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
             mouth = candidate;
         }
 
-        return best < float.MaxValue;
+        return mouth != null;
     }
 
     /// <summary>The mouth cell holding a ground tile.</summary>
@@ -99,7 +100,7 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Carves an admin mouth with its hole's bottom-left at a ground tile, clearing biome entities from loaded terrain.</summary>
+    /// <summary>Carves an admin mouth anchored at a ground tile, its shape seeded by that tile, clearing biome entities from loaded terrain.</summary>
     /// <param name="refusal">Why it was refused: cavern (either map is gone), grid, built, mob or mouth.</param>
     /// <param name="ignore">A mob allowed to stand in the hole, such as the admin carving it.</param>
     public bool TryOpenMouth(
@@ -116,11 +117,11 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
             return false;
         }
 
-        var size = context.Spec.HoleSize;
+        var shape = AdminShape(context, origin);
         var mapId = Comp<MapComponent>(ground).MapId;
-        var hole = new Box2(origin, origin + new Vector2i(size, size));
+        var hole = Offset(origin, shape.Hole);
 
-        foreach (var index in Footprint(origin, size))
+        foreach (var index in Offset(origin, shape.Hole.Concat(shape.Ring)))
         {
             if (!ground.Comp.Shades.ContainsKey(index) && !ground.Comp.ClimbPoints.ContainsKey(index))
                 continue;
@@ -130,14 +131,18 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
         }
 
         var grids = new List<Entity<MapGridComponent>>();
-        _mapManager.FindGridsIntersecting(mapId, hole.Enlarged(-0.05f), ref grids, approx: true, includeMap: false);
-        if (grids.Count > 0)
+        foreach (var index in hole)
         {
+            grids.Clear();
+            _mapManager.FindGridsIntersecting(mapId, TileBox(index), ref grids, approx: true, includeMap: false);
+            if (grids.Count == 0)
+                continue;
+
             refusal = "grid";
             return false;
         }
 
-        foreach (var index in Hole(origin, size))
+        foreach (var index in hole)
         {
             foreach (var anchored in _map.GetAnchoredEntities(context.Ground.Owner, context.Ground.Comp2, index))
             {
@@ -150,18 +155,52 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
         }
 
         _mobs.Clear();
-        _lookup.GetEntitiesIntersecting(mapId, hole.Enlarged(-0.05f), _mobs);
+        var bounds = new Box2(origin + shape.Min, origin + shape.Max + Vector2i.One);
+        _lookup.GetEntitiesIntersecting(mapId, bounds.Enlarged(-0.05f), _mobs);
         foreach (var mob in _mobs)
         {
-            if (mob.Owner == ignore || Transform(mob).MapUid != ground.Owner)
+            var xform = Transform(mob);
+            if (mob.Owner == ignore || xform.MapUid != ground.Owner)
+                continue;
+
+            if (!hole.Contains(_map.TileIndicesFor(context.Ground.Owner, context.Ground.Comp2, xform.Coordinates)))
                 continue;
 
             refusal = "mob";
             return false;
         }
 
-        Stamp(ground, context, origin, WFCavernMouthKind.Admin);
+        Stamp(ground, context, new WFCavernSite(origin, shape), WFCavernMouthKind.Admin);
         return true;
+    }
+
+    /// <summary>The shape an admin mouth anchored at a ground tile would take on this ground.</summary>
+    public WFCavernMouthShape? AdminShape(Entity<WFCavernGroundComponent> ground, Vector2i origin)
+    {
+        return TryGetContext(ground, out var context) ? AdminShape(context, origin) : null;
+    }
+
+    private static WFCavernMouthShape AdminShape(MouthContext context, Vector2i origin)
+    {
+        return WFCavernMouthShape.Generate(context.Spec, WFCavernMouthShape.SeedAt(context.Ground.Comp1.Seed, origin));
+    }
+
+    /// <summary>A tile's box, shrunk a little so neighbours don't count.</summary>
+    private static Box2 TileBox(Vector2i index)
+    {
+        return new Box2(index, index + Vector2i.One).Enlarged(-0.05f);
+    }
+
+    /// <summary>Offsets moved to an anchor tile.</summary>
+    private static HashSet<Vector2i> Offset(Vector2i origin, IEnumerable<Vector2i> offsets)
+    {
+        var tiles = new HashSet<Vector2i>();
+        foreach (var offset in offsets)
+        {
+            tiles.Add(origin + offset);
+        }
+
+        return tiles;
     }
 
     /// <summary>Floor division, so negative tiles land in negative cells.</summary>
