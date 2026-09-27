@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "license": "CC-BY-NC-SA-3.0",
+  "copyright": "Cropped from Textures/Tiles/chromite.png (Mojave-Sun, recoloured by TheShuEd) and darkened for Wolfgate cavern mouths.",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "pit"
+    }
+  ]
+}

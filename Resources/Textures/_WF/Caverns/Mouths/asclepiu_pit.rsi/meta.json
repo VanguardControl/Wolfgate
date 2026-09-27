@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Cropped from Textures/_Mono/Tiles/planet/water.png (Monolith (Grid Networks, #4690)) and darkened for Wolfgate cavern mouths.",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "pit"
+    }
+  ]
+}

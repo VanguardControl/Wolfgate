@@ -93,6 +93,15 @@ the six geologies, air, light, life, sound and the mining loop), is in `Docs/_WF
 - [`Resources/Locale/en-US/_WF/Caverns/commands.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/commands.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/entities.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/entities.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/fervidus_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/fervidus_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/merak_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/merak_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/thrascias_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/thrascias_pit.rsi/)
+
 ### Docs
 
 - [`Docs/_WF/Caverns/CAVERNS_DESIGN.md`](../../../Docs/_WF/Caverns/CAVERNS_DESIGN.md)

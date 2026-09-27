@@ -1,4 +1,5 @@
 # The pit over each hole tile of a mouth, and the climb point in the cavern under its lip.
+# A pit shows the landing floor below, darkened a level and lit by the ground's daylight like the real opening.
 
 # Unanchored with no physics, so it never falls into the hole it marks.
 - type: entity
@@ -12,8 +13,8 @@
   - type: Clickable
   - type: Sprite
     drawdepth: LowFloors
-    sprite: Tiles/Planet/Chasms/desert_chasm.rsi
-    state: full
+    sprite: _WF/Caverns/Mouths/merak_pit.rsi
+    state: pit
   - type: WFCavernShaft
 
 - type: entity
@@ -21,44 +22,42 @@
   parent: WFCavernShadeBase
   components:
   - type: Sprite
-    sprite: Tiles/Planet/Chasms/desert_chasm.rsi
-    color: "#5d5445"
+    sprite: _WF/Caverns/Mouths/asclepiu_pit.rsi
 
 - type: entity
   id: WFCavernShadeFervidus
   parent: WFCavernShadeBase
   components:
   - type: Sprite
-    sprite: Tiles/Planet/Chasms/basalt_chasm.rsi
+    sprite: _WF/Caverns/Mouths/fervidus_pit.rsi
 
 - type: entity
   id: WFCavernShadeMerak
   parent: WFCavernShadeBase
   components:
   - type: Sprite
-    sprite: Tiles/Planet/Chasms/desert_chasm.rsi
+    sprite: _WF/Caverns/Mouths/merak_pit.rsi
 
 - type: entity
   id: WFCavernShadeAerumna
   parent: WFCavernShadeBase
   components:
   - type: Sprite
-    sprite: Tiles/Planet/Chasms/chromite_chasm.rsi
+    sprite: _WF/Caverns/Mouths/aerumna_pit.rsi
 
 - type: entity
   id: WFCavernShadeThrascias
   parent: WFCavernShadeBase
   components:
   - type: Sprite
-    sprite: Tiles/Planet/Chasms/snow_chasm.rsi
+    sprite: _WF/Caverns/Mouths/thrascias_pit.rsi
 
 - type: entity
   id: WFCavernShadeCarcinoma
   parent: WFCavernShadeBase
   components:
   - type: Sprite
-    sprite: Tiles/Planet/Chasms/basalt_chasm.rsi
-    color: "#4a0f16"
+    sprite: _WF/Caverns/Mouths/carcinoma_pit.rsi
 
 # Ladder art only: no fixtures and no CEZLevelHighGround, so it is climbed by verb, never walked up.
 - type: entity
@@ -120,5 +119,5 @@
   parent: WFCavernClimbBase
   components:
   - type: Sprite
-    sprite: _CE/Structures/Architecture/Ladders/dirt_cliff.rsi
-    color: "#8a3a3a"
+    sprite: Objects/Misc/fleshkudzu.rsi
+    state: kudzu_11

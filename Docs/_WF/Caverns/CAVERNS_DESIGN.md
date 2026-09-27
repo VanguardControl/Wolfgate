@@ -734,8 +734,9 @@ The tests below are the gates.
   - deep table `WFCavernDeep<World>` (F5), unstable rock `WFCavernUnstable<World>` (F5), vent wall
     `WFCavernVent<World>`, ore `WFCavernOreGas<World>` and smoke `WFCavernGasPocket<World>` (F5).
 - **Shades** (`WFCavernShadeBase`): unanchored, no physics and no `CEZPhysics`, so they never fall. They use the
-  `full` state of the world's `Tiles/Planet/Chasms/*_chasm.rsi`, draw depth `LowFloors`, and have `Clickable` and
-  `WFCavernShaft`. A hole therefore reads as a pit rather than void or parallax, and it can be seen from low flight.
+  world's `_WF/Caverns/Mouths/<world>_pit.rsi` (the landing floor below, darkened a level), draw depth `LowFloors`,
+  drawn lit so the ground's daylight falls on it, and have `Clickable` and `WFCavernShaft`. A hole therefore reads as
+  an opening onto the floor below rather than void or parallax, and it can be seen from low flight.
 - **Climb points** (`WFCavernClimbBase`): anchored, no fixtures, and `Clickable`/`InteractionOutline`. The sprite is a
   CE ladder RSI (`_CE/Structures/Architecture/Ladders/<rsi>`, state `straight`) with a tint, carrying
   `WFCavernClimb`.
@@ -767,7 +768,7 @@ The beginner cavern: wet limestone, breathable air and a water landing.
 | Decor | Litter `FloraStalagmite`, `FloraGreyStalagmite`. Chambers `Cobweb1`, `Cobweb2` |
 | Deep (F5) | `MobRatKing` + 3 `MobRatServant` |
 | Ambience | Loop `/Audio/Ambience/ambicave.ogg`. One-shots `/Audio/Effects/waterswirl.ogg`, `/Audio/Effects/drop.ogg` |
-| Mouth | Sinkhole, 2×2, cell 96. `groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]`. Shade `desert_chasm` tinted `#5d5445`. Climb point `dirt_cliff.rsi` (roots). No rim. Lands in a plunge pool for 0 Blunt |
+| Mouth | Sinkhole, 2×2, cell 96. `groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]`. Shade `asclepiu_pit`. Climb point `dirt_cliff.rsi` (roots). No rim. Lands in a plunge pool for 0 Blunt |
 | Only below | Continuous salt and silver veins, artifact fragments |
 
 ### 4.3 Fervidus: the Cinder Vaults
@@ -786,7 +787,7 @@ Basalt cut by lava tubes, with magma chambers and diamonds.
 | Decor | Litter `BasaltOne`–`BasaltFive`. Chambers `FloraGreyStalagmite` |
 | Deep (F5) | `MobArgocyteLeviathing` |
 | Ambience | Loops `/Audio/Ambience/ambilava1.ogg`, `…ambilava2.ogg`, `…ambilava3.ogg`. One-shots `/Audio/Effects/sizzle.ogg`, `/Audio/Magic/rumble.ogg` |
-| Mouth | Skylight, 2×2, cell 96. `groundTiles: [FloorBasalt]`, `avoid: [FloorLavaEntity, MonoPlanetmapOreBasalt]`. Shade `basalt_chasm`. Climb point `stone.rsi` tinted `#5a4a44`. Rim `BasaltOne`, `BasaltThree`. Lands for 10 Blunt |
+| Mouth | Skylight, 2×2, cell 96. `groundTiles: [FloorBasalt]`, `avoid: [FloorLavaEntity, MonoPlanetmapOreBasalt]`. Shade `fervidus_pit`. Climb point `stone.rsi` tinted `#5a4a44`. Rim `BasaltOne`, `BasaltThree`. Lands for 10 Blunt |
 | Only below | Diamonds and bluespace in basalt |
 
 ### 4.4 Merak: the Sandstone Galleries
@@ -805,7 +806,7 @@ Cool pillared halls under a 45 °C desert, with the richest gold and the most co
 | Decor | Litter `FloraRockSolid` |
 | Deep (F5) | 2 `MobGiantSpiderAngry` |
 | Ambience | Loop `/Audio/Ambience/ambimine.ogg`. One-shots `/Audio/Effects/break_stone.ogg`, `/Audio/Effects/rustle4.ogg` |
-| Mouth | Sand funnel, 2×2, cell 96. `groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]`. Shade `desert_chasm`. Climb point `wooden.rsi` (rope ladder). Lands for 6 Blunt. A shovel opens a way down anywhere (3.4) |
+| Mouth | Sand funnel, 2×2, cell 96. `groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]`. Shade `merak_pit`. Climb point `wooden.rsi` (rope ladder). Lands for 6 Blunt. A shovel opens a way down anywhere (3.4) |
 | Only below | Gold-rich veins, fossils, lost prospectors' gear |
 
 ### 4.5 Aerumna: the Umbral Deeps
@@ -823,7 +824,7 @@ The darkest cavern: chromite, 3 g, toxic air, xenos, and the only anomaly rock.
 | Fauna | `MobXenoRunner` 3, `MobXenoDrone` 2, `MobArgocyteSlurva` 3, `MobXenoSpitter` 1, `MobXenoPraetorian` 0.5 |
 | Deep (F5) | `MobXenoPraetorian` + 2 `MobXenoRunner` |
 | Ambience | Loop `/Audio/Ambience/ambimystery.ogg`. One-shots `/Audio/Effects/glass_crack1.ogg`, `/Audio/Magic/rumble.ogg` |
-| Mouth | Rift, 1×1, cell 128. `groundTiles: [FloorChromite]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreChromite]`. Shade `chromite_chasm`. Climb point `stone.rsi` tinted `#3a3342`. Lands for 20 Blunt, the hard landing of a 3 g world. Explosions open ways down (3.4) |
+| Mouth | Rift, 1×1, cell 128. `groundTiles: [FloorChromite]`, `avoid: [MonoFloorWaterEntity, MonoPlanetmapOreChromite]`. Shade `aerumna_pit`. Climb point `stone.rsi` tinted `#3a3342`. Lands for 20 Blunt, the hard landing of a 3 g world. Explosions open ways down (3.4) |
 | Only below | Artifact anomalies, bluespace, diamonds |
 
 ### 4.6 Thrascias: the Rime Galleries
@@ -842,7 +843,7 @@ Ice halls with plasma lakes, milder than the 180 K surface but still lethal.
 | Loot | `SalvageSpawnerTreasureValuable` in chambers (≥ 0.997): frozen caches |
 | Deep (F5) | 2 `MobBearSpace` |
 | Ambience | Loop `/Audio/Ambience/ambiatmos2.ogg`. One-shots `/Audio/Effects/glass_crack2.ogg`, `/Audio/Effects/glass_crack1.ogg` |
-| Mouth | Moulin, 1×1, cell 96. `groundTiles: [FloorSnow, FloorIce]`, `avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]`. Shade `snow_chasm`. Climb point `stone.rsi` tinted `#bfe6ff`. Rim `CrystalCyan` on the two north corners (the south ones touch the climb tile of a 1×1 hole), so the glow marks the mouth at night. Lands for 3 Blunt |
+| Mouth | Moulin, 1×1, cell 96. `groundTiles: [FloorSnow, FloorIce]`, `avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]`. Shade `thrascias_pit`. Climb point `stone.rsi` tinted `#bfe6ff`. Rim `CrystalCyan` on the two north corners (the south ones touch the climb tile of a 1×1 hole), so the glow marks the mouth at night. Lands for 3 Blunt |
 | Only below | Diamonds, bluespace, preserved caches |
 
 ### 4.7 Carcinoma: the Gut
@@ -860,7 +861,7 @@ Flesh throats and stomachs grown over a mineral world, where the infestation beg
 | Fauna | `WFCavernFaunaCarcinoma`: nested `WFFaunaCarcinoma` 3, `WFMobFleshTick` 4, `MobFleshAssimilatedMiner` 1 |
 | Deep (F5) | `MobLetoferolHorror` |
 | Ambience | Loop `/Audio/Ambience/anomaly_scary.ogg`. One-shots `/Audio/Effects/gib1.ogg`, `/Audio/Effects/Fluids/blood1.ogg`, `/Audio/Ambience/Objects/drain.ogg` |
-| Mouth | Throat, 2×2, cell 80. `groundTiles: [WFFloorFlesh]`, `avoid: [WFBloodRiver, WallMeat]`. Shade `basalt_chasm` tinted `#4a0f16`. Climb point `dirt_cliff.rsi` tinted `#8a3a3a` (a tendril). Rim `WFFleshPolyp`. Lands for 5 Blunt. Prying and cutting the flesh opens ways down (3.4) |
+| Mouth | Throat, 2×2, cell 80. `groundTiles: [WFFloorFlesh]`, `avoid: [WFBloodRiver, WallMeat]`. Shade `carcinoma_pit`. Climb point the tendons (`fleshkudzu.rsi`, `kudzu_11`). Rim `WFFleshPolyp`. Lands for 5 Blunt. Prying and cutting the flesh opens ways down (3.4) |
 | Only below | Uranium and plasma in calcified nodes, assimilated miners' gear |
 
 ### 4.8 Air at a glance
