@@ -23,3 +23,21 @@ ent-WFCavernClimbThrascias = ice steps
     .desc = Steps cut into the ice climb up the side of the moulin.
 ent-WFCavernClimbCarcinoma = tendril ladder
     .desc = Knotted tendrils hang down the throat, thick enough to climb.
+
+ent-WFCavernGlowworms = glow-worms
+    .desc = A colony of glow-worms hangs from the ceiling, dangling sticky threads that shine a soft green.
+ent-WFCavernGutGlow = glowing membrane
+    .desc = A patch of the stomach wall pulses with a faint red light.
+
+ent-WFCavernFaunaAsclepiu = underkarst wildlife spawner
+    .desc = Spawns cavern wildlife near visitors, within the planet caps.
+ent-WFCavernFaunaFervidus = cinder vault wildlife spawner
+    .desc = Spawns cavern wildlife near visitors, within the planet caps.
+ent-WFCavernFaunaMerak = sandstone gallery wildlife spawner
+    .desc = Spawns cavern wildlife near visitors, within the planet caps.
+ent-WFCavernFaunaAerumna = umbral deep wildlife spawner
+    .desc = Spawns cavern wildlife near visitors, within the planet caps.
+ent-WFCavernFaunaThrascias = rime gallery wildlife spawner
+    .desc = Spawns cavern wildlife near visitors, within the planet caps.
+ent-WFCavernFaunaCarcinoma = gut biothreat spawner
+    .desc = Spawns cavern wildlife near visitors, within the planet caps.

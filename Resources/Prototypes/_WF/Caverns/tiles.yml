@@ -7,6 +7,36 @@
   indestructible: true
   deconstructTools: []
 
+- type: tile
+  id: WFCavernFloorSand
+  parent: FloorAsteroidSand
+  indestructible: true
+  deconstructTools: []
+
+# FloorDesertPlanet is already indestructible.
+- type: tile
+  id: WFCavernFloorSandstone
+  parent: FloorDesertPlanet
+  deconstructTools: []
+
+- type: tile
+  id: WFCavernFloorChromite
+  parent: FloorChromite
+  indestructible: true
+  deconstructTools: []
+
+- type: tile
+  id: WFCavernFloorBedrock
+  parent: FloorBedrock
+  indestructible: true
+  deconstructTools: []
+
+- type: tile
+  id: WFCavernFloorFlesh
+  parent: FloorFlesh
+  indestructible: true
+  deconstructTools: []
+
 # Landing tiles: what lies under each mouth. The fall multipliers soften or harden the one-level drop.
 
 - type: tile

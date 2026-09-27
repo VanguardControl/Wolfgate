@@ -3,7 +3,7 @@
 
 - type: planet
   id: WFCavernAsclepiuLevel
-  biome: WFCavernBiomePlaceholder
+  biome: WFCavernBiomeAsclepiu
   mapName: wf-cavern-asclepiu-map
   mapLight: "#6f8f86"
   atmosphere:
@@ -14,7 +14,7 @@
 
 - type: planet
   id: WFCavernFervidusLevel
-  biome: WFCavernBiomePlaceholder
+  biome: WFCavernBiomeFervidus
   mapName: wf-cavern-fervidus-map
   mapLight: "#c48b71"
   atmosphere:
@@ -25,7 +25,7 @@
 
 - type: planet
   id: WFCavernMerakLevel
-  biome: WFCavernBiomePlaceholder
+  biome: WFCavernBiomeMerak
   mapName: wf-cavern-merak-map
   mapLight: "#dfc396"
   atmosphere:
@@ -36,7 +36,7 @@
 
 - type: planet
   id: WFCavernAerumnaLevel
-  biome: WFCavernBiomePlaceholder
+  biome: WFCavernBiomeAerumna
   mapName: wf-cavern-aerumna-map
   mapLight: "#2a1f3a"
   atmosphere:
@@ -47,7 +47,7 @@
 
 - type: planet
   id: WFCavernThrasciasLevel
-  biome: WFCavernBiomePlaceholder
+  biome: WFCavernBiomeThrascias
   mapName: wf-cavern-thrascias-map
   mapLight: "#9fc3dc"
   atmosphere:
@@ -59,7 +59,7 @@
 # Ammonia is the seventh gas.
 - type: planet
   id: WFCavernCarcinomaLevel
-  biome: WFCavernBiomePlaceholder
+  biome: WFCavernBiomeCarcinoma
   mapName: wf-cavern-carcinoma-map
   mapLight: "#5a1a22"
   atmosphere:
