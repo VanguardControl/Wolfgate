@@ -174,6 +174,13 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
         planet = state.PlanetName;
         time = TimeSpan.FromMinutes(GetMinuteOfDay(state, profile)).ToString(@"hh\:mm", CultureInfo.InvariantCulture);
         weather = Loc.GetString("wf-planet-weather-clear");
+        // Below ground the sky is out of sight: the layer's own environment says what it reports.
+        if (network.LowerLayers.Contains(map))
+        {
+            if (TryComp<WFPlanetEnvironmentComponent>(map, out var below) && !string.IsNullOrEmpty(below.Weather))
+                weather = below.Weather;
+            return true;
+        }
         // Read real surface weather, including admin overrides, rather than merely the scheduler's intent.
         if (!TryComp<WeatherComponent>(network.GroundMap, out var actual))
             return true;

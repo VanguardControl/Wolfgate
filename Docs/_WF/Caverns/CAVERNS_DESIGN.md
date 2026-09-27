@@ -295,7 +295,7 @@ Edits inside other `_WF` modules need no marker:
 | `groundTiles` | required | Natural ground tiles a mouth may cut |
 | `avoid` | empty | Natural ground entities a footprint must not touch (liquids, boulders) |
 | `landingTile` | required | Cavern tile under the hole |
-| `landingEntity` | none | Anchored on every pad tile that is the landing tile, since pinned tiles grow no biome entities: Asclepiu's water |
+| `landingEntity` | none | Anchored on every pad tile that is the landing tile, and on every other pad tile where the cavern would grow it, since pinned tiles grow no biome entities: Asclepiu's water. The cavern check (3.2) counts it as open floor |
 | `padRadius` | 3 | Pinned, rock-free pad around the hole in the cavern |
 | `climbSide` | South | Side of the hole whose lip holds the climb point |
 | `shade` | required | Unanchored pit entity over each hole tile |
@@ -306,7 +306,7 @@ Edits inside other `_WF` modules need no marker:
 
 A cavern's own `ambience` is a `wfPlanetAmbience` with no `planetType`: the network picks a surface's soundscape by
 planet type, so one without is never picked for a surface, and `PlanetAmbiencePrototypeTest` counts only those with
-one. There is no `levels` list: v1 is −1 only, and the Planets event list already supports a −2 later ("the Heart" under
+one, though it checks every profile's files. There is no `levels` list: v1 is −1 only, and the Planets event list already supports a −2 later ("the Heart" under
 Carcinoma is the natural candidate).
 
 Example (F2 shape):
@@ -597,7 +597,8 @@ hole shows none of the tile grid's square corners.
   1. **Ground.** Every tile of the shaped footprint (hole plus ring) has a natural tile (`TryGetTile`, `grid: null`) in
      `groundTiles`, and no natural entity (`TryGetEntity`) in `avoid`. This keeps mouths off seas, lava rivers,
      plasma lakes, blood channels and boulders.
-  2. **Cavern.** The natural cavern entity at the anchor is empty, and so are at least 3 of the 4 points 2 tiles past
+  2. **Cavern.** The natural cavern entity at the anchor is empty (or the `landingEntity`, so a pool counts as open
+     floor), and so are at least 3 of the 4 points 2 tiles past
      the hole's extent along each axis from the anchor (`OpennessMargin`, N/E/S/W). The pad then sits in a chamber, a
      junction or a tunnel wider than the hole: a straight ridged tunnel 3-4 tiles wide leaves the two points across it
      in rock. The cavern check runs first, as it is five lookups. F2a found the F1
@@ -638,8 +639,9 @@ Each map gets one `SetTiles` call per site. All of it works on unloaded chunks.
 3. **Entities.**
    - One `shade` spawns on each hole tile that has none (F2c's `EnsureHole` reuses this). It stores the cavern, the
      level's air (`WFCavernAirClassifier.Classify`) and the landing tile's `fallDamageMultiplier`.
-   - `landingEntity`, when set, is anchored on every pad tile that is the landing tile, hole or not, unless one is
-     already there: pinned tiles grow no biome entities, so this is how Asclepiu's landing pool gets its water.
+   - `landingEntity`, when set, is anchored on every pad tile that is the landing tile, hole or not, and on every
+     other pad tile where the cavern would grow it, unless one is already there: pinned tiles grow no biome entities,
+     so this is how Asclepiu's landing pool gets its water and a pool the pad crosses stays wet.
    - `rim` decor goes on the shape's rim spots (3.1), cycling through the `rim` list.
    - The `climbPoint` is anchored on the pad under the climb tile (3.1), with `Delay = climbSeconds × clamp(gravity, 1,
      2.5)`.
@@ -1039,7 +1041,9 @@ Each examine line of a shade is chosen as follows:
 - the landing line is *water* for multiplier 0, *soft* below 0.6 and *hard* otherwise;
 - the hard-landing line also suggests climbing down.
 
-Watches work underground because of the environment mirror (F4).
+Watches work underground because of the environment mirror (F4). The on-screen watch reads the cavern's environment;
+using or examining one goes through `WFPlanetWeatherSystem.TryGetReport`, which for a map in the network's
+`LowerLayers` takes the weather from that map's environment instead of the ground's sky.
 
 **`entities.ftl`**: an `ent-<Id>` name and `.desc` for every concrete entity. Base prototypes are abstract and
 unnamed.
@@ -1111,6 +1115,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernMouthTest.ShapesStayInRange` | Over 400 seeds per world: the hole is inside its size range, holds the anchor, is joined edge to edge, has no tile hanging on by one edge (a rift may have its two ends), no two tiles touching only at a corner and no enclosed ground; the ring is every tile touching it; the climb tile is on the ring, beside a hole tile on `climbSide` and past the whole hole on that side; rim spots are on the ring, clear of the climb tile and no more than `rimCount` scaled by the hole's size; the same seed gives the same hole and rim. At most 5% of non-rift holes are plain rectangles and at most 5% fall back, the holes take at least half the sizes in range, and the seeds give at least 80 different holes. The specs are the worlds' prototypes, so it runs on a pair | F2 |
 | `CavernMouthTest.PitStatesExist` | On the client, every world's pit RSI holds every state `WFCavernShadeVisualsSystem.AllStates` lists, and no other | F2 |
 | `CavernMouthTest.PinnedSiteIsEmpty` | Merak: with the cavern pinned under a whole cell, a cell that has a site claims Empty, and stays Empty | F2 |
+| `CavernMouthTest.PadKeepsPools` | Asclepiu: of admin mouths cut 3 tiles from a pool's edge, one whose pad crosses the pool holds exactly one `MonoFloorWaterEntity` on every pad tile off the hole where the cavern grows one; `GateExists` checks the same on every gate | F4 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
 | `CavernMouthTest.ClaimAheadOfViewer` | A viewer at (400, 0): within 1 s every cell within 96 tiles is Claimed or Empty, and none of its sites touched a chunk that was loaded at claim time | F2 |
 | `CavernMouthTest.ClaimDeferredWhileChunkLoaded` | After `WfLoadChunk` on a cell's first valid site, `TryClaimCell` returns Deferred. After `WfUnloadChunk` it returns Claimed at the same site | F2 |
@@ -1148,7 +1153,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernGenerationTest.PadClearAndWorldFloors` [6] | A viewer on the gate pad: nothing but the climb point is anchored on the pad, the world's T and C tiles are present within 24 tiles, the cavern holds at most 4,000 entities and 5–100 `PointLight`s, and a wildlife pass beside one of the world's fauna markers in the loaded chunks spawns wildlife on the cavern map. F3 raised the planned 2,500: a viewer loads 81 chunks (5,184 tiles) and 45–70% of a cavern is rock, so 2,700–3,590 entities load (risk 2) | F3 |
 | `CavernAtmosphereTest.HumanOutcomePerWorld` [6] | An unequipped `MobHuman` for 60 s: Asclepiu and Merak take no damage; Carcinoma takes some Poison but is not critical; the others take air, heat or cold damage | F4 |
 | `CavernAtmosphereTest.FaunaSurvivesItsCavern` [6] | Every fauna and deep-table mob, on a test map with that cavern's atmosphere, is alive and not critical after 30 s | F4 |
-| `CavernAmbienceTest.CavernHearsTheSurfaceMuffled` (client pair) | Asclepiu: a listener on the ground hears the day bed; walked into the cavern, the same stream plays at least 3 dB quieter with the player's occlusion at `surfaceAmbienceOcclusion`, and the cavern's environment has the ground's minute and planet; at night the muffled night bed plays; back on the ground it is clear; with `ambience` set, the cavern plays that bed alone, clear. A headless client shares one dummy audio source, so the occlusion is read from the player | F4 |
+| `CavernAmbienceTest.CavernHearsTheSurfaceMuffled` (client pair) | Asclepiu: a listener on the ground hears the day bed; walked into the cavern, the same stream plays at least 3 dB quieter with the player's occlusion at `surfaceAmbienceOcclusion`, and the cavern's environment has the ground's minute and planet with weather "Underground", which `TryGetReport` on the listener also gives (on the ground it does not); at night the muffled night bed plays; `ambience` set while the listener is below, back on the ground, and down again, the two beds play together for a while each time (a crossfade, not a cut) before the new one plays alone, the cavern's clear. A headless client shares one dummy audio source, so the occlusion is read from the player | F4 |
 | `CavernEnvironmentTest.MirrorsClockAndShaftLight` | Within 10 s the cavern's environment has the ground's `PlanetName` and `MinuteOfDay` with weather "Underground", and its `MapLight` equals ground × `shaftLight` | F4 |
 | `CavernAmbiencePrototypeTest.SoundsResolve` | Every loop and one-shot exists | F4 |
 | `CavernAmbiencePlaybackTest` (client pair) | Superseded by `CavernAmbienceTest` for the bed; still to test: the arrival popup shows once | F4 |

@@ -204,13 +204,14 @@ public sealed partial class WFCavernMouthSystem
         return open >= OpennessNeeded;
     }
 
-    /// <summary>Whether the natural cavern has floor and no entity at a tile.</summary>
+    /// <summary>Whether the natural cavern has floor and no entity at a tile, the landing entity aside: a pool is open floor.</summary>
     private bool IsCavernOpen(MouthContext context, Vector2i index)
     {
         var biome = context.Level.Comp1;
 
         return _biome.TryGetTile(index, biome.Layers, biome.Seed, NoGrid, out var tile)
-               && !_biome.TryGetEntity(index, biome.Layers, tile.Value, biome.Seed, NoGrid, out _);
+               && (!_biome.TryGetEntity(index, biome.Layers, tile.Value, biome.Seed, NoGrid, out var entity)
+                   || entity == context.Spec.LandingEntity?.Id);
     }
 
     /// <summary>
@@ -302,12 +303,18 @@ public sealed partial class WFCavernMouthSystem
         _map.SetTiles(context.Level.Owner, context.Level.Comp2, padTiles);
         _biome.WfPinTiles((context.Level.Owner, levelBiome), pad.ToList());
 
-        // Pinned tiles grow no biome entities, so the landing's own entity is laid here.
+        // Pinned tiles grow no biome entities, so the landing's own entity is laid here: on the landing tiles and
+        // wherever the cavern would grow it, so a pool the pad crosses stays wet.
         if (spec.LandingEntity is { } landingEntity)
         {
             foreach (var (index, tile) in padTiles)
             {
-                if (tile.TypeId == landing.TypeId && !HasAnchored(levelGrid, index, landingEntity))
+                if (tile.TypeId != landing.TypeId
+                    && (!_biome.TryGetEntity(index, levelBiome.Layers, tile, levelBiome.Seed, NoGrid, out var natural)
+                        || natural != landingEntity.Id))
+                    continue;
+
+                if (!HasAnchored(levelGrid, index, landingEntity))
                     SpawnAnchored(landingEntity, levelGrid, index);
             }
         }

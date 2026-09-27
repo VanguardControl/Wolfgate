@@ -317,6 +317,69 @@ public sealed class CavernMouthTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>An Asclepiu mouth cut beside a pool keeps the pool's water on its pinned pad, where the biome no longer grows it.</summary>
+    [Test]
+    public async Task PadKeepsPools()
+    {
+        const string surfaceId = "WFSurfaceAsclepiu";
+        const int tries = 12;
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var spec = CavernOf(pair, surfaceId).Mouths;
+
+            await server.WaitAssertion(() =>
+            {
+                var water = spec.LandingEntity!.Value.Id;
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                var levelBiome = entMan.GetComponent<BiomeComponent>(world.Cavern);
+                Entity<MapGridComponent>? noGrid = null;
+                var origins = new List<Vector2i>();
+
+                // Pool edges well clear of the gate and of each other, in chunks nobody has loaded.
+                for (var x = 160; x < 480 && origins.Count < tries; x += 2)
+                for (var y = -160; y < 160 && origins.Count < tries; y += 2)
+                {
+                    var index = new Vector2i(x, y);
+                    if (origins.Any(o => (o - index).Length < 40)
+                        || !biomes.TryGetTile(index, levelBiome.Layers, levelBiome.Seed, noGrid, out var tile)
+                        || !biomes.TryGetEntity(index, levelBiome.Layers, tile.Value, levelBiome.Seed, noGrid, out var entity)
+                        || entity != water)
+                        continue;
+
+                    origins.Add(index + new Vector2i(3, 0));
+                }
+
+                foreach (var origin in origins)
+                {
+                    if (!mouths.TryOpenMouth(ground, origin, out _))
+                        continue;
+
+                    var mouth = ground.Item2.Mouths.Single(m => m.Origin == origin);
+                    if (AssertPadPoolsKept(pair, world, mouth, spec, $"{surfaceId} mouth at {origin}") > 0)
+                        return;
+                }
+
+                Assert.Fail($"Precondition: none of the {origins.Count} mouths cut beside {surfaceId}'s pools has pool on its pad.");
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Fails on a hole out of range, split, pinched at a corner, spurred or enclosing ground, or on a bad lip, climb tile, rim spot or rim count.</summary>
     private static void AssertShape(WFCavernMouthSpec spec, WFCavernMouthShape shape, string name)
     {
@@ -459,6 +522,8 @@ public sealed class CavernMouthTest
                         $"{surfaceId}: pad tile {index} is empty.");
                 }
 
+                AssertPadPoolsKept(pair, world, gate, spec, surfaceId);
+
                 var rimIds = spec.Rim.Select(rim => rim.Id).ToHashSet();
                 foreach (var offset in gate.Shape.Rim)
                 {
@@ -518,6 +583,36 @@ public sealed class CavernMouthTest
                 }
             }
         }
+    }
+
+    /// <summary>Fails unless every pad tile off the hole where the cavern grows the landing entity holds exactly one; returns how many there are.</summary>
+    private static int AssertPadPoolsKept(TestPair pair, World world, WFCavernMouth mouth, WFCavernMouthSpec spec, string name)
+    {
+        if (spec.LandingEntity is not { } landingEntity)
+            return 0;
+
+        var entMan = pair.Server.EntMan;
+        var biomes = pair.Server.System<BiomeSystem>();
+        var maps = pair.Server.System<SharedMapSystem>();
+        var levelGrid = entMan.GetComponent<MapGridComponent>(world.Cavern);
+        var levelBiome = entMan.GetComponent<BiomeComponent>(world.Cavern);
+        Entity<MapGridComponent>? noGrid = null;
+        var pools = 0;
+
+        foreach (var index in mouth.Pad(spec.PadRadius))
+        {
+            if (mouth.Contains(index)
+                || !biomes.TryGetTile(index, levelBiome.Layers, levelBiome.Seed, noGrid, out var natural)
+                || !biomes.TryGetEntity(index, levelBiome.Layers, natural.Value, levelBiome.Seed, noGrid, out var entity)
+                || entity != landingEntity.Id)
+                continue;
+
+            pools++;
+            Assert.That(maps.GetAnchoredEntities(world.Cavern, levelGrid, index).Count(uid => IsLandingEntity(entMan, uid, spec)),
+                Is.EqualTo(1), $"{name}: pool tile {index} on the pad does not hold exactly one {landingEntity}.");
+        }
+
+        return pools;
     }
 
     /// <summary>A map's tile at an index, empty where there is none.</summary>

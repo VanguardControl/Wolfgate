@@ -16,6 +16,7 @@ using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Audio.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -33,11 +34,12 @@ public sealed class CavernAmbienceTest
     private const string DayBed = Beds + "asclepiu/asclepiu_ambience_day_loop_1.ogg";
     private const string NightBed = Beds + "asclepiu/asclepiu_ambience_night_loop_1.ogg";
     private const string Override = "WFPlanetAmbienceFervidus";
+    private const string OverrideBed = Beds + "fervidus/fervidus_ambience_loop_1.ogg";
 
     /// <summary>
-    /// A listener walking from the ground into the cavern keeps the same surface bed, now muffled and quieter; the
-    /// cavern's clock follows the ground's, so night brings the muffled night bed; back on the ground the bed is clear.
-    /// A cavern that names its own soundscape plays that instead, unmuffled.
+    /// A listener walking from the ground into the cavern keeps the same surface bed, now muffled and quieter, and their
+    /// watch reads underground; the cavern's clock follows the ground's, so night brings the muffled night bed. A cavern
+    /// that names its own soundscape plays that instead, unmuffled, crossfading with the surface's bed either way.
     /// </summary>
     [Test]
     public async Task CavernHearsTheSurfaceMuffled()
@@ -74,6 +76,13 @@ public sealed class CavernAmbienceTest
             // The bed fades in from silence at 12 dB a second.
             await pair.RunTicksSync(pair.SecondsToTicks(7));
             var (surfaceBed, surfaceVolume) = await SingleBed(pair, DayBed, 0f);
+            var underground = server.ResolveDependency<ILocalizationManager>().GetString("wf-cavern-weather-underground");
+
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(server.System<WFPlanetWeatherSystem>().TryGetReport(viewer, out _, out _, out var report), Is.True);
+                Assert.That(report, Is.Not.EqualTo(underground), "A watch on the ground reads underground.");
+            });
 
             await MoveTo(pair, viewer, world.Cavern);
             await pair.RunTicksSync(pair.SecondsToTicks(4));
@@ -83,6 +92,7 @@ public sealed class CavernAmbienceTest
                 var ambience = entMan.GetComponent<WFPlanetAmbienceComponent>(world.Cavern);
                 var environment = entMan.GetComponent<WFPlanetEnvironmentComponent>(world.Cavern);
                 var above = entMan.GetComponent<WFPlanetEnvironmentComponent>(world.Ground);
+                var reported = server.System<WFPlanetWeatherSystem>().TryGetReport(viewer, out var planet, out _, out var report);
 
                 using (Assert.EnterMultipleScope())
                 {
@@ -91,6 +101,10 @@ public sealed class CavernAmbienceTest
                     Assert.That(ambience.Occlusion, Is.EqualTo(cavern.SurfaceAmbienceOcclusion), "The cavern's soundscape is not muffled.");
                     Assert.That(environment.MinuteOfDay, Is.EqualTo(above.MinuteOfDay).Within(1), "The cavern's clock does not follow the ground's.");
                     Assert.That(environment.PlanetName, Is.EqualTo(above.PlanetName), "The cavern reports another planet.");
+                    Assert.That(environment.Weather, Is.EqualTo(underground), "The on-screen watch underground does not read underground.");
+                    Assert.That(reported, Is.True, "A watch underground has no planet to report.");
+                    Assert.That(planet, Is.EqualTo(above.PlanetName), "A watch underground reports another planet.");
+                    Assert.That(report, Is.EqualTo(underground), "A used or examined watch underground reports the surface's weather.");
                 }
             });
 
@@ -102,15 +116,22 @@ public sealed class CavernAmbienceTest
             await pair.RunTicksSync(pair.SecondsToTicks(10));
             await SingleBed(pair, NightBed, cavern.SurfaceAmbienceOcclusion);
 
+            // A cavern given its own soundscape while you are in it fades the muffled bed out and its own in, clear.
+            cavern.Ambience = Override;
+            await AssertCrossfade(pair, NightBed, OverrideBed);
+            await pair.RunTicksSync(pair.SecondsToTicks(6));
+            await SingleBed(pair, OverrideBed, 0f);
+
             await MoveTo(pair, viewer, world.Ground);
-            await pair.RunTicksSync(pair.SecondsToTicks(3));
+            await AssertCrossfade(pair, OverrideBed, NightBed);
+            await pair.RunTicksSync(pair.SecondsToTicks(6));
             await SingleBed(pair, NightBed, 0f);
 
-            // A cavern with its own soundscape plays it clear, crossfading out of the surface bed.
-            cavern.Ambience = Override;
+            // Going down into it from the surface crossfades too.
             await MoveTo(pair, viewer, world.Cavern);
-            await pair.RunTicksSync(pair.SecondsToTicks(8));
-            await SingleBed(pair, Beds + "fervidus/fervidus_ambience_loop_1.ogg", 0f);
+            await AssertCrossfade(pair, NightBed, OverrideBed);
+            await pair.RunTicksSync(pair.SecondsToTicks(6));
+            await SingleBed(pair, OverrideBed, 0f);
         }
         finally
         {
@@ -149,14 +170,7 @@ public sealed class CavernAmbienceTest
 
         await client.WaitAssertion(() =>
         {
-            var beds = new List<(EntityUid Uid, AudioComponent Audio, string File)>();
-            var query = client.EntMan.EntityQueryEnumerator<AudioComponent>();
-            while (query.MoveNext(out var uid, out var audio))
-            {
-                string name = audio.FileName;
-                if (name.StartsWith(Beds) && name.Contains("_ambience_"))
-                    beds.Add((uid, audio, name));
-            }
+            var beds = PlayingBeds(client.EntMan);
 
             Assert.That(beds.Select(bed => bed.File), Is.EqualTo(new[] { file }), "The wrong beds are playing.");
             // A headless client shares one dummy source between streams, so the muffle is read from the player.
@@ -165,5 +179,39 @@ public sealed class CavernAmbienceTest
         });
 
         return result;
+    }
+
+    /// <summary>Runs the pair for up to six seconds and asserts both beds played at once at some point: a crossfade, not a cut.</summary>
+    private static async Task AssertCrossfade(TestPair pair, string from, string to)
+    {
+        const int step = 5;
+        var overlapped = false;
+
+        for (var ticks = 0; ticks < pair.SecondsToTicks(6) && !overlapped; ticks += step)
+        {
+            await pair.RunTicksSync(step);
+            await pair.Client.WaitPost(() =>
+            {
+                var files = PlayingBeds(pair.Client.EntMan).Select(bed => bed.File).ToList();
+                overlapped = files.Contains(from) && files.Contains(to);
+            });
+        }
+
+        Assert.That(overlapped, Is.True, $"{from} cut to {to} instead of crossfading.");
+    }
+
+    /// <summary>The planet beds the client is playing.</summary>
+    private static List<(EntityUid Uid, AudioComponent Audio, string File)> PlayingBeds(IEntityManager entMan)
+    {
+        var beds = new List<(EntityUid Uid, AudioComponent Audio, string File)>();
+        var query = entMan.EntityQueryEnumerator<AudioComponent>();
+        while (query.MoveNext(out var uid, out var audio))
+        {
+            string name = audio.FileName;
+            if (name.StartsWith(Beds) && name.Contains("_ambience_"))
+                beds.Add((uid, audio, name));
+        }
+
+        return beds;
     }
 }
