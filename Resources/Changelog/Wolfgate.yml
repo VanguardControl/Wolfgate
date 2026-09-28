@@ -503,3 +503,47 @@ Entries:
   id: 100045
   time: '2026-09-27T02:44:37.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/103
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the docking doors on the Dredger being backwards.
+  id: 100046
+  time: '2026-09-27T17:33:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/107
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Ported the fire sprites from TauCetiClassic
+  id: 100047
+  time: '2026-09-27T17:50:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/105
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now select your characters scream and laugh, ported from ye ole
+        skyrat! Check it under appearance!
+  id: 100048
+  time: '2026-09-27T17:52:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/106
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Cargo turn-in chutes no longer buy trade crates bought on the same
+        station, so the Caelestinus trade goods vendors can't be flipped at the
+        chute across the room. Haul them somewhere else.
+    - type: Fix
+      message: >-
+        Trade goods vendors no longer give out free crates when their eject wire
+        is pulsed or they are wrecked.
+  id: 100049
+  time: '2026-09-27T22:54:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/109
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Gyroscopes now throw shrapnel instead of an actual explosion.
+  id: 100050
+  time: '2026-09-27T22:54:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/108

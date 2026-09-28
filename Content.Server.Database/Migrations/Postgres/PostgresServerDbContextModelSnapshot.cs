@@ -1026,6 +1026,11 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("real")
                         .HasColumnName("height");
 
+                    b.Property<string>("LaughVoice")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("laugh_voice");
+
                     b.Property<JsonDocument>("Markings")
                         .HasColumnType("jsonb")
                         .HasColumnName("markings");
@@ -1037,6 +1042,11 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.Property<int>("PreferenceUnavailable")
                         .HasColumnType("integer")
                         .HasColumnName("pref_unavailable");
+
+                    b.Property<string>("ScreamVoice")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("scream_voice");
 
                     b.Property<string>("Sex")
                         .IsRequired()
