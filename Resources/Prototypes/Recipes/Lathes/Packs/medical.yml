@@ -6,6 +6,7 @@
   - Brutepack
   - Ointment
   - Gauze
+  - WFWolfmedSkinGraft # WOLFGATE(Wolfmed): W7: charring has no other exit, so the graft must be printable.
 
 - type: latheRecipePack
   id: BasicChemistryStatic
@@ -70,6 +71,7 @@
   - MedkitAdvanced
   - MedkitRadiation
   - MedkitCombat
+  - WFMedkitSynthetic # WOLFGATE(Wolfmed): ITEMS: the empty synthetic repair kit beside the other empty kits.
   - SyringeCase
   - SyringeCaseAlt
 
@@ -84,6 +86,7 @@
   - ThermobathMachineCircuitboard
   - OperatingTableCircuitboard # Shitmed Change
   - OrganHarvesterMachineCircuitboard # :)
+  - WFAutodocMachineCircuitboard # WOLFGATE(Wolfmed): AUTODOC
 
 # Shitmed
 - type: latheRecipePack

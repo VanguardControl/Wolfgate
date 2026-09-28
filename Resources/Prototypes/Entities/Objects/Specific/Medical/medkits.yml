@@ -10,7 +10,11 @@
   - type: Storage
     maxItemSize: Small
     grid:
-    - 0,0,3,1
+    # WOLFGATE(Wolfmed) START: ITEMS: 6x2, room for the tourniquet, splint and painkillers the standard kit carries.
+    # The typed kits inherit it; MedkitCombat has its own grid and keeps 4x2.
+    # - 0,0,3,1
+    - 0,0,5,1
+    # WOLFGATE END
   - type: Item
     size: Normal # Frontier: Large<Normal
     shape: # Frontier

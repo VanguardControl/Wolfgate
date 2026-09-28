@@ -1,5 +1,6 @@
 - type: soundCollection
   id: Punch
-  files: # WOLFGATE(Weapons): Skyrat punches
-    - /Audio/_WF/Weapons/Punches/punch1.ogg
-    - /Audio/_WF/Weapons/Punches/punch3.ogg
+  files: # WOLFGATE(Wolfmed): playtest 4, the owner's Bob punches replace the Skyrat ones (WOLFGATE(Weapons))
+    - /Audio/_WF/Wolfmed/Melee/punch1.ogg
+    - /Audio/_WF/Wolfmed/Melee/punch2.ogg
+    - /Audio/_WF/Wolfmed/Melee/punch3.ogg

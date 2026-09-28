@@ -184,9 +184,6 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 - [`Resources/Prototypes/Entities/Structures/Walls/walls.yml`](../../../Resources/Prototypes/Entities/Structures/Walls/walls.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Structures/Windows/plastitanium.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/plastitanium.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Structures/Windows/window.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/window.yml): material bullet impacts
-- [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml)
-  - Skyrat flesh impacts
-  - Skyrat metal impacts
-- [`Resources/Prototypes/SoundCollections/punching.yml`](../../../Resources/Prototypes/SoundCollections/punching.yml): Skyrat punches
+- [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml): Skyrat metal impacts
 
 <!-- WOLFGATE-GENERATED END -->

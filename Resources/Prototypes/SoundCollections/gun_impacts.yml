@@ -1,15 +1,10 @@
 - type: soundCollection
   id: MeatBulletImpact
-  files: # WOLFGATE(Weapons): Skyrat flesh impacts
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_01.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_02.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_03.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_04.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_05.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_06.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_07.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_08.ogg
-  - /Audio/_WF/Weapons/Impacts/impact_flesh_09.ogg
+  files: # WOLFGATE(Wolfmed): playtest 4, the owner's Bob flesh impacts replace the Skyrat ones (WOLFGATE(Weapons))
+  - /Audio/_WF/Wolfmed/Impacts/ric_flesh1.ogg
+  - /Audio/_WF/Wolfmed/Impacts/ric_flesh2.ogg
+  - /Audio/_WF/Wolfmed/Impacts/ric_flesh3.ogg
+  - /Audio/_WF/Wolfmed/Impacts/ric_flesh4.ogg
 
 - type: soundCollection
   id: MeatLaserImpact
