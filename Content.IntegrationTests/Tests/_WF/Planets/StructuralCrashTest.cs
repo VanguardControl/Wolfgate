@@ -230,10 +230,10 @@ public sealed class StructuralCrashTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Crash bursts never set off an explosive aboard; a gyroscope's blast would chain through the wreck.</summary>
+    /// <summary>Crash bursts never set off a hazard aboard; a gyroscope's shrapnel would chain through the wreck.</summary>
     [TestCase(true)]
     [TestCase(false)]
-    public async Task BreakupBurstsSpareExplosives(bool packed)
+    public async Task BreakupBurstsSpareHazards(bool packed)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -246,13 +246,15 @@ public sealed class StructuralCrashTest
         await MapInitHull(pair, hull);
 
         var gyroscopes = new List<EntityUid>();
+        var gyroscopeIsHazard = true;
         await server.WaitPost(() =>
         {
+            var flight = server.System<WFFlightSystem>();
             var fitted = new List<EntityUid>();
-            var query = em.EntityQueryEnumerator<ExplosiveComponent, TransformComponent>();
-            while (query.MoveNext(out var uid, out _, out var xform))
+            var query = em.EntityQueryEnumerator<TransformComponent>();
+            while (query.MoveNext(out var uid, out var xform))
             {
-                if (xform.GridUid == hull)
+                if (xform.GridUid == hull && flight.IsCrashHazard(uid))
                     fitted.Add(uid);
             }
             fitted.ForEach(uid => em.DeleteEntity(uid));
@@ -263,8 +265,10 @@ public sealed class StructuralCrashTest
             for (var x = 0; x < 15; x++)
             for (var y = 0; y < 15; y++)
                 gyroscopes.Add(em.SpawnEntity("Gyroscope", new EntityCoordinates(hull, x + 0.5f, y + 0.5f)));
+            gyroscopeIsHazard = flight.IsCrashHazard(gyroscopes[0]);
         });
         await server.WaitRunTicks(1);
+        Assert.That(gyroscopeIsHazard, "A gyroscope no longer counts as a crash hazard.");
 
         var earlierVisuals = new HashSet<EntityUid>();
         var seam = new HashSet<EntityUid>();
@@ -313,7 +317,7 @@ public sealed class StructuralCrashTest
             }
             else
             {
-                Assert.That(explosions, Is.GreaterThan(0), "With nothing explosive aboard, the bursts must still explode.");
+                Assert.That(explosions, Is.GreaterThan(0), "With no hazard aboard, the bursts must still explode.");
             }
         }
 

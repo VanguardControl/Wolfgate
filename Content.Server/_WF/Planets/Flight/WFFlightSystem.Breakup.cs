@@ -1,6 +1,8 @@
 using System.Linq;
 using Robust.Shared.Random;
 using System.Numerics;
+using Content.Server._WF.Shrapnel;
+using Content.Server.Destructible;
 using Content.Server.Explosion.EntitySystems;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Damage;
@@ -29,7 +31,7 @@ public sealed partial class WFFlightSystem
     [Dependency] private SharedDestructibleSystem _crashDestructible = default!;
     [Dependency] private IConfigurationManager _crashCfg = default!;
 
-    /// <summary>Hull tiles kept between a crash burst and any explosive; a burst hurts the tiles beside it.</summary>
+    /// <summary>Hull tiles kept between a crash burst and anything that goes off; a burst hurts the tiles beside it.</summary>
     private const int CrashBurstClearance = 2;
 
     /// <summary>Small mass-balanced outward impulses separate sections without launching wreckage.</summary>
@@ -168,32 +170,49 @@ public sealed partial class WFFlightSystem
             if (!TerminatingOrDeleted(uid))
                 QueueDel(uid);
         }
-        var explosives = CrashExplosiveTiles(hull, machinery);
+        var hazards = CrashHazardTiles(hull, machinery);
         Comp<WFCrashImpactComponent>(hull).LatticeSeam = cut;
         CutSeam(hull, cut);
         foreach (var (tile, position) in bursts)
         {
             // Explicit above-deck animation remains visible when the explosion flood selects the terrain grid below.
             Spawn("WFCrashBurst", new EntityCoordinates(ground, position));
-            // A burst would set off an explosive beside it, and a gyroscope's blast chains through the wreck.
-            if (explosives.Any(e => Math.Max(Math.Abs(e.X - tile.X), Math.Abs(e.Y - tile.Y)) <= CrashBurstClearance))
+            // A burst would set off a hazard beside it, and a gyroscope's shrapnel chains through the wreck.
+            if (hazards.Any(e => Math.Max(Math.Abs(e.X - tile.X), Math.Abs(e.Y - tile.Y)) <= CrashBurstClearance))
                 continue;
             _explosion.QueueExplosion(new EntityCoordinates(ground, position), ExplosionSystem.DefaultExplosionPrototypeId,
                 15f, 3f, 3.5f, cause: hull, maxTileBreak: 0, canCreateVacuum: false, addLog: false, silent: true);
         }
     }
 
-    /// <summary>Hull tiles holding anything explosive, fitted or stowed, other than the seam machinery being removed.</summary>
-    private HashSet<Vector2i> CrashExplosiveTiles(Entity<MapGridComponent> hull, HashSet<EntityUid> removed)
+    /// <summary>Hull tiles holding a crash hazard, fitted or stowed, other than the seam machinery being removed.</summary>
+    private HashSet<Vector2i> CrashHazardTiles(Entity<MapGridComponent> hull, HashSet<EntityUid> removed)
     {
         var tiles = new HashSet<Vector2i>();
-        var query = EntityQueryEnumerator<ExplosiveComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var xform))
+        var explosives = EntityQueryEnumerator<ExplosiveComponent, TransformComponent>();
+        while (explosives.MoveNext(out var uid, out _, out var xform))
         {
             if (xform.GridUid == hull.Owner && !removed.Contains(uid))
                 tiles.Add(_map.WorldToTile(hull, hull.Comp, _transform.GetWorldPosition(xform)));
         }
+
+        var destructibles = EntityQueryEnumerator<DestructibleComponent, TransformComponent>();
+        while (destructibles.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.GridUid == hull.Owner && !removed.Contains(uid) && IsCrashHazard(uid))
+                tiles.Add(_map.WorldToTile(hull, hull.Comp, _transform.GetWorldPosition(xform)));
+        }
         return tiles;
+    }
+
+    /// <summary>Whether destroying the entity sets something off: an explosive, or a destructible that bursts into shrapnel.</summary>
+    public bool IsCrashHazard(EntityUid uid)
+    {
+        if (HasComp<ExplosiveComponent>(uid))
+            return true;
+
+        return TryComp<DestructibleComponent>(uid, out var destructible)
+            && destructible.Thresholds.Any(threshold => threshold.Behaviors.Any(behavior => behavior is ShrapnelBehavior));
     }
 
     /// <summary>Removes the seam with grid splitting forced on; the development config preset turns it off for mapping.</summary>
