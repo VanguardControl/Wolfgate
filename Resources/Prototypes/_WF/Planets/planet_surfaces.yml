@@ -1,0 +1,25 @@
+# The ground layer of the Asclepiu planet network.
+# No addedComponents: an FTLDestination on a mapgrid map makes arriving hulls disable themselves.
+
+- type: planet
+  id: WFAsclepiuSurface
+  biome: WFBiomeAsclepiu
+  mapName: wf-planet-asclepiu-surface
+  mapLight: "#c8fdff"
+  atmosphere:
+    volume: 2500
+    immutable: True
+    temperature: 288.15 # 15 celsius
+    moles:
+    - 21.824879
+    - 82.10312
+  # Ore only: marker spawns are never unloaded, so no mob markers.
+  biomeMarkerLayers:
+  - OreIron
+  - OreQuartz
+  - OreCoal
+  - OreSalt
+  - OreGold
+  - OreSilver
+  - OrePlasma
+  - OreUranium

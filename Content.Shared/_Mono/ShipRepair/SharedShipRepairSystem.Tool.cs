@@ -100,16 +100,20 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
                     if (!ev.Handled)
                     {
                         // if it's still on a grid, don't repair, else delete it
+                        // WOLFGATE(ShipRepair) START: "on a grid" means on THIS grid.
+                        // A hull that broke up left copies of its walls on the severed sections; those are wreckage,
+                        // and do not stop the hull being rebuilt.
                         var origXform = Transform(origUid.Value);
-                        if (origXform.GridUid != null)
+                        if (origXform.GridUid == targetGrid.Owner)
                         {
                             alreadyExists = true;
                             continue;
                         }
-                        else if (_net.IsServer)
+                        else if (origXform.GridUid == null && _net.IsServer)
                         {
                             QueueDel(origUid); // Big PVS does not want us to predict this
                         }
+                        // WOLFGATE END
                     }
                     needsRepair = ev.Repairable;
                 }
@@ -223,7 +227,8 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
                 var ev = new ShipRepairReinstateQueryEvent(true);
                 RaiseLocalEvent(origUid.Value, ref ev);
                 // abort if we can't repair now
-                if (!ev.Handled || !ev.Repairable)
+                // WOLFGATE(ShipRepair): an unhandled query only blocks when the original is still on this very grid.
+                if (ev.Handled ? !ev.Repairable : Transform(origUid.Value).GridUid == targetGrid)
                     return;
             }
 

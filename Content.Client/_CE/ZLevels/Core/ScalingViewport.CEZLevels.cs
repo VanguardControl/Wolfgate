@@ -172,6 +172,7 @@ public sealed partial class ScalingViewport
         else if (_entityManager.HasComponent<CEZGroundLayerComponent>(playerMap))
         {
             occludeBelowDepth = ownDepth;
+            WfAddCavernPass(playerMap, ownDepth, ownDepth, ref occludeBelowDepth); // WOLFGATE(Caverns): the cavern shows through the ground's holes.
         }
         // Otherwise walk downward while there are empty tiles to see through. A cloud or
         // ground layer ends the walk: nothing beneath it is visible.
@@ -193,6 +194,7 @@ public sealed partial class ScalingViewport
                 if (_entityManager.HasComponent<CEZGroundLayerComponent>(current.Value))
                 {
                     occludeBelowDepth = depthCursor;
+                    WfAddCavernPass(current.Value, depthCursor, ownDepth, ref occludeBelowDepth); // WOLFGATE(Caverns): the cavern shows through the ground's holes.
                     break;
                 }
 
