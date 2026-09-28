@@ -547,3 +547,18 @@ Entries:
   id: 100050
   time: '2026-09-27T22:54:41.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/108
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: You can now set who can access your ship.
+    - type: Add
+      message: Ships now come restricted to the owner by default.
+    - type: Add
+      message: You can codelock certain doors on your ship.
+    - type: Tweak
+      message: >-
+        Ship doors use the normal airlock access system, so they deny, get
+        hacked and get emagged like any airlock.
+  id: 100051
+  time: '2026-09-28T05:02:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/94
