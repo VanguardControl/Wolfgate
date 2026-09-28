@@ -562,3 +562,10 @@ Entries:
   id: 100051
   time: '2026-09-28T05:02:24.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/94
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: MMC cash bounties give far less MIC's
+  id: 100052
+  time: '2026-09-28T19:31:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/111
