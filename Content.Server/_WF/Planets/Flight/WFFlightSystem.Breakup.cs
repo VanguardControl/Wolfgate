@@ -6,6 +6,7 @@ using Content.Shared.Buckle.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Destructible;
+using Content.Shared.Explosion.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Stunnable;
@@ -27,6 +28,9 @@ public sealed partial class WFFlightSystem
     [Dependency] private SharedStunSystem _crashStun = default!;
     [Dependency] private SharedDestructibleSystem _crashDestructible = default!;
     [Dependency] private IConfigurationManager _crashCfg = default!;
+
+    /// <summary>Hull tiles kept between a crash burst and any explosive; a burst hurts the tiles beside it.</summary>
+    private const int CrashBurstClearance = 2;
 
     /// <summary>Small mass-balanced outward impulses separate sections without launching wreckage.</summary>
     private void SeparateCrashSections(EntityUid original, EntityUid[] fragments)
@@ -134,9 +138,12 @@ public sealed partial class WFFlightSystem
         var ground = Transform(hull).MapUid!.Value;
         var matrix = _transform.GetWorldMatrix(hull);
         var ordered = cut.OrderBy(t => t.X).ThenBy(t => t.Y).ToArray();
-        var bursts = new List<Vector2>();
+        var bursts = new List<(Vector2i Tile, Vector2 Position)>();
         for (var i = 0; i < Math.Min(parts, ordered.Length); i++)
-            bursts.Add(Vector2.Transform(((Vector2) ordered[i * ordered.Length / parts] + new Vector2(0.5f)) * hull.Comp.TileSize, matrix));
+        {
+            var tile = ordered[i * ordered.Length / parts];
+            bursts.Add((tile, Vector2.Transform(((Vector2) tile + new Vector2(0.5f)) * hull.Comp.TileSize, matrix)));
+        }
 
         var remaining = new HashSet<Vector2i>(tiles);
         remaining.ExceptWith(cut);
@@ -144,7 +151,7 @@ public sealed partial class WFFlightSystem
         {
             var centre = section.Aggregate(Vector2.Zero, (sum, tile) => sum + (Vector2) tile) / section.Count;
             var tile = section.MinBy(t => Vector2.DistanceSquared((Vector2) t, centre));
-            bursts.Add(Vector2.Transform(((Vector2) tile + new Vector2(0.5f)) * hull.Comp.TileSize, matrix));
+            bursts.Add((tile, Vector2.Transform(((Vector2) tile + new Vector2(0.5f)) * hull.Comp.TileSize, matrix)));
         }
 
         var machinery = new HashSet<EntityUid>();
@@ -161,15 +168,32 @@ public sealed partial class WFFlightSystem
             if (!TerminatingOrDeleted(uid))
                 QueueDel(uid);
         }
+        var explosives = CrashExplosiveTiles(hull, machinery);
         Comp<WFCrashImpactComponent>(hull).LatticeSeam = cut;
         CutSeam(hull, cut);
-        foreach (var position in bursts)
+        foreach (var (tile, position) in bursts)
         {
             // Explicit above-deck animation remains visible when the explosion flood selects the terrain grid below.
             Spawn("WFCrashBurst", new EntityCoordinates(ground, position));
+            // A burst would set off an explosive beside it, and a gyroscope's blast chains through the wreck.
+            if (explosives.Any(e => Math.Max(Math.Abs(e.X - tile.X), Math.Abs(e.Y - tile.Y)) <= CrashBurstClearance))
+                continue;
             _explosion.QueueExplosion(new EntityCoordinates(ground, position), ExplosionSystem.DefaultExplosionPrototypeId,
                 15f, 3f, 3.5f, cause: hull, maxTileBreak: 0, canCreateVacuum: false, addLog: false, silent: true);
         }
+    }
+
+    /// <summary>Hull tiles holding anything explosive, fitted or stowed, other than the seam machinery being removed.</summary>
+    private HashSet<Vector2i> CrashExplosiveTiles(Entity<MapGridComponent> hull, HashSet<EntityUid> removed)
+    {
+        var tiles = new HashSet<Vector2i>();
+        var query = EntityQueryEnumerator<ExplosiveComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.GridUid == hull.Owner && !removed.Contains(uid))
+                tiles.Add(_map.WorldToTile(hull, hull.Comp, _transform.GetWorldPosition(xform)));
+        }
+        return tiles;
     }
 
     /// <summary>Removes the seam with grid splitting forced on; the development config preset turns it off for mapping.</summary>

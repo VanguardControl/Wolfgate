@@ -5,6 +5,7 @@ using Content.Server._CE.ZLevels.Core;
 using Content.Server._WF.Planets.Flight;
 using Content.Shared.Buckle;
 using Content.Shared.Damage;
+using Content.Shared.Explosion.Components;
 using Content.Shared.Maps;
 using Content.Shared.Stunnable;
 using Robust.Shared.EntitySerialization.Systems;
@@ -225,6 +226,97 @@ public sealed class StructuralCrashTest
             }
             Assert.That(sections, Is.InRange(2, 4));
         });
+        await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Crash bursts never set off an explosive aboard; a gyroscope's blast would chain through the wreck.</summary>
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task BreakupBurstsSpareExplosives(bool packed)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        await EnableFeature(pair);
+        var layers = await BuildStandalone(pair);
+        var ground = layers[0];
+        await LayTiles(pair, ground, new Vector2i(-32, -32), new Vector2i(64, 64));
+        var hull = await BuildHull(pair, em.GetComponent<MapComponent>(ground).MapId);
+        await MapInitHull(pair, hull);
+
+        var gyroscopes = new List<EntityUid>();
+        await server.WaitPost(() =>
+        {
+            var fitted = new List<EntityUid>();
+            var query = em.EntityQueryEnumerator<ExplosiveComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out _, out var xform))
+            {
+                if (xform.GridUid == hull)
+                    fitted.Add(uid);
+            }
+            fitted.ForEach(uid => em.DeleteEntity(uid));
+
+            if (!packed)
+                return;
+            // A gyroscope on every tile puts one under each burst.
+            for (var x = 0; x < 15; x++)
+            for (var y = 0; y < 15; y++)
+                gyroscopes.Add(em.SpawnEntity("Gyroscope", new EntityCoordinates(hull, x + 0.5f, y + 0.5f)));
+        });
+        await server.WaitRunTicks(1);
+
+        var earlierVisuals = new HashSet<EntityUid>();
+        var seam = new HashSet<EntityUid>();
+        var bursts = 0;
+        await server.WaitPost(() =>
+        {
+            var visuals = em.EntityQueryEnumerator<ExplosionVisualsComponent>();
+            while (visuals.MoveNext(out var uid, out _))
+                earlierVisuals.Add(uid);
+            server.System<SharedPhysicsSystem>().SetLinearVelocity(hull, new Vector2(3f, 0));
+            server.System<WFFlightSystem>().StructuralCrash((hull, em.GetComponent<MapGridComponent>(hull)), 1f);
+            // The seam takes its machinery with it.
+            seam.UnionWith(gyroscopes.Where(uid => em.IsQueuedForDeletion(uid) || em.Deleted(uid)));
+            var effects = em.EntityQueryEnumerator<MetaDataComponent>();
+            while (effects.MoveNext(out _, out var meta))
+            {
+                if (meta.EntityPrototype?.ID == "WFCrashBurst")
+                    bursts++;
+            }
+        });
+
+        await server.WaitRunTicks(10);
+        var explosions = 0;
+        await server.WaitPost(() =>
+        {
+            var visuals = em.EntityQueryEnumerator<ExplosionVisualsComponent>();
+            while (visuals.MoveNext(out var uid, out _))
+            {
+                if (!earlierVisuals.Contains(uid))
+                    explosions++;
+            }
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(3f));
+        var setOff = 0;
+        await server.WaitPost(() => setOff = gyroscopes.Count(uid => !seam.Contains(uid) && !em.EntityExists(uid)));
+
+        TestContext.Out.WriteLine($"packed {packed}: {bursts} bursts, {explosions} explosions, {seam.Count} gyroscopes in the seam, {setOff} set off");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(bursts, Is.InRange(3, 8), "Every burst must still show, exploding or not.");
+            if (packed)
+            {
+                Assert.That(explosions, Is.Zero, "A burst exploded beside a gyroscope.");
+                Assert.That(setOff, Is.Zero, "A crash burst set off a gyroscope.");
+            }
+            else
+            {
+                Assert.That(explosions, Is.GreaterThan(0), "With nothing explosive aboard, the bursts must still explode.");
+            }
+        }
+
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
