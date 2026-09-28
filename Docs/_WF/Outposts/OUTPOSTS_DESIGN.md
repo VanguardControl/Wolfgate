@@ -44,7 +44,7 @@ Bands are shop prices, not value. What saves, loads and sales use is the apprais
 
 Tiers: **T1** recipes are built into the Outpost Fabricator and on the trade panel from the first order. **T2** and **T3** recipes come on recipe disks (band C for T2, band D for T3), bought on the trade panel or looted from Workshop POIs; the finished T2/T3 gizmos can also be bought outright at their band price. The gate is money and exploration, not research.
 
-Note for devs: the planet stack (layers, flight, weather, parachutes) lives on the `Planets-and-cracking` branch, not on `main` yet, under `_WF/PlanetCracker` folders and `WOLFGATE(PlanetCracker)` markers. The planet-cracker itself has been removed; the surviving planet stack is being renamed to the `Planets` module, which is the name this doc uses. Pieces that lived only in cracker folders (the orbit surveyor, chunk pinning) are called out where this doc needs them. Everything here assumes that branch has landed.
+Note for devs: the planet stack (layers, flight, weather, parachutes) lives on the `planet-cracking` branch, not on `main` yet, where the planet-cracker is being removed and the surviving stack renamed from `_WF/PlanetCracker` to the `Planets` module, which is the name this doc uses. Pieces that lived only in cracker folders (the orbit surveyor, chunk pinning) are called out where this doc needs them. Everything here assumes that branch has landed.
 
 ### Core rules
 
@@ -180,7 +180,7 @@ Everything else stays: machines, items in lockers, silo contents, gas in pipes, 
 - Saves cannot be moved to another character or player. A **live** outpost can be sold to another player (see Ship Access Overhaul); the buyer then saves it into their own slots. [NEW]
 - A save that is **live this round** is marked "in use" and cannot be loaded a second time this round (the SafetyDepositBox "withdrawn round" trick). [NEW]
 - Any sale of an outpost voids every save of its lineage: they stay listed as "Sold" but can't be loaded. [NEW]
-- **Save stamps**: every entity that comes out of a loaded save carries `WFSaveOriginComponent` (lineage id). The safety deposit box and Mono persistent items refuse stamped entities, so an item can't sit in a stale save slot and a deposit box at once. A full persistent-item ledger is Q23. [NEW] on [EXISTS] `SafetyDepositStoredComponent` pattern
+- **Save stamps**: every entity that comes out of a loaded save carries `WFSaveOriginComponent` (lineage id). The safety deposit box and Mono persistent items refuse stamped entities, so an item can't sit in a stale save slot and a deposit box at once. A full persistent-item ledger is Q22. [NEW] on [EXISTS] `SafetyDepositStoredComponent` pattern
 
 ### Preview
 
@@ -288,7 +288,7 @@ For the crash landed start, players can only join your play group in the lobby b
 - The outpost is made a station at load (`InitializeNewStation` from a `WFOutpostStation` config with `StationJobs` + `StationSpawning`), holding a `WFOutpostSettler` job. That is how ships offer crew slots today, and it makes job slots, mind setup and `PlayerSpawnCompleteEvent` subscribers all work for free. [EXISTS] pattern
 - The outpost station's public slot count is always 0. `joingame` only checks for an open slot, and every station's slots are broadcast to the lobby, so an open slot would let anyone in. The WF request handler checks visibility and code, opens one slot, calls `GameTicker.MakeJoinGame(player, outpostStation, WFOutpostSettler, silent: true)` and closes the slot in the same tick. `IsJobAllowedEvent` carries no station, so the gate has to live in our handler. [NEW] + [EXISTS]
 - Outpost stations get `ExtraShuttleInformationComponent` with `HiddenWithoutOpenJobs`, so they appear in neither the NF Station tab nor the Crew tab; they show only in a new **Outposts** tab of the late-join picker. [NEW] on [EXISTS]
-- Joiners spawn in an outpost cryopod and are added to the outpost's allow list for the round (door access only, not Builder). [NEW]
+- Joiners spawn in an outpost cryopod and their worn ID card is added to the outpost's allow list for the round (door access only, not Builder). [NEW]
 
 ### Currently Proposed Spawn Options
 
@@ -364,57 +364,42 @@ Ships now get an access options panel in the shuttle console. A bought ship or o
 
 Outpost Consoles are different: they are only accessible to the outpost owner. You can sell your outpost to other players as well. Outposts can be sold at round end, or mid-round in the console (same shuttle sell checks occur) for the exact calculated value of the outpost at the time.
 
-### What exists today
+### Shipped for ships (PR #94) [EXISTS]
 
-- Mono deed access: `ShipAccessReaderComponent` on doors and lockers, checked by `ShipAccessReaderSystem.HasShipAccess`: admin ghost and AI bypasses; then "allow" if the target is on no grid, and "allow" if its grid has no `ShuttleDeedComponent`; then the faction company match for hard-coded USSP/Rogue/TSF, a deed on a held card, then guest cards. [EXISTS]
-- Readers are only added by `ShipyardSystem.AddShipAccessToEntities` (private), run once over the grid at purchase (and from the WF deed path), and start disabled (`Enabled` defaults to false) until the owner flips "lock ship". Doors and lockers built, deployed or loaded later get no reader. [EXISTS]
-- Console verbs: lock/unlock console, guest access, reset guest access, lock/unlock ship (`ShuttleConsoleLockSystem`, upstream). No per-door rules, no codes, no per-player list. [EXISTS]
-- Deeds are per ID card; `DeedCopySystem` copies a deed to a crewmate's card. [EXISTS]
-- Doors have no right-click verbs today. [EXISTS] gap
+Steps F3.1 to F3.3 merged to `main` on 2026-09-28 as the `ShipAccess` module. Hand testing changed the model from the first draft of this section in two ways: access is keyed on **ID cards**, not on players, and it rides the normal airlock access system instead of Mono's deed reader. What is there now:
 
-### Data model [NEW]
+- **Owner**: whoever carries the ship's deed (the ID card, or the voucher for a voucher purchase), rechecked every two seconds so a moved deed takes effect. Ships an admin tool spawns (vessel spawner, ERT builder) are instead registered to player accounts (`OwnerUsers`): those players edit access whatever body they are in, a ghost included, and the ID card they wear is an owner key. `WFShipAccessServerSystem.SetupRegisteredShip` / `AddOwnerUser`. [EXISTS]
+- **Allow list**: ID cards, by the crew-record key each card carries, with a display name, a label and a Builder tick (stored, unused yet). It is round state, since record keys point at this round's stations, so it is not saved with the grid. A card with no crew record can't be listed. [EXISTS]
+- **How doors decide**: a locked ship's doors and lockers have their own `AccessReaderComponent` (the door electronics) rewritten to require `WFShipLocked`, an access level no card can carry, plus the record keys of the deed card and the listed cards; a faction ship's readers also take the company's access group or level. The reader's own access is kept in `WFShipReaderBackupComponent` and put back on unlock, when the door leaves the ship, or at resale. So a ship door denies, is hacked, put on emergency access, emagged and opened by the AI exactly like any airlock, with no popups of its own. Mono's `ShipAccessReaderComponent` is switched off on these ships, and the `HasShipAccess` hook from the first draft was dropped. [EXISTS]
+- **Prediction**: every station-records holder is force-sent to clients (PVS override), so record keys resolve client-side and door opens predict. [EXISTS]
+- **Faction mode**: any company whose id matches an access group or level (USSP, TSF, PDV), no longer only three hard-coded names. [EXISTS]
+- **New purchases start locked** (`wf.shipaccess.lock_new_ships`, default true), unless no card carries an owner key (a voucher purchase with no crew record), in which case the console refuses to lock rather than shut the owner out. A used-ship resale clears codes, rules and the access record and restores every reader. [EXISTS]
+- **Old verbs** map onto it: guest access adds the guest's card, reset clears the list, lock/unlock flips the grid's lock. [EXISTS]
+- **Access tab** on the shuttle console: registered-to, mode, lock, allow list (add the card of a humanoid within 3 tiles of the console, remove, Builder), the door diagram (the Ship tab's hull drawing with every door as a node coloured by rule; click to edit), codes and the lockout alert. The owner edits; everyone else gets a read-only view. [EXISTS]
 
-On the grid, `WFShipAccessComponent`:
-
-| Field | Meaning |
-|---|---|
-| Owner | `NetUserId` + character name (outposts: + DB profile id) |
-| Mode | Private (default for non-faction) or Faction (default for faction ships and faction members' outposts) |
-| AllowList | entries of `NetUserId` + character name + label ("Bob, medic") + a Builder tick (may repack and dismantle prefab parts; default off) |
-| Code | 4 digits, ship-wide, server-only (never networked except to the owner's console) |
-| Locked | the old "lock ship" toggle, now on by default for new purchases |
-
-On each door, `WFDoorAccessRuleComponent` (serialises with the grid, so outpost saves keep it):
+Per-door rules, `WFDoorAccessRuleComponent`. The rule saves with the grid; the per-door ID list is round state like the allow list. Every rule but Ship default applies whether or not the ship is locked. Firelocks are left out. [EXISTS]
 
 | Rule | Who opens it |
 |---|---|
-| Default | Follows the ship: owner + allow list (+ faction in Faction mode) |
-| Owner only | Owner |
-| Players | Owner + the players picked for this door |
-| Code | Owner + anyone with the door's code (its own, or the ship code) |
-| Players or code | Either |
-| Public | Everyone |
-| Sealed | Nobody (bolted), owner can still unseal from the console |
+| Ship default | Follows the ship: deed + allow list (+ the company's access in Faction mode), and only while locked; unlocked, the door keeps its own access |
+| Deed only | The deed holder (or a registered player's worn card) |
+| Chosen IDs | The deed + the listed cards ticked for this door |
+| Code | The deed + anyone who enters the door's code or the ship code |
+| Chosen IDs or code | Either |
+| Public | Everyone, whatever the door's electronics asked for |
+| Sealed | Nobody, bolted shut (needs power to bolt); the owner unseals from the console |
 
-- People are matched **by person, not card**: the opener's mind (`NetUserId`) and character. A stolen ID doesn't open your door; an NPC raider (no mind) never matches. The owner also matches through the existing deed on their card, so current flows keep working. [NEW]
-- Door opens are predicted: `BeforeDoorOpenedEvent` runs in shared code on the client too. So the owner's and allow-list `NetUserId`s (and each door's picked players) are networked on the grid and door components, and the client only predicts its own opens. Labels, codes and code state stay on the server; a correct code opens the door from the server. Player ids being visible to clients is accepted. [NEW]
-- The check hooks into `ShipAccessReaderSystem.HasShipAccess` with a WF event raised right after the ghost and AI bypasses, before the "no grid" and "no deed" early returns; outposts have no deed, so a later hook would never run. The `(ShipAccessReaderComponent, BeforeDoorOpenedEvent)` pair is taken, so we don't subscribe a second time. [NEW] marked hook
-- A WF system makes sure every door and locker anchored to an outpost or an owned ship grid has a reader, on anchor, on grid change and after a load, since readers otherwise only come at purchase. [NEW]
-- Faction ships: Faction mode keeps the current company rule and access tags. Allow lists and codes are for owners of non-faction vessels, as the original says; extending owner editing to faction ships is Q24. Play-group members and outpost joiners are still added to the allow list on faction ships and outposts; only the owner's own allow-list and code editing is limited to non-faction owners. [EXISTS] + [NEW]
-- Existing verbs map onto the model: "guest access" adds you to the allow list, "reset guest access" clears it, "lock/unlock ship" flips Locked. This needs marked edits in `ShuttleConsoleLockSystem`, and "Locked by default" a marked edit where `ShipyardSystem` sets up readers at purchase. [EXISTS] verbs, [NEW] backing
+Codes [EXISTS]: a four-digit ship code and an optional code per Code door, server-only (`WFShipAccessCodeComponent` on the grid, `WFDoorCodeComponent` on the door), sent masked to the owner's console in a directed event and to nobody else. Right click a code door > **Enter Code** opens a keypad; a matching code stands in for the card the reader wants, every other door check (power, welds) still applies. Wrong codes count per character name per ship: 5 in 10 minutes lock that person out of every keypad on that ship for 15 minutes. Misses and lockouts are admin-logged and shown on the owner's tab; there is no PA line. Changing a code never affects anyone already inside.
 
-### Codes [NEW]
+Trade-offs accepted in testing: the card is the key (a stolen listed card gets in, handing the deed over hands the ship over), a replacement card printed for the same crew record opens the same doors, and a blank card can't be listed.
 
-- Right click a code door > **Enter Code** (only offered if you don't already have access) opens a 4-digit keypad.
-- Wrong codes count per person per ship, not per keypad: a ship-wide code is shared by every code door, so a per-keypad lockout lets a group try many doors at once. 5 wrong codes in 10 minutes lock that person out of every keypad on that ship for 15 minutes. The 3rd miss sends a console alert and a PA line naming the character, and writes an admin log.
-- Codes can be changed any time; changing one doesn't kick anyone already inside.
+### What outposts need from it (F3.4) [NEW]
 
-### UI [NEW]
-
-- New **Access** tab on the shuttle console and the outpost console.
-- Left: the ship outline (reusing the WF ShipStatus whole-ship view), doors drawn as selectable nodes, coloured by rule.
-- Right: ship settings (mode, code, locked), allow list (add a player standing near the console, or type a name from the crew list; Builder tick), and the selected door's rule.
-- Only the owner can edit. On the shuttle console, crew see a read-only view of what they can open (outpost crew have no console access).
+- Outposts have no deed, so they register the owner by account through the same `OwnerUsers` path admin-spawned ships use: `WFOutpostComponent` ownership is mirrored into `OwnerUsers` at founding and again at every load, and the owner's worn ID card is the key. [NEW] on [EXISTS]
+- The allow list stays round state: rebuilt each round from the play group and the joinable positions, each member's worn card added as they spawn in a pod or are accepted. Door rules save with the outpost grid; the per-door ID picks do not, so an outpost comes back with its Sealed and Public doors but with empty "Chosen IDs" lists until the crew is re-added. [NEW]
+- A joiner's card needs a crew record to be keyed. Once an outpost is a station (F4.3) its joiners get one there; a player who spawned through the normal station path already carries one from the sector records service. [NEW]
+- The outpost console hosts the same `ShipAccessScreen` as a tab, driven by the outpost's `WFShipAccessComponent`. [NEW]
+- NPC raiders carry no listed card, so a locked outpost's doors deny them like any airlock and they have to breach (see Outpost Attacks). [EXISTS]
 
 ### Outpost ownership and sale [NEW]
 
@@ -545,7 +530,7 @@ Nova's colony machines all follow one recipe, and we copy it:
 | Outpost land mine | Proximity mine for approaches; triggers only for raider and hostile fauna factions, and only arms on outpost-grid tiles | One use | [NEW] on [EXISTS] stock land mine | T2 / A |
 | Outpost shield generator | Grid-wide bubble | 150 kW. The Mono POI bio generator is literally "for stationary outposts" | [EXISTS] `ShieldGeneratorPOIBio` | T3 / E |
 
-Turret friend/foe [NEW on EXISTS]: SS14 turrets pick targets by NPC faction hostility first (`NearbyGunTargets`), then `TurretTargetSettings` exempts anyone whose ID holds one of its access tags; it knows nothing of people, allow lists or animals. Outpost turrets and mines get a faction that is hostile only to raider factions and hostile wildlife. Players (owner, crew, traders, crash survivors) are never targets, and livestock are safe through their passive faction (see Farming). A mode that shoots players waits on Q1; it would need a new WF consideration that exempts the outpost's owner and allow list by person. Cap: 2 turrets plus 1 per 300 foundation tiles, max 6 per outpost, and each turret adds raid threat (see Raid director).
+Turret friend/foe [NEW on EXISTS]: SS14 turrets pick targets by NPC faction hostility first (`NearbyGunTargets`), then `TurretTargetSettings` exempts anyone whose ID holds one of its access tags; it knows nothing of people, allow lists or animals. Outpost turrets and mines get a faction that is hostile only to raider factions and hostile wildlife. Players (owner, crew, traders, crash survivors) are never targets, and livestock are safe through their passive faction (see Farming). A mode that shoots players waits on Q1; it would need a new WF consideration that exempts the outpost's owner (by account) and the allow-listed cards. Cap: 2 turrets plus 1 per 300 foundation tiles, max 6 per outpost, and each turret adds raid threat (see Raid director).
 
 ### Power Generation
 
@@ -726,7 +711,7 @@ Planets are getting underground layers: the Mine POI becomes a surface entrance 
   - Underground chunks under a claim zone generate as unmineable foundation rock: no tunnels, no safehouses, no fauna spawns. This is a generator rule on the underground biome, the same reservation the surface carve already makes, one layer down.
   - Tunnels that already exist under a spot when an outpost is founded or loaded there stay as they are. Nothing can dig up through the outpost's tiles (CE has no dig-up), so a tunnel below is only reachable if the owner opens a hatch in their own floor.
   - Load clearance and the placement rule look at depth 0 only; what is below never blocks a load.
-  - Claiming a Mine POI claims its surface grid. The tunnels stay world terrain, shared with everyone, rerolled each round, and never saved. Ore underneath is not reserved for the owner (see Q28).
+  - Claiming a Mine POI claims its surface grid. The tunnels stay world terrain, shared with everyone, rerolled each round, and never saved. Ore underneath is not reserved for the owner (see Q26).
   - Nothing below depth 0 is saved in the first version. Basements (an outpost as a set of grids, one per depth, bound by grid connectors and saved together) are a later phase, once the save format carries a depth per grid.
   - Raids get a "tunneller" arrival later: they surface at the claim edge, never inside the outpost, since the foundation rock rule means there is no tunnel to surface from under the base.
 
@@ -842,13 +827,13 @@ Loot: raiders drop their gear, flagged `WFRaidLoot`. It carries `CargoSellBlackl
 Atmospheric jetpacks can transit through the atmosphere levels; normal jetpacks are useless there. They use welding fuel. Some planets have super strong gravity, no workies.
 
 - **Normal jetpacks** already refuse to work below orbit and cut out if carried down: `SharedJetpackSystem.WfInAtmosphere` ("cannot hold you up in atmosphere") is checked at three places in `SharedJetpackSystem` and once in the server `JetpackSystem.Update`. [EXISTS]
-- **Atmospheric jetpack** [NEW]:
+- **Atmospheric jetpack** [EXISTS] on `planet-cracking` since PR #90 (`WFJetpackAtmospheric`, `WFAtmosphericJetpackComponent`, module `Planets`), built as specified here:
   - Keeps `JetpackComponent` for movement and adds `WFAtmosphericJetpackComponent`. `WfInAtmosphere` takes only the user today, so it gets the pack as well and skips atmospheric packs, at all four call sites (marked edits in both jetpack systems).
   - Fuel: welding fuel is a reagent, but the server `JetpackSystem` only enables packs with a `GasTankComponent` holding enough moles, and only burns gas. A marked branch in its `CanEnable` and `Update` hands atmospheric packs to a WF solution-burn system instead. Tank 100 u; burn 1 u/s hovering, 2 u/s thrusting or climbing. Refill at any welding fuel tank.
   - Works on the ground and air layers, and can climb and descend between them (0.5 layers/s). It needs air to burn, so it doesn't work on the orbit layer.
   - Out of fuel mid-air: you fall. Wear a parachute (the parachute system already catches falls through a level).
-- **Gravity gate** [NEW]: planet gravity is one number per world, used only for ship lift today. The jetpack reads `WFPlanetLayerComponent.Gravity` (networked, so shared code can read it) and refuses above 1.5 g ("too heavy here"). So Aerumna (3 g) is a no-go, Merak (1.15 g) and Thrascias (1.25 g) are fine but burn fuel 25% faster above 1 g.
-- Price: band C, T2, on the trade panel and at tradeposts. [NEW]
+- **Gravity gate** [EXISTS] (PR #90): planet gravity is one number per world, used only for ship lift today. The jetpack reads `WFPlanetLayerComponent.Gravity` (networked, so shared code can read it) and refuses above 1.5 g ("too heavy here"). So Aerumna (3 g) is a no-go, Merak (1.15 g) and Thrascias (1.25 g) are fine but burn fuel 25% faster above 1 g.
+- Price: the John Wolfgate trader stocks it for now (PR #90); band C, T2 on the trade panel and at tradeposts once those exist. [EXISTS] + [NEW]
 
 ## Under the hood (for devs)
 
@@ -876,26 +861,24 @@ Components (shared unless noted):
 - `WFOutpostConsoleComponent`, `WFOutpostFoundationComponent` (tile item), `WFRoofPanelComponent`, `WFOutpostCryopodComponent`, `WFLandingPadComponent`, `WFPadDockedComponent`, `WFUniversalTradeHubComponent`.
 - `WFDeployableComponent`, `WFRepackableComponent` (the machine held in a container on the pack), `WFWindTurbineComponent`, `WFEarlyWarningComponent`, `WFHomeGatedComponent` (server; cancels producers while nobody is home).
 - `WFSaveOriginComponent` (lineage stamp), `WFSaleBaselineComponent` (crash hulls).
-- `WFShipAccessComponent` (grid), `WFDoorAccessRuleComponent` (door), `WFDoorCodeKeypadComponent`.
 - `WFCrashSequenceComponent` (grid, server), `WFAtmosphericJetpackComponent`.
 - `WFLivestockComponent`, `WFAnimalFeederComponent`, `WFLassoComponent`.
 - `WFPlanetBoundsComponent` (network), `WFPoiSiteComponent`, `WFPoiBeaconComponent`, `WFRaidBurrowComponent`, `WFRaidLootComponent`, `WFRaidShuttleComponent`.
 
-Server systems: `WFOutpostSystem`, `WFOutpostSaveSystem`, `WFOutpostLoadSystem` (staging, clearance, overlay, swap, re-init), `WFOutpostPricingSystem` (save and sale predicates), `WFOutpostTradeSystem`, `WFOutpostAdminSystem`, `WFLandingPadSystem`, `WFOutpostSpawnSystem`, `WFCrashStartSystem`, `WFShipAccessSystem`, `WFPlanetPoiSystem`, `WFPlanetBoundsSystem`, `WFRaidDirectorSystem`, `WFHusbandrySystem`. Play groups as an IoC manager (`WFPlayGroupManager`), lobby state has no entities.
+Server systems: `WFOutpostSystem`, `WFOutpostSaveSystem`, `WFOutpostLoadSystem` (staging, clearance, overlay, swap, re-init), `WFOutpostPricingSystem` (save and sale predicates), `WFOutpostTradeSystem`, `WFOutpostAdminSystem`, `WFLandingPadSystem`, `WFOutpostSpawnSystem`, `WFCrashStartSystem`, `WFPlanetPoiSystem`, `WFPlanetBoundsSystem`, `WFRaidDirectorSystem`, `WFHusbandrySystem`. Play groups as an IoC manager (`WFPlayGroupManager`), lobby state has no entities.
 
 Prototypes: `wfOutpostPreset`, `wfOutpostTradeListing` (or cargo products in an outpost group), `wfPlanetPoiTable`, `wfPoiType`, `wfRaidTier`, `wfRaidTable`, `wfCrashPool`, job `WFOutpostSettler` + role loadout `JobWFOutpostSettler` + `customJobTitle`, alert codes `WFAlertCrash`, `WFAlertCrashed`, `WFAlertRaid`, tile `WFFoundationBed`.
 
 ### Reused systems (no rebuild)
 
-`ShipyardSystem.TrySaveShip` / `TryAddSavedShip` / `StripForResale` / `TryAssignDeed`, `UsedShipReinitSystem.ReinitLoadedShip`, `PricingSystem.AppraiseGrid`, `BankSystem` (session withdraw, deposit with tax off), `ForceAnchorSystem` components, `ShipPaSystem` / `ShipAlertSystem`, `WFOrbitEntrySystem` (drop, enter atmosphere), `WFFlightSystem.EnterLiftLost`, `WFParachuteSystem`, `WFPlanetWeatherSystem`, `BiomeSystem.ReserveTiles`, `SharedRoofSystem` / `IsRoof`, `CEPvsOverrideComponent`, `CryoSleepSystem`, `StationSpawningSystem.SpawnPlayerMob`, `GameTicker.MakeJoinGame`, `RulePlayerSpawningEvent`, `ExtraShuttleInformationComponent`, `LatheComponent`, `OreSiloComponent`, `ItemMiner` / `PlanetMiner`, `AnimalHusbandrySystem`, `DeployableTurret`, HTN `SleepPlayerCheckRangeOverride`, `CargoSellBlacklistComponent`, WF `ShipPreview`, WF `Roles` custom titles, WF `Traders`, WF `SafetyDepositBox`.
+`ShipyardSystem.TrySaveShip` / `TryAddSavedShip` / `StripForResale` / `TryAssignDeed`, `UsedShipReinitSystem.ReinitLoadedShip`, `PricingSystem.AppraiseGrid`, `BankSystem` (session withdraw, deposit with tax off), `ForceAnchorSystem` components, `ShipPaSystem` / `ShipAlertSystem`, `WFOrbitEntrySystem` (drop, enter atmosphere), `WFFlightSystem.EnterLiftLost`, `WFParachuteSystem`, `WFPlanetWeatherSystem`, `BiomeSystem.ReserveTiles`, `SharedRoofSystem` / `IsRoof`, `CEPvsOverrideComponent`, `CryoSleepSystem`, `StationSpawningSystem.SpawnPlayerMob`, `GameTicker.MakeJoinGame`, `RulePlayerSpawningEvent`, `ExtraShuttleInformationComponent`, `LatheComponent`, `OreSiloComponent`, `ItemMiner` / `PlanetMiner`, `AnimalHusbandrySystem`, `DeployableTurret`, HTN `SleepPlayerCheckRangeOverride`, `CargoSellBlacklistComponent`, WF `ShipPreview`, WF `Roles` custom titles, WF `Traders`, WF `SafetyDepositBox`, and the shipped `ShipAccess` module (PR #94): `WFShipAccessComponent`, `WFDoorAccessRuleComponent`, `WFShipAccessCodeComponent`, `WFShipAccessServerSystem.SetupRegisteredShip` / `AddOwnerUser`, `ShipAccessScreen`.
 
 ### Upstream hooks (marked edits)
 
 | File or system | Hook | Module |
 |---|---|---|
-| `ShipAccessReaderSystem.HasShipAccess` | Raise a WF access event right after the ghost and AI bypasses, before the no-grid and no-deed early returns | ShipAccess |
-| `ShuttleConsoleLockSystem` | Guest access and lock-ship verbs backed by the WF access model | ShipAccess |
-| NF `ShipyardSystem` | New purchases start Locked; the sale and used-ship listing paths honour `WFSaleBaselineComponent` | ShipAccess / SpawnOptions |
+| Ship access (shipped in PR #94) | `ShuttleConsoleLockSystem` verbs, `AccessReaderSystem` dirtying, `ShuttleDeedComponent` networked, deed dirtying in NF `ShipyardSystem` and `ShuttleRecordsSystem`, `MapGridControl` virtuals for the door map, the admin ghost's access, all-access lists in `AdminVerbSystem` and `SandboxSystem` | ShipAccess (done) |
+| NF `ShipyardSystem` | The sale and used-ship listing paths honour `WFSaleBaselineComponent` | SpawnOptions |
 | `BiomeSystem` | Chunk filter for world bounds (a partial can't stop `AddChunksInRange` without a call site); raid chunk loader, extra chunks kept in the active set next to the player and viewer requests | Planets |
 | `SharedJetpackSystem` (already marked by Planets) | `WfInAtmosphere` takes the pack; atmospheric exemption at its three call sites | Planets |
 | Server `JetpackSystem` (already marked by Planets) | `WfInAtmosphere` call site; solution-fuel branch in `CanEnable` and `Update` | Planets |
@@ -947,7 +930,7 @@ Plus `wf_outpost_payout` (user id, profile id, amount, reason, created_at) for r
 - Preview: request/response for one save, decompressed on the server and sent as plain YAML, owner only, size-capped, max one request per 5 s.
 - Load overlay: networked footprint (tile list + origin + rotation + seconds left) to clients in range.
 - Play groups: small lobby messages (browse, create, join, request, invite, kick, result), modelled on the ERT prompt messages.
-- Access: owner and allow-list `NetUserId`s, and each door's picked players, are networked on the grid and door components so door opens predict. Labels and Builder flags go to the owner's console only; codes never leave the server except to the owner.
+- Access (shipped): allow-list record keys, `OwnerUsers` and each door's picked keys are networked on the grid and door components, and station-records holders are force-sent, so door opens predict. Codes never leave the server except to the owner's console, in a directed event.
 
 ### Admin tools [NEW]
 
@@ -985,7 +968,7 @@ Integration tests under `Content.IntegrationTests/Tests/_WF/<Module>`, never `De
 - Arbitrage: kit, bare console, add-on packs and every trade-panel listing are priced at or above the appraisal of their deployed contents; every Outpost Fabricator recipe's material value is at or above its product's appraisal; the Parts press respects `MaterialArbitrageTest`'s multiplier.
 - Gizmos: no repackable prototype carries a machine board; a repack and deploy keeps charge and contents.
 - Clearance: refuses overlap with a grid, a claim zone, a POI or crash site within the placement rule, out of bounds.
-- Access: owner, allow list, code, per-person code lockout, per-door rules, faction mode; readers appear on doors built after purchase.
+- Access (ships: shipped with PR #94). F3.4 adds: outpost owner registered by account at found and load, a joiner's worn card keyed after spawning, the outpost console owner-only.
 - Joinable positions: `joingame` onto an outpost station is refused; the WF join path works.
 - Raids: a mob on the ground with a target inside a walled outpost gets in (phase-0 spike).
 - Spawn options: validation and fallback to Standard.
@@ -1002,7 +985,7 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 | F1 (grid) | Outpost grid: console, foundation plates, ground carving, roofs and the outdoors rule, anchoring, claim zone, cleanup and Carcinoma exemptions | F0 |
 | F1 (save) | Save/load: DB, Save tab, autosave, staging + clearance + overlay, pricing and predicates, lineage, previewer overload, editor tab, admin tools; sale: Sell tab, sale predicate, sell at round end, sell to a player, `wf_outpost_payout` | F1 (grid) |
 | F2 | Outpost Kit, fabricator, deploy/repack, gizmo pack 1 (power, construction, tools, atmos, kitchen, comms/logistics), time/weather console and its forecast API, trade panel, UTH parachute drops | F1 |
-| F3 | Ship Access Overhaul (ships and outposts) | F0 |
+| F3 | Ship Access Overhaul: F3.1 to F3.3 shipped for ships in PR #94; F3.4 outposts adopt it | F1 |
 | F4 | Outpost Spawn: spawn menu, Outpost Job, cryopods, joinable positions, presets | F1, F3 |
 | F5 | Play groups, Shuttle Crash start | F4 |
 | F6 | Landing guard, landing pads | F1 |
@@ -1059,10 +1042,10 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - D44: Outpost grids use `RoofComponent`; "outdoors" = on the outpost grid and not rooved, one rule for every gizmo that cares.
 - D45: Until Q1 is answered, outposts are PvE: turrets, mines and orbital weapons target NPCs only, only the owner re-founds, only owner and Builders repack.
 - D46: Non-faction ships and outposts default to owner-only access; faction ships and outposts start in Faction mode.
-- D47: Owner-edited allow lists and codes are for non-faction owners, as the original says; play-group members and joiners are added on every ship and outpost.
-- D48: Access is matched by person (mind + character), not card; the owner's deed still works; allow-list ids are networked so doors predict, codes stay on the server.
-- D49: Door rules: Default, Owner only, Players, Code, Players or code, Public, Sealed.
-- D50: 4-digit codes via right click > Enter Code; misses count per person per ship, 5 in 10 minutes lock that person out ship-wide for 15 minutes.
+- D47: The owner edits the allow list and codes on every ship, faction or not; Faction mode adds the company's access on top (as shipped in PR #94). Play-group members and joiners are added on every outpost.
+- D48: Access is keyed on ID cards by crew-record key and written into the doors' normal airlock readers behind the `WFShipLocked` level; Mono's deed reader is off; allow lists are round state and not saved; outposts, like admin-spawned ships, register the owner by account (`OwnerUsers`) with the worn card as the key (as shipped in PR #94).
+- D49: Door rules: Ship default, Deed only, Chosen IDs, Code, Chosen IDs or code, Public, Sealed; every rule but Ship default applies even on an unlocked ship, and Sealed bolts.
+- D50: 4-digit ship and door codes via right click > Enter Code; misses count per character per ship, 5 in 10 minutes lock that person out ship-wide for 15 minutes; console alert and admin log, no PA line.
 - D51: Outpost Consoles are owner-only.
 - D52: Outposts use `WFOutpostComponent` ownership, not ID-card deeds.
 - D53: Outposts sell to the game for the exact current appraisal, untaxed, counting structures and machines but not goods, mid-round or at round end, with shuttle-style sale checks.
@@ -1115,16 +1098,14 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - Q13: Can `DisallowLateJoin` be true when a queued outpost player is joined with `MakeJoinGame`, turning it into an observer spawn?
 - Q14: What access checks does the station records console apply to adjusting job slots, and do outposts need a different gate?
 - Q15: How does `ShuttleSystem.Impact` behave for a grid falling from the orbit layer, and does it interact with the crash clamp?
-- Q16: Ship doors use a generic Captain tag that opens every ship's Captain doors. Do any ship door prototypes carry other per-door access tags that would change how the default "owner only" rule behaves?
-- Q17: How do Mono AI shuttle events move from their own map into play? The raider shuttle arrival wants the same path onto a planet.
-- Q18: Which existing POI grids already contain consoles, cryopods or turrets suitable for claimable planet POIs?
-- Q19: Nova assets: the license of `AW_reactor.ogg` (freesound, dobroide); the fabricator and arc furnace recordings (given "for free open source use" by an unnamed contributor, with no stated license, so replaced unless cleared); the Kahraman `ore_thumper_fan` loop the Stirling uses; and how the DMI art and its deploy and print animations convert to RSI states.
-- Q20: Real power draw of the regulator, recycler, synthesizers and dispenser in use, and a full comparison against SS14 power values, before numbers are locked.
-- Q21: Which planet weather types count as "windy" for the turbine storm bonus?
-- Q22: Does the Outpost Fabricator accept raw ore at 1:1 like Nova's probably does, or only sheets (which keeps the arc furnace worth building)?
-- Q23: Items can still be copied by moving them from a stale save into another player's outpost and reloading (paid at 1.5x their appraisal). Is a persistent-item ledger (one record of where each persistent entity lives) worth building?
-- Q24: Should owners of faction ships and faction members' outposts also be able to edit allow lists and codes, on top of faction access?
-- Q25: After playtests, is the split of players between planets and space healthy, and how should the population-scaled outpost cap be tuned?
-- Q26: Do Crescent shield bubbles and Mono artillery behave on planet maps and CE layers?
-- Q27: Should the livestock record approach be extended to pets and tamed wildlife that are not in pens?
-- Q28: Undergrounds: are they negative depths in the same network or does the ground shift up; are tunnels that already exist under a newly loaded outpost left or backfilled; and should the ore under a claimed Mine POI be reserved for its owner?
+- Q16: How do Mono AI shuttle events move from their own map into play? The raider shuttle arrival wants the same path onto a planet.
+- Q17: Which existing POI grids already contain consoles, cryopods or turrets suitable for claimable planet POIs?
+- Q18: Nova assets: the license of `AW_reactor.ogg` (freesound, dobroide); the fabricator and arc furnace recordings (given "for free open source use" by an unnamed contributor, with no stated license, so replaced unless cleared); the Kahraman `ore_thumper_fan` loop the Stirling uses; and how the DMI art and its deploy and print animations convert to RSI states.
+- Q19: Real power draw of the regulator, recycler, synthesizers and dispenser in use, and a full comparison against SS14 power values, before numbers are locked.
+- Q20: Which planet weather types count as "windy" for the turbine storm bonus?
+- Q21: Does the Outpost Fabricator accept raw ore at 1:1 like Nova's probably does, or only sheets (which keeps the arc furnace worth building)?
+- Q22: Items can still be copied by moving them from a stale save into another player's outpost and reloading (paid at 1.5x their appraisal). Is a persistent-item ledger (one record of where each persistent entity lives) worth building?
+- Q23: After playtests, is the split of players between planets and space healthy, and how should the population-scaled outpost cap be tuned?
+- Q24: Do Crescent shield bubbles and Mono artillery behave on planet maps and CE layers?
+- Q25: Should the livestock record approach be extended to pets and tamed wildlife that are not in pens?
+- Q26: Undergrounds: are they negative depths in the same network or does the ground shift up; are tunnels that already exist under a newly loaded outpost left or backfilled; and should the ore under a claimed Mine POI be reserved for its owner?

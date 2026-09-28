@@ -29,6 +29,13 @@ The plan has four places where you can stop and the feature is coherent:
 
 Everything after M4 (crash start, play groups, pads, farming, orbital defence, jetpacks, basements) is additive.
 
+## Shipped so far
+
+Live status per step is on the build board (link above). Landed:
+
+- **F3.1, F3.2, F3.3** (ship access: owner and allow list, per-door rules, codes): PR #94, merged to `main` on 2026-09-28. Hand testing changed the model: access is keyed on ID cards' crew-record keys written into the doors' normal airlock readers behind the `WFShipLocked` level; Mono's deed reader is off; allow lists are round state and not saved; admin-spawned ships register owners by account (`OwnerUsers`). The design doc's Ship Access section describes what shipped.
+- **F10.1** (atmospheric jetpack): PR #90, merged to `planet-cracking` on 2026-09-25; reaches `main` with the planets branch.
+
 ## Order
 
 For one or two developers, in this order. Steps on the same line can run in parallel because they do not touch the
@@ -37,8 +44,8 @@ same files.
 1. F0.1, F0.2, F0.3 (spikes, in parallel)
 2. F1.1, then F1.2
 3. F1.3
-4. F1.4, F1.5 in parallel with F3.1 (ship access, ships only)
-5. F2.1, F2.2, F2.3, F2.4 in order, in parallel with F3.2, F3.3
+4. F1.4, F1.5 (F3.1 to F3.3 already shipped in PR #94)
+5. F2.1, F2.2, F2.3, F2.4 in order
 6. F1.6 (sale), F3.4 (outposts adopt ship access)
 7. F4.1, F4.2, F4.3 in order, in parallel with F2.5, F2.6
 8. F7.1 (bounds), F6.1 (landing guard) in parallel
@@ -92,15 +99,15 @@ Module `Outposts` (gizmos may get a sub-folder per category).
 
 ## F3: Ship Access Overhaul
 
-Module `ShipAccess`. Independent of F1 until F3.4, so it can start on day one with a second developer. Ships first,
-because they exist and outposts do not yet.
+Module `ShipAccess`. F3.1 to F3.3 shipped for ships in PR #94 (merged 2026-09-28); the rows below record what
+landed, which differs from the first plan where testing changed the model. F3.4 remains and waits on F1.3.
 
 | Step | Ships | Done when | Size | Needs |
 |---|---|---|---|---|
-| F3.1 Owner and allow list | `WFShipAccessComponent` on the grid (owner, mode Private or Faction, allow list, Locked on by default for new purchases), the hook in `HasShipAccess` before its early returns, readers ensured on anchor, grid change and load, allow-list ids networked so doors predict, the Builder tick, the Access tab on the shuttle console (settings and allow list only), existing verbs mapped onto the model, `ShuttleConsoleLockSystem` and `ShipyardSystem` marked edits | Test: a non-listed player is refused at a door on a private ship; adding them opens it; a stolen card does not | M | none |
-| F3.2 Per-door rules | `WFDoorAccessRuleComponent` with the seven rules, the door diagram on the Access tab (reuse the ShipStatus whole-ship view), rules serialise with the grid | Test: a Sealed door refuses the owner at the door and opens from the console | M | F3.1 |
-| F3.3 Codes | 4-digit ship and door codes, right click > Enter Code keypad (only offered without access), misses per person per ship, 5 in 10 minutes locks that person out for 15, console alert and admin log | Test: the right code opens, the lockout holds, codes never appear in a client state | S | F3.2 |
-| F3.4 Outposts adopt it | Outpost console owner-only, the Access tab on the outpost console, group members and joiners added to the allow list, faction members' outposts start in Faction mode | Test: an allow-listed crew member opens doors but not the console | S | F3.3, F1.3 |
+| F3.1 Owner and allow list (shipped, PR #94) | `WFShipAccessComponent` on the grid: owner = the deed holder (card or voucher) or, for admin-spawned ships, player accounts in `OwnerUsers`; allow list of ID cards by crew-record key (round state, not saved); Locked on by default (`wf.shipaccess.lock_new_ships`); a locked ship's door and locker readers rewritten to require `WFShipLocked` plus the owner and listed keys, the reader's own access backed up in `WFShipReaderBackupComponent`; Mono's deed reader off; station-records holders force-sent so opens predict; Access tab on the shuttle console; old verbs mapped | Shipped tests: owner and allow list gate locked doors, purchase locks and covers later builds, stolen card gets in (by design), resale restores readers | M | none |
+| F3.2 Per-door rules (shipped, PR #94) | `WFDoorAccessRuleComponent`: Ship default, Deed only, Chosen IDs, Code, Chosen IDs or code, Public, Sealed; every rule but Ship default applies even unlocked; Sealed bolts; the rule saves with the grid, the per-door ID picks are round state; the door diagram on the Access tab reuses the Ship tab's hull drawing; firelocks excluded | Shipped tests: rule matrix, Sealed bolts and refuses the owner, Public admits anyone while locked | M | F3.1 |
+| F3.3 Codes (shipped, PR #94) | Server-only ship code (`WFShipAccessCodeComponent`) and door codes (`WFDoorCodeComponent`), shown masked to the owner's console by directed event; Enter Code verb on the rule component; misses per character per ship, 5 in 10 minutes locks that person out for 15; console alert and admin log, no PA line | Shipped tests: right code opens, wrong code counts, lockout holds, no code in any networked state | S | F3.2 |
+| F3.4 Outposts adopt it | Outposts have no deed: register the owner by account through `WFShipAccessServerSystem.SetupRegisteredShip` / `AddOwnerUser` at founding and at every load (the owner's worn card is the key); the allow list is rebuilt each round from the play group and joiners (each member's worn card added as they spawn); door rules save with the outpost grid, per-door ID picks do not; the outpost console hosts `ShipAccessScreen` as a tab and stays owner-only; faction members' outposts start in Faction mode | Test: the owner's worn card opens a locked outpost after a load; a joiner's worn card opens doors but the console refuses them; a Sealed door comes back bolted from a save | S | F3.3, F1.3 |
 
 ## F4: Outpost Spawn
 
@@ -175,7 +182,7 @@ Each is its own PR or small series; order by demand.
 
 | Step | Ships | Needs |
 |---|---|---|
-| F10.1 Atmospheric jetpack | `WFAtmosphericJetpackComponent`, the four `WfInAtmosphere` call sites, the server fuel branch, layer climb and descend, gravity gate at 1.5 g, fuel scaling above 1 g | Planets |
+| F10.1 Atmospheric jetpack (shipped, PR #90 on `planet-cracking`) | `WFJetpackAtmospheric` and `WFAtmosphericJetpackComponent` in the `Planets` module, welding fuel (100 u; 1 and 2 u/s, a quarter more above 1 g), climbs and descends half a layer a second, refuses in orbit and above 1.5 g; sold by the John Wolfgate trader for now | Planets |
 | F10.2 Parts press, power exporter, mining bots | The producers with their home gate and caps, bot HTN and dock | F2.2, F8.2 |
 | F10.3 Orbital defence | Sensor uplink, flak battery, orbital defence battery, descent jammer, all against `WFRaidShuttleComponent` only until Q1 is answered | F8.4 |
 | F10.4 Basements | An outpost as a set of grids, one per depth, bound by CE grid connectors like a multi-deck ship; the save format gains a depth per grid; a dug-down hatch in the outpost floor becomes a CE ladder onto the owner's depth -1 grid; caps apply to the set | F7.5, F1.4 |
