@@ -4438,3 +4438,14 @@ the owner's call; left as it plays.
   use in hand, ahead of both: one press's worth goes onto the target by the same touch reaction the vapor uses, with
   the spray sound and a popup, and nothing is swallowed. A click on the world still sprays a cloud, and the Drink
   verb is still there for anyone who insists. `WolfmedAntisepticSprayTest` covers self, use in hand and another patient.
+- **The pod never pushes past a reagent's safe line (2026-09-28).** "When fixing a brain the patient gets poison
+  damage." The anaesthetic top-up was bounded only by the sedation cap, which the analgesic does not raise, so a long
+  brain repair kept topping it up past the 20-unit poison line. `AutodocReagentEntry.safeUnits` (opiate 12, analgesic
+  18, stim 8, spaceacillin 22, each under its overdose line) and `PushReagent` reads what is already in the blood and
+  fills only the room left, one reagent of the role at a time. `WolfmedPodReagentSafetyTest` pins it.
+- **Bloodloss is capped like Asphyxiation (2026-09-28).** "Someone somehow got 800 O2 damage." The bloodstream deals
+  Bloodloss every second under 90% blood (2.5 a second at 30%) for as long as the model keeps the body alive, and
+  nothing in Wolfmed reads it; a patient at 30% blood for the nine-minute window carried hundreds of Airloss, the
+  group Bloodloss counts in. AUTODOC5's `wolfmed.airloss_cap` (200) ceiling on Asphyxiation, applied where routed
+  systemic damage lands, now covers Bloodloss too; it was left out so a vital loss could kill through it, and BRAIN
+  moved that death to the life system. `WolfmedBodyDamageCeilingTest` pins both types at the cap.

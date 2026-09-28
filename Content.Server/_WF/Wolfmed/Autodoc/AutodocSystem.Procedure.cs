@@ -1426,7 +1426,8 @@ public sealed partial class AutodocSystem
 
     /// <summary>
     /// Draws units of a role out of the loaded beakers and pushes them into the occupant's bloodstream.
-    /// Anything not on the pod's reagent list is left in the beaker.
+    /// Anything not on the pod's reagent list is left in the beaker. Playtest 5: never past a reagent's
+    /// <see cref="AutodocReagentEntry.SafeUnits"/> in the blood, one reagent of the role at a time in list order.
     /// </summary>
     public bool PushReagent(Entity<AutodocComponent> ent, EntityUid body, AutodocReagentRole role, float units)
     {
@@ -1435,30 +1436,47 @@ public sealed partial class AutodocSystem
 
         var allowed = list.Reagents
             .Where(entry => entry.AutodocAdministrable && entry.Role == role)
-            .Select(entry => entry.Reagent.Id)
             .ToArray();
 
         if (allowed.Length == 0)
             return false;
 
+        _solutions.TryGetSolution(body, BloodstreamComponent.DefaultChemicalsSolutionName, out _, out var chemicals);
         var pushed = false;
         var left = FixedPoint2.New(units);
-        foreach (var slot in AutodocComponent.ReservoirSlotIds)
+        foreach (var entry in allowed)
         {
             if (left <= FixedPoint2.Zero)
                 break;
 
-            if (_slots.GetItemOrNull(ent.Owner, slot) is not { } beaker ||
-                !TryGetReservoirSolution(beaker, out var soln, out _))
+            var want = left;
+            if (entry.SafeUnits > 0f)
+            {
+                var inBlood = chemicals?.GetTotalPrototypeQuantity(entry.Reagent.Id) ?? FixedPoint2.Zero;
+                want = FixedPoint2.Min(want, FixedPoint2.New(entry.SafeUnits) - inBlood);
+            }
+
+            if (want <= FixedPoint2.Zero)
                 continue;
 
-            var taken = _solutions.SplitSolutionPerReagentWithOnly(soln.Value, left, allowed);
-            if (taken.Volume <= FixedPoint2.Zero)
-                continue;
+            foreach (var slot in AutodocComponent.ReservoirSlotIds)
+            {
+                if (want <= FixedPoint2.Zero)
+                    break;
 
-            left -= taken.Volume;
-            _bloodstream.TryAddToChemicals(body, taken);
-            pushed = true;
+                if (_slots.GetItemOrNull(ent.Owner, slot) is not { } beaker ||
+                    !TryGetReservoirSolution(beaker, out var soln, out _))
+                    continue;
+
+                var taken = _solutions.SplitSolutionPerReagentWithOnly(soln.Value, want, entry.Reagent.Id);
+                if (taken.Volume <= FixedPoint2.Zero)
+                    continue;
+
+                want -= taken.Volume;
+                left -= taken.Volume;
+                _bloodstream.TryAddToChemicals(body, taken);
+                pushed = true;
+            }
         }
 
         return pushed;

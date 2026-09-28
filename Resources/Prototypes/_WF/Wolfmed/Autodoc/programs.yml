@@ -149,17 +149,24 @@
 
 # The whole administrable list. A reagent that is not here is left in the beaker, whatever it is.
 
+# Playtest 5: safeUnits is each reagent's overdose line with a margin (Reagents/painkillers.yml, medicine.yml); the pod
+# never pushes past it. The sedation cap only ever bounded the sedatives, and a long brain repair poisoned a patient
+# with analgesic.
 - type: autodocReagents
   id: WFWolfmedAutodocReagents
   reagents:
   - reagent: WFWolfmedOpiate
     role: Anaesthetic
+    safeUnits: 12 # poison from 15
   - reagent: WFWolfmedAnalgesic
     role: Anaesthetic
+    safeUnits: 18 # poison from 20
   - reagent: WFWolfmedStim
     role: Fluid
+    safeUnits: 8 # poison from 10
   - reagent: Spaceacillin
     role: Antibiotic
+    safeUnits: 22 # poison from 25
   - reagent: Ethanol
     role: Antiseptic
   - reagent: Saline

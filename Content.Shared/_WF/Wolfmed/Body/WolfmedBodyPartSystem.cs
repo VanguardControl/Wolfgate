@@ -18,18 +18,20 @@ public sealed class WolfmedBodyPartSystem : EntitySystem
     public WolfmedBodyPartComponent Get(EntityUid part) => CompOrNull<WolfmedBodyPartComponent>(part) ?? None;
 
     /// <summary>
-    /// The one systemic damage type with a ceiling. Bloodloss is deliberately left out: decapitation and the
-    /// other vital losses deal a fixed lethal figure through it, and capping that would survive them.
+    /// The systemic damage types with a ceiling. Bloodloss used to be left out so a vital loss could deal its fixed
+    /// lethal figure through it; BRAIN made that death the life system's (LostVitalPart), and nothing in the model
+    /// reads Bloodloss since, while the bloodstream keeps adding it for as long as a body is kept alive on low blood
+    /// (playtest 5: "someone got 800 O2 damage", the airloss group's Bloodloss).
     /// </summary>
-    private const string AirlossType = "Asphyxiation";
+    private static readonly string[] AirlossTypes = { "Asphyxiation", "Bloodloss" };
 
     /// <summary>
-    /// The ceiling for one systemic damage type, or null when it has none. Suffocation counts without bound
-    /// otherwise: nothing routes it to a part, so the body cap never sees it.
+    /// The ceiling for one systemic damage type, or null when it has none. Suffocation and bloodloss count without
+    /// bound otherwise: nothing routes them to a part, so the body cap never sees them.
     /// </summary>
     public FixedPoint2? AirlossCeiling(string type)
     {
-        if (type != AirlossType)
+        if (System.Array.IndexOf(AirlossTypes, type) < 0)
             return null;
 
         var cap = _config.GetCVar(WolfmedCVars.AirlossCap);

@@ -307,6 +307,14 @@ public sealed partial class AutodocReagentEntry
     /// </summary>
     [DataField]
     public bool Machine;
+
+    /// <summary>
+    /// Playtest 5: the most of this reagent the pod leaves in the blood, under its overdose line; 0 is no limit. The
+    /// sedation cap only ever bounded the sedatives, and an analgesic topped up through a long brain repair poisoned
+    /// the patient.
+    /// </summary>
+    [DataField]
+    public float SafeUnits;
 }
 
 /// <summary>What the pod uses a reagent for.</summary>
