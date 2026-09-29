@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using Content.Client.Credits;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
@@ -46,6 +47,16 @@ public sealed partial class RoadmapWindow : DefaultWindow
         {
             Columns.AddChild(CreateColumn(column));
         }
+    }
+
+    /// <summary>Gap kept between the window and each edge of the viewport when it has to shrink.</summary>
+    private const float ViewportMargin = 20f;
+
+    /// <summary>Shrinks the window to fit a viewport, keeping its design size when there is room.</summary>
+    public void FitTo(Vector2 viewport)
+    {
+        var fitted = Vector2.Min(SetSize, viewport - new Vector2(ViewportMargin * 2));
+        SetSize = Vector2.Max(fitted, MinSize);
     }
 
     /// <summary>Shows a link button only when the server sets its cvar.</summary>

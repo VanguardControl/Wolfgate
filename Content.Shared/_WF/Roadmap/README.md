@@ -51,6 +51,8 @@ Changes from RMC: entries moved from XAML into prototypes and Fluent, and the lo
 - [`Content.Client/Info/LinkBanner.cs`](../../../Content.Client/Info/LinkBanner.cs): roadmap link after the changelog
 - [`Content.Client/Options/UI/EscapeMenu.xaml`](../../../Content.Client/Options/UI/EscapeMenu.xaml): roadmap entry under the changelog
 - [`Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs`](../../../Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs): roadmap entry in the game menu
-- [`Content.Client/UserInterface/Systems/Info/InfoUIController.cs`](../../../Content.Client/UserInterface/Systems/Info/InfoUIController.cs): the roadmap waits for the rules popup
+- [`Content.Client/UserInterface/Systems/Info/InfoUIController.cs`](../../../Content.Client/UserInterface/Systems/Info/InfoUIController.cs)
+  - the roadmap waits for the server's rules decision
+  - the roadmap waits for the rules popup
 
 <!-- WOLFGATE-GENERATED END -->

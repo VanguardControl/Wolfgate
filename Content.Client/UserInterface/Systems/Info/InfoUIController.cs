@@ -49,6 +49,8 @@ public sealed partial class InfoUIController : UIController, IOnStateExited<Game
 
         if (message.ShouldShowRules)
             ShowRules(message.PopupTime);
+
+        RulesInformationReceived?.Invoke(); // WOLFGATE(Roadmap): the roadmap waits for the server's rules decision
     }
 
     public void OnStateExited(GameplayState state)

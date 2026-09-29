@@ -3,6 +3,7 @@ using System.Numerics;
 using Content.Client._WF.Roadmap;
 using Content.Shared._WF.Roadmap;
 using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Localization;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
@@ -117,6 +118,44 @@ public sealed class RoadmapTest
             controller.ToggleRoadmap();
             Assert.That(controller.IsOpen, Is.False);
             Assert.That(ui.WindowRoot.Children.OfType<RoadmapWindow>(), Is.Empty);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// The window shrinks to fit short viewports, including 720p at 1.5x UI scale, and keeps its design size when
+    /// there is room; the scroll container takes whatever no longer fits.
+    /// </summary>
+    [TestCase(1920, 1080)]
+    [TestCase(1366, 768)]
+    [TestCase(1280, 720)]
+    [TestCase(853, 480)]
+    public async Task WindowFitsViewport(int width, int height)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+
+        await pair.Client.WaitAssertion(() =>
+        {
+            var viewport = new Vector2(width, height);
+            using var window = new RoadmapWindow();
+            var design = window.SetSize;
+
+            window.FitTo(viewport);
+            window.Measure(viewport);
+            window.Arrange(UIBox2.FromDimensions(Vector2.Zero, window.DesiredSize));
+
+            var scroll = window.Contents.Children.OfType<ScrollContainer>().Single();
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.Size.X, Is.LessThanOrEqualTo(width), "Wider than the viewport.");
+                Assert.That(window.Size.Y, Is.LessThanOrEqualTo(height), "Taller than the viewport.");
+                Assert.That(scroll.GlobalPosition.Y + scroll.Size.Y, Is.LessThanOrEqualTo(window.Size.Y),
+                    "The scroll area runs past the window's bottom edge.");
+
+                if (width >= design.X + 40 && height >= design.Y + 40)
+                    Assert.That(window.Size, Is.EqualTo(design), "A roomy viewport keeps the design size.");
+            });
         });
 
         await pair.CleanReturnAsync();
