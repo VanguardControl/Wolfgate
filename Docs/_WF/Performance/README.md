@@ -28,6 +28,10 @@ None.
   - wizden#38974, pipe net removal event
 - [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../../Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../../Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
+- [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../../Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs)
+  - wizden#44340, tile entities carry their fixtures
+  - wizden#44340, resolve transforms and hard fixtures once per tile
+  - wizden#44340, iterate the cached hard fixtures
 - [`Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs`](../../../Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs): wizden#38974, was string HexCode
 
 <!-- WOLFGATE-GENERATED END -->
