@@ -87,6 +87,7 @@ public sealed partial class InfoUIController : UIController, IOnStateExited<Game
 
         _rulesPopup?.Orphan();
         _rulesPopup = null;
+        RulesAccepted?.Invoke(); // WOLFGATE(Roadmap): the roadmap waits for the rules popup
     }
 
     public GuideEntryPrototype GetCoreRuleEntry()
