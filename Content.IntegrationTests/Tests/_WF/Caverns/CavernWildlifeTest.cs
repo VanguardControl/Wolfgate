@@ -5,6 +5,7 @@ using Content.Server._CE.ZLevels.Core;
 using Content.Server._WF.Caverns;
 using Content.Server._WF.Planets;
 using Content.Server.Parallax;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -118,8 +119,8 @@ public sealed class CavernWildlifeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>An animal that falls through an unpinned hole opened in a loaded chunk is kept.</summary>
-    // A hole dug or blown on a loaded chunk is only pinned when the chunk unloads, so the loaded check alone keeps it.
+    /// <summary>An animal that falls through a hole opened in a loaded chunk is kept, and lands on the hole's landing.</summary>
+    // The hole queue pins the hole and lays its landing within a tick, so either check keeps the animal.
     [Test]
     public async Task WildlifeThroughLoadedHoleIsKept()
     {
@@ -153,14 +154,17 @@ public sealed class CavernWildlifeTest
             {
                 Assert.That(biomes.WfIsChunkLoaded(biome, Spot), Is.True,
                     "Precondition: the hole's chunk unloaded.");
-                Assert.That(biomes.WfIsPinned(biome, Spot), Is.False,
-                    "Precondition: the hole is pinned, so the pinned check decides instead of the loaded one.");
+                Assert.That(biomes.WfIsPinned(biome, Spot), Is.True, "The hole queue left the hole unpinned.");
+                Assert.That(entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades.ContainsKey(Spot), Is.True,
+                    "The hole queue gave the hole no shade.");
                 Assert.That(entMan.Deleted(animal) || entMan.IsQueuedForDeletion(animal), Is.False,
                     "Wildlife that fell through a hole in a loaded chunk was deleted.");
             }
 
             Assert.That(entMan.GetComponent<TransformComponent>(animal).MapUid, Is.EqualTo(world.Cavern),
                 "Precondition: the animal did not fall through the hole into the cavern.");
+            Assert.That(entMan.GetComponent<CEZPhysicsComponent>(animal).LocalPosition, Is.GreaterThan(-0.1f),
+                "The animal sank into the cavern floor instead of landing under the hole.");
         });
 
         await Teardown(pair, world);

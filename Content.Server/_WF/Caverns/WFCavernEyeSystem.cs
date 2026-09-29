@@ -69,6 +69,12 @@ public sealed partial class WFCavernEyeSystem : EntitySystem
         }
     }
 
+    /// <summary>Measures every viewer against the holes on the next tick, as when a hole has just opened or closed.</summary>
+    public void CheckSoon()
+    {
+        _nextCheck = TimeSpan.Zero;
+    }
+
     /// <summary>Whether a viewer whose eyes reach this ground gets an eye on its cavern; records the answer.</summary>
     // A viewer who has the cavern keeps it out to LeaveMargin.
     public bool SeesCavern(EntityUid viewer, EntityUid ground, Vector2 position, float viewScale)

@@ -12,6 +12,9 @@ public sealed partial class BiomeSystem
         return CanLoad(uid);
     }
 
+    /// <summary>Half the side of the box around a loader whose chunks load, in tiles.</summary>
+    public float WfLoadRange => _loadRange;
+
     /// <summary>Whether the biome chunk holding this tile index is loaded.</summary>
     public bool WfIsChunkLoaded(Entity<BiomeComponent> biome, Vector2i index)
     {

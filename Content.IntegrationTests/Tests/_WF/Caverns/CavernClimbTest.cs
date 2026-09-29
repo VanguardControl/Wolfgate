@@ -255,6 +255,7 @@ public sealed class CavernClimbTest
         var hullText = pair.Client.ResolveDependency<ILocalizationManager>().GetString("wf-cavern-climb-blocked-hull");
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
 
         try

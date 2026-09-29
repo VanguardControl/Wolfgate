@@ -77,6 +77,12 @@ public static class CavernFixture
         });
     }
 
+    /// <summary>Stops lazy mouth claims for this pair, for a test that needs only the gate; TestPair reverts it when the pair is returned.</summary>
+    public static async Task DisableClaims(TestPair pair)
+    {
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(CavernCVars.CavernClaims, false));
+    }
+
     /// <summary>Builds an unowned stack of one surface at the origin; with caverns on, its gate is claimed as it builds.</summary>
     public static async Task<World> BuildWorld(TestPair pair, string surfaceId)
     {

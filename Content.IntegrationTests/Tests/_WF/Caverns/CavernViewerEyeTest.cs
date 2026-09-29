@@ -44,6 +44,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         await EnablePvs(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
@@ -101,6 +102,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         await EnablePvs(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
@@ -159,6 +161,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
         // An eye sees a square whose side is net.pvs_range.
@@ -201,6 +204,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 
@@ -236,6 +240,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 
@@ -281,6 +286,7 @@ public sealed class CavernViewerEyeTest
         var viewerPos = new Vector2(40.5f, 40.5f);
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
 
         var viewer = await PlanetFixture.AttachViewer(pair, world.Cavern, viewerPos);

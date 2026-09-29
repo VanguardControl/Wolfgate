@@ -58,6 +58,7 @@ public sealed class CavernCommandTest
         };
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
 
         var worlds = new List<World>();
         var body = EntityUid.Invalid;

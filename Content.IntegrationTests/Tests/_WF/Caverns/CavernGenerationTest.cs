@@ -54,6 +54,7 @@ public sealed class CavernGenerationTest
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
 
         foreach (var surfaceId in Surfaces)
         {

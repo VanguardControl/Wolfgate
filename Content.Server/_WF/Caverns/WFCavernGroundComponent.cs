@@ -36,6 +36,18 @@ public sealed partial class WFCavernGroundComponent : Component
     /// <summary>The climb point under each lip, by tile index (the same on both maps).</summary>
     [ViewVariables]
     public Dictionary<Vector2i, EntityUid> ClimbPoints = new();
+
+    /// <summary>Ground tiles emptied since the hole queue last ran: holes, or an unload's.</summary>
+    [ViewVariables]
+    public HashSet<Vector2i> Opened = new();
+
+    /// <summary>Hole tiles filled since the hole queue last ran, whose shades go.</summary>
+    [ViewVariables]
+    public HashSet<Vector2i> Closed = new();
+
+    /// <summary>Cavern tiles emptied since the hole queue last ran, which it fills again.</summary>
+    [ViewVariables]
+    public HashSet<Vector2i> FloorOpened = new();
 }
 
 /// <summary>What became of a mouth cell: claimed, waiting, or without a site.</summary>
@@ -63,9 +75,6 @@ public enum WFCavernMouthKind : byte
     /// <summary>A cell's mouth, claimed ahead of the terrain streaming in.</summary>
     Cell,
 
-    /// <summary>A hole opened later in loaded ground.</summary>
-    Hole,
-
     /// <summary>Carved by an admin.</summary>
     Admin,
 }
@@ -80,6 +89,10 @@ public sealed class WFCavernCell
     /// <summary>Whether the pure checks have run; the site never changes once they have.</summary>
     [ViewVariables]
     public bool Evaluated;
+
+    /// <summary>The next candidate to check, so an evaluation can span ticks.</summary>
+    [ViewVariables]
+    public int Cursor;
 
     /// <summary>The site's anchor and shape, or null when no candidate passed.</summary>
     [ViewVariables]

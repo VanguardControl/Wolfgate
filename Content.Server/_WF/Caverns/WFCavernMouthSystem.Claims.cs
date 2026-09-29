@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using Content.Shared._WF.Caverns;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
@@ -26,12 +27,40 @@ public sealed partial class WFCavernMouthSystem
     /// <summary>No grid but the map may lie this close to a footprint when it is stamped.</summary>
     public const float GridClearance = 4f;
 
-    /// <summary>A cell whose claim takes longer than this, in milliseconds, is logged.</summary>
+    /// <summary>Tiles around a claim source, in either axis, whose cells are claimed.</summary>
+    public const int ClaimReach = 96;
+
+    /// <summary>How often the claim sources are gathered and the cells due listed.</summary>
+    public static readonly TimeSpan ClaimInterval = TimeSpan.FromSeconds(0.5);
+
+    /// <summary>Milliseconds a tick the claims may take; one candidate or claim always runs.</summary>
+    public const double ClaimBudgetMs = 2;
+
+    /// <summary>One candidate taking longer than this, in milliseconds, is logged.</summary>
     private const double SlowClaimMs = 20;
+
+    /// <summary>Biome chunk edge in tiles; SharedBiomeSystem.ChunkSize is protected.</summary>
+    private const int BiomeChunk = 8;
 
     private static readonly Vector2i[] Cardinals = { new(0, 1), new(1, 0), new(0, -1), new(-1, 0) };
 
     private static readonly Entity<MapGridComponent>? NoGrid = null;
+
+    /// <summary>What the lazy claims have cost since it was last reset; the tests read it.</summary>
+    public readonly WFCavernClaimStats ClaimStats = new();
+
+    private bool _claimsEnabled;
+    private TimeSpan _nextClaim;
+
+    /// <summary>Cells due a claim, nearest a source first, and how far the current tick got through them.</summary>
+    private readonly List<(EntityUid Ground, Vector2i Cell, float Distance)> _due = new();
+    private int _dueNext;
+
+    /// <summary>Where each ground's claim sources stand, and the boxes their chunk loaders reach.</summary>
+    private readonly Dictionary<EntityUid, List<Vector2>> _sources = new();
+    private readonly Dictionary<EntityUid, List<Box2>> _loading = new();
+    private readonly HashSet<EntityUid> _counted = new();
+    private readonly Dictionary<EntityUid, MouthContext> _contexts = new();
 
     /// <summary>One candidate before its shape is grown: the shape's seed and where in the cell it goes, as fractions.</summary>
     private readonly record struct Candidate(int Seed, double X, double Y, Vector2i? Fixed);
@@ -44,8 +73,199 @@ public sealed partial class WFCavernMouthSystem
         Pinned,
     }
 
-    /// <summary>Claims a cell: its site is found once and cached, then stamped as soon as nothing blocks it.</summary>
-    private WFCavernClaim ClaimCell(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell, WFCavernMouthKind kind)
+    /// <summary>A cell's site, found and cached without stamping it; null when no candidate passes.</summary>
+    public WFCavernSite? EvaluateCell(Entity<WFCavernGroundComponent> ground, Vector2i cell)
+    {
+        if (!TryGetContext(ground, out var context))
+            return null;
+
+        var state = CellState(ground, cell);
+        if (!state.Evaluated)
+            Evaluate(ground, context, cell, state, null);
+
+        return state.Site;
+    }
+
+    /// <summary>Gathers the claim sources every <see cref="ClaimInterval"/>, then claims the cells due within the tick's budget.</summary>
+    private void UpdateClaims()
+    {
+        if (!_claimsEnabled)
+            return;
+
+        if (_timing.CurTime >= _nextClaim)
+        {
+            _nextClaim = _timing.CurTime + ClaimInterval;
+            CollectSources();
+            ListDue();
+        }
+
+        if (_dueNext >= _due.Count)
+            return;
+
+        var watch = Stopwatch.StartNew();
+        _contexts.Clear();
+
+        do
+        {
+            var (groundUid, cell, _) = _due[_dueNext];
+
+            if (!TryComp<WFCavernGroundComponent>(groundUid, out var comp) || !CachedContext((groundUid, comp), out var context))
+            {
+                _dueNext++;
+                continue;
+            }
+
+            var ground = (groundUid, comp);
+            var state = CellState(ground, cell);
+
+            if (state.State is WFCavernClaim.Claimed or WFCavernClaim.Empty)
+            {
+                _dueNext++;
+                continue;
+            }
+
+            if (!state.Evaluated)
+            {
+                Evaluate(ground, context, cell, state, watch);
+
+                // Out of time mid-cell the cursor keeps its place; a site found late is stamped next tick.
+                if (!state.Evaluated || watch.Elapsed.TotalMilliseconds >= ClaimBudgetMs)
+                    break;
+            }
+
+            var stamping = Stopwatch.GetTimestamp();
+            if (ClaimCell(ground, context, cell, WFCavernMouthKind.Cell, _loading.GetValueOrDefault(groundUid)) == WFCavernClaim.Claimed)
+            {
+                ClaimStats.Stamped++;
+                ClaimStats.StampMs += Stopwatch.GetElapsedTime(stamping).TotalMilliseconds;
+            }
+
+            _dueNext++;
+        }
+        while (_dueNext < _due.Count && watch.Elapsed.TotalMilliseconds < ClaimBudgetMs);
+
+        var spent = watch.Elapsed.TotalMilliseconds;
+        ClaimStats.BusyTicks++;
+        ClaimStats.TotalMs += spent;
+        ClaimStats.MaxTickMs = Math.Max(ClaimStats.MaxTickMs, spent);
+    }
+
+    /// <summary>
+    /// Every entity that loads terrain, as the biome loader counts them: each session's attached entity and every
+    /// view subscription (z-level eyes included) that may load terrain, by the ground whose cells it claims.
+    /// </summary>
+    // A cavern's viewers claim for the ground above it. Ghosts that load nothing claim nothing.
+    private void CollectSources()
+    {
+        _sources.Clear();
+        _counted.Clear();
+
+        foreach (var session in _players.Sessions)
+        {
+            if (session.AttachedEntity is { } attached)
+                AddSource(attached);
+
+            foreach (var viewer in session.ViewSubscriptions)
+            {
+                AddSource(viewer);
+            }
+        }
+    }
+
+    private void AddSource(EntityUid uid)
+    {
+        if (!_counted.Add(uid) || TerminatingOrDeleted(uid))
+            return;
+
+        var xform = Transform(uid);
+        if (xform.MapUid is not { } map)
+            return;
+
+        EntityUid ground;
+        if (HasComp<WFCavernGroundComponent>(map))
+            ground = map;
+        else if (TryComp<WFCavernLayerComponent>(map, out var layer) && HasComp<WFCavernGroundComponent>(layer.Ground))
+            ground = layer.Ground;
+        else
+            return;
+
+        if (!_biome.WfCanLoad(uid))
+            return;
+
+        if (!_sources.TryGetValue(ground, out var list))
+            _sources[ground] = list = new List<Vector2>();
+
+        list.Add(_transform.GetWorldPosition(xform));
+    }
+
+    /// <summary>Lists every unclaimed or deferred cell whose square meets a source's reach, nearest a source first.</summary>
+    private void ListDue()
+    {
+        _due.Clear();
+        _dueNext = 0;
+        _loading.Clear();
+
+        // The loader takes every chunk its box touches, so a chunk past the box's edge still loads.
+        var loadReach = _biome.WfLoadRange + BiomeChunk;
+
+        foreach (var (groundUid, positions) in _sources)
+        {
+            if (positions.Count == 0
+                || !TryComp<WFCavernGroundComponent>(groundUid, out var comp)
+                || !_proto.TryIndex(comp.Prototype, out var cavern))
+                continue;
+
+            var spec = cavern.Mouths;
+            var boxes = new List<Box2>(positions.Count);
+            var nearest = new Dictionary<Vector2i, float>();
+
+            foreach (var position in positions)
+            {
+                boxes.Add(Box2.CenteredAround(position, new Vector2(loadReach * 2)));
+
+                var min = CellOf(spec, Floor(position - new Vector2(ClaimReach)));
+                var max = CellOf(spec, Floor(position + new Vector2(ClaimReach)));
+
+                for (var x = min.X; x <= max.X; x++)
+                for (var y = min.Y; y <= max.Y; y++)
+                {
+                    var cell = new Vector2i(x, y);
+                    if (comp.Cells.TryGetValue(cell, out var state) && state.State is WFCavernClaim.Claimed or WFCavernClaim.Empty)
+                        continue;
+
+                    var centre = (new Vector2(x, y) + new Vector2(0.5f)) * spec.CellSize;
+                    var distance = Vector2.DistanceSquared(centre, position);
+                    if (!nearest.TryGetValue(cell, out var best) || distance < best)
+                        nearest[cell] = distance;
+                }
+            }
+
+            _loading[groundUid] = boxes;
+
+            foreach (var (cell, distance) in nearest)
+            {
+                _due.Add((groundUid, cell, distance));
+            }
+        }
+
+        _due.Sort((a, b) => a.Distance.CompareTo(b.Distance));
+    }
+
+    /// <summary>The claim context for a ground, resolved once a tick.</summary>
+    private bool CachedContext(Entity<WFCavernGroundComponent> ground, out MouthContext context)
+    {
+        if (_contexts.TryGetValue(ground, out context))
+            return true;
+
+        if (!TryGetContext(ground, out context))
+            return false;
+
+        _contexts[ground] = context;
+        return true;
+    }
+
+    /// <summary>A cell's claim state, added as Unclaimed the first time it is asked for.</summary>
+    private static WFCavernCell CellState(Entity<WFCavernGroundComponent> ground, Vector2i cell)
     {
         if (!ground.Comp.Cells.TryGetValue(cell, out var state))
         {
@@ -53,18 +273,25 @@ public sealed partial class WFCavernMouthSystem
             ground.Comp.Cells[cell] = state;
         }
 
+        return state;
+    }
+
+    /// <summary>Claims a cell: its site is found once and cached, then stamped as soon as nothing blocks it.</summary>
+    /// <param name="loading">Boxes where chunks are about to load; a site touching one waits.</param>
+    private WFCavernClaim ClaimCell(
+        Entity<WFCavernGroundComponent> ground,
+        MouthContext context,
+        Vector2i cell,
+        WFCavernMouthKind kind,
+        IReadOnlyList<Box2>? loading = null)
+    {
+        var state = CellState(ground, cell);
+
         if (state.State is WFCavernClaim.Claimed or WFCavernClaim.Empty)
             return state.State;
 
         if (!state.Evaluated)
-        {
-            var watch = Stopwatch.StartNew();
-            state.Site = FindSite(ground, context, cell);
-            state.Evaluated = true;
-
-            if (watch.Elapsed.TotalMilliseconds > SlowClaimMs)
-                Log.Warning($"Evaluating cavern mouth cell {cell} on {ToPrettyString(ground)} took {watch.Elapsed.TotalMilliseconds:F1} ms.");
-        }
+            Evaluate(ground, context, cell, state, null);
 
         if (state.Site is not { } site)
         {
@@ -72,7 +299,7 @@ public sealed partial class WFCavernMouthSystem
             return state.State;
         }
 
-        switch (Blocked(context, site))
+        switch (Blocked(context, site, loading))
         {
             case Block.Pinned:
                 state.State = WFCavernClaim.Empty;
@@ -85,6 +312,41 @@ public sealed partial class WFCavernMouthSystem
         Stamp(ground, context, site, kind);
         state.State = WFCavernClaim.Claimed;
         return state.State;
+    }
+
+    /// <summary>
+    /// Tries a cell's candidates from its cursor until one passes, all have failed, or the budget runs out. Reads only
+    /// noise, so the site never depends on when the cell is looked at.
+    /// </summary>
+    /// <param name="budget">This tick's clock; null evaluates the whole cell at once.</param>
+    private void Evaluate(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell, WFCavernCell state, Stopwatch? budget)
+    {
+        var candidates = Candidates(ground, context, cell);
+
+        while (state.Cursor < candidates.Count)
+        {
+            var started = Stopwatch.GetTimestamp();
+            var candidate = candidates[state.Cursor++];
+            ClaimStats.Candidates++;
+
+            var found = TrySite(context, cell, candidate, out var site);
+
+            var took = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+            if (took > SlowClaimMs)
+                Log.Warning($"A cavern mouth candidate in cell {cell} on {ToPrettyString(ground)} took {took:F1} ms.");
+
+            if (found)
+            {
+                state.Site = site;
+                state.Evaluated = true;
+                return;
+            }
+
+            if (budget != null && budget.Elapsed.TotalMilliseconds >= ClaimBudgetMs)
+                return;
+        }
+
+        state.Evaluated = true;
     }
 
     /// <summary>The gate's first candidate: the planet centre plus the gate offset, as a tile.</summary>
@@ -116,21 +378,17 @@ public sealed partial class WFCavernMouthSystem
         return candidates;
     }
 
-    /// <summary>The first candidate whose grown shape fits the cell and passes both pure checks, or null. Reads only noise, so it never depends on timing.</summary>
-    private WFCavernSite? FindSite(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i cell)
+    /// <summary>Grows one candidate's shape and places it; true when it fits the cell and passes both pure checks.</summary>
+    private bool TrySite(MouthContext context, Vector2i cell, Candidate candidate, out WFCavernSite site)
     {
-        foreach (var candidate in Candidates(ground, context, cell))
-        {
-            var shape = WFCavernMouthShape.Generate(context.Spec, candidate.Seed);
-            if (!TryPlace(context.Spec, cell, shape, candidate, out var origin))
-                continue;
+        var shape = WFCavernMouthShape.Generate(context.Spec, candidate.Seed);
+        site = default;
 
-            var site = new WFCavernSite(origin, shape);
-            if (CavernAllows(context, site) && GroundAllows(context, site))
-                return site;
-        }
+        if (!TryPlace(context.Spec, cell, shape, candidate, out var origin))
+            return false;
 
-        return null;
+        site = new WFCavernSite(origin, shape);
+        return CavernAllows(context, site) && GroundAllows(context, site);
     }
 
     /// <summary>Anchors a candidate: the gate candidate where it is, the others spread by their fractions over the spots whose whole pad stays <see cref="CellMargin"/> inside the cell.</summary>
@@ -216,9 +474,11 @@ public sealed partial class WFCavernMouthSystem
 
     /// <summary>
     /// Whether a stamp would cut into something. A pinned footprint or pad tile (another mouth, or ground something
-    /// else changed for good) blocks it for ever; loaded terrain, something anchored or a grid nearby only for now.
+    /// else changed for good) blocks it for ever; loaded terrain, terrain about to load, something anchored or a grid
+    /// nearby only for now.
     /// </summary>
-    private Block Blocked(MouthContext context, WFCavernSite site)
+    // Chunks about to load matter because nothing checks for mobs: a player who just arrived would stand in the hole.
+    private Block Blocked(MouthContext context, WFCavernSite site, IReadOnlyList<Box2>? loading)
     {
         var groundBiome = (context.Ground.Owner, context.Ground.Comp1);
         var levelBiome = (context.Level.Owner, context.Level.Comp1);
@@ -227,6 +487,19 @@ public sealed partial class WFCavernMouthSystem
         if (site.Shape.Hole.Concat(site.Shape.Ring).Any(offset => _biome.WfIsPinned(groundBiome, site.Origin + offset))
             || pad.Any(offset => _biome.WfIsPinned(levelBiome, site.Origin + offset)))
             return Block.Pinned;
+
+        if (loading != null)
+        {
+            var radius = context.Spec.PadRadius;
+            var padBox = new Box2(site.Origin + site.Shape.Min - new Vector2i(radius, radius),
+                site.Origin + site.Shape.Max + new Vector2i(radius + 1, radius + 1));
+
+            foreach (var box in loading)
+            {
+                if (box.Intersects(padBox))
+                    return Block.Waiting;
+            }
+        }
 
         foreach (var offset in site.Shape.Hole.Concat(site.Shape.Ring))
         {
@@ -302,38 +575,12 @@ public sealed partial class WFCavernMouthSystem
 
         _map.SetTiles(context.Level.Owner, context.Level.Comp2, padTiles);
         _biome.WfPinTiles((context.Level.Owner, levelBiome), pad.ToList());
+        LayLandingEntities(context, padTiles, landing);
 
-        // Pinned tiles grow no biome entities, so the landing's own entity is laid here: on the landing tiles and
-        // wherever the cavern would grow it, so a pool the pad crosses stays wet.
-        if (spec.LandingEntity is { } landingEntity)
-        {
-            foreach (var (index, tile) in padTiles)
-            {
-                if (tile.TypeId != landing.TypeId
-                    && (!_biome.TryGetEntity(index, levelBiome.Layers, tile, levelBiome.Seed, NoGrid, out var natural)
-                        || natural != landingEntity.Id))
-                    continue;
-
-                if (!HasAnchored(levelGrid, index, landingEntity))
-                    SpawnAnchored(landingEntity, levelGrid, index);
-            }
-        }
-
-        var air = WFCavernAirClassifier.Classify(_proto.Index(context.Cavern.Level).Atmosphere);
         var landingMultiplier = ((ContentTileDefinition) _tileDefs[spec.LandingTile]).FallDamageMultiplier;
-
         foreach (var index in mouth.Hole)
         {
-            if (ground.Comp.Shades.ContainsKey(index))
-                continue;
-
-            var shade = Spawn(spec.Shade, _map.GridTileToLocal(ground.Owner, context.Ground.Comp2, index));
-            var shaft = EnsureComp<WFCavernShaftComponent>(shade);
-            shaft.Cavern = context.Cavern.ID;
-            shaft.Air = air;
-            shaft.LandingMultiplier = landingMultiplier;
-            Dirty(shade, shaft);
-            ground.Comp.Shades[index] = shade;
+            SpawnShade(ground, context, index, landingMultiplier);
         }
 
         if (spec.Rim.Count > 0)
@@ -344,17 +591,62 @@ public sealed partial class WFCavernMouthSystem
             }
         }
 
-        if (!ground.Comp.ClimbPoints.ContainsKey(mouth.ClimbTile))
-        {
-            var climb = SpawnAnchored(spec.ClimbPoint, levelGrid, mouth.ClimbTile);
-            var climbComp = EnsureComp<WFCavernClimbComponent>(climb);
-            climbComp.Delay = spec.ClimbSeconds * Math.Clamp(context.Surface.Gravity, 1f, 2.5f);
-            Dirty(climb, climbComp);
-            ground.Comp.ClimbPoints[mouth.ClimbTile] = climb;
-        }
+        SpawnClimb(ground, context, levelGrid, mouth.ClimbTile);
 
         ground.Comp.Mouths.Add(mouth);
         return mouth;
+    }
+
+    /// <summary>
+    /// Lays the landing's own entity, such as a pool's water, on cavern tiles just set: on every landing tile and
+    /// wherever the cavern would grow it, since pinned tiles grow no biome entities.
+    /// </summary>
+    private void LayLandingEntities(MouthContext context, IEnumerable<(Vector2i Index, Tile Tile)> tiles, Tile landing)
+    {
+        if (context.Spec.LandingEntity is not { } landingEntity)
+            return;
+
+        var levelGrid = (context.Level.Owner, context.Level.Comp2);
+        var levelBiome = context.Level.Comp1;
+
+        foreach (var (index, tile) in tiles)
+        {
+            if (tile.TypeId != landing.TypeId
+                && (!_biome.TryGetEntity(index, levelBiome.Layers, tile, levelBiome.Seed, NoGrid, out var natural)
+                    || natural != landingEntity.Id))
+                continue;
+
+            if (!HasAnchored(levelGrid, index, landingEntity))
+                SpawnAnchored(landingEntity, levelGrid, index);
+        }
+    }
+
+    /// <summary>Spawns the shade over a hole tile unless it has one: the cavern, its air and the landing it reports.</summary>
+    private void SpawnShade(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i index, float landingMultiplier)
+    {
+        if (ground.Comp.Shades.ContainsKey(index))
+            return;
+
+        var shade = Spawn(context.Spec.Shade, _map.GridTileToLocal(ground.Owner, context.Ground.Comp2, index));
+        var shaft = EnsureComp<WFCavernShaftComponent>(shade);
+        shaft.Cavern = context.Cavern.ID;
+        shaft.Air = WFCavernAirClassifier.Classify(_proto.Index(context.Cavern.Level).Atmosphere);
+        shaft.LandingMultiplier = landingMultiplier;
+        Dirty(shade, shaft);
+        ground.Comp.Shades[index] = shade;
+    }
+
+    /// <summary>Anchors a climb point in the cavern under a ground tile unless one is there, its delay scaled by the surface's gravity.</summary>
+    private void SpawnClimb(Entity<WFCavernGroundComponent> ground, MouthContext context, Entity<MapGridComponent> levelGrid, Vector2i index)
+    {
+        if (ground.Comp.ClimbPoints.ContainsKey(index))
+            return;
+
+        var climb = SpawnAnchored(context.Spec.ClimbPoint, levelGrid, index);
+        var climbComp = EnsureComp<WFCavernClimbComponent>(climb);
+        climbComp.Delay = context.Spec.ClimbSeconds * Math.Clamp(context.Surface.Gravity, 1f, 2.5f);
+        Dirty(climb, climbComp);
+        ground.Comp.ClimbPoints[index] = climb;
     }
 
     /// <summary>Deletes the entities the biome spawned on these tiles of a loaded chunk; nothing a player built.</summary>
@@ -404,5 +696,44 @@ public sealed partial class WFCavernMouthSystem
             Log.Error($"Could not anchor {ToPrettyString(uid)} on {ToPrettyString(grid)} at {index}.");
 
         return uid;
+    }
+
+    /// <summary>The tile holding a world position.</summary>
+    private static Vector2i Floor(Vector2 position)
+    {
+        return new Vector2i((int) MathF.Floor(position.X), (int) MathF.Floor(position.Y));
+    }
+}
+
+/// <summary>What the lazy claims have cost since the counters were last reset.</summary>
+public sealed class WFCavernClaimStats
+{
+    /// <summary>Candidates checked against the noise.</summary>
+    public int Candidates;
+
+    /// <summary>Cell mouths stamped.</summary>
+    public int Stamped;
+
+    /// <summary>Milliseconds the stamps took, within <see cref="TotalMs"/>.</summary>
+    public double StampMs;
+
+    /// <summary>Ticks that did any claim work.</summary>
+    public int BusyTicks;
+
+    /// <summary>Milliseconds those ticks spent on claims.</summary>
+    public double TotalMs;
+
+    /// <summary>The most milliseconds one tick spent on claims.</summary>
+    public double MaxTickMs;
+
+    /// <summary>Zeroes every counter.</summary>
+    public void Reset()
+    {
+        Candidates = 0;
+        Stamped = 0;
+        StampMs = 0;
+        BusyTicks = 0;
+        TotalMs = 0;
+        MaxTickMs = 0;
     }
 }
