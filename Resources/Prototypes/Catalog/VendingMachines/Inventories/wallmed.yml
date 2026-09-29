@@ -17,6 +17,7 @@
     WFWolfmedOpiatePen: 2 # WOLFGATE(Wolfmed): playtest 1: the strong rung as a pen.
     WFWolfmedNaloxonePen: 1 # WOLFGATE(Wolfmed): M2: OD14, reverses an overdose.
     Tourniquet: 2 # WOLFGATE(Wolfmed): ITEMS: stops a limb bleeding out.
+    WFWolfmedSuture: 2 # WOLFGATE(Wolfmed): playtest 5: the plain suture, no research needed.
     WFWolfmedAnalgesicPillCanister: 2 # WOLFGATE(Wolfmed): ITEMS: the weak rung by the canister.
     WFWolfmedIbuprofenPillCanister: 1 # WOLFGATE(Wolfmed): ITEMS: a mild painkiller that eases bruising.
     WFWolfmedKetorolacPillCanister: 1 # WOLFGATE(Wolfmed): ITEMS: the strongest mild painkiller.

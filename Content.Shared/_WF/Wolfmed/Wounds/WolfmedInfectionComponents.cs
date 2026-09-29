@@ -144,4 +144,11 @@ public sealed partial class WolfmedTourniquetComponent : Component
     /// <summary>Played at the patient when the strap comes off.</summary>
     [DataField]
     public SoundSpecifier? LoosenSound = new SoundCollectionSpecifier("WFWolfmedClothUnwrap");
+
+    /// <summary>
+    /// A makeshift strap slips off when one hit on this part deals at least this much. Null holds through anything.
+    /// Copied from the item's <see cref="WolfmedMakeshiftTourniquetComponent"/>.
+    /// </summary>
+    [DataField]
+    public float? SlipDamage;
 }

@@ -7,6 +7,7 @@
   - Ointment
   - Gauze
   - WFWolfmedSkinGraft # WOLFGATE(Wolfmed): W7: charring has no other exit, so the graft must be printable.
+  - WFWolfmedSuture # WOLFGATE(Wolfmed): playtest 5: the plain suture prints from the start, no research.
 
 - type: latheRecipePack
   id: BasicChemistryStatic

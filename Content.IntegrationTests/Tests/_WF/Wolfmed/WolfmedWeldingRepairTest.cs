@@ -1,19 +1,23 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
+using Content.Server._EinsteinEngines.Silicon.WeldingHealing;
 using Content.Server.Atmos.Components;
 using Content.Server.Body.Components;
 using Content.Server.Temperature.Components;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.Compat;
+using Content.Shared._WF.Wolfmed.Wounds;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.DoAfter;
+using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle;
+using Content.Shared.Tag;
 using Content.Shared.Tools.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
@@ -167,6 +171,142 @@ public sealed class WolfmedWeldingRepairTest : GameTest
         {
             Assert.That(entities.System<WoundSystem>().GetWounds(leg).ToList(), Is.Empty, "the breach is still open.");
             Assert.That(entities.GetComponent<BloodstreamComponent>(body).BleedAmount, Is.Zero, "the leak did not stop.");
+        });
+    }
+
+    /// <summary>
+    /// Playtest 5 (Peter): "welding will infinitely go on if you don't do it in surgery mode". A round lodged in a
+    /// breach refuses every repair, and the welder counted the breach as work and repeated its pass until the tank was
+    /// empty, never closing the leak. Now it refuses up front and names the obstacle; with the round out it closes the
+    /// breach in one pass and stops.
+    /// </summary>
+    [Test]
+    public async Task WelderStopsOnALodgedRoundAndSaysSoTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        EntityUid body = default, user = default, leg = default, tool = default;
+        var fuelBefore = 0f;
+
+        await server.WaitAssertion(() =>
+        {
+            body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            user = entities.SpawnEntity("MobHuman", map.GridCoords);
+            entities.RemoveComponent<BarotraumaComponent>(body);
+            entities.RemoveComponent<TemperatureComponent>(body);
+            entities.RemoveComponent<BarotraumaComponent>(user);
+            entities.RemoveComponent<TemperatureComponent>(user);
+            var graph = entities.System<SharedBodySystem>();
+            var wounds = entities.System<WoundSystem>();
+            var embedded = entities.System<WolfmedEmbeddedObjectSystem>();
+            leg = graph.GetBodyChildrenOfType(body, BodyPartType.Leg, symmetry: BodyPartSymmetry.Right).Single().Id;
+            var slash = server.ResolveDependency<IPrototypeManager>().Index<DamageTypePrototype>("Slash");
+            Assert.That(entities.System<WoundDamageRoutingSystem>()
+                .TryApplyPartDamage(body, leg, new DamageSpecifier(slash, 15), ignoreResistances: true), Is.True);
+            var breaches = wounds.GetWounds(leg).Select(wound => wound.Owner).ToList();
+            Assert.That(breaches, Is.Not.Empty, "no breach to weld.");
+            foreach (var breach in breaches)
+                Assert.That(embedded.Add(breach, "WFWolfmedSpentRound", 1, 1), Is.EqualTo(1));
+
+            tool = entities.SpawnEntity("Welder", map.GridCoords);
+            Assert.That(entities.System<SharedHandsSystem>().TryPickupAnyHand(user, tool), Is.True);
+            Assert.That(entities.System<ItemToggleSystem>().TryActivate(tool, user), Is.True);
+            entities.GetComponent<TargetingComponent>(user).Target = TargetBodyPart.RightLeg;
+            fuelBefore = entities.System<SharedToolSystem>().GetWelderFuelAndCapacity(tool).fuel.Float();
+
+            var welder = entities.GetComponent<WeldingHealingComponent>(tool).Damage;
+            Assert.That(wounds.GetHealingPotential(leg, welder), Is.EqualTo(FixedPoint2.Zero),
+                "a breach with a round in it still counts as something to weld.");
+
+            var interact = new InteractUsingEvent(user, tool, body, map.GridCoords);
+            entities.EventBus.RaiseLocalEvent(body, interact);
+            Assert.Multiple(() =>
+            {
+                Assert.That(interact.Handled, Is.True, "the welder passed a chassis repair attempt on to the fire.");
+                Assert.That(entities.GetComponent<DoAfterComponent>(user).DoAfters, Is.Empty,
+                    "a repair pass was queued on a breach with a round in it.");
+            });
+
+            // The round comes out; the breach is welded in one pass and the welder stops.
+            foreach (var breach in breaches)
+                Assert.That(embedded.TryTakeOne(breach, out _), Is.True);
+            Assert.That(wounds.GetHealingPotential(leg, welder), Is.GreaterThan(FixedPoint2.Zero));
+            interact = new InteractUsingEvent(user, tool, body, map.GridCoords);
+            entities.EventBus.RaiseLocalEvent(body, interact);
+            Assert.That(interact.Handled, Is.True, "the welder did not start once the round was out.");
+        });
+
+        await Pair.RunSeconds(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(entities.System<WoundSystem>().GetWounds(leg).ToList(), Is.Empty, "the breach is still open.");
+                Assert.That(entities.GetComponent<BloodstreamComponent>(body).BleedAmount, Is.Zero, "the leak did not stop.");
+                Assert.That(entities.GetComponent<DoAfterComponent>(user).DoAfters.Values.All(pass => pass.Completed || pass.Cancelled),
+                    Is.True, "the welder is still going.");
+                // A lit welder burns fuel on its own, so the pass count is the do-after check above; this is only "the pass was paid".
+                Assert.That(entities.System<SharedToolSystem>().GetWelderFuelAndCapacity(tool).fuel.Float(),
+                    Is.LessThanOrEqualTo(fuelBefore - 5), "a successful pass must spend its fuel.");
+            });
+        });
+    }
+
+    /// <summary>
+    /// Playtest 5: "the nanite applicator spams 40 messages in one tick". An admin ghost's do-afters are instant, so a
+    /// repair chain re-entered OnWoundRepairFinished from inside its own StartWoundRepair, one pass, one sound and one
+    /// line at a time, forty deep for a bad torso. The frame that started the chain now applies the instant passes
+    /// itself: the whole chain lands in the click, pays every pass, and leaves no do-after behind.
+    /// </summary>
+    [Test]
+    public async Task InstantRepairChainLandsInOneClickTest()
+    {
+        var server = Pair.Server;
+        await server.WaitIdleAsync();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var body = entities.SpawnEntity("MobIPC", map.GridCoords);
+            var user = entities.SpawnEntity("MobHuman", map.GridCoords);
+            entities.RemoveComponent<BarotraumaComponent>(body);
+            entities.RemoveComponent<TemperatureComponent>(body);
+            entities.RemoveComponent<BarotraumaComponent>(user);
+            entities.RemoveComponent<TemperatureComponent>(user);
+            entities.System<TagSystem>().AddTag(user, "InstantDoAfters");
+            var graph = entities.System<SharedBodySystem>();
+            var leg = graph.GetBodyChildrenOfType(body, BodyPartType.Leg, symmetry: BodyPartSymmetry.Right).Single().Id;
+            var slash = server.ResolveDependency<IPrototypeManager>().Index<DamageTypePrototype>("Slash");
+            Assert.That(entities.System<WoundDamageRoutingSystem>()
+                .TryApplyPartDamage(body, leg, new DamageSpecifier(slash, 100), ignoreResistances: true), Is.True);
+            Assert.That(entities.System<WoundSystem>().GetWounds(leg).Any(), Is.True, "no breach to weld.");
+
+            var tool = entities.SpawnEntity("Welder", map.GridCoords);
+            Assert.That(entities.System<SharedHandsSystem>().TryPickupAnyHand(user, tool), Is.True);
+            Assert.That(entities.System<ItemToggleSystem>().TryActivate(tool, user), Is.True);
+            entities.GetComponent<TargetingComponent>(user).Target = TargetBodyPart.RightLeg;
+            var fuelBefore = entities.System<SharedToolSystem>().GetWelderFuelAndCapacity(tool).fuel.Float();
+
+            var interact = new InteractUsingEvent(user, tool, body, map.GridCoords);
+            entities.EventBus.RaiseLocalEvent(body, interact);
+            Assert.That(interact.Handled, Is.True, "the welder did not start.");
+
+            // 100 damage at 25 a pass: four passes, all inside the click.
+            Assert.Multiple(() =>
+            {
+                // A hit this hard also costs the leg its servos, which is the cable coil's to fix, not the welder's.
+                Assert.That(entities.System<WoundSystem>().GetWounds(leg).Select(wound => wound.Comp.Prototype.Id),
+                    Has.None.EqualTo("WFWolfmedBreachWound"), "the breach is still open after the click.");
+                Assert.That(entities.GetComponent<DamageableComponent>(leg).TotalDamage, Is.EqualTo(FixedPoint2.Zero), "damage is left on the leg.");
+                Assert.That(entities.System<SharedToolSystem>().GetWelderFuelAndCapacity(tool).fuel.Float(),
+                    Is.EqualTo(fuelBefore - 20).Within(0.01f), "the chain did not pay four passes.");
+                Assert.That(entities.GetComponent<DoAfterComponent>(user).DoAfters.Values.All(pass => pass.Completed || pass.Cancelled),
+                    Is.True, "a pass is still queued.");
+            });
         });
     }
 }

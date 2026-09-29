@@ -137,6 +137,32 @@ public sealed class WolfmedInfectionSystem : EntitySystem
     }
 
     /// <summary>
+    /// Playtest 5: something dirty closed wounds on this part (<see cref="WolfmedDirtyTreatmentComponent"/>, the makeshift
+    /// suture). Every open wound it treats, chosen as <see cref="MarkSutured"/> chooses, that can go bad is contaminated.
+    /// Returns how many.
+    /// </summary>
+    public int ContaminateTreated(EntityUid part, IReadOnlyCollection<string>? types)
+    {
+        if (!TryComp(part, out WoundableComponent? woundable))
+            return 0;
+
+        var contaminated = 0;
+        foreach (var wound in _wounds.GetWounds((part, woundable)).ToArray())
+        {
+            if (wound.Comp.State is WoundState.Healed or WoundState.Scarred ||
+                !HasComp<WolfmedInfectionComponent>(wound) ||
+                !_prototypes.TryIndex(wound.Comp.Prototype, out var prototype) ||
+                types != null && !prototype.DamageTypes.Keys.Any(type => types.Contains(type.Id)))
+                continue;
+
+            Contaminate(wound);
+            contaminated++;
+        }
+
+        return contaminated;
+    }
+
+    /// <summary>
     /// The Sutured openness for a sutured wound, or null for one that is not, or whose suture no longer holds because
     /// the wound grew wolfmed.suture_treatment_lost_severity past it (the marker goes then).
     /// </summary>

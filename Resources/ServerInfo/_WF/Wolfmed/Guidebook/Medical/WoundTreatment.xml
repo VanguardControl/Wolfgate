@@ -51,9 +51,15 @@ Every topical treats one kind of injury. Used on a part it cannot help, it refus
 
 [bold]Gauze:[/bold] cuts and punctures, and reduces external bleeding.
 
-[bold]Medicated sutures:[/bold] cuts and punctures, and stop their bleeding.
+[bold]Medicated sutures:[/bold] cuts and punctures, and stop their bleeding. The quickest way to close a cut.
+
+[bold]Sutures:[/bold] the plain kind, in every medical vendor, the standard first aid kit, the brute kit and the medical and EMT belts, and printed at the medical techfab without research. They close cuts and punctures like the medicated kind, half as much a use and more slowly.
+
+[bold]Makeshift sutures:[/bold] a metal rod and a cloth, crafted anywhere, make five. Slower and weaker again, and dirty: the wound they close is contaminated and keeps going bad under the stitches. Clean it with antiseptic afterwards, or close it again properly.
 
 [bold]Tourniquet:[/bold] stops bleeding on one limb entirely while applied, at the cost of that limb's use.
+
+[bold]Makeshift tourniquet:[/bold] any jumpsuit torn into a strap from the crafting menu, a few seconds by hand; hold the one you mean to tear, or it takes the one you are wearing. It stops a limb the same way, takes longer to tie, and one hard hit on that limb knocks it loose and the bleeding starts again. Replace it with a real one when you can.
 
 Removing damage barely closes the wound underneath it, and a bleeding wound never closes that way at all. Expect to finish the job with gauze, sutures or surgery.
 
@@ -65,8 +71,11 @@ Removing damage barely closes the wound underneath it, and a bleeding wound neve
     <GuideEntityEmbed Entity="Ointment"/>
     <GuideEntityEmbed Entity="Gauze"/>
     <GuideEntityEmbed Entity="MedicatedSuture"/>
+    <GuideEntityEmbed Entity="WFWolfmedSuture"/>
+    <GuideEntityEmbed Entity="WFWolfmedMakeshiftSuture"/>
     <GuideEntityEmbed Entity="RegenerativeMesh"/>
     <GuideEntityEmbed Entity="Tourniquet"/>
+    <GuideEntityEmbed Entity="WFWolfmedMakeshiftTourniquet"/>
   </Box>
 
 ## Embedded objects
@@ -81,7 +90,7 @@ Any sharp item - a knife, a scalpel, a glass shard - works as well, but takes lo
 
 ## Arterial bleeding
 
-An arterial bleed is the one bleed a dressing will not fix. Gauze slows it, buying minutes rather than solving anything, and it will not take the wound's severity no matter how much you use.
+An arterial bleed is the one bleed a dressing will not fix. Gauze slows it, buying minutes rather than solving anything, and it will not take the wound's severity no matter how much you use. Clotting drugs are no better: tranexamic acid halves it at most.
 
 On an arm, hand, leg or foot, put a tourniquet on first: that stops the flow outright while it is applied, and only then will sutures close the wound underneath. In the torso or the head there is nothing to tie around, so the patient goes straight to the table: the artery repair surgery clamps the vessel and then sutures it.
 
@@ -134,7 +143,7 @@ Heat seals bleeding. In a fight that means a laser closes wounds a knife would h
 
 ## Medicine
 
-Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound.
+Healing reagents distribute their effect among damaged biological parts. Damage and wounds remain separate: medicine that removes damage does not necessarily close a wound. Clotting drugs - tranexamic acid, and bicaridine and inaprovaline a little - slow every open bleed and stop the lesser ones without closing the wound, and never take a dressing off.
 
 A ladder of painkillers suppresses pain by increasing amounts: ibuprofen, ketorolac, tramadol, and oxycodone, from mildest to strongest. Cognac, bicaridine, and desoxyephedrine also carry a lesser pain-suppressing effect alongside their other uses.
   <Box>
@@ -164,7 +173,7 @@ An open wound that nobody treats becomes infected once it has a reason to: it is
 
 [bold]Local[/bold] is the wound itself going bad: it hurts, and it keeps reopening faster than a dressing closes it. [bold]Spreading[/bold] has left the wound: the part itself is infected and the infection travels part by part towards the chest; the fever and everything else systemic wait until it gets there (the analyzer's [bold]tissue[/bold] line on each card). [bold]Sepsis[/bold] starts once it reaches the chest or the head; it is systemic, shows on the patient's own alerts, and kills if it is left alone. Its late stage, [bold]septic shock[/bold], puts the patient out; the organ failure that follows is what does the killing.
 
-Prevention is most of the work, and it is cheap. Dressing a wound early cuts its infection rate to a seventh; suturing or cauterising it stops the clock outright. Antiseptic - ethanol, bleach or spaceacillin applied to the skin, which in practice means sprayed or splashed on the patient; the medical vendor sells an antiseptic spray for it - cleans an open wound and lets a local infection drain away over the next minute. None of that reaches an infection that has already spread.
+Prevention is most of the work, and it is cheap. Dressing a wound early cuts its infection rate to a seventh; suturing or cauterising it stops the clock outright, except with a makeshift suture, which is what dirtied it. Antiseptic - ethanol, bleach or spaceacillin applied to the skin, which in practice means sprayed or splashed on the patient; the medical vendor sells an antiseptic spray for it - cleans an open wound and lets a local infection drain away over the next minute. None of that reaches an infection that has already spread.
 
 Once it has, the answer is [bold]spaceacillin[/bold] in the bloodstream. It clears contamination in every wound and every infected part at once and pulls sepsis back; a large dose is poisonous, so treat and stop.
 

@@ -46,7 +46,8 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
     /// <summary>Items with a <see cref="HealingComponent"/> whose reach is under test, in matrix order.</summary>
     private static readonly string[] Topicals =
     [
-        "Brutepack", "Ointment", "Gauze", "MedicatedSuture", "RegenerativeMesh", "CableApcStack",
+        "Brutepack", "Ointment", "Gauze", "MedicatedSuture", "WFWolfmedSuture", "WFWolfmedMakeshiftSuture",
+        "RegenerativeMesh", "CableApcStack",
     ];
 
     /// <summary>
@@ -83,7 +84,7 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
     private sealed record Row(string[] Items, Exit Exit, string Cause, string Danger, string Surgery = "");
 
     private static readonly string[] Brute = ["Brutepack"];
-    private static readonly string[] Cuts = ["Gauze", "MedicatedSuture"];
+    private static readonly string[] Cuts = ["Gauze", "MedicatedSuture", "WFWolfmedSuture", "WFWolfmedMakeshiftSuture"];
     private static readonly string[] Burns = ["Ointment", "RegenerativeMesh"];
     private static readonly string[] Coil = ["CableApcStack"];
     private static readonly string[] Welding = ["Welder"];
@@ -247,7 +248,7 @@ public sealed class WolfmedWoundTreatmentMatrixTest : GameTest
     }
 
     /// <summary>
-    /// The matrix itself: for all 44 wounds and all eight shipped treatment items, the declared cell and
+    /// The matrix itself: for all 44 wounds and every shipped treatment item, the declared cell and
     /// the cell the prototype data produces agree. Both directions, so a row that over-claims and a row
     /// that under-claims both fail.
     /// </summary>

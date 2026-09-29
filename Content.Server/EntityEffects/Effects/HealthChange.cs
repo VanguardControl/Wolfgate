@@ -4,6 +4,7 @@ using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
 using Content.Shared.Localizations;
 using Content.Shared._Onyx.Wounds; // WOLFGATE(Wolfmed): HOOK 9 - treatment-capability scope
+using Content.Server._WF.Wolfmed.Medical; // WOLFGATE(Wolfmed): a metabolising reagent's damage is toxin load on a wound host
 using Content.Shared._Shitmed.Targeting; // Shitmed Change
 using JetBrains.Annotations;
 using Robust.Shared.Prototypes;
@@ -174,6 +175,10 @@ namespace Content.Server.EntityEffects.Effects
             //     args.TargetEntity,
             //     Damage * scale,
             var change = Damage * scale;
+            // WOLFGATE(Wolfmed): playtest 5, what a metabolising reagent deals to a wound host is toxin load, not wounds.
+            if (args is EntityEffectReagentArgs { Method: null } &&
+                args.EntityManager.HasComponent<WoundHostComponent>(args.TargetEntity))
+                change = args.EntityManager.System<WolfmedReagentDamageSystem>().ForWoundHost(args.TargetEntity, change);
             void Apply() => args.EntityManager.System<DamageableSystem>().TryChangeDamage(
                 args.TargetEntity,
                 change,

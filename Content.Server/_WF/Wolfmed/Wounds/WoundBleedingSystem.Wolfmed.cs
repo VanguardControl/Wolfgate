@@ -1,6 +1,9 @@
 // WOLFGATE: W2. The bleeding rules an arterial bleed plays by, kept out of the vendored bleeding system,
 // which carries only the three call sites that route through here.
 
+using System.Linq;
+using Content.Server._WF.Wolfmed.Stasis;
+using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Wounds;
 using Robust.Shared.GameObjects;
 using Content.Shared.FixedPoint;
@@ -17,11 +20,78 @@ public sealed partial class WoundBleedingSystem
     /// </summary>
     private float GetTreatmentMultiplier(EntityUid wound, BleedingTreatment treatment)
     {
+        // Avali stasis holds every bleed on the body for as long as it lasts (WolfmedStasisSystem).
+        if (TryComp(wound, out WoundComponent? core) && TryGetBody(core.HoldingPart, out var body) &&
+            HasComp<WolfmedStasisHoldComponent>(body))
+            return 0f;
+
         if (_traits.TryGetBehavior(wound, out WolfmedArterialBleedBehavior behavior) &&
             behavior.TreatmentMultipliers.TryGetValue(treatment, out var multiplier))
             return multiplier;
 
         return TreatmentMultiplier(treatment);
+    }
+
+    /// <summary>
+    /// A reagent's bleed change on a wound host (the <c>ModifyBleedAmount</c> effect), where the bloodstream's own
+    /// figure is only the wounds' projection. Negative is a coagulant: it takes that much off the body's bleed rate,
+    /// scaled by <see cref="WolfmedCVars.BleedRate"/> like every wound's rate, worst bleed first, and never touches a
+    /// dressing, clamp or tourniquet. An arterial bleed only clots down to its
+    /// <see cref="WolfmedArterialBleedBehavior.CoagulantFloor"/>, so it slows and keeps pumping. Positive opens or
+    /// deepens a systemic bleed, as Onyx's <c>ModifyBleed</c> did.
+    /// </summary>
+    public bool ApplyReagentBleeding(EntityUid body, float amount)
+    {
+        if (!_net.IsServer || amount == 0f || !HasComp<WoundHostComponent>(body))
+            return false;
+
+        if (amount > 0f)
+            return ModifyBodyBleeding(body, amount);
+
+        var remaining = -amount * _configuration.GetCVar(WolfmedCVars.BleedRate);
+        var modified = false;
+        var wounds = GetAttachedBleedingWounds(body)
+            .Where(wound => wound.Comp2.CurrentRate > 0f)
+            .OrderByDescending(wound => wound.Comp2.CurrentRate)
+            .ToArray();
+        foreach (var (uid, core, bleeding) in wounds)
+        {
+            // The rate is linear in the bleeding severity, so a share of the rate is the same share of the severity.
+            var flow = bleeding.CurrentRate + bleeding.NaturalClotting;
+            var wanted = remaining >= bleeding.CurrentRate
+                ? bleeding.BleedingSeverity
+                : FixedPoint2.New(bleeding.BleedingSeverity.Float() * remaining / flow);
+            if (_traits.TryGetBehavior(uid, out WolfmedArterialBleedBehavior artery))
+            {
+                var floor = FixedPoint2.New(core.Severity.Float() * Math.Clamp(artery.CoagulantFloor, 0f, 1f));
+                wanted = FixedPoint2.Min(wanted, FixedPoint2.Max(FixedPoint2.Zero, bleeding.BleedingSeverity - floor));
+            }
+
+            if (wanted <= FixedPoint2.Zero)
+                continue;
+
+            var before = bleeding.CurrentRate;
+            bleeding.BleedingSeverity = FixedPoint2.Max(FixedPoint2.Zero, bleeding.BleedingSeverity - wanted);
+            modified = true;
+
+            // Stopped with nothing on it, the bleed goes, as clotting leaves it; a dressed one keeps its dressing.
+            if (bleeding.BleedingSeverity == FixedPoint2.Zero && bleeding.Treatment == BleedingTreatment.None)
+            {
+                RemComp<WoundBleedingComponent>(uid);
+                RefreshBodyForPart(core.HoldingPart);
+                remaining -= before;
+            }
+            else
+            {
+                RefreshWound((uid, bleeding));
+                remaining -= Math.Max(0f, before - bleeding.CurrentRate);
+            }
+
+            if (remaining <= 0f)
+                break;
+        }
+
+        return modified;
     }
 
     /// <summary>Whether a topical's bloodloss modifier is allowed to eat this wound's bleeding severity.</summary>

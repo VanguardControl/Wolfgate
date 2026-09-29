@@ -11,7 +11,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Wounds;
 
-/// <summary>Reacts to each part hit before the wounds do: charring, crumbling to ash, do-after interrupts.</summary>
+/// <summary>Reacts to each part hit before the wounds do: charring, crumbling to ash, do-after interrupts, a slipping strap.</summary>
 // Called from Onyx's one-event-per-hit dispatcher. A burn already at its maximum escalates into charring, and a
 // charred hand, foot, arm or leg that keeps cooking crumbles to ash; the head and torso never crumble. A big enough
 // hit interrupts what the body is doing (WolfmedDoAfterInterruptSystem).
@@ -24,6 +24,7 @@ public sealed class WolfmedPartHitSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WolfmedCharringSystem _charring = default!;
     [Dependency] private WolfmedDoAfterInterruptSystem _interrupt = default!;
+    [Dependency] private WolfmedTourniquetSlipSystem _tourniquetSlip = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
     private const string Heat = "Heat";
@@ -39,6 +40,7 @@ public sealed class WolfmedPartHitSystem : EntitySystem
     {
         Observer?.Invoke(part, hit);
         _interrupt.OnHit(hit); // M6 (OD18)
+        _tourniquetSlip.OnHit(part, hit); // a hard hit knocks a makeshift tourniquet loose before the wounds see it
 
         var heat = hit.Total.DamageDict.GetValueOrDefault(Heat);
         if (heat <= FixedPoint2.Zero || TerminatingOrDeleted(part))

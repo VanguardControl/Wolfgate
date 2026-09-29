@@ -11,6 +11,13 @@ namespace Content.Shared._WF.Wolfmed.Wounds;
 public sealed partial class WolfmedSutureComponent : Component;
 
 /// <summary>
+/// Playtest 5: a healing item that is not clean, like the makeshift suture. Every open wound it treats is left
+/// contaminated (WolfmedInfectionSystem.ContaminateTreated), so it infects faster and has a reason to under a sealed suit.
+/// </summary>
+[RegisterComponent]
+public sealed partial class WolfmedDirtyTreatmentComponent : Component;
+
+/// <summary>
 /// M2 (P20): this wound was sutured. Infection treats it as closed at the profile's Sutured rate until the wound grows
 /// wolfmed.suture_treatment_lost_severity past where it was sutured.
 /// </summary>

@@ -106,11 +106,14 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedFluidPackSystem.cs`](Medical/WolfmedFluidPackSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedIvDripSystem.cs`](Medical/WolfmedIvDripSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedOralAbsorptionSystem.cs`](Medical/WolfmedOralAbsorptionSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Medical/WolfmedReagentDamageSystem.cs`](Medical/WolfmedReagentDamageSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WoundHealingSystem.Wolfmed.cs`](Medical/WoundHealingSystem.Wolfmed.cs)
 - [`Content.Server/_WF/Wolfmed/Range/WolfmedRangeCommand.cs`](Range/WolfmedRangeCommand.cs)
 - [`Content.Server/_WF/Wolfmed/Sounds/WolfmedBleedDripComponent.cs`](Sounds/WolfmedBleedDripComponent.cs)
 - [`Content.Server/_WF/Wolfmed/Sounds/WolfmedBleedDripSystem.cs`](Sounds/WolfmedBleedDripSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Sounds/WolfmedBodySoundSystem.cs`](Sounds/WolfmedBodySoundSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Stasis/WolfmedStasisHoldComponent.cs`](Stasis/WolfmedStasisHoldComponent.cs)
+- [`Content.Server/_WF/Wolfmed/Stasis/WolfmedStasisSystem.cs`](Stasis/WolfmedStasisSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/SurgerySystem.Autodoc.cs`](Surgery/SurgerySystem.Autodoc.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/WolfmedChassisRepairSurgerySystem.cs`](Surgery/WolfmedChassisRepairSurgerySystem.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/WolfmedWoundSurgerySystem.cs`](Surgery/WolfmedWoundSurgerySystem.cs)
@@ -132,6 +135,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedShortCircuitSystem.cs`](Wounds/WolfmedShortCircuitSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedSplintSystem.cs`](Wounds/WolfmedSplintSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedStumpTagSystem.cs`](Wounds/WolfmedStumpTagSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Wounds/WolfmedTourniquetSlipSystem.cs`](Wounds/WolfmedTourniquetSlipSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedWoundSfxSystem.cs`](Wounds/WolfmedWoundSfxSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WoundBleedingSystem.Wolfmed.cs`](Wounds/WoundBleedingSystem.Wolfmed.cs)
 
@@ -250,6 +254,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedFrostbiteSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedFrostbiteSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionComponents.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionComponents.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionProfilePrototype.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedInfectionProfilePrototype.cs)
+- [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedMakeshiftTourniquetComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedMakeshiftTourniquetComponent.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedOverheatingComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedOverheatingComponent.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedOverheatingSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedOverheatingSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedRepairSoundComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedRepairSoundComponent.cs)
@@ -391,6 +396,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedIvDripTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedIvDripTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLostHandVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLostHandVisualsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMakeshiftTourniquetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMakeshiftTourniquetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs)
@@ -400,6 +406,9 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodLeftoversTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodLeftoversTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodReagentSafetyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodReagentSafetyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPredictionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPredictionTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentAuditTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentAuditTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentBleedingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentBleedingTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentDamageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentDamageTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentTreatmentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentTreatmentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReattachTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReattachTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSlashBiteWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSlashBiteWoundTest.cs)
@@ -409,7 +418,9 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSplintTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSplintTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStasisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStasisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedStepCheckTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSutureTiersTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSutureTiersTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedThresholdFallbackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedThresholdFallbackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentAdviceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentAdviceTest.cs)
@@ -466,7 +477,9 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/painkillers.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/painkillers.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/removed_objects.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/removed_objects.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/splint.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/splint.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Entities/sutures.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/sutures.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/synthetic_kit.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/synthetic_kit.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Entities/tourniquet.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/tourniquet.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Guidebook/medical.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/health_icons.yml`](../../../Resources/Prototypes/_WF/Wolfmed/health_icons.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Hud/synthetic_hud.yml)
@@ -474,7 +487,11 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Resources/Prototypes/_WF/Wolfmed/Reagents/medicine.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Reagents/medicine.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Reagents/painkillers.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Reagents/painkillers.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/splint.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/splint.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/sutures.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/sutures.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/tourniquet.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/Graphs/tourniquet.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/splint.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/splint.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/sutures.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/sutures.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/tourniquet.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/tourniquet.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/lathes.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/lathes.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Shaders/shaders.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Shaders/shaders.yml)
@@ -547,6 +564,8 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Interface/analyzer_icons.rsi/)
 - [`Resources/Textures/_WF/Wolfmed/Interface/health_icons.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Interface/health_icons.rsi/)
 - [`Resources/Textures/_WF/Wolfmed/Medical/iv_drip.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Medical/iv_drip.rsi/)
+- [`Resources/Textures/_WF/Wolfmed/Medical/makeshift_tourniquet.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Medical/makeshift_tourniquet.rsi/)
+- [`Resources/Textures/_WF/Wolfmed/Medical/sutures.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Medical/sutures.rsi/)
 - [`Resources/Textures/_WF/Wolfmed/Mobs/treatment_overlays.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Mobs/treatment_overlays.rsi/)
 - [`Resources/Textures/_WF/Wolfmed/Objects/Medical/splint.rsi/`](../../../Resources/Textures/_WF/Wolfmed/Objects/Medical/splint.rsi/)
 - [`Resources/Textures/_WF/Wolfmed/Shaders/dying.swsl`](../../../Resources/Textures/_WF/Wolfmed/Shaders/dying.swsl)
@@ -1011,7 +1030,9 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - D10 — TargetResolverSystem is absent; signature-exact TryResolveExact replacement
   - W2: which bleeds can be tied off
   - W5: a tourniquet left on kills the limb
+  - a makeshift strap can slip
   - W2: an arterial bleed away from the limbs has nowhere to tie off; say so.
+  - the tied part records how hard a hit knocks a makeshift strap loose
   - D13 — class is now Content.Server-only, so Onyx's "if (_net.IsServer)" guard is always true; dropped with the INetManager dependency
   - D13 — class is now Content.Server-only, so Onyx's "!_net.IsServer ||" half of this guard is always false; dropped with the INetManager dependency
   - playtest 4: the strap ties off everything below it too (a leg's foot, an arm's hand).
@@ -1054,6 +1075,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - W0
   - D31, Wolfgate's HealingComponent.DamageContainers is List\<string>.
   - a topical that removes damage only shrinks the wound by healingMultiplier of it, so the
+  - a makeshift suture leaves its dirt in the wound it treated.
   - gauze stays on
   - W2: a dressing cannot take an arterial bleed's severity, only slow its rate.
 - [`Content.Server/_Onyx/Wounds/WoundInternalBleedingSystem.cs`](../../_Onyx/Wounds/WoundInternalBleedingSystem.cs)
@@ -1066,6 +1088,10 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Server/_Shitmed/DelayedDeath/DelayedDeathSystem.cs`](../../_Shitmed/DelayedDeath/DelayedDeathSystem.cs)
   - BRAIN
   - BRAIN: a missing heart is cardiac arrest on a wound host, not a countdown to death.
+- [`Content.Server/_Starlight/Actions/Stasis/StasisSystem.cs`](../../_Starlight/Actions/Stasis/StasisSystem.cs)
+  - a wound host's stasis runs in WolfmedStasisSystem
+  - a wound host keeps a hit's share before it is a wound, in WolfmedStasisSystem.
+  - a wound host's stasis heals in WolfmedStasisSystem, which holds its bleeds and never sets a bone.
 - [`Content.Server/Atmos/EntitySystems/BarotraumaSystem.cs`](../../Atmos/EntitySystems/BarotraumaSystem.cs)
   - M3: P23, a wound host takes pressure damage with no origin, so it lands on a part by
   - M3: origin
@@ -1111,9 +1137,12 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
 - [`Content.Server/EntityEffects/Effects/HealthChange.cs`](../../EntityEffects/Effects/HealthChange.cs)
   - HOOK 9 - treatment-capability scope
+  - a metabolising reagent's damage is toxin load on a wound host
   - HOOK 9 - which body-part materials this healing can treat on a wound host.
   - HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
+  - playtest 5, what a metabolising reagent deals to a wound host is toxin load, not wounds.
   - HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
+- [`Content.Server/EntityEffects/Effects/ModifyBleedAmount.cs`](../../EntityEffects/Effects/ModifyBleedAmount.cs): a wound host's bleeding is its wounds' (GUARD E3), so a reagent treats the wounds.
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs)
   - HOOK 22
   - HOOK 22 - wound hosts split the blast across their limbs; everyone else falls through unchanged.
@@ -1366,6 +1395,8 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - a grown wound gets its WoundChangedEvent next, and the bleeding system adds the growth
   - W2: damage removal is a treatment too, so a wound that refuses treatment (an
   - an item working on the wound itself closes it at full strength. HealingMultiplier is how much
+  - playtest 5, a wound that refuses treatment (a lodged round) is no potential to heal
+  - playtest 5, the refusal HealWounds raises, asked without healing anything.
 - [`Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs`](../../../Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs): only this layer's markings go on the part.
 - [`Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.Targeting.cs`](../../../Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.Targeting.cs)
   - Wolfmed owns part damage for wound hosts (D2/D18).
@@ -1489,6 +1520,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - playtest 1, a spent casing gets its despawn timer on the floor, not in the cylinder.
   - a slot can hold a round that is already gone; treating it as live crashed the server.
   - playtest 1, the casing stays in the cylinder, so Mono's casing despawn waits for the floor.
+- [`Resources/Locale/en-US/_Mono/reagents/medicine.ftl`](../../../Resources/Locale/en-US/_Mono/reagents/medicine.ftl): its cold and shock are toxin load on a wound host, not burns.
 - [`Resources/Locale/en-US/_Onyx/entity-categories.ftl`](../../../Resources/Locale/en-US/_Onyx/entity-categories.ftl)
 - [`Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl`](../../../Resources/Locale/en-US/_Onyx/guidebook/entity-effects.ftl): keys renamed from Onyx's `entity-effect-guidebook-*` to Wolfgate's `reagent-effect-guidebook-*`
 - [`Resources/Locale/en-US/_Onyx/medical/fractures.ftl`](../../../Resources/Locale/en-US/_Onyx/medical/fractures.ftl): ported from Onyx for Wolfmed.
@@ -1501,10 +1533,16 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Resources/Locale/en-US/_Onyx/targeting/targeting.ftl`](../../../Resources/Locale/en-US/_Onyx/targeting/targeting.ftl): D9: Onyx's `chest` is Wolfgate's `torso`, and `groin` is omitted - GetValidParts() has it
 - [`Resources/Locale/en-US/_Onyx/traits/quirks.ftl`](../../../Resources/Locale/en-US/_Onyx/traits/quirks.ftl): WP10-3: only the HighPainThreshold keys are ported; the rest of Onyx's quirks.ftl belongs to traits not in scope.
 - [`Resources/Locale/en-US/damage/damage-command.ftl`](../../../Resources/Locale/en-US/damage/damage-command.ftl): P6, optional body part.
+- [`Resources/Locale/en-US/Goobstation/reagents/meta/medicine.ftl`](../../../Resources/Locale/en-US/Goobstation/reagents/meta/medicine.ftl): its overdose brute is toxin load on a wound host, a toxic coma within seconds rather than torn limbs.
+- [`Resources/Locale/en-US/reagents/meta/medicine.ftl`](../../../Resources/Locale/en-US/reagents/meta/medicine.ftl)
+  - its bloodloss healing is bookkeeping on a wound host; lost blood is the blood level, which it never raises.
+  - on a wound host it clots down to an artery's floor, and its overdose bloodloss is toxin load.
+  - its overdose brute is toxin load on a wound host, more than the overdose still flushes.
 - [`Resources/Maps/_NF/POI/medical.yml`](../../../Resources/Maps/_NF/POI/medical.yml): An autodoc pod placed in the medical POI.
 - [`Resources/Prototypes/_DV/Body/Organs/feroxi.yml`](../../../Resources/Prototypes/_DV/Body/Organs/feroxi.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_DV/Body/Organs/harpy.yml`](../../../Resources/Prototypes/_DV/Body/Organs/harpy.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/_DV/Species/avali.yml`](../../../Resources/Prototypes/_DV/Species/avali.yml): the Starlight teleport sound never shipped here, and the client logged an error every stasis.
 - [`Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml)
   - playtest 3 IPC 2: the chassis's own fluid, not Oil
   - BRAIN: organ health, so the pump can be broken
@@ -1587,11 +1625,13 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - playtest 1: limited, it sedates.
   - M2: OD14, reverses an overdose.
   - ITEMS: Infinite
+  - playtest 5: Infinite, the plain suture.
   - ITEMS: Infinite, the surgical basics a wound procedure names.
   - ITEMS: Infinite, a first aid kit for synthetic crew.
 - [`Resources/Prototypes/_NF/Entities/Clothing/Head/hardsuit-helmets.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Head/hardsuit-helmets.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Clothing/Head/headwear_punks.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Head/headwear_punks.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/dungeon_items_medical.yml`](../../../Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/dungeon_items_medical.yml): playtest 5: sutures found in more places.
 - [`Resources/Prototypes/_Onyx/Alerts/alerts.yml`](../../../Resources/Prototypes/_Onyx/Alerts/alerts.yml): WP7: only BrokenBones is ported; ModsuitPower/Centered/HierophantBeat/DragonPower/SneakAttack/LossOfSurprise are unrelated features.
 - [`Resources/Prototypes/_Onyx/Chemistry/circulatory_streams.yml`](../../../Resources/Prototypes/_Onyx/Chemistry/circulatory_streams.yml): ported from Onyx for Wolfmed.
 - [`Resources/Prototypes/_Onyx/Entities/categories.yml`](../../../Resources/Prototypes/_Onyx/Entities/categories.yml): only the StatusEffects entityCategory from Onyx's Resources/Prototypes/Entities/categories.yml.
@@ -1674,6 +1714,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - AUTODOC5: one close chain serves every part, so "ribcage" was on the head too
   - PROTO G, P4-D21: cauterise, close and roll surgery.scar_chance on the incision wound
   - PROTO G, P4-D21: the wound surgeries end here, so this closes the incision they opened
+- [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml): the Starlight teleport sound never shipped here, and the client logged an error every stasis.
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml)
   - M4, OD16: shadekin is a wound host, so Wolfmed decides its state.
   - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
@@ -1707,12 +1748,18 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Resources/Prototypes/Catalog/Fills/Crates/medical.yml`](../../../Resources/Prototypes/Catalog/Fills/Crates/medical.yml)
   - W7: infection cure, orderable without chemistry.
   - W4: the graft step's tool, beside the bone gel it mirrors.
+- [`Resources/Prototypes/Catalog/Fills/Items/belt.yml`](../../../Resources/Prototypes/Catalog/Fills/Items/belt.yml)
+  - playtest 5: a tourniquet and a suture. Fifteen of the belt's sixteen cells.
+  - playtest 5: the first responder's tourniquet, suture and a painkiller pen for a
 - [`Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml`](../../../Resources/Prototypes/Catalog/Fills/Items/firstaidkits.yml)
-  - ITEMS: the standard kit's tourniquet, splint and painkillers in a bottle.
+  - ITEMS: the standard kit's tourniquet, splint and painkillers in a bottle; playtest 5, a suture.
   - W7: charring is a burn and nothing else in this kit reaches it.
   - V5: bones break from blunt force, which is what this kit is for.
   - ITEMS: knits the simple break the splint holds.
+  - playtest 5: the trauma kit stops a bleed too.
   - PROTO E, P4-2: the tourniquet is back now that Medkit's grid is 6x2 (ITEMS).
+  - playtest 5: ahead of the standard kit, a splint, an epinephrine pen and a painkiller
+  - playtest 5: the combat kit had no tourniquet. Thirteen of its fourteen cells.
 - [`Resources/Prototypes/Catalog/VendingMachines/Inventories/medical.yml`](../../../Resources/Prototypes/Catalog/VendingMachines/Inventories/medical.yml)
   - W7: the only cure for a spread infection (W5).
   - W7: the only treatment for charring (W4).
@@ -1724,6 +1771,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - V5: field treatment for a fracture, short of the table.
   - ITEMS: stops a limb bleeding out; the standard kit's first tool.
   - ITEMS: closes cuts and punctures and stops their bleeding.
+  - playtest 5: the plain suture, no research needed.
   - ITEMS: the advanced burn dressing.
   - ITEMS: the weak rung by the canister.
   - ITEMS: a mild painkiller that eases bruising.
@@ -1746,6 +1794,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - playtest 1: the strong rung as a pen.
   - M2: OD14, reverses an overdose.
   - ITEMS: stops a limb bleeding out.
+  - playtest 5: the plain suture, no research needed.
   - ITEMS: the weak rung by the canister.
   - ITEMS: a mild painkiller that eases bruising.
   - ITEMS: the strongest mild painkiller.
@@ -1764,6 +1813,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Resources/Prototypes/Entities/Clothing/Masks/masks.yml`](../../../Resources/Prototypes/Entities/Clothing/Masks/masks.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml`](../../../Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml): playtest 5: sutures found in more places.
 - [`Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml`](../../../Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml): playtest 3: the IPC's container, so its bar shows
 - [`Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml): W2: an animal's unarmed attack is a bite, which Wolfmed's wound rules turn into an avulsion.
 - [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml): playtest 3: the IPC's container, so its bar shows
@@ -1782,7 +1832,9 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - W0: a suture closes open wounds, not bruises.
   - PROTO D, P4-D9: the Healing block is replaced in place by the Tourniquet system.
 - [`Resources/Prototypes/Entities/Objects/Specific/Medical/healthanalyzer.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Medical/healthanalyzer.yml): health analyzers no longer need a power cell. The slot stays so existing fills and maps load;
-- [`Resources/Prototypes/Entities/Objects/Specific/Medical/medkits.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Medical/medkits.yml): ITEMS: 6x2, room for the tourniquet, splint and painkillers the standard kit carries.
+- [`Resources/Prototypes/Entities/Objects/Specific/Medical/medkits.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Medical/medkits.yml)
+  - ITEMS, playtest 5: 7x2, room for the tourniquet, splint, suture and painkillers.
+  - playtest 5: 7x2 like the other kits, room for a tourniquet, a splint and an epinephrine pen.
 - [`Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml): BRAIN: organ health, so a chassis can be killed
 - [`Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml)
   - W6: the surgery tool for the servo step. Servo damage carries no damage type, so the coil's
@@ -1818,6 +1870,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - PROTO J: Onyx's \<Onyx-PartPain> block on Happiness. Group is Narcotic, not Onyx's
 - [`Resources/Prototypes/Recipes/Lathes/Packs/medical.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/medical.yml)
   - W7: charring has no other exit, so the graft must be printable.
+  - playtest 5: the plain suture prints from the start, no research.
   - ITEMS: the empty synthetic repair kit beside the other empty kits.
   - AUTODOC
 - [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): AUTODOC: the program disks and modules the medical lathe lists, behind the same research as the rest of surgery.

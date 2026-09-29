@@ -12,6 +12,8 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Systems;
+using Robust.Shared.Configuration;
+using Content.Shared._WF.Wolfmed.CCVar;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -162,10 +164,13 @@ public sealed class WolfmedAmputationTest : GameTest
                 //   * Shitmed's SharedBodySystem.PartRemoveDamage - a flat BodyPartComponent.VitalDamage
                 //     of 100, which every body in the game already pays for losing its head.
                 // 215 + 100 = 315, and the head's 215 no longer counts as an attached part, so the net
-                // movement is exactly the finishing hit (15) plus the flat 100.
+                // movement is exactly the finishing hit (15) plus the flat 100. Playtest 5: Bloodloss is bookkeeping
+                // the model never reads, held at wolfmed.airloss_cap; the charge still lands, the readout stops at
+                // the cap, and the death itself is the life system's (LostVitalPart).
+                var cap = FixedPoint2.New(server.ResolveDependency<IConfigurationManager>().GetCVar(WolfmedCVars.AirlossCap));
                 Assert.That(systemic.Damage.DamageDict[new ProtoId<DamageTypePrototype>("Bloodloss")],
-                    Is.EqualTo(FixedPoint2.New(315)));
-                Assert.That(after, Is.EqualTo(before + FixedPoint2.New(115)));
+                    Is.EqualTo(FixedPoint2.Min(FixedPoint2.New(315), cap)));
+                Assert.That(after, Is.EqualTo(FixedPoint2.Min(before + FixedPoint2.New(115), cap)));
             });
 
             // (b) the D2 half: an entity without WoundHostComponent must behave exactly as it did before

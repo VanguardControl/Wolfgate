@@ -24,6 +24,7 @@ public sealed partial class TourniquetSystem : EntitySystem
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE(Wolfmed): W2: which bleeds can be tied off
     [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE(Wolfmed): W5: a tourniquet left on kills the limb
+    [Dependency] private WolfmedTourniquetSlipSystem _slip = default!; // WOLFGATE(Wolfmed): a makeshift strap can slip
     [Dependency] private WoundDamageRoutingSystem _damage = default!;
     [Dependency] private WoundSystem _wounds = default!;
 
@@ -93,6 +94,7 @@ public sealed partial class TourniquetSystem : EntitySystem
         if (!Apply(body, part))
             return;
 
+        _slip.OnApplied(part, tourniquet); // WOLFGATE(Wolfmed): the tied part records how hard a hit knocks a makeshift strap loose
         if (!tourniquet.Comp.Damage.Empty)
             _damage.TryApplyPartDamage(body, part, tourniquet.Comp.Damage, args.Args.User);
         _audio.PlayPredicted(tourniquet.Comp.EndSound, body, args.Args.User);

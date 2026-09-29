@@ -97,15 +97,34 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     /// <summary>Whether taking this tourniquet off would let a wound bleed again.</summary>
     public bool IsHoldingABleed(EntityUid part)
     {
-        foreach (var wound in _wounds.GetWounds(part))
+        foreach (var tied in TiedParts(part))
         {
-            if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
-                bleeding.Treatment == BleedingTreatment.Clamped &&
-                bleeding.BleedingSeverity > FixedPoint2.Zero)
-                return true;
+            foreach (var wound in _wounds.GetWounds(tied))
+            {
+                if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
+                    bleeding.Treatment == BleedingTreatment.Clamped &&
+                    bleeding.BleedingSeverity > FixedPoint2.Zero)
+                    return true;
+            }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// The parts a strap on this part holds: the part and the parts hanging off it (a leg's foot), except one that
+    /// carries a strap of its own. The same set TourniquetSystem.Apply clamps.
+    /// </summary>
+    private List<EntityUid> TiedParts(EntityUid part)
+    {
+        var parts = new List<EntityUid> { part };
+        foreach (var child in _body.GetBodyPartChildren(part))
+        {
+            if (child.Id != part && !HasComp<WolfmedTourniquetComponent>(child.Id))
+                parts.Add(child.Id);
+        }
+
+        return parts;
     }
 
     /// <inheritdoc/>
@@ -278,20 +297,45 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
             return false;
 
         var holding = IsHoldingABleed(part);
-
-        foreach (var wound in _wounds.GetWounds(part).ToArray())
-        {
-            if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
-                bleeding.Treatment == BleedingTreatment.Clamped)
-                _bleeding.SetTreatment(wound.Owner, BleedingTreatment.None);
-        }
-
-        RemComp<WolfmedTourniquetComponent>(part);
-        ClearSource(part, WolfmedNecrosisSource.Tourniquet);
+        Release(part);
 
         _audio.PlayPvs(tourniquet.LoosenSound, body);
         _popup.PopupEntity(Loc.GetString(holding ? "wolfmed-tourniquet-loosened" : "wolfmed-tourniquet-loosened-safe"), body, user);
         return true;
+    }
+
+    /// <summary>
+    /// A makeshift strap knocked loose by a hit (<see cref="WolfmedTourniquetSlipSystem"/>): the same release as
+    /// <see cref="Loosen"/>, with nobody's hand on it, so everyone nearby is told.
+    /// </summary>
+    public bool Slip(EntityUid body, EntityUid part)
+    {
+        if (!TryComp(part, out WolfmedTourniquetComponent? tourniquet))
+            return false;
+
+        Release(part);
+
+        _audio.PlayPvs(tourniquet.LoosenSound, body);
+        var name = TryComp(part, out BodyPartComponent? component) ? _look.PartName(part, component) : Name(part);
+        _popup.PopupEntity(Loc.GetString("wolfmed-tourniquet-slipped", ("part", name)), body, PopupType.MediumCaution);
+        return true;
+    }
+
+    /// <summary>Takes the strap's record off the part and unclamps every bleed it was holding, the foot's under a leg's too.</summary>
+    private void Release(EntityUid part)
+    {
+        foreach (var tied in TiedParts(part))
+        {
+            foreach (var wound in _wounds.GetWounds(tied).ToArray())
+            {
+                if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
+                    bleeding.Treatment == BleedingTreatment.Clamped)
+                    _bleeding.SetTreatment(wound.Owner, BleedingTreatment.None);
+            }
+        }
+
+        RemComp<WolfmedTourniquetComponent>(part);
+        ClearSource(part, WolfmedNecrosisSource.Tourniquet);
     }
 
     /// <summary>Stamps the time a limb came off, for the reattachment grace period.</summary>
@@ -326,14 +370,17 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Whether the part still has a bleed a tourniquet is holding shut.</summary>
+    /// <summary>Whether the part, or a part its strap ties off, still has a bleed a tourniquet is holding shut.</summary>
     private bool IsClamped(EntityUid part)
     {
-        foreach (var wound in _wounds.GetWounds(part))
+        foreach (var tied in TiedParts(part))
         {
-            if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
-                bleeding.Treatment == BleedingTreatment.Clamped)
-                return true;
+            foreach (var wound in _wounds.GetWounds(tied))
+            {
+                if (TryComp(wound, out WoundBleedingComponent? bleeding) &&
+                    bleeding.Treatment == BleedingTreatment.Clamped)
+                    return true;
+            }
         }
 
         return false;

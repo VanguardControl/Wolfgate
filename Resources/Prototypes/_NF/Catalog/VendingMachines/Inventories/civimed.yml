@@ -16,6 +16,7 @@
     WFWolfmedOpiatePen: 40 # WOLFGATE(Wolfmed): playtest 1: limited, it sedates.
     WFWolfmedNaloxonePen: 40 # WOLFGATE(Wolfmed): M2: OD14, reverses an overdose.
     Tourniquet: 4294967295 # WOLFGATE(Wolfmed): ITEMS: Infinite
+    WFWolfmedSuture: 4294967295 # WOLFGATE(Wolfmed): playtest 5: Infinite, the plain suture.
     WFWolfmedAnalgesicPillCanister: 4294967295 # WOLFGATE(Wolfmed): ITEMS: Infinite
     WFWolfmedIbuprofenPillCanister: 4294967295 # WOLFGATE(Wolfmed): ITEMS: Infinite
     WFWolfmedKetorolacPillCanister: 4294967295 # WOLFGATE(Wolfmed): ITEMS: Infinite

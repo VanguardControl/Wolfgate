@@ -33,6 +33,7 @@
     # Playtest 5 (ITEMS): the rest of the field kit, the pill forms and the surgical basics.
     Tourniquet: 6
     MedicatedSuture: 2
+    WFWolfmedSuture: 4 # Playtest 5: the plain suture.
     RegenerativeMesh: 2
     WFWolfmedAnalgesicPillCanister: 4
     WFWolfmedIbuprofenPillCanister: 3

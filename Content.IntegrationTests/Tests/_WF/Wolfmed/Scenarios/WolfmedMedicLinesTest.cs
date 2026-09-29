@@ -229,7 +229,8 @@ public sealed class WolfmedMedicLinesTest : GameTest
             {
                 Assert.That(lines[0], Is.EqualTo("DEAD: catastrophic brain injury"));
                 Assert.That(lines[1], Does.StartWith("Not breathing"));
-                Assert.That(lines[^1], Is.EqualTo("Defib: refused: brain destroyed, brain repair surgery first"));
+                // Playtest 5: a destroyed brain no longer refuses the paddles; the patient returns with major brain damage.
+                Assert.That(lines[^1], Is.EqualTo("Defib: shock indicated"));
             });
 
             lines = s.AnalyzerLines(ipc);

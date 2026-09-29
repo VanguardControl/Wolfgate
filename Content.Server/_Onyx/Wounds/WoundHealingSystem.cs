@@ -158,6 +158,11 @@ public sealed partial class WoundHealingSystem : EntitySystem
             stoppedBleeding = TreatBleeding(bleedingPart, -healing.Comp.BloodlossModifier);
         }
 
+        // WOLFGATE(Wolfmed) START: a makeshift suture leaves its dirt in the wound it treated.
+        if ((applied || stoppedBleeding) && resolve.Part is { } treatedPart)
+            ContaminateIfDirty(healing, treatedPart);
+        // WOLFGATE END
+
         var after = _damage.GetPositiveDamage((body, bodyDamageable));
         foreach (var (type, amount) in before.DamageDict)
         {

@@ -68,6 +68,7 @@ wolfmed-tourniquet-loosen-part-holding = { CAPITALIZE($part) } (still holding a 
 wolfmed-tourniquet-loosen-part-safe = { CAPITALIZE($part) } (bleeding stopped, safe to remove)
 wolfmed-tourniquet-loosen-holding-tip = The wound under this tourniquet will bleed again the moment it comes off. Close it first.
 wolfmed-tourniquet-loosen-safe-tip = Nothing under this tourniquet is bleeding. Take it off before the limb starts to die.
+wolfmed-tourniquet-slipped = The makeshift tourniquet on the { $part } is knocked loose!
 
 health-analyzer-wound-infection-local = infection: local
 health-analyzer-wound-infection-spreading = infection: spreading

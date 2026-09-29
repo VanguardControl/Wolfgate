@@ -34,12 +34,12 @@ wolfmed-treatment-title = {$finding}, {$part}
 wolfmed-treatment-short-cat-ballistic = Rounds and fragments. Pull anything lodged out with a hemostat first, then gauze and sutures.
 wolfmed-treatment-short-cat-blunt = Blunt trauma. A bruise pack treats the bruising; fractures, dislocations and internal bleeding are separate findings.
 wolfmed-treatment-short-cat-burn = Burns from heat, cold, shock or acid. Ointment or regenerative mesh, and wash acid off first.
-wolfmed-treatment-short-cat-cut = Open cuts. Gauze slows the bleeding, medicated sutures close them.
+wolfmed-treatment-short-cat-cut = Open cuts. Gauze slows the bleeding, sutures close them.
 wolfmed-treatment-short-cat-infection = Contaminated tissue. Antiseptic while it is local, spaceacillin once it has spread.
 wolfmed-treatment-short-cat-internal = Injuries inside the body. No dressing reaches these; they come out on the operating table.
 wolfmed-treatment-short-cat-mechanical = Chassis damage. A welding tool, a wrench or a cable coil, depending on the finding. No medicine reaches it.
 wolfmed-treatment-short-cat-other = Findings that fit no other group. Click a row for what to do about it.
-wolfmed-treatment-short-cat-puncture = Punctures. They bleed harder than cuts. Gauze, then medicated sutures.
+wolfmed-treatment-short-cat-puncture = Punctures. They bleed harder than cuts. Gauze, then sutures.
 
 # Onyx per-damage-type defaults -----------------------------------------------
 
@@ -49,18 +49,18 @@ wolfmed-treatment-step-blunt-wound-2 = Apply a bruise pack to the patient, and r
 wolfmed-treatment-step-blunt-wound-3 = Scan again. A heavy blunt hit often leaves a fracture or an internal bleed behind, and neither shows as this wound.
 wolfmed-treatment-avoid-blunt-wound-1 = Ointment, gauze and sutures do not reach blunt damage and will refuse the part.
 
-wolfmed-treatment-short-slash-wound = An open cut. Gauze slows the bleeding, medicated sutures close it.
+wolfmed-treatment-short-slash-wound = An open cut. Gauze slows the bleeding, sutures close it.
 wolfmed-treatment-step-slash-wound-1 = Select the injured part on the doll.
 wolfmed-treatment-step-slash-wound-2 = Press gauze on the part until the bleeding stops.
-wolfmed-treatment-step-slash-wound-3 = Apply medicated sutures to close the cut.
-wolfmed-treatment-step-slash-wound-4 = Clean it with antiseptic if it was left open for long.
+wolfmed-treatment-step-slash-wound-3 = Suture the cut closed. Medicated sutures are quickest, plain ones do the job, and a makeshift one closes it dirty.
+wolfmed-treatment-step-slash-wound-4 = Clean it with antiseptic if it was left open for long, or closed with a makeshift suture.
 wolfmed-treatment-avoid-slash-wound-1 = A bruise pack does nothing for a cut. Removing damage barely closes a wound, so expect to finish with sutures.
 
 wolfmed-treatment-short-piercing-wound = A puncture. It bleeds harder than a cut and hurts more.
 wolfmed-treatment-step-piercing-wound-1 = Select the injured part on the doll.
 wolfmed-treatment-step-piercing-wound-2 = Check for an embedded object first: nothing closes a wound with something still in it.
 wolfmed-treatment-step-piercing-wound-3 = Press gauze on the part until the bleeding stops.
-wolfmed-treatment-step-piercing-wound-4 = Apply medicated sutures to close it.
+wolfmed-treatment-step-piercing-wound-4 = Suture it closed, medicated or plain. A makeshift suture closes it dirty, so clean it after.
 wolfmed-treatment-avoid-piercing-wound-1 = A bruise pack does nothing for a puncture.
 
 wolfmed-treatment-short-burn-wound = Burned tissue from heat, cold, shock or acid. Ointment or regenerative mesh.
@@ -171,13 +171,13 @@ wolfmed-treatment-short-slime-blunt-wound = A blunt hit on slime tissue. A bruis
 wolfmed-treatment-step-slime-blunt-wound-1 = Select the injured part on the doll.
 wolfmed-treatment-step-slime-blunt-wound-2 = Apply a bruise pack until the wound stops being listed.
 
-wolfmed-treatment-short-slime-slash-wound = A cut in slime tissue. Gauze, then medicated sutures.
+wolfmed-treatment-short-slime-slash-wound = A cut in slime tissue. Gauze, then sutures.
 wolfmed-treatment-step-slime-slash-wound-1 = Press gauze on the part until the bleeding stops.
-wolfmed-treatment-step-slime-slash-wound-2 = Apply medicated sutures to close it.
+wolfmed-treatment-step-slime-slash-wound-2 = Suture it closed.
 
-wolfmed-treatment-short-slime-piercing-wound = A puncture in slime tissue. Gauze, then medicated sutures.
+wolfmed-treatment-short-slime-piercing-wound = A puncture in slime tissue. Gauze, then sutures.
 wolfmed-treatment-step-slime-piercing-wound-1 = Check for an embedded object and pull it out first.
-wolfmed-treatment-step-slime-piercing-wound-2 = Press gauze on the part, then close it with medicated sutures.
+wolfmed-treatment-step-slime-piercing-wound-2 = Press gauze on the part, then close it with sutures.
 
 wolfmed-treatment-short-slime-burn-wound = A burn on slime tissue. Ointment or regenerative mesh.
 wolfmed-treatment-step-slime-burn-wound-1 = Wash the patient first if acid caused it.
@@ -189,11 +189,11 @@ wolfmed-treatment-step-plant-blunt-wound-2 = Apply a bruise pack until the wound
 
 wolfmed-treatment-short-plant-slash-wound = A cut in plant tissue. It loses sap the way flesh loses blood.
 wolfmed-treatment-step-plant-slash-wound-1 = Press gauze on the part until the loss stops.
-wolfmed-treatment-step-plant-slash-wound-2 = Apply medicated sutures to close it.
+wolfmed-treatment-step-plant-slash-wound-2 = Suture it closed.
 
-wolfmed-treatment-short-plant-piercing-wound = A puncture in plant tissue. Gauze, then medicated sutures.
+wolfmed-treatment-short-plant-piercing-wound = A puncture in plant tissue. Gauze, then sutures.
 wolfmed-treatment-step-plant-piercing-wound-1 = Check for an embedded object and pull it out first.
-wolfmed-treatment-step-plant-piercing-wound-2 = Press gauze on the part, then close it with medicated sutures.
+wolfmed-treatment-step-plant-piercing-wound-2 = Press gauze on the part, then close it with sutures.
 
 wolfmed-treatment-short-plant-burn-wound = A burn on plant tissue. Ointment or regenerative mesh.
 wolfmed-treatment-step-plant-burn-wound-1 = Wash the patient first if acid caused it.
@@ -209,7 +209,7 @@ wolfmed-treatment-step-wolfmed-graze-wound-3 = Clean it with antiseptic if the p
 wolfmed-treatment-short-wolfmed-gunshot-wound = A round that went through. Good bleeding, real pain, and a high infection risk.
 wolfmed-treatment-step-wolfmed-gunshot-wound-1 = Check the part for a lodged round first. Nothing closes a wound with one still in it.
 wolfmed-treatment-step-wolfmed-gunshot-wound-2 = Press gauze on the part. That slows the bleeding and cuts the infection rate to about a seventh.
-wolfmed-treatment-step-wolfmed-gunshot-wound-3 = Apply medicated sutures to close it. A sutured wound stops the infection clock outright.
+wolfmed-treatment-step-wolfmed-gunshot-wound-3 = Suture it closed, medicated or plain. A sutured wound stops the infection clock outright; a makeshift stitch does not.
 wolfmed-treatment-step-wolfmed-gunshot-wound-4 = Clean the site with antiseptic if it was left open: ethanol, bleach or spaceacillin on the skin.
 wolfmed-treatment-avoid-wolfmed-gunshot-wound-1 = A bruise pack does nothing here.
 
@@ -217,22 +217,22 @@ wolfmed-treatment-short-wolfmed-lodged-round-wound = A round still in the part. 
 wolfmed-treatment-step-wolfmed-lodged-round-wound-1 = Select the part on the targeting doll.
 wolfmed-treatment-step-wolfmed-lodged-round-wound-2 = Use a hemostat or tweezers on the patient and wait out the bar. That pulls the round out cleanly.
 wolfmed-treatment-step-wolfmed-lodged-round-wound-3 = Any sharp item works instead, a knife, a scalpel or a shard, but it is slower, it hurts, and it leaves a fresh dirty cut that infects faster.
-wolfmed-treatment-step-wolfmed-lodged-round-wound-4 = Only then treat what is underneath with gauze and medicated sutures.
+wolfmed-treatment-step-wolfmed-lodged-round-wound-4 = Only then treat what is underneath with gauze and sutures.
 wolfmed-treatment-step-wolfmed-lodged-round-wound-5 = A surgical pod does the whole job unattended: its Remove Embedded Objects programme opens the part, takes the round out and closes again.
 wolfmed-treatment-avoid-wolfmed-lodged-round-wound-1 = Nothing at all works while an object is in the part. Not gauze, not sutures, not surgery.
 
 wolfmed-treatment-short-wolfmed-shrapnel-wound = Fragments in the part. Each one blocks treatment, and the analyzer counts how many are left.
 wolfmed-treatment-step-wolfmed-shrapnel-wound-1 = Select the part on the targeting doll.
 wolfmed-treatment-step-wolfmed-shrapnel-wound-2 = Pull one fragment out with a hemostat or tweezers. Repeat until the embedded count reaches zero.
-wolfmed-treatment-step-wolfmed-shrapnel-wound-3 = Treat what is underneath with gauze and medicated sutures.
+wolfmed-treatment-step-wolfmed-shrapnel-wound-3 = Treat what is underneath with gauze and sutures.
 wolfmed-treatment-step-wolfmed-shrapnel-wound-4 = A surgical pod clears every fragment in one pass with its Remove Embedded Objects programme, and closes the part after.
 wolfmed-treatment-avoid-wolfmed-shrapnel-wound-1 = Do not dig with a knife unless you have to. It is slower, it hurts, and it leaves a dirty cut.
 
 # W2 slash and bite -----------------------------------------------------------
 
 wolfmed-treatment-short-wolfmed-arterial-bleed-wound = A cut artery. It bleeds several times faster than anything else and it never clots.
-wolfmed-treatment-step-wolfmed-arterial-bleed-wound-1 = On an arm, hand, leg or foot, apply a tourniquet. That stops the flow outright.
-wolfmed-treatment-step-wolfmed-arterial-bleed-wound-2 = Only then will medicated sutures close the wound underneath.
+wolfmed-treatment-step-wolfmed-arterial-bleed-wound-1 = On an arm, hand, leg or foot, apply a tourniquet. That stops the flow outright. With none to hand, tear a jumpsuit into a makeshift one; a hard hit knocks it loose.
+wolfmed-treatment-step-wolfmed-arterial-bleed-wound-2 = Only then will sutures close the wound underneath.
 wolfmed-treatment-step-wolfmed-arterial-bleed-wound-3 = In the torso or the head there is nothing to tie around. Run the Repair Severed Artery surgery, which clamps the vessel with a hemostat and then sutures it.
 wolfmed-treatment-step-wolfmed-arterial-bleed-wound-4 = With nothing else to hand, hold something hot and use the Cauterise wound verb. It costs a deep burn and a great deal of pain.
 wolfmed-treatment-step-wolfmed-arterial-bleed-wound-5 = Take the tourniquet off as soon as the wound is closed. Ten minutes under one kills the limb.
@@ -246,7 +246,7 @@ wolfmed-treatment-avoid-wolfmed-tendon-cut-wound-1 = No topical reaches a tendon
 
 wolfmed-treatment-short-wolfmed-avulsion-wound = A bite that tore tissue away. It bleeds, it almost always scars, and it infects readily.
 wolfmed-treatment-step-wolfmed-avulsion-wound-1 = Press gauze on the part until the bleeding stops.
-wolfmed-treatment-step-wolfmed-avulsion-wound-2 = Apply medicated sutures to close it.
+wolfmed-treatment-step-wolfmed-avulsion-wound-2 = Suture it closed, medicated or plain.
 wolfmed-treatment-step-wolfmed-avulsion-wound-3 = Clean it with antiseptic. A bite is one of the dirtiest wounds there is.
 wolfmed-treatment-step-wolfmed-avulsion-wound-4 = Expect a scar. Scars are a record, not an injury.
 
@@ -339,10 +339,10 @@ wolfmed-treatment-step-wolfmed-overheating-wound-3 = Fastest of all, hose the pa
 
 # Conditions ------------------------------------------------------------------
 
-wolfmed-treatment-short-cond-bleeding = This part is losing blood. Gauze slows it, medicated sutures close it, a tourniquet stops a limb outright.
+wolfmed-treatment-short-cond-bleeding = This part is losing blood. Gauze slows it, sutures close it, a tourniquet stops a limb outright.
 wolfmed-treatment-step-cond-bleeding-1 = Press gauze on the part to slow the bleeding.
-wolfmed-treatment-step-cond-bleeding-2 = Apply medicated sutures to close the wound and stop it.
-wolfmed-treatment-step-cond-bleeding-3 = If it will not stop and it is a limb, apply a tourniquet and get the patient to a table.
+wolfmed-treatment-step-cond-bleeding-2 = Suture the wound closed to stop it: medicated, plain, or a makeshift one at a pinch.
+wolfmed-treatment-step-cond-bleeding-3 = If it will not stop and it is a limb, apply a tourniquet, or one torn from a jumpsuit, and get the patient to a table.
 wolfmed-treatment-step-cond-bleeding-4 = Take the tourniquet off within ten minutes, or the limb dies under it.
 wolfmed-treatment-avoid-cond-bleeding-1 = A bruise pack does not stop bleeding, and gauze only slows an arterial bleed.
 
@@ -388,7 +388,7 @@ wolfmed-treatment-step-cond-embedded-4 = A sharp item works instead but is slowe
 
 wolfmed-treatment-short-cond-infection-local = The wound itself has gone bad. It hurts, and it reopens faster than a dressing closes it.
 wolfmed-treatment-step-cond-infection-local-1 = Apply antiseptic to the skin: ethanol, bleach or spaceacillin. That drains a local infection over the next minute.
-wolfmed-treatment-step-cond-infection-local-2 = Close the wound. Sutures or cautery stop the infection clock outright.
+wolfmed-treatment-step-cond-infection-local-2 = Close the wound. Sutures or cautery stop the infection clock outright; a makeshift suture does not, it leaves the wound dirty.
 wolfmed-treatment-step-cond-infection-local-3 = Gauze alone cuts the rate to about a seventh, and a tourniquet halves it.
 wolfmed-treatment-avoid-cond-infection-local-1 = Antiseptic does nothing once the infection has spread past the wound.
 
@@ -443,7 +443,7 @@ wolfmed-treatment-avoid-cond-sepsis-1 = More than about 25 units of spaceacillin
 
 wolfmed-treatment-short-cond-blood-low = The patient is dangerously low on blood. Stop the loss first, then replace what is gone.
 wolfmed-treatment-step-cond-blood-low-1 = Work down this tab and stop every bleeding part. Replacing blood while it is still running out is wasted.
-wolfmed-treatment-step-cond-blood-low-2 = Gauze slows a bleed, medicated sutures close it, a tourniquet stops a limb outright.
+wolfmed-treatment-step-cond-blood-low-2 = Gauze slows a bleed, sutures close it, a tourniquet stops a limb outright.
 wolfmed-treatment-step-cond-blood-low-3 = Then give a bloodpack to put back what was lost.
 
 # Evisceration (EVISC).

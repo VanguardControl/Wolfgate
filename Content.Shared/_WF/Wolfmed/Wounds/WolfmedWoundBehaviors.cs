@@ -39,6 +39,13 @@ public sealed partial class WolfmedArterialBleedBehavior : WoundBehavior
     public bool TopicalsReduceBleeding;
 
     /// <summary>
+    /// Fraction of the wound's severity a coagulant in the blood (tranexamic acid and the like) cannot clot its
+    /// bleeding below. A pumping artery slows under the drug and never stops for it; 0 lets a drug close it.
+    /// </summary>
+    [DataField]
+    public float CoagulantFloor = 0.5f;
+
+    /// <summary>
     /// Whether the wound refuses every treatment while it is still losing blood. The bleed has to be
     /// stopped first, by a tourniquet or by the clamping step of the surgery.
     /// </summary>

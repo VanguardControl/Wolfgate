@@ -250,6 +250,8 @@ not have to open all 14 reports to find them.
   deriving it would add an upstream hook nothing currently reads, so it was left undone on purpose.
 - Systemic bleeding chemicals (`ModifyBodyBleeding`/`StopBodyBleeding`) still stop an arterial bleed; only
   the part-targeted topical path is gated behind the arterial-bleed treatment ladder (W2, open per W4).
+  *[2026-09-29: no reagent reached either method, so none stopped anything; the reagent path added then clots an
+  artery only down to its `CoagulantFloor`. See "A coagulant reaches the wounds" at the end.]*
 - The analyzer names every wound but has no dedicated arterial / dislocated / concussed / numb / residue /
   mechanical-overheating flag; a medic reads the wound name and the guide's quick reference (W2–W6).
 - Necrosis has no sprite or visual on the limb, only the analyzer flag, the popup and the wound name (W5).
@@ -4449,3 +4451,181 @@ the owner's call; left as it plays.
   group Bloodloss counts in. AUTODOC5's `wolfmed.airloss_cap` (200) ceiling on Asphyxiation, applied where routed
   systemic damage lands, now covers Bloodloss too; it was left out so a vital loss could kill through it, and BRAIN
   moved that death to the life system. `WolfmedBodyDamageCeilingTest` pins both types at the cap.
+- **What a reagent deals from inside is toxin load (2026-09-29).** "Radiation medicine causes lots of body damage that
+  the new medical system takes to overdrive." Arithrazine deals 1.5 Brute a tick beside its radiation healing, and every
+  `HealthChange` tick went through routing like a hit: a cut, a puncture and a bruise on a random part, 60 times over a
+  30-unit dose, each bleeding and hurting. A wound is an injury with a site; a chemical in the blood has none, and the
+  model's currency for chemical harm is the toxin pool (OD13). `WolfmedReagentDamageSystem.ForWoundHost`, called from
+  HOOK 9 for a metabolism (`EntityEffectReagentArgs.Method == null`) on a wound host, turns every positive localized
+  amount (brute, burn, cold, shock, caustic) into `wolfmed.reagent_toxin_factor` (0.5) systemic Poison and leaves
+  healing and the systemic types alone; a reaction on the skin, an injection or an ingestion keeps its method and still
+  wounds. A full arithrazine bottle is 45 toxin, sick but standing (Downed at 60), which the liver or dylovene clears,
+  where vanilla's 90 Brute stood next to crit. Machines do not metabolise. `WolfmedReagentDamageTest` pins both halves.
+- **A lodged round stops the welder, and says so (2026-09-29).** Peter, playtest 5: "welding will infinitely go on if
+  you don't do it in surgery mode", "you will have to do surgery to stop bleeding", "don't be an IPC or have
+  cybernetics". A round or a fragment in a breach refuses every treatment, damage removal included (W2), but
+  `GetHealingPotential` counted the breach as work, so `CanRepairPart` stayed true, each pass removed nothing and
+  `OnWoundRepairFinished` queued the next until the tank was empty; the leak never closed, and surgery, which pulls
+  the round first, was the only way. Three changes. `GetHealingPotential` asks each wound the refusal `HealWounds`
+  asks (`RefusesTreatment`, one marked line and a helper), so a refused wound is no potential for the welder, the
+  applicator, a topical's repeat or the part scoring. `CanRepairPart` refuses a part with anything lodged, and the
+  welder says "something is still lodged, pull it out first" (`wolfmed-repair-embedded`) instead of "nothing needs
+  the welder". A pass that changed neither the part's damage nor a wound's severity is the last, costs no fuel and
+  says so (`wolfmed-repair-no-progress`). `WelderStopsOnALodgedRoundAndSaysSoTest`: the welder does not start on the
+  breach, starts once the round is out, closes it in one pass, stops, and spends one pass of fuel.
+- **A repair chain is one line, and an instant one lands in the click (2026-09-29).** "The nanite applicator spams 40
+  messages in one tick." An admin ghost carries `InstantDoAfters`, so every pass `OnWoundRepairFinished` started
+  finished inside `StartWoundRepair`, re-entering the handler: a pass, a sound and "you repair" per level, forty deep
+  for a torso with three wound types at their caps. A player got the same forty lines three seconds apart. Now the
+  handler notes when a pass it started has already finished (`_repairChains`, `_repairInstant`) and the frame that
+  started the chain applies the rest itself (`ApplyRepairPass`, which also pays the fuel and reports a pass that
+  changed nothing), so the chain is one sound and one line; a timed chain keeps its end sound per pass and speaks
+  once at the end: repaired, `wolfmed-repair-fuel` when the tool ran dry first, or `wolfmed-repair-no-progress`.
+  `InstantRepairChainLandsInOneClickTest`: an instant user's 100-damage breach closes in the click, four passes paid,
+  nothing queued.
+- **Avali stasis on a wound host (owner, 2026-09-29): hold, close, halve, never a bone.** "How does the Avali stasis
+  ability interact with our medical system?" Starlight's `StasisSystem` works on the flat damage total: its bleed stop
+  is a bloodstream write the wound projection refuses (GUARD E3), its 2-a-second healing is routed damage removal that
+  takes 15% off a wound, and its "resistance" heals back half of the total after the wound is made. On a wound host
+  all three were nothing. `WolfmedStasisSystem` (server, `_WF/Wolfmed/Stasis`) owns stasis on a wound host: it marks
+  the body `WolfmedStasisHoldComponent` while `IsInStasis` (polled, since the stock system holds the enter and exit
+  subscriptions) and the bleeding partial's `GetTreatmentMultiplier` returns 0 for every wound on a held body, so the
+  bleed stops and comes back with the hold; once a second it thins the parts' stored damage by the component's
+  amounts with wound healing off, then spends the same amounts on the body's wounds at topical strength
+  (`TreatWound`), first part first, skipping anything topicals never close or that refuses; and on the routed pass of
+  a hit (`BeforeDamageChangedEvent` after routing) it keeps `wolfmed.stasis_damage_factor` (0.5) of every positive
+  amount before it is a wound. The stock heal-back and update return on a wound host (two marked lines). The owner's
+  rule: stasis never fixes a broken bone. `BoneFractureWound` lists no damage types, and `CloseWounds` skips
+  `WoundFractureComponent` outright. `WolfmedStasisTest` pins the hold, the half hit against a control, the topical
+  close, the stored-damage thinning, the untouched fracture (same wound, grade, severity, no treatment) and the bleed's
+  return after exit.
+- **A coagulant reaches the wounds (2026-09-29).** "Medicines don't do what they're advertised to, tranexamic acid in
+  particular." `ModifyBleedAmount` wrote the bloodstream's bleed figure, which on a wound host is only the wounds'
+  projection and refuses every other writer (GUARD E3). Tranexamic acid, bicaridine, inaprovaline, polypyrylium,
+  pulped banana peel, stasizium, vitamins, ichor and space glue did nothing to a bleed, and ketorolac's overdose
+  worsened none. Onyx's own effect called `ModifyBodyBleeding` on a wound host; the port lost that line. A marked block
+  in the effect now calls `WoundBleedingSystem.ApplyReagentBleeding` for a wound host, and the upstream write stays for
+  everything else. A coagulant takes its amount times `wolfmed.bleed_rate` off the body's bleed rate (the knob every
+  wound's rate carries, so a dose clots the severity it clotted in Onyx), worst bleed first, and never touches a
+  treatment: a dressed cut keeps its dressing (`ModifyBodyBleeding` resets it to None, which on a dressed wound
+  quadruples the rate before the cut), and a clamped or tourniqueted wound bleeds nothing, so it is skipped. An artery
+  gets the topicals' stance, slow and never stop: `WolfmedArterialBleedBehavior.CoagulantFloor` (0.5) is the share of
+  the wound's severity no drug clots below, so tranexamic acid halves a pumping artery, which still refuses every
+  treatment and still needs a tourniquet or the table; the evisceration wounds carry the same floor. A dose that
+  worsens bleeding opens or deepens a systemic bleed, as Onyx's did. One tick of tranexamic acid takes 0.375 off the
+  rate; the emergency medipen's 3 u is 15 ticks. `WolfmedReagentBleedingTest` pins the tick, the stopped cut, the
+  artery at its floor with and without gauze, the kept dressing and tourniquet, ketorolac's systemic bleed and a
+  mouse's bloodstream figure taking the upstream write.
+- **An overdose written as airloss is toxin load (2026-09-29).** Found auditing the reagents behind the tranexamic
+  acid report. A metabolising reagent's Asphyxiation and Bloodloss are bookkeeping on a wound host: Asphyxiation is
+  read only while the respirator is suffocating, Bloodloss never, both capped at `wolfmed.airloss_cap`. So every
+  overdose the flat model wrote as airloss cost a breathing patient nothing: tranexamic acid's (Bloodloss 3 a tick past
+  15 u), dexalin's, dexalin plus's, epinephrine's, bicaridine's, dermaline's, polypyrylium's, celoxradine's,
+  rhymatine's, fentanyl's respiratory depression, amoxla's in a non-Avali and the dexalin family's Avali poisoning in
+  part, and the poisons that work only through airloss (lexorin, heartbreaker toxin, histamine's share, BZ, nitrium).
+  `WolfmedReagentDamageSystem.ForWoundHost` now converts positive Asphyxiation and Bloodloss the way it converts
+  localized damage, at `wolfmed.reagent_toxin_factor`. Healing is untouched, so dexalin still takes airloss off a
+  suffocating patient, and a reaction on the skin keeps its method as before. Sedation's respiratory depression is its
+  own route and deals no Asphyxiation, so nothing is counted twice. `WolfmedReagentDamageTest.MetabolisedAirlossIsToxinTest`
+  pins ten ticks each of the tranexamic acid and dexalin overdoses as 35 toxin and none of either type, and dexalin's
+  heal.
+- **Reagent descriptions say what a wound host gets (2026-09-29).** Texts that promised what the model does not do.
+  Dexalin, dexalin plus and cryoxadone "treat bloodloss": their Bloodloss healing is bookkeeping, and lost blood is the
+  blood level, which none of them raises (blood, saline, the IV and amoxla for an Avali do), so they now say they do
+  not replace lost blood. Tranexamic acid "causes heavier bleeding on overdose": it says it slows every bleed, stops the
+  lesser ones, only slows an artery, and is poisonous on overdose. Ultravasculine's overdose "causes extreme pain",
+  rhymatine trades cellular damage "for cold and shock damage" and stasizium's overdose "can tear the body apart", all
+  toxin load since the reagent-damage decision above, and each now says so. Marked lines in the upstream, Mono and
+  Goobstation locale files; no effect changed. Puncturase's "slight amount of tissue damage" (0.04 toxin a tick) was
+  left as it reads.
+- **The reagent audit (2026-09-29).** Every medicine with a bleed, blood, airloss or bloodloss effect, and the ones the
+  report named, read against what the model reads. Working, and now driven on a real body from each reagent's own
+  prototype by `WolfmedReagentAuditTest`: saline's blood reaches the blood level the circulation clock reads; dexalin
+  plus's airloss healing lowers a suffocating body's hypoxia input; osteogen knits a simple break and leaves a
+  comminuted one alone; leporazine's heat rewarms the core at once. Read and left: epinephrine is a Stimulant tier, so
+  it slows the brain's drain (`wolfmed.brain_stimulant_factor` 0.6) and lifts Downed, and in Unconscious (Critical) its
+  brute, burn and toxin healing lands; inaprovaline's crit airloss healing counts only while the body suffocates, since
+  an unconscious wound host breathes, and its bleed reduction is the coagulant above; Bloodloss healing anywhere
+  (cryoxadone, necrosol and omnizine through the Airloss group, ichor, nanites) is bookkeeping. The healing reagents
+  (bicaridine, dermaline, lacerinol, puncturase, sigynate, insuzine's shock) heal through HOOK 9 and close wounds at
+  the wound's healing multiplier, and their side damage is toxin load. `AvaliChemistryTest` still expected ammonia to
+  burn a human, which the reagent-damage decision made toxin load; it now reads the Poison. Left open: hemophilia (Mono
+  trait) still adds no bleeding on a wound host (GUARD E4).
+- **A makeshift tourniquet torn from a jumpsuit (owner, 2026-09-29).** "We need a makeshift tourniquet that can be made
+  out of a jumpsuit." `WFWolfmedMakeshiftTourniquet` (`_WF/Wolfmed/Entities/tourniquet.yml`, parented to `Tourniquet`,
+  its sprite recoloured to grey cloth in `Medical/makeshift_tourniquet.rsi`) is crafted by hand from any jumpsuit with
+  suit sensors: construction `WFWolfmedMakeshiftTourniquet`, one `component: SuitSensor` step, 3 s, Tools. It clamps a
+  limb exactly as the real strap does and is worse in two ways the model already had. It takes 3 s to tie against the
+  real one's 0.5, and it slips: the tied part's `WolfmedTourniquetComponent.SlipDamage` takes the item's
+  `WolfmedMakeshiftTourniquetComponent.slipDamage` (15; null for the real strap, which holds through anything since
+  playtest 4), and `WolfmedTourniquetSlipSystem`, called from `WolfmedPartHitSystem.OnHit` before the wounds see the
+  hit, knocks it loose on one hit of 15 or more on the strapped part (after armour, and only a hit that could interrupt
+  a do-after: fire and bleeding ticks never count). The strap's own 5 Blunt and 5 Asphyxiation stay under the line, and
+  so does a punch or a 10-damage knock; a round or a heavy swing does not. A slip is a loosen nobody asked for
+  (`WolfmedNecrosisSystem.Slip`): the bleeding starts again, the necrosis clock stops, and everyone near sees "The
+  makeshift tourniquet on the right leg is knocked loose!". Slipping was chosen over holding a smaller share of the
+  bleed because a partial clamp would read as a working tourniquet on the analyzer while the patient kept bleeding;
+  a slip is visible and its answer (tie another, or fetch a real one) is obvious. Crafting takes a jumpsuit in hand
+  first, but upstream's crafting also takes worn items, and the jumpsuit slot comes before the backpack, so with none in
+  hand it tears the one being worn (the banana clown suit and ID card recipes behave the same); the recipe and the
+  guidebook say to hold the one to tear. Fixed in passing: loosening a strap released only the strapped part, so a
+  leg's strap left the foot's bleed clamped with nothing holding it; loosen, slip and the necrosis clock now cover the
+  parts below it (`TiedParts`), as applying one always did. The guidebook and the arterial and bleeding advice name
+  the makeshift strap. `WolfmedMakeshiftTourniquetTest`: the held jumpsuit is torn, not the worn one, in 3 s; the strap
+  is not on after 1 s and is after 4; a 10 hit leaves it on; a 20 Slash slips it and the leg bleeds again while the
+  real strap on the other leg holds; `SlippedStrapReleasesTheFootTest` pins the foot.
+- **Sutures anyone can get (owner, 2026-09-29).** "We need more accessible sutures, ones that are found in more places
+  (a downgraded one of the medicated ones, that don't require research, and makeshift variants of them)." Two tiers
+  under `MedicatedSuture`, which stays the top one (`_WF/Wolfmed/Entities/sutures.yml`, sprites from EscapeFromNevado's
+  `stack_medical.dmi` in `Medical/sutures.rsi`, each stack drawn by its count through `layerStates`, the medicated
+  suture's in-hands; stacks of 15 like it). The **suture** (`WFWolfmedSuture`, blue) closes cuts and punctures and
+  counts as sutured for infection (`WolfmedSuture`) exactly as the medicated one does, at half the closing a use
+  (Brute -30, so 10 Slash and 10 Piercing, against -60), bloodloss -6 against -10, and 3 s against 2. It needs no
+  research: a lathe recipe in `TopicalsStatic` (one per print, 25 Steel and 50 Cloth, beside the bruise pack and
+  gauze), the four medical vendors (NanoMed Plus 4, NanoMed 2, CiviMed infinite, the Wolfgate shop 4), and the
+  common and classy medical loot spawners and both dungeon meds spawners (marked lines). Its stack price is the bruise
+  pack's 15, printed from about the same materials. The **makeshift suture** (`WFWolfmedMakeshiftSuture`, tarred) is
+  a metal rod and a cloth, crafted anywhere in 4 s into five (`WFWolfmedMakeshiftSuture5`); -18 (6 and 6), bloodloss
+  -4, 5 s, stack price 1, and dirty. The owner's infection rule (an infection needs a reason) already had "something
+  dirty went into the wound" (`Contaminate`, the knife dig), so a dirty tool is one more caller: the item carries
+  `WolfmedDirtyTreatmentComponent`, and `WoundHealingSystem.TryApplyHealing` (one marked block, the helper in the
+  `_WF` partial) calls `WolfmedInfectionSystem.ContaminateTreated` on the part once the item has done anything, which
+  contaminates every open, infectable wound the item treats (the same choice `MarkSutured` makes). It does not carry
+  `WolfmedSuture`: a sutured wound infects at the profile's Sutured rate, 0, so a dirty stitch that counted as one
+  could never infect at all. A makeshift-closed cut keeps the dressed rate (0.15) times the contamination (2.5), has a
+  reason to infect even under a hardsuit, and clears with antiseptic or a proper suture over it; the analyzer's
+  procedure leaves its Suture and Clean rows open, and the advice says why. The advice names sutures generally
+  instead of "medicated sutures" throughout, the slash, piercing, gunshot and bleeding procedures name the tiers, and
+  the guidebook's Biological tissue section lists both. `WolfmedSutureTiersTest`: one use each on the same 15 Slash
+  cut removes medicated > plain > makeshift, closes the wound in the same order, and the delays climb 2, 3, 5; through
+  the do-after the plain suture marks the cut sutured and leaves it clean, the makeshift one leaves it contaminated
+  (past 1) and not sutured. The treatment matrix lists both new items against every wound, and
+  `WolfmedAvailabilityTest` finds the suture in a vendor or lathe and the makeshift one in a construction recipe.
+- **More to keep someone alive in the kits and belts (owner, 2026-09-29).** "Medkits and EMT belts need to have more
+  lifesaving stuff in them (tourniquets, and whatever else that can temporarily save your life)." What holds a patient
+  for the ten minutes to real care: a tourniquet for a limb bleed, a suture for a cut, a splint so they can move, a
+  painkiller pen that gets a downed patient up at once, and an epinephrine pen (the emergency medipen: 12 epinephrine,
+  which slows the brain clock, and 3 tranexamic acid) where the kit's tier warrants it. The combat and advanced kits stay
+  ahead of the standard one. `Medkit`'s grid goes 6x2 to 7x2 in its marked block (every typed kit inherits it) and
+  `MedkitCombat`'s own 4x2 to the same 7x2 (new marked block): the standard kit was full at 12 and the combat kit at 8,
+  and neither could take what it lacked otherwise. The belts' 8x2 had room.
+  - `MedkitFilled`: bruise pack, ointment, gauze, tourniquet, splint, analgesic canister, tricordrazine canister, and
+    now a suture. 14 of 14.
+  - `MedkitBruteFilled`, the trauma kit: bruise pack, gauze, iron and copper canisters, splint, osteogen canister, and
+    now a tourniquet and a suture. 13 of 14.
+  - `MedkitAdvancedFilled`: medicated suture, regenerative mesh, two blood packs, tourniquet, and now a splint, an
+    emergency medipen and an analgesic pen. 14 of 14.
+  - `MedkitCombatFilled`: medicated suture, regenerative mesh, ephedrine and saline syringes, brute and burn
+    auto-injectors, and now a tourniquet (it had none), a splint and an emergency medipen. 13 of 14.
+  - `ClothingBeltMedicalFilled`: two bruise packs, ointment, blood pack, gauze, emergency medipen, and now a tourniquet
+    and a suture. 15 of 16.
+  - `ClothingBeltMedicalEMTFilled`: bruise pack, ointment, blood pack, gauze, three emergency medipens, and now a
+    tourniquet, a suture and an analgesic pen. 16 of 16.
+  - Left alone: the burn, toxin, oxygen and radiation kits (none of them is for a bleed; the burn kit is 8 of 14 now),
+    the stimkit, and the CMO's webbing, which carries a medicated suture already.
+  Prices: the plain suture's stack price drops from 15 to 5 a unit (75 a full stack), a little over the 4 its print
+  costs, because the kits and the contractor loadout's free filled belts now each carry a stack; a tourniquet
+  appraises at 0 and the pens at their reagents. The medkit crates in `cargo_medical.yml` are Frontier-abstract and
+  cannot be ordered. `NoShipyardShipArbitrage` (every vessel's mapped kits and belts), `NoCargoOrderArbitrage` and the
+  storage fill tests pass; `WolfmedAvailabilityTest.FillsContainWhatTheyDeclareTest` spawns all six fills and finds
+  every certain entry in each, so a fill that stops fitting fails there.

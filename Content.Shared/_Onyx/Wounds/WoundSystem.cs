@@ -488,7 +488,8 @@ public sealed partial class WoundSystem : EntitySystem
 
                 var available = FixedPoint2.Zero;
                 foreach (var wound in GetWounds(part))
-                    if (wound.Comp.Prototype == prototype.ID && CanTreatStage(wound, prototype, allowedStages))
+                    if (wound.Comp.Prototype == prototype.ID && CanTreatStage(wound, prototype, allowedStages) &&
+                        !RefusesTreatment(part.Owner, wound)) // WOLFGATE(Wolfmed): playtest 5, a wound that refuses treatment (a lodged round) is no potential to heal
                         available += wound.Comp.Severity;
 
                 result += FixedPoint2.Min(-amount * settings.SeverityMultiplier * prototype.HealingMultiplier, available);
@@ -497,6 +498,18 @@ public sealed partial class WoundSystem : EntitySystem
 
         return result;
     }
+
+    // WOLFGATE(Wolfmed) START: playtest 5, the refusal HealWounds raises, asked without healing anything.
+    // A lodged round, a scar or a pumping artery refuses, and a tool that counted such a wound as work repeated
+    // its pass on it until its fuel or its stack was gone.
+    private bool RefusesTreatment(EntityUid part, Entity<WoundComponent> wound)
+    {
+        var attempt = new WoundTreatmentAttemptEvent(part, wound.Owner, wound.Comp.Severity);
+        RaiseLocalEvent(part, ref attempt);
+        RaiseLocalEvent(wound.Owner, ref attempt);
+        return attempt.Cancelled;
+    }
+    // WOLFGATE END
 
     private static bool CanTreatStage(Entity<WoundComponent> wound, WoundPrototype prototype,
         IReadOnlySet<string>? allowedStages)

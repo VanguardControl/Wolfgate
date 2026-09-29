@@ -53,6 +53,7 @@ public sealed class WolfmedAvailabilityTest : GameTest
         "WFWolfmedNaloxonePen",
         "WFWolfmedHydraulicFluidPack",
         "Tourniquet",
+        "WFWolfmedSuture", // playtest 5: the plain suture
         "WFWolfmedAnalgesicPillCanister",
         "WFWolfmedIbuprofenPill",
         "WFWolfmedIbuprofenPillCanister",
@@ -96,7 +97,12 @@ public sealed class WolfmedAvailabilityTest : GameTest
     ];
 
     /// <summary>Items reached by crafting rather than by a vendor or a lathe.</summary>
-    private static readonly string[] CraftedItems = ["WFWolfmedSplintImprovised"]; // V5
+    private static readonly string[] CraftedItems =
+    [
+        "WFWolfmedSplintImprovised", // V5
+        "WFWolfmedMakeshiftTourniquet", // playtest 5: torn from a jumpsuit
+        "WFWolfmedMakeshiftSuture5", // playtest 5: a rod and a cloth make five
+    ];
 
     /// <summary>Reagents Wolfmed added. Each needs a reaction chemistry can run.</summary>
     private static readonly string[] ObtainableReagents =
@@ -119,6 +125,13 @@ public sealed class WolfmedAvailabilityTest : GameTest
         ("MedkitFilled", "WFWolfmedAnalgesicPillCanister"),
         ("MedkitAdvancedFilled", "Tourniquet"),
         ("WFMedkitSyntheticFilled", "WFWolfmedHydraulicFluidPack"),
+        // Playtest 5: more to keep someone alive in every trauma kit and medical belt.
+        ("MedkitFilled", "WFWolfmedSuture"),
+        ("MedkitBruteFilled", "Tourniquet"),
+        ("MedkitAdvancedFilled", "EmergencyMedipen"),
+        ("MedkitCombatFilled", "Tourniquet"),
+        ("ClothingBeltMedicalFilled", "WFWolfmedSuture"),
+        ("ClothingBeltMedicalEMTFilled", "WFWolfmedAnalgesicPen"),
     ];
 
     /// <summary>Reachability: some vending inventory or lathe recipe names every new item.</summary>

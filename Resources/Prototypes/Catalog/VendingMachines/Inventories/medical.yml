@@ -17,6 +17,7 @@
     WFWolfmedSplint: 4 # WOLFGATE(Wolfmed): V5: field treatment for a fracture, short of the table.
     Tourniquet: 4 # WOLFGATE(Wolfmed): ITEMS: stops a limb bleeding out; the standard kit's first tool.
     MedicatedSuture: 2 # WOLFGATE(Wolfmed): ITEMS: closes cuts and punctures and stops their bleeding.
+    WFWolfmedSuture: 4 # WOLFGATE(Wolfmed): playtest 5: the plain suture, no research needed.
     RegenerativeMesh: 2 # WOLFGATE(Wolfmed): ITEMS: the advanced burn dressing.
     WFWolfmedAnalgesicPillCanister: 3 # WOLFGATE(Wolfmed): ITEMS: the weak rung by the canister.
     WFWolfmedIbuprofenPillCanister: 2 # WOLFGATE(Wolfmed): ITEMS: a mild painkiller that eases bruising.
