@@ -184,9 +184,9 @@ public sealed class StructuralCrashTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Every broken hull section carries the parent's repair snapshot for an SRD rebuild.</summary>
+    /// <summary>A broken hull keeps the one repair snapshot; every other section links back to it for the SRD.</summary>
     [Test]
-    public async Task BreakupSectionsKeepTheRepairSnapshot()
+    public async Task BreakupKeepsOneRepairSnapshot()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -217,14 +217,18 @@ public sealed class StructuralCrashTest
             var query = em.EntityQueryEnumerator<MapGridComponent, WFSkidComponent>();
             while (query.MoveNext(out var uid, out _, out _))
             {
-                if (em.GetComponent<TransformComponent>(uid).MapUid != ground) continue;
+                if (em.GetComponent<TransformComponent>(uid).MapUid != ground || uid == hull) continue;
                 sections++;
-                Assert.That(em.TryGetComponent<Content.Shared._Mono.ShipRepair.Components.ShipRepairDataComponent>(uid, out var data), Is.True,
-                    $"Section {uid} has no repair snapshot.");
-                Assert.That(data!.Chunks.Count, Is.EqualTo(chunks));
-                Assert.That(data.EntityPalette.Count, Is.EqualTo(palette));
+                Assert.That(em.HasComponent<Content.Shared._Mono.ShipRepair.Components.ShipRepairDataComponent>(uid), Is.False,
+                    $"Section {uid} carries its own repair snapshot.");
+                Assert.That(em.TryGetComponent<Content.Shared._WF.ShipRepair.WFHullSectionComponent>(uid, out var link), Is.True,
+                    $"Section {uid} is not linked to its hull.");
+                Assert.That(link!.Hull, Is.EqualTo(hull));
             }
-            Assert.That(sections, Is.InRange(2, 4));
+            Assert.That(sections, Is.InRange(1, 3));
+            var data = em.GetComponent<Content.Shared._Mono.ShipRepair.Components.ShipRepairDataComponent>(hull);
+            Assert.That(data.Chunks.Count, Is.EqualTo(chunks));
+            Assert.That(data.EntityPalette.Count, Is.EqualTo(palette));
         });
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
