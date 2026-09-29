@@ -33,7 +33,7 @@ public sealed class MismatchedPartsBodyTest : InteractionTest
             Assert.That(MismatchedPartsRules.IsNative(MarkingCategories.Hair, Species, markings, ProtoMan), Is.False,
                 $"{Species} wear hair on their own now; use a species that doesn't.");
 
-            hair = MismatchedPartsRules.Styles(MarkingCategories.Hair, Species, true, markings, ProtoMan).Keys.First();
+            hair = MismatchedPartsTest.FirstDrawable(MarkingCategories.Hair, Species, markings, ProtoMan);
             var profile = HumanoidCharacterProfile.DefaultWithSpecies(Species);
             profile = profile.WithCharacterAppearance(profile.Appearance.WithHairStyleName(hair)).WithMismatchedParts(true);
             humanoids.LoadProfile(SPlayer, profile);

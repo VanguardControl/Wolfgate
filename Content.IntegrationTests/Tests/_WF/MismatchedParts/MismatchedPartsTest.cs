@@ -55,8 +55,8 @@ public sealed class MismatchedPartsTest
         out string hair,
         out string beard)
     {
-        hair = MismatchedPartsRules.Styles(MarkingCategories.Hair, species.ID, true, markings, proto).Keys.First();
-        beard = MismatchedPartsRules.Styles(MarkingCategories.FacialHair, species.ID, true, markings, proto).Keys.First();
+        hair = FirstDrawable(MarkingCategories.Hair, species.ID, markings, proto);
+        beard = FirstDrawable(MarkingCategories.FacialHair, species.ID, markings, proto);
         var profile = HumanoidCharacterProfile.DefaultWithSpecies(species.ID).WithSex(SexFor(species));
         return profile
             .WithCharacterAppearance(profile.Appearance
@@ -65,6 +65,16 @@ public sealed class MismatchedPartsTest
                 .WithFacialHairStyleName(beard)
                 .WithFacialHairColor(BeardColor))
             .WithMismatchedParts(mismatchedParts);
+    }
+
+    /// <summary>The first style the option allows whose first sprite is an RSI state, so its layer can be checked.</summary>
+    internal static string FirstDrawable(MarkingCategories category, string species, MarkingManager markings, IPrototypeManager proto)
+    {
+        var style = MismatchedPartsRules.Styles(category, species, true, markings, proto)
+            .FirstOrDefault(p => p.Value.Sprites.FirstOrDefault() is SpriteSpecifier.Rsi)
+            .Key;
+        Assert.That(style, Is.Not.Null, $"{species} has no {category} style with an RSI sprite.");
+        return style!;
     }
 
     private static string[] Worn(MarkingSet set, MarkingCategories category)
