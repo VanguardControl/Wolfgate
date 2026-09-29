@@ -44,7 +44,7 @@ public sealed partial class ApplyIFFFlagsToDockedShipsSystem : EntitySystem
 
     public void ApplyFlags(EntityUid gridUid, ApplyIFFFlagsToDockedShipsComponent iffComp, bool applying = true)
     {
-        // WOLFGATE(Shuttles) START: a ship loses only the flags the host added, once its last port undocks.
+        // WOLFGATE(Shuttles) START: a ship loses only flags hosts added, once no host it is still docked to provides them.
         ApplyTrackedFlags(gridUid, iffComp, applying);
         // if (applying)
         //     _shuttle.AddIFFFlag(gridUid, iffComp.Flags);

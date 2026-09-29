@@ -90,6 +90,38 @@ public sealed class DockedShipIffTest
     }
 
     [Test]
+    public async Task ShipStaysHiddenWhileAnotherHostHoldsIt()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var mapMan = server.ResolveDependency<IMapManager>();
+        var docking = entMan.System<DockingSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            entMan.DeleteEntity(map.Grid);
+
+            var firstPort = MakeGrid(entMan, mapMan, map.MapId, 0f, 1, out var first)[0];
+            var secondPort = MakeGrid(entMan, mapMan, map.MapId, 20f, 1, out var second)[0];
+            var shipPorts = MakeGrid(entMan, mapMan, map.MapId, 10f, 2, out var ship);
+            entMan.AddComponent<ApplyIFFFlagsToDockedShipsComponent>(first).Flags = Hidden;
+            entMan.AddComponent<ApplyIFFFlagsToDockedShipsComponent>(second).Flags = Hidden;
+
+            docking.Dock(firstPort, shipPorts[0]);
+            docking.Dock(secondPort, shipPorts[1]);
+            docking.Undock(shipPorts[0]);
+            Assert.That(Flags(entMan, ship).HasFlag(Hidden), Is.True, "The second host still hides the ship.");
+
+            docking.Undock(shipPorts[1]);
+            Assert.That(Flags(entMan, ship).HasFlag(Hidden), Is.False, "Leaving both hosts should give the ship its label back.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
     public async Task ShipStaysHiddenUntilItsLastPortUndocks()
     {
         await using var pair = await PoolManager.GetServerClient();
