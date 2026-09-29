@@ -576,3 +576,47 @@ Entries:
   id: 100053
   time: '2026-09-28T20:22:03.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/85
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Admins can now offer mobs to ghosts!
+  id: 100054
+  time: '2026-09-29T05:29:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/114
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Chimera's now drop your body once killed.
+    - type: Fix
+      message: >-
+        You can now tab to the chimera radio chat, and it's told to you (+
+        message)
+  id: 100055
+  time: '2026-09-29T05:29:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/113
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Ported RMC's roadmap and added our roadmap to it.
+  id: 100056
+  time: '2026-09-29T06:02:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/115
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Bluespace event grids no longer cause as much stutter when they spawn
+        and despawn.
+    - type: Fix
+      message: Stinger and other projectile grenades no longer cause lag spikes.
+    - type: Fix
+      message: >-
+        Atmos monitoring consoles no longer slow the server down over long
+        rounds as pipes are built and removed.
+    - type: Tweak
+      message: Radiators and other atmos devices check for walls more cheaply.
+    - type: Tweak
+      message: NPC pathfinding updates faster when grids change.
+  id: 100057
+  time: '2026-09-29T06:02:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/117
