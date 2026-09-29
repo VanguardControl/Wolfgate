@@ -6,7 +6,9 @@ using Content.Shared.Charges.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Popups;
 using Content.Shared.Whitelist;
+using Robust.Shared;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
@@ -17,6 +19,7 @@ namespace Content.Shared._WF.ShipRepair;
 public sealed partial class WFHullSectionSystem : EntitySystem
 {
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IMapManager _mapMan = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -53,7 +56,8 @@ public sealed partial class WFHullSectionSystem : EntitySystem
 
     /// <summary>
     /// The grid an SRD click works on: a section, hull or other grid with a tile under the click, then the user's own
-    /// grid unless it is planet ground, then a hull beside the click, then planet ground.
+    /// grid unless it is planet ground or a section, then a hull beside the click, then the section the user stands on,
+    /// then another grid beside the click, then planet ground.
     /// </summary>
     public Entity<MapGridComponent>? PickTarget(TransformComponent toolXform, Vector2 clickWorld)
     {
@@ -77,9 +81,13 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         if ((section ?? hull ?? other) is { } hit)
             return hit;
 
-        // Standing on the ship and clicking into a hole in it.
-        if (toolXform.GridUid is { } own && !IsGround(own) && TryComp<MapGridComponent>(own, out var ownGrid))
-            return (own, ownGrid);
+        // Standing on the ship and clicking into a hole in it. From a section, a click beside the hull means the hull.
+        Entity<MapGridComponent>? own = null;
+        if (toolXform.GridUid is { } ownUid && !IsGround(ownUid) && TryComp<MapGridComponent>(ownUid, out var ownGrid))
+            own = (ownUid, ownGrid);
+
+        if (own is { } ship && !IsSection(ship))
+            return ship;
 
         grids.Clear();
         _mapMan.FindGridsIntersecting(toolXform.MapID, Box2.CenteredAround(clickWorld, new Vector2(1.5f, 1.5f)), ref grids, false, false);
@@ -96,8 +104,8 @@ public sealed partial class WFHullSectionSystem : EntitySystem
             near ??= grid;
         }
 
-        if (near != null)
-            return near;
+        if ((own ?? near) is { } fallback)
+            return fallback;
 
         if (toolXform.GridUid is { } ground && TryComp<MapGridComponent>(ground, out var groundGrid))
             return (ground, groundGrid);
@@ -141,15 +149,45 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         if (!TryComp<MapGridComponent>(hull, out var grid))
             return false;
 
-        string? reason = null;
         if (IsOccupied((hull, grid), index, null))
-            reason = "wf-ship-repair-blocked";
-        else if (IsReserved(hull, index))
-            reason = "wf-ship-repair-reserved";
+            return Refuse(tool, user, "wf-ship-repair-blocked");
 
-        if (reason == null)
-            return true;
+        if (IsReserved(hull, index))
+            return Refuse(tool, user, "wf-ship-repair-reserved");
 
+        return true;
+    }
+
+    /// <summary>Whether the SRD may lay this hull tile: <see cref="CanRebuildAt"/>, and joined to the hull.</summary>
+    public bool CanRebuildTileAt(EntityUid tool, EntityUid user, EntityUid hull, Vector2i index)
+    {
+        if (!CanRebuildAt(tool, user, hull, index))
+            return false;
+
+        return !WouldSplitOff((hull, Comp<MapGridComponent>(hull)), index) || Refuse(tool, user, "wf-ship-repair-edge");
+    }
+
+    /// <summary>
+    /// Whether a tile laid in an empty spot would share no edge with a hull tile, so grid splitting would break it
+    /// straight off as a section of its own.
+    /// </summary>
+    public bool WouldSplitOff(Entity<MapGridComponent> hull, Vector2i index)
+    {
+        if (!hull.Comp.CanSplit || !_cfg.GetCVar(CVars.GridSplitting) || !_map.GetTileRef(hull, index).Tile.IsEmpty)
+            return false;
+
+        foreach (var offset in EdgeNeighbours)
+        {
+            if (!_map.GetTileRef(hull, index + offset).Tile.IsEmpty)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>Tells the user why the SRD won't rebuild here; always false.</summary>
+    private bool Refuse(EntityUid tool, EntityUid user, string reason)
+    {
         // The client may not see every nearby grid, so it only skips predicting the repair.
         if (_net.IsServer)
             _popup.PopupEntity(Loc.GetString(reason), tool, user, PopupType.MediumCaution);

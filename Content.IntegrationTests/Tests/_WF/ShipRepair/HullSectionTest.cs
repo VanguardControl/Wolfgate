@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
+using Content.Server._Mono.FireControl;
 using Content.Server._Mono.ShipRepair;
 using Content.Server._WF.ShipRepair;
+using Content.Server._WF.Shipyard;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Decals;
 using Content.Server.Shuttles.Components;
@@ -15,12 +17,14 @@ using Content.Shared.Charges.Components;
 using Content.Shared.Charges.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Power.EntitySystems;
 using Robust.Shared;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using static Content.IntegrationTests.Tests._WF.Planets.PlanetFixture;
 
@@ -73,7 +77,7 @@ public sealed class HullSectionTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A deleted hull hands its snapshot to its largest section on the same map; a section with none left is wreckage.</summary>
+    /// <summary>A deleted hull hands its snapshot to its largest section on the same map; scrap below a quarter of the blueprint is wreckage.</summary>
     [Test]
     public async Task DeletingTheHullPromotesItsLargestSection()
     {
@@ -98,13 +102,48 @@ public sealed class HullSectionTest
             Assert.That(em.HasComponent<WFHullSectionComponent>(large), Is.False, "The new hull still links to the old one.");
             Assert.That(em.GetComponent<WFHullSectionComponent>(small).Hull, Is.EqualTo(large), "The other section was not repointed.");
 
-            // With its new hull gone and no section left on that map, the last piece is plain wreckage.
-            var elsewhere = server.System<SharedMapSystem>().CreateMap(out _);
-            server.System<SharedTransformSystem>().SetCoordinates(small, new EntityCoordinates(elsewhere, Vector2.Zero));
+            // With its new hull gone, the last piece holds under a quarter of the blueprint: plain wreckage.
             em.DeleteEntity(large);
 
             Assert.That(em.HasComponent<WFHullSectionComponent>(small), Is.False, "A section with no hull left is still linked.");
-            Assert.That(em.HasComponent<ShipRepairDataComponent>(small), Is.False, "A section on another map took over the blueprint.");
+            Assert.That(em.HasComponent<ShipRepairDataComponent>(small), Is.False, "A scrap section took over the blueprint.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Selling the hull, or deleting it with its section on another map, leaves the section as wreckage.</summary>
+    [Test]
+    public async Task ASoldOrDistantHullLeavesItsSectionAsWreckage()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var (hull, section) = await BuildSplitHull(pair, map.MapId);
+
+        await server.WaitAssertion(() =>
+        {
+            var sold = new ShipSoldEvent(hull, EntityUid.Invalid, EntityUid.Invalid, 0);
+            em.EventBus.RaiseEvent(EventSource.Local, ref sold);
+            em.DeleteEntity(hull);
+
+            Assert.That(em.HasComponent<ShipRepairDataComponent>(section), Is.False, "A piece left behind took over a sold ship's blueprint.");
+            Assert.That(em.HasComponent<WFHullSectionComponent>(section), Is.False, "A piece of a sold ship is still linked.");
+        });
+
+        var elsewhere = EntityUid.Invalid;
+        var elsewhereId = MapId.Nullspace;
+        await server.WaitPost(() => elsewhere = server.System<SharedMapSystem>().CreateMap(out elsewhereId));
+        var (farHull, farSection) = await BuildSplitHull(pair, elsewhereId);
+
+        await server.WaitAssertion(() =>
+        {
+            server.System<SharedTransformSystem>().SetCoordinates(farSection, new EntityCoordinates(map.MapUid, new Vector2(200f, 200f)));
+            em.DeleteEntity(farHull);
+
+            Assert.That(em.HasComponent<ShipRepairDataComponent>(farSection), Is.False, "A section on another map took over the blueprint.");
+            Assert.That(em.HasComponent<WFHullSectionComponent>(farSection), Is.False, "A section with no hull left is still linked.");
             em.DeleteEntity(elsewhere);
         });
 
@@ -181,6 +220,60 @@ public sealed class HullSectionTest
         {
             Assert.That(HasTile(pair, hull, free), Is.True, "The SRD no longer rebuilds a clear tile.");
             Assert.That(HasTile(pair, hull, other), Is.True, "The SRD no longer rebuilds a clear tile.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>With grid splitting on, the SRD won't lay a tile that no hull tile joins, so a hole fills from its edge.</summary>
+    [Test]
+    public async Task RebuildStartsFromTheHullsEdge()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var (hull, _) = await BuildSplitHull(pair, map.MapId);
+        var middle = new Vector2i(4, 4);
+        var edge = new Vector2i(3, 4);
+
+        await server.WaitPost(() =>
+        {
+            Hold(pair, hull);
+            Cut(pair, hull, Enumerable.Range(3, 3).SelectMany(x => Enumerable.Range(3, 3).Select(y => new Vector2i(x, y))));
+        });
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(hull, new Vector2(5.5f, 9.5f)));
+
+        // The middle of the hole first: it would join nothing, so no repair starts.
+        await server.WaitAssertion(() =>
+        {
+            server.System<SharedChargesSystem>().AddCharges(tool, 10000);
+            Click(em, user, tool, TileCentre(hull, middle));
+            Assert.That(em.GetComponent<ShipRepairToolComponent>(tool).DoAfters, Is.Empty, "The SRD started a repair in the middle of a hole.");
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(HasTile(pair, hull, middle), Is.False, "The SRD laid a tile in the middle of a hole.");
+            Assert.That(SectionsOf(em, hull), Has.Count.EqualTo(1), "A rebuilt tile broke off as a section.");
+        });
+
+        // From the edge it rebuilds.
+        await server.WaitPost(() => Click(em, user, tool, TileCentre(hull, edge)));
+        await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+        await server.WaitAssertion(() => Assert.That(HasTile(pair, hull, edge), Is.True, "The SRD no longer rebuilds from the edge."));
+
+        // The tile beside it going while the repair runs stops it.
+        await server.WaitPost(() =>
+        {
+            Click(em, user, tool, TileCentre(hull, middle));
+            Cut(pair, hull, new[] { edge });
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(HasTile(pair, hull, middle), Is.False, "The SRD finished a tile whose neighbour went during the repair.");
+            Assert.That(SectionsOf(em, hull), Has.Count.EqualTo(1), "A rebuilt tile broke off as a section.");
         });
 
         await pair.CleanReturnAsync();
@@ -376,6 +469,87 @@ public sealed class HullSectionTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Crew and items aboard a drifting section come back at rest on the hull, not flung across it.</summary>
+    [Test]
+    public async Task ReattachLeavesThingsAboardAtRest()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var physics = server.System<SharedPhysicsSystem>();
+        var map = await pair.CreateTestMap();
+        var (hull, section) = await BuildSplitHull(pair, map.MapId);
+
+        await server.WaitAssertion(() =>
+        {
+            Hold(pair, hull);
+            FillSeam(pair, hull);
+            var aboard = new[]
+            {
+                em.SpawnEntity("MobHuman", new EntityCoordinates(section, new Vector2(13.5f, 10.5f))),
+                em.SpawnEntity("Crowbar", new EntityCoordinates(section, new Vector2(12.3f, 4.7f))),
+            };
+
+            physics.SetBodyType(section, BodyType.Dynamic);
+            physics.SetLinearVelocity(section, new Vector2(1.5f, 0f));
+            physics.SetAngularVelocity(section, 0.2f);
+            server.System<WFHullSectionServerSystem>().Reattach(hull, section);
+
+            foreach (var uid in aboard)
+            {
+                Assert.That(em.GetComponent<TransformComponent>(uid).ParentUid, Is.EqualTo(hull), $"{em.ToPrettyString(uid)} did not come back aboard.");
+                Assert.That(em.GetComponent<PhysicsComponent>(uid).LinearVelocity.Length(), Is.LessThan(0.05f),
+                    $"{em.ToPrettyString(uid)} kept the section's drift aboard the hull.");
+            }
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A gun on a section answers to the hull's gunnery server again once the section is back.</summary>
+    [Test]
+    public async Task ReattachSignsTheSectionsGunsBackOn()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        await server.WaitPost(() => server.CfgMan.SetCVar(CVars.GridSplitting, true));
+        var hull = await BuildHull(pair, map.MapId, HullOrigin);
+        var gunnery = EntityUid.Invalid;
+        var gun = EntityUid.Invalid;
+
+        await server.WaitAssertion(() =>
+        {
+            gunnery = em.SpawnEntity("GunneryServerLow", new EntityCoordinates(hull, new Vector2(4.5f, 11.5f)));
+            gun = em.SpawnEntity("ShuttleGunKinetic", new EntityCoordinates(hull, new Vector2(12.5f, 11.5f)));
+            foreach (var uid in new[] { gunnery, gun })
+            {
+                Assert.That(em.GetComponent<TransformComponent>(uid).Anchored, Is.True, $"{em.ToPrettyString(uid)} spawned loose.");
+                server.System<SharedPowerReceiverSystem>().SetNeedsPower(uid, false);
+            }
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+        await server.WaitAssertion(() =>
+        {
+            var controlled = em.GetComponent<FireControlServerComponent>(gunnery).Controlled;
+            Assert.That(controlled, Does.Contain(gun), "The gunnery server never took the gun.");
+
+            server.System<ShipRepairSystem>().GenerateRepairData(hull);
+            Cut(pair, hull, Enumerable.Range(0, 15).Select(y => new Vector2i(SeamColumn, y)));
+            var section = SectionsOf(em, hull).Single();
+            Assert.That(controlled, Does.Not.Contain(gun), "The gun stayed on the gunnery server when its section broke off.");
+
+            FillSeam(pair, hull);
+            server.System<WFHullSectionServerSystem>().Reattach(hull, section);
+            Assert.That(em.GetComponent<TransformComponent>(gun).ParentUid, Is.EqualTo(hull));
+            Assert.That(controlled, Does.Contain(gun), "The gun is not on the gunnery server after the reattach.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Rooms on a section keep their air when it goes back on the hull.</summary>
     [Test]
     public async Task ReattachCarriesTheSectionAir()
@@ -442,6 +616,32 @@ public sealed class HullSectionTest
             "The SRD used from planet ground did not rebuild the hull."));
 
         await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Standing on a section, a click into the gap beside the hull rebuilds the hull instead of reattaching.</summary>
+    [Test]
+    public async Task SrdUsedFromASectionReachesTheHullBesideTheClick()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var (hull, section) = await BuildSplitHull(pair, map.MapId);
+        var seam = new Vector2i(SeamColumn, 5);
+
+        await server.WaitPost(() => Hold(pair, hull, section));
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(section, new Vector2(12.5f, 9.5f)));
+
+        await server.WaitPost(() =>
+        {
+            Assert.That(em.GetComponent<TransformComponent>(user).GridUid, Is.EqualTo(section), "The crew member is not standing on the section.");
+            Click(em, user, tool, TileCentre(hull, seam));
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+        await server.WaitAssertion(() => Assert.That(HasTile(pair, hull, seam), Is.True,
+            "A click beside the hull from a section did not rebuild the hull."));
+
         await pair.CleanReturnAsync();
     }
 

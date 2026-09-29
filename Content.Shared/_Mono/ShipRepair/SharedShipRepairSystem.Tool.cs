@@ -81,8 +81,8 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
 
             if (storedTile != currentTile.TypeId)
             {
-                // WOLFGATE(ShipRepair): never rebuild under another grid or where a detached section belongs.
-                if (!_wfSections.CanRebuildAt(ent, args.User, targetGrid, gridIndices))
+                // WOLFGATE(ShipRepair): never rebuild under another grid, where a detached section belongs, or apart from the hull.
+                if (!_wfSections.CanRebuildTileAt(ent, args.User, targetGrid, gridIndices))
                     return;
 
                 StartRepair(ent, args.User, targetGrid, gridIndices, ent.Comp.TileRepairTime * ent.Comp.RepairTimeMultiplier, ent.Comp.TileRepairCost);
@@ -276,8 +276,8 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
         }
         else
         {
-            // WOLFGATE(ShipRepair): a grid may have moved into the spot while the repair ran.
-            if (!_wfSections.CanRebuildAt(ent, args.User, targetGrid, args.TargetGridIndices))
+            // WOLFGATE(ShipRepair): a grid may have moved into the spot, or the hull beside it gone, while the repair ran.
+            if (!_wfSections.CanRebuildTileAt(ent, args.User, targetGrid, args.TargetGridIndices))
                 return;
 
             TryRepairTileTile((targetGrid, repairData), args.TargetGridIndices);

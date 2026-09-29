@@ -1,4 +1,6 @@
 using System.Numerics;
+using Content.Server._Mono.FireControl;
+using Content.Server._WF.Shipyard;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Decals;
 using Content.Shared._Mono.ShipRepair.Components;
@@ -6,6 +8,8 @@ using Content.Shared._WF.ShipRepair;
 using Robust.Server.Physics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.ShipRepair;
@@ -15,10 +19,15 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
 {
     [Dependency] private AtmosphereSystem _atmos = default!;
     [Dependency] private DecalSystem _decals = default!;
+    [Dependency] private FireControlSystem _fireControl = default!;
     [Dependency] private GridFixtureSystem _fixtures = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WFHullSectionSystem _sections = default!;
+
+    /// <summary>The share of the blueprint's tiles a section needs to take over from a deleted hull; smaller pieces are scrap.</summary>
+    public const float HeirMinShare = 0.25f;
 
     public override void Initialize()
     {
@@ -28,6 +37,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         SubscribeLocalEvent<ShipRepairDataComponent, EntityTerminatingEvent>(OnHullTerminating);
         SubscribeLocalEvent<ShipRepairDataComponent, ComponentRemove>(OnSnapshotRemoved);
         SubscribeLocalEvent<WFHullSectionComponent, WFHullReattachEvent>(OnReattach);
+        SubscribeLocalEvent<ShipSoldEvent>(OnShipSold);
     }
 
     /// <summary>The biggest piece stays the hull and keeps the snapshot; every other piece links back to that hull.</summary>
@@ -51,6 +61,23 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         }
     }
 
+    /// <summary>A sold ship's sections are wreckage, so selling the hull never hands its blueprint to a piece left behind.</summary>
+    private void OnShipSold(ref ShipSoldEvent args)
+    {
+        var sold = new List<EntityUid>();
+        var query = EntityQueryEnumerator<WFHullSectionComponent>();
+        while (query.MoveNext(out var uid, out var section))
+        {
+            if (section.Hull == args.Shuttle)
+                sold.Add(uid);
+        }
+
+        foreach (var uid in sold)
+        {
+            RemComp<WFHullSectionComponent>(uid);
+        }
+    }
+
     // A deleted hull is detached from its map before its components go, so it hands on while it still has one.
     private void OnHullTerminating(Entity<ShipRepairDataComponent> ent, ref EntityTerminatingEvent args)
     {
@@ -63,14 +90,18 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
             HandOn(ent);
     }
 
-    /// <summary>A hull losing its snapshot hands it to its largest section on the same map; without one, its sections are wreckage.</summary>
+    /// <summary>
+    /// A hull losing its snapshot hands it to its largest section on the same map, if that holds at least
+    /// <see cref="HeirMinShare"/> of the blueprint; without one, its sections are wreckage.
+    /// </summary>
     private void HandOn(Entity<ShipRepairDataComponent> ent)
     {
         var map = Transform(ent).MapUid;
         var mapGone = map == null || TerminatingOrDeleted(map.Value);
         var sections = new List<Entity<WFHullSectionComponent>>();
         Entity<MapGridComponent>? heir = null;
-        var heirTiles = 0;
+        // One below the fewest tiles an heir may have.
+        var heirTiles = (int) MathF.Ceiling(BlueprintTiles(ent.Comp) * HeirMinShare) - 1;
 
         var query = EntityQueryEnumerator<WFHullSectionComponent, MapGridComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var section, out var grid, out var xform))
@@ -108,6 +139,22 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
             section.Comp.Hull = successor.Owner;
             Dirty(section);
         }
+    }
+
+    /// <summary>How many tiles a repair snapshot holds.</summary>
+    private static int BlueprintTiles(ShipRepairDataComponent data)
+    {
+        var count = 0;
+        foreach (var chunk in data.Chunks.Values)
+        {
+            foreach (var tile in chunk.Tiles)
+            {
+                if (tile != Tile.Empty.TypeId)
+                    count++;
+            }
+        }
+
+        return count;
     }
 
     /// <summary>Gives a grid its own copy of a repair snapshot.</summary>
@@ -159,6 +206,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         ReleaseStrays((section, sectionGrid));
         var decals = _decals.GetDecalsIntersecting(section, sectionGrid.LocalAABB.Enlarged(1f));
         var air = _atmos.WfCopyGridAir(section);
+        var motion = CarriedMotion(section);
 
         // A section keeps the hull's tile indices, so the identity puts every tile back where it was. Splitting waits
         // until the merge is done, or a section not yet joined would be torn off halfway through.
@@ -179,6 +227,34 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         }
 
         _atmos.WfSeedGridAir(hull, air);
+
+        // The move keeps each body's speed over the map; aboard the hull it keeps its speed relative to the deck instead.
+        foreach (var (uid, linear, angular) in motion)
+        {
+            if (TerminatingOrDeleted(uid) || Transform(uid).ParentUid != hull || !TryComp<PhysicsComponent>(uid, out var body))
+                continue;
+
+            _physics.SetLinearVelocity(uid, linear, body: body);
+            _physics.SetAngularVelocity(uid, angular, body: body);
+        }
+
+        // Guns on the section left the gunnery server when it broke off, and re-anchoring doesn't sign them back up.
+        if (TryComp<FireControlGridComponent>(hull, out var fireControl))
+            _fireControl.RefreshControllables(hull, fireControl);
+    }
+
+    /// <summary>The velocities, relative to the section, of the loose bodies aboard it.</summary>
+    private List<(EntityUid Uid, Vector2 Linear, float Angular)> CarriedMotion(EntityUid section)
+    {
+        var motion = new List<(EntityUid, Vector2, float)>();
+        var children = Transform(section).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            if (!Transform(child).Anchored && TryComp<PhysicsComponent>(child, out var body))
+                motion.Add((child, body.LinearVelocity, body.AngularVelocity));
+        }
+
+        return motion;
     }
 
     /// <summary>Leaves loose entities that sit off the section's tiles where they are; the merge would delete them with the grid.</summary>
