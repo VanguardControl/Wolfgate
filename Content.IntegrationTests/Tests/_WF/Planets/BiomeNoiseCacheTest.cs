@@ -47,42 +47,43 @@ public sealed class BiomeNoiseCacheTest
             foreach (var template in templates)
             {
                 var layers = server.ProtoMan.Index<BiomeTemplatePrototype>(template).Layers;
+                // Cache cleared before every lookup, so each copies its noise afresh as before the cache (only
+                // TryGetDecals reads its tile through the copies it just made).
                 var fresh = new Terrain[Side * Side];
                 for (var i = 0; i < fresh.Length; i++)
                 {
-                    // An empty cache makes every lookup copy its noise afresh, as generation did before the cache.
-                    cache.Clear();
-                    fresh[i] = Sample(biome, layers, Index(i));
+                    fresh[i] = Sample(biome, layers, Index(i), cache);
                 }
 
                 // Warm and shared across threads, as chunk and marker generation use it.
                 var cached = new Terrain[Side * Side];
                 Parallel.For(0, cached.Length, i => cached[i] = Sample(biome, layers, Index(i)));
 
-                var mismatch = Enumerable.Range(0, fresh.Length).FirstOrDefault(i => fresh[i] != cached[i], -1);
-                Assert.That(mismatch, Is.EqualTo(-1),
-                    () => $"{template} at {Index(mismatch)}: fresh {fresh[mismatch]}, cached {cached[mismatch]}");
-
+                // Every cached copy, meta templates' layers included, reads like a fresh serialiser copy.
+                var differing = new List<string>();
                 var compared = 0;
-                foreach (var layer in layers)
+                var nested = 0;
+                foreach (var (owner, index, layer) in AllLayers(server.ProtoMan, template))
                 {
                     if (!cache.TryGet(layer.Noise, Seed, out var copy))
                         continue;
 
-                    var reference = FreshCopy(ser, layer.Noise, Seed);
-                    for (var x = -40; x <= 40; x += 8)
-                    {
-                        for (var y = -40; y <= 40; y += 8)
-                        {
-                            Assert.That(copy.GetNoise(x, y), Is.EqualTo(reference.GetNoise(x, y)), template);
-                            Assert.That(copy.GetNoise(x * 8, y * 8, 3), Is.EqualTo(reference.GetNoise(x * 8, y * 8, 3)), template);
-                        }
-                    }
+                    if (!SameNoise(copy, FreshCopy(ser, layer.Noise, Seed)))
+                        differing.Add($"{owner} layer {index}");
 
                     compared++;
+                    if (owner != template)
+                        nested++;
                 }
 
+                Assert.That(differing, Is.Empty, $"{template}: cached copies differ from fresh ones");
                 Assert.That(compared, Is.GreaterThan(0), $"{template} cached none of its layers");
+                if (layers.Any(layer => layer is BiomeMetaLayer))
+                    Assert.That(nested, Is.GreaterThan(0), $"{template} cached none of its meta templates' layers");
+
+                var mismatch = Enumerable.Range(0, fresh.Length).FirstOrDefault(i => fresh[i] != cached[i], -1);
+                Assert.That(mismatch, Is.EqualTo(-1),
+                    () => $"{template} at {Index(mismatch)}: fresh {fresh[mismatch]}, cached {cached[mismatch]}");
             }
         });
 
@@ -197,12 +198,17 @@ public sealed class BiomeNoiseCacheTest
         return Origin + new Vector2i(i % Side, i / Side);
     }
 
-    private static Terrain Sample(SharedBiomeSystem biome, List<IBiomeLayer> layers, Vector2i index)
+    /// <summary>Samples a tile, clearing <paramref name="clear"/> before each lookup if given.</summary>
+    private static Terrain Sample(SharedBiomeSystem biome, List<IBiomeLayer> layers, Vector2i index,
+        WFBiomeNoiseCacheSystem? clear = null)
     {
+        clear?.Clear();
         if (!biome.TryGetBiomeTile(index, layers, Seed, NoGrid, out var tile))
             return new Terrain(null, null, string.Empty);
 
+        clear?.Clear();
         biome.TryGetEntity(index, layers, tile.Value, Seed, NoGrid, out var entity);
+        clear?.Clear();
         biome.TryGetDecals(index, layers, Seed, NoGrid, out var decals);
         var decalText = decals == null ? string.Empty : string.Join(";", decals.Select(d => $"{d.ID}@{d.Position}"));
         return new Terrain(tile, entity, decalText);
@@ -214,6 +220,44 @@ public sealed class BiomeNoiseCacheTest
         {
             biome.TryGetTile(new Vector2i(x, -x), layers, seed, NoGrid, out _);
         }
+    }
+
+    /// <summary>Every layer of a template and of the templates its meta layers pick, with the template holding it.</summary>
+    private static IEnumerable<(string Owner, int Index, IBiomeLayer Layer)> AllLayers(IPrototypeManager proto,
+        string template, HashSet<string>? visited = null)
+    {
+        visited ??= new HashSet<string>();
+        if (!visited.Add(template))
+            yield break;
+
+        var layers = proto.Index<BiomeTemplatePrototype>(template).Layers;
+        for (var i = 0; i < layers.Count; i++)
+        {
+            yield return (template, i, layers[i]);
+
+            if (layers[i] is not BiomeMetaLayer meta)
+                continue;
+
+            foreach (var inner in AllLayers(proto, meta.Template, visited))
+            {
+                yield return inner;
+            }
+        }
+    }
+
+    /// <summary>Whether two noises give the same values through both read overloads biome sampling uses.</summary>
+    private static bool SameNoise(FastNoiseLite a, FastNoiseLite b)
+    {
+        for (var x = -40; x <= 40; x += 8)
+        {
+            for (var y = -40; y <= 40; y += 8)
+            {
+                if (a.GetNoise(x, y) != b.GetNoise(x, y) || a.GetNoise(x * 8, y * 8, 3) != b.GetNoise(x * 8, y * 8, 3))
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>The copy SharedBiomeSystem.GetNoise made on every call before the cache.</summary>
