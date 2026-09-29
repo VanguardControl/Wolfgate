@@ -9,7 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Caverns;
 
-/// <summary>Gives a viewer who can see one of the ground's holes a z-level eye on the cavern under it.</summary>
+/// <summary>Gives a viewer standing on the ground with one of its holes in view a z-level eye on the cavern under it.</summary>
 // Everyone else stays capped at the ground, so the cavern only generates and streams where a hole shows it.
 public sealed partial class WFCavernEyeSystem : EntitySystem
 {
@@ -91,6 +91,10 @@ public sealed partial class WFCavernEyeSystem : EntitySystem
 
     private bool Sees(EntityUid viewer, EntityUid ground, Vector2 position, float viewScale)
     {
+        // Only a viewer standing on the ground looks into the cavern; from the air or orbit a hole shows dark.
+        if (Transform(viewer).MapUid != ground)
+            return false;
+
         // A ghost that may not generate terrain would generate the cavern through its eye.
         if (!_biome.WfCanLoad(viewer))
             return false;

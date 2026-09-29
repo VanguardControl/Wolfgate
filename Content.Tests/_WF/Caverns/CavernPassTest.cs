@@ -14,14 +14,12 @@ namespace Content.Tests._WF.Caverns;
 [TestOf(typeof(WFCavernViewSystem))]
 public sealed class CavernPassTest
 {
-    /// <summary>With the cavern known and a mouth in view, it is drawn one level below the ground.</summary>
+    /// <summary>To an observer on the ground, standing or jumping, with the cavern known and a mouth in view, it is drawn one level below the ground.</summary>
     [TestCase(0f, -1f)]
     [TestCase(-0.25f, -1.25f)]
-    [TestCase(-1f, -2f)]
-    [TestCase(-4f, -5f)]
     public void CavernDrawsOneLevelUnderTheGround(float groundDepth, float expected)
     {
-        Assert.That(WFCavernViewSystem.CavernPassDepth(groundDepth, true, true), Is.EqualTo(expected));
+        Assert.That(WFCavernViewSystem.CavernPassDepth(groundDepth, true, true, true), Is.EqualTo(expected));
     }
 
     /// <summary>Without the cavern's map, or with no mouth in view, the ground stays the floor of the view.</summary>
@@ -30,7 +28,15 @@ public sealed class CavernPassTest
     [TestCase(false, false)]
     public void GroundStaysTheFloorOtherwise(bool known, bool mouthInView)
     {
-        Assert.That(WFCavernViewSystem.CavernPassDepth(0f, known, mouthInView), Is.Null);
+        Assert.That(WFCavernViewSystem.CavernPassDepth(0f, known, mouthInView, true), Is.Null);
+    }
+
+    /// <summary>Seen from the air or orbit, a mouth in view draws no cavern: the hole stays dark.</summary>
+    [TestCase(-1f)]
+    [TestCase(-4f)]
+    public void NoCavernFromAbove(float groundDepth)
+    {
+        Assert.That(WFCavernViewSystem.CavernPassDepth(groundDepth, true, true, false), Is.Null);
     }
 
     /// <summary>The box searched for holes is what the renderer's pass eye shows, at any altitude or turn.</summary>
