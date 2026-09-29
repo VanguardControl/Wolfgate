@@ -13,12 +13,21 @@ None.
 
 ## Non-modular edits
 
+- [`Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs`](../../../Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs): wizden#38974, subnets carry a Color instead of a hex string
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../../Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection
   - frontier#4800, skip the end appraisal when nothing uses the value
 - [`Content.Server/Anomaly/AnomalySystem.Generator.cs`](../../../Content.Server/Anomaly/AnomalySystem.Generator.cs): wizden#41390, was IsTileAirBlocked
-- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs`](../../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs): wizden#41390, cached airtight check
+- [`Content.Server/Atmos/Consoles/AtmosMonitoringConsoleSystem.cs`](../../../Content.Server/Atmos/Consoles/AtmosMonitoringConsoleSystem.cs)
+  - wizden#38974
+  - wizden#38974, drop pipe data of removed pipe nets
+  - wizden#38974, was pipeColor.Color.ToHex()
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs`](../../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs)
+  - wizden#41390, cached airtight check
+  - wizden#38974, tell the atmos monitor a pipe net is gone
+  - wizden#38974, pipe net removal event
 - [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../../Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../../Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
+- [`Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs`](../../../Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs): wizden#38974, was string HexCode
 
 <!-- WOLFGATE-GENERATED END -->

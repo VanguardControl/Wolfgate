@@ -309,6 +309,16 @@ public partial class AtmosphereSystem
 
     public bool RemovePipeNet(Entity<GridAtmosphereComponent?> grid, PipeNet pipeNet)
     {
+        // WOLFGATE(Performance) START: wizden#38974, tell the atmos monitor a pipe net is gone
+        // Technically this event can be fired even on grids that don't
+        // actually have grid atmospheres.
+        if (pipeNet.Grid is not null)
+        {
+            var ev = new PipeNodeGroupRemovedEvent(grid, pipeNet.NetId);
+            RaiseLocalEvent(ref ev);
+        }
+        // WOLFGATE END
+
         return _atmosQuery.Resolve(grid, ref grid.Comp, false) && grid.Comp.PipeNets.Remove(pipeNet);
     }
 
@@ -481,3 +491,13 @@ public partial class AtmosphereSystem
     [ByRefEvent] private record struct IsHotspotActiveMethodEvent
         (EntityUid Grid, Vector2i Tile, bool Result = false, bool Handled = false);
 }
+
+// WOLFGATE(Performance) START: wizden#38974, pipe net removal event
+/// <summary>
+/// Raised broadcasted when a pipe node group within a grid has been removed.
+/// </summary>
+/// <param name="Grid">The grid with the removed node group.</param>
+/// <param name="NetId">The net id of the removed node group.</param>
+[ByRefEvent]
+public record struct PipeNodeGroupRemovedEvent(EntityUid Grid, int NetId);
+// WOLFGATE END
