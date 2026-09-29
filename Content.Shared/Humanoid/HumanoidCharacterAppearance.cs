@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._WF.MismatchedParts; // WOLFGATE(MismatchedParts)
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
@@ -207,7 +208,8 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         return new(color.RByte, color.GByte, color.BByte);
     }
 
-    public static HumanoidCharacterAppearance EnsureValid(HumanoidCharacterAppearance appearance, string species, Sex sex)
+    // WOLFGATE(MismatchedParts): mismatchedParts lets the hair check accept the styles the option opens
+    public static HumanoidCharacterAppearance EnsureValid(HumanoidCharacterAppearance appearance, string species, Sex sex, bool mismatchedParts = false)
     {
         var hairStyleId = appearance.HairStyleId;
         var facialHairStyleId = appearance.FacialHairStyleId;
@@ -222,12 +224,12 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         // WOLFGATE(Humanoid) START: species-aware hair validation
         // Hair is stored outside the marking set, so switching to a species that cannot wear it used to leave it
         // on the character with no picker to remove it.
-        if (!markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.Hair, species).ContainsKey(hairStyleId))
+        if (!MismatchedPartsRules.Styles(MarkingCategories.Hair, species, mismatchedParts, markingManager, proto).ContainsKey(hairStyleId)) // WOLFGATE(MismatchedParts)
         {
             hairStyleId = HairStyles.DefaultHairStyle;
         }
 
-        if (!markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.FacialHair, species).ContainsKey(facialHairStyleId))
+        if (!MismatchedPartsRules.Styles(MarkingCategories.FacialHair, species, mismatchedParts, markingManager, proto).ContainsKey(facialHairStyleId)) // WOLFGATE(MismatchedParts)
         {
             facialHairStyleId = HairStyles.DefaultFacialHairStyle;
         }

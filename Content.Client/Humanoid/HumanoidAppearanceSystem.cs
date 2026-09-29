@@ -206,6 +206,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
             profile.Appearance.SkinColor,
             profile.Appearance.EyeColor,
             _markingManager);
+        AddMismatchedHair(humanoid, markings, profile, hair, facialHair); // WOLFGATE(MismatchedParts): hair and beards the species can't wear
 
         DebugTools.Assert(IsClientSide(uid));
 
@@ -311,8 +312,13 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
         }
 
         visible &= !IsHidden(humanoid, markingPrototype.BodyPart);
+        // WOLFGATE(MismatchedParts) START: mismatched hair and beards draw without a species layer
+        // visible &= humanoid.BaseLayers.TryGetValue(markingPrototype.BodyPart, out var setting)
+        //    && setting.AllowsMarkings;
         visible &= humanoid.BaseLayers.TryGetValue(markingPrototype.BodyPart, out var setting)
-           && setting.AllowsMarkings;
+           && setting.AllowsMarkings
+           || DrawsMismatched(humanoid, markingPrototype);
+        // WOLFGATE END
 
         // WOLFGATE(Genitals): a removed undergarment is not drawn for viewers who pass the anatomy gate
         if (_genitalsVisuals.IsUndergarmentHidden(uid, markingPrototype.MarkingCategory))
@@ -371,7 +377,10 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
 			// impstation edit end
             sprite.LayerSetVisible(layerId, visible);
 
-            if (!visible || setting == null) // this is kinda implied
+            // WOLFGATE(MismatchedParts) START: mismatched hair and beards are coloured without a species layer
+            // if (!visible || setting == null) // this is kinda implied
+            if (!visible || setting == null && !DrawsMismatched(humanoid, markingPrototype))
+            // WOLFGATE END
             {
                 continue;
             }
