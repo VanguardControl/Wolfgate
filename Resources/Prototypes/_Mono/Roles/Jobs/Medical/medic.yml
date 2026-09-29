@@ -46,8 +46,5 @@
     back:
     - RubberStampDoctor
     - BoxFolderMedicalDoctor
-<<<<<<< HEAD
     - WFShipVoucherMedicalResponder # WOLFGATE(Shipyard): free Triage or Stubby
-=======
     - EncryptionKeyService
->>>>>>> 0816af38b7 (Various Tweaks (#4778))
