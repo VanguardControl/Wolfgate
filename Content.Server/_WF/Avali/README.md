@@ -16,8 +16,6 @@ and AGPL in the source PR. Sprite attribution and licensing are retained in the 
 The port uses Wolfgate's existing status-effect and clothing APIs. It does not include the damage vulnerability
 or gun accuracy changes removed before the upstream PR was merged.
 
-The [Starlight scout](../../../Docs/_WF/Avali/StarlightScout.md) records separately evaluated follow-up ports.
-
 ## Verification
 
 `AvaliPreeningTest` covers preening, cancellation, empty reserves, regeneration and injury shedding.
@@ -58,10 +56,6 @@ The [Starlight scout](../../../Docs/_WF/Avali/StarlightScout.md) records separat
 ### Textures
 
 - [`Resources/Textures/_WF/Avali/feather.rsi/`](../../../Resources/Textures/_WF/Avali/feather.rsi/)
-
-### Docs
-
-- [`Docs/_WF/Avali/StarlightScout.md`](../../../Docs/_WF/Avali/StarlightScout.md)
 
 ## Non-modular edits
 
