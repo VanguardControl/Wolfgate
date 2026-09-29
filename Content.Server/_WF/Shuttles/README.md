@@ -10,6 +10,11 @@ hooked into the upstream console by the `ShuttleConsoleWindow.Wolfgate` and
 `ShuttleConsoleBoundUserInterface.Wolfgate` partials. Crews can switch the warning off per ship
 (`CollisionWarningDisabledComponent`); tuning is in `CollisionWarningCVars`.
 
+It also fixes Mono's docked-ship IFF hosts (the PDV Helios hides every ship docked to it): either grid of a dock or
+undock can be the host, and a ship gets its label back once no host it is docked to still hides it, keeping flags it
+had before. The logic is in the `ApplyIFFFlagsToDockedShipsSystem.Wolfgate` partial, which records what hosts added
+in `DockedHostIffFlagsComponent` on the ship.
+
 `FTLToDockTest` covers docking jumps (the bus, arrivals and evac): a full FTL through every state that ends docked,
 even with a grid parked nearby. The fix it guards is a standalone edit listed in `Docs/_WF/NONMODULAR.md`.
 
@@ -20,6 +25,8 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 
 ### Server
 
+- [`Content.Server/_WF/Shuttles/ApplyIFFFlagsToDockedShipsSystem.Wolfgate.cs`](ApplyIFFFlagsToDockedShipsSystem.Wolfgate.cs)
+- [`Content.Server/_WF/Shuttles/DockedHostIffFlagsComponent.cs`](DockedHostIffFlagsComponent.cs)
 - [`Content.Server/_WF/Shuttles/NavMapSystem.Wolfgate.cs`](NavMapSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Shuttles/Systems/CollisionWarningSystem.cs`](Systems/CollisionWarningSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.cs`](Systems/ShipStatusSystem.cs)
@@ -50,6 +57,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs)
@@ -84,6 +92,10 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs)
   - ship mode
   - ship screen, collision and tractor state
+- [`Content.Server/_Mono/Detection/ApplyIFFFlagsToDockedShipsSystem.cs`](../../_Mono/Detection/ApplyIFFFlagsToDockedShipsSystem.cs)
+  - the host can be grid B, since docking orders the pair by entity id.
+  - the host can be grid B, since grid A is the side that undocked, usually the ship.
+  - a ship loses only flags hosts added, once no host it is still docked to provides them.
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs): restore the console's camera view
 
 <!-- WOLFGATE-GENERATED END -->

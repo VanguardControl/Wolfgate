@@ -5,8 +5,8 @@ beyond the upstream species pipeline: markings (including scars and tattoos any 
 emotes, languages, metabolizer types, the Skrell damage modifier set, typing indicators, silicon screams, meat, the
 Rodentia squeeze under tables, Avali chemistry (amoxla, its auto-injector and the reagent rules that make saline,
 dexalin and iron poison Avali while ammonia heals their airloss), and guidebook pages. Its marked edits add the
-species to upstream marking, clothing and species prototypes, and make explicit clothing layers pick their species
-states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
+species to upstream marking, clothing and species prototypes, let Reptilians wear hair and facial hair, and make
+explicit clothing layers pick their species states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
 
 `ShadekinNightVisionTest` covers Shadekin night vision.
 
@@ -365,6 +365,12 @@ states so Avali wear Avali hardsuits. The creator UI is in Humanoid.
   - dexalin plus doesn't heal Avali; their blood is ammonia-based (Starlight)
   - dexalin plus poisons Avali harder than dexalin (Starlight; lethal dose 15u)
   - saline is lethal to Avali (Starlight); the heart pass doubles the blood restore for everyone else
+- [`Resources/Prototypes/Species/reptilian.yml`](../../../Resources/Prototypes/Species/reptilian.yml)
+  - hair layer so reptilian hair is drawn
+  - facial hair layer so reptilian facial hair is drawn
+  - was true, which hid the shared hair styles from reptilians
+  - was 0, reptilians can wear hair
+  - was 0, reptilians can wear facial hair
 - [`Resources/Prototypes/Species/slime.yml`](../../../Resources/Prototypes/Species/slime.yml): ported from HardLight, slimes take the head and tail marking slots of other species
 - [`Resources/Prototypes/Species/species_weights.yml`](../../../Resources/Prototypes/Species/species_weights.yml)
   - ported from HardLight/Starlight
