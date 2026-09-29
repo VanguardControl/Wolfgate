@@ -82,6 +82,10 @@ public sealed partial class WFCavernMouthSpec
     /// <summary>Base climb-up time in seconds, before surface gravity scales it.</summary>
     [DataField]
     public float ClimbSeconds = 4f;
+
+    /// <summary>Seconds a standard shovel takes to dig a shaft through ground it can't otherwise dig; a faster tool takes less.</summary>
+    [DataField]
+    public float ShaftSeconds = 15f;
 }
 
 /// <summary>How a mouth's hole is grown.</summary>

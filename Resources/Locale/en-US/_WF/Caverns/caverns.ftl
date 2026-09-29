@@ -36,3 +36,7 @@ wf-cavern-climb-down-start-others = { CAPITALIZE(THE($user)) } starts climbing d
 wf-cavern-climb-blocked = Something blocks the way up.
 wf-cavern-climb-blocked-hull = A ship is parked over the exit.
 wf-cavern-climb-down-blocked = Something blocks the way down.
+
+wf-cavern-shaft-dig-start = You start digging a shaft down through the ground.
+wf-cavern-shaft-dig-start-others = { CAPITALIZE(THE($user)) } starts digging a shaft down through the ground.
+wf-cavern-shaft-dig-done = The ground gives way into the dark below.
