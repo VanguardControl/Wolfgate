@@ -29,7 +29,7 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
         var ourXform = Transform(ent);
         var clickPos = args.ClickLocation;
         var clickWorld = _transform.ToWorldPosition(clickPos);
-        // WOLFGATE(ShipRepair) START: target the hull under the click, not planet ground.
+        // WOLFGATE(ShipRepair) START: target the hull or section under the click, not planet ground; a section is reattached.
         // The user's own grid came first, and on a planet that is the ground map.
         /*
         var grids = new List<Entity<MapGridComponent>>();
@@ -41,6 +41,12 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
         */
         if (_wfSections.PickTarget(ourXform, clickWorld) is not { } targetGrid)
             return;
+
+        if (_wfSections.IsSection(targetGrid))
+        {
+            _wfSections.TryStartReattach(ent, args.User, targetGrid);
+            return;
+        }
 
         // Entity search below compares grid-local positions.
         clickPos = _transform.WithEntityId(clickPos, targetGrid);

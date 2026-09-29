@@ -26,7 +26,7 @@ using static Content.IntegrationTests.Tests._WF.Planets.PlanetFixture;
 
 namespace Content.IntegrationTests.Tests._WF.ShipRepair;
 
-/// <summary>One repair snapshot per broken hull, and the SRD's rebuild guard.</summary>
+/// <summary>One repair snapshot per broken hull, the SRD's rebuild guard, and reattaching sections.</summary>
 [TestFixture]
 [TestOf(typeof(WFHullSectionSystem))]
 public sealed class HullSectionTest
@@ -39,6 +39,14 @@ public sealed class HullSectionTest
 
     /// <summary>Speeds the SRD's do-afters up so a reattach takes about a second at most.</summary>
     private const float QuickTool = 0.03f;
+
+    [Test]
+    public void ReattachTimeGrowsWithTheSectionAndIsCapped()
+    {
+        Assert.That(WFHullSectionSystem.ReattachTime(0), Is.EqualTo(5f));
+        Assert.That(WFHullSectionSystem.ReattachTime(60), Is.EqualTo(11f).Within(0.001f));
+        Assert.That(WFHullSectionSystem.ReattachTime(10000), Is.EqualTo(30f));
+    }
 
     /// <summary>The biggest piece keeps the snapshot; a section, and a section of a section, only link back to it.</summary>
     [Test]
@@ -178,6 +186,226 @@ public sealed class HullSectionTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A reattach needs a full SRD, the section in range and its place clear; the charge is only spent on success.</summary>
+    [Test]
+    public async Task ReattachNeedsAFullChargeRangeAndAClearPlace()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        var charges = server.System<SharedChargesSystem>();
+        var map = await pair.CreateTestMap();
+        var (hull, section) = await BuildSplitHull(pair, map.MapId);
+        var debris = await BuildDebris(pair, map.MapId, 3, new Vector2(-40f, -40f));
+        var home = new Vector2i(SeamColumn + 1, 5);
+        var start = Vector2.Zero;
+
+        await server.WaitPost(() =>
+        {
+            // Every step but one lets the section back, so each refusal has a single cause.
+            Hold(pair, hull, section, debris);
+            FillSeam(pair, hull);
+            start = xforms.GetWorldPosition(section);
+            xforms.SetWorldPosition(section, start + new Vector2(3f, 0f));
+        });
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(hull, new Vector2(5.5f, 9.5f)));
+
+        // Below a full charge.
+        var before = 0;
+        await server.WaitPost(() =>
+        {
+            before = em.GetComponent<LimitedChargesComponent>(tool).Charges;
+            Assert.That(before, Is.LessThan(em.GetComponent<LimitedChargesComponent>(tool).MaxCharges));
+            Click(em, user, tool, TileCentre(section, home));
+        });
+        await AssertStillDetached(pair, section, tool, before, "below a full charge");
+
+        // Out of range.
+        await server.WaitPost(() =>
+        {
+            charges.AddCharges(tool, 10000);
+            before = em.GetComponent<LimitedChargesComponent>(tool).Charges;
+            xforms.SetWorldPosition(section, start + new Vector2(100f, 0f));
+            Click(em, user, tool, TileCentre(section, home));
+        });
+        await AssertStillDetached(pair, section, tool, before, "out of range");
+
+        // With the seam gone, nothing on the hull would join it.
+        await server.WaitPost(() =>
+        {
+            xforms.SetWorldPosition(section, start + new Vector2(3f, 0f));
+            Cut(pair, hull, Enumerable.Range(0, 15).Select(y => new Vector2i(SeamColumn, y)));
+            Click(em, user, tool, TileCentre(section, home));
+        });
+        await AssertStillDetached(pair, section, tool, before, "apart from the hull");
+
+        // A hull tile rebuilt in its place.
+        await server.WaitPost(() =>
+        {
+            FillSeam(pair, hull);
+            var grid = em.GetComponent<MapGridComponent>(hull);
+            maps.SetTile(hull, grid, home, maps.GetTileRef(hull, grid, new Vector2i(5, 5)).Tile);
+            Click(em, user, tool, TileCentre(section, home));
+        });
+        await AssertStillDetached(pair, section, tool, before, "onto a hull tile");
+
+        // Another grid in its place.
+        await server.WaitPost(() =>
+        {
+            Cut(pair, hull, new[] { home });
+            var spot = Vector2.Transform(new Vector2(12.5f, 8.5f), xforms.GetWorldMatrix(hull));
+            xforms.SetWorldPosition(debris, spot - new Vector2(1.5f, 1.5f));
+            Click(em, user, tool, TileCentre(section, home));
+        });
+        await AssertStillDetached(pair, section, tool, before, "onto another grid");
+
+        // All clear: the section goes back and the SRD is emptied.
+        await server.WaitPost(() =>
+        {
+            xforms.SetWorldPosition(debris, new Vector2(-40f, -40f));
+            Click(em, user, tool, TileCentre(section, home));
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(1.5f));
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.EntityExists(section), Is.False, "The section was not reattached.");
+            Assert.That(em.GetComponent<LimitedChargesComponent>(tool).Charges, Is.Zero, "A reattach did not use the whole charge.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A reattach puts the section's tiles back at their indices, with its machines, loose items, crew and decals.</summary>
+    [Test]
+    public async Task ReattachPutsTheSectionAndEverythingAboardBack()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var xforms = server.System<SharedTransformSystem>();
+        var decals = server.System<DecalSystem>();
+        var map = await pair.CreateTestMap();
+        var decalSpot = new Vector2(12.5f, 6.5f);
+        var aboard = new Dictionary<EntityUid, Vector2>();
+        var tiles = new Dictionary<Vector2i, Tile>();
+        var drive = EntityUid.Invalid;
+        var engine = EntityUid.Invalid;
+        var stray = EntityUid.Invalid;
+        var strayWorld = Vector2.Zero;
+
+        var (hull, section) = await BuildSplitHull(pair, map.MapId, grid =>
+        {
+            var comp = em.GetComponent<MapGridComponent>(grid);
+            for (var x = SeamColumn + 1; x < 15; x++)
+            for (var y = 0; y < 15; y++)
+                tiles[new Vector2i(x, y)] = server.System<SharedMapSystem>().GetTileRef(grid, comp, new Vector2i(x, y)).Tile;
+
+            foreach (var uid in Children(em, grid))
+            {
+                var proto = em.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID;
+                var local = em.GetComponent<TransformComponent>(uid).LocalPosition;
+                if (proto == "MachineFTLDrive")
+                    drive = uid;
+                else if (proto == "DebugThruster" && local == new Vector2(13.5f, 1.5f))
+                    engine = uid;
+            }
+
+            aboard[em.SpawnEntity("Crowbar", new EntityCoordinates(grid, new Vector2(12.3f, 4.7f)))] = new Vector2(12.3f, 4.7f);
+            aboard[em.SpawnEntity("MobHuman", new EntityCoordinates(grid, new Vector2(13.5f, 10.5f)))] = new Vector2(13.5f, 10.5f);
+            aboard[drive] = new Vector2(11.5f, 2.5f);
+            aboard[engine] = new Vector2(13.5f, 1.5f);
+            Assert.That(decals.TryAddDecal("Arrows", new EntityCoordinates(grid, decalSpot), out _), Is.True);
+        });
+
+        await server.WaitPost(() =>
+        {
+            Hold(pair, hull, section);
+            FillSeam(pair, hull);
+            Assert.That(aboard.Keys.All(uid => em.GetComponent<TransformComponent>(uid).ParentUid == section),
+                "Not everything aboard went with the section.");
+            Assert.That(DecalsAt(decals, section, decalSpot), Is.EqualTo(1), "The decal did not go with the section.");
+            // Off its place and turned, clear of the hull.
+            xforms.SetWorldPosition(section, xforms.GetWorldPosition(section) + new Vector2(10f, -6f));
+            xforms.SetWorldRotation(section, Angle.FromDegrees(30));
+
+            // Something held to the section off its tiles, as a sound playing at its centre is.
+            stray = em.SpawnEntity(null, MapCoordinates.Nullspace);
+            em.GetComponent<TransformComponent>(stray).GridTraversal = false;
+            xforms.SetCoordinates(stray, new EntityCoordinates(section, new Vector2(16.5f, 7.5f)));
+        });
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(hull, new Vector2(5.5f, 9.5f)));
+
+        await server.WaitPost(() =>
+        {
+            Assert.That(em.GetComponent<TransformComponent>(stray).ParentUid, Is.EqualTo(section));
+            strayWorld = xforms.GetWorldPosition(stray);
+            server.System<SharedChargesSystem>().AddCharges(tool, 10000);
+            Click(em, user, tool, TileCentre(section, new Vector2i(12, 5)));
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(1.5f));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.EntityExists(section), Is.False, "The section was not reattached.");
+            var maps = server.System<SharedMapSystem>();
+            var grid = em.GetComponent<MapGridComponent>(hull);
+            foreach (var (index, tile) in tiles)
+            {
+                Assert.That(maps.GetTileRef(hull, grid, index).Tile.TypeId, Is.EqualTo(tile.TypeId), $"Tile {index} did not come back.");
+            }
+
+            foreach (var (uid, local) in aboard)
+            {
+                var xform = em.GetComponent<TransformComponent>(uid);
+                Assert.That(xform.ParentUid, Is.EqualTo(hull), $"{em.ToPrettyString(uid)} did not come back aboard the hull.");
+                Assert.That(Vector2.Distance(xform.LocalPosition, local), Is.LessThan(0.05f), $"{em.ToPrettyString(uid)} is not back in its place.");
+            }
+
+            Assert.That(em.GetComponent<TransformComponent>(drive).Anchored, Is.True, "The FTL drive came back unanchored.");
+            var shuttle = em.GetComponent<ShuttleComponent>(hull);
+            Assert.That(shuttle.LinearThrusters.Sum(bank => bank.Count(uid => uid == engine)), Is.EqualTo(1),
+                "The section's engine is not in the hull's thrust banks exactly once.");
+            Assert.That(DecalsAt(decals, hull, decalSpot), Is.EqualTo(1), "The section's decal was lost.");
+            Assert.That(em.EntityExists(stray), Is.True, "Something held to the section off its tiles was deleted with it.");
+            Assert.That(Vector2.Distance(xforms.GetWorldPosition(stray), strayWorld), Is.LessThan(0.05f),
+                "Something off the section's tiles was moved.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Rooms on a section keep their air when it goes back on the hull.</summary>
+    [Test]
+    public async Task ReattachCarriesTheSectionAir()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var (hull, section) = await BuildSplitHull(pair, map.MapId);
+        var index = new Vector2i(12, 5);
+
+        // Atmos gives the section's tiles their mixtures.
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+        await server.WaitAssertion(() =>
+        {
+            var atmos = server.System<AtmosphereSystem>();
+            var mixture = atmos.GetTileMixture(section, null, index, true);
+            Assert.That(mixture is { Immutable: false }, "The section has no air of its own on the test tile.");
+            mixture!.AdjustMoles(Gas.Nitrogen, 100f);
+            var moles = mixture.TotalMoles;
+
+            FillSeam(pair, hull);
+            server.System<WFHullSectionServerSystem>().Reattach(hull, section);
+
+            Assert.That(atmos.GetTileMixture(hull, null, index)?.TotalMoles ?? 0f, Is.EqualTo(moles).Within(0.01f),
+                "The section's air did not come back with it.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Standing on planet ground, the SRD works on the hull beside the click rather than on the ground map.</summary>
     [Test]
     public async Task SrdUsedFromPlanetGroundReachesTheHull()
@@ -245,6 +473,15 @@ public sealed class HullSectionTest
         pair.Server.System<SharedMapSystem>().SetTiles(grid, comp, tiles.Select(tile => (tile, Tile.Empty)).ToList());
     }
 
+    /// <summary>Rebuilds the hull's side of the seam, so the section's place joins the hull again.</summary>
+    private static void FillSeam(TestPair pair, EntityUid hull)
+    {
+        var maps = pair.Server.System<SharedMapSystem>();
+        var grid = pair.Server.EntMan.GetComponent<MapGridComponent>(hull);
+        var floor = maps.GetTileRef(hull, grid, new Vector2i(SeamColumn - 1, 0)).Tile;
+        maps.SetTiles(hull, grid, Enumerable.Range(0, 15).Select(y => (new Vector2i(SeamColumn, y), floor)).ToList());
+    }
+
     /// <summary>Makes grids static, so nothing pushes them apart while a test lines them up.</summary>
     private static void Hold(TestPair pair, params EntityUid[] grids)
     {
@@ -307,4 +544,20 @@ public sealed class HullSectionTest
         return !pair.Server.System<SharedMapSystem>().GetTileRef(grid, comp, index).Tile.IsEmpty;
     }
 
+    private static int DecalsAt(DecalSystem decals, EntityUid grid, Vector2 spot)
+    {
+        return decals.GetDecalsIntersecting(grid, Box2.CenteredAround(spot, new Vector2(0.5f, 0.5f))).Count;
+    }
+
+    /// <summary>Waits out a refused reattach and checks the section and the charge are untouched.</summary>
+    private static async Task AssertStillDetached(TestPair pair, EntityUid section, EntityUid tool, int charges, string why)
+    {
+        var server = pair.Server;
+        await server.WaitRunTicks(pair.SecondsToTicks(1.5f));
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(server.EntMan.EntityExists(section), Is.True, $"The section was reattached {why}.");
+            Assert.That(server.EntMan.GetComponent<LimitedChargesComponent>(tool).Charges, Is.EqualTo(charges), $"A refused reattach {why} used charges.");
+        });
+    }
 }

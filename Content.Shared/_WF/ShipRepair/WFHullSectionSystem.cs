@@ -1,17 +1,27 @@
+using System.Linq;
 using System.Numerics;
 using Content.Shared._Mono.ShipRepair.Components;
+using Content.Shared.Charges.Components;
+using Content.Shared.Charges.Systems;
+using Content.Shared.DoAfter;
 using Content.Shared.Popups;
+using Content.Shared.Whitelist;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
 
 namespace Content.Shared._WF.ShipRepair;
 
-/// <summary>SRD rules for broken hulls: which grid a click works on and where the hull may be rebuilt.</summary>
+/// <summary>SRD rules for broken hulls: which grid a click works on, where the hull may be rebuilt, and reattaching sections.</summary>
 public sealed partial class WFHullSectionSystem : EntitySystem
 {
+    [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private IMapManager _mapMan = default!;
     [Dependency] private INetManager _net = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedChargesSystem _charges = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -19,8 +29,27 @@ public sealed partial class WFHullSectionSystem : EntitySystem
     /// <summary>How far a section may sit from its place on the hull, in tiles, and still be reattached.</summary>
     public const float ReattachRange = 32f;
 
+    /// <summary>Seconds every reattach takes, before the tool's time multiplier.</summary>
+    public const float ReattachBaseTime = 5f;
+
+    /// <summary>Seconds each tile of the section adds.</summary>
+    public const float ReattachTimePerTile = 0.1f;
+
+    /// <summary>The longest a reattach takes, before the tool's time multiplier.</summary>
+    public const float ReattachMaxTime = 30f;
+
     /// <summary>Half the side of the box tested for another grid on a tile; it stays inside the tile at any rotation.</summary>
     private const float OccupancyHalfExtent = 0.35f;
+
+    /// <summary>The four tiles that share an edge with a tile; grid splitting counts only these as joined.</summary>
+    private static readonly Vector2i[] EdgeNeighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<ShipRepairToolComponent, WFHullReattachDoAfterEvent>(OnReattachDoAfter);
+    }
 
     /// <summary>
     /// The grid an SRD click works on: a section, hull or other grid with a tile under the click, then the user's own
@@ -82,6 +111,21 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         return TryComp<WFHullSectionComponent>(grid, out var section)
                && section.Hull != null
                && !HasComp<ShipRepairDataComponent>(grid);
+    }
+
+    /// <summary>The hull a section belongs to, while that hull still holds its repair snapshot.</summary>
+    public bool TryGetHull(EntityUid section, out Entity<MapGridComponent> hull)
+    {
+        hull = default;
+        if (!TryComp<WFHullSectionComponent>(section, out var link)
+            || link.Hull is not { } uid
+            || TerminatingOrDeleted(uid)
+            || !HasComp<ShipRepairDataComponent>(uid)
+            || !TryComp<MapGridComponent>(uid, out var grid))
+            return false;
+
+        hull = (uid, grid);
+        return true;
     }
 
     /// <summary>The tile index a hull-local position falls in.</summary>
@@ -162,6 +206,131 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         var home = Vector2.Transform(centre, _transform.GetWorldMatrix(hull));
         var actual = Vector2.Transform(centre, _transform.GetWorldMatrix(section));
         return Vector2.Distance(home, actual);
+    }
+
+    /// <summary>Whether a section's place on the hull is free: no hull tile at its indices and no other grid in the way.</summary>
+    public bool HomeClear(Entity<MapGridComponent> hull, Entity<MapGridComponent> section)
+    {
+        // One broad query first; tiles are only tested one by one when another grid is near the section's place.
+        var xform = Transform(hull);
+        var home = _transform.GetWorldMatrix(xform).TransformBox(section.Comp.LocalAABB);
+        var grids = new List<Entity<MapGridComponent>>();
+        _mapMan.FindGridsIntersecting(xform.MapID, home, ref grids, true, false);
+        var crowded = grids.Any(grid => grid.Owner != hull.Owner && grid.Owner != section.Owner && !IsGround(grid));
+
+        var tiles = _map.GetAllTilesEnumerator(section, section.Comp);
+        while (tiles.MoveNext(out var tile))
+        {
+            var index = tile.Value.GridIndices;
+            if (!_map.GetTileRef(hull, index).Tile.IsEmpty || crowded && IsOccupied(hull, index, section))
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Whether a section, back in its place, shares a tile edge with the hull. One that doesn't would be a separate
+    /// piece of the grid, and grid splitting would break it straight off again.
+    /// </summary>
+    public bool TouchesHull(Entity<MapGridComponent> hull, Entity<MapGridComponent> section)
+    {
+        var tiles = _map.GetAllTilesEnumerator(section, section.Comp);
+        while (tiles.MoveNext(out var tile))
+        {
+            foreach (var offset in EdgeNeighbours)
+            {
+                if (!_map.GetTileRef(hull, tile.Value.GridIndices + offset).Tile.IsEmpty)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Seconds a reattach takes for a section of this many tiles, before the tool's time multiplier.</summary>
+    public static float ReattachTime(int tiles)
+    {
+        return Math.Min(ReattachBaseTime + ReattachTimePerTile * tiles, ReattachMaxTime);
+    }
+
+    /// <summary>How many tiles a grid has.</summary>
+    public int CountTiles(Entity<MapGridComponent> grid)
+    {
+        var count = 0;
+        var tiles = _map.GetAllTilesEnumerator(grid, grid.Comp);
+        while (tiles.MoveNext(out _))
+        {
+            count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>Starts reattaching a section to its hull, server side; tells the user why it can't.</summary>
+    public void TryStartReattach(Entity<ShipRepairToolComponent> tool, EntityUid user, Entity<MapGridComponent> section)
+    {
+        if (_net.IsClient || !CanReattach(tool, user, section, out _))
+            return;
+
+        var ev = new WFHullReattachDoAfterEvent { Section = GetNetEntity(section) };
+        var delay = ReattachTime(CountTiles(section)) * tool.Comp.RepairTimeMultiplier;
+        var args = new DoAfterArgs(EntityManager, user, delay, ev, tool)
+        {
+            BreakOnMove = true,
+            BreakOnDamage = true,
+            MovementThreshold = 0.5f,
+            DuplicateCondition = DuplicateConditions.SameEvent,
+        };
+
+        if (_doAfter.TryStartDoAfter(args))
+            _audio.PlayPvs(tool.Comp.RepairSound, tool);
+    }
+
+    private void OnReattachDoAfter(Entity<ShipRepairToolComponent> ent, ref WFHullReattachDoAfterEvent args)
+    {
+        if (args.Cancelled || args.Handled || _net.IsClient)
+            return;
+
+        var uid = GetEntity(args.Section);
+        if (TerminatingOrDeleted(uid) || !TryComp<MapGridComponent>(uid, out var grid))
+            return;
+
+        // Anything may have moved while the do-after ran.
+        if (!CanReattach(ent, args.User, (uid, grid), out var hull))
+            return;
+
+        args.Handled = true;
+        if (TryComp<LimitedChargesComponent>(ent, out var charges))
+            _charges.UseCharges(ent, charges.Charges, charges);
+
+        var ev = new WFHullReattachEvent(hull);
+        RaiseLocalEvent(uid, ref ev);
+        _popup.PopupEntity(Loc.GetString("wf-ship-repair-reattached"), ent, args.User);
+    }
+
+    /// <summary>Whether a section can go back on its hull now, joined to it; tells the user why not.</summary>
+    private bool CanReattach(Entity<ShipRepairToolComponent> tool, EntityUid user, Entity<MapGridComponent> section, out Entity<MapGridComponent> hull)
+    {
+        string? message = null;
+        if (!TryGetHull(section, out hull))
+            message = Loc.GetString("wf-ship-repair-reattach-no-hull");
+        else if (TryComp<ShipRepairRestrictComponent>(hull, out var restrict) && _whitelist.IsWhitelistFail(restrict.ToolWhitelist, tool))
+            message = Loc.GetString("ship-repair-tool-fail-whitelist");
+        else if (TryComp<LimitedChargesComponent>(tool, out var charges) && charges.Charges < charges.MaxCharges)
+            message = Loc.GetString("wf-ship-repair-reattach-charge", ("charges", charges.Charges), ("max", charges.MaxCharges));
+        else if (!InReattachRange(hull, section))
+            message = Loc.GetString("wf-ship-repair-reattach-range");
+        else if (!HomeClear(hull, section))
+            message = Loc.GetString("wf-ship-repair-reattach-blocked");
+        else if (!TouchesHull(hull, section))
+            message = Loc.GetString("wf-ship-repair-reattach-apart");
+
+        if (message == null)
+            return true;
+
+        _popup.PopupEntity(message, tool, user, PopupType.MediumCaution);
+        return false;
     }
 
     private bool IsGround(EntityUid grid)

@@ -1,15 +1,24 @@
+using System.Numerics;
+using Content.Server.Atmos.EntitySystems;
+using Content.Server.Decals;
 using Content.Shared._Mono.ShipRepair.Components;
 using Content.Shared._WF.ShipRepair;
 using Robust.Server.Physics;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.ShipRepair;
 
-/// <summary>Keeps one repair snapshot per broken hull and hands it on when the hull goes.</summary>
+/// <summary>Keeps one repair snapshot per broken hull, hands it on when the hull goes, and merges sections back.</summary>
 public sealed partial class WFHullSectionServerSystem : EntitySystem
 {
+    [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private DecalSystem _decals = default!;
+    [Dependency] private GridFixtureSystem _fixtures = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFHullSectionSystem _sections = default!;
 
     public override void Initialize()
     {
@@ -18,6 +27,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         SubscribeLocalEvent<GridSplitEvent>(OnGridSplit);
         SubscribeLocalEvent<ShipRepairDataComponent, EntityTerminatingEvent>(OnHullTerminating);
         SubscribeLocalEvent<ShipRepairDataComponent, ComponentRemove>(OnSnapshotRemoved);
+        SubscribeLocalEvent<WFHullSectionComponent, WFHullReattachEvent>(OnReattach);
     }
 
     /// <summary>The biggest piece stays the hull and keeps the snapshot; every other piece links back to that hull.</summary>
@@ -72,7 +82,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
             if (mapGone || xform.MapUid != map)
                 continue;
 
-            var tiles = CountTiles((uid, grid));
+            var tiles = _sections.CountTiles((uid, grid));
             if (tiles <= heirTiles)
                 continue;
 
@@ -98,19 +108,6 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
             section.Comp.Hull = successor.Owner;
             Dirty(section);
         }
-    }
-
-    /// <summary>How many tiles a grid has.</summary>
-    private int CountTiles(Entity<MapGridComponent> grid)
-    {
-        var count = 0;
-        var tiles = _map.GetAllTilesEnumerator(grid, grid.Comp);
-        while (tiles.MoveNext(out _))
-        {
-            count++;
-        }
-
-        return count;
     }
 
     /// <summary>Gives a grid its own copy of a repair snapshot.</summary>
@@ -146,4 +143,65 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         Dirty(target, copy);
     }
 
+    private void OnReattach(Entity<WFHullSectionComponent> ent, ref WFHullReattachEvent args)
+    {
+        Reattach(args.Hull, ent.Owner);
+    }
+
+    /// <summary>Merges a section into its hull at its own tile indices, with everything aboard.</summary>
+    public void Reattach(EntityUid hull, EntityUid section)
+    {
+        if (!TryComp<MapGridComponent>(hull, out var hullGrid) || !TryComp<MapGridComponent>(section, out var sectionGrid))
+            return;
+
+        // The engine merge moves tiles, anchored entities and whatever stands on a tile, and engines change banks as
+        // they re-anchor; the rest is carried here.
+        ReleaseStrays((section, sectionGrid));
+        var decals = _decals.GetDecalsIntersecting(section, sectionGrid.LocalAABB.Enlarged(1f));
+        var air = _atmos.WfCopyGridAir(section);
+
+        // A section keeps the hull's tile indices, so the identity puts every tile back where it was. Splitting waits
+        // until the merge is done, or a section not yet joined would be torn off halfway through.
+        var canSplit = hullGrid.CanSplit;
+        hullGrid.CanSplit = false;
+        try
+        {
+            _fixtures.Merge(hull, section, Matrix3x2.Identity, hullGrid, sectionGrid);
+        }
+        finally
+        {
+            hullGrid.CanSplit = canSplit;
+        }
+
+        foreach (var (_, decal) in decals)
+        {
+            _decals.TryAddDecal(decal, new EntityCoordinates(hull, decal.Coordinates), out _);
+        }
+
+        _atmos.WfSeedGridAir(hull, air);
+    }
+
+    /// <summary>Leaves loose entities that sit off the section's tiles where they are; the merge would delete them with the grid.</summary>
+    private void ReleaseStrays(Entity<MapGridComponent> section)
+    {
+        var xform = Transform(section);
+        if (xform.MapUid is not { } map)
+            return;
+
+        var strays = new List<EntityUid>();
+        var children = xform.ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            var childXform = Transform(child);
+            if (!childXform.Anchored
+                && _map.GetTileRef(section, _sections.TileOf(section, childXform.LocalPosition)).Tile.IsEmpty)
+                strays.Add(child);
+        }
+
+        foreach (var stray in strays)
+        {
+            var (position, rotation) = _transform.GetWorldPositionRotation(stray);
+            _transform.SetCoordinates(stray, Transform(stray), new EntityCoordinates(map, position), rotation);
+        }
+    }
 }
