@@ -40,7 +40,8 @@ public sealed partial class MarkingSet
 
     /// <summary>
     /// <see cref="EnsureSpecies(string, Color?, MarkingManager?, IPrototypeManager?)"/>, except that with the Mismatched
-    /// parts option on it keeps other species' markings and only drops unknown ones and recolours skin-matching ones.
+    /// parts option on it keeps other species' markings: it only drops unknown ones and ones the species' sprite can't
+    /// draw, and recolours skin-matching ones.
     /// </summary>
     public void EnsureSpecies(
         string species,
@@ -57,17 +58,18 @@ public sealed partial class MarkingSet
 
         IoCManager.Resolve(ref markingManager, ref prototypeManager);
 
-        var unknown = new List<(MarkingCategories category, string id)>();
+        var toRemove = new List<(MarkingCategories category, string id)>();
         foreach (var (category, list) in Markings)
         {
             foreach (var marking in list)
             {
-                if (!markingManager.TryGetMarking(marking, out _))
-                    unknown.Add((category, marking.MarkingId));
+                if (!markingManager.TryGetMarking(marking, out var prototype)
+                    || !MismatchedPartsRules.Drawable(prototype, species, prototypeManager))
+                    toRemove.Add((category, marking.MarkingId));
             }
         }
 
-        foreach (var (category, id) in unknown)
+        foreach (var (category, id) in toRemove)
             Remove(category, id);
 
         if (skinColor == null)

@@ -66,9 +66,9 @@ public sealed class WolfgateColorPopup : Popup
         _r.OnTextChanged += _ => RgbEntered();
         _g.OnTextChanged += _ => RgbEntered();
         _b.OnTextChanged += _ => RgbEntered();
-        _hField.OnTextChanged += _ => HsvEntered();
-        _sField.OnTextChanged += _ => HsvEntered();
-        _vField.OnTextChanged += _ => HsvEntered();
+        _hField.OnTextChanged += _ => HsvEntered(_hField, 360, value => SetHsv(value, _s, _v));
+        _sField.OnTextChanged += _ => HsvEntered(_sField, 100, value => SetHsv(_h, value, _v));
+        _vField.OnTextChanged += _ => HsvEntered(_vField, 100, value => SetHsv(_h, _s, value));
         _hex.OnTextChanged += _ => HexEntered();
 
         var fields = new BoxContainer
@@ -164,14 +164,15 @@ public sealed class WolfgateColorPopup : Popup
         SetHsv(hsv.Y > 0.001f && hsv.Z > 0.001f ? hsv.X : _h, hsv.Y, hsv.Z);
     }
 
-    /// <summary>Hue in degrees, saturation and value in percent.</summary>
-    private void HsvEntered()
+    /// <summary>
+    /// One HSV field was edited: hue in degrees, saturation and value in percent. Only that component changes; the other
+    /// two keep their exact values rather than the rounded ones their fields show.
+    /// </summary>
+    private void HsvEntered(LineEdit field, int max, Action<float> set)
     {
-        if (_updating)
+        if (_updating || !int.TryParse(field.Text, out var entered))
             return;
-        if (!int.TryParse(_hField.Text, out var h) || !int.TryParse(_sField.Text, out var s) || !int.TryParse(_vField.Text, out var v))
-            return;
-        SetHsv(Math.Clamp(h, 0, 360) / 360f, Math.Clamp(s, 0, 100) / 100f, Math.Clamp(v, 0, 100) / 100f);
+        set(Math.Clamp(entered, 0, max) / (float) max);
     }
 
     private void HexEntered()

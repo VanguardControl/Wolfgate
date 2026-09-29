@@ -120,7 +120,8 @@ public sealed class MismatchedPartsTest
 
     /// <summary>
     /// With the option on every playable species is offered every species' styles of every category; with it off only
-    /// its own, and no hair category it can't wear. The option gives one point to a category with none.
+    /// its own, and no hair category it can't wear. The option gives one point to a category with none, and drops markings
+    /// on body parts the species' sprite lacks.
     /// </summary>
     [Test]
     public async Task RulesTest()
@@ -160,6 +161,15 @@ public sealed class MismatchedPartsTest
                         .Select(p => p.Key);
                     foreach (var category in closed)
                         Assert.That(set.PointsLeft(category), Is.EqualTo(1), $"The option left {species.ID}'s {category} closed.");
+
+                    // A marking on a body part the species' sprite lacks can't be drawn or picked, so it is dropped.
+                    if (markings.Markings.Values.OrderBy(m => m.ID).FirstOrDefault(m => !MismatchedPartsRules.Drawable(m, species.ID, proto)) is { } undrawable)
+                    {
+                        var withUndrawable = MarkingSet.ForProfile(new List<Marking> { undrawable.AsMarking() }, species.MarkingPoints, true, markings, proto);
+                        withUndrawable.EnsureSpecies(species.ID, null, true, markings, proto);
+                        Assert.That(withUndrawable.TryGetMarking(undrawable.MarkingCategory, undrawable.ID, out _), Is.False,
+                            $"{species.ID} kept {undrawable.ID}, which its sprite can't draw.");
+                    }
                 }
             });
         });
