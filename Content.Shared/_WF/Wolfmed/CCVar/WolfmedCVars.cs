@@ -792,6 +792,13 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> StasisDamageFactor =
         CVarDef.Create("wolfmed.stasis_damage_factor", 0.5f, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Share of a wound host's blood each point of spawn Bloodloss takes (a corpse's preset damage, a medical
+    /// bounty's roll): 200 leaves a fifth. Wolfmed reads the blood, not the Bloodloss number.
+    /// </summary>
+    public static readonly CVarDef<float> SpawnBloodlossBlood =
+        CVarDef.Create("wolfmed.spawn_bloodloss_blood", 0.004f, CVar.SERVERONLY);
+
     /// <summary>Radiation at or past which the marrow stops: no blood regenerates (plan §3.9).</summary>
     public static readonly CVarDef<float> RadiationMarrowStop =
         CVarDef.Create("wolfmed.rad_marrow_stop", 40f, CVar.SERVERONLY);

@@ -39,6 +39,7 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
     [Dependency] private WolfmedGoreSystem _gore = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private Life.WolfmedSpawnInjurySystem _spawnInjury = default!;
 
     /// <summary>FIX1: bodies hit this tick, waiting for their bleeding to be compared with the snapshot.</summary>
     private readonly List<EntityUid> _pendingBleed = new();
@@ -60,7 +61,8 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
 
     private void OnPartDamage(ref WolfmedPartDamageEvent args)
     {
-        if (TerminatingOrDeleted(args.Body))
+        // A body taking its spawn injuries was not hit: no sound, no spray.
+        if (TerminatingOrDeleted(args.Body) || _spawnInjury.IsApplying(args.Body))
             return;
 
         var state = EnsureComp<WolfmedWoundSfxComponent>(args.Body);

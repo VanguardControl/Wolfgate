@@ -96,6 +96,8 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedRadiationSystem.cs`](Life/WolfmedRadiationSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedRevivalSystem.cs`](Life/WolfmedRevivalSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedShutdownSystem.cs`](Life/WolfmedShutdownSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Life/WolfmedSpawnInjuryComponent.cs`](Life/WolfmedSpawnInjuryComponent.cs)
+- [`Content.Server/_WF/Wolfmed/Life/WolfmedSpawnInjurySystem.cs`](Life/WolfmedSpawnInjurySystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedToxinSystem.cs`](Life/WolfmedToxinSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs`](Medical/HealingSystem.Wolfmed.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Autodoc.cs`](Medical/HealthAnalyzerSystem.Autodoc.cs)
@@ -380,6 +382,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedConsciousnessTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCorpseSpawnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCorpseSpawnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedCritHeartbeatTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageBridgeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageBridgeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageCommandTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDamageCommandTest.cs)
@@ -996,6 +999,9 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Server/_Mono/Traits/Physical/HemophiliaSystem.cs`](../../_Mono/Traits/Physical/HemophiliaSystem.cs)
   - Wolfmed wound hosts own their own bleeding.
   - GUARD E4, wound hosts bleed through WoundBleedingSystem; re-express hemophilia as a
+- [`Content.Server/_NF/Medical/MedicalBountySystem.cs`](../../_NF/Medical/MedicalBountySystem.cs)
+  - a wound host's bounty injuries
+  - a wound host's body has no parts at startup, so its injuries are laid on at map init.
 - [`Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs`](../../_Onyx/Body/Systems/OrganHealthSystem.cs)
   - D13, Wolfgate's BrainComponent is server-only.
   - Wolfgate keeps OrganComponent in Content.Shared.Body.Organ.

@@ -4629,3 +4629,23 @@ the owner's call; left as it plays.
   cannot be ordered. `NoShipyardShipArbitrage` (every vessel's mapped kits and belts), `NoCargoOrderArbitrage` and the
   storage fill tests pass; `WolfmedAvailabilityTest.FillsContainWhatTheyDeclareTest` spawns all six fills and finds
   every certain entry in each, so a fill that stops fitting fails there.
+- **Corpses spawn dead with their injuries (2026-09-29).** "SOME dead bodies aren't actually spawning as dead bodies."
+  Measured on the build: `SalvageHumanCorpse` and its family (`MobRandom*Corpse`, `DungeonHumanCorpse*`, every salvage,
+  expedition and dungeon corpse spawner) stood up Alive with no injuries, and of sixteen medical-bounty corpses none was
+  dead, three had nothing at all to treat (instantly redeemable) and the poisoned ones were in a toxic coma. A corpse
+  prototype carries its injuries as preset `Damageable` damage; the projection resets a wound host's damage to its
+  parts at map init, and the Dead threshold that preset crossed does not decide a wound host (CONSC). A medical bounty
+  deals its roll at `ComponentStartup`, before `SharedBodySystem` builds the parts, so every brute and burn point went
+  nowhere and only the systemic types landed. The dead mouse was never affected: it is no wound host.
+  `WolfmedSpawnInjurySystem` (`MapInitEvent` on `WolfmedConsciousnessComponent`, after the body and the projection)
+  lays the prototype's preset damage, plus whatever `Defer` queued, on the built body: Bloodloss as missing blood
+  (`wolfmed.spawn_bloodloss_blood`, 0.4% a point: the salvage corpse's 49 leaves 80%), the rest spread over every part
+  with variation over the head, torso, arms and legs through `TryApplyDistributedDamage` with no origin, so the ambient
+  ceilings keep every limb on (hands and feet left out so a salvage corpse's 56 Slash is cuts, not ten scratches), and
+  the bleeding stopped (a body found like this stopped bleeding a while ago). A total at the body's Dead threshold is
+  `WolfmedLifeSystem.Kill`, the threshold's own rule, revivable like any Wolfmed death. The bounty hands its roll to
+  `Defer` (a marked block in `MedicalBountySystem`); anything not a wound host keeps the old call. The wound sounds and
+  the tendon snap stay quiet while a body takes its spawn injuries, since nothing hit it. `WolfmedCorpseSpawnTest`:
+  three corpse prototypes dead, cut, missing a fifth of their blood, not bleeding, all six parts on; the dead mouse
+  still dead; three fixed bounties dead with their injuries over three or more parts and over the redemption line;
+  twenty-four random bounties, none redeemable at spawn.

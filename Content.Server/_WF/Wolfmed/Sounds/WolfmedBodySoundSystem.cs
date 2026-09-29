@@ -46,6 +46,7 @@ public sealed class WolfmedBodySoundSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WolfmedOrganicSoundSystem _organic = default!;
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
+    [Dependency] private Life.WolfmedSpawnInjurySystem _spawnInjury = default!;
 
     /// <summary>Bodies that have cracked or snapped this tick, so a blast breaking four bones is one crack.</summary>
     private readonly HashSet<(EntityUid Body, string Sound)> _playedThisTick = new();
@@ -131,7 +132,8 @@ public sealed class WolfmedBodySoundSystem : EntitySystem
     private void OnWoundLifecycle(ref WolfmedWoundLifecycleEvent args)
     {
         if (args.Kind != WolfmedWoundLifecycle.Created || args.Prototype != TendonWound ||
-            CompOrNull<BodyPartComponent>(args.Part)?.Body is not { } body || !_traits.IsOrganic(args.Part))
+            CompOrNull<BodyPartComponent>(args.Part)?.Body is not { } body || !_traits.IsOrganic(args.Part) ||
+            _spawnInjury.IsApplying(body))
             return;
 
         PlayAtBody(body, SnapCollection);
