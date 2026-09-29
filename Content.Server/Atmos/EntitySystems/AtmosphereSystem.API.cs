@@ -204,6 +204,33 @@ public partial class AtmosphereSystem
         return data.BlockedDirections.IsFlagSet(directions);
     }
 
+    // WOLFGATE(Performance) START: wizden#41390, cached airtight check
+    /// <summary>
+    /// Checks if a tile on a grid is air-blocked in the specified directions, using cached data.
+    /// </summary>
+    /// <param name="grid">The grid to check.</param>
+    /// <param name="tile">The tile on the grid to check.</param>
+    /// <param name="directions">The directions to check for air-blockage.</param>
+    /// <returns>True if the tile is air-blocked in the specified directions, false otherwise.</returns>
+    /// <remarks>Returns data that is currently cached by Atmospherics.
+    /// You should always use this method over <see cref="IsTileAirBlocked"/> as it's more performant.
+    /// If you need to get up-to-date data because you've just invalidated airtight data,
+    /// use <see cref="IsTileAirBlocked"/>.</remarks>
+    [PublicAPI]
+    public bool IsTileAirBlockedCached(Entity<GridAtmosphereComponent?> grid,
+        Vector2i tile,
+        AtmosDirection directions = AtmosDirection.All)
+    {
+        if (!_atmosQuery.Resolve(grid, ref grid.Comp, false))
+            return false;
+
+        if (!grid.Comp.Tiles.TryGetValue(tile, out var atmosTile))
+            return false;
+
+        return atmosTile.AirtightData.BlockedDirections.IsFlagSet(directions);
+    }
+    // WOLFGATE END
+
     public bool IsTileSpace(Entity<GridAtmosphereComponent?>? grid, Entity<MapAtmosphereComponent?>? map, Vector2i tile)
     {
         if (grid is {} gridEnt && _atmosQuery.Resolve(gridEnt, ref gridEnt.Comp, false)

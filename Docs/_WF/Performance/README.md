@@ -16,5 +16,9 @@ None.
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../../Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection
   - frontier#4800, skip the end appraisal when nothing uses the value
+- [`Content.Server/Anomaly/AnomalySystem.Generator.cs`](../../../Content.Server/Anomaly/AnomalySystem.Generator.cs): wizden#41390, was IsTileAirBlocked
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs`](../../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs): wizden#41390, cached airtight check
+- [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../../Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs): wizden#41390, was IsTileAirBlocked
+- [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../../Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
 
 <!-- WOLFGATE-GENERATED END -->
