@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Server._WF.Planets.Flight;
 using Content.Shared._CE.ZLevels.Core.Components;
@@ -44,6 +45,8 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             subs.Event<WFEnterAtmosphereMessage>(OnEnterAtmosphereMessage);
             subs.Event<WFLiftoffMessage>(OnLiftoffMessage);
         });
+
+        SubscribeLocalEvent<WFPlanetApproachComponent, FTLCompletedEvent>(OnApproachCompleted);
     }
 
     /// <inheritdoc/>
