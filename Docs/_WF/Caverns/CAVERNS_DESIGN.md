@@ -150,9 +150,8 @@ Checked in code on this branch. Line numbers are approximate.
     - `TileChangedEvent` is subscribed directed on `CEZMapComponent`, `CEZLevelRoofComponent` and `ShuttleComponent`.
     - `GatheredEvent` is subscribed on `OreVeinComponent` (`MiningSystem`).
     - F2c takes these free server pairs: `TileChangedEvent` on `WFCavernGroundComponent` and on
-      `WFCavernLayerComponent`, `ComponentShutdown` on `WFCavernShaftComponent` (only the client's shade visuals take
-      it there) and on `WFCavernClimbComponent`, and `AfterInteractEvent` and the shaft DoAfter event on
-      `ShovelComponent`.
+      `WFCavernLayerComponent`, `EntityTerminatingEvent` on `WFCavernShaftComponent` and on `WFCavernClimbComponent`,
+      and `AfterInteractEvent` and the shaft DoAfter event on `ShovelComponent`.
     - There is no cancellable pre-move event for non-grid entities.
 16. **Guidebook.** The upstream `Salvage` guide entry is commented out (`Resources/Prototypes/Guidebook/cargo.yml:16`),
     so the cavern guide hangs under `Expeditions` (`Resources/Prototypes/_NF/Guidebook/expeditions.yml`).
@@ -450,8 +449,8 @@ is not a mouth: F2c dropped the unused `Hole` kind.
   checks, state checks, stamping). F2c added the polling in `.Claims.cs` that claims cells ahead of whoever loads
   terrain (3.2), `EvaluateCell` (a cell's site without stamping it) and `ClaimStats` (what the claims cost, read by
   the tests), and `.Holes.cs`, the hole queue (3.4) on `(WFCavernGroundComponent, TileChangedEvent)`, with
-  `(WFCavernLayerComponent, TileChangedEvent)` keeping the cavern floor closed and `ComponentShutdown` on shades and
-  climb points dropping registry entries for entities deleted any other way.
+  `(WFCavernLayerComponent, TileChangedEvent)` keeping the cavern floor closed and `EntityTerminatingEvent` on shades
+  and climb points dropping registry entries for entities deleted any other way.
 - **`WFCavernDigSystem`** (F2c): the shovel shaft (3.5) on `(ShovelComponent, AfterInteractEvent)` and
   `(ShovelComponent, WFCavernShaftDigDoAfterEvent)`, with `CanDigShaft`, and `ResistsChemicalPrying`, which the marked
   acid block asks (2.3).
@@ -765,12 +764,14 @@ inside `SetTiles`, the biome loader's included, so it only records each change w
 
 Both queues are processed in `Update`, every tick, `Closed` first.
 
-- **`Opened`**, sorted, up to 256 tiles a ground a tick (`OpenedPerTick`). A tile is dropped when it has a shade
+- **`Opened`**: every queued tile is checked each tick, as the checks are cheap. A tile is dropped when it has a shade
   already (a mouth's own hole: `Stamp` registers its shades as it cuts it), when it is no longer empty, or when it is
   neither on a loaded chunk nor pinned. `UnloadTiles` empties only natural tiles, never pins them, and empties them
   before `LoadedChunks.Remove`, so an unload's tiles are exactly the empty, unpinned ones off loaded chunks; a hole
   whose chunk unloads before the queue runs was pinned by the unload itself, and is kept (F2c: the pin as well as the
-  chunk, which closes that race). Every other tile is a real hole:
+  chunk, which closes that race). Every other tile is a real hole. The holes are sorted and up to 256 a ground a tick
+  (`OpenedPerTick`) are fitted out; the rest wait. Review fix: the cap once counted every queued tile, so the
+  thousands an unload queues held a hole dug in the same tick back for over a second, past the faller's arrival.
   1. **`EnsureHoles`**, one batch a tick:
      - pin the ground tiles, and drop lattice's record of the ground once under them
        (`WFPlanetBuiltTilesComponent.Underlay`), so lattice laid over the hole and cut again reopens it instead of
@@ -785,19 +786,26 @@ Both queues are processed in `Update`, every tick, `Closed` first.
      - wake the z-physics bodies standing on it, so sleeping items and mobs drop; never what is inside them
        (`LookupFlags.Uncontained`), as a woken limb falls out of its body;
      - `CheckSoon` on the eye system, so the view below opens on the next tick instead of at the next check.
-  2. **`EnsureClimbNear`**: nothing inside a mouth's hole (the mouth has its own climb point, and a long Aerumna rift
-     would otherwise gain stray ones), and nothing when a climb point lies within 8 tiles in either axis
-     (`ClimbReach`). Otherwise the first neighbour that is solid ground, not a hole, under no grid and free of hard
-     anchored entities, with solid cavern floor below free of them too, takes a climb point
-     (`Delay = climbSeconds × clamp(gravity, 1, 2.5)`): the climb side first, then the other three sides, then the
-     corners. The cleared landing joins every neighbour to the tile under the hole, so a corner leaves no pocket. With
-     none free, the hole gets no climb point of its own and its climbers use the nearest.
+  2. **`EnsureClimbs`**: nothing inside a mouth's hole (the mouth has its own climb point, and a long Aerumna rift
+     would otherwise gain stray ones), and nothing when a climb point can be walked to from the tile under the hole in
+     at most 8 steps (`ClimbReach`), four ways across cavern tiles that exist and have nothing hard anchored on them.
+     A walk out from every climb point near the batch marks the tiles in reach, and each new climb point walks out at
+     once, so a crater's joined landings share one. On an unloaded chunk only pinned tiles exist, and the biome grows
+     nothing on a pinned tile, so the walk never crosses rock still to load. Otherwise the first neighbour that is
+     solid ground, not a hole, under no grid and free of hard anchored entities, with solid cavern floor below free of
+     them too, takes a climb point (`Delay = climbSeconds × clamp(gravity, 1, 2.5)`): the climb side first, then the
+     other three sides, then the corners. The cleared landing joins every neighbour to the tile under the hole, so a
+     corner leaves no pocket. With none free, the hole gets no climb point of its own and its climbers use the
+     nearest. Review fix: this first skipped any hole with a climb point within 8 tiles in either axis, so a hole dug
+     4 tiles from another over rock landed its fallers in a sealed 3×3 with no way up.
 - **`Closed`**: the shade goes. This covers lattice or a tile laid over a hole, and `ReserveTiles` filling a hole under
   an arriving ship (it fills empty tiles whatever their pins): the mouth keeps its record, pad and climb point, and
   digging the plug out opens it again. The ground stays pinned and the landing and climb point stay (a covered hole
   keeps its ladder, the default), so reopening a hole brings back only its shade.
 - **Registry upkeep:** a shade or climb point deleted any other way, such as by an admin, drops its entry
-  (`ComponentShutdown`), so nothing treats its tile as a hole or a climb point afterwards.
+  (`EntityTerminatingEvent`), so nothing treats its tile as a hole or a climb point afterwards. Review fix: it first
+  used `ComponentShutdown`, which a deleted entity reaches only after it is moved to nullspace, so its tile was
+  unknown and the entry stayed.
 - **The bottom layer stays closed** (user decision): every cavern floor has an empty base turf, so no tool, blast or
   acid breaks it down, and `(WFCavernLayerComponent, TileChangedEvent)` queues any cavern tile that empties
   (`FloorOpened`). One on a loaded chunk or pinned is filled the next tick with the ground lattice there covered, or
@@ -855,7 +863,7 @@ mouth's lip, clear of hard anchored entities and grids, with the cavern there be
 the DoAfter; its event is shared so the client can show it.
 
 **Fall into a dug hole.** A dug or blown hole lands you as a mouth does: on the world's landing tile (the table above),
-in a 3×3 of cleared floor, with a climb point beside the hole unless one is within 8 tiles.
+in a 3×3 of cleared floor, with a climb point beside the hole unless one is a walk of at most 8 steps away.
 
 **Other ways down:**
 - **Parachutes:** a deployed parachute cancels the landing damage.
@@ -1288,10 +1296,11 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernMouthTest.GhostsClaimOnlyIfTheyLoadTerrain` [2] (connected) | Merak, ground loader off: a `MobObserver` changes no claim; an `AdminObserver` standing on a site's anchor claims cell mouths around it, while its own site stays Deferred and no mouth's pad meets its load box (the load guard, 3.2) | F2c |
 | `CavernFallTest.MobFallsAndIsHurtALittle` [6] | A `MobHuman` walked into the gate is on the cavern within 120 ticks, alive, with Blunt within ±3 of the section 3.5 table | F2 |
 | `CavernFallTest.ItemFallsToPad` | A dropped item ends on the landing tile | F2 |
-| `CavernHoleTest.UnloadDoesNotOpenHoles` | Merak: unloading 3×3 loaded ground chunks adds no shade or climb point, pins no emptied ground tile, and pins or fills no cavern tile | F2c |
+| `CavernHoleTest.UnloadDoesNotOpenHoles` | Merak: unloading 2×2 loaded ground chunks adds no shade or climb point, pins no emptied ground tile, and pins or fills no cavern tile. A hole dug in the same tick east of them, so it sorts after all their tiles, has its shade after one update, and the queue is empty | F2c |
 | `CavernHoleTest.DugHoleGetsLandingShadeAndClimb` | Merak: sand shovelled out from under an awake human, over rock in a loaded cavern. Within 2 ticks the hole is pinned with a shade (the right cavern, air and ×0.5 landing), the landing tile lies under it in a 3×3 of pinned floor with nothing standing on it, and exactly one new climb point stands within 8 tiles on pinned floor under solid, unholed ground. The human lands alive, not sunk into the floor, and climbs out; a shovel used on sand beside it starts the shovel's own dig, not a shaft, and that hole gets no second climb point | F2c |
 | `CavernHoleTest.CoveredHoleLosesShade` | Merak: lattice laid on sand and taken by an RCD leaves a hole without lattice's record of the sand; lattice laid over it deletes its shade; wirecutters reopen it, not plug it, with a new shade and no new climb point | F2c |
-| `CavernHoleTest.ExplosionHolesAllGetLandings` | Aerumna: every chromite tile a blast opens is pinned, shaded, over pinned floor and within 8 tiles of a climb point | F2c |
+| `CavernHoleTest.ExplosionHolesAllGetLandings` | Aerumna: every chromite tile a blast opens is pinned, shaded, over pinned floor, and the tile under it walks to a climb point in at most 8 steps | F2c |
+| `CavernHoleTest.SealedLandingGetsItsOwnClimb` | Merak: two holes shovelled 4 tiles apart over solid rock in a loaded cavern get a climb point each, and each landing walks to one in at most 8 steps. Deleting the second's climb point and shade by hand drops both from the registry | F2c review |
 | `CavernHoleTest.PriedFleshOpensHole` | Carcinoma: a crowbar pries flesh to plating, a fireaxe axes it to lattice, wirecutters cut it away, and the hole is fitted out | F2c |
 | `CavernHoleTest.ThrasciasSnowDugThenBlown` | Thrascias: two shovel digs leave bedrock, which a shovel may shaft and the snow beside it not; a blast opens the bedrock into a fitted hole | F2c |
 | `CavernHoleTest.MouthStampAddsNoClimb` | Aerumna: an admin rift cut into loaded ground, long enough to reach past a hole's climb reach, adds exactly one climb point and one shade per hole tile | F2c |
@@ -1461,7 +1470,7 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   cells ahead of whoever loads terrain, a candidate at a time within a 2 ms budget, behind `wf.cavern_claims`. The hole
   queue (3.4, `.Holes.cs`): pins, landings with a cleared 3×3, shades, climb points, covered holes, registry upkeep and
   the closed cavern floor. The shovel shaft and the acid rule (`WFCavernDigSystem`, 3.5, 2.3). Cavern view only for
-  ground viewers (2.3, 2.7). `baseTurf: ""` on every cavern floor tile. Tests: `CavernHoleTest` (10),
+  ground viewers (2.3, 2.7). `baseTurf: ""` on every cavern floor tile. Tests: `CavernHoleTest` (11),
   `CavernMouthTest.ClaimDeferredWhileChunkLoaded`, `.NoMouthOffTheAllowlist`, `.ClaimAheadOfViewer` and
   `.GhostsClaimOnlyIfTheyLoadTerrain`, `CavernViewerEyeTest.AirViewerOverMouthLoadsNoCavern`, the pass unit test, and
   updated `WildlifeThroughLoadedHoleIsKept`; claims are off in the tests that need only the gate. Every new test was
@@ -1478,6 +1487,13 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   also closes the cavern floor, wakes bodies, drops lattice's record and asks for an eye check (3.4); the unused
   `Hole` kind is gone (2.5, 5); `ClaimAheadOfViewer` flies a viewer instead of standing one at (400, 0), and
   `NoMouthOffTheAllowlist` searches for its sea cells (6).
+- **F2c review fixes:** a hole gets its own climb point unless one is a walk away, not merely within 8 tiles, so no
+  landing is a sealed pocket (3.4, `SealedLandingGetsItsOwnClimb`); the queue checks every emptied tile before the
+  cap, so an unload's tiles never hold back a hole dug with them (3.4, `UnloadDoesNotOpenHoles`); the registry upkeep
+  runs on `EntityTerminatingEvent`, since `ComponentShutdown` comes after a deleted entity leaves its map and never
+  found its tile (3.4). Not changed: a shaft dug under a mob standing on the tile drops it, as the shovel's own dig
+  does (its `IsTileBlocked` check uses `MobMask`, which no mob's layer shares, so it ignores mobs); a sprint into a
+  hole can come down a tile past the landing (risk 22).
 - **F2a deviations** (each recorded where it applies): the classifier is `WFCavernAirClassifier.Classify` (2.5); the
   shaft examine lives in `SharedWFCavernShaftSystem` (2.7); the ground component keeps `Centre` (2.5); the gate search
   starts at the cell holding the gate candidate (3.2); the placeholder biome gained chambers (3.2, F1); each world's
@@ -1686,3 +1702,4 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | 19 | `AnyHoleWithin` scans every shade on the ground for every viewer twice a second, so it grows with how much has been explored and dug | Linear and cheap today; per-chunk buckets if a profile shows it |
 | 20 | Claims cost CPU in bursts as viewers move | Measured (3.2): 3.3 ms a busy tick and 7.1 ms at most on DebugOpt, about 0.3% of a 30 tps budget for one flying viewer; `wf.cavern_claims` turns them off |
 | 21 | Rods and an RCD or a grenade open a shaft through any natural ground, as lattice goes straight onto it and neither gives the ground back | Accepted as the tech way down, beside the shovel shaft (critique question) |
+| 22 | A body sprinting into a hole flies about 1.7 tiles before it drops (measured on Merak in the F2c review), so it can come down a tile past the 3×3 landing: rock stops it inside the landing if that cavern chunk is loaded, but over an unloaded chunk it rests inside an empty tile | Only bodies that load nothing are exposed: a player loads the cavern within about 0.1 s of arriving, and a ground viewer within about 16 tiles opens it. Accepted with the 3×3 (user decision); a 5×5 landing (`LandingReach = 2`, 25 pins a hole) would cover it |
