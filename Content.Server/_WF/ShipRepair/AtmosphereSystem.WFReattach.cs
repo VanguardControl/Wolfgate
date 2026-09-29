@@ -1,5 +1,7 @@
 using Content.Server.Atmos.Components;
 using Content.Shared.Atmos;
+using Content.Shared.Atmos.Components;
+using Robust.Shared.Map.Components;
 
 namespace Content.Server.Atmos.EntitySystems;
 
@@ -21,20 +23,43 @@ public sealed partial class AtmosphereSystem
         return air;
     }
 
-    /// <summary>Gives tiles just added to a grid their air, before revalidation would start them as vacuum.</summary>
+    /// <summary>Gives tiles just added to a grid their air, revalidated at once so no tile starts as vacuum.</summary>
     public void WfSeedGridAir(EntityUid grid, Dictionary<Vector2i, GasMixture> air)
     {
-        if (air.Count == 0 || !TryComp<GridAtmosphereComponent>(grid, out var atmos))
+        if (air.Count == 0
+            || !TryComp<GridAtmosphereComponent>(grid, out var atmos)
+            || !TryComp<GasTileOverlayComponent>(grid, out var overlay)
+            || !TryComp<MapGridComponent>(grid, out var mapGrid))
+        {
             return;
+        }
 
+        var ent = new Entity<GridAtmosphereComponent, GasTileOverlayComponent, MapGridComponent, TransformComponent>(
+            grid, atmos, overlay, mapGrid, Transform(grid));
+        var volume = GetVolumeForTiles(ent);
+        TryComp(ent.Comp4.MapUid, out MapAtmosphereComponent? mapAtmos);
+
+        // The same steps as revalidation, so neighbours agree on adjacency before equalization walks it.
+        var tiles = new List<(TileAtmosphere Tile, GasMixture Mixture)>(air.Count);
         foreach (var (index, mixture) in air)
         {
             var tile = GetOrNewTile(grid, atmos, index);
-            if (tile.MapAtmosphere)
-                RemoveMapAtmos(atmos, tile);
+            UpdateTileData(ent, mapAtmos, tile);
+            tiles.Add((tile, mixture));
+        }
 
-            tile.Air = mixture;
-            atmos.InvalidatedCoords.Add(index);
+        foreach (var (tile, _) in tiles)
+        {
+            UpdateAdjacentTiles(ent, tile, activate: true);
+        }
+
+        foreach (var (tile, mixture) in tiles)
+        {
+            UpdateTileAir(ent, tile, volume);
+            if (tile.Air is { Immutable: false } tileAir)
+                tileAir.CopyFrom(mixture);
+
+            InvalidateVisuals(ent, tile);
         }
     }
 }
