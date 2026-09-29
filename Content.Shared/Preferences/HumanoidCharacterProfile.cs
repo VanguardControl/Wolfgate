@@ -246,6 +246,7 @@ namespace Content.Shared.Preferences
                 other.ScreamVoice, other.LaughVoice)
                 // WOLFGATE END
         {
+            HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
         }
 
         /// <summary>Copy constructor</summary>
@@ -276,6 +277,7 @@ namespace Content.Shared.Preferences
                 other.LaughVoice)
                 // WOLFGATE END
         {
+            HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
         }
 
         /// <summary>
@@ -612,6 +614,7 @@ namespace Content.Shared.Preferences
             if (Company != other.Company) return false;
             if (CustomSpeciesName != other.CustomSpeciesName) return false; // WOLFGATE(Humanoid)
             if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE(Genitals)
+            if (HeadshotUrl != other.HeadshotUrl) return false; // WOLFGATE(Headshot)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
@@ -815,6 +818,7 @@ namespace Content.Shared.Preferences
                 .Trim();
             // WOLFGATE END
 
+            EnsureHeadshotValid(); // WOLFGATE(Headshot)
             EnsureValidEmoteVoices(prototypeManager); // WOLFGATE(EmoteVoices)
 
             // Check if the company exists, if not set to "None"
@@ -952,6 +956,7 @@ namespace Content.Shared.Preferences
             hashCode.Add((int)PreferenceUnavailable);
             hashCode.Add(Company); // WOLFGATE: the company is part of the hash
             hashCode.Add(CustomSpeciesName); // WOLFGATE(Humanoid)
+            hashCode.Add(HeadshotUrl); // WOLFGATE(Headshot)
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
             return hashCode.ToHashCode();
