@@ -109,7 +109,7 @@ public sealed class FTLToDockTest
             await pair.RunTicksSync(1);
             await server.WaitPost(() =>
             {
-                if (!entManager.TryGetComponent(shuttle, out FTLComponent? ftl))
+                if (!entManager.TryGetComponent(shuttle, out FTLComponent ftl))
                 {
                     arrived = true;
                     return;
