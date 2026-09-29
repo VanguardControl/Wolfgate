@@ -14,6 +14,7 @@ None.
 ## Non-modular edits
 
 - [`Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs`](../../../Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs): wizden#38974, subnets carry a Color instead of a hex string
+- [`Content.Client/Weapons/Ranged/Systems/GunSystem.cs`](../../../Content.Client/Weapons/Ranged/Systems/GunSystem.cs): wizden#36641, was EntityUid
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../../Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection
   - frontier#4800, skip the end appraisal when nothing uses the value
@@ -27,11 +28,15 @@ None.
   - wizden#38974, tell the atmos monitor a pipe net is gone
   - wizden#38974, pipe net removal event
 - [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../../Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs): wizden#41390, was IsTileAirBlocked
+- [`Content.Server/Explosion/EntitySystems/ProjectileGrenadeSystem.cs`](../../../Content.Server/Explosion/EntitySystems/ProjectileGrenadeSystem.cs): wizden#36641, the grenade is deleted so it can't be the gun; was uid, null
 - [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../../Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../../Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs)
   - wizden#44340, tile entities carry their fixtures
   - wizden#44340, resolve transforms and hard fixtures once per tile
   - wizden#44340, iterate the cached hard fixtures
 - [`Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs`](../../../Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs): wizden#38974, was string HexCode
+- [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs)
+  - wizden#36641, gunUid was not nullable
+  - wizden#36641, a projectile may have no shooter
 
 <!-- WOLFGATE-GENERATED END -->
