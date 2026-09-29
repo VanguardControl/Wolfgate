@@ -17,6 +17,20 @@ wf-roadmap-column-future = Future versions
 
 ## Current version
 
+wf-roadmap-item-species = New species
+wf-roadmap-item-species-desc = New playable species from HardLight and Starlight, including Avali, Shadekin and Protogens, plus Wolfgate's own Canines, with their own markings, voices, languages and medicine.
+wf-roadmap-item-anatomy = Anatomy system
+wf-roadmap-item-anatomy-desc = Opt-in character anatomy, set in the character creator's Anatomy tab and adjustable in round. It is consent-gated: others only see or change it with your consent and their own adult content setting on.
+wf-roadmap-item-tractor-beams = Tractor beams
+wf-roadmap-item-tractor-beams-desc = Hold, reel in or lock another ship or loose debris with a powered dish and console, no docking needed.
+wf-roadmap-item-ship-consoles = Ship console upgrades
+wf-roadmap-item-ship-consoles-desc = A whole-ship view with hull telemetry, a collision warning that calls out hard impacts before they happen, and hull cameras with a low-light feed.
+wf-roadmap-item-deposit-boxes = Safety deposit boxes
+wf-roadmap-item-deposit-boxes-desc = Buy a small, medium or large box at the console and it keeps your valuables between rounds. Ported from Wayfarer.
+wf-roadmap-item-shockwaves = Explosion shockwaves
+wf-roadmap-item-shockwaves-desc = Explosions throw out a visible shockwave that shoves people and loose objects away from the blast.
+wf-roadmap-item-job-titles = Custom job titles
+wf-roadmap-item-job-titles-desc = Contractors can write their own job title, which goes on their ID card and station records.
 wf-roadmap-item-ship-pa = Ship PA system
 wf-roadmap-item-ship-pa-desc = Speakers, situation codes and general quarters, run from the ship console.
 wf-roadmap-item-ship-access = Ship access
@@ -49,6 +63,8 @@ wf-roadmap-item-wolfmed = Wolfmed
 wf-roadmap-item-wolfmed-desc = Damage lands on body parts as wounds: cuts, bruises, burns, fractures and bleeds, with pain and organ damage.
 wf-roadmap-item-planets = Planets and caverns
 wf-roadmap-item-planets-desc = Fly to the worlds of the Kyphrus system, land or crash on them, and climb down into their caverns.
+wf-roadmap-item-planet-structures = Random planet structures
+wf-roadmap-item-planet-structures-desc = Randomly generated structures across planet surfaces, different every round, to find and explore.
 
 ## Future versions
 
@@ -64,5 +80,13 @@ wf-roadmap-item-outposts-raids = Outposts: raids and POIs
 wf-roadmap-item-outposts-raids-desc = Worlds with edges and points of interest to explore and claim, night raids by wildlife and raiders who breach walls, early warning and turrets.
 wf-roadmap-item-outposts-more = Outposts: farming and more
 wf-roadmap-item-outposts-more-desc = Shuttle crash starts, play groups, landing pads, farming and livestock, orbital defence and basements.
-wf-roadmap-item-random-encounters = Random encounters
-wf-roadmap-item-random-encounters-desc = Random events become encounters: board a faction freighter or defend it, save one from pirates, or answer a distress call that might be a trap.
+wf-roadmap-item-encounters-freighters = Encounters: freighters
+wf-roadmap-item-encounters-freighters-desc = Faction freighters cross the sector as mass scanner blips and spawn when you close in. Cross the warning zone and the captain warns you off; cross the fire zone and the crew fights back while the faction's players are paid to come to its rescue. Disable its guns and board it for the best haul, or destroy it for less.
+wf-roadmap-item-encounters-tiers = Encounters: freighter tiers
+wf-roadmap-item-encounters-tiers-desc = Freighters come in value brackets, from low-value haulers to military and nuclear transports. The richer the cargo, the heavier the defences, up to escort fighters.
+wf-roadmap-item-encounters-pirates = Encounters: pirate attacks
+wf-roadmap-item-encounters-pirates-desc = A freighter pinned down by pirates calls its faction for help. Kill every pirate captain and it sets off for a destination, paying its rescuers when it arrives. Or fight everyone and pick through the wreckage.
+wf-roadmap-item-encounters-distress = Encounters: distress signals
+wf-roadmap-item-encounters-distress-desc = A distress beacon on the mass scanner: a ship with an engine fire needs help. Put it out and maybe they'll thank you... or maybe it's a trap.
+wf-roadmap-item-encounters-storyteller = Encounters: storyteller and NPCs
+wf-roadmap-item-encounters-storyteller-desc = The groundwork for story-driven events: a storyteller that paces encounters, NPC crews that fly their own ships and fight room to room, trigger zones and payouts.

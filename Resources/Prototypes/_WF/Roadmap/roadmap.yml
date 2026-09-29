@@ -6,6 +6,12 @@
   name: wf-roadmap-column-current
   order: 0
   items:
+  - name: wf-roadmap-item-species
+    description: wf-roadmap-item-species-desc
+    state: Complete
+  - name: wf-roadmap-item-anatomy
+    description: wf-roadmap-item-anatomy-desc
+    state: Complete
   - name: wf-roadmap-item-ship-pa
     description: wf-roadmap-item-ship-pa-desc
     state: Complete
@@ -24,14 +30,29 @@
   - name: wf-roadmap-item-tethers
     description: wf-roadmap-item-tethers-desc
     state: Complete
+  - name: wf-roadmap-item-tractor-beams
+    description: wf-roadmap-item-tractor-beams-desc
+    state: Complete
+  - name: wf-roadmap-item-ship-consoles
+    description: wf-roadmap-item-ship-consoles-desc
+    state: Complete
+  - name: wf-roadmap-item-deposit-boxes
+    description: wf-roadmap-item-deposit-boxes-desc
+    state: Complete
   - name: wf-roadmap-item-interface
     description: wf-roadmap-item-interface-desc
     state: Complete
   - name: wf-roadmap-item-prediction
     description: wf-roadmap-item-prediction-desc
     state: Complete
+  - name: wf-roadmap-item-shockwaves
+    description: wf-roadmap-item-shockwaves-desc
+    state: Complete
   - name: wf-roadmap-item-heat-haze
     description: wf-roadmap-item-heat-haze-desc
+    state: Complete
+  - name: wf-roadmap-item-job-titles
+    description: wf-roadmap-item-job-titles-desc
     state: Complete
   - name: wf-roadmap-item-emote-voices
     description: wf-roadmap-item-emote-voices-desc
@@ -56,6 +77,9 @@
   - name: wf-roadmap-item-planets
     description: wf-roadmap-item-planets-desc
     state: InProgress
+  - name: wf-roadmap-item-planet-structures
+    description: wf-roadmap-item-planet-structures-desc
+    state: Planned
 
 - type: roadmapColumn
   id: WFRoadmapFuture
@@ -80,6 +104,18 @@
   - name: wf-roadmap-item-outposts-more
     description: wf-roadmap-item-outposts-more-desc
     state: Planned
-  - name: wf-roadmap-item-random-encounters
-    description: wf-roadmap-item-random-encounters-desc
+  - name: wf-roadmap-item-encounters-freighters
+    description: wf-roadmap-item-encounters-freighters-desc
+    state: Planned
+  - name: wf-roadmap-item-encounters-tiers
+    description: wf-roadmap-item-encounters-tiers-desc
+    state: Planned
+  - name: wf-roadmap-item-encounters-pirates
+    description: wf-roadmap-item-encounters-pirates-desc
+    state: Planned
+  - name: wf-roadmap-item-encounters-distress
+    description: wf-roadmap-item-encounters-distress-desc
+    state: Planned
+  - name: wf-roadmap-item-encounters-storyteller
+    description: wf-roadmap-item-encounters-storyteller-desc
     state: Planned
