@@ -10,9 +10,12 @@ using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
+using Content.Shared.Inventory;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Storage;
+using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
@@ -20,7 +23,8 @@ using Robust.Shared.Prototypes;
 namespace Content.IntegrationTests.Tests._WF.Chimera;
 
 /// <summary>
-/// A fleshbeast turned from a body drops that body, purged and holding the mind, when it dies or is gibbed.
+/// A fleshbeast turned from a body drops that body, still dressed, purged and holding the mind, when it dies or is
+/// gibbed. A cured one drops what it carried instead of deleting it.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(DropOriginalBodyOnDeathSystem))]
@@ -31,6 +35,15 @@ public sealed class DropOriginalBodyOnDeathTest
     private const string Letoferol = "Letoferol";
     private const string NaturalLetoferol = "NaturalLetoferol";
     private const string Piercing = "Piercing";
+    private const string PocketedProto = "Pen";
+    private const string StoredProto = "Crowbar";
+
+    /// <summary>What the body wears when it turns, by slot.</summary>
+    private static readonly (string Slot, string Proto)[] Gear =
+    {
+        ("jumpsuit", "ClothingUniformJumpsuitColorGrey"),
+        ("shoes", "ClothingShoesColorBlack"),
+    };
 
     [TestCase("LetoferolMutationNatural")]
     [TestCase("LetoferolMutation")] // Reverts on death, which the corpse must not do.
@@ -121,8 +134,55 @@ public sealed class DropOriginalBodyOnDeathTest
         await pair.CleanReturnAsync();
     }
 
+    [Test]
+    public async Task CuredFleshbeastDropsWhatItCarries()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false, Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+
+        var entMan = server.EntMan;
+        var containerSys = entMan.System<SharedContainerSystem>();
+
+        var body = EntityUid.Invalid;
+        var beast = EntityUid.Invalid;
+        var pocketed = EntityUid.Invalid;
+        var stored = EntityUid.Invalid;
+
+        await server.WaitAssertion(() =>
+        {
+            (body, beast, _) = Turn(entMan, map.GridCoords, "LetoferolMutationNatural");
+
+            pocketed = entMan.SpawnEntity(PocketedProto, map.GridCoords);
+            Assert.That(entMan.System<InventorySystem>().TryEquip(beast, pocketed, "pocket1", true, true), Is.True);
+            stored = entMan.SpawnEntity(StoredProto, map.GridCoords);
+            Assert.That(containerSys.Insert(stored, entMan.GetComponent<StorageComponent>(beast).Container), Is.True);
+
+            // What Mesotaxinide does to a living fleshbeast.
+            Assert.That(entMan.System<PolymorphSystem>().Revert(beast), Is.EqualTo(body));
+        });
+
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(entMan.Deleted(beast), Is.True, "The cured fleshbeast should be gone.");
+                AssertWearing(entMan, body, "The cured body didn't get its gear back.");
+                Assert.That(entMan.Deleted(pocketed), Is.False, "The fleshbeast's pocketed item was deleted with it.");
+                Assert.That(entMan.Deleted(stored), Is.False, "The fleshbeast's stored item was deleted with it.");
+                Assert.That(containerSys.IsEntityInContainer(pocketed) || containerSys.IsEntityInContainer(stored),
+                    Is.False,
+                    "The fleshbeast's items should be on the floor.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>
-    /// Spawns a body with a mind and both kinds of Letoferol in its blood and stomach, kills it and turns it.
+    /// Spawns a dressed body with a mind and both kinds of Letoferol in its blood and stomach, kills it and turns it.
     /// </summary>
     private static (EntityUid Body, EntityUid Beast, EntityUid Mind) Turn(
         IEntityManager entMan,
@@ -132,10 +192,17 @@ public sealed class DropOriginalBodyOnDeathTest
         var mindSys = entMan.System<SharedMindSystem>();
         var solutionSys = entMan.System<SharedSolutionContainerSystem>();
         var bodySys = entMan.System<BodySystem>();
+        var inventory = entMan.System<InventorySystem>();
 
         var body = entMan.SpawnEntity(BodyProto, coords);
         var mind = mindSys.CreateMind(null).Owner;
         mindSys.TransferTo(mind, body);
+
+        foreach (var (slot, proto) in Gear)
+        {
+            Assert.That(inventory.TryEquip(body, entMan.SpawnEntity(proto, coords), slot, true, true), Is.True,
+                $"{BodyProto} couldn't wear {proto}.");
+        }
 
         Assert.That(solutionSys.TryGetSolution(body, BloodstreamComponent.DefaultChemicalsSolutionName, out var chemicals),
             Is.True, $"{BodyProto} has no chemicals solution.");
@@ -155,16 +222,33 @@ public sealed class DropOriginalBodyOnDeathTest
         Assert.That(beast, Is.Not.Null, $"{polymorph} didn't turn a dead body.");
         Assert.That(entMan.HasComponent<DropOriginalBodyOnDeathComponent>(beast!.Value), Is.True,
             $"{polymorph} turns bodies into a fleshbeast without {nameof(DropOriginalBodyOnDeathComponent)}.");
+        AssertWearing(entMan, body, "The victim's gear dropped when it turned instead of staying on the body.");
 
         return (body, beast.Value, mind);
     }
 
     /// <summary>
-    /// Checks the body is back on the map, holds the mind and carries no Letoferol.
+    /// Checks the body still wears the <see cref="Gear"/> it turned in.
+    /// </summary>
+    private static void AssertWearing(IEntityManager entMan, EntityUid body, string message)
+    {
+        var inventory = entMan.System<InventorySystem>();
+        foreach (var (slot, proto) in Gear)
+        {
+            var worn = inventory.TryGetSlotEntity(body, slot, out var item)
+                ? entMan.GetComponent<MetaDataComponent>(item.Value).EntityPrototype?.ID
+                : null;
+            Assert.That(worn, Is.EqualTo(proto), message);
+        }
+    }
+
+    /// <summary>
+    /// Checks the body is back on the map, dressed, holds the mind and carries no Letoferol.
     /// </summary>
     private static void AssertDropped(IEntityManager entMan, EntityUid map, EntityUid body, EntityUid mind)
     {
         Assert.That(entMan.Deleted(body), Is.False, "The original body was deleted.");
+        AssertWearing(entMan, body, "The dropped body lost its gear.");
         Assert.That(entMan.GetComponent<TransformComponent>(body).MapUid, Is.EqualTo(map),
             "The original body didn't fall out onto the fleshbeast's map.");
         Assert.That(entMan.GetComponent<MetaDataComponent>(body).EntityPaused, Is.False);

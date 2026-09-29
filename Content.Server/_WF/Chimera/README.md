@@ -5,6 +5,10 @@ had before the conversion falls out of it and takes back their mind, so they can
 The fleshbeast's corpse and anything it carried stay behind, renamed back to "chimera fleshbeast". The dropped body is
 purged of both kinds of Letoferol so it doesn't turn again; it keeps the damage it had when it turned.
 
+The body also keeps its gear: the Letoferol polymorphs no longer drop the victim's items at conversion, so they stay on
+the stored body and come back with it. Because of that a cure (Mesotaxinide reverting a living fleshbeast) would delete
+whatever the fleshbeast carried, so its slots, hands and internal storage are dropped to the floor first.
+
 Entry points: `DropOriginalBodyOnDeathComponent` on `MonoBaseMobLetoferol`, the parent of every fleshbeast. Its system
 acts only on fleshbeasts that are polymorphs, so ghost-role and mapped fleshbeasts have no body to drop. It removes the
 polymorph from the corpse, which also stops lab Letoferol's revert-on-death and later Mesotaxinide from swapping the
@@ -46,5 +50,6 @@ with a default mind a key letter counts only before a space, so `+run` and `+loo
 - [`Resources/Prototypes/_Mono/Entities/Mobs/Chimera/chimera_base.yml`](../../../Resources/Prototypes/_Mono/Entities/Mobs/Chimera/chimera_base.yml)
   - a converted fleshbeast drops the body it was made from when it dies
   - whoever takes a fleshbeast is told how to talk to the hivemind
+- [`Resources/Prototypes/_Mono/Polymorphs/polymorph.yml`](../../../Resources/Prototypes/_Mono/Polymorphs/polymorph.yml): the victim's gear stays on the stored body instead of dropping at conversion
 
 <!-- WOLFGATE-GENERATED END -->

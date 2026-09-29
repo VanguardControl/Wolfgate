@@ -4,12 +4,16 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.IdentityManagement;
+using Content.Shared.Inventory;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Polymorph;
 using Content.Shared.Popups;
+using Content.Shared.Storage;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Chimera;
@@ -21,6 +25,9 @@ public sealed partial class DropOriginalBodyOnDeathSystem : EntitySystem
 {
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -33,6 +40,7 @@ public sealed partial class DropOriginalBodyOnDeathSystem : EntitySystem
 
         SubscribeLocalEvent<DropOriginalBodyOnDeathComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<DropOriginalBodyOnDeathComponent, BeforeGibbedEvent>(OnBeforeGibbed);
+        SubscribeLocalEvent<DropOriginalBodyOnDeathComponent, PolymorphedEvent>(OnPolymorphed);
     }
 
     private void OnMobStateChanged(Entity<DropOriginalBodyOnDeathComponent> ent, ref MobStateChangedEvent args)
@@ -45,6 +53,33 @@ public sealed partial class DropOriginalBodyOnDeathSystem : EntitySystem
     private void OnBeforeGibbed(Entity<DropOriginalBodyOnDeathComponent> ent, ref BeforeGibbedEvent args)
     {
         DropOriginal(ent);
+    }
+
+    /// <summary>
+    /// A cure reverts the mob and deletes it. Its polymorph keeps the victim's gear on the body instead of dropping
+    /// anything, so what the mob carries is dropped here rather than deleted with it.
+    /// </summary>
+    private void OnPolymorphed(Entity<DropOriginalBodyOnDeathComponent> ent, ref PolymorphedEvent args)
+    {
+        // DropOriginal removes the polymorph before raising this, and its corpse keeps what it carries.
+        if (!args.IsRevert || !HasComp<PolymorphedEntityComponent>(ent))
+            return;
+
+        if (_inventory.TryGetContainerSlotEnumerator(ent.Owner, out var slots))
+        {
+            while (slots.MoveNext(out var slot))
+            {
+                _inventory.TryUnequip(ent, slot.ID, true, true);
+            }
+        }
+
+        foreach (var held in _hands.EnumerateHeld(ent))
+        {
+            _hands.TryDrop(ent, held, checkActionBlocker: false);
+        }
+
+        if (TryComp<StorageComponent>(ent, out var storage))
+            _container.EmptyContainer(storage.Container, true);
     }
 
     /// <summary>
