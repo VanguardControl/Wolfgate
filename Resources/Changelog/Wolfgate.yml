@@ -643,3 +643,12 @@ Entries:
   id: 100059
   time: '2026-09-29T18:51:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/118
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The bus, arrivals and evac shuttles actually jump when they dock.
+    - type: Fix
+      message: The bus announces its departures and arrivals again.
+  id: 100060
+  time: '2026-09-29T20:06:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/126
