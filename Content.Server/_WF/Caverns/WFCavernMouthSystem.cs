@@ -2,31 +2,62 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Content.Server.Parallax;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._WF.Caverns;
+using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Parallax.Biomes;
+using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Caverns;
 
-/// <summary>Cuts the ways down into a cavern (the gate at build, cell and admin mouths) and keeps their registry.</summary>
+/// <summary>
+/// Cuts the ways down into a cavern and keeps their registry: the gate at build, cell mouths claimed ahead of the
+/// players, admin mouths, and every hole opened in the ground later.
+/// </summary>
 public sealed partial class WFCavernMouthSystem : EntitySystem
 {
     [Dependency] private BiomeSystem _biome = default!;
+    [Dependency] private CESharedZLevelsSystem _zLevels = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private ISharedPlayerManager _players = default!;
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFCavernEyeSystem _eyes = default!;
 
     /// <summary>How many cells, nearest the gate candidate first, the gate search tries.</summary>
     public const int GateCells = 9;
 
     private readonly HashSet<Entity<MobStateComponent>> _mobs = new();
+
+    /// <inheritdoc/>
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        InitializeHoles();
+        Subs.CVar(_cfg, CavernCVars.CavernClaims, enabled => _claimsEnabled = enabled, true);
+    }
+
+    /// <inheritdoc/>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        UpdateHoles();
+        UpdateClaims();
+    }
 
     /// <summary>The world's gate, if one was claimed.</summary>
     public WFCavernMouth? GetGate(Entity<WFCavernGroundComponent> ground)

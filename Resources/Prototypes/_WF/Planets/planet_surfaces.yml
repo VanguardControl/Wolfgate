@@ -13,13 +13,6 @@
     moles:
     - 21.824879
     - 82.10312
-  # Ore only: marker spawns are never unloaded, so no mob markers.
-  biomeMarkerLayers:
-  - OreIron
-  - OreQuartz
-  - OreCoal
-  - OreSalt
-  - OreGold
-  - OreSilver
-  - OrePlasma
-  - OreUranium
+  # No biome marker layers. Ore comes from the Mono ore spawners the biome lays; the upstream ore markers only turn
+  # plain rock walls into veins, and these biomes lay none, so each marker chunk placed nothing, scanned 16k tiles
+  # per layer and logged a warning per vein.

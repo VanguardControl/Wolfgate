@@ -47,7 +47,8 @@ Blood reagent. They do not spread. Asclepiu/Aerumna have inland water channels;
 Merak has sparse desert channels, Fervidus lava, Thrascias plasma, Carcinoma blood.
 Orbital-marker WarpPoints are admin-only; radar/navigation markers are unaffected.
 
-Ore markers, planet atmospheres and flight rules are unchanged.
+Surface ore comes only from the biomes' `MonoPlanetmapOre*` outcrops; planets have no
+ore marker layers. Planet atmospheres and flight rules are unchanged.
 These recipes use the existing generation system and existing art. No engine edits
 or new outpost maps are required.
 

@@ -40,9 +40,10 @@ public sealed partial class WFCavernViewSystem : EntitySystem
     }
 
     /// <summary>The depth of the cavern pass under a ground drawn at this depth, or null to keep no pass.</summary>
-    public static float? CavernPassDepth(float groundDepth, bool cavernKnown, bool mouthInView)
+    /// <param name="onGround">Whether the observer stands on that ground; from the air or orbit a hole shows dark, as the server sends no cavern there.</param>
+    public static float? CavernPassDepth(float groundDepth, bool cavernKnown, bool mouthInView, bool onGround)
     {
-        return cavernKnown && mouthInView ? groundDepth - 1f : null;
+        return onGround && cavernKnown && mouthInView ? groundDepth - 1f : null;
     }
 
     /// <summary>The world box a z-level pass at this depth shows, given the box the observer's own eye shows.</summary>

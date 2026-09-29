@@ -36,6 +36,7 @@ public sealed class CavernViewTest
         var client = pair.Client;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 
@@ -80,6 +81,7 @@ public sealed class CavernViewTest
         var client = pair.Client;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 

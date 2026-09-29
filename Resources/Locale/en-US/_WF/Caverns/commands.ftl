@@ -11,7 +11,6 @@ cmd-wfcavern-mouth-row = { $kind } | anchor: { $origin } | tiles: { $tiles } | c
 cmd-wfcavern-mouth-kind = { $kind ->
     [gate] Gate
     [cell] Cell
-    [hole] Hole
    *[admin] Admin
 }
 cmd-wfcavern-tp-done = Moved to the gate { $target } of { $planet }.

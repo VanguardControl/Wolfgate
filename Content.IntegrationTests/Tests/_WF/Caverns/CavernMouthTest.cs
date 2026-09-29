@@ -2,10 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Content.Client._WF.Caverns;
 using Content.IntegrationTests.Pair;
+using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.Caverns;
 using Content.Server.Parallax;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Caverns;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
@@ -378,6 +381,467 @@ public sealed class CavernMouthTest
         }
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A site under a loaded ground chunk waits as Deferred, then is stamped where it was found once the chunk unloads.</summary>
+    [Test]
+    public async Task ClaimDeferredWhileChunkLoaded()
+    {
+        const string surfaceId = "WFSurfaceMerak";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var spec = CavernOf(pair, surfaceId).Mouths;
+            var gate = await Gate(pair, world);
+            Vector2i? cell = null;
+            WFCavernSite? site = null;
+
+            await server.WaitPost(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                var biome = entMan.GetComponent<BiomeComponent>(world.Ground);
+                var first = WFCavernMouthSystem.CellOf(spec, gate.Origin);
+
+                // Clear of the gate search's cells. The footprint must grow nothing: an unload pins the tile of any entity
+                // that went, and fauna markers delete themselves on spawn, which would make the cell Empty instead.
+                for (var dx = -3; dx <= 3 && site == null; dx++)
+                for (var dy = -3; dy <= 3 && site == null; dy++)
+                {
+                    if (Math.Abs(dx) < 2 && Math.Abs(dy) < 2)
+                        continue;
+
+                    var candidate = first + new Vector2i(dx, dy);
+                    if (mouths.EvaluateCell(ground, candidate) is not { } found
+                        || found.Shape.Hole.Concat(found.Shape.Ring).Any(offset => GrowsEntity(biomes, biome, found.Origin + offset)))
+                        continue;
+
+                    cell = candidate;
+                    site = found;
+                }
+            });
+
+            Assert.That(site, Is.Not.Null, "Precondition: no cell near the gate has a site whose footprint grows nothing.");
+            var origin = site!.Value.Origin;
+
+            await LoadChunks(pair, world.Ground, origin, origin);
+            await server.WaitAssertion(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(mouths.TryClaimCell(ground, cell!.Value), Is.EqualTo(WFCavernClaim.Deferred),
+                        "A site under a loaded ground chunk was not deferred.");
+                    Assert.That(ground.Item2.Mouths.Any(mouth => mouth.Origin == origin), Is.False, "The deferred site was stamped.");
+                    Assert.That(ground.Item2.Shades.ContainsKey(origin), Is.False, "The deferred site has a shade.");
+                }
+            });
+
+            await UnloadChunks(pair, world.Ground, origin, origin);
+            await server.WaitAssertion(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+
+                Assert.That(mouths.TryClaimCell(ground, cell!.Value), Is.EqualTo(WFCavernClaim.Claimed),
+                    "The site was not stamped once its chunk unloaded.");
+
+                var mouth = ground.Item2.Mouths.Last();
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(mouth.Origin, Is.EqualTo(origin), "The claim stamped another site than the one it found.");
+                    Assert.That(mouth.Kind, Is.EqualTo(WFCavernMouthKind.Cell), "The claim stamped a mouth of another kind.");
+                }
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A cell that is all sea (Asclepiu's riverbed, Carcinoma's blood-sea floor) gets no mouth, and every mouth claimed
+    /// around each world's gate has its hole and lip on the world's ground tiles, clear of anything to avoid.
+    /// </summary>
+    [Test]
+    public async Task NoMouthOffTheAllowlist()
+    {
+        var seas = new Dictionary<string, string>
+        {
+            { "WFSurfaceAsclepiu", "FloorRiverbed" },
+            { "WFSurfaceCarcinoma", "WFBloodOceanSeabed" },
+        };
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        Entity<MapGridComponent>? noGrid = null;
+
+        await EnableCaverns(pair);
+
+        foreach (var surfaceId in Surfaces)
+        {
+            var world = await BuildWorld(pair, surfaceId);
+
+            try
+            {
+                var spec = CavernOf(pair, surfaceId).Mouths;
+                var gate = await Gate(pair, world);
+
+                await server.WaitAssertion(() =>
+                {
+                    var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                    var biome = entMan.GetComponent<BiomeComponent>(world.Ground);
+                    var first = WFCavernMouthSystem.CellOf(spec, gate.Origin);
+
+                    using (Assert.EnterMultipleScope())
+                    {
+                        if (seas.TryGetValue(surfaceId, out var sea))
+                        {
+                            var seaCell = FindSeaCell(biomes, tileDefs, biome, spec, first, sea);
+                            Assert.That(seaCell, Is.Not.Null, $"Precondition: no {surfaceId} cell near the gate is all {sea}.");
+
+                            if (seaCell is { } found)
+                            {
+                                Assert.That(mouths.EvaluateCell(ground, found), Is.Null, $"{surfaceId}: sea cell {found} has a site.");
+                                Assert.That(mouths.TryClaimCell(ground, found), Is.EqualTo(WFCavernClaim.Empty),
+                                    $"{surfaceId}: sea cell {found} is not Empty.");
+                            }
+                        }
+
+                        for (var dx = -1; dx <= 1; dx++)
+                        for (var dy = -1; dy <= 1; dy++)
+                        {
+                            mouths.TryClaimCell(ground, first + new Vector2i(dx, dy));
+                        }
+
+                        var allowed = spec.GroundTiles.Select(tile => tile.Id).ToHashSet();
+                        var avoid = spec.Avoid.Select(entity => entity.Id).ToHashSet();
+
+                        foreach (var mouth in ground.Item2.Mouths)
+                        {
+                            foreach (var index in mouth.Footprint)
+                            {
+                                Assert.That(biomes.TryGetTile(index, biome.Layers, biome.Seed, noGrid, out var tile), Is.True,
+                                    $"{surfaceId}: mouth tile {index} has no natural ground.");
+                                if (tile == null)
+                                    continue;
+
+                                var id = tileDefs[tile.Value.TypeId].ID;
+                                Assert.That(allowed, Does.Contain(id), $"{surfaceId}: a {mouth.Kind} mouth cuts {id} at {index}.");
+                                Assert.That(biomes.TryGetEntity(index, biome.Layers, tile.Value, biome.Seed, noGrid, out var entity)
+                                            && avoid.Contains(entity), Is.False,
+                                    $"{surfaceId}: a {mouth.Kind} mouth cuts through {entity} at {index}.");
+                            }
+                        }
+
+                        TestContext.Out.WriteLine($"{surfaceId}: {ground.Item2.Mouths.Count} mouths around the gate.");
+                    }
+                });
+            }
+            finally
+            {
+                await Teardown(pair, world);
+            }
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A viewer flying east over Merak on the first air layer claims the cells ahead through its eye on the ground: at
+    /// the end every cell within reach is Claimed or Empty, and every cell mouth stands intact in the terrain loaded
+    /// since. Logs what the claims cost.
+    /// </summary>
+    // From the air the viewer loads ground but no cavern, which keeps the test light.
+    [Test]
+    public async Task ClaimAheadOfViewer()
+    {
+        const string surfaceId = "WFSurfaceMerak";
+        // Mid cell (0, 0), so only that column can be left Deferred by the arrival, and it is out of reach at the end.
+        const int start = 48;
+        const int step = 8;
+        const int steps = 19;
+        const float settle = 2.5f;
+
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var maps = server.System<SharedMapSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+        var transform = server.System<SharedTransformSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var spec = CavernOf(pair, surfaceId).Mouths;
+
+            // One claim far away first, so compiling the claim code isn't counted in its cost.
+            await server.WaitPost(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                for (var x = -8; x <= -6; x++)
+                {
+                    mouths.TryClaimCell(ground, new Vector2i(x, -8));
+                }
+            });
+
+            var viewer = await PlanetFixture.AttachViewer(pair, world.Layers[1], new Vector2(start + 0.5f, 0.5f));
+            await server.WaitPost(() =>
+            {
+                entMan.RemoveComponent<CEZPhysicsComponent>(viewer);
+                mouths.ClaimStats.Reset();
+            });
+
+            for (var i = 1; i <= steps; i++)
+            {
+                var x = start + i * step + 0.5f;
+                await server.WaitPost(() => transform.SetCoordinates(viewer, new EntityCoordinates(world.Layers[1], new Vector2(x, 0.5f))));
+                await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
+            }
+
+            await pair.RunTicksSync(pair.SecondsToTicks(settle));
+
+            var end = start + steps * step;
+            await server.WaitAssertion(() =>
+            {
+                var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
+                var groundBiome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+                var levelBiome = (world.Cavern, entMan.GetComponent<BiomeComponent>(world.Cavern));
+                var groundGrid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var levelGrid = entMan.GetComponent<MapGridComponent>(world.Cavern);
+                var min = WFCavernMouthSystem.CellOf(spec, new Vector2i(end - WFCavernMouthSystem.ClaimReach, -WFCavernMouthSystem.ClaimReach));
+                var max = WFCavernMouthSystem.CellOf(spec, new Vector2i(end + WFCavernMouthSystem.ClaimReach, WFCavernMouthSystem.ClaimReach));
+                var rim = spec.Rim.Select(entity => entity.Id).ToHashSet();
+                var cellMouths = ground.Mouths.Where(mouth => mouth.Kind == WFCavernMouthKind.Cell).ToList();
+                var stats = mouths.ClaimStats;
+                var seconds = steps * 0.5f + settle;
+                var flown = cellMouths.Where(mouth => mouth.Origin.Y >= -7 * spec.CellSize).ToList();
+                var entities = flown.Sum(mouth => mouth.Size + mouth.Shape.Rim.Count + 1);
+
+                TestContext.Out.WriteLine(
+                    $"Claims over {seconds:F1} s: {stats.Stamped} mouths ({stats.Stamped / seconds:F2}/s), {stats.Candidates} candidates, " +
+                    $"{stats.BusyTicks} busy ticks, {stats.TotalMs:F1} ms in all, {stats.TotalMs / Math.Max(1, stats.BusyTicks):F2} ms a busy tick, " +
+                    $"{stats.MaxTickMs:F2} ms at most, {stats.StampMs / Math.Max(1, stats.Stamped):F2} ms a stamp; " +
+                    $"{entities} entities over {flown.Count} cell mouths.");
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(entMan.GetComponent<TransformComponent>(viewer).MapUid, Is.EqualTo(world.Layers[1]),
+                        "Precondition: the viewer left the air layer.");
+                    Assert.That(biomes.WfIsChunkLoaded(groundBiome, new Vector2i(end, 0)), Is.True,
+                        "Precondition: the ground under the viewer never loaded.");
+                    Assert.That(flown, Is.Not.Empty, "Precondition: the flight claimed no cell mouth.");
+
+                    for (var x = min.X; x <= max.X; x++)
+                    for (var y = min.Y; y <= max.Y; y++)
+                    {
+                        var cell = new Vector2i(x, y);
+                        var state = ground.Cells.TryGetValue(cell, out var found) ? found.State : WFCavernClaim.Unclaimed;
+                        Assert.That(state, Is.EqualTo(WFCavernClaim.Claimed).Or.EqualTo(WFCavernClaim.Empty),
+                            $"Cell {cell} within reach of the viewer is {state}.");
+                    }
+
+                    foreach (var mouth in flown)
+                    {
+                        foreach (var index in mouth.Hole)
+                        {
+                            Assert.That(maps.TryGetTileRef(world.Ground, groundGrid, index, out var tile) && !tile.Tile.IsEmpty, Is.False,
+                                $"Hole tile {index} of the mouth at {mouth.Origin} is filled.");
+                            Assert.That(biomes.WfIsPinned(groundBiome, index), Is.True, $"Hole tile {index} is not pinned.");
+                            Assert.That(tileDefs[maps.GetTileRef(world.Cavern, levelGrid, index).Tile.TypeId].ID, Is.EqualTo(spec.LandingTile.Id),
+                                $"The cavern under hole tile {index} is not the landing tile.");
+                            Assert.That(biomes.WfIsPinned(levelBiome, index), Is.True, $"The landing under hole tile {index} is not pinned.");
+                        }
+
+                        foreach (var index in mouth.Ring)
+                        {
+                            Assert.That(maps.TryGetTileRef(world.Ground, groundGrid, index, out var tile) && !tile.Tile.IsEmpty, Is.True,
+                                $"Lip tile {index} of the mouth at {mouth.Origin} is empty.");
+                            Assert.That(biomes.WfIsPinned(groundBiome, index), Is.True, $"Lip tile {index} is not pinned.");
+                        }
+
+                        foreach (var index in mouth.Footprint)
+                        {
+                            foreach (var anchored in maps.GetAnchoredEntities(world.Ground, groundGrid, index))
+                            {
+                                Assert.That(rim, Does.Contain(entMan.GetComponent<MetaDataComponent>(anchored).EntityPrototype?.ID ?? string.Empty),
+                                    $"{entMan.ToPrettyString(anchored)} stands in the footprint of the mouth at {mouth.Origin}.");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A ghost that loads no terrain claims nothing; an admin ghost claims the cells around it, but never stamps a
+    /// mouth where its own chunks are about to load, even with nothing loaded yet.
+    /// </summary>
+    // The ground's loader is off, so only the claim's own guard can keep the site under the ghost Deferred.
+    [TestCase("MobObserver", false)]
+    [TestCase("AdminObserver", true)]
+    public async Task GhostsClaimOnlyIfTheyLoadTerrain(string ghost, bool claims)
+    {
+        const string surfaceId = "WFSurfaceMerak";
+
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var spec = CavernOf(pair, surfaceId).Mouths;
+            Vector2i? cell = null;
+            WFCavernSite? site = null;
+            var before = new Dictionary<Vector2i, WFCavernClaim>();
+
+            await server.WaitPost(() =>
+            {
+                biomes.SetEnabled((world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground)), false);
+
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                var first = WFCavernMouthSystem.CellOf(spec, new Vector2i(240, 0));
+
+                for (var dx = 0; dx <= 2 && site == null; dx++)
+                {
+                    if (mouths.EvaluateCell(ground, first + new Vector2i(dx, 0)) is not { } found)
+                        continue;
+
+                    cell = first + new Vector2i(dx, 0);
+                    site = found;
+                }
+
+                foreach (var (index, state) in ground.Item2.Cells)
+                {
+                    before[index] = state.State;
+                }
+            });
+
+            Assert.That(site, Is.Not.Null, "Precondition: no cell east of the gate has a site.");
+
+            var viewer = await PlanetFixture.AttachViewer(pair, world.Ground, TileCentre(site!.Value.Origin), ghost);
+            await pair.RunTicksSync(pair.SecondsToTicks(1.5f));
+
+            await server.WaitAssertion(() =>
+            {
+                var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
+                var cellMouths = ground.Mouths.Where(mouth => mouth.Kind == WFCavernMouthKind.Cell).ToList();
+                var reach = biomes.WfLoadRange + ChunkSize;
+                var loading = Box2.CenteredAround(TileCentre(site.Value.Origin), new Vector2(reach * 2));
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(entMan.GetComponent<TransformComponent>(viewer).MapUid, Is.EqualTo(world.Ground),
+                        "Precondition: the ghost left the ground.");
+
+                    if (!claims)
+                    {
+                        Assert.That(cellMouths, Is.Empty, $"A {ghost} claimed cell mouths.");
+                        Assert.That(ground.Cells.ToDictionary(entry => entry.Key, entry => entry.Value.State), Is.EquivalentTo(before),
+                            $"A {ghost} changed cell claims.");
+                        return;
+                    }
+
+                    Assert.That(cellMouths, Is.Not.Empty, $"An {ghost} claimed no cell mouth around it.");
+                    Assert.That(ground.Cells[cell!.Value].State, Is.EqualTo(WFCavernClaim.Deferred),
+                        $"The site under an arriving {ghost} was not deferred.");
+
+                    foreach (var mouth in cellMouths)
+                    {
+                        var pad = new Box2(mouth.Min - new Vector2i(spec.PadRadius, spec.PadRadius),
+                            mouth.Max + new Vector2i(spec.PadRadius + 1, spec.PadRadius + 1));
+                        Assert.That(pad.Intersects(loading), Is.False,
+                            $"The mouth at {mouth.Origin} was stamped where the {ghost}'s chunks are about to load.");
+                    }
+                }
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Whether the ground's biome grows an entity on a tile.</summary>
+    private static bool GrowsEntity(BiomeSystem biomes, BiomeComponent biome, Vector2i index)
+    {
+        Entity<MapGridComponent>? noGrid = null;
+        return biomes.TryGetTile(index, biome.Layers, biome.Seed, noGrid, out var tile)
+               && biomes.TryGetEntity(index, biome.Layers, tile.Value, biome.Seed, noGrid, out _);
+    }
+
+    /// <summary>The nearest cell to a start cell whose natural ground, sampled every few tiles, is all one sea tile; searched outward ring by ring.</summary>
+    private static Vector2i? FindSeaCell(BiomeSystem biomes, ITileDefinitionManager tileDefs, BiomeComponent biome, WFCavernMouthSpec spec,
+        Vector2i from, string sea)
+    {
+        const int rings = 40;
+        const int sampleStep = 6;
+        Entity<MapGridComponent>? noGrid = null;
+
+        bool IsSea(Vector2i index)
+        {
+            return biomes.TryGetTile(index, biome.Layers, biome.Seed, noGrid, out var tile) && tileDefs[tile.Value.TypeId].ID == sea;
+        }
+
+        for (var ring = 0; ring <= rings; ring++)
+        {
+            for (var dx = -ring; dx <= ring; dx++)
+            for (var dy = -ring; dy <= ring; dy++)
+            {
+                if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != ring)
+                    continue;
+
+                var cell = from + new Vector2i(dx, dy);
+                var origin = cell * spec.CellSize;
+                if (!IsSea(origin + new Vector2i(spec.CellSize / 2, spec.CellSize / 2)))
+                    continue;
+
+                var all = true;
+                for (var x = 0; x < spec.CellSize && all; x += sampleStep)
+                for (var y = 0; y < spec.CellSize && all; y += sampleStep)
+                {
+                    all = IsSea(origin + new Vector2i(x, y));
+                }
+
+                if (all)
+                    return cell;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Fails on a hole out of range, split, pinched at a corner, spurred or enclosing ground, or on a bad lip, climb tile, rim spot or rim count.</summary>

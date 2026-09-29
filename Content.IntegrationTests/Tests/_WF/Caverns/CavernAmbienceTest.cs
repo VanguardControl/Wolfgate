@@ -51,6 +51,7 @@ public sealed class CavernAmbienceTest
         var cavern = CavernOf(pair, Surface);
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var cfg = client.ResolveDependency<IConfigurationManager>();
         var oldGain = 0f;

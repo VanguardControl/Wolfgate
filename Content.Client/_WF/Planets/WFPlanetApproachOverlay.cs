@@ -49,10 +49,8 @@ public sealed class WFPlanetApproachOverlay : Overlay
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
         // Only the tunnel is replaced: the spool-up and the arrival are the sector and the orbit layer themselves.
+        // No time window: the hull leaves the FTL map a few ticks after the end time, so the last frame holds until then.
         if (!_entMan.HasComponent<FTLMapComponent>(args.MapUid) || !TryGetApproach(out var approach))
-            return false;
-
-        if (_timing.CurTime < approach.Start || _timing.CurTime > approach.End)
             return false;
 
         return EnsureShader(approach);

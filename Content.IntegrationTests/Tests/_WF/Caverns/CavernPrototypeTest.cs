@@ -182,7 +182,7 @@ public sealed class CavernPrototypeTest
     }
 
     /// <summary>Walks a biome template and every template it nests, collecting their tiles and entities; returns the missing templates.</summary>
-    private static List<string> Walk(IPrototypeManager proto, string template, List<string> templates, HashSet<string> tiles,
+    internal static List<string> Walk(IPrototypeManager proto, string template, List<string> templates, HashSet<string> tiles,
         HashSet<string> entities)
     {
         var missing = new List<string>();

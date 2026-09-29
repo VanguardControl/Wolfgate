@@ -13,4 +13,10 @@ public sealed class CavernCVars
     /// </summary>
     public static readonly CVarDef<bool> Caverns =
         CVarDef.Create("wf.caverns", false, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether cavern mouths are claimed ahead of players as they explore; off leaves only the gate and admin mouths.
+    /// </summary>
+    public static readonly CVarDef<bool> CavernClaims =
+        CVarDef.Create("wf.cavern_claims", true, CVar.SERVERONLY);
 }

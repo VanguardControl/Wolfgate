@@ -7,16 +7,18 @@ public sealed partial class ScalingViewport
 {
     private WFCavernViewSystem? _wfCavernView;
 
-    /// <summary>Adds the cavern under a ground layer as a pass and floor of the view, when a hole shows it.</summary>
+    /// <summary>Adds the cavern under a ground layer as a pass and floor of the view, when a hole shows it to an observer on that ground.</summary>
     // Lower passes draw first and the ground's empty tiles draw nothing, so the cavern shows only through its holes.
     // A mouth, not any empty tile, opens it: unloaded ground at the edge of a far view keeps the sky it always had.
+    // Seen from above the ground there is no pass: the server sends no cavern there, and the hole stays dark.
     private void WfAddCavernPass(EntityUid ground, float groundDepth, float ownDepth, ref float? occludeBelowDepth)
     {
         _wfCavernView ??= _entityManager.System<WFCavernViewSystem>();
 
+        var onGround = _entityManager.GetComponentOrNull<TransformComponent>(_player.LocalEntity)?.MapUid == ground;
         var known = _wfCavernView.TryGetCavernBelow(ground, out var cavern);
-        var mouth = known && _wfCavernView.AnyHoleWithin(ground, WfLevelView(groundDepth, ownDepth));
-        if (WFCavernViewSystem.CavernPassDepth(groundDepth, known, mouth) is not { } depth)
+        var mouth = onGround && known && _wfCavernView.AnyHoleWithin(ground, WfLevelView(groundDepth, ownDepth));
+        if (WFCavernViewSystem.CavernPassDepth(groundDepth, known, mouth, onGround) is not { } depth)
             return;
 
         _zPasses.Add((cavern!.Value, depth, false, false));

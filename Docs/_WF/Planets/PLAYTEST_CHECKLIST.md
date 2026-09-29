@@ -30,7 +30,7 @@ The dev preset disables the lobby, which forces the sandbox preset, which carrie
 
 **Do (A, the real path).** Attach to an entity on the sector map (aghost is enough), then `wfplanet system SystemKyphrus`.
 
-**See.** `Set SystemKyphrus on map <n>.` Five bodies appear â€” Fervidus, Merak, Asclepiu, Aerumna, Thrascias. `wfplanet list` shows Asclepiu with `surface: WFSurfaceAsclepiu` and a network id; the other four have neither. `WFSurfaceAsclepiu` has `buildAtRoundStart: true`, so its five maps are built the moment it registers.
+**See.** `Set SystemKyphrus on map <n>.` Six bodies appear â€” Fervidus (6.2 km from the star), Merak (9.4 km), Asclepiu (11.5 km), Aerumna (14 km), Thrascias and Carcinoma (14.5 km each), all short of Monolith's drone belt, which starts at 18 km. `wfplanet list` shows each with its `surface:` and a network id; every surface has `buildAtRoundStart: true`, so each world's five maps are built the moment it registers.
 
 **Do (B, the shortcut).** `wfplanet spawn WFSurfaceAsclepiu` builds a **standalone** network at the sector origin with no sector body behind it.
 
@@ -127,7 +127,7 @@ Do not report these.
 ## Liftoff and Carcinoma hull infestation
 
 - A grounded shuttle offers **Liftoff**. With sufficient lift and power it spools up, climbs off the ground and settles hovering on the first air layer, then hands the hull back to the pilot; **R** from there climbs to orbit. Cancel from the same button or by pressing descend. Losing the pilot, power/lift, or acquiring a tether cancels the ascent.
-- Leave a stationary hull on Carcinoma for 45–75 seconds. Large flesh tendrils begin appearing around its perimeter, at most four; cut or attack every tendril to release the hull. The last tendril grants at least 45 seconds to launch before another can grow. A tendril on a docked hull also blocks departure.
+- Leave a stationary hull on Carcinoma for 45â€“75 seconds. Large flesh tendrils begin appearing around its perimeter, at most four; cut or attack every tendril to release the hull. The last tendril grants at least 45 seconds to launch before another can grow. A tendril on a docked hull also blocks departure.
 - Sealed hulls exclude biomass. Open an exterior door and wait for growth: actual chimera flesh enters and spreads across connected hull tiles. It cannot spread onto planet terrain or through a dock onto another grid. Growth is capped at 256 biomass entities per hull.
 - Supplied original audio is attributed to Gandalf under CC0-1.0. Existing borrowed audio retains its prior attribution.
 
@@ -137,8 +137,8 @@ Do not report these.
 - Each anchoring tendril plays the supplied quiet, positional loop (8-tile range, -12 dB). Removing the tendril removes its loop.
 - A newly grown tendril converts existing walls in its immediate 3x3 hull neighborhood to meat walls. Doors are preserved, and terrain walls beneath the ship are unaffected.
 
-- Carcinoma random accents now follow the same local day/night phase as its lighting and ambience beds. Night uses `carcinoma_random_sound_night_1`–`3`; dawn stops any remaining night accent. Other planets can optionally define separate day/night accent playlists, with their existing all-day lists as fallback.
-- Tendril growth randomly plays `tendril_deploy_1`–`3` once, alongside its quiet persistent loop. Imported one-shots have trailing silence trimmed and are normalized to match the existing planet accents.
+- Carcinoma random accents now follow the same local day/night phase as its lighting and ambience beds. Night uses `carcinoma_random_sound_night_1`â€“`3`; dawn stops any remaining night accent. Other planets can optionally define separate day/night accent playlists, with their existing all-day lists as fallback.
+- Tendril growth randomly plays `tendril_deploy_1`â€“`3` once, alongside its quiet persistent loop. Imported one-shots have trailing silence trimmed and are normalized to match the existing planet accents.
 
 ## Flesh ticks and pustule traps
 
@@ -171,7 +171,8 @@ Do not report these.
 - **Jetpacks.** Step off a hull on the orbit layer with a jetpack on: you hold the layer. Switch it off, or let the tank run dry, and you fall (and are maimed on the surface, as before). On any layer below orbit the pack refuses to start ("cannot hold you up in atmosphere"), and a wearer carried below orbit on a hull has the pack cut.
 - **Unsanctioned worlds.** *Enter orbit* on an unsanctioned world opens a red warning first; Abort sends nothing, *Enter orbit* proceeds. A raw unconfirmed request is refused server-side with a popup. Flip a world's sanction from the admin panel to test both.
 - **Gravity well.** Park a shuttle inside a world's orbit range in open space and cut every linear thruster (or its power). The PA warns once, the hull drifts towards the body, slowly at the rim and faster close in, and inside 35% of the range it is captured onto the orbit layer, where orbit decay takes over. Any running linear thruster, a force anchor, or a dock to a powered hull stops the pull.
-- **Approach cinematic.** Enter orbit from the console: after spool-up the hyperspace tunnel is replaced by the planet itself, starting where it stood in the sector sky and swelling to fill the view; leaving orbit plays the reverse. Only the crew of the hopping hull see it; a hull docked to it still sees the tunnel.
+- **Approach cinematic.** Enter orbit from the console: after spool-up the hyperspace tunnel is replaced by the planet itself, starting where it stood in the sector sky and swelling to fill the view; leaving orbit plays the reverse. Crews of hulls docked to it when the tunnel opens see it too; a tender that casts off during the spool-up stays behind with its ordinary view. The last frame holds until the hull arrives: no flash of streaking stars between the full (or shrunken) planet and the orbit or sector view, on either hop.
+- **Drone belt.** Fly to Aerumna, Thrascias and Carcinoma and enter and leave orbit: no drones spawn at the beacon, in the well or where you drop out of orbit. The worlds sit at most 14.5 km out with 2 km wells; the belt starts at 18 km. `PlanetDroneBeltTest` fails if Monolith moves the belt or a world is moved into it. Drones already spawned at the belt's edge by some other ship can still lock on anywhere in the Thrascias and Carcinoma wells, since those bodies sit about 3.4 km from it; that is expected.
 - **Building on the surface.** Rods lay lattice straight onto natural ground; plating and floors then go on as usual. Cutting the lattice gives the original ground tile back, not a hole. Already-built tiles and tiles the biome did not place are untouched by this.
 - **Landing kits.** In the YouTool, and printable at an autolathe (Tools).
 - **Parachutes.** AstroVend and autolathe. Use on a crate, an item or a person (or in hand, for yourself): 3 s to strap on. Push them off a hull in orbit: the canopy opens on the first level fallen through, the fall is held slow, there is no damage, and the pack is left at the landing site. A step down a ledge does not open it.

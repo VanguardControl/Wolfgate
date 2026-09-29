@@ -20,8 +20,8 @@ using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
 /// <summary>
-/// The eye cap: a viewer on or above the ground loads the cavern under it only while one of its holes is in view, and a
-/// cavern viewer keeps the ground above loaded.
+/// The eye cap: a viewer standing on the ground loads the cavern under it only while one of its holes is in view, a
+/// viewer above the ground never does, and a cavern viewer keeps the ground above loaded.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WFCavernEyeSystem))]
@@ -44,6 +44,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         await EnablePvs(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
@@ -101,6 +102,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         await EnablePvs(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
@@ -159,6 +161,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
         // An eye sees a square whose side is net.pvs_range.
@@ -201,6 +204,7 @@ public sealed class CavernViewerEyeTest
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 
@@ -227,15 +231,16 @@ public sealed class CavernViewerEyeTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A viewer on the first air layer over a mouth has eyes on the ground and on the cavern, and one far from it only on the ground.</summary>
+    /// <summary>A viewer on the first air layer right over a mouth has an eye on the ground but none on the cavern, and loads none of it.</summary>
     [Test]
-    public async Task AirViewerOverMouthLoadsCavern()
+    public async Task AirViewerOverMouthLoadsNoCavern()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
         var entMan = server.EntMan;
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
         var gate = await Gate(pair, world);
 
@@ -246,24 +251,20 @@ public sealed class CavernViewerEyeTest
 
         await server.WaitAssertion(() =>
         {
+            var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
+
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(entMan.GetComponent<TransformComponent>(viewer).MapUid, Is.EqualTo(world.Layers[1]),
                     "Precondition: the viewer left the air layer.");
+                Assert.That(WFCavernEyeSystem.AnyHoleWithin(ground, TileCentre(gate.Origin), 1f), Is.True,
+                    "Precondition: the viewer is not over the mouth.");
                 Assert.That(EyesOn(entMan, world.Ground), Has.Count.EqualTo(1), "An air viewer has no eye on the ground.");
-                Assert.That(EyesOn(entMan, world.Cavern), Has.Count.EqualTo(1),
-                    "An air viewer over a mouth has no single eye on the cavern.");
-            }
-        });
-
-        await MoveEastOfHole(pair, gate, viewer, FarAway);
-
-        await server.WaitAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(EyesOn(entMan, world.Ground), Has.Count.EqualTo(1), "A far air viewer lost its eye on the ground.");
-                Assert.That(EyesOn(entMan, world.Cavern), Is.Empty, "An air viewer far from every hole has an eye on the cavern.");
+                Assert.That(EyesOn(entMan, world.Cavern), Is.Empty, "An air viewer over a mouth has an eye on the cavern.");
+                Assert.That(entMan.GetComponent<BiomeComponent>(world.Cavern).LoadedChunks, Is.Empty,
+                    "An air viewer over a mouth loaded cavern chunks.");
+                Assert.That(entMan.HasComponent<WFCavernViewerComponent>(viewer), Is.False,
+                    "An air viewer is recorded as seeing the cavern.");
             }
         });
 
@@ -281,6 +282,7 @@ public sealed class CavernViewerEyeTest
         var viewerPos = new Vector2(40.5f, 40.5f);
 
         await EnableCaverns(pair);
+        await DisableClaims(pair);
         var world = await BuildWorld(pair, Surface);
 
         var viewer = await PlanetFixture.AttachViewer(pair, world.Cavern, viewerPos);

@@ -22,7 +22,8 @@ You get down by walking into a cave mouth, which is a real, pinned hole in the g
 can also climb down beside it. You get back up by climbing the steps, rope or roots at the foot of the shaft, with no
 equipment. Mouths are wherever players go: the ground is split into cells about 96 tiles across, and each cell's
 mouth is claimed just ahead of the terrain streaming in. Every world also has a gate mouth near its centre, and any
-hole a shovel or an explosion opens in the ground becomes a way down too.
+hole opened in the ground becomes a way down too: a shovel digs a slow shaft through any natural ground, and
+explosions, the RCD and cut lattice open it as well.
 
 The reason to go down is ore. Cavern rock is solid and veined, far richer than the surface's scattered boulders, and
 some ore exists only below. Hazards warn before they strike: vents hiss, unstable rock is visibly cracked, the ceiling
@@ -91,8 +92,8 @@ Checked in code on this branch. Line numbers are approximate.
    - Direct entity-layer spawns are tracked in `LoadedEntities`: untouched ones unload, mined ones mark the tile
      modified.
    - Marker-layer spawns pin their tile and never unload.
-   - `GetNoise` allocates and serialiser-copies a noise object on every call, about 3 µs, so pure sampling costs
-     microseconds per layer per tile.
+   - `GetNoise` serialiser-copies a layer's noise once per seed and reuses the copy (`WFBiomeNoiseCacheSystem`), so
+     pure sampling costs about 0.2 µs per layer per tile, mostly the noise itself.
 9. **Eyes load chunks.** `UpdateViewer` (`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs:147-199`) spawns a
    `CEZLevelEye` on every map below the viewer, up to 10 of them, and one above. The eye has no `GhostComponent`, so
    biome chunks load around it: item 7's fixed area, whatever the eye's PVS scale. Without a change, every ground, air
@@ -136,11 +137,21 @@ Checked in code on this branch. Line numbers are approximate.
     - `FloorBasalt`, `FloorIce`, `FloorWater` and `FloorSnowDug` are indestructible with no tools.
     - Explosions skip `Indestructible` (`ExplosionSystem.Processing.cs:522`).
     - `ContentTileDefinition` inherits through `parent` (precedent: `WFFloorFlesh`).
+    - A shovel's dig takes `1 s × deconstructTimeMultiplier / 0.5` (the shovel's tool speed): sand 2 s, desert 4 s then
+      2 s. The multiplier defaults to 0, so snow, dirt and flesh go at once.
+    - `PryTileReaction` (fluorosulfuric acid, which xenos bleed, and chlorine trifluoride) calls `DeconstructTile`
+      directly: only the base turf counts, not `indestructible` or `deconstructTools` (`PryTileReaction.cs:40`).
+    - Lattice goes straight onto natural planet ground, the cavern's included (`FloorTileSystem.WfIsPlanetTerrain`), and
+      only `DeconstructTile` gives the recorded ground back: an RCD sets lattice to `Tile.Empty` and a blast breaks it
+      to `Space`. So lattice opens any natural ground, and could open the cavern floor (F2c closes that, 3.4).
 15. **Existing subscriptions.**
     - `CEZLevelFallMapEvent` is subscribed on `CEZPhysicsComponent` (`View.cs`), `MobStateComponent`
       (`WFOrbitalMobFallSystem`) and `WFParachutedComponent`.
     - `TileChangedEvent` is subscribed directed on `CEZMapComponent`, `CEZLevelRoofComponent` and `ShuttleComponent`.
     - `GatheredEvent` is subscribed on `OreVeinComponent` (`MiningSystem`).
+    - F2c takes these free server pairs: `TileChangedEvent` on `WFCavernGroundComponent` and on
+      `WFCavernLayerComponent`, `EntityTerminatingEvent` on `WFCavernShaftComponent` and on `WFCavernClimbComponent`,
+      and `AfterInteractEvent` and the shaft DoAfter event on `ShovelComponent`.
     - There is no cancellable pre-move event for non-grid entities.
 16. **Guidebook.** The upstream `Salvage` guide entry is commented out (`Resources/Prototypes/Guidebook/cargo.yml:16`),
     so the cavern guide hangs under `Expeditions` (`Resources/Prototypes/_NF/Guidebook/expeditions.yml`).
@@ -250,8 +261,11 @@ line.
   `WfEyesStopUnder` (`Content.Server/_WF/Caverns/CEZLevelsSystem.Caverns.cs`) stops the walk under a ground layer
   unless `WFCavernEyeSystem.SeesCavern` finds one of its holes in the viewer's view, and always under a cavern looked
   into from above, so only that one level opens. The rule:
+  - Only a viewer standing on the ground (its map is the ground map, on foot or aboard a hull parked there) looks
+    into the cavern (F2c). From the air or orbit a hole shows dark, and their eyes stop at the ground.
   - A hole is an open hole tile: an entry in `WFCavernGroundComponent.Shades`. A hole with no shade doesn't count;
-    the F2c hole queue gives dug and blown holes theirs.
+    the F2c hole queue gives dug and blown holes theirs, and asks for a check on the next tick (`CheckSoon`) whenever
+    it adds or takes one, so the view opens or closes at once.
   - A viewer sees a hole when one lies within the square an eye on the ground sees, plus 4 tiles (`EnterMargin`).
     That square's half-size is half of `net.pvs_range` (RT's cvar is the side, `PvsSystem.CalcViewBounds` halves it)
     times the PVS scale the ground eye gets: the viewer's own scale and zoom, widened for each level it is above the
@@ -269,8 +283,9 @@ line.
   How this affects each kind of viewer:
   - **Ground viewer:** gets an eye on the cavern while a hole is in view, and none otherwise.
   - **Ghosts:** an observer gets none, as it loads no ground either; an admin ghost gets one like a player.
-  - **Air and orbit viewers:** keep their eyes down to the ground, and get one on the cavern on the same rule, over
-    the wider range their height gives them. It falls out of the walk; nothing tells them apart.
+  - **Air and orbit viewers:** keep their eyes down to the ground but get none on the cavern (F2c): over the wider
+    range their height gives them they would usually have a mouth in view, and each cavern eye loads 81 chunks. A hole
+    seen from above is dark; their eye on the ground still claims mouths (3.2).
   - **Cavern viewer:** has nothing below. It keeps its eye on the ground above, so the ground over it stays loaded
     and roofs it.
   - **Networks without a map below ground:** nothing changes.
@@ -282,7 +297,12 @@ line.
   shares with the ground. A ground viewer far from every mouth is sent none.
 - **Cavern pass**, in `Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`, `RenderZLevels`: two marked
   lines, where the view stops at a ground layer (the observer's own, and one the downward walk reaches), call
-  `WfAddCavernPass` (`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`). See 2.7.
+  `WfAddCavernPass` (`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`), which adds a pass only for the
+  observer's own ground (F2c). See 2.7.
+- **Acid** (F2c), in `Content.Server/Chemistry/TileReactions/PryTileReaction.cs`: a marked block before
+  `DeconstructTile` returns without prying when `WFCavernDigSystem.ResistsChemicalPrying` says the tile is ground over a
+  cavern that no tool can take apart (no `deconstructTools`), such as Aerumna's chromite. Xenos bleed the acid, and
+  every bleed onto bare chromite opened a shaft. Built floors, sand and snow still pry.
 - **Sky**, in `Content.Client/Parallax/ParallaxOverlay.cs`, `BeforeDraw`: one marked line (and its `using`) draws no
   parallax on a map `WFCavernViewSystem.HidesSky` names. See 2.7.
 - **`Resources/ConfigPresets/Build/development.toml`** (F1b, landed): inside the existing `[wf]` table, which sits
@@ -339,6 +359,7 @@ Edits inside other `_WF` modules need no marker:
 | `rim` | empty | Decor anchored on random lip tiles, never on or beside the climb tile |
 | `rimCount` | 3 | About how many rim decor entities a hole at the top of the size range gets; a smaller one gets proportionally fewer, at least one |
 | `climbSeconds` | 4 | Base climb-up time, × `clamp(surface gravity, 1, 2.5)` |
+| `shaftSeconds` | 15 | Time a standard shovel (tool speed 0.5) takes to dig a shaft through ground it can't otherwise dig (F2c); a faster tool takes less, the digger's hands don't change it. No world overrides it |
 
 A cavern's own `ambience` is a `wfPlanetAmbience` with no `planetType`: the network picks a surface's soundscape by
 planet type, so one without is never picked for a surface, and `PlanetAmbiencePrototypeTest` counts only those with
@@ -378,7 +399,7 @@ Example (F2 shape):
 | `WFCavernLayerComponent` | Shared, networked | cavern map | `Cavern` (proto id); server-only `Ground` |
 | `WFCavernShaftComponent` | Shared, networked | shade entities | `Cavern` (proto id), `Air` (`WFCavernAir`), `LandingMultiplier` (float) |
 | `WFCavernClimbComponent` | Shared, networked | climb points | `Delay` (seconds, gravity already applied) |
-| `WFCavernGroundComponent` | Server | ground map | `Cavern`, `Prototype`, `Centre` (the planet centre, for the gate candidate), `Cells` (`Dictionary<Vector2i, WFCavernCell>`: `State` = Unclaimed/Claimed/Deferred/Empty (`WFCavernClaim`), `Evaluated`, cached `Site`: anchor and shape), `Mouths` (list of `WFCavernMouth`: `Origin` (the anchor), `Shape`, `Hole`, `Ring`, `ClimbTile`, `Kind` = Gate/Cell/Hole/Admin), `Shades` (`Dictionary<Vector2i, EntityUid>`), `ClimbPoints` (`Dictionary<Vector2i, EntityUid>`) |
+| `WFCavernGroundComponent` | Server | ground map | `Cavern`, `Prototype`, `Centre` (the planet centre, for the gate candidate), `Cells` (`Dictionary<Vector2i, WFCavernCell>`: `State` = Unclaimed/Claimed/Deferred/Empty (`WFCavernClaim`), `Evaluated`, `Cursor` (the next candidate, so an evaluation spans ticks), cached `Site`: anchor and shape), `Mouths` (list of `WFCavernMouth`: `Origin` (the anchor), `Shape`, `Hole`, `Ring`, `ClimbTile`, `Kind` = Gate/Cell/Admin), `Shades` (`Dictionary<Vector2i, EntityUid>`), `ClimbPoints` (`Dictionary<Vector2i, EntityUid>`), and the hole queue's `Opened`, `Closed` and `FloorOpened` (`HashSet<Vector2i>`, F2c) |
 | `WFCavernUnstableComponent` (F5) | Server | unstable rock and vent walls | `Disturbance` (int), `CaveIn` (bool) |
 | `WFCavernStateComponent` (F5) | Server | cavern map | `Disturbance`, `Warned`, `NextAwakening` |
 
@@ -395,7 +416,9 @@ it), applied in this order:
 Partial pressure is `moles × Atmospherics.R × T / volume`. The shade stores the result when it spawns, so examine is
 shared and predicted.
 
-Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable, NetSerializable]`).
+Shared events (`[Serializable, NetSerializable]`): `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent`, and
+`WFCavernShaftDigDoAfterEvent : DoAfterEvent` (F2c: the ground and the tile a shovel shaft is dug through). A dug hole
+is not a mouth: F2c dropped the unused `Hole` kind.
 
 ### 2.6 Server systems
 
@@ -411,8 +434,8 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
   - F1: `(WFPlanetWildlifeComponent, CEZLevelFallMapEvent)` is a free pair. Surface wildlife that falls into a cavern
     over an *unloaded* ground chunk is deleted, so it never leaks against the fauna caps as a `Protected` resident of
     the void (2.1 item 4). The handler reads the ground tile above the landing position: it is deleted only when that
-    tile is empty, not pinned (`WfIsPinned`) and its chunk is not loaded (`WfIsChunkLoaded`). A hole dug or blown in a
-    loaded chunk is pinned only when that chunk unloads, so until then the loaded check is what keeps its fallers.
+    tile is empty, not pinned (`WfIsPinned`) and its chunk is not loaded (`WfIsChunkLoaded`). Since F2c the hole queue
+    pins a hole dug or blown in a loaded chunk within a tick; before that, the loaded check kept its fallers.
     A mob with a mind is never deleted. The event is raised inside the z-physics pass, so the delete is a `QueueDel`.
   - F4 (built): every second it mirrors the ground's `WFPlanetEnvironmentComponent` onto the cavern, with `Weather`
     set to `wf-cavern-weather-underground`, and gives the cavern a `WFPlanetAmbienceComponent`: the cavern's own
@@ -423,17 +446,25 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
   shades, climb points and the registry. Test and admin API: `GetGate`, `TryClaimCell` (returns
   Claimed/Deferred/Empty), `TryOpenMouth(ground, origin, out refusal, ignore)`, `TryGetNearestMouth`; `ClaimGate` is
   what `WFCavernSystem` calls from the built event. F2a landed the main file and `.Claims.cs` (candidates, pure
-  checks, state checks, stamping); the polling loop that claims ahead of viewers (F2c) calls `TryClaimCell`, and
-  `.Holes.cs` (F2c) adds the hole queue.
+  checks, state checks, stamping). F2c added the polling in `.Claims.cs` that claims cells ahead of whoever loads
+  terrain (3.2), `EvaluateCell` (a cell's site without stamping it) and `ClaimStats` (what the claims cost, read by
+  the tests), and `.Holes.cs`, the hole queue (3.4) on `(WFCavernGroundComponent, TileChangedEvent)`, with
+  `(WFCavernLayerComponent, TileChangedEvent)` keeping the cavern floor closed and `EntityTerminatingEvent` on shades
+  and climb points dropping registry entries for entities deleted any other way.
+- **`WFCavernDigSystem`** (F2c): the shovel shaft (3.5) on `(ShovelComponent, AfterInteractEvent)` and
+  `(ShovelComponent, WFCavernShaftDigDoAfterEvent)`, with `CanDigShaft`, and `ResistsChemicalPrying`, which the marked
+  acid block asks (2.3).
 - **`WFCavernClimbSystem : SharedWFCavernClimbSystem`** (F2b): the move itself, server only, on
   `(WFCavernClimbComponent, WFCavernClimbDoAfterEvent)` (up) and `(WFCavernShaftComponent, WFCavernClimbDoAfterEvent)`
   (down). Test API: `ClimbUp`, `ClimbDown`, `FindExit` (3.6) and `TryFindLanding` (3.5). Hauling is F5.
 - **`WFCavernHazardSystem`** (F5): cave-ins, vents and disturbance.
 - **`WFCavernCommand`** (F2): `wfcavern`.
-- **`BiomeSystem.Caverns.cs`** (`Content.Server/_WF/Caverns/`, namespace `Content.Server.Parallax`) exposes two
-  helpers that need the protected `ChunkSize`:
+- **`BiomeSystem.Caverns.cs`** (`Content.Server/_WF/Caverns/`, namespace `Content.Server.Parallax`) exposes helpers
+  that need the loader's private state:
   - `WfIsChunkLoaded(Entity<BiomeComponent>, Vector2i)` (F1b; the wildlife handler is its first user);
-  - `WfIsBiomeSpawned(Entity<BiomeComponent>, EntityUid, Vector2i)` (F2).
+  - `WfIsBiomeSpawned(Entity<BiomeComponent>, EntityUid, Vector2i)` (F2);
+  - `WfCanLoad(EntityUid)`, whether an entity's view may generate terrain;
+  - `WfLoadRange` (F2c), the half-side of the box a loader loads, for the claims' load guard.
 
   Pinning uses the existing Planets `WfPinTiles` and `WfIsPinned`. Pure evaluation uses the public
   `TryGetTile`/`TryGetEntity` with `grid: null`.
@@ -452,7 +483,9 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
   events on the same components.
 - **Cavern view** (after the shaped mouths): a hole shows the cavern under it, drawn by CE's z-level renderer.
   - `WfAddCavernPass` adds the cavern as a pass one level below a ground layer, and moves the floor of the view down
-    to it, when this client has the cavern's map (`WFCavernViewSystem.TryGetCavernBelow`) and a shade lies in its view
+    to it, when the observer stands on that ground (F2c: from the air or orbit the server sends no cavern, so the
+    hole stays dark, with the sky still kept out of it), this client has the cavern's map
+    (`WFCavernViewSystem.TryGetCavernBelow`) and a shade lies in its view
     of the ground (`WFCavernShadeVisualsSystem.AnyPitWithin`, over the observer's view plus a tile, widened and
     shifted as the ground's pass is: `WFCavernViewSystem.LevelViewBox` widens by the pass's absolute depth and shifts
     by its depth below the observer, as the pass eye is built). `CavernPassDepth` and `LevelViewBox` are pure
@@ -497,6 +530,11 @@ Shared events: `WFCavernClimbDoAfterEvent : SimpleDoAfterEvent` (`[Serializable,
 stay unchanged until caverns are signed off. `development.toml` turns the CVar on since F1b, which landed it together
 with the hull guard and the eye cap, so development builds have caverns on. It is read at build time, so it affects
 networks built after it changes.
+
+`CavernCVars.CavernClaims` (`wf.cavern_claims`, `CVar.SERVERONLY`, F2c) defaults to **true**: the kill switch for lazy
+claims (3.2). Off, a world keeps its gate and admin mouths, and holes are still fitted out. Tests that need a fixed set
+of mouths (the eye, view, ambience, generation and command tests, and the hull climb) turn it off through
+`CavernFixture.DisableClaims`.
 
 ### 2.9 How a cavern is generated
 
@@ -638,13 +676,15 @@ and a hole shows none of the tile grid's square corners.
 ### 3.2 Cells and claims
 
 - **Cells.** Cell index = `floor(tile / cellSize)` on the ground grid.
-- **Polling.** Every 0.5 s, `WFCavernMouthSystem` collects claim sources for each ground map with
-  `WFCavernGroundComponent`:
-  - every session's attached entity, if it is on that ground or its cavern;
-  - every view-subscription eye on either map.
-- **Claim range.** Each unclaimed cell whose square intersects a ±96-tile box around a source is claimed. Chunks load
-  up to about 40 tiles out (2.1 item 7), so a claim lands at least 56 tiles ahead of the load front. Air-layer ships
-  at 12 m/s move 6 tiles per poll.
+- **Polling.** Every 0.5 s (`ClaimInterval`), `WFCavernMouthSystem` collects claim sources for each ground map with
+  `WFCavernGroundComponent`: exactly what the biome loader counts as loading terrain there, each session's attached
+  entity and every entity in its `ViewSubscriptions`, z-level eyes included, on that ground or its cavern, when
+  `WfCanLoad` allows it. A ghost that loads nothing claims nothing, an admin ghost claims, and a viewer in the air or
+  in orbit claims through its eye on the ground (F2c deviation: this section first counted every attached entity).
+  `wf.cavern_claims` turns the polling off (2.8).
+- **Claim range.** Each unclaimed or deferred cell whose square intersects a ±96-tile box around a source is due, the
+  nearest a source first. Chunks load up to about 40 tiles out (2.1 item 7), so a claim lands at least 56 tiles ahead
+  of the load front. Air-layer ships at 12 m/s move 6 tiles per poll.
 - **Candidates.** The gate cell, the cell holding `Centre + gateOffset`, tries that tile first, with a shape seeded by
   `WFCavernMouthShape.SeedAt(seed, tile)`. Every cell then tries 8 candidates drawn from
   `new System.Random(unchecked(seed * 7919 + cell.X * 73856093 + cell.Y * 19349663))`: each draws a shape seed and two
@@ -670,19 +710,27 @@ and a hole shows none of the tile grid's square corners.
     ground something else changed. The cell becomes **Empty**. The gate is placed where its candidate lies, so near its
     cell's edge its hole and pad can reach into the next cell, whose site would otherwise wait on them for ever.
   - Otherwise the cell is **Deferred** and retried on the next poll while a footprint tile holds an anchored entity, a
-    grid other than the map lies within 4 tiles of the footprint's bounds, or a ground chunk under the footprint or a
-    cavern chunk under the pad is in `LoadedChunks`.
+    grid other than the map lies within 4 tiles of the footprint's bounds, a ground chunk under the footprint or a
+    cavern chunk under the pad is in `LoadedChunks`, or (F2c) the pad's box meets the box a source's loader is about to
+    load (`WfLoadRange` plus one chunk around the source). Nothing checks for mobs, so without that guard a poll landing
+    between a player's arrival and the loader's next 0.1 s pass would open a mouth under them.
 - **Empty cells.** If none of the 8 candidates passes the pure checks, the cell is **Empty** for good too: a sea cell
   has no mouth. A cell whose site stays blocked by something players built simply stays Deferred.
-- **Instant arrivals.** FTL preloads and admin teleports load chunks with no warning. They only delay a mouth; they
-  never make a mouth cut into loaded terrain.
+- **Instant arrivals.** FTL preloads and admin teleports load chunks with no warning. They never make a mouth cut into
+  loaded terrain, but they can do more than delay it: when the chunks unload, the tile of any biome entity that went
+  meanwhile is pinned (a fauna marker deletes itself on spawn, a rock may be mined), and a pinned footprint or pad tile
+  makes the cell Empty.
 - **Gate.** At build, from the built event, cells are claimed outward from the gate cell (its own, then its edge
   neighbours, then its corners), up to 9, until one is Claimed. That site is the gate (`Kind = Gate`). A cell the
   search leaves Deferred stays Deferred, and the F2c polling claims it later as an ordinary cell.
 - **Cost.** A candidate grows its shape (well under a millisecond) and evaluates 5 cavern lookups, then one tile and
   one entity lookup per footprint tile, 20 to 70 of them (2.1 item 8). The site is
-  computed once and cached in the cell, so a Deferred cell's retries only re-run the cheap state checks. The claim
-  step logs a warning when one cell takes more than 20 ms.
+  computed once and cached in the cell, so a Deferred cell's retries only re-run the cheap state checks. The polling
+  spends about 2 ms a tick (`ClaimBudgetMs`): a cell's candidates are tried one at a time from a cursor in the cell,
+  so an evaluation spans ticks, and a site found late in a tick is stamped on the next. One candidate taking more than
+  20 ms is logged. Measured in `ClaimAheadOfViewer` (DebugOpt, one viewer flying east over Merak at 16 tiles a second,
+  12 s): 11 mouths stamped (0.9 a second), 47 candidates, 12 busy ticks, 3.3 ms a busy tick and 7.1 ms at most (the
+  budget, one candidate and one stamp, which takes 2.6 ms), about 21 entities a mouth.
 
 ### 3.3 Stamping a site
 
@@ -698,7 +746,7 @@ Each map gets one `SetTiles` call per site. All of it works on unloaded chunks.
      `padRadius` of a hole tile in either axis).
    - Pin every pad tile. Pinned tiles skip entity generation, so no rock ever spawns on the pad.
 3. **Entities.**
-   - One `shade` spawns on each hole tile that has none (F2c's `EnsureHole` reuses this). It stores the cavern, the
+   - One `shade` spawns on each hole tile that has none (`SpawnShade`, which the hole queue reuses). It stores the cavern, the
      level's air (`WFCavernAirClassifier.Classify`) and the landing tile's `fallDamageMultiplier`.
    - `landingEntity`, when set, is anchored on every pad tile that is the landing tile, hole or not, and on every
      other pad tile where the cavern would grow it, unless one is already there: pinned tiles grow no biome entities,
@@ -709,37 +757,72 @@ Each map gets one `SetTiles` call per site. All of it works on unloaded chunks.
 
 ### 3.4 Holes opened later (the hole queue)
 
-`WFCavernMouthSystem` subscribes `(WFCavernGroundComponent, TileChangedEvent)`, a new pair. For each change it records
-the index in one of two queues:
-- `opened`: the tile went from non-empty to empty;
-- `closed`: it went from empty to non-empty.
+`WFCavernMouthSystem.Holes.cs` subscribes `(WFCavernGroundComponent, TileChangedEvent)`, a new pair. The handler runs
+inside `SetTiles`, the biome loader's included, so it only records each change whose emptiness flipped:
+- `Opened`: the tile went from non-empty to empty;
+- `Closed`: it went from empty to non-empty over a tile with a shade.
 
-Both queues are processed in `Update`, every tick.
+Both queues are processed in `Update`, every tick, `Closed` first.
 
-- **`opened`.** The index is skipped unless the ground tile is still empty **and** its biome chunk is still in
-  `LoadedChunks`. `UnloadTiles` empties tiles before `LoadedChunks.Remove`, so emptiness caused by an unload is dropped
-  here. Otherwise the system runs these steps:
-  1. **`EnsureHole(index)`**:
-     - pin the ground tile;
-     - if the cavern tile is not pinned: when its chunk is loaded, delete the anchored entities on it that
-       `WfIsBiomeSpawned` reports (never anything a player built); set the natural cavern tile if the tile is empty;
-       pin it;
-     - spawn a shade if the index has none.
-  2. **`EnsureClimbNear(index)`**: if no climb point lies within 8 tiles, take the first 8-neighbour ground tile that
-     is solid, not a hole, not under a grid and free of hard anchored entities. Prepare its cavern tile the same way,
-     then anchor a climb point there. If no neighbour qualifies, the pit gets no climb point, and its climbers use
-     the nearest mouth.
-- **`closed`.** Delete the shade at that index. This covers lattice or a tile laid over a hole. Removing it again
-  reopens the hole through `opened`.
+- **`Opened`**: every queued tile is checked each tick, as the checks are cheap. A tile is dropped when it has a shade
+  already (a mouth's own hole: `Stamp` registers its shades as it cuts it), when it is no longer empty, or when it is
+  neither on a loaded chunk nor pinned. `UnloadTiles` empties only natural tiles, never pins them, and empties them
+  before `LoadedChunks.Remove`, so an unload's tiles are exactly the empty, unpinned ones off loaded chunks; a hole
+  whose chunk unloads before the queue runs was pinned by the unload itself, and is kept (F2c: the pin as well as the
+  chunk, which closes that race). Every other tile is a real hole. The holes are sorted and up to 256 a ground a tick
+  (`OpenedPerTick`) are fitted out; the rest wait. Review fix: the cap once counted every queued tile, so the
+  thousands an unload queues held a hole dug in the same tick back for over a second, past the faller's arrival.
+  1. **`EnsureHoles`**, one batch a tick:
+     - pin the ground tiles, and drop lattice's record of the ground once under them
+       (`WFPlanetBuiltTilesComponent.Underlay`), so lattice laid over the hole and cut again reopens it instead of
+       plugging it;
+     - **landing** (user decision): the world's `landingTile` under the hole, and the cavern cleared a tile around it
+       (a 3×3). Every entity the biome still tracks there is deleted (rock, flora, never anything built), the tiles are
+       set to their natural floor where they aren't pinned or are empty, and all of it is pinned, so no rock grows back
+       and nobody lands boxed in. A pinned tile keeps what is on it (a mouth's pad, an earlier landing, a floor someone
+       built), except natural floor under the hole itself, which takes the landing tile. `landingEntity` is laid as
+       `Stamp` lays it, so Asclepiu's holes land in water;
+     - a shade on each hole, with the level's air and the fall multiplier of the tile now under it;
+     - wake the z-physics bodies standing on it, so sleeping items and mobs drop; never what is inside them
+       (`LookupFlags.Uncontained`), as a woken limb falls out of its body;
+     - `CheckSoon` on the eye system, so the view below opens on the next tick instead of at the next check.
+  2. **`EnsureClimbs`**: nothing inside a mouth's hole (the mouth has its own climb point, and a long Aerumna rift
+     would otherwise gain stray ones), and nothing when a climb point can be walked to from the tile under the hole in
+     at most 8 steps (`ClimbReach`), four ways across cavern tiles that exist and have nothing hard anchored on them.
+     A walk out from every climb point near the batch marks the tiles in reach, and each new climb point walks out at
+     once, so a crater's joined landings share one. On an unloaded chunk only pinned tiles exist, and the biome grows
+     nothing on a pinned tile, so the walk never crosses rock still to load. Otherwise the first neighbour that is
+     solid ground, not a hole, under no grid and free of hard anchored entities, with solid cavern floor below free of
+     them too, takes a climb point (`Delay = climbSeconds × clamp(gravity, 1, 2.5)`): the climb side first, then the
+     other three sides, then the corners. The cleared landing joins every neighbour to the tile under the hole, so a
+     corner leaves no pocket. With none free, the hole gets no climb point of its own and its climbers use the
+     nearest. Review fix: this first skipped any hole with a climb point within 8 tiles in either axis, so a hole dug
+     4 tiles from another over rock landed its fallers in a sealed 3×3 with no way up.
+- **`Closed`**: the shade goes. This covers lattice or a tile laid over a hole, and `ReserveTiles` filling a hole under
+  an arriving ship (it fills empty tiles whatever their pins): the mouth keeps its record, pad and climb point, and
+  digging the plug out opens it again. The ground stays pinned and the landing and climb point stay (a covered hole
+  keeps its ladder, the default), so reopening a hole brings back only its shade.
+- **Registry upkeep:** a shade or climb point deleted any other way, such as by an admin, drops its entry
+  (`EntityTerminatingEvent`), so nothing treats its tile as a hole or a climb point afterwards. Review fix: it first
+  used `ComponentShutdown`, which a deleted entity reaches only after it is moved to nullspace, so its tile was
+  unknown and the entry stayed.
+- **The bottom layer stays closed** (user decision): every cavern floor has an empty base turf, so no tool, blast or
+  acid breaks it down, and `(WFCavernLayerComponent, TileChangedEvent)` queues any cavern tile that empties
+  (`FloorOpened`). One on a loaded chunk or pinned is filled the next tick with the ground lattice there covered, or
+  the natural floor, and pinned: lattice laid on the cavern floor and taken by an RCD or a blast can't open it. An
+  unload's tiles are left alone. This also closes risk 5.
 
 This catches every way a hole can appear:
-- shovels (Merak sand, Thrascias snow once dug and blown);
-- explosions (Aerumna chromite, bedrock);
-- prying and cutting (Carcinoma flesh to plating to lattice to space);
-- RCD, admin tile tools and `wfcavern open`.
+- shovels: their own dig on Merak sand and desert and on snow (to dirt, then bedrock), and the shovel shaft through
+  any other natural ground (3.5);
+- explosions (Aerumna chromite, bedrock, lattice);
+- prying, axing and cutting (Carcinoma flesh to plating to lattice to space);
+- RCD, lattice, admin tile tools and `wfcavern open`;
+- acid, where a tool could dig the ground anyway (sand, snow, flesh); it no longer opens chromite (2.3).
 
 A mob in mid-fall has about 0.45 s to reach the floor. The queue runs within a tick, so the landing is always there
-first.
+first: `DugHoleGetsLandingShadeAndClimb` digs the sand from under a human over solid rock, and the human lands alive
+on the landing and climbs out.
 
 ### 3.5 Going down
 
@@ -769,6 +852,18 @@ climber arrives standing, unhurt, on the pad at the climb point:
 3. `SetZPosition(0)` and `SetZVelocity(0)`.
 
 Nothing moves until the landing is found, so a refused climb leaves the climber where they stood.
+
+**Dig a shaft** (F2c, user decision). A shovel used on natural ground of a world with a cavern that it can't otherwise
+dig digs a shaft: Fervidus basalt, the Asclepiu plains, Thrascias ice, Aerumna chromite, Carcinoma flesh, and the
+bedrock left under dug snow. It is a DoAfter of `shaftSeconds` (15 s with a standard shovel; the digger's hands don't
+shorten it) that breaks on move or damage; then the tile empties and the hole queue fits it out, and the shovel's dig
+sound plays. Ground the shovel digs anyway keeps the shovel's own dig, whichever handler runs first. Only natural
+ground qualifies: the biome's own tile at that spot or what digging it left, not a hull deck, a built floor or a
+mouth's lip, clear of hard anchored entities and grids, with the cavern there below (`CanDigShaft`). The server starts
+the DoAfter; its event is shared so the client can show it.
+
+**Fall into a dug hole.** A dug or blown hole lands you as a mouth does: on the world's landing tile (the table above),
+in a 3×3 of cleared floor, with a climb point beside the hole unless one is a walk of at most 8 steps away.
 
 **Other ways down:**
 - **Parachutes:** a deployed parachute cancels the landing damage.
@@ -1095,6 +1190,8 @@ keys.
 | `wf-cavern-climb-blocked` | Something blocks the way up. | F2 |
 | `wf-cavern-climb-blocked-hull` | A ship is parked over the exit. | F2 |
 | `wf-cavern-climb-down-blocked` | Something blocks the way down. | F2 |
+| `wf-cavern-shaft-dig-start` / `-start-others` | You start digging a shaft down through the ground. / { CAPITALIZE(THE($user)) } starts digging … | F2c |
+| `wf-cavern-shaft-dig-done` | The ground gives way into the dark below. | F2c |
 | `wf-cavern-<world>-arrival` ×6 | e.g. Fervidus: "The heat presses in. Far below, rock glows red." | F4 |
 | `wf-cavern-weather-underground` | Underground | F4 |
 | `wf-cavern-climb-haul` | You haul { THE($thing) } up behind you. | F5 |
@@ -1137,7 +1234,7 @@ unnamed.
 | `awaken <planet>` | Forces the deep-table spawn near the caller | F5 |
 
 Keys: `cmd-wfcavern-desc`, `-help`, `-disabled`, `-invalid-args`, `-unknown-planet`, `-no-cavern`, `-empty`, `-row`,
-`-row-none`, `-mouth-row`, `-mouth-kind` (a `$kind` selector: gate, cell, hole, admin), `-tp-done`, `-no-map`,
+`-row-none`, `-mouth-row`, `-mouth-kind` (a `$kind` selector: gate, cell, admin), `-tp-done`, `-no-map`,
 `-not-ground`, `-open-done`, `-open-refused` (a `$reason` selector: cavern, grid, built, mob, mouth), `-stats-started`, `-stats`, `-awakened`, `-hint-sub`, `-hint-planet`, `-hint-target`. `-stats-started`,
 `-stats` and `-awakened` come with their subcommands.
 
@@ -1176,32 +1273,40 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernViewerEyeTest.GroundViewerNearMouthLoadsCavern` | A ground viewer on the gate's climb tile has one eye on the cavern, the cavern chunk under the hole and one three chunks aside load, and with PVS on cavern entities reach the client; logs the cost | cavern view |
 | `CavernViewerEyeTest.CavernEyeKeepsAMarginBeforeLeaving` | Moved east of the gate, measured from half of `net.pvs_range`: the eye stays between the enter and leave margins after the viewer had it, goes past the leave margin, stays gone between the margins, and comes back inside the enter margin | cavern view |
 | `CavernViewerEyeTest.GhostSeesCavernOnlyIfItMayLoadTerrain` [2] | On the gate's climb tile, a `MobObserver` has no eye on the cavern and loads no cavern chunk; an `AdminObserver` has one and loads it | cavern view |
-| `CavernViewerEyeTest.AirViewerOverMouthLoadsCavern` | A viewer on air layer 1 over the gate has one eye on the ground and one on the cavern; moved 160 tiles away it keeps the first and loses the second | cavern view |
+| `CavernViewerEyeTest.AirViewerOverMouthLoadsNoCavern` | A viewer on air layer 1 right over the gate has one eye on the ground and none on the cavern, loads no cavern chunk and isn't recorded as seeing it (it replaced `AirViewerOverMouthLoadsCavern` when F2c limited the view to ground viewers) | F2c |
 | `CavernViewerEyeTest.CavernViewerLoadsGroundAbove` | A cavern viewer has an eye on the ground, and ground chunks load over it | F1 |
 | `CavernViewTest.ClientSeesCavernUnderMouth` (client pair) | Beside the gate, the client finds the cavern under the ground; the cavern and the ground around the hole hide the sky, and ground 200 tiles away doesn't | cavern view |
 | `CavernViewTest.ShadeClicksAcrossItsTile` (client pair) | The shade of a gate tile with hole all round, whose art is clear, takes clicks at its centre and near its corner, and not 1.6 tiles away | cavern view |
-| `Content.Tests: CavernPassTest` | `CavernPassDepth` is one level under the ground at any ground depth with the cavern known and a mouth in view, and null otherwise; `LevelViewBox` is the box an RT `Eye` built as the renderer builds a pass eye shows, from a jumping observer, three levels up and with a turned eye | cavern view |
+| `Content.Tests: CavernPassTest` | `CavernPassDepth` is one level under the ground for an observer on it, standing or jumping, with the cavern known and a mouth in view, and null otherwise, from the air or orbit included (F2c); `LevelViewBox` is the box an RT `Eye` built as the renderer builds a pass eye shows, from a jumping observer, three levels up and with a turned eye | cavern view |
 | `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` without lift on the ground map over chunks that were never loaded, so no tile is under it (a hull on loaded terrain can keep a tile through `WfUnloadChunk`, 2.1 item 7): sampled every tick for 10 s, the hull's map is never the cavern and no transit touches the cavern | F1 |
 | `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map, and no transit gap is created at all (an unguarded descend enters one and lands again within a tick) | F1 |
 | `CavernHullTest.LiftoffAndLandingUnchanged` | With caverns on, a `BuildLander` lifts to air layer 1 and lands back on the ground | F1 |
 | `CavernWildlifeTest.WildlifeOverUnloadedGroundIsRemoved` | An awake wildlife mob whose ground chunk unloads falls into the cavern and is deleted, so it never lingers `Protected`; a non-wildlife mob beside it lands in the cavern and stays | F1 |
 | `CavernWildlifeTest.WildlifeThroughPinnedHoleIsKept` | A wildlife mob on a hand-pinned tile survives the chunk unload; emptying the tile drops it into the cavern, where it is kept | F1 |
-| `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk, unpinned (a hole is pinned only when its chunk unloads), falls into the cavern and is kept; the chunk is still loaded and the tile unpinned afterwards, so the loaded check decided | F1 |
+| `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk falls into the cavern and is kept, resting on the landing (`LocalPosition` above −0.1); the hole queue has pinned the hole and shaded it (F2c: before it, the hole stayed unpinned and the loaded check decided) | F1, F2c |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after its chunks load; the test loads them with `WfLoadChunk`, as a cavern viewer's loader would, rather than attaching a viewer. The climb point is anchored under the climb tile, with the section 3.6 delay. The hole is inside the world's size range, the climb tile is on the lip beside the hole, each rim spot has its decor and nothing stands on the climb tile | F2 |
 | `CavernMouthTest.ShapesStayInRange` | Over 400 seeds per world: the hole is inside its size range, holds the anchor, is joined edge to edge, has no tile hanging on by one edge (a rift may have its two ends), no two tiles touching only at a corner and no enclosed ground; the ring is every tile touching it; the climb tile is on the ring, beside a hole tile on `climbSide` and past the whole hole on that side; rim spots are on the ring, clear of the climb tile and no more than `rimCount` scaled by the hole's size; the same seed gives the same hole and rim. At most 5% of non-rift holes are plain rectangles and at most 5% fall back, the holes take at least half the sizes in range, and the seeds give at least 80 different holes. The specs are the worlds' prototypes, so it runs on a pair | F2 |
 | `CavernMouthTest.PitStatesExist` | On the client, every world's pit RSI holds every state `WFCavernShadeVisualsSystem.AllStates` lists (`pit` and the pieces for masks 1 to 14), and no other | F2, cavern view |
 | `CavernMouthTest.PinnedSiteIsEmpty` | Merak: with the cavern pinned under a whole cell, a cell that has a site claims Empty, and stays Empty | F2 |
 | `CavernMouthTest.PadKeepsPools` | Asclepiu: of admin mouths cut 3 tiles from a pool's edge, one whose pad crosses the pool holds exactly one `MonoFloorWaterEntity` on every pad tile off the hole where the cavern grows one; `GateExists` checks the same on every gate | F4 |
 | `CavernMouthTest.GateSurvivesUnloadReload` | `WfUnloadChunk`, then `WfLoadChunk`, on both maps leaves hole, ring, pad and entities unchanged | F2 |
-| `CavernMouthTest.ClaimAheadOfViewer` | A viewer at (400, 0): within 1 s every cell within 96 tiles is Claimed or Empty, and none of its sites touched a chunk that was loaded at claim time | F2 |
-| `CavernMouthTest.ClaimDeferredWhileChunkLoaded` | After `WfLoadChunk` on a cell's first valid site, `TryClaimCell` returns Deferred. After `WfUnloadChunk` it returns Claimed at the same site | F2 |
-| `CavernMouthTest.NoMouthOffTheAllowlist` | An Asclepiu ocean cell and a Carcinoma blood-sea cell come out Empty | F2 |
+| `CavernMouthTest.ClaimAheadOfViewer` (connected) | Merak: a viewer hovering on air layer 1 flies east from x = 48 to 200, 8 tiles every 0.5 s, and loads ground through its eye there (none of the cavern, which keeps the test light). At the end every cell within 96 tiles of it is Claimed or Empty, and every cell mouth it claimed stands intact in the ground loaded since: holes empty and pinned over the landing tile, lips solid and pinned, nothing but rim decor in the footprint. Logs the claims' cost. F2c deviation: the design's viewer standing at (400, 0) can't pass, since sites inside its own load box stay Deferred; the flight starts mid cell (0, 0), so only that column can be deferred by the arrival, and ends out of its reach | F2c |
+| `CavernMouthTest.ClaimDeferredWhileChunkLoaded` | Merak: with the ground chunk under a site's anchor loaded, `TryClaimCell` returns Deferred and stamps nothing; unloaded, it returns Claimed at the same site. The site's footprint grows no biome entity, or the unload could pin a tile and make the cell Empty (3.2) | F2c |
+| `CavernMouthTest.NoMouthOffTheAllowlist` | An all-riverbed Asclepiu cell and an all-blood-sea Carcinoma cell, found by searching outward from the gate, have no site and claim Empty; on every world the gate and the mouths claimed in the 3×3 cells around it cut only `groundTiles`, clear of `avoid` | F2c |
+| `CavernMouthTest.GhostsClaimOnlyIfTheyLoadTerrain` [2] (connected) | Merak, ground loader off: a `MobObserver` changes no claim; an `AdminObserver` standing on a site's anchor claims cell mouths around it, while its own site stays Deferred and no mouth's pad meets its load box (the load guard, 3.2) | F2c |
 | `CavernFallTest.MobFallsAndIsHurtALittle` [6] | A `MobHuman` walked into the gate is on the cavern within 120 ticks, alive, with Blunt within ±3 of the section 3.5 table | F2 |
 | `CavernFallTest.ItemFallsToPad` | A dropped item ends on the landing tile | F2 |
-| `CavernHoleTest.DugHoleGetsLandingShadeAndClimb` | Merak: a ground tile set to empty on a loaded chunk gets a pinned cavern floor with no wall, a shade, and a climb point within 8 tiles | F2 |
-| `CavernHoleTest.ExplosionHolesAllGetLandings` | Aerumna: after an explosion over chromite, every ground tile that became empty has a pinned cavern floor | F2 |
-| `CavernHoleTest.UnloadDoesNotOpenHoles` | `WfUnloadChunk` on the ground creates no shade and pins no cavern tile | F2 |
-| `CavernHoleTest.CoveredHoleLosesShade` | A tile laid over a hole removes its shade, and removing it again restores the shade | F2 |
+| `CavernHoleTest.UnloadDoesNotOpenHoles` | Merak: unloading 2×2 loaded ground chunks adds no shade or climb point, pins no emptied ground tile, and pins or fills no cavern tile. A hole dug in the same tick east of them, so it sorts after all their tiles, has its shade after one update, and the queue is empty | F2c |
+| `CavernHoleTest.DugHoleGetsLandingShadeAndClimb` | Merak: sand shovelled out from under an awake human, over rock in a loaded cavern. Within 2 ticks the hole is pinned with a shade (the right cavern, air and ×0.5 landing), the landing tile lies under it in a 3×3 of pinned floor with nothing standing on it, and exactly one new climb point stands within 8 tiles on pinned floor under solid, unholed ground. The human lands alive, not sunk into the floor, and climbs out; a shovel used on sand beside it starts the shovel's own dig, not a shaft, and that hole gets no second climb point | F2c |
+| `CavernHoleTest.CoveredHoleLosesShade` | Merak: lattice laid on sand and taken by an RCD leaves a hole without lattice's record of the sand; lattice laid over it deletes its shade; wirecutters reopen it, not plug it, with a new shade and no new climb point | F2c |
+| `CavernHoleTest.ExplosionHolesAllGetLandings` | Aerumna: every chromite tile a blast opens is pinned, shaded, over pinned floor, and the tile under it walks to a climb point in at most 8 steps | F2c |
+| `CavernHoleTest.SealedLandingGetsItsOwnClimb` | Merak: two holes shovelled 4 tiles apart over solid rock in a loaded cavern get a climb point each, and each landing walks to one in at most 8 steps. Deleting the second's climb point and shade by hand drops both from the registry | F2c review |
+| `CavernHoleTest.PriedFleshOpensHole` | Carcinoma: a crowbar pries flesh to plating, a fireaxe axes it to lattice, wirecutters cut it away, and the hole is fitted out | F2c |
+| `CavernHoleTest.ThrasciasSnowDugThenBlown` | Thrascias: two shovel digs leave bedrock, which a shovel may shaft and the snow beside it not; a blast opens the bedrock into a fitted hole | F2c |
+| `CavernHoleTest.MouthStampAddsNoClimb` | Aerumna: an admin rift cut into loaded ground, long enough to reach past a hole's climb reach, adds exactly one climb point and one shade per hole tile | F2c |
+| `CavernHoleTest.ShovelShaftOnBasalt` | Fervidus: a shovel used on clear basalt by a human beside it starts a shaft DoAfter of the world's `shaftSeconds` for that tile; it is still solid halfway, then opens into a fitted hole. A mouth's lip and a steel floor can't be shafted | F2c |
+| `CavernHoleTest.AcidDoesNotOpenChromite` | Aerumna: fluorosulfuric acid spilled on chromite leaves it whole and unholed, and pries up a steel floor beside it | F2c |
+| `CavernHoleTest.CavernFloorCannotBeOpened` | Every tile a cavern template or mouth puts in a cavern has no base turf; acid on Aerumna's cavern floor leaves it; lattice laid on that floor and taken by an RCD is filled again with the floor within 2 ticks | F2c |
 | `CavernClimbTest.ClimbUpLandsOnSolidExitAndStays` | Asclepiu, by the *Climb up* verb from the pad: after the DoAfter the mob is on the ground, on the solid lip over the climb point (not a hole), at `LocalPosition < 0.1`, and stays there for 120 ticks | F2 |
 | `CavernClimbTest.ClimbDownIsHarmless` | By the *Climb down* verb from the lip: 0 damage, no knockdown, on a pinned pad tile at or next to the climb point, and still there unhurt 120 ticks later | F2 |
 | `CavernClimbTest.ClimbDownAvoidsBuiltPad` | With a `WallSolid` anchored on the pad over the climb point, *Climb down* lands on a pad tile beside it, unhurt, and stays there for 120 ticks | F2 |
@@ -1347,7 +1452,7 @@ cases) and `CavernWildlifeTest`. F2a added the section 2.9 chamber layer to the 
 This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbing, the orbital-fall fix and
 `wfcavern`, on all six worlds, still over the placeholder biome.
 
-**Status:** F2 ships in three parts; F2a and F2b have landed, F2c remains.
+**Status:** F2 shipped in three parts, all landed.
 - **F2a (landed):** the gate mouth on every world, claimed at build; falling in; the shades, their examine and the
   landing tiles; the climb points (placed, no verbs yet); the orbital-fall fix; and `wfcavern list|tp|mouths|open`.
   Code: the mouth spec, `WFCavernAir.cs` (`WFCavernAirClassifier`), `WFCavernShaftComponent`, `WFCavernClimbComponent`,
@@ -1361,10 +1466,34 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   climb points' `Delay` was already stamped by F2a. It also carried the F2a review fixes: `CavernOrbitalFallTest` on
   Fervidus, `open`'s own `cavern` refusal, `mouths` printing its kind through `-mouth-kind`, `wfcavern` matching a
   planet by every name section 5 lists, and summaries on `WFCavernAir` and `CavernAirTest`.
-- **F2c (remaining): lazy claims and the hole queue.** The 0.5 s polling that claims cells ahead of viewers through
-  `TryClaimCell`, `WFCavernMouthSystem.Holes.cs` (`(WFCavernGroundComponent, TileChangedEvent)`, `EnsureHole`,
-  `EnsureClimbNear`), `CavernHoleTest`, and `CavernMouthTest.ClaimAheadOfViewer`, `.ClaimDeferredWhileChunkLoaded`
-  and `.NoMouthOffTheAllowlist`.
+- **F2c (landed): the ways down from anywhere.** Lazy claims (3.2): polling every 0.5 s in `.Claims.cs` that claims
+  cells ahead of whoever loads terrain, a candidate at a time within a 2 ms budget, behind `wf.cavern_claims`. The hole
+  queue (3.4, `.Holes.cs`): pins, landings with a cleared 3×3, shades, climb points, covered holes, registry upkeep and
+  the closed cavern floor. The shovel shaft and the acid rule (`WFCavernDigSystem`, 3.5, 2.3). Cavern view only for
+  ground viewers (2.3, 2.7). `baseTurf: ""` on every cavern floor tile. Tests: `CavernHoleTest` (11),
+  `CavernMouthTest.ClaimDeferredWhileChunkLoaded`, `.NoMouthOffTheAllowlist`, `.ClaimAheadOfViewer` and
+  `.GhostsClaimOnlyIfTheyLoadTerrain`, `CavernViewerEyeTest.AirViewerOverMouthLoadsNoCavern`, the pass unit test, and
+  updated `WildlifeThroughLoadedHoleIsKept`; claims are off in the tests that need only the gate. Every new test was
+  checked to fail with its fix reverted.
+- **F2c decisions** (the user's): a shovel shafts any natural ground of a world with a cavern, about 15 s; a dug hole
+  lands on the world's landing tile in a cleared 3×3; only ground viewers see into the cavern; acid no longer opens
+  Aerumna's chromite and nothing opens the cavern floor. Defaults kept: a covered hole keeps its climb point, cells stay
+  as designed, and `wf.cavern_claims` is the kill switch. Crash skids needed no change: the scar turns ground under a
+  hull to indestructible dirt before the skid's blasts (critique).
+- **F2c deviations** (each recorded where it applies): sources are what the loader counts, not every attached entity
+  (3.2); the load guard defers sites touching a source's load box (3.2); evaluation spans ticks by a cursor (2.5, 3.2);
+  holes are told from unloads by the pin as well as the chunk (3.4); the landing is the landing tile in a cleared 3×3
+  instead of the natural floor (3.4, 3.5); climb points prefer the sides and check the cavern side (3.4); the queue
+  also closes the cavern floor, wakes bodies, drops lattice's record and asks for an eye check (3.4); the unused
+  `Hole` kind is gone (2.5, 5); `ClaimAheadOfViewer` flies a viewer instead of standing one at (400, 0), and
+  `NoMouthOffTheAllowlist` searches for its sea cells (6).
+- **F2c review fixes:** a hole gets its own climb point unless one is a walk away, not merely within 8 tiles, so no
+  landing is a sealed pocket (3.4, `SealedLandingGetsItsOwnClimb`); the queue checks every emptied tile before the
+  cap, so an unload's tiles never hold back a hole dug with them (3.4, `UnloadDoesNotOpenHoles`); the registry upkeep
+  runs on `EntityTerminatingEvent`, since `ComponentShutdown` comes after a deleted entity leaves its map and never
+  found its tile (3.4). Not changed: a shaft dug under a mob standing on the tile drops it, as the shovel's own dig
+  does (its `IsTileBlocked` check uses `MobMask`, which no mob's layer shares, so it ignores mobs); a sprint into a
+  hole can come down a tile past the landing (risk 22).
 - **F2a deviations** (each recorded where it applies): the classifier is `WFCavernAirClassifier.Classify` (2.5); the
   shaft examine lives in `SharedWFCavernShaftSystem` (2.7); the ground component keeps `Centre` (2.5); the gate search
   starts at the cell holding the gate candidate (3.2); the placeholder biome gained chambers (3.2, F1); each world's
@@ -1405,7 +1534,9 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
     `SharedWFCavernClimbSystem.cs`, `SharedWFCavernShaftSystem.cs`, `WFCavernAir.cs`, `WFCavernMouthSpec.cs`. The mouth
     spec is added to `WFCavernPrototype`.
   - Server: `WFCavernMouthSystem.cs`, `WFCavernMouthSystem.Claims.cs`, `WFCavernMouthSystem.Holes.cs`,
-    `WFCavernClimbSystem.cs`, `WFCavernCommand.cs`. `WFCavernGroundComponent` gains the registry.
+    `WFCavernClimbSystem.cs`, `WFCavernCommand.cs`, `WFCavernDigSystem.cs` (F2c). `WFCavernGroundComponent` gains the
+    registry.
+  - Shared (F2c): `WFCavernShaftDigDoAfterEvent.cs`; `CavernCVars.CavernClaims`.
   - Client: `Content.Client/_WF/Caverns/WFCavernClimbSystem.cs`, the empty subclass that predicts the climb verbs.
   - Prototypes:
     - `Entities/mouths.yml`: `WFCavernShadeBase`, `WFCavernClimbBase`, and six of each;
@@ -1418,8 +1549,8 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
     `Content.Tests/_WF/Caverns/CavernAirTest.cs`.
   - Placeholder biome: the chamber layer (F2a, see the F1 status).
 - **Planets edit** (no marker): `Flight/WFOrbitalMobFallSystem.cs`, `IsSurfaceImpact` (section 2.2).
-- **Marked edits:** none.
-- **Tests:** every F2 row of section 6.
+- **Marked edits:** F2c's acid block in `Content.Server/Chemistry/TileReactions/PryTileReaction.cs` (2.3).
+- **Tests:** every F2 and F2c row of section 6.
 - **Verify:** V-build, V-test for each F2 fixture, V-unit, V-planets, V-server, V-client (the climb system is shared
   code), V-lint, V-modules.
 - **Accept:**
@@ -1551,15 +1682,15 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 |---|---|---|
 | 1 | The client has never seen the cavern map before its first fall, so predicted z-physics may stutter until PVS arrives (`Update.cs:22`, `_clientSimulation`) | Real-client check in F2. Fallback: `CEPvsOverride` on the cavern map entity, after measuring `BiomeComponent`'s state size. Since the cavern view, a player next to a mouth already has the cavern around it streamed in |
 | 2 | Cavern chunk loads are dense: F3 measured 2,700–3,590 entities around one cavern viewer (81 chunks), not the 1,300 walls first estimated | `CavernGenerationTest` bounds it at 4,000. F3 profiled one viewer per world (Debug integration server, server time only): arriving in a cavern costs one tick of 0.6–0.8 s while its chunks load, against 0.3–5.7 s arriving on the same world's surface, and a cavern tick then costs 0.8–1.1 ms against 0.7–1.2 ms on the surface |
-| 3 | FTL preloads or admin teleports load a cell before its claim | That cell stays Deferred until the chunk unloads. Accepted: a mouth may appear late, never cut into loaded terrain |
+| 3 | FTL preloads or admin teleports load a cell before its claim | That cell stays Deferred until the chunk unloads, and may then come out Empty if the unload pins a footprint tile (3.2). Accepted: a mouth may appear late or not at all in that cell, never cut into loaded terrain |
 | 4 | An awake item over a ground chunk that unloads falls into the cavern void (2.1 item 4) | Wildlife is handled (F1). Items are rare, because sleeping bodies don't fall. Accepted |
-| 5 | A player floor laid on a pad and deconstructed down to space opens the bottom layer, because pads aren't natural terrain for `WfIsPlanetTerrain` | Needs deliberate multi-step work, and the result is "stuck in the floor", not death. Accepted |
+| 5 | A player floor laid on a pad and deconstructed down to space opens the bottom layer, because pads aren't natural terrain for `WfIsPlanetTerrain` | Closed by F2c: cavern floors have no base turf, and any cavern tile emptied on loaded or pinned ground is filled again (3.4) |
 | 6 | A hole opened over a player-built cavern structure lands the faller inside it (the queue only clears biome walls) | Rare. Accepted |
 | 7 | A pod or debris up to about 4×4 wholly over a hole churns up and back | This is today's behaviour over unloaded terrain. Covered by `DebrisInsideMouthNeverEntersCavern` |
 | 8 | Fauna may not survive CO₂, ammonia, heat or cold | `FaunaSurvivesItsCavern` decides the tables in F4 |
 | 9 | `SmokeOnTrigger` may not spread on a map grid without `GridAtmosphere` | `VentHissesAndReleasesSmoke` decides. Fallback: vents spawn a puddle of the reagent instead |
 | 10 | Restarting a pull across a map change may be refused | `ClimbHaulsPulledOreBox` decides. Fallback: move the hauled entity without restarting the pull |
-| 11 | `GetNoise` allocates on every call, so claims cost about 1 ms per candidate and sampled tests take seconds per world | Claims are spread over time and logged above 20 ms. If tests are too slow, add a cached sampler to `BiomeSystem.Caverns.cs` and assert it agrees with `TryGetTile` |
+| 11 | `GetNoise` allocated a noise copy on every call, so claims cost about 1 ms per candidate and sampled tests took seconds per world | Closed: `WFBiomeNoiseCacheSystem` copies once per layer and seed: noise sampling is 3 to 5 times faster, a whole chunk load (spawns included) about 10%; `BiomeNoiseCacheTest` asserts the terrain is unchanged. Claims are still spread over time and logged above 20 ms |
 | 12 | Six more maps share the 128 fauna cap | Cavern fauna retires without observers, and the eye cap keeps surface viewers' eyes out of the cavern except near a mouth. Watch `PlanetPopulationTest` |
 | 13 | For the first 0.1 s after a load, a cavern chunk can show shaft light before the ground above it loads | Cosmetic. Both load in the same `BiomeSystem` pass |
 | 14 | The eye cap, the cavern pass and the hull guard touch CE files that change upstream | Single-line marked edits that call into `_WF`. Recheck on every CE merge |
@@ -1567,3 +1698,8 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | 16 | `MobWatcherMagmawing` and `MobWatcherIcewing` are flying lavaland mobs | `FaunaSurvivesItsCavern` checks them, and no cavern mob has `CEZFlyer` |
 | 17 | Lava and liquid plasma hurt by setting you alight, and `FlammableSystem` puts a fire out below 1 mol of oxygen, so in the oxygen-free Fervidus and Thrascias caverns they do nothing (measured in the F3 review) | F4 gives the cavern liquids harm that needs no oxygen and checks it in `CavernAtmosphereTest` |
 | 17 | The climb breaks on damage, so hostile air could trap an unprepared player below if ambient damage ever interrupted DoAfters | It doesn't today: air, heat, cold, suffocation, pressure and metabolism damage pass `interruptsDoAfters: false` (3.6). `UnequippedClimberEscapesHostileAir` fails if an upstream merge changes that; the fallback is to stop breaking the climb on damage without an origin |
+| 18 | Lazy mouths and dug holes add entities that are never removed: about 21 a mouth on Merak (a shade per hole tile, rim, a climb point; Asclepiu adds pool water), and a shade and perhaps a climb point a dug hole | Bounded by how much ground players see and dig. Dug holes are permanent, with no cap or backfill (critique question, not asked) |
+| 19 | `AnyHoleWithin` scans every shade on the ground for every viewer twice a second, so it grows with how much has been explored and dug | Linear and cheap today; per-chunk buckets if a profile shows it |
+| 20 | Claims cost CPU in bursts as viewers move | Measured (3.2): 3.3 ms a busy tick and 7.1 ms at most on DebugOpt, about 0.3% of a 30 tps budget for one flying viewer; `wf.cavern_claims` turns them off |
+| 21 | Rods and an RCD or a grenade open a shaft through any natural ground, as lattice goes straight onto it and neither gives the ground back | Accepted as the tech way down, beside the shovel shaft (critique question) |
+| 22 | A body sprinting into a hole flies about 1.7 tiles before it drops (measured on Merak in the F2c review), so it can come down a tile past the 3×3 landing: rock stops it inside the landing if that cavern chunk is loaded, but over an unloaded chunk it rests inside an empty tile | Only bodies that load nothing are exposed: a player loads the cavern within about 0.1 s of arriving, and a ground viewer within about 16 tiles opens it. Accepted with the 3×3 (user decision); a 5×5 landing (`LandingReach = 2`, 25 pins a hole) would cover it |
