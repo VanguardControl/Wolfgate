@@ -1,5 +1,6 @@
 # Remaining Kyphrus worlds, on existing art and biome templates; gravity and temperature are gameplay tuning.
 # Thrascias deliberately has a solid frozen surface despite its ice-giant sector sprite.
+# No biome marker layers: ore comes from the Mono ore spawners each biome lays (see planet_surfaces.yml).
 
 - type: wfPlanetSurface
   id: WFSurfaceFervidus
@@ -43,14 +44,6 @@
     immutable: true
     temperature: 373.15
     moles: [0, 75, 25]
-  biomeMarkerLayers:
-  - OreIron
-  - OreQuartz
-  - OreCoal
-  - OreGold
-  - OreSilver
-  - OrePlasma
-  - OreUranium
 
 - type: biomeTemplate
   id: WFBiomeFervidus
@@ -105,14 +98,6 @@
     immutable: true
     temperature: 318.15
     moles: [21.824879, 82.10312]
-  biomeMarkerLayers:
-  - OreIron
-  - OreQuartz
-  - OreCoal
-  - OreGold
-  - OreSilver
-  - OrePlasma
-  - OreUranium
 
 - type: biomeTemplate
   id: WFBiomeMerak
@@ -167,14 +152,6 @@
     immutable: true
     temperature: 285.15
     moles: [5, 70, 25]
-  biomeMarkerLayers:
-  - OreIron
-  - OreQuartz
-  - OreCoal
-  - OreGold
-  - OreSilver
-  - OrePlasma
-  - OreUranium
 
 - type: biomeTemplate
   id: WFBiomeAerumna
@@ -229,14 +206,6 @@
     immutable: true
     temperature: 180
     moles: [0, 100]
-  biomeMarkerLayers:
-  - OreIron
-  - OreQuartz
-  - OreCoal
-  - OreGold
-  - OreSilver
-  - OrePlasma
-  - OreUranium
 
 - type: biomeTemplate
   id: WFBiomeThrascias
