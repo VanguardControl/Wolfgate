@@ -46,6 +46,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
             subs.Event<WFLiftoffMessage>(OnLiftoffMessage);
         });
 
+        SubscribeLocalEvent<WFPlanetApproachComponent, FTLStartedEvent>(OnApproachStarted);
         SubscribeLocalEvent<WFPlanetApproachComponent, FTLCompletedEvent>(OnApproachCompleted);
     }
 

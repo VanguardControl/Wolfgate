@@ -2,40 +2,55 @@ using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._FarHorizons.StarSystem;
 using Content.Shared._WF.Planets;
+using Content.Shared.Shuttles.Components;
+using Content.Shared.Shuttles.Systems;
 
 namespace Content.Server._WF.Planets;
 
-/// <summary>Marks a hull and the grids docked to it for the planet approach their crews' clients draw over the hop into or out of orbit.</summary>
+/// <summary>Marks a hull and the grids that ride its hop for the planet approach their crews' clients draw over the hop into or out of orbit.</summary>
 public sealed partial class WFOrbitEntrySystem
 {
-    private readonly List<EntityUid> _approachDone = new();
-    private readonly HashSet<EntityUid> _approachGrids = new();
+    /// <summary>Last resort for a mark whose hull is stuck in transit.</summary>
+    private static readonly TimeSpan ApproachTimeout = TimeSpan.FromMinutes(1);
 
-    /// <summary>Records the hop's travel leg on the hull and every grid the hop carries; skipped for bodies outside a star system.</summary>
+    private readonly List<EntityUid> _approachDone = new();
+
+    /// <summary>Records the hop's travel leg on the hull; skipped for bodies outside a star system.</summary>
     public void MarkApproach(EntityUid grid, EntityUid body, bool arriving)
     {
         if (!TryComp<StarSystemMapComponent>(Transform(body).MapUid, out var starMap) || starMap.System is not { } system)
             return;
 
-        var planetPosition = _transform.GetWorldPosition(body);
-        var shipPosition = _transform.GetWorldPosition(grid);
-        var start = _timing.CurTime + TimeSpan.FromSeconds(ShuttleSystem.WfOrbitStartupTime);
-        var end = start + TimeSpan.FromSeconds(ShuttleSystem.WfOrbitTravelTime);
+        var comp = EnsureComp<WFPlanetApproachComponent>(grid);
+        comp.Hull = grid;
+        comp.System = system;
+        comp.PlanetPosition = _transform.GetWorldPosition(body);
+        comp.ShipPosition = _transform.GetWorldPosition(grid);
+        comp.Arriving = arriving;
+        comp.Start = _timing.CurTime + TimeSpan.FromSeconds(ShuttleSystem.WfOrbitStartupTime);
+        comp.End = comp.Start + TimeSpan.FromSeconds(ShuttleSystem.WfOrbitTravelTime);
+        Dirty(grid, comp);
+    }
 
+    /// <summary>Copies the hull's mark to the grids the drive linked to it on the FTL map, which are exactly the ones riding the hop.</summary>
+    private void OnApproachStarted(Entity<WFPlanetApproachComponent> ent, ref FTLStartedEvent args)
+    {
         // The overlay reads the grid the local player stands on, so docked crews need the mark too.
-        _approachGrids.Clear();
-        _shuttle.GetAllDockedShuttles(grid, _approachGrids);
+        var query = EntityQueryEnumerator<FTLComponent>();
 
-        foreach (var uid in _approachGrids)
+        while (query.MoveNext(out var uid, out var ftl))
         {
+            if (ftl.LinkedShuttle != ent.Owner)
+                continue;
+
             var comp = EnsureComp<WFPlanetApproachComponent>(uid);
-            comp.Hull = grid;
-            comp.System = system;
-            comp.PlanetPosition = planetPosition;
-            comp.ShipPosition = shipPosition;
-            comp.Arriving = arriving;
-            comp.Start = start;
-            comp.End = end;
+            comp.Hull = ent.Comp.Hull;
+            comp.System = ent.Comp.System;
+            comp.PlanetPosition = ent.Comp.PlanetPosition;
+            comp.ShipPosition = ent.Comp.ShipPosition;
+            comp.Arriving = ent.Comp.Arriving;
+            comp.Start = ent.Comp.Start;
+            comp.End = ent.Comp.End;
             Dirty(uid, comp);
         }
     }
@@ -60,7 +75,7 @@ public sealed partial class WFOrbitEntrySystem
         }
     }
 
-    /// <summary>Fallback for a hop that never arrives: drops marks well past their end time.</summary>
+    /// <summary>Fallback for a hop that never arrives: drops marks whose hull is gone or no longer in transit.</summary>
     private void SweepApproaches()
     {
         _approachDone.Clear();
@@ -69,7 +84,7 @@ public sealed partial class WFOrbitEntrySystem
 
         while (query.MoveNext(out var uid, out var comp))
         {
-            if (_timing.CurTime > comp.End + RefreshInterval)
+            if (!InTransit(comp.Hull) || _timing.CurTime > comp.End + ApproachTimeout)
                 _approachDone.Add(uid);
         }
 
@@ -77,5 +92,12 @@ public sealed partial class WFOrbitEntrySystem
         {
             RemComp<WFPlanetApproachComponent>(uid);
         }
+    }
+
+    /// <summary>True while the hull's FTL is spooling up, travelling or arriving.</summary>
+    private bool InTransit(EntityUid hull)
+    {
+        return TryComp<FTLComponent>(hull, out var ftl)
+            && (ftl.State & (FTLState.Starting | FTLState.Travelling | FTLState.Arriving)) != 0;
     }
 }
