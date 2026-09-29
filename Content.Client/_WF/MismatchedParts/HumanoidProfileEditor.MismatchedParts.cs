@@ -1,9 +1,10 @@
 using Content.Shared._WF.MismatchedParts;
+using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 
 namespace Content.Client.Lobby.UI;
 
-/// <summary>The Mismatched parts toggle in the Body card, and the hair styles it opens.</summary>
+/// <summary>The Mismatched parts toggle in the Body card, and the markings and hair styles it opens.</summary>
 public sealed partial class HumanoidProfileEditor
 {
     private void InitializeMismatchedParts()
@@ -14,6 +15,7 @@ public sealed partial class HumanoidProfileEditor
     private void UpdateMismatchedParts()
     {
         MismatchedPartsCheckBox.Pressed = Profile?.MismatchedParts ?? false;
+        Markings.MismatchedParts = Profile?.MismatchedParts ?? false;
     }
 
     private void SetMismatchedParts(bool enabled)
@@ -22,10 +24,18 @@ public sealed partial class HumanoidProfileEditor
             return;
 
         Profile = Profile.WithMismatchedParts(enabled);
-        EnforceSpeciesHair();
+        // Turning it off drops what only the option allowed, as saving would
+        if (!enabled)
+        {
+            Profile = Profile.WithCharacterAppearance(
+                HumanoidCharacterAppearance.EnsureValid(Profile.Appearance, Profile.Species, Profile.Sex, false));
+        }
+
+        Markings.MismatchedParts = enabled;
         UpdateHairPickers();
         UpdateCMarkingsHair();
         UpdateCMarkingsFacialHair();
+        UpdateMarkings();
         ReloadPreview();
     }
 

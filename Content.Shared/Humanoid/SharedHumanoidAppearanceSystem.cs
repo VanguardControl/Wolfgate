@@ -416,6 +416,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
         SetSkinColor(uid, profile.Appearance.SkinColor, false);
 
         humanoid.MarkingSet.Clear();
+        humanoid.MarkingSet.OpenPoints(profile.MismatchedParts); // WOLFGATE(MismatchedParts): one point for each category the species has none for
 
         // Add markings that doesn't need coloring. We store them until we add all other markings that doesn't need it.
         var markingFColored = new Dictionary<Marking, MarkingPrototype>();
@@ -453,7 +454,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
             AddMarking(uid, profile.Appearance.FacialHairStyleId, facialHairColor, false);
         }
 
-        humanoid.MarkingSet.EnsureSpecies(profile.Species, profile.Appearance.SkinColor, _markingManager, _proto);
+        humanoid.MarkingSet.EnsureSpecies(profile.Species, profile.Appearance.SkinColor, profile.MismatchedParts, _markingManager, _proto); // WOLFGATE(MismatchedParts): keeps other species' markings
         AddMismatchedHair(uid, profile, humanoid, hairColor, facialHairColor); // WOLFGATE(MismatchedParts): hair and beards the species can't wear
 
         // Finally adding marking with forced colors

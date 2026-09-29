@@ -239,7 +239,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         var skinColor = appearance.SkinColor;
         if (proto.TryIndex(species, out SpeciesPrototype? speciesProto))
         {
-            markingSet = new MarkingSet(appearance.Markings, speciesProto.MarkingPoints, markingManager, proto);
+            markingSet = MarkingSet.ForProfile(appearance.Markings, speciesProto.MarkingPoints, mismatchedParts, markingManager, proto); // WOLFGATE(MismatchedParts): was new MarkingSet(...), opens the species' closed categories
             markingSet.EnsureValid(markingManager);
 
             if (!Humanoid.SkinColor.VerifySkinColor(speciesProto.SkinColoration, skinColor))
@@ -254,7 +254,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
             }
             // WOLFGATE END
 
-            markingSet.EnsureSpecies(species, skinColor, markingManager);
+            markingSet.EnsureSpecies(species, skinColor, mismatchedParts, markingManager); // WOLFGATE(MismatchedParts): keeps other species' markings
             markingSet.EnsureSexes(sex, markingManager);
         }
 

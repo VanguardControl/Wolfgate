@@ -8,13 +8,19 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.MismatchedParts;
 
 /// <summary>
-/// What the Mismatched parts option unlocks. For now it gives hair and facial hair to species that can't wear them;
-/// a species that can keeps its own styles either way.
+/// What the Mismatched parts option unlocks: every species' markings, hair and facial hair, on body parts the
+/// character's sprite can draw, with one point for each category the species has none for.
 /// </summary>
 public static class MismatchedPartsRules
 {
-    /// <summary>Whether the option opens this marking category.</summary>
-    public static bool Opens(MarkingCategories category)
+    /// <summary>Body parts only some species' sprites have a layer for; the option leaves them to those species.</summary>
+    private static readonly HumanoidVisualLayers[] SpeciesOnlyParts =
+    {
+        HumanoidVisualLayers.TailExtras, HumanoidVisualLayers.LArmExtension, HumanoidVisualLayers.RArmExtension,
+    };
+
+    /// <summary>Whether this is a hair category, whose style is saved outside the marking set.</summary>
+    public static bool IsHair(MarkingCategories category)
     {
         return category is MarkingCategories.Hair or MarkingCategories.FacialHair;
     }
@@ -28,7 +34,10 @@ public static class MismatchedPartsRules
         return NativeStyles(category, species, markings, proto) != null;
     }
 
-    /// <summary>The styles of a category a character of this species may pick.</summary>
+    /// <summary>
+    /// The styles of a category a character of this species may pick: every species' styles with the option on,
+    /// otherwise its own, and no hair or facial hair it can't wear.
+    /// </summary>
     public static IReadOnlyDictionary<string, MarkingPrototype> Styles(
         MarkingCategories category,
         string species,
@@ -36,24 +45,18 @@ public static class MismatchedPartsRules
         MarkingManager markings,
         IPrototypeManager proto)
     {
-        if (!Opens(category))
+        if (mismatchedParts)
+            return markings.MarkingsByCategory(category);
+
+        if (!IsHair(category))
             return markings.MarkingsByCategoryAndSpecies(category, species);
 
-        if (NativeStyles(category, species, markings, proto) is { } native)
-            return native;
-
-        if (!mismatchedParts)
-            return FrozenDictionary<string, MarkingPrototype>.Empty;
-
-        // The species' own styles, if it has any, plus every style no species restricts.
-        return markings.MarkingsByCategory(category)
-            .Where(p => p.Value.SpeciesRestrictions == null || p.Value.SpeciesRestrictions.Contains(species))
-            .ToDictionary(p => p.Key, p => p.Value);
+        return NativeStyles(category, species, markings, proto) ?? FrozenDictionary<string, MarkingPrototype>.Empty;
     }
 
     /// <summary>
-    /// Whether the option puts this style on the character: it is on, the species can't wear the category on its own,
-    /// and the style is one the option opens for this species and sex.
+    /// Whether the option puts this hair or facial hair style on the character: it is on, and the style is one the
+    /// species can't wear on its own but the option opens for this sex.
     /// </summary>
     public static bool Unlocks(
         MarkingCategories category,
@@ -65,12 +68,33 @@ public static class MismatchedPartsRules
         IPrototypeManager proto)
     {
         if (!mismatchedParts
-            || !Opens(category)
-            || IsNative(category, species, markings, proto)
-            || !Styles(category, species, true, markings, proto).TryGetValue(style, out var prototype))
+            || !IsHair(category)
+            || !markings.MarkingsByCategory(category).TryGetValue(style, out var prototype)
+            || NativeStyles(category, species, markings, proto)?.ContainsKey(style) == true)
             return false;
 
         return prototype.SexRestriction == null || prototype.SexRestriction == sex;
+    }
+
+    /// <summary>Whether a character of this species can have the marking drawn: its sprite has a layer for the part.</summary>
+    public static bool Drawable(MarkingPrototype marking, string species, IPrototypeManager proto)
+    {
+        if (!SpeciesOnlyParts.Contains(marking.BodyPart))
+            return true;
+
+        return proto.TryIndex<SpeciesPrototype>(species, out var speciesProto)
+               && proto.TryIndex<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet, out var sprites)
+               && sprites.Sprites.ContainsKey(marking.BodyPart);
+    }
+
+    /// <summary>Gives one point to every category of a fresh set's budget that has none.</summary>
+    public static void OpenPoints(Dictionary<MarkingCategories, MarkingPoints> points)
+    {
+        foreach (var limit in points.Values)
+        {
+            if (limit.Points <= 0)
+                limit.Points = 1;
+        }
     }
 
     /// <summary>The species' own styles if it wears the category on its own, otherwise null.</summary>
