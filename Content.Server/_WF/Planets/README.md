@@ -17,7 +17,9 @@ Entry points: `WFPlanetNetworkSystem` and `WFPlanetRegistrySystem` (the z-level 
 crashes), `WFOrbitDecaySystem`, `WFGravityWellSystem`, `WFPlanetWeatherSystem`, `WFParachuteSystem` and
 `PlanetControlSystem`. Upstream systems are extended through partials in this module (`CEZLevelsSystem.WF*`,
 `ThrusterSystem.WF*`, `ShuttleSystem.WFOrbit`). Settings are in `PlanetCVars` (`wf.planet_networks`); ecology and
-landing notes and the playtest checklist are in `Docs/_WF/Planets`.
+landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
+of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
+generate or sample.
 
 Other modules build on it through `WFDetachedTerrainComponent` (a grid that is ground, not a hull),
 `WFLiftoffAttemptEvent`, `WFGridLiftLoadEvent`, `WFPlanetGroundSpawnedEvent`, `WFPlanetLowerLayersEvent` and
@@ -108,7 +110,9 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs)
 - [`Content.Shared/_WF/Planets/Parachute/WFParachuteComponents.cs`](../../../Content.Shared/_WF/Planets/Parachute/WFParachuteComponents.cs)
 - [`Content.Shared/_WF/Planets/Parachute/WFParachuteSystem.cs`](../../../Content.Shared/_WF/Planets/Parachute/WFParachuteSystem.cs)
+- [`Content.Shared/_WF/Planets/SharedBiomeSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Planets/SharedBiomeSystem.Wolfgate.cs)
 - [`Content.Shared/_WF/Planets/SharedShuttleSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Planets/SharedShuttleSystem.Wolfgate.cs)
+- [`Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs`](../../../Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs)
 - [`Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs`](../../../Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs)
 - [`Content.Shared/_WF/Planets/WFDetachedTerrainComponent.cs`](../../../Content.Shared/_WF/Planets/WFDetachedTerrainComponent.cs)
 - [`Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs`](../../../Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs)
@@ -147,6 +151,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 
 - [`Content.IntegrationTests/Tests/_WF/Planets/AtmosphereThrusterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AtmosphereThrusterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs)
@@ -389,6 +394,9 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
   - jetpacks fly on a planet's orbit layer but not in its atmosphere.
   - no jetpack below a planet's orbit layer.
 - [`Content.Shared/Movement/Systems/SharedMoverController.Input.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.Input.cs): a planet surface is a map that is also a grid, and its tiles are ground, not space.
+- [`Content.Shared/Parallax/Biomes/SharedBiomeSystem.cs`](../../../Content.Shared/Parallax/Biomes/SharedBiomeSystem.cs)
+  - reuse one copy per source noise and seed, since callers only read it
+  - keep the copy for later calls
 - [`Content.Shared/Shuttles/Systems/SharedShuttleSystem.cs`](../../../Content.Shared/Shuttles/Systems/SharedShuttleSystem.cs): you only FTL out of a planet network from orbit, and never FTL into an orbit layer.
 - [`Content.Shared/Tiles/FloorTileSystem.cs`](../../../Content.Shared/Tiles/FloorTileSystem.cs)
   - reads the planet ground under a tile.

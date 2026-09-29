@@ -92,8 +92,8 @@ Checked in code on this branch. Line numbers are approximate.
    - Direct entity-layer spawns are tracked in `LoadedEntities`: untouched ones unload, mined ones mark the tile
      modified.
    - Marker-layer spawns pin their tile and never unload.
-   - `GetNoise` allocates and serialiser-copies a noise object on every call, about 3 µs, so pure sampling costs
-     microseconds per layer per tile.
+   - `GetNoise` serialiser-copies a layer's noise once per seed and reuses the copy (`WFBiomeNoiseCacheSystem`), so
+     pure sampling costs about 0.2 µs per layer per tile, mostly the noise itself.
 9. **Eyes load chunks.** `UpdateViewer` (`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs:147-199`) spawns a
    `CEZLevelEye` on every map below the viewer, up to 10 of them, and one above. The eye has no `GhostComponent`, so
    biome chunks load around it: item 7's fixed area, whatever the eye's PVS scale. Without a change, every ground, air
@@ -1690,7 +1690,7 @@ This feature adds vents, unstable rock and cave-ins, disturbance and deep tables
 | 8 | Fauna may not survive CO₂, ammonia, heat or cold | `FaunaSurvivesItsCavern` decides the tables in F4 |
 | 9 | `SmokeOnTrigger` may not spread on a map grid without `GridAtmosphere` | `VentHissesAndReleasesSmoke` decides. Fallback: vents spawn a puddle of the reagent instead |
 | 10 | Restarting a pull across a map change may be refused | `ClimbHaulsPulledOreBox` decides. Fallback: move the hauled entity without restarting the pull |
-| 11 | `GetNoise` allocates on every call, so claims cost about 1 ms per candidate and sampled tests take seconds per world | Claims are spread over time and logged above 20 ms. If tests are too slow, add a cached sampler to `BiomeSystem.Caverns.cs` and assert it agrees with `TryGetTile` |
+| 11 | `GetNoise` allocated a noise copy on every call, so claims cost about 1 ms per candidate and sampled tests took seconds per world | Closed: `WFBiomeNoiseCacheSystem` copies once per layer and seed, about 5x faster chunk sampling; `BiomeNoiseCacheTest` asserts the terrain is unchanged. Claims are still spread over time and logged above 20 ms |
 | 12 | Six more maps share the 128 fauna cap | Cavern fauna retires without observers, and the eye cap keeps surface viewers' eyes out of the cavern except near a mouth. Watch `PlanetPopulationTest` |
 | 13 | For the first 0.1 s after a load, a cavern chunk can show shaft light before the ground above it loads | Cosmetic. Both load in the same `BiomeSystem` pass |
 | 14 | The eye cap, the cavern pass and the hull guard touch CE files that change upstream | Single-line marked edits that call into `_WF`. Recheck on every CE merge |
