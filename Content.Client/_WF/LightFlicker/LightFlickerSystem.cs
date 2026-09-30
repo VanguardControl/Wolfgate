@@ -107,13 +107,6 @@ public sealed class LightFlickerSystem : EntitySystem
     {
         switch (flicker.Phase)
         {
-            case LightFlickerPhase.Dark:
-                PlayFaultSound(uid);
-                SetLit(uid, flicker, true);
-                flicker.Phase = LightFlickerPhase.Hold;
-                flicker.NextStep = now + Seconds(0.5f, 1f);
-                return;
-
             case LightFlickerPhase.Strike:
                 if (flicker.Lit)
                 {
@@ -131,13 +124,23 @@ public sealed class LightFlickerSystem : EntitySystem
                 }
 
                 // The last flash catches and stays lit.
-                flicker.Mode = LightFlickerMode.None;
+                if (flicker.Mode == LightFlickerMode.Strike)
+                {
+                    flicker.Mode = LightFlickerMode.None;
+                    return;
+                }
+
+                flicker.Phase = LightFlickerPhase.Hold;
+                flicker.NextStep = now + Seconds(2f, 7f);
                 return;
 
             case LightFlickerPhase.Hold:
-                flicker.Phase = LightFlickerPhase.Dark;
+                // The ballast drops the tube out and the starter ticks it back on, once or a few times.
+                flicker.Phase = LightFlickerPhase.Strike;
+                flicker.FlashesLeft = _random.Next(1, 4);
+                PlayFaultSound(uid);
                 SetLit(uid, flicker, false);
-                flicker.NextStep = now + Seconds(0.5f, 5f);
+                flicker.NextStep = now + Seconds(0.15f, 0.3f);
                 return;
         }
     }
@@ -157,9 +160,9 @@ public sealed class LightFlickerSystem : EntitySystem
             return;
 
         flicker.Mode = LightFlickerMode.Fault;
-        flicker.Phase = LightFlickerPhase.Dark;
-        SetLit(uid, flicker, false);
-        flicker.NextStep = _timing.RealTime + Seconds(0.5f, 1f);
+        flicker.Phase = LightFlickerPhase.Hold;
+        SetLit(uid, flicker, true);
+        flicker.NextStep = _timing.RealTime + Seconds(0.2f, 1f);
     }
 
     /// <summary>Ends any flicker, leaving the light lit if it should be.</summary>

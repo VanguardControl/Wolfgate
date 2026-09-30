@@ -1,9 +1,9 @@
 # LightFlicker
 
-Fluorescent flicker, ported from Skyrat's light aesthetics. An explosion damages the ballast of every powered light its
-shockwave reaches; the light then flickers like a failing tube (Skyrat's pacing: dark for 0.5-5 s, lit for 0.5-1 s,
-with a quiet starter tick) until someone uses a multitool on it. A light that switches on also flashes once before it
-catches.
+Fluorescent flicker, ported from Skyrat's light aesthetics. Each powered light an explosion's shockwave reaches has a
+chance (`wf.light_flicker.ballast_damage_chance`, 50% by default) of a damaged ballast; the light then stays lit but
+flickers out once to three times every 2-7 s, with a starter tick, until someone uses a multitool on it. A light that
+switches on also flashes once before it catches.
 Skyrat's turn-on sound was already upstream as `light_tube_on.ogg` but played too quietly to hear, so lights now use a
 normalised copy, `light_on.ogg`, for both the turn-on and the fault tick.
 
@@ -25,6 +25,7 @@ draws both flickers locally from the bulb state and the light's last turn-on tim
 - [`Content.Shared/_WF/LightFlicker/BallastRepairDoAfterEvent.cs`](../../../Content.Shared/_WF/LightFlicker/BallastRepairDoAfterEvent.cs)
 - [`Content.Shared/_WF/LightFlicker/DamagedBallastComponent.cs`](../../../Content.Shared/_WF/LightFlicker/DamagedBallastComponent.cs)
 - [`Content.Shared/_WF/LightFlicker/LightBallastSystem.cs`](../../../Content.Shared/_WF/LightFlicker/LightBallastSystem.cs)
+- [`Content.Shared/_WF/LightFlicker/LightFlickerCVars.cs`](../../../Content.Shared/_WF/LightFlicker/LightFlickerCVars.cs)
 
 ### Client
 

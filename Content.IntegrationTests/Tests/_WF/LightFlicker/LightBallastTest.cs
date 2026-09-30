@@ -27,12 +27,9 @@ public sealed class LightBallastTest : InteractionTest
         {
             var pos = Transform.GetMapCoordinates(light);
             far = SEntMan.SpawnEntity(Light, new MapCoordinates(pos.Position + new Vector2(40f, 0f), pos.MapId));
-
-            var ev = new ExplosionShockwaveEvent(new MapCoordinates(pos.Position - new Vector2(1f, 0f), pos.MapId), 2, null);
-            SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ev);
         });
 
-        await RunTicks(5);
+        await Shockwave(light, 1f);
 
         await Server.WaitAssertion(() =>
         {
@@ -41,6 +38,43 @@ public sealed class LightBallastTest : InteractionTest
             Assert.That(SEntMan.HasComponent<DamagedBallastComponent>(far), Is.False,
                 "A light well past the shockwave should be left alone.");
         });
+    }
+
+    [Test]
+    public async Task ShockwaveRespectsDamageChance()
+    {
+        var light = ToServer(await SpawnTarget(Light));
+
+        await Shockwave(light, 0f);
+
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.HasComponent<DamagedBallastComponent>(light), Is.False,
+                "With no damage chance the shockwave should leave the ballast alone."));
+    }
+
+    /// <summary>Raises a small shockwave next to <paramref name="light"/> with the given ballast damage chance.</summary>
+    private async Task Shockwave(EntityUid light, float chance)
+    {
+        var old = Server.CfgMan.GetCVar(LightFlickerCVars.BallastDamageChance);
+
+        try
+        {
+            await Server.WaitPost(() =>
+            {
+                Server.CfgMan.SetCVar(LightFlickerCVars.BallastDamageChance, chance);
+
+                var pos = Transform.GetMapCoordinates(light);
+                var epicenter = new MapCoordinates(pos.Position - new Vector2(1f, 0f), pos.MapId);
+                var ev = new ExplosionShockwaveEvent(epicenter, 2, null);
+                SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ev);
+            });
+
+            await RunTicks(5);
+        }
+        finally
+        {
+            await Server.WaitPost(() => Server.CfgMan.SetCVar(LightFlickerCVars.BallastDamageChance, old));
+        }
     }
 
     [Test]
@@ -81,12 +115,12 @@ public sealed class LightBallastTest : InteractionTest
 
         await Server.WaitPost(() => SEntMan.System<LightBallastSystem>().DamageBallast(light));
 
-        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.Fault && Shows(client, false), 3), Is.True,
-            "A damaged ballast should start the fault flicker, dark first.");
-        Assert.That(await WaitForClient(() => Shows(client, true), 5), Is.True,
-            "A faulty light should strike back on within a cycle.");
-        Assert.That(await WaitForClient(() => Shows(client, false), 8), Is.True,
-            "A faulty light should go dark again.");
+        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.Fault && Shows(client, true), 3), Is.True,
+            "A damaged ballast should start the fault flicker from lit.");
+        Assert.That(await WaitForClient(() => Shows(client, false), 3), Is.True,
+            "A faulty light should flicker out soon after the damage.");
+        Assert.That(await WaitForClient(() => Shows(client, true), 3), Is.True,
+            "A faulty light should come back on after a flicker.");
 
         await InteractUsing("Multitool");
 

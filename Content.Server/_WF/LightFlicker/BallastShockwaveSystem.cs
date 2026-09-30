@@ -3,15 +3,18 @@ using Content.Shared._WF.Explosion;
 using Content.Shared._WF.LightFlicker;
 using Content.Shared.Light.Components;
 using Robust.Shared.Configuration;
+using Robust.Shared.Random;
 
 namespace Content.Server._WF.LightFlicker;
 
 /// <summary>
-/// Damages the ballast of every powered light an explosion's shockwave reaches, the same reach as the ring and shove.
+/// Gives each powered light an explosion's shockwave reaches (the same reach as the ring and shove) a chance of a
+/// damaged ballast.
 /// </summary>
 public sealed class BallastShockwaveSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IRobustRandom _random = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private LightBallastSystem _ballast = default!;
 
@@ -27,8 +30,9 @@ public sealed class BallastShockwaveSystem : EntitySystem
     private void OnShockwave(ref ExplosionShockwaveEvent args)
     {
         var reach = args.Iterations + _cfg.GetCVar(ShockwaveCVars.Overshoot);
+        var chance = Math.Clamp(_cfg.GetCVar(LightFlickerCVars.BallastDamageChance), 0f, 1f);
 
-        if (reach <= 0f)
+        if (reach <= 0f || chance <= 0f)
             return;
 
         _lights.Clear();
@@ -36,7 +40,8 @@ public sealed class BallastShockwaveSystem : EntitySystem
 
         foreach (var light in _lights)
         {
-            _ballast.DamageBallast(light);
+            if (_random.Prob(chance))
+                _ballast.DamageBallast(light);
         }
 
         _lights.Clear();
