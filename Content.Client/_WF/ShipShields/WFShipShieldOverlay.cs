@@ -80,7 +80,7 @@ public sealed class WFShipShieldOverlay : Overlay
                 : cached.Detailed ??= new RenderMesh(cached.Contours, false);
             _impacts.TryGetValue(uid, out var impacts);
             var tint = WFShipShieldEffects.HealthColor(shield.Health);
-            mesh.UpdateColors(tint, impacts, _timing.CurTime, distant);
+            mesh.UpdateColors(tint, shield.Health, impacts, _timing.CurTime, distant);
             handle.SetTransform(matrix);
             DrawBatches(handle, DrawPrimitiveTopology.TriangleList, mesh.Triangles);
             if (!distant && pixelsPerTile >= 12f)
@@ -186,7 +186,7 @@ public sealed class WFShipShieldOverlay : Overlay
             HexLines = new DrawVertexUV2DColor[_mesh.HexLines.Count];
         }
 
-        public void UpdateColors(Color tint, List<WFShipShieldOverlaySystem.Impact>? impacts, TimeSpan time, bool distant)
+        public void UpdateColors(Color tint, float integrity, List<WFShipShieldOverlaySystem.Impact>? impacts, TimeSpan time, bool distant)
         {
             var active = impacts is { Count: > 0 };
             if (!active && !_hadImpacts && _lastTint == tint)
@@ -213,7 +213,7 @@ public sealed class WFShipShieldOverlay : Overlay
                         flash += WFShipShieldEffects.Flash(distance, age, impact.Strength);
                     }
                 }
-                var appearance = WFShipShieldEffects.Appearance(tint, heat, wave, flash);
+                var appearance = WFShipShieldEffects.Appearance(tint, heat, wave, flash, integrity);
                 _colors[i] = appearance.Tint.WithAlpha(appearance.Surface);
                 _hexColors[i] = appearance.Tint.WithAlpha(appearance.Hexes);
             }
@@ -226,7 +226,7 @@ public sealed class WFShipShieldOverlay : Overlay
             for (var i = 0; i < source.Count; i++)
             {
                 var vertex = source[i];
-                var color = colors[vertex.Sample];
+                var color = WFShipShieldMesh.Interpolate(vertex, colors);
                 destination[i] = new DrawVertexUV2DColor(vertex.Position, vertex.Position,
                     color.WithAlpha(Math.Clamp(color.A * vertex.Alpha, 0f, 0.85f)));
             }

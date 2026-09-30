@@ -14,6 +14,20 @@ namespace Content.Tests._WF.ShipShields;
 [TestFixture]
 public sealed class WFShipShieldMeshTest
 {
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ImpactSamplingReproducesSmoothGradientAtEveryVertex(bool distant)
+    {
+        var mesh = new WFShipShieldMesh(ShipContours(), distant);
+        var colors = mesh.Samples.Select(p => new Color(p.X / 100f + 0.2f, p.Y / 100f + 0.2f, 0.5f, 1f)).ToArray();
+        foreach (var vertex in mesh.Triangles.Concat(mesh.HexLines))
+        {
+            var actual = WFShipShieldMesh.Interpolate(vertex, colors);
+            Assert.That(actual.R, Is.EqualTo(vertex.Position.X / 100f + 0.2f).Within(0.00001f));
+            Assert.That(actual.G, Is.EqualTo(vertex.Position.Y / 100f + 0.2f).Within(0.00001f));
+        }
+    }
+
     [Test]
     public void ShortConcaveCornersDoNotInvertRibbonTriangles()
     {

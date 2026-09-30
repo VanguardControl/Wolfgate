@@ -19,8 +19,8 @@ public sealed class WFShipShieldMesh
     private const float SampleStep = 1.5f;
     private readonly Dictionary<Vector2i, int> _samples = new();
 
-    /// <summary>A local vertex referencing one shared impact-color sample.</summary>
-    public readonly record struct Vertex(Vector2 Position, float Alpha, int Sample);
+    /// <summary>A local vertex blending four cached impact samples without visible cell boundaries.</summary>
+    public readonly record struct Vertex(Vector2 Position, float Alpha, int Sample, int SampleX, int SampleY, int SampleXY, Vector2 Blend);
     private readonly record struct DistanceVertex(Vector2 Position, float Depth);
 
     /// <summary>Ignores fresh network arrays when contour coordinates have not changed.</summary>
@@ -95,15 +95,30 @@ public sealed class WFShipShieldMesh
         return MathF.Sqrt(minimum) * (inside ? 1f : -1f);
     }
 
-    private int Sample(Vector2 point)
+    private int Sample(Vector2i key)
     {
-        var key = new Vector2i((int) MathF.Floor(point.X / SampleStep), (int) MathF.Floor(point.Y / SampleStep));
         if (_samples.TryGetValue(key, out var sample))
             return sample;
         sample = Samples.Count;
-        Samples.Add(new Vector2((key.X + 0.5f) * SampleStep, (key.Y + 0.5f) * SampleStep));
+        Samples.Add(new Vector2(key.X * SampleStep, key.Y * SampleStep));
         _samples.Add(key, sample);
         return sample;
+    }
+
+    private Vertex CreateVertex(Vector2 position, float alpha)
+    {
+        var scaled = position / SampleStep;
+        var key = new Vector2i((int)MathF.Floor(scaled.X), (int)MathF.Floor(scaled.Y));
+        return new Vertex(position, alpha, Sample(key), Sample(key + new Vector2i(1, 0)),
+            Sample(key + new Vector2i(0, 1)), Sample(key + new Vector2i(1, 1)), scaled - new Vector2(key.X, key.Y));
+    }
+
+    /// <summary>Interpolates cached impact colours continuously across sample cells.</summary>
+    public static Color Interpolate(Vertex vertex, IReadOnlyList<Color> colors)
+    {
+        var bottom = Color.InterpolateBetween(colors[vertex.Sample], colors[vertex.SampleX], vertex.Blend.X);
+        var top = Color.InterpolateBetween(colors[vertex.SampleY], colors[vertex.SampleXY], vertex.Blend.X);
+        return Color.InterpolateBetween(bottom, top, vertex.Blend.Y);
     }
 
     private HashSet<Vector2i> BuildDistanceBand(Vector2[][] contours)
@@ -168,7 +183,6 @@ public sealed class WFShipShieldMesh
                 ClipDepth(clipped, polygon, inner, false);
                 if (polygon.Count < 3)
                     return;
-                var sample = Sample((a.Position + b.Position + c.Position) / 3f);
                 for (var i = 1; i < polygon.Count - 1; i++)
                 {
                     var first = polygon[0];
@@ -178,9 +192,9 @@ public sealed class WFShipShieldMesh
                     var ac = third.Position - first.Position;
                     if (ab.X * ac.Y - ab.Y * ac.X <= 0.000001f)
                         continue;
-                    Triangles.Add(new Vertex(first.Position, GlowOpacity(first.Depth), sample));
-                    Triangles.Add(new Vertex(second.Position, GlowOpacity(second.Depth), sample));
-                    Triangles.Add(new Vertex(third.Position, GlowOpacity(third.Depth), sample));
+                    Triangles.Add(CreateVertex(first.Position, GlowOpacity(first.Depth)));
+                    Triangles.Add(CreateVertex(second.Position, GlowOpacity(second.Depth)));
+                    Triangles.Add(CreateVertex(third.Position, GlowOpacity(third.Depth)));
                 }
             }
         }
@@ -267,9 +281,8 @@ public sealed class WFShipShieldMesh
                         continue;
                     var clippedStart = Vector2.Lerp(start, end, low);
                     var clippedEnd = Vector2.Lerp(start, end, high);
-                    var sample = Sample((clippedStart + clippedEnd) * 0.5f);
-                    HexLines.Add(new Vertex(clippedStart, HexOpacity(d0 + delta * low), sample));
-                    HexLines.Add(new Vertex(clippedEnd, HexOpacity(d0 + delta * high), sample));
+                    HexLines.Add(CreateVertex(clippedStart, HexOpacity(d0 + delta * low)));
+                    HexLines.Add(CreateVertex(clippedEnd, HexOpacity(d0 + delta * high)));
                 }
             }
         }
@@ -304,16 +317,15 @@ public sealed class WFShipShieldMesh
                     var b = Vector2.Lerp(start, end, t1);
                     var na = EdgeNormal(start, end, n0, n1, t0);
                     var nb = EdgeNormal(start, end, n0, n1, t1);
-                    var sample = Sample((a + b) * 0.5f);
                     Band(-0.12f, 0f, 0f, 0.52f);
                     Band(0f, 0.075f, 0.52f, 0.19f);
                     Band(0.075f, 0.3f, 0.19f, 0f);
                     void Band(float outer, float inner, float outerAlpha, float innerAlpha)
                     {
-                        var a0 = new Vertex(a + na * outer, outerAlpha, sample);
-                        var b0 = new Vertex(b + nb * outer, outerAlpha, sample);
-                        var a1 = new Vertex(a + na * inner, innerAlpha, sample);
-                        var b1 = new Vertex(b + nb * inner, innerAlpha, sample);
+                        var a0 = CreateVertex(a + na * outer, outerAlpha);
+                        var b0 = CreateVertex(b + nb * outer, outerAlpha);
+                        var a1 = CreateVertex(a + na * inner, innerAlpha);
+                        var b1 = CreateVertex(b + nb * inner, innerAlpha);
                         Triangles.Add(a0); Triangles.Add(b0); Triangles.Add(a1);
                         Triangles.Add(b0); Triangles.Add(b1); Triangles.Add(a1);
                     }

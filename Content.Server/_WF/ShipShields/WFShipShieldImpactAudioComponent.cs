@@ -9,4 +9,7 @@ public sealed partial class WFShipShieldImpactAudioComponent : Component
 
     /// <summary>Current echo, retained across shield replacement.</summary>
     public EntityUid? ActiveImpactSound;
+
+    /// <summary>Older echo, stopped when the next impact starts to bound overlapping audio.</summary>
+    public EntityUid? PreviousImpactSound;
 }

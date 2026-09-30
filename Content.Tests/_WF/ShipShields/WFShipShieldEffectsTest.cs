@@ -15,9 +15,22 @@ public sealed class WFShipShieldEffectsTest
         var hit = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, 0f, 1f),
             WFShipShieldEffects.Wave(0f, 0f, 1f), WFShipShieldEffects.Flash(0f, 0f, 1f));
         Assert.That(idle.Surface, Is.LessThan(0.3f));
-        Assert.That(idle.Hexes, Is.LessThan(idle.Surface / 3f));
+        Assert.That(idle.Hexes * WFShipShieldMesh.HexOpacity(0f), Is.InRange(0.1f, 0.15f));
         Assert.That(hit.Surface, Is.GreaterThan(idle.Surface * 5f));
-        Assert.That(hit.Hexes, Is.GreaterThan(idle.Hexes * 20f));
+        Assert.That(hit.Hexes, Is.GreaterThan(idle.Hexes * 10f));
+    }
+
+    [Test]
+    public void DamagedShieldsBecomeMoreVisibleWithoutAnActiveImpact()
+    {
+        var healthy = WFShipShieldEffects.Appearance(WFShipShieldEffects.HealthColor(1f), 0f, 0f, 0f, 1f);
+        var damaged = WFShipShieldEffects.Appearance(WFShipShieldEffects.HealthColor(0.5f), 0f, 0f, 0f, 0.5f);
+        var critical = WFShipShieldEffects.Appearance(WFShipShieldEffects.HealthColor(0f), 0f, 0f, 0f, 0f);
+        Assert.That(healthy.Surface, Is.LessThan(0.2f));
+        Assert.That(damaged.Surface, Is.GreaterThan(healthy.Surface));
+        Assert.That(critical.Surface, Is.GreaterThan(damaged.Surface));
+        Assert.That(damaged.Hexes, Is.GreaterThan(healthy.Hexes));
+        Assert.That(critical.Hexes, Is.GreaterThan(damaged.Hexes));
     }
 
     [Test]

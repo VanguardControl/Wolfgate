@@ -32,6 +32,7 @@ public sealed class WFShipShieldProjectileContactTest
         var entities = server.EntMan;
         await server.WaitAssertion(() =>
         {
+            server.CfgMan.SetCVar(Robust.Shared.CVars.NetTickrate, 30);
             var maps = entities.System<SharedMapSystem>();
             maps.SetTile(map.Grid, new Robust.Shared.Maths.Vector2i(200, 100), map.Tile.Tile);
             server.ResolveDependency<IConsoleHost>().ExecuteCommand($"shieldentity {map.Grid.Owner}");
@@ -60,6 +61,8 @@ public sealed class WFShipShieldProjectileContactTest
             var audioState = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner);
             var echo = audioState.ActiveImpactSound!.Value;
             var audio = entities.GetComponent<AudioComponent>(echo);
+            Assert.That(audio.Params.Volume, Is.EqualTo(4f));
+            Assert.That((audioState.NextImpactSound - server.Timing.CurTime).TotalSeconds, Is.InRange(0.75d, 1.1d));
             Assert.That(entities.GetComponent<TransformComponent>(echo).ParentUid, Is.EqualTo(map.Grid.Owner));
             Assert.That(audio.Flags.HasFlag(AudioFlags.GridAudio), Is.True);
             Assert.That(audio.Flags.HasFlag(AudioFlags.NoOcclusion), Is.True);
@@ -84,6 +87,26 @@ public sealed class WFShipShieldProjectileContactTest
             Assert.That(audioState.NextImpactSound, Is.EqualTo(cooldown));
             Assert.That(audioState.ActiveImpactSound, Is.EqualTo(echo), "Replacing a shield cannot stack another hull echo.");
         });
+        for (var hit = 0; hit < 2; hit++)
+        {
+            await pair.RunTicksSync(36);
+            await server.WaitAssertion(() =>
+            {
+                var state = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner);
+                var previous = state.ActiveImpactSound;
+                var oldest = state.PreviousImpactSound;
+                var shield = entities.GetComponent<ShipShieldedComponent>(map.Grid.Owner).Shield;
+                var uid = entities.SpawnEntity("BulletDebugZoom", map.GridCoords);
+                entities.EnsureComponent<ShipWeaponProjectileComponent>(uid);
+                var projectile = entities.GetComponent<ProjectileComponent>(uid);
+                entities.System<ProjectileSystem>().ProjectileCollide((uid, projectile, entities.GetComponent<PhysicsComponent>(uid)), shield);
+                Assert.That(state.ActiveImpactSound, Is.Not.EqualTo(previous), "A new hit must be audible before the full echo finishes.");
+                Assert.That(state.PreviousImpactSound, Is.EqualTo(previous));
+                if (oldest is { } old)
+                    Assert.That(!entities.EntityExists(old) || entities.IsQueuedForDeletion(old), Is.True,
+                        "Starting a third impact must retire the oldest tail.");
+            });
+        }
         await pair.RunTicksSync(1);
         await pair.CleanReturnAsync();
     }

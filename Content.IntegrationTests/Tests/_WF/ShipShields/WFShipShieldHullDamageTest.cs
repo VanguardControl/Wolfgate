@@ -159,10 +159,8 @@ public sealed class WFShipShieldHullDamageTest
                 if (nextImpactSound == TimeSpan.Zero)
                 {
                     nextImpactSound = audio.NextImpactSound;
-                    Assert.That((nextImpactSound - server.Timing.CurTime).TotalSeconds, Is.InRange(1.9d, 3.6d));
+                    Assert.That((nextImpactSound - server.Timing.CurTime).TotalSeconds, Is.InRange(0d, 1.1d));
                 }
-                else
-                    Assert.That(audio.NextImpactSound, Is.EqualTo(nextImpactSound), "Rapid contacts must retain the first impact's sound cooldown.");
                 var soundCount = 0;
                 var sounds = entities.EntityQueryEnumerator<AudioComponent>();
                 while (sounds.MoveNext(out var soundUid, out var sound))
@@ -171,7 +169,7 @@ public sealed class WFShipShieldHullDamageTest
                     if (!entities.IsQueuedForDeletion(soundUid) && filename.Contains("_WF/ShipShields/impact_"))
                         soundCount++;
                 }
-                Assert.That(soundCount, Is.EqualTo(1), "Consecutive contacts inside the cooldown must not start overlapping impact sounds.");
+                Assert.That(soundCount, Is.InRange(1, 2), "Frequent impacts must keep at most two echo tails.");
             });
             shotIndex++;
         }

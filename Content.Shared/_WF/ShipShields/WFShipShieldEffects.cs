@@ -31,17 +31,18 @@ public static class WFShipShieldEffects
     }
 
     /// <summary>Returns health-tinted impact colour and separate surface/hex opacity multipliers.</summary>
-    public static (Color Tint, float Surface, float Hexes) Appearance(Color health, float heat, float wave, float flash)
+    public static (Color Tint, float Surface, float Hexes) Appearance(Color health, float heat, float wave, float flash, float integrity = 1f)
     {
         heat = Math.Clamp(heat, 0f, 1.5f);
         wave = Math.Clamp(wave, 0f, 1.5f);
         flash = Math.Clamp(flash, 0f, 1f);
+        var damage = 1f - Math.Clamp(float.IsFinite(integrity) ? integrity : 0f, 0f, 1f);
         var hot = Math.Clamp((heat - 0.12f) * 1.1f, 0f, 1f);
         var tint = Color.InterpolateBetween(health, new Color(1f, 0.025f, 0.06f), hot);
         tint = Color.InterpolateBetween(tint, new Color(0.7f, 0.92f, 1f), Math.Clamp(flash * 0.8f + wave * 0.6f, 0f, 0.85f));
         return (Color.FromSrgb(tint),
-            0.22f + flash * 1.25f + wave * 0.9f + heat * 0.32f,
-            0.06f + flash * 3.2f + wave * 2.4f + heat * 1.1f);
+            0.14f + damage * 0.38f + flash * 1.25f + wave * 0.9f + heat * 0.32f,
+            0.38f + damage * 0.62f + flash * 3.2f + wave * 2.4f + heat * 1.1f);
     }
 
     /// <summary>Returns the main expanding wave and a faint trailing echo.</summary>

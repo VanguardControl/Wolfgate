@@ -16,7 +16,7 @@ public sealed partial class ShipShieldsSystem
     [Dependency] private EntityLookupSystem _wfShieldAudioLookup = default!;
     private static readonly SoundCollectionSpecifier WolfgateImpactSound = new("WFShipShieldImpacts");
 
-    /// <summary>Plays one hull-wide echo that survives shield collapse.</summary>
+    /// <summary>Plays frequent hull-wide impacts with at most two overlapping echoes.</summary>
     private void PlayWolfgateShieldImpact(EntityUid shield, Vector2 position)
     {
         if (!TryComp<ShipShieldComponent>(shield, out var shieldComponent) ||
@@ -25,19 +25,20 @@ public sealed partial class ShipShieldsSystem
         var grid = shieldComponent.Shielded;
         var state = EnsureComp<WFShipShieldImpactAudioComponent>(grid);
         var now = _wfShieldTiming.CurTime;
-        if (now < state.NextImpactSound ||
-            state.ActiveImpactSound is { } active && !TerminatingOrDeleted(active))
+        if (now < state.NextImpactSound)
             return;
-        state.NextImpactSound = now + TimeSpan.FromSeconds(_wfShieldRandom.NextFloat(2.4f, 3.6f));
+        state.NextImpactSound = now + TimeSpan.FromSeconds(_wfShieldRandom.NextFloat(0.75f, 1.1f));
         var bounds = _wfShieldAudioLookup.GetWorldAABB(grid);
         var center = _wfShieldMap.GetGridPosition(grid);
         var extent = Vector2.Max(Vector2.Abs(bounds.BottomLeft - center), Vector2.Abs(bounds.TopRight - center));
         var radius = MathF.Max(1f, extent.Length());
         var sound = _audio.PlayPvs(WolfgateImpactSound, grid,
-            AudioParams.Default.WithVolume(-4f).WithReferenceDistance(radius)
+            AudioParams.Default.WithVolume(4f).WithReferenceDistance(radius)
                 .WithMaxDistance(radius + SharedAudioSystem.DefaultSoundRange).WithVariation(0.025f));
         if (sound is { } stream)
         {
+            _audio.Stop(state.PreviousImpactSound);
+            state.PreviousImpactSound = state.ActiveImpactSound;
             state.ActiveImpactSound = stream.Entity;
             stream.Component.Flags |= AudioFlags.GridAudio | AudioFlags.NoOcclusion;
             _pvsSys.AddGlobalOverride(stream.Entity);
