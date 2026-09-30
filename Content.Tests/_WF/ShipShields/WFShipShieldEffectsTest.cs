@@ -49,10 +49,13 @@ public sealed class WFShipShieldEffectsTest
     }
 
     [Test]
-    public void WaveHasABrightWhiteCrestAndRedWakeOnBothLayers()
+    public void WhiteFlashStaysAtTheHitWhileTheColouredWaveTravels()
     {
         var health = WFShipShieldEffects.HealthColor(1f);
-        var crest = WFShipShieldEffects.Appearance(health, 0f, 1f, 0f);
+        var crest = WFShipShieldEffects.Appearance(health, 0f, 0f, WFShipShieldEffects.Flash(0f, 0f, 1f));
+        var idle = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f);
+        var traveling = WFShipShieldEffects.Appearance(health, 0f,
+            WFShipShieldEffects.Wave(11f, 0.5f, 1f), WFShipShieldEffects.Flash(11f, 0.5f, 1f));
         var wake = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f, wake: 1f);
         foreach (var tint in new[] { crest.Tint, crest.SurfaceTint })
         {
@@ -60,6 +63,10 @@ public sealed class WFShipShieldEffectsTest
             Assert.That(tint.G, Is.GreaterThan(0.75f));
             Assert.That(tint.B, Is.GreaterThan(0.75f));
         }
+        Assert.That(traveling.Tint.R, Is.EqualTo(idle.Tint.R).Within(0.00001f));
+        Assert.That(traveling.SurfaceTint.R, Is.EqualTo(idle.SurfaceTint.R).Within(0.00001f));
+        Assert.That(traveling.Surface, Is.GreaterThan(idle.Surface));
+        Assert.That(traveling.Hexes, Is.GreaterThan(idle.Hexes));
         foreach (var tint in new[] { wake.Tint, wake.SurfaceTint })
             Assert.That(tint.R, Is.GreaterThan(tint.B * 3f));
     }

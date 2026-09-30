@@ -40,7 +40,7 @@ public static class WFShipShieldEffects
         return strength * fade * fade * MathF.Exp(-distance * distance / 10f);
     }
 
-    /// <summary>Layers local red heat and white ripple crests over the generator's health colour.</summary>
+    /// <summary>Layers local red heat and impact flashes over the generator's health colour.</summary>
     public static (Color Tint, float Surface, float Hexes, Color SurfaceTint) Appearance(Color health, float heat, float wave, float flash, float integrity = 1f, float wake = 0f)
     {
         heat = Math.Clamp(heat, 0f, 1.5f);
@@ -52,15 +52,15 @@ public static class WFShipShieldEffects
         var red = new Color(1f, 0.025f, 0.045f);
         var tint = Color.InterpolateBetween(health, red, Math.Clamp(hot + wake * 0.85f, 0f, 1f));
         var surfaceTint = tint;
-        tint = Color.InterpolateBetween(tint, Color.White, Math.Clamp(flash + wave * 1.2f, 0f, 1f));
-        surfaceTint = Color.InterpolateBetween(surfaceTint, Color.White, Math.Clamp(flash + wave * 1.1f, 0f, 1f));
+        tint = Color.InterpolateBetween(tint, Color.White, flash);
+        surfaceTint = Color.InterpolateBetween(surfaceTint, Color.White, flash);
         return (Color.FromSrgb(tint),
             0.06f + damage * 0.38f + flash * 1.25f + wave * 1.15f + heat * 0.55f + wake * 0.55f,
             0.38f + damage * 0.62f + flash * 3.2f + wave * 2.8f + heat * 1.2f + wake * 1.4f,
             Color.FromSrgb(surfaceTint));
     }
 
-    /// <summary>Returns a broad white crest traveling up to eighty-eight tiles from the impact.</summary>
+    /// <summary>Returns a broad brightness crest traveling up to eighty-eight tiles from the impact.</summary>
     public static float Wave(float distance, float age, float strength)
     {
         if (age < 0f || age >= WaveLifetime)
@@ -69,7 +69,7 @@ public static class WFShipShieldEffects
         return strength * MathF.Sqrt(1f - age / WaveLifetime) * MathF.Exp(-ring * ring / 2.4f);
     }
 
-    /// <summary>Returns the wider red wake following the white crest.</summary>
+    /// <summary>Returns the wider red wake following the brightness crest.</summary>
     public static float WaveWake(float distance, float age, float strength)
     {
         if (age < 0f || age >= WaveLifetime)
