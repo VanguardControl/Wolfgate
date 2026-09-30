@@ -712,10 +712,16 @@ class Modules:
                 start = None
             elif kind is None and STANDALONE.match(line):
                 standalone.add(number)
+        xml = Path(path).suffix.lower() in XML_SUFFIXES
         uncovered = []
         for hunk in hunks:
             filled = [n for n in hunk if n <= len(lines) and lines[n - 1].strip()]
             if not filled or any(n in marked for n in hunk):
+                continue
+            # A comment can't go inside an XML tag, so an added xmlns is named in a marker elsewhere in the file.
+            names = re.findall(r"xmlns:[\w.]+", " ".join(lines[n - 1] for n in filled)) if xml else []
+            if names and all(any(re.search(re.escape(name) + r"(?![\w.])", lines[m - 1]) for m in marked)
+                             for name in names):
                 continue
             if all(any(s <= n <= e for s, e in blocks) for n in filled):
                 continue
