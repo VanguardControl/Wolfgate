@@ -8,7 +8,7 @@ using Robust.Shared.Maths;
 
 namespace Content.Tests._WF.ShipShields;
 
-/// <summary>Checks hull contour clearance, concavity, and collision-safe edges.</summary>
+/// <summary>Checks symmetric oval clearance and collision-safe edges.</summary>
 [TestFixture]
 [TestOf(typeof(WFShipShieldGeometry))]
 public sealed class WFShipShieldGeometryTest
@@ -20,21 +20,44 @@ public sealed class WFShipShieldGeometryTest
     }
 
     [Test]
-    public void TileSizeScalesHullAndClearance()
+    public void OvalIsSymmetricAndContainsAllTileCorners()
     {
-        var contour = WFShipShieldGeometry.CreateContours(new[] { new Vector2i(-2, 5) }, 2f)[0];
-        Assert.Multiple(() =>
+        var tiles = new[] { new Vector2i(-18, -3), new Vector2i(7, 4), new Vector2i(2, -5) };
+        var contour = WFShipShieldGeometry.CreateContours(tiles)[0];
+        var center = new Vector2(-5f, 0f);
+        for (var i = 0; i < contour.Length; i++)
         {
-            Assert.That(contour.Min(v => v.X), Is.InRange(-20f, -16f));
-            Assert.That(contour.Max(v => v.X), Is.InRange(10f, 14f));
-            Assert.That(contour.Min(v => v.Y), Is.InRange(-6f, -2f));
-            Assert.That(contour.Max(v => v.Y), Is.InRange(24f, 28f));
-        });
+            Assert.That(Vector2.Distance(contour[i] + contour[(i + contour.Length / 2) % contour.Length], center * 2f),
+                Is.LessThan(0.0001f));
+        }
+        foreach (var tile in tiles)
+        foreach (var offset in new[] { Vector2.Zero, Vector2.UnitX, Vector2.UnitY, Vector2.One })
+            Assert.That(Contains(contour, new Vector2(tile.X, tile.Y) + offset), Is.True);
         AssertValidContour(contour);
     }
 
     [Test]
-    public void ConcaveHullKeepsItsLargeNotch()
+    public void SquareShipGetsTighterCircleAndLongShipGetsOval()
+    {
+        var circle = WFShipShieldGeometry.CreateContours(new[] { Vector2i.Zero })[0];
+        var center = new Vector2(0.5f);
+        Assert.That(circle.Max(p => Vector2.Distance(p, center)), Is.LessThan(6f));
+        Assert.That(circle.Max(p => Vector2.Distance(p, center)) - circle.Min(p => Vector2.Distance(p, center)), Is.LessThan(0.0001f));
+        var oval = WFShipShieldGeometry.CreateContours(new[] { Vector2i.Zero, new Vector2i(30, 0) })[0];
+        Assert.That(oval.Max(p => p.X) - oval.Min(p => p.X), Is.GreaterThan(3f * (oval.Max(p => p.Y) - oval.Min(p => p.Y))));
+    }
+
+    [Test]
+    public void TileSizeScalesHullAndClearance()
+    {
+        var contour = WFShipShieldGeometry.CreateContours(new[] { new Vector2i(-2, 5) }, 2f)[0];
+        var unit = WFShipShieldGeometry.CreateContours(new[] { new Vector2i(-2, 5) })[0];
+        Assert.That(contour, Is.EqualTo(unit.Select(p => p * 2f).ToArray()));
+        AssertValidContour(contour);
+    }
+
+    [Test]
+    public void ConcaveHullGetsOneSymmetricConvexEnvelope()
     {
         var tiles = new List<Vector2i>();
         for (var x = 0; x < 20; x++)
@@ -51,7 +74,7 @@ public sealed class WFShipShieldGeometryTest
         {
             Assert.That(Contains(contour, new Vector2(2f, 18f)), Is.True);
             Assert.That(Contains(contour, new Vector2(18f, 2f)), Is.True);
-            Assert.That(Contains(contour, new Vector2(14f, 14f)), Is.False);
+            Assert.That(Contains(contour, new Vector2(14f, 14f)), Is.True);
         });
         AssertValidContour(contour);
     }
@@ -71,13 +94,13 @@ public sealed class WFShipShieldGeometryTest
     }
 
     [Test]
-    public void DisconnectedHullSectionsKeepSeparateContours()
+    public void DisconnectedHullSectionsShareOneOval()
     {
         var contours = WFShipShieldGeometry.CreateContours(new[] { new Vector2i(0, 0), new Vector2i(30, 0) });
-        Assert.That(contours.Length, Is.EqualTo(2));
+        Assert.That(contours.Length, Is.EqualTo(1));
         Assert.That(contours.Any(c => Contains(c, new Vector2(0.5f, 0.5f))), Is.True);
         Assert.That(contours.Any(c => Contains(c, new Vector2(30.5f, 0.5f))), Is.True);
-        Assert.That(contours.Any(c => Contains(c, new Vector2(15f, 0.5f))), Is.False);
+        Assert.That(contours.Any(c => Contains(c, new Vector2(15f, 0.5f))), Is.True);
         foreach (var contour in contours)
             AssertValidContour(contour);
     }
@@ -126,8 +149,8 @@ public sealed class WFShipShieldGeometryTest
             foreach (var point in new[] { a, (a + b) * 0.5f })
             {
                 var distance = tiles.Min(tile => HullDistance(point, tile));
-                Assert.That(distance, Is.GreaterThanOrEqualTo(6f), $"Rounded shield encroaches on hull at {point}.");
-                Assert.That(distance, Is.LessThanOrEqualTo(9f), $"Rounded shield loses hull shape at {point}.");
+                Assert.That(distance, Is.GreaterThanOrEqualTo(4f), $"Rounded shield encroaches on hull at {point}.");
+                Assert.That(distance, Is.LessThanOrEqualTo(10f), $"Rounded shield loses hull shape at {point}.");
             }
             var incoming = Vector2.Normalize(a - contour[(i + contour.Length - 1) % contour.Length]);
             var outgoing = Vector2.Normalize(b - a);

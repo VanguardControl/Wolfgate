@@ -4,6 +4,8 @@ using Content.Client._WF.ShipShields;
 using Content.Server._Crescent.ShipShields;
 using Content.Server._WF.ShipShields;
 using Robust.Client.ResourceManagement;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Audio.Components;
 using Content.Shared.Explosion.Components;
 using Content.Shared._Crescent.ShipShields;
@@ -33,6 +35,7 @@ public sealed class WFShipShieldHullDamageTest
         {
             var resources = pair.Client.ResolveDependency<IResourceCache>();
             using var screen = new WFShipShieldShuntScreen();
+            screen.Stylesheet = pair.Client.ResolveDependency<IUserInterfaceManager>().Stylesheet;
             var requests = new List<(float Direction, float Concentration, float Arc)>();
             screen.AllocationRequested += (direction, concentration, arc) => requests.Add((direction, concentration, arc));
             screen.Measure(new Vector2(1000f, 700f));
@@ -42,11 +45,17 @@ public sealed class WFShipShieldHullDamageTest
             var state = new WFShipShieldShuntState(true, true, 1f, 0.8f, 0.2f, MathF.PI / 2f);
             screen.UpdateState(state, helmRotation);
             screen.SetDraft(35f, 0.73f, 120f);
-            var panelSize = new Vector2(940f, 670f);
-            screen.Measure(panelSize);
-            screen.Arrange(UIBox2.FromDimensions(Vector2.Zero, panelSize));
-            Assert.That(screen.DesiredSize.X, Is.LessThanOrEqualTo(panelSize.X), "Shield controls must fit the helm width.");
-            Assert.That(screen.DesiredSize.Y, Is.LessThanOrEqualTo(panelSize.Y), "Shield controls must fit without hiding Apply.");
+            foreach (var panelSize in new[] { new Vector2(940f, 670f), new Vector2(760f, 540f), new Vector2(1100f, 760f) })
+            foreach (var concentration in new[] { 0.73f, 1f })
+            {
+                screen.SetDraft(35f, concentration, 120f);
+                screen.Measure(panelSize);
+                screen.Arrange(UIBox2.FromDimensions(Vector2.Zero, panelSize));
+                Assert.That(screen.DesiredSize.X, Is.LessThanOrEqualTo(panelSize.X), "Shield controls must fit the helm width.");
+                Assert.That(screen.DesiredSize.Y, Is.LessThanOrEqualTo(panelSize.Y), "Shield controls must fit without hiding Apply.");
+                AssertHorizontalBounds(screen);
+            }
+            screen.SetDraft(35f, 0.73f, 120f);
             Assert.That(requests, Is.Empty, "Editing the preview must not send an allocation.");
             screen.UpdateState(new WFShipShieldShuntState(true, true, 0.7f, 0.8f, 0.2f, MathF.PI / 2f), helmRotation);
             screen.ApplyAllocation();
@@ -248,5 +257,21 @@ public sealed class WFShipShieldHullDamageTest
             });
         }
         await pair.CleanReturnAsync();
+    }
+
+    private static void AssertHorizontalBounds(Control parent)
+    {
+        // The slider thumb intentionally extends beyond its internal track at either endpoint.
+        if (parent is Slider)
+            return;
+        foreach (var child in parent.Children)
+        {
+            if (!child.Visible)
+                continue;
+            Assert.That(child.Position.X, Is.GreaterThanOrEqualTo(-1f), $"{child.GetType().Name} starts outside {parent.GetType().Name}.");
+            Assert.That(child.Position.X + child.Size.X, Is.LessThanOrEqualTo(parent.Size.X + 1f),
+                $"{child.GetType().Name} overflows {parent.GetType().Name} at width {parent.Size.X}.");
+            AssertHorizontalBounds(child);
+        }
     }
 }

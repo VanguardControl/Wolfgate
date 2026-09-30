@@ -1,6 +1,6 @@
 # Ship shields
 
-Ship shields follow the occupied hull with a roughly eight-tile buffer, simplified stair steps and rounded corners. A regular ship-local hexagonal lattice is clipped to a distance-based glow band, keeping inward corners free of pinched cells. It lights up with traveling impact ripples; repeated hits heat the local shield red, while its overall color shows remaining emitter capacity. Hull changes refresh the collision perimeter and visuals together without disabling interception. Hex cells extend almost four tiles inward and fade into the hull.
+Ship shields use a symmetric oval fitted around the occupied hull, with a five-tile margin instead of the previous eight-tile hull-tracing field. Long ships get an oval and square ships get a circle; detached sections on one grid share the same envelope. A regular ship-local hexagonal lattice fades inward from the edge. Traveling impact ripples and repeated-hit heat remain local, while the overall colour shows remaining emitter capacity. Hull changes refresh the collision perimeter and visuals together without disabling interception.
 
 The upstream ship shield emitter keeps its power, damage, recharge and projectile rules. `ShipShieldsSystem.Wolfgate.cs` supplies hull fixtures and visual updates; `WFShipShieldGeometry` builds the shared contours. Collision edges retain a small physical radius to catch slower projectiles between physics steps.
 

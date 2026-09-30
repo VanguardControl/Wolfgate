@@ -53,20 +53,14 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         });
         AddChild(Card(header));
 
-        var body = new BoxContainer { SeparationOverride = 12, VerticalExpand = true };
-        AddChild(body);
         var preview = Column(8);
         preview.AddChild(_previewStatus = new Label { HorizontalAlignment = HAlignment.Center });
         preview.AddChild(new Label { Text = Loc.GetString("wf-shield-helm-forward"), HorizontalAlignment = HAlignment.Center });
         preview.AddChild(_dial = new ShieldDial());
         preview.AddChild(new Label { Text = Loc.GetString("wf-shield-helm-aft"), HorizontalAlignment = HAlignment.Center });
         preview.AddChild(new RichTextLabel { Text = Loc.GetString("wf-shield-helm-click-bearing") });
-        body.AddChild(Card(preview));
-
         _settings = Column(12);
-        _settings.MinWidth = 340;
-        _settings.MaxWidth = 360;
-        body.AddChild(_settings);
+        AddChild(new ShieldColumns(Card(preview), _settings));
         _direction = new FloatSpinBox(1f, 1)
         {
             Value = 0f, IsValid = value => float.IsFinite(value) && value >= 0f && value < 360f,
@@ -160,8 +154,8 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
 
     private static BoxContainer Field(string label, Control input)
     {
-        var row = new BoxContainer { SeparationOverride = 8 };
-        row.AddChild(new Label { Text = Loc.GetString(label), MinWidth = 104 });
+        var row = Column(4);
+        row.AddChild(new Label { Text = Loc.GetString(label) });
         row.AddChild(input);
         return row;
     }
@@ -263,6 +257,44 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         Refresh();
     }
 
+    /// <summary>Reserves both column widths before measuring text and keeps overflow inside each column.</summary>
+    private sealed class ShieldColumns : Container
+    {
+        private const float Gap = 12f;
+        private readonly ScrollContainer _preview;
+        private readonly ScrollContainer _settings;
+
+        public ShieldColumns(Control preview, Control settings)
+        {
+            HorizontalExpand = true;
+            VerticalExpand = true;
+            _preview = new ScrollContainer { HScrollEnabled = false, ReserveScrollbarSpace = true };
+            _settings = new ScrollContainer { HScrollEnabled = false, ReserveScrollbarSpace = true };
+            _preview.AddChild(preview);
+            _settings.AddChild(settings);
+            AddChild(_preview);
+            AddChild(_settings);
+        }
+
+        protected override Vector2 MeasureOverride(Vector2 availableSize)
+        {
+            var right = MathF.Min(380f, MathF.Max(0f, availableSize.X - Gap) * 0.46f);
+            _preview.Measure(new Vector2(MathF.Max(0f, availableSize.X - right - Gap), availableSize.Y));
+            _settings.Measure(new Vector2(right, availableSize.Y));
+            // The expandable body takes the space left after the fixed header and Apply row.
+            return Vector2.Zero;
+        }
+
+        protected override Vector2 ArrangeOverride(Vector2 finalSize)
+        {
+            var right = MathF.Min(380f, MathF.Max(0f, finalSize.X - Gap) * 0.46f);
+            var left = MathF.Max(0f, finalSize.X - right - Gap);
+            _preview.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(left, finalSize.Y)));
+            _settings.Arrange(UIBox2.FromDimensions(new Vector2(left + Gap, 0f), new Vector2(right, finalSize.Y)));
+            return finalSize;
+        }
+    }
+
     /// <summary>A clockwise helm-relative bearing selector with the protected arc drawn at preview strength.</summary>
     private sealed class ShieldDial : Control
     {
@@ -276,7 +308,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
 
         public ShieldDial()
         {
-            MinSize = new Vector2(280f, 280f);
+            MinSize = new Vector2(220f, 220f);
             HorizontalExpand = true;
             VerticalExpand = true;
             MouseFilter = MouseFilterMode.Stop;
