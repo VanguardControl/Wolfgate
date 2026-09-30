@@ -373,7 +373,8 @@ namespace Content.Server.VendingMachines
 
                 if (TryEjectVendorItem(uid, type, itemId, component.CanShoot, component))
                 {
-                    paidFully = _cash.TryCashPayment(uid, totalPrice, out var _, true); // Mono - Attempt to pay with cash before credit
+                    // WOLFGATE: a free vend skips the cash payment, which logs a zero amount as invalid
+                    paidFully = totalPrice > 0 && _cash.TryCashPayment(uid, totalPrice, out var _, true); // Mono - Attempt to pay with cash before credit
 
                     if (totalPrice > cashSlotBalance && !HasComp<IronmanComponent>(sender))
                         paidFully = _bankSystem.TryBankWithdraw(sender, totalPrice - cashSlotBalance); // Mono - if cash was not enough, pay the difference with credit

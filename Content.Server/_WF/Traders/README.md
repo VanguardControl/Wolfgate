@@ -56,6 +56,7 @@ Entry points: `TraderSystem` (dialogue, barter zone, payment and receipts), the 
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderShipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderShipTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/UsedShipSaveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/UsedShipSaveTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Traders/VendingCashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/VendingCashTest.cs)
 
 ### Prototypes
 

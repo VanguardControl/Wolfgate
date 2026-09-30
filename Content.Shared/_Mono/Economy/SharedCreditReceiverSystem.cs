@@ -13,7 +13,10 @@ namespace Content.Shared._Mono.Economy;
 /// <remarks>Mostly to be used in other systems that like to implement this behavior to avoid code duplication.</remarks>
 public abstract partial class SharedCreditReceiverSystem : EntitySystem
 {
-    private readonly ISawmill _log = default!;
+    // WOLFGATE START: _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
+    // private readonly ISawmill _log = default!;
+    private ISawmill _log => Log;
+    // WOLFGATE END
     [Dependency] private SharedStackSystem _stack = default!; // Frontier
     [Dependency] protected ItemSlotsSystem ItemSlots = default!; // Frontier
 
