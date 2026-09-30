@@ -11,6 +11,8 @@ using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Physics.Components;
 using System.Linq;
+using Content.Server.Power.Components;
+using Content.Server._Crescent.ShipShields.Components;
 
 namespace Content.Server._WF.ShipShields;
 
@@ -72,6 +74,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         var state = GetState(Transform(uid).Anchored ? Transform(uid).GridUid : null);
         if (!force && _generatorStates.TryGetValue(uid, out var previous) &&
             previous.Available == state.Available && previous.Active == state.Active && previous.Enabled == state.Enabled &&
+            previous.RecoveryStatus == state.RecoveryStatus && previous.RecoverySeconds == state.RecoverySeconds &&
             MathF.Round(previous.Health * 100f) == MathF.Round(state.Health * 100f) &&
             (previous.Health < 0.1f) == (state.Health < 0.1f) &&
             previous.DirectionRadians == state.DirectionRadians && previous.Concentration == state.Concentration &&
@@ -154,10 +157,36 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         return null;
     }
 
+    /// <summary>Selects the installed emitter that can restore protection first.</summary>
+    private EntityUid? FindRecoveryEmitter(EntityUid grid, bool enabled, out WFShipShieldRecoveryStatus status, out int seconds)
+    {
+        status = WFShipShieldRecoveryStatus.None;
+        seconds = 0;
+        EntityUid? selected = null;
+        var disabled = HasComp<ShipShieldDisabledGridComponent>(grid);
+        var query = EntityQueryEnumerator<ShipShieldEmitterComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var emitter, out var transform))
+        {
+            if (transform.GridUid != grid || !transform.Anchored || TerminatingOrDeleted(uid) || EntityManager.IsQueuedForDeletion(uid))
+                continue;
+            var hasReceiver = TryComp<ApcPowerReceiverComponent>(uid, out var receiver);
+            var estimate = ShipShieldsSystem.EstimateWolfgateShieldRecovery(emitter,
+                hasReceiver && receiver!.Powered, enabled, disabled);
+            if (selected != null && (estimate.Seconds < 0 || seconds >= 0 && estimate.Seconds >= seconds))
+                continue;
+            selected = uid;
+            status = estimate.Status;
+            seconds = estimate.Seconds;
+        }
+        return selected;
+    }
+
     /// <summary>Returns allocation and availability for the console's authoritative target grid.</summary>
     public WFShipShieldShuntState GetState(EntityUid? grid)
     {
         var allocation = grid is { } uid && TryComp<WFShipShieldShuntComponent>(uid, out var component) ? component : null;
+        var recoveryStatus = WFShipShieldRecoveryStatus.None;
+        var recoverySeconds = 0;
         var installed = grid is { } emitterGrid ? FindShieldGenerator(emitterGrid) : null;
         var health = installed is { } emitterUid
             ? ShipShieldsSystem.GetWolfgateShieldHealth(Comp<ShipShieldEmitterComponent>(emitterUid)) : 0f;
@@ -170,9 +199,21 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
             health = shielded.Source is { } source && TryComp<ShipShieldEmitterComponent>(source, out var emitter)
                 ? ShipShieldsSystem.GetWolfgateShieldHealth(emitter) : visuals.Health;
             active = true;
+            recoveryStatus = WFShipShieldRecoveryStatus.None;
+            recoverySeconds = 0;
+        }
+        else if (grid is { } recoveringGrid)
+        {
+            installed = FindRecoveryEmitter(recoveringGrid, allocation?.Enabled ?? true, out recoveryStatus, out recoverySeconds);
+            health = installed is { } recoveringEmitter
+                ? ShipShieldsSystem.GetWolfgateShieldHealth(Comp<ShipShieldEmitterComponent>(recoveringEmitter)) : 0f;
         }
         return new WFShipShieldShuntState(installed != null, active, health,
             allocation?.DirectionRadians ?? MathF.PI / 2f, allocation?.Concentration ?? 0f,
-            allocation?.ArcRadians ?? MathF.PI / 2f, allocation?.Enabled ?? true);
+            allocation?.ArcRadians ?? MathF.PI / 2f, allocation?.Enabled ?? true)
+        {
+            RecoveryStatus = recoveryStatus,
+            RecoverySeconds = recoverySeconds,
+        };
     }
 }

@@ -15,6 +15,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
     private readonly FloatSpinBox _arc;
     private readonly Slider _concentration;
     private readonly RichTextLabel _status;
+    private readonly RichTextLabel _recovery;
     private readonly RichTextLabel _amount;
     private readonly RichTextLabel _strength;
     private readonly RichTextLabel _outside;
@@ -64,6 +65,11 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             MinValue = 0f, MaxValue = 1f, MinHeight = 22,
             BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#1B303C") },
             ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#58D6EC") },
+        });
+        header.AddChild(_recovery = new RichTextLabel
+        {
+            Modulate = Color.FromHex("#FFCC80"),
+            ToolTip = Loc.GetString("wf-shield-recovery-help"),
         });
         AddChild(Card(header));
 
@@ -200,6 +206,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             : state is { Available: true }
                 ? Loc.GetString("wf-shield-helm-offline", ("health", MathF.Round(state.Health * 100f)))
                 : Loc.GetString("wf-shield-helm-unavailable");
+        UpdateRecovery(state);
         if (changed || !_dirty)
         {
             _updating = true;
@@ -211,6 +218,36 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             _pending = false;
         }
         Refresh();
+    }
+
+    /// <summary>Shows the server's estimate or the condition preventing automatic recovery.</summary>
+    private void UpdateRecovery(WFShipShieldShuntState? state)
+    {
+        _recovery.Visible = state is { Available: true, Active: false } && state.RecoveryStatus != WFShipShieldRecoveryStatus.None;
+        if (!_recovery.Visible || state == null)
+            return;
+        var waiting = state.RecoveryStatus switch
+        {
+            WFShipShieldRecoveryStatus.NoPower => "wf-shield-recovery-no-power",
+            WFShipShieldRecoveryStatus.Lowered => "wf-shield-recovery-lowered",
+            WFShipShieldRecoveryStatus.Disabled => "wf-shield-recovery-disabled",
+            _ => null,
+        };
+        if (waiting != null || state.RecoverySeconds < 0)
+        {
+            _recovery.Text = Loc.GetString(waiting ?? "wf-shield-recovery-stalled");
+            return;
+        }
+        var reason = state.RecoveryStatus switch
+        {
+            WFShipShieldRecoveryStatus.Recharging => "wf-shield-recovery-recharging",
+            WFShipShieldRecoveryStatus.Overloaded => "wf-shield-recovery-overloaded",
+            WFShipShieldRecoveryStatus.RechargingAndOverloaded => "wf-shield-recovery-both",
+            _ => "wf-shield-recovery-ready",
+        };
+        var time = Loc.GetString("wf-shield-recovery-time", ("minutes", state.RecoverySeconds / 60),
+            ("seconds", (state.RecoverySeconds % 60).ToString("D2")));
+        _recovery.Text = Loc.GetString("wf-shield-recovery-countdown", ("time", time), ("reason", Loc.GetString(reason)));
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -373,10 +410,14 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
                 handle.DrawLine(Point(angle, radius + 18f * UIScale),
                     Point(angle, radius + (tick % 6 == 0 ? 26f : 21f) * UIScale), grid);
             }
-            for (var segment = 0; segment < 180; segment++)
+            // Keep segment gaps readable at reduced resolutions and UI scales.
+            var segments = Math.Clamp((int) (MathF.Tau * radius / MathF.Max(12f, 12f * UIScale)), 24, 96);
+            var step = MathF.Tau / segments;
+            var gap = MathF.Min(step * 0.35f, MathF.Max(step * 0.25f, MathF.Max(2f, 3f * UIScale) / MathF.Max(radius, 1f)));
+            for (var segment = 0; segment < segments; segment++)
             {
-                var angle = segment * MathF.Tau / 180f;
-                var next = (segment + 0.88f) * MathF.Tau / 180f;
+                var angle = segment * step;
+                var next = angle + step - gap;
                 var point = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
                 var strength = Available ? WFShipShieldShuntMath.StrengthMultiplier(point, Vector2.Zero, Direction, Concentration, Arc) : 0f;
                 var width = Math.Clamp(5f + strength * 7f, 5f, 28f) * UIScale;

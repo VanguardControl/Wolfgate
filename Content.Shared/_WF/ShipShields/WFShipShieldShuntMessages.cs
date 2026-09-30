@@ -2,6 +2,20 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.ShipShields;
 
+/// <summary>Explains why a field is offline and whether automatic recovery can be timed.</summary>
+[Serializable, NetSerializable]
+public enum WFShipShieldRecoveryStatus : byte
+{
+    None,
+    Ready,
+    Recharging,
+    Overloaded,
+    RechargingAndOverloaded,
+    NoPower,
+    Lowered,
+    Disabled,
+}
+
 /// <summary>Identifies the shield generator's shared control panel.</summary>
 [Serializable, NetSerializable]
 public enum WFShipShieldUiKey : byte
@@ -67,6 +81,10 @@ public sealed class WFShipShieldShuntState
     public bool Enabled;
     /// <summary>A shield field currently exists.</summary>
     public bool Active;
+    /// <summary>The current automatic recovery or waiting condition.</summary>
+    public WFShipShieldRecoveryStatus RecoveryStatus;
+    /// <summary>Whole seconds until automatic startup, or minus one when recovery cannot be timed.</summary>
+    public int RecoverySeconds;
     /// <summary>Remaining shield capacity.</summary>
     public float Health;
     /// <summary>Current ship-local sector direction.</summary>

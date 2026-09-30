@@ -44,6 +44,38 @@ public sealed class WFShipShieldControlsTest
                         Is.LessThanOrEqualTo(generator.GlobalPosition.Y + size.Y + 1f), "Main commands and integrity must remain visible at compact size.");
                 }
             }
+            var recovery = Field<RichTextLabel>(panel, "_recovery");
+            Assert.That(recovery.Visible, Is.False, "Online shields do not need a recovery countdown.");
+            var recovering = new WFShipShieldShuntState(true, false, 0.6f, 0.8f, 0.2f, MathF.PI / 2f)
+            {
+                RecoveryStatus = WFShipShieldRecoveryStatus.Overloaded,
+                RecoverySeconds = 80,
+            };
+            panel.UpdateState(recovering, 0f);
+            Assert.That(recovery.Visible, Is.True);
+            Assert.That(recovery.Text, Does.Contain("1:20").And.Contain("Overload cooldown"));
+            panel.SetDraft(43f, 0.75f, 120f);
+            panel.UpdateState(new WFShipShieldShuntState(true, false, 0.6f, 0.8f, 0.2f, MathF.PI / 2f)
+            {
+                RecoveryStatus = WFShipShieldRecoveryStatus.RechargingAndOverloaded,
+                RecoverySeconds = 65,
+            }, 0f);
+            Assert.That(recovery.Text, Does.Contain("1:05").And.Contain("Recharging and overload cooldown"));
+            Assert.That(Field<Slider>(panel, "_concentration").Value, Is.EqualTo(75f), "Countdown updates must preserve an allocation draft.");
+            generator.SetSize = new Vector2(760f, 540f);
+            generator.Measure(new Vector2(760f, 540f));
+            generator.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(760f, 540f)));
+            Assert.That(Tree(panel).Single(control => control.GetType().Name == "ShieldColumns").Size.Y, Is.GreaterThan(100f));
+            Assert.That(recovery.GlobalPosition.Y + recovery.Size.Y, Is.LessThan(generator.GlobalPosition.Y + 540f));
+            recovering.RecoveryStatus = WFShipShieldRecoveryStatus.NoPower;
+            recovering.RecoverySeconds = -1;
+            panel.UpdateState(recovering, 0f);
+            Assert.That(recovery.Text, Does.Contain("Waiting for power").And.Not.Contain("1:20"));
+            recovering.RecoveryStatus = WFShipShieldRecoveryStatus.Lowered;
+            panel.UpdateState(recovering, 0f);
+            Assert.That(recovery.Text, Does.Contain("Manually lowered"));
+            panel.UpdateState(State(), 0f);
+            Assert.That(recovery.Visible, Is.False);
             var bar = Field<ProgressBar>(panel, "_health");
             var dial = Field<Control>(panel, "_dial");
             Color Tint() => ((StyleBoxFlat)bar.ForegroundStyleBoxOverride!).BackgroundColor;
