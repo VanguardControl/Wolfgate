@@ -87,8 +87,8 @@ XML_SUFFIXES = {".xml", ".xaml", ".csproj", ".props", ".targets", ".svg", ".html
 PLACEHOLDER = "TODO"
 # The new-file start and length of a -U0 diff hunk.
 HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", re.M)
-# A line holding only attributes of an XML tag, possibly closing it.
-XML_ATTRIBUTE = re.compile(r'\s*(?:[\w:.]+="[^"]*"\s*)+/?>?\s*$')
+# A line holding only attributes of an XML tag, possibly opening or closing it.
+XML_ATTRIBUTE = re.compile(r'\s*(?:<[\w:.]+\s+)?(?:[\w:.]+="[^"]*"\s*)+/?>?\s*$')
 # A marker alone on its line, after nothing but a comment opener: it covers the rest of its paragraph.
 STANDALONE = re.compile(r"\s*(?://+|#+|<!--|/\*+|\*|;|--)\s*WOLFGATE(?![\w-])")
 
