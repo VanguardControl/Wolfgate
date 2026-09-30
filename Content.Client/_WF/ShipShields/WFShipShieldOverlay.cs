@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.ShipShields;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
@@ -79,7 +80,9 @@ public sealed class WFShipShieldOverlay : Overlay
             var mesh = distant ? cached.Distant ??= new RenderMesh(cached.Contours, true)
                 : cached.Detailed ??= new RenderMesh(cached.Contours, false);
             _impacts.TryGetValue(uid, out var impacts);
-            var tint = WFShipShieldEffects.HealthColor(shield.Health);
+            var tint = _entities.TryGetComponent<ShipShieldVisualsComponent>(uid, out var generatorVisuals)
+                ? WFShipShieldEffects.HealthColor(shield.Health, generatorVisuals.ShieldColor)
+                : WFShipShieldEffects.HealthColor(shield.Health);
             mesh.UpdateColors(tint, shield.Health, impacts, _timing.CurTime, distant);
             handle.SetTransform(matrix);
             DrawBatches(handle, DrawPrimitiveTopology.TriangleList, mesh.Triangles);

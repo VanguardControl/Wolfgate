@@ -1,5 +1,6 @@
 using Content.Shared._WF.ShipShields;
 using NUnit.Framework;
+using Robust.Shared.Maths;
 
 namespace Content.Tests._WF.ShipShields;
 
@@ -7,6 +8,31 @@ namespace Content.Tests._WF.ShipShields;
 [TestFixture]
 public sealed class WFShipShieldEffectsTest
 {
+    [TestCase("#FF3333")]
+    [TestCase("#9933FF")]
+    [TestCase("#3399FF")]
+    [TestCase("#FF9933")]
+    [TestCase("#50C878")]
+    [TestCase("#FF0A70")]
+    public void GeneratorColourSurvivesAtFullHealthAndBlendsWithDamage(string hex)
+    {
+        var generator = Color.FromHex(hex);
+        Assert.That(WFShipShieldEffects.HealthColor(1f, generator), Is.EqualTo(generator));
+        Assert.That(WFShipShieldEffects.HealthColor(2f, generator), Is.EqualTo(generator));
+        var amber = WFShipShieldEffects.HealthColor(0.45f);
+        var midpoint = WFShipShieldEffects.HealthColor(0.725f, generator);
+        var expected = Color.InterpolateBetween(amber, generator, 0.5f);
+        Assert.That(midpoint.R, Is.EqualTo(expected.R).Within(0.00001f));
+        Assert.That(midpoint.G, Is.EqualTo(expected.G).Within(0.00001f));
+        Assert.That(midpoint.B, Is.EqualTo(expected.B).Within(0.00001f));
+        Assert.That(WFShipShieldEffects.HealthColor(0.45f, generator), Is.EqualTo(amber));
+        Assert.That(WFShipShieldEffects.HealthColor(0f, generator), Is.EqualTo(WFShipShieldEffects.HealthColor(0f)));
+        var idle = WFShipShieldEffects.Appearance(generator, 0f, 0f, 0f);
+        Assert.That(idle.Tint, Is.EqualTo(Color.FromSrgb(generator)));
+        var hit = WFShipShieldEffects.Appearance(generator, 0f, 0f, 1f);
+        Assert.That(hit.Tint, Is.Not.EqualTo(idle.Tint));
+    }
+
     [Test]
     public void ImpactRevealsHexesMoreStronglyThanTheIdleSurface()
     {

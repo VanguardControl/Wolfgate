@@ -3,12 +3,15 @@ namespace Content.Shared._WF.ShipShields;
 /// <summary>Pure sampling rules for shield health, cooling and impact waves.</summary>
 public static class WFShipShieldEffects
 {
-    /// <summary>Returns the shield color as health falls from cyan through amber to red.</summary>
-    public static Color HealthColor(float health)
+    /// <summary>Returns the default health indicator colour.</summary>
+    public static Color HealthColor(float health) => HealthColor(health, new Color(0.12f, 0.72f, 1f));
+
+    /// <summary>Blends the generator colour through amber to red as shield health falls.</summary>
+    public static Color HealthColor(float health, Color generatorColor)
     {
         health = float.IsFinite(health) ? Math.Clamp(health, 0f, 1f) : 0f;
         return health > 0.45f
-            ? Color.InterpolateBetween(new Color(1f, 0.53f, 0.12f), new Color(0.12f, 0.72f, 1f), (health - 0.45f) / 0.55f)
+            ? Color.InterpolateBetween(new Color(1f, 0.53f, 0.12f), generatorColor.WithAlpha(1f), (health - 0.45f) / 0.55f)
             : Color.InterpolateBetween(new Color(1f, 0.05f, 0.08f), new Color(1f, 0.53f, 0.12f), health / 0.45f);
     }
 

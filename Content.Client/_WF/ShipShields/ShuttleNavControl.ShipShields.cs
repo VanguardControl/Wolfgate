@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._Crescent.ShipShields;
 using Content.Shared._Mono.Detection;
 using Content.Shared._WF.ShipShields;
 using Content.Shared.Shuttles.Components;
@@ -37,7 +38,9 @@ public partial class ShuttleNavControl
                 allocation?.DirectionRadians ?? 0f, allocation?.Concentration ?? 0f,
                 allocation?.ArcRadians ?? MathF.Tau);
             var localToView = _transform.GetWorldMatrix(uid) * worldToView;
-            var tint = WFShipShieldEffects.HealthColor(visuals.Health);
+            var tint = EntManager.TryGetComponent<ShipShieldVisualsComponent>(uid, out var generatorVisuals)
+                ? WFShipShieldEffects.HealthColor(visuals.Health, generatorVisuals.ShieldColor)
+                : WFShipShieldEffects.HealthColor(visuals.Health);
             foreach (var segment in outline.Segments)
             {
                 var start = Vector2.Transform(segment.Start, localToView);
