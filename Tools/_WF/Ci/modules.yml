@@ -1,5 +1,9 @@
 # Config for modules.py; see AGENTS.md, Modularity and Documenting changes.
 
+# The Monolith commit Wolfgate is based on (its merge-base with Monolith's main). The pull request check treats lines
+# that match it as upstream code. Move it forward after merging Monolith in.
+fork_point: 0e58c7c0312741882471975c86f74ebb9b829825
+
 # Modules that live outside _WF: path globs of their files (** crosses folders, * doesn't) and their README.
 external:
   Symphony:

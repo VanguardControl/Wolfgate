@@ -326,6 +326,7 @@ class Modules:
         self.edits: dict[str | None, dict[str, list[str]]] = {}
         self.unmarked: list[Unmarked] = []
         self.external: list[Module] = []
+        self.fork_point: str | None = None
 
         # One listing and one grep, run side by side; untracked files outside modules are scanned in Python.
         listing = git("ls-files", "-z", "-t", "--cached", "--others", "--exclude-standard")
@@ -337,6 +338,7 @@ class Modules:
         hits = finish(grep, allowed=(0, 1))
 
         self.load_external(config)
+        self.load_fork_point(config)
         untracked = self.classify(entries)
         self.check_names()
         self.place_readmes()
@@ -357,6 +359,15 @@ class Modules:
         if not isinstance(config, dict):
             fatal(f"{CONFIG} must be a mapping")
         return config
+
+    def load_fork_point(self, config):
+        point = config.get("fork_point")
+        if point is None:
+            return
+        if not isinstance(point, str) or git("cat-file", "-e", f"{point}^{{commit}}").wait() != 0:
+            self.report.add("modules.yml", f"fork_point {point} is not a commit in this checkout", CONFIG)
+            return
+        self.fork_point = point
 
     def load_external(self, config):
         external = config.get("external") or {}
@@ -660,7 +671,7 @@ class Modules:
             if any(self.unmarked_matches(u, path) for u in self.unmarked):
                 continue
             if not unmarkable(path):
-                uncovered = self.unmarked_hunks(base, "HEAD", path)
+                uncovered = self.unmarked_hunks(base, "HEAD", path, self.fork_point)
                 if uncovered is not None:
                     for line in uncovered:
                         report.add("Edits outside _WF without a marker",
@@ -687,15 +698,32 @@ class Modules:
             report.notes.append("\n".join(lines))
 
     @staticmethod
-    def unmarked_hunks(base, head, path):
-        """First lines of the blocks head added to path that no marker covers, or None when it added no lines."""
-        diff = finish(git("diff", "-U0", "--no-color", "--no-ext-diff", "--no-renames", f"{base}...{head}", "--",
+    def added_lines(old, new, path):
+        """The line numbers of new's version of path that differ from old's."""
+        diff = finish(git("diff", "-U0", "--no-color", "--no-ext-diff", "--no-renames", old, new, "--",
                           path)).decode("utf-8", "replace")
-        hunks = [range(int(m[1]), int(m[1]) + int(m[2] if m[2] is not None else 1))
-                 for m in HUNK.finditer(diff)]
-        hunks = [h for h in hunks if h]
-        if not hunks:
+        return [n for m in HUNK.finditer(diff)
+                for n in range(int(m[1]), int(m[1]) + int(m[2] if m[2] is not None else 1))]
+
+    @staticmethod
+    def unmarked_hunks(base, head, path, fork_point=None):
+        """First lines of the blocks head added to path that no marker covers, or None when it added no lines."""
+        merge_base = finish(git("merge-base", base, head)).decode("utf-8").strip()
+        added = Modules.added_lines(merge_base, head, path)
+        if not added:
             return None
+        # Lines that match Monolith at the fork point are upstream code, e.g. an upstream file put back.
+        if fork_point and git("cat-file", "-e", f"{fork_point}:{path}").wait() == 0:
+            changed = set(Modules.added_lines(fork_point, head, path))
+            added = [n for n in added if n in changed]
+        hunks, run = [], []
+        for n in added:
+            if run and n != run[-1] + 1:
+                hunks.append(run)
+                run = []
+            run.append(n)
+        if run:
+            hunks.append(run)
         text = finish(git("show", f"{head}:{path}")).decode("utf-8-sig", "replace")
         lines = re.sub(r"\r+\n", "\n", text).split("\n")
         marked, standalone, blocks, start = set(), set(), [], None

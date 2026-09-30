@@ -86,7 +86,8 @@ don't pair, a standalone marker has no reason, a `_WF` file sits outside a modul
 README or still has the TODO overview; and `--pr-check origin/<base>`,
 which fails when a pull request adds or changes lines outside `_WF` that no marker covers, or changes a file that
 can't hold one and has no `unmarked` entry (skipped for `[AUTOPORT]` pull requests). A marker elsewhere in the
-file doesn't cover a new edit. It prints the marker to add, or an `unmarked` entry with `TODO` for the module and
+file doesn't cover a new edit, and lines that match Monolith at `fork_point` in `modules.yml` need none (move it
+forward after merging Monolith in). It prints the marker to add, or an `unmarked` entry with `TODO` for the module and
 reason; `--check` fails until both are filled in.
 
 ## Before building
