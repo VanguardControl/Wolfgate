@@ -153,6 +153,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashBreakupFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashBreakupFallTest.cs)

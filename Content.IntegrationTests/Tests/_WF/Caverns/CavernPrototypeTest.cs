@@ -1,13 +1,18 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using Content.Server._WF.Caverns;
 using Content.Shared._DV.Planet;
 using Content.Shared._WF.Caverns;
 using Content.Shared._WF.Planets;
+using Content.Shared.Burial.Components;
+using Content.Shared.Lathe;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared.Parallax.Biomes.Layers;
 using Content.Shared.Prototypes;
+using Content.Shared.Research.Prototypes;
+using Content.Shared.Tools.Components;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
@@ -173,6 +178,36 @@ public sealed class CavernPrototypeTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A basic autolathe can make a shovel that digs cavern shafts, so every crew can get underground.</summary>
+    [Test]
+    public async Task AutolatheMakesAShaftShovel()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var proto = server.ResolveDependency<IPrototypeManager>();
+        var factory = server.ResolveDependency<IComponentFactory>();
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(proto.Index<EntityPrototype>("Autolathe").TryGetComponent<LatheComponent>(out var lathe, factory));
+            var shovels = lathe!.StaticPacks
+                .SelectMany(pack => proto.Index(pack).Recipes)
+                .Select(recipe => proto.Index<LatheRecipePrototype>(recipe).Result)
+                .Where(result => result is { } id && DigsShafts(proto.Index(id)));
+            Assert.That(shovels, Is.Not.Empty, "The autolathe can't make a shovel that digs cavern shafts.");
+        });
+
+        await pair.CleanReturnAsync();
+
+        bool DigsShafts(EntityPrototype item)
+        {
+            if (!item.HasComponent<ShovelComponent>(factory) || !item.TryGetComponent<ToolComponent>(out var tool, factory))
+                return false;
+            var qualities = tool.Qualities;
+            return qualities.Contains(WFCavernDigSystem.DiggingQuality);
+        }
     }
 
     /// <summary>The world name in a cavern id, WFCavernFervidus giving Fervidus.</summary>

@@ -192,5 +192,6 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
   - track the level above the next eye.
 - [`Content.Server/Chemistry/TileReactions/PryTileReaction.cs`](../../Chemistry/TileReactions/PryTileReaction.cs): acid never opens ground over a cavern that no tool can dig, such as Aerumna's chromite.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
+- [`Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml): shovels dig cavern shafts on planets
 
 <!-- WOLFGATE-GENERATED END -->
