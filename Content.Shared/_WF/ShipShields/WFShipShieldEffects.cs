@@ -10,6 +10,29 @@ public static class WFShipShieldEffects
     /// <summary>Ripple travel speed in tiles per second.</summary>
     public const float WaveSpeed = 22f;
 
+    /// <summary>Returns full capacity bounded by overload and power demand limits.</summary>
+    public static float EffectiveCapacity(float damageLimit, float maxDraw, float powerModifier, float damageExp)
+    {
+        if (!float.IsFinite(damageLimit) || damageLimit <= 0f)
+            return 0f;
+        if (!float.IsFinite(maxDraw) || maxDraw <= 0f || !float.IsFinite(powerModifier) || powerModifier <= 0f ||
+            !float.IsFinite(damageExp) || damageExp <= 0f)
+            return damageLimit;
+        return (float) Math.Min(damageLimit, Math.Pow((double) maxDraw / powerModifier, 1d / damageExp));
+    }
+
+    /// <summary>Scales impact energy against full capacity, reaching full intensity at five percent.</summary>
+    public static float ImpactStrength(float damage, float capacity)
+    {
+        if (!float.IsFinite(damage) || damage <= 0f || !float.IsFinite(capacity) || capacity <= 0f)
+            return 0f;
+        return Math.Clamp((float) Math.Sqrt((double) damage / capacity / 0.05d), 0.08f, 1f);
+    }
+
+    /// <summary>Scales impact footprint and ripple reach with impact energy.</summary>
+    public static float ImpactRadiusScale(float strength) =>
+        0.2f + 0.8f * Math.Clamp(float.IsFinite(strength) ? strength : 0f, 0f, 1f);
+
     /// <summary>Returns the default health indicator colour.</summary>
     public static Color HealthColor(float health) => HealthColor(health, new Color(0.12f, 0.72f, 1f));
 
@@ -27,6 +50,7 @@ public static class WFShipShieldEffects
     {
         if (age < 0f || age >= HeatLifetime)
             return 0f;
+        distance /= ImpactRadiusScale(strength);
         return strength * 0.65f * MathF.Exp(-age / 7f) * MathF.Exp(-distance * distance / 14f) *
             Math.Clamp((HeatLifetime - age) / 4f, 0f, 1f);
     }
@@ -36,6 +60,7 @@ public static class WFShipShieldEffects
     {
         if (age < 0f || age >= 0.65f)
             return 0f;
+        distance /= ImpactRadiusScale(strength);
         var fade = 1f - age / 0.65f;
         return strength * fade * fade * MathF.Exp(-distance * distance / 10f);
     }
@@ -65,6 +90,7 @@ public static class WFShipShieldEffects
     {
         if (age < 0f || age >= WaveLifetime)
             return 0f;
+        distance /= ImpactRadiusScale(strength);
         var ring = distance - age * WaveSpeed;
         return strength * MathF.Sqrt(1f - age / WaveLifetime) * MathF.Exp(-ring * ring / 2.4f);
     }
@@ -74,6 +100,7 @@ public static class WFShipShieldEffects
     {
         if (age < 0f || age >= WaveLifetime)
             return 0f;
+        distance /= ImpactRadiusScale(strength);
         var trailing = distance - MathF.Max(0f, age * WaveSpeed - 3f);
         return strength * 0.75f * MathF.Sqrt(1f - age / WaveLifetime) *
             MathF.Exp(-trailing * trailing / 9f);

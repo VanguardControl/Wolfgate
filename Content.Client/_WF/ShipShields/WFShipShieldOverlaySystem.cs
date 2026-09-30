@@ -32,7 +32,7 @@ public sealed partial class WFShipShieldOverlaySystem : EntitySystem
     private void OnImpact(WFShipShieldImpactEvent ev)
     {
         if (!TryGetEntity(ev.Shield, out var shield) || shield == null ||
-            !float.IsFinite(ev.Position.X) || !float.IsFinite(ev.Position.Y) || !float.IsFinite(ev.Strength))
+            !float.IsFinite(ev.Position.X) || !float.IsFinite(ev.Position.Y) || !float.IsFinite(ev.Strength) || ev.Strength <= 0f)
             return;
 
         if (!_impacts.TryGetValue(shield.Value, out var impacts))
@@ -45,7 +45,7 @@ public sealed partial class WFShipShieldOverlaySystem : EntitySystem
 
         if (impacts.Count >= 32)
             impacts.RemoveAt(0);
-        impacts.Add(new Impact(ev.Position, _timing.CurTime, Math.Clamp(ev.Strength, 0.1f, 1f)));
+        impacts.Add(new Impact(ev.Position, _timing.CurTime, Math.Clamp(ev.Strength, 0f, 1f)));
     }
 
     public override void Update(float frameTime)

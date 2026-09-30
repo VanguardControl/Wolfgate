@@ -182,7 +182,7 @@ public sealed partial class ShipShieldsSystem
         var strength = WolfgateShieldStrength(uid, args.ProjUid);
         if (strength <= 0f)
             return;
-        WolfgateShieldImpact(uid, args.ProjUid);
+        var impactPosition = WolfgateShieldImpactPosition(uid, args.ProjUid);
         if (component.Source is { } source)
         {
             var emitter = Comp<ShipShieldEmitterComponent>(source);
@@ -190,22 +190,33 @@ public sealed partial class ShipShieldsSystem
             var ev = new ShieldDeflectedEvent(args.ProjUid, projectile);
             RaiseLocalEvent(source, ref ev);
             emitter.Damage = previousDamage + (emitter.Damage - previousDamage) / strength;
+            var impactStrength = WFShipShieldEffects.ImpactStrength(emitter.Damage - previousDamage,
+                WFShipShieldEffects.EffectiveCapacity(emitter.DamageLimit, emitter.MaxDraw, emitter.PowerModifier, emitter.DamageExp));
+            WolfgateShieldImpact(uid, impactPosition, impactStrength);
         }
         else
         {
+            WolfgateShieldImpact(uid, impactPosition, projectile.Damage.GetTotal() > 0 ? 1f : 0f);
             projectile.ProjectileSpent = true;
             QueueDel(args.ProjUid);
         }
     }
-    /// <summary>Reports an impact on the visible perimeter.</summary>
-    private void WolfgateShieldImpact(EntityUid shield, EntityUid projectile)
+    /// <summary>Captures the contact before projectile triggers can remove it.</summary>
+    private Vector2 WolfgateShieldImpactPosition(EntityUid shield, EntityUid projectile)
     {
-        if (!TryComp<WFShipShieldVisualsComponent>(shield, out var visuals))
-            return;
         var local = Vector2.Transform(_transformSystem.GetWorldPosition(projectile), _transformSystem.GetInvWorldMatrix(shield));
-        var position = WFShipShieldGeometry.ClosestPoint(visuals.Contours, local);
+        return TryComp<WFShipShieldVisualsComponent>(shield, out var visuals)
+            ? WFShipShieldGeometry.ClosestPoint(visuals.Contours, local)
+            : local;
+    }
+
+    /// <summary>Reports a damage-scaled impact on the visible perimeter.</summary>
+    private void WolfgateShieldImpact(EntityUid shield, Vector2 position, float strength)
+    {
+        if (strength <= 0f || !HasComp<WFShipShieldVisualsComponent>(shield))
+            return;
         PlayWolfgateShieldImpact(shield, position);
         // Shield entities are globally visible, including edges outside their origin's PVS.
-        RaiseNetworkEvent(new WFShipShieldImpactEvent(GetNetEntity(shield), position, 1f), Filter.Broadcast());
+        RaiseNetworkEvent(new WFShipShieldImpactEvent(GetNetEntity(shield), position, strength), Filter.Broadcast());
     }
 }

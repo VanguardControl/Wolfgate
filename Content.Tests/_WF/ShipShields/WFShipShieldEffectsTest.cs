@@ -8,6 +8,51 @@ namespace Content.Tests._WF.ShipShields;
 [TestFixture]
 public sealed class WFShipShieldEffectsTest
 {
+    [TestCase(1000f, 10000f, 0.5f, 1f, 1000f)]
+    [TestCase(100000f, 10000f, 0.5f, 1f, 20000f)]
+    [TestCase(100000f, 5000f, 0.5f, 2f, 100f)]
+    [TestCase(1000f, 10000f, 0f, 1f, 1000f)]
+    public void ImpactCapacityUsesTheFirstEmitterLimit(float limit, float draw, float modifier, float exponent, float expected)
+    {
+        Assert.That(WFShipShieldEffects.EffectiveCapacity(limit, draw, modifier, exponent), Is.EqualTo(expected).Within(0.01f));
+    }
+
+    [Test]
+    public void DamageRelativeToCapacityControlsImpactStrength()
+    {
+        var small = WFShipShieldEffects.ImpactStrength(10f, 10000f);
+        var medium = WFShipShieldEffects.ImpactStrength(100f, 10000f);
+        var heavy = WFShipShieldEffects.ImpactStrength(500f, 10000f);
+        Assert.That(small, Is.GreaterThan(0f));
+        Assert.That(medium, Is.GreaterThan(small));
+        Assert.That(heavy, Is.GreaterThan(medium));
+        Assert.That(heavy, Is.EqualTo(1f));
+        Assert.That(WFShipShieldEffects.ImpactStrength(50000f, 10000f), Is.EqualTo(heavy));
+        Assert.That(WFShipShieldEffects.ImpactStrength(100f, 100000f), Is.LessThan(medium));
+        Assert.That(WFShipShieldEffects.ImpactStrength(50f, 10000f), Is.LessThan(medium),
+            "A reinforced sector consuming half the capacity should show a smaller impact.");
+        Assert.That(WFShipShieldEffects.ImpactStrength(0f, 10000f), Is.Zero);
+        Assert.That(WFShipShieldEffects.ImpactStrength(-1f, 10000f), Is.Zero);
+        Assert.That(WFShipShieldEffects.ImpactStrength(float.NaN, 10000f), Is.Zero);
+    }
+
+    [Test]
+    public void WeakHitsHaveSmallerDimmerPatchesAndShorterRipples()
+    {
+        var weak = WFShipShieldEffects.ImpactStrength(10f, 10000f);
+        var scale = WFShipShieldEffects.ImpactRadiusScale(weak);
+        Assert.That(scale, Is.InRange(0.2f, 0.5f));
+        Assert.That(WFShipShieldEffects.ImpactRadiusScale(1f), Is.EqualTo(1f));
+        Assert.That(WFShipShieldEffects.Flash(0f, 0f, weak), Is.LessThan(WFShipShieldEffects.Flash(0f, 0f, 1f)));
+        Assert.That(WFShipShieldEffects.Heat(0f, 1f, weak), Is.LessThan(WFShipShieldEffects.Heat(0f, 1f, 1f)));
+        Assert.That(WFShipShieldEffects.Flash(3f, 0f, weak), Is.LessThan(weak * WFShipShieldEffects.Flash(3f, 0f, 1f)));
+        Assert.That(WFShipShieldEffects.Heat(3f, 1f, weak), Is.LessThan(weak * WFShipShieldEffects.Heat(3f, 1f, 1f)));
+        var radius = WFShipShieldEffects.WaveSpeed;
+        Assert.That(WFShipShieldEffects.Wave(radius * scale, 1f, weak), Is.GreaterThan(WFShipShieldEffects.Wave(radius, 1f, weak)));
+        Assert.That(WFShipShieldEffects.Wave(radius, 1f, weak), Is.LessThan(0.001f));
+        Assert.That(WFShipShieldEffects.WaveWake((radius - 3f) * scale, 1f, weak), Is.GreaterThan(WFShipShieldEffects.WaveWake(radius - 3f, 1f, weak)));
+    }
+
     [TestCase("#FF3333")]
     [TestCase("#9933FF")]
     [TestCase("#3399FF")]
