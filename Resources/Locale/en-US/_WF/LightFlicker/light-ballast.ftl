@@ -1,0 +1,3 @@
+light-ballast-examine-damaged = [color=red]The lighting ballast appears to be damaged. A multitool could fix it.[/color]
+light-ballast-repair-start = You start repairing the ballast...
+light-ballast-repair-done = Ballast repaired.
