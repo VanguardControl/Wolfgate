@@ -31,9 +31,12 @@ mobs, gear and ship maps stay in `_Mono`.
 
 ## Non-modular edits
 
+- [`Content.Server/_Mono/Atmos/EntitySystems/SelfRechargingGasTankSystem.cs`](../../../Content.Server/_Mono/Atmos/EntitySystems/SelfRechargingGasTankSystem.cs): ported from Monolith #4558
+- [`Content.Shared/_Mono/Atmos/Components/SelfRechargingGasTankComponent.cs`](../../../Content.Shared/_Mono/Atmos/Components/SelfRechargingGasTankComponent.cs): regenerating jetpack tanks, ported from Monolith #4558
 - [`Resources/Prototypes/_Mono/borg_types.yml`](../../../Resources/Prototypes/_Mono/borg_types.yml): Monolith #4558
 - [`Resources/Prototypes/_Mono/Entities/Objects/Specific/Robotics/borg_modules.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Specific/Robotics/borg_modules.yml)
 - [`Resources/Prototypes/_Mono/game_presets.yml`](../../../Resources/Prototypes/_Mono/game_presets.yml): Monolith #4558
+- [`Resources/Prototypes/_Mono/GameRules/xenoborgs.yml`](../../../Resources/Prototypes/_Mono/GameRules/xenoborgs.yml): ported from Monolith #4558, not merged there
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Xenoborgs/Packs/xenoborgs.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Xenoborgs/Packs/xenoborgs.yml): Monolith #4558
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Xenoborgs/xenoborgs.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Xenoborgs/xenoborgs.yml)
   - added Plastic and Glass cost

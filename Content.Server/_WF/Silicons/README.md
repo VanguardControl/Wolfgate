@@ -38,11 +38,18 @@ nothing answers. `SynthRechargeTest` covers both sources.
   - resolve the drinker's own store, wherever it lives (synths keep it in an organ slot)
   - TryGetDrinkerBattery already guarantees a battery
   - say which side is the problem instead of always blaming the source
+- [`Content.Server/_HL/Silicons/Synths/Battery/SynthBatteryAlertSystem.cs`](../../_HL/Silicons/Synths/Battery/SynthBatteryAlertSystem.cs): ported from HardLight
+- [`Content.Server/_HL/Silicons/Synths/Battery/SynthBatteryMetabolismSystem.cs`](../../_HL/Silicons/Synths/Battery/SynthBatteryMetabolismSystem.cs): ported from HardLight
 - [`Content.Server/_HL/Silicons/Synths/Battery/SynthBatteryPowerSystem.cs`](../../_HL/Silicons/Synths/Battery/SynthBatteryPowerSystem.cs)
   - battery moved to shared here
   - rejuvenating also fills the cell in the synth's battery organ slot
 - [`Content.Server/_HL/Silicons/Synths/Battery/SynthBatterySystem.cs`](../../_HL/Silicons/Synths/Battery/SynthBatterySystem.cs): battery moved to shared here
 - [`Content.Server/Body/Systems/MetabolizerSystem.cs`](../../Body/Systems/MetabolizerSystem.cs): ported from HardLight, Synths turn metabolised Nutriment into charge
+- [`Content.Shared/_HL/Railroading/Events/RailroadingReagentMetabolizedEvent.cs`](../../../Content.Shared/_HL/Railroading/Events/RailroadingReagentMetabolizedEvent.cs): synth nutriment-to-charge event, ported from HardLight
+- [`Content.Shared/_HL/Silicons/Synths/Battery/SharedSynthBatteryAlertSystem.cs`](../../../Content.Shared/_HL/Silicons/Synths/Battery/SharedSynthBatteryAlertSystem.cs): synth battery, ported from HardLight
+- [`Content.Shared/_HL/Silicons/Synths/Battery/SynthBatteryComponent.cs`](../../../Content.Shared/_HL/Silicons/Synths/Battery/SynthBatteryComponent.cs): synth battery, ported from HardLight
+- [`Content.Shared/_HL/Silicons/Synths/Battery/SynthBatterySystem.Effects.cs`](../../../Content.Shared/_HL/Silicons/Synths/Battery/SynthBatterySystem.Effects.cs): synth battery, ported from HardLight
+- [`Content.Shared/_HL/UI/BatteryStatusComponent.cs`](../../../Content.Shared/_HL/UI/BatteryStatusComponent.cs): synth battery alert, ported from HardLight
 - [`Resources/Locale/en-US/_EinsteinEngines/power/batteryDrinker.ftl`](../../../Resources/Locale/en-US/_EinsteinEngines/power/batteryDrinker.ftl): fixed upstream typo (was CAPATALIZE)
 - [`Resources/Locale/en-US/_EinsteinEngines/power/silicons.ftl`](../../../Resources/Locale/en-US/_EinsteinEngines/power/silicons.ftl): reworded (was "You charged a litte of your battery.")
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml): drain APCs and loose power cells to recharge.

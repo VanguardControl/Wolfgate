@@ -215,7 +215,11 @@ markings.
 
 ## Non-modular edits
 
+- [`Content.Client/_Common/Consent/ClientConsentManager.cs`](../../../Content.Client/_Common/Consent/ClientConsentManager.cs): ported from HardLight (consent system)
+- [`Content.Client/_Common/Consent/ConsentSystem.cs`](../../../Content.Client/_Common/Consent/ConsentSystem.cs): ported from HardLight (consent system)
+- [`Content.Client/_Common/Consent/IClientConsentManager.cs`](../../../Content.Client/_Common/Consent/IClientConsentManager.cs): ported from HardLight (consent system)
 - [`Content.Client/_Common/Consent/UI/ConsentToggleControl.xaml`](../../../Content.Client/_Common/Consent/UI/ConsentToggleControl.xaml): the name takes the spare width and wraps, and the buttons keep their size, so a long name in a narrow pane no longer squashes them.
+- [`Content.Client/_Common/Consent/UI/ConsentToggleControl.xaml.cs`](../../../Content.Client/_Common/Consent/UI/ConsentToggleControl.xaml.cs): ported from HardLight (consent system)
 - [`Content.Client/_Common/Consent/UI/ConsentUiController.cs`](../../../Content.Client/_Common/Consent/UI/ConsentUiController.cs): the consent preferences live in a Game Options tab rather than their own window
 - [`Content.Client/_Shitmed/Medical/Surgery/SurgeryBui.cs`](../../../Content.Client/_Shitmed/Medical/Surgery/SurgeryBui.cs)
   - the last state's choices without anatomy surgeries for viewers who lack adult content; every read uses this.
@@ -282,6 +286,7 @@ markings.
 - [`Content.Server/_Common/Consent/ConsentSystem.cs`](../../_Common/Consent/ConsentSystem.cs)
   - go through UpdateConsent so clients see the toggles and listeners get events on (re-)entry.
   - a visiting mind still owns its body, so that body's toggles stay current
+- [`Content.Server/_Common/Consent/IServerConsentManager.cs`](../../_Common/Consent/IServerConsentManager.cs): ported from HardLight
 - [`Content.Server/_Common/Consent/ServerConsentManager.cs`](../../_Common/Consent/ServerConsentManager.cs)
   - ported from HardLight.
   - loads through the UserDbDataManager registration hook
@@ -303,6 +308,10 @@ markings.
 - [`Content.Shared/_Common/CCVar/ConsentSystemCCVars.cs`](../../../Content.Shared/_Common/CCVar/ConsentSystemCCVars.cs): ported from HardLight, without the non-con colourblind palette CVar
 - [`Content.Shared/_Common/Consent/ConsentComponent.cs`](../../../Content.Shared/_Common/Consent/ConsentComponent.cs): raise AfterAutoHandleState so anatomy visuals follow consent changes
 - [`Content.Shared/_Common/Consent/ConsentTogglePrototype.cs`](../../../Content.Shared/_Common/Consent/ConsentTogglePrototype.cs): toggle that must be on for this one to matter; the consent tab indents and disables dependents.\</summary>
+- [`Content.Shared/_Common/Consent/EntityConsentToggleUpdatedEvent.cs`](../../../Content.Shared/_Common/Consent/EntityConsentToggleUpdatedEvent.cs): consent system, ported from HardLight
+- [`Content.Shared/_Common/Consent/MsgUpdateConsent.cs`](../../../Content.Shared/_Common/Consent/MsgUpdateConsent.cs): consent system, ported from HardLight
+- [`Content.Shared/_Common/Consent/PlayerConsentSettings.cs`](../../../Content.Shared/_Common/Consent/PlayerConsentSettings.cs): consent system, ported from HardLight
+- [`Content.Shared/_Common/Consent/SharedConsentSystem.cs`](../../../Content.Shared/_Common/Consent/SharedConsentSystem.cs): consent system, ported from HardLight
 - [`Content.Shared/_Shitmed/Humanoid/Events/ProfileLoadFinishedEvent.cs`](../../../Content.Shared/_Shitmed/Humanoid/Events/ProfileLoadFinishedEvent.cs): lets anatomy read the loaded profile
 - [`Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs`](../../../Content.Shared/_Shitmed/Surgery/SharedSurgerySystem.cs): let a surgery refuse a particular surgeon (adult content and patient consent)
 - [`Content.Shared/Humanoid/HumanoidVisualLayers.cs`](../../../Content.Shared/Humanoid/HumanoidVisualLayers.cs)
