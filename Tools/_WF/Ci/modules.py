@@ -8,7 +8,7 @@ without a module.
 
     python Tools/_WF/Ci/modules.py --write            regenerate the docs, creating missing READMEs
     python Tools/_WF/Ci/modules.py --check            fail if the docs are stale or a rule is broken
-    python Tools/_WF/Ci/modules.py --pr-check <ref>   fail if a file changed since <ref> outside _WF has no marker
+    python Tools/_WF/Ci/modules.py --pr-check <ref>   fail if an edit since <ref> outside _WF has no marker
 
 Reports are cut to 20 lines per section; --all prints everything. Needs PyYAML (pip install pyyaml).
 """
@@ -85,6 +85,10 @@ HASH_SUFFIXES = {".yml", ".yaml", ".ftl", ".py", ".toml", ".sh", ".gitignore", "
 XML_SUFFIXES = {".xml", ".xaml", ".csproj", ".props", ".targets", ".svg", ".html", ".md"}
 # Placeholder in suggested unmarked entries; load_unmarked rejects it until it is filled in.
 PLACEHOLDER = "TODO"
+# The new-file start and length of a -U0 diff hunk.
+HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", re.M)
+# A marker alone on its line, after nothing but a comment opener: it covers the rest of its paragraph.
+STANDALONE = re.compile(r"\s*(?://+|#+|<!--|/\*+|\*|;|--)\s*WOLFGATE(?![\w-])")
 
 MODULE_NAME = re.compile(r"[A-Z][A-Za-z0-9]*")
 WORD = re.compile(r"(?<![\w-])WOLFGATE(?![\w-])")
@@ -137,6 +141,9 @@ class Report:
         "Changed files outside _WF without a marker": (
             "Mark the edit (// WOLFGATE(<Module>): reason) or, if the file can't hold a comment, list it under "
             f"unmarked in {CONFIG}."),
+        "Edits outside _WF without a marker": (
+            "Each added or changed block needs a marker on one of its lines, a marker alone on a line above it in "
+            "the same paragraph, or a START/END around it."),
     }
 
     def __init__(self):
@@ -648,7 +655,17 @@ class Modules:
             if (not path or in_wf(path) or path in PR_EXEMPT_FILES or path.startswith(PR_EXEMPT_PREFIXES)
                     or path == "RobustToolbox" or self.external_module(path)):
                 continue
-            if path in self.marked or any(self.unmarked_matches(u, path) for u in self.unmarked):
+            if any(self.unmarked_matches(u, path) for u in self.unmarked):
+                continue
+            if not unmarkable(path):
+                uncovered = self.unmarked_hunks(base, "HEAD", path)
+                if uncovered is not None:
+                    for line in uncovered:
+                        report.add("Edits outside _WF without a marker",
+                                   f"{path}:{line} (mark it: {marker_example(path)})", path, line)
+                    continue
+            # Nothing added: a deletion, or a binary file.
+            if path in self.marked:
                 continue
             if merge_base is None:
                 merge_base = finish(git("merge-base", base, "HEAD")).decode("utf-8").strip()
@@ -668,6 +685,50 @@ class Modules:
             report.notes.append("\n".join(lines))
 
     @staticmethod
+    def unmarked_hunks(base, head, path):
+        """First lines of the blocks head added to path that no marker covers, or None when it added no lines."""
+        diff = finish(git("diff", "-U0", "--no-color", "--no-ext-diff", "--no-renames", f"{base}...{head}", "--",
+                          path)).decode("utf-8", "replace")
+        hunks = [range(int(m[1]), int(m[1]) + int(m[2] if m[2] is not None else 1))
+                 for m in HUNK.finditer(diff)]
+        hunks = [h for h in hunks if h]
+        if not hunks:
+            return None
+        text = finish(git("show", f"{head}:{path}")).decode("utf-8-sig", "replace")
+        lines = re.sub(r"\r+\n", "\n", text).split("\n")
+        marked, standalone, blocks, start = set(), set(), [], None
+        for number, line in enumerate(lines, 1):
+            if "WOLFGATE" not in line:
+                continue
+            parsed = parse_marker(line)
+            if parsed is None or parsed == "broken":
+                continue
+            marked.add(number)
+            kind = parsed[1]
+            if kind == "START":
+                start = number
+            elif kind == "END" and start is not None:
+                blocks.append((start, number))
+                start = None
+            elif kind is None and STANDALONE.match(line):
+                standalone.add(number)
+        uncovered = []
+        for hunk in hunks:
+            filled = [n for n in hunk if n <= len(lines) and lines[n - 1].strip()]
+            if not filled or any(n in marked for n in hunk):
+                continue
+            if all(any(s <= n <= e for s, e in blocks) for n in filled):
+                continue
+            # A marker alone on a line above, with no blank line in between, covers the rest of its paragraph.
+            above = filled[0] - 1
+            while above >= 1 and lines[above - 1].strip() and above not in standalone:
+                above -= 1
+            if above >= 1 and above in standalone:
+                continue
+            uncovered.append(filled[0])
+        return uncovered
+
+    @staticmethod
     def reverted(base, merge_base, path):
         """Whether the pull request only removed lines from a file that had a marker: a Wolfgate edit taken out."""
         numstat = finish(git("diff", "--numstat", "--no-renames", f"{base}...HEAD", "--", path)).decode("utf-8")
@@ -685,7 +746,7 @@ def main():
     mode.add_argument("--write", action="store_true", help="regenerate the module READMEs and NONMODULAR.md")
     mode.add_argument("--check", action="store_true", help="fail if the docs are stale or a rule is broken")
     parser.add_argument("--pr-check", metavar="BASE",
-                        help="fail if a file changed since BASE outside _WF has no marker")
+                        help="fail if an edit since BASE outside _WF has no marker")
     parser.add_argument("--all", action="store_true", help="list every problem instead of the first 20 per section")
     args = parser.parse_args()
     if not (args.write or args.check or args.pr_check):
