@@ -1,29 +1,38 @@
 #!/usr/bin/env python3
 """
-Sends updates to a Discord webhook for new changelog entries since the last GitHub Actions publish run.
+Sends updates to Discord webhooks for new changelog entries since the last successful run of this workflow.
 
 Automatically figures out the last run and changelog contents with the GitHub API.
+
+Handles two changelogs, our own (Wolfgate.yml) and upstream Monolith's (Monolith.yml).
+Each has its own webhook environment variable and is skipped when that variable is empty.
 """
-# yes I just stole this from goob.
 
 import itertools
 import os
-from pathlib import Path
 from typing import Any, Iterable
 
 import requests
 import yaml
 import time
 
-DEBUG = False
-# DEBUG_CHANGELOG_FILE_OLD = Path("Resources/Changelog/Old.yml") # not set up yet
 GITHUB_API_URL = os.environ.get("GITHUB_API_URL", "https://api.github.com")
 
 # https://discord.com/developers/docs/resources/webhook
 DISCORD_SPLIT_LIMIT = 2000
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-CHANGELOG_FILE = "Resources/Changelog/Monolith.yml" # Monolith
+CHANGELOGS = [
+    {
+        "file": "Resources/Changelog/Wolfgate.yml",
+        "heading": "Wolfgate changes",
+        "webhook_env": "DISCORD_WEBHOOK_URL",
+    },
+    {
+        "file": "Resources/Changelog/Monolith.yml",
+        "heading": "Upstream Monolith changes",
+        "webhook_env": "DISCORD_WEBHOOK_URL_UPSTREAM",
+    },
+]
 
 TYPES_TO_EMOJI = {"Fix": "🐛", "Add": "🆕", "Remove": "❌", "Tweak": "⚒️"}
 
@@ -31,26 +40,54 @@ ChangelogEntry = dict[str, Any]
 
 
 def main():
-    if not DISCORD_WEBHOOK_URL:
+    active = [c for c in CHANGELOGS if os.environ.get(c["webhook_env"])]
+    if not active:
         print("No discord webhook URL found, skipping discord send")
         return
 
-#    if DEBUG:
-        # to debug this script locally, you can use
-        # a separate local file as the old changelog
-#        last_changelog_stream = DEBUG_CHANGELOG_FILE_OLD.read_text()
-#    else:
-        # when running this normally in a GitHub actions workflow,
-        # it will get the old changelog from the GitHub API
-    last_changelog_stream = get_last_changelog()
+    github_repository = os.environ["GITHUB_REPOSITORY"]
+    session = make_github_session(os.environ["GITHUB_TOKEN"])
 
-    last_changelog = yaml.safe_load(last_changelog_stream)
-    with open(CHANGELOG_FILE, "r") as f:
-        cur_changelog = yaml.safe_load(f)
+    last_sha = get_last_run_sha(session, github_repository, os.environ["GITHUB_RUN_ID"])
+    if last_sha is None:
+        print("No previous successful run of this workflow to compare against, skipping")
+        return
 
-    diff = diff_changelog(last_changelog, cur_changelog)
-    message_lines = changelog_entries_to_message_lines(diff)
-    send_message_lines(message_lines)
+    for changelog in active:
+        last_changelog = get_last_changelog_by_sha(session, last_sha, github_repository, changelog["file"])
+        with open(changelog["file"], "r", encoding="utf-8") as f:
+            cur_changelog = yaml.safe_load(f)
+
+        diff = list(diff_changelog(last_changelog, cur_changelog))
+        if not diff:
+            print(f"No new entries in {changelog['file']}")
+            continue
+
+        print(f"{len(diff)} new entries in {changelog['file']}")
+        message_lines = [f"## {changelog['heading']}\n"]
+        message_lines += changelog_entries_to_message_lines(diff)
+        send_message_lines(os.environ[changelog["webhook_env"]], message_lines)
+
+
+def make_github_session(github_token: str) -> requests.Session:
+    session = requests.Session()
+    session.headers["Authorization"] = f"Bearer {github_token}"
+    session.headers["Accept"] = "application/vnd.github+json"
+    session.headers["X-GitHub-Api-Version"] = "2022-11-28"
+    return session
+
+
+def get_last_run_sha(sess: requests.Session, github_repository: str, github_run: str) -> str | None:
+    """
+    Commit of the most recent successful run of this workflow before the current one, or None if there is none.
+    """
+    most_recent = get_most_recent_workflow(sess, github_repository, github_run)
+    if most_recent is None:
+        return None
+
+    last_sha = most_recent["head_commit"]["id"]
+    print(f"Last successful run was {most_recent['id']}: {last_sha}")
+    return last_sha
 
 
 def get_most_recent_workflow(
@@ -64,6 +101,8 @@ def get_most_recent_workflow(
             continue
 
         return run
+
+    return None
 
 
 def get_current_run(
@@ -86,29 +125,9 @@ def get_past_runs(sess: requests.Session, current_run: Any) -> Any:
     return resp.json()
 
 
-def get_last_changelog() -> str:
-    github_repository = os.environ["GITHUB_REPOSITORY"]
-    github_run = os.environ["GITHUB_RUN_ID"]
-    github_token = os.environ["GITHUB_TOKEN"]
-
-    session = requests.Session()
-    session.headers["Authorization"] = f"Bearer {github_token}"
-    session.headers["Accept"] = "Accept: application/vnd.github+json"
-    session.headers["X-GitHub-Api-Version"] = "2022-11-28"
-
-    most_recent = get_most_recent_workflow(session, github_repository, github_run)
-    last_sha = most_recent["head_commit"]["id"]
-    print(f"Last successful publish job was {most_recent['id']}: {last_sha}")
-    last_changelog_stream = get_last_changelog_by_sha(
-        session, last_sha, github_repository
-    )
-
-    return last_changelog_stream
-
-
 def get_last_changelog_by_sha(
-    sess: requests.Session, sha: str, github_repository: str
-) -> str:
+    sess: requests.Session, sha: str, github_repository: str, changelog_file: str
+) -> dict[str, Any]:
     """
     Use GitHub API to get the previous version of the changelog YAML (Actions builds are fetched with a shallow clone)
     """
@@ -118,22 +137,29 @@ def get_last_changelog_by_sha(
     headers = {"Accept": "application/vnd.github.raw"}
 
     resp = sess.get(
-        f"{GITHUB_API_URL}/repos/{github_repository}/contents/{CHANGELOG_FILE}",
+        f"{GITHUB_API_URL}/repos/{github_repository}/contents/{changelog_file}",
         headers=headers,
         params=params,
     )
+    if resp.status_code == 404:
+        # The file was added since the last run, so everything in it is new.
+        print(f"{changelog_file} did not exist at {sha}, treating it as empty")
+        return {"Entries": []}
+
     resp.raise_for_status()
-    return resp.text
+    return yaml.safe_load(resp.text)
 
 
 def diff_changelog(
-    old: dict[str, Any], cur: dict[str, Any]
+    old: dict[str, Any] | None, cur: dict[str, Any] | None
 ) -> Iterable[ChangelogEntry]:
     """
-    Find all new entries not present in the previous publish.
+    Find all new entries not present in the previous run.
     """
-    old_entry_ids = {e["id"] for e in old["Entries"]}
-    return (e for e in cur["Entries"] if e["id"] not in old_entry_ids)
+    old_entries = (old or {}).get("Entries") or []
+    cur_entries = (cur or {}).get("Entries") or []
+    old_entry_ids = {e["id"] for e in old_entries}
+    return (e for e in cur_entries if e["id"] not in old_entry_ids)
 
 
 def get_discord_body(content: str):
@@ -146,14 +172,14 @@ def get_discord_body(content: str):
     }
 
 
-def send_discord_webhook(lines: list[str]):
+def send_discord_webhook(webhook_url: str, lines: list[str]):
     content = "".join(lines)
     body = get_discord_body(content)
-    
+
     retry_attempt = 0
 
     try:
-        response = requests.post(DISCORD_WEBHOOK_URL, json=body, timeout=10)
+        response = requests.post(webhook_url, json=body, timeout=10)
         while response.status_code == 429:
             retry_attempt += 1
             if retry_attempt > 20:
@@ -162,7 +188,7 @@ def send_discord_webhook(lines: list[str]):
             retry_after = response.json().get("retry_after", 5)
             print(f"Rate limited, retrying after {retry_after} seconds")
             time.sleep(retry_after)
-            response = requests.post(DISCORD_WEBHOOK_URL, json=body, timeout=10)
+            response = requests.post(webhook_url, json=body, timeout=10)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Failed to send message: {e}")
@@ -199,7 +225,7 @@ def changelog_entries_to_message_lines(entries: Iterable[ChangelogEntry]) -> lis
     return message_lines
 
 
-def send_message_lines(message_lines: list[str]):
+def send_message_lines(webhook_url: str, message_lines: list[str]):
     """Join a list of message lines into chunks that are each below Discord's message length limit, and send them."""
     chunk_lines = []
     chunk_length = 0
@@ -210,7 +236,7 @@ def send_message_lines(message_lines: list[str]):
 
         if new_chunk_length > DISCORD_SPLIT_LIMIT:
             print("Split changelog and sending to discord")
-            send_discord_webhook(chunk_lines)
+            send_discord_webhook(webhook_url, chunk_lines)
 
             new_chunk_length = line_length
             chunk_lines.clear()
@@ -220,7 +246,7 @@ def send_message_lines(message_lines: list[str]):
 
     if chunk_lines:
         print("Sending final changelog to discord")
-        send_discord_webhook(chunk_lines)
+        send_discord_webhook(webhook_url, chunk_lines)
 
 
 if __name__ == "__main__":
