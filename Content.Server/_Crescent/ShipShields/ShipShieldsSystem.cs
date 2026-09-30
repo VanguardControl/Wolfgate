@@ -40,6 +40,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
         var query = EntityQueryEnumerator<ShipShieldEmitterComponent, ApcPowerReceiverComponent>();
         while (query.MoveNext(out var uid, out var emitter, out var power))
         {
+            ReconcileWolfgateShieldEmitter(uid, emitter); // WOLFGATE(ShipShields): recover stale handles and keep one owner per hull
             emitter.Accumulator += frameTime;
 
             if (emitter.Accumulator < EmitterUpdateRate)
@@ -63,7 +64,10 @@ public sealed partial class ShipShieldsSystem : EntitySystem
 
             emitter.Damage -= healed;
 
-            if (emitter.Damage < 0)
+            // WOLFGATE(ShipShields) START: complete recharge when healing lands exactly on zero damage
+            // if (emitter.Damage < 0)
+            if (emitter.Damage <= 0)
+            // WOLFGATE END
             {
                 emitter.Damage = 0;
                 if (power.Powered)
@@ -82,13 +86,17 @@ public sealed partial class ShipShieldsSystem : EntitySystem
             if (emitter.Damage > emitter.DamageLimit)
                 emitter.OverloadAccumulator = emitter.DamageOverloadTimePunishment;
 
-            if (!emitter.Recharging && emitter.Shield is null && emitter.OverloadAccumulator < 1)
+            // WOLFGATE(ShipShields) START: respect the ship's manual field switch
+            // if (!emitter.Recharging && emitter.Shield is null && emitter.OverloadAccumulator < 1)
+            if (!emitter.Recharging && emitter.Shield is null && emitter.OverloadAccumulator < 1 && IsWolfgateShieldEnabled(parent.Value))
+            // WOLFGATE END
             {
                 var shield = ShieldEntity(parent.Value, uid);
                 if (shield != EntityUid.Invalid)
                 {
                     emitter.Shield = shield;
                     emitter.Shielded = parent.Value;
+                    LogWolfgateShieldTransition(uid, parent.Value, emitter, true, "ready"); // WOLFGATE(ShipShields): record actual field transitions for diagnosis
                 }
                 // WOLFGATE(ShipShields) START: only announce successful startup and rate-limit power transitions per hull
                 // _audio.PlayGlobal(emitter.PowerUpSound, filter, true, emitter.PowerUpSound.Params);
@@ -98,11 +106,15 @@ public sealed partial class ShipShieldsSystem : EntitySystem
             }
             else if ((emitter.Recharging || emitter.OverloadAccumulator > 0) && emitter.Shield is not null || HasComp<ShipShieldDisabledGridComponent>(Transform(uid).GridUid))
             {
-                UnshieldEntity(parent.Value);
+                // WOLFGATE(ShipShields) START: a standby emitter cannot remove another generator's field
+                // UnshieldEntity(parent.Value);
+                var removed = RemoveWolfgateEmitterShield(uid, emitter,
+                    !power.Powered ? "power lost" : emitter.OverloadAccumulator > 0 ? "overload" : "recharging or disabled grid");
+                // WOLFGATE END
                 emitter.Shield = null;
                 emitter.Shielded = null;
                 // WOLFGATE(ShipShields) START: share the startup cooldown and use shutdown audio parameters
-                if (!HasComp<ShipShieldDisabledGridComponent>(Transform(uid).GridUid))
+                if (removed && !HasComp<ShipShieldDisabledGridComponent>(Transform(uid).GridUid)) // WOLFGATE(ShipShields): announce only actual shutdown
                 {
                     // _audio.PlayGlobal(emitter.PowerDownSound, filter, true, emitter.PowerUpSound.Params);
                     PlayWolfgateShieldPowerSound(uid, parent.Value, false);
@@ -168,7 +180,10 @@ public sealed partial class ShipShieldsSystem : EntitySystem
     {
         if (emitter.Shielded != null)
         {
-            UnshieldEntity(emitter.Shielded.Value);
+            // WOLFGATE(ShipShields) START: remove only the field owned by this emitter
+            // UnshieldEntity(emitter.Shielded.Value);
+            RemoveWolfgateEmitterShield(uid, emitter);
+            // WOLFGATE END
             emitter.Shield = null;
             emitter.Shielded = null;
         }
@@ -183,8 +198,17 @@ public sealed partial class ShipShieldsSystem : EntitySystem
     /// <returns>The shield entity.</returns>
     private EntityUid ShieldEntity(EntityUid entity, EntityUid? source = null, MapGridComponent? mapGrid = null)
     {
+        // WOLFGATE(ShipShields) START: discard stale grid fields and reserve active fields for their owner
+        // if (TryComp<ShipShieldedComponent>(entity, out var existingShielded))
+        //     return existingShielded.Shield;
         if (TryComp<ShipShieldedComponent>(entity, out var existingShielded))
-            return existingShielded.Shield;
+        {
+            if (IsWolfgateShieldLive(existingShielded.Shield))
+                return source == null || existingShielded.Source == source ? existingShielded.Shield : EntityUid.Invalid;
+            TryQueueDel(existingShielded.Shield);
+            RemComp<ShipShieldedComponent>(entity);
+        }
+        // WOLFGATE END
 
         if (!Resolve(entity, ref mapGrid, false) || HasComp<ShipShieldDisabledGridComponent>(Transform(entity).GridUid))
             return EntityUid.Invalid;

@@ -11,6 +11,7 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Audio.Components;
+using Robust.Shared.Audio;
 using Content.Shared.Explosion.Components;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.ShipShields;
@@ -61,7 +62,7 @@ public sealed class WFShipShieldHullDamageTest
             }
             screen.SetDraft(35f, 0.73f, 120f);
             Assert.That(requests, Is.Empty, "Editing the preview must not send an allocation.");
-            screen.UpdateState(new WFShipShieldShuntState(true, true, 0.7f, 0.8f, 0.2f, MathF.PI / 2f), helmRotation);
+            screen.UpdateState(new WFShipShieldShuntState(true, false, 0.7f, 0.8f, 0.2f, MathF.PI / 2f, false), helmRotation);
             screen.ApplyAllocation();
             Assert.That(requests, Has.Count.EqualTo(1));
             Assert.That(requests[0].Direction, Is.EqualTo(WFShipShieldHelmAngles.GridDirection(35f, helmRotation)).Within(0.0001f));
@@ -268,7 +269,22 @@ public sealed class WFShipShieldHullDamageTest
         var replacementEmitter = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
+            entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).PowerUpSound =
+                new SoundPathSpecifier("/Audio/_WF/ShipShields/shield_on.ogg");
             shields.PlayWolfgateShieldPowerSound(emitterUid, map.Grid.Owner, true);
+            var powerSounds = entities.EntityQueryEnumerator<AudioComponent, TransformComponent>();
+            var heardPowerSound = false;
+            while (powerSounds.MoveNext(out var sound, out var soundTransform))
+            {
+                if (sound.FileName != "/Audio/_WF/ShipShields/shield_on.ogg")
+                    continue;
+                heardPowerSound = true;
+                Assert.That(sound.Flags.HasFlag(AudioFlags.GridAudio), Is.True);
+                Assert.That(sound.Flags.HasFlag(AudioFlags.NoOcclusion), Is.True);
+                Assert.That(soundTransform.ParentUid, Is.EqualTo(map.Grid.Owner));
+                Assert.That(sound.IncludedEntities, Is.Null, "Ships without a station must still hear power transitions.");
+            }
+            Assert.That(heardPowerSound, Is.True);
             powerSoundDeadline = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner).NextPowerSound;
             Assert.That((powerSoundDeadline - server.Timing.CurTime).TotalSeconds, Is.EqualTo(5d).Within(0.001d));
             shields.PlayWolfgateShieldPowerSound(emitterUid, map.Grid.Owner, false);
@@ -290,6 +306,8 @@ public sealed class WFShipShieldHullDamageTest
         await server.WaitAssertion(() =>
         {
             var helmCoordinates = new EntityCoordinates(map.Grid.Owner, center);
+            transform.SetCoordinates(emitterUid, helmCoordinates);
+            transform.AnchorEntity(emitterUid, entities.GetComponent<TransformComponent>(emitterUid));
             var helm = entities.SpawnEntity("ComputerShuttle", helmCoordinates);
             var actor = entities.SpawnEntity("MobHuman", helmCoordinates);
             Assert.That(entities.GetComponent<TransformComponent>(helm).GridUid, Is.EqualTo(map.Grid.Owner));
@@ -311,7 +329,7 @@ public sealed class WFShipShieldHullDamageTest
             entities.QueueDeleteEntity(shield);
             helms.Update(0.21f);
             Assert.That(State().Active, Is.False, "Queued field removal must immediately report offline.");
-            Assert.That(State().Health, Is.Zero);
+            Assert.That(State().Health, Is.EqualTo(0.28f).Within(0.001f), "Offline controls retain actual emitter capacity.");
 
             WFShipShieldShuntState State()
             {

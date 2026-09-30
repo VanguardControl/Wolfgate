@@ -4,6 +4,7 @@ using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Input;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WF.ShipShields;
 
@@ -25,6 +26,8 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
     private readonly Button _apply;
     private readonly Button _reset;
     private readonly ShieldDial _dial;
+    private readonly Button _enabled;
+    private float _warningTime;
     private WFShipShieldShuntState? _state;
     private float _helmRotation;
     private bool _updating;
@@ -33,6 +36,9 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
 
     /// <summary>Only Apply or Reset sends a network request.</summary>
     public event Action<float, float, float>? AllocationRequested;
+
+    /// <summary>Requests a change to shield deployment.</summary>
+    public event Action<bool>? OnSetEnabled;
 
     /// <summary>Creates a helm-relative bearing dial, allocation slider and protected-arc controls.</summary>
     public WFShipShieldShuntScreen()
@@ -43,11 +49,19 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         SeparationOverride = 12;
         Margin = new Thickness(12);
         var header = Column(6);
-        header.AddChild(new Label { Text = Loc.GetString("wf-shield-helm-heading") });
+        var heading = new BoxContainer { SeparationOverride = 12 };
+        heading.AddChild(new Label { Text = Loc.GetString("wf-shield-helm-heading"), HorizontalExpand = true });
+        heading.AddChild(_enabled = new Button { MinHeight = 36, Disabled = true });
+        _enabled.OnPressed += _ =>
+        {
+            if (_state is { Available: true })
+                OnSetEnabled?.Invoke(!_state.Enabled);
+        };
+        header.AddChild(heading);
         header.AddChild(_status = new RichTextLabel());
         header.AddChild(_health = new ProgressBar
         {
-            MinValue = 0f, MaxValue = 1f, MinHeight = 6,
+            MinValue = 0f, MaxValue = 1f, MinHeight = 22,
             BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#1B303C") },
             ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#58D6EC") },
         });
@@ -175,14 +189,17 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         _helmRotation = helmRotation;
         _dial.Available = state is { Available: true };
         _health.Value = Math.Clamp(state?.Health ?? 0f, 0f, 1f);
-        if (_health.ForegroundStyleBoxOverride is StyleBoxFlat fill)
-            fill.BackgroundColor = WFShipShieldEffects.HealthColor(_health.Value);
+        _enabled.Disabled = state is not { Available: true };
+        _enabled.Text = Loc.GetString(state is { Enabled: true } ? "wf-shield-helm-disable" : "wf-shield-helm-enable");
+        UpdateHealthAppearance();
         _settings.Visible = state is { Available: true };
         _reset.Disabled = state is not { Available: true };
         _concentration.Disabled = state is not { Available: true };
         _status.Text = state is { Active: true }
             ? Loc.GetString("wf-shield-helm-health", ("health", MathF.Round(state.Health * 100f)))
-            : Loc.GetString(state is { Available: true } ? "wf-shield-helm-offline" : "wf-shield-helm-unavailable");
+            : state is { Available: true }
+                ? Loc.GetString("wf-shield-helm-offline", ("health", MathF.Round(state.Health * 100f)))
+                : Loc.GetString("wf-shield-helm-unavailable");
         if (changed || !_dirty)
         {
             _updating = true;
@@ -194,6 +211,30 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             _pending = false;
         }
         Refresh();
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        _warningTime = (_warningTime + args.DeltaSeconds) % 1f;
+        UpdateHealthAppearance();
+    }
+
+    /// <summary>Keeps the ring and integrity bar on the same health and warning pulse.</summary>
+    private void UpdateHealthAppearance()
+    {
+        var tint = WFShipShieldEffects.HealthColor(_health.Value);
+        if (_state is { Available: true } && _health.Value < 0.1f)
+        {
+            var pulse = 0.5f + 0.5f * MathF.Cos(_warningTime * MathF.Tau);
+            tint = Color.InterpolateBetween(new Color(0.4f, 0.02f, 0.03f), new Color(1f, 0.05f, 0.08f), pulse);
+        }
+        if (_health.ForegroundStyleBoxOverride is StyleBoxFlat fill)
+            fill.BackgroundColor = tint;
+        if (_health.BackgroundStyleBoxOverride is StyleBoxFlat background)
+            background.BackgroundColor = _state is { Available: true } && _health.Value < 0.1f
+                ? tint.WithAlpha(0.35f) : Color.FromHex("#1B303C");
+        _dial.HealthTint = tint;
     }
 
     private void Edited()
@@ -303,6 +344,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         public float Concentration;
         public float Arc = MathF.PI / 2f;
         public bool Available;
+        public Color HealthTint;
         private bool _dragging;
         private readonly Vector2[] _band = new Vector2[6];
 
@@ -320,7 +362,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             var center = (Vector2) PixelSize / 2f;
             var radius = MathF.Min(PixelSize.X, PixelSize.Y) * 0.40f;
             var grid = Color.FromHex("#29404F");
-            var tint = Available ? Color.FromHex("#58D6EC") : Color.FromHex("#52616B");
+            var tint = Available ? HealthTint : Color.FromHex("#52616B");
             handle.DrawCircle(center, radius * 0.55f, grid, false);
             handle.DrawCircle(center, radius + 14f * UIScale, grid, false);
             handle.DrawLine(center - new Vector2(radius, 0), center + new Vector2(radius, 0), grid);

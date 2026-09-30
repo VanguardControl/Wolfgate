@@ -7,6 +7,10 @@ namespace Content.Shared._WF.ShipShields;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
 public sealed partial class WFShipShieldShuntComponent : Component
 {
+    /// <summary>Whether installed emitters may maintain this ship's field.</summary>
+    [DataField, AutoNetworkedField]
+    public bool Enabled = true;
+
     /// <summary>Direction measured counterclockwise from grid-local east.</summary>
     [DataField, AutoNetworkedField]
     public float DirectionRadians = MathF.PI / 2f;

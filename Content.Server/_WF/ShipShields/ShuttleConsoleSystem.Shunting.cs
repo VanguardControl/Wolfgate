@@ -36,8 +36,9 @@ public sealed partial class ShuttleConsoleSystem
                 ? transform.GridUid : null;
             var current = GetWolfgateShieldShuntState(grid);
             if (_wfShieldHelmStates.TryGetValue(uid, out var previous) &&
-                previous.Available == current.Available && previous.Active == current.Active &&
+                previous.Available == current.Available && previous.Active == current.Active && previous.Enabled == current.Enabled &&
                 MathF.Round(previous.Health * 100f) == MathF.Round(current.Health * 100f) &&
+                (previous.Health < 0.1f) == (current.Health < 0.1f) &&
                 previous.DirectionRadians == current.DirectionRadians &&
                 previous.Concentration == current.Concentration && previous.ArcRadians == current.ArcRadians)
                 continue;

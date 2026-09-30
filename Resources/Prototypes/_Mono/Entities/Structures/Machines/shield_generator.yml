@@ -78,6 +78,15 @@
   - type: AnimationPlayer
   - type: LitOnPowered
   - type: PowerSwitch
+  # WOLFGATE(ShipShields) START: expose shared ship shield controls directly at every generator
+  - type: ActivatableUI
+    key: enum.WFShipShieldUiKey.Key
+  - type: ActivatableUIRequiresAccess
+  - type: UserInterface
+    interfaces:
+      enum.WFShipShieldUiKey.Key:
+        type: WFShipShieldGeneratorBoundUserInterface
+  # WOLFGATE END
   - type: ApcPowerReceiver
     powerLoad: 60000
   - type: Appearance

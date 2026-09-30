@@ -4,6 +4,7 @@ using Content.Shared._Mono.Detection;
 using Content.Shared._WF.ShipShields;
 using Content.Shared.Shuttles.Components;
 using Robust.Client.Graphics;
+using Robust.Shared.Physics.Components;
 
 namespace Content.Client.Shuttles.UI;
 
@@ -21,6 +22,7 @@ public partial class ShuttleNavControl
         while (shields.MoveNext(out var uid, out var visuals, out var xform))
         {
             if (xform.MapID != consoleXform.MapID || visuals.Grid is not { } grid ||
+                !EntManager.TryGetComponent<PhysicsComponent>(uid, out var physics) || !physics.CanCollide ||
                 !EntManager.TryGetComponent<TransformComponent>(grid, out var gridXform) ||
                 gridXform.MapID != consoleXform.MapID || EntManager.HasComponent<FTLComponent>(grid))
                 continue;

@@ -8,6 +8,35 @@ namespace Content.Server._Crescent.ShipShields;
 
 public sealed partial class ShipShieldsSystem
 {
+    /// <summary>Applies a ship-wide manual operating state without resetting recharge or damage.</summary>
+    public bool SetWolfgateShieldEnabled(EntityUid grid, bool enabled)
+    {
+        if (TerminatingOrDeleted(grid) || !HasComp<MapGridComponent>(grid))
+            return false;
+        var allocation = EnsureComp<WFShipShieldShuntComponent>(grid);
+        allocation.Enabled = enabled;
+        DirtyField(grid, allocation, nameof(WFShipShieldShuntComponent.Enabled));
+        if (!enabled && TryComp<ShipShieldedComponent>(grid, out var shielded))
+        {
+            if (shielded.Source is { } source && TryComp<ShipShieldEmitterComponent>(source, out var emitter))
+            {
+                if (RemoveWolfgateEmitterShield(source, emitter, "manual disable"))
+                    PlayWolfgateShieldPowerSound(source, grid, false);
+                emitter.Shield = null;
+                emitter.Shielded = null;
+            }
+            else
+                UnshieldEntity(grid, shielded);
+        }
+        return true;
+    }
+
+    /// <summary>Checks the persistent manual operating state for installed emitters.</summary>
+    private bool IsWolfgateShieldEnabled(EntityUid grid)
+    {
+        return !TryComp<WFShipShieldShuntComponent>(grid, out var allocation) || allocation.Enabled;
+    }
+
     /// <summary>Validates and applies one ship's shield power allocation.</summary>
     public bool SetWolfgateShieldShunt(EntityUid grid, float directionRadians, float concentration, float arcRadians)
     {
@@ -43,10 +72,11 @@ public sealed partial class ShipShieldsSystem
         DirtyField(grid, source, nameof(WFShipShieldShuntComponent.Center));
         var target = EnsureComp<WFShipShieldShuntComponent>(shield);
         target.Center = source.Center;
+        target.Enabled = source.Enabled;
         target.DirectionRadians = source.DirectionRadians;
         target.Concentration = source.Concentration;
         target.ArcRadians = source.ArcRadians;
-        DirtyFields(shield, target, null, nameof(WFShipShieldShuntComponent.Center),
+        DirtyFields(shield, target, null, nameof(WFShipShieldShuntComponent.Center), nameof(WFShipShieldShuntComponent.Enabled),
             nameof(WFShipShieldShuntComponent.DirectionRadians), nameof(WFShipShieldShuntComponent.Concentration),
             nameof(WFShipShieldShuntComponent.ArcRadians));
         return target;

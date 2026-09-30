@@ -27,7 +27,16 @@ public sealed partial class ShipShieldsSystem
             return;
         state.NextPowerSound = now + TimeSpan.FromSeconds(5);
         var sound = powered ? emitter.PowerUpSound : emitter.PowerDownSound;
-        _audio.PlayGlobal(sound, _station.GetInOwningStation(emitterUid), true, sound.Params);
+        var bounds = _wfShieldAudioLookup.GetWorldAABB(grid);
+        var center = _wfShieldMap.GetGridPosition(grid);
+        var extent = Vector2.Max(Vector2.Abs(bounds.BottomLeft - center), Vector2.Abs(bounds.TopRight - center));
+        var radius = MathF.Max(1f, extent.Length());
+        if (_audio.PlayPvs(sound, grid, sound.Params.WithReferenceDistance(radius)
+                .WithMaxDistance(radius + SharedAudioSystem.DefaultSoundRange)) is not { } stream)
+            return;
+        stream.Component.Flags |= AudioFlags.GridAudio | AudioFlags.NoOcclusion;
+        _pvsSys.AddGlobalOverride(stream.Entity);
+        Dirty(stream.Entity, stream.Component);
     }
 
     /// <summary>Plays frequent hull-wide impacts with at most two overlapping echoes.</summary>

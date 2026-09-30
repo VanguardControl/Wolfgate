@@ -3,6 +3,7 @@ using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.ShipShields;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -53,7 +54,8 @@ public sealed class WFShipShieldOverlay : Overlay
         var query = _entities.EntityQueryEnumerator<WFShipShieldVisualsComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var shield, out var xform))
         {
-            if (xform.MapID != args.MapId)
+            if (xform.MapID != args.MapId ||
+                !_entities.TryGetComponent<PhysicsComponent>(uid, out var physics) || !physics.CanCollide)
                 continue;
             if (!_fields.TryGetValue(uid, out var cached) || !WFShipShieldMesh.ContoursEqual(cached.Contours, shield.Contours))
             {

@@ -2,6 +2,41 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.ShipShields;
 
+/// <summary>Identifies the shield generator's shared control panel.</summary>
+[Serializable, NetSerializable]
+public enum WFShipShieldUiKey : byte
+{
+    Key,
+}
+
+/// <summary>Requests a manual field enable or disable from an authorized control panel.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipShieldSetEnabledMessage : BoundUserInterfaceMessage
+{
+    /// <summary>The requested manual operating state.</summary>
+    public bool Enabled;
+
+    /// <summary>Creates one manual operating request.</summary>
+    public WFShipShieldSetEnabledMessage(bool enabled)
+    {
+        Enabled = enabled;
+    }
+}
+
+/// <summary>Publishes the generator's ship-wide shield settings and health.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipShieldGeneratorUiState : BoundUserInterfaceState
+{
+    /// <summary>The same authoritative shield state shown at the helm.</summary>
+    public WFShipShieldShuntState ShieldShunt;
+
+    /// <summary>Creates one generator panel snapshot.</summary>
+    public WFShipShieldGeneratorUiState(WFShipShieldShuntState shieldShunt)
+    {
+        ShieldShunt = shieldShunt;
+    }
+}
+
 /// <summary>A pilot commits a ship-local shield allocation at the helm.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipShieldSetShuntMessage : BoundUserInterfaceMessage
@@ -28,6 +63,8 @@ public sealed class WFShipShieldShuntState
 {
     /// <summary>The ship has an emitter and accepts allocation settings.</summary>
     public bool Available;
+    /// <summary>The ship's installed emitters are manually enabled.</summary>
+    public bool Enabled;
     /// <summary>A shield field currently exists.</summary>
     public bool Active;
     /// <summary>Remaining shield capacity.</summary>
@@ -40,9 +77,10 @@ public sealed class WFShipShieldShuntState
     public float ArcRadians;
 
     /// <summary>Creates an authoritative snapshot for all helms on the ship.</summary>
-    public WFShipShieldShuntState(bool available, bool active, float health, float directionRadians, float concentration, float arcRadians)
+    public WFShipShieldShuntState(bool available, bool active, float health, float directionRadians, float concentration, float arcRadians, bool enabled = true)
     {
         Available = available;
+        Enabled = enabled;
         Active = active;
         Health = health;
         DirectionRadians = directionRadians;

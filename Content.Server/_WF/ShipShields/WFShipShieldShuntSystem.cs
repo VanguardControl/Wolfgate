@@ -9,6 +9,8 @@ using Content.Shared.Access.Systems;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Shuttles.Components;
+using Robust.Shared.Physics.Components;
+using System.Linq;
 
 namespace Content.Server._WF.ShipShields;
 
@@ -19,6 +21,10 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
     [Dependency] private ShuttleConsoleLockSystem _locks = default!;
     [Dependency] private AccessReaderSystem _access = default!;
     [Dependency] private ActionBlockerSystem _blocker = default!;
+    [Dependency] private SharedUserInterfaceSystem _ui = default!;
+
+    private float _generatorUiAccumulator;
+    private readonly Dictionary<EntityUid, WFShipShieldShuntState> _generatorStates = new();
 
     public override void Initialize()
     {
@@ -26,21 +32,104 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
         {
             subs.Event<WFShipShieldSetShuntMessage>(OnSetShunt);
+            subs.Event<WFShipShieldSetEnabledMessage>(OnHelmSetEnabled);
         });
+        Subs.BuiEvents<ShipShieldEmitterComponent>(WFShipShieldUiKey.Key, subs =>
+        {
+            subs.Event<BoundUIOpenedEvent>(OnGeneratorOpened);
+            subs.Event<WFShipShieldSetShuntMessage>(OnGeneratorSetShunt);
+            subs.Event<WFShipShieldSetEnabledMessage>(OnGeneratorSetEnabled);
+        });
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _generatorUiAccumulator += frameTime;
+        if (_generatorUiAccumulator < 0.2f)
+            return;
+        _generatorUiAccumulator = 0f;
+        var open = new HashSet<EntityUid>();
+        var query = EntityQueryEnumerator<ShipShieldEmitterComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            if (!_ui.IsUiOpen(uid, WFShipShieldUiKey.Key))
+                continue;
+            open.Add(uid);
+            UpdateGeneratorUi(uid);
+        }
+        foreach (var uid in _generatorStates.Keys.Where(uid => !open.Contains(uid)).ToArray())
+            _generatorStates.Remove(uid);
+    }
+
+    private void OnGeneratorOpened(Entity<ShipShieldEmitterComponent> ent, ref BoundUIOpenedEvent args)
+    {
+        UpdateGeneratorUi(ent.Owner, true);
+    }
+
+    private void UpdateGeneratorUi(EntityUid uid, bool force = false)
+    {
+        var state = GetState(Transform(uid).Anchored ? Transform(uid).GridUid : null);
+        if (!force && _generatorStates.TryGetValue(uid, out var previous) &&
+            previous.Available == state.Available && previous.Active == state.Active && previous.Enabled == state.Enabled &&
+            MathF.Round(previous.Health * 100f) == MathF.Round(state.Health * 100f) &&
+            (previous.Health < 0.1f) == (state.Health < 0.1f) &&
+            previous.DirectionRadians == state.DirectionRadians && previous.Concentration == state.Concentration &&
+            previous.ArcRadians == state.ArcRadians)
+            return;
+        _generatorStates[uid] = state;
+        _ui.SetUiState(uid, WFShipShieldUiKey.Key, new WFShipShieldGeneratorUiState(state));
+    }
+
+    private void OnGeneratorSetShunt(Entity<ShipShieldEmitterComponent> ent, ref WFShipShieldSetShuntMessage args)
+    {
+        if (TryGetGeneratorGrid(ent.Owner, args.Actor) is { } grid)
+        {
+            _shields.SetWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
+            UpdateGeneratorUi(ent.Owner, true);
+        }
+    }
+
+    private void OnGeneratorSetEnabled(Entity<ShipShieldEmitterComponent> ent, ref WFShipShieldSetEnabledMessage args)
+    {
+        if (TryGetGeneratorGrid(ent.Owner, args.Actor) is { } grid)
+        {
+            _shields.SetWolfgateShieldEnabled(grid, args.Enabled);
+            UpdateGeneratorUi(ent.Owner, true);
+        }
+    }
+
+    private EntityUid? TryGetGeneratorGrid(EntityUid uid, EntityUid actor)
+    {
+        return !TerminatingOrDeleted(uid) && Transform(uid).Anchored &&
+            _blocker.CanInteract(actor, uid) && _access.IsAllowed(actor, uid)
+            ? Transform(uid).GridUid : null;
+    }
+
+    private void OnHelmSetEnabled(Entity<ShuttleConsoleComponent> ent, ref WFShipShieldSetEnabledMessage args)
+    {
+        if (TryGetHelmGrid(ent, args.Actor) is { } grid)
+            _shields.SetWolfgateShieldEnabled(grid, args.Enabled);
     }
 
     private void OnSetShunt(Entity<ShuttleConsoleComponent> ent, ref WFShipShieldSetShuntMessage args)
     {
-        if (!TryComp<PilotComponent>(args.Actor, out var pilot) || pilot.Console != ent.Owner ||
+        if (TryGetHelmGrid(ent, args.Actor) is { } grid)
+            _shields.SetWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
+    }
+
+    private EntityUid? TryGetHelmGrid(Entity<ShuttleConsoleComponent> ent, EntityUid actor)
+    {
+        if (!TryComp<PilotComponent>(actor, out var pilot) || pilot.Console != ent.Owner ||
             !Transform(ent).Anchored || !this.IsPowered(ent, EntityManager) ||
-            !_blocker.CanInteract(args.Actor, ent) || !_access.IsAllowed(args.Actor, ent) || IsLocked(ent))
-            return;
+            !_blocker.CanInteract(actor, ent) || !_access.IsAllowed(actor, ent) || IsLocked(ent))
+            return null;
         var selected = new ConsoleShuttleEvent { Console = ent.Owner };
         RaiseLocalEvent(ent.Owner, ref selected);
         if (selected.Console is not { } console || IsLocked(console) || !Transform(console).Anchored || !this.IsPowered(console, EntityManager) ||
             Transform(console).GridUid is not { } grid || !HasShieldGenerator(grid))
-            return;
-        _shields.SetWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
+            return null;
+        return grid;
     }
 
     private bool IsLocked(EntityUid console)
@@ -51,33 +140,39 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
 
     private bool HasShieldGenerator(EntityUid grid)
     {
-        if (HasComp<ShipShieldedComponent>(grid))
-            return true;
+        return FindShieldGenerator(grid) != null;
+    }
+
+    private EntityUid? FindShieldGenerator(EntityUid grid)
+    {
         var query = EntityQueryEnumerator<ShipShieldEmitterComponent, TransformComponent>();
-        while (query.MoveNext(out _, out _, out var transform))
+        while (query.MoveNext(out var uid, out _, out var transform))
         {
-            if (transform.GridUid == grid)
-                return true;
+            if (transform.GridUid == grid && transform.Anchored && !TerminatingOrDeleted(uid) && !EntityManager.IsQueuedForDeletion(uid))
+                return uid;
         }
-        return false;
+        return null;
     }
 
     /// <summary>Returns allocation and availability for the console's authoritative target grid.</summary>
     public WFShipShieldShuntState GetState(EntityUid? grid)
     {
         var allocation = grid is { } uid && TryComp<WFShipShieldShuntComponent>(uid, out var component) ? component : null;
-        var health = 0f;
+        var installed = grid is { } emitterGrid ? FindShieldGenerator(emitterGrid) : null;
+        var health = installed is { } emitterUid
+            ? ShipShieldsSystem.GetWolfgateShieldHealth(Comp<ShipShieldEmitterComponent>(emitterUid)) : 0f;
         var active = false;
         if (grid is { } activeGrid && TryComp<ShipShieldedComponent>(activeGrid, out var shielded) &&
             !TerminatingOrDeleted(shielded.Shield) && !EntityManager.IsQueuedForDeletion(shielded.Shield) &&
+            TryComp<PhysicsComponent>(shielded.Shield, out var physics) && physics.CanCollide &&
             TryComp<WFShipShieldVisualsComponent>(shielded.Shield, out var visuals))
         {
             health = shielded.Source is { } source && TryComp<ShipShieldEmitterComponent>(source, out var emitter)
                 ? ShipShieldsSystem.GetWolfgateShieldHealth(emitter) : visuals.Health;
             active = true;
         }
-        return new WFShipShieldShuntState(grid is { } availableGrid && HasShieldGenerator(availableGrid), active, health,
+        return new WFShipShieldShuntState(installed != null, active, health,
             allocation?.DirectionRadians ?? MathF.PI / 2f, allocation?.Concentration ?? 0f,
-            allocation?.ArcRadians ?? MathF.PI / 2f);
+            allocation?.ArcRadians ?? MathF.PI / 2f, allocation?.Enabled ?? true);
     }
 }
