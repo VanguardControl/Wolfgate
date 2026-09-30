@@ -208,6 +208,7 @@ public sealed class WFShipShieldOverlay : Overlay
                 var heat = 0f;
                 var wave = 0f;
                 var flash = 0f;
+                var wake = 0f;
                 if (active && impacts != null)
                 {
                     for (var hit = Math.Max(0, impacts.Count - (distant ? 8 : 32)); hit < impacts.Count; hit++)
@@ -220,9 +221,10 @@ public sealed class WFShipShieldOverlay : Overlay
                         heat += WFShipShieldEffects.Heat(distance, age, impact.Strength);
                         wave += WFShipShieldEffects.Wave(distance, age, impact.Strength);
                         flash += WFShipShieldEffects.Flash(distance, age, impact.Strength);
+                        wake += WFShipShieldEffects.WaveWake(distance, age, impact.Strength);
                     }
                 }
-                var appearance = WFShipShieldEffects.Appearance(tint, heat, wave, flash, integrity);
+                var appearance = WFShipShieldEffects.Appearance(tint, heat, wave, flash, integrity, wake);
                 _colors[i] = appearance.SurfaceTint.WithAlpha(appearance.Surface);
                 _hexColors[i] = appearance.Tint.WithAlpha(appearance.Hexes);
             }

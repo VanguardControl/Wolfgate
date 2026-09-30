@@ -54,7 +54,7 @@ public sealed partial class WFShipShieldOverlaySystem : EntitySystem
         _expired.Clear();
         foreach (var (uid, impacts) in _impacts)
         {
-            impacts.RemoveAll(impact => (_timing.CurTime - impact.Time).TotalSeconds > 8);
+            impacts.RemoveAll(impact => (_timing.CurTime - impact.Time).TotalSeconds >= WFShipShieldEffects.HeatLifetime);
             if (Deleted(uid) || impacts.Count == 0)
                 _expired.Add(uid);
         }

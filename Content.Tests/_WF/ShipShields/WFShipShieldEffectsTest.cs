@@ -34,15 +34,34 @@ public sealed class WFShipShieldEffectsTest
     }
 
     [Test]
-    public void ImpactsBrightenTheRimWithoutMaskingItsHealthColour()
+    public void LocalHeatReddensTheSurfaceAndLeavesUntouchedAreasAtHealthColour()
     {
-        var health = WFShipShieldEffects.HealthColor(0.28f, Color.FromHex("#3399FF"));
-        var idle = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f, 0.28f);
-        var hit = WFShipShieldEffects.Appearance(health, 1f, 1f, 1f, 0.28f);
-        Assert.That(hit.SurfaceTint, Is.EqualTo(Color.FromSrgb(health)));
-        Assert.That(hit.SurfaceTint, Is.EqualTo(idle.SurfaceTint));
+        var health = WFShipShieldEffects.HealthColor(1f, Color.FromHex("#3399FF"));
+        var idle = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f);
+        var hit = WFShipShieldEffects.Appearance(health, 1f, 0f, 0f);
+        Assert.That(idle.SurfaceTint, Is.EqualTo(Color.FromSrgb(health)));
+        Assert.That(hit.SurfaceTint.R, Is.GreaterThan(idle.SurfaceTint.R));
+        Assert.That(hit.SurfaceTint.B, Is.LessThan(idle.SurfaceTint.B));
         Assert.That(hit.Surface, Is.GreaterThan(idle.Surface));
-        Assert.That(hit.Tint, Is.Not.EqualTo(hit.SurfaceTint));
+        var lingering = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, 9f, 1f) * 4f, 0f, 0f);
+        Assert.That(lingering.SurfaceTint.R, Is.GreaterThan(idle.SurfaceTint.R));
+        Assert.That(lingering.SurfaceTint.B, Is.LessThan(idle.SurfaceTint.B));
+    }
+
+    [Test]
+    public void WaveHasABrightWhiteCrestAndRedWakeOnBothLayers()
+    {
+        var health = WFShipShieldEffects.HealthColor(1f);
+        var crest = WFShipShieldEffects.Appearance(health, 0f, 1f, 0f);
+        var wake = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f, wake: 1f);
+        foreach (var tint in new[] { crest.Tint, crest.SurfaceTint })
+        {
+            Assert.That(tint.R, Is.GreaterThan(0.75f));
+            Assert.That(tint.G, Is.GreaterThan(0.75f));
+            Assert.That(tint.B, Is.GreaterThan(0.75f));
+        }
+        foreach (var tint in new[] { wake.Tint, wake.SurfaceTint })
+            Assert.That(tint.R, Is.GreaterThan(tint.B * 3f));
     }
 
     [Test]
@@ -52,7 +71,7 @@ public sealed class WFShipShieldEffectsTest
         var idle = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f);
         var hit = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, 0f, 1f),
             WFShipShieldEffects.Wave(0f, 0f, 1f), WFShipShieldEffects.Flash(0f, 0f, 1f));
-        Assert.That(idle.Surface, Is.LessThan(0.3f));
+        Assert.That(idle.Surface, Is.LessThan(0.1f));
         Assert.That(idle.Hexes * WFShipShieldMesh.HexOpacity(0f), Is.InRange(0.1f, 0.15f));
         Assert.That(hit.Surface, Is.GreaterThan(idle.Surface * 5f));
         Assert.That(hit.Hexes, Is.GreaterThan(idle.Hexes * 10f));
@@ -77,14 +96,14 @@ public sealed class WFShipShieldEffectsTest
         Assert.That(WFShipShieldEffects.Flash(8f, 0f, 1f), Is.LessThan(0.01f));
         Assert.That(WFShipShieldEffects.Flash(0f, -1f, 1f), Is.Zero);
         Assert.That(WFShipShieldEffects.Flash(0f, 0.65f, 1f), Is.Zero);
-        Assert.That(WFShipShieldEffects.Wave(0f, 3f, 1f), Is.Zero);
+        Assert.That(WFShipShieldEffects.Wave(0f, WFShipShieldEffects.WaveLifetime, 1f), Is.Zero);
         Assert.That(WFShipShieldEffects.Heat(0f, 3f, 1f), Is.GreaterThan(0f));
-        Assert.That(WFShipShieldEffects.Heat(0f, 7.99f, 1f), Is.LessThan(0.001f));
-        Assert.That(WFShipShieldEffects.Heat(0f, 8f, 1f), Is.Zero);
+        Assert.That(WFShipShieldEffects.Heat(0f, WFShipShieldEffects.HeatLifetime - 0.01f, 1f), Is.LessThan(0.001f));
+        Assert.That(WFShipShieldEffects.Heat(0f, WFShipShieldEffects.HeatLifetime, 1f), Is.Zero);
     }
 
     [Test]
-    public void RepeatedHitsLeaveBrighterRedderHexesThenReturnToHealthColour()
+    public void RepeatedHitsLeaveBrighterRedderSurfaceAndHexesThenCool()
     {
         var health = WFShipShieldEffects.HealthColor(1f);
         var heat = WFShipShieldEffects.Heat(0f, 1f, 1f);
@@ -93,7 +112,9 @@ public sealed class WFShipShieldEffectsTest
         Assert.That(repeated.Tint.R, Is.GreaterThan(single.Tint.R));
         Assert.That(repeated.Tint.B, Is.LessThan(single.Tint.B));
         Assert.That(repeated.Hexes, Is.GreaterThan(single.Hexes));
-        var cooled = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, 8f, 1f), 0f, 0f);
+        Assert.That(repeated.SurfaceTint.R, Is.GreaterThan(single.SurfaceTint.R));
+        Assert.That(repeated.SurfaceTint.B, Is.LessThan(single.SurfaceTint.B));
+        var cooled = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, WFShipShieldEffects.HeatLifetime, 1f), 0f, 0f);
         Assert.That(cooled, Is.EqualTo(WFShipShieldEffects.Appearance(health, 0f, 0f, 0f)));
         var damaged = WFShipShieldEffects.Appearance(WFShipShieldEffects.HealthColor(0.2f), 0f, 0f, 0f);
         Assert.That(damaged.Tint.R, Is.GreaterThan(damaged.Tint.B));
@@ -127,7 +148,7 @@ public sealed class WFShipShieldEffectsTest
             Assert.That(initial + previous, Is.GreaterThan(initial));
             Assert.That(previous, Is.LessThan(initial));
             Assert.That(WFShipShieldEffects.Heat(8f, 0f, 1f), Is.LessThan(initial * 0.02f));
-            Assert.That(WFShipShieldEffects.Heat(0f, 9f, 1f), Is.Zero);
+            Assert.That(WFShipShieldEffects.Heat(0f, 17f, 1f), Is.Zero);
             Assert.That(WFShipShieldEffects.Heat(0f, -1f, 1f), Is.Zero);
         });
     }
@@ -137,9 +158,11 @@ public sealed class WFShipShieldEffectsTest
     {
         Assert.Multiple(() =>
         {
-            Assert.That(WFShipShieldEffects.Wave(8f, 0.5f, 1f), Is.GreaterThan(WFShipShieldEffects.Wave(0f, 0.5f, 1f)));
-            Assert.That(WFShipShieldEffects.Wave(8f, 0f, 1f), Is.LessThan(WFShipShieldEffects.Wave(8f, 0.5f, 1f)));
-            Assert.That(WFShipShieldEffects.Wave(48f, 3f, 1f), Is.Zero);
+            Assert.That(WFShipShieldEffects.Wave(11f, 0.5f, 1f), Is.GreaterThan(WFShipShieldEffects.Wave(0f, 0.5f, 1f)));
+            Assert.That(WFShipShieldEffects.Wave(11f, 0f, 1f), Is.LessThan(WFShipShieldEffects.Wave(11f, 0.5f, 1f)));
+            Assert.That(WFShipShieldEffects.Wave(66f, 3f, 1f), Is.GreaterThan(0.05f), "Late waves must still be visible beyond the old forty-tile reach.");
+            Assert.That(WFShipShieldEffects.Wave(88f, 4f, 1f), Is.Zero);
+            Assert.That(WFShipShieldEffects.WaveWake(88f, 4f, 1f), Is.Zero);
         });
     }
 }
