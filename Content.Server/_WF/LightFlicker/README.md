@@ -1,9 +1,11 @@
 # LightFlicker
 
 Fluorescent flicker, ported from Skyrat's light aesthetics. An explosion damages the ballast of every powered light its
-shockwave reaches; the light then flickers like a failing tube (dark spells broken by stuttering strikes and a quiet
-starter tick) until someone uses a multitool on it. A light that switches on also stutters briefly as the tube strikes.
-Skyrat's turn-on sound was already upstream as `light_tube_on.ogg`.
+shockwave reaches; the light then flickers like a failing tube (Skyrat's pacing: dark for 0.5-5 s, lit for 0.5-1 s,
+with a quiet starter tick) until someone uses a multitool on it. A light that switches on also flashes once before it
+catches.
+Skyrat's turn-on sound was already upstream as `light_tube_on.ogg` but played too quietly to hear, so lights now use a
+normalised copy, `light_on.ogg`, for both the turn-on and the fault tick.
 
 Entry points: `BallastShockwaveSystem` (server, damages ballasts on `ExplosionShockwaveEvent`), `LightBallastSystem`
 (`DamageBallast`, multitool repair, examine text) with `DamagedBallastComponent`, and `LightFlickerSystem` (client,
@@ -37,8 +39,13 @@ draws both flickers locally from the bulb state and the light's last turn-on tim
 
 - [`Resources/Locale/en-US/_WF/LightFlicker/light-ballast.ftl`](../../../Resources/Locale/en-US/_WF/LightFlicker/light-ballast.ftl)
 
+### Audio
+
+- [`Resources/Audio/_WF/LightFlicker/attributions.yml`](../../../Resources/Audio/_WF/LightFlicker/attributions.yml)
+- [`Resources/Audio/_WF/LightFlicker/light_on.ogg`](../../../Resources/Audio/_WF/LightFlicker/light_on.ogg)
+
 ## Non-modular edits
 
-None.
+- [`Content.Shared/Light/Components/PoweredLightComponent.cs`](../../../Content.Shared/Light/Components/PoweredLightComponent.cs): Skyrat's tube start, normalised; upstream's copy is too quiet to hear
 
 <!-- WOLFGATE-GENERATED END -->

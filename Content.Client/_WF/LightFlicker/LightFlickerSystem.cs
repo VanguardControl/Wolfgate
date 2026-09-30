@@ -28,10 +28,7 @@ public sealed class LightFlickerSystem : EntitySystem
     private static readonly TimeSpan StrikeWindow = TimeSpan.FromSeconds(1);
 
     /// <summary>Volume of the starter tick a faulty ballast makes, relative to the light's turn-on sound.</summary>
-    private const float FaultSoundVolume = -12f;
-
-    /// <summary>How far the starter tick of a faulty ballast carries.</summary>
-    private const float FaultSoundRange = 8f;
+    private const float FaultSoundVolume = -8f;
 
     public override void Initialize()
     {
@@ -111,17 +108,17 @@ public sealed class LightFlickerSystem : EntitySystem
         switch (flicker.Phase)
         {
             case LightFlickerPhase.Dark:
-                flicker.Phase = LightFlickerPhase.Strike;
-                flicker.FlashesLeft = _random.Next(1, 4);
-                flicker.NextStep = now;
                 PlayFaultSound(uid);
+                SetLit(uid, flicker, true);
+                flicker.Phase = LightFlickerPhase.Hold;
+                flicker.NextStep = now + Seconds(0.5f, 1f);
                 return;
 
             case LightFlickerPhase.Strike:
                 if (flicker.Lit)
                 {
                     SetLit(uid, flicker, false);
-                    flicker.NextStep = now + Seconds(0.04f, 0.12f);
+                    flicker.NextStep = now + Seconds(0.15f, 0.3f);
                     return;
                 }
 
@@ -129,19 +126,12 @@ public sealed class LightFlickerSystem : EntitySystem
 
                 if (--flicker.FlashesLeft > 0)
                 {
-                    flicker.NextStep = now + Seconds(0.04f, 0.1f);
+                    flicker.NextStep = now + Seconds(0.15f, 0.3f);
                     return;
                 }
 
                 // The last flash catches and stays lit.
-                if (flicker.Mode == LightFlickerMode.Strike)
-                {
-                    flicker.Mode = LightFlickerMode.None;
-                    return;
-                }
-
-                flicker.Phase = LightFlickerPhase.Hold;
-                flicker.NextStep = now + Seconds(0.5f, 1f);
+                flicker.Mode = LightFlickerMode.None;
                 return;
 
             case LightFlickerPhase.Hold:
@@ -156,9 +146,9 @@ public sealed class LightFlickerSystem : EntitySystem
     {
         flicker.Mode = LightFlickerMode.Strike;
         flicker.Phase = LightFlickerPhase.Strike;
-        flicker.FlashesLeft = _random.Next(2, 4);
+        flicker.FlashesLeft = 2;
         SetLit(uid, flicker, false);
-        flicker.NextStep = _timing.RealTime + Seconds(0.05f, 0.15f);
+        flicker.NextStep = _timing.RealTime + Seconds(0.1f, 0.25f);
     }
 
     private void StartFault(EntityUid uid, LightFlickerComponent flicker)
@@ -169,7 +159,7 @@ public sealed class LightFlickerSystem : EntitySystem
         flicker.Mode = LightFlickerMode.Fault;
         flicker.Phase = LightFlickerPhase.Dark;
         SetLit(uid, flicker, false);
-        flicker.NextStep = _timing.RealTime + Seconds(0.2f, 1f);
+        flicker.NextStep = _timing.RealTime + Seconds(0.5f, 1f);
     }
 
     /// <summary>Ends any flicker, leaving the light lit if it should be.</summary>
@@ -211,7 +201,6 @@ public sealed class LightFlickerSystem : EntitySystem
         var sound = light.TurnOnSound;
         var audioParams = sound.Params
             .AddVolume(FaultSoundVolume)
-            .WithMaxDistance(FaultSoundRange)
             .WithPitchScale(_random.NextFloat(0.9f, 1.1f));
 
         _audio.PlayEntity(sound, Filter.Local(), uid, false, audioParams);

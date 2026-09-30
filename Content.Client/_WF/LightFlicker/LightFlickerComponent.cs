@@ -21,7 +21,7 @@ public sealed partial class LightFlickerComponent : Component
     /// <summary>Whether the flicker last left the light lit.</summary>
     public bool Lit;
 
-    /// <summary>Flashes left in the current strike, counting the last one that stays lit.</summary>
+    /// <summary>Flashes left in a turn-on strike, counting the last one that stays lit.</summary>
     public int FlashesLeft;
 }
 
@@ -29,10 +29,10 @@ public enum LightFlickerMode : byte
 {
     None,
 
-    /// <summary>A few stutters as the tube strikes on, then steady.</summary>
+    /// <summary>A flash or two as the tube strikes on, then steady.</summary>
     Strike,
 
-    /// <summary>Damaged ballast: dark spells broken by stuttering strikes, until repaired.</summary>
+    /// <summary>Damaged ballast: long dark spells broken by short lit ones, until repaired.</summary>
     Fault,
 }
 

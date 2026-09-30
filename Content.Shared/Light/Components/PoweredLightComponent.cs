@@ -21,8 +21,11 @@ namespace Content.Shared.Light.Components
         [DataField]
         public SoundSpecifier BurnHandSound = new SoundPathSpecifier("/Audio/Effects/lightburn.ogg");
 
+        // WOLFGATE(LightFlicker) START: Skyrat's tube start, normalised; upstream's copy is too quiet to hear
         [DataField]
-        public SoundSpecifier TurnOnSound = new SoundPathSpecifier("/Audio/Machines/light_tube_on.ogg");
+        public SoundSpecifier TurnOnSound = new SoundPathSpecifier("/Audio/_WF/LightFlicker/light_on.ogg");
+        // public SoundSpecifier TurnOnSound = new SoundPathSpecifier("/Audio/Machines/light_tube_on.ogg");
+        // WOLFGATE END
 
         // Should be using containerfill?
         [DataField]

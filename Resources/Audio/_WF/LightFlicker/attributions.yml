@@ -1,0 +1,4 @@
+- files: ["light_on.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Skyrat-SS13; mixed to mono and normalised for Wolfgate"
+  source: "https://github.com/Skyrat-SS13/Skyrat-tg/blob/f9ed68e4843a0012783330fe8948b7349f7d495b/modular_skyrat/modules/aesthetics/lights/sound/light_on.ogg"

@@ -4,6 +4,7 @@ using Content.Client._WF.LightFlicker;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Shared._WF.Explosion;
 using Content.Shared._WF.LightFlicker;
+using Content.Shared.Light;
 using Content.Shared.Power.EntitySystems;
 using Robust.Client.GameObjects;
 using Robust.Shared.GameObjects;
@@ -75,22 +76,34 @@ public sealed class LightBallastTest : InteractionTest
 
         var sawStrike = await WaitForClient(() => Mode(client) == LightFlickerMode.Strike, 3);
         Assert.That(sawStrike, Is.True, "A light switching on should strike with a stutter.");
-        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.None && Lit(client), 3), Is.True,
+        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.None && Shows(client, true), 3), Is.True,
             "The strike should end with the light steadily lit.");
 
         await Server.WaitPost(() => SEntMan.System<LightBallastSystem>().DamageBallast(light));
 
-        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.Fault && !Lit(client), 3), Is.True,
+        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.Fault && Shows(client, false), 3), Is.True,
             "A damaged ballast should start the fault flicker, dark first.");
-        Assert.That(await WaitForClient(() => Lit(client), 5), Is.True,
+        Assert.That(await WaitForClient(() => Shows(client, true), 5), Is.True,
             "A faulty light should strike back on within a cycle.");
-        Assert.That(await WaitForClient(() => !Lit(client), 8), Is.True,
+        Assert.That(await WaitForClient(() => Shows(client, false), 8), Is.True,
             "A faulty light should go dark again.");
 
         await InteractUsing("Multitool");
 
-        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.None && Lit(client), 3), Is.True,
+        Assert.That(await WaitForClient(() => Mode(client) == LightFlickerMode.None && Shows(client, true), 3), Is.True,
             "A repaired light should stop flickering and stay lit.");
+    }
+
+    /// <summary>Whether both the light and the fixture's glow sprite are in the given state.</summary>
+    private bool Shows(EntityUid client, bool lit)
+    {
+        var sprite = CEntMan.GetComponent<SpriteComponent>(client);
+        var sprites = CEntMan.System<SpriteSystem>();
+
+        Assert.That(sprites.LayerMapTryGet((client, sprite), PoweredLightLayers.Glow, out var glow, false), Is.True,
+            "Test setup: the light should have a glow layer.");
+
+        return Lit(client) == lit && sprite[glow].Visible == lit;
     }
 
     private LightFlickerMode Mode(EntityUid client)
