@@ -76,6 +76,15 @@ NOT_SCANNED = {"AGENTS.md", "CLAUDE.md"}
 # Changed files the pull request check ignores: generated files and the agent guidelines.
 PR_EXEMPT_PREFIXES = ("Resources/Changelog/", "Content.Server.Database/Migrations/")
 PR_EXEMPT_FILES = {"AGENTS.md", "CLAUDE.md"}
+# Files that can't carry a marker (binary, JSON, rich text) and maps, which the mapper rewrites.
+UNMARKABLE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".ogg", ".wav", ".mp3", ".ttf", ".otf",
+                       ".json", ".txt"}
+UNMARKABLE_PREFIXES = ("Resources/Maps/", "Resources/SharedMaps/")
+# Marker syntax by suffix, for the pull request hints; anything else uses //.
+HASH_SUFFIXES = {".yml", ".yaml", ".ftl", ".py", ".toml", ".sh", ".gitignore", ".gitattributes"}
+XML_SUFFIXES = {".xml", ".xaml", ".csproj", ".props", ".targets", ".svg", ".html", ".md"}
+# Placeholder in suggested unmarked entries; load_unmarked rejects it until it is filled in.
+PLACEHOLDER = "TODO"
 
 MODULE_NAME = re.compile(r"[A-Z][A-Za-z0-9]*")
 WORD = re.compile(r"(?<![\w-])WOLFGATE(?![\w-])")
@@ -132,6 +141,7 @@ class Report:
 
     def __init__(self):
         self.sections: dict[str, list[tuple[str, str | None, int | None]]] = {}
+        self.notes: list[str] = []
 
     def add(self, section, text, path=None, line=None):
         self.sections.setdefault(section, []).append((text, path, line))
@@ -155,6 +165,8 @@ class Report:
                 for text, path, line in shown:
                     where = f" file={escape(path, True)}" + (f",line={line}" if line else "") if path else ""
                     print(f"::error{where}::{escape(f'{title}: {text}')}")
+        for note in self.notes:
+            print(f"\n{note}")
 
 
 def escape(value, prop=False):
@@ -211,6 +223,27 @@ def in_wf(path):
 
 def sort_key(path):
     return path.lower(), path
+
+
+def unmarkable(path):
+    return path.startswith(UNMARKABLE_PREFIXES) or Path(path).suffix.lower() in UNMARKABLE_SUFFIXES
+
+
+def marker_example(path):
+    """A line marker in the comment syntax of the file at path."""
+    name = Path(path)
+    suffix = name.suffix.lower() or name.name.lower()
+    if suffix in HASH_SUFFIXES:
+        return "# WOLFGATE(<Module>): reason"
+    if suffix in XML_SUFFIXES:
+        return "<!-- WOLFGATE(<Module>): reason -->"
+    return "// WOLFGATE(<Module>): reason"
+
+
+def unmarked_entry_path(path):
+    """The path an unmarked entry would list: the whole RSI for a file inside one, else the file."""
+    match = re.match(r"(.*?\.rsi/)", path)
+    return match[1] if match else path
 
 
 def read_text(path):
@@ -344,7 +377,9 @@ class Modules:
                 continue
             path, module, reason = entry["path"], entry.get("module"), str(entry.get("reason") or "").strip()
             problem = None
-            if module is not None and module not in self.modules:
+            if PLACEHOLDER in (module, reason):
+                problem = f"module or reason is still {PLACEHOLDER}"
+            elif module is not None and module not in self.modules:
                 problem = f"unknown module {module}"
             elif not reason:
                 problem = "no reason"
@@ -608,6 +643,7 @@ class Modules:
     def pr_check(self, base, report):
         changed = finish(git("diff", "--name-only", "-z", "--no-renames", "--diff-filter=d", f"{base}...HEAD"))
         merge_base = None
+        entries = {}
         for path in changed.decode("utf-8").split("\0"):
             if (not path or in_wf(path) or path in PR_EXEMPT_FILES or path.startswith(PR_EXEMPT_PREFIXES)
                     or path == "RobustToolbox" or self.external_module(path)):
@@ -618,7 +654,18 @@ class Modules:
                 merge_base = finish(git("merge-base", base, "HEAD")).decode("utf-8").strip()
             if self.reverted(base, merge_base, path):
                 continue
-            report.add("Changed files outside _WF without a marker", path, path)
+            if unmarkable(path):
+                entries[unmarked_entry_path(path)] = None
+                hint = "can't hold a marker: needs an unmarked entry, suggested below"
+            else:
+                hint = f"mark it: {marker_example(path)}"
+            report.add("Changed files outside _WF without a marker", f"{path} ({hint})", path)
+        if entries:
+            lines = [f"Suggested unmarked entries for {CONFIG}; set module (or null) and reason in place of "
+                     f"{PLACEHOLDER}:"]
+            for path in entries:
+                lines += [f"  - path: {path}", f"    module: {PLACEHOLDER}", f"    reason: {PLACEHOLDER}"]
+            report.notes.append("\n".join(lines))
 
     @staticmethod
     def reverted(base, merge_base, path):

@@ -84,7 +84,8 @@ runs `--check`, which fails when the generated docs are stale, a marker names an
 don't pair, a standalone marker has no reason, a `_WF` file sits outside a module folder or a module has no
 README or still has the TODO overview; and `--pr-check origin/<base>`,
 which fails when a pull request edits a file outside `_WF` that has no marker and no `unmarked` entry (skipped
-for `[AUTOPORT]` pull requests).
+for `[AUTOPORT]` pull requests). It prints the marker to add, or an `unmarked` entry with `TODO` for the module
+and reason; `--check` fails until both are filled in.
 
 ## Before building
 
