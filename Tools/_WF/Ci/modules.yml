@@ -171,6 +171,21 @@ unmarked:
   - path: Resources/Textures/_Mono/Mobs/Species/Protogen/organs.rsi/
     module: Species
     reason: tongueforked state added (meta.json re-serialised).
+  - path: Resources/Textures/_Floof/Mobs/Customization/skyratears.rsi/
+    module: Species
+    reason: Fae fox alt ear states, ported from HardLight.
+  - path: Resources/Textures/_HL/Mobs/Customization/Generic/neckfur.rsi/
+    module: Species
+    reason: Neckfur marking sprite, ported from HardLight.
+  - path: Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinears.rsi/
+    module: Species
+    reason: Shadekin dual colour ear sprites, ported from HardLight.
+  - path: Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinhair.rsi/
+    module: Species
+    reason: Shadekin short hair sprite, ported from HardLight.
+  - path: Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekintails64x32.rsi/
+    module: Species
+    reason: Shadekin big two-toned tail sprites, ported from HardLight; split copies live in _WF/Genitals.
   - path: Resources/Maps/_Mono/Outpost/caelestinus_central.yml
     module: Traders
     reason: NPC traders, ATMs, deposit consoles and vents placed on the Central Command map.

@@ -294,11 +294,15 @@ clone.
 - [`Resources/Prototypes/_HL/Body/Organs/synth.yml`](../../../Resources/Prototypes/_HL/Body/Organs/synth.yml): HardLight's GalacticCommon is TauCetiBasic here
 - [`Resources/Prototypes/_HL/Damage/containers.yml`](../../../Resources/Prototypes/_HL/Damage/containers.yml): ported from HardLight
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): ported from HardLight
-- [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/generic.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/generic.yml): ported from HardLight
+- [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/generic.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/generic.yml)
+  - ported from HardLight
+  - HardLight put it on Tail, which draws over anatomy facing south
 - [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/human.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/human.yml): ported from HardLight
 - [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/protogen.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/protogen.yml): ported from HardLight
 - [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/reptilian.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/reptilian.yml): ported from HardLight
-- [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/shadekin.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/shadekin.yml): eye markings get their own points (was Head)
+- [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/shadekin.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/shadekin.yml)
+  - eye markings get their own points (was Head)
+  - ported from HardLight
 - [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/synth.yml): eye markings get their own points (was Head)
 - [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/vulpkanin.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/vulpkanin.yml): ported from HardLight
 - [`Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/wings.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Customization/Markings/wings.yml): ported from HardLight
@@ -463,6 +467,11 @@ clone.
 - [`Resources/Prototypes/Traits/speech.yml`](../../../Resources/Prototypes/Traits/speech.yml): Felionoids and ProtoFelines have it as their species accent
 - [`Resources/Prototypes/Voice/speech_emotes.yml`](../../../Resources/Prototypes/Voice/speech_emotes.yml): was the default scream action icon; this is the open-mouthed face
 - [`Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/`](../../../Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/): whitescale_harpy_folded2 state added (meta.json re-serialised).
+- [`Resources/Textures/_Floof/Mobs/Customization/skyratears.rsi/`](../../../Resources/Textures/_Floof/Mobs/Customization/skyratears.rsi/): Fae fox alt ear states, ported from HardLight.
+- [`Resources/Textures/_HL/Mobs/Customization/Generic/neckfur.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Generic/neckfur.rsi/): Neckfur marking sprite, ported from HardLight.
+- [`Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinears.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinears.rsi/): Shadekin dual colour ear sprites, ported from HardLight.
+- [`Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinhair.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinhair.rsi/): Shadekin short hair sprite, ported from HardLight.
+- [`Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekintails64x32.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekintails64x32.rsi/): Shadekin big two-toned tail sprites, ported from HardLight; split copies live in _WF/Genitals.
 - [`Resources/Textures/_Mono/Mobs/Species/Protogen/organs.rsi/`](../../../Resources/Textures/_Mono/Mobs/Species/Protogen/organs.rsi/): tongueforked state added (meta.json re-serialised).
 - [`Resources/Textures/Clothing/Head/Hardsuits/atmospherics.rsi/`](../../../Resources/Textures/Clothing/Head/Hardsuits/atmospherics.rsi/): Avali equipped states added (meta.json re-serialised).
 - [`Resources/Textures/Clothing/Head/Hardsuits/brigmedic.rsi/`](../../../Resources/Textures/Clothing/Head/Hardsuits/brigmedic.rsi/): Avali equipped states added (meta.json re-serialised).
