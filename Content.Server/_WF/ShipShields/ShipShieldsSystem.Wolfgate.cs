@@ -106,7 +106,10 @@ public sealed partial class ShipShieldsSystem
         visuals.Grid = grid;
         visuals.Contours = contours;
         UpdateWolfgateShieldHealth(shield, visuals, Comp<ShipShieldComponent>(shield).Source);
-        Dirty(shield, visuals);
+        DirtyFields(shield, visuals, null,
+            nameof(WFShipShieldVisualsComponent.Contours),
+            nameof(WFShipShieldVisualsComponent.Grid),
+            nameof(WFShipShieldVisualsComponent.Health));
     }
 
     private void UpdateWolfgateShieldHealth(EntityUid uid, WFShipShieldVisualsComponent visuals, EntityUid? source)
@@ -121,7 +124,7 @@ public sealed partial class ShipShieldsSystem
         if (Math.Abs(visuals.Health - health) < 0.001f)
             return;
         visuals.Health = health;
-        Dirty(uid, visuals);
+        DirtyField(uid, visuals, nameof(WFShipShieldVisualsComponent.Health));
     }
 
     /// <summary>Consumes ship weapon projectiles after a real shield contact.</summary>

@@ -7,7 +7,7 @@ namespace Content.Shared._WF.ShipShields;
 public static class WFShipShieldGeometry
 {
     /// <summary>Returns counterclockwise exterior loops without repeated closing vertices.</summary>
-    public static Vector2[][] CreateContours(IEnumerable<Vector2i> tiles, float tileSize = 1f, int padding = 3)
+    public static Vector2[][] CreateContours(IEnumerable<Vector2i> tiles, float tileSize = 1f, int padding = 6)
     {
         var occupied = new HashSet<Vector2i>();
         foreach (var tile in tiles)
@@ -76,23 +76,125 @@ public static class WFShipShieldGeometry
                 }
                 if (area > 0 && simplified.Count >= 3)
                 {
-                    var beveled = new List<Vector2>();
-                    for (var i = 0; i < simplified.Count; i++)
-                    {
-                        var vertex = simplified[i];
-                        var incoming = simplified[(i + simplified.Count - 1) % simplified.Count] - vertex;
-                        var outgoing = simplified[(i + 1) % simplified.Count] - vertex;
-                        var inset = Math.Min(tileSize * 0.35f, Math.Min(incoming.Length(), outgoing.Length()) * 0.25f);
-                        beveled.Add(vertex + Vector2.Normalize(incoming) * inset);
-                        beveled.Add(vertex + Vector2.Normalize(outgoing) * inset);
-                    }
-                    contours.Add(beveled.ToArray());
+                    var outline = padding >= 2 ? SimplifyLoop(simplified, tileSize * 1.25f) : simplified;
+                    var rounded = RoundCorners(outline, tileSize * Math.Min(3f, padding * 0.5f));
+                    if (HasCrossings(rounded, tileSize * 8f))
+                        rounded = simplified.ToArray();
+                    contours.Add(rounded);
                 }
             }
         }
         return contours.ToArray();
     }
 
+    /// <summary>Removes tile stair steps within a fixed distance of the traced hull.</summary>
+    private static List<Vector2> SimplifyLoop(List<Vector2> points, float tolerance)
+    {
+        var opposite = 1;
+        for (var i = 2; i < points.Count; i++)
+        {
+            if (Vector2.DistanceSquared(points[0], points[i]) > Vector2.DistanceSquared(points[0], points[opposite]))
+                opposite = i;
+        }
+        var closed = new List<Vector2>(points);
+        closed.Add(points[0]);
+        var keep = new bool[closed.Count];
+        keep[0] = keep[opposite] = keep[^1] = true;
+        var pending = new Stack<(int Start, int End)>();
+        pending.Push((0, opposite));
+        pending.Push((opposite, points.Count));
+        while (pending.TryPop(out var range))
+        {
+            var a = closed[range.Start];
+            var edge = closed[range.End] - a;
+            var longest = tolerance * tolerance;
+            var split = -1;
+            for (var i = range.Start + 1; i < range.End; i++)
+            {
+                var projected = a + edge * Math.Clamp(Vector2.Dot(closed[i] - a, edge) / edge.LengthSquared(), 0f, 1f);
+                var distance = Vector2.DistanceSquared(closed[i], projected);
+                if (distance <= longest)
+                    continue;
+                longest = distance;
+                split = i;
+            }
+            if (split < 0)
+                continue;
+            keep[split] = true;
+            pending.Push((range.Start, split));
+            pending.Push((split, range.End));
+        }
+        var result = new List<Vector2>();
+        for (var i = 0; i < points.Count; i++)
+        {
+            if (keep[i])
+                result.Add(points[i]);
+        }
+        return result.Count >= 3 ? result : points;
+    }
+
+    /// <summary>Rounds corners with short quadratic arcs while keeping straight hull runs compact.</summary>
+    private static Vector2[] RoundCorners(List<Vector2> points, float maximumInset)
+    {
+        if (maximumInset <= 0f)
+            return points.ToArray();
+        var rounded = new List<Vector2>();
+        for (var i = 0; i < points.Count; i++)
+        {
+            var vertex = points[i];
+            var incoming = points[(i + points.Count - 1) % points.Count] - vertex;
+            var outgoing = points[(i + 1) % points.Count] - vertex;
+            var inset = Math.Min(maximumInset, Math.Min(incoming.Length(), outgoing.Length()) * 0.4f);
+            var start = vertex + Vector2.Normalize(incoming) * inset;
+            var end = vertex + Vector2.Normalize(outgoing) * inset;
+            for (var step = 0; step <= 6; step++)
+            {
+                var t = step / 6f;
+                rounded.Add((1f - t) * (1f - t) * start + 2f * (1f - t) * t * vertex + t * t * end);
+            }
+        }
+        return rounded.ToArray();
+    }
+    /// <summary>Rejects smoothing that would cross a narrow concavity.</summary>
+    private static bool HasCrossings(Vector2[] points, float bucketSize)
+    {
+        var buckets = new Dictionary<Vector2i, List<int>>();
+        var checkedEdges = new HashSet<int>();
+        for (var i = 0; i < points.Length; i++)
+        {
+            var a = points[i];
+            var b = points[(i + 1) % points.Length];
+            var min = Vector2.Min(a, b) / bucketSize;
+            var max = Vector2.Max(a, b) / bucketSize;
+            checkedEdges.Clear();
+            for (var x = (int)MathF.Floor(min.X); x <= (int)MathF.Floor(max.X); x++)
+            for (var y = (int)MathF.Floor(min.Y); y <= (int)MathF.Floor(max.Y); y++)
+            {
+                var key = new Vector2i(x, y);
+                if (!buckets.TryGetValue(key, out var edges))
+                    buckets[key] = edges = new List<int>();
+                foreach (var other in edges)
+                {
+                    if (other == i - 1 || i == points.Length - 1 && other == 0 || !checkedEdges.Add(other))
+                        continue;
+                    var c = points[other];
+                    var d = points[(other + 1) % points.Length];
+                    var ab = b - a;
+                    var cd = d - c;
+                    var denominator = ab.X * cd.Y - ab.Y * cd.X;
+                    if (Math.Abs(denominator) < 0.00001f)
+                        continue;
+                    var offset = c - a;
+                    var t = (offset.X * cd.Y - offset.Y * cd.X) / denominator;
+                    var u = (offset.X * ab.Y - offset.Y * ab.X) / denominator;
+                    if (t >= 0f && t <= 1f && u >= 0f && u <= 1f)
+                        return true;
+                }
+                edges.Add(i);
+            }
+        }
+        return false;
+    }
     /// <summary>Projects an impact onto the closest shield edge.</summary>
     public static Vector2 ClosestPoint(Vector2[][] contours, Vector2 point)
     {

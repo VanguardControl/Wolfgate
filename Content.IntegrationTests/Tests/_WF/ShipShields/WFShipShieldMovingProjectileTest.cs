@@ -47,7 +47,7 @@ public sealed class WFShipShieldMovingProjectileTest
             emitterUid = entities.SpawnEntity(null, map.GridCoords);
             entities.EnsureComponent<ShipShieldEmitterComponent>(emitterUid);
             entities.GetComponent<ShipShieldComponent>(shield).Source = emitterUid;
-            var localStart = new EntityCoordinates(map.Grid.Owner, outbound ? 0.5f : -5f, 0.5f);
+            var localStart = new EntityCoordinates(map.Grid.Owner, outbound ? 0.5f : -8f, 0.5f);
             var mapStart = transform.ToMapCoordinates(localStart);
             start = mapStart.Position;
             var mapAhead = transform.ToMapCoordinates(localStart.Offset(new Vector2(1f, 0f)));

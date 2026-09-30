@@ -5,7 +5,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._WF.ShipShields;
 
 /// <summary>Replicates the hull outline and remaining shield strength.</summary>
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
 public sealed partial class WFShipShieldVisualsComponent : Component
 {
     /// <summary>Counterclockwise outlines in shield-local coordinates.</summary>

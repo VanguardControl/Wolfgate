@@ -9,6 +9,8 @@ using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.ShipShields;
 using Robust.Shared.Console;
 using Robust.Shared.GameObjects;
+using Robust.Shared.GameStates;
+using Robust.Shared.Timing;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
@@ -64,6 +66,17 @@ public sealed class WFShipShieldFixturesTest
             Assert.That(transform.GetWorldRotation(shield).Theta, Is.EqualTo(transform.GetWorldRotation(map.Grid.Owner).Theta).Within(0.001f));
             Assert.That(visuals.Contours.SelectMany(c => c).Max(v => v.X), Is.GreaterThan(initialRight + 10f));
             AssertFixtures();
+            var fullState = new ComponentGetState(null, GameTick.Zero);
+            entities.EventBus.RaiseComponentEvent(shield, visuals, ref fullState);
+            Assert.That(fullState.State, Is.Not.Null);
+            Assert.That(fullState.State, Is.Not.InstanceOf<IComponentDeltaState>());
+            visuals.Health = 0.5f;
+            entities.DirtyField(shield, visuals, nameof(WFShipShieldVisualsComponent.Health));
+            var healthUpdate = new ComponentGetState(null, server.Timing.CurTick);
+            entities.EventBus.RaiseComponentEvent(shield, visuals, ref healthUpdate);
+            Assert.That(healthUpdate.State, Is.InstanceOf<IComponentDeltaState>(), "Health updates should send a delta without resending the hull.");
+            Assert.That(healthUpdate.State!.GetType().GetField(nameof(WFShipShieldVisualsComponent.Contours)), Is.Null,
+                "The health delta must not serialize contour arrays.");
             console.ExecuteCommand($"unshieldentity {map.Grid.Owner}");
         });
         await pair.RunTicksSync(1);

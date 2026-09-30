@@ -25,10 +25,10 @@ public sealed class WFShipShieldGeometryTest
         var contour = WFShipShieldGeometry.CreateContours(new[] { new Vector2i(-2, 5) }, 2f)[0];
         Assert.Multiple(() =>
         {
-            Assert.That(contour.Min(v => v.X), Is.EqualTo(-10f));
-            Assert.That(contour.Max(v => v.X), Is.EqualTo(4f));
-            Assert.That(contour.Min(v => v.Y), Is.EqualTo(4f));
-            Assert.That(contour.Max(v => v.Y), Is.EqualTo(18f));
+            Assert.That(contour.Min(v => v.X), Is.InRange(-16f, -12f));
+            Assert.That(contour.Max(v => v.X), Is.InRange(6f, 10f));
+            Assert.That(contour.Min(v => v.Y), Is.InRange(-2f, 2f));
+            Assert.That(contour.Max(v => v.Y), Is.InRange(20f, 24f));
         });
         AssertValidContour(contour);
     }
@@ -110,10 +110,42 @@ public sealed class WFShipShieldGeometryTest
             Assert.That(WFShipShieldGeometry.ClosestPoint(Array.Empty<Vector2[]>(), new Vector2(5f, 5f)), Is.EqualTo(new Vector2(5f, 5f)));
         });
     }
+    [Test]
+    public void RoundedHullKeepsClearanceAndAvoidsSharpRasterCorners()
+    {
+        var tiles = new List<Vector2i>();
+        for (var x = 0; x < 20; x++)
+        for (var y = 0; y < 8; y++)
+            tiles.Add(new Vector2i(x, y));
+        var contour = WFShipShieldGeometry.CreateContours(tiles)[0];
+        AssertValidContour(contour);
+        for (var i = 0; i < contour.Length; i++)
+        {
+            var a = contour[i];
+            var b = contour[(i + 1) % contour.Length];
+            foreach (var point in new[] { a, (a + b) * 0.5f })
+            {
+                var distance = tiles.Min(tile => HullDistance(point, tile));
+                Assert.That(distance, Is.GreaterThanOrEqualTo(4f), $"Rounded shield encroaches on hull at {point}.");
+                Assert.That(distance, Is.LessThanOrEqualTo(7f), $"Rounded shield loses hull shape at {point}.");
+            }
+            var incoming = Vector2.Normalize(a - contour[(i + contour.Length - 1) % contour.Length]);
+            var outgoing = Vector2.Normalize(b - a);
+            Assert.That(Vector2.Dot(incoming, outgoing), Is.GreaterThan(0.4f), "Rounded corners should turn less than 66 degrees per segment.");
+        }
+    }
+
+    private static float HullDistance(Vector2 point, Vector2i tile)
+    {
+        var x = Math.Max(0f, Math.Max(tile.X - point.X, point.X - tile.X - 1f));
+        var y = Math.Max(0f, Math.Max(tile.Y - point.Y, point.Y - tile.Y - 1f));
+        return MathF.Sqrt(x * x + y * y);
+    }
     private static void AssertValidContour(Vector2[] contour)
     {
         Assert.That(contour.Length, Is.GreaterThanOrEqualTo(3));
         Assert.That(contour[0], Is.Not.EqualTo(contour[^1]), "Closing vertex must not be duplicated.");
+        Assert.That(contour.Distinct().Count(), Is.EqualTo(contour.Length), "A contour must not touch itself.");
         var area = 0f;
         for (var i = 0; i < contour.Length; i++)
         {
@@ -123,7 +155,24 @@ public sealed class WFShipShieldGeometryTest
             area += a.X * b.Y - b.X * a.Y;
         }
         Assert.That(area, Is.GreaterThan(0f), "Outer contours must face incoming projectiles.");
+        for (var i = 0; i < contour.Length; i++)
+        for (var j = i + 2; j < contour.Length; j++)
+        {
+            if (i == 0 && j == contour.Length - 1)
+                continue;
+            var a = contour[i];
+            var b = contour[(i + 1) % contour.Length];
+            var c = contour[j];
+            var d = contour[(j + 1) % contour.Length];
+            var ab = b - a;
+            var cd = d - c;
+            var crosses = Cross(ab, c - a) * Cross(ab, d - a) < -0.000001f &&
+                Cross(cd, a - c) * Cross(cd, b - c) < -0.000001f;
+            Assert.That(crosses, Is.False, $"Contour edges {i} and {j} must not cross.");
+        }
     }
+
+    private static float Cross(Vector2 a, Vector2 b) => a.X * b.Y - a.Y * b.X;
 
     private static bool Contains(Vector2[] contour, Vector2 point)
     {
