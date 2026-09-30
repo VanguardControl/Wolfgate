@@ -7,6 +7,7 @@ namespace Content.Client.Shuttles.UI;
 public sealed partial class ShuttleConsoleWindow
 {
     private WFShipShieldShuntScreen _shieldScreen = default!;
+    private Angle? _wfShieldHelmRotation;
     private Button _shieldModeButton = default!;
     /// <summary>The pilot changes shield deployment.</summary>
     public event Action<bool>? ShieldEnabledRequested;
@@ -30,8 +31,15 @@ public sealed partial class ShuttleConsoleWindow
         Contents.AddChild(_shieldScreen);
     }
 
+    /// <summary>Refreshes shield controls while retaining the latest navigation rotation.</summary>
+    public void UpdateShieldShuntSnapshot(WFShipShieldShuntState state)
+    {
+        WfShieldUpdateState(state, _wfShieldHelmRotation);
+    }
+
     private void WfShieldUpdateState(WFShipShieldShuntState? state, Angle? helmRotation)
     {
+        _wfShieldHelmRotation = helmRotation;
         _shieldModeButton.Visible = state is { Available: true };
         if (!_shieldModeButton.Visible && _mode == ShuttleConsoleMode.Shields)
         {

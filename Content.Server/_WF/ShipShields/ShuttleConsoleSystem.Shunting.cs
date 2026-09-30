@@ -4,7 +4,6 @@ using Content.Shared._WF.ShipShields;
 using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Components;
 using Content.Shared.Shuttles.Components;
-using Content.Shared.Shuttles.BUIStates;
 
 namespace Content.Server.Shuttles.Systems;
 
@@ -23,7 +22,6 @@ public sealed partial class ShuttleConsoleSystem
             return;
         _wfShieldHelmAccumulator = 0f;
         var open = new HashSet<EntityUid>();
-        DockingInterfaceState? docks = null;
         var query = EntityQueryEnumerator<ShuttleConsoleComponent>();
         while (query.MoveNext(out var uid, out _))
         {
@@ -46,7 +44,7 @@ public sealed partial class ShuttleConsoleSystem
                 previous.TargetArcRadians == current.TargetArcRadians)
                 continue;
             _wfShieldHelmStates[uid] = current;
-            UpdateState(uid, ref docks);
+            _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFShipShieldHelmUpdateMessage(current));
         }
         foreach (var uid in _wfShieldHelmStates.Keys.Where(uid => !open.Contains(uid)).ToArray())
             _wfShieldHelmStates.Remove(uid);

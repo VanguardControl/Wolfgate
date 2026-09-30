@@ -3,5 +3,6 @@
   source: "Tools/_WF/ShipShields/synthesize_impacts.py"
 
 - files: ["shield_on.ogg", "shield_off.ogg"]
-  copyright: "User-provided shield generator startup and shutdown recordings; original authorship unspecified."
-  source: "User-supplied shield_on.wav and shield_off.wav"
+  license: "CC-BY-SA-3.0"
+  copyright: "Original shield generator startup and shutdown recordings by Gandalf (Gandalf2k15), supplied by the author for Wolfgate."
+  source: "https://github.com/Gandalf2k15"

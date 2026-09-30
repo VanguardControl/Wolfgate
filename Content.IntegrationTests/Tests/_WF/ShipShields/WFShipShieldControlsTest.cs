@@ -130,7 +130,16 @@ public sealed class WFShipShieldControlsTest
             moving.TargetDirectionRadians = allocations[0].Direction;
             moving.TargetConcentration = 0.75f;
             moving.TargetArcRadians = 2f * MathF.PI / 3f;
-            Update(moving);
+            var nav = Tree(helm).OfType<ShuttleNavControl>().First();
+            var navRotation = Angle.FromDegrees(61f);
+            typeof(ShuttleNavControl).GetField("_rotation", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .SetValue(nav, navRotation);
+            helm.UpdateShieldShuntSnapshot(new WFShipShieldHelmUpdateMessage(moving).ShieldShunt);
+            Assert.That(Field<float>(screen, "_helmRotation"), Is.EqualTo((float)rotation.Theta).Within(0.0001f),
+                "Shield-only snapshots must preserve the current helm bearing.");
+            Assert.That(typeof(ShuttleNavControl).GetField("_rotation", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(nav),
+                Is.EqualTo(navRotation), "A shield snapshot must not reset navigation state.");
+            Assert.That(Field<WFShipShieldShuntState>(screen, "_state"), Is.SameAs(moving));
             Tick(screen, 0.05f);
             var liveDial = Field<Control>(screen, "_dial");
             Assert.That(Field<float>(liveDial, "Concentration"), Is.InRange(0.201f, 0.399f),
@@ -144,7 +153,7 @@ public sealed class WFShipShieldControlsTest
             Assert.That(allocations, Has.Count.EqualTo(2));
             Assert.That(allocations[1].Amount, Is.EqualTo(0.5f));
             Assert.That(allocations[1].Direction, Is.EqualTo(WFShipShieldHelmAngles.GridDirection(90f, (float) rotation.Theta)).Within(0.0001f));
-            Update(State(available: false));
+            helm.UpdateShieldShuntSnapshot(State(available: false));
             Assert.That(tab.Visible, Is.False);
             Assert.That(screen.Visible, Is.False, "Removing the generator must leave Shields mode.");
             Assert.That(Field<ShuttleConsoleWindow.ShuttleConsoleMode>(helm, "_mode"), Is.EqualTo(ShuttleConsoleWindow.ShuttleConsoleMode.Nav));
@@ -164,7 +173,7 @@ public sealed class WFShipShieldControlsTest
 
     private static void Press(BaseButton button)
     {
-        var handler = (Action<BaseButton.ButtonEventArgs>?)typeof(BaseButton)
+        var handler = (Action<BaseButton.ButtonEventArgs>)typeof(BaseButton)
             .GetField("OnPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
         handler?.Invoke(new BaseButton.ButtonEventArgs(button, null!));
     }

@@ -51,6 +51,20 @@ public sealed class WFShipShieldGeneratorUiState : BoundUserInterfaceState
     }
 }
 
+/// <summary>Updates shield controls without rebuilding the helm's navigation snapshot.</summary>
+[Serializable, NetSerializable]
+public sealed class WFShipShieldHelmUpdateMessage : BoundUserInterfaceMessage
+{
+    /// <summary>The current shield allocation and integrity.</summary>
+    public WFShipShieldShuntState ShieldShunt;
+
+    /// <summary>Creates one shield-only helm update.</summary>
+    public WFShipShieldHelmUpdateMessage(WFShipShieldShuntState shieldShunt)
+    {
+        ShieldShunt = shieldShunt;
+    }
+}
+
 /// <summary>Requests a ship-local target allocation from live controls.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipShieldSetShuntMessage : BoundUserInterfaceMessage

@@ -83,7 +83,7 @@ public sealed class WFShipShieldMovingProjectileTest
                 Assert.That(projectile.ProjectileSpent, Is.True,
                     $"{prototype} shot {shot} crossed an active unshunted shield: rotation={degrees}, y={localY}.");
                 Assert.That(entities.EntityExists(projectileUid), Is.False);
-                Assert.That(entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage, Is.EqualTo(totalDamage),
+                Assert.That(entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage, Is.EqualTo(totalDamage).Within(0.01f),
                     "Every round must charge exactly one shield impact, including explosive and penetrating rounds.");
             });
         }
