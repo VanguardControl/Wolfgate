@@ -8,6 +8,47 @@ namespace Content.Tests._WF.ShipShields;
 public sealed class WFShipShieldEffectsTest
 {
     [Test]
+    public void ImpactRevealsHexesMoreStronglyThanTheIdleSurface()
+    {
+        var health = WFShipShieldEffects.HealthColor(1f);
+        var idle = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f);
+        var hit = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, 0f, 1f),
+            WFShipShieldEffects.Wave(0f, 0f, 1f), WFShipShieldEffects.Flash(0f, 0f, 1f));
+        Assert.That(idle.Surface, Is.LessThan(0.3f));
+        Assert.That(idle.Hexes, Is.LessThan(idle.Surface / 3f));
+        Assert.That(hit.Surface, Is.GreaterThan(idle.Surface * 5f));
+        Assert.That(hit.Hexes, Is.GreaterThan(idle.Hexes * 20f));
+    }
+
+    [Test]
+    public void FlashStaysLocalAndHeatOutlastsTheRipple()
+    {
+        Assert.That(WFShipShieldEffects.Flash(8f, 0f, 1f), Is.LessThan(0.01f));
+        Assert.That(WFShipShieldEffects.Flash(0f, -1f, 1f), Is.Zero);
+        Assert.That(WFShipShieldEffects.Flash(0f, 0.65f, 1f), Is.Zero);
+        Assert.That(WFShipShieldEffects.Wave(0f, 3f, 1f), Is.Zero);
+        Assert.That(WFShipShieldEffects.Heat(0f, 3f, 1f), Is.GreaterThan(0f));
+        Assert.That(WFShipShieldEffects.Heat(0f, 7.99f, 1f), Is.LessThan(0.001f));
+        Assert.That(WFShipShieldEffects.Heat(0f, 8f, 1f), Is.Zero);
+    }
+
+    [Test]
+    public void RepeatedHitsLeaveBrighterRedderHexesThenReturnToHealthColour()
+    {
+        var health = WFShipShieldEffects.HealthColor(1f);
+        var heat = WFShipShieldEffects.Heat(0f, 1f, 1f);
+        var single = WFShipShieldEffects.Appearance(health, heat, 0f, 0f);
+        var repeated = WFShipShieldEffects.Appearance(health, heat * 3f, 0f, 0f);
+        Assert.That(repeated.Tint.R, Is.GreaterThan(single.Tint.R));
+        Assert.That(repeated.Tint.B, Is.LessThan(single.Tint.B));
+        Assert.That(repeated.Hexes, Is.GreaterThan(single.Hexes));
+        var cooled = WFShipShieldEffects.Appearance(health, WFShipShieldEffects.Heat(0f, 8f, 1f), 0f, 0f);
+        Assert.That(cooled, Is.EqualTo(WFShipShieldEffects.Appearance(health, 0f, 0f, 0f)));
+        var damaged = WFShipShieldEffects.Appearance(WFShipShieldEffects.HealthColor(0.2f), 0f, 0f, 0f);
+        Assert.That(damaged.Tint.R, Is.GreaterThan(damaged.Tint.B));
+    }
+
+    [Test]
     public void ShieldHealthChangesFromBlueThroughAmberToRed()
     {
         var healthy = WFShipShieldEffects.HealthColor(1f);

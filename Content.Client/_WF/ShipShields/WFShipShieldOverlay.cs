@@ -170,6 +170,7 @@ public sealed class WFShipShieldOverlay : Overlay
     {
         private readonly WFShipShieldMesh _mesh;
         private readonly Color[] _colors;
+        private readonly Color[] _hexColors;
         public readonly DrawVertexUV2DColor[] Triangles;
         public readonly DrawVertexUV2DColor[] HexLines;
         private Color? _lastTint;
@@ -180,6 +181,7 @@ public sealed class WFShipShieldOverlay : Overlay
         {
             _mesh = new WFShipShieldMesh(contours, distant);
             _colors = new Color[_mesh.Samples.Count];
+            _hexColors = new Color[_mesh.Samples.Count];
             Triangles = new DrawVertexUV2DColor[_mesh.Triangles.Count];
             HexLines = new DrawVertexUV2DColor[_mesh.HexLines.Count];
         }
@@ -198,6 +200,7 @@ public sealed class WFShipShieldOverlay : Overlay
             {
                 var heat = 0f;
                 var wave = 0f;
+                var flash = 0f;
                 if (active && impacts != null)
                 {
                     for (var hit = Math.Max(0, impacts.Count - (distant ? 8 : 32)); hit < impacts.Count; hit++)
@@ -207,22 +210,23 @@ public sealed class WFShipShieldOverlay : Overlay
                         var distance = Vector2.Distance(_mesh.Samples[i], impact.Position);
                         heat += WFShipShieldEffects.Heat(distance, age, impact.Strength);
                         wave += WFShipShieldEffects.Wave(distance, age, impact.Strength);
+                        flash += WFShipShieldEffects.Flash(distance, age, impact.Strength);
                     }
                 }
-                var color = Color.InterpolateBetween(tint, new Color(1f, 0.025f, 0.06f), Math.Clamp(heat, 0f, 1f));
-                color = Color.InterpolateBetween(color, new Color(0.7f, 0.92f, 1f), Math.Clamp(wave * 0.65f, 0f, 0.8f));
-                _colors[i] = Color.FromSrgb(color).WithAlpha(1f + wave * 2.5f + heat * 0.6f);
+                var appearance = WFShipShieldEffects.Appearance(tint, heat, wave, flash);
+                _colors[i] = appearance.Tint.WithAlpha(appearance.Surface);
+                _hexColors[i] = appearance.Tint.WithAlpha(appearance.Hexes);
             }
-            Fill(_mesh.Triangles, Triangles);
-            Fill(_mesh.HexLines, HexLines);
+            Fill(_mesh.Triangles, Triangles, _colors);
+            Fill(_mesh.HexLines, HexLines, _hexColors);
         }
 
-        private void Fill(List<WFShipShieldMesh.Vertex> source, DrawVertexUV2DColor[] destination)
+        private static void Fill(List<WFShipShieldMesh.Vertex> source, DrawVertexUV2DColor[] destination, Color[] colors)
         {
             for (var i = 0; i < source.Count; i++)
             {
                 var vertex = source[i];
-                var color = _colors[vertex.Sample];
+                var color = colors[vertex.Sample];
                 destination[i] = new DrawVertexUV2DColor(vertex.Position, vertex.Position,
                     color.WithAlpha(Math.Clamp(color.A * vertex.Alpha, 0f, 0.85f)));
             }
