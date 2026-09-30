@@ -652,3 +652,27 @@ Entries:
   id: 100060
   time: '2026-09-29T20:06:03.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/126
+- author: Erol509
+  changes:
+    - type: Add
+      message: >-
+        Added 13 Synthetic Lizard snout marking options, including long, thick,
+        layered, tertiary, and barless variants.
+  id: 100061
+  time: '2026-09-29T21:58:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/120
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now select mismatched species parts to make anything you want
+        with species. It's under appearance.
+    - type: Add
+      message: >-
+        Eye markings have their own category, so you can wear a left and a right
+        eye (Shadekin, Moth and more) alongside your face markings.
+    - type: Add
+      message: Colour pickers have hue, saturation and value fields.
+  id: 100062
+  time: '2026-09-30T01:02:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/127

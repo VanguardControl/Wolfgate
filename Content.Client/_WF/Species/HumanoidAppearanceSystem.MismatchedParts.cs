@@ -1,5 +1,5 @@
 using System.Linq;
-using Content.Shared._WF.MismatchedParts;
+using Content.Shared._WF.Species;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
@@ -35,9 +35,9 @@ public sealed partial class HumanoidAppearanceSystem
         markings.AddBack(category, new Marking(marking) { Forced = true });
     }
 
-    /// <summary>Mismatched hair and facial hair draw even where the species has no layer for them.</summary>
-    private static bool DrawsMismatched(HumanoidAppearanceComponent humanoid, MarkingPrototype marking)
+    /// <summary>With Mismatched parts on, markings draw even where the species has no layer for them, or one that takes none.</summary>
+    private static bool DrawsMismatched(HumanoidAppearanceComponent humanoid)
     {
-        return humanoid.MismatchedParts && MismatchedPartsRules.Opens(marking.MarkingCategory);
+        return humanoid.MismatchedParts;
     }
 }

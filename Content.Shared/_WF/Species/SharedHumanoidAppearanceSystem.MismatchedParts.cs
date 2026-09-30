@@ -1,5 +1,5 @@
 using System.Linq;
-using Content.Shared._WF.MismatchedParts;
+using Content.Shared._WF.Species;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
 
@@ -8,8 +8,8 @@ namespace Content.Shared.Humanoid;
 public abstract partial class SharedHumanoidAppearanceSystem
 {
     /// <summary>
-    /// Copies the profile's Mismatched parts option onto the body and adds the hair and facial hair it unlocks. Runs after
-    /// the species filter, and the markings are forced past the species' point budget.
+    /// Copies the profile's Mismatched parts option onto the body and adds the hair and facial hair it unlocks. The
+    /// normal hair path checks the species, so these are added after it, forced past the species' point budget.
     /// </summary>
     private void AddMismatchedHair(
         EntityUid uid,
