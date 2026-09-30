@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._WF.ShipShields;
 using System.Linq;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared._WF.ShipShields;
@@ -28,6 +29,7 @@ public sealed partial class ShipShieldsSystem
     {
         SubscribeLocalEvent<TileChangedEvent>(OnWolfgateShieldTileChanged);
         SubscribeLocalEvent<ShipShieldComponent, ProjectileReflectAttemptEvent>(OnWolfgateShieldContact);
+        SubscribeLocalEvent<ShipShieldComponent, WFShipShieldProjectileRayHitEvent>(OnWolfgateShieldRayHit);
         SubscribeLocalEvent<ShipShieldedComponent, MoveEvent>(OnWolfgateShieldGridMove);
         SubscribeLocalEvent<ShipShieldedComponent, EntityTerminatingEvent>(OnWolfgateShieldGridTerminating);
     }
@@ -156,6 +158,18 @@ public sealed partial class ShipShieldsSystem
         var damageFraction = emitter.Damage / Math.Max(emitter.DamageLimit, 1f);
         var loadFraction = CalculateLoadDamage(emitter) / Math.Max(emitter.MaxDraw, 1f);
         return Math.Clamp(1f - Math.Max(damageFraction, loadFraction), 0f, 1f);
+    }
+
+    /// <summary>Consumes a confirmed ray hit before its one-sided edge can miss physical contact.</summary>
+    private void OnWolfgateShieldRayHit(EntityUid uid, ShipShieldComponent component, ref WFShipShieldProjectileRayHitEvent args)
+    {
+        if (IsWolfgateShieldFriendlyProjectile(uid, args.Projectile) ||
+            !_shipWeaponProjectileQuery.HasComponent(args.Projectile) || args.Component.ProjectileSpent)
+            return;
+        _transformSystem.SetCoordinates(args.Projectile, _transformSystem.ToCoordinates(args.Position));
+        var contact = new ProjectileReflectAttemptEvent(args.Projectile, args.Component, false);
+        OnWolfgateShieldContact(uid, component, ref contact);
+        args.Handled = args.Component.ProjectileSpent;
     }
 
     /// <summary>Consumes ship weapon projectiles after a real shield contact.</summary>
