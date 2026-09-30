@@ -11,11 +11,16 @@ using Content.Shared.Body.Part;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Configuration;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
 public abstract partial class SharedSurgerySystem
 {
+    /// <summary>Hook body (playtest 5): a surgeon's step keeps its Wolfmed procedure open until its closing step.</summary>
+    private void WolfmedStepDone(EntityUid part, Entity<SurgeryComponent> surgery, EntProtoId step) =>
+        _wolfmedConditions.RecordStep(part, surgery, step);
+
     [Dependency] private WoundSystem _wolfmedWounds = default!; // WOLFGATE: HOOK 25
     [Dependency] private WolfmedSurgeryConditionSystem _wolfmedConditions = default!; // WOLFGATE: HOOK 24
     [Dependency] private IConfigurationManager _wolfmedCfg = default!; // WOLFGATE: HOOK 27

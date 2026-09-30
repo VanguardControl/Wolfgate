@@ -56,6 +56,8 @@ public sealed class WolfmedRemainingCausesTest : GameTest
     private async Task Pin()
     {
         await OverrideCVar(Side.Server, WolfmedCVars.Consciousness, true);
+        // The sepsis fixtures infect a 20-point cut, a minor wound, which playtest 5 spares the air.
+        await OverrideCVar(Side.Server, WolfmedCVars.InfectionSparesMinor, false);
         await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessHysteresis, 0.1f);
         await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessToxinDown, 60f);
         await OverrideCVar(Side.Server, WolfmedCVars.ConsciousnessToxinOut, 120f);

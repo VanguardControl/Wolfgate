@@ -274,7 +274,8 @@ public sealed class WolfmedInfectionSpreadTest : GameTest
     /// <summary>
     /// Playtest 5, "an infection has to have an actual reason to start, like being exposed to the air outside a suit":
     /// a clean cut under a sealed hardsuit holds at zero; a bite goes bad under it; a dirty tool in the cut is a
-    /// reason; and with the suit off a fresh cut goes bad on its own.
+    /// reason; and with the suit off a fresh cut goes bad on its own. And "minor injuries shouldn't cause infections":
+    /// with the suit off a minor cut and a minor burn hold at zero, while a minor bite still goes bad.
     /// </summary>
     [Test]
     public async Task InfectionNeedsAReasonTest()
@@ -320,6 +321,29 @@ public sealed class WolfmedInfectionSpreadTest : GameTest
             for (var t = Tick; t <= 5 * 60f; t += Tick)
                 infection.Update(Tick);
             Assert.That(Progress(open), Is.GreaterThan(0f), "an exposed cut did not go bad.");
+
+            // Minor wounds, open to the air on the legs: the cut and the burn hold; the bite is dirty and does not.
+            var leftLeg = Part(body, BodyPartType.Leg, BodyPartSymmetry.Left);
+            var rightLeg = Part(body, BodyPartType.Leg, BodyPartSymmetry.Right);
+            var scratch = wounds.CreateOrMergeWound(leftLeg, "SlashWound", FixedPoint2.New(10));
+            var scald = wounds.CreateOrMergeWound(rightLeg, "BurnWound", FixedPoint2.New(10));
+            var nip = wounds.CreateOrMergeWound(rightLeg, "WFWolfmedAvulsionWound", FixedPoint2.New(10));
+            Assert.That(scratch, Is.Not.Null);
+            Assert.That(scald, Is.Not.Null);
+            Assert.That(nip, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(infection.IsMinor(SEntMan.GetComponent<WoundComponent>(scratch!.Value)), Is.True);
+                Assert.That(infection.IsMinor(SEntMan.GetComponent<WoundComponent>(open)), Is.False, "a 30 cut reads as minor.");
+            });
+            for (var t = Tick; t <= 30 * 60f; t += Tick)
+                infection.Update(Tick);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Progress(scratch!.Value), Is.Zero, "a minor cut in the open went bad.");
+                Assert.That(Progress(scald!.Value), Is.Zero, "a minor burn in the open went bad.");
+                Assert.That(Progress(nip!.Value), Is.GreaterThan(0f), "a minor bite did not go bad.");
+            });
         });
     }
 
@@ -449,7 +473,8 @@ public sealed class WolfmedInfectionSpreadTest : GameTest
     /// <summary>An untreated risk-1 cut, made directly so the part it lands on is certain.</summary>
     private EntityUid Cut(EntityUid part)
     {
-        var wound = SEntMan.System<WoundSystem>().CreateOrMergeWound(part, "SlashWound", FixedPoint2.New(20));
+        // Moderate: a minor cut in the open never goes bad (playtest 5).
+        var wound = SEntMan.System<WoundSystem>().CreateOrMergeWound(part, "SlashWound", FixedPoint2.New(30));
         Assert.That(wound, Is.Not.Null, "the part took no cut.");
         Assert.That(SEntMan.HasComponent<WolfmedInfectionComponent>(wound!.Value), Is.True, "the cut is not infectable.");
         return wound.Value;

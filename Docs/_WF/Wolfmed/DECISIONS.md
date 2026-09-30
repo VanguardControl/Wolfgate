@@ -4649,3 +4649,35 @@ the owner's call; left as it plays.
   three corpse prototypes dead, cut, missing a fifth of their blood, not bleeding, all six parts on; the dead mouse
   still dead; three fixed bounties dead with their injuries over three or more parts and over the redemption line;
   twenty-four random bounties, none redeemable at spawn.
+- **A begun procedure stays open until its closing step (2026-09-29).** A healmeimbroken ticket: "surgery fails at the
+  graft the burned tissue step saying it requires a previous step which is already complete". Reproduced through the
+  surgery window's own message with the tools in hand and the do-afters run out: the graft takes the charring, and
+  the step after it, Seal the wound, is refused without a word, because `WolfmedSurgeryWoundCondition` lists Graft
+  Burned Tissue only while charring exists. The patient is left open under "Requires: Open Incision". Every Wolfmed
+  procedure whose treatment removes its own reason had the same dead end for a surgeon: tendon, artery, servo,
+  internal bleeding, amputation stump, embedded objects, fracture mending and the organ heals; the pod was never
+  stuck because it stops a procedure that stops validating and closes up itself (AUTODOC). The existing
+  `validWhile` (core repair) was no answer: an incision marker would list every wound procedure on any open part.
+  `WolfmedSurgeryProgressComponent` on the part records a Wolfmed-conditioned procedure when a surgeon's step of it
+  runs (`WolfmedStepDone`, one marked line after `OnTargetDoAfter` raises the step) and drops it on the procedure's
+  last step; the wound, fracture, organ and embedded conditions hold while it is recorded; an incision closed any other
+  way (Close Incision) clears the part's list. The pod's own path does not record, so the pod is unchanged.
+  `WolfmedSurgeryClosingStepTest`: the graft and the embedded-object removal each run from the window to their own
+  seal, the torso closes and the procedure leaves the menu; an open torso without charring still does not offer
+  the graft.
+- **A minor wound is not infected by the air (owner, 2026-09-29).** "Minor burns cause sepsis after a while? I think
+  minor injuries shouldn't cause infections." Every infectable wound carries its risk at every stage, and open air is
+  a reason, so a severity-10 scald on an unsuited arm went local, crept up its 15, spread and reached the chest.
+  `HasReason` now refuses the air as a reason for a wound whose current stage is Minor (`WolfmedInfectionSystem.IsMinor`:
+  under 25 on every organic wound, the analyzer's own word), behind `wolfmed.infection_spares_minor` (true). A dirty
+  wound (a bite, a round or shrapnel left in, dead tissue) and a contaminated one (a makeshift suture, a dirty
+  object) are still reasons at any size; charring, an operative incision and a stump have no Minor stage, so they
+  are never spared. A wound that already carries infection and heals down to minor holds where it is.
+  `InfectionNeedsAReasonTest` adds a minor cut and a minor burn in the open for thirty minutes (both at zero) and a
+  minor bite (it goes bad); the spread fixtures' cut is 30 now, moderate, so they still test what they tested.
+- **Dying asleep wakes the body (2026-09-30).** "Someone went to sleep while dead and can't wake up when fixed."
+  A body in cardiac arrest is Critical, looks dead, and may still sleep (only Dead refuses it). Falling asleep puts a
+  timerless `StunnedComponent` and `KnockedDownComponent` on the body, and only `SleepingSystem.Wake` takes them off,
+  with the Wake action; `OnMobStateChanged` removed `SleepingComponent` bare on death, so a revived patient stayed
+  down for good and the Wake action had no sleep to end. A marked block now calls `Wake` there.
+  `WolfmedSleepThroughDeathTest`: asleep in arrest, killed, revived: no sleep, stun or knockdown left.

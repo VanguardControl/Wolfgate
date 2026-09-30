@@ -103,6 +103,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         args.Repeat = (HasComp<SurgeryRepeatableStepComponent>(step) && !IsStepComplete(ent, part, args.Step, surgery));
         var ev = new SurgeryStepEvent(args.User, ent, part, GetTools(args.User), surgery);
         RaiseLocalEvent(step, ref ev);
+        WolfmedStepDone(part, surgery, args.Step); // WOLFGATE(Wolfmed): playtest 5, a begun procedure stays open until its closing step
         RefreshUI(ent);
     }
 

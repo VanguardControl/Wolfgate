@@ -318,7 +318,8 @@ public sealed class WolfmedInfectionSystem : EntitySystem
     /// <summary>
     /// Playtest 5, "an infection has to have an actual reason to start": whether this wound has one. Something dirty
     /// went into it, or it is dirty by nature (<see cref="WolfmedInfectionRiskBehavior.Dirty"/>), or it is open to the
-    /// air: not under a sealed suit. Off with wolfmed.infection_needs_reason, every open wound is a reason.
+    /// air: not under a sealed suit, and more than a minor wound. Off with wolfmed.infection_needs_reason, every open
+    /// wound is a reason.
     /// </summary>
     public bool HasReason(Entity<WolfmedInfectionComponent, WoundComponent> wound, EntityUid part)
     {
@@ -328,8 +329,21 @@ public sealed class WolfmedInfectionSystem : EntitySystem
         if (_traits.TryGetBehavior(wound.Owner, out WolfmedInfectionRiskBehavior behavior) && behavior.Dirty)
             return true;
 
+        // Playtest 5, "minor injuries shouldn't cause infections": a scald or a scratch left in the open went septic.
+        if (_config.GetCVar(WolfmedCVars.InfectionSparesMinor) && IsMinor(wound.Comp2))
+            return false;
+
         return IsExposed(part);
     }
+
+    /// <summary>
+    /// A wound the analyzer calls minor: its current stage is Minor. Charring, an operative incision and a stump have
+    /// no such stage, so they are never minor.
+    /// </summary>
+    public bool IsMinor(WoundComponent wound) =>
+        _prototypes.TryIndex(wound.Prototype, out var prototype) && prototype.GetStage(wound.Severity) == MinorStage;
+
+    private const string MinorStage = "Minor";
 
     /// <summary>
     /// Playtest 5: whether the part is open to the air. A pressure-tight suit over it (a hardsuit or EVA suit in the

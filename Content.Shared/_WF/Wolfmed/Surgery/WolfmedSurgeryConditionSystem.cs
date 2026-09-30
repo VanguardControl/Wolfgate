@@ -1,13 +1,16 @@
 using System.Linq;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.Wounds;
+using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Steps;
+using Content.Shared._Shitmed.Medical.Surgery.Steps.Parts;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Wolfmed.Surgery;
@@ -22,6 +25,7 @@ namespace Content.Shared._WF.Wolfmed.Surgery;
 public sealed class WolfmedSurgeryConditionSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private INetManager _net = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private WolfmedEmbeddedObjectSystem _embedded = default!;
     [Dependency] private WoundFractureSystem _fractures = default!;
@@ -47,7 +51,58 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryRelocateJointEffectComponent, SurgeryStepCompleteCheckEvent>(OnRelocateCheck);
         SubscribeLocalEvent<WolfmedSurgeryWeldChassisEffectComponent, SurgeryStepCompleteCheckEvent>(OnWeldChassisCheck);
         SubscribeLocalEvent<WolfmedSurgeryRewireChassisEffectComponent, SurgeryStepCompleteCheckEvent>(OnRewireChassisCheck);
+        SubscribeLocalEvent<IncisionOpenComponent, ComponentRemove>(OnIncisionClosed);
     }
+
+    /// <summary>
+    /// Playtest 5, "surgery fails at the graft step": a surgeon's step on a Wolfmed procedure keeps it open on the part
+    /// until its last step runs. The treatment step removes the wound, fracture, object or organ damage the procedure
+    /// was listed for, and its closing step used to be refused, leaving the patient open. Server only; the part
+    /// carries the list to the client, whose surgery window reads the same conditions.
+    /// </summary>
+    public void RecordStep(EntityUid part, Entity<SurgeryComponent> surgery, EntProtoId step)
+    {
+        if (!_net.IsServer || MetaData(surgery).EntityPrototype is not { } prototype || !HasWolfmedCondition(surgery))
+            return;
+
+        var last = surgery.Comp.Steps.Count > 0 && surgery.Comp.Steps[^1] == step;
+        if (last)
+        {
+            if (TryComp(part, out WolfmedSurgeryProgressComponent? progress) && progress.Surgeries.Remove(prototype.ID))
+                Dirty(part, progress);
+            return;
+        }
+
+        var open = EnsureComp<WolfmedSurgeryProgressComponent>(part);
+        if (open.Surgeries.Contains(prototype.ID))
+            return;
+
+        open.Surgeries.Add(prototype.ID);
+        Dirty(part, open);
+    }
+
+    /// <summary>An incision closed any other way (Close Incision) ends every procedure begun under it.</summary>
+    private void OnIncisionClosed(Entity<IncisionOpenComponent> part, ref ComponentRemove args)
+    {
+        if (!_net.IsServer || TerminatingOrDeleted(part) ||
+            !TryComp(part, out WolfmedSurgeryProgressComponent? progress) || progress.Surgeries.Count == 0)
+            return;
+
+        progress.Surgeries.Clear();
+        Dirty(part.Owner, progress);
+    }
+
+    /// <summary>True when a surgeon began this procedure on the part and has not closed it.</summary>
+    private bool InProgress(EntityUid part, EntityUid surgery) =>
+        TryComp(part, out WolfmedSurgeryProgressComponent? progress) &&
+        MetaData(surgery).EntityPrototype is { } prototype &&
+        progress.Surgeries.Contains(prototype.ID);
+
+    private bool HasWolfmedCondition(EntityUid surgery) =>
+        HasComp<WolfmedSurgeryWoundConditionComponent>(surgery) ||
+        HasComp<WolfmedSurgeryFractureConditionComponent>(surgery) ||
+        HasComp<WolfmedSurgeryOrganDamagedConditionComponent>(surgery) ||
+        HasComp<WolfmedSurgeryEmbeddedConditionComponent>(surgery);
 
     /// <summary>Playtest 3 IPC 2: the weld repeats until the part carries none of its wounds.</summary>
     private void OnWeldChassisCheck(Entity<WolfmedSurgeryWeldChassisEffectComponent> ent,
@@ -71,6 +126,9 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
 
     private void OnEmbeddedValid(Entity<WolfmedSurgeryEmbeddedConditionComponent> ent, ref SurgeryValidEvent args)
     {
+        if (InProgress(args.Part, ent.Owner))
+            return;
+
         if (_embedded.GetPartCount(args.Part) > 0 == ent.Comp.Inverse)
             args.Cancelled = true;
     }
@@ -93,6 +151,9 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     private void OnWoundValid(Entity<WolfmedSurgeryWoundConditionComponent> ent, ref SurgeryValidEvent args)
     {
         var part = args.Part;
+        if (InProgress(part, ent.Owner))
+            return;
+
         var found = FindWound(part, ent.Comp.WoundPrototype, ent.Comp.State, ent.Comp.Visibility,
             ent.Comp.Bleeding, ent.Comp.InternalBleeding) != null;
 
@@ -113,6 +174,9 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
 
     private void OnFractureValid(Entity<WolfmedSurgeryFractureConditionComponent> ent, ref SurgeryValidEvent args)
     {
+        if (InProgress(args.Part, ent.Owner))
+            return;
+
         if (_fractures.GetFracture(args.Part) is not { } fracture ||
             (ent.Comp.Grade is { } grade ? fracture.Comp2.Grade != grade : fracture.Comp2.Grade < ent.Comp.MinGrade) ||
             ent.Comp.Treatment is { } treatment && fracture.Comp2.Treatment != treatment)
@@ -121,6 +185,9 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
 
     private void OnOrganValid(Entity<WolfmedSurgeryOrganDamagedConditionComponent> ent, ref SurgeryValidEvent args)
     {
+        if (InProgress(args.Part, ent.Owner))
+            return;
+
         // Damaged but still alive: OrganHealthSystem.Update destroys any organ at Health <= 0 on the next tick,
         // so a dead organ is an insert job, not a heal job (P4-D24). The brain is the exception, because
         // OrganHealthSystem kills the mob instead of destroying it, and BRAIN's repair surgery wants it.

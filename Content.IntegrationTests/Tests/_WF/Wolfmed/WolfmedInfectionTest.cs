@@ -44,6 +44,16 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedInfectionSystem))]
 public sealed class WolfmedInfectionTest : GameTest
 {
+    /// <summary>
+    /// These walk the infection's own course on a 20-point cut, a minor wound. Playtest 5 spares minor wounds the air;
+    /// InfectionNeedsAReasonTest pins that rule, so here it is off.
+    /// </summary>
+    [SetUp]
+    public async Task InfectMinorWounds()
+    {
+        await OverrideCVar(Content.IntegrationTests.Fixtures.Attributes.Side.Server, WolfmedCVars.InfectionSparesMinor, false);
+    }
+
     /// <summary>An untreated cut works its way through local, spreading and septic in that order.</summary>
     [Test]
     public async Task InfectionClimbsThroughItsStagesTest()
