@@ -111,7 +111,7 @@ public sealed class LightFlickerSystem : EntitySystem
                 if (flicker.Lit)
                 {
                     SetLit(uid, flicker, false);
-                    flicker.NextStep = now + Seconds(0.15f, 0.3f);
+                    flicker.NextStep = now + OffTime();
                     return;
                 }
 
@@ -140,7 +140,7 @@ public sealed class LightFlickerSystem : EntitySystem
                 flicker.FlashesLeft = _random.Next(1, 4);
                 PlayFaultSound(uid);
                 SetLit(uid, flicker, false);
-                flicker.NextStep = now + Seconds(0.15f, 0.3f);
+                flicker.NextStep = now + OffTime();
                 return;
         }
     }
@@ -151,7 +151,7 @@ public sealed class LightFlickerSystem : EntitySystem
         flicker.Phase = LightFlickerPhase.Strike;
         flicker.FlashesLeft = 2;
         SetLit(uid, flicker, false);
-        flicker.NextStep = _timing.RealTime + Seconds(0.1f, 0.25f);
+        flicker.NextStep = _timing.RealTime + Seconds(0.2f, 0.5f);
     }
 
     private void StartFault(EntityUid uid, LightFlickerComponent flicker)
@@ -219,6 +219,12 @@ public sealed class LightFlickerSystem : EntitySystem
     private bool IsBlinking(EntityUid uid)
     {
         return _appearance.TryGetData<bool>(uid, PoweredLightVisuals.Blinking, out var blinking) && blinking;
+    }
+
+    /// <summary>How long the tube stays out each time it drops.</summary>
+    private TimeSpan OffTime()
+    {
+        return Seconds(0.3f, 0.6f);
     }
 
     private TimeSpan Seconds(float min, float max)
