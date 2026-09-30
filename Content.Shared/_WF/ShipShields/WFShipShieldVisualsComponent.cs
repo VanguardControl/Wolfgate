@@ -16,6 +16,14 @@ public sealed partial class WFShipShieldVisualsComponent : Component
     [DataField, AutoNetworkedField]
     public float Health = 1f;
 
+    /// <summary>The current field appearance transition.</summary>
+    [DataField, AutoNetworkedField]
+    public WFShipShieldTransition Transition;
+
+    /// <summary>Server time when the appearance transition began.</summary>
+    [DataField, AutoNetworkedField]
+    public TimeSpan TransitionStarted;
+
     /// <summary>The grid protected by this shield.</summary>
     [DataField, AutoNetworkedField]
     public EntityUid? Grid;

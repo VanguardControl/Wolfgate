@@ -258,6 +258,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
 
 
         CreateWolfgateShieldHull(shield, entity, mapGrid, shieldPhysics);
+        BeginWolfgateShieldFormation(shield, entity);
         // WOLFGATE END
 
         _physicsSystem.WakeBody(shield, body: shieldPhysics);
@@ -277,6 +278,11 @@ public sealed partial class ShipShieldsSystem : EntitySystem
         if (!Resolve(uid, ref component, false))
             return false;
 
+        // WOLFGATE(ShipShields) START: dissipate visually after protection stops immediately
+        EndWolfgateShieldAppearance(component.Shield, uid);
+        if (TryComp<PhysicsComponent>(component.Shield, out var physics))
+            _physicsSystem.SetCanCollide(component.Shield, false, body: physics);
+        // WOLFGATE END
         TryQueueDel(component.Shield);
         RemComp<ShipShieldedComponent>(uid);
         return true;

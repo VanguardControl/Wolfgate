@@ -54,9 +54,14 @@ public sealed class WFShipShieldOverlay : Overlay
         var query = _entities.EntityQueryEnumerator<WFShipShieldVisualsComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var shield, out var xform))
         {
-            if (xform.MapID != args.MapId ||
-                !_entities.TryGetComponent<PhysicsComponent>(uid, out var physics) || !physics.CanCollide)
+            var elapsed = MathF.Max(0f, (float) (_timing.CurTime - shield.TransitionStarted).TotalSeconds);
+            var transition = elapsed < WFShipShieldTransitionEffects.Duration(shield.Transition)
+                ? shield.Transition : WFShipShieldTransition.None;
+            var ending = transition is WFShipShieldTransition.Collapsing or WFShipShieldTransition.Lowering;
+            if (xform.MapID != args.MapId || (!ending &&
+                (!_entities.TryGetComponent<PhysicsComponent>(uid, out var physics) || !physics.CanCollide)))
                 continue;
+            var progress = WFShipShieldTransitionEffects.Progress(transition, elapsed);
             if (!_fields.TryGetValue(uid, out var cached) || !WFShipShieldMesh.ContoursEqual(cached.Contours, shield.Contours))
             {
                 cached?.Shader?.Dispose();
@@ -78,7 +83,7 @@ public sealed class WFShipShieldOverlay : Overlay
             if (!args.WorldAABB.Intersects(worldBounds))
                 continue;
             _entities.TryGetComponent<WFShipShieldShuntComponent>(uid, out var shunt);
-            handle.UseShader(cached.ConfigureShader(_shader, shunt, distant));
+            handle.UseShader(cached.ConfigureShader(_shader, shunt, distant, transition, progress));
             var mesh = distant ? cached.Distant ??= new RenderMesh(cached.Contours, true)
                 : cached.Detailed ??= new RenderMesh(cached.Contours, false);
             _impacts.TryGetValue(uid, out var impacts);
@@ -122,6 +127,8 @@ public sealed class WFShipShieldOverlay : Overlay
         private float _shuntConcentration;
         private float _shuntArc;
         private bool? _distant;
+        private WFShipShieldTransition? _transition;
+        private float _transitionProgress = float.NaN;
 
         public CachedField(Vector2[][] contours)
         {
@@ -142,7 +149,8 @@ public sealed class WFShipShieldOverlay : Overlay
                 bounds.TopRight + new Vector2(WFShipShieldMesh.InwardDepth));
         }
 
-        public ShaderInstance ConfigureShader(ShaderInstance source, WFShipShieldShuntComponent? shunt, bool distant)
+        public ShaderInstance ConfigureShader(ShaderInstance source, WFShipShieldShuntComponent? shunt, bool distant,
+            WFShipShieldTransition transition, float progress)
         {
             Shader ??= source.Duplicate();
             var center = shunt?.Center ?? Bounds.Center;
@@ -166,6 +174,18 @@ public sealed class WFShipShieldOverlay : Overlay
             {
                 Shader.SetParameter("shimmerStrength", distant ? 0f : 1f);
                 _distant = distant;
+            }
+            if (_transition != transition || _transitionProgress != progress)
+            {
+                Shader.SetParameter("transitionMode", (float) transition);
+                Shader.SetParameter("transitionProgress", progress);
+                if (_transition == null)
+                {
+                    Shader.SetParameter("fieldMin", Bounds.BottomLeft);
+                    Shader.SetParameter("fieldSize", Bounds.Size);
+                }
+                _transition = transition;
+                _transitionProgress = progress;
             }
             return Shader;
         }
