@@ -138,7 +138,7 @@ clone.
 - [`Content.Client/_Impstation/Thaven/Eui/ThavenMoodUi.xaml`](../../../Content.Client/_Impstation/Thaven/Eui/ThavenMoodUi.xaml): ported from HardLight (Thaven moods)
 - [`Content.Client/_Impstation/Thaven/Eui/ThavenMoodUi.xaml.cs`](../../../Content.Client/_Impstation/Thaven/Eui/ThavenMoodUi.xaml.cs)
   - add the row through SetMoods so its buttons are wired and a later rebuild keeps it.
-  - copies edited titles and text back onto the tracked moods, so rebuilding the list keeps them.
+  - copies edited titles and text back onto the tracked moods, so rebuilding the list keeps them
 - [`Content.Client/_Impstation/Thaven/MoodDisplay.xaml`](../../../Content.Client/_Impstation/Thaven/MoodDisplay.xaml): ported from HardLight (Thaven moods)
 - [`Content.Client/_Impstation/Thaven/MoodDisplay.xaml.cs`](../../../Content.Client/_Impstation/Thaven/MoodDisplay.xaml.cs): ported from HardLight (Thaven moods)
 - [`Content.Client/_Impstation/Thaven/ThavenMoodsBoundUserInterface.cs`](../../../Content.Client/_Impstation/Thaven/ThavenMoodsBoundUserInterface.cs): ported from HardLight (Thaven moods)
@@ -168,7 +168,7 @@ clone.
   - the first style the option allows
   - ported from HardLight, unrestricted skin colour
   - the styles the option allows
-- [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): lets any species wear hair and facial hair.
+- [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): saves the Mismatched parts option (every species' markings, hair and facial hair)
 - [`Content.Server/_DV/Abilities/CrawlUnderObjectsSystem.cs`](../../../Content.Server/_DV/Abilities/CrawlUnderObjectsSystem.cs)
   - sneak logic moved to SharedCrawlUnderObjectsSystem, its usings with it
   - server half now only grants the toggle action; rest lives in SharedCrawlUnderObjectsSystem
@@ -209,6 +209,8 @@ clone.
 - [`Content.Shared/_DV/Abilities/CrawlUnderObjectsComponent.cs`](../../_DV/Abilities/CrawlUnderObjectsComponent.cs)
   - unused after the switch to circle-based squeezing
   - HardLight balance. The Delta-V original dropped the mob under tables instead.
+  - sneak state is networked; HardLight circle squeezing replaces the fixture mask list
+  - documents the client-only draw depth field
   - HardLight circle squeeze fields
   - unused once sneak state moved onto the networked component fields directly
 - [`Content.Shared/_DV/Abilities/SharedCrawlUnderObjectsSystem.cs`](../../_DV/Abilities/SharedCrawlUnderObjectsSystem.cs): rewritten as a shared, predicted system with HardLight's squeeze geometry
@@ -279,8 +281,11 @@ clone.
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Preferences/HumanoidCharacterProfile.cs): the option widens the hair check
 - [`Content.Shared/Teleportation/Components/PortalComponent.cs`](../../Teleportation/Components/PortalComponent.cs): ported from HardLight/Starlight - lets systems veto a portal teleport
 - [`Content.Shared/Teleportation/Systems/SharedPortalSystem.cs`](../../Teleportation/Systems/SharedPortalSystem.cs): lets a portal refuse a subject (the Shadekin dark portal)
+- [`Resources/Audio/_DEN/`](../../../Resources/Audio/_DEN/): The Den species voice sounds, ported in
 - [`Resources/Audio/_DEN/Voice/Shadowkin/Emotes/attributions.yml`](../../../Resources/Audio/_DEN/Voice/Shadowkin/Emotes/attributions.yml): ported from HardLight
 - [`Resources/Audio/_DEN/Voice/Shadowkin/Talk/attributions.yml`](../../../Resources/Audio/_DEN/Voice/Shadowkin/Talk/attributions.yml): ported from HardLight
+- [`Resources/Audio/_EE/`](../../../Resources/Audio/_EE/): Einstein Engines species sounds, ported in
+- [`Resources/Audio/_FarHorizons/Voice/`](../../../Resources/Audio/_FarHorizons/Voice/): Far Horizons species voices, ported in
 - [`Resources/Audio/_FarHorizons/Voice/Proto/Arachnid/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Arachnid/attributions.yml): ported from HardLight
 - [`Resources/Audio/_FarHorizons/Voice/Proto/Avali/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Avali/attributions.yml): ported from HardLight
 - [`Resources/Audio/_FarHorizons/Voice/Proto/Felionoid/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Felionoid/attributions.yml): ported from HardLight
@@ -291,8 +296,12 @@ clone.
 - [`Resources/Audio/_FarHorizons/Voice/Proto/Shadekin/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Shadekin/attributions.yml): ported from HardLight
 - [`Resources/Audio/_FarHorizons/Voice/Proto/Vox/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Vox/attributions.yml): ported from HardLight
 - [`Resources/Audio/_FarHorizons/Voice/Proto/Vulpkanin/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Vulpkanin/attributions.yml): ported from HardLight
+- [`Resources/Audio/_HL/`](../../../Resources/Audio/_HL/): HardLight species sound, ported in
+- [`Resources/Audio/_Impstation/Thaven/`](../../../Resources/Audio/_Impstation/Thaven/): Thaven sounds, ported from HardLight in
 - [`Resources/Audio/_Impstation/Thaven/attributions.yml`](../../../Resources/Audio/_Impstation/Thaven/attributions.yml): ported from HardLight
+- [`Resources/Audio/_RMC14/Voice/`](../../../Resources/Audio/_RMC14/Voice/): RMC14 species voices, ported from HardLight in
 - [`Resources/Audio/_RMC14/Voice/Skrell/attributions.yml`](../../../Resources/Audio/_RMC14/Voice/Skrell/attributions.yml): ported from HardLight
+- [`Resources/Audio/_Starlight/`](../../../Resources/Audio/_Starlight/): Starlight species sounds, ported in
 - [`Resources/Audio/_Starlight/Voice/Avali/attributions.yml`](../../../Resources/Audio/_Starlight/Voice/Avali/attributions.yml): ported from HardLight
 - [`Resources/Audio/_Starlight/Voice/Felionoid/attributions.yml`](../../../Resources/Audio/_Starlight/Voice/Felionoid/attributions.yml): ported from HardLight
 - [`Resources/Audio/_Starlight/Voice/Shadekin/attributions.yml`](../../../Resources/Audio/_Starlight/Voice/Shadekin/attributions.yml): ported from HardLight
@@ -300,6 +309,7 @@ clone.
 - [`Resources/Audio/Voice/Resomi/resomi_whistle.ogg`](../../../Resources/Audio/Voice/Resomi/resomi_whistle.ogg): Resomi whistle emote sound, ported from HardLight.
 - [`Resources/Audio/Voice/Shadekin/attributions.yml`](../../../Resources/Audio/Voice/Shadekin/attributions.yml): ported from HardLight
 - [`Resources/Audio/Voice/Shadekin/shadekin_cry.ogg`](../../../Resources/Audio/Voice/Shadekin/shadekin_cry.ogg): Shadekin cry emote sound, ported from HardLight.
+- [`Resources/Fonts/_Starlight/`](../../../Resources/Fonts/_Starlight/): Starlight fonts, ported in
 - [`Resources/Locale/en-US/_CD/markings/moth.ftl`](../../../Resources/Locale/en-US/_CD/markings/moth.ftl): ported from HardLight
 - [`Resources/Locale/en-US/_CD/markings/reptilian.ftl`](../../../Resources/Locale/en-US/_CD/markings/reptilian.ftl): ported from HardLight
 - [`Resources/Locale/en-US/_CD/markings/synthetic.ftl`](../../../Resources/Locale/en-US/_CD/markings/synthetic.ftl): ported from HardLight
@@ -645,13 +655,21 @@ clone.
 - [`Resources/ServerInfo/_StarLight/Guidebook/Mobs/Felionoid.xml`](../../../Resources/ServerInfo/_StarLight/Guidebook/Mobs/Felionoid.xml): ported from HardLight
 - [`Resources/ServerInfo/Guidebook/Mobs/Shadekin.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/Shadekin.xml): ported from HardLight
 - [`Resources/ServerInfo/Guidebook/Mobs/Skrell.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/Skrell.xml): ported from HardLight
+- [`Resources/Textures/_Bubber/`](../../../Resources/Textures/_Bubber/): Bubberstation species and marking sprites, ported in
+- [`Resources/Textures/_CD/Mobs/`](../../../Resources/Textures/_CD/Mobs/): Cosmatic Drift mob sprites, ported in
+- [`Resources/Textures/_DV/Mobs/Customization/kitsune/`](../../../Resources/Textures/_DV/Mobs/Customization/kitsune/): Kitsune marking sprites, ported in
+- [`Resources/Textures/_DV/Mobs/Customization/thaven/`](../../../Resources/Textures/_DV/Mobs/Customization/thaven/): Thaven marking sprites, ported in
 - [`Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/`](../../../Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/): whitescale_harpy_folded2 state added (meta.json re-serialised).
-- [`Resources/Textures/_Floof/Mobs/Customization/skyratears.rsi/`](../../../Resources/Textures/_Floof/Mobs/Customization/skyratears.rsi/): Fae fox alt ear states, ported from HardLight.
-- [`Resources/Textures/_HL/Mobs/Customization/Generic/neckfur.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Generic/neckfur.rsi/): Neckfur marking sprite, ported from HardLight.
-- [`Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinears.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinears.rsi/): Shadekin dual colour ear sprites, ported from HardLight.
-- [`Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinhair.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekinhair.rsi/): Shadekin short hair sprite, ported from HardLight.
-- [`Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekintails64x32.rsi/`](../../../Resources/Textures/_HL/Mobs/Customization/Shadekin/shadekintails64x32.rsi/): Shadekin big two-toned tail sprites, ported from HardLight; split copies live in _WF/Genitals.
+- [`Resources/Textures/_FarHorizons/Mobs/`](../../../Resources/Textures/_FarHorizons/Mobs/): Far Horizons species sprites, ported in
+- [`Resources/Textures/_Floof/`](../../../Resources/Textures/_Floof/): Floof marking sprites, ported from HardLight in
+- [`Resources/Textures/_HL/`](../../../Resources/Textures/_HL/): HardLight species and marking sprites, ported in
+- [`Resources/Textures/_Impstation/Mobs/Customization/thaven/`](../../../Resources/Textures/_Impstation/Mobs/Customization/thaven/): Thaven marking sprites, ported from HardLight in
+- [`Resources/Textures/_Impstation/Mobs/Species/`](../../../Resources/Textures/_Impstation/Mobs/Species/): Impstation species sprites, ported from HardLight in
 - [`Resources/Textures/_Mono/Mobs/Species/Protogen/organs.rsi/`](../../../Resources/Textures/_Mono/Mobs/Species/Protogen/organs.rsi/): tongueforked state added (meta.json re-serialised).
+- [`Resources/Textures/_NF/Mobs/Customization/human_hair.rsi/`](../../../Resources/Textures/_NF/Mobs/Customization/human_hair.rsi/): Extra human hair sprites, ported in
+- [`Resources/Textures/_RMC14/Actions/`](../../../Resources/Textures/_RMC14/Actions/): RMC14 action icons, ported from HardLight in
+- [`Resources/Textures/_RMC14/Mobs/`](../../../Resources/Textures/_RMC14/Mobs/): RMC14 mob and marking sprites, ported from HardLight in
+- [`Resources/Textures/_Starlight/`](../../../Resources/Textures/_Starlight/): Starlight species sprites, ported in
 - [`Resources/Textures/Clothing/Head/Hardsuits/atmospherics.rsi/`](../../../Resources/Textures/Clothing/Head/Hardsuits/atmospherics.rsi/): Avali equipped states added (meta.json re-serialised).
 - [`Resources/Textures/Clothing/Head/Hardsuits/brigmedic.rsi/`](../../../Resources/Textures/Clothing/Head/Hardsuits/brigmedic.rsi/): Avali equipped states added (meta.json re-serialised).
 - [`Resources/Textures/Clothing/Head/Hardsuits/capspace.rsi/`](../../../Resources/Textures/Clothing/Head/Hardsuits/capspace.rsi/): Avali equipped states added (meta.json re-serialised).
@@ -688,6 +706,8 @@ clone.
 - [`Resources/Textures/Clothing/OuterClothing/Suits/eva.rsi/`](../../../Resources/Textures/Clothing/OuterClothing/Suits/eva.rsi/): Avali equipped states added (meta.json re-serialised).
 - [`Resources/Textures/Clothing/OuterClothing/Suits/eva_emergency.rsi/`](../../../Resources/Textures/Clothing/OuterClothing/Suits/eva_emergency.rsi/): Avali equipped states added (meta.json re-serialised).
 - [`Resources/Textures/Clothing/OuterClothing/Suits/eva_syndicate.rsi/`](../../../Resources/Textures/Clothing/OuterClothing/Suits/eva_syndicate.rsi/): Avali equipped states added (meta.json re-serialised).
+- [`Resources/Textures/DeltaV/`](../../../Resources/Textures/DeltaV/): Delta-V species sprites, ported in
+- [`Resources/Textures/Floof/`](../../../Resources/Textures/Floof/): Floof species sprites, ported in
 - [`Resources/Textures/Mobs/Customization/earrings.rsi/`](../../../Resources/Textures/Mobs/Customization/earrings.rsi/): Earring marking sprites, ported from HardLight; Wolfgate-only RSI at an upstream path.
 - [`Resources/Textures/Mobs/Customization/face.rsi/`](../../../Resources/Textures/Mobs/Customization/face.rsi/): Face marking sprites, ported from HardLight; Wolfgate-only RSI at an upstream path.
 - [`Resources/Textures/Mobs/Customization/reptilian_parts.rsi/`](../../../Resources/Textures/Mobs/Customization/reptilian_parts.rsi/): Floof/HardLight horn, fin, neck frill and aquatic and large wagging tail states added (meta.json re-sorted).
