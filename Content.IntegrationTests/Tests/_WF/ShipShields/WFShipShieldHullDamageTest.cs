@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using Content.Client._WF.ShipShields;
 using Content.Server._Crescent.ShipShields;
 using Content.Server._WF.ShipShields;
@@ -322,12 +323,15 @@ public sealed class WFShipShieldHullDamageTest
             entities.GetComponent<ShipShieldedComponent>(map.Grid.Owner).Source = emitterUid;
             entities.GetComponent<WFShipShieldVisualsComponent>(shield).Health = 1f;
             var helms = entities.System<ShuttleConsoleSystem>();
+            Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(helm, ShuttleConsoleUiKey.Key, out var initial), Is.True);
+            var snapshots = (Dictionary<EntityUid, WFShipShieldShuntState>) typeof(ShuttleConsoleSystem)
+                .GetField("_wfShieldHelmStates", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(helms)!;
             helms.Update(0.21f);
             var active = State();
             Assert.That(active.Active, Is.True);
             Assert.That(active.Health, Is.EqualTo(0.28f).Within(0.001f), "The helm reads emitter capacity without waiting for visual replication.");
             helms.Update(0.21f);
-            Assert.That(State(), Is.SameAs(active), "Unchanged status must not rebuild the helm payload.");
+            Assert.That(State(), Is.SameAs(active), "Unchanged status must not send another shield snapshot.");
             entities.QueueDeleteEntity(shield);
             helms.Update(0.21f);
             Assert.That(State().Active, Is.False, "Queued field removal must immediately report offline.");
@@ -336,8 +340,9 @@ public sealed class WFShipShieldHullDamageTest
             WFShipShieldShuntState State()
             {
                 Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(helm, ShuttleConsoleUiKey.Key, out var state), Is.True);
-                Assert.That(state!.ShieldShunt, Is.Not.Null);
-                return state.ShieldShunt!;
+                Assert.That(state, Is.SameAs(initial), "Shield-only updates must not rebuild the navigation payload.");
+                Assert.That(snapshots.TryGetValue(helm, out var snapshot), Is.True);
+                return snapshot!;
             }
         });
         await pair.CleanReturnAsync();

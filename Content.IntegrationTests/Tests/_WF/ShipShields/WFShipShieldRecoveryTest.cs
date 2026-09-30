@@ -25,7 +25,7 @@ public sealed class WFShipShieldRecoveryTest
         await server.WaitAssertion(() =>
         {
             var uid = entities.SpawnEntity("ShieldGeneratorSmall", map.GridCoords);
-            entities.System<SharedTransformSystem>().AnchorEntity(uid, entities.GetComponent<TransformComponent>(uid));
+            Assert.That(entities.GetComponent<TransformComponent>(uid).Anchored, Is.True, "The generator prototype spawns installed.");
             var emitter = entities.GetComponent<ShipShieldEmitterComponent>(uid);
             var receiver = entities.GetComponent<ApcPowerReceiverComponent>(uid);
             receiver.Powered = true;
@@ -85,11 +85,10 @@ public sealed class WFShipShieldRecoveryTest
         var entities = server.EntMan;
         await server.WaitAssertion(() =>
         {
-            var transform = entities.System<SharedTransformSystem>();
             var slowUid = entities.SpawnEntity("ShieldGeneratorSmall", map.GridCoords);
             var fastUid = entities.SpawnEntity("ShieldGeneratorSmall", map.GridCoords);
-            transform.AnchorEntity(slowUid, entities.GetComponent<TransformComponent>(slowUid));
-            transform.AnchorEntity(fastUid, entities.GetComponent<TransformComponent>(fastUid));
+            Assert.That(entities.GetComponent<TransformComponent>(slowUid).Anchored, Is.True);
+            Assert.That(entities.GetComponent<TransformComponent>(fastUid).Anchored, Is.True);
             var slow = entities.GetComponent<ShipShieldEmitterComponent>(slowUid);
             var fast = entities.GetComponent<ShipShieldEmitterComponent>(fastUid);
             slow.Damage = 4500f;

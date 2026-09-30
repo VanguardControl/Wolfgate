@@ -22,7 +22,7 @@ public sealed class WFShipShieldGeneratorControlTest
         {
             var uid = entities.SpawnEntity("ShieldGeneratorSmall", map.GridCoords);
             var transform = entities.System<SharedTransformSystem>();
-            transform.AnchorEntity(uid, entities.GetComponent<TransformComponent>(uid));
+            Assert.That(entities.GetComponent<TransformComponent>(uid).Anchored, Is.True, "The generator prototype spawns installed.");
             var emitter = entities.GetComponent<ShipShieldEmitterComponent>(uid);
             var receiver = entities.GetComponent<ApcPowerReceiverComponent>(uid);
             receiver.Powered = true;
