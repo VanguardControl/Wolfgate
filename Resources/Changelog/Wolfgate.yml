@@ -652,3 +652,12 @@ Entries:
   id: 100060
   time: '2026-09-29T20:06:03.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/126
+- author: Erol509
+  changes:
+    - type: Add
+      message: >-
+        Added 13 Synthetic Lizard snout marking options, including long, thick,
+        layered, tertiary, and barless variants.
+  id: 100061
+  time: '2026-09-29T21:58:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/120

@@ -25514,6 +25514,25 @@ Entries:
   id: 2775
   time: '2026-09-29T15:29:43.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4790
+- author: SuperGDPWYL
+  changes:
+    - type: Add
+      message: >-
+        Added Caelestinus LPCs! The Petra now requires a T1 LPC. The Hornet and
+        Lightning are now considered T0.
+    - type: Remove
+      message: >-
+        Removed mindshields from Caelestinus and Viper Group roles as to keep
+        them TSFMC-only.
+    - type: Tweak
+      message: The Caelestinus Central security techfab can now accept items.
+    - type: Tweak
+      message: >-
+        The Caelestinus ASMGT now requires one small monolithic crystal and is
+        slightly more expensive diamond-wise.
+  id: 2776
+  time: '2026-09-29T15:31:46.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4767
 - author: DoubleHypercube
   changes:
     - type: Fix
@@ -25521,3 +25540,25 @@ Entries:
   id: 2777
   time: '2026-09-29T15:59:10.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4788
+- author: SuperGDPWYL
+  changes:
+    - type: Remove
+      message: The TSFMC captain no longer spawns with a Bailiff stamp.
+    - type: Fix
+      message: Motley Anne LPCs are functional again.
+    - type: Remove
+      message: The Overseer and Colonel can no longer spy on each other roundstart.
+    - type: Tweak
+      message: >-
+        Helios, Halcyon, CC, Freeport, Zvezda and Hokkaido have had their drone
+        repellant upgraded, now causing any drone that comes too close to cease
+        to exist
+    - type: Tweak
+      message: The TSFMC PTech now contains infinite TSFMil encryption keys.
+    - type: Remove
+      message: Hyperwar can no longer be voted for as a gamemode.
+    - type: Fix
+      message: Derelict Jupiter is now immovable.
+  id: 2778
+  time: '2026-09-29T16:01:21.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4778
