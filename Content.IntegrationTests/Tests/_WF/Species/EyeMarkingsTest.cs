@@ -5,7 +5,7 @@ using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Preferences;
 using Robust.Shared.Prototypes;
 
-namespace Content.IntegrationTests.Tests._WF.Humanoid;
+namespace Content.IntegrationTests.Tests._WF.Species;
 
 /// <summary>
 /// Eye markings have their own category: every playable species keeps all the eye markings it may wear, left and right

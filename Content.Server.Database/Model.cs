@@ -525,7 +525,7 @@ namespace Content.Server.Database
         // WOLFGATE(Headshot): image URL shown on examine, empty when unused.
         [Column("headshot_url")] public string HeadshotUrl { get; set; } = "";
 
-        // WOLFGATE(MismatchedParts): lets any species wear hair and facial hair.
+        // WOLFGATE(Species): lets any species wear hair and facial hair.
         [Column("mismatched_parts")] public bool MismatchedParts { get; set; }
 
         public int PreferenceId { get; set; }

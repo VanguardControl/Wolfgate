@@ -1,6 +1,6 @@
 using System.Linq;
 using Content.IntegrationTests.Tests.Interaction;
-using Content.Shared._WF.MismatchedParts;
+using Content.Shared._WF.Species;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
@@ -8,7 +8,7 @@ using Robust.Client.GameObjects;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Utility;
 
-namespace Content.IntegrationTests.Tests._WF.MismatchedParts;
+namespace Content.IntegrationTests.Tests._WF.Species;
 
 /// <summary>
 /// A networked body of a species without hair: the hair the option unlocks on the server is drawn on the client, and

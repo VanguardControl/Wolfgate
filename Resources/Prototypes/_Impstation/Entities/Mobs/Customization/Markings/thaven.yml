@@ -128,7 +128,7 @@
 - type: marking
   id: ThavenREyeGlow
   bodyPart: Eyes
-  markingCategory: Eyes # WOLFGATE(Humanoid): eye markings get their own points (was Head)
+  markingCategory: Eyes # WOLFGATE(Species): eye markings get their own points (was Head)
   speciesRestriction: [Thaven, ProtoThaven]
   coloring:
     default:
@@ -143,7 +143,7 @@
 - type: marking
   id: ThavenLEyeGlow
   bodyPart: Eyes
-  markingCategory: Eyes # WOLFGATE(Humanoid): eye markings get their own points (was Head)
+  markingCategory: Eyes # WOLFGATE(Species): eye markings get their own points (was Head)
   speciesRestriction: [Thaven, ProtoThaven]
   coloring:
     default:

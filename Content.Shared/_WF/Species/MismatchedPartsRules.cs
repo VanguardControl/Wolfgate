@@ -5,7 +5,7 @@ using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared._WF.MismatchedParts;
+namespace Content.Shared._WF.Species;
 
 /// <summary>
 /// What the Mismatched parts option unlocks: every species' markings, hair and facial hair, on body parts the

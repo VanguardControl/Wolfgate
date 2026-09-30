@@ -372,7 +372,7 @@ namespace Content.Client.Lobby.UI
                 if (Profile is null)
                     return;
 
-                // WOLFGATE(MismatchedParts) START: the first style the option allows
+                // WOLFGATE(Species) START: the first style the option allows
                 // var hair = _markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.Hair, Profile.Species).Keys
                 //     .FirstOrDefault();
                 var hair = HairStyleChoices(MarkingCategories.Hair).Keys.FirstOrDefault();
@@ -395,7 +395,7 @@ namespace Content.Client.Lobby.UI
                 if (Profile is null)
                     return;
 
-                // WOLFGATE(MismatchedParts) START: the first style the option allows
+                // WOLFGATE(Species) START: the first style the option allows
                 // var hair = _markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.FacialHair, Profile.Species).Keys
                 //     .FirstOrDefault();
                 var hair = HairStyleChoices(MarkingCategories.FacialHair).Keys.FirstOrDefault();
@@ -600,7 +600,7 @@ namespace Content.Client.Lobby.UI
 
             RefreshFlavorText();
             InitializeHeadshot(); // WOLFGATE(Headshot)
-            InitializeMismatchedParts(); // WOLFGATE(MismatchedParts)
+            InitializeMismatchedParts(); // WOLFGATE(Species)
 
             #region Dummy
 
@@ -1259,7 +1259,7 @@ namespace Content.Client.Lobby.UI
             UpdateNameEdit();
             UpdateFlavorTextEdit();
             UpdateHeadshot(); // WOLFGATE(Headshot)
-            UpdateMismatchedParts(); // WOLFGATE(MismatchedParts)
+            UpdateMismatchedParts(); // WOLFGATE(Species)
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();
@@ -1971,10 +1971,10 @@ namespace Content.Client.Lobby.UI
             var hair = appearance.HairStyleId;
             var facialHair = appearance.FacialHairStyleId;
 
-            if (!HairStyleChoices(MarkingCategories.Hair).ContainsKey(hair)) // WOLFGATE(MismatchedParts)
+            if (!HairStyleChoices(MarkingCategories.Hair).ContainsKey(hair)) // WOLFGATE(Species)
                 hair = HairStyles.DefaultHairStyle;
 
-            if (!HairStyleChoices(MarkingCategories.FacialHair).ContainsKey(facialHair)) // WOLFGATE(MismatchedParts)
+            if (!HairStyleChoices(MarkingCategories.FacialHair).ContainsKey(facialHair)) // WOLFGATE(Species)
                 facialHair = HairStyles.DefaultFacialHairStyle;
 
             if (hair == appearance.HairStyleId && facialHair == appearance.FacialHairStyleId)
@@ -2359,12 +2359,12 @@ namespace Content.Client.Lobby.UI
                 hairMarking,
                 Profile.Species,
                 1,
-                HairStyleChoices(MarkingCategories.Hair)); // WOLFGATE(MismatchedParts): the styles the option allows
+                HairStyleChoices(MarkingCategories.Hair)); // WOLFGATE(Species): the styles the option allows
             FacialHairPicker.UpdateData(
                 facialHairMarking,
                 Profile.Species,
                 1,
-                HairStyleChoices(MarkingCategories.FacialHair)); // WOLFGATE(MismatchedParts): the styles the option allows
+                HairStyleChoices(MarkingCategories.FacialHair)); // WOLFGATE(Species): the styles the option allows
             HairCard.Visible = HairStylePicker.Visible || FacialHairPicker.Visible; // WOLFGATE(Humanoid): no hair card for species without hair
         }
 

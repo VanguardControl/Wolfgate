@@ -1,5 +1,5 @@
 using System.Linq;
-using Content.Shared._WF.MismatchedParts; // WOLFGATE(MismatchedParts)
+using Content.Shared._WF.Species; // WOLFGATE(Species)
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
@@ -208,7 +208,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         return new(color.RByte, color.GByte, color.BByte);
     }
 
-    // WOLFGATE(MismatchedParts): mismatchedParts lets the hair check accept the styles the option opens
+    // WOLFGATE(Species): mismatchedParts lets the hair check accept the styles the option opens
     public static HumanoidCharacterAppearance EnsureValid(HumanoidCharacterAppearance appearance, string species, Sex sex, bool mismatchedParts = false)
     {
         var hairStyleId = appearance.HairStyleId;
@@ -224,12 +224,12 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         // WOLFGATE(Humanoid) START: species-aware hair validation
         // Hair is stored outside the marking set, so switching to a species that cannot wear it used to leave it
         // on the character with no picker to remove it.
-        if (!MismatchedPartsRules.Styles(MarkingCategories.Hair, species, mismatchedParts, markingManager, proto).ContainsKey(hairStyleId)) // WOLFGATE(MismatchedParts)
+        if (!MismatchedPartsRules.Styles(MarkingCategories.Hair, species, mismatchedParts, markingManager, proto).ContainsKey(hairStyleId)) // WOLFGATE(Species)
         {
             hairStyleId = HairStyles.DefaultHairStyle;
         }
 
-        if (!MismatchedPartsRules.Styles(MarkingCategories.FacialHair, species, mismatchedParts, markingManager, proto).ContainsKey(facialHairStyleId)) // WOLFGATE(MismatchedParts)
+        if (!MismatchedPartsRules.Styles(MarkingCategories.FacialHair, species, mismatchedParts, markingManager, proto).ContainsKey(facialHairStyleId)) // WOLFGATE(Species)
         {
             facialHairStyleId = HairStyles.DefaultFacialHairStyle;
         }
@@ -239,7 +239,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
         var skinColor = appearance.SkinColor;
         if (proto.TryIndex(species, out SpeciesPrototype? speciesProto))
         {
-            markingSet = MarkingSet.ForProfile(appearance.Markings, speciesProto.MarkingPoints, mismatchedParts, markingManager, proto); // WOLFGATE(MismatchedParts): was new MarkingSet(...), opens the species' closed categories
+            markingSet = MarkingSet.ForProfile(appearance.Markings, speciesProto.MarkingPoints, mismatchedParts, markingManager, proto); // WOLFGATE(Species): was new MarkingSet(...), opens the species' closed categories
             markingSet.EnsureValid(markingManager);
 
             if (!Humanoid.SkinColor.VerifySkinColor(speciesProto.SkinColoration, skinColor))
@@ -254,7 +254,7 @@ public sealed partial class HumanoidCharacterAppearance : ICharacterAppearance, 
             }
             // WOLFGATE END
 
-            markingSet.EnsureSpecies(species, skinColor, mismatchedParts, markingManager); // WOLFGATE(MismatchedParts): keeps other species' markings
+            markingSet.EnsureSpecies(species, skinColor, mismatchedParts, markingManager); // WOLFGATE(Species): keeps other species' markings
             markingSet.EnsureSexes(sex, markingManager);
         }
 

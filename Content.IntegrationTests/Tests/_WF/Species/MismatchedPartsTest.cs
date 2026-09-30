@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Content.Client.Humanoid;
 using Content.Server.Database;
-using Content.Shared._WF.MismatchedParts;
+using Content.Shared._WF.Species;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
@@ -21,7 +21,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using Robust.UnitTesting;
 
-namespace Content.IntegrationTests.Tests._WF.MismatchedParts;
+namespace Content.IntegrationTests.Tests._WF.Species;
 
 /// <summary>
 /// Mismatched parts: the styles each playable species may pick with the option off and on, validation, the saved column,
