@@ -7,7 +7,7 @@ namespace Content.Shared._WF.ShipShields;
 public static class WFShipShieldGeometry
 {
     /// <summary>Returns counterclockwise exterior loops without repeated closing vertices.</summary>
-    public static Vector2[][] CreateContours(IEnumerable<Vector2i> tiles, float tileSize = 1f, int padding = 6)
+    public static Vector2[][] CreateContours(IEnumerable<Vector2i> tiles, float tileSize = 1f, int padding = 8)
     {
         var occupied = new HashSet<Vector2i>();
         foreach (var tile in tiles)
@@ -76,8 +76,8 @@ public static class WFShipShieldGeometry
                 }
                 if (area > 0 && simplified.Count >= 3)
                 {
-                    var outline = padding >= 2 ? SimplifyLoop(simplified, tileSize * 1.25f) : simplified;
-                    var rounded = RoundCorners(outline, tileSize * Math.Min(3f, padding * 0.5f));
+                    var outline = padding >= 2 ? SimplifyLoop(simplified, tileSize * 1.5f) : simplified;
+                    var rounded = RoundCorners(outline, tileSize * Math.Min(4f, padding * 0.5f));
                     if (HasCrossings(rounded, tileSize * 8f))
                         rounded = simplified.ToArray();
                     contours.Add(rounded);
@@ -147,9 +147,9 @@ public static class WFShipShieldGeometry
             var inset = Math.Min(maximumInset, Math.Min(incoming.Length(), outgoing.Length()) * 0.4f);
             var start = vertex + Vector2.Normalize(incoming) * inset;
             var end = vertex + Vector2.Normalize(outgoing) * inset;
-            for (var step = 0; step <= 6; step++)
+            for (var step = 0; step <= 8; step++)
             {
-                var t = step / 6f;
+                var t = step / 8f;
                 rounded.Add((1f - t) * (1f - t) * start + 2f * (1f - t) * t * vertex + t * t * end);
             }
         }

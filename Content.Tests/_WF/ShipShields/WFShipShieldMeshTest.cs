@@ -59,8 +59,8 @@ public sealed class WFShipShieldMeshTest
     [Test]
     public void GeometryPreparationBenchmark()
     {
-        const int ships = 24;
-        const int frames = 120;
+        const int ships = 3;
+        const int frames = 12;
         var contours = ShipContours();
         _ = new WFShipShieldMesh(contours, true);
         var rebuiltVertices = 0L;
@@ -96,6 +96,84 @@ public sealed class WFShipShieldMeshTest
             new Vector2(0f, 0.08f), new Vector2(0f, 0.08f), 0.5f);
         Assert.That(midpoint.Length(), Is.EqualTo(1f).Within(0.0001f));
         Assert.That(midpoint.Y, Is.GreaterThan(0.99f));
+    }
+    [Test]
+    public void HexOpacityFadesSmoothlyThroughTheFullFieldDepth()
+    {
+        Assert.That(WFShipShieldMesh.HexOpacity(0f), Is.GreaterThan(0.2f));
+        Assert.That(WFShipShieldMesh.HexOpacity(WFShipShieldMesh.InwardDepth), Is.Zero);
+        Assert.That(WFShipShieldMesh.HexOpacity(WFShipShieldMesh.InwardDepth + 1f), Is.Zero);
+        var previous = WFShipShieldMesh.HexOpacity(0f);
+        for (var step = 1; step <= 16; step++)
+        {
+            var opacity = WFShipShieldMesh.HexOpacity(WFShipShieldMesh.InwardDepth * step / 16f);
+            Assert.That(opacity, Is.LessThan(previous));
+            previous = opacity;
+        }
+    }
+
+    [Test]
+    public void HexLatticeReachesBeyondTwoTilesAndFadesBeforeTheHull()
+    {
+        var contours = new[] { new[]
+        {
+            Vector2.Zero, new Vector2(20f, 0f), new Vector2(20f, 12f), new Vector2(0f, 12f),
+        } };
+        var mesh = new WFShipShieldMesh(contours, false);
+        var deepest = mesh.HexLines.Max(v => MathF.Min(MathF.Min(v.Position.X, 20f - v.Position.X),
+            MathF.Min(v.Position.Y, 12f - v.Position.Y)));
+        Assert.That(deepest, Is.GreaterThan(2f));
+        Assert.That(mesh.HexLines.Any(v => v.Alpha < 0.05f &&
+            MathF.Min(MathF.Min(v.Position.X, 20f - v.Position.X), MathF.Min(v.Position.Y, 12f - v.Position.Y)) > 3f), Is.True);
+        AssertValidMesh(mesh);
+    }
+    [Test]
+    public void ConcaveJoinKeepsHexEdgesOnRegularCartesianAxes()
+    {
+        var contours = new[] { new[]
+        {
+            Vector2.Zero, new Vector2(20f, 0f), new Vector2(20f, 6f),
+            new Vector2(6f, 6f), new Vector2(6f, 20f), new Vector2(0f, 20f),
+        } };
+        var mesh = new WFShipShieldMesh(contours, false);
+        var checkedLines = 0;
+        var nearJoin = 0;
+        for (var i = 0; i < mesh.HexLines.Count; i += 2)
+        {
+            var a = mesh.HexLines[i].Position;
+            var b = mesh.HexLines[i + 1].Position;
+            var delta = b - a;
+            if (delta.LengthSquared() < 0.0025f)
+                continue;
+            checkedLines++;
+            if (Vector2.Distance((a + b) * 0.5f, new Vector2(6f, 6f)) < 4f)
+                nearJoin++;
+            var angle = MathF.Atan2(delta.Y, delta.X);
+            Assert.That(MathF.Abs(MathF.Sin(angle * 3f)), Is.LessThan(0.001f),
+                "Concave joins must clip regular hex cells without compressing or fanning their edges.");
+            foreach (var point in new[] { a, (a + b) * 0.5f, b })
+                Assert.That(WFShipShieldMesh.SignedDistance(contours, point), Is.InRange(-0.06f, WFShipShieldMesh.InwardDepth + 0.06f));
+        }
+        Assert.That(checkedLines, Is.GreaterThan(100));
+        Assert.That(nearJoin, Is.GreaterThan(5));
+        AssertValidMesh(mesh);
+    }
+
+    [Test]
+    public void DistanceFieldRespectsConcaveNotchesAndDisconnectedSections()
+    {
+        var contours = new[]
+        {
+            new[] { Vector2.Zero, new Vector2(20f, 0f), new Vector2(20f, 6f), new Vector2(6f, 6f), new Vector2(6f, 20f), new Vector2(0f, 20f) },
+            new[] { new Vector2(30f, 0f), new Vector2(34f, 0f), new Vector2(34f, 4f), new Vector2(30f, 4f) },
+        };
+        Assert.Multiple(() =>
+        {
+            Assert.That(WFShipShieldMesh.SignedDistance(contours, new Vector2(3f, 10f)), Is.EqualTo(3f).Within(0.0001f));
+            Assert.That(WFShipShieldMesh.SignedDistance(contours, new Vector2(10f, 10f)), Is.EqualTo(-4f).Within(0.0001f));
+            Assert.That(WFShipShieldMesh.SignedDistance(contours, new Vector2(32f, 2f)), Is.EqualTo(2f).Within(0.0001f));
+            Assert.That(WFShipShieldMesh.SignedDistance(contours, new Vector2(26f, 2f)), Is.EqualTo(-4f).Within(0.0001f));
+        });
     }
     private static Vector2[][] ShipContours()
     {

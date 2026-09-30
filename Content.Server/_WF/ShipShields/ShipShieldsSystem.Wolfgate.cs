@@ -16,6 +16,9 @@ namespace Content.Server._Crescent.ShipShields;
 
 public sealed partial class ShipShieldsSystem
 {
+    // The surface covers one tick of travel below the default projectile raycast cutoff.
+    private const float ShieldSurfaceRadius = 0.65f;
+
     [Dependency] private SharedMapSystem _wfShieldMap = default!;
     private readonly HashSet<EntityUid> _wfChangedShieldHulls = new();
     private float _wfHullAccumulator;
@@ -91,7 +94,7 @@ public sealed partial class ShipShieldsSystem
         if (TryComp<FixturesComponent>(shield, out var fixtures))
         {
             foreach (var name in fixtures.Fixtures.Keys.Where(n => n.StartsWith("wfShield", StringComparison.Ordinal)).ToArray())
-                _fixtureSystem.DestroyFixture(shield, name, body: physics);
+                _fixtureSystem.DestroyFixture(shield, name, updates: false, body: physics);
         }
         var index = 0;
         foreach (var contour in contours)
@@ -100,9 +103,16 @@ public sealed partial class ShipShieldsSystem
             var edge = new EdgeShape();
             edge.SetOneSided(contour[(i + contour.Length - 1) % contour.Length], contour[i],
                 contour[(i + 1) % contour.Length], contour[(i + 2) % contour.Length]);
-            _fixtureSystem.TryCreateFixture(shield, edge, $"wfShield{index++}", hard: true,
-                collisionLayer: (int) CollisionGroup.BulletImpassable, body: physics);
+            var name = $"wfShield{index++}";
+            _fixtureSystem.TryCreateFixture(shield, edge, name, hard: true,
+                collisionLayer: (int) CollisionGroup.BulletImpassable, updates: false, body: physics);
+            if (_fixtureSystem.GetFixtureOrNull(shield, name) is { } fixture)
+                _physicsSystem.SetRadius(shield, name, fixture, edge, ShieldSurfaceRadius * mapGrid.TileSize, body: physics);
         }
+        // Removing the last fixture normally disables collision; restore it after the whole rebuild.
+        _fixtureSystem.FixtureUpdate(shield, body: physics);
+        _physicsSystem.SetCanCollide(shield, index > 0, body: physics);
+        _physicsSystem.WakeBody(shield, body: physics);
         visuals.Grid = grid;
         visuals.Contours = contours;
         UpdateWolfgateShieldHealth(shield, visuals, Comp<ShipShieldComponent>(shield).Source);
@@ -153,6 +163,8 @@ public sealed partial class ShipShieldsSystem
             return;
         var local = Vector2.Transform(_transformSystem.GetWorldPosition(projectile), _transformSystem.GetInvWorldMatrix(shield));
         var position = WFShipShieldGeometry.ClosestPoint(visuals.Contours, local);
-        RaiseNetworkEvent(new WFShipShieldImpactEvent(GetNetEntity(shield), position, 1f), Filter.Pvs(shield));
+        PlayWolfgateShieldImpact(shield, position);
+        // Shield entities are globally visible, including edges outside their origin's PVS.
+        RaiseNetworkEvent(new WFShipShieldImpactEvent(GetNetEntity(shield), position, 1f), Filter.Broadcast());
     }
 }

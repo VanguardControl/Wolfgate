@@ -1,0 +1,3 @@
+- files: ["impact_1.ogg", "impact_2.ogg", "impact_3.ogg"]
+  copyright: "User-provided shield impact sounds supplied for Wolfgate on 2026-09-30. Converted to mono OGG Vorbis with a filtered, decaying echo tail and encoding headroom. Original authorship and license were not specified."
+  source: "User-provided local Music/SFX/shield impact sfx folder"

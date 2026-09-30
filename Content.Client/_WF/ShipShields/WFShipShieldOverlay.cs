@@ -17,6 +17,7 @@ public sealed class WFShipShieldOverlay : Overlay
     private readonly Dictionary<EntityUid, CachedField> _fields = new();
     private readonly List<EntityUid> _expired = new();
     private readonly ShaderInstance _shader;
+    private readonly ShaderInstance _distantShader;
 
     /// <summary>Draws unlit energy beneath ship sprites.</summary>
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowWorld;
@@ -29,7 +30,8 @@ public sealed class WFShipShieldOverlay : Overlay
         _transforms = entities.System<SharedTransformSystem>();
         _timing = timing;
         _impacts = impacts;
-        _shader = prototypes.Index<ShaderPrototype>("unshaded").Instance();
+        _shader = prototypes.Index<ShaderPrototype>("WFShipShieldShimmer").Instance();
+        _distantShader = prototypes.Index<ShaderPrototype>("unshaded").Instance();
         ZIndex = 8;
     }
 
@@ -46,7 +48,7 @@ public sealed class WFShipShieldOverlay : Overlay
         }
         foreach (var uid in _expired)
             _fields.Remove(uid);
-        handle.UseShader(_shader);
+        handle.UseShader(distant ? _distantShader : _shader);
         var query = _entities.EntityQueryEnumerator<WFShipShieldVisualsComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var shield, out var xform))
         {
@@ -114,7 +116,8 @@ public sealed class WFShipShieldOverlay : Overlay
                 }
                 bounds = bounds.ExtendToContain(point);
             }
-            Bounds = new Box2(bounds.BottomLeft - new Vector2(2f), bounds.TopRight + new Vector2(2f));
+            Bounds = new Box2(bounds.BottomLeft - new Vector2(WFShipShieldMesh.InwardDepth),
+                bounds.TopRight + new Vector2(WFShipShieldMesh.InwardDepth));
         }
     }
 
@@ -175,7 +178,7 @@ public sealed class WFShipShieldOverlay : Overlay
             {
                 var vertex = source[i];
                 var color = _colors[vertex.Sample];
-                destination[i] = new DrawVertexUV2DColor(vertex.Position,
+                destination[i] = new DrawVertexUV2DColor(vertex.Position, vertex.Position,
                     color.WithAlpha(Math.Clamp(color.A * vertex.Alpha, 0f, 0.85f)));
             }
         }

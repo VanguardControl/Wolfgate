@@ -25,10 +25,10 @@ public sealed class WFShipShieldGeometryTest
         var contour = WFShipShieldGeometry.CreateContours(new[] { new Vector2i(-2, 5) }, 2f)[0];
         Assert.Multiple(() =>
         {
-            Assert.That(contour.Min(v => v.X), Is.InRange(-16f, -12f));
-            Assert.That(contour.Max(v => v.X), Is.InRange(6f, 10f));
-            Assert.That(contour.Min(v => v.Y), Is.InRange(-2f, 2f));
-            Assert.That(contour.Max(v => v.Y), Is.InRange(20f, 24f));
+            Assert.That(contour.Min(v => v.X), Is.InRange(-20f, -16f));
+            Assert.That(contour.Max(v => v.X), Is.InRange(10f, 14f));
+            Assert.That(contour.Min(v => v.Y), Is.InRange(-6f, -2f));
+            Assert.That(contour.Max(v => v.Y), Is.InRange(24f, 28f));
         });
         AssertValidContour(contour);
     }
@@ -126,8 +126,8 @@ public sealed class WFShipShieldGeometryTest
             foreach (var point in new[] { a, (a + b) * 0.5f })
             {
                 var distance = tiles.Min(tile => HullDistance(point, tile));
-                Assert.That(distance, Is.GreaterThanOrEqualTo(4f), $"Rounded shield encroaches on hull at {point}.");
-                Assert.That(distance, Is.LessThanOrEqualTo(7f), $"Rounded shield loses hull shape at {point}.");
+                Assert.That(distance, Is.GreaterThanOrEqualTo(6f), $"Rounded shield encroaches on hull at {point}.");
+                Assert.That(distance, Is.LessThanOrEqualTo(9f), $"Rounded shield loses hull shape at {point}.");
             }
             var incoming = Vector2.Normalize(a - contour[(i + contour.Length - 1) % contour.Length]);
             var outgoing = Vector2.Normalize(b - a);
