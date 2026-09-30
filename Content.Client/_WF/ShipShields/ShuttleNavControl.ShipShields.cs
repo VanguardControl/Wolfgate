@@ -39,7 +39,8 @@ public partial class ShuttleNavControl
             outline.Update(visuals.Contours, allocation?.Center ?? Vector2.Zero,
                 allocation?.DirectionRadians ?? 0f, allocation?.Concentration ?? 0f,
                 allocation?.ArcRadians ?? MathF.Tau);
-            var localToView = _transform.GetWorldMatrix(uid) * worldToView;
+            // Match the hull pose instead of the separately replicated collision field.
+            var localToView = _transform.GetWorldMatrix(gridXform) * worldToView;
             var tint = EntManager.TryGetComponent<ShipShieldVisualsComponent>(uid, out var generatorVisuals)
                 ? WFShipShieldEffects.HealthColor(visuals.Health, generatorVisuals.ShieldColor)
                 : WFShipShieldEffects.HealthColor(visuals.Health);

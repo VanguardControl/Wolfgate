@@ -12,7 +12,7 @@ At the helm (when a generator is installed), or directly at an anchored shield g
 
 WFShipShieldShuntMath defines the allocation and clipped sectors; WFShipShieldShuntSystem validates helm requests; the client shunting screen and shield overlay show the same allocation.
 
-Navigation and fire-control radar views draw the hull contours through `ShuttleNavControl.ShipShields.cs`. Cached map outlines show health colours and allocation strength, leave fully unpowered sectors open, and retain radar detection and FTL visibility rules.
+Navigation and fire-control radar views draw the hull contours through `ShuttleNavControl.ShipShields.cs`. Cached map outlines show health colours and allocation strength, leave fully unpowered sectors open, and retain radar detection and FTL visibility rules. Radar outlines use the protected grid transform, matching the vessel drawing even when the separate shield entity receives a delayed rotation update.
 
 Generator startup and shutdown use the supplied `shield_on` and `shield_off` recordings, converted to mono Ogg at their original pitch. Startup and shutdown share a five-second per-hull cooldown, including across generator replacement, so rapid toggling cannot stack or queue transition sounds.
 
