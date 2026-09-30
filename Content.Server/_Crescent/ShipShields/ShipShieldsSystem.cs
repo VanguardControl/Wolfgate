@@ -35,6 +35,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        UpdateWolfgateShields(frameTime); // WOLFGATE(ShipShields): refresh hull geometry and shield health
 
         var query = EntityQueryEnumerator<ShipShieldEmitterComponent, ApcPowerReceiverComponent>();
         while (query.MoveNext(out var uid, out var emitter, out var power))
@@ -112,13 +113,15 @@ public sealed partial class ShipShieldsSystem : EntitySystem
 
         InitializeCommands();
         InitializeEmitters();
+        InitializeWolfgateShields(); // WOLFGATE(ShipShields): track hull tile changes
     }
 
     private void OnPreventCollide(EntityUid uid, ShipShieldComponent component, ref PreventCollideEvent args)
     {
         // only handle ship weapons for now. engine update introduced physics regressions. Let's polish everything else and circle back yeah?
         // Ensuring projectiles coming froms same grid don't hit shield is handled by ProjectileGridPhaseComponent
-        if (!_shipWeaponProjectileQuery.HasComponent(args.OtherEntity) ||
+        // WOLFGATE(ShipShields): map-parented shield still phases its ship's outgoing shots
+        if (IsWolfgateShieldFriendlyProjectile(uid, args.OtherEntity) || !_shipWeaponProjectileQuery.HasComponent(args.OtherEntity) ||
         !_projectileQuery.TryGetComponent(args.OtherEntity, out var projectile) ||
         projectile.ProjectileSpent)
         {
@@ -143,11 +146,13 @@ public sealed partial class ShipShieldsSystem : EntitySystem
         // why shoot the projectile again when you can just 180 its physics, tho?
         //_gun.ShootProjectile(args.OtherEntity, deflectionVector, _physicsSystem.GetMapLinearVelocity(uid), uid, null, velocity.Length());
 
-        if (component.Source is { } source)
-        {
-            var ev = new ShieldDeflectedEvent(args.OtherEntity, projectile);
-            RaiseLocalEvent(source, ref ev);
-        }
+        // WOLFGATE(ShipShields) START: apply damage only after a projectile contacts the perimeter
+        // if (component.Source is { } source)
+        // {
+        //     var ev = new ShieldDeflectedEvent(args.OtherEntity, projectile);
+        //     RaiseLocalEvent(source, ref ev);
+        // }
+        // WOLFGATE END
     }
 
     private void OnEmitterShutdown(EntityUid uid, ShipShieldEmitterComponent emitter, ComponentShutdown args) // Mono
@@ -191,31 +196,36 @@ public sealed partial class ShipShieldsSystem : EntitySystem
             Dirty(shield, shieldVisuals);
         }
 
-        var gridCenter = new EntityCoordinates(entity, mapGrid.LocalAABB.Center);
-        _transformSystem.SetCoordinates(shield, gridCenter);
-        _transformSystem.SetWorldRotation(shield, _transformSystem.GetWorldRotation(entity));
+        // WOLFGATE(ShipShields) START: replace oval and interior blocker with the padded hull perimeter
+        // var gridCenter = new EntityCoordinates(entity, mapGrid.LocalAABB.Center);
+        // _transformSystem.SetCoordinates(shield, gridCenter);
+        // _transformSystem.SetWorldRotation(shield, _transformSystem.GetWorldRotation(entity));
 
-        var chain = GenerateOvalFixture(shield, "shield", shieldPhysics, mapGrid, shieldVisuals.Padding);
+        // var chain = GenerateOvalFixture(shield, "shield", shieldPhysics, mapGrid, shieldVisuals.Padding);
 
-        List<Vector2> roughPoly = new();
+        // List<Vector2> roughPoly = new();
 
-        var interval = chain.Count / PhysicsConstants.MaxPolygonVertices;
+        // var interval = chain.Count / PhysicsConstants.MaxPolygonVertices;
 
-        int i = 0;
+        // int i = 0;
 
-        while (i < PhysicsConstants.MaxPolygonVertices)
-        {
-            roughPoly.Add(chain.Vertices[i * interval]);
-            i++;
-        }
+        // while (i < PhysicsConstants.MaxPolygonVertices)
+        // {
+        //     roughPoly.Add(chain.Vertices[i * interval]);
+        //     i++;
+        // }
 
-        var internalPoly = new PolygonShape();
-        internalPoly.Set(roughPoly);
+        // var internalPoly = new PolygonShape();
+        // internalPoly.Set(roughPoly);
 
-        _fixtureSystem.TryCreateFixture(shield, internalPoly, "internalShield",
-            hard: true,
-            collisionLayer: (int)CollisionGroup.BulletImpassable, // Mono - Only try to block bullets
-            body: shieldPhysics);
+        // _fixtureSystem.TryCreateFixture(shield, internalPoly, "internalShield",
+        //     hard: true,
+        //     collisionLayer: (int)CollisionGroup.BulletImpassable, // Mono - Only try to block bullets
+        //     body: shieldPhysics);
+
+
+        CreateWolfgateShieldHull(shield, entity, mapGrid, shieldPhysics);
+        // WOLFGATE END
 
         _physicsSystem.WakeBody(shield, body: shieldPhysics);
         _physicsSystem.SetSleepingAllowed(shield, shieldPhysics, false);
