@@ -1,8 +1,9 @@
 using System.Numerics;
 using Content.Server._WF.ShipShields;
+using Content.Shared._Crescent.ShipShields;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Components;
-using Robust.Shared.Map;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
@@ -12,22 +13,34 @@ public sealed partial class ShipShieldsSystem
 {
     [Dependency] private IGameTiming _wfShieldTiming = default!;
     [Dependency] private IRobustRandom _wfShieldRandom = default!;
+    [Dependency] private EntityLookupSystem _wfShieldAudioLookup = default!;
     private static readonly SoundCollectionSpecifier WolfgateImpactSound = new("WFShipShieldImpacts");
 
-    /// <summary>Spaces impact sounds apart while placing each echo at its hull contact.</summary>
+    /// <summary>Plays one hull-wide echo that survives shield collapse.</summary>
     private void PlayWolfgateShieldImpact(EntityUid shield, Vector2 position)
     {
-        var state = EnsureComp<WFShipShieldImpactAudioComponent>(shield);
+        if (!TryComp<ShipShieldComponent>(shield, out var shieldComponent) ||
+            TerminatingOrDeleted(shieldComponent.Shielded))
+            return;
+        var grid = shieldComponent.Shielded;
+        var state = EnsureComp<WFShipShieldImpactAudioComponent>(grid);
         var now = _wfShieldTiming.CurTime;
-        if (now < state.NextImpactSound)
+        if (now < state.NextImpactSound ||
+            state.ActiveImpactSound is { } active && !TerminatingOrDeleted(active))
             return;
         state.NextImpactSound = now + TimeSpan.FromSeconds(_wfShieldRandom.NextFloat(2.4f, 3.6f));
-        var contact = _transformSystem.ToMapCoordinates(new EntityCoordinates(shield, position));
-        var sound = _audio.PlayPvs(WolfgateImpactSound, _transformSystem.ToCoordinates(contact),
-            AudioParams.Default.WithVolume(-4f).WithReferenceDistance(8f).WithMaxDistance(60f).WithVariation(0.025f));
+        var bounds = _wfShieldAudioLookup.GetWorldAABB(grid);
+        var center = _wfShieldMap.GetGridPosition(grid);
+        var extent = Vector2.Max(Vector2.Abs(bounds.BottomLeft - center), Vector2.Abs(bounds.TopRight - center));
+        var radius = MathF.Max(1f, extent.Length());
+        var sound = _audio.PlayPvs(WolfgateImpactSound, grid,
+            AudioParams.Default.WithVolume(-4f).WithReferenceDistance(radius)
+                .WithMaxDistance(radius + SharedAudioSystem.DefaultSoundRange).WithVariation(0.025f));
         if (sound is { } stream)
         {
-            stream.Component.Flags |= AudioFlags.NoOcclusion;
+            state.ActiveImpactSound = stream.Entity;
+            stream.Component.Flags |= AudioFlags.GridAudio | AudioFlags.NoOcclusion;
+            _pvsSys.AddGlobalOverride(stream.Entity);
             Dirty(stream.Entity, stream.Component);
         }
     }

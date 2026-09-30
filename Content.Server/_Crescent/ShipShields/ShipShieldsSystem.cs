@@ -123,7 +123,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
         // WOLFGATE(ShipShields): map-parented shield still phases its ship's outgoing shots
         if (IsWolfgateShieldFriendlyProjectile(uid, args.OtherEntity) || !_shipWeaponProjectileQuery.HasComponent(args.OtherEntity) ||
         !_projectileQuery.TryGetComponent(args.OtherEntity, out var projectile) ||
-        projectile.ProjectileSpent)
+        projectile.ProjectileSpent || IsWolfgateShieldUnprotectedProjectile(uid, args.OtherEntity)) // WOLFGATE(ShipShields): unpowered sectors let shots pass without changing their shooter
         {
             args.Cancelled = true;
             return;

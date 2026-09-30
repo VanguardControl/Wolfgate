@@ -17,7 +17,6 @@ public sealed class WFShipShieldOverlay : Overlay
     private readonly Dictionary<EntityUid, CachedField> _fields = new();
     private readonly List<EntityUid> _expired = new();
     private readonly ShaderInstance _shader;
-    private readonly ShaderInstance _distantShader;
 
     /// <summary>Draws unlit energy beneath ship sprites.</summary>
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowWorld;
@@ -31,7 +30,6 @@ public sealed class WFShipShieldOverlay : Overlay
         _timing = timing;
         _impacts = impacts;
         _shader = prototypes.Index<ShaderPrototype>("WFShipShieldShimmer").Instance();
-        _distantShader = prototypes.Index<ShaderPrototype>("unshaded").Instance();
         ZIndex = 8;
     }
 
@@ -47,8 +45,10 @@ public sealed class WFShipShieldOverlay : Overlay
                 _expired.Add(uid);
         }
         foreach (var uid in _expired)
+        {
+            _fields[uid].Shader?.Dispose();
             _fields.Remove(uid);
-        handle.UseShader(distant ? _distantShader : _shader);
+        }
         var query = _entities.EntityQueryEnumerator<WFShipShieldVisualsComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var shield, out var xform))
         {
@@ -56,6 +56,7 @@ public sealed class WFShipShieldOverlay : Overlay
                 continue;
             if (!_fields.TryGetValue(uid, out var cached) || !WFShipShieldMesh.ContoursEqual(cached.Contours, shield.Contours))
             {
+                cached?.Shader?.Dispose();
                 cached = new CachedField(shield.Contours);
                 _fields[uid] = cached;
             }
@@ -73,6 +74,8 @@ public sealed class WFShipShieldOverlay : Overlay
                 Vector2.Max(Vector2.Max(a, b), Vector2.Max(c, d)));
             if (!args.WorldAABB.Intersects(worldBounds))
                 continue;
+            _entities.TryGetComponent<WFShipShieldShuntComponent>(uid, out var shunt);
+            handle.UseShader(cached.ConfigureShader(_shader, shunt, distant));
             var mesh = distant ? cached.Distant ??= new RenderMesh(cached.Contours, true)
                 : cached.Detailed ??= new RenderMesh(cached.Contours, false);
             _impacts.TryGetValue(uid, out var impacts);
@@ -85,6 +88,14 @@ public sealed class WFShipShieldOverlay : Overlay
         }
         handle.SetTransform(Matrix3x2.Identity);
         handle.UseShader(null);
+    }
+
+    protected override void DisposeBehavior()
+    {
+        foreach (var field in _fields.Values)
+            field.Shader?.Dispose();
+        _fields.Clear();
+        base.DisposeBehavior();
     }
 
     private static void DrawBatches(DrawingHandleWorld handle, DrawPrimitiveTopology topology, DrawVertexUV2DColor[] vertices)
@@ -100,6 +111,12 @@ public sealed class WFShipShieldOverlay : Overlay
         public readonly Box2 Bounds;
         public RenderMesh? Detailed;
         public RenderMesh? Distant;
+        public ShaderInstance? Shader;
+        private Vector2 _shuntCenter;
+        private float _shuntDirection;
+        private float _shuntConcentration;
+        private float _shuntArc;
+        private bool? _distant;
 
         public CachedField(Vector2[][] contours)
         {
@@ -118,6 +135,34 @@ public sealed class WFShipShieldOverlay : Overlay
             }
             Bounds = new Box2(bounds.BottomLeft - new Vector2(WFShipShieldMesh.InwardDepth),
                 bounds.TopRight + new Vector2(WFShipShieldMesh.InwardDepth));
+        }
+
+        public ShaderInstance ConfigureShader(ShaderInstance source, WFShipShieldShuntComponent? shunt, bool distant)
+        {
+            Shader ??= source.Duplicate();
+            var center = shunt?.Center ?? Bounds.Center;
+            var direction = shunt?.DirectionRadians ?? 0f;
+            var concentration = shunt?.Concentration ?? 0f;
+            var arc = shunt?.ArcRadians ?? MathF.Tau;
+            if (_distant == null || _shuntCenter != center || _shuntDirection != direction ||
+                _shuntConcentration != concentration || _shuntArc != arc)
+            {
+                Shader.SetParameter("shuntCenter", center);
+                Shader.SetParameter("shuntDirection", new Vector2(MathF.Cos(direction), MathF.Sin(direction)));
+                Shader.SetParameter("shuntConcentration", concentration);
+                Shader.SetParameter("shuntCosHalfArc", MathF.Cos(arc * 0.5f));
+                Shader.SetParameter("shuntBoost", 1f + concentration * (MathF.Tau / arc - 1f));
+                _shuntCenter = center;
+                _shuntDirection = direction;
+                _shuntConcentration = concentration;
+                _shuntArc = arc;
+            }
+            if (_distant != distant)
+            {
+                Shader.SetParameter("shimmerStrength", distant ? 0f : 1f);
+                _distant = distant;
+            }
+            return Shader;
         }
     }
 

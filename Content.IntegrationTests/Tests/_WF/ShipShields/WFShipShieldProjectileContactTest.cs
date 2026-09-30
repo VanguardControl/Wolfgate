@@ -1,4 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Reflection;
+using Content.Server._WF.ShipShields;
+using Robust.Server.GameStates;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Components;
 using Content.Server.Projectiles;
 using Content.Shared._Crescent.ShipShields;
 using Content.Shared._Mono.SpaceArtillery;
@@ -25,6 +32,8 @@ public sealed class WFShipShieldProjectileContactTest
         var entities = server.EntMan;
         await server.WaitAssertion(() =>
         {
+            var maps = entities.System<SharedMapSystem>();
+            maps.SetTile(map.Grid, new Robust.Shared.Maths.Vector2i(200, 100), map.Tile.Tile);
             server.ResolveDependency<IConsoleHost>().ExecuteCommand($"shieldentity {map.Grid.Owner}");
             var shield = entities.GetComponent<ShipShieldedComponent>(map.Grid.Owner).Shield;
             var emitterUid = entities.SpawnEntity(null, map.GridCoords);
@@ -48,6 +57,32 @@ public sealed class WFShipShieldProjectileContactTest
             Assert.That(projectile.ProjectileSpent, Is.True);
             entities.System<ProjectileSystem>().ProjectileCollide((projectileUid, projectile, projectileBody), shield);
             Assert.That(emitter.Damage, Is.EqualTo((float)projectile.Damage.GetTotal()), "A spent shot cannot charge twice.");
+            var audioState = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner);
+            var echo = audioState.ActiveImpactSound!.Value;
+            var audio = entities.GetComponent<AudioComponent>(echo);
+            Assert.That(entities.GetComponent<TransformComponent>(echo).ParentUid, Is.EqualTo(map.Grid.Owner));
+            Assert.That(audio.Flags.HasFlag(AudioFlags.GridAudio), Is.True);
+            Assert.That(audio.Flags.HasFlag(AudioFlags.NoOcclusion), Is.True);
+            var center = maps.GetGridPosition(map.Grid.Owner);
+            var farListener = entities.System<SharedTransformSystem>().ToMapCoordinates(new EntityCoordinates(map.Grid.Owner, 200.5f, 100.5f));
+            Assert.That(audio.Params.ReferenceDistance, Is.GreaterThanOrEqualTo(Vector2.Distance(center, farListener.Position)),
+                "An occupant at an off-center station's far end must hear the echo at full gain.");
+            var global = (HashSet<EntityUid>)typeof(PvsOverrideSystem).GetField("GlobalOverride", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .GetValue(entities.System<PvsOverrideSystem>())!;
+            Assert.That(global, Does.Contain(echo), "Distant occupants must receive the sound entity outside the impact's PVS.");
+            var cooldown = audioState.NextImpactSound;
+            server.ResolveDependency<IConsoleHost>().ExecuteCommand($"unshieldentity {map.Grid.Owner}");
+            Assert.That(entities.EntityExists(echo), Is.True, "Shield collapse must leave the hull's echo playing.");
+            server.ResolveDependency<IConsoleHost>().ExecuteCommand($"shieldentity {map.Grid.Owner}");
+            var replacement = entities.GetComponent<ShipShieldedComponent>(map.Grid.Owner).Shield;
+            entities.GetComponent<ShipShieldComponent>(replacement).Source = emitterUid;
+            var nextUid = entities.SpawnEntity("BulletDebugZoom", map.GridCoords);
+            entities.EnsureComponent<ShipWeaponProjectileComponent>(nextUid);
+            var nextProjectile = entities.GetComponent<ProjectileComponent>(nextUid);
+            entities.System<ProjectileSystem>().ProjectileCollide((nextUid, nextProjectile, entities.GetComponent<PhysicsComponent>(nextUid)), replacement);
+            Assert.That(nextProjectile.ProjectileSpent, Is.True);
+            Assert.That(audioState.NextImpactSound, Is.EqualTo(cooldown));
+            Assert.That(audioState.ActiveImpactSound, Is.EqualTo(echo), "Replacing a shield cannot stack another hull echo.");
         });
         await pair.RunTicksSync(1);
         await pair.CleanReturnAsync();

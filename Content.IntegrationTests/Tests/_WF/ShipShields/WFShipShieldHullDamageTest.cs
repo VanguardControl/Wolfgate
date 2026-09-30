@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using System.Numerics;
+using Content.Client._WF.ShipShields;
+using Content.Server._Crescent.ShipShields;
 using Content.Server._WF.ShipShields;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Audio.Components;
@@ -29,6 +32,30 @@ public sealed class WFShipShieldHullDamageTest
         await pair.Client.WaitAssertion(() =>
         {
             var resources = pair.Client.ResolveDependency<IResourceCache>();
+            using var screen = new WFShipShieldShuntScreen();
+            var requests = new List<(float Direction, float Concentration, float Arc)>();
+            screen.AllocationRequested += (direction, concentration, arc) => requests.Add((direction, concentration, arc));
+            screen.Measure(new Vector2(1000f, 700f));
+            screen.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(1000f, 700f)));
+            Assert.That(screen.IsArrangeValid, Is.True);
+            const float helmRotation = 0.41f;
+            var state = new WFShipShieldShuntState(true, true, 1f, 0.8f, 0.2f, MathF.PI / 2f);
+            screen.UpdateState(state, helmRotation);
+            screen.SetDraft(35f, 0.73f, 120f);
+            Assert.That(requests, Is.Empty, "Editing the preview must not send an allocation.");
+            screen.UpdateState(new WFShipShieldShuntState(true, true, 0.7f, 0.8f, 0.2f, MathF.PI / 2f), helmRotation);
+            screen.ApplyAllocation();
+            Assert.That(requests, Has.Count.EqualTo(1));
+            Assert.That(requests[0].Direction, Is.EqualTo(WFShipShieldHelmAngles.GridDirection(35f, helmRotation)).Within(0.0001f));
+            Assert.That(requests[0].Concentration, Is.EqualTo(0.73f).Within(0.0001f));
+            Assert.That(requests[0].Arc, Is.EqualTo(2f * MathF.PI / 3f).Within(0.0001f));
+            screen.ResetAllocation();
+            Assert.That(requests, Has.Count.EqualTo(2));
+            Assert.That(requests[1].Concentration, Is.Zero);
+            screen.UpdateState(new WFShipShieldShuntState(false, false, 0f, 0f, 0f, MathF.PI / 2f), helmRotation);
+            screen.ApplyAllocation();
+            screen.ResetAllocation();
+            Assert.That(requests, Has.Count.EqualTo(2), "An unavailable generator cannot submit an allocation.");
             for (var variant = 1; variant <= 3; variant++)
             {
                 var clip = resources.GetResource<AudioResource>($"/Audio/_WF/ShipShields/impact_{variant}.ogg").AudioStream;
@@ -114,7 +141,7 @@ public sealed class WFShipShieldHullDamageTest
                 Assert.That(entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage, Is.EqualTo(expectedDamage).Within(0.01f));
                 if (shotIndex >= 3)
                     return;
-                var audio = entities.GetComponent<WFShipShieldImpactAudioComponent>(shield);
+                var audio = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner);
                 if (nextImpactSound == TimeSpan.Zero)
                 {
                     nextImpactSound = audio.NextImpactSound;
@@ -133,6 +160,87 @@ public sealed class WFShipShieldHullDamageTest
                 Assert.That(soundCount, Is.EqualTo(1), "Consecutive contacts inside the cooldown must not start overlapping impact sounds.");
             });
             shotIndex++;
+        }
+        var shields = entities.System<ShipShieldsSystem>();
+        var center = new Vector2(21f, -9.5f);
+        const float bearing = 0.731f;
+        Vector2 Rotate(Vector2 point) => new(MathF.Cos(bearing) * point.X - MathF.Sin(bearing) * point.Y,
+            MathF.Sin(bearing) * point.X + MathF.Cos(bearing) * point.Y);
+        await server.WaitAssertion(() =>
+        {
+            server.CfgMan.SetCVar(Robust.Shared.CVars.NetTickrate, 60);
+            maps.SetTile(map.Grid, new Vector2i(20, -10), map.Tile.Tile);
+            maps.SetTile(map.Grid, new Vector2i(21, -10), map.Tile.Tile);
+            maps.SetTile(map.Grid, Vector2i.Zero, default);
+            maps.SetTile(map.Grid, new Vector2i(1, 0), default);
+            entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage = 0f;
+        });
+        await pair.RunTicksSync(60);
+        var throughUid = EntityUid.Invalid;
+        var throughProjectile = default(ProjectileComponent);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(shields.SetWolfgateShieldShunt(map.Grid.Owner, bearing, 1f, MathF.PI / 2f), Is.True);
+            var allocation = entities.GetComponent<WFShipShieldShuntComponent>(shield);
+            Assert.That(allocation.Center, Is.EqualTo(center));
+            foreach (var invalid in new[] { float.NaN, float.PositiveInfinity, float.NegativeInfinity })
+            {
+                Assert.That(shields.SetWolfgateShieldShunt(map.Grid.Owner, invalid, 0.5f, MathF.PI), Is.False);
+                Assert.That(shields.SetWolfgateShieldShunt(map.Grid.Owner, 0f, invalid, MathF.PI), Is.False);
+                Assert.That(shields.SetWolfgateShieldShunt(map.Grid.Owner, 0f, 0.5f, invalid), Is.False);
+            }
+            Assert.That(allocation.Concentration, Is.EqualTo(1f));
+            Assert.That(shields.SetWolfgateShieldShunt(emitterUid, 0f, 1f, MathF.PI / 2f), Is.False);
+            throughUid = entities.SpawnEntity("BulletDebugZoom", transform.ToMapCoordinates(new EntityCoordinates(map.Grid.Owner, center + Rotate(new Vector2(-12f, 3.5f)))));
+            entities.EnsureComponent<Content.Shared._Mono.SpaceArtillery.ShipWeaponProjectileComponent>(throughUid);
+            throughProjectile = entities.GetComponent<ProjectileComponent>(throughUid);
+            var direction = transform.GetWorldRotation(map.Grid.Owner).RotateVec(Rotate(Vector2.UnitX));
+            transform.SetWorldRotation(throughUid, direction.ToAngle());
+            physics.SetLinearVelocity(throughUid, direction * 10f);
+            physics.WakeBody(throughUid);
+        });
+        await pair.RunTicksSync(40);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.EntityExists(throughUid), Is.True, "A shot must pass through the fully unprotected front.");
+            Assert.That(throughProjectile.ProjectileSpent, Is.False);
+            Assert.That(entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage, Is.Zero);
+        });
+        await pair.RunTicksSync(120);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(throughProjectile.ProjectileSpent, Is.True, "The same shot must be caught by the reinforced rear.");
+            Assert.That(entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage,
+                Is.EqualTo((float)throughProjectile.Damage.GetTotal() / 4f).Within(0.001f));
+        });
+        foreach (var scenario in new[]
+        {
+            (Amount: 0.5f, Side: -1f, DamageScale: 2f),
+            (Amount: 0.5f, Side: 1f, DamageScale: 0.4f),
+            (Amount: 0f, Side: -1f, DamageScale: 1f),
+        })
+        {
+            var uid = EntityUid.Invalid;
+            var projectile = default(ProjectileComponent);
+            await server.WaitAssertion(() =>
+            {
+                shields.SetWolfgateShieldShunt(map.Grid.Owner, bearing, scenario.Amount, MathF.PI / 2f);
+                entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage = 0f;
+                uid = entities.SpawnEntity("BulletDebugZoom", transform.ToMapCoordinates(new EntityCoordinates(map.Grid.Owner, center + Rotate(new Vector2(scenario.Side * 12f, 0f)))));
+                entities.EnsureComponent<Content.Shared._Mono.SpaceArtillery.ShipWeaponProjectileComponent>(uid);
+                projectile = entities.GetComponent<ProjectileComponent>(uid);
+                var direction = transform.GetWorldRotation(map.Grid.Owner).RotateVec(Rotate(-scenario.Side * Vector2.UnitX));
+                transform.SetWorldRotation(uid, direction.ToAngle());
+                physics.SetLinearVelocity(uid, direction * 50f);
+                physics.WakeBody(uid);
+            });
+            await pair.RunTicksSync(30);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(projectile.ProjectileSpent, Is.True, $"Allocation {scenario.Amount}, side {scenario.Side} must retain coverage.");
+                Assert.That(entities.GetComponent<ShipShieldEmitterComponent>(emitterUid).Damage,
+                    Is.EqualTo((float)projectile.Damage.GetTotal() * scenario.DamageScale).Within(0.001f));
+            });
         }
         await pair.CleanReturnAsync();
     }

@@ -34,7 +34,7 @@ public sealed partial class ShipShieldsSystem
 
     private void OnWolfgateShieldGridMove(EntityUid uid, ShipShieldedComponent component, ref MoveEvent args)
     {
-        if (!TerminatingOrDeleted(component.Shield))
+        if (!TerminatingOrDeleted(uid) && !TerminatingOrDeleted(component.Shield))
             FollowWolfgateShieldGrid(component.Shield, uid);
     }
 
@@ -73,6 +73,14 @@ public sealed partial class ShipShieldsSystem
     /// <summary>Keeps the perimeter in the map broadphase beyond the grid tile bounds.</summary>
     private void FollowWolfgateShieldGrid(EntityUid shield, EntityUid grid)
     {
+        if (TerminatingOrDeleted(shield) || TerminatingOrDeleted(grid) ||
+            !TryComp<TransformComponent>(grid, out var gridTransform))
+            return;
+        if (gridTransform.MapUid == null || gridTransform.MapID == MapId.Nullspace)
+        {
+            _transformSystem.DetachEntity(shield);
+            return;
+        }
         var origin = _transformSystem.ToMapCoordinates(new EntityCoordinates(grid, Vector2.Zero));
         _transformSystem.SetCoordinates(shield, _transformSystem.ToCoordinates(origin));
         _transformSystem.SetWorldRotation(shield, _transformSystem.GetWorldRotation(grid));
@@ -86,28 +94,35 @@ public sealed partial class ShipShieldsSystem
             phase.SourceGrid == shieldComp.Shielded;
     }
     /// <summary>Uses the padded hull perimeter for both collisions and rendering.</summary>
-    private void CreateWolfgateShieldHull(EntityUid shield, EntityUid grid, MapGridComponent mapGrid, PhysicsComponent physics)
+    private void CreateWolfgateShieldHull(EntityUid shield, EntityUid grid, MapGridComponent mapGrid, PhysicsComponent physics, Vector2[][]? existingContours = null)
     {
         FollowWolfgateShieldGrid(shield, grid);
         var visuals = EnsureComp<WFShipShieldVisualsComponent>(shield);
-        var contours = WFShipShieldGeometry.CreateContours(_wfShieldMap.GetAllTiles(grid, mapGrid).Select(t => t.GridIndices), mapGrid.TileSize);
+        var contours = existingContours ?? WFShipShieldGeometry.CreateContours(_wfShieldMap.GetAllTiles(grid, mapGrid).Select(t => t.GridIndices), mapGrid.TileSize);
         if (TryComp<FixturesComponent>(shield, out var fixtures))
         {
             foreach (var name in fixtures.Fixtures.Keys.Where(n => n.StartsWith("wfShield", StringComparison.Ordinal)).ToArray())
                 _fixtureSystem.DestroyFixture(shield, name, updates: false, body: physics);
         }
+        var allocation = SyncWolfgateShieldShunt(shield, grid, mapGrid);
         var index = 0;
         foreach (var contour in contours)
         for (var i = 0; i < contour.Length; i++)
         {
-            var edge = new EdgeShape();
-            edge.SetOneSided(contour[(i + contour.Length - 1) % contour.Length], contour[i],
-                contour[(i + 1) % contour.Length], contour[(i + 2) % contour.Length]);
-            var name = $"wfShield{index++}";
-            _fixtureSystem.TryCreateFixture(shield, edge, name, hard: true,
-                collisionLayer: (int) CollisionGroup.BulletImpassable, updates: false, body: physics);
-            if (_fixtureSystem.GetFixtureOrNull(shield, name) is { } fixture)
-                _physicsSystem.SetRadius(shield, name, fixture, edge, ShieldSurfaceRadius * mapGrid.TileSize, body: physics);
+            var start = contour[i];
+            var end = contour[(i + 1) % contour.Length];
+            foreach (var segment in WFShipShieldShuntMath.ProtectedSegments(start, end, allocation.Center,
+                         allocation.DirectionRadians, allocation.Concentration, allocation.ArcRadians))
+            {
+                var edge = new EdgeShape();
+                edge.SetOneSided(contour[(i + contour.Length - 1) % contour.Length], segment.Start,
+                    segment.End, contour[(i + 2) % contour.Length]);
+                var name = $"wfShield{index++}";
+                _fixtureSystem.TryCreateFixture(shield, edge, name, hard: true,
+                    collisionLayer: (int) CollisionGroup.BulletImpassable, updates: false, body: physics);
+                if (_fixtureSystem.GetFixtureOrNull(shield, name) is { } fixture)
+                    _physicsSystem.SetRadius(shield, name, fixture, edge, ShieldSurfaceRadius * mapGrid.TileSize, body: physics);
+            }
         }
         // Removing the last fixture normally disables collision; restore it after the whole rebuild.
         _fixtureSystem.FixtureUpdate(shield, body: physics);
@@ -116,10 +131,13 @@ public sealed partial class ShipShieldsSystem
         visuals.Grid = grid;
         visuals.Contours = contours;
         UpdateWolfgateShieldHealth(shield, visuals, Comp<ShipShieldComponent>(shield).Source);
-        DirtyFields(shield, visuals, null,
-            nameof(WFShipShieldVisualsComponent.Contours),
-            nameof(WFShipShieldVisualsComponent.Grid),
-            nameof(WFShipShieldVisualsComponent.Health));
+        if (existingContours == null)
+        {
+            DirtyFields(shield, visuals, null,
+                nameof(WFShipShieldVisualsComponent.Contours),
+                nameof(WFShipShieldVisualsComponent.Grid),
+                nameof(WFShipShieldVisualsComponent.Health));
+        }
     }
 
     private void UpdateWolfgateShieldHealth(EntityUid uid, WFShipShieldVisualsComponent visuals, EntityUid? source)
@@ -144,11 +162,17 @@ public sealed partial class ShipShieldsSystem
             !_projectileQuery.TryGetComponent(args.ProjUid, out var projectile) || projectile.ProjectileSpent)
             return;
         args.Cancelled = true;
+        var strength = WolfgateShieldStrength(uid, args.ProjUid);
+        if (strength <= 0f)
+            return;
         WolfgateShieldImpact(uid, args.ProjUid);
         if (component.Source is { } source)
         {
+            var emitter = Comp<ShipShieldEmitterComponent>(source);
+            var previousDamage = emitter.Damage;
             var ev = new ShieldDeflectedEvent(args.ProjUid, projectile);
             RaiseLocalEvent(source, ref ev);
+            emitter.Damage = previousDamage + (emitter.Damage - previousDamage) / strength;
         }
         else
         {
