@@ -42,6 +42,11 @@ public sealed class WFShipShieldHullDamageTest
             var state = new WFShipShieldShuntState(true, true, 1f, 0.8f, 0.2f, MathF.PI / 2f);
             screen.UpdateState(state, helmRotation);
             screen.SetDraft(35f, 0.73f, 120f);
+            var panelSize = new Vector2(940f, 670f);
+            screen.Measure(panelSize);
+            screen.Arrange(UIBox2.FromDimensions(Vector2.Zero, panelSize));
+            Assert.That(screen.DesiredSize.X, Is.LessThanOrEqualTo(panelSize.X), "Shield controls must fit the helm width.");
+            Assert.That(screen.DesiredSize.Y, Is.LessThanOrEqualTo(panelSize.Y), "Shield controls must fit without hiding Apply.");
             Assert.That(requests, Is.Empty, "Editing the preview must not send an allocation.");
             screen.UpdateState(new WFShipShieldShuntState(true, true, 0.7f, 0.8f, 0.2f, MathF.PI / 2f), helmRotation);
             screen.ApplyAllocation();
