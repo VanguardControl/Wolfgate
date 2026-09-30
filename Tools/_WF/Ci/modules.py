@@ -87,6 +87,8 @@ XML_SUFFIXES = {".xml", ".xaml", ".csproj", ".props", ".targets", ".svg", ".html
 PLACEHOLDER = "TODO"
 # The new-file start and length of a -U0 diff hunk.
 HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", re.M)
+# A line holding only attributes of an XML tag, possibly closing it.
+XML_ATTRIBUTE = re.compile(r'\s*(?:[\w:.]+="[^"]*"\s*)+/?>?\s*$')
 # A marker alone on its line, after nothing but a comment opener: it covers the rest of its paragraph.
 STANDALONE = re.compile(r"\s*(?://+|#+|<!--|/\*+|\*|;|--)\s*WOLFGATE(?![\w-])")
 
@@ -719,10 +721,10 @@ class Modules:
             if not filled or any(n in marked for n in hunk):
                 continue
             # A comment can't go inside an XML tag, so an added xmlns is named in a marker elsewhere in the file.
-            names = re.findall(r"xmlns:[\w.]+", " ".join(lines[n - 1] for n in filled)) if xml else []
-            if names and all(any(re.search(re.escape(name) + r"(?![\w.])", lines[m - 1]) for m in marked)
-                             for name in names):
-                continue
+            if xml and all(XML_ATTRIBUTE.match(lines[n - 1]) for n in filled):
+                names = re.findall(r"xmlns:[\w.]+", " ".join(lines[n - 1] for n in filled))
+                if any(re.search(re.escape(name) + r"(?![\w.])", lines[m - 1]) for name in names for m in marked):
+                    continue
             if all(any(s <= n <= e for s, e in blocks) for n in filled):
                 continue
             # A marker alone on a line above, with no blank line in between, covers the rest of its paragraph.
