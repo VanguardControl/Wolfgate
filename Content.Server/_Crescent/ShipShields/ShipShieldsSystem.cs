@@ -90,15 +90,24 @@ public sealed partial class ShipShieldsSystem : EntitySystem
                     emitter.Shield = shield;
                     emitter.Shielded = parent.Value;
                 }
-                _audio.PlayGlobal(emitter.PowerUpSound, filter, true, emitter.PowerUpSound.Params);
+                // WOLFGATE(ShipShields) START: only announce successful startup and rate-limit power transitions per hull
+                // _audio.PlayGlobal(emitter.PowerUpSound, filter, true, emitter.PowerUpSound.Params);
+                if (shield != EntityUid.Invalid)
+                    PlayWolfgateShieldPowerSound(uid, parent.Value, true);
+                // WOLFGATE END
             }
             else if ((emitter.Recharging || emitter.OverloadAccumulator > 0) && emitter.Shield is not null || HasComp<ShipShieldDisabledGridComponent>(Transform(uid).GridUid))
             {
                 UnshieldEntity(parent.Value);
                 emitter.Shield = null;
                 emitter.Shielded = null;
+                // WOLFGATE(ShipShields) START: share the startup cooldown and use shutdown audio parameters
                 if (!HasComp<ShipShieldDisabledGridComponent>(Transform(uid).GridUid))
-                    _audio.PlayGlobal(emitter.PowerDownSound, filter, true, emitter.PowerUpSound.Params);
+                {
+                    // _audio.PlayGlobal(emitter.PowerDownSound, filter, true, emitter.PowerUpSound.Params);
+                    PlayWolfgateShieldPowerSound(uid, parent.Value, false);
+                }
+                // WOLFGATE END
             }
         }
     }

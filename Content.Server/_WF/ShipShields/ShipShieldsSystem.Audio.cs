@@ -16,6 +16,20 @@ public sealed partial class ShipShieldsSystem
     [Dependency] private EntityLookupSystem _wfShieldAudioLookup = default!;
     private static readonly SoundCollectionSpecifier WolfgateImpactSound = new("WFShipShieldImpacts");
 
+    /// <summary>Plays a generator transition with a shared five-second hull cooldown.</summary>
+    public void PlayWolfgateShieldPowerSound(EntityUid emitterUid, EntityUid grid, bool powered)
+    {
+        if (TerminatingOrDeleted(grid) || !TryComp<ShipShieldEmitterComponent>(emitterUid, out var emitter))
+            return;
+        var state = EnsureComp<WFShipShieldImpactAudioComponent>(grid);
+        var now = _wfShieldTiming.CurTime;
+        if (now < state.NextPowerSound)
+            return;
+        state.NextPowerSound = now + TimeSpan.FromSeconds(5);
+        var sound = powered ? emitter.PowerUpSound : emitter.PowerDownSound;
+        _audio.PlayGlobal(sound, _station.GetInOwningStation(emitterUid), true, sound.Params);
+    }
+
     /// <summary>Plays frequent hull-wide impacts with at most two overlapping echoes.</summary>
     private void PlayWolfgateShieldImpact(EntityUid shield, Vector2 position)
     {

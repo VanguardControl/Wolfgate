@@ -61,6 +61,39 @@ public sealed class WFShipShieldMeshTest
     }
 
     [Test]
+    public void StationSizedDistantOvalsHaveBoundedGeometry()
+    {
+        foreach (var radius in new[] { 100f, 1000f, 10000f })
+        {
+            var points = new Vector2[512];
+            var legacyVertices = 0;
+            for (var i = 0; i < points.Length; i++)
+            {
+                var angle = i * MathF.Tau / points.Length;
+                points[i] = new Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius * 0.5f);
+            }
+            for (var i = 0; i < points.Length; i++)
+                legacyVertices += Math.Clamp((int) MathF.Ceiling(Vector2.Distance(points[i], points[(i + 1) % points.Length]) / 5f), 1, 128) * 18;
+            var mesh = new WFShipShieldMesh(new[] { points }, true);
+            AssertValidMesh(mesh);
+            Assert.That(mesh.Triangles.Count, Is.EqualTo(96 * 18));
+            Assert.That(mesh.Samples.Count, Is.LessThanOrEqualTo(96 * 4));
+            Assert.That(mesh.HexLines, Is.Empty);
+            foreach (var vertex in mesh.Triangles)
+            {
+                var normalized = new Vector2(vertex.Position.X / radius, vertex.Position.Y / (radius * 0.5f)).Length();
+                Assert.That(normalized, Is.InRange(1f - 0.31f / (radius * 0.5f), 1f + 0.13f / (radius * 0.5f)));
+            }
+            var hitAngle = MathF.PI / 96f;
+            var hit = new Vector2(MathF.Cos(hitAngle) * radius, MathF.Sin(hitAngle) * radius * 0.5f);
+            var distance = mesh.Samples.Min(p => Vector2.Distance(p, hit));
+            Assert.That(WFShipShieldEffects.Flash(MathF.Max(0f, distance - mesh.ImpactSampleRadius), 0.02f, 1f),
+                Is.GreaterThan(0.5f), "Hits between distant vertices must retain their flash.");
+            TestContext.Progress.WriteLine($"Distant oval radius {radius}: legacy {legacyVertices} vertices; bounded {mesh.Triangles.Count} vertices / {mesh.Samples.Count} impact samples.");
+        }
+    }
+
+    [Test]
     public void HealthSnapshotsKeepIdenticalContourGeometry()
     {
         var contours = ShipContours();

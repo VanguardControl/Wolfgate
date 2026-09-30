@@ -3,6 +3,10 @@ using System.Numerics;
 using Content.Client._WF.ShipShields;
 using Content.Server._Crescent.ShipShields;
 using Content.Server._WF.ShipShields;
+using Content.Server.Shuttles.Systems;
+using Content.Server.Power.Components;
+using Content.Shared.Shuttles.BUIStates;
+using Content.Shared.Shuttles.Components;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -70,6 +74,12 @@ public sealed class WFShipShieldHullDamageTest
             screen.ApplyAllocation();
             screen.ResetAllocation();
             Assert.That(requests, Has.Count.EqualTo(2), "An unavailable generator cannot submit an allocation.");
+            foreach (var transition in new[] { (Name: "shield_on", Duration: 4.15d), (Name: "shield_off", Duration: 3.88d) })
+            {
+                var clip = resources.GetResource<AudioResource>($"/Audio/_WF/ShipShields/{transition.Name}.ogg").AudioStream;
+                Assert.That(clip.ChannelCount, Is.EqualTo(1));
+                Assert.That(clip.Length.TotalSeconds, Is.EqualTo(transition.Duration).Within(0.03d));
+            }
             for (var variant = 1; variant <= 3; variant++)
             {
                 var clip = resources.GetResource<AudioResource>($"/Audio/_WF/ShipShields/impact_{variant}.ogg").AudioStream;
@@ -254,6 +264,62 @@ public sealed class WFShipShieldHullDamageTest
                     Is.EqualTo((float)projectile.Damage.GetTotal() * scenario.DamageScale).Within(0.001f));
             });
         }
+        var powerSoundDeadline = TimeSpan.Zero;
+        var replacementEmitter = EntityUid.Invalid;
+        await server.WaitAssertion(() =>
+        {
+            shields.PlayWolfgateShieldPowerSound(emitterUid, map.Grid.Owner, true);
+            powerSoundDeadline = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner).NextPowerSound;
+            Assert.That((powerSoundDeadline - server.Timing.CurTime).TotalSeconds, Is.EqualTo(5d).Within(0.001d));
+            shields.PlayWolfgateShieldPowerSound(emitterUid, map.Grid.Owner, false);
+            Assert.That(entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner).NextPowerSound, Is.EqualTo(powerSoundDeadline));
+            replacementEmitter = entities.SpawnEntity(null, new EntityCoordinates(map.Grid.Owner, center));
+            entities.EnsureComponent<ShipShieldEmitterComponent>(replacementEmitter);
+            shields.PlayWolfgateShieldPowerSound(replacementEmitter, map.Grid.Owner, true);
+            Assert.That(entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner).NextPowerSound, Is.EqualTo(powerSoundDeadline),
+                "A different emitter must share the hull transition cooldown.");
+        });
+        await pair.RunTicksSync(306);
+        await server.WaitAssertion(() =>
+        {
+            shields.PlayWolfgateShieldPowerSound(replacementEmitter, map.Grid.Owner, false);
+            var deadline = entities.GetComponent<WFShipShieldImpactAudioComponent>(map.Grid.Owner).NextPowerSound;
+            Assert.That(deadline, Is.GreaterThan(powerSoundDeadline));
+            Assert.That((deadline - server.Timing.CurTime).TotalSeconds, Is.EqualTo(5d).Within(0.001d));
+        });
+        await server.WaitAssertion(() =>
+        {
+            var helmCoordinates = new EntityCoordinates(map.Grid.Owner, center);
+            var helm = entities.SpawnEntity("ComputerShuttle", helmCoordinates);
+            var actor = entities.SpawnEntity("MobHuman", helmCoordinates);
+            Assert.That(entities.GetComponent<TransformComponent>(helm).GridUid, Is.EqualTo(map.Grid.Owner));
+            entities.GetComponent<ApcPowerReceiverComponent>(helm).Powered = true;
+            var ui = entities.System<SharedUserInterfaceSystem>();
+            ui.OpenUi(helm, ShuttleConsoleUiKey.Key, actor);
+            Assert.That(ui.IsUiOpen(helm, ShuttleConsoleUiKey.Key), Is.True);
+            var emitter = entities.GetComponent<ShipShieldEmitterComponent>(emitterUid);
+            emitter.Damage = emitter.DamageLimit * 0.72f;
+            entities.GetComponent<ShipShieldedComponent>(map.Grid.Owner).Source = emitterUid;
+            entities.GetComponent<WFShipShieldVisualsComponent>(shield).Health = 1f;
+            var helms = entities.System<ShuttleConsoleSystem>();
+            helms.Update(0.21f);
+            var active = State();
+            Assert.That(active.Active, Is.True);
+            Assert.That(active.Health, Is.EqualTo(0.28f).Within(0.001f), "The helm reads emitter capacity without waiting for visual replication.");
+            helms.Update(0.21f);
+            Assert.That(State(), Is.SameAs(active), "Unchanged status must not rebuild the helm payload.");
+            entities.QueueDeleteEntity(shield);
+            helms.Update(0.21f);
+            Assert.That(State().Active, Is.False, "Queued field removal must immediately report offline.");
+            Assert.That(State().Health, Is.Zero);
+
+            WFShipShieldShuntState State()
+            {
+                Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(helm, ShuttleConsoleUiKey.Key, out var state), Is.True);
+                Assert.That(state!.ShieldShunt, Is.Not.Null);
+                return state.ShieldShunt!;
+            }
+        });
         await pair.CleanReturnAsync();
     }
 

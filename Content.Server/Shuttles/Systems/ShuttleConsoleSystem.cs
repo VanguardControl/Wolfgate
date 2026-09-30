@@ -439,6 +439,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
     {
         base.Update(frameTime);
         UpdateTractorCaptureWarnings(frameTime); // WOLFGATE(TractorBeam)
+        UpdateWolfgateShieldHelms(frameTime); // WOLFGATE(ShipShields): refresh open helm shield status on visible changes
 
         var toRemove = new ValueList<(EntityUid, PilotComponent)>();
         var query = EntityQueryEnumerator<PilotComponent>();

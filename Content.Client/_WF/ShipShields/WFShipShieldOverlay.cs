@@ -38,7 +38,7 @@ public sealed class WFShipShieldOverlay : Overlay
     {
         var handle = args.WorldHandle;
         var pixelsPerTile = args.ViewportBounds.Width / MathF.Max(1f, args.WorldAABB.Width);
-        var distant = pixelsPerTile < 10f;
+        var distant = pixelsPerTile < 16f;
         _expired.Clear();
         foreach (var uid in _fields.Keys)
         {
@@ -177,6 +177,7 @@ public sealed class WFShipShieldOverlay : Overlay
         public readonly DrawVertexUV2DColor[] Triangles;
         public readonly DrawVertexUV2DColor[] HexLines;
         private Color? _lastTint;
+        private float _lastIntegrity = float.NaN;
         private bool _hadImpacts;
         private TimeSpan _nextUpdate;
 
@@ -192,12 +193,13 @@ public sealed class WFShipShieldOverlay : Overlay
         public void UpdateColors(Color tint, float integrity, List<WFShipShieldOverlaySystem.Impact>? impacts, TimeSpan time, bool distant)
         {
             var active = impacts is { Count: > 0 };
-            if (!active && !_hadImpacts && _lastTint == tint)
+            if (!active && !_hadImpacts && _lastTint == tint && _lastIntegrity == integrity)
                 return;
-            if (active && _hadImpacts && _lastTint == tint && time < _nextUpdate)
+            if (active && _hadImpacts && _lastTint == tint && _lastIntegrity == integrity && time < _nextUpdate)
                 return;
             _nextUpdate = time + TimeSpan.FromSeconds(distant ? 1f / 15f : 1f / 30f);
             _lastTint = tint;
+            _lastIntegrity = integrity;
             _hadImpacts = active;
             for (var i = 0; i < _colors.Length; i++)
             {
@@ -211,13 +213,15 @@ public sealed class WFShipShieldOverlay : Overlay
                         var impact = impacts[hit];
                         var age = (float) (time - impact.Time).TotalSeconds;
                         var distance = Vector2.Distance(_mesh.Samples[i], impact.Position);
+                        if (distant)
+                            distance = MathF.Max(0f, distance - _mesh.ImpactSampleRadius);
                         heat += WFShipShieldEffects.Heat(distance, age, impact.Strength);
                         wave += WFShipShieldEffects.Wave(distance, age, impact.Strength);
                         flash += WFShipShieldEffects.Flash(distance, age, impact.Strength);
                     }
                 }
                 var appearance = WFShipShieldEffects.Appearance(tint, heat, wave, flash, integrity);
-                _colors[i] = appearance.Tint.WithAlpha(appearance.Surface);
+                _colors[i] = appearance.SurfaceTint.WithAlpha(appearance.Surface);
                 _hexColors[i] = appearance.Tint.WithAlpha(appearance.Hexes);
             }
             Fill(_mesh.Triangles, Triangles, _colors);

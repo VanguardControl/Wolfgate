@@ -142,17 +142,20 @@ public sealed partial class ShipShieldsSystem
 
     private void UpdateWolfgateShieldHealth(EntityUid uid, WFShipShieldVisualsComponent visuals, EntityUid? source)
     {
-        var health = 1f;
-        if (source is { } emitterUid && TryComp<ShipShieldEmitterComponent>(emitterUid, out var emitter))
-        {
-            var damageFraction = emitter.Damage / Math.Max(emitter.DamageLimit, 1f);
-            var loadFraction = CalculateLoadDamage(emitter) / Math.Max(emitter.MaxDraw, 1f);
-            health = Math.Clamp(1f - Math.Max(damageFraction, loadFraction), 0f, 1f);
-        }
+        var health = source is { } emitterUid && TryComp<ShipShieldEmitterComponent>(emitterUid, out var emitter)
+            ? GetWolfgateShieldHealth(emitter) : 1f;
         if (Math.Abs(visuals.Health - health) < 0.001f)
             return;
         visuals.Health = health;
         DirtyField(uid, visuals, nameof(WFShipShieldVisualsComponent.Health));
+    }
+
+    /// <summary>Returns remaining capacity against damage and additional power limits.</summary>
+    public static float GetWolfgateShieldHealth(ShipShieldEmitterComponent emitter)
+    {
+        var damageFraction = emitter.Damage / Math.Max(emitter.DamageLimit, 1f);
+        var loadFraction = CalculateLoadDamage(emitter) / Math.Max(emitter.MaxDraw, 1f);
+        return Math.Clamp(1f - Math.Max(damageFraction, loadFraction), 0f, 1f);
     }
 
     /// <summary>Consumes ship weapon projectiles after a real shield contact.</summary>

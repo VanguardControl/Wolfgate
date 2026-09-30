@@ -69,9 +69,11 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         var health = 0f;
         var active = false;
         if (grid is { } activeGrid && TryComp<ShipShieldedComponent>(activeGrid, out var shielded) &&
+            !TerminatingOrDeleted(shielded.Shield) && !EntityManager.IsQueuedForDeletion(shielded.Shield) &&
             TryComp<WFShipShieldVisualsComponent>(shielded.Shield, out var visuals))
         {
-            health = visuals.Health;
+            health = shielded.Source is { } source && TryComp<ShipShieldEmitterComponent>(source, out var emitter)
+                ? ShipShieldsSystem.GetWolfgateShieldHealth(emitter) : visuals.Health;
             active = true;
         }
         return new WFShipShieldShuntState(grid is { } availableGrid && HasShieldGenerator(availableGrid), active, health,

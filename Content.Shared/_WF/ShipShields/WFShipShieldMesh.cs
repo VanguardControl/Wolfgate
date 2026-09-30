@@ -15,9 +15,13 @@ public sealed class WFShipShieldMesh
     public readonly List<Vector2> Samples = new();
     /// <summary>Local bounds used before any per-frame surface sampling.</summary>
     public Box2 Bounds;
+    /// <summary>Half the distant segment spacing keeps sub-segment impacts visible.</summary>
+    public float ImpactSampleRadius { get; private set; }
     private const float CellSize = 0.75f;
     private const float SampleStep = 1.5f;
     private readonly Dictionary<Vector2i, int> _samples = new();
+    private readonly Dictionary<Vector2, int> _distantSamples = new();
+    private readonly bool _distant;
 
     /// <summary>A local vertex blending four cached impact samples without visible cell boundaries.</summary>
     public readonly record struct Vertex(Vector2 Position, float Alpha, int Sample, int SampleX, int SampleY, int SampleXY, Vector2 Blend);
@@ -46,6 +50,7 @@ public sealed class WFShipShieldMesh
     /// <summary>Builds a continuous detailed field or a sparse contour for distant ships.</summary>
     public WFShipShieldMesh(Vector2[][] contours, bool distant)
     {
+        _distant = distant;
         var initialized = false;
         foreach (var contour in contours)
         foreach (var point in contour)
@@ -58,7 +63,7 @@ public sealed class WFShipShieldMesh
             Bounds = Bounds.ExtendToContain(point);
         }
         if (distant)
-            BuildDistant(contours);
+            BuildDistant(SimplifyDistantOvals(contours));
         else
         {
             var cells = BuildDistanceBand(contours);
@@ -107,6 +112,16 @@ public sealed class WFShipShieldMesh
 
     private Vertex CreateVertex(Vector2 position, float alpha)
     {
+        if (_distant)
+        {
+            if (!_distantSamples.TryGetValue(position, out var sample))
+            {
+                sample = Samples.Count;
+                Samples.Add(position);
+                _distantSamples.Add(position, sample);
+            }
+            return new Vertex(position, alpha, sample, sample, sample, sample, Vector2.Zero);
+        }
         var scaled = position / SampleStep;
         var key = new Vector2i((int)MathF.Floor(scaled.X), (int)MathF.Floor(scaled.Y));
         return new Vertex(position, alpha, Sample(key), Sample(key + new Vector2i(1, 0)),
@@ -116,6 +131,8 @@ public sealed class WFShipShieldMesh
     /// <summary>Interpolates cached impact colours continuously across sample cells.</summary>
     public static Color Interpolate(Vertex vertex, IReadOnlyList<Color> colors)
     {
+        if (vertex.Sample == vertex.SampleX && vertex.Sample == vertex.SampleY && vertex.Sample == vertex.SampleXY)
+            return colors[vertex.Sample];
         var bottom = Color.InterpolateBetween(colors[vertex.Sample], colors[vertex.SampleX], vertex.Blend.X);
         var top = Color.InterpolateBetween(colors[vertex.SampleY], colors[vertex.SampleXY], vertex.Blend.X);
         return Color.InterpolateBetween(bottom, top, vertex.Blend.Y);
@@ -295,6 +312,50 @@ public sealed class WFShipShieldMesh
         return 0.28f * (1f - fraction * fraction * (3f - 2f * fraction));
     }
 
+    /// <summary>Bounds distant oval geometry while retaining non-oval legacy contours.</summary>
+    private static Vector2[][] SimplifyDistantOvals(Vector2[][] contours)
+    {
+        const int limit = 96;
+        var simplified = new Vector2[contours.Length][];
+        for (var c = 0; c < contours.Length; c++)
+        {
+            var points = contours[c];
+            simplified[c] = points;
+            if (points.Length <= limit)
+                continue;
+            var minimum = points[0];
+            var maximum = points[0];
+            foreach (var point in points)
+            {
+                minimum = Vector2.Min(minimum, point);
+                maximum = Vector2.Max(maximum, point);
+            }
+            var center = (minimum + maximum) * 0.5f;
+            var radii = (maximum - minimum) * 0.5f;
+            if (radii.X <= 0f || radii.Y <= 0f)
+                continue;
+            var oval = true;
+            foreach (var point in points)
+            {
+                if (MathF.Abs(((point - center) / radii).LengthSquared() - 1f) > 0.0001f)
+                {
+                    oval = false;
+                    break;
+                }
+            }
+            if (!oval)
+                continue;
+            var reduced = new Vector2[limit];
+            for (var i = 0; i < limit; i++)
+            {
+                var angle = i * MathF.Tau / limit;
+                reduced[i] = center + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * radii;
+            }
+            simplified[c] = reduced;
+        }
+        return simplified;
+    }
+
     private void BuildDistant(Vector2[][] contours)
     {
         foreach (var points in contours)
@@ -306,17 +367,14 @@ public sealed class WFShipShieldMesh
                 var length = Vector2.Distance(start, end);
                 if (length < 0.001f)
                     continue;
+                ImpactSampleRadius = MathF.Max(ImpactSampleRadius, length * 0.5f);
                 var n0 = Normal(points, i);
                 var n1 = Normal(points, (i + 1) % points.Length);
-                var sections = Math.Clamp((int) MathF.Ceiling(length / 5f), 1, 128);
-                for (var part = 0; part < sections; part++)
                 {
-                    var t0 = (float) part / sections;
-                    var t1 = (float) (part + 1) / sections;
-                    var a = Vector2.Lerp(start, end, t0);
-                    var b = Vector2.Lerp(start, end, t1);
-                    var na = EdgeNormal(start, end, n0, n1, t0);
-                    var nb = EdgeNormal(start, end, n0, n1, t1);
+                    var a = start;
+                    var b = end;
+                    var na = n0;
+                    var nb = n1;
                     Band(-0.12f, 0f, 0f, 0.52f);
                     Band(0f, 0.075f, 0.52f, 0.19f);
                     Band(0.075f, 0.3f, 0.19f, 0f);

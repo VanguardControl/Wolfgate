@@ -1,3 +1,7 @@
 - files: ["impact_1.ogg", "impact_2.ogg", "impact_3.ogg"]
   copyright: "Original procedural shield impacts synthesized for Wolfgate: resonant membrane tones, pitch warble, filtered contact noise and dark echoes. No samples from the reference recording are included."
   source: "Tools/_WF/ShipShields/synthesize_impacts.py"
+
+- files: ["shield_on.ogg", "shield_off.ogg"]
+  copyright: "User-provided shield generator startup and shutdown recordings; original authorship unspecified."
+  source: "User-supplied shield_on.wav and shield_off.wav"

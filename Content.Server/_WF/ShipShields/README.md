@@ -4,15 +4,17 @@ Ship shields use a symmetric oval fitted around the occupied hull, with a five-t
 
 The upstream ship shield emitter keeps its power, damage, recharge and projectile rules. `ShipShieldsSystem.Wolfgate.cs` supplies hull fixtures and visual updates; `WFShipShieldGeometry` builds the shared contours. Collision edges retain a small physical radius to catch slower projectiles between physics steps.
 
-Healthy shields use the generator’s configured shield colour for their faint edge and readable idle hexes, including radar outlines. Damage blends that colour through amber to red; the helm integrity bar remains a standard health indicator. The field becomes more visible as health drops, and smooth traveling shimmer crests brighten it briefly. Hits reveal nearby hexes with a short flash and traveling ripple; sustained fire leaves a brighter red patch that cools after the ripple has faded. Surface and hex opacity are sampled separately without rebuilding meshes. Each vertex blends four cached samples to prevent square impact-lighting patches.
+Healthy shields use the generator's configured shield colour for their faint edge and readable idle hexes, including radar outlines. Damage blends that colour through amber to red; repeated-hit red is confined to the hex lattice so the outside edge consistently shows overall health; the helm integrity bar remains a standard health indicator. The field becomes more visible as health drops, and smooth traveling shimmer crests brighten it briefly. Hits reveal nearby hexes with a short flash and traveling ripple; sustained fire leaves a brighter red patch that cools after the ripple has faded. Surface and hex opacity are sampled separately without rebuilding meshes. Each vertex blends four cached samples to prevent square impact-lighting patches.
 
-The client caches hull meshes and hex lines, animates shimmer in a lightweight shader, and reduces detail at distant zoom levels. Health-only network deltas preserve the cached outline; impacts retain coarser feedback when zoomed out. Impact sounds randomly choose from three synthesized impact designs (soft bubble, warbling field and heavy shield), each with a soft echo tail. Impacts play at +4 dB with a 0.75–1.1 second per-ship cooldown that survives shield collapse. At most two echo tails overlap; another impact retires the oldest tail. Global audio visibility and a hull-sized full-volume radius let occupants hear impacts throughout large stations.
+The client caches hull meshes and hex lines and animates shimmer in a lightweight shader. Below 16 pixels per tile, oval shields use at most 96 segments (1,728 vertices and 384 direct impact samples), regardless of station size. Distant flashes cover the gaps between sparse samples; normal views retain the detailed hex lattice and interpolated lighting. Legacy non-oval contours retain their original outline. Health-only network deltas preserve the cached outline; impacts retain coarser feedback when zoomed out. Impact sounds randomly choose from three synthesized impact designs (soft bubble, warbling field and heavy shield), each with a soft echo tail. Impacts play at +4 dB with a 0.75-1.1 second per-ship cooldown that survives shield collapse. At most two echo tails overlap; another impact retires the oldest tail. Global audio visibility and a hull-sized full-volume radius let occupants hear impacts throughout large stations.
 
-At the helm, open **Shields** to choose a ship-relative bearing (0° forward, 180° rear), an arc width from 30° to 360°, and concentration from 0% to 100%, then apply. Concentration moves power from the remaining perimeter into the chosen arc; at 100%, the rest of the perimeter disappears and lets projectiles through. Reset restores even coverage. Allocation persists on the grid through collapse/recharge and is shared by every helm. Stronger arcs absorb more incoming damage per unit of emitter capacity while weaker arcs consume more.
+At the helm, open **Shields** to choose a ship-relative bearing (0° forward, 180° rear), an arc width from 30° to 360°, and concentration from 0% to 100%, then apply. Concentration moves power from the remaining perimeter into the chosen arc; at 100%, the rest of the perimeter disappears and lets projectiles through. Reset restores even coverage. Allocation persists on the grid through collapse/recharge and is shared by every helm. Open helms poll authoritative emitter capacity and field availability every 0.2 seconds, refreshing only when the visible percentage or settings change. Field removal immediately reports offline, including entities queued for deletion. Power loss can still collapse a field before capacity reaches zero under the existing emitter rules. Stronger arcs absorb more incoming damage per unit of emitter capacity while weaker arcs consume more.
 
 WFShipShieldShuntMath defines the allocation and clipped sectors; WFShipShieldShuntSystem validates helm requests; the client shunting screen and shield overlay show the same allocation.
 
 Navigation and fire-control radar views draw the hull contours through `ShuttleNavControl.ShipShields.cs`. Cached map outlines show health colours and allocation strength, leave fully unpowered sectors open, and retain radar detection and FTL visibility rules.
+
+Generator startup and shutdown use the supplied `shield_on` and `shield_off` recordings, converted to mono Ogg at their original pitch. Startup and shutdown share a five-second per-hull cooldown, including across generator replacement, so rapid toggling cannot stack or queue transition sounds.
 
 The impact bank is generated by `Tools/_WF/ShipShields/synthesize_impacts.py` using NumPy and FFmpeg (`--ffmpeg PATH` when it is not on PATH). It reproduces all three approved previews with mono encoding, 3.4-second tails and safe peak headroom. The sound collection chooses a design randomly, with a small additional pitch variation during playback.
 
@@ -85,6 +87,8 @@ The impact bank is generated by `Tools/_WF/ShipShields/synthesize_impacts.py` us
 - [`Resources/Audio/_WF/ShipShields/impact_2.ogg`](../../../Resources/Audio/_WF/ShipShields/impact_2.ogg)
 - [`Resources/Audio/_WF/ShipShields/impact_3.ogg`](../../../Resources/Audio/_WF/ShipShields/impact_3.ogg)
 - [`Resources/Audio/_WF/ShipShields/meta.yml`](../../../Resources/Audio/_WF/ShipShields/meta.yml)
+- [`Resources/Audio/_WF/ShipShields/shield_off.ogg`](../../../Resources/Audio/_WF/ShipShields/shield_off.ogg)
+- [`Resources/Audio/_WF/ShipShields/shield_on.ogg`](../../../Resources/Audio/_WF/ShipShields/shield_on.ogg)
 
 ### Tools
 
@@ -103,12 +107,17 @@ The impact bank is generated by `Tools/_WF/ShipShields/synthesize_impacts.py` us
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): hull contours and directional coverage on all radar views.
 - [`Content.Server/_Crescent/ShipShields/ShipShieldsSystem.cs`](../../_Crescent/ShipShields/ShipShieldsSystem.cs)
   - refresh hull geometry and shield health
+  - only announce successful startup and rate-limit power transitions per hull
+  - share the startup cooldown and use shutdown audio parameters
   - track hull tile changes
   - map-parented shield still phases its ship's outgoing shots
   - unpowered sectors let shots pass without changing their shooter
   - apply damage only after a projectile contacts the perimeter
   - replace oval and interior blocker with the padded hull perimeter
-- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs): include directional shield settings in the helm state
+- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
+  - include directional shield settings in the helm state
+  - refresh open helm shield status on visible changes
 - [`Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs`](../../../Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs): expose the ship's authoritative shield allocation at every helm.
+- [`Resources/Prototypes/_Mono/Entities/Structures/Machines/shield_generator.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/shield_generator.yml): use dedicated generator startup and shutdown sounds at their original pitch
 
 <!-- WOLFGATE-GENERATED END -->

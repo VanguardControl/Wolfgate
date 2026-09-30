@@ -34,6 +34,18 @@ public sealed class WFShipShieldEffectsTest
     }
 
     [Test]
+    public void ImpactsBrightenTheRimWithoutMaskingItsHealthColour()
+    {
+        var health = WFShipShieldEffects.HealthColor(0.28f, Color.FromHex("#3399FF"));
+        var idle = WFShipShieldEffects.Appearance(health, 0f, 0f, 0f, 0.28f);
+        var hit = WFShipShieldEffects.Appearance(health, 1f, 1f, 1f, 0.28f);
+        Assert.That(hit.SurfaceTint, Is.EqualTo(Color.FromSrgb(health)));
+        Assert.That(hit.SurfaceTint, Is.EqualTo(idle.SurfaceTint));
+        Assert.That(hit.Surface, Is.GreaterThan(idle.Surface));
+        Assert.That(hit.Tint, Is.Not.EqualTo(hit.SurfaceTint));
+    }
+
+    [Test]
     public void ImpactRevealsHexesMoreStronglyThanTheIdleSurface()
     {
         var health = WFShipShieldEffects.HealthColor(1f);

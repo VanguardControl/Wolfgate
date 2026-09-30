@@ -4,6 +4,9 @@ namespace Content.Server._WF.ShipShields;
 [RegisterComponent]
 public sealed partial class WFShipShieldImpactAudioComponent : Component
 {
+    /// <summary>Shared startup/shutdown cooldown, retained across generator or field replacement.</summary>
+    public TimeSpan NextPowerSound;
+
     /// <summary>Earliest time another impact sound may start.</summary>
     public TimeSpan NextImpactSound;
 
