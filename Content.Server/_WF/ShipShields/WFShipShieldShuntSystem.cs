@@ -47,6 +47,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        _shields.UpdateWolfgateShieldShunts(frameTime);
         _generatorUiAccumulator += frameTime;
         if (_generatorUiAccumulator < 0.2f)
             return;
@@ -78,7 +79,9 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
             MathF.Round(previous.Health * 100f) == MathF.Round(state.Health * 100f) &&
             (previous.Health < 0.1f) == (state.Health < 0.1f) &&
             previous.DirectionRadians == state.DirectionRadians && previous.Concentration == state.Concentration &&
-            previous.ArcRadians == state.ArcRadians)
+            previous.ArcRadians == state.ArcRadians &&
+            previous.TargetDirectionRadians == state.TargetDirectionRadians && previous.TargetConcentration == state.TargetConcentration &&
+            previous.TargetArcRadians == state.TargetArcRadians)
             return;
         _generatorStates[uid] = state;
         _ui.SetUiState(uid, WFShipShieldUiKey.Key, new WFShipShieldGeneratorUiState(state));
@@ -88,7 +91,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
     {
         if (TryGetGeneratorGrid(ent.Owner, args.Actor) is { } grid)
         {
-            _shields.SetWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
+            _shields.RequestWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
             UpdateGeneratorUi(ent.Owner, true);
         }
     }
@@ -118,7 +121,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
     private void OnSetShunt(Entity<ShuttleConsoleComponent> ent, ref WFShipShieldSetShuntMessage args)
     {
         if (TryGetHelmGrid(ent, args.Actor) is { } grid)
-            _shields.SetWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
+            _shields.RequestWolfgateShieldShunt(grid, args.DirectionRadians, args.Concentration, args.ArcRadians);
     }
 
     private EntityUid? TryGetHelmGrid(Entity<ShuttleConsoleComponent> ent, EntityUid actor)
@@ -212,6 +215,9 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
             allocation?.DirectionRadians ?? MathF.PI / 2f, allocation?.Concentration ?? 0f,
             allocation?.ArcRadians ?? MathF.PI / 2f, allocation?.Enabled ?? true)
         {
+            TargetDirectionRadians = allocation is { TargetInitialized: true } ? allocation.TargetDirectionRadians : allocation?.DirectionRadians ?? MathF.PI / 2f,
+            TargetConcentration = allocation is { TargetInitialized: true } ? allocation.TargetConcentration : allocation?.Concentration ?? 0f,
+            TargetArcRadians = allocation is { TargetInitialized: true } ? allocation.TargetArcRadians : allocation?.ArcRadians ?? MathF.PI / 2f,
             RecoveryStatus = recoveryStatus,
             RecoverySeconds = recoverySeconds,
         };

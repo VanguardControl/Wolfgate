@@ -51,18 +51,18 @@ public sealed class WFShipShieldGeneratorUiState : BoundUserInterfaceState
     }
 }
 
-/// <summary>A pilot commits a ship-local shield allocation at the helm.</summary>
+/// <summary>Requests a ship-local target allocation from live controls.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipShieldSetShuntMessage : BoundUserInterfaceMessage
 {
-    /// <summary>Committed ship-local sector direction.</summary>
+    /// <summary>Requested ship-local sector direction.</summary>
     public float DirectionRadians;
     /// <summary>Fraction of capacity redirected into the sector.</summary>
     public float Concentration;
     /// <summary>Width of the selected sector.</summary>
     public float ArcRadians;
 
-    /// <summary>Creates one allocation request from the pilot's committed preview.</summary>
+    /// <summary>Creates one target allocation request.</summary>
     public WFShipShieldSetShuntMessage(float directionRadians, float concentration, float arcRadians)
     {
         DirectionRadians = directionRadians;
@@ -94,12 +94,22 @@ public sealed class WFShipShieldShuntState
     /// <summary>Current selected sector width.</summary>
     public float ArcRadians;
 
+    /// <summary>Requested sector direction during redistribution.</summary>
+    public float TargetDirectionRadians;
+    /// <summary>Requested redirected capacity fraction.</summary>
+    public float TargetConcentration;
+    /// <summary>Requested reinforced sector width.</summary>
+    public float TargetArcRadians;
+
     /// <summary>Creates an authoritative snapshot for all helms on the ship.</summary>
     public WFShipShieldShuntState(bool available, bool active, float health, float directionRadians, float concentration, float arcRadians, bool enabled = true)
     {
         Available = available;
         Enabled = enabled;
         Active = active;
+        TargetDirectionRadians = directionRadians;
+        TargetConcentration = concentration;
+        TargetArcRadians = arcRadians;
         Health = health;
         DirectionRadians = directionRadians;
         Concentration = concentration;

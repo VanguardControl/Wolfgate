@@ -41,7 +41,9 @@ public sealed partial class ShuttleConsoleSystem
                 MathF.Round(previous.Health * 100f) == MathF.Round(current.Health * 100f) &&
                 (previous.Health < 0.1f) == (current.Health < 0.1f) &&
                 previous.DirectionRadians == current.DirectionRadians &&
-                previous.Concentration == current.Concentration && previous.ArcRadians == current.ArcRadians)
+                previous.Concentration == current.Concentration && previous.ArcRadians == current.ArcRadians &&
+                previous.TargetDirectionRadians == current.TargetDirectionRadians && previous.TargetConcentration == current.TargetConcentration &&
+                previous.TargetArcRadians == current.TargetArcRadians)
                 continue;
             _wfShieldHelmStates[uid] = current;
             UpdateState(uid, ref docks);

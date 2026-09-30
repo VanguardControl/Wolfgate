@@ -57,23 +57,25 @@ public sealed class WFShipShieldHullDamageTest
                 screen.Measure(panelSize);
                 screen.Arrange(UIBox2.FromDimensions(Vector2.Zero, panelSize));
                 Assert.That(screen.DesiredSize.X, Is.LessThanOrEqualTo(panelSize.X), "Shield controls must fit the helm width.");
-                Assert.That(screen.DesiredSize.Y, Is.LessThanOrEqualTo(panelSize.Y), "Shield controls must fit without hiding Apply.");
+                Assert.That(screen.DesiredSize.Y, Is.LessThanOrEqualTo(panelSize.Y), "Shield controls must fit without hiding the live controls.");
                 AssertHorizontalBounds(screen);
             }
             screen.SetDraft(35f, 0.73f, 120f);
-            Assert.That(requests, Is.Empty, "Editing the preview must not send an allocation.");
+            Assert.That(requests, Is.Empty, "Edits in one frame must coalesce into a single live request.");
             screen.UpdateState(new WFShipShieldShuntState(true, false, 0.7f, 0.8f, 0.2f, MathF.PI / 2f, false), helmRotation);
-            screen.ApplyAllocation();
+            Tick(screen, 0.11f);
             Assert.That(requests, Has.Count.EqualTo(1));
             Assert.That(requests[0].Direction, Is.EqualTo(WFShipShieldHelmAngles.GridDirection(35f, helmRotation)).Within(0.0001f));
             Assert.That(requests[0].Concentration, Is.EqualTo(0.73f).Within(0.0001f));
             Assert.That(requests[0].Arc, Is.EqualTo(2f * MathF.PI / 3f).Within(0.0001f));
             screen.ResetAllocation();
+            Tick(screen, 0.11f);
             Assert.That(requests, Has.Count.EqualTo(2));
             Assert.That(requests[1].Concentration, Is.Zero);
             screen.UpdateState(new WFShipShieldShuntState(false, false, 0f, 0f, 0f, MathF.PI / 2f), helmRotation);
-            screen.ApplyAllocation();
+            Tick(screen, 0.11f);
             screen.ResetAllocation();
+            Tick(screen, 0.11f);
             Assert.That(requests, Has.Count.EqualTo(2), "An unavailable generator cannot submit an allocation.");
             foreach (var transition in new[] { (Name: "shield_on", Duration: 4.15d), (Name: "shield_off", Duration: 3.88d) })
             {
@@ -356,4 +358,8 @@ public sealed class WFShipShieldHullDamageTest
             AssertHorizontalBounds(child);
         }
     }
+    private static void Tick(WFShipShieldShuntScreen screen, float seconds) =>
+        typeof(WFShipShieldShuntScreen).GetMethod("FrameUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(screen, new object[] { new Robust.Shared.Timing.FrameEventArgs(seconds) });
+
 }

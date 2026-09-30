@@ -37,6 +37,10 @@ public sealed class WFShipShieldGeneratorControlTest
             Assert.That(opened!.ShieldShunt.Available, Is.True);
 
             Send(new WFShipShieldSetShuntMessage(0.6f, 0.5f, 1.2f));
+            Assert.That(controls.GetState(map.Grid.Owner).TargetConcentration, Is.EqualTo(0.5f));
+            Assert.That(controls.GetState(map.Grid.Owner).Concentration, Is.Zero);
+            for (var step = 0; step < 100; step++)
+                controls.Update(0.1f);
             Assert.That(controls.GetState(map.Grid.Owner).Concentration, Is.EqualTo(0.5f));
             emitter.Damage = emitter.DamageLimit * 0.8995f;
             controls.Update(0.21f);

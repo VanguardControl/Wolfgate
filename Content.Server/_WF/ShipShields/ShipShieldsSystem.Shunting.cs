@@ -8,6 +8,55 @@ namespace Content.Server._Crescent.ShipShields;
 
 public sealed partial class ShipShieldsSystem
 {
+    private readonly HashSet<EntityUid> _wfMovingShunts = new();
+    private float _wfShuntAccumulator;
+
+    /// <summary>Sets a requested allocation without immediately changing protection.</summary>
+    public bool RequestWolfgateShieldShunt(EntityUid grid, float directionRadians, float concentration, float arcRadians)
+    {
+        if (!float.IsFinite(directionRadians) || !float.IsFinite(concentration) || !float.IsFinite(arcRadians) ||
+            TerminatingOrDeleted(grid) || !HasComp<MapGridComponent>(grid))
+            return false;
+        var allocation = EnsureComp<WFShipShieldShuntComponent>(grid);
+        allocation.TargetInitialized = true;
+        allocation.TargetDirectionRadians = WFShipShieldShuntMath.NormalizeAngle(directionRadians);
+        allocation.TargetConcentration = Math.Clamp(concentration, 0f, 1f);
+        allocation.TargetArcRadians = Math.Clamp(arcRadians, WFShipShieldShuntMath.MinimumArc, WFShipShieldShuntMath.FullArc);
+        _wfMovingShunts.Add(grid);
+        return true;
+    }
+
+    /// <summary>Advances only moving allocations at a bounded ten updates per second.</summary>
+    public void UpdateWolfgateShieldShunts(float frameTime)
+    {
+        _wfShuntAccumulator += frameTime;
+        if (_wfShuntAccumulator < 0.1f)
+            return;
+        var dt = Math.Min(_wfShuntAccumulator, 0.2f);
+        _wfShuntAccumulator = 0f;
+        if (_wfMovingShunts.Count == 0)
+            return;
+        var finished = new List<EntityUid>();
+        foreach (var grid in _wfMovingShunts)
+        {
+            if (TerminatingOrDeleted(grid) || !TryComp<WFShipShieldShuntComponent>(grid, out var allocation) ||
+                !TryComp<MapGridComponent>(grid, out var mapGrid))
+            {
+                finished.Add(grid);
+                continue;
+            }
+            ApplyWolfgateShieldShunt(grid, mapGrid, allocation,
+                WFShipShieldShuntMath.StepAngle(allocation.DirectionRadians, allocation.TargetDirectionRadians, dt),
+                WFShipShieldShuntMath.Step(allocation.Concentration, allocation.TargetConcentration, dt, 0.5f),
+                WFShipShieldShuntMath.Step(allocation.ArcRadians, allocation.TargetArcRadians, dt, MathF.PI / 2f));
+            if (MathF.Abs(WFShipShieldShuntMath.NormalizeAngle(allocation.DirectionRadians - allocation.TargetDirectionRadians)) < 0.00001f &&
+                allocation.Concentration == allocation.TargetConcentration && allocation.ArcRadians == allocation.TargetArcRadians)
+                finished.Add(grid);
+        }
+        foreach (var grid in finished)
+            _wfMovingShunts.Remove(grid);
+    }
+
     /// <summary>Applies a ship-wide manual operating state without resetting recharge or damage.</summary>
     public bool SetWolfgateShieldEnabled(EntityUid grid, bool enabled)
     {
@@ -47,9 +96,24 @@ public sealed partial class ShipShieldsSystem
         concentration = Math.Clamp(concentration, 0f, 1f);
         arcRadians = Math.Clamp(arcRadians, WFShipShieldShuntMath.MinimumArc, WFShipShieldShuntMath.FullArc);
         var allocation = EnsureComp<WFShipShieldShuntComponent>(grid);
+        allocation.TargetInitialized = true;
+        allocation.TargetDirectionRadians = directionRadians;
+        allocation.TargetConcentration = concentration;
+        allocation.TargetArcRadians = arcRadians;
+        _wfMovingShunts.Remove(grid);
+        ApplyWolfgateShieldShunt(grid, mapGrid, allocation, directionRadians, concentration, arcRadians);
+        return true;
+    }
+
+    /// <summary>Updates active protection, rebuilding fixtures only when angular coverage is clipped.</summary>
+    private void ApplyWolfgateShieldShunt(EntityUid grid, MapGridComponent mapGrid, WFShipShieldShuntComponent allocation,
+        float directionRadians, float concentration, float arcRadians)
+    {
+        var wasClipped = allocation.Concentration >= 1f && allocation.ArcRadians < WFShipShieldShuntMath.FullArc - 0.00001f;
+        var isClipped = concentration >= 1f && arcRadians < WFShipShieldShuntMath.FullArc - 0.00001f;
         if (allocation.DirectionRadians == directionRadians && allocation.Concentration == concentration &&
             allocation.ArcRadians == arcRadians && allocation.Center == mapGrid.LocalAABB.Center)
-            return true;
+            return;
         allocation.DirectionRadians = directionRadians;
         allocation.Concentration = concentration;
         allocation.ArcRadians = arcRadians;
@@ -59,9 +123,13 @@ public sealed partial class ShipShieldsSystem
             nameof(WFShipShieldShuntComponent.Center));
         if (TryComp<ShipShieldedComponent>(grid, out var shielded) &&
             TryComp<PhysicsComponent>(shielded.Shield, out var physics))
-            CreateWolfgateShieldHull(shielded.Shield, grid, mapGrid, physics,
-                Comp<WFShipShieldVisualsComponent>(shielded.Shield).Contours);
-        return true;
+        {
+            if (wasClipped || isClipped)
+                CreateWolfgateShieldHull(shielded.Shield, grid, mapGrid, physics,
+                    Comp<WFShipShieldVisualsComponent>(shielded.Shield).Contours);
+            else
+                SyncWolfgateShieldShunt(shielded.Shield, grid, mapGrid);
+        }
     }
 
     /// <summary>Copies persistent ship allocation to the active shield.</summary>

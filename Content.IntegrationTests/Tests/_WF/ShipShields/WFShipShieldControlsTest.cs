@@ -36,7 +36,7 @@ public sealed class WFShipShieldControlsTest
                 Assert.That(body.Size.X, Is.GreaterThan(500f));
                 var health = Field<ProgressBar>(panel, "_health");
                 Assert.That(health.Size.Y, Is.GreaterThanOrEqualTo(22f), "Integrity must have a readable thick bar.");
-                foreach (var action in new Control[] { Field<Button>(panel, "_apply"), Field<Button>(panel, "_enabled"), health })
+                foreach (var action in new Control[] { Field<Button>(panel, "_reset"), Field<Button>(panel, "_enabled"), health })
                 {
                     Assert.That(action.Size.Y, Is.GreaterThan(0f));
                     Assert.That(action.GlobalPosition.Y, Is.GreaterThanOrEqualTo(generator.GlobalPosition.Y));
@@ -121,10 +121,29 @@ public sealed class WFShipShieldControlsTest
             helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Nav);
             helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Shields);
             Assert.That(allocations, Is.Empty);
-            screen.ApplyAllocation();
+            Tick(screen, 0.11f);
             Assert.That(allocations, Has.Count.EqualTo(1));
             Assert.That(allocations[0].Amount, Is.EqualTo(0.75f).Within(0.0001f), "Health polling and tab switching must preserve the draft.");
             Assert.That(allocations[0].Direction, Is.EqualTo(WFShipShieldHelmAngles.GridDirection(43f, (float)rotation.Theta)).Within(0.0001f));
+            var moving = State(health: 0.4f);
+            moving.Concentration = 0.4f;
+            moving.TargetDirectionRadians = allocations[0].Direction;
+            moving.TargetConcentration = 0.75f;
+            moving.TargetArcRadians = 2f * MathF.PI / 3f;
+            Update(moving);
+            Tick(screen, 0.05f);
+            var liveDial = Field<Control>(screen, "_dial");
+            Assert.That(Field<float>(liveDial, "Concentration"), Is.InRange(0.201f, 0.399f),
+                "The ring should animate toward actual coverage without jumping to the requested 75 percent.");
+            Assert.That(allocations, Has.Count.EqualTo(1), "Incoming health/allocation snapshots must not send edits back.");
+            screen.SetDraft(80f, 0.6f, 90f);
+            screen.SetDraft(90f, 0.5f, 100f);
+            Tick(screen, 0.01f);
+            Assert.That(allocations, Has.Count.EqualTo(1), "Rapid input must respect the send interval.");
+            Tick(screen, 0.1f);
+            Assert.That(allocations, Has.Count.EqualTo(2));
+            Assert.That(allocations[1].Amount, Is.EqualTo(0.5f));
+            Assert.That(allocations[1].Direction, Is.EqualTo(WFShipShieldHelmAngles.GridDirection(90f, (float) rotation.Theta)).Within(0.0001f));
             Update(State(available: false));
             Assert.That(tab.Visible, Is.False);
             Assert.That(screen.Visible, Is.False, "Removing the generator must leave Shields mode.");
@@ -132,6 +151,10 @@ public sealed class WFShipShieldControlsTest
         });
         await pair.CleanReturnAsync();
     }
+
+    private static void Tick(WFShipShieldShuntScreen screen, float seconds) =>
+        typeof(WFShipShieldShuntScreen).GetMethod("FrameUpdate", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(screen, new object[] { new FrameEventArgs(seconds) });
 
     private static WFShipShieldShuntState State(float health = 0.6f, bool available = true, bool enabled = true) =>
         new(available, enabled, health, 0.8f, 0.2f, MathF.PI / 2f, enabled);

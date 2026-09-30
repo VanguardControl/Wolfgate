@@ -10,6 +10,29 @@ public static class WFShipShieldShuntMath
     /// <summary>A full circle of shield coverage.</summary>
     public const float FullArc = MathF.PI * 2f;
 
+    /// <summary>Approaches a requested value with a bounded transfer rate.</summary>
+    public static float Step(float current, float target, float dt, float maxSpeed)
+    {
+        if (!float.IsFinite(current) || !float.IsFinite(target) || !float.IsFinite(dt) ||
+            !float.IsFinite(maxSpeed) || dt <= 0f || maxSpeed <= 0f)
+            return current;
+        var difference = target - current;
+        if (MathF.Abs(difference) <= 0.001f)
+            return target;
+        var amount = difference * (1f - MathF.Exp(-dt / 0.65f));
+        amount = Math.Clamp(amount, -maxSpeed * dt, maxSpeed * dt);
+        return MathF.Abs(difference - amount) <= 0.001f ? target : current + amount;
+    }
+
+    /// <summary>Turns along the shortest path at no more than ninety degrees per second.</summary>
+    public static float StepAngle(float current, float target, float dt)
+    {
+        if (!float.IsFinite(current) || !float.IsFinite(target))
+            return current;
+        var destination = current + NormalizeAngle(target - current);
+        return NormalizeAngle(Step(current, destination, dt, MathF.PI / 2f));
+    }
+
     /// <summary>Normalizes an angle to the range minus pi to pi.</summary>
     public static float NormalizeAngle(float angle)
     {

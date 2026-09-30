@@ -8,7 +8,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.ShipShields;
 
-/// <summary>Previews and commits arbitrary shield allocation bearings at the ship's helm.</summary>
+/// <summary>Controls live shield allocation bearings at the ship's helm.</summary>
 public sealed class WFShipShieldShuntScreen : BoxContainer
 {
     private readonly FloatSpinBox _direction;
@@ -24,7 +24,6 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
     private readonly BoxContainer _settings;
     private readonly RichTextLabel _draft;
     private readonly RichTextLabel _unprotected;
-    private readonly Button _apply;
     private readonly Button _reset;
     private readonly ShieldDial _dial;
     private readonly Button _enabled;
@@ -32,10 +31,15 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
     private WFShipShieldShuntState? _state;
     private float _helmRotation;
     private bool _updating;
-    private bool _dirty;
     private bool _pending;
+    private bool _queued;
+    private float _clock;
+    private float _nextSend;
+    private float _nextRefresh;
+    private float _lastEdit;
+    private bool _hasActual;
 
-    /// <summary>Only Apply or Reset sends a network request.</summary>
+    /// <summary>Coalesces live allocation requests to at most ten updates per second.</summary>
     public event Action<float, float, float>? AllocationRequested;
 
     /// <summary>Requests a change to shield deployment.</summary>
@@ -133,11 +137,6 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         footer.AddChild(_draft = new RichTextLabel());
         var actions = new BoxContainer { SeparationOverride = 8 };
         actions.AddChild(_reset = new Button { Text = Loc.GetString("wf-shield-helm-reset"), Disabled = true, MinHeight = 38 });
-        actions.AddChild(_apply = new Button
-        {
-            Text = Loc.GetString("wf-shield-helm-apply"), Disabled = true, MinHeight = 38, HorizontalExpand = true,
-            Modulate = Color.FromHex("#83DCEB"),
-        });
         footer.AddChild(actions);
         AddChild(Card(footer));
         _direction.OnValueChanged += _ => Edited();
@@ -148,7 +147,6 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             _direction.Value = MathF.Round(degrees, 1) % 360f;
             Edited();
         };
-        _apply.OnPressed += _ => ApplyAllocation();
         _reset.OnPressed += _ => ResetAllocation();
         UpdateState(null, 0f);
     }
@@ -185,12 +183,9 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         Text = Loc.GetString(label), HorizontalExpand = true, MinHeight = 30,
     };
 
-    /// <summary>Accepts shared helm state without resetting an unchanged draft on every health update.</summary>
+    /// <summary>Accepts current and target allocation without overwriting unacknowledged local edits.</summary>
     public void UpdateState(WFShipShieldShuntState? state, float helmRotation)
     {
-        var changed = _state == null || state == null || _state.Available != state.Available ||
-            _state.DirectionRadians != state.DirectionRadians || _state.Concentration != state.Concentration ||
-            _state.ArcRadians != state.ArcRadians || _helmRotation != helmRotation;
         _state = state;
         _helmRotation = helmRotation;
         _dial.Available = state is { Available: true };
@@ -207,15 +202,33 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
                 ? Loc.GetString("wf-shield-helm-offline", ("health", MathF.Round(state.Health * 100f)))
                 : Loc.GetString("wf-shield-helm-unavailable");
         UpdateRecovery(state);
-        if (changed || !_dirty)
+        var acknowledged = state != null && !_queued &&
+            MathF.Abs(MathF.Atan2(MathF.Sin(state.TargetDirectionRadians - DesiredDirection),
+                MathF.Cos(state.TargetDirectionRadians - DesiredDirection))) < 0.002f &&
+            MathF.Abs(state.TargetConcentration - _concentration.Value / 100f) < 0.002f &&
+            MathF.Abs(state.TargetArcRadians - _arc.Value * MathF.PI / 180f) < 0.002f;
+        if (acknowledged || _clock - _lastEdit > 1f)
+            _pending = false;
+        if (state is not { Available: true })
+        {
+            _queued = false;
+            _pending = false;
+            _hasActual = false;
+        }
+        if (!_pending)
         {
             _updating = true;
-            _direction.Value = state == null ? 0f : WFShipShieldHelmAngles.Bearing(state.DirectionRadians, helmRotation);
-            _arc.Value = state == null ? 90f : state.ArcRadians * 180f / MathF.PI;
-            _concentration.Value = (state?.Concentration ?? 0f) * 100f;
+            _direction.Value = state == null ? 0f : WFShipShieldHelmAngles.Bearing(state.TargetDirectionRadians, helmRotation);
+            _arc.Value = state == null ? 90f : state.TargetArcRadians * 180f / MathF.PI;
+            _concentration.Value = (state?.TargetConcentration ?? 0f) * 100f;
             _updating = false;
-            _dirty = false;
-            _pending = false;
+        }
+        if (!_hasActual && state is { Available: true })
+        {
+            _dial.Direction = ActualDirection;
+            _dial.Concentration = state.Concentration;
+            _dial.Arc = state.ArcRadians;
+            _hasActual = true;
         }
         Refresh();
     }
@@ -255,6 +268,22 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         base.FrameUpdate(args);
         _warningTime = (_warningTime + args.DeltaSeconds) % 1f;
         UpdateHealthAppearance();
+        _clock += args.DeltaSeconds;
+        if (_queued && _clock >= _nextSend)
+            SendAllocation();
+        if (_state is { Available: true } state)
+        {
+            var blend = 1f - MathF.Exp(-args.DeltaSeconds / 0.1f);
+            var difference = ActualDirection - _dial.Direction;
+            _dial.Direction += MathF.Atan2(MathF.Sin(difference), MathF.Cos(difference)) * blend;
+            _dial.Concentration += (state.Concentration - _dial.Concentration) * blend;
+            _dial.Arc += (state.ArcRadians - _dial.Arc) * blend;
+            if (_clock >= _nextRefresh)
+            {
+                _nextRefresh = _clock + 0.1f;
+                Refresh();
+            }
+        }
     }
 
     /// <summary>Keeps the ring and integrity bar on the same health and warning pulse.</summary>
@@ -274,65 +303,63 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         _dial.HealthTint = tint;
     }
 
+    private float DesiredDirection => WFShipShieldHelmAngles.GridDirection(_direction.Value, _helmRotation);
+    private float ActualDirection => WFShipShieldHelmAngles.GridDirection(
+        WFShipShieldHelmAngles.Bearing(_state?.DirectionRadians ?? 0f, _helmRotation), 0f);
+
     private void Edited()
     {
-        if (_updating)
+        if (_updating || _state is not { Available: true })
             return;
-        _dirty = true;
-        _pending = false;
+        _pending = true;
+        _queued = true;
+        _lastEdit = _clock;
         Refresh();
     }
 
-    /// <summary>Edits a local preview without sending any network traffic.</summary>
+    /// <summary>Sets the requested allocation and queues a live network update.</summary>
     public void SetDraft(float bearingDegrees, float concentration, float arcDegrees)
     {
+        _updating = true;
         _direction.Value = bearingDegrees;
         _concentration.Value = Math.Clamp(concentration, 0f, 1f) * 100f;
         _arc.Value = arcDegrees;
+        _updating = false;
         Edited();
     }
 
-    /// <summary>Commits the preview through the helm's bound interface.</summary>
-    public void ApplyAllocation() => Commit(false);
+    /// <summary>Requests balanced allocation without waiting for confirmation.</summary>
+    public void ResetAllocation() => SetDraft(_direction.Value, 0f, _arc.Value);
 
-    /// <summary>Restores balanced allocation through the helm's bound interface.</summary>
-    public void ResetAllocation() => Commit(true);
-
-    private void Refresh()
-    {
-        var concentration = _concentration.Value / 100f;
-        var arc = _arc.Value * MathF.PI / 180f;
-        _dial.Direction = WFShipShieldHelmAngles.GridDirection(_direction.Value, 0f);
-        _dial.Concentration = concentration;
-        _dial.Arc = arc;
-        _amount.Text = Loc.GetString("wf-shield-helm-concentration", ("amount", _concentration.Value));
-        var boost = WFShipShieldShuntMath.StrengthMultiplier(new Vector2(MathF.Cos(_dial.Direction), MathF.Sin(_dial.Direction)),
-            Vector2.Zero, _dial.Direction, concentration, arc);
-        _strength.SetMessage(Loc.GetString("wf-shield-helm-strength", ("strength", MathF.Round(boost * 100f))), Color.FromHex("#83DCEB"));
-        _outside.Text = Loc.GetString("wf-shield-helm-outside",
-            ("outside", MathF.Round((_arc.Value >= 360f ? 1f : 1f - concentration) * 100f)));
-        _unprotected.Visible = concentration >= 1f && _arc.Value < 360f;
-        _draft.Text = Loc.GetString(_dirty ? "wf-shield-helm-draft" : _pending ? "wf-shield-helm-pending" : "wf-shield-helm-live");
-        _previewStatus.Text = Loc.GetString(_dirty ? "wf-shield-helm-preview" : "wf-shield-helm-current");
-        _previewStatus.Modulate = _dirty ? Color.Orange : Color.FromHex("#83DCEB");
-        _apply.Disabled = !_dirty || _state is not { Available: true };
-    }
-
-    private void Commit(bool reset)
+    private void SendAllocation()
     {
         if (_state is not { Available: true })
             return;
-        if (reset)
-        {
-            _concentration.Value = 0f;
-            _dirty = false;
-            Refresh();
-        }
-        AllocationRequested?.Invoke(WFShipShieldHelmAngles.GridDirection(_direction.Value, _helmRotation),
-            _concentration.Value / 100f, _arc.Value * MathF.PI / 180f);
-        _dirty = false;
-        _pending = true;
-        Refresh();
+        _queued = false;
+        _nextSend = _clock + 0.1f;
+        AllocationRequested?.Invoke(DesiredDirection, _concentration.Value / 100f, _arc.Value * MathF.PI / 180f);
+    }
+
+    private void Refresh()
+    {
+        var arc = _arc.Value * MathF.PI / 180f;
+        _dial.TargetDirection = WFShipShieldHelmAngles.GridDirection(_direction.Value, 0f);
+        _dial.TargetArc = arc;
+        _amount.Text = Loc.GetString("wf-shield-helm-concentration", ("amount", _concentration.Value));
+        var boost = WFShipShieldShuntMath.StrengthMultiplier(new Vector2(MathF.Cos(_dial.Direction), MathF.Sin(_dial.Direction)),
+            Vector2.Zero, _dial.Direction, _dial.Concentration, _dial.Arc);
+        _strength.SetMessage(Loc.GetString("wf-shield-helm-strength", ("strength", MathF.Round(boost * 100f))), Color.FromHex("#83DCEB"));
+        _outside.Text = Loc.GetString("wf-shield-helm-outside",
+            ("outside", MathF.Round((_dial.Arc >= MathF.Tau - 0.001f ? 1f : 1f - _dial.Concentration) * 100f)));
+        _unprotected.Visible = _state is { Concentration: >= 1f } && _state.ArcRadians < MathF.Tau - 0.00001f;
+        var adjusting = _pending || _state is { } state &&
+            (MathF.Abs(state.Concentration - state.TargetConcentration) > 0.002f ||
+             MathF.Abs(state.ArcRadians - state.TargetArcRadians) > 0.002f ||
+             MathF.Abs(MathF.Atan2(MathF.Sin(state.DirectionRadians - state.TargetDirectionRadians),
+                 MathF.Cos(state.DirectionRadians - state.TargetDirectionRadians))) > 0.002f);
+        _draft.Text = Loc.GetString(adjusting ? "wf-shield-helm-adjusting-help" : "wf-shield-helm-live");
+        _previewStatus.Text = Loc.GetString(adjusting ? "wf-shield-helm-adjusting" : "wf-shield-helm-current");
+        _previewStatus.Modulate = adjusting ? Color.Orange : Color.FromHex("#83DCEB");
     }
 
     /// <summary>Reserves both column widths before measuring text and keeps overflow inside each column.</summary>
@@ -359,7 +386,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             var right = MathF.Min(380f, MathF.Max(0f, availableSize.X - Gap) * 0.46f);
             _preview.Measure(new Vector2(MathF.Max(0f, availableSize.X - right - Gap), availableSize.Y));
             _settings.Measure(new Vector2(right, availableSize.Y));
-            // The expandable body takes the space left after the fixed header and Apply row.
+            // The expandable body takes the space left after the fixed header and status row.
             return Vector2.Zero;
         }
 
@@ -373,11 +400,13 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         }
     }
 
-    /// <summary>A clockwise helm-relative bearing selector with the protected arc drawn at preview strength.</summary>
+    /// <summary>A clockwise helm-relative bearing selector with current protection and a requested bearing marker.</summary>
     private sealed class ShieldDial : Control
     {
         public event Action<float>? BearingRequested;
         public float Direction;
+        public float TargetDirection;
+        public float TargetArc = MathF.PI / 2f;
         public float Concentration;
         public float Arc = MathF.PI / 2f;
         public bool Available;
@@ -440,8 +469,18 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
                         handle.DrawLine(Point(edge, radius * 0.25f), Point(edge, radius), tint.WithAlpha(0.45f));
                     }
                 }
-                handle.DrawLine(Point(Direction, radius * 0.3f), Point(Direction, radius + 8f * UIScale), Color.White.WithAlpha(0.8f));
-                handle.DrawCircle(Point(Direction, radius + 8f * UIScale), 5f * UIScale, Color.White);
+                handle.DrawLine(Point(Direction, radius * 0.3f), Point(Direction, radius), tint.WithAlpha(0.65f));
+                handle.DrawLine(Point(TargetDirection, radius * 0.65f), Point(TargetDirection, radius + 8f * UIScale), Color.White.WithAlpha(0.6f));
+                handle.DrawCircle(Point(TargetDirection, radius + 8f * UIScale), 5f * UIScale, Color.White, false);
+                if (TargetArc < MathF.Tau - 0.001f)
+                {
+                    for (var segment = 0; segment < 48; segment++)
+                    {
+                        var start = TargetDirection - TargetArc / 2f + TargetArc * segment / 48f;
+                        var end = start + TargetArc / 48f;
+                        handle.DrawLine(Point(start, radius + 5f * UIScale), Point(end, radius + 5f * UIScale), Color.White.WithAlpha(0.25f));
+                    }
+                }
             }
             // A fixed bow marker keeps helm-relative bearings readable while the selector moves.
             var bow = center + new Vector2(0f, -24f) * UIScale;

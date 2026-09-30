@@ -9,6 +9,27 @@ namespace Content.Tests._WF.ShipShields;
 [TestFixture]
 public sealed class WFShipShieldShuntMathTest
 {
+    [Test]
+    public void LiveAllocationTakesTheShortWayAndSettlesWithoutOvershoot()
+    {
+        var direction = 179f * MathF.PI / 180f;
+        var target = -179f * MathF.PI / 180f;
+        var first = WFShipShieldShuntMath.StepAngle(direction, target, 0.1f);
+        Assert.That(WFShipShieldShuntMath.NormalizeAngle(first - direction), Is.InRange(0f, 2f * MathF.PI / 180f));
+        var concentration = 0f;
+        for (var step = 0; step < 100; step++)
+        {
+            var next = WFShipShieldShuntMath.Step(concentration, 1f, 0.1f, 0.5f);
+            Assert.That(next, Is.InRange(concentration, MathF.Min(1f, concentration + 0.051f)));
+            concentration = next;
+            direction = WFShipShieldShuntMath.StepAngle(direction, target, 0.1f);
+        }
+        Assert.That(concentration, Is.EqualTo(1f), "Full diversion must eventually open the unprotected sectors exactly.");
+        Assert.That(WFShipShieldShuntMath.NormalizeAngle(direction - target), Is.EqualTo(0f).Within(0.00001f));
+        Assert.That(WFShipShieldShuntMath.Step(0.5f, 0f, 0.1f, 0.5f), Is.InRange(0.45f, 0.5f));
+        Assert.That(MathF.Abs(WFShipShieldShuntMath.StepAngle(0f, MathF.PI, 0.1f)), Is.LessThanOrEqualTo(MathF.PI / 20f + 0.00001f));
+    }
+
     [TestCase(0f, 90f)]
     [TestCase(90f, 0f)]
     [TestCase(180f, -90f)]
