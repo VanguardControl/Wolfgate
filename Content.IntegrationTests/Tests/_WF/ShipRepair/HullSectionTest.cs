@@ -7,6 +7,8 @@ using Content.Server._Mono.FireControl;
 using Content.Server._Mono.ShipRepair;
 using Content.Server._WF.ShipRepair;
 using Content.Server._WF.Shipyard;
+using Content.Server.Atmos;
+using Content.Server.Atmos.Components;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Decals;
 using Content.Server.Shuttles.Components;
@@ -580,6 +582,50 @@ public sealed class HullSectionTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Tiles trimmed off a split hull's atmosphere leave no adjacency behind, before or after a reattach.</summary>
+    [Test]
+    public async Task SplitAndReattachLeaveNoStaleAtmosAdjacency()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var index = new Vector2i(12, 5);
+
+        // Planet-like map air: equalization walks through map tiles instead of stopping at space.
+        await server.WaitPost(() =>
+        {
+            var mixture = new GasMixture(Atmospherics.CellVolume) { Temperature = Atmospherics.T20C };
+            mixture.AdjustMoles(Gas.Nitrogen, Atmospherics.MolesCellStandard);
+            server.System<AtmosphereSystem>().SetMapAtmosphere(map.MapUid, false, mixture);
+        });
+
+        var (hull, section) = await BuildSplitHull(pair, map.MapId);
+
+        // The hull revalidates and trims the section's tiles within a few atmos cycles.
+        var trimmed = false;
+        for (var i = 0; i < 40 && !trimmed; i++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(0.25f));
+            await server.WaitPost(() => trimmed = !HullAtmosTiles(pair, hull).ContainsKey(index));
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(trimmed, "The hull never trimmed the section's tiles.");
+            AssertAdjacencyIsLive(HullAtmosTiles(pair, hull), "after the split");
+
+            FillSeam(pair, hull);
+            server.System<WFHullSectionServerSystem>().Reattach(hull, section);
+            Assert.That(HasTile(pair, hull, index), "The section was not reattached.");
+            AssertAdjacencyIsLive(HullAtmosTiles(pair, hull), "straight after the reattach");
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+        await server.WaitAssertion(() => AssertAdjacencyIsLive(HullAtmosTiles(pair, hull), "once the reattach settled"));
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Standing on planet ground, the SRD works on the hull beside the click rather than on the ground map.</summary>
     [Test]
     public async Task SrdUsedFromPlanetGroundReachesTheHull()
@@ -736,6 +782,31 @@ public sealed class HullSectionTest
     private static EntityCoordinates TileCentre(EntityUid grid, Vector2i index)
     {
         return new EntityCoordinates(grid, new Vector2(index.X + 0.5f, index.Y + 0.5f));
+    }
+
+    private static Dictionary<Vector2i, TileAtmosphere> HullAtmosTiles(TestPair pair, EntityUid hull)
+    {
+        return pair.Server.EntMan.GetComponent<GridAtmosphereComponent>(hull).Tiles;
+    }
+
+    /// <summary>Fails if a tile links to one that left the grid atmosphere, or the two disagree about the link.</summary>
+    private static void AssertAdjacencyIsLive(Dictionary<Vector2i, TileAtmosphere> tiles, string when)
+    {
+        foreach (var (index, tile) in tiles)
+        {
+            var adjacentTiles = tile.AdjacentTiles;
+            for (var i = 0; i < Atmospherics.Directions; i++)
+            {
+                if (adjacentTiles[i] is not { } adjacent)
+                    continue;
+
+                var direction = (AtmosDirection) (1 << i);
+                Assert.That(tiles.GetValueOrDefault(index.Offset(direction)), Is.SameAs(adjacent),
+                    $"Tile {index} links {direction} to a tile no longer in the grid atmosphere, {when}.");
+                Assert.That(adjacent.AdjacentBits.IsFlagSet(direction.GetOpposite()),
+                    $"Tile {index} links {direction} but its neighbour does not link back, {when}.");
+            }
+        }
     }
 
     private static bool HasTile(TestPair pair, EntityUid grid, Vector2i index)

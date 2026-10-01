@@ -44,6 +44,7 @@ links, hand-on, the merge) and the marked edits in `SharedShipRepairSystem.Tool`
 
 ## Non-modular edits
 
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Processing.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Processing.cs): a trimmed tile must not stay linked to its neighbours
 - [`Content.Shared/_Mono/ShipRepair/SharedShipRepairSystem.Tool.cs`](../../../Content.Shared/_Mono/ShipRepair/SharedShipRepairSystem.Tool.cs)
   - sections, rebuild guard, target pick.
   - target the hull or section under the click, not planet ground; a section is reattached.
