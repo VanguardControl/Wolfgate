@@ -183,6 +183,7 @@ public sealed partial class ShipShieldsSystem
         var strength = WolfgateShieldStrength(uid, args.ProjUid);
         if (strength <= 0f)
             return;
+        DisarmWolfgateAbsorbedProjectile(args.ProjUid);
         var impactPosition = WolfgateShieldImpactPosition(uid, args.ProjUid);
         if (component.Source is { } source)
         {

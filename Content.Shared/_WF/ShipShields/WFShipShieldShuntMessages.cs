@@ -99,6 +99,8 @@ public sealed class WFShipShieldShuntState
     public WFShipShieldRecoveryStatus RecoveryStatus;
     /// <summary>Whole seconds until automatic startup, or minus one when recovery cannot be timed.</summary>
     public int RecoverySeconds;
+    /// <summary>Runtime specifications of the emitter supplying this snapshot.</summary>
+    public WFShipShieldGeneratorStats? Stats;
     /// <summary>Remaining shield capacity.</summary>
     public float Health;
     /// <summary>Current ship-local sector direction.</summary>

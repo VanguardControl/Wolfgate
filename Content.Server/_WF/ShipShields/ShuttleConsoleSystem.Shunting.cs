@@ -35,6 +35,7 @@ public sealed partial class ShuttleConsoleSystem
             var current = GetWolfgateShieldShuntState(grid);
             if (_wfShieldHelmStates.TryGetValue(uid, out var previous) &&
                 previous.Available == current.Available && previous.Active == current.Active && previous.Enabled == current.Enabled &&
+                WFShipShieldGeneratorStats.Same(previous.Stats, current.Stats) &&
                 previous.RecoveryStatus == current.RecoveryStatus && previous.RecoverySeconds == current.RecoverySeconds &&
                 MathF.Round(previous.Health * 100f) == MathF.Round(current.Health * 100f) &&
                 (previous.Health < 0.1f) == (current.Health < 0.1f) &&
