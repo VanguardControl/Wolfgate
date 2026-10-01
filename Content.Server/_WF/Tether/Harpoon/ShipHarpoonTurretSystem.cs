@@ -314,8 +314,7 @@ public sealed class ShipHarpoonTurretSystem : SharedShipHarpoonTurretSystem
     }
 
     /// <summary>
-    /// The point only strikes in flight. Loose or loaded, a harpoon riding a fast ship would otherwise be swept
-    /// as a live round by the projectile code and thrown out of its turret or through the hull.
+    /// The point only strikes in flight; loose or loaded, a harpoon touches nothing with it.
     /// In flight it is wider than its point, so beside a seam it also brushes the neighbour of whatever it is
     /// about to strike. Only what its flight path runs into is hit: a brush would be judged against a face it
     /// never flew at, and a square-on shot would skip off the hidden side of the next wall along.
