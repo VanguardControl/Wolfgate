@@ -46,10 +46,21 @@ public sealed class HarpoonTest
     proto: WFShipHarpoon
     capacity: 1
     cycleable: false
+
+# No spread and no recoil, so a shot flies exactly where it is aimed.
+- type: entity
+  id: WFTestHarpoonTurretSteady
+  parent: WFTestHarpoonTurret
+  components:
+  - type: Gun
+    minAngle: 0
+    maxAngle: 0
+    recoil: 0
 ";
 
     private const string Operator = "MobHuman";
     private const string Wall = "WallSolid";
+    private const string SteadyTurret = "WFTestHarpoonTurretSteady";
 
     [Test]
     public async Task ManningGrantsAndRemovesTheControls()
@@ -239,6 +250,66 @@ public sealed class HarpoonTest
                 Assert.That(entities.GetComponent<RopeAttachPointComponent>(turret).Ropes, Is.Empty,
                     "A glancing hit leaves no cable behind.");
             });
+
+            entities.DeleteEntity(user);
+            entities.DeleteEntity(gridA);
+            entities.DeleteEntity(gridB);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A harpoon is wider than its point, so one landing beside the seam between two wall tiles also touches the
+    /// neighbour of the tile it strikes. Leaning towards the seam, it used to be judged against the neighbour's
+    /// hidden side face and skip off.
+    /// </summary>
+    [TestCase(-0.1f, 0f)]
+    [TestCase(0.1f, 0f)]
+    [TestCase(-0.1f, 25f)]
+    public async Task ShotBesideASeamBites(float lean, float degrees)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+        var maps = server.ResolveDependency<IMapManager>();
+
+        EntityUid gridA = default, gridB = default, turret = default, user = default, harpoon = default;
+        var turn = Angle.FromDegrees(degrees);
+
+        await server.WaitPost(() =>
+        {
+            entities.DeleteEntity(map.Grid);
+            gridA = MakeGrid(entities, maps, map.MapId, Vector2.Zero, 3);
+            // The shot lands a tenth of a tile short of a seam, on the side it is leaning towards.
+            gridB = MakeGrid(entities, maps, map.MapId, turn.RotateVec(new Vector2(10f, 0.5f + 2f * lean)), 1, 20);
+            // The whole scene turned as one: hulls are rarely square to the map.
+            entities.System<SharedTransformSystem>().SetWorldRotation(gridA, turn);
+            entities.System<SharedTransformSystem>().SetWorldRotation(gridB, turn);
+            for (var y = 0; y < 20; y++)
+            {
+                entities.SpawnEntity(Wall, new EntityCoordinates(gridB, new Vector2(0.5f, y + 0.5f)));
+            }
+
+            (turret, user) = MakeTurret(entities, gridA, SteadyTurret);
+        });
+
+        await server.WaitRunTicks(5);
+        await server.WaitPost(() =>
+        {
+            Man(entities, user, turret);
+            Fire(entities, user, turret, new MapCoordinates(turn.RotateVec(new Vector2(10.5f, 1.5f + lean)), map.MapId));
+            harpoon = entities.GetEntity(entities.GetComponent<ShipHarpoonTurretComponent>(turret).Harpoon!.Value);
+        });
+
+        await server.WaitRunTicks(40);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.GetComponent<ShipHarpoonComponent>(harpoon).Embedded, Is.True,
+                "A square-on shot bites wherever on the wall it lands.");
+            Assert.That(entities.System<RopeSystem>().TryGetBody(harpoon, out var body, out _), Is.True);
+            Assert.That(body, Is.EqualTo(gridB));
 
             entities.DeleteEntity(user);
             entities.DeleteEntity(gridA);
@@ -480,10 +551,10 @@ public sealed class HarpoonTest
     }
 
     /// <summary>A turret bolted to the east edge of a hull, facing east, with an operator standing on it.</summary>
-    private static (EntityUid Turret, EntityUid User) MakeTurret(IEntityManager entities, EntityUid grid)
+    private static (EntityUid Turret, EntityUid User) MakeTurret(IEntityManager entities, EntityUid grid, string prototype = "WFTestHarpoonTurret")
     {
         var coordinates = new EntityCoordinates(grid, new Vector2(2.5f, 1.5f));
-        var turret = entities.SpawnEntity("WFTestHarpoonTurret", coordinates);
+        var turret = entities.SpawnEntity(prototype, coordinates);
         var comp = entities.GetComponent<ShipHarpoonTurretComponent>(turret);
         comp.MountRotation = new Vector2(1f, 0f).ToWorldAngle();
         return (turret, entities.SpawnEntity(Operator, coordinates));
