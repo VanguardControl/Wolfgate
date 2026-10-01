@@ -2,8 +2,7 @@
   id: FelinidTailFoxtail
   bodyPart: Tail
   markingCategory: Tail
-<<<<<<< HEAD
-  speciesRestriction: [Felinid, Tajaran, Human] # Goobstation - Tajaran
+  speciesRestriction: [Felinid, Tajaran, Human, Vulpkanin] # Goobstation - Tajaran ## Mono - vulps
   # WOLFGATE(Genitals) START: split tail, south frame behind the body
   layering:
     base_fox_tail_BEHIND: TailBehind
@@ -21,11 +20,3 @@
   - sprite: _WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Felinid/foxtail.rsi
     state: base_fox_tail_tip_BEHIND
   # WOLFGATE END
-=======
-  speciesRestriction: [Felinid, Tajaran, Human, Vulpkanin] # Goobstation - Tajaran ## Mono - vulps
-  sprites:
-  - sprite: _Goobstation/Mobs/Customization/Felinid/foxtail.rsi
-    state: base_fox_tail
-  - sprite: _Goobstation/Mobs/Customization/Felinid/foxtail.rsi
-    state: base_fox_tail_tip
->>>>>>> 64da112057 (Add the Felinid/Tajaran 'Fox Tail' Marking to Vulpkanins (#4801))
