@@ -6,8 +6,10 @@ using Content.Shared._WF.ShipAccess;
 using Content.Shared.Access;
 using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
+using Content.Shared.DeviceLinking.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared.Emag.Systems;
+using Content.Shared.Lock;
 using Content.Shared.StationRecords;
 using Robust.Shared.Prototypes;
 
@@ -205,10 +207,22 @@ public sealed partial class WFShipAccessServerSystem
         CommitReader(reader);
     }
 
-    /// <summary>Doors (not firelocks) and lockers: what ship access has always covered.</summary>
+    /// <summary>Doors (not firelocks), lockers and lockable buttons: what ship access covers.</summary>
     private bool IsShipReader(EntityUid uid)
     {
-        return (HasComp<DoorComponent>(uid) && !HasComp<FirelockComponent>(uid)) || HasComp<EntityStorageComponent>(uid);
+        return IsRuledDoor(uid) || HasComp<EntityStorageComponent>(uid) || IsLockableSwitch(uid);
+    }
+
+    /// <summary>A door that can take a rule of its own. Firelocks answer to the atmosphere, not the owner.</summary>
+    private bool IsRuledDoor(EntityUid uid)
+    {
+        return HasComp<DoorComponent>(uid) && !HasComp<FirelockComponent>(uid);
+    }
+
+    /// <summary>A button or switch with a lock, whose reader decides who may unlock it.</summary>
+    private bool IsLockableSwitch(EntityUid uid)
+    {
+        return HasComp<SignalSwitchComponent>(uid) && HasComp<LockComponent>(uid);
     }
 
     /// <summary>

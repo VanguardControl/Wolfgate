@@ -1,8 +1,8 @@
 # ShipAccess
 
-Per-card access control for purchased ships, built on the normal airlock access system: every door and locker on
-the ship is gated by its own access reader (an airlock's door electronics), and this module only decides what
-that reader holds. Whoever carries the ship's deed is its owner, on an ID card or, for a ship bought with one,
+Per-card access control for purchased ships, built on the normal airlock access system: every door, locker and
+lockable button on the ship is gated by its own access reader (an airlock's door electronics), and this module
+only decides what that reader holds. Whoever carries the ship's deed is its owner, on an ID card or, for a ship bought with one,
 the voucher held in hand; the owner keeps an allow list of ID cards, and in Faction mode the company's access
 levels also open the ship. While a ship is locked, only those cards open its doors and lockers. Unlocked, every
 door gets back the access its electronics had.
@@ -68,6 +68,14 @@ unpowered one bolts when power returns, and the console says so. Undocking and F
 bolts on their own, so a sealed dock airlock is bolted again; other sealed doors keep whatever a wire or remote
 does to their bolts. Lockers keep the ship rule. Cards dropped from the allow list are dropped from every door
 they were ticked on.
+
+Lockable buttons and switches (a `SignalSwitch` with a `Lock`) keep the ship rule too: on a locked ship only the
+owner, the listed cards and the faction's access unlock one, whatever access it was mapped with, and unlocking the
+ship gives that access back. The `LockableButtons` module makes a locked button refuse the press.
+
+The All doors control on the Access tab gives every door on the ship one rule at once, after a second click to
+confirm. Sealed is not offered and is refused at the server, since bolting every door can shut the owner out;
+firelocks are skipped, and the readers are rewritten in one pass.
 
 The Access tab shows the ship outline with each door as a node in its rule's colour (the same nav map the Ship
 tab uses, sized to the tab instead of the nav map's fixed square) and a legend; clicking a node selects the door

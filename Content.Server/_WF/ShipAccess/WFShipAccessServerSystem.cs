@@ -6,6 +6,7 @@ using Content.Shared._WF.CCVar;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Access.Components;
 using Content.Shared.Database;
+using Content.Shared.DeviceLinking.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared.Popups;
 using Robust.Server.Player;
@@ -15,8 +16,8 @@ using Robust.Shared.Network;
 namespace Content.Server._WF.ShipAccess;
 
 /// <summary>
-/// Owns every edit to <see cref="WFShipAccessComponent"/>: sets a ship up at purchase, keeps the airlock access
-/// reader of each door and locker on the grid in step with the lock, list and rules, and applies the console's
+/// Owns every edit to <see cref="WFShipAccessComponent"/>: sets a ship up at purchase, keeps the access reader of
+/// each door, locker and lockable button on the grid in step with the lock, list and rules, and applies the console's
 /// access tab and verbs. The allow list holds the record keys of ID cards; ownership is the deed, on a card or a
 /// voucher, or for a ship an admin tool spawned, the players it is registered to.
 /// </summary>
@@ -38,6 +39,8 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         SubscribeLocalEvent<DoorComponent, AnchorStateChangedEvent>(OnDoorAnchorChanged);
         SubscribeLocalEvent<EntityStorageComponent, EntParentChangedMessage>(OnStorageParentChanged);
         SubscribeLocalEvent<EntityStorageComponent, AnchorStateChangedEvent>(OnStorageAnchorChanged);
+        SubscribeLocalEvent<SignalSwitchComponent, EntParentChangedMessage>(OnSwitchParentChanged);
+        SubscribeLocalEvent<SignalSwitchComponent, AnchorStateChangedEvent>(OnSwitchAnchorChanged);
         InitializeConsole();
         InitializeDoors();
         InitializeCodes();
@@ -251,6 +254,18 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
     private void OnStorageAnchorChanged(Entity<EntityStorageComponent> ent, ref AnchorStateChangedEvent args)
     {
         if (!args.Detaching)
+            QueueReader(ent);
+    }
+
+    private void OnSwitchParentChanged(Entity<SignalSwitchComponent> ent, ref EntParentChangedMessage args)
+    {
+        if (IsLockableSwitch(ent))
+            QueueReader(ent);
+    }
+
+    private void OnSwitchAnchorChanged(Entity<SignalSwitchComponent> ent, ref AnchorStateChangedEvent args)
+    {
+        if (!args.Detaching && IsLockableSwitch(ent))
             QueueReader(ent);
     }
 }

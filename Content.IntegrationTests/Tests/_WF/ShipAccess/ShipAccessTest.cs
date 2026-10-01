@@ -15,6 +15,7 @@ using Content.Shared.Access.Systems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Doors.Systems;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Lock;
 using Content.Shared.Mind;
 using Content.Shared.Players;
 using Content.Shared.Power;
@@ -40,6 +41,9 @@ public sealed class ShipAccessTest
 {
     private const string DoorProto = "AirlockShuttle";
     private const string LockerProto = "LockerFreezer";
+
+    /// <summary>A lockable button mapped with <see cref="SecureAccess"/>.</summary>
+    private const string ButtonProto = "LockableButtonCaptain";
     private const string HumanProto = "MobHuman";
     private const string CardProto = "PassengerIDCard";
     private const string AdminGhostProto = "AdminObserver";
@@ -338,6 +342,70 @@ public sealed class ShipAccessTest
     }
 
     /// <summary>
+    /// A lockable button's reader follows the ship like a door's: on a locked ship only the owner's card unlocks it,
+    /// whatever access it was mapped with, a button built later is covered, and unlocking the ship gives its own
+    /// access back.
+    /// </summary>
+    [Test]
+    public async Task LockableButtonsFollowTheShipLock()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var readers = entMan.System<AccessReaderSystem>();
+        var locks = entMan.System<LockSystem>();
+        var access = entMan.System<WFShipAccessServerSystem>();
+        var hands = entMan.System<SharedHandsSystem>();
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+
+        EntityUid button = default, plainSwitch = default, owner = default, deed = default, stranger = default;
+        Entity<WFShipAccessComponent> ship = default;
+        await server.WaitPost(() =>
+        {
+            button = entMan.SpawnEntity(ButtonProto, map.GridCoords);
+            plainSwitch = entMan.SpawnEntity("SignalButton", map.GridCoords);
+            (owner, deed) = SpawnPersonWithCard(entMan, hands, map, "Ada Vance", 1);
+            GiveDeed(entMan, deed, grid);
+            (stranger, _) = SpawnPersonWithCard(entMan, hands, map, "Random Stranger", 2);
+            ship = (grid, entMan.EnsureComponent<WFShipAccessComponent>(grid));
+            Assert.That(readers.IsAllowed(owner, button), Is.False, "Precondition: the owner's card lacks the button's mapped access.");
+            access.SetLocked(ship, true);
+        });
+
+        EntityUid laterButton = default;
+        await server.WaitPost(() => laterButton = entMan.SpawnEntity(ButtonProto, map.GridCoords));
+        await pair.RunTicksSync(3);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(ReaderLocked(entMan, button), Is.True, "Locking the ship takes the button's reader over.");
+                Assert.That(ReaderLocked(entMan, laterButton), Is.True, "A button built on a locked ship is covered too.");
+                Assert.That(entMan.HasComponent<AccessReaderComponent>(plainSwitch), Is.False, "A button without a lock is left alone.");
+                Assert.That(readers.IsAllowed(owner, button), Is.True, "The deed's record key is admitted.");
+                Assert.That(readers.IsAllowed(stranger, button), Is.False, "A stranger is not.");
+            });
+
+            Assert.That(locks.TryUnlock(button, stranger), Is.False, "A stranger cannot unlock the button.");
+            Assert.That(locks.IsLocked(button), Is.True);
+            Assert.That(locks.TryUnlock(button, owner), Is.True, "The owner unlocks the button.");
+            Assert.That(locks.IsLocked(button), Is.False);
+
+            access.SetLocked(ship, false);
+            Assert.Multiple(() =>
+            {
+                Assert.That(ReaderLocked(entMan, button), Is.False, "Unlocking the ship gives the button its own access back.");
+                Assert.That(entMan.GetComponent<AccessReaderComponent>(button).AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(SecureAccess)));
+                Assert.That(entMan.HasComponent<WFShipReaderBackupComponent>(button), Is.False, "The backup goes once restored.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
     /// With no crew record on the deed card or the buyer's card, no door can be keyed to the owner, so a new ship is
     /// left unlocked rather than shutting its buyer out.
     /// </summary>
@@ -435,6 +503,7 @@ public sealed class ShipAccessTest
             Assert.Multiple(() =>
             {
                 Assert.That(Find<Label>(screen, "ReadOnlyLabel").Visible, Is.True, "Without a deed the tab is read-only.");
+                Assert.That(Find<BoxContainer>(screen, "AllDoorsBox").Visible, Is.False, "Without a deed there is no set-all control.");
                 Assert.That(Find<Label>(screen, "AllowListEmptyLabel").Visible, Is.True, "An empty allow list says so.");
             });
         });
@@ -537,6 +606,8 @@ public sealed class ShipAccessTest
             {
                 Assert.That(Find<Label>(screen, "ReadOnlyLabel").Visible, Is.False, "The deed holder's tab is not read-only.");
                 Assert.That(Find<CheckBox>(screen, "LockedCheck").Visible, Is.True, "The deed holder can flip the lock.");
+                Assert.That(Find<BoxContainer>(screen, "AllDoorsBox").Visible, Is.True, "The deed holder gets the set-all control.");
+                Assert.That(Find<OptionButton>(screen, "AllDoorsRuleButton").ItemCount, Is.EqualTo(6), "Every rule but Sealed is offered for all doors.");
             });
         });
 

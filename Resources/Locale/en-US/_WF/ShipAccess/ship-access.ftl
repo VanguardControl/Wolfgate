@@ -57,6 +57,16 @@ ship-access-rule-code-desc = The owner, or anyone who enters this door's code or
 ship-access-rule-players-or-code-desc = The owner, the ID cards ticked below, or a code at the keypad.
 ship-access-rule-public-desc = Anyone opens this door, even while the ship is locked, whatever access its electronics ask for.
 ship-access-rule-sealed-desc = Bolted shut for everyone, the owner included. Pick another rule to unseal it.
+ship-access-all-doors = All doors
+ship-access-all-doors-apply = Set all
+ship-access-all-doors-confirm = Confirm
+ship-access-all-doors-hint = Gives every door on the ship this rule. Firelocks are left alone; lockers and lockable buttons always follow the ship. { $desc }
+ship-access-all-doors-set = { $count ->
+        [0] Every door already has that rule.
+        [one] 1 door set.
+       *[other] { $count } doors set.
+    }
+ship-access-all-doors-no-seal = Doors are sealed one at a time.
 ship-access-door-not-on-ship = That door is not on this ship.
 ship-access-seal-pending = The door will bolt as soon as it is shut and powered.
 ship-access-no-owner-key = Neither the deed nor your ID card has a crew record, so no door can be keyed to you. Locking would shut you out.
