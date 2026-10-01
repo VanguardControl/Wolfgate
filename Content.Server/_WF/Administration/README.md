@@ -12,7 +12,7 @@ text, is advertised as it is. Prompts close once the role is taken or gone.
 
 A vessel spawned for an owner, and an ERT's ship, are registered to the players' accounts through ShipAccess, so
 their access stays with the player in any body, a ghost included. The owner's living body's ID card also gets
-the deed when it has none; ERT responders aboard a ship get a crew record so their cards can key its doors.
+the deed when it has none; ERT responders aboard a ship get a crew record so their cards can key its doors, and a plain ID card when their outfit has none.
 
 Entry points: `WolfgateTab` (the admin menu tab), `WolfgateAdminVerbSystem` (right-click verbs under Admin), the
 console commands in `Commands/` (names in `WolfgateAdminCommands`), and the server systems `AdminVesselSpawnSystem`,

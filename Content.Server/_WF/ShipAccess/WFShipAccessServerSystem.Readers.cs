@@ -62,7 +62,7 @@ public sealed partial class WFShipAccessServerSystem
         CheckOwners();
     }
 
-    /// <summary>Rewrites a ship's readers when its owner keys changed since they were last written.</summary>
+    /// <summary>Rewrites a ship's readers when its owner keys changed since they were last written, and locks a ship that was waiting for one.</summary>
     private void CheckOwners()
     {
         foreach (var grid in _writtenOwners.Keys.ToList())
@@ -70,8 +70,12 @@ public sealed partial class WFShipAccessServerSystem
             if (!TryComp<WFShipAccessComponent>(grid, out var access))
             {
                 _writtenOwners.Remove(grid);
+                _lockWhenKeyed.Remove(grid);
                 continue;
             }
+
+            if (TryLockWhenKeyed((grid, access)))
+                continue;
 
             if (!OwnerKeys((grid, access)).SetEquals(_writtenOwners[grid]))
                 RefreshShip((grid, access));

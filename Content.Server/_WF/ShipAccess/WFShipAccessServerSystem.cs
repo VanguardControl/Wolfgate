@@ -30,6 +30,9 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
+    /// <summary>Registered ships left unlocked at setup for want of an owner key; each locks once it has one.</summary>
+    private readonly HashSet<EntityUid> _lockWhenKeyed = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -78,8 +81,8 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
 
     /// <summary>
     /// Sets up a ship an admin tool spawned, registered to players' accounts rather than to a deed card, so it stays
-    /// theirs whatever body they play, a ghost included. With no card to key yet it starts unlocked, and stays so until
-    /// an owner locks it; unlocked, the card each of them wears still opens doors that ask for access.
+    /// theirs whatever body they play, a ghost included. With no card to key yet it starts unlocked, and locks itself
+    /// as soon as one of them wears a card with a crew record, unless an owner set the lock by hand first.
     /// </summary>
     public Entity<WFShipAccessComponent> SetupRegisteredShip(EntityUid grid, string ownerName, IEnumerable<NetUserId> users)
     {
@@ -93,6 +96,9 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
         }
 
         FinishSetup(ship);
+        if (!comp.Locked && _cfg.GetCVar(ShipAccessCVars.LockNewShips))
+            _lockWhenKeyed.Add(grid);
+
         return ship;
     }
 
@@ -116,9 +122,23 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
 
         comp.OwnerUsers.Add(user);
         Dirty(grid, comp);
-        RefreshShip((grid, comp));
+        if (!TryLockWhenKeyed((grid, comp)))
+            RefreshShip((grid, comp));
+
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{ToPrettyString(grid):grid} was registered to player {user}");
+        return true;
+    }
+
+    /// <summary>Locks a registered ship that was waiting for an owner key, once a card can be keyed to it. True when it locked.</summary>
+    private bool TryLockWhenKeyed(Entity<WFShipAccessComponent> ship)
+    {
+        if (!_lockWhenKeyed.Contains(ship) || !CanLock(ship))
+            return false;
+
+        SetLocked(ship, true);
+        _adminLog.Add(LogType.Action, LogImpact.Low,
+            $"{ToPrettyString(ship.Owner):grid} locked itself now that an owner's card can open it");
         return true;
     }
 
@@ -131,6 +151,7 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
     /// <summary>Sets the lock and rewrites every door and locker reader on the grid to match.</summary>
     public void SetLocked(Entity<WFShipAccessComponent> ship, bool locked)
     {
+        _lockWhenKeyed.Remove(ship);
         ship.Comp.Locked = locked;
         Dirty(ship);
         RefreshShip(ship);

@@ -19,13 +19,17 @@ using Content.Shared._WF.Administration.Ert;
 using Content.Shared.Access;
 using Content.Shared.Access.Systems;
 using Content.Shared.Administration;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Database;
 using Content.Shared.Forensics.Components;
 using Content.Shared.GameTicking;
 using Content.Shared.Ghost;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Prototypes;
+using Content.Shared.Inventory;
 using Content.Shared.Mind.Components;
+using Content.Shared.PDA;
 using Content.Shared.Preferences;
 using Content.Shared.Roles;
 using Content.Shared.StationRecords;
@@ -61,8 +65,15 @@ public sealed partial class ErtSystem : EntitySystem
     [Dependency] private WFShipAccessServerSystem _shipAccess = default!;
     [Dependency] private StationRecordsSystem _records = default!;
     [Dependency] private SectorServiceSystem _sectorService = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private ItemSlotsSystem _itemSlots = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     private const string SpawnerPrototype = "WFErtSpawner";
+
+    /// <summary>The ID card handed to a responder whose outfit has none; its own access is wiped.</summary>
+    private static readonly EntProtoId FallbackIdPrototype = "PassengerIDCard";
+    private const string IdSlot = "id";
 
     /// <summary>Jobs a responder's crew record starts from; the record then takes the slot's title.</summary>
     private static readonly ProtoId<JobPrototype> RecordJobLeader = "ERTLeader";
@@ -384,9 +395,13 @@ public sealed partial class ErtSystem : EntitySystem
         _transform.AttachToGridOrMap(mob);
 
         SetOutfitCommand.SetOutfit(mob, slot.Comp.Outfit, EntityManager);
-        SetUpId(mob, slot.Comp);
-
         var ship = slot.Comp.Ship is { } teamShip && !TerminatingOrDeleted(teamShip) ? slot.Comp.Ship : null;
+
+        // A ship's doors and the chosen access both need a card to sit on.
+        if (ship != null || slot.Comp.AccessGroups.Count > 0)
+            EnsureId(mob);
+
+        SetUpId(mob, slot.Comp);
         if (ship != null)
             GiveRecord(mob, profile, slot.Comp);
 
@@ -423,6 +438,31 @@ public sealed partial class ErtSystem : EntitySystem
 
         var pick = species.Count > 0 ? _random.Pick(species) : SharedHumanoidAppearanceSystem.DefaultSpecies;
         return HumanoidCharacterProfile.RandomWithSpecies(pick);
+    }
+
+    /// <summary>
+    /// Gives a responder whose outfit has no ID card a plain one with no access, worn in the ID slot or put in the
+    /// PDA already there, so the ship's doors have a card to be keyed to. Falls back to a hand when the slot is taken.
+    /// </summary>
+    private void EnsureId(EntityUid mob)
+    {
+        if (_idCard.TryFindIdCard(mob, out _))
+            return;
+
+        var card = Spawn(FallbackIdPrototype, Transform(mob).Coordinates);
+        _access.TrySetTags(card, Array.Empty<ProtoId<AccessLevelPrototype>>());
+
+        if (_inventory.TryGetSlotEntity(mob, IdSlot, out var worn))
+        {
+            if (TryComp<PdaComponent>(worn, out var pda) && _itemSlots.TryInsert(worn.Value, pda.IdSlot, card, null))
+                return;
+        }
+        else if (_inventory.TryEquip(mob, card, IdSlot, silent: true, force: true))
+        {
+            return;
+        }
+
+        _hands.TryPickupAnyHand(mob, card);
     }
 
     /// <summary>

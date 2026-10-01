@@ -37,9 +37,11 @@ body they play, a ghost included. The vessel spawner registers the chosen owner 
 carries an ID card free of deeds, also puts the deed on it as a purchase would; a ghost, a player in the lobby
 or a card that already holds a deed gets the registration alone, with no deed and the consoles left unlocked.
 The ERT builder registers each responder to the team's ship as they take their place, and gives them the crew
-record a normal spawn gets on the sector records service, which their card needs to be keyed to a door. The
-team's ship starts unlocked, so on a faction ship it is the unlocked-ship rule above that lets their cards open
-doors mapped with the faction's access. A
+record a normal spawn gets on the sector records service, which their card needs to be keyed to a door. A
+responder whose outfit has no ID card is handed a plain one with no access, worn in the ID slot. A registered
+ship has no card to lock to when it spawns, so it starts unlocked and locks itself (when
+`wf.shipaccess.lock_new_ships` is on) as soon as one of its players wears a card with a crew record: the first
+responder aboard, or a ghost's next body. Setting the lock by hand before then cancels that. A
 registered player edits the Access tab and uses the console verbs like the deed holder, and the card they wear
 (the ID slot, not one they hold) is an owner key while they are in the game. Lockers and crates that came with the ship are taken over whatever they ask for;
 storage brought aboard later is only taken over when it asks for no access, so the ship never unlocks someone
