@@ -56,7 +56,14 @@ public sealed partial class WoundBleedingSystem : EntitySystem
             RefreshBodyForPart(core.HoldingPart);
     }
 
-    private void OnBleedingInit(Entity<WoundBleedingComponent> wound, ref ComponentInit args) => RestartAutomaticClotting(wound);
+    // WOLFGATE(Wolfmed) START: a bleed that starts on an old wound under a tourniquet is tied off as well
+    // private void OnBleedingInit(Entity<WoundBleedingComponent> wound, ref ComponentInit args) => RestartAutomaticClotting(wound);
+    private void OnBleedingInit(Entity<WoundBleedingComponent> wound, ref ComponentInit args)
+    {
+        TieOffIfStrapped(wound);
+        RestartAutomaticClotting(wound);
+    }
+    // WOLFGATE END
     private void OnWoundCreated(Entity<WoundBleedingComponent> wound, ref WoundCreatedEvent args)
     {
         // WOLFGATE(Wolfmed): playtest 4: a bleed opening on a part under a tourniquet (or below one) is tied off

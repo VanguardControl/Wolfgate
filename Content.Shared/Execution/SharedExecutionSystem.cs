@@ -72,6 +72,11 @@ public sealed partial class SharedExecutionSystem : EntitySystem
         if (!CanBeExecuted(victim, attacker))
             return;
 
+        // WOLFGATE(Wolfmed) START: a player is asked "are you sure?" first, and the server starts this on a yes
+        if (WolfmedAsksFirst(weapon, victim, attacker))
+            return;
+        // WOLFGATE END
+
         if (attacker == victim)
         {
             ShowExecutionInternalPopup(comp.InternalSelfExecutionMessage, attacker, victim, weapon);
@@ -115,6 +120,9 @@ public sealed partial class SharedExecutionSystem : EntitySystem
             return false;
 
         // The victim must be incapacitated to be executed
+        // WOLFGATE(Wolfmed) START: a Downed wound host is helpless enough to execute
+        if (!HasComp<Content.Shared._WF.Wolfmed.Consciousness.WolfmedDownedComponent>(victim))
+        // WOLFGATE END
         if (victim != attacker && _actionBlocker.CanInteract(victim, null))
             return false;
 
@@ -145,10 +153,29 @@ public sealed partial class SharedExecutionSystem : EntitySystem
         if (!TryComp<DamageableComponent>(args.Victim, out var damageableComponent))
             return;
 
+        // WOLFGATE(Wolfmed) START: a weapon that does a body no harm is no way to die, so the command's default runs
+        // Structural comes out first: the lethal amount is shared out over the total, and its share was lost.
+        var wolfmedDamage = new DamageSpecifier(melee.Damage);
+        wolfmedDamage.DamageDict.Remove("Structural");
+        if (wolfmedDamage.GetTotal() <= 0)
+            return;
+        // WOLFGATE END
+
         ShowExecutionInternalPopup(internalMsg, args.Victim, args.Victim, entity, false);
         ShowExecutionExternalPopup(externalMsg, args.Victim, args.Victim, entity);
         _audio.PlayPredicted(melee.HitSound, args.Victim, args.Victim);
-        _suicide.ApplyLethalDamage((args.Victim, damageableComponent), melee.Damage);
+        // WOLFGATE(Wolfmed) START: the lethal amount is shared out over the weapon's damage without its Structural
+        // _suicide.ApplyLethalDamage((args.Victim, damageableComponent), melee.Damage);
+        _suicide.ApplyLethalDamage((args.Victim, damageableComponent), wolfmedDamage);
+        // WOLFGATE END
+        // WOLFGATE(Wolfmed) START: the suicide command with a blade in hand kills a wound host and leaves that blade's gore
+        // Not from the Execute do-after, which also lands here: it raises its own ending once the ghost has left.
+        if (!entity.Comp.Executing)
+        {
+            var wolfmedSuicided = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Suicide, args.Victim, entity);
+            RaiseLocalEvent(args.Victim, ref wolfmedSuicided);
+        }
+        // WOLFGATE END
         args.Handled = true;
     }
 
@@ -217,7 +244,8 @@ public sealed partial class SharedExecutionSystem : EntitySystem
             RaiseLocalEvent(victim, suicideGhostEvent);
 
             // WOLFGATE(Wolfmed) START: M2: OD17, on a wound host a suicide is brain 0 then death; the ghost above cannot return.
-            var suicided = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Suicide);
+            // Carries the weapon, so the server also leaves the gore that blade's strength buys.
+            var suicided = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Suicide, attacker, weapon);
             RaiseLocalEvent(victim, ref suicided);
             // WOLFGATE END
         }
@@ -226,7 +254,8 @@ public sealed partial class SharedExecutionSystem : EntitySystem
             _melee.AttemptLightAttack(attacker, weapon, meleeWeaponComp, victim);
             // WOLFGATE(Wolfmed) START: M2: HOOK 13 rewritten (OD17), a wound host's execution is a catastrophic brain injury.
             // Brain 0 then death, revivable. The old torso top-up (TryApplyLethalDamage) no longer killed anybody.
-            var executed = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Execution);
+            // Carries the weapon and the attacker, so the server also leaves the gore that blade's strength buys.
+            var executed = new Content.Shared._WF.Wolfmed.Life.WolfmedEndingEvent(Content.Shared._WF.Wolfmed.Life.WolfmedEnding.Execution, attacker, weapon);
             RaiseLocalEvent(victim, ref executed);
             // WOLFGATE END
         }

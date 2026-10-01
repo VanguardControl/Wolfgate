@@ -157,6 +157,14 @@ public sealed partial class WoundBleedingSystem
         return false;
     }
 
+    /// <summary>Clamps a bleed that begins on a wound whose part is already under a tourniquet.</summary>
+    private void TieOffIfStrapped(Entity<WoundBleedingComponent> wound)
+    {
+        if (TryComp(wound, out WoundComponent? core) && core.HoldingPart.IsValid() && IsTiedOff(core.HoldingPart) &&
+            _traits.CanTourniquet(wound.Owner, core.HoldingPart))
+            wound.Comp.Treatment = BleedingTreatment.Clamped;
+    }
+
     /// <summary>Whether the part still has a bleed that only a tourniquet or surgery will stop.</summary>
     public bool HasUndressableBleed(Entity<WoundableComponent?> part)
     {

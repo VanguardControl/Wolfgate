@@ -64,6 +64,7 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
     [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private WolfmedConditionAlertSystem _conditionAlerts = default!;
+    [Dependency] private WolfmedExecutionSystem _execution = default!;
     [Dependency] private WolfmedLifeSystem _life = default!;
     [Dependency] private WolfmedOverheatSystem _overheat = default!; // M4
 
@@ -84,6 +85,17 @@ public sealed class WolfmedDyingActionsSystem : EntitySystem
     {
         if (args.Handled)
             return;
+
+        // A blade or a bludgeon that came with the event leaves its tier's gore on top of the kill.
+        if (args.Weapon is { } weapon)
+        {
+            var strength = _execution.MeasureMelee(weapon, args.Attacker ?? ent.Owner);
+            if (_execution.Apply(ent, args.Attacker, weapon, strength, args.Ending))
+            {
+                args.Handled = true;
+                return;
+            }
+        }
 
         args.Handled = EndDeliberately(ent);
     }

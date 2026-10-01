@@ -199,6 +199,60 @@ public sealed class WolfmedMakeshiftTourniquetTest : GameTest
         });
     }
 
+    /// <summary>
+    /// A hit that lands on a wound already under the strap can start that wound bleeding (the roll is one in a few).
+    /// That bleed is tied off like any other; before, it ran free under a tourniquet that was still on.
+    /// </summary>
+    [Test]
+    public async Task BleedStartingOnAnOldWoundUnderAStrapIsTiedOffTest()
+    {
+        var map = await Pair.CreateTestMap();
+        var s = new WolfmedScenario(SEntMan);
+        EntityUid patient = default, attacker = default;
+
+        await Server.WaitPost(() =>
+        {
+            s.SetAir(map.MapUid, true);
+            patient = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            attacker = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+        });
+        await RunSeconds(1);
+
+        await Server.WaitAssertion(() =>
+        {
+            var routing = SEntMan.System<WoundDamageRoutingSystem>();
+            var bleeding = SEntMan.System<WoundBleedingSystem>();
+            var wounds = SEntMan.System<WoundSystem>();
+            var leg = s.Part(patient, BodyPartType.Leg, BodyPartSymmetry.Right);
+            routing.TryApplyPartDamage(patient, leg, WolfmedScenario.Spec("Slash", 40), attacker);
+            routing.TryApplyPartDamage(patient, leg, WolfmedScenario.Spec("Blunt", 10), attacker);
+            Assert.That(SEntMan.System<Content.Shared._Onyx.Medical.Tourniquet.TourniquetSystem>().Apply(patient, leg), Is.True);
+
+            // The roll, forced: every wound on the leg that was not bleeding starts to.
+            foreach (var wound in wounds.GetWounds(leg).ToArray())
+            {
+                if (SEntMan.HasComponent<WoundBleedingComponent>(wound))
+                    continue;
+
+                var started = SEntMan.AddComponent<WoundBleedingComponent>(wound);
+                started.BleedingSeverity = wound.Comp.Severity;
+                bleeding.RefreshWound((wound.Owner, started));
+            }
+
+            var bleeds = wounds.GetWounds(leg)
+                .Select(wound => SEntMan.GetComponent<WoundBleedingComponent>(wound))
+                .ToArray();
+            Assert.Multiple(() =>
+            {
+                Assert.That(bleeds, Has.Length.GreaterThanOrEqualTo(2), "the bruise under the strap never bled.");
+                Assert.That(bleeds.All(bleed => bleed.Treatment == BleedingTreatment.Clamped), Is.True,
+                    "a bleed that started under the strap was not tied off.");
+                Assert.That(bleeds.Count(bleed => bleed.BaseRate > 0f), Is.GreaterThanOrEqualTo(2));
+                Assert.That(bleeding.GetPartRate(leg), Is.EqualTo(0f));
+            });
+        });
+    }
+
     private EntityUid[] Straps() =>
         SEntMan.EntityQuery<WolfmedMakeshiftTourniquetComponent>().Select(strap => strap.Owner).ToArray();
 

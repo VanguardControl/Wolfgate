@@ -4681,3 +4681,198 @@ the owner's call; left as it plays.
   with the Wake action; `OnMobStateChanged` removed `SleepingComponent` bare on death, so a revived patient stayed
   down for good and the Wake action had no sleep to end. A marked block now calls `Wake` there.
   `WolfmedSleepThroughDeathTest`: asleep in arrest, killed, revived: no sleep, stun or knockdown left.
+- **Executions and weapon suicides leave gore by the weapon's strength (owner, 2026-09-30).** "Suicide via methods
+  like shooting ones self in the head should kill you, in a gory way ... a weak gun should just kill + artery your
+  head; a medium one shoots a hole in your head and your brain flies out; a heavy gun (shotgun) blows your head off.
+  Lasers can do similar-ish things." A gun execution, and the gun Execute on yourself, did not kill a wound host at
+  all: the DV system dealt one origin-less head hit and the brain lost 3 of 15. `WolfmedExecutionSystem` (Life) now
+  owns both: `Measure` reads the weapon, `Apply` kills with `EndDeliberately` (unchanged, on every tier and species)
+  and then marks the head. Ballistic: weak a gunshot wound and an arterial bleed; medium a critical gunshot wound and
+  the brain torn out and thrown; heavy the head destroyed. Energy: weak a burn and charring, no bleed; medium deep
+  charring, the brain left where it sits; heavy the head burned to ash. Blade: weak the artery; medium the artery and
+  a severe cut; heavy a clean decapitation through `TryAmputate`. Everything is a direct call (a wound, an organ out,
+  an amputation), never a damage number: one hit can neither sever nor ash a head. Every `Apply` that kills or
+  mutilates writes `LogType.Damaged` at Extreme with attacker, victim, weapon, kind, tier and outcome.
+  `WolfmedExecutionTest`: `GunExecutionTiersTest`, `EnergyHeavyAshesTheHeadTest`, `BladeTiersTest`.
+- **How a weapon is measured (2026-09-30).** One trigger pull or one swing, on the damage types that land on a body
+  part (Blunt, Slash, Piercing, Heat, Cold, Shock, Caustic): Structural and Radiation never count, so a 12 gauge slug
+  is 34 and not 234. Guns: the round's own damage (`SharedGunSystem.GetBulletDamage`, which reads a cartridge that
+  fires a hitscan; the DV code read .357 FMJ as zero), times its pellet count, times the gun's damage modifier with
+  `GunDamageModifierEvent`; never the x9 execution modifier. Lines `wolfmed.execution_medium` 30 and
+  `wolfmed.execution_heavy` 60, and a spread of pellets is heavy whatever it sums to. Blades: one ordinary swing by
+  that user (`SharedMeleeWeaponSystem.GetDamage`, so a wielded fire axe counts 45), read with the execution's own x9
+  switched off; lines `wolfmed.execution_blade_medium` 22 and `wolfmed.execution_blade_heavy` 40. Energy is Heat,
+  Shock, Cold and Caustic making more than half. Non-lethal is a round under 5, or one that carries a stamina, stun
+  or explosive component, has no Piercing or Slash and is 20 or less: rubber, beanbag, disabler, taser, and a
+  launcher's shell, whose Blunt 7 is a carrier for the blast and would otherwise read as a weak bullet. Both tests run
+  on the single projectile before pellets and modifier, so a practice shell's six 1-point pellets stay non-lethal.
+  A non-lethal round, a spent casing and an empty gun fall through to the old head hit. A blade is never non-lethal:
+  a glass shard already slits a throat upstream. The gun hook measures the round the shot actually took
+  (`MeasureRound`), not a peek, so what is chambered at that moment decides; `Measure` peeks, and reads a revolver's
+  chamber under the hammer itself because the shared peek reads the one behind it. `MeasureTest`.
+- **A heavy energy weapon ashes the head (owner, 2026-09-30).** "or turning it to ash if laser is used that is big
+  enough." This overrides OD12 (the head and torso never crumble to ash) for a deliberate execution or suicide with a
+  heavy energy weapon only; ambient burning still never ashes a head. `BurnPart` and `GibPart` raise no
+  `WolfmedPartAmputatedEvent` and so leave no stump, no neck overlay and no death bookkeeping, so the head comes off
+  through `TryAmputate` first and the loose head is destroyed afterwards: its organs dropped beside the body, then
+  `Ash` and a cauterised stump for a laser, or the `Gib` decal pool for a bullet. A chassis head leaves no ash and
+  no gibs. `EnergyHeavyAshesTheHeadTest`.
+- **The brain is never deleted by an execution (2026-09-30).** Wolfmed's rule is no permanent unrevivable state. The
+  brain stays in the head (weak, energy medium), lies thrown on the deck (ballistic medium) or is dropped where the
+  head was (heavy), so surgery or a replacement head is still a way back, and `UnrevivableComponent` is never added.
+  An execution victim's mind rides the brain when it leaves, as it does on any decapitation today; a suicide has
+  ghosted first. `GunExecutionTiersTest` asserts the loose brain on the medium and heavy tiers.
+- **Species the plan does not fit (2026-09-30).** The kill always happens; a gore step that cannot apply is skipped,
+  never thrown. A chassis and a slime keep the core in the torso, so nothing is thrown from the head. A diona's brain
+  is not torn out (out of the body it becomes a living nymph): its medium tier is the wound alone. A head with no
+  arterial or gunshot wound in its profile takes its own equivalent: slime and plant piercing, slash and burn wounds,
+  a breach or overheating on a chassis. Heavy takes the head off anything that has one. `SpeciesTest`.
+- **A Downed body can be executed (owner, 2026-09-30).** "if someone is downed and the other player wishes to execute
+  them." Both Execute verbs required `CanInteract(victim, null)` to fail, and a Downed body passes it once its fall
+  stun ends. `WolfmedDownedComponent` now counts as incapacitated in `SharedExecutionSystem.CanBeExecuted` and the DV
+  `CanExecuteWithAny`; everything that passed before still passes. `DownedIsExecutableTest`.
+- **The gun Execute on yourself is a suicide (2026-09-30).** On a wound host with a lethal round it raises
+  `SuicideEvent` and `SuicideGhostEvent` before the gore, as the knife path does, so the ghost is out and cannot
+  return. The `SuicideEvent` goes out already handled: the gun is the method, and unhandled it runs the tongue-bite
+  default and the sweep for a nearby microwave. `OnYourselfKillsTest` covers a body with no player,
+  `GunOnYourselfGhostsTest` a player's body, the spent round and the ghost.
+- **Execution hooks (2026-09-30).** `WolfmedEndingEvent` carries the attacker and the weapon from its two marked raise
+  sites, and its one subscriber applies the Blade tier instead of a bare `EndDeliberately`. The DV gun completion has
+  two marked edits: the round is measured before the switch that spends or deletes it, and
+  `TryGunExecution` runs in front of the old damage line, which stays for everything it refuses. No new
+  subscription.
+- **"Are you sure?" on both Execute verbs (owner, 2026-09-30).** "shows the executor a popup saying 'Are you sure?'
+  or something." `Verb.ConfirmationPopup` is client-only, says a hard-coded "Confirm" and is compiled out in DEBUG,
+  so the question is the server's: `WolfmedChoiceEui`, the window Succumb already uses, with no new client class. For
+  an executor with a player behind it the verb opens the dialog and starts nothing. A yes checks again everything
+  the verb menu checked (that weapon still the one in the active hand, the victim in reach, `CanBeExecuted` or
+  `CanExecuteWithGun`) and only then starts the same do-after as before; a no, a closed window or a disconnect does
+  nothing. One question per executor: a second Execute replaces it, and it is withdrawn on round restart and when
+  the executor dies or goes Unconscious (a broadcast `MobStateChangedEvent`; Unconscious is Critical on a wound
+  host). An executor with nobody behind it is not asked and starts the do-after directly, as it always did. The text
+  names the victim through `Identity.Entity`: "Kill X with the knife? This cannot be taken back." On yourself:
+  "End your own life with the pistol? You will not be able to return to this body.", or a plain "Shoot yourself in
+  the head?" where that promise would not hold (a gun on a body Wolfmed does not own, and the roulette shotgun, whose
+  next shell the dialog must not give away). `ConfirmationTest` answers through `Confirm`, `Decline` and `GetPending`.
+- **A weapon that will not kill is refused (2026-09-30).** A player whose weapon measures non-lethal against a wound
+  host (a disabler, rubber, a beanbag, an empty gun) gets "The disabler won't kill anyone." and no dialog and no
+  do-after, at the verb and again at the yes. Only there: against a body Wolfmed does not own the old x9 head hit can
+  still kill, so that Execute is asked and runs as before, and an executor with no player still takes the old
+  path. The roulette shotgun is never refused: saying its next shell is a dud is the one thing it must not do.
+  `NonLethalIsRefusedTest`.
+- **How the dialog reaches the do-afters (2026-09-30).** Both start methods are private, and the melee one is shared
+  and predicted. Each got one marked block after its own checks that returns when the server asks first, and a `_WF`
+  partial of the same class with `StartConfirmedExecution`, which runs the method again with the question switched
+  off; the upstream lines are untouched. The melee partial raises `WolfmedExecutionAskEvent` (shared code cannot name
+  the server system) and answers "asked" on a client without raising it: a client's own executor is always asked, so
+  the do-after is never predicted and comes down from the server like the gun's. The executor's "You ready the
+  knife" line is a predicted popup the client no longer shows, so the confirmed start sends it from the server.
+- **The suicide command uses the weapon in hand (owner, 2026-09-30).** "Suicide via methods like shooting ones self
+  in the head should kill you, in a gory way." No gun handled `SuicideByEnvironmentEvent`, so the command with a gun
+  in hand bit the tongue. `WolfmedExecutionSystem` takes that pair: on a wound host, a gun in the active hand that
+  measures lethal is fired the way the Execute do-after fires it (`ShotAttemptedEvent`, `AttemptShootEvent`, one
+  round taken and spent, the shot sound, the DV "shoots themselves in the head" line) and `Apply` leaves that round's
+  gore. A gun that will not fire, an empty one, a less-lethal round or a body Wolfmed does not own leaves the event
+  unhandled and the command's default runs and still kills. The command also raises the event on whatever stands
+  within reach, so only the gun in the active hand answers: a mounted gun next to the body does not. With a blade,
+  upstream's own handler now raises `WolfmedEndingEvent` (a third marked raise site), so the blade's tier is applied
+  there too. `Suicide()` still calls `EndDeliberately` afterwards, which refuses a body that is already dead.
+  `SuicideCommandWeaponTest`: a pistol (round spent, gunshot wound and artery), an empty shotgun (dead, no gunshot
+  wound), a claymore (head off, which no single hit's damage can do); every one a ghost that cannot return.
+- **A blade Execute on yourself applies once, after the ghost (review, 2026-09-30).** The do-after raises
+  `SuicideEvent` unhandled, `SuicideSystem` forwards it to the blade in the active hand, and upstream's
+  `OnSuicideByEnvironment` then ran the suicide command's marked raise as well: the tier landed while the mind was
+  still in the body, and again after the ghost. A kitchen knife's artery merged to 40, and a claymore took the head
+  off with the player in it, who sat in the brain and could come back. That raise is now skipped while the blade is
+  `Executing`; the do-after's own raise, after `SuicideGhostEvent`, is the only one. The suicide command is unchanged:
+  it ghosts first. `BladeOnYourselfGhostsTest` (a player's body: artery 20, head off, a ghost that cannot return, no
+  mind in the brain); `OnYourselfKillsTest` now asserts the artery's severity.
+- **An explosive charge marks a carrier shell only (review, 2026-09-30).** The explosive marker made every explosive
+  round of 20 or less non-lethal, which also caught rounds that burn: the 6.8 mm caseless plasma round (Heat 15), the
+  Lawbringer's explode bolt and the fireball. Every launcher shell it was added for is Blunt alone (rocket, 40 mm,
+  cannonball, seismic charge: 7), so the marker now counts only on a round with no energy share; the stamina and stun
+  markers are as before. The plasma round reads Energy weak. `MeasureTest`, which also takes a flechette shell
+  (6 x 7 = 42) so that "a spread is heavy whatever it sums to" is pinned by a load under the heavy line.
+- **Blunt weapons execute (owner, 2026-09-30).** "Blunts should be able to execute." A fourth kind, Blunt, beside
+  Ballistic, Energy and Blade. `MeasureMelee` (was `MeasureBlade`) reads one ordinary swing through
+  `SharedMeleeWeaponSystem.GetDamage` outside the `Executing` window, wield bonus included, Structural left out: more
+  than half Blunt is Blunt, anything else is still a blade. Lines: `wolfmed.execution_blunt_medium` 20,
+  `wolfmed.execution_blunt_heavy` 40. Weak (crowbar 16, a bat in one hand 15) cracks the skull: a blunt wound and a
+  Simple fracture on the head. Medium (a bat or a sledgehammer in both hands 25, a shovel 24) caves it in: a severe
+  blunt wound and a Comminuted fracture, the brain left where it is at 0, nothing thrown. Heavy (a breaching hammer
+  in both hands 65, the shock maul 75) crushes the head, which is exactly the Ballistic heavy result: head destroyed,
+  organs dropped, stump on the torso, gib decals. The kill is `EndDeliberately` first, as on every kind. `MeasureTest`,
+  `BluntTiersTest`.
+- **Blunt executions on other species (2026-09-30).** The same rule as the rest: the kill always happens and a step
+  that cannot apply is skipped. A slime, a diona and a chassis have no fracture profile, so nothing breaks; the head
+  takes its own blunt wound (slime, plant) or a dent (chassis, with the machine popups), and a head that will not
+  come off steps heavy down to medium. A cybernetic head has a frame to break and breaks it. `SpeciesTest` now runs
+  the Blunt kind and asserts the dent and the absence of a fracture.
+- **A fracture made outright (2026-09-30).** Fractures were only ever rolled from a hit
+  (`HandlePartDamageApplied`), and `SetGrade` is private. `WoundFractureSystem.Break(part, grade)` is a `_WF`
+  partial of the Onyx class: it creates the profile's fracture wound at that grade's threshold, or raises an
+  existing break up to it, and returns null where the part has no fracture profile. The Onyx file is untouched.
+- **Which blunt weapons carry Execution (owner, 2026-09-30).** "Blunts should be able to execute." Every held weapon
+  or tool whose swing is mostly Blunt and at least 10 Blunt, in one hand or wielded, gets the component in YAML: the
+  crowbars, wrench, shovel, rolling pin, jaws of life, maintenance jack, the six toolboxes and the grey one, the
+  robust toolbox, fire extinguisher, both mops, the seclite and tac-lite, baseball bat, sledgehammer, Mjollnir,
+  singularity hammer, pickaxe, kanabou, breaching hammer, shock maul, the Goob hammer, caveman club and the gorilla
+  gauntlet (34 prototypes, 22 more by inheritance). On a base prototype only where every child qualifies, so the
+  crowbars and toolboxes carry it one by one (`BaseCrowbar` has the pocket crowbar at 6, `ToolboxBase` the weapon
+  cases and the cow toolbox). Left out: stun and stamina weapons (stun prod, truncheon, cane, the Overseer mace),
+  guns and the crusher (a `Gun` already has the DV Execute verb), worn gear (gas tanks, jetpacks, magboots,
+  gauntlets, glasses), instruments, logs, the clipboard, the desert stone, weapon and document cases, mech equipment,
+  structures and the debug weapons.
+- **A blunt weapon's lines are its own (2026-09-30).** The upstream melee lines slit a throat. Each blunt weapon's
+  `Execution` component sets all eight `LocId` fields to `wolfmed-execution-bludgeon-*` ("raises the bat over X's
+  head", "brings the bat down on X's skull", and the self variants), with the same three variables. `MeasureTest`
+  sweeps every prototype that carries `Execution`: all eight lines resolve, and none whose swing is mostly Blunt
+  still uses a throat line. Two cult staves inherit the shovel's component and cut (Slash 13): they speak as
+  bludgeons and are measured as blades. A pickaxe in one hand is half Piercing and measures as a blade; in both
+  hands it is Blunt.
+- **A blunt execution takes its do-after (owner, 2026-09-30).** "It should also have a doafter timer." The melee
+  Execute already runs `ExecutionComponent.DoAfterDuration` (5 s, broken by moving or by damage) once the question
+  is answered, and a blunt weapon goes through the same verb, the same dialog and the same do-after with no new
+  code. `BluntDoAfterTest` pins it with a player and a bat: asked first, a do-after of exactly the component's
+  length, the victim alive and unmarked at four seconds and dead at seven, and a second one called off when the
+  executor steps away.
+- **The suicide command and Execute on yourself with a blunt weapon (2026-09-30).** Both reach `Apply` through
+  `WolfmedEndingEvent`, whose subscriber measures the weapon, so the kind follows the weapon: a crowbar or a bat
+  cracks the skull and opens no artery. `BluntOnYourselfTest` (a Simple fracture, a blunt wound, no artery, no cut,
+  a ghost that cannot return).
+- **A swing that does nothing is not lethal (2026-09-30).** Melee was never non-lethal, and with blunt weapons in
+  the foam caveman club (Blunt 0) inherits the component from the real one. A melee weapon whose swing adds up to
+  nothing now measures NonLethal and is refused like a disabler; anything above zero still kills, as a glass shard
+  always did. `MeasureTest`.
+- **The suicide command with a weapon that harms nobody (2026-09-30).** The foam caveman club (Blunt 0) inherits
+  `Execution` from the real one, and `SharedSuicideSystem.ApplyLethalDamage` shares the lethal amount out over the
+  weapon's total: zero over zero, a `DivideByZeroException` after the player had been ghosted for good, the body left
+  alive. `SharedExecutionSystem.OnSuicideByEnvironment` now takes a copy of the weapon's damage without Structural
+  and leaves the event unhandled when nothing is left, so the command's default runs and kills, on a wound host and
+  on any other body. `BluntOnYourselfTest`, `SuicideCommandElsewhereTest`.
+- **The lethal amount is not shared with Structural (2026-09-30).** The same upstream method takes its total with
+  Structural in and then removes Structural, so only the rest of the lethal amount lands. A wound host never noticed
+  (`EndDeliberately` kills it), but a body Wolfmed does not own did: a monkey with a breaching hammer (Blunt 15,
+  Structural 50) took 47 of its 200 and lived, its player gone. Upstream had this with the fire axe alone; every
+  blunt weapon that carries Structural brought it along. The copy without Structural is what is passed on, so the
+  whole lethal amount lands. `SuicideCommandElsewhereTest` (breaching hammer, fire axe, bat, foam club on a monkey).
+- **The blunt heavy line is 50 (2026-09-30).** At 40 a maintenance jack in both hands (12 + 33 = 45) crushed a head,
+  and the engineering vendor gives jacks away. The data has a gap between it and the breaching hammer's 65, so
+  `wolfmed.execution_blunt_heavy` is 50 and the jack caves the skull in instead. `MeasureTest` pins the jack and
+  names the only blunt weapons that reach the heavy line (the breaching hammer and the shock maul, in both hands),
+  so another one arriving is a decision and not an accident.
+- **An even split is a bludgeon, and the cult staves speak as blades (2026-09-30).** Replaces the last two sentences
+  of "A blunt weapon's lines are its own". `MeasureMelee` counts at least half Blunt as Blunt, so a pickaxe in one
+  hand (Blunt 5, Piercing 5) cracks the skull its lines bring it down on. `WizardStaffMeleeBlood`, and the dark bolt
+  staff under it, cut (Slash 13): they restate the upstream throat lines over the shovel's bludgeon ones.
+  `MeasureTest` now spawns every prototype that carries `Execution` and measures it, in one hand and in both where
+  it has a wield bonus: a weapon measured Blunt that slits a throat fails, and so does one measured Blade that is
+  brought down on a skull. Upstream's test prop (Slash 5, Blunt 5, default lines) is the one named exception.
+- **A tier is a floor under the swing (2026-09-30).** The melee Execute still makes its upstream swing first, nine
+  times the weapon's damage with resistances bypassed, on the part the executor aims at; the tier is applied after
+  it. Aimed at the torso, where a fresh body aims, the head carries the tier alone, and that is what `BluntTiersTest`
+  and `BladeTiersTest` pin exactly. Aimed at the head the swing lands there too: a crowbar's 144 Blunt leaves a
+  Comminuted fracture, a crush injury and a concussion, `Break(Simple)` leaves the worse break alone, and the weak
+  tier's "skull cracks" understates it. Kept as it is: the swing is upstream's own and a blade's lands the same way,
+  the victim is dead on every tier, and the ladder still orders (the brain stays in at weak and medium, only heavy
+  takes the head off). `BluntTiersTest` runs a crowbar and a wielded bat aimed at the head and asserts the floor.
