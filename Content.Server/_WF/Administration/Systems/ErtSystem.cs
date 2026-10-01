@@ -386,14 +386,16 @@ public sealed partial class ErtSystem : EntitySystem
         SetOutfitCommand.SetOutfit(mob, slot.Comp.Outfit, EntityManager);
         SetUpId(mob, slot.Comp);
 
-        if (slot.Comp.Ship is { } ship && !TerminatingOrDeleted(ship))
-        {
+        var ship = slot.Comp.Ship is { } teamShip && !TerminatingOrDeleted(teamShip) ? slot.Comp.Ship : null;
+        if (ship != null)
             GiveRecord(mob, profile, slot.Comp);
-            _shipAccess.AddOwnerUser(ship, args.Player.UserId);
-        }
 
         EnsureComp<MindContainerComponent>(mob);
         _ghostRoles.GhostRoleInternalCreateMindAndTransfer(args.Player, slot, mob, role);
+
+        // Registered once the player is in the body, so the card it wears is keyed to the ship's doors at once.
+        if (ship != null)
+            _shipAccess.AddOwnerUser(ship.Value, args.Player.UserId);
 
         QueueDel(slot);
         args.TookRole = true;

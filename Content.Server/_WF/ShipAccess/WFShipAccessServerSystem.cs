@@ -78,7 +78,8 @@ public sealed partial class WFShipAccessServerSystem : EntitySystem
 
     /// <summary>
     /// Sets up a ship an admin tool spawned, registered to players' accounts rather than to a deed card, so it stays
-    /// theirs whatever body they play, a ghost included. It locks only once one of them wears a card with a crew record.
+    /// theirs whatever body they play, a ghost included. With no card to key yet it starts unlocked, and stays so until
+    /// an owner locks it; unlocked, the card each of them wears still opens doors that ask for access.
     /// </summary>
     public Entity<WFShipAccessComponent> SetupRegisteredShip(EntityUid grid, string ownerName, IEnumerable<NetUserId> users)
     {

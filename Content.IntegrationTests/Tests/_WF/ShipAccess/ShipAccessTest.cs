@@ -398,7 +398,102 @@ public sealed class ShipAccessTest
             {
                 Assert.That(ReaderLocked(entMan, button), Is.False, "Unlocking the ship gives the button its own access back.");
                 Assert.That(entMan.GetComponent<AccessReaderComponent>(button).AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(SecureAccess)));
-                Assert.That(entMan.HasComponent<WFShipReaderBackupComponent>(button), Is.False, "The backup goes once restored.");
+                Assert.That(readers.IsAllowed(owner, button), Is.True, "The owner's card still works on the unlocked ship.");
+                Assert.That(readers.IsAllowed(stranger, button), Is.False, "A stranger still needs the button's own access.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// On an unlocked ship a door that asks for access of its own keeps it, and the owner and the allow list open it
+    /// too. A door that asks for nothing stays open to all, access changed while unlocked is kept, and leaving the
+    /// ship takes the crew's keys off again.
+    /// </summary>
+    [Test]
+    public async Task UnlockedShipStillAdmitsTheCrew()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var readers = entMan.System<AccessReaderSystem>();
+        var access = entMan.System<WFShipAccessServerSystem>();
+        var hands = entMan.System<SharedHandsSystem>();
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid.Owner;
+
+        EntityUid door = default, openDoor = default, owner = default, deed = default, crew = default, stranger = default, officer = default;
+        Entity<WFShipAccessComponent> ship = default;
+        Entity<AccessReaderComponent> reader = default;
+        await server.WaitPost(() =>
+        {
+            door = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            openDoor = entMan.SpawnEntity(DoorProto, map.GridCoords);
+            Assert.That(readers.GetMainAccessReader(door, out var found), Is.True, "Precondition: the door has electronics.");
+            reader = found!.Value;
+            readers.SetAccesses(reader, reader.Comp, new List<ProtoId<AccessLevelPrototype>> { SecureAccess });
+
+            (owner, deed) = SpawnPersonWithCard(entMan, hands, map, "Ada Vance", 1);
+            GiveDeed(entMan, deed, grid);
+            (crew, _) = SpawnPersonWithCard(entMan, hands, map, "Ben Ortiz", 2);
+            (stranger, _) = SpawnPersonWithCard(entMan, hands, map, "Random Stranger", 3);
+            (officer, var officerCard) = SpawnPersonWithCard(entMan, hands, map, "Cass Reyes", 4);
+            entMan.System<SharedAccessSystem>().TrySetTags(officerCard, new List<ProtoId<AccessLevelPrototype>> { SecureAccess });
+
+            ship = (grid, entMan.EnsureComponent<WFShipAccessComponent>(grid));
+            access.SetLocked(ship, false);
+            Assert.That(access.TryAddPerson(ship, crew), Is.True, "Precondition: the crew member's card is listed.");
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            bool Allowed(EntityUid user) => readers.IsAllowed(user, door);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ReaderLocked(entMan, door), Is.False, "An unlocked ship does not lock the door.");
+                Assert.That(Allowed(officer), Is.True, "The door's own access still opens it.");
+                Assert.That(Allowed(owner), Is.True, "The deed opens a door that asks for access, on an unlocked ship too.");
+                Assert.That(Allowed(crew), Is.True, "So does a listed card.");
+                Assert.That(Allowed(stranger), Is.False, "A stranger still needs the door's own access.");
+                Assert.That(readers.IsAllowed(stranger, openDoor), Is.True, "A door that asks for nothing stays open to all.");
+                Assert.That(entMan.HasComponent<WFShipReaderBackupComponent>(openDoor), Is.False, "And is left alone.");
+            });
+
+            // Locking and unlocking again brings the same access back.
+            access.SetLocked(ship, true);
+            Assert.That(Allowed(officer), Is.False, "Locked, the door's own access no longer opens it.");
+            access.SetLocked(ship, false);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Allowed(officer), Is.True);
+                Assert.That(Allowed(crew), Is.True);
+                Assert.That(Allowed(stranger), Is.False);
+            });
+
+            Assert.That(access.RemoveEntry(ship, ship.Comp!.AllowList.Single().Key), Is.True);
+            Assert.That(Allowed(crew), Is.False, "A card taken off the list is a stranger's again.");
+
+            // An access configurator run over the unlocked door: the new access is the door's own from then on.
+            readers.SetAccesses(reader, reader.Comp, new List<ProtoId<AccessLevelPrototype>> { CompanyAccess });
+            access.SetLocked(ship, true);
+            access.SetLocked(ship, false);
+            Assert.Multiple(() =>
+            {
+                Assert.That(reader.Comp.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(CompanyAccess)), "Access changed while unlocked is kept.");
+                Assert.That(Allowed(officer), Is.False, "The old access is gone with it.");
+                Assert.That(Allowed(owner), Is.True);
+            });
+
+            // Off the ship, the reader is its own again.
+            entMan.RemoveComponent<WFShipAccessComponent>(grid);
+            access.RefreshReader(door);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Allowed(owner), Is.False, "Without ship access the owner's key is taken off the door.");
+                Assert.That(reader.Comp.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(CompanyAccess)));
+                Assert.That(entMan.HasComponent<WFShipReaderBackupComponent>(reader), Is.False, "The backup goes once restored.");
             });
         });
 

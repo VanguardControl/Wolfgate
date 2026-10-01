@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Pair;
 using Content.Server._NF.SectorServices;
@@ -11,6 +12,7 @@ using Content.Shared._Mono.Shipyard;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Administration.Ert;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared.Access;
 using Content.Shared.Access.Systems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -40,6 +42,9 @@ public sealed class ShipAccessOwnerTest
     private const string VoucherProto = "ShipVoucherFrontierService";
     private const string ErtVessel = "Arribane";
     private const string ErtOutfit = "ERTLeaderGear";
+
+    /// <summary>Access a faction ship's doors might be mapped with.</summary>
+    private const string FactionAccess = "Pirate";
 
     /// <summary>
     /// A captain who bought the ship with a voucher holds its deed while holding the voucher, and so may edit its
@@ -240,6 +245,19 @@ public sealed class ShipAccessOwnerTest
 
             var door = FindDoor(entMan, ship);
             var (stranger, _) = ShipAccessTest.SpawnPersonWithCard(entMan, hands, map, "Ben Ortiz", 2);
+
+            // A faction ship's doors ask for the faction's access, and the team's ship starts unlocked: the
+            // responder's card opens them anyway, with none of that access on it.
+            Assert.That(comp.Locked, Is.False, "Precondition: the team's ship starts unlocked.");
+            entMan.System<SharedAccessSystem>().TrySetTags(card, new List<ProtoId<AccessLevelPrototype>>());
+            Assert.That(readers.GetMainAccessReader(door, out var doorReader), Is.True);
+            readers.SetAccesses(doorReader!.Value, doorReader.Value.Comp, new List<ProtoId<AccessLevelPrototype>> { FactionAccess });
+            access.RefreshReader(door);
+            Assert.Multiple(() =>
+            {
+                Assert.That(readers.IsAllowed(responder, door), Is.True, "The responder opens a faction door on the unlocked ship.");
+                Assert.That(readers.IsAllowed(stranger, door), Is.False, "A stranger without the faction's access does not.");
+            });
 
             var owned = new Entity<WFShipAccessComponent>(ship, comp);
             Assert.That(access.CanLock(owned), Is.True, "The responder's card gives the ship an owner key.");

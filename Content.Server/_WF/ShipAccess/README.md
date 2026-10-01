@@ -5,7 +5,8 @@ lockable button on the ship is gated by its own access reader (an airlock's door
 only decides what that reader holds. Whoever carries the ship's deed is its owner, on an ID card or, for a ship bought with one,
 the voucher held in hand; the owner keeps an allow list of ID cards, and in Faction mode the company's access
 levels also open the ship. While a ship is locked, only those cards open its doors and lockers. Unlocked, every
-door gets back the access its electronics had.
+door gets back the access its electronics had, and a door that asks for any also admits the owner and the listed
+cards: being on the list means being crew, locked ship or not. A door that asks for nothing stays open to all.
 
 How the readers are set: a locked door requires `WFShipLocked`, an access level no ID card can carry (the admin
 ghost carries it in its own access, so it opens ship doors like every other airlock), and is
@@ -14,7 +15,9 @@ cards, plus one list per company access level on a faction ship. That is exactly
 one person works, so the door denies, is hacked (access wire), put on emergency access, emagged and opened by
 the AI the same way as any airlock, with no popups of its own. The reader's own access is kept in
 `WFShipReaderBackupComponent`, on the reader itself (the board), while the ship holds it, and put back on
-unlock, when the door or locker leaves the ship, or on resale. Once something else rewrites a reader the ship had
+unlock, when the door or locker leaves the ship, or on resale. On an unlocked ship a reader with access of its
+own keeps the backup, holding its own lists plus the crew's keys; access changed there (an access configurator)
+becomes the reader's own. Once something else rewrites a reader the ship had
 locked (an emag, an access configurator) the ship leaves that reader alone, as the change would stick on any
 airlock. Mono's deed reader (`ShipAccessReaderComponent`) is switched off on these ships.
 
@@ -34,7 +37,9 @@ body they play, a ghost included. The vessel spawner registers the chosen owner 
 carries an ID card free of deeds, also puts the deed on it as a purchase would; a ghost, a player in the lobby
 or a card that already holds a deed gets the registration alone, with no deed and the consoles left unlocked.
 The ERT builder registers each responder to the team's ship as they take their place, and gives them the crew
-record a normal spawn gets on the sector records service, which their card needs to be keyed to a door. A
+record a normal spawn gets on the sector records service, which their card needs to be keyed to a door. The
+team's ship starts unlocked, so on a faction ship it is the unlocked-ship rule above that lets their cards open
+doors mapped with the faction's access. A
 registered player edits the Access tab and uses the console verbs like the deed holder, and the card they wear
 (the ID slot, not one they hold) is an owner key while they are in the game. Lockers and crates that came with the ship are taken over whatever they ask for;
 storage brought aboard later is only taken over when it asks for no access, so the ship never unlocks someone
@@ -70,8 +75,9 @@ does to their bolts. Lockers keep the ship rule. Cards dropped from the allow li
 they were ticked on.
 
 Lockable buttons and switches (a `SignalSwitch` with a `Lock`) keep the ship rule too: on a locked ship only the
-owner, the listed cards and the faction's access unlock one, whatever access it was mapped with, and unlocking the
-ship gives that access back. The `LockableButtons` module makes a locked button refuse the press.
+owner, the listed cards and the faction's access use one, whatever access it was mapped with, and unlocking the
+ship gives that access back alongside the crew's. The `LockableButtons` module makes a locked button fire for
+those cards and refuse everyone else.
 
 The All doors control on the Access tab gives every door on the ship one rule at once, after a second click to
 confirm. Every rule is offered, Sealed included: it bolts the whole ship, the owner's way back in too, until

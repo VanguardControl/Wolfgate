@@ -125,8 +125,9 @@ public sealed partial class WFShipAccessServerSystem
 
     /// <summary>
     /// Sets a door or locker's main access reader (the door electronics, for an airlock). An unlocked ship's
-    /// door without a rule gets its own access back; anything else requires <see cref="LockedAccess"/> plus the
-    /// record keys its rule admits, so the door decides, denies, is hacked and emagged exactly as an airlock is.
+    /// door without a rule keeps its own access, with the crew's record keys added when it asks for any; anything
+    /// else requires <see cref="LockedAccess"/> plus the record keys its rule admits, so the door decides, denies,
+    /// is hacked and emagged exactly as an airlock is.
     /// </summary>
     private void RefreshReader(Entity<WFShipAccessComponent> ship, EntityUid uid, HashSet<StationRecordKey> owners)
     {
@@ -157,16 +158,43 @@ public sealed partial class WFShipAccessServerSystem
 
         TryComp<WFDoorAccessRuleComponent>(uid, out var rule);
         var ruleKind = rule?.Rule ?? WFDoorAccessRule.Default;
+        var lists = reader.Comp.AccessLists;
+        var keys = reader.Comp.AccessKeys;
 
         if (ruleKind == WFDoorAccessRule.Default && !ship.Comp.Locked)
         {
-            RestoreReader(reader);
+            // A reader that asks for nothing admits anyone; one that asks for access also admits the crew.
+            if (backup != null)
+                KeepOwnLists(reader, backup);
+
+            if ((backup?.Access.Count ?? lists.Count(set => !set.Contains(LockedAccess))) == 0)
+            {
+                RestoreReader(reader);
+                return;
+            }
+
+            backup ??= BackUpReader(reader);
+            lists.Clear();
+            foreach (var set in backup.Access)
+                lists.Add(new HashSet<ProtoId<AccessLevelPrototype>>(set));
+
+            keys.Clear();
+            keys.UnionWith(backup.Keys);
+            keys.UnionWith(owners);
+            foreach (var entry in ship.Comp.AllowList)
+                keys.Add(_access.ToRecordKey(entry.Key));
+
+            backup.Locked = false;
+            backup.OwnLists = true;
+            CommitReader(reader);
             return;
         }
 
+        if (backup != null)
+            KeepOwnLists(reader, backup);
+
         backup ??= BackUpReader(reader);
-        var lists = reader.Comp.AccessLists;
-        var keys = reader.Comp.AccessKeys;
+        backup.OwnLists = false;
         lists.Clear();
         keys.Clear();
 
@@ -278,6 +306,23 @@ public sealed partial class WFShipAccessServerSystem
         return backup;
     }
 
+    /// <summary>
+    /// While a reader holds its own lists with the crew's keys added, the lists are its own to change: whatever an
+    /// access configurator or new electronics left there replaces the backup.
+    /// </summary>
+    private static void KeepOwnLists(Entity<AccessReaderComponent> reader, WFShipReaderBackupComponent backup)
+    {
+        if (!backup.OwnLists)
+            return;
+
+        backup.Access.Clear();
+        foreach (var set in reader.Comp.AccessLists)
+        {
+            if (!set.Contains(LockedAccess))
+                backup.Access.Add(new HashSet<ProtoId<AccessLevelPrototype>>(set));
+        }
+    }
+
     /// <summary>Puts a reader's own access back and forgets the backup; a reader left locked with no backup is cleared.</summary>
     private void RestoreReader(Entity<AccessReaderComponent> reader)
     {
@@ -292,6 +337,7 @@ public sealed partial class WFShipAccessServerSystem
             return;
         }
 
+        KeepOwnLists(reader, backup);
         reader.Comp.AccessLists.Clear();
         foreach (var set in backup.Access)
             reader.Comp.AccessLists.Add(new HashSet<ProtoId<AccessLevelPrototype>>(set));
