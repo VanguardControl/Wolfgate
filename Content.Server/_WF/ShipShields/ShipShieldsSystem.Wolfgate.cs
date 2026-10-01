@@ -54,6 +54,7 @@ public sealed partial class ShipShieldsSystem
     /// <summary>Refreshes changing hulls and emitter health.</summary>
     private void UpdateWolfgateShields(float frameTime)
     {
+        UpdateWolfgateFtlShields();
         UpdateWolfgateShieldTails();
         var query = EntityQueryEnumerator<WFShipShieldVisualsComponent, ShipShieldComponent>();
         while (query.MoveNext(out var uid, out var visuals, out var shield))

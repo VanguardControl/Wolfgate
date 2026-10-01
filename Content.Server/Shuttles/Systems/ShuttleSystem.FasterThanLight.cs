@@ -639,6 +639,7 @@ public sealed partial class ShuttleSystem
 
         component = AddComp<FTLComponent>(uid);
         component.State = FTLState.Starting;
+        SuppressWolfgateFtlShields(uid); // WOLFGATE(ShipShields): drop departing shield fields immediately after successful spoolup.
         var audio = _audio.PlayPvs(_startupSound, uid);
         _audio.SetGridAudio(audio);
         component.StartupStream = audio?.Entity;
