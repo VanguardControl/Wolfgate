@@ -157,6 +157,7 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
   - the shooter's client draws the split beams too
   - the beam is done once traced; this was leaking an entity per split beam
 - [`Content.Shared/_Mono/Weapons/Hitscan/Systems/HitscanMultiRaycastSystem.cs`](../../../Content.Shared/_Mono/Weapons/Hitscan/Systems/HitscanMultiRaycastSystem.cs): the client predicts the beam only; damage, stun and reflections stay server-side
+- [`Content.Shared/_RMC14/Random/Xoroshiro64S.cs`](../../../Content.Shared/_RMC14/Random/Xoroshiro64S.cs): Math.Abs(int.MinValue) throws, and folding negatives biased the low half of the range
 - [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../../Content.Shared/Projectiles/SharedProjectileSystem.cs)
   - the client's GunPredictionSystem handles its predicted copies
   - a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them

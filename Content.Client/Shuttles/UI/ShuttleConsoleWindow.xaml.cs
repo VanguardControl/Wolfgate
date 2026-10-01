@@ -210,12 +210,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         NavContainer.SetConsole(owner);
         MapContainer.SetShuttle(coordinates?.EntityId);
         MapContainer.SetConsole(owner);
-        // WOLFGATE(Shuttles) START: ship screen, collision and tractor state
+        // WOLFGATE(Shuttles) START: ship screen and collision state
         ShipContainer.SetShuttle(coordinates?.EntityId);
         ShipContainer.SetConsole(owner);
         CollisionBanner.SetShuttle(coordinates?.EntityId);
-        WfUpdateTractorCapture(cState.TractorSources);
         // WOLFGATE END
+        WfUpdateTractorCapture(cState.TractorSources); // WOLFGATE(TractorBeam)
         WfAccessUpdateState(coordinates?.EntityId, owner); // WOLFGATE(ShipAccess)
 
         NavContainer.UpdateState(cState.NavState);

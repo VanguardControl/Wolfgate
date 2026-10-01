@@ -17,7 +17,7 @@
   - Viper_Group
   special:
   - !type:AddImplantSpecial
-    implants: [ MindShieldImplant, ViperTrackingImplant ]
+    implants: [ ViperTrackingImplant ]
   - !type:AddComponentSpecial
     components:
     - type: MailDisabled
@@ -43,4 +43,4 @@
     back:
     - RadioHandheldNF
     - VGHandheldOverwatchConsole
-    - ShipVoucherVGWolf # WOLFGATE(Shipyard)
+    - ShipVoucherVGWolf # WOLFGATE(Shipyard): VG commanders start with a voucher for their Wolf

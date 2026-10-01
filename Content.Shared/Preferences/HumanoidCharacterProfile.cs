@@ -247,7 +247,7 @@ namespace Content.Shared.Preferences
                 // WOLFGATE END
         {
             HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
-            MismatchedParts = other.MismatchedParts; // WOLFGATE(MismatchedParts)
+            MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
         }
 
         /// <summary>Copy constructor</summary>
@@ -279,7 +279,7 @@ namespace Content.Shared.Preferences
                 // WOLFGATE END
         {
             HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
-            MismatchedParts = other.MismatchedParts; // WOLFGATE(MismatchedParts)
+            MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
         }
 
         /// <summary>
@@ -472,6 +472,7 @@ namespace Content.Shared.Preferences
         // WOLFGATE END
 
         // WOLFGATE(Genitals) START: replaces the creator anatomy
+        /// <summary>Copy of this profile with the creator anatomy replaced.</summary>
         public HumanoidCharacterProfile WithGenitals(GenitalProfile genitals)
         {
             return new(this) { Genitals = genitals };
@@ -617,7 +618,7 @@ namespace Content.Shared.Preferences
             if (CustomSpeciesName != other.CustomSpeciesName) return false; // WOLFGATE(Humanoid)
             if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE(Genitals)
             if (HeadshotUrl != other.HeadshotUrl) return false; // WOLFGATE(Headshot)
-            if (MismatchedParts != other.MismatchedParts) return false; // WOLFGATE(MismatchedParts)
+            if (MismatchedParts != other.MismatchedParts) return false; // WOLFGATE(Species)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
@@ -755,8 +756,8 @@ namespace Content.Shared.Preferences
             }
             // End Frontier
 
-            // WOLFGATE(MismatchedParts): the option widens the hair check
-            var appearance = HumanoidCharacterAppearance.EnsureValid(wfAppearance, Species, Sex, MismatchedParts); // WOLFGATE(Humanoid): wfAppearance
+            // WOLFGATE(Species): the option widens the hair check
+            var appearance = HumanoidCharacterAppearance.EnsureValid(wfAppearance, Species, Sex, MismatchedParts); // WOLFGATE(Genitals): validates the appearance after legacy genital markings were migrated
 
             var prefsUnavailableMode = PreferenceUnavailable switch
             {
@@ -961,7 +962,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(Company); // WOLFGATE: the company is part of the hash
             hashCode.Add(CustomSpeciesName); // WOLFGATE(Humanoid)
             hashCode.Add(HeadshotUrl); // WOLFGATE(Headshot)
-            hashCode.Add(MismatchedParts); // WOLFGATE(MismatchedParts)
+            hashCode.Add(MismatchedParts); // WOLFGATE(Species)
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
             return hashCode.ToHashCode();

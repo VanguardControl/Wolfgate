@@ -324,7 +324,7 @@ namespace Content.Server.Database
                 // WOLFGATE END
             {
                 HeadshotUrl = profile.HeadshotUrl ?? string.Empty, // WOLFGATE(Headshot)
-                MismatchedParts = profile.MismatchedParts, // WOLFGATE(MismatchedParts)
+                MismatchedParts = profile.MismatchedParts, // WOLFGATE(Species)
             };
         }
 
@@ -362,7 +362,7 @@ namespace Content.Server.Database
             profile.Company = humanoid.Company;
             profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE(Humanoid)
             profile.HeadshotUrl = humanoid.HeadshotUrl; // WOLFGATE(Headshot)
-            profile.MismatchedParts = humanoid.MismatchedParts; // WOLFGATE(MismatchedParts)
+            profile.MismatchedParts = humanoid.MismatchedParts; // WOLFGATE(Species)
             profile.ScreamVoice = EmoteVoiceRules.ToStored(humanoid.ScreamVoice); // WOLFGATE(EmoteVoices)
             profile.LaughVoice = EmoteVoiceRules.ToStored(humanoid.LaughVoice); // WOLFGATE(EmoteVoices)
 
@@ -2089,7 +2089,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 .AsSplitQuery()
                 .SingleOrDefaultAsync(c => c.UserId == userId);
 
-            // Rows holding renamed toggle ids are saved under the current ids on load.
+            // WOLFGATE(Prototypes): consent rows holding renamed toggle ids are saved under the current ids on load
             if (consentSettings != null && WFLegacyDbRows.Update(consentSettings))
                 await WFLegacyDbRows.Save(db.DbContext, _opsLog);
 

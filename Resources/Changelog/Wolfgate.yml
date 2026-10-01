@@ -643,3 +643,47 @@ Entries:
   id: 100059
   time: '2026-09-29T18:51:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/118
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The bus, arrivals and evac shuttles actually jump when they dock.
+    - type: Fix
+      message: The bus announces its departures and arrivals again.
+  id: 100060
+  time: '2026-09-29T20:06:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/126
+- author: Erol509
+  changes:
+    - type: Add
+      message: >-
+        Added 13 Synthetic Lizard snout marking options, including long, thick,
+        layered, tertiary, and barless variants.
+  id: 100061
+  time: '2026-09-29T21:58:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/120
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now select mismatched species parts to make anything you want
+        with species. It's under appearance.
+    - type: Add
+      message: >-
+        Eye markings have their own category, so you can wear a left and a right
+        eye (Shadekin, Moth and more) alongside your face markings.
+    - type: Add
+      message: Colour pickers have hue, saturation and value fields.
+  id: 100062
+  time: '2026-09-30T01:02:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/127
+- author: Aphast
+  changes:
+    - type: Add
+      message: >-
+        Shadekin short hair, shadekin dual color ears, shadekin dual color big
+        tail, generic neckfur, and fae fox ears alt variant
+    - type: Fix
+      message: Minor sprite error with fae fox ears
+  id: 100063
+  time: '2026-09-30T16:18:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/129
