@@ -318,7 +318,6 @@ public sealed partial class AutodocSystem : EntitySystem
             return;
 
         ent.Comp.SelfService = true;
-        Speak(ent, AutodocVoiceEvent.Greeting);
     }
 
     /// <summary>How long somebody takes to lift a conscious body into the pod.</summary>
@@ -355,7 +354,6 @@ public sealed partial class AutodocSystem : EntitySystem
             return;
 
         ent.Comp.SelfService = args.Dragged == args.User;
-        Speak(ent, AutodocVoiceEvent.Greeting);
         args.Handled = true;
     }
 
@@ -369,7 +367,6 @@ public sealed partial class AutodocSystem : EntitySystem
             return;
 
         ent.Comp.SelfService = false;
-        Speak(ent, AutodocVoiceEvent.Greeting);
         args.Handled = true;
     }
 
@@ -405,6 +402,9 @@ public sealed partial class AutodocSystem : EntitySystem
             ent.Comp.BlockingGarment = null;
             ent.Comp.BlockingSlot = null;
             ent.Comp.GarmentStuck = false;
+
+            // The pod greets whoever ends up inside, however they got in.
+            Speak(ent, AutodocVoiceEvent.Greeting);
         }
 
         UpdateAppearance(ent);

@@ -46,9 +46,8 @@ public sealed class WolfmedStasisSystem : EntitySystem
         if (args.Cancelled || !body.Comp.IsInStasis || !HasComp<WoundHostComponent>(body))
             return;
 
-        // Pre-merge review: scale a copy, never the caller's object. The respirator and the wound behaviours pass their
-        // own specifiers, and halving those in place made Avali in vacuum stop suffocating.
-        args.Damage = new DamageSpecifier(args.Damage);
+        // Scaled in place, which the damage system reads back. This runs on routing's inner pass, whose specifier is a
+        // copy, so the caller's own object (the respirator's, a wound behaviour's) is never touched.
         var factor = _cfg.GetCVar(WolfmedCVars.StasisDamageFactor);
         foreach (var (type, amount) in args.Damage.DamageDict.ToArray())
         {

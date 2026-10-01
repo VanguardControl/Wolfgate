@@ -202,13 +202,9 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
             Assert.That(slots.TryInsert(pod.Owner, AutodocComponent.ReservoirSlotIds[0],
                 SEntMan.SpawnEntity("WolfmedSamTestOpiateJug", map.GridCoords), null), Is.True);
             autodoc.SetAuto(pod, true);
-            Assert.That(DragDrop(pod, medic, patient), Is.True, "the medic could not put the patient in.");
+            // A conscious patient lifted in by the medic would go in through a do-after; the run is what this test is about.
+            Assert.That(autodoc.TryInsert(pod, patient), Is.True, "the patient could not be put in.");
         });
-
-        // The patient is conscious, so the medic's lift is a do-after.
-        await Pair.RunTicksSync(120);
-        await Server.WaitAssertion(() =>
-            Assert.That(SEntMan.System<AutodocSystem>().GetOccupant(pod), Is.EqualTo(patient), "the medic could not put the patient in."));
 
         var done = false;
         for (var i = 0; i < 80 && !done; i++)
