@@ -47,6 +47,27 @@ public sealed class ShipAccessOwnerTest
     /// <summary>An outfit with no ID card or PDA in it.</summary>
     private const string NoIdOutfit = "GladiatorGear";
 
+    /// <summary>An outfit whose PDA holds no ID card, and one with something else in the ID slot.</summary>
+    private const string EmptyPdaOutfit = "WFErtTestEmptyPdaGear";
+    private const string BlockedSlotOutfit = "WFErtTestBlockedSlotGear";
+    private const string EmptyPda = "ChameleonPDA";
+    private const string BlockingItem = "Crowbar";
+
+    [TestPrototypes]
+    private const string Prototypes = @"
+- type: startingGear
+  id: WFErtTestEmptyPdaGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorGrey
+    id: ChameleonPDA
+
+- type: startingGear
+  id: WFErtTestBlockedSlotGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorGrey
+    id: Crowbar
+";
+
     /// <summary>Access a faction ship's doors might be mapped with.</summary>
     private const string FactionAccess = "Pirate";
 
@@ -290,10 +311,13 @@ public sealed class ShipAccessOwnerTest
 
     /// <summary>
     /// A responder whose outfit has no ID card is handed a plain one, worn in the ID slot where a ship's doors look
-    /// for it, carrying only the access the admin chose.
+    /// for it, carrying only the access the admin chose. It goes into a PDA worn there, and takes the place of
+    /// anything else the outfit put in the slot, which ends up in a hand.
     /// </summary>
-    [Test]
-    public async Task ErtOutfitWithoutAnIdGetsOne()
+    [TestCase(NoIdOutfit, null)]
+    [TestCase(EmptyPdaOutfit, EmptyPda)]
+    [TestCase(BlockedSlotOutfit, null)]
+    public async Task ErtOutfitWithoutAnIdGetsOne(string outfit, string? wornProto)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var server = pair.Server;
@@ -310,7 +334,7 @@ public sealed class ShipAccessOwnerTest
                 TeamName = "Bare Team",
                 Members = 1,
                 HasLeader = true,
-                MemberOutfit = NoIdOutfit,
+                MemberOutfit = outfit,
                 AccessGroups = new List<string> { FactionGroup },
             };
             Assert.That(entMan.System<ErtSystem>().TrySpawnTeam(session, config, out var message), Is.True, message);
@@ -332,6 +356,20 @@ public sealed class ShipAccessOwnerTest
                 Assert.That(tags, Does.Contain(new ProtoId<AccessLevelPrototype>(FactionAccess)), "The card carries the access the admin chose.");
                 Assert.That(tags, Is.SubsetOf(server.ProtoMan.Index(new ProtoId<AccessGroupPrototype>(FactionGroup)).Tags), "And none of the plain card's own.");
             });
+
+            Assert.That(entMan.System<InventorySystem>().TryGetSlotEntity(responder, "id", out var worn), Is.True);
+            var wornId = entMan.GetComponent<MetaDataComponent>(worn!.Value).EntityPrototype?.ID;
+            if (wornProto != null)
+                Assert.That(wornId, Is.EqualTo(wornProto), "The card went into the PDA the outfit wears.");
+            else
+                Assert.That(worn.Value, Is.EqualTo(card), "The card itself is in the ID slot.");
+
+            if (outfit == BlockedSlotOutfit)
+            {
+                var heldProtos = entMan.System<SharedHandsSystem>().EnumerateHeld(responder)
+                    .Select(held => entMan.GetComponent<MetaDataComponent>(held).EntityPrototype?.ID);
+                Assert.That(heldProtos, Does.Contain(BlockingItem), "What the outfit had in the ID slot moved to a hand.");
+            }
         });
 
         await pair.CleanReturnAsync();

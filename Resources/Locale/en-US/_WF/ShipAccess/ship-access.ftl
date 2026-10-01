@@ -62,7 +62,7 @@ ship-access-all-doors-apply = Set all
 ship-access-all-doors-confirm = Confirm
 ship-access-all-doors-hint = Gives every door on the ship this rule. Firelocks are left alone; lockers and lockable buttons always follow the ship. { $desc }
 ship-access-all-doors-set = { $count ->
-        [0] Every door already has that rule.
+        [0] No doors changed.
         [one] 1 door set.
        *[other] { $count } doors set.
     }

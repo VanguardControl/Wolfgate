@@ -441,8 +441,8 @@ public sealed partial class ErtSystem : EntitySystem
     }
 
     /// <summary>
-    /// Gives a responder whose outfit has no ID card a plain one with no access, worn in the ID slot or put in the
-    /// PDA already there, so the ship's doors have a card to be keyed to. Falls back to a hand when the slot is taken.
+    /// Gives a responder whose outfit has no ID card a plain one with no access, worn in the ID slot, since a ship's
+    /// doors are only keyed to a worn card. A body that can't wear one gets it in hand, and the admin log says so.
     /// </summary>
     private void EnsureId(EntityUid mob)
     {
@@ -451,18 +451,37 @@ public sealed partial class ErtSystem : EntitySystem
 
         var card = Spawn(FallbackIdPrototype, Transform(mob).Coordinates);
         _access.TrySetTags(card, Array.Empty<ProtoId<AccessLevelPrototype>>());
-
-        if (_inventory.TryGetSlotEntity(mob, IdSlot, out var worn))
-        {
-            if (TryComp<PdaComponent>(worn, out var pda) && _itemSlots.TryInsert(worn.Value, pda.IdSlot, card, null))
-                return;
-        }
-        else if (_inventory.TryEquip(mob, card, IdSlot, silent: true, force: true))
-        {
+        if (TryWearId(mob, card))
             return;
+
+        var held = _hands.TryPickupAnyHand(mob, card);
+        _adminLogger.Add(LogType.Action, LogImpact.Medium,
+            $"ERT responder {ToPrettyString(mob):mob} could not wear {ToPrettyString(card):card} ({(held ? "in hand" : "left at their feet")}); no ship door is keyed to it until they do");
+    }
+
+    /// <summary>
+    /// Puts a card in the ID slot: into the PDA worn there, else in place of whatever the outfit put there, which
+    /// goes to a hand or the floor.
+    /// </summary>
+    private bool TryWearId(EntityUid mob, EntityUid card)
+    {
+        if (!_inventory.TryGetSlotEntity(mob, IdSlot, out var worn))
+            return _inventory.TryEquip(mob, card, IdSlot, silent: true, force: true);
+
+        if (TryComp<PdaComponent>(worn, out var pda) && _itemSlots.TryInsert(worn.Value, pda.IdSlot, card, null))
+            return true;
+
+        if (!_inventory.TryUnequip(mob, IdSlot, silent: true, force: true))
+            return false;
+
+        if (!_inventory.TryEquip(mob, card, IdSlot, silent: true, force: true))
+        {
+            _inventory.TryEquip(mob, worn.Value, IdSlot, silent: true, force: true);
+            return false;
         }
 
-        _hands.TryPickupAnyHand(mob, card);
+        _hands.TryPickupAnyHand(mob, worn.Value);
+        return true;
     }
 
     /// <summary>
