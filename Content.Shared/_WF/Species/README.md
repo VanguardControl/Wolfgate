@@ -629,7 +629,9 @@ clone.
   - was true, which hid the shared hair styles from reptilians
   - was 0, reptilians can wear hair
   - was 0, reptilians can wear facial hair
-- [`Resources/Prototypes/Species/slime.yml`](../../../Resources/Prototypes/Species/slime.yml): ported from HardLight, slimes take the head and tail marking slots of other species
+- [`Resources/Prototypes/Species/slime.yml`](../../../Resources/Prototypes/Species/slime.yml)
+  - Anycolor skin support for slimes
+  - ported from HardLight, slimes take the head and tail marking slots of other species
 - [`Resources/Prototypes/Species/species_weights.yml`](../../../Resources/Prototypes/Species/species_weights.yml)
   - ported from HardLight/Starlight
   - ported from HardLight

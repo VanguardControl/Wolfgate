@@ -27,6 +27,8 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
     private readonly Button _reset;
     private readonly ShieldDial _dial;
     private readonly Button _enabled;
+    private readonly Button _stats;
+    private WFShipShieldStatsWindow? _statsWindow;
     private float _warningTime;
     private WFShipShieldShuntState? _state;
     private float _helmRotation;
@@ -56,6 +58,15 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         var header = Column(6);
         var heading = new BoxContainer { SeparationOverride = 12 };
         heading.AddChild(new Label { Text = Loc.GetString("wf-shield-helm-heading"), HorizontalExpand = true });
+        heading.AddChild(_stats = new Button { Text = Loc.GetString("wf-shield-stats-title"), MinHeight = 36, Disabled = true });
+        _stats.OnPressed += _ =>
+        {
+            if (_state?.Stats is not { } stats)
+                return;
+            _statsWindow ??= new WFShipShieldStatsWindow();
+            _statsWindow.UpdateStats(stats);
+            _statsWindow.OpenCentered();
+        };
         heading.AddChild(_enabled = new Button { MinHeight = 36, Disabled = true });
         _enabled.OnPressed += _ =>
         {
@@ -183,10 +194,25 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         Text = Loc.GetString(label), HorizontalExpand = true, MinHeight = 30,
     };
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _statsWindow?.Dispose();
+            _statsWindow = null;
+        }
+        base.Dispose(disposing);
+    }
+
     /// <summary>Accepts current and target allocation without overwriting unacknowledged local edits.</summary>
     public void UpdateState(WFShipShieldShuntState? state, float helmRotation)
     {
         _state = state;
+        _stats.Disabled = state?.Stats == null;
+        if (state?.Stats is { } stats)
+            _statsWindow?.UpdateStats(stats);
+        else
+            _statsWindow?.Close();
         _helmRotation = helmRotation;
         _dial.Available = state is { Available: true };
         _health.Value = Math.Clamp(state?.Health ?? 0f, 0f, 1f);

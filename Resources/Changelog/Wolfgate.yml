@@ -719,3 +719,297 @@ Entries:
   id: 100067
   time: '2026-10-01T02:10:31.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/116
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Buttons with access requirements now actually respect the access
+        requirements.
+    - type: Tweak
+      message: >-
+        A card with access now presses a locked button directly, and the button
+        stays locked.
+    - type: Tweak
+      message: >-
+        Lockable buttons on a ship follow ship access, so your crew can use
+        them.
+    - type: Tweak
+      message: >-
+        Crew on a ship's access list keep their access while the ship is
+        unlocked.
+    - type: Add
+      message: The Access tab can set every door on the ship to one rule at once.
+    - type: Fix
+      message: ERT teams can open the doors of their own faction ship.
+    - type: Tweak
+      message: >-
+        An ERT's ship locks itself once the first responder is aboard, and
+        responders always get an ID card.
+  id: 100068
+  time: '2026-10-01T06:18:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/136
+- author: Aphast
+  changes:
+    - type: Add
+      message: A new thicker accent 'neofrench'
+    - type: Tweak
+      message: Slimepeople can now select any color skin
+  id: 100069
+  time: '2026-10-01T07:02:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/138
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Harpoons fired square on at a hull no longer skip off when they land
+        beside the seam between two wall tiles.
+    - type: Fix
+      message: >-
+        Loaded harpoons no longer get pulled out of their turret while the ship
+        is moving, which left the turret unable to fire.
+    - type: Fix
+      message: >-
+        Loose harpoons are solid items again. They stay inside the hull and slow
+        down on the deck instead of sliding through walls and into space.
+    - type: Fix
+      message: >-
+        The harpoon turret's winch stops when the two hulls touch instead of
+        hauling them into each other.
+    - type: Fix
+      message: >-
+        Arrows and other reusable projectiles are no longer yanked out of hands
+        and containers or flung around on fast ships.
+    - type: Fix
+      message: >-
+        A recovered harpoon fired again from a fast ship no longer flies off
+        along its previous shot's path.
+  id: 100070
+  time: '2026-10-01T07:38:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/139
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Shield generator stats are now shown on examine and in the Shields
+        panel.
+    - type: Fix
+      message: >-
+        Shields absorb hull collision damage using shield health, with impact
+        effects.
+    - type: Fix
+      message: Explosive rounds no longer detonate after being absorbed by shields.
+    - type: Fix
+      message: Shields now intercept flak fragments, minelayer rounds and naval mines.
+    - type: Fix
+      message: >-
+        Absorbed payloads no longer trigger afterward, and outgoing payloads
+        pass through their own ship's shields.
+  id: 100071
+  time: '2026-10-01T07:39:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/140
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Admins can now teleport using the mass scanner.
+  id: 100072
+  time: '2026-10-01T08:14:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/141
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Fix optical cam bounty
+  id: 100073
+  time: '2026-10-01T18:46:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/143
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: Improved mapping tools
+  id: 100074
+  time: '2026-10-01T18:47:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/110
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Wolfmed! Damage now actually wounds your body parts instead of just
+        being a number. Cuts, bruises, burns, fractures and bleeds are all
+        different and need the right treatment.
+    - type: Add
+      message: >-
+        Pain. Bad wounds hurt and enough of it will drop you. There's a pain
+        HUD, painkillers in tiers (analgesic, ibuprofen, ketorolac, tramadol,
+        oxycodone) and analgesic, stimulant, opiate and naloxone pens.
+    - type: Add
+      message: >-
+        Bleeding is per wound. Tourniquets, gauze, patches and sutures stop it.
+        A cut artery or a fresh stump sprays blood everywhere, everything else
+        just drips.
+    - type: Add
+      message: Organs can be damaged and destroyed. Internal bleeding is a thing now.
+    - type: Add
+      message: >-
+        Limbs come off. Guns, lasers, blades and explosions can all sever them.
+        You get a stump that bleeds until it's dressed, gibs and blood on the
+        deck, and the limb can be put back on.
+    - type: Add
+      message: Bullets don't always land on the part you aimed at anymore.
+    - type: Add
+      message: >-
+        Infections. An open wound gets infected if it's out in the air outside a
+        sealed suit, something dirty went in it or it's a bite. It travels limb
+        to chest, then it's sepsis, then septic shock puts you out and your
+        organs start failing. Antibiotics and antiseptic spray sort it.
+    - type: Add
+      message: >-
+        Dying is different now. Death is your brain stopping, not a damage
+        number. Cardiac arrest gives you a few minutes before your brain goes,
+        CPR holds it there and a defib brings you back. A wrecked brain still
+        comes back, just dumb, slurring and clumsy until it's repaired.
+    - type: Add
+      message: >-
+        When you're down you can crawl, grab things in reach, call for help, say
+        your last words or succumb. If you're stable and nobody's coming you can
+        ghost and wait. Going down drops what you're holding, but sidearms fire
+        from the floor.
+    - type: Add
+      message: >-
+        Poison, radiation, cold, heat, electrocution and vacuum all go through
+        the new system, and the analyzer tells you what's actually killing
+        someone.
+    - type: Add
+      message: >-
+        The autodoc pod. Queue procedures or let it triage on AUTO. It talks,
+        cuts your clothes off, welds chassis breaches, runs antibiotic courses
+        and has a blood reservoir. Flatpack at the Wolfgate vendor, modules from
+        cargo.
+    - type: Add
+      message: >-
+        IV drips. Blood packs or a beaker in, or blood drawn out. Flatpacks at
+        NanoMed Plus, CiviMed and the Wolfgate vendor.
+    - type: Add
+      message: >-
+        IPCs bleed hydraulic fluid and get patched with cable coil, a welder,
+        the nanite applicator or the pod. They've got their own HUD and health
+        bars, overheat, shut down without power, get hurt by EMPs, and come back
+        with core repair and a restart.
+    - type: Add
+      message: >-
+        Slimes, diona and cybernetic limbs have their own wound profiles. Slimes
+        survive losing their head.
+    - type: Add
+      message: >-
+        New med gear: splints, makeshift and silk patches, antiseptic spray,
+        skin grafts, osteogen for fractures, hydraulic fluid, a synthetic repair
+        kit, and pill canisters and bottles of the painkillers. Medical vendors
+        now stock tourniquets, sutures, mesh and the surgical basics. The first
+        aid kit comes with a tourniquet, a splint and painkillers, and medkits
+        are bigger inside.
+    - type: Add
+      message: >-
+        Body sounds. Heartbeat in crit, flatline on arrest, coughs, retches,
+        sneezes, gasps and shivers, plus proper melee, chop and bullet impact
+        sounds.
+    - type: Add
+      message: Wounds, Wound Treatment and Autodoc guidebook pages.
+    - type: Tweak
+      message: >-
+        Chems that hurt you from the inside (arithrazine, overdoses) make you
+        sick instead of covering you in wounds.
+    - type: Tweak
+      message: >-
+        Avali stasis works with wounds now. It holds every bleed, closes wounds
+        slowly, halves hits, and never fixes a broken bone.
+    - type: Add
+      message: >-
+        You can tear a makeshift tourniquet out of any jumpsuit in the crafting
+        menu. Hold the one you want torn or it takes the one you're wearing.
+        Works like the real thing, but a hard hit on that limb knocks it loose.
+    - type: Add
+      message: >-
+        Plain sutures. No research, printed at the medical techfab, stocked in
+        the med vendors and kits. Slower than the medicated ones.
+    - type: Add
+      message: >-
+        Makeshift sutures from a metal rod and a cloth. They close the cut but
+        leave it dirty, so clean it or expect an infection.
+    - type: Tweak
+      message: >-
+        Medkits and the medical and EMT belts carry more to keep someone alive:
+        tourniquets, splints, sutures and pens. The standard and combat kits are
+        bigger inside.
+    - type: Tweak
+      message: >-
+        Clotting chems (tranexamic acid, bicaridine, inaprovaline and co) work
+        on wounds. They never take a dressing or tourniquet off and at most
+        halve a severed artery.
+    - type: Tweak
+      message: >-
+        Overdoses and poisons that used to deal suffocation or blood loss damage
+        (dexalin, dexalin plus, tranexamic acid, lexorin and the like) build up
+        toxins instead.
+    - type: Fix
+      message: >-
+        Chem descriptions say what they actually do now (dexalin, dexalin plus,
+        cryoxadone, tranexamic acid, ultravasculine, rhymatine, stasizium).
+    - type: Fix
+      message: >-
+        Salvage, dungeon and medical bounty corpses spawn dead again, with their
+        injuries on them as wounds. Some bounties used to come up alive with
+        nothing to fix.
+    - type: Fix
+      message: >-
+        Surgeries like grafting burns, repairing tendons and arteries, pulling
+        out shrapnel and healing organs can be finished by hand again. The
+        closing step used to refuse once the treatment step had worked, leaving
+        the patient open.
+    - type: Tweak
+      message: >-
+        Minor wounds don't get infected from being out in the open anymore, so a
+        small burn or scratch won't turn into sepsis. Minor bites, shrapnel and
+        anything dirty still can.
+    - type: Fix
+      message: >-
+        Falling asleep while your heart's stopped and then dying no longer
+        leaves you stuck on the floor after you're revived.
+    - type: Add
+      message: >-
+        Executions. Right click a downed, unconscious, cuffed or sleeping player
+        with a gun, blade or blunt weapon in hand and pick Execute. It asks if
+        you're sure, then runs a timer, then kills them. What's left depends on
+        the weapon: a weak one leaves a head wound and an artery, a medium one
+        puts a hole in the head and the brain comes out, a heavy one takes the
+        head off. Big lasers burn it to ash, heavy hammers crush it, big blades
+        take it clean off.
+    - type: Add
+      message: >-
+        Shooting yourself in the head actually kills you now, with the same
+        gore. Typing suicide with a loaded gun, blade or blunt weapon in hand
+        uses it.
+    - type: Tweak
+      message: Rubber rounds, beanbags, disablers and tasers can't execute anyone.
+    - type: Tweak
+      message: >-
+        The health analyzer has been redone. Overview and vitals on the left,
+        wounds, organs and chemicals in tabs on the right, with treatment advice
+        and a targeting doll. It doesn't need a power cell anymore. Examining
+        someone shows their visible wounds.
+    - type: Tweak
+      message: The medical HUD shows a flatline on someone in arrest instead of crit.
+    - type: Tweak
+      message: >-
+        Armour vests and the ballistic helmet only cover the parts they actually
+        cover.
+    - type: Tweak
+      message: >-
+        Getting hit hard interrupts whatever you were doing, surgery and
+        treatment included.
+    - type: Tweak
+      message: Wounds draw over fur, scales and feathers instead of under them.
+    - type: Add
+      message: >-
+        Admins get `wolfmedrange` for a test range and a body part form of the
+        damage command.
+  id: 100075
+  time: '2026-10-01T19:28:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/32

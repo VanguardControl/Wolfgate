@@ -19,6 +19,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - a character this build cannot preview is skipped instead of aborting the loop
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
 - [`Content.IntegrationTests/Fixtures/GameTest.cs`](../../Content.IntegrationTests/Fixtures/GameTest.cs)
+  - keeps the failure readable once the dirty dispose's warning replaces it.
   - a fixture object outlives its test, so it must not keep its pair.
   - resets every instance field of the fixture, from its own class up to this one.
 - [`Content.IntegrationTests/Pair/TestPair.cs`](../../Content.IntegrationTests/Pair/TestPair.cs)
@@ -34,12 +35,6 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - random container fills count at their expected value, not this load's roll
   - drop the scratch map and unseed the pooled server
   - appraisal that counts random container fills at their expected value
-- [`Content.IntegrationTests/Tests/EntityTest.cs`](../../Content.IntegrationTests/Tests/EntityTest.cs)
-  - GC.Collect between the spawn-all slices
-  - the spawn-all tests need about six gigabytes each; two at once go past the runner's heap limit
-  - in slices. All the prototypes at once, each on its own map and grid, held for 450
-  - maps first, so everything on them goes parent-first, as it does when a round
-  - the slice size and the delete of the sliced spawn-all test.
 - [`Content.IntegrationTests/Tests/Hands/HandTests.cs`](../../Content.IntegrationTests/Tests/Hands/HandTests.cs)
   - unused, the actor is spawned instead of read from the session
   - spawn the actor instead of using the session's entity
@@ -61,6 +56,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - pick the dock without teleporting the shuttle there before the jump
 - [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../Content.Server/VendingMachines/VendingMachineSystem.cs): a free vend skips the cash payment, which logs a zero amount as invalid
 - [`Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs`](../../Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs): _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
+- [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs): a client that first saw the wearer already dressed never got the equip for this item (the
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - bodiless giblets are skipped when flung.
   - bodiless dropped contents are skipped instead of flung.
@@ -71,11 +67,14 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - hash only what MemberwiseEquals compares by value
   - removed - Appearance hashed by reference, broke equal profiles hashing alike
   - the company is part of the hash
+- [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../Content.Shared/Projectiles/SharedProjectileSystem.cs): the client replays a thrown embed's collision in prediction, and the projectile is already in
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs): C# % keeps the sign, index 0 gave -1 and crashed the server
 - [`README.md`](../../README.md): reworded for Wolfgate build differences
 - [`Resources/Locale/en-US/_Mono/guidebook/guides.ftl`](../../Resources/Locale/en-US/_Mono/guidebook/guides.ftl): was Monolith Rules
+- [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml): the camera bounty asked for optical sensors (OpticsEconomy1)
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml): MMC cash bounties pay 0.9x their value so cash-to-MIC-to-cash can't loop for profit
 - [`Resources/Prototypes/_Mono/Entities/Markers/Spawners/Random/scrap_processor.yml`](../../Resources/Prototypes/_Mono/Entities/Markers/Spawners/Random/scrap_processor.yml): plastitanium moved into the rare materials group so scrap doesn't undercut the crystallizer
+- [`Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml): Needs to fit on a crate
 - [`Resources/Prototypes/_Mono/game_presets.yml`](../../Resources/Prototypes/_Mono/game_presets.yml): only Insurgency is votable below 20 players
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
   - erotic roleplay rule removed, PR #27

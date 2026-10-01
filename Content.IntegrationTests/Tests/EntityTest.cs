@@ -1,4 +1,4 @@
-using System; // WOLFGATE: GC.Collect between the spawn-all slices
+using System; // WOLFGATE(Wolfmed)
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -17,7 +17,7 @@ namespace Content.IntegrationTests.Tests
 {
     [TestFixture]
     [TestOf(typeof(EntityUid))]
-    // WOLFGATE: the spawn-all tests need about six gigabytes each; two at once go past the runner's heap limit
+    // WOLFGATE(Wolfmed): the spawn-all tests need about six gigabytes each; two at once go past the runner's heap limit
     [NonParallelizable]
     public sealed class EntityTest
     {
@@ -36,8 +36,8 @@ namespace Content.IntegrationTests.Tests
             var prototypeMan = server.ResolveDependency<IPrototypeManager>();
             var mapSystem = entityMan.System<SharedMapSystem>();
 
-            // WOLFGATE START: in slices. All the prototypes at once, each on its own map and grid, held for 450
-            // ticks, took the test host past 16 GB and the 16 GB runner cancelled the job every run. Each slice spawns,
+            // WOLFGATE(Wolfmed) START: in slices. All the prototypes at once, each on its own map and grid, held for 450
+            // ticks, took the test host to 16.5 GB and the 16 GB runner cancelled the job every run. Each slice spawns,
             // runs the same 450 ticks and is deleted before the next, so every prototype still gets its update loops.
             var protoIds = new List<string>();
             await server.WaitPost(() =>
@@ -124,7 +124,7 @@ namespace Content.IntegrationTests.Tests
                     }
                 }
 
-                // WOLFGATE START: maps first, so everything on them goes parent-first, as it does when a round
+                // WOLFGATE(Wolfmed) START: maps first, so everything on them goes parent-first, as it does when a round
                 // ends. Deleting in enumeration order could delete a held item out of a live xenoborg's hand before its
                 // module, which DroppableBorgModuleSystem logs as an error; the order follows prototype file order,
                 // which differs between Windows and Linux, so it failed on CI only.
@@ -148,7 +148,7 @@ namespace Content.IntegrationTests.Tests
             await pair.CleanReturnAsync();
         }
 
-        // WOLFGATE START: the slice size and the delete of the sliced spawn-all test.
+        // WOLFGATE(Wolfmed) START: the slice size and the delete of the sliced spawn-all test.
         /// <summary>Prototypes spawned per slice of the different-maps spawn-all test: about a seventh of them.</summary>
         private const int SpawnAllSlice = 2500;
 

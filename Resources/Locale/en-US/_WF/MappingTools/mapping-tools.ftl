@@ -1,0 +1,113 @@
+cmd-mappingtools-desc = Opens or closes the mapping tools window.
+cmd-mappingtools-help = Usage: {$command} [true|false]
+
+wf-mapping-tools-title = Mapping tools
+wf-mapping-tools-action-name = Mapping tools
+
+wf-mapping-tools-select = Enable selection tools
+wf-mapping-tools-select-tooltip = While on, left click selects and drags instead of interacting (M). Picking something in the spawn menu pauses it.
+
+wf-mapping-tools-eyedropper = Eyedropper
+wf-mapping-tools-eyedropper-tooltip = Click an entity to start placing it with the same rotation, or empty floor to place that tile.
+
+wf-mapping-tools-section-edit = Edit
+wf-mapping-tools-section-history = History
+wf-mapping-tools-section-view = View
+wf-mapping-tools-section-keys = Keys
+wf-mapping-tools-section-files = Files
+wf-mapping-tools-maps = Save / load maps...
+wf-mapping-tools-maps-tooltip = Save your grid or map, or open a saved one, with a preview.
+
+wf-mapping-tools-copy = Copy
+wf-mapping-tools-cut = Cut
+wf-mapping-tools-paste = Paste
+wf-mapping-tools-rotate = Rotate
+wf-mapping-tools-delete = Delete
+wf-mapping-tools-copy-tooltip = Ctrl+C
+wf-mapping-tools-cut-tooltip = Ctrl+X
+wf-mapping-tools-paste-tooltip = Ctrl+V
+wf-mapping-tools-rotate-tooltip = R
+wf-mapping-tools-delete-tooltip = Delete
+wf-mapping-tools-mirror = Mirror L/R
+wf-mapping-tools-mirror-vertical = Mirror T/B
+wf-mapping-tools-mirror-tooltip = Mirror the selection left to right (F)
+wf-mapping-tools-mirror-vertical-tooltip = Mirror the selection top to bottom (Shift+F)
+wf-mapping-tools-undo = Undo
+wf-mapping-tools-redo = Redo
+wf-mapping-tools-undo-tooltip = Undo your last mapping edit (Ctrl+Z)
+wf-mapping-tools-redo-tooltip = Redo (Ctrl+Y or Ctrl+Shift+Z)
+
+wf-mapping-tools-hide-walls = Hide walls
+wf-mapping-tools-hide-walls-tooltip = Hides every wall on your screen, so you can see and click what's behind them. Only you see this.
+
+wf-mapping-tools-key-toggle = M
+wf-mapping-tools-key-toggle-desc = Turn selection tools on or off
+wf-mapping-tools-key-click = Click
+wf-mapping-tools-key-click-desc = Select an entity
+wf-mapping-tools-key-shift-click = Shift+click
+wf-mapping-tools-key-shift-click-desc = Add or remove an entity
+wf-mapping-tools-key-drag = Drag
+wf-mapping-tools-key-drag-desc = Box-select tiles and what's on them
+wf-mapping-tools-key-shift-drag = Shift+drag
+wf-mapping-tools-key-shift-drag-desc = Add to the box
+wf-mapping-tools-key-move = Drag selection
+wf-mapping-tools-key-move-desc = Move it
+wf-mapping-tools-key-rotate = R
+wf-mapping-tools-key-rotate-desc = Rotate the selection or the paste
+wf-mapping-tools-key-mirror = F / Shift+F
+wf-mapping-tools-key-mirror-desc = Mirror left-right / top-bottom
+wf-mapping-tools-key-delete = Delete
+wf-mapping-tools-key-delete-desc = Delete the selection
+wf-mapping-tools-key-clipboard = Ctrl+C / X / V
+wf-mapping-tools-key-clipboard-desc = Copy, cut, paste
+wf-mapping-tools-key-keep-pasting = Shift+click
+wf-mapping-tools-key-keep-pasting-desc = Paste and keep pasting
+wf-mapping-tools-key-clear = Right click
+wf-mapping-tools-key-clear-desc = Clear the selection
+wf-mapping-tools-key-history = Ctrl+Z / Ctrl+Y
+wf-mapping-tools-key-history-desc = Undo, redo (spawn menu too)
+
+wf-mapping-maps-title = Maps
+wf-mapping-maps-search = Search files
+wf-mapping-maps-refresh = Refresh
+wf-mapping-maps-source-saved = Your saves
+wf-mapping-maps-source-ships = Ships
+wf-mapping-maps-source-maps = Maps
+wf-mapping-maps-open = Open on a new map
+wf-mapping-maps-open-tooltip = Opens the file for editing on a fresh map, like the mapping command.
+wf-mapping-maps-load-here = Load here
+wf-mapping-maps-load-here-tooltip = Drops a copy of the grid where you are standing, on the current map.
+wf-mapping-maps-section-save = Save
+wf-mapping-maps-name = File name
+wf-mapping-maps-save-grid = Save grid
+wf-mapping-maps-save-grid-tooltip = Saves the grid you are standing on.
+wf-mapping-maps-save-map = Save map
+wf-mapping-maps-save-map-tooltip = Saves the whole map you are on, every grid included.
+wf-mapping-maps-overwrite = Overwrite?
+wf-mapping-maps-save-folder = Saves go to {$folder}
+wf-mapping-maps-info = {$path} - {$width}x{$height}, {$tiles} tiles
+wf-mapping-maps-preview-none = Pick a file to preview it
+wf-mapping-maps-preview-missing = That file no longer exists
+wf-mapping-maps-preview-too-large = Too large to preview
+wf-mapping-maps-preview-whole-map = Whole maps can't be previewed; open it instead
+wf-mapping-maps-bad-name = Use letters, numbers, - and _ only
+wf-mapping-maps-no-grid = Stand on the grid you want to save
+wf-mapping-maps-saved = Saved to {$path}
+wf-mapping-maps-save-failed = Couldn't save {$path}
+wf-mapping-maps-load-here-failed = Couldn't load that as a single grid
+
+wf-mapping-tools-nothing-to-undo = Nothing to undo
+wf-mapping-tools-nothing-to-redo = Nothing to redo
+wf-mapping-tools-undid = Undid {$edit}
+wf-mapping-tools-redid = Redid {$edit}
+
+wf-mapping-tools-edit-move = move
+wf-mapping-tools-edit-rotate = rotate
+wf-mapping-tools-edit-mirror = mirror
+wf-mapping-tools-edit-paste = paste
+wf-mapping-tools-edit-cut = cut
+wf-mapping-tools-edit-delete = delete
+wf-mapping-tools-edit-place = place
+wf-mapping-tools-edit-erase = erase
+wf-mapping-tools-edit-tile = tile placement
+wf-mapping-tools-edit-decal = decal edit

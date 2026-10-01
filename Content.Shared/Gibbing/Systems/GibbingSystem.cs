@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq; // WOLFGATE(Wolfmed)
 using System.Numerics;
 using Content.Shared.Gibbing.Components;
 using Content.Shared.Gibbing.Events;
@@ -119,9 +120,15 @@ public sealed partial class GibbingSystem : EntitySystem
         var gibContentsAttempt =
             new AttemptEntityContentsGibEvent(gibbable, gibContentsOption, allowedContainers, excludedContainers);
         RaiseLocalEvent(gibbable, ref gibContentsAttempt);
+        excludedContainers = gibContentsAttempt.ExcludedContainers; // WOLFGATE(Wolfmed): let subscribers veto containers (Wolfmed keeps wounds with the part)
 
         foreach (var container in _containerSystem.GetAllContainers(gibbable))
         {
+            // WOLFGATE(Wolfmed) START: a solution entity is not a thing to drop: it has no physics to fling and goes with its owner.
+            var id = container.ID;
+            if (id.StartsWith("solution@"))
+                continue;
+            // WOLFGATE END
             var valid = true;
             if (allowedContainers != null)
                 valid = allowedContainers.Contains(container.ID);
@@ -139,7 +146,7 @@ public sealed partial class GibbingSystem : EntitySystem
             {
                 foreach (var container in validContainers)
                 {
-                    foreach (var ent in container.ContainedEntities)
+                    foreach (var ent in container.ContainedEntities.ToArray()) // WOLFGATE(Wolfmed): snapshot, DropEntity/GibEntity mutate the container
                     {
                         DropEntity(new Entity<GibbableComponent?>(ent, null), parentXform, randomSpreadMod,
                             ref droppedEntities, launchGibs,
@@ -153,7 +160,7 @@ public sealed partial class GibbingSystem : EntitySystem
             {
                 foreach (var container in validContainers)
                 {
-                    foreach (var ent in container.ContainedEntities)
+                    foreach (var ent in container.ContainedEntities.ToArray()) // WOLFGATE(Wolfmed): snapshot, DropEntity/GibEntity mutate the container
                     {
                         GibEntity(new Entity<GibbableComponent?>(ent, null), parentXform, randomSpreadMod,
                             ref droppedEntities, launchGibs,

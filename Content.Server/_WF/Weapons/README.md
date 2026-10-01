@@ -26,6 +26,7 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs)
 
 ### Prototypes
@@ -149,6 +150,9 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
   - moved to SharedGunSystem.OnShootRequest, handled once there
   - a target on another map never counts as a hit
   - one report per projectile is an anti-abuse gate, not just a dedupe. Collides never raises
+- [`Content.Server/Projectiles/ProjectileSystem.cs`](../../Projectiles/ProjectileSystem.cs)
+  - the sweep leaves contained projectiles alone
+  - an item that is only a projectile once shot is not swept while unfired or inside a container
 - [`Content.Server/Weapons/Ranged/Systems/GunSystem.cs`](../../Weapons/Ranged/Systems/GunSystem.cs)
   - seeded so the shooter's client predicts the same spread
   - links to the shooter's predicted copy, see _WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs
@@ -159,6 +163,7 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 - [`Content.Shared/_Mono/Weapons/Hitscan/Systems/HitscanMultiRaycastSystem.cs`](../../../Content.Shared/_Mono/Weapons/Hitscan/Systems/HitscanMultiRaycastSystem.cs): the client predicts the beam only; damage, stun and reflections stay server-side
 - [`Content.Shared/_RMC14/Random/Xoroshiro64S.cs`](../../../Content.Shared/_RMC14/Random/Xoroshiro64S.cs): Math.Abs(int.MinValue) throws, and folding negatives biased the low half of the range
 - [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../../Content.Shared/Projectiles/SharedProjectileSystem.cs)
+  - scale by the real ratio, as whole-number division made any tickrate under 60 a threshold of zero
   - the client's GunPredictionSystem handles its predicted copies
   - a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them
   - skip these for a shooter whose own predicted copy already played them
@@ -185,9 +190,6 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 - [`Resources/Prototypes/Entities/Structures/Walls/walls.yml`](../../../Resources/Prototypes/Entities/Structures/Walls/walls.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Structures/Windows/plastitanium.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/plastitanium.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Structures/Windows/window.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/window.yml): material bullet impacts
-- [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml)
-  - Skyrat flesh impacts
-  - Skyrat metal impacts
-- [`Resources/Prototypes/SoundCollections/punching.yml`](../../../Resources/Prototypes/SoundCollections/punching.yml): Skyrat punches
+- [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml): Skyrat metal impacts
 
 <!-- WOLFGATE-GENERATED END -->
