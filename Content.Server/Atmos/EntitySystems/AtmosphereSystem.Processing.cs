@@ -158,6 +158,7 @@ namespace Content.Server.Atmos.EntitySystems
                 if (!connected)
                 {
                     RemoveActiveTile(atmos, tile);
+                    WfUnlinkTile(tile); // WOLFGATE(ShipRepair): a trimmed tile must not stay linked to its neighbours
                     atmos.Tiles.Remove(tile.GridIndices);
                 }
             }

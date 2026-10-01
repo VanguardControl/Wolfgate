@@ -62,4 +62,28 @@ public sealed partial class AtmosphereSystem
             InvalidateVisuals(ent, tile);
         }
     }
+
+    /// <summary>Cuts a tile leaving the grid atmosphere out of its neighbours' adjacency, so equalization can't walk into it.</summary>
+    private void WfUnlinkTile(TileAtmosphere tile)
+    {
+        for (var i = 0; i < Atmospherics.Directions; i++)
+        {
+            if (tile.AdjacentTiles[i] is { } adjacent)
+            {
+                var opposite = i.ToOppositeIndex();
+                if (adjacent.AdjacentTiles[opposite] == tile)
+                {
+                    adjacent.AdjacentTiles[opposite] = null;
+                    adjacent.AdjacentBits &= ~(AtmosDirection) (1 << opposite);
+                    if (!adjacent.AdjacentBits.IsFlagSet(adjacent.MonstermosInfo.CurrentTransferDirection))
+                        adjacent.MonstermosInfo.CurrentTransferDirection = AtmosDirection.Invalid;
+                }
+            }
+
+            tile.AdjacentTiles[i] = null;
+        }
+
+        tile.AdjacentBits = AtmosDirection.Invalid;
+        tile.MonstermosInfo.CurrentTransferDirection = AtmosDirection.Invalid;
+    }
 }
