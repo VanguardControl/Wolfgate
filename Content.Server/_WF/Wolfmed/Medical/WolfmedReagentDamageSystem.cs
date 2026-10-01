@@ -6,6 +6,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
+using Content.Server._WF.Wolfmed.Life;
 
 namespace Content.Server._WF.Wolfmed.Medical;
 
@@ -21,6 +22,7 @@ namespace Content.Server._WF.Wolfmed.Medical;
 public sealed class WolfmedReagentDamageSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private WolfmedShutdownSystem _shutdown = default!;
 
     public static readonly ProtoId<DamageTypePrototype> Poison = "Poison";
 
@@ -30,7 +32,8 @@ public sealed class WolfmedReagentDamageSystem : EntitySystem
     /// <summary>The change a metabolising reagent's effect applies to a wound host: the change itself when nothing converts.</summary>
     public DamageSpecifier ForWoundHost(EntityUid body, DamageSpecifier change)
     {
-        if (!TryComp(body, out WoundHostComponent? host))
+        // Pre-merge review: a chassis has no liver to clear a toxin load, so its reagent damage stays what it was.
+        if (!TryComp(body, out WoundHostComponent? host) || _shutdown.IsMechanical(body))
             return change;
 
         DamageSpecifier? converted = null;

@@ -2,8 +2,8 @@
 
 These are constraints for every agent. Do not re-litigate them; flag concrete problems with evidence.
 
-- **Onyx source pinned:** commit `2f5bab9946539cbe083010c9ae6fbc59b47ae377` (Space-Onyx/space-onyx-14 master, 2026-09-13). Reference sparse checkout at `C:\Users\jzo12\Documents\Wolfmed\onyx`. Only paths listed in the sparse set exist; if a path is absent say so, never guess file contents.
-- **Wolfgate worktree:** `C:\Users\jzo12\Documents\GitHub\Wolfgate\.claude\worktrees\rules-motd-updates-11c89c` (branch `clanker/wolfmed-port-orchestration-454c3d`). RobustToolbox 277.0.0 is junctioned in. Baseline builds with 0 errors.
+- **Onyx source pinned:** commit `2f5bab9946539cbe083010c9ae6fbc59b47ae377` (Space-Onyx/space-onyx-14 master, 2026-09-13). Reference sparse checkout at `<onyx-checkout>`. Only paths listed in the sparse set exist; if a path is absent say so, never guess file contents.
+- **Wolfgate worktree:** `<worktree>` (branch `clanker/wolfmed-port-orchestration-454c3d`). RobustToolbox 277.0.0 is junctioned in. Baseline builds with 0 errors.
 - **D1 StatusEffectNew:** port it verbatim from Onyx's copy at the upstream path `Content.Shared/StatusEffectNew` (plus any client/server parts and the prototypes/locale it needs). Treat as vendored upstream code; edits marked `// WOLFGATE`. Rationale: keeps `_Onyx` wound files verbatim; it is upstream Wizden code that Monolith may inherit later. The old `Content.Shared.StatusEffect` system stays and keeps serving existing content.
 - **D2 Damage bridge:** for entities with `WoundHostComponent`, Onyx `WoundDamageRoutingSystem` owns part damage. Shitmed's in-`DamageableSystem` spreading, sever-at-130 and part regen are bypassed for those entities via minimal `// WOLFGATE` guards. Entities without `WoundHostComponent` behave exactly as today. Everything is gated on Onyx's `CCVars.Wounds` plus component presence.
 - **D3 Phase 1 species:** organic humanoids only (the Human body and any species sharing organic parts). IPC/cybernetic/slime/plant profiles are later phases.
@@ -23,7 +23,7 @@ These are constraints for every agent. Do not re-litigate them; flag concrete pr
   *[M6 correction: closed by OD18 (a). One part hit of `wolfmed.doafter_interrupt_damage` (10) or more cancels the hit
   body's treatment, surgery and break-on-damage do-afters; ticks and systemic damage do not. See "M6".]*
 - **D35 Prediction (§8.1 item 6):** accept unpredicted wound-host damage for phase 1 (transient mispredict). Predicting routing is a later phase.
-- **No commits.** Work packages leave the tree uncommitted; the verify stage snapshots a patch per WP under `C:/Users/jzo12/Documents/Wolfmed/plan/snapshots/`. The user commits.
+- **No commits.** Work packages leave the tree uncommitted; the verify stage snapshots a patch per WP under `<plan>/snapshots/`. The user commits.
 
 ## Phase 2 (2026-09-13) — scope and constraints
 
@@ -121,7 +121,7 @@ Phase 4 is committed (`2b4a4675d0 phase 4`). Phase 5 = species coverage and the 
 
 ## Phase 6 (2026-09-14) — DEFERRED by the user (token budget)
 
-Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `C:\Users\jzo12\Documents\Wolfmed\plan\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `C:/Users/jzo12/Documents/Wolfmed/plan/reports/analysis/damage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
+Scope when resumed: client prediction of wound routing (removes the transient damage-number / limb-doll flicker on wound hosts), the `HurtCommand` part argument (patch kept at `<plan>\wp\WP8-hurtcommand-deferred.patch`), locational-armour follow-ups. Run it lean: one Opus design+implement agent using `<plan>/reports/analysis/damage-bridge.md` and PLAN.md §2/§3, one Sonnet verify at the end.
 
 ## Phase 6 — shipped (2026-09-19)
 
@@ -192,7 +192,7 @@ All in `_WF/Wolfmed` data and small `_WF` behaviours; Onyx files untouched. Plan
 ## Final stages (2026-09-19)
 
 Phases 6, 7 and 8 plus the crit heartbeat (WP H) shipped this run: H, W0–W7 (phase 8), V5/V124/V3 (phase 7)
-and P6 (phase 6), 14 work packages, one report each in `C:\Users\jzo12\Documents\Wolfmed\plan\p6\wp\`. The
+and P6 (phase 6), 14 work packages, one report each in `<plan>\p6\wp\`. The
 decisions below were made by those packages, not re-litigated here; this section exists so the owner does
 not have to open all 14 reports to find them.
 
@@ -2416,7 +2416,7 @@ the neuro disk repairs an IPC's or a synth's core; read this file against what t
 
 ## M2-M6 review fixes (2026-09-24)
 
-Four read-only reviews of `ef4fbdb11d..ce4e281421` (reports in `C:/Users/jzo12/Documents/Wolfmed/plan/p7/review/`).
+Four read-only reviews of `ef4fbdb11d..ce4e281421` (reports in `<plan>/p7/review/`).
 Three findings, all confirmed against the code and fixed. Branch `Wolfmed-fixes3`, from `ce4e281421`.
 
 - **Damaged lungs are a cause still present (HIGH).** Since M3, `DrainRate` folds `LungDamageLevel` into the same breath
@@ -3889,7 +3889,7 @@ with the same slash never do. `WolfmedWoundSfxTest` now expects the fracture ent
 
 ## Playtest 4 batch, the merge (2026-09-27)
 
-The four packages (SEPSIS, VISUALS, IV, SOUNDS; specs and reports under `C:/Users/jzo12/Documents/Wolfmed/plan/p8/`)
+The four packages (SEPSIS, VISUALS, IV, SOUNDS; specs and reports under `<plan>/p8/`)
 landed as one linear commit each on `Wolfmed`, in that order, with the shared files (`WolfmedCVars.cs`, this file,
 the manifest, the module README) merged by keeping both sides. The SEPSIS emotes were shipped silent and the SOUNDS
 package shipped their voices without the emotes, so the orchestrator wired `WFWolfmedCough` and `WFWolfmedCoughBlood`
@@ -4037,7 +4037,7 @@ arms and legs; each is its own site, the same sites the arteries use.
 "Infection should spread smartly, if you get an infection in the hand, once it's in the spreading mode, it should move
 to the arm etc, once in the chest/head, that's where sepsis/septic shock can occur ... And there doesn't need to be a
 wound to travel. And is septic shock a thing? If not, it should be what happens when you get sepsis." Branch
-`wolfmed-infection` from `1be3727edf`; spec `C:/Users/jzo12/Documents/Wolfmed/plan/p9/INFECTION-spec.md`.
+`wolfmed-infection` from `1be3727edf`; spec `<plan>/p9/INFECTION-spec.md`.
 
 **Before.** A contaminated wound ran 0 to 100; at Septic (100) it created sepsis on the body, and every spreading wound
 and every necrotic part anywhere fed it 12 a minute. Where the wound was did not matter: a fingertip cut went septic as
@@ -4160,7 +4160,7 @@ loads each species' default profile so the default markings are on, and pins the
 come with a tourniquet and a splint and some painkillers in a bottle ... perhaps an IPC medical kit sold at the vending
 machines with a bunch of synthetic specific stuff. People should be able to get this stuff readily. And make sure
 there's an autodoc flatpack in John Wolfgate." Branch `wolfmed-items` from `c520d1fa76`; spec
-`C:/Users/jzo12/Documents/Wolfmed/plan/p9/ITEMS-spec.md`, inventory `ITEMS-scout.md` beside it. "John Wolfgate" is the
+`<plan>/p9/ITEMS-spec.md`, inventory `ITEMS-scout.md` beside it. "John Wolfgate" is the
 trader `WFTraderWolfgate`, whose shop sells `WFWolfgateVendInventory`.
 
 **What the model reads.** `WolfmedPainRelief` (the CONSC tier) is on Wolfmed's three rungs and on all four Onyx
@@ -4876,3 +4876,30 @@ the owner's call; left as it plays.
   tier's "skull cracks" understates it. Kept as it is: the swing is upstream's own and a blade's lands the same way,
   the victim is dead on every tier, and the ladder still orders (the brain stays in at weak and medium, only heavy
   takes the head off). `BluntTiersTest` runs a crowbar and a wielded bat aimed at the head and asserts the floor.
+
+## Pre-merge review (2026-10-01)
+
+A static review of the whole branch before the merge to main: Opus and Sonnet agents over every subsystem, scripted
+sweeps for the mechanical rules, no local build (CI is the build). What it changed:
+
+- `healmeimbroken` and the bug-rescue cvars are gone, as the PR promised.
+- Routing hands the inner pass a copy of the caller's `DamageSpecifier`, and stasis scales a copy. The respirator's
+  own damage was halved in place on every stasis hit, so an Avali in vacuum stopped suffocating.
+- The autodoc empties a garment's containers onto its tile before cutting it; keeps an antibiotic course waiting at
+  the safe line instead of re-arming it every tick; spills only its listed containers when destroyed, so the built-in
+  tools stay with the frame; drops a queued entry that stopped applying before its first step instead of faulting;
+  lets ABORT clear FAULT; enforces its lock on the server; and gives a conscious body lifted in by somebody else a
+  few seconds to walk away first, like a cryo pod. A downed, unconscious, dead or sleeping body goes straight in.
+- A corpse shocked again inside the post-shock window is a fresh episode and gets its oxygenation and grace back.
+- A body leaving Downed stays strapped to its bed, and one passing out is left to Critical instead of being stood up
+  and dropped.
+- Tend surgeries record progress like the Wolfmed conditions, so a surgeon can finish the closing step by hand.
+- A melee execution needs the victim still in reach when the swing lands.
+- A chassis keeps its reagent damage as damage: it has no liver for a toxin load.
+- Housekeeping: personal paths out of the docs and generator scripts, one provenance header on every vendored
+  StatusEffectNew file, medical HUD glasses that list Silicon list the IPC container too, two comment-only upstream
+  edits reverted, four dead members and a duplicate test removed.
+
+Left for after the merge: the merge and trim list for the tests, the duplicated armour coverage and execution blocks,
+the Fluent pass over prototype names, the inert Onyx part-status and circulatory stream code, the paddles refusing a
+destroyed heart, and the gun suicide that spends a round the peek did not measure.

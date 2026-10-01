@@ -167,7 +167,7 @@ public sealed partial class AutodocSystem
                 break;
             case AutodocControl.Abort:
                 ent.Comp.AbortRequested = true;
-                if (ent.Comp.State is AutodocState.Paused or AutodocState.Waiting or AutodocState.Complete)
+                if (ent.Comp.State is AutodocState.Paused or AutodocState.Waiting or AutodocState.Complete or AutodocState.Faulted) // Pre-merge review: ABORT clears a fault too
                     Abort(ent);
                 break;
             case AutodocControl.Eject:

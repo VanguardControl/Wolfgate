@@ -15,6 +15,7 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Mind;
 using Robust.Shared.Player;
 using Robust.Shared.Audio.Systems;
+using Content.Shared.Interaction; // WOLFGATE(Wolfmed)
 
 namespace Content.Shared.Execution;
 
@@ -94,6 +95,7 @@ public sealed partial class SharedExecutionSystem : EntitySystem
                 BreakOnMove = true,
                 BreakOnDamage = true,
                 NeedHand = true,
+                DistanceThreshold = SharedInteractionSystem.InteractionRange, // WOLFGATE(Wolfmed): the swing must still reach a victim who was dragged away
                 MultiplyDelay = false, // Goobstation
             };
 

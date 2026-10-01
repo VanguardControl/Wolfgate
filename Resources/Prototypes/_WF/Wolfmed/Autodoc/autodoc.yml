@@ -153,7 +153,21 @@
         !type:DamageTrigger
         damage: 150
       behaviors:
-      - !type:EmptyAllContainersBehaviour
+      # Pre-merge review: only what a player put in spills. The built-in tools stay in the frame, or a destroy and
+      # rebuild handed out a fresh surgical set every time.
+      - !type:EmptyContainersBehaviour
+        containers:
+        - autodoc_body
+        - autodoc_tray
+        - autodoc_disk
+        - autodoc_module
+        - autodoc_autofix
+        - autodoc_beaker1
+        - autodoc_beaker2
+        - autodoc_beaker3
+        - autodoc_blood
+        - machine_board
+        - machine_parts
       - !type:PlaySoundBehavior
         sound:
           collection: MetalGlassBreak

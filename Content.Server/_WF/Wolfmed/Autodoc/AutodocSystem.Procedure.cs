@@ -521,6 +521,21 @@ public sealed partial class AutodocSystem
             return;
         }
 
+        // Pre-merge review: an entry that stopped applying before its first step (the same procedure queued twice, a
+        // wound closed by hand) is dropped quietly. It used to fault the pod at that step, and FAULT only cleared on eject.
+        if (queued.StepsDone == 0 && !queued.FollowUp && !_surgery.WolfmedSurgeryValid(body, part, queued.Surgery))
+        {
+            ent.Comp.Queue.RemoveAt(0);
+            if (ent.Comp.Queue.Count == 0)
+            {
+                FinishQueue(ent);
+                return;
+            }
+
+            BeginStep(ent);
+            return;
+        }
+
         if (_surgery.GetNextStep(body, part, surgeryEnt) is not { } next ||
             MetaData(next.Surgery.Owner).EntityPrototype?.ID is not { } owningSurgery)
         {

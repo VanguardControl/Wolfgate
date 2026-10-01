@@ -39,7 +39,6 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
     [Dependency] private WoundSystem _wounds = default!;
-    [Dependency] private WoundTargetResolver _targeting = default!;
 
     private float _accumulator;
 
@@ -384,23 +383,6 @@ public sealed class WolfmedNecrosisSystem : EntitySystem
         }
 
         return false;
-    }
-
-    /// <summary>The tourniquet this user would loosen: the part they have selected, or any tourniqueted one.</summary>
-    private EntityUid? FindTourniquet(EntityUid body, EntityUid user)
-    {
-        if (TryComp(user, out TargetingComponent? targeting) &&
-            _targeting.TryResolveExact(body, targeting.Target, out var selected) &&
-            HasComp<WolfmedTourniquetComponent>(selected))
-            return selected;
-
-        foreach (var (part, _) in _body.GetBodyChildren(body))
-        {
-            if (HasComp<WolfmedTourniquetComponent>(part))
-                return part;
-        }
-
-        return null;
     }
 
     /// <summary>Whether this part is dead tissue. The analyzer's flag.</summary>

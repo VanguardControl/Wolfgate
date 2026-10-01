@@ -1,3 +1,4 @@
+# WOLFGATE(Wolfmed): Onyx's status effect bases, ported without its standing base or concrete effects.
 - type: entity
   id: StatusEffectBase
   abstract: true

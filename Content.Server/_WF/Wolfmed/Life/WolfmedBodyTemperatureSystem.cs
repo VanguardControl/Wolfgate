@@ -310,11 +310,6 @@ public sealed class WolfmedBodyTemperatureSystem : EntitySystem
         TryComp(body, out WolfmedBodyTemperatureComponent? comp) && comp.ColdDown >= 1f &&
         comp.Surface < comp.Core;
 
-    /// <summary>The fire grace holds right now: granted and not yet run out.</summary>
-    public bool InFireGrace(EntityUid body) =>
-        TryComp(body, out WolfmedBodyTemperatureComponent? comp) && comp.GraceGranted &&
-        (comp.GraceLeft is not { } left || left > 0f);
-
     /// <summary>A rejuvenated body is back at its normal temperature, with no grace spent.</summary>
     private void OnRejuvenate(Entity<WolfmedBodyTemperatureComponent> ent, ref RejuvenateEvent args)
     {

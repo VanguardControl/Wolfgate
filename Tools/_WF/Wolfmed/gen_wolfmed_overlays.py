@@ -45,9 +45,9 @@ FRAME = 32
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
 TEXTURES = os.path.join(ROOT, "Resources", "Textures")
 OUT = os.path.join(TEXTURES, "_WF", "Wolfmed")
-DEFAULT_BOB = r"C:/Users/jzo12/Documents/GitHub/bobstation-reignited/modular_septic/icons"
+DEFAULT_BOB = os.environ.get("BOB_ICONS")  # or pass --bob <bobstation modular_septic/icons>
 BOB_REPO = "https://gitgud.io/bobstation/bobstation-reignited"
-DEFAULT_NEVADO = r"C:/Users/jzo12/Documents/GitHub/EscapeFromNevado/modular_septic/icons"
+DEFAULT_NEVADO = os.environ.get("NEVADO_ICONS")  # or pass --nevado <EscapeFromNevado modular_septic/icons>
 NEVADO_REPO = "https://github.com/EscapeFromNevado/EscapeFromNevado"
 
 BACKING = os.path.join(TEXTURES, "_Crescent", "Interface", "Alerts", "bleed.rsi", "bleed3.png")
@@ -566,6 +566,8 @@ def main():
     nevado = DEFAULT_NEVADO
     if "--nevado" in sys.argv:
         nevado = sys.argv[sys.argv.index("--nevado") + 1]
+    if not bob or not nevado:
+        sys.exit("pass --bob <bobstation modular_septic/icons> and --nevado <EscapeFromNevado modular_septic/icons>, or set BOB_ICONS and NEVADO_ICONS")
     build_pain(bob)
     build_wounds(bob)
     build_rot(bob)

@@ -18,6 +18,7 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
+using Content.Shared.Buckle.Components;
 
 namespace Content.Shared._WF.Wolfmed.Consciousness;
 
@@ -108,7 +109,12 @@ public sealed class WolfmedDownedSystem : EntitySystem
 
         // Anything else holding them down (knockdown, crit, buckling) keeps them there. Asking while a stun
         // still runs only burns a cancelled attempt, and standing them up to drop them again is the spam.
-        if (_standing.IsDown(ent) && !HasComp<KnockedDownComponent>(ent))
+        // Pre-merge review: a body strapped to a bed stays strapped, and one that passed out is held by Critical anyway;
+        // standing either up only dropped it again, and unbuckled the bed patient on the way.
+        var buckled = TryComp(ent, out BuckleComponent? buckle) && buckle.Buckled;
+        var unconscious = TryComp(ent, out WolfmedConsciousnessComponent? consciousness) &&
+                          consciousness.State == WolfmedConsciousness.Unconscious;
+        if (!buckled && !unconscious && _standing.IsDown(ent) && !HasComp<KnockedDownComponent>(ent))
             _standing.Stand(ent);
 
         // Playtest 3: still lying for another reason, so upstream's crawl under tables again.

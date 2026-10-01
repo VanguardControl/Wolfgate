@@ -1,3 +1,4 @@
+// WOLFGATE(Wolfmed): StatusEffectNew framework vendored from Space Onyx (2f5bab9), Onyx's copy of upstream SS14's, for the wound port.
 using Content.Shared.Body.Events;
 // WOLFGATE(Wolfmed): Onyx's _Onyx.MartialArts is not ported; the melee target modifier relay below is dropped.
 using Content.Shared.Atmos;

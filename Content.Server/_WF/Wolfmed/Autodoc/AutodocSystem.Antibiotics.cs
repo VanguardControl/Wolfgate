@@ -2,6 +2,8 @@ using System.Linq;
 using Content.Server._WF.Wolfmed.Wounds;
 using Content.Shared._WF.Wolfmed.Autodoc;
 using Content.Shared._WF.Wolfmed.CCVar;
+using Content.Server.Body.Components;
+using Content.Shared.FixedPoint;
 
 namespace Content.Server._WF.Wolfmed.Autodoc;
 
@@ -137,6 +139,14 @@ public sealed partial class AutodocSystem
         if (_timing.CurTime < course.NextDose)
             return;
 
+        // Pre-merge review: at the safe line the dose waits for the liver with the course still running. Treating a
+        // refused push as an empty reservoir re-armed the course every tick, with its line in chat each time.
+        if (!HasAntibioticHeadroom(ent, patient))
+        {
+            course.NextDose = _timing.CurTime + TimeSpan.FromSeconds(_antibioticInterval);
+            return;
+        }
+
         var dose = MathF.Min(_antibioticDose, _antibioticCourse - course.Given);
         if (dose <= 0f || !PushReagent(ent, patient, AutodocReagentRole.Antibiotic, dose))
         {
@@ -150,6 +160,29 @@ public sealed partial class AutodocSystem
         course.Given += dose;
         course.NextDose = _timing.CurTime + TimeSpan.FromSeconds(_antibioticInterval);
         UpdateUi(ent);
+    }
+
+    /// <summary>Whether the patient's blood still has room under the safe line for any antibiotic on the pod's list.</summary>
+    private bool HasAntibioticHeadroom(Entity<AutodocComponent> ent, EntityUid patient)
+    {
+        if (!_protos.TryIndex(ent.Comp.Reagents, out var list))
+            return false;
+
+        _solutions.TryGetSolution(patient, BloodstreamComponent.DefaultChemicalsSolutionName, out _, out var chemicals);
+        foreach (var entry in list.Reagents)
+        {
+            if (!entry.AutodocAdministrable || entry.Role != AutodocReagentRole.Antibiotic)
+                continue;
+
+            if (entry.SafeUnits <= 0f)
+                return true;
+
+            var inBlood = chemicals?.GetTotalPrototypeQuantity(entry.Reagent.Id) ?? FixedPoint2.Zero;
+            if (FixedPoint2.New(entry.SafeUnits) - inBlood > FixedPoint2.Zero)
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Whether a beaker slot holds a reagent the pod's list gives the antibiotic role.</summary>

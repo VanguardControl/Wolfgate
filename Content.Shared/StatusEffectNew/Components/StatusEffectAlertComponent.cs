@@ -1,4 +1,4 @@
-// WOLFGATE(Wolfmed): StatusEffectNew framework vendored from upstream SS14 for the Onyx wound port.
+// WOLFGATE(Wolfmed): StatusEffectNew framework vendored from Space Onyx (2f5bab9), Onyx's copy of upstream SS14's, for the wound port.
 using Content.Shared.Alert;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;

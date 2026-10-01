@@ -16,13 +16,13 @@ in WolfmedAutodocTest.
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 
 ESPEAK = r"C:\Program Files\eSpeak NG\espeak-ng.exe"
-FFMPEG = (r"C:\Users\jzo12\AppData\Local\Microsoft\WinGet\Packages"
-          r"\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0-full_build\bin\ffmpeg.exe")
-FFPROBE = FFMPEG.replace("ffmpeg.exe", "ffprobe.exe")
+FFMPEG = shutil.which("ffmpeg") or "ffmpeg"
+FFPROBE = shutil.which("ffprobe") or "ffprobe"
 OUT = "Resources/Audio/_WF/Wolfmed/Autodoc/voice"
 FTL = "Resources/Locale/en-US/_WF/Wolfmed/autodoc-voice.ftl"
 PREFIX = "wolfmed-autodoc-voice-"

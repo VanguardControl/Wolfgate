@@ -18,7 +18,7 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 OUT = os.path.join(REPO, "Resources", "Textures", "_WF", "Wolfmed", "Effects", "gibs.rsi")
-DEFAULT_DMI = r"C:\Users\jzo12\Documents\GitHub\EscapeFromNevado\icons\effects\blood.dmi"
+DEFAULT_DMI = os.environ.get("NEVADO_BLOOD_DMI")  # or pass --dmi <path to icons/effects/blood.dmi>
 NEVADO_REPO = "https://github.com/EscapeFromNevado/EscapeFromNevado (icons/effects/blood.dmi)"
 STATES = ["gibmid1", "gib1", "gib2", "gib3", "gib4", "gib5", "gib6"]
 FRAME = 32
@@ -76,6 +76,8 @@ def main():
     dmi = DEFAULT_DMI
     if "--dmi" in sys.argv:
         dmi = sys.argv[sys.argv.index("--dmi") + 1]
+    if not dmi:
+        sys.exit("pass --dmi <path to EscapeFromNevado icons/effects/blood.dmi> or set NEVADO_BLOOD_DMI")
     im, desc = read_description(dmi)
     width, height, states = parse(desc)
     im = im.convert("RGBA")

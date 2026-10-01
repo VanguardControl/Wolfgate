@@ -83,17 +83,22 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
         await Server.WaitAssertion(() =>
         {
             Floor(map);
-            var autodoc = SEntMan.System<AutodocSystem>();
             pod = Pod(new EntityCoordinates(map.Grid, 0.5f, 0.5f));
             a = SEntMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 0.5f, 1.5f));
             b = SEntMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 1.5f, 1.5f));
 
+            // A is out cold, the way a patient usually arrives (a conscious body lifted in by somebody else gets a
+            // do-after first). A body that does not move is not pushed off the machine by physics, which is what kept
+            // the owner's patient lying on the lid.
+            Consciousness().SetExternalPressure(a, PressureKey, 1f);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            var autodoc = SEntMan.System<AutodocSystem>();
             Assert.That(DragDrop(pod, b, a), Is.True, "A could not be put in.");
             Assert.That(autodoc.GetOccupant(pod), Is.EqualTo(a));
-
-            // A leaves the pod still out cold, the way a patient usually does. A body that does not move is not pushed
-            // off the machine by physics, which is what kept the owner's patient lying on the lid.
-            Consciousness().SetExternalPressure(a, PressureKey, 1f);
         });
         await Pair.RunTicksSync(5);
 
@@ -199,6 +204,11 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
             autodoc.SetAuto(pod, true);
             Assert.That(DragDrop(pod, medic, patient), Is.True, "the medic could not put the patient in.");
         });
+
+        // The patient is conscious, so the medic's lift is a do-after.
+        await Pair.RunTicksSync(120);
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<AutodocSystem>().GetOccupant(pod), Is.EqualTo(patient), "the medic could not put the patient in."));
 
         var done = false;
         for (var i = 0; i < 80 && !done; i++)

@@ -131,10 +131,6 @@ public sealed class WolfmedOverheatSystem : EntitySystem
     public bool InThermalShutdown(EntityUid body) =>
         TryComp(body, out WolfmedCoreHeatComponent? heat) && heat.ThermalShutdown && !_mobState.IsDead(body);
 
-    /// <summary>The core's temperature, or null for a body that has none.</summary>
-    public float? GetCoreTemperature(EntityUid body) =>
-        TryComp(body, out WolfmedCoreHeatComponent? heat) ? heat.CoreTemperature : null;
-
     /// <summary>The core is past its line and losing health right now: the route the analyzer lists.</summary>
     public bool CoreCooking(EntityUid body) =>
         TryComp(body, out WolfmedCoreHeatComponent? heat) && !_mobState.IsDead(body) &&

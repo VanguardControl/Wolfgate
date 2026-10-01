@@ -49,6 +49,9 @@ using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
+using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared.Bed.Sleep;
+using Content.Shared.DoAfter;
 
 namespace Content.Server._WF.Wolfmed.Autodoc;
 
@@ -82,6 +85,7 @@ public sealed partial class AutodocSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private StandingStateSystem _standing = default!;
     [Dependency] private StatusEffectsSystem _status = default!;
@@ -105,6 +109,7 @@ public sealed partial class AutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<AutodocComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
         // Playtest 3 SAM: before construction's drag-drop and the climb, which both answer a drop on any machine.
+        SubscribeLocalEvent<AutodocComponent, AutodocInsertDoAfterEvent>(OnInsertDoAfter);
         SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnDragDrop,
             before: new[] { typeof(Content.Server._Goobstation.DragDrop.GoobDragDropSystem), typeof(Content.Shared.Climbing.Systems.ClimbSystem) });
         SubscribeLocalEvent<AutodocComponent, InteractUsingEvent>(OnInteractUsing);
@@ -316,6 +321,9 @@ public sealed partial class AutodocSystem : EntitySystem
         Speak(ent, AutodocVoiceEvent.Greeting);
     }
 
+    /// <summary>How long somebody takes to lift a conscious body into the pod.</summary>
+    private static readonly TimeSpan InsertDelay = TimeSpan.FromSeconds(3);
+
     private void OnDragDrop(Entity<AutodocComponent> ent, ref DragDropTargetEvent args)
     {
         if (args.Handled)
@@ -326,10 +334,41 @@ public sealed partial class AutodocSystem : EntitySystem
         if (HasComp<BodyComponent>(args.Dragged))
             args.Handled = true;
 
+        // Pre-merge review: the lock is the server's to enforce. A downed, unconscious, dead or sleeping body goes
+        // straight in; a conscious one lifted by somebody else gets a few seconds to walk away first, like a cryo pod.
+        if (ent.Comp.Locked)
+            return;
+
+        if (args.Dragged != args.User && !Helpless(args.Dragged))
+        {
+            _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, InsertDelay, new AutodocInsertDoAfterEvent(), ent, target: args.Dragged, used: ent)
+            {
+                BreakOnDamage = true,
+                BreakOnMove = true,
+                NeedHand = false,
+                DistanceThreshold = SharedInteractionSystem.InteractionRange,
+            });
+            return;
+        }
+
         if (!TryInsert(ent, args.Dragged))
             return;
 
         ent.Comp.SelfService = args.Dragged == args.User;
+        Speak(ent, AutodocVoiceEvent.Greeting);
+        args.Handled = true;
+    }
+
+    /// <summary>A body that cannot climb in or out by itself.</summary>
+    private bool Helpless(EntityUid body) =>
+        _mobState.IsIncapacitated(body) || HasComp<WolfmedDownedComponent>(body) || HasComp<SleepingComponent>(body);
+
+    private void OnInsertDoAfter(Entity<AutodocComponent> ent, ref AutodocInsertDoAfterEvent args)
+    {
+        if (args.Cancelled || args.Handled || args.Target is not { } body || ent.Comp.Locked || !TryInsert(ent, body))
+            return;
+
+        ent.Comp.SelfService = false;
         Speak(ent, AutodocVoiceEvent.Greeting);
         args.Handled = true;
     }

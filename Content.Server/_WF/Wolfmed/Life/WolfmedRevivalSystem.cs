@@ -234,7 +234,8 @@ public sealed class WolfmedRevivalSystem : EntitySystem
             _organs.SetHealth(brain, FixedPoint2.Max(FixedPoint2.New(0.01), FixedPoint2.New(brain.Comp.MaxHealth.Float() * floor)));
         }
 
-        var repeat = TryComp(body, out WolfmedPostShockComponent? previous) &&
+        // Pre-merge review: a body that died since the last shock is a fresh episode, whatever the window says.
+        var repeat = !wasDead && TryComp(body, out WolfmedPostShockComponent? previous) &&
                      previous.SinceRestore < _life.PostShockRepeatSeconds;
 
         if (!repeat)

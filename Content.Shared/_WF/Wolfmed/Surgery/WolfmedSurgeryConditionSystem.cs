@@ -93,12 +93,13 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     }
 
     /// <summary>True when a surgeon began this procedure on the part and has not closed it.</summary>
-    private bool InProgress(EntityUid part, EntityUid surgery) =>
+    public bool InProgress(EntityUid part, EntityUid surgery) =>
         TryComp(part, out WolfmedSurgeryProgressComponent? progress) &&
         MetaData(surgery).EntityPrototype is { } prototype &&
         progress.Surgeries.Contains(prototype.ID);
 
     private bool HasWolfmedCondition(EntityUid surgery) =>
+        HasComp<SurgeryWoundedConditionComponent>(surgery) || // Pre-merge review: the tend surgeries stay open to their closing step too
         HasComp<WolfmedSurgeryWoundConditionComponent>(surgery) ||
         HasComp<WolfmedSurgeryFractureConditionComponent>(surgery) ||
         HasComp<WolfmedSurgeryOrganDamagedConditionComponent>(surgery) ||

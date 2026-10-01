@@ -103,7 +103,7 @@ public sealed partial class WoundDamageRoutingSystem : EntitySystem
 
         try
         {
-            RouteThroughBodyModifiers(ent, args.Damage, args.Origin, args.IgnoreResistances, args.InterruptsDoAfters); // WOLFGATE(Wolfmed): M6: P25
+            RouteThroughBodyModifiers(ent, new DamageSpecifier(args.Damage), args.Origin, args.IgnoreResistances, args.InterruptsDoAfters); // WOLFGATE(Wolfmed): M6: P25; a copy, so the inner pass never scales the caller's specifier
         }
         finally
         {

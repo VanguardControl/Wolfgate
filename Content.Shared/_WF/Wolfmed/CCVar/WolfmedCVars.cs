@@ -1122,15 +1122,4 @@ public sealed class WolfmedCVars
     /// <summary>One swing of a blunt weapon from which an execution crushes the head. Above a maintenance jack in both hands (45).</summary>
     public static readonly CVarDef<float> ExecutionBluntHeavy =
         CVarDef.Create("wolfmed.execution_blunt_heavy", 50f, CVar.SERVERONLY);
-
-    // TEMPORARY (playtest 5): the healmeimbroken command. Delete these two with
-    // Content.Server/_WF/Wolfmed/Commands/WolfmedBugRescueSystem.cs once the playtest is over.
-
-    /// <summary>TEMPORARY: whether the healmeimbroken self-heal is available at all.</summary>
-    public static readonly CVarDef<bool> BugRescueEnabled =
-        CVarDef.Create("wolfmed.bug_rescue_enabled", true, CVar.SERVERONLY);
-
-    /// <summary>TEMPORARY: seconds a player has to wait between two healmeimbroken uses.</summary>
-    public static readonly CVarDef<float> BugRescueCooldown =
-        CVarDef.Create("wolfmed.bug_rescue_cooldown", 300f, CVar.SERVERONLY);
 }

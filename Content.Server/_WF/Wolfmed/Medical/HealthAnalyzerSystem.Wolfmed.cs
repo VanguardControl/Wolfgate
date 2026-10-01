@@ -35,7 +35,6 @@ public sealed partial class HealthAnalyzerSystem
     [Dependency] private WolfmedNecrosisSystem _necrosis = default!; // WOLFGATE (W5)
     [Dependency] private WolfmedWoundTraitSystem _traits = default!; // WOLFGATE (W6)
     [Dependency] private WolfmedOverheatingSystem _overheating = default!; // WOLFGATE (W6)
-    [Dependency] private WolfmedPainReliefSystem _painRelief = default!; // WOLFGATE (CONSC)
     [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedLifeSystem _life = default!; // WOLFGATE (BRAIN)
     [Dependency] private Content.Server._WF.Wolfmed.Life.WolfmedShutdownSystem _shutdown = default!; // WOLFGATE (BRAIN)
 

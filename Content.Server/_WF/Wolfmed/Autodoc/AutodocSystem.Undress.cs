@@ -4,6 +4,7 @@ using Content.Shared.Clothing.Components;
 using Content.Shared.Inventory;
 using Content.Shared.Inventory.Events;
 using Robust.Shared.Audio;
+using System.Linq;
 
 namespace Content.Server._WF.Wolfmed.Autodoc;
 
@@ -76,13 +77,13 @@ public sealed partial class AutodocSystem
 
             if ((slot.SlotFlags & CutSlots) != 0)
             {
-                cut |= Cut(body, slot.Name);
+                cut |= Cut(ent, body, slot.Name);
                 continue;
             }
 
             if (TryComp(item, out AttachedClothingComponent? attached) && WornIn(body, attached.AttachedUid, CutSlots) is { } suit)
             {
-                cut |= Cut(body, suit);
+                cut |= Cut(ent, body, suit);
                 continue;
             }
 
@@ -111,11 +112,16 @@ public sealed partial class AutodocSystem
         return (cut, removed);
     }
 
-    /// <summary>Cuts one garment off and destroys it: the shears, not the hands.</summary>
-    private bool Cut(EntityUid body, string slot)
+    /// <summary>Cuts one garment off and destroys it: the shears, not the hands. What it carried lands on the tile.</summary>
+    private bool Cut(Entity<AutodocComponent> ent, EntityUid body, string slot)
     {
         if (!_inventory.TryUnequip(body, slot, out var garment, silent: true, force: true))
             return false;
+
+        // Pre-merge review: deleting a coat deleted its pockets' contents with it.
+        var coordinates = Transform(ent).Coordinates;
+        foreach (var container in _containers.GetAllContainers(garment.Value).ToArray())
+            _containers.EmptyContainer(container, true, coordinates);
 
         QueueDel(garment);
         return true;

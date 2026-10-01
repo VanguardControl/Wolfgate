@@ -36,6 +36,10 @@ public abstract partial class SharedSurgerySystem
         if (!HasComp<WoundHostComponent>(body))
             return false;
 
+        // Pre-merge review: a tend a surgeon has begun stays listed until its closing step, whatever the wound now reads.
+        if (_wolfmedConditions.InProgress(part, ent.Owner))
+            return false;
+
         if (_wolfmedTraits.IsMechanical(part))
             return true;
 
