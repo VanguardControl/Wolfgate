@@ -29,6 +29,7 @@ tests for one ship: each vessel must load as a shuttle with every hardpoint-only
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipReinitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipReinitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/VesselShipyardTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/VesselShipyardTest.cs)
 
 ### Prototypes
