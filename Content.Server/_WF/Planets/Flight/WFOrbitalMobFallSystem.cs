@@ -1,10 +1,12 @@
 using System.Linq;
+using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Server.Chat.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._CE.ZLevels.Damage;
+using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Body.Events;
 using Content.Shared._WF.Planets.Parachute;
 using Content.Shared._WF.Planets;
@@ -29,6 +31,8 @@ public sealed partial class WFOrbitalMobFallSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private AmputationSystem _amputation = default!;
+    [Dependency] private WolfmedConsciousnessSystem _consciousness = default!;
     private static readonly SoundSpecifier Splat = new SoundPathSpecifier("/Audio/Effects/gib1.ogg");
 
     public override void Initialize()
@@ -78,9 +82,20 @@ public sealed partial class WFOrbitalMobFallSystem : EntitySystem
             || !TryComp<DamageableComponent>(ent, out var damageable))
             return;
 
-        _audio.PlayPvs(Splat, ent);
-        SeverOne(ent, BodyPartType.Arm);
-        SeverOne(ent, BodyPartType.Leg);
+        // A wound host loses its limbs as wounds: the stumps bleed, hurt and make their own noise.
+        var wounds = HasComp<WoundHostComponent>(ent);
+        if (!wounds)
+            _audio.PlayPvs(Splat, ent);
+        SeverOne(ent, BodyPartType.Arm, wounds);
+        SeverOne(ent, BodyPartType.Leg, wounds);
+
+        // Where consciousness decides the state, a damage total means nothing: the impact knocks the faller out instead.
+        if (_consciousness.OwnsMobState(ent))
+        {
+            _consciousness.StartHeadBlow(ent);
+            return;
+        }
+
         if (_thresholds.TryGetThresholdForState(ent, MobState.Critical, out var critical))
         {
             var missing = critical.Value + 1 - damageable.TotalDamage;
@@ -94,12 +109,18 @@ public sealed partial class WFOrbitalMobFallSystem : EntitySystem
         }
     }
 
-    private void SeverOne(EntityUid uid, BodyPartType type)
+    private void SeverOne(EntityUid uid, BodyPartType type, bool wounds)
     {
         var parts = _body.GetBodyChildrenOfType(uid, type).Where(p => p.Component.CanSever).ToArray();
         if (parts.Length == 0)
             return;
         var part = _random.Pick(parts).Id;
+        if (wounds)
+        {
+            _amputation.TryAmputate(uid, part);
+            return;
+        }
+
         var amputate = new AmputateAttemptEvent(part);
         RaiseLocalEvent(part, ref amputate);
     }

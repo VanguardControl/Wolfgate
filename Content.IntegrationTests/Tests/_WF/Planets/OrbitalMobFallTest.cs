@@ -54,10 +54,14 @@ public sealed class OrbitalMobFallTest
             Assert.That(body.GetBodyChildrenOfType(mob, BodyPartType.Leg).Count(), Is.EqualTo(1));
             Assert.That(em.HasComponent<WFOrbitalMobFallComponent>(mob), Is.False);
             var audio = em.EntityQueryEnumerator<AudioComponent>();
-            var splats = 0;
+            var tears = 0;
             while (audio.MoveNext(out _, out var clip))
-                if (clip.FileName == "/Audio/Effects/gib1.ogg") splats++;
-            Assert.That(splats, Is.EqualTo(1), "One orbital impact should play one grotesque splat.");
+            {
+                var file = clip.FileName;
+                if (file.StartsWith("/Audio/Effects/gib")) tears++;
+            }
+            // The wound system tears each limb off with its own noise; the impact adds no splat on top.
+            Assert.That(tears, Is.EqualTo(2), "One orbital impact should play one tear per severed limb.");
         });
         await pair.RunTicksSync(2);
         await pair.Server.WaitAssertion(() =>
