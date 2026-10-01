@@ -66,7 +66,7 @@ public sealed class WFShipAccessSetDoorRuleMessage : BoundUserInterfaceMessage
     }
 }
 
-/// <summary>The owner sets every door on the ship to one rule. Sealed is refused.</summary>
+/// <summary>The owner sets every door on the ship to one rule.</summary>
 [Serializable, NetSerializable]
 public sealed class WFShipAccessSetAllDoorRulesMessage : BoundUserInterfaceMessage
 {

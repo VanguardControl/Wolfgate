@@ -74,8 +74,8 @@ owner, the listed cards and the faction's access unlock one, whatever access it 
 ship gives that access back. The `LockableButtons` module makes a locked button refuse the press.
 
 The All doors control on the Access tab gives every door on the ship one rule at once, after a second click to
-confirm. Sealed is not offered and is refused at the server, since bolting every door can shut the owner out;
-firelocks are skipped, and the readers are rewritten in one pass.
+confirm. Every rule is offered, Sealed included: it bolts the whole ship, the owner's way back in too, until
+another rule is picked at the console. Firelocks are skipped, and the readers are rewritten in one pass.
 
 The Access tab shows the ship outline with each door as a node in its rule's colour (the same nav map the Ship
 tab uses, sized to the tab instead of the nav map's fixed square) and a legend; clicking a node selects the door

@@ -126,12 +126,8 @@ public sealed partial class ShipAccessScreen : BoxContainer
                 DoorRuleChanged?.Invoke(_entManager.GetNetEntity(door), (WFDoorAccessRule) args.Id);
         };
 
-        // Sealed is left out: it is set one door at a time.
         foreach (var rule in Rules)
-        {
-            if (rule != WFDoorAccessRule.Sealed)
-                AllDoorsRuleButton.AddItem(RuleName(rule), (int) rule);
-        }
+            AllDoorsRuleButton.AddItem(RuleName(rule), (int) rule);
 
         AllDoorsRuleButton.OnItemSelected += args =>
         {

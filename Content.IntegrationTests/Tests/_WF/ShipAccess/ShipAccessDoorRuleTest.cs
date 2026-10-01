@@ -116,8 +116,8 @@ public sealed class ShipAccessDoorRuleTest
     }
 
     /// <summary>
-    /// The console's set-all control gives every door one rule in a single pass. Firelocks and lockers take no rule,
-    /// and Sealed is refused so the owner can't bolt themselves out with one click.
+    /// The console's set-all control gives every door one rule in a single pass, Sealed included. Firelocks and
+    /// lockers take no rule.
     /// </summary>
     [Test]
     public async Task SetAllGivesEveryDoorOneRule()
@@ -157,8 +157,14 @@ public sealed class ShipAccessDoorRuleTest
         {
             WFDoorAccessRule? RuleOf(EntityUid uid) => entMan.TryGetComponent<WFDoorAccessRuleComponent>(uid, out var rule) ? rule.Rule : null;
 
-            Assert.That(access.SetAllDoorRules(ship, WFDoorAccessRule.Sealed), Is.Zero, "Sealing every door at once is refused.");
-            Assert.That(RuleOf(first), Is.Null, "A refused set-all leaves the doors alone.");
+            Assert.That(access.SetAllDoorRules(ship, WFDoorAccessRule.Sealed), Is.EqualTo(1), "Only the door not sealed yet changes.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(doors.IsBolted(first), Is.True, "Sealing every door bolts them all.");
+                Assert.That(doors.IsBolted(second), Is.True);
+                Assert.That(readers.IsAllowed(owner, first), Is.False, "Sealed refuses the deed at the reader.");
+                Assert.That(RuleOf(firelock), Is.Null, "Firelocks are not sealed.");
+            });
 
             Assert.That(access.SetAllDoorRules(ship, WFDoorAccessRule.Public), Is.EqualTo(2), "Both doors change.");
             Assert.Multiple(() =>

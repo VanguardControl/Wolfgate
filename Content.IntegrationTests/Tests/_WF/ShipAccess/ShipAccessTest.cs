@@ -607,7 +607,7 @@ public sealed class ShipAccessTest
                 Assert.That(Find<Label>(screen, "ReadOnlyLabel").Visible, Is.False, "The deed holder's tab is not read-only.");
                 Assert.That(Find<CheckBox>(screen, "LockedCheck").Visible, Is.True, "The deed holder can flip the lock.");
                 Assert.That(Find<BoxContainer>(screen, "AllDoorsBox").Visible, Is.True, "The deed holder gets the set-all control.");
-                Assert.That(Find<OptionButton>(screen, "AllDoorsRuleButton").ItemCount, Is.EqualTo(6), "Every rule but Sealed is offered for all doors.");
+                Assert.That(Find<OptionButton>(screen, "AllDoorsRuleButton").ItemCount, Is.EqualTo(7), "Every rule is offered for all doors.");
             });
         });
 

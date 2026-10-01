@@ -85,15 +85,9 @@ public sealed partial class WFShipAccessServerSystem
         return true;
     }
 
-    /// <summary>
-    /// Sets every door on the ship to one rule, as the console's set-all control does, and returns how many changed.
-    /// Sealed is refused: bolting every door at once can shut the owner out, so doors are sealed one by one.
-    /// </summary>
+    /// <summary>Sets every door on the ship to one rule, as the console's set-all control does, and returns how many changed.</summary>
     public int SetAllDoorRules(Entity<WFShipAccessComponent> ship, WFDoorAccessRule rule)
     {
-        if (rule == WFDoorAccessRule.Sealed)
-            return 0;
-
         var changed = 0;
         var children = Transform(ship.Owner).ChildEnumerator;
         while (children.MoveNext(out var child))
@@ -289,12 +283,6 @@ public sealed partial class WFShipAccessServerSystem
     {
         if (!TryGetEditableShip(console, args.Actor, out var ship))
             return;
-
-        if (args.Rule == WFDoorAccessRule.Sealed)
-        {
-            Popup(console, args.Actor, "ship-access-all-doors-no-seal");
-            return;
-        }
 
         var changed = SetAllDoorRules(ship, args.Rule);
         _popup.PopupEntity(Loc.GetString("ship-access-all-doors-set", ("count", changed)), console.Owner, args.Actor);

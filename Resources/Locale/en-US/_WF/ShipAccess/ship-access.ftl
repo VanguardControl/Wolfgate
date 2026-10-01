@@ -66,7 +66,6 @@ ship-access-all-doors-set = { $count ->
         [one] 1 door set.
        *[other] { $count } doors set.
     }
-ship-access-all-doors-no-seal = Doors are sealed one at a time.
 ship-access-door-not-on-ship = That door is not on this ship.
 ship-access-seal-pending = The door will bolt as soon as it is shut and powered.
 ship-access-no-owner-key = Neither the deed nor your ID card has a crew record, so no door can be keyed to you. Locking would shut you out.
