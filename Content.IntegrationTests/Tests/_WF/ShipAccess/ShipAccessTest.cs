@@ -476,12 +476,12 @@ public sealed class ShipAccessTest
             Assert.That(Allowed(crew), Is.False, "A card taken off the list is a stranger's again.");
 
             // An access configurator run over the unlocked door: the new access is the door's own from then on.
-            readers.SetAccesses(reader, reader.Comp, new List<ProtoId<AccessLevelPrototype>> { CompanyAccess });
+            readers.SetAccesses(reader, reader.Comp!, new List<ProtoId<AccessLevelPrototype>> { CompanyAccess });
             access.SetLocked(ship, true);
             access.SetLocked(ship, false);
             Assert.Multiple(() =>
             {
-                Assert.That(reader.Comp.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(CompanyAccess)), "Access changed while unlocked is kept.");
+                Assert.That(reader.Comp!.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(CompanyAccess)), "Access changed while unlocked is kept.");
                 Assert.That(Allowed(officer), Is.False, "The old access is gone with it.");
                 Assert.That(Allowed(owner), Is.True);
             });
@@ -492,7 +492,7 @@ public sealed class ShipAccessTest
             Assert.Multiple(() =>
             {
                 Assert.That(Allowed(owner), Is.False, "Without ship access the owner's key is taken off the door.");
-                Assert.That(reader.Comp.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(CompanyAccess)));
+                Assert.That(reader.Comp!.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>(CompanyAccess)));
                 Assert.That(entMan.HasComponent<WFShipReaderBackupComponent>(reader), Is.False, "The backup goes once restored.");
             });
         });
