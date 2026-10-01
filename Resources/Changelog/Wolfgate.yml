@@ -687,3 +687,35 @@ Entries:
   id: 100063
   time: '2026-09-30T16:18:06.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/129
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Only insurgency will be available below 20 pop.
+  id: 100064
+  time: '2026-10-01T01:44:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/134
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Shields have different animations and effects.
+    - type: Add
+      message: >-
+        Shield shunting, you can now direct your shield towards a certain
+        direction for better protection. See shield tab.
+  id: 100065
+  time: '2026-10-01T01:50:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/131
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Borers no longer take control of their host when removed.
+  id: 100066
+  time: '2026-10-01T01:50:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/133
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Engine version bumped to 277.2.1
+  id: 100067
+  time: '2026-10-01T02:10:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/116
