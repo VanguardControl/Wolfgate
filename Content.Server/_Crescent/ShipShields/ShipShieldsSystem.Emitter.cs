@@ -34,7 +34,10 @@ public partial class ShipShieldsSystem
         var parent = Transform(owner.Owner).GridUid;
         if (parent is null)
             return;
-        UnshieldEntity(parent.Value, null);
+        // WOLFGATE(ShipShields) START: removing a standby generator leaves the active field intact
+        // UnshieldEntity(parent.Value, null);
+        RemoveWolfgateEmitterShield(owner.Owner, owner.Comp);
+        // WOLFGATE END
     }
 
     private void OnShieldDeflected(EntityUid uid, ShipShieldEmitterComponent component, ShieldDeflectedEvent args)

@@ -153,6 +153,74 @@ public abstract partial class SharedGunSystem : EntitySystem
         // ShootRequested (with the mech and Goob burst-target handling that used to live here) is in
         // _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs. The client already fired this shot from
         // GunSystem.Update on its first-time tick, so it only replays it here.
+        // upstream original, kept for merges (OnShootRequest body, then the ShootRequested method after it):
+        // var user = args.SenderSession.AttachedEntity;
+        //
+        // if (user == null || !_combatMode.IsInCombatMode(user))
+        //     return;
+        //
+        // if (TryComp<MechPilotComponent>(user.Value, out var mechPilot))
+        //     user = mechPilot.Mech;
+        //
+        // if (!TryGetGun(user.Value, out var ent, out var gun) ||
+        //     HasComp<ItemComponent>(user))
+        //     return;
+        //
+        // if (ent != GetEntity(msg.Gun))
+        //     return;
+        //
+        // gun.ShootCoordinates = GetCoordinates(msg.Coordinates);
+        // // Goob edit start
+        // var potentialTarget = GetEntity(msg.Target);
+        // if (gun.Target == null || !gun.BurstActivated || !gun.LockOnTargetBurst)
+        //     gun.Target = potentialTarget;
+        // // Goob edit end
+        // AttemptShoot(user.Value, ent, gun);
+        // }
+        //
+        // public List<(EntityUid Entity, ProjectileComponent Component)>? ShootRequested(
+        //     NetEntity gun,
+        //     NetCoordinates coordinates,
+        //     NetEntity? target,
+        //     List<int>? shot,
+        //     ICommonSession session)
+        // {
+        //     var gunUid = GetEntity(gun);
+        //     var user = session.AttachedEntity;
+        //
+        //     if (user == null ||
+        //         !_combatMode.IsInCombatMode(user) ||
+        //         !TryGetGun(user.Value, out var ent, out var gunComp))
+        //     {
+        //         return null;
+        //     }
+        //
+        //     if (ent != gunUid)
+        //         return null;
+        //
+        //     gunComp.ShootCoordinates = GetCoordinates(coordinates);
+        //     gunComp.Target = GetEntity(target);
+        //
+        //     AttemptShoot(user.Value, ent, gunComp);
+        //
+        //     // Check if shooting was successful by checking if ammo was consumed
+        //     // This is a workaround since AttemptShoot returns void
+        //     if (gunComp.ShotCounter == 0)
+        //         return null;
+        //
+        //     var projectiles = new List<(EntityUid Entity, ProjectileComponent Component)>();
+        //     if (shot != null)
+        //     {
+        //         foreach (var id in shot)
+        //         {
+        //             var entity = new EntityUid(id);
+        //             if (_projQuery.TryComp(entity, out var projectile))
+        //                 projectiles.Add((entity, projectile));
+        //         }
+        //     }
+        //
+        //     return projectiles;
+        // }
         if (_netManager.IsClient && Timing.IsFirstTimePredicted)
             return;
 
@@ -507,7 +575,8 @@ public abstract partial class SharedGunSystem : EntitySystem
         EntityUid? user = null,
         bool throwItems = false);
 
-    public virtual void ShootProjectile(EntityUid uid, Vector2 direction, Vector2 gunVelocity, EntityUid gunUid, EntityUid? user = null, float speed = 20f,
+    // WOLFGATE(Performance): wizden#36641, gunUid was not nullable
+    public virtual void ShootProjectile(EntityUid uid, Vector2 direction, Vector2 gunVelocity, EntityUid? gunUid, EntityUid? user = null, float speed = 20f,
                                         float offset = 0f) // Mono - add offset
     {
         var physics = _physQuery.CompOrNull(uid) ?? EnsureComp<PhysicsComponent>(uid);
@@ -525,7 +594,12 @@ public abstract partial class SharedGunSystem : EntitySystem
         }
 
         var projectile = _projQuery.CompOrNull(uid) ?? EnsureComp<ProjectileComponent>(uid);
-        Projectiles.SetShooter(uid, projectile, user ?? gunUid);
+        // WOLFGATE(Performance) START: wizden#36641, a projectile may have no shooter
+        // Projectiles.SetShooter(uid, projectile, user ?? gunUid);
+        var shooter = user ?? gunUid;
+        if (shooter != null)
+            Projectiles.SetShooter(uid, projectile, shooter.Value);
+        // WOLFGATE END
         projectile.Weapon = gunUid;
 
         TransformSystem.SetWorldRotation(uid, direction.ToWorldAngle() + projectile.Angle);
@@ -678,7 +752,10 @@ public abstract partial class SharedGunSystem : EntitySystem
         if (attemptEv.Cancelled)
             return;
 
+        // Mono - muzzle flash checks gun
         var sprite = component.MuzzleFlash;
+        if (TryComp<GunComponent>(gun, out var gunComp))
+            sprite = gunComp.MuzzleFlash;
 
         if (sprite == null)
             return;
