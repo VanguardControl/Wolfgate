@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Content.IntegrationTests.Fixtures;
+using Content.Server._NF.Medical;
+using Content.Shared.Atmos.Components;
+using Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 using Content.Server._NF.Medical.Components;
 using Content.Server._WF.Wolfmed.Life;
 using Content.Server._WF.Wolfmed.Wounds;
@@ -14,10 +17,12 @@ using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using NUnit.Framework;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 
@@ -42,6 +47,8 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
         var parts = 0;
         await Server.WaitAssertion(() =>
         {
+            // The test map is a vacuum, and pressure damage reopens a bleed that had stopped.
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             body = SEntMan.SpawnEntity(prototype, map.GridCoords);
             var reference = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             parts = SEntMan.System<SharedBodySystem>().GetBodyChildren(reference).Count();
@@ -94,6 +101,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             body = SEntMan.CreateEntityUninitialized("MobHuman", map.GridCoords);
             SEntMan.AddComponent(body, new MedicalBountyComponent { Bounty = SProtoMan.Index<MedicalBountyPrototype>(bounty) });
             SEntMan.InitializeAndStartEntity(body);
@@ -124,6 +132,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
         var bodies = new List<EntityUid>();
         await Server.WaitAssertion(() =>
         {
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             for (var i = 0; i < 24; i++)
                 bodies.Add(SEntMan.System<RandomHumanoidSystem>().SpawnRandomHumanoid("MedicalBounty", map.GridCoords, "bounty"));
         });
@@ -138,6 +147,82 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
                 Assert.That(total, Is.GreaterThan(FixedPoint2.New(bounty.MaximumDamageToRedeem)),
                     $"{bounty.ID} came up redeemable at {total} damage.");
             }
+        });
+    }
+
+    /// <summary>
+    /// Every bounty on every species a bounty can roll, so the answer does not hang on which 24 the round rolled. A
+    /// bounty is only rolled for a body that can take all of it (an IPC holds no poison, a synth or a shadekin no
+    /// suffocation), every species has some, and none of those comes up redeemable untreated, burning or bleeding.
+    /// </summary>
+    [Test]
+    public async Task NoBountyComesUpFreeOnAnySpeciesTest()
+    {
+        var map = await Pair.CreateTestMap();
+        var bounties = SEntMan.System<MedicalBountySystem>();
+        var bodies = new List<(EntityUid Body, string Species, MedicalBountyPrototype Bounty)>();
+        await Server.WaitAssertion(() =>
+        {
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
+            var unfit = new List<string>();
+            foreach (var species in SProtoMan.EnumeratePrototypes<SpeciesPrototype>())
+            {
+                if (!species.RoundStart || species.SubspeciesOf != null)
+                    continue;
+
+                var fitting = 0;
+                var reference = SEntMan.SpawnEntity(species.Prototype, map.GridCoords);
+                foreach (var bounty in SProtoMan.EnumeratePrototypes<MedicalBountyPrototype>())
+                {
+                    if (!bounties.Fits(reference, bounty))
+                        continue;
+
+                    fitting++;
+                    var body = SEntMan.CreateEntityUninitialized(species.Prototype, map.GridCoords);
+                    SEntMan.AddComponent(body, new MedicalBountyComponent { Bounty = bounty });
+                    SEntMan.InitializeAndStartEntity(body);
+                    bodies.Add((body, species.ID, bounty));
+                }
+
+                SEntMan.DeleteEntity(reference);
+                if (fitting == 0)
+                    unfit.Add(species.ID);
+            }
+
+            var burning = bodies
+                .Where(b => SEntMan.TryGetComponent(b.Body, out FlammableComponent? fire) && fire.OnFire)
+                .Select(b => $"{b.Species}/{b.Bounty.ID}");
+            Assert.Multiple(() =>
+            {
+                Assert.That(unfit, Is.Empty, "species no bounty fits.");
+                Assert.That(burning, Is.Empty, "bounty bodies spawned on fire.");
+            });
+        });
+        await RunSeconds(2);
+
+        await Server.WaitAssertion(() =>
+        {
+            var free = new List<string>();
+            var bleeding = new List<string>();
+            foreach (var (body, species, bounty) in bodies)
+            {
+                if (SEntMan.GetComponent<BloodstreamComponent>(body).BleedAmount > 0f)
+                    bleeding.Add($"{species}/{bounty.ID}");
+
+                var damage = SEntMan.GetComponent<DamageableComponent>(body);
+                if (damage.TotalDamage > FixedPoint2.New(bounty.MaximumDamageToRedeem))
+                    continue;
+
+                var state = SEntMan.GetComponent<MobStateComponent>(body).CurrentState;
+                var types = string.Join(",", damage.Damage.DamageDict.Where(d => d.Value > 0).Select(d => $"{d.Key}={d.Value}"));
+                free.Add($"{species}/{bounty.ID}: {damage.TotalDamage} of {bounty.MaximumDamageToRedeem} ({state}; {types})");
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(free, Is.Empty, "bounties redeemable with nothing treated.");
+                Assert.That(bleeding, Is.Empty, "bounty bodies that bleed.");
+            });
         });
     }
 

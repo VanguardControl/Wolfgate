@@ -1,3 +1,4 @@
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Shared._Onyx.Targeting;
@@ -5,6 +6,7 @@ using Content.Shared._Onyx.Wounds;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
+using Content.Shared.Atmos.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -27,6 +29,7 @@ public sealed class WolfmedSpawnInjurySystem : EntitySystem
     [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private WolfmedLifeSystem _life = default!;
     [Dependency] private WoundBleedingSystem _bleeding = default!;
@@ -116,6 +119,9 @@ public sealed class WolfmedSpawnInjurySystem : EntitySystem
                     variation: Variation);
 
             _bleeding.StopBodyBleeding(body);
+            // Nor is it still burning: a diona catches fire from any heat it takes.
+            if (TryComp(body, out FlammableComponent? flammable))
+                _flammable.Extinguish(body, flammable);
         }
         finally
         {
