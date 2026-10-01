@@ -64,6 +64,7 @@ public partial class ShipShieldsSystem
         if (!args.IsInDetailsRange)
             return;
 
+        ExamineWolfgateGeneratorStats(uid, component, args); // WOLFGATE(ShipShields): show runtime specifications for generator comparison.
         args.PushMarkup(Loc.GetString("shield-emitter-examine", ("basedraw", component.BaseDraw), ("additional", CalculateLoadDamage(component))));
         if (HasComp<ShipShieldDisabledGridComponent>(Transform(uid).GridUid))
             args.PushMarkup(Loc.GetString("shield-emitter-examine-invalid-grid"));

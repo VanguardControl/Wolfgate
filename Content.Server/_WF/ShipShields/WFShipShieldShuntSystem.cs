@@ -75,6 +75,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         var state = GetState(Transform(uid).Anchored ? Transform(uid).GridUid : null);
         if (!force && _generatorStates.TryGetValue(uid, out var previous) &&
             previous.Available == state.Available && previous.Active == state.Active && previous.Enabled == state.Enabled &&
+            WFShipShieldGeneratorStats.Same(previous.Stats, state.Stats) &&
             previous.RecoveryStatus == state.RecoveryStatus && previous.RecoverySeconds == state.RecoverySeconds &&
             MathF.Round(previous.Health * 100f) == MathF.Round(state.Health * 100f) &&
             (previous.Health < 0.1f) == (state.Health < 0.1f) &&
@@ -193,14 +194,23 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         var installed = grid is { } emitterGrid ? FindShieldGenerator(emitterGrid) : null;
         var health = installed is { } emitterUid
             ? ShipShieldsSystem.GetWolfgateShieldHealth(Comp<ShipShieldEmitterComponent>(emitterUid)) : 0f;
+        EntityUid? statsEmitter = null;
         var active = false;
         if (grid is { } activeGrid && TryComp<ShipShieldedComponent>(activeGrid, out var shielded) &&
             !TerminatingOrDeleted(shielded.Shield) && !EntityManager.IsQueuedForDeletion(shielded.Shield) &&
             TryComp<PhysicsComponent>(shielded.Shield, out var physics) && physics.CanCollide &&
             TryComp<WFShipShieldVisualsComponent>(shielded.Shield, out var visuals))
         {
-            health = shielded.Source is { } source && TryComp<ShipShieldEmitterComponent>(source, out var emitter)
-                ? ShipShieldsSystem.GetWolfgateShieldHealth(emitter) : visuals.Health;
+            if (shielded.Source is { } source && TryComp<ShipShieldEmitterComponent>(source, out var emitter))
+            {
+                statsEmitter = source;
+                health = ShipShieldsSystem.GetWolfgateShieldHealth(emitter);
+            }
+            else
+            {
+                statsEmitter = null;
+                health = visuals.Health;
+            }
             active = true;
             recoveryStatus = WFShipShieldRecoveryStatus.None;
             recoverySeconds = 0;
@@ -208,6 +218,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
         else if (grid is { } recoveringGrid)
         {
             installed = FindRecoveryEmitter(recoveringGrid, allocation?.Enabled ?? true, out recoveryStatus, out recoverySeconds);
+            statsEmitter = installed;
             health = installed is { } recoveringEmitter
                 ? ShipShieldsSystem.GetWolfgateShieldHealth(Comp<ShipShieldEmitterComponent>(recoveringEmitter)) : 0f;
         }
@@ -218,6 +229,7 @@ public sealed class WFShipShieldShuntSystem : EntitySystem
             TargetDirectionRadians = allocation is { TargetInitialized: true } ? allocation.TargetDirectionRadians : allocation?.DirectionRadians ?? MathF.PI / 2f,
             TargetConcentration = allocation is { TargetInitialized: true } ? allocation.TargetConcentration : allocation?.Concentration ?? 0f,
             TargetArcRadians = allocation is { TargetInitialized: true } ? allocation.TargetArcRadians : allocation?.ArcRadians ?? MathF.PI / 2f,
+            Stats = statsEmitter is { } selected ? _shields.GetWolfgateGeneratorStats(selected, Comp<ShipShieldEmitterComponent>(selected)) : null,
             RecoveryStatus = recoveryStatus,
             RecoverySeconds = recoverySeconds,
         };

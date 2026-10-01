@@ -91,6 +91,8 @@ public sealed class WFShipShieldRecoveryTest
             Assert.That(entities.GetComponent<TransformComponent>(fastUid).Anchored, Is.True);
             var slow = entities.GetComponent<ShipShieldEmitterComponent>(slowUid);
             var fast = entities.GetComponent<ShipShieldEmitterComponent>(fastUid);
+            slow.BaseDraw = 12345f;
+            fast.BaseDraw = 23456f;
             slow.Damage = 4500f;
             fast.Damage = 2250f;
             slow.Recharging = fast.Recharging = true;
@@ -103,6 +105,7 @@ public sealed class WFShipShieldRecoveryTest
             Assert.That(state.RecoveryStatus, Is.EqualTo(WFShipShieldRecoveryStatus.Recharging));
             Assert.That(state.RecoverySeconds, Is.EqualTo(2));
             Assert.That(state.Health, Is.EqualTo(ShipShieldsSystem.GetWolfgateShieldHealth(fast)));
+            Assert.That(state.Stats!.BasePowerWatts, Is.EqualTo(fast.BaseDraw), "Offline stats belong to the earliest recovery emitter.");
             var actor = entities.SpawnEntity("MobHuman", map.GridCoords);
             var ui = entities.System<SharedUserInterfaceSystem>();
             ui.OpenUi(fastUid, WFShipShieldUiKey.Key, actor);
@@ -120,6 +123,7 @@ public sealed class WFShipShieldRecoveryTest
             state = controls.GetState(map.Grid.Owner);
             Assert.That(state.RecoverySeconds, Is.EqualTo(3));
             Assert.That(state.Health, Is.EqualTo(ShipShieldsSystem.GetWolfgateShieldHealth(slow)));
+            Assert.That(state.Stats!.BasePowerWatts, Is.EqualTo(slow.BaseDraw));
             entities.GetComponent<ApcPowerReceiverComponent>(slowUid).Powered = false;
             state = controls.GetState(map.Grid.Owner);
             Assert.That(state.RecoveryStatus, Is.EqualTo(WFShipShieldRecoveryStatus.NoPower));
