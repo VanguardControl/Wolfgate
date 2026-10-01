@@ -144,6 +144,7 @@ public sealed class ProjectileSweepTest
             {
                 config.SetCVar(CVars.TargetMinimumTickrate, tickrate);
                 config.SetCVar(MonoCVars.ProjectileAdaptiveRaycastThreshold, adaptive);
+                config.SetCVar(MonoCVars.ProjectileRaycastSpeedThreshold, threshold);
             });
         }
 

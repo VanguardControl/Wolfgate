@@ -73,6 +73,7 @@ public sealed class HarpoonTest
 
     private const string Operator = "MobHuman";
     private const string Wall = "WallSolid";
+    private const string DefaultTurret = "WFTestHarpoonTurret";
     private const string SteadyTurret = "WFTestHarpoonTurretSteady";
     private const string EmptyTurret = "WFTestHarpoonTurretEmpty";
     private const string Harpoon = "WFShipHarpoon";
@@ -92,7 +93,7 @@ public sealed class HarpoonTest
         {
             entities.DeleteEntity(map.Grid);
             grid = MakeGrid(entities, maps, map.MapId, Vector2.Zero, 3);
-            turret = entities.SpawnEntity("WFTestHarpoonTurret", new EntityCoordinates(grid, new Vector2(1.5f, 1.5f)));
+            turret = entities.SpawnEntity(DefaultTurret, new EntityCoordinates(grid, new Vector2(1.5f, 1.5f)));
             user = entities.SpawnEntity(Operator, new EntityCoordinates(grid, new Vector2(1.5f, 1.5f)));
         });
 
@@ -355,11 +356,11 @@ public sealed class HarpoonTest
             // A vendor stack dropped at the buyer's feet.
             for (var i = 0; i < 4; i++)
             {
-                entities.SpawnEntity("WFShipHarpoon", coordinates);
+                entities.SpawnEntity(Harpoon, coordinates);
             }
 
             // One left lying on the deck after a clean miss, still marked as fired.
-            spent = entities.SpawnEntity("WFShipHarpoon", coordinates);
+            spent = entities.SpawnEntity(Harpoon, coordinates);
             var projectile = entities.GetComponent<ProjectileComponent>(spent);
             projectile.Weapon = grid;
             projectile.Shooter = grid;
@@ -767,7 +768,7 @@ public sealed class HarpoonTest
     }
 
     /// <summary>A turret bolted to the east edge of a hull, facing east, with an operator standing on it.</summary>
-    private static (EntityUid Turret, EntityUid User) MakeTurret(IEntityManager entities, EntityUid grid, string prototype = "WFTestHarpoonTurret")
+    private static (EntityUid Turret, EntityUid User) MakeTurret(IEntityManager entities, EntityUid grid, string prototype = DefaultTurret)
     {
         var coordinates = new EntityCoordinates(grid, new Vector2(2.5f, 1.5f));
         var turret = entities.SpawnEntity(prototype, coordinates);
