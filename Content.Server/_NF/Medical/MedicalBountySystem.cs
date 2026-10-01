@@ -85,7 +85,10 @@ public sealed partial class MedicalBountySystem : EntitySystem
         if (component.Bounty == null)
         {
             if (_cachedPrototypes.Count > 0)
-                component.Bounty = _random.Pick(_cachedPrototypes);
+                // WOLFGATE(Wolfmed) START: only a bounty whose injuries this body can take
+                // component.Bounty = _random.Pick(_cachedPrototypes);
+                component.Bounty = PickBountyFor(entity);
+                // WOLFGATE END
             else
                 return; // Nothing to do, keep bounty at null.
         }

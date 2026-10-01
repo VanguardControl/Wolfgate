@@ -80,6 +80,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
 - [`Content.Server/_WF/Wolfmed/Gore/WolfmedMachineSparkSystem.cs`](Gore/WolfmedMachineSparkSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Hud/WolfmedSyntheticHudSystem.cs`](Hud/WolfmedSyntheticHudSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/ExecutionSystem.Wolfmed.cs`](Life/ExecutionSystem.Wolfmed.cs)
+- [`Content.Server/_WF/Wolfmed/Life/MedicalBountySystem.Wolfmed.cs`](Life/MedicalBountySystem.Wolfmed.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedBodyTemperatureComponent.cs`](Life/WolfmedBodyTemperatureComponent.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedBodyTemperatureSystem.cs`](Life/WolfmedBodyTemperatureSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedBreathingAlertSystem.cs`](Life/WolfmedBreathingAlertSystem.cs)
@@ -1017,6 +1018,7 @@ Discord) saying what broke and what state they were in; misuse is a ban. Remove 
   - GUARD E4, wound hosts bleed through WoundBleedingSystem; re-express hemophilia as a
 - [`Content.Server/_NF/Medical/MedicalBountySystem.cs`](../../_NF/Medical/MedicalBountySystem.cs)
   - a wound host's bounty injuries
+  - only a bounty whose injuries this body can take
   - a wound host's body has no parts at startup, so its injuries are laid on at map init.
 - [`Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs`](../../_Onyx/Body/Systems/OrganHealthSystem.cs)
   - D13, Wolfgate's BrainComponent is server-only.

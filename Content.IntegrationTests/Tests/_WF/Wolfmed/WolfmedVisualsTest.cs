@@ -43,6 +43,8 @@ public sealed class WolfmedVisualsTest : GameTest
 
         await server.WaitAssertion(() =>
         {
+            // The test map is a vacuum: pressure damage on another part broke the absent-or-zero checks now and then.
+            new Scenarios.WolfmedScenario(entities).SetAir(map.MapUid, true);
             body = entities.SpawnEntity("MobHuman", map.GridCoords);
             Assert.That(entities.HasComponent<WoundHostComponent>(body), Is.True,
                 "MobHuman is not a wound host; the D21/D32 species wiring is missing.");
