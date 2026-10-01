@@ -5,6 +5,7 @@ using Content.Server.Tiles;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Planets.Flight;
 
@@ -14,6 +15,9 @@ public sealed partial class WFFlightSystem
     [Dependency] private DecalSystem _scarDecals = default!;
     [Dependency] private ITileDefinitionManager _scarTiles = default!;
     private const int ScarTilesPerBite = 256;
+
+    /// <summary>The exposed earth a skidding hull leaves behind.</summary>
+    public static readonly ProtoId<ContentTileDefinition> ScarTile = "FloorPlanetDirt";
 
     /// <summary>Scrape the occupied footprint into persistent exposed earth, revealed behind the moving hull.</summary>
     public void ScarSkidGround(Entity<MapGridComponent> hull, WFSkidComponent skid)
@@ -31,7 +35,7 @@ public sealed partial class WFFlightSystem
         var edits = new List<(Vector2i, Tile)>();
         var reserved = new List<(Vector2i, Tile)>();
         var matrix = _transform.GetWorldMatrix(hull);
-        var scar = new Tile(_scarTiles["FloorPlanetDirt"].TileId);
+        var scar = new Tile(_scarTiles[ScarTile].TileId);
         var tiles = _map.GetAllTilesEnumerator(hull, hull.Comp);
         while (tiles.MoveNext(out var tile))
         {

@@ -42,7 +42,9 @@ one is a walk of 8 steps or less away; tiles a chunk unload empties are told apa
 shaft through natural ground it can't otherwise dig (Fervidus basalt, the Asclepiu plains, Thrascias ice, Aerumna
 chromite, Carcinoma flesh, the bedrock under dug snow). Acid no longer opens ground over a cavern that no tool can dig,
 and nothing opens the cavern floor: it has no base turf, and a cavern tile emptied some other way is filled again.
-Only someone standing on the ground sees down a hole; from the air it shows dark.
+Only someone standing on the ground sees down a hole; from the air it shows dark. A floored room built in a cavern
+holds its own air, as on the surface (the Planets terrain atmosphere); the cavern floor and the pad under a mouth,
+named through `WFTerrainOpenTilesEvent`, are bare ground and keep the cavern's air.
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the

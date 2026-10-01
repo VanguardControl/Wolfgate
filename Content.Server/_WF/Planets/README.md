@@ -8,7 +8,8 @@ fall out of orbit, and a world's gravity well pulls adrift hulls in from the sec
 
 Worlds have day and night, phased weather with thunder, fauna, ambience, terrain on the orbit radar and an approach
 cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Jetpacks only
-work in orbit and lattice goes straight onto natural ground. Players use landing thruster kits, parachutes and the
+work in orbit and lattice goes straight onto natural ground. A room built on a planet holds its own air once it has a
+floor: bare ground counts as outdoors and keeps the planet's air. Players use landing thruster kits, parachutes and the
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
 of day, weather and gravity, and `wfplanet` to build a star system's worlds.
 
@@ -16,7 +17,11 @@ Entry points: `WFPlanetNetworkSystem` and `WFPlanetRegistrySystem` (the z-level 
 (hops in and out of orbit), `WFFlightSystem` with the `CEZLevelsSystem.WF*` partials (flight, liftoff, landing and
 crashes), `WFOrbitDecaySystem`, `WFGravityWellSystem`, `WFPlanetWeatherSystem`, `WFParachuteSystem` and
 `PlanetControlSystem`. Upstream systems are extended through partials in this module (`CEZLevelsSystem.WF*`,
-`ThrusterSystem.WF*`, `ShuttleSystem.WFOrbit`). Settings are in `PlanetCVars` (`wf.planet_networks`); ecology and
+`ThrusterSystem.WF*`, `ShuttleSystem.WFOrbit`). `WFTerrainAtmosphereSystem` gives every layer with ground a grid
+atmosphere that `AtmosphereSystem.WFTerrain` keeps sparse: tiles the layer's biome lays (and what digging turns them
+into) are bare ground, treated like tiles off the grid and never tracked until something is built beside them, so
+loading terrain costs atmos nothing; `WFTerrainOpenTilesEvent` lets a module name more ground.
+Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
 generate or sample.
@@ -36,6 +41,10 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 
 - [`Content.Server/_WF/Planets/Administration/PlanetControlCommand.cs`](Administration/PlanetControlCommand.cs)
 - [`Content.Server/_WF/Planets/Administration/PlanetControlSystem.cs`](Administration/PlanetControlSystem.cs)
+- [`Content.Server/_WF/Planets/Atmosphere/AtmosphereSystem.WFTerrain.cs`](Atmosphere/AtmosphereSystem.WFTerrain.cs)
+- [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereComponent.cs`](Atmosphere/WFTerrainAtmosphereComponent.cs)
+- [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereSystem.cs`](Atmosphere/WFTerrainAtmosphereSystem.cs)
+- [`Content.Server/_WF/Planets/Atmosphere/WFTerrainOpenTilesEvent.cs`](Atmosphere/WFTerrainOpenTilesEvent.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
@@ -185,6 +194,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs)
 
 ### Prototypes
@@ -365,6 +375,12 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
   - a descending convoy lands on the ground instead of hopping below it.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs): a skidding hull flattens obstacles instead of bouncing.
 - [`Content.Server/_FarHorizons/StarSystem/StarSystemMapSystem.cs`](../../_FarHorizons/StarSystem/StarSystemMapSystem.cs): register sector bodies that have a Wolfgate surface.
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs`](../../Atmos/EntitySystems/AtmosphereSystem.API.cs): bare planet ground nobody built on isn't tracked
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Processing.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Processing.cs)
+  - bare planet ground keeps no map tile alive
+  - bare planet ground shares the map's air, like a tile off the grid
+  - a tile built on a planet starts with the air around it, not a vacuum
+- [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Utils.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Utils.cs): bare planet ground is off the atmos grid but still carries walls
 - [`Content.Server/Chemistry/TileReactions/CreateEntityTileReaction.cs`](../../Chemistry/TileReactions/CreateEntityTileReaction.cs): spilled chimera blood cannot seed an unbounded planetary hive.
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.cs`](../../Explosion/EntitySystems/ExplosionSystem.cs)
   - silent parameter, see QueuedExplosion.Silent.

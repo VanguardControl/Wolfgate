@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Server._DV.Planet;
 using Content.Server._WF.Planets;
+using Content.Server._WF.Planets.Atmosphere;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Parallax;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
@@ -44,6 +45,7 @@ public sealed partial class WFCavernSystem : EntitySystem
 
         SubscribeLocalEvent<WFPlanetLowerLayersEvent>(OnLowerLayers);
         SubscribeLocalEvent<WFPlanetNetworkBuiltEvent>(OnNetworkBuilt);
+        SubscribeLocalEvent<WFTerrainOpenTilesEvent>(OnTerrainOpenTiles);
         SubscribeLocalEvent<WFPlanetWildlifeComponent, CEZLevelFallMapEvent>(OnWildlifeFell);
     }
 
@@ -151,6 +153,13 @@ public sealed partial class WFCavernSystem : EntitySystem
         Dirty(level, layer);
 
         args.Lower.Add(level);
+    }
+
+    /// <summary>The pad under a mouth is bare ground to atmos, like the rest of the cavern floor.</summary>
+    private void OnTerrainOpenTiles(ref WFTerrainOpenTilesEvent args)
+    {
+        if (TryComp<WFCavernLayerComponent>(args.Map, out var layer) && _proto.TryIndex(layer.Cavern, out var cavern))
+            args.Tiles.Add(cavern.Mouths.LandingTile);
     }
 
     /// <summary>Gives each cavern its own air, takes away the sky, links the ground to it and cuts the gate.</summary>

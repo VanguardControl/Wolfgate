@@ -4,6 +4,7 @@ using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._CE.ZLevels.Core;
 using Content.Server._WF.Caverns;
 using Content.Server._WF.Planets;
+using Content.Server._WF.Planets.Atmosphere;
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._CE.ZLevels.Core.Components;
@@ -150,6 +151,26 @@ public sealed class CavernNetworkTest
                         {
                             Assert.That(mixture.GetMoles(gas), Is.EqualTo(level.Atmosphere.GetMoles(gas)).Within(0.001f),
                                 $"{surfaceId}: the cavern's air has the wrong amount of gas {gas}.");
+                        }
+
+                        // Rooms can be built down here, and nothing is tracked until one is.
+                        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+                        var terrain = entMan.GetComponent<WFTerrainAtmosphereComponent>(cavern);
+                        var (substrate, chamber) = Floors[surfaceId];
+                        Assert.That(terrain.OpenTiles, Does.Contain((int) tileDefs[substrate].TileId),
+                            $"{surfaceId}: the cavern's rock floor is not bare ground to atmos.");
+                        Assert.That(terrain.OpenTiles, Does.Contain((int) tileDefs[chamber].TileId),
+                            $"{surfaceId}: the cavern's chamber floor is not bare ground to atmos.");
+                        Assert.That(terrain.OpenTiles, Does.Contain((int) tileDefs[cavernProto.Mouths.LandingTile].TileId),
+                            $"{surfaceId}: the pad under a mouth is not bare ground to atmos.");
+                        Assert.That(terrain.OpenTiles, Does.Not.Contain((int) tileDefs["Plating"].TileId),
+                            $"{surfaceId}: plating laid in the cavern would not hold air.");
+
+                        foreach (var layer in new[] { cavern, world.Ground })
+                        {
+                            var gridAtmos = entMan.GetComponent<GridAtmosphereComponent>(layer);
+                            Assert.That(gridAtmos.Tiles, Is.Empty, $"{surfaceId}: atmos tracks bare ground the gate laid.");
+                            Assert.That(gridAtmos.InvalidatedCoords, Is.Empty, $"{surfaceId}: bare ground the gate laid is queued for atmos.");
                         }
 
                         Assert.That(entMan.TryGetComponent(world.Ground, out WFCavernGroundComponent? ground), Is.True,
