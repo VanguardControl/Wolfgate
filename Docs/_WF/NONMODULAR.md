@@ -34,6 +34,12 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - random container fills count at their expected value, not this load's roll
   - drop the scratch map and unseed the pooled server
   - appraisal that counts random container fills at their expected value
+- [`Content.IntegrationTests/Tests/EntityTest.cs`](../../Content.IntegrationTests/Tests/EntityTest.cs)
+  - GC.Collect between the spawn-all slices
+  - the spawn-all tests need about six gigabytes each; two at once go past the runner's heap limit
+  - in slices. All the prototypes at once, each on its own map and grid, held for 450
+  - maps first, so everything on them goes parent-first, as it does when a round
+  - the slice size and the delete of the sliced spawn-all test.
 - [`Content.IntegrationTests/Tests/Hands/HandTests.cs`](../../Content.IntegrationTests/Tests/Hands/HandTests.cs)
   - unused, the actor is spawned instead of read from the session
   - spawn the actor instead of using the session's entity
