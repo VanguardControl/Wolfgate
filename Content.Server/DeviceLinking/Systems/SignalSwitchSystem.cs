@@ -1,5 +1,6 @@
 using Content.Shared.DeviceLinking.Components;
 using Content.Shared.Interaction;
+using Content.Shared.Lock; // WOLFGATE(LockableButtons)
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 
@@ -10,6 +11,7 @@ public sealed partial class SignalSwitchSystem : EntitySystem
     [Dependency] private DeviceLinkSystem _deviceLink = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private LockSystem _lock = default!; // WOLFGATE(LockableButtons)
 
     public override void Initialize()
     {
@@ -28,6 +30,12 @@ public sealed partial class SignalSwitchSystem : EntitySystem
     {
         if (args.Handled || !args.Complex)
             return;
+
+        // WOLFGATE(LockableButtons) START: a locked switch never fires; LockSystem handles the click
+        // Without this, the server could toggle the switch before or despite a denied unlock.
+        if (_lock.IsLocked(uid))
+            return;
+        // WOLFGATE END
 
         comp.State = !comp.State;
         _deviceLink.InvokePort(uid, comp.State ? comp.OnPort : comp.OffPort);
