@@ -25,6 +25,7 @@ public sealed class WFShipShieldMovingProjectileTest
     [TestCase("90mmBulletHE")]
     [TestCase("90mmBulletAP")]
     [TestCase("ShipM25Projectile")]
+    [TestCase("ShipPinholeProjectile")]
     public async Task ShipRoundsAreInterceptedAcrossAnglesAndTickOffsets(string prototype)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false, Dirty = true });
@@ -73,7 +74,7 @@ public sealed class WFShipShieldMovingProjectileTest
                 if (entities.TryGetComponent<ExplosiveComponent>(projectileUid, out var explosive) &&
                     prototypes.TryIndex(explosive.ExplosionType, out var explosion))
                     totalDamage += explosive.TotalIntensity * (float)explosion.DamagePerIntensity.GetTotal();
-                physics.SetLinearVelocity(projectileUid, Vector2.Normalize(ahead.Position - start.Position) * (pulser ? 20f : 300f));
+                physics.SetLinearVelocity(projectileUid, Vector2.Normalize(ahead.Position - start.Position) * (pulser ? 20f : prototype == "ShipPinholeProjectile" ? 600f : 300f));
                 physics.WakeBody(projectileUid);
             });
 
