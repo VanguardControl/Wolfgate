@@ -35,6 +35,15 @@ public sealed class WFShipShieldGeneratorControlTest
             ui.OpenUi(uid, WFShipShieldUiKey.Key, actor);
             Assert.That(ui.TryGetUiState<WFShipShieldGeneratorUiState>(uid, WFShipShieldUiKey.Key, out var opened), Is.True);
             Assert.That(opened!.ShieldShunt.Available, Is.True);
+            var stats = opened.ShieldShunt.Stats!;
+            Assert.That(stats.Name, Is.EqualTo(entities.GetComponent<MetaDataComponent>(uid).EntityName));
+            Assert.That(stats.Capacity, Is.EqualTo(WFShipShieldEffects.EffectiveCapacity(emitter.DamageLimit, emitter.MaxDraw, emitter.PowerModifier, emitter.DamageExp)));
+            Assert.That(stats.MaximumPowerWatts, Is.EqualTo(emitter.BaseDraw + emitter.MaxDraw));
+            emitter.BaseDraw += 1234f;
+            controls.Update(0.21f);
+            Assert.That(ui.TryGetUiState<WFShipShieldGeneratorUiState>(uid, WFShipShieldUiKey.Key, out var changedStats), Is.True);
+            Assert.That(changedStats, Is.Not.SameAs(opened), "Runtime power changes must refresh an otherwise unchanged panel.");
+            Assert.That(changedStats!.ShieldShunt.Stats!.BasePowerWatts, Is.EqualTo(emitter.BaseDraw));
 
             Send(new WFShipShieldSetShuntMessage(0.6f, 0.5f, 1.2f));
             Assert.That(controls.GetState(map.Grid.Owner).TargetConcentration, Is.EqualTo(0.5f));

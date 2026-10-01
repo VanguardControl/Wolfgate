@@ -124,7 +124,8 @@ dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c DebugOpt
 absence of force while slack, breaking, severing on deletion and the coil's unit
 accounting. `TetherContentTest` spawns the real content, fires the installer and ties
 each real rope type between two anchor eyes. `HarpoonTest` covers manning the turret,
-the shot-well rule and the tow cable a good shot leaves. `PowerCordTest` checks that a
+the shot-well rule, the tow cable a good shot leaves, loose and loaded harpoons staying
+plain items and the winch stopping at hull contact. `PowerCordTest` checks that a
 cord joins two hulls' power nets until it parts, and refuses the wrong voltage.
 Rerun any Skipped test on its own: pair tests can be skipped by unrelated
 `db.ef` sqlite warnings on some machines.

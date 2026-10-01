@@ -4,6 +4,7 @@ using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Content.Shared.Projectiles;
 using Content.Shared._Mono.SpaceArtillery; // WOLFGATE(ShipShields)
+using Robust.Shared.Containers; // WOLFGATE(Weapons)
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -19,6 +20,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
 
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private SharedContainerSystem _container = default!; // WOLFGATE(Weapons): the sweep leaves contained projectiles alone
 
     // <Mono>
     private EntityQuery<PhysicsComponent> _physQuery;
@@ -133,6 +135,16 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
         var query = EntityQueryEnumerator<ProjectileComponent, PhysicsComponent>();
         while (query.MoveNext(out var uid, out var projectileComp, out var physicsComp))
         {
+            // WOLFGATE(Weapons) START: an item that is only a projectile once shot is not swept while unfired or inside a container
+            // Its carrier's speed is not its own, and a reusable round must not take an old flight's sweep into its next shot.
+            if (projectileComp.ProjectileSpent || projectileComp is { Weapon: null, OnlyCollideWhenShot: true } ||
+                _container.IsEntityInContainer(uid))
+            {
+                projectileComp.RaycastResetVelocity = null;
+                continue;
+            }
+            // WOLFGATE END
+
             if (projectileComp.ProjectileSpent || TerminatingOrDeleted(uid))
                 continue;
 
