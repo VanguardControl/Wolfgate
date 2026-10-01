@@ -93,6 +93,11 @@ public sealed class WFShipShieldMovingProjectileTest
 
     [TestCase("90mmBulletAP", 300f)]
     [TestCase("ShipM25Projectile", 20f)]
+    [TestCase("Shrapnel90mmFlak", 8f)]
+    [TestCase("90mmBulletMinelayer", 300f)]
+    [TestCase("255mmBulletMinelayer", 300f)]
+    [TestCase("NavalMine90mm", 3f)]
+    [TestCase("NavalMine255mm", 3f)]
     public async Task ConfirmedRayHitConsumesShellBeforeTheNextPhysicsStep(string prototype, float speed)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false, Dirty = true });
@@ -116,10 +121,14 @@ public sealed class WFShipShieldMovingProjectileTest
             physics.SetLinearVelocity(projectileUid, new Vector2(speed, 0f));
             physics.WakeBody(projectileUid);
 
+            var expectedDamage = (float) projectile.Damage.GetTotal();
+            if (entities.TryGetComponent<ExplosiveComponent>(projectileUid, out var explosive))
+                expectedDamage += explosive.TotalIntensity * (float) server.ResolveDependency<IPrototypeManager>()
+                    .Index(explosive.ExplosionType).DamagePerIntensity.GetTotal();
             entities.System<ProjectileSystem>().Update(1f / 30f);
 
             Assert.That(projectile.ProjectileSpent, Is.True, "A confirmed shield ray hit must not depend on a later physics contact.");
-            Assert.That(emitter.Damage, Is.EqualTo((float)projectile.Damage.GetTotal()));
+            Assert.That(emitter.Damage, Is.EqualTo(expectedDamage).Within(0.01f));
 
             physics.SetCanCollide(shieldUid, false);
             var offlineShot = entities.SpawnEntity(prototype, start);
@@ -128,7 +137,7 @@ public sealed class WFShipShieldMovingProjectileTest
             entities.System<ProjectileSystem>().Update(1f / 30f);
             Assert.That(entities.GetComponent<ProjectileComponent>(offlineShot).ProjectileSpent, Is.False,
                 "A non-collidable offline shield must not intercept a swept shot.");
-            Assert.That(emitter.Damage, Is.EqualTo((float)projectile.Damage.GetTotal()));
+            Assert.That(emitter.Damage, Is.EqualTo(expectedDamage).Within(0.01f));
         });
         await pair.RunTicksSync(1);
         await pair.CleanReturnAsync();

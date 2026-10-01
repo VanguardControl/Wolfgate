@@ -45,7 +45,10 @@ public partial class ShipShieldsSystem
         if (TryComp<EmpOnTriggerComponent>(args.Deflected, out var emp))
         {
             component.Damage += Math.Clamp(emp.EnergyConsumption, 0f, MAX_EMP_DAMAGE);
-            _trigger.Trigger(args.Deflected);
+            // WOLFGATE(ShipShields) START: preserve the EMP while absorbing explosive and spawn payloads
+            // _trigger.Trigger(args.Deflected);
+            PulseWolfgateAbsorbedEmp(args.Deflected, emp);
+            // WOLFGATE END
         }
 
         if (TryComp<ExplosiveComponent>(args.Deflected, out var exp) && _prototypeManager.TryIndex(exp.ExplosionType, out var type))
