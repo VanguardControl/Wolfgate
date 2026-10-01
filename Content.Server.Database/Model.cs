@@ -522,6 +522,12 @@ namespace Content.Server.Database
         public List<ProfileItem> Items { get; } = [];
         // Mono end
 
+        // WOLFGATE(Headshot): image URL shown on examine, empty when unused.
+        [Column("headshot_url")] public string HeadshotUrl { get; set; } = "";
+
+        // WOLFGATE(Species): saves the Mismatched parts option (every species' markings, hair and facial hair)
+        [Column("mismatched_parts")] public bool MismatchedParts { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

@@ -968,6 +968,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("TEXT")
                         .HasColumnName("hair_name");
 
+                    b.Property<string>("HeadshotUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("headshot_url");
+
                     b.Property<float>("Height")
                         .HasColumnType("REAL")
                         .HasColumnName("height");
@@ -980,6 +985,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.Property<byte[]>("Markings")
                         .HasColumnType("jsonb")
                         .HasColumnName("markings");
+
+                    b.Property<bool>("MismatchedParts")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("mismatched_parts");
 
                     b.Property<int>("PreferenceId")
                         .HasColumnType("INTEGER")

@@ -526,3 +526,225 @@ Entries:
   id: 100048
   time: '2026-09-27T17:52:18.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/106
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Cargo turn-in chutes no longer buy trade crates bought on the same
+        station, so the Caelestinus trade goods vendors can't be flipped at the
+        chute across the room. Haul them somewhere else.
+    - type: Fix
+      message: >-
+        Trade goods vendors no longer give out free crates when their eject wire
+        is pulsed or they are wrecked.
+  id: 100049
+  time: '2026-09-27T22:54:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/109
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Gyroscopes now throw shrapnel instead of an actual explosion.
+  id: 100050
+  time: '2026-09-27T22:54:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/108
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: You can now set who can access your ship.
+    - type: Add
+      message: Ships now come restricted to the owner by default.
+    - type: Add
+      message: You can codelock certain doors on your ship.
+    - type: Tweak
+      message: >-
+        Ship doors use the normal airlock access system, so they deny, get
+        hacked and get emagged like any airlock.
+  id: 100051
+  time: '2026-09-28T05:02:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/94
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: MMC cash bounties give far less MIC's
+  id: 100052
+  time: '2026-09-28T19:31:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/111
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: Character headshots!
+  id: 100053
+  time: '2026-09-28T20:22:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/85
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Admins can now offer mobs to ghosts!
+  id: 100054
+  time: '2026-09-29T05:29:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/114
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Chimera's now drop your body once killed.
+    - type: Fix
+      message: >-
+        You can now tab to the chimera radio chat, and it's told to you (+
+        message)
+  id: 100055
+  time: '2026-09-29T05:29:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/113
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Ported RMC's roadmap and added our roadmap to it.
+  id: 100056
+  time: '2026-09-29T06:02:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/115
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Bluespace event grids no longer cause as much stutter when they spawn
+        and despawn.
+    - type: Fix
+      message: Stinger and other projectile grenades no longer cause lag spikes.
+    - type: Fix
+      message: >-
+        Atmos monitoring consoles no longer slow the server down over long
+        rounds as pipes are built and removed.
+    - type: Tweak
+      message: Radiators and other atmos devices check for walls more cheaply.
+    - type: Tweak
+      message: NPC pathfinding updates faster when grids change.
+  id: 100057
+  time: '2026-09-29T06:02:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/117
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Avali can preen collectible, wearable feathers that preserve their color
+        and DNA and work as quills.
+    - type: Add
+      message: >-
+        Injuries can tear out bloody Avali feathers, briefly suppressing injury
+        slowdown.
+  id: 100058
+  time: '2026-09-29T17:53:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/119
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now mis-match your appearance to unlock further(possibly
+        incompatible) appearance options(Starting with hair/beard being allowed
+        on ALL species with this toggled)
+  id: 100059
+  time: '2026-09-29T18:51:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/118
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The bus, arrivals and evac shuttles actually jump when they dock.
+    - type: Fix
+      message: The bus announces its departures and arrivals again.
+  id: 100060
+  time: '2026-09-29T20:06:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/126
+- author: Erol509
+  changes:
+    - type: Add
+      message: >-
+        Added 13 Synthetic Lizard snout marking options, including long, thick,
+        layered, tertiary, and barless variants.
+  id: 100061
+  time: '2026-09-29T21:58:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/120
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now select mismatched species parts to make anything you want
+        with species. It's under appearance.
+    - type: Add
+      message: >-
+        Eye markings have their own category, so you can wear a left and a right
+        eye (Shadekin, Moth and more) alongside your face markings.
+    - type: Add
+      message: Colour pickers have hue, saturation and value fields.
+  id: 100062
+  time: '2026-09-30T01:02:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/127
+- author: Aphast
+  changes:
+    - type: Add
+      message: >-
+        Shadekin short hair, shadekin dual color ears, shadekin dual color big
+        tail, generic neckfur, and fae fox ears alt variant
+    - type: Fix
+      message: Minor sprite error with fae fox ears
+  id: 100063
+  time: '2026-09-30T16:18:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/129
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Only insurgency will be available below 20 pop.
+  id: 100064
+  time: '2026-10-01T01:44:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/134
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Shields have different animations and effects.
+    - type: Add
+      message: >-
+        Shield shunting, you can now direct your shield towards a certain
+        direction for better protection. See shield tab.
+  id: 100065
+  time: '2026-10-01T01:50:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/131
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Borers no longer take control of their host when removed.
+  id: 100066
+  time: '2026-10-01T01:50:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/133
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Engine version bumped to 277.2.1
+  id: 100067
+  time: '2026-10-01T02:10:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/116
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Buttons with access requirements now actually respect the access
+        requirements.
+    - type: Tweak
+      message: >-
+        A card with access now presses a locked button directly, and the button
+        stays locked.
+    - type: Tweak
+      message: >-
+        Lockable buttons on a ship follow ship access, so your crew can use
+        them.
+    - type: Tweak
+      message: >-
+        Crew on a ship's access list keep their access while the ship is
+        unlocked.
+    - type: Add
+      message: The Access tab can set every door on the ship to one rule at once.
+    - type: Fix
+      message: ERT teams can open the doors of their own faction ship.
+    - type: Tweak
+      message: >-
+        An ERT's ship locks itself once the first responder is aboard, and
+        responders always get an ID card.
+  id: 100068
+  time: '2026-10-01T06:18:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/136

@@ -228,15 +228,16 @@ public struct AtmosMonitoringConsoleEntry
     }
 }
 
+// WOLFGATE(Performance): wizden#38974, subnets carry a Color
 /// <summary>
 /// Used to group atmos pipe chunks into subnets based on their properties and
 /// improve the efficiency of rendering these chunks on the atmos monitoring console.
 /// </summary>
 /// <param name="NetId">The associated network ID.</param>
 /// <param name="PipeLayer">The associated pipe layer.</param>
-/// <param name="HexCode">The color of the pipe.</param>
+/// <param name="Color">The color of the pipe.</param>
 [Serializable, NetSerializable]
-public record AtmosMonitoringConsoleSubnet(int NetId, AtmosPipeLayer PipeLayer, string HexCode);
+public record AtmosMonitoringConsoleSubnet(int NetId, AtmosPipeLayer PipeLayer, Color Color); // WOLFGATE(Performance): wizden#38974, was string HexCode
 
 public enum AtmosPipeChunkDataFacing : byte
 {
