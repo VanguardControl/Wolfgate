@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Tests.Interaction;
+using System.Text;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Server.NPC.HTN;
+using Content.Server.NPC.Systems;
+using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
@@ -84,12 +88,12 @@ public sealed class WFCrewTest : InteractionTest
         });
 
         await WaitUntil(() => hands.TryGetActiveItem(crew, out var held) && SEntMan.HasComponent<GunComponent>(held.Value),
-            300, "A deckhand should draw its sidearm for a hostile in view.");
+            300, () => $"A deckhand should draw its sidearm for a hostile in view. {Describe(crew)}");
 
         await Server.WaitPost(() => SEntMan.DeleteEntity(hostile));
 
         await WaitUntil(() => !hands.TryGetActiveItem(crew, out _) && Holstered(crew),
-            600, "A deckhand should holster once the hostile is gone.");
+            600, () => $"A deckhand should holster once the hostile is gone. {Describe(crew)}");
 
         bool Holstered(EntityUid uid)
         {
@@ -164,7 +168,7 @@ public sealed class WFCrewTest : InteractionTest
         }
     }
 
-    private async Task WaitUntil(Func<bool> condition, int maxTicks, string message)
+    private async Task WaitUntil(Func<bool> condition, int maxTicks, Func<string> message)
     {
         var met = false;
         for (var waited = 0; waited < maxTicks && !met; waited += 10)
@@ -173,6 +177,29 @@ public sealed class WFCrewTest : InteractionTest
             await Server.WaitPost(() => met = condition());
         }
 
-        Assert.That(met, message);
+        if (met)
+            return;
+
+        var text = string.Empty;
+        await Server.WaitPost(() => text = message());
+        Assert.Fail(text);
+    }
+
+    /// <summary>What the crewman's AI is doing, for failure messages.</summary>
+    private string Describe(EntityUid crew)
+    {
+        var npc = Server.System<NPCSystem>();
+        var factions = Server.System<NpcFactionSystem>();
+        var hands = Server.System<SharedHandsSystem>();
+        var htn = SEntMan.GetComponent<HTNComponent>(crew);
+        var sb = new StringBuilder();
+        sb.Append($"awake={npc.IsAwake(crew, htn)} ");
+        sb.Append($"plan={(htn.Plan == null ? "none" : htn.Plan.CurrentOperator.GetType().Name)} ");
+        sb.Append($"target={(htn.Blackboard.TryGetValue<EntityUid>("Target", out var target, SEntMan) ? target.ToString() : "none")} ");
+        sb.Append($"hostiles={factions.GetNearbyHostiles(crew, 10f).Count()} ");
+        sb.Append($"held={(hands.TryGetActiveItem(crew, out var held) ? SEntMan.ToPrettyString(held.Value).ToString() : "nothing")} ");
+        var weapon = SEntMan.GetComponent<WFCrewWeaponComponent>(crew);
+        sb.Append($"drawn={weapon.Drawn} slot={weapon.HolsterSlot ?? "-"}");
+        return sb.ToString();
     }
 }
