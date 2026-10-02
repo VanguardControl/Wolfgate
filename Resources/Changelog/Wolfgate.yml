@@ -1013,3 +1013,30 @@ Entries:
   id: 100075
   time: '2026-10-01T19:28:54.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/32
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Shields now respect FTL cooldown again
+  id: 100076
+  time: '2026-10-02T00:39:43.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/144
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Caelestinus Central has received a substantial investment in their
+        medical department and has refurnished accordingly. The engineering
+        company is not liable for the damaged cryotube.
+  id: 100077
+  time: '2026-10-02T03:19:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/145
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Subtle emote. You can now use the subtle emote which only sends to those
+        within 1.5 tiles of your character and isn't visible to ghosts. Access
+        it via rightclick or /subtle in chat.
+  id: 100078
+  time: '2026-10-02T04:09:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/146
