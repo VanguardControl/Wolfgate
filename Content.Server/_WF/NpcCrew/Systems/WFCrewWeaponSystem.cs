@@ -44,22 +44,21 @@ public sealed class WFCrewWeaponSystem : EntitySystem
         if (!FindBest(uid, out var item, out var slot))
             return false;
 
-        if (!_hands.TrySelectEmptyHand(uid))
-            return false;
-
-        // Straight out of the slot into the hand when the containers allow it; otherwise unequip first.
-        if (!_hands.TryPickup(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
+        // Straight out of the slot into any free hand when the containers allow it; otherwise unequip first.
+        if (!_hands.TryPickupAnyHand(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
         {
             if (!_inventory.TryUnequip(uid, slot, silent: true, force: true))
                 return false;
 
-            if (!_hands.TryPickup(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
+            if (!_hands.TryPickupAnyHand(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
             {
                 _inventory.TryEquip(uid, item.Value, slot, silent: true, force: true);
                 return false;
             }
         }
 
+        // The combat compounds shoot with the active hand.
+        _hands.TrySelect(uid, item.Value);
         weapon.Drawn = item;
         weapon.HolsterSlot = slot;
         return true;
