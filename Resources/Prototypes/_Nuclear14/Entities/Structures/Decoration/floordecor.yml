@@ -430,10 +430,10 @@
     state: pallet_stack
     netsync: false
     noRot: true
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactWood
+        collection: WFBulletImpactWood # WOLFGATE(Weapons)
   - type: Transform
     anchored: true
   - type: Physics
@@ -487,10 +487,10 @@
   components:
   - type: Sprite
     state: brickpile
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactConcrete
+        collection: WFBulletImpactConcrete # WOLFGATE(Weapons)
   - type: Destructible
     thresholds:
     - trigger:

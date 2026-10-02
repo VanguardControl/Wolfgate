@@ -87,10 +87,10 @@
   id: WallConcrete
   name: concrete wall
   components:
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactConcrete
+        collection: WFBulletImpactConcrete # WOLFGATE(Weapons)
   - type: Sprite
     sprite: Structures/Walls/concrete.rsi
   - type: Icon
@@ -136,10 +136,10 @@
     price: 110 # Mono
   - type: ArmorThickness
     canBePierced: false
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactConcrete
+        collection: WFBulletImpactConcrete # WOLFGATE(Weapons)
 
 - type: entity
   parent: BaseWallTierTwo # Mono

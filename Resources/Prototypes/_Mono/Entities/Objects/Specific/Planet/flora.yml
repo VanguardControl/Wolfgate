@@ -145,10 +145,10 @@
   components:
   - type: SpriteFade
   - type: Drain
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactWood
+        collection: WFBulletImpactWood # WOLFGATE(Weapons)
   - type: Flammable
     fireSpread: true
     firestackFade: 0.5
@@ -235,10 +235,10 @@
   components:
   - type: SpriteFade
   - type: Drain
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactWood
+        collection: WFBulletImpactWood # WOLFGATE(Weapons)
   - type: Flammable
     fireSpread: true
     firestackFade: 0.5
@@ -306,10 +306,10 @@
   components:
   - type: SpriteFade
   - type: Drain
-  - type: RangedDamageSound # WOLFGATE - material bullet impacts
+  - type: RangedDamageSound # WOLFGATE(Weapons): material bullet impacts
     soundGroups:
       Brute:
-        collection: WolfgateBulletImpactWood
+        collection: WFBulletImpactWood # WOLFGATE(Weapons)
   - type: Flammable
     fireSpread: true
     firestackFade: 0.5
