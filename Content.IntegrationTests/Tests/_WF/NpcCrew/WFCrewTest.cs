@@ -27,38 +27,22 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 [TestOf(typeof(WFCrewSystem))]
 public sealed class WFCrewTest : InteractionTest
 {
-    private const string Deckhand = "WFTestCrewDeckhand";
+    private const string Deckhand = "WFMobCrewDeckhand";
     private const string Hostile = "WFTestHostileMob";
     private const string Helm = "ComputerShuttle";
     private const string Dock = "AirlockShuttle";
 
+    // A monster-faction human: the stock crew faction is hostile to SimpleHostile, so the deckhand fights it. Test
+    // prototypes load after the faction system cached its table, so the factions themselves have to be real ones.
     [TestPrototypes]
     private const string Prototypes = @"
-- type: npcFaction
-  id: WFTestCrew
-  hostile:
-  - WFTestHostile
-
-- type: npcFaction
-  id: WFTestHostile
-  hostile:
-  - WFTestCrew
-
-- type: entity
-  parent: WFMobCrewDeckhand
-  id: WFTestCrewDeckhand
-  components:
-  - type: NpcFactionMember
-    factions:
-    - WFTestCrew
-
 - type: entity
   parent: BaseMobHuman
   id: WFTestHostileMob
   components:
   - type: NpcFactionMember
     factions:
-    - WFTestHostile
+    - SimpleHostile
 ";
 
     /// <summary>
