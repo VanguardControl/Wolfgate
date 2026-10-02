@@ -66,7 +66,7 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
 |---|---|---|
 | Crew core | `Systems/WFCrewSystem.cs`, `Components/WFCrewComponent.cs`, `WFCrewEvents.cs`, `Content.Shared/_WF/NpcCrew/*` | `WFCrewComponent` (Role, Duty, Engagement, Group, Post, PostRange) mirrored to blackboard keys `WFCrewDuty`, `WFCrewPost`, `WFCrewPostRange`; role title put before the random name; `WFCrewMemberDownEvent` on crit/death. API: `SpawnCrewman(role, post, group)`, `SpawnCrew(plan, group)`, `ClearGroup`, `SetDuty`, `SetPost`, `SetEngagement`, `Apply`. `WFCrewRolePrototype` (`wfCrewRole`: mob, duty, engagement, title, order, extra `components`). |
 | Weapons | `Systems/WFCrewWeaponSystem.cs`, `HTN/WFDrawWeaponOperator.cs`, `HTN/WFHolsterWeaponOperator.cs`, `Components/WFCrewWeaponComponent.cs` | Draws the best weapon from equipment slots (back, suitstorage, belt, pockets; longarm > sidearm > melee) into any free hand and selects it; holsters it back into the slot it came from. Weapons never live in bags. No reload yet. |
-| Engagement | `HTN/WFCrewMayFightPrecondition.cs` | `OnSight` crew may always fight (the combat compounds still need a target); `WhenAttacked` crew only while `NPCRetaliationComponent.AttackMemories` holds an unexpired entry. **Broken in practice, see gaps.** |
+| Engagement | `HTN/WFCrewMayFightPrecondition.cs` | `OnSight` crew may always fight (the combat compounds still need a target); `WhenAttacked` crew only while `NPCRetaliationComponent.AttackMemories` holds an unexpired entry. The crew core also feeds upstream retaliation from `BeforeDamageChangedEvent`, before Wolfmed loses the origin. |
 | Planner | `Systems/WFCrewPlannerSystem.cs` | `Plan(grid, deckhands)`: `WFCrewSpawnPoint` markers win; else a Pilot beside the helm, a RadioOperator beside that, a Deckhand on the first free tile inside each airlock (dock outward normal = local rotation applied to (0,-1)), the rest on the most open deck tiles kept 3 apart. Returns `WFCrewPost(Coordinates, Role, Kind)`. |
 | Pilot duty | `Systems/WFPilotDutySystem.cs`, `Components/WFPilotDutyComponent.cs`, `HTN/WFPickHelmOperator.cs`, `HTN/WFTakeHelmOperator.cs`, `Content.Shared/_WF/NpcCrew/WFPilotOrder.cs` | Walks to the assigned or nearest powered `ShuttleConsoleComponent`, `EnsureComp<PilotComponent>` + `ShuttleConsoleSystem.AddPilot`, then flies with Mono's `ShipSteeringSystem.Steer(mob, coords)` (`Content.Server/_Mono/NPC/HTN/`). Orders `Hold`, `GoTo(waypoints)`, `Loiter(center, radius)`, `Follow(grid, range)`; waypoints advance in `Update`, not in the HTN, so unattended ships keep flying. The helm is kept while the HTN sleeps (no player within 32 tiles) and released when the pilot dies, is displaced, the console loses power, or the HTN wakes into a plan without the helm. Upstream does not drop pilots on power loss; this system checks power itself. Hold counts as arrived under 0.5 m/s. Events: `WFHelmTakenEvent`, `WFHelmReleasedEvent`, `WFPilotOrdersChangedEvent`, `WFPilotOrdersCompletedEvent`. |
 | Docking | `Systems/WFPilotDutySystem.Docking.cs` | `Dock(target)` / `Undock()`. Phases Plan → Approach (standoff 40 m along the target port's normal, avoidance on) → Settle (brake) → Creep (avoidance off, heading held, 1.5 m/s) → `DockingSystem.Dock` the tick `CanDock` holds. `TryPlanDock(grid, target, standoff, out WFDockPlan)` tries every dock pair from `DockingSystem.GetDockingConfig`, nearest standoff first. Abort on timeout or collision, three attempts, then hold and `WFPilotDockFailedEvent`; `WFPilotDockedEvent` on success. Cvar `wf.crew.dock_ftl_fallback` (default false) uses the docking config plus `FTLDock` instead of giving up. **Hand-flown docking is untested in game: the test decks have no thrusters.** |
@@ -77,12 +77,14 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
 
 ## Known gaps and bugs, in the order to fix them
 
-1. **Retaliation never fires on human crew.** A hit with an origin leaves `NPCRetaliationComponent.AttackMemories`
-   empty (Wolfmed body-part damage, same root cause as the radio officer's hook), so `WFCrewMayFightPrecondition`
-   is never true for `WhenAttacked` crew: pilots, radio officers and captains never fight back. Fix: hook
-   `BeforeDamageChangedEvent` (or whatever the radio officer uses; copy it) on `WFCrewComponent`, record attacker and
-   expiry on our own component, `NpcFactionSystem.AggroEntity(mob, attacker)`, and have the precondition read that.
-   Add a test: hit a pilot, assert he leaves the helm and draws.
+1. **Retaliation fixed and verified (2026-10-02).** `WFCrewSystem` subscribes to `BeforeDamageChangedEvent` on
+   `NPCRetaliationComponent`, limited to crew, and calls upstream `TryRetaliate`. This reuses faction checks,
+   attack memory and expiry cleanup instead of adding a second memory store. The radio keeps its existing
+   subscription on `WFCrewComponent`. `PilotRetaliatesAfterBodyDamage` checks that a nearby hostile does not
+   interrupt piloting, a body hit releases the helm and draws, and removing the attacker restores duty.
+   Debug integration build: 0 errors; all 8 `WFCrewTest` cases passed. Module `--write`, `--check` and
+   `--pr-check origin/main` passed. No prototype or Client/Shared changes in this fix; no new live-client
+   or thrustered-docking validation. Next implementation task is crew alert below.
 2. **Crew alert** (design.md section 5): once a second per group, when one `OnSight` member has a `Target`, give every
    other `OnSight` member `AggroEntity`, raise its `AggroVisionRadius` blackboard key to cover the ship, and
    `HTNSystem.Replan`; decay 60 s after the last target. `WhenAttacked` members are skipped.
