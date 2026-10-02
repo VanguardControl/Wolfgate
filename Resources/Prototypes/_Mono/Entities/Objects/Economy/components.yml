@@ -569,6 +569,9 @@
 #    repeating: true
 #  - type: StaticPrice
 #    price: 1200
+  # WOLFGATE: Monolith#4805 commented the price out with the flash, leaving 300 for a good made from 1800
+  - type: StaticPrice
+    price: 1200
 
 # end camera
 
