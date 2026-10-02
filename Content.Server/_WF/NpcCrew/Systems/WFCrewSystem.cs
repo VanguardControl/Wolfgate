@@ -72,6 +72,7 @@ public sealed class WFCrewSystem : EntitySystem
         }
 
         var uid = Spawn(role.Mob, post);
+        EntityManager.AddComponents(uid, role.Components);
         var crew = EnsureComp<WFCrewComponent>(uid);
         crew.Role = roleId;
         crew.Duty = role.Duty;

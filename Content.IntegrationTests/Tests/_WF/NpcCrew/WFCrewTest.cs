@@ -9,18 +9,23 @@ using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Gravity;
 using Content.Server.NPC.HTN;
+using Content.Server.Damage.Systems;
 using Content.Server.NPC.Systems;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.CCVar;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Radio.Components;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.GameObjects;
@@ -33,8 +38,9 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 /// <summary>
 /// NPC crew: a deckhand draws its holstered sidearm for a hostile and holsters it once the hostile is gone, the
 /// planner puts a pilot at the helm, a radio officer beside it, a deckhand inside the airlock and the rest on deck, a
-/// pilot takes the helm, steers for his orders and lets go when he dies, and a pilot's docking plan mates the docks
-/// and falls back to an FTL dock when the server allows it.
+/// pilot takes the helm, steers for his orders and lets go when he dies, a pilot's docking plan mates the docks and
+/// falls back to an FTL dock when the server allows it, and a radio officer reports docking, attacks, boarders and the
+/// captain going down, once each, and nothing once he is dead.
 /// </summary>
 [TestOf(typeof(WFCrewSystem))]
 public sealed class WFCrewTest : InteractionTest
@@ -298,6 +304,160 @@ public sealed class WFCrewTest : InteractionTest
         {
             await Server.WaitPost(() => Server.CfgMan.SetCVar(NpcCrewCVars.DockFtlFallback, false));
         }
+    }
+
+    /// <summary>
+    /// A radio officer whose ship docks with another says so once on Shortband, with the callsign (his grid's name)
+    /// and the station's name.
+    /// </summary>
+    [Test]
+    public async Task RadioOperatorReportsDocking()
+    {
+        var crewSystem = Server.System<WFCrewSystem>();
+        var docking = Server.System<DockingSystem>();
+        var shuttles = Server.System<ShuttleSystem>();
+        var meta = Server.System<MetaDataSystem>();
+        var (deck, target, _, _) = await CreateDockingPair(gravity: true);
+
+        EntityUid radio = default;
+        await Server.WaitPost(() =>
+        {
+            meta.SetEntityName(deck, "WF Test Freighter");
+            meta.SetEntityName(target, "WF Test Station");
+            SEntMan.EnsureComponent<ShuttleComponent>(deck);
+            radio = crewSystem.SpawnCrewman(WFCrewRoles.RadioOperator, new EntityCoordinates(deck, new Vector2(3.5f, 3.5f)), "test")!.Value;
+        });
+        await RunTicks(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.HasComponent<WFRadioOperatorComponent>(radio), "The radio officer role adds the radio duty.");
+            Assert.That(SEntMan.HasComponent<TelecomExemptComponent>(radio), "The radio officer carries his own radio set.");
+            Assert.That(Sent(radio), Is.Empty, "Nothing has happened yet.");
+        });
+
+        // Put the decks together the way an FTL dock does: no jump, just the move and the docking.
+        await Server.WaitPost(() =>
+        {
+            var config = docking.GetDockingConfig(deck, target);
+            Assert.That(config, Is.Not.Null, "The decks' docks should fit.");
+            shuttles.FTLDock((deck, SEntMan.GetComponent<TransformComponent>(deck)), config!);
+        });
+
+        await WaitUntil(() => Sent(radio).Count > 0, 300, () => "The radio officer should report docking.");
+        await RunTicks(60);
+
+        await Server.WaitAssertion(() =>
+        {
+            var sent = Sent(radio);
+            Assert.That(sent, Has.Count.EqualTo(1), $"One line for one docking: {Describe(sent)}");
+            Assert.That(sent[0].Line, Is.EqualTo(WFRadioLine.Docking), "It is the docking line.");
+            Assert.That(sent[0].Channel.Id, Is.EqualTo("Traffic"), "Docking is local traffic, on Shortband.");
+            Assert.That(sent[0].Text, Does.Contain("WF Test Freighter"), "The line carries the callsign.");
+            Assert.That(sent[0].Text, Does.Contain("WF Test Station"), "The line names the station.");
+        });
+    }
+
+    /// <summary>
+    /// A captain hit by a hostile on another ship gets one mayday on Broadband naming that ship, however often he is
+    /// hit; the hostile coming aboard gets one boarding call; the captain dying gets one line; and once the radio officer
+    /// is dead, another crewman hit and killed gets nothing.
+    /// </summary>
+    [Test]
+    public async Task RadioOperatorMaydayThenCaptainDownThenSilence()
+    {
+        var crewSystem = Server.System<WFCrewSystem>();
+        var damageable = Server.System<DamageableSystem>();
+        var mobState = Server.System<MobStateSystem>();
+        var meta = Server.System<MetaDataSystem>();
+        var xforms = Server.System<SharedTransformSystem>();
+        var blunt = new DamageSpecifier(ProtoMan.Index<DamageTypePrototype>("Blunt"), 10);
+
+        var deck = await CreateDeck(new Vector2(6f, 0f), 9, gravity: true);
+        var raider = await CreateDeck(new Vector2(6f, 12f), 3, gravity: true);
+        EntityUid radio = default;
+        EntityUid captain = default;
+        EntityUid pilot = default;
+        EntityUid hostile = default;
+        await Server.WaitPost(() =>
+        {
+            meta.SetEntityName(deck, "WF Test Freighter");
+            meta.SetEntityName(raider, "WF Test Raider");
+            radio = crewSystem.SpawnCrewman(WFCrewRoles.RadioOperator, new EntityCoordinates(deck, new Vector2(2.5f, 2.5f)), "test")!.Value;
+            captain = crewSystem.SpawnCrewman(WFCrewRoles.Captain, new EntityCoordinates(deck, new Vector2(4.5f, 6.5f)), "test")!.Value;
+            pilot = crewSystem.SpawnCrewman(WFCrewRoles.Pilot, new EntityCoordinates(deck, new Vector2(2.5f, 4.5f)), "test")!.Value;
+            hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(raider, new Vector2(1.5f, 1.5f)));
+            // The captain shoots back; the hostile has to live to come aboard.
+            Server.System<GodmodeSystem>().EnableGodmode(hostile);
+        });
+        await RunTicks(70);
+
+        await Server.WaitAssertion(() =>
+            Assert.That(Sent(radio), Is.Empty, $"A hostile on his own ship is nobody's business yet: {Describe(Sent(radio))}"));
+
+        await Server.WaitPost(() => damageable.TryChangeDamage(captain, blunt, origin: hostile));
+        await WaitUntil(() => Count(radio, WFRadioLine.Mayday) == 1, 120,
+            () => $"A crewman hit from another ship should get a mayday: {Describe(Sent(radio))}");
+
+        await Server.WaitAssertion(() =>
+        {
+            var mayday = Sent(radio).Single(t => t.Line == WFRadioLine.Mayday);
+            Assert.That(mayday.Channel.Id, Is.EqualTo("Common"), "The mayday goes out on Broadband.");
+            Assert.That(mayday.Text, Does.Contain("WF Test Freighter"), "The mayday carries the callsign.");
+            Assert.That(mayday.Text, Does.Contain("WF Test Raider"), "The mayday names the hostile vessel.");
+            Assert.That(Count(radio, WFRadioLine.Boarded), Is.Zero, "Nobody is aboard yet.");
+        });
+
+        await Server.WaitPost(() => damageable.TryChangeDamage(captain, blunt, origin: hostile));
+        await RunTicks(70);
+        await Server.WaitAssertion(() =>
+            Assert.That(Count(radio, WFRadioLine.Mayday), Is.EqualTo(1), "One mayday per attack, however many hits."));
+
+        await Server.WaitPost(() => xforms.SetCoordinates(hostile, new EntityCoordinates(deck, new Vector2(7.5f, 2.5f))));
+        await WaitUntil(() => Count(radio, WFRadioLine.Boarded) == 1, 120,
+            () => $"A hostile aboard should get the boarding call: {Describe(Sent(radio))}");
+
+        await Server.WaitPost(() => mobState.ChangeMobState(captain, MobState.Dead));
+        await WaitUntil(() => Count(radio, WFRadioLine.CaptainDown) == 1, 120,
+            () => $"The captain dying should be reported: {Describe(Sent(radio))}");
+        await RunTicks(70);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(Count(radio, WFRadioLine.CaptainDown), Is.EqualTo(1), "One line for the captain.");
+            Assert.That(Count(radio, WFRadioLine.Boarded), Is.EqualTo(1), "One boarding call per attack.");
+            Assert.That(Count(radio, WFRadioLine.Mayday), Is.EqualTo(1), "Still one mayday.");
+            Assert.That(Sent(radio).Where(t => t.Line != WFRadioLine.Mayday).All(t => t.Channel.Id == "Common"),
+                "Alerts go out on Broadband.");
+        });
+
+        var before = 0;
+        await Server.WaitPost(() =>
+        {
+            mobState.ChangeMobState(radio, MobState.Dead);
+            before = Sent(radio).Count;
+            damageable.TryChangeDamage(pilot, blunt, origin: hostile);
+            mobState.ChangeMobState(pilot, MobState.Dead);
+        });
+        await RunTicks(70);
+
+        await Server.WaitAssertion(() =>
+            Assert.That(Sent(radio), Has.Count.EqualTo(before), $"A dead radio officer says nothing: {Describe(Sent(radio))}"));
+    }
+
+    private List<WFRadioTransmission> Sent(EntityUid radio)
+    {
+        return SEntMan.GetComponent<WFRadioOperatorComponent>(radio).Sent;
+    }
+
+    private int Count(EntityUid radio, WFRadioLine line)
+    {
+        return Sent(radio).Count(t => t.Line == line);
+    }
+
+    private static string Describe(List<WFRadioTransmission> sent)
+    {
+        return sent.Count == 0 ? "nothing sent" : string.Join(" | ", sent.Select(t => $"{t.Line}@{t.Channel.Id}: {t.Text}"));
     }
 
     /// <summary>
