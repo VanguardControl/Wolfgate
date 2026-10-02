@@ -177,7 +177,9 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 - [`Content.Shared/Weapons/Ranged/Components/GunComponent.cs`](../../../Content.Shared/Weapons/Ranged/Components/GunComponent.cs): predicted recoil
 - [`Content.Shared/Weapons/Ranged/Events/RequestShootEvent.cs`](../../../Content.Shared/Weapons/Ranged/Events/RequestShootEvent.cs): predicted shot effects
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs): one path for both sides that links predicted projectiles
+- [`Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml): material bullet impacts
 - [`Resources/Prototypes/_Mono/Loadouts/Contractor/gun.yml`](../../../Resources/Prototypes/_Mono/Loadouts/Contractor/gun.yml)
+- [`Resources/Prototypes/_Nuclear14/Entities/Structures/Decoration/floordecor.yml`](../../../Resources/Prototypes/_Nuclear14/Entities/Structures/Decoration/floordecor.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Mobs/base.yml`](../../../Resources/Prototypes/Entities/Mobs/base.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml): untagged targets sound like metal
 - [`Resources/Prototypes/Entities/Structures/barricades.yml`](../../../Resources/Prototypes/Entities/Structures/barricades.yml): material bullet impacts
