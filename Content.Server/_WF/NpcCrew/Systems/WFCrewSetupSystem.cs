@@ -7,10 +7,8 @@ using Content.Shared._Mono.Company;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Administration;
-using Content.Shared.Maps;
 using Content.Shared.NPC.Prototypes;
 using Content.Shared.NPC.Systems;
-using Content.Shared.Physics;
 using Content.Shared.Radio;
 using Content.Shared.Roles;
 using Content.Shared.Verbs;
@@ -33,7 +31,6 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _maps = default!;
-    [Dependency] private TurfSystem _turf = default!;
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
 
     public override void Initialize()
@@ -85,8 +82,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
                 return false;
             var coordinates = new EntityCoordinates(grid, post.Position);
             var tile = _maps.TileIndicesFor(grid, map, coordinates);
-            if (!_maps.TryGetTileRef(grid, map, tile, out var turf) || turf.Tile.IsEmpty
-                || _turf.IsTileBlocked(grid, tile, CollisionGroup.MobMask, map))
+            if (!_planner.IsSafePost(grid, tile, map))
                 return false;
         }
         return true;
@@ -214,7 +210,11 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         else if (request.Grid is { } net && TryGetEntity(net, out var found) && found is { } grid && HasComp<MapGridComponent>(grid))
         {
             if (request.Action == WFCrewSetupAction.Plan)
+            {
                 response.Posts = Plan(grid, request.Deckhands, request.Captain);
+                if (response.Posts.Count == 0)
+                    response.Message = Loc.GetString("wf-crew-setup-no-safe-posts");
+            }
             else if (request.Action == WFCrewSetupAction.Clear)
             {
                 var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();

@@ -6,10 +6,14 @@ using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.NPC.HTN;
+using Content.Server.Atmos.Components;
+using Content.Server.Atmos.EntitySystems;
+using Content.Shared.Atmos;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Inventory;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 
 namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
@@ -63,9 +67,11 @@ public sealed partial class WFCrewTest
     [Test]
     public async Task CrewSetupValidatesAndSpawnsMission()
     {
+        await AddAtmosphere();
         var deck = await CreateDeck(new Vector2(6, 0), 7, gravity: true);
         await Server.WaitAssertion(() =>
         {
+            FillCrewTestAir(deck);
             var setup = Server.System<WFCrewSetupSystem>();
             var mission = new WFCrewMission { Group = "setup", Callsign = "Test crew", Order = WFPilotOrder.GoTo,
                 Destination = new Vector2(100, 100) };
@@ -95,5 +101,58 @@ public sealed partial class WFCrewTest
             Assert.That(setup.TryApplyMission(deck, mission), Is.False);
             Assert.That(pilot.Orders, Is.EqualTo(WFPilotOrder.Hold));
         });
+    }
+
+    /// <summary>Planning and edited rosters both reject vacuum, oxygen-free, hot and contaminated tiles.</summary>
+    [Test]
+    public async Task CrewSetupRejectsUnsafeAir()
+    {
+        await AddAtmosphere();
+        var deck = await CreateDeck(new Vector2(6, 0), 7, gravity: true);
+        await Server.WaitAssertion(() =>
+        {
+            FillCrewTestAir(deck);
+            var planner = Server.System<WFCrewPlannerSystem>();
+            var setup = Server.System<WFCrewSetupSystem>();
+            var tile = new Vector2i(1, 1);
+            var air = Server.System<AtmosphereSystem>().GetTileMixture(deck, MapData.MapUid, tile)!.Clone();
+            var posts = new List<WFCrewSetupPost> { new() { Position = new Vector2(1.5f) } };
+            var mission = new WFCrewMission();
+            Assert.That(setup.Validate(deck, posts, mission), Is.True);
+            var nitrogen = air.Clone();
+            nitrogen.SetMoles(Gas.Nitrogen, nitrogen.TotalMoles);
+            nitrogen.SetMoles(Gas.Oxygen, 0);
+            var hot = air.Clone();
+            hot.Temperature = 500;
+            var contaminated = air.Clone();
+            contaminated.SetMoles(Gas.Plasma, 10);
+            var tiles = SEntMan.GetComponent<GridAtmosphereComponent>(deck).Tiles;
+#pragma warning disable RA0002 // Set per-tile atmosphere fixtures without simulating diffusion.
+            foreach (var unsafeAir in new[] { GasMixture.SpaceGas, nitrogen, hot, contaminated })
+            {
+                tiles[tile].Air = unsafeAir;
+                Assert.That(planner.IsSafePost(deck, tile), Is.False);
+                Assert.That(planner.Plan(deck, 32).Exists(post => post.Coordinates.Position == new Vector2(1.5f)), Is.False);
+                Assert.That(setup.TrySpawn(deck, posts, mission, out var spawned), Is.False);
+                Assert.That(spawned, Is.Empty);
+            }
+            tiles[tile].Air = air;
+#pragma warning restore RA0002
+            Assert.That(setup.Validate(deck, posts, mission), Is.True);
+        });
+    }
+
+    /// <summary>Pressurizes the procedural floor grid before synchronous spawn planning assertions.</summary>
+    private void FillCrewTestAir(EntityUid grid)
+    {
+        var air = new GasMixture(2500) { Temperature = Atmospherics.T20C };
+        air.SetMoles(Gas.Oxygen, 21.824779f);
+        air.SetMoles(Gas.Nitrogen, 82.10312f);
+        foreach (var tile in SEntMan.GetComponent<GridAtmosphereComponent>(grid).Tiles.Values)
+        {
+#pragma warning disable RA0002 // Procedural test grids start with vacuum; install the room-air fixture.
+            tile.Air = air.Clone();
+#pragma warning restore RA0002
+        }
     }
 }

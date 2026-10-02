@@ -1,5 +1,7 @@
 #nullable enable
 using System.Numerics;
+using System.Reflection;
+using Robust.Client.UserInterface.Controls;
 using Content.Client._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
@@ -43,6 +45,24 @@ public sealed partial class WFCrewTest
         {
             var window = new WFCrewSetupWindow();
             window.OpenCentered();
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var type = typeof(WFCrewSetupWindow);
+            var receive = type.GetMethod("Receive", flags)!;
+            var order = (OptionButton) type.GetField("_order", flags)!.GetValue(window)!;
+            var target = (OptionButton) type.GetField("_target", flags)!.GetValue(window)!;
+            var targetLine = (BoxContainer) type.GetField("_targetLine", flags)!.GetValue(window)!;
+            var source = new WFCrewSetupGrid(new NetEntity(101), "Ship");
+            var destination = new WFCrewSetupGrid(new NetEntity(102), "Station");
+            receive.Invoke(window, new object[] { new WFCrewSetupResponse
+                { Action = WFCrewSetupAction.List, Grids = new() { source, destination } } });
+            order.SelectId((int) WFPilotOrder.Dock);
+            type.GetMethod("UpdateOrderFields", flags)!.Invoke(window, null);
+            Assert.That(targetLine.Visible, Is.True);
+            Assert.That(target.ItemCount, Is.EqualTo(2), "Placeholder and destination; own ship is excluded.");
+            target.SelectId(1);
+            receive.Invoke(window, new object[] { new WFCrewSetupResponse
+                { Action = WFCrewSetupAction.List, Grids = new() { destination, source } } });
+            Assert.That(target.SelectedId, Is.EqualTo(0), "Selection survives a reordered grid refresh.");
             window.Close();
             window.Dispose();
         });

@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server.Atmos.EntitySystems;
+using Content.Shared.Atmos;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared._Mono.FireControl;
@@ -36,6 +38,7 @@ public sealed class WFCrewPlannerSystem : EntitySystem
 {
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
 
     /// <summary>Minimum Chebyshev distance in tiles between deck posts and anything else.</summary>
     private const int DeckSpacing = 3;
@@ -55,14 +58,18 @@ public sealed class WFCrewPlannerSystem : EntitySystem
         MapGridComponent gridComp = found;
 
         // Mapper intent wins.
+        var hasMarkers = false;
         var markers = EntityQueryEnumerator<WFCrewSpawnPointComponent, TransformComponent>();
         while (markers.MoveNext(out _, out var marker, out var xform))
         {
-            if (xform.GridUid == grid)
+            if (xform.GridUid != grid)
+                continue;
+            hasMarkers = true;
+            if (IsSafePost(grid, _map.TileIndicesFor(grid, gridComp, xform.Coordinates), gridComp))
                 posts.Add(new WFCrewPost(xform.Coordinates, marker.Role, WFCrewPostKind.Marker));
         }
 
-        if (posts.Count > 0)
+        if (hasMarkers)
             return posts;
 
         var free = FreeTiles(grid, gridComp);
@@ -146,11 +153,26 @@ public sealed class WFCrewPlannerSystem : EntitySystem
         var tiles = _map.GetAllTilesEnumerator(grid, gridComp);
         while (tiles.MoveNext(out var tile))
         {
-            if (!_turf.IsTileBlocked(grid, tile.Value.GridIndices, CollisionGroup.MobMask, gridComp))
+            if (IsSafePost(grid, tile.Value.GridIndices, gridComp))
                 free.Add(tile.Value.GridIndices);
         }
 
         return free;
+    }
+
+    /// <summary>Requires unobstructed flooring and air suitable for crew without sealed internals.</summary>
+    public bool IsSafePost(EntityUid grid, Vector2i tile, MapGridComponent? gridComp = null)
+    {
+        if (!Resolve(grid, ref gridComp) || !_map.TryGetTileRef(grid, gridComp, tile, out var turf)
+            || turf.Tile.IsEmpty || _turf.IsTileBlocked(grid, tile, CollisionGroup.MobMask, gridComp))
+            return false;
+        var air = _atmos.GetTileMixture(grid, Transform(grid).MapUid, tile);
+        if (air == null || !_atmos.IsMixtureProbablySafe(air) || !float.IsFinite(air.Pressure))
+            return false;
+        var pressurePerMole = air.Pressure / air.TotalMoles;
+        var oxygen = air.GetMoles(Gas.Oxygen);
+        var contaminants = MathF.Max(0, air.TotalMoles - oxygen - air.GetMoles(Gas.Nitrogen));
+        return oxygen * pressurePerMole >= 16 && contaminants * pressurePerMole <= 0.1f;
     }
 
     private static bool TryNeighbour(Vector2i tile, HashSet<Vector2i> free, HashSet<Vector2i> taken, out Vector2i found)
