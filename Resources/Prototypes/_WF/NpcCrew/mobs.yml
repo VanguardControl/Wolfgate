@@ -47,7 +47,8 @@
   - type: Loadout
     prototypes: [ WFCrewMarineGear ]
 
-# Pilots, radio operators and captains. Remembers an attack for a minute so a fight is finished, not flickered.
+# Pilots, radio operators and captains. Remembers an attack for a minute so a fight is finished, not flickered. Any
+# officer can fly the ship when given the Pilot duty.
 - type: entity
   parent: WFMobCrewBase
   id: WFMobCrewOfficer
@@ -58,3 +59,4 @@
     prototypes: [ WFCrewOfficerGear ]
   - type: NPCRetaliation
     attackMemoryLength: 60
+  - type: WFPilotDuty

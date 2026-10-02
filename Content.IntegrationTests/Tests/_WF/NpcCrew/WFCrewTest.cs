@@ -4,16 +4,23 @@ using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Tests.Interaction;
 using System.Text;
+using Content.Server._Mono.NPC.HTN;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Gravity;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
+using Content.Server.Power.EntitySystems;
+using Content.Server.Shuttles.Components;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
+using Content.Shared.Shuttles.Components;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -23,18 +30,21 @@ using Robust.Shared.Maths;
 namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 /// <summary>
-/// NPC crew: a deckhand draws its holstered sidearm for a hostile and holsters it once the hostile is gone, and the
-/// planner puts a pilot at the helm, a radio officer beside it, a deckhand inside the airlock and the rest on deck.
+/// NPC crew: a deckhand draws its holstered sidearm for a hostile and holsters it once the hostile is gone, the
+/// planner puts a pilot at the helm, a radio officer beside it, a deckhand inside the airlock and the rest on deck, and
+/// a pilot takes the helm, steers for his orders and lets go when he dies.
 /// </summary>
 [TestOf(typeof(WFCrewSystem))]
 public sealed class WFCrewTest : InteractionTest
 {
     private const string Hostile = "WFTestHostileMob";
+    private const string TestHelm = "WFTestHelm";
     private const string Helm = "ComputerShuttle";
     private const string Dock = "AirlockShuttle";
 
     // A monster-faction human: the stock crew faction is hostile to SimpleHostile, so the deckhand fights it. Test
     // prototypes load after the faction system cached its table, so the factions themselves have to be real ones.
+    // The helm counts as powered without an APC.
     [TestPrototypes]
     private const string Prototypes = @"
 - type: entity
@@ -44,6 +54,13 @@ public sealed class WFCrewTest : InteractionTest
   - type: NpcFactionMember
     factions:
     - SimpleHostile
+
+- type: entity
+  parent: ComputerShuttle
+  id: WFTestHelm
+  components:
+  - type: ApcPowerReceiver
+    needsPower: false
 ";
 
     /// <summary>
@@ -145,6 +162,54 @@ public sealed class WFCrewTest : InteractionTest
         }
     }
 
+    /// <summary>
+    /// A pilot beside a powered helm takes it and steers for his GoTo waypoint; killed, he lets go and the steering
+    /// stops. The deck has no thrusters, so the grid itself never moves.
+    /// </summary>
+    [Test]
+    public async Task PilotTakesHelmAndReleasesOnDeath()
+    {
+        var crewSystem = Server.System<WFCrewSystem>();
+        var pilotSystem = Server.System<WFPilotDutySystem>();
+        var mobState = Server.System<MobStateSystem>();
+
+        var deck = await CreateDeck(new Vector2(6f, 0f), 9, gravity: true);
+        EntityUid helm = default;
+        EntityUid pilot = default;
+        var waypoint = new EntityCoordinates(MapData.MapUid, new Vector2(206f, 0f));
+        await Server.WaitPost(() =>
+        {
+            // Steering needs a shuttle under the pilot.
+            SEntMan.EnsureComponent<ShuttleComponent>(deck);
+            helm = SEntMan.SpawnAtPosition(TestHelm, new EntityCoordinates(deck, new Vector2(4.5f, 4.5f)));
+            pilot = crewSystem.SpawnCrewman(WFCrewRoles.Pilot, new EntityCoordinates(deck, new Vector2(3.5f, 4.5f)), "test")!.Value;
+            pilotSystem.GoTo(pilot, new List<EntityCoordinates> { waypoint });
+        });
+
+        await WaitUntil(() => SEntMan.TryGetComponent<PilotComponent>(pilot, out var attached) && attached.Console == helm
+                               && SEntMan.TryGetComponent<ShipSteererComponent>(pilot, out var steerer)
+                               && steerer.Mode == ShipSteeringMode.GoToRange
+                               && SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm,
+            300, () => $"A pilot should take the helm and steer for his waypoint. {DescribePilot(pilot, helm)}");
+
+        await Server.WaitAssertion(() =>
+        {
+            var duty = SEntMan.GetComponent<WFPilotDutyComponent>(pilot);
+            var steerer = SEntMan.GetComponent<ShipSteererComponent>(pilot);
+            Assert.That(SEntMan.GetComponent<WFCrewComponent>(pilot).Duty, Is.EqualTo(WFCrewDuties.Pilot), "The pilot role works the Pilot duty.");
+            Assert.That(duty.Orders, Is.EqualTo(WFPilotOrder.GoTo), "Still flying the GoTo.");
+            Assert.That(steerer.Coordinates, Is.EqualTo(waypoint), "Steering for the waypoint.");
+            Assert.That(steerer.Range, Is.EqualTo(duty.ArrivalRange), "Arrival range is the GoTo range.");
+        });
+
+        await Server.WaitPost(() => mobState.ChangeMobState(pilot, MobState.Dead));
+
+        await WaitUntil(() => !SEntMan.HasComponent<ShipSteererComponent>(pilot)
+                               && !SEntMan.HasComponent<PilotComponent>(pilot)
+                               && !SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm,
+            300, () => $"A dead pilot should let go of the helm and stop steering. {DescribePilot(pilot, helm)}");
+    }
+
     /// <summary>A square of plating on the test map, optionally with gravity.</summary>
     private async Task<EntityUid> CreateDeck(Vector2 origin, int size, bool gravity)
     {
@@ -223,6 +288,32 @@ public sealed class WFCrewTest : InteractionTest
             sb.Append($"near:{SEntMan.ToPrettyString(other.Owner)}@{(there.Position - here.Position).Length():0.0}[{string.Join(",", other.Comp.Factions)}] ");
         }
 
+        return sb.ToString();
+    }
+
+    /// <summary>What a pilot and his helm are doing, for failure messages.</summary>
+    private string DescribePilot(EntityUid pilot, EntityUid helm)
+    {
+        var pilots = Server.System<WFPilotDutySystem>();
+        var sb = new StringBuilder(Describe(pilot));
+        var duty = SEntMan.GetComponent<WFPilotDutyComponent>(pilot);
+        sb.Append($"mobState={SEntMan.GetComponent<MobStateComponent>(pilot).CurrentState} ");
+        sb.Append($"orders={duty.Orders} atHelm={duty.AtHelm} waypoint={duty.WaypointIndex}/{duty.Waypoints.Count} ");
+        sb.Append(SEntMan.TryGetComponent<PilotComponent>(pilot, out var attached)
+            ? $"console={attached.Console?.ToString() ?? "null"} "
+            : "console=none ");
+        sb.Append(SEntMan.TryGetComponent<ShipSteererComponent>(pilot, out var steerer)
+            ? $"steering={steerer.Mode}/{steerer.Status} to {steerer.Coordinates} range={steerer.Range} "
+            : "steering=none ");
+        sb.Append($"helm={helm} exists={SEntMan.EntityExists(helm)} ");
+        if (SEntMan.EntityExists(helm))
+        {
+            sb.Append($"anchored={SEntMan.GetComponent<TransformComponent>(helm).Anchored} ");
+            sb.Append($"powered={Server.System<PowerReceiverSystem>().IsPowered(helm)} ");
+        }
+
+        sb.Append($"found={(pilots.TryFindHelm(pilot, out var found) ? found.ToString() : "none")} ");
+        sb.Append($"blackboardHelm={(SEntMan.GetComponent<HTNComponent>(pilot).Blackboard.TryGetValue<EntityUid>(WFPilotDutySystem.HelmKey, out var picked, SEntMan) ? picked.ToString() : "none")} ");
         return sb.ToString();
     }
 }

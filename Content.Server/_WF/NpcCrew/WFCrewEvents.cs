@@ -10,3 +10,19 @@ public readonly record struct WFCrewMemberDownEvent(
     string Group,
     ProtoId<WFCrewRolePrototype>? Role,
     bool Dead);
+
+/// <summary>Raised on a crew pilot and broadcast when its orders change.</summary>
+[ByRefEvent]
+public readonly record struct WFPilotOrdersChangedEvent(EntityUid Mob, WFPilotOrder Orders);
+
+/// <summary>Raised on a crew pilot and broadcast when it reaches its last waypoint and switches to Hold.</summary>
+[ByRefEvent]
+public readonly record struct WFPilotOrdersCompletedEvent(EntityUid Mob);
+
+/// <summary>Raised on a crew pilot and broadcast when it takes a helm.</summary>
+[ByRefEvent]
+public readonly record struct WFHelmTakenEvent(EntityUid Mob, EntityUid Console, EntityUid Grid);
+
+/// <summary>Raised on a crew pilot and broadcast when it lets go of the helm, for whatever reason.</summary>
+[ByRefEvent]
+public readonly record struct WFHelmReleasedEvent(EntityUid Mob);
