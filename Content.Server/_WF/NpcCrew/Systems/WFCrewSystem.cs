@@ -1,6 +1,8 @@
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Humanoid.Systems;
 using Content.Server.NPC.HTN;
+using Content.Server.NPC.Components;
+using Content.Shared.Damage;
 using Content.Server.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs;
@@ -17,6 +19,7 @@ public sealed class WFCrewSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private NPCSystem _npc = default!;
+    [Dependency] private NPCRetaliationSystem _retaliation = default!;
     [Dependency] private HTNSystem _htn = default!;
     [Dependency] private MetaDataSystem _meta = default!;
 
@@ -38,6 +41,22 @@ public sealed class WFCrewSystem : EntitySystem
         SubscribeLocalEvent<WFCrewComponent, MapInitEvent>(OnCrewMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewSpawnPointComponent, MapInitEvent>(OnSpawnPointMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<NPCRetaliationComponent, BeforeDamageChangedEvent>(OnBeforeCrewDamage);
+    }
+
+    /// <summary>Records crew attacks before body-part routing loses the damage origin.</summary>
+    private void OnBeforeCrewDamage(Entity<NPCRetaliationComponent> ent, ref BeforeDamageChangedEvent args)
+    {
+        if (!HasComp<WFCrewComponent>(ent)
+            || !args.Damage.AnyPositive()
+            || args.Origin is not { } attacker
+            || attacker == ent.Owner
+            || TerminatingOrDeleted(attacker))
+        {
+            return;
+        }
+
+        _retaliation.TryRetaliate(ent, attacker);
     }
 
     private void OnCrewMapInit(EntityUid uid, WFCrewComponent component, MapInitEvent args)

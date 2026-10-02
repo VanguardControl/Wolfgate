@@ -227,6 +227,50 @@ public sealed class WFCrewTest : InteractionTest
     }
 
     /// <summary>
+    /// A nearby hostile leaves the pilot working; a hit makes him release the helm and draw.
+    /// </summary>
+    [Test]
+    public async Task PilotRetaliatesAfterBodyDamage()
+    {
+        var crewSystem = Server.System<WFCrewSystem>();
+        var hands = Server.System<SharedHandsSystem>();
+        var damageable = Server.System<DamageableSystem>();
+        var blunt = new DamageSpecifier(ProtoMan.Index<DamageTypePrototype>("Blunt"), 10);
+        var deck = await CreateDeck(new Vector2(6f, 0f), 9, gravity: true);
+        EntityUid pilot = default;
+        EntityUid hostile = default;
+        await Server.WaitPost(() =>
+        {
+            SEntMan.EnsureComponent<ShuttleComponent>(deck);
+            SEntMan.SpawnAtPosition(TestHelm, new EntityCoordinates(deck, new Vector2(4.5f, 4.5f)));
+            pilot = crewSystem.SpawnCrewman(WFCrewRoles.Pilot,
+                new EntityCoordinates(deck, new Vector2(3.5f, 4.5f)), "test")!.Value;
+            hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(6.5f, 4.5f)));
+        });
+        await WaitUntil(() => SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm,
+            300, () => $"An unprovoked pilot should take the helm beside a hostile. {Describe(pilot)}");
+        await RunTicks(90);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm, Is.True);
+            Assert.That(hands.TryGetActiveItem(pilot, out _), Is.False);
+        });
+
+        await Server.WaitPost(() => damageable.TryChangeDamage(pilot, blunt, origin: hostile));
+        await WaitUntil(() => !SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm
+                               && !SEntMan.HasComponent<PilotComponent>(pilot)
+                               && !SEntMan.HasComponent<ShipSteererComponent>(pilot)
+                               && hands.TryGetActiveItem(pilot, out var held)
+                               && SEntMan.HasComponent<GunComponent>(held.Value),
+            300, () => $"An attacked pilot should leave the helm and draw. {Describe(pilot)}");
+
+        await Server.WaitPost(() => SEntMan.DeleteEntity(hostile));
+        await WaitUntil(() => SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm
+                               && !hands.TryGetActiveItem(pilot, out _),
+            600, () => $"The pilot should holster and return after the attacker is gone. {Describe(pilot)}");
+    }
+
+    /// <summary>
     /// The plan picks the facing pair, puts our grid where its dock meets the target's, and starts the approach
     /// <c>DockStandoff</c> out along the target dock's normal. Only the maths: nothing moves.
     /// </summary>
