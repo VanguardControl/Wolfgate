@@ -257,6 +257,21 @@ style, via `ChatSystem`) so people on the bridge hear him talk.
 Jack has no special HTN beyond standing at his post; he is `WhenAttacked` so he stays on the radio while the fight is
 elsewhere. If his ship has no Jeff, he still reports docks, jumps and attacks.
 
+As built (`WFRadioOperatorSystem`; the role adds the component and `TelecomExempt` through `wfCrewRole.components`),
+with these departures:
+
+- Channels are three fields, `LocalChannel`, `AlertChannel` and an optional `FactionChannel` that alerts also go to.
+  `Sent` keeps the last 20 transmissions with their line, for VV and tests.
+- The cooldown is per line, not per class: a class-wide one would eat "Captain is down!" right after the mayday, and
+  the docking line right after "arriving".
+- "Jumping" is said while the drive spools (`FTLComponent` in `Starting`, polled once a second): `FTLStartedEvent`
+  comes once the ship is in FTL space, where Shortband reaches nobody.
+- Hostile acts are a crewman hurt by someone outside the crew, caught on `BeforeDamageChangedEvent` because Wolfmed
+  routes a body's damage through its parts and the body's `DamageChangedEvent` then has no origin, and a hostile mob
+  aboard (`GetNearbyHostiles` over the grid, once a second). Hull hits are not reported: the only hit event is
+  `ProjectileHitEvent` on the projectile, whose `ShipWeaponProjectile` subscription is `SpaceArtillerySystem`'s.
+- Crew with an empty group count as one crew per grid, so marker-placed crew of different ships don't share a radio.
+
 ### 5. Crew alert (optional, shared awareness)
 
 `WFCrewAlertSystem`: once a second, for each `Group` on a grid, look at members' blackboards for a `Target`. When one
