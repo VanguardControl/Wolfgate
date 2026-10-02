@@ -1,0 +1,42 @@
+# Crew roles: the mob, the duty worked and how readily it fights. Pilot, radio operator and captain work Guard until
+# their own duties exist; the planner already hands them out so rosters don't change when those land.
+
+- type: wfCrewRole
+  id: WFCrewCaptain
+  mob: WFMobCrewOfficer
+  duty: Guard
+  engagement: WhenAttacked
+  title: wf-crew-role-captain
+  order: 0
+
+- type: wfCrewRole
+  id: WFCrewPilot
+  mob: WFMobCrewOfficer
+  duty: Guard
+  engagement: WhenAttacked
+  title: wf-crew-role-pilot
+  order: 10
+
+- type: wfCrewRole
+  id: WFCrewRadioOperator
+  mob: WFMobCrewOfficer
+  duty: Guard
+  engagement: WhenAttacked
+  title: wf-crew-role-radio-operator
+  order: 20
+
+- type: wfCrewRole
+  id: WFCrewMarine
+  mob: WFMobCrewMarine
+  duty: Guard
+  engagement: OnSight
+  title: wf-crew-role-marine
+  order: 30
+
+- type: wfCrewRole
+  id: WFCrewDeckhand
+  mob: WFMobCrewDeckhand
+  duty: Guard
+  engagement: OnSight
+  title: wf-crew-role-deckhand
+  order: 40

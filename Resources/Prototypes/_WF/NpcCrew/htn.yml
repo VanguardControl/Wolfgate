@@ -1,0 +1,58 @@
+# The crew root: fight, then work the duty the WFCrewDuty key names, then idle. The planner replans every half
+# second and swaps to an earlier branch as soon as it is valid, so a fight interrupts a duty and the duty resumes
+# after it. Every duty starts by holstering; the fight starts by drawing.
+- type: htnCompound
+  id: WFCrewCompound
+  branches:
+  - preconditions:
+    - !type:WFCrewMayFightPrecondition
+    tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WFDrawWeaponOperator
+    - !type:HTNCompoundTask
+      task: WFCrewFightCompound
+  - preconditions:
+    - !type:KeyEqualsPrecondition
+      key: WFCrewDuty
+      value: Guard
+    tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WFHolsterWeaponOperator
+    - !type:HTNCompoundTask
+      task: WFCrewGuardCompound
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WFHolsterWeaponOperator
+    - !type:HTNCompoundTask
+      task: IdleCompound
+
+# Shoot while the gun in hand has ammo, otherwise close in. Both fail without a target, which fails the fight branch.
+- type: htnCompound
+  id: WFCrewFightCompound
+  branches:
+  - tasks:
+    - !type:HTNCompoundTask
+      task: RangedCombatCompound
+  - tasks:
+    - !type:HTNCompoundTask
+      task: MeleeCombatCompound
+
+# Guard: walk back to the post when away from it, otherwise idle around it.
+- type: htnCompound
+  id: WFCrewGuardCompound
+  branches:
+  - preconditions:
+    - !type:KeyExistsPrecondition
+      key: WFCrewPost
+    - !type:CoordinatesNotInRangePrecondition
+      targetKey: WFCrewPost
+      rangeKey: WFCrewPostRange
+    tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        targetKey: WFCrewPost
+        rangeKey: WFCrewPostRange
+        removeKeyOnFinish: false
+  - tasks:
+    - !type:HTNCompoundTask
+      task: IdleCompound

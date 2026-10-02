@@ -1,0 +1,8 @@
+# The default faction for NPC crew: fights the sector's monsters and nobody else. Encounters and the setup tool give
+# a crew a real faction when one applies.
+- type: npcFaction
+  id: WFCrew
+  hostile:
+  - SimpleHostile
+  - Zombie
+  - Xeno
