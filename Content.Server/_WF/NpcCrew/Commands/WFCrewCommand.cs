@@ -14,7 +14,7 @@ namespace Content.Server._WF.NpcCrew.Commands;
 
 /// <summary>
 /// NPC crew from the console: plan a grid, spawn the plan or one role, list, clear a group, change a duty, give a
-/// pilot orders.
+/// pilot orders, set a radio officer's callsign.
 /// </summary>
 [AdminCommand(AdminFlags.Spawn)]
 public sealed partial class WFCrewCommand : LocalizedEntityCommands
@@ -23,8 +23,9 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFPilotDutySystem _pilot = default!;
+    [Dependency] private WFRadioOperatorSystem _radio = default!;
 
-    private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty", "orders" };
+    private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty", "orders", "callsign" };
 
     private static readonly string[] OrderNames = { "hold", "goto", "loiter", "follow", "dock", "undock" };
 
@@ -61,6 +62,9 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             case "orders":
                 Orders(shell, args);
                 break;
+            case "callsign":
+                Callsign(shell, args);
+                break;
             default:
                 shell.WriteError(Loc.GetString("cmd-wf_crew-unknown", ("sub", args[0])));
                 shell.WriteLine(Help);
@@ -77,10 +81,11 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
                 _prototypes.EnumeratePrototypes<WFCrewRolePrototype>().Select(role => role.ID).Order(),
                 Loc.GetString("cmd-wf_crew-hint-role")),
             2 when args[0] is "plan" or "spawn" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-grid")),
-            2 when args[0] is "duty" or "orders" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-mob")),
+            2 when args[0] is "duty" or "orders" or "callsign" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-mob")),
             3 when args[0] == "orders" => CompletionResult.FromHintOptions(OrderNames, Loc.GetString("cmd-wf_crew-hint-order")),
             4 when args[0] == "orders" && args[2] is "follow" or "dock" =>
                 CompletionResult.FromHintOptions(new[] { "here" }, Loc.GetString("cmd-wf_crew-hint-grid")),
+            >= 3 when args[0] == "callsign" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-callsign")),
             _ => CompletionResult.Empty,
         };
     }
@@ -304,6 +309,29 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
         shell.WriteLine(Loc.GetString("cmd-wf_crew-orders-set",
             ("name", name),
             ("orders", Loc.GetString($"wf-crew-order-{duty.Orders.ToString().ToLowerInvariant()}"))));
+    }
+
+    /// <summary>wf_crew callsign &lt;mob&gt; &lt;text...&gt;</summary>
+    private void Callsign(IConsoleShell shell, string[] args)
+    {
+        if (args.Length < 3)
+        {
+            shell.WriteLine(Help);
+            return;
+        }
+
+        if (!NetEntity.TryParse(args[1], out var net)
+            || !EntityManager.TryGetEntity(net, out var uid)
+            || !EntityManager.TryGetComponent<WFRadioOperatorComponent>(uid, out var radio))
+        {
+            shell.WriteError(Loc.GetString("cmd-wf_crew-not-radio-operator", ("arg", args[1])));
+            return;
+        }
+
+        _radio.SetCallsign((uid.Value, radio), string.Join(' ', args[2..]));
+        shell.WriteLine(Loc.GetString("cmd-wf_crew-callsign-set",
+            ("name", EntityManager.GetComponent<MetaDataComponent>(uid.Value).EntityName),
+            ("callsign", radio.Callsign ?? string.Empty)));
     }
 
     /// <summary>A grid by entity id, or "here" for the caller's own.</summary>

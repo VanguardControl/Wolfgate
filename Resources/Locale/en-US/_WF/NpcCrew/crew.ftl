@@ -21,15 +21,44 @@ wf-crew-order-follow = follow
 wf-crew-order-dock = dock
 wf-crew-order-undock = undock
 
+# Radio officer. Each line has numbered variants picked at random, since the radio drops a message whose exact text
+# is already in flight. Every line gets $callsign.
+wf-crew-radio-unnamed = Unregistered vessel
+wf-crew-radio-docking-1 = {$callsign} docking at {$station}, {$port}.
+wf-crew-radio-docking-2 = {$callsign} coming alongside {$station}, {$port}.
+wf-crew-radio-undocking-1 = {$callsign} clear of {$station}, departing.
+wf-crew-radio-undocking-2 = {$callsign} released from {$station}, departing.
+wf-crew-radio-jumping-1 = {$callsign} jumping.
+wf-crew-radio-jumping-2 = {$callsign} spooling the drive, jumping.
+wf-crew-radio-arriving-1 = {$callsign} arriving.
+wf-crew-radio-arriving-2 = {$callsign} out of the jump, arriving.
+wf-crew-radio-on-station-1 = {$callsign} on station.
+wf-crew-radio-on-station-2 = {$callsign} in position, on station.
+wf-crew-radio-dock-aborted-1 = {$callsign} docking aborted, holding off the port.
+wf-crew-radio-dock-aborted-2 = {$callsign} can't make the port, docking aborted, holding off.
+# $x and $y are map coordinates; $vessel is empty or wf-crew-radio-mayday-vessel.
+wf-crew-radio-mayday-1 = Mayday, mayday, {$callsign} under attack at {$x}, {$y}{$vessel}!
+wf-crew-radio-mayday-2 = Mayday, mayday, mayday, {$callsign} taking fire at {$x}, {$y}{$vessel}!
+wf-crew-radio-mayday-vessel = , hostile vessel {$hostile}
+wf-crew-radio-boarded-1 = {$callsign}, we are being boarded!
+wf-crew-radio-boarded-2 = {$callsign}, hostiles aboard, we are being boarded!
+wf-crew-radio-captain-down-1 = Captain is down!
+wf-crew-radio-captain-down-2 = {$callsign}, the captain is down!
+wf-crew-radio-helm-down-1 = Helm is down, we're adrift!
+wf-crew-radio-helm-down-2 = {$callsign}, pilot is down, we're adrift!
+wf-crew-radio-all-clear-1 = {$callsign}, hostiles gone, resuming course.
+wf-crew-radio-all-clear-2 = {$callsign}, all clear, hostiles gone, resuming course.
+
 # wf_crew command
 cmd-wf_crew-desc = Plans, spawns, lists and clears NPC crew on a grid.
-cmd-wf_crew-help = Usage: {$command} plan <grid|here> [deckhands] | spawn <grid|here> [group] [deckhands] | spawnrole <role> [group] | list [group] | clear <group> | duty <mob> <duty> | orders <mob> hold | orders <mob> goto <x> <y> [<x> <y> ...] | orders <mob> loiter <x> <y> <radius> | orders <mob> follow <grid|here> | orders <mob> dock <grid|here> | orders <mob> undock
+cmd-wf_crew-help = Usage: {$command} plan <grid|here> [deckhands] | spawn <grid|here> [group] [deckhands] | spawnrole <role> [group] | list [group] | clear <group> | duty <mob> <duty> | orders <mob> hold | orders <mob> goto <x> <y> [<x> <y> ...] | orders <mob> loiter <x> <y> <radius> | orders <mob> follow <grid|here> | orders <mob> dock <grid|here> | orders <mob> undock | callsign <mob> <text...>
 cmd-wf_crew-unknown = Unknown subcommand: {$sub}
 cmd-wf_crew-hint-sub = <subcommand>
 cmd-wf_crew-hint-role = <role>
 cmd-wf_crew-hint-grid = <grid entity, or here>
 cmd-wf_crew-hint-mob = <crewman entity>
 cmd-wf_crew-hint-order = <order>
+cmd-wf_crew-hint-callsign = <callsign>
 cmd-wf_crew-not-on-grid = You are not on a grid.
 cmd-wf_crew-not-a-grid = {$arg} is not a grid.
 cmd-wf_crew-bad-number = {$arg} is not a whole number.
@@ -38,6 +67,7 @@ cmd-wf_crew-no-player = You need a body to spawn at.
 cmd-wf_crew-unknown-role = Unknown crew role: {$role}
 cmd-wf_crew-not-crew = {$arg} is not a crewman.
 cmd-wf_crew-not-pilot = {$arg} is not a crewman who can pilot.
+cmd-wf_crew-not-radio-operator = {$arg} is not a radio officer.
 cmd-wf_crew-not-on-map = {$name} is not on a map.
 cmd-wf_crew-dock-own-grid = {$name} can't dock with their own grid.
 cmd-wf_crew-plan-header = {$count} posts on {$grid}:
@@ -50,3 +80,4 @@ cmd-wf_crew-list-footer = {$count} crew.
 cmd-wf_crew-cleared = Removed {$count} crew from group {$group}.
 cmd-wf_crew-duty-set = {$name} now works {$duty}.
 cmd-wf_crew-orders-set = {$name}'s orders are now: {$orders}.
+cmd-wf_crew-callsign-set = {$name} now calls the ship {$callsign}.

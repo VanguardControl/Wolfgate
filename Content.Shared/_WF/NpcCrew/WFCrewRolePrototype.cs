@@ -3,7 +3,8 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.NpcCrew;
 
 /// <summary>
-/// A crew role: the mob to spawn, the duty it works, how readily it fights and the title put before its name.
+/// A crew role: the mob to spawn, the duty it works, how readily it fights, the title put before its name and any
+/// components the role adds to the mob.
 /// </summary>
 [Prototype("wfCrewRole")]
 public sealed partial class WFCrewRolePrototype : IPrototype
@@ -29,4 +30,8 @@ public sealed partial class WFCrewRolePrototype : IPrototype
     /// <summary>Sort order in rosters and plans; lower first.</summary>
     [DataField]
     public int Order;
+
+    /// <summary>Extra components the spawned mob gets, such as the radio officer's radio duty.</summary>
+    [DataField]
+    public ComponentRegistry Components = new();
 }

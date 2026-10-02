@@ -1,5 +1,6 @@
-# Crew roles: the mob, the duty worked and how readily it fights. Radio operator and captain work Guard until their
-# own duties exist; the planner already hands them out so rosters don't change when those land.
+# Crew roles: the mob, the duty worked, how readily it fights and any components the role adds. The radio operator
+# stands guard at his post; his radio duty is a component, so he reports while his HTN sleeps. The captain works
+# Guard until his own duty exists; the planner already hands him out so rosters don't change when it lands.
 
 - type: wfCrewRole
   id: WFCrewCaptain
@@ -24,6 +25,10 @@
   engagement: WhenAttacked
   title: wf-crew-role-radio-operator
   order: 20
+  components:
+  - type: WFRadioOperator
+  # His own radio set: Shortband away from any telecom server.
+  - type: TelecomExempt
 
 - type: wfCrewRole
   id: WFCrewMarine

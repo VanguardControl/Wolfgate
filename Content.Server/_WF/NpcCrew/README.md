@@ -3,9 +3,9 @@
 Human-style NPC crew for ships: each NPC works a job at a post and drops it to fight, then goes back to work. Crew
 carry real loadouts and keep the weapon holstered until there is a fight; a dead crewman's kit is the loot. Mappers
 place crew with `WFCrewSpawnPoint*` markers; admins use `wf_crew` to plan a grid (`plan here`), spawn the plan
-(`spawn here`), spawn one role where they stand (`spawnrole deckhand`), list, clear a group, change a duty or give a
+(`spawn here`), spawn one role where they stand (`spawnrole deckhand`), list, clear a group, change a duty, give a
 pilot orders (`orders <mob> hold | goto <x> <y> ... | loiter <x> <y> <radius> | follow <grid|here> | dock <grid|here> |
-undock`).
+undock`) or set what a radio officer calls the ship (`callsign <mob> <text...>`).
 
 Built so far: the crew core (`WFCrewSystem`, `WFCrewComponent`, the `WFCrewCompound` HTN root with fight, duty and
 idle branches), weapons (`WFCrewWeaponSystem` with the draw and holster operators), the planner (`WFCrewPlannerSystem`:
@@ -18,7 +18,12 @@ dies, is taken over, loses the console or leaves for a fight. Dock is flown by h
 plan a free dock pair with a clear approach lane, fly to a standoff 40 m out from the target dock, settle, creep in and
 connect the moment the docks line up, retrying up to three times and then holding (`WFPilotDockedEvent`,
 `WFPilotDockFailedEvent`); `wf.crew.dock_ftl_fallback` docks by FTL instead of giving up. Undock releases every port
-and backs off. The radio and captain roles stand guard until their duties land.
+and backs off. The radio officer (`WFRadioOperatorSystem`, `WFRadioOperatorComponent`, added by his role's
+`components`) stands guard at his post and reports what happens to his ship as himself: docking, undocking, jumps,
+arrival, orders flown or docking aborted on Shortband; a mayday on the first hostile act of an attack (a crewman hurt
+from outside the crew, or a hostile mob aboard), the boarding call, the captain or pilot going down and the all-clear
+two minutes after the last hostile activity on Broadband (and a faction channel if set). Events only, no sitreps; he
+goes quiet when he is down. The captain stands guard until his duty lands.
 `design.md` under `Docs/_WF/NpcCrew/` is the full brief: pilot duty and orders, docking by hand, the event-driven
 radio officer, crew alerting, the access-door edit and the Crew Setup admin window.
 
@@ -34,6 +39,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSpawnPointComponent.cs`](Components/WFCrewSpawnPointComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewWeaponComponent.cs`](Components/WFCrewWeaponComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFPilotDutyComponent.cs`](Components/WFPilotDutyComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFRadioOperatorComponent.cs`](Components/WFRadioOperatorComponent.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFCrewMayFightPrecondition.cs`](HTN/WFCrewMayFightPrecondition.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFDrawWeaponOperator.cs`](HTN/WFDrawWeaponOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFHolsterWeaponOperator.cs`](HTN/WFHolsterWeaponOperator.cs)
@@ -44,6 +50,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.cs`](Systems/WFPilotDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.Docking.cs`](Systems/WFPilotDutySystem.Docking.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFRadioOperatorSystem.cs`](Systems/WFRadioOperatorSystem.cs)
 - [`Content.Server/_WF/NpcCrew/WFCrewEvents.cs`](WFCrewEvents.cs)
 
 ### Shared
