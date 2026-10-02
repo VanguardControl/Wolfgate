@@ -1,0 +1,110 @@
+using System.Diagnostics.CodeAnalysis;
+using Content.Server._WF.NpcCrew.Components;
+using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory;
+using Content.Shared.Weapons.Melee;
+using Content.Shared.Weapons.Ranged.Components;
+
+namespace Content.Server._WF.NpcCrew.Systems;
+
+/// <summary>
+/// Draws a crewman's best weapon from its equipment slots into its active hand and holsters it again. Weapons live
+/// in slots, never in bags, so a draw is one container move.
+/// </summary>
+public sealed class WFCrewWeaponSystem : EntitySystem
+{
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+
+    /// <summary>Slots searched for a weapon, in the order ties are broken.</summary>
+    private static readonly string[] WeaponSlots = { "back", "suitstorage", "belt", "pocket1", "pocket2" };
+
+    /// <summary>Whether the drawn weapon is still in hand.</summary>
+    public bool IsDrawn(EntityUid uid)
+    {
+        return TryComp<WFCrewWeaponComponent>(uid, out var weapon)
+               && weapon.Drawn is { } drawn
+               && !TerminatingOrDeleted(drawn)
+               && _hands.IsHolding(uid, drawn, out _);
+    }
+
+    /// <summary>
+    /// Puts the best weapon in a slot into the active hand. True when a weapon is in hand afterwards, including one
+    /// that was already drawn.
+    /// </summary>
+    public bool TryDraw(EntityUid uid)
+    {
+        if (IsDrawn(uid))
+            return true;
+
+        var weapon = EnsureComp<WFCrewWeaponComponent>(uid);
+        weapon.Drawn = null;
+        weapon.HolsterSlot = null;
+
+        if (!FindBest(uid, out var item, out var slot))
+            return false;
+
+        if (!_hands.TrySelectEmptyHand(uid))
+            return false;
+
+        // Picking up straight out of the slot moves it between containers; nothing touches the floor.
+        if (!_hands.TryPickup(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
+            return false;
+
+        weapon.Drawn = item;
+        weapon.HolsterSlot = slot;
+        return true;
+    }
+
+    /// <summary>Puts the drawn weapon back into the slot it came from. Safe to call at any time.</summary>
+    public void TryHolster(EntityUid uid)
+    {
+        if (!TryComp<WFCrewWeaponComponent>(uid, out var weapon) || weapon.Drawn is not { } drawn)
+            return;
+
+        if (TerminatingOrDeleted(drawn) || !_hands.IsHolding(uid, drawn, out _))
+        {
+            weapon.Drawn = null;
+            weapon.HolsterSlot = null;
+            return;
+        }
+
+        if (weapon.HolsterSlot is not { } slot || !_inventory.TryEquip(uid, drawn, slot, silent: true, force: true))
+            return;
+
+        weapon.Drawn = null;
+        weapon.HolsterSlot = null;
+    }
+
+    private bool FindBest(EntityUid uid, [NotNullWhen(true)] out EntityUid? item, [NotNullWhen(true)] out string? slot)
+    {
+        item = null;
+        slot = null;
+        var best = 0;
+
+        foreach (var name in WeaponSlots)
+        {
+            if (!_inventory.TryGetSlotEntity(uid, name, out var candidate))
+                continue;
+
+            var score = Score(candidate.Value, name);
+            if (score <= best)
+                continue;
+
+            best = score;
+            item = candidate;
+            slot = name;
+        }
+
+        return item != null;
+    }
+
+    /// <summary>Longarms over sidearms over anything that swings; everything else is not a weapon.</summary>
+    private int Score(EntityUid item, string slot)
+    {
+        if (HasComp<GunComponent>(item))
+            return slot == "back" ? 3 : 2;
+
+        return HasComp<MeleeWeaponComponent>(item) ? 1 : 0;
+    }
+}

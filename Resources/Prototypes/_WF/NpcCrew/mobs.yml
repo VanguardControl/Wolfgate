@@ -1,0 +1,60 @@
+# NPC crew bodies. A random human with a real loadout; the weapon stays holstered until the crew HTN draws it.
+
+- type: entity
+  abstract: true
+  parent: [ BaseMobHuman, MobPrying ]
+  id: WFMobCrewBase
+  suffix: NPC crew
+  components:
+  - type: RandomHumanoidAppearance
+  - type: NpcFactionMember
+    factions:
+    - WFCrew
+  - type: NPCRetaliation
+    attackMemoryLength: 10
+  - type: InputMover
+  - type: MobMover
+  - type: HTN
+    rootTask:
+      task: WFCrewCompound
+    blackboard:
+      NavInteract: !type:Bool
+        true
+      NavPry: !type:Bool
+        true
+      NavSmash: !type:Bool
+        false
+      NavClimb: !type:Bool
+        false
+  - type: WFCrew
+  - type: WFCrewWeapon
+
+- type: entity
+  parent: WFMobCrewBase
+  id: WFMobCrewDeckhand
+  name: deckhand
+  description: A spacer working for a wage.
+  components:
+  - type: Loadout
+    prototypes: [ WFCrewDeckhandGear ]
+
+- type: entity
+  parent: WFMobCrewBase
+  id: WFMobCrewMarine
+  name: marine
+  description: Armoured, armed and paid to stay that way.
+  components:
+  - type: Loadout
+    prototypes: [ WFCrewMarineGear ]
+
+# Pilots, radio operators and captains. Remembers an attack for a minute so a fight is finished, not flickered.
+- type: entity
+  parent: WFMobCrewBase
+  id: WFMobCrewOfficer
+  name: ship's officer
+  description: Somebody who signs the paperwork.
+  components:
+  - type: Loadout
+    prototypes: [ WFCrewOfficerGear ]
+  - type: NPCRetaliation
+    attackMemoryLength: 60

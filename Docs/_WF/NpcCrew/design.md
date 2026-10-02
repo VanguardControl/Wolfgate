@@ -73,10 +73,11 @@ return to, usually a map marker), `Group` (string; everyone on a ship with the s
 radio lines and events: Captain, Pilot, RadioOperator, Deckhand...), `Engagement`:
 
 - `OnSight`: fights anyone its faction is hostile to or that the crew alert hands it. Deckhands and marines.
-- `WhenAttacked`: fights only whoever damages it. Implemented as data: the mob sits in a faction with no hostiles
-  (`WFCrewNeutral`), so `NearbyHostiles` only ever returns the aggro entries `NPCRetaliation` adds when it is hit, and
-  the crew alert skips it. `attackMemoryLength` is 60 s rather than Frontier's 10 so it finishes the fight instead of
-  hopping between helm and gun. Pilots and radio operators.
+- `WhenAttacked`: fights only whoever damages it. The fight branch is gated by `WFCrewMayFightPrecondition`, which
+  for these crew is true only while `NPCRetaliation` still remembers an attack, and the crew alert skips them. The
+  faction stays whatever the ship's is, so friendly turrets stay friendly; a neutral faction would have made every
+  default-hostile faction shoot the pilot. `attackMemoryLength` is 60 s rather than Frontier's 10 so a fight is
+  finished, not flickered. Pilots and radio operators.
 
 `WFCrewSystem` writes the blackboard keys on map init and when they change, raises `WFCrewDutyChangedEvent`, and on
 `MobStateChangedEvent` raises `WFCrewMemberDownEvent(group, role, dead)` for anyone who cares (the radio operator, the
