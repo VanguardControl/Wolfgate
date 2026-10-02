@@ -16,6 +16,7 @@ public enum WFCrewEngagement : byte
 public static class WFCrewDuties
 {
     public const string Guard = "Guard";
+    public const string Pilot = "Pilot";
 }
 
 /// <summary>The role prototypes the planner hands out.</summary>
