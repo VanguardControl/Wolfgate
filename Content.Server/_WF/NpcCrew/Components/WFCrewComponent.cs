@@ -1,0 +1,39 @@
+using Content.Shared._WF.NpcCrew;
+using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
+
+namespace Content.Server._WF.NpcCrew.Components;
+
+/// <summary>
+/// An NPC crewman: works its duty at its post and fights by its engagement rule. Mirrored to the HTN blackboard
+/// by <c>WFCrewSystem</c>.
+/// </summary>
+[RegisterComponent]
+public sealed partial class WFCrewComponent : Component
+{
+    [DataField]
+    public ProtoId<WFCrewRolePrototype>? Role;
+
+    /// <summary>Duty branch of the crew HTN root worked when not fighting.</summary>
+    [DataField]
+    public string Duty = WFCrewDuties.Guard;
+
+    [DataField]
+    public WFCrewEngagement Engagement = WFCrewEngagement.OnSight;
+
+    /// <summary>Everyone aboard with the same group is one crew.</summary>
+    [DataField]
+    public string Group = string.Empty;
+
+    /// <summary>Where the duty is worked and where the crewman returns to. Grid-relative.</summary>
+    [DataField]
+    public EntityCoordinates? Post;
+
+    /// <summary>How close to the post counts as being at it.</summary>
+    [DataField]
+    public float PostRange = 1.5f;
+
+    /// <summary>Whether the role title has been put in front of the name.</summary>
+    [ViewVariables]
+    public bool Titled;
+}
