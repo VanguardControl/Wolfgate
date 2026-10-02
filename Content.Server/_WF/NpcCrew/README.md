@@ -7,6 +7,10 @@ place crew with `WFCrewSpawnPoint*` markers; admins use `wf_crew` to plan a grid
 pilot orders (`orders <mob> hold | goto <x> <y> ... | loiter <x> <y> <radius> | follow <grid|here> | dock <grid|here> |
 undock`) or set what a radio officer calls the ship (`callsign <mob> <text...>`).
 
+Spawn `WFMobCrewGunner` from the entity menu for a ready-to-work gunner, or use `wf_crew spawnrole gunner`
+to assign crew membership and ship credentials. Crew Setup and gunner markers use the same NPC. It carries
+the officer loadout and operates a powered gunnery console against reported hostile ships.
+
 Built so far: the crew core (`WFCrewSystem`, `WFCrewComponent`, the `WFCrewCompound` HTN root with fight, duty and
 idle branches), weapons (`WFCrewWeaponSystem` with the draw and holster operators), the planner (`WFCrewPlannerSystem`:
 markers win, else a pilot and radio officer beside the helm, a deckhand inside each airlock and the rest on open

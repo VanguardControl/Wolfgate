@@ -26,8 +26,9 @@ public sealed partial class WFCrewTest
 ";
 
     /// <summary>A gunner walks to the console, targets only an attacker, and stops on console loss.</summary>
-    [Test]
-    public async Task GunnerOperatesConsoleUntilLost()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task GunnerOperatesConsoleUntilLost(bool directSpawn)
     {
         var deck = await CreateDeck(new Vector2(6, 0), 7, gravity: true);
         var attacker = await CreateDeck(new Vector2(25, 0), 3, gravity: true);
@@ -35,8 +36,10 @@ public sealed partial class WFCrewTest
         await Server.WaitPost(() =>
         {
             console = SEntMan.SpawnAtPosition("WFTestGunnery", new EntityCoordinates(deck, new Vector2(3.5f)));
-            gunner = Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Gunner,
-                new EntityCoordinates(deck, new Vector2(1.5f, 3.5f)), "guns")!.Value;
+            var position = new EntityCoordinates(deck, new Vector2(1.5f, 3.5f));
+            gunner = directSpawn
+                ? SEntMan.SpawnAtPosition("WFMobCrewGunner", position)
+                : Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Gunner, position, "guns")!.Value;
         });
         await WaitUntil(() => SEntMan.GetComponent<WFGunnerDutyComponent>(gunner).AtConsole,
             600, () => Describe(gunner));
