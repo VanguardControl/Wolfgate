@@ -25613,3 +25613,89 @@ Entries:
   id: 2784
   time: '2026-10-01T00:48:55.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4801
+- author: kasature90
+  changes:
+    - type: Add
+      message: Added a forest camo variant of the TSF jumpsuit. Finally.
+    - type: Add
+      message: Added a ground combat mode as playtest-ready. Admin only for now.
+    - type: Add
+      message: >-
+        Ported a lot of N14 assets. Only in changelog because a small amount of
+        them are in construction menu.
+    - type: Tweak
+      message: Wood uses the wizden texture now.
+    - type: Fix
+      message: Fixed muzzle flashes not working.
+  id: 2785
+  time: '2026-10-01T09:43:56.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4804
+- author: DoubleHypercube
+  changes:
+    - type: Tweak
+      message: Lowered translator power draw by 66%.
+  id: 2787
+  time: '2026-10-01T22:57:19.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4806
+- author: kasature90
+  changes:
+    - type: Tweak
+      message: >-
+        CROCUS - Removed China Lake & Anubis (replaced with 2 more LMGs), added
+        more medical equipment to the vendors (surgical equipment, sterile
+        masks, health analyzers, ointment),  fixed an issue with the sprite of
+        trees not lining up with collision box, 1/5th'd tree health, fixed round
+        end objective progress displaying as a float instead of a %, NVGs are
+        now infinite in vendor, Jianghui Dockworker now has customizable loadout
+        in character creator, respawn timers are now half of normal mono, added
+        seclites to vendors, added Drozd & C-20r to vendors, added solution
+        drains to flora, expanded base ground level area on the eastern side of
+        the map, added telecommunications servers for headsets, added various
+        loot spawners, did other misc changes, fixed barbed wire applying damage
+        when not moving (thus gibbing everyone who died in it), fixed being able
+        to take Ironman & bionic traits in (no EMP to counter, Ironman spawns
+        LPCs), added slight ambience to night, fixed day/night cycles across
+        z-levels not being synced, added sechuds & IFF strobe lights to infantry
+        roles, reduced the max amount for the random number used for nanite
+        canisters objective, added chance for PDV to get both PDA & canister
+        objective, added minimum movement speed for barbed wire to apply damage
+        (1.5m/s).
+    - type: Tweak
+      message: >-
+        Removed grenade chaining. It was hilarious, but it just makes them
+        unusable for anything serious. You have like 30 other explosives you can
+        chain with anyways.
+  id: 2788
+  time: '2026-10-02T00:24:35.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4808
+- author: SuperGDPWYL
+  changes:
+    - type: Tweak
+      message: >-
+        There are now much, much longer options for the duration of the C-4's
+        fuse.
+  id: 2789
+  time: '2026-10-02T01:46:54.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4803
+- author: SuperGDPWYL
+  changes:
+    - type: Tweak
+      message: Replaced a few explicit Syndicate or NT references with PDV references.
+    - type: Tweak
+      message: Remapped the Phaethon Weapons Cache. It can't be glassed anymore.
+    - type: Tweak
+      message: Changed the weapons cache & vault announcements.
+  id: 2790
+  time: '2026-10-02T01:49:17.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4802
+- author: AthrunZala33092
+  changes:
+    - type: Add
+      message: Wireless Camera Router to Halcyon
+    - type: Remove
+      message: M290 sentries from Halcyon armory
+    - type: Tweak
+      message: Named a lot of Halcyon cameras
+  id: 2791
+  time: '2026-10-02T01:51:04.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4776
