@@ -47,9 +47,18 @@ public sealed class WFCrewWeaponSystem : EntitySystem
         if (!_hands.TrySelectEmptyHand(uid))
             return false;
 
-        // Picking up straight out of the slot moves it between containers; nothing touches the floor.
+        // Straight out of the slot into the hand when the containers allow it; otherwise unequip first.
         if (!_hands.TryPickup(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
-            return false;
+        {
+            if (!_inventory.TryUnequip(uid, slot, silent: true, force: true))
+                return false;
+
+            if (!_hands.TryPickup(uid, item.Value, checkActionBlocker: false, animateUser: false, animate: false))
+            {
+                _inventory.TryEquip(uid, item.Value, slot, silent: true, force: true);
+                return false;
+            }
+        }
 
         weapon.Drawn = item;
         weapon.HolsterSlot = slot;
