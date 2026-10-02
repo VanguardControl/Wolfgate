@@ -79,6 +79,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 ### Docs
 
 - [`Docs/_WF/NpcCrew/design.md`](../../../Docs/_WF/NpcCrew/design.md)
+- [`Docs/_WF/NpcCrew/handoff.md`](../../../Docs/_WF/NpcCrew/handoff.md)
 
 ## Non-modular edits
 
