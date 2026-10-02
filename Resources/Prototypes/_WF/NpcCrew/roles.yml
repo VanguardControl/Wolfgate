@@ -3,13 +3,11 @@
 
 - type: wfCrewRole
   id: WFCrewGunner
-  mob: WFMobCrewOfficer
+  mob: WFMobCrewGunner
   duty: Gunnery
   engagement: WhenAttacked
   title: wf-crew-role-gunner
   order: 25
-  components:
-  - type: WFGunnerDuty
 
 - type: wfCrewRole
   id: WFCrewCaptain

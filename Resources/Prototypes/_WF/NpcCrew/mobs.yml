@@ -60,3 +60,13 @@
   - type: NPCRetaliation
     attackMemoryLength: 60
   - type: WFPilotDuty
+
+- type: entity
+  parent: WFMobCrewOfficer
+  id: WFMobCrewGunner
+  components:
+  - type: WFCrew
+    role: WFCrewGunner
+    duty: Gunnery
+    engagement: WhenAttacked
+  - type: WFGunnerDuty
