@@ -41,7 +41,7 @@ git submodule update --init --recursive --depth 1 RobustToolbox
 # Build everything the tests need (about 2.5 min); only errors shown
 dotnet build Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug -v q -nologo 2>&1 | grep -E "error CS|error RA|Error\(s\)" | sort -u
 
-# The module's tests (29 cases; runtime varies by host)
+# The module's tests (30 cases; runtime varies by host)
 dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug --no-build --filter "FullyQualifiedName~WFCrewTest" --logger "console;verbosity=detailed" -nologo 2>&1 | grep -vE "warning RA|warning CS" > /tmp/wfcrew-tests.log
 grep -E "^\s*(Passed|Failed) |Error Message|Passed!|Failed!" -A3 /tmp/wfcrew-tests.log | head -40
 
@@ -75,7 +75,7 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
 | Radio officer | `Systems/WFRadioOperatorSystem.cs`, `Components/WFRadioOperatorComponent.cs` | Event-driven, no HTN. Shortband (`Traffic`, 1500 m, needs `TelecomExempt`, which the role adds): docking/undocking once per grid pair, "jumping" while the drive spools (polled; `FTLStartedEvent` fires already in FTL space), "arriving", "on station", "docking aborted". Broadband (`Common`): one mayday per episode, "boarded", "Captain is down", "Helm is down", all-clear after 120 s quiet. Hostile acts: a crewman of the group hurt by an outsider (`BeforeDamageChangedEvent` on `WFCrewComponent`, because Wolfmed routes body damage through parts and the body's `DamageChangedEvent` has no origin) and a hostile mob aboard (`NpcFactionSystem.GetNearbyHostiles`, polled). Cooldown per line. `Sent` keeps the last 20 transmissions for VV and tests. `SetCallsign`. |
 | Command | `Commands/WFCrewCommand.cs` (`wf_crew`, `AdminFlags.Spawn`) | `plan <grid|here> [deckhands]`, `spawn <grid|here> [group] [deckhands]`, `spawnrole <role> [group]`, `list [group]`, `clear <group>`, `duty <mob> <duty>`, `orders <mob> hold|goto x y ...|loiter x y r|follow <grid|here>|dock <grid|here>|undock`, `callsign <mob> <text>`. |
 | Prototypes | `roles.yml`, `mobs.yml`, `gear.yml`, `markers.yml`, `ai_factions.yml`, `htn.yml` | Roles `WFCrewDeckhand`, `WFCrewMarine` (OnSight), `WFCrewPilot`, `WFCrewRadioOperator`, `WFCrewCaptain` (WhenAttacked; Guard duty with command/radio), `WFCrewGunner`. Mobs `WFMobCrewBase` (parent `[BaseMobHuman, MobPrying]`, faction `WFCrew`, `NPCRetaliation`, HTN root), `WFMobCrewDeckhand`, `WFMobCrewMarine`, `WFMobCrewOfficer` (carries `WFPilotDuty`). Faction `WFCrew` is hostile to SimpleHostile, Zombie, Xeno and nobody else. Markers `WFCrewSpawnPoint<Role>`. |
-| Tests | `Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs` | `DeckhandDrawsForHostileAndHolstersAfter`, `PlannerPlansHelmRadioDockAndDeck`, `PilotTakesHelmAndReleasesOnDeath`, `DockPlanPutsStandoffOutsideTheTargetDock`, `DockFallsBackToFtlDockWhenAllowed`, `RadioOperatorReportsDocking`, `RadioOperatorMaydayThenCaptainDownThenSilence`. New regression coverage: pilot retaliation, alert scope/decay for named and empty groups, distant recruitment, departure cleanup and preservation of personal retaliation (29 cases total, including access, hull alerts, captain orders, reload/fallback, gunnery, setup UI/API and powered docking). Helpers: `CreateDeck(origin, size, gravity)`, `WaitUntil`, `Describe` (dumps awake state, plan, target, hostiles, held item, factions, nearby mobs). Test decks must sit within ~10 m of the origin: the `InteractionTest` player is there and NPCs sleep with no player within 32 tiles. The hostile test mob is `WFTestHostileMob` (faction `SimpleHostile`); test factions can't be declared in `[TestPrototypes]` because the faction system caches its table before they load. |
+| Tests | `Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs` | `DeckhandDrawsForHostileAndHolstersAfter`, `PlannerPlansHelmRadioDockAndDeck`, `PilotTakesHelmAndReleasesOnDeath`, `DockPlanPutsStandoffOutsideTheTargetDock`, `DockFallsBackToFtlDockWhenAllowed`, `RadioOperatorReportsDocking`, `RadioOperatorMaydayThenCaptainDownThenSilence`. New regression coverage: pilot retaliation, alert scope/decay for named and empty groups, distant recruitment, departure cleanup and preservation of personal retaliation (30 cases total, including access, hull alerts, captain orders, reload/fallback, gunnery, setup UI/API and powered docking). Helpers: `CreateDeck(origin, size, gravity)`, `WaitUntil`, `Describe` (dumps awake state, plan, target, hostiles, held item, factions, nearby mobs). Test decks must sit within ~10 m of the origin: the `InteractionTest` player is there and NPCs sleep with no player within 32 tiles. The hostile test mob is `WFTestHostileMob` (faction `SimpleHostile`); test factions can't be declared in `[TestPrototypes]` because the faction system caches its table before they load. |
 
 ## Implementation and verification history
 
@@ -154,6 +154,22 @@ Use `wf_crew spawnrole gunner [group]` when crew membership and spawn-ship crede
 Both direct and role-based spawning pass `GunnerOperatesConsoleUntilLost` (2/2 targeted cases).
 The Debug integration build passed with zero errors; headless startup reached Ready without errors.
 The Release prototype linter and module checks passed. No Client/Shared code changed in this addition.
+
+### Crew Setup playtest fixes
+
+Planner posts, including mapper posts, require clear floor and safe atmosphere. Setup rechecks every post before
+spawning: upstream pressure/temperature limits, oxygen partial pressure of at least 16 kPa, and at most 0.1 kPa
+of gases other than oxygen/nitrogen. Empty plans explain the missing safe posts. This is a spawn-time check;
+it does not protect crew from later breaches or unsafe travel routes.
+Dock/Follow show a labeled Destination grid picker, exclude the source ship and preserve selection across refresh.
+Grid IDs distinguish duplicate names. Choose another grid on the same map and Apply orders.
+Procedural test grids need explicit tile-air fixtures; setting map atmosphere alone leaves their existing tiles
+in vacuum. The first full run failed three atmosphere-dependent tests (27/30) for this fixture issue.
+After correcting the fixtures, all 30 crew tests passed. Server/Client/Shared Debug build passed with zero
+errors; the test-only rebuild also passed. A redundant full rebuild hit running executable locks (`MSB3026`),
+so the fixture-only rebuild skipped project references to preserve the live playtest session.
+Module checks passed. The restarted server and real client connected and reached InGame without logged errors
+or sandbox violations. No prototypes changed, so the prototype linter was not rerun for this fix.
 
 ## Traps that each cost a build cycle
 

@@ -7,6 +7,10 @@ place crew with `WFCrewSpawnPoint*` markers; admins use `wf_crew` to plan a grid
 pilot orders (`orders <mob> hold | goto <x> <y> ... | loiter <x> <y> <radius> | follow <grid|here> | dock <grid|here> |
 undock`) or set what a radio officer calls the ship (`callsign <mob> <text...>`).
 
+Crew planning and setup spawning require clear flooring with safe pressure, temperature, oxygen and low
+contamination. Unsafe marker posts are omitted. Dock and Follow orders expose a Destination grid picker;
+select another grid on the same map, then apply orders. Refresh preserves the destination selection.
+
 Spawn `WFMobCrewGunner` from the entity menu for a ready-to-work gunner, or use `wf_crew spawnrole gunner`
 to assign crew membership and ship credentials. Crew Setup and gunner markers use the same NPC. It carries
 the officer loadout and operates a powered gunnery console against reported hostile ships.

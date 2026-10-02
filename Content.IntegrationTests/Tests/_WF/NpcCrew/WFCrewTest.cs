@@ -140,6 +140,7 @@ public sealed partial class WFCrewTest : InteractionTest
     [Test]
     public async Task PlannerPlansHelmRadioDockAndDeck()
     {
+        await AddAtmosphere();
         var planner = Server.System<WFCrewPlannerSystem>();
 
         var grid = await CreateDeck(new Vector2(40f, 40f), 7, gravity: false);
@@ -152,7 +153,11 @@ public sealed partial class WFCrewTest : InteractionTest
         await RunTicks(5);
 
         List<WFCrewPost> plan = new();
-        await Server.WaitPost(() => plan = planner.Plan(grid, 2));
+        await Server.WaitPost(() =>
+        {
+            FillCrewTestAir(grid);
+            plan = planner.Plan(grid, 2);
+        });
 
         Assert.Multiple(() =>
         {

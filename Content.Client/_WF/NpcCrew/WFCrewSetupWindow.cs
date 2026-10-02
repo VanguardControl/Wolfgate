@@ -39,6 +39,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
     private readonly CheckBox _captain = new();
     private readonly CheckBox _heave = new() { Pressed = true };
     private readonly Label _status = new() { ClipText = true };
+    private readonly BoxContainer _targetLine;
+    private readonly BoxContainer _destinationLine;
     private readonly BoxContainer _roster = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly List<Row> _rows = new();
     private List<WFCrewSetupGrid> _grids = new();
@@ -85,7 +87,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         SelectOnClick(_order);
         SelectOnClick(_grid);
         SelectOnClick(_target);
-        _grid.OnItemSelected += _ => { _rows.Clear(); _roster.RemoveAllChildren(); };
+        _grid.OnItemSelected += _ => { _rows.Clear(); _roster.RemoveAllChildren(); RefreshTargets(_target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : null); };
+        _order.OnItemSelected += _ => UpdateOrderFields();
 
         var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
         Contents.AddChild(body);
@@ -100,8 +103,13 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         body.AddChild(Line("group", _group, new Label { Text = Loc.GetString("wf-crew-setup-callsign") }, _callsign));
         body.AddChild(Line("company", _company, new Label { Text = Loc.GetString("wf-crew-setup-faction") }, _faction));
         body.AddChild(Line("channels", _local, _alert, _heave));
-        body.AddChild(Line("orders", _order, _target));
-        body.AddChild(Line("destination", _x, _y, new Label { Text = Loc.GetString("wf-crew-setup-range") }, _range));
+        body.AddChild(Line("orders", _order));
+        _targetLine = Line("target-grid", _target, Button("refresh", () => Send(WFCrewSetupAction.List)));
+        body.AddChild(_targetLine);
+        _destinationLine = Line("destination", _x, _y);
+        body.AddChild(_destinationLine);
+        body.AddChild(Line("range", _range));
+        UpdateOrderFields();
         body.AddChild(Line("actions", Button("preview", () => Send(WFCrewSetupAction.Preview)),
             Button("spawn", () => Send(WFCrewSetupAction.Spawn)), Button("clear", () => Send(WFCrewSetupAction.Clear)),
             Button("apply-orders", () => Send(WFCrewSetupAction.Orders))));
@@ -166,6 +174,28 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
 
     private static float Number(LineEdit edit) => float.TryParse(edit.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : float.NaN;
 
+    private void UpdateOrderFields()
+    {
+        var order = (WFPilotOrder) _order.SelectedId;
+        _targetLine.Visible = order is WFPilotOrder.Dock or WFPilotOrder.Follow;
+        _destinationLine.Visible = order is WFPilotOrder.GoTo or WFPilotOrder.Loiter;
+    }
+
+    private void RefreshTargets(NetEntity? selected)
+    {
+        _target.Clear();
+        _target.AddItem(Loc.GetString("wf-crew-setup-select-target"), -1);
+        _target.SelectId(-1);
+        for (var index = 0; index < _grids.Count; index++)
+        {
+            if (index == _grid.SelectedId)
+                continue;
+            _target.AddItem($"{_grids[index].Name} ({_grids[index].Id})", index);
+            if (_grids[index].Id == selected)
+                _target.SelectId(index);
+        }
+    }
+
     private WFCrewSetupPost Read(Row row) => new()
     {
         Role = _roles[row.Role.SelectedId], Loadout = _loadouts[row.Loadout.SelectedId],
@@ -187,7 +217,7 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
                 Faction = _factions[_faction.SelectedId], LocalChannel = _channels[_local.SelectedId],
                 AlertChannel = _channels[_alert.SelectedId], HeaveTo = _heave.Pressed,
                 Order = (WFPilotOrder) _order.SelectedId, Destination = new Vector2(Number(_x), Number(_y)),
-                Range = Number(_range), Target = _grids.Count > 0 ? _grids[_target.SelectedId].Id : null,
+                Range = Number(_range), Target = _target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : null,
             },
         });
     }
@@ -198,15 +228,16 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         if (response.Action == WFCrewSetupAction.List)
         {
             var selected = _pendingGrid ?? (_grids.Count > 0 ? _grids[_grid.SelectedId].Id : (NetEntity?) null);
+            var target = _target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : (NetEntity?) null;
             _grids = response.Grids;
             _grid.Clear();
             _target.Clear();
             for (var index = 0; index < _grids.Count; index++)
             {
-                _grid.AddItem(_grids[index].Name, index);
-                _target.AddItem(_grids[index].Name, index);
+                _grid.AddItem($"{_grids[index].Name} ({_grids[index].Id})", index);
             }
             _grid.TrySelectId(Math.Max(0, _grids.FindIndex(grid => grid.Id == selected)));
+            RefreshTargets(target);
             _pendingGrid = null;
             if (_planAfterList)
             {
