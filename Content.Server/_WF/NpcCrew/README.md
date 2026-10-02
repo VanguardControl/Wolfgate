@@ -25,6 +25,10 @@ from outside the crew, or a hostile mob aboard), the boarding call, the captain 
 two minutes after the last hostile activity on Broadband (and a faction channel if set). Events only, no sitreps; he
 goes quiet when he is down. Crew retaliation catches incoming damage before Wolfmed routes it through body parts, using upstream faction checks
 and attack memory so officers fight back when hit. The captain stands guard until his duty lands.
+Shared alerts (`WFCrewAlertSystem`) let living on-sight crew aboard the same ship and group share targets once a
+second. Awareness expands across the ship until 60 seconds without a target; crew leaving the group or switching
+to when-attacked engagement recover their original awareness. `ShareAlerts` on the crew component opts out.
+Officers are excluded, and `WFCrewAlertEvent` / `WFCrewAlertClearedEvent` expose transitions for future duties.
 `design.md` under `Docs/_WF/NpcCrew/` is the full brief: pilot duty and orders, docking by hand, the event-driven
 radio officer, crew alerting, the access-door edit and the Crew Setup admin window.
 
@@ -46,6 +50,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/HTN/WFHolsterWeaponOperator.cs`](HTN/WFHolsterWeaponOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFPickHelmOperator.cs`](HTN/WFPickHelmOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeHelmOperator.cs`](HTN/WFTakeHelmOperator.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewPlannerSystem.cs`](Systems/WFCrewPlannerSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)

@@ -39,7 +39,7 @@ git submodule update --init --recursive --depth 1 RobustToolbox
 # Build everything the tests need (about 2.5 min); only errors shown
 dotnet build Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug -v q -nologo 2>&1 | grep -E "error CS|error RA|Error\(s\)" | sort -u
 
-# The module's tests (about 4 min for all seven)
+# The module's tests (13 cases; runtime varies by host)
 dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug --no-build --filter "FullyQualifiedName~WFCrewTest" --logger "console;verbosity=detailed" -nologo 2>&1 | grep -vE "warning RA|warning CS" > /tmp/wfcrew-tests.log
 grep -E "^\s*(Passed|Failed) |Error Message|Passed!|Failed!" -A3 /tmp/wfcrew-tests.log | head -40
 
@@ -53,7 +53,7 @@ python3 Tools/_WF/Ci/modules.py --write
 Never run two dotnet builds at once. `Content.Server` treats nullable warnings as errors. Say plainly in every
 report what you built, what you ran and the exact counts; never call something working without running it.
 
-## What is built (seven tests green, linter clean)
+## What is built (13 crew tests green; prototype linter clean at the previous handoff)
 
 One idea: every crew NPC runs one HTN root, `WFCrewCompound` (`Resources/Prototypes/_WF/NpcCrew/htn.yml`), with
 branches in priority order: **fight** (gated by `WFCrewMayFightPrecondition`, starts with `WFDrawWeaponOperator`,
@@ -73,7 +73,7 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
 | Radio officer | `Systems/WFRadioOperatorSystem.cs`, `Components/WFRadioOperatorComponent.cs` | Event-driven, no HTN. Shortband (`Traffic`, 1500 m, needs `TelecomExempt`, which the role adds): docking/undocking once per grid pair, "jumping" while the drive spools (polled; `FTLStartedEvent` fires already in FTL space), "arriving", "on station", "docking aborted". Broadband (`Common`): one mayday per episode, "boarded", "Captain is down", "Helm is down", all-clear after 120 s quiet. Hostile acts: a crewman of the group hurt by an outsider (`BeforeDamageChangedEvent` on `WFCrewComponent`, because Wolfmed routes body damage through parts and the body's `DamageChangedEvent` has no origin) and a hostile mob aboard (`NpcFactionSystem.GetNearbyHostiles`, polled). Cooldown per line. `Sent` keeps the last 20 transmissions for VV and tests. `SetCallsign`. |
 | Command | `Commands/WFCrewCommand.cs` (`wf_crew`, `AdminFlags.Spawn`) | `plan <grid|here> [deckhands]`, `spawn <grid|here> [group] [deckhands]`, `spawnrole <role> [group]`, `list [group]`, `clear <group>`, `duty <mob> <duty>`, `orders <mob> hold|goto x y ...|loiter x y r|follow <grid|here>|dock <grid|here>|undock`, `callsign <mob> <text>`. |
 | Prototypes | `roles.yml`, `mobs.yml`, `gear.yml`, `markers.yml`, `ai_factions.yml`, `htn.yml` | Roles `WFCrewDeckhand`, `WFCrewMarine` (OnSight), `WFCrewPilot`, `WFCrewRadioOperator`, `WFCrewCaptain` (WhenAttacked; the captain still works Guard). Mobs `WFMobCrewBase` (parent `[BaseMobHuman, MobPrying]`, faction `WFCrew`, `NPCRetaliation`, HTN root), `WFMobCrewDeckhand`, `WFMobCrewMarine`, `WFMobCrewOfficer` (carries `WFPilotDuty`). Faction `WFCrew` is hostile to SimpleHostile, Zombie, Xeno and nobody else. Markers `WFCrewSpawnPoint<Role>`. |
-| Tests | `Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs` | `DeckhandDrawsForHostileAndHolstersAfter`, `PlannerPlansHelmRadioDockAndDeck`, `PilotTakesHelmAndReleasesOnDeath`, `DockPlanPutsStandoffOutsideTheTargetDock`, `DockFallsBackToFtlDockWhenAllowed`, `RadioOperatorReportsDocking`, `RadioOperatorMaydayThenCaptainDownThenSilence`. Helpers: `CreateDeck(origin, size, gravity)`, `WaitUntil`, `Describe` (dumps awake state, plan, target, hostiles, held item, factions, nearby mobs). Test decks must sit within ~10 m of the origin: the `InteractionTest` player is there and NPCs sleep with no player within 32 tiles. The hostile test mob is `WFTestHostileMob` (faction `SimpleHostile`); test factions can't be declared in `[TestPrototypes]` because the faction system caches its table before they load. |
+| Tests | `Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs` | `DeckhandDrawsForHostileAndHolstersAfter`, `PlannerPlansHelmRadioDockAndDeck`, `PilotTakesHelmAndReleasesOnDeath`, `DockPlanPutsStandoffOutsideTheTargetDock`, `DockFallsBackToFtlDockWhenAllowed`, `RadioOperatorReportsDocking`, `RadioOperatorMaydayThenCaptainDownThenSilence`. New regression coverage: pilot retaliation, alert scope/decay for named and empty groups, distant recruitment, departure cleanup and preservation of personal retaliation (13 cases total). Helpers: `CreateDeck(origin, size, gravity)`, `WaitUntil`, `Describe` (dumps awake state, plan, target, hostiles, held item, factions, nearby mobs). Test decks must sit within ~10 m of the origin: the `InteractionTest` player is there and NPCs sleep with no player within 32 tiles. The hostile test mob is `WFTestHostileMob` (faction `SimpleHostile`); test factions can't be declared in `[TestPrototypes]` because the faction system caches its table before they load. |
 
 ## Known gaps and bugs, in the order to fix them
 
@@ -84,10 +84,18 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
    interrupt piloting, a body hit releases the helm and draws, and removing the attacker restores duty.
    Debug integration build: 0 errors; all 8 `WFCrewTest` cases passed. Module `--write`, `--check` and
    `--pr-check origin/main` passed. No prototype or Client/Shared changes in this fix; no new live-client
-   or thrustered-docking validation. Next implementation task is crew alert below.
-2. **Crew alert** (design.md section 5): once a second per group, when one `OnSight` member has a `Target`, give every
-   other `OnSight` member `AggroEntity`, raise its `AggroVisionRadius` blackboard key to cover the ship, and
-   `HTNSystem.Replan`; decay 60 s after the last target. `WhenAttacked` members are skipped.
+   or thrustered-docking validation. Shared crew alerts are now implemented below.
+2. **Crew alert implemented and verified (2026-10-02).** `WFCrewAlertSystem` shares live onboard targets among
+   eligible on-sight members of one `(grid, group)`, with a `ShareAlerts` opt-out. Both normal and aggro vision
+   expand across the grid; combat keeps its existing line-of-sight rules. Sixty seconds without a target clears
+   the alert; departed, downed or player-controlled members are cleaned up on the next poll. Added hostility and
+   original vision overrides are tracked separately, preserving pre-existing hostility and personal retaliation.
+   Broadcast `WFCrewAlertEvent` / `WFCrewAlertClearedEvent` carry grid and group. Radio remains independent.
+   Debug integration build: 0 errors, 1330 warnings; all 13 crew test cases passed. Module generation,
+   `--check` and `--pr-check origin/main` passed. An initial run had 11/12 pass with a room-echo
+   `SharedAudioSystem.SetAuxiliary` assertion; the new combat test disables client room echo and restores it
+   afterward. No prototype or Client/Shared changes; linter and live-client checks were not rerun.
+   Next implementation task: access doors below.
 3. **Access doors** (design.md section 6): a small marked edit so NPCs with access open doors instead of prying.
    `PathfindingSystem.GetFlags` sets the existing `PathFlags.Access` from a `NavAccess` blackboard key;
    `GetTileCost` treats access doors as plain doors for that flag; `NPCSteeringSystem.TryHandleFlags` uses

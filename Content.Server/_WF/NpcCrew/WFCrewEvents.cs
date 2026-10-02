@@ -40,3 +40,11 @@ public readonly record struct WFHelmTakenEvent(EntityUid Mob, EntityUid Console,
 /// <summary>Raised on a crew pilot and broadcast when it lets go of the helm, for whatever reason.</summary>
 [ByRefEvent]
 public readonly record struct WFHelmReleasedEvent(EntityUid Mob);
+
+/// <summary>Broadcast when a ship's crew discovers new shared hostiles.</summary>
+[ByRefEvent]
+public readonly record struct WFCrewAlertEvent(EntityUid Grid, string Group, EntityUid[] Hostiles);
+
+/// <summary>Broadcast once when a ship's shared crew alert ends.</summary>
+[ByRefEvent]
+public readonly record struct WFCrewAlertClearedEvent(EntityUid Grid, string Group);

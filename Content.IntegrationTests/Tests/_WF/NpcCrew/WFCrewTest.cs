@@ -5,16 +5,20 @@ using System.Numerics;
 using Content.IntegrationTests.Tests.Interaction;
 using System.Text;
 using Content.Server._Mono.NPC.HTN;
+using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Gravity;
 using Content.Server.NPC.HTN;
+using Content.Server.NPC.Components;
 using Content.Server.Damage.Systems;
 using Content.Server.NPC.Systems;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.CCVar;
+using Content.Shared._Mono.CCVar;
+using Robust.Shared.Configuration;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
@@ -487,6 +491,164 @@ public sealed class WFCrewTest : InteractionTest
 
         await Server.WaitAssertion(() =>
             Assert.That(Sent(radio), Has.Count.EqualTo(before), $"A dead radio officer says nothing: {Describe(Sent(radio))}"));
+    }
+
+    /// <summary>Shared alerts stay on one ship and group, skip officers, and restore awareness after sixty quiet seconds.</summary>
+    [TestCase("")]
+    [TestCase("crew")]
+    public async Task CrewAlertScopeAndDecay(string group)
+    {
+        var crewSystem = Server.System<WFCrewSystem>();
+        var alerts = Server.System<WFCrewAlertSystem>();
+        var factions = Server.System<NpcFactionSystem>();
+        var npc = Server.System<NPCSystem>();
+        var deck = await CreateDeck(new Vector2(6f, 0f), 15, gravity: true);
+        var otherDeck = await CreateDeck(new Vector2(6f, 20f), 3, gravity: true);
+        var observer = Server.System<CrewAlertObserver>();
+        var started = observer.Started;
+        var cleared = observer.Cleared;
+        EntityUid source = default, receiver = default, officer = default, otherGroup = default;
+        EntityUid otherShip = default, optedOut = default, hostile = default;
+        await Server.WaitPost(() =>
+        {
+            source = SpawnSleeping(WFCrewRoles.Deckhand, deck, group);
+            receiver = SpawnSleeping(WFCrewRoles.Deckhand, deck, group);
+            officer = SpawnSleeping(WFCrewRoles.Pilot, deck, group);
+            otherGroup = SpawnSleeping(WFCrewRoles.Deckhand, deck, "different");
+            otherShip = SpawnSleeping(WFCrewRoles.Deckhand, otherDeck, group);
+            optedOut = SpawnSleeping(WFCrewRoles.Deckhand, deck, group);
+            SEntMan.GetComponent<WFCrewComponent>(optedOut).ShareAlerts = false;
+            Board(receiver).SetValue("VisionRadius", 7f);
+            Board(receiver).SetValue("AggroVisionRadius", 8f);
+            hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(6.5f, 6.5f)));
+            factions.AggroEntity(source, hostile);
+            Board(source).SetValue("Target", hostile);
+        });
+        await RunTicks(90);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(alerts.IsAlerted(deck, group), Is.True);
+            Assert.That(observer.Started, Is.EqualTo(started + 1));
+            Assert.That(factions.GetHostiles(receiver), Does.Contain(hostile));
+            Assert.That(Board(receiver).GetValue<float>("VisionRadius"), Is.GreaterThan(20f));
+            Assert.That(Board(receiver).GetValue<float>("AggroVisionRadius"), Is.GreaterThan(20f));
+            foreach (var excluded in new[] { officer, otherGroup, otherShip, optedOut })
+            {
+                Assert.That(factions.GetHostiles(excluded), Does.Not.Contain(hostile));
+                Assert.That(Board(excluded).ContainsKey("AggroVisionRadius"), Is.False);
+            }
+        });
+
+        await Server.WaitPost(() =>
+        {
+            Board(source).Remove<EntityUid>("Target");
+            Board(officer).SetValue("Target", hostile);
+        });
+        await RunTicks(120);
+        await Server.WaitAssertion(() => Assert.That(alerts.IsAlerted(deck, group), Is.True,
+            "Losing a target does not immediately end the alert."));
+        await RunTicks(3600);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(alerts.IsAlerted(deck, group), Is.False);
+            Assert.That(observer.Started, Is.EqualTo(started + 1), "Repeated polling must not duplicate the alert.");
+            Assert.That(observer.Cleared, Is.EqualTo(cleared + 1));
+            Assert.That(factions.GetHostiles(receiver), Does.Not.Contain(hostile));
+            Assert.That(factions.GetHostiles(source), Does.Contain(hostile), "Pre-existing hostility survives alert cleanup.");
+            Assert.That(Board(receiver).GetValue<float>("VisionRadius"), Is.EqualTo(7f));
+            Assert.That(Board(receiver).GetValue<float>("AggroVisionRadius"), Is.EqualTo(8f));
+            Assert.That(Board(source).ContainsKey("VisionRadius"), Is.False,
+                "Default vision must remain a default, not become a permanent local override.");
+        });
+
+        EntityUid SpawnSleeping(string role, EntityUid grid, string name)
+        {
+            var uid = crewSystem.SpawnCrewman(role, new EntityCoordinates(grid, new Vector2(1.5f, 1.5f)), name)!.Value;
+            var htn = SEntMan.GetComponent<HTNComponent>(uid);
+            htn.SleepPlayerCheckRangeOverride = 0f;
+            npc.SleepNPC(uid, htn);
+            return uid;
+        }
+        Content.Server.NPC.NPCBlackboard Board(EntityUid uid) => SEntMan.GetComponent<HTNComponent>(uid).Blackboard;
+    }
+
+    /// <summary>A remote deckhand joins a spotted fight, while leaving the crew restores its previous awareness.</summary>
+    [TestCase(false, false)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    public async Task CrewAlertRecruitsDistantDeckhandAndCleansUpDeparture(bool changeGroup, bool retaliated)
+    {
+        // Headless clients can assert when attaching the room-echo auxiliary effect to gunshot audio.
+        var config = Client.ResolveDependency<IConfigurationManager>();
+        var echo = config.GetCVar(MonoCVars.AreaEchoEnabled);
+        await Client.WaitPost(() => config.SetCVar(MonoCVars.AreaEchoEnabled, false));
+        try
+        {
+            var crewSystem = Server.System<WFCrewSystem>();
+            var alerts = Server.System<WFCrewAlertSystem>();
+            var factions = Server.System<NpcFactionSystem>();
+            var hands = Server.System<SharedHandsSystem>();
+            var deck = await CreateDeck(new Vector2(2f, 0f), 24, gravity: true);
+            EntityUid source = default, receiver = default, hostile = default;
+            await Server.WaitPost(() =>
+            {
+                source = crewSystem.SpawnCrewman(WFCrewRoles.Deckhand,
+                    new EntityCoordinates(deck, new Vector2(2.5f, 2.5f)), "crew")!.Value;
+                receiver = crewSystem.SpawnCrewman(WFCrewRoles.Deckhand,
+                    new EntityCoordinates(deck, new Vector2(18.5f, 2.5f)), "crew")!.Value;
+                hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(5.5f, 2.5f)));
+            });
+            await WaitUntil(() => alerts.IsAlerted(deck, "crew") && factions.GetHostiles(receiver).Contains(hostile)
+                                   && hands.TryGetActiveItem(receiver, out var held)
+                                   && SEntMan.HasComponent<GunComponent>(held.Value),
+                300, () => $"The remote crewman should join the alerted fight. {Describe(receiver)}");
+
+            await Server.WaitPost(() =>
+            {
+                if (retaliated)
+                    Server.System<NPCRetaliationSystem>().TryRetaliate(
+                        (receiver, SEntMan.GetComponent<NPCRetaliationComponent>(receiver)), hostile);
+                if (changeGroup)
+                    SEntMan.GetComponent<WFCrewComponent>(receiver).Group = "different";
+                else
+                    crewSystem.SetEngagement(receiver, WFCrewEngagement.WhenAttacked);
+                // The departing crewman must not seed another alert from its old target.
+                var htn = SEntMan.GetComponent<HTNComponent>(receiver);
+                htn.SleepPlayerCheckRangeOverride = 0f;
+                Server.System<NPCSystem>().SleepNPC(receiver, htn);
+                htn.Blackboard.Remove<EntityUid>("Target");
+            });
+            await RunTicks(90);
+            await Server.WaitAssertion(() =>
+            {
+                Assert.That(factions.GetHostiles(receiver).Contains(hostile), Is.EqualTo(retaliated),
+                    "Cleanup preserves personal retaliation but removes hostility owned by the alert.");
+                var board = SEntMan.GetComponent<HTNComponent>(receiver).Blackboard;
+                Assert.That(board.ContainsKey("VisionRadius"), Is.False);
+                Assert.That(board.ContainsKey("AggroVisionRadius"), Is.False);
+            });
+        }
+        finally
+        {
+            await Client.WaitPost(() => config.SetCVar(MonoCVars.AreaEchoEnabled, echo));
+        }
+    }
+
+    /// <summary>Counts shared alert transitions across server ticks.</summary>
+    public sealed class CrewAlertObserver : EntitySystem
+    {
+        public int Started;
+        public int Cleared;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+            SubscribeLocalEvent<WFCrewAlertEvent>(OnAlert);
+            SubscribeLocalEvent<WFCrewAlertClearedEvent>(OnClear);
+        }
+
+        private void OnAlert(ref WFCrewAlertEvent args) => Started++;
+        private void OnClear(ref WFCrewAlertClearedEvent args) => Cleared++;
     }
 
     private List<WFRadioTransmission> Sent(EntityUid radio)

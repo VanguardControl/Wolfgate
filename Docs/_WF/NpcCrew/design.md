@@ -281,6 +281,19 @@ its target, restoring vision and raising `WFCrewAlertClearedEvent`. `WhenAttacke
 this system the crew still fights, one NPC at a time, as it sees things; with it the deckhands converge on a boarder,
 which is what a ship's crew should do.
 
+As built (`WFCrewAlertSystem`): alerts are scoped to `(grid, group)`, including empty groups. Only living,
+non-player, enabled `OnSight` crew with `ShareAlerts` enabled report and receive targets. Reports must be living
+mobs on the same grid. The system polls once a second and emits `WFCrewAlertEvent` for newly reported targets,
+then one `WFCrewAlertClearedEvent` after 60 seconds without a valid target (or when the group has no eligible crew).
+Both events carry the grid and group for future captain behavior.
+
+Both normal and aggro vision extend to at least the ship's bounding-box diagonal: the upstream target search uses
+normal vision until a target is acquired. Existing combat selection, line-of-sight and pathfinding still apply;
+sharing a target does not let crew see through walls. The system never assigns the combat `Target` key.
+Original vision overrides are restored on clearing, leaving the group/grid, changing engagement, disabling
+sharing, death or player takeover. Only hostility added by the alert is removed, preserving existing hostility and
+unexpired personal retaliation. The radio officer's independent attack-episode reporting is unchanged.
+
 ### 6. Access and doors
 
 Crew need two things to walk a real ship: access, and a pathfinder that respects it. Access is `AccessComponent` tags
