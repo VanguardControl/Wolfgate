@@ -16,6 +16,35 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 public sealed partial class WFCrewTest
 {
+    /// <summary>External hull threats trigger a moving orbit instead of a stationary hold.</summary>
+    [Test]
+    public async Task CaptainEvadesShipAttack()
+    {
+        var deck = await CreateDeck(new Vector2(6, 0), 7, gravity: true);
+        var attacker = await CreateDeck(new Vector2(300, 0), 3, gravity: true);
+        EntityUid pilot = default, helm = default;
+        await Server.WaitAssertion(() =>
+        {
+            SEntMan.EnsureComponent<Content.Server.Shuttles.Components.ShuttleComponent>(deck);
+            var crew = Server.System<WFCrewSystem>();
+            var captain = crew.SpawnCrewman(WFCrewRoles.Captain, new EntityCoordinates(deck, Vector2.One), "evade")!.Value;
+            pilot = crew.SpawnCrewman(WFCrewRoles.Pilot, new EntityCoordinates(deck, new Vector2(2.5f, 3.5f)), "evade")!.Value;
+            SEntMan.GetComponent<HTNComponent>(captain).Enabled = false;
+            SEntMan.GetComponent<HTNComponent>(pilot).Enabled = false;
+            helm = SEntMan.SpawnAtPosition(TestHelm, new EntityCoordinates(deck, new Vector2(3.5f)));
+        });
+        await RunTicks(5);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(Server.System<WFPilotDutySystem>().TryTakeHelm(pilot, helm), Is.True, DescribePilot(pilot, helm));
+            Server.System<WFCrewAlertSystem>().ReportShipThreat(deck, "evade", attacker);
+            var duty = SEntMan.GetComponent<WFPilotDutyComponent>(pilot);
+            Assert.That(duty.Orders, Is.EqualTo(WFPilotOrder.Loiter));
+            Assert.That(duty.LoiterCenter!.Value.EntityId, Is.EqualTo(attacker));
+            Assert.That(SEntMan.GetComponent<Content.Server._Mono.NPC.HTN.ShipSteererComponent>(pilot).AvoidProjectiles, Is.True);
+        });
+    }
+
     /// <summary>Real artillery impacts alert a crew once, while same-ship fire does not.</summary>
     [Test]
     public async Task HullFireAlertsCrewAndRadio()

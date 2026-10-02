@@ -26,6 +26,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
+    [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFPilotDutySystem _pilots = default!;
     [Dependency] private WFRadioOperatorSystem _radio = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
@@ -144,6 +145,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     {
         if (!ValidateMission(grid, mission))
             return false;
+        _objectives.Cancel(grid, mission.Group);
         ApplyCompany(grid, mission.Company);
         _factions.ClearFactions(grid);
         _factions.AddFaction(grid, mission.Faction);
@@ -217,6 +219,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             }
             else if (request.Action == WFCrewSetupAction.Clear)
             {
+                _objectives.Cancel(grid, request.Mission.Group);
                 var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
                 while (query.MoveNext(out var uid, out var crew, out var transform))
                 {
@@ -224,6 +227,13 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
                         QueueDel(uid);
                 }
             }
+            else if (request.Action is WFCrewSetupAction.Objectives or WFCrewSetupAction.AppendObjective)
+            {
+                if (!_objectives.SetQueue(grid, request.Mission.Group, request.Objectives, request.Action == WFCrewSetupAction.AppendObjective))
+                    response.Message = Loc.GetString("wf-crew-setup-invalid");
+            }
+            else if (request.Action is WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip)
+                _objectives.Control(grid, request.Mission.Group, request.Action);
             else if (request.Action == WFCrewSetupAction.Orders)
             {
                 if (!TryApplyMission(grid, request.Mission))
@@ -244,6 +254,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         }
         else
             response.Message = Loc.GetString("wf-crew-setup-invalid");
+        response.Crews = _objectives.Snapshot();
         RaiseNetworkEvent(response, Filter.SinglePlayer(session));
     }
 }

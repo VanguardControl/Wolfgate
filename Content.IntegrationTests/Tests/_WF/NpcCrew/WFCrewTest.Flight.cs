@@ -14,11 +14,61 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.EntitySerialization.Systems;
+using Robust.Shared.Utility;
+using Content.Server.Power.Components;
 
 namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 public sealed partial class WFCrewTest
 {
+    /// <summary>The actual Dredger hull can physically mate with the actual Drillsite without FTL.</summary>
+    [Test]
+    public async Task DredgerDocksAtDrillsite()
+    {
+        EntityUid ship = default, site = default, pilot = default, helm = default;
+        await Server.WaitAssertion(() =>
+        {
+            var loader = Server.System<MapLoaderSystem>();
+            Assert.That(loader.TryLoadGrid(MapData.MapId, new ResPath("/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml"), out var loadedShip,
+                offset: new Vector2(2000, 2200)), Is.True);
+            Assert.That(loader.TryLoadGrid(MapData.MapId, new ResPath("/Maps/_Mono/POI/derelictdrillsite.yml"), out var loadedSite,
+                offset: new Vector2(2000, 2000)), Is.True);
+            ship = loadedShip!.Value.Owner;
+            site = loadedSite!.Value.Owner;
+        });
+        await RunTicks(120);
+        await Server.WaitAssertion(() =>
+        {
+            var query = SEntMan.EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out _, out var transform))
+            {
+                if (transform.GridUid == ship) { helm = uid; break; }
+            }
+            Assert.That(helm.IsValid(), Is.True);
+            var power = SEntMan.EntityQueryEnumerator<ApcPowerReceiverComponent, TransformComponent>();
+            while (power.MoveNext(out _, out var receiver, out var transform))
+            {
+                if (transform.GridUid == ship)
+                    receiver.NeedsPower = false;
+            }
+            var thrusters = SEntMan.EntityQueryEnumerator<ThrusterComponent, TransformComponent>();
+            while (thrusters.MoveNext(out var uid, out var thrust, out var transform))
+            {
+                if (transform.GridUid == ship)
+                    Server.System<ThrusterSystem>().EnableThruster(uid, thrust);
+            }
+            var planner = Server.System<WFCrewPlannerSystem>();
+            var post = planner.Plan(ship).Find(entry => entry.Role == WFCrewRoles.Pilot);
+            Assert.That(post.Coordinates.IsValid(SEntMan), Is.True, "Dredger has a safe helm post.");
+            pilot = Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Pilot, post.Coordinates, "dredger")!.Value;
+            Assert.That(Server.System<WFPilotDutySystem>().TryPlanDock(ship, site, 40, out _), Is.True, "A pair of hull ports fits.");
+            Server.System<WFPilotDutySystem>().Dock(pilot, site);
+        });
+        await WaitUntil(() => Server.System<DockingSystem>().AreGridsDocked(ship, site), 18000,
+            () => $"{DescribePilot(pilot, helm)} phase={SEntMan.GetComponent<WFPilotDutyComponent>(pilot).DockPhase} attempts={SEntMan.GetComponent<WFPilotDutyComponent>(pilot).DockAttempts} position={SEntMan.GetComponent<TransformComponent>(ship).LocalPosition} angle={SEntMan.GetComponent<TransformComponent>(ship).LocalRotation} velocity={SEntMan.GetComponent<PhysicsComponent>(ship).LinearVelocity} turn={SEntMan.GetComponent<PhysicsComponent>(ship).AngularVelocity}");
+    }
+
     [TestPrototypes]
     private const string FlightPrototypes = @"
 - type: entity

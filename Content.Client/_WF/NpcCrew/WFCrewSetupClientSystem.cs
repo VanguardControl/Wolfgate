@@ -12,6 +12,19 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
     public WFCrewSetupResponse? Preview { get; private set; }
     public TimeSpan PreviewUntil { get; private set; }
     public event Action<WFCrewSetupResponse>? Received;
+    private float _pollTimer;
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        if (Received == null)
+            return;
+        _pollTimer += frameTime;
+        if (_pollTimer < 2)
+            return;
+        _pollTimer = 0;
+        Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
+    }
 
     public override void Initialize()
     {

@@ -5,7 +5,34 @@ namespace Content.Shared._WF.NpcCrew;
 
 /// <summary>Admin operations supported by the crew setup window.</summary>
 [Serializable, NetSerializable]
-public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview, Teleport, SpawnVessel }
+public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview, Teleport, SpawnVessel, Objectives, AppendObjective, Pause, Resume, Skip }
+
+/// <summary>High-level crew tasks; timed tasks with zero duration continue until skipped.</summary>
+[Serializable, NetSerializable]
+public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat }
+
+/// <summary>A queued task with a grid or map-coordinate destination.</summary>
+[Serializable, NetSerializable]
+public sealed class WFCrewObjective
+{
+    public WFCrewObjectiveKind Kind;
+    public NetEntity? Target;
+    public Vector2 Position;
+    public float Range = 100;
+    public float Duration;
+}
+
+/// <summary>A live crew and its remaining objective queue.</summary>
+[Serializable, NetSerializable]
+public sealed class WFCrewSetupCrew
+{
+    public NetEntity Grid;
+    public string Group = string.Empty;
+    public int Members;
+    public int Alive;
+    public string Status = string.Empty;
+    public List<WFCrewObjective> Objectives = new();
+}
 
 /// <summary>An editable role, loadout and local post on a selected ship.</summary>
 [Serializable, NetSerializable]
@@ -45,6 +72,7 @@ public sealed class WFCrewSetupRequest : EntityEventArgs
     public string Vessel = string.Empty;
     public List<WFCrewSetupPost> Posts = new();
     public WFCrewMission Mission = new();
+    public List<WFCrewObjective> Objectives = new();
 }
 
 /// <summary>A named grid visible to the admin tool.</summary>
@@ -68,4 +96,5 @@ public sealed class WFCrewSetupResponse : EntityEventArgs
     public List<WFCrewSetupGrid> Grids = new();
     public List<WFCrewSetupPost> Posts = new();
     public string Message = string.Empty;
+    public List<WFCrewSetupCrew> Crews = new();
 }

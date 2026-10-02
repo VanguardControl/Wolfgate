@@ -423,6 +423,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         steerer.Range = range;
         steerer.InRangeMaxSpeed = speed;
         steerer.AvoidCollisions = avoid;
+        steerer.AvoidProjectiles = duty.Orders != WFPilotOrder.Dock;
         steerer.FinishOnCollide = finishOnCollide;
         steerer.InRangeRotation = heading;
         steerer.MaxRotateRate = maxTurnRate;

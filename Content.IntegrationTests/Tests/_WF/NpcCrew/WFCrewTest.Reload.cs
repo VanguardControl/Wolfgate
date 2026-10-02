@@ -1,5 +1,9 @@
 #nullable enable
 using System.Numerics;
+using System.Collections.Generic;
+using Content.Shared.Weapons.Ranged.Events;
+using Content.Shared.Weapons.Ranged;
+using Content.Shared.Weapons.Ranged.Components;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.NPC.HTN;
@@ -13,6 +17,32 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 public sealed partial class WFCrewTest
 {
+    /// <summary>A loaded magazine with an empty chamber is racked and can supply a real shot.</summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task CrewChambersLoadedGun(bool marine)
+    {
+        var deck = await CreateDeck(new Vector2(6, 0), 5, gravity: true);
+        await Server.WaitAssertion(() =>
+        {
+            var mob = Server.System<WFCrewSystem>().SpawnCrewman(marine ? WFCrewRoles.Marine : WFCrewRoles.Deckhand,
+                new EntityCoordinates(deck, new Vector2(2.5f)), "chamber")!.Value;
+            SEntMan.GetComponent<HTNComponent>(mob).Enabled = false;
+            var weapons = Server.System<WFCrewWeaponSystem>();
+            weapons.TryDraw(mob);
+            var gun = SEntMan.GetComponent<WFCrewWeaponComponent>(mob).Drawn!.Value;
+            var slots = Server.System<ItemSlotsSystem>();
+            if (slots.TryEject(gun, "gun_chamber", null, out var round))
+                SEntMan.DeleteEntity(round.Value);
+            Assert.That(weapons.AmmoCount(gun), Is.GreaterThan(0));
+            Assert.That(weapons.TryReloadOrSwitch(mob), Is.True);
+            var shot = new TakeAmmoEvent(1, new List<(EntityUid? Entity, IShootable Shootable)>(),
+                SEntMan.GetComponent<TransformComponent>(mob).Coordinates, mob);
+            SEntMan.EventBus.RaiseLocalEvent(gun, shot);
+            Assert.That(shot.Ammo.Count, Is.EqualTo(1), "Loaded crew guns must fire rather than merely report magazine rounds.");
+        });
+    }
+
     /// <summary>Reloads from a pocket, or switches to a loaded sidearm or empty hands when no ammunition remains.</summary>
     [TestCase(true, false)]
     [TestCase(false, false)]

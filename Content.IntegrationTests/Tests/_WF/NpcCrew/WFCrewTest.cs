@@ -571,6 +571,7 @@ public sealed partial class WFCrewTest : InteractionTest
             var uid = crewSystem.SpawnCrewman(role, new EntityCoordinates(grid, new Vector2(1.5f, 1.5f)), name)!.Value;
             var htn = SEntMan.GetComponent<HTNComponent>(uid);
             htn.SleepPlayerCheckRangeOverride = 0f;
+            SEntMan.GetComponent<WFCrewComponent>(uid).KeepActive = false;
             npc.SleepNPC(uid, htn);
             return uid;
         }
@@ -619,6 +620,7 @@ public sealed partial class WFCrewTest : InteractionTest
                     crewSystem.SetEngagement(receiver, WFCrewEngagement.WhenAttacked);
                 // The departing crewman must not seed another alert from its old target.
                 var htn = SEntMan.GetComponent<HTNComponent>(receiver);
+                SEntMan.GetComponent<WFCrewComponent>(receiver).KeepActive = false;
                 htn.SleepPlayerCheckRangeOverride = 0f;
                 Server.System<NPCSystem>().SleepNPC(receiver, htn);
                 htn.Blackboard.Remove<EntityUid>("Target");
@@ -631,7 +633,18 @@ public sealed partial class WFCrewTest : InteractionTest
                 var board = SEntMan.GetComponent<HTNComponent>(receiver).Blackboard;
                 Assert.That(board.ContainsKey("VisionRadius"), Is.False);
                 Assert.That(board.ContainsKey("AggroVisionRadius"), Is.False);
+                foreach (var mob in new[] { source, receiver, hostile })
+                {
+                    if (SEntMan.TryGetComponent<HTNComponent>(mob, out var htn))
+                    {
+                        htn.Enabled = false;
+                        Server.System<NPCSystem>().SleepNPC(mob, htn);
+                    }
+                    SEntMan.RemoveComponent<NPCRangedCombatComponent>(mob);
+                    SEntMan.RemoveComponent<NPCMeleeCombatComponent>(mob);
+                }
             });
+            await RunTicks(90);
         }
         finally
         {

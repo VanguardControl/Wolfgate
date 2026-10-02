@@ -1,5 +1,22 @@
 # NpcCrew
 
+Crew Setup also lists active crews and their remaining objectives, refreshing every two seconds. Select a crew
+and build a queue of Hold, GoTo coordinates (repeat for patrol waypoints), Dock, Undock, Loiter at a grid, Escort,
+Attack or Retreat to a grid. Append preserves the running task; Replace starts the edited queue from its first
+entry. Edit, move up, remove, pause, resume and skip are available. Timed Hold/Loiter/Escort/Attack tasks use seconds;
+zero means indefinite until skipped. Travel, retreat, dock and undock advance on arrival. Missing targets or a failed
+dock pause the queue with a visible status; a replacement pilot can continue it. Immediate orders cancel the queue.
+Queues last for the round and are scoped by ship and group. Attack explicitly assigns the gunner's target, including
+a normally friendly grid, while regular defensive targeting still respects faction friendship.
+
+Crew AI stays awake away from player bodies (`KeepActive`, default true; opt out in VV for intentionally dormant
+crew). Loaded guns close their bolt/chamber a round before fighting, and ammunition checks continue during combat.
+Captains evade external ship threats by orbiting at 300 m and restore the interrupted course after all-clear;
+onboard-only threats still cause a hold. Pilots use Mono projectile avoidance outside docking.
+The final docking approach aligns the ship early and enters the prechecked port corridor without the destination's
+collision-avoidance buffer pushing it away. Approach and settle have bounded retries. The physical Dredger/Drillsite
+regression uses the real hulls and thrusters, with test power supplied, and never uses FTL.
+
 Human-style NPC crew for ships: each NPC works a job at a post and drops it to fight, then goes back to work. Crew
 carry real loadouts and keep the weapon holstered until there is a fight; a dead crewman's kit is the loot. Mappers
 place crew with `WFCrewSpawnPoint*` markers; admins use `wf_crew` to plan a grid (`plan here`), spawn the plan
@@ -32,7 +49,7 @@ arrival, orders flown or docking aborted on Shortband; a mayday on the first hos
 from outside the crew, or a hostile mob aboard), the boarding call, the captain or pilot going down and the all-clear
 two minutes after the last hostile activity on Broadband (and a faction channel if set). Events only, no sitreps; he
 goes quiet when he is down. Crew retaliation catches incoming damage before Wolfmed routes it through body parts, using upstream faction checks
-and attack memory so officers fight back when hit. Captains can hold the ship during an alert and resume the remaining
+and attack memory so officers fight back when hit. Captains evade external threats or hold for boarders, then resume the remaining
 route afterward; newer orders, death, player takeover, or leaving the crew cancel that saved course.
 Shared alerts (`WFCrewAlertSystem`) let living on-sight crew aboard the same ship and group share targets once a
 second. Awareness expands across the ship until 60 seconds without a target; crew leaving the group or switching
@@ -86,6 +103,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Systems/WFCaptainSystem.cs`](Systems/WFCaptainSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewObjectiveSystem.cs`](Systems/WFCrewObjectiveSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewPlannerSystem.cs`](Systems/WFCrewPlannerSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
@@ -109,6 +127,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.cs)
+- [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Objectives.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Objectives.cs)
 
 ### Integration tests
 
@@ -116,6 +135,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
 
@@ -146,5 +166,6 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
   - compare both bodies for crew while the engine helper reads the first fixtures twice.
   - stop blended input while access-aware crew settle at an obstacle.
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.Obstacles.cs`](../../NPC/Systems/NPCSteeringSystem.Obstacles.cs): open authorized doors through normal interaction before considering prying.
+- [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs): ship crews must work even without nearby player bodies.
 
 <!-- WOLFGATE-GENERATED END -->

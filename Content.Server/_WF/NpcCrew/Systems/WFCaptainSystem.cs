@@ -59,14 +59,21 @@ public sealed partial class WFCaptainSystem : EntitySystem
             while (pilots.MoveNext(out var pilot, out var duty, out var crew))
             {
                 if (crew.Duty != WFCrewDuties.Pilot || !Eligible(pilot, args.Grid, args.Group)
-                    || duty.Orders == WFPilotOrder.Hold || _courses.ContainsKey(pilot)
+                    || _courses.ContainsKey(pilot)
                     || _overridden.Contains((args.Grid, args.Group, pilot)))
                     continue;
                 _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, duty.Orders,
                     duty.Waypoints.Skip(duty.WaypointIndex).ToList(), duty.LoiterCenter, duty.LoiterRadius,
                     duty.FollowTarget, duty.FollowRange, duty.DockTarget);
                 _changingOrders = true;
-                try { _pilots.Hold(pilot); }
+                try
+                {
+                    var threats = _alerts.GetHostileShips(args.Grid, args.Group);
+                    if (threats.FirstOrDefault() is var threat && threat.IsValid())
+                        _pilots.Loiter(pilot, new EntityCoordinates(threat, System.Numerics.Vector2.Zero), 300);
+                    else
+                        _pilots.Hold(pilot);
+                }
                 finally { _changingOrders = false; }
             }
         }
@@ -88,6 +95,9 @@ public sealed partial class WFCaptainSystem : EntitySystem
                 continue;
             switch (course.Order)
             {
+                case WFPilotOrder.Hold:
+                    _pilots.Hold(pilot);
+                    break;
                 case WFPilotOrder.GoTo:
                     _pilots.GoTo(pilot, course.Waypoints.Where(point => point.IsValid(EntityManager)).ToList());
                     break;

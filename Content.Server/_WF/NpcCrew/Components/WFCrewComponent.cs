@@ -25,6 +25,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public bool ShareAlerts = true;
 
+    /// <summary>Keep this crewman's AI running without nearby player bodies.</summary>
+    [DataField]
+    public bool KeepActive = true;
+
     /// <summary>Everyone aboard with the same group is one crew.</summary>
     [DataField]
     public string Group = string.Empty;

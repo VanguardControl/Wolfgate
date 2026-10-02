@@ -460,3 +460,11 @@ No `Destructive` pool settings.
    Shortband; it is local range and that is the flavour.
 4. **Should NPC crew count as crew for `ShipAccess`?** Assumed yes via the allow list. The alternative is a blanket
    "NPCs ignore ship locks", which players will dislike the first time a hostile boarder uses it.
+
+## Objective queue implementation
+
+Crew Setup now has a live crew list and editable per-grid/group objective queues. Supported tasks are Hold, GoTo,
+Dock, Undock, Loiter, Escort, Attack and Retreat; repeated GoTo tasks provide patrol routes. Timed tasks use seconds
+(zero is indefinite), navigation tasks finish on arrival, and failures pause visibly. See the module README for
+controls and the handoff for verified behavior. Queues are round-local. Crew remain active without nearby players;
+captains orbit external threats and pilots enable projectile avoidance outside docking.
