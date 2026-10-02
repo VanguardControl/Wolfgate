@@ -287,6 +287,10 @@ subscribing to its enter/exit events, so outposts or stations can get the same "
 
 ### NPC system and NPC types
 
+How a crew NPC works a job and switches to combat, the pilot and radio officer duties, crew alerting and the access
+edit for doors are the `NpcCrew` module (`Docs/_WF/NpcCrew/design.md`), which stands on its own. RES supplies the
+roster, the posts, the hostile list and the owner faction; the crew behaviour below is what it gets from `NpcCrew`.
+
 Roster per bracket, spawned at marked spawn points in the grid (`WFEncounterSpawnPointComponent` with a `role`), as
 Frontier-style hostile humanoids with the gun built in:
 
