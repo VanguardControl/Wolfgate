@@ -555,22 +555,6 @@
     sprite: _Mono/Objects/Materials/bayponents.rsi
     state: "camera"
   # flash stuff
-<<<<<<< HEAD
-  - type: EmitSoundOnTrigger
-    sound:
-      path: /Audio/Weapons/flash.ogg
-  - type: FlashOnTrigger
-    range: 3
-  - type: TriggerOnProximity
-    enabled: true
-    cooldown: 5
-    shape:
-      !type:PhysShapeCircle
-      radius: 0.5 # WOLFGATE: Needs to fit on a crate
-    repeating: true
-  - type: StaticPrice
-    price: 1200
-=======
 #  - type: EmitSoundOnTrigger
 #    sound:
 #      path: /Audio/Weapons/flash.ogg
@@ -585,7 +569,6 @@
 #    repeating: true
 #  - type: StaticPrice
 #    price: 1200
->>>>>>> e9e35ae908 (Minor Fixes for ER, Attachments, IPCs, MMC (#4805))
 
 # end camera
 
