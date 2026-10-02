@@ -15,9 +15,23 @@ public readonly record struct WFCrewMemberDownEvent(
 [ByRefEvent]
 public readonly record struct WFPilotOrdersChangedEvent(EntityUid Mob, WFPilotOrder Orders);
 
-/// <summary>Raised on a crew pilot and broadcast when it reaches its last waypoint and switches to Hold.</summary>
+/// <summary>
+/// Raised on a crew pilot and broadcast when it reaches its last waypoint, or has backed off after undocking, and
+/// switches to Hold.
+/// </summary>
 [ByRefEvent]
 public readonly record struct WFPilotOrdersCompletedEvent(EntityUid Mob);
+
+/// <summary>Raised on a crew pilot and broadcast when a Dock order ends docked; the pilot then holds.</summary>
+[ByRefEvent]
+public readonly record struct WFPilotDockedEvent(EntityUid Mob, EntityUid Grid, EntityUid TargetGrid);
+
+/// <summary>
+/// Raised on a crew pilot and broadcast when a Dock order is given up and the pilot holds. The target may no longer
+/// exist.
+/// </summary>
+[ByRefEvent]
+public readonly record struct WFPilotDockFailedEvent(EntityUid Mob, EntityUid Grid, EntityUid TargetGrid);
 
 /// <summary>Raised on a crew pilot and broadcast when it takes a helm.</summary>
 [ByRefEvent]
