@@ -31,11 +31,13 @@ blackboard key, each with its own system, so a new job is a new compound and a n
 - **Death**: `NPCSystem` puts an NPC to sleep when it goes critical or dies; nothing wakes a corpse.
 - **Piloting**: `ShuttleConsoleSystem.AddPilot(console, mob, comp)` attaches a mob with `PilotComponent` to a helm.
   Upstream already enforces most of "physically controls the console": a pilot cannot move, is dropped every tick it
-  can't interact with the console (crit, dead, stunned, cuffed), and is cleared when the console loses power or is
-  destroyed. Steering comes from Mono `ShipSteeringSystem`: `Steer(mob, coords)` puts `ShipSteererComponent` on the
-  mob and it answers `GetShuttleInputsEvent` with thrust toward the target, with collision and projectile avoidance,
-  `GoToRange` or `Orbit` modes, and `InRangeRotation` for arriving at a given heading. The two coexist on one mob: the
-  pilot handler writes no input while its buttons are zero, so the steerer's input stands.
+  can't interact with the console (crit, dead, stunned, cuffed), and is cleared when the console is destroyed. Power
+  loss does not clear pilots here (`OnConsolePowerChange` only refreshes the UI), so `WFPilotDutySystem` checks it
+  itself. `ShipSteeringSystem.Stop` only removes the component; the mob drops out of the ship's input sources the next
+  time it answers no input. Steering comes from Mono `ShipSteeringSystem`: `Steer(mob, coords)` puts
+  `ShipSteererComponent` on the mob and it answers `GetShuttleInputsEvent` with thrust toward the target, with collision
+  and projectile avoidance, `GoToRange` or `Orbit` modes, and `InRangeRotation` for arriving at a given heading. The two
+  coexist on one mob: the pilot handler writes no input while its buttons are zero, so the steerer's input stands.
 - **Docking**: `DockingSystem.GetDockingConfig(shuttle, targetGrid)` already works out which pair of docks fits and the
   exact shuttle pose that puts them together (the FTL-to-dock path uses it). `CanDock` wants the two docks within 1.2 m
   and 15° and both free; `Dock` is public. There is no auto-dock.
@@ -100,9 +102,9 @@ simplest possible job, and to be the thing boarders fight. Variants are only loa
 `Marine`).
 
 **What happens when a crewman dies.** The engine side: his HTN goes to sleep, so he stops planning; if he held the helm
-upstream drops him that tick and `WFTakeHelmOperator`'s shutdown stops the steering, so the ship drifts; the alert
-system stops counting him. The body stays where it fell with its full loadout, holstered or in hand, and that kit is
-the loot (Mono's mob cleanup only removes mobs far from any grid and player, so bodies aboard are never tidied away).
+`WFTakeHelmOperator`'s shutdown lets go of it and stops the steering, so the ship drifts; the alert system stops
+counting him. The body stays where it fell with its full loadout, holstered or in hand, and that kit is the loot (Mono's
+mob cleanup only removes mobs far from any grid and player, so bodies aboard are never tidied away).
 `WFCrewMemberDownEvent` goes out with his role: the radio operator turns a captain's or pilot's death into a line,
 nobody else's; RES counts crew losses toward "derelict". Critical is the same as dead for everything above except the
 event flag; a downed crewman is out of the fight and, without someone treating him, dies within minutes.
@@ -145,26 +147,39 @@ mob's grid), `Orders` and their parameters:
 | `Dock` | Fly to the target grid and dock by hand (below). | three phases, then `DockingSystem.Dock` |
 | `Undock` | Undock and back off to a standoff point. | `DockingSystem.Undock`, then `GoToRange` |
 
-`WFPilotDutyCompound`: pick the helm (`WFPickHelmOperator`, writes `WFCrewHelm`), `MoveToOperator` to it, then
-`WFTakeHelmOperator`: `EnsureComp<PilotComponent>`, `AddPilot`, `ShipSteeringSystem.Steer` to the current target, and
-stay in the operator while the pilot is attached. Its `Shutdown` calls `Stop` and `RemovePilot`, whatever the reason.
-If the helm attachment is lost for any upstream reason (crit, power, destroyed console) the operator fails and the
+`WFCrewPilotCompound`: pick the helm (`WFPickHelmOperator`, writes `WFCrewHelm` and `WFCrewHelmCoords`, and fails at
+planning when there is none), `MoveToOperator` to it, then `WFTakeHelmOperator`: `EnsureComp<PilotComponent>`,
+`AddPilot`, `ShipSteeringSystem.Steer` to the current target, and stay in the operator while the pilot is attached. No
+helm: `IdleCompound`. If the helm attachment is lost (crit, power, destroyed console) the operator fails and the
 planner restarts the compound: Jeff gets up, finds a helm, takes it again when he can.
+
+Letting go: `WFTakeHelmOperator`'s shutdown calls `Stop` and `RemovePilot` for every reason but one. A plain `Failed`
+is also how `NPCSystem` puts an NPC to sleep when no player is within 32 tiles (`npc.pause_when_no_players_in_range`,
+on by default), and releasing then would park every ship nobody is near, so on `Failed` the helm is kept while
+`CanHoldHelm` holds: attached to an anchored, powered console on his grid, not crit or dead, not player-controlled.
+`WFPilotDutySystem.Update` releases the helm the moment any of that stops holding, and also when the HTN is running a
+plan without `WFTakeHelmOperator` in it (an NPC that wakes straight into a fight has no old plan to shut down). A duty
+change isn't a better branch, so the planner would keep the helm plan forever; the operator itself lets go when
+`WFCrewDuty` is no longer `Pilot`.
 
 Waypoint advancing, orbit centre updates and docking phases live in `WFPilotDutySystem.Update`, not in the HTN
 operator, so a ship far from any player keeps flying while Jeff's HTN sleeps. The operator only owns the helm.
-`SetOrders(uid, orders)` is the public API and raises `WFPilotOrdersChangedEvent`; `WFHelmTakenEvent` and
-`WFHelmReleasedEvent` fire on attach and release.
+`Hold`, `GoTo(waypoints)`, `Loiter(center, radius)` and `Follow(grid, range)` are the public API; each raises
+`WFPilotOrdersChangedEvent` and re-steers if the pilot is at the helm. `WFHelmTakenEvent` and `WFHelmReleasedEvent`
+fire on attach and release, `WFPilotOrdersCompletedEvent` once when a `GoTo` reaches its last waypoint. `Hold` keeps
+station where the ship is when it is given, and counts as arrived below 0.5 m/s rather than at cruise speed, so it
+actually stops the ship. A `Follow` whose grid is deleted becomes `Hold`. Admins give orders with `wf_crew orders
+<mob> hold | goto <x> <y> [...] | loiter <x> <y> <radius> | follow <grid|here>`, in map coordinates.
 
 What "can't pilot" means, and who enforces it:
 
-- dead or down: upstream drops the pilot the tick he can't interact; steering stops in the operator's shutdown;
+- dead or down: the operator's shutdown releases the helm (upstream also drops a pilot the tick he can't interact);
 - fighting: Jeff is `WhenAttacked`, so only being shot gets him off the helm; then the fight branch wins the replan,
   `WFTakeHelmOperator` shuts down and the helm is released. Boarders who leave him alone get a ship that keeps flying,
   which is the correct trade: shoot the pilot and you stop the ship, at the price of a pilot shooting back;
 - walking: impossible while attached, movement is blocked;
-- no console, no power, console gone: upstream clears pilots, the operator fails, Jeff waits at the wreck of his helm
-  under `IdleCompound` and retries every replan.
+- no console, no power, console gone: `WFPilotDutySystem` (power) or upstream (destroyed console) drops him, the
+  operator fails, Jeff waits at the wreck of his helm under `IdleCompound` and retries every replan.
 
 **Docking by hand.** The `Dock` order runs three phases in `WFPilotDutySystem`, reusing the FTL-dock maths:
 
@@ -293,7 +308,7 @@ In build order; each one proves a compartment.
    waypoints, the pilot-and-steerer coexistence, "down means drifting", and then docking by hand.
 3. **Radio Officer** (`WFCrewRadioOperator`, duty `Hold` at the radio post, `WhenAttacked`). Jack. Proves event-driven
    speech and channel routing; also the first thing players will notice.
-4. **Captain** (`WFCrewCaptain`). A radio officer whose system also issues orders: on alert, `SetOrders(Hold)` if his
+4. **Captain** (`WFCrewCaptain`). A radio officer whose system also issues orders: on alert, `Hold` if his
    `HeaveTo` flag is set, otherwise leave the pilot flying; on alert cleared, restore the previous orders. One
    component (`WFCaptainComponent`) with those two reactions; everything else is Jack's code. Gives a ship one entity
    whose death matters, and the "Captain is down!" line something to mean.
