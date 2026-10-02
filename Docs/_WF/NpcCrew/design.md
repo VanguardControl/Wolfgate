@@ -116,8 +116,10 @@ weapons and ammo live in equipment slots and pockets, never inside a bag. `WFCre
 `Drawn` (the entity in hand) and `HolsterSlot` (where it came from).
 
 - `WFDrawWeaponOperator` (first task of the fight branch): pick the best weapon across equipment slots (longarm,
-  then sidearm, then anything with `MeleeWeapon`), `TryUnequip` it and `TryPickup` into the active hand, record the
-  slot. Fails if nothing is found, which lets the melee compound try with bare hands.
+  then sidearm, then anything with `MeleeWeapon`), `TryPickupAnyHand` straight out of the slot (unequip first if the
+  containers refuse), then `TrySelect` that hand so the combat compounds shoot with it, and record the slot. Finishes
+  even when nothing is found, which lets the melee compound fight bare-handed. Trap: `TrySelectEmptyHand` asks
+  `IsHolding` about a null entity and is always false here; never build on it.
 - `WFReloadOperator`: when `GunAmmoPrecondition` fails and the gun has an ammo provider, find a compatible magazine or
   round stack in pockets or belt, swap to a free hand, `InteractUsing` it on the gun (that is exactly what a player
   does), and go back to shooting. No ammo left: holster the empty gun and draw the next weapon, down to melee. This
@@ -266,7 +268,8 @@ spawn first (the Spawn Vessel list). **Plan**: the server runs `WFCrewPlanner.Pl
 row per post. Posts come from the grid itself, in this order: `WFCrewSpawnPoint` markers if the map has any (mapper
 intent wins), else helms (`ShuttleConsoleComponent` → Pilot), gunnery consoles (→ Gunner, once that duty exists), a
 radio post (a telecom or intercom entity, else the tile beside the helm → RadioOperator), the inside tile of each
-external dock (→ Deckhand, guarding the airlock), and the centres of the largest rooms (→ Deckhands, found by a flood
+external dock (→ Deckhand, guarding the airlock), and the centres of the largest rooms (→ Deckhands, found by a
+flood
 fill over the grid's tiles bounded by walls and doors). The plan is a list of `(post coordinates, role, loadout)`.
 The admin edits it in a table: role and loadout dropdowns per row, add and remove rows, a deckhand count spinner that
 fills remaining room posts, a captain checkbox. **Mission**: crew group name, callsign (defaults to the ship name),
