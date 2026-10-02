@@ -6,8 +6,10 @@ Paste this whole file as the opening brief; it is written for an AI agent workin
 ## Where things are
 
 - Repository `VanguardControl/Wolfgate`, branch `npc-crew` (an older copy of the same commits sits on
-  `clanker/relaxed-lovelace-q1366b`; ignore it). Never commit to `main`. Open PRs against
-  `VanguardControl/Wolfgate` and fill in `.github/PULL_REQUEST_TEMPLATE.md` with a `:cl:` changelog.
+  `clanker/relaxed-lovelace-q1366b`; ignore it). Never commit to `main`. Keep current work local; never open
+  a PR without explicit user permission. If authorized, target `VanguardControl/Wolfgate` and fill in
+  `.github/PULL_REQUEST_TEMPLATE.md` with a `:cl:` changelog. Commit as
+  `gandalf2k15 <9026500+Gandalf2k15@users.noreply.github.com>` without assistant attribution trailers.
 - `AGENTS.md` at the repo root is the rulebook. Read it first, every session. The parts that bite:
   - All new code lives in module folders: `Content.{Server,Shared,Client}/_WF/NpcCrew`, tests in
     `Content.IntegrationTests/Tests/_WF/NpcCrew`, prototypes in `Resources/Prototypes/_WF/NpcCrew`, strings in
@@ -39,7 +41,7 @@ git submodule update --init --recursive --depth 1 RobustToolbox
 # Build everything the tests need (about 2.5 min); only errors shown
 dotnet build Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug -v q -nologo 2>&1 | grep -E "error CS|error RA|Error\(s\)" | sort -u
 
-# The module's tests (13 cases; runtime varies by host)
+# The module's tests (18 cases; runtime varies by host)
 dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug --no-build --filter "FullyQualifiedName~WFCrewTest" --logger "console;verbosity=detailed" -nologo 2>&1 | grep -vE "warning RA|warning CS" > /tmp/wfcrew-tests.log
 grep -E "^\s*(Passed|Failed) |Error Message|Passed!|Failed!" -A3 /tmp/wfcrew-tests.log | head -40
 
@@ -53,7 +55,7 @@ python3 Tools/_WF/Ci/modules.py --write
 Never run two dotnet builds at once. `Content.Server` treats nullable warnings as errors. Say plainly in every
 report what you built, what you ran and the exact counts; never call something working without running it.
 
-## What is built (13 crew tests green; prototype linter clean at the previous handoff)
+## What is built (18 crew tests green; prototype linter clean at the previous handoff)
 
 One idea: every crew NPC runs one HTN root, `WFCrewCompound` (`Resources/Prototypes/_WF/NpcCrew/htn.yml`), with
 branches in priority order: **fight** (gated by `WFCrewMayFightPrecondition`, starts with `WFDrawWeaponOperator`,
@@ -95,12 +97,23 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
    `--check` and `--pr-check origin/main` passed. An initial run had 11/12 pass with a room-echo
    `SharedAudioSystem.SetAuxiliary` assertion; the new combat test disables client room echo and restores it
    afterward. No prototype or Client/Shared changes; linter and live-client checks were not rerun.
-   Next implementation task: access doors below.
-3. **Access doors** (design.md section 6): a small marked edit so NPCs with access open doors instead of prying.
-   `PathfindingSystem.GetFlags` sets the existing `PathFlags.Access` from a `NavAccess` blackboard key;
-   `GetTileCost` treats access doors as plain doors for that flag; `NPCSteeringSystem.TryHandleFlags` uses
-   `InteractionActivate` when `AccessReaderSystem.IsAllowed(npc, door)` and only pries otherwise. Crew need
-   `AccessComponent` tags (and, on ShipAccess-locked ships, a crew record in the allow list).
+   Access doors are implemented below.
+3. **Access doors implemented and verified.** Crew opt in to `NavAccess`; marked pathfinding hooks and
+   `NPCSteeringSystem.Access.cs` try normal authorized opening before existing obstacle handling. `NavPry` is
+   still required for prying. Crew steering compares both bodies' hard collision masks because the engine helper
+   reads the first body's fixtures twice, misclassifying closed doors as free space. A second context hook stops
+   blended input while settling at obstacles. RobustToolbox is unchanged. Permission is checked at the door,
+   not during per-door path pricing.
+   `WFCrewAccessSystem` gives crew spawned aboard a ShipAccess-managed grid an ordinary worn ID and registers its
+   record key with `TryAddCard`. Removing or revoking the card removes access; duty changes and boarding another
+   ship never enroll the crew again. Unmanaged ships require ordinary configured access tags/cards.
+   Debug integration build: 0 errors, 1328 warnings; all 18 crew test cases passed. The five new cases cover
+   authorized opening with and without prying enabled, denied access with and without prying, and worn-card
+   removal, revocation and cross-ship enrollment. Module generation, `--check` and `--pr-check origin/main` passed.
+   Initial traversal tests failed with `door=Closed pries=0` because the collision helper reported free space;
+   the crew-scoped correction resolves all three failures. No prototype or Client/Shared changes; the linter and
+   live-client checks were not rerun. Changes remain local; no PR was opened or updated.
+   Next implementation task: hull-hit hostile acts below.
 4. **Hull hits as a hostile act** for the radio officer and the alert: the only projectile hit event is already
    subscribed by Mono's `SpaceArtillerySystem`; find another hook (damage on anchored entities of the grid with a
    `ShipWeaponProjectile` origin, or a broadcast event if one exists).
