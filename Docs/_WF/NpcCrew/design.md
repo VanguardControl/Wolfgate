@@ -168,8 +168,9 @@ operator, so a ship far from any player keeps flying while Jeff's HTN sleeps. Th
 `WFPilotOrdersChangedEvent` and re-steers if the pilot is at the helm. `WFHelmTakenEvent` and `WFHelmReleasedEvent`
 fire on attach and release, `WFPilotOrdersCompletedEvent` once when a `GoTo` reaches its last waypoint. `Hold` keeps
 station where the ship is when it is given, and counts as arrived below 0.5 m/s rather than at cruise speed, so it
-actually stops the ship. A `Follow` whose grid is deleted becomes `Hold`. Admins give orders with `wf_crew orders
-<mob> hold | goto <x> <y> [...] | loiter <x> <y> <radius> | follow <grid|here>`, in map coordinates.
+actually stops the ship. A `Follow` whose grid is deleted becomes `Hold`. `Dock(grid)` and `Undock()` follow the same
+pattern. Admins give orders with `wf_crew orders <mob> hold | goto <x> <y> [...] | loiter <x> <y> <radius> |
+follow <grid|here> | dock <grid|here> | undock`, in map coordinates.
 
 What "can't pilot" means, and who enforces it:
 
@@ -199,6 +200,29 @@ Both docks must stay free during the creep; a player docking there first is an a
 only behind `wf.crew.dock_ftl_fallback`, off by default, for ships that must arrive docked no matter what. Expect this
 phase to need tuning per hull: thruster placement decides how cleanly a grid can creep sideways, and a hull that can't
 hold a heading at 1.5 m/s will not dock by hand at all.
+
+As built (`WFPilotDutySystem.Docking.cs`), with these departures:
+
+- The plan runs the per-pair `GetDockingConfig` over every free pair, nearest standoff first, because the two-grid one
+  returns only its single best pair. Upstream's config check also rejects a final pose that overlaps our grid where it
+  is now, so a ship ordered to dock from right beside the port fails the plan.
+- Approach steers to the standoff in map coordinates, refreshed every update, so the target's hull is avoided on the
+  way; only the creep steers on the target grid. Settle lowers the arrival speed and turn rate (0.3 m/s, 0.05 rad/s) so
+  the steerer brakes rather than waits. The steerer applies `InRangeRotation` only once in range and otherwise faces
+  where it is going, so the creep holds the heading with `AlwaysFaceTarget` and a `TargetRotation` offset recomputed
+  every update.
+- `DockMaxAttempts` counts hand-flown attempts and is checked before planning and on reaching the standoff, so 0 goes
+  straight to the fallback. A plan that finds no pair counts as a failed attempt and is retried after 5 s; a chosen dock
+  that is taken or gone sends the next attempt back to planning.
+- In the creep, hitting another grid, or the target's hull more than 2.5 m from the port, aborts; touching the hull at
+  the port is the docks mating.
+- The fallback is `GetDockingConfig` plus `FTLDock`, not `TryFTLDock`: when no pair fits, `TryFTLDock` hops the ship
+  next to the target undocked, which would hide the failure.
+- `WFPilotDockedEvent` and `WFPilotDockFailedEvent` are raised after the switch to `Hold`, like
+  `WFPilotOrdersCompletedEvent`, so a handler can give new orders.
+- `Undock` waits for the pilot to be at the helm, releases every docked port, flies `DockStandoff` out along the reverse
+  of their mean outward normal (away from what it left) at `DockApproachSpeed`, then holds and raises
+  `WFPilotOrdersCompletedEvent`. Nothing docked completes at once.
 
 ### 4. Radio duty (Radio Officer Jack)
 
