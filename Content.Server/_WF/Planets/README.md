@@ -7,7 +7,8 @@ thrusters, lift off again, and land hard, skid, break up or crash when lift is l
 fall out of orbit, and a world's gravity well pulls adrift hulls in from the sector.
 
 Worlds have day and night, phased weather with thunder, fauna, ambience, terrain on the orbit radar and an approach
-cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Jetpacks only
+cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Lower layers of a planet are drawn smaller
+(`WFPlanetView`, the perspective Monolith turned off for other z-levels). Jetpacks only
 work in orbit and lattice goes straight onto natural ground. A room built on a planet holds its own air once it has a
 floor: bare ground counts as outdoors and keeps the planet's air. Players use landing thruster kits, parachutes and the
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
@@ -134,6 +135,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 - [`Content.Shared/_WF/Planets/WFPlanetRadarSystem.cs`](../../../Content.Shared/_WF/Planets/WFPlanetRadarSystem.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetSurfacePrototype.cs`](../../../Content.Shared/_WF/Planets/WFPlanetSurfacePrototype.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetTimepieceComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetTimepieceComponent.cs)
+- [`Content.Shared/_WF/Planets/WFPlanetView.cs`](../../../Content.Shared/_WF/Planets/WFPlanetView.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetWeatherPrototype.cs`](../../../Content.Shared/_WF/Planets/WFPlanetWeatherPrototype.cs)
 - [`Content.Shared/_WF/Planets/WFSectorPlanetComponent.cs`](../../../Content.Shared/_WF/Planets/WFSectorPlanetComponent.cs)
 
@@ -319,6 +321,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 ## Non-modular edits
 
 - [`Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs`](../../../Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs): orbit is above the atmosphere, not a storey up.
+- [`Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`](../../../Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs): a planet's layers keep the perspective Monolith turned off
 - [`Content.Client/_FarHorizons/StarSystem/PlanetOverlay.cs`](../../../Content.Client/_FarHorizons/StarSystem/PlanetOverlay.cs): public (was private), so the planet approach can draw the very same body over the orbit hop.
 - [`Content.Client/_Mono/Audio/AudioEchoSystem.cs`](../../../Content.Client/_Mono/Audio/AudioEchoSystem.cs)
   - a ray from a non-finite position is not cast, since a NaN crashes the client.
@@ -373,6 +376,7 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
   - hulls never descend below a planet's ground.
   - a held climb pops out into a planet's orbit layer instead of pinning under it.
   - a descending convoy lands on the ground instead of hopping below it.
+- [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.View.cs): a planet's lower layers are drawn smaller, so their eyes see wider
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs): a skidding hull flattens obstacles instead of bouncing.
 - [`Content.Server/_FarHorizons/StarSystem/StarSystemMapSystem.cs`](../../_FarHorizons/StarSystem/StarSystemMapSystem.cs): register sector bodies that have a Wolfgate surface.
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.API.cs`](../../Atmos/EntitySystems/AtmosphereSystem.API.cs): bare planet ground nobody built on isn't tracked

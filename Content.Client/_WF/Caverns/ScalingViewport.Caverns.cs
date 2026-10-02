@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client._WF.Caverns;
+using Content.Shared._WF.Planets;
 
 namespace Content.Client.Viewport;
 
@@ -17,7 +18,7 @@ public sealed partial class ScalingViewport
 
         var onGround = _entityManager.GetComponentOrNull<TransformComponent>(_player.LocalEntity)?.MapUid == ground;
         var known = _wfCavernView.TryGetCavernBelow(ground, out var cavern);
-        var mouth = onGround && known && _wfCavernView.AnyHoleWithin(ground, WfLevelView(groundDepth, ownDepth));
+        var mouth = onGround && known && _wfCavernView.AnyHoleWithin(ground, WfLevelView(ground, groundDepth, ownDepth));
         if (WFCavernViewSystem.CavernPassDepth(groundDepth, known, mouth, onGround) is not { } depth)
             return;
 
@@ -26,7 +27,7 @@ public sealed partial class ScalingViewport
     }
 
     /// <summary>The world box a pass at this depth shows, plus a tile.</summary>
-    private Box2 WfLevelView(float depth, float ownDepth)
+    private Box2 WfLevelView(EntityUid ground, float depth, float ownDepth)
     {
         var drawBox = GetDrawBox();
         var bottomLeft = _eyeManager.ScreenToMap(drawBox.BottomLeft).Position;
@@ -40,6 +41,6 @@ public sealed partial class ScalingViewport
         var view = new Box2(min, max);
 
         var rotation = _fallbackEye?.Rotation ?? Angle.Zero;
-        return WFCavernViewSystem.LevelViewBox(view, rotation, depth, ownDepth).Enlarged(1f);
+        return WFCavernViewSystem.LevelViewBox(view, rotation, depth, ownDepth, WFPlanetView.Shrink(_entityManager, ground)).Enlarged(1f);
     }
 }

@@ -6,6 +6,7 @@
 using System.Numerics;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._WF.Planets; // WOLFGATE(Planets)
 using Content.Shared.Actions;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Movement.Components;
@@ -234,7 +235,7 @@ public sealed partial class CEZLevelsSystem
         if (levelsBelow <= 0)
             return baseScale;
 
-        return baseScale * MathF.Pow(1f / CESharedZLevelsSystem.ZLevelViewShrink, levelsBelow);
+        return baseScale * MathF.Pow(1f / WFPlanetView.Shrink(EntityManager, eyeMap), levelsBelow); // WOLFGATE(Planets): a planet's lower layers are drawn smaller, so their eyes see wider
     }
 
     private void OnZLevelFall(Entity<CEZPhysicsComponent> ent, ref CEZLevelFallMapEvent args)
