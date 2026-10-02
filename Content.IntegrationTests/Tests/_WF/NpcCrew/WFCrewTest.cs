@@ -8,6 +8,7 @@ using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
+using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Hands.EntitySystems;
@@ -183,7 +184,22 @@ public sealed class WFCrewTest : InteractionTest
         sb.Append($"hostiles={factions.GetNearbyHostiles(crew, 10f).Count()} ");
         sb.Append($"held={(hands.TryGetActiveItem(crew, out var held) ? SEntMan.ToPrettyString(held.Value).ToString() : "nothing")} ");
         var weapon = SEntMan.GetComponent<WFCrewWeaponComponent>(crew);
-        sb.Append($"drawn={weapon.Drawn} slot={weapon.HolsterSlot ?? "-"}");
+        sb.Append($"drawn={weapon.Drawn} slot={weapon.HolsterSlot ?? "-"} ");
+
+        var member = SEntMan.GetComponent<NpcFactionMemberComponent>(crew);
+        sb.Append($"factions=[{string.Join(",", member.Factions)}] hostileTo=[{string.Join(",", member.HostileFactions)}] ");
+        var lookup = Server.System<EntityLookupSystem>();
+        var xforms = Server.System<SharedTransformSystem>();
+        var here = xforms.GetMapCoordinates(crew);
+        foreach (var other in lookup.GetEntitiesInRange<NpcFactionMemberComponent>(here, 20f))
+        {
+            if (other.Owner == crew)
+                continue;
+
+            var there = xforms.GetMapCoordinates(other.Owner);
+            sb.Append($"near:{SEntMan.ToPrettyString(other.Owner)}@{(there.Position - here.Position).Length():0.0}[{string.Join(",", other.Comp.Factions)}] ");
+        }
+
         return sb.ToString();
     }
 }
