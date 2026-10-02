@@ -65,11 +65,13 @@ public sealed partial class RespawnSystem : EntitySystem
     // Frontier: CVar setters
     private void OnRespawnCryoFirstTimeChanged(float value)
     {
+        _baseRespawnTimeOnFirstCryo = value; // WOLFGATE(Respawn): the base was never set, so every round start zeroed the timer
         _respawnTimeOnFirstCryo = value;
     }
 
     private void OnRespawnCryoTimeChanged(float value)
     {
+        _baseRespawnTime = value; // WOLFGATE(Respawn)
         _respawnTime = value;
     }
     // End Frontier
