@@ -492,8 +492,10 @@ is not a mouth: F2c dropped the unused `Hole` kind.
     functions. A mouth opens it, not any empty tile, so unloaded ground at the edge of a far view from the air keeps
     the sky it had.
   - The painter's order does the rest: the cavern pass draws first and clears to black, the ground's empty tiles draw
-    nothing, and the cavern shows only through its holes, shrunk and offset like any level below
-    (`ZLevelViewShrink`, `ZLevelOffset`).
+    nothing, and the cavern shows only through its holes, offset like any level below (`ZLevelOffset`). It draws full
+    size: Monolith set `ZLevelViewShrink` from 0.85 to 1 (2026-10), so lower levels are no longer drawn smaller.
+    Everything here reads the constant, and `LevelViewBox` takes the factor so `CavernPassTest` still checks the
+    scaling at 0.85.
   - Lighting: RT lights each tile and sprite from its own pass's light map, so the ground's light never falls on the
     cavern twice or darkens it. The cavern lights itself: its `MapLight` where the roof is open (a hole's `Space` is
     transparent, so the cavern under it is unroofed, 2.1 item 10), its roof colour under the ground, its own glowing
@@ -984,8 +986,8 @@ The tests below are the gates.
   - each world's touch hangs off the lip in about one piece in three: roots (Asclepiu), glowing cracks and embers
     (Fervidus), sand pouring in (Merak), crystal glints (Aerumna), icicles and frost (Thrascias), sinew (Carcinoma);
     elsewhere pebbles on the lip and clods at its edge;
-  - the depth comes from the renderer (shrink, offset, blur) and the cavern's own dark, so nothing shades a big hole's
-    middle.
+  - the depth comes from the renderer (offset and blur; no shrink since `ZLevelViewShrink` became 1) and the
+    cavern's own dark, so nothing shades a big hole's middle.
 
   Near a piece's borders nothing depends on the tiles beyond its own four: across every border two pieces can share,
   the rim sits on the same label and every shadow has faded out, so pieces join seamlessly. The piece below a rim

@@ -47,11 +47,13 @@ public sealed partial class WFCavernViewSystem : EntitySystem
     }
 
     /// <summary>The world box a z-level pass at this depth shows, given the box the observer's own eye shows.</summary>
+    /// <param name="shrink">The renderer's per-level scale. Monolith set it to 1, so levels below draw full size.</param>
     // As the renderer builds the pass eye: scale from the absolute depth, offset from the depth below the observer.
-    public static Box2 LevelViewBox(Box2 view, Angle eyeRotation, float depth, float ownDepth)
+    public static Box2 LevelViewBox(Box2 view, Angle eyeRotation, float depth, float ownDepth,
+        float shrink = CESharedZLevelsSystem.ZLevelViewShrink)
     {
         var centre = view.Center;
-        var widen = MathF.Pow(CESharedZLevelsSystem.ZLevelViewShrink, depth);
+        var widen = MathF.Pow(shrink, depth);
         Angle rotation = eyeRotation * -1;
         var shift = rotation.ToWorldVec() * CESharedZLevelsSystem.ZLevelOffset * (depth - ownDepth);
 

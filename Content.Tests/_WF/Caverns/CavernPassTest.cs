@@ -39,12 +39,18 @@ public sealed class CavernPassTest
         Assert.That(WFCavernViewSystem.CavernPassDepth(groundDepth, true, true, false), Is.Null);
     }
 
-    /// <summary>The box searched for holes is what the renderer's pass eye shows, at any altitude or turn.</summary>
-    [TestCase(-1f, 0f, 0.0)]
-    [TestCase(-1.9f, -0.9f, 0.0)]
-    [TestCase(-3.3f, -0.3f, 0.0)]
-    [TestCase(-1.6f, -0.6f, 1.2)]
-    public void LevelViewMatchesThePassEye(float depth, float ownDepth, double turn)
+    /// <summary>
+    /// The box searched for holes is what the renderer's pass eye shows, at any altitude or turn, with the renderer's
+    /// own per-level scale (1 since Monolith stopped drawing lower levels smaller) and with the 0.85 it had before.
+    /// </summary>
+    [TestCase(-1f, 0f, 0.0, CESharedZLevelsSystem.ZLevelViewShrink)]
+    [TestCase(-1.9f, -0.9f, 0.0, CESharedZLevelsSystem.ZLevelViewShrink)]
+    [TestCase(-3.3f, -0.3f, 0.0, CESharedZLevelsSystem.ZLevelViewShrink)]
+    [TestCase(-1.6f, -0.6f, 1.2, CESharedZLevelsSystem.ZLevelViewShrink)]
+    [TestCase(-1f, 0f, 0.0, 0.85f)]
+    [TestCase(-3.3f, -0.3f, 0.0, 0.85f)]
+    [TestCase(-1.6f, -0.6f, 1.2, 0.85f)]
+    public void LevelViewMatchesThePassEye(float depth, float ownDepth, double turn, float shrink)
     {
         var rotation = new Angle(turn);
         var observer = new Eye
@@ -62,10 +68,10 @@ public sealed class CavernPassTest
             Position = observer.Position,
             Offset = observer.Offset + turned.ToWorldVec() * CESharedZLevelsSystem.ZLevelOffset * (depth - ownDepth),
             Rotation = rotation,
-            Scale = observer.Scale * MathF.Pow(CESharedZLevelsSystem.ZLevelViewShrink, -depth),
+            Scale = observer.Scale * MathF.Pow(shrink, -depth),
         };
 
-        var box = WFCavernViewSystem.LevelViewBox(Shows(observer), rotation, depth, ownDepth);
+        var box = WFCavernViewSystem.LevelViewBox(Shows(observer), rotation, depth, ownDepth, shrink);
         var expected = Shows(pass);
 
         using (Assert.EnterMultipleScope())
