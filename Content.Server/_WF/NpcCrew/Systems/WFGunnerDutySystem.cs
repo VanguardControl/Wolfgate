@@ -19,6 +19,7 @@ namespace Content.Server._WF.NpcCrew.Systems;
 public sealed partial class WFGunnerDutySystem : EntitySystem
 {
     [Dependency] private WFCrewAlertSystem _alerts = default!;
+    [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private ShipTargetingSystem _targeting = default!;
     [Dependency] private PowerReceiverSystem _power = default!;
     [Dependency] private MobStateSystem _mobs = default!;
@@ -113,8 +114,11 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                 continue;
             }
             var here = _transform.GetMapCoordinates(grid);
-            var target = _alerts.GetHostileShips(grid, crew.Group)
-                .Where(ship => ship != grid && !_factions.IsEntityFriendly(uid, ship)
+            var candidates = _alerts.GetHostileShips(grid, crew.Group);
+            if (_objectives.AttackTarget(grid, crew.Group) is { } assigned)
+                candidates = candidates.Prepend(assigned).ToArray();
+            var target = candidates
+                .Where(ship => ship != grid && (!_factions.IsEntityFriendly(uid, ship) || _objectives.IsAttackTarget(grid, crew.Group, ship))
                     && _transform.GetMapCoordinates(ship).MapId == here.MapId
                     && (_transform.GetWorldPosition(ship) - here.Position).LengthSquared() <= duty.Range * duty.Range)
                 .OrderBy(ship => (_transform.GetWorldPosition(ship) - here.Position).LengthSquared())

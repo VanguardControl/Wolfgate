@@ -1,9 +1,12 @@
 using Content.Server._WF.NpcCrew.Components;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Interaction;
+using Content.Shared.Interaction.Events;
+using Robust.Shared.Player;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Content.Shared.Mobs.Systems;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -13,8 +16,44 @@ public sealed partial class WFCrewWeaponSystem
     [Dependency] private ItemSlotsSystem _slots = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedGunSystem _guns = default!;
+    [Dependency] private MobStateSystem _mobs = default!;
 
     private const string MagazineSlot = "gun_magazine";
+    private float _reloadTimer;
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _reloadTimer += frameTime;
+        if (_reloadTimer < 0.5f)
+            return;
+        _reloadTimer = 0;
+        var query = EntityQueryEnumerator<WFCrewWeaponComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            if (!HasComp<ActorComponent>(uid) && _mobs.IsAlive(uid))
+                TryReloadOrSwitch(uid);
+        }
+    }
+
+    /// <summary>Racks a loaded gun only when its chamber is empty or its bolt is open.</summary>
+    private void ReadyChamber(EntityUid user, EntityUid gun)
+    {
+        if (!TryComp<ChamberMagazineAmmoProviderComponent>(gun, out var chamber))
+            return;
+        if (chamber.BoltClosed == false)
+            _guns.SetBoltClosed(gun, chamber, true, user);
+        else if (_slots.TryGetSlot(gun, "gun_chamber", out var slot) && !slot.HasItem)
+        {
+            if (chamber.BoltClosed != null)
+            {
+                _guns.SetBoltClosed(gun, chamber, false, user);
+                _guns.SetBoltClosed(gun, chamber, true, user);
+                return;
+            }
+            RaiseLocalEvent(gun, new UseInHandEvent(user));
+        }
+    }
 
     /// <summary>Returns the ammunition reported by the item's ordinary provider.</summary>
     public int AmmoCount(EntityUid item)
@@ -52,8 +91,13 @@ public sealed partial class WFCrewWeaponSystem
     public bool TryReloadOrSwitch(EntityUid uid)
     {
         if (!TryComp<WFCrewWeaponComponent>(uid, out var weapon) || weapon.Drawn is not { } gun
-            || !IsDrawn(uid) || !HasComp<GunComponent>(gun) || AmmoCount(gun) > 0)
+            || !IsDrawn(uid) || !HasComp<GunComponent>(gun))
             return false;
+        if (AmmoCount(gun) > 0)
+        {
+            ReadyChamber(uid, gun);
+            return true;
+        }
 
         if (FindMagazine(uid, gun, out var magazine, out var equipmentSlot)
             && TakeMagazine(uid, magazine, equipmentSlot))
@@ -65,11 +109,7 @@ public sealed partial class WFCrewWeaponSystem
                 _interaction.InteractUsing(uid, magazine, gun, Transform(uid).Coordinates);
                 if (slot.Item == magazine)
                 {
-                    if (TryComp<ChamberMagazineAmmoProviderComponent>(gun, out var chamber))
-                    {
-                        _guns.SetBoltClosed(gun, chamber, false, uid);
-                        _guns.SetBoltClosed(gun, chamber, true, uid);
-                    }
+                    ReadyChamber(uid, gun);
                     _hands.TrySelect(uid, gun);
                     return AmmoCount(gun) > 0;
                 }

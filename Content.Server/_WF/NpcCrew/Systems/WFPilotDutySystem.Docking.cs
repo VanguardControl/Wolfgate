@@ -196,11 +196,22 @@ public sealed partial class WFPilotDutySystem
         }
 
         steerer.InRangeRotation = DockHeading(plan, target);
+        steerer.AlwaysFaceTarget = true;
+        steerer.TargetRotation = CreepHeadingOffset(steerer, DockHeading(plan, target), grid);
         switch (duty.DockPhase)
         {
             case WFDockPhase.Approach:
                 // Map coordinates, so the target's hull is avoided on the way; kept up with a moving target.
                 steerer.Coordinates = StandoffOnMap(plan, map);
+                // The cleared docking corridor intentionally enters the destination's avoidance buffer.
+                var toStandoff = _transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid);
+                if (toStandoff.Length() <= duty.DockStandoff)
+                    steerer.AvoidCollisions = false;
+                if (duty.DockPhaseTime >= 120)
+                {
+                    AbortDock(ent, WFDockPhase.None);
+                    return;
+                }
                 if (steerer.Status != ShipSteeringStatus.InRange)
                     break;
 
@@ -215,8 +226,11 @@ public sealed partial class WFPilotDutySystem
                 break;
             case WFDockPhase.Settle:
                 steerer.Coordinates = StandoffOnMap(plan, map);
+                steerer.AvoidCollisions = false;
                 if (Settled(grid, target))
                     SetDockPhase(ent, WFDockPhase.Creep);
+                else if (duty.DockPhaseTime >= 30)
+                    AbortDock(ent, WFDockPhase.None);
                 break;
             case WFDockPhase.Creep:
                 steerer.TargetRotation = CreepHeadingOffset(steerer, DockHeading(plan, target), grid);

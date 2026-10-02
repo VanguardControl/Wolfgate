@@ -91,8 +91,9 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         _order.OnItemSelected += _ => UpdateOrderFields();
 
         var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
-        Contents.AddChild(body);
+        Contents.AddChild(new ScrollContainer { VerticalExpand = true, Children = { body } });
         body.AddChild(Line("ship", _grid, Button("refresh", () => Send(WFCrewSetupAction.List))));
+        BuildObjectives(body);
         body.AddChild(Line("vessel", _vessel, Button("spawn-vessel", () => Send(WFCrewSetupAction.SpawnVessel))));
         _captain.Text = Loc.GetString("wf-crew-setup-captain");
         _heave.Text = Loc.GetString("wf-crew-setup-heave");
@@ -224,7 +225,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
 
     private void Receive(WFCrewSetupResponse response)
     {
-        _status.Text = response.Message;
+        if (response.Action != WFCrewSetupAction.List)
+            _status.Text = response.Message;
         if (response.Action == WFCrewSetupAction.List)
         {
             var selected = _pendingGrid ?? (_grids.Count > 0 ? _grids[_grid.SelectedId].Id : (NetEntity?) null);
@@ -258,6 +260,20 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         {
             _pendingGrid = response.Grid;
             Send(WFCrewSetupAction.List);
+        }
+        ReceiveCrews(response.Crews);
+        if (response.Message.Length == 0 && response.Action is WFCrewSetupAction.Objectives or WFCrewSetupAction.AppendObjective
+            or WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip)
+        {
+            var crew = response.Crews.FirstOrDefault(row => row.Grid == response.Grid && row.Group == _group.Text);
+            if (crew != null)
+            {
+                _draft = crew.Objectives.ToList();
+                _queueDirty = false;
+                _editing = null;
+                RenderQueue();
+                _status.Text = crew.Status;
+            }
         }
     }
 
