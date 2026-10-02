@@ -252,6 +252,32 @@ own ship's airlocks like a person and boarders still find the exterior airlocks 
 - Everything on `WFCrewComponent`, `WFPilotDutyComponent`, `WFCrewWeaponComponent` and `WFRadioOperatorComponent` is
   editable in VV.
 
+### 8. Crew setup tool (admin)
+
+The test and setup surface: a **Crew Setup** window in the Wolfgate admin tab, next to Spawn Vessel and ERT Builder and
+built the same way (a `DefaultWindow` on the client, one request event to an admin-checked server system, a result
+event back). It is the last compartment to build, because it only drives the others, but its backend is not GUI code:
+the planner that decides where crew go is `WFCrewPlanner`, a server class the setup tool, the `wf_crew` command and
+RES all call.
+
+**Pick a ship**: a grid that exists (dropdown of named grids, with "the grid I'm on" first) or a vessel prototype to
+spawn first (the Spawn Vessel list). **Plan**: the server runs `WFCrewPlanner.Plan(grid)` and returns a roster, one
+row per post. Posts come from the grid itself, in this order: `WFCrewSpawnPoint` markers if the map has any (mapper
+intent wins), else helms (`ShuttleConsoleComponent` → Pilot), gunnery consoles (→ Gunner, once that duty exists), a
+radio post (a telecom or intercom entity, else the tile beside the helm → RadioOperator), the inside tile of each
+external dock (→ Deckhand, guarding the airlock), and the centres of the largest rooms (→ Deckhands, found by a flood
+fill over the grid's tiles bounded by walls and doors). The plan is a list of `(post coordinates, role, loadout)`.
+The admin edits it in a table: role and loadout dropdowns per row, add and remove rows, a deckhand count spinner that
+fills remaining room posts, a captain checkbox. **Mission**: crew group name, callsign (defaults to the ship name),
+company for the ship and crew (so IFF, access and radio channels line up), engagement default per role, radio channels
+for Local and Alert, and the pilot's orders: Hold, GoTo (coordinates, or "where I'm looking" from the admin's position),
+Loiter (point and radius), Follow (grid), Dock (grid). **Buttons**: Preview (the server spawns temporary post markers
+visible to admins for 30 s and the window lists them with a teleport button each), Spawn, Clear crew (despawn the
+group), Orders (re-issue the mission to a crew that already exists). The spawn runs through `WFCrewSystem.SpawnCrew`
+exactly as a map marker would, so a ship set up by hand and a ship set up by the tool are indistinguishable.
+
+`wf_crew plan <grid>` prints the same plan as text, which is how the planner is tested before any window exists.
+
 ## NPCs to start with
 
 In build order; each one proves a compartment.
@@ -307,6 +333,9 @@ matching dock.
   Jack produces none.
 - Doors (with the access edit): a crew NPC with access paths through a reader door without prying it; one without
   access pries.
+- Planner: on a test grid with one helm, two docks and two rooms, `Plan` returns a Pilot at the helm, a RadioOperator
+  beside it, a Deckhand inside each dock and the rest in the rooms; a grid with `WFCrewSpawnPoint` markers returns
+  exactly the markers.
 
 No `Destructive` pool settings.
 
