@@ -33,10 +33,11 @@ public sealed class WFCrewSystem : EntitySystem
     {
         base.Initialize();
 
-        // After the random name so the title goes in front of the final name.
+        // After the random name so the title goes in front of the final name. Every map-init subscription a system
+        // makes must share one ordering, so the spawn point carries the same constraint.
         SubscribeLocalEvent<WFCrewComponent, MapInitEvent>(OnCrewMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
+        SubscribeLocalEvent<WFCrewSpawnPointComponent, MapInitEvent>(OnSpawnPointMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewComponent, MobStateChangedEvent>(OnMobStateChanged);
-        SubscribeLocalEvent<WFCrewSpawnPointComponent, MapInitEvent>(OnSpawnPointMapInit);
     }
 
     private void OnCrewMapInit(EntityUid uid, WFCrewComponent component, MapInitEvent args)
