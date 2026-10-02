@@ -28,7 +28,6 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 [TestOf(typeof(WFCrewSystem))]
 public sealed class WFCrewTest : InteractionTest
 {
-    private const string Deckhand = "WFMobCrewDeckhand";
     private const string Hostile = "WFTestHostileMob";
     private const string Helm = "ComputerShuttle";
     private const string Dock = "AirlockShuttle";
@@ -54,22 +53,32 @@ public sealed class WFCrewTest : InteractionTest
     {
         var inventory = Server.System<InventorySystem>();
         var hands = Server.System<SharedHandsSystem>();
+        var crewSystem = Server.System<WFCrewSystem>();
+        var xforms = Server.System<SharedTransformSystem>();
 
-        var crew = ToServer(await SpawnTarget(Deckhand));
+        // Spawned the way the planner and the command do it: with a post, so guard duty keeps him near it.
+        EntityUid crew = default;
+        await Server.WaitPost(() =>
+        {
+            crew = crewSystem.SpawnCrewman(WFCrewRoles.Deckhand, SEntMan.GetCoordinates(TargetCoords), "test")!.Value;
+        });
         await RunTicks(5);
 
         await Server.WaitAssertion(() =>
         {
             Assert.That(SEntMan.HasComponent<WFCrewComponent>(crew), "The crew component should be on the mob.");
+            Assert.That(SEntMan.GetComponent<MetaDataComponent>(crew).EntityName, Does.StartWith("Deckhand "),
+                "The role title should go in front of the name.");
             Assert.That(Holstered(crew), "A deckhand should spawn with a sidearm in the belt.");
             Assert.That(hands.TryGetActiveItem(crew, out _), Is.False, "Hands should be empty off duty.");
         });
 
+        // Two metres from wherever he is standing now, not from where he spawned.
         EntityUid hostile = default;
         await Server.WaitPost(() =>
         {
-            var coords = SEntMan.GetCoordinates(TargetCoords).Offset(new Vector2(2f, 0f));
-            hostile = SEntMan.SpawnAtPosition(Hostile, coords);
+            var here = xforms.GetMapCoordinates(crew);
+            hostile = SEntMan.Spawn(Hostile, new MapCoordinates(here.Position + new Vector2(2f, 0f), here.MapId));
         });
 
         await WaitUntil(() => hands.TryGetActiveItem(crew, out var held) && SEntMan.HasComponent<GunComponent>(held.Value),
