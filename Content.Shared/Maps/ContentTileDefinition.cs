@@ -144,7 +144,7 @@ namespace Content.Shared.Maps
         /// <summary>
         /// Can weather affect this tile. - Mono - set to true because like, implicit roof.
         /// </summary>
-        [DataField("weather")] public bool Weather = true;
+        [DataField("weather")] public bool Weather = false; // WOLFGATE: Monolith#4804 made this true, which draws weather inside ships and buildings
 
         /// <summary>
         /// Is this tile immune to RCD deconstruct.
