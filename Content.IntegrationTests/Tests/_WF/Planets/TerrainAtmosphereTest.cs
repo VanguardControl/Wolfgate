@@ -265,6 +265,111 @@ public sealed class TerrainAtmosphereTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A ship is untouched by all this: sealed, it keeps what a canister lets out, in space and parked on a planet's
+    /// bare ground. Breached, it empties into space or settles to the planet's air.
+    /// </summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task AShipKeepsItsOwnAir(bool onPlanet)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var atmos = server.System<AtmosphereSystem>();
+        var map = EntityUid.Invalid;
+
+        if (onPlanet)
+        {
+            await EnableFeature(pair);
+            map = (await BuildStandalone(pair))[0];
+            await server.WaitPost(() => SetTiles(pair, map, Grass, Area(new Vector2i(-4, -4), new Vector2i(10, 10))));
+        }
+        else
+        {
+            map = (await pair.CreateTestMap()).MapUid;
+        }
+
+        var mapId = MapId.Nullspace;
+        await server.WaitPost(() => mapId = entMan.GetComponent<MapComponent>(map).MapId);
+
+        // A 5x5 deck walled around its edge, clear of the test map's own tile.
+        var hull = await BuildDebris(pair, mapId, 5, onPlanet ? Vector2.Zero : new Vector2(20f, 20f));
+        var cabin = Area(new Vector2i(1, 1), new Vector2i(3, 3)).ToList();
+        var walls = new Dictionary<Vector2i, EntityUid>();
+        var canister = EntityUid.Invalid;
+        var canisterBefore = 0f;
+        var cabinBefore = 0f;
+
+        await server.WaitPost(() =>
+        {
+            foreach (var index in Area(Vector2i.Zero, new Vector2i(4, 4)).Except(cabin))
+            {
+                walls[index] = entMan.SpawnEntity(Wall, new EntityCoordinates(hull, index.X + 0.5f, index.Y + 0.5f));
+            }
+
+            canister = entMan.SpawnEntity(Canister, new EntityCoordinates(hull, 2.5f, 2.5f));
+            var comp = entMan.GetComponent<GasCanisterComponent>(canister);
+            comp.ReleasePressure = comp.MaxReleasePressure;
+            comp.ReleaseValve = true;
+            canisterBefore = comp.Air.TotalMoles;
+
+            // On a planet the open deck has already taken some of the planet's air in.
+            cabinBefore = RoomMoles(atmos, hull, cabin);
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(5f));
+
+        var filled = 0f;
+        await server.WaitAssertion(() =>
+        {
+            var comp = entMan.GetComponent<GasCanisterComponent>(canister);
+            var released = canisterBefore - comp.Air.TotalMoles;
+            filled = RoomMoles(atmos, hull, cabin);
+
+            Assert.That(released, Is.GreaterThan(100f), "The canister let nothing out into the ship.");
+            Assert.That(filled - cabinBefore, Is.EqualTo(released).Within(released * 0.01f),
+                "What the canister let out did not stay in the ship.");
+            comp.ReleaseValve = false;
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(10f));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(RoomMoles(atmos, hull, cabin), Is.EqualTo(filled).Within(filled * 0.005f), "A sealed ship leaked.");
+
+            if (onPlanet)
+            {
+                Assert.That(entMan.GetComponent<GridAtmosphereComponent>(map).Tiles, Is.Empty,
+                    "A ship parked on bare ground made atmos track the ground.");
+            }
+
+            entMan.DeleteEntity(walls[new Vector2i(2, 0)]);
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(30f));
+
+        await server.WaitAssertion(() =>
+        {
+            var settled = RoomMoles(atmos, hull, cabin) / cabin.Count;
+
+            if (onPlanet)
+            {
+                var planetMoles = atmos.GetTileMixture(null, map, Vector2i.Zero)!.TotalMoles;
+                Assert.That(settled, Is.EqualTo(planetMoles).Within(planetMoles * 0.1f),
+                    "A ship breached on a planet did not settle to the planet's air.");
+            }
+            else
+            {
+                // Spacing is gradual here (atmos.mmos_spacing_speed), so most of it, not all of it.
+                Assert.That(settled, Is.LessThan(filled / cabin.Count * 0.1f), "A ship breached in space kept its air.");
+            }
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>With the switch off the ground gets no atmosphere, as before.</summary>
     [Test]
     public async Task TheSwitchLeavesPlanetGroundAlone()
