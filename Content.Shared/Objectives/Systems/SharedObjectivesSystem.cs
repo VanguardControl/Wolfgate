@@ -112,7 +112,7 @@ public abstract partial class SharedObjectivesSystem : EntitySystem
     /// <param name="mind"/>Mind component of the player's mind</param>
     public ObjectiveInfo? GetInfo(EntityUid uid, EntityUid mindId, MindComponent? mind = null)
     {
-        if (GetProgress(uid) is not {} progress)
+        if (GetProgress(uid, mindId) is not {} progress) // WOLFGATE(Objectives): was GetProgress(uid), which dropped the mind
             return null;
 
         var comp = Comp<ObjectiveComponent>(uid);
@@ -133,9 +133,10 @@ public abstract partial class SharedObjectivesSystem : EntitySystem
     /// Returning null is a programmer error.
     /// MONO NOTE - THIS SYSTEM IS EDITED TO WORK MORE GENERICALLY FOR NUKIE OPERATIONS, AND NOT REQUIRE A MINDCOMPONENT
     /// </summary>
-    public float? GetProgress(EntityUid uid)
+    public float? GetProgress(EntityUid uid, EntityUid? mindId = null) // WOLFGATE(Objectives): takes the mind
     {
-        var ev = new ObjectiveGetProgressEvent(uid);
+        // WOLFGATE(Objectives): a mind's objective is asked about its mind, and one without a mind about itself
+        var ev = new ObjectiveGetProgressEvent(HasComp<MindComponent>(mindId) ? mindId.Value : uid);
         RaiseLocalEvent(uid, ref ev);
         if (ev.Progress != null)
             return ev.Progress;

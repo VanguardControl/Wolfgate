@@ -3,6 +3,7 @@ using Content.Server.Objectives.Components.Targets;
 using Content.Shared._Mono.Company;
 using Content.Shared.CartridgeLoader;
 using Content.Shared.Interaction;
+using Content.Shared.Mind; // WOLFGATE(Objectives)
 using Content.Shared.Objectives.Components;
 using Content.Shared.Objectives.Systems;
 using Robust.Shared.Containers;
@@ -95,7 +96,8 @@ public sealed partial class StealConditionSystem : EntitySystem
     }
     private void OnGetProgress(Entity<StealConditionComponent> condition, ref ObjectiveGetProgressEvent args)
     {
-        args.Progress = GetProgress(args.MindId, condition);
+        // WOLFGATE(Objectives): a mind's objective counts what its body holds and pulls; was args.MindId
+        args.Progress = GetProgress(CompOrNull<MindComponent>(args.MindId)?.OwnedEntity ?? args.MindId, condition);
     }
 
     private float GetProgress(EntityUid entityUid, StealConditionComponent condition)

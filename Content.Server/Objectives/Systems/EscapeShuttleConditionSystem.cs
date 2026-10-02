@@ -21,7 +21,7 @@ public sealed partial class EscapeShuttleConditionSystem : EntitySystem
     private void OnGetProgress(EntityUid uid, EscapeShuttleConditionComponent comp, ref ObjectiveGetProgressEvent args)
     {
         // Mono - Check for mind, to slightly less hardcode it. I need objectives for other things too!
-        if (TryComp<MindComponent>(uid, out var mind))
+        if (TryComp<MindComponent>(args.MindId, out var mind)) // WOLFGATE(Objectives): was uid, the objective, which is never a mind
             args.Progress = GetProgress(args.MindId, mind);
     }
 
