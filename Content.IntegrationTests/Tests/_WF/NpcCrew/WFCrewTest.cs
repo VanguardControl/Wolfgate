@@ -6,6 +6,7 @@ using Content.IntegrationTests.Tests.Interaction;
 using System.Text;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Server.Gravity;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Shared.NPC.Components;
@@ -54,13 +55,14 @@ public sealed class WFCrewTest : InteractionTest
         var inventory = Server.System<InventorySystem>();
         var hands = Server.System<SharedHandsSystem>();
         var crewSystem = Server.System<WFCrewSystem>();
-        var xforms = Server.System<SharedTransformSystem>();
 
-        // Spawned the way the planner and the command do it: with a post, so guard duty keeps him near it.
+        // A deck with gravity near the test player (NPCs sleep with no player within 32 tiles), the deckhand at its
+        // centre, spawned the way the planner and the command do it: with a post, so guard duty keeps him near it.
+        var deck = await CreateDeck(new Vector2(6f, 0f), 9, gravity: true);
         EntityUid crew = default;
         await Server.WaitPost(() =>
         {
-            crew = crewSystem.SpawnCrewman(WFCrewRoles.Deckhand, SEntMan.GetCoordinates(TargetCoords), "test")!.Value;
+            crew = crewSystem.SpawnCrewman(WFCrewRoles.Deckhand, new EntityCoordinates(deck, new Vector2(4.5f, 4.5f)), "test")!.Value;
         });
         await RunTicks(5);
 
@@ -73,12 +75,11 @@ public sealed class WFCrewTest : InteractionTest
             Assert.That(hands.TryGetActiveItem(crew, out _), Is.False, "Hands should be empty off duty.");
         });
 
-        // Two metres from wherever he is standing now, not from where he spawned.
+        // Two tiles from the post; the whole deck is inside his ten-tile vision.
         EntityUid hostile = default;
         await Server.WaitPost(() =>
         {
-            var here = xforms.GetMapCoordinates(crew);
-            hostile = SEntMan.Spawn(Hostile, new MapCoordinates(here.Position + new Vector2(2f, 0f), here.MapId));
+            hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(6.5f, 4.5f)));
         });
 
         await WaitUntil(() => hands.TryGetActiveItem(crew, out var held) && SEntMan.HasComponent<GunComponent>(held.Value),
@@ -102,29 +103,11 @@ public sealed class WFCrewTest : InteractionTest
     [Test]
     public async Task PlannerPlansHelmRadioDockAndDeck()
     {
-        var map = Server.System<SharedMapSystem>();
         var planner = Server.System<WFCrewPlannerSystem>();
-        var mapManager = Server.ResolveDependency<IMapManager>();
-        var tileDefs = Server.ResolveDependency<ITileDefinitionManager>();
 
-        EntityUid grid = default;
+        var grid = await CreateDeck(new Vector2(40f, 40f), 7, gravity: false);
         await Server.WaitPost(() =>
         {
-            var created = mapManager.CreateGrid(MapData.MapId);
-            grid = created.Owner;
-            var plating = new Tile(tileDefs["Plating"].TileId);
-            var tiles = new List<(Vector2i, Tile)>();
-            for (var x = 0; x < 7; x++)
-            {
-                for (var y = 0; y < 7; y++)
-                {
-                    tiles.Add((new Vector2i(x, y), plating));
-                }
-            }
-
-            map.SetTiles(grid, created, tiles);
-            Server.System<SharedTransformSystem>().SetCoordinates(grid, new EntityCoordinates(MapData.MapUid, new Vector2(40f, 40f)));
-
             // Helm in the middle; airlock on the bottom edge facing out (its local -Y), so inside is the tile above it.
             SEntMan.SpawnAtPosition(Helm, new EntityCoordinates(grid, new Vector2(3.5f, 3.5f)));
             SEntMan.SpawnAtPosition(Dock, new EntityCoordinates(grid, new Vector2(3.5f, 0.5f)));
@@ -160,6 +143,37 @@ public sealed class WFCrewTest : InteractionTest
                     "Deck posts keep their distance from every other post.");
             }
         }
+    }
+
+    /// <summary>A square of plating on the test map, optionally with gravity.</summary>
+    private async Task<EntityUid> CreateDeck(Vector2 origin, int size, bool gravity)
+    {
+        var map = Server.System<SharedMapSystem>();
+        var mapManager = Server.ResolveDependency<IMapManager>();
+        var tileDefs = Server.ResolveDependency<ITileDefinitionManager>();
+
+        EntityUid grid = default;
+        await Server.WaitPost(() =>
+        {
+            var created = mapManager.CreateGrid(MapData.MapId);
+            grid = created.Owner;
+            var plating = new Tile(tileDefs["Plating"].TileId);
+            var tiles = new List<(Vector2i, Tile)>();
+            for (var x = 0; x < size; x++)
+            {
+                for (var y = 0; y < size; y++)
+                {
+                    tiles.Add((new Vector2i(x, y), plating));
+                }
+            }
+
+            map.SetTiles(grid, created, tiles);
+            Server.System<SharedTransformSystem>().SetCoordinates(grid, new EntityCoordinates(MapData.MapUid, origin));
+            if (gravity)
+                Server.System<GravitySystem>().EnableGravity(grid);
+        });
+        await RunTicks(5);
+        return grid;
     }
 
     private async Task WaitUntil(Func<bool> condition, int maxTicks, Func<string> message)
