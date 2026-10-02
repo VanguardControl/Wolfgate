@@ -29,6 +29,11 @@ Shared alerts (`WFCrewAlertSystem`) let living on-sight crew aboard the same shi
 second. Awareness expands across the ship until 60 seconds without a target; crew leaving the group or switching
 to when-attacked engagement recover their original awareness. `ShareAlerts` on the crew component opts out.
 Officers are excluded, and `WFCrewAlertEvent` / `WFCrewAlertClearedEvent` expose transitions for future duties.
+Crew use normal access readers before trying to pry a door. On ShipAccess-managed grids, `SpawnCrewman` equips
+and registers an ordinary ID card through `WFCrewAccessSystem`; removing the card or revoking its allow-list entry
+removes that access. Movement and duty changes never enroll crew on another ship. Unmanaged doors use the crew's
+configured access tags and cards. The access-aware steering partial lives in this module, with small marked hooks
+in upstream navigation.
 `design.md` under `Docs/_WF/NpcCrew/` is the full brief: pilot duty and orders, docking by hand, the event-driven
 radio officer, crew alerting, the access-door edit and the Crew Setup admin window.
 
@@ -50,6 +55,8 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/HTN/WFHolsterWeaponOperator.cs`](HTN/WFHolsterWeaponOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFPickHelmOperator.cs`](HTN/WFPickHelmOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeHelmOperator.cs`](HTN/WFTakeHelmOperator.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/NPCSteeringSystem.Access.cs`](Systems/NPCSteeringSystem.Access.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewPlannerSystem.cs`](Systems/WFCrewPlannerSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
@@ -68,6 +75,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs)
 
 ### Prototypes
 
@@ -89,6 +97,11 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 ## Non-modular edits
 
-None.
+- [`Content.Server/NPC/Pathfinding/PathfindingSystem.Common.cs`](../../NPC/Pathfinding/PathfindingSystem.Common.cs): access-aware NPCs may plan through readers and check permission at the door.
+- [`Content.Server/NPC/Pathfinding/PathfindingSystem.cs`](../../NPC/Pathfinding/PathfindingSystem.cs): opt-in NPCs try their access before prying doors.
+- [`Content.Server/NPC/Systems/NPCSteeringSystem.Context.cs`](../../NPC/Systems/NPCSteeringSystem.Context.cs)
+  - compare both bodies for crew while the engine helper reads the first fixtures twice.
+  - stop blended input while access-aware crew settle at an obstacle.
+- [`Content.Server/NPC/Systems/NPCSteeringSystem.Obstacles.cs`](../../NPC/Systems/NPCSteeringSystem.Obstacles.cs): open authorized doors through normal interaction before considering prying.
 
 <!-- WOLFGATE-GENERATED END -->

@@ -308,8 +308,21 @@ This needs a small marked edit outside `_WF` (`// WOLFGATE(NpcCrew)`), three hun
 - `NPCSteeringSystem.TryHandleFlags`: with the flag, if `AccessReaderSystem.IsAllowed(npc, door)` use
   `InteractionActivate` (the door opens normally) and only fall back to prying when not allowed and `NavPry` is set.
 
-Without this edit everything still works on a map whose interior doors have no reader; with it Jeff walks through his
-own ship's airlocks like a person and boarders still find the exterior airlocks locked.
+As built: `WFCrewSystem.Apply` enables `NavAccess` and ensures an `AccessComponent` on each crewman; it does not
+grant blanket access tags. Crew steering compares both bodies' hard collision masks: the current engine helper
+reads the first body's fixtures twice and incorrectly treats doors as free space for humans. A marked hook stops
+blended movement input while crew settle at blocked nodes. RobustToolbox is unchanged.
+The pathfinding hooks allow reader doors in an access-aware path. A partial
+`NPCSteeringSystem` in this module checks the reader and normal door-opening rules before interacting, then leaves
+unsuccessful attempts to the existing obstacle handling (`NavPry` is still required for prying). Permission is
+checked at the door; the path planner does not yet price individual doors using the requester's credentials.
+
+`WFCrewAccessSystem.RegisterSpawnShip` runs once through `SpawnCrewman`: on a grid already managed by ShipAccess,
+it equips a passenger ID card if needed, creates a crew record on the grid when the card has none, and enrolls that
+card through `WFShipAccessServerSystem.TryAddCard`. The card is ordinary lootable equipment, and the allow-list
+entry is revocable. No credential is reissued by duty changes or movement onto another ship. Crew spawned on
+unmanaged grids use whatever normal access tags/cards the mapper or admin gives them. Per-door owner-only,
+sealed and custom lists continue to enforce their normal rules.
 
 ### 7. Spawning and tools
 

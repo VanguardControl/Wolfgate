@@ -47,7 +47,7 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 /// captain going down, once each, and nothing once he is dead.
 /// </summary>
 [TestOf(typeof(WFCrewSystem))]
-public sealed class WFCrewTest : InteractionTest
+public sealed partial class WFCrewTest : InteractionTest
 {
     private const string Hostile = "WFTestHostileMob";
     private const string TestHelm = "WFTestHelm";

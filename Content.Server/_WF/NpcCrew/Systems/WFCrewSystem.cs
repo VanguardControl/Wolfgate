@@ -3,6 +3,7 @@ using Content.Server.Humanoid.Systems;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Components;
 using Content.Shared.Damage;
+using Content.Shared.Access.Components;
 using Content.Server.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs;
@@ -19,6 +20,7 @@ public sealed class WFCrewSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private NPCSystem _npc = default!;
+    [Dependency] private WFCrewAccessSystem _crewAccess = default!;
     [Dependency] private NPCRetaliationSystem _retaliation = default!;
     [Dependency] private HTNSystem _htn = default!;
     [Dependency] private MetaDataSystem _meta = default!;
@@ -99,6 +101,7 @@ public sealed class WFCrewSystem : EntitySystem
         crew.Group = group;
         crew.Post = post;
         Apply((uid, crew));
+        _crewAccess.RegisterSpawnShip(uid);
         return uid;
     }
 
@@ -163,9 +166,11 @@ public sealed class WFCrewSystem : EntitySystem
     public void Apply(Entity<WFCrewComponent> ent)
     {
         var (uid, crew) = ent;
+        EnsureComp<AccessComponent>(uid);
 
         if (TryComp<HTNComponent>(uid, out var htn))
         {
+            _npc.SetBlackboard(uid, "NavAccess", true, htn);
             _npc.SetBlackboard(uid, DutyKey, crew.Duty, htn);
             _npc.SetBlackboard(uid, PostRangeKey, crew.PostRange, htn);
             if (crew.Post is { } post)
