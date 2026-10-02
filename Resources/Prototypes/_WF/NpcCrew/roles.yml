@@ -1,5 +1,5 @@
-# Crew roles: the mob, the duty worked and how readily it fights. Pilot, radio operator and captain work Guard until
-# their own duties exist; the planner already hands them out so rosters don't change when those land.
+# Crew roles: the mob, the duty worked and how readily it fights. Radio operator and captain work Guard until their
+# own duties exist; the planner already hands them out so rosters don't change when those land.
 
 - type: wfCrewRole
   id: WFCrewCaptain
@@ -12,7 +12,7 @@
 - type: wfCrewRole
   id: WFCrewPilot
   mob: WFMobCrewOfficer
-  duty: Guard
+  duty: Pilot
   engagement: WhenAttacked
   title: wf-crew-role-pilot
   order: 10

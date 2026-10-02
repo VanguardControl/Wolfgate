@@ -5,13 +5,16 @@ using Content.Server.Administration;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Server._WF.NpcCrew.Commands;
 
 /// <summary>
-/// NPC crew from the console: plan a grid, spawn the plan or one role, list, clear a group, change a duty.
+/// NPC crew from the console: plan a grid, spawn the plan or one role, list, clear a group, change a duty, give a
+/// pilot orders.
 /// </summary>
 [AdminCommand(AdminFlags.Spawn)]
 public sealed partial class WFCrewCommand : LocalizedEntityCommands
@@ -19,8 +22,11 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
+    [Dependency] private WFPilotDutySystem _pilot = default!;
 
-    private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty" };
+    private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty", "orders" };
+
+    private static readonly string[] OrderNames = { "hold", "goto", "loiter", "follow" };
 
     public override string Command => "wf_crew";
 
@@ -52,6 +58,9 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             case "duty":
                 Duty(shell, args);
                 break;
+            case "orders":
+                Orders(shell, args);
+                break;
             default:
                 shell.WriteError(Loc.GetString("cmd-wf_crew-unknown", ("sub", args[0])));
                 shell.WriteLine(Help);
@@ -68,6 +77,8 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
                 _prototypes.EnumeratePrototypes<WFCrewRolePrototype>().Select(role => role.ID).Order(),
                 Loc.GetString("cmd-wf_crew-hint-role")),
             2 when args[0] is "plan" or "spawn" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-grid")),
+            2 when args[0] is "duty" or "orders" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-mob")),
+            3 when args[0] == "orders" => CompletionResult.FromHintOptions(OrderNames, Loc.GetString("cmd-wf_crew-hint-order")),
             _ => CompletionResult.Empty,
         };
     }
@@ -207,6 +218,77 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             ("duty", args[2])));
     }
 
+    /// <summary>
+    /// wf_crew orders &lt;mob&gt; hold | goto &lt;x&gt; &lt;y&gt; [&lt;x&gt; &lt;y&gt; ...] | loiter &lt;x&gt; &lt;y&gt; &lt;radius&gt; |
+    /// follow &lt;grid|here&gt;. Coordinates are map coordinates on the pilot's map.
+    /// </summary>
+    private void Orders(IConsoleShell shell, string[] args)
+    {
+        if (args.Length < 3)
+        {
+            shell.WriteLine(Help);
+            return;
+        }
+
+        if (!NetEntity.TryParse(args[1], out var net)
+            || !EntityManager.TryGetEntity(net, out var found)
+            || !EntityManager.TryGetComponent<WFPilotDutyComponent>(found, out var duty))
+        {
+            shell.WriteError(Loc.GetString("cmd-wf_crew-not-pilot", ("arg", args[1])));
+            return;
+        }
+
+        var uid = found.Value;
+        var name = EntityManager.GetComponent<MetaDataComponent>(uid).EntityName;
+        if (EntityManager.GetComponent<TransformComponent>(uid).MapUid is not { } map)
+        {
+            shell.WriteError(Loc.GetString("cmd-wf_crew-not-on-map", ("name", name)));
+            return;
+        }
+
+        switch (args[2])
+        {
+            case "hold" when args.Length == 3:
+                _pilot.Hold((uid, duty));
+                break;
+            case "goto" when args.Length >= 5 && (args.Length - 3) % 2 == 0:
+                var waypoints = new List<EntityCoordinates>();
+                for (var i = 3; i < args.Length; i += 2)
+                {
+                    if (!TryNumber(shell, args[i], out var x) || !TryNumber(shell, args[i + 1], out var y))
+                        return;
+
+                    waypoints.Add(new EntityCoordinates(map, x, y));
+                }
+
+                _pilot.GoTo((uid, duty), waypoints);
+                break;
+            case "loiter" when args.Length == 6:
+                if (!TryNumber(shell, args[3], out var cx)
+                    || !TryNumber(shell, args[4], out var cy)
+                    || !TryNumber(shell, args[5], out var radius))
+                {
+                    return;
+                }
+
+                _pilot.Loiter((uid, duty), new EntityCoordinates(map, cx, cy), radius);
+                break;
+            case "follow" when args.Length == 4:
+                if (!TryGrid(shell, args[3], out var grid))
+                    return;
+
+                _pilot.Follow((uid, duty), grid, duty.FollowRange);
+                break;
+            default:
+                shell.WriteLine(Help);
+                return;
+        }
+
+        shell.WriteLine(Loc.GetString("cmd-wf_crew-orders-set",
+            ("name", name),
+            ("orders", Loc.GetString($"wf-crew-order-{duty.Orders.ToString().ToLowerInvariant()}"))));
+    }
+
     /// <summary>A grid by entity id, or "here" for the caller's own.</summary>
     private bool TryGrid(IConsoleShell shell, string arg, out EntityUid grid)
     {
@@ -247,6 +329,16 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             return true;
 
         shell.WriteError(Loc.GetString("cmd-wf_crew-bad-number", ("arg", args[index])));
+        return false;
+    }
+
+    /// <summary>A decimal number, written with a point whatever the server's culture.</summary>
+    private bool TryNumber(IConsoleShell shell, string arg, out float value)
+    {
+        if (Parse.TryFloat(arg, out value) && float.IsFinite(value))
+            return true;
+
+        shell.WriteError(Loc.GetString("cmd-wf_crew-bad-decimal", ("arg", arg)));
         return false;
     }
 
