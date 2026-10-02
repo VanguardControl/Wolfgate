@@ -86,6 +86,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         SubscribeLocalEvent<WFPilotOrdersCompletedEvent>(OnOrdersCompleted);
         SubscribeLocalEvent<WFPilotDockFailedEvent>(OnDockFailed);
         SubscribeLocalEvent<WFCrewMemberDownEvent>(OnCrewDown);
+        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
+        SubscribeLocalEvent<WFCrewAlertEvent>(OnCrewAlert);
     }
 
     /// <summary>Once a second: boarders, the drive spooling up, and the all-clear.</summary>
@@ -174,6 +176,23 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         // Each dock is docked with the other side's port by now.
         GridDocked(args.GridAUid, args.GridBUid, args.DockA.DockedWith);
         GridDocked(args.GridBUid, args.GridAUid, args.DockB.DockedWith);
+    }
+
+    private void OnHullHit(ref WFCrewHullHitEvent args)
+    {
+        foreach (var op in OperatorsOn(args.Grid))
+            HostileAct(op, args.AttackerGrid);
+    }
+
+    private void OnCrewAlert(ref WFCrewAlertEvent args)
+    {
+        if (args.Hostiles.Length == 0)
+            return;
+        foreach (var op in OperatorsOn(args.Grid))
+        {
+            if (GroupOf(op) == args.Group)
+                HostileAct(op, args.Hostiles[0]);
+        }
     }
 
     private void OnUndock(UndockEvent args)
@@ -267,7 +286,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
         var vessel = string.Empty;
         if (TryComp<TransformComponent>(hostile, out var hostileXform)
-            && hostileXform.GridUid is { } hostileGrid
+            && (HasComp<MapGridComponent>(hostile) ? hostile : hostileXform.GridUid) is { } hostileGrid
             && hostileGrid != grid
             && Name(hostileGrid) is { Length: > 0 } hostileName)
         {

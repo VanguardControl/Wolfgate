@@ -10,7 +10,7 @@ undock`) or set what a radio officer calls the ship (`callsign <mob> <text...>`)
 Built so far: the crew core (`WFCrewSystem`, `WFCrewComponent`, the `WFCrewCompound` HTN root with fight, duty and
 idle branches), weapons (`WFCrewWeaponSystem` with the draw and holster operators), the planner (`WFCrewPlannerSystem`:
 markers win, else a pilot and radio officer beside the helm, a deckhand inside each airlock and the rest on open
-deck), role prototypes (`wfCrewRole`) for deckhand, marine, pilot, radio operator and captain, the pilot duty and the
+deck), role prototypes (`wfCrewRole`) for deckhand, marine, pilot, radio operator, captain and gunner, the pilot duty and the
 command. The pilot (`WFPilotDutySystem`, `WFPilotDutyComponent` on every officer) walks to the nearest powered helm,
 takes it and flies its orders (Hold, GoTo waypoints, Loiter, Follow, Dock, Undock) with Mono's ship steering; the
 orders advance in the system, so the ship keeps flying while the pilot's HTN sleeps, and the helm is let go when he
@@ -24,7 +24,8 @@ arrival, orders flown or docking aborted on Shortband; a mayday on the first hos
 from outside the crew, or a hostile mob aboard), the boarding call, the captain or pilot going down and the all-clear
 two minutes after the last hostile activity on Broadband (and a faction channel if set). Events only, no sitreps; he
 goes quiet when he is down. Crew retaliation catches incoming damage before Wolfmed routes it through body parts, using upstream faction checks
-and attack memory so officers fight back when hit. The captain stands guard until his duty lands.
+and attack memory so officers fight back when hit. Captains can hold the ship during an alert and resume the remaining
+route afterward; newer orders, death, player takeover, or leaving the crew cancel that saved course.
 Shared alerts (`WFCrewAlertSystem`) let living on-sight crew aboard the same ship and group share targets once a
 second. Awareness expands across the ship until 60 seconds without a target; crew leaving the group or switching
 to when-attacked engagement recover their original awareness. `ShareAlerts` on the crew component opts out.
@@ -34,6 +35,18 @@ and registers an ordinary ID card through `WFCrewAccessSystem`; removing the car
 removes that access. Movement and duty changes never enroll crew on another ship. Unmanaged doors use the crew's
 configured access tags and cards. The access-aware steering partial lives in this module, with small marked hooks
 in upstream navigation.
+Reloading uses real compatible magazines from equipment slots through normal item interaction. Spent guns are
+holstered in favor of a loaded sidearm, melee weapon, or empty hands; no ammunition is created.
+Hull impacts from another ship's artillery raise crew alerts and a radio mayday through the existing projectile
+handler. Gunners walk to an available powered console and use Mono's ship targeting and fire-control path only
+against explicitly reported hostile vessels, excluding friendly factions. Console loss, incapacitation, player
+takeover, leaving the post, or changing duty stops their targeting.
+Admins open Crew Setup from the Wolfgate tab or a crew NPC's admin verb. Choose a ship (or spawn a vessel), plan and
+edit posts, roles, loadouts and engagement, then set company, NPC faction, radio channels and pilot orders. Preview
+shows posts only to the requesting admin for 30 seconds; clear affects only the selected grid and group.
+`WFCrewSetupSystem.TrySpawn` is the validated encounter-facing roster and mission API;
+`WFCrewAlertSystem.ReportShipThreat` supplies encounter vessel threats. RES itself remains a separate project.
+
 `design.md` under `Docs/_WF/NpcCrew/` is the full brief: pilot duty and orders, docking by hand, the event-driven
 radio officer, crew alerting, the access-door edit and the Crew Setup admin window.
 
@@ -45,22 +58,32 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 ### Server
 
 - [`Content.Server/_WF/NpcCrew/Commands/WFCrewCommand.cs`](Commands/WFCrewCommand.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSpawnPointComponent.cs`](Components/WFCrewSpawnPointComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewWeaponComponent.cs`](Components/WFCrewWeaponComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFGunnerDutyComponent.cs`](Components/WFGunnerDutyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFPilotDutyComponent.cs`](Components/WFPilotDutyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFRadioOperatorComponent.cs`](Components/WFRadioOperatorComponent.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFCrewMayFightPrecondition.cs`](HTN/WFCrewMayFightPrecondition.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFDrawWeaponOperator.cs`](HTN/WFDrawWeaponOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFHolsterWeaponOperator.cs`](HTN/WFHolsterWeaponOperator.cs)
+- [`Content.Server/_WF/NpcCrew/HTN/WFPickGunneryOperator.cs`](HTN/WFPickGunneryOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFPickHelmOperator.cs`](HTN/WFPickHelmOperator.cs)
+- [`Content.Server/_WF/NpcCrew/HTN/WFReloadOperator.cs`](HTN/WFReloadOperator.cs)
+- [`Content.Server/_WF/NpcCrew/HTN/WFTakeGunneryOperator.cs`](HTN/WFTakeGunneryOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeHelmOperator.cs`](HTN/WFTakeHelmOperator.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/NPCSteeringSystem.Access.cs`](Systems/NPCSteeringSystem.Access.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/SpaceArtillerySystem.Crew.cs`](Systems/SpaceArtillerySystem.Crew.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCaptainSystem.cs`](Systems/WFCaptainSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewPlannerSystem.cs`](Systems/WFCrewPlannerSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.Reload.cs`](Systems/WFCrewWeaponSystem.Reload.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFGunnerDutySystem.cs`](Systems/WFGunnerDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.cs`](Systems/WFPilotDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.Docking.cs`](Systems/WFPilotDutySystem.Docking.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFRadioOperatorSystem.cs`](Systems/WFRadioOperatorSystem.cs)
@@ -70,12 +93,23 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 - [`Content.Shared/_WF/NpcCrew/WFCrewEngagement.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewEngagement.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewRolePrototype.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewRolePrototype.cs)
+- [`Content.Shared/_WF/NpcCrew/WFCrewSetupMessages.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewSetupMessages.cs)
 - [`Content.Shared/_WF/NpcCrew/WFPilotOrder.cs`](../../../Content.Shared/_WF/NpcCrew/WFPilotOrder.cs)
+
+### Client
+
+- [`Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs)
+- [`Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs)
+- [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Command.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Command.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
 
 ### Prototypes
 
@@ -97,6 +131,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 ## Non-modular edits
 
+- [`Content.Server/_Mono/SpaceArtillery/SpaceArtillerySystem.cs`](../../_Mono/SpaceArtillery/SpaceArtillerySystem.cs): notify crew of damaging impacts from other ships.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Common.cs`](../../NPC/Pathfinding/PathfindingSystem.Common.cs): access-aware NPCs may plan through readers and check permission at the door.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.cs`](../../NPC/Pathfinding/PathfindingSystem.cs): opt-in NPCs try their access before prying doors.
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.Context.cs`](../../NPC/Systems/NPCSteeringSystem.Context.cs)

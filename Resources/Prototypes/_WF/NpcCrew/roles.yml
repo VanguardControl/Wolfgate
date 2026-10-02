@@ -1,6 +1,15 @@
 # Crew roles: the mob, the duty worked, how readily it fights and any components the role adds. The radio operator
-# stands guard at his post; his radio duty is a component, so he reports while his HTN sleeps. The captain works
-# Guard until his own duty exists; the planner already hands him out so rosters don't change when it lands.
+# stands guard at his post; radio and captain reactions run while the HTN sleeps. Gunners operate ship consoles.
+
+- type: wfCrewRole
+  id: WFCrewGunner
+  mob: WFMobCrewOfficer
+  duty: Gunnery
+  engagement: WhenAttacked
+  title: wf-crew-role-gunner
+  order: 25
+  components:
+  - type: WFGunnerDuty
 
 - type: wfCrewRole
   id: WFCrewCaptain
@@ -9,6 +18,10 @@
   engagement: WhenAttacked
   title: wf-crew-role-captain
   order: 0
+  components:
+  - type: WFCaptain
+  - type: WFRadioOperator
+  - type: TelecomExempt
 
 - type: wfCrewRole
   id: WFCrewPilot

@@ -9,6 +9,8 @@
     tasks:
     - !type:HTNPrimitiveTask
       operator: !type:WFDrawWeaponOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:WFReloadOperator
     - !type:HTNCompoundTask
       task: WFCrewFightCompound
   - preconditions:
@@ -20,6 +22,15 @@
       operator: !type:WFHolsterWeaponOperator
     - !type:HTNCompoundTask
       task: WFCrewPilotCompound
+  - preconditions:
+    - !type:KeyEqualsPrecondition
+      key: WFCrewDuty
+      value: Gunnery
+    tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WFHolsterWeaponOperator
+    - !type:HTNCompoundTask
+      task: WFCrewGunneryCompound
   - preconditions:
     - !type:KeyEqualsPrecondition
       key: WFCrewDuty
@@ -46,7 +57,25 @@
     - !type:HTNCompoundTask
       task: MeleeCombatCompound
 
-# Guard: walk back to the post when away from it, otherwise idle around it.
+# Gunnery: walk to an available console and operate it until interrupted.
+- type: htnCompound
+  id: WFCrewGunneryCompound
+  branches:
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WFPickGunneryOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        targetKey: WFCrewGunneryCoordinates
+        rangeKey: InteractRange
+        removeKeyOnFinish: false
+    - !type:HTNPrimitiveTask
+      operator: !type:WFTakeGunneryOperator
+  - tasks:
+    - !type:HTNCompoundTask
+      task: IdleCompound
+
+# Guard: return to the assigned post, then idle nearby.
 - type: htnCompound
   id: WFCrewGuardCompound
   branches:

@@ -41,7 +41,7 @@ git submodule update --init --recursive --depth 1 RobustToolbox
 # Build everything the tests need (about 2.5 min); only errors shown
 dotnet build Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug -v q -nologo 2>&1 | grep -E "error CS|error RA|Error\(s\)" | sort -u
 
-# The module's tests (18 cases; runtime varies by host)
+# The module's tests (28 cases; runtime varies by host)
 dotnet test Content.IntegrationTests/Content.IntegrationTests.csproj -c Debug --no-build --filter "FullyQualifiedName~WFCrewTest" --logger "console;verbosity=detailed" -nologo 2>&1 | grep -vE "warning RA|warning CS" > /tmp/wfcrew-tests.log
 grep -E "^\s*(Passed|Failed) |Error Message|Passed!|Failed!" -A3 /tmp/wfcrew-tests.log | head -40
 
@@ -55,29 +55,29 @@ python3 Tools/_WF/Ci/modules.py --write
 Never run two dotnet builds at once. `Content.Server` treats nullable warnings as errors. Say plainly in every
 report what you built, what you ran and the exact counts; never call something working without running it.
 
-## What is built (18 crew tests green; prototype linter clean at the previous handoff)
+## What is built (28 crew tests; Release prototype linter clean)
 
 One idea: every crew NPC runs one HTN root, `WFCrewCompound` (`Resources/Prototypes/_WF/NpcCrew/htn.yml`), with
-branches in priority order: **fight** (gated by `WFCrewMayFightPrecondition`, starts with `WFDrawWeaponOperator`,
+branches in priority order: **fight** (gated by `WFCrewMayFightPrecondition`, starts with `WFDrawWeaponOperator` and `WFReloadOperator`,
 then the upstream `RangedCombatCompound`/`MeleeCombatCompound`), then one branch per **duty** selected by the
-`WFCrewDuty` blackboard key (`Pilot` → `WFCrewPilotCompound`, `Guard` → `WFCrewGuardCompound`), then **idle**. Every
+`WFCrewDuty` blackboard key (`Pilot` → `WFCrewPilotCompound`, `Guard` → `WFCrewGuardCompound`, `Gunnery` → `WFCrewGunneryCompound`), then **idle**. Every
 duty branch starts with `WFHolsterWeaponOperator`. The planner replans every 0.45 s and swaps to an earlier branch
 as soon as it is valid, so a fight interrupts a duty and the duty resumes afterwards; nothing else switches state.
 
 | Piece | Files | What it does |
 |---|---|---|
 | Crew core | `Systems/WFCrewSystem.cs`, `Components/WFCrewComponent.cs`, `WFCrewEvents.cs`, `Content.Shared/_WF/NpcCrew/*` | `WFCrewComponent` (Role, Duty, Engagement, Group, Post, PostRange) mirrored to blackboard keys `WFCrewDuty`, `WFCrewPost`, `WFCrewPostRange`; role title put before the random name; `WFCrewMemberDownEvent` on crit/death. API: `SpawnCrewman(role, post, group)`, `SpawnCrew(plan, group)`, `ClearGroup`, `SetDuty`, `SetPost`, `SetEngagement`, `Apply`. `WFCrewRolePrototype` (`wfCrewRole`: mob, duty, engagement, title, order, extra `components`). |
-| Weapons | `Systems/WFCrewWeaponSystem.cs`, `HTN/WFDrawWeaponOperator.cs`, `HTN/WFHolsterWeaponOperator.cs`, `Components/WFCrewWeaponComponent.cs` | Draws the best weapon from equipment slots (back, suitstorage, belt, pockets; longarm > sidearm > melee) into any free hand and selects it; holsters it back into the slot it came from. Weapons never live in bags. No reload yet. |
+| Weapons | `Systems/WFCrewWeaponSystem.cs`, `HTN/WFDrawWeaponOperator.cs`, `HTN/WFHolsterWeaponOperator.cs`, `Components/WFCrewWeaponComponent.cs` | Draws the best weapon from equipment slots (back, suitstorage, belt, pockets; longarm > sidearm > melee) into any free hand and selects it; holsters it back into the slot it came from. Weapons never live in bags. Reload and fallback now use real equipment-slot magazines. |
 | Engagement | `HTN/WFCrewMayFightPrecondition.cs` | `OnSight` crew may always fight (the combat compounds still need a target); `WhenAttacked` crew only while `NPCRetaliationComponent.AttackMemories` holds an unexpired entry. The crew core also feeds upstream retaliation from `BeforeDamageChangedEvent`, before Wolfmed loses the origin. |
 | Planner | `Systems/WFCrewPlannerSystem.cs` | `Plan(grid, deckhands)`: `WFCrewSpawnPoint` markers win; else a Pilot beside the helm, a RadioOperator beside that, a Deckhand on the first free tile inside each airlock (dock outward normal = local rotation applied to (0,-1)), the rest on the most open deck tiles kept 3 apart. Returns `WFCrewPost(Coordinates, Role, Kind)`. |
 | Pilot duty | `Systems/WFPilotDutySystem.cs`, `Components/WFPilotDutyComponent.cs`, `HTN/WFPickHelmOperator.cs`, `HTN/WFTakeHelmOperator.cs`, `Content.Shared/_WF/NpcCrew/WFPilotOrder.cs` | Walks to the assigned or nearest powered `ShuttleConsoleComponent`, `EnsureComp<PilotComponent>` + `ShuttleConsoleSystem.AddPilot`, then flies with Mono's `ShipSteeringSystem.Steer(mob, coords)` (`Content.Server/_Mono/NPC/HTN/`). Orders `Hold`, `GoTo(waypoints)`, `Loiter(center, radius)`, `Follow(grid, range)`; waypoints advance in `Update`, not in the HTN, so unattended ships keep flying. The helm is kept while the HTN sleeps (no player within 32 tiles) and released when the pilot dies, is displaced, the console loses power, or the HTN wakes into a plan without the helm. Upstream does not drop pilots on power loss; this system checks power itself. Hold counts as arrived under 0.5 m/s. Events: `WFHelmTakenEvent`, `WFHelmReleasedEvent`, `WFPilotOrdersChangedEvent`, `WFPilotOrdersCompletedEvent`. |
-| Docking | `Systems/WFPilotDutySystem.Docking.cs` | `Dock(target)` / `Undock()`. Phases Plan → Approach (standoff 40 m along the target port's normal, avoidance on) → Settle (brake) → Creep (avoidance off, heading held, 1.5 m/s) → `DockingSystem.Dock` the tick `CanDock` holds. `TryPlanDock(grid, target, standoff, out WFDockPlan)` tries every dock pair from `DockingSystem.GetDockingConfig`, nearest standoff first. Abort on timeout or collision, three attempts, then hold and `WFPilotDockFailedEvent`; `WFPilotDockedEvent` on success. Cvar `wf.crew.dock_ftl_fallback` (default false) uses the docking config plus `FTLDock` instead of giving up. **Hand-flown docking is untested in game: the test decks have no thrusters.** |
+| Docking | `Systems/WFPilotDutySystem.Docking.cs` | `Dock(target)` / `Undock()`. Phases Plan → Approach (standoff 40 m along the target port's normal, avoidance on) → Settle (brake) → Creep (avoidance off, heading held, 1.5 m/s) → `DockingSystem.Dock` the tick `CanDock` holds. `TryPlanDock(grid, target, standoff, out WFDockPlan)` tries every dock pair from `DockingSystem.GetDockingConfig`, nearest standoff first. Abort on timeout or collision, three attempts, then hold and `WFPilotDockFailedEvent`; `WFPilotDockedEvent` on success. Cvar `wf.crew.dock_ftl_fallback` (default false) uses the docking config plus `FTLDock` instead of giving up. A powered-thruster integration test docks without FTL. Manual tuning on production freighter hulls remains a playtest task. |
 | Radio officer | `Systems/WFRadioOperatorSystem.cs`, `Components/WFRadioOperatorComponent.cs` | Event-driven, no HTN. Shortband (`Traffic`, 1500 m, needs `TelecomExempt`, which the role adds): docking/undocking once per grid pair, "jumping" while the drive spools (polled; `FTLStartedEvent` fires already in FTL space), "arriving", "on station", "docking aborted". Broadband (`Common`): one mayday per episode, "boarded", "Captain is down", "Helm is down", all-clear after 120 s quiet. Hostile acts: a crewman of the group hurt by an outsider (`BeforeDamageChangedEvent` on `WFCrewComponent`, because Wolfmed routes body damage through parts and the body's `DamageChangedEvent` has no origin) and a hostile mob aboard (`NpcFactionSystem.GetNearbyHostiles`, polled). Cooldown per line. `Sent` keeps the last 20 transmissions for VV and tests. `SetCallsign`. |
 | Command | `Commands/WFCrewCommand.cs` (`wf_crew`, `AdminFlags.Spawn`) | `plan <grid|here> [deckhands]`, `spawn <grid|here> [group] [deckhands]`, `spawnrole <role> [group]`, `list [group]`, `clear <group>`, `duty <mob> <duty>`, `orders <mob> hold|goto x y ...|loiter x y r|follow <grid|here>|dock <grid|here>|undock`, `callsign <mob> <text>`. |
-| Prototypes | `roles.yml`, `mobs.yml`, `gear.yml`, `markers.yml`, `ai_factions.yml`, `htn.yml` | Roles `WFCrewDeckhand`, `WFCrewMarine` (OnSight), `WFCrewPilot`, `WFCrewRadioOperator`, `WFCrewCaptain` (WhenAttacked; the captain still works Guard). Mobs `WFMobCrewBase` (parent `[BaseMobHuman, MobPrying]`, faction `WFCrew`, `NPCRetaliation`, HTN root), `WFMobCrewDeckhand`, `WFMobCrewMarine`, `WFMobCrewOfficer` (carries `WFPilotDuty`). Faction `WFCrew` is hostile to SimpleHostile, Zombie, Xeno and nobody else. Markers `WFCrewSpawnPoint<Role>`. |
-| Tests | `Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs` | `DeckhandDrawsForHostileAndHolstersAfter`, `PlannerPlansHelmRadioDockAndDeck`, `PilotTakesHelmAndReleasesOnDeath`, `DockPlanPutsStandoffOutsideTheTargetDock`, `DockFallsBackToFtlDockWhenAllowed`, `RadioOperatorReportsDocking`, `RadioOperatorMaydayThenCaptainDownThenSilence`. New regression coverage: pilot retaliation, alert scope/decay for named and empty groups, distant recruitment, departure cleanup and preservation of personal retaliation (13 cases total). Helpers: `CreateDeck(origin, size, gravity)`, `WaitUntil`, `Describe` (dumps awake state, plan, target, hostiles, held item, factions, nearby mobs). Test decks must sit within ~10 m of the origin: the `InteractionTest` player is there and NPCs sleep with no player within 32 tiles. The hostile test mob is `WFTestHostileMob` (faction `SimpleHostile`); test factions can't be declared in `[TestPrototypes]` because the faction system caches its table before they load. |
+| Prototypes | `roles.yml`, `mobs.yml`, `gear.yml`, `markers.yml`, `ai_factions.yml`, `htn.yml` | Roles `WFCrewDeckhand`, `WFCrewMarine` (OnSight), `WFCrewPilot`, `WFCrewRadioOperator`, `WFCrewCaptain` (WhenAttacked; Guard duty with command/radio), `WFCrewGunner`. Mobs `WFMobCrewBase` (parent `[BaseMobHuman, MobPrying]`, faction `WFCrew`, `NPCRetaliation`, HTN root), `WFMobCrewDeckhand`, `WFMobCrewMarine`, `WFMobCrewOfficer` (carries `WFPilotDuty`). Faction `WFCrew` is hostile to SimpleHostile, Zombie, Xeno and nobody else. Markers `WFCrewSpawnPoint<Role>`. |
+| Tests | `Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs` | `DeckhandDrawsForHostileAndHolstersAfter`, `PlannerPlansHelmRadioDockAndDeck`, `PilotTakesHelmAndReleasesOnDeath`, `DockPlanPutsStandoffOutsideTheTargetDock`, `DockFallsBackToFtlDockWhenAllowed`, `RadioOperatorReportsDocking`, `RadioOperatorMaydayThenCaptainDownThenSilence`. New regression coverage: pilot retaliation, alert scope/decay for named and empty groups, distant recruitment, departure cleanup and preservation of personal retaliation (28 cases total, including access, hull alerts, captain orders, reload/fallback, gunnery, setup UI/API and powered docking). Helpers: `CreateDeck(origin, size, gravity)`, `WaitUntil`, `Describe` (dumps awake state, plan, target, hostiles, held item, factions, nearby mobs). Test decks must sit within ~10 m of the origin: the `InteractionTest` player is there and NPCs sleep with no player within 32 tiles. The hostile test mob is `WFTestHostileMob` (faction `SimpleHostile`); test factions can't be declared in `[TestPrototypes]` because the faction system caches its table before they load. |
 
-## Known gaps and bugs, in the order to fix them
+## Implementation and verification history
 
 1. **Retaliation fixed and verified (2026-10-02).** `WFCrewSystem` subscribes to `BeforeDamageChangedEvent` on
    `NPCRetaliationComponent`, limited to crew, and calls upstream `TryRetaliate`. This reuses faction checks,
@@ -113,19 +113,38 @@ as soon as it is valid, so a fight interrupts a duty and the duty resumes afterw
    Initial traversal tests failed with `door=Closed pries=0` because the collision helper reported free space;
    the crew-scoped correction resolves all three failures. No prototype or Client/Shared changes; the linter and
    live-client checks were not rerun. Changes remain local; no PR was opened or updated.
-   Next implementation task: hull-hit hostile acts below.
-4. **Hull hits as a hostile act** for the radio officer and the alert: the only projectile hit event is already
-   subscribed by Mono's `SpaceArtillerySystem`; find another hook (damage on anchored entities of the grid with a
-   `ShipWeaponProjectile` origin, or a broadcast event if one exists).
-5. **Captain** (design.md "NPCs to start with" 4): a radio officer whose component also changes the pilot's orders on
-   alert (`Hold` if `HeaveTo`) and restores them on all-clear.
-6. **Reload**: `WFReloadOperator`, magazines from pockets or belt via `InteractUsing`; empty gun → holster, next weapon,
-   melee. Upstream left this as a TODO in `Resources/Prototypes/NPCs/Combat/gun.yml`.
-7. **Crew Setup admin window** (design.md section 8), built like `Content.Client/_WF/Administration/UI/Ert/` and
-   `VesselSpawn/`; the planner and the orders API are its backend. Then the Gunner duty, then RES integration.
-8. **In-game checks nobody has done**: start a real client and grep its log for `Sandbox violation` (Shared code
-   added: a prototype class, two enums, a cvar file); fly a thrustered ship with `wf_crew spawnrole pilot` then
-   `wf_crew orders <mob> dock <grid>` and tune `DockStandoff`/`DockCreepSpeed` per hull.
+   Remaining features are implemented below.
+4. **Hull hits:** `SpaceArtillerySystem.Crew.cs` extends the existing projectile-hit handler with one marked hook.
+   Positive hits on anchored hull entities from another grid broadcast `WFCrewHullHitEvent`. The radio reports one
+   mayday per episode and the crew alert records the hostile vessel for 60 seconds after the last report. Infantry
+   do not receive a ship as their combat target; pilots still retaliate only for personal attacks.
+5. **Captain:** `WFCaptainSystem` holds same-grid/group pilots on alert when `HeaveTo` is enabled, saves remaining
+   waypoints or the current follow/loiter/dock/undock order, and restores it on all-clear. New orders override the
+   saved course for the episode. Death, takeover and departure cancel restoration. The captain role includes radio.
+6. **Reload:** `WFReloadOperator` and `WFCrewWeaponSystem.Reload.cs` use compatible magazines from equipment slots,
+   ordinary ejection/insertion and bolt cycling. No bags or generated ammunition. No spare means a loaded backup,
+   melee weapon, or bare hands. Current crew loadouts use detachable magazines; loose-round weapons are not reloaded.
+7. **Crew Setup:** Wolfgate tab and crew admin verb, with an admin-checked network API. Existing or newly spawned
+   vessel, planner roster, editable roles/loadouts/posts/engagement, captain, group, callsign, company, NPC faction,
+   channels, orders, 30-second private preview, teleport, spawn, clear and reissue. Clear is grid/group scoped.
+   All posts and mission prototypes are validated before spawning. Reissuing a mission validates it independently
+   of the spawn roster. `TryApplyMission` provides the same operation to encounter callers. Local post coordinates and map destination
+   coordinates are separate. Existing planner uses spaced open tiles rather than room flood-fill.
+8. **Gunner:** `WFCrewGunner`, `WFGunnerDuty`, HTN console acquisition, mapper marker and planner posts are implemented.
+   At an unoccupied powered console, a living gunner drives Mono's `ShipTargetingSystem` against reported hostile
+   vessels; friendly factions and other maps are excluded. Physical absence, console loss, player use, combat,
+   incapacitation or duty changes stop fire. Only one crew gunner drives a grid's weapons per tick.
+9. **Encounter integration:** `WFCrewSetupSystem.TrySpawn(grid, posts, mission, out crew)` and
+   `WFCrewAlertSystem.ReportShipThreat(grid, group, attacker)` are the reusable entry points. The Encounters module
+   has design docs but no implementation in this checkout; its scheduler, zones, payouts and lifecycle are outside
+   NPC crew scope. No speculative RES runtime was added.
+10. **Verification (2026-10-02):** final Debug integration build (Server, Shared and Client) passed with 0 errors
+    and 2493 warnings. All 28 crew integration cases passed (2.0432 minutes). Release YAML linter: `No errors found in 178853 ms.` Module generation, `--check` and
+    `--pr-check origin/main` passed. A fresh headless server reached Ready with no `[ERRO]` or `[FATL]`.
+    A real graphical client enabled sandboxing, checked three assemblies and connected; no sandbox violation.
+    An earlier client launch logged unrelated Discord IPC failure: `Failed connection to discord-ipc-0. Access to the path is denied.`
+    A real-thruster docking integration test now reaches the dock without FTL, and the Crew Setup window is constructed
+    and closed by a client integration test. Manual flight tuning on production freighter hulls remains a playtest task.
 
 ## Traps that each cost a build cycle
 

@@ -4,6 +4,8 @@ using Content.Server.NPC.HTN;
 using Content.Server.NPC.Components;
 using Content.Shared.Damage;
 using Content.Shared.Access.Components;
+using Content.Shared.Clothing.Components;
+using Content.Shared.Roles;
 using Content.Server.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs;
@@ -84,7 +86,8 @@ public sealed class WFCrewSystem : EntitySystem
     }
 
     /// <summary>Spawns one crewman of a role with its post at the coordinates. Null when the role is unknown.</summary>
-    public EntityUid? SpawnCrewman(ProtoId<WFCrewRolePrototype> roleId, EntityCoordinates post, string group)
+    public EntityUid? SpawnCrewman(ProtoId<WFCrewRolePrototype> roleId, EntityCoordinates post, string group,
+        ProtoId<StartingGearPrototype>? loadout = null)
     {
         if (!_prototypes.TryIndex(roleId, out var role))
         {
@@ -92,7 +95,17 @@ public sealed class WFCrewSystem : EntitySystem
             return null;
         }
 
-        var uid = Spawn(role.Mob, post);
+        if (loadout is { } gear && !_prototypes.HasIndex(gear))
+            return null;
+        EntityUid uid;
+        if (loadout is { } selected)
+        {
+            uid = EntityManager.CreateEntityUninitialized(role.Mob, post);
+            EnsureComp<LoadoutComponent>(uid).StartingGear = new List<ProtoId<StartingGearPrototype>> { selected };
+            EntityManager.InitializeAndStartEntity(uid);
+        }
+        else
+            uid = Spawn(role.Mob, post);
         EntityManager.AddComponents(uid, role.Components);
         var crew = EnsureComp<WFCrewComponent>(uid);
         crew.Role = roleId;
