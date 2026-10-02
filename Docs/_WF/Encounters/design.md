@@ -292,7 +292,7 @@ edit for doors are the `NpcCrew` module (`Docs/_WF/NpcCrew/design.md`), which st
 roster, the posts, the hostile list and the owner faction; the crew behaviour below is what it gets from `NpcCrew`.
 
 Roster per bracket, spawned at marked spawn points in the grid (`WFEncounterSpawnPointComponent` with a `role`), as
-Frontier-style hostile humanoids with the gun built in:
+`NpcCrew` crew with real loadouts, holstered until there is a fight; the loadout is part of the loot:
 
 | Role | Base | Behaviour |
 |---|---|---|
@@ -376,8 +376,9 @@ All text is Fluent in `Resources/Locale/en-US/_WF/Encounters/`. `EncounterCommsS
   (`SharedShuttleSystem.GetIFFLabel`) in the text. Shortband has a 1500 m range and needs a telecom server in range or
   `TelecomExemptComponent` on the radio source; the live grid gets the exempt component. The radio system drops an
   identical message already in flight, so the text carries the designation and intruder name and varies by template.
-- **Hostile declared**: the faction channel, with sector coordinates rounded to 100 m. Repeats every `sitrepInterval`
-  (120 s) while `Engaged` and the captain lives: freight remaining, hostiles present, hull state in three words.
+- **Hostile declared**: one mayday on the faction channel with sector coordinates rounded to 100 m, then one line per
+  key event while the captain lives (boarded, pilot down, hostiles gone). No periodic sitreps; the radio reports things
+  that happen, not time passing.
 - **Delivered / destroyed / captain dead**: one line each on the faction channel; delivered also announces the payout.
 - The captain speaks through `TrySendInGameICMessage` as well for local flavour on the bridge, but every line that
   matters goes out by `SendRadioMessage` from the captain entity, so his death ending the updates is literal.
