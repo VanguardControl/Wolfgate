@@ -21,6 +21,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public WFCrewEngagement Engagement = WFCrewEngagement.OnSight;
 
+    /// <summary>Whether on-sight crew share targets with their group aboard this ship.</summary>
+    [DataField]
+    public bool ShareAlerts = true;
+
     /// <summary>Everyone aboard with the same group is one crew.</summary>
     [DataField]
     public string Group = string.Empty;
