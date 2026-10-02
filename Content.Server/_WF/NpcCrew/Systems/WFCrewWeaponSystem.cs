@@ -11,7 +11,7 @@ namespace Content.Server._WF.NpcCrew.Systems;
 /// Draws a crewman's best weapon from its equipment slots into its active hand and holsters it again. Weapons live
 /// in slots, never in bags, so a draw is one container move.
 /// </summary>
-public sealed class WFCrewWeaponSystem : EntitySystem
+public sealed partial class WFCrewWeaponSystem : EntitySystem
 {
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -111,7 +111,7 @@ public sealed class WFCrewWeaponSystem : EntitySystem
     private int Score(EntityUid item, string slot)
     {
         if (HasComp<GunComponent>(item))
-            return slot == "back" ? 3 : 2;
+            return AmmoCount(item) > 0 || FindMagazineForOwner(item) ? (slot == "back" ? 3 : 2) : 0;
 
         return HasComp<MeleeWeaponComponent>(item) ? 1 : 0;
     }

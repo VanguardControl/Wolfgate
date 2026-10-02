@@ -17,6 +17,7 @@ public static class WFCrewDuties
 {
     public const string Guard = "Guard";
     public const string Pilot = "Pilot";
+    public const string Gunnery = "Gunnery";
 }
 
 /// <summary>The role prototypes the planner hands out.</summary>
@@ -27,4 +28,5 @@ public static class WFCrewRoles
     public static readonly ProtoId<WFCrewRolePrototype> Pilot = "WFCrewPilot";
     public static readonly ProtoId<WFCrewRolePrototype> RadioOperator = "WFCrewRadioOperator";
     public static readonly ProtoId<WFCrewRolePrototype> Captain = "WFCrewCaptain";
+    public static readonly ProtoId<WFCrewRolePrototype> Gunner = "WFCrewGunner";
 }

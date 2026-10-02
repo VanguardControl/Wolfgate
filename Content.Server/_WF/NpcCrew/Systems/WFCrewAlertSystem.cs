@@ -29,6 +29,49 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Whether a crew aboard a particular grid has an active shared alert.</summary>
     public bool IsAlerted(EntityUid grid, string group) => _alerts.ContainsKey((grid, group));
 
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
+    }
+
+    /// <summary>Returns explicitly hostile vessels reported by incoming fire.</summary>
+    public EntityUid[] GetHostileShips(EntityUid grid, string group)
+    {
+        return _alerts.TryGetValue((grid, group), out var alert)
+            ? alert.Vessels.Where(ship => !TerminatingOrDeleted(ship)).ToArray()
+            : Array.Empty<EntityUid>();
+    }
+
+    private void OnHullHit(ref WFCrewHullHitEvent args)
+    {
+        var groups = new HashSet<string>();
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var crew, out var transform))
+        {
+            if (transform.GridUid == args.Grid && _mobState.IsAlive(uid) && !HasComp<ActorComponent>(uid))
+                groups.Add(crew.Group);
+        }
+        foreach (var group in groups)
+            ReportShipThreat(args.Grid, group, args.AttackerGrid);
+    }
+
+    /// <summary>Lets encounter zones or hull impacts report an explicit vessel threat to one crew.</summary>
+    public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker)
+    {
+        if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
+            || Transform(grid).MapID != Transform(attacker).MapID)
+            return;
+        var key = (grid, group);
+        if (!_alerts.TryGetValue(key, out var alert))
+            _alerts[key] = alert = new Alert();
+        alert.LastTarget = _timing.CurTime;
+        alert.ExternalUntil = _timing.CurTime + Decay;
+        alert.Vessels.Add(attacker);
+        var ev = new WFCrewAlertEvent(grid, group, new[] { attacker });
+        RaiseLocalEvent(grid, ref ev, true);
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -54,7 +97,11 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         {
             if (!groups.TryGetValue(key, out var members))
             {
-                Clear(key, alert);
+                foreach (var (uid, memory) in alert.Members)
+                    Restore(uid, memory);
+                alert.Members.Clear();
+                if (_timing.CurTime >= alert.ExternalUntil)
+                    Clear(key, alert);
                 continue;
             }
 
@@ -214,6 +261,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     private sealed class Alert
     {
         public TimeSpan LastTarget;
+        public TimeSpan ExternalUntil;
+        public readonly HashSet<EntityUid> Vessels = new();
         public readonly HashSet<EntityUid> Hostiles = new();
         public readonly Dictionary<EntityUid, Awareness> Members = new();
     }

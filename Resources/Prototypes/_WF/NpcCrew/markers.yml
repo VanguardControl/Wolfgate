@@ -75,3 +75,14 @@
     layers:
     - state: green
     - state: captain
+
+- type: entity
+  parent: WFCrewSpawnPointBase
+  id: WFCrewSpawnPointGunner
+  components:
+  - type: WFCrewSpawnPoint
+    role: WFCrewGunner
+  - type: Sprite
+    layers:
+    - state: green
+    - state: ertsecurity

@@ -3,6 +3,7 @@ using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared._Mono.FireControl;
 using Content.Shared.Maps;
 using Content.Shared.Physics;
 using Robust.Shared.Map;
@@ -24,6 +25,7 @@ public enum WFCrewPostKind : byte
     Radio,
     Dock,
     Deck,
+    Gunnery,
 }
 
 /// <summary>
@@ -81,6 +83,16 @@ public sealed class WFCrewPlannerSystem : EntitySystem
             if (TryNeighbour(tile, free, taken, out var radio))
                 Add(radio, WFCrewRoles.RadioOperator, WFCrewPostKind.Radio);
             break;
+        }
+
+        var gunnery = EntityQueryEnumerator<FireControlConsoleComponent, TransformComponent>();
+        while (gunnery.MoveNext(out _, out _, out var gunneryTransform))
+        {
+            if (gunneryTransform.GridUid != grid || !gunneryTransform.Anchored)
+                continue;
+            var tile = _map.TileIndicesFor(grid, gridComp, gunneryTransform.Coordinates);
+            if (TryNeighbour(tile, free, taken, out var post))
+                Add(post, WFCrewRoles.Gunner, WFCrewPostKind.Gunnery);
         }
 
         // The first free tile inside each airlock.

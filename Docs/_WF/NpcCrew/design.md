@@ -133,6 +133,11 @@ Trade-off accepted: Frontier's built-in infinite gun never runs dry and needs no
 that fights too long ends up in melee, and that a boarding party is paid in rifles and magazines. Brackets and
 rosters should be written knowing that the loadout is the loot table.
 
+As built: `WFReloadOperator` follows drawing in the fight branch. It reloads detachable magazines through the
+ordinary slot and interaction APIs, cycles the bolt, and selects the gun again. Compatible spare magazines are
+taken from equipment slots; an empty gun without usable ammunition is holstered in favor of a loaded backup,
+melee weapon or bare hands. Loose rounds and bag management remain outside the current crew loadouts.
+
 ### 3. Pilot duty (First Officer Jeff)
 
 `WFPilotDutyComponent`: `Console` (optional assigned helm, else the nearest powered `ShuttleConsoleComponent` on the
@@ -268,8 +273,9 @@ with these departures:
   comes once the ship is in FTL space, where Shortband reaches nobody.
 - Hostile acts are a crewman hurt by someone outside the crew, caught on `BeforeDamageChangedEvent` because Wolfmed
   routes a body's damage through its parts and the body's `DamageChangedEvent` then has no origin, and a hostile mob
-  aboard (`GetNearbyHostiles` over the grid, once a second). Hull hits are not reported: the only hit event is
-  `ProjectileHitEvent` on the projectile, whose `ShipWeaponProjectile` subscription is `SpaceArtillerySystem`'s.
+  aboard (`GetNearbyHostiles` over the grid, once a second). A partial `SpaceArtillerySystem` now reports damaging
+  ship-weapon hits on anchored hull entities through its existing subscription and one marked call. External
+  vessel threats and shared alerts also reach the radio; repeated activity extends the current episode.
 - Crew with an empty group count as one crew per grid, so marker-placed crew of different ships don't share a radio.
 
 ### 5. Crew alert (optional, shared awareness)
@@ -285,7 +291,8 @@ As built (`WFCrewAlertSystem`): alerts are scoped to `(grid, group)`, including 
 non-player, enabled `OnSight` crew with `ShareAlerts` enabled report and receive targets. Reports must be living
 mobs on the same grid. The system polls once a second and emits `WFCrewAlertEvent` for newly reported targets,
 then one `WFCrewAlertClearedEvent` after 60 seconds without a valid target (or when the group has no eligible crew).
-Both events carry the grid and group for future captain behavior.
+Both events carry the grid and group for captain behavior. External ship threats share the alert lifetime but are
+kept separate from infantry targets. `ReportShipThreat` is the encounter-facing entry point.
 
 Both normal and aggro vision extend to at least the ship's bounding-box diagonal: the upstream target search uses
 normal vision until a target is acquired. Existing combat selection, line-of-sight and pathfinding still apply;
@@ -362,6 +369,13 @@ exactly as a map marker would, so a ship set up by hand and a ship set up by the
 
 `wf_crew plan <grid>` prints the same plan as text, which is how the planner is tested before any window exists.
 
+As built: `WFCrewSetupWindow` is available in the Wolfgate admin tab and on a crew NPC's admin verb. The server
+checks Spawn permission on every request; teleport additionally requires Admin. It validates the complete roster
+before spawning, supports custom starting gear before map initialization, and clears only the chosen grid/group.
+Preview is a private client overlay lasting 30 seconds. Destinations are map coordinates; posts are local grid
+coordinates. The planner retains its existing spaced-open-tile heuristic instead of a room flood-fill.
+`WFCrewSetupSystem.TrySpawn` is shared with future encounter callers. RES has no runtime in this checkout.
+
 ## NPCs to start with
 
 In build order; each one proves a compartment.
@@ -377,9 +391,15 @@ In build order; each one proves a compartment.
    `HeaveTo` flag is set, otherwise leave the pilot flying; on alert cleared, restore the previous orders. One
    component (`WFCaptainComponent`) with those two reactions; everything else is Jack's code. Gives a ship one entity
    whose death matters, and the "Captain is down!" line something to mean.
-5. **Gunner** (`WFCrewGunner`, duty `Gunnery`), later. Takes a gunnery console the way Jeff takes the helm and fires
+5. **Gunner** (`WFCrewGunner`, duty `Gunnery`). Takes a gunnery console the way Jeff takes the helm and fires
    the ship's `FireControllable` guns at the crew's hostiles through the same `FireControlSystem.AttemptFire` path
-   Mono's ship AI uses; no gunner at the console, no ship guns. Waits on a faction-aware target source.
+   Mono's ship AI uses; no gunner at the console, no ship guns. Implemented with explicit vessel threats from hull
+   impacts or encounter reports; friendly factions are excluded. The console must stay powered, unoccupied by a
+   player, and within interaction range. Only one gunner drives the grid each tick.
+
+As built: the captain saves the remaining route on alert and restores it on all-clear. New orders issued during
+the episode take precedence; captain or pilot death, player takeover, or leaving the grid/group cancels restoration.
+The captain role carries the same radio component as the radio officer.
 
 Not now: engineers (repair is a deep rabbit hole), medics (upstream medibot logic exists but patient selection is a
 project), anyone who needs to manage a bag.

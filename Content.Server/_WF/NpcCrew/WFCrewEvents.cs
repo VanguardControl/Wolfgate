@@ -48,3 +48,7 @@ public readonly record struct WFCrewAlertEvent(EntityUid Grid, string Group, Ent
 /// <summary>Broadcast once when a ship's shared crew alert ends.</summary>
 [ByRefEvent]
 public readonly record struct WFCrewAlertClearedEvent(EntityUid Grid, string Group);
+
+/// <summary>Broadcast when a ship weapon from another grid damages an anchored hull entity.</summary>
+[ByRefEvent]
+public readonly record struct WFCrewHullHitEvent(EntityUid Grid, EntityUid AttackerGrid);
