@@ -237,7 +237,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
     }
 
     /// <summary>The optional deckhand count at an argument index, default 2.</summary>
-    private static bool TryCount(IConsoleShell shell, string[] args, int index, out int count)
+    private bool TryCount(IConsoleShell shell, string[] args, int index, out int count)
     {
         count = 2;
         if (args.Length <= index)
