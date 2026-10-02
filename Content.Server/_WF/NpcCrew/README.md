@@ -4,16 +4,21 @@ Human-style NPC crew for ships: each NPC works a job at a post and drops it to f
 carry real loadouts and keep the weapon holstered until there is a fight; a dead crewman's kit is the loot. Mappers
 place crew with `WFCrewSpawnPoint*` markers; admins use `wf_crew` to plan a grid (`plan here`), spawn the plan
 (`spawn here`), spawn one role where they stand (`spawnrole deckhand`), list, clear a group, change a duty or give a
-pilot orders (`orders <mob> hold | goto <x> <y> ... | loiter <x> <y> <radius> | follow <grid|here>`).
+pilot orders (`orders <mob> hold | goto <x> <y> ... | loiter <x> <y> <radius> | follow <grid|here> | dock <grid|here> |
+undock`).
 
 Built so far: the crew core (`WFCrewSystem`, `WFCrewComponent`, the `WFCrewCompound` HTN root with fight, duty and
 idle branches), weapons (`WFCrewWeaponSystem` with the draw and holster operators), the planner (`WFCrewPlannerSystem`:
 markers win, else a pilot and radio officer beside the helm, a deckhand inside each airlock and the rest on open
 deck), role prototypes (`wfCrewRole`) for deckhand, marine, pilot, radio operator and captain, the pilot duty and the
 command. The pilot (`WFPilotDutySystem`, `WFPilotDutyComponent` on every officer) walks to the nearest powered helm,
-takes it and flies its orders (Hold, GoTo waypoints, Loiter, Follow) with Mono's ship steering; the orders advance in
-the system, so the ship keeps flying while the pilot's HTN sleeps, and the helm is let go when he dies, is taken over,
-loses the console or leaves for a fight. The radio and captain roles stand guard until their duties land.
+takes it and flies its orders (Hold, GoTo waypoints, Loiter, Follow, Dock, Undock) with Mono's ship steering; the
+orders advance in the system, so the ship keeps flying while the pilot's HTN sleeps, and the helm is let go when he
+dies, is taken over, loses the console or leaves for a fight. Dock is flown by hand (`WFPilotDutySystem.Docking.cs`):
+plan a free dock pair with a clear approach lane, fly to a standoff 40 m out from the target dock, settle, creep in and
+connect the moment the docks line up, retrying up to three times and then holding (`WFPilotDockedEvent`,
+`WFPilotDockFailedEvent`); `wf.crew.dock_ftl_fallback` docks by FTL instead of giving up. Undock releases every port
+and backs off. The radio and captain roles stand guard until their duties land.
 `design.md` under `Docs/_WF/NpcCrew/` is the full brief: pilot duty and orders, docking by hand, the event-driven
 radio officer, crew alerting, the access-door edit and the Crew Setup admin window.
 
@@ -38,6 +43,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.cs`](Systems/WFPilotDutySystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.Docking.cs`](Systems/WFPilotDutySystem.Docking.cs)
 - [`Content.Server/_WF/NpcCrew/WFCrewEvents.cs`](WFCrewEvents.cs)
 
 ### Shared

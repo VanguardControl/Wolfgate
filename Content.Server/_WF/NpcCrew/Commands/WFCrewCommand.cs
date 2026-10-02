@@ -26,7 +26,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
 
     private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty", "orders" };
 
-    private static readonly string[] OrderNames = { "hold", "goto", "loiter", "follow" };
+    private static readonly string[] OrderNames = { "hold", "goto", "loiter", "follow", "dock", "undock" };
 
     public override string Command => "wf_crew";
 
@@ -79,6 +79,8 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             2 when args[0] is "plan" or "spawn" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-grid")),
             2 when args[0] is "duty" or "orders" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-mob")),
             3 when args[0] == "orders" => CompletionResult.FromHintOptions(OrderNames, Loc.GetString("cmd-wf_crew-hint-order")),
+            4 when args[0] == "orders" && args[2] is "follow" or "dock" =>
+                CompletionResult.FromHintOptions(new[] { "here" }, Loc.GetString("cmd-wf_crew-hint-grid")),
             _ => CompletionResult.Empty,
         };
     }
@@ -220,7 +222,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
 
     /// <summary>
     /// wf_crew orders &lt;mob&gt; hold | goto &lt;x&gt; &lt;y&gt; [&lt;x&gt; &lt;y&gt; ...] | loiter &lt;x&gt; &lt;y&gt; &lt;radius&gt; |
-    /// follow &lt;grid|here&gt;. Coordinates are map coordinates on the pilot's map.
+    /// follow &lt;grid|here&gt; | dock &lt;grid|here&gt; | undock. Coordinates are map coordinates on the pilot's map.
     /// </summary>
     private void Orders(IConsoleShell shell, string[] args)
     {
@@ -278,6 +280,21 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
                     return;
 
                 _pilot.Follow((uid, duty), grid, duty.FollowRange);
+                break;
+            case "dock" when args.Length == 4:
+                if (!TryGrid(shell, args[3], out var target))
+                    return;
+
+                if (target == EntityManager.GetComponent<TransformComponent>(uid).GridUid)
+                {
+                    shell.WriteError(Loc.GetString("cmd-wf_crew-dock-own-grid", ("name", name)));
+                    return;
+                }
+
+                _pilot.Dock((uid, duty), target);
+                break;
+            case "undock" when args.Length == 3:
+                _pilot.Undock((uid, duty));
                 break;
             default:
                 shell.WriteLine(Help);

@@ -12,6 +12,7 @@ using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
+using Content.Shared._WF.CCVar;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
@@ -31,8 +32,9 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 /// <summary>
 /// NPC crew: a deckhand draws its holstered sidearm for a hostile and holsters it once the hostile is gone, the
-/// planner puts a pilot at the helm, a radio officer beside it, a deckhand inside the airlock and the rest on deck, and
-/// a pilot takes the helm, steers for his orders and lets go when he dies.
+/// planner puts a pilot at the helm, a radio officer beside it, a deckhand inside the airlock and the rest on deck, a
+/// pilot takes the helm, steers for his orders and lets go when he dies, and a pilot's docking plan mates the docks
+/// and falls back to an FTL dock when the server allows it.
 /// </summary>
 [TestOf(typeof(WFCrewSystem))]
 public sealed class WFCrewTest : InteractionTest
@@ -41,6 +43,7 @@ public sealed class WFCrewTest : InteractionTest
     private const string TestHelm = "WFTestHelm";
     private const string Helm = "ComputerShuttle";
     private const string Dock = "AirlockShuttle";
+    private const string TestDock = "WFTestDock";
 
     // A monster-faction human: the stock crew faction is hostile to SimpleHostile, so the deckhand fights it. Test
     // prototypes load after the faction system cached its table, so the factions themselves have to be real ones.
@@ -58,6 +61,13 @@ public sealed class WFCrewTest : InteractionTest
 - type: entity
   parent: ComputerShuttle
   id: WFTestHelm
+  components:
+  - type: ApcPowerReceiver
+    needsPower: false
+
+- type: entity
+  parent: AirlockShuttle
+  id: WFTestDock
   components:
   - type: ApcPowerReceiver
     needsPower: false
@@ -208,6 +218,115 @@ public sealed class WFCrewTest : InteractionTest
                                && !SEntMan.HasComponent<PilotComponent>(pilot)
                                && !SEntMan.GetComponent<WFPilotDutyComponent>(pilot).AtHelm,
             300, () => $"A dead pilot should let go of the helm and stop steering. {DescribePilot(pilot, helm)}");
+    }
+
+    /// <summary>
+    /// The plan picks the facing pair, puts our grid where its dock meets the target's, and starts the approach
+    /// <c>DockStandoff</c> out along the target dock's normal. Only the maths: nothing moves.
+    /// </summary>
+    [Test]
+    public async Task DockPlanPutsStandoffOutsideTheTargetDock()
+    {
+        var pilotSystem = Server.System<WFPilotDutySystem>();
+        var xforms = Server.System<SharedTransformSystem>();
+        var (deck, target, ownDock, targetDock) = await CreateDockingPair(gravity: false);
+        var standoff = new WFPilotDutyComponent().DockStandoff;
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(pilotSystem.TryPlanDock(deck, target, standoff, out var plan), "A facing pair should give a plan.");
+            Assert.That(plan.OwnDock, Is.EqualTo(ownDock), "Our dock is the one facing the target.");
+            Assert.That(plan.TargetDock, Is.EqualTo(targetDock), "The target dock is the one facing us.");
+            Assert.That(plan.Final.EntityId, Is.EqualTo(target), "The final pose is on the target grid.");
+            Assert.That(plan.Standoff.EntityId, Is.EqualTo(target), "The standoff is on the target grid.");
+
+            // Where our dock would be with the grid at the final pose.
+            var finalPosition = xforms.ToMapCoordinates(plan.Final).Position;
+            var finalRotation = xforms.GetWorldRotation(target) + plan.FinalAngle;
+            var ownDockLocal = SEntMan.GetComponent<TransformComponent>(ownDock).LocalPosition;
+            var ownDockAtFinal = finalPosition + finalRotation.RotateVec(ownDockLocal);
+            var targetDockPosition = xforms.GetWorldPosition(targetDock);
+            Assert.That((ownDockAtFinal - targetDockPosition).Length(), Is.LessThanOrEqualTo(1.2f),
+                "At the final pose the docks are within docking range.");
+
+            var normal = xforms.GetWorldRotation(targetDock).RotateVec(new Vector2(0f, -1f));
+            var standoffOffset = xforms.ToMapCoordinates(plan.Standoff).Position - finalPosition;
+            Assert.That((standoffOffset - normal * standoff).Length(), Is.LessThan(0.01f),
+                $"The standoff is {standoff} m out from the final pose along the target dock's normal, got {standoffOffset}.");
+            Assert.That(normal.Y, Is.EqualTo(1f).Within(0.01f), "The target dock faces up, toward our deck.");
+        });
+    }
+
+    /// <summary>
+    /// With no attempts allowed and the fallback on, a pilot at the helm docks by FTL and holds. The test decks have no
+    /// thrusters, so flying the docking by hand can't be tested here.
+    /// </summary>
+    [Test]
+    public async Task DockFallsBackToFtlDockWhenAllowed()
+    {
+        var crewSystem = Server.System<WFCrewSystem>();
+        var pilotSystem = Server.System<WFPilotDutySystem>();
+        var (deck, target, ownDock, targetDock) = await CreateDockingPair(gravity: true);
+
+        EntityUid helm = default;
+        EntityUid pilot = default;
+        await Server.WaitPost(() =>
+        {
+            Server.CfgMan.SetCVar(NpcCrewCVars.DockFtlFallback, true);
+            SEntMan.EnsureComponent<ShuttleComponent>(deck);
+            helm = SEntMan.SpawnAtPosition(TestHelm, new EntityCoordinates(deck, new Vector2(3.5f, 3.5f)));
+            pilot = crewSystem.SpawnCrewman(WFCrewRoles.Pilot, new EntityCoordinates(deck, new Vector2(2.5f, 3.5f)), "test")!.Value;
+            SEntMan.GetComponent<WFPilotDutyComponent>(pilot).DockMaxAttempts = 0;
+            pilotSystem.Dock(pilot, target);
+        });
+
+        try
+        {
+            await WaitUntil(() => SEntMan.GetComponent<DockingComponent>(ownDock).DockedWith == targetDock
+                                   && SEntMan.GetComponent<DockingComponent>(targetDock).DockedWith == ownDock
+                                   && SEntMan.GetComponent<WFPilotDutyComponent>(pilot).Orders == WFPilotOrder.Hold,
+                600, () => $"The pilot should dock by FTL and hold. {DescribePilot(pilot, helm)}");
+
+            await Server.WaitAssertion(() =>
+            {
+                var duty = SEntMan.GetComponent<WFPilotDutyComponent>(pilot);
+                Assert.That(duty.OrdersCompleted, "Docking completes the orders.");
+                Assert.That(duty.AtHelm, "The pilot stays at the helm.");
+            });
+        }
+        finally
+        {
+            await Server.WaitPost(() => Server.CfgMan.SetCVar(NpcCrewCVars.DockFtlFallback, false));
+        }
+    }
+
+    /// <summary>
+    /// Two 7x7 decks with a dock each, facing each other: the target near the test player with its dock on the top
+    /// edge, ours above it with its dock on the bottom edge. Far enough apart that our grid's final pose doesn't overlap
+    /// where it is now, which upstream's docking config rejects.
+    /// </summary>
+    private async Task<(EntityUid Deck, EntityUid Target, EntityUid OwnDock, EntityUid TargetDock)> CreateDockingPair(bool gravity)
+    {
+        var target = await CreateDeck(new Vector2(6f, 0f), 7, gravity: false);
+        var deck = await CreateDeck(new Vector2(6f, 16f), 7, gravity);
+        EntityUid ownDock = default;
+        EntityUid targetDock = default;
+        await Server.WaitPost(() =>
+        {
+            // A dock faces its local -Y; the target's is turned to face up.
+            ownDock = SEntMan.SpawnAtPosition(TestDock, new EntityCoordinates(deck, new Vector2(3.5f, 0.5f)));
+            targetDock = SEntMan.SpawnAtPosition(TestDock, new EntityCoordinates(target, new Vector2(3.5f, 6.5f)));
+            Server.System<SharedTransformSystem>().SetLocalRotation(targetDock, Angle.FromDegrees(180));
+        });
+        await RunTicks(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.GetComponent<TransformComponent>(ownDock).Anchored, "Our dock is anchored.");
+            Assert.That(SEntMan.GetComponent<TransformComponent>(targetDock).Anchored, "The target dock is anchored.");
+        });
+
+        return (deck, target, ownDock, targetDock);
     }
 
     /// <summary>A square of plating on the test map, optionally with gravity.</summary>

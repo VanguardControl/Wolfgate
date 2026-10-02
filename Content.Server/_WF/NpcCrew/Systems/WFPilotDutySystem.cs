@@ -4,6 +4,7 @@ using Content.Server._Mono.NPC.HTN;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.HTN;
 using Content.Server.NPC.HTN;
+using Content.Server.Physics.Controllers;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
@@ -11,15 +12,17 @@ using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Events;
 using Robust.Shared.Player;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
 /// <summary>
 /// Puts a crew pilot at the helm and flies its orders with Mono's ship steering. The HTN only walks the pilot to the
-/// helm and holds it; orders advance here, so a ship keeps flying while its pilot's HTN sleeps.
+/// helm and holds it; orders advance here, so a ship keeps flying while its pilot's HTN sleeps. Docking by hand is in
+/// <c>WFPilotDutySystem.Docking.cs</c>.
 /// </summary>
-public sealed class WFPilotDutySystem : EntitySystem
+public sealed partial class WFPilotDutySystem : EntitySystem
 {
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private PowerReceiverSystem _power = default!;
@@ -40,6 +43,13 @@ public sealed class WFPilotDutySystem : EntitySystem
     private const float HoldSpeed = 0.5f;
 
     private readonly List<EntityUid> _toRelease = new();
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<WFPilotDutyComponent, PilotedShuttleRelayedEvent<StartCollideEvent>>(OnShuttleCollide);
+    }
 
     public override void Update(float frameTime)
     {
@@ -67,7 +77,7 @@ public sealed class WFPilotDutySystem : EntitySystem
                 continue;
             }
 
-            Advance((uid, duty), steerer);
+            Advance((uid, duty), steerer, frameTime);
         }
 
         foreach (var uid in _toRelease)
@@ -124,10 +134,33 @@ public sealed class WFPilotDutySystem : EntitySystem
         SetOrders((ent, ent.Comp), WFPilotOrder.Follow);
     }
 
+    /// <summary>Fly to another grid, dock with it by hand, then hold.</summary>
+    public void Dock(Entity<WFPilotDutyComponent?> ent, EntityUid targetGrid)
+    {
+        if (!Resolve(ent, ref ent.Comp))
+            return;
+
+        ent.Comp.DockTarget = targetGrid;
+        SetOrders((ent, ent.Comp), WFPilotOrder.Dock);
+    }
+
+    /// <summary>Undock from everything, back off away from it, then hold. Done once the pilot is at the helm.</summary>
+    public void Undock(Entity<WFPilotDutyComponent?> ent)
+    {
+        if (!Resolve(ent, ref ent.Comp))
+            return;
+
+        // The back-off point is filled in when the docks are released.
+        ent.Comp.Waypoints = new List<EntityCoordinates>();
+        ent.Comp.WaypointIndex = 0;
+        SetOrders((ent, ent.Comp), WFPilotOrder.Undock);
+    }
+
     private void SetOrders(Entity<WFPilotDutyComponent> ent, WFPilotOrder orders)
     {
         ent.Comp.Orders = orders;
         ent.Comp.OrdersCompleted = false;
+        ResetDock(ent.Comp);
 
         var ev = new WFPilotOrdersChangedEvent(ent, orders);
         RaiseLocalEvent(ent, ref ev, true);
@@ -278,13 +311,22 @@ public sealed class WFPilotDutySystem : EntitySystem
                && _power.IsPowered(console);
     }
 
-    /// <summary>GoTo: on to the next waypoint once in range, and hold after the last. Follow: hold once the grid is gone.</summary>
-    private void Advance(Entity<WFPilotDutyComponent> ent, ShipSteererComponent steerer)
+    /// <summary>
+    /// GoTo: on to the next waypoint once in range, and hold after the last. Follow: hold once the grid is gone.
+    /// Undock: release the docks, then back off like a GoTo. Dock: fly the docking phases.
+    /// </summary>
+    private void Advance(Entity<WFPilotDutyComponent> ent, ShipSteererComponent steerer, float frameTime)
     {
         var duty = ent.Comp;
         switch (duty.Orders)
         {
-            case WFPilotOrder.GoTo when steerer.Status == ShipSteeringStatus.InRange:
+            case WFPilotOrder.Dock:
+                AdvanceDock(ent, steerer, frameTime);
+                break;
+            case WFPilotOrder.Undock when duty.Waypoints.Count == 0:
+                ReleaseDocks(ent);
+                break;
+            case WFPilotOrder.GoTo or WFPilotOrder.Undock when steerer.Status == ShipSteeringStatus.InRange:
                 duty.WaypointIndex++;
                 if (duty.WaypointIndex < duty.Waypoints.Count)
                 {
@@ -292,15 +334,21 @@ public sealed class WFPilotDutySystem : EntitySystem
                     return;
                 }
 
-                SetOrders(ent, WFPilotOrder.Hold);
-                duty.OrdersCompleted = true;
-                var ev = new WFPilotOrdersCompletedEvent(ent);
-                RaiseLocalEvent(ent, ref ev, true);
+                CompleteOrders(ent);
                 break;
             case WFPilotOrder.Follow when duty.FollowTarget is not { } target || TerminatingOrDeleted(target):
                 SetOrders(ent, WFPilotOrder.Hold);
                 break;
         }
+    }
+
+    /// <summary>Switches to Hold and reports the orders flown to their end.</summary>
+    private void CompleteOrders(Entity<WFPilotDutyComponent> ent)
+    {
+        SetOrders(ent, WFPilotOrder.Hold);
+        ent.Comp.OrdersCompleted = true;
+        var ev = new WFPilotOrdersCompletedEvent(ent);
+        RaiseLocalEvent(ent, ref ev, true);
     }
 
     /// <summary>Points the steering at the current orders. Null when the crewman's grid can't be steered.</summary>
@@ -316,6 +364,11 @@ public sealed class WFPilotDutySystem : EntitySystem
         var mode = ShipSteeringMode.GoToRange;
         var range = HoldRange;
         var speed = HoldSpeed;
+        var avoid = true;
+        var finishOnCollide = true;
+        var faceTarget = false;
+        Angle? heading = null;
+        float? maxTurnRate = null;
 
         switch (duty.Orders)
         {
@@ -336,6 +389,31 @@ public sealed class WFPilotDutySystem : EntitySystem
                 range = duty.FollowRange;
                 speed = duty.CruiseSpeed;
                 break;
+            case WFPilotOrder.Undock when duty.Waypoints.Count > 0:
+                target = duty.Waypoints[0];
+                speed = duty.DockApproachSpeed;
+                break;
+            case WFPilotOrder.Dock when duty.DockPlan is { } plan
+                                        && duty.DockTarget is { } dockTarget
+                                        && !TerminatingOrDeleted(dockTarget):
+                heading = DockHeading(plan, dockTarget);
+                if (duty.DockPhase == WFDockPhase.Creep)
+                {
+                    // On the target grid, so the final pose moves with it; avoidance would refuse to touch it.
+                    target = plan.Final;
+                    range = CreepRange;
+                    speed = duty.DockCreepSpeed;
+                    avoid = false;
+                    finishOnCollide = false;
+                    faceTarget = true;
+                    break;
+                }
+
+                target = StandoffOnMap(plan, map);
+                range = StandoffRange;
+                speed = duty.DockPhase == WFDockPhase.Settle ? SettleSpeed : duty.DockApproachSpeed;
+                maxTurnRate = duty.DockPhase == WFDockPhase.Settle ? SettleTurnRate : null;
+                break;
         }
 
         if (_steering.Steer(ent.Owner, target) is not { } steerer)
@@ -344,7 +422,12 @@ public sealed class WFPilotDutySystem : EntitySystem
         steerer.Mode = mode;
         steerer.Range = range;
         steerer.InRangeMaxSpeed = speed;
-        steerer.AvoidCollisions = true;
+        steerer.AvoidCollisions = avoid;
+        steerer.FinishOnCollide = finishOnCollide;
+        steerer.InRangeRotation = heading;
+        steerer.MaxRotateRate = maxTurnRate;
+        steerer.AlwaysFaceTarget = faceTarget;
+        steerer.TargetRotation = faceTarget && heading is { } held ? CreepHeadingOffset(steerer, held, grid) : 0f;
         // Status is only refreshed when the ship next asks for input; don't let the last target's arrival count.
         steerer.Status = ShipSteeringStatus.Moving;
         return steerer;
