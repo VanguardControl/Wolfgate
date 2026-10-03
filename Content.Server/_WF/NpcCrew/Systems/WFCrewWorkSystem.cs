@@ -86,7 +86,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         var home = Comp<WFCrewComponent>(mob).Post ?? Transform(mob).Coordinates;
         if (kind == WFCrewObjectiveKind.Repair)
         {
-            if (HasComp<ShipRepairToolComponent>(mob) && MissingStructure(grid).FirstOrDefault() is { } missing)
+            if (MissingStructure(grid, mob).FirstOrDefault() is { } missing)
             {
                 _jobs[mob] = new Job(grid, group, grid, home, null, _timing.CurTime) { SrdCoordinates = missing };
                 return "working";
@@ -164,7 +164,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (job.SrdCoordinates is { } repairCoordinates)
         {
-            if (!MissingStructure(job.Grid).Any(position => position == repairCoordinates))
+            if (!MissingStructure(job.Grid, mob).Any(position => position == repairCoordinates))
             {
                 _jobs.Remove(mob);
                 return false;
@@ -204,7 +204,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (job.SrdCoordinates is { } repairCoordinates)
         {
-            if (!MissingStructure(job.Grid).Any(position => position == repairCoordinates))
+            if (!MissingStructure(job.Grid, mob).Any(position => position == repairCoordinates))
             {
                 _jobs.Remove(mob);
                 return true;

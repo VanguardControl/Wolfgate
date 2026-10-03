@@ -10,6 +10,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Shared.NPC.Systems;
+using Content.Shared._WF.NpcCrew;
 using System.Linq;
 
 namespace Content.Server._WF.NpcCrew.Systems;
@@ -74,10 +75,18 @@ public sealed partial class WFCrewWeaponSystem
         return !TerminatingOrDeleted(target) && _mobs.IsAlive(target)
             && Transform(uid).GridUid is { } grid && Transform(target).GridUid == grid
             && (!TryComp<WFCrewComponent>(uid, out var crew) || crew.Post is not { } post || post.EntityId == grid)
+            && (!IsStationCrew(uid) || WasAttackedBy(uid, target))
             && (CanSee(uid, target) || EntityManager.System<WFCrewCommsSystem>().Knows(uid, target)
-                || TryComp<NPCRetaliationComponent>(uid, out var retaliation)
-                && retaliation.AttackMemories.Any(memory => memory.Key == target && _timing.CurTime < memory.Value));
+                || WasAttackedBy(uid, target));
     }
+
+    /// <summary>Station operators leave their job only to defend themselves against a personal attacker.</summary>
+    public bool IsStationCrew(EntityUid uid) => TryComp<WFCrewComponent>(uid, out var crew)
+        && (crew.Duty is WFCrewDuties.Pilot or WFCrewDuties.Gunnery
+            || crew.Role == WFCrewRoles.Captain || crew.Role == WFCrewRoles.RadioOperator);
+
+    private bool WasAttackedBy(EntityUid uid, EntityUid target) => TryComp<NPCRetaliationComponent>(uid, out var retaliation)
+        && retaliation.AttackMemories.Any(memory => memory.Key == target && _timing.CurTime < memory.Value);
 
     /// <summary>Walls and closed opaque doors conceal boarders; radio awareness does not extend eyesight.</summary>
     public bool CanSee(EntityUid uid, EntityUid target) => !TerminatingOrDeleted(target)

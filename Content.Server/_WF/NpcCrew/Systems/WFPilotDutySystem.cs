@@ -10,6 +10,7 @@ using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Interaction;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Events;
@@ -29,6 +30,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ShipSteeringSystem _steering = default!;
     [Dependency] private ShuttleConsoleSystem _console = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
 
     /// <summary>Blackboard key holding the helm the pilot works.</summary>
     public const string HelmKey = "WFCrewHelm";
@@ -198,7 +200,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         SetOrders((ent, ent.Comp), WFPilotOrder.Undock);
     }
 
-    private void SetOrders(Entity<WFPilotDutyComponent> ent, WFPilotOrder orders)
+    private void SetOrders(Entity<WFPilotDutyComponent> ent, WFPilotOrder orders, bool continuation = false)
     {
         ent.Comp.ResumeOrder = null;
         if (orders is not (WFPilotOrder.Hold or WFPilotOrder.Undock)
@@ -206,7 +208,9 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             && !(orders == WFPilotOrder.Dock && ent.Comp.DockTarget is { } destination && _docking.AreGridsDocked(grid, destination)))
         {
             var waypoints = ent.Comp.Waypoints;
-            Undock(ent.Owner);
+            ent.Comp.Waypoints = new List<EntityCoordinates>();
+            ent.Comp.WaypointIndex = 0;
+            SetOrders(ent, WFPilotOrder.Undock, continuation);
             ent.Comp.ResumeOrder = orders;
             ent.Comp.ResumeWaypoints = waypoints;
             return;
@@ -215,7 +219,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         ent.Comp.OrdersCompleted = false;
         ResetDock(ent.Comp);
 
-        var ev = new WFPilotOrdersChangedEvent(ent, orders);
+        var ev = new WFPilotOrdersChangedEvent(ent, orders, continuation);
         RaiseLocalEvent(ent, ref ev, true);
 
         if (ent.Comp.AtHelm)
@@ -275,6 +279,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             || Transform(mob).GridUid is not { } grid
             || !HasComp<ShuttleComponent>(grid)
             || !IsUsableHelm(console, grid)
+            || !_interaction.InRangeUnobstructed(mob, console)
             || !TryComp<ShuttleConsoleComponent>(console, out var consoleComp))
         {
             return false;
@@ -302,6 +307,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         if (duty.AtHelm)
             return true;
 
+        duty.Console = console;
         duty.AtHelm = true;
         EntityManager.System<WFCrewSpeechSystem>().Say(mob, "helm");
         var facing = _transform.GetWorldPosition(console) - _transform.GetWorldPosition(mob);
@@ -344,6 +350,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                && pilot.Console is { } console
                && Transform(ent).GridUid is { } grid
                && IsUsableHelm(console, grid)
+               && _interaction.InRangeUnobstructed(ent.Owner, console)
                && !_mobState.IsIncapacitated(ent)
                && !HasComp<ActorComponent>(ent);
     }
@@ -415,7 +422,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         {
             ent.Comp.Waypoints = ent.Comp.ResumeWaypoints;
             ent.Comp.WaypointIndex = 0;
-            SetOrders(ent, resume);
+            SetOrders(ent, resume, continuation: true);
             return;
         }
         SetOrders(ent, WFPilotOrder.Hold);

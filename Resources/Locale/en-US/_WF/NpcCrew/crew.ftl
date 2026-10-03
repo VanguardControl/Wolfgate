@@ -152,6 +152,7 @@ wf-crew-objective-retreat = Retreat to grid
 wf-crew-objective-status-manual = Manual orders
 wf-crew-objective-status-pending = Queued
 wf-crew-objective-status-running = Running
+wf-crew-objective-status-evading = Captain responding to danger — objective suspended
 wf-crew-objective-status-paused = Paused
 wf-crew-objective-status-complete = Complete
 wf-crew-objective-status-no-pilot = Waiting for a living pilot

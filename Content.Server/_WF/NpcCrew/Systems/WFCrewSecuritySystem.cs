@@ -9,6 +9,7 @@ using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Shuttles.Systems;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -18,15 +19,21 @@ public sealed class WFCrewSecuritySystem : EntitySystem
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private WFCrewAlertSystem _alerts = default!;
+    [Dependency] private IGameTiming _timing = default!;
     private float _timer;
     private readonly HashSet<(EntityUid Crew, EntityUid Visitor)> _boarders = new();
     private readonly HashSet<(EntityUid Crew, EntityUid Visitor)> _ownedHostiles = new();
+    private readonly Dictionary<(EntityUid Grid, string Group, EntityUid Visitor), TimeSpan> _hostileDocks = new();
 
-    /// <summary>An explicit boarding rule also provokes otherwise defensive officers.</summary>
+    /// <summary>Whether the crew member has a visitor explicitly marked hostile by its boarding rule.</summary>
     public bool HasThreat(EntityUid crew) => _ownedHostiles.Any(pair => pair.Crew == crew);
 
     /// <summary>Whether the current security rule explicitly targets this visitor.</summary>
     public bool IsHostileVisitor(EntityUid crew, EntityUid visitor) => _ownedHostiles.Contains((crew, visitor));
+
+    /// <summary>Explicit docking hostility overrides faction friendship for the current ship threat.</summary>
+    public bool IsHostileDockingTarget(EntityUid grid, string group, EntityUid visitor) =>
+        _hostileDocks.TryGetValue((grid, group, visitor), out var until) && _timing.CurTime < until;
 
     /// <summary>Acts on a personally observed or received contact, preserving the crew's boarding policy.</summary>
     public void ReceiveSighting(EntityUid uid, EntityUid visitor)
@@ -54,6 +61,11 @@ public sealed class WFCrewSecuritySystem : EntitySystem
             _ownedHostiles.Remove(pair);
         }
         _boarders.RemoveWhere(pair => pair.Crew == crew);
+        if (TryComp<WFCrewComponent>(crew, out var member) && Transform(crew).GridUid is { } grid)
+        {
+            foreach (var key in _hostileDocks.Keys.Where(key => key.Grid == grid && key.Group == member.Group).ToArray())
+                _hostileDocks.Remove(key);
+        }
     }
 
     public override void Initialize()
@@ -113,6 +125,11 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         if (_timer < 1f)
             return;
         _timer = 0;
+        foreach (var (key, until) in _hostileDocks.ToArray())
+        {
+            if (_timing.CurTime >= until || TerminatingOrDeleted(key.Grid) || TerminatingOrDeleted(key.Visitor))
+                _hostileDocks.Remove(key);
+        }
         var present = new HashSet<(EntityUid Crew, EntityUid Visitor)>();
         var people = new List<(EntityUid Uid, TransformComponent Transform)>();
         var mobs = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
@@ -154,7 +171,10 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         if (response == WFCrewSecurityResponse.Ignore)
             return;
         if (docking && response == WFCrewSecurityResponse.Hostile)
+        {
+            _hostileDocks[(grid, group, visitor)] = _timing.CurTime + TimeSpan.FromSeconds(60);
             _alerts.ReportShipThreat(grid, group, visitor);
+        }
         var ev = new WFCrewSecurityIncidentEvent(grid, group, visitor, response, docking);
         RaiseLocalEvent(grid, ref ev, true);
     }

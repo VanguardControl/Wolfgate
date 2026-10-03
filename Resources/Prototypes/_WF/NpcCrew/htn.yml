@@ -1,6 +1,6 @@
 # The crew root: fight, then work the duty the WFCrewDuty key names, then idle. The planner replans every half
-# second and swaps to an earlier branch as soon as it is valid, so a fight interrupts a duty and the duty resumes
-# after it. Every duty starts by holstering; the fight starts by drawing.
+# second and swaps to an earlier branch as soon as it is valid. Station operators only fight their own attackers
+# and resume their job afterwards. Every duty starts by holstering; the fight starts by drawing.
 - type: htnCompound
   id: WFCrewCompound
   branches:
@@ -138,6 +138,18 @@
 - type: htnCompound
   id: WFCrewIdleCompound
   branches:
+  - preconditions:
+    - !type:KeyExistsPrecondition
+      key: WFCrewPost
+    - !type:CoordinatesNotInRangePrecondition
+      targetKey: WFCrewPost
+      rangeKey: WFCrewPostRange
+    tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        targetKey: WFCrewPost
+        rangeKey: WFCrewPostRange
+        removeKeyOnFinish: false
   - tasks:
     - !type:HTNPrimitiveTask
       operator: !type:RandomOperator

@@ -267,6 +267,45 @@ Local action lines are limited to one per speaker per fifteen seconds and one pe
 
 Validation: Debug Server/Shared/Client/integration build passed. The full crew run passed 52/53; the remaining escort fixture needed normal AI helm acquisition, after which its focused retest passed 1/1. This verifies all 53 cases, including actual Dredger docking/departure, hidden boarding and disabled-radio reception, spent-ammo fallback, no loose gun scavenging, console facing and escort slots following a leader turn. Release YAML linter passed with no errors. Its first attempt hit shared output locks while integration tests were running; the sequential rerun passed. Module inventory/check/PR-marker check and git diff checks passed. The fresh Debug server is bound to 127.0.0.1:1219; the graphical CrewTesting client enabled sandboxing and reached GameplayState. No errors, fatal entries or sandbox violations were found in the pair logs; ordinary localization/timing warnings remain. No PR or push was performed.
 
+## Review fixes and station priority (2026-10-02)
+
+Station operators (Pilot/Gunnery duties and Captain/RadioOperator roles) only engage their own remembered personal
+attackers, even with On Sight or Hostile boarding selected. Security can still report those boarders; station crew
+keep working. A dead, departed or expired attacker no longer justifies fighting. Pilots retain their assigned helm
+and require actual unobstructed interaction range both to take and keep it; displacement releases the attachment
+that otherwise blocks walking. Idle fallbacks also return to assigned posts. Crew resume their job after combat.
+
+Captain snapshots preserve the intended order behind automatic undocking. Internal departure continuations carry
+an explicit flag, so completing evasive undocking no longer discards the interrupted course as a new command.
+Objective timers and completion checks suspend while the captain owns the course, with a visible danger-response
+status; queued work resumes with its remaining time on all-clear.
+
+Boarding, injury and casualty announcements require personal sight or actual received headset reports. Named groups
+do not share incidents across grids. Headset Enabled is checked immediately as well as ActiveRadio, because disabling
+a headset defers removal of ActiveRadio until the end of the tick. Explicit hostile docking is tracked independently
+of hull impacts and overrides gunner faction filtering; changing security policy clears this override.
+
+Ship targeting passes its controller through the existing fire-control API. Cannon bursts and launched projectiles
+retain NPC attribution for friendly-fire protection, including allied hulls. Manual commands clear future cannon
+attribution while already launched rounds retain it. Explicit Attack/hostile-docking targets remain damageable.
+Missing snapshot repairs skip entries rejected by the ordinary SRD's grid/prototype whitelist or tool repair modes,
+so an unsupported destroyed structure cannot block later eligible repairs.
+
+Validation builds are isolated under `bin/NpcCrewReview` (Debug) and `bin/NpcCrewReviewLint` (Release), using the
+MSBuild OutDir override. This leaves the live test server's `bin/Content.Server` binaries untouched. The local
+playtest received `cvar movement.mob_pushing false`; include `--cvar movement.mob_pushing=false` on future test
+launches because the development preset enables it. The ongoing user test has not been restarted to load these fixes.
+
+Validation: the final full Debug crew suite passed 75/75, including all four station roles, both immediate radio-off
+cases, captain departure/timer restoration, real cannon projectiles/manual takeover, restricted SRD repairs and
+physical Dredger docking/departure. The final Debug build passed with 0 errors (125 existing warnings). Release YAML
+linter reported no errors in 79120 ms; an independent headless server reached Ready on port 1220 without ERRO/FATL
+entries and was stopped afterwards. No Client/Shared source changed. Module inventory/check/PR-marker check and
+git diff checks passed. Initial failures exposed deferred radio disabling and test fixtures with uninitialized power,
+an open cannon bolt, insufficient projectile lifetime and armor absorbing the damage probe; these were fixed before
+the final passing run. Logs are in TEMP: `wfcrew-review-final-tests.log`, `wfcrew-review-build.log`,
+`wfcrew-review-linter.log`, and `wfcrew-review-server.log`. Work stays local; no PR or push.
+
 ## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints
@@ -285,6 +324,9 @@ Validation: Debug Server/Shared/Client/integration build passed. The full crew r
 - `DockingSystem.GetDocks` clears a set `UndockDocks` still iterates; don't call it from an undock handler.
 - A test deck is a bare grid; add `ShuttleComponent` for steering, `GravitySystem.EnableGravity` for walking, and a
   helm prototype with `ApcPowerReceiver needsPower: false` to count as powered without an APC.
+  Its Powered state still initializes asynchronously after docking; wait for `TryFindHelm` instead of fixed ticks.
+- Cannon tests must use a closed bolt and a projectile that can reach the target before its lifetime expires.
+  Damage probes against walls need `ignoreResistances: true` so flat armor reductions cannot mask a failed control.
 - Blackboard YAML: `Key: !type:Bool` on one line, the value on the next (see `mobs.yml`).
 
 ## Upstream API cheat sheet (verified in this tree)

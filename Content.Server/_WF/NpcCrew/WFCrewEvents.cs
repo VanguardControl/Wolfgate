@@ -11,9 +11,9 @@ public readonly record struct WFCrewMemberDownEvent(
     ProtoId<WFCrewRolePrototype>? Role,
     bool Dead);
 
-/// <summary>Raised on a crew pilot and broadcast when its orders change.</summary>
+/// <summary>Reports order changes, distinguishing automatic departure continuation from new commands.</summary>
 [ByRefEvent]
-public readonly record struct WFPilotOrdersChangedEvent(EntityUid Mob, WFPilotOrder Orders);
+public readonly record struct WFPilotOrdersChangedEvent(EntityUid Mob, WFPilotOrder Orders, bool Continuation = false);
 
 /// <summary>
 /// Raised on a crew pilot and broadcast when it reaches its last waypoint, or has backed off after undocking, and
