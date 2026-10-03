@@ -22,6 +22,49 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 public sealed partial class WFCrewTest
 {
+    /// <summary>Escorts take separate hull-safe slots which translate and rotate with their leader.</summary>
+    [Test]
+    public async Task EscortsKeepFormationWhenLeaderTurns()
+    {
+        var leader = await CreateDeck(new Vector2(200, 200), 9, gravity: true);
+        var ships = new[] { await CreateDeck(new Vector2(100, 100), 5, true), await CreateDeck(new Vector2(300, 100), 5, true) };
+        var pilots = new EntityUid[2];
+        var helms = new EntityUid[2];
+        await Server.WaitPost(() =>
+        {
+            for (var i = 0; i < 2; i++)
+            {
+                SEntMan.EnsureComponent<ShuttleComponent>(ships[i]);
+                helms[i] = SEntMan.SpawnAtPosition(TestHelm, new EntityCoordinates(ships[i], new Vector2(2.5f)));
+                pilots[i] = Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Pilot, new EntityCoordinates(ships[i], new Vector2(2.5f, 1.5f)), "escort")!.Value;
+            }
+        });
+        await WaitUntil(() => SEntMan.GetComponent<WFPilotDutyComponent>(pilots[0]).AtHelm
+            && SEntMan.GetComponent<WFPilotDutyComponent>(pilots[1]).AtHelm, 300,
+            () => $"{DescribePilot(pilots[0], helms[0])}; {DescribePilot(pilots[1], helms[1])}");
+        await Server.WaitAssertion(() =>
+        {
+            var flight = Server.System<WFPilotDutySystem>();
+            for (var i = 0; i < 2; i++)
+            {
+                Assert.That(flight.TryTakeHelm(pilots[i], helms[i]), Is.True);
+                flight.Escort(pilots[i], leader, 1);
+            }
+            var one = SEntMan.GetComponent<WFPilotDutyComponent>(pilots[0]);
+            var two = SEntMan.GetComponent<WFPilotDutyComponent>(pilots[1]);
+            Assert.That(one.EscortSlot, Is.Not.EqualTo(two.EscortSlot));
+            Assert.That((one.EscortOffset!.Value - two.EscortOffset!.Value).Length(), Is.GreaterThan(40));
+            var steering = SEntMan.GetComponent<Content.Server._Mono.NPC.HTN.ShipSteererComponent>(pilots[0]);
+            Assert.That(steering.Coordinates.EntityId, Is.EqualTo(leader));
+            var transforms = Server.System<SharedTransformSystem>();
+            var before = transforms.ToMapCoordinates(steering.Coordinates).Position;
+            transforms.SetWorldRotation(leader, Angle.FromDegrees(90));
+            var after = transforms.ToMapCoordinates(steering.Coordinates).Position;
+            Assert.That((after - before).Length(), Is.GreaterThan(20));
+            Assert.That(steering.Coordinates.Position, Is.EqualTo(one.EscortOffset.Value));
+        });
+    }
+
     /// <summary>The actual Dredger hull can physically mate with the actual Drillsite without FTL.</summary>
     [Test]
     public async Task DredgerDocksAtDrillsite()
@@ -67,6 +110,15 @@ public sealed partial class WFCrewTest
         });
         await WaitUntil(() => Server.System<DockingSystem>().AreGridsDocked(ship, site), 18000,
             () => $"{DescribePilot(pilot, helm)} phase={SEntMan.GetComponent<WFPilotDutyComponent>(pilot).DockPhase} attempts={SEntMan.GetComponent<WFPilotDutyComponent>(pilot).DockAttempts} position={SEntMan.GetComponent<TransformComponent>(ship).LocalPosition} angle={SEntMan.GetComponent<TransformComponent>(ship).LocalRotation} velocity={SEntMan.GetComponent<PhysicsComponent>(ship).LinearVelocity} turn={SEntMan.GetComponent<PhysicsComponent>(ship).AngularVelocity}");
+        await RunTicks(10);
+        await Server.WaitAssertion(() =>
+        {
+            Server.System<WFPilotDutySystem>().GoTo(pilot, new() { new(MapData.MapUid, new Vector2(2200, 2400)) });
+            Assert.That(SEntMan.GetComponent<WFPilotDutyComponent>(pilot).Orders, Is.EqualTo(WFPilotOrder.Undock));
+        });
+        await WaitUntil(() => !Server.System<DockingSystem>().AreGridsDocked(ship, site)
+            && SEntMan.GetComponent<WFPilotDutyComponent>(pilot).Orders == WFPilotOrder.GoTo, 6000,
+            () => $"Docked ship did not release and resume travel: {DescribePilot(pilot, helm)}");
     }
 
     [TestPrototypes]

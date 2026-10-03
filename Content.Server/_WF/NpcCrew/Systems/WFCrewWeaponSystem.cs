@@ -61,6 +61,7 @@ public sealed partial class WFCrewWeaponSystem : EntitySystem
         _hands.TrySelect(uid, item.Value);
         weapon.Drawn = item;
         weapon.HolsterSlot = slot;
+        EntityManager.System<WFCrewSpeechSystem>().Say(uid, "engage");
         return true;
     }
 

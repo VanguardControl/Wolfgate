@@ -216,6 +216,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             case WFCrewObjectiveKind.Dock: _pilots.Dock(pilot, target); break;
             case WFCrewObjectiveKind.Undock: _pilots.Undock(pilot); break;
             case WFCrewObjectiveKind.Follow: _pilots.Follow(pilot, target, item.Range); break;
+            case WFCrewObjectiveKind.Escort: _pilots.Escort(pilot, target, item.Range); break;
             case WFCrewObjectiveKind.Loiter:
             case WFCrewObjectiveKind.Attack:
                 _pilots.Loiter(pilot, new EntityCoordinates(target, Vector2.Zero), item.Range); break;

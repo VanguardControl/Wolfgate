@@ -82,6 +82,8 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
             return false;
         duty.Console = console;
         duty.AtConsole = true;
+        EntityManager.System<WFCrewRoutineSystem>().Face(mob, console);
+        EntityManager.System<WFCrewSpeechSystem>().Say(mob, "gunnery");
         return true;
     }
 

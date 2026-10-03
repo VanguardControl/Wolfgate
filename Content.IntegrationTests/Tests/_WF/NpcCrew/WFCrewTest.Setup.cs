@@ -57,6 +57,9 @@ public sealed partial class WFCrewTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(SEntMan.GetComponent<ShipTargetingComponent>(gunner).Target.EntityId, Is.EqualTo(attacker));
+            var transforms = Server.System<SharedTransformSystem>();
+            var towardConsole = (transforms.GetWorldPosition(console) - transforms.GetWorldPosition(gunner)).ToWorldAngle();
+            Assert.That(Math.Abs(ShipSteeringSystem.ShortestAngleDistance(transforms.GetWorldRotation(gunner), towardConsole).Degrees), Is.LessThan(1));
             SEntMan.DeleteEntity(console);
         });
         await RunTicks(5);

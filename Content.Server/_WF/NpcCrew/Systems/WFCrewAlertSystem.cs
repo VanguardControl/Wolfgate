@@ -122,7 +122,11 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
                 if (member.Comp.Blackboard.TryGetValue<EntityUid>("Target", out var target, EntityManager)
                     && ValidTarget(target, key.Grid) && target != member.Owner
                     && !_factions.IsEntityFriendly(member.Owner, target) && !_factions.IsIgnored(member.Owner, target))
+                {
                     targets.Add(target);
+                    if (EntityManager.System<WFCrewWeaponSystem>().CanSee(member, target))
+                        EntityManager.System<WFCrewCommsSystem>().Report(member, target);
+                }
             }
 
             if (!_alerts.TryGetValue(key, out var alert))
@@ -189,6 +193,9 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
         foreach (var target in alert.Hostiles)
         {
+            if (!EntityManager.System<WFCrewCommsSystem>().Knows(member, target)
+                && !EntityManager.System<WFCrewWeaponSystem>().CanSee(member, target))
+                continue;
             if (target == member.Owner || _factions.IsEntityFriendly(member.Owner, target)
                 || _factions.IsIgnored(member.Owner, target) || _factions.GetHostiles(member.Owner).Contains(target))
                 continue;

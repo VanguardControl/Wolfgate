@@ -412,7 +412,7 @@ public sealed partial class WFCrewTest : InteractionTest
         await Server.WaitAssertion(() =>
         {
             var sent = Sent(radio);
-            Assert.That(sent, Has.Count.EqualTo(2), $"Outgoing traffic or an incoming security incident: {Describe(sent)}");
+            Assert.That(sent, Has.Count.EqualTo(outbound ? 2 : 4), $"Outgoing traffic or an incoming security incident: {Describe(sent)}");
             if (!outbound)
             {
                 Assert.That(sent.Any(line => line.Line == WFRadioLine.Docking), Is.False);
@@ -471,7 +471,7 @@ public sealed partial class WFCrewTest : InteractionTest
 
         await Server.WaitAssertion(() =>
         {
-            var mayday = Sent(radio).Single(t => t.Line == WFRadioLine.Mayday);
+            var mayday = Sent(radio).Single(t => t.Line == WFRadioLine.Mayday && t.Channel.Id == "Common");
             Assert.That(mayday.Channel.Id, Is.EqualTo("Common"), "The mayday goes out on Broadband.");
             Assert.That(mayday.Text, Does.Contain("WF Test Freighter"), "The mayday carries the callsign.");
             Assert.That(mayday.Text, Does.Contain("WF Test Raider"), "The mayday names the hostile vessel.");
@@ -497,8 +497,8 @@ public sealed partial class WFCrewTest : InteractionTest
             Assert.That(Count(radio, WFRadioLine.CaptainDown), Is.EqualTo(1), "One line for the captain.");
             Assert.That(Count(radio, WFRadioLine.Boarded), Is.EqualTo(1), "One boarding call per attack.");
             Assert.That(Count(radio, WFRadioLine.Mayday), Is.EqualTo(1), "Still one mayday.");
-            Assert.That(Sent(radio).Where(t => t.Line != WFRadioLine.Mayday).All(t => t.Channel.Id == "Common"),
-                "Alerts go out on Broadband.");
+            Assert.That(Sent(radio).Any(t => t.Line == WFRadioLine.Boarded && t.Channel.Id == "Traffic"),
+                "Boarding alerts also reach Shortband listeners.");
         });
 
         var before = 0;
@@ -543,6 +543,7 @@ public sealed partial class WFCrewTest : InteractionTest
             Board(receiver).SetValue("VisionRadius", 7f);
             Board(receiver).SetValue("AggroVisionRadius", 8f);
             hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(6.5f, 6.5f)));
+            Server.System<SharedTransformSystem>().SetCoordinates(source, new EntityCoordinates(deck, new Vector2(4.5f, 4.5f)));
             factions.AggroEntity(source, hostile);
             Board(source).SetValue("Target", hostile);
         });
@@ -693,7 +694,7 @@ public sealed partial class WFCrewTest : InteractionTest
 
     private int Count(EntityUid radio, WFRadioLine line)
     {
-        return Sent(radio).Count(t => t.Line == line);
+        return Sent(radio).Where(t => t.Line == line).Select(t => t.Text).Distinct().Count();
     }
 
     private static string Describe(List<WFRadioTransmission> sent)

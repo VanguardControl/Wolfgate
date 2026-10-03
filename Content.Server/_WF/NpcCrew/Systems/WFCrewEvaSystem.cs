@@ -129,6 +129,8 @@ public sealed class WFCrewEvaSystem : EntitySystem
                 && !Prepare(uid))
             {
                 EntityManager.System<WFCrewWorkSystem>().CancelWorker(uid);
+                if (!safe)
+                    EntityManager.System<WFCrewSpeechSystem>().Say(uid, "air");
                 FindSafety(uid, crew, safe);
                 if (!safe && !wornGas.IsConnected)
                     _tanks.ConnectToInternals((worn.Value, wornGas), uid);

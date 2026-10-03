@@ -245,6 +245,28 @@ connected to 127.0.0.1:1219 and reached InGame/lobby. Server/client logs contain
 violations (ordinary startup timing/localization warnings remain). The fresh local server/client pair is running.
 All work remains local; do not create a PR or push without the user's explicit permission.
 
+## Crew behavior and formation follow-up (2026-10-02)
+
+Added a separate Escort objective (Follow was previously labelled Escort without formation). Each pilot reserves
+a distinct staggered target-relative slot, sized for hull clearance, follows its moving/rotating leader and matches
+heading. Captain evasion preserves the slot. Any flight order issued while docked first undocks and backs clear;
+orders to dock at the already-connected grid complete immediately. Departure waits for living autonomous crew
+whose assigned post belongs to the ship. Cruise facing follows the helm orientation; docking holds final alignment
+only within the last approach corridor. Pilots and gunners continuously face their occupied consoles.
+
+Crew combat uses dedicated compounds: no loose gun or melee-item scavenging, no chasing to another grid, no
+random combat juking. Spent chamber cartridges do not count as usable ammunition. Stale targets cancel combat
+movement; work trips are separate and remain permitted. Off-grid crew return to their post when work ends.
+Deckhands/marines choose safe deck patrol stops every 45–90 seconds; officers stay at their stations.
+
+Unauthorized foot boarding requires actual unobstructed sight within ten tiles. A witness can report via a real
+WFCrewHeadset on Traffic; only ordinary RadioReceiveEvent recipients gain that report. Switched-off receivers
+do not share sightings. Contacts expire after thirty seconds unless refreshed. Unauthorized docking remains an
+immediate event. Boarding/security alerts also go out on Shortband, alongside the configured alert channel.
+Local action lines are limited to one per speaker per fifteen seconds and one per action per minute.
+
+Validation: Debug Server/Shared/Client/integration build passed. The full crew run passed 52/53; the remaining escort fixture needed normal AI helm acquisition, after which its focused retest passed 1/1. This verifies all 53 cases, including actual Dredger docking/departure, hidden boarding and disabled-radio reception, spent-ammo fallback, no loose gun scavenging, console facing and escort slots following a leader turn. Release YAML linter passed with no errors. Its first attempt hit shared output locks while integration tests were running; the sequential rerun passed. Module inventory/check/PR-marker check and git diff checks passed. The fresh Debug server is bound to 127.0.0.1:1219; the graphical CrewTesting client enabled sandboxing and reached GameplayState. No errors, fatal entries or sandbox violations were found in the pair logs; ordinary localization/timing warnings remain. No PR or push was performed.
+
 ## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints

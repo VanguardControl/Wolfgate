@@ -11,6 +11,13 @@ namespace Content.Server._WF.NpcCrew.Components;
 [RegisterComponent]
 public sealed partial class WFPilotDutyComponent : Component
 {
+    /// <summary>Flight order resumed after physically clearing the current docks.</summary>
+    public WFPilotOrder? ResumeOrder;
+    public List<EntityCoordinates> ResumeWaypoints = new();
+    /// <summary>Target-relative formation slot retained until the escort order changes.</summary>
+    public System.Numerics.Vector2? EscortOffset;
+    public int EscortSlot;
+
     /// <summary>Assigned helm. Null takes the nearest powered shuttle console on the crewman's grid.</summary>
     [DataField]
     public EntityUid? Console;
