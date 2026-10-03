@@ -105,11 +105,14 @@ crew and ship shield integration cases passed; module `--check` and `--pr-check 
 - Protection from crew fire ends for anyone who attacked the crew, whatever their company or faction.
 - Ship-level alerts come from ship weapons only (projectile or hitscan). A handheld shot at a shield alerts nobody.
   Each attacking vessel has its own 60 second expiry.
-- A ship is disabled (`WFCrewShipStatusSystem.IsDisabled`) after 10 seconds without a break of any of: everyone
-  who was aboard is dead or gone; it had ship weapons and none is powered; or it has no powered weapon and under a
-  quarter of the thrust it was seen with. Disabled ships leave the threat list, gunners stop firing and an Attack
-  task completes. Each test is against what the ship was seen with, so a hull that never had crew, weapons or
-  thrust is never disabled for lacking them, and an untimed Attack on such a hull never ends.
+- A ship is out of the fight (`WFCrewShipStatusSystem`) after 10 seconds without a break of any of: everyone who
+  was aboard is dead or gone (abandoned); it had ship weapons and none is powered (disarmed); or it has no powered
+  weapon and under a quarter of the thrust it was seen with (crippled). Each test is against what the ship was seen
+  with, so a hull that never had crew, weapons or thrust is never judged for lacking them.
+- When a crew stops attacking a ship is its own mission setting, `Disengage`: `Destroy` stops only for an abandoned
+  ship, `Disable` (default) for any of the three, `Deter` also once the ship is beyond `DisengageRange`. It decides
+  the threat list, gunner fire and when an Attack task completes (`ShouldDisengage`; the range part is skipped for
+  the Attack task, which starts out of range).
 - With no captain aboard, or once the captain is down, the pilot evades attackers on their own
   (`WFPilotDutyComponent.ReactToAttacks`). Evasion re-targets every second and always ends in the saved course or,
   if its target is gone, a hold.

@@ -51,6 +51,20 @@ public sealed class WFCrewSetupPost
     public WFCrewEngagement? Engagement;
 }
 
+/// <summary>When a crew stops attacking another ship.</summary>
+[Serializable, NetSerializable]
+public enum WFCrewDisengage : byte
+{
+    /// <summary>Drive it off: also stop once it is beyond the disengage range.</summary>
+    Deter,
+
+    /// <summary>Stop once it is abandoned, disarmed or crippled.</summary>
+    Disable,
+
+    /// <summary>Stop only once nobody aboard is left alive.</summary>
+    Destroy,
+}
+
 /// <summary>Mission settings shared by admin setup and encounter spawning.</summary>
 [Serializable, NetSerializable]
 public sealed class WFCrewMission
@@ -63,6 +77,8 @@ public sealed class WFCrewMission
     public string LocalChannel = "Traffic";
     public string AlertChannel = "Common";
     public bool HeaveTo = true;
+    public WFCrewDisengage Disengage = WFCrewDisengage.Disable;
+    public float DisengageRange = 500;
     public WFCrewSecurityResponse BoardingResponse = WFCrewSecurityResponse.Hostile;
     public WFCrewSecurityResponse DockingResponse = WFCrewSecurityResponse.Hostile;
     public WFCrewNavigationSettings Navigation = new();

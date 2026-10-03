@@ -222,7 +222,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             var completesOnArrival = item.Kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Retreat;
             // An attack is over once its target can neither move nor shoot.
             var targetDisabled = item.Kind == WFCrewObjectiveKind.Attack
-                && EntityManager.System<WFCrewShipStatusSystem>().IsDisabled(target);
+                && EntityManager.System<WFCrewShipStatusSystem>().ShouldDisengage(grid, target, range: false);
             if (targetDisabled || (completesOnArrival ? duty.OrdersCompleted : item.Duration > 0 && state.Elapsed >= item.Duration))
             {
                 _pilots.Hold(pilot);
@@ -289,6 +289,8 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             row.Members++;
             row.Settings.Group = crew.Group;
             row.Settings.Battlegroup = crew.Battlegroup;
+            row.Settings.Disengage = crew.Disengage;
+            row.Settings.DisengageRange = crew.DisengageRange;
             if (TryComp<WFPilotDutyComponent>(uid, out var pilot))
             {
                 row.Settings.Navigation = pilot.Navigation.Clone();

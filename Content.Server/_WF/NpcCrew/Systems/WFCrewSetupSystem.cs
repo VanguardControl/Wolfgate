@@ -175,6 +175,8 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             || !Fits(mission.Callsign, WFCrewLimits.MaxCallsign) || !Fits(mission.Battlegroup, WFCrewLimits.MaxBattlegroup)
             || !Enum.IsDefined(mission.Order)
             || !Enum.IsDefined(mission.BoardingResponse) || !Enum.IsDefined(mission.DockingResponse)
+            || !Enum.IsDefined(mission.Disengage)
+            || !float.IsFinite(mission.DisengageRange) || mission.DisengageRange is < 50 or > WFCrewLimits.MaxRange
             || mission.Navigation == null || !mission.Navigation.IsValid()
             || !float.IsFinite(mission.Range) || mission.Range is < 1 or > WFCrewLimits.MaxRange
             || !Bounded(mission.Destination) || !Known<NpcFactionPrototype>(mission.Faction)
@@ -254,6 +256,10 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         {
             crew.Navigation = mission.Navigation.Clone();
             crew.Battlegroup = mission.Battlegroup.Trim();
+            crew.Disengage = mission.Disengage;
+            crew.DisengageRange = mission.DisengageRange;
+            if (_crew.HomeGrid(mob, crew) is { } home)
+                EntityManager.System<WFCrewShipStatusSystem>().SetPolicy(home, mission.Disengage, mission.DisengageRange);
             EntityManager.System<WFCrewEscortSystem>().Invalidate();
         }
         if (TryComp<WFPilotDutyComponent>(mob, out var pilot))

@@ -26,6 +26,14 @@ public sealed partial class WFCrewTest
             SEntMan.GetComponent<ShuttleComponent>(ship).LinearThrust[0] = 0f;
         });
         await WaitUntil(() => Server.System<WFCrewShipStatusSystem>().IsDisabled(ship), 2400, () => "ship never counted as disabled");
+        await Server.WaitAssertion(() =>
+        {
+            // The attacker's own rule decides: Destroy keeps firing on a crippled ship.
+            var status = Server.System<WFCrewShipStatusSystem>();
+            Assert.That(status.ShouldDisengage(wreck, ship), Is.True, "Disable is the default rule.");
+            status.SetPolicy(wreck, WFCrewDisengage.Destroy, 500);
+            Assert.That(status.ShouldDisengage(wreck, ship), Is.False);
+        });
         var crewed = await CreateDeck(new Vector2(40, 0), 3, gravity: true);
         EntityUid hand = default;
         await Server.WaitAssertion(() =>
@@ -41,5 +49,16 @@ public sealed partial class WFCrewTest
         });
         await WaitUntil(() => Server.System<WFCrewShipStatusSystem>().IsDisabled(crewed), 2400,
             () => "a ship that lost its whole crew never counted as disabled");
+        await Server.WaitAssertion(() =>
+        {
+            // Destroy stops for a ship with nobody left alive; Deter also gives up on a distant one.
+            var status = Server.System<WFCrewShipStatusSystem>();
+            Assert.That(status.ShouldDisengage(wreck, crewed), Is.True, "Nobody is left alive aboard.");
+            status.SetPolicy(ship, WFCrewDisengage.Deter, 5);
+            Assert.That(status.ShouldDisengage(ship, wreck), Is.True, "Beyond the deterrence range.");
+            Assert.That(status.ShouldDisengage(ship, wreck, range: false), Is.False);
+            status.SetPolicy(ship, WFCrewDisengage.Deter, 500);
+            Assert.That(status.ShouldDisengage(ship, wreck), Is.False);
+        });
     }
 }

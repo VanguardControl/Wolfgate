@@ -13,6 +13,7 @@ tune the collision warning, heat haze, internet sounds, NPC crew docking, ship a
 ### Shared
 
 - [`Content.Shared/_WF/CCVar/CollisionWarningCVars.cs`](CollisionWarningCVars.cs)
+- [`Content.Shared/_WF/CCVar/EncountersCVars.cs`](EncountersCVars.cs)
 - [`Content.Shared/_WF/CCVar/HeatHazeCVars.cs`](HeatHazeCVars.cs)
 - [`Content.Shared/_WF/CCVar/InternetSoundCVars.cs`](InternetSoundCVars.cs)
 - [`Content.Shared/_WF/CCVar/NpcCrewCVars.cs`](NpcCrewCVars.cs)

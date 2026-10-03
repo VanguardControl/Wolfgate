@@ -146,6 +146,7 @@ public sealed partial class WFCrewSetupWindow
         private readonly OptionButton _alert = new();
         private readonly OptionButton _boarding = new();
         private readonly OptionButton _docking = new();
+        private readonly OptionButton _disengage = new();
         private readonly CheckBox _heave = new() { Pressed = true };
         private readonly List<string> _companies;
         private readonly List<string> _factions;
@@ -185,6 +186,12 @@ public sealed partial class WFCrewSetupWindow
             Body.AddChild(Heading("security-heading"));
             Body.AddChild(Line("boarding-rule", _boarding));
             Body.AddChild(Line("docking-rule", _docking));
+            foreach (var rule in Enum.GetValues<WFCrewDisengage>())
+                _disengage.AddItem(Text($"disengage-{rule.ToString().ToLowerInvariant()}"), (int) rule);
+            _disengage.SelectId((int) WFCrewDisengage.Disable);
+            SelectOnClick(_disengage);
+            Body.AddChild(Line("disengage-rule", _disengage));
+            Body.AddChild(Help("disengage-help"));
             Body.AddChild(Help("security-detail"));
             _heave.Text = Text("heave");
             Body.AddChild(_heave);
@@ -202,7 +209,7 @@ public sealed partial class WFCrewSetupWindow
         {
             Group = group, Callsign = _callsign.Text, Battlegroup = _battlegroup.Text.Trim(), Company = _companies[_company.SelectedId], Faction = _factions[_faction.SelectedId],
             LocalChannel = _channels[_local.SelectedId], AlertChannel = _channels[_alert.SelectedId], HeaveTo = _heave.Pressed,
-            BoardingResponse = (WFCrewSecurityResponse) _boarding.SelectedId, DockingResponse = (WFCrewSecurityResponse) _docking.SelectedId,
+            BoardingResponse = (WFCrewSecurityResponse) _boarding.SelectedId, DockingResponse = (WFCrewSecurityResponse) _docking.SelectedId, Disengage = (WFCrewDisengage) _disengage.SelectedId,
             Navigation = _navigation.Read(),
         };
 
@@ -215,6 +222,7 @@ public sealed partial class WFCrewSetupWindow
             _local.TrySelectId(Math.Max(0, _channels.IndexOf(mission.LocalChannel)));
             _alert.TrySelectId(Math.Max(0, _channels.IndexOf(mission.AlertChannel)));
             _boarding.SelectId((int) mission.BoardingResponse);
+            _disengage.SelectId((int) mission.Disengage);
             _docking.SelectId((int) mission.DockingResponse);
             _heave.Pressed = mission.HeaveTo;
             _navigation.Load(mission.Navigation);

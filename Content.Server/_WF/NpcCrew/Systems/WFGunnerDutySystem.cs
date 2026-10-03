@@ -183,7 +183,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     private float? Engageable(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
         MapCoordinates here, EntityUid ship, bool hostile)
     {
-        if (ship == grid || TerminatingOrDeleted(ship) || _status.IsDisabled(ship))
+        if (ship == grid || TerminatingOrDeleted(ship) || _status.ShouldDisengage(grid, ship))
             return null;
         // Reported attackers stay targets even inside the formation for their attack window.
         if (!hostile && (_escorts.AreInFormation(grid, ship)

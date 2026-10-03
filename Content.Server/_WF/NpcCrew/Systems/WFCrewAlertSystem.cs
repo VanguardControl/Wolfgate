@@ -78,7 +78,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>A formation partner stays an ally unless it fired on this ship within the attack window.</summary>
     private bool ValidShip(EntityUid grid, EntityUid ship, bool attacked)
     {
-        return !TerminatingOrDeleted(ship) && !_status.IsDisabled(ship)
+        return !TerminatingOrDeleted(ship) && !_status.ShouldDisengage(grid, ship)
             && Transform(ship).MapID == Transform(grid).MapID && (attacked || !_escorts.AreInFormation(grid, ship));
     }
 

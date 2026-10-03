@@ -48,6 +48,14 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public string Battlegroup = string.Empty;
 
+    /// <summary>When this crew stops attacking another ship.</summary>
+    [DataField]
+    public WFCrewDisengage Disengage = WFCrewDisengage.Disable;
+
+    /// <summary>Deter: the distance beyond which an attacker is left alone.</summary>
+    [DataField]
+    public float DisengageRange = 500f;
+
     /// <summary>Where the duty is worked and where the crewman returns to. Grid-relative.</summary>
     [DataField]
     public EntityCoordinates? Post;
