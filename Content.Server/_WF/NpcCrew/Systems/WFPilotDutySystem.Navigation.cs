@@ -100,7 +100,8 @@ public sealed partial class WFPilotDutySystem
             var distance = (_transform.ToMapCoordinates(anchor).Position - position).Length();
             if (_docking.GetDocks(grid).Any(dock => dock.Comp.Docked))
             {
-                args.Input = new ShuttleInput(Vector2.Zero, 0f, 0f);
+                // Docked ships don't return to an anchor, but they still brake or the pair drifts.
+                args.Input = new ShuttleInput(Vector2.Zero, 0f, 1f);
                 steerer.Status = ShipSteeringStatus.InRange;
                 return;
             }

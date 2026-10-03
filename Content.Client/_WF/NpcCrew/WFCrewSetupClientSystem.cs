@@ -1,4 +1,6 @@
+using Content.Client.Administration.Managers;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Administration;
 using Robust.Client.Graphics;
 using Robust.Shared.Timing;
 
@@ -9,6 +11,11 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IClientAdminManager _admin = default!;
+
+    /// <summary>The live crews from the last reply, drawn on an admin's radar.</summary>
+    public List<WFCrewSetupCrew> Crews { get; private set; } = new();
+    private TimeSpan _radarUntil;
     public WFCrewSetupResponse? Preview { get; private set; }
     public TimeSpan PreviewUntil { get; private set; }
     public event Action<WFCrewSetupResponse>? Received;
@@ -18,9 +25,11 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
-        if (Received == null)
+        var radar = _timing.RealTime < _radarUntil && _admin.HasFlag(AdminFlags.Spawn);
+        if (Received == null && !radar)
         {
             _pollTimer = 0;
+            Crews.Clear();
             return;
         }
         _pollTimer += frameTime;
@@ -47,8 +56,15 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
                 Preview = response;
                 PreviewUntil = _timing.CurTime + TimeSpan.FromSeconds(30);
             }
+            Crews = response.Crews;
             Received?.Invoke(response);
         });
+    }
+
+    /// <summary>Keeps the crew list fresh while a radar is drawing it.</summary>
+    public void WatchRadar()
+    {
+        _radarUntil = _timing.RealTime + TimeSpan.FromSeconds(3);
     }
 
     public override void Shutdown()

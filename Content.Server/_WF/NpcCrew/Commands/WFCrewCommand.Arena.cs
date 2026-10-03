@@ -20,7 +20,7 @@ public sealed partial class WFCrewCommand
     private const float ArenaSpacing = 200f;
 
     /// <summary>
-    /// wf_crew arena [vessel]: three crewed ships beside the caller. The lead holds, one escorts it, one docks with it.
+    /// wf_crew arena [vessel]: three crewed ships of one battlegroup beside the caller. The lead holds, one escorts it, one docks with it.
     /// </summary>
     private void Arena(IConsoleShell shell, string[] args)
     {
@@ -62,7 +62,7 @@ public sealed partial class WFCrewCommand
             }
 
             grids.Add(grid.Value);
-            var mission = new WFCrewMission { Group = group, Callsign = group };
+            var mission = new WFCrewMission { Group = group, Callsign = group, Battlegroup = "arena" };
             if (!_setup.TrySpawn(grid.Value, _setup.Plan(grid.Value, 2, captain), mission, out var crew))
                 shell.WriteError(Loc.GetString("cmd-wf_crew-arena-crew-failed", ("group", group)));
 

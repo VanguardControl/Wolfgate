@@ -164,9 +164,15 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     private void ApplySettings(EntityUid mob, WFCrewMission mission)
     {
         if (TryComp<WFCrewComponent>(mob, out var crew))
+        {
             crew.Navigation = mission.Navigation.Clone();
-        if (HasComp<WFPilotDutyComponent>(mob))
+            crew.Battlegroup = mission.Battlegroup.Trim();
+        }
+        if (TryComp<WFPilotDutyComponent>(mob, out var pilot))
+        {
+            pilot.ReactToAttacks = mission.HeaveTo;
             _pilots.SetNavigation(mob, mission.Navigation);
+        }
         EntityManager.System<WFCrewSecuritySystem>().Reset(mob);
         var security = EnsureComp<WFCrewSecurityComponent>(mob);
         security.Boarding = mission.BoardingResponse;

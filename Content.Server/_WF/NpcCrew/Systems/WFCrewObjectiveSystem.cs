@@ -210,7 +210,10 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 continue;
             }
             var completesOnArrival = item.Kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Retreat;
-            if (completesOnArrival ? duty.OrdersCompleted : item.Duration > 0 && state.Elapsed >= item.Duration)
+            // An attack is over once its target can neither move nor shoot.
+            var targetDisabled = item.Kind == WFCrewObjectiveKind.Attack
+                && EntityManager.System<WFCrewShipStatusSystem>().IsDisabled(target);
+            if (targetDisabled || (completesOnArrival ? duty.OrdersCompleted : item.Duration > 0 && state.Elapsed >= item.Duration))
             {
                 _pilots.Hold(pilot);
                 state.Items.RemoveAt(0);
@@ -273,8 +276,13 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             }
             row.Members++;
             row.Settings.Group = crew.Group;
+            row.Settings.Battlegroup = crew.Battlegroup;
             if (TryComp<WFPilotDutyComponent>(uid, out var pilot))
+            {
                 row.Settings.Navigation = pilot.Navigation.Clone();
+                if (_mobs.IsAlive(uid))
+                    SetActivity(row, pilot);
+            }
             if (TryComp<CompanyComponent>(uid, out var company))
                 row.Settings.Company = company.CompanyName.Id;
             if (TryComp<NpcFactionMemberComponent>(uid, out var faction))
@@ -295,7 +303,34 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             if (_mobs.IsAlive(uid))
                 row.Alive++;
         }
+        foreach (var (key, row) in result)
+        {
+            if (!_queues.TryGetValue(key, out var state) || state.Items.Count == 0)
+                continue;
+            if (state.Status != "running")
+            {
+                row.Activity = row.Status;
+                continue;
+            }
+            row.Activity = Loc.GetString($"wf-crew-activity-{state.Items[0].Kind.ToString().ToLowerInvariant()}");
+            row.ActivityTarget = state.Items[0].Target ?? row.ActivityTarget;
+        }
         return result.Values.ToList();
+    }
+
+    /// <summary>What the pilot is flying right now, for crews without a running queue.</summary>
+    private void SetActivity(WFCrewSetupCrew row, WFPilotDutyComponent pilot)
+    {
+        var escort = pilot.Orders == WFPilotOrder.Follow && pilot.EscortOffset != null;
+        row.Activity = Loc.GetString($"wf-crew-activity-{(escort ? "escort" : pilot.Orders.ToString().ToLowerInvariant())}");
+        EntityUid? target = pilot.Orders switch
+        {
+            WFPilotOrder.Follow => pilot.FollowTarget,
+            WFPilotOrder.Dock => pilot.DockTarget,
+            WFPilotOrder.Loiter => pilot.LoiterCenter?.EntityId,
+            _ => null,
+        };
+        row.ActivityTarget = target is { } uid && !TerminatingOrDeleted(uid) ? GetNetEntity(uid) : null;
     }
 
     private sealed class QueueState

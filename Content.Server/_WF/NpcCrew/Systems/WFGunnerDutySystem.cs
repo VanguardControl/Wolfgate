@@ -121,7 +121,8 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
             if (_objectives.AttackTarget(grid, crew.Group) is { } assigned)
                 candidates = candidates.Prepend(assigned).ToArray();
             var target = candidates
-                .Where(ship => ship != grid && (!_factions.IsEntityFriendly(uid, ship)
+                .Where(ship => ship != grid && !EntityManager.System<WFCrewShipStatusSystem>().IsDisabled(ship)
+                    && (!_factions.IsEntityFriendly(uid, ship)
                     || _alerts.IsHostileShip(grid, crew.Group, ship)
                     || _objectives.IsAttackTarget(grid, crew.Group, ship)
                     || _security.IsHostileDockingTarget(grid, crew.Group, ship))

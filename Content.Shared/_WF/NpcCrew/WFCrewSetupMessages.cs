@@ -35,6 +35,8 @@ public sealed class WFCrewSetupCrew
     public int Members;
     public int Alive;
     public string Status = string.Empty;
+    public string Activity = string.Empty;
+    public NetEntity? ActivityTarget;
     public WFCrewMission Settings = new();
     public List<WFCrewObjective> Objectives = new();
 }
@@ -55,6 +57,7 @@ public sealed class WFCrewMission
 {
     public string Group = "crew";
     public string Callsign = string.Empty;
+    public string Battlegroup = string.Empty;
     public string Company = string.Empty;
     public string Faction = "WFCrew";
     public string LocalChannel = "Traffic";

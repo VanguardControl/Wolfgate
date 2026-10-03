@@ -28,6 +28,10 @@ public sealed partial class WFCrewTest
             Assert.That(crews["arena-escort"].Objectives.Single().Target, Is.EqualTo(lead));
             Assert.That(crews["arena-dock"].Objectives.Single().Kind, Is.EqualTo(WFCrewObjectiveKind.Dock));
             Assert.That(crews["arena-dock"].Objectives.Single().Target, Is.EqualTo(lead));
+            Assert.That(crews.Values.All(crew => crew.Settings.Battlegroup == "arena" && crew.Activity.Length > 0), Is.True);
+            // The docking ship is no escort; only the battlegroup makes it an ally of the lead.
+            Assert.That(Server.System<WFCrewEscortSystem>().AreInFormation(
+                SEntMan.GetEntity(lead), SEntMan.GetEntity(crews["arena-dock"].Grid)), Is.True);
         });
     }
 }

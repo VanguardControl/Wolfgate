@@ -208,6 +208,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSecuritySystem.cs`](Systems/WFCrewSecuritySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShieldProtectionSystem.cs`](Systems/WFCrewShieldProtectionSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewShipStatusSystem.cs`](Systems/WFCrewShipStatusSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSpeechSystem.cs`](Systems/WFCrewSpeechSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewUiDiagnosticsSystem.cs`](Systems/WFCrewUiDiagnosticsSystem.cs)
@@ -233,6 +234,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 
 ### Client
 
+- [`Content.Client/_WF/NpcCrew/ShuttleNavControl.NpcCrew.cs`](../../../Content.Client/_WF/NpcCrew/ShuttleNavControl.NpcCrew.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Creation.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Creation.cs)
@@ -270,6 +272,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupUi.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupUi.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShipStatus.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShipStatus.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
@@ -302,11 +305,13 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 
 ## Non-modular edits
 
+- [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): Admin tags and battlegroup lines for NPC-crewed ships.
 - [`Content.Client/Verbs/VerbSystem.cs`](../../../Content.Client/Verbs/VerbSystem.cs)
   - opt-in traces distinguish missing UI replies from stale player attachments.
   - trace the response after the active menu handles it.
 - [`Content.Server/_Mono/FireControl/FireControlSystem.cs`](../../_Mono/FireControl/FireControlSystem.cs): distinguish NPC bursts from later manual fire.
 - [`Content.Server/_Mono/NPC/HTN/ShipSteeringSystem.cs`](../../_Mono/NPC/HTN/ShipSteeringSystem.cs)
+  - Escorts hold the leader's heading instead of the bearing to a nearby slot.
   - Keep destination-hull avoidance scoped to crew pilots.
   - Crewed ships avoid their orbit and escort targets as physical obstacles.
   - Identifies crew steering without changing other NPC navigation.

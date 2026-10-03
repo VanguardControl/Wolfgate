@@ -124,6 +124,7 @@ public sealed partial class WFCrewSetupWindow
     {
         public readonly BoxContainer Body = Column(12);
         private readonly LineEdit _callsign = new();
+        private readonly LineEdit _battlegroup = new();
         private readonly OptionButton _company = new();
         private readonly OptionButton _faction = new();
         private readonly OptionButton _local = new();
@@ -159,6 +160,8 @@ public sealed partial class WFCrewSetupWindow
                 SelectOnClick(button);
             }
             Body.AddChild(Line("callsign", _callsign));
+            Body.AddChild(Line("battlegroup", _battlegroup));
+            Body.AddChild(Help("battlegroup-help"));
             Body.AddChild(Line("company", _company));
             Body.AddChild(Line("faction", _faction));
             Body.AddChild(Help("affiliation-help"));
@@ -180,7 +183,7 @@ public sealed partial class WFCrewSetupWindow
 
         public WFCrewMission Read(string group) => new()
         {
-            Group = group, Callsign = _callsign.Text, Company = _companies[_company.SelectedId], Faction = _factions[_faction.SelectedId],
+            Group = group, Callsign = _callsign.Text, Battlegroup = _battlegroup.Text.Trim(), Company = _companies[_company.SelectedId], Faction = _factions[_faction.SelectedId],
             LocalChannel = _channels[_local.SelectedId], AlertChannel = _channels[_alert.SelectedId], HeaveTo = _heave.Pressed,
             BoardingResponse = (WFCrewSecurityResponse) _boarding.SelectedId, DockingResponse = (WFCrewSecurityResponse) _docking.SelectedId,
             Navigation = _navigation.Read(),
@@ -189,6 +192,7 @@ public sealed partial class WFCrewSetupWindow
         public void Load(WFCrewMission mission)
         {
             _callsign.Text = mission.Callsign;
+            _battlegroup.Text = mission.Battlegroup;
             _company.TrySelectId(Math.Max(0, _companies.IndexOf(mission.Company)));
             _faction.TrySelectId(Math.Max(0, _factions.IndexOf(mission.Faction)));
             _local.TrySelectId(Math.Max(0, _channels.IndexOf(mission.LocalChannel)));

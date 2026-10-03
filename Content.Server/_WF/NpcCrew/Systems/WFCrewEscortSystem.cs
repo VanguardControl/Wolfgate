@@ -52,14 +52,36 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
         if (TerminatingOrDeleted(grid) || !HasComp<MapGridComponent>(grid))
             return members;
         var crews = new HashSet<(EntityUid Grid, string Group)>();
+        var battlegroups = new Dictionary<string, List<EntityUid>>();
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var transform))
         {
             if (_mobs.IsAlive(uid) && !HasComp<ActorComponent>(uid)
                 && (crew.Post?.EntityId ?? transform.GridUid) is { } home && HasComp<MapGridComponent>(home))
+            {
                 crews.Add((home, crew.Group));
+                if (crew.Battlegroup.Length == 0 || Transform(home).MapID != Transform(grid).MapID)
+                    continue;
+                if (!battlegroups.TryGetValue(crew.Battlegroup, out var ships))
+                    battlegroups[crew.Battlegroup] = ships = new List<EntityUid>();
+                if (!ships.Contains(home))
+                    ships.Add(home);
+            }
         }
         var neighbors = new Dictionary<EntityUid, HashSet<EntityUid>>();
+        // Every ship of a battlegroup is linked through its first ship.
+        foreach (var ships in battlegroups.Values)
+        {
+            for (var i = 1; i < ships.Count; i++)
+            {
+                if (!neighbors.TryGetValue(ships[0], out var first))
+                    neighbors[ships[0]] = first = new HashSet<EntityUid>();
+                first.Add(ships[i]);
+                if (!neighbors.TryGetValue(ships[i], out var other))
+                    neighbors[ships[i]] = other = new HashSet<EntityUid>();
+                other.Add(ships[0]);
+            }
+        }
         foreach (var (key, target) in _escorts.ToArray())
         {
             if (!crews.Contains(key) || TerminatingOrDeleted(key.Grid) || TerminatingOrDeleted(target)

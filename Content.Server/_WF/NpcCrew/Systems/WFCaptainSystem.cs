@@ -58,43 +58,58 @@ public sealed partial class WFCaptainSystem : EntitySystem
 
     private void OnAlert(ref WFCrewAlertEvent args)
     {
+        var commanded = false;
         var captains = EntityQueryEnumerator<WFCaptainComponent>();
         while (captains.MoveNext(out var captain, out var component))
         {
-            if (!component.HeaveTo || !Eligible(captain, args.Grid, args.Group))
+            if (!Eligible(captain, args.Grid, args.Group))
                 continue;
-            var pilots = EntityQueryEnumerator<WFPilotDutyComponent, WFCrewComponent>();
-            while (pilots.MoveNext(out var pilot, out var duty, out var crew))
+            commanded = true;
+            if (component.HeaveTo)
+                React(captain, ref args);
+        }
+
+        // With no captain aboard the pilot decides for the ship.
+        if (!commanded)
+            React(null, ref args);
+    }
+
+    /// <summary>Suspends each pilot's course and has them evade the attacker, or hold for a threat aboard.</summary>
+    private void React(EntityUid? commander, ref WFCrewAlertEvent args)
+    {
+        var pilots = EntityQueryEnumerator<WFPilotDutyComponent, WFCrewComponent>();
+        while (pilots.MoveNext(out var pilot, out var duty, out var crew))
+        {
+            if (crew.Duty != WFCrewDuties.Pilot || !Eligible(pilot, args.Grid, args.Group)
+                || _courses.ContainsKey(pilot)
+                || _overridden.Contains((args.Grid, args.Group, pilot))
+                || commander == null && !duty.ReactToAttacks)
+                continue;
+            var captain = commander ?? pilot;
+            // Preserve the destination beyond automatic undocking, not its temporary back-off course.
+            var order = duty.ResumeOrder ?? duty.Orders;
+            var waypoints = duty.ResumeOrder != null
+                ? duty.ResumeWaypoints.ToList()
+                : duty.Waypoints.Skip(duty.WaypointIndex).ToList();
+            _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, order,
+                waypoints, duty.LoiterCenter, duty.RequestedLoiterRadius, duty.LoiterSpeedOverride, duty.OrbitKind,
+                duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot, duty.EscortSpacing,
+                duty.HoldPosition, duty.HoldHeading);
+            _changingOrders = true;
+            try
             {
-                if (crew.Duty != WFCrewDuties.Pilot || !Eligible(pilot, args.Grid, args.Group)
-                    || _courses.ContainsKey(pilot)
-                    || _overridden.Contains((args.Grid, args.Group, pilot)))
-                    continue;
-                // Preserve the destination beyond automatic undocking, not its temporary back-off course.
-                var order = duty.ResumeOrder ?? duty.Orders;
-                var waypoints = duty.ResumeOrder != null
-                    ? duty.ResumeWaypoints.ToList()
-                    : duty.Waypoints.Skip(duty.WaypointIndex).ToList();
-                _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, order,
-                    waypoints, duty.LoiterCenter, duty.RequestedLoiterRadius, duty.LoiterSpeedOverride, duty.OrbitKind,
-                    duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot, duty.EscortSpacing,
-                    duty.HoldPosition, duty.HoldHeading);
-                _changingOrders = true;
-                try
+                var threats = _alerts.GetHostileShips(args.Grid, args.Group);
+                if (threats.FirstOrDefault() is var threat && threat.IsValid())
                 {
-                    var threats = _alerts.GetHostileShips(args.Grid, args.Group);
-                    if (threats.FirstOrDefault() is var threat && threat.IsValid())
-                    {
-                        var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(threat, out var targetGrid)
-                            ? targetGrid.LocalAABB.Center : System.Numerics.Vector2.Zero;
-                        _pilots.Loiter(pilot, new EntityCoordinates(threat, center), 0f,
-                            objective: WFCrewObjectiveKind.Attack);
-                    }
-                    else
-                        _pilots.Hold(pilot);
+                    var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(threat, out var targetGrid)
+                        ? targetGrid.LocalAABB.Center : System.Numerics.Vector2.Zero;
+                    _pilots.Loiter(pilot, new EntityCoordinates(threat, center), 0f,
+                        objective: WFCrewObjectiveKind.Attack);
                 }
-                finally { _changingOrders = false; }
+                else
+                    _pilots.Hold(pilot);
             }
+            finally { _changingOrders = false; }
         }
     }
 

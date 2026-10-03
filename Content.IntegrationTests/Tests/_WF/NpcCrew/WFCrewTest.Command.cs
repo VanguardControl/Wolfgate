@@ -33,7 +33,8 @@ public sealed partial class WFCrewTest
             SEntMan.GetComponent<HTNComponent>(pilot).Enabled = false;
             helm = SEntMan.SpawnAtPosition(TestHelm, new EntityCoordinates(deck, new Vector2(3.5f)));
         });
-        await RunTicks(5);
+        await WaitUntil(() => Server.System<WFPilotDutySystem>().TryFindHelm(pilot, out var available) && available == helm,
+            120, () => DescribePilot(pilot, helm));
         await Server.WaitAssertion(() =>
         {
             Assert.That(Server.System<WFPilotDutySystem>().TryTakeHelm(pilot, helm), Is.True, DescribePilot(pilot, helm));

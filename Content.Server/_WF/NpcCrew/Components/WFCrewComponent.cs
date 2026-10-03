@@ -44,6 +44,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public string Group = string.Empty;
 
+    /// <summary>Ships whose crews share a battlegroup are allies and answer each other's threats.</summary>
+    [DataField]
+    public string Battlegroup = string.Empty;
+
     /// <summary>Where the duty is worked and where the crewman returns to. Grid-relative.</summary>
     [DataField]
     public EntityCoordinates? Post;

@@ -31,6 +31,13 @@ public sealed partial class WFPilotDutyComponent : Component
     /// <summary>Fixed station captured when Hold is ordered, with hysteresis for drift correction.</summary>
     public EntityCoordinates? HoldPosition;
     public Angle HoldHeading;
+
+    /// <summary>Without a captain aboard, whether this pilot evades attacking ships on their own.</summary>
+    [DataField]
+    public bool ReactToAttacks = true;
+
+    /// <summary>A heading the steerer holds whatever the bearing to its target; set while close to an escort slot.</summary>
+    public Angle? HeadingOverride;
     public bool CorrectingHold;
 
     /// <summary>Assigned helm. Null takes the nearest powered shuttle console on the crewman's grid.</summary>

@@ -21,6 +21,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private HTNSystem _htn = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WFCrewEscortSystem _escorts = default!;
+    [Dependency] private WFCrewShipStatusSystem _status = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
@@ -46,7 +47,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         IEnumerable<EntityUid> attacks = _timing.CurTime < alert.AttackedUntil ? alert.Vessels : Array.Empty<EntityUid>();
         var docking = alert.DockingVessels.Where(ship =>
             EntityManager.System<WFCrewSecuritySystem>().IsHostileDockingTarget(grid, group, ship));
-        return attacks.Concat(docking).Distinct().Where(ship => !TerminatingOrDeleted(ship)
+        return attacks.Concat(docking).Distinct().Where(ship => !TerminatingOrDeleted(ship) && !_status.IsDisabled(ship)
             && Transform(ship).MapID == Transform(grid).MapID && !_escorts.AreInFormation(grid, ship)).ToArray();
     }
 

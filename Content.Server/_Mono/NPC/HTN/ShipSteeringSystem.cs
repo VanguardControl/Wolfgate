@@ -108,6 +108,7 @@ public sealed partial class ShipSteeringSystem : EntitySystem
             return;
 
         Angle? targetAngle = inRange && ent.Comp.InRangeRotation is { } rot ? rot : (ent.Comp.AlwaysFaceTarget ? toTargetVec.ToWorldAngle() : null);
+        targetAngle = CrewHeading(ent) ?? targetAngle; // WOLFGATE(NpcCrew): Escorts hold the leader's heading instead of the bearing to a nearby slot.
 
         var config = new SteeringConfig
         {

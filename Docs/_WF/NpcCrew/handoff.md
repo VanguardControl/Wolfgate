@@ -66,7 +66,7 @@ Entry points for other modules (Encounters): `WFCrewSetupSystem.TrySpawn(grid, p
 `WFCrewSetupSystem.TryApplyMission`, `WFCrewObjectiveSystem.SetQueue/Control/Cancel/Snapshot`,
 `WFCrewAlertSystem.ReportShipThreat(grid, group, attacker)`, `WFPilotDutySystem.SetNavigation`.
 
-Last verified on the merge of `main` at `633c05cc4e` (2026-10-03): Debug integration build 0 errors; all 212
+Last verified on the merge of `main` at `633c05cc4e` (2026-10-03): Debug integration build 0 errors; all 214
 crew and ship shield integration cases passed; module `--check` and `--pr-check origin/main` passed.
 
 ## Not yet verified
@@ -97,6 +97,14 @@ crew and ship shield integration cases passed; module `--check` and `--pr-check 
   headset shares nothing. Check `Enabled` as well as `ActiveRadio`, which is removed at the end of the tick.
 - PAIs, borg brains and station AI entities are `Alive` but are not boarders; use the shared boarding-candidate
   check.
+- Ships whose crews share a `Battlegroup` (a mission setting) are one formation: no friendly fire, and an attack
+  on one alerts all. `WFCrewEscortSystem.GetFormation` is the single source for both escorts and battlegroups.
+- A ship is disabled (`WFCrewShipStatusSystem.IsDisabled`) once it was seen working and then has no thrust and no
+  powered ship weapon. Disabled ships leave the threat list, gunners stop firing and an Attack task completes.
+  Hulls never seen working (stations, wrecks, bare test decks) are never judged.
+- With no captain aboard, the pilot evades attackers on their own (`WFPilotDutyComponent.ReactToAttacks`, set from
+  the mission's "Captain reacts to attacks").
+- Admins see crew tags and battlegroup lines on any radar; the client polls the crew list only while one is open.
 - Work orders rebuild only what the ship's saved repair snapshot holds and the ordinary SRD whitelist allows.
 
 ## Playtesting

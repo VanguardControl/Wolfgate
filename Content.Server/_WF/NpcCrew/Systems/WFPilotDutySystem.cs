@@ -201,6 +201,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     private void SetOrders(Entity<WFPilotDutyComponent> ent, WFPilotOrder orders, bool continuation = false)
     {
         ent.Comp.ResumeOrder = null;
+        ent.Comp.HeadingOverride = null;
         if (orders is not (WFPilotOrder.Hold or WFPilotOrder.Undock)
             && Transform(ent).GridUid is { } grid && _docking.GetDocks(grid).Any(dock => dock.Comp.Docked)
             && !(orders == WFPilotOrder.Dock && ent.Comp.DockTarget is { } destination && _docking.AreGridsDocked(grid, destination)))
@@ -382,6 +383,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     private void Advance(Entity<WFPilotDutyComponent> ent, ShipSteererComponent steerer, float frameTime)
     {
         var duty = ent.Comp;
+        duty.HeadingOverride = null;
         if (duty.Orders == WFPilotOrder.Follow && duty.EscortOffset != null && duty.FollowTarget is { } leader
             && !TerminatingOrDeleted(leader) && Transform(ent).GridUid is { } grid)
         {
@@ -390,8 +392,10 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             steerer.InRangeRotation = heading;
             steerer.AlwaysFaceTarget = true;
             var distance = (_transform.ToMapCoordinates(steerer.Coordinates).Position - _transform.GetWorldPosition(grid)).Length();
-            steerer.TargetRotation = distance > MathF.Max(duty.Navigation.EscortHeadingRange, GridRadius(grid) * 2f)
-                ? TravelHeadingOffset(ent) : CreepHeadingOffset(steerer, heading, grid);
+            // Near the slot its bearing swings every tick; hold the leader's heading outright.
+            var cruising = distance > MathF.Max(duty.Navigation.EscortHeadingRange, GridRadius(grid) * 2f);
+            duty.HeadingOverride = cruising ? null : heading;
+            steerer.TargetRotation = cruising ? TravelHeadingOffset(ent) : 0f;
         }
         switch (duty.Orders)
         {
