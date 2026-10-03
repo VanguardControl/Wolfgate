@@ -451,8 +451,62 @@ client sandboxing. Its logs are TEMP/wfcrew-escort-server*.log and wfcrew-escort
 Ready without ERRO/FATL entries; the graphical client enabled sandboxing and reached GameplayState without
 sandbox violations. At launch the server PID was 33092 and client PID 10640; recheck before acting on processes.
 The user took over the live client and entered admin ghost while the UI check was starting, so further automated
-input was stopped. No live reproduction of the empty menus is confirmed yet. Keep this work local;
-no PR or push without explicit permission.
+input was stopped. The later live diagnosis is recorded below. Keep this work local; no PR or push without
+explicit permission.
+
+### Live menu delay diagnosis and playtest launcher
+
+The empty-menu symptom recurred in the matching Debug pair. Both client and server retained the correct ghost,
+Actor and admin session; the server generated full verb replies immediately. Those replies reached the client
+roughly 48 seconds and 9.5 seconds later, after the native menus had closed. No global popup reset is justified.
+
+The engine's Debug physics-ray system broadcasts every `MsgRay` over the same reliable ordered channel as menu
+and Ghost Warp replies. Its 64-message window is easily saturated by NPC visibility checks with the development
+network simulation: both endpoints had 75 ms minimum latency, no random latency, 0.5% loss and 0.5% duplication.
+World state uses a separate delivery mode and continues updating during this queue backlog. Client inspection
+found only a few future-tick rays in its entity-event queue, ruling out an old queued reply at that sample.
+
+A controlled live burst of 2048 `MsgRay` events followed by the actual `GhostOrbitSystem.OnRequest` reproduced
+the mechanism: server reply tick 48110, client receipt tick 48271 (about 5.37 seconds), with server unsent messages
+falling from 1994 to 1572 to 1102 while 64 were stored for acknowledgement. Disabling all four simulation cvars
+on both endpoints and repeating the same burst gave reply tick 56414 and receipt tick 56420 (about 0.2 seconds),
+with unsent/stored counts returning to zero. Actual Ghost Warp then displayed 25 targets and refreshed three
+times in about 0.23 seconds each; a native context menu received 55 server verbs in 0.203 seconds while still
+open. This proves the transport backlog mechanism; a sustained combat retest of the original gameplay sequence
+remains outstanding. The existing user's session was preserved, and automated input stopped when they resumed.
+
+`Tools/_WF/NpcCrew/Start-TestPair.ps1` now builds Server then Client serially with `--no-restore -m:1` into
+`bin/NpcCrewPlaytest.Server` and `bin/NpcCrewPlaytest.Client`. These sibling output directories preserve each
+project's dependency versions and the engine's expected `repo/bin/<name>` resource lookup depth. `-BuildName`
+changes their shared name prefix. Its default `Tools` configuration keeps development/admin tools but compiles out the
+Debug ray broadcasts. It explicitly disables `net.fakelagmin`, `net.fakelagrand`, `net.fakeloss` and
+`net.fakeduplicates` on both endpoints, enables client sandboxing and crew UI diagnostics, and disables mob
+pushing. Default address: `ss14://127.0.0.1:1221`; default preserved data: `TEMP/wfcrew-navigation-server-data`.
+Use `-SkipBuild` for existing matching binaries, or `-Port 1223 -DataDirectory <new-path>` for separate validation.
+The helper refuses occupied ports/live output or data directories, captures timestamped TEMP logs, and bounds
+server startup to 60 seconds before opening the graphical client. It never stops an existing session. Script
+validation passed parsing, help, occupied-port protection and live-output protection.
+`-ClientWindowStyle Hidden` is available for a separate smoke run. Server and Client `Tools` builds completed
+with zero errors (1707 and 1726 warnings respectively); the helper has not itself performed those builds yet.
+The first smoke run exposed a launcher output-layout error: building both projects into one directory let the
+client overwrite `Microsoft.Extensions.DependencyInjection.Abstractions` v10 with v3.1, causing the server's
+`ReflectionTypeLoadException`. Log: `TEMP/wfcrew-playtest-20261003-112351-707-server.log`. A second attempt with
+nested Server/Client directories failed development resource lookup (`bin/RobustToolbox/Resources` missing).
+The helper now uses the sibling directories above; the final startup check passed. These
+launcher startup failures are distinct from the original live session's menu delay.
+
+Final smoke run: the helper started a separate pair on port 1223 with fresh TEMP/wfcrew-validation-data-20261003.
+Server reached Ready; the real graphical client enabled sandboxing and reached GameplayState. Neither final
+startup log contained ERRO/FATL or Sandbox violation. Logs: TEMP/wfcrew-playtest-20261003-113045-494-*.log.
+Only this temporary pair (PIDs 35656/32772) was stopped after validation. No engine or gameplay code changed.
+Evidence snapshots: TEMP/wfcrew-live-20261003-110307 (initial and post-fix client/server logs).
+
+The user continued testing after the runtime correction: outfit spawn 17995 -> ordinary ghost 18986, followed
+by responsive crew setup replies and 48 server verbs in 0.703 seconds. No further UI waiting warnings appeared.
+The original client later shut down normally (Client shutting down; Goodbye); it was not stopped by this task.
+Original server PID 33092 remains running on port 1221, paused automatically with no connected clients.
+The transport capture was a bounded 15-minute runtime timer. The four simulation cvars stay zero until restart.
+Use the launcher for the next pair after stopping the existing server; never overwrite its running binaries.
 
 ## Additional engine traps
 
