@@ -18,7 +18,9 @@ public sealed class WFCrewCommsSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     private (EntityUid Sender, EntityUid Target, EntityUid Radio, WFRadioLine? Incident)? _report;
-    private readonly Dictionary<(EntityUid Sender, WFRadioLine Line), TimeSpan> _incidents = new();
+    private readonly Dictionary<(EntityUid Grid, string Group, WFRadioLine? Kind, EntityUid Subject), TimeSpan> _incidents = new();
+    private readonly List<EntityUid> _stale = new();
+    private TimeSpan _nextPrune;
 
     public override void Initialize()
     {
@@ -30,8 +32,11 @@ public sealed class WFCrewCommsSystem : EntitySystem
     public bool Knows(EntityUid uid, EntityUid target) => TryComp<WFCrewComponent>(uid, out var crew)
         && crew.RadioSightings.TryGetValue(target, out var until) && _timing.CurTime < until;
 
-    /// <summary>Relays a witnessed contact or incident over Shortband, with ten-second report cooldowns.</summary>
-    public void Report(EntityUid sender, EntityUid target, WFRadioLine? incident = null)
+    /// <summary>
+    /// Relays a witnessed contact or incident over Shortband. One line goes out per crew, kind and subject every ten
+    /// seconds; true when this call sent it or an earlier witness already had, false when this crewman could not.
+    /// </summary>
+    public bool Report(EntityUid sender, EntityUid target, WFRadioLine? incident = null)
     {
         if (!TryComp<WFCrewComponent>(sender, out var crew) || !crew.ShareAlerts || !_mobs.IsAlive(sender)
             || incident == null && (_timing.CurTime < crew.NextReport
@@ -40,15 +45,11 @@ public sealed class WFCrewCommsSystem : EntitySystem
             || !TryComp<HeadsetComponent>(headset, out var transmitter) || !transmitter.Enabled
             || !HasComp<WFCrewRadioComponent>(headset) || !TryComp<ActiveRadioComponent>(headset, out var active)
             || !active.Channels.Contains("Traffic"))
-            return;
-        foreach (var key in _incidents.Where(entry => entry.Value <= _timing.CurTime).Select(entry => entry.Key).ToArray())
-            _incidents.Remove(key);
-        if (incident is { } kind)
-        {
-            if (_incidents.ContainsKey((sender, kind)))
-                return;
-            _incidents[(sender, kind)] = _timing.CurTime + TimeSpan.FromSeconds(10);
-        }
+            return false;
+        var key = (HomeGrid(sender, crew), crew.Group, incident, target);
+        if (_incidents.TryGetValue(key, out var until) && _timing.CurTime < until)
+            return true;
+        _incidents[key] = _timing.CurTime + TimeSpan.FromSeconds(10);
         crew.NextReport = _timing.CurTime + TimeSpan.FromSeconds(10);
         var previous = _report;
         _report = (sender, target, headset.Value, incident);
@@ -66,6 +67,34 @@ public sealed class WFCrewCommsSystem : EntitySystem
         {
             _report = previous;
         }
+        return true;
+    }
+
+    private EntityUid HomeGrid(EntityUid uid, WFCrewComponent crew) => crew.Post?.EntityId ?? Transform(uid).GridUid ?? EntityUid.Invalid;
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        var now = _timing.CurTime;
+        if (now < _nextPrune)
+            return;
+        _nextPrune = now + TimeSpan.FromSeconds(1);
+        foreach (var key in _incidents.Where(entry => entry.Value <= now).Select(entry => entry.Key).ToArray())
+            _incidents.Remove(key);
+        var query = EntityQueryEnumerator<WFCrewComponent>();
+        while (query.MoveNext(out _, out var crew))
+        {
+            if (crew.RadioSightings.Count == 0)
+                continue;
+            _stale.Clear();
+            foreach (var (seen, until) in crew.RadioSightings)
+            {
+                if (now >= until || TerminatingOrDeleted(seen))
+                    _stale.Add(seen);
+            }
+            foreach (var seen in _stale)
+                crew.RadioSightings.Remove(seen);
+        }
     }
 
     private void OnReceive(Entity<WFCrewRadioComponent> ent, ref RadioReceiveEvent args)
@@ -78,7 +107,7 @@ public sealed class WFCrewCommsSystem : EntitySystem
         var wearer = Transform(ent).ParentUid;
         if (!TryComp<WFCrewComponent>(wearer, out var crew) || !crew.ShareAlerts || !_mobs.IsAlive(wearer)
             || crew.Group != sender.Group
-            || Transform(wearer).GridUid != Transform(report.Sender).GridUid
+            || HomeGrid(wearer, crew) != HomeGrid(report.Sender, sender)
             || !_inventory.TryGetSlotEntity(wearer, "ears", out var equipped) || equipped != ent.Owner)
             return;
         if (report.Incident is { } incident)

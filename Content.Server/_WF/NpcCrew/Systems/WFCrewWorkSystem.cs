@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Damage;
 using Content.Shared.Hands.EntitySystems;
@@ -8,6 +9,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Mobs.Components;
 using Content.Shared._Mono.ShipRepair.Components;
 using Content.Shared.Repairable;
+using Content.Shared.Shuttles.Components;
 using Content.Shared.Stacks;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
@@ -28,13 +30,37 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     [Dependency] private WFCrewWeaponSystem _weapons = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WFCrewEvaSystem _eva = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
     private readonly Dictionary<EntityUid, Job> _jobs = new();
+    private readonly Dictionary<(EntityUid Grid, string Group), Skipped> _skipped = new();
+    private readonly HashSet<Entity<DockingComponent>> _docks = new();
+    private float _timer;
+
+    /// <summary>How long a worker may be away from a home grid it is not docked to before the job is dropped.</summary>
+    private static readonly TimeSpan StrandedAfter = TimeSpan.FromSeconds(10);
 
     /// <summary>Incapacitated or dead workers cannot continue their assigned interaction.</summary>
-    public void CancelWorker(EntityUid worker) => _jobs.Remove(worker);
+    public void CancelWorker(EntityUid worker)
+    {
+        if (_jobs.TryGetValue(worker, out var job))
+            EndJob(worker, job);
+    }
+
+    /// <summary>Whether the crewman currently holds a work job.</summary>
+    public bool HasJob(EntityUid worker) => _jobs.ContainsKey(worker);
 
     /// <summary>Workers collecting cargo remain listed with their ship while visiting the supply grid.</summary>
-    public EntityUid? HomeGrid(EntityUid worker) => _jobs.TryGetValue(worker, out var job) ? job.Grid : null;
+    public EntityUid? HomeGrid(EntityUid worker)
+    {
+        if (!_jobs.TryGetValue(worker, out var job))
+            return null;
+        if (TerminatingOrDeleted(job.Grid) || TerminatingOrDeleted(worker))
+        {
+            EndJob(worker, job);
+            return null;
+        }
+        return job.Grid;
+    }
 
     /// <summary>Stops assigning work when the corresponding order is cancelled or paused.</summary>
     public void Cancel(EntityUid grid, string group)
@@ -42,13 +68,34 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         foreach (var (worker, job) in _jobs.ToArray())
         {
             if (job.Grid == grid && job.Group == group)
-            {
-                if (job.Returning && !TerminatingOrDeleted(worker))
-                    _hands.TryDrop(worker, job.Target);
-                if (job.Tool is { } tool && TryComp<WelderComponent>(tool, out var welder) && welder.Enabled)
-                    _tools.TurnOff((tool, welder), worker);
-                _jobs.Remove(worker);
-            }
+                EndJob(worker, job);
+        }
+        _skipped.Remove((grid, group));
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _timer += frameTime;
+        if (_timer < 1f)
+            return;
+        _timer = 0;
+        foreach (var (worker, job) in _jobs.ToArray())
+        {
+            if (TerminatingOrDeleted(worker) || TerminatingOrDeleted(job.Grid) || !_mobs.IsAlive(worker)
+                || HasComp<ActorComponent>(worker))
+                EndJob(worker, job);
+            else if (job.Failed)
+                Release(worker, job);
+            else
+                CheckStranded(worker, job);
+        }
+        foreach (var (key, skipped) in _skipped.ToArray())
+        {
+            if (TerminatingOrDeleted(key.Grid))
+                _skipped.Remove(key);
+            else
+                skipped.Entities.RemoveWhere(uid => TerminatingOrDeleted(uid));
         }
     }
 
@@ -61,17 +108,20 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 continue;
             if (TerminatingOrDeleted(worker) || !_mobs.IsAlive(worker) || HasComp<ActorComponent>(worker))
             {
-                _jobs.Remove(worker);
+                EndJob(worker, job);
                 continue;
             }
-            return job.Failed ? "work-blocked" : "working";
+            if (!job.Failed)
+                return "working";
+            Release(worker, job);
         }
 
         EntityUid? chosen = null;
         var crewQuery = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (crewQuery.MoveNext(out var uid, out var crew, out var xform))
         {
-            if (xform.GridUid == grid && crew.Group == group && crew.Role == WFCrewRoles.Deckhand && crew.Duty == WFCrewDuties.Guard
+            if (xform.GridUid == grid && (crew.Post?.EntityId ?? xform.GridUid) == grid && crew.Group == group
+                && crew.Role == WFCrewRoles.Deckhand && crew.Duty == WFCrewDuties.Guard
                 && _mobs.IsAlive(uid) && !HasComp<ActorComponent>(uid) && !_weapons.HasLiveThreat(uid))
             {
                 chosen = uid;
@@ -81,47 +131,140 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         if (chosen is not { } mob)
             return "no-worker";
         if (!_eva.Prepare(mob))
+        {
+            _eva.SeekSpare(mob);
             return "no-eva";
+        }
 
         var home = Comp<WFCrewComponent>(mob).Post ?? Transform(mob).Coordinates;
+        var skipped = SkippedFor(grid, group, kind);
+        var blocked = false;
         if (kind == WFCrewObjectiveKind.Repair)
         {
-            if (MissingStructure(grid, mob).FirstOrDefault() is { } missing)
+            foreach (var missing in MissingStructure(grid, mob))
             {
-                _jobs[mob] = new Job(grid, group, grid, home, null, _timing.CurTime) { SrdCoordinates = missing };
+                if (missing is not { } at)
+                    continue;
+                if (skipped.Coordinates.Contains(at))
+                {
+                    blocked = true;
+                    continue;
+                }
+                _jobs[mob] = new Job(grid, group, kind, grid, home, null, _timing.CurTime) { SrdCoordinates = at };
                 return "working";
             }
+            var noTool = false;
             var targets = EntityQueryEnumerator<RepairableComponent, DamageableComponent, TransformComponent>();
             while (targets.MoveNext(out var target, out var repair, out var damage, out var xform))
             {
                 if (xform.GridUid != grid || damage.TotalDamage <= 0 || HasComp<MobStateComponent>(target))
                     continue;
-                var tool = FindTool(mob, grid, repair);
+                if (skipped.Entities.Contains(target))
+                {
+                    blocked = true;
+                    continue;
+                }
+                var tool = FindTool(mob, repair);
                 if (tool == null)
-                    return "no-tool";
-                _jobs[mob] = new Job(grid, group, target, home, tool, _timing.CurTime);
+                {
+                    noTool = true;
+                    continue;
+                }
+                _jobs[mob] = new Job(grid, group, kind, target, home, tool, _timing.CurTime);
                 return "working";
             }
-            return "complete";
+            return noTool ? "no-tool" : blocked ? "work-blocked" : Complete(grid, group);
         }
 
-        var items = EntityQueryEnumerator<TransformComponent>();
-        while (items.MoveNext(out var item, out var transform))
+        if (TerminatingOrDeleted(source))
+            return Complete(grid, group);
+        var items = Transform(source).ChildEnumerator;
+        while (items.MoveNext(out var item))
         {
-            if (transform.ParentUid != source || transform.Anchored)
+            if (Transform(item).Anchored)
                 continue;
             if (kind == WFCrewObjectiveKind.Salvage ? !HasComp<StackComponent>(item)
                 : !(HasComp<BallisticAmmoProviderComponent>(item) && !HasComp<GunComponent>(item) && _weapons.AmmoCount(item) > 0
-                    || TryComp<Content.Shared.Atmos.Components.GasTankComponent>(item, out var tank) && tank.Air.Pressure > 600
-                    && tank.Air.GetMoles(Content.Shared.Atmos.Gas.Oxygen) > 0))
+                    || TryComp<Content.Shared.Atmos.Components.GasTankComponent>(item, out var tank) && _eva.IsUsableSpare(item, tank)))
                 continue;
-            _jobs[mob] = new Job(grid, group, item, home, null, _timing.CurTime);
+            if (skipped.Entities.Contains(item))
+            {
+                blocked = true;
+                continue;
+            }
+            _jobs[mob] = new Job(grid, group, kind, item, home, null, _timing.CurTime);
             return "working";
         }
+        return blocked ? "work-blocked" : Complete(grid, group);
+    }
+
+    private string Complete(EntityUid grid, string group)
+    {
+        _skipped.Remove((grid, group));
         return "complete";
     }
 
-    private EntityUid? FindTool(EntityUid mob, EntityUid grid, RepairableComponent repair)
+    private Skipped SkippedFor(EntityUid grid, string group, WFCrewObjectiveKind kind)
+    {
+        if (!_skipped.TryGetValue((grid, group), out var skipped) || skipped.Kind != kind)
+            _skipped[(grid, group)] = skipped = new Skipped(kind);
+        return skipped;
+    }
+
+    /// <summary>Ends a job, blacklisting its target for the order when the job failed through no fault of the worker's kit.</summary>
+    private void Release(EntityUid worker, Job job)
+    {
+        if (job.Blame)
+        {
+            var skipped = SkippedFor(job.Grid, job.Group, job.Kind);
+            if (job.SrdCoordinates is { } at)
+                skipped.Coordinates.Add(at);
+            else
+                skipped.Entities.Add(job.Target);
+        }
+        EndJob(worker, job);
+    }
+
+    /// <summary>The single exit for a job: drops carried cargo and switches the welder off.</summary>
+    private void EndJob(EntityUid worker, Job job)
+    {
+        _jobs.Remove(worker);
+        if (TerminatingOrDeleted(worker))
+            return;
+        if (job.Returning && !TerminatingOrDeleted(job.Target))
+            _hands.TryDrop(worker, job.Target);
+        if (job.Tool is { } tool && !TerminatingOrDeleted(tool) && TryComp<WelderComponent>(tool, out var welder) && welder.Enabled)
+            _tools.TurnOff((tool, welder), worker);
+    }
+
+    /// <summary>Drops a job whose worker has been off the home grid, with that grid undocked from where they stand, for too long.</summary>
+    private void CheckStranded(EntityUid worker, Job job)
+    {
+        var here = Transform(worker).GridUid;
+        if (here == job.Grid || here is { } grid && DockedTo(job.Grid, grid))
+        {
+            job.StrandedSince = null;
+            return;
+        }
+        job.StrandedSince ??= _timing.CurTime;
+        if (_timing.CurTime - job.StrandedSince.Value >= StrandedAfter)
+            EndJob(worker, job);
+    }
+
+    private bool DockedTo(EntityUid grid, EntityUid other)
+    {
+        _docks.Clear();
+        _lookup.GetChildEntities(grid, _docks);
+        foreach (var dock in _docks)
+        {
+            if (dock.Comp.DockedWith is { } with && Transform(with).GridUid == other)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Only a tool the crewman carries or has built in counts; loose tools on deck belong to whoever left them.</summary>
+    private EntityUid? FindTool(EntityUid mob, RepairableComponent repair)
     {
         if (repair.Qualities.Any(quality => _tools.HasQuality(mob, quality)))
             return mob;
@@ -129,12 +272,6 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         {
             if (repair.Qualities.Any(quality => _tools.HasQuality(held, quality)))
                 return held;
-        }
-        var query = EntityQueryEnumerator<ToolComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var tool, out var xform))
-        {
-            if (xform.ParentUid == grid && repair.Qualities.Any(quality => _tools.HasQuality(uid, quality, tool)))
-                return uid;
         }
         return null;
     }
@@ -149,12 +286,12 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             return false;
         if (!_eva.Prepare(mob))
         {
-            job.Failed = true;
+            Fail(job, false);
             return false;
         }
         if (_timing.CurTime - job.Started > TimeSpan.FromSeconds(120))
         {
-            job.Failed = true;
+            Fail(job, true);
             return false;
         }
         if (job.Returning)
@@ -164,7 +301,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (job.SrdCoordinates is { } repairCoordinates)
         {
-            if (!MissingStructure(job.Grid, mob).Any(position => position == repairCoordinates))
+            if (!MissingStructure(job.Grid, mob, repairCoordinates).Any())
             {
                 _jobs.Remove(mob);
                 return false;
@@ -204,11 +341,6 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (job.SrdCoordinates is { } repairCoordinates)
         {
-            if (!MissingStructure(job.Grid, mob).Any(position => position == repairCoordinates))
-            {
-                _jobs.Remove(mob);
-                return true;
-            }
             if (_timing.CurTime >= job.NextUse)
             {
                 RaiseLocalEvent(mob, new AfterInteractEvent(mob, mob, null, repairCoordinates, true));
@@ -221,7 +353,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             if (_hands.TryDrop(mob, job.Target))
                 _jobs.Remove(mob);
             else
-                job.Failed = true;
+                Fail(job, true);
             return true;
         }
         if (job.Tool is { } tool)
@@ -229,7 +361,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             if (tool != mob && !_hands.IsHolding(mob, tool, out _))
             {
                 if (!_hands.TryPickupAnyHand(mob, tool))
-                    job.Failed = true;
+                    Fail(job, true);
                 return true;
             }
             if (!TryComp<DamageableComponent>(job.Target, out var damage) || damage.TotalDamage <= 0)
@@ -258,25 +390,43 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (!_hands.TryPickupAnyHand(mob, job.Target))
         {
-            job.Failed = true;
+            Fail(job, true);
             return true;
         }
         job.Returning = true;
         return true;
     }
 
-    private sealed class Job(EntityUid grid, string group, EntityUid target,
+    /// <summary>Marks a job failed; a blamed failure also keeps the order from picking the same target again.</summary>
+    private static void Fail(Job job, bool blame)
+    {
+        job.Failed = true;
+        job.Blame |= blame;
+    }
+
+    /// <summary>Targets an order gave up on, so the next pick moves on instead of repeating them.</summary>
+    private sealed class Skipped(WFCrewObjectiveKind kind)
+    {
+        public readonly WFCrewObjectiveKind Kind = kind;
+        public readonly HashSet<EntityCoordinates> Coordinates = new();
+        public readonly HashSet<EntityUid> Entities = new();
+    }
+
+    private sealed class Job(EntityUid grid, string group, WFCrewObjectiveKind kind, EntityUid target,
         EntityCoordinates home, EntityUid? tool, TimeSpan started)
     {
         public readonly EntityUid Grid = grid;
         public readonly string Group = group;
+        public readonly WFCrewObjectiveKind Kind = kind;
         public readonly EntityUid Target = target;
         public readonly EntityUid? Tool = tool;
         public readonly EntityCoordinates Home = home;
         public readonly TimeSpan Started = started;
         public TimeSpan NextUse;
+        public TimeSpan? StrandedSince;
         public EntityCoordinates? SrdCoordinates;
         public bool Returning;
         public bool Failed;
+        public bool Blame;
     }
 }

@@ -43,8 +43,7 @@ public sealed class WFCrewRoutineSystem : EntitySystem
                 || _work.HomeGrid(uid) != null || _weapons.HasLiveThreat(uid))
                 continue;
             crew.NextPatrol = _timing.CurTime + TimeSpan.FromSeconds(_random.Next(45, 91));
-            var posts = _planner.Plan(grid, 4).Where(post => post.Kind == WFCrewPostKind.Deck
-                && !post.Coordinates.InRange(EntityManager, xform.Coordinates, 3f)).ToList();
+            var posts = _planner.DeckPosts(grid).Where(post => !post.Coordinates.InRange(EntityManager, xform.Coordinates, 3f)).ToList();
             if (posts.Count == 0)
                 continue;
             htn.Blackboard.SetValue(WFCrewSystem.PostKey, _random.Pick(posts).Coordinates);

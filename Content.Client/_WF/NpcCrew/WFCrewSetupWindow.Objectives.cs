@@ -138,7 +138,7 @@ public sealed partial class WFCrewSetupWindow
             Plain(_status, Text("choose-target"));
             return false;
         }
-        if (!float.IsFinite(item.Position.X) || !float.IsFinite(item.Position.Y) || !float.IsFinite(item.Range)
+        if (!InBounds(item.Position) || !float.IsFinite(item.Range)
             || item.Range is < 1 or > 5000 || !float.IsFinite(item.Duration) || item.Duration is < 0 or > 86400)
         {
             Plain(_status, Text("bad-numbers"));

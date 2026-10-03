@@ -5,6 +5,7 @@ using Content.Server._Mono.NPC.HTN;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Physics.Controllers;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.NpcCrew;
@@ -41,6 +42,9 @@ public sealed partial class WFPilotDutySystem
     private const float PortContactRange = 2.5f;
 
     private List<Entity<MapGridComponent>> _laneGrids = new();
+
+    /// <summary>A dock or undock happened since the last update; pilots' docked caches refresh then.</summary>
+    private bool _docksChanged;
 
     /// <summary>
     /// Picks a free dock pair whose approach lane touches no grid but the two, nearest standoff first. The lane is the
@@ -160,7 +164,7 @@ public sealed partial class WFPilotDutySystem
         }
 
         duty.DockPhaseTime += frameTime;
-        if (_docking.AreGridsDocked(grid, target))
+        if (duty.Docked && _docking.AreGridsDocked(grid, target))
         {
             Docked(ent, grid, target);
             return;
@@ -325,7 +329,30 @@ public sealed partial class WFPilotDutySystem
         duty.DockPhaseTime = 0f;
         duty.DockPlan = null;
         duty.DockCollision = null;
+        duty.AbsentCrewWaited = 0f;
     }
+
+    /// <summary>Re-reads whether any dock on the pilot's grid is docked, caching the answer.</summary>
+    private bool RefreshDocked(Entity<WFPilotDutyComponent> ent)
+    {
+        ent.Comp.NextDockCheck = _timing.CurTime + DockCheckInterval;
+        ent.Comp.Docked = false;
+        if (Transform(ent).GridUid is not { } grid)
+            return false;
+        foreach (var dock in _docking.GetDocks(grid))
+        {
+            if (!dock.Comp.Docked)
+                continue;
+            ent.Comp.Docked = true;
+            break;
+        }
+        return ent.Comp.Docked;
+    }
+
+    // GetDocks must not run inside a dock handler; the caches refresh on the next update.
+    private void OnDockChanged(DockEvent args) => _docksChanged = true;
+
+    private void OnUndockChanged(UndockEvent args) => _docksChanged = true;
 
     /// <summary>A dock that still exists, is anchored and is docked with nothing.</summary>
     private bool TryFreeDock(EntityUid uid, [NotNullWhen(true)] out DockingComponent? dock)
@@ -384,19 +411,22 @@ public sealed partial class WFPilotDutySystem
         return (_transform.GetWorldPosition(plan.OwnDock) - _transform.GetWorldPosition(plan.TargetDock)).Length();
     }
 
-    /// <summary>Undock: lets go of every docked port and backs off away from them. Nothing docked: hold.</summary>
-    private void ReleaseDocks(Entity<WFPilotDutyComponent> ent)
+    /// <summary>
+    /// Undock: lets go of every docked port and backs off away from them. Nothing docked: hold. Waits a while for
+    /// crew posted aboard who are off the ship, but not during an evasion.
+    /// </summary>
+    private void ReleaseDocks(Entity<WFPilotDutyComponent> ent, float frameTime)
     {
         var xform = Transform(ent);
         if (xform.GridUid is not { } grid || xform.MapUid is not { } map)
             return;
 
-        var crewQuery = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-        while (crewQuery.MoveNext(out var member, out var crew, out var location))
+        if (ent.Comp.AbsentCrewWaited < ent.Comp.AbsentCrewWait
+            && !EntityManager.System<WFCaptainSystem>().IsCourseSuspended(ent)
+            && CrewAbsent(grid))
         {
-            if (crew.Post is { } post && post.EntityId == grid && location.GridUid != grid
-                && _mobState.IsAlive(member) && !HasComp<Robust.Shared.Player.ActorComponent>(member))
-                return;
+            ent.Comp.AbsentCrewWaited += frameTime;
+            return;
         }
 
         var away = Vector2.Zero;
@@ -421,6 +451,19 @@ public sealed partial class WFPilotDutySystem
         ent.Comp.Waypoints = new List<EntityCoordinates> { new(map, point) };
         ent.Comp.WaypointIndex = 0;
         Steer(ent);
+    }
+
+    /// <summary>Whether a living NPC crewman posted to the grid is off it.</summary>
+    private bool CrewAbsent(EntityUid grid)
+    {
+        var crewQuery = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crewQuery.MoveNext(out var member, out var crew, out var location))
+        {
+            if (crew.Post is { } post && post.EntityId == grid && location.GridUid != grid
+                && _mobState.IsAlive(member) && !HasComp<Robust.Shared.Player.ActorComponent>(member))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>Remembers a grid hit during the creep; the next update decides whether it ends the attempt.</summary>

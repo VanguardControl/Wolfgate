@@ -109,8 +109,8 @@ public sealed partial class WFCrewSetupWindow
             }
             mission.Destination = _destinationLine.Visible ? new Vector2(Number(_x), Number(_y)) : Vector2.Zero;
             mission.Range = _manualRangeLine.Visible ? Number(_range) : 60;
-            if (!float.IsFinite(mission.Destination.X) || !float.IsFinite(mission.Destination.Y)
-                || !float.IsFinite(mission.Range) || mission.Range is < 1 or > 5000)
+            if (!InBounds(mission.Destination)
+                || !float.IsFinite(mission.Range) || mission.Range is < 1 or > WFCrewLimits.MaxRange)
             {
                 Plain(_status, Text("bad-numbers"));
                 return;
@@ -118,6 +118,21 @@ public sealed partial class WFCrewSetupWindow
         }
         Request(new WFCrewSetupRequest { Action = action, Grid = crew.Grid, Mission = mission });
     }
+
+    /// <summary>Whether two missions agree on every setting the form edits.</summary>
+    private static bool SameSettings(WFCrewMission a, WFCrewMission b)
+    {
+        return a.Callsign == b.Callsign && a.Battlegroup == b.Battlegroup && a.Company == b.Company && a.Faction == b.Faction
+            && a.LocalChannel == b.LocalChannel && a.AlertChannel == b.AlertChannel && a.HeaveTo == b.HeaveTo
+            && a.BoardingResponse == b.BoardingResponse && a.DockingResponse == b.DockingResponse
+            && WFCrewNavigationSettings.Fields.All(field => field.Get(a.Navigation) == field.Get(b.Navigation));
+    }
+
+    /// <summary>A finite point within the coordinate bound the server enforces.</summary>
+    private static bool InBounds(Vector2 point) => float.IsFinite(point.X) && float.IsFinite(point.Y)
+        && MathF.Abs(point.X) <= WFCrewLimits.MaxCoordinate && MathF.Abs(point.Y) <= WFCrewLimits.MaxCoordinate;
+
+    private static string Cap(string text, int max) => text.Length > max ? text.Substring(0, max) : text;
 
     /// <summary>Independent setup and live settings prevent draft creation from retargeting an existing crew.</summary>
     private sealed class SettingsForm
@@ -143,6 +158,8 @@ public sealed partial class WFCrewSetupWindow
             _companies.AddRange(prototypes.EnumeratePrototypes<CompanyPrototype>().Select(item => item.ID).Order());
             _factions = prototypes.EnumeratePrototypes<NpcFactionPrototype>().Select(item => item.ID).Order().ToList();
             _channels = prototypes.EnumeratePrototypes<RadioChannelPrototype>().Select(item => item.ID).Order().ToList();
+            _callsign.IsValid = text => text.Length <= WFCrewLimits.MaxCallsign;
+            _battlegroup.IsValid = text => text.Length <= WFCrewLimits.MaxBattlegroup;
             Fill(_company, _companies, string.Empty);
             Fill(_faction, _factions, "WFCrew");
             Fill(_local, _channels, "Traffic");
@@ -191,8 +208,8 @@ public sealed partial class WFCrewSetupWindow
 
         public void Load(WFCrewMission mission)
         {
-            _callsign.Text = mission.Callsign;
-            _battlegroup.Text = mission.Battlegroup;
+            _callsign.Text = Cap(mission.Callsign, WFCrewLimits.MaxCallsign);
+            _battlegroup.Text = Cap(mission.Battlegroup, WFCrewLimits.MaxBattlegroup);
             _company.TrySelectId(Math.Max(0, _companies.IndexOf(mission.Company)));
             _faction.TrySelectId(Math.Max(0, _factions.IndexOf(mission.Faction)));
             _local.TrySelectId(Math.Max(0, _channels.IndexOf(mission.LocalChannel)));

@@ -1,9 +1,12 @@
+using Content.Server.Shuttles.Components;
 using Content.Server.StationRecords;
 using Content.Server.StationRecords.Systems;
+using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.ShipAccess;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Access.Systems;
 using Content.Shared.Inventory;
+using Content.Shared.Station.Components;
 using Content.Shared.StationRecords;
 using Robust.Shared.Prototypes;
 
@@ -21,13 +24,28 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
 
     private static readonly EntProtoId CrewCard = "PassengerIDCard";
 
-    /// <summary>Registers a newly spawned crewman's worn card only on its spawn ship, when that ship manages access.</summary>
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WFCrewComponent, EntityTerminatingEvent>(OnCrewTerminating);
+    }
+
+    /// <summary>
+    /// Registers a newly spawned crewman's worn card on its spawn ship. A ship that does not manage access yet is set
+    /// up first; stations and other non-ship grids are left alone, so the mapper's own door access stays in force.
+    /// </summary>
     public void RegisterSpawnShip(EntityUid uid)
     {
         if (Transform(uid).GridUid is not { } grid)
             return;
 
-        var ship = EnsureComp<WFShipAccessComponent>(grid);
+        Entity<WFShipAccessComponent> ship;
+        if (TryComp<WFShipAccessComponent>(grid, out var managed))
+            ship = (grid, managed);
+        else if (HasComp<ShuttleComponent>(grid) && !HasComp<StationMemberComponent>(grid))
+            ship = _ships.SetupShip(grid, null);
+        else
+            return;
 
         if (!_access.TryGetWornCard(uid, out var card))
         {
@@ -50,6 +68,18 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
             _keys.AssignKey(card, key, storage);
         }
 
-        _ships.TryAddCard((grid, ship), card, Name(uid));
+        if (_ships.TryAddCard(ship, card, Name(uid)) && TryComp<WFCrewComponent>(uid, out var crew))
+            crew.AccessShip = grid;
+    }
+
+    /// <summary>A deleted crewman's card key comes off the ship's allow list; a dead one keeps it, as a looted card would.</summary>
+    private void OnCrewTerminating(Entity<WFCrewComponent> ent, ref EntityTerminatingEvent args)
+    {
+        if (ent.Comp.AccessShip is not { } grid || TerminatingOrDeleted(grid)
+            || !TryComp<WFShipAccessComponent>(grid, out var ship)
+            || !_access.TryGetWornCard(ent, out var card) || !_access.TryGetKey(card, out var key))
+            return;
+
+        _ships.RemoveEntry((grid, ship), key);
     }
 }

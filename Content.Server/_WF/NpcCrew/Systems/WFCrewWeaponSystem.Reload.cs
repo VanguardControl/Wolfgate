@@ -9,6 +9,7 @@ using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Mobs.Systems;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using System.Linq;
@@ -26,6 +27,9 @@ public sealed partial class WFCrewWeaponSystem
     [Dependency] private Robust.Shared.Timing.IGameTiming _timing = default!;
 
     private const string MagazineSlot = "gun_magazine";
+    private const float LookupRange = 10f;
+    private static readonly TimeSpan ThreatCacheTime = TimeSpan.FromSeconds(0.5);
+    private readonly Dictionary<EntityUid, (TimeSpan Until, bool Threat)> _threats = new();
     private float _reloadTimer;
 
     public override void Update(float frameTime)
@@ -35,6 +39,11 @@ public sealed partial class WFCrewWeaponSystem
         if (_reloadTimer < 0.5f)
             return;
         _reloadTimer = 0;
+        foreach (var (mob, cached) in _threats)
+        {
+            if (_timing.CurTime >= cached.Until)
+                _threats.Remove(mob);
+        }
         var query = EntityQueryEnumerator<WFCrewWeaponComponent>();
         while (query.MoveNext(out var uid, out _))
         {
@@ -64,9 +73,46 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Only living hostile targets in the crewman's current vision justify drawing or reloading.</summary>
     public bool HasLiveThreat(EntityUid uid)
     {
+        var now = _timing.CurTime;
+        if (_threats.TryGetValue(uid, out var cached) && now < cached.Until)
+            return cached.Threat;
+        var threat = PickTarget(uid) != null;
+        _threats[uid] = (now + ThreatCacheTime, threat);
+        return threat;
+    }
+
+    /// <summary>Hostiles within normal vision, plus the crew's shared targets and radio contacts.</summary>
+    private IEnumerable<EntityUid> Candidates(EntityUid uid)
+    {
         var range = TryComp<HTNComponent>(uid, out var htn)
-            && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : 10f;
-        return _factions.GetNearbyHostiles(uid, range).Any(target => CanEngage(uid, target));
+            && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : LookupRange;
+        // Alert-widened vision would turn the faction lookup into a scan of every faction member on the map.
+        foreach (var target in _factions.GetNearbyHostiles(uid, Math.Min(range, LookupRange)))
+            yield return target;
+        if (!TryComp<WFCrewComponent>(uid, out var crew) || Transform(uid).GridUid is not { } grid)
+            yield break;
+        TryComp<NpcFactionMemberComponent>(uid, out var member);
+        foreach (var target in EntityManager.System<WFCrewAlertSystem>().GetSharedHostiles(grid, crew.Group))
+        {
+            if (IsHostile(uid, member, target))
+                yield return target;
+        }
+        foreach (var target in crew.RadioSightings.Keys)
+        {
+            if (IsHostile(uid, member, target))
+                yield return target;
+        }
+    }
+
+    /// <summary>The faction lookup's hostility rule for one known mob.</summary>
+    private bool IsHostile(EntityUid uid, NpcFactionMemberComponent? member, EntityUid target)
+    {
+        if (target == uid || TerminatingOrDeleted(target) || _factions.IsIgnored(uid, target))
+            return false;
+        if (_factions.GetHostiles(uid).Contains(target))
+            return true;
+        return member != null && _factions.IsMemberOfAny(target, member.HostileFactions)
+            && !_factions.IsEntityFriendly(uid, target);
     }
 
     /// <summary>Crew defend their assigned ship without pursuing targets across docking connections.</summary>
@@ -95,9 +141,7 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Chooses a living hostile aboard the crewman's own ship.</summary>
     public EntityUid? PickTarget(EntityUid uid)
     {
-        var range = TryComp<HTNComponent>(uid, out var htn)
-            && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : 10f;
-        foreach (var target in _factions.GetNearbyHostiles(uid, range))
+        foreach (var target in Candidates(uid))
         {
             if (CanEngage(uid, target))
                 return target;

@@ -8,7 +8,7 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
 public sealed partial class WFCrewTest
 {
-    /// <summary>A ship is disabled only after it was seen working and then lost both thrust and weapons.</summary>
+    /// <summary>A ship is disabled only after it was seen working and then lost both thrust and weapons for 30 s.</summary>
     [Test]
     public async Task ShipIsDisabledOnceItLosesThrustAndWeapons()
     {
@@ -23,7 +23,7 @@ public sealed partial class WFCrewTest
             Assert.That(status.IsDisabled(ship), Is.False);
             SEntMan.GetComponent<ShuttleComponent>(ship).LinearThrust[0] = 0f;
         });
-        await WaitUntil(() => Server.System<WFCrewShipStatusSystem>().IsDisabled(ship), 300, () => "ship never counted as disabled");
+        await WaitUntil(() => Server.System<WFCrewShipStatusSystem>().IsDisabled(ship), 2400, () => "ship never counted as disabled");
         await Server.WaitAssertion(() =>
             Assert.That(Server.System<WFCrewShipStatusSystem>().IsDisabled(wreck), Is.False));
     }

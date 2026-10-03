@@ -16,8 +16,7 @@ public partial class ShuttleNavControl
     private void DrawCrewGroups(DrawingHandleScreen handle, TransformComponent consoleXform, Matrix3x2 worldToView)
     {
         var setup = EntManager.System<WFCrewSetupClientSystem>();
-        setup.WatchRadar();
-        if (setup.Crews.Count == 0)
+        if (!setup.WatchRadar() || setup.Crews.Count == 0)
             return;
 
         _wfCrewAnchors.Clear();
@@ -42,11 +41,9 @@ public partial class ShuttleNavControl
             if (point.X < 0f || point.Y < 0f || point.X > PixelSize.X || point.Y > PixelSize.Y)
                 continue;
 
-            var tag = battlegroup.Length > 0
-                ? Loc.GetString("wf-crew-radar-tag-battlegroup", ("battlegroup", battlegroup), ("group", crew.Group), ("activity", crew.Activity))
-                : Loc.GetString("wf-crew-radar-tag", ("group", crew.Group), ("activity", crew.Activity));
             handle.DrawCircle(point, 3f * UIScale, color);
-            handle.DrawString(Font, point + new Vector2(8f, -22f) * UIScale, tag, UIScale * 0.8f, color);
+            if (setup.Tags.TryGetValue((crew.Grid, crew.Group), out var tag))
+                handle.DrawString(Font, point + new Vector2(8f, -22f) * UIScale, tag, UIScale * 0.8f, color);
         }
     }
 

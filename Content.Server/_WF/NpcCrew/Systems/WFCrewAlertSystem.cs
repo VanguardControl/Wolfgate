@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server._Mono.FireControl;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.ShipShields;
 using Content.Server.NPC;
@@ -22,11 +23,13 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WFCrewEscortSystem _escorts = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
+    [Dependency] private WFCrewSystem _crew = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
     private static readonly TimeSpan Decay = TimeSpan.FromSeconds(60);
     private readonly Dictionary<(EntityUid Grid, string Group), Alert> _alerts = new();
+    private readonly List<EntityUid> _expired = new();
     private TimeSpan _nextPoll;
 
     /// <summary>Whether a crew aboard a particular grid has an active shared alert.</summary>
@@ -44,15 +47,70 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     {
         if (TerminatingOrDeleted(grid) || !_alerts.TryGetValue((grid, group), out var alert))
             return Array.Empty<EntityUid>();
-        IEnumerable<EntityUid> attacks = _timing.CurTime < alert.AttackedUntil ? alert.Vessels : Array.Empty<EntityUid>();
-        var docking = alert.DockingVessels.Where(ship =>
-            EntityManager.System<WFCrewSecuritySystem>().IsHostileDockingTarget(grid, group, ship));
-        return attacks.Concat(docking).Distinct().Where(ship => !TerminatingOrDeleted(ship) && !_status.IsDisabled(ship)
-            && Transform(ship).MapID == Transform(grid).MapID && !_escorts.AreInFormation(grid, ship)).ToArray();
+        var now = _timing.CurTime;
+        var ships = new List<EntityUid>();
+        foreach (var (ship, until) in alert.Vessels)
+        {
+            if (now < until && ValidShip(grid, ship, true))
+                ships.Add(ship);
+        }
+        foreach (var ship in alert.DockingVessels)
+        {
+            if (!ships.Contains(ship) && EntityManager.System<WFCrewSecuritySystem>().IsHostileDockingTarget(grid, group, ship)
+                && ValidShip(grid, ship, false))
+                ships.Add(ship);
+        }
+        return ships.ToArray();
     }
 
     /// <summary>Explicit incoming fire permits retaliation even against a normally friendly company.</summary>
-    public bool IsHostileShip(EntityUid grid, string group, EntityUid target) => GetHostileShips(grid, group).Contains(target);
+    public bool IsHostileShip(EntityUid grid, string group, EntityUid target)
+    {
+        if (TerminatingOrDeleted(grid) || !_alerts.TryGetValue((grid, group), out var alert))
+            return false;
+        var attacked = alert.Vessels.TryGetValue(target, out var until) && _timing.CurTime < until;
+        if (!attacked && (!alert.DockingVessels.Contains(target)
+                || !EntityManager.System<WFCrewSecuritySystem>().IsHostileDockingTarget(grid, group, target)))
+            return false;
+        return ValidShip(grid, target, attacked);
+    }
+
+    /// <summary>A formation partner stays an ally unless it fired on this ship within the attack window.</summary>
+    private bool ValidShip(EntityUid grid, EntityUid ship, bool attacked)
+    {
+        return !TerminatingOrDeleted(ship) && !_status.IsDisabled(ship)
+            && Transform(ship).MapID == Transform(grid).MapID && (attacked || !_escorts.AreInFormation(grid, ship));
+    }
+
+    /// <summary>Whether a mob is one of a crew's shared alert targets.</summary>
+    public bool IsSharedHostile(EntityUid grid, string group, EntityUid target) =>
+        _alerts.TryGetValue((grid, group), out var alert) && alert.Hostiles.Contains(target);
+
+    /// <summary>The mobs a crew's shared alert currently targets.</summary>
+    public IReadOnlyCollection<EntityUid> GetSharedHostiles(EntityUid grid, string group) =>
+        _alerts.TryGetValue((grid, group), out var alert) ? alert.Hostiles : (IReadOnlyCollection<EntityUid>) Array.Empty<EntityUid>();
+
+    /// <summary>Whether a shared alert made this crewman hostile to the target.</summary>
+    public bool SharesHostile(EntityUid member, EntityUid target)
+    {
+        foreach (var alert in _alerts.Values)
+        {
+            if (alert.Members.TryGetValue(member, out var memory) && memory.AddedHostiles.Contains(target))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Ship weapons are fire-controlled or mounted on a grid; carried guns are personal.</summary>
+    public bool IsShipWeapon(EntityUid? weapon)
+    {
+        if (weapon is not { } uid || TerminatingOrDeleted(uid))
+            return false;
+        if (HasComp<FireControllableComponent>(uid))
+            return true;
+        var xform = Transform(uid);
+        return xform.GridUid is { } grid && xform.ParentUid == grid;
+    }
 
     private void OnHullHit(ref WFCrewHullHitEvent args)
     {
@@ -61,6 +119,9 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     private void OnShieldHit(ref WFShipShieldAttackedEvent args)
     {
+        // A handheld shot at a shield is not its grid's attack; only ship weapons raise ship alerts.
+        if (!IsShipWeapon(args.Weapon))
+            return;
         if ((args.Weapon ?? args.Shooter) is { } source
             && EntityManager.System<WFCrewFriendlyFireSystem>().Protected(source, args.Grid))
             return;
@@ -72,16 +133,19 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
             return;
-        var formation = _escorts.GetFormation(grid);
-        if (formation.Contains(attacker))
+        // Grids without crew, escorts or battlegroups have nobody to alert.
+        if (group == null && !_escorts.IsInvolved(grid))
             return;
+        var formation = _escorts.GetFormation(grid);
+        // A formation partner that fires on this ship becomes hostile to the victim's own crews only.
+        var partner = formation.Contains(attacker);
         var recipients = new HashSet<(EntityUid Grid, string Group)>();
         if (group != null)
             recipients.Add((grid, group));
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var transform))
         {
-            if ((crew.Post?.EntityId ?? transform.GridUid) is { } home && formation.Contains(home)
+            if ((crew.Post?.EntityId ?? transform.GridUid) is { } home && (partner ? home == grid : formation.Contains(home))
                 && _mobState.IsAlive(uid) && !HasComp<ActorComponent>(uid))
                 recipients.Add((home, crew.Group));
         }
@@ -104,12 +168,16 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         var key = (grid, group);
         if (!_alerts.TryGetValue(key, out var alert))
             _alerts[key] = alert = new Alert();
-        alert.LastTarget = _timing.CurTime;
-        alert.ExternalUntil = _timing.CurTime + Decay;
+        var now = _timing.CurTime;
+        alert.LastTarget = now;
+        alert.ExternalUntil = now + Decay;
         if (retaliation)
         {
-            alert.AttackedUntil = _timing.CurTime + Decay;
-            alert.Vessels.Add(attacker);
+            var known = alert.Vessels.TryGetValue(attacker, out var until) && now < until;
+            alert.Vessels[attacker] = now + Decay;
+            // A known attacker only extends its window.
+            if (known)
+                return;
         }
         else
             alert.DockingVessels.Add(attacker);
@@ -123,13 +191,16 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         if (_timing.CurTime < _nextPoll)
             return;
 
-        _nextPoll = _timing.CurTime + TimeSpan.FromSeconds(1);
+        var now = _timing.CurTime;
+        _nextPoll = now + TimeSpan.FromSeconds(1);
         var groups = new Dictionary<(EntityUid Grid, string Group), List<Entity<HTNComponent>>>();
         var query = EntityQueryEnumerator<WFCrewComponent, HTNComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var htn, out var xform))
         {
+            // Crew share alerts only aboard their own ship, so equal labels on other ships stay separate crews.
             if (!crew.ShareAlerts || crew.Engagement != WFCrewEngagement.OnSight || !htn.Enabled
-                || !_mobState.IsAlive(uid) || HasComp<ActorComponent>(uid) || xform.GridUid is not { } grid)
+                || !_mobState.IsAlive(uid) || HasComp<ActorComponent>(uid) || xform.GridUid is not { } grid
+                || _crew.HomeGrid(uid, crew) != grid)
                 continue;
 
             var key = (grid, crew.Group);
@@ -140,12 +211,22 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
         foreach (var (key, alert) in _alerts.ToArray())
         {
+            _expired.Clear();
+            foreach (var (ship, until) in alert.Vessels)
+            {
+                if (now >= until || TerminatingOrDeleted(ship))
+                    _expired.Add(ship);
+            }
+            foreach (var ship in _expired)
+                alert.Vessels.Remove(ship);
+            alert.DockingVessels.RemoveWhere(ship => TerminatingOrDeleted(ship));
+
             if (!groups.TryGetValue(key, out var members))
             {
                 foreach (var (uid, memory) in alert.Members)
                     Restore(uid, memory);
                 alert.Members.Clear();
-                if (_timing.CurTime >= alert.ExternalUntil)
+                if (now >= alert.ExternalUntil)
                     Clear(key, alert);
                 continue;
             }
@@ -182,8 +263,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             }
 
             if (targets.Count > 0)
-                alert.LastTarget = _timing.CurTime;
-            else if (_timing.CurTime >= alert.LastTarget + Decay)
+                alert.LastTarget = now;
+            else if (now >= alert.LastTarget + Decay)
             {
                 Clear(key, alert);
                 continue;
@@ -314,8 +395,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     {
         public TimeSpan LastTarget;
         public TimeSpan ExternalUntil;
-        public TimeSpan AttackedUntil;
-        public readonly HashSet<EntityUid> Vessels = new();
+        /// <summary>Each attacking vessel and when its attack window closes.</summary>
+        public readonly Dictionary<EntityUid, TimeSpan> Vessels = new();
         public readonly HashSet<EntityUid> DockingVessels = new();
         public readonly HashSet<EntityUid> Hostiles = new();
         public readonly Dictionary<EntityUid, Awareness> Members = new();

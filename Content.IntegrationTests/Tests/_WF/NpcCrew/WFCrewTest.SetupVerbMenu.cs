@@ -50,7 +50,7 @@ public sealed partial class WFCrewTest
             Assert.That(UiField<int>(system, "_nextRequestId"), Is.EqualTo(sentId), "Polling ends with the last window.");
         });
         await RunTicks(10);
-        Assert.That(observer.Requests.Count(request => request.RequestId == sentId && request.Action == WFCrewSetupAction.List), Is.EqualTo(1));
+        Assert.That(observer.Requests.Count(request => request.RequestId == sentId && request.Action == WFCrewSetupAction.Crews), Is.EqualTo(1));
     }
 
     /// <summary>Native admin verb categories receive server contents before, during, and after crew setup.</summary>

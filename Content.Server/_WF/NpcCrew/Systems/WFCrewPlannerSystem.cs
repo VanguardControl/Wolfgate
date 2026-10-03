@@ -11,6 +11,7 @@ using Content.Shared.Physics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -39,6 +40,11 @@ public sealed class WFCrewPlannerSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan DeckPostCacheTime = TimeSpan.FromMinutes(5);
+    private readonly Dictionary<EntityUid, (TimeSpan Until, List<WFCrewPost> Posts)> _deckPosts = new();
+    private TimeSpan _nextPrune;
 
     /// <summary>Minimum Chebyshev distance in tiles between deck posts and anything else.</summary>
     private const int DeckSpacing = 3;
@@ -47,6 +53,30 @@ public sealed class WFCrewPlannerSystem : EntitySystem
     {
         new(0, -1), new(1, 0), new(0, 1), new(-1, 0),
     };
+
+    /// <summary>Patrol posts on deck for a grid, replanned at most every five minutes since the tile scan is costly.</summary>
+    public IReadOnlyList<WFCrewPost> DeckPosts(EntityUid grid)
+    {
+        var now = _timing.CurTime;
+        if (_deckPosts.TryGetValue(grid, out var cached) && now < cached.Until && !TerminatingOrDeleted(grid))
+            return cached.Posts;
+        var posts = Plan(grid, 4).Where(post => post.Kind == WFCrewPostKind.Deck).ToList();
+        _deckPosts[grid] = (now + DeckPostCacheTime, posts);
+        return posts;
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        if (_deckPosts.Count == 0 || _timing.CurTime < _nextPrune)
+            return;
+        _nextPrune = _timing.CurTime + TimeSpan.FromSeconds(30);
+        foreach (var (grid, entry) in _deckPosts.ToArray())
+        {
+            if (TerminatingOrDeleted(grid) || _timing.CurTime >= entry.Until)
+                _deckPosts.Remove(grid);
+        }
+    }
 
     public List<WFCrewPost> Plan(EntityUid grid, int deckhands = 2)
     {
@@ -169,7 +199,15 @@ public sealed class WFCrewPlannerSystem : EntitySystem
         var air = _atmos.GetTileMixture(grid, Transform(grid).MapUid, tile);
         if (air == null || !_atmos.IsMixtureProbablySafe(air) || !float.IsFinite(air.Pressure))
             return false;
-        var pressurePerMole = air.Pressure / air.TotalMoles;
+        return IsBreathable(air, air.Pressure);
+    }
+
+    /// <summary>Whether the mix, regulated to the given pressure, has enough oxygen and almost nothing besides nitrogen.</summary>
+    public static bool IsBreathable(GasMixture air, float pressure)
+    {
+        if (air.TotalMoles <= 0 || !float.IsFinite(air.TotalMoles) || !float.IsFinite(pressure))
+            return false;
+        var pressurePerMole = pressure / air.TotalMoles;
         var oxygen = air.GetMoles(Gas.Oxygen);
         var contaminants = MathF.Max(0, air.TotalMoles - oxygen - air.GetMoles(Gas.Nitrogen));
         return oxygen * pressurePerMole >= 16 && contaminants * pressurePerMole <= 0.1f;

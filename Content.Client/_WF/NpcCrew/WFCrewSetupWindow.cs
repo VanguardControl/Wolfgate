@@ -10,6 +10,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._WF.NpcCrew;
@@ -20,6 +21,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
 {
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
     private readonly WFCrewSetupClientSystem _system;
     private readonly BoxContainer _crewList = Column();
     private readonly LineEdit _crewSearch = new();
@@ -37,6 +40,7 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
     private CrewKey? _pendingCrew;
     private bool _creating = true;
     private int _contextVersion;
+    private TimeSpan _nextGridFetch;
     private SettingsForm _createSettings = default!;
     private SettingsForm _crewSettings = default!;
 
@@ -47,8 +51,6 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         MinSize = new Vector2(1100, 600);
         SetSize = new Vector2(1280, 720);
         _system = _entities.System<WFCrewSetupClientSystem>();
-        _system.Received += Receive;
-        OnClose += () => _system.Received -= Receive;
 
         var body = Column(10);
         Contents.AddChild(body);
@@ -81,6 +83,9 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         BuildManagement();
         body.AddChild(Card(_status));
         ShowCreation();
+        // Subscribe last: a throw above must not leave a half-built window polling the server.
+        _system.Received += Receive;
+        OnClose += () => _system.Received -= Receive;
         _system.Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
     }
 
@@ -116,7 +121,13 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         _contextVersion++;
         if (!_edits.TryGetValue(key, out var edits))
             _edits[key] = edits = new CrewEdits();
-        _crewSettings.Load(edits.Settings ?? crew.Settings);
+        var draft = edits.Settings;
+        if (draft != null && edits.Baseline != null && !SameSettings(edits.Baseline, crew.Settings))
+            draft = null;
+        edits.Settings = null;
+        LoadSettings(edits, crew);
+        if (draft != null)
+            _crewSettings.Load(draft);
         _createView.Visible = _emptyView.Visible = false;
         _manageView.Visible = true;
         _removeConfirm.Visible = _manualConfirm.Visible = false;
@@ -128,10 +139,49 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         Plain(_status, Text("manage-hint"));
     }
 
+    /// <summary>Keeps a draft of the settings form only when it differs from the live settings it was loaded from.</summary>
     private void SaveSettings()
     {
         if (!_creating && _selectedCrew is { } key && _edits.TryGetValue(key, out var edits))
-            edits.Settings = _crewSettings.Read(key.Group);
+            edits.Settings = SettingsDirty(edits) ? _crewSettings.Read(key.Group) : null;
+    }
+
+    /// <summary>Loads live settings into the form and remembers both them and what the form then reads.</summary>
+    private void LoadSettings(CrewEdits edits, WFCrewSetupCrew crew)
+    {
+        _crewSettings.Load(crew.Settings);
+        edits.Baseline = crew.Settings;
+        edits.Form = _crewSettings.Read(crew.Group);
+    }
+
+    private bool SettingsDirty(CrewEdits edits)
+    {
+        return _selectedCrew is { } key && edits.Form != null && !SameSettings(_crewSettings.Read(key.Group), edits.Form);
+    }
+
+    /// <summary>Discards drafts of vanished crews or changed live settings and refreshes an untouched settings form.</summary>
+    private void SyncEdits()
+    {
+        var live = new Dictionary<CrewKey, WFCrewSetupCrew>();
+        foreach (var crew in _liveCrews)
+            live[Key(crew)] = crew;
+        foreach (var (key, edits) in _edits.ToArray())
+        {
+            if (!live.TryGetValue(key, out var crew))
+            {
+                _edits.Remove(key);
+                continue;
+            }
+            if (!_creating && _selectedCrew == key)
+            {
+                if (edits.Baseline == null)
+                    edits.Baseline = crew.Settings;
+                else if (!SameSettings(edits.Baseline, crew.Settings) && !SettingsDirty(edits))
+                    LoadSettings(edits, crew);
+            }
+            else if (edits.Settings != null && edits.Baseline != null && !SameSettings(edits.Baseline, crew.Settings))
+                edits.Settings = null;
+        }
     }
 
     private void UpdateCrewHeader(WFCrewSetupCrew crew)
@@ -202,6 +252,13 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
             if (saved.Context == _contextVersion)
                 _editing = null;
         }
+        if (pending is { Action: WFCrewSetupAction.Rules or WFCrewSetupAction.Orders, Grid: { } ruleGrid, Settings: { } sent }
+            && response.Message.Length == 0 && _edits.TryGetValue(new CrewKey(ruleGrid, pending.Value.Group), out var ruleEdits))
+        {
+            ruleEdits.Settings = null;
+            ruleEdits.Baseline = null;
+            ruleEdits.Form = sent;
+        }
         if (response.Action == WFCrewSetupAction.List)
         {
             _grids = response.Grids;
@@ -209,7 +266,9 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
             RefreshTargets();
         }
         _liveCrews = response.Crews;
+        SyncEdits();
         RenderCrews();
+        RequestMissingGrids();
         if (!_creating && _selectedCrew is { } selected)
         {
             var current = _liveCrews.FirstOrDefault(crew => Key(crew) == selected);
@@ -263,13 +322,27 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         }
     }
 
+    /// <summary>Crew polls carry no grid names; asks for the grid list when a crew's ship is unknown.</summary>
+    private void RequestMissingGrids()
+    {
+        var now = _timing.RealTime;
+        if (now < _nextGridFetch || _liveCrews.All(crew => _grids.Any(grid => grid.Id == crew.Grid)))
+            return;
+        _nextGridFetch = now + TimeSpan.FromSeconds(2);
+        _system.Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
+    }
+
     private void Request(WFCrewSetupRequest request)
     {
+        var now = _timing.RealTime;
+        foreach (var stale in _requests.Where(item => now - item.Value.Sent > RequestTimeout).Select(item => item.Key).ToArray())
+            _requests.Remove(stale);
         if (request.Action != WFCrewSetupAction.Plan
             && _requests.Values.Any(pending => pending.Action == request.Action && pending.Grid == request.Grid && pending.Group == request.Mission.Group))
             return;
         var id = _system.Send(request);
-        _requests[id] = new PendingRequest(_contextVersion, CurrentEdits?.Version ?? 0, request.Mission.Group, request.Action, request.Grid);
+        _requests[id] = new PendingRequest(_contextVersion, CurrentEdits?.Version ?? 0, request.Mission.Group, request.Action, request.Grid,
+            now, request.Action is WFCrewSetupAction.Rules or WFCrewSetupAction.Orders ? request.Mission : null);
         Plain(_status, Text("sending"));
     }
 
@@ -327,10 +400,16 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
     }
     private static float Number(LineEdit edit) => float.TryParse(edit.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : float.NaN;
     private readonly record struct CrewKey(NetEntity Grid, string Group);
-    private readonly record struct PendingRequest(int Context, int QueueVersion, string Group, WFCrewSetupAction Action, NetEntity? Grid);
+    private readonly record struct PendingRequest(int Context, int QueueVersion, string Group, WFCrewSetupAction Action, NetEntity? Grid,
+        TimeSpan Sent, WFCrewMission? Settings);
     private sealed class CrewEdits
     {
+        /// <summary>A draft of the settings form, kept only while it differs from <see cref="Form"/>.</summary>
         public WFCrewMission? Settings;
+        /// <summary>The live settings the form was last loaded from, or null until the next reply after a save.</summary>
+        public WFCrewMission? Baseline;
+        /// <summary>What the form read right after loading <see cref="Baseline"/>.</summary>
+        public WFCrewMission? Form;
         public List<WFCrewObjective>? Queue;
         public int Version;
     }

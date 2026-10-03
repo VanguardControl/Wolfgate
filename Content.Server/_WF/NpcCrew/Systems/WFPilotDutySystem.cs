@@ -7,6 +7,7 @@ using Content.Server.NPC.HTN;
 using Content.Server.Physics.Controllers;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
@@ -15,6 +16,7 @@ using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -31,6 +33,16 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     [Dependency] private ShipSteeringSystem _steering = default!;
     [Dependency] private ShuttleConsoleSystem _console = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    /// <summary>How often the helm's reach is checked again with a raycast.</summary>
+    private static readonly TimeSpan ReachCheckInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>How often a pilot's docked state is checked again without a dock event.</summary>
+    private static readonly TimeSpan DockCheckInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>How often a leader with no console on it is searched again.</summary>
+    private static readonly TimeSpan LeaderConsoleRetry = TimeSpan.FromSeconds(5);
 
     /// <summary>Blackboard key holding the helm the pilot works.</summary>
     public const string HelmKey = "WFCrewHelm";
@@ -47,28 +59,46 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         SubscribeLocalEvent<WFPilotDutyComponent, PilotedShuttleRelayedEvent<StartCollideEvent>>(OnShuttleCollide);
         SubscribeLocalEvent<WFPilotDutyComponent, GetShuttleInputsEvent>(OnCrewGetInputs,
             after: new[] { typeof(ShipSteeringSystem), typeof(MoverController) });
+        SubscribeLocalEvent<DockEvent>(OnDockChanged);
+        SubscribeLocalEvent<UndockEvent>(OnUndockChanged);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
+        var now = _timing.CurTime;
+        var refreshDocks = _docksChanged;
+        _docksChanged = false;
         _toRelease.Clear();
-        var query = EntityQueryEnumerator<WFPilotDutyComponent>();
-        while (query.MoveNext(out var uid, out var duty))
+        var query = EntityQueryEnumerator<WFPilotDutyComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var duty, out var xform))
         {
+            // Mid-jump the grid passes through hyperspace; only the map it arrives on counts.
+            if (xform.MapID != duty.LastMap && !InTransit(xform.GridUid))
+            {
+                var previous = duty.LastMap;
+                duty.LastMap = xform.MapID;
+                if (previous != MapId.Nullspace)
+                    OnMapChanged((uid, duty), xform.MapID);
+            }
+
             if (!duty.AtHelm)
                 continue;
 
-            if (!CanHoldHelm((uid, duty)) || !HelmInPlan(uid))
+            if (!HoldsHelm((uid, duty), out var console) || !HelmInReach((uid, duty), console, now) || !HelmInPlan(uid))
             {
                 _toRelease.Add(uid);
                 continue;
             }
 
-            if (!TryComp<ShipSteererComponent>(uid, out var steerer))
+            if (refreshDocks || now >= duty.NextDockCheck)
+                RefreshDocked((uid, duty));
+
+            if (!TryComp<ShipSteererComponent>(uid, out var steerer)
+                || TargetElsewhere(duty, xform.MapID) != duty.AwaitingTarget)
             {
-                // Something else stopped the steering; pick it back up.
+                // Something else stopped the steering, or the target left or reached our map; steer afresh.
                 if (Steer((uid, duty)) == null)
                     _toRelease.Add(uid);
 
@@ -143,12 +173,18 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         if (!TryComp<WFPilotDutyComponent>(pilot, out var duty) || Transform(pilot).GridUid is not { } grid)
             return;
         var occupied = new HashSet<int>();
+        var captains = EntityManager.System<WFCaptainSystem>();
         var query = EntityQueryEnumerator<WFPilotDutyComponent>();
         while (query.MoveNext(out var other, out var escort))
         {
-            if (other != pilot && escort.FollowTarget == target && escort.EscortOffset != null
+            if (other == pilot || TerminatingOrDeleted(other) || !_mobState.IsAlive(other) || HasComp<ActorComponent>(other))
+                continue;
+            if (escort.FollowTarget == target && escort.EscortOffset != null
                 && (escort.Orders == WFPilotOrder.Follow || escort.ResumeOrder == WFPilotOrder.Follow))
                 occupied.Add(escort.EscortSlot);
+            // An escort evading under its captain returns to its slot afterwards.
+            else if (captains.TryGetSavedEscort(other, out var saved, out var savedSlot) && saved == target)
+                occupied.Add(savedSlot);
         }
         var slot = 0;
         while (occupied.Contains(slot))
@@ -165,15 +201,49 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     private float GridRadius(EntityUid grid) => TryComp<Robust.Shared.Map.Components.MapGridComponent>(grid, out var map)
         ? map.LocalAABB.Size.Length() / 2f + map.LocalAABB.Center.Length() : 0f;
 
-    private Angle GridForwardAngle(EntityUid grid)
+    /// <summary>How far from a grid's centre the pilot's ship can get without entering the clearance around it.</summary>
+    public float HullClearance(EntityUid pilot, EntityUid target)
     {
-        var consoles = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
-        while (consoles.MoveNext(out var uid, out _, out var xform))
+        if (!TryComp<WFPilotDutyComponent>(pilot, out var duty) || Transform(pilot).GridUid is not { } grid)
+            return 0f;
+        return GridRadius(grid) + GridRadius(target) + duty.Navigation.NavigationClearance;
+    }
+
+    /// <summary>The escorted grid's forward, from its helm relative to the grid; the helm is cached on the escort.</summary>
+    private Angle GridForwardAngle(WFPilotDutyComponent duty, EntityUid grid)
+    {
+        var cached = duty.LeaderConsoleOf == grid
+                     && (duty.LeaderConsole is { } held
+                         ? !TerminatingOrDeleted(held) && Transform(held) is { Anchored: true } heldXform && heldXform.GridUid == grid
+                         : _timing.CurTime < duty.NextLeaderConsoleCheck);
+        if (!cached)
         {
-            if (xform.GridUid == grid && xform.Anchored)
-                return _transform.GetWorldRotation(uid) - _transform.GetWorldRotation(grid);
+            duty.LeaderConsoleOf = grid;
+            duty.LeaderConsole = FindLeaderConsole(grid);
+            duty.NextLeaderConsoleCheck = _timing.CurTime + LeaderConsoleRetry;
         }
-        return Angle.Zero;
+        return duty.LeaderConsole is { } console
+            ? _transform.GetWorldRotation(console) - _transform.GetWorldRotation(grid)
+            : Angle.Zero;
+    }
+
+    /// <summary>The anchored console a grid is flown from, else a powered one, else any.</summary>
+    private EntityUid? FindLeaderConsole(EntityUid grid)
+    {
+        EntityUid? powered = null;
+        EntityUid? anchored = null;
+        var consoles = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
+        while (consoles.MoveNext(out var uid, out var console, out var xform))
+        {
+            if (xform.GridUid != grid || !xform.Anchored)
+                continue;
+            if (console.SubscribedPilots.Count > 0)
+                return uid;
+            anchored ??= uid;
+            if (powered == null && _power.IsPowered(uid))
+                powered = uid;
+        }
+        return powered ?? anchored;
     }
 
     /// <summary>Fly to another grid, dock with it by hand, then hold.</summary>
@@ -203,7 +273,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         ent.Comp.ResumeOrder = null;
         ent.Comp.HeadingOverride = null;
         if (orders is not (WFPilotOrder.Hold or WFPilotOrder.Undock)
-            && Transform(ent).GridUid is { } grid && _docking.GetDocks(grid).Any(dock => dock.Comp.Docked)
+            && Transform(ent).GridUid is { } grid && RefreshDocked(ent)
             && !(orders == WFPilotOrder.Dock && ent.Comp.DockTarget is { } destination && _docking.AreGridsDocked(grid, destination)))
         {
             var waypoints = ent.Comp.Waypoints;
@@ -305,6 +375,10 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             return false;
         }
 
+        // Just checked in range; the update loop checks again after the interval.
+        duty.HelmInReach = true;
+        duty.NextReachCheck = _timing.CurTime + ReachCheckInterval;
+        RefreshDocked((mob, duty));
         if (duty.AtHelm)
             return true;
 
@@ -344,16 +418,37 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     /// </summary>
     public bool CanHoldHelm(Entity<WFPilotDutyComponent?> ent)
     {
-        if (!Resolve(ent, ref ent.Comp, false) || !ent.Comp.AtHelm)
+        return Resolve(ent, ref ent.Comp, false)
+               && HoldsHelm((ent, ent.Comp), out var console)
+               && _interaction.InRangeUnobstructed(ent.Owner, console);
+    }
+
+    /// <summary><see cref="CanHoldHelm"/> without the reach raycast.</summary>
+    private bool HoldsHelm(Entity<WFPilotDutyComponent> ent, out EntityUid console)
+    {
+        console = default;
+        if (!ent.Comp.AtHelm
+            || !TryComp<PilotComponent>(ent, out var pilot)
+            || pilot.Console is not { } held
+            || Transform(ent).GridUid is not { } grid
+            || !IsUsableHelm(held, grid)
+            || _mobState.IsIncapacitated(ent)
+            || HasComp<ActorComponent>(ent))
             return false;
 
-        return TryComp<PilotComponent>(ent, out var pilot)
-               && pilot.Console is { } console
-               && Transform(ent).GridUid is { } grid
-               && IsUsableHelm(console, grid)
-               && _interaction.InRangeUnobstructed(ent.Owner, console)
-               && !_mobState.IsIncapacitated(ent)
-               && !HasComp<ActorComponent>(ent);
+        console = held;
+        return true;
+    }
+
+    /// <summary>Whether the helm is in reach and unobstructed, raycast at most once per interval.</summary>
+    private bool HelmInReach(Entity<WFPilotDutyComponent> ent, EntityUid console, TimeSpan now)
+    {
+        if (now >= ent.Comp.NextReachCheck)
+        {
+            ent.Comp.NextReachCheck = now + ReachCheckInterval;
+            ent.Comp.HelmInReach = _interaction.InRangeUnobstructed(ent.Owner, console);
+        }
+        return ent.Comp.HelmInReach;
     }
 
     /// <summary>
@@ -362,9 +457,14 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     /// </summary>
     private bool HelmInPlan(EntityUid mob)
     {
-        return !TryComp<HTNComponent>(mob, out var htn)
-               || htn.Plan is not { } plan
-               || plan.Tasks.Any(task => task.Operator is WFTakeHelmOperator);
+        if (!TryComp<HTNComponent>(mob, out var htn) || htn.Plan is not { } plan)
+            return true;
+        foreach (var task in plan.Tasks)
+        {
+            if (task.Operator is WFTakeHelmOperator)
+                return true;
+        }
+        return false;
     }
 
     private bool IsUsableHelm(EntityUid console, EntityUid grid)
@@ -385,10 +485,10 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         var duty = ent.Comp;
         duty.HeadingOverride = null;
         if (duty.Orders == WFPilotOrder.Follow && duty.EscortOffset != null && duty.FollowTarget is { } leader
-            && !TerminatingOrDeleted(leader) && Transform(ent).GridUid is { } grid)
+            && !TerminatingOrDeleted(leader) && !duty.AwaitingTarget && Transform(ent).GridUid is { } grid)
         {
             steerer.Coordinates = new EntityCoordinates(leader, duty.EscortOffset.Value);
-            var heading = _transform.GetWorldRotation(leader) + GridForwardAngle(leader) + new Angle(Math.PI) + Angle.FromDegrees(TravelHeadingOffset(ent));
+            var heading = _transform.GetWorldRotation(leader) + GridForwardAngle(duty, leader) + new Angle(Math.PI) + Angle.FromDegrees(TravelHeadingOffset(ent));
             steerer.InRangeRotation = heading;
             steerer.AlwaysFaceTarget = true;
             var distance = (_transform.ToMapCoordinates(steerer.Coordinates).Position - _transform.GetWorldPosition(grid)).Length();
@@ -400,10 +500,12 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         switch (duty.Orders)
         {
             case WFPilotOrder.Dock:
-                AdvanceDock(ent, steerer, frameTime);
+                // A target on another map is waited for in place.
+                if (!duty.AwaitingTarget)
+                    AdvanceDock(ent, steerer, frameTime);
                 break;
             case WFPilotOrder.Undock when duty.Waypoints.Count == 0:
-                ReleaseDocks(ent);
+                ReleaseDocks(ent, frameTime);
                 break;
             case WFPilotOrder.GoTo or WFPilotOrder.Undock when steerer.Status == ShipSteeringStatus.InRange:
                 duty.WaypointIndex++;
@@ -455,6 +557,8 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         var faceTarget = false;
         Angle? heading = null;
         float? maxTurnRate = null;
+        // A target on another map is waited for where the ship is.
+        var elsewhere = duty.AwaitingTarget = TargetElsewhere(duty, xform.MapID);
 
         switch (duty.Orders)
         {
@@ -473,13 +577,13 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 speed = duty.Navigation.ArrivalSpeed;
                 faceTarget = true;
                 break;
-            case WFPilotOrder.Loiter when duty.LoiterCenter is { } center:
+            case WFPilotOrder.Loiter when duty.LoiterCenter is { } center && !elsewhere:
                 target = center;
                 mode = ShipSteeringMode.Orbit;
                 range = SafeOrbitRange(grid, center, duty.LoiterRadius, duty.Navigation.NavigationClearance);
                 speed = duty.LoiterSpeed;
                 break;
-            case WFPilotOrder.Follow when duty.FollowTarget is { } followed && !TerminatingOrDeleted(followed):
+            case WFPilotOrder.Follow when duty.FollowTarget is { } followed && !TerminatingOrDeleted(followed) && !elsewhere:
                 // Grid-relative coordinates move with the grid.
                 target = new EntityCoordinates(followed, duty.EscortOffset ?? Vector2.Zero);
                 range = duty.EscortOffset != null ? duty.FollowRange : MathF.Max(duty.FollowRange, GridRadius(grid) + GridRadius(followed) + duty.Navigation.NavigationClearance);
@@ -492,7 +596,8 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 break;
             case WFPilotOrder.Dock when duty.DockPlan is { } plan
                                         && duty.DockTarget is { } dockTarget
-                                        && !TerminatingOrDeleted(dockTarget):
+                                        && !TerminatingOrDeleted(dockTarget)
+                                        && !elsewhere:
                 heading = DockHeading(plan, dockTarget);
                 if (duty.DockPhase == WFDockPhase.Creep)
                 {

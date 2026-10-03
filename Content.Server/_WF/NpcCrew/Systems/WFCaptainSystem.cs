@@ -5,6 +5,7 @@ using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -15,16 +16,39 @@ public sealed partial class WFCaptainSystem : EntitySystem
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    /// <summary>How often an evasion is re-aimed at the current threats.</summary>
+    private static readonly TimeSpan RetargetInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>A new threat must be this much nearer (squared) than the one orbited to switch to it.</summary>
+    private const float RetargetHysteresis = 2.25f;
 
     private readonly Dictionary<EntityUid, SavedCourse> _courses = new();
     private readonly HashSet<(EntityUid Grid, string Group, EntityUid Pilot)> _overridden = new();
+    /// <summary>Pilots whose current orders are an evasion this system issued.</summary>
+    private readonly HashSet<EntityUid> _evading = new();
     private bool _changingOrders;
+    private TimeSpan _nextRetarget;
 
     /// <summary>Automatic evasion and restoration preserve the crew's escort assignment.</summary>
     public bool IsChangingOrders => _changingOrders;
 
     /// <summary>Whether a captain temporarily owns this pilot's flight orders.</summary>
     public bool IsCourseSuspended(EntityUid pilot) => _courses.ContainsKey(pilot);
+
+    /// <summary>The escort leader and slot a suspended course returns to, if it is an escort.</summary>
+    public bool TryGetSavedEscort(EntityUid pilot, out EntityUid leader, out int slot)
+    {
+        leader = default;
+        slot = 0;
+        if (!_courses.TryGetValue(pilot, out var course) || course.Order != WFPilotOrder.Follow
+            || course.Follow is not { } follow || course.EscortOffset == null)
+            return false;
+        leader = follow;
+        slot = course.EscortSlot;
+        return true;
+    }
 
     public override void Initialize()
     {
@@ -37,10 +61,28 @@ public sealed partial class WFCaptainSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        var retarget = _timing.CurTime >= _nextRetarget;
+        if (retarget)
+        {
+            _nextRetarget = _timing.CurTime + RetargetInterval;
+            _evading.RemoveWhere(uid => TerminatingOrDeleted(uid));
+        }
+        if (_courses.Count == 0)
+            return;
+
         foreach (var (pilot, course) in _courses.ToArray())
         {
-            if (!Eligible(pilot, course.Grid, course.Group) || !Eligible(course.Captain, course.Grid, course.Group))
+            if (!Eligible(pilot, course.Grid, course.Group))
+            {
                 _courses.Remove(pilot);
+                continue;
+            }
+            // The pilot stands in for a fallen captain and still brings the ship back on course.
+            var current = course;
+            if (current.Captain != pilot && !Eligible(current.Captain, current.Grid, current.Group))
+                _courses[pilot] = current = current with { Captain = pilot };
+            if (retarget)
+                Evade(pilot, current);
         }
     }
 
@@ -52,7 +94,10 @@ public sealed partial class WFCaptainSystem : EntitySystem
 
     private void OnOrdersChanged(ref WFPilotOrdersChangedEvent args)
     {
-        if (!_changingOrders && !args.Continuation && _courses.Remove(args.Mob, out var course))
+        if (_changingOrders || args.Continuation)
+            return;
+        _evading.Remove(args.Mob);
+        if (_courses.Remove(args.Mob, out var course))
             _overridden.Add((course.Grid, course.Group, args.Mob));
     }
 
@@ -74,43 +119,101 @@ public sealed partial class WFCaptainSystem : EntitySystem
             React(null, ref args);
     }
 
-    /// <summary>Suspends each pilot's course and has them evade the attacker, or hold for a threat aboard.</summary>
+    /// <summary>
+    /// Suspends each pilot's course and has them evade the nearest attacker, or hold for a threat aboard. A course
+    /// already suspended is kept and only its evasion is re-aimed.
+    /// </summary>
     private void React(EntityUid? commander, ref WFCrewAlertEvent args)
     {
         var pilots = EntityQueryEnumerator<WFPilotDutyComponent, WFCrewComponent>();
         while (pilots.MoveNext(out var pilot, out var duty, out var crew))
         {
             if (crew.Duty != WFCrewDuties.Pilot || !Eligible(pilot, args.Grid, args.Group)
-                || _courses.ContainsKey(pilot)
-                || _overridden.Contains((args.Grid, args.Group, pilot))
-                || commander == null && !duty.ReactToAttacks)
+                || _overridden.Contains((args.Grid, args.Group, pilot)))
+                continue;
+            if (_courses.TryGetValue(pilot, out var suspended))
+            {
+                Evade(pilot, suspended);
+                continue;
+            }
+            if (commander == null && !duty.ReactToAttacks)
                 continue;
             var captain = commander ?? pilot;
-            // Preserve the destination beyond automatic undocking, not its temporary back-off course.
-            var order = duty.ResumeOrder ?? duty.Orders;
-            var waypoints = duty.ResumeOrder != null
-                ? duty.ResumeWaypoints.ToList()
-                : duty.Waypoints.Skip(duty.WaypointIndex).ToList();
-            _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, order,
-                waypoints, duty.LoiterCenter, duty.RequestedLoiterRadius, duty.LoiterSpeedOverride, duty.OrbitKind,
-                duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot, duty.EscortSpacing,
-                duty.HoldPosition, duty.HoldHeading);
-            _changingOrders = true;
-            try
+            SavedCourse course;
+            if (_evading.Contains(pilot))
             {
-                var threats = _alerts.GetHostileShips(args.Grid, args.Group);
-                if (threats.FirstOrDefault() is var threat && threat.IsValid())
-                {
-                    var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(threat, out var targetGrid)
-                        ? targetGrid.LocalAABB.Center : System.Numerics.Vector2.Zero;
-                    _pilots.Loiter(pilot, new EntityCoordinates(threat, center), 0f,
-                        objective: WFCrewObjectiveKind.Attack);
-                }
-                else
-                    _pilots.Hold(pilot);
+                // Its orders are the evasion of a course lost earlier; never save those, come back to a halt instead.
+                course = new SavedCourse(captain, args.Grid, args.Group, WFPilotOrder.Hold,
+                    new List<EntityCoordinates>(), null, 0f, null, WFCrewObjectiveKind.Loiter, null,
+                    0f, null, null, 0, 0f, null, Angle.Zero);
             }
-            finally { _changingOrders = false; }
+            else
+            {
+                // Preserve the destination beyond automatic undocking, not its temporary back-off course.
+                var order = duty.ResumeOrder ?? duty.Orders;
+                var waypoints = duty.ResumeOrder != null
+                    ? duty.ResumeWaypoints.ToList()
+                    : duty.Waypoints.Skip(duty.WaypointIndex).ToList();
+                course = new SavedCourse(captain, args.Grid, args.Group, order,
+                    waypoints, duty.LoiterCenter, duty.RequestedLoiterRadius, duty.LoiterSpeedOverride, duty.OrbitKind,
+                    duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot, duty.EscortSpacing,
+                    duty.HoldPosition, duty.HoldHeading);
+            }
+            _courses[pilot] = course;
+            Evade(pilot, course);
         }
+    }
+
+    /// <summary>Orbits the nearest hostile ship, or holds when none is left; leaves orders that already match.</summary>
+    private void Evade(EntityUid pilot, SavedCourse course)
+    {
+        if (!TryComp<WFPilotDutyComponent>(pilot, out var duty))
+            return;
+        // While undocking for the evasion, the evasion is the order resumed afterwards.
+        var current = duty.ResumeOrder ?? duty.Orders;
+        var orbiting = current == WFPilotOrder.Loiter && duty.OrbitKind == WFCrewObjectiveKind.Attack
+            ? duty.LoiterCenter?.EntityId : null;
+        var threat = PickThreat(course.Grid, course.Group, orbiting);
+        if (threat is { } ship ? orbiting == ship : current == WFPilotOrder.Hold)
+            return;
+
+        _changingOrders = true;
+        try
+        {
+            if (threat is { } target)
+            {
+                var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(target, out var targetGrid)
+                    ? targetGrid.LocalAABB.Center : System.Numerics.Vector2.Zero;
+                _pilots.Loiter(pilot, new EntityCoordinates(target, center), 0f,
+                    objective: WFCrewObjectiveKind.Attack);
+            }
+            else
+                _pilots.Hold(pilot);
+            _evading.Add(pilot);
+        }
+        finally { _changingOrders = false; }
+    }
+
+    /// <summary>The nearest hostile ship on the crew's map, keeping the one orbited unless another is much nearer.</summary>
+    private EntityUid? PickThreat(EntityUid grid, string group, EntityUid? orbiting)
+    {
+        var position = _transform.GetWorldPosition(grid);
+        EntityUid? nearest = null;
+        var best = float.MaxValue;
+        var orbitedDistance = float.MaxValue;
+        foreach (var ship in _alerts.GetHostileShips(grid, group))
+        {
+            var distance = (_transform.GetWorldPosition(ship) - position).LengthSquared();
+            if (ship == orbiting)
+                orbitedDistance = distance;
+            if (distance >= best)
+                continue;
+            best = distance;
+            nearest = ship;
+        }
+        if (orbiting != null && orbitedDistance < float.MaxValue && orbitedDistance <= best * RetargetHysteresis)
+            return orbiting;
+        return nearest;
     }
 
     private void OnClear(ref WFCrewAlertClearedEvent args)
@@ -125,8 +228,10 @@ public sealed partial class WFCaptainSystem : EntitySystem
             if (course.Grid != args.Grid || course.Group != args.Group)
                 continue;
             _courses.Remove(pilot);
-            if (!Eligible(pilot, course.Grid, course.Group) || !Eligible(course.Captain, course.Grid, course.Group))
+            // A fallen captain's course is still restored by the pilot.
+            if (!Eligible(pilot, course.Grid, course.Group))
                 continue;
+            _evading.Remove(pilot);
             _changingOrders = true;
             try
             {
@@ -134,8 +239,23 @@ public sealed partial class WFCaptainSystem : EntitySystem
             }
             finally { _changingOrders = false; }
         }
+
+        // Pilots still flying an evasion whose course was lost come to a halt.
+        foreach (var pilot in _evading.ToArray())
+        {
+            if (!Eligible(pilot, grid, group))
+                continue;
+            _evading.Remove(pilot);
+            _changingOrders = true;
+            try
+            {
+                _pilots.Hold(pilot);
+            }
+            finally { _changingOrders = false; }
+        }
     }
 
+    /// <summary>Puts the saved course back; a target that is gone falls back to holding where the ship is.</summary>
     private void RestoreCourse(EntityUid pilot, SavedCourse course)
     {
         switch (course.Order)
@@ -172,6 +292,9 @@ public sealed partial class WFCaptainSystem : EntitySystem
                 break;
             case WFPilotOrder.Undock:
                 _pilots.Undock(pilot);
+                break;
+            default:
+                _pilots.Hold(pilot);
                 break;
         }
     }

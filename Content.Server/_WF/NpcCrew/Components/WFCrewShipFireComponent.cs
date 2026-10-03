@@ -9,4 +9,7 @@ public sealed partial class WFCrewShipFireComponent : Component
 
     /// <summary>Launched rounds retain their autonomous origin after a cannon or gunner changes control.</summary>
     public bool Launched;
+
+    /// <summary>When the weapon's attribution to its last crew command lapses.</summary>
+    public TimeSpan Until;
 }

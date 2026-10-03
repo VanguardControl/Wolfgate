@@ -168,6 +168,13 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 state.Started = false;
                 continue;
             }
+            // The captain owns the orders until all-clear; a target lost meanwhile is handled afterwards.
+            if (_captains.IsCourseSuspended(pilot))
+            {
+                state.Status = "evading";
+                state.Evaded = true;
+                continue;
+            }
             var item = state.Items[0];
             if (!Valid(grid, item))
             {
@@ -175,6 +182,14 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 state.Paused = true;
                 state.Status = "target-lost";
                 continue;
+            }
+            if (state.Evaded)
+            {
+                state.Evaded = false;
+                // The restored course doesn't redo an arrival or docking undone by the evasion; fly the task again.
+                if (item.Kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Undock
+                    or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage)
+                    state.Started = false;
             }
             var target = item.Target is { } net ? GetEntity(net) : EntityUid.Invalid;
             if (!state.Started || state.Pilot != pilot)
@@ -188,11 +203,6 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             if (!duty.AtHelm)
             {
                 state.Status = "awaiting-helm";
-                continue;
-            }
-            if (_captains.IsCourseSuspended(pilot))
-            {
-                state.Status = "evading";
                 continue;
             }
             state.Status = "running";
@@ -249,6 +259,8 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             case WFCrewObjectiveKind.Attack:
                 _pilots.Loiter(pilot, targetCenter, item.Range, objective: WFCrewObjectiveKind.Attack); break;
             case WFCrewObjectiveKind.Retreat:
+                // Crew pilots keep clear of the destination's hull, so arrival allows for both hulls.
+                duty.ArrivalRange = item.Range + _pilots.HullClearance(pilot, target);
                 _pilots.GoTo(pilot, new List<EntityCoordinates> { targetCenter }); break;
         }
     }
@@ -338,6 +350,8 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         public readonly List<WFCrewObjective> Items = new();
         public bool Started;
         public bool Paused;
+        /// <summary>The captain suspended the pilot's course since the last tick that ran the task.</summary>
+        public bool Evaded;
         public float Elapsed;
         public EntityUid? Pilot;
         public string Status = "pending";

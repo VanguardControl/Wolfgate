@@ -56,10 +56,6 @@ public sealed partial class WFCrewTest
             var escorts = Server.System<WFCrewEscortSystem>();
             Assert.That(escorts.GetFormation(leader), Is.EquivalentTo(new[] { leader, a, b, c }));
             var radio = ConvoyCrew(a, "WFCrewRadioOperator", "alpha", new Vector2(4.5f));
-            var friendlyHit = new WFCrewHullHitEvent(a, leader);
-            SEntMan.EventBus.RaiseLocalEvent(a, ref friendlyHit, true);
-            Assert.That(SEntMan.GetComponent<WFRadioOperatorComponent>(radio).Alerted, Is.False,
-                "A formation member must not provoke an independent radio mayday.");
             var hit = new WFCrewHullHitEvent(leader, hostile);
             SEntMan.EventBus.RaiseLocalEvent(leader, ref hit, true);
             var alerts = Server.System<WFCrewAlertSystem>();

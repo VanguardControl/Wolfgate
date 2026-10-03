@@ -5,6 +5,8 @@ using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Physics.Controllers;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Shuttles.Components;
+using Content.Shared.Shuttles.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
@@ -61,7 +63,7 @@ public sealed partial class WFPilotDutySystem
         var spacing = MathF.Max(duty.EscortSpacing, GridRadius(grid) + GridRadius(target) + duty.Navigation.NavigationClearance);
         var row = duty.EscortSlot / 2 + 1;
         var center = TryComp<MapGridComponent>(target, out var targetGrid) ? targetGrid.LocalAABB.Center : Vector2.Zero;
-        duty.EscortOffset = center + GridForwardAngle(target).RotateVec(new Vector2((duty.EscortSlot % 2 == 0 ? -1 : 1) * spacing, -row * spacing));
+        duty.EscortOffset = center + GridForwardAngle(duty, target).RotateVec(new Vector2((duty.EscortSlot % 2 == 0 ? -1 : 1) * spacing, -row * spacing));
     }
 
     private void CaptureHold(Entity<WFPilotDutyComponent> ent)
@@ -71,6 +73,75 @@ public sealed partial class WFPilotDutySystem
         ent.Comp.HoldPosition = new EntityCoordinates(map, _transform.GetWorldPosition(grid));
         ent.Comp.HoldHeading = _transform.GetWorldRotation(grid) + new Angle(Math.PI);
         ent.Comp.CorrectingHold = false;
+    }
+
+    /// <summary>
+    /// Re-issues orders left on the previous map by a jump: Hold re-anchors, GoTo drops points on other maps and
+    /// completes once none remain, and a back-off point is planned again.
+    /// </summary>
+    private void OnMapChanged(Entity<WFPilotDutyComponent> ent, MapId map)
+    {
+        var duty = ent.Comp;
+        duty.ResumeWaypoints = KeepOnMap(duty.ResumeWaypoints, 0, map);
+        switch (duty.Orders)
+        {
+            case WFPilotOrder.Hold:
+                CaptureHold(ent);
+                break;
+            case WFPilotOrder.GoTo:
+                duty.Waypoints = KeepOnMap(duty.Waypoints, duty.WaypointIndex, map);
+                duty.WaypointIndex = 0;
+                if (duty.Waypoints.Count == 0)
+                {
+                    CompleteOrders(ent);
+                    return;
+                }
+                break;
+            case WFPilotOrder.Undock when duty.Waypoints.Count > 0 && !IsOnMap(duty.Waypoints[0], map):
+                // Plans the back-off again, or finds nothing docked and moves on.
+                duty.Waypoints = new List<EntityCoordinates>();
+                duty.WaypointIndex = 0;
+                break;
+        }
+        if (duty.AtHelm)
+            Steer(ent);
+    }
+
+    /// <summary>Whether the grid is starting, flying or finishing an FTL jump.</summary>
+    private bool InTransit(EntityUid? grid)
+    {
+        return grid is { } uid && TryComp<FTLComponent>(uid, out var ftl)
+               && ftl.State is FTLState.Starting or FTLState.Travelling or FTLState.Arriving;
+    }
+
+    /// <summary>Whether the grid the current order flies to or around is on another map.</summary>
+    private bool TargetElsewhere(WFPilotDutyComponent duty, MapId map)
+    {
+        EntityUid? target = duty.Orders switch
+        {
+            WFPilotOrder.Follow => duty.FollowTarget,
+            WFPilotOrder.Dock => duty.DockTarget,
+            WFPilotOrder.Loiter => duty.LoiterCenter?.EntityId,
+            _ => null,
+        };
+        return target is { } uid && !TerminatingOrDeleted(uid) && Transform(uid).MapID != map;
+    }
+
+    private bool IsOnMap(EntityCoordinates point, MapId map)
+    {
+        return point.IsValid(EntityManager) && _transform.ToMapCoordinates(point).MapId == map;
+    }
+
+    /// <summary>The points from <paramref name="start"/> on that lie on the map.</summary>
+    private List<EntityCoordinates> KeepOnMap(List<EntityCoordinates> points, int start, MapId map)
+    {
+        var kept = new List<EntityCoordinates>();
+        for (var i = Math.Max(start, 0); i < points.Count; i++)
+        {
+            if (IsOnMap(points[i], map))
+                kept.Add(points[i]);
+        }
+        return kept;
     }
 
     private float SafeOrbitRange(EntityUid grid, EntityCoordinates center, float requested, float clearance)
@@ -97,14 +168,16 @@ public sealed partial class WFPilotDutySystem
         var input = args.Input ?? new ShuttleInput(Vector2.Zero, 0f, 0f);
         if (duty.Orders == WFPilotOrder.Hold && duty.HoldPosition is { } anchor && anchor.IsValid(EntityManager))
         {
-            var distance = (_transform.ToMapCoordinates(anchor).Position - position).Length();
-            if (_docking.GetDocks(grid).Any(dock => dock.Comp.Docked))
+            var held = _transform.ToMapCoordinates(anchor);
+            // An anchor left on another map is re-captured on the next update; brake until then.
+            if (duty.Docked || held.MapId != Transform(grid).MapID)
             {
                 // Docked ships don't return to an anchor, but they still brake or the pair drifts.
                 args.Input = new ShuttleInput(Vector2.Zero, 0f, 1f);
                 steerer.Status = ShipSteeringStatus.InRange;
                 return;
             }
+            var distance = (held.Position - position).Length();
             if (distance > limits.HoldRange)
                 duty.CorrectingHold = true;
             else if (distance <= limits.HoldReturnRange)
@@ -137,7 +210,7 @@ public sealed partial class WFPilotDutySystem
             _ => null,
         };
         var targetVelocity = Vector2.Zero;
-        if (target is { } leader && !TerminatingOrDeleted(leader) && TryComp<MapGridComponent>(leader, out var targetGrid))
+        if (target is { } leader && !duty.AwaitingTarget && !TerminatingOrDeleted(leader) && TryComp<MapGridComponent>(leader, out var targetGrid))
         {
             if (TryComp<PhysicsComponent>(leader, out var targetBody))
                 targetVelocity = targetBody.LinearVelocity;

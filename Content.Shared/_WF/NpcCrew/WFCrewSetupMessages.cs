@@ -3,9 +3,9 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.NpcCrew;
 
-/// <summary>Admin operations supported by the crew setup window.</summary>
+/// <summary>Admin operations supported by the crew setup window; Crews returns only the crew snapshot.</summary>
 [Serializable, NetSerializable]
-public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview, Teleport, SpawnVessel, Objectives, AppendObjective, Pause, Resume, Skip, Rules }
+public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview, Teleport, SpawnVessel, Objectives, AppendObjective, Pause, Resume, Skip, Rules, Crews }
 
 /// <summary>High-level crew tasks; timed tasks with zero duration continue until skipped.</summary>
 [Serializable, NetSerializable]
@@ -87,9 +87,9 @@ public sealed class WFCrewSetupRequest : EntityEventArgs
     public List<WFCrewObjective> Objectives = new();
 }
 
-/// <summary>A named grid visible to the admin tool.</summary>
+/// <summary>A named grid visible to the admin tool; Large grids cannot be planned or crewed.</summary>
 [Serializable, NetSerializable]
-public sealed record WFCrewSetupGrid(NetEntity Id, string Name);
+public sealed record WFCrewSetupGrid(NetEntity Id, string Name, bool Large = false);
 
 /// <summary>Opens setup for a crew selected through an admin verb.</summary>
 [Serializable, NetSerializable]

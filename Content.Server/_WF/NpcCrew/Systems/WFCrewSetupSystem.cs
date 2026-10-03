@@ -2,11 +2,14 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._WF.Administration.Systems;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Administration;
+using Content.Shared.Database;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Prototypes;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Radio;
@@ -23,13 +26,16 @@ namespace Content.Server._WF.NpcCrew.Systems;
 public sealed partial class WFCrewSetupSystem : EntitySystem
 {
     [Dependency] private IAdminManager _admins = default!;
+    [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
+    [Dependency] private WFCrewWorkSystem _work = default!;
     [Dependency] private WFPilotDutySystem _pilots = default!;
     [Dependency] private WFRadioOperatorSystem _radio = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
+    [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
@@ -44,7 +50,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     private void OnVerbs(EntityUid uid, WFCrewComponent crew, GetVerbsEvent<Verb> args)
     {
         if (!TryComp<ActorComponent>(args.User, out var actor)
-            || !_admins.HasAdminFlag(actor.PlayerSession, AdminFlags.Spawn) || Transform(uid).GridUid is not { } grid)
+            || !_admins.HasAdminFlag(actor.PlayerSession, AdminFlags.Spawn) || CrewGrid(uid, crew) is not { } grid)
             return;
         args.Verbs.Add(new Verb
         {
@@ -57,8 +63,77 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         });
     }
 
+    /// <summary>The ship a crewman belongs to: his current job's ship, else his post's grid, else the grid he stands on.</summary>
+    public EntityUid? CrewGrid(EntityUid uid, WFCrewComponent crew, TransformComponent? xform = null)
+    {
+        if (_work.HomeGrid(uid) is { } home)
+            return home;
+        if (crew.Post is { } post && post.EntityId.IsValid() && HasComp<MapGridComponent>(post.EntityId))
+            return post.EntityId;
+        return (xform ?? Transform(uid)).GridUid;
+    }
+
+    /// <summary>Every crewman of a crew, wherever he currently stands.</summary>
+    private List<EntityUid> Members(EntityUid grid, string group)
+    {
+        var members = new List<EntityUid>();
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var crew, out var xform))
+        {
+            if (crew.Group == group && CrewGrid(uid, crew, xform) == grid)
+                members.Add(uid);
+        }
+        return members;
+    }
+
+    /// <summary>Cancels a crew's queue and work and deletes its crewmen. Returns how many were removed.</summary>
+    public int ClearCrew(EntityUid grid, string group)
+    {
+        var members = Members(grid, group);
+        _objectives.Cancel(grid, group);
+        foreach (var member in members)
+            QueueDel(member);
+        return members.Count;
+    }
+
+    /// <summary>Deletes a group on every ship and cancels its queues and work. Returns how many crewmen were removed.</summary>
+    public int ClearGroup(string group)
+    {
+        var members = new List<EntityUid>();
+        var ships = new HashSet<EntityUid>();
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var crew, out var xform))
+        {
+            if (crew.Group != group)
+                continue;
+            members.Add(uid);
+            if (CrewGrid(uid, crew, xform) is { } ship)
+                ships.Add(ship);
+        }
+        foreach (var ship in ships)
+            _objectives.Cancel(ship, group);
+        foreach (var member in members)
+            QueueDel(member);
+        return members.Count;
+    }
+
+    /// <summary>Whether a grid is too large to scan for posts without stalling the server.</summary>
+    public bool IsTooLarge(EntityUid grid)
+    {
+        if (!TryComp<MapGridComponent>(grid, out var map))
+            return false;
+        var box = map.LocalAABB;
+        return box.Width * box.Height > WFCrewLimits.MaxPlanArea;
+    }
+
     /// <summary>Builds the same roster used by commands, optionally adding a captain to a spare deck post.</summary>
     public List<WFCrewSetupPost> Plan(EntityUid grid, int deckhands, bool captain)
+    {
+        return Plan(grid, deckhands, captain, out _);
+    }
+
+    /// <summary>Plans a roster capped at the window's row limit; total is the uncapped post count.</summary>
+    public List<WFCrewSetupPost> Plan(EntityUid grid, int deckhands, bool captain, out int total)
     {
         var posts = _planner.Plan(grid, Math.Clamp(deckhands, 0, 32) + (captain ? 1 : 0));
         if (captain && posts.All(post => post.Role != WFCrewRoles.Captain))
@@ -67,17 +142,21 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             if (index >= 0)
                 posts[index] = posts[index] with { Role = WFCrewRoles.Captain };
         }
-        return posts.Select(post => new WFCrewSetupPost { Role = post.Role.Id, Position = post.Coordinates.Position }).ToList();
+        total = posts.Count;
+        return posts.Take(WFCrewLimits.MaxListItems)
+            .Select(post => new WFCrewSetupPost { Role = post.Role.Id, Position = post.Coordinates.Position }).ToList();
     }
 
     /// <summary>Checks an entire plan before creating anything, including posts, prototypes and mission targets.</summary>
     public bool Validate(EntityUid grid, List<WFCrewSetupPost> posts, WFCrewMission mission)
     {
-        if (!ValidateMission(grid, mission) || !TryComp<MapGridComponent>(grid, out var map) || posts.Count is < 1 or > 64)
+        if (!ValidateMission(grid, mission) || !TryComp<MapGridComponent>(grid, out var map)
+            || posts is null || posts.Count is < 1 or > WFCrewLimits.MaxListItems)
             return false;
         foreach (var post in posts)
         {
-            if (!Finite(post.Position) || !_prototypes.HasIndex<WFCrewRolePrototype>(post.Role)
+            if (post is null || !Bounded(post.Position) || post.Role is null || post.Loadout is null
+                || !_prototypes.HasIndex<WFCrewRolePrototype>(post.Role)
                 || post.Engagement is { } engagement && !Enum.IsDefined(engagement)
                 || post.Loadout.Length > 0 && !_prototypes.HasIndex<StartingGearPrototype>(post.Loadout))
                 return false;
@@ -91,15 +170,17 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
 
     private bool ValidateMission(EntityUid grid, WFCrewMission mission)
     {
-        if (!HasComp<MapGridComponent>(grid) || Transform(grid).MapUid == null || Transform(grid).MapID == MapId.Nullspace
-            || mission.Group.Length > 64 || mission.Callsign.Length > 100 || !Enum.IsDefined(mission.Order)
+        if (mission is null || !HasComp<MapGridComponent>(grid) || Transform(grid).MapUid == null || Transform(grid).MapID == MapId.Nullspace
+            || !Fits(mission.Group, WFCrewLimits.MaxGroup) || mission.Group.Length == 0
+            || !Fits(mission.Callsign, WFCrewLimits.MaxCallsign) || !Fits(mission.Battlegroup, WFCrewLimits.MaxBattlegroup)
+            || !Enum.IsDefined(mission.Order)
             || !Enum.IsDefined(mission.BoardingResponse) || !Enum.IsDefined(mission.DockingResponse)
             || mission.Navigation == null || !mission.Navigation.IsValid()
-            || !float.IsFinite(mission.Range) || mission.Range is < 1 or > 5000
-            || !Finite(mission.Destination) || !_prototypes.HasIndex<NpcFactionPrototype>(mission.Faction)
-            || !_prototypes.HasIndex<RadioChannelPrototype>(mission.LocalChannel)
-            || !_prototypes.HasIndex<RadioChannelPrototype>(mission.AlertChannel)
-            || mission.Company.Length > 0 && !_prototypes.HasIndex<CompanyPrototype>(mission.Company))
+            || !float.IsFinite(mission.Range) || mission.Range is < 1 or > WFCrewLimits.MaxRange
+            || !Bounded(mission.Destination) || !Known<NpcFactionPrototype>(mission.Faction)
+            || !Known<RadioChannelPrototype>(mission.LocalChannel)
+            || !Known<RadioChannelPrototype>(mission.AlertChannel)
+            || mission.Company is null || mission.Company.Length > 0 && !Known<CompanyPrototype>(mission.Company))
             return false;
         if (mission.Order is WFPilotOrder.Follow or WFPilotOrder.Dock
             && (mission.Target is not { } target || !TryGetEntity(target, out var other) || other == grid
@@ -108,7 +189,12 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         return true;
     }
 
-    private static bool Finite(Vector2 point) => float.IsFinite(point.X) && float.IsFinite(point.Y);
+    private bool Known<T>(string? id) where T : class, IPrototype => id != null && _prototypes.HasIndex<T>(id);
+
+    private static bool Fits(string? text, int max) => text != null && text.Length <= max;
+
+    private static bool Bounded(Vector2 point) => float.IsFinite(point.X) && float.IsFinite(point.Y)
+        && MathF.Abs(point.X) <= WFCrewLimits.MaxCoordinate && MathF.Abs(point.Y) <= WFCrewLimits.MaxCoordinate;
 
     /// <summary>Encounter entry point: spawns the validated roster through the ordinary crew factory.</summary>
     public bool TrySpawn(EntityUid grid, List<WFCrewSetupPost> posts, WFCrewMission mission, out List<EntityUid> spawned)
@@ -116,6 +202,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         spawned = new List<EntityUid>();
         if (!Validate(grid, posts, mission))
             return false;
+        _objectives.Cancel(grid, mission.Group);
         ApplyCompany(grid, mission.Company);
         _factions.ClearFactions(grid);
         _factions.AddFaction(grid, mission.Faction);
@@ -133,10 +220,14 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         return spawned.Count == posts.Count;
     }
 
+    /// <summary>Sets the company, or removes it when the company is empty.</summary>
     private void ApplyCompany(EntityUid uid, string company)
     {
         if (company.Length == 0)
+        {
+            RemComp<CompanyComponent>(uid);
             return;
+        }
         var component = EnsureComp<CompanyComponent>(uid);
         component.CompanyName = company;
         Dirty(uid, component);
@@ -151,12 +242,8 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         ApplyCompany(grid, mission.Company);
         _factions.ClearFactions(grid);
         _factions.AddFaction(grid, mission.Faction);
-        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var crew, out var transform))
-        {
-            if (transform.GridUid == grid && crew.Group == mission.Group)
-                ApplyMission(uid, grid, mission);
-        }
+        foreach (var uid in Members(grid, mission.Group))
+            ApplyMission(uid, grid, mission);
         return true;
     }
 
@@ -167,6 +254,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         {
             crew.Navigation = mission.Navigation.Clone();
             crew.Battlegroup = mission.Battlegroup.Trim();
+            EntityManager.System<WFCrewEscortSystem>().Invalidate();
         }
         if (TryComp<WFPilotDutyComponent>(mob, out var pilot))
         {
@@ -208,21 +296,99 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// Fills null fields, trims text and rejects oversize input. Returns the Fluent key of the reason, or null if the request is usable.
+    /// </summary>
+    private static string? Sanitize(WFCrewSetupRequest request)
+    {
+        request.Vessel = request.Vessel?.Trim() ?? string.Empty;
+        request.Posts ??= new List<WFCrewSetupPost>();
+        request.Objectives ??= new List<WFCrewObjective>();
+        request.Mission ??= new WFCrewMission();
+        var mission = request.Mission;
+        mission.Group = mission.Group?.Trim() ?? string.Empty;
+        mission.Callsign = mission.Callsign?.Trim() ?? string.Empty;
+        mission.Battlegroup = mission.Battlegroup?.Trim() ?? string.Empty;
+        mission.Company ??= string.Empty;
+        mission.Faction ??= string.Empty;
+        mission.LocalChannel ??= string.Empty;
+        mission.AlertChannel ??= string.Empty;
+        if (mission.Group.Length > WFCrewLimits.MaxGroup)
+            return "wf-crew-setup-group-too-long";
+        if (mission.Callsign.Length > WFCrewLimits.MaxCallsign)
+            return "wf-crew-setup-callsign-too-long";
+        if (mission.Battlegroup.Length > WFCrewLimits.MaxBattlegroup)
+            return "wf-crew-setup-battlegroup-too-long";
+        if (request.Posts.Count > WFCrewLimits.MaxListItems)
+            return "wf-crew-setup-too-many-posts";
+        if (request.Objectives.Count > WFCrewLimits.MaxListItems)
+            return "wf-crew-setup-too-many-objectives";
+        foreach (var post in request.Posts)
+        {
+            if (post is null)
+                return "wf-crew-setup-invalid";
+            post.Role = post.Role?.Trim() ?? string.Empty;
+            post.Loadout = post.Loadout?.Trim() ?? string.Empty;
+        }
+        foreach (var objective in request.Objectives)
+        {
+            if (objective is null || !Bounded(objective.Position))
+                return "wf-crew-setup-bad-coordinates";
+        }
+        if (request.Action is WFCrewSetupAction.Clear or WFCrewSetupAction.Objectives or WFCrewSetupAction.AppendObjective
+                or WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip or WFCrewSetupAction.Rules
+                or WFCrewSetupAction.Orders or WFCrewSetupAction.Spawn or WFCrewSetupAction.Preview
+            && mission.Group.Length == 0)
+            return "wf-crew-setup-group-required";
+        return null;
+    }
+
     private void OnRequest(WFCrewSetupRequest request, EntitySessionEventArgs args)
     {
-        if (!_admins.HasAdminFlag(args.SenderSession, AdminFlags.Spawn))
+        if (Handle(request, args.SenderSession) is not { } response)
             return;
+        RaiseNetworkEvent(response, Filter.SinglePlayer(args.SenderSession));
+        EntityManager.System<WFCrewUiDiagnosticsSystem>().Reply("crew", args.SenderSession, response.Crews.Count, response.Grid);
+    }
+
+    /// <summary>Sanitises and runs one setup request. Returns the reply, or null when the caller lacks permission.</summary>
+    public WFCrewSetupResponse? Handle(WFCrewSetupRequest request, ICommonSession session)
+    {
+        if (!_admins.HasAdminFlag(session, AdminFlags.Spawn))
+            return null;
         var response = new WFCrewSetupResponse { RequestId = request.RequestId, Action = request.Action, Grid = request.Grid };
-        var session = args.SenderSession;
-        if (request.Action == WFCrewSetupAction.List)
+        var refreshed = false;
+        if (!Enum.IsDefined(request.Action))
+            response.Message = Loc.GetString("wf-crew-setup-invalid");
+        else if (Sanitize(request) is { } rejection)
+            response.Message = Loc.GetString(rejection);
+        else
+            refreshed = Run(request, session, response);
+        if (!refreshed)
+            response.Crews = _objectives.Snapshot();
+        return response;
+    }
+
+    /// <summary>Runs a sanitised request into the response. Returns true when the response already carries a fresh crew snapshot.</summary>
+    private bool Run(WFCrewSetupRequest request, ICommonSession session, WFCrewSetupResponse response)
+    {
+        var action = request.Action;
+        var group = request.Mission.Group;
+        if (action == WFCrewSetupAction.Crews)
+            return false;
+        if (action == WFCrewSetupAction.List)
         {
             var query = EntityQueryEnumerator<MapGridComponent, MetaDataComponent>();
-            while (query.MoveNext(out var uid, out _, out var meta))
-                response.Grids.Add(new WFCrewSetupGrid(GetNetEntity(uid), meta.EntityName));
+            while (query.MoveNext(out var uid, out var map, out var meta))
+            {
+                var box = map.LocalAABB;
+                response.Grids.Add(new WFCrewSetupGrid(GetNetEntity(uid), meta.EntityName, box.Width * box.Height > WFCrewLimits.MaxPlanArea));
+            }
             var current = session.AttachedEntity is { } player ? Transform(player).GridUid : null;
             response.Grids = response.Grids.OrderBy(info => GetEntity(info.Id) == current ? 0 : 1).ThenBy(info => info.Name).ToList();
+            return false;
         }
-        else if (request.Action == WFCrewSetupAction.SpawnVessel)
+        if (action == WFCrewSetupAction.SpawnVessel)
         {
             if (session.AttachedEntity is { } actor && _prototypes.TryIndex<VesselPrototype>(request.Vessel, out var vessel)
                 && !vessel.Abstract && Transform(actor).MapID != MapId.Nullspace
@@ -230,71 +396,122 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
                 response.Grid = GetNetEntity(created.Value);
             else
                 response.Message = Loc.GetString("wf-crew-setup-invalid");
+            return false;
         }
-        else if (request.Grid is { } net && TryGetEntity(net, out var found) && found is { } grid && HasComp<MapGridComponent>(grid))
+        if (request.Grid is not { } net || !TryGetEntity(net, out var found) || found is not { } grid || !HasComp<MapGridComponent>(grid))
         {
-            if (request.Action == WFCrewSetupAction.Plan)
-            {
-                response.Posts = Plan(grid, request.Deckhands, request.Captain);
-                if (response.Posts.Count == 0)
-                    response.Message = Loc.GetString("wf-crew-setup-no-safe-posts");
-            }
-            else if (request.Action == WFCrewSetupAction.Clear)
-            {
-                _objectives.Cancel(grid, request.Mission.Group);
-                var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-                while (query.MoveNext(out var uid, out var crew, out var transform))
-                {
-                    if (transform.GridUid == grid && crew.Group == request.Mission.Group)
-                        QueueDel(uid);
-                }
-            }
-            else if (request.Action is WFCrewSetupAction.Objectives or WFCrewSetupAction.AppendObjective)
-            {
-                if (!_objectives.SetQueue(grid, request.Mission.Group, request.Objectives, request.Action == WFCrewSetupAction.AppendObjective))
-                    response.Message = Loc.GetString("wf-crew-setup-invalid");
-            }
-            else if (request.Action is WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip)
-                _objectives.Control(grid, request.Mission.Group, request.Action);
-            else if (request.Action == WFCrewSetupAction.Rules)
-            {
-                request.Mission.Order = WFPilotOrder.Hold;
-                if (!ValidateMission(grid, request.Mission))
-                    response.Message = Loc.GetString("wf-crew-setup-invalid");
-                else
-                {
-                    ApplyCompany(grid, request.Mission.Company);
-                    _factions.ClearFactions(grid);
-                    _factions.AddFaction(grid, request.Mission.Faction);
-                    var members = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-                    while (members.MoveNext(out var member, out var crew, out var xform))
-                    {
-                        if (xform.GridUid == grid && crew.Group == request.Mission.Group)
-                            ApplySettings(member, request.Mission);
-                    }
-                }
-            }
-            else if (request.Action == WFCrewSetupAction.Orders)
-            {
-                if (!TryApplyMission(grid, request.Mission))
-                    response.Message = Loc.GetString("wf-crew-setup-invalid");
-            }
-            else if (!Validate(grid, request.Posts, request.Mission))
-                response.Message = Loc.GetString("wf-crew-setup-invalid");
-            else if (request.Action == WFCrewSetupAction.Spawn)
-            {
-                TrySpawn(grid, request.Posts, request.Mission, out var spawned);
-                response.Message = Loc.GetString("wf-crew-setup-spawned", ("count", spawned.Count));
-            }
-            else if (request.Action == WFCrewSetupAction.Preview)
-                response.Posts = request.Posts;
-            else if (request.Action == WFCrewSetupAction.Teleport && _admins.HasAdminFlag(session, AdminFlags.Admin)
-                && session.AttachedEntity is { } actor)
-                _transform.SetCoordinates(actor, new EntityCoordinates(grid, request.Posts[0].Position));
-        }
-        else
             response.Message = Loc.GetString("wf-crew-setup-invalid");
-        response.Crews = _objectives.Snapshot();
-        RaiseNetworkEvent(response, Filter.SinglePlayer(session));
+            return false;
+        }
+
+        if (action == WFCrewSetupAction.Plan)
+        {
+            if (IsTooLarge(grid))
+            {
+                response.Message = Loc.GetString("wf-crew-setup-grid-too-large");
+                return false;
+            }
+            response.Posts = Plan(grid, request.Deckhands, request.Captain, out var total);
+            if (response.Posts.Count == 0)
+                response.Message = Loc.GetString("wf-crew-setup-no-safe-posts");
+            else if (total > response.Posts.Count)
+                response.Message = Loc.GetString("wf-crew-setup-plan-capped", ("shown", response.Posts.Count), ("total", total));
+        }
+        else if (action == WFCrewSetupAction.Clear)
+        {
+            var count = ClearCrew(grid, group);
+            if (count == 0)
+                response.Message = Loc.GetString("wf-crew-setup-no-crew");
+            else
+                Audit(session, grid, group, $"cleared {count} crew members from");
+        }
+        else if (action is WFCrewSetupAction.Objectives or WFCrewSetupAction.AppendObjective)
+        {
+            if (!_objectives.SetQueue(grid, group, request.Objectives, action == WFCrewSetupAction.AppendObjective))
+                response.Message = Loc.GetString("wf-crew-setup-invalid");
+            else
+                Audit(session, grid, group, $"{(action == WFCrewSetupAction.AppendObjective ? "appended" : "replaced")} {request.Objectives.Count} objectives for");
+        }
+        else if (action is WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip)
+        {
+            var queued = _objectives.Snapshot().FirstOrDefault(row => row.Grid == net && row.Group == group)?.Objectives.Count > 0;
+            if (!queued)
+            {
+                response.Message = Loc.GetString("wf-crew-setup-no-queue");
+                return false;
+            }
+            _objectives.Control(grid, group, action);
+            var verb = action switch
+            {
+                WFCrewSetupAction.Pause => "paused the objective queue of",
+                WFCrewSetupAction.Resume => "resumed the objective queue of",
+                _ => "skipped the current objective of",
+            };
+            Audit(session, grid, group, verb);
+            response.Crews = _objectives.Snapshot();
+            return true;
+        }
+        else if (action == WFCrewSetupAction.Rules)
+        {
+            request.Mission.Order = WFPilotOrder.Hold;
+            var members = Members(grid, group);
+            if (members.Count == 0)
+                response.Message = Loc.GetString("wf-crew-setup-no-crew");
+            else if (!ValidateMission(grid, request.Mission))
+                response.Message = Loc.GetString("wf-crew-setup-invalid");
+            else
+            {
+                ApplyCompany(grid, request.Mission.Company);
+                _factions.ClearFactions(grid);
+                _factions.AddFaction(grid, request.Mission.Faction);
+                foreach (var member in members)
+                    ApplySettings(member, request.Mission);
+                Audit(session, grid, group, "changed the rules of");
+            }
+        }
+        else if (action == WFCrewSetupAction.Orders)
+        {
+            var members = Members(grid, group);
+            if (members.Count == 0)
+                response.Message = Loc.GetString("wf-crew-setup-no-crew");
+            else if (!members.Any(member => TryComp<WFCrewComponent>(member, out var crew) && crew.Duty == WFCrewDuties.Pilot && _mobs.IsAlive(member)))
+                response.Message = Loc.GetString("wf-crew-setup-no-pilot");
+            else if (!TryApplyMission(grid, request.Mission))
+                response.Message = Loc.GetString("wf-crew-setup-invalid");
+            else
+                Audit(session, grid, group, $"gave {request.Mission.Order} orders to");
+        }
+        else if (action is WFCrewSetupAction.Spawn && IsTooLarge(grid))
+            response.Message = Loc.GetString("wf-crew-setup-grid-too-large");
+        else if (!Validate(grid, request.Posts, request.Mission))
+            response.Message = Loc.GetString("wf-crew-setup-invalid");
+        else if (action == WFCrewSetupAction.Spawn)
+        {
+            TrySpawn(grid, request.Posts, request.Mission, out var spawned);
+            response.Message = Loc.GetString("wf-crew-setup-spawned", ("count", spawned.Count));
+            Audit(session, grid, group, $"spawned {spawned.Count} crew members on");
+        }
+        else if (action == WFCrewSetupAction.Preview)
+            response.Posts = request.Posts;
+        else if (action == WFCrewSetupAction.Teleport)
+        {
+            if (!_admins.HasAdminFlag(session, AdminFlags.Admin))
+                response.Message = Loc.GetString("wf-crew-setup-teleport-denied");
+            else if (session.AttachedEntity is not { } actor)
+                response.Message = Loc.GetString("wf-crew-setup-teleport-no-body");
+            else
+            {
+                _transform.SetCoordinates(actor, new EntityCoordinates(grid, request.Posts[0].Position));
+                _adminLog.Add(LogType.Teleport, LogImpact.Medium,
+                    $"{session.Name} teleported to a crew post on {ToPrettyString(grid):entity} from the crew setup window");
+            }
+        }
+        return false;
+    }
+
+    private void Audit(ICommonSession session, EntityUid grid, string group, string what)
+    {
+        _adminLog.Add(LogType.AdminCommands, LogImpact.Medium,
+            $"{session.Name} {what} crew group {group} on {ToPrettyString(grid):entity}");
     }
 }

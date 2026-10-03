@@ -77,6 +77,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     private readonly HashSet<Entity<DockingComponent>> _docks = new();
 
     private readonly List<(Entity<WFRadioOperatorComponent> Op, EntityUid Grid)> _polled = new();
+    private readonly List<EntityUid> _witnesses = new();
 
     public override void Initialize()
     {
@@ -117,15 +118,28 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
         foreach (var (op, grid) in _polled)
         {
-            // From anywhere aboard, the grid's diagonal reaches all of it.
-            var range = TryComp<MapGridComponent>(grid, out var gridComp) ? gridComp.LocalAABB.Size.Length() : 0f;
+            if (op.Comp.DownReported.Count > 0)
+                op.Comp.DownReported.RemoveWhere(reported => TerminatingOrDeleted(reported));
+            if (!IsSpokesman(op))
+                continue;
+
+            // The farthest corner of the grid from the officer reaches all of it.
+            var range = 0f;
+            if (TryComp<MapGridComponent>(grid, out var gridComp))
+            {
+                var box = gridComp.LocalAABB;
+                var opTransform = Transform(op);
+                var at = opTransform.ParentUid == grid ? opTransform.LocalPosition : box.Center;
+                range = MathF.Max(MathF.Max((box.BottomLeft - at).Length(), (box.TopRight - at).Length()),
+                    MathF.Max((box.TopLeft - at).Length(), (box.BottomRight - at).Length()));
+            }
             foreach (var hostile in _faction.GetNearbyHostiles(op.Owner, range))
             {
                 if (Transform(hostile).GridUid != grid
                     || !_security.IsBoardingCandidate(hostile)
                     || !(EntityManager.System<WFCrewWeaponSystem>().CanSee(op, hostile)
                          || EntityManager.System<WFCrewCommsSystem>().Knows(op, hostile))
-                    || InCrew(hostile, GroupOf(op), grid))
+                    || InCrew(hostile, GroupOf(op), HomeGridOf(op)))
                 {
                     continue;
                 }
@@ -166,17 +180,33 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         if (args.Cancelled || !args.Damage.AnyPositive() || args.Origin is not { } origin || origin == uid)
             return;
 
-        if (InCrew(origin, component.Group, Transform(uid).GridUid))
+        var home = HomeGridOf(uid);
+        if (InCrew(origin, component.Group, home))
             return;
 
+        _witnesses.Clear();
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-        while (query.MoveNext(out var witness, out var crew, out var xform))
+        while (query.MoveNext(out var member, out var crew, out var xform))
         {
-            if (!_mobState.IsAlive(witness) || !InCrew(uid, crew.Group, xform.GridUid)
-                || witness != uid && !EntityManager.System<WFCrewWeaponSystem>().CanSee(witness, uid))
-                continue;
-            ReceiveIncident(witness, origin, WFRadioLine.Mayday);
-            EntityManager.System<WFCrewCommsSystem>().Report(witness, origin, WFRadioLine.Mayday);
+            if (crew.Group == component.Group && (crew.Post?.EntityId ?? xform.GridUid) == home && _mobState.IsAlive(member))
+                _witnesses.Add(member);
+        }
+
+        // Officers who saw it take it in; one crewman's report on the radio is all the crew needs to send.
+        var weapons = EntityManager.System<WFCrewWeaponSystem>();
+        foreach (var witness in _witnesses)
+        {
+            if (HasComp<WFRadioOperatorComponent>(witness) && (witness == uid || weapons.CanSee(witness, uid)))
+                ReceiveIncident(witness, origin, WFRadioLine.Mayday);
+        }
+
+        var comms = EntityManager.System<WFCrewCommsSystem>();
+        if (_witnesses.Contains(uid) && comms.Report(uid, origin, WFRadioLine.Mayday))
+            return;
+        foreach (var witness in _witnesses)
+        {
+            if (witness != uid && weapons.CanSee(witness, uid) && comms.Report(witness, origin, WFRadioLine.Mayday))
+                return;
         }
     }
 
@@ -259,7 +289,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         while (query.MoveNext(out var witness, out var crew, out var xform))
         {
             if (witness == args.Mob || !_mobState.IsAlive(witness)
-                || !InCrew(args.Mob, crew.Group, xform.GridUid)
+                || !InCrew(args.Mob, crew.Group, crew.Post?.EntityId ?? xform.GridUid)
                 || !EntityManager.System<WFCrewWeaponSystem>().CanSee(witness, args.Mob))
                 continue;
             ReceiveIncident(witness, args.Mob, line);
@@ -270,7 +300,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     /// <summary>Announces an incident personally witnessed or delivered through an equipped radio.</summary>
     public void ReceiveIncident(EntityUid recipient, EntityUid subject, WFRadioLine line)
     {
-        if (!TryComp<WFRadioOperatorComponent>(recipient, out var radio) || !_mobState.IsAlive(recipient))
+        if (!TryComp<WFRadioOperatorComponent>(recipient, out var radio) || !_mobState.IsAlive(recipient)
+            || !IsSpokesman((recipient, radio)))
             return;
         if (line == WFRadioLine.Mayday)
         {
@@ -340,6 +371,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     /// <summary>Starts or extends the attack episode; its first act gets the mayday.</summary>
     private void HostileAct(Entity<WFRadioOperatorComponent> ent, EntityUid hostile)
     {
+        if (!IsSpokesman(ent))
+            return;
         ent.Comp.Alerted = true;
         ent.Comp.LastHostileActivity = _timing.CurTime;
         if (ent.Comp.MaydaySent || Transform(ent).GridUid is not { } grid)
@@ -395,6 +428,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             return false;
         }
 
+        if (!IsSpokesman(ent))
+            return false;
+
         var now = _timing.CurTime;
         if (radio.LastSent.TryGetValue(line, out var last) && now < last + radio.Cooldown)
             return false;
@@ -447,13 +483,51 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether the entity belongs to this grid's crew group.
+    /// Whether the entity belongs to the crew of this home grid and group.
     /// </summary>
-    private bool InCrew(EntityUid uid, string group, EntityUid? grid)
+    private bool InCrew(EntityUid uid, string group, EntityUid? homeGrid)
     {
         return TryComp<WFCrewComponent>(uid, out var crew)
                && crew.Group == group
-               && Transform(uid).GridUid == grid;
+               && (crew.Post?.EntityId ?? Transform(uid).GridUid) == homeGrid;
+    }
+
+    /// <summary>The grid a crewman belongs to: the one his post is on, else the one he stands on.</summary>
+    private EntityUid? HomeGridOf(EntityUid uid)
+    {
+        return TryComp<WFCrewComponent>(uid, out var crew) && crew.Post is { } post
+            ? post.EntityId
+            : Transform(uid).GridUid;
+    }
+
+    /// <summary>
+    /// Whether this operator is the one that speaks for its crew: a living radio officer, else the captain, else
+    /// nobody, so a crew with both does not say every line twice.
+    /// </summary>
+    private bool IsSpokesman(Entity<WFRadioOperatorComponent> ent)
+    {
+        if (!TryComp<WFCrewComponent>(ent, out var own))
+            return true;
+
+        var home = own.Post?.EntityId ?? Transform(ent).GridUid;
+        EntityUid? chosen = null;
+        var chosenRank = int.MaxValue;
+        var query = EntityQueryEnumerator<WFRadioOperatorComponent, WFCrewComponent>();
+        while (query.MoveNext(out var uid, out _, out var crew))
+        {
+            if (crew.Group != own.Group || (crew.Post?.EntityId ?? Transform(uid).GridUid) != home
+                || TerminatingOrDeleted(uid) || _mobState.IsIncapacitated(uid))
+                continue;
+
+            var rank = crew.Role == WFCrewRoles.RadioOperator ? 0 : crew.Role == WFCrewRoles.Captain ? 1 : int.MaxValue;
+            if (rank < chosenRank)
+            {
+                chosen = uid;
+                chosenRank = rank;
+            }
+        }
+
+        return chosen == ent.Owner;
     }
 
     private string GroupOf(EntityUid op)
@@ -468,7 +542,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         var query = EntityQueryEnumerator<WFRadioOperatorComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var radio, out var xform))
         {
-            if (InCrew(crewman, GroupOf(uid), xform.GridUid))
+            if (InCrew(crewman, GroupOf(uid), HomeGridOf(uid)))
                 found.Add((uid, radio));
         }
 

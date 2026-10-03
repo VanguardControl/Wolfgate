@@ -9,34 +9,60 @@ namespace Content.Client._WF.NpcCrew;
 /// <summary>Exchanges crew setup requests with the permission-checked server endpoint.</summary>
 public sealed partial class WFCrewSetupClientSystem : EntitySystem
 {
+    private const float WindowCrewsInterval = 2f;
+    private const float RadarCrewsInterval = 5f;
+    private const float GridListInterval = 10f;
+
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IClientAdminManager _admin = default!;
 
     /// <summary>The live crews from the last reply, drawn on an admin's radar.</summary>
     public List<WFCrewSetupCrew> Crews { get; private set; } = new();
+
+    /// <summary>Radar tag text for each crew in <see cref="Crews"/>, built once per reply.</summary>
+    public Dictionary<(NetEntity Grid, string Group), string> Tags { get; } = new();
     private TimeSpan _radarUntil;
     public WFCrewSetupResponse? Preview { get; private set; }
     public TimeSpan PreviewUntil { get; private set; }
     public event Action<WFCrewSetupResponse>? Received;
     private float _pollTimer;
+    private float _listTimer;
+    private bool _polling;
     private int _nextRequestId;
 
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
+        var window = Received != null;
         var radar = _timing.RealTime < _radarUntil && _admin.HasFlag(AdminFlags.Spawn);
-        if (Received == null && !radar)
+        if (!window && !radar)
         {
             _pollTimer = 0;
+            _listTimer = 0;
+            _polling = false;
             Crews.Clear();
+            Tags.Clear();
             return;
         }
+        if (!_polling)
+        {
+            _polling = true;
+            if (!window)
+                _pollTimer = RadarCrewsInterval;
+        }
         _pollTimer += frameTime;
-        if (_pollTimer < 2)
+        _listTimer += frameTime;
+        if (_pollTimer < (window ? WindowCrewsInterval : RadarCrewsInterval))
             return;
         _pollTimer = 0;
-        Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
+        if (window && _listTimer >= GridListInterval)
+        {
+            _listTimer = 0;
+            Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
+        }
+        else
+            Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.Crews });
     }
 
     public override void Initialize()
@@ -57,14 +83,30 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
                 PreviewUntil = _timing.CurTime + TimeSpan.FromSeconds(30);
             }
             Crews = response.Crews;
+            RebuildTags();
             Received?.Invoke(response);
         });
     }
 
-    /// <summary>Keeps the crew list fresh while a radar is drawing it.</summary>
-    public void WatchRadar()
+    private void RebuildTags()
     {
+        Tags.Clear();
+        foreach (var crew in Crews)
+        {
+            var battlegroup = crew.Settings.Battlegroup;
+            Tags[(crew.Grid, crew.Group)] = battlegroup.Length > 0
+                ? Loc.GetString("wf-crew-radar-tag-battlegroup", ("battlegroup", battlegroup), ("group", crew.Group), ("activity", crew.Activity))
+                : Loc.GetString("wf-crew-radar-tag", ("group", crew.Group), ("activity", crew.Activity));
+        }
+    }
+
+    /// <summary>Keeps the crew list fresh while a radar is drawing it. Returns false for anyone who may not see crews.</summary>
+    public bool WatchRadar()
+    {
+        if (!_admin.HasFlag(AdminFlags.Spawn))
+            return false;
         _radarUntil = _timing.RealTime + TimeSpan.FromSeconds(3);
+        return true;
     }
 
     public override void Shutdown()

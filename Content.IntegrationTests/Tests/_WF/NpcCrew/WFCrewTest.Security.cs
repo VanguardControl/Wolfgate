@@ -24,6 +24,7 @@ public sealed partial class WFCrewTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(SEntMan.HasComponent<WFShipAccessComponent>(deck), Is.False);
+            SEntMan.EnsureComponent<Content.Server.Shuttles.Components.ShuttleComponent>(deck);
             var door = SEntMan.SpawnAtPosition(TestDock, new EntityCoordinates(deck, new Vector2(3.5f)));
             var crew = Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Deckhand,
                 new EntityCoordinates(deck, new Vector2(2.5f)), "access")!.Value;

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.Administration.Systems;
+using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.NpcCrew;
@@ -17,16 +18,24 @@ public sealed partial class WFCrewCommand
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private const string ArenaVessel = "WFDredger";
+    private const string ArenaPrefix = "arena";
     private const float ArenaSpacing = 200f;
 
     /// <summary>
     /// wf_crew arena [vessel]: three crewed ships of one battlegroup beside the caller. The lead holds, one escorts it, one docks with it.
+    /// wf_crew arena clear: removes the arena's crews and ships.
     /// </summary>
     private void Arena(IConsoleShell shell, string[] args)
     {
         if (args.Length > 2)
         {
             shell.WriteLine(Help);
+            return;
+        }
+
+        if (args.Length == 2 && args[1] == "clear")
+        {
+            ArenaClear(shell);
             return;
         }
 
@@ -44,6 +53,16 @@ public sealed partial class WFCrewCommand
             return;
         }
 
+        var query = EntityManager.EntityQueryEnumerator<WFCrewComponent>();
+        while (query.MoveNext(out _, out var existing))
+        {
+            if (existing.Battlegroup.StartsWith(ArenaPrefix, StringComparison.Ordinal))
+            {
+                shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-exists"));
+                return;
+            }
+        }
+
         var origin = _transform.GetWorldPosition(player);
         var ships = new (string Group, Vector2 Offset, bool Captain)[]
         {
@@ -52,19 +71,30 @@ public sealed partial class WFCrewCommand
             ("arena-dock", new Vector2(ArenaSpacing, 0), false),
         };
 
-        var grids = new List<EntityUid>();
+        var spawned = new List<(EntityUid Grid, string Group)>();
+        var ready = true;
         foreach (var (group, offset, captain) in ships)
         {
             if (!_vessels.TrySpawnVessel(vessel, map, origin + offset, player, out var grid))
             {
                 shell.WriteError(Loc.GetString("cmd-wf_crew-arena-vessel-failed", ("vessel", id)));
+                foreach (var (ship, shipGroup) in spawned)
+                {
+                    _setup.ClearCrew(ship, shipGroup);
+                    EntityManager.QueueDeleteEntity(ship);
+                }
+
+                shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-aborted", ("count", spawned.Count)));
                 return;
             }
 
-            grids.Add(grid.Value);
-            var mission = new WFCrewMission { Group = group, Callsign = group, Battlegroup = "arena" };
+            spawned.Add((grid.Value, group));
+            var mission = new WFCrewMission { Group = group, Callsign = group, Battlegroup = ArenaPrefix };
             if (!_setup.TrySpawn(grid.Value, _setup.Plan(grid.Value, 2, captain), mission, out var crew))
+            {
                 shell.WriteError(Loc.GetString("cmd-wf_crew-arena-crew-failed", ("group", group)));
+                ready = false;
+            }
 
             shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-ship",
                 ("group", group),
@@ -72,16 +102,59 @@ public sealed partial class WFCrewCommand
                 ("count", crew.Count)));
         }
 
-        var lead = EntityManager.GetNetEntity(grids[0]);
-        _objectives.SetQueue(grids[1], ships[1].Group, new List<WFCrewObjective>
+        var lead = EntityManager.GetNetEntity(spawned[0].Grid);
+        var escorted = _objectives.SetQueue(spawned[1].Grid, ships[1].Group, new List<WFCrewObjective>
         {
             new() { Kind = WFCrewObjectiveKind.Escort, Target = lead },
         });
-        _objectives.SetQueue(grids[2], ships[2].Group, new List<WFCrewObjective>
+        if (!escorted)
+            shell.WriteError(Loc.GetString("cmd-wf_crew-arena-queue-failed", ("group", ships[1].Group)));
+
+        var docking = _objectives.SetQueue(spawned[2].Grid, ships[2].Group, new List<WFCrewObjective>
         {
             new() { Kind = WFCrewObjectiveKind.Dock, Target = lead },
         });
-        shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-done"));
+        if (!docking)
+            shell.WriteError(Loc.GetString("cmd-wf_crew-arena-queue-failed", ("group", ships[2].Group)));
+
+        if (ready && escorted && docking)
+            shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-done"));
+    }
+
+    /// <summary>wf_crew arena clear: deletes arena crews, cancels their queues and deletes the ships that hosted arena-* crews.</summary>
+    private void ArenaClear(IConsoleShell shell)
+    {
+        var crews = new List<(EntityUid Grid, string Group)>();
+        var ships = new HashSet<EntityUid>();
+        var query = EntityManager.EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var crew, out var xform))
+        {
+            var arenaShip = crew.Group.StartsWith(ArenaPrefix + "-", StringComparison.Ordinal);
+            if (!arenaShip && !crew.Battlegroup.StartsWith(ArenaPrefix, StringComparison.Ordinal))
+                continue;
+
+            if (_setup.CrewGrid(uid, crew, xform) is not { } grid)
+                continue;
+
+            crews.Add((grid, crew.Group));
+            if (arenaShip)
+                ships.Add(grid);
+        }
+
+        if (crews.Count == 0)
+        {
+            shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-none"));
+            return;
+        }
+
+        var removed = 0;
+        foreach (var (grid, group) in crews.Distinct())
+            removed += _setup.ClearCrew(grid, group);
+
+        foreach (var ship in ships)
+            EntityManager.QueueDeleteEntity(ship);
+
+        shell.WriteLine(Loc.GetString("cmd-wf_crew-arena-cleared", ("crew", removed), ("ships", ships.Count)));
     }
 
     private IEnumerable<string> VesselIds()

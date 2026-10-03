@@ -83,7 +83,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             2 when args[0] == "spawnrole" => CompletionResult.FromHintOptions(
                 _prototypes.EnumeratePrototypes<WFCrewRolePrototype>().Select(role => role.ID).Order(),
                 Loc.GetString("cmd-wf_crew-hint-role")),
-            2 when args[0] == "arena" => CompletionResult.FromHintOptions(VesselIds(), Loc.GetString("cmd-wf_crew-hint-vessel")),
+            2 when args[0] == "arena" => CompletionResult.FromHintOptions(VesselIds().Prepend("clear"), Loc.GetString("cmd-wf_crew-hint-vessel")),
             2 when args[0] is "plan" or "spawn" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-grid")),
             2 when args[0] is "duty" or "orders" or "callsign" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-mob")),
             3 when args[0] == "orders" => CompletionResult.FromHintOptions(OrderNames, Loc.GetString("cmd-wf_crew-hint-order")),
@@ -203,7 +203,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             return;
         }
 
-        shell.WriteLine(Loc.GetString("cmd-wf_crew-cleared", ("count", _crew.ClearGroup(args[1])), ("group", args[1])));
+        shell.WriteLine(Loc.GetString("cmd-wf_crew-cleared", ("count", _setup.ClearGroup(args[1])), ("group", args[1])));
     }
 
     /// <summary>wf_crew duty &lt;mob&gt; &lt;duty&gt;</summary>
@@ -266,7 +266,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
                 var waypoints = new List<EntityCoordinates>();
                 for (var i = 3; i < args.Length; i += 2)
                 {
-                    if (!TryNumber(shell, args[i], out var x) || !TryNumber(shell, args[i + 1], out var y))
+                    if (!TryCoordinate(shell, args[i], out var x) || !TryCoordinate(shell, args[i + 1], out var y))
                         return;
 
                     waypoints.Add(new EntityCoordinates(map, x, y));
@@ -275,30 +275,30 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
                 _pilot.GoTo((uid, duty), waypoints);
                 break;
             case "loiter" when args.Length == 6:
-                if (!TryNumber(shell, args[3], out var cx)
-                    || !TryNumber(shell, args[4], out var cy)
+                if (!TryCoordinate(shell, args[3], out var cx)
+                    || !TryCoordinate(shell, args[4], out var cy)
                     || !TryNumber(shell, args[5], out var radius))
                 {
+                    return;
+                }
+
+                if (radius is < 1 or > WFCrewLimits.MaxRange)
+                {
+                    shell.WriteError(Loc.GetString("cmd-wf_crew-bad-radius", ("arg", args[5])));
                     return;
                 }
 
                 _pilot.Loiter((uid, duty), new EntityCoordinates(map, cx, cy), radius);
                 break;
             case "follow" when args.Length == 4:
-                if (!TryGrid(shell, args[3], out var grid))
+                if (!TryGrid(shell, args[3], out var grid) || !TryTarget(shell, uid, name, map, grid, "cmd-wf_crew-follow-own-grid"))
                     return;
 
                 _pilot.Follow((uid, duty), grid, duty.FollowRange);
                 break;
             case "dock" when args.Length == 4:
-                if (!TryGrid(shell, args[3], out var target))
+                if (!TryGrid(shell, args[3], out var target) || !TryTarget(shell, uid, name, map, target, "cmd-wf_crew-dock-own-grid"))
                     return;
-
-                if (target == EntityManager.GetComponent<TransformComponent>(uid).GridUid)
-                {
-                    shell.WriteError(Loc.GetString("cmd-wf_crew-dock-own-grid", ("name", name)));
-                    return;
-                }
 
                 _pilot.Dock((uid, duty), target);
                 break;
@@ -389,6 +389,37 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
 
         shell.WriteError(Loc.GetString("cmd-wf_crew-bad-decimal", ("arg", arg)));
         return false;
+    }
+
+    /// <summary>A map coordinate: a finite number within the allowed bound.</summary>
+    private bool TryCoordinate(IConsoleShell shell, string arg, out float value)
+    {
+        if (!TryNumber(shell, arg, out value))
+            return false;
+
+        if (MathF.Abs(value) <= WFCrewLimits.MaxCoordinate)
+            return true;
+
+        shell.WriteError(Loc.GetString("cmd-wf_crew-coordinate-range", ("arg", arg)));
+        return false;
+    }
+
+    /// <summary>A follow or dock target must be on the pilot's map and not the pilot's own grid.</summary>
+    private bool TryTarget(IConsoleShell shell, EntityUid pilot, string name, EntityUid map, EntityUid target, string ownGridKey)
+    {
+        if (target == EntityManager.GetComponent<TransformComponent>(pilot).GridUid)
+        {
+            shell.WriteError(Loc.GetString(ownGridKey, ("name", name)));
+            return false;
+        }
+
+        if (EntityManager.GetComponent<TransformComponent>(target).MapUid != map)
+        {
+            shell.WriteError(Loc.GetString("cmd-wf_crew-target-other-map", ("name", name)));
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>A role by id, or by its id without the WFCrew prefix, case-insensitive.</summary>

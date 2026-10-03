@@ -56,6 +56,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public float PostRange = 1.5f;
 
+    /// <summary>The ship whose allow list holds this crewman's card, so deleting him revokes it.</summary>
+    [ViewVariables]
+    public EntityUid? AccessShip;
+
     /// <summary>Whether the role title has been put in front of the name.</summary>
     [ViewVariables]
     public bool Titled;

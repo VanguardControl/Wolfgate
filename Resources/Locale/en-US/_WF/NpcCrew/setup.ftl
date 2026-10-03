@@ -1,7 +1,7 @@
 # Guided creation and live crew dashboard
 wf-crew-setup-new-crew = Create a crew
 wf-crew-setup-search-crews = Search ships or crews...
-wf-crew-setup-auto-refresh = Crew status updates every 2 seconds.
+wf-crew-setup-auto-refresh = Crew status updates every 2 seconds and the ship list every 10.
 wf-crew-setup-create-intro = Choose a ship, assign its crew, then review before spawning.
 wf-crew-setup-create-hint = Start by choosing an existing ship or spawning a vessel below.
 wf-crew-setup-manage-hint = Add a task to keep the current mission running. Edit the queue to reorder or replace it.
@@ -53,7 +53,7 @@ wf-crew-setup-role-count = { $count } × { $role }
 wf-crew-setup-spawn-help = Crew start at their posts and hold position. After spawning, the dashboard opens so you can assign and queue tasks.
 wf-crew-setup-back = Back
 wf-crew-setup-next = Continue
-wf-crew-setup-choose-ship-group = Select a ship and enter a crew group name (1–64 characters).
+wf-crew-setup-choose-ship-group = Select a ship and enter a crew group name (1–32 characters).
 wf-crew-setup-bad-count = Enter a whole number of deckhands from 0 to 32.
 wf-crew-setup-bad-posts = Plan at least one crew member and use valid numbers for every post coordinate.
 wf-crew-setup-duplicate-group = A crew with this group name already exists on this ship. Select it in the sidebar, or choose a different name.
@@ -75,7 +75,7 @@ wf-crew-setup-confirm-remove = Remove crew members
 wf-crew-setup-range-metres = Distance (metres)
 wf-crew-setup-duration-seconds = Duration (seconds)
 wf-crew-setup-choose-target = Select a different destination grid before adding or issuing this task.
-wf-crew-setup-bad-numbers = Use finite coordinates, a distance from 1 to 5000 metres, and a duration from 0 to 86400 seconds.
+wf-crew-setup-bad-numbers = Use coordinates between -100000 and 100000, a distance from 1 to 5000 metres, and a duration from 0 to 86400 seconds.
 wf-crew-setup-live-queue = Mission queue
 wf-crew-setup-draft-queue = Editing a queue draft
 wf-crew-setup-live-queue-help = The first task runs now; later tasks follow in order. Tasks with no time limit remain until skipped.

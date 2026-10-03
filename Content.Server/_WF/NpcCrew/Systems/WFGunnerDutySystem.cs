@@ -12,6 +12,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -21,6 +22,9 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFCrewSecuritySystem _security = default!;
+    [Dependency] private WFCrewEscortSystem _escorts = default!;
+    [Dependency] private WFCrewShipStatusSystem _status = default!;
+    [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private ShipTargetingSystem _targeting = default!;
     [Dependency] private PowerReceiverSystem _power = default!;
     [Dependency] private MobStateSystem _mobs = default!;
@@ -28,9 +32,15 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public const string ConsoleKey = "WFCrewGunneryConsole";
     public const string CoordinatesKey = "WFCrewGunneryCoordinates";
+
+    private static readonly TimeSpan SelectionInterval = TimeSpan.FromSeconds(0.25);
+    private readonly Dictionary<EntityUid, EntityUid> _occupants = new();
+    private readonly Dictionary<EntityUid, (TimeSpan Next, EntityUid? Target)> _selections = new();
+    private readonly HashSet<EntityUid> _driven = new();
 
     public override void Initialize()
     {
@@ -62,15 +72,20 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     private bool Usable(EntityUid console, EntityUid grid, EntityUid mob)
     {
         if (TerminatingOrDeleted(console) || !HasComp<FireControlConsoleComponent>(console)
-            || Transform(console).GridUid != grid || !Transform(console).Anchored || !_power.IsPowered(console)
-            || _ui.IsUiOpen(console, FireControlConsoleUiKey.Key))
+            || Transform(console).GridUid != grid || !Transform(console).Anchored || !_power.IsPowered(console))
             return false;
-        var query = EntityQueryEnumerator<WFGunnerDutyComponent>();
-        while (query.MoveNext(out var other, out var duty))
+        // Only an authorized operator at the screen takes the console from the gunner.
+        foreach (var actor in _ui.GetActors(console, FireControlConsoleUiKey.Key))
         {
-            if (other != mob && duty.AtConsole && duty.Console == console)
+            if (actor != mob && (_crew.SameCrew(mob, actor) || _security.IsAuthorized(mob, actor)))
                 return false;
         }
+        if (!_occupants.TryGetValue(console, out var other) || other == mob)
+            return true;
+        if (!TerminatingOrDeleted(other) && TryComp<WFGunnerDutyComponent>(other, out var duty)
+            && duty.AtConsole && duty.Console == console)
+            return false;
+        _occupants.Remove(console);
         return true;
     }
 
@@ -81,8 +96,12 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
             || !_mobs.IsAlive(mob) || HasComp<ActorComponent>(mob) || !Usable(console, grid, mob)
             || !_interaction.InRangeUnobstructed(mob, console))
             return false;
+        if (duty.AtConsole && duty.Console is { } previous && previous != console
+            && _occupants.TryGetValue(previous, out var holder) && holder == mob)
+            _occupants.Remove(previous);
         duty.Console = console;
         duty.AtConsole = true;
+        _occupants[console] = mob;
         EntityManager.System<WFCrewRoutineSystem>().Face(mob, console);
         EntityManager.System<WFCrewSpeechSystem>().Say(mob, "gunnery");
         return true;
@@ -92,20 +111,26 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     public void Release(EntityUid mob)
     {
         _targeting.Stop(mob);
-        if (TryComp<WFGunnerDutyComponent>(mob, out var duty))
-            duty.AtConsole = false;
+        _selections.Remove(mob);
+        if (!TryComp<WFGunnerDutyComponent>(mob, out var duty))
+            return;
+        duty.AtConsole = false;
+        if (duty.Console is { } console && _occupants.TryGetValue(console, out var holder) && holder == mob)
+            _occupants.Remove(console);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        var driven = new HashSet<EntityUid>();
+        var now = _timing.CurTime;
+        _driven.Clear();
         var query = EntityQueryEnumerator<WFGunnerDutyComponent, WFCrewComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out var duty, out var crew, out var htn))
         {
             if (!duty.AtConsole)
             {
                 _targeting.Stop(uid);
+                _selections.Remove(uid);
                 continue;
             }
             if (crew.Duty != WFCrewDuties.Gunnery || !htn.Enabled || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
@@ -116,25 +141,59 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                 Release(uid);
                 continue;
             }
+            // Target selection runs four times a second; the chosen ship is kept in between while still engageable.
             var here = _transform.GetMapCoordinates(grid);
-            var candidates = _alerts.GetHostileShips(grid, crew.Group);
-            if (_objectives.AttackTarget(grid, crew.Group) is { } assigned)
-                candidates = candidates.Prepend(assigned).ToArray();
-            var target = candidates
-                .Where(ship => ship != grid && !EntityManager.System<WFCrewShipStatusSystem>().IsDisabled(ship)
-                    && (!_factions.IsEntityFriendly(uid, ship)
-                    || _alerts.IsHostileShip(grid, crew.Group, ship)
-                    || _objectives.IsAttackTarget(grid, crew.Group, ship)
-                    || _security.IsHostileDockingTarget(grid, crew.Group, ship))
-                    && !EntityManager.System<WFCrewEscortSystem>().AreInFormation(grid, ship)
-                    && _transform.GetMapCoordinates(ship).MapId == here.MapId
-                    && (_transform.GetWorldPosition(ship) - here.Position).LengthSquared() <= duty.Range * duty.Range)
-                .OrderBy(ship => (_transform.GetWorldPosition(ship) - here.Position).LengthSquared())
-                .Select(ship => (EntityUid?) ship).FirstOrDefault();
-            if (target is { } hostile && driven.Add(grid))
+            if (!_selections.TryGetValue(uid, out var selection) || now >= selection.Next
+                || selection.Target is { } kept
+                    && Engageable(uid, grid, crew, duty, here, kept, _alerts.IsHostileShip(grid, crew.Group, kept)) == null)
+            {
+                selection = (now + SelectionInterval, SelectTarget(uid, grid, crew, duty, here));
+                _selections[uid] = selection;
+            }
+            if (selection.Target is { } hostile && _driven.Add(grid))
                 _targeting.Target(uid, new EntityCoordinates(hostile, Vector2.Zero));
             else
                 _targeting.Stop(uid);
         }
+    }
+
+    /// <summary>The nearest live threat in range: an attacker, a hostile docker, an assigned target or a hostile faction.</summary>
+    private EntityUid? SelectTarget(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
+        MapCoordinates here)
+    {
+        EntityUid? best = null;
+        var bestDistance = float.MaxValue;
+        if (_objectives.AttackTarget(grid, crew.Group) is { } assigned
+            && Engageable(uid, grid, crew, duty, here, assigned, _alerts.IsHostileShip(grid, crew.Group, assigned)) is { } first)
+        {
+            best = assigned;
+            bestDistance = first;
+        }
+        foreach (var ship in _alerts.GetHostileShips(grid, crew.Group))
+        {
+            if (Engageable(uid, grid, crew, duty, here, ship, true) is not { } distance || distance >= bestDistance)
+                continue;
+            best = ship;
+            bestDistance = distance;
+        }
+        return best;
+    }
+
+    /// <summary>Squared distance to a ship this gunner may fire on, or null when it must hold fire.</summary>
+    private float? Engageable(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
+        MapCoordinates here, EntityUid ship, bool hostile)
+    {
+        if (ship == grid || TerminatingOrDeleted(ship) || _status.IsDisabled(ship))
+            return null;
+        // Reported attackers stay targets even inside the formation for their attack window.
+        if (!hostile && (_escorts.AreInFormation(grid, ship)
+                || _factions.IsEntityFriendly(uid, ship) && !_objectives.IsAttackTarget(grid, crew.Group, ship)
+                    && !_security.IsHostileDockingTarget(grid, crew.Group, ship)))
+            return null;
+        var there = _transform.GetMapCoordinates(ship);
+        if (there.MapId != here.MapId)
+            return null;
+        var distance = (there.Position - here.Position).LengthSquared();
+        return distance <= duty.Range * duty.Range ? distance : (float?) null;
     }
 }

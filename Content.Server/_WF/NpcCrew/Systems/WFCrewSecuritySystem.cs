@@ -39,27 +39,38 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         _hostileDocks.TryGetValue((grid, group, visitor), out var until) && _timing.CurTime < until;
 
     /// <summary>Living physical visitors can board; portable AI minds and ship AI infrastructure cannot.</summary>
-    public bool IsBoardingCandidate(EntityUid visitor)
+    public bool IsBoardingCandidate(EntityUid visitor) => IsBoardingCandidate(visitor, null);
+
+    private bool IsBoardingCandidate(EntityUid visitor, HashSet<EntityUid>? aiRemotes)
     {
         // AI devices use MobState for possession even though they are equipment, not boarding bodies.
         if (TerminatingOrDeleted(visitor) || !HasComp<MobStateComponent>(visitor) || !_mobs.IsAlive(visitor)
             || HasComp<PAIComponent>(visitor) || HasComp<BorgBrainComponent>(visitor)
             || HasComp<StationAiHeldComponent>(visitor) || HasComp<StationAiCoreComponent>(visitor))
             return false;
+        return !(aiRemotes ?? AiRemotes()).Contains(visitor);
+    }
+
+    /// <summary>Every station AI core's remote body.</summary>
+    private HashSet<EntityUid> AiRemotes()
+    {
+        var remotes = new HashSet<EntityUid>();
         var cores = EntityQueryEnumerator<StationAiCoreComponent>();
         while (cores.MoveNext(out _, out var core))
         {
-            if (core.RemoteEntity == visitor)
-                return false;
+            if (core.RemoteEntity is { } remote)
+                remotes.Add(remote);
         }
-        return true;
+        return remotes;
     }
 
     /// <summary>Acts on a personally observed or received contact, preserving the crew's boarding policy.</summary>
-    public void ReceiveSighting(EntityUid uid, EntityUid visitor)
+    public void ReceiveSighting(EntityUid uid, EntityUid visitor) => ReceiveSighting(uid, visitor, null);
+
+    private void ReceiveSighting(EntityUid uid, EntityUid visitor, HashSet<EntityUid>? aiRemotes)
     {
         if (!TryComp<WFCrewComponent>(uid, out var crew) || !TryComp<WFCrewSecurityComponent>(uid, out var rules)
-            || !_mobs.IsAlive(uid) || !IsBoardingCandidate(visitor) || IsAuthorized(uid, visitor)
+            || !_mobs.IsAlive(uid) || !IsBoardingCandidate(visitor, aiRemotes) || IsAuthorized(uid, visitor)
             || Transform(uid).GridUid is not { } grid
             || crew.Post is { } post && post.EntityId != grid || Transform(visitor).GridUid != grid)
             return;
@@ -152,30 +163,46 @@ public sealed class WFCrewSecuritySystem : EntitySystem
                 _hostileDocks.Remove(key);
         }
         var present = new HashSet<(EntityUid Crew, EntityUid Visitor)>();
-        var people = new List<(EntityUid Uid, TransformComponent Transform)>();
-        var mobs = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
-        while (mobs.MoveNext(out var person, out _, out var transform))
-        {
-            if (IsBoardingCandidate(person))
-                people.Add((person, transform));
-        }
+        var guards = new List<(EntityUid Uid, EntityUid Grid, WFCrewSecurityComponent Rules)>();
         var query = EntityQueryEnumerator<WFCrewComponent, WFCrewSecurityComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var rules, out var xform))
         {
             if (xform.GridUid is not { } grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
                 || crew.Post is { } post && post.EntityId != grid)
                 continue;
-            foreach (var (visitor, visitorXform) in people)
+            guards.Add((uid, grid, rules));
+        }
+        // Visitors are bucketed by grid once, and only on grids that some crew guards.
+        var people = new Dictionary<EntityUid, List<EntityUid>>();
+        foreach (var guard in guards)
+        {
+            if (!people.ContainsKey(guard.Grid))
+                people[guard.Grid] = new List<EntityUid>();
+        }
+        if (guards.Count > 0)
+        {
+            var aiRemotes = AiRemotes();
+            var mobs = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
+            while (mobs.MoveNext(out var person, out _, out var transform))
             {
-                if (visitorXform.GridUid != grid || visitor == uid || IsAuthorized(uid, visitor)
-                    || TryComp<WFCrewComponent>(visitor, out var other) && other.Group == crew.Group)
-                    continue;
-                present.Add((uid, visitor));
-                if (!EntityManager.System<WFCrewWeaponSystem>().CanSee(uid, visitor))
-                    continue;
-                ReceiveSighting(uid, visitor);
-                if (rules.Boarding != WFCrewSecurityResponse.Ignore)
-                    EntityManager.System<WFCrewCommsSystem>().Report(uid, visitor);
+                if (transform.GridUid is { } grid && people.TryGetValue(grid, out var aboard)
+                    && IsBoardingCandidate(person, aiRemotes))
+                    aboard.Add(person);
+            }
+            var crews = EntityManager.System<WFCrewSystem>();
+            foreach (var (uid, grid, rules) in guards)
+            {
+                foreach (var visitor in people[grid])
+                {
+                    if (visitor == uid || IsAuthorized(uid, visitor) || crews.SameCrew(uid, visitor))
+                        continue;
+                    present.Add((uid, visitor));
+                    if (!EntityManager.System<WFCrewWeaponSystem>().CanSee(uid, visitor))
+                        continue;
+                    ReceiveSighting(uid, visitor, aiRemotes);
+                    if (rules.Boarding != WFCrewSecurityResponse.Ignore)
+                        EntityManager.System<WFCrewCommsSystem>().Report(uid, visitor);
+                }
             }
         }
         foreach (var pair in _ownedHostiles.Where(pair => !present.Contains(pair)).ToArray())

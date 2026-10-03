@@ -1,8 +1,10 @@
 using System.Linq;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Shared.Mobs.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -11,20 +13,30 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
 {
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private WFCaptainSystem _captains = default!;
+    [Dependency] private IGameTiming _timing = default!;
     private readonly Dictionary<(EntityUid Grid, string Group), EntityUid> _escorts = new();
+
+    // Rebuilt at most once per tick; a rebuild allocates new sets, so earlier results stay valid snapshots.
+    private readonly Dictionary<EntityUid, HashSet<EntityUid>> _formations = new();
+    private readonly HashSet<EntityUid> _involved = new();
+    private GameTick _builtTick;
+    private bool _stale = true;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WFPilotOrdersChangedEvent>(OnOrdersChanged);
+        SubscribeLocalEvent<WFCrewComponent, ComponentShutdown>(OnCrewShutdown);
     }
 
     /// <summary>Assigns an escort without requiring its captain or pilot to survive the engagement.</summary>
     public void SetEscort(EntityUid grid, string group, EntityUid target)
     {
-        if (grid != target && HasComp<MapGridComponent>(grid) && HasComp<MapGridComponent>(target)
-            && Transform(grid).MapID == Transform(target).MapID)
-            _escorts[(grid, group)] = target;
+        if (grid == target || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(target)
+            || Transform(grid).MapID != Transform(target).MapID)
+            return;
+        _escorts[(grid, group)] = target;
+        Invalidate();
     }
 
     /// <summary>Records a pilot's newly assigned formation.</summary>
@@ -35,7 +47,14 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
     }
 
     /// <summary>Ends an assignment when its mission is replaced, paused, completed or cancelled.</summary>
-    public void Clear(EntityUid grid, string group) => _escorts.Remove((grid, group));
+    public void Clear(EntityUid grid, string group)
+    {
+        if (_escorts.Remove((grid, group)))
+            Invalidate();
+    }
+
+    /// <summary>Drops this tick's formation snapshot after crew, escorts or battlegroups change.</summary>
+    public void Invalidate() => _stale = true;
 
     private void OnOrdersChanged(ref WFPilotOrdersChangedEvent args)
     {
@@ -45,42 +64,66 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
         Clear(grid, crew.Group);
     }
 
-    /// <summary>Snapshots connected escorts and their protected vessels before alert handlers change orders.</summary>
+    private void OnCrewShutdown(Entity<WFCrewComponent> ent, ref ComponentShutdown args) => Invalidate();
+
+    /// <summary>
+    /// Snapshots connected escorts and their protected vessels before alert handlers change orders. The set is shared
+    /// by every caller this tick; don't modify it.
+    /// </summary>
     public HashSet<EntityUid> GetFormation(EntityUid grid)
     {
-        var members = new HashSet<EntityUid> { grid };
         if (TerminatingOrDeleted(grid) || !HasComp<MapGridComponent>(grid))
-            return members;
+            return new HashSet<EntityUid> { grid };
+        Refresh();
+        if (!_formations.TryGetValue(grid, out var members))
+            _formations[grid] = members = new HashSet<EntityUid> { grid };
+        return members;
+    }
+
+    /// <summary>Formation members remain allies even when their company or local crew labels differ.</summary>
+    public bool AreInFormation(EntityUid first, EntityUid second) => GetFormation(first).Contains(second);
+
+    /// <summary>Whether a grid is a living crew's home or part of an escort or battlegroup.</summary>
+    public bool IsInvolved(EntityUid grid)
+    {
+        Refresh();
+        return _involved.Contains(grid);
+    }
+
+    private void Refresh()
+    {
+        if (!_stale && _builtTick == _timing.CurTick)
+            return;
+        _stale = false;
+        _builtTick = _timing.CurTick;
+        _formations.Clear();
+        _involved.Clear();
+
         var crews = new HashSet<(EntityUid Grid, string Group)>();
-        var battlegroups = new Dictionary<string, List<EntityUid>>();
+        var battlegroups = new Dictionary<(MapId Map, string Name), List<EntityUid>>();
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var transform))
         {
-            if (_mobs.IsAlive(uid) && !HasComp<ActorComponent>(uid)
-                && (crew.Post?.EntityId ?? transform.GridUid) is { } home && HasComp<MapGridComponent>(home))
-            {
-                crews.Add((home, crew.Group));
-                if (crew.Battlegroup.Length == 0 || Transform(home).MapID != Transform(grid).MapID)
-                    continue;
-                if (!battlegroups.TryGetValue(crew.Battlegroup, out var ships))
-                    battlegroups[crew.Battlegroup] = ships = new List<EntityUid>();
-                if (!ships.Contains(home))
-                    ships.Add(home);
-            }
+            if (!_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
+                || (crew.Post?.EntityId ?? transform.GridUid) is not { } home || !HasComp<MapGridComponent>(home))
+                continue;
+            crews.Add((home, crew.Group));
+            _involved.Add(home);
+            if (crew.Battlegroup.Length == 0)
+                continue;
+            var key = (Transform(home).MapID, crew.Battlegroup);
+            if (!battlegroups.TryGetValue(key, out var ships))
+                battlegroups[key] = ships = new List<EntityUid>();
+            if (!ships.Contains(home))
+                ships.Add(home);
         }
+
         var neighbors = new Dictionary<EntityUid, HashSet<EntityUid>>();
         // Every ship of a battlegroup is linked through its first ship.
         foreach (var ships in battlegroups.Values)
         {
             for (var i = 1; i < ships.Count; i++)
-            {
-                if (!neighbors.TryGetValue(ships[0], out var first))
-                    neighbors[ships[0]] = first = new HashSet<EntityUid>();
-                first.Add(ships[i]);
-                if (!neighbors.TryGetValue(ships[i], out var other))
-                    neighbors[ships[i]] = other = new HashSet<EntityUid>();
-                other.Add(ships[0]);
-            }
+                Link(neighbors, ships[0], ships[i]);
         }
         foreach (var (key, target) in _escorts.ToArray())
         {
@@ -91,30 +134,39 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
                 continue;
             }
             // FTL temporarily separates maps; keep the assignment for their reunion.
-            if (Transform(key.Grid).MapID != Transform(grid).MapID || Transform(target).MapID != Transform(grid).MapID)
+            if (Transform(key.Grid).MapID != Transform(target).MapID)
                 continue;
-            if (!neighbors.TryGetValue(key.Grid, out var outgoing))
-                neighbors[key.Grid] = outgoing = new HashSet<EntityUid>();
-            outgoing.Add(target);
-            if (!neighbors.TryGetValue(target, out var incoming))
-                neighbors[target] = incoming = new HashSet<EntityUid>();
-            incoming.Add(key.Grid);
+            Link(neighbors, key.Grid, target);
         }
+
         var pending = new Queue<EntityUid>();
-        pending.Enqueue(grid);
-        while (pending.TryDequeue(out var current))
+        foreach (var start in neighbors.Keys)
         {
-            if (!neighbors.TryGetValue(current, out var adjacent))
+            if (_formations.ContainsKey(start))
                 continue;
-            foreach (var member in adjacent)
+            var members = new HashSet<EntityUid> { start };
+            pending.Enqueue(start);
+            while (pending.TryDequeue(out var current))
             {
-                if (members.Add(member))
-                    pending.Enqueue(member);
+                foreach (var member in neighbors[current])
+                {
+                    if (members.Add(member))
+                        pending.Enqueue(member);
+                }
             }
+            foreach (var member in members)
+                _formations[member] = members;
+            _involved.UnionWith(members);
         }
-        return members;
     }
 
-    /// <summary>Formation members remain allies even when their company or local crew labels differ.</summary>
-    public bool AreInFormation(EntityUid first, EntityUid second) => GetFormation(first).Contains(second);
+    private static void Link(Dictionary<EntityUid, HashSet<EntityUid>> neighbors, EntityUid first, EntityUid second)
+    {
+        if (!neighbors.TryGetValue(first, out var outgoing))
+            neighbors[first] = outgoing = new HashSet<EntityUid>();
+        outgoing.Add(second);
+        if (!neighbors.TryGetValue(second, out var incoming))
+            neighbors[second] = incoming = new HashSet<EntityUid>();
+        incoming.Add(first);
+    }
 }

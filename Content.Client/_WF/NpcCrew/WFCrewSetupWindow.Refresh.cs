@@ -12,18 +12,33 @@ public sealed partial class WFCrewSetupWindow
     private QueueView? _queueView;
 
     /// <summary>Keeps popup buttons alive across polling so an in-progress click keeps its original target.</summary>
-    private void RefreshGridChoices(OptionButton button, string placeholder, NetEntity? selected, NetEntity? exclude = null)
+    private void RefreshGridChoices(OptionButton button, string placeholder, NetEntity? selected, NetEntity? exclude = null, bool skipLarge = false)
     {
         if (button.ItemCount == 0)
             button.AddItem(Text(placeholder), -1);
+
+        // First index in _grids of every grid this button should offer.
+        var wanted = new Dictionary<NetEntity, int>();
+        for (var index = 0; index < _grids.Count; index++)
+        {
+            var grid = _grids[index];
+            if (grid.Id != exclude && !(skipLarge && grid.Large))
+                wanted.TryAdd(grid.Id, index);
+        }
+        var seen = new HashSet<NetEntity>();
         for (var index = button.ItemCount - 1; index > 0; index--)
         {
-            if (button.GetItemMetadata(index) is WFCrewSetupGrid old && old.Id != exclude
-                && _grids.Any(grid => grid.Id == old.Id))
+            if (button.GetItemMetadata(index) is WFCrewSetupGrid old && wanted.ContainsKey(old.Id) && seen.Add(old.Id))
                 continue;
             if (button.SelectedId == button.GetItemId(index))
                 button.SelectId(-1);
             button.RemoveItem(index);
+        }
+        var options = new Dictionary<NetEntity, int>();
+        for (var option = 1; option < button.ItemCount; option++)
+        {
+            if (button.GetItemMetadata(option) is WFCrewSetupGrid kept)
+                options[kept.Id] = option;
         }
 
         // Temporary IDs avoid collisions when the server changes its grid ordering.
@@ -35,18 +50,9 @@ public sealed partial class WFCrewSetupWindow
         for (var index = 0; index < _grids.Count; index++)
         {
             var grid = _grids[index];
-            if (grid.Id == exclude)
+            if (!wanted.TryGetValue(grid.Id, out var first) || first != index)
                 continue;
-            var existing = -1;
-            for (var option = 1; option < button.ItemCount; option++)
-            {
-                if ((button.GetItemMetadata(option) as WFCrewSetupGrid)?.Id == grid.Id)
-                {
-                    existing = option;
-                    break;
-                }
-            }
-            if (existing < 0)
+            if (!options.TryGetValue(grid.Id, out var existing))
             {
                 button.AddItem($"{grid.Name} ({grid.Id})", index);
                 existing = button.ItemCount - 1;
@@ -55,7 +61,7 @@ public sealed partial class WFCrewSetupWindow
             else
             {
                 button.SetItemId(existing, index);
-                if (button.GetItemMetadata(existing) is not WFCrewSetupGrid old || old.Name != grid.Name)
+                if (button.GetItemMetadata(existing) is not WFCrewSetupGrid current || current.Name != grid.Name)
                 {
                     button.SetItemText(existing, $"{grid.Name} ({grid.Id})");
                     changed = true;

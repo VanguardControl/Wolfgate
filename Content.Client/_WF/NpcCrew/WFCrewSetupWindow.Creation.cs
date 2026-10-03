@@ -73,6 +73,7 @@ public sealed partial class WFCrewSetupWindow
         ship.AddChild(Help("ship-help"));
         ship.AddChild(Line("ship", _grid));
         ship.AddChild(Line("group", _group));
+        _group.IsValid = text => text.Length <= WFCrewLimits.MaxGroup;
         _group.OnTextChanged += _ => UpdateCreationButtons();
         ship.AddChild(Help("group-help"));
         var spawn = Column();
@@ -147,7 +148,7 @@ public sealed partial class WFCrewSetupWindow
 
     private bool CanLeaveStep()
     {
-        if (_creationGrid == null || string.IsNullOrWhiteSpace(_group.Text) || _group.Text.Trim().Length > 64)
+        if (_creationGrid == null || string.IsNullOrWhiteSpace(_group.Text) || _group.Text.Trim().Length > WFCrewLimits.MaxGroup)
         {
             Plain(_status, Text("choose-ship-group"));
             return false;
@@ -161,7 +162,7 @@ public sealed partial class WFCrewSetupWindow
             return;
         _back.Disabled = _step == 0;
         _next.Text = Text(_step == 3 ? "spawn" : "next");
-        var valid = _creationGrid != null && !string.IsNullOrWhiteSpace(_group.Text) && _group.Text.Trim().Length <= 64;
+        var valid = _creationGrid != null && !string.IsNullOrWhiteSpace(_group.Text) && _group.Text.Trim().Length <= WFCrewLimits.MaxGroup;
         _next.Disabled = !valid || _step > 0 && _rows.Count == 0;
         for (var index = 1; index < _stepButtons.Count; index++)
             _stepButtons[index].Disabled = !valid || index > 1 && _rows.Count == 0;
@@ -169,7 +170,7 @@ public sealed partial class WFCrewSetupWindow
 
     private void RefreshCreationGrid()
     {
-        RefreshGridChoices(_grid, "select-ship", _creationGrid);
+        RefreshGridChoices(_grid, "select-ship", _creationGrid, skipLarge: true);
         if (_creationGrid != null && _grid.SelectedId == -1)
         {
             _creationGrid = null;
@@ -200,7 +201,7 @@ public sealed partial class WFCrewSetupWindow
         if (_creationGrid == null || !CanLeaveStep())
             return;
         var posts = row == null ? _rows.Select(ReadPost).ToList() : new List<WFCrewSetupPost> { ReadPost(row) };
-        if (posts.Count == 0 || posts.Any(post => !float.IsFinite(post.Position.X) || !float.IsFinite(post.Position.Y)))
+        if (posts.Count == 0 || posts.Any(post => !InBounds(post.Position)))
         {
             Plain(_status, Text("bad-posts"));
             return;

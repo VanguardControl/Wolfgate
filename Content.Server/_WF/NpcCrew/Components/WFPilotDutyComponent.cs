@@ -134,4 +134,33 @@ public sealed partial class WFPilotDutyComponent : Component
     /// <summary>Whether the last GoTo, Dock or Undock was flown to its end.</summary>
     [ViewVariables]
     public bool OrdersCompleted;
+
+    /// <summary>Undock: seconds to wait for crew posted to this ship who are off it before leaving without them.</summary>
+    [DataField]
+    public float AbsentCrewWait = 60f;
+
+    /// <summary>Undock: seconds waited so far for absent crew.</summary>
+    [ViewVariables]
+    public float AbsentCrewWaited;
+
+    /// <summary>Whether any of the ship's docks was docked at the last check.</summary>
+    [ViewVariables]
+    public bool Docked;
+    public TimeSpan NextDockCheck;
+
+    /// <summary>Whether the held helm was in reach and unobstructed at the last check.</summary>
+    public bool HelmInReach;
+    public TimeSpan NextReachCheck;
+
+    /// <summary>The map the crewman was on at the last update; a change re-issues map-bound orders.</summary>
+    public MapId LastMap = MapId.Nullspace;
+
+    /// <summary>Whether the grid the current order flies to is on another map, so the ship waits in place.</summary>
+    [ViewVariables]
+    public bool AwaitingTarget;
+
+    /// <summary>The escorted grid's console taken as its forward, cached for <see cref="LeaderConsoleOf"/>.</summary>
+    public EntityUid? LeaderConsole;
+    public EntityUid? LeaderConsoleOf;
+    public TimeSpan NextLeaderConsoleCheck;
 }

@@ -53,10 +53,11 @@ public sealed partial class WFCrewTest
             var before = SEntMan.GetComponent<DamageableComponent>(hull).TotalDamage;
             Fire(escort);
             var alerts = Server.System<WFCrewAlertSystem>();
-            Assert.That(alerts.GetHostileShips(leader, "shield-leader"), Is.Empty);
+            // A formation partner that opens fire is an attacker to its victim only.
+            Assert.That(alerts.GetHostileShips(leader, "shield-leader"), Is.EquivalentTo(new[] { escort }));
             Assert.That(alerts.GetHostileShips(escort, "shield-escort"), Is.Empty);
             Fire(attacker);
-            Assert.That(alerts.GetHostileShips(leader, "shield-leader"), Is.EquivalentTo(new[] { attacker }));
+            Assert.That(alerts.GetHostileShips(leader, "shield-leader"), Is.EquivalentTo(new[] { escort, attacker }));
             Assert.That(alerts.GetHostileShips(escort, "shield-escort"), Is.EquivalentTo(new[] { attacker }));
             Assert.That(SEntMan.GetComponent<DamageableComponent>(hull).TotalDamage, Is.EqualTo(before),
                 "Aggression must be detected even though the shield protected the hull.");
