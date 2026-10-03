@@ -84,13 +84,14 @@ public sealed partial class WFCrewSetupWindow
         _objectivePositionLine.Visible = kind == WFCrewObjectiveKind.GoTo;
         _objectiveTarget.Visible = kind is not (WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Repair);
         _objectiveTimingLine.Visible = kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Loiter
-            or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat;
+            or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Escort;
         _objectiveHelp.Text = Loc.GetString(kind switch
         {
             WFCrewObjectiveKind.Repair => "wf-crew-setup-repair-help",
             WFCrewObjectiveKind.Resupply => "wf-crew-setup-resupply-help",
             WFCrewObjectiveKind.Salvage => "wf-crew-setup-salvage-help",
             WFCrewObjectiveKind.Attack => "wf-crew-setup-attack-help",
+            WFCrewObjectiveKind.Escort => "wf-crew-setup-escort-help",
             _ => "wf-crew-setup-objective-help",
         });
     }

@@ -22,6 +22,7 @@ public sealed partial class WFCrewWeaponSystem
     [Dependency] private SharedGunSystem _guns = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
+    [Dependency] private Robust.Shared.Timing.IGameTiming _timing = default!;
 
     private const string MagazineSlot = "gun_magazine";
     private float _reloadTimer;
@@ -38,6 +39,16 @@ public sealed partial class WFCrewWeaponSystem
         {
             if (HasComp<ActorComponent>(uid) || !_mobs.IsAlive(uid))
                 continue;
+            if (TryComp<HTNComponent>(uid, out var plan)
+                && plan.Blackboard.TryGetValue<EntityUid>("Target", out var target, EntityManager)
+                && !CanEngage(uid, target))
+            {
+                EntityManager.System<HTNSystem>().Replan(plan);
+                EntityManager.System<Content.Server.NPC.Systems.NPCSteeringSystem>().Unregister(uid);
+                plan.Blackboard.Remove<EntityUid>("Target");
+                RemCompDeferred<NPCRangedCombatComponent>(uid);
+                RemCompDeferred<NPCMeleeCombatComponent>(uid);
+            }
             if (HasLiveThreat(uid))
                 TryReloadOrSwitch(uid);
             else
@@ -54,7 +65,35 @@ public sealed partial class WFCrewWeaponSystem
     {
         var range = TryComp<HTNComponent>(uid, out var htn)
             && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : 10f;
-        return _factions.GetNearbyHostiles(uid, range).Any(target => _mobs.IsAlive(target));
+        return _factions.GetNearbyHostiles(uid, range).Any(target => CanEngage(uid, target));
+    }
+
+    /// <summary>Crew defend their assigned ship without pursuing targets across docking connections.</summary>
+    public bool CanEngage(EntityUid uid, EntityUid target)
+    {
+        return !TerminatingOrDeleted(target) && _mobs.IsAlive(target)
+            && Transform(uid).GridUid is { } grid && Transform(target).GridUid == grid
+            && (!TryComp<WFCrewComponent>(uid, out var crew) || crew.Post is not { } post || post.EntityId == grid)
+            && (CanSee(uid, target) || EntityManager.System<WFCrewCommsSystem>().Knows(uid, target)
+                || TryComp<NPCRetaliationComponent>(uid, out var retaliation)
+                && retaliation.AttackMemories.Any(memory => memory.Key == target && _timing.CurTime < memory.Value));
+    }
+
+    /// <summary>Walls and closed opaque doors conceal boarders; radio awareness does not extend eyesight.</summary>
+    public bool CanSee(EntityUid uid, EntityUid target) => !TerminatingOrDeleted(target)
+        && _interaction.InRangeUnobstructed(uid, target, 10f, Content.Shared.Physics.CollisionGroup.Opaque);
+
+    /// <summary>Chooses a living hostile aboard the crewman's own ship.</summary>
+    public EntityUid? PickTarget(EntityUid uid)
+    {
+        var range = TryComp<HTNComponent>(uid, out var htn)
+            && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : 10f;
+        foreach (var target in _factions.GetNearbyHostiles(uid, range))
+        {
+            if (CanEngage(uid, target))
+                return target;
+        }
+        return null;
     }
 
     /// <summary>Racks a loaded gun only when its chamber is empty or its bolt is open.</summary>
@@ -64,7 +103,8 @@ public sealed partial class WFCrewWeaponSystem
             return;
         if (chamber.BoltClosed == false)
             _guns.SetBoltClosed(gun, chamber, true, user);
-        else if (_slots.TryGetSlot(gun, "gun_chamber", out var slot) && !slot.HasItem)
+        else if (_slots.TryGetSlot(gun, "gun_chamber", out var slot)
+                 && (!slot.HasItem || slot.Item is { } round && TryComp<CartridgeAmmoComponent>(round, out var cartridge) && cartridge.Spent))
         {
             if (chamber.BoltClosed != null)
             {
@@ -81,6 +121,10 @@ public sealed partial class WFCrewWeaponSystem
     {
         var ev = new GetAmmoCountEvent();
         RaiseLocalEvent(item, ref ev);
+        if (HasComp<ChamberMagazineAmmoProviderComponent>(item)
+            && _slots.TryGetSlot(item, "gun_chamber", out var chamber) && chamber.Item is { } round
+            && TryComp<CartridgeAmmoComponent>(round, out var cartridge) && cartridge.Spent)
+            return Math.Max(0, ev.Count - 1);
         return ev.Count;
     }
 
@@ -130,6 +174,7 @@ public sealed partial class WFCrewWeaponSystem
                 _interaction.InteractUsing(uid, magazine, gun, Transform(uid).Coordinates);
                 if (slot.Item == magazine)
                 {
+                    EntityManager.System<WFCrewSpeechSystem>().Say(uid, "reload");
                     ReadyChamber(uid, gun);
                     _hands.TrySelect(uid, gun);
                     return AmmoCount(gun) > 0;
@@ -139,6 +184,10 @@ public sealed partial class WFCrewWeaponSystem
             _hands.TrySelect(uid, gun);
         }
 
+        RemCompDeferred<NPCRangedCombatComponent>(uid);
+        if (TryComp<HTNComponent>(uid, out var htn))
+            EntityManager.System<HTNSystem>().Replan(htn);
+        EntityManager.System<WFCrewSpeechSystem>().Say(uid, "empty");
         TryHolster(uid);
         TryDraw(uid);
         return false;

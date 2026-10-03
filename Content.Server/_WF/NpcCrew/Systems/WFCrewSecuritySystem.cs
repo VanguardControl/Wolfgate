@@ -28,6 +28,23 @@ public sealed class WFCrewSecuritySystem : EntitySystem
     /// <summary>Whether the current security rule explicitly targets this visitor.</summary>
     public bool IsHostileVisitor(EntityUid crew, EntityUid visitor) => _ownedHostiles.Contains((crew, visitor));
 
+    /// <summary>Acts on a personally observed or received contact, preserving the crew's boarding policy.</summary>
+    public void ReceiveSighting(EntityUid uid, EntityUid visitor)
+    {
+        if (!TryComp<WFCrewComponent>(uid, out var crew) || !TryComp<WFCrewSecurityComponent>(uid, out var rules)
+            || !_mobs.IsAlive(uid) || IsAuthorized(uid, visitor) || Transform(uid).GridUid is not { } grid
+            || crew.Post is { } post && post.EntityId != grid || Transform(visitor).GridUid != grid)
+            return;
+        if (rules.Boarding == WFCrewSecurityResponse.Hostile)
+        {
+            if (!TryComp<FactionExceptionComponent>(uid, out var exceptions) || !exceptions.Hostiles.Any(target => target == visitor))
+                _ownedHostiles.Add((uid, visitor));
+            _factions.AggroEntity(uid, visitor);
+        }
+        if (_boarders.Add((uid, visitor)) && HasComp<WFRadioOperatorComponent>(uid))
+            Respond(grid, crew.Group, visitor, rules.Boarding, docking: false);
+    }
+
     /// <summary>Re-evaluates visitors after a policy edit without retaining hostility introduced by the old rule.</summary>
     public void Reset(EntityUid crew)
     {
@@ -107,7 +124,8 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         var query = EntityQueryEnumerator<WFCrewComponent, WFCrewSecurityComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var rules, out var xform))
         {
-            if (xform.GridUid is not { } grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid))
+            if (xform.GridUid is not { } grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
+                || crew.Post is { } post && post.EntityId != grid)
                 continue;
             foreach (var (visitor, visitorXform) in people)
             {
@@ -115,16 +133,11 @@ public sealed class WFCrewSecuritySystem : EntitySystem
                     || TryComp<WFCrewComponent>(visitor, out var other) && other.Group == crew.Group)
                     continue;
                 present.Add((uid, visitor));
-                if (_boarders.Contains((uid, visitor)))
+                if (!EntityManager.System<WFCrewWeaponSystem>().CanSee(uid, visitor))
                     continue;
-                if (rules.Boarding == WFCrewSecurityResponse.Hostile)
-                {
-                    if (!TryComp<FactionExceptionComponent>(uid, out var exceptions)
-                        || !exceptions.Hostiles.Any(target => target == visitor))
-                        _ownedHostiles.Add((uid, visitor));
-                    _factions.AggroEntity(uid, visitor);
-                }
-                Respond(grid, crew.Group, visitor, rules.Boarding, docking: false);
+                ReceiveSighting(uid, visitor);
+                if (rules.Boarding != WFCrewSecurityResponse.Ignore)
+                    EntityManager.System<WFCrewCommsSystem>().Report(uid, visitor);
             }
         }
         foreach (var pair in _ownedHostiles.Where(pair => !present.Contains(pair)).ToArray())
@@ -133,8 +146,7 @@ public sealed class WFCrewSecuritySystem : EntitySystem
                 _factions.DeAggroEntity(pair.Crew, pair.Visitor);
             _ownedHostiles.Remove(pair);
         }
-        _boarders.Clear();
-        _boarders.UnionWith(present);
+        _boarders.RemoveWhere(pair => !present.Contains(pair));
     }
 
     private void Respond(EntityUid grid, string group, EntityUid visitor, WFCrewSecurityResponse response, bool docking)

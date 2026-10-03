@@ -11,6 +11,13 @@ namespace Content.Server._WF.NpcCrew.Components;
 [RegisterComponent]
 public sealed partial class WFCrewComponent : Component
 {
+    /// <summary>Limits local action chatter independently of important radio reports.</summary>
+    public TimeSpan NextSpeech;
+    public Dictionary<string, TimeSpan> SpokenActions = new();
+    public TimeSpan NextReport;
+    public TimeSpan NextPatrol;
+    public Dictionary<EntityUid, TimeSpan> RadioSightings = new();
+
     [DataField]
     public ProtoId<WFCrewRolePrototype>? Role;
 

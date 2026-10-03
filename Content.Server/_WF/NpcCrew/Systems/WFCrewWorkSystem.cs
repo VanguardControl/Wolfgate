@@ -187,6 +187,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     {
         if (!_jobs.TryGetValue(mob, out var job) || !Destination(mob, out var destination))
             return true;
+        EntityManager.System<WFCrewSpeechSystem>().Say(mob,
+            job.SrdCoordinates != null || job.Tool != null ? "repair" : job.Returning ? "return-cargo" : "collect");
         if (!Transform(mob).Coordinates.InRange(EntityManager, destination, 1.5f))
             return true;
         if (job.SrdCoordinates != null || job.Returning)

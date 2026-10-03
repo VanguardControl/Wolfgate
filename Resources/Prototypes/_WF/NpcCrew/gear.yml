@@ -6,7 +6,7 @@
   equipment:
     jumpsuit: ClothingUniformJumpsuitColorGrey
     shoes: ClothingShoesColorBlack
-    ears: ClothingHeadsetGrey
+    ears: WFCrewHeadset
     outerClothing: ClothingOuterHardsuitSpatio
     head: ClothingHeadHelmetHardsuitSpatio
     mask: ClothingMaskBreath
@@ -20,7 +20,7 @@
   equipment:
     jumpsuit: ClothingUniformJumpsuitColorGrey
     shoes: ClothingShoesColorBlack
-    ears: ClothingHeadsetGrey
+    ears: WFCrewHeadset
     outerClothing: ClothingOuterHardsuitSpatio
     head: ClothingHeadHelmetHardsuitSpatio
     mask: ClothingMaskBreath
@@ -35,10 +35,23 @@
   equipment:
     jumpsuit: ClothingUniformJumpsuitColorBlue
     shoes: ClothingShoesColorBlack
-    ears: ClothingHeadsetGrey
+    ears: WFCrewHeadset
     outerClothing: ClothingOuterHardsuitSpatio
     head: ClothingHeadHelmetHardsuitSpatio
     mask: ClothingMaskBreath
     suitstorage: OxygenTankFilled
     belt: WeaponPistolMk58
     pocket1: Magazine45_ACPPistolFMJ
+
+- type: entity
+  parent: ClothingHeadsetGrey
+  id: WFCrewHeadset
+  suffix: NPC crew
+  components:
+  - type: WFCrewRadio
+  - type: TelecomExempt
+  - type: ContainerFill
+    containers:
+      key_slots:
+      - EncryptionKeyCommon
+      - EncryptionKeyTraffic

@@ -125,6 +125,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
                 if (Transform(hostile).GridUid != grid
                     || !TryComp<MobStateComponent>(hostile, out var state)
                     || !_mobState.IsAlive(hostile, state)
+                    || !(EntityManager.System<WFCrewWeaponSystem>().CanSee(op, hostile)
+                         || EntityManager.System<WFCrewCommsSystem>().Knows(op, hostile))
                     || InCrew(hostile, GroupOf(op), grid))
                 {
                     continue;
@@ -197,7 +199,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             return;
         foreach (var op in OperatorsOn(args.Grid))
         {
-            if (GroupOf(op) == args.Group)
+            if (GroupOf(op) == args.Group && (HasComp<MapGridComponent>(args.Hostiles[0])
+                || EntityManager.System<WFCrewWeaponSystem>().CanSee(op, args.Hostiles[0])
+                || EntityManager.System<WFCrewCommsSystem>().Knows(op, args.Hostiles[0])))
                 HostileAct(op, args.Hostiles[0]);
         }
     }
@@ -389,7 +393,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         if (IsAlert(line))
         {
             Transmit(ent, line, radio.AlertChannel, text);
-            if (radio.FactionChannel is { } faction)
+            if (radio.LocalChannel != radio.AlertChannel)
+                Transmit(ent, line, radio.LocalChannel, text);
+            if (radio.FactionChannel is { } faction && faction != radio.AlertChannel && faction != radio.LocalChannel)
                 Transmit(ent, line, faction, text);
         }
         else
@@ -489,6 +495,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             or WFRadioLine.Boarded
             or WFRadioLine.CaptainDown
             or WFRadioLine.HelmDown
+            or WFRadioLine.BoardWarning
+            or WFRadioLine.DockWarning
             or WFRadioLine.AllClear;
     }
 

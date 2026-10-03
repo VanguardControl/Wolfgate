@@ -131,7 +131,49 @@ public sealed partial class WFPilotDutySystem : EntitySystem
 
         ent.Comp.FollowTarget = grid;
         ent.Comp.FollowRange = range;
+        ent.Comp.EscortOffset = null;
         SetOrders((ent, ent.Comp), WFPilotOrder.Follow);
+    }
+
+    /// <summary>Assigns an unoccupied trailing formation slot relative to the escorted ship.</summary>
+    public void Escort(EntityUid pilot, EntityUid target, float spacing)
+    {
+        if (!TryComp<WFPilotDutyComponent>(pilot, out var duty) || Transform(pilot).GridUid is not { } grid)
+            return;
+        var occupied = new HashSet<int>();
+        var query = EntityQueryEnumerator<WFPilotDutyComponent>();
+        while (query.MoveNext(out var other, out var escort))
+        {
+            if (other != pilot && escort.FollowTarget == target && escort.EscortOffset != null
+                && (escort.Orders == WFPilotOrder.Follow || escort.ResumeOrder == WFPilotOrder.Follow))
+                occupied.Add(escort.EscortSlot);
+        }
+        var slot = 0;
+        while (occupied.Contains(slot))
+            slot++;
+        var clearance = GridRadius(grid) + GridRadius(target) + 20f;
+        spacing = MathF.Max(spacing, clearance);
+        var row = slot / 2 + 1;
+        duty.FollowTarget = target;
+        duty.FollowRange = 5f;
+        duty.EscortSlot = slot;
+        var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(target, out var targetGrid) ? targetGrid.LocalAABB.Center : Vector2.Zero;
+        duty.EscortOffset = center + GridForwardAngle(target).RotateVec(new Vector2((slot % 2 == 0 ? -1 : 1) * spacing, -row * spacing));
+        SetOrders((pilot, duty), WFPilotOrder.Follow);
+    }
+
+    private float GridRadius(EntityUid grid) => TryComp<Robust.Shared.Map.Components.MapGridComponent>(grid, out var map)
+        ? map.LocalAABB.Size.Length() / 2f : 0f;
+
+    private Angle GridForwardAngle(EntityUid grid)
+    {
+        var consoles = EntityQueryEnumerator<ShuttleConsoleComponent, TransformComponent>();
+        while (consoles.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.GridUid == grid && xform.Anchored)
+                return _transform.GetWorldRotation(uid) - _transform.GetWorldRotation(grid);
+        }
+        return Angle.Zero;
     }
 
     /// <summary>Fly to another grid, dock with it by hand, then hold.</summary>
@@ -158,6 +200,17 @@ public sealed partial class WFPilotDutySystem : EntitySystem
 
     private void SetOrders(Entity<WFPilotDutyComponent> ent, WFPilotOrder orders)
     {
+        ent.Comp.ResumeOrder = null;
+        if (orders is not (WFPilotOrder.Hold or WFPilotOrder.Undock)
+            && Transform(ent).GridUid is { } grid && _docking.GetDocks(grid).Any(dock => dock.Comp.Docked)
+            && !(orders == WFPilotOrder.Dock && ent.Comp.DockTarget is { } destination && _docking.AreGridsDocked(grid, destination)))
+        {
+            var waypoints = ent.Comp.Waypoints;
+            Undock(ent.Owner);
+            ent.Comp.ResumeOrder = orders;
+            ent.Comp.ResumeWaypoints = waypoints;
+            return;
+        }
         ent.Comp.Orders = orders;
         ent.Comp.OrdersCompleted = false;
         ResetDock(ent.Comp);
@@ -250,6 +303,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             return true;
 
         duty.AtHelm = true;
+        EntityManager.System<WFCrewSpeechSystem>().Say(mob, "helm");
         var facing = _transform.GetWorldPosition(console) - _transform.GetWorldPosition(mob);
         if (facing.LengthSquared() > 0.001f)
             _transform.SetWorldRotation(mob, facing.ToWorldAngle());
@@ -321,6 +375,15 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     private void Advance(Entity<WFPilotDutyComponent> ent, ShipSteererComponent steerer, float frameTime)
     {
         var duty = ent.Comp;
+        if (duty.Orders == WFPilotOrder.Follow && duty.EscortOffset != null && duty.FollowTarget is { } leader
+            && !TerminatingOrDeleted(leader) && Transform(ent).GridUid is { } grid)
+        {
+            steerer.Coordinates = new EntityCoordinates(leader, duty.EscortOffset.Value);
+            var heading = _transform.GetWorldRotation(leader) + GridForwardAngle(leader) + new Angle(Math.PI) + Angle.FromDegrees(TravelHeadingOffset(ent));
+            steerer.InRangeRotation = heading;
+            steerer.AlwaysFaceTarget = true;
+            steerer.TargetRotation = CreepHeadingOffset(steerer, heading, grid);
+        }
         switch (duty.Orders)
         {
             case WFPilotOrder.Dock:
@@ -348,6 +411,13 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     /// <summary>Switches to Hold and reports the orders flown to their end.</summary>
     private void CompleteOrders(Entity<WFPilotDutyComponent> ent)
     {
+        if (ent.Comp.ResumeOrder is { } resume)
+        {
+            ent.Comp.Waypoints = ent.Comp.ResumeWaypoints;
+            ent.Comp.WaypointIndex = 0;
+            SetOrders(ent, resume);
+            return;
+        }
         SetOrders(ent, WFPilotOrder.Hold);
         ent.Comp.OrdersCompleted = true;
         var ev = new WFPilotOrdersCompletedEvent(ent);
@@ -389,7 +459,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 break;
             case WFPilotOrder.Follow when duty.FollowTarget is { } followed && !TerminatingOrDeleted(followed):
                 // Grid-relative coordinates move with the grid.
-                target = new EntityCoordinates(followed, Vector2.Zero);
+                target = new EntityCoordinates(followed, duty.EscortOffset ?? Vector2.Zero);
                 range = duty.FollowRange;
                 speed = duty.CruiseSpeed;
                 faceTarget = true;
@@ -433,9 +503,18 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         steerer.InRangeRotation = heading;
         steerer.MaxRotateRate = maxTurnRate;
         steerer.AlwaysFaceTarget = faceTarget;
-        steerer.TargetRotation = faceTarget && heading is { } held ? CreepHeadingOffset(steerer, held, grid) : 0f;
+        steerer.TargetRotation = faceTarget && heading is { } held ? CreepHeadingOffset(steerer, held, grid) : TravelHeadingOffset(ent);
         // Status is only refreshed when the ship next asks for input; don't let the last target's arrival count.
         steerer.Status = ShipSteeringStatus.Moving;
         return steerer;
+    }
+
+    /// <summary>Uses the helm's north direction for cruise flight.</summary>
+    private float TravelHeadingOffset(EntityUid pilot)
+    {
+        if (TryComp<PilotComponent>(pilot, out var helm) && helm.Console is { } console
+            && Transform(pilot).GridUid is { } grid)
+            return (float) (_transform.GetWorldRotation(grid) - _transform.GetWorldRotation(console)).Degrees;
+        return 0f;
     }
 }

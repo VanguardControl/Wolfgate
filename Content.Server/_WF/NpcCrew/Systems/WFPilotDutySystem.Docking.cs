@@ -172,6 +172,11 @@ public sealed partial class WFPilotDutySystem
         }
 
         duty.DockPhaseTime += frameTime;
+        if (_docking.AreGridsDocked(grid, target))
+        {
+            Docked(ent, grid, target);
+            return;
+        }
         var collision = duty.DockCollision;
         duty.DockCollision = null;
 
@@ -197,7 +202,12 @@ public sealed partial class WFPilotDutySystem
 
         steerer.InRangeRotation = DockHeading(plan, target);
         steerer.AlwaysFaceTarget = true;
-        steerer.TargetRotation = CreepHeadingOffset(steerer, DockHeading(plan, target), grid);
+        var cruising = duty.DockPhase == WFDockPhase.Approach
+            && (_transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid)).Length() > MathF.Max(80f, duty.DockStandoff * 2f);
+        steerer.TargetRotation = cruising
+            ? TravelHeadingOffset(ent) : CreepHeadingOffset(steerer, DockHeading(plan, target), grid);
+        if (cruising)
+            steerer.InRangeRotation = null;
         switch (duty.DockPhase)
         {
             case WFDockPhase.Approach:
@@ -393,8 +403,16 @@ public sealed partial class WFPilotDutySystem
         if (xform.GridUid is not { } grid || xform.MapUid is not { } map)
             return;
 
+        var crewQuery = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crewQuery.MoveNext(out var member, out var crew, out var location))
+        {
+            if (crew.Post is { } post && post.EntityId == grid && location.GridUid != grid
+                && _mobState.IsAlive(member) && !HasComp<Robust.Shared.Player.ActorComponent>(member))
+                return;
+        }
+
         var away = Vector2.Zero;
-        foreach (var dock in _docking.GetDocks(grid))
+        foreach (var dock in _docking.GetDocks(grid).ToArray())
         {
             if (!_docking.CanUndock((dock.Owner, dock.Comp)))
                 continue;

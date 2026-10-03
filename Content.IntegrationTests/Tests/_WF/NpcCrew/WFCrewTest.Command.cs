@@ -71,7 +71,7 @@ public sealed partial class WFCrewTest
             SEntMan.EventBus.RaiseLocalEvent(shot, ref hit);
             Assert.That(alerts.IsAlerted(deck, "hull"), Is.True);
             Assert.That(alerts.GetHostileShips(deck, "hull"), Is.EquivalentTo(new[] { attacker }));
-            Assert.That(SEntMan.GetComponent<WFRadioOperatorComponent>(radio).Sent.Count(line => line.Line == WFRadioLine.Mayday), Is.EqualTo(1));
+            Assert.That(SEntMan.GetComponent<WFRadioOperatorComponent>(radio).Sent.Count(line => line.Line == WFRadioLine.Mayday && line.Channel.Id == "Common"), Is.EqualTo(1));
         });
         await RunTicks(3700);
         await Server.WaitAssertion(() => Assert.That(Server.System<WFCrewAlertSystem>().IsAlerted(deck, "hull"), Is.False));

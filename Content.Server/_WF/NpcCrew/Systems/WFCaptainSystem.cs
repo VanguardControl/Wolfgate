@@ -64,7 +64,7 @@ public sealed partial class WFCaptainSystem : EntitySystem
                     continue;
                 _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, duty.Orders,
                     duty.Waypoints.Skip(duty.WaypointIndex).ToList(), duty.LoiterCenter, duty.LoiterRadius,
-                    duty.FollowTarget, duty.FollowRange, duty.DockTarget);
+                    duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot);
                 _changingOrders = true;
                 try
                 {
@@ -106,6 +106,11 @@ public sealed partial class WFCaptainSystem : EntitySystem
                     break;
                 case WFPilotOrder.Follow when course.Follow is { } follow && !TerminatingOrDeleted(follow):
                     _pilots.Follow(pilot, follow, course.Range);
+                    if (TryComp<WFPilotDutyComponent>(pilot, out var formation))
+                    {
+                        formation.EscortOffset = course.EscortOffset;
+                        formation.EscortSlot = course.EscortSlot;
+                    }
                     break;
                 case WFPilotOrder.Dock when course.Dock is { } dock && !TerminatingOrDeleted(dock):
                     _pilots.Dock(pilot, dock);
@@ -119,5 +124,5 @@ public sealed partial class WFCaptainSystem : EntitySystem
 
     private sealed record SavedCourse(EntityUid Captain, EntityUid Grid, string Group, WFPilotOrder Order,
         List<EntityCoordinates> Waypoints, EntityCoordinates? Center, float Radius, EntityUid? Follow,
-        float Range, EntityUid? Dock);
+        float Range, EntityUid? Dock, System.Numerics.Vector2? EscortOffset, int EscortSlot);
 }
