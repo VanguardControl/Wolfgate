@@ -51,7 +51,7 @@ wf-crew-radio-all-clear-2 = {$callsign}, all clear, hostiles gone, resuming cour
 
 # wf_crew command
 cmd-wf_crew-desc = Plans, spawns, lists and clears NPC crew on a grid.
-cmd-wf_crew-help = Usage: {$command} plan <grid|here> [deckhands] | spawn <grid|here> [group] [deckhands] | spawnrole <role> [group] | list [group] | clear <group> | duty <mob> <duty> | orders <mob> hold | orders <mob> goto <x> <y> [<x> <y> ...] | orders <mob> loiter <x> <y> <radius> | orders <mob> follow <grid|here> | orders <mob> dock <grid|here> | orders <mob> undock | callsign <mob> <text...>
+cmd-wf_crew-help = Usage: {$command} plan <grid|here> [deckhands] | spawn <grid|here> [group] [deckhands] | spawnrole <role> [group] | list [group] | clear <group> | duty <mob> <duty> | orders <mob> hold | orders <mob> goto <x> <y> [<x> <y> ...] | orders <mob> loiter <x> <y> <radius> | orders <mob> follow <grid|here> | orders <mob> dock <grid|here> | orders <mob> undock | callsign <mob> <text...> | arena [vessel]
 cmd-wf_crew-unknown = Unknown subcommand: {$sub}
 cmd-wf_crew-hint-sub = <subcommand>
 cmd-wf_crew-hint-role = <role>
@@ -59,6 +59,12 @@ cmd-wf_crew-hint-grid = <grid entity, or here>
 cmd-wf_crew-hint-mob = <crewman entity>
 cmd-wf_crew-hint-order = <order>
 cmd-wf_crew-hint-callsign = <callsign>
+cmd-wf_crew-hint-vessel = [vessel]
+cmd-wf_crew-arena-unknown-vessel = {$vessel} is not a vessel.
+cmd-wf_crew-arena-vessel-failed = Could not spawn {$vessel}.
+cmd-wf_crew-arena-crew-failed = Some of {$group} could not be spawned.
+cmd-wf_crew-arena-ship = {$group}: grid {$grid}, {$count} crew.
+cmd-wf_crew-arena-done = Arena ready. arena-escort escorts arena-lead and arena-dock docks with it.
 cmd-wf_crew-not-on-grid = You are not on a grid.
 cmd-wf_crew-not-a-grid = {$arg} is not a grid.
 cmd-wf_crew-bad-number = {$arg} is not a whole number.

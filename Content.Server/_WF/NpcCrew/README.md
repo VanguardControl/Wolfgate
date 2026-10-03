@@ -167,6 +167,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 
 ### Server
 
+- [`Content.Server/_WF/NpcCrew/Commands/WFCrewCommand.Arena.cs`](Commands/WFCrewCommand.Arena.cs)
 - [`Content.Server/_WF/NpcCrew/Commands/WFCrewCommand.cs`](Commands/WFCrewCommand.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
@@ -244,6 +245,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Arena.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Arena.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.BoardingDevices.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.BoardingDevices.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainHold.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainHold.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainResume.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainResume.cs)

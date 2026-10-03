@@ -14,7 +14,7 @@ namespace Content.Server._WF.NpcCrew.Commands;
 
 /// <summary>
 /// NPC crew from the console: plan a grid, spawn the plan or one role, list, clear a group, change a duty, give a
-/// pilot orders, set a radio officer's callsign.
+/// pilot orders, set a radio officer's callsign, set up a test arena.
 /// </summary>
 [AdminCommand(AdminFlags.Spawn)]
 public sealed partial class WFCrewCommand : LocalizedEntityCommands
@@ -25,7 +25,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
     [Dependency] private WFPilotDutySystem _pilot = default!;
     [Dependency] private WFRadioOperatorSystem _radio = default!;
 
-    private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty", "orders", "callsign" };
+    private static readonly string[] Subcommands = { "plan", "spawn", "spawnrole", "list", "clear", "duty", "orders", "callsign", "arena" };
 
     private static readonly string[] OrderNames = { "hold", "goto", "loiter", "follow", "dock", "undock" };
 
@@ -65,6 +65,9 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             case "callsign":
                 Callsign(shell, args);
                 break;
+            case "arena":
+                Arena(shell, args);
+                break;
             default:
                 shell.WriteError(Loc.GetString("cmd-wf_crew-unknown", ("sub", args[0])));
                 shell.WriteLine(Help);
@@ -80,6 +83,7 @@ public sealed partial class WFCrewCommand : LocalizedEntityCommands
             2 when args[0] == "spawnrole" => CompletionResult.FromHintOptions(
                 _prototypes.EnumeratePrototypes<WFCrewRolePrototype>().Select(role => role.ID).Order(),
                 Loc.GetString("cmd-wf_crew-hint-role")),
+            2 when args[0] == "arena" => CompletionResult.FromHintOptions(VesselIds(), Loc.GetString("cmd-wf_crew-hint-vessel")),
             2 when args[0] is "plan" or "spawn" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-grid")),
             2 when args[0] is "duty" or "orders" or "callsign" => CompletionResult.FromHint(Loc.GetString("cmd-wf_crew-hint-mob")),
             3 when args[0] == "orders" => CompletionResult.FromHintOptions(OrderNames, Loc.GetString("cmd-wf_crew-hint-order")),
