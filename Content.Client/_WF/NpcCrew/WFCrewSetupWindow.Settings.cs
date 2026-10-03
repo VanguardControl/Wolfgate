@@ -88,19 +88,7 @@ public sealed partial class WFCrewSetupWindow
     private void FillTargets(OptionButton button)
     {
         var previous = button.ItemCount > 0 ? button.SelectedMetadata as WFCrewSetupGrid : null;
-        button.Clear();
-        button.AddItem(Text("select-target"), -1);
-        button.SelectId(-1);
-        for (var index = 0; index < _grids.Count; index++)
-        {
-            var grid = _grids[index];
-            if (grid.Id == _selectedCrew?.Grid)
-                continue;
-            button.AddItem($"{grid.Name} ({grid.Id})", index);
-            button.SetItemMetadata(button.ItemCount - 1, grid);
-            if (grid.Id == previous?.Id)
-                button.SelectId(index);
-        }
+        RefreshGridChoices(button, "select-target", previous?.Id, _selectedCrew?.Grid);
     }
 
     private void SendCrew(WFCrewSetupAction action)
@@ -108,6 +96,8 @@ public sealed partial class WFCrewSetupWindow
         if (CurrentCrew is not { } crew)
             return;
         var mission = _crewSettings.Read(crew.Group);
+        if (action is WFCrewSetupAction.Rules or WFCrewSetupAction.Orders && !ValidateNavigation(mission))
+            return;
         if (action == WFCrewSetupAction.Orders)
         {
             mission.Order = (WFPilotOrder) _order.SelectedId;
@@ -144,6 +134,7 @@ public sealed partial class WFCrewSetupWindow
         private readonly List<string> _companies;
         private readonly List<string> _factions;
         private readonly List<string> _channels;
+        private readonly NavigationForm _navigation;
 
         public SettingsForm(IPrototypeManager prototypes)
         {
@@ -183,6 +174,8 @@ public sealed partial class WFCrewSetupWindow
             radio.AddChild(Line("alert-channel", _alert));
             Body.AddChild(Button("radio-options", () => radio.Visible = !radio.Visible));
             Body.AddChild(radio);
+            _navigation = new NavigationForm(prototypes);
+            Body.AddChild(_navigation.Body);
         }
 
         public WFCrewMission Read(string group) => new()
@@ -190,6 +183,7 @@ public sealed partial class WFCrewSetupWindow
             Group = group, Callsign = _callsign.Text, Company = _companies[_company.SelectedId], Faction = _factions[_faction.SelectedId],
             LocalChannel = _channels[_local.SelectedId], AlertChannel = _channels[_alert.SelectedId], HeaveTo = _heave.Pressed,
             BoardingResponse = (WFCrewSecurityResponse) _boarding.SelectedId, DockingResponse = (WFCrewSecurityResponse) _docking.SelectedId,
+            Navigation = _navigation.Read(),
         };
 
         public void Load(WFCrewMission mission)
@@ -202,6 +196,7 @@ public sealed partial class WFCrewSetupWindow
             _boarding.SelectId((int) mission.BoardingResponse);
             _docking.SelectId((int) mission.DockingResponse);
             _heave.Pressed = mission.HeaveTo;
+            _navigation.Load(mission.Navigation);
         }
     }
 }

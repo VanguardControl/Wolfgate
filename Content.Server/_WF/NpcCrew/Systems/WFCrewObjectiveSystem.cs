@@ -211,6 +211,8 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
     {
         var duty = Comp<WFPilotDutyComponent>(pilot);
         duty.ArrivalRange = item.Range;
+        var targetCenter = new EntityCoordinates(target,
+            TryComp<MapGridComponent>(target, out var targetGrid) ? targetGrid.LocalAABB.Center : Vector2.Zero);
         switch (item.Kind)
         {
             case WFCrewObjectiveKind.Hold: _pilots.Hold(pilot); break;
@@ -223,11 +225,14 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             case WFCrewObjectiveKind.Undock: _pilots.Undock(pilot); break;
             case WFCrewObjectiveKind.Follow: _pilots.Follow(pilot, target, item.Range); break;
             case WFCrewObjectiveKind.Escort: _pilots.Escort(pilot, target, item.Range); break;
+            case WFCrewObjectiveKind.Circle:
+                _pilots.Loiter(pilot, targetCenter, item.Range, objective: WFCrewObjectiveKind.Circle); break;
             case WFCrewObjectiveKind.Loiter:
+                _pilots.Loiter(pilot, targetCenter, item.Range); break;
             case WFCrewObjectiveKind.Attack:
-                _pilots.Loiter(pilot, new EntityCoordinates(target, Vector2.Zero), item.Range); break;
+                _pilots.Loiter(pilot, targetCenter, item.Range, objective: WFCrewObjectiveKind.Attack); break;
             case WFCrewObjectiveKind.Retreat:
-                _pilots.GoTo(pilot, new List<EntityCoordinates> { new(target, Vector2.Zero) }); break;
+                _pilots.GoTo(pilot, new List<EntityCoordinates> { targetCenter }); break;
         }
     }
 
@@ -244,6 +249,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             if (!result.TryGetValue(key, out var row))
             {
                 row = new WFCrewSetupCrew { Grid = GetNetEntity(grid), Group = crew.Group, Status = Loc.GetString("wf-crew-objective-status-manual") };
+                row.Settings.Navigation = crew.Navigation.Clone();
                 if (_queues.TryGetValue(key, out var state))
                 {
                     row.Objectives = state.Items.ToList();
@@ -253,6 +259,8 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             }
             row.Members++;
             row.Settings.Group = crew.Group;
+            if (TryComp<WFPilotDutyComponent>(uid, out var pilot))
+                row.Settings.Navigation = pilot.Navigation.Clone();
             if (TryComp<CompanyComponent>(uid, out var company))
                 row.Settings.Company = company.CompanyName.Id;
             if (TryComp<NpcFactionMemberComponent>(uid, out var faction))

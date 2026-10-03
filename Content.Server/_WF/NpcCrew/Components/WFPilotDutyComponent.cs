@@ -11,12 +11,27 @@ namespace Content.Server._WF.NpcCrew.Components;
 [RegisterComponent]
 public sealed partial class WFPilotDutyComponent : Component
 {
+    /// <summary>Independent flight limits supplied by a mission or scenario.</summary>
+    [DataField]
+    public WFCrewNavigationSettings Navigation = new();
+
+    /// <summary>Orbit task whose live profile speed and minimum radius apply.</summary>
+    public WFCrewObjectiveKind OrbitKind = WFCrewObjectiveKind.Loiter;
+    public float RequestedLoiterRadius = 60f;
+    public float? LoiterSpeedOverride;
+    public float EscortSpacing = 100f;
+
     /// <summary>Flight order resumed after physically clearing the current docks.</summary>
     public WFPilotOrder? ResumeOrder;
     public List<EntityCoordinates> ResumeWaypoints = new();
     /// <summary>Target-relative formation slot retained until the escort order changes.</summary>
     public System.Numerics.Vector2? EscortOffset;
     public int EscortSlot;
+
+    /// <summary>Fixed station captured when Hold is ordered, with hysteresis for drift correction.</summary>
+    public EntityCoordinates? HoldPosition;
+    public Angle HoldHeading;
+    public bool CorrectingHold;
 
     /// <summary>Assigned helm. Null takes the nearest powered shuttle console on the crewman's grid.</summary>
     [DataField]
@@ -40,6 +55,10 @@ public sealed partial class WFPilotDutyComponent : Component
     [DataField]
     public float LoiterRadius = 60f;
 
+    /// <summary>Orbit speed allowance above the circled grid's world speed, in m/s.</summary>
+    [DataField]
+    public float LoiterSpeed = 6f;
+
     /// <summary>Follow: the grid kept in range.</summary>
     [DataField]
     public EntityUid? FollowTarget;
@@ -47,9 +66,9 @@ public sealed partial class WFPilotDutyComponent : Component
     [DataField]
     public float FollowRange = 150f;
 
-    /// <summary>Speed the ship may still have when it counts as arrived, in m/s.</summary>
+    /// <summary>Maximum cruise speed, in m/s; formation flight also accounts for the leader's velocity.</summary>
     [DataField]
-    public float CruiseSpeed = 12f;
+    public float CruiseSpeed { get => Navigation.CruiseSpeed; set => Navigation.CruiseSpeed = value; }
 
     /// <summary>GoTo: how close to a waypoint counts as reaching it.</summary>
     [DataField]
@@ -63,19 +82,19 @@ public sealed partial class WFPilotDutyComponent : Component
     /// Dock: how far out from the target dock the approach ends and the creep starts. Undock: how far to back off.
     /// </summary>
     [DataField]
-    public float DockStandoff = 40f;
+    public float DockStandoff { get => Navigation.DockStandoff; set => Navigation.DockStandoff = value; }
 
-    /// <summary>Dock: speed the ship may still have when it reaches the standoff, in m/s.</summary>
+    /// <summary>Dock: maximum approach speed, in m/s.</summary>
     [DataField]
-    public float DockApproachSpeed = 3f;
+    public float DockApproachSpeed { get => Navigation.DockApproachSpeed; set => Navigation.DockApproachSpeed = value; }
 
-    /// <summary>Dock: speed the ship may still have when it reaches the dock, in m/s.</summary>
+    /// <summary>Dock: maximum final approach speed, in m/s.</summary>
     [DataField]
-    public float DockCreepSpeed = 1.5f;
+    public float DockCreepSpeed { get => Navigation.DockCreepSpeed; set => Navigation.DockCreepSpeed = value; }
 
     /// <summary>Dock: seconds of creeping without the docks lining up before the attempt is abandoned.</summary>
     [DataField]
-    public float DockCreepTimeout = 60f;
+    public float DockCreepTimeout { get => Navigation.DockCreepTimeout; set => Navigation.DockCreepTimeout = value; }
 
     /// <summary>Dock: hand-flown attempts before giving up. Zero goes straight to the FTL fallback, or holds.</summary>
     [DataField]

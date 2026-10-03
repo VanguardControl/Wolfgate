@@ -344,6 +344,66 @@ visual check. Logs are TEMP/wfcrew-width-build.log and wfcrew-width-client*.log.
 The current test server runs bin/NpcCrewReview on 127.0.0.1:1220 with mob pushing disabled. The client was reconnected
 as CrewTesting from bin/NpcCrewUiWidth to load this layout fix; the server and round were preserved.
 
+## Careful navigation and scenario profiles (2026-10-02)
+
+Circle Grid is a queued, optionally timed slow orbit. Circle, Loiter and Attack use the destination's bounds center.
+Native orbit range tolerance previously halved the commanded radius; crew orbits now use a zero-width band.
+The native 30-degree orbit look-ahead also cut well inside the requested circle; crew profiles default to 10 degrees.
+Attack defaults to at least 350 m at 6 m/s; Circle defaults to 4 m/s. Hull size and clearance can enlarge both.
+
+Crew pilots now impose actual speed limits through GetShuttleInputsEvent after native steering/player input.
+Arrival thresholds previously did not cap transit speed. Thrust and rotation are gentler, full braking is retained,
+and stopping-distance checks brake a closing escort/orbit before its target's hull. Native collision avoidance
+includes destination grids for crew pilots only. Final docking corridors still allow deliberate dock contact.
+Escort slots include conservative hull clearance and face the flight path while catching up. Hold keeps a fixed
+map anchor with drift hysteresis and brakes residual motion; helm reacquisition does not recapture its position.
+
+WFCrewNavigationSettings exposes 37 speed, thrust, turning, orbit, clearance and docking values. The collapsed
+Flight tuning editor is available during creation and in live settings. WFCrewMission.Navigation carries copied
+values; wfCrewNavigation prototypes provide reusable scenario defaults. Server and client validate finite bounds,
+positive arrival/settling tolerances and consistent Hold thresholds. Profile changes update active steering without
+resetting the objective timer. Captain course restoration preserves orbit mode and requested radius, while current
+profile limits still apply. Changing standoff during approach/settling replans the docking corridor.
+Scenario authoring and all default values are documented in navigation.md.
+
+Personal AI devices and standalone silicon brains intentionally have Alive MobState, which previously made them
+false boarders. Security polling, received sightings, contact radio reports and the radio officer's independent
+scan now share a boarding-candidate check. It excludes PAI/BorgBrain/StationAiHeld/StationAiCore and linked remote
+AI eyes while retaining physical borg chassis and hostile NPCs. Captain evasion now also restores a previous Hold
+anchor/heading when it is still on the same map; stale or cross-map anchors safely fall back to the current position.
+
+Crew Setup now updates grid choices in place by entity identity, retaining popup buttons, filter text and focus
+through automatic refreshes. Unchanged crew cards and objective rows also survive polling. The polling timer moved
+from simulation Update to FrameUpdate: prediction replays previously amplified its intended two-second interval.
+The live server log showed late crew requests only 12 ticks apart. Closing a window unsubscribes its refresh handler,
+and native popup cleanup releases its modal/focus state. No global context-menu reset was added.
+
+The combined regression run also exposed a pursuit race: a target could be deleted after asynchronous HTN
+planning but before the following MoveTo task starts. The crew target operator revalidates engagement when its
+planned task executes, so an invalid target fails the combat branch before native movement uses its coordinates.
+
+Builds and automated checks use isolated bin/NpcCrewNavigation and bin/NpcCrewNavigationFinal outputs. Existing
+servers on ports 1219 and 1220 were preserved; the graphical validation pair uses port 1221, mob pushing disabled,
+and explicit client sandboxing. Do not overwrite output directories while their server/client processes run.
+
+Validation: the final Debug build passed with 0 errors (1339 warnings), and all 120 crew integration cases passed.
+Coverage includes real native dropdown mouse-down/poll/mouse-up, focus/modal cleanup, server-backed Admin/Debug/
+Tricks menus before/during/after setup, prediction replay polling, AI equipment versus physical boarders, scenario
+serialization/validation/live application, all station roles, and real Dredger docking/automatic departure.
+Physical navigation measured attack radius 345.3–350.3 m, custom Circle limits of 2 m/s and 0.05 rad/s, and escort
+minimum center separation of 82.3 m with final slot error 5.7 m. An initial 117/118 run exposed the deleted-target
+pursuit race above; both deterministic lifetime cases and the previously failing radio officer case now pass.
+The final headless server reached Ready on temporary port 1222 with no ERRO/FATL entries and was stopped.
+The isolated Release YAML linter reported no errors in 78506 ms. Module inventory/check/PR-marker checks and
+git diff checks passed. Logs: TEMP/wfcrew-final-build.log, wfcrew-final-tests.log, wfcrew-final-server*.log and
+wfcrew-final-linter*.log.
+
+The initial navigation graphical client enabled sandboxing and reached GameplayState without sandbox violations.
+Desktop control was subsequently stopped by physical Escape, so the final UI/security fixes have not been visually
+retested or sandbox-checked in a fresh graphical client. The persistent empty-menu symptom has automated regression
+coverage but still needs a live retest. The user later closed the older client; existing servers/rounds were preserved.
+Reload a matching server/client from bin/NpcCrewNavigationFinal for the latest changes. No PR or push.
+
 ## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints

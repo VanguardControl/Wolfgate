@@ -169,15 +169,7 @@ public sealed partial class WFCrewSetupWindow
 
     private void RefreshCreationGrid()
     {
-        _grid.Clear();
-        _grid.AddItem(Text("select-ship"), -1);
-        _grid.SelectId(-1);
-        for (var index = 0; index < _grids.Count; index++)
-        {
-            _grid.AddItem($"{_grids[index].Name} ({_grids[index].Id})", index);
-            if (_grids[index].Id == _creationGrid)
-                _grid.SelectId(index);
-        }
+        RefreshGridChoices(_grid, "select-ship", _creationGrid);
         if (_creationGrid != null && _grid.SelectedId == -1)
         {
             _creationGrid = null;
@@ -218,7 +210,10 @@ public sealed partial class WFCrewSetupWindow
             Plain(_status, Text("duplicate-group"));
             return;
         }
-        Request(new WFCrewSetupRequest { Action = action, Grid = _creationGrid, Posts = posts, Mission = _createSettings.Read(_group.Text.Trim()) });
+        var mission = _createSettings.Read(_group.Text.Trim());
+        if (!ValidateNavigation(mission))
+            return;
+        Request(new WFCrewSetupRequest { Action = action, Grid = _creationGrid, Posts = posts, Mission = mission });
     }
 
     private void AddRow(WFCrewSetupPost post)

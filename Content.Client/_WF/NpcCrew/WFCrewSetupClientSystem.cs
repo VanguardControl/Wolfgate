@@ -15,11 +15,14 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
     private float _pollTimer;
     private int _nextRequestId;
 
-    public override void Update(float frameTime)
+    public override void FrameUpdate(float frameTime)
     {
-        base.Update(frameTime);
+        base.FrameUpdate(frameTime);
         if (Received == null)
+        {
+            _pollTimer = 0;
             return;
+        }
         _pollTimer += frameTime;
         if (_pollTimer < 2)
             return;

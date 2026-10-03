@@ -9,7 +9,7 @@ public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview
 
 /// <summary>High-level crew tasks; timed tasks with zero duration continue until skipped.</summary>
 [Serializable, NetSerializable]
-public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat, Repair, Resupply, Salvage, Escort }
+public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat, Repair, Resupply, Salvage, Escort, Circle }
 
 /// <summary>Response to an unauthorized docking or boarding incident.</summary>
 [Serializable, NetSerializable]
@@ -62,6 +62,7 @@ public sealed class WFCrewMission
     public bool HeaveTo = true;
     public WFCrewSecurityResponse BoardingResponse = WFCrewSecurityResponse.Hostile;
     public WFCrewSecurityResponse DockingResponse = WFCrewSecurityResponse.Hostile;
+    public WFCrewNavigationSettings Navigation = new();
     public WFPilotOrder Order;
     public Vector2 Destination;
     public float Range = 60;

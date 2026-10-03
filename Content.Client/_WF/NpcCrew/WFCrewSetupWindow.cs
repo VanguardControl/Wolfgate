@@ -142,27 +142,43 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
 
     private void RenderCrews()
     {
-        _crewList.RemoveAllChildren();
+        var present = _liveCrews.Select(Key).ToHashSet();
+        foreach (var key in _crewCards.Keys.Where(key => !present.Contains(key)).ToArray())
+        {
+            _crewCards[key].Button.Orphan();
+            _crewCards.Remove(key);
+        }
+        var visible = 0;
         foreach (var crew in _liveCrews)
         {
             var ship = ShipName(crew.Grid);
-            if (!($"{ship} {crew.Group} {crew.Settings.Callsign}").Contains(_crewSearch.Text, StringComparison.OrdinalIgnoreCase))
-                continue;
             var key = Key(crew);
-            var button = new ContainerButton { ToggleMode = true, Pressed = !_creating && _selectedCrew == key };
-            button.AddStyleClass(ContainerButton.StyleClassButton);
-            var content = Column(3);
-            content.Margin = new Thickness(8);
-            content.AddChild(new Label { Text = ship, ClipText = true, ToolTip = ship });
-            var detail = new RichTextLabel();
-            Plain(detail, Text("crew-card", ("group", crew.Group), ("alive", crew.Alive), ("total", crew.Members)));
-            content.AddChild(detail);
-            button.AddChild(content);
-            button.OnPressed += _ => SelectLiveCrew(key);
-            _crewList.AddChild(button);
+            if (!_crewCards.TryGetValue(key, out var card))
+            {
+                var button = new ContainerButton { ToggleMode = true };
+                button.AddStyleClass(ContainerButton.StyleClassButton);
+                var content = Column(3);
+                content.Margin = new Thickness(8);
+                var name = new Label { ClipText = true };
+                var detail = new RichTextLabel();
+                content.AddChild(name);
+                content.AddChild(detail);
+                button.AddChild(content);
+                button.OnPressed += _ => SelectLiveCrew(key);
+                _crewList.AddChild(button);
+                _crewCards[key] = card = new CrewCard(button, name, detail);
+            }
+            card.Button.Visible = ($"{ship} {crew.Group} {crew.Settings.Callsign}").Contains(_crewSearch.Text, StringComparison.OrdinalIgnoreCase);
+            card.Button.Pressed = !_creating && _selectedCrew == key;
+            card.Name.Text = card.Name.ToolTip = ship;
+            Plain(card.Detail, Text("crew-card", ("group", crew.Group), ("alive", crew.Alive), ("total", crew.Members)));
+            if (card.Button.Visible)
+                visible++;
         }
-        if (_crewList.ChildCount == 0)
-            _crewList.AddChild(Help(_liveCrews.Count == 0 ? "no-crews" : "no-matches"));
+        if (_crewListEmpty.Parent == null)
+            _crewList.AddChild(_crewListEmpty);
+        _crewListEmpty.Visible = visible == 0;
+        Plain(_crewListEmpty, Text(_liveCrews.Count == 0 ? "no-crews" : "no-matches"));
     }
 
     private void TrySelectPendingCrew()

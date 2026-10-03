@@ -11,6 +11,10 @@ namespace Content.Server._WF.NpcCrew.Components;
 [RegisterComponent]
 public sealed partial class WFCrewComponent : Component
 {
+    /// <summary>Mission flight limits retained even when the crew has no living pilot.</summary>
+    [DataField]
+    public WFCrewNavigationSettings Navigation = new();
+
     /// <summary>Limits local action chatter independently of important radio reports.</summary>
     public TimeSpan NextSpeech;
     public Dictionary<string, TimeSpan> SpokenActions = new();

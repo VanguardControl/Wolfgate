@@ -7,7 +7,10 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
+using Content.Shared.PAI;
 using Content.Shared.Shuttles.Systems;
+using Content.Shared.Silicons.Borgs.Components;
+using Content.Shared.Silicons.StationAi;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -35,11 +38,29 @@ public sealed class WFCrewSecuritySystem : EntitySystem
     public bool IsHostileDockingTarget(EntityUid grid, string group, EntityUid visitor) =>
         _hostileDocks.TryGetValue((grid, group, visitor), out var until) && _timing.CurTime < until;
 
+    /// <summary>Living physical visitors can board; portable AI minds and ship AI infrastructure cannot.</summary>
+    public bool IsBoardingCandidate(EntityUid visitor)
+    {
+        // AI devices use MobState for possession even though they are equipment, not boarding bodies.
+        if (TerminatingOrDeleted(visitor) || !HasComp<MobStateComponent>(visitor) || !_mobs.IsAlive(visitor)
+            || HasComp<PAIComponent>(visitor) || HasComp<BorgBrainComponent>(visitor)
+            || HasComp<StationAiHeldComponent>(visitor) || HasComp<StationAiCoreComponent>(visitor))
+            return false;
+        var cores = EntityQueryEnumerator<StationAiCoreComponent>();
+        while (cores.MoveNext(out _, out var core))
+        {
+            if (core.RemoteEntity == visitor)
+                return false;
+        }
+        return true;
+    }
+
     /// <summary>Acts on a personally observed or received contact, preserving the crew's boarding policy.</summary>
     public void ReceiveSighting(EntityUid uid, EntityUid visitor)
     {
         if (!TryComp<WFCrewComponent>(uid, out var crew) || !TryComp<WFCrewSecurityComponent>(uid, out var rules)
-            || !_mobs.IsAlive(uid) || IsAuthorized(uid, visitor) || Transform(uid).GridUid is not { } grid
+            || !_mobs.IsAlive(uid) || !IsBoardingCandidate(visitor) || IsAuthorized(uid, visitor)
+            || Transform(uid).GridUid is not { } grid
             || crew.Post is { } post && post.EntityId != grid || Transform(visitor).GridUid != grid)
             return;
         if (rules.Boarding == WFCrewSecurityResponse.Hostile)
@@ -135,7 +156,7 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         var mobs = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
         while (mobs.MoveNext(out var person, out _, out var transform))
         {
-            if (_mobs.IsAlive(person))
+            if (IsBoardingCandidate(person))
                 people.Add((person, transform));
         }
         var query = EntityQueryEnumerator<WFCrewComponent, WFCrewSecurityComponent, TransformComponent>();
