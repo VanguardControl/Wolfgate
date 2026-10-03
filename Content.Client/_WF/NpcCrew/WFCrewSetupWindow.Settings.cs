@@ -30,7 +30,7 @@ public sealed partial class WFCrewSetupWindow
         {
             var page = Column(12);
             page.Margin = new Thickness(10);
-            tabs.AddChild(new ScrollContainer { Children = { page } });
+            tabs.AddChild(new ScrollContainer { HScrollEnabled = false, ReserveScrollbarSpace = true, Children = { page } });
             tabs.SetTabTitle(tabs.ChildCount - 1, Text(key));
             return page;
         }

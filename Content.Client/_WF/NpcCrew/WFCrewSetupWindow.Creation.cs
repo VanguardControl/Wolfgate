@@ -65,7 +65,7 @@ public sealed partial class WFCrewSetupWindow
         }
         var pages = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, VerticalExpand = true };
         foreach (var page in _steps)
-            pages.AddChild(new ScrollContainer { VerticalExpand = true, Children = { page } });
+            pages.AddChild(new ScrollContainer { VerticalExpand = true, HScrollEnabled = false, ReserveScrollbarSpace = true, Children = { page } });
         _createView.AddChild(pages);
 
         var ship = _steps[0];
