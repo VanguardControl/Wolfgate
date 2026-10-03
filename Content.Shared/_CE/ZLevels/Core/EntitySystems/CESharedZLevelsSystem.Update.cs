@@ -127,7 +127,7 @@ public abstract partial class CESharedZLevelsSystem
             if (TryMoveDown(entity))
             {
                 zPhysicsComponent.LocalPosition += 1;
-                if (zPhysicsComponent is { CachedStickyGround: false, Fallable: true })
+                if (zPhysicsComponent is { CachedStickyGround: false, Fallable: true } && !WfSteppedDown(zPhysicsComponent)) // WOLFGATE(Caverns): stepping down onto stairs is not a fall
                 {
                     var fallEv = new CEZLevelFallMapEvent();
                     RaiseLocalEvent(entity, ref fallEv);

@@ -24,6 +24,9 @@ ent-WFCavernClimbThrascias = ice steps
 ent-WFCavernClimbCarcinoma = tendril ladder
     .desc = Knotted tendrils hang down the throat, thick enough to climb.
 
+ent-WFCavernStairs = cavern stairs
+    .desc = Steel stairs bolted to the cavern floor, climbing up through the rock overhead.
+
 ent-WFCavernGlowworms = glow-worms
     .desc = A colony of glow-worms hangs from the ceiling, dangling sticky threads that shine a soft green.
 ent-WFCavernGutGlow = glowing membrane

@@ -48,6 +48,10 @@ public sealed partial class WFCavernGroundComponent : Component
     /// <summary>Cavern tiles emptied since the hole queue last ran, which it fills again.</summary>
     [ViewVariables]
     public HashSet<Vector2i> FloorOpened = new();
+
+    /// <summary>Holes whose stairs went since the hole queue last ran, which it gives a landing and a climb point.</summary>
+    [ViewVariables]
+    public HashSet<Vector2i> Refit = new();
 }
 
 /// <summary>What became of a mouth cell: claimed, waiting, or without a site.</summary>

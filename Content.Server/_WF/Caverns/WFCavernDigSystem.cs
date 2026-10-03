@@ -172,7 +172,7 @@ public sealed partial class WFCavernDigSystem : EntitySystem
     }
 
     /// <summary>Whether a tile is the natural one or what digging it down leaves, such as snow dug to bedrock.</summary>
-    private bool DugFrom(ContentTileDefinition natural, ContentTileDefinition tile)
+    public bool DugFrom(ContentTileDefinition natural, ContentTileDefinition tile)
     {
         var step = natural;
 

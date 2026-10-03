@@ -46,13 +46,27 @@ Only someone standing on the ground sees down a hole; from the air it shows dark
 holds its own air, as on the surface (the Planets terrain atmosphere); the cavern floor and the pad under a mouth,
 named through `WFTerrainOpenTilesEvent`, are bare ground and keep the cavern's air.
 
+A way up that is walked rather than climbed is built. *Cavern stairs* (construction menu, Structures: 10 steel, 8 s,
+unbolted with a wrench for the steel back) go on a cavern floor and open the ground tile above them, coming out on the
+side they climb towards; from the surface, dig a shaft, climb down and build them under it. They are CE high ground
+under a hole, so a mob walks them up and down with one level change and no fall, and whatever it is pulling changes
+level with it. The recipe is refused, with the reason, under laid floor, under something built or a parked ship, and
+where the tile at their top is a hole or built on. Opening takes what the biome grew on the hole and the tile at the
+top and pins both, on ground that isn't loaded too, and stairs that could not open, such as under a ship that landed
+while they were built, try again every 5 s. The hole queue gives a hole over stairs no landing and no climb point, and
+both once the stairs are gone.
+
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the
 ground to it with `WFCavernGroundComponent` and asks `WFCavernMouthSystem` to claim the gate. `WFCavernMouthSystem`
 evaluates mouth cells from pure noise (`.Claims.cs`: seeded candidates, ground and cavern checks, stamping, and the
 polling that claims them within a small budget a tick), runs the hole queue (`.Holes.cs`) and keeps the registry of
 cells, mouths, shades and climb points on the ground; its API is `GetGate`, `TryClaimCell`, `EvaluateCell`,
-`TryOpenMouth` and `TryGetNearestMouth`. `WFCavernDigSystem` digs the shovel shafts and tells the marked block in
+`TryOpenMouth` and `TryGetNearestMouth`, and for stairs (`.Stairs.cs`) `CheckStairs`, `TryOpenStairs`, `IsOpenAbove` and
+`RefitHole`. `WFCavernStairsSystem` opens the ground when stairs appear, answers the recipe's `WFCavernStairsSite`
+condition (a client only knows whether it stands in a cavern; the server checks the ground above and pops up why
+not), and carries pulled entities over: a level change clears every joint, so it puts what was pulled on its puller's
+spot on the new level and takes hold of it again with a tile of rope. `WFCavernDigSystem` digs the shovel shafts and tells the marked block in
 `PryTileReaction` which ground acid leaves alone. The shaft examine is `SharedWFCavernShaftSystem`, fed by the air reading
 (`WFCavernAirClassifier`) each shade stores when it spawns. `SharedWFCavernClimbSystem` offers the climb verbs, starts
 the DoAfter with its predicted popups and examines climb points; the server's `WFCavernClimbSystem` does the move when
@@ -66,7 +80,8 @@ which stops z-level eyes at a ground layer unless `WFCavernEyeSystem` finds one 
 standing on that ground (with a wider margin to lose it than to gain it, and never for a ghost that loads no terrain);
 on the client, `WfAddCavernPass` in CE's z-level renderer, which draws the cavern under the observer's own ground while
 a mouth is in view (`WFCavernViewSystem`); and a check in `ParallaxOverlay` that keeps the sky out of caverns and
-mouths. The design, including what is still to come (the rest of F4 and the mining loop), is in
+mouths; and a line in CE's z-physics (`WfSteppedDown`) that keeps a slow step down onto stairs from counting as a
+fall, which would open a worn parachute. The design, including what is still to come (the rest of F4 and the mining loop), is in
 `Docs/_WF/Caverns/CAVERNS_DESIGN.md`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -87,7 +102,9 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Claims.cs`](WFCavernMouthSystem.Claims.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.cs`](WFCavernMouthSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Holes.cs`](WFCavernMouthSystem.Holes.cs)
+- [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Stairs.cs`](WFCavernMouthSystem.Stairs.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSampler.cs`](WFCavernSampler.cs)
+- [`Content.Server/_WF/Caverns/WFCavernStairsSystem.cs`](WFCavernStairsSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSystem.cs`](WFCavernSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernViewerComponent.cs`](WFCavernViewerComponent.cs)
 - [`Content.Server/_WF/Caverns/WFDigestiveAcidHissComponent.cs`](WFDigestiveAcidHissComponent.cs)
@@ -95,8 +112,10 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 
 ### Shared
 
+- [`Content.Shared/_WF/Caverns/CESharedZLevelsSystem.Caverns.cs`](../../../Content.Shared/_WF/Caverns/CESharedZLevelsSystem.Caverns.cs)
 - [`Content.Shared/_WF/Caverns/SharedWFCavernClimbSystem.cs`](../../../Content.Shared/_WF/Caverns/SharedWFCavernClimbSystem.cs)
 - [`Content.Shared/_WF/Caverns/SharedWFCavernShaftSystem.cs`](../../../Content.Shared/_WF/Caverns/SharedWFCavernShaftSystem.cs)
+- [`Content.Shared/_WF/Caverns/SharedWFCavernStairsSystem.cs`](../../../Content.Shared/_WF/Caverns/SharedWFCavernStairsSystem.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernAir.cs`](../../../Content.Shared/_WF/Caverns/WFCavernAir.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernClimbComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernClimbComponent.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernClimbDoAfterEvent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernClimbDoAfterEvent.cs)
@@ -105,6 +124,8 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 - [`Content.Shared/_WF/Caverns/WFCavernPrototype.cs`](../../../Content.Shared/_WF/Caverns/WFCavernPrototype.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernShaftComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernShaftComponent.cs)
 - [`Content.Shared/_WF/Caverns/WFCavernShaftDigDoAfterEvent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernShaftDigDoAfterEvent.cs)
+- [`Content.Shared/_WF/Caverns/WFCavernStairsComponent.cs`](../../../Content.Shared/_WF/Caverns/WFCavernStairsComponent.cs)
+- [`Content.Shared/_WF/Caverns/WFCavernStairsSite.cs`](../../../Content.Shared/_WF/Caverns/WFCavernStairsSite.cs)
 - [`Content.Shared/_WF/Caverns/WFDigestiveAcidComponent.cs`](../../../Content.Shared/_WF/Caverns/WFDigestiveAcidComponent.cs)
 - [`Content.Shared/_WF/Caverns/WFDigestiveAcidSystem.cs`](../../../Content.Shared/_WF/Caverns/WFDigestiveAcidSystem.cs)
 
@@ -113,6 +134,7 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 - [`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`](../../../Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs)
 - [`Content.Client/_WF/Caverns/WFCavernClimbSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernClimbSystem.cs)
 - [`Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.cs)
+- [`Content.Client/_WF/Caverns/WFCavernStairsSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernStairsSystem.cs)
 - [`Content.Client/_WF/Caverns/WFCavernViewSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernViewSystem.cs)
 
 ### Integration tests
@@ -131,6 +153,7 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernPrototypeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernViewerEyeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernViewerEyeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernViewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernViewTest.cs)
@@ -155,7 +178,9 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 - [`Resources/Prototypes/_WF/Caverns/Entities/flora.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/flora.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/gut.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/gut.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/mouths.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/mouths.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/stairs.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/stairs.yml)
 - [`Resources/Prototypes/_WF/Caverns/levels.yml`](../../../Resources/Prototypes/_WF/Caverns/levels.yml)
+- [`Resources/Prototypes/_WF/Caverns/Recipes/stairs.yml`](../../../Resources/Prototypes/_WF/Caverns/Recipes/stairs.yml)
 - [`Resources/Prototypes/_WF/Caverns/tiles.yml`](../../../Resources/Prototypes/_WF/Caverns/tiles.yml)
 
 ### Localization
@@ -174,11 +199,13 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
 - [`Resources/Textures/_WF/Caverns/Mouths/fervidus_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/fervidus_pit.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/merak_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/merak_pit.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/thrascias_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/thrascias_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Stairs/steel.rsi/`](../../../Resources/Textures/_WF/Caverns/Stairs/steel.rsi/)
 
 ### Tools
 
 - [`Tools/_WF/Caverns/gen_flavour.py`](../../../Tools/_WF/Caverns/gen_flavour.py)
 - [`Tools/_WF/Caverns/gen_pits.py`](../../../Tools/_WF/Caverns/gen_pits.py)
+- [`Tools/_WF/Caverns/gen_stairs.py`](../../../Tools/_WF/Caverns/gen_stairs.py)
 
 ### Docs
 
@@ -193,6 +220,7 @@ mouths. The design, including what is still to come (the rest of F4 and the mini
   - under a ground layer, eyes only on its cavern and only while a hole is in view.
   - track the level above the next eye.
 - [`Content.Server/Chemistry/TileReactions/PryTileReaction.cs`](../../Chemistry/TileReactions/PryTileReaction.cs): acid never opens ground over a cavern that no tool can dig, such as Aerumna's chromite.
+- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs): stepping down onto stairs is not a fall
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
 - [`Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml): shovels dig cavern shafts on planets
 

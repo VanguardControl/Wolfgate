@@ -923,18 +923,36 @@ NPCs never use verbs, and no cavern mob has `CEZFlyer`, so fauna stays below.
 - **Transit maps.** No transit map ever has a cavern as `LowerMap`, so the weather system's transit sweep never
   reaches one.
 
-### 3.8 Ramps: not in v1
+### 3.8 Stairs
 
-CE high-ground stairs under a hole would work in principle, but ramps are not in v1. The level flip at curve height
-1.0 is unproven, and each flip rebuilds the viewer's eyes. Side entry drops up to 0.9 of a level.
-`CEZLevelsLaddersCacheSystem` caches every high-ground piece for future z-pathing (it has no consumer today). Climb
-points reuse the ladder *sprites* only, without `CEZLevelHighGround`.
+Built stairs are CE high ground under a hole: `WFCavernStairs` (parent `CEZLevelLadderBase`, steel art recoloured
+from CE's stone by `Tools/_WF/Caverns/gen_stairs.py`) on the cavern floor, and the ground tile above it opened. The
+height curve reaches one level 0.47 of a tile from the foot; z-physics moves the walker to the ground map there, where
+the stairs below still hold it up, and it steps off onto the tile beyond the top (`ExitOf`: the tile the stairs face
+away from). Each flip rebuilds the viewer's eyes, once each way. Climb points still reuse the ladder *sprites* only,
+without `CEZLevelHighGround`.
 
-A later ramp feature ships only if `CavernRampTest` passes every case:
-- stepping up the ramp in 0.05-tile increments gives exactly one map change and a stable stand;
-- a mob placed exactly where the curve crosses 1.0 changes map at most once in 120 ticks;
+They are built in the cavern, from the construction menu (10 steel, 8 s; a wrench takes them apart). The recipe's
+`WFCavernStairsSite` condition refuses them outside a cavern, and the server refuses them, with a popup, where the
+ground above is laid floor or built on, where a hull is parked on it, and where the tile at their top is a hole or
+built on. What the biome grew on the hole and exit tiles goes when they open, and both tiles are pinned; under ground
+that isn't loaded the exit's natural tile is laid at once. Stairs that could not open keep trying every 5 s. A hole
+over stairs gets a shade but no landing and no climb point, and is refitted with both when the stairs go.
+
+Two things CE does not do are done here. A level change clears every joint, so a pull would end at the flip line:
+`WFCavernStairsSystem` moves what was pulled to its puller's spot on the new level and takes hold of it again, with a
+tile of rope. And a body creeping down comes to rest on each step, so the move down a level counted as a fall (a
+popup, and a worn parachute opening): a marked line in `ProcessZPhysics` skips the fall event when the body arrives
+within `AirborneHeightThreshold` of the ground.
+
+`CavernRampTest` holds the gates this section set, and they pass:
+- stepping up the stairs in 0.05-tile increments gives exactly one map change and a stable stand, facing each way;
+- a mob placed where the curve crosses 1.0, and 0.002 either side, changes map at most once in 120 ticks;
 - the same holds in reverse;
-- side entry deals under 20 Blunt.
+- side entry deals under 20 Blunt (it deals none: the stairs catch the drop).
+
+It also covers the recipe end to end, the hole's fitting and refitting, unloaded ground, the refusals, pulling a crate
+up and down, and creeping down with a parachute on.
 
 ### 3.9 What must be proven before anything depends on it
 

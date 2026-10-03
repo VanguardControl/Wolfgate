@@ -97,13 +97,16 @@ public sealed partial class WFCavernMouthSystem
             ground.ClimbPoints.Remove(index);
     }
 
-    /// <summary>Runs the hole queue on every ground: filled holes lose their shades, opened cavern floor closes and new holes are fitted out.</summary>
+    /// <summary>
+    /// Runs the hole queue on every ground: filled holes lose their shades, opened cavern floor closes, new holes are
+    /// fitted out and holes that lost their stairs get what they went without.
+    /// </summary>
     private void UpdateHoles()
     {
         var query = EntityQueryEnumerator<WFCavernGroundComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
-            if (comp.Opened.Count == 0 && comp.Closed.Count == 0 && comp.FloorOpened.Count == 0)
+            if (comp.Opened.Count == 0 && comp.Closed.Count == 0 && comp.FloorOpened.Count == 0 && comp.Refit.Count == 0)
                 continue;
 
             Entity<WFCavernGroundComponent> ground = (uid, comp);
@@ -112,12 +115,14 @@ public sealed partial class WFCavernMouthSystem
                 comp.Opened.Clear();
                 comp.Closed.Clear();
                 comp.FloorOpened.Clear();
+                comp.Refit.Clear();
                 continue;
             }
 
             CloseHoles(ground, context);
             CloseFloor(ground, context);
             OpenHoles(ground, context);
+            RefitHoles(ground, context);
         }
     }
 
@@ -225,7 +230,10 @@ public sealed partial class WFCavernMouthSystem
         EnsureHoles(ground, context, holes);
     }
 
-    /// <summary>Pins holes, lays their landings, spawns their shades, wakes what stood on them and gives each a climb point it can reach.</summary>
+    /// <summary>
+    /// Pins holes, lays their landings, spawns their shades, wakes what stood on them and gives each a climb point it
+    /// can reach. A hole over stairs gets no landing or climb point: the stairs are both.
+    /// </summary>
     private void EnsureHoles(Entity<WFCavernGroundComponent> ground, MouthContext context, List<Vector2i> holes)
     {
         _biome.WfPinTiles((context.Ground.Owner, context.Ground.Comp1), holes);
@@ -239,7 +247,11 @@ public sealed partial class WFCavernMouthSystem
             }
         }
 
-        PrepareLandings(context, holes);
+        Entity<MapGridComponent> levelGrid = (context.Level.Owner, context.Level.Comp2);
+        var drops = holes.Where(hole => !HasStairs(levelGrid, hole)).ToList();
+
+        if (drops.Count > 0)
+            PrepareLandings(context, drops);
 
         foreach (var index in holes)
         {
@@ -251,7 +263,8 @@ public sealed partial class WFCavernMouthSystem
             WakeBodiesOn(context.Ground, index);
         }
 
-        EnsureClimbs(ground, context, holes);
+        if (drops.Count > 0)
+            EnsureClimbs(ground, context, drops);
 
         // Open the view below now rather than at the next check.
         _eyes.CheckSoon();
