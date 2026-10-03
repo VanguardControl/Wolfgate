@@ -188,9 +188,9 @@ namespace Content.Server.NPC.Systems
                     continue;
 
                 var npcCoords = npcTransform.Coordinates;
-                // WOLFGATE(NpcCrew): ship crews must work even without nearby player bodies.
+                // WOLFGATE(NpcCrew): ship crews with something to do must work even without nearby player bodies.
                 // var hasNearbyPlayer = false;
-                var hasNearbyPlayer = TryComp<Content.Server._WF.NpcCrew.Components.WFCrewComponent>(npcUid, out var crew) && crew.KeepActive;
+                var hasNearbyPlayer = EntityManager.System<Content.Server._WF.NpcCrew.Systems.WFCrewSleepSystem>().StaysAwake(npcUid);
 
                 var minDistance = htn.SleepPlayerCheckRangeOverride ?? _playerPauseDistance; // Mono
                 // Mono

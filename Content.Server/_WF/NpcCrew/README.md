@@ -209,6 +209,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShieldProtectionSystem.cs`](Systems/WFCrewShieldProtectionSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShipStatusSystem.cs`](Systems/WFCrewShipStatusSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewSleepSystem.cs`](Systems/WFCrewSleepSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSpeechSystem.cs`](Systems/WFCrewSpeechSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewUiDiagnosticsSystem.cs`](Systems/WFCrewUiDiagnosticsSystem.cs)
@@ -278,6 +279,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShipStatus.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShipStatus.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
@@ -331,7 +333,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
   - compare both bodies for crew while the engine helper reads the first fixtures twice.
   - stop blended input while access-aware crew settle at an obstacle.
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.Obstacles.cs`](../../NPC/Systems/NPCSteeringSystem.Obstacles.cs): open authorized doors through normal interaction before considering prying.
-- [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs): ship crews must work even without nearby player bodies.
+- [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs): ship crews with something to do must work even without nearby player bodies.
 - [`Content.Server/Verbs/VerbSystem.cs`](../../Verbs/VerbSystem.cs): opt-in tracing for missing menu replies after ghosting.
 
 <!-- WOLFGATE-GENERATED END -->

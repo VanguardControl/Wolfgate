@@ -66,7 +66,7 @@ Entry points for other modules (Encounters): `WFCrewSetupSystem.TrySpawn(grid, p
 `WFCrewSetupSystem.TryApplyMission`, `WFCrewObjectiveSystem.SetQueue/Control/Cancel/Snapshot`,
 `WFCrewAlertSystem.ReportShipThreat(grid, group, attacker)`, `WFPilotDutySystem.SetNavigation`.
 
-Last verified on the merge of `main` at `633c05cc4e` (2026-10-03): Debug integration build 0 errors; all 214
+Last verified on the merge of `main` at `633c05cc4e` (2026-10-03): Debug integration build 0 errors; all 240
 crew and ship shield integration cases passed; module `--check` and `--pr-check origin/main` passed.
 
 ## Not yet verified
@@ -97,14 +97,29 @@ crew and ship shield integration cases passed; module `--check` and `--pr-check 
   headset shares nothing. Check `Enabled` as well as `ActiveRadio`, which is removed at the end of the tick.
 - PAIs, borg brains and station AI entities are `Alive` but are not boarders; use the shared boarding-candidate
   check.
+- "Same crew" means same home grid (`WFCrewSystem.HomeGrid`: the post's grid, else the current one) and same
+  group. The group label alone is never an ally test; every mission defaults to the label "crew".
 - Ships whose crews share a `Battlegroup` (a mission setting) are one formation: no friendly fire, and an attack
-  on one alerts all. `WFCrewEscortSystem.GetFormation` is the single source for both escorts and battlegroups.
-- A ship is disabled (`WFCrewShipStatusSystem.IsDisabled`) once it was seen working and then has no thrust and no
-  powered ship weapon. Disabled ships leave the threat list, gunners stop firing and an Attack task completes.
-  Hulls never seen working (stations, wrecks, bare test decks) are never judged.
-- With no captain aboard, the pilot evades attackers on their own (`WFPilotDutyComponent.ReactToAttacks`, set from
-  the mission's "Captain reacts to attacks").
-- Admins see crew tags and battlegroup lines on any radar; the client polls the crew list only while one is open.
+  on one alerts all. `WFCrewEscortSystem` builds the formations once per tick for escorts and battlegroups alike.
+  A formation partner that fires a ship weapon at a member is that member's attacker for 60 seconds.
+- Protection from crew fire ends for anyone who attacked the crew, whatever their company or faction.
+- Ship-level alerts come from ship weapons only (projectile or hitscan). A handheld shot at a shield alerts nobody.
+  Each attacking vessel has its own 60 second expiry.
+- A ship is disabled (`WFCrewShipStatusSystem.IsDisabled`) once it was seen working and has then had no thrust and
+  no powered ship weapon for 30 seconds without a break. Disabled ships leave the threat list, gunners stop firing
+  and an Attack task completes. Hulls never seen working are never judged, so an untimed Attack on one never ends.
+- With no captain aboard, or once the captain is down, the pilot evades attackers on their own
+  (`WFPilotDutyComponent.ReactToAttacks`). Evasion re-targets every second and always ends in the saved course or,
+  if its target is gone, a hold.
+- Undocking waits at most `AbsentCrewWait` (60 s) for crew who are off the ship, and not at all when evading.
+- Crew sleep with no player within 64 m unless they have something to do: not yet at their station, away from
+  the ship, alerted, threatened, on a work job or in bad air (`WFCrewSleepSystem`, cvar `wf.crew.sleep_idle`).
+  Flying, gunnery, radio, alerts and boarding detection run in their own systems and don't need the HTN awake.
+- Crew set up ship access only on grids that aren't station members; stations keep the mapper's door access.
+- One operator speaks per crew (the radio officer, else the captain), and one line goes out per incident however
+  many crew witnessed it.
+- A failed work target is skipped for the rest of the order; the order blocks only when every target has failed.
+- Admins see crew tags and battlegroup lines on any radar; the client polls crews only while one is open.
 - Work orders rebuild only what the ship's saved repair snapshot holds and the ordinary SRD whitelist allows.
 
 ## Playtesting

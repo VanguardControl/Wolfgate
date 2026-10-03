@@ -15,6 +15,7 @@
   - type: InputMover
   - type: MobMover
   - type: HTN
+    sleepPlayerCheckRangeOverride: 64
     rootTask:
       task: WFCrewCompound
     blackboard:

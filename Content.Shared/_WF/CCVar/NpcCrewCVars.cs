@@ -16,4 +16,11 @@ public sealed class NpcCrewCVars
     /// </summary>
     public static readonly CVarDef<bool> DockFtlFallback =
         CVarDef.Create("wf.crew.dock_ftl_fallback", false, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether crew with nothing to do (at their station, no alert, no work, safe air) sleep while no player is near.
+    /// Off keeps every crewman thinking all the time.
+    /// </summary>
+    public static readonly CVarDef<bool> SleepIdle =
+        CVarDef.Create("wf.crew.sleep_idle", true, CVar.SERVERONLY);
 }
