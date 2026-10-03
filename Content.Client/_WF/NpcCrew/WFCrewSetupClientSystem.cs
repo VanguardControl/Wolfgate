@@ -13,6 +13,7 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
     public TimeSpan PreviewUntil { get; private set; }
     public event Action<WFCrewSetupResponse>? Received;
     private float _pollTimer;
+    private int _nextRequestId;
 
     public override void Update(float frameTime)
     {
@@ -53,5 +54,11 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
         base.Shutdown();
     }
 
-    public void Send(WFCrewSetupRequest request) => RaiseNetworkEvent(request);
+    /// <summary>Sends an operation with a unique identifier for routing its eventual response.</summary>
+    public int Send(WFCrewSetupRequest request)
+    {
+        request.RequestId = ++_nextRequestId;
+        RaiseNetworkEvent(request);
+        return request.RequestId;
+    }
 }

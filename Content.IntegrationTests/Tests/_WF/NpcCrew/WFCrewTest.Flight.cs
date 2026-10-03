@@ -155,15 +155,17 @@ public sealed partial class WFCrewTest
             var targetLine = (BoxContainer) type.GetField("_targetLine", flags)!.GetValue(window)!;
             var source = new WFCrewSetupGrid(new NetEntity(101), "Ship");
             var destination = new WFCrewSetupGrid(new NetEntity(102), "Station");
+            var crew = new WFCrewSetupCrew { Grid = source.Id, Group = "test", Members = 2, Alive = 2 };
+            window.SelectCrew(source.Id, crew.Group);
             receive.Invoke(window, new object[] { new WFCrewSetupResponse
-                { Action = WFCrewSetupAction.List, Grids = new() { source, destination } } });
+                { Action = WFCrewSetupAction.List, Grids = new() { source, destination }, Crews = new() { crew } } });
             order.SelectId((int) WFPilotOrder.Dock);
             type.GetMethod("UpdateOrderFields", flags)!.Invoke(window, null);
             Assert.That(targetLine.Visible, Is.True);
             Assert.That(target.ItemCount, Is.EqualTo(2), "Placeholder and destination; own ship is excluded.");
             target.SelectId(1);
             receive.Invoke(window, new object[] { new WFCrewSetupResponse
-                { Action = WFCrewSetupAction.List, Grids = new() { destination, source } } });
+                { Action = WFCrewSetupAction.List, Grids = new() { destination, source }, Crews = new() { crew } } });
             Assert.That(target.SelectedId, Is.EqualTo(0), "Selection survives a reordered grid refresh.");
             window.Close();
             window.Dispose();
