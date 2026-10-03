@@ -1,5 +1,21 @@
 wf-encounter-ship-name = {$vessel} {$designation}
 wf-encounter-name-convoy = Convoy {$designation}
+wf-encounter-open-space = open space
+wf-encounter-marker-distance = {$name}  {$distance} km
+
+wf-encounter-name-patrol = TSF patrol {$designation}
+wf-encounter-name-freighter = Freighter {$designation}
+wf-encounter-name-ambush = Hauler {$designation} under attack
+wf-encounter-sender-traffic = Sector traffic control
+wf-encounter-announce-freighter = {$name} is entering the sector at {$origin}, inbound to {$destination} with general cargo.
+wf-encounter-announce-ambush = Distress call: {$name}. Pirates are engaging a civilian hauler. Any vessel able to assist, respond.
+
+wf-encounter-preset-quiet = Quiet sector
+wf-encounter-preset-standard = Standard sector
+wf-encounter-preset-dangerous = Dangerous sector
+wf-encounter-vote-title = How dangerous is the sector this round?
+wf-encounter-vote-initiator = Sector traffic control
+wf-encounter-vote-result = This round: {$preset}.
 
 wf-encounter-resolution-expired = Expired
 wf-encounter-resolution-completed = Completed
@@ -37,6 +53,10 @@ wf-encounter-admin-teleport = Go to
 wf-encounter-admin-resolve = Resolve
 wf-encounter-admin-end = End and remove
 wf-encounter-admin-crew = Crew
+wf-encounter-admin-preset = Preset
+wf-encounter-admin-budget = Budget in use: {$cost} of {$budget}
+wf-encounter-admin-start-round = Place round-start encounters
+wf-encounter-admin-reveal = Reveal
 
 # wf_encounter command
 cmd-wf_encounter-desc = Lists, spawns and ends encounters, and runs or pauses the encounter scheduler.

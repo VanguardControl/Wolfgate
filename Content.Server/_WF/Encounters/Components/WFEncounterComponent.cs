@@ -32,6 +32,38 @@ public sealed partial class WFEncounterComponent : Component
     /// <summary>Set once resolved; the ships are then removed as players leave them.</summary>
     [DataField]
     public WFEncounterResolution? Resolution;
+
+    [DataField]
+    public WFEncounterCategory Category;
+
+    [DataField]
+    public int Cost;
+
+    [DataField]
+    public WFEncounterLifetime Lifetime;
+
+    /// <summary>Whether it is kept off the sector markers.</summary>
+    [DataField]
+    public bool Hidden;
+
+    /// <summary>The station it was placed beside, if any.</summary>
+    [DataField]
+    public EntityUid? OriginStation;
+
+    /// <summary>The station a route leads to, if any.</summary>
+    [DataField]
+    public EntityUid? DestinationStation;
+
+    /// <summary>The announcement still to be made, if any.</summary>
+    [DataField]
+    public string? Announcement;
+
+    [DataField]
+    public string? AnnouncementSender;
+
+    /// <summary>When its ships jump out, whoever is near.</summary>
+    [DataField]
+    public TimeSpan? JumpAt;
 }
 
 /// <summary>One ship of a running encounter.</summary>

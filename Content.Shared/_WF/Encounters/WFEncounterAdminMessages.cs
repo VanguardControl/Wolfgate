@@ -25,6 +25,15 @@ public enum WFEncounterAdminAction : byte
 
     /// <summary>Moves the admin to an encounter or one of its ships.</summary>
     Teleport,
+
+    /// <summary>Makes the preset named in Prototype the storyteller's.</summary>
+    Preset,
+
+    /// <summary>Puts a hidden encounter on the sector markers.</summary>
+    Reveal,
+
+    /// <summary>Places this round's round-start encounters now.</summary>
+    StartRound,
 }
 
 /// <summary>An admin's request from the encounter window. Every request is answered with the current state.</summary>
@@ -60,6 +69,10 @@ public sealed class WFEncounterAdminState : EntityEventArgs
 
     /// <summary>Seconds until the scheduler next tries, or negative while it is not running.</summary>
     public float NextIn = -1f;
+    public string Preset = string.Empty;
+    public List<WFEncounterAdminPreset> Presets = new();
+    public int Budget;
+    public int Cost;
 }
 
 [Serializable, NetSerializable]
@@ -70,6 +83,7 @@ public sealed class WFEncounterAdminEntry
     public string Name = string.Empty;
     public string State = string.Empty;
     public bool Resolved;
+    public bool Hidden;
     public float Age;
 
     /// <summary>Seconds until it expires, or negative if it never does.</summary>
@@ -89,6 +103,13 @@ public sealed class WFEncounterAdminShip
     public bool Disabled;
     public int Crew;
     public string Activity = string.Empty;
+}
+
+[Serializable, NetSerializable]
+public sealed class WFEncounterAdminPreset
+{
+    public string Id = string.Empty;
+    public string Name = string.Empty;
 }
 
 [Serializable, NetSerializable]

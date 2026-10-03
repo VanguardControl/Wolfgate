@@ -55,6 +55,19 @@ public sealed partial class WFCrewTest : InteractionTest
     private const string Dock = "AirlockShuttle";
     private const string TestDock = "WFTestDock";
 
+    // Spawned ships play sounds, and the client's room echo asserts on audio whose parent changes mid-setup.
+    [SetUp]
+    public async Task DisableRoomEcho()
+    {
+        await Client.WaitPost(() => Client.ResolveDependency<IConfigurationManager>().SetCVar(MonoCVars.AreaEchoEnabled, false));
+    }
+
+    [TearDown]
+    public async Task RestoreRoomEcho()
+    {
+        await Client.WaitPost(() => Client.ResolveDependency<IConfigurationManager>().SetCVar(MonoCVars.AreaEchoEnabled, MonoCVars.AreaEchoEnabled.DefaultValue));
+    }
+
     // A monster-faction human: the stock crew faction is hostile to SimpleHostile, so the deckhand fights it. Test
     // prototypes load after the faction system cached its table, so the factions themselves have to be real ones.
     // The helm counts as powered without an APC.

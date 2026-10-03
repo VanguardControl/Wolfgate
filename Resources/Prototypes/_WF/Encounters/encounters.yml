@@ -1,0 +1,99 @@
+# A pair of TSF fighters holding station off a station for the whole round. They warn ships that dock with them,
+# fight boarders, and only drive attackers off.
+- type: wfEncounter
+  id: WFEncounterTsfPatrol
+  name: wf-encounter-name-patrol
+  start: RoundStart
+  lifetime: Persistent
+  category: Patrol
+  cost: 1
+  replaceable: true
+  placement: Station
+  standoff: 500
+  cooldown: 2400
+  ships:
+  - key: lead
+    vessel: QJ271
+    side: patrol
+    faction: TSFMC
+    company: TSF
+    docking: Warn
+    disengage: Deter
+    disengageRange: 800
+    objectives:
+    - kind: Circle
+      target: "@origin"
+      range: 700
+  - key: wing
+    vessel: QJ271
+    offset: 120, 0
+    side: patrol
+    faction: TSFMC
+    company: TSF
+    captain: false
+    docking: Warn
+    disengage: Deter
+    disengageRange: 800
+    objectives:
+    - kind: Escort
+      target: lead
+
+# A hauler that enters beside one station, flies to another, docks for a while and leaves the sector.
+- type: wfEncounter
+  id: WFEncounterFreighterTransit
+  name: wf-encounter-name-freighter
+  announcement: wf-encounter-announce-freighter
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  placement: Route
+  standoff: 600
+  cooldown: 1800
+  ships:
+  - key: freighter
+    vessel: Piva
+    side: freight
+    company: TSFCivilian
+    docking: Warn
+    disengage: Deter
+    objectives:
+    - kind: Dock
+      target: "@destination"
+    - kind: Hold
+      duration: 180
+    - kind: Undock
+    - kind: Hold
+      duration: 30
+
+# A hauler in open space with a pirate ship on it. Hidden until someone raises the alarm; then it is a distress call.
+- type: wfEncounter
+  id: WFEncounterPirateAmbush
+  name: wf-encounter-name-ambush
+  announcement: wf-encounter-announce-ambush
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Distress
+  cost: 2
+  hidden: true
+  minPlayers: 4
+  cooldown: 2700
+  duration: 2400
+  ships:
+  - key: hauler
+    vessel: Piva
+    side: freight
+    company: TSFCivilian
+    docking: Warn
+    disengage: Deter
+    objectives:
+    - kind: Hold
+  - key: raider
+    vessel: Osa
+    offset: 0, 450
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    objectives:
+    - kind: Attack
+      target: hauler

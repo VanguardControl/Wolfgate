@@ -9,6 +9,9 @@ using Content.Server._WF.NpcCrew.Systems;
 using Content.Client._WF.Encounters;
 using Content.Shared._WF.CCVar;
 using Robust.Shared.Configuration;
+using Content.Shared._Mono.CCVar;
+using Content.Server.Gravity;
+using Robust.Shared.Map.Components;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.GameObjects;
@@ -26,12 +29,25 @@ public sealed class WFEncounterTest : InteractionTest
 {
     private const string Convoy = "WFTestEncounterConvoy";
 
+    // Spawned ships play sounds, and the client's room echo asserts on audio whose parent changes mid-setup.
+    [SetUp]
+    public async Task DisableRoomEcho()
+    {
+        await Client.WaitPost(() => Client.ResolveDependency<IConfigurationManager>().SetCVar(MonoCVars.AreaEchoEnabled, false));
+    }
+
+    [TearDown]
+    public async Task RestoreRoomEcho()
+    {
+        await Client.WaitPost(() => Client.ResolveDependency<IConfigurationManager>().SetCVar(MonoCVars.AreaEchoEnabled, MonoCVars.AreaEchoEnabled.DefaultValue));
+    }
+
     [TestPrototypes]
     private const string Prototypes = @"
 - type: wfEncounter
   id: WFTestEncounterConvoy
   name: wf-encounter-name-convoy
-  scheduled: false
+  start: Manual
   ships:
   - key: lead
     vessel: WFDredger
@@ -46,6 +62,32 @@ public sealed class WFEncounterTest : InteractionTest
     objectives:
     - kind: Escort
       target: lead
+
+- type: wfEncounter
+  id: WFTestEncounterCheap
+  name: wf-encounter-name-convoy
+  category: Threat
+  cost: 1
+  hidden: true
+  announcement: wf-encounter-announce-ambush
+  minDistance: 700
+  maxDistance: 900
+  ships:
+  - key: lone
+    vessel: WFDredger
+    objectives:
+    - kind: Hold
+      duration: 5
+
+- type: wfEncounter
+  id: WFTestEncounterCostly
+  name: wf-encounter-name-convoy
+  cost: 50
+  minDistance: 700
+  maxDistance: 900
+  ships:
+  - key: lone
+    vessel: WFDredger
 ";
 
     [Test]
@@ -152,5 +194,89 @@ public sealed class WFEncounterTest : InteractionTest
             window.OpenCentered();
             window.Close();
         });
+    }
+
+    /// <summary>Every encounter prototype spawns all its ships crewed and with valid orders, and ends cleanly.</summary>
+    [Test]
+    public async Task EveryEncounterPrototypeSpawnsAndEnds()
+    {
+        EntityUid from = default, to = default;
+        await Server.WaitPost(() =>
+        {
+            // Stand-ins for the stations that Station and Route placements hand to the orders.
+            var maps = Server.ResolveDependency<IMapManager>();
+            from = maps.CreateGridEntity(MapData.MapId).Owner;
+            to = maps.CreateGridEntity(MapData.MapId).Owner;
+            var transform = Server.System<SharedTransformSystem>();
+            transform.SetCoordinates(from, new EntityCoordinates(MapData.MapUid, new Vector2(3000, 0)));
+            transform.SetCoordinates(to, new EntityCoordinates(MapData.MapUid, new Vector2(3000, 3000)));
+        });
+        var ids = Server.ResolveDependency<IPrototypeManager>().EnumeratePrototypes<WFEncounterPrototype>()
+            .Where(prototype => !prototype.ID.StartsWith("WFTest")).Select(prototype => prototype.ID).ToList();
+        Assert.That(ids, Is.Not.Empty);
+        var x = 3500f;
+        foreach (var id in ids)
+        {
+            EntityUid encounter = default;
+            var origin = new MapCoordinates(new Vector2(x, 1500), MapData.MapId);
+            x += 1500f;
+            await Server.WaitAssertion(() =>
+            {
+                var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(id);
+                Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, origin, out encounter, null, from, to), Is.True, id);
+                var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+                Assert.That(comp.Ships, Has.Count.EqualTo(prototype.Ships.Count), id);
+                var crews = Server.System<WFCrewObjectiveSystem>().Snapshot();
+                foreach (var ship in comp.Ships.Values)
+                {
+                    Assert.That(crews.Any(crew => crew.Group == ship.Group && crew.Alive > 0), Is.True, $"{id}: {ship.Group} has no crew");
+                }
+            });
+            await RunTicks(5);
+            await Server.WaitPost(() => Server.System<WFEncounterSystem>().End(encounter));
+            await RunTicks(5);
+        }
+
+        await Server.WaitPost(() =>
+        {
+            SEntMan.DeleteEntity(from);
+            SEntMan.DeleteEntity(to);
+        });
+    }
+
+    /// <summary>The storyteller keeps to its budget and to one of a kind; a hidden encounter announces itself when revealed.</summary>
+    [Test]
+    public async Task StorytellerKeepsToBudgetAndRevealsHiddenEncounters()
+    {
+        EntityUid encounter = default;
+        await Server.WaitAssertion(() =>
+        {
+            var config = Server.ResolveDependency<IConfigurationManager>();
+            var scheduler = Server.System<WFEncounterSchedulerSystem>();
+            var system = Server.System<WFEncounterSystem>();
+            config.SetCVar(EncountersCVars.Preset, "WFEncounterPresetQuiet");
+            Assert.That(scheduler.Preset, Is.Not.Null);
+            Assert.That(scheduler.Budget(), Is.GreaterThanOrEqualTo(2).And.LessThan(50));
+            Assert.That(scheduler.StartRound(), Is.Zero, "No stations on a test map, so nothing can be placed beside one.");
+
+            // Only the cheap test encounter fits the budget; the shipped ones need stations or more players.
+            Assert.That(scheduler.TrySchedule(out encounter), Is.True);
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            Assert.That(comp.Prototype.Id, Is.EqualTo("WFTestEncounterCheap"));
+            Assert.That(system.ActiveCost(), Is.EqualTo(1));
+            Assert.That(scheduler.TrySchedule(out _), Is.False, "It is running, and nothing else fits.");
+
+            Assert.That(comp.Hidden, Is.True);
+            Assert.That(comp.Announcement, Is.Not.Null, "A hidden encounter keeps its announcement back.");
+            system.Reveal(encounter);
+            Assert.That(comp.Hidden, Is.False);
+            Assert.That(comp.Announcement, Is.Null);
+
+            system.Resolve(encounter, WFEncounterResolution.Completed);
+            Assert.That(comp.JumpAt, Is.Not.Null, "A transient encounter jumps out once its orders are flown.");
+            system.End(encounter);
+            config.SetCVar(EncountersCVars.Preset, EncountersCVars.Preset.DefaultValue);
+        });
+        await RunTicks(10);
     }
 }

@@ -10,6 +10,14 @@ public sealed class EncountersCVars
     public static readonly CVarDef<bool> Enabled =
         CVarDef.Create("wf.encounters.enabled", false, CVar.SERVERONLY);
 
+    /// <summary>The storyteller preset in force; the lobby vote sets it each round.</summary>
+    public static readonly CVarDef<string> Preset =
+        CVarDef.Create("wf.encounters.preset", "WFEncounterPresetStandard", CVar.SERVERONLY);
+
+    /// <summary>Whether players vote for the preset in the lobby each round.</summary>
+    public static readonly CVarDef<bool> Vote =
+        CVarDef.Create("wf.encounters.vote", true, CVar.SERVERONLY);
+
     /// <summary>Shortest wait between scheduled encounters, in seconds.</summary>
     public static readonly CVarDef<float> IntervalMin =
         CVarDef.Create("wf.encounters.interval_min", 900f, CVar.SERVERONLY);

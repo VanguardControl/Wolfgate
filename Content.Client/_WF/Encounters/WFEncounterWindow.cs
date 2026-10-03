@@ -26,6 +26,9 @@ public sealed partial class WFEncounterWindow : DefaultWindow
     private readonly LineEdit _intervalMax = new() { MinWidth = 70 };
     private readonly LineEdit _maxActive = new() { MinWidth = 70 };
     private readonly Label _next = new();
+    private readonly OptionButton _preset = new();
+    private readonly Label _budget = new();
+    private readonly List<string> _presetIds = new();
     private readonly OptionButton _prototype = new() { HorizontalExpand = true };
     private readonly LineEdit _distance = new() { Text = "300", MinWidth = 70 };
     private readonly Label _status = new();
@@ -51,7 +54,14 @@ public sealed partial class WFEncounterWindow : DefaultWindow
         body.AddChild(Row(_enabled, _paused, _next));
         body.AddChild(Row(new Label { Text = Text("interval") }, _intervalMin, new Label { Text = Text("to") }, _intervalMax,
             new Label { Text = Text("cap") }, _maxActive));
-        body.AddChild(Row(Button("apply", ApplyScheduler), Button("schedule-now", () => Send(WFEncounterAdminAction.Schedule))));
+        body.AddChild(Row(Button("apply", ApplyScheduler), Button("schedule-now", () => Send(WFEncounterAdminAction.Schedule)),
+            Button("start-round", () => Send(WFEncounterAdminAction.StartRound))));
+        _preset.OnItemSelected += args =>
+        {
+            _preset.SelectId(args.Id);
+            _system.Send(new WFEncounterAdminRequest { Action = WFEncounterAdminAction.Preset, Prototype = _presetIds[args.Id] });
+        };
+        body.AddChild(Row(new Label { Text = Text("preset") }, _preset, _budget));
 
         body.AddChild(Heading("start"));
         _prototype.OnItemSelected += args => _prototype.SelectId(args.Id);
@@ -165,6 +175,21 @@ public sealed partial class WFEncounterWindow : DefaultWindow
         }
 
         _next.Text = state.NextIn >= 0f ? Text("next", ("time", Duration(state.NextIn))) : Text("next-none");
+        _budget.Text = Text("budget", ("cost", state.Cost), ("budget", state.Budget));
+        if (_presetIds.Count != state.Presets.Count)
+        {
+            _presetIds.Clear();
+            _preset.Clear();
+            foreach (var preset in state.Presets)
+            {
+                _preset.AddItem(preset.Name, _presetIds.Count);
+                _presetIds.Add(preset.Id);
+            }
+        }
+
+        var current = _presetIds.IndexOf(state.Preset);
+        if (current >= 0 && _preset.SelectedId != current)
+            _preset.SelectId(current);
         if (state.Message.Length > 0)
             _status.Text = state.Message;
         else if (state.Encounters.Count == 0)
@@ -201,7 +226,7 @@ public sealed partial class WFEncounterWindow : DefaultWindow
         var text = new StringBuilder();
         foreach (var encounter in state.Encounters)
         {
-            text.Append(encounter.Uid).Append(encounter.State).Append((int) (encounter.Age / 60f)).Append((int) (encounter.ExpiresIn / 60f));
+            text.Append(encounter.Uid).Append(encounter.State).Append(encounter.Hidden).Append((int) (encounter.Age / 60f)).Append((int) (encounter.ExpiresIn / 60f));
             foreach (var ship in encounter.Ships)
             {
                 text.Append(ship.Grid).Append(ship.Exists).Append(ship.Disabled).Append(ship.Crew).Append(ship.Activity);
@@ -223,6 +248,8 @@ public sealed partial class WFEncounterWindow : DefaultWindow
             ClipText = true,
         };
         var header = Row(title, Button("teleport", () => Send(WFEncounterAdminAction.Teleport, uid)));
+        if (encounter.Hidden && !encounter.Resolved)
+            header.AddChild(Button("reveal", () => Send(WFEncounterAdminAction.Reveal, uid)));
         if (!encounter.Resolved)
             header.AddChild(Button("resolve", () => Send(WFEncounterAdminAction.Resolve, uid)));
         header.AddChild(Button("end", () => Send(WFEncounterAdminAction.End, uid)));

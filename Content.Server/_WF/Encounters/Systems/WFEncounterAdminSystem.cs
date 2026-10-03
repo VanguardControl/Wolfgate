@@ -102,6 +102,24 @@ public sealed partial class WFEncounterAdminSystem : EntitySystem
                 Audit(session, $"set the encounter scheduler: enabled {request.Enabled}, paused {request.Paused}, every {request.IntervalMin}-{request.IntervalMax} s, cap {request.MaxActive}");
                 return null;
 
+            case WFEncounterAdminAction.Preset:
+                if (!EntityManager.System<WFEncounterVoteSystem>().SetPreset(request.Prototype ?? string.Empty))
+                    return Loc.GetString("wf-encounter-admin-gone");
+                Audit(session, $"set the encounter preset to {request.Prototype}");
+                return null;
+
+            case WFEncounterAdminAction.Reveal:
+                if (!TryGetEntity(request.Target, out var hidden) || !HasComp<WFEncounterComponent>(hidden))
+                    return Loc.GetString("wf-encounter-admin-gone");
+                _encounters.Reveal(hidden.Value);
+                Audit(session, $"revealed encounter {ToPrettyString(hidden.Value):entity}");
+                return null;
+
+            case WFEncounterAdminAction.StartRound:
+                var count = _scheduler.StartRound();
+                Audit(session, $"had the scheduler place {count} round-start encounters");
+                return count > 0 ? null : Loc.GetString("cmd-wf_encounter-not-scheduled");
+
             case WFEncounterAdminAction.Teleport:
                 if (session.AttachedEntity is not { } body)
                     return Loc.GetString("cmd-wf_encounter-no-player");
@@ -135,7 +153,14 @@ public sealed partial class WFEncounterAdminSystem : EntitySystem
             IntervalMax = _config.GetCVar(EncountersCVars.IntervalMax),
             MaxActive = _config.GetCVar(EncountersCVars.MaxActive),
             NextIn = _scheduler.Next is { } next ? MathF.Max(0f, (float) (next - _timing.CurTime).TotalSeconds) : -1f,
+            Preset = _scheduler.Preset?.ID ?? string.Empty,
+            Budget = _scheduler.Budget(),
+            Cost = _encounters.ActiveCost(),
         };
+        foreach (var preset in _prototypes.EnumeratePrototypes<WFEncounterPresetPrototype>().OrderBy(preset => preset.Budget))
+        {
+            state.Presets.Add(new WFEncounterAdminPreset { Id = preset.ID, Name = Loc.GetString(preset.Name) });
+        }
 
         var crews = _objectives.Snapshot();
         var running = new HashSet<string>();
@@ -151,6 +176,7 @@ public sealed partial class WFEncounterAdminSystem : EntitySystem
                 Prototype = encounter.Prototype.Id,
                 Name = encounter.Name,
                 Resolved = encounter.Resolution != null,
+                Hidden = encounter.Hidden,
                 State = Loc.GetString(encounter.Resolution is { } resolution
                     ? $"wf-encounter-resolution-{resolution.ToString().ToLowerInvariant()}"
                     : "cmd-wf_encounter-state-active"),
@@ -184,7 +210,7 @@ public sealed partial class WFEncounterAdminSystem : EntitySystem
             state.Prototypes.Add(new WFEncounterAdminPrototype
             {
                 Id = prototype.ID,
-                Scheduled = prototype.Scheduled,
+                Scheduled = prototype.Start != WFEncounterStart.Manual,
                 Weight = prototype.Weight,
                 Running = running.Contains(prototype.ID),
             });

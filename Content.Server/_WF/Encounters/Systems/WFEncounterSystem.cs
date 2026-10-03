@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._WF.Administration.Systems;
 using Content.Server._WF.Encounters.Components;
+using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Chat.Systems;
 using Content.Server.StationEvents.Events;
@@ -39,6 +40,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
+
+    /// <summary>How long after its orders are flown a transient encounter jumps out.</summary>
+    private static readonly TimeSpan JumpDelay = TimeSpan.FromSeconds(20);
     private TimeSpan _nextPoll;
     private float _cleanupRange;
     private TimeSpan _cleanupDelay;
@@ -49,6 +53,48 @@ public sealed partial class WFEncounterSystem : EntitySystem
         base.Initialize();
         Subs.CVar(_config, EncountersCVars.CleanupRange, value => _cleanupRange = value, true);
         Subs.CVar(_config, EncountersCVars.CleanupDelay, value => _cleanupDelay = TimeSpan.FromSeconds(value), true);
+        SubscribeLocalEvent<WFCrewAlertEvent>(OnCrewAlert);
+    }
+
+    /// <summary>A hidden encounter shows itself once one of its crews raises the alarm.</summary>
+    private void OnCrewAlert(ref WFCrewAlertEvent args)
+    {
+        if (TryComp<WFEncounterGridComponent>(args.Grid, out var marker))
+            Reveal(marker.Encounter);
+    }
+
+    /// <summary>Puts a hidden encounter on the sector markers.</summary>
+    public void Reveal(Entity<WFEncounterComponent?> encounter)
+    {
+        if (!Resolve(encounter, ref encounter.Comp, false) || !encounter.Comp.Hidden)
+            return;
+
+        encounter.Comp.Hidden = false;
+        if (encounter.Comp.Resolution == null)
+            Announce(encounter.Comp);
+    }
+
+    private void Announce(WFEncounterComponent encounter)
+    {
+        if (encounter.Announcement is not { } text)
+            return;
+
+        encounter.Announcement = null;
+        _chat.DispatchGlobalAnnouncement(text, encounter.AnnouncementSender);
+    }
+
+    /// <summary>The summed cost of the encounters that have not resolved yet.</summary>
+    public int ActiveCost()
+    {
+        var cost = 0;
+        var query = EntityQueryEnumerator<WFEncounterComponent>();
+        while (query.MoveNext(out _, out var encounter))
+        {
+            if (encounter.Resolution == null)
+                cost += encounter.Cost;
+        }
+
+        return cost;
     }
 
     /// <summary>Encounters that have not resolved yet.</summary>
@@ -82,7 +128,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
     /// Spawns an encounter with its origin at a point in space. Fails, leaving nothing behind, when a ship cannot
     /// be loaded or crewed.
     /// </summary>
-    public bool TrySpawn(WFEncounterPrototype prototype, MapCoordinates origin, out EntityUid encounter, EntityUid? spawner = null)
+    public bool TrySpawn(WFEncounterPrototype prototype, MapCoordinates origin, out EntityUid encounter, EntityUid? spawner = null,
+        EntityUid? originStation = null, EntityUid? destinationStation = null)
     {
         encounter = default;
         if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0)
@@ -95,7 +142,15 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.Name = Loc.GetString(prototype.Name, ("designation", designation));
         comp.Origin = origin;
         comp.Started = _timing.CurTime;
-        comp.Expires = prototype.Duration > 0f ? _timing.CurTime + TimeSpan.FromSeconds(prototype.Duration) : null;
+        comp.Expires = prototype.Duration > 0f && prototype.Lifetime == WFEncounterLifetime.Transient
+            ? _timing.CurTime + TimeSpan.FromSeconds(prototype.Duration)
+            : null;
+        comp.Category = prototype.Category;
+        comp.Cost = prototype.Cost;
+        comp.Lifetime = prototype.Lifetime;
+        comp.Hidden = prototype.Hidden;
+        comp.OriginStation = originStation;
+        comp.DestinationStation = destinationStation;
         _meta.SetEntityName(uid, comp.Name);
 
         foreach (var ship in prototype.Ships)
@@ -120,9 +175,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 queue.Add(new WFCrewObjective
                 {
                     Kind = objective.Kind,
-                    Target = objective.Target != null && comp.Ships.TryGetValue(objective.Target, out var target)
-                        ? GetNetEntity(target.Grid)
-                        : null,
+                    Target = objective.Target switch
+                    {
+                        "@origin" => GetNetEntity(originStation),
+                        "@destination" => GetNetEntity(destinationStation),
+                        { } key when comp.Ships.TryGetValue(key, out var target) => GetNetEntity(target.Grid),
+                        _ => null,
+                    },
                     Position = origin.Position + objective.Offset,
                     Range = objective.Range,
                     Duration = objective.Duration,
@@ -141,8 +200,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
         if (prototype.Announcement is { } announcement)
         {
-            _chat.DispatchGlobalAnnouncement(Loc.GetString(announcement, ("name", comp.Name)),
-                prototype.AnnouncementSender is { } sender ? Loc.GetString(sender) : null);
+            comp.Announcement = Loc.GetString(announcement, ("name", comp.Name),
+                ("origin", PlaceName(originStation)), ("destination", PlaceName(destinationStation)));
+            comp.AnnouncementSender = prototype.AnnouncementSender is { } sender ? Loc.GetString(sender) : null;
+            // A hidden encounter announces itself when it is revealed.
+            if (!comp.Hidden)
+                Announce(comp);
         }
 
         Log.Info($"Encounter {prototype.ID} started as {ToPrettyString(uid)} at {origin} with {comp.Ships.Count} ships.");
@@ -194,6 +257,11 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return posts.Count > 0 && _setup.TrySpawn(grid, posts, mission, out _);
     }
 
+    private string PlaceName(EntityUid? place)
+    {
+        return place is { } uid && !TerminatingOrDeleted(uid) ? MetaData(uid).EntityName : Loc.GetString("wf-encounter-open-space");
+    }
+
     private static string Capped(string text, int length)
     {
         return text.Length <= length ? text : text[..length];
@@ -206,6 +274,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return;
 
         encounter.Comp.Resolution = resolution;
+        if (resolution == WFEncounterResolution.Completed && encounter.Comp.Lifetime == WFEncounterLifetime.Transient)
+            encounter.Comp.JumpAt = _timing.CurTime + JumpDelay;
         Log.Info($"Encounter {encounter.Comp.Prototype} {ToPrettyString(encounter)} resolved: {resolution}.");
         var ev = new WFEncounterResolvedEvent(encounter, resolution);
         RaiseLocalEvent(encounter, ref ev, true);
@@ -298,6 +368,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return WFEncounterResolution.Destroyed;
         if (sides.Count > 1 && fighting.Count == 1)
             return WFEncounterResolution.Decided;
+        // A persistent encounter stays for the round: finished orders and the clock don't end it.
+        if (encounter.Lifetime == WFEncounterLifetime.Persistent)
+            return null;
         if (ordered > 0 && done == ordered)
             return WFEncounterResolution.Completed;
         if (encounter.Expires is { } expires && _timing.CurTime >= expires)
@@ -334,6 +407,15 @@ public sealed partial class WFEncounterSystem : EntitySystem
                     near = true;
                     break;
                 }
+            }
+
+            if (encounter.JumpAt is { } jump)
+            {
+                if (_timing.CurTime >= jump)
+                    RemoveShip(ship);
+                else
+                    remaining = true;
+                continue;
             }
 
             if (near)

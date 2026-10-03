@@ -623,6 +623,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         DrawShields(handle, xform, worldToShuttle);
         DrawWolfgateShields(handle, xform, worldToView); // WOLFGATE(ShipShields): hull contours and directional coverage on all radar views.
         DrawCrewGroups(handle, xform, worldToView); // WOLFGATE(NpcCrew): Admin tags and battlegroup lines for NPC-crewed ships.
+        DrawEncounterMarkers(handle, xform, worldToView); // WOLFGATE(Encounters): Sector markers for visible encounters.
 
         // Frontier Corvax: north line drawing
         DrawNorthLine(handle, worldRot);

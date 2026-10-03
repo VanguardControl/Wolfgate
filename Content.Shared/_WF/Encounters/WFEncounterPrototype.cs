@@ -21,7 +21,7 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField(required: true)]
     public LocId Name;
 
-    /// <summary>Sector announcement when it starts; takes $name. None announces nothing.</summary>
+    /// <summary>Sector announcement when it starts; takes $name, $origin and $destination. None announces nothing.</summary>
     [DataField]
     public LocId? Announcement;
 
@@ -32,9 +32,36 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField(required: true)]
     public List<WFEncounterShip> Ships = new();
 
-    /// <summary>Whether the scheduler may pick it. Off leaves it to admins and other code.</summary>
+    /// <summary>Who starts it: the storyteller at round start, the storyteller during the round, or only admins and code.</summary>
     [DataField]
-    public bool Scheduled = true;
+    public WFEncounterStart Start = WFEncounterStart.Scheduled;
+
+    /// <summary>Transient encounters jump out once their orders are flown; persistent ones stay for the round.</summary>
+    [DataField]
+    public WFEncounterLifetime Lifetime = WFEncounterLifetime.Transient;
+
+    [DataField]
+    public WFEncounterCategory Category = WFEncounterCategory.Traffic;
+
+    /// <summary>How much of the storyteller's budget it takes while it runs.</summary>
+    [DataField]
+    public int Cost = 1;
+
+    /// <summary>No sector marker until its crew raise an alarm or an admin reveals it.</summary>
+    [DataField]
+    public bool Hidden;
+
+    /// <summary>Whether the storyteller may bring another after this one was started at round start and is gone.</summary>
+    [DataField]
+    public bool Replaceable;
+
+    /// <summary>Where the storyteller puts its origin.</summary>
+    [DataField]
+    public WFEncounterPlacement Placement = WFEncounterPlacement.OpenSpace;
+
+    /// <summary>Station and Route: how far beyond the station's hull the origin sits.</summary>
+    [DataField]
+    public float Standoff = 600f;
 
     [DataField]
     public float Weight = 1f;
@@ -122,7 +149,7 @@ public sealed partial class WFEncounterObjective
     [DataField(required: true)]
     public WFCrewObjectiveKind Kind;
 
-    /// <summary>Key of the ship the task is aimed at.</summary>
+    /// <summary>Key of the ship the task is aimed at, or @origin or @destination for the placement's stations.</summary>
     [DataField]
     public string? Target;
 
@@ -136,6 +163,39 @@ public sealed partial class WFEncounterObjective
     /// <summary>Seconds; zero is until done or forever, by kind.</summary>
     [DataField]
     public float Duration;
+}
+
+public enum WFEncounterStart : byte
+{
+    Manual,
+    RoundStart,
+    Scheduled,
+}
+
+public enum WFEncounterLifetime : byte
+{
+    Transient,
+    Persistent,
+}
+
+public enum WFEncounterCategory : byte
+{
+    Traffic,
+    Patrol,
+    Threat,
+    Distress,
+}
+
+public enum WFEncounterPlacement : byte
+{
+    /// <summary>Clear space at a distance from a ship with players aboard.</summary>
+    OpenSpace,
+
+    /// <summary>Beside a station.</summary>
+    Station,
+
+    /// <summary>Beside one station, with another as the destination.</summary>
+    Route,
 }
 
 /// <summary>How an encounter ended.</summary>
