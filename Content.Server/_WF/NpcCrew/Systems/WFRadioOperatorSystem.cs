@@ -171,9 +171,14 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         if (InCrew(origin, component.Group, Transform(uid).GridUid))
             return;
 
-        foreach (var op in OperatorsOfCrew(uid))
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var witness, out var crew, out var xform))
         {
-            HostileAct(op, origin);
+            if (!_mobState.IsAlive(witness) || !InCrew(uid, crew.Group, xform.GridUid)
+                || witness != uid && !EntityManager.System<WFCrewWeaponSystem>().CanSee(witness, uid))
+                continue;
+            ReceiveIncident(witness, origin, WFRadioLine.Mayday);
+            EntityManager.System<WFCrewCommsSystem>().Report(witness, origin, WFRadioLine.Mayday);
         }
     }
 
@@ -250,14 +255,33 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         else
             return;
 
-        foreach (var op in OperatorsOfCrew(args.Mob))
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var witness, out var crew, out var xform))
         {
-            if (op.Owner == args.Mob || op.Comp.DownReported.Contains(args.Mob))
+            if (witness == args.Mob || !_mobState.IsAlive(witness)
+                || !InCrew(args.Mob, crew.Group, xform.GridUid)
+                || !EntityManager.System<WFCrewWeaponSystem>().CanSee(witness, args.Mob))
                 continue;
-
-            if (TrySend(op, line))
-                op.Comp.DownReported.Add(args.Mob);
+            ReceiveIncident(witness, args.Mob, line);
+            EntityManager.System<WFCrewCommsSystem>().Report(witness, args.Mob, line);
         }
+    }
+
+    /// <summary>Announces an incident personally witnessed or delivered through an equipped radio.</summary>
+    public void ReceiveIncident(EntityUid recipient, EntityUid subject, WFRadioLine line)
+    {
+        if (!TryComp<WFRadioOperatorComponent>(recipient, out var radio) || !_mobState.IsAlive(recipient))
+            return;
+        if (line == WFRadioLine.Mayday)
+        {
+            HostileAct((recipient, radio), subject);
+            return;
+        }
+        if (line is not (WFRadioLine.CaptainDown or WFRadioLine.HelmDown)
+            || recipient == subject || radio.DownReported.Contains(subject))
+            return;
+        if (TrySend((recipient, radio), line))
+            radio.DownReported.Add(subject);
     }
 
     /// <summary>Reports a docking, once per grid docked with however many ports connect.</summary>
@@ -290,7 +314,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     {
         foreach (var op in OperatorsOn(args.Grid))
         {
-            if (GroupOf(op) != args.Group)
+            if (GroupOf(op) != args.Group || !args.Docking
+                && !EntityManager.System<WFCrewWeaponSystem>().CanSee(op, args.Visitor)
+                && !EntityManager.System<WFCrewCommsSystem>().Knows(op, args.Visitor))
                 continue;
             TrySend(op, args.Docking ? WFRadioLine.DockWarning : WFRadioLine.BoardWarning,
                 ("visitor", NameOrUnknown(args.Visitor)));
@@ -421,14 +447,13 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether the entity is crew of the group. Crew with no group are one crew per grid, so unrelated ships whose
-    /// crew were never given a group don't share a radio.
+    /// Whether the entity belongs to this grid's crew group.
     /// </summary>
     private bool InCrew(EntityUid uid, string group, EntityUid? grid)
     {
         return TryComp<WFCrewComponent>(uid, out var crew)
                && crew.Group == group
-               && (group.Length > 0 || Transform(uid).GridUid == grid);
+               && Transform(uid).GridUid == grid;
     }
 
     private string GroupOf(EntityUid op)

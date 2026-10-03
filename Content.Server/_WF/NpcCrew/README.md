@@ -12,6 +12,9 @@ relay sightings through their equipped Shortband headsets; switched-off, removed
 contacts. Boarding alerts go to both the local and alert channels. Action chatter has a fifteen-second speaker
 cooldown and a one-minute repeat cooldown. Deckhands and marines select safe deck patrol stops 45–90 seconds
 apart; other roles keep their stations. Pilots and gunners maintain their facing toward occupied consoles.
+Pilots, gunners, captains and radio officers defend themselves only against personal attackers, even when their
+engagement rule is On Sight. They actively return after displacement or combat; pilots retain their assigned helm.
+Injury and casualty reports require a witness or working headset reception on the same ship.
 
 Crew use their equipped ammunition and weapons, then unarmed combat, without scavenging empty loose guns.
 They stop pursuing hostiles that leave their ship. Assigned supply/salvage trips remain allowed, and displaced
@@ -27,6 +30,8 @@ Autonomous crew projectiles pass through allies; allied damage is also stopped b
 retaliation. Crews holster when no living hostile remains. Forward travel faces the destination, and pilots face
 their console when taking the helm. Spawned crew register ordinary, revocable ID credentials even on map-loaded
 ships that do not yet have ship access management.
+Crew-operated cannon rounds also protect allies and allied hulls, retaining their firing origin after a gunner dies
+or a player takes over. Explicit Attack orders and hostile docking still permit fire against the targeted ship.
 
 Repair orders assign deckhands physical work through HTN navigation. Deckhands have a built-in unlimited SRD and
 repair tool, disabled permanently on death; no unlimited item drops. The ship's existing SRD snapshot is preserved,
@@ -35,6 +40,7 @@ timed repairs for repairable equipment. Resupply docks and retrieves loose ammun
 Salvage docks and retrieves loose material stacks. Workers carry cargo back to their posts. Neither job fabricates
 supplies, opens containers or dismantles structures. Unreachable work times out visibly and can be retried with
 pause/resume. These jobs require a deckhand, a pilot for the objective queue, and suitable EVA equipment.
+Repair skips snapshot entries their SRD cannot rebuild, respecting prototype and grid restrictions and tool modes.
 
 Default crew loadouts include pressure suits, helmets, masks and finite oxygen tanks. Internals connect before
 work and in unsafe air. Below the reserve threshold, crew replace the tank from a reachable loose spare or leave
@@ -49,6 +55,8 @@ zero means indefinite until skipped. Travel, retreat, dock and undock advance on
 dock pause the queue with a visible status; a replacement pilot can continue it. Immediate orders cancel the queue.
 Queues last for the round and are scoped by ship and group. Attack explicitly assigns the gunner's target, including
 a normally friendly grid, while regular defensive targeting still respects faction friendship.
+An explicit hostile-docking response overrides faction friendship for that visitor. Captain interruptions during
+automatic departure preserve the intended next order and its destination beyond the temporary undocking maneuver.
 
 Crew AI stays awake away from player bodies (`KeepActive`, default true; opt out in VV for intentionally dormant
 crew). Loaded guns close their bolt/chamber a round before fighting, and ammunition checks continue during combat.
@@ -129,6 +137,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRadioComponent.cs`](Components/WFCrewRadioComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRepairComponent.cs`](Components/WFCrewRepairComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSecurityComponent.cs`](Components/WFCrewSecurityComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewShipFireComponent.cs`](Components/WFCrewShipFireComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSpawnPointComponent.cs`](Components/WFCrewSpawnPointComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewWeaponComponent.cs`](Components/WFCrewWeaponComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFGunnerDutyComponent.cs`](Components/WFGunnerDutyComponent.cs)
@@ -145,6 +154,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/HTN/WFReloadOperator.cs`](HTN/WFReloadOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeGunneryOperator.cs`](HTN/WFTakeGunneryOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFTakeHelmOperator.cs`](HTN/WFTakeHelmOperator.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/FireControlSystem.Crew.cs`](Systems/FireControlSystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/NPCSteeringSystem.Access.cs`](Systems/NPCSteeringSystem.Access.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/SpaceArtillerySystem.Crew.cs`](Systems/SpaceArtillerySystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCaptainSystem.cs`](Systems/WFCaptainSystem.cs)
@@ -186,15 +196,19 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainResume.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainResume.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Command.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Command.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.FireAndRepair.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.FireAndRepair.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.RadioSecurity.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.RadioSecurity.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Routines.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Routines.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
 
 ### Prototypes
@@ -209,6 +223,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/NpcCrew/crew.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/crew.ftl)
+- [`Resources/Locale/en-US/_WF/NpcCrew/radio-reports.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/radio-reports.ftl)
 
 ### Docs
 
@@ -217,6 +232,11 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 ## Non-modular edits
 
+- [`Content.Server/_Mono/FireControl/FireControlSystem.cs`](../../_Mono/FireControl/FireControlSystem.cs): distinguish NPC bursts from later manual fire.
+- [`Content.Server/_Mono/NPC/HTN/ShipTargetingSystem.cs`](../../_Mono/NPC/HTN/ShipTargetingSystem.cs)
+  - preserve the controller for autonomous cannon damage.
+  - carry the NPC controlling this burst.
+  - attribute crew bursts without changing the muzzle.
 - [`Content.Server/_Mono/SpaceArtillery/SpaceArtillerySystem.cs`](../../_Mono/SpaceArtillery/SpaceArtillerySystem.cs): notify crew of damaging impacts from other ships.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Common.cs`](../../NPC/Pathfinding/PathfindingSystem.Common.cs): access-aware NPCs may plan through readers and check permission at the door.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.cs`](../../NPC/Pathfinding/PathfindingSystem.cs): opt-in NPCs try their access before prying doors.

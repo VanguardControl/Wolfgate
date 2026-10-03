@@ -17,6 +17,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
     [Dependency] private WFPilotDutySystem _pilots = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private WFCrewWorkSystem _work = default!;
+    [Dependency] private WFCaptainSystem _captains = default!;
     private readonly Dictionary<(EntityUid Grid, string Group), QueueState> _queues = new();
     private float _timer;
 
@@ -173,6 +174,11 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             if (!duty.AtHelm)
             {
                 state.Status = "awaiting-helm";
+                continue;
+            }
+            if (_captains.IsCourseSuspended(pilot))
+            {
+                state.Status = "evading";
                 continue;
             }
             state.Status = "running";

@@ -18,6 +18,9 @@ public sealed partial class WFCaptainSystem : EntitySystem
     private readonly HashSet<(EntityUid Grid, string Group, EntityUid Pilot)> _overridden = new();
     private bool _changingOrders;
 
+    /// <summary>Whether a captain temporarily owns this pilot's flight orders.</summary>
+    public bool IsCourseSuspended(EntityUid pilot) => _courses.ContainsKey(pilot);
+
     public override void Initialize()
     {
         base.Initialize();
@@ -44,7 +47,7 @@ public sealed partial class WFCaptainSystem : EntitySystem
 
     private void OnOrdersChanged(ref WFPilotOrdersChangedEvent args)
     {
-        if (!_changingOrders && _courses.Remove(args.Mob, out var course))
+        if (!_changingOrders && !args.Continuation && _courses.Remove(args.Mob, out var course))
             _overridden.Add((course.Grid, course.Group, args.Mob));
     }
 
@@ -62,8 +65,13 @@ public sealed partial class WFCaptainSystem : EntitySystem
                     || _courses.ContainsKey(pilot)
                     || _overridden.Contains((args.Grid, args.Group, pilot)))
                     continue;
-                _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, duty.Orders,
-                    duty.Waypoints.Skip(duty.WaypointIndex).ToList(), duty.LoiterCenter, duty.LoiterRadius,
+                // Preserve the destination beyond automatic undocking, not its temporary back-off course.
+                var order = duty.ResumeOrder ?? duty.Orders;
+                var waypoints = duty.ResumeOrder != null
+                    ? duty.ResumeWaypoints.ToList()
+                    : duty.Waypoints.Skip(duty.WaypointIndex).ToList();
+                _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, order,
+                    waypoints, duty.LoiterCenter, duty.LoiterRadius,
                     duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot);
                 _changingOrders = true;
                 try
