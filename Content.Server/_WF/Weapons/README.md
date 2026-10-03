@@ -26,6 +26,7 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Weapons/AttachmentWieldBonusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/AttachmentWieldBonusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs)
 
@@ -157,6 +158,7 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
   - seeded so the shooter's client predicts the same spread
   - links to the shooter's predicted copy, see _WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs
   - LinearSpread and GetRecoilAngle moved to _WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs so the client can predict them
+- [`Content.Shared/_ES/Weapons/Ranged/Attachments/ESSharedGunAttachmentsSystem.cs`](../../../Content.Shared/_ES/Weapons/Ranged/Attachments/ESSharedGunAttachmentsSystem.cs): moved above the gun refresh, which reads the wield values
 - [`Content.Shared/_Mono/Weapons/Hitscan/Systems/HitscanDiffractSystem.cs`](../../../Content.Shared/_Mono/Weapons/Hitscan/Systems/HitscanDiffractSystem.cs)
   - the shooter's client draws the split beams too
   - the beam is done once traced; this was leaking an entity per split beam
@@ -177,7 +179,12 @@ Entry points: the `GunSystem.Prediction` partials (shared, client and server), `
 - [`Content.Shared/Weapons/Ranged/Components/GunComponent.cs`](../../../Content.Shared/Weapons/Ranged/Components/GunComponent.cs): predicted recoil
 - [`Content.Shared/Weapons/Ranged/Events/RequestShootEvent.cs`](../../../Content.Shared/Weapons/Ranged/Events/RequestShootEvent.cs): predicted shot effects
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs): one path for both sides that links predicted projectiles
+- [`Content.Shared/Wieldable/SharedWieldableSystem.cs`](../../../Content.Shared/Wieldable/SharedWieldableSystem.cs)
+  - a gun loaded from a save skipped map init and had no wield bonus
+  - attachable pistols have no wield bonus, which is not an error
+- [`Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Specific/Planet/flora.yml): material bullet impacts
 - [`Resources/Prototypes/_Mono/Loadouts/Contractor/gun.yml`](../../../Resources/Prototypes/_Mono/Loadouts/Contractor/gun.yml)
+- [`Resources/Prototypes/_Nuclear14/Entities/Structures/Decoration/floordecor.yml`](../../../Resources/Prototypes/_Nuclear14/Entities/Structures/Decoration/floordecor.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Mobs/base.yml`](../../../Resources/Prototypes/Entities/Mobs/base.yml): material bullet impacts
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/projectiles.yml): untagged targets sound like metal
 - [`Resources/Prototypes/Entities/Structures/barricades.yml`](../../../Resources/Prototypes/Entities/Structures/barricades.yml): material bullet impacts
