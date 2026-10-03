@@ -82,8 +82,30 @@ public abstract partial class SharedEmitSoundSystem : EntitySystem
         TryEmitSound(uid, component, predict: false);
     }
 
+    // WOLFGATE(Audio) START: landing-sound budget, see WfLandSoundAllowed.
+    private const int WfLandSoundsPerWindow = 8;
+    private static readonly TimeSpan WfLandSoundWindow = TimeSpan.FromSeconds(1);
+    private TimeSpan _wfLandWindowEnd;
+    private int _wfLandSoundsThisWindow;
+
+    /// <summary>Allows at most a handful of landing sounds at a time; a skidding hull throws every loose item aboard at once and one source each empties the client's pool.</summary>
+    private bool WfLandSoundAllowed()
+    {
+        if (Timing.CurTime >= _wfLandWindowEnd)
+        {
+            _wfLandWindowEnd = Timing.CurTime + WfLandSoundWindow;
+            _wfLandSoundsThisWindow = 0;
+        }
+
+        return ++_wfLandSoundsThisWindow <= WfLandSoundsPerWindow;
+    }
+    // WOLFGATE END
+
     private void OnEmitSoundOnLand(EntityUid uid, BaseEmitSoundComponent component, ref LandEvent args)
     {
+        if (!WfLandSoundAllowed()) // WOLFGATE(Audio): landing sounds are capped per second.
+            return;
+
         if (!args.PlaySound ||
             !TryComp(uid, out TransformComponent? xform) ||
             !TryComp<MapGridComponent>(xform.GridUid, out var grid))

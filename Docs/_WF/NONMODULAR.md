@@ -22,6 +22,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - keeps the failure readable once the dirty dispose's warning replaces it.
   - a fixture object outlives its test, so it must not keep its pair.
   - resets every instance field of the fixture, from its own class up to this one.
+- [`Content.IntegrationTests/Pair/TestPair.cs`](../../Content.IntegrationTests/Pair/TestPair.cs)
+  - AsyncLocal for the returned-pair guard
+  - dispose skips a pair the test already returned
+  - a returned pair can be borrowed by another test before this test's `await using` disposes it
 - [`Content.IntegrationTests/Tests/_NF/ShipyardTests.cs`](../../Content.IntegrationTests/Tests/_NF/ShipyardTests.cs)
   - expected-value appraisal
   - seeded so the appraisal is reproducible
@@ -40,6 +44,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs)
   - sums the bounty hand-in value
   - items handed in to a bounty are paid by its reward, not sold
+- [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
+  - a freed tile is never scheduled earlier than the current iteration.
+  - a blocker never clears earlier than the current iteration.
 - [`Content.Server/Preferences/Managers/ServerPreferencesManager.cs`](../../Content.Server/Preferences/Managers/ServerPreferencesManager.cs)
   - a failed save is logged with its slot
   - sanitized here like FinishLoad does on login
@@ -50,6 +57,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../Content.Server/VendingMachines/VendingMachineSystem.cs): a free vend skips the cash payment, which logs a zero amount as invalid
 - [`Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs`](../../Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs): _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
 - [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs): a client that first saw the wearer already dressed never got the equip for this item (the
+- [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
+  - bodiless giblets are skipped when flung.
+  - bodiless dropped contents are skipped instead of flung.
 - [`Content.Shared/Maps/ContentTileDefinition.cs`](../../Content.Shared/Maps/ContentTileDefinition.cs): Monolith#4804 made this true, which draws weather inside ships and buildings
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the company is passed through the constructor
@@ -74,6 +84,11 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_NF/Events/events.yml`](../../Resources/Prototypes/_NF/Events/events.yml)
   - gas leak event disabled
   - vent clog event disabled
+- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
+  - parented to BaseWeaponTurret instead of BaseWeaponBallisticTurret so it has one ammo provider.
+  - ammo container copied from BaseWeaponBallisticTurret.
+  - gun tuning copied from BaseWeaponBallisticTurret (the angles are Mono's).
+  - fire modes copied from BaseWeaponBallisticTurret.
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml)
   - fixed broken link, was MonolithRuleRoleplayEightSafeZones
   - was color=blue, unreadable on the dark background
