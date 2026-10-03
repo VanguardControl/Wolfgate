@@ -33,7 +33,7 @@ public sealed partial class WFCrewSetupWindow
         var queue = Column();
         queue.AddChild(_queueTitle);
         queue.AddChild(_queueNotice);
-        queue.AddChild(new ScrollContainer { MinHeight = 90, MaxHeight = 220, Children = { _queueRows } });
+        queue.AddChild(new ScrollContainer { MinHeight = 90, MaxHeight = 220, HScrollEnabled = false, ReserveScrollbarSpace = true, Children = { _queueRows } });
         _liveButtons = Buttons(Button("queue-pause", () => SendQueue(WFCrewSetupAction.Pause)),
             Button("queue-resume", () => SendQueue(WFCrewSetupAction.Resume)),
             Button("queue-skip", () => SendQueue(WFCrewSetupAction.Skip)), Button("edit-queue", BeginQueueEdit));

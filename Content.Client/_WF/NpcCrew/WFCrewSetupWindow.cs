@@ -44,8 +44,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
     {
         IoCManager.InjectDependencies(this);
         Title = Loc.GetString("wf-crew-setup-title");
-        MinSize = new Vector2(900, 600);
-        SetSize = new Vector2(1020, 720);
+        MinSize = new Vector2(1100, 600);
+        SetSize = new Vector2(1280, 720);
         _system = _entities.System<WFCrewSetupClientSystem>();
         _system.Received += Receive;
         OnClose += () => _system.Received -= Receive;
@@ -62,7 +62,7 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         _crewSearch.PlaceHolder = Text("search-crews");
         _crewSearch.OnTextChanged += _ => RenderCrews();
         sidebar.AddChild(_crewSearch);
-        sidebar.AddChild(new ScrollContainer { VerticalExpand = true, Children = { _crewList } });
+        sidebar.AddChild(new ScrollContainer { VerticalExpand = true, HScrollEnabled = false, ReserveScrollbarSpace = true, Children = { _crewList } });
         sidebar.AddChild(Help("auto-refresh"));
         sidebar.AddChild(Button("refresh", () => _system.Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List })));
 

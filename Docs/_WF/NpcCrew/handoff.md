@@ -332,6 +332,18 @@ sandbox check remain unverified. Do not claim that it was visually tested. The o
 the earlier playtest build; updated binaries are isolated in bin/NpcCrewReview. No prototype changes were made.
 Logs: TEMP/wfcrew-ui-agent-build.log, wfcrew-ui-agent-tests.log, wfcrew-ui-server.log and wfcrew-ui-server-error.log.
 
+### Horizontal layout correction
+
+The setup window now opens at 1280 x 720 with a 1100-wide minimum. Creation, management, crew-list and queue
+scroll containers disable horizontal scrolling and reserve vertical scrollbar space, so help text wraps within
+the visible panel instead of measuring to unlimited width. The isolated Debug client build passed with 0 errors
+(1722 existing warnings). No logic changed or new tests were added. The real client enabled sandboxing and reached
+GameplayState without ERRO/FATL or sandbox violations. Desktop control was stopped with Escape before the final
+visual check. Logs are TEMP/wfcrew-width-build.log and wfcrew-width-client*.log.
+
+The current test server runs bin/NpcCrewReview on 127.0.0.1:1220 with mob pushing disabled. The client was reconnected
+as CrewTesting from bin/NpcCrewUiWidth to load this layout fix; the server and round were preserved.
+
 ## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints
