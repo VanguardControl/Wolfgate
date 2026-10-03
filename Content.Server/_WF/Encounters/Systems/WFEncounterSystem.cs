@@ -249,6 +249,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             HeaveTo = ship.Evades,
             Disengage = ship.Disengage,
             DisengageRange = ship.DisengageRange,
+            Skill = ship.Skill,
         };
         if (ship.Navigation is { } navigation && _prototypes.TryIndex(navigation, out var profile))
             mission.Navigation = profile.Settings.Clone();

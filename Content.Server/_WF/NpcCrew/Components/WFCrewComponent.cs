@@ -48,6 +48,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public string Battlegroup = string.Empty;
 
+    /// <summary>How well this crewman shoots, lays ship guns and flies.</summary>
+    [DataField]
+    public WFCrewSkill Skill = WFCrewSkill.Veteran;
+
     /// <summary>When this crew stops attacking another ship.</summary>
     [DataField]
     public WFCrewDisengage Disengage = WFCrewDisengage.Disable;

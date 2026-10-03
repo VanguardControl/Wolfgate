@@ -51,6 +51,22 @@ public sealed class WFCrewSetupPost
     public WFCrewEngagement? Engagement;
 }
 
+/// <summary>How well a crewman shoots, lays ship guns and flies.</summary>
+[Serializable, NetSerializable]
+public enum WFCrewSkill : byte
+{
+    /// <summary>Slow to fire, misses a lot, flies sluggishly and does not dodge.</summary>
+    Green,
+
+    Regular,
+
+    /// <summary>The crew as tuned.</summary>
+    Veteran,
+
+    /// <summary>No aim error, fast and sharp at the helm.</summary>
+    Elite,
+}
+
 /// <summary>When a crew stops attacking another ship.</summary>
 [Serializable, NetSerializable]
 public enum WFCrewDisengage : byte
@@ -78,6 +94,7 @@ public sealed class WFCrewMission
     public string AlertChannel = "Common";
     public bool HeaveTo = true;
     public WFCrewDisengage Disengage = WFCrewDisengage.Disable;
+    public WFCrewSkill Skill = WFCrewSkill.Veteran;
     public float DisengageRange = 500;
     public WFCrewSecurityResponse BoardingResponse = WFCrewSecurityResponse.Hostile;
     public WFCrewSecurityResponse DockingResponse = WFCrewSecurityResponse.Hostile;

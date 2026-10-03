@@ -49,6 +49,9 @@ public sealed partial class WFCrewWeaponSystem
         {
             if (HasComp<ActorComponent>(uid) || !_mobs.IsAlive(uid))
                 continue;
+            // The less skilled take longer to get the first shot off.
+            if (TryComp<Content.Server.NPC.Components.NPCRangedCombatComponent>(uid, out var ranged) && TryComp<WFCrewComponent>(uid, out var shooter))
+                ranged.ShootDelay = WFCrewSkills.Of(shooter.Skill).ShootDelay;
             if (TryComp<HTNComponent>(uid, out var plan)
                 && plan.Blackboard.TryGetValue<EntityUid>("Target", out var target, EntityManager)
                 && !CanEngage(uid, target))

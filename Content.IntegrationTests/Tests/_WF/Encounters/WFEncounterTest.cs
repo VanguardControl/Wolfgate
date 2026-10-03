@@ -54,6 +54,7 @@ public sealed class WFEncounterTest : InteractionTest
     side: convoy
     disengage: Deter
     disengageRange: 800
+    skill: Green
   - key: escort
     vessel: WFDredger
     offset: 200, 0
@@ -115,6 +116,8 @@ public sealed class WFEncounterTest : InteractionTest
             Assert.That(crews[lead].Alive, Is.GreaterThanOrEqualTo(2));
             Assert.That(crews[lead].Settings.Disengage, Is.EqualTo(WFCrewDisengage.Deter));
             Assert.That(crews[lead].Settings.DisengageRange, Is.EqualTo(800f));
+            Assert.That(crews[lead].Settings.Skill, Is.EqualTo(WFCrewSkill.Green));
+            Assert.That(crews[escort].Settings.Skill, Is.EqualTo(WFCrewSkill.Veteran));
             Assert.That(crews[escort].Objectives.Single().Kind, Is.EqualTo(WFCrewObjectiveKind.Escort));
             Assert.That(crews[escort].Objectives.Single().Target, Is.EqualTo(SEntMan.GetNetEntity(lead)));
             Assert.That(crews[lead].Settings.Battlegroup, Is.Not.Empty);

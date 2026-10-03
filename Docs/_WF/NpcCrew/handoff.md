@@ -113,6 +113,10 @@ crew and ship shield integration cases passed; module `--check` and `--pr-check 
   ship, `Disable` (default) for any of the three, `Deter` also once the ship is beyond `DisengageRange`. It decides
   the threat list, gunner fire and when an Attack task completes (`ShouldDisengage`; the range part is skipped for
   the Attack task, which starts out of range).
+- Each crewman has a `Skill` (Green, Regular, Veteran, Elite; `WFCrewSkills`), set per crew by the mission. It sets
+  hand weapon aim error and time to first shot, how far off and how well led the ship's guns are laid, thrust and
+  turn rate at the helm, how far ahead the pilot looks, and whether he dodges incoming fire. Veteran is the crew
+  as tuned.
 - With no captain aboard, or once the captain is down, the pilot evades attackers on their own
   (`WFPilotDutyComponent.ReactToAttacks`). Evasion re-targets every second and always ends in the saved course or,
   if its target is gone, a hold.

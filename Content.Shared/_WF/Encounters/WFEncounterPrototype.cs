@@ -129,6 +129,10 @@ public sealed partial class WFEncounterShip
     [DataField]
     public float DisengageRange = 500f;
 
+    /// <summary>How well its crew shoot, lay the ship's guns and fly.</summary>
+    [DataField]
+    public WFCrewSkill Skill = WFCrewSkill.Veteran;
+
     /// <summary>Whether the ship evades attackers.</summary>
     [DataField]
     public bool Evades = true;

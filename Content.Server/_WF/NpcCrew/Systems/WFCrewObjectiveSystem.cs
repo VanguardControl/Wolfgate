@@ -290,6 +290,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             row.Settings.Group = crew.Group;
             row.Settings.Battlegroup = crew.Battlegroup;
             row.Settings.Disengage = crew.Disengage;
+            row.Settings.Skill = crew.Skill;
             row.Settings.DisengageRange = crew.DisengageRange;
             if (TryComp<WFPilotDutyComponent>(uid, out var pilot))
             {

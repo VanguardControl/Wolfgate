@@ -94,6 +94,7 @@
     side: pirates
     faction: PirateNF
     company: PDV
+    skill: Regular
     objectives:
     - kind: Attack
       target: hauler

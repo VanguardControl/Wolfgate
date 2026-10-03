@@ -281,6 +281,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShipStatus.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShipStatus.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Skill.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Skill.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
@@ -331,6 +332,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_Mono/SpaceArtillery/SpaceArtillerySystem.cs`](../../_Mono/SpaceArtillery/SpaceArtillerySystem.cs): notify crew of damaging impacts from other ships.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Common.cs`](../../NPC/Pathfinding/PathfindingSystem.Common.cs): access-aware NPCs may plan through readers and check permission at the door.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.cs`](../../NPC/Pathfinding/PathfindingSystem.cs): opt-in NPCs try their access before prying doors.
+- [`Content.Server/NPC/Systems/NPCCombatSystem.Ranged.cs`](../../NPC/Systems/NPCCombatSystem.Ranged.cs): Crew miss by their skill level.
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.Context.cs`](../../NPC/Systems/NPCSteeringSystem.Context.cs)
   - compare both bodies for crew while the engine helper reads the first fixtures twice.
   - stop blended input while access-aware crew settle at an obstacle.

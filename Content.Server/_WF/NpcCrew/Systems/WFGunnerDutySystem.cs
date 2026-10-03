@@ -20,6 +20,7 @@ namespace Content.Server._WF.NpcCrew.Systems;
 public sealed partial class WFGunnerDutySystem : EntitySystem
 {
     [Dependency] private WFCrewAlertSystem _alerts = default!;
+    [Dependency] private Robust.Shared.Random.IRobustRandom _skillRandom = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFCrewSecuritySystem _security = default!;
     [Dependency] private WFCrewEscortSystem _escorts = default!;
@@ -151,7 +152,23 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                 _selections[uid] = selection;
             }
             if (selection.Target is { } hostile && _driven.Add(grid))
-                _targeting.Target(uid, new EntityCoordinates(hostile, Vector2.Zero));
+            {
+                // A less skilled gunner lays the guns off the target and leads it poorly.
+                var skill = WFCrewSkills.Of(crew.Skill);
+                if (_timing.CurTime >= duty.NextAimError)
+                {
+                    duty.NextAimError = _timing.CurTime + TimeSpan.FromSeconds(3);
+                    duty.AimError = skill.GunneryError > 0f
+                        ? _skillRandom.NextAngle().ToVec() * _skillRandom.NextFloat(skill.GunneryError)
+                        : Vector2.Zero;
+                }
+
+                if (_targeting.Target(uid, new EntityCoordinates(hostile, duty.AimError)) is { } aim)
+                {
+                    aim.LeadingAccuracy = skill.Leading;
+                    aim.OffgridLeadingAccuracy = skill.Leading;
+                }
+            }
             else
                 _targeting.Stop(uid);
         }
