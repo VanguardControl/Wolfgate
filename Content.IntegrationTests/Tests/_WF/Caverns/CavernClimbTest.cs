@@ -12,8 +12,11 @@ using Content.Shared._WF.Caverns;
 using Content.Shared.Damage;
 using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Movement.Pulling.Components;
+using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
@@ -96,6 +99,83 @@ public sealed class CavernClimbTest
 
             var slip = await FirstTickOff(pair, mob, world.Ground, StayTicks);
             Assert.That(slip, Is.Null, $"The climber left the ground or rose off it: {slip}");
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A crate pulled by a climber with a tool in the other hand comes up the climb and back down the shaft with it,
+    /// and is still pulled each time.
+    /// </summary>
+    [Test]
+    public async Task ClimbingBringsWhatIsPulled()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var hands = server.System<SharedHandsSystem>();
+        var pulling = server.System<PullingSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, Surface);
+
+        try
+        {
+            var gate = await Gate(pair, world);
+            var climb = await ClimbPointOf(pair, world, gate);
+            var mob = EntityUid.Invalid;
+            var crate = EntityUid.Invalid;
+            var ready = false;
+
+            await server.WaitPost(() =>
+            {
+                mob = entMan.SpawnEntity("MobHuman", new EntityCoordinates(world.Cavern, TileCentre(Beside(gate))));
+                crate = entMan.SpawnEntity("CrateGeneric", new EntityCoordinates(world.Cavern, TileCentre(ClimbTile(gate))));
+            });
+            await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+            await server.WaitPost(() =>
+            {
+                var tool = entMan.SpawnEntity("Crowbar", entMan.GetComponent<TransformComponent>(mob).Coordinates);
+                ready = hands.TryPickupAnyHand(mob, tool) && pulling.TryStartPull(mob, crate);
+            });
+            Assert.That(ready, Is.True, "Precondition: the climber could not take a tool in one hand and the crate in the other.");
+
+            async Task AssertBrought(EntityUid map, string what)
+            {
+                await server.WaitAssertion(() =>
+                {
+                    var mobXform = entMan.GetComponent<TransformComponent>(mob);
+                    var crateXform = entMan.GetComponent<TransformComponent>(crate);
+
+                    using (Assert.EnterMultipleScope())
+                    {
+                        Assert.That(mobXform.MapUid, Is.EqualTo(map), $"{what}: the climber did not arrive.");
+                        Assert.That(crateXform.MapUid, Is.EqualTo(map), $"{what}: the crate was left behind.");
+                        Assert.That(entMan.GetComponent<PullerComponent>(mob).Pulling, Is.EqualTo(crate), $"{what}: the crate is no longer pulled.");
+                        Assert.That((crateXform.LocalPosition - mobXform.LocalPosition).Length(), Is.LessThan(1.5f),
+                            $"{what}: the crate is not beside the climber.");
+                    }
+                });
+            }
+
+            await StartVerb(pair, climb, mob, "wf-cavern-verb-climb-up");
+            await server.WaitRunTicks(pair.SecondsToTicks(await DelayOf(pair, climb)) + 10);
+            await AssertBrought(world.Ground, "Climbing up");
+
+            // The finished DoAfter has to clear before the next one is counted.
+            await server.WaitRunTicks(pair.SecondsToTicks(2f));
+
+            var shade = EntityUid.Invalid;
+            await server.WaitPost(() => shade = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Shades[ShadeBeside(gate)]);
+            await StartVerb(pair, shade, mob, "wf-cavern-verb-climb-down");
+            await server.WaitRunTicks(pair.SecondsToTicks(SharedWFCavernClimbSystem.ClimbDownSeconds) + 10);
+            await AssertBrought(world.Cavern, "Climbing down");
         }
         finally
         {

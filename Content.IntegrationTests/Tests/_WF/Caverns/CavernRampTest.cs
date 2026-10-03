@@ -12,6 +12,7 @@ using Content.Shared._WF.Caverns;
 using Content.Shared._WF.Planets.Parachute;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Maps;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -195,13 +196,17 @@ public sealed class CavernRampTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A crate pulled up the stairs and back down changes level with its puller each time, and stays pulled.</summary>
+    /// <summary>
+    /// A crate pulled up the stairs and back down by someone with a tool in the other hand changes level with its
+    /// puller each time, and stays pulled.
+    /// </summary>
     [Test]
     public async Task WhatIsPulledFollowsOverTheStairs()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
+        var hands = server.System<SharedHandsSystem>();
         var pulling = server.System<PullingSystem>();
         var below = TileCentre(Site - new Vector2i(0, 1));
         var above = TileCentre(Site + new Vector2i(0, 2));
@@ -223,8 +228,12 @@ public sealed class CavernRampTest
 
             await server.WaitPost(() => crate = entMan.SpawnEntity(Crate, new EntityCoordinates(world.Cavern, TileCentre(Site - new Vector2i(0, 2)))));
             await server.WaitRunTicks(10);
-            await server.WaitPost(() => started = pulling.TryStartPull(mob, crate));
-            Assert.That(started, Is.True, "Precondition: the mob could not pull the crate.");
+            await server.WaitPost(() =>
+            {
+                var tool = entMan.SpawnEntity("Crowbar", entMan.GetComponent<TransformComponent>(mob).Coordinates);
+                started = hands.TryPickupAnyHand(mob, tool) && pulling.TryStartPull(mob, crate);
+            });
+            Assert.That(started, Is.True, "Precondition: the mob could not take a tool in one hand and the crate in the other.");
 
             async Task AssertFollowed(EntityUid map, string what)
             {

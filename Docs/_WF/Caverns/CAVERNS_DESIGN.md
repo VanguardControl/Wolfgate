@@ -940,8 +940,9 @@ that isn't loaded the exit's natural tile is laid at once. Stairs that could not
 over stairs gets a shade but no landing and no climb point, and is refitted with both when the stairs go.
 
 Two things CE does not do are done here. A level change clears every joint, so a pull would end at the flip line:
-`WFCavernStairsSystem` moves what was pulled to its puller's spot on the new level and takes hold of it again, with a
-tile of rope. And a body creeping down comes to rest on each step, so the move down a level counted as a fall (a
+`WFCavernClimbSystem.BringPulled` moves what was pulled to its puller's spot on the new level and takes hold of it
+again, with a tile of rope. It runs a tick after the pull ended, because the hand that held the pull is only free once
+that tick is over, and the climb verbs use it too, so a climber keeps what it pulls. And a body creeping down comes to rest on each step, so the move down a level counted as a fall (a
 popup, and a worn parachute opening): a marked line in `ProcessZPhysics` skips the fall event when the body arrives
 within `AirborneHeightThreshold` of the ground.
 
@@ -952,7 +953,8 @@ within `AirborneHeightThreshold` of the ground.
 - side entry deals under 20 Blunt (it deals none: the stairs catch the drop).
 
 It also covers the recipe end to end, the hole's fitting and refitting, unloaded ground, the refusals, pulling a crate
-up and down, and creeping down with a parachute on.
+up and down with a tool in the other hand, and creeping down with a parachute on. `CavernClimbTest` pulls a crate up
+the climb and down the shaft.
 
 ### 3.9 What must be proven before anything depends on it
 

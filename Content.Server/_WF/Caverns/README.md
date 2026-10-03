@@ -28,7 +28,7 @@ the world's landing tile under the hole and a climb point under the lip. Players
 examining a shade tells them where it goes, what the air below is like and how hard the landing is. *Climb down* on a
 shade (3 s) lowers them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in
 high gravity, up to 10 s on Aerumna) brings them out onto the nearest solid ground beside the hole, refused while a ship
-is parked over it. Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths,
+is parked over it. Whatever a climber is pulling comes with them, up or down. Admins use `wfcavern` to list caverns, teleport to a gate (`tp <planet> [pad|mouth]`), list mouths,
 carve one by hand (`open`) and measure the terrain around them (`stats <planet>`: open share, connectivity on foot,
 ore share and how much of the tunnel floor is within a short walk of a light, over a 192-tile square, read from noise
 by `WFCavernSampler`, the same sampler the cavern tests use).
@@ -65,12 +65,13 @@ cells, mouths, shades and climb points on the ground; its API is `GetGate`, `Try
 `TryOpenMouth` and `TryGetNearestMouth`, and for stairs (`.Stairs.cs`) `CheckStairs`, `TryOpenStairs`, `IsOpenAbove` and
 `RefitHole`. `WFCavernStairsSystem` opens the ground when stairs appear, answers the recipe's `WFCavernStairsSite`
 condition (a client only knows whether it stands in a cavern; the server checks the ground above and pops up why
-not), and carries pulled entities over: a level change clears every joint, so it puts what was pulled on its puller's
-spot on the new level and takes hold of it again with a tile of rope. `WFCavernDigSystem` digs the shovel shafts and tells the marked block in
+not), and hands a pull that ended on the stairs to the climb system. `WFCavernDigSystem` digs the shovel shafts and tells the marked block in
 `PryTileReaction` which ground acid leaves alone. The shaft examine is `SharedWFCavernShaftSystem`, fed by the air reading
 (`WFCavernAirClassifier`) each shade stores when it spawns. `SharedWFCavernClimbSystem` offers the climb verbs, starts
 the DoAfter with its predicted popups and examines climb points; the server's `WFCavernClimbSystem` does the move when
-it finishes (`ClimbUp`, `ClimbDown`, `FindExit`). `WFCavernSystem` also deletes surface wildlife that drops
+it finishes (`ClimbUp`, `ClimbDown`, `FindExit`) and brings along what the climber, or a walker on stairs, was pulling
+(`BringPulled`): a level change clears every joint, so a tick later, once the hand that held the pull is free again,
+it puts what was pulled on its puller's spot on the new level and takes hold of it again with a tile of rope. `WFCavernSystem` also deletes surface wildlife that drops
 into a cavern because its ground chunk unloaded (`BiomeSystem.WfIsChunkLoaded`), and each second mirrors the ground's
 clock onto the cavern (watches read "Underground") along with its soundscape: the surface's day and night ambience,
 quieter and muffled through the rock (`surfaceAmbienceVolume`, `surfaceAmbienceOcclusion`), which the Planets player

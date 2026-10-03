@@ -1,51 +1,35 @@
-using System.Numerics;
 using Content.Server.Administration.Logs;
-using Content.Shared._CE.ZLevels.Core.Components;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._WF.Caverns;
 using Content.Shared.Database;
 using Content.Shared.Examine;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Pulling.Events;
-using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Popups;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Physics;
-using Robust.Shared.Physics.Dynamics.Joints;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Caverns;
 
 /// <summary>
 /// Opens the ground over stairs built in a cavern, so they are walked up to the surface and back, refuses to start
-/// them where the ground can't open, and brings whatever a walker is pulling along.
+/// them where the ground can't open, and has whatever a walker is pulling follow it.
 /// </summary>
 // The walking is CE's: the stairs are high ground under a hole. The hole itself belongs to the hole queue.
 public sealed partial class WFCavernStairsSystem : SharedWFCavernStairsSystem
 {
-    [Dependency] private CESharedZLevelsSystem _zLevels = default!;
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private PullingSystem _pulling = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFCavernClimbSystem _climb = default!;
     [Dependency] private WFCavernMouthSystem _mouths = default!;
 
     /// <summary>How often stairs that couldn't open the ground above try again, such as once a ship has left.</summary>
     public static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(5);
 
-    /// <summary>How far, in tiles, something pulled may trail its puller and still follow it over the stairs.</summary>
-    public const float CarryReach = 2.5f;
-
-    /// <summary>How much rope a pull taken up again at the stairs has, in tiles: about what one started beside its puller has.</summary>
-    public const float CarryRope = 1.15f;
-
     private TimeSpan _nextRetry;
-
-    /// <summary>Pulls broken by their puller changing level over stairs since the last update.</summary>
-    private readonly List<(EntityUid Puller, EntityUid Pulled)> _carried = new();
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -62,8 +46,6 @@ public sealed partial class WFCavernStairsSystem : SharedWFCavernStairsSystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-
-        CarryPulled();
 
         if (_timing.CurTime < _nextRetry)
             return;
@@ -143,8 +125,8 @@ public sealed partial class WFCavernStairsSystem : SharedWFCavernStairsSystem
             : "wf-cavern-stairs-examine-blocked"));
     }
 
-    /// <summary>Notes a pull that broke because its puller changed level over stairs: a change of map clears every joint.</summary>
-    // The pulled entity follows on the next update, not in here: this runs inside the puller's own map change.
+    /// <summary>Has what was pulled follow a puller who changed level over stairs: a change of map ends every pull.</summary>
+    // Not in here: this runs inside the puller's own map change.
     private void OnPullStopped(EntityUid uid, PullerComponent component, PullStoppedMessage args)
     {
         if (args.PullerUid != uid || TerminatingOrDeleted(args.PulledUid))
@@ -153,59 +135,7 @@ public sealed partial class WFCavernStairsSystem : SharedWFCavernStairsSystem
         var puller = Transform(uid);
 
         if (puller.MapUid != Transform(args.PulledUid).MapUid && OverStairs(puller))
-            _carried.Add((uid, args.PulledUid));
-    }
-
-    /// <summary>Brings what was pulled over the stairs to its puller's level, where the puller changed it, and takes hold of it again.</summary>
-    private void CarryPulled()
-    {
-        if (_carried.Count == 0)
-            return;
-
-        foreach (var (puller, pulled) in _carried)
-        {
-            if (TerminatingOrDeleted(puller) || TerminatingOrDeleted(pulled))
-                continue;
-
-            var pullerXform = Transform(puller);
-
-            if (pullerXform.MapUid is not { } to || Transform(pulled).MapUid is not { } from || to == from)
-                continue;
-
-            int offset;
-            if (TryComp<WFCavernLayerComponent>(from, out var below) && below.Ground == to)
-                offset = 1;
-            else if (TryComp<WFCavernLayerComponent>(to, out var layer) && layer.Ground == from)
-                offset = -1;
-            else
-                continue;
-
-            var position = _transform.GetWorldPosition(pullerXform);
-
-            if (Vector2.Distance(position, _transform.GetWorldPosition(pulled)) > CarryReach
-                || !TryComp<CEZPhysicsComponent>(puller, out var pullerLevel)
-                || !HasComp<CEZPhysicsComponent>(pulled)
-                || !_zLevels.TryMove(pulled, offset)
-                || Transform(pulled).MapUid != to)
-                continue;
-
-            // Onto the puller's own spot, which the stairs hold up on this level: behind it they don't.
-            _transform.SetWorldPosition(pulled, position);
-            _zLevels.SetZPosition(pulled, pullerLevel.LocalPosition);
-            _zLevels.SetZVelocity(pulled, 0f);
-
-            if (!_pulling.TryStartPull(puller, pulled)
-                || !TryComp<PullableComponent>(pulled, out var pullable)
-                || !TryComp<JointComponent>(pulled, out var joints))
-                continue;
-
-            // A pull's rope is as long as its two ends were apart, which here is nothing.
-            var id = pullable.PullJointId;
-            if (id != null && joints.GetJoints.TryGetValue(id, out var joint) && joint is DistanceJoint rope)
-                rope.MaxLength = CarryRope;
-        }
-
-        _carried.Clear();
+            _climb.BringPulledSoon(uid, args.PulledUid);
     }
 
     /// <summary>Whether an entity is on stairs in a cavern, or over them on the ground above.</summary>
