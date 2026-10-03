@@ -34,7 +34,8 @@ public sealed class WFCrewCommsSystem : EntitySystem
     public void Report(EntityUid sender, EntityUid target, WFRadioLine? incident = null)
     {
         if (!TryComp<WFCrewComponent>(sender, out var crew) || !crew.ShareAlerts || !_mobs.IsAlive(sender)
-            || incident == null && _timing.CurTime < crew.NextReport
+            || incident == null && (_timing.CurTime < crew.NextReport
+                || !EntityManager.System<WFCrewSecuritySystem>().IsBoardingCandidate(target))
             || !_inventory.TryGetSlotEntity(sender, "ears", out var headset)
             || !TryComp<HeadsetComponent>(headset, out var transmitter) || !transmitter.Enabled
             || !HasComp<WFCrewRadioComponent>(headset) || !TryComp<ActiveRadioComponent>(headset, out var active)

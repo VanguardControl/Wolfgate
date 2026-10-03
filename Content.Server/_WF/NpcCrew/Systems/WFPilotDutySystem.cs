@@ -38,12 +38,6 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     /// <summary>Blackboard key holding the helm's coordinates, walked to before taking it.</summary>
     public const string HelmCoordinatesKey = "WFCrewHelmCoords";
 
-    /// <summary>How far a holding ship may drift from where it stopped.</summary>
-    private const float HoldRange = 5f;
-
-    /// <summary>Speed under which a holding ship counts as stopped, in m/s.</summary>
-    private const float HoldSpeed = 0.5f;
-
     private readonly List<EntityUid> _toRelease = new();
 
     public override void Initialize()
@@ -51,6 +45,8 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<WFPilotDutyComponent, PilotedShuttleRelayedEvent<StartCollideEvent>>(OnShuttleCollide);
+        SubscribeLocalEvent<WFPilotDutyComponent, GetShuttleInputsEvent>(OnCrewGetInputs,
+            after: new[] { typeof(ShipSteeringSystem), typeof(MoverController) });
     }
 
     public override void Update(float frameTime)
@@ -115,13 +111,17 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     }
 
     /// <summary>Circle a point at a radius.</summary>
-    public void Loiter(Entity<WFPilotDutyComponent?> ent, EntityCoordinates center, float radius)
+    public void Loiter(Entity<WFPilotDutyComponent?> ent, EntityCoordinates center, float radius, float? speed = null,
+        WFCrewObjectiveKind objective = WFCrewObjectiveKind.Loiter)
     {
         if (!Resolve(ent, ref ent.Comp))
             return;
 
         ent.Comp.LoiterCenter = center;
-        ent.Comp.LoiterRadius = radius;
+        ent.Comp.RequestedLoiterRadius = radius;
+        ent.Comp.LoiterSpeedOverride = speed;
+        ent.Comp.OrbitKind = objective;
+        UpdateOrbitLimits(ent.Comp);
         SetOrders((ent, ent.Comp), WFPilotOrder.Loiter);
     }
 
@@ -153,19 +153,16 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         var slot = 0;
         while (occupied.Contains(slot))
             slot++;
-        var clearance = GridRadius(grid) + GridRadius(target) + 20f;
-        spacing = MathF.Max(spacing, clearance);
-        var row = slot / 2 + 1;
         duty.FollowTarget = target;
-        duty.FollowRange = 5f;
+        duty.FollowRange = duty.Navigation.EscortRange;
         duty.EscortSlot = slot;
-        var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(target, out var targetGrid) ? targetGrid.LocalAABB.Center : Vector2.Zero;
-        duty.EscortOffset = center + GridForwardAngle(target).RotateVec(new Vector2((slot % 2 == 0 ? -1 : 1) * spacing, -row * spacing));
+        duty.EscortSpacing = spacing;
+        UpdateEscortOffset(duty, grid, target);
         SetOrders((pilot, duty), WFPilotOrder.Follow);
     }
 
     private float GridRadius(EntityUid grid) => TryComp<Robust.Shared.Map.Components.MapGridComponent>(grid, out var map)
-        ? map.LocalAABB.Size.Length() / 2f : 0f;
+        ? map.LocalAABB.Size.Length() / 2f + map.LocalAABB.Center.Length() : 0f;
 
     private Angle GridForwardAngle(EntityUid grid)
     {
@@ -217,6 +214,8 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         }
         ent.Comp.Orders = orders;
         ent.Comp.OrdersCompleted = false;
+        if (orders == WFPilotOrder.Hold)
+            CaptureHold(ent);
         ResetDock(ent.Comp);
 
         var ev = new WFPilotOrdersChangedEvent(ent, orders, continuation);
@@ -389,7 +388,9 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             var heading = _transform.GetWorldRotation(leader) + GridForwardAngle(leader) + new Angle(Math.PI) + Angle.FromDegrees(TravelHeadingOffset(ent));
             steerer.InRangeRotation = heading;
             steerer.AlwaysFaceTarget = true;
-            steerer.TargetRotation = CreepHeadingOffset(steerer, heading, grid);
+            var distance = (_transform.ToMapCoordinates(steerer.Coordinates).Position - _transform.GetWorldPosition(grid)).Length();
+            steerer.TargetRotation = distance > MathF.Max(duty.Navigation.EscortHeadingRange, GridRadius(grid) * 2f)
+                ? TravelHeadingOffset(ent) : CreepHeadingOffset(steerer, heading, grid);
         }
         switch (duty.Orders)
         {
@@ -442,38 +443,47 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         // Hold where the ship is now; also the fallback for orders missing their target.
         var target = new EntityCoordinates(map, _transform.GetWorldPosition(grid));
         var mode = ShipSteeringMode.GoToRange;
-        var range = HoldRange;
-        var speed = HoldSpeed;
+        var range = duty.Navigation.HoldRange;
+        var speed = duty.Navigation.ArrivalSpeed;
         var avoid = true;
-        var finishOnCollide = true;
+        var finishOnCollide = false;
         var faceTarget = false;
         Angle? heading = null;
         float? maxTurnRate = null;
 
         switch (duty.Orders)
         {
+            case WFPilotOrder.Hold:
+                if (duty.HoldPosition is not { } heldPosition || !heldPosition.IsValid(EntityManager)
+                    || _transform.ToMapCoordinates(heldPosition).MapId != xform.MapID)
+                    CaptureHold(ent);
+                target = duty.HoldPosition ?? target;
+                heading = duty.HoldHeading;
+                avoid = false;
+                faceTarget = true;
+                break;
             case WFPilotOrder.GoTo when duty.WaypointIndex >= 0 && duty.WaypointIndex < duty.Waypoints.Count:
                 target = duty.Waypoints[duty.WaypointIndex];
                 range = duty.ArrivalRange;
-                speed = duty.CruiseSpeed;
+                speed = duty.Navigation.ArrivalSpeed;
                 faceTarget = true;
                 break;
             case WFPilotOrder.Loiter when duty.LoiterCenter is { } center:
                 target = center;
                 mode = ShipSteeringMode.Orbit;
-                range = duty.LoiterRadius;
-                speed = duty.CruiseSpeed;
+                range = SafeOrbitRange(grid, center, duty.LoiterRadius, duty.Navigation.NavigationClearance);
+                speed = duty.LoiterSpeed;
                 break;
             case WFPilotOrder.Follow when duty.FollowTarget is { } followed && !TerminatingOrDeleted(followed):
                 // Grid-relative coordinates move with the grid.
                 target = new EntityCoordinates(followed, duty.EscortOffset ?? Vector2.Zero);
-                range = duty.FollowRange;
-                speed = duty.CruiseSpeed;
+                range = duty.EscortOffset != null ? duty.FollowRange : MathF.Max(duty.FollowRange, GridRadius(grid) + GridRadius(followed) + duty.Navigation.NavigationClearance);
+                speed = duty.Navigation.ArrivalSpeed;
                 faceTarget = true;
                 break;
             case WFPilotOrder.Undock when duty.Waypoints.Count > 0:
                 target = duty.Waypoints[0];
-                speed = duty.DockApproachSpeed;
+                speed = duty.Navigation.UndockSpeed;
                 break;
             case WFPilotOrder.Dock when duty.DockPlan is { } plan
                                         && duty.DockTarget is { } dockTarget
@@ -483,7 +493,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 {
                     // On the target grid, so the final pose moves with it; avoidance would refuse to touch it.
                     target = plan.Final;
-                    range = CreepRange;
+                    range = duty.Navigation.DockCreepRange;
                     speed = duty.DockCreepSpeed;
                     avoid = false;
                     finishOnCollide = false;
@@ -492,9 +502,9 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 }
 
                 target = StandoffOnMap(plan, map);
-                range = StandoffRange;
-                speed = duty.DockPhase == WFDockPhase.Settle ? SettleSpeed : duty.DockApproachSpeed;
-                maxTurnRate = duty.DockPhase == WFDockPhase.Settle ? SettleTurnRate : null;
+                range = duty.Navigation.DockStandoffRange;
+                speed = duty.DockPhase == WFDockPhase.Settle ? duty.Navigation.DockSettleSpeed : duty.DockApproachSpeed;
+                maxTurnRate = duty.DockPhase == WFDockPhase.Settle ? duty.Navigation.DockSettleTurnRate : null;
                 break;
         }
 
@@ -502,10 +512,17 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             return null;
 
         steerer.Mode = mode;
+        steerer.OrbitOffset = Angle.FromDegrees(duty.Navigation.OrbitLookaheadAngle);
         steerer.Range = range;
+        // Orbit uses the midpoint of the range band; a null tolerance otherwise halves its radius.
+        steerer.RangeTolerance = mode == ShipSteeringMode.Orbit ? 0f : null;
         steerer.InRangeMaxSpeed = speed;
         steerer.AvoidCollisions = avoid;
-        steerer.AvoidProjectiles = duty.Orders != WFPilotOrder.Dock;
+        steerer.AvoidProjectiles = duty.Orders is not (WFPilotOrder.Dock or WFPilotOrder.Hold);
+        steerer.EvasionBuffer = duty.Orders == WFPilotOrder.Dock ? duty.Navigation.DockEvasionBuffer : duty.Navigation.EvasionBuffer;
+        steerer.BaseEvasionTime = duty.Orders == WFPilotOrder.Dock ? duty.Navigation.DockEvasionLookahead : duty.Navigation.EvasionLookahead;
+        steerer.RotationCompensation = 0f;
+        steerer.RotationCompensationGain = 0f;
         steerer.FinishOnCollide = finishOnCollide;
         steerer.InRangeRotation = heading;
         steerer.MaxRotateRate = maxTurnRate;

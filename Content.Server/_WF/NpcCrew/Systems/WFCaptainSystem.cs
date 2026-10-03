@@ -3,6 +3,7 @@ using Content.Server._WF.NpcCrew.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Player;
 
 namespace Content.Server._WF.NpcCrew.Systems;
@@ -13,6 +14,7 @@ public sealed partial class WFCaptainSystem : EntitySystem
     [Dependency] private WFPilotDutySystem _pilots = default!;
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private MobStateSystem _mobs = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private readonly Dictionary<EntityUid, SavedCourse> _courses = new();
     private readonly HashSet<(EntityUid Grid, string Group, EntityUid Pilot)> _overridden = new();
@@ -71,14 +73,20 @@ public sealed partial class WFCaptainSystem : EntitySystem
                     ? duty.ResumeWaypoints.ToList()
                     : duty.Waypoints.Skip(duty.WaypointIndex).ToList();
                 _courses[pilot] = new SavedCourse(captain, args.Grid, args.Group, order,
-                    waypoints, duty.LoiterCenter, duty.LoiterRadius,
-                    duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot);
+                    waypoints, duty.LoiterCenter, duty.RequestedLoiterRadius, duty.LoiterSpeedOverride, duty.OrbitKind,
+                    duty.FollowTarget, duty.FollowRange, duty.DockTarget, duty.EscortOffset, duty.EscortSlot, duty.EscortSpacing,
+                    duty.HoldPosition, duty.HoldHeading);
                 _changingOrders = true;
                 try
                 {
                     var threats = _alerts.GetHostileShips(args.Grid, args.Group);
                     if (threats.FirstOrDefault() is var threat && threat.IsValid())
-                        _pilots.Loiter(pilot, new EntityCoordinates(threat, System.Numerics.Vector2.Zero), 300);
+                    {
+                        var center = TryComp<Robust.Shared.Map.Components.MapGridComponent>(threat, out var targetGrid)
+                            ? targetGrid.LocalAABB.Center : System.Numerics.Vector2.Zero;
+                        _pilots.Loiter(pilot, new EntityCoordinates(threat, center), 0f,
+                            objective: WFCrewObjectiveKind.Attack);
+                    }
                     else
                         _pilots.Hold(pilot);
                 }
@@ -105,12 +113,20 @@ public sealed partial class WFCaptainSystem : EntitySystem
             {
                 case WFPilotOrder.Hold:
                     _pilots.Hold(pilot);
+                    if (course.HoldPosition is { } anchor && anchor.IsValid(EntityManager)
+                        && _transform.ToMapCoordinates(anchor).MapId == Transform(pilot).MapID
+                        && TryComp<WFPilotDutyComponent>(pilot, out var holding))
+                    {
+                        holding.HoldPosition = anchor;
+                        holding.HoldHeading = course.HoldHeading;
+                        _pilots.SetNavigation(pilot, holding.Navigation);
+                    }
                     break;
                 case WFPilotOrder.GoTo:
                     _pilots.GoTo(pilot, course.Waypoints.Where(point => point.IsValid(EntityManager)).ToList());
                     break;
                 case WFPilotOrder.Loiter when course.Center is { } center && center.IsValid(EntityManager):
-                    _pilots.Loiter(pilot, center, course.Radius);
+                    _pilots.Loiter(pilot, center, course.Radius, course.OrbitSpeed, course.OrbitKind);
                     break;
                 case WFPilotOrder.Follow when course.Follow is { } follow && !TerminatingOrDeleted(follow):
                     _pilots.Follow(pilot, follow, course.Range);
@@ -118,6 +134,8 @@ public sealed partial class WFCaptainSystem : EntitySystem
                     {
                         formation.EscortOffset = course.EscortOffset;
                         formation.EscortSlot = course.EscortSlot;
+                        formation.EscortSpacing = course.EscortSpacing;
+                        _pilots.SetNavigation(pilot, formation.Navigation);
                     }
                     break;
                 case WFPilotOrder.Dock when course.Dock is { } dock && !TerminatingOrDeleted(dock):
@@ -131,6 +149,7 @@ public sealed partial class WFCaptainSystem : EntitySystem
     }
 
     private sealed record SavedCourse(EntityUid Captain, EntityUid Grid, string Group, WFPilotOrder Order,
-        List<EntityCoordinates> Waypoints, EntityCoordinates? Center, float Radius, EntityUid? Follow,
-        float Range, EntityUid? Dock, System.Numerics.Vector2? EscortOffset, int EscortSlot);
+        List<EntityCoordinates> Waypoints, EntityCoordinates? Center, float Radius, float? OrbitSpeed, WFCrewObjectiveKind OrbitKind, EntityUid? Follow,
+        float Range, EntityUid? Dock, System.Numerics.Vector2? EscortOffset, int EscortSlot, float EscortSpacing,
+        EntityCoordinates? HoldPosition, Angle HoldHeading);
 }

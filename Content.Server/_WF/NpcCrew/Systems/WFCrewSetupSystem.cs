@@ -94,6 +94,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         if (!HasComp<MapGridComponent>(grid) || Transform(grid).MapUid == null || Transform(grid).MapID == MapId.Nullspace
             || mission.Group.Length > 64 || mission.Callsign.Length > 100 || !Enum.IsDefined(mission.Order)
             || !Enum.IsDefined(mission.BoardingResponse) || !Enum.IsDefined(mission.DockingResponse)
+            || mission.Navigation == null || !mission.Navigation.IsValid()
             || !float.IsFinite(mission.Range) || mission.Range is < 1 or > 5000
             || !Finite(mission.Destination) || !_prototypes.HasIndex<NpcFactionPrototype>(mission.Faction)
             || !_prototypes.HasIndex<RadioChannelPrototype>(mission.LocalChannel)
@@ -162,6 +163,10 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     /// <summary>Reissues a validated mission without changing membership or issuing new credentials.</summary>
     private void ApplySettings(EntityUid mob, WFCrewMission mission)
     {
+        if (TryComp<WFCrewComponent>(mob, out var crew))
+            crew.Navigation = mission.Navigation.Clone();
+        if (HasComp<WFPilotDutyComponent>(mob))
+            _pilots.SetNavigation(mob, mission.Navigation);
         EntityManager.System<WFCrewSecuritySystem>().Reset(mob);
         var security = EnsureComp<WFCrewSecurityComponent>(mob);
         security.Boarding = mission.BoardingResponse;

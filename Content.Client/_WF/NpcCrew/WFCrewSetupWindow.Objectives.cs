@@ -56,7 +56,7 @@ public sealed partial class WFCrewSetupWindow
             _objectiveKind.AddItem(Loc.GetString($"wf-crew-objective-{kind.ToString().ToLowerInvariant()}"), (int) kind);
         SelectOnClick(_objectiveKind);
         SelectOnClick(_objectiveTarget);
-        _objectiveKind.OnItemSelected += _ => UpdateObjectiveFields();
+        _objectiveKind.OnItemSelected += _ => SelectObjectiveKind();
         editor.AddChild(Line("task-type", _objectiveKind));
         _objectiveTargetLine = Line("target-grid", _objectiveTarget);
         _objectivePositionLine = Line("destination", _objectiveX, _objectiveY);
@@ -77,9 +77,25 @@ public sealed partial class WFCrewSetupWindow
     private static bool NeedsTarget(WFCrewObjectiveKind kind) => kind is not
         (WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Repair);
     private static bool HasDuration(WFCrewObjectiveKind kind) => kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.Loiter
-        or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Escort;
+        or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Escort or WFCrewObjectiveKind.Circle;
     private static bool HasRange(WFCrewObjectiveKind kind) => kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Loiter
-        or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Escort;
+        or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Escort or WFCrewObjectiveKind.Circle;
+
+    /// <summary>Choosing a new task supplies a useful distance without overwriting a loaded task's settings.</summary>
+    private void SelectObjectiveKind()
+    {
+        var kind = (WFCrewObjectiveKind) _objectiveKind.SelectedId;
+        var range = kind switch
+        {
+            WFCrewObjectiveKind.GoTo => 10,
+            WFCrewObjectiveKind.Retreat => 40,
+            WFCrewObjectiveKind.Circle or WFCrewObjectiveKind.Loiter => 150,
+            WFCrewObjectiveKind.Attack => MathF.Max(1f, CurrentCrew?.Settings.Navigation.AttackRange ?? 350f),
+            _ => 100,
+        };
+        _objectiveRange.Text = range.ToString(CultureInfo.InvariantCulture);
+        UpdateObjectiveFields();
+    }
 
     private void ResetObjectiveEditor()
     {
@@ -193,9 +209,14 @@ public sealed partial class WFCrewSetupWindow
 
     private void RenderQueue()
     {
-        _queueRows.RemoveAllChildren();
         var draft = CurrentEdits?.Queue;
         var items = draft ?? CurrentCrew?.Objectives ?? new List<WFCrewObjective>();
+        var view = items.Select(item => new QueueItemView(item.Kind, item.Target, item.Position, item.Range, item.Duration, DescribeObjective(item))).ToList();
+        if (_queueView is { } shown && shown.Crew == _selectedCrew && shown.Draft == (draft != null)
+            && shown.Editing == _editing && shown.Items.SequenceEqual(view))
+            return;
+        _queueView = new QueueView(_selectedCrew, draft != null, _editing, view);
+        _queueRows.RemoveAllChildren();
         _queueTitle.Text = Text(draft == null ? "live-queue" : "draft-queue");
         Plain(_queueNotice, Text(draft == null ? "live-queue-help" : "draft-queue-help"));
         _liveButtons.Visible = draft == null;
@@ -210,7 +231,7 @@ public sealed partial class WFCrewSetupWindow
             var item = items[index];
             var row = Column(3);
             var label = new RichTextLabel();
-            Plain(label, Text("queue-entry", ("number", index + 1), ("task", DescribeObjective(item))));
+            Plain(label, Text("queue-entry", ("number", index + 1), ("task", view[index].Description)));
             row.AddChild(label);
             if (draft != null)
             {

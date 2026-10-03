@@ -8,7 +8,6 @@ using Content.Server.Shuttles.Events;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Chat;
 using Content.Shared.Damage;
-using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Radio;
@@ -123,8 +122,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             foreach (var hostile in _faction.GetNearbyHostiles(op.Owner, range))
             {
                 if (Transform(hostile).GridUid != grid
-                    || !TryComp<MobStateComponent>(hostile, out var state)
-                    || !_mobState.IsAlive(hostile, state)
+                    || !_security.IsBoardingCandidate(hostile)
                     || !(EntityManager.System<WFCrewWeaponSystem>().CanSee(op, hostile)
                          || EntityManager.System<WFCrewCommsSystem>().Knows(op, hostile))
                     || InCrew(hostile, GroupOf(op), grid))

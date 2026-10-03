@@ -34,18 +34,6 @@ public sealed partial class WFPilotDutySystem
     [Dependency] private DockingSystem _docking = default!;
     [Dependency] private ShuttleSystem _shuttle = default!;
 
-    /// <summary>How close to the standoff counts as there.</summary>
-    private const float StandoffRange = 2f;
-
-    /// <summary>How close to the final pose the creep aims to get.</summary>
-    private const float CreepRange = 0.3f;
-
-    /// <summary>Speed relative to the target under which the ship has settled at the standoff, in m/s.</summary>
-    private const float SettleSpeed = 0.3f;
-
-    /// <summary>Turn rate under which the ship has settled at the standoff, in rad/s.</summary>
-    private const float SettleTurnRate = 0.05f;
-
     /// <summary>Seconds before planning again after an attempt ended without a usable pair.</summary>
     private const float PlanRetryDelay = 5f;
 
@@ -203,7 +191,7 @@ public sealed partial class WFPilotDutySystem
         steerer.InRangeRotation = DockHeading(plan, target);
         steerer.AlwaysFaceTarget = true;
         var cruising = duty.DockPhase == WFDockPhase.Approach
-            && (_transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid)).Length() > MathF.Max(80f, duty.DockStandoff * 2f);
+            && (_transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid)).Length() > MathF.Max(duty.Navigation.DockAlignmentRange, duty.DockStandoff * 2f);
         steerer.TargetRotation = cruising
             ? TravelHeadingOffset(ent) : CreepHeadingOffset(steerer, DockHeading(plan, target), grid);
         if (cruising)
@@ -217,7 +205,7 @@ public sealed partial class WFPilotDutySystem
                 var toStandoff = _transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid);
                 if (toStandoff.Length() <= duty.DockStandoff)
                     steerer.AvoidCollisions = false;
-                if (duty.DockPhaseTime >= 120)
+                if (duty.DockPhaseTime >= duty.Navigation.DockApproachTimeout)
                 {
                     AbortDock(ent, WFDockPhase.None);
                     return;
@@ -237,9 +225,9 @@ public sealed partial class WFPilotDutySystem
             case WFDockPhase.Settle:
                 steerer.Coordinates = StandoffOnMap(plan, map);
                 steerer.AvoidCollisions = false;
-                if (Settled(grid, target))
+                if (Settled(grid, target, duty.Navigation))
                     SetDockPhase(ent, WFDockPhase.Creep);
-                else if (duty.DockPhaseTime >= 30)
+                else if (duty.DockPhaseTime >= duty.Navigation.DockSettleTimeout)
                     AbortDock(ent, WFDockPhase.None);
                 break;
             case WFDockPhase.Creep:
@@ -350,7 +338,7 @@ public sealed partial class WFPilotDutySystem
     }
 
     /// <summary>Whether the ship has stopped moving relative to the target and stopped turning.</summary>
-    private bool Settled(EntityUid grid, EntityUid target)
+    private bool Settled(EntityUid grid, EntityUid target, WFCrewNavigationSettings limits)
     {
         if (!TryComp<PhysicsComponent>(grid, out var body))
             return true;
@@ -359,8 +347,8 @@ public sealed partial class WFPilotDutySystem
             ? targetBody.LinearVelocity
             : Vector2.Zero;
 
-        return (body.LinearVelocity - targetVelocity).Length() < SettleSpeed
-               && MathF.Abs(body.AngularVelocity) < SettleTurnRate;
+        return (body.LinearVelocity - targetVelocity).Length() <= limits.DockSettleSpeed
+               && MathF.Abs(body.AngularVelocity) <= limits.DockSettleTurnRate;
     }
 
     /// <summary>

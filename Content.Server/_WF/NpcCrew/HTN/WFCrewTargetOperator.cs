@@ -30,4 +30,12 @@ public sealed partial class WFCrewTargetOperator : HTNOperator
             { "TargetCoordinates", new EntityCoordinates(target, Vector2.Zero) },
         });
     }
+
+    /// <summary>Rejects targets lost while pathfinding before the following movement task starts.</summary>
+    public override HTNOperatorStatus Update(NPCBlackboard blackboard, float frameTime)
+    {
+        return blackboard.ContainsKey("Target")
+            && _weapons.CanEngage(blackboard.GetValue<EntityUid>(NPCBlackboard.Owner), blackboard.GetValue<EntityUid>("Target"))
+            ? HTNOperatorStatus.Finished : HTNOperatorStatus.Failed;
+    }
 }
