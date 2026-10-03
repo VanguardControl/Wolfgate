@@ -1,6 +1,9 @@
 using Content.Server._Mono.FireControl;
+using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Power.Components;
 using Content.Server.Shuttles.Components;
+using Content.Shared.Mobs.Systems;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
@@ -9,20 +12,28 @@ namespace Content.Server._WF.NpcCrew.Systems;
 public sealed partial class WFCrewShipStatusSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobs = default!;
 
-    /// <summary>How long a ship must stay unable to move or shoot before it counts as disabled.</summary>
-    public static readonly TimeSpan DisabledDelay = TimeSpan.FromSeconds(30);
+    /// <summary>How long a ship must stay out of the fight before it counts as disabled.</summary>
+    public static readonly TimeSpan DisabledDelay = TimeSpan.FromSeconds(10);
+
+    /// <summary>A ship with less than this share of the most thrust it was seen with cannot manoeuvre.</summary>
+    private const float CrippledThrust = 0.25f;
 
     private static readonly TimeSpan CacheTime = TimeSpan.FromSeconds(2);
-    // A gap this long between readings means the incapable spell was not watched continuously.
+    // A gap this long between readings means the spell was not watched continuously.
     private static readonly TimeSpan ReadingGap = TimeSpan.FromSeconds(5);
     private readonly Dictionary<EntityUid, (TimeSpan Until, bool Disabled)> _cache = new();
-    private readonly HashSet<EntityUid> _capable = new();
+    private readonly Dictionary<EntityUid, float> _peakThrust = new();
+    private readonly HashSet<EntityUid> _armed = new();
+    private readonly HashSet<EntityUid> _crewed = new();
     private readonly Dictionary<EntityUid, (TimeSpan Since, TimeSpan Last)> _incapable = new();
 
     /// <summary>
-    /// A ship is disabled once it has neither a working thruster nor a powered ship weapon for
-    /// <see cref="DisabledDelay"/>. Only a ship seen working earlier is judged; stations, wrecks and asteroids are not.
+    /// A ship is disabled once, for <see cref="DisabledDelay"/> without a break, any of these holds: everyone who
+    /// was aboard is dead or gone; it had ship weapons and none is powered now; or it has no powered weapon and
+    /// under a quarter of its thrust. Each is judged against what the ship was seen with earlier, so stations,
+    /// wrecks, asteroids and drones are never disabled for lacking what they never had.
     /// </summary>
     public bool IsDisabled(EntityUid grid)
     {
@@ -33,31 +44,44 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
         var disabled = false;
         if (!TerminatingOrDeleted(grid) && TryComp<ShuttleComponent>(grid, out var shuttle))
         {
-            if (CanMove(shuttle) || CanShoot(grid))
-            {
-                _capable.Add(grid);
-                _incapable.Remove(grid);
-            }
-            else if (_capable.Contains(grid))
+            if (OutOfFight(grid, shuttle))
             {
                 var since = _incapable.TryGetValue(grid, out var spell) && now - spell.Last <= ReadingGap ? spell.Since : now;
                 _incapable[grid] = (since, now);
                 disabled = now - since >= DisabledDelay;
             }
+            else
+                _incapable.Remove(grid);
         }
         _cache[grid] = (now + CacheTime, disabled);
         return disabled;
     }
 
-    private static bool CanMove(ShuttleComponent shuttle)
+    private bool OutOfFight(EntityUid grid, ShuttleComponent shuttle)
     {
-        foreach (var thrust in shuttle.LinearThrust)
+        var thrust = 0f;
+        foreach (var direction in shuttle.LinearThrust)
         {
-            if (thrust > 0f)
-                return true;
+            thrust += direction;
         }
 
-        return false;
+        var peak = _peakThrust.GetValueOrDefault(grid);
+        if (thrust > peak)
+            _peakThrust[grid] = peak = thrust;
+
+        var armed = CanShoot(grid);
+        if (armed)
+            _armed.Add(grid);
+
+        var crewed = IsCrewed(grid);
+        if (crewed)
+            _crewed.Add(grid);
+
+        if (!crewed && _crewed.Contains(grid))
+            return true;
+        if (armed)
+            return false;
+        return _armed.Contains(grid) || peak > 0f && thrust < peak * CrippledThrust;
     }
 
     private bool CanShoot(EntityUid grid)
@@ -72,6 +96,26 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
         return false;
     }
 
+    /// <summary>Whether a living player body or crew NPC is aboard.</summary>
+    private bool IsCrewed(EntityUid grid)
+    {
+        var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crew.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.GridUid == grid && _mobs.IsAlive(uid))
+                return true;
+        }
+
+        var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
+        while (players.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.GridUid == grid && _mobs.IsAlive(uid))
+                return true;
+        }
+
+        return false;
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -80,7 +124,13 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
 
         // Deleted grids never get asked about again; don't keep their entries.
         _cache.Clear();
-        _capable.RemoveWhere(grid => TerminatingOrDeleted(grid));
+        _armed.RemoveWhere(grid => TerminatingOrDeleted(grid));
+        _crewed.RemoveWhere(grid => TerminatingOrDeleted(grid));
+        foreach (var grid in _peakThrust.Keys)
+        {
+            if (TerminatingOrDeleted(grid))
+                _peakThrust.Remove(grid);
+        }
         foreach (var grid in _incapable.Keys)
         {
             if (TerminatingOrDeleted(grid))

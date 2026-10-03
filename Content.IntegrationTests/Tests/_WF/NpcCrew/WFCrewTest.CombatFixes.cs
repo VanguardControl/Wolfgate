@@ -88,17 +88,17 @@ public sealed partial class WFCrewTest
         });
     }
 
-    /// <summary>A ship counts as disabled only after 30 s without thrust or weapons; regained thrust restarts the count.</summary>
+    /// <summary>A ship counts as disabled only after 10 s without thrust or weapons; regained thrust restarts the count.</summary>
     [Test]
     public async Task ShipDisabledNeedsSustainedIncapacity()
     {
         var ship = await CreateDeck(new Vector2(20, 0), 3, gravity: true);
         await Server.WaitPost(() => SEntMan.EnsureComponent<ShuttleComponent>(ship));
         Assert.That(await Watch(10f, 1), Is.False);
-        Assert.That(await Watch(0f, 15), Is.False, "Fifteen seconds without thrust is not yet disabled.");
+        Assert.That(await Watch(0f, 6), Is.False, "Six seconds without thrust is not yet disabled.");
         Assert.That(await Watch(10f, 3), Is.False);
-        Assert.That(await Watch(0f, 20), Is.False, "Regained thrust restarts the count.");
-        Assert.That(await Watch(0f, 20), Is.True, "Thirty seconds without thrust or weapons disables the ship.");
+        Assert.That(await Watch(0f, 6), Is.False, "Regained thrust restarts the count.");
+        Assert.That(await Watch(0f, 8), Is.True, "Ten seconds without thrust or weapons disables the ship.");
 
         // Holds the thrust for a while, reading the status as often as gunners do; true if it ever read disabled.
         async Task<bool> Watch(float thrust, double seconds)
