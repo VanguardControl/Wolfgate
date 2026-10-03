@@ -63,6 +63,11 @@ public abstract partial class ESSharedGunAttachmentsSystem : EntitySystem
             return;
         _wield.RefreshModifiers(ent.Owner); // WOLFGATE(Weapons): moved above the gun refresh, which reads the wield values
         _gun.RefreshModifiers(ent.Owner);
+<<<<<<< HEAD
+=======
+        if (HasComp<GunWieldBonusComponent>(ent))
+            _wield.RefreshModifiers(ent.Owner);
+>>>>>>> f71c2ed12e (Crocus 2 (#4812))
     }
 
     protected virtual void OnEntRemovedFromContainer(Entity<ESAttachableGunComponent> ent, ref EntRemovedFromContainerMessage args)
@@ -72,6 +77,11 @@ public abstract partial class ESSharedGunAttachmentsSystem : EntitySystem
             return;
         _wield.RefreshModifiers(ent.Owner); // WOLFGATE(Weapons): moved above the gun refresh, which reads the wield values
         _gun.RefreshModifiers(ent.Owner);
+<<<<<<< HEAD
+=======
+        if (HasComp<GunWieldBonusComponent>(ent))
+            _wield.RefreshModifiers(ent.Owner);
+>>>>>>> f71c2ed12e (Crocus 2 (#4812))
     }
 
     private void OnGunRefreshModifiers(Entity<ESAttachableGunComponent> ent, ref GunRefreshModifiersEvent args)
