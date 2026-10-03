@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Server._NF.GameTicking.Events;
 using Content.Server.GameTicking;
@@ -167,6 +168,20 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return false;
     }
 
+    /// <summary>
+    /// Starts an encounter for an admin. Open-space encounters go where asked; the others are placed beside
+    /// stations on that map as usual, because their orders are aimed at those stations.
+    /// </summary>
+    public bool TryStartAt(WFEncounterPrototype prototype, MapCoordinates near, out EntityUid encounter, EntityUid? spawner)
+    {
+        encounter = default;
+        if (prototype.Placement == WFEncounterPlacement.OpenSpace)
+            return _encounters.TrySpawn(prototype, near, out encounter, spawner);
+
+        return TryPlaceAtStations(prototype, near.MapId, out var origin, out var from, out var to)
+            && _encounters.TrySpawn(prototype, origin, out encounter, spawner, from, to);
+    }
+
     private bool TryStart(WFEncounterPrototype prototype, out EntityUid encounter)
     {
         encounter = default;
@@ -226,8 +241,15 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         if (prototype.Placement == WFEncounterPlacement.OpenSpace)
             return TryPlaceInOpenSpace(prototype, out origin);
 
+        return TryPlaceAtStations(prototype, _ticker.DefaultMap, out origin, out from, out to);
+    }
+
+    private bool TryPlaceAtStations(WFEncounterPrototype prototype, MapId map, out MapCoordinates origin, out EntityUid? from, out EntityUid? to)
+    {
+        from = null;
+        to = null;
         origin = MapCoordinates.Nullspace;
-        var stations = Stations();
+        var stations = Stations(map);
         if (stations.Count == 0 || prototype.Placement == WFEncounterPlacement.Route && stations.Count < 2)
             return false;
 
@@ -242,15 +264,32 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return true;
     }
 
-    /// <summary>The sector's stations and outposts: station grids on the round's map that nobody holds a deed to.</summary>
-    private List<Entity<MapGridComponent>> Stations()
+    /// <summary>
+    /// The stations and outposts of a map: station grids nobody holds a deed to. A map with fewer than two, such as
+    /// the development map, is topped up with its other unowned grids so station encounters can still be tried.
+    /// </summary>
+    private List<Entity<MapGridComponent>> Stations(MapId map)
     {
         var stations = new List<Entity<MapGridComponent>>();
-        var query = EntityQueryEnumerator<StationMemberComponent, MapGridComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var grid, out var xform))
+        var others = new List<Entity<MapGridComponent>>();
+        var query = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var grid, out var xform))
         {
-            if (xform.MapID == _ticker.DefaultMap && !HasComp<ShuttleDeedComponent>(uid))
+            // The map itself can be a grid on planet maps; an encounter never flies to it.
+            if (xform.MapID != map || uid == xform.MapUid || HasComp<ShuttleDeedComponent>(uid)
+                || HasComp<Components.WFEncounterGridComponent>(uid))
+                continue;
+
+            if (HasComp<StationMemberComponent>(uid))
                 stations.Add((uid, grid));
+            else
+                others.Add((uid, grid));
+        }
+
+        if (stations.Count < 2)
+        {
+            others.Sort((a, b) => b.Comp.LocalAABB.Size.LengthSquared().CompareTo(a.Comp.LocalAABB.Size.LengthSquared()));
+            stations.AddRange(others.Take(2 - stations.Count));
         }
 
         return stations;

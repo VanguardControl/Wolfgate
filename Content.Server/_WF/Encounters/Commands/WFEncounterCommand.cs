@@ -116,7 +116,7 @@ public sealed partial class WFEncounterCommand : LocalizedEntityCommands
         }
 
         var origin = new MapCoordinates(here.Position + new System.Numerics.Vector2(0f, distance), here.MapId);
-        shell.WriteLine(_encounters.TrySpawn(prototype, origin, out var encounter, player)
+        shell.WriteLine(_scheduler.TryStartAt(prototype, origin, out var encounter, player)
             ? Loc.GetString("cmd-wf_encounter-spawned", ("name", EntityManager.GetComponent<WFEncounterComponent>(encounter).Name),
                 ("uid", EntityManager.GetNetEntity(encounter)))
             : Loc.GetString("cmd-wf_encounter-spawn-failed", ("prototype", prototype.ID)));

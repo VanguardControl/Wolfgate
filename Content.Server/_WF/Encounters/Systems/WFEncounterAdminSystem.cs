@@ -67,7 +67,7 @@ public sealed partial class WFEncounterAdminSystem : EntitySystem
                 if (!float.IsFinite(request.Distance) || request.Distance is < 0 or > 20000)
                     return Loc.GetString("cmd-wf_encounter-bad-distance", ("arg", request.Distance));
                 var origin = new MapCoordinates(here.Position + new Vector2(0f, request.Distance), here.MapId);
-                if (!_encounters.TrySpawn(prototype, origin, out var spawned, actor))
+                if (!_scheduler.TryStartAt(prototype, origin, out var spawned, actor))
                     return Loc.GetString("cmd-wf_encounter-spawn-failed", ("prototype", prototype.ID));
                 Audit(session, $"started encounter {prototype.ID} as {ToPrettyString(spawned):entity}");
                 return null;
