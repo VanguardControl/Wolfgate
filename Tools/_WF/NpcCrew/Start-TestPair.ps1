@@ -9,6 +9,8 @@ Stop any process using the selected output, data directory or port before runnin
 ./Tools/_WF/NpcCrew/Start-TestPair.ps1
 .EXAMPLE
 ./Tools/_WF/NpcCrew/Start-TestPair.ps1 -SkipBuild -Port 1223 -DataDirectory "$env:TEMP/wfcrew-validation-data"
+.EXAMPLE
+./Tools/_WF/NpcCrew/Start-TestPair.ps1 -ServerCVar 'wf.encounters.enabled=true'
 #>
 [CmdletBinding()]
 param(
@@ -23,6 +25,7 @@ param(
     [string] $Username = 'CrewTesting',
     [ValidateSet('Normal', 'Hidden')]
     [string] $ClientWindowStyle = 'Normal',
+    [string[]] $ServerCVar = @(),
     [switch] $SkipBuild,
     [switch] $Help
 )
@@ -118,6 +121,9 @@ $serverArgs = @(
     '--cvar', 'auth.mode=0', '--cvar', 'hub.advertise=false', '--cvar', 'status.enabled=false',
     '--cvar', 'movement.mob_pushing=false', '--cvar', 'wf.crew.ui_diagnostics=true'
 ) + $networkArgs
+foreach ($cvar in $ServerCVar) {
+    $serverArgs += @('--cvar', $cvar)
+}
 $clientArgs = @(
     '--connect', '--connect-address', "ss14://127.0.0.1:$Port", '--username', $Username
 ) + $networkArgs
