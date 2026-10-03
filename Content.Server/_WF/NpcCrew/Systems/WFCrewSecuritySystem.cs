@@ -194,7 +194,7 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         if (docking && response == WFCrewSecurityResponse.Hostile)
         {
             _hostileDocks[(grid, group, visitor)] = _timing.CurTime + TimeSpan.FromSeconds(60);
-            _alerts.ReportShipThreat(grid, group, visitor);
+            _alerts.ReportDockingThreat(grid, group, visitor);
         }
         var ev = new WFCrewSecurityIncidentEvent(grid, group, visitor, response, docking);
         RaiseLocalEvent(grid, ref ev, true);

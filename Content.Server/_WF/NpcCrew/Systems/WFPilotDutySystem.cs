@@ -159,6 +159,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         duty.EscortSpacing = spacing;
         UpdateEscortOffset(duty, grid, target);
         SetOrders((pilot, duty), WFPilotOrder.Follow);
+        EntityManager.System<WFCrewEscortSystem>().SetEscort(pilot, target);
     }
 
     private float GridRadius(EntityUid grid) => TryComp<Robust.Shared.Map.Components.MapGridComponent>(grid, out var map)

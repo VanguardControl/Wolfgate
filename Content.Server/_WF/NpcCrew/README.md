@@ -30,7 +30,12 @@ the final docking corridor still uses the required port alignment and may involv
 
 Escort Grid assigns separate staggered formation slots behind and beside the leader, with spacing enlarged for
 hull clearance. Slots move and rotate with the leader, and escorts match its heading. Captain reactions preserve
-the slot when resuming an interrupted escort. Follow Grid remains the simpler proximity-following order.
+the slot when resuming an interrupted escort. Connected escorts and their protected ships share incoming hull
+and shield attacks across crew groups and companies. This includes an uncrewed protected freighter and chained
+escorts; temporary evasion and losing a captain or pilot do not break the assignment while other crew survive.
+Explicit replacement orders, pausing, skipping or cancelling the escort end its membership. Formation ships
+are excluded from gunner targets and protected from crew cannon fire, including shield capacity. Follow Grid remains the simpler
+proximity-following order and does not join this defensive alliance. Weapon locks alone do not trigger hostility.
 
 Circle Grid slowly orbits the destination's bounds center. Default cruise, circle and attack limits are 10, 4 and
 6 m/s; attack defaults to at least 350 m. Pilots use gentle thrust and turning, full braking, hull clearance and
@@ -44,7 +49,8 @@ retaliation. Crews holster when no living hostile remains. Forward travel faces 
 their console when taking the helm. Spawned crew register ordinary, revocable ID credentials even on map-loaded
 ships that do not yet have ship access management.
 Crew-operated cannon rounds also protect allies and allied hulls, retaining their firing origin after a gunner dies
-or a player takes over. Explicit Attack orders and hostile docking still permit fire against the targeted ship.
+or a player takes over. Explicit Attack orders, incoming fire and hostile docking permit retaliation against
+the targeted ship, including a normally friendly company; escorts in the same formation remain protected.
 
 Repair orders assign deckhands physical work through HTN navigation. Deckhands have a built-in unlimited SRD and
 repair tool, disabled permanently on death; no unlimited item drops. The ship's existing SRD snapshot is preserved,
@@ -67,7 +73,8 @@ entry. Edit, move up/down, remove, pause, resume and skip are available. Timed H
 zero means indefinite until skipped. Travel, retreat, dock and undock advance on arrival. Missing targets or a failed
 dock pause the queue with a visible status; a replacement pilot can continue it. Immediate orders cancel the queue.
 Queues last for the round and are scoped by ship and group. Attack explicitly assigns the gunner's target, including
-a normally friendly grid, while regular defensive targeting still respects faction friendship.
+a normally friendly grid. Incoming attacks temporarily override faction friendship for retaliation; vessel
+threats expire after sixty seconds without further attacks.
 An explicit hostile-docking response overrides faction friendship for that visitor. Captain interruptions during
 automatic departure preserve the intended next order and its destination beyond the temporary undocking maneuver.
 
@@ -175,6 +182,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewCommsSystem.cs`](Systems/WFCrewCommsSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewEscortSystem.cs`](Systems/WFCrewEscortSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewEvaSystem.cs`](Systems/WFCrewEvaSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewFriendlyFireSystem.cs`](Systems/WFCrewFriendlyFireSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewObjectiveSystem.cs`](Systems/WFCrewObjectiveSystem.cs)
@@ -182,8 +190,10 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewRoutineSystem.cs`](Systems/WFCrewRoutineSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSecuritySystem.cs`](Systems/WFCrewSecuritySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewShieldProtectionSystem.cs`](Systems/WFCrewShieldProtectionSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSpeechSystem.cs`](Systems/WFCrewSpeechSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewUiDiagnosticsSystem.cs`](Systems/WFCrewUiDiagnosticsSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.Reload.cs`](Systems/WFCrewWeaponSystem.Reload.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.cs`](Systems/WFCrewWorkSystem.cs)
@@ -214,6 +224,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Objectives.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Objectives.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Refresh.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Refresh.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Settings.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Settings.cs)
+- [`Content.Client/_WF/NpcCrew/WFCrewUiDiagnosticsSystem.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewUiDiagnosticsSystem.cs)
 
 ### Integration tests
 
@@ -224,6 +235,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Command.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Command.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Doors.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.EscortHostility.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.EscortHostility.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.FireAndRepair.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.FireAndRepair.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Navigation.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Navigation.cs)
@@ -236,8 +248,10 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ServerNavigationSettings.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ServerNavigationSettings.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupFocus.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupFocus.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupNestedMenus.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupNestedMenus.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupUi.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupUi.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupVerbMenu.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ShieldAggro.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
@@ -266,6 +280,9 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 ## Non-modular edits
 
+- [`Content.Client/Verbs/VerbSystem.cs`](../../../Content.Client/Verbs/VerbSystem.cs)
+  - opt-in traces distinguish missing UI replies from stale player attachments.
+  - trace the response after the active menu handles it.
 - [`Content.Server/_Mono/FireControl/FireControlSystem.cs`](../../_Mono/FireControl/FireControlSystem.cs): distinguish NPC bursts from later manual fire.
 - [`Content.Server/_Mono/NPC/HTN/ShipSteeringSystem.cs`](../../_Mono/NPC/HTN/ShipSteeringSystem.cs)
   - Keep destination-hull avoidance scoped to crew pilots.
@@ -283,5 +300,6 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
   - stop blended input while access-aware crew settle at an obstacle.
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.Obstacles.cs`](../../NPC/Systems/NPCSteeringSystem.Obstacles.cs): open authorized doors through normal interaction before considering prying.
 - [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs): ship crews must work even without nearby player bodies.
+- [`Content.Server/Verbs/VerbSystem.cs`](../../Verbs/VerbSystem.cs): opt-in tracing for missing menu replies after ghosting.
 
 <!-- WOLFGATE-GENERATED END -->
