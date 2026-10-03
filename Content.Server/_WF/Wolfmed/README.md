@@ -414,6 +414,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSleepThroughDeathTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSleepThroughDeathTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpawnedGearUnequipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpawnedGearUnequipTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesConformanceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesConformanceTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesOrganTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesOverlayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesProfileTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSpeciesSpawnTest.cs)
@@ -1564,12 +1565,14 @@ Skipped ("dirty-disposed").
   - on a wound host it clots down to an artery's floor, and its overdose bloodloss is toxin load.
   - its overdose brute is toxin load on a wound host, more than the overdose still flushes.
 - [`Resources/Maps/_NF/POI/medical.yml`](../../../Resources/Maps/_NF/POI/medical.yml): An autodoc pod placed in the medical POI.
+- [`Resources/Prototypes/_DV/Body/Organs/chitinid.yml`](../../../Resources/Prototypes/_DV/Body/Organs/chitinid.yml): Wolfmed liver data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_DV/Body/Organs/feroxi.yml`](../../../Resources/Prototypes/_DV/Body/Organs/feroxi.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_DV/Body/Organs/harpy.yml`](../../../Resources/Prototypes/_DV/Body/Organs/harpy.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml): playtest 3: the IPC's container, so its bar shows
 - [`Resources/Prototypes/_DV/Species/avali.yml`](../../../Resources/Prototypes/_DV/Species/avali.yml): the Starlight teleport sound never shipped here, and the client logged an error every stasis.
 - [`Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml)
   - playtest 3 IPC 2: the chassis's own fluid, not Oil
+  - Wolfmed eyes data, so the organ can be hurt, scanned and treated
   - BRAIN: organ health, so the pump can be broken
 - [`Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml)
   - P5-1: IPC chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
@@ -1596,12 +1599,21 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Melee/hammer.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Melee/hammer.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_Goobstation/Reagents/medicine.yml`](../../../Resources/Prototypes/_Goobstation/Reagents/medicine.yml): PROTO H: Onyx's Stasizium fracture block, from _Onyx/Reagents/Medicine/first_aid.yml.
 - [`Resources/Prototypes/_HL/Body/Organs/skrell.yml`](../../../Resources/Prototypes/_HL/Body/Organs/skrell.yml)
+  - Wolfmed stomach data, so the organ can be hurt, scanned and treated
   - M4: OD16 parity, Wolfmed lung data (plan 9.2 group C)
   - M4: OD16 parity, Wolfmed heart data (plan 9.2 group C)
+  - Wolfmed liver data, so the organ can be hurt, scanned and treated
+  - Wolfmed kidneys data, so the organ can be hurt, scanned and treated
   - M4: OD16 parity, brain clock (plan 9.2 group C)
+  - Wolfmed eyes data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_HL/Body/Organs/synth.yml`](../../../Resources/Prototypes/_HL/Body/Organs/synth.yml)
   - M4: OD16 Synth is mechanical, the ccu is its positronic core
+  - Wolfmed eyes data, so the organ can be hurt, scanned and treated
+  - Wolfmed lungs data, so the organ can be hurt, scanned and treated
   - M4: OD16 Synth is mechanical, the heart is its coolant pump
+  - Wolfmed stomach data, so the organ can be hurt, scanned and treated
+  - Wolfmed liver data, so the organ can be hurt, scanned and treated
+  - Wolfmed kidneys data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml)
   - M4: OD16 Synth is mechanical, chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
   - playtest 5, the IPC part container (as PartIPCBase), so the welder and the applicator repair a synth
@@ -1611,11 +1623,18 @@ Skipped ("dirty-disposed").
   - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
   - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml): M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
-- [`Resources/Prototypes/_Mono/Body/Organs/hydra.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/hydra.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
+- [`Resources/Prototypes/_Mono/Body/Organs/hydra.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/hydra.yml)
+  - Wolfmed stomach data, so the organ can be hurt, scanned and treated
+  - Wolfmed liver data, so the organ can be hurt, scanned and treated
+  - M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_Mono/Body/Organs/protogen.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/protogen.yml)
   - M4: OD16 parity, brain clock (plan 9.2 group C)
+  - Wolfmed eyes data, so the organ can be hurt, scanned and treated
   - M4: OD16 parity, Wolfmed lung data (plan 9.2 group C)
   - M4: OD16 parity, Wolfmed heart data (plan 9.2 group C)
+  - Wolfmed stomach data, so the organ can be hurt, scanned and treated
+  - Wolfmed liver data, so the organ can be hurt, scanned and treated
+  - Wolfmed kidneys data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_Mono/borg_types.yml`](../../../Resources/Prototypes/_Mono/borg_types.yml): playtest 3: the IPC's container, so its bar shows
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Eyes/glasses.yml)
   - P6, P3-D6: locational armour coverage
@@ -1643,7 +1662,9 @@ Skipped ("dirty-disposed").
   - playtest 5, an IPC's parts sit in this container, as the welder lists
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml): W1: buckshot leaves fragments, not a clean channel.
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Melee/shockmaul.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Melee/shockmaul.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
-- [`Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml`](../../../Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
+- [`Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml`](../../../Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml)
+  - M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
+  - in the lungs slot; BaseHumanOrgan leaves it blank, so surgery and the analyzer missed it
 - [`Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml`](../../../Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/civimed.yml)
   - playtest 3 IPC 2: Infinite, a chassis's refill beside the blood packs.
   - V5: Infinite
@@ -1733,6 +1754,7 @@ Skipped ("dirty-disposed").
   - W0: exempt. A welder is the only thing that closes a chassis wound and it does so by removing damage; 0.15 would leave mechanical wounds permanently open.
   - playtest 4: the missing limb keeps hurting until the stump is treated, its severity
   - playtest 1: halved with wolfmed.bleed_rate, which this bleed does not read
+- [`Resources/Prototypes/_Shitmed/Body/Organs/Animal/animal.yml`](../../../Resources/Prototypes/_Shitmed/Body/Organs/Animal/animal.yml): Wolfmed eyes data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_Shitmed/Body/Parts/base.yml`](../../../Resources/Prototypes/_Shitmed/Body/Parts/base.yml): WP7, D8: adds Wolfmed fracture/maxDamage data
 - [`Resources/Prototypes/_Shitmed/Body/Parts/cybernetic.yml`](../../../Resources/Prototypes/_Shitmed/Body/Parts/cybernetic.yml)
   - P5-1: cybernetic wound + frame-fracture profile; WFWolfmedPartCybernetic must stay FIRST (RT first-parent-wins)
@@ -1756,10 +1778,18 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Alerts/alerts.yml`](../../../Resources/Prototypes/Alerts/alerts.yml): VISUALS: the pain HUD sits under the health doll
 - [`Resources/Prototypes/Body/Organs/Animal/animal.yml`](../../../Resources/Prototypes/Body/Organs/Animal/animal.yml)
   - M4: OD16 parity, Wolfmed lung data (plan 9.2 group B, arachnid)
+  - Wolfmed stomach data, so the organ can be hurt, scanned and treated
+  - Wolfmed liver data, so the organ can be hurt, scanned and treated
   - M4: OD16 parity, the heart can arrest (plan 9.2 group B; balance change)
-- [`Resources/Prototypes/Body/Organs/arachnid.yml`](../../../Resources/Prototypes/Body/Organs/arachnid.yml): M4: OD16 parity, the heart can arrest (plan 9.2 group B; balance change)
+  - Wolfmed kidneys data, so the organ can be hurt, scanned and treated
+- [`Resources/Prototypes/Body/Organs/arachnid.yml`](../../../Resources/Prototypes/Body/Organs/arachnid.yml)
+  - M4: OD16 parity, the heart can arrest (plan 9.2 group B; balance change)
+  - Wolfmed liver data, so the organ can be hurt, scanned and treated
+  - Wolfmed kidneys data, so the organ can be hurt, scanned and treated
+  - Wolfmed eyes data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/Body/Organs/diona.yml`](../../../Resources/Prototypes/Body/Organs/diona.yml)
   - M4: OD16 parity, the nymph organ is the brain clock (plan 9.2 group C)
+  - Wolfmed stomach data, so the organ can be hurt, scanned and treated
   - M4: OD16 parity, Wolfmed lung data (plan 9.2 group C)
 - [`Resources/Prototypes/Body/Organs/human.yml`](../../../Resources/Prototypes/Body/Organs/human.yml)
   - WP11-2, D8: Wolfmed organ health + organ-damage policy

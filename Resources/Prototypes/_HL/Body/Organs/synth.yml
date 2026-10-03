@@ -54,7 +54,8 @@
 
 - type: entity
   id: OrganSynthEyes
-  parent: BaseSynthOrgan
+  # WOLFGATE(Wolfmed): Wolfmed eyes data, so the organ can be hurt, scanned and treated
+  parent: [BaseSynthOrgan, WFWolfmedOrganEyes]
   name: camera gimbal
   suffix: Synth
   description: "A small mechanical gimbal featuring several multi-spectrum cameras, responsible for Synth vision."
@@ -105,7 +106,8 @@
 
 - type: entity
   id: OrganSynthLungs
-  parent: BaseSynthOrgan
+  # WOLFGATE(Wolfmed): Wolfmed lungs data, so the organ can be hurt, scanned and treated
+  parent: [BaseSynthOrgan, WFWolfmedOrganLungs]
   name: synth lungs
   suffix: Synth
   description: "Synth lungs simulating organic functions for internal cooling. Not very interesting on their own."
@@ -139,7 +141,8 @@
 
 - type: entity
   id: OrganSynthStomach
-  parent: BaseSynthOrgan
+  # WOLFGATE(Wolfmed): Wolfmed stomach data, so the organ can be hurt, scanned and treated
+  parent: [BaseSynthOrgan, WFWolfmedOrganStomach]
   name: synth stomach
   suffix: Synth
   description: "A Synth stomach. It can convert minerals to nutriment and nutriment to nanites."
@@ -172,7 +175,8 @@
 
 - type: entity
   id: OrganSynthLiver
-  parent: BaseSynthOrgan
+  # WOLFGATE(Wolfmed): Wolfmed liver data, so the organ can be hurt, scanned and treated
+  parent: [BaseSynthOrgan, WFWolfmedOrganLiver]
   name: synth liver
   suffix: Synth
   description: "A Synth liver. It prevents poisoning from alcohol."
@@ -192,7 +196,8 @@
 
 - type: entity
   id: OrganSynthKidneys
-  parent: BaseSynthOrgan
+  # WOLFGATE(Wolfmed): Wolfmed kidneys data, so the organ can be hurt, scanned and treated
+  parent: [BaseSynthOrgan, WFWolfmedOrganKidneys]
   name: energy coil
   suffix: Synth
   description: "A Synth energy coil. It doesn't seem to do anything interesting yet."
