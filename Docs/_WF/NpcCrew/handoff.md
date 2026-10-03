@@ -306,6 +306,32 @@ an open cannon bolt, insufficient projectile lifetime and armor absorbing the da
 the final passing run. Logs are in TEMP: `wfcrew-review-final-tests.log`, `wfcrew-review-build.log`,
 `wfcrew-review-linter.log`, and `wfcrew-review-server.log`. Work stays local; no PR or push.
 
+## Guided crew setup redesign (2026-10-02)
+
+Crew Setup now separates four-step creation (ship, roster, rules, review) from a live dashboard. The persistent
+sidebar lists/searches active crews; ship, vessel and loadout dropdowns use the existing native searchable options.
+Roster equipment, engagement and ship-local post coordinates expand per member. Creation has its own settings and
+always starts with Hold, independently of unfinished manual overrides. Duplicate group creation is rejected locally.
+
+Live crews have an immutable ship/group selection and tabs for objectives, settings and admin tools. Adding a task
+appends without interrupting progress. Explicit queue editing keeps a per-crew draft with edit/up/down/remove,
+apply-and-restart, and discard controls. Only applicable target, range, coordinates and duration fields appear;
+unused inputs normalize to safe defaults. Immediate overrides and crew deletion have inline confirmation panels.
+Refreshes preserve drafts and grid identity; a vanished selection becomes unavailable instead of targeting another ship.
+
+Setup requests carry a client-wide RequestId echoed by the server. Windows route operation replies to the originating
+context and queue revision. Successful queue saves settle the originating draft even after switching crews, while
+newer edits survive. Pending duplicate mutations are suppressed, later plans supersede older ones, roster edits
+invalidate pending plans, and spawning a new vessel discards the previous ship's roster.
+
+Validation: isolated Debug client and integration builds passed (final integration build: 0 errors, 1301 existing
+warnings). All 17 setup-focused cases passed, including 15 new cases and the existing setup/window checks. The
+fresh headless server reached Ready on 127.0.0.1:1220 without ERRO/FATL entries. Desktop control was stopped with
+the physical Escape key before launching a graphical client, so this redesign's visual layout and real-client
+sandbox check remain unverified. Do not claim that it was visually tested. The original server on 1219 still runs
+the earlier playtest build; updated binaries are isolated in bin/NpcCrewReview. No prototype changes were made.
+Logs: TEMP/wfcrew-ui-agent-build.log, wfcrew-ui-agent-tests.log, wfcrew-ui-server.log and wfcrew-ui-server-error.log.
+
 ## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints

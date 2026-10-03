@@ -72,6 +72,7 @@ public sealed class WFCrewMission
 [Serializable, NetSerializable]
 public sealed class WFCrewSetupRequest : EntityEventArgs
 {
+    public int RequestId;
     public WFCrewSetupAction Action;
     public NetEntity? Grid;
     public int Deckhands = 2;
@@ -98,6 +99,7 @@ public sealed class WFCrewSetupOpenEvent(NetEntity grid, string group) : EntityE
 [Serializable, NetSerializable]
 public sealed class WFCrewSetupResponse : EntityEventArgs
 {
+    public int RequestId;
     public WFCrewSetupAction Action;
     public NetEntity? Grid;
     public List<WFCrewSetupGrid> Grids = new();

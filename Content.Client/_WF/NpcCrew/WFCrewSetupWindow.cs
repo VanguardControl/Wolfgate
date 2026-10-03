@@ -1,171 +1,291 @@
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using Content.Shared._Mono.Company;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.NpcCrew;
-using Content.Shared.NPC.Prototypes;
-using Content.Shared.Radio;
 using Content.Shared.Roles;
 using JetBrains.Annotations;
+using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Client._WF.NpcCrew;
 
-/// <summary>Plans and edits ship crews, then spawns them or updates their mission.</summary>
+/// <summary>Guided crew creation and a separate dashboard for live ship operations.</summary>
 [UsedImplicitly]
 public sealed partial class WFCrewSetupWindow : DefaultWindow
 {
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     private readonly WFCrewSetupClientSystem _system;
-    private readonly OptionButton _grid = new();
-    private readonly OptionButton _target = new();
-    private readonly OptionButton _vessel = new();
-    private readonly OptionButton _order = new();
-    private readonly OptionButton _company = new();
-    private readonly OptionButton _faction = new();
-    private readonly OptionButton _local = new();
-    private readonly OptionButton _alert = new();
-    private readonly OptionButton _boardingRule = new();
-    private readonly OptionButton _dockingRule = new();
-    private readonly LineEdit _count = new() { Text = "2" };
-    private readonly LineEdit _group = new() { Text = "crew" };
-    private readonly LineEdit _callsign = new();
-    private readonly LineEdit _x = new() { Text = "0" };
-    private readonly LineEdit _y = new() { Text = "0" };
-    private readonly LineEdit _range = new() { Text = "60" };
-    private readonly CheckBox _captain = new();
-    private readonly CheckBox _heave = new() { Pressed = true };
-    private readonly Label _status = new() { ClipText = true };
-    private readonly BoxContainer _targetLine;
-    private readonly BoxContainer _destinationLine;
-    private readonly BoxContainer _roster = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
-    private readonly List<Row> _rows = new();
+    private readonly BoxContainer _crewList = Column();
+    private readonly LineEdit _crewSearch = new();
+    private readonly Label _heading = new() { StyleClasses = { "LabelHeading" } };
+    private readonly RichTextLabel _subtitle = new();
+    private readonly RichTextLabel _status = new();
+    private readonly BoxContainer _createView = Column();
+    private readonly BoxContainer _manageView = Column();
+    private readonly BoxContainer _emptyView = Column();
+    private readonly Dictionary<int, PendingRequest> _requests = new();
+    private readonly Dictionary<CrewKey, CrewEdits> _edits = new();
     private List<WFCrewSetupGrid> _grids = new();
-    private readonly List<string> _roles;
-    private readonly List<string> _loadouts;
-    private readonly List<string> _vessels;
-    private readonly List<string> _companies;
-    private readonly List<string> _factions;
-    private readonly List<string> _channels;
-    private NetEntity? _pendingGrid;
-    private bool _planAfterList;
-
-    /// <summary>Selects a crew requested by an admin verb.</summary>
-    public void SelectCrew(NetEntity grid, string group)
-    {
-        _pendingGrid = grid;
-        _group.Text = group;
-        _planAfterList = true;
-    }
+    private List<WFCrewSetupCrew> _liveCrews = new();
+    private CrewKey? _selectedCrew;
+    private CrewKey? _pendingCrew;
+    private bool _creating = true;
+    private int _contextVersion;
+    private SettingsForm _createSettings = default!;
+    private SettingsForm _crewSettings = default!;
 
     public WFCrewSetupWindow()
     {
         IoCManager.InjectDependencies(this);
         Title = Loc.GetString("wf-crew-setup-title");
-        MinSize = new Vector2(860, 640);
+        MinSize = new Vector2(900, 600);
+        SetSize = new Vector2(1020, 720);
         _system = _entities.System<WFCrewSetupClientSystem>();
         _system.Received += Receive;
         OnClose += () => _system.Received -= Receive;
-        _roles = _prototypes.EnumeratePrototypes<WFCrewRolePrototype>().OrderBy(role => role.Order).Select(role => role.ID).ToList();
-        _loadouts = new List<string> { string.Empty };
-        _loadouts.AddRange(_prototypes.EnumeratePrototypes<StartingGearPrototype>().Select(gear => gear.ID).Order());
-        _vessels = _prototypes.EnumeratePrototypes<VesselPrototype>().Where(vessel => !vessel.Abstract).Select(vessel => vessel.ID).Order().ToList();
-        _companies = new List<string> { string.Empty };
-        _companies.AddRange(_prototypes.EnumeratePrototypes<CompanyPrototype>().Select(company => company.ID).Order());
-        _factions = _prototypes.EnumeratePrototypes<NpcFactionPrototype>().Select(faction => faction.ID).Order().ToList();
-        _channels = _prototypes.EnumeratePrototypes<RadioChannelPrototype>().Select(channel => channel.ID).Order().ToList();
-        Fill(_vessel, _vessels, string.Empty);
-        Fill(_company, _companies, string.Empty);
-        Fill(_faction, _factions, "WFCrew");
-        Fill(_local, _channels, "Traffic");
-        Fill(_alert, _channels, "Common");
-        foreach (var order in Enum.GetValues<WFPilotOrder>())
-            _order.AddItem(Loc.GetString($"wf-crew-setup-order-{order.ToString().ToLowerInvariant()}"), (int) order);
-        SelectOnClick(_order);
-        SelectOnClick(_grid);
-        SelectOnClick(_target);
-        _grid.OnItemSelected += _ => { _rows.Clear(); _roster.RemoveAllChildren(); RefreshTargets(_target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : null); };
-        _order.OnItemSelected += _ => UpdateOrderFields();
 
-        var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
+        var body = Column(10);
         Contents.AddChild(body);
-        body.AddChild(Line("ship", _grid, Button("refresh", () => Send(WFCrewSetupAction.List))));
-        body.AddChild(Line("active-crews", _activeCrew));
-        body.AddChild(Line("group", _group, new Label { Text = Loc.GetString("wf-crew-setup-callsign") }, _callsign));
-        var tabs = new TabContainer { VerticalExpand = true };
-        body.AddChild(tabs);
-        BoxContainer Page(string key)
-        {
-            var page = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 10 };
-            tabs.AddChild(new ScrollContainer { Children = { page } });
-            tabs.SetTabTitle(tabs.ChildCount - 1, Loc.GetString($"wf-crew-setup-tab-{key}"));
-            return page;
-        }
-        var orders = Page("objectives");
-        BuildObjectives(orders);
-        var setup = Page("crew");
-        var rules = Page("rules");
-        var immediate = Page("manual");
-        setup.AddChild(Line("vessel", _vessel, Button("spawn-vessel", () => Send(WFCrewSetupAction.SpawnVessel))));
-        _captain.Text = Loc.GetString("wf-crew-setup-captain");
-        _heave.Text = Loc.GetString("wf-crew-setup-heave");
-        setup.AddChild(Line("deckhands", _count, _captain, Button("plan", () => Send(WFCrewSetupAction.Plan)),
-            Button("add", () => AddRow(new WFCrewSetupPost()))));
-        setup.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-roster-help") });
-        setup.AddChild(new ScrollContainer { VerticalExpand = true, MinHeight = 170, Children = { _roster } });
-        rules.AddChild(Line("company", _company, new Label { Text = Loc.GetString("wf-crew-setup-faction") }, _faction));
-        rules.AddChild(Line("channels", _local, _alert, _heave));
-        foreach (var button in new[] { _boardingRule, _dockingRule })
-        {
-            foreach (var response in Enum.GetValues<WFCrewSecurityResponse>())
-                button.AddItem(Loc.GetString($"wf-crew-setup-response-{response.ToString().ToLowerInvariant()}"), (int) response);
-            button.SelectId((int) WFCrewSecurityResponse.Hostile);
-            SelectOnClick(button);
-        }
-        rules.AddChild(Line("boarding-rule", _boardingRule));
-        rules.AddChild(Line("docking-rule", _dockingRule));
-        rules.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-security-help") });
-        rules.AddChild(Button("apply-rules", () => Send(WFCrewSetupAction.Rules)));
-        immediate.AddChild(Line("orders", _order));
-        _targetLine = Line("target-grid", _target, Button("refresh", () => Send(WFCrewSetupAction.List)));
-        immediate.AddChild(_targetLine);
-        _destinationLine = Line("destination", _x, _y);
-        immediate.AddChild(_destinationLine);
-        immediate.AddChild(Line("range", _range));
-        UpdateOrderFields();
-        setup.AddChild(Line("actions", Button("preview", () => Send(WFCrewSetupAction.Preview)),
-            Button("spawn", () => Send(WFCrewSetupAction.Spawn)), Button("clear", () => Send(WFCrewSetupAction.Clear))));
-        immediate.AddChild(Button("apply-orders", () => Send(WFCrewSetupAction.Orders)));
-        body.AddChild(_status);
-        Send(WFCrewSetupAction.List);
+        var split = new BoxContainer { SeparationOverride = 16, VerticalExpand = true };
+        body.AddChild(split);
+        var sidebar = Column(10);
+        sidebar.SetWidth = 220;
+        split.AddChild(sidebar);
+        sidebar.AddChild(Button("new-crew", ShowCreation));
+        sidebar.AddChild(Heading("active-crews"));
+        _crewSearch.PlaceHolder = Text("search-crews");
+        _crewSearch.OnTextChanged += _ => RenderCrews();
+        sidebar.AddChild(_crewSearch);
+        sidebar.AddChild(new ScrollContainer { VerticalExpand = true, Children = { _crewList } });
+        sidebar.AddChild(Help("auto-refresh"));
+        sidebar.AddChild(Button("refresh", () => _system.Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List })));
+
+        var main = Column(10);
+        main.HorizontalExpand = true;
+        split.AddChild(main);
+        main.AddChild(_heading);
+        main.AddChild(_subtitle);
+        _createView.VerticalExpand = _manageView.VerticalExpand = true;
+        main.AddChild(_createView);
+        main.AddChild(_manageView);
+        main.AddChild(_emptyView);
+        _emptyView.AddChild(Help("crew-gone"));
+        _emptyView.AddChild(Button("new-crew", ShowCreation));
+        BuildCreation();
+        BuildManagement();
+        body.AddChild(Card(_status));
+        ShowCreation();
+        _system.Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
     }
 
-    private static void SelectOnClick(OptionButton button) => button.OnItemSelected += args => button.SelectId(args.Id);
-
-    private static void Fill(OptionButton button, List<string> choices, string selected)
+    /// <summary>Selects an existing crew opened through its admin verb.</summary>
+    public void SelectCrew(NetEntity grid, string group)
     {
-        for (var index = 0; index < choices.Count; index++)
-            button.AddItem(choices[index].Length > 0 ? choices[index] : Loc.GetString("wf-crew-setup-default"), index);
-        button.TrySelectId(Math.Max(0, choices.IndexOf(selected)));
-        SelectOnClick(button);
+        _pendingCrew = new CrewKey(grid, group);
+        TrySelectPendingCrew();
     }
 
+    private void ShowCreation()
+    {
+        SaveSettings();
+        _creating = true;
+        _contextVersion++;
+        _createView.Visible = true;
+        _manageView.Visible = _emptyView.Visible = false;
+        _heading.Text = Text("new-crew");
+        Plain(_subtitle, Text("create-intro"));
+        Plain(_status, Text("create-hint"));
+        ShowStep(_step);
+        RenderCrews();
+    }
+
+    private void SelectLiveCrew(CrewKey key)
+    {
+        var crew = _liveCrews.FirstOrDefault(item => Key(item) == key);
+        if (crew == null)
+            return;
+        SaveSettings();
+        _selectedCrew = key;
+        _creating = false;
+        _contextVersion++;
+        if (!_edits.TryGetValue(key, out var edits))
+            _edits[key] = edits = new CrewEdits();
+        _crewSettings.Load(edits.Settings ?? crew.Settings);
+        _createView.Visible = _emptyView.Visible = false;
+        _manageView.Visible = true;
+        _removeConfirm.Visible = _manualConfirm.Visible = false;
+        ResetObjectiveEditor();
+        UpdateCrewHeader(crew);
+        RefreshTargets();
+        RenderQueue();
+        RenderCrews();
+        Plain(_status, Text("manage-hint"));
+    }
+
+    private void SaveSettings()
+    {
+        if (!_creating && _selectedCrew is { } key && _edits.TryGetValue(key, out var edits))
+            edits.Settings = _crewSettings.Read(key.Group);
+    }
+
+    private void UpdateCrewHeader(WFCrewSetupCrew crew)
+    {
+        _heading.Text = ShipName(crew.Grid);
+        Plain(_subtitle, Text("crew-summary", ("group", crew.Group), ("alive", crew.Alive), ("total", crew.Members), ("status", crew.Status)));
+    }
+
+    private void RenderCrews()
+    {
+        _crewList.RemoveAllChildren();
+        foreach (var crew in _liveCrews)
+        {
+            var ship = ShipName(crew.Grid);
+            if (!($"{ship} {crew.Group} {crew.Settings.Callsign}").Contains(_crewSearch.Text, StringComparison.OrdinalIgnoreCase))
+                continue;
+            var key = Key(crew);
+            var button = new ContainerButton { ToggleMode = true, Pressed = !_creating && _selectedCrew == key };
+            button.AddStyleClass(ContainerButton.StyleClassButton);
+            var content = Column(3);
+            content.Margin = new Thickness(8);
+            content.AddChild(new Label { Text = ship, ClipText = true, ToolTip = ship });
+            var detail = new RichTextLabel();
+            Plain(detail, Text("crew-card", ("group", crew.Group), ("alive", crew.Alive), ("total", crew.Members)));
+            content.AddChild(detail);
+            button.AddChild(content);
+            button.OnPressed += _ => SelectLiveCrew(key);
+            _crewList.AddChild(button);
+        }
+        if (_crewList.ChildCount == 0)
+            _crewList.AddChild(Help(_liveCrews.Count == 0 ? "no-crews" : "no-matches"));
+    }
+
+    private void TrySelectPendingCrew()
+    {
+        if (_pendingCrew is not { } key || !_liveCrews.Any(crew => Key(crew) == key))
+            return;
+        _pendingCrew = null;
+        SelectLiveCrew(key);
+    }
+
+    /// <summary>Routes replies only to their originating editor context; polling never changes identity.</summary>
+    private void Receive(WFCrewSetupResponse response)
+    {
+        PendingRequest? pending = null;
+        if (_requests.Remove(response.RequestId, out var found))
+            pending = found;
+        if (pending is { Action: WFCrewSetupAction.Objectives, Grid: { } savedGrid } saved && response.Message.Length == 0
+            && _edits.TryGetValue(new CrewKey(savedGrid, saved.Group), out var savedEdits) && savedEdits.Version == saved.QueueVersion)
+        {
+            savedEdits.Queue = null;
+            if (saved.Context == _contextVersion)
+                _editing = null;
+        }
+        if (response.Action == WFCrewSetupAction.List)
+        {
+            _grids = response.Grids;
+            RefreshCreationGrid();
+            RefreshTargets();
+        }
+        _liveCrews = response.Crews;
+        RenderCrews();
+        if (!_creating && _selectedCrew is { } selected)
+        {
+            var current = _liveCrews.FirstOrDefault(crew => Key(crew) == selected);
+            if (current == null)
+            {
+                _contextVersion++;
+                _manageView.Visible = false;
+                _emptyView.Visible = true;
+                _selectedCrew = null;
+                Plain(_subtitle, string.Empty);
+            }
+            else
+            {
+                UpdateCrewHeader(current);
+                RenderQueue();
+            }
+        }
+        TrySelectPendingCrew();
+        if (pending is not { } request || request.Context != _contextVersion)
+            return;
+        Plain(_status, response.Message.Length > 0 ? response.Message : Text("saved"));
+        if (response.Action == WFCrewSetupAction.Plan && _creating && response.Grid == _creationGrid)
+        {
+            _rows.Clear();
+            _roster.RemoveAllChildren();
+            foreach (var post in response.Posts)
+                AddRow(post);
+            UpdateRosterSummary();
+        }
+        else if (response.Action == WFCrewSetupAction.SpawnVessel && response.Grid is { } grid && response.Message.Length == 0)
+        {
+            _creationGrid = grid;
+            _contextVersion++;
+            _rows.Clear();
+            _roster.RemoveAllChildren();
+            UpdateRosterSummary();
+            _system.Send(new WFCrewSetupRequest { Action = WFCrewSetupAction.List });
+        }
+        else if (response.Action == WFCrewSetupAction.Spawn && response.Grid is { } ship
+                 && _liveCrews.Any(crew => crew.Grid == ship && crew.Group == request.Group))
+        {
+            SelectLiveCrew(new CrewKey(ship, request.Group));
+            Plain(_status, response.Message);
+        }
+        else if (response.Action == WFCrewSetupAction.Objectives && response.Message.Length == 0
+                 && CurrentEdits is { } edits && edits.Version == request.QueueVersion)
+        {
+            edits.Queue = null;
+            _editing = null;
+            RenderQueue();
+        }
+    }
+
+    private void Request(WFCrewSetupRequest request)
+    {
+        if (request.Action != WFCrewSetupAction.Plan
+            && _requests.Values.Any(pending => pending.Action == request.Action && pending.Grid == request.Grid && pending.Group == request.Mission.Group))
+            return;
+        var id = _system.Send(request);
+        _requests[id] = new PendingRequest(_contextVersion, CurrentEdits?.Version ?? 0, request.Mission.Group, request.Action, request.Grid);
+        Plain(_status, Text("sending"));
+    }
+
+    private string ShipName(NetEntity grid) => _grids.FirstOrDefault(item => item.Id == grid)?.Name ?? grid.ToString();
+    private static CrewKey Key(WFCrewSetupCrew crew) => new(crew.Grid, crew.Group);
+    private WFCrewSetupCrew? CurrentCrew => !_creating && _selectedCrew is { } key ? _liveCrews.FirstOrDefault(crew => Key(crew) == key) : null;
+    private CrewEdits? CurrentEdits => !_creating && _selectedCrew is { } key ? _edits.GetValueOrDefault(key) : null;
+    private static string Text(string key, params (string, object)[] args) => Loc.GetString($"wf-crew-setup-{key}", args);
+    private static BoxContainer Column(int gap = 8) => new() { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = gap };
+    private static Label Heading(string key) => new() { Text = Text(key), StyleClasses = { "LabelHeading" } };
+    private static RichTextLabel Help(string key)
+    {
+        var label = new RichTextLabel { HorizontalExpand = true };
+        Plain(label, Text(key));
+        return label;
+    }
+    private static void Plain(RichTextLabel label, string text) => label.SetMessage(FormattedMessage.FromUnformatted(text));
+    private static PanelContainer Card(Control content) => new()
+    {
+        PanelOverride = new StyleBoxFlat(Color.FromHex("#18232E")),
+        Children = { new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new Thickness(12), Children = { content } } },
+    };
     private static Button Button(string key, Action pressed)
     {
-        var button = new Button { Text = Loc.GetString($"wf-crew-setup-{key}") };
+        var button = new Button { Text = Text(key), MinHeight = 30, Name = key };
         button.OnPressed += _ => pressed();
         return button;
     }
-
     private static BoxContainer Line(string key, params Control[] controls)
     {
-        var line = new BoxContainer { SeparationOverride = 6 };
-        line.AddChild(new Label { Text = Loc.GetString($"wf-crew-setup-{key}"), MinWidth = 110 });
+        var line = new BoxContainer { SeparationOverride = 8 };
+        line.AddChild(new Label { Text = Text(key), MinWidth = 170 });
         foreach (var control in controls)
         {
             control.HorizontalExpand = true;
@@ -173,146 +293,29 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         }
         return line;
     }
-
-    private void AddRow(WFCrewSetupPost post)
+    private static BoxContainer Buttons(params Control[] controls)
     {
-        var row = new Row();
-        Fill(row.Role, _roles, post.Role);
-        for (var index = 0; index < _roles.Count; index++)
-            row.Role.SetItemText(index, Loc.GetString(_prototypes.Index<WFCrewRolePrototype>(_roles[index]).Title));
-        Fill(row.Loadout, _loadouts, post.Loadout);
-        row.X.Text = post.Position.X.ToString(CultureInfo.InvariantCulture);
-        row.Y.Text = post.Position.Y.ToString(CultureInfo.InvariantCulture);
-        row.Engagement.AddItem(Loc.GetString("wf-crew-setup-default"), 0);
-        row.Engagement.AddItem(Loc.GetString("wf-crew-setup-onsight"), 1);
-        row.Engagement.AddItem(Loc.GetString("wf-crew-setup-attacked"), 2);
-        row.Engagement.SelectId(post.Engagement is { } engagement ? (int) engagement + 1 : 0);
-        SelectOnClick(row.Engagement);
-        foreach (var control in new Control[] { row.Role, row.Loadout, row.Engagement, row.X, row.Y })
-        {
-            control.HorizontalExpand = true;
-            row.Box.AddChild(control);
-        }
-        row.X.MinWidth = row.Y.MinWidth = 55;
-        row.Box.AddChild(Button("teleport", () => Send(WFCrewSetupAction.Teleport, row)));
-        row.Box.AddChild(Button("remove", () => { _rows.Remove(row); _roster.RemoveChild(row.Box); }));
-        _rows.Add(row);
-        _roster.AddChild(row.Box);
+        var line = new BoxContainer { SeparationOverride = 6 };
+        foreach (var control in controls)
+            line.AddChild(control);
+        return line;
     }
-
+    private static void SelectOnClick(OptionButton button) => button.OnItemSelected += args => button.SelectId(args.Id);
+    private static void Fill(OptionButton button, List<string> choices, string selected)
+    {
+        button.Filterable = true;
+        for (var index = 0; index < choices.Count; index++)
+            button.AddItem(choices[index].Length > 0 ? choices[index] : Text("default"), index);
+        button.TrySelectId(Math.Max(0, choices.IndexOf(selected)));
+        SelectOnClick(button);
+    }
     private static float Number(LineEdit edit) => float.TryParse(edit.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : float.NaN;
-
-    private void UpdateOrderFields()
+    private readonly record struct CrewKey(NetEntity Grid, string Group);
+    private readonly record struct PendingRequest(int Context, int QueueVersion, string Group, WFCrewSetupAction Action, NetEntity? Grid);
+    private sealed class CrewEdits
     {
-        var order = (WFPilotOrder) _order.SelectedId;
-        _targetLine.Visible = order is WFPilotOrder.Dock or WFPilotOrder.Follow;
-        _destinationLine.Visible = order is WFPilotOrder.GoTo or WFPilotOrder.Loiter;
-    }
-
-    private void RefreshTargets(NetEntity? selected)
-    {
-        _target.Clear();
-        _target.AddItem(Loc.GetString("wf-crew-setup-select-target"), -1);
-        _target.SelectId(-1);
-        for (var index = 0; index < _grids.Count; index++)
-        {
-            if (index == _grid.SelectedId)
-                continue;
-            _target.AddItem($"{_grids[index].Name} ({_grids[index].Id})", index);
-            if (_grids[index].Id == selected)
-                _target.SelectId(index);
-        }
-    }
-
-    private WFCrewSetupPost Read(Row row) => new()
-    {
-        Role = _roles[row.Role.SelectedId], Loadout = _loadouts[row.Loadout.SelectedId],
-        Engagement = row.Engagement.SelectedId == 0 ? null : (WFCrewEngagement) (row.Engagement.SelectedId - 1),
-        Position = new Vector2(Number(row.X), Number(row.Y)),
-    };
-
-    private void Send(WFCrewSetupAction action, Row? row = null)
-    {
-        _system.Send(new WFCrewSetupRequest
-        {
-            Action = action, Grid = _grids.Count > 0 ? _grids[_grid.SelectedId].Id : null,
-            Deckhands = int.TryParse(_count.Text, out var count) ? count : 2, Captain = _captain.Pressed,
-            Vessel = _vessels.Count > 0 ? _vessels[_vessel.SelectedId] : string.Empty,
-            Posts = row != null ? new List<WFCrewSetupPost> { Read(row) } : _rows.Select(Read).ToList(),
-            Mission = new WFCrewMission
-            {
-                Group = _group.Text, Callsign = _callsign.Text, Company = _companies[_company.SelectedId],
-                Faction = _factions[_faction.SelectedId], LocalChannel = _channels[_local.SelectedId],
-                AlertChannel = _channels[_alert.SelectedId], HeaveTo = _heave.Pressed,
-                BoardingResponse = (WFCrewSecurityResponse) _boardingRule.SelectedId,
-                DockingResponse = (WFCrewSecurityResponse) _dockingRule.SelectedId,
-                Order = (WFPilotOrder) _order.SelectedId, Destination = new Vector2(Number(_x), Number(_y)),
-                Range = Number(_range), Target = _target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : null,
-            },
-        });
-    }
-
-    private void Receive(WFCrewSetupResponse response)
-    {
-        if (response.Action != WFCrewSetupAction.List)
-            _status.Text = response.Message;
-        if (response.Action == WFCrewSetupAction.List)
-        {
-            var selected = _pendingGrid ?? (_grids.Count > 0 ? _grids[_grid.SelectedId].Id : (NetEntity?) null);
-            var target = _target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : (NetEntity?) null;
-            _grids = response.Grids;
-            _grid.Clear();
-            _target.Clear();
-            for (var index = 0; index < _grids.Count; index++)
-            {
-                _grid.AddItem($"{_grids[index].Name} ({_grids[index].Id})", index);
-            }
-            _grid.TrySelectId(Math.Max(0, _grids.FindIndex(grid => grid.Id == selected)));
-            RefreshTargets(target);
-            _pendingGrid = null;
-            if (_planAfterList)
-            {
-                _planAfterList = false;
-                Send(WFCrewSetupAction.Plan);
-            }
-        }
-        else if (response.Action == WFCrewSetupAction.Plan)
-        {
-            if (_grids.Count == 0 || _grids[_grid.SelectedId].Id != response.Grid)
-                return;
-            _rows.Clear();
-            _roster.RemoveAllChildren();
-            foreach (var post in response.Posts)
-                AddRow(post);
-        }
-        else if (response.Action == WFCrewSetupAction.SpawnVessel && response.Grid != null)
-        {
-            _pendingGrid = response.Grid;
-            Send(WFCrewSetupAction.List);
-        }
-        ReceiveCrews(response.Crews);
-        if (response.Message.Length == 0 && response.Action is WFCrewSetupAction.Objectives or WFCrewSetupAction.AppendObjective
-            or WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip)
-        {
-            var crew = response.Crews.FirstOrDefault(row => row.Grid == response.Grid && row.Group == _group.Text);
-            if (crew != null)
-            {
-                _draft = crew.Objectives.ToList();
-                _queueDirty = false;
-                _editing = null;
-                RenderQueue();
-                _status.Text = crew.Status;
-            }
-        }
-    }
-
-    private sealed class Row
-    {
-        public readonly BoxContainer Box = new() { SeparationOverride = 4 };
-        public readonly OptionButton Role = new();
-        public readonly OptionButton Loadout = new();
-        public readonly OptionButton Engagement = new();
-        public readonly LineEdit X = new();
-        public readonly LineEdit Y = new();
+        public WFCrewMission? Settings;
+        public List<WFCrewObjective>? Queue;
+        public int Version;
     }
 }

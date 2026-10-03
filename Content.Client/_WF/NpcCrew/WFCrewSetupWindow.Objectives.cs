@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using Content.Shared._WF.NpcCrew;
 using Robust.Client.UserInterface.Controls;
 
@@ -7,197 +8,266 @@ namespace Content.Client._WF.NpcCrew;
 
 public sealed partial class WFCrewSetupWindow
 {
-    private readonly OptionButton _activeCrew = new();
     private readonly OptionButton _objectiveKind = new();
-    private readonly OptionButton _objectiveTarget = new();
+    private readonly OptionButton _objectiveTarget = new() { Filterable = true };
     private readonly LineEdit _duration = new() { Text = "0" };
-    private readonly LineEdit _objectiveRange = new() { Text = "300" };
+    private readonly LineEdit _objectiveRange = new() { Text = "100" };
     private readonly LineEdit _objectiveX = new() { Text = "0" };
     private readonly LineEdit _objectiveY = new() { Text = "0" };
-    private readonly BoxContainer _queueRows = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
-    private List<WFCrewSetupCrew> _liveCrews = new();
-    private List<WFCrewObjective> _draft = new();
-    private int? _editing;
-    private NetEntity? _selectedObjectiveTarget;
-    private bool _queueDirty;
+    private readonly BoxContainer _queueRows = Column(6);
+    private readonly Label _queueTitle = new() { StyleClasses = { "LabelHeading" } };
+    private readonly RichTextLabel _queueNotice = new();
+    private readonly RichTextLabel _objectiveHelp = new();
+    private BoxContainer _objectiveTargetLine = default!;
     private BoxContainer _objectivePositionLine = default!;
     private BoxContainer _objectiveTimingLine = default!;
-    private readonly Label _objectiveHelp = new();
+    private BoxContainer _objectiveRangeLine = default!;
+    private BoxContainer _liveButtons = default!;
+    private BoxContainer _draftButtons = default!;
+    private Button _addObjective = default!;
+    private Button _cancelEdit = default!;
+    private int? _editing;
 
     private void BuildObjectives(BoxContainer body)
     {
-        SelectOnClick(_activeCrew);
-        SelectOnClick(_objectiveKind);
-        SelectOnClick(_objectiveTarget);
-        _objectiveTarget.OnItemSelected += args => _selectedObjectiveTarget = args.Id >= 0 && args.Id < _grids.Count ? _grids[args.Id].Id : null;
+        var queue = Column();
+        queue.AddChild(_queueTitle);
+        queue.AddChild(_queueNotice);
+        queue.AddChild(new ScrollContainer { MinHeight = 90, MaxHeight = 220, Children = { _queueRows } });
+        _liveButtons = Buttons(Button("queue-pause", () => SendQueue(WFCrewSetupAction.Pause)),
+            Button("queue-resume", () => SendQueue(WFCrewSetupAction.Resume)),
+            Button("queue-skip", () => SendQueue(WFCrewSetupAction.Skip)), Button("edit-queue", BeginQueueEdit));
+        _draftButtons = Buttons(Button("replace-queue", () => SendQueue(WFCrewSetupAction.Objectives)), Button("discard-draft", () =>
+        {
+            if (CurrentEdits is not { } edits)
+                return;
+            edits.Queue = null;
+            edits.Version++;
+            _editing = null;
+            RenderQueue();
+        }));
+        queue.AddChild(_liveButtons);
+        queue.AddChild(_draftButtons);
+        body.AddChild(Card(queue));
+
+        var editor = Column();
+        editor.AddChild(Heading("add-task"));
         foreach (var kind in Enum.GetValues<WFCrewObjectiveKind>())
             _objectiveKind.AddItem(Loc.GetString($"wf-crew-objective-{kind.ToString().ToLowerInvariant()}"), (int) kind);
-        _activeCrew.OnItemSelected += args =>
-        {
-            if (args.Id >= _liveCrews.Count)
-                return;
-            var crew = _liveCrews[args.Id];
-            var index = _grids.FindIndex(grid => grid.Id == crew.Grid);
-            if (index < 0)
-                return;
-            _grid.SelectId(index);
-            _group.Text = crew.Group;
-            var settings = crew.Settings;
-            _callsign.Text = settings.Callsign;
-            _company.TrySelectId(Math.Max(0, _companies.IndexOf(settings.Company)));
-            _faction.TrySelectId(Math.Max(0, _factions.IndexOf(settings.Faction)));
-            _local.TrySelectId(Math.Max(0, _channels.IndexOf(settings.LocalChannel)));
-            _alert.TrySelectId(Math.Max(0, _channels.IndexOf(settings.AlertChannel)));
-            _boardingRule.SelectId((int) settings.BoardingResponse);
-            _dockingRule.SelectId((int) settings.DockingResponse);
-            _heave.Pressed = settings.HeaveTo;
-            _draft = crew.Objectives.ToList();
-            _queueDirty = false;
-            _editing = null;
-            _rows.Clear();
-            _roster.RemoveAllChildren();
-            RefreshTargets(null);
-            FillObjectiveTargets();
-            RenderQueue();
-            _status.Text = crew.Status;
-        };
-        _grid.OnItemSelected += _ => { _draft.Clear(); RenderQueue(); FillObjectiveTargets(); };
-        body.AddChild(Line("objective", _objectiveKind, _objectiveTarget));
-        _objectiveTimingLine = Line("objective-duration", _duration, new Label { Text = Loc.GetString("wf-crew-setup-range") }, _objectiveRange);
-        _objectivePositionLine = Line("destination", _objectiveX, _objectiveY);
-        body.AddChild(_objectiveTimingLine);
-        body.AddChild(_objectivePositionLine);
-        body.AddChild(_objectiveHelp);
+        SelectOnClick(_objectiveKind);
+        SelectOnClick(_objectiveTarget);
         _objectiveKind.OnItemSelected += _ => UpdateObjectiveFields();
+        editor.AddChild(Line("task-type", _objectiveKind));
+        _objectiveTargetLine = Line("target-grid", _objectiveTarget);
+        _objectivePositionLine = Line("destination", _objectiveX, _objectiveY);
+        _objectiveTimingLine = Line("duration-seconds", _duration);
+        _objectiveRangeLine = Line("range-metres", _objectiveRange);
+        editor.AddChild(_objectiveTargetLine);
+        editor.AddChild(_objectivePositionLine);
+        editor.AddChild(_objectiveRangeLine);
+        editor.AddChild(_objectiveTimingLine);
+        editor.AddChild(_objectiveHelp);
+        _addObjective = Button("append-task", AddObjective);
+        _cancelEdit = Button("cancel-edit", () => { _editing = null; RenderQueue(); });
+        editor.AddChild(Buttons(_addObjective, _cancelEdit));
+        body.AddChild(Card(editor));
+        ResetObjectiveEditor();
+    }
+
+    private static bool NeedsTarget(WFCrewObjectiveKind kind) => kind is not
+        (WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Repair);
+    private static bool HasDuration(WFCrewObjectiveKind kind) => kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.Loiter
+        or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Escort;
+    private static bool HasRange(WFCrewObjectiveKind kind) => kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Loiter
+        or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Escort;
+
+    private void ResetObjectiveEditor()
+    {
+        _editing = null;
+        _objectiveKind.SelectId((int) WFCrewObjectiveKind.Dock);
+        _objectiveTarget.TrySelectId(-1);
+        _duration.Text = "0";
+        _objectiveRange.Text = "100";
         UpdateObjectiveFields();
-        body.AddChild(Line("queue-actions", Button("queue-add", AddObjective), Button("queue-append", () => SendQueue(WFCrewSetupAction.AppendObjective))));
-        body.AddChild(new ScrollContainer { MinHeight = 90, MaxHeight = 150, Children = { _queueRows } });
-        body.AddChild(Line("queue-control", Button("queue-save", () => SendQueue(WFCrewSetupAction.Objectives)),
-            Button("queue-pause", () => SendQueue(WFCrewSetupAction.Pause)),
-            Button("queue-resume", () => SendQueue(WFCrewSetupAction.Resume)), Button("queue-skip", () => SendQueue(WFCrewSetupAction.Skip))));
-        body.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-queue-help") });
     }
 
     private void UpdateObjectiveFields()
     {
         var kind = (WFCrewObjectiveKind) _objectiveKind.SelectedId;
         _objectivePositionLine.Visible = kind == WFCrewObjectiveKind.GoTo;
-        _objectiveTarget.Visible = kind is not (WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Repair);
-        _objectiveTimingLine.Visible = kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Loiter
-            or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Escort;
-        _objectiveHelp.Text = Loc.GetString(kind switch
-        {
-            WFCrewObjectiveKind.Repair => "wf-crew-setup-repair-help",
-            WFCrewObjectiveKind.Resupply => "wf-crew-setup-resupply-help",
-            WFCrewObjectiveKind.Salvage => "wf-crew-setup-salvage-help",
-            WFCrewObjectiveKind.Attack => "wf-crew-setup-attack-help",
-            WFCrewObjectiveKind.Escort => "wf-crew-setup-escort-help",
-            _ => "wf-crew-setup-objective-help",
-        });
+        _objectiveTargetLine.Visible = NeedsTarget(kind);
+        _objectiveTimingLine.Visible = HasDuration(kind);
+        _objectiveRangeLine.Visible = HasRange(kind);
+        Plain(_objectiveHelp, Text($"task-help-{kind.ToString().ToLowerInvariant()}"));
     }
 
-    private void FillObjectiveTargets()
+    /// <summary>Hidden fields use valid defaults so another task's unfinished input cannot invalidate this one.</summary>
+    private WFCrewObjective ReadObjective()
     {
-        var previous = _selectedObjectiveTarget;
-        _objectiveTarget.Clear();
-        _objectiveTarget.AddItem(Loc.GetString("wf-crew-setup-select-target"), -1);
-        _objectiveTarget.SelectId(-1);
-        for (var index = 0; index < _grids.Count; index++)
+        var kind = (WFCrewObjectiveKind) _objectiveKind.SelectedId;
+        return new WFCrewObjective
         {
-            if (index == _grid.SelectedId)
-                continue;
-            _objectiveTarget.AddItem($"{_grids[index].Name} ({_grids[index].Id})", index);
-            if (_grids[index].Id == previous)
-                _objectiveTarget.SelectId(index);
+            Kind = kind,
+            Target = NeedsTarget(kind) ? (_objectiveTarget.SelectedMetadata as WFCrewSetupGrid)?.Id : null,
+            Position = kind == WFCrewObjectiveKind.GoTo ? new Vector2(Number(_objectiveX), Number(_objectiveY)) : Vector2.Zero,
+            Range = HasRange(kind) ? Number(_objectiveRange) : 100,
+            Duration = HasDuration(kind) ? Number(_duration) : 0,
+        };
+    }
+
+    private bool ValidateObjective(WFCrewObjective item)
+    {
+        if (NeedsTarget(item.Kind) && (item.Target == null || item.Target == _selectedCrew?.Grid || !_grids.Any(grid => grid.Id == item.Target)))
+        {
+            Plain(_status, Text("choose-target"));
+            return false;
         }
+        if (!float.IsFinite(item.Position.X) || !float.IsFinite(item.Position.Y) || !float.IsFinite(item.Range)
+            || item.Range is < 1 or > 5000 || !float.IsFinite(item.Duration) || item.Duration is < 0 or > 86400)
+        {
+            Plain(_status, Text("bad-numbers"));
+            return false;
+        }
+        return true;
     }
 
-    private WFCrewObjective ReadObjective() => new()
+    private void BeginQueueEdit()
     {
-        Kind = (WFCrewObjectiveKind) _objectiveKind.SelectedId,
-        Target = _objectiveTarget.SelectedId >= 0 && _objectiveTarget.SelectedId < _grids.Count ? _grids[_objectiveTarget.SelectedId].Id : null,
-        Position = new System.Numerics.Vector2(Number(_objectiveX), Number(_objectiveY)),
-        Range = Number(_objectiveRange), Duration = Number(_duration),
-    };
+        if (CurrentCrew is not { } crew || CurrentEdits is not { } edits)
+            return;
+        edits.Queue = crew.Objectives.ToList();
+        edits.Version++;
+        _editing = null;
+        RenderQueue();
+    }
 
     private void AddObjective()
     {
-        _queueDirty = true;
-        if (_editing is { } index && index < _draft.Count)
-            _draft[index] = ReadObjective();
+        if (CurrentEdits is not { } edits)
+            return;
+        var item = ReadObjective();
+        if (!ValidateObjective(item))
+            return;
+        if (edits.Queue == null)
+        {
+            SendQueue(WFCrewSetupAction.AppendObjective);
+            return;
+        }
+        if (_editing is { } index && index < edits.Queue.Count)
+            edits.Queue[index] = item;
+        else if (edits.Queue.Count < 64)
+            edits.Queue.Add(item);
         else
-            _draft.Add(ReadObjective());
+        {
+            Plain(_status, Text("queue-full"));
+            return;
+        }
+        edits.Version++;
         _editing = null;
         RenderQueue();
     }
 
     private void SendQueue(WFCrewSetupAction action)
     {
-        if (_grids.Count == 0)
+        if (CurrentCrew is not { } crew || CurrentEdits is not { } edits)
             return;
-        _system.Send(new WFCrewSetupRequest
+        var objectives = new List<WFCrewObjective>();
+        if (action == WFCrewSetupAction.AppendObjective)
         {
-            Action = action, Grid = _grids[_grid.SelectedId].Id,
-            Mission = new WFCrewMission { Group = _group.Text },
-            Objectives = action == WFCrewSetupAction.AppendObjective ? new List<WFCrewObjective> { ReadObjective() } : _draft.ToList(),
+            var item = ReadObjective();
+            if (!ValidateObjective(item))
+                return;
+            objectives.Add(item);
+        }
+        else if (action == WFCrewSetupAction.Objectives)
+        {
+            if (edits.Queue == null || edits.Queue.Any(item => !ValidateObjective(item)))
+                return;
+            objectives = edits.Queue.ToList();
+        }
+        Request(new WFCrewSetupRequest
+        {
+            Action = action, Grid = crew.Grid, Mission = new WFCrewMission { Group = crew.Group }, Objectives = objectives,
         });
     }
 
     private void RenderQueue()
     {
         _queueRows.RemoveAllChildren();
-        for (var index = 0; index < _draft.Count; index++)
+        var draft = CurrentEdits?.Queue;
+        var items = draft ?? CurrentCrew?.Objectives ?? new List<WFCrewObjective>();
+        _queueTitle.Text = Text(draft == null ? "live-queue" : "draft-queue");
+        Plain(_queueNotice, Text(draft == null ? "live-queue-help" : "draft-queue-help"));
+        _liveButtons.Visible = draft == null;
+        _draftButtons.Visible = draft != null;
+        _addObjective.Text = Text(draft == null ? "append-task" : _editing == null ? "add-to-draft" : "save-task");
+        _cancelEdit.Visible = _editing != null;
+        if (items.Count == 0)
+            _queueRows.AddChild(Help("empty-queue"));
+        for (var index = 0; index < items.Count; index++)
         {
             var at = index;
-            var item = _draft[index];
-            var name = Loc.GetString($"wf-crew-objective-{item.Kind.ToString().ToLowerInvariant()}");
-            var target = _grids.FirstOrDefault(grid => grid.Id == item.Target)?.Name ?? item.Position.ToString();
-            var line = new BoxContainer();
-            line.AddChild(new Label { Text = $"{index + 1}. {name}: {target}", HorizontalExpand = true });
-            line.AddChild(Button("queue-edit", () =>
+            var item = items[index];
+            var row = Column(3);
+            var label = new RichTextLabel();
+            Plain(label, Text("queue-entry", ("number", index + 1), ("task", DescribeObjective(item))));
+            row.AddChild(label);
+            if (draft != null)
             {
-                _editing = at;
-                _queueDirty = true;
-                _objectiveKind.SelectId((int) item.Kind);
-                UpdateObjectiveFields();
-                _objectiveTarget.TrySelectId(_grids.FindIndex(grid => grid.Id == item.Target));
-                _selectedObjectiveTarget = item.Target;
-                _duration.Text = item.Duration.ToString(CultureInfo.InvariantCulture);
-                _objectiveRange.Text = item.Range.ToString(CultureInfo.InvariantCulture);
-                _objectiveX.Text = item.Position.X.ToString(CultureInfo.InvariantCulture);
-                _objectiveY.Text = item.Position.Y.ToString(CultureInfo.InvariantCulture);
-            }));
-            line.AddChild(Button("queue-up", () =>
-            {
-                if (at > 0) { (_draft[at - 1], _draft[at]) = (_draft[at], _draft[at - 1]); _queueDirty = true; _editing = null; RenderQueue(); }
-            }));
-            line.AddChild(Button("remove", () => { _draft.RemoveAt(at); _queueDirty = true; _editing = null; RenderQueue(); }));
-            _queueRows.AddChild(line);
+                var up = Button("queue-up", () => MoveObjective(at, -1));
+                var down = Button("queue-down", () => MoveObjective(at, 1));
+                up.Disabled = at == 0;
+                down.Disabled = at == items.Count - 1;
+                row.AddChild(Buttons(Button("queue-edit", () => EditObjective(at, item)), up, down, Button("remove", () =>
+                {
+                    if (CurrentEdits is not { Queue: { } queue } edits || at >= queue.Count)
+                        return;
+                    queue.RemoveAt(at);
+                    edits.Version++;
+                    _editing = null;
+                    RenderQueue();
+                })));
+            }
+            _queueRows.AddChild(row);
         }
     }
 
-    private void ReceiveCrews(List<WFCrewSetupCrew> crews)
+    private void MoveObjective(int index, int direction)
     {
-        var previous = _activeCrew.SelectedId >= 0 && _activeCrew.SelectedId < _liveCrews.Count ? _liveCrews[_activeCrew.SelectedId] : null;
-        _liveCrews = crews;
-        _activeCrew.Clear();
-        for (var index = 0; index < crews.Count; index++)
-        {
-            var crew = crews[index];
-            var ship = _grids.FirstOrDefault(grid => grid.Id == crew.Grid)?.Name ?? crew.Grid.ToString();
-            _activeCrew.AddItem($"{ship} / {crew.Group} ({crew.Alive}/{crew.Members}) — {crew.Status}", index);
-            if (previous?.Grid == crew.Grid && previous.Group == crew.Group)
-                _activeCrew.SelectId(index);
-        }
-        FillObjectiveTargets();
-        if (!_queueDirty && _grids.Count > 0)
-        {
-            var current = crews.FirstOrDefault(crew => crew.Grid == _grids[_grid.SelectedId].Id && crew.Group == _group.Text);
-            if (current != null)
-            {
-                _draft = current.Objectives.ToList();
-                RenderQueue();
-            }
-        }
+        if (CurrentEdits is not { Queue: { } queue } edits || index + direction < 0 || index + direction >= queue.Count)
+            return;
+        (queue[index], queue[index + direction]) = (queue[index + direction], queue[index]);
+        edits.Version++;
+        _editing = null;
+        RenderQueue();
+    }
+
+    private void EditObjective(int index, WFCrewObjective item)
+    {
+        if (CurrentEdits is { } edits)
+            edits.Version++;
+        _editing = index;
+        _objectiveKind.SelectId((int) item.Kind);
+        _objectiveTarget.TrySelectId(_grids.FindIndex(grid => grid.Id == item.Target));
+        _duration.Text = item.Duration.ToString(CultureInfo.InvariantCulture);
+        _objectiveRange.Text = item.Range.ToString(CultureInfo.InvariantCulture);
+        _objectiveX.Text = item.Position.X.ToString(CultureInfo.InvariantCulture);
+        _objectiveY.Text = item.Position.Y.ToString(CultureInfo.InvariantCulture);
+        UpdateObjectiveFields();
+        RenderQueue();
+    }
+
+    private string DescribeObjective(WFCrewObjective item)
+    {
+        var name = Loc.GetString($"wf-crew-objective-{item.Kind.ToString().ToLowerInvariant()}");
+        if (NeedsTarget(item.Kind))
+            name = Text("task-at", ("task", name), ("target", item.Target is { } target ? ShipName(target) : Text("select-target")));
+        else if (item.Kind == WFCrewObjectiveKind.GoTo)
+            name = Text("task-coordinates", ("task", name), ("x", item.Position.X), ("y", item.Position.Y));
+        if (HasRange(item.Kind))
+            name = Text("task-range", ("task", name), ("range", item.Range));
+        if (HasDuration(item.Kind))
+            name = item.Duration == 0 ? Text("task-indefinite", ("task", name)) : Text("task-duration", ("task", name), ("seconds", item.Duration));
+        return name;
     }
 }

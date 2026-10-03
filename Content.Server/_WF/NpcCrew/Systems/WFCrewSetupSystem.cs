@@ -201,7 +201,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     {
         if (!_admins.HasAdminFlag(args.SenderSession, AdminFlags.Spawn))
             return;
-        var response = new WFCrewSetupResponse { Action = request.Action, Grid = request.Grid };
+        var response = new WFCrewSetupResponse { RequestId = request.RequestId, Action = request.Action, Grid = request.Grid };
         var session = args.SenderSession;
         if (request.Action == WFCrewSetupAction.List)
         {

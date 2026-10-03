@@ -1,7 +1,9 @@
 # NpcCrew
 
-Crew Setup separates objectives, crew creation, faction/security settings and immediate orders into tabs. The
-selected ship and active-crew picker stay visible. Security settings can be changed without replacing the queue;
+Crew Setup has a four-step creation flow (ship, roster, rules, review) and an active-crew sidebar. Ship, vessel and
+equipment lists are searchable; post coordinates and equipment overrides expand per member. Selecting a live crew
+opens its mission queue, settings and separate admin tools. Add-to-end preserves progress; explicitly editing a
+draft enables reorder/remove/replace. Each crew keeps its draft across selection and automatic refresh. Security settings can be changed without replacing the queue;
 unauthorized boarding and docking independently support Ignore, Warn and Hostile. Authorization uses company
 membership where available, otherwise a shared NPC faction. A crew's ordered docking destination is authorized
 for that approach. Incoming ships do not cause the stationary crew to announce that it is docking. Radio officers
@@ -50,7 +52,7 @@ Custom loadouts without suitable protection or air cannot start work orders.
 Crew Setup also lists active crews and their remaining objectives, refreshing every two seconds. Select a crew
 and build a queue of Hold, GoTo coordinates (repeat for patrol waypoints), Dock, Undock, Loiter at a grid, Escort,
 Attack or Retreat to a grid. Append preserves the running task; Replace starts the edited queue from its first
-entry. Edit, move up, remove, pause, resume and skip are available. Timed Hold/Loiter/Escort/Attack tasks use seconds;
+entry. Edit, move up/down, remove, pause, resume and skip are available. Timed Hold/Loiter/Follow/Escort/Attack tasks use seconds;
 zero means indefinite until skipped. Travel, retreat, dock and undock advance on arrival. Missing targets or a failed
 dock pause the queue with a visible status; a replacement pilot can continue it. Immediate orders cancel the queue.
 Queues last for the round and are scoped by ship and group. Attack explicitly assigns the gunner's target, including
@@ -191,8 +193,10 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupClientSystem.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupOverlay.cs)
+- [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Creation.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Creation.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.cs)
 - [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Objectives.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Objectives.cs)
+- [`Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Settings.cs`](../../../Content.Client/_WF/NpcCrew/WFCrewSetupWindow.Settings.cs)
 
 ### Integration tests
 
@@ -208,6 +212,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Routines.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Routines.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupUi.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupUi.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
 
@@ -224,6 +229,7 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 
 - [`Resources/Locale/en-US/_WF/NpcCrew/crew.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/crew.ftl)
 - [`Resources/Locale/en-US/_WF/NpcCrew/radio-reports.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/radio-reports.ftl)
+- [`Resources/Locale/en-US/_WF/NpcCrew/setup.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/setup.ftl)
 
 ### Docs
 
