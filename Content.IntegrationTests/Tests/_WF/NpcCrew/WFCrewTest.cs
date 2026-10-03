@@ -363,8 +363,9 @@ public sealed partial class WFCrewTest : InteractionTest
     /// A radio officer whose ship docks with another says so once on Shortband, with the callsign (his grid's name)
     /// and the station's name.
     /// </summary>
-    [Test]
-    public async Task RadioOperatorReportsDocking()
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task RadioOperatorReportsDocking(bool outbound)
     {
         var crewSystem = Server.System<WFCrewSystem>();
         var docking = Server.System<DockingSystem>();
@@ -379,6 +380,8 @@ public sealed partial class WFCrewTest : InteractionTest
             meta.SetEntityName(target, "WF Test Station");
             SEntMan.EnsureComponent<ShuttleComponent>(deck);
             radio = crewSystem.SpawnCrewman(WFCrewRoles.RadioOperator, new EntityCoordinates(deck, new Vector2(3.5f, 3.5f)), "test")!.Value;
+            if (!outbound)
+                SEntMan.EnsureComponent<WFCrewSecurityComponent>(radio).Docking = WFCrewSecurityResponse.Hostile;
         });
         await RunTicks(5);
 
@@ -392,22 +395,36 @@ public sealed partial class WFCrewTest : InteractionTest
         // Put the decks together the way an FTL dock does: no jump, just the move and the docking.
         await Server.WaitPost(() =>
         {
+            if (outbound)
+            {
+                var pilot = crewSystem.SpawnCrewman(WFCrewRoles.Pilot,
+                    new EntityCoordinates(deck, new Vector2(2.5f, 3.5f)), "test")!.Value;
+                SEntMan.GetComponent<HTNComponent>(pilot).Enabled = false;
+                Server.System<WFPilotDutySystem>().Dock(pilot, target);
+            }
             var config = docking.GetDockingConfig(deck, target);
             Assert.That(config, Is.Not.Null, "The decks' docks should fit.");
             shuttles.FTLDock((deck, SEntMan.GetComponent<TransformComponent>(deck)), config!);
         });
 
-        await WaitUntil(() => Sent(radio).Count > 0, 300, () => "The radio officer should report docking.");
         await RunTicks(60);
 
         await Server.WaitAssertion(() =>
         {
             var sent = Sent(radio);
-            Assert.That(sent, Has.Count.EqualTo(1), $"One line for one docking: {Describe(sent)}");
-            Assert.That(sent[0].Line, Is.EqualTo(WFRadioLine.Docking), "It is the docking line.");
-            Assert.That(sent[0].Channel.Id, Is.EqualTo("Traffic"), "Docking is local traffic, on Shortband.");
-            Assert.That(sent[0].Text, Does.Contain("WF Test Freighter"), "The line carries the callsign.");
-            Assert.That(sent[0].Text, Does.Contain("WF Test Station"), "The line names the station.");
+            Assert.That(sent, Has.Count.EqualTo(2), $"Outgoing traffic or an incoming security incident: {Describe(sent)}");
+            if (!outbound)
+            {
+                Assert.That(sent.Any(line => line.Line == WFRadioLine.Docking), Is.False);
+                Assert.That(sent.Any(line => line.Line == WFRadioLine.DockWarning), Is.True);
+                Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(deck, "test"), Does.Contain(target));
+                return;
+            }
+            Assert.That(sent[0].Line, Is.EqualTo(WFRadioLine.Approach));
+            Assert.That(sent[1].Line, Is.EqualTo(WFRadioLine.Docking));
+            Assert.That(sent[1].Channel.Id, Is.EqualTo("Traffic"));
+            Assert.That(sent[1].Text, Does.Contain("WF Test Freighter"));
+            Assert.That(sent[1].Text, Does.Contain("WF Test Station"));
         });
     }
 

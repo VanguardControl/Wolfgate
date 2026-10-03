@@ -7,6 +7,10 @@ using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Mobs.Systems;
+using Content.Server.NPC.Components;
+using Content.Server.NPC.HTN;
+using Content.Shared.NPC.Systems;
+using System.Linq;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -17,6 +21,7 @@ public sealed partial class WFCrewWeaponSystem
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedGunSystem _guns = default!;
     [Dependency] private MobStateSystem _mobs = default!;
+    [Dependency] private NpcFactionSystem _factions = default!;
 
     private const string MagazineSlot = "gun_magazine";
     private float _reloadTimer;
@@ -31,9 +36,25 @@ public sealed partial class WFCrewWeaponSystem
         var query = EntityQueryEnumerator<WFCrewWeaponComponent>();
         while (query.MoveNext(out var uid, out _))
         {
-            if (!HasComp<ActorComponent>(uid) && _mobs.IsAlive(uid))
+            if (HasComp<ActorComponent>(uid) || !_mobs.IsAlive(uid))
+                continue;
+            if (HasLiveThreat(uid))
                 TryReloadOrSwitch(uid);
+            else
+            {
+                RemCompDeferred<NPCRangedCombatComponent>(uid);
+                RemCompDeferred<NPCMeleeCombatComponent>(uid);
+                TryHolster(uid);
+            }
         }
+    }
+
+    /// <summary>Only living hostile targets in the crewman's current vision justify drawing or reloading.</summary>
+    public bool HasLiveThreat(EntityUid uid)
+    {
+        var range = TryComp<HTNComponent>(uid, out var htn)
+            && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : 10f;
+        return _factions.GetNearbyHostiles(uid, range).Any(target => _mobs.IsAlive(target));
     }
 
     /// <summary>Racks a loaded gun only when its chamber is empty or its bolt is open.</summary>

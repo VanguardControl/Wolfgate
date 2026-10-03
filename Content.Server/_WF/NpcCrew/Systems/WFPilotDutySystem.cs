@@ -250,6 +250,9 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             return true;
 
         duty.AtHelm = true;
+        var facing = _transform.GetWorldPosition(console) - _transform.GetWorldPosition(mob);
+        if (facing.LengthSquared() > 0.001f)
+            _transform.SetWorldRotation(mob, facing.ToWorldAngle());
         var ev = new WFHelmTakenEvent(mob, console, grid);
         RaiseLocalEvent(mob, ref ev, true);
         return true;
@@ -376,6 +379,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 target = duty.Waypoints[duty.WaypointIndex];
                 range = duty.ArrivalRange;
                 speed = duty.CruiseSpeed;
+                faceTarget = true;
                 break;
             case WFPilotOrder.Loiter when duty.LoiterCenter is { } center:
                 target = center;
@@ -388,6 +392,7 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 target = new EntityCoordinates(followed, Vector2.Zero);
                 range = duty.FollowRange;
                 speed = duty.CruiseSpeed;
+                faceTarget = true;
                 break;
             case WFPilotOrder.Undock when duty.Waypoints.Count > 0:
                 target = duty.Waypoints[0];

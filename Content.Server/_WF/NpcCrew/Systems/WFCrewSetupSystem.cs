@@ -93,6 +93,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     {
         if (!HasComp<MapGridComponent>(grid) || Transform(grid).MapUid == null || Transform(grid).MapID == MapId.Nullspace
             || mission.Group.Length > 64 || mission.Callsign.Length > 100 || !Enum.IsDefined(mission.Order)
+            || !Enum.IsDefined(mission.BoardingResponse) || !Enum.IsDefined(mission.DockingResponse)
             || !float.IsFinite(mission.Range) || mission.Range is < 1 or > 5000
             || !Finite(mission.Destination) || !_prototypes.HasIndex<NpcFactionPrototype>(mission.Faction)
             || !_prototypes.HasIndex<RadioChannelPrototype>(mission.LocalChannel)
@@ -159,8 +160,12 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     }
 
     /// <summary>Reissues a validated mission without changing membership or issuing new credentials.</summary>
-    public void ApplyMission(EntityUid mob, EntityUid grid, WFCrewMission mission)
+    private void ApplySettings(EntityUid mob, WFCrewMission mission)
     {
+        EntityManager.System<WFCrewSecuritySystem>().Reset(mob);
+        var security = EnsureComp<WFCrewSecurityComponent>(mob);
+        security.Boarding = mission.BoardingResponse;
+        security.Docking = mission.DockingResponse;
         ApplyCompany(mob, mission.Company);
         _factions.ClearFactions(mob);
         _factions.AddFaction(mob, mission.Faction);
@@ -172,6 +177,12 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             radio.LocalChannel = mission.LocalChannel;
             radio.AlertChannel = mission.AlertChannel;
         }
+    }
+
+    /// <summary>Updates crew settings and issues the selected immediate flight order.</summary>
+    public void ApplyMission(EntityUid mob, EntityUid grid, WFCrewMission mission)
+    {
+        ApplySettings(mob, mission);
         if (!TryComp<WFCrewComponent>(mob, out var crew) || crew.Duty != WFCrewDuties.Pilot)
             return;
         var destination = new EntityCoordinates(Transform(grid).MapUid!.Value, mission.Destination);
@@ -234,6 +245,24 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             }
             else if (request.Action is WFCrewSetupAction.Pause or WFCrewSetupAction.Resume or WFCrewSetupAction.Skip)
                 _objectives.Control(grid, request.Mission.Group, request.Action);
+            else if (request.Action == WFCrewSetupAction.Rules)
+            {
+                request.Mission.Order = WFPilotOrder.Hold;
+                if (!ValidateMission(grid, request.Mission))
+                    response.Message = Loc.GetString("wf-crew-setup-invalid");
+                else
+                {
+                    ApplyCompany(grid, request.Mission.Company);
+                    _factions.ClearFactions(grid);
+                    _factions.AddFaction(grid, request.Mission.Faction);
+                    var members = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+                    while (members.MoveNext(out var member, out var crew, out var xform))
+                    {
+                        if (xform.GridUid == grid && crew.Group == request.Mission.Group)
+                            ApplySettings(member, request.Mission);
+                    }
+                }
+            }
             else if (request.Action == WFCrewSetupAction.Orders)
             {
                 if (!TryApplyMission(grid, request.Mission))

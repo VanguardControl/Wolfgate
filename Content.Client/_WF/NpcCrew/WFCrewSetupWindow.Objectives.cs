@@ -20,6 +20,9 @@ public sealed partial class WFCrewSetupWindow
     private int? _editing;
     private NetEntity? _selectedObjectiveTarget;
     private bool _queueDirty;
+    private BoxContainer _objectivePositionLine = default!;
+    private BoxContainer _objectiveTimingLine = default!;
+    private readonly Label _objectiveHelp = new();
 
     private void BuildObjectives(BoxContainer body)
     {
@@ -39,6 +42,15 @@ public sealed partial class WFCrewSetupWindow
                 return;
             _grid.SelectId(index);
             _group.Text = crew.Group;
+            var settings = crew.Settings;
+            _callsign.Text = settings.Callsign;
+            _company.TrySelectId(Math.Max(0, _companies.IndexOf(settings.Company)));
+            _faction.TrySelectId(Math.Max(0, _factions.IndexOf(settings.Faction)));
+            _local.TrySelectId(Math.Max(0, _channels.IndexOf(settings.LocalChannel)));
+            _alert.TrySelectId(Math.Max(0, _channels.IndexOf(settings.AlertChannel)));
+            _boardingRule.SelectId((int) settings.BoardingResponse);
+            _dockingRule.SelectId((int) settings.DockingResponse);
+            _heave.Pressed = settings.HeaveTo;
             _draft = crew.Objectives.ToList();
             _queueDirty = false;
             _editing = null;
@@ -50,16 +62,37 @@ public sealed partial class WFCrewSetupWindow
             _status.Text = crew.Status;
         };
         _grid.OnItemSelected += _ => { _draft.Clear(); RenderQueue(); FillObjectiveTargets(); };
-        body.AddChild(Line("active-crews", _activeCrew));
         body.AddChild(Line("objective", _objectiveKind, _objectiveTarget));
-        body.AddChild(Line("objective-duration", _duration, new Label { Text = Loc.GetString("wf-crew-setup-range") }, _objectiveRange));
-        body.AddChild(Line("destination", _objectiveX, _objectiveY));
+        _objectiveTimingLine = Line("objective-duration", _duration, new Label { Text = Loc.GetString("wf-crew-setup-range") }, _objectiveRange);
+        _objectivePositionLine = Line("destination", _objectiveX, _objectiveY);
+        body.AddChild(_objectiveTimingLine);
+        body.AddChild(_objectivePositionLine);
+        body.AddChild(_objectiveHelp);
+        _objectiveKind.OnItemSelected += _ => UpdateObjectiveFields();
+        UpdateObjectiveFields();
         body.AddChild(Line("queue-actions", Button("queue-add", AddObjective), Button("queue-append", () => SendQueue(WFCrewSetupAction.AppendObjective))));
         body.AddChild(new ScrollContainer { MinHeight = 90, MaxHeight = 150, Children = { _queueRows } });
         body.AddChild(Line("queue-control", Button("queue-save", () => SendQueue(WFCrewSetupAction.Objectives)),
             Button("queue-pause", () => SendQueue(WFCrewSetupAction.Pause)),
             Button("queue-resume", () => SendQueue(WFCrewSetupAction.Resume)), Button("queue-skip", () => SendQueue(WFCrewSetupAction.Skip))));
         body.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-queue-help") });
+    }
+
+    private void UpdateObjectiveFields()
+    {
+        var kind = (WFCrewObjectiveKind) _objectiveKind.SelectedId;
+        _objectivePositionLine.Visible = kind == WFCrewObjectiveKind.GoTo;
+        _objectiveTarget.Visible = kind is not (WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Repair);
+        _objectiveTimingLine.Visible = kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Loiter
+            or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Attack or WFCrewObjectiveKind.Retreat;
+        _objectiveHelp.Text = Loc.GetString(kind switch
+        {
+            WFCrewObjectiveKind.Repair => "wf-crew-setup-repair-help",
+            WFCrewObjectiveKind.Resupply => "wf-crew-setup-resupply-help",
+            WFCrewObjectiveKind.Salvage => "wf-crew-setup-salvage-help",
+            WFCrewObjectiveKind.Attack => "wf-crew-setup-attack-help",
+            _ => "wf-crew-setup-objective-help",
+        });
     }
 
     private void FillObjectiveTargets()
@@ -125,6 +158,7 @@ public sealed partial class WFCrewSetupWindow
                 _editing = at;
                 _queueDirty = true;
                 _objectiveKind.SelectId((int) item.Kind);
+                UpdateObjectiveFields();
                 _objectiveTarget.TrySelectId(_grids.FindIndex(grid => grid.Id == item.Target));
                 _selectedObjectiveTarget = item.Target;
                 _duration.Text = item.Duration.ToString(CultureInfo.InvariantCulture);

@@ -57,6 +57,8 @@ public sealed partial class WFCrewTest
                 readers.SetAccesses(reader!.Value, reader.Value.Comp, new List<ProtoId<AccessLevelPrototype>> { "Engineering" });
                 crew = crewSystem.SpawnCrewman(WFCrewRoles.Deckhand,
                     new EntityCoordinates(deck, new Vector2(2.5f, 4.5f)), "doors")!.Value;
+                // This fixture tests tag access and prying, not the automatically issued ship credential.
+                Server.System<InventorySystem>().TryUnequip(crew, "id", silent: true, force: true);
                 if (allowed)
                     Server.System<SharedAccessSystem>().TrySetTags(crew, new[] { new ProtoId<AccessLevelPrototype>("Engineering") });
                 var htn = SEntMan.GetComponent<HTNComponent>(crew);

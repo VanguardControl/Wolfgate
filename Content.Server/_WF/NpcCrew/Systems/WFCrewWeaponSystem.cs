@@ -110,6 +110,8 @@ public sealed partial class WFCrewWeaponSystem : EntitySystem
     /// <summary>Longarms over sidearms over anything that swings; everything else is not a weapon.</summary>
     private int Score(EntityUid item, string slot)
     {
+        if (HasComp<Content.Shared.Atmos.Components.GasTankComponent>(item))
+            return 0;
         if (HasComp<GunComponent>(item))
             return AmmoCount(item) > 0 || FindMagazineForOwner(item) ? (slot == "back" ? 3 : 2) : 0;
 

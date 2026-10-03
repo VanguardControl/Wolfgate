@@ -5,11 +5,15 @@ namespace Content.Shared._WF.NpcCrew;
 
 /// <summary>Admin operations supported by the crew setup window.</summary>
 [Serializable, NetSerializable]
-public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview, Teleport, SpawnVessel, Objectives, AppendObjective, Pause, Resume, Skip }
+public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview, Teleport, SpawnVessel, Objectives, AppendObjective, Pause, Resume, Skip, Rules }
 
 /// <summary>High-level crew tasks; timed tasks with zero duration continue until skipped.</summary>
 [Serializable, NetSerializable]
-public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat }
+public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat, Repair, Resupply, Salvage }
+
+/// <summary>Response to an unauthorized docking or boarding incident.</summary>
+[Serializable, NetSerializable]
+public enum WFCrewSecurityResponse : byte { Ignore, Warn, Hostile }
 
 /// <summary>A queued task with a grid or map-coordinate destination.</summary>
 [Serializable, NetSerializable]
@@ -31,6 +35,7 @@ public sealed class WFCrewSetupCrew
     public int Members;
     public int Alive;
     public string Status = string.Empty;
+    public WFCrewMission Settings = new();
     public List<WFCrewObjective> Objectives = new();
 }
 
@@ -55,6 +60,8 @@ public sealed class WFCrewMission
     public string LocalChannel = "Traffic";
     public string AlertChannel = "Common";
     public bool HeaveTo = true;
+    public WFCrewSecurityResponse BoardingResponse = WFCrewSecurityResponse.Hostile;
+    public WFCrewSecurityResponse DockingResponse = WFCrewSecurityResponse.Hostile;
     public WFPilotOrder Order;
     public Vector2 Destination;
     public float Range = 60;

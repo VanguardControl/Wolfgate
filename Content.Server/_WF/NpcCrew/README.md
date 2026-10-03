@@ -1,5 +1,30 @@
 # NpcCrew
 
+Crew Setup separates objectives, crew creation, faction/security settings and immediate orders into tabs. The
+selected ship and active-crew picker stay visible. Security settings can be changed without replacing the queue;
+unauthorized boarding and docking independently support Ignore, Warn and Hostile. Authorization uses company
+membership where available, otherwise a shared NPC faction. A crew's ordered docking destination is authorized
+for that approach. Incoming ships do not cause the stationary crew to announce that it is docking. Radio officers
+announce their own approach and completed docking, and warn unauthorized arrivals.
+
+Autonomous crew projectiles pass through allies; allied damage is also stopped before wound routing, armor or
+retaliation. Crews holster when no living hostile remains. Forward travel faces the destination, and pilots face
+their console when taking the helm. Spawned crew register ordinary, revocable ID credentials even on map-loaded
+ships that do not yet have ship access management.
+
+Repair orders assign deckhands physical work through HTN navigation. Deckhands have a built-in unlimited SRD and
+repair tool, disabled permanently on death; no unlimited item drops. The ship's existing SRD snapshot is preserved,
+or initialized when its first crew member spawns. Repair restores missing snapshot tiles/structures and uses normal
+timed repairs for repairable equipment. Resupply docks and retrieves loose ammunition and filled oxygen tanks;
+Salvage docks and retrieves loose material stacks. Workers carry cargo back to their posts. Neither job fabricates
+supplies, opens containers or dismantles structures. Unreachable work times out visibly and can be retried with
+pause/resume. These jobs require a deckhand, a pilot for the objective queue, and suitable EVA equipment.
+
+Default crew loadouts include pressure suits, helmets, masks and finite oxygen tanks. Internals connect before
+work and in unsafe air. Below the reserve threshold, crew replace the tank from a reachable loose spare or leave
+work for safe air; once safe they can seek a filled tank on their home ship. Oxygen is not replenished magically.
+Custom loadouts without suitable protection or air cannot start work orders.
+
 Crew Setup also lists active crews and their remaining objectives, refreshing every two seconds. Select a crew
 and build a queue of Hold, GoTo coordinates (repeat for patrol waypoints), Dock, Undock, Loiter at a grid, Escort,
 Attack or Retreat to a grid. Append preserves the running task; Replace starts the edited queue from its first
@@ -85,12 +110,15 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Commands/WFCrewCommand.cs`](Commands/WFCrewCommand.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewRepairComponent.cs`](Components/WFCrewRepairComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewSecurityComponent.cs`](Components/WFCrewSecurityComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSpawnPointComponent.cs`](Components/WFCrewSpawnPointComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewWeaponComponent.cs`](Components/WFCrewWeaponComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFGunnerDutyComponent.cs`](Components/WFGunnerDutyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFPilotDutyComponent.cs`](Components/WFPilotDutyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFRadioOperatorComponent.cs`](Components/WFRadioOperatorComponent.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFCrewMayFightPrecondition.cs`](HTN/WFCrewMayFightPrecondition.cs)
+- [`Content.Server/_WF/NpcCrew/HTN/WFCrewWorkOperator.cs`](HTN/WFCrewWorkOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFDrawWeaponOperator.cs`](HTN/WFDrawWeaponOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFHolsterWeaponOperator.cs`](HTN/WFHolsterWeaponOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFPickGunneryOperator.cs`](HTN/WFPickGunneryOperator.cs)
@@ -103,12 +131,17 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.Server/_WF/NpcCrew/Systems/WFCaptainSystem.cs`](Systems/WFCaptainSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewEvaSystem.cs`](Systems/WFCrewEvaSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewFriendlyFireSystem.cs`](Systems/WFCrewFriendlyFireSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewObjectiveSystem.cs`](Systems/WFCrewObjectiveSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewPlannerSystem.cs`](Systems/WFCrewPlannerSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewSecuritySystem.cs`](Systems/WFCrewSecuritySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.Reload.cs`](Systems/WFCrewWeaponSystem.Reload.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.cs`](Systems/WFCrewWorkSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.Repair.cs`](Systems/WFCrewWorkSystem.Repair.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFGunnerDutySystem.cs`](Systems/WFGunnerDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.cs`](Systems/WFPilotDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.Docking.cs`](Systems/WFPilotDutySystem.Docking.cs)
@@ -137,7 +170,9 @@ radio officer, crew alerting, the access-door edit and the Crew Setup admin wind
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Flight.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
 
 ### Prototypes
 

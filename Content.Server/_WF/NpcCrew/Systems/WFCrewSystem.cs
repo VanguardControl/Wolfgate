@@ -45,13 +45,14 @@ public sealed class WFCrewSystem : EntitySystem
         SubscribeLocalEvent<WFCrewComponent, MapInitEvent>(OnCrewMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewSpawnPointComponent, MapInitEvent>(OnSpawnPointMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewComponent, MobStateChangedEvent>(OnMobStateChanged);
-        SubscribeLocalEvent<NPCRetaliationComponent, BeforeDamageChangedEvent>(OnBeforeCrewDamage);
+        SubscribeLocalEvent<NPCRetaliationComponent, BeforeDamageChangedEvent>(OnBeforeCrewDamage,
+            before: [typeof(Content.Shared._Onyx.Wounds.WoundDamageRoutingSystem)]);
     }
 
     /// <summary>Records crew attacks before body-part routing loses the damage origin.</summary>
     private void OnBeforeCrewDamage(Entity<NPCRetaliationComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        if (!HasComp<WFCrewComponent>(ent)
+        if (args.Cancelled || !HasComp<WFCrewComponent>(ent)
             || !args.Damage.AnyPositive()
             || args.Origin is not { } attacker
             || attacker == ent.Owner
@@ -72,6 +73,14 @@ public sealed class WFCrewSystem : EntitySystem
     {
         if (args.NewMobState == MobState.Alive)
             return;
+
+        EntityManager.System<WFCrewWorkSystem>().CancelWorker(uid);
+        if (args.NewMobState == MobState.Dead && HasComp<WFCrewRepairComponent>(uid))
+        {
+            RemComp<Content.Shared._Mono.ShipRepair.Components.ShipRepairToolComponent>(uid);
+            RemComp<Content.Shared.Tools.Components.ToolComponent>(uid);
+            RemComp<WFCrewRepairComponent>(uid);
+        }
 
         var ev = new WFCrewMemberDownEvent(uid, component.Group, component.Role, args.NewMobState == MobState.Dead);
         RaiseLocalEvent(uid, ref ev, true);
@@ -115,6 +124,8 @@ public sealed class WFCrewSystem : EntitySystem
         crew.Post = post;
         Apply((uid, crew));
         _crewAccess.RegisterSpawnShip(uid);
+        if (Transform(uid).GridUid is { } ship && !HasComp<Content.Shared._Mono.ShipRepair.Components.ShipRepairDataComponent>(ship))
+            EntityManager.System<Content.Server._Mono.ShipRepair.ShipRepairSystem>().GenerateRepairData(ship);
         return uid;
     }
 
