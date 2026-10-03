@@ -1,6 +1,43 @@
 wf-encounter-ship-name = {$vessel} {$designation}
 wf-encounter-name-convoy = Convoy {$designation}
 
+wf-encounter-resolution-expired = Expired
+wf-encounter-resolution-completed = Completed
+wf-encounter-resolution-decided = Decided
+wf-encounter-resolution-destroyed = Destroyed
+wf-encounter-resolution-ended = Ended
+
+# Admin encounter window
+wf-encounter-admin-title = Encounters
+wf-encounter-admin-scheduler = Scheduler
+wf-encounter-admin-enabled = Start encounters automatically
+wf-encounter-admin-paused = Paused
+wf-encounter-admin-next = Next attempt in {$time}
+wf-encounter-admin-next-none = Not running
+wf-encounter-admin-interval = Every (seconds)
+wf-encounter-admin-to = to
+wf-encounter-admin-cap = At most running
+wf-encounter-admin-apply = Apply
+wf-encounter-admin-schedule-now = Pick one now
+wf-encounter-admin-start = Start an encounter
+wf-encounter-admin-distance = Metres north of you
+wf-encounter-admin-spawn = Start
+wf-encounter-admin-prototype-manual = {$id} (manual only)
+wf-encounter-admin-running = Encounters
+wf-encounter-admin-none = No encounters.
+wf-encounter-admin-bad-input = Enter whole seconds, a cap and a distance as plain numbers.
+wf-encounter-admin-bad-settings = Intervals must be 30 to 86400 seconds with the longest not below the shortest, and the cap 0 to 10.
+wf-encounter-admin-gone = That encounter or ship no longer exists.
+wf-encounter-admin-entry = {$name} ({$prototype}): {$state}, running {$age}
+wf-encounter-admin-expires = Expires in {$time}
+wf-encounter-admin-ship = {$key}: {$name}, side {$side}, {$crew} crew, {$activity}
+wf-encounter-admin-ship-disabled = {$key}: {$name}, side {$side}, {$crew} crew, out of the fight
+wf-encounter-admin-ship-gone = {$key}: gone, side {$side}
+wf-encounter-admin-teleport = Go to
+wf-encounter-admin-resolve = Resolve
+wf-encounter-admin-end = End and remove
+wf-encounter-admin-crew = Crew
+
 # wf_encounter command
 cmd-wf_encounter-desc = Lists, spawns and ends encounters, and runs or pauses the encounter scheduler.
 cmd-wf_encounter-help = Usage: {$command} list | spawn <prototype> [distance] | end <encounter> | schedule | pause | resume

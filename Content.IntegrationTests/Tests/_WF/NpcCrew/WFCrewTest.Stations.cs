@@ -120,7 +120,8 @@ public sealed partial class WFCrewTest
                 if (pilotRole)
                 {
                     var duty = SEntMan.GetComponent<WFPilotDutyComponent>(member);
-                    Assert.That(duty.Orders, Is.EqualTo(WFPilotOrder.GoTo));
+                    Assert.That(duty.Orders, Is.EqualTo(WFPilotOrder.GoTo),
+                        $"suspended={Server.System<WFCaptainSystem>().IsCourseSuspended(member)} alerted={Server.System<WFCrewAlertSystem>().IsAlerted(deck, "stations")} completed={duty.OrdersCompleted} docked={duty.Docked} map={SEntMan.GetComponent<TransformComponent>(member).MapID} waypoints={duty.Waypoints.Count}");
                     Assert.That(duty.Waypoints, Is.EqualTo(new[] { destination }));
                     Assert.That(SEntMan.GetComponent<ShipSteererComponent>(member).Coordinates, Is.EqualTo(destination));
                 }

@@ -22,13 +22,20 @@ and fire zones, freight, payouts, routes between stations and follow-up encounte
 - [`Content.Server/_WF/Encounters/Commands/WFEncounterCommand.cs`](Commands/WFEncounterCommand.cs)
 - [`Content.Server/_WF/Encounters/Components/WFEncounterComponent.cs`](Components/WFEncounterComponent.cs)
 - [`Content.Server/_WF/Encounters/Components/WFEncounterGridComponent.cs`](Components/WFEncounterGridComponent.cs)
+- [`Content.Server/_WF/Encounters/Systems/WFEncounterAdminSystem.cs`](Systems/WFEncounterAdminSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSchedulerSystem.cs`](Systems/WFEncounterSchedulerSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.cs`](Systems/WFEncounterSystem.cs)
 - [`Content.Server/_WF/Encounters/WFEncounterEvents.cs`](WFEncounterEvents.cs)
 
 ### Shared
 
+- [`Content.Shared/_WF/Encounters/WFEncounterAdminMessages.cs`](../../../Content.Shared/_WF/Encounters/WFEncounterAdminMessages.cs)
 - [`Content.Shared/_WF/Encounters/WFEncounterPrototype.cs`](../../../Content.Shared/_WF/Encounters/WFEncounterPrototype.cs)
+
+### Client
+
+- [`Content.Client/_WF/Encounters/WFEncounterClientSystem.cs`](../../../Content.Client/_WF/Encounters/WFEncounterClientSystem.cs)
+- [`Content.Client/_WF/Encounters/WFEncounterWindow.cs`](../../../Content.Client/_WF/Encounters/WFEncounterWindow.cs)
 
 ### Integration tests
 

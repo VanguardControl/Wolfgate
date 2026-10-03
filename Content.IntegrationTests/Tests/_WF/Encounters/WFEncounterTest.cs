@@ -6,6 +6,9 @@ using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.Encounters.Systems;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Client._WF.Encounters;
+using Content.Shared._WF.CCVar;
+using Robust.Shared.Configuration;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.GameObjects;
@@ -89,6 +92,65 @@ public sealed class WFEncounterTest : InteractionTest
         {
             Assert.That(SEntMan.Deleted(lead) && SEntMan.Deleted(escort) && SEntMan.Deleted(encounter), Is.True);
             Assert.That(SEntMan.EntityQuery<WFCrewComponent>().Any(), Is.False, "Ending an encounter removes its crews.");
+        });
+    }
+
+    /// <summary>The admin window's requests start, list and end encounters and set the scheduler; the window builds.</summary>
+    [Test]
+    public async Task EncounterAdminControlsEncountersAndScheduler()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var admin = Server.System<WFEncounterAdminSystem>();
+            var config = Server.ResolveDependency<IConfigurationManager>();
+            var cap = config.GetCVar(EncountersCVars.MaxActive);
+
+            Assert.That(admin.Handle(new WFEncounterAdminRequest
+            {
+                Action = WFEncounterAdminAction.Scheduler, IntervalMin = 5, IntervalMax = 60, MaxActive = 3,
+            }, ServerSession), Is.Not.Null, "An interval under 30 seconds is refused.");
+            Assert.That(config.GetCVar(EncountersCVars.MaxActive), Is.EqualTo(cap));
+            Assert.That(admin.Handle(new WFEncounterAdminRequest
+            {
+                Action = WFEncounterAdminAction.Scheduler, IntervalMin = 60, IntervalMax = 120, MaxActive = 3, Paused = true,
+            }, ServerSession), Is.Null);
+            var state = admin.BuildState();
+            Assert.That(state.MaxActive, Is.EqualTo(3));
+            Assert.That(state.Paused, Is.True);
+            Assert.That(state.Enabled, Is.False);
+            Assert.That(state.NextIn, Is.LessThan(0f), "A disabled scheduler has no next attempt.");
+
+            Assert.That(admin.Handle(new WFEncounterAdminRequest { Action = WFEncounterAdminAction.Spawn, Prototype = "Nope" }, ServerSession),
+                Is.Not.Null);
+            Assert.That(admin.Handle(new WFEncounterAdminRequest
+            {
+                Action = WFEncounterAdminAction.Spawn, Prototype = Convoy, Distance = 800,
+            }, ServerSession), Is.Null);
+            state = admin.BuildState();
+            Assert.That(state.Encounters.Single().Ships, Has.Count.EqualTo(2));
+            Assert.That(state.Encounters.Single().Ships.All(ship => ship.Exists && ship.Crew > 0), Is.True);
+            Assert.That(state.Prototypes.Single(prototype => prototype.Id == Convoy).Running, Is.True);
+            Assert.That(Server.System<WFEncounterSystem>().IsRunning(Convoy), Is.True);
+
+            Assert.That(admin.Handle(new WFEncounterAdminRequest
+            {
+                Action = WFEncounterAdminAction.End, Target = state.Encounters.Single().Uid,
+            }, ServerSession), Is.Null);
+            Assert.That(Server.System<WFEncounterSystem>().IsRunning(Convoy), Is.False);
+
+            config.SetCVar(EncountersCVars.MaxActive, cap);
+            config.SetCVar(EncountersCVars.IntervalMin, EncountersCVars.IntervalMin.DefaultValue);
+            config.SetCVar(EncountersCVars.IntervalMax, EncountersCVars.IntervalMax.DefaultValue);
+            Server.System<WFEncounterSchedulerSystem>().Paused = false;
+        });
+        await RunTicks(10);
+        await Server.WaitAssertion(() => Assert.That(Server.System<WFEncounterAdminSystem>().BuildState().Encounters, Is.Empty));
+
+        await Client.WaitAssertion(() =>
+        {
+            var window = new WFEncounterWindow();
+            window.OpenCentered();
+            window.Close();
         });
     }
 }

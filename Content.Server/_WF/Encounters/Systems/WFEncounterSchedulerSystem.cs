@@ -46,6 +46,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     /// <summary>Stops the scheduler until resumed, whatever the cvar says.</summary>
     public bool Paused;
 
+    /// <summary>When the scheduler next tries, while it is running.</summary>
+    public TimeSpan? Next => _next;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -113,7 +116,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         var total = 0f;
         foreach (var prototype in _prototypes.EnumeratePrototypes<WFEncounterPrototype>())
         {
+            // One of a kind at a time: an encounter that is still running is not picked again.
             if (!prototype.Scheduled || prototype.Weight <= 0f || players < prototype.MinPlayers
+                || _encounters.IsRunning(prototype.ID)
                 || _lastStarted.TryGetValue(prototype.ID, out var last)
                     && _timing.CurTime - last < TimeSpan.FromSeconds(prototype.Cooldown))
                 continue;

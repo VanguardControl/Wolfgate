@@ -65,6 +65,19 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return count;
     }
 
+    /// <summary>Whether an encounter of this prototype has not resolved yet.</summary>
+    public bool IsRunning(string prototype)
+    {
+        var query = EntityQueryEnumerator<WFEncounterComponent>();
+        while (query.MoveNext(out _, out var encounter))
+        {
+            if (encounter.Resolution == null && encounter.Prototype.Id == prototype)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Spawns an encounter with its origin at a point in space. Fails, leaving nothing behind, when a ship cannot
     /// be loaded or crewed.
