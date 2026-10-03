@@ -20,6 +20,9 @@ public sealed partial class WFCaptainSystem : EntitySystem
     private readonly HashSet<(EntityUid Grid, string Group, EntityUid Pilot)> _overridden = new();
     private bool _changingOrders;
 
+    /// <summary>Automatic evasion and restoration preserve the crew's escort assignment.</summary>
+    public bool IsChangingOrders => _changingOrders;
+
     /// <summary>Whether a captain temporarily owns this pilot's flight orders.</summary>
     public bool IsCourseSuspended(EntityUid pilot) => _courses.ContainsKey(pilot);
 
@@ -109,42 +112,52 @@ public sealed partial class WFCaptainSystem : EntitySystem
             _courses.Remove(pilot);
             if (!Eligible(pilot, course.Grid, course.Group) || !Eligible(course.Captain, course.Grid, course.Group))
                 continue;
-            switch (course.Order)
+            _changingOrders = true;
+            try
             {
-                case WFPilotOrder.Hold:
-                    _pilots.Hold(pilot);
-                    if (course.HoldPosition is { } anchor && anchor.IsValid(EntityManager)
-                        && _transform.ToMapCoordinates(anchor).MapId == Transform(pilot).MapID
-                        && TryComp<WFPilotDutyComponent>(pilot, out var holding))
-                    {
-                        holding.HoldPosition = anchor;
-                        holding.HoldHeading = course.HoldHeading;
-                        _pilots.SetNavigation(pilot, holding.Navigation);
-                    }
-                    break;
-                case WFPilotOrder.GoTo:
-                    _pilots.GoTo(pilot, course.Waypoints.Where(point => point.IsValid(EntityManager)).ToList());
-                    break;
-                case WFPilotOrder.Loiter when course.Center is { } center && center.IsValid(EntityManager):
-                    _pilots.Loiter(pilot, center, course.Radius, course.OrbitSpeed, course.OrbitKind);
-                    break;
-                case WFPilotOrder.Follow when course.Follow is { } follow && !TerminatingOrDeleted(follow):
-                    _pilots.Follow(pilot, follow, course.Range);
-                    if (TryComp<WFPilotDutyComponent>(pilot, out var formation))
-                    {
-                        formation.EscortOffset = course.EscortOffset;
-                        formation.EscortSlot = course.EscortSlot;
-                        formation.EscortSpacing = course.EscortSpacing;
-                        _pilots.SetNavigation(pilot, formation.Navigation);
-                    }
-                    break;
-                case WFPilotOrder.Dock when course.Dock is { } dock && !TerminatingOrDeleted(dock):
-                    _pilots.Dock(pilot, dock);
-                    break;
-                case WFPilotOrder.Undock:
-                    _pilots.Undock(pilot);
-                    break;
+                RestoreCourse(pilot, course);
             }
+            finally { _changingOrders = false; }
+        }
+    }
+
+    private void RestoreCourse(EntityUid pilot, SavedCourse course)
+    {
+        switch (course.Order)
+        {
+            case WFPilotOrder.Hold:
+                _pilots.Hold(pilot);
+                if (course.HoldPosition is { } anchor && anchor.IsValid(EntityManager)
+                    && _transform.ToMapCoordinates(anchor).MapId == Transform(pilot).MapID
+                    && TryComp<WFPilotDutyComponent>(pilot, out var holding))
+                {
+                    holding.HoldPosition = anchor;
+                    holding.HoldHeading = course.HoldHeading;
+                    _pilots.SetNavigation(pilot, holding.Navigation);
+                }
+                break;
+            case WFPilotOrder.GoTo:
+                _pilots.GoTo(pilot, course.Waypoints.Where(point => point.IsValid(EntityManager)).ToList());
+                break;
+            case WFPilotOrder.Loiter when course.Center is { } center && center.IsValid(EntityManager):
+                _pilots.Loiter(pilot, center, course.Radius, course.OrbitSpeed, course.OrbitKind);
+                break;
+            case WFPilotOrder.Follow when course.Follow is { } follow && !TerminatingOrDeleted(follow):
+                _pilots.Follow(pilot, follow, course.Range);
+                if (TryComp<WFPilotDutyComponent>(pilot, out var formation))
+                {
+                    formation.EscortOffset = course.EscortOffset;
+                    formation.EscortSlot = course.EscortSlot;
+                    formation.EscortSpacing = course.EscortSpacing;
+                    _pilots.SetNavigation(pilot, formation.Navigation);
+                }
+                break;
+            case WFPilotOrder.Dock when course.Dock is { } dock && !TerminatingOrDeleted(dock):
+                _pilots.Dock(pilot, dock);
+                break;
+            case WFPilotOrder.Undock:
+                _pilots.Undock(pilot);
+                break;
         }
     }
 

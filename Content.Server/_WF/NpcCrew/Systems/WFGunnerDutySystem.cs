@@ -122,8 +122,10 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                 candidates = candidates.Prepend(assigned).ToArray();
             var target = candidates
                 .Where(ship => ship != grid && (!_factions.IsEntityFriendly(uid, ship)
+                    || _alerts.IsHostileShip(grid, crew.Group, ship)
                     || _objectives.IsAttackTarget(grid, crew.Group, ship)
                     || _security.IsHostileDockingTarget(grid, crew.Group, ship))
+                    && !EntityManager.System<WFCrewEscortSystem>().AreInFormation(grid, ship)
                     && _transform.GetMapCoordinates(ship).MapId == here.MapId
                     && (_transform.GetWorldPosition(ship) - here.Position).LengthSquared() <= duty.Range * duty.Range)
                 .OrderBy(ship => (_transform.GetWorldPosition(ship) - here.Position).LengthSquared())

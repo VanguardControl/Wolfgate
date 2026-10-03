@@ -6,6 +6,10 @@ namespace Content.Shared._WF.CCVar;
 [CVarDefs]
 public sealed class NpcCrewCVars
 {
+    /// <summary>Logs crew, verb and ghost menu request delivery while reproducing missing menu contents.</summary>
+    public static readonly CVarDef<bool> UiDiagnostics =
+        CVarDef.Create("wf.crew.ui_diagnostics", false, CVar.SERVER | CVar.REPLICATED);
+
     /// <summary>
     /// Whether a crew pilot that runs out of docking attempts jumps its ship straight onto the port instead of holding
     /// off it.

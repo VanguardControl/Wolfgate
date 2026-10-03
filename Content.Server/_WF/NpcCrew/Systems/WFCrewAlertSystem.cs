@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server._WF.ShipShields;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
@@ -19,6 +20,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private HTNSystem _htn = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WFCrewEscortSystem _escorts = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
@@ -33,31 +35,67 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
+        SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldHit);
     }
 
-    /// <summary>Returns explicitly hostile vessels reported by incoming fire.</summary>
+    /// <summary>Returns vessels with unexpired incoming fire or an active hostile docking response.</summary>
     public EntityUid[] GetHostileShips(EntityUid grid, string group)
     {
-        return _alerts.TryGetValue((grid, group), out var alert)
-            ? alert.Vessels.Where(ship => !TerminatingOrDeleted(ship)).ToArray()
-            : Array.Empty<EntityUid>();
+        if (TerminatingOrDeleted(grid) || !_alerts.TryGetValue((grid, group), out var alert))
+            return Array.Empty<EntityUid>();
+        IEnumerable<EntityUid> attacks = _timing.CurTime < alert.AttackedUntil ? alert.Vessels : Array.Empty<EntityUid>();
+        var docking = alert.DockingVessels.Where(ship =>
+            EntityManager.System<WFCrewSecuritySystem>().IsHostileDockingTarget(grid, group, ship));
+        return attacks.Concat(docking).Distinct().Where(ship => !TerminatingOrDeleted(ship)
+            && Transform(ship).MapID == Transform(grid).MapID && !_escorts.AreInFormation(grid, ship)).ToArray();
     }
+
+    /// <summary>Explicit incoming fire permits retaliation even against a normally friendly company.</summary>
+    public bool IsHostileShip(EntityUid grid, string group, EntityUid target) => GetHostileShips(grid, group).Contains(target);
 
     private void OnHullHit(ref WFCrewHullHitEvent args)
     {
-        var groups = new HashSet<string>();
+        ReportAttack(args.Grid, args.AttackerGrid);
+    }
+
+    private void OnShieldHit(ref WFShipShieldAttackedEvent args)
+    {
+        if ((args.Weapon ?? args.Shooter) is { } source
+            && EntityManager.System<WFCrewFriendlyFireSystem>().Protected(source, args.Grid))
+            return;
+        ReportAttack(args.Grid, args.AttackerGrid);
+    }
+
+    private void ReportAttack(EntityUid grid, EntityUid attacker, string? group = null)
+    {
+        if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
+            || Transform(grid).MapID != Transform(attacker).MapID)
+            return;
+        var formation = _escorts.GetFormation(grid);
+        if (formation.Contains(attacker))
+            return;
+        var recipients = new HashSet<(EntityUid Grid, string Group)>();
+        if (group != null)
+            recipients.Add((grid, group));
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var transform))
         {
-            if (transform.GridUid == args.Grid && _mobState.IsAlive(uid) && !HasComp<ActorComponent>(uid))
-                groups.Add(crew.Group);
+            if ((crew.Post?.EntityId ?? transform.GridUid) is { } home && formation.Contains(home)
+                && _mobState.IsAlive(uid) && !HasComp<ActorComponent>(uid))
+                recipients.Add((home, crew.Group));
         }
-        foreach (var group in groups)
-            ReportShipThreat(args.Grid, group, args.AttackerGrid);
+        // Snapshot every recipient before captains change their flight orders in response.
+        foreach (var recipient in recipients)
+            AlertShip(recipient.Grid, recipient.Group, attacker);
     }
 
-    /// <summary>Lets encounter zones or hull impacts report an explicit vessel threat to one crew.</summary>
-    public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker)
+    /// <summary>Reports an explicit vessel threat to a crew and every ship in its escort formation.</summary>
+    public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker) => ReportAttack(grid, attacker, group);
+
+    /// <summary>Raises a local docking alert without treating a changeable security policy as incoming fire.</summary>
+    public void ReportDockingThreat(EntityUid grid, string group, EntityUid visitor) => AlertShip(grid, group, visitor, false);
+
+    private void AlertShip(EntityUid grid, string group, EntityUid attacker, bool retaliation = true)
     {
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
@@ -67,7 +105,13 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             _alerts[key] = alert = new Alert();
         alert.LastTarget = _timing.CurTime;
         alert.ExternalUntil = _timing.CurTime + Decay;
-        alert.Vessels.Add(attacker);
+        if (retaliation)
+        {
+            alert.AttackedUntil = _timing.CurTime + Decay;
+            alert.Vessels.Add(attacker);
+        }
+        else
+            alert.DockingVessels.Add(attacker);
         var ev = new WFCrewAlertEvent(grid, group, new[] { attacker });
         RaiseLocalEvent(grid, ref ev, true);
     }
@@ -269,7 +313,9 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     {
         public TimeSpan LastTarget;
         public TimeSpan ExternalUntil;
+        public TimeSpan AttackedUntil;
         public readonly HashSet<EntityUid> Vessels = new();
+        public readonly HashSet<EntityUid> DockingVessels = new();
         public readonly HashSet<EntityUid> Hostiles = new();
         public readonly Dictionary<EntityUid, Awareness> Members = new();
     }

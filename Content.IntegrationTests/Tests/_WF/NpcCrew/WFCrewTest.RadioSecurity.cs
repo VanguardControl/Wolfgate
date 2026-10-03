@@ -116,9 +116,10 @@ public sealed partial class WFCrewTest
         });
     }
 
-    /// <summary>Explicit docking hostility overrides a shared faction, while an incidental hull hit does not.</summary>
-    [Test]
-    public async Task GunnerHonorsHostileDockingAcrossSharedFaction()
+    /// <summary>Explicit docking hostility overrides a shared faction and clears when the policy is reset.</summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task GunnerHonorsHostileDockingAcrossSharedFaction(bool firedOnCrew)
     {
         var (deck, visitor, _, _) = await CreateDockingPair(gravity: true);
         EntityUid gunner = default;
@@ -139,13 +140,6 @@ public sealed partial class WFCrewTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(Server.System<NpcFactionSystem>().IsEntityFriendly(gunner, visitor), Is.True);
-            var ev = new WFCrewHullHitEvent(deck, visitor);
-            SEntMan.EventBus.RaiseLocalEvent(deck, ref ev, true);
-        });
-        await RunTicks(5);
-        await Server.WaitAssertion(() =>
-        {
-            Assert.That(SEntMan.HasComponent<ShipTargetingComponent>(gunner), Is.False, "Friendly impacts do not override faction protection.");
             var config = Server.System<DockingSystem>().GetDockingConfig(deck, visitor);
             Assert.That(config, Is.Not.Null);
             Server.System<ShuttleSystem>().FTLDock((deck, SEntMan.GetComponent<TransformComponent>(deck)), config!);
@@ -154,10 +148,16 @@ public sealed partial class WFCrewTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(SEntMan.GetComponent<ShipTargetingComponent>(gunner).Target.EntityId, Is.EqualTo(visitor));
+            if (firedOnCrew)
+            {
+                var hit = new WFCrewHullHitEvent(deck, visitor);
+                SEntMan.EventBus.RaiseLocalEvent(deck, ref hit, true);
+            }
             Server.System<WFCrewSecuritySystem>().Reset(gunner);
             SEntMan.GetComponent<WFCrewSecurityComponent>(gunner).Docking = WFCrewSecurityResponse.Warn;
         });
         await RunTicks(5);
-        await Server.WaitAssertion(() => Assert.That(SEntMan.HasComponent<ShipTargetingComponent>(gunner), Is.False));
+        await Server.WaitAssertion(() => Assert.That(SEntMan.HasComponent<ShipTargetingComponent>(gunner), Is.EqualTo(firedOnCrew),
+            "Resetting docking policy must clear docking hostility without forgiving actual incoming fire."));
     }
 }

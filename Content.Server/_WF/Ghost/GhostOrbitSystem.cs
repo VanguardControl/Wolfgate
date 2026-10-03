@@ -75,6 +75,7 @@ public sealed class GhostOrbitSystem : EntitySystem
         AddSessions(targets, seen, isAdmin);
         AddWarpPoints(targets, seen, isAdmin);
 
+        EntityManager.System<Content.Server._WF.NpcCrew.Systems.WFCrewUiDiagnosticsSystem>().Reply("ghost", args.SenderSession, targets.Count);
         RaiseNetworkEvent(new GhostOrbitTargetsEvent(targets), args.SenderSession.Channel);
     }
 

@@ -102,7 +102,10 @@ public sealed class WFCrewFriendlyFireSystem : EntitySystem
         {
             if (grid == home)
                 return true;
+            if (EntityManager.System<WFCrewEscortSystem>().AreInFormation(home, grid))
+                return true;
             if (_objectives.IsAttackTarget(home, crew.Group, grid)
+                || EntityManager.System<WFCrewAlertSystem>().IsHostileShip(home, crew.Group, grid)
                 || _security.IsHostileDockingTarget(home, crew.Group, grid))
                 return false;
             alliedGrid = grid;

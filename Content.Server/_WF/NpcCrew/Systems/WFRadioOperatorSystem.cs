@@ -192,6 +192,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
     private void OnHullHit(ref WFCrewHullHitEvent args)
     {
+        if (EntityManager.System<WFCrewEscortSystem>().AreInFormation(args.Grid, args.AttackerGrid))
+            return;
         foreach (var op in OperatorsOn(args.Grid))
             HostileAct(op, args.AttackerGrid);
     }

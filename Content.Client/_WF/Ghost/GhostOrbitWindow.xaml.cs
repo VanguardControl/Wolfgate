@@ -100,6 +100,7 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
     private void OnTargetsReceived(GhostOrbitTargetsEvent ev)
     {
+        _entMan.System<Content.Client._WF.NpcCrew.WFCrewUiDiagnosticsSystem>().DisplayGhost(ev.Targets.Count, IsOpen);
         // Live refresh would otherwise rebuild every tile and drop the hovered tooltip for nothing.
         if (_targets.SequenceEqual(ev.Targets))
             return;

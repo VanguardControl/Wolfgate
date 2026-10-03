@@ -55,6 +55,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         }
         state.Items.AddRange(objectives);
         _queues[key] = state;
+        UpdateEscort(grid, group, state);
         return true;
     }
 
@@ -85,6 +86,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         }
         state.Paused = action == WFCrewSetupAction.Pause;
         state.Status = state.Paused ? "paused" : "pending";
+        UpdateEscort(grid, group, state);
     }
 
     /// <summary>Cancels queued orders when an admin issues an immediate mission or clears the crew.</summary>
@@ -92,6 +94,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
     {
         _work.Cancel(grid, group);
         _queues.Remove((grid, group));
+        EntityManager.System<WFCrewEscortSystem>().Clear(grid, group);
     }
 
     /// <summary>Whether an admin explicitly ordered this crew to engage a grid.</summary>
@@ -126,8 +129,19 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
     private void HoldCrew(EntityUid grid, string group)
     {
         _work.Cancel(grid, group);
+        EntityManager.System<WFCrewEscortSystem>().Clear(grid, group);
         if (Pilot(grid, group) is { } pilot)
             _pilots.Hold(pilot);
+    }
+
+    private void UpdateEscort(EntityUid grid, string group, QueueState state)
+    {
+        var escorts = EntityManager.System<WFCrewEscortSystem>();
+        if (!state.Paused && state.Items.FirstOrDefault() is { Kind: WFCrewObjectiveKind.Escort, Target: { } net }
+            && TryGetEntity(net, out var target) && target is { } leader)
+            escorts.SetEscort(grid, group, leader);
+        else
+            escorts.Clear(grid, group);
     }
 
     public override void Update(float frameTime)

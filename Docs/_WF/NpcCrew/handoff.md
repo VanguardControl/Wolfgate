@@ -404,6 +404,56 @@ retested or sandbox-checked in a fresh graphical client. The persistent empty-me
 coverage but still needs a live retest. The user later closed the older client; existing servers/rounds were preserved.
 Reload a matching server/client from bin/NpcCrewNavigationFinal for the latest changes. No PR or push.
 
+## Escort retaliation and recurring menus (2026-10-03)
+
+`WFCrewEscortSystem` records current Escort assignments separately from temporary captain flight orders. It
+builds connected same-map formations across crew groups and companies, including an uncrewed protected ship.
+Incoming hull fire and confirmed projectile/hitscan shield absorption fan out to every living autonomous crew
+in that formation. Weapon locks do not provoke retaliation. Chained/cyclic escorts are supported. Losing a
+captain or pilot preserves membership while other crew survive; explicit replacement, pause, skip, cancel and
+ending an escort clear it. Plain Follow and later queued Escort tasks do not join the group.
+
+Gunners and crew cannon protection use explicit vessel threats to retaliate against normally friendly attackers
+until the sixty-second incoming-fire window expires. Docking alerts have a separate path: changing Hostile docking
+back to Warn/Ignore stops that policy-based targeting without forgiving actual shots fired by the same visitor.
+Formation ships remain protected. Radio officers receive
+the same threat fanout; friendly formation hull hits do not independently trigger their mayday.
+
+`WFShipShieldAttackedEvent` belongs to ShipShields and carries grid, attacker grid, shooter and weapon. Source
+selection prefers the projectile launch grid, then weapon/shooter grids. Only actual positive absorbed damage
+raises it; outgoing own-ship shots, harmless probes, shield gaps and duplicate projectile callbacks are excluded.
+Beam probes do not report attacks; confirmed basic/piercing/diffraction damage does. Native collision handling
+rewrites `ProjectileComponent.Shooter` after impact, so tests snapshot original attribution before collision.
+Test attacker grids need real tiles or weapon/shooter `GridUid` becomes null. Shield interception raises a
+shared cancellable attempt before clipping/damage; `WFCrewShieldProtectionSystem` applies the same crew rules,
+so protected shots pass through without shield drain or effects. A launched round's retained controller takes
+precedence over its cannon's current controller.
+
+The user still reports empty right-click Admin/Tricks, Debug with only Export Sprite, and blank Ghost Warp.
+Normal world updates and interactions continue. Their clarified sequence is: round start -> admin ghost ->
+spawn as human -> fight -> die -> menus are gone. The first native nested-hover/menu and actual admin-ghost/
+spawnoutfit/death roundtrip test passes. The expanded tests also pass after destroying the spawned human's
+brain, allowing normal organ/life updates to kill them, then using either ordinary ghosting or admin ghosting.
+They reopen the same GhostGui-owned window and verify fresh replies on each cycle. This is not evidence that
+the live bug is fixed; do not add a speculative global popup reset. Opt-in `wf.crew.ui_diagnostics` traces actual
+client sends, server receipt/session attachment, replies and display callbacks, plus missing replies after five
+seconds. Enable it on the test server for the next live reproduction; it defaults off in normal play.
+
+Build and test processes must run serially: simultaneous vstest processes contend on Robust's gravestone file
+and poison the pool. Use isolated `bin/NpcCrewEscort` outputs and direct `dotnet vstest` with `/Tests:` selection.
+Final Debug build: 0 errors, 1343 warnings. Combined crew/shield integration suite: 212/212 passed in 3m30s.
+The first combined run exposed docking-policy reset retaining same-faction targeting; active docking threats are
+now queried separately from incoming-fire retaliation. Regression covers both resetting docking hostility and
+retaining retaliation when that visitor also fired on the ship. Module and PR-marker checks passed.
+Logs: TEMP/wfcrew-escort-releasecheck-build.log and wfcrew-escort-releasecheck-tests.log.
+The matching local test pair uses port 1221, `wf.crew.ui_diagnostics=true`, mob pushing disabled, and explicit
+client sandboxing. Its logs are TEMP/wfcrew-escort-server*.log and wfcrew-escort-client*.log. The server reached
+Ready without ERRO/FATL entries; the graphical client enabled sandboxing and reached GameplayState without
+sandbox violations. At launch the server PID was 33092 and client PID 10640; recheck before acting on processes.
+The user took over the live client and entered admin ghost while the UI check was starting, so further automated
+input was stopped. No live reproduction of the empty menus is confirmed yet. Keep this work local;
+no PR or push without explicit permission.
+
 ## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints

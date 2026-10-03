@@ -61,6 +61,7 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
     public int Send(WFCrewSetupRequest request)
     {
         request.RequestId = ++_nextRequestId;
+        EntityManager.System<WFCrewUiDiagnosticsSystem>().Request("crew", request.Grid);
         RaiseNetworkEvent(request);
         return request.RequestId;
     }
