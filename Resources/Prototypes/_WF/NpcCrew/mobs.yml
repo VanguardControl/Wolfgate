@@ -35,6 +35,12 @@
   name: deckhand
   description: A spacer working for a wage.
   components:
+  - type: ShipRepairTool
+  - type: WFCrewRepair
+  - type: Tool
+    qualities:
+    - Applicating
+    - Prying
   - type: Loadout
     prototypes: [ WFCrewDeckhandGear ]
 

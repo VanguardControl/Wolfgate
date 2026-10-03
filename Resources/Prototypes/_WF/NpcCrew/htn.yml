@@ -13,6 +13,19 @@
       operator: !type:WFReloadOperator
     - !type:HTNCompoundTask
       task: WFCrewFightCompound
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:WFCrewWorkOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:WFHolsterWeaponOperator
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        targetKey: WFCrewWorkDestination
+        rangeKey: InteractRange
+        removeKeyOnFinish: false
+    - !type:HTNPrimitiveTask
+      operator: !type:WFCrewWorkOperator
+        perform: true
   - preconditions:
     - !type:KeyEqualsPrecondition
       key: WFCrewDuty

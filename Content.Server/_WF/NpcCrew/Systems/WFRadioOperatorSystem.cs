@@ -35,6 +35,9 @@ public enum WFRadioLine : byte
     CaptainDown,
     HelmDown,
     AllClear,
+    Approach,
+    DockWarning,
+    BoardWarning,
 }
 
 /// <summary>One line the radio officer put on the air.</summary>
@@ -59,6 +62,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     [Dependency] private NpcFactionSystem _faction = default!;
     [Dependency] private RadioSystem _radio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFCrewSecuritySystem _security = default!;
 
     /// <summary>How many transmissions <see cref="WFRadioOperatorComponent.Sent"/> keeps.</summary>
     private const int SentKept = 20;
@@ -79,7 +83,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<WFCrewComponent, BeforeDamageChangedEvent>(OnCrewDamaged);
+        SubscribeLocalEvent<WFCrewComponent, BeforeDamageChangedEvent>(OnCrewDamaged,
+            before: [typeof(Content.Shared._Onyx.Wounds.WoundDamageRoutingSystem)]);
         SubscribeLocalEvent<DockEvent>(OnDock);
         SubscribeLocalEvent<UndockEvent>(OnUndock);
         SubscribeLocalEvent<FTLCompletedEvent>(OnFtlCompleted);
@@ -88,6 +93,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         SubscribeLocalEvent<WFCrewMemberDownEvent>(OnCrewDown);
         SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
         SubscribeLocalEvent<WFCrewAlertEvent>(OnCrewAlert);
+        SubscribeLocalEvent<WFCrewSecurityIncidentEvent>(OnSecurityIncident);
+        SubscribeLocalEvent<WFPilotOrdersChangedEvent>(OnOrdersChanged);
     }
 
     /// <summary>Once a second: boarders, the drive spooling up, and the all-clear.</summary>
@@ -156,7 +163,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     private void OnCrewDamaged(Entity<WFCrewComponent> ent, ref BeforeDamageChangedEvent args)
     {
         var (uid, component) = ent;
-        if (!args.Damage.AnyPositive() || args.Origin is not { } origin || origin == uid)
+        if (args.Cancelled || !args.Damage.AnyPositive() || args.Origin is not { } origin || origin == uid)
             return;
 
         if (InCrew(origin, component.Group, Transform(uid).GridUid))
@@ -257,10 +264,34 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
         foreach (var op in OperatorsOn(grid))
         {
+            if (!_security.IsOutboundDock(grid, GroupOf(op), other))
+                continue;
             TrySend(op,
                 WFRadioLine.Docking,
                 ("station", NameOrUnknown(other)),
                 ("port", port is { } dock ? Name(dock) : string.Empty));
+        }
+    }
+
+    private void OnOrdersChanged(ref WFPilotOrdersChangedEvent args)
+    {
+        if (args.Orders != WFPilotOrder.Dock || !TryComp<WFPilotDutyComponent>(args.Mob, out var duty)
+            || duty.DockTarget is not { } target)
+            return;
+        foreach (var op in OperatorsOfCrew(args.Mob))
+            TrySend(op, WFRadioLine.Approach, ("station", NameOrUnknown(target)));
+    }
+
+    private void OnSecurityIncident(ref WFCrewSecurityIncidentEvent args)
+    {
+        foreach (var op in OperatorsOn(args.Grid))
+        {
+            if (GroupOf(op) != args.Group)
+                continue;
+            TrySend(op, args.Docking ? WFRadioLine.DockWarning : WFRadioLine.BoardWarning,
+                ("visitor", NameOrUnknown(args.Visitor)));
+            if (args.Response == WFCrewSecurityResponse.Hostile)
+                HostileAct(op, args.Visitor);
         }
     }
 
@@ -476,6 +507,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             WFRadioLine.CaptainDown => "captain-down",
             WFRadioLine.HelmDown => "helm-down",
             WFRadioLine.AllClear => "all-clear",
+            WFRadioLine.Approach => "approach",
+            WFRadioLine.DockWarning => "dock-warning",
+            WFRadioLine.BoardWarning => "board-warning",
             _ => throw new ArgumentOutOfRangeException(nameof(line), line, null),
         };
     }

@@ -206,7 +206,46 @@ Module generation/check/PR-marker check passed. Real graphical client enabled sa
 server/client logs contain no `[ERRO]`, `[FATL]` or sandbox violations. Test pair remains on 127.0.0.1:1219.
 No prototype changes in this batch, so the Release prototype linter was not rerun. Work remains local.
 
-## Traps that each cost a build cycle
+## Security, work orders and EVA follow-up (2026-10-02)
+
+Crew Setup now has Objectives & Queue, Create Crew, Faction & Security, and Manual Orders tabs. Selecting a live
+crew loads its saved faction/radio/security settings. Apply Rules preserves the running queue. Boarding and docking
+each support Ignore, Warn or Hostile. Same-company visitors (where companies are present) or overlapping NPC
+factions are authorized. Outbound Dock orders authorize their destination. Incoming unauthorized docking raises a
+ship threat and a warning; it no longer impersonates an outbound docking announcement. Outbound approach and
+successful docking get separate radio lines.
+
+Crew on previously unmanaged map ships now initialize ship access and receive normal revocable cards. Friendly
+crew projectiles skip allies, and friendly damage is cancelled before inventory armor, wound routing and retaliation.
+Live-threat gating and periodic holstering stop drawing/racking after combat. Tanks are excluded from fallback
+weapon selection. GoTo/Follow face their destination and pilots face the console when taking it.
+
+Repair, Resupply and Salvage are queued work orders. Deckhands use built-in ShipRepairTool and nanite-applicator
+capabilities: no LimitedCharges component, no lootable unlimited item. Death removes both capabilities permanently
+and cancels work. Existing ship repair snapshots are preserved; otherwise the first crew spawn initializes one.
+Missing snapshot floors/structures use the ordinary SRD do-after; damaged Repairable entities use the ordinary
+repair interaction. Resupply collects loose ammunition and filled oxygen tanks; Salvage collects loose material
+stacks. Neither opens containers, fabricates supplies or dismantles structures. A deckhand physically walks to the
+target and carries cargo home. Navigation failure times out visibly; pause/resume retries. Objective queues still
+require a pilot. Docked-grid navigation uses upstream docking pathfinding portals.
+
+Default loadouts include pressure suits, helmets, masks and finite oxygen tanks. Internals connect before work and
+in unsafe air. At the reserve threshold crew try a reachable loose spare; otherwise work is cancelled and the work
+navigation branch heads to safe air, then to a filled tank on the home ship. New work is blocked without suitable
+EVA protection and oxygen. Custom loadouts remain responsible for providing those items. Blocked paths or a ship
+with no safe air/spare tanks still need intervention; oxygen is finite. Crew cannot rebuild damage absent from their
+saved SRD snapshot.
+
+Validation: full Debug crew suite passed 47/47. Strengthening the equipment repair fixture to require actual HTN
+walking and repair passed 1/1; the updated outbound/incoming docking radio cases passed 2/2. These include SRD floor
+and structure reconstruction, permanent death shutdown, real spare-tank replacement, cargo range/carry checks,
+boarding rules, friendly damage prevention and the Dredger/Drillsite thruster docking regression. Release YAML
+linter: no errors. Module generator/check/PR-marker check passed. The real graphical client enabled sandboxing,
+connected to 127.0.0.1:1219 and reached InGame/lobby. Server/client logs contain no `[ERRO]`, `[FATL]` or sandbox
+violations (ordinary startup timing/localization warnings remain). The fresh local server/client pair is running.
+All work remains local; do not create a PR or push without the user's explicit permission.
+
+## Additional engine traps
 
 - Robust requires every subscription one system makes to the same event type to use identical ordering constraints
   (`after:`/`before:`), or the server fails to start with "uses different ordering constraints".

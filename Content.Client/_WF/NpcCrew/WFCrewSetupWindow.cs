@@ -30,6 +30,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
     private readonly OptionButton _faction = new();
     private readonly OptionButton _local = new();
     private readonly OptionButton _alert = new();
+    private readonly OptionButton _boardingRule = new();
+    private readonly OptionButton _dockingRule = new();
     private readonly LineEdit _count = new() { Text = "2" };
     private readonly LineEdit _group = new() { Text = "crew" };
     private readonly LineEdit _callsign = new();
@@ -91,29 +93,54 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
         _order.OnItemSelected += _ => UpdateOrderFields();
 
         var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
-        Contents.AddChild(new ScrollContainer { VerticalExpand = true, Children = { body } });
+        Contents.AddChild(body);
         body.AddChild(Line("ship", _grid, Button("refresh", () => Send(WFCrewSetupAction.List))));
-        BuildObjectives(body);
-        body.AddChild(Line("vessel", _vessel, Button("spawn-vessel", () => Send(WFCrewSetupAction.SpawnVessel))));
+        body.AddChild(Line("active-crews", _activeCrew));
+        body.AddChild(Line("group", _group, new Label { Text = Loc.GetString("wf-crew-setup-callsign") }, _callsign));
+        var tabs = new TabContainer { VerticalExpand = true };
+        body.AddChild(tabs);
+        BoxContainer Page(string key)
+        {
+            var page = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 10 };
+            tabs.AddChild(new ScrollContainer { Children = { page } });
+            tabs.SetTabTitle(tabs.ChildCount - 1, Loc.GetString($"wf-crew-setup-tab-{key}"));
+            return page;
+        }
+        var orders = Page("objectives");
+        BuildObjectives(orders);
+        var setup = Page("crew");
+        var rules = Page("rules");
+        var immediate = Page("manual");
+        setup.AddChild(Line("vessel", _vessel, Button("spawn-vessel", () => Send(WFCrewSetupAction.SpawnVessel))));
         _captain.Text = Loc.GetString("wf-crew-setup-captain");
         _heave.Text = Loc.GetString("wf-crew-setup-heave");
-        body.AddChild(Line("deckhands", _count, _captain, Button("plan", () => Send(WFCrewSetupAction.Plan)),
+        setup.AddChild(Line("deckhands", _count, _captain, Button("plan", () => Send(WFCrewSetupAction.Plan)),
             Button("add", () => AddRow(new WFCrewSetupPost()))));
-        body.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-roster-help") });
-        body.AddChild(new ScrollContainer { VerticalExpand = true, MinHeight = 170, Children = { _roster } });
-        body.AddChild(Line("group", _group, new Label { Text = Loc.GetString("wf-crew-setup-callsign") }, _callsign));
-        body.AddChild(Line("company", _company, new Label { Text = Loc.GetString("wf-crew-setup-faction") }, _faction));
-        body.AddChild(Line("channels", _local, _alert, _heave));
-        body.AddChild(Line("orders", _order));
+        setup.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-roster-help") });
+        setup.AddChild(new ScrollContainer { VerticalExpand = true, MinHeight = 170, Children = { _roster } });
+        rules.AddChild(Line("company", _company, new Label { Text = Loc.GetString("wf-crew-setup-faction") }, _faction));
+        rules.AddChild(Line("channels", _local, _alert, _heave));
+        foreach (var button in new[] { _boardingRule, _dockingRule })
+        {
+            foreach (var response in Enum.GetValues<WFCrewSecurityResponse>())
+                button.AddItem(Loc.GetString($"wf-crew-setup-response-{response.ToString().ToLowerInvariant()}"), (int) response);
+            button.SelectId((int) WFCrewSecurityResponse.Hostile);
+            SelectOnClick(button);
+        }
+        rules.AddChild(Line("boarding-rule", _boardingRule));
+        rules.AddChild(Line("docking-rule", _dockingRule));
+        rules.AddChild(new Label { Text = Loc.GetString("wf-crew-setup-security-help") });
+        rules.AddChild(Button("apply-rules", () => Send(WFCrewSetupAction.Rules)));
+        immediate.AddChild(Line("orders", _order));
         _targetLine = Line("target-grid", _target, Button("refresh", () => Send(WFCrewSetupAction.List)));
-        body.AddChild(_targetLine);
+        immediate.AddChild(_targetLine);
         _destinationLine = Line("destination", _x, _y);
-        body.AddChild(_destinationLine);
-        body.AddChild(Line("range", _range));
+        immediate.AddChild(_destinationLine);
+        immediate.AddChild(Line("range", _range));
         UpdateOrderFields();
-        body.AddChild(Line("actions", Button("preview", () => Send(WFCrewSetupAction.Preview)),
-            Button("spawn", () => Send(WFCrewSetupAction.Spawn)), Button("clear", () => Send(WFCrewSetupAction.Clear)),
-            Button("apply-orders", () => Send(WFCrewSetupAction.Orders))));
+        setup.AddChild(Line("actions", Button("preview", () => Send(WFCrewSetupAction.Preview)),
+            Button("spawn", () => Send(WFCrewSetupAction.Spawn)), Button("clear", () => Send(WFCrewSetupAction.Clear))));
+        immediate.AddChild(Button("apply-orders", () => Send(WFCrewSetupAction.Orders)));
         body.AddChild(_status);
         Send(WFCrewSetupAction.List);
     }
@@ -217,6 +244,8 @@ public sealed partial class WFCrewSetupWindow : DefaultWindow
                 Group = _group.Text, Callsign = _callsign.Text, Company = _companies[_company.SelectedId],
                 Faction = _factions[_faction.SelectedId], LocalChannel = _channels[_local.SelectedId],
                 AlertChannel = _channels[_alert.SelectedId], HeaveTo = _heave.Pressed,
+                BoardingResponse = (WFCrewSecurityResponse) _boardingRule.SelectedId,
+                DockingResponse = (WFCrewSecurityResponse) _dockingRule.SelectedId,
                 Order = (WFPilotOrder) _order.SelectedId, Destination = new Vector2(Number(_x), Number(_y)),
                 Range = Number(_range), Target = _target.SelectedId >= 0 && _target.SelectedId < _grids.Count ? _grids[_target.SelectedId].Id : null,
             },

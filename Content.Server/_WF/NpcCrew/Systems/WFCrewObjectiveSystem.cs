@@ -3,6 +3,8 @@ using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
+using Content.Shared._Mono.Company;
+using Content.Shared.NPC.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
@@ -14,6 +16,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
 {
     [Dependency] private WFPilotDutySystem _pilots = default!;
     [Dependency] private MobStateSystem _mobs = default!;
+    [Dependency] private WFCrewWorkSystem _work = default!;
     private readonly Dictionary<(EntityUid Grid, string Group), QueueState> _queues = new();
     private float _timer;
 
@@ -60,7 +63,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             || !float.IsFinite(item.Duration) || item.Duration is < 0 or > 86400
             || !float.IsFinite(item.Position.X) || !float.IsFinite(item.Position.Y))
             return false;
-        if (item.Kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock)
+        if (item.Kind is WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Repair)
             return true;
         return item.Target is { } net && TryGetEntity(net, out var target) && target is { } uid && uid != grid
             && HasComp<MapGridComponent>(uid) && Transform(uid).MapUid == Transform(grid).MapUid;
@@ -84,7 +87,11 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
     }
 
     /// <summary>Cancels queued orders when an admin issues an immediate mission or clears the crew.</summary>
-    public void Cancel(EntityUid grid, string group) => _queues.Remove((grid, group));
+    public void Cancel(EntityUid grid, string group)
+    {
+        _work.Cancel(grid, group);
+        _queues.Remove((grid, group));
+    }
 
     /// <summary>Whether an admin explicitly ordered this crew to engage a grid.</summary>
     public bool IsAttackTarget(EntityUid grid, string group, EntityUid target)
@@ -117,6 +124,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
 
     private void HoldCrew(EntityUid grid, string group)
     {
+        _work.Cancel(grid, group);
         if (Pilot(grid, group) is { } pilot)
             _pilots.Hold(pilot);
     }
@@ -169,6 +177,18 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             }
             state.Status = "running";
             state.Elapsed += elapsed;
+            if (item.Kind is WFCrewObjectiveKind.Repair or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage)
+            {
+                if (item.Kind != WFCrewObjectiveKind.Repair && !duty.OrdersCompleted)
+                    continue;
+                state.Status = _work.Advance(grid, group, item.Kind, target);
+                if (state.Status != "complete")
+                    continue;
+                state.Items.RemoveAt(0);
+                state.Started = false;
+                state.Elapsed = 0;
+                continue;
+            }
             var completesOnArrival = item.Kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Retreat;
             if (completesOnArrival ? duty.OrdersCompleted : item.Duration > 0 && state.Elapsed >= item.Duration)
             {
@@ -188,6 +208,9 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         switch (item.Kind)
         {
             case WFCrewObjectiveKind.Hold: _pilots.Hold(pilot); break;
+            case WFCrewObjectiveKind.Repair: _pilots.Hold(pilot); break;
+            case WFCrewObjectiveKind.Resupply:
+            case WFCrewObjectiveKind.Salvage: _pilots.Dock(pilot, target); break;
             case WFCrewObjectiveKind.GoTo:
                 _pilots.GoTo(pilot, new List<EntityCoordinates> { new(Transform(grid).MapUid!.Value, item.Position) }); break;
             case WFCrewObjectiveKind.Dock: _pilots.Dock(pilot, target); break;
@@ -208,7 +231,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var transform))
         {
-            if (transform.GridUid is not { } grid)
+            if ((_work.HomeGrid(uid) ?? transform.GridUid) is not { } grid)
                 continue;
             var key = (grid, crew.Group);
             if (!result.TryGetValue(key, out var row))
@@ -222,6 +245,24 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 result.Add(key, row);
             }
             row.Members++;
+            row.Settings.Group = crew.Group;
+            if (TryComp<CompanyComponent>(uid, out var company))
+                row.Settings.Company = company.CompanyName.Id;
+            if (TryComp<NpcFactionMemberComponent>(uid, out var faction))
+                row.Settings.Faction = faction.Factions.FirstOrDefault().Id ?? "WFCrew";
+            if (TryComp<WFCrewSecurityComponent>(uid, out var security))
+            {
+                row.Settings.BoardingResponse = security.Boarding;
+                row.Settings.DockingResponse = security.Docking;
+            }
+            if (TryComp<WFCaptainComponent>(uid, out var captain))
+                row.Settings.HeaveTo = captain.HeaveTo;
+            if (TryComp<WFRadioOperatorComponent>(uid, out var radio))
+            {
+                row.Settings.Callsign = radio.Callsign ?? string.Empty;
+                row.Settings.LocalChannel = radio.LocalChannel.Id;
+                row.Settings.AlertChannel = radio.AlertChannel.Id;
+            }
             if (_mobs.IsAlive(uid))
                 row.Alive++;
         }

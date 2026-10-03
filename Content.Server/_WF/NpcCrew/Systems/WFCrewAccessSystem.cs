@@ -24,8 +24,10 @@ public sealed partial class WFCrewAccessSystem : EntitySystem
     /// <summary>Registers a newly spawned crewman's worn card only on its spawn ship, when that ship manages access.</summary>
     public void RegisterSpawnShip(EntityUid uid)
     {
-        if (Transform(uid).GridUid is not { } grid || !TryComp<WFShipAccessComponent>(grid, out var ship))
+        if (Transform(uid).GridUid is not { } grid)
             return;
+
+        var ship = EnsureComp<WFShipAccessComponent>(grid);
 
         if (!_access.TryGetWornCard(uid, out var card))
         {

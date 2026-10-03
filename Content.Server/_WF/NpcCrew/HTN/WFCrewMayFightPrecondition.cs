@@ -20,6 +20,10 @@ public sealed partial class WFCrewMayFightPrecondition : HTNPrecondition
     public override bool IsMet(NPCBlackboard blackboard)
     {
         var owner = blackboard.GetValue<EntityUid>(NPCBlackboard.Owner);
+        if (!_entManager.System<Content.Server._WF.NpcCrew.Systems.WFCrewWeaponSystem>().HasLiveThreat(owner))
+            return false;
+        if (_entManager.System<Content.Server._WF.NpcCrew.Systems.WFCrewSecuritySystem>().HasThreat(owner))
+            return true;
         if (!_entManager.TryGetComponent<WFCrewComponent>(owner, out var crew)
             || crew.Engagement == WFCrewEngagement.OnSight)
         {

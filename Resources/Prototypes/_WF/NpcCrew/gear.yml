@@ -7,6 +7,10 @@
     jumpsuit: ClothingUniformJumpsuitColorGrey
     shoes: ClothingShoesColorBlack
     ears: ClothingHeadsetGrey
+    outerClothing: ClothingOuterHardsuitSpatio
+    head: ClothingHeadHelmetHardsuitSpatio
+    mask: ClothingMaskBreath
+    suitstorage: OxygenTankFilled
     belt: WeaponPistolMk58
     pocket1: Magazine45_ACPPistolFMJ
     pocket2: Magazine45_ACPPistolFMJ
@@ -17,8 +21,10 @@
     jumpsuit: ClothingUniformJumpsuitColorGrey
     shoes: ClothingShoesColorBlack
     ears: ClothingHeadsetGrey
-    outerClothing: ClothingOuterArmorBasic
-    head: ClothingHeadHelmetBasic
+    outerClothing: ClothingOuterHardsuitSpatio
+    head: ClothingHeadHelmetHardsuitSpatio
+    mask: ClothingMaskBreath
+    suitstorage: OxygenTankFilled
     back: WeaponRifleLecter
     belt: WeaponPistolMk58
     pocket1: Magazine68x52mmCaseless
@@ -30,5 +36,9 @@
     jumpsuit: ClothingUniformJumpsuitColorBlue
     shoes: ClothingShoesColorBlack
     ears: ClothingHeadsetGrey
+    outerClothing: ClothingOuterHardsuitSpatio
+    head: ClothingHeadHelmetHardsuitSpatio
+    mask: ClothingMaskBreath
+    suitstorage: OxygenTankFilled
     belt: WeaponPistolMk58
     pocket1: Magazine45_ACPPistolFMJ
