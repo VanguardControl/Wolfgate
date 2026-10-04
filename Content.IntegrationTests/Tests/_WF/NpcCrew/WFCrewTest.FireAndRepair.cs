@@ -41,6 +41,8 @@ public sealed partial class WFCrewTest
     ignoreLos: true
   - type: Transform
     anchored: true
+  - type: Physics
+    bodyType: Static
 
 - type: entity
   parent: WallSolid
