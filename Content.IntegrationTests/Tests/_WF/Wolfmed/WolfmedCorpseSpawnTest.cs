@@ -226,6 +226,60 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
         });
     }
 
+    /// <summary>
+    /// Every bounty at its worst roll, on every species it fits: the body is still there. A bounty rolls its damage,
+    /// and the avali kept a Blunt 400 gib the other wound hosts lost (D22), so its "spaced" bounty at the top of its
+    /// range gibbed the patient as it spawned, about one such bounty in two hundred.
+    /// </summary>
+    [Test]
+    public async Task WorstRollKeepsItsBodyTest()
+    {
+        var map = await Pair.CreateTestMap();
+        var bounties = SEntMan.System<MedicalBountySystem>();
+        var spawn = SEntMan.System<WolfmedSpawnInjurySystem>();
+        var bodies = new List<(EntityUid Body, string Name)>();
+        await Server.WaitAssertion(() =>
+        {
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
+            foreach (var species in SProtoMan.EnumeratePrototypes<SpeciesPrototype>())
+            {
+                if (!species.RoundStart || species.SubspeciesOf != null)
+                    continue;
+
+                var reference = SEntMan.SpawnEntity(species.Prototype, map.GridCoords);
+                foreach (var bounty in SProtoMan.EnumeratePrototypes<MedicalBountyPrototype>())
+                {
+                    if (!bounties.Fits(reference, bounty))
+                        continue;
+
+                    var worst = new DamageSpecifier();
+                    foreach (var (type, roll) in bounty.DamageSets)
+                        worst.DamageDict[type] = FixedPoint2.New(roll.MaxDamage);
+
+                    var body = SEntMan.CreateEntityUninitialized(species.Prototype, map.GridCoords);
+                    if (!spawn.Defer(body, worst))
+                    {
+                        SEntMan.DeleteEntity(body);
+                        continue;
+                    }
+
+                    SEntMan.InitializeAndStartEntity(body);
+                    bodies.Add((body, $"{species.ID}/{bounty.ID}"));
+                }
+
+                SEntMan.DeleteEntity(reference);
+            }
+        });
+        await RunSeconds(2);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(bodies, Is.Not.Empty);
+            var gone = bodies.Where(b => SEntMan.Deleted(b.Body)).Select(b => b.Name).ToList();
+            Assert.That(gone, Is.Empty, "bounty bodies destroyed by their own worst roll.");
+        });
+    }
+
     private int WoundedParts(EntityUid body) =>
         SEntMan.System<SharedBodySystem>().GetBodyChildren(body)
             .Count(part => SEntMan.System<WoundSystem>().GetWounds(part.Id).Any());
