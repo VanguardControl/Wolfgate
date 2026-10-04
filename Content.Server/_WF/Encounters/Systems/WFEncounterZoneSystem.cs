@@ -1,6 +1,7 @@
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Shared._Mono.Company;
+using Content.Shared._WF.Encounters;
 using Content.Shared.Ghost;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Radio;
@@ -20,6 +21,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private WFEncounterSystem _encounters = default!;
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private WFCrewEscortSystem _escorts = default!;
@@ -32,7 +34,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private const int WarnLines = 3;
 
     private TimeSpan _next;
-    private readonly HashSet<EntityUid> _crewed = new();
+    // Each ship with a living player aboard, and the companies it flies for: its own, or failing that its players'.
+    private readonly Dictionary<EntityUid, List<string>> _crewed = new();
 
     public override void Update(float frameTime)
     {
@@ -71,23 +74,62 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.GridUid is { } grid && !HasComp<GhostComponent>(uid) && !_mobs.IsDead(uid))
-                _crewed.Add(grid);
+            if (xform.GridUid is not { } grid || HasComp<GhostComponent>(uid) || _mobs.IsDead(uid))
+                continue;
+
+            var company = Company(grid);
+            if (company.Length == 0)
+                company = Company(uid);
+            if (!_crewed.TryGetValue(grid, out var flags))
+                _crewed[grid] = flags = new List<string>();
+            if (company.Length > 0 && !flags.Contains(company))
+                flags.Add(company);
         }
+    }
+
+    /// <summary>An entity's company id, or empty for none.</summary>
+    private string Company(EntityUid uid)
+    {
+        return CompOrNull<CompanyComponent>(uid)?.CompanyName.Id is { } id && id != "None" ? id : string.Empty;
+    }
+
+    /// <summary>Whether two companies are at war: either one's standing lists the other.</summary>
+    public bool AtWar(string first, string second)
+    {
+        if (first.Length == 0 || second.Length == 0 || first == second)
+            return false;
+
+        return _prototypes.TryIndex<WFStandingPrototype>(first, out var mine) && mine.AtWar.Contains(second)
+            || _prototypes.TryIndex<WFStandingPrototype>(second, out var theirs) && theirs.AtWar.Contains(first);
+    }
+
+    private bool AtWar(string company, List<string> flags)
+    {
+        foreach (var flag in flags)
+        {
+            if (AtWar(company, flag))
+                return true;
+        }
+
+        return false;
     }
 
     private void Watch(WFEncounterShipState ship)
     {
         var here = _transform.GetMapCoordinates(ship.Grid);
-        var company = CompOrNull<CompanyComponent>(ship.Grid)?.CompanyName.Id;
+        var company = Company(ship.Grid);
         var now = _timing.CurTime;
-        foreach (var intruder in _crewed)
+        foreach (var (intruder, flags) in _crewed)
         {
             if (intruder == ship.Grid || HasComp<WFEncounterGridComponent>(intruder) && _escorts.AreInFormation(ship.Grid, intruder))
                 continue;
 
             // The ship's own company comes and goes as it likes.
-            if (!string.IsNullOrEmpty(company) && CompOrNull<CompanyComponent>(intruder)?.CompanyName.Id == company)
+            if (company.Length > 0 && flags.Contains(company))
+                continue;
+
+            // A patrol only minds its faction's enemies.
+            if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, flags))
                 continue;
 
             var there = _transform.GetMapCoordinates(intruder);

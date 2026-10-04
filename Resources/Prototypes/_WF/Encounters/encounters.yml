@@ -1,5 +1,6 @@
 # A pair of TSF fighters holding station off a station for the whole round. They warn ships that dock with them,
-# fight boarders, and only drive attackers off.
+# fight boarders, and only drive attackers off. Ships of a company the TSF is at war with are warned off at 900 m
+# and fired on inside 450 m; everyone else may pass.
 - type: wfEncounter
   id: WFEncounterTsfPatrol
   name: wf-encounter-name-patrol
@@ -21,7 +22,10 @@
     profile: WFCrewProfileTsf
     docking: Warn
     disengage: Deter
-    disengageRange: 800
+    disengageRange: 1200
+    warnRange: 900
+    attackRange: 450
+    zoneTargets: AtWar
     objectives:
     - kind: Circle
       target: "@origin"
@@ -37,7 +41,10 @@
     captain: false
     docking: Warn
     disengage: Deter
-    disengageRange: 800
+    disengageRange: 1200
+    warnRange: 900
+    attackRange: 450
+    zoneTargets: AtWar
     objectives:
     - kind: Escort
       target: lead
@@ -320,6 +327,7 @@
     deckhands: 2
     guards: 2
     hunt: true
+    evades: false
 
 # A wandering trader: a small hauler with a pilot and a trader aboard, drifting from point to point and stopping a
 # while at each. Dock with it and deal; the stock is small, cheap and gone when it is gone. Both can be killed.

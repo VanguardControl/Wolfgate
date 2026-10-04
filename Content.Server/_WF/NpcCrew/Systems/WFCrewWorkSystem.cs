@@ -31,6 +31,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WFCrewEvaSystem _eva = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!;
     private readonly Dictionary<EntityUid, Job> _jobs = new();
     private readonly Dictionary<(EntityUid Grid, string Group), Skipped> _skipped = new();
     private readonly HashSet<Entity<DockingComponent>> _docks = new();
@@ -180,8 +181,17 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         if (TerminatingOrDeleted(source))
             return Complete(grid, group);
         // A raid takes a few things and goes.
-        if (kind == WFCrewObjectiveKind.Loot && _looted.GetValueOrDefault((grid, group)) >= LootLimit)
-            return Complete(grid, group);
+        if (kind == WFCrewObjectiveKind.Loot)
+        {
+            if (_looted.GetValueOrDefault((grid, group)) >= LootLimit)
+                return Complete(grid, group);
+            if (FindLoot(source, skipped, ref blocked) is not { } loot)
+                return blocked ? "work-blocked" : Complete(grid, group);
+
+            _jobs[mob] = new Job(grid, group, kind, loot, home, null, _timing.CurTime);
+            _looted[(grid, group)] = _looted.GetValueOrDefault((grid, group)) + 1;
+            return "working";
+        }
         var items = Transform(source).ChildEnumerator;
         while (items.MoveNext(out var item))
         {
@@ -300,7 +310,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         coordinates = default;
         if (!_jobs.TryGetValue(mob, out var job) || job.Failed || HasComp<ActorComponent>(mob) || !_mobs.IsAlive(mob))
             return false;
-        if (!_eva.Prepare(mob))
+        if (job.Kind != WFCrewObjectiveKind.Loot && !_eva.Prepare(mob))
         {
             Fail(job, false);
             return false;
@@ -331,7 +341,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             _jobs.Remove(mob);
             return false;
         }
-        coordinates = Transform(target).Coordinates;
+        // Something in a locker or crate is fetched from where the locker stands.
+        coordinates = Transform(Holder(target, mob) ?? target).Coordinates;
         return true;
     }
 
@@ -352,7 +363,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         else
         {
             var target = job.Tool is { } needed && needed != mob && !_hands.IsHolding(mob, needed, out _) ? needed : job.Target;
-            if (!_interaction.InRangeUnobstructed(mob, target, range: 1.5f))
+            if (!_interaction.InRangeUnobstructed(mob, Holder(target, mob) ?? target, range: 1.5f))
                 return true;
         }
         if (job.SrdCoordinates is { } repairCoordinates)
@@ -404,6 +415,10 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             job.NextUse = _timing.CurTime + TimeSpan.FromSeconds(Comp<RepairableComponent>(job.Target).DoAfterDelay + 2);
             return false;
         }
+        // A looter rifles lockers and crates: the thing is pulled out before it is picked up.
+        if (job.Kind == WFCrewObjectiveKind.Loot && Holder(job.Target, mob) != null
+            && _containers.TryGetContainingContainer(job.Target, out var holding))
+            _containers.Remove(job.Target, holding);
         if (!_hands.TryPickupAnyHand(mob, job.Target))
         {
             Fail(job, true);
@@ -411,6 +426,65 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         job.Returning = true;
         return true;
+    }
+
+    /// <summary>The locker, crate or other container an item lies in, unless the worker himself holds it.</summary>
+    private EntityUid? Holder(EntityUid item, EntityUid worker)
+    {
+        return _containers.TryGetContainingContainer(item, out var container) && container.Owner != worker
+            ? container.Owner
+            : null;
+    }
+
+    private bool Claimed(EntityUid item)
+    {
+        foreach (var job in _jobs.Values)
+        {
+            if (job.Target == item)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Something to steal aboard a ship: a loose item on the deck, or failing that one out of a locker or crate.
+    /// </summary>
+    private EntityUid? FindLoot(EntityUid source, Skipped skipped, ref bool blocked)
+    {
+        EntityUid? stored = null;
+        var children = Transform(source).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            if (HasComp<Content.Shared.Item.ItemComponent>(child))
+            {
+                if (Claimed(child))
+                    continue;
+                if (!skipped.Entities.Contains(child))
+                    return child;
+                blocked = true;
+                continue;
+            }
+
+            if (stored != null || !TryComp<Content.Server.Storage.Components.EntityStorageComponent>(child, out var storage))
+                continue;
+
+            foreach (var inside in storage.Contents.ContainedEntities)
+            {
+                if (!HasComp<Content.Shared.Item.ItemComponent>(inside) || Claimed(inside))
+                    continue;
+                if (skipped.Entities.Contains(inside))
+                {
+                    blocked = true;
+                    continue;
+                }
+
+                stored = inside;
+                break;
+            }
+        }
+
+        return stored;
     }
 
     /// <summary>Marks a job failed; a blamed failure also keeps the order from picking the same target again.</summary>

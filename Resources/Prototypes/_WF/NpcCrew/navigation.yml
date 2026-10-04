@@ -14,6 +14,9 @@
     maximumTurnRate: 0.25
     thrustMultiplier: 0.8
     angularThrustMultiplier: 0.7
+    dockApproachSpeed: 6
+    dockCreepSpeed: 2
+    undockSpeed: 5
 
 - type: wfCrewNavigation
   id: WFCrewNavigationWarship
@@ -28,6 +31,9 @@
     maximumTurnRate: 0.4
     thrustMultiplier: 1
     angularThrustMultiplier: 1
+    dockApproachSpeed: 9
+    dockCreepSpeed: 2.5
+    undockSpeed: 7
     attackRange: 300
 
 - type: wfCrewNavigation
@@ -43,4 +49,7 @@
     maximumTurnRate: 0.5
     thrustMultiplier: 1
     angularThrustMultiplier: 1
+    dockApproachSpeed: 14
+    dockCreepSpeed: 3.5
+    undockSpeed: 10
     attackRange: 250

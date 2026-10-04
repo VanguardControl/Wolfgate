@@ -134,7 +134,7 @@ public sealed partial class WFPilotDutySystem
             return false;
 
         var distance = (_transform.ToMapCoordinates(steerer.Coordinates).Position - position).Length();
-        return distance > MathF.Max(limits.DockAlignmentRange * 2f, 250f);
+        return distance > limits.DockAlignmentRange * 1.5f;
     }
 
     private bool IsOnMap(EntityCoordinates point, MapId map)

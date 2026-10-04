@@ -174,6 +174,10 @@ public sealed partial class WFEncounterShip
     [DataField]
     public string ZoneLines = "wf-encounter-zone";
 
+    /// <summary>Whose ships the zones answer to: everyone not of this ship's company, or only its enemies.</summary>
+    [DataField]
+    public WFEncounterZoneTargets ZoneTargets = WFEncounterZoneTargets.Everyone;
+
     /// <summary>Player ships of another company inside this range are told over the radio to turn away.</summary>
     [DataField]
     public float WarnRange;

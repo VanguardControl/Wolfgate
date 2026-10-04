@@ -132,6 +132,17 @@ public sealed class WFEncounterTest : InteractionTest
     side: bad
 
 - type: wfEncounter
+  id: WFTestEncounterWarZone
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: patrol
+    vessel: WFDredger
+    company: TSF
+    attackRange: 400
+    zoneTargets: AtWar
+
+- type: wfEncounter
   id: WFTestEncounterCostly
   name: wf-encounter-name-convoy
   cost: 50
@@ -588,6 +599,51 @@ public sealed class WFEncounterTest : InteractionTest
             transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
             Server.System<WFEncounterSystem>().End(encounter);
             SEntMan.DeleteEntity(grid.Owner);
+        });
+        await RunTicks(10);
+    }
+
+/// <summary>A faction patrol's zone only answers to ships of a company it is at war with.</summary>
+    [Test]
+    public async Task PatrolZoneOnlyMindsCompaniesAtWar()
+    {
+        EntityUid encounter = default, patrol = default, intruder = default;
+        await Server.WaitAssertion(() =>
+        {
+            var zones = Server.System<WFEncounterZoneSystem>();
+            Assert.That(zones.AtWar("TSF", "PDV"), Is.True);
+            Assert.That(zones.AtWar("PDV", "TSF"), Is.True, "War is mutual.");
+            Assert.That(zones.AtWar("TSF", "USSP"), Is.False);
+            Assert.That(zones.AtWar("TSF", string.Empty), Is.False, "The unaffiliated are nobody's enemy.");
+
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWarZone");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(17000, 17000), MapData.MapId), out encounter), Is.True);
+            patrol = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"].Grid;
+
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            intruder = grid.Owner;
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var transform = Server.System<SharedTransformSystem>();
+            transform.SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(17200, 17000)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(intruder, new Vector2(0.5f)));
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(intruder).CompanyName = "USSP";
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            Assert.That(state.Engaged, Is.Empty, "A USSP ship inside the ring is left alone.");
+            SEntMan.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(intruder).CompanyName = "PDV";
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            Assert.That(state.Engaged.Contains(intruder), Is.True, "A PDV ship inside the ring is an enemy.");
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(patrol, state.Group), Does.Contain(intruder));
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(intruder);
         });
         await RunTicks(10);
     }

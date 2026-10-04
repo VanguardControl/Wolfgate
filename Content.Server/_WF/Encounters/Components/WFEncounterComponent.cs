@@ -108,6 +108,9 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public string ZoneLines = "wf-encounter-zone";
 
+    [DataField]
+    public WFEncounterZoneTargets ZoneTargets;
+
     /// <summary>Since when no player has been near it, while resolved.</summary>
     public TimeSpan? Quiet;
 

@@ -382,6 +382,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             WarnRange = ship.WarnRange,
             AttackRange = ship.AttackRange,
             ZoneLines = ship.ZoneLines,
+            ZoneTargets = ship.ZoneTargets,
             Hunt = ship.Hunt,
             Distress = ship.Distress,
         };

@@ -33,6 +33,13 @@ public sealed partial class WFEncounterSystem
             {
                 ship.RaidEnds = _timing.CurTime + RaidTime;
                 SendBoardingParty(ship, docked);
+                // Nobody is left behind lightly: the pilot waits a good while for people still aboard the prey.
+                var pilots = EntityQueryEnumerator<WFPilotDutyComponent, WFCrewComponent, TransformComponent>();
+                while (pilots.MoveNext(out _, out var pilot, out var member, out var xform))
+                {
+                    if (member.Group == ship.Group && xform.GridUid == ship.Grid)
+                        pilot.AbsentCrewWait = 180f;
+                }
             }
             else if (_timing.CurTime >= ship.RaidEnds - RecallLead)
                 RecallBoardingParty(ship);
