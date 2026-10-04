@@ -42,6 +42,26 @@ public sealed partial class WFOrbitalMobFallSystem : EntitySystem
         SubscribeLocalEvent<WFOrbitalMobFallComponent, CEZLevelHitEvent>(OnHit, after: new[] { typeof(CEZLevelDamageSystem) });
     }
 
+    /// <inheritdoc/>
+    // The mark otherwise only comes off on a hard impact, so a faller caught by a jetpack, or set down gently, kept
+    // it, and the next ordinary hard landing was taken for the orbital one. A hard landing is handled in z-physics,
+    // which raises the hit before the body comes to rest, so OnHit always sees the mark first.
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var query = EntityQueryEnumerator<WFOrbitalMobFallComponent, CEZPhysicsComponent>();
+        while (query.MoveNext(out var uid, out _, out var body))
+        {
+            var flying = body.GravityMultiplier <= 0f;
+            var atRest = body.Velocity == 0f
+                         && body.LocalPosition - body.CachedGroundHeight <= CESharedZLevelsSystem.AirborneHeightThreshold;
+
+            if (flying || atRest)
+                RemCompDeferred<WFOrbitalMobFallComponent>(uid);
+        }
+    }
+
     private void OnFall(Entity<MobStateComponent> ent, ref CEZLevelFallMapEvent args)
     {
         if (ent.Comp.CurrentState == MobState.Dead || HasComp<WFOrbitalMobFallComponent>(ent)

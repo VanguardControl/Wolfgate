@@ -73,6 +73,62 @@ public sealed class OrbitalMobFallTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A fall from orbit that ends without an impact, set down gently or caught under power, is over: the next
+    /// ordinary hard landing costs no limbs.
+    /// </summary>
+    [Test]
+    public async Task AnArrestedOrbitalFallIsForgotten()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        await EnableFeature(pair);
+        var layers = await BuildStandalone(pair);
+        await LayTiles(pair, layers[0], new Vector2i(-4, -4), new Vector2i(8, 8));
+        var server = pair.Server;
+        var em = server.EntMan;
+        var zLevels = server.System<CESharedZLevelsSystem>();
+        EntityUid landed = default;
+        EntityUid flying = default;
+
+        await server.WaitPost(() =>
+        {
+            // Came down from orbit and was set down too gently to count as an impact.
+            landed = em.SpawnEntity("MobHuman", new EntityCoordinates(layers[0], new Vector2(0.5f)));
+            em.AddComponent<WFOrbitalMobFallComponent>(landed).Ground = layers[0];
+
+            // Still in the air, a layer up, with a lit atmospheric jetpack holding it there.
+            em.GetComponent<Content.Shared._WF.Planets.WFPlanetLayerComponent>(layers[1]).Gravity = 1f;
+            flying = em.SpawnEntity("MobHuman", new EntityCoordinates(layers[1], new Vector2(0.5f)));
+            var pack = em.SpawnEntity("WFJetpackAtmospheric", new EntityCoordinates(layers[1], new Vector2(0.5f)));
+            Assert.That(server.System<Content.Shared.Inventory.InventorySystem>().TryEquip(flying, pack, "back", force: true), Is.True);
+            server.System<Content.Server.Movement.Systems.JetpackSystem>()
+                .SetEnabled(pack, em.GetComponent<Content.Shared.Movement.Components.JetpackComponent>(pack), true, flying);
+            em.AddComponent<WFOrbitalMobFallComponent>(flying).Ground = layers[0];
+        });
+        await pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.HasComponent<Content.Shared.Movement.Components.JetpackUserComponent>(flying), Is.True,
+                "Precondition: the jetpack did not light.");
+            Assert.That(em.HasComponent<WFOrbitalMobFallComponent>(landed), Is.False,
+                "A mob at rest on the ground is still marked as falling from orbit.");
+            Assert.That(em.HasComponent<WFOrbitalMobFallComponent>(flying), Is.False,
+                "A mob flying under power is still marked as falling from orbit.");
+
+            // A later, ordinary hard landing.
+            zLevels.SetZVelocity(landed, -5f);
+            var hit = new CEZLevelHitEvent(5f);
+            em.EventBus.RaiseLocalEvent(landed, ref hit);
+            var body = server.System<SharedBodySystem>();
+            Assert.That(body.GetBodyChildrenOfType(landed, BodyPartType.Arm).Count(), Is.EqualTo(2), "An ordinary fall cost an arm.");
+            Assert.That(body.GetBodyChildrenOfType(landed, BodyPartType.Leg).Count(), Is.EqualTo(2), "An ordinary fall cost a leg.");
+        });
+
+        await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task SurfaceImpactWithoutOrbitalFallDoesNotSeverLimbs()
     {
