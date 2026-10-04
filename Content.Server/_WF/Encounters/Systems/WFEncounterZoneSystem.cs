@@ -39,6 +39,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private TimeSpan _next;
     private readonly Dictionary<EntityUid, Crewed> _crewed = new();
     private readonly List<EntityUid> _stale = new();
+    private readonly List<(EntityUid Encounter, WFEncounterShipState Ship)> _fleet = new();
+    private readonly HashSet<(EntityUid Ship, EntityUid Other)> _rivals = new();
 
     /// <summary>A ship with a living player aboard.</summary>
     private sealed class Crewed
@@ -57,6 +59,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             return;
 
         _next = _timing.CurTime + Interval;
+        WatchFleet();
         var crewedKnown = false;
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
@@ -77,6 +80,65 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 }
 
                 Watch(ship);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Encounter ships answer each other's zones too: one that comes inside another's zone, and is a ship that zone
+    /// minds, is taken for an enemy, and takes the zone's owner for one in turn.
+    /// </summary>
+    private void WatchFleet()
+    {
+        _fleet.Clear();
+        var encounters = EntityQueryEnumerator<WFEncounterComponent>();
+        while (encounters.MoveNext(out var uid, out var encounter))
+        {
+            if (encounter.Resolution != null)
+                continue;
+
+            foreach (var ship in encounter.Ships.Values)
+            {
+                if (!ship.Lurking && !TerminatingOrDeleted(ship.Grid))
+                    _fleet.Add((uid, ship));
+            }
+        }
+
+        _rivals.RemoveWhere(pair => TerminatingOrDeleted(pair.Ship) || TerminatingOrDeleted(pair.Other));
+        foreach (var (uid, ship) in _fleet)
+        {
+            var range = MathF.Max(ship.WarnRange, ship.AttackRange);
+            if (range <= 0f || IsDocked(ship.Grid))
+                continue;
+
+            var here = CentreOfMass(ship.Grid);
+            var company = Company(ship.Grid);
+            foreach (var (other, rival) in _fleet)
+            {
+                // Its own side and its formation are not intruders, nor are ships of its own company.
+                if (rival.Grid == ship.Grid || other == uid && rival.Side == ship.Side
+                    || _escorts.AreInFormation(ship.Grid, rival.Grid))
+                    continue;
+
+                var theirs = Company(rival.Grid);
+                if (company.Length > 0 && theirs == company)
+                    continue;
+                if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, theirs))
+                    continue;
+
+                var key = (ship.Grid, rival.Grid);
+                var there = CentreOfMass(rival.Grid);
+                if (there.MapId != here.MapId || (there.Position - here.Position).Length() > range)
+                {
+                    _rivals.Remove(key);
+                    continue;
+                }
+
+                // No warning between crews: each takes the other for an enemy.
+                _alerts.ReportZoneThreat(ship.Grid, ship.Group, rival.Grid);
+                _alerts.ReportZoneThreat(rival.Grid, rival.Group, ship.Grid);
+                if (_rivals.Add(key))
+                    _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", Name(rival.Grid))));
             }
         }
     }

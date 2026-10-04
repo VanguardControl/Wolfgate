@@ -43,6 +43,15 @@ public sealed partial class WFEncounterTest
     zoneTargets: AtWar
 
 - type: wfEncounter
+  id: WFTestStoryRival
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: rival
+    vessel: WFDredger
+    company: PDV
+
+- type: wfEncounter
   id: WFTestStoryDock
   name: wf-encounter-name-convoy
   start: Manual
@@ -172,6 +181,32 @@ public sealed partial class WFEncounterTest
             Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
             Server.System<WFEncounterSystem>().End(encounter);
             SEntMan.DeleteEntity(intruder);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>An encounter ship inside another's zone, of a company that zone minds, makes enemies of the two.</summary>
+    [Test]
+    public async Task EncounterShipsInEachOthersZonesTurnHostile()
+    {
+        EntityUid first = default, second = default;
+        await Server.WaitAssertion(() =>
+        {
+            var system = Server.System<WFEncounterSystem>();
+            var prototypes = Server.ResolveDependency<IPrototypeManager>();
+            Assert.That(system.TrySpawn(prototypes.Index<WFEncounterPrototype>("WFTestStoryIff"), new MapCoordinates(new Vector2(37000, 37000), MapData.MapId), out first), Is.True);
+            Assert.That(system.TrySpawn(prototypes.Index<WFEncounterPrototype>("WFTestStoryRival"), new MapCoordinates(new Vector2(37500, 37000), MapData.MapId), out second), Is.True);
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var alerts = Server.System<WFCrewAlertSystem>();
+            var patrol = SEntMan.GetComponent<WFEncounterComponent>(first).Ships["patrol"];
+            var rival = SEntMan.GetComponent<WFEncounterComponent>(second).Ships["rival"];
+            Assert.That(alerts.GetHostileShips(patrol.Grid, patrol.Group), Does.Contain(rival.Grid), "The patrol takes the enemy ship in its zone for a threat.");
+            Assert.That(alerts.GetHostileShips(rival.Grid, rival.Group), Does.Contain(patrol.Grid), "And is one to it in turn.");
+            Server.System<WFEncounterSystem>().End(first);
+            Server.System<WFEncounterSystem>().End(second);
         });
         await RunTicks(10);
     }
