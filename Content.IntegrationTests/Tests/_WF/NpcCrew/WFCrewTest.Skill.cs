@@ -25,6 +25,8 @@ public sealed partial class WFCrewTest
             Assert.That(levels[i].Leading, Is.GreaterThanOrEqualTo(levels[i - 1].Leading));
             Assert.That(levels[i].Handling, Is.GreaterThanOrEqualTo(levels[i - 1].Handling));
             Assert.That(levels[i].Evasion, Is.GreaterThanOrEqualTo(levels[i - 1].Evasion));
+            Assert.That(levels[i].DamageTaken, Is.LessThanOrEqualTo(levels[i - 1].DamageTaken));
+            Assert.That(levels[i].DamageDealt, Is.GreaterThanOrEqualTo(levels[i - 1].DamageDealt));
         }
 
         Assert.That(WFCrewSkills.Of(WFCrewSkill.Green).DodgesFire, Is.False);
@@ -39,6 +41,33 @@ public sealed partial class WFCrewTest
             Assert.That(SEntMan.GetComponent<WFCrewComponent>(hand).Skill, Is.EqualTo(WFCrewSkill.Veteran));
             Server.System<WFCrewSetupSystem>().ApplyMission(hand, deck, new WFCrewMission { Group = "skill", Skill = WFCrewSkill.Green });
             Assert.That(SEntMan.GetComponent<WFCrewComponent>(hand).Skill, Is.EqualTo(WFCrewSkill.Green));
+        });
+    }
+
+    /// <summary>The same hit hurts a green crewman more than an elite one.</summary>
+    [Test]
+    public async Task GreenCrewTakeMoreDamageThanElite()
+    {
+        var deck = await CreateDeck(new Vector2(6, 0), 5, gravity: true);
+        await Server.WaitAssertion(() =>
+        {
+            var crew = Server.System<WFCrewSystem>();
+            var damageable = Server.System<Content.Shared.Damage.DamageableSystem>();
+            Content.Shared.FixedPoint.FixedPoint2 Hit(WFCrewSkill skill, float x)
+            {
+                var hand = crew.SpawnCrewman(WFCrewRoles.Deckhand, new Robust.Shared.Map.EntityCoordinates(deck, new Vector2(x, 2.5f)), "frail")!.Value;
+                SEntMan.GetComponent<Content.Server.NPC.HTN.HTNComponent>(hand).Enabled = false;
+                SEntMan.GetComponent<WFCrewComponent>(hand).Skill = skill;
+                var before = SEntMan.GetComponent<Content.Shared.Damage.DamageableComponent>(hand).TotalDamage;
+                var blow = new Content.Shared.Damage.DamageSpecifier { DamageDict = { ["Blunt"] = 10 } };
+                damageable.TryChangeDamage(hand, blow, ignoreResistances: true);
+                return SEntMan.GetComponent<Content.Shared.Damage.DamageableComponent>(hand).TotalDamage - before;
+            }
+
+            var elite = Hit(WFCrewSkill.Elite, 1.5f);
+            var green = Hit(WFCrewSkill.Green, 3.5f);
+            Assert.That(elite, Is.GreaterThan(Content.Shared.FixedPoint.FixedPoint2.Zero), "The blow has to land at all.");
+            Assert.That(green, Is.GreaterThan(elite), $"green took {green}, elite took {elite}");
         });
     }
 }

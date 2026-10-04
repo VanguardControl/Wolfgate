@@ -2,7 +2,10 @@ using Content.Shared._WF.NpcCrew;
 
 namespace Content.Server._WF.NpcCrew;
 
-/// <summary>What a crew skill level means in numbers. Veteran is the crew as tuned; the others scale from it.</summary>
+/// <summary>
+/// What a crew skill level means in numbers. NPC crew are meant to lose to a player of equal kit: below Elite they
+/// take more damage than they should and do less.
+/// </summary>
 public static class WFCrewSkills
 {
     /// <param name="AimError">Degrees a hand weapon shot may stray to either side.</param>
@@ -12,17 +15,19 @@ public static class WFCrewSkills
     /// <param name="Handling">Multiplier on thrust and turn rate at the helm.</param>
     /// <param name="Evasion">Multiplier on how far ahead the pilot looks for collisions and incoming fire.</param>
     /// <param name="DodgesFire">Whether the pilot steers out of the way of ship weapon fire.</param>
+    /// <param name="DamageTaken">Multiplier on damage the crewman takes. NPC crew go down faster than players.</param>
+    /// <param name="DamageDealt">Multiplier on damage the crewman does to anyone who is not NPC crew.</param>
     public readonly record struct Profile(float AimError, float ShootDelay, float GunneryError, float Leading, float Handling,
-        float Evasion, bool DodgesFire);
+        float Evasion, bool DodgesFire, float DamageTaken, float DamageDealt);
 
     public static Profile Of(WFCrewSkill skill)
     {
         return skill switch
         {
-            WFCrewSkill.Green => new Profile(14f, 0.9f, 30f, 0.3f, 0.7f, 0.4f, false),
-            WFCrewSkill.Regular => new Profile(6f, 0.45f, 14f, 0.7f, 0.9f, 0.75f, true),
-            WFCrewSkill.Elite => new Profile(0f, 0.1f, 0f, 1f, 1.1f, 1.25f, true),
-            _ => new Profile(2.5f, 0.2f, 5f, 1f, 1f, 1f, true),
+            WFCrewSkill.Green => new Profile(14f, 0.9f, 30f, 0.3f, 0.7f, 0.4f, false, 2f, 0.5f),
+            WFCrewSkill.Regular => new Profile(6f, 0.45f, 14f, 0.7f, 0.9f, 0.75f, true, 1.6f, 0.65f),
+            WFCrewSkill.Elite => new Profile(0f, 0.1f, 0f, 1f, 1.1f, 1.25f, true, 1f, 1f),
+            _ => new Profile(2.5f, 0.2f, 5f, 1f, 1f, 1f, true, 1.3f, 0.8f),
         };
     }
 }
