@@ -46,6 +46,9 @@ public sealed class WFCrewCommsSystem : EntitySystem
             || !HasComp<WFCrewRadioComponent>(headset) || !TryComp<ActiveRadioComponent>(headset, out var active)
             || !active.Channels.Contains("Traffic"))
             return false;
+        // A crew that doesn't call for help keeps its losses off the air.
+        if (!crew.CallsForHelp && incident is WFRadioLine.CaptainDown or WFRadioLine.HelmDown)
+            return false;
         var key = (HomeGrid(sender, crew), crew.Group, incident, target);
         if (_incidents.TryGetValue(key, out var until) && _timing.CurTime < until)
             return true;
@@ -55,9 +58,10 @@ public sealed class WFCrewCommsSystem : EntitySystem
         _report = (sender, target, headset.Value, incident);
         try
         {
+            // Such a crew passes an attack on as a plain contact, never as a cry of hostile fire.
             var line = incident switch
             {
-                WFRadioLine.Mayday => "wf-crew-radio-contact-under-fire",
+                WFRadioLine.Mayday when crew.CallsForHelp => "wf-crew-radio-contact-under-fire",
                 WFRadioLine.CaptainDown or WFRadioLine.HelmDown => "wf-crew-radio-contact-down",
                 _ => "wf-crew-radio-contact",
             };

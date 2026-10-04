@@ -117,6 +117,13 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             && state.Items[0].Kind == WFCrewObjectiveKind.Attack && state.Items[0].Target == GetNetEntity(target);
     }
 
+    /// <summary>Whether this crew's running order is a raid on the given grid.</summary>
+    public bool IsRaiding(EntityUid grid, string group, EntityUid prey)
+    {
+        return _queues.TryGetValue((grid, group), out var state) && !state.Paused && state.Items.Count > 0
+            && state.Items[0].Kind == WFCrewObjectiveKind.Loot && state.Items[0].Target == GetNetEntity(prey);
+    }
+
     /// <summary>Returns the explicitly assigned attack target while its task is running.</summary>
     public EntityUid? AttackTarget(EntityUid grid, string group)
     {
@@ -309,6 +316,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 continue;
             }
             if (xform.GridUid != grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
+                || crew.Engagement == WFCrewEngagement.Never
                 || !TryComp<HTNComponent>(uid, out var htn) || !htn.Enabled)
                 continue;
 
@@ -394,18 +402,35 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         }
     }
 
-    /// <summary>Reports all living and downed crews, including crews without queued objectives.</summary>
+    /// <summary>
+    /// Reports all living and downed crews, including crews without queued objectives. The living make the rows; a
+    /// downed crewman only counts toward a row of his living crewmates, so a dead boarder lying aboard another ship
+    /// is no crew of it. A crew with nobody left alive is still listed where its men lie.
+    /// </summary>
     public List<WFCrewSetupCrew> Snapshot()
     {
         var result = new Dictionary<(EntityUid Grid, string Group), WFCrewSetupCrew>();
+        var living = new HashSet<(string Group, string Battlegroup)>();
+        var members = new List<(EntityUid Uid, WFCrewComponent Crew, EntityUid Grid, bool Alive)>();
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var crew, out var transform))
+        while (query.MoveNext(out var member, out var memberCrew, out var transform))
         {
-            if ((_work.HomeGrid(uid) ?? transform.GridUid) is not { } grid)
+            if ((_work.HomeGrid(member) ?? transform.GridUid) is not { } home)
                 continue;
+            var alive = _mobs.IsAlive(member);
+            if (alive)
+                living.Add((memberCrew.Group, memberCrew.Battlegroup));
+            members.Add((member, memberCrew, home, alive));
+        }
+
+        // The living first, so their rows exist before the downed are counted.
+        foreach (var (uid, crew, grid, alive) in members.Where(entry => entry.Alive).Concat(members.Where(entry => !entry.Alive)))
+        {
             var key = (grid, crew.Group);
             if (!result.TryGetValue(key, out var row))
             {
+                if (!alive && crew.Battlegroup.Length > 0 && living.Contains((crew.Group, crew.Battlegroup)))
+                    continue;
                 row = new WFCrewSetupCrew { Grid = GetNetEntity(grid), Group = crew.Group, Status = Loc.GetString("wf-crew-objective-status-manual") };
                 row.Settings.Navigation = crew.Navigation.Clone();
                 if (_queues.TryGetValue(key, out var state))
@@ -421,6 +446,9 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             row.Settings.Disengage = crew.Disengage;
             row.Settings.Skill = crew.Skill;
             row.Settings.DisengageRange = crew.DisengageRange;
+            // Reported so a settings round trip through Crew Setup does not put a raider's troubles on the air.
+            if (!crew.CallsForHelp)
+                row.Settings.CallsForHelp = false;
             if (TryComp<WFPilotDutyComponent>(uid, out var pilot))
             {
                 row.Settings.Navigation = pilot.Navigation.Clone();
@@ -443,8 +471,10 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 row.Settings.Callsign = radio.Callsign ?? string.Empty;
                 row.Settings.LocalChannel = radio.LocalChannel.Id;
                 row.Settings.AlertChannel = radio.AlertChannel.Id;
+                if (!radio.CallsForHelp)
+                    row.Settings.CallsForHelp = false;
             }
-            if (_mobs.IsAlive(uid))
+            if (alive)
                 row.Alive++;
         }
         foreach (var (key, row) in result)

@@ -66,6 +66,7 @@ public sealed partial class WFEncounterSystem
             {
                 ship.Raided = true;
                 ship.HasOrders = true;
+                ship.Flown = false;
                 _huntRecords.Remove(ship.Grid);
                 var clear = _transform.GetMapCoordinates(ship.Grid).Position + _random.NextAngle().ToVec() * RaidExit;
                 _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
@@ -90,6 +91,7 @@ public sealed partial class WFEncounterSystem
             // The raid's orders are flown; the encounter completes and the ship jumps out.
             ship.Raided = true;
             ship.HasOrders = true;
+            ship.Flown = true;
             _huntRecords.Remove(ship.Grid);
             return;
         }
@@ -99,6 +101,7 @@ public sealed partial class WFEncounterSystem
         {
             ship.Raided = true;
             ship.HasOrders = true;
+            ship.Flown = false;
             _huntRecords.Remove(ship.Grid);
             return;
         }
@@ -192,7 +195,8 @@ public sealed partial class WFEncounterSystem
 
     /// <summary>
     /// Leaves the raiders still aboard the prey to it: each holds where he stands, hunts whoever is aboard, and is
-    /// no longer waited for. The rest get their own posts back. True if anyone was left.
+    /// no longer waited for. The fallen stay where they fell, no longer the ship's crew. The rest get their own posts
+    /// back. True if anyone living was left.
     /// </summary>
     private bool Strand(WFEncounterShipState ship)
     {
@@ -200,19 +204,23 @@ public sealed partial class WFEncounterSystem
         var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (crew.MoveNext(out var uid, out var member, out var xform))
         {
-            if (member.Group != ship.Group || !_mobs.IsAlive(uid))
+            if (member.Group != ship.Group || xform.GridUid is not { } grid || grid == ship.Grid || grid != ship.Boarded)
                 continue;
 
-            if (xform.GridUid is { } grid && grid != ship.Grid && grid == ship.Boarded)
+            ship.BoardingParty.Remove(uid);
+            // A post on the ship would count a body as its crew, to go when the ship is removed; the fallen stay put.
+            if (!_mobs.IsAlive(uid))
             {
-                ship.BoardingParty.Remove(uid);
-                member.Pursues = true;
-                // Left behind, they hunt while someone is near but don't keep their AI awake for the rest of the round.
-                member.KeepActive = false;
-                member.NextPatrol = TimeSpan.MaxValue;
                 _crew.SetPost((uid, member), xform.Coordinates);
-                left++;
+                continue;
             }
+
+            member.Pursues = true;
+            // Left behind, they hunt while someone is near but don't keep their AI awake for the rest of the round.
+            member.KeepActive = false;
+            member.NextPatrol = TimeSpan.MaxValue;
+            _crew.SetPost((uid, member), xform.Coordinates);
+            left++;
         }
 
         RecallBoardingParty(ship);
@@ -294,12 +302,15 @@ public sealed partial class WFEncounterSystem
         Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} sends {posts.Count} of {guards.Count} guards aboard {ToPrettyString(prey)}.");
     }
 
-    /// <summary>Gives the boarding party their own posts and patrols back, so they return and the ship waits for them.</summary>
+    /// <summary>
+    /// Gives the boarding party their own posts and patrols back, so they return and the ship waits for them. The
+    /// fallen keep the post where they fell.
+    /// </summary>
     private void RecallBoardingParty(WFEncounterShipState ship)
     {
         foreach (var (uid, post) in ship.BoardingParty)
         {
-            if (!TryComp<WFCrewComponent>(uid, out var member))
+            if (!TryComp<WFCrewComponent>(uid, out var member) || !_mobs.IsAlive(uid))
                 continue;
 
             member.NextPatrol = TimeSpan.Zero;
@@ -311,15 +322,15 @@ public sealed partial class WFEncounterSystem
     }
 
     /// <summary>
-    /// The nearest ship on the same map with a living player aboard: not part of an encounter, not a station or
-    /// outpost, and not one this hunter has given up on.
+    /// The nearest ship on the same map with a living player aboard, within <paramref name="range"/>: not part of an
+    /// encounter, not a station or outpost, and not one this hunter has given up on.
     /// </summary>
-    private EntityUid? NearestCrewedShip(EntityUid hunter)
+    private EntityUid? NearestCrewedShip(EntityUid hunter, float range = float.MaxValue)
     {
         var shunned = _huntRecords.TryGetValue(hunter, out var hunt) ? hunt.Shunned : null;
         var here = _transform.GetMapCoordinates(hunter);
         EntityUid? nearest = null;
-        var best = float.MaxValue;
+        var best = range * range;
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {

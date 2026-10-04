@@ -57,6 +57,10 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public bool AnnounceOnRadio;
 
+    /// <summary>Key of the ship whose crew make a radio announcement.</summary>
+    [DataField]
+    public string Announcer = string.Empty;
+
     /// <summary>The distance a player must come within before the ships get their orders; zero for at once.</summary>
     [DataField]
     public float StartRadius;
@@ -102,6 +106,32 @@ public sealed partial class WFEncounterShipState
     /// <summary>Whether its prototype gave it orders, so an empty queue means they are done.</summary>
     [DataField]
     public bool HasOrders;
+
+    /// <summary>
+    /// Whether the queue the encounter last gave it has been flown to its end or skipped through, as its crew reported
+    /// it. Reset whenever it is given a new queue.
+    /// </summary>
+    [DataField]
+    public bool Flown;
+
+    /// <summary>Its radar colour, when the encounter gave it one.</summary>
+    [DataField]
+    public Color? Color;
+
+    /// <summary>How it arrived stranded, if it did.</summary>
+    [DataField]
+    public WFEncounterStranding Stranding = WFEncounterStranding.None;
+
+    /// <summary>Whether players got it under way again after it arrived stranded.</summary>
+    [DataField]
+    public bool Rescued;
+
+    /// <summary>While stranded: since when it has had thrust without a break.</summary>
+    public TimeSpan? UnderwaySince;
+
+    /// <summary>Whether it lies in wait, its IFF label hidden, until the encounter begins.</summary>
+    [DataField]
+    public bool Lurking;
 
     [DataField]
     public float WarnRange;

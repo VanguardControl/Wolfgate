@@ -134,9 +134,11 @@ public sealed partial class WFCrewWeaponSystem
 
         TryComp<WFCrewComponent>(uid, out var crew);
         var attacked = WasAttackedBy(uid, target);
-        // Off his post's grid a crewman starts nothing, but he answers whoever attacked him, in sight.
+        // Off his post's grid a crewman starts nothing. He answers whoever attacked him, in sight, only when sent
+        // there on a job or a raid, or when the attacker is his faction's enemy anyway, as for a raider carried off;
+        // one who only defends his ship goes home instead of following anyone off it.
         var away = crew?.Post is { } post && post.EntityId != grid;
-        if (away && !attacked)
+        if (away && (!attacked || !OnErrand(uid, crew!, grid) && !IsFactionEnemy(uid, target)))
             return false;
         if (IsStationCrew(uid) && !attacked)
             return false;
@@ -159,20 +161,32 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>How long after an attack a crewman goes after an attacker he cannot see, outside the one-man hunt.</summary>
     private static readonly TimeSpan PursuitWindow = TimeSpan.FromSeconds(10);
 
+    /// <summary>Whether the target struck this crewman himself within the pursuit window; a crewmate's attack does not count.</summary>
     private bool RecentlyAttackedBy(EntityUid uid, EntityUid target)
     {
-        if (!TryComp<NPCRetaliationComponent>(uid, out var retaliation) || retaliation.AttackMemoryLength is not { } length)
-            return false;
+        return TryComp<WFCrewComponent>(uid, out var crew) && crew.Struck.TryGetValue(target, out var at)
+               && _timing.CurTime < at + PursuitWindow;
+    }
 
-        var memories = retaliation.AttackMemories;
-        return memories.TryGetValue(target, out var until) && _timing.CurTime < until - length + PursuitWindow;
+    /// <summary>Whether the target belongs to a faction the crewman's own is hostile to, attack or no attack.</summary>
+    private bool IsFactionEnemy(EntityUid uid, EntityUid target)
+    {
+        return TryComp<NpcFactionMemberComponent>(uid, out var member)
+               && _factions.IsMemberOfAny(target, member.HostileFactions) && !_factions.IsEntityFriendly(uid, target);
+    }
+
+    /// <summary>Whether a crewman off his post's grid was sent aboard it: a work job, or his crew raiding it.</summary>
+    private bool OnErrand(EntityUid uid, WFCrewComponent crew, EntityUid grid)
+    {
+        if (EntityManager.System<WFCrewWorkSystem>().HasJob(uid))
+            return true;
+
+        return crew.Post is { } post
+               && EntityManager.System<WFCrewObjectiveSystem>().IsRaiding(post.EntityId, crew.Group, grid);
     }
 
     /// <summary>The longest one crewman keeps the hunt for an unseen hostile without getting sight of it.</summary>
     private static readonly TimeSpan AdvanceLease = TimeSpan.FromSeconds(15);
-
-    /// <summary>How long the hunt stays with a crewman after he last fought its hostile in sight.</summary>
-    private static readonly TimeSpan AdvanceSight = TimeSpan.FromSeconds(8);
 
     private readonly Dictionary<EntityUid, (EntityUid Crew, TimeSpan Until)> _advancing = new();
 
@@ -212,7 +226,7 @@ public sealed partial class WFCrewWeaponSystem
         var held = _advancing.TryGetValue(target, out var slot) && slot.Crew == uid && now < slot.Until;
         if (CanSee(uid, target))
         {
-            var until = now + AdvanceSight;
+            var until = now + AdvanceLease;
             _advancing[target] = (uid, held && slot.Until > until ? slot.Until : until);
         }
         else if (held && (Unreachable(uid)
@@ -257,9 +271,13 @@ public sealed partial class WFCrewWeaponSystem
     private bool WasAttackedBy(EntityUid uid, EntityUid target) => TryComp<NPCRetaliationComponent>(uid, out var retaliation)
         && retaliation.AttackMemories.Any(memory => memory.Key == target && _timing.CurTime < memory.Value);
 
-    /// <summary>Walls and closed opaque doors conceal boarders; radio awareness does not extend eyesight.</summary>
+    /// <summary>
+    /// Walls and closed opaque doors conceal boarders; radio awareness does not extend eyesight. Only what is built
+    /// into the ship blocks the view: a crewmate, a body, a crate or a locker in between does not.
+    /// </summary>
     public bool CanSee(EntityUid uid, EntityUid target) => !TerminatingOrDeleted(target)
-        && _interaction.InRangeUnobstructed(uid, target, 10f, Content.Shared.Physics.CollisionGroup.Opaque);
+        && _interaction.InRangeUnobstructed(uid, target, 10f, Content.Shared.Physics.CollisionGroup.Opaque,
+            predicate: blocker => !Transform(blocker).Anchored);
 
     /// <summary>Chooses a living hostile aboard the crewman's own ship.</summary>
     public EntityUid? PickTarget(EntityUid uid)

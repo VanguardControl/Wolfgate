@@ -165,8 +165,7 @@
   id: WFCrewRangedCompound
   branches:
   - preconditions:
-    - !type:GunAmmoPrecondition
-      minPercent: 0.001
+    - !type:WFCrewLoadedGunPrecondition
     tasks:
     - !type:HTNPrimitiveTask
       operator: !type:WFCrewTargetOperator

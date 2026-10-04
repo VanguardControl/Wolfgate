@@ -1,7 +1,10 @@
 using System.Linq;
+using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Cargo.Systems;
+using Content.Server.NPC.Components;
+using Content.Server.NPC.HTN;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Clothing.Components;
@@ -45,6 +48,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     [Dependency] private AtmosphereSystem _atmos = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
     private readonly Dictionary<EntityUid, Job> _jobs = new();
     private readonly Dictionary<(EntityUid Grid, string Group), Skipped> _skipped = new();
     private readonly HashSet<Entity<DockingComponent>> _docks = new();
@@ -57,6 +61,18 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
 
     /// <summary>How long each leg of a job, out to the target and back with the cargo, may take before it is given up.</summary>
     private static readonly TimeSpan LegTime = TimeSpan.FromSeconds(120);
+
+    /// <summary>How long a worker free to work may get no nearer to where he is walking before the target is given up.</summary>
+    private static readonly TimeSpan NoProgress = TimeSpan.FromSeconds(10);
+
+    /// <summary>How close the HTN walks a worker to his destination; the work operator's MoveTo uses InteractRange.</summary>
+    private const float Reach = SharedInteractionSystem.InteractionRange;
+
+    /// <summary>Where a worker can stand to reach something: its own tile or one beside it.</summary>
+    private static readonly Vector2i[] StandingTiles =
+    {
+        new(0, 0), new(1, 0), new(-1, 0), new(0, 1), new(0, -1),
+    };
 
     /// <summary>Incapacitated or dead workers cannot continue their assigned interaction.</summary>
     public void CancelWorker(EntityUid worker)
@@ -114,7 +130,11 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 Release(worker, job);
             }
             else
+            {
                 CheckStranded(worker, job);
+                if (_jobs.ContainsKey(worker))
+                    CheckProgress(worker, job);
+            }
         }
         foreach (var (key, skipped) in _skipped.ToArray())
         {
@@ -165,7 +185,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 continue;
             handsLeft = true;
             if (xform.GridUid == grid && (crew.Post?.EntityId ?? xform.GridUid) == grid
-                && crew.Duty == WFCrewDuties.Guard && !_weapons.HasLiveThreat(uid))
+                && crew.Duty == WFCrewDuties.Guard && !_weapons.HasLiveThreat(uid)
+                && !EntityManager.System<WFCrewShelterSystem>().IsSheltering(uid))
                 _workers.Add(uid);
         }
         if (_workers.Count == 0)
@@ -266,7 +287,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 _ => HasComp<BallisticAmmoProviderComponent>(item) && !HasComp<GunComponent>(item) && _weapons.AmmoCount(item) > 0
                      || TryComp<Content.Shared.Atmos.Components.GasTankComponent>(item, out var tank) && _eva.IsUsableSpare(item, tank),
             };
-            if (!wanted)
+            if (!wanted || !HasStandingRoom(item))
                 continue;
             if (skipped.Entities.Contains(item))
             {
@@ -371,6 +392,92 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             EndJob(worker, job);
     }
 
+    /// <summary>
+    /// Gives a job up when its worker, free to get on with it, has come no nearer to where he is walking for a while:
+    /// stuck against a railing or a table, or with no way there at all. The target is skipped for the next pick.
+    /// </summary>
+    private void CheckProgress(EntityUid worker, Job job)
+    {
+        var now = _timing.CurTime;
+        // Fighting, fetching air or asleep is not being stuck.
+        if (job.Failed || _weapons.HasLiveThreat(worker) || _eva.TryGetSafetyDestination(worker, out _)
+            || TryComp<HTNComponent>(worker, out var htn) && !htn.Enabled
+            || LegTarget(worker, job) is not { } leg)
+        {
+            job.Waypoint = null;
+            job.ProgressAt = now;
+            return;
+        }
+
+        var waypoint = Waypoint(worker, leg, Reach);
+        var at = _transform.GetMapCoordinates(worker);
+        var to = _transform.ToMapCoordinates(waypoint);
+        var distance = at.MapId == to.MapId ? (to.Position - at.Position).Length() : float.MaxValue;
+        // Path nodes used up count only while he is steering for this waypoint, not back to his post.
+        var steps = TryComp<NPCSteeringComponent>(worker, out var steering) && SamePlace(steering.Coordinates, waypoint)
+            ? steering.CurrentPath.Count
+            : -1;
+        var newWaypoint = job.Waypoint is not { } last || !SamePlace(last, waypoint);
+        // At the leg's end and able to act on it: working, not stuck.
+        var working = waypoint.Equals(leg) && distance <= Reach + 0.1f && CanAct(worker, job, leg);
+        if (newWaypoint || working || distance < job.Best - 0.5f
+            || steps >= 0 && job.Steps >= 0 && steps < job.Steps)
+        {
+            job.ProgressAt = now;
+            job.Best = newWaypoint ? distance : MathF.Min(job.Best, distance);
+        }
+
+        job.Waypoint = waypoint;
+        job.Steps = steps;
+        if (now - job.ProgressAt >= NoProgress)
+            Fail(job, true);
+    }
+
+    /// <summary>Two points on the same parent within half a metre of each other.</summary>
+    private static bool SamePlace(EntityCoordinates a, EntityCoordinates b)
+    {
+        return a.EntityId == b.EntityId && (a.Position - b.Position).LengthSquared() <= 0.25f;
+    }
+
+    /// <summary>Where the job's current leg ends, without failing it; null once its target is gone.</summary>
+    private EntityCoordinates? LegTarget(EntityUid worker, Job job)
+    {
+        if (job.Returning)
+            return job.Home;
+        if (job.SrdCoordinates is { } repair)
+            return repair;
+        var target = job.Tool is { } tool && tool != worker && !_hands.IsHolding(worker, tool, out _) ? tool : job.Target;
+        return TerminatingOrDeleted(target) ? null : Transform(Holder(target, worker) ?? target).Coordinates;
+    }
+
+    /// <summary>Whether a worker at the end of a leg can act there, as <see cref="Perform"/> requires.</summary>
+    private bool CanAct(EntityUid worker, Job job, EntityCoordinates leg)
+    {
+        if (job.SrdCoordinates != null || job.Returning)
+            return _interaction.InRangeUnobstructed(worker, leg, range: Reach);
+        var target = job.Tool is { } tool && tool != worker && !_hands.IsHolding(worker, tool, out _) ? tool : job.Target;
+        return !TerminatingOrDeleted(target) && _interaction.InRangeUnobstructed(worker, Holder(target, worker) ?? target, range: Reach);
+    }
+
+    /// <summary>Whether a worker could stand beside something to take it: its own tile or one next to it is clear deck.</summary>
+    private bool HasStandingRoom(EntityUid place)
+    {
+        var xform = Transform(place);
+        if (xform.GridUid is not { } grid || !TryComp<MapGridComponent>(grid, out var map))
+            return false;
+
+        var tile = _maps.TileIndicesFor(grid, map, xform.Coordinates);
+        foreach (var offset in StandingTiles)
+        {
+            var at = tile + offset;
+            if (_maps.TryGetTileRef(grid, map, at, out var tileRef) && !tileRef.Tile.IsEmpty
+                && !_turf.IsTileBlocked(grid, at, CollisionGroup.MobMask, map))
+                return true;
+        }
+
+        return false;
+    }
+
     private bool DockedTo(EntityUid grid, EntityUid other)
     {
         _docks.Clear();
@@ -396,8 +503,64 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         return null;
     }
 
-    /// <summary>Provides the next walking destination without moving the worker or the cargo.</summary>
+    /// <summary>
+    /// Provides the next place to walk to without moving the worker or the cargo: the leg's destination, or on the
+    /// way to another grid docked to his, the next step through the docking ports.
+    /// </summary>
     public bool Destination(EntityUid mob, out EntityCoordinates coordinates)
+    {
+        if (!LegDestination(mob, out coordinates))
+            return false;
+        coordinates = Waypoint(mob, coordinates, Reach);
+        return true;
+    }
+
+    /// <summary>
+    /// The next place to walk to on the way to a destination on another grid docked to this one: this grid's port,
+    /// then a point just inside the other grid past its port, so each leg is pathed on one grid instead of walked in
+    /// a straight line into whatever stands between. Anywhere else the destination itself.
+    /// </summary>
+    public EntityCoordinates Waypoint(EntityUid mob, EntityCoordinates destination, float reach)
+    {
+        if (Transform(mob).GridUid is not { } here || _transform.GetGrid(destination) is not { } there || here == there)
+            return destination;
+
+        var position = _transform.GetWorldPosition(mob);
+        EntityUid? ours = null;
+        EntityUid? theirs = null;
+        var best = float.MaxValue;
+        _docks.Clear();
+        _lookup.GetChildEntities(here, _docks);
+        foreach (var dock in _docks)
+        {
+            if (dock.Comp.DockedWith is not { } mate || TerminatingOrDeleted(mate) || Transform(mate).GridUid != there)
+                continue;
+            var distance = (_transform.GetWorldPosition(dock.Owner) - position).LengthSquared();
+            if (distance >= best)
+                continue;
+            best = distance;
+            ours = dock.Owner;
+            theirs = mate;
+        }
+
+        if (ours is not { } port || theirs is not { } other)
+            return destination;
+        // Walk to this side's port first.
+        if (best > (reach + 0.5f) * (reach + 0.5f))
+            return Transform(port).Coordinates;
+
+        // Then across: far enough past the other port that arriving there means standing on the other grid.
+        var from = _transform.GetWorldPosition(port);
+        var to = _transform.GetWorldPosition(other);
+        var axis = to - from;
+        if (axis.LengthSquared() < 0.01f)
+            return Transform(other).Coordinates;
+        var inside = to + Vector2.Normalize(axis) * reach;
+        return _transform.ToCoordinates(there, new MapCoordinates(inside, Transform(there).MapID));
+    }
+
+    /// <summary>The current leg's destination, failing the job when its time or the worker's air runs out.</summary>
+    private bool LegDestination(EntityUid mob, out EntityCoordinates coordinates)
     {
         if (_eva.TryGetSafetyDestination(mob, out coordinates))
             return true;
@@ -444,7 +607,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     /// <summary>Performs a job step only after ordinary navigation reaches its interaction range.</summary>
     public bool Perform(EntityUid mob)
     {
-        if (!_jobs.TryGetValue(mob, out var job) || !Destination(mob, out var destination))
+        // A waypoint on the way is only walked to; the job is done at the leg's own destination.
+        if (!_jobs.TryGetValue(mob, out var job) || !LegDestination(mob, out var destination))
             return true;
         EntityManager.System<WFCrewSpeechSystem>().Say(mob,
             job.SrdCoordinates != null || job.Tool != null ? "repair" : job.Returning ? "return-cargo" : "collect");
@@ -566,8 +730,9 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             if (!TryComp<Content.Server.Storage.Components.EntityStorageComponent>(child, out var storage))
                 continue;
 
-            // A locked crate keeps what is in it.
-            if (TryComp<Content.Shared.Lock.LockComponent>(child, out var crateLock) && crateLock.Locked)
+            // A locked or welded crate keeps what is in it.
+            if (TryComp<Content.Shared.Lock.LockComponent>(child, out var crateLock) && crateLock.Locked
+                || TryComp<WeldableComponent>(child, out var weld) && weld.IsWelded)
                 continue;
 
             foreach (var inside in storage.Contents.ContainedEntities)
@@ -580,20 +745,26 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
 
         var inAir = InSafeAir(looter);
-        EntityUid? best = null;
-        var bestPrice = 0.0;
+        var worth = new List<(EntityUid Item, EntityUid Place, double Price)>();
         foreach (var (item, place) in _lootCandidates)
         {
             if (Claimed(item) || skipped.Entities.Contains(item) || inAir && !InSafeAir(place))
                 continue;
             var price = _pricing.GetPrice(item);
-            if (price <= bestPrice || IsClutter(item, price))
+            if (IsClutter(item, price))
                 continue;
-            best = item;
-            bestPrice = price;
+            worth.Add((item, place, price));
         }
 
-        return best;
+        // The dearest thing he can get to: something walled in or crammed in where nobody can stand is passed over.
+        worth.Sort((a, b) => b.Price.CompareTo(a.Price));
+        foreach (var (item, place, _) in worth)
+        {
+            if (HasStandingRoom(place))
+                return item;
+        }
+
+        return null;
     }
 
     /// <summary>Bedding, trash, cheap clothes and anything else not worth carrying off.</summary>
@@ -713,5 +884,11 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         public bool Returning;
         public bool Failed;
         public bool Blame;
+
+        /// <summary>Progress toward the place being walked to: it, the nearest the worker got, his path's length and when he last gained.</summary>
+        public EntityCoordinates? Waypoint;
+        public float Best = float.MaxValue;
+        public int Steps = -1;
+        public TimeSpan ProgressAt;
     }
 }

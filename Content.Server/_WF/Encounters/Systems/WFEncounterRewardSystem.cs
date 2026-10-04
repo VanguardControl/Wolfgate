@@ -47,9 +47,14 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
     [Dependency] private StackSystem _stack = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MobStateSystem _mobs = default!;
+    [Dependency] private Content.Server.Shuttles.Systems.DockingSystem _docking = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <summary>Hits on a side's ships before a player ship counts as fighting it.</summary>
     public const int MinimumHits = 5;
+
+    /// <summary>How near a stranded ship a player must be when it gets under way to share its rescue reward.</summary>
+    public const float RescueRange = 150f;
 
     private static readonly ProtoId<RadioChannelPrototype> ThanksChannel = "Common";
     private static readonly TimeSpan CapWindow = TimeSpan.FromHours(1);
@@ -216,6 +221,67 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         if (helpers.Count == 0)
             return;
 
+        Pay(args.Encounter, encounter, reward, helpers, $"helping side {side} win");
+
+        // Whichever ship of the winning side can still speak says the thanks.
+        if (reward.Thanks is { } thanks)
+        {
+            foreach (var ship in encounter.Ships.Values)
+            {
+                if (ship.Side == side && _encounters.TrySay(ship, ThanksChannel, Loc.GetString(thanks, ("count", helpers.Count))))
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Pays a rescued ship's side reward among the living players aboard it, aboard a ship docked with it, or within
+    /// <see cref="RescueRange"/> of it, and the ship says its thanks.
+    /// </summary>
+    public void PayRescue(Entity<WFEncounterComponent> encounter, WFEncounterShipState ship)
+    {
+        if (TerminatingOrDeleted(ship.Grid) || !_prototypes.TryIndex(encounter.Comp.Prototype, out var prototype)
+            || prototype.Rewards.FirstOrDefault(entry => entry.Side == ship.Side) is not { } reward)
+            return;
+
+        var docked = new HashSet<EntityUid>();
+        foreach (var dock in _docking.GetDocks(ship.Grid))
+        {
+            if (dock.Comp.DockedWith is { } other && Transform(other).GridUid is { } grid)
+                docked.Add(grid);
+        }
+
+        var here = _transform.GetMapCoordinates(ship.Grid);
+        var helpers = new List<(ICommonSession Session, EntityUid Mob)>();
+        var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
+        while (players.MoveNext(out var uid, out var actor, out var xform))
+        {
+            if (HasComp<GhostComponent>(uid) || _mobs.IsDead(uid))
+                continue;
+
+            var aboard = xform.GridUid is { } grid && (grid == ship.Grid || docked.Contains(grid));
+            if (!aboard && (xform.MapID != here.MapId
+                    || (_transform.GetWorldPosition(xform) - here.Position).LengthSquared() > RescueRange * RescueRange))
+                continue;
+
+            helpers.Add((actor.PlayerSession, uid));
+        }
+
+        if (helpers.Count == 0)
+            return;
+
+        Pay(encounter, encounter.Comp, reward, helpers, $"rescuing a ship of side {ship.Side} in");
+        if (reward.Thanks is { } thanks)
+            _encounters.TrySay(ship, ThanksChannel, Loc.GetString(thanks, ("count", helpers.Count)));
+    }
+
+    /// <summary>
+    /// Shares a reward's spesos equally among the helpers within the hourly cap, hands faction credits to those of its
+    /// companies, and tells each what they got.
+    /// </summary>
+    private void Pay(EntityUid uid, WFEncounterComponent encounter, WFEncounterReward reward,
+        List<(ICommonSession Session, EntityUid Mob)> helpers, string deed)
+    {
         var share = reward.Spesos / helpers.Count;
         var cap = _config.GetCVar(EncountersCVars.PayoutHourlyCap);
         foreach (var (session, mob) in helpers)
@@ -245,17 +311,7 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
             _chat.DispatchServerMessage(session, Loc.GetString(credits > 0 ? "wf-encounter-reward-paid-credits" : "wf-encounter-reward-paid",
                 ("name", encounter.Name), ("amount", paid), ("credits", credits)));
             _adminLog.Add(LogType.Action, LogImpact.Medium,
-                $"{session.Name} was paid {paid} spesos and {credits} faction credits for helping side {side} win encounter {encounter.Prototype} ({ToPrettyString(args.Encounter):entity})");
-        }
-
-        // Whichever ship of the winning side can still speak says the thanks.
-        if (reward.Thanks is { } thanks)
-        {
-            foreach (var ship in encounter.Ships.Values)
-            {
-                if (ship.Side == side && _encounters.TrySay(ship, ThanksChannel, Loc.GetString(thanks, ("count", helpers.Count))))
-                    break;
-            }
+                $"{session.Name} was paid {paid} spesos and {credits} faction credits for {deed} encounter {encounter.Prototype} ({ToPrettyString(uid):entity})");
         }
     }
 

@@ -1,15 +1,19 @@
 using Content.Server._WF.NpcCrew.Components;
+using Content.Shared._White.Standing;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Standing;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
 /// <summary>
-/// Crew who never fight run for the bridge when their ship is alerted or boarded, and go back to their posts a
-/// minute after the last alarm.
+/// Crew who never fight, cowards among them, drop their work and run for the bridge when their ship is alerted,
+/// boarded or one of them is attacked; there they cower on the deck, and they go back to their posts a minute after
+/// the last alarm.
 /// </summary>
 public sealed partial class WFCrewShelterSystem : EntitySystem
 {
@@ -17,6 +21,9 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private MobStateSystem _mobs = default!;
+    [Dependency] private SharedLayingDownSystem _laying = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private static readonly TimeSpan Calm = TimeSpan.FromSeconds(60);
     private readonly Dictionary<(EntityUid Grid, string Group), TimeSpan> _alarms = new();
@@ -45,7 +52,11 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
         Shelter(args.Grid, args.Group);
     }
 
-    private void Shelter(EntityUid grid, string group)
+    /// <summary>Whether a crewman is sheltering from an alarm.</summary>
+    public bool IsSheltering(EntityUid uid) => _posts.ContainsKey(uid);
+
+    /// <summary>Sends a ship's non-combatants to the bridge, or keeps the alarm they shelter from going.</summary>
+    public void Shelter(EntityUid grid, string group)
     {
         EntityCoordinates? bridge = null;
         var sheltered = false;
@@ -72,9 +83,11 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
         if (bridge == null)
             return;
 
+        var work = EntityManager.System<WFCrewWorkSystem>();
         foreach (var member in passive)
         {
             _posts[member] = member.Comp.Post;
+            work.CancelWorker(member);
             _crew.SetPost((member, member.Comp), bridge);
         }
     }
@@ -108,14 +121,28 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
 
             var key = (grid, crew.Group);
             if (_alerts.IsAlerted(grid, crew.Group) || _alarms.TryGetValue(key, out var until) && _timing.CurTime < until)
+            {
+                Cower(uid, crew);
                 continue;
+            }
 
             _alarms.Remove(key);
             _posts.Remove(uid);
+            _laying.TryStandUp(uid);
             if (post is not { } original)
                 _crew.SetPost((uid, crew), null);
             else if (!TerminatingOrDeleted(original.EntityId))
                 _crew.SetPost((uid, crew), original);
         }
+    }
+
+    /// <summary>Once at the bridge, a sheltering crewman gets down on the deck until the alarm is over.</summary>
+    private void Cower(EntityUid uid, WFCrewComponent crew)
+    {
+        if (crew.Post is not { } shelter || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || _standing.IsDown(uid)
+            || !_transform.InRange(Transform(uid).Coordinates, shelter, crew.PostRange + 0.5f))
+            return;
+
+        _laying.TryLieDown(uid);
     }
 }

@@ -28,4 +28,8 @@ public sealed partial class WFCrewProfilePrototype : IPrototype
     /// <summary>Roles that fight differently from their role's default.</summary>
     [DataField]
     public Dictionary<ProtoId<WFCrewRolePrototype>, WFCrewEngagement> Engagement = new();
+
+    /// <summary>Chance, from 0 to 1 by role, that a crewman is a coward: he never fights and takes shelter instead.</summary>
+    [DataField]
+    public Dictionary<ProtoId<WFCrewRolePrototype>, float> Cowards = new();
 }

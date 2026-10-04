@@ -208,13 +208,15 @@
     - kind: Escort
       target: transport
 
-# A hauler in open space with a pirate ship lying off it. The hauler's distress call goes out at once; the attack
-# only begins when a player comes within a kilometre and a half, so somebody is there to see it.
+# A hauler in open space with a pirate ship lying off it. The hauler makes its own distress call on the common channel at
+# once; the attack only begins when a player comes within a kilometre and a half, so somebody is there to see it.
 - type: wfEncounter
   id: WFEncounterPirateAmbush
   name: wf-encounter-name-ambush
   announcement: wf-encounter-announce-ambush
   announcementSender: wf-encounter-sender-traffic
+  announceOnRadio: true
+  announcer: hauler
   start: Scheduled
   category: Distress
   cost: 2
@@ -248,6 +250,72 @@
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: hauler
+
+# The same ambush on a bigger scale, for more players: a large freighter with its guns and shields, and a raider with a
+# wingman on it. The freighter makes its own call, as before.
+- type: wfEncounter
+  id: WFEncounterPirateAmbushLarge
+  name: wf-encounter-name-ambush-large
+  announcement: wf-encounter-announce-ambush-large
+  announcementSender: wf-encounter-sender-traffic
+  announceOnRadio: true
+  announcer: hauler
+  start: Scheduled
+  category: Distress
+  cost: 3
+  weight: 0.5
+  startRadius: 1800
+  rewards:
+  - side: freight
+    spesos: 22000
+    thanks: wf-encounter-reward-thanks-hauler
+  minPlayers: 7
+  cooldown: 3300
+  duration: 2700
+  manifests: [ WFManifestGeneral, WFManifestIndustrial, WFManifestParts, WFManifestMedical ]
+  ships:
+  - key: hauler
+    navigation: WFCrewNavigationFreight
+    vessels: [ Olympus, Autumn, Windreign ]
+    side: freight
+    profile: WFCrewProfileHauler
+    company: TSFCivilian
+    deckhands: 3
+    guards: 1
+    cargo: 6
+    docking: Warn
+    disengage: Deter
+    objectives:
+    - kind: Hold
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessels: [ Osa, Scorpion ]
+    offset: 0, 600
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    skill: Regular
+    deckhands: 2
+    objectives:
+    - kind: Attack
+      target: hauler
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 200, 650
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    skill: Regular
+    captain: false
     objectives:
     - kind: Attack
       target: hauler
@@ -375,6 +443,7 @@
   name: wf-encounter-name-backup
   announcement: wf-encounter-announce-backup
   announceOnRadio: true
+  announcer: patrol
   start: Scheduled
   category: Distress
   cost: 3
@@ -602,3 +671,882 @@
     docking: Ignore
     disengage: Deter
     distress: true
+
+# A freighter that has lost its way, adrift in open space: out of fuel, or with its thrusters wrecked, picked at random. Its
+# mayday says which. Put fuel in its generators or rebuild a thruster and its hands thank whoever helped, and pay them.
+# Then it casts off and flies on. The hulls run on fuel generators or an antimatter engine, which is what running dry empties.
+# Its crew let anyone aboard: rescuers have to be able to work.
+- type: wfEncounter
+  id: WFEncounterStrandedSmall
+  name: wf-encounter-name-stranded
+  start: Scheduled
+  category: Distress
+  cost: 1
+  weight: 1.5
+  minPlayers: 2
+  cooldown: 2400
+  duration: 2700
+  minDistance: 2000
+  maxDistance: 4000
+  stationClearance: 1500
+  rewards:
+  - side: freight
+    spesos: 7000
+    thanks: wf-encounter-reward-thanks-stranded
+  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage ]
+  ships:
+  - key: freighter
+    navigation: WFCrewNavigationFreight
+    vessels: [ Plutomkii, Piva, Twilight ]
+    side: freight
+    profile: WFCrewProfileHauler
+    deckhands: 1
+    guards: 0
+    captain: false
+    cargo: 3
+    stranded: Random
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    objectives:
+    - kind: Hold
+      duration: 60
+    - kind: Undock
+    - kind: GoTo
+      offset: 3500, 1500
+      range: 200
+
+- type: wfEncounter
+  id: WFEncounterStrandedMedium
+  name: wf-encounter-name-stranded
+  start: Scheduled
+  category: Distress
+  cost: 1
+  weight: 1
+  minPlayers: 3
+  cooldown: 2700
+  duration: 2700
+  minDistance: 2000
+  maxDistance: 4000
+  stationClearance: 1500
+  rewards:
+  - side: freight
+    spesos: 11000
+    thanks: wf-encounter-reward-thanks-stranded
+  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury ]
+  ships:
+  - key: freighter
+    navigation: WFCrewNavigationFreight
+    vessels: [ Brute, Argent ]
+    side: freight
+    profile: WFCrewProfileHauler
+    deckhands: 2
+    guards: 0
+    captain: true
+    cargo: 6
+    stranded: Random
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    objectives:
+    - kind: Hold
+      duration: 60
+    - kind: Undock
+    - kind: GoTo
+      offset: 4000, -1500
+      range: 200
+
+- type: wfEncounter
+  id: WFEncounterStrandedLarge
+  name: wf-encounter-name-stranded
+  start: Scheduled
+  category: Distress
+  cost: 2
+  weight: 0.5
+  minPlayers: 6
+  cooldown: 3000
+  duration: 3000
+  minDistance: 2000
+  maxDistance: 4000
+  stationClearance: 1500
+  rewards:
+  - side: freight
+    spesos: 16000
+    thanks: wf-encounter-reward-thanks-stranded
+  manifests: [ WFManifestGeneral, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury ]
+  ships:
+  - key: freighter
+    navigation: WFCrewNavigationFreight
+    vessels: [ Olympus, Autumn, Windreign ]
+    side: freight
+    profile: WFCrewProfileHauler
+    deckhands: 3
+    guards: 1
+    captain: true
+    cargo: 10
+    stranded: Random
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    objectives:
+    - kind: Hold
+      duration: 90
+    - kind: Undock
+    - kind: GoTo
+      offset: 4500, 2000
+      range: 200
+
+# A distress call that is a trap. The ship that makes it is wrecked as a stranded hulk would be, but its crew are pirates, and
+# a second pirate ship lies in wait off it, its label hidden and without a sector marker, until a player is close enough to be
+# worth jumping. The tell: a real call gives the ship's registered name as the scanner shows it, and its position, and this one
+# gives neither and names a hull class that is not the one on the scanner. It claims a Brute and the ship is a Piva or a Pluto.
+# The ambusher gives up after five minutes and then sits where it is until the encounter expires, so the scene can be searched.
+- type: wfEncounter
+  id: WFEncounterFalseMayday
+  name: wf-encounter-name-stranded
+  announcement: wf-encounter-announce-false-mayday
+  announcementSender: wf-encounter-sender-traffic
+  announceOnRadio: true
+  announcer: bait
+  start: Scheduled
+  category: Distress
+  cost: 2
+  weight: 0.5
+  minPlayers: 4
+  startRadius: 1000
+  cooldown: 3000
+  duration: 2400
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  ships:
+  - key: bait
+    navigation: WFCrewNavigationFreight
+    vessels: [ Piva, Plutomkii ]
+    side: pirates
+    faction: PirateNF
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 2
+    skill: Green
+    distress: false
+    stranded: Thrusters
+  - key: ambusher
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 0, 650
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    distress: false
+    evades: false
+    lurks: true
+    objectives:
+    - kind: Attack
+      target: "@player"
+      duration: 300
+    - kind: Hold
+
+# The trap again with a larger bait and two ships in wait, for more players. It claims an Olympus; the bait is a Brute or an Argent.
+- type: wfEncounter
+  id: WFEncounterFalseMaydayLarge
+  name: wf-encounter-name-stranded
+  announcement: wf-encounter-announce-false-mayday-large
+  announcementSender: wf-encounter-sender-traffic
+  announceOnRadio: true
+  announcer: bait
+  start: Scheduled
+  category: Distress
+  cost: 3
+  weight: 0.35
+  minPlayers: 7
+  startRadius: 1200
+  cooldown: 3600
+  duration: 2700
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  ships:
+  - key: bait
+    navigation: WFCrewNavigationFreight
+    vessels: [ Brute, Argent ]
+    side: pirates
+    faction: PirateNF
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 3
+    skill: Green
+    distress: false
+    stranded: Thrusters
+  - key: ambusher
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: -150, 700
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    distress: false
+    evades: false
+    lurks: true
+    objectives:
+    - kind: Attack
+      target: "@player"
+      duration: 300
+    - kind: Hold
+  - key: second
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 150, 750
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    distress: false
+    evades: false
+    lurks: true
+    objectives:
+    - kind: Attack
+      target: "@player"
+      duration: 300
+    - kind: Hold
+
+# Two sides fighting each other where they meet: a TSF patrol and the pirates it has run down, each ship on its own opponent
+# and on the next once that one is beaten. They wait for a player to come within sight before they begin, and nobody here is
+# after the players. Whoever helps one side beat the other is paid by it, and the one they helped counts them an ally.
+- type: wfEncounter
+  id: WFEncounterSkirmishPatrol
+  name: wf-encounter-name-skirmish-patrol
+  announcement: wf-encounter-announce-skirmish-patrol
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 2
+  weight: 0.75
+  minPlayers: 3
+  startRadius: 1800
+  cooldown: 3000
+  duration: 1800
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  rewards:
+  - side: tsf
+    spesos: 14000
+    credits: 15
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-skirmish-tsf
+  - side: pirates
+    spesos: 9000
+    thanks: wf-encounter-reward-thanks-skirmish-pirates
+  ships:
+  - key: patrol
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    deckhands: 1
+    skill: Regular
+    evades: false
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: raider
+    - kind: Attack
+      target: wing
+  - key: escort
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    offset: 160, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    objectives:
+    - kind: Attack
+      target: wing
+    - kind: Attack
+      target: raider
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 0, 550
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    iffColor: "#ff5c5c"
+    objectives:
+    - kind: Attack
+      target: patrol
+    - kind: Attack
+      target: escort
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 160, 570
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    objectives:
+    - kind: Attack
+      target: escort
+    - kind: Attack
+      target: patrol
+
+# Two raider bands settling a score: a Dynasty pair against a RedSail corsair in a heavier hull. Either pays for help against the other.
+- type: wfEncounter
+  id: WFEncounterSkirmishBands
+  name: wf-encounter-name-skirmish-bands
+  announcement: wf-encounter-announce-skirmish-bands
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 2
+  weight: 0.5
+  minPlayers: 3
+  startRadius: 1800
+  cooldown: 3000
+  duration: 1800
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  rewards:
+  - side: dynasty
+    spesos: 9000
+    thanks: wf-encounter-reward-thanks-skirmish-pirates
+  - side: corsairs
+    spesos: 11000
+    thanks: wf-encounter-reward-thanks-skirmish-corsairs
+  ships:
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    side: dynasty
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    iffColor: "#ff5c5c"
+    objectives:
+    - kind: Attack
+      target: corsair
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 160, 0
+    side: dynasty
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    objectives:
+    - kind: Attack
+      target: corsair
+  - key: corsair
+    navigation: WFCrewNavigationRaider
+    vessel: Scallywag
+    offset: 0, 600
+    side: corsairs
+    faction: PirateNF
+    distress: false
+    company: RedSailCorsairs
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    iffColor: "#c792ff"
+    objectives:
+    - kind: Attack
+      target: raider
+    - kind: Attack
+      target: wing
+
+# A TSF patrol against a RedSail crew in a shielded gunboat. TSF is at war with the corsairs, but that is their own business.
+- type: wfEncounter
+  id: WFEncounterSkirmishCorsairs
+  name: wf-encounter-name-skirmish-corsairs
+  announcement: wf-encounter-announce-skirmish-corsairs
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 2
+  weight: 0.5
+  minPlayers: 3
+  startRadius: 1800
+  cooldown: 3000
+  duration: 1800
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  rewards:
+  - side: tsf
+    spesos: 14000
+    credits: 15
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-skirmish-tsf
+  - side: corsairs
+    spesos: 11000
+    thanks: wf-encounter-reward-thanks-skirmish-corsairs
+  ships:
+  - key: patrol
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    deckhands: 1
+    skill: Regular
+    evades: false
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: corsair
+  - key: escort
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    offset: 160, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    objectives:
+    - kind: Attack
+      target: corsair
+  - key: corsair
+    navigation: WFCrewNavigationRaider
+    vessel: Mudskipper
+    offset: 0, 600
+    side: corsairs
+    faction: PirateNF
+    distress: false
+    company: RedSailCorsairs
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    iffColor: "#ff5c5c"
+    objectives:
+    - kind: Attack
+      target: patrol
+    - kind: Attack
+      target: escort
+
+# The same fight with the guard up: every ship warns off and then fires on anything that comes near, the players too, whichever
+# side they are on until they have fought for one. Two raider bands, in the smaller version of it.
+- type: wfEncounter
+  id: WFEncounterHostileSkirmishBands
+  name: wf-encounter-name-skirmish-hostile
+  announcement: wf-encounter-announce-skirmish-hostile
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 2
+  weight: 0.5
+  minPlayers: 5
+  startRadius: 1800
+  cooldown: 3600
+  duration: 1800
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  rewards:
+  - side: dynasty
+    spesos: 10000
+    thanks: wf-encounter-reward-thanks-skirmish-pirates
+  - side: corsairs
+    spesos: 12000
+    thanks: wf-encounter-reward-thanks-skirmish-corsairs
+  ships:
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    side: dynasty
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneLines: wf-encounter-pirate-zone
+    zoneTargets: Everyone
+    iffColor: "#ff5c5c"
+    objectives:
+    - kind: Attack
+      target: corsair
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 160, 0
+    side: dynasty
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneLines: wf-encounter-pirate-zone
+    zoneTargets: Everyone
+    objectives:
+    - kind: Attack
+      target: corsair
+  - key: corsair
+    navigation: WFCrewNavigationRaider
+    vessel: Mudskipper
+    offset: 0, 600
+    side: corsairs
+    faction: PirateNF
+    distress: false
+    company: RedSailCorsairs
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneLines: wf-encounter-pirate-zone
+    zoneTargets: Everyone
+    iffColor: "#c792ff"
+    objectives:
+    - kind: Attack
+      target: raider
+    - kind: Attack
+      target: wing
+
+# The guarded fight between a TSF pair and a pair of raiders. The patrol warns in its own words, the raiders in theirs.
+- type: wfEncounter
+  id: WFEncounterHostileSkirmishPatrol
+  name: wf-encounter-name-skirmish-hostile
+  announcement: wf-encounter-announce-skirmish-hostile
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 3
+  weight: 0.35
+  minPlayers: 6
+  startRadius: 1800
+  cooldown: 3600
+  duration: 1800
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  rewards:
+  - side: tsf
+    spesos: 15000
+    credits: 15
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-skirmish-tsf
+  - side: pirates
+    spesos: 10000
+    thanks: wf-encounter-reward-thanks-skirmish-pirates
+  ships:
+  - key: patrol
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneTargets: Everyone
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: raider
+    - kind: Attack
+      target: wing
+  - key: escort
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    offset: 160, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneTargets: Everyone
+    objectives:
+    - kind: Attack
+      target: wing
+    - kind: Attack
+      target: raider
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 0, 550
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneLines: wf-encounter-pirate-zone
+    zoneTargets: Everyone
+    iffColor: "#ff5c5c"
+    objectives:
+    - kind: Attack
+      target: patrol
+    - kind: Attack
+      target: escort
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 160, 570
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 1
+    skill: Regular
+    evades: false
+    warnRange: 800
+    attackRange: 350
+    zoneLines: wf-encounter-pirate-zone
+    zoneTargets: Everyone
+    objectives:
+    - kind: Attack
+      target: escort
+    - kind: Attack
+      target: patrol
+
+# A smuggler's run: a small freighter with a black market hold, wandering open space on no manifest and in no hurry. It warns
+# off whatever comes near and fires on whatever ignores it, and the crew shoot boarders. Nothing is announced until it has been
+# fought, and then only as a rumour. The hold is a few crates, and it is not worth hunting down for the haul.
+- type: wfEncounter
+  id: WFEncounterBlackMarketSmall
+  name: wf-encounter-name-blackmarket
+  announcement: wf-encounter-announce-blackmarket
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 1
+  weight: 0.75
+  minPlayers: 3
+  hidden: true
+  cooldown: 5400
+  duration: 3600
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: smuggler
+    navigation: WFCrewNavigationFreight
+    vessel: Twilight
+    side: smugglers
+    faction: PirateNF
+    company: paycheckbratva
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 2
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    cargo: 3
+    skill: Regular
+    wander: 5
+    wanderRadius: 3000
+    wanderPause: 90
+    warnRange: 800
+    attackRange: 350
+    zoneLines: wf-encounter-blackmarket-zone
+    zoneTargets: Everyone
+    evades: false
+    distress: false
+    disengage: Deter
+    disengageRange: 1200
+
+- type: wfEncounter
+  id: WFEncounterBlackMarketMedium
+  name: wf-encounter-name-blackmarket
+  announcement: wf-encounter-announce-blackmarket
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 2
+  weight: 0.5
+  minPlayers: 5
+  hidden: true
+  cooldown: 5400
+  duration: 3600
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: smuggler
+    navigation: WFCrewNavigationFreight
+    vessels: [ Brute, Zhuangzi ]
+    side: smugglers
+    faction: PirateNF
+    company: paycheckbratva
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 3
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    cargo: 5
+    skill: Regular
+    wander: 5
+    wanderRadius: 3000
+    wanderPause: 90
+    warnRange: 1000
+    attackRange: 400
+    zoneLines: wf-encounter-blackmarket-zone
+    zoneTargets: Everyone
+    evades: false
+    distress: false
+    disengage: Deter
+    disengageRange: 1200
+
+# The big one has two escorts that fly on it and fire inside their own short range, and a bigger hold.
+- type: wfEncounter
+  id: WFEncounterBlackMarketLarge
+  name: wf-encounter-name-blackmarket
+  announcement: wf-encounter-announce-blackmarket
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Threat
+  cost: 3
+  weight: 0.35
+  minPlayers: 8
+  hidden: true
+  cooldown: 5400
+  duration: 3600
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 3000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: smuggler
+    navigation: WFCrewNavigationFreight
+    vessels: [ Olympus, Autumn, Windreign ]
+    side: smugglers
+    faction: PirateNF
+    company: paycheckbratva
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 3
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    cargo: 8
+    skill: Regular
+    wander: 5
+    wanderRadius: 3000
+    wanderPause: 90
+    warnRange: 1200
+    attackRange: 500
+    zoneLines: wf-encounter-blackmarket-zone
+    zoneTargets: Everyone
+    evades: false
+    distress: false
+    disengage: Deter
+    disengageRange: 1200
+  - key: escort
+    navigation: WFCrewNavigationRaider
+    vessels: [ Gadfly, Scallywag ]
+    offset: 220, 0
+    side: smugglers
+    faction: PirateNF
+    company: paycheckbratva
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 0
+    guards: 1
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    skill: Regular
+    attackRange: 350
+    zoneLines: wf-encounter-blackmarket-zone
+    zoneTargets: Everyone
+    evades: false
+    distress: false
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Escort
+      target: smuggler
+  - key: picket
+    navigation: WFCrewNavigationRaider
+    vessels: [ Gadfly, Scallywag ]
+    offset: -220, 0
+    side: smugglers
+    faction: PirateNF
+    company: paycheckbratva
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 0
+    guards: 1
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    skill: Regular
+    attackRange: 350
+    zoneLines: wf-encounter-blackmarket-zone
+    zoneTargets: Everyone
+    evades: false
+    distress: false
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Escort
+      target: smuggler

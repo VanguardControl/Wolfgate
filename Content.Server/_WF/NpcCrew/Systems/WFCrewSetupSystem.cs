@@ -239,6 +239,10 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
                 _crew.SetEngagement(mob, engagement);
             else if (profile != null && profile.Engagement.TryGetValue(post.Role, out var manner))
                 _crew.SetEngagement(mob, manner);
+            // A coward never fights, even when struck: he takes shelter instead.
+            if (post.Engagement == null && profile != null && profile.Cowards.TryGetValue(post.Role, out var chance)
+                && _random.Prob(Math.Clamp(chance, 0f, 1f)))
+                _crew.SetEngagement(mob, WFCrewEngagement.Never);
             ApplyMission(mob, grid, mission);
             spawned.Add(mob);
         }
@@ -282,6 +286,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             crew.Disengage = mission.Disengage;
             crew.Skill = mission.Skill;
             crew.DisengageRange = mission.DisengageRange;
+            crew.CallsForHelp = mission.CallsForHelp;
             if (_crew.HomeGrid(mob, crew) is { } home)
                 EntityManager.System<WFCrewShipStatusSystem>().SetPolicy(home, mission.Disengage, mission.DisengageRange);
             EntityManager.System<WFCrewEscortSystem>().Invalidate();

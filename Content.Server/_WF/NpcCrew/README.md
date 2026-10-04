@@ -11,6 +11,16 @@ membership where available, otherwise a shared NPC faction. A crew's ordered doc
 for that approach. Incoming ships do not cause the stationary crew to announce that it is docking. Radio officers
 announce their own approach and completed docking, and warn unauthorized arrivals.
 
+A Warn crew gives a stranger it notices aboard `WarnTime` (30 s) to leave; if he stays, or strikes any crewman, the
+crew's fighters (on-sight crew, marines, the captain and radio officer; not the helm or the guns) take him on as
+their own attacker, by the usual rules: in sight, and one man hunting him unseen. A when-attacked hand answers only
+his own attacker, and an attacker is remembered while he is aboard and seen or reported, then for 30 s more. Only a
+blow to a crewman himself sends him straight after someone he cannot see. Crew who never fight, including the
+cowards a profile's `cowards` chance makes (half the hauler deckhands), drop their work, run for the bridge and lie
+on the deck there until the alarm is over. Off their post's grid crew answer an attacker in sight only when sent
+there, on a job or a raid, or when he is their faction's enemy anyway (a raider carried off); a crewman who only
+defends his ship goes home. Crew never show the SSD sleep icon.
+
 Foot boarders must be seen within normal sight range through an unobstructed view before security reacts.
 Personal AI devices, loose silicon brains and station AI cores/remote eyes are equipment, not boarders; physical
 cyborg chassis and hostile NPC bodies still qualify. Crew relay sightings through their equipped Shortband
@@ -57,8 +67,10 @@ repair tool, disabled permanently on death; no unlimited item drops. The ship's 
 or initialized when its first crew member spawns. Repair restores missing snapshot tiles/structures and uses normal
 timed repairs for repairable equipment. Resupply docks and retrieves loose ammunition and filled oxygen tanks;
 Salvage docks and retrieves loose material stacks. Workers carry cargo back to their posts. Neither job fabricates
-supplies, opens containers or dismantles structures. Unreachable work times out visibly and can be retried with
-pause/resume. These jobs require a deckhand, a pilot for the objective queue, and suitable EVA equipment.
+supplies, opens containers or dismantles structures. Workers bound for a docked grid walk to their own port, step
+across and path on the other grid, and back the same way. Nothing is picked that has no clear deck beside it, and a
+worker who gets no nearer for ten seconds (a railing in the way, or no path) gives that target up for the next.
+Unreachable work times out visibly and can be retried with pause/resume. These jobs require a deckhand, a pilot for the objective queue, and suitable EVA equipment.
 Repair skips snapshot entries their SRD cannot rebuild, respecting prototype and grid restrictions and tool modes.
 
 Default crew loadouts include pressure suits, helmets, masks and finite oxygen tanks. Internals connect before
@@ -180,6 +192,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Components/WFGunnerDutyComponent.cs`](Components/WFGunnerDutyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFPilotDutyComponent.cs`](Components/WFPilotDutyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFRadioOperatorComponent.cs`](Components/WFRadioOperatorComponent.cs)
+- [`Content.Server/_WF/NpcCrew/HTN/WFCrewLoadedGunPrecondition.cs`](HTN/WFCrewLoadedGunPrecondition.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFCrewMayFightPrecondition.cs`](HTN/WFCrewMayFightPrecondition.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFCrewReturnOperator.cs`](HTN/WFCrewReturnOperator.cs)
 - [`Content.Server/_WF/NpcCrew/HTN/WFCrewTargetOperator.cs`](HTN/WFCrewTargetOperator.cs)
@@ -257,6 +270,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditCombat.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditCombat.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditNavigation.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditNavigation.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditRaid.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditRaid.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.BatchCrew.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.BatchCrew.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.BoardingDevices.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.BoardingDevices.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainHold.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainHold.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainResume.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.CaptainResume.cs)

@@ -10,8 +10,18 @@ completed, one side left, nothing left) and removes its ships once no player is 
 round-start encounters once the stations exist, then starts weighted encounters that fit, in open space, beside a
 station or on a circuit of several. It is off until `wf.encounters.enabled` is set. `WFEncounterVoteSystem` has the
 lobby vote for the preset. `WFEncounterZoneSystem` warns player ships of another company off a ship's warning zone
-and has its crew fire on them inside its attack zone. `WFEncounterMarkerSystem` sends every visible encounter to all
-players; the radar draws it, with its zones, sector-wide.
+and has its crew fire on them inside its attack zone. `WFEncounterMarkerSystem` sends every ship of every visible
+encounter to all players, each with its side and colour; the radar draws them, with their zones, sector-wide, and
+ghosts find them on the Encounters tab of the orbit menu.
+
+Ships can arrive stranded (`stranded: Fuel | Thrusters | Random`) and pay their side's reward to whoever gets them
+under way. Ships can lie in wait (`lurks`) until a player is within the start radius, and an order can target
+`@player`. `announcer` names the ship that voices a radio announcement. With two or more sides each gets a radar
+colour (`iffColor`, or `WFEncounterSystem.SideColors`).
+
+The prototypes cover freight runs, a TSF patrol and transport, wandering traders, pirate raiders and boarders, a
+hauler under attack and a backup request, stranded freighters, a false mayday with pirates lying in wait, skirmishes
+(plain, and hostile ones that also fire on players who come close) and black market transports.
 
 Admins use the Encounters window in the Wolfgate admin tab, or `wf_encounter list | spawn <prototype> [distance] |
 end <encounter> | schedule | pause | resume`. Other code calls `WFEncounterSystem.TrySpawn`, `Resolve`, `End` and
@@ -36,6 +46,8 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSchedulerSystem.cs`](Systems/WFEncounterSchedulerSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.cs`](Systems/WFEncounterSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.Hunt.cs`](Systems/WFEncounterSystem.Hunt.cs)
+- [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.Radar.cs`](Systems/WFEncounterSystem.Radar.cs)
+- [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.Stranded.cs`](Systems/WFEncounterSystem.Stranded.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterVoteSystem.cs`](Systems/WFEncounterVoteSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterZoneSystem.cs`](Systems/WFEncounterZoneSystem.cs)
 - [`Content.Server/_WF/Encounters/WFEncounterEvents.cs`](WFEncounterEvents.cs)
@@ -54,6 +66,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.Client/_WF/Encounters/MapScreen.Encounters.cs`](../../../Content.Client/_WF/Encounters/MapScreen.Encounters.cs)
 - [`Content.Client/_WF/Encounters/ShuttleNavControl.Encounters.cs`](../../../Content.Client/_WF/Encounters/ShuttleNavControl.Encounters.cs)
 - [`Content.Client/_WF/Encounters/WFEncounterClientSystem.cs`](../../../Content.Client/_WF/Encounters/WFEncounterClientSystem.cs)
+- [`Content.Client/_WF/Encounters/WFEncounterColors.cs`](../../../Content.Client/_WF/Encounters/WFEncounterColors.cs)
 - [`Content.Client/_WF/Encounters/WFEncounterMarkerClientSystem.cs`](../../../Content.Client/_WF/Encounters/WFEncounterMarkerClientSystem.cs)
 - [`Content.Client/_WF/Encounters/WFEncounterWindow.cs`](../../../Content.Client/_WF/Encounters/WFEncounterWindow.cs)
 
@@ -61,6 +74,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.AuditLifecycle.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.AuditLifecycle.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.AuditZones.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.AuditZones.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.BatchCore.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.BatchCore.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs)
 
 ### Prototypes

@@ -85,6 +85,18 @@ public sealed partial class WFCrewWeaponSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Whether the crewman has in hand, or would draw, a gun he can fire.</summary>
+    public bool HasLoadedGun(EntityUid uid)
+    {
+        EntityUid? gun = null;
+        if (IsDrawn(uid))
+            gun = Comp<WFCrewWeaponComponent>(uid).Drawn;
+        else if (FindBest(uid, out var best, out _))
+            gun = best;
+
+        return gun is { } held && HasComp<GunComponent>(held) && (AmmoCount(held) > 0 || FindMagazineForOwner(held));
+    }
+
     /// <summary>Puts the drawn weapon back into the slot it came from. Safe to call at any time.</summary>
     public void TryHolster(EntityUid uid)
     {

@@ -66,7 +66,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 
             foreach (var ship in encounter.Ships.Values)
             {
-                if (ship.WarnRange <= 0f && ship.AttackRange <= 0f || TerminatingOrDeleted(ship.Grid))
+                // A ship lying in wait gives itself away to nobody.
+                if (ship.WarnRange <= 0f && ship.AttackRange <= 0f || ship.Lurking || TerminatingOrDeleted(ship.Grid))
                     continue;
 
                 if (!crewedKnown)
@@ -204,7 +205,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         if (IsDocked(ship.Grid))
             return;
 
-        var here = _transform.GetMapCoordinates(ship.Grid);
+        var here = CentreOfMass(ship.Grid);
         var company = Company(ship.Grid);
         var now = _timing.CurTime;
         foreach (var (intruder, crewed) in _crewed)
@@ -221,7 +222,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, crewed.Flags))
                 continue;
 
-            var there = _transform.GetMapCoordinates(intruder);
+            var there = CentreOfMass(intruder);
             if (there.MapId != here.MapId)
                 continue;
 
@@ -245,5 +246,12 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 ship.Engaged.Remove(intruder);
             }
         }
+    }
+
+    /// <summary>Where a hull's centre of mass is: the point the radar draws it and its zones around.</summary>
+    private MapCoordinates CentreOfMass(EntityUid grid)
+    {
+        var centre = CompOrNull<Robust.Shared.Physics.Components.PhysicsComponent>(grid)?.LocalCenter ?? System.Numerics.Vector2.Zero;
+        return _transform.ToMapCoordinates(new EntityCoordinates(grid, centre));
     }
 }

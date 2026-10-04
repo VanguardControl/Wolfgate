@@ -635,9 +635,10 @@ public sealed partial class WFCrewTest : InteractionTest
                     new EntityCoordinates(deck, new Vector2(18.5f, 2.5f)), "crew")!.Value;
                 hostile = SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(5.5f, 2.5f)));
             });
-            // While the spotter fights the hostile in sight nobody else sets out; once he is gone the hunt is open.
+            // While the spotter fights the hostile in sight nobody else sets out; once he is down the hunt is open.
             await WaitUntil(() => alerts.IsAlerted(deck, "crew"), 300, () => $"The spotter should raise the alert. {Describe(source)}");
-            await Server.WaitPost(() => SEntMan.DeleteEntity(source));
+            await Server.WaitPost(() => Server.System<Content.Shared.Mobs.Systems.MobStateSystem>()
+                .ChangeMobState(source, Content.Shared.Mobs.MobState.Dead));
             await WaitUntil(() => alerts.IsAlerted(deck, "crew") && factions.GetHostiles(receiver).Contains(hostile)
                                    && hands.TryGetActiveItem(receiver, out var held)
                                    && SEntMan.HasComponent<GunComponent>(held.Value),

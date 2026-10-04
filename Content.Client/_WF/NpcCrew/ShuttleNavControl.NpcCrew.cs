@@ -27,7 +27,8 @@ public partial class ShuttleNavControl
 
             var battlegroup = crew.Settings.Battlegroup;
             var color = CrewColor(battlegroup.Length > 0 ? battlegroup : crew.Group);
-            if (battlegroup.Length > 0)
+            // Only a crew with someone alive aboard joins its battlegroup or points at a target; the dead link nothing.
+            if (battlegroup.Length > 0 && crew.Alive > 0)
             {
                 if (_wfCrewAnchors.TryGetValue(battlegroup, out var anchor))
                     DrawCrewLine(handle, anchor, point, color.WithAlpha(0.6f));
@@ -35,7 +36,7 @@ public partial class ShuttleNavControl
                     _wfCrewAnchors.Add(battlegroup, point);
             }
 
-            if (crew.ActivityTarget is { } target && TryCrewPoint(target, consoleXform, worldToView, out var aim))
+            if (crew.Alive > 0 && crew.ActivityTarget is { } target && TryCrewPoint(target, consoleXform, worldToView, out var aim))
                 DrawCrewLine(handle, point, point + (aim - point) * 0.35f, Color.White.WithAlpha(0.5f));
 
             if (point.X < 0f || point.Y < 0f || point.X > PixelSize.X || point.Y > PixelSize.Y)

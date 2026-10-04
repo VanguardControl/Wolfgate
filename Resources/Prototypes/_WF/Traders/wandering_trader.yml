@@ -30,6 +30,13 @@
   - type: RandomHumanoidAppearance
   - type: Loadout
     prototypes: [ WFTraderWandererGear ]
+  # No weapon and no fighting: the brain only stands about, and runs when TraderFleeSystem names somewhere to run to.
+  - type: HTN
+    rootTask:
+      task: WFTraderCompound
+    blackboard:
+      NavInteract: !type:Bool
+        true
   - type: Trader
     dialogue: WFTraderWandererDialogue
     killable: true

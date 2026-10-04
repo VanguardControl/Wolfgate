@@ -1,15 +1,17 @@
 using System.Numerics;
 using Content.Client._WF.Encounters;
-using Content.Shared._WF.Encounters;
 using Robust.Client.Graphics;
 
 namespace Content.Client.Shuttles.UI;
 
 public partial class ShuttleNavControl
 {
+    /// <summary>The labels placed so far this frame, so ships of one encounter do not draw over each other.</summary>
+    private readonly List<Box2> _encounterLabels = new();
+
     /// <summary>
-    /// Marks every visible encounter in the sector: a named diamond where it is on the scope, or an arrow at the rim
-    /// with its name and distance when it is beyond it.
+    /// Marks every ship of the visible encounters in the sector: a named diamond where it is on the scope, or an arrow
+    /// at the rim with its name and distance when it is beyond it, each in its own colour, with its zones around it.
     /// </summary>
     private void DrawEncounterMarkers(DrawingHandleScreen handle, TransformComponent consoleXform, Matrix3x2 worldToView)
     {
@@ -21,16 +23,18 @@ public partial class ShuttleNavControl
         var here = Vector2.Transform(centre, viewToWorld);
         var rim = MathF.Min(PixelSize.X, PixelSize.Y) / 2f - 20f * UIScale;
         var size = 6f * UIScale;
-        var elapsed = MathF.Min(system.Elapsed, 10f);
-        foreach (var marker in system.Markers)
+        _encounterLabels.Clear();
+        for (var i = 0; i < system.Markers.Count; i++)
         {
+            var marker = system.Markers[i];
             if (marker.Map != consoleXform.MapID)
                 continue;
 
-            var world = marker.Position + marker.Velocity * elapsed;
+            var world = system.GetPosition(marker);
             var point = Vector2.Transform(world, worldToView);
             var offset = point - centre;
-            var color = EncounterColor(marker.Category);
+            var color = marker.Color ?? WFEncounterColors.Category(marker.Category);
+            var name = system.Labels[i];
             DrawEncounterZone(handle, point, marker.WarnRange, Color.FromHex("#ffd23f"), system.WarnLabel);
             DrawEncounterZone(handle, point, marker.AttackRange, Color.FromHex("#ff4b4b"), system.AttackLabel);
             if (offset.Length() <= rim)
@@ -40,7 +44,8 @@ public partial class ShuttleNavControl
                 handle.DrawLine(point + new Vector2(0f, size), point + new Vector2(-size, 0f), color);
                 handle.DrawLine(point + new Vector2(-size, 0f), point + new Vector2(0f, -size), color);
                 // Above the ship: its own IFF label hangs below and to the right, and the admin crew tag sits between.
-                handle.DrawString(Font, point + new Vector2(10f, -54f) * UIScale, marker.Name, UIScale * 0.8f, color);
+                var at = PlaceEncounterLabel(point + new Vector2(10f, -54f) * UIScale, handle.GetDimensions(Font, name, UIScale * 0.8f));
+                handle.DrawString(Font, at, name, UIScale * 0.8f, color);
                 continue;
             }
 
@@ -52,11 +57,38 @@ public partial class ShuttleNavControl
             handle.DrawLine(tip, back - side * size, color);
             handle.DrawLine(back + side * size, back - side * size, color);
 
-            var label = Loc.GetString("wf-encounter-marker-distance", ("name", marker.Name),
+            var label = Loc.GetString("wf-encounter-marker-distance", ("name", name),
                 ("distance", ((world - here).Length() / 1000f).ToString("0.0")));
             var dimensions = handle.GetDimensions(Font, label, UIScale * 0.8f);
-            handle.DrawString(Font, back - direction * (dimensions.X / 2f + 6f * UIScale) - dimensions / 2f, label, UIScale * 0.8f, color);
+            var rimAt = PlaceEncounterLabel(back - direction * (dimensions.X / 2f + 6f * UIScale) - dimensions / 2f, dimensions);
+            handle.DrawString(Font, rimAt, label, UIScale * 0.8f, color);
         }
+    }
+
+    /// <summary>Moves a label down until it clears the ones already placed, and records where it ends up.</summary>
+    private Vector2 PlaceEncounterLabel(Vector2 position, Vector2 size)
+    {
+        for (var attempt = 0; attempt < 8; attempt++)
+        {
+            var box = Box2.FromDimensions(position, size);
+            var clear = true;
+            foreach (var placed in _encounterLabels)
+            {
+                if (!placed.Intersects(box))
+                    continue;
+
+                clear = false;
+                break;
+            }
+
+            if (clear)
+                break;
+
+            position.Y += size.Y + 2f * UIScale;
+        }
+
+        _encounterLabels.Add(Box2.FromDimensions(position, size));
+        return position;
     }
 
     /// <summary>A ring at a zone's radius around the ship, named at its top, when any of it is on the scope.</summary>
@@ -72,16 +104,5 @@ public partial class ShuttleNavControl
         handle.DrawCircle(centre, radius, color.WithAlpha(0.8f), false);
         var dimensions = handle.GetDimensions(Font, label, UIScale * 0.7f);
         handle.DrawString(Font, centre + new Vector2(-dimensions.X / 2f, -radius - dimensions.Y - 2f * UIScale), label, UIScale * 0.7f, color);
-    }
-
-    private static Color EncounterColor(WFEncounterCategory category)
-    {
-        return category switch
-        {
-            WFEncounterCategory.Patrol => Color.FromHex("#6fb6ff"),
-            WFEncounterCategory.Threat => Color.FromHex("#ff5c5c"),
-            WFEncounterCategory.Distress => Color.FromHex("#ffae3d"),
-            _ => Color.FromHex("#7fe0c8"),
-        };
     }
 }

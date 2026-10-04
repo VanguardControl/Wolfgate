@@ -3,6 +3,7 @@ using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Shuttles.Events;
 using Content.Shared._Mono.Company;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Humanoid;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
@@ -27,6 +28,13 @@ public sealed class WFCrewSecuritySystem : EntitySystem
     private readonly HashSet<(EntityUid Crew, EntityUid Visitor)> _boarders = new();
     private readonly HashSet<(EntityUid Crew, EntityUid Visitor)> _ownedHostiles = new();
     private readonly Dictionary<(EntityUid Grid, string Group, EntityUid Visitor), TimeSpan> _hostileDocks = new();
+
+    /// <summary>Strangers a Warn crew has noticed aboard: when their time to leave runs out, and whether it has.</summary>
+    private readonly Dictionary<(EntityUid Grid, string Group, EntityUid Visitor), (TimeSpan Deadline, bool Turned)> _warned = new();
+
+    /// <summary>Whether a warned stranger stayed past his time and the crew's fighters turned on him.</summary>
+    public bool OverstayedWarning(EntityUid grid, string group, EntityUid visitor) =>
+        _warned.TryGetValue((grid, group, visitor), out var warning) && warning.Turned;
 
     /// <summary>Whether the crew member has a visitor explicitly marked hostile by its boarding rule.</summary>
     public bool HasThreat(EntityUid crew) => _ownedHostiles.Any(pair => pair.Crew == crew);
@@ -80,6 +88,10 @@ public sealed class WFCrewSecuritySystem : EntitySystem
                 _ownedHostiles.Add((uid, visitor));
             _factions.AggroEntity(uid, visitor);
         }
+        // A person told to leave has a while to go before the crew's fighters turn on him; animals are let be.
+        if (rules.Boarding == WFCrewSecurityResponse.Warn
+            && (HasComp<ActorComponent>(visitor) || HasComp<HumanoidAppearanceComponent>(visitor)))
+            _warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false));
         if (_boarders.Add((uid, visitor)) && HasComp<WFRadioOperatorComponent>(uid))
             Respond(grid, crew.Group, visitor, rules.Boarding, docking: false);
     }
@@ -97,6 +109,8 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         {
             foreach (var key in _hostileDocks.Keys.Where(key => key.Grid == grid && key.Group == member.Group).ToArray())
                 _hostileDocks.Remove(key);
+            foreach (var key in _warned.Keys.Where(key => key.Grid == grid && key.Group == member.Group).ToArray())
+                _warned.Remove(key);
         }
     }
 
@@ -163,14 +177,16 @@ public sealed class WFCrewSecuritySystem : EntitySystem
                 _hostileDocks.Remove(key);
         }
         var present = new HashSet<(EntityUid Crew, EntityUid Visitor)>();
-        var guards = new List<(EntityUid Uid, EntityUid Grid, WFCrewSecurityComponent Rules)>();
+        var strangers = new HashSet<(EntityUid Grid, string Group, EntityUid Visitor)>();
+        var seen = new HashSet<(EntityUid Grid, string Group, EntityUid Visitor)>();
+        var guards = new List<(EntityUid Uid, EntityUid Grid, string Group, WFCrewSecurityComponent Rules)>();
         var query = EntityQueryEnumerator<WFCrewComponent, WFCrewSecurityComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var crew, out var rules, out var xform))
         {
             if (xform.GridUid is not { } grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
                 || crew.Post is { } post && post.EntityId != grid)
                 continue;
-            guards.Add((uid, grid, rules));
+            guards.Add((uid, grid, crew.Group, rules));
         }
         // Visitors are bucketed by grid once, and only on grids that some crew guards.
         var people = new Dictionary<EntityUid, List<EntityUid>>();
@@ -190,21 +206,24 @@ public sealed class WFCrewSecuritySystem : EntitySystem
                     aboard.Add(person);
             }
             var crews = EntityManager.System<WFCrewSystem>();
-            foreach (var (uid, grid, rules) in guards)
+            foreach (var (uid, grid, group, rules) in guards)
             {
                 foreach (var visitor in people[grid])
                 {
                     if (visitor == uid || IsAuthorized(uid, visitor) || crews.SameCrew(uid, visitor))
                         continue;
                     present.Add((uid, visitor));
+                    strangers.Add((grid, group, visitor));
                     if (!EntityManager.System<WFCrewWeaponSystem>().CanSee(uid, visitor))
                         continue;
+                    seen.Add((grid, group, visitor));
                     ReceiveSighting(uid, visitor, aiRemotes);
                     if (rules.Boarding != WFCrewSecurityResponse.Ignore)
                         EntityManager.System<WFCrewCommsSystem>().Report(uid, visitor);
                 }
             }
         }
+        CheckWarnings(strangers, seen);
         foreach (var pair in _ownedHostiles.Where(pair => !present.Contains(pair)).ToArray())
         {
             if (!TerminatingOrDeleted(pair.Crew))
@@ -212,6 +231,34 @@ public sealed class WFCrewSecuritySystem : EntitySystem
             _ownedHostiles.Remove(pair);
         }
         _boarders.RemoveWhere(pair => !present.Contains(pair));
+    }
+
+    /// <summary>
+    /// Turns a crew's fighters on each warned stranger still aboard once his time runs out, and again whenever one of
+    /// the crew sees him after that. Strangers who left are forgotten, so coming back starts a new warning.
+    /// </summary>
+    private void CheckWarnings(HashSet<(EntityUid Grid, string Group, EntityUid Visitor)> aboard,
+        HashSet<(EntityUid Grid, string Group, EntityUid Visitor)> seen)
+    {
+        var now = _timing.CurTime;
+        foreach (var (key, warning) in _warned.ToArray())
+        {
+            if (!aboard.Contains(key) || TerminatingOrDeleted(key.Visitor) || TerminatingOrDeleted(key.Grid))
+            {
+                _warned.Remove(key);
+                continue;
+            }
+
+            if (now < warning.Deadline || warning.Turned && !seen.Contains(key))
+                continue;
+
+            EntityManager.System<WFCrewSystem>().AnswerAttack(key.Grid, key.Group, key.Visitor);
+            if (warning.Turned)
+                continue;
+
+            _warned[key] = (warning.Deadline, true);
+            Respond(key.Grid, key.Group, key.Visitor, WFCrewSecurityResponse.Hostile, docking: false);
+        }
     }
 
     private void Respond(EntityUid grid, string group, EntityUid visitor, WFCrewSecurityResponse response, bool docking)

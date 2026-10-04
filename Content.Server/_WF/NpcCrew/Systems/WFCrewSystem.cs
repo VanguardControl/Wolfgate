@@ -10,8 +10,11 @@ using Content.Server.NPC.Systems;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Systems;
+using Content.Shared.SSDIndicator;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -31,8 +34,17 @@ public sealed class WFCrewSystem : EntitySystem
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobs = default!;
 
     private readonly List<EntityUid> _expired = new();
+    private readonly List<EntityUid> _kept = new();
+    private TimeSpan _nextKeep;
+
+    /// <summary>How long an attacker stays remembered after he was last aboard and in the crew's sight or knowledge.</summary>
+    private static readonly TimeSpan Linger = TimeSpan.FromSeconds(30);
+
+    /// <summary>How long a blow is kept in <see cref="WFCrewComponent.Struck"/>.</summary>
+    private static readonly TimeSpan StruckKept = TimeSpan.FromSeconds(30);
 
     /// <summary>Blackboard key holding the duty name; selects the duty branch of the crew HTN root.</summary>
     public const string DutyKey = "WFCrewDuty";
@@ -90,7 +102,7 @@ public sealed class WFCrewSystem : EntitySystem
     /// <summary>Records crew attacks before body-part routing loses the damage origin.</summary>
     private void OnBeforeCrewDamage(Entity<NPCRetaliationComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        if (args.Cancelled || !HasComp<WFCrewComponent>(ent)
+        if (args.Cancelled || !TryComp<WFCrewComponent>(ent.Owner, out var crew)
             || !args.Damage.AnyPositive()
             || args.Origin is not { } source
             || source == ent.Owner
@@ -103,28 +115,119 @@ public sealed class WFCrewSystem : EntitySystem
         if (attacker == ent.Owner)
             return;
 
-        if (_retaliation.TryRetaliate(ent, attacker) || !HasComp<MobStateComponent>(attacker) || SameCrew(ent, attacker))
+        if (!_retaliation.TryRetaliate(ent, attacker))
+        {
+            if (!HasComp<MobStateComponent>(attacker) || SameCrew(ent, attacker))
+                return;
+
+            // Upstream never remembers a friendly-faction attacker; crew still answer and stop protecting it.
+            Remember(ent.Owner, ent.Comp, attacker);
+        }
+
+        if (SameCrew(ent, attacker))
             return;
 
-        // Upstream never remembers a friendly-faction attacker; crew still answer and stop protecting it.
-        _factions.AggroEntity(ent.Owner, attacker);
-        if (ent.Comp.AttackMemoryLength is { } length)
+        crew.Struck[attacker] = _timing.CurTime;
+        if (HomeGrid(ent.Owner, crew) is { } home)
+            AnswerAttack(home, crew.Group, attacker);
+    }
+
+    /// <summary>Makes a crewman hostile to an attacker and remembers the attack for his memory's length.</summary>
+    private void Remember(EntityUid uid, NPCRetaliationComponent retaliation, EntityUid attacker)
+    {
+        _factions.AggroEntity(uid, attacker);
+        if (retaliation.AttackMemoryLength is not { } length)
+            return;
+
+        var memories = retaliation.AttackMemories;
+        var until = _timing.CurTime + length;
+        if (!memories.TryGetValue(attacker, out var known) || known < until)
+            memories[attacker] = until;
+    }
+
+    /// <summary>
+    /// Whether a crewman takes on whoever attacks his crew: guards and other on-sight crew, and the captain and
+    /// radio officer. Hands who fight only when attacked answer for themselves, the helm and the guns stay manned,
+    /// and those who never fight take shelter instead.
+    /// </summary>
+    public static bool IsFighter(WFCrewComponent crew)
+    {
+        return crew.Engagement != WFCrewEngagement.Never
+               && crew.Duty != WFCrewDuties.Pilot && crew.Duty != WFCrewDuties.Gunnery
+               && (crew.Engagement == WFCrewEngagement.OnSight || crew.Role == WFCrewRoles.Marine
+                   || crew.Role == WFCrewRoles.Captain || crew.Role == WFCrewRoles.RadioOperator);
+    }
+
+    /// <summary>
+    /// An attack on one crewman, or a stranger who would not leave, is the whole crew's business: its fighters
+    /// remember him as their own attacker and its non-combatants take shelter.
+    /// </summary>
+    public void AnswerAttack(EntityUid grid, string group, EntityUid attacker)
+    {
+        if (TerminatingOrDeleted(attacker) || !HasComp<MobStateComponent>(attacker))
+            return;
+
+        var query = EntityQueryEnumerator<WFCrewComponent, NPCRetaliationComponent>();
+        while (query.MoveNext(out var uid, out var member, out var retaliation))
         {
-            var memories = ent.Comp.AttackMemories;
-            memories[attacker] = _timing.CurTime + length;
+            if (uid == attacker || member.Group != group || !IsFighter(member) || HomeGrid(uid, member) != grid
+                || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || SameCrew(uid, attacker))
+                continue;
+
+            Remember(uid, retaliation, attacker);
         }
+
+        EntityManager.System<WFCrewShelterSystem>().Shelter(grid, group);
+    }
+
+    /// <summary>Whether an attacker is still aboard the crewman's ship and in his sight or his crew's knowledge.</summary>
+    private bool StillAboard(EntityUid uid, WFCrewComponent crew, EntityUid attacker)
+    {
+        if (TerminatingOrDeleted(attacker) || !_mobs.IsAlive(attacker) || HomeGrid(uid, crew) is not { } home
+            || Transform(attacker).GridUid != home)
+            return false;
+
+        return EntityManager.System<WFCrewWeaponSystem>().CanSee(uid, attacker)
+               || EntityManager.System<WFCrewCommsSystem>().Knows(uid, attacker);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
         var now = _timing.CurTime;
+        // Once a second, memories of attackers still aboard and known are kept from lapsing.
+        var keep = now >= _nextKeep;
+        if (keep)
+            _nextKeep = now + TimeSpan.FromSeconds(1);
         var query = EntityQueryEnumerator<WFCrewComponent, NPCRetaliationComponent>();
-        while (query.MoveNext(out var uid, out _, out var retaliation))
+        while (query.MoveNext(out var uid, out var crew, out var retaliation))
         {
+            if (keep && crew.Struck.Count > 0)
+            {
+                _expired.Clear();
+                foreach (var (attacker, at) in crew.Struck)
+                {
+                    if (now >= at + StruckKept || TerminatingOrDeleted(attacker))
+                        _expired.Add(attacker);
+                }
+                foreach (var attacker in _expired)
+                    crew.Struck.Remove(attacker);
+            }
+
             var memories = retaliation.AttackMemories;
             if (memories.Count == 0)
                 continue;
+            if (keep && _mobs.IsAlive(uid))
+            {
+                _kept.Clear();
+                foreach (var (attacker, until) in memories)
+                {
+                    if (now < until && until < now + Linger && StillAboard(uid, crew, attacker))
+                        _kept.Add(attacker);
+                }
+                foreach (var attacker in _kept)
+                    memories[attacker] = now + Linger;
+            }
             _expired.Clear();
             foreach (var (attacker, until) in memories)
             {
@@ -277,6 +380,8 @@ public sealed class WFCrewSystem : EntitySystem
     {
         var (uid, crew) = ent;
         EnsureComp<AccessComponent>(uid);
+        // Nobody plays an NPC, so its body never shows the disconnected-player sleep icon, alive or dead.
+        RemComp<SSDIndicatorComponent>(uid);
         EntityManager.System<WFCrewEscortSystem>().Invalidate();
 
         if (TryComp<HTNComponent>(uid, out var htn))

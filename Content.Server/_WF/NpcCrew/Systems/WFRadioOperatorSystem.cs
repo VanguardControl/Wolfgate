@@ -438,8 +438,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             return false;
 
         // A crew that doesn't call for help keeps all of its troubles off the air.
-        if (!radio.CallsForHelp && line is WFRadioLine.Mayday or WFRadioLine.Boarded or WFRadioLine.CaptainDown
-                or WFRadioLine.HelmDown or WFRadioLine.AllClear)
+        var callsForHelp = radio.CallsForHelp && (!TryComp<WFCrewComponent>(uid, out var crewman) || crewman.CallsForHelp);
+        if (!callsForHelp && line is (WFRadioLine.Mayday or WFRadioLine.Boarded or WFRadioLine.CaptainDown
+                or WFRadioLine.HelmDown or WFRadioLine.AllClear))
             return false;
 
         var now = _timing.CurTime;

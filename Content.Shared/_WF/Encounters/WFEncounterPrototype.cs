@@ -47,6 +47,13 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField]
     public bool AnnounceOnRadio;
 
+    /// <summary>
+    /// Key of the ship whose crew make a radio announcement; left out, the first ship listed. Sector control makes it
+    /// when nobody aboard that ship can.
+    /// </summary>
+    [DataField]
+    public string? Announcer;
+
     /// <summary>Circuit placement: how many stations the haul calls at and how it flies between them.</summary>
     [DataField]
     public WFEncounterRoute? Route;
@@ -235,6 +242,27 @@ public sealed partial class WFEncounterShip
     [DataField]
     public ProtoId<WFCrewNavigationProfilePrototype>? Navigation;
 
+    /// <summary>
+    /// Its colour on radars. Ships of a side share the first colour set on any of them; with none set, an encounter
+    /// of several sides gives each side one of <c>WFEncounterSystem.SideColors</c> in the order the sides appear.
+    /// </summary>
+    [DataField]
+    public Color? IffColor;
+
+    /// <summary>
+    /// Arrives stranded and stays so until players get it under way again. Its orders wait until then, and its side's
+    /// reward goes to the players who helped.
+    /// </summary>
+    [DataField]
+    public WFEncounterStranding Stranded = WFEncounterStranding.None;
+
+    /// <summary>
+    /// Lies in wait until the encounter begins at its start radius: its IFF label is hidden, it holds still, and it
+    /// has no zones and no sector marker.
+    /// </summary>
+    [DataField]
+    public bool Lurks;
+
     /// <summary>Tasks flown in order.</summary>
     [DataField]
     public List<WFEncounterObjective> Objectives = new();
@@ -303,7 +331,10 @@ public sealed partial class WFEncounterObjective
     [DataField(required: true)]
     public WFCrewObjectiveKind Kind;
 
-    /// <summary>Key of the ship the task is aimed at, or @origin or @destination for the placement's stations.</summary>
+    /// <summary>
+    /// Key of the ship the task is aimed at, @origin or @destination for the placement's stations, or @player for the
+    /// nearest ship with a player aboard when the orders are given. A task aimed at @player is left out when there is none.
+    /// </summary>
     [DataField]
     public string? Target;
 
@@ -317,6 +348,21 @@ public sealed partial class WFEncounterObjective
     /// <summary>Seconds; zero is until done or forever, by kind.</summary>
     [DataField]
     public float Duration;
+}
+
+/// <summary>How an encounter ship arrives stranded.</summary>
+public enum WFEncounterStranding : byte
+{
+    None,
+
+    /// <summary>Its generators and antimatter engine are empty and its batteries flat: no power, so no thrust.</summary>
+    Fuel,
+
+    /// <summary>Every thruster that drives it is wrecked; its power is left on.</summary>
+    Thrusters,
+
+    /// <summary>One of the two, picked when it arrives.</summary>
+    Random,
 }
 
 public enum WFEncounterStart : byte

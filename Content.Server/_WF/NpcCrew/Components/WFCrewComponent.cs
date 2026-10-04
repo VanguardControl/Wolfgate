@@ -22,6 +22,14 @@ public sealed partial class WFCrewComponent : Component
     public TimeSpan NextPatrol;
     public Dictionary<EntityUid, TimeSpan> RadioSightings = new();
 
+    /// <summary>When each attacker last struck this crewman himself; only a fresh blow sends him after someone unseen.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> Struck = new();
+
+    /// <summary>Whether this crew puts its troubles on the air. Raiders don't.</summary>
+    [DataField]
+    public bool CallsForHelp = true;
+
     [DataField]
     public ProtoId<WFCrewRolePrototype>? Role;
 

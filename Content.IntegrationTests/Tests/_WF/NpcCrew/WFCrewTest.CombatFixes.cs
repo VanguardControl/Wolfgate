@@ -260,8 +260,11 @@ public sealed partial class WFCrewTest
             var retaliation = SEntMan.GetComponent<NPCRetaliationComponent>(guard);
             Assert.That(Server.System<NPCRetaliationSystem>().TryRetaliate((guard, retaliation), boarder), Is.True);
             memory = retaliation.AttackMemoryLength!.Value.TotalSeconds;
+            // A boarder in sight is not forgotten by himself, so the memory is ended by hand.
+            var held = retaliation.AttackMemories;
+            held[boarder] = Server.ResolveDependency<Robust.Shared.Timing.IGameTiming>().CurTime;
         });
-        await RunTicks(Ticks(memory + 2));
+        await RunTicks(Ticks(2));
         await Server.WaitAssertion(() =>
         {
             var memories = SEntMan.GetComponent<NPCRetaliationComponent>(guard).AttackMemories;

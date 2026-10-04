@@ -103,6 +103,10 @@ public sealed partial class WFCaptainSystem : EntitySystem
 
     private void OnAlert(ref WFCrewAlertEvent args)
     {
+        // A patrol zone's report is a warning, not an attack: the guns answer it and the ship keeps its course.
+        if (_alerts.InZoneReport)
+            return;
+
         var commanded = false;
         var captains = EntityQueryEnumerator<WFCaptainComponent>();
         while (captains.MoveNext(out var captain, out var component))

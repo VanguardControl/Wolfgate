@@ -11,8 +11,15 @@
             <CheckBox Name="AutoRefreshBox" Text="{Loc 'wf-ghost-orbit-auto-refresh'}" Pressed="True" />
         </BoxContainer>
         <Label Name="SummaryLabel" StyleClasses="LabelSubText" />
-        <ScrollContainer Name="Scroll" VerticalExpand="True" HScrollEnabled="False">
-            <BoxContainer Name="Sections" Orientation="Vertical" SeparationOverride="4" Margin="0 0 6 0" />
-        </ScrollContainer>
+        <TabContainer Name="Pages" VerticalExpand="True">
+            <ScrollContainer Name="Scroll" VerticalExpand="True" HScrollEnabled="False">
+                <BoxContainer Name="Sections" Orientation="Vertical" SeparationOverride="4" Margin="0 0 6 0" />
+            </ScrollContainer>
+            <ScrollContainer Name="EncounterScroll" VerticalExpand="True" HScrollEnabled="False">
+                <BoxContainer Name="EncounterBody" Orientation="Vertical" SeparationOverride="4" Margin="0 0 6 0">
+                    <Label Name="EncountersEmpty" Text="{Loc 'wf-ghost-orbit-encounters-empty'}" StyleClasses="LabelSubText" />
+                </BoxContainer>
+            </ScrollContainer>
+        </TabContainer>
     </BoxContainer>
 </controls:FancyWindow>

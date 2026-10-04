@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Client._WF.Encounters;
 using Content.Client._WF.Stylesheets;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
@@ -35,8 +36,13 @@ public sealed partial class GhostOrbitWindow : FancyWindow
     /// <summary>Collapsed sections, kept for the whole client session.</summary>
     private static readonly HashSet<GhostOrbitCategory> Collapsed = new() { GhostOrbitCategory.Npc };
 
+    private const int EncountersTab = 1;
+
     private readonly List<Section> _sections = new();
+    private readonly List<GhostOrbitTile> _encounterTiles = new();
+    private readonly WrapContainer _encounterGrid;
     private List<GhostOrbitTarget> _targets = new();
+    private List<GhostOrbitEncounterShip> _encounters = new();
     private string _search = string.Empty;
     private TimeSpan _nextRefresh;
 
@@ -47,15 +53,27 @@ public sealed partial class GhostOrbitWindow : FancyWindow
         IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
 
+        _encounterGrid = new WrapContainer
+        {
+            SeparationOverride = 4,
+            CrossSeparationOverride = 4,
+            Margin = new Thickness(8, 0, 0, 6),
+        };
+        EncounterBody.AddChild(_encounterGrid);
+        Pages.SetTabTitle(0, Loc.GetString("wf-ghost-orbit-tab-targets"));
+        SetEncountersTitle();
+
         SearchBar.OnTextChanged += args =>
         {
             _search = args.Text.Trim().ToLowerInvariant();
             ApplyFilter();
             Scroll.SetScrollValue(Vector2.Zero);
+            EncounterScroll.SetScrollValue(Vector2.Zero);
         };
         SearchBar.OnTextEntered += _ => OrbitFirstMatch();
         MostFollowedButton.OnPressed += _ => OnGhostnadoClicked?.Invoke();
         RefreshButton.OnPressed += _ => RequestTargets();
+        Pages.OnTabChanged += _ => UpdateSummary();
     }
 
     /// <summary>
@@ -102,10 +120,11 @@ public sealed partial class GhostOrbitWindow : FancyWindow
     {
         _entMan.System<Content.Client._WF.NpcCrew.WFCrewUiDiagnosticsSystem>().DisplayGhost(ev.Targets.Count, IsOpen);
         // Live refresh would otherwise rebuild every tile and drop the hovered tooltip for nothing.
-        if (_targets.SequenceEqual(ev.Targets))
+        if (_targets.SequenceEqual(ev.Targets) && _encounters.SequenceEqual(ev.Encounters))
             return;
 
         _targets = ev.Targets;
+        _encounters = ev.Encounters;
         Rebuild();
     }
 
@@ -116,6 +135,8 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
         var skin = WolfgateSkins.Get(_cfg.GetCVar(WolfgateCVars.UiStyle));
         var sprite = _entMan.System<SpriteSystem>();
+
+        RebuildEncounters(skin, sprite);
 
         foreach (var group in _targets.GroupBy(t => t.Category).OrderBy(g => g.Key))
         {
@@ -158,6 +179,50 @@ public sealed partial class GhostOrbitWindow : FancyWindow
             section.Body.Visible = expanded;
             section.SetHeader(expanded, searching ? $"{matches}/{section.Tiles.Count}" : $"{section.Tiles.Count}");
         }
+
+        foreach (var tile in _encounterTiles)
+        {
+            tile.Visible = !searching || tile.SearchText.Contains(_search);
+        }
+    }
+
+    private void RebuildEncounters(WolfgateSkin skin, SpriteSystem sprite)
+    {
+        _encounterGrid.RemoveAllChildren();
+        _encounterTiles.Clear();
+        EncountersEmpty.Visible = _encounters.Count == 0;
+        SetEncountersTitle();
+
+        var icon = sprite.Frame0(ShipIcon);
+        var ordered = _encounters
+            .OrderBy(s => s.Encounter, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(s => s.Ship, StringComparer.CurrentCultureIgnoreCase);
+        foreach (var ship in ordered)
+        {
+            var target = new GhostOrbitTarget
+            {
+                Entity = ship.Grid,
+                Name = ship.Ship,
+                Category = GhostOrbitCategory.Ship,
+                Detail = Loc.GetString(ship.Hidden ? "wf-ghost-orbit-encounter-detail-hidden" : "wf-ghost-orbit-encounter-detail",
+                    ("encounter", ship.Encounter), ("side", ship.Side)),
+                Followers = ship.Followers,
+            };
+            var tile = new GhostOrbitTile(target, icon, ship.Color ?? WFEncounterColors.Category(ship.Category), skin);
+            tile.OnPressed += _ => Orbit(target.Entity);
+            _encounterTiles.Add(tile);
+            _encounterGrid.AddChild(tile);
+        }
+    }
+
+    private void SetEncountersTitle()
+    {
+        Pages.SetTabTitle(EncountersTab, Loc.GetString("wf-ghost-orbit-tab-encounters", ("count", EncounterCount())));
+    }
+
+    private int EncounterCount()
+    {
+        return _encounters.Select(s => s.EncounterId).Distinct().Count();
     }
 
     private void ToggleSection(Section section)
@@ -173,6 +238,14 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
     private void OrbitFirstMatch()
     {
+        if (Pages.CurrentTab == EncountersTab)
+        {
+            if (_encounterTiles.FirstOrDefault(t => t.Visible) is { } first)
+                Orbit(first.Target.Entity);
+
+            return;
+        }
+
         foreach (var section in _sections)
         {
             if (!section.Root.Visible || !section.Body.Visible)
@@ -193,6 +266,14 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
     private void UpdateSummary()
     {
+        if (Pages.CurrentTab == EncountersTab)
+        {
+            SummaryLabel.Text = Loc.GetString("wf-ghost-orbit-summary-encounters",
+                ("encounters", EncounterCount()),
+                ("ships", _encounters.Count));
+            return;
+        }
+
         int Count(GhostOrbitCategory category) => _targets.Count(t => t.Category == category);
 
         SummaryLabel.Text = Loc.GetString("wf-ghost-orbit-summary",

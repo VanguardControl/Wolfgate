@@ -11,6 +11,7 @@ trader-thing-id = ID
 trader-thing-id-voucher = ID or ship voucher
 trader-thing-deed-id = ship's ID
 trader-cannot-help = I can't help you with that.
+trader-wont-trade = The trader wants nothing to do with you.
 trader-verb-talk = Talk
 trader-confirm-yes = Yes, go ahead.
 trader-confirm-no = Never mind.

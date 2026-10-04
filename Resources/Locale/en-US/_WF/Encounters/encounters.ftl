@@ -18,7 +18,12 @@ wf-encounter-cargo-luxury = luxury goods
 wf-encounter-cargo-salvage = salvage and scrap
 wf-encounter-announce-freight-run = This is {$name}, entering the sector with {$cargo}. We make {$stops} stops, first {$destination}. Any traffic on our lane, please keep clear.
 wf-encounter-announce-tsf-transport = All vessels, this is {$name}, a Trans-Solar Federation transport under escort, inbound to {$destination}. Stay outside one kilometre. You will not be warned twice.
-wf-encounter-distress-adrift = Mayday, mayday. This is {$name}. We have lost propulsion and are adrift at {$x}, {$y}. Requesting assistance from any vessel.
+# $need is fuel, thrusters or none. A real call gives the ship's registered name as scanners show it, its position and what it lacks.
+wf-encounter-distress-adrift = Mayday, mayday. This is {$name}, adrift at {$x}, {$y}. { $need ->
+    [fuel] Our generators are dry and our batteries are flat. We need fuel brought aboard to get them started.
+    [thrusters] Our thrusters are wrecked. We need someone with a repair device or spare thrusters.
+   *[none] We have lost propulsion. Requesting assistance from any vessel.
+}
 wf-encounter-zone-warn-label = WARNING ZONE
 wf-encounter-zone-attack-label = ATTACK ZONE
 wf-encounter-zone-warn-1 = {$intruder}, you are {$distance} metres off a restricted vessel. Divert your course and open the range now.
@@ -42,7 +47,7 @@ wf-encounter-announce-trader = {$name} is passing through the sector, open for b
 wf-encounter-name-ambush = Hauler {$designation} under attack
 wf-encounter-sender-traffic = Sector traffic control
 wf-encounter-announce-freighter = {$name} is entering the sector at {$origin}, inbound to {$destination} with general cargo.
-wf-encounter-announce-ambush = Distress call: {$name}. Pirates are engaging a civilian hauler. Any vessel able to assist, respond.
+wf-encounter-announce-ambush = Mayday, mayday, mayday. {$name}. Raiders have jumped us and we can't outrun them. Any vessel in range, we need guns out here. Please hurry.
 
 wf-encounter-preset-quiet = Quiet sector
 wf-encounter-preset-standard = Standard sector
@@ -125,3 +130,37 @@ wf-encounter-name-trader-shipwright = Shipwright {$designation}
 wf-encounter-announce-trader-shipwright = {$name} is in the sector with ship fittings off the slip: thrusters, gyros, drives, airlocks and the boards to run them. Come alongside and bring your refit list.
 wf-encounter-name-trader-fence = Pirate fence {$designation}
 wf-encounter-announce-trader-fence = {$name} is moving goods through the sector, no questions asked. Arms, kit and cheap contraband, and anyone who comes alongside peacefully is welcome to look.
+
+# Larger ambush
+wf-encounter-name-ambush-large = Freighter {$designation} under attack
+wf-encounter-announce-ambush-large = Mayday, mayday, mayday. {$name}. Two raiders have us boxed in and our guns can't hold them off. Any vessel in range, we need help now. We will pay what we can.
+
+# Stranded freighters. The adrift call is wf-encounter-distress-adrift above.
+wf-encounter-name-stranded = Disabled freighter {$designation}
+wf-encounter-reward-thanks-stranded = That's thrust under us again. Whoever you are, thank you. We've sent what we can spare.
+
+# False mayday. It is made at once, on the common channel, by the ship that baits the trap. Unlike a real call it gives no
+# registered name and no position, says only that the drive is gone, and names a hull class that is not the one on the scanner.
+wf-encounter-announce-false-mayday = Mayday, mayday. This is a Brute-class hauler, adrift and losing power. We have no drive left. Come alongside and dock, any vessel. We can't hold out much longer.
+wf-encounter-announce-false-mayday-large = Mayday, mayday. This is an Olympus-class freighter, adrift with the lights failing. We have no drive left. Come alongside and dock, please. We can't hold out much longer.
+
+# Skirmishes
+wf-encounter-name-skirmish-patrol = Patrol engaging raiders {$designation}
+wf-encounter-announce-skirmish-patrol = Traffic control to all vessels: {$name}. A TSF patrol has run pirate raiders to ground and the two are about to trade fire. Neither is taking calls. Keep clear, unless you mean to take a side.
+wf-encounter-name-skirmish-bands = Rival raiders {$designation}
+wf-encounter-announce-skirmish-bands = Traffic control to all vessels: {$name}. Two raider bands have found each other in open space and are settling an old score. Neither is taking calls. Stay clear of both, or pick one.
+wf-encounter-name-skirmish-corsairs = Patrol engaging corsairs {$designation}
+wf-encounter-announce-skirmish-corsairs = Traffic control to all vessels: {$name}. A TSF patrol has cornered a RedSail corsair crew in open space. Expect heavy fire. Anything that gets between them is on its own.
+wf-encounter-name-skirmish-hostile = Running battle {$designation}
+wf-encounter-announce-skirmish-hostile = Traffic control to all vessels: {$name}. Two armed parties are fighting it out in open space, and both are firing on anything that comes near. Do not approach either one.
+wf-encounter-reward-thanks-skirmish-tsf = TSF patrol to the vessels that stood with us: your help is noted, and it has been paid for.
+wf-encounter-reward-thanks-skirmish-pirates = You fight well for a stranger. Here is a cut of what we took off them.
+wf-encounter-reward-thanks-skirmish-corsairs = RedSail remembers a favour. Take your share and fly on.
+
+# Black market transport. Only a rumour goes out, once someone has fought it.
+wf-encounter-name-blackmarket = Unregistered transport {$designation}
+wf-encounter-announce-blackmarket = Sector traffic control has unconfirmed reports of weapons fire around {$name}, a vessel on no manifest. Whatever it carries, it isn't licensed. Keep your distance.
+wf-encounter-blackmarket-zone-warn-1 = {$intruder}, you are {$distance} metres off a private vessel. Turn around. We won't ask twice.
+wf-encounter-blackmarket-zone-warn-2 = {$intruder}, this is private cargo, and whatever you think you saw, you didn't. Open the range.
+wf-encounter-blackmarket-zone-warn-3 = You are drifting into something that is none of your business, {$intruder}. Fly on.
+wf-encounter-blackmarket-zone-attack = {$intruder}, that was your last chance. Open fire.
