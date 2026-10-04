@@ -29,6 +29,14 @@ trader-shop-purchase = Purchase
 trader-shop-clear = Clear
 trader-shop-search = Search...
 trader-shop-search-empty = Nothing matches.
+trader-shop-stock-left = { $name } ({ $count } left)
+
+trader-wanderer-greeting = Well met, spacer! Everything must go, and at these prices it will.
+trader-wanderer-farewell = Fly safe. I'll be gone by the time you change your mind.
+trader-wanderer-prompt-shop = What have you got?
+trader-wanderer-response-shop = A bit of everything, not much of anything. Have a look.
+trader-wanderer-prompt-who = Where do you get all this?
+trader-wanderer-response-who = Here and there. Estates, salvage, a card game. All of it honest enough.
 trader-shop-empty = Nothing in stock right now.
 trader-shop-thanks = Pleasure doing business.
 

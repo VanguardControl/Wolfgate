@@ -219,23 +219,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
             }
         }
 
-        foreach (var ship in prototype.Ships)
+        comp.StartRadius = prototype.StartRadius;
+        comp.Begun = prototype.StartRadius <= 0f;
+        if (comp.Begun && !IssueOrders(comp, prototype))
         {
-            var state = comp.Ships[ship.Key];
-            var queue = ship.FlyRoute && prototype.Route is { } route && comp.Stops.Count > 0
-                ? BuildRoute(comp, route)
-                : BuildQueue(comp, ship);
-            if (queue.Count == 0)
-                continue;
-
-            if (!_objectives.SetQueue(state.Grid, state.Group, queue))
-            {
-                Log.Error($"Encounter {prototype.ID} has invalid orders for ship '{ship.Key}'.");
-                Remove((uid, comp));
-                return false;
-            }
-
-            state.HasOrders = true;
+            Remove((uid, comp));
+            return false;
         }
 
         if (prototype.Announcement is { } announcement)
@@ -259,6 +248,51 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Gives every ship its queue: its route if it flies one, else its prototype's orders.</summary>
+    private bool IssueOrders(WFEncounterComponent comp, WFEncounterPrototype prototype)
+    {
+        foreach (var ship in prototype.Ships)
+        {
+            if (!comp.Ships.TryGetValue(ship.Key, out var state) || TerminatingOrDeleted(state.Grid))
+                continue;
+
+            var queue = ship.FlyRoute && prototype.Route is { } route && comp.Stops.Count > 0
+                ? BuildRoute(comp, route)
+                : BuildQueue(comp, ship);
+            if (queue.Count == 0)
+                continue;
+
+            if (!_objectives.SetQueue(state.Grid, state.Group, queue))
+            {
+                Log.Error($"Encounter {prototype.ID} has invalid orders for ship '{ship.Key}'.");
+                return false;
+            }
+
+            state.HasOrders = true;
+        }
+
+        return true;
+    }
+
+    /// <summary>Whether a living player is within a distance of any of the encounter's ships.</summary>
+    private bool PlayerWithin(WFEncounterComponent encounter, float range)
+    {
+        foreach (var ship in encounter.Ships.Values)
+        {
+            if (TerminatingOrDeleted(ship.Grid))
+                continue;
+
+            var here = _transform.GetMapCoordinates(ship.Grid);
+            foreach (var player in _players)
+            {
+                if (player.MapId == here.MapId && (player.Position - here.Position).LengthSquared() <= range * range)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>The orders a ship's prototype gives it.</summary>
     private List<WFCrewObjective> BuildQueue(WFEncounterComponent comp, WFEncounterShip ship)
     {
@@ -272,6 +306,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 Position = comp.Origin.Position + _random.NextAngle().ToVec() * _random.NextFloat(ship.WanderRadius * 0.3f, ship.WanderRadius),
                 Range = 200f,
             });
+            if (ship.WanderPause > 0f)
+                queue.Add(new WFCrewObjective { Kind = WFCrewObjectiveKind.Hold, Duration = ship.WanderPause });
         }
 
         foreach (var objective in ship.Objectives)
@@ -376,6 +412,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             mission.Navigation = profile.Settings.Clone();
 
         var posts = _setup.Plan(grid, ship.Deckhands + ship.Guards, ship.Captain);
+        if (ship.Roles.Count > 0)
+            posts.RemoveAll(post => !ship.Roles.Any(role => role.Id == post.Role));
         // The last deckhands of the plan are the ship's guards.
         var guards = ship.Guards;
         for (var i = posts.Count - 1; i >= 0 && guards > 0; i--)
@@ -393,6 +431,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
         // Shipyard hulls come with empty reactors and flat batteries; the crew arrive with theirs charged.
         _power.SetPower(true, grid, false);
         state.NextPower = _timing.CurTime + PowerInterval;
+
+        var berths = _planner.HoldTiles(grid, ship.Passengers.Count);
+        for (var i = 0; i < ship.Passengers.Count && berths.Count > 0; i++)
+        {
+            Spawn(ship.Passengers[i], berths[i % berths.Count]);
+        }
+
         return true;
     }
 
@@ -465,6 +510,25 @@ public sealed partial class WFEncounterSystem : EntitySystem
         {
             if (encounter.Resolution == null)
             {
+                if (!encounter.Begun)
+                {
+                    if (!playersKnown)
+                    {
+                        FindPlayers();
+                        playersKnown = true;
+                    }
+
+                    if (PlayerWithin(encounter, encounter.StartRadius))
+                    {
+                        encounter.Begun = true;
+                        if (!_prototypes.TryIndex(encounter.Prototype, out var begun) || !IssueOrders(encounter, begun))
+                        {
+                            Remove((uid, encounter));
+                            continue;
+                        }
+                    }
+                }
+
                 SkipBlockedOrders(encounter);
                 Tend(encounter);
                 crews ??= _objectives.Snapshot();
@@ -510,7 +574,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             if (TerminatingOrDeleted(ship.Grid))
                 continue;
 
-            if (ship.Hunt)
+            if (ship.Hunt && encounter.Begun)
                 Hunt(ship);
 
             var fighting = _alerts.IsAlerted(ship.Grid, ship.Group);
@@ -595,7 +659,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            if (_mobs.IsAlive(uid))
+            // A body without a mob state still counts; ghosts and the dead don't.
+            if (!HasComp<Content.Shared.Ghost.GhostComponent>(uid) && !_mobs.IsDead(uid))
                 _players.Add(_transform.GetMapCoordinates(uid, xform));
         }
     }

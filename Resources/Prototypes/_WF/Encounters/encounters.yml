@@ -201,7 +201,8 @@
     - kind: Escort
       target: transport
 
-# A hauler in open space with a pirate ship on it. Hidden until someone raises the alarm; then it is a distress call.
+# A hauler in open space with a pirate ship lying off it. The hauler's distress call goes out at once; the attack
+# only begins when a player comes within a kilometre and a half, so somebody is there to see it.
 - type: wfEncounter
   id: WFEncounterPirateAmbush
   name: wf-encounter-name-ambush
@@ -210,7 +211,7 @@
   start: Scheduled
   category: Distress
   cost: 2
-  hidden: true
+  startRadius: 1500
   minPlayers: 4
   cooldown: 2700
   duration: 2400
@@ -309,3 +310,35 @@
     deckhands: 2
     guards: 2
     hunt: true
+
+# A wandering trader: a small hauler with a pilot and a trader aboard, drifting from point to point and stopping a
+# while at each. Dock with it and deal; the stock is small, cheap and gone when it is gone. Both can be killed.
+- type: wfEncounter
+  id: WFEncounterWanderingTrader
+  name: wf-encounter-name-trader
+  announcement: wf-encounter-announce-trader
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  weight: 2
+  cooldown: 2400
+  duration: 3600
+  minDistance: 1500
+  maxDistance: 3000
+  ships:
+  - key: trader
+    navigation: WFCrewNavigationFreight
+    vessel: Piva
+    side: trader
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    roles: [ WFCrewPilot ]
+    passengers: [ WFTraderWanderer ]
+    wander: 4
+    wanderRadius: 2500
+    wanderPause: 300
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter

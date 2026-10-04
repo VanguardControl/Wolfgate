@@ -53,6 +53,14 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public bool AnnounceOnRadio;
 
+    /// <summary>The distance a player must come within before the ships get their orders; zero for at once.</summary>
+    [DataField]
+    public float StartRadius;
+
+    /// <summary>Whether the ships have their orders.</summary>
+    [DataField]
+    public bool Begun;
+
     /// <summary>The announcement still to be made, if any.</summary>
     [DataField]
     public string? Announcement;

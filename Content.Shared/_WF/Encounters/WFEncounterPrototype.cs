@@ -32,6 +32,13 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField(required: true)]
     public List<WFEncounterShip> Ships = new();
 
+    /// <summary>
+    /// If above zero, the ships wait where they arrive, announcement made, and only get their orders once a
+    /// player is within this distance of one of them. For encounters a player is meant to witness.
+    /// </summary>
+    [DataField]
+    public float StartRadius;
+
     /// <summary>Has the ship's radio officer make the announcement on the common channel, not sector control.</summary>
     [DataField]
     public bool AnnounceOnRadio;
@@ -135,6 +142,18 @@ public sealed partial class WFEncounterShip
     /// </summary>
     [DataField]
     public bool Hunt;
+
+    /// <summary>Only these roles of the planned crew are spawned. Empty spawns the whole plan.</summary>
+    [DataField]
+    public List<ProtoId<WFCrewRolePrototype>> Roles = new();
+
+    /// <summary>Others aboard who are not crew, such as a trader, spawned in the hold.</summary>
+    [DataField]
+    public List<EntProtoId> Passengers = new();
+
+    /// <summary>Seconds held at the end of each wander leg.</summary>
+    [DataField]
+    public float WanderPause;
 
     /// <summary>Legs of aimless flying: that many random points within <see cref="WanderRadius"/> of the origin, in turn.</summary>
     [DataField]

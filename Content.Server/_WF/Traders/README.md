@@ -72,6 +72,7 @@ Entry points: `TraderSystem` (dialogue, barter zone, payment and receipts), the 
 - [`Resources/Prototypes/_WF/Traders/shipyard_dealer.yml`](../../../Resources/Prototypes/_WF/Traders/shipyard_dealer.yml)
 - [`Resources/Prototypes/_WF/Traders/tools_trader.yml`](../../../Resources/Prototypes/_WF/Traders/tools_trader.yml)
 - [`Resources/Prototypes/_WF/Traders/used_ship_salesman.yml`](../../../Resources/Prototypes/_WF/Traders/used_ship_salesman.yml)
+- [`Resources/Prototypes/_WF/Traders/wandering_trader.yml`](../../../Resources/Prototypes/_WF/Traders/wandering_trader.yml)
 - [`Resources/Prototypes/_WF/Traders/wolfgate_trader.yml`](../../../Resources/Prototypes/_WF/Traders/wolfgate_trader.yml)
 
 ### Localization

@@ -12,6 +12,7 @@ using Content.Shared.Stacks;
 using Content.Shared.VendingMachines;
 using Robust.Server.GameObjects;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Server._WF.Traders;
 
@@ -29,6 +30,8 @@ public sealed class TraderShopSystem : EntitySystem
     [Dependency] private TraderSystem _trader = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private VendingMachinePurchaseSystem _purchase = default!;
+
+    [Dependency] private Robust.Shared.Random.IRobustRandom _random = default!;
 
     private float _refreshAccumulator;
 
@@ -99,6 +102,8 @@ public sealed class TraderShopSystem : EntitySystem
             }
 
             shares[line.Vendor] = shares.GetValueOrDefault(line.Vendor) + line.Price * line.Count;
+            if (ent.Comp.Limited != null)
+                ent.Comp.Limited[line.Item] = ent.Comp.Limited.GetValueOrDefault(line.Item) - line.Count;
         }
 
         // Every machine taxes only what was bought off its own shelf.
@@ -138,6 +143,10 @@ public sealed class TraderShopSystem : EntitySystem
                 continue;
 
             if (count < 1 || count > TraderShopComponent.MaxPerLine)
+                return false;
+
+            // No more than the trader has left.
+            if (ent.Comp.Limited != null && count > ent.Comp.Limited.GetValueOrDefault(entry.Item))
                 return false;
 
             lines.Add(new TraderShopLine(entry.Item, count, entry.Price, entry.Vendor));
@@ -221,6 +230,7 @@ public sealed class TraderShopSystem : EntitySystem
     {
         var entries = new List<TraderStockEntry>();
         var seen = new HashSet<string>();
+        var discount = MathF.Max(0f, ent.Comp.PriceMultiplier);
 
         foreach (var vendor in ent.Comp.Vendors)
         {
@@ -240,13 +250,31 @@ public sealed class TraderShopSystem : EntitySystem
                 if (!_proto.TryIndex<EntityPrototype>(id, out var itemProto))
                     continue;
 
-                block.Add(new TraderStockEntry(id, GetPrice(itemProto, vend, modifier), vendor));
+                var price = GetPrice(itemProto, vend, modifier);
+                // A machine that gives something away still gives it away.
+                block.Add(new TraderStockEntry(id, discount == 1f || price <= 0 ? price : Math.Max(1, (int) (price * discount)), vendor));
             }
 
             block.Sort((a, b) => string.Compare(GetItemName(a.Item), GetItemName(b.Item), StringComparison.CurrentCulture));
             entries.AddRange(block);
         }
 
+        if (ent.Comp.RandomStock <= 0)
+            return entries;
+
+        // A travelling stock: rolled once, the first time anyone looks, and sold until it is gone.
+        if (ent.Comp.Limited == null)
+        {
+            ent.Comp.Limited = new Dictionary<string, int>();
+            var pool = new List<TraderStockEntry>(entries);
+            for (var i = 0; i < ent.Comp.RandomStock && pool.Count > 0; i++)
+            {
+                var pick = _random.PickAndTake(pool);
+                ent.Comp.Limited[pick.Item] = _random.Next(ent.Comp.StockMin, Math.Max(ent.Comp.StockMin, ent.Comp.StockMax) + 1);
+            }
+        }
+
+        entries.RemoveAll(entry => ent.Comp.Limited.GetValueOrDefault(entry.Item) <= 0);
         return entries;
     }
 
@@ -315,7 +343,7 @@ public sealed class TraderShopSystem : EntitySystem
 
         var catalogue = new List<TraderShopEntry>();
         foreach (var entry in GetStock(ent))
-            catalogue.Add(new TraderShopEntry(entry.Item, entry.Price));
+            catalogue.Add(new TraderShopEntry(entry.Item, entry.Price, ent.Comp.Limited?.GetValueOrDefault(entry.Item) ?? -1));
 
         _ui.SetUiState(ent.Owner, TraderUiKey.Shop,
             new TraderShopState(catalogue, cash, idName, balance));

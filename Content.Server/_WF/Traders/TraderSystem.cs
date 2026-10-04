@@ -125,7 +125,8 @@ public sealed class TraderSystem : EntitySystem
     /// </summary>
     private void MakeInert(Entity<TraderComponent> ent)
     {
-        _godmode.EnableGodmode(ent);
+        if (!ent.Comp.Killable)
+            _godmode.EnableGodmode(ent);
 
         RemComp<PullableComponent>(ent);
         RemComp<StrippableComponent>(ent);
@@ -443,6 +444,9 @@ public sealed class TraderSystem : EntitySystem
     public bool TryStartConversation(Entity<TraderComponent> ent, EntityUid customer)
     {
         if (!_proto.TryIndex(ent.Comp.Dialogue, out var dialogue))
+            return false;
+
+        if (ent.Comp.Killable && _mobState.IsIncapacitated(ent))
             return false;
 
         if (ent.Comp.Customer is { } current && current != customer)

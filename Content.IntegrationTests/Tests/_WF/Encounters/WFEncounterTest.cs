@@ -104,6 +104,18 @@ public sealed class WFEncounterTest : InteractionTest
     hunt: true
 
 - type: wfEncounter
+  id: WFTestEncounterWaiting
+  name: wf-encounter-name-convoy
+  start: Manual
+  startRadius: 300
+  ships:
+  - key: lone
+    vessel: WFDredger
+    objectives:
+    - kind: Hold
+      duration: 600
+
+- type: wfEncounter
   id: WFTestEncounterCostly
   name: wf-encounter-name-convoy
   cost: 50
@@ -285,13 +297,26 @@ public sealed class WFEncounterTest : InteractionTest
             Assert.That(scheduler.Budget(), Is.GreaterThanOrEqualTo(2).And.LessThan(50));
             Assert.That(scheduler.StartRound(), Is.Zero, "No stations on a test map, so nothing can be placed beside one.");
 
-            // Only the cheap test encounter fits the budget; the shipped ones need stations or more players.
-            Assert.That(scheduler.TrySchedule(out encounter), Is.True);
-            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
-            Assert.That(comp.Prototype.Id, Is.EqualTo("WFTestEncounterCheap"));
-            Assert.That(system.ActiveCost(), Is.EqualTo(1));
-            Assert.That(scheduler.TrySchedule(out _), Is.False, "It is running, and nothing else fits.");
+            // Whatever it picks fits the budget; the costly test encounter never does.
+            Assert.That(scheduler.TrySchedule(out var scheduled), Is.True);
+            Assert.That(SEntMan.GetComponent<WFEncounterComponent>(scheduled).Prototype.Id, Is.Not.EqualTo("WFTestEncounterCostly"));
+            scheduler.TrySchedule(out _);
+            scheduler.TrySchedule(out _);
+            Assert.That(system.ActiveCost(), Is.GreaterThan(0).And.LessThanOrEqualTo(scheduler.Budget()));
+            foreach (var running in SEntMan.EntityQuery<WFEncounterComponent>().ToList())
+            {
+                Assert.That(SEntMan.EntityQuery<WFEncounterComponent>().Count(other => other.Resolution == null && other.Prototype == running.Prototype),
+                    Is.EqualTo(1), "One of a kind at a time.");
+            }
 
+            foreach (var uid in SEntMan.EntityQuery<WFEncounterComponent>().Select(running => running.Owner).ToList())
+            {
+                system.End(uid);
+            }
+
+            var cheap = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterCheap");
+            Assert.That(system.TrySpawn(cheap, new MapCoordinates(new Vector2(13000, 13000), MapData.MapId), out encounter), Is.True);
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
             Assert.That(comp.Hidden, Is.True);
             Assert.That(comp.Announcement, Is.Not.Null, "A hidden encounter keeps its announcement back.");
             system.Reveal(encounter);
@@ -442,6 +467,72 @@ public sealed class WFEncounterTest : InteractionTest
             SEntMan.DeleteEntity(prey);
         });
         await RunTicks(10);
+    }
+
+/// <summary>An encounter with a start radius holds its orders back until a player comes that close.</summary>
+    [Test]
+    public async Task EncounterWaitsForAPlayerBeforeItBegins()
+    {
+        EntityUid encounter = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWaiting");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(11000, 11000), MapData.MapId), out encounter), Is.True);
+        });
+        await RunTicks(400);
+        await Server.WaitAssertion(() =>
+        {
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            Assert.That(comp.Begun, Is.False, "Nobody is near yet.");
+            Assert.That(comp.Ships["lone"].HasOrders, Is.False);
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player),
+                new EntityCoordinates(MapData.MapUid, new Vector2(11100, 11000)));
+        });
+        await WaitUntilServer(() => SEntMan.GetComponent<WFEncounterComponent>(encounter).Begun, 900);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["lone"];
+            Assert.That(state.HasOrders, Is.True);
+            Assert.That(Server.System<WFCrewObjectiveSystem>().Snapshot().Single(crew => crew.Group == state.Group).Objectives.Single().Kind,
+                Is.EqualTo(WFCrewObjectiveKind.Hold));
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>The wandering trader can be hurt, sells a few random things cheaply, and runs out.</summary>
+    [Test]
+    public async Task WanderingTraderSellsALimitedDiscountedStock()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var trader = SEntMan.SpawnAtPosition("WFTraderWanderer", new EntityCoordinates(grid.Owner, new Vector2(0.5f)));
+            Assert.That(SEntMan.HasComponent<Content.Shared.Damage.Components.GodmodeComponent>(trader), Is.False, "This trader can be killed.");
+
+            var shops = Server.System<Content.Server._WF.Traders.TraderShopSystem>();
+            var shop = SEntMan.GetComponent<Content.Shared._WF.Traders.TraderShopComponent>(trader);
+            var stock = shops.GetStock((trader, shop));
+            Assert.That(stock, Is.Not.Empty);
+            Assert.That(stock.Count, Is.LessThanOrEqualTo(shop.RandomStock));
+            Assert.That(shop.Limited, Is.Not.Null);
+            Assert.That(shop.Limited!.Values.All(left => left >= shop.StockMin && left <= shop.StockMax), Is.True);
+
+            // The same item at a full-price trader costs more.
+            shop.PriceMultiplier = 1f;
+            var full = shops.GetStock((trader, shop)).ToDictionary(entry => entry.Item, entry => entry.Price);
+            Assert.That(stock.All(entry => entry.Price <= full[entry.Item]), Is.True);
+            Assert.That(stock.Any(entry => entry.Price < full[entry.Item]), Is.True);
+
+            // Sold out of something, it is off the shelf.
+            var gone = stock[0].Item;
+            shop.Limited[gone] = 0;
+            Assert.That(shops.GetStock((trader, shop)).Any(entry => entry.Item == gone), Is.False);
+            SEntMan.DeleteEntity(trader);
+            SEntMan.DeleteEntity(grid.Owner);
+        });
     }
 
     private async Task WaitUntilServer(Func<bool> condition, int maxTicks)

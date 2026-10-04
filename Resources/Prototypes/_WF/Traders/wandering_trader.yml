@@ -1,0 +1,46 @@
+# The wandering trader: a spacer selling a small, random, heavily discounted stock out of a hold. Unlike the
+# station traders this one can be hurt and killed, and when the stock is gone it is gone.
+- type: startingGear
+  id: WFTraderWandererGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBrown
+    outerClothing: ClothingOuterCoatJensen
+    shoes: ClothingShoesBootsJack
+    gloves: ClothingHandsGlovesFingerless
+
+- type: traderDialogue
+  id: WFTraderWandererDialogue
+  greeting: trader-wanderer-greeting
+  farewell: trader-wanderer-farewell
+  options:
+  - prompt: trader-wanderer-prompt-shop
+    response: trader-wanderer-response-shop
+    action: OpenShop
+  - prompt: trader-wanderer-prompt-who
+    response: trader-wanderer-response-who
+    action: None
+
+- type: entity
+  id: WFTraderWanderer
+  parent: WFBaseTrader
+  name: wandering trader
+  description: Sells whatever came aboard last, cheap, until it runs out.
+  suffix: Trader, Wandering
+  components:
+  - type: RandomHumanoidAppearance
+  - type: Loadout
+    prototypes: [ WFTraderWandererGear ]
+  - type: Trader
+    dialogue: WFTraderWandererDialogue
+    killable: true
+  - type: TraderShop
+    vendors:
+    - VendingMachineYouToolPOI
+    - VendingMachineEngivendPOI
+    - VendingMachineAstroVendPOI
+    - VendingMachineSalvagePOI
+    - VendingMachineClothing
+    priceMultiplier: 0.4
+    randomStock: 8
+    stockMin: 1
+    stockMax: 4
