@@ -103,8 +103,9 @@ public sealed partial class WFCaptainSystem : EntitySystem
 
     private void OnAlert(ref WFCrewAlertEvent args)
     {
-        // A patrol zone's report is a warning, not an attack: the guns answer it and the ship keeps its course.
-        if (_alerts.InZoneReport)
+        // A patrol zone's warning is not an attack: the guns answer it and the ship keeps its course. A vessel
+        // inside the attack zone is fought like any attacker.
+        if (_alerts.InZoneReport && !_alerts.InZoneEngagement)
             return;
 
         var commanded = false;

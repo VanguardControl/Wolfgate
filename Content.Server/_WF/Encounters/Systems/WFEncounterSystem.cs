@@ -135,12 +135,15 @@ public sealed partial class WFEncounterSystem : EntitySystem
         _crew.AnswerAttack(ship.Grid, ship.Group, attacker);
     }
 
-    /// <summary>A ship with passengers radios for help when it or they are attacked, at most every few minutes.</summary>
+    /// <summary>
+    /// A ship that calls for help radios when it or its passengers are attacked, at most every few minutes. Most
+    /// crews have no radio officer to do it, so the ship does, unless one already has.
+    /// </summary>
     private void CallForHelp(WFEncounterComponent encounter, WFEncounterShipState ship)
     {
         var now = _timing.CurTime;
-        if (!ship.Distress || !ship.Passengers || encounter.Resolution != null || now < ship.NextAttackCall
-            || TerminatingOrDeleted(ship.Grid))
+        if (!ship.Distress || encounter.Resolution != null || now < ship.NextAttackCall
+            || TerminatingOrDeleted(ship.Grid) || !ship.Passengers && MaydaySent(ship))
             return;
 
         var position = _transform.GetMapCoordinates(ship.Grid).Position;
@@ -153,6 +156,19 @@ public sealed partial class WFEncounterSystem : EntitySystem
     }
 
     private static readonly TimeSpan AttackCallRepeat = TimeSpan.FromMinutes(3);
+
+    /// <summary>Whether the ship's own radio officer has already put its mayday on the air.</summary>
+    private bool MaydaySent(WFEncounterShipState ship)
+    {
+        var operators = EntityQueryEnumerator<WFRadioOperatorComponent, WFCrewComponent>();
+        while (operators.MoveNext(out var uid, out var radio, out var member))
+        {
+            if (member.Group == ship.Group && radio.MaydaySent && _mobs.IsAlive(uid))
+                return true;
+        }
+
+        return false;
+    }
 
     /// <summary>Puts a hidden encounter on the sector markers and lets it make its announcement.</summary>
     public void Reveal(Entity<WFEncounterComponent?> encounter)

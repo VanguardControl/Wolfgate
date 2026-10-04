@@ -671,7 +671,8 @@ public sealed partial class WFEncounterTest : InteractionTest
                 var query = SEntMan.EntityQueryEnumerator<Content.Server.Storage.Components.EntityStorageComponent, TransformComponent>();
                 while (query.MoveNext(out var uid, out _, out var xform))
                 {
-                    if (xform.GridUid == grid.Owner)
+                    // Only the loot box itself: an item of stock can be a container of its own.
+                    if (xform.GridUid == grid.Owner && SEntMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == shop.LootCrate.Id)
                         crates.Add(uid);
                 }
 

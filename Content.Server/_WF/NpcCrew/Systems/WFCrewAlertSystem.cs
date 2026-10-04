@@ -183,6 +183,35 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         }
     }
 
+    private bool _zoneEngage;
+
+    /// <summary>True while a zone report is of a vessel in the attack zone: the ship turns to fight it.</summary>
+    public bool InZoneEngagement => _zoneEngage;
+
+    /// <summary>
+    /// Reports an intruder that has come inside a ship's attack zone. Still no mayday, but the ship is told of it
+    /// anew, whatever it knew from the warning zone, so its captain turns to fight.
+    /// </summary>
+    public void ReportZoneEngagement(EntityUid grid, string group, EntityUid intruder)
+    {
+        ReportZoneThreat(grid, group, intruder);
+        if (TerminatingOrDeleted(grid) || TerminatingOrDeleted(intruder))
+            return;
+
+        _zoneReport = true;
+        _zoneEngage = true;
+        try
+        {
+            var ev = new WFCrewAlertEvent(grid, group, new[] { intruder });
+            RaiseLocalEvent(grid, ref ev, true);
+        }
+        finally
+        {
+            _zoneReport = false;
+            _zoneEngage = false;
+        }
+    }
+
     /// <summary>How long a ship's guns keep firing wide of a vessel after its last warning.</summary>
     private static readonly TimeSpan WarningShotTime = TimeSpan.FromSeconds(75);
 

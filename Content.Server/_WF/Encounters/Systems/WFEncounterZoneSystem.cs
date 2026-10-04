@@ -300,12 +300,24 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (ship.AttackRange > 0f && distance <= ship.AttackRange)
             {
                 _alerts.EndZoneWarning(ship.Grid, intruder);
-                _alerts.ReportZoneThreat(ship.Grid, ship.Group, intruder);
                 if (ship.Engaged.Add(intruder))
+                {
+                    // The ship turns to fight what is inside its attack zone.
+                    _alerts.ReportZoneEngagement(ship.Grid, ship.Group, intruder);
                     _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", name)));
+                }
+                else
+                    _alerts.ReportZoneThreat(ship.Grid, ship.Group, intruder);
             }
             else if (ship.WarnRange > 0f && distance <= ship.WarnRange)
             {
+                // Already fired on, it gets no second warning on its way out: the guns stay on it until it is clear.
+                if (ship.Engaged.Contains(intruder))
+                {
+                    _alerts.ReportZoneThreat(ship.Grid, ship.Group, intruder);
+                    continue;
+                }
+
                 if (challenged)
                     _alerts.ReportZoneWarning(ship.Grid, ship.Group, intruder);
                 if (ship.Warned.TryGetValue(intruder, out var until) && now < until)
