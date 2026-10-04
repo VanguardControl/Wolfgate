@@ -8,7 +8,10 @@ Using the SRD on a section reattaches it: it needs a full charge and uses all of
 its place, that place clear and joined to the hull. A do-after of 5 s plus 0.1 s a tile (30 s at most) merges it back
 at its own tile indices with everything aboard, decals, air, engines and guns included; loose things aboard keep
 their motion relative to the deck. The SRD won't rebuild the hull under another grid, where a section within range
-belongs, or (with grid splitting on) on a tile no hull tile joins, so holes fill from their edge. If the hull is
+belongs, or (with grid splitting on) on a tile no hull tile joins, so holes fill from their edge. A fixture left
+on one of the hull's own sections, or torn off onto planet ground, is debris: the SRD rebuilds it on the hull and the
+original goes as it does, so there is never a second one. One unbolted and carried to any other grid still exists, and
+is not rebuilt. If the hull is
 deleted, its largest section on the same map takes over the snapshot, provided it holds a quarter of the blueprint;
 a sold ship's sections are always wreckage. A click works on the hull or section under it, so the SRD works from
 planet ground, and from a section a click beside the hull means the hull. `AdminVesselSpawnSystem` (Administration
@@ -49,10 +52,10 @@ links, hand-on, the merge) and the marked edits in `SharedShipRepairSystem.Tool`
   - sections, rebuild guard, target pick.
   - target the hull or section under the click, not planet ground; a section is reattached.
   - never rebuild under another grid, where a detached section belongs, or apart from the hull.
-  - "on a grid" means on THIS grid.
+  - an original that is debris of this hull does not stop the rebuild.
   - never rebuild under another grid or where a detached section belongs.
   - a grid may have moved into the spot while the repair ran.
-  - an unhandled query only blocks when the original is still on this very grid.
+  - an unhandled query blocks unless the original is debris of this hull.
   - a grid may have moved into the spot, or the hull beside it gone, while the repair ran.
 
 <!-- WOLFGATE-GENERATED END -->

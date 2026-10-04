@@ -123,11 +123,12 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
                     if (!ev.Handled)
                     {
                         // if it's still on a grid, don't repair, else delete it
-                        // WOLFGATE(ShipRepair) START: "on a grid" means on THIS grid.
-                        // A hull that broke up left copies of its walls on the severed sections; those are wreckage,
-                        // and do not stop the hull being rebuilt.
+                        // WOLFGATE(ShipRepair) START: an original that is debris of this hull does not stop the rebuild.
+                        // A hull that broke up left its walls on the severed sections, or on the planet it struck. It
+                        // is taken away when its replacement is built, in OnRepairDoAfter. On any other grid the
+                        // original still exists, as upstream has it: carried off to another ship, it is not built again.
                         var origXform = Transform(origUid.Value);
-                        if (origXform.GridUid == targetGrid.Owner)
+                        if (origXform.GridUid != null && !_wfSections.IsDebrisOf(origXform.GridUid, targetGrid.Owner))
                         {
                             alreadyExists = true;
                             continue;
@@ -258,9 +259,15 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
                 var ev = new ShipRepairReinstateQueryEvent(true);
                 RaiseLocalEvent(origUid.Value, ref ev);
                 // abort if we can't repair now
-                // WOLFGATE(ShipRepair): an unhandled query only blocks when the original is still on this very grid.
-                if (ev.Handled ? !ev.Repairable : Transform(origUid.Value).GridUid == targetGrid)
+                // WOLFGATE(ShipRepair) START: an unhandled query blocks unless the original is debris of this hull.
+                if (ev.Handled ? !ev.Repairable : !_wfSections.IsDebrisOf(Transform(origUid.Value).GridUid, targetGrid))
                     return;
+
+                // Block or consume, as upstream has it for an original off every grid: left standing, the debris
+                // would be a second working copy beside the one built here.
+                if (!ev.Handled)
+                    QueueDel(origUid.Value);
+                // WOLFGATE END
             }
 
             var protoId = repairData.EntityPalette[spec.ProtoIndex];

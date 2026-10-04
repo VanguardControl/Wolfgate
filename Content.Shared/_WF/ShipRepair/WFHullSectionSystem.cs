@@ -136,6 +136,16 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// Whether a snapshot original standing on this grid is debris of the hull: on a section broken off it, or on
+    /// planet ground it was torn off onto. The SRD rebuilds such a fixture and takes the original away as it does, so
+    /// there is never a second one. On any other grid the original simply still exists.
+    /// </summary>
+    public bool IsDebrisOf(EntityUid? grid, EntityUid hull)
+    {
+        return grid is { } on && (IsGround(on) || TryGetHull(on, out var owner) && owner.Owner == hull);
+    }
+
     /// <summary>The tile index a hull-local position falls in.</summary>
     public Vector2i TileOf(EntityUid grid, Vector2 local)
     {

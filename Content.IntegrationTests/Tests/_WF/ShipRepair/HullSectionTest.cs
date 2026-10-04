@@ -227,6 +227,128 @@ public sealed class HullSectionTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A snapshot fixture carried to another grid still exists, so the SRD does not make a second one; on a section
+    /// broken off the hull it is debris, which the SRD rebuilds on the hull and takes away, so there is still only one.
+    /// </summary>
+    [Test]
+    public async Task TheSrdDoesNotCopyWhatWasCarriedOff()
+    {
+        const string Fixture = "Table";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        var map = await pair.CreateTestMap();
+        var spot = new Vector2i(3, 3);
+        var table = EntityUid.Invalid;
+        var (hull, section) = await BuildSplitHull(pair, map.MapId, built => table = em.SpawnEntity(Fixture, TileCentre(built, spot)));
+        var debris = await BuildDebris(pair, map.MapId, 3, new Vector2(-40f, -40f));
+
+        await server.WaitPost(() => Hold(pair, hull, section, debris));
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(hull, new Vector2(5.5f, 5.5f)));
+
+        int FixturesAt(EntityUid grid, Vector2i index)
+        {
+            return maps.GetAnchoredEntities(grid, em.GetComponent<MapGridComponent>(grid), index)
+                .Count(uid => em.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == Fixture);
+        }
+
+        void Carry(EntityUid grid, Vector2i index)
+        {
+            xforms.Unanchor(table);
+            xforms.SetCoordinates(table, TileCentre(grid, index));
+            xforms.AnchorEntity(table);
+        }
+
+        await server.WaitAssertion(() =>
+            Assert.That(FixturesAt(hull, spot), Is.EqualTo(1), "Precondition: the fixture is not on the hull."));
+
+        // Unbolted and bolted down again on another ship.
+        await server.WaitPost(() =>
+        {
+            Carry(debris, new Vector2i(1, 1));
+            Click(em, user, tool, TileCentre(hull, spot));
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<TransformComponent>(table).GridUid, Is.EqualTo(debris), "Precondition: the fixture is not on the other grid.");
+            Assert.That(FixturesAt(hull, spot), Is.Zero, "The SRD built a second fixture while the first stands on another grid.");
+        });
+
+        // On a section broken off this hull it is debris.
+        await server.WaitPost(() =>
+        {
+            var index = maps.GetAllTiles(section, em.GetComponent<MapGridComponent>(section)).First().GridIndices;
+            Carry(section, index);
+            xforms.SetWorldPosition(section, xforms.GetWorldPosition(section) + new Vector2(100f, 0f));
+            Click(em, user, tool, TileCentre(hull, spot));
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(FixturesAt(hull, spot), Is.EqualTo(1), "The SRD no longer rebuilds what was left on a broken-off section.");
+            Assert.That(em.Deleted(table), Is.True, "The SRD rebuilt a fixture and left the original usable on the section.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A fixture torn off onto planet ground is rebuilt on the hull once: the one on the ground goes.</summary>
+    [Test]
+    public async Task AFixtureLeftOnPlanetGroundIsRebuiltOnce()
+    {
+        const string Fixture = "Table";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+        await EnableFeature(pair);
+        var layers = await BuildStandalone(pair);
+        var ground = layers[0];
+        await LayTiles(pair, ground, new Vector2i(-32, -32), new Vector2i(64, 64));
+        var hull = await BuildHull(pair, em.GetComponent<MapComponent>(ground).MapId);
+        await MapInitHull(pair, hull);
+        var spot = new Vector2i(3, 3);
+        var table = EntityUid.Invalid;
+
+        await server.WaitPost(() =>
+        {
+            table = em.SpawnEntity(Fixture, TileCentre(hull, spot));
+            server.System<ShipRepairSystem>().GenerateRepairData(hull);
+        });
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(hull, new Vector2(5.5f, 5.5f)));
+
+        await server.WaitPost(() =>
+        {
+            // Off the hull and onto the ground beside it, as a tile bitten out from under it leaves it.
+            var beside = Vector2.Transform(new Vector2(-3.5f, 3.5f), xforms.GetWorldMatrix(hull));
+            xforms.Unanchor(table);
+            xforms.SetCoordinates(table, new EntityCoordinates(ground, beside));
+            Assert.That(em.GetComponent<TransformComponent>(table).GridUid, Is.EqualTo(ground), "Precondition: the fixture is not on planet ground.");
+            Click(em, user, tool, TileCentre(hull, spot));
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+        await server.WaitAssertion(() =>
+        {
+            var count = maps.GetAnchoredEntities(hull, em.GetComponent<MapGridComponent>(hull), spot)
+                .Count(uid => em.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == Fixture);
+            Assert.That(count, Is.EqualTo(1), "The SRD did not rebuild a fixture whose original lies on planet ground.");
+            Assert.That(em.Deleted(table), Is.True, "The SRD rebuilt a fixture and left the original on the ground.");
+        });
+
+        await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>With grid splitting on, the SRD won't lay a tile that no hull tile joins, so a hole fills from its edge.</summary>
     [Test]
     public async Task RebuildStartsFromTheHullsEdge()
