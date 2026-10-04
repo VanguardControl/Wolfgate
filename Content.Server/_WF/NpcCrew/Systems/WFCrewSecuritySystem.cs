@@ -91,7 +91,11 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         // A person told to leave has a while to go before the crew's fighters turn on him; animals are let be.
         if (rules.Boarding == WFCrewSecurityResponse.Warn
             && (HasComp<ActorComponent>(visitor) || HasComp<HumanoidAppearanceComponent>(visitor)))
-            _warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false));
+        {
+            // The crew's cowards don't wait to see how it turns out.
+            if (_warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false)))
+                EntityManager.System<WFCrewShelterSystem>().Shelter(grid, crew.Group);
+        }
         if (_boarders.Add((uid, visitor)) && HasComp<WFRadioOperatorComponent>(uid))
             Respond(grid, crew.Group, visitor, rules.Boarding, docking: false);
     }

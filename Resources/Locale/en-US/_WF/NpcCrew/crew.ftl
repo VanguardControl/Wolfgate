@@ -261,3 +261,9 @@ wf-crew-action-patrol = Checking the next compartment.
 wf-crew-action-gunnery = Taking the weapons console.
 wf-crew-objective-escort = Escort grid (formation)
 wf-crew-setup-escort-help = Stay in a staggered formation beside and behind the target. Range sets minimum spacing; zero duration escorts until skipped.
+
+wf-crew-coward-cry-1 = Help! Somebody help!
+wf-crew-coward-cry-2 = Don't shoot! Please, don't shoot!
+wf-crew-coward-cry-3 = I'm just a deckhand!
+wf-crew-coward-cry-4 = Take what you want, just leave me be!
+wf-crew-coward-cry-5 = Somebody, anybody, help us!

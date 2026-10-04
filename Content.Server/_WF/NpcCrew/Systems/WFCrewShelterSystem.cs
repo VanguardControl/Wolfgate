@@ -24,6 +24,12 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
     [Dependency] private SharedLayingDownSystem _laying = default!;
     [Dependency] private StandingStateSystem _standing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private Content.Server.Chat.Systems.ChatSystem _chat = default!;
+    [Dependency] private Robust.Shared.Random.IRobustRandom _random = default!;
+
+    /// <summary>The pleas a sheltering crewman cries out, aloud and never over the radio.</summary>
+    private const int Cries = 5;
+    private readonly Dictionary<EntityUid, TimeSpan> _nextCry = new();
 
     private static readonly TimeSpan Calm = TimeSpan.FromSeconds(60);
     private readonly Dictionary<(EntityUid Grid, string Group), TimeSpan> _alarms = new();
@@ -39,6 +45,7 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
         {
             _alarms.Clear();
             _posts.Clear();
+            _nextCry.Clear();
         });
     }
 
@@ -80,15 +87,14 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             return;
 
         _alarms[(grid, group)] = _timing.CurTime + Calm;
-        if (bridge == null)
-            return;
-
         var work = EntityManager.System<WFCrewWorkSystem>();
         foreach (var member in passive)
         {
             _posts[member] = member.Comp.Post;
             work.CancelWorker(member);
-            _crew.SetPost((member, member.Comp), bridge);
+            // With no helm to run to, he gets down where he stands.
+            _crew.SetPost((member, member.Comp), bridge ?? Transform(member).Coordinates);
+            _nextCry[member] = _timing.CurTime + TimeSpan.FromSeconds(_random.NextFloat(0.5f, 2f));
         }
     }
 
@@ -113,6 +119,7 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             if (TerminatingOrDeleted(uid) || !TryComp<WFCrewComponent>(uid, out var crew))
             {
                 _posts.Remove(uid);
+                _nextCry.Remove(uid);
                 continue;
             }
 
@@ -123,17 +130,34 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             if (_alerts.IsAlerted(grid, crew.Group) || _alarms.TryGetValue(key, out var until) && _timing.CurTime < until)
             {
                 Cower(uid, crew);
+                Cry(uid);
                 continue;
             }
 
             _alarms.Remove(key);
             _posts.Remove(uid);
+            _nextCry.Remove(uid);
             _laying.TryStandUp(uid);
             if (post is not { } original)
                 _crew.SetPost((uid, crew), null);
             else if (!TerminatingOrDeleted(original.EntityId))
                 _crew.SetPost((uid, crew), original);
         }
+    }
+
+    /// <summary>A frightened crewman screams and begs aloud every so often while the alarm lasts.</summary>
+    private void Cry(EntityUid uid)
+    {
+        var now = _timing.CurTime;
+        if (!_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || _nextCry.TryGetValue(uid, out var next) && now < next)
+            return;
+
+        _nextCry[uid] = now + TimeSpan.FromSeconds(_random.NextFloat(7f, 14f));
+        if (_random.NextFloat() < 0.5f)
+            _chat.TryEmoteWithChat(uid, "Scream", Content.Shared.Chat.ChatTransmitRange.HideChat, hideLog: true);
+        else
+            _chat.TrySendInGameICMessage(uid, Loc.GetString($"wf-crew-coward-cry-{_random.Next(1, Cries + 1)}"),
+                Content.Shared.Chat.InGameICChatType.Speak, hideChat: true, hideLog: true, checkRadioPrefix: false);
     }
 
     /// <summary>Once at the bridge, a sheltering crewman gets down on the deck until the alarm is over.</summary>
