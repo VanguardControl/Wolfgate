@@ -344,6 +344,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             WarnRange = ship.WarnRange,
             AttackRange = ship.AttackRange,
             ZoneLines = ship.ZoneLines,
+            Hunt = ship.Hunt,
         };
         encounter.Comp.Ships.Add(ship.Key, state);
 
@@ -508,6 +509,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
         {
             if (TerminatingOrDeleted(ship.Grid))
                 continue;
+
+            if (ship.Hunt)
+                Hunt(ship);
 
             var fighting = _alerts.IsAlerted(ship.Grid, ship.Group);
             if (!_status.IsAdrift(ship.Grid) || fighting)

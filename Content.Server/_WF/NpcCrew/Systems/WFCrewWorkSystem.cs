@@ -130,7 +130,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (chosen is not { } mob)
             return "no-worker";
-        if (!_eva.Prepare(mob))
+        // Looters go through a docked port in whatever they are wearing.
+        if (kind != WFCrewObjectiveKind.Loot && !_eva.Prepare(mob))
         {
             _eva.SeekSpare(mob);
             return "no-eva";
@@ -178,14 +179,22 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
 
         if (TerminatingOrDeleted(source))
             return Complete(grid, group);
+        // A raid takes a few things and goes.
+        if (kind == WFCrewObjectiveKind.Loot && _looted.GetValueOrDefault((grid, group)) >= LootLimit)
+            return Complete(grid, group);
         var items = Transform(source).ChildEnumerator;
         while (items.MoveNext(out var item))
         {
             if (Transform(item).Anchored)
                 continue;
-            if (kind == WFCrewObjectiveKind.Salvage ? !HasComp<StackComponent>(item)
-                : !(HasComp<BallisticAmmoProviderComponent>(item) && !HasComp<GunComponent>(item) && _weapons.AmmoCount(item) > 0
-                    || TryComp<Content.Shared.Atmos.Components.GasTankComponent>(item, out var tank) && _eva.IsUsableSpare(item, tank)))
+            var wanted = kind switch
+            {
+                WFCrewObjectiveKind.Salvage => HasComp<StackComponent>(item),
+                WFCrewObjectiveKind.Loot => HasComp<Content.Shared.Item.ItemComponent>(item),
+                _ => HasComp<BallisticAmmoProviderComponent>(item) && !HasComp<GunComponent>(item) && _weapons.AmmoCount(item) > 0
+                     || TryComp<Content.Shared.Atmos.Components.GasTankComponent>(item, out var tank) && _eva.IsUsableSpare(item, tank),
+            };
+            if (!wanted)
                 continue;
             if (skipped.Entities.Contains(item))
             {
@@ -193,13 +202,20 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 continue;
             }
             _jobs[mob] = new Job(grid, group, kind, item, home, null, _timing.CurTime);
+            if (kind == WFCrewObjectiveKind.Loot)
+                _looted[(grid, group)] = _looted.GetValueOrDefault((grid, group)) + 1;
             return "working";
         }
         return blocked ? "work-blocked" : Complete(grid, group);
     }
 
+    /// <summary>How many things a looting crew carries off before it has enough.</summary>
+    private const int LootLimit = 4;
+    private readonly Dictionary<(EntityUid Grid, string Group), int> _looted = new();
+
     private string Complete(EntityUid grid, string group)
     {
+        _looted.Remove((grid, group));
         _skipped.Remove((grid, group));
         return "complete";
     }

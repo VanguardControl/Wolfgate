@@ -129,6 +129,13 @@ public sealed partial class WFEncounterShip
     [DataField]
     public bool FlyRoute;
 
+    /// <summary>
+    /// Runs down the nearest ship with a player aboard and docks with it, again and again until it manages it;
+    /// then its hands go aboard, fight whoever they see, carry a few things off, and the ship leaves.
+    /// </summary>
+    [DataField]
+    public bool Hunt;
+
     /// <summary>Legs of aimless flying: that many random points within <see cref="WanderRadius"/> of the origin, in turn.</summary>
     [DataField]
     public int Wander;

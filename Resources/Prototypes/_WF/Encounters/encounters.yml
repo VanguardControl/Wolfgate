@@ -280,3 +280,32 @@
     objectives:
     - kind: Escort
       target: raider
+
+# Pirate boarders: one small, lightly armed ship that gives no warning. It runs down the nearest player ship and
+# tries to dock; every time it is shaken off it comes again. If it gets a port, its hands come aboard, shoot at
+# whoever they see, carry off a few loose things, and the ship casts off and jumps out.
+- type: wfEncounter
+  id: WFEncounterPirateBoarders
+  name: wf-encounter-name-boarders
+  start: Scheduled
+  category: Threat
+  cost: 2
+  weight: 2
+  minPlayers: 2
+  hidden: true
+  cooldown: 2400
+  duration: 1800
+  minDistance: 1500
+  maxDistance: 2500
+  ships:
+  - key: boarder
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    deckhands: 2
+    guards: 2
+    hunt: true

@@ -12,6 +12,7 @@ using Robust.Shared.Configuration;
 using Content.Shared._Mono.CCVar;
 using Content.Server.Gravity;
 using Robust.Shared.Map.Components;
+using System;
 using System.Collections.Generic;
 using Robust.Shared.Maths;
 using Content.Shared._WF.Encounters;
@@ -91,6 +92,16 @@ public sealed class WFEncounterTest : InteractionTest
     vessel: WFDredger
     warnRange: 500
     attackRange: 150
+
+- type: wfEncounter
+  id: WFTestEncounterHunter
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: hunter
+    vessel: WFDredger
+    captain: false
+    hunt: true
 
 - type: wfEncounter
   id: WFTestEncounterCostly
@@ -384,5 +395,64 @@ public sealed class WFEncounterTest : InteractionTest
                 SEntMan.DeleteEntity(uid);
             }
         });
+    }
+
+    /// <summary>A hunting ship is ordered to dock with and loot the nearest player ship, then leave.</summary>
+    [Test]
+    public async Task HunterRaidsNearestPlayerShip()
+    {
+        EntityUid encounter = default, hunter = default, prey = default;
+        await Server.WaitAssertion(() =>
+        {
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            prey = grid.Owner;
+            var tiles = new List<(Vector2i, Tile)>();
+            for (var x = 0; x < 5; x++)
+            {
+                for (var y = 0; y < 5; y++)
+                {
+                    tiles.Add((new Vector2i(x, y), new Tile(1)));
+                }
+            }
+
+            Server.System<SharedMapSystem>().SetTiles(grid, tiles);
+            var transform = Server.System<SharedTransformSystem>();
+            transform.SetCoordinates(prey, new EntityCoordinates(MapData.MapUid, new Vector2(8400, 8000)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(prey, new Vector2(2.5f)));
+
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterHunter");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(8000, 8000), MapData.MapId), out encounter), Is.True);
+            hunter = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["hunter"].Grid;
+        });
+        await WaitUntilServer(() => SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["hunter"].Prey == prey, 900);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["hunter"];
+            var crews = Server.System<WFCrewObjectiveSystem>().Snapshot();
+            var orders = crews.Single(crew => crew.Group == state.Group).Objectives;
+            Assert.That(orders.Select(order => order.Kind), Is.EqualTo(new[]
+            {
+                WFCrewObjectiveKind.Loot, WFCrewObjectiveKind.Undock, WFCrewObjectiveKind.GoTo,
+            }), "Dock and loot the prey, cast off, fly clear.");
+            Assert.That(orders[0].Target, Is.EqualTo(SEntMan.GetNetEntity(prey)));
+            Assert.That(state.Raided, Is.False);
+
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(prey);
+        });
+        await RunTicks(10);
+    }
+
+    private async Task WaitUntilServer(Func<bool> condition, int maxTicks)
+    {
+        var met = false;
+        for (var waited = 0; waited < maxTicks && !met; waited += 20)
+        {
+            await RunTicks(20);
+            await Server.WaitPost(() => met = condition());
+        }
+
+        Assert.That(met, Is.True, "The condition was not met in time.");
     }
 }

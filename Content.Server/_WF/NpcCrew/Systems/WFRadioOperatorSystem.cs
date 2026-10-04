@@ -504,6 +504,12 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     /// Whether this operator is the one that speaks for its crew: a living radio officer, else the captain, else
     /// nobody, so a crew with both does not say every line twice.
     /// </summary>
+    private bool HeadsetOn(EntityUid uid)
+    {
+        return EntityManager.System<Content.Shared.Inventory.InventorySystem>().TryGetSlotEntity(uid, "ears", out var headset)
+            && TryComp<Content.Shared.Radio.Components.HeadsetComponent>(headset, out var set) && set.Enabled;
+    }
+
     private bool IsSpokesman(Entity<WFRadioOperatorComponent> ent)
     {
         if (!TryComp<WFCrewComponent>(ent, out var own))
@@ -519,8 +525,13 @@ public sealed class WFRadioOperatorSystem : EntitySystem
                 || TerminatingOrDeleted(uid) || _mobState.IsIncapacitated(uid))
                 continue;
 
-            var rank = crew.Role == WFCrewRoles.RadioOperator ? 0 : crew.Role == WFCrewRoles.Captain ? 1 : int.MaxValue;
-            if (rank < chosenRank)
+            if (crew.Role != WFCrewRoles.RadioOperator && crew.Role != WFCrewRoles.Captain)
+                continue;
+
+            // The radio officer before the captain, and of two alike the one whose headset is switched on; the
+            // lower entity id settles the rest, so the choice doesn't depend on enumeration order.
+            var rank = (crew.Role == WFCrewRoles.RadioOperator ? 0 : 2) + (HeadsetOn(uid) ? 0 : 1);
+            if (rank < chosenRank || rank == chosenRank && chosen is { } current && uid.Id < current.Id)
             {
                 chosen = uid;
                 chosenRank = rank;

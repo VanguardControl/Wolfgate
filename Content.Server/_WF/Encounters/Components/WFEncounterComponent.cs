@@ -94,6 +94,18 @@ public sealed partial class WFEncounterShipState
     /// <summary>Since when no player has been near it, while resolved.</summary>
     public TimeSpan? Quiet;
 
+    /// <summary>Whether it hunts player ships to dock with and board.</summary>
+    [DataField]
+    public bool Hunt;
+
+    /// <summary>The ship it is trying to dock with.</summary>
+    [DataField]
+    public EntityUid? Prey;
+
+    /// <summary>Whether its raid is over and it is leaving.</summary>
+    [DataField]
+    public bool Raided;
+
     /// <summary>Since when the ship has had no thrust while not in a fight.</summary>
     public TimeSpan? AdriftSince;
 

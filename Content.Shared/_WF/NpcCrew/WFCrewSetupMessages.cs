@@ -9,7 +9,7 @@ public enum WFCrewSetupAction : byte { List, Plan, Spawn, Clear, Orders, Preview
 
 /// <summary>High-level crew tasks; timed tasks with zero duration continue until skipped.</summary>
 [Serializable, NetSerializable]
-public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat, Repair, Resupply, Salvage, Escort, Circle }
+public enum WFCrewObjectiveKind : byte { Hold, GoTo, Dock, Undock, Loiter, Follow, Attack, Retreat, Repair, Resupply, Salvage, Escort, Circle, Loot }
 
 /// <summary>Response to an unauthorized docking or boarding incident.</summary>
 [Serializable, NetSerializable]

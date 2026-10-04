@@ -27,6 +27,7 @@ wf-encounter-pirate-zone-warn-2 = You there, {$intruder}. Heave to and open your
 wf-encounter-pirate-zone-warn-3 = {$intruder}, you are {$distance} metres into our hunting ground. Kill your drive.
 wf-encounter-pirate-zone-attack = Too slow, {$intruder}. Light them up.
 wf-encounter-name-pirates = Unidentified raiders {$designation}
+wf-encounter-name-boarders = Pirate boarders {$designation}
 wf-encounter-name-ambush = Hauler {$designation} under attack
 wf-encounter-sender-traffic = Sector traffic control
 wf-encounter-announce-freighter = {$name} is entering the sector at {$origin}, inbound to {$destination} with general cargo.

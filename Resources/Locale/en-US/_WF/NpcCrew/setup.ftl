@@ -110,5 +110,6 @@ wf-crew-setup-task-help-retreat = Travel toward the selected grid, then continue
 wf-crew-setup-task-help-repair = Hold while deckhands repair equipment and restore the ship's saved layout with their built-in SRD. Continues when work is complete.
 wf-crew-setup-task-help-resupply = Dock and bring reachable loose ammunition and filled oxygen tanks aboard. Requires a pilot, deckhand and suitable EVA equipment.
 wf-crew-setup-task-help-salvage = Dock and collect reachable loose material stacks. Requires a pilot, deckhand and suitable EVA equipment. Does not dismantle structures or mine rock.
+wf-crew-setup-task-help-loot = Dock and carry a few loose items back from the target. Requires a pilot and a deckhand; the crew fight anyone hostile they see aboard.
 wf-crew-setup-task-help-circle = Circle the selected grid using the crew's Circle speed, 4 m/s by default. Distance is measured from its center and increases when needed to clear both hulls. Use 0 seconds to circle until skipped.
 wf-crew-objective-circle = Circle grid (slow)

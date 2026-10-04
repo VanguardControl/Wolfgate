@@ -194,7 +194,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 state.Evaded = false;
                 // The restored course doesn't redo an arrival or docking undone by the evasion; fly the task again.
                 if (item.Kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Undock
-                    or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage)
+                    or WFCrewObjectiveKind.Retreat or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage or WFCrewObjectiveKind.Loot)
                     state.Started = false;
             }
             var target = item.Target is { } net ? GetEntity(net) : EntityUid.Invalid;
@@ -213,7 +213,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             }
             state.Status = "running";
             state.Elapsed += elapsed;
-            if (item.Kind is WFCrewObjectiveKind.Repair or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage)
+            if (item.Kind is WFCrewObjectiveKind.Repair or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage or WFCrewObjectiveKind.Loot)
             {
                 if (item.Kind != WFCrewObjectiveKind.Repair && !duty.OrdersCompleted)
                     continue;
@@ -252,6 +252,7 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             case WFCrewObjectiveKind.Repair: _pilots.Hold(pilot); break;
             case WFCrewObjectiveKind.Resupply:
             case WFCrewObjectiveKind.Salvage: _pilots.Dock(pilot, target); break;
+            case WFCrewObjectiveKind.Loot: _pilots.Dock(pilot, target); break;
             case WFCrewObjectiveKind.GoTo:
                 _pilots.GoTo(pilot, new List<EntityCoordinates> { new(Transform(grid).MapUid!.Value, item.Position) }); break;
             case WFCrewObjectiveKind.Dock: _pilots.Dock(pilot, target); break;
